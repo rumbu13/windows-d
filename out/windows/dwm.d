@@ -11,7 +11,7 @@ public import windows.systemservices : BOOL, LRESULT;
 public import windows.windowsandmessaging : HWND, LPARAM, WPARAM;
 public import windows.wpfbitmapeffects : MilMatrix3x2D;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -478,7 +478,7 @@ HRESULT DwmExtendFrameIntoClientArea(HWND hWnd, const(MARGINS)* pMarInset);
 ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("dwmapi")
-HRESULT DwmGetColorizationColor(uint* pcrColorization, int* pfOpaqueBlend);
+HRESULT DwmGetColorizationColor(uint* pcrColorization, BOOL* pfOpaqueBlend);
 
 ///Retrieves the current composition timing information for a specified window.
 ///Params:
@@ -512,7 +512,7 @@ HRESULT DwmGetCompositionTimingInfo(HWND hwnd, DWM_TIMING_INFO* pTimingInfo);
 ///    code](/windows/desktop/com/com-error-codes-10).
 ///    
 @DllImport("dwmapi")
-HRESULT DwmGetWindowAttribute(HWND hwnd, uint dwAttribute, char* pvAttribute, uint cbAttribute);
+HRESULT DwmGetWindowAttribute(HWND hwnd, uint dwAttribute, void* pvAttribute, uint cbAttribute);
 
 ///Obtains a value that indicates whether Desktop Window Manager (DWM) composition is enabled. Applications on machines
 ///running Windows 7 or earlier can listen for composition state changes by handling the WM_DWMCOMPOSITIONCHANGED
@@ -528,7 +528,7 @@ HRESULT DwmGetWindowAttribute(HWND hwnd, uint dwAttribute, char* pvAttribute, ui
 ///                SystemParametersInfo function with the <b>SPI_GETHIGHCONTRAST</b> flag to determine the state of high contrast
 ///                mode.)</div> <div> </div> For more information, see Supporting High Contrast Themes.
 @DllImport("dwmapi")
-HRESULT DwmIsCompositionEnabled(int* pfEnabled);
+HRESULT DwmIsCompositionEnabled(BOOL* pfEnabled);
 
 ///Changes the number of monitor refreshes through which the previous frame will be displayed.
 ///<b>DwmModifyPreviousDxFrameDuration</b> is no longer supported. Starting with Windows 8.1, calls to
@@ -609,7 +609,7 @@ HRESULT DwmSetPresentParameters(HWND hwnd, DWM_PRESENT_PARAMETERS* pPresentParam
 ///    then this function returns **DWM_E_COMPOSITIONDISABLED**.
 ///    
 @DllImport("dwmapi")
-HRESULT DwmSetWindowAttribute(HWND hwnd, uint dwAttribute, char* pvAttribute, uint cbAttribute);
+HRESULT DwmSetWindowAttribute(HWND hwnd, uint dwAttribute, const(void)* pvAttribute, uint cbAttribute);
 
 ///Removes a Desktop Window Manager (DWM) thumbnail relationship created by the DwmRegisterThumbnail function.
 ///Params:
@@ -724,7 +724,7 @@ HRESULT DwmGetGraphicsStreamClient(uint uIndex, GUID* pClientUuid);
 ///                    is connected; otherwise, <b>FALSE</b>.
 ///    pDwGeneration = A pointer to a <b>DWORD</b> that receives a generation value for the transport.
 @DllImport("dwmapi")
-HRESULT DwmGetTransportAttributes(int* pfIsRemoting, int* pfIsConnected, uint* pDwGeneration);
+HRESULT DwmGetTransportAttributes(BOOL* pfIsRemoting, BOOL* pfIsConnected, uint* pDwGeneration);
 
 ///Coordinates the animations of tool windows with the Desktop Window Manager (DWM).
 ///Params:
@@ -739,7 +739,7 @@ HRESULT DwmTransitionOwnedWindow(HWND hwnd, DWMTRANSITION_OWNEDWINDOW_TARGET tar
 ///    cContacts = The number of contact points.
 ///    pdwPointerID = The pointer ID.
 @DllImport("dwmapi")
-HRESULT DwmRenderGesture(GESTURE_TYPE gt, uint cContacts, char* pdwPointerID, char* pPoints);
+HRESULT DwmRenderGesture(GESTURE_TYPE gt, uint cContacts, const(uint)* pdwPointerID, const(POINT)* pPoints);
 
 ///Enables the graphical feedback of touch and drag interactions to the user.
 ///Params:

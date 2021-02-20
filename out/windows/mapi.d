@@ -3,8 +3,9 @@
 module windows.mapi;
 
 public import windows.core;
+public import windows.systemservices : PSTR, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Callbacks
@@ -55,8 +56,8 @@ extern(Windows):
 ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>SUCCESS_SUCCESS </b></dt> </dl> </td> <td width="60%"> The call
 ///    succeeded and a Simple MAPI session was established. </td> </tr> </table>
 ///    
-alias MAPILOGON = uint function(size_t ulUIParam, const(char)* lpszProfileName, const(char)* lpszPassword, 
-                                uint flFlags, uint ulReserved, size_t* lplhSession);
+alias MAPILOGON = uint function(size_t ulUIParam, PSTR lpszProfileName, PSTR lpszPassword, uint flFlags, 
+                                uint ulReserved, size_t* lplhSession);
 ///<p class="CCE_Message">[The use of this function is discouraged. It may be altered or unavailable in subsequent
 ///versions of Windows.] The <b>MAPILogoff</b> function ends a session with the messaging system.
 ///Params:
@@ -231,8 +232,8 @@ alias MAPISENDMAILW = uint function(size_t lhSession, size_t ulUIParam, MapiMess
 ///    width="40%"> <dl> <dt><b>SUCCESS_SUCCESS </b></dt> </dl> </td> <td width="60%"> The call succeeded and the
 ///    message was sent. </td> </tr> </table>
 ///    
-alias MAPISENDDOCUMENTS = uint function(size_t ulUIParam, const(char)* lpszDelimChar, const(char)* lpszFilePaths, 
-                                        const(char)* lpszFileNames, uint ulReserved);
+alias MAPISENDDOCUMENTS = uint function(size_t ulUIParam, PSTR lpszDelimChar, PSTR lpszFilePaths, 
+                                        PSTR lpszFileNames, uint ulReserved);
 ///<p class="CCE_Message">[The use of this function is discouraged. It may be altered or unavailable in subsequent
 ///versions of Windows.] The <b>MAPIFindNext</b> function retrieves the next (or first) message identifier of a
 ///specified type of incoming message.
@@ -280,9 +281,8 @@ alias MAPISENDDOCUMENTS = uint function(size_t ulUIParam, const(char)* lpszDelim
 ///    </tr> <tr> <td width="40%"> <dl> <dt><b>SUCCESS_SUCCESS </b></dt> </dl> </td> <td width="60%"> The call succeeded
 ///    and the message identifier was returned. </td> </tr> </table>
 ///    
-alias MAPIFINDNEXT = uint function(size_t lhSession, size_t ulUIParam, const(char)* lpszMessageType, 
-                                   const(char)* lpszSeedMessageID, uint flFlags, uint ulReserved, 
-                                   const(char)* lpszMessageID);
+alias MAPIFINDNEXT = uint function(size_t lhSession, size_t ulUIParam, PSTR lpszMessageType, 
+                                   PSTR lpszSeedMessageID, uint flFlags, uint ulReserved, PSTR lpszMessageID);
 ///<p class="CCE_Message">[The use of this function is discouraged. It may be altered or unavailable in subsequent
 ///versions of Windows.] The <b>MAPIReadMail</b> function retrieves a message for reading.
 ///Params:
@@ -332,7 +332,7 @@ alias MAPIFINDNEXT = uint function(size_t lhSession, size_t ulUIParam, const(cha
 ///    <dt><b>SUCCESS_SUCCESS </b></dt> </dl> </td> <td width="60%"> The call succeeded and the message was read. </td>
 ///    </tr> </table>
 ///    
-alias MAPIREADMAIL = uint function(size_t lhSession, size_t ulUIParam, const(char)* lpszMessageID, uint flFlags, 
+alias MAPIREADMAIL = uint function(size_t lhSession, size_t ulUIParam, PSTR lpszMessageID, uint flFlags, 
                                    uint ulReserved, MapiMessage** lppMessage);
 ///<p class="CCE_Message">[The use of this function is discouraged. It may be altered or unavailable in subsequent
 ///versions of Windows.] The <b>MAPISaveMail</b> function saves a message into the message store.
@@ -389,7 +389,7 @@ alias MAPIREADMAIL = uint function(size_t lhSession, size_t ulUIParam, const(cha
 ///    </dl> </td> <td width="60%"> The call succeeded and the message was saved. </td> </tr> </table>
 ///    
 alias MAPISAVEMAIL = uint function(size_t lhSession, size_t ulUIParam, MapiMessage* lpMessage, uint flFlags, 
-                                   uint ulReserved, const(char)* lpszMessageID);
+                                   uint ulReserved, PSTR lpszMessageID);
 ///<p class="CCE_Message">[The use of this function is discouraged. It may be altered or unavailable in subsequent
 ///versions of Windows.] The <b>MAPIDeleteMail</b> function deletes a message.
 ///Params:
@@ -414,7 +414,7 @@ alias MAPISAVEMAIL = uint function(size_t lhSession, size_t ulUIParam, MapiMessa
 ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>SUCCESS_SUCCESS </b></dt> </dl> </td> <td width="60%"> The call
 ///    succeeded and the message was deleted. </td> </tr> </table>
 ///    
-alias MAPIDELETEMAIL = uint function(size_t lhSession, size_t ulUIParam, const(char)* lpszMessageID, uint flFlags, 
+alias MAPIDELETEMAIL = uint function(size_t lhSession, size_t ulUIParam, PSTR lpszMessageID, uint flFlags, 
                                      uint ulReserved);
 ///<p class="CCE_Message">[The use of this function is discouraged. It may be altered or unavailable in subsequent
 ///versions of Windows.] The <b>MAPIAddress</b> function creates or modifies a set of address list entries.
@@ -483,8 +483,8 @@ alias MAPIDELETEMAIL = uint function(size_t lhSession, size_t ulUIParam, const(c
 ///    <dt><b>SUCCESS_SUCCESS </b></dt> </dl> </td> <td width="60%"> The call succeeded and a list of recipient entries
 ///    was returned. </td> </tr> </table>
 ///    
-alias MAPIADDRESS = uint function(size_t lhSession, size_t ulUIParam, const(char)* lpszCaption, uint nEditFields, 
-                                  const(char)* lpszLabels, uint nRecips, MapiRecipDesc* lpRecips, uint flFlags, 
+alias MAPIADDRESS = uint function(size_t lhSession, size_t ulUIParam, PSTR lpszCaption, uint nEditFields, 
+                                  PSTR lpszLabels, uint nRecips, MapiRecipDesc* lpRecips, uint flFlags, 
                                   uint ulReserved, uint* lpnNewRecips, MapiRecipDesc** lppNewRecips);
 ///<p class="CCE_Message">[The use of this function is discouraged. It may be altered or unavailable in subsequent
 ///versions of Windows.] The <b>MAPIDetails</b> function displays a dialog box containing the details of a selected
@@ -580,7 +580,7 @@ alias MAPIDETAILS = uint function(size_t lhSession, size_t ulUIParam, MapiRecipD
 ///    name was not resolved. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>SUCCESS_SUCCESS </b></dt> </dl> </td> <td
 ///    width="60%"> The call succeeded and the name was resolved. </td> </tr> </table>
 ///    
-alias MAPIRESOLVENAME = uint function(size_t lhSession, size_t ulUIParam, const(char)* lpszName, uint flFlags, 
+alias MAPIRESOLVENAME = uint function(size_t lhSession, size_t ulUIParam, PSTR lpszName, uint flFlags, 
                                       uint ulReserved, MapiRecipDesc** lppRecip);
 
 // Structs
@@ -592,7 +592,7 @@ alias MAPIRESOLVENAME = uint function(size_t lhSession, size_t ulUIParam, const(
 struct MapiFileDesc
 {
     ///Reserved; must be zero.
-    uint         ulReserved;
+    uint  ulReserved;
     ///Bitmask of option flags. The following flags can be set. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr>
     ///<td width="40%"><a id="MAPI_OLE"></a><a id="mapi_ole"></a><dl> <dt><b>MAPI_OLE</b></dt> </dl> </td> <td
     ///width="60%"> The attachment is an OLE object. If MAPI_OLE_STATIC is also set, the attachment is a static OLE
@@ -600,22 +600,22 @@ struct MapiFileDesc
     ///width="40%"><a id="MAPI_OLE_STATIC"></a><a id="mapi_ole_static"></a><dl> <dt><b>MAPI_OLE_STATIC</b></dt> </dl>
     ///</td> <td width="60%"> The attachment is a static OLE object. </td> </tr> </table> If neither flag is set, the
     ///attachment is treated as a data file.
-    uint         flFlags;
+    uint  flFlags;
     ///An integer used to indicate where in the message text to render the attachment. Attachments replace the character
     ///found at a certain position in the message text. That is, attachments replace the character in the MapiMessage
     ///structure field <b>NoteText</b>[<b>nPosition</b>]. A value of -1 (0xFFFFFFFF) means the attachment position is
     ///not indicated; the client application will have to provide a way for the user to access the attachment.
-    uint         nPosition;
+    uint  nPosition;
     ///Pointer to the fully qualified path of the attached file. This path should include the disk drive letter and
     ///directory name.
-    const(char)* lpszPathName;
+    PSTR  lpszPathName;
     ///Pointer to the attachment filename seen by the recipient, which may differ from the filename in the
     ///<b>lpszPathName</b> member if temporary files are being used. If the <b>lpszFileName</b> member is empty or
     ///<b>NULL</b>, the filename from <b>lpszPathName</b> is used.
-    const(char)* lpszFileName;
+    PSTR  lpszFileName;
     ///Pointer to the attachment file type, which can be represented with a MapiFileTagExt structure. A value of
     ///<b>NULL</b> indicates an unknown file type or a file type determined by the operating system.
-    void*        lpFileType;
+    void* lpFileType;
 }
 
 ///A <b>MapiFileDescW</b> structure contains information about a file containing a message attachment stored as a
@@ -624,7 +624,7 @@ struct MapiFileDesc
 struct MapiFileDescW
 {
     ///Type: <b>ULONG</b> Reserved; must be 0.
-    uint          ulReserved;
+    uint  ulReserved;
     ///Type: <b>ULONG</b> Bitmask of attachment flags. The following flags can be set. <table> <tr> <th>Value</th>
     ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="MAPI_OLE"></a><a id="mapi_ole"></a><dl>
     ///<dt><b>MAPI_OLE</b></dt> <dt>0x00000001</dt> </dl> </td> <td width="60%"> The attachment is an OLE object. If
@@ -633,23 +633,23 @@ struct MapiFileDescW
     ///id="mapi_ole_static"></a><dl> <dt><b>MAPI_OLE_STATIC</b></dt> <dt>0x00000002</dt> </dl> </td> <td width="60%">
     ///The attachment is a static OLE object. </td> </tr> </table> If neither flag is set, the attachment is treated as
     ///a data file.
-    uint          flFlags;
+    uint  flFlags;
     ///Type: <b>ULONG</b> An integer used to indicate where the attachment is rendered in the message text. The message
     ///text is stored in the <b>NoteText</b> member of the MapiMessageW structure, and the integer is used as an index
     ///to identify a specific character in the message string, <b>NoteText</b>[<b>nPosition</b>], that is replaced by
     ///the attachment. A value of -1 (0xFFFFFFFF) means the attachment position is not indicated and the client
     ///application must provide a way for the user to access the attachment.
-    uint          nPosition;
+    uint  nPosition;
     ///Type: <b>PWSTR</b> Pointer to the fully qualified path of the attached file. This path should include the disk
     ///drive letter and directory name.
-    const(wchar)* lpszPathName;
+    PWSTR lpszPathName;
     ///Type: <b>PWSTR</b> Pointer to the filename of the attachment as seen by the recipient. The filename that is seen
     ///by the recipient may differ from the filename in the <b>lpszPathName</b> member if temporary files are being
     ///used. If the <b>lpszFileName</b> member is empty or <b>NULL</b>, the filename from <b>lpszPathName</b> is used.
-    const(wchar)* lpszFileName;
+    PWSTR lpszFileName;
     ///Type: <b>PVOID</b> Pointer to the attachment file type, which can be represented with a MapiFileTagExt structure.
     ///A value of <b>NULL</b> indicates an unknown file type or a file type determined by the operating system.
-    void*         lpFileType;
+    void* lpFileType;
 }
 
 ///A <b>MapiFileTagExt</b> structure specifies a message attachment's type at its creation and its current form of
@@ -675,7 +675,7 @@ struct MapiFileTagExt
 struct MapiRecipDesc
 {
     ///Reserved; must be zero.
-    uint         ulReserved;
+    uint  ulReserved;
     ///Contains a numeric value that indicates the type of recipient. Possible values are as follow. <table> <tr>
     ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="MAPI_ORIG"></a><a id="mapi_orig"></a><dl>
     ///<dt><b>MAPI_ORIG</b></dt> <dt>0</dt> </dl> </td> <td width="60%"> Indicates the original sender of the message.
@@ -685,29 +685,29 @@ struct MapiRecipDesc
     ///Indicates a recipient of a message copy. </td> </tr> <tr> <td width="40%"><a id="MAPI_BCC"></a><a
     ///id="mapi_bcc"></a><dl> <dt><b>MAPI_BCC</b></dt> <dt>3</dt> </dl> </td> <td width="60%"> Indicates a recipient of
     ///a blind copy. </td> </tr> </table>
-    uint         ulRecipClass;
+    uint  ulRecipClass;
     ///Pointer to the display name of the message recipient or sender.
-    const(char)* lpszName;
+    PSTR  lpszName;
     ///Optional pointer to the recipient or sender's address; this address is provider-specific message delivery data.
     ///Generally, the messaging system provides such addresses for inbound messages. For outbound messages, the
     ///<b>lpszAddress</b> member can point to an address entered by the user for a recipient not in an address book
     ///(that is, a custom recipient). The format of the address is <i>address type</i>:<i>email address</i>. Examples of
     ///valid addresses are FAX:206-555-1212 and SMTP:M@X.COM.
-    const(char)* lpszAddress;
+    PSTR  lpszAddress;
     ///The size, in bytes, of the entry identifier pointed to by the <b>lpEntryID</b> member.
-    uint         ulEIDSize;
+    uint  ulEIDSize;
     ///Pointer to an opaque entry identifier used by a messaging system service provider to identify the message
     ///recipient. Entry identifiers have meaning only for the service provider; client applications will not be able to
     ///decipher them. The messaging system uses this member to return valid entry identifiers for all recipients or
     ///senders listed in the address book.
-    void*        lpEntryID;
+    void* lpEntryID;
 }
 
 ///A <b>MapiRecipDescW</b> structure contains information about a message sender or recipient.
 struct MapiRecipDescW
 {
     ///Reserved; must be zero.
-    uint          ulReserved;
+    uint  ulReserved;
     ///Contains a numeric value that indicates the type of recipient. The following values are possible. <table> <tr>
     ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="MAPI_ORIG"></a><a id="mapi_orig"></a><dl>
     ///<dt><b>MAPI_ORIG</b></dt> <dt>0</dt> </dl> </td> <td width="60%"> Indicates the original sender of the message.
@@ -717,22 +717,22 @@ struct MapiRecipDescW
     ///Indicates the recipient of a copy of the message. </td> </tr> <tr> <td width="40%"><a id="MAPI_BCC"></a><a
     ///id="mapi_bcc"></a><dl> <dt><b>MAPI_BCC</b></dt> <dt>3</dt> </dl> </td> <td width="60%"> Indicates the recipient
     ///of a blind copy of the message. </td> </tr> </table>
-    uint          ulRecipClass;
+    uint  ulRecipClass;
     ///Pointer to the display name of the message recipient or sender.
-    const(wchar)* lpszName;
+    PWSTR lpszName;
     ///Optional pointer to the recipient or sender's address. This address contains provider-specific message delivery
     ///data. Generally, the messaging system provides such addresses for inbound messages. For outbound messages, the
     ///<b>lpszAddress</b> member can point to an address entered by the user for a recipient that is not in an address
     ///book (a custom recipient). The format of the address is <i>address type</i>:<i>email address</i>. Two examples of
     ///valid addresses are FAX:206-555-1212 and SMTP:M@X.COM.
-    const(wchar)* lpszAddress;
+    PWSTR lpszAddress;
     ///The size, in bytes, of the entry identifier pointed to by the <b>lpEntryID</b> member.
-    uint          ulEIDSize;
+    uint  ulEIDSize;
     ///Pointer to an entry identifier that cannot be deciphered by client applications and that is used by a messaging
     ///system service provider to identify the message recipient. These entry identifiers have meaning only for the
     ///service provider. The messaging system uses this member to return valid entry identifiers for all recipients or
     ///senders listed in the address book.
-    void*         lpEntryID;
+    void* lpEntryID;
 }
 
 ///A <b>MapiMessage</b> structure contains information about a message. For Unicode support, use the MapiMessageW
@@ -745,20 +745,20 @@ struct MapiMessage
     uint           ulReserved;
     ///Pointer to the text string describing the message subject, typically limited to 256 characters or less. If this
     ///member is empty or <b>NULL</b>, the user has not entered subject text.
-    const(char)*   lpszSubject;
+    PSTR           lpszSubject;
     ///Pointer to a string containing the message text. If this member is empty or <b>NULL</b>, there is no message
     ///text.
-    const(char)*   lpszNoteText;
+    PSTR           lpszNoteText;
     ///Pointer to a string indicating a non-IPM type of message. Client applications can select message types for their
     ///non-IPM messages. Clients that only support IPM messages can ignore the <b>lpszMessageType</b> member when
     ///reading messages and set it to empty or <b>NULL</b> when sending messages.
-    const(char)*   lpszMessageType;
+    PSTR           lpszMessageType;
     ///Pointer to a string indicating the date when the message was received. The format is YYYY/MM/DD HH:MM, using a
     ///24-hour clock.
-    const(char)*   lpszDateReceived;
+    PSTR           lpszDateReceived;
     ///Pointer to a string identifying the conversation thread to which the message belongs. Some messaging systems can
     ///ignore and not return this member.
-    const(char)*   lpszConversationID;
+    PSTR           lpszConversationID;
     ///Bitmask of message status flags. The following flags can be set. <table> <tr> <th>Value</th> <th>Meaning</th>
     ///</tr> <tr> <td width="40%"><a id="MAPI_RECEIPT_REQUESTED"></a><a id="mapi_receipt_requested"></a><dl>
     ///<dt><b>MAPI_RECEIPT_REQUESTED</b></dt> </dl> </td> <td width="60%"> A receipt notification is requested. Client
@@ -788,20 +788,20 @@ struct MapiMessageW
     uint            ulReserved;
     ///Type: <b>PWSTR</b> Pointer to the text string describing the message subject, typically limited to 256 characters
     ///or less. If this member is empty or <b>NULL</b>, there is no subject text.
-    const(wchar)*   lpszSubject;
+    PWSTR           lpszSubject;
     ///Type: <b>PWSTR</b> Pointer to a string containing the message text. If this member is empty or <b>NULL</b>, there
     ///is no message text.
-    const(wchar)*   lpszNoteText;
+    PWSTR           lpszNoteText;
     ///Type: <b>PWSTR</b> Pointer to a string that indicates the message type of when the message is not an IPM. If your
     ///Client supports Interpersonal Messages (IPMs) exclusively, set the <b>lpszMessageType</b> member to empty or
     ///<b>NULL</b> when sending messages and ignore the member when reading messages.
-    const(wchar)*   lpszMessageType;
+    PWSTR           lpszMessageType;
     ///Type: <b>PWSTR</b> Pointer to a string indicating the date when the message was received. The format is
     ///<i>YYYY</i>/<i>MM</i>/<i>DD</i><i>HH</i>:<i>MM</i>, using a 24-hour clock.
-    const(wchar)*   lpszDateReceived;
+    PWSTR           lpszDateReceived;
     ///Type: <b>PWSTR</b> Pointer to a string identifying the conversation thread to which the message belongs. Some
     ///messaging systems ignore this member.
-    const(wchar)*   lpszConversationID;
+    PWSTR           lpszConversationID;
     ///Type: <b>FLAGS</b> Bitmask of message status flags. The following flags can be set. <table> <tr> <th>Value</th>
     ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="MAPI_RECEIPT_REQUESTED"></a><a
     ///id="mapi_receipt_requested"></a><dl> <dt><b>MAPI_RECEIPT_REQUESTED</b></dt> <dt>0x00000002</dt> </dl> </td> <td

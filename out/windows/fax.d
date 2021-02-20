@@ -7,11 +7,11 @@ public import windows.automation : BSTR, IDispatch, VARIANT;
 public import windows.com : HRESULT, IUnknown;
 public import windows.controls : HPROPSHEETPAGE;
 public import windows.gdi : HDC;
-public import windows.systemservices : BOOL, HANDLE, HINSTANCE;
+public import windows.systemservices : BOOL, HANDLE, HINSTANCE, PSTR, PWSTR;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : FILETIME, SYSTEMTIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -519,8 +519,8 @@ enum int lDEFAULT_PREFETCH_SIZE = 0x00000064;
 
 // Callbacks
 
-alias PFAXCONNECTFAXSERVERA = BOOL function(const(char)* MachineName, ptrdiff_t* FaxHandle);
-alias PFAXCONNECTFAXSERVERW = BOOL function(const(wchar)* MachineName, ptrdiff_t* FaxHandle);
+alias PFAXCONNECTFAXSERVERA = BOOL function(const(PSTR) MachineName, HANDLE* FaxHandle);
+alias PFAXCONNECTFAXSERVERW = BOOL function(const(PWSTR) MachineName, HANDLE* FaxHandle);
 ///The <b>FaxClose</b> function closes the following types of fax handles: <ul> <li>A fax server handle returned by a
 ///call to the FaxConnectFaxServer function</li> <li>A fax port handle returned by a call to the FaxOpenPort
 ///function</li> </ul>
@@ -558,12 +558,12 @@ alias PFAXCLOSE = BOOL function(HANDLE FaxHandle);
 ///    PORT_OPEN_MODIFY access. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_BAD_UNIT</b></dt> </dl> </td> <td
 ///    width="60%"> The <i>DeviceId</i> parameter is invalid. </td> </tr> </table>
 ///    
-alias PFAXOPENPORT = BOOL function(HANDLE FaxHandle, uint DeviceId, uint Flags, ptrdiff_t* FaxPortHandle);
+alias PFAXOPENPORT = BOOL function(HANDLE FaxHandle, uint DeviceId, uint Flags, HANDLE* FaxPortHandle);
 alias PFAXCOMPLETEJOBPARAMSA = BOOL function(FAX_JOB_PARAMA** JobParams, FAX_COVERPAGE_INFOA** CoverpageInfo);
 alias PFAXCOMPLETEJOBPARAMSW = BOOL function(FAX_JOB_PARAMW** JobParams, FAX_COVERPAGE_INFOW** CoverpageInfo);
-alias PFAXSENDDOCUMENTA = BOOL function(HANDLE FaxHandle, const(char)* FileName, FAX_JOB_PARAMA* JobParams, 
+alias PFAXSENDDOCUMENTA = BOOL function(HANDLE FaxHandle, const(PSTR) FileName, FAX_JOB_PARAMA* JobParams, 
                                         const(FAX_COVERPAGE_INFOA)* CoverpageInfo, uint* FaxJobId);
-alias PFAXSENDDOCUMENTW = BOOL function(HANDLE FaxHandle, const(wchar)* FileName, FAX_JOB_PARAMW* JobParams, 
+alias PFAXSENDDOCUMENTW = BOOL function(HANDLE FaxHandle, const(PWSTR) FileName, FAX_JOB_PARAMW* JobParams, 
                                         const(FAX_COVERPAGE_INFOW)* CoverpageInfo, uint* FaxJobId);
 ///The <b>FAX_RECIPIENT_CALLBACK</b> function is an application-defined or library-defined callback function that the
 ///FaxSendDocumentForBroadcast function calls to retrieve user-specific information for the transmission.
@@ -619,9 +619,9 @@ alias PFAX_RECIPIENT_CALLBACKA = BOOL function(HANDLE FaxHandle, uint RecipientN
 ///    
 alias PFAX_RECIPIENT_CALLBACKW = BOOL function(HANDLE FaxHandle, uint RecipientNumber, void* Context, 
                                                FAX_JOB_PARAMW* JobParams, FAX_COVERPAGE_INFOW* CoverpageInfo);
-alias PFAXSENDDOCUMENTFORBROADCASTA = BOOL function(HANDLE FaxHandle, const(char)* FileName, uint* FaxJobId, 
+alias PFAXSENDDOCUMENTFORBROADCASTA = BOOL function(HANDLE FaxHandle, const(PSTR) FileName, uint* FaxJobId, 
                                                     PFAX_RECIPIENT_CALLBACKA FaxRecipientCallback, void* Context);
-alias PFAXSENDDOCUMENTFORBROADCASTW = BOOL function(HANDLE FaxHandle, const(wchar)* FileName, uint* FaxJobId, 
+alias PFAXSENDDOCUMENTFORBROADCASTW = BOOL function(HANDLE FaxHandle, const(PWSTR) FileName, uint* FaxJobId, 
                                                     PFAX_RECIPIENT_CALLBACKW FaxRecipientCallback, void* Context);
 alias PFAXENUMJOBSA = BOOL function(HANDLE FaxHandle, FAX_JOB_ENTRYA** JobEntry, uint* JobsReturned);
 alias PFAXENUMJOBSW = BOOL function(HANDLE FaxHandle, FAX_JOB_ENTRYW** JobEntry, uint* JobsReturned);
@@ -695,21 +695,21 @@ alias PFAXENUMROUTINGMETHODSA = BOOL function(HANDLE FaxPortHandle, FAX_ROUTING_
                                               uint* MethodsReturned);
 alias PFAXENUMROUTINGMETHODSW = BOOL function(HANDLE FaxPortHandle, FAX_ROUTING_METHODW** RoutingMethod, 
                                               uint* MethodsReturned);
-alias PFAXENABLEROUTINGMETHODA = BOOL function(HANDLE FaxPortHandle, const(char)* RoutingGuid, BOOL Enabled);
-alias PFAXENABLEROUTINGMETHODW = BOOL function(HANDLE FaxPortHandle, const(wchar)* RoutingGuid, BOOL Enabled);
+alias PFAXENABLEROUTINGMETHODA = BOOL function(HANDLE FaxPortHandle, const(PSTR) RoutingGuid, BOOL Enabled);
+alias PFAXENABLEROUTINGMETHODW = BOOL function(HANDLE FaxPortHandle, const(PWSTR) RoutingGuid, BOOL Enabled);
 alias PFAXENUMGLOBALROUTINGINFOA = BOOL function(HANDLE FaxHandle, FAX_GLOBAL_ROUTING_INFOA** RoutingInfo, 
                                                  uint* MethodsReturned);
 alias PFAXENUMGLOBALROUTINGINFOW = BOOL function(HANDLE FaxHandle, FAX_GLOBAL_ROUTING_INFOW** RoutingInfo, 
                                                  uint* MethodsReturned);
 alias PFAXSETGLOBALROUTINGINFOA = BOOL function(HANDLE FaxPortHandle, const(FAX_GLOBAL_ROUTING_INFOA)* RoutingInfo);
 alias PFAXSETGLOBALROUTINGINFOW = BOOL function(HANDLE FaxPortHandle, const(FAX_GLOBAL_ROUTING_INFOW)* RoutingInfo);
-alias PFAXGETROUTINGINFOA = BOOL function(HANDLE FaxPortHandle, const(char)* RoutingGuid, 
+alias PFAXGETROUTINGINFOA = BOOL function(HANDLE FaxPortHandle, const(PSTR) RoutingGuid, ubyte** RoutingInfoBuffer, 
+                                          uint* RoutingInfoBufferSize);
+alias PFAXGETROUTINGINFOW = BOOL function(HANDLE FaxPortHandle, const(PWSTR) RoutingGuid, 
                                           ubyte** RoutingInfoBuffer, uint* RoutingInfoBufferSize);
-alias PFAXGETROUTINGINFOW = BOOL function(HANDLE FaxPortHandle, const(wchar)* RoutingGuid, 
-                                          ubyte** RoutingInfoBuffer, uint* RoutingInfoBufferSize);
-alias PFAXSETROUTINGINFOA = BOOL function(HANDLE FaxPortHandle, const(char)* RoutingGuid, 
+alias PFAXSETROUTINGINFOA = BOOL function(HANDLE FaxPortHandle, const(PSTR) RoutingGuid, 
                                           const(ubyte)* RoutingInfoBuffer, uint RoutingInfoBufferSize);
-alias PFAXSETROUTINGINFOW = BOOL function(HANDLE FaxPortHandle, const(wchar)* RoutingGuid, 
+alias PFAXSETROUTINGINFOW = BOOL function(HANDLE FaxPortHandle, const(PWSTR) RoutingGuid, 
                                           const(ubyte)* RoutingInfoBuffer, uint RoutingInfoBufferSize);
 ///The <b>FaxInitializeEventQueue</b> function creates a fax event queue for the calling fax client application. The
 ///queue enables the application to receive notifications of asynchronous events from the fax server.
@@ -754,17 +754,17 @@ alias PFAXINITIALIZEEVENTQUEUE = BOOL function(HANDLE FaxHandle, HANDLE Completi
 ///    Buffer = Type: <b>LPVOID</b> Pointer to a buffer allocated on a previous call to one of the functions named in the
 ///             following See Also section.
 alias PFAXFREEBUFFER = void function(void* Buffer);
-alias PFAXSTARTPRINTJOBA = BOOL function(const(char)* PrinterName, const(FAX_PRINT_INFOA)* PrintInfo, 
+alias PFAXSTARTPRINTJOBA = BOOL function(const(PSTR) PrinterName, const(FAX_PRINT_INFOA)* PrintInfo, 
                                          uint* FaxJobId, FAX_CONTEXT_INFOA* FaxContextInfo);
-alias PFAXSTARTPRINTJOBW = BOOL function(const(wchar)* PrinterName, const(FAX_PRINT_INFOW)* PrintInfo, 
+alias PFAXSTARTPRINTJOBW = BOOL function(const(PWSTR) PrinterName, const(FAX_PRINT_INFOW)* PrintInfo, 
                                          uint* FaxJobId, FAX_CONTEXT_INFOW* FaxContextInfo);
 alias PFAXPRINTCOVERPAGEA = BOOL function(const(FAX_CONTEXT_INFOA)* FaxContextInfo, 
                                           const(FAX_COVERPAGE_INFOA)* CoverPageInfo);
 alias PFAXPRINTCOVERPAGEW = BOOL function(const(FAX_CONTEXT_INFOW)* FaxContextInfo, 
                                           const(FAX_COVERPAGE_INFOW)* CoverPageInfo);
-alias PFAXREGISTERSERVICEPROVIDERW = BOOL function(const(wchar)* DeviceProvider, const(wchar)* FriendlyName, 
-                                                   const(wchar)* ImageName, const(wchar)* TspName);
-alias PFAXUNREGISTERSERVICEPROVIDERW = BOOL function(const(wchar)* DeviceProvider);
+alias PFAXREGISTERSERVICEPROVIDERW = BOOL function(const(PWSTR) DeviceProvider, const(PWSTR) FriendlyName, 
+                                                   const(PWSTR) ImageName, const(PWSTR) TspName);
+alias PFAXUNREGISTERSERVICEPROVIDERW = BOOL function(const(PWSTR) DeviceProvider);
 ///The <i>FaxRoutingInstallationCallback</i> function is a library-defined callback function that the
 ///FaxRegisterRoutingExtension function calls to install a fax routing extension DLL. <b>FaxRegisterRoutingExtension</b>
 ///calls the <i>FaxRoutingInstallationCallback</i> function multiple times, once for each fax routing method the fax
@@ -790,11 +790,10 @@ alias PFAXUNREGISTERSERVICEPROVIDERW = BOOL function(const(wchar)* DeviceProvide
 ///    using the data pointed to by the parameters. The function returns a value of zero to indicate that there are no
 ///    more fax routing methods to register, and calls to <i>FaxRoutingInstallationCallback</i> should be terminated.
 ///    
-alias PFAX_ROUTING_INSTALLATION_CALLBACKW = BOOL function(HANDLE FaxHandle, void* Context, 
-                                                          const(wchar)* MethodName, const(wchar)* FriendlyName, 
-                                                          const(wchar)* FunctionName, const(wchar)* Guid);
-alias PFAXREGISTERROUTINGEXTENSIONW = BOOL function(HANDLE FaxHandle, const(wchar)* ExtensionName, 
-                                                    const(wchar)* FriendlyName, const(wchar)* ImageName, 
+alias PFAX_ROUTING_INSTALLATION_CALLBACKW = BOOL function(HANDLE FaxHandle, void* Context, PWSTR MethodName, 
+                                                          PWSTR FriendlyName, PWSTR FunctionName, PWSTR Guid);
+alias PFAXREGISTERROUTINGEXTENSIONW = BOOL function(HANDLE FaxHandle, const(PWSTR) ExtensionName, 
+                                                    const(PWSTR) FriendlyName, const(PWSTR) ImageName, 
                                                     PFAX_ROUTING_INSTALLATION_CALLBACKW CallBack, void* Context);
 ///A fax client application calls the <b>FaxAccessCheck</b> function to query the fax access privileges of a user.
 ///Params:
@@ -846,9 +845,9 @@ alias PFAX_LINECALLBACK = void function(HANDLE FaxHandle, uint hDevice, uint dwM
 alias PFAX_SEND_CALLBACK = BOOL function(HANDLE FaxHandle, uint CallHandle, uint Reserved1, uint Reserved2);
 alias PFAXDEVINITIALIZE = BOOL function(uint param0, HANDLE param1, PFAX_LINECALLBACK* param2, 
                                         PFAX_SERVICE_CALLBACK param3);
-alias PFAXDEVVIRTUALDEVICECREATION = BOOL function(uint* DeviceCount, const(wchar)* DeviceNamePrefix, 
-                                                   uint* DeviceIdPrefix, HANDLE CompletionPort, size_t CompletionKey);
-alias PFAXDEVSTARTJOB = BOOL function(uint param0, uint param1, ptrdiff_t* param2, HANDLE param3, size_t param4);
+alias PFAXDEVVIRTUALDEVICECREATION = BOOL function(uint* DeviceCount, PWSTR DeviceNamePrefix, uint* DeviceIdPrefix, 
+                                                   HANDLE CompletionPort, size_t CompletionKey);
+alias PFAXDEVSTARTJOB = BOOL function(uint param0, uint param1, HANDLE* param2, HANDLE param3, size_t param4);
 alias PFAXDEVENDJOB = BOOL function(HANDLE param0);
 alias PFAXDEVSEND = BOOL function(HANDLE param0, FAX_SEND* param1, PFAX_SEND_CALLBACK param2);
 alias PFAXDEVRECEIVE = BOOL function(HANDLE param0, uint param1, FAX_RECEIVE* param2);
@@ -869,7 +868,7 @@ alias PFAXDEVSHUTDOWN = HRESULT function();
 ///    list associated with the received fax. If the function fails, the return value is 1. To get extended error
 ///    information, the fax service calls GetLastError, described in MSDN.
 ///    
-alias PFAXROUTEADDFILE = int function(uint JobId, const(wchar)* FileName, GUID* Guid);
+alias PFAXROUTEADDFILE = int function(uint JobId, const(PWSTR) FileName, GUID* Guid);
 ///A fax routing method calls the <i>FaxRouteDeleteFile</i> callback function to delete a file from the fax file list
 ///associated with a received fax document.
 ///Params:
@@ -882,7 +881,7 @@ alias PFAXROUTEADDFILE = int function(uint JobId, const(wchar)* FileName, GUID* 
 ///    file list associated with the received fax. If the function fails, the return value is 1. To get extended error
 ///    information, the fax service calls GetLastError, described in MSDN.
 ///    
-alias PFAXROUTEDELETEFILE = int function(uint JobId, const(wchar)* FileName);
+alias PFAXROUTEDELETEFILE = int function(uint JobId, const(PWSTR) FileName);
 ///A fax routing method calls the <b>FaxRouteGetFile</b> callback function to retrieve the name of a specific file from
 ///the fax file list associated with a received fax document.
 ///Params:
@@ -898,7 +897,7 @@ alias PFAXROUTEDELETEFILE = int function(uint JobId, const(wchar)* FileName);
 ///    Type: <b>BOOL</b> If the function succeeds, the return value is a nonzero value. If the function fails, the
 ///    return value is zero. To get extended error information, the fax service calls GetLastError, described in MSDN.
 ///    
-alias PFAXROUTEGETFILE = BOOL function(uint JobId, uint Index, const(wchar)* FileNameBuffer, uint* RequiredSize);
+alias PFAXROUTEGETFILE = BOOL function(uint JobId, uint Index, PWSTR FileNameBuffer, uint* RequiredSize);
 ///The <i>FaxRouteEnumFile</i> callback function receives the file names in the fax file list associated with a received
 ///fax document. This function receives a file name in the fax file list associated with a received fax document, and
 ///executes a procedure defined by the routing extension. It can return a nonzero value to proceed to the next file name
@@ -922,7 +921,7 @@ alias PFAXROUTEGETFILE = BOOL function(uint JobId, uint Index, const(wchar)* Fil
 ///Returns:
 ///    Type: <b>BOOL</b> The function returns a nonzero value to continue enumeration, or zero to stop enumeration.
 ///    
-alias PFAXROUTEENUMFILE = BOOL function(uint JobId, GUID* GuidOwner, GUID* GuidCaller, const(wchar)* FileName, 
+alias PFAXROUTEENUMFILE = BOOL function(uint JobId, GUID* GuidOwner, GUID* GuidCaller, const(PWSTR) FileName, 
                                         void* Context);
 ///A fax routing method calls the <i>FaxRouteEnumFiles</i> callback function to enumerate the files in the fax file list
 ///associated with a received fax document. FaxRoutingMethod passes a pointer to the FaxRouteEnumFile callback function
@@ -957,7 +956,7 @@ alias PFAXROUTEENUMFILES = BOOL function(uint JobId, GUID* Guid, PFAXROUTEENUMFI
 ///    Type: <b>BOOL</b> If the function succeeds, the return value is a nonzero value. If the function fails, the
 ///    return value is zero. To get extended error information, the fax service calls GetLastError, described in MSDN.
 ///    
-alias PFAXROUTEMODIFYROUTINGDATA = BOOL function(uint JobId, const(wchar)* RoutingGuid, ubyte* RoutingData, 
+alias PFAXROUTEMODIFYROUTINGDATA = BOOL function(uint JobId, const(PWSTR) RoutingGuid, ubyte* RoutingData, 
                                                  uint RoutingDataSize);
 alias PFAXROUTEINITIALIZE = BOOL function(HANDLE param0, FAX_ROUTE_CALLBACKROUTINES* param1);
 ///The <b>FaxRouteMethod</b> function is a placeholder for a function name defined by the fax routing extension DLL.
@@ -979,17 +978,17 @@ alias PFAXROUTEINITIALIZE = BOOL function(HANDLE param0, FAX_ROUTE_CALLBACKROUTI
 ///    return value is zero. To get extended error information, the fax service calls GetLastError, described in MSDN.
 ///    
 alias PFAXROUTEMETHOD = BOOL function(const(FAX_ROUTE)* param0, void** param1, uint* param2);
-alias PFAXROUTEDEVICEENABLE = BOOL function(const(wchar)* param0, uint param1, int param2);
+alias PFAXROUTEDEVICEENABLE = BOOL function(const(PWSTR) param0, uint param1, int param2);
 alias PFAXROUTEDEVICECHANGENOTIFICATION = BOOL function(uint param0, BOOL param1);
-alias PFAXROUTEGETROUTINGINFO = BOOL function(const(wchar)* param0, uint param1, ubyte* param2, uint* param3);
-alias PFAXROUTESETROUTINGINFO = BOOL function(const(wchar)* param0, uint param1, const(ubyte)* param2, uint param3);
-alias PFAX_EXT_GET_DATA = uint function(uint param0, FAX_ENUM_DEVICE_ID_SOURCE param1, const(wchar)* param2, 
+alias PFAXROUTEGETROUTINGINFO = BOOL function(const(PWSTR) param0, uint param1, ubyte* param2, uint* param3);
+alias PFAXROUTESETROUTINGINFO = BOOL function(const(PWSTR) param0, uint param1, const(ubyte)* param2, uint param3);
+alias PFAX_EXT_GET_DATA = uint function(uint param0, FAX_ENUM_DEVICE_ID_SOURCE param1, const(PWSTR) param2, 
                                         ubyte** param3, uint* param4);
 alias PFAX_EXT_SET_DATA = uint function(HINSTANCE param0, uint param1, FAX_ENUM_DEVICE_ID_SOURCE param2, 
-                                        const(wchar)* param3, ubyte* param4, uint param5);
-alias PFAX_EXT_CONFIG_CHANGE = HRESULT function(uint param0, const(wchar)* param1, ubyte* param2, uint param3);
+                                        const(PWSTR) param3, ubyte* param4, uint param5);
+alias PFAX_EXT_CONFIG_CHANGE = HRESULT function(uint param0, const(PWSTR) param1, ubyte* param2, uint param3);
 alias PFAX_EXT_REGISTER_FOR_EVENTS = HANDLE function(HINSTANCE param0, uint param1, 
-                                                     FAX_ENUM_DEVICE_ID_SOURCE param2, const(wchar)* param3, 
+                                                     FAX_ENUM_DEVICE_ID_SOURCE param2, const(PWSTR) param3, 
                                                      PFAX_EXT_CONFIG_CHANGE param4);
 alias PFAX_EXT_UNREGISTER_FOR_EVENTS = uint function(HANDLE param0);
 alias PFAX_EXT_FREE_BUFFER = void function(void* param0);
@@ -1008,13 +1007,13 @@ struct FAX_LOG_CATEGORYA
 {
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is a descriptive name for the
     ///logging category.
-    const(char)* Name;
+    const(PSTR) Name;
     ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that is a unique value that identifies a logging category.
     ///This member can be one of the following predefined values.
-    uint         Category;
+    uint        Category;
     ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the current logging level for the logging
     ///category. This member can be one of the following predefined logging levels.
-    uint         Level;
+    uint        Level;
 }
 
 ///The <b>FAX_LOG_CATEGORY</b> structure describes one logging category. The structure contains a logging category name
@@ -1024,13 +1023,13 @@ struct FAX_LOG_CATEGORYW
 {
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is a descriptive name for the
     ///logging category.
-    const(wchar)* Name;
+    const(PWSTR) Name;
     ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that is a unique value that identifies a logging category.
     ///This member can be one of the following predefined values.
-    uint          Category;
+    uint         Category;
     ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the current logging level for the logging
     ///category. This member can be one of the following predefined logging levels.
-    uint          Level;
+    uint         Level;
 }
 
 ///The <b>FAX_TIME</b> structure represents a time, using individual members for the current hour and minute. The time
@@ -1047,6 +1046,60 @@ struct FAX_TIME
 ///The structure includes data on retransmission, branding, archive, and cover page settings; discount rate periods; and
 ///the status of the fax server queue.
 struct FAX_CONFIGURATIONA
+{
+    ///Type: <b>DWORD</b> Specifies the size, in bytes, of the <b>FAX_CONFIGURATION</b> structure. The calling
+    ///application must set this member to <b>sizeof(FAX_CONFIGURATION)</b> before it calls the FaxSetConfiguration
+    ///function.
+    uint        SizeOfStruct;
+    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the number of times the fax server will
+    ///attempt to retransmit an outgoing fax if the initial transmission fails.
+    uint        Retries;
+    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the number of minutes that will elapse
+    ///between retransmission attempts by the fax server.
+    uint        RetryDelay;
+    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the number of days the fax server will retain
+    ///an unsent job in the fax job queue. A transmission might not be sent, for example, if an invalid fax number or
+    ///date is specified, or if the sending device receives a busy signal multiple times.
+    uint        DirtyDays;
+    ///Type: <b>BOOL</b> Specifies a Boolean variable that indicates whether the fax server should generate a brand
+    ///(banner) at the top of outgoing fax transmissions. If this member is <b>TRUE</b>, the fax server generates a
+    ///brand that contains transmission-related information like the transmitting station identifier, date, time, and
+    ///page count.
+    BOOL        Branding;
+    ///Type: <b>BOOL</b> Specifies a Boolean variable that indicates whether the fax server will use the device's
+    ///transmitting station identifier instead of the value specified in the <b>Tsid</b> member of the FAX_JOB_PARAM
+    ///structure. If this member is <b>TRUE</b>, the server uses the device's transmitting station identifier.
+    BOOL        UseDeviceTsid;
+    ///Type: <b>BOOL</b> Specifies a Boolean variable that indicates whether fax client applications can include a
+    ///user-designed cover page with the fax transmission. If this member is <b>TRUE</b>, the client must use a common
+    ///cover page stored on the fax server. If this member is <b>FALSE</b>, the client can use a personal cover page
+    ///file.
+    BOOL        ServerCp;
+    ///Type: <b>BOOL</b> Specifies a Boolean variable that indicates whether the fax server has paused the fax job
+    ///queue. If this member is <b>TRUE</b>, the queue has been paused.
+    BOOL        PauseServerQueue;
+    ///Type: <b>FAX_TIME</b> Specifies a FAX_TIME structure that indicates the hour and minute at which the discount
+    ///period begins. The discount period applies only to outgoing transmissions.
+    FAX_TIME    StartCheapTime;
+    ///Type: <b>FAX_TIME</b> Specifies a FAX_TIME structure that indicates the hour and minute at which the discount
+    ///period ends. The discount period applies only to outgoing transmissions.
+    FAX_TIME    StopCheapTime;
+    ///Type: <b>BOOL</b> Specifies a Boolean variable that indicates whether the fax server should archive outgoing fax
+    ///transmissions. If this member is <b>TRUE</b>, the server archives outgoing transmissions in the directory
+    ///specified by the <b>ArchiveDirectory</b> member.
+    BOOL        ArchiveOutgoingFaxes;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that contains the fully qualified
+    ///path of the directory in which outgoing fax transmissions will be archived. The path can be a UNC path or a path
+    ///beginning with a drive letter. The fax server ignores this member if the <b>ArchiveOutgoingFaxes</b> member is
+    ///<b>FALSE</b>. This member can be <b>NULL</b> if the <b>ArchiveOutgoingFaxes</b> member is <b>FALSE</b>.
+    const(PSTR) ArchiveDirectory;
+    const(PSTR) Reserved;
+}
+
+///The <b>FAX_CONFIGURATION</b> structure contains information about the global configuration settings of a fax server.
+///The structure includes data on retransmission, branding, archive, and cover page settings; discount rate periods; and
+///the status of the fax server queue.
+struct FAX_CONFIGURATIONW
 {
     ///Type: <b>DWORD</b> Specifies the size, in bytes, of the <b>FAX_CONFIGURATION</b> structure. The calling
     ///application must set this member to <b>sizeof(FAX_CONFIGURATION)</b> before it calls the FaxSetConfiguration
@@ -1093,62 +1146,8 @@ struct FAX_CONFIGURATIONA
     ///path of the directory in which outgoing fax transmissions will be archived. The path can be a UNC path or a path
     ///beginning with a drive letter. The fax server ignores this member if the <b>ArchiveOutgoingFaxes</b> member is
     ///<b>FALSE</b>. This member can be <b>NULL</b> if the <b>ArchiveOutgoingFaxes</b> member is <b>FALSE</b>.
-    const(char)* ArchiveDirectory;
-    const(char)* Reserved;
-}
-
-///The <b>FAX_CONFIGURATION</b> structure contains information about the global configuration settings of a fax server.
-///The structure includes data on retransmission, branding, archive, and cover page settings; discount rate periods; and
-///the status of the fax server queue.
-struct FAX_CONFIGURATIONW
-{
-    ///Type: <b>DWORD</b> Specifies the size, in bytes, of the <b>FAX_CONFIGURATION</b> structure. The calling
-    ///application must set this member to <b>sizeof(FAX_CONFIGURATION)</b> before it calls the FaxSetConfiguration
-    ///function.
-    uint          SizeOfStruct;
-    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the number of times the fax server will
-    ///attempt to retransmit an outgoing fax if the initial transmission fails.
-    uint          Retries;
-    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the number of minutes that will elapse
-    ///between retransmission attempts by the fax server.
-    uint          RetryDelay;
-    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the number of days the fax server will retain
-    ///an unsent job in the fax job queue. A transmission might not be sent, for example, if an invalid fax number or
-    ///date is specified, or if the sending device receives a busy signal multiple times.
-    uint          DirtyDays;
-    ///Type: <b>BOOL</b> Specifies a Boolean variable that indicates whether the fax server should generate a brand
-    ///(banner) at the top of outgoing fax transmissions. If this member is <b>TRUE</b>, the fax server generates a
-    ///brand that contains transmission-related information like the transmitting station identifier, date, time, and
-    ///page count.
-    BOOL          Branding;
-    ///Type: <b>BOOL</b> Specifies a Boolean variable that indicates whether the fax server will use the device's
-    ///transmitting station identifier instead of the value specified in the <b>Tsid</b> member of the FAX_JOB_PARAM
-    ///structure. If this member is <b>TRUE</b>, the server uses the device's transmitting station identifier.
-    BOOL          UseDeviceTsid;
-    ///Type: <b>BOOL</b> Specifies a Boolean variable that indicates whether fax client applications can include a
-    ///user-designed cover page with the fax transmission. If this member is <b>TRUE</b>, the client must use a common
-    ///cover page stored on the fax server. If this member is <b>FALSE</b>, the client can use a personal cover page
-    ///file.
-    BOOL          ServerCp;
-    ///Type: <b>BOOL</b> Specifies a Boolean variable that indicates whether the fax server has paused the fax job
-    ///queue. If this member is <b>TRUE</b>, the queue has been paused.
-    BOOL          PauseServerQueue;
-    ///Type: <b>FAX_TIME</b> Specifies a FAX_TIME structure that indicates the hour and minute at which the discount
-    ///period begins. The discount period applies only to outgoing transmissions.
-    FAX_TIME      StartCheapTime;
-    ///Type: <b>FAX_TIME</b> Specifies a FAX_TIME structure that indicates the hour and minute at which the discount
-    ///period ends. The discount period applies only to outgoing transmissions.
-    FAX_TIME      StopCheapTime;
-    ///Type: <b>BOOL</b> Specifies a Boolean variable that indicates whether the fax server should archive outgoing fax
-    ///transmissions. If this member is <b>TRUE</b>, the server archives outgoing transmissions in the directory
-    ///specified by the <b>ArchiveDirectory</b> member.
-    BOOL          ArchiveOutgoingFaxes;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that contains the fully qualified
-    ///path of the directory in which outgoing fax transmissions will be archived. The path can be a UNC path or a path
-    ///beginning with a drive letter. The fax server ignores this member if the <b>ArchiveOutgoingFaxes</b> member is
-    ///<b>FALSE</b>. This member can be <b>NULL</b> if the <b>ArchiveOutgoingFaxes</b> member is <b>FALSE</b>.
-    const(wchar)* ArchiveDirectory;
-    const(wchar)* Reserved;
+    const(PWSTR) ArchiveDirectory;
+    const(PWSTR) Reserved;
 }
 
 ///The <b>FAX_DEVICE_STATUS</b> structure contains information about the current status of a fax device. In addition to
@@ -1158,14 +1157,88 @@ struct FAX_DEVICE_STATUSA
 {
     ///Type: <b>DWORD</b> Specifies the size, in bytes, of the <b>FAX_DEVICE_STATUS</b> structure. The fax service sets
     ///this member to <b>sizeof(FAX_DEVICE_STATUS)</b>.
+    uint        SizeOfStruct;
+    ///Type: <b>LPCTSTR</b> If the <b>JobType</b> member is equal to the <b>JT_RECEIVE</b> job type, <b>CallerId</b> is
+    ///a pointer to a null-terminated character string that identifies the calling device that sent the active fax
+    ///document. This string can include the telephone number of the calling device.
+    const(PSTR) CallerId;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the called station
+    ///identifier of the device.
+    const(PSTR) Csid;
+    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the number of the page in the fax
+    ///transmission that the fax device is currently sending or receiving. The page count is relative to one.
+    uint        CurrentPage;
+    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the permanent line identifier for the fax
+    ///device of interest.
+    uint        DeviceId;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the fax
+    ///device of interest.
+    const(PSTR) DeviceName;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string to associate with the fax document
+    ///that the device is currently sending or receiving. This is the user-friendly name that appears in the print
+    ///spooler.
+    const(PSTR) DocumentName;
+    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that identifies the type of fax job that is currently active
+    ///on the device. This member can be one of the following job types.
+    uint        JobType;
+    ///Type: <b>LPCTSTR</b> If the <b>JobType</b> member is equal to the <b>JT_SEND</b> job type, <b>PhoneNumber</b> is
+    ///a pointer to a constant null-terminated character string that is the fax number dialed for the outgoing fax
+    ///transmission.
+    const(PSTR) PhoneNumber;
+    ///Type: <b>LPCTSTR</b> If the <b>JobType</b> member is equal to the <b>JT_RECEIVE</b> job type,
+    ///<b>RoutingString</b> is a pointer to a constant null-terminated character string that specifies the routing
+    ///string for an incoming fax. The string must be of the form:
+    ///<code>Canonical-Phone-Number[|Additional-Routing-Info]</code> where <code>Canonical-Phone-Number</code> is
+    ///defined in the Address topic of the TAPI documentation (see the Canonical Address subheading); and
+    ///<code>Additional-Routing-Info</code> is the <i>subaddress</i> of a Canonical Address, and uses the subaddress
+    ///format.
+    const(PSTR) RoutingString;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the sender
+    ///who initiated the fax transmission.
+    const(PSTR) SenderName;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the
+    ///recipient of the fax transmission.
+    const(PSTR) RecipientName;
+    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the size, in bytes, of the active fax
+    ///document.
+    uint        Size;
+    ///Type: <b>FILETIME</b> Specifies a FILETIME structure that contains the starting time of the current fax job
+    ///expressed in UTC.
+    FILETIME    StartTime;
+    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that is a fax device status code or value. This member can
+    ///be one of the predefined device status codes shown following.
+    uint        Status;
+    ///Type: <b>LPCTSTR</b> This member must be <b>NULL</b>.
+    const(PSTR) StatusString;
+    ///Type: <b>FILETIME</b> Specifies a FILETIME structure that contains the time the client submitted the fax document
+    ///for transmission to the fax job queue. The time is expressed in UTC.
+    FILETIME    SubmittedTime;
+    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the total number of pages in the fax
+    ///transmission.
+    uint        TotalPages;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the transmitting
+    ///station identifier (TSID). This identifier is usually a telephone number.
+    const(PSTR) Tsid;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the user
+    ///who submitted the active fax job.
+    const(PSTR) UserName;
+}
+
+///The <b>FAX_DEVICE_STATUS</b> structure contains information about the current status of a fax device. In addition to
+///the status, the structure also includes data on whether the device is currently sending or receiving a fax
+///transmission, device and station identifiers, sender and recipient names, and routing information.
+struct FAX_DEVICE_STATUSW
+{
+    ///Type: <b>DWORD</b> Specifies the size, in bytes, of the <b>FAX_DEVICE_STATUS</b> structure. The fax service sets
+    ///this member to <b>sizeof(FAX_DEVICE_STATUS)</b>.
     uint         SizeOfStruct;
     ///Type: <b>LPCTSTR</b> If the <b>JobType</b> member is equal to the <b>JT_RECEIVE</b> job type, <b>CallerId</b> is
     ///a pointer to a null-terminated character string that identifies the calling device that sent the active fax
     ///document. This string can include the telephone number of the calling device.
-    const(char)* CallerId;
+    const(PWSTR) CallerId;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the called station
     ///identifier of the device.
-    const(char)* Csid;
+    const(PWSTR) Csid;
     ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the number of the page in the fax
     ///transmission that the fax device is currently sending or receiving. The page count is relative to one.
     uint         CurrentPage;
@@ -1174,18 +1247,18 @@ struct FAX_DEVICE_STATUSA
     uint         DeviceId;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the fax
     ///device of interest.
-    const(char)* DeviceName;
+    const(PWSTR) DeviceName;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string to associate with the fax document
     ///that the device is currently sending or receiving. This is the user-friendly name that appears in the print
     ///spooler.
-    const(char)* DocumentName;
+    const(PWSTR) DocumentName;
     ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that identifies the type of fax job that is currently active
     ///on the device. This member can be one of the following job types.
     uint         JobType;
     ///Type: <b>LPCTSTR</b> If the <b>JobType</b> member is equal to the <b>JT_SEND</b> job type, <b>PhoneNumber</b> is
     ///a pointer to a constant null-terminated character string that is the fax number dialed for the outgoing fax
     ///transmission.
-    const(char)* PhoneNumber;
+    const(PWSTR) PhoneNumber;
     ///Type: <b>LPCTSTR</b> If the <b>JobType</b> member is equal to the <b>JT_RECEIVE</b> job type,
     ///<b>RoutingString</b> is a pointer to a constant null-terminated character string that specifies the routing
     ///string for an incoming fax. The string must be of the form:
@@ -1193,13 +1266,13 @@ struct FAX_DEVICE_STATUSA
     ///defined in the Address topic of the TAPI documentation (see the Canonical Address subheading); and
     ///<code>Additional-Routing-Info</code> is the <i>subaddress</i> of a Canonical Address, and uses the subaddress
     ///format.
-    const(char)* RoutingString;
+    const(PWSTR) RoutingString;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the sender
     ///who initiated the fax transmission.
-    const(char)* SenderName;
+    const(PWSTR) SenderName;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the
     ///recipient of the fax transmission.
-    const(char)* RecipientName;
+    const(PWSTR) RecipientName;
     ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the size, in bytes, of the active fax
     ///document.
     uint         Size;
@@ -1210,7 +1283,7 @@ struct FAX_DEVICE_STATUSA
     ///be one of the predefined device status codes shown following.
     uint         Status;
     ///Type: <b>LPCTSTR</b> This member must be <b>NULL</b>.
-    const(char)* StatusString;
+    const(PWSTR) StatusString;
     ///Type: <b>FILETIME</b> Specifies a FILETIME structure that contains the time the client submitted the fax document
     ///for transmission to the fax job queue. The time is expressed in UTC.
     FILETIME     SubmittedTime;
@@ -1219,84 +1292,10 @@ struct FAX_DEVICE_STATUSA
     uint         TotalPages;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the transmitting
     ///station identifier (TSID). This identifier is usually a telephone number.
-    const(char)* Tsid;
+    const(PWSTR) Tsid;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the user
     ///who submitted the active fax job.
-    const(char)* UserName;
-}
-
-///The <b>FAX_DEVICE_STATUS</b> structure contains information about the current status of a fax device. In addition to
-///the status, the structure also includes data on whether the device is currently sending or receiving a fax
-///transmission, device and station identifiers, sender and recipient names, and routing information.
-struct FAX_DEVICE_STATUSW
-{
-    ///Type: <b>DWORD</b> Specifies the size, in bytes, of the <b>FAX_DEVICE_STATUS</b> structure. The fax service sets
-    ///this member to <b>sizeof(FAX_DEVICE_STATUS)</b>.
-    uint          SizeOfStruct;
-    ///Type: <b>LPCTSTR</b> If the <b>JobType</b> member is equal to the <b>JT_RECEIVE</b> job type, <b>CallerId</b> is
-    ///a pointer to a null-terminated character string that identifies the calling device that sent the active fax
-    ///document. This string can include the telephone number of the calling device.
-    const(wchar)* CallerId;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the called station
-    ///identifier of the device.
-    const(wchar)* Csid;
-    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the number of the page in the fax
-    ///transmission that the fax device is currently sending or receiving. The page count is relative to one.
-    uint          CurrentPage;
-    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the permanent line identifier for the fax
-    ///device of interest.
-    uint          DeviceId;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the fax
-    ///device of interest.
-    const(wchar)* DeviceName;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string to associate with the fax document
-    ///that the device is currently sending or receiving. This is the user-friendly name that appears in the print
-    ///spooler.
-    const(wchar)* DocumentName;
-    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that identifies the type of fax job that is currently active
-    ///on the device. This member can be one of the following job types.
-    uint          JobType;
-    ///Type: <b>LPCTSTR</b> If the <b>JobType</b> member is equal to the <b>JT_SEND</b> job type, <b>PhoneNumber</b> is
-    ///a pointer to a constant null-terminated character string that is the fax number dialed for the outgoing fax
-    ///transmission.
-    const(wchar)* PhoneNumber;
-    ///Type: <b>LPCTSTR</b> If the <b>JobType</b> member is equal to the <b>JT_RECEIVE</b> job type,
-    ///<b>RoutingString</b> is a pointer to a constant null-terminated character string that specifies the routing
-    ///string for an incoming fax. The string must be of the form:
-    ///<code>Canonical-Phone-Number[|Additional-Routing-Info]</code> where <code>Canonical-Phone-Number</code> is
-    ///defined in the Address topic of the TAPI documentation (see the Canonical Address subheading); and
-    ///<code>Additional-Routing-Info</code> is the <i>subaddress</i> of a Canonical Address, and uses the subaddress
-    ///format.
-    const(wchar)* RoutingString;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the sender
-    ///who initiated the fax transmission.
-    const(wchar)* SenderName;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the
-    ///recipient of the fax transmission.
-    const(wchar)* RecipientName;
-    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the size, in bytes, of the active fax
-    ///document.
-    uint          Size;
-    ///Type: <b>FILETIME</b> Specifies a FILETIME structure that contains the starting time of the current fax job
-    ///expressed in UTC.
-    FILETIME      StartTime;
-    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that is a fax device status code or value. This member can
-    ///be one of the predefined device status codes shown following.
-    uint          Status;
-    ///Type: <b>LPCTSTR</b> This member must be <b>NULL</b>.
-    const(wchar)* StatusString;
-    ///Type: <b>FILETIME</b> Specifies a FILETIME structure that contains the time the client submitted the fax document
-    ///for transmission to the fax job queue. The time is expressed in UTC.
-    FILETIME      SubmittedTime;
-    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the total number of pages in the fax
-    ///transmission.
-    uint          TotalPages;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the transmitting
-    ///station identifier (TSID). This identifier is usually a telephone number.
-    const(wchar)* Tsid;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the user
-    ///who submitted the active fax job.
-    const(wchar)* UserName;
+    const(PWSTR) UserName;
 }
 
 ///The <b>FAX_JOB_ENTRY</b> structure describes one fax job. The structure includes data on the job type and status,
@@ -1306,13 +1305,84 @@ struct FAX_JOB_ENTRYA
 {
     ///Type: <b>DWORD</b> Specifies the size, in bytes, of the <b>FAX_JOB_ENTRY</b> structure. The calling application
     ///must set this member to <b>sizeof(FAX_JOB_ENTRY)</b> before it calls the FaxSetJob function.
+    uint        SizeOfStruct;
+    ///Type: <b>DWORD</b> Specifies a unique number that identifies the fax job of interest. This number must match the
+    ///value the calling application passes in the JobId parameter to the FaxSetJob function.
+    uint        JobId;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the user
+    ///who submitted the fax job.
+    const(PSTR) UserName;
+    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that specifies the type of the fax job of interest. This
+    ///member can be one of the following job types.
+    uint        JobType;
+    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that is a set of bit flags indicating the queue status of
+    ///the fax job identified by the <b>JobId</b> member. This member can be one or more of the following values.
+    uint        QueueStatus;
+    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that is a fax device status code or value. This value can be
+    ///one of the following predefined device status codes.
+    uint        Status;
+    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that contains the size, in bytes, of the fax document to
+    ///transmit. The size must not exceed 4 GB.
+    uint        Size;
+    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the total number of pages in the fax
+    ///transmission.
+    uint        PageCount;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the fax number of the
+    ///recipient of the fax transmission.
+    const(PSTR) RecipientNumber;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the
+    ///recipient of the fax transmission.
+    const(PSTR) RecipientName;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the transmitting
+    ///station identifier. This identifier is usually a telephone number.
+    const(PSTR) Tsid;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the sender
+    ///who initiated the fax transmission.
+    const(PSTR) SenderName;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the company name of
+    ///the sender who initiated the fax transmission.
+    const(PSTR) SenderCompany;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the department name of
+    ///the sender who initiated the fax transmission.
+    const(PSTR) SenderDept;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that indicates an application- or
+    ///server-specific billing code that applies to the fax transmission. The fax server uses the string to generate an
+    ///entry in the fax event log. Billing codes are optional.
+    const(PSTR) BillingCode;
+    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates when to send the fax. This member can be one
+    ///of the following predefined job scheduling actions.
+    uint        ScheduleAction;
+    ///Type: <b>SYSTEMTIME</b> If the <b>ScheduleAction</b> member is equal to the value <b>JSA_SPECIFIC_TIME</b>,
+    ///specifies a SYSTEMTIME structure that contains the date and time to send the fax. The time specified must be
+    ///expressed in UTC.
+    SYSTEMTIME  ScheduleTime;
+    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the type of email delivery report (DR) or
+    ///nondelivery report (NDR) that the fax server should generate. This member can be one of the following predefined
+    ///delivery report types.
+    uint        DeliveryReportType;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string. If the <b>DeliveryReportType</b>
+    ///member is equal to <b>DRT_EMAIL</b>, the string is the address to which the DR or NDR should be sent. If the
+    ///<b>DeliveryReportType</b> member is equal to <b>DRT_NONE</b>, this member must be <b>NULL</b>.
+    const(PSTR) DeliveryReportAddress;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string to associate with the fax document.
+    ///This is the user-friendly name that appears in the print spooler.
+    const(PSTR) DocumentName;
+}
+
+///The <b>FAX_JOB_ENTRY</b> structure describes one fax job. The structure includes data on the job type and status,
+///recipient and sender identification, scheduling and delivery settings, and the page count. The <b>SizeOfStruct</b>
+///and <b>RecipientNumber</b> members are required.
+struct FAX_JOB_ENTRYW
+{
+    ///Type: <b>DWORD</b> Specifies the size, in bytes, of the <b>FAX_JOB_ENTRY</b> structure. The calling application
+    ///must set this member to <b>sizeof(FAX_JOB_ENTRY)</b> before it calls the FaxSetJob function.
     uint         SizeOfStruct;
     ///Type: <b>DWORD</b> Specifies a unique number that identifies the fax job of interest. This number must match the
     ///value the calling application passes in the JobId parameter to the FaxSetJob function.
     uint         JobId;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the user
     ///who submitted the fax job.
-    const(char)* UserName;
+    const(PWSTR) UserName;
     ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that specifies the type of the fax job of interest. This
     ///member can be one of the following job types.
     uint         JobType;
@@ -1330,26 +1400,26 @@ struct FAX_JOB_ENTRYA
     uint         PageCount;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the fax number of the
     ///recipient of the fax transmission.
-    const(char)* RecipientNumber;
+    const(PWSTR) RecipientNumber;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the
     ///recipient of the fax transmission.
-    const(char)* RecipientName;
+    const(PWSTR) RecipientName;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the transmitting
     ///station identifier. This identifier is usually a telephone number.
-    const(char)* Tsid;
+    const(PWSTR) Tsid;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the sender
     ///who initiated the fax transmission.
-    const(char)* SenderName;
+    const(PWSTR) SenderName;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the company name of
     ///the sender who initiated the fax transmission.
-    const(char)* SenderCompany;
+    const(PWSTR) SenderCompany;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the department name of
     ///the sender who initiated the fax transmission.
-    const(char)* SenderDept;
+    const(PWSTR) SenderDept;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that indicates an application- or
     ///server-specific billing code that applies to the fax transmission. The fax server uses the string to generate an
     ///entry in the fax event log. Billing codes are optional.
-    const(char)* BillingCode;
+    const(PWSTR) BillingCode;
     ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates when to send the fax. This member can be one
     ///of the following predefined job scheduling actions.
     uint         ScheduleAction;
@@ -1364,86 +1434,56 @@ struct FAX_JOB_ENTRYA
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string. If the <b>DeliveryReportType</b>
     ///member is equal to <b>DRT_EMAIL</b>, the string is the address to which the DR or NDR should be sent. If the
     ///<b>DeliveryReportType</b> member is equal to <b>DRT_NONE</b>, this member must be <b>NULL</b>.
-    const(char)* DeliveryReportAddress;
+    const(PWSTR) DeliveryReportAddress;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string to associate with the fax document.
     ///This is the user-friendly name that appears in the print spooler.
-    const(char)* DocumentName;
-}
-
-///The <b>FAX_JOB_ENTRY</b> structure describes one fax job. The structure includes data on the job type and status,
-///recipient and sender identification, scheduling and delivery settings, and the page count. The <b>SizeOfStruct</b>
-///and <b>RecipientNumber</b> members are required.
-struct FAX_JOB_ENTRYW
-{
-    ///Type: <b>DWORD</b> Specifies the size, in bytes, of the <b>FAX_JOB_ENTRY</b> structure. The calling application
-    ///must set this member to <b>sizeof(FAX_JOB_ENTRY)</b> before it calls the FaxSetJob function.
-    uint          SizeOfStruct;
-    ///Type: <b>DWORD</b> Specifies a unique number that identifies the fax job of interest. This number must match the
-    ///value the calling application passes in the JobId parameter to the FaxSetJob function.
-    uint          JobId;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the user
-    ///who submitted the fax job.
-    const(wchar)* UserName;
-    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that specifies the type of the fax job of interest. This
-    ///member can be one of the following job types.
-    uint          JobType;
-    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that is a set of bit flags indicating the queue status of
-    ///the fax job identified by the <b>JobId</b> member. This member can be one or more of the following values.
-    uint          QueueStatus;
-    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that is a fax device status code or value. This value can be
-    ///one of the following predefined device status codes.
-    uint          Status;
-    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that contains the size, in bytes, of the fax document to
-    ///transmit. The size must not exceed 4 GB.
-    uint          Size;
-    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the total number of pages in the fax
-    ///transmission.
-    uint          PageCount;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the fax number of the
-    ///recipient of the fax transmission.
-    const(wchar)* RecipientNumber;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the
-    ///recipient of the fax transmission.
-    const(wchar)* RecipientName;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the transmitting
-    ///station identifier. This identifier is usually a telephone number.
-    const(wchar)* Tsid;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the sender
-    ///who initiated the fax transmission.
-    const(wchar)* SenderName;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the company name of
-    ///the sender who initiated the fax transmission.
-    const(wchar)* SenderCompany;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the department name of
-    ///the sender who initiated the fax transmission.
-    const(wchar)* SenderDept;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that indicates an application- or
-    ///server-specific billing code that applies to the fax transmission. The fax server uses the string to generate an
-    ///entry in the fax event log. Billing codes are optional.
-    const(wchar)* BillingCode;
-    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates when to send the fax. This member can be one
-    ///of the following predefined job scheduling actions.
-    uint          ScheduleAction;
-    ///Type: <b>SYSTEMTIME</b> If the <b>ScheduleAction</b> member is equal to the value <b>JSA_SPECIFIC_TIME</b>,
-    ///specifies a SYSTEMTIME structure that contains the date and time to send the fax. The time specified must be
-    ///expressed in UTC.
-    SYSTEMTIME    ScheduleTime;
-    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the type of email delivery report (DR) or
-    ///nondelivery report (NDR) that the fax server should generate. This member can be one of the following predefined
-    ///delivery report types.
-    uint          DeliveryReportType;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string. If the <b>DeliveryReportType</b>
-    ///member is equal to <b>DRT_EMAIL</b>, the string is the address to which the DR or NDR should be sent. If the
-    ///<b>DeliveryReportType</b> member is equal to <b>DRT_NONE</b>, this member must be <b>NULL</b>.
-    const(wchar)* DeliveryReportAddress;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string to associate with the fax document.
-    ///This is the user-friendly name that appears in the print spooler.
-    const(wchar)* DocumentName;
+    const(PWSTR) DocumentName;
 }
 
 ///The <b>FAX_PORT_INFO</b> structure describes one fax port. The data includes, among other items, a device identifier,
 ///the port's name and current status, and station identifiers.
 struct FAX_PORT_INFOA
+{
+    ///Type: <b>DWORD</b> Specifies the size, in bytes, of the <b>FAX_PORT_INFO</b> structure. The calling application
+    ///should ensure that this member is set to <b>sizeof(FAX_PORT_INFO)</b> before it calls the FaxSetPort function.
+    uint        SizeOfStruct;
+    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the permanent line identifier for the fax
+    ///device of interest.
+    uint        DeviceId;
+    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that is a fax device status code or value. This member can
+    ///be one of the predefined device status codes shown following.
+    uint        State;
+    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that is a set of bit flags that specify the capability of
+    ///the fax port. This member can be a combination of the following values.
+    uint        Flags;
+    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the number of times an incoming fax call
+    ///should ring before the specified device answers the call. Possible values are from 0 to 99 inclusive. This value
+    ///is ignored unless the <b>FPF_RECEIVE</b> port capability bit flag is set.
+    uint        Rings;
+    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that determines the relative order in which available fax
+    ///devices send outgoing transmissions. Valid values for this member are 1 through <i>n</i>, where <i>n</i> is the
+    ///value of the <i>PortsReturned</i> parameter returned by a call to the FaxEnumPorts function. When the fax server
+    ///initiates an outgoing fax transmission, it attempts to select the device with the highest priority and
+    ///<b>FPF_SEND</b> port capability. If that device is not available, the server selects the next available device
+    ///that follows in rank order, and so on. The value of the <b>Priority</b> member has no effect on incoming
+    ///transmissions.
+    uint        Priority;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the fax
+    ///device of interest.
+    const(PSTR) DeviceName;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the TSID. This
+    ///identifier is usually a telephone number. Only printable characters such as English letters, numeric symbols, and
+    ///punctuation marks (ASCII range 0x20 to 0x7F) can be used in a TSID.
+    const(PSTR) Tsid;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the called station
+    ///identifier (CSID). This identifier is usually a telephone number. Only printable characters such as English
+    ///letters, numeric symbols, and punctuation marks (ASCII range 0x20 to 0x7F) can be used in a CSID.
+    const(PSTR) Csid;
+}
+
+///The <b>FAX_PORT_INFO</b> structure describes one fax port. The data includes, among other items, a device identifier,
+///the port's name and current status, and station identifiers.
+struct FAX_PORT_INFOW
 {
     ///Type: <b>DWORD</b> Specifies the size, in bytes, of the <b>FAX_PORT_INFO</b> structure. The calling application
     ///should ensure that this member is set to <b>sizeof(FAX_PORT_INFO)</b> before it calls the FaxSetPort function.
@@ -1471,56 +1511,15 @@ struct FAX_PORT_INFOA
     uint         Priority;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the fax
     ///device of interest.
-    const(char)* DeviceName;
+    const(PWSTR) DeviceName;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the TSID. This
     ///identifier is usually a telephone number. Only printable characters such as English letters, numeric symbols, and
     ///punctuation marks (ASCII range 0x20 to 0x7F) can be used in a TSID.
-    const(char)* Tsid;
+    const(PWSTR) Tsid;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the called station
     ///identifier (CSID). This identifier is usually a telephone number. Only printable characters such as English
     ///letters, numeric symbols, and punctuation marks (ASCII range 0x20 to 0x7F) can be used in a CSID.
-    const(char)* Csid;
-}
-
-///The <b>FAX_PORT_INFO</b> structure describes one fax port. The data includes, among other items, a device identifier,
-///the port's name and current status, and station identifiers.
-struct FAX_PORT_INFOW
-{
-    ///Type: <b>DWORD</b> Specifies the size, in bytes, of the <b>FAX_PORT_INFO</b> structure. The calling application
-    ///should ensure that this member is set to <b>sizeof(FAX_PORT_INFO)</b> before it calls the FaxSetPort function.
-    uint          SizeOfStruct;
-    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the permanent line identifier for the fax
-    ///device of interest.
-    uint          DeviceId;
-    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that is a fax device status code or value. This member can
-    ///be one of the predefined device status codes shown following.
-    uint          State;
-    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that is a set of bit flags that specify the capability of
-    ///the fax port. This member can be a combination of the following values.
-    uint          Flags;
-    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the number of times an incoming fax call
-    ///should ring before the specified device answers the call. Possible values are from 0 to 99 inclusive. This value
-    ///is ignored unless the <b>FPF_RECEIVE</b> port capability bit flag is set.
-    uint          Rings;
-    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that determines the relative order in which available fax
-    ///devices send outgoing transmissions. Valid values for this member are 1 through <i>n</i>, where <i>n</i> is the
-    ///value of the <i>PortsReturned</i> parameter returned by a call to the FaxEnumPorts function. When the fax server
-    ///initiates an outgoing fax transmission, it attempts to select the device with the highest priority and
-    ///<b>FPF_SEND</b> port capability. If that device is not available, the server selects the next available device
-    ///that follows in rank order, and so on. The value of the <b>Priority</b> member has no effect on incoming
-    ///transmissions.
-    uint          Priority;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the fax
-    ///device of interest.
-    const(wchar)* DeviceName;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the TSID. This
-    ///identifier is usually a telephone number. Only printable characters such as English letters, numeric symbols, and
-    ///punctuation marks (ASCII range 0x20 to 0x7F) can be used in a TSID.
-    const(wchar)* Tsid;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the called station
-    ///identifier (CSID). This identifier is usually a telephone number. Only printable characters such as English
-    ///letters, numeric symbols, and punctuation marks (ASCII range 0x20 to 0x7F) can be used in a CSID.
-    const(wchar)* Csid;
+    const(PWSTR) Csid;
 }
 
 ///The <b>FAX_ROUTING_METHOD</b> structure contains information about one fax routing method, as it pertains to one fax
@@ -1528,6 +1527,44 @@ struct FAX_PORT_INFOW
 ///of the DLL that exports the routing method. It also includes the GUID and function name that uniquely identify the
 ///routing method, and the method's user-friendly name.
 struct FAX_ROUTING_METHODA
+{
+    ///Type: <b>DWORD</b> Specifies the size, in bytes, of the <b>FAX_ROUTING_METHOD</b> structure. The fax service sets
+    ///this member to <b>sizeof(FAX_ROUTING_METHOD)</b>.
+    uint        SizeOfStruct;
+    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the permanent line identifier for the fax
+    ///device of interest.
+    uint        DeviceId;
+    ///Type: <b>BOOL</b> Specifies a Boolean variable that indicates whether the fax routing method is enabled or
+    ///disabled for the fax device of interest. If this parameter is equal to <b>TRUE</b>, the fax routing method is
+    ///enabled for the device.
+    BOOL        Enabled;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the fax
+    ///device of interest.
+    const(PSTR) DeviceName;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the GUID that uniquely
+    ///identifies the fax routing method of interest. For more information about fax routing methods, see About the Fax
+    ///Routing Extension API.
+    const(PSTR) Guid;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the user-friendly name
+    ///to display for the fax routing method.
+    const(PSTR) FriendlyName;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the name of the function that
+    ///executes the specified fax routing procedure. The fax routing extension DLL identified by the
+    ///<b>ExtensionImageName</b> member exports the function.
+    const(PSTR) FunctionName;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the fax
+    ///routing extension DLL that implements the fax routing method.
+    const(PSTR) ExtensionImageName;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the user-friendly name
+    ///to display for the fax routing extension DLL.
+    const(PSTR) ExtensionFriendlyName;
+}
+
+///The <b>FAX_ROUTING_METHOD</b> structure contains information about one fax routing method, as it pertains to one fax
+///device. The data includes, among other items, whether the fax routing method is enabled for the device, and the name
+///of the DLL that exports the routing method. It also includes the GUID and function name that uniquely identify the
+///routing method, and the method's user-friendly name.
+struct FAX_ROUTING_METHODW
 {
     ///Type: <b>DWORD</b> Specifies the size, in bytes, of the <b>FAX_ROUTING_METHOD</b> structure. The fax service sets
     ///this member to <b>sizeof(FAX_ROUTING_METHOD)</b>.
@@ -1541,62 +1578,24 @@ struct FAX_ROUTING_METHODA
     BOOL         Enabled;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the fax
     ///device of interest.
-    const(char)* DeviceName;
+    const(PWSTR) DeviceName;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the GUID that uniquely
     ///identifies the fax routing method of interest. For more information about fax routing methods, see About the Fax
     ///Routing Extension API.
-    const(char)* Guid;
+    const(PWSTR) Guid;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the user-friendly name
     ///to display for the fax routing method.
-    const(char)* FriendlyName;
+    const(PWSTR) FriendlyName;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the name of the function that
     ///executes the specified fax routing procedure. The fax routing extension DLL identified by the
     ///<b>ExtensionImageName</b> member exports the function.
-    const(char)* FunctionName;
+    const(PWSTR) FunctionName;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the fax
     ///routing extension DLL that implements the fax routing method.
-    const(char)* ExtensionImageName;
+    const(PWSTR) ExtensionImageName;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the user-friendly name
     ///to display for the fax routing extension DLL.
-    const(char)* ExtensionFriendlyName;
-}
-
-///The <b>FAX_ROUTING_METHOD</b> structure contains information about one fax routing method, as it pertains to one fax
-///device. The data includes, among other items, whether the fax routing method is enabled for the device, and the name
-///of the DLL that exports the routing method. It also includes the GUID and function name that uniquely identify the
-///routing method, and the method's user-friendly name.
-struct FAX_ROUTING_METHODW
-{
-    ///Type: <b>DWORD</b> Specifies the size, in bytes, of the <b>FAX_ROUTING_METHOD</b> structure. The fax service sets
-    ///this member to <b>sizeof(FAX_ROUTING_METHOD)</b>.
-    uint          SizeOfStruct;
-    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the permanent line identifier for the fax
-    ///device of interest.
-    uint          DeviceId;
-    ///Type: <b>BOOL</b> Specifies a Boolean variable that indicates whether the fax routing method is enabled or
-    ///disabled for the fax device of interest. If this parameter is equal to <b>TRUE</b>, the fax routing method is
-    ///enabled for the device.
-    BOOL          Enabled;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the fax
-    ///device of interest.
-    const(wchar)* DeviceName;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the GUID that uniquely
-    ///identifies the fax routing method of interest. For more information about fax routing methods, see About the Fax
-    ///Routing Extension API.
-    const(wchar)* Guid;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the user-friendly name
-    ///to display for the fax routing method.
-    const(wchar)* FriendlyName;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the name of the function that
-    ///executes the specified fax routing procedure. The fax routing extension DLL identified by the
-    ///<b>ExtensionImageName</b> member exports the function.
-    const(wchar)* FunctionName;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the fax
-    ///routing extension DLL that implements the fax routing method.
-    const(wchar)* ExtensionImageName;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the user-friendly name
-    ///to display for the fax routing extension DLL.
-    const(wchar)* ExtensionFriendlyName;
+    const(PWSTR) ExtensionFriendlyName;
 }
 
 ///The <b>FAX_GLOBAL_ROUTING_INFO</b> structure contains information about one fax routing method, as it pertains
@@ -1609,28 +1608,28 @@ struct FAX_GLOBAL_ROUTING_INFOA
     ///Type: <b>DWORD</b> Specifies the size, in bytes, of the <b>FAX_GLOBAL_ROUTING_INFO</b> structure. The calling
     ///application must set this member to <b>sizeof(FAX_GLOBAL_ROUTING_INFO)</b> before it calls the
     ///FaxSetGlobalRoutingInfo function.
-    uint         SizeOfStruct;
+    uint        SizeOfStruct;
     ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the priority of the fax routing method. The
     ///priority determines the relative order in which the fax service calls the fax routing methods when the service
     ///receives a fax document. Valid values for this member are 1 through n, where 1 is the highest priority.
-    uint         Priority;
+    uint        Priority;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the GUID that uniquely
     ///identifies the fax routing method of interest. For more information about fax routing methods, see About the Fax
     ///Routing Extension API.
-    const(char)* Guid;
+    const(PSTR) Guid;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the user-friendly name
     ///to display for the fax routing method.
-    const(char)* FriendlyName;
+    const(PSTR) FriendlyName;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the name of the function that
     ///executes the specified fax routing method. The fax routing extension DLL identified by the
     ///<b>ExtensionImageName</b> member exports the function.
-    const(char)* FunctionName;
+    const(PSTR) FunctionName;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the fax
     ///routing extension DLL that implements the fax routing method.
-    const(char)* ExtensionImageName;
+    const(PSTR) ExtensionImageName;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the user-friendly name
     ///to display for the fax routing extension DLL that implements the fax routing method.
-    const(char)* ExtensionFriendlyName;
+    const(PSTR) ExtensionFriendlyName;
 }
 
 ///The <b>FAX_GLOBAL_ROUTING_INFO</b> structure contains information about one fax routing method, as it pertains
@@ -1643,28 +1642,28 @@ struct FAX_GLOBAL_ROUTING_INFOW
     ///Type: <b>DWORD</b> Specifies the size, in bytes, of the <b>FAX_GLOBAL_ROUTING_INFO</b> structure. The calling
     ///application must set this member to <b>sizeof(FAX_GLOBAL_ROUTING_INFO)</b> before it calls the
     ///FaxSetGlobalRoutingInfo function.
-    uint          SizeOfStruct;
+    uint         SizeOfStruct;
     ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the priority of the fax routing method. The
     ///priority determines the relative order in which the fax service calls the fax routing methods when the service
     ///receives a fax document. Valid values for this member are 1 through n, where 1 is the highest priority.
-    uint          Priority;
+    uint         Priority;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the GUID that uniquely
     ///identifies the fax routing method of interest. For more information about fax routing methods, see About the Fax
     ///Routing Extension API.
-    const(wchar)* Guid;
+    const(PWSTR) Guid;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the user-friendly name
     ///to display for the fax routing method.
-    const(wchar)* FriendlyName;
+    const(PWSTR) FriendlyName;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the name of the function that
     ///executes the specified fax routing method. The fax routing extension DLL identified by the
     ///<b>ExtensionImageName</b> member exports the function.
-    const(wchar)* FunctionName;
+    const(PWSTR) FunctionName;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the fax
     ///routing extension DLL that implements the fax routing method.
-    const(wchar)* ExtensionImageName;
+    const(PWSTR) ExtensionImageName;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the user-friendly name
     ///to display for the fax routing extension DLL that implements the fax routing method.
-    const(wchar)* ExtensionFriendlyName;
+    const(PWSTR) ExtensionFriendlyName;
 }
 
 ///The <b>FAX_COVERPAGE_INFO</b> structure contains data to display on the cover page of a fax transmission. The
@@ -1673,93 +1672,93 @@ struct FAX_COVERPAGE_INFOA
 {
     ///Type: <b>DWORD</b> Specifies the size, in bytes, of the <b>FAX_COVERPAGE_INFO</b> structure. The calling
     ///application must set this member to <b>sizeof(FAX_COVERPAGE_INFO)</b>.
-    uint         SizeOfStruct;
+    uint        SizeOfStruct;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the name of the cover page
     ///file (.cov) to associate with the received fax document. The string can be the file name of the common cover page
     ///file, or it can be the UNC path to a local cover page file.
-    const(char)* CoverPageName;
+    const(PSTR) CoverPageName;
     ///Type: <b>BOOL</b> Specifies a Boolean variable that indicates whether the fax cover page file is stored on the
     ///local computer or in the common cover page location. A value of <b>TRUE</b> indicates that the cover page file
     ///resides in the common cover page location on the fax server.
-    BOOL         UseServerCoverPage;
+    BOOL        UseServerCoverPage;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the
     ///recipient of the fax transmission.
-    const(char)* RecName;
+    const(PSTR) RecName;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the fax number of the
     ///recipient of the fax transmission.
-    const(char)* RecFaxNumber;
+    const(PSTR) RecFaxNumber;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the company name of
     ///the recipient of the fax transmission.
-    const(char)* RecCompany;
+    const(PSTR) RecCompany;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the street address of
     ///the recipient of the fax transmission.
-    const(char)* RecStreetAddress;
+    const(PSTR) RecStreetAddress;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the city of the recipient of
     ///the fax transmission.
-    const(char)* RecCity;
+    const(PSTR) RecCity;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the state of the recipient of
     ///the fax transmission.
-    const(char)* RecState;
+    const(PSTR) RecState;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the postal ZIP code of the
     ///recipient of the fax transmission.
-    const(char)* RecZip;
+    const(PSTR) RecZip;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the country/region of the
     ///recipient of the fax transmission.
-    const(char)* RecCountry;
+    const(PSTR) RecCountry;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the title of the recipient of
     ///the fax transmission.
-    const(char)* RecTitle;
+    const(PSTR) RecTitle;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the department of the
     ///recipient of the fax transmission.
-    const(char)* RecDepartment;
+    const(PSTR) RecDepartment;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the office location of the
     ///recipient of the fax transmission.
-    const(char)* RecOfficeLocation;
+    const(PSTR) RecOfficeLocation;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the home telephone number of
     ///the recipient of the fax transmission.
-    const(char)* RecHomePhone;
+    const(PSTR) RecHomePhone;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the office telephone number
     ///of the recipient of the fax transmission.
-    const(char)* RecOfficePhone;
+    const(PSTR) RecOfficePhone;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the name of the sender who
     ///initiated the fax transmission.
-    const(char)* SdrName;
+    const(PSTR) SdrName;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the fax number of the sender
     ///who initiated the fax transmission.
-    const(char)* SdrFaxNumber;
+    const(PSTR) SdrFaxNumber;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the company name of the
     ///sender who initiated the fax transmission.
-    const(char)* SdrCompany;
+    const(PSTR) SdrCompany;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the address of the sender who
     ///initiated the fax transmission.
-    const(char)* SdrAddress;
+    const(PSTR) SdrAddress;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the title of the sender who
     ///initiated the fax transmission.
-    const(char)* SdrTitle;
+    const(PSTR) SdrTitle;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the department name of the
     ///sender who initiated the fax transmission.
-    const(char)* SdrDepartment;
+    const(PSTR) SdrDepartment;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the office location of the
     ///sender who initiated the fax transmission.
-    const(char)* SdrOfficeLocation;
+    const(PSTR) SdrOfficeLocation;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the home telephone number of
     ///the sender who initiated the fax transmission.
-    const(char)* SdrHomePhone;
+    const(PSTR) SdrHomePhone;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the office telephone number
     ///of the sender who initiated the fax transmission.
-    const(char)* SdrOfficePhone;
+    const(PSTR) SdrOfficePhone;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that contains the text of a message
     ///or note from the sender that pertains to the fax transmission. The text will appear on the cover page.
-    const(char)* Note;
+    const(PSTR) Note;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the subject line of the fax
     ///transmission.
-    const(char)* Subject;
+    const(PSTR) Subject;
     ///Type: <b>SYSTEMTIME</b> Specifies a SYSTEMTIME structure. The fax server sets this member when it initiates the
     ///fax transmission. The time is expressed in local system time.
-    SYSTEMTIME   TimeSent;
+    SYSTEMTIME  TimeSent;
     ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the total number of pages in the fax
     ///transmission.
-    uint         PageCount;
+    uint        PageCount;
 }
 
 ///The <b>FAX_COVERPAGE_INFO</b> structure contains data to display on the cover page of a fax transmission. The
@@ -1768,93 +1767,93 @@ struct FAX_COVERPAGE_INFOW
 {
     ///Type: <b>DWORD</b> Specifies the size, in bytes, of the <b>FAX_COVERPAGE_INFO</b> structure. The calling
     ///application must set this member to <b>sizeof(FAX_COVERPAGE_INFO)</b>.
-    uint          SizeOfStruct;
+    uint         SizeOfStruct;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the name of the cover page
     ///file (.cov) to associate with the received fax document. The string can be the file name of the common cover page
     ///file, or it can be the UNC path to a local cover page file.
-    const(wchar)* CoverPageName;
+    const(PWSTR) CoverPageName;
     ///Type: <b>BOOL</b> Specifies a Boolean variable that indicates whether the fax cover page file is stored on the
     ///local computer or in the common cover page location. A value of <b>TRUE</b> indicates that the cover page file
     ///resides in the common cover page location on the fax server.
-    BOOL          UseServerCoverPage;
+    BOOL         UseServerCoverPage;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the
     ///recipient of the fax transmission.
-    const(wchar)* RecName;
+    const(PWSTR) RecName;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the fax number of the
     ///recipient of the fax transmission.
-    const(wchar)* RecFaxNumber;
+    const(PWSTR) RecFaxNumber;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the company name of
     ///the recipient of the fax transmission.
-    const(wchar)* RecCompany;
+    const(PWSTR) RecCompany;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the street address of
     ///the recipient of the fax transmission.
-    const(wchar)* RecStreetAddress;
+    const(PWSTR) RecStreetAddress;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the city of the recipient of
     ///the fax transmission.
-    const(wchar)* RecCity;
+    const(PWSTR) RecCity;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the state of the recipient of
     ///the fax transmission.
-    const(wchar)* RecState;
+    const(PWSTR) RecState;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the postal ZIP code of the
     ///recipient of the fax transmission.
-    const(wchar)* RecZip;
+    const(PWSTR) RecZip;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the country/region of the
     ///recipient of the fax transmission.
-    const(wchar)* RecCountry;
+    const(PWSTR) RecCountry;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the title of the recipient of
     ///the fax transmission.
-    const(wchar)* RecTitle;
+    const(PWSTR) RecTitle;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the department of the
     ///recipient of the fax transmission.
-    const(wchar)* RecDepartment;
+    const(PWSTR) RecDepartment;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the office location of the
     ///recipient of the fax transmission.
-    const(wchar)* RecOfficeLocation;
+    const(PWSTR) RecOfficeLocation;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the home telephone number of
     ///the recipient of the fax transmission.
-    const(wchar)* RecHomePhone;
+    const(PWSTR) RecHomePhone;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the office telephone number
     ///of the recipient of the fax transmission.
-    const(wchar)* RecOfficePhone;
+    const(PWSTR) RecOfficePhone;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the name of the sender who
     ///initiated the fax transmission.
-    const(wchar)* SdrName;
+    const(PWSTR) SdrName;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the fax number of the sender
     ///who initiated the fax transmission.
-    const(wchar)* SdrFaxNumber;
+    const(PWSTR) SdrFaxNumber;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the company name of the
     ///sender who initiated the fax transmission.
-    const(wchar)* SdrCompany;
+    const(PWSTR) SdrCompany;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the address of the sender who
     ///initiated the fax transmission.
-    const(wchar)* SdrAddress;
+    const(PWSTR) SdrAddress;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the title of the sender who
     ///initiated the fax transmission.
-    const(wchar)* SdrTitle;
+    const(PWSTR) SdrTitle;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the department name of the
     ///sender who initiated the fax transmission.
-    const(wchar)* SdrDepartment;
+    const(PWSTR) SdrDepartment;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the office location of the
     ///sender who initiated the fax transmission.
-    const(wchar)* SdrOfficeLocation;
+    const(PWSTR) SdrOfficeLocation;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the home telephone number of
     ///the sender who initiated the fax transmission.
-    const(wchar)* SdrHomePhone;
+    const(PWSTR) SdrHomePhone;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the office telephone number
     ///of the sender who initiated the fax transmission.
-    const(wchar)* SdrOfficePhone;
+    const(PWSTR) SdrOfficePhone;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that contains the text of a message
     ///or note from the sender that pertains to the fax transmission. The text will appear on the cover page.
-    const(wchar)* Note;
+    const(PWSTR) Note;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the subject line of the fax
     ///transmission.
-    const(wchar)* Subject;
+    const(PWSTR) Subject;
     ///Type: <b>SYSTEMTIME</b> Specifies a SYSTEMTIME structure. The fax server sets this member when it initiates the
     ///fax transmission. The time is expressed in local system time.
-    SYSTEMTIME    TimeSent;
+    SYSTEMTIME   TimeSent;
     ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the total number of pages in the fax
     ///transmission.
-    uint          PageCount;
+    uint         PageCount;
 }
 
 ///The <b>FAX_JOB_PARAM</b> structure contains the information necessary for the fax server to send an individual fax
@@ -1865,30 +1864,86 @@ struct FAX_JOB_PARAMA
 {
     ///Type: <b>DWORD</b> Specifies the size, in bytes, of the <b>FAX_JOB_PARAM</b> structure. The calling application
     ///must set this member to <b>sizeof(FAX_JOB_PARAM)</b>. This member is required.
-    uint         SizeOfStruct;
+    uint        SizeOfStruct;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the fax number of the
     ///recipient of the fax transmission. This member is required.
-    const(char)* RecipientNumber;
+    const(PSTR) RecipientNumber;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the
     ///recipient of the fax transmission.
-    const(char)* RecipientName;
+    const(PSTR) RecipientName;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the transmitting
     ///station identifier (TSID). This identifier is usually a telephone number. Only printable characters such as
     ///English letters, numeric symbols, and punctuation marks (ASCII range 0x20 to 0x7F) can be used in a TSID.
-    const(char)* Tsid;
+    const(PSTR) Tsid;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the sender
     ///who initiated the fax transmission.
-    const(char)* SenderName;
+    const(PSTR) SenderName;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the company name of
     ///the sender who initiated the fax transmission.
-    const(char)* SenderCompany;
+    const(PSTR) SenderCompany;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the department name of
     ///the sender who initiated the fax transmission.
-    const(char)* SenderDept;
+    const(PSTR) SenderDept;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that indicates an application- or
     ///server-specific billing code that applies to the fax transmission. The fax server uses the string to generate an
     ///entry in the fax event log. Billing codes are optional.
-    const(char)* BillingCode;
+    const(PSTR) BillingCode;
+    ///Type: <b>DWORD</b> Specifies a DWORD variable that indicates when to send the fax. This member is required, and
+    ///can be one of the following predefined job scheduling actions.
+    uint        ScheduleAction;
+    ///Type: <b>SYSTEMTIME</b> If the <b>ScheduleAction</b> member is equal to the value <b>JSA_SPECIFIC_TIME</b>,
+    ///specifies a SYSTEMTIME structure that contains the date and time to send the fax. The time specified must be
+    ///expressed in UTC.
+    SYSTEMTIME  ScheduleTime;
+    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the type of email delivery report (DR) or
+    ///nondelivery report (NDR) that the fax server should generate. This member can be one of the following predefined
+    ///delivery report types.
+    uint        DeliveryReportType;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string. If the <b>DeliveryReportType</b>
+    ///member is equal to <b>DRT_EMAIL</b>, the string is the address to which the DR or NDR should be sent. If the
+    ///<b>DeliveryReportType</b> member is equal to <b>DRT_NONE</b>, this member must be <b>NULL</b>.
+    const(PSTR) DeliveryReportAddress;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string to associate with the fax document.
+    ///This is the user-friendly name that appears in the print spooler.
+    const(PSTR) DocumentName;
+    ///Type: <b>HCALL</b> Reserved, and should be <b>NULL</b>.
+    uint        CallHandle;
+    ///Type: <b>DWORD_PTR[3]</b> This member is reserved for future use by Microsoft. It must be set to zero.
+    size_t[3]   Reserved;
+}
+
+///The <b>FAX_JOB_PARAM</b> structure contains the information necessary for the fax server to send an individual fax
+///transmission. The structure includes the recipient's fax number, sender and recipient data, an optional billing code,
+///and job scheduling information. The <b>SizeOfStruct</b>, <b>RecipientNumber</b>, and <b>ScheduleAction</b> members
+///are required; other members are optional.
+struct FAX_JOB_PARAMW
+{
+    ///Type: <b>DWORD</b> Specifies the size, in bytes, of the <b>FAX_JOB_PARAM</b> structure. The calling application
+    ///must set this member to <b>sizeof(FAX_JOB_PARAM)</b>. This member is required.
+    uint         SizeOfStruct;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the fax number of the
+    ///recipient of the fax transmission. This member is required.
+    const(PWSTR) RecipientNumber;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the
+    ///recipient of the fax transmission.
+    const(PWSTR) RecipientName;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the transmitting
+    ///station identifier (TSID). This identifier is usually a telephone number. Only printable characters such as
+    ///English letters, numeric symbols, and punctuation marks (ASCII range 0x20 to 0x7F) can be used in a TSID.
+    const(PWSTR) Tsid;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the sender
+    ///who initiated the fax transmission.
+    const(PWSTR) SenderName;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the company name of
+    ///the sender who initiated the fax transmission.
+    const(PWSTR) SenderCompany;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the department name of
+    ///the sender who initiated the fax transmission.
+    const(PWSTR) SenderDept;
+    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that indicates an application- or
+    ///server-specific billing code that applies to the fax transmission. The fax server uses the string to generate an
+    ///entry in the fax event log. Billing codes are optional.
+    const(PWSTR) BillingCode;
     ///Type: <b>DWORD</b> Specifies a DWORD variable that indicates when to send the fax. This member is required, and
     ///can be one of the following predefined job scheduling actions.
     uint         ScheduleAction;
@@ -1903,70 +1958,14 @@ struct FAX_JOB_PARAMA
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string. If the <b>DeliveryReportType</b>
     ///member is equal to <b>DRT_EMAIL</b>, the string is the address to which the DR or NDR should be sent. If the
     ///<b>DeliveryReportType</b> member is equal to <b>DRT_NONE</b>, this member must be <b>NULL</b>.
-    const(char)* DeliveryReportAddress;
+    const(PWSTR) DeliveryReportAddress;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string to associate with the fax document.
     ///This is the user-friendly name that appears in the print spooler.
-    const(char)* DocumentName;
+    const(PWSTR) DocumentName;
     ///Type: <b>HCALL</b> Reserved, and should be <b>NULL</b>.
     uint         CallHandle;
     ///Type: <b>DWORD_PTR[3]</b> This member is reserved for future use by Microsoft. It must be set to zero.
     size_t[3]    Reserved;
-}
-
-///The <b>FAX_JOB_PARAM</b> structure contains the information necessary for the fax server to send an individual fax
-///transmission. The structure includes the recipient's fax number, sender and recipient data, an optional billing code,
-///and job scheduling information. The <b>SizeOfStruct</b>, <b>RecipientNumber</b>, and <b>ScheduleAction</b> members
-///are required; other members are optional.
-struct FAX_JOB_PARAMW
-{
-    ///Type: <b>DWORD</b> Specifies the size, in bytes, of the <b>FAX_JOB_PARAM</b> structure. The calling application
-    ///must set this member to <b>sizeof(FAX_JOB_PARAM)</b>. This member is required.
-    uint          SizeOfStruct;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the fax number of the
-    ///recipient of the fax transmission. This member is required.
-    const(wchar)* RecipientNumber;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the
-    ///recipient of the fax transmission.
-    const(wchar)* RecipientName;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the transmitting
-    ///station identifier (TSID). This identifier is usually a telephone number. Only printable characters such as
-    ///English letters, numeric symbols, and punctuation marks (ASCII range 0x20 to 0x7F) can be used in a TSID.
-    const(wchar)* Tsid;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the sender
-    ///who initiated the fax transmission.
-    const(wchar)* SenderName;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the company name of
-    ///the sender who initiated the fax transmission.
-    const(wchar)* SenderCompany;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the department name of
-    ///the sender who initiated the fax transmission.
-    const(wchar)* SenderDept;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that indicates an application- or
-    ///server-specific billing code that applies to the fax transmission. The fax server uses the string to generate an
-    ///entry in the fax event log. Billing codes are optional.
-    const(wchar)* BillingCode;
-    ///Type: <b>DWORD</b> Specifies a DWORD variable that indicates when to send the fax. This member is required, and
-    ///can be one of the following predefined job scheduling actions.
-    uint          ScheduleAction;
-    ///Type: <b>SYSTEMTIME</b> If the <b>ScheduleAction</b> member is equal to the value <b>JSA_SPECIFIC_TIME</b>,
-    ///specifies a SYSTEMTIME structure that contains the date and time to send the fax. The time specified must be
-    ///expressed in UTC.
-    SYSTEMTIME    ScheduleTime;
-    ///Type: <b>DWORD</b> Specifies a <b>DWORD</b> variable that indicates the type of email delivery report (DR) or
-    ///nondelivery report (NDR) that the fax server should generate. This member can be one of the following predefined
-    ///delivery report types.
-    uint          DeliveryReportType;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string. If the <b>DeliveryReportType</b>
-    ///member is equal to <b>DRT_EMAIL</b>, the string is the address to which the DR or NDR should be sent. If the
-    ///<b>DeliveryReportType</b> member is equal to <b>DRT_NONE</b>, this member must be <b>NULL</b>.
-    const(wchar)* DeliveryReportAddress;
-    ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string to associate with the fax document.
-    ///This is the user-friendly name that appears in the print spooler.
-    const(wchar)* DocumentName;
-    ///Type: <b>HCALL</b> Reserved, and should be <b>NULL</b>.
-    uint          CallHandle;
-    ///Type: <b>DWORD_PTR[3]</b> This member is reserved for future use by Microsoft. It must be set to zero.
-    size_t[3]     Reserved;
 }
 
 ///The <b>FAX_EVENT</b> structure represents the contents of an I/O completion packet. The fax server sends the
@@ -2024,36 +2023,36 @@ struct FAX_PRINT_INFOA
 {
     ///Type: <b>DWORD</b> Specifies the size, in bytes, of the <b>FAX_PRINT_INFO</b> structure. The calling application
     ///must set this member to <b>sizeof(FAX_PRINT_INFO)</b>. This member is required.
-    uint         SizeOfStruct;
+    uint        SizeOfStruct;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the user-friendly name that
     ///appears in the print spooler.
-    const(char)* DocName;
+    const(PSTR) DocName;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the
     ///recipient of the fax transmission.
-    const(char)* RecipientName;
+    const(PSTR) RecipientName;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the fax number of the
     ///recipient of the fax transmission. This member is required.
-    const(char)* RecipientNumber;
+    const(PSTR) RecipientNumber;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the sender
     ///who initiated the fax transmission.
-    const(char)* SenderName;
+    const(PSTR) SenderName;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the company name of
     ///the sender who initiated the fax transmission.
-    const(char)* SenderCompany;
+    const(PSTR) SenderCompany;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the department name of
     ///the sender who initiated the fax transmission.
-    const(char)* SenderDept;
+    const(PSTR) SenderDept;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that indicates an application- or
     ///server-specific billing code that applies to the fax transmission. The fax server uses the string to generate an
     ///entry in the fax event log. Billing codes are optional.
-    const(char)* SenderBillingCode;
+    const(PSTR) SenderBillingCode;
     ///Type: <b>LPCTSTR</b> Reserved. Must be set to <b>NULL</b>.
-    const(char)* Reserved;
+    const(PSTR) Reserved;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the email address to
     ///which the fax server should send the delivery report (DR) or nondelivery report (NDR).
-    const(char)* DrEmailAddress;
+    const(PSTR) DrEmailAddress;
     ///Type: <b>LPCTSTR</b> This member is reserved for future use by Microsoft. It must be set to <b>NULL</b>.
-    const(char)* OutputFileName;
+    const(PSTR) OutputFileName;
 }
 
 ///The <b>FAX_PRINT_INFO</b> structure contains the information necessary for the fax server to print a fax
@@ -2063,36 +2062,36 @@ struct FAX_PRINT_INFOW
 {
     ///Type: <b>DWORD</b> Specifies the size, in bytes, of the <b>FAX_PRINT_INFO</b> structure. The calling application
     ///must set this member to <b>sizeof(FAX_PRINT_INFO)</b>. This member is required.
-    uint          SizeOfStruct;
+    uint         SizeOfStruct;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that is the user-friendly name that
     ///appears in the print spooler.
-    const(wchar)* DocName;
+    const(PWSTR) DocName;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the
     ///recipient of the fax transmission.
-    const(wchar)* RecipientName;
+    const(PWSTR) RecipientName;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the fax number of the
     ///recipient of the fax transmission. This member is required.
-    const(wchar)* RecipientNumber;
+    const(PWSTR) RecipientNumber;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the name of the sender
     ///who initiated the fax transmission.
-    const(wchar)* SenderName;
+    const(PWSTR) SenderName;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the company name of
     ///the sender who initiated the fax transmission.
-    const(wchar)* SenderCompany;
+    const(PWSTR) SenderCompany;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the department name of
     ///the sender who initiated the fax transmission.
-    const(wchar)* SenderDept;
+    const(PWSTR) SenderDept;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that indicates an application- or
     ///server-specific billing code that applies to the fax transmission. The fax server uses the string to generate an
     ///entry in the fax event log. Billing codes are optional.
-    const(wchar)* SenderBillingCode;
+    const(PWSTR) SenderBillingCode;
     ///Type: <b>LPCTSTR</b> Reserved. Must be set to <b>NULL</b>.
-    const(wchar)* Reserved;
+    const(PWSTR) Reserved;
     ///Type: <b>LPCTSTR</b> Pointer to a constant null-terminated character string that specifies the email address to
     ///which the fax server should send the delivery report (DR) or nondelivery report (NDR).
-    const(wchar)* DrEmailAddress;
+    const(PWSTR) DrEmailAddress;
     ///Type: <b>LPCTSTR</b> This member is reserved for future use by Microsoft. It must be set to <b>NULL</b>.
-    const(wchar)* OutputFileName;
+    const(PWSTR) OutputFileName;
 }
 
 ///The <b>FAX_CONTEXT_INFO</b> structure contains information about a fax printer device context. The
@@ -2140,32 +2139,32 @@ struct FAX_SEND
 {
     ///Type: <b>DWORD</b> Specifies, in bytes, the size of the <b>FAX_SEND</b> structure. Before calling the FaxDevSend
     ///function, the fax service sets this member to <b>sizeof</b>(<b>FAX_SEND</b>).
-    uint          SizeOfStruct;
+    uint    SizeOfStruct;
     ///Type: <b>LPWSTR</b> Pointer to a null-terminated Unicode character string that specifies the full path to the
     ///file that contains the data stream for an outbound fax document. The data stream is a TIFF Class F file. For more
     ///information, see Fax Image Format.
-    const(wchar)* FileName;
+    PWSTR   FileName;
     ///Type: <b>LPWSTR</b> Pointer to a null-terminated Unicode character string that specifies the name of the calling
     ///device. The FSP will send this name to the remote receiving device when the FSP sends the fax. For more
     ///information, see the following Remarks section.
-    const(wchar)* CallerName;
+    PWSTR   CallerName;
     ///Type: <b>LPWSTR</b> Pointer to a null-terminated Unicode character string that specifies the telephone number of
     ///the calling device. (This number is also the TSID.) The FSP will send this number to the remote receiving device
     ///when the FSP sends the fax. For more information, see the following Remarks section.
-    const(wchar)* CallerNumber;
+    PWSTR   CallerNumber;
     ///Type: <b>LPWSTR</b> Pointer to a null-terminated Unicode character string that specifies the name of the device
     ///that will receive the outbound fax document.
-    const(wchar)* ReceiverName;
+    PWSTR   ReceiverName;
     ///Type: <b>LPWSTR</b> Pointer to a null-terminated Unicode character string that specifies the telephone number of
     ///the device that will receive the outbound fax document. This is the telephone number that the FSP will dial. If
     ///you specify the <b>CallHandle</b> member, the <b>ReceiverNumber</b> member must be <b>NULL</b>.
-    const(wchar)* ReceiverNumber;
+    PWSTR   ReceiverNumber;
     ///Type: <b>BOOL</b> Reserved.
-    BOOL          Branding;
+    BOOL    Branding;
     ///Type: <b>HCALL</b> Reserved; must be set to <b>NULL</b>.
-    uint          CallHandle;
+    uint    CallHandle;
     ///Type: <b>DWORD</b> This member is reserved by Microsoft. It must be set to zero.
-    uint[3]       Reserved;
+    uint[3] Reserved;
 }
 
 ///The <b>FAX_RECEIVE</b> structure contains information about an inbound fax document. This information includes the
@@ -2175,22 +2174,22 @@ struct FAX_RECEIVE
     ///Type: <b>DWORD</b> Specifies the size, in bytes, of the <b>FAX_RECEIVE</b> structure. Before calling the
     ///FaxDevReceive function, the fax service sets this member to <b>sizeof</b>(<b>FAX_RECEIVE</b>). For more
     ///information, see the following Remarks section.
-    uint          SizeOfStruct;
+    uint    SizeOfStruct;
     ///Type: <b>LPWSTR</b> Pointer to a null-terminated Unicode character string that specifies the full path to the
     ///file in which the FSP must store the data stream of an inbound fax document. The data stream is a TIFF Class F
     ///file. For more information, see Fax Image Format. The fax service creates the file before it calls the
     ///FaxDevReceive function. The FSP must specify the OPEN_EXISTING flag when opening this file.
-    const(wchar)* FileName;
+    PWSTR   FileName;
     ///Type: <b>LPWSTR</b> Pointer to a null-terminated Unicode character string that specifies the name of the
     ///receiving device. The FSP will send the name to the remote sending device after the receiving device receives an
     ///inbound fax. For more information, see the following Remarks section.
-    const(wchar)* ReceiverName;
+    PWSTR   ReceiverName;
     ///Type: <b>LPWSTR</b> Pointer to a null-terminated Unicode character string that specifies the telephone number of
     ///the receiving device. The FSP will send the number to the remote sending device after the receiving device
     ///receives an inbound fax. For more information, see the following Remarks section.
-    const(wchar)* ReceiverNumber;
+    PWSTR   ReceiverNumber;
     ///Type: <b>DWORD</b> This member is reserved for future use by Microsoft. It must be set to zero.
-    uint[4]       Reserved;
+    uint[4] Reserved;
 }
 
 ///The <b>FAX_DEV_STATUS</b> structure contains status and identification information about an individual active fax
@@ -2199,7 +2198,7 @@ struct FAX_DEV_STATUS
 {
     ///Type: <b>DWORD</b> Specifies the size, in bytes, of the <b>FAX_DEV_STATUS</b> structure. Before responding to the
     ///FaxDevReportStatus function, the FSP must set this member to <b>sizeof</b>(<b>FAX_DEV_STATUS</b>).
-    uint          SizeOfStruct;
+    uint    SizeOfStruct;
     ///Type: <b>DWORD</b> Specifies a fax status code or value. This can be a predefined fax status code (shown
     ///following), one of the TAPI LINEERR_ Constants error codes, or a value that the FSP defines. If the status
     ///identifier is provider-defined, the FSP must also supply a value for the <b>StringId</b> member. Following are
@@ -2228,23 +2227,23 @@ struct FAX_DEV_STATUS
     ///the service lost the connection to the device (TAPI sent LINE_CLOSE, and the FSP reported FS_LINE_UNAVAILABLE).
     ///The retry depends on whether the device is detected back online. All other fax status codes will result in
     ///allowing the fax service to manage retry attempts.
-    uint          StatusId;
+    uint    StatusId;
     ///Type: <b>DWORD</b> Specifies a string resource identifier for the <b>StatusId</b> member if the <b>StatusId</b>
     ///is provider-defined. The fax service loads the string from the FSP's image. If <b>StatusId</b> contains a
     ///provider-defined status code or value, this member is required. If <b>StatusId</b> contains a predefined status
     ///code or value, this member is ignored.
-    uint          StringId;
+    uint    StringId;
     ///Type: <b>DWORD</b> Specifies the number of the page in the fax transmission that the FSP is receiving. The page
     ///count is relative to one.
-    uint          PageCount;
+    uint    PageCount;
     ///Type: <b>LPWSTR</b> Pointer to a null-terminated Unicode character string that specifies an identifier of the
     ///remote fax device that is connected with the current call to either the FaxDevReceive or FaxDevSend function. If
     ///the operation is sending a fax, the identifier specifies the CSID of the remote device; if the operation is
     ///receiving a fax, the identifier specifies the TSID of the remote device.
-    const(wchar)* CSI;
+    PWSTR   CSI;
     ///Type: <b>LPWSTR</b> Pointer to a null-terminated Unicode character string that identifies the calling device that
     ///sent the received fax document. This string can include the telephone number of the calling device.
-    const(wchar)* CallerId;
+    PWSTR   CallerId;
     ///Type: <b>LPWSTR</b> Pointer to a null-terminated Unicode character string that specifies the routing string for
     ///an inbound fax. The string must be of the form: <code>Canonical-Phone-Number[|Additional-Routing-Info]</code>
     ///where <code>Canonical-Phone-Number</code> is defined in the Address topic of the TAPI documentation (see the
@@ -2255,13 +2254,13 @@ struct FAX_DEV_STATUS
     ///or DTMF tones, separate it from the canonical telephone number by a vertical bar character as indicated in the
     ///TAPI specification. You can specify multiple recipients. For more information, see the Dialable Address and
     ///Canonical Address subheadings in the Address topic of the TAPI documentation.
-    const(wchar)* RoutingInfo;
+    PWSTR   RoutingInfo;
     ///Type: <b>DWORD</b> Specifies one of the Win32 System Error Codes [Base] that the FSP should use to report an
     ///error that occurs. The FSP should set this value to NO_ERROR when it is running and after a fax job completes
     ///normally.
-    uint          ErrorCode;
+    uint    ErrorCode;
     ///Type: <b>DWORD</b> This member is reserved by Microsoft. It must be set to zero.
-    uint[3]       Reserved;
+    uint[3] Reserved;
 }
 
 ///The <b>FAX_ROUTE_CALLBACKROUTINES</b> structure contains pointers to callback functions the fax service provides. A
@@ -2296,52 +2295,52 @@ struct FAX_ROUTE
 {
     ///Type: <b>DWORD</b> Specifies, in bytes, the size of the <b>FAX_ROUTE</b> structure. Before calling the
     ///FaxRouteMethod function, the fax service sets this member to sizeof(FAX_ROUTE).
-    uint          SizeOfStruct;
+    uint         SizeOfStruct;
     ///Type: <b>DWORD</b> Specifies a unique number that identifies the fax job that received the fax document.
-    uint          JobId;
+    uint         JobId;
     ///Type: <b>DWORDLONG</b> Specifies a 64-bit unsigned integer that is the elapsed time, in UTC, for the fax job that
     ///received the fax document. This parameter represents the total time that elapses between the beginning of fax
     ///reception and the end of fax reception.
-    ulong         ElapsedTime;
+    ulong        ElapsedTime;
     ///Type: <b>DWORDLONG</b> Specifies a 64-bit unsigned integer that is the starting time, in UTC, for the fax job
     ///that received the fax document.
-    ulong         ReceiveTime;
+    ulong        ReceiveTime;
     ///Type: <b>DWORD</b> Specifies the number of pages in the received fax document.
-    uint          PageCount;
+    uint         PageCount;
     ///Type: <b>LPCWSTR</b> Pointer to a constant null-terminated Unicode character string that specifies the called
     ///station identifier of the local fax device that received the fax document. This identifier is usually a telephone
     ///number.
-    const(wchar)* Csid;
+    const(PWSTR) Csid;
     ///Type: <b>LPCWSTR</b> Pointer to a constant null-terminated Unicode character string that specifies the
     ///transmitting station identifier of the remote fax device that sent the fax document. This identifier is usually a
     ///telephone number.
-    const(wchar)* Tsid;
+    const(PWSTR) Tsid;
     ///Type: <b>LPCWSTR</b> Pointer to a constant null-terminated Unicode character string that identifies the calling
     ///device that sent the fax document. This string may include the telephone number of the calling device.
-    const(wchar)* CallerId;
+    const(PWSTR) CallerId;
     ///Type: <b>LPCWSTR</b> Pointer to a constant null-terminated Unicode character string that specifies the routing
     ///string for the received fax document. The string must be of the form:
     ///<code>Canonical-Phone-Number[|Additional-Routing-Info]</code> where <code>Canonical-Phone-Number</code> is
     ///defined in the Address topic of the TAPI documentation (see the Canonical Address subheading); and
     ///<code>Additional-Routing-Info</code> is the <i>subaddress</i> of a Canonical Address, and uses the subaddress
     ///format.
-    const(wchar)* RoutingInfo;
+    const(PWSTR) RoutingInfo;
     ///Type: <b>LPCWSTR</b> Pointer to a constant null-terminated Unicode character string that specifies the name of
     ///the person who received the fax document.
-    const(wchar)* ReceiverName;
+    const(PWSTR) ReceiverName;
     ///Type: <b>LPCWSTR</b> Pointer to a constant null-terminated Unicode character string that specifies the telephone
     ///number of the fax device that received the fax document.
-    const(wchar)* ReceiverNumber;
+    const(PWSTR) ReceiverNumber;
     ///Type: <b>LPCWSTR</b> Pointer to a constant null-terminated Unicode character string that specifies the name of
     ///the device that received the fax document.
-    const(wchar)* DeviceName;
+    const(PWSTR) DeviceName;
     ///Type: <b>DWORD</b> Specifies the permanent line identifier for the receiving fax device.
-    uint          DeviceId;
+    uint         DeviceId;
     ///Type: <b>LPBYTE</b> Pointer to a buffer that contains additional routing data defined by the routing extension.
     ///For more information, see the following Remarks section.
-    ubyte*        RoutingInfoData;
+    ubyte*       RoutingInfoData;
     ///Type: <b>DWORD</b> Specifies the size, in bytes, of the array pointed to by the <b>RoutingInfoData</b> member.
-    uint          RoutingInfoDataSize;
+    uint         RoutingInfoDataSize;
 }
 
 // Functions
@@ -2365,7 +2364,7 @@ struct FAX_ROUTE
 ///    does not have sufficient rights to the fax server. </td> </tr> </table>
 ///    
 @DllImport("WINFAX")
-BOOL FaxConnectFaxServerA(const(char)* MachineName, ptrdiff_t* FaxHandle);
+BOOL FaxConnectFaxServerA(const(PSTR) MachineName, HANDLE* FaxHandle);
 
 ///The <b>FaxConnectFaxServer</b> function connects a fax client application to the local fax server. The function
 ///returns a fax server handle that is required to call other fax client functions that facilitate job, device,
@@ -2386,13 +2385,13 @@ BOOL FaxConnectFaxServerA(const(char)* MachineName, ptrdiff_t* FaxHandle);
 ///    does not have sufficient rights to the fax server. </td> </tr> </table>
 ///    
 @DllImport("WINFAX")
-BOOL FaxConnectFaxServerW(const(wchar)* MachineName, ptrdiff_t* FaxHandle);
+BOOL FaxConnectFaxServerW(const(PWSTR) MachineName, HANDLE* FaxHandle);
 
 @DllImport("WINFAX")
 BOOL FaxClose(HANDLE FaxHandle);
 
 @DllImport("WINFAX")
-BOOL FaxOpenPort(HANDLE FaxHandle, uint DeviceId, uint Flags, ptrdiff_t* FaxPortHandle);
+BOOL FaxOpenPort(HANDLE FaxHandle, uint DeviceId, uint Flags, HANDLE* FaxPortHandle);
 
 ///The FaxCompleteJobParams function creates both a FAX_COVERPAGE_INFO structure and a FAX_JOB_PARAM structure for a fax
 ///client application. This utility function supplies multiple members of these structures with values for the size of
@@ -2461,7 +2460,7 @@ BOOL FaxCompleteJobParamsW(FAX_JOB_PARAMW** JobParams, FAX_COVERPAGE_INFOW** Cov
 ///    supported. </td> </tr> </table>
 ///    
 @DllImport("WINFAX")
-BOOL FaxSendDocumentA(HANDLE FaxHandle, const(char)* FileName, FAX_JOB_PARAMA* JobParams, 
+BOOL FaxSendDocumentA(HANDLE FaxHandle, const(PSTR) FileName, FAX_JOB_PARAMA* JobParams, 
                       const(FAX_COVERPAGE_INFOA)* CoverpageInfo, uint* FaxJobId);
 
 ///A fax client application calls the <b>FaxSendDocument</b> function to queue a fax job that will transmit an outgoing
@@ -2501,7 +2500,7 @@ BOOL FaxSendDocumentA(HANDLE FaxHandle, const(char)* FileName, FAX_JOB_PARAMA* J
 ///    supported. </td> </tr> </table>
 ///    
 @DllImport("WINFAX")
-BOOL FaxSendDocumentW(HANDLE FaxHandle, const(wchar)* FileName, FAX_JOB_PARAMW* JobParams, 
+BOOL FaxSendDocumentW(HANDLE FaxHandle, const(PWSTR) FileName, FAX_JOB_PARAMW* JobParams, 
                       const(FAX_COVERPAGE_INFOW)* CoverpageInfo, uint* FaxJobId);
 
 ///A fax client application calls the <b>FaxSendDocumentForBroadcast</b> function to queue several fax jobs that will
@@ -2535,7 +2534,7 @@ BOOL FaxSendDocumentW(HANDLE FaxHandle, const(wchar)* FileName, FAX_JOB_PARAMW* 
 ///    </dl> </td> <td width="60%"> Access is denied. FAX_JOB_SUBMIT access is required. </td> </tr> </table>
 ///    
 @DllImport("WINFAX")
-BOOL FaxSendDocumentForBroadcastA(HANDLE FaxHandle, const(char)* FileName, uint* FaxJobId, 
+BOOL FaxSendDocumentForBroadcastA(HANDLE FaxHandle, const(PSTR) FileName, uint* FaxJobId, 
                                   PFAX_RECIPIENT_CALLBACKA FaxRecipientCallback, void* Context);
 
 ///A fax client application calls the <b>FaxSendDocumentForBroadcast</b> function to queue several fax jobs that will
@@ -2569,7 +2568,7 @@ BOOL FaxSendDocumentForBroadcastA(HANDLE FaxHandle, const(char)* FileName, uint*
 ///    </dl> </td> <td width="60%"> Access is denied. FAX_JOB_SUBMIT access is required. </td> </tr> </table>
 ///    
 @DllImport("WINFAX")
-BOOL FaxSendDocumentForBroadcastW(HANDLE FaxHandle, const(wchar)* FileName, uint* FaxJobId, 
+BOOL FaxSendDocumentForBroadcastW(HANDLE FaxHandle, const(PWSTR) FileName, uint* FaxJobId, 
                                   PFAX_RECIPIENT_CALLBACKW FaxRecipientCallback, void* Context);
 
 ///The <b>FaxEnumJobs</b> function enumerates all queued and active fax jobs on the fax server to which the client has
@@ -3142,7 +3141,7 @@ BOOL FaxEnumRoutingMethodsW(HANDLE FaxPortHandle, FAX_ROUTING_METHODW** RoutingM
 ///    denied. FAX_PORT_SET access is required. </td> </tr> </table>
 ///    
 @DllImport("WINFAX")
-BOOL FaxEnableRoutingMethodA(HANDLE FaxPortHandle, const(char)* RoutingGuid, BOOL Enabled);
+BOOL FaxEnableRoutingMethodA(HANDLE FaxPortHandle, const(PSTR) RoutingGuid, BOOL Enabled);
 
 ///The <b>FaxEnableRoutingMethod</b> function enables or disables a fax routing method for a specific fax device. A fax
 ///administration application typically calls this function for device management.
@@ -3167,7 +3166,7 @@ BOOL FaxEnableRoutingMethodA(HANDLE FaxPortHandle, const(char)* RoutingGuid, BOO
 ///    denied. FAX_PORT_SET access is required. </td> </tr> </table>
 ///    
 @DllImport("WINFAX")
-BOOL FaxEnableRoutingMethodW(HANDLE FaxPortHandle, const(wchar)* RoutingGuid, BOOL Enabled);
+BOOL FaxEnableRoutingMethodW(HANDLE FaxPortHandle, const(PWSTR) RoutingGuid, BOOL Enabled);
 
 ///The <b>FaxEnumGlobalRoutingInfo</b> function enumerates all fax routing methods associated with a specific fax
 ///server. The function returns to the fax client application fax routing method information that applies globally to
@@ -3287,7 +3286,7 @@ BOOL FaxSetGlobalRoutingInfoW(HANDLE FaxHandle, const(FAX_GLOBAL_ROUTING_INFOW)*
 ///    <i>RoutingGuid</i> parameter is invalid. </td> </tr> </table>
 ///    
 @DllImport("WINFAX")
-BOOL FaxGetRoutingInfoA(HANDLE FaxPortHandle, const(char)* RoutingGuid, ubyte** RoutingInfoBuffer, 
+BOOL FaxGetRoutingInfoA(HANDLE FaxPortHandle, const(PSTR) RoutingGuid, ubyte** RoutingInfoBuffer, 
                         uint* RoutingInfoBufferSize);
 
 ///The <b>FaxGetRoutingInfo</b> function returns to a fax client application routing information for a fax routing
@@ -3314,7 +3313,7 @@ BOOL FaxGetRoutingInfoA(HANDLE FaxPortHandle, const(char)* RoutingGuid, ubyte** 
 ///    <i>RoutingGuid</i> parameter is invalid. </td> </tr> </table>
 ///    
 @DllImport("WINFAX")
-BOOL FaxGetRoutingInfoW(HANDLE FaxPortHandle, const(wchar)* RoutingGuid, ubyte** RoutingInfoBuffer, 
+BOOL FaxGetRoutingInfoW(HANDLE FaxPortHandle, const(PWSTR) RoutingGuid, ubyte** RoutingInfoBuffer, 
                         uint* RoutingInfoBufferSize);
 
 ///A fax management application calls the <b>FaxSetRoutingInfo</b> function to modify the routing information for a fax
@@ -3340,7 +3339,7 @@ BOOL FaxGetRoutingInfoW(HANDLE FaxPortHandle, const(wchar)* RoutingGuid, ubyte**
 ///    </td> </tr> </table>
 ///    
 @DllImport("WINFAX")
-BOOL FaxSetRoutingInfoA(HANDLE FaxPortHandle, const(char)* RoutingGuid, const(ubyte)* RoutingInfoBuffer, 
+BOOL FaxSetRoutingInfoA(HANDLE FaxPortHandle, const(PSTR) RoutingGuid, const(ubyte)* RoutingInfoBuffer, 
                         uint RoutingInfoBufferSize);
 
 ///A fax management application calls the <b>FaxSetRoutingInfo</b> function to modify the routing information for a fax
@@ -3366,7 +3365,7 @@ BOOL FaxSetRoutingInfoA(HANDLE FaxPortHandle, const(char)* RoutingGuid, const(ub
 ///    </td> </tr> </table>
 ///    
 @DllImport("WINFAX")
-BOOL FaxSetRoutingInfoW(HANDLE FaxPortHandle, const(wchar)* RoutingGuid, const(ubyte)* RoutingInfoBuffer, 
+BOOL FaxSetRoutingInfoW(HANDLE FaxPortHandle, const(PWSTR) RoutingGuid, const(ubyte)* RoutingInfoBuffer, 
                         uint RoutingInfoBufferSize);
 
 @DllImport("WINFAX")
@@ -3409,7 +3408,7 @@ void FaxFreeBuffer(void* Buffer);
 ///    width="60%"> FaxStartPrintJob was not called first, hence there was no StartDoc call. </td> </tr> </table>
 ///    
 @DllImport("WINFAX")
-BOOL FaxStartPrintJobA(const(char)* PrinterName, const(FAX_PRINT_INFOA)* PrintInfo, uint* FaxJobId, 
+BOOL FaxStartPrintJobA(const(PSTR) PrinterName, const(FAX_PRINT_INFOA)* PrintInfo, uint* FaxJobId, 
                        FAX_CONTEXT_INFOA* FaxContextInfo);
 
 ///A fax client application calls the <b>FaxStartPrintJob</b> function to start printing an outbound fax transmission on
@@ -3445,7 +3444,7 @@ BOOL FaxStartPrintJobA(const(char)* PrinterName, const(FAX_PRINT_INFOA)* PrintIn
 ///    width="60%"> FaxStartPrintJob was not called first, hence there was no StartDoc call. </td> </tr> </table>
 ///    
 @DllImport("WINFAX")
-BOOL FaxStartPrintJobW(const(wchar)* PrinterName, const(FAX_PRINT_INFOW)* PrintInfo, uint* FaxJobId, 
+BOOL FaxStartPrintJobW(const(PWSTR) PrinterName, const(FAX_PRINT_INFOW)* PrintInfo, uint* FaxJobId, 
                        FAX_CONTEXT_INFOW* FaxContextInfo);
 
 ///The <b>FaxPrintCoverPage</b> function prints a fax transmission cover page to the specified device context for a fax
@@ -3516,11 +3515,11 @@ BOOL FaxPrintCoverPageW(const(FAX_CONTEXT_INFOW)* FaxContextInfo, const(FAX_COVE
 ///    FaxRegisterServiceProvider function is <b>NULL</b>. </td> </tr> </table>
 ///    
 @DllImport("WINFAX")
-BOOL FaxRegisterServiceProviderW(const(wchar)* DeviceProvider, const(wchar)* FriendlyName, const(wchar)* ImageName, 
-                                 const(wchar)* TspName);
+BOOL FaxRegisterServiceProviderW(const(PWSTR) DeviceProvider, const(PWSTR) FriendlyName, const(PWSTR) ImageName, 
+                                 const(PWSTR) TspName);
 
 @DllImport("WINFAX")
-BOOL FaxUnregisterServiceProviderW(const(wchar)* DeviceProvider);
+BOOL FaxUnregisterServiceProviderW(const(PWSTR) DeviceProvider);
 
 ///The <b>FaxRegisterRoutingExtension</b> function registers a fax routing extension DLL with the fax service. The
 ///function configures the fax service registry to use the new routing extension DLL.
@@ -3549,8 +3548,8 @@ BOOL FaxUnregisterServiceProviderW(const(wchar)* DeviceProvider);
 ///    server connection. </td> </tr> </table>
 ///    
 @DllImport("WINFAX")
-BOOL FaxRegisterRoutingExtensionW(HANDLE FaxHandle, const(wchar)* ExtensionName, const(wchar)* FriendlyName, 
-                                  const(wchar)* ImageName, PFAX_ROUTING_INSTALLATION_CALLBACKW CallBack, 
+BOOL FaxRegisterRoutingExtensionW(HANDLE FaxHandle, const(PWSTR) ExtensionName, const(PWSTR) FriendlyName, 
+                                  const(PWSTR) ImageName, PFAX_ROUTING_INSTALLATION_CALLBACKW CallBack, 
                                   void* Context);
 
 @DllImport("WINFAX")
@@ -3575,7 +3574,7 @@ BOOL CanSendToFaxRecipient();
 ///    Type: <b>DWORD</b> Zero, if the operation is successful.
 ///    
 @DllImport("fxsutility")
-uint SendToFaxRecipient(SendToMode sndMode, const(wchar)* lpFileName);
+uint SendToFaxRecipient(SendToMode sndMode, const(PWSTR) lpFileName);
 
 
 // Interfaces

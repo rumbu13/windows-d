@@ -17,7 +17,7 @@ public import windows.dxgi : DXGI_ALPHA_MODE, DXGI_FORMAT, DXGI_RATIONAL, DXGI_R
 public import windows.systemservices : BOOL, HANDLE, LARGE_INTEGER, SECURITY_ATTRIBUTES;
 public import windows.windowsandmessaging : HWND;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -441,7 +441,8 @@ interface IDCompositionDevice : IUnknown
     ///    Type: <b>HRESULT</b> If the function succeeds, it returns S_OK. Otherwise, it returns an <b>HRESULT</b> error
     ///    code. See DirectComposition Error Codes for a list of error codes.
     ///    
-    HRESULT CreateTransformGroup(char* transforms, uint elements, IDCompositionTransform* transformGroup);
+    HRESULT CreateTransformGroup(IDCompositionTransform* transforms, uint elements, 
+                                 IDCompositionTransform* transformGroup);
     ///Creates a 3D translation transform object.
     ///Params:
     ///    translateTransform3D = Type: <b>IDCompositionTranslateTransform3D**</b> The new 3D translation transform object. This parameter must
@@ -488,7 +489,8 @@ interface IDCompositionDevice : IUnknown
     ///    Type: <b>HRESULT</b> If the function succeeds, it returns S_OK. Otherwise, it returns an <b>HRESULT</b> error
     ///    code. See DirectComposition Error Codes for a list of error codes.
     ///    
-    HRESULT CreateTransform3DGroup(char* transforms3D, uint elements, IDCompositionTransform3D* transform3DGroup);
+    HRESULT CreateTransform3DGroup(IDCompositionTransform3D* transforms3D, uint elements, 
+                                   IDCompositionTransform3D* transform3DGroup);
     ///Creates an object that represents multiple effects to be applied to a visual subtree.
     ///Params:
     ///    effectGroup = Type: <b>IDCompositionEffectGroup**</b> The new effect group object. This parameter must not be NULL.
@@ -521,7 +523,7 @@ interface IDCompositionDevice : IUnknown
     ///    If the function succeeds, it returns S_OK. Otherwise, it returns an <b>HRESULT</b> error code. See
     ///    DirectComposition Error Codes for a list of error codes.
     ///    
-    HRESULT CheckDeviceState(int* pfValid);
+    HRESULT CheckDeviceState(BOOL* pfValid);
 }
 
 ///Represents a binding between a Microsoft DirectComposition visual tree and a destination on top of which the visual
@@ -920,7 +922,7 @@ interface IDCompositionVirtualSurface : IDCompositionSurface
     ///    Type: <b>HRESULT</b> If the function succeeds, it returns S_OK. Otherwise, it returns an <b>HRESULT</b> error
     ///    code. See DirectComposition Error Codes for a list of error codes.
     ///    
-    HRESULT Trim(char* rectangles, uint count);
+    HRESULT Trim(const(RECT)* rectangles, uint count);
 }
 
 ///Serves as a factory for all other Microsoft DirectComposition objects and provides methods to control transactional
@@ -1069,7 +1071,8 @@ interface IDCompositionDevice2 : IUnknown
     ///    Type: <b>HRESULT</b> If the function succeeds, it returns S_OK. Otherwise, it returns an <b>HRESULT</b> error
     ///    code. See DirectComposition Error Codes for a list of error codes.
     ///    
-    HRESULT CreateTransformGroup(char* transforms, uint elements, IDCompositionTransform* transformGroup);
+    HRESULT CreateTransformGroup(IDCompositionTransform* transforms, uint elements, 
+                                 IDCompositionTransform* transformGroup);
     ///Creates a 3D translation transform object.
     ///Params:
     ///    translateTransform3D = Type: <b>IDCompositionTranslateTransform3D**</b> The new 3D translation transform object. This parameter must
@@ -1116,7 +1119,8 @@ interface IDCompositionDevice2 : IUnknown
     ///    Type: <b>HRESULT</b> If the function succeeds, it returns S_OK. Otherwise, it returns an <b>HRESULT</b> error
     ///    code. See DirectComposition Error Codes for a list of error codes.
     ///    
-    HRESULT CreateTransform3DGroup(char* transforms3D, uint elements, IDCompositionTransform3D* transform3DGroup);
+    HRESULT CreateTransform3DGroup(IDCompositionTransform3D* transforms3D, uint elements, 
+                                   IDCompositionTransform3D* transform3DGroup);
     ///Creates an object that represents multiple effects to be applied to a visual subtree.
     ///Params:
     ///    effectGroup = Type: <b>IDCompositionEffectGroup**</b> The new effect group object. This parameter must not be NULL.
@@ -1798,7 +1802,7 @@ interface IDCompositionTableTransferEffect : IDCompositionFilterEffect
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetRedTable(char* tableValues, uint count);
+    HRESULT SetRedTable(const(float)* tableValues, uint count);
     ///Sets the list of values used to define the transfer function for the green channel.
     ///Params:
     ///    tableValues = Type: <b>const float*</b> The list of values used to define the transfer function for the green channel.
@@ -1808,7 +1812,7 @@ interface IDCompositionTableTransferEffect : IDCompositionFilterEffect
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetGreenTable(char* tableValues, uint count);
+    HRESULT SetGreenTable(const(float)* tableValues, uint count);
     ///Sets the list of values used to define the transfer function for the blue channel.
     ///Params:
     ///    tableValues = Type: <b>const float*</b> The list of values used to define the transfer function for the blue channel.
@@ -1818,7 +1822,7 @@ interface IDCompositionTableTransferEffect : IDCompositionFilterEffect
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetBlueTable(char* tableValues, uint count);
+    HRESULT SetBlueTable(const(float)* tableValues, uint count);
     ///Sets the list of values used to define the transfer function for the alpha channel.
     ///Params:
     ///    tableValues = Type: <b>const float*</b> The list of values used to define the transfer function for the alpha channel.
@@ -1828,7 +1832,7 @@ interface IDCompositionTableTransferEffect : IDCompositionFilterEffect
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetAlphaTable(char* tableValues, uint count);
+    HRESULT SetAlphaTable(const(float)* tableValues, uint count);
     ///Specifies whether to apply the transfer function to the red channel.
     ///Params:
     ///    redDisable = Type: <b>BOOL</b> A boolean value that specifies whether to apply the transfer function to the red channel.

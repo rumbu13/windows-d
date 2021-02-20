@@ -4,8 +4,9 @@ module windows.gamemode;
 
 public import windows.core;
 public import windows.com : HRESULT;
+public import windows.systemservices : BOOL;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Functions
@@ -17,7 +18,7 @@ extern(Windows):
 ///    The result of the operation.
 ///    
 @DllImport("api-ms-win-gaming-expandedresources-l1-1-0")
-HRESULT HasExpandedResources(int* hasExpandedResources);
+HRESULT HasExpandedResources(BOOL* hasExpandedResources);
 
 ///Gets the expected number of exclusive CPU sets that are available to the app when in Game Mode.
 ///Params:

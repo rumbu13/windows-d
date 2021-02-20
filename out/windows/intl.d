@@ -8,11 +8,12 @@ public import windows.com : HRESULT, IClassFactory, IEnumString, IUnknown;
 public import windows.displaydevices : POINT, RECT, SIZE;
 public import windows.gdi : ABC, HBITMAP, HDC, HICON;
 public import windows.shell : LOGFONTA, LOGFONTW;
-public import windows.systemservices : BOOL, LRESULT;
+public import windows.systemservices : BOOL, LRESULT, PSTR, PWSTR;
+public import windows.textservices : HKL;
 public import windows.windowsandmessaging : HWND, LPARAM, WPARAM;
 public import windows.windowsprogramming : SYSTEMTIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -2519,9 +2520,38 @@ enum : int
 
 // Callbacks
 
-alias LOCALE_ENUMPROCA = BOOL function(const(char)* param0);
-alias LOCALE_ENUMPROCW = BOOL function(const(wchar)* param0);
-alias LANGUAGEGROUP_ENUMPROCA = BOOL function(uint param0, const(char)* param1, const(char)* param2, uint param3, 
+alias LOCALE_ENUMPROCA = BOOL function(PSTR param0);
+alias LOCALE_ENUMPROCW = BOOL function(PWSTR param0);
+alias LANGUAGEGROUP_ENUMPROCA = BOOL function(uint param0, PSTR param1, PSTR param2, uint param3, ptrdiff_t param4);
+///An application-defined callback function that processes enumerated language group locale information provided by the
+///EnumLanguageGroupLocales function. The LANGGROUPLOCALE_ENUMPROC type defines a pointer to this callback function.
+///<b>EnumLanguageGroupLocalesProc</b> is a placeholder for the application-defined function name.
+///Params:
+///    Arg1 = 
+///    Arg2 = 
+///    Arg3 = 
+///    Arg4 = 
+///Returns:
+///    Returns <b>TRUE</b> to continue enumeration or <b>FALSE</b> otherwise.
+///    
+alias LANGGROUPLOCALE_ENUMPROCA = BOOL function(uint param0, uint param1, PSTR param2, ptrdiff_t param3);
+///An application-defined callback function that processes enumerated user interface language information provided by
+///the EnumUILanguages function. The UILANGUAGE_ENUMPROC type defines a pointer to this callback function.
+///<b>EnumUILanguagesProc</b> is a placeholder for the application-defined function name.
+///Params:
+///    Arg1 = 
+///    Arg2 = 
+///Returns:
+///    Returns <b>TRUE</b> to continue enumeration or <b>FALSE</b> otherwise.
+///    
+alias UILANGUAGE_ENUMPROCA = BOOL function(PSTR param0, ptrdiff_t param1);
+alias CODEPAGE_ENUMPROCA = BOOL function(PSTR param0);
+alias DATEFMT_ENUMPROCA = BOOL function(PSTR param0);
+alias DATEFMT_ENUMPROCEXA = BOOL function(PSTR param0, uint param1);
+alias TIMEFMT_ENUMPROCA = BOOL function(PSTR param0);
+alias CALINFO_ENUMPROCA = BOOL function(PSTR param0);
+alias CALINFO_ENUMPROCEXA = BOOL function(PSTR param0, uint param1);
+alias LANGUAGEGROUP_ENUMPROCW = BOOL function(uint param0, PWSTR param1, PWSTR param2, uint param3, 
                                               ptrdiff_t param4);
 ///An application-defined callback function that processes enumerated language group locale information provided by the
 ///EnumLanguageGroupLocales function. The LANGGROUPLOCALE_ENUMPROC type defines a pointer to this callback function.
@@ -2534,7 +2564,7 @@ alias LANGUAGEGROUP_ENUMPROCA = BOOL function(uint param0, const(char)* param1, 
 ///Returns:
 ///    Returns <b>TRUE</b> to continue enumeration or <b>FALSE</b> otherwise.
 ///    
-alias LANGGROUPLOCALE_ENUMPROCA = BOOL function(uint param0, uint param1, const(char)* param2, ptrdiff_t param3);
+alias LANGGROUPLOCALE_ENUMPROCW = BOOL function(uint param0, uint param1, PWSTR param2, ptrdiff_t param3);
 ///An application-defined callback function that processes enumerated user interface language information provided by
 ///the EnumUILanguages function. The UILANGUAGE_ENUMPROC type defines a pointer to this callback function.
 ///<b>EnumUILanguagesProc</b> is a placeholder for the application-defined function name.
@@ -2544,43 +2574,13 @@ alias LANGGROUPLOCALE_ENUMPROCA = BOOL function(uint param0, uint param1, const(
 ///Returns:
 ///    Returns <b>TRUE</b> to continue enumeration or <b>FALSE</b> otherwise.
 ///    
-alias UILANGUAGE_ENUMPROCA = BOOL function(const(char)* param0, ptrdiff_t param1);
-alias CODEPAGE_ENUMPROCA = BOOL function(const(char)* param0);
-alias DATEFMT_ENUMPROCA = BOOL function(const(char)* param0);
-alias DATEFMT_ENUMPROCEXA = BOOL function(const(char)* param0, uint param1);
-alias TIMEFMT_ENUMPROCA = BOOL function(const(char)* param0);
-alias CALINFO_ENUMPROCA = BOOL function(const(char)* param0);
-alias CALINFO_ENUMPROCEXA = BOOL function(const(char)* param0, uint param1);
-alias LANGUAGEGROUP_ENUMPROCW = BOOL function(uint param0, const(wchar)* param1, const(wchar)* param2, uint param3, 
-                                              ptrdiff_t param4);
-///An application-defined callback function that processes enumerated language group locale information provided by the
-///EnumLanguageGroupLocales function. The LANGGROUPLOCALE_ENUMPROC type defines a pointer to this callback function.
-///<b>EnumLanguageGroupLocalesProc</b> is a placeholder for the application-defined function name.
-///Params:
-///    Arg1 = 
-///    Arg2 = 
-///    Arg3 = 
-///    Arg4 = 
-///Returns:
-///    Returns <b>TRUE</b> to continue enumeration or <b>FALSE</b> otherwise.
-///    
-alias LANGGROUPLOCALE_ENUMPROCW = BOOL function(uint param0, uint param1, const(wchar)* param2, ptrdiff_t param3);
-///An application-defined callback function that processes enumerated user interface language information provided by
-///the EnumUILanguages function. The UILANGUAGE_ENUMPROC type defines a pointer to this callback function.
-///<b>EnumUILanguagesProc</b> is a placeholder for the application-defined function name.
-///Params:
-///    Arg1 = 
-///    Arg2 = 
-///Returns:
-///    Returns <b>TRUE</b> to continue enumeration or <b>FALSE</b> otherwise.
-///    
-alias UILANGUAGE_ENUMPROCW = BOOL function(const(wchar)* param0, ptrdiff_t param1);
-alias CODEPAGE_ENUMPROCW = BOOL function(const(wchar)* param0);
-alias DATEFMT_ENUMPROCW = BOOL function(const(wchar)* param0);
-alias DATEFMT_ENUMPROCEXW = BOOL function(const(wchar)* param0, uint param1);
-alias TIMEFMT_ENUMPROCW = BOOL function(const(wchar)* param0);
-alias CALINFO_ENUMPROCW = BOOL function(const(wchar)* param0);
-alias CALINFO_ENUMPROCEXW = BOOL function(const(wchar)* param0, uint param1);
+alias UILANGUAGE_ENUMPROCW = BOOL function(PWSTR param0, ptrdiff_t param1);
+alias CODEPAGE_ENUMPROCW = BOOL function(PWSTR param0);
+alias DATEFMT_ENUMPROCW = BOOL function(PWSTR param0);
+alias DATEFMT_ENUMPROCEXW = BOOL function(PWSTR param0, uint param1);
+alias TIMEFMT_ENUMPROCW = BOOL function(PWSTR param0);
+alias CALINFO_ENUMPROCW = BOOL function(PWSTR param0);
+alias CALINFO_ENUMPROCEXW = BOOL function(PWSTR param0, uint param1);
 alias GEO_ENUMPROC = BOOL function(int param0);
 ///An application-defined callback function that processes enumerated geographical location information provided by the
 ///EnumSystemGeoNames function. The <b>GEO_ENUMNAMEPROC</b> type defines a pointer to this callback function.
@@ -2591,10 +2591,10 @@ alias GEO_ENUMPROC = BOOL function(int param0);
 ///Returns:
 ///    Returns <b>TRUE</b> to continue enumeration or <b>FALSE</b> otherwise.
 ///    
-alias GEO_ENUMNAMEPROC = BOOL function(const(wchar)* param0, LPARAM param1);
-alias CALINFO_ENUMPROCEXEX = BOOL function(const(wchar)* param0, uint param1, const(wchar)* param2, LPARAM param3);
-alias DATEFMT_ENUMPROCEXEX = BOOL function(const(wchar)* param0, uint param1, LPARAM param2);
-alias TIMEFMT_ENUMPROCEX = BOOL function(const(wchar)* param0, LPARAM param1);
+alias GEO_ENUMNAMEPROC = BOOL function(PWSTR param0, LPARAM param1);
+alias CALINFO_ENUMPROCEXEX = BOOL function(PWSTR param0, uint param1, PWSTR param2, LPARAM param3);
+alias DATEFMT_ENUMPROCEXEX = BOOL function(PWSTR param0, uint param1, LPARAM param2);
+alias TIMEFMT_ENUMPROCEX = BOOL function(PWSTR param0, LPARAM param1);
 ///An application-defined callback function that processes enumerated locale information provided by the
 ///EnumSystemLocalesEx function. The LOCALE_ENUMPROCEX type defines a pointer to this callback function.
 ///<b>EnumLocalesProcEx</b> is a placeholder for the application-defined function name.
@@ -2619,7 +2619,7 @@ alias TIMEFMT_ENUMPROCEX = BOOL function(const(wchar)* param0, LPARAM param1);
 ///Returns:
 ///    Returns <b>TRUE</b> to continue enumeration or <b>FALSE</b> otherwise.
 ///    
-alias LOCALE_ENUMPROCEX = BOOL function(const(wchar)* param0, uint param1, LPARAM param2);
+alias LOCALE_ENUMPROCEX = BOOL function(PWSTR param0, uint param1, LPARAM param2);
 ///An application-defined callback function that processes input contexts provided by the ImmEnumInputContext function.
 ///The IMCENUMPROC type defines a pointer to this callback function. <b>EnumInputContext</b> is a placeholder for the
 ///application-defined function name.
@@ -2641,7 +2641,7 @@ alias IMCENUMPROC = BOOL function(HIMC__* param0, LPARAM param1);
 ///Returns:
 ///    Returns a nonzero value to continue enumeration, or 0 to stop enumeration.
 ///    
-alias REGISTERWORDENUMPROCA = int function(const(char)* lpszReading, uint param1, const(char)* lpszString, 
+alias REGISTERWORDENUMPROCA = int function(const(PSTR) lpszReading, uint param1, const(PSTR) lpszString, 
                                            void* param3);
 ///An application-defined callback function used with the ImmEnumRegisterWord function. It is used to process data of
 ///register strings. The REGISTERWORDENUMPROC type defines a pointer to this callback function.
@@ -2654,7 +2654,7 @@ alias REGISTERWORDENUMPROCA = int function(const(char)* lpszReading, uint param1
 ///Returns:
 ///    Returns a nonzero value to continue enumeration, or 0 to stop enumeration.
 ///    
-alias REGISTERWORDENUMPROCW = int function(const(wchar)* lpszReading, uint param1, const(wchar)* lpszString, 
+alias REGISTERWORDENUMPROCW = int function(const(PWSTR) lpszReading, uint param1, const(PWSTR) lpszString, 
                                            void* param3);
 ///An application-defined callback function that asynchronously processes data produced by the MappingRecognizeText
 ///function. The <b>MAPPINGCALLBACKPROC</b> type defines a pointer to this callback function. <b>MappingCallbackProc</b>
@@ -2718,51 +2718,6 @@ alias URegexFindProgressCallback = byte function(const(void)* context, long matc
 
 // Structs
 
-
-///Contains information identifying the code pages and Unicode subranges for which a given font provides glyphs.
-struct FONTSIGNATURE
-{
-    ///A 128-bit Unicode subset bitfield (USB) identifying up to 126 Unicode subranges. Each bit, except the two most
-    ///significant bits, represents a single subrange. The most significant bit is always 1 and identifies the bitfield
-    ///as a font signature; the second most significant bit is reserved and must be 0. Unicode subranges are numbered in
-    ///accordance with the ISO 10646 standard. For more information, see Unicode Subset Bitfields.
-    uint[4] fsUsb;
-    ///A 64-bit, code-page bitfield (CPB) that identifies a specific character set or code page. Code pages are in the
-    ///lower 32 bits of this bitfield. The high 32 are used for non-Windows code pages. For more information, see Code
-    ///Page Bitfields.
-    uint[2] fsCsb;
-}
-
-///Contains information about a character set.
-struct CHARSETINFO
-{
-    ///Character set value.
-    uint          ciCharset;
-    ///Windows ANSI code page identifier. For a list of identifiers, see Code Page Identifiers.
-    uint          ciACP;
-    ///A FONTSIGNATURE structure that identifies the Unicode subrange and the specific Windows ANSI character set/code
-    ///page. Only one code page will be set when this structure is set by the function.
-    FONTSIGNATURE fs;
-}
-
-///Contains extended font signature information, including two code page bitfields (CPBs) that define the default and
-///supported character sets and code pages. This structure is typically used to represent the relationships between font
-///coverage and locales.
-struct LOCALESIGNATURE
-{
-    ///A 128-bit Unicode subset bitfield (USB) identifying up to 122 Unicode subranges. Each bit, except the five most
-    ///significant bits, represents a single subrange. The most significant bit is always 1; the second most significant
-    ///is reserved and must be 0. Unicode subsets are numbered in accordance with the OpenType font specification. For a
-    ///list of possible bitfield values, see Unicode Subset Bitfields.
-    uint[4] lsUsb;
-    ///A code page bitfield that indicates the default OEM and ANSI code pages for a locale. The code pages can be
-    ///identified by separate bits or a single bit representing a common ANSI and OEM code page. For a list of possible
-    ///bitfield values, see Code Page Bitfields.
-    uint[2] lsCsbDefault;
-    ///A code page bitfield that indicates all the code pages in which the locale can be supported. For a list of
-    ///possible bitfield values, see Code Page Bitfields.
-    uint[2] lsCsbSupported;
-}
 
 ///Contains information about a code page. This structure is used by the GetCPInfo function.
 struct CPINFO
@@ -2856,10 +2811,10 @@ struct NUMBERFMTA
 {
     ///Number of fractional digits. This value is equivalent to the locale information specified by the value
     ///LOCALE_IDIGITS.
-    uint         NumDigits;
+    uint NumDigits;
     ///A value indicating if leading zeros should be used in decimal fields. This value is equivalent to the locale
     ///information specified by the value LOCALE_ILZERO.
-    uint         LeadingZero;
+    uint LeadingZero;
     ///Number of digits in each group of numbers to the left of the decimal separator specified by <b>lpDecimalSep</b>.
     ///Values in the range 0 through 9 and 32 are valid. The most significant grouping digit indicates the number of
     ///digits in the least significant group immediately to the left of the decimal separator. Each subsequent grouping
@@ -2869,13 +2824,13 @@ struct NUMBERFMTA
     ///12,34,56,789.00. <div class="alert"><b>Note</b> You can use settings other than the typical settings, but they
     ///will not show up in the regional and language options portion of the Control Panel. Such settings are extremely
     ///uncommon and might have unexpected results.</div> <div> </div>
-    uint         Grouping;
+    uint Grouping;
     ///Pointer to a null-terminated decimal separator string.
-    const(char)* lpDecimalSep;
+    PSTR lpDecimalSep;
     ///Pointer to a null-terminated thousand separator string.
-    const(char)* lpThousandSep;
+    PSTR lpThousandSep;
     ///Negative number mode. This mode is equivalent to the locale information specified by the value LOCALE_INEGNUMBER.
-    uint         NegativeOrder;
+    uint NegativeOrder;
 }
 
 ///Contains information that defines the format of a number string. The GetNumberFormat function uses this information
@@ -2884,10 +2839,10 @@ struct NUMBERFMTW
 {
     ///Number of fractional digits. This value is equivalent to the locale information specified by the value
     ///LOCALE_IDIGITS.
-    uint          NumDigits;
+    uint  NumDigits;
     ///A value indicating if leading zeros should be used in decimal fields. This value is equivalent to the locale
     ///information specified by the value LOCALE_ILZERO.
-    uint          LeadingZero;
+    uint  LeadingZero;
     ///Number of digits in each group of numbers to the left of the decimal separator specified by <b>lpDecimalSep</b>.
     ///Values in the range 0 through 9 and 32 are valid. The most significant grouping digit indicates the number of
     ///digits in the least significant group immediately to the left of the decimal separator. Each subsequent grouping
@@ -2897,13 +2852,13 @@ struct NUMBERFMTW
     ///12,34,56,789.00. <div class="alert"><b>Note</b> You can use settings other than the typical settings, but they
     ///will not show up in the regional and language options portion of the Control Panel. Such settings are extremely
     ///uncommon and might have unexpected results.</div> <div> </div>
-    uint          Grouping;
+    uint  Grouping;
     ///Pointer to a null-terminated decimal separator string.
-    const(wchar)* lpDecimalSep;
+    PWSTR lpDecimalSep;
     ///Pointer to a null-terminated thousand separator string.
-    const(wchar)* lpThousandSep;
+    PWSTR lpThousandSep;
     ///Negative number mode. This mode is equivalent to the locale information specified by the value LOCALE_INEGNUMBER.
-    uint          NegativeOrder;
+    uint  NegativeOrder;
 }
 
 ///Contains information that defines the format of a currency string. The GetCurrencyFormat function uses this
@@ -2911,9 +2866,9 @@ struct NUMBERFMTW
 struct CURRENCYFMTA
 {
     ///Number of fractional digits. This number is equivalent to LOCALE_ICURRDIGITS.
-    uint         NumDigits;
+    uint NumDigits;
     ///Value indicating if leading zeros should be used in decimal fields. This value is equivalent to LOCALE_ILZERO.
-    uint         LeadingZero;
+    uint LeadingZero;
     ///Number of digits in each group of numbers to the left of the decimal separator specified by <b>lpDecimalSep</b>.
     ///The most significant grouping digit indicates the number of digits in the least significant group immediately to
     ///the left of the decimal separator. Each subsequent grouping digit indicates the next significant group of digits
@@ -2922,17 +2877,17 @@ struct CURRENCYFMTA
     ///as in 123,456,789.00; and 32 to group digits as in 12,34,56,789.00. <div class="alert"><b>Note</b> You can use
     ///settings other than the typical settings, but they will not show up in the regional and language settings portion
     ///of the Control Panel. Such settings are extremely uncommon and might have unexpected results.</div> <div> </div>
-    uint         Grouping;
+    uint Grouping;
     ///Pointer to a null-terminated decimal separator string.
-    const(char)* lpDecimalSep;
+    PSTR lpDecimalSep;
     ///Pointer to a null-terminated thousand separator string.
-    const(char)* lpThousandSep;
+    PSTR lpThousandSep;
     ///Negative currency mode. This mode is equivalent to LOCALE_INEGCURR.
-    uint         NegativeOrder;
+    uint NegativeOrder;
     ///Positive currency mode. This mode is equivalent to LOCALE_ICURRENCY.
-    uint         PositiveOrder;
+    uint PositiveOrder;
     ///Pointer to a null-terminated currency symbol string.
-    const(char)* lpCurrencySymbol;
+    PSTR lpCurrencySymbol;
 }
 
 ///Contains information that defines the format of a currency string. The GetCurrencyFormat function uses this
@@ -2940,9 +2895,9 @@ struct CURRENCYFMTA
 struct CURRENCYFMTW
 {
     ///Number of fractional digits. This number is equivalent to LOCALE_ICURRDIGITS.
-    uint          NumDigits;
+    uint  NumDigits;
     ///Value indicating if leading zeros should be used in decimal fields. This value is equivalent to LOCALE_ILZERO.
-    uint          LeadingZero;
+    uint  LeadingZero;
     ///Number of digits in each group of numbers to the left of the decimal separator specified by <b>lpDecimalSep</b>.
     ///The most significant grouping digit indicates the number of digits in the least significant group immediately to
     ///the left of the decimal separator. Each subsequent grouping digit indicates the next significant group of digits
@@ -2951,17 +2906,17 @@ struct CURRENCYFMTW
     ///as in 123,456,789.00; and 32 to group digits as in 12,34,56,789.00. <div class="alert"><b>Note</b> You can use
     ///settings other than the typical settings, but they will not show up in the regional and language settings portion
     ///of the Control Panel. Such settings are extremely uncommon and might have unexpected results.</div> <div> </div>
-    uint          Grouping;
+    uint  Grouping;
     ///Pointer to a null-terminated decimal separator string.
-    const(wchar)* lpDecimalSep;
+    PWSTR lpDecimalSep;
     ///Pointer to a null-terminated thousand separator string.
-    const(wchar)* lpThousandSep;
+    PWSTR lpThousandSep;
     ///Negative currency mode. This mode is equivalent to LOCALE_INEGCURR.
-    uint          NegativeOrder;
+    uint  NegativeOrder;
     ///Positive currency mode. This mode is equivalent to LOCALE_ICURRENCY.
-    uint          PositiveOrder;
+    uint  PositiveOrder;
     ///Pointer to a null-terminated currency symbol string.
-    const(wchar)* lpCurrencySymbol;
+    PWSTR lpCurrencySymbol;
 }
 
 ///Deprecated. Contains version information about an NLS capability. Starting with Windows 8, your app should use
@@ -3144,9 +3099,9 @@ struct REGISTERWORDA
 {
     ///Pointer to the reading information for the word to register. If the reading information is not needed, the member
     ///can be set to <b>NULL</b>.
-    const(char)* lpReading;
+    PSTR lpReading;
     ///Pointer to the word to register. If a word is not needed, the member can be set to <b>NULL</b>.
-    const(char)* lpWord;
+    PSTR lpWord;
 }
 
 ///Contains reading information or a word to register.
@@ -3154,9 +3109,9 @@ struct REGISTERWORDW
 {
     ///Pointer to the reading information for the word to register. If the reading information is not needed, the member
     ///can be set to <b>NULL</b>.
-    const(wchar)* lpReading;
+    PWSTR lpReading;
     ///Pointer to the word to register. If a word is not needed, the member can be set to <b>NULL</b>.
-    const(wchar)* lpWord;
+    PWSTR lpWord;
 }
 
 ///Defines the strings for IME reconversion. It is the first item in a memory block that contains the strings for
@@ -3301,109 +3256,109 @@ struct IMECHARPOSITION
 struct MAPPING_SERVICE_INFO
 {
     ///Size of the structure, used to validate the structure version. This value is required.
-    size_t        Size;
+    size_t Size;
     ///Pointer to copyright information about the service.
-    const(wchar)* pszCopyright;
+    PWSTR  pszCopyright;
     ///Major version number that is used to track changes to the service.
-    ushort        wMajorVersion;
+    ushort wMajorVersion;
     ///Minor version number that is used to track changes to the service.
-    ushort        wMinorVersion;
+    ushort wMinorVersion;
     ///Build version that is used to track changes to the service.
-    ushort        wBuildVersion;
+    ushort wBuildVersion;
     ///Step version that is used to track changes to the service.
-    ushort        wStepVersion;
+    ushort wStepVersion;
     ///Number of content types that the service can receive.
-    uint          dwInputContentTypesCount;
+    uint   dwInputContentTypesCount;
     ///Optional. Pointer to an array of input content types, following the format of the MIME content types, that
     ///identify the format that the service interprets when the application passes data. Examples of content types are
     ///"text/plain", "text/html" and "text/css". <div class="alert"><b>Note</b> In Windows 7, the ELS services support
     ///only the content type "text/plain". A content types specification can be found at Text Media Types.</div> <div>
     ///</div>
-    ushort**      prgInputContentTypes;
+    PWSTR* prgInputContentTypes;
     ///Number of content types in which the service can format results.
-    uint          dwOutputContentTypesCount;
+    uint   dwOutputContentTypesCount;
     ///Optional. Pointer to an array of output content types, following the format of the MIME content types, that
     ///identify the format in which the service retrieves data.
-    ushort**      prgOutputContentTypes;
+    PWSTR* prgOutputContentTypes;
     ///Number of input languages supported by the service. This member is set to 0 if the service can accept data in any
     ///language.
-    uint          dwInputLanguagesCount;
+    uint   dwInputLanguagesCount;
     ///Pointer to an array of the input languages, following the IETF naming convention, that the service accepts. This
     ///member is set to <b>NULL</b> if the service can work with any input language.
-    ushort**      prgInputLanguages;
+    PWSTR* prgInputLanguages;
     ///Number of output languages supported by the service. This member is set to 0 if the service can retrieve data in
     ///any language, or if the service ignores the output language.
-    uint          dwOutputLanguagesCount;
+    uint   dwOutputLanguagesCount;
     ///Pointer to an array of output languages, following the IETF naming convention, in which the service can retrieve
     ///results. This member is set to <b>NULL</b> if the service can retrieve results in any language, or if the service
     ///ignores the output language.
-    ushort**      prgOutputLanguages;
+    PWSTR* prgOutputLanguages;
     ///Number of input scripts supported by the service. This member is set to 0 if the service can accept data in any
     ///script.
-    uint          dwInputScriptsCount;
+    uint   dwInputScriptsCount;
     ///Pointer to an array of input scripts, with Unicode standard script names, that are supported by the service. This
     ///member is set to <b>NULL</b> if the service can work with any scripts, or if the service ignores the input
     ///scripts.
-    ushort**      prgInputScripts;
+    PWSTR* prgInputScripts;
     ///Number of output scripts supported by the service. This member is set to 0 if the service can retrieve data in
     ///any script, or if the service ignores the output scripts.
-    uint          dwOutputScriptsCount;
+    uint   dwOutputScriptsCount;
     ///Pointer to an array of output scripts supported by the service. This member is set to <b>NULL</b> if the service
     ///can work with any scripts, or the service ignores the output scripts.
-    ushort**      prgOutputScripts;
+    PWSTR* prgOutputScripts;
     ///Globally unique identifier (GUID) for the service.
-    GUID          guid;
+    GUID   guid;
     ///Pointer to the service category for the service, for example, "Language Detection".
-    const(wchar)* pszCategory;
+    PWSTR  pszCategory;
     ///Pointer to the service description. This text can be localized.
-    const(wchar)* pszDescription;
+    PWSTR  pszDescription;
     ///Size, in bytes, of the private data for the service. This member is set to 0 if there is no private data.
-    uint          dwPrivateDataSize;
+    uint   dwPrivateDataSize;
     ///Pointer to private data that the service can expose. This information is static and updated during installation
     ///of the service.
-    void*         pPrivateData;
+    void*  pPrivateData;
     ///Reserved for internal use.
-    void*         pContext;
-    uint          _bitfield51;
+    void*  pContext;
+    uint   _bitfield51;
 }
 
 ///Contains options used by the MappingGetServices function to enumerate ELS services.
 struct MAPPING_ENUM_OPTIONS
 {
     ///Size of the structure, used to validate the structure version. This value is required.
-    size_t        Size;
+    size_t Size;
     ///Optional. Pointer to a service category, for example, "Language Detection". The application must set this member
     ///to <b>NULL</b> if the service category is not a search criterion.
-    const(wchar)* pszCategory;
+    PWSTR  pszCategory;
     ///Optional. Pointer to an input language string, following the IETF naming convention, that identifies the input
     ///language that services should accept. The application can set this member to <b>NULL</b> if the supported input
     ///language is not a search criterion.
-    const(wchar)* pszInputLanguage;
+    PWSTR  pszInputLanguage;
     ///Optional. Pointer to an output language string, following the IETF naming convention, that identifies the output
     ///language that services use to retrieve results. The application can set this member to <b>NULL</b> if the output
     ///language is not a search criterion.
-    const(wchar)* pszOutputLanguage;
+    PWSTR  pszOutputLanguage;
     ///Optional. Pointer to a standard Unicode script name that can be accepted by services. The application set this
     ///member to <b>NULL</b> if the input script is not a search criterion.
-    const(wchar)* pszInputScript;
+    PWSTR  pszInputScript;
     ///Optional. Pointer to a standard Unicode script name used by services. The application can set this member to
     ///<b>NULL</b> if the output script is not a search criterion.
-    const(wchar)* pszOutputScript;
+    PWSTR  pszOutputScript;
     ///Optional. Pointer to a string, following the format of the MIME content types, that identifies the format that
     ///the services should be able to interpret when the application passes data. Examples of content types are
     ///"text/plain", "text/html", and "text/css". The application can set this member to <b>NULL</b> if the input
     ///content type is not a search criterion. <div class="alert"><b>Note</b> In Windows 7, the ELS services support
     ///only the content type "text/plain". A content type specification can be found at Text Media Types.</div> <div>
     ///</div>
-    const(wchar)* pszInputContentType;
+    PWSTR  pszInputContentType;
     ///Optional. Pointer to a string, following the format of the MIME content types, that identifies the format in
     ///which the services retrieve data. The application can set this member to <b>NULL</b> if the output content type
     ///is not a search criterion.
-    const(wchar)* pszOutputContentType;
+    PWSTR  pszOutputContentType;
     ///Optional. Pointer to a globally unique identifier (GUID) structure for a specific service. The application must
     ///set this member to <b>NULL</b> if the GUID is not a search criterion.
-    GUID*         pGuid;
-    uint          _bitfield52;
+    GUID*  pGuid;
+    uint   _bitfield52;
 }
 
 ///Contains options for text recognition. The values stored in this structure affect the behavior and results of
@@ -3411,33 +3366,33 @@ struct MAPPING_ENUM_OPTIONS
 struct MAPPING_OPTIONS
 {
     ///Size of the structure, used to validate the structure version. This value is required.
-    size_t        Size;
+    size_t Size;
     ///Optional. Pointer to an input language string, following the IETF naming convention, that identifies the input
     ///language that the service should be able to accept. The application can set this member to <b>NULL</b> to
     ///indicate that the service is free to interpret the input as any input language it supports.
-    const(wchar)* pszInputLanguage;
+    PWSTR  pszInputLanguage;
     ///Optional. Pointer to an output language string, following the IETF naming convention, that identifies the output
     ///language that the service should be able to use to produce results. The application can set this member to
     ///<b>NULL</b> if the service should decide the output language.
-    const(wchar)* pszOutputLanguage;
+    PWSTR  pszOutputLanguage;
     ///Optional. Pointer to a standard Unicode script name that should be accepted by the service. The application can
     ///set this member to <b>NULL</b> to let the service decide how handle the input.
-    const(wchar)* pszInputScript;
+    PWSTR  pszInputScript;
     ///Optional. Pointer to a standard Unicode script name that the service should use to retrieve results. The
     ///application can set this member to <b>NULL</b> to let the service decide the output script.
-    const(wchar)* pszOutputScript;
+    PWSTR  pszOutputScript;
     ///Optional. Pointer to a string, following the format of the MIME content types, that identifies the format that
     ///the service should be able to interpret when the application passes data. Examples of content types are
     ///"text/plain", "text/html", and "text/css". The application can set this member to <b>NULL</b> to indicate the
     ///"text/plain" content type. <div class="alert"><b>Note</b> In Windows 7, the ELS services support only the content
     ///type "text/plain". A content type specification can be found at Text Media Types.</div> <div> </div>
-    const(wchar)* pszInputContentType;
+    PWSTR  pszInputContentType;
     ///Optional. Pointer to a string, following the format of the MIME content types, that identifies the format in
     ///which the service should retrieve data. The application can set this member to <b>NULL</b> to let the service
     ///decide the output content type.
-    const(wchar)* pszOutputContentType;
+    PWSTR  pszOutputContentType;
     ///Reserved.
-    const(wchar)* pszUILanguage;
+    PWSTR  pszUILanguage;
     ///Optional. Pointer to an application callback function to receive callbacks with the results from the
     ///MappingRecognizeText function. If a callback function is specified, text recognition is executed in asynchronous
     ///mode and the application obtains results through the callback function. The application must set this member to
@@ -3445,20 +3400,20 @@ struct MAPPING_OPTIONS
     PFN_MAPPINGCALLBACKPROC pfnRecognizeCallback;
     ///Optional. Pointer to private application data passed to the callback function by a service after text recognition
     ///is complete. The application must set this member to <b>NULL</b> to indicate no private application data.
-    void*         pRecognizeCallerData;
+    void*  pRecognizeCallerData;
     ///Optional. Size, in bytes, of any private application data indicated by the <b>pRecognizeCallerData</b> member.
-    uint          dwRecognizeCallerDataSize;
+    uint   dwRecognizeCallerDataSize;
     ///Reserved.
     PFN_MAPPINGCALLBACKPROC pfnActionCallback;
     ///Reserved.
-    void*         pActionCallerData;
+    void*  pActionCallerData;
     ///Reserved.
-    uint          dwActionCallerDataSize;
+    uint   dwActionCallerDataSize;
     ///Optional. Private flag that a service provider defines to affect service behavior. Services can interpret this
     ///flag as they require. <div class="alert"><b>Note</b> For Windows 7, none of the available ELS services support
     ///flags.</div> <div> </div>
-    uint          dwServiceFlag;
-    uint          _bitfield53;
+    uint   dwServiceFlag;
+    uint   _bitfield53;
 }
 
 ///Contains text recognition results for a recognized text subrange. An array of structures of this type is retrieved by
@@ -3468,35 +3423,35 @@ struct MAPPING_DATA_RANGE
     ///Index of the beginning of the subrange in the text, where 0 indicates the character at the pointer passed to
     ///MappingRecognizeText, instead of an offset to the index passed to the function in the <i>dwIndex</i> parameter.
     ///The value should be less than the entire length of the text.
-    uint          dwStartIndex;
+    uint   dwStartIndex;
     ///Index of the end of the subrange in the text, where 0 indicates the character at the pointer passed to
     ///MappingRecognizeText, instead of an offset to the index passed to the function in the <i>dwIndex</i> parameter.
     ///The value should be less than the entire length of the text.
-    uint          dwEndIndex;
+    uint   dwEndIndex;
     ///Reserved.
-    const(wchar)* pszDescription;
+    PWSTR  pszDescription;
     ///Reserved.
-    uint          dwDescriptionLength;
+    uint   dwDescriptionLength;
     ///Pointer to data retrieved as service output associated with the subrange. This data must be of the format
     ///indicated by the content type supplied in the <b>pszContentType</b> member.
-    void*         pData;
+    void*  pData;
     ///Size, in bytes, of the data specified in <b>pData</b>. Each service is required to report its output data size in
     ///bytes.
-    uint          dwDataSize;
+    uint   dwDataSize;
     ///Optional. Pointer to a string specifying the MIME content type of the data indicated by <b>pData</b>. Examples of
     ///content types are "text/plain", "text/html", and "text/css". <div class="alert"><b>Note</b> In Windows 7, the ELS
     ///services support only the content type "text/plain". A content type specification can be found at Text Media
     ///Types.</div> <div> </div>
-    const(wchar)* pszContentType;
+    PWSTR  pszContentType;
     ///Available action Ids for this subrange. They are usable for calling MappingDoAction. <div
     ///class="alert"><b>Note</b> In Windows 7, the ELS services do not expose any actions.</div> <div> </div>
-    ushort**      prgActionIds;
+    PWSTR* prgActionIds;
     ///The number of available actions for this subrange. <div class="alert"><b>Note</b> In Windows 7, the ELS services
     ///do not expose any actions.</div> <div> </div>
-    uint          dwActionsCount;
+    uint   dwActionsCount;
     ///Action display names for this subrange. These strings can be localized. <div class="alert"><b>Note</b> In Windows
     ///7, the ELS services do not expose any actions.</div> <div> </div>
-    ushort**      prgActionDisplayNames;
+    PWSTR* prgActionDisplayNames;
 }
 
 ///Contains the text recognition data properties retrieved by MappingRecognizeText.
@@ -3530,27 +3485,27 @@ struct IMEDLG
 {
 align (1):
     ///The size of this structure. You must set this value before using the structure.
-    int           cbIMEDLG;
+    int   cbIMEDLG;
     ///The parent window handle of the Register Word Dialog.
-    HWND          hwnd;
+    HWND  hwnd;
     ///<b>NULL</b>, or the string to be registered. It shows in the Word Register Dialog's "Display" field.
-    const(wchar)* lpwstrWord;
+    PWSTR lpwstrWord;
     ///The initial tab ID, 0 or 1.
-    int           nTabId;
+    int   nTabId;
 }
 
 struct WDD
 {
 align (1):
     ushort wDispPos;
-    union
+union
     {
     align (1):
         ushort wReadPos;
         ushort wCompPos;
     }
     ushort cchDisp;
-    union
+union
     {
     align (1):
         ushort cchRead;
@@ -3566,15 +3521,15 @@ struct MORRSLT
 {
 align (1):
     uint    dwSize;
-    ushort* pwchOutput;
+    PWSTR   pwchOutput;
     ushort  cchOutput;
-    union
+union
     {
     align (1):
-        ushort* pwchRead;
-        ushort* pwchComp;
+        PWSTR pwchRead;
+        PWSTR pwchComp;
     }
-    union
+union
     {
     align (1):
         ushort cchRead;
@@ -3582,7 +3537,7 @@ align (1):
     }
     ushort* pchInputPos;
     ushort* pchOutputIdxWDD;
-    union
+union
     {
     align (1):
         ushort* pchReadIdxWDD;
@@ -3600,14 +3555,14 @@ struct IMEWRD
 {
 align (1):
     ///The reading string.
-    ushort* pwchReading;
+    PWSTR   pwchReading;
     ///The display string.
-    ushort* pwchDisplay;
-    union
+    PWSTR   pwchDisplay;
+union
     {
     align (1):
         uint ulPos;
-        struct
+struct
         {
         align (1):
             ushort nPos1;
@@ -3672,13 +3627,13 @@ align (1):
     uint dwStatus;
     uint dwCompStatus;
     uint dwVKEY;
-    union
+union
     {
     align (1):
         uint dwControl;
         uint dwNotUsed;
     }
-    union
+union
     {
     align (1):
         ushort[31] pwszDscr;
@@ -3802,7 +3757,7 @@ struct INPUTCONTEXT
     POINT            ptSoftKbdPos;
     uint             fdwConversion;
     uint             fdwSentence;
-    union lfFont
+union lfFont
     {
         LOGFONTA A;
         LOGFONTW W;
@@ -3865,8 +3820,8 @@ struct IMEITEMCANDIDATE
 
 struct tabIMESTRINGINFO
 {
-    uint          dwFarEastId;
-    const(wchar)* lpwstr;
+    uint  dwFarEastId;
+    PWSTR lpwstr;
 }
 
 struct tabIMEFAREASTINFO
@@ -3973,10 +3928,10 @@ struct IMEAPPLETUI
 
 struct APPLYCANDEXPARAM
 {
-    uint          dwSize;
-    const(wchar)* lpwstrDisplay;
-    const(wchar)* lpwstrReading;
-    uint          dwReserved;
+    uint  dwSize;
+    PWSTR lpwstrDisplay;
+    PWSTR lpwstrReading;
+    uint  dwReserved;
 }
 
 ///Contains script control flags for several Uniscribe functions, for example, ScriptItemize.
@@ -4404,69 +4359,88 @@ struct UTransPosition
     int limit;
 }
 
+///Contains information identifying the code pages and Unicode subranges for which a given font provides glyphs.
+struct FONTSIGNATURE
+{
+    ///A 128-bit Unicode subset bitfield (USB) identifying up to 126 Unicode subranges. Each bit, except the two most
+    ///significant bits, represents a single subrange. The most significant bit is always 1 and identifies the bitfield
+    ///as a font signature; the second most significant bit is reserved and must be 0. Unicode subranges are numbered in
+    ///accordance with the ISO 10646 standard. For more information, see Unicode Subset Bitfields.
+    uint[4] fsUsb;
+    ///A 64-bit, code-page bitfield (CPB) that identifies a specific character set or code page. Code pages are in the
+    ///lower 32 bits of this bitfield. The high 32 are used for non-Windows code pages. For more information, see Code
+    ///Page Bitfields.
+    uint[2] fsCsb;
+}
+
+///Contains information about a character set.
+struct CHARSETINFO
+{
+    ///Character set value.
+    uint          ciCharset;
+    ///Windows ANSI code page identifier. For a list of identifiers, see Code Page Identifiers.
+    uint          ciACP;
+    ///A FONTSIGNATURE structure that identifies the Unicode subrange and the specific Windows ANSI character set/code
+    ///page. Only one code page will be set when this structure is set by the function.
+    FONTSIGNATURE fs;
+}
+
+///Contains extended font signature information, including two code page bitfields (CPBs) that define the default and
+///supported character sets and code pages. This structure is typically used to represent the relationships between font
+///coverage and locales.
+struct LOCALESIGNATURE
+{
+    ///A 128-bit Unicode subset bitfield (USB) identifying up to 122 Unicode subranges. Each bit, except the five most
+    ///significant bits, represents a single subrange. The most significant bit is always 1; the second most significant
+    ///is reserved and must be 0. Unicode subsets are numbered in accordance with the OpenType font specification. For a
+    ///list of possible bitfield values, see Unicode Subset Bitfields.
+    uint[4] lsUsb;
+    ///A code page bitfield that indicates the default OEM and ANSI code pages for a locale. The code pages can be
+    ///identified by separate bits or a single bit representing a common ANSI and OEM code page. For a list of possible
+    ///bitfield values, see Code Page Bitfields.
+    uint[2] lsCsbDefault;
+    ///A code page bitfield that indicates all the code pages in which the locale can be supported. For a list of
+    ///possible bitfield values, see Code Page Bitfields.
+    uint[2] lsCsbSupported;
+}
+
 // Functions
 
-///Retrieves a character set identifier for the font that is currently selected into a specified device context. <div
-///class="alert"><b>Note</b> A call to this function is equivalent to a call to GetTextCharsetInfo passing <b>NULL</b>
-///for the data buffer.</div><div> </div>
+///Formats a date as a date string for a locale specified by the locale identifier. The function formats either a
+///specified date or the local system date. <div class="alert"><b>Note</b> For interoperability reasons, the application
+///should prefer the GetDateFormatEx function to <b>GetDateFormat</b> because Microsoft is migrating toward the use of
+///locale names instead of locale identifiers for new locales. Any application that will be run only on Windows Vista
+///and later should use GetDateFormatEx.</div> <div> </div>
 ///Params:
-///    hdc = Handle to a device context. The function obtains a character set identifier for the font that is selected into
-///          this device context.
+///    Locale = Locale identifier that specifies the locale this function formats the date string for. You can use the MAKELCID
+///             macro to create a locale identifier or use one of the following predefined values. <ul> <li>
+///             LOCALE_CUSTOM_DEFAULT </li> <li> LOCALE_CUSTOM_UI_DEFAULT </li> <li> LOCALE_CUSTOM_UNSPECIFIED </li> <li>
+///             LOCALE_INVARIANT </li> <li> LOCALE_SYSTEM_DEFAULT </li> <li> LOCALE_USER_DEFAULT </li> </ul>
+///    dwFlags = Flags specifying date format options. For detailed definitions, see the <i>dwFlags</i> parameter of
+///              GetDateFormatEx.
+///    lpDate = Pointer to a SYSTEMTIME structure that contains the date information to format. The application sets this
+///             parameter to <b>NULL</b> if the function is to use the current local system date.
+///    lpFormat = Pointer to a format picture string that is used to form the date. Possible values for the format picture string
+///               are defined in Day, Month, Year, and Era Format Pictures. The function uses the specified locale only for
+///               information not specified in the format picture string, for example, the day and month names for the locale. The
+///               application can set this parameter to <b>NULL</b> to format the string according to the date format for the
+///               specified locale.
+///    lpDateStr = Pointer to a buffer in which this function retrieves the formatted date string.
+///    cchDate = Size, in characters, of the <i>lpDateStr</i> buffer. The application can set this parameter to 0 to return the
+///              buffer size required to hold the formatted date string. In this case, the buffer indicated by <i>lpDateStr</i> is
+///              not used.
 ///Returns:
-///    If successful, returns a value identifying the character set of the font that is currently selected into the
-///    specified device context. The following character set identifiers are defined: If the function fails, it returns
-///    DEFAULT_CHARSET.
+///    Returns the number of characters written to the <i>lpDateStr</i> buffer if successful. If the <i>cchDate</i>
+///    parameter is set to 0, the function returns the number of characters required to hold the formatted date string,
+///    including the terminating null character. The function returns 0 if it does not succeed. To get extended error
+///    information, the application can call GetLastError, which can return one of the following error codes: <ul>
+///    <li>ERROR_INSUFFICIENT_BUFFER. A supplied buffer size was not large enough, or it was incorrectly set to
+///    <b>NULL</b>. </li> <li>ERROR_INVALID_FLAGS. The values supplied for flags were not valid.</li>
+///    <li>ERROR_INVALID_PARAMETER. Any of the parameter values was invalid.</li> </ul>
 ///    
-@DllImport("GDI32")
-int GetTextCharset(HDC hdc);
-
-///Retrieves information about the character set of the font that is currently selected into a specified device context.
-///Params:
-///    hdc = Handle to a device context. The function obtains information about the font that is selected into this device
-///          context.
-///    lpSig = Pointer to a FONTSIGNATURE data structure that receives font-signature information. If a TrueType font is
-///            currently selected into the device context, the FONTSIGNATURE structure receives information that identifies the
-///            code page and Unicode subranges for which the font provides glyphs. If a font other than TrueType is currently
-///            selected into the device context, the FONTSIGNATURE structure receives zeros. In this case, the application
-///            should use the TranslateCharsetInfo function to obtain generic font-signature information for the character set.
-///            The <i>lpSig</i> parameter specifies <b>NULL</b> if the application does not require the FONTSIGNATURE
-///            information. In this case, the application can also call the GetTextCharset function, which is equivalent to
-///            calling <b>GetTextCharsetInfo</b> with <i>lpSig</i> set to <b>NULL</b>.
-///    dwFlags = Reserved; must be set to 0.
-///Returns:
-///    If successful, returns a value identifying the character set of the font currently selected into the specified
-///    device context. The following character set identifiers are defined: If the function fails, the return value is
-///    DEFAULT_CHARSET.
-///    
-@DllImport("GDI32")
-int GetTextCharsetInfo(HDC hdc, FONTSIGNATURE* lpSig, uint dwFlags);
-
-///Translates character set information and sets all members of a destination structure to appropriate values.
-///Params:
-///    lpSrc = Pointer to the <b>fsCsb</b> member of a FONTSIGNATURE structure if <i>dwFlags</i> is set to TCI_SRCFONTSIG.
-///            Otherwise, this parameter is set to a DWORD value indicating the source.
-///    lpCs = Pointer to a CHARSETINFO structure that receives the translated character set information.
-///    dwFlags = Flags specifying how to perform the translation. This parameter can be one of the following values. <table> <tr>
-///              <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="TCI_SRCCHARSET"></a><a
-///              id="tci_srccharset"></a><dl> <dt><b>TCI_SRCCHARSET</b></dt> </dl> </td> <td width="60%"> Source contains the
-///              character set value in the low word, and 0 in the high word. </td> </tr> <tr> <td width="40%"><a
-///              id="TCI_SRCCODEPAGE"></a><a id="tci_srccodepage"></a><dl> <dt><b>TCI_SRCCODEPAGE</b></dt> </dl> </td> <td
-///              width="60%"> Source is a code page identifier in the low word and 0 in the high word. </td> </tr> <tr> <td
-///              width="40%"><a id="TCI_SRCFONTSIG"></a><a id="tci_srcfontsig"></a><dl> <dt><b>TCI_SRCFONTSIG</b></dt> </dl> </td>
-///              <td width="60%"> Source is the code page bitfield portion of a FONTSIGNATURE structure. On input this should have
-///              only one Windows code-page bit set, either for an ANSI code page value or for a common ANSI and OEM value (for
-///              OEM values, bits 32-63 must be clear). On output, this has only one bit set. If the TCI_SRCFONTSIG value is
-///              given, the <i>lpSrc</i> parameter must be the address of the code-page bitfield. If any other TCI_ value is
-///              given, the <i>lpSrc</i> parameter must be a value not an address. </td> </tr> <tr> <td width="40%"><a
-///              id="TCI_SRCLOCALE"></a><a id="tci_srclocale"></a><dl> <dt><b>TCI_SRCLOCALE</b></dt> </dl> </td> <td width="60%">
-///              <b>Windows 2000:</b> Source is the locale identifier (LCID) or language identifier of the keyboard layout. If it
-///              is a language identifier, the value is in the low word. </td> </tr> </table>
-///Returns:
-///    Returns a nonzero value if successful, or 0 otherwise. To get extended error information, the application can
-///    call GetLastError.
-///    
-@DllImport("GDI32")
-BOOL TranslateCharsetInfo(uint* lpSrc, CHARSETINFO* lpCs, uint dwFlags);
+@DllImport("KERNEL32")
+int GetDateFormatA(uint Locale, uint dwFlags, const(SYSTEMTIME)* lpDate, const(PSTR) lpFormat, PSTR lpDateStr, 
+                   int cchDate);
 
 ///Formats a date as a date string for a locale specified by the locale identifier. The function formats either a
 ///specified date or the local system date. <div class="alert"><b>Note</b> For interoperability reasons, the application
@@ -4501,44 +4475,8 @@ BOOL TranslateCharsetInfo(uint* lpSrc, CHARSETINFO* lpCs, uint dwFlags);
 ///    <li>ERROR_INVALID_PARAMETER. Any of the parameter values was invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int GetDateFormatA(uint Locale, uint dwFlags, const(SYSTEMTIME)* lpDate, const(char)* lpFormat, 
-                   const(char)* lpDateStr, int cchDate);
-
-///Formats a date as a date string for a locale specified by the locale identifier. The function formats either a
-///specified date or the local system date. <div class="alert"><b>Note</b> For interoperability reasons, the application
-///should prefer the GetDateFormatEx function to <b>GetDateFormat</b> because Microsoft is migrating toward the use of
-///locale names instead of locale identifiers for new locales. Any application that will be run only on Windows Vista
-///and later should use GetDateFormatEx.</div> <div> </div>
-///Params:
-///    Locale = Locale identifier that specifies the locale this function formats the date string for. You can use the MAKELCID
-///             macro to create a locale identifier or use one of the following predefined values. <ul> <li>
-///             LOCALE_CUSTOM_DEFAULT </li> <li> LOCALE_CUSTOM_UI_DEFAULT </li> <li> LOCALE_CUSTOM_UNSPECIFIED </li> <li>
-///             LOCALE_INVARIANT </li> <li> LOCALE_SYSTEM_DEFAULT </li> <li> LOCALE_USER_DEFAULT </li> </ul>
-///    dwFlags = Flags specifying date format options. For detailed definitions, see the <i>dwFlags</i> parameter of
-///              GetDateFormatEx.
-///    lpDate = Pointer to a SYSTEMTIME structure that contains the date information to format. The application sets this
-///             parameter to <b>NULL</b> if the function is to use the current local system date.
-///    lpFormat = Pointer to a format picture string that is used to form the date. Possible values for the format picture string
-///               are defined in Day, Month, Year, and Era Format Pictures. The function uses the specified locale only for
-///               information not specified in the format picture string, for example, the day and month names for the locale. The
-///               application can set this parameter to <b>NULL</b> to format the string according to the date format for the
-///               specified locale.
-///    lpDateStr = Pointer to a buffer in which this function retrieves the formatted date string.
-///    cchDate = Size, in characters, of the <i>lpDateStr</i> buffer. The application can set this parameter to 0 to return the
-///              buffer size required to hold the formatted date string. In this case, the buffer indicated by <i>lpDateStr</i> is
-///              not used.
-///Returns:
-///    Returns the number of characters written to the <i>lpDateStr</i> buffer if successful. If the <i>cchDate</i>
-///    parameter is set to 0, the function returns the number of characters required to hold the formatted date string,
-///    including the terminating null character. The function returns 0 if it does not succeed. To get extended error
-///    information, the application can call GetLastError, which can return one of the following error codes: <ul>
-///    <li>ERROR_INSUFFICIENT_BUFFER. A supplied buffer size was not large enough, or it was incorrectly set to
-///    <b>NULL</b>. </li> <li>ERROR_INVALID_FLAGS. The values supplied for flags were not valid.</li>
-///    <li>ERROR_INVALID_PARAMETER. Any of the parameter values was invalid.</li> </ul>
-///    
-@DllImport("KERNEL32")
-int GetDateFormatW(uint Locale, uint dwFlags, const(SYSTEMTIME)* lpDate, const(wchar)* lpFormat, 
-                   const(wchar)* lpDateStr, int cchDate);
+int GetDateFormatW(uint Locale, uint dwFlags, const(SYSTEMTIME)* lpDate, const(PWSTR) lpFormat, PWSTR lpDateStr, 
+                   int cchDate);
 
 ///Formats time as a time string for a locale specified by identifier. The function formats either a specified time or
 ///the local system time. <div class="alert"><b>Note</b> For interoperability reasons, the application should prefer the
@@ -4574,8 +4512,8 @@ int GetDateFormatW(uint Locale, uint dwFlags, const(SYSTEMTIME)* lpDate, const(w
 ///    storage was available to complete this operation.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int GetTimeFormatA(uint Locale, uint dwFlags, const(SYSTEMTIME)* lpTime, const(char)* lpFormat, 
-                   const(char)* lpTimeStr, int cchTime);
+int GetTimeFormatA(uint Locale, uint dwFlags, const(SYSTEMTIME)* lpTime, const(PSTR) lpFormat, PSTR lpTimeStr, 
+                   int cchTime);
 
 ///Formats time as a time string for a locale specified by identifier. The function formats either a specified time or
 ///the local system time. <div class="alert"><b>Note</b> For interoperability reasons, the application should prefer the
@@ -4611,8 +4549,8 @@ int GetTimeFormatA(uint Locale, uint dwFlags, const(SYSTEMTIME)* lpTime, const(c
 ///    storage was available to complete this operation.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int GetTimeFormatW(uint Locale, uint dwFlags, const(SYSTEMTIME)* lpTime, const(wchar)* lpFormat, 
-                   const(wchar)* lpTimeStr, int cchTime);
+int GetTimeFormatW(uint Locale, uint dwFlags, const(SYSTEMTIME)* lpTime, const(PWSTR) lpFormat, PWSTR lpTimeStr, 
+                   int cchTime);
 
 ///Formats time as a time string for a locale specified by name. The function formats either a specified time or the
 ///local system time.<div class="alert"><b>Note</b> The application should call this function in preference to
@@ -4656,8 +4594,8 @@ int GetTimeFormatW(uint Locale, uint dwFlags, const(SYSTEMTIME)* lpTime, const(w
 ///    storage was available to complete this operation.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int GetTimeFormatEx(const(wchar)* lpLocaleName, uint dwFlags, const(SYSTEMTIME)* lpTime, const(wchar)* lpFormat, 
-                    const(wchar)* lpTimeStr, int cchTime);
+int GetTimeFormatEx(const(PWSTR) lpLocaleName, uint dwFlags, const(SYSTEMTIME)* lpTime, const(PWSTR) lpFormat, 
+                    PWSTR lpTimeStr, int cchTime);
 
 ///Formats a date as a date string for a locale specified by name. The function formats either a specified date or the
 ///local system date.<div class="alert"><b>Note</b> The application should call this function in preference to
@@ -4721,8 +4659,8 @@ int GetTimeFormatEx(const(wchar)* lpLocaleName, uint dwFlags, const(SYSTEMTIME)*
 ///    <li>ERROR_INVALID_PARAMETER. Any of the parameter values was invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int GetDateFormatEx(const(wchar)* lpLocaleName, uint dwFlags, const(SYSTEMTIME)* lpDate, const(wchar)* lpFormat, 
-                    const(wchar)* lpDateStr, int cchDate, const(wchar)* lpCalendar);
+int GetDateFormatEx(const(PWSTR) lpLocaleName, uint dwFlags, const(SYSTEMTIME)* lpDate, const(PWSTR) lpFormat, 
+                    PWSTR lpDateStr, int cchDate, const(PWSTR) lpCalendar);
 
 ///Formats a duration of time as a time string for a locale specified by name. <div class="alert"><b>Note</b> The
 ///application should call this function in preference to GetDurationFormat if designed to run only on Windows Vista and
@@ -4775,8 +4713,8 @@ int GetDateFormatEx(const(wchar)* lpLocaleName, uint dwFlags, const(SYSTEMTIME)*
 ///    parameter values was invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int GetDurationFormatEx(const(wchar)* lpLocaleName, uint dwFlags, const(SYSTEMTIME)* lpDuration, ulong ullDuration, 
-                        const(wchar)* lpFormat, const(wchar)* lpDurationStr, int cchDuration);
+int GetDurationFormatEx(const(PWSTR) lpLocaleName, uint dwFlags, const(SYSTEMTIME)* lpDuration, ulong ullDuration, 
+                        const(PWSTR) lpFormat, PWSTR lpDurationStr, int cchDuration);
 
 ///Compares two Unicode (wide character) strings, for a locale specified by name. <div class="alert"><b>Caution</b>
 ///Using <b>CompareStringEx</b> incorrectly can compromise the security of your application. Strings that are not
@@ -4858,8 +4796,8 @@ int GetDurationFormatEx(const(wchar)* lpLocaleName, uint dwFlags, const(SYSTEMTI
 ///    </ul>
 ///    
 @DllImport("KERNEL32")
-int CompareStringEx(const(wchar)* lpLocaleName, uint dwCmpFlags, const(wchar)* lpString1, int cchCount1, 
-                    const(wchar)* lpString2, int cchCount2, NLSVERSIONINFO* lpVersionInformation, void* lpReserved, 
+int CompareStringEx(const(PWSTR) lpLocaleName, uint dwCmpFlags, const(PWSTR) lpString1, int cchCount1, 
+                    const(PWSTR) lpString2, int cchCount2, NLSVERSIONINFO* lpVersionInformation, void* lpReserved, 
                     LPARAM lParam);
 
 ///Compares two Unicode strings to test binary equivalence.
@@ -4886,7 +4824,7 @@ int CompareStringEx(const(wchar)* lpLocaleName, uint dwCmpFlags, const(wchar)* l
 ///    codes: <ul> <li>ERROR_INVALID_PARAMETER. Any of the parameter values was invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int CompareStringOrdinal(const(wchar)* lpString1, int cchCount1, const(wchar)* lpString2, int cchCount2, 
+int CompareStringOrdinal(const(PWSTR) lpString1, int cchCount1, const(PWSTR) lpString2, int cchCount2, 
                          BOOL bIgnoreCase);
 
 ///Compares two character strings, for a locale specified by identifier. <div class="alert"><b>Caution</b> Using
@@ -4920,7 +4858,8 @@ int CompareStringOrdinal(const(wchar)* lpString1, int cchCount1, const(wchar)* l
 ///    Returns the values described for CompareStringEx.
 ///    
 @DllImport("KERNEL32")
-int CompareStringW(uint Locale, uint dwCmpFlags, char* lpString1, int cchCount1, char* lpString2, int cchCount2);
+int CompareStringW(uint Locale, uint dwCmpFlags, ushort* lpString1, int cchCount1, ushort* lpString2, 
+                   int cchCount2);
 
 ///Maps one Unicode string to another, performing the specified transformation. For an overview of the use of the string
 ///functions, see Strings. <div class="alert"><b>Caution</b> Using <b>FoldString</b> incorrectly can compromise the
@@ -4974,7 +4913,7 @@ int CompareStringW(uint Locale, uint dwCmpFlags, char* lpString1, int cchCount1,
 ///    <li>ERROR_PROC_NOT_FOUND. The required procedure was not found.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int FoldStringW(uint dwMapFlags, const(wchar)* lpSrcStr, int cchSrc, const(wchar)* lpDestStr, int cchDest);
+int FoldStringW(uint dwMapFlags, const(PWSTR) lpSrcStr, int cchSrc, PWSTR lpDestStr, int cchDest);
 
 ///Retrieves character type information for the characters in the specified source string. For each character in the
 ///string, the function sets one or more bits in the corresponding 16-bit element of the output array. Each bit
@@ -5012,7 +4951,7 @@ int FoldStringW(uint dwMapFlags, const(wchar)* lpSrcStr, int cchSrc, const(wchar
 ///    was invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-BOOL GetStringTypeExW(uint Locale, uint dwInfoType, const(wchar)* lpSrcStr, int cchSrc, char* lpCharType);
+BOOL GetStringTypeExW(uint Locale, uint dwInfoType, const(PWSTR) lpSrcStr, int cchSrc, ushort* lpCharType);
 
 ///Retrieves character type information for the characters in the specified Unicode source string. For each character in
 ///the string, the function sets one or more bits in the corresponding 16-bit element of the output array. Each bit
@@ -5047,7 +4986,7 @@ BOOL GetStringTypeExW(uint Locale, uint dwInfoType, const(wchar)* lpSrcStr, int 
 ///    invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-BOOL GetStringTypeW(uint dwInfoType, const(wchar)* lpSrcStr, int cchSrc, ushort* lpCharType);
+BOOL GetStringTypeW(uint dwInfoType, const(PWSTR) lpSrcStr, int cchSrc, ushort* lpCharType);
 
 ///Maps a character string to a UTF-16 (wide character) string. The character string is not necessarily from a multibyte
 ///character set.<div class="alert"><b>Caution</b> Using the <b>MultiByteToWideChar</b> function incorrectly can
@@ -5142,8 +5081,8 @@ BOOL GetStringTypeW(uint dwInfoType, const(wchar)* lpSrcStr, int cchSrc, ushort*
 ///    Invalid Unicode was found in a string.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int MultiByteToWideChar(uint CodePage, uint dwFlags, const(char)* lpMultiByteStr, int cbMultiByte, 
-                        const(wchar)* lpWideCharStr, int cchWideChar);
+int MultiByteToWideChar(uint CodePage, uint dwFlags, const(PSTR) lpMultiByteStr, int cbMultiByte, 
+                        PWSTR lpWideCharStr, int cchWideChar);
 
 ///Maps a UTF-16 (wide character) string to a new character string. The new character string is not necessarily from a
 ///multibyte character set. <div class="alert"><b>Caution</b> Using the <b>WideCharToMultiByte</b> function incorrectly
@@ -5263,9 +5202,8 @@ int MultiByteToWideChar(uint CodePage, uint dwFlags, const(char)* lpMultiByteStr
 ///    Invalid Unicode was found in a string.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int WideCharToMultiByte(uint CodePage, uint dwFlags, const(wchar)* lpWideCharStr, int cchWideChar, 
-                        const(char)* lpMultiByteStr, int cbMultiByte, const(char)* lpDefaultChar, 
-                        int* lpUsedDefaultChar);
+int WideCharToMultiByte(uint CodePage, uint dwFlags, const(PWSTR) lpWideCharStr, int cchWideChar, 
+                        PSTR lpMultiByteStr, int cbMultiByte, const(PSTR) lpDefaultChar, int* lpUsedDefaultChar);
 
 ///Determines if a specified code page is valid.
 ///Params:
@@ -5390,7 +5328,7 @@ BOOL GetCPInfoExW(uint CodePage, uint dwFlags, CPINFOEXW* lpCPInfoEx);
 ///    Returns the values described for CompareStringEx.
 ///    
 @DllImport("KERNEL32")
-int CompareStringA(uint Locale, uint dwCmpFlags, char* lpString1, int cchCount1, char* lpString2, int cchCount2);
+int CompareStringA(uint Locale, uint dwCmpFlags, byte* lpString1, int cchCount1, byte* lpString2, int cchCount2);
 
 ///Locates a Unicode string (wide characters) or its equivalent in another Unicode string for a locale specified by
 ///identifier. <div class="alert"><b>Caution</b> Because strings with very different binary representations can compare
@@ -5429,8 +5367,8 @@ int CompareStringA(uint Locale, uint dwCmpFlags, char* lpString1, int cchCount1,
 ///    results.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int FindNLSString(uint Locale, uint dwFindNLSStringFlags, const(wchar)* lpStringSource, int cchSource, 
-                  const(wchar)* lpStringValue, int cchValue, int* pcchFound);
+int FindNLSString(uint Locale, uint dwFindNLSStringFlags, const(PWSTR) lpStringSource, int cchSource, 
+                  const(PWSTR) lpStringValue, int cchValue, int* pcchFound);
 
 ///For a locale specified by identifier, maps one input character string to another using a specified transformation, or
 ///generates a sort key for the input string. <div class="alert"><b>Note</b> For interoperability reasons, the
@@ -5480,8 +5418,7 @@ int FindNLSString(uint Locale, uint dwFindNLSStringFlags, const(wchar)* lpString
 ///    invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int LCMapStringW(uint Locale, uint dwMapFlags, const(wchar)* lpSrcStr, int cchSrc, const(wchar)* lpDestStr, 
-                 int cchDest);
+int LCMapStringW(uint Locale, uint dwMapFlags, const(PWSTR) lpSrcStr, int cchSrc, PWSTR lpDestStr, int cchDest);
 
 ///For a locale specified by identifier, maps one input character string to another using a specified transformation, or
 ///generates a sort key for the input string. <div class="alert"><b>Note</b> For interoperability reasons, the
@@ -5531,8 +5468,7 @@ int LCMapStringW(uint Locale, uint dwMapFlags, const(wchar)* lpSrcStr, int cchSr
 ///    invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int LCMapStringA(uint Locale, uint dwMapFlags, const(char)* lpSrcStr, int cchSrc, const(char)* lpDestStr, 
-                 int cchDest);
+int LCMapStringA(uint Locale, uint dwMapFlags, const(PSTR) lpSrcStr, int cchSrc, PSTR lpDestStr, int cchDest);
 
 ///Retrieves information about a locale specified by identifier. <div class="alert"><b>Note</b> For interoperability
 ///reasons, the application should prefer the GetLocaleInfoEx function to <b>GetLocaleInfo</b> because Microsoft is
@@ -5563,7 +5499,7 @@ int LCMapStringA(uint Locale, uint dwMapFlags, const(char)* lpSrcStr, int cchSrc
 ///    flags were not valid.</li> <li>ERROR_INVALID_PARAMETER. Any of the parameter values was invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int GetLocaleInfoW(uint Locale, uint LCType, const(wchar)* lpLCData, int cchData);
+int GetLocaleInfoW(uint Locale, uint LCType, PWSTR lpLCData, int cchData);
 
 ///Retrieves information about a locale specified by identifier. <div class="alert"><b>Note</b> For interoperability
 ///reasons, the application should prefer the GetLocaleInfoEx function to <b>GetLocaleInfo</b> because Microsoft is
@@ -5598,7 +5534,7 @@ int GetLocaleInfoW(uint Locale, uint LCType, const(wchar)* lpLCData, int cchData
 ///    flags were not valid.</li> <li>ERROR_INVALID_PARAMETER. Any of the parameter values was invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int GetLocaleInfoA(uint Locale, uint LCType, const(char)* lpLCData, int cchData);
+int GetLocaleInfoA(uint Locale, uint LCType, PSTR lpLCData, int cchData);
 
 ///Sets an item of information in the user override portion of the current locale. This function does not set the system
 ///defaults. <div class="alert"><b>Caution</b> Because this function modifies values for all applications, it should
@@ -5627,7 +5563,7 @@ int GetLocaleInfoA(uint Locale, uint LCType, const(char)* lpLCData, int cchData)
 ///    <li>ERROR_INVALID_PARAMETER. Any of the parameter values was invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-BOOL SetLocaleInfoA(uint Locale, uint LCType, const(char)* lpLCData);
+BOOL SetLocaleInfoA(uint Locale, uint LCType, const(PSTR) lpLCData);
 
 ///Sets an item of information in the user override portion of the current locale. This function does not set the system
 ///defaults. <div class="alert"><b>Caution</b> Because this function modifies values for all applications, it should
@@ -5656,7 +5592,7 @@ BOOL SetLocaleInfoA(uint Locale, uint LCType, const(char)* lpLCData);
 ///    <li>ERROR_INVALID_PARAMETER. Any of the parameter values was invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-BOOL SetLocaleInfoW(uint Locale, uint LCType, const(wchar)* lpLCData);
+BOOL SetLocaleInfoW(uint Locale, uint LCType, const(PWSTR) lpLCData);
 
 ///Retrieves information about a calendar for a locale specified by identifier. <div class="alert"><b>Note</b> For
 ///interoperability reasons, the application should prefer the GetCalendarInfoEx function to <b>GetCalendarInfo</b>
@@ -5696,7 +5632,7 @@ BOOL SetLocaleInfoW(uint Locale, uint LCType, const(wchar)* lpLCData);
 ///    invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int GetCalendarInfoA(uint Locale, uint Calendar, uint CalType, const(char)* lpCalData, int cchData, uint* lpValue);
+int GetCalendarInfoA(uint Locale, uint Calendar, uint CalType, PSTR lpCalData, int cchData, uint* lpValue);
 
 ///Retrieves information about a calendar for a locale specified by identifier. <div class="alert"><b>Note</b> For
 ///interoperability reasons, the application should prefer the GetCalendarInfoEx function to <b>GetCalendarInfo</b>
@@ -5736,7 +5672,7 @@ int GetCalendarInfoA(uint Locale, uint Calendar, uint CalType, const(char)* lpCa
 ///    invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int GetCalendarInfoW(uint Locale, uint Calendar, uint CalType, const(wchar)* lpCalData, int cchData, uint* lpValue);
+int GetCalendarInfoW(uint Locale, uint Calendar, uint CalType, PWSTR lpCalData, int cchData, uint* lpValue);
 
 ///Sets an item of locale information for a calendar. For more information, see Date and Calendar.
 ///Params:
@@ -5759,7 +5695,7 @@ int GetCalendarInfoW(uint Locale, uint Calendar, uint CalType, const(wchar)* lpC
 ///    valid.</li> <li>ERROR_INVALID_PARAMETER. Any of the parameter values was invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-BOOL SetCalendarInfoA(uint Locale, uint Calendar, uint CalType, const(char)* lpCalData);
+BOOL SetCalendarInfoA(uint Locale, uint Calendar, uint CalType, const(PSTR) lpCalData);
 
 ///Sets an item of locale information for a calendar. For more information, see Date and Calendar.
 ///Params:
@@ -5782,7 +5718,7 @@ BOOL SetCalendarInfoA(uint Locale, uint Calendar, uint CalType, const(char)* lpC
 ///    valid.</li> <li>ERROR_INVALID_PARAMETER. Any of the parameter values was invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-BOOL SetCalendarInfoW(uint Locale, uint Calendar, uint CalType, const(wchar)* lpCalData);
+BOOL SetCalendarInfoW(uint Locale, uint Calendar, uint CalType, const(PWSTR) lpCalData);
 
 ///Determines if a specified character is a lead byte for the system default Windows ANSI code page (<b>CP_ACP</b>). A
 ///lead byte is the first byte of a two-byte character in a double-byte character set (DBCS) for the code page. <div
@@ -5837,7 +5773,7 @@ BOOL IsDBCSLeadByteEx(uint CodePage, ubyte TestChar);
 ///    codes: <ul> <li>ERROR_INVALID_PARAMETER. Any of the parameter values was invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-uint LocaleNameToLCID(const(wchar)* lpName, uint dwFlags);
+uint LocaleNameToLCID(const(PWSTR) lpName, uint dwFlags);
 
 ///Converts a locale identifier to a locale name. <div class="alert"><b>Note</b> For custom locales, including those
 ///created by Microsoft, your applications should prefer locale names over locale identifiers.</div> <div> </div>
@@ -5865,7 +5801,7 @@ uint LocaleNameToLCID(const(wchar)* lpName, uint dwFlags);
 ///    <b>NULL</b>.</li> <li>ERROR_INVALID_PARAMETER. Any of the parameter values was invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int LCIDToLocaleName(uint Locale, const(wchar)* lpName, int cchName, uint dwFlags);
+int LCIDToLocaleName(uint Locale, PWSTR lpName, int cchName, uint dwFlags);
 
 ///Formats a duration of time as a time string for a locale specified by identifier. <div class="alert"><b>Note</b> For
 ///interoperability reasons, the application should prefer the GetDurationFormatEx function to <b>GetDurationFormat</b>
@@ -5905,7 +5841,7 @@ int LCIDToLocaleName(uint Locale, const(wchar)* lpName, int cchName, uint dwFlag
 ///    
 @DllImport("KERNEL32")
 int GetDurationFormat(uint Locale, uint dwFlags, const(SYSTEMTIME)* lpDuration, ulong ullDuration, 
-                      const(wchar)* lpFormat, const(wchar)* lpDurationStr, int cchDuration);
+                      const(PWSTR) lpFormat, PWSTR lpDurationStr, int cchDuration);
 
 ///Formats a number string as a number string customized for a locale specified by identifier. <div
 ///class="alert"><b>Note</b> For interoperability reasons, the application should prefer the GetNumberFormatEx function
@@ -5946,8 +5882,8 @@ int GetDurationFormat(uint Locale, uint dwFlags, const(SYSTEMTIME)* lpDuration, 
 ///    storage was available to complete this operation.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int GetNumberFormatA(uint Locale, uint dwFlags, const(char)* lpValue, const(NUMBERFMTA)* lpFormat, 
-                     const(char)* lpNumberStr, int cchNumber);
+int GetNumberFormatA(uint Locale, uint dwFlags, const(PSTR) lpValue, const(NUMBERFMTA)* lpFormat, PSTR lpNumberStr, 
+                     int cchNumber);
 
 ///Formats a number string as a number string customized for a locale specified by identifier. <div
 ///class="alert"><b>Note</b> For interoperability reasons, the application should prefer the GetNumberFormatEx function
@@ -5988,8 +5924,8 @@ int GetNumberFormatA(uint Locale, uint dwFlags, const(char)* lpValue, const(NUMB
 ///    storage was available to complete this operation.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int GetNumberFormatW(uint Locale, uint dwFlags, const(wchar)* lpValue, const(NUMBERFMTW)* lpFormat, 
-                     const(wchar)* lpNumberStr, int cchNumber);
+int GetNumberFormatW(uint Locale, uint dwFlags, const(PWSTR) lpValue, const(NUMBERFMTW)* lpFormat, 
+                     PWSTR lpNumberStr, int cchNumber);
 
 ///Formats a number string as a currency string for a locale specified by identifier. <div class="alert"><b>Note</b> For
 ///interoperability reasons, the application should prefer the GetCurrencyFormatEx function to <b>GetCurrencyFormat</b>
@@ -6026,8 +5962,8 @@ int GetNumberFormatW(uint Locale, uint dwFlags, const(wchar)* lpValue, const(NUM
 ///    <li>ERROR_INVALID_PARAMETER. Any of the parameter values was invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int GetCurrencyFormatA(uint Locale, uint dwFlags, const(char)* lpValue, const(CURRENCYFMTA)* lpFormat, 
-                       const(char)* lpCurrencyStr, int cchCurrency);
+int GetCurrencyFormatA(uint Locale, uint dwFlags, const(PSTR) lpValue, const(CURRENCYFMTA)* lpFormat, 
+                       PSTR lpCurrencyStr, int cchCurrency);
 
 ///Formats a number string as a currency string for a locale specified by identifier. <div class="alert"><b>Note</b> For
 ///interoperability reasons, the application should prefer the GetCurrencyFormatEx function to <b>GetCurrencyFormat</b>
@@ -6064,8 +6000,8 @@ int GetCurrencyFormatA(uint Locale, uint dwFlags, const(char)* lpValue, const(CU
 ///    <li>ERROR_INVALID_PARAMETER. Any of the parameter values was invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int GetCurrencyFormatW(uint Locale, uint dwFlags, const(wchar)* lpValue, const(CURRENCYFMTW)* lpFormat, 
-                       const(wchar)* lpCurrencyStr, int cchCurrency);
+int GetCurrencyFormatW(uint Locale, uint dwFlags, const(PWSTR) lpValue, const(CURRENCYFMTW)* lpFormat, 
+                       PWSTR lpCurrencyStr, int cchCurrency);
 
 ///Enumerates calendar information for a specified locale. <div class="alert"><b>Note</b> To receive a calendar
 ///identifier in addition to calendar information, the application should use the EnumCalendarInfoEx function. Another
@@ -6411,7 +6347,7 @@ BOOL IsValidLocale(uint Locale, uint dwFlags);
 ///    values was invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int GetGeoInfoA(int Location, uint GeoType, const(char)* lpGeoData, int cchData, ushort LangId);
+int GetGeoInfoA(int Location, uint GeoType, PSTR lpGeoData, int cchData, ushort LangId);
 
 ///<p class="CCE_Message">[<b>GetGeoInfo</b> is available for use in the operating systems specified in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. Instead, use GetGeoInfoEx. ] Retrieves information
@@ -6442,7 +6378,7 @@ int GetGeoInfoA(int Location, uint GeoType, const(char)* lpGeoData, int cchData,
 ///    values was invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int GetGeoInfoW(int Location, uint GeoType, const(wchar)* lpGeoData, int cchData, ushort LangId);
+int GetGeoInfoW(int Location, uint GeoType, PWSTR lpGeoData, int cchData, ushort LangId);
 
 ///Retrieves information about a geographic location that you specify by using a two-letter International Organization
 ///for Standardization (ISO) 3166-1 code or numeric United Nations (UN) Series M, Number 49 (M.49) code.
@@ -6471,7 +6407,7 @@ int GetGeoInfoW(int Location, uint GeoType, const(wchar)* lpGeoData, int cchData
 ///    </td> <td width="60%"> The values supplied for flags were not valid. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-int GetGeoInfoEx(const(wchar)* location, uint geoType, const(wchar)* geoData, int geoDataCount);
+int GetGeoInfoEx(PWSTR location, uint geoType, PWSTR geoData, int geoDataCount);
 
 ///<p class="CCE_Message">[<b>EnumSystemGeoID</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions. Instead, use EnumSystemGeoNames. ]
@@ -6546,7 +6482,7 @@ int GetUserGeoID(uint GeoClass);
 ///    <i>geoName</i> parameter specifies is too small for the string. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-int GetUserDefaultGeoName(const(wchar)* geoName, int geoNameCount);
+int GetUserDefaultGeoName(PWSTR geoName, int geoNameCount);
 
 ///<p class="CCE_Message">[<b>SetUserGeoID</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions. Instead, use SetUserGeoName. ] Sets
@@ -6581,7 +6517,7 @@ BOOL SetUserGeoID(int GeoId);
 ///    width="60%"> A parameter value was invalid. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-BOOL SetUserGeoName(const(wchar)* geoName);
+BOOL SetUserGeoName(PWSTR geoName);
 
 ///Converts a default locale value to an actual locale identifier. <div class="alert"><b>Note</b> This function is only
 ///provided for converting partial locale identifiers. Your applications should use locale names instead of identifiers.
@@ -6747,7 +6683,8 @@ ushort GetThreadUILanguage();
 ///    returns an empty multistring in <i>pwszLanguagesBuffer</i> and 2 in the <i>pcchLanguagesBuffer</i> parameter.
 ///    
 @DllImport("KERNEL32")
-BOOL GetProcessPreferredUILanguages(uint dwFlags, uint* pulNumLanguages, const(wchar)* pwszLanguagesBuffer, 
+BOOL GetProcessPreferredUILanguages(uint dwFlags, uint* pulNumLanguages, 
+                                    /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PWSTR pwszLanguagesBuffer, 
                                     uint* pcchLanguagesBuffer);
 
 ///Sets the process preferred UI languages for the application process. For more information, see User Interface
@@ -6775,7 +6712,9 @@ BOOL GetProcessPreferredUILanguages(uint dwFlags, uint* pulNumLanguages, const(w
 ///    parameter.
 ///    
 @DllImport("KERNEL32")
-BOOL SetProcessPreferredUILanguages(uint dwFlags, const(wchar)* pwszLanguagesBuffer, uint* pulNumLanguages);
+BOOL SetProcessPreferredUILanguages(uint dwFlags, 
+                                    /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/const(PWSTR) pwszLanguagesBuffer, 
+                                    uint* pulNumLanguages);
 
 ///Retrieves information about the display language setting. For more information, see [User Interface Language
 ///Management](/windows/desktop/Intl/user-interface-language-management).
@@ -6802,7 +6741,8 @@ BOOL SetProcessPreferredUILanguages(uint dwFlags, const(wchar)* pwszLanguagesBuf
 ///    *pcchLanguagesBuffer* are undefined.
 ///    
 @DllImport("KERNEL32")
-BOOL GetUserPreferredUILanguages(uint dwFlags, uint* pulNumLanguages, const(wchar)* pwszLanguagesBuffer, 
+BOOL GetUserPreferredUILanguages(uint dwFlags, uint* pulNumLanguages, 
+                                 /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PWSTR pwszLanguagesBuffer, 
                                  uint* pcchLanguagesBuffer);
 
 ///Retrieves the system preferred UI languages. For more information, see User Interface Language Management.
@@ -6839,7 +6779,8 @@ BOOL GetUserPreferredUILanguages(uint dwFlags, uint* pulNumLanguages, const(wcha
 ///    fails for any other reason, the parameters <i>pulNumLanguages</i> and <i>pcchLanguagesBuffer</i> are undefined.
 ///    
 @DllImport("KERNEL32")
-BOOL GetSystemPreferredUILanguages(uint dwFlags, uint* pulNumLanguages, const(wchar)* pwszLanguagesBuffer, 
+BOOL GetSystemPreferredUILanguages(uint dwFlags, uint* pulNumLanguages, 
+                                   /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PWSTR pwszLanguagesBuffer, 
                                    uint* pcchLanguagesBuffer);
 
 ///Retrieves the thread preferred UI languages for the current thread. For more information, see User Interface Language
@@ -6889,7 +6830,8 @@ BOOL GetSystemPreferredUILanguages(uint dwFlags, uint* pulNumLanguages, const(wc
 ///    fails for any other reason, the parameters <i>pulNumLanguages</i> and <i>pcchLanguagesBuffer</i> are undefined.
 ///    
 @DllImport("KERNEL32")
-BOOL GetThreadPreferredUILanguages(uint dwFlags, uint* pulNumLanguages, const(wchar)* pwszLanguagesBuffer, 
+BOOL GetThreadPreferredUILanguages(uint dwFlags, uint* pulNumLanguages, 
+                                   /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PWSTR pwszLanguagesBuffer, 
                                    uint* pcchLanguagesBuffer);
 
 ///Sets the thread preferred UI languages for the current thread. For more information, see User Interface Language
@@ -6931,7 +6873,9 @@ BOOL GetThreadPreferredUILanguages(uint dwFlags, uint* pulNumLanguages, const(wc
 ///    Returns <b>TRUE</b> if the function succeeds or <b>FALSE</b> otherwise.
 ///    
 @DllImport("KERNEL32")
-BOOL SetThreadPreferredUILanguages(uint dwFlags, const(wchar)* pwszLanguagesBuffer, uint* pulNumLanguages);
+BOOL SetThreadPreferredUILanguages(uint dwFlags, 
+                                   /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/const(PWSTR) pwszLanguagesBuffer, 
+                                   uint* pulNumLanguages);
 
 ///Retrieves resource-related information about a file.
 ///Params:
@@ -6984,7 +6928,7 @@ BOOL SetThreadPreferredUILanguages(uint dwFlags, const(wchar)* pwszLanguagesBuff
 ///    can call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL GetFileMUIInfo(uint dwFlags, const(wchar)* pcwszFilePath, char* pFileMUIInfo, uint* pcbFileMUIInfo);
+BOOL GetFileMUIInfo(uint dwFlags, const(PWSTR) pcwszFilePath, FILEMUIINFO* pFileMUIInfo, uint* pcbFileMUIInfo);
 
 ///Retrieves the path to all language-specific resource files associated with the supplied LN file. The application must
 ///call this function repeatedly to get the path for each resource file.
@@ -7062,8 +7006,8 @@ BOOL GetFileMUIInfo(uint dwFlags, const(wchar)* pcwszFilePath, char* pFileMUIInf
 ///    incorrectly set to <b>NULL</b>.</li> <li>ERROR_NO_MORE_FILES. There were no more files to process.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-BOOL GetFileMUIPath(uint dwFlags, const(wchar)* pcwszFilePath, const(wchar)* pwszLanguage, uint* pcchLanguage, 
-                    const(wchar)* pwszFileMUIPath, uint* pcchFileMUIPath, ulong* pululEnumerator);
+BOOL GetFileMUIPath(uint dwFlags, const(PWSTR) pcwszFilePath, PWSTR pwszLanguage, uint* pcchLanguage, 
+                    PWSTR pwszFileMUIPath, uint* pcchFileMUIPath, ulong* pululEnumerator);
 
 ///Retrieves a variety of information about an installed UI language: <ul> <li>Is the language installed?</li> <li>Is
 ///the current user licensed to use the language?</li> <li>Is the language fully localized? Partially localized? Part of
@@ -7113,12 +7057,15 @@ BOOL GetFileMUIPath(uint dwFlags, const(wchar)* pcwszFilePath, const(wchar)* pws
 ///    the parameters <i>pcchFallbackLanguages</i> and <i>pdwAttributes</i> are undefined.
 ///    
 @DllImport("KERNEL32")
-BOOL GetUILanguageInfo(uint dwFlags, const(wchar)* pwmszLanguage, const(wchar)* pwszFallbackLanguages, 
+BOOL GetUILanguageInfo(uint dwFlags, 
+                       /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/const(PWSTR) pwmszLanguage, 
+                       /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PWSTR pwszFallbackLanguages, 
                        uint* pcchFallbackLanguages, uint* pAttributes);
 
 @DllImport("KERNEL32")
-BOOL SetThreadPreferredUILanguages2(uint flags, const(wchar)* languages, uint* numLanguagesSet, 
-                                    HSAVEDUILANGUAGES__** snapshot);
+BOOL SetThreadPreferredUILanguages2(uint flags, 
+                                    /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/const(PWSTR) languages, 
+                                    uint* numLanguagesSet, HSAVEDUILANGUAGES__** snapshot);
 
 @DllImport("KERNEL32")
 void RestoreThreadPreferredUILanguages(const(HSAVEDUILANGUAGES__)* snapshot);
@@ -7134,11 +7081,11 @@ void RestoreThreadPreferredUILanguages(const(HSAVEDUILANGUAGES__)* snapshot);
 ///    A <b>BOOL</b> datatype.
 ///    
 @DllImport("KERNEL32")
-BOOL NotifyUILanguageChange(uint dwFlags, const(wchar)* pcwstrNewLanguage, const(wchar)* pcwstrPreviousLanguage, 
+BOOL NotifyUILanguageChange(uint dwFlags, const(PWSTR) pcwstrNewLanguage, const(PWSTR) pcwstrPreviousLanguage, 
                             uint dwReserved, uint* pdwStatusRtrn);
 
 @DllImport("KERNEL32")
-BOOL GetStringTypeExA(uint Locale, uint dwInfoType, const(char)* lpSrcStr, int cchSrc, char* lpCharType);
+BOOL GetStringTypeExA(uint Locale, uint dwInfoType, const(PSTR) lpSrcStr, int cchSrc, ushort* lpCharType);
 
 ///Deprecated. Retrieves character type information for the characters in the specified source string. For each
 ///character in the string, the function sets one or more bits in the corresponding 16-bit element of the output array.
@@ -7173,7 +7120,7 @@ BOOL GetStringTypeExA(uint Locale, uint dwInfoType, const(char)* lpSrcStr, int c
 ///    invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-BOOL GetStringTypeA(uint Locale, uint dwInfoType, const(char)* lpSrcStr, int cchSrc, ushort* lpCharType);
+BOOL GetStringTypeA(uint Locale, uint dwInfoType, const(PSTR) lpSrcStr, int cchSrc, ushort* lpCharType);
 
 ///Maps one Unicode string to another, performing the specified transformation. For an overview of the use of the string
 ///functions, see Strings. <div class="alert"><b>Caution</b> Using <b>FoldString</b> incorrectly can compromise the
@@ -7227,7 +7174,7 @@ BOOL GetStringTypeA(uint Locale, uint dwInfoType, const(char)* lpSrcStr, int cch
 ///    <li>ERROR_PROC_NOT_FOUND. The required procedure was not found.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int FoldStringA(uint dwMapFlags, const(char)* lpSrcStr, int cchSrc, const(char)* lpDestStr, int cchDest);
+int FoldStringA(uint dwMapFlags, const(PSTR) lpSrcStr, int cchSrc, PSTR lpDestStr, int cchDest);
 
 ///Enumerates the locales that are either installed on or supported by an operating system. <div
 ///class="alert"><b>Note</b> For interoperability reasons, the application should prefer the EnumSystemLocalesEx
@@ -7549,7 +7496,7 @@ BOOL EnumSystemCodePagesW(CODEPAGE_ENUMPROCW lpCodePageEnumProc, uint dwFlags);
 ///    <li>ERROR_NO_UNICODE_TRANSLATION. Invalid Unicode was found in a string.</li> </ul>
 ///    
 @DllImport("NORMALIZ")
-int IdnToAscii(uint dwFlags, const(wchar)* lpUnicodeCharStr, int cchUnicodeChar, const(wchar)* lpASCIICharStr, 
+int IdnToAscii(uint dwFlags, const(PWSTR) lpUnicodeCharStr, int cchUnicodeChar, PWSTR lpASCIICharStr, 
                int cchASCIIChar);
 
 ///Converts the Punycode form of an internationalized domain name (IDN) or another internationalized label to the normal
@@ -7585,7 +7532,7 @@ int IdnToAscii(uint dwFlags, const(wchar)* lpUnicodeCharStr, int cchUnicodeChar,
 ///    <li>ERROR_NO_UNICODE_TRANSLATION. Invalid Unicode was found in a string.</li> </ul>
 ///    
 @DllImport("NORMALIZ")
-int IdnToUnicode(uint dwFlags, const(wchar)* lpASCIICharStr, int cchASCIIChar, const(wchar)* lpUnicodeCharStr, 
+int IdnToUnicode(uint dwFlags, const(PWSTR) lpASCIICharStr, int cchASCIIChar, PWSTR lpUnicodeCharStr, 
                  int cchUnicodeChar);
 
 ///Converts an internationalized domain name (IDN) or another internationalized label to the NamePrep form specified by
@@ -7613,8 +7560,8 @@ int IdnToUnicode(uint dwFlags, const(wchar)* lpASCIICharStr, int cchASCIIChar, c
 ///    <li>ERROR_NO_UNICODE_TRANSLATION. Invalid Unicode was found in a string.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int IdnToNameprepUnicode(uint dwFlags, const(wchar)* lpUnicodeCharStr, int cchUnicodeChar, 
-                         const(wchar)* lpNameprepCharStr, int cchNameprepChar);
+int IdnToNameprepUnicode(uint dwFlags, const(PWSTR) lpUnicodeCharStr, int cchUnicodeChar, PWSTR lpNameprepCharStr, 
+                         int cchNameprepChar);
 
 ///Normalizes characters of a text string according to Unicode 4.0 TR#15. For more information, see Using Unicode
 ///Normalization to Represent Strings.
@@ -7643,7 +7590,7 @@ int IdnToNameprepUnicode(uint dwFlags, const(wchar)* lpUnicodeCharStr, int cchUn
 ///    in the input string.</li> <li>ERROR_SUCCESS. The action completed successfully but yielded no results.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int NormalizeString(NORM_FORM NormForm, const(wchar)* lpSrcString, int cwSrcLength, const(wchar)* lpDstString, 
+int NormalizeString(NORM_FORM NormForm, const(PWSTR) lpSrcString, int cwSrcLength, PWSTR lpDstString, 
                     int cwDstLength);
 
 ///Verifies that a string is normalized according to Unicode 4.0 TR#15. For more information, see Using Unicode
@@ -7662,7 +7609,7 @@ int NormalizeString(NORM_FORM NormForm, const(wchar)* lpSrcString, int cwSrcLeng
 ///    error condition, then it must call SetLastError(ERROR_SUCCESS).
 ///    
 @DllImport("KERNEL32")
-BOOL IsNormalizedString(NORM_FORM NormForm, const(wchar)* lpString, int cwLength);
+BOOL IsNormalizedString(NORM_FORM NormForm, const(PWSTR) lpString, int cwLength);
 
 ///Compares two enumerated lists of scripts.
 ///Params:
@@ -7690,7 +7637,7 @@ BOOL IsNormalizedString(NORM_FORM NormForm, const(wchar)* lpString, int cwLength
 ///    action completed successfully but yielded no results.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-BOOL VerifyScripts(uint dwFlags, const(wchar)* lpLocaleScripts, int cchLocaleScripts, const(wchar)* lpTestScripts, 
+BOOL VerifyScripts(uint dwFlags, const(PWSTR) lpLocaleScripts, int cchLocaleScripts, const(PWSTR) lpTestScripts, 
                    int cchTestScripts);
 
 ///Provides a list of scripts used in the specified Unicode string.
@@ -7733,7 +7680,7 @@ BOOL VerifyScripts(uint dwFlags, const(wchar)* lpLocaleScripts, int cchLocaleScr
 ///    <li>ERROR_INVALID_PARAMETER. Any of the parameter values was invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int GetStringScripts(uint dwFlags, const(wchar)* lpString, int cchString, const(wchar)* lpScripts, int cchScripts);
+int GetStringScripts(uint dwFlags, const(PWSTR) lpString, int cchString, PWSTR lpScripts, int cchScripts);
 
 ///Retrieves information about a locale specified by name.<div class="alert"><b>Note</b> The application should call
 ///this function in preference to GetLocaleInfo if designed to run only on Windows Vista and later.</div> <div> </div>
@@ -7773,7 +7720,7 @@ int GetStringScripts(uint dwFlags, const(wchar)* lpString, int cchString, const(
 ///    <li>ERROR_INVALID_PARAMETER. Any of the parameter values was invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int GetLocaleInfoEx(const(wchar)* lpLocaleName, uint LCType, const(wchar)* lpLCData, int cchData);
+int GetLocaleInfoEx(const(PWSTR) lpLocaleName, uint LCType, PWSTR lpLCData, int cchData);
 
 ///Retrieves information about a calendar for a locale specified by name.<div class="alert"><b>Note</b> The application
 ///should call this function in preference to GetCalendarInfo if designed to run only on Windows Vista and later.</div>
@@ -7811,8 +7758,8 @@ int GetLocaleInfoEx(const(wchar)* lpLocaleName, uint LCType, const(wchar)* lpLCD
 ///    <li>ERROR_INVALID_PARAMETER. Any of the parameter values was invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int GetCalendarInfoEx(const(wchar)* lpLocaleName, uint Calendar, const(wchar)* lpReserved, uint CalType, 
-                      const(wchar)* lpCalData, int cchData, uint* lpValue);
+int GetCalendarInfoEx(const(PWSTR) lpLocaleName, uint Calendar, const(PWSTR) lpReserved, uint CalType, 
+                      PWSTR lpCalData, int cchData, uint* lpValue);
 
 ///Formats a number string as a number string customized for a locale specified by name.<div class="alert"><b>Note</b>
 ///The application should call this function in preference to GetNumberFormat if designed to run only on Windows Vista
@@ -7854,8 +7801,8 @@ int GetCalendarInfoEx(const(wchar)* lpLocaleName, uint Calendar, const(wchar)* l
 ///    storage was available to complete this operation.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int GetNumberFormatEx(const(wchar)* lpLocaleName, uint dwFlags, const(wchar)* lpValue, const(NUMBERFMTW)* lpFormat, 
-                      const(wchar)* lpNumberStr, int cchNumber);
+int GetNumberFormatEx(const(PWSTR) lpLocaleName, uint dwFlags, const(PWSTR) lpValue, const(NUMBERFMTW)* lpFormat, 
+                      PWSTR lpNumberStr, int cchNumber);
 
 ///Formats a number string as a currency string for a locale specified by name.<div class="alert"><b>Note</b> The
 ///application should call this function in preference to GetCurrencyFormat if designed to run only on Windows Vista and
@@ -7895,8 +7842,8 @@ int GetNumberFormatEx(const(wchar)* lpLocaleName, uint dwFlags, const(wchar)* lp
 ///    <li>ERROR_INVALID_PARAMETER. Any of the parameter values was invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int GetCurrencyFormatEx(const(wchar)* lpLocaleName, uint dwFlags, const(wchar)* lpValue, 
-                        const(CURRENCYFMTW)* lpFormat, const(wchar)* lpCurrencyStr, int cchCurrency);
+int GetCurrencyFormatEx(const(PWSTR) lpLocaleName, uint dwFlags, const(PWSTR) lpValue, 
+                        const(CURRENCYFMTW)* lpFormat, PWSTR lpCurrencyStr, int cchCurrency);
 
 ///Retrieves the user default locale name.<div class="alert"><b>Note</b> The application should call this function in
 ///preference to GetUserDefaultLCID if designed to run only on Windows Vista and later.</div> <div> </div>
@@ -7914,7 +7861,7 @@ int GetCurrencyFormatEx(const(wchar)* lpLocaleName, uint dwFlags, const(wchar)* 
 ///    <b>NULL</b>. </li> </ul>
 ///    
 @DllImport("KERNEL32")
-int GetUserDefaultLocaleName(const(wchar)* lpLocaleName, int cchLocaleName);
+int GetUserDefaultLocaleName(PWSTR lpLocaleName, int cchLocaleName);
 
 ///Retrieves the system default locale name.<div class="alert"><b>Note</b> It is recommended that applications call
 ///GetUserDefaultLocaleName in preference over this function. This is due to the user locale generally being more useful
@@ -7934,7 +7881,7 @@ int GetUserDefaultLocaleName(const(wchar)* lpLocaleName, int cchLocaleName);
 ///    <b>NULL</b>.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int GetSystemDefaultLocaleName(const(wchar)* lpLocaleName, int cchLocaleName);
+int GetSystemDefaultLocaleName(PWSTR lpLocaleName, int cchLocaleName);
 
 ///Determines if each character in a string has a defined result for a specified NLS capability.
 ///Params:
@@ -7956,7 +7903,7 @@ int GetSystemDefaultLocaleName(const(wchar)* lpLocaleName, int cchLocaleName);
 ///    <li>ERROR_INVALID_PARAMETER. Any of the parameter values was invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-BOOL IsNLSDefinedString(uint Function, uint dwFlags, NLSVERSIONINFO* lpVersionInformation, const(wchar)* lpString, 
+BOOL IsNLSDefinedString(uint Function, uint dwFlags, NLSVERSIONINFO* lpVersionInformation, const(PWSTR) lpString, 
                         int cchStr);
 
 ///Retrieves information about the current version of a specified NLS capability for a locale specified by name.<div
@@ -7977,7 +7924,7 @@ BOOL IsNLSDefinedString(uint Function, uint dwFlags, NLSVERSIONINFO* lpVersionIn
 ///    were not valid.</li> <li>ERROR_INVALID_PARAMETER. Any of the parameter values was invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-BOOL GetNLSVersionEx(uint function_, const(wchar)* lpLocaleName, NLSVERSIONINFOEX* lpVersionInformation);
+BOOL GetNLSVersionEx(uint function_, const(PWSTR) lpLocaleName, NLSVERSIONINFOEX* lpVersionInformation);
 
 ///Determines if the NLS version is valid for a given NLS function.
 ///Params:
@@ -7990,7 +7937,7 @@ BOOL GetNLSVersionEx(uint function_, const(wchar)* lpLocaleName, NLSVERSIONINFOE
 ///    Returns a nonzero value if the NLS version is valid, or zero if the version is invalid.
 ///    
 @DllImport("KERNEL32")
-uint IsValidNLSVersion(uint function_, const(wchar)* lpLocaleName, NLSVERSIONINFOEX* lpVersionInformation);
+uint IsValidNLSVersion(uint function_, const(PWSTR) lpLocaleName, NLSVERSIONINFOEX* lpVersionInformation);
 
 ///Locates a Unicode string (wide characters) or its equivalent in another Unicode string for a locale specified by
 ///name. <div class="alert"><b>Caution</b> Because strings with very different binary representations can compare as
@@ -8068,8 +8015,8 @@ uint IsValidNLSVersion(uint function_, const(wchar)* lpLocaleName, NLSVERSIONINF
 ///    results.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int FindNLSStringEx(const(wchar)* lpLocaleName, uint dwFindNLSStringFlags, const(wchar)* lpStringSource, 
-                    int cchSource, const(wchar)* lpStringValue, int cchValue, int* pcchFound, 
+int FindNLSStringEx(const(PWSTR) lpLocaleName, uint dwFindNLSStringFlags, const(PWSTR) lpStringSource, 
+                    int cchSource, const(PWSTR) lpStringValue, int cchValue, int* pcchFound, 
                     NLSVERSIONINFO* lpVersionInformation, void* lpReserved, LPARAM sortHandle);
 
 ///For a locale specified by name, maps an input character string to another using a specified transformation, or
@@ -8187,9 +8134,8 @@ int FindNLSStringEx(const(wchar)* lpLocaleName, uint dwFindNLSStringFlags, const
 ///    <li>ERROR_INVALID_PARAMETER. Any of the parameter values was invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int LCMapStringEx(const(wchar)* lpLocaleName, uint dwMapFlags, const(wchar)* lpSrcStr, int cchSrc, 
-                  const(wchar)* lpDestStr, int cchDest, NLSVERSIONINFO* lpVersionInformation, void* lpReserved, 
-                  LPARAM sortHandle);
+int LCMapStringEx(const(PWSTR) lpLocaleName, uint dwMapFlags, const(PWSTR) lpSrcStr, int cchSrc, PWSTR lpDestStr, 
+                  int cchDest, NLSVERSIONINFO* lpVersionInformation, void* lpReserved, LPARAM sortHandle);
 
 ///Determines if the specified locale name is valid for a locale that is installed or supported on the operating
 ///system.<div class="alert"><b>Note</b> An application running only on Windows Vista and later should call this
@@ -8200,7 +8146,7 @@ int LCMapStringEx(const(wchar)* lpLocaleName, uint dwMapFlags, const(wchar)* lpS
 ///    Returns a nonzero value if the locale name is valid, or returns 0 for an invalid name.
 ///    
 @DllImport("KERNEL32")
-BOOL IsValidLocaleName(const(wchar)* lpLocaleName);
+BOOL IsValidLocaleName(const(PWSTR) lpLocaleName);
 
 ///Enumerates calendar information for a locale specified by name.<div class="alert"><b>Note</b> The application should
 ///call this function in preference to EnumCalendarInfo or EnumCalendarInfoEx if designed to run only on Windows Vista
@@ -8225,8 +8171,8 @@ BOOL IsValidLocaleName(const(wchar)* lpLocaleName);
 ///    invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-BOOL EnumCalendarInfoExEx(CALINFO_ENUMPROCEXEX pCalInfoEnumProcExEx, const(wchar)* lpLocaleName, uint Calendar, 
-                          const(wchar)* lpReserved, uint CalType, LPARAM lParam);
+BOOL EnumCalendarInfoExEx(CALINFO_ENUMPROCEXEX pCalInfoEnumProcExEx, const(PWSTR) lpLocaleName, uint Calendar, 
+                          const(PWSTR) lpReserved, uint CalType, LPARAM lParam);
 
 ///Enumerates the long date, short date, or year/month formats that are available for a locale specified by name.<div
 ///class="alert"><b>Note</b> The application should call this function in preference to EnumDateFormats or
@@ -8259,7 +8205,7 @@ BOOL EnumCalendarInfoExEx(CALINFO_ENUMPROCEXEX pCalInfoEnumProcExEx, const(wchar
 ///    <li>ERROR_INVALID_PARAMETER. Any of the parameter values was invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-BOOL EnumDateFormatsExEx(DATEFMT_ENUMPROCEXEX lpDateFmtEnumProcExEx, const(wchar)* lpLocaleName, uint dwFlags, 
+BOOL EnumDateFormatsExEx(DATEFMT_ENUMPROCEXEX lpDateFmtEnumProcExEx, const(PWSTR) lpLocaleName, uint dwFlags, 
                          LPARAM lParam);
 
 ///Enumerates the time formats that are available for a locale specified by name. <div class="alert"><b>Note</b> The
@@ -8282,7 +8228,7 @@ BOOL EnumDateFormatsExEx(DATEFMT_ENUMPROCEXEX lpDateFmtEnumProcExEx, const(wchar
 ///    invalid.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-BOOL EnumTimeFormatsEx(TIMEFMT_ENUMPROCEX lpTimeFmtEnumProcEx, const(wchar)* lpLocaleName, uint dwFlags, 
+BOOL EnumTimeFormatsEx(TIMEFMT_ENUMPROCEX lpTimeFmtEnumProcEx, const(PWSTR) lpLocaleName, uint dwFlags, 
                        LPARAM lParam);
 
 ///Enumerates the locales that are either installed on or supported by an operating system. <div
@@ -8326,7 +8272,7 @@ BOOL EnumSystemLocalesEx(LOCALE_ENUMPROCEX lpLocaleEnumProcEx, uint dwFlags, LPA
 ///    supplied buffer size was not large enough, or it was incorrectly set to <b>NULL</b>.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int ResolveLocaleName(const(wchar)* lpNameToResolve, const(wchar)* lpLocaleName, int cchLocaleName);
+int ResolveLocaleName(const(PWSTR) lpNameToResolve, PWSTR lpLocaleName, int cchLocaleName);
 
 ///Installs an IME.
 ///Params:
@@ -8336,7 +8282,7 @@ int ResolveLocaleName(const(wchar)* lpNameToResolve, const(wchar)* lpLocaleName,
 ///    Returns the input locale identifier for the IME.
 ///    
 @DllImport("IMM32")
-ptrdiff_t ImmInstallIMEA(const(char)* lpszIMEFileName, const(char)* lpszLayoutText);
+HKL ImmInstallIMEA(const(PSTR) lpszIMEFileName, const(PSTR) lpszLayoutText);
 
 ///Installs an IME.
 ///Params:
@@ -8346,7 +8292,7 @@ ptrdiff_t ImmInstallIMEA(const(char)* lpszIMEFileName, const(char)* lpszLayoutTe
 ///    Returns the input locale identifier for the IME.
 ///    
 @DllImport("IMM32")
-ptrdiff_t ImmInstallIMEW(const(wchar)* lpszIMEFileName, const(wchar)* lpszLayoutText);
+HKL ImmInstallIMEW(const(PWSTR) lpszIMEFileName, const(PWSTR) lpszLayoutText);
 
 ///Retrieves the default window handle to the IME class.
 ///Params:
@@ -8373,7 +8319,7 @@ HWND ImmGetDefaultIMEWnd(HWND param0);
 ///    including the Unicode terminating null character.
 ///    
 @DllImport("IMM32")
-uint ImmGetDescriptionA(ptrdiff_t param0, const(char)* lpszDescription, uint uBufLen);
+uint ImmGetDescriptionA(HKL param0, PSTR lpszDescription, uint uBufLen);
 
 ///Copies the description of the IME to the specified buffer.
 ///Params:
@@ -8391,7 +8337,7 @@ uint ImmGetDescriptionA(ptrdiff_t param0, const(char)* lpszDescription, uint uBu
 ///    including the Unicode terminating null character.
 ///    
 @DllImport("IMM32")
-uint ImmGetDescriptionW(ptrdiff_t param0, const(wchar)* lpszDescription, uint uBufLen);
+uint ImmGetDescriptionW(HKL param0, PWSTR lpszDescription, uint uBufLen);
 
 ///Retrieves the file name of the IME associated with the specified input locale.
 ///Params:
@@ -8408,7 +8354,7 @@ uint ImmGetDescriptionW(ptrdiff_t param0, const(wchar)* lpszDescription, uint uB
 ///    the output buffer, not including the Unicode terminating null character.
 ///    
 @DllImport("IMM32")
-uint ImmGetIMEFileNameA(ptrdiff_t param0, const(char)* lpszFileName, uint uBufLen);
+uint ImmGetIMEFileNameA(HKL param0, PSTR lpszFileName, uint uBufLen);
 
 ///Retrieves the file name of the IME associated with the specified input locale.
 ///Params:
@@ -8425,7 +8371,7 @@ uint ImmGetIMEFileNameA(ptrdiff_t param0, const(char)* lpszFileName, uint uBufLe
 ///    the output buffer, not including the Unicode terminating null character.
 ///    
 @DllImport("IMM32")
-uint ImmGetIMEFileNameW(ptrdiff_t param0, const(wchar)* lpszFileName, uint uBufLen);
+uint ImmGetIMEFileNameW(HKL param0, PWSTR lpszFileName, uint uBufLen);
 
 ///Retrieves the property and capabilities of the IME associated with the specified input locale.
 ///Params:
@@ -8479,7 +8425,7 @@ uint ImmGetIMEFileNameW(ptrdiff_t param0, const(wchar)* lpszFileName, uint uBufL
 ///    3.1.</td> </tr> <tr> <td>IMEVER_0400</td> <td>The IME was created for Windows Me/98/95.</td> </tr> </table>
 ///    
 @DllImport("IMM32")
-uint ImmGetProperty(ptrdiff_t param0, uint param1);
+uint ImmGetProperty(HKL param0, uint param1);
 
 ///Determines if the specified input locale has an IME.
 ///Params:
@@ -8488,7 +8434,7 @@ uint ImmGetProperty(ptrdiff_t param0, uint param1);
 ///    Returns a nonzero value if the specified locale has an IME, or 0 otherwise.
 ///    
 @DllImport("IMM32")
-BOOL ImmIsIME(ptrdiff_t param0);
+BOOL ImmIsIME(HKL param0);
 
 ///Simulates the specified IME hot key, causing the same response as if the user presses the hot key in the specified
 ///window.
@@ -8587,7 +8533,7 @@ BOOL ImmAssociateContextEx(HWND param0, HIMC__* param1, uint param2);
 ///    data is not ready in the input context.</li> <li>IMM_ERROR_GENERAL. General error detected by IME.</li> </ul>
 ///    
 @DllImport("IMM32")
-int ImmGetCompositionStringA(HIMC__* param0, uint param1, char* lpBuf, uint dwBufLen);
+int ImmGetCompositionStringA(HIMC__* param0, uint param1, void* lpBuf, uint dwBufLen);
 
 ///Retrieves information about the composition string.
 ///Params:
@@ -8606,7 +8552,7 @@ int ImmGetCompositionStringA(HIMC__* param0, uint param1, char* lpBuf, uint dwBu
 ///    data is not ready in the input context.</li> <li>IMM_ERROR_GENERAL. General error detected by IME.</li> </ul>
 ///    
 @DllImport("IMM32")
-int ImmGetCompositionStringW(HIMC__* param0, uint param1, char* lpBuf, uint dwBufLen);
+int ImmGetCompositionStringW(HIMC__* param0, uint param1, void* lpBuf, uint dwBufLen);
 
 ///Sets the characters, attributes, and clauses of the composition and reading strings.
 ///Params:
@@ -8642,7 +8588,7 @@ int ImmGetCompositionStringW(HIMC__* param0, uint param1, char* lpBuf, uint dwBu
 ///    Returns a nonzero value if successful, or 0 otherwise.
 ///    
 @DllImport("IMM32")
-BOOL ImmSetCompositionStringA(HIMC__* param0, uint dwIndex, char* lpComp, uint dwCompLen, char* lpRead, 
+BOOL ImmSetCompositionStringA(HIMC__* param0, uint dwIndex, void* lpComp, uint dwCompLen, void* lpRead, 
                               uint dwReadLen);
 
 ///Sets the characters, attributes, and clauses of the composition and reading strings.
@@ -8679,7 +8625,7 @@ BOOL ImmSetCompositionStringA(HIMC__* param0, uint dwIndex, char* lpComp, uint d
 ///    Returns a nonzero value if successful, or 0 otherwise.
 ///    
 @DllImport("IMM32")
-BOOL ImmSetCompositionStringW(HIMC__* param0, uint dwIndex, char* lpComp, uint dwCompLen, char* lpRead, 
+BOOL ImmSetCompositionStringW(HIMC__* param0, uint dwIndex, void* lpComp, uint dwCompLen, void* lpRead, 
                               uint dwReadLen);
 
 ///Retrieves the size of the candidate lists.
@@ -8715,7 +8661,7 @@ uint ImmGetCandidateListCountW(HIMC__* param0, uint* lpdwListCount);
 ///    function returns 0 if it does not succeed.
 ///    
 @DllImport("IMM32")
-uint ImmGetCandidateListA(HIMC__* param0, uint deIndex, char* lpCandList, uint dwBufLen);
+uint ImmGetCandidateListA(HIMC__* param0, uint deIndex, CANDIDATELIST* lpCandList, uint dwBufLen);
 
 ///Retrieves a candidate list.
 ///Params:
@@ -8730,7 +8676,7 @@ uint ImmGetCandidateListA(HIMC__* param0, uint deIndex, char* lpCandList, uint d
 ///    function returns 0 if it does not succeed.
 ///    
 @DllImport("IMM32")
-uint ImmGetCandidateListW(HIMC__* param0, uint deIndex, char* lpCandList, uint dwBufLen);
+uint ImmGetCandidateListW(HIMC__* param0, uint deIndex, CANDIDATELIST* lpCandList, uint dwBufLen);
 
 ///Retrieves information about errors. Applications use the information for user notifications.
 ///Params:
@@ -8778,7 +8724,7 @@ uint ImmGetCandidateListW(HIMC__* param0, uint deIndex, char* lpCandList, uint d
 ///    GGL_PRIVATE and <i>dwBufLen</i> is 0, the return value is the buffer size needed to receive the information.
 ///    
 @DllImport("IMM32")
-uint ImmGetGuideLineA(HIMC__* param0, uint dwIndex, const(char)* lpBuf, uint dwBufLen);
+uint ImmGetGuideLineA(HIMC__* param0, uint dwIndex, PSTR lpBuf, uint dwBufLen);
 
 ///Retrieves information about errors. Applications use the information for user notifications.
 ///Params:
@@ -8826,7 +8772,7 @@ uint ImmGetGuideLineA(HIMC__* param0, uint dwIndex, const(char)* lpBuf, uint dwB
 ///    GGL_PRIVATE and <i>dwBufLen</i> is 0, the return value is the buffer size needed to receive the information.
 ///    
 @DllImport("IMM32")
-uint ImmGetGuideLineW(HIMC__* param0, uint dwIndex, const(wchar)* lpBuf, uint dwBufLen);
+uint ImmGetGuideLineW(HIMC__* param0, uint dwIndex, PWSTR lpBuf, uint dwBufLen);
 
 ///Retrieves the current conversion status.
 ///Params:
@@ -8929,7 +8875,7 @@ BOOL ImmSetCompositionFontW(HIMC__* param0, LOGFONTW* lplf);
 ///    Returns a nonzero value if successful, or 0 otherwise.
 ///    
 @DllImport("IMM32")
-BOOL ImmConfigureIMEA(ptrdiff_t param0, HWND param1, uint param2, void* param3);
+BOOL ImmConfigureIMEA(HKL param0, HWND param1, uint param2, void* param3);
 
 ///Displays the configuration dialog box for the IME of the specified input locale identifier.
 ///Params:
@@ -8949,7 +8895,7 @@ BOOL ImmConfigureIMEA(ptrdiff_t param0, HWND param1, uint param2, void* param3);
 ///    Returns a nonzero value if successful, or 0 otherwise.
 ///    
 @DllImport("IMM32")
-BOOL ImmConfigureIMEW(ptrdiff_t param0, HWND param1, uint param2, void* param3);
+BOOL ImmConfigureIMEW(HKL param0, HWND param1, uint param2, void* param3);
 
 ///Accesses capabilities of particular IMEs that are not available through other IME API functions. This function is
 ///used mainly for country-specific operations.
@@ -8963,7 +8909,7 @@ BOOL ImmConfigureIMEW(ptrdiff_t param0, HWND param1, uint param2, void* param3);
 ///    Returns an operation-specific value if successful, or 0 otherwise.
 ///    
 @DllImport("IMM32")
-LRESULT ImmEscapeA(ptrdiff_t param0, HIMC__* param1, uint param2, void* param3);
+LRESULT ImmEscapeA(HKL param0, HIMC__* param1, uint param2, void* param3);
 
 ///Accesses capabilities of particular IMEs that are not available through other IME API functions. This function is
 ///used mainly for country-specific operations.
@@ -8977,7 +8923,7 @@ LRESULT ImmEscapeA(ptrdiff_t param0, HIMC__* param1, uint param2, void* param3);
 ///    Returns an operation-specific value if successful, or 0 otherwise.
 ///    
 @DllImport("IMM32")
-LRESULT ImmEscapeW(ptrdiff_t param0, HIMC__* param1, uint param2, void* param3);
+LRESULT ImmEscapeW(HKL param0, HIMC__* param1, uint param2, void* param3);
 
 ///Retrieves the conversion result list of characters or words without generating any IME-related messages.
 ///Params:
@@ -9002,7 +8948,7 @@ LRESULT ImmEscapeW(ptrdiff_t param0, HIMC__* param1, uint param2, void* param3);
 ///    0, the function returns the size, in bytes, of the required output buffer.
 ///    
 @DllImport("IMM32")
-uint ImmGetConversionListA(ptrdiff_t param0, HIMC__* param1, const(char)* lpSrc, char* lpDst, uint dwBufLen, 
+uint ImmGetConversionListA(HKL param0, HIMC__* param1, const(PSTR) lpSrc, CANDIDATELIST* lpDst, uint dwBufLen, 
                            uint uFlag);
 
 ///Retrieves the conversion result list of characters or words without generating any IME-related messages.
@@ -9028,7 +8974,7 @@ uint ImmGetConversionListA(ptrdiff_t param0, HIMC__* param1, const(char)* lpSrc,
 ///    0, the function returns the size, in bytes, of the required output buffer.
 ///    
 @DllImport("IMM32")
-uint ImmGetConversionListW(ptrdiff_t param0, HIMC__* param1, const(wchar)* lpSrc, char* lpDst, uint dwBufLen, 
+uint ImmGetConversionListW(HKL param0, HIMC__* param1, const(PWSTR) lpSrc, CANDIDATELIST* lpDst, uint dwBufLen, 
                            uint uFlag);
 
 ///Notifies the IME about changes to the status of the input context.
@@ -9200,7 +9146,7 @@ uint ImmGetVirtualKey(HWND param0);
 ///    Returns a nonzero value if successful, or 0 otherwise.
 ///    
 @DllImport("IMM32")
-BOOL ImmRegisterWordA(ptrdiff_t param0, const(char)* lpszReading, uint param2, const(char)* lpszRegister);
+BOOL ImmRegisterWordA(HKL param0, const(PSTR) lpszReading, uint param2, const(PSTR) lpszRegister);
 
 ///Registers a string with the dictionary of the IME associated with the specified input locale.
 ///Params:
@@ -9221,7 +9167,7 @@ BOOL ImmRegisterWordA(ptrdiff_t param0, const(char)* lpszReading, uint param2, c
 ///    Returns a nonzero value if successful, or 0 otherwise.
 ///    
 @DllImport("IMM32")
-BOOL ImmRegisterWordW(ptrdiff_t param0, const(wchar)* lpszReading, uint param2, const(wchar)* lpszRegister);
+BOOL ImmRegisterWordW(HKL param0, const(PWSTR) lpszReading, uint param2, const(PWSTR) lpszRegister);
 
 ///Removes a register string from the dictionary of the IME associated with the specified input locale.
 ///Params:
@@ -9241,7 +9187,7 @@ BOOL ImmRegisterWordW(ptrdiff_t param0, const(wchar)* lpszReading, uint param2, 
 ///    Returns a nonzero value if successful, or 0 otherwise.
 ///    
 @DllImport("IMM32")
-BOOL ImmUnregisterWordA(ptrdiff_t param0, const(char)* lpszReading, uint param2, const(char)* lpszUnregister);
+BOOL ImmUnregisterWordA(HKL param0, const(PSTR) lpszReading, uint param2, const(PSTR) lpszUnregister);
 
 ///Removes a register string from the dictionary of the IME associated with the specified input locale.
 ///Params:
@@ -9261,7 +9207,7 @@ BOOL ImmUnregisterWordA(ptrdiff_t param0, const(char)* lpszReading, uint param2,
 ///    Returns a nonzero value if successful, or 0 otherwise.
 ///    
 @DllImport("IMM32")
-BOOL ImmUnregisterWordW(ptrdiff_t param0, const(wchar)* lpszReading, uint param2, const(wchar)* lpszUnregister);
+BOOL ImmUnregisterWordW(HKL param0, const(PWSTR) lpszReading, uint param2, const(PWSTR) lpszUnregister);
 
 ///Retrieves a list of the styles supported by the IME associated with the specified input locale.
 ///Params:
@@ -9274,7 +9220,7 @@ BOOL ImmUnregisterWordW(ptrdiff_t param0, const(wchar)* lpszReading, uint param2
 ///    return value is the number of styles available in the IME.
 ///    
 @DllImport("IMM32")
-uint ImmGetRegisterWordStyleA(ptrdiff_t param0, uint nItem, char* lpStyleBuf);
+uint ImmGetRegisterWordStyleA(HKL param0, uint nItem, STYLEBUFA* lpStyleBuf);
 
 ///Retrieves a list of the styles supported by the IME associated with the specified input locale.
 ///Params:
@@ -9287,7 +9233,7 @@ uint ImmGetRegisterWordStyleA(ptrdiff_t param0, uint nItem, char* lpStyleBuf);
 ///    return value is the number of styles available in the IME.
 ///    
 @DllImport("IMM32")
-uint ImmGetRegisterWordStyleW(ptrdiff_t param0, uint nItem, char* lpStyleBuf);
+uint ImmGetRegisterWordStyleW(HKL param0, uint nItem, STYLEBUFW* lpStyleBuf);
 
 ///Enumerates the register strings having the specified reading string, style, and register string.
 ///Params:
@@ -9305,8 +9251,8 @@ uint ImmGetRegisterWordStyleW(ptrdiff_t param0, uint nItem, char* lpStyleBuf);
 ///    function returns 0 if it cannot enumerate the register strings.
 ///    
 @DllImport("IMM32")
-uint ImmEnumRegisterWordA(ptrdiff_t param0, REGISTERWORDENUMPROCA param1, const(char)* lpszReading, uint param3, 
-                          const(char)* lpszRegister, void* param5);
+uint ImmEnumRegisterWordA(HKL param0, REGISTERWORDENUMPROCA param1, const(PSTR) lpszReading, uint param3, 
+                          const(PSTR) lpszRegister, void* param5);
 
 ///Enumerates the register strings having the specified reading string, style, and register string.
 ///Params:
@@ -9324,8 +9270,8 @@ uint ImmEnumRegisterWordA(ptrdiff_t param0, REGISTERWORDENUMPROCA param1, const(
 ///    function returns 0 if it cannot enumerate the register strings.
 ///    
 @DllImport("IMM32")
-uint ImmEnumRegisterWordW(ptrdiff_t param0, REGISTERWORDENUMPROCW param1, const(wchar)* lpszReading, uint param3, 
-                          const(wchar)* lpszRegister, void* param5);
+uint ImmEnumRegisterWordW(HKL param0, REGISTERWORDENUMPROCW param1, const(PWSTR) lpszReading, uint param3, 
+                          const(PWSTR) lpszRegister, void* param5);
 
 ///Disables the IME for a thread or for all threads in a process.
 ///Params:
@@ -9389,7 +9335,7 @@ BOOL ImmEnumInputContext(uint idThread, IMCENUMPROC lpfn, LPARAM lParam);
 ///    
 @DllImport("IMM32")
 uint ImmGetImeMenuItemsA(HIMC__* param0, uint param1, uint param2, IMEMENUITEMINFOA* lpImeParentMenu, 
-                         char* lpImeMenu, uint dwSize);
+                         IMEMENUITEMINFOA* lpImeMenu, uint dwSize);
 
 ///Retrieves the menu items that are registered in the IME menu of a specified input context.
 ///Params:
@@ -9426,7 +9372,7 @@ uint ImmGetImeMenuItemsA(HIMC__* param0, uint param1, uint param2, IMEMENUITEMIN
 ///    
 @DllImport("IMM32")
 uint ImmGetImeMenuItemsW(HIMC__* param0, uint param1, uint param2, IMEMENUITEMINFOW* lpImeParentMenu, 
-                         char* lpImeMenu, uint dwSize);
+                         IMEMENUITEMINFOW* lpImeMenu, uint dwSize);
 
 ///<p class="CCE_Message">[<b>ImmDisableTextFrameService</b> is no longer available for use as of Windows Vista.
 ///Instead, use ImmDisableIME. ] Disables the text service for the specified thread. For details, see Text Services
@@ -9498,8 +9444,8 @@ HRESULT MappingFreeServices(MAPPING_SERVICE_INFO* pServiceInfo);
 ///    Returns S_OK if successful. The function returns an error HRESULT value if it does not succeed.
 ///    
 @DllImport("elscore")
-HRESULT MappingRecognizeText(MAPPING_SERVICE_INFO* pServiceInfo, const(wchar)* pszText, uint dwLength, 
-                             uint dwIndex, MAPPING_OPTIONS* pOptions, MAPPING_PROPERTY_BAG* pbag);
+HRESULT MappingRecognizeText(MAPPING_SERVICE_INFO* pServiceInfo, const(PWSTR) pszText, uint dwLength, uint dwIndex, 
+                             MAPPING_OPTIONS* pOptions, MAPPING_PROPERTY_BAG* pbag);
 
 ///Causes an ELS service to perform an action after text recognition has occurred. For example, a phone dialer service
 ///first must recognize phone numbers and then can perform the "action" of dialing a number.
@@ -9513,7 +9459,7 @@ HRESULT MappingRecognizeText(MAPPING_SERVICE_INFO* pServiceInfo, const(wchar)* p
 ///    Returns S_OK if successful. The function returns an error HRESULT value if it does not succeed.
 ///    
 @DllImport("elscore")
-HRESULT MappingDoAction(MAPPING_PROPERTY_BAG* pBag, uint dwRangeIndex, const(wchar)* pszActionId);
+HRESULT MappingDoAction(MAPPING_PROPERTY_BAG* pBag, uint dwRangeIndex, const(PWSTR) pszActionId);
 
 ///Frees memory and resources allocated during an ELS text recognition operation.
 ///Params:
@@ -9529,7 +9475,7 @@ HRESULT MappingFreePropertyBag(MAPPING_PROPERTY_BAG* pBag);
 BOOL ImmGetHotKey(uint param0, uint* lpuModifiers, uint* lpuVKey, ptrdiff_t* phKL);
 
 @DllImport("IMM32")
-BOOL ImmSetHotKey(uint param0, uint param1, uint param2, ptrdiff_t param3);
+BOOL ImmSetHotKey(uint param0, uint param1, uint param2, HKL param3);
 
 @DllImport("IMM32")
 BOOL ImmGenerateMessage(HIMC__* param0);
@@ -9631,8 +9577,8 @@ HRESULT ScriptFreeCache(void** psc);
 ///    <i>pItems</i> buffer.
 ///    
 @DllImport("USP10")
-HRESULT ScriptItemize(const(wchar)* pwcInChars, int cInChars, int cMaxItems, const(SCRIPT_CONTROL)* psControl, 
-                      const(SCRIPT_STATE)* psState, char* pItems, int* pcItems);
+HRESULT ScriptItemize(const(PWSTR) pwcInChars, int cInChars, int cMaxItems, const(SCRIPT_CONTROL)* psControl, 
+                      const(SCRIPT_STATE)* psState, SCRIPT_ITEM* pItems, int* pcItems);
 
 ///Converts an array of run embedding levels to a map of visual-to-logical position and/or logical-to-visual position.
 ///Params:
@@ -9652,7 +9598,7 @@ HRESULT ScriptItemize(const(wchar)* pwcInChars, int cInChars, int cMaxItems, con
 ///    test the return value with the <b>SUCCEEDED</b> and <b>FAILED</b> macros.
 ///    
 @DllImport("USP10")
-HRESULT ScriptLayout(int cRuns, char* pbLevel, char* piVisualToLogical, char* piLogicalToVisual);
+HRESULT ScriptLayout(int cRuns, const(ubyte)* pbLevel, int* piVisualToLogical, int* piLogicalToVisual);
 
 ///Generates glyphs and visual attributes for a Unicode run.
 ///Params:
@@ -9688,8 +9634,8 @@ HRESULT ScriptLayout(int cRuns, char* pbLevel, char* piVisualToLogical, char* pi
 ///    choose another font, using either ScriptGetCMap or another function to select the font.</li> </ul>
 ///    
 @DllImport("USP10")
-HRESULT ScriptShape(HDC hdc, void** psc, const(wchar)* pwcChars, int cChars, int cMaxGlyphs, SCRIPT_ANALYSIS* psa, 
-                    char* pwOutGlyphs, char* pwLogClust, char* psva, int* pcGlyphs);
+HRESULT ScriptShape(HDC hdc, void** psc, const(PWSTR) pwcChars, int cChars, int cMaxGlyphs, SCRIPT_ANALYSIS* psa, 
+                    ushort* pwOutGlyphs, ushort* pwLogClust, SCRIPT_VISATTR* psva, int* pcGlyphs);
 
 ///Generates glyph advance width and two-dimensional offset information from the output of ScriptShape.
 ///Params:
@@ -9713,8 +9659,8 @@ HRESULT ScriptShape(HDC hdc, void** psc, const(wchar)* pwcChars, int cChars, int
 ///    device context and with all other parameters the same.
 ///    
 @DllImport("USP10")
-HRESULT ScriptPlace(HDC hdc, void** psc, char* pwGlyphs, int cGlyphs, char* psva, SCRIPT_ANALYSIS* psa, 
-                    char* piAdvance, char* pGoffset, ABC* pABC);
+HRESULT ScriptPlace(HDC hdc, void** psc, const(ushort)* pwGlyphs, int cGlyphs, const(SCRIPT_VISATTR)* psva, 
+                    SCRIPT_ANALYSIS* psa, int* piAdvance, GOFFSET* pGoffset, ABC* pABC);
 
 ///Displays text for the specified script shape and place information.
 ///Params:
@@ -9741,9 +9687,9 @@ HRESULT ScriptPlace(HDC hdc, void** psc, char* pwGlyphs, int cGlyphs, char* psva
 ///    test the return value with the <b>SUCCEEDED</b> and <b>FAILED</b> macros.
 ///    
 @DllImport("USP10")
-HRESULT ScriptTextOut(const(ptrdiff_t) hdc, void** psc, int x, int y, uint fuOptions, const(RECT)* lprc, 
-                      const(SCRIPT_ANALYSIS)* psa, const(wchar)* pwcReserved, int iReserved, char* pwGlyphs, 
-                      int cGlyphs, char* piAdvance, char* piJustify, char* pGoffset);
+HRESULT ScriptTextOut(const(HDC) hdc, void** psc, int x, int y, uint fuOptions, const(RECT)* lprc, 
+                      const(SCRIPT_ANALYSIS)* psa, const(PWSTR) pwcReserved, int iReserved, const(ushort)* pwGlyphs, 
+                      int cGlyphs, const(int)* piAdvance, const(int)* piJustify, const(GOFFSET)* pGoffset);
 
 ///Creates an advance widths table to allow text justification when passed to the ScriptTextOut function.
 ///Params:
@@ -9763,7 +9709,8 @@ HRESULT ScriptTextOut(const(ptrdiff_t) hdc, void** psc, int x, int y, uint fuOpt
 ///    test the return value with the <b>SUCCEEDED</b> and <b>FAILED</b> macros.
 ///    
 @DllImport("USP10")
-HRESULT ScriptJustify(char* psva, char* piAdvance, int cGlyphs, int iDx, int iMinKashida, char* piJustify);
+HRESULT ScriptJustify(const(SCRIPT_VISATTR)* psva, const(int)* piAdvance, int cGlyphs, int iDx, int iMinKashida, 
+                      int* piJustify);
 
 ///Retrieves information for determining line breaks.
 ///Params:
@@ -9776,7 +9723,7 @@ HRESULT ScriptJustify(char* psva, char* piAdvance, int cGlyphs, int iDx, int iMi
 ///    test the return value with the <b>SUCCEEDED</b> and <b>FAILED</b> macros.
 ///    
 @DllImport("USP10")
-HRESULT ScriptBreak(const(wchar)* pwcChars, int cChars, const(SCRIPT_ANALYSIS)* psa, char* psla);
+HRESULT ScriptBreak(const(PWSTR) pwcChars, int cChars, const(SCRIPT_ANALYSIS)* psa, SCRIPT_LOGATTR* psla);
 
 ///Generates the x offset from the left end or leading edge of a run to either the leading or trailing edge of a logical
 ///character cluster.
@@ -9799,8 +9746,8 @@ HRESULT ScriptBreak(const(wchar)* pwcChars, int cChars, const(SCRIPT_ANALYSIS)* 
 ///    can test the return value with the <b>SUCCEEDED</b> and <b>FAILED</b> macros.
 ///    
 @DllImport("USP10")
-HRESULT ScriptCPtoX(int iCP, BOOL fTrailing, int cChars, int cGlyphs, char* pwLogClust, char* psva, 
-                    char* piAdvance, const(SCRIPT_ANALYSIS)* psa, int* piX);
+HRESULT ScriptCPtoX(int iCP, BOOL fTrailing, int cChars, int cGlyphs, const(ushort)* pwLogClust, 
+                    const(SCRIPT_VISATTR)* psva, const(int)* piAdvance, const(SCRIPT_ANALYSIS)* psa, int* piX);
 
 ///Generates the leading or trailing edge of a logical character cluster from the x offset of a run.
 ///Params:
@@ -9822,8 +9769,8 @@ HRESULT ScriptCPtoX(int iCP, BOOL fTrailing, int cChars, int cGlyphs, char* pwLo
 ///    test the return value with the <b>SUCCEEDED</b> and <b>FAILED</b> macros.
 ///    
 @DllImport("USP10")
-HRESULT ScriptXtoCP(int iX, int cChars, int cGlyphs, char* pwLogClust, char* psva, char* piAdvance, 
-                    const(SCRIPT_ANALYSIS)* psa, int* piCP, int* piTrailing);
+HRESULT ScriptXtoCP(int iX, int cChars, int cGlyphs, const(ushort)* pwLogClust, const(SCRIPT_VISATTR)* psva, 
+                    const(int)* piAdvance, const(SCRIPT_ANALYSIS)* psa, int* piCP, int* piTrailing);
 
 ///Converts the glyph advance widths for a specific font into logical widths.
 ///Params:
@@ -9838,8 +9785,8 @@ HRESULT ScriptXtoCP(int iX, int cChars, int cGlyphs, char* pwLogClust, char* psv
 ///    Currently returns S_OK in all cases.
 ///    
 @DllImport("USP10")
-HRESULT ScriptGetLogicalWidths(const(SCRIPT_ANALYSIS)* psa, int cChars, int cGlyphs, char* piGlyphWidth, 
-                               char* pwLogClust, char* psva, char* piDx);
+HRESULT ScriptGetLogicalWidths(const(SCRIPT_ANALYSIS)* psa, int cChars, int cGlyphs, const(int)* piGlyphWidth, 
+                               const(ushort)* pwLogClust, const(SCRIPT_VISATTR)* psva, int* piDx);
 
 ///Takes an array of advance widths for a run and generates an array of adjusted advance glyph widths.
 ///Params:
@@ -9859,8 +9806,9 @@ HRESULT ScriptGetLogicalWidths(const(SCRIPT_ANALYSIS)* psa, int cChars, int cGly
 ///    test the return value with the <b>SUCCEEDED</b> and <b>FAILED</b> macros.
 ///    
 @DllImport("USP10")
-HRESULT ScriptApplyLogicalWidth(char* piDx, int cChars, int cGlyphs, char* pwLogClust, char* psva, char* piAdvance, 
-                                const(SCRIPT_ANALYSIS)* psa, ABC* pABC, char* piJustify);
+HRESULT ScriptApplyLogicalWidth(const(int)* piDx, int cChars, int cGlyphs, const(ushort)* pwLogClust, 
+                                const(SCRIPT_VISATTR)* psva, const(int)* piAdvance, const(SCRIPT_ANALYSIS)* psa, 
+                                ABC* pABC, int* piJustify);
 
 ///Retrieves the glyph indexes of the Unicode characters in a string according to either the TrueType cmap table or the
 ///standard cmap table implemented for old-style fonts.
@@ -9883,7 +9831,7 @@ HRESULT ScriptApplyLogicalWidth(char* piDx, int cChars, int cGlyphs, char* pwLog
 ///    <td>S_FALSE</td> <td>Some of the Unicode code points were mapped to the default glyph.</td> </tr> </table>
 ///    
 @DllImport("USP10")
-HRESULT ScriptGetCMap(HDC hdc, void** psc, const(wchar)* pwcInChars, int cChars, uint dwFlags, char* pwOutGlyphs);
+HRESULT ScriptGetCMap(HDC hdc, void** psc, const(PWSTR) pwcInChars, int cChars, uint dwFlags, ushort* pwOutGlyphs);
 
 ///Retrieves the ABC width of a given glyph.
 ///Params:
@@ -9999,7 +9947,7 @@ HRESULT ScriptCacheGetHeight(HDC hdc, void** psc, int* tmHeight);
 ///    
 @DllImport("USP10")
 HRESULT ScriptStringAnalyse(HDC hdc, const(void)* pString, int cString, int cGlyphs, int iCharset, uint dwFlags, 
-                            int iReqWidth, SCRIPT_CONTROL* psControl, SCRIPT_STATE* psState, char* piDx, 
+                            int iReqWidth, SCRIPT_CONTROL* psControl, SCRIPT_STATE* psState, const(int)* piDx, 
                             SCRIPT_TABDEF* pTabdef, const(ubyte)* pbInClass, void** pssa);
 
 ///Frees a SCRIPT_STRING_ANALYSIS structure.
@@ -10157,7 +10105,7 @@ HRESULT ScriptStringOut(void* ssa, int iX, int iY, uint uOptions, const(RECT)* p
 ///    left-to-right. The function returns a nonzero HRESULT value if it does not succeed.
 ///    
 @DllImport("USP10")
-HRESULT ScriptIsComplex(const(wchar)* pwcInChars, int cInChars, uint dwFlags);
+HRESULT ScriptIsComplex(const(PWSTR) pwcInChars, int cInChars, uint dwFlags);
 
 ///Reads the National Language Support (NLS) native digit and digit substitution settings and records them in a
 ///SCRIPT_DIGITSUBSTITUTE structure. For more information, see Digit Shapes.
@@ -10232,9 +10180,10 @@ HRESULT ScriptApplyDigitSubstitution(const(SCRIPT_DIGITSUBSTITUTE)* psds, SCRIPT
 ///    
 @DllImport("USP10")
 HRESULT ScriptShapeOpenType(HDC hdc, void** psc, SCRIPT_ANALYSIS* psa, uint tagScript, uint tagLangSys, 
-                            char* rcRangeChars, char* rpRangeProperties, int cRanges, const(wchar)* pwcChars, 
-                            int cChars, int cMaxGlyphs, char* pwLogClust, char* pCharProps, char* pwOutGlyphs, 
-                            char* pOutGlyphProps, int* pcGlyphs);
+                            int* rcRangeChars, textrange_properties** rpRangeProperties, int cRanges, 
+                            const(PWSTR) pwcChars, int cChars, int cMaxGlyphs, ushort* pwLogClust, 
+                            script_charprop* pCharProps, ushort* pwOutGlyphs, script_glyphprop* pOutGlyphProps, 
+                            int* pcGlyphs);
 
 ///Generates glyphs and visual attributes for a Unicode run with OpenType information from the output of
 ///ScriptShapeOpenType.
@@ -10282,9 +10231,10 @@ HRESULT ScriptShapeOpenType(HDC hdc, void** psc, SCRIPT_ANALYSIS* psa, uint tagS
 ///    
 @DllImport("USP10")
 HRESULT ScriptPlaceOpenType(HDC hdc, void** psc, SCRIPT_ANALYSIS* psa, uint tagScript, uint tagLangSys, 
-                            char* rcRangeChars, char* rpRangeProperties, int cRanges, const(wchar)* pwcChars, 
-                            char* pwLogClust, char* pCharProps, int cChars, char* pwGlyphs, char* pGlyphProps, 
-                            int cGlyphs, char* piAdvance, char* pGoffset, ABC* pABC);
+                            int* rcRangeChars, textrange_properties** rpRangeProperties, int cRanges, 
+                            const(PWSTR) pwcChars, ushort* pwLogClust, script_charprop* pCharProps, int cChars, 
+                            const(ushort)* pwGlyphs, const(script_glyphprop)* pGlyphProps, int cGlyphs, 
+                            int* piAdvance, GOFFSET* pGoffset, ABC* pABC);
 
 ///Breaks a Unicode string into individually shapeable items and provides an array of feature tags for each shapeable
 ///item for OpenType processing.
@@ -10319,9 +10269,9 @@ HRESULT ScriptPlaceOpenType(HDC hdc, void** psc, SCRIPT_ANALYSIS* psa, uint tagS
 ///    <b>NULL</b></li> <li><i>pScriptTags</i> is set to <b>NULL</b></li> <li><i>cMaxItems</i> &lt; 2</li> </ul>
 ///    
 @DllImport("USP10")
-HRESULT ScriptItemizeOpenType(const(wchar)* pwcInChars, int cInChars, int cMaxItems, 
-                              const(SCRIPT_CONTROL)* psControl, const(SCRIPT_STATE)* psState, char* pItems, 
-                              char* pScriptTags, int* pcItems);
+HRESULT ScriptItemizeOpenType(const(PWSTR) pwcInChars, int cInChars, int cMaxItems, 
+                              const(SCRIPT_CONTROL)* psControl, const(SCRIPT_STATE)* psState, SCRIPT_ITEM* pItems, 
+                              uint* pScriptTags, int* pcItems);
 
 ///Retrieves a list of scripts available in the font for OpenType processing. Scripts comprising the list are retrieved
 ///from the font located in the supplied device context or from the script shaping engine that processes the font of the
@@ -10346,7 +10296,7 @@ HRESULT ScriptItemizeOpenType(const(wchar)* pwcInChars, int cInChars, int cMaxIt
 ///    larger buffers.
 ///    
 @DllImport("USP10")
-HRESULT ScriptGetFontScriptTags(HDC hdc, void** psc, SCRIPT_ANALYSIS* psa, int cMaxTags, char* pScriptTags, 
+HRESULT ScriptGetFontScriptTags(HDC hdc, void** psc, SCRIPT_ANALYSIS* psa, int cMaxTags, uint* pScriptTags, 
                                 int* pcTags);
 
 ///Retrieves a list of language tags that are available for the specified item and are supported by a specified script
@@ -10371,7 +10321,7 @@ HRESULT ScriptGetFontScriptTags(HDC hdc, void** psc, SCRIPT_ANALYSIS* psa, int c
 ///    
 @DllImport("USP10")
 HRESULT ScriptGetFontLanguageTags(HDC hdc, void** psc, SCRIPT_ANALYSIS* psa, uint tagScript, int cMaxTags, 
-                                  char* pLangsysTags, int* pcTags);
+                                  uint* pLangsysTags, int* pcTags);
 
 ///Retrieves a list of typographic features for the defined writing system for OpenType processing. The typographic
 ///feature tags comprising the list are retrieved from the font in the supplied device context or cache.
@@ -10395,7 +10345,7 @@ HRESULT ScriptGetFontLanguageTags(HDC hdc, void** psc, SCRIPT_ANALYSIS* psa, uin
 ///    
 @DllImport("USP10")
 HRESULT ScriptGetFontFeatureTags(HDC hdc, void** psc, SCRIPT_ANALYSIS* psa, uint tagScript, uint tagLangSys, 
-                                 int cMaxTags, char* pFeatureTags, int* pcTags);
+                                 int cMaxTags, uint* pFeatureTags, int* pcTags);
 
 ///Retrieves a list of alternate glyphs for a specified character that can be accessed through a specified OpenType
 ///feature.
@@ -10424,7 +10374,7 @@ HRESULT ScriptGetFontFeatureTags(HDC hdc, void** psc, SCRIPT_ANALYSIS* psa, uint
 ///    
 @DllImport("USP10")
 HRESULT ScriptGetFontAlternateGlyphs(HDC hdc, void** psc, SCRIPT_ANALYSIS* psa, uint tagScript, uint tagLangSys, 
-                                     uint tagFeature, ushort wGlyphId, int cMaxAlternates, char* pAlternateGlyphs, 
+                                     uint tagFeature, ushort wGlyphId, int cMaxAlternates, ushort* pAlternateGlyphs, 
                                      int* pcAlternates);
 
 ///Enables substitution of a single glyph with one alternate form of the same glyph for OpenType processing.
@@ -11999,11 +11949,11 @@ int u_strFoldCase(ushort* dest, int destCapacity, const(ushort)* src, int srcLen
                   UErrorCode* pErrorCode);
 
 @DllImport("icu")
-ushort* u_strToWCS(ushort* dest, int destCapacity, int* pDestLength, const(ushort)* src, int srcLength, 
-                   UErrorCode* pErrorCode);
+PWSTR u_strToWCS(PWSTR dest, int destCapacity, int* pDestLength, const(ushort)* src, int srcLength, 
+                 UErrorCode* pErrorCode);
 
 @DllImport("icu")
-ushort* u_strFromWCS(ushort* dest, int destCapacity, int* pDestLength, const(ushort)* src, int srcLength, 
+ushort* u_strFromWCS(ushort* dest, int destCapacity, int* pDestLength, const(PWSTR) src, int srcLength, 
                      UErrorCode* pErrorCode);
 
 @DllImport("icu")
@@ -13666,8 +13616,70 @@ USet* utrans_getSourceSet(const(void)** trans, byte ignoreFilter, USet* fillIn, 
 ///    invalid.</li> <li>ERROR_SUCCESS. The action completed successfully but yielded no results.</li> </ul>
 ///    
 @DllImport("KERNEL32")
-int FindStringOrdinal(uint dwFindStringOrdinalFlags, const(wchar)* lpStringSource, int cchSource, 
-                      const(wchar)* lpStringValue, int cchValue, BOOL bIgnoreCase);
+int FindStringOrdinal(uint dwFindStringOrdinalFlags, const(PWSTR) lpStringSource, int cchSource, 
+                      const(PWSTR) lpStringValue, int cchValue, BOOL bIgnoreCase);
+
+///Retrieves a character set identifier for the font that is currently selected into a specified device context. <div
+///class="alert"><b>Note</b> A call to this function is equivalent to a call to GetTextCharsetInfo passing <b>NULL</b>
+///for the data buffer.</div><div> </div>
+///Params:
+///    hdc = Handle to a device context. The function obtains a character set identifier for the font that is selected into
+///          this device context.
+///Returns:
+///    If successful, returns a value identifying the character set of the font that is currently selected into the
+///    specified device context. The following character set identifiers are defined: If the function fails, it returns
+///    DEFAULT_CHARSET.
+///    
+@DllImport("GDI32")
+int GetTextCharset(HDC hdc);
+
+///Retrieves information about the character set of the font that is currently selected into a specified device context.
+///Params:
+///    hdc = Handle to a device context. The function obtains information about the font that is selected into this device
+///          context.
+///    lpSig = Pointer to a FONTSIGNATURE data structure that receives font-signature information. If a TrueType font is
+///            currently selected into the device context, the FONTSIGNATURE structure receives information that identifies the
+///            code page and Unicode subranges for which the font provides glyphs. If a font other than TrueType is currently
+///            selected into the device context, the FONTSIGNATURE structure receives zeros. In this case, the application
+///            should use the TranslateCharsetInfo function to obtain generic font-signature information for the character set.
+///            The <i>lpSig</i> parameter specifies <b>NULL</b> if the application does not require the FONTSIGNATURE
+///            information. In this case, the application can also call the GetTextCharset function, which is equivalent to
+///            calling <b>GetTextCharsetInfo</b> with <i>lpSig</i> set to <b>NULL</b>.
+///    dwFlags = Reserved; must be set to 0.
+///Returns:
+///    If successful, returns a value identifying the character set of the font currently selected into the specified
+///    device context. The following character set identifiers are defined: If the function fails, the return value is
+///    DEFAULT_CHARSET.
+///    
+@DllImport("GDI32")
+int GetTextCharsetInfo(HDC hdc, FONTSIGNATURE* lpSig, uint dwFlags);
+
+///Translates character set information and sets all members of a destination structure to appropriate values.
+///Params:
+///    lpSrc = Pointer to the <b>fsCsb</b> member of a FONTSIGNATURE structure if <i>dwFlags</i> is set to TCI_SRCFONTSIG.
+///            Otherwise, this parameter is set to a DWORD value indicating the source.
+///    lpCs = Pointer to a CHARSETINFO structure that receives the translated character set information.
+///    dwFlags = Flags specifying how to perform the translation. This parameter can be one of the following values. <table> <tr>
+///              <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="TCI_SRCCHARSET"></a><a
+///              id="tci_srccharset"></a><dl> <dt><b>TCI_SRCCHARSET</b></dt> </dl> </td> <td width="60%"> Source contains the
+///              character set value in the low word, and 0 in the high word. </td> </tr> <tr> <td width="40%"><a
+///              id="TCI_SRCCODEPAGE"></a><a id="tci_srccodepage"></a><dl> <dt><b>TCI_SRCCODEPAGE</b></dt> </dl> </td> <td
+///              width="60%"> Source is a code page identifier in the low word and 0 in the high word. </td> </tr> <tr> <td
+///              width="40%"><a id="TCI_SRCFONTSIG"></a><a id="tci_srcfontsig"></a><dl> <dt><b>TCI_SRCFONTSIG</b></dt> </dl> </td>
+///              <td width="60%"> Source is the code page bitfield portion of a FONTSIGNATURE structure. On input this should have
+///              only one Windows code-page bit set, either for an ANSI code page value or for a common ANSI and OEM value (for
+///              OEM values, bits 32-63 must be clear). On output, this has only one bit set. If the TCI_SRCFONTSIG value is
+///              given, the <i>lpSrc</i> parameter must be the address of the code-page bitfield. If any other TCI_ value is
+///              given, the <i>lpSrc</i> parameter must be a value not an address. </td> </tr> <tr> <td width="40%"><a
+///              id="TCI_SRCLOCALE"></a><a id="tci_srclocale"></a><dl> <dt><b>TCI_SRCLOCALE</b></dt> </dl> </td> <td width="60%">
+///              <b>Windows 2000:</b> Source is the locale identifier (LCID) or language identifier of the keyboard layout. If it
+///              is a language identifier, the value is in the low word. </td> </tr> </table>
+///Returns:
+///    Returns a nonzero value if successful, or 0 otherwise. To get extended error information, the application can
+///    call GetLastError.
+///    
+@DllImport("GDI32")
+BOOL TranslateCharsetInfo(uint* lpSrc, CHARSETINFO* lpCs, uint dwFlags);
 
 ///Determines if a buffer is likely to contain a form of Unicode text.
 ///Params:
@@ -13732,7 +13744,7 @@ int FindStringOrdinal(uint dwFindStringOrdinalFlags, const(wchar)* lpStringSourc
 ///    in the buffer does not pass the specified tests.
 ///    
 @DllImport("ADVAPI32")
-BOOL IsTextUnicode(char* lpv, int iSize, int* lpiResult);
+BOOL IsTextUnicode(const(void)* lpv, int iSize, int* lpiResult);
 
 
 // Interfaces
@@ -13751,7 +13763,7 @@ interface ISpellingError : IUnknown
     ///Indicates which corrective action should be taken for the spelling error. This property is read-only.
     HRESULT get_CorrectiveAction(CORRECTIVE_ACTION* value);
     ///Gets the text to use as replacement text when the corrective action is replace. This property is read-only.
-    HRESULT get_Replacement(ushort** value);
+    HRESULT get_Replacement(/*PARAM ATTR: FreeWithAttribute : CustomAttributeSig([FixedArgSig(ElementSig(CoTaskMemFree))], [])*/PWSTR* value);
 }
 
 ///An enumeration of the spelling errors.
@@ -13775,11 +13787,11 @@ interface IEnumSpellingError : IUnknown
 interface IOptionDescription : IUnknown
 {
     ///Gets the identifier of the spell checker option. This property is read-only.
-    HRESULT get_Id(ushort** value);
+    HRESULT get_Id(PWSTR* value);
     ///Gets the heading for the spell checker option. This property is read-only.
-    HRESULT get_Heading(ushort** value);
+    HRESULT get_Heading(PWSTR* value);
     ///Get the description of the spell checker option. This property is read-only.
-    HRESULT get_Description(ushort** value);
+    HRESULT get_Description(PWSTR* value);
     ///Gets the label enumerator for the spell checker option. This property is read-only.
     HRESULT get_Labels(IEnumString* value);
 }
@@ -13804,7 +13816,7 @@ interface ISpellCheckerChangedEventHandler : IUnknown
 interface ISpellChecker : IUnknown
 {
     ///Gets the BCP47 language tag this instance of the spell checker supports. This property is read-only.
-    HRESULT get_LanguageTag(ushort** value);
+    HRESULT get_LanguageTag(PWSTR* value);
     ///Checks the spelling of the supplied text and returns a collection of spelling errors.
     ///Params:
     ///    text = The text to check.
@@ -13816,7 +13828,7 @@ interface ISpellChecker : IUnknown
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>text</i> is
     ///    a null pointer. </td> </tr> </table>
     ///    
-    HRESULT Check(const(wchar)* text, IEnumSpellingError* value);
+    HRESULT Check(const(PWSTR) text, IEnumSpellingError* value);
     ///Retrieves spelling suggestions for the supplied text.
     ///Params:
     ///    word = The word or phrase to get suggestions for.
@@ -13830,7 +13842,7 @@ interface ISpellChecker : IUnknown
     ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>word</i> is a null pointer.
     ///    </td> </tr> </table>
     ///    
-    HRESULT Suggest(const(wchar)* word, IEnumString* value);
+    HRESULT Suggest(const(PWSTR) word, IEnumString* value);
     ///Treats the provided word as though it were part of the original dictionary. The word will no longer be considered
     ///misspelled, and will also be considered as a candidate for suggestions.
     ///Params:
@@ -13842,7 +13854,7 @@ interface ISpellChecker : IUnknown
     ///    or its length is greater than <b>MAX_WORD_LENGTH</b>. </td> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>word</i> is a null pointer. </td> </tr> </table>
     ///    
-    HRESULT Add(const(wchar)* word);
+    HRESULT Add(const(PWSTR) word);
     ///Ignores the provided word for the rest of this session. Until this ISpellChecker interface is released, the word
     ///will no longer be considered misspelled, but it will not be considered as a candidate for suggestions.
     ///Params:
@@ -13854,7 +13866,7 @@ interface ISpellChecker : IUnknown
     ///    or its length is greater than <b>MAX_WORD_LENGTH</b>. </td> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>word</i> is a null pointer. </td> </tr> </table>
     ///    
-    HRESULT Ignore(const(wchar)* word);
+    HRESULT Ignore(const(PWSTR) word);
     ///Causes occurrences of one word to be replaced by another.
     ///Params:
     ///    from = The incorrectly spelled word to be autocorrected.
@@ -13867,7 +13879,7 @@ interface ISpellChecker : IUnknown
     ///    </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>from</i> or
     ///    <i>to</i> is a null pointer. </td> </tr> </table>
     ///    
-    HRESULT AutoCorrect(const(wchar)* from, const(wchar)* to);
+    HRESULT AutoCorrect(const(PWSTR) from, const(PWSTR) to);
     ///Retrieves the value associated with the given option.
     ///Params:
     ///    optionId = The option identifier.
@@ -13880,13 +13892,13 @@ interface ISpellChecker : IUnknown
     ///    <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>optionId</i> is a null pointer. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetOptionValue(const(wchar)* optionId, ubyte* value);
+    HRESULT GetOptionValue(const(PWSTR) optionId, ubyte* value);
     ///Gets all of the declared option identifiers. This property is read-only.
     HRESULT get_OptionIds(IEnumString* value);
     ///Gets the identifier for this spell checker. This property is read-only.
-    HRESULT get_Id(ushort** value);
+    HRESULT get_Id(PWSTR* value);
     ///Gets text, suitable to display to the user, that describes this spell checker. This property is read-only.
-    HRESULT get_LocalizedName(ushort** value);
+    HRESULT get_LocalizedName(PWSTR* value);
     ///Adds an event handler (ISpellCheckerChangedEventHandler) for the SpellCheckerChanged event.
     ///Params:
     ///    handler = The handler to invoke when the spell checker changes.
@@ -13919,7 +13931,7 @@ interface ISpellChecker : IUnknown
     ///    <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>optionId</i> is a null pointer. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetOptionDescription(const(wchar)* optionId, IOptionDescription* value);
+    HRESULT GetOptionDescription(const(PWSTR) optionId, IOptionDescription* value);
     ///Checks the spelling of the supplied text in a more thorough manner than ISpellChecker::Check, and returns a
     ///collection of spelling errors.
     ///Params:
@@ -13932,7 +13944,7 @@ interface ISpellChecker : IUnknown
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>text</i> is
     ///    a null pointer. </td> </tr> </table>
     ///    
-    HRESULT ComprehensiveCheck(const(wchar)* text, IEnumSpellingError* value);
+    HRESULT ComprehensiveCheck(const(PWSTR) text, IEnumSpellingError* value);
 }
 
 ///Represents a particular spell checker for a particular language, with the added ability to remove words from the
@@ -13952,7 +13964,7 @@ interface ISpellChecker2 : ISpellChecker
     ///    or its length is greater than <b>MAX_WORD_LENGTH</b>. </td> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>word</i> is a null pointer. </td> </tr> </table>
     ///    
-    HRESULT Remove(const(wchar)* word);
+    HRESULT Remove(const(PWSTR) word);
 }
 
 ///A factory for instantiating a spell checker (ISpellChecker) as well as providing functionality for determining which
@@ -13974,7 +13986,7 @@ interface ISpellCheckerFactory : IUnknown
     ///    string. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%">
     ///    <i>languageTag</i> is a null pointer. </td> </tr> </table>
     ///    
-    HRESULT IsSupported(const(wchar)* languageTag, int* value);
+    HRESULT IsSupported(const(PWSTR) languageTag, BOOL* value);
     ///Creates a spell checker that supports the specified language.
     ///Params:
     ///    languageTag = A BCP47 language tag that identifies the language for the requested spell checker.
@@ -13987,7 +13999,7 @@ interface ISpellCheckerFactory : IUnknown
     ///    <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>languageTag</i> is a null pointer. </td> </tr>
     ///    </table>
     ///    
-    HRESULT CreateSpellChecker(const(wchar)* languageTag, ISpellChecker* value);
+    HRESULT CreateSpellChecker(const(PWSTR) languageTag, ISpellChecker* value);
 }
 
 ///Manages the registration of user dictionaries.
@@ -14007,7 +14019,7 @@ interface IUserDictionariesRegistrar : IUnknown
     ///    <td width="40%"> <dl> <dt>E_POINTER</dt> </dl> </td> <td width="60%"> <i>dictionaryPath</i> or
     ///    <i>languageTag</i> is a null pointer. </td> </tr> </table>
     ///    
-    HRESULT RegisterUserDictionary(const(wchar)* dictionaryPath, const(wchar)* languageTag);
+    HRESULT RegisterUserDictionary(const(PWSTR) dictionaryPath, const(PWSTR) languageTag);
     ///Unregisters a previously registered user dictionary. The dictionary will no longer be used by the spell checking
     ///functionality.
     ///Params:
@@ -14019,7 +14031,7 @@ interface IUserDictionariesRegistrar : IUnknown
     ///    width="40%"> <dl> <dt>E_POINTER</dt> </dl> </td> <td width="60%"> <i>dictionaryPath</i> or <i>languageTag</i>
     ///    is a null pointer. </td> </tr> </table>
     ///    
-    HRESULT UnregisterUserDictionary(const(wchar)* dictionaryPath, const(wchar)* languageTag);
+    HRESULT UnregisterUserDictionary(const(PWSTR) dictionaryPath, const(PWSTR) languageTag);
 }
 
 ///Represents a particular spell checker provider for a particular language, to be used by the spell checking
@@ -14028,7 +14040,7 @@ interface IUserDictionariesRegistrar : IUnknown
 interface ISpellCheckProvider : IUnknown
 {
     ///Gets the BCP47 language tag this instance of the spell checker supports. This property is read-only.
-    HRESULT get_LanguageTag(ushort** value);
+    HRESULT get_LanguageTag(PWSTR* value);
     ///Checks the spelling of the supplied text and returns a collection of spelling errors.
     ///Params:
     ///    text = The text to check.
@@ -14040,7 +14052,7 @@ interface ISpellCheckProvider : IUnknown
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>text</i> is
     ///    a null pointer. </td> </tr> </table>
     ///    
-    HRESULT Check(const(wchar)* text, IEnumSpellingError* value);
+    HRESULT Check(const(PWSTR) text, IEnumSpellingError* value);
     ///Retrieves spelling suggestions for the supplied text.
     ///Params:
     ///    word = The word or phrase to get suggestions for.
@@ -14054,7 +14066,7 @@ interface ISpellCheckProvider : IUnknown
     ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>word</i> is a null pointer.
     ///    </td> </tr> </table>
     ///    
-    HRESULT Suggest(const(wchar)* word, IEnumString* value);
+    HRESULT Suggest(const(PWSTR) word, IEnumString* value);
     ///Retrieves the value associated with the given option.
     ///Params:
     ///    optionId = The option identifier.
@@ -14067,7 +14079,7 @@ interface ISpellCheckProvider : IUnknown
     ///    <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>optionId</i> is a null pointer. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetOptionValue(const(wchar)* optionId, ubyte* value);
+    HRESULT GetOptionValue(const(PWSTR) optionId, ubyte* value);
     ///Sets the value associated with the given option.
     ///Params:
     ///    optionId = The option identifier.
@@ -14080,13 +14092,13 @@ interface ISpellCheckProvider : IUnknown
     ///    <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>optionId</i> is a null pointer. </td> </tr>
     ///    </table>
     ///    
-    HRESULT SetOptionValue(const(wchar)* optionId, ubyte value);
+    HRESULT SetOptionValue(const(PWSTR) optionId, ubyte value);
     ///Gets all of the declared option identifiers recognized by the spell checker. This property is read-only.
     HRESULT get_OptionIds(IEnumString* value);
     ///Gets the identifier for this spell checker engine. This property is read-only.
-    HRESULT get_Id(ushort** value);
+    HRESULT get_Id(PWSTR* value);
     ///Gets text, suitable to display to the user, that describes this spell checker. This property is read-only.
-    HRESULT get_LocalizedName(ushort** value);
+    HRESULT get_LocalizedName(PWSTR* value);
     ///Retrieves the information (id, description, heading and labels) of a specific option.
     ///Params:
     ///    optionId = Identifier of the option to be retrieved.
@@ -14099,7 +14111,7 @@ interface ISpellCheckProvider : IUnknown
     ///    <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>optionId</i> is a null pointer. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetOptionDescription(const(wchar)* optionId, IOptionDescription* value);
+    HRESULT GetOptionDescription(const(PWSTR) optionId, IOptionDescription* value);
     ///Initialize the specified word list to contain only the specified words.
     ///Params:
     ///    wordlistType = The type of word list.
@@ -14128,7 +14140,7 @@ interface IComprehensiveSpellCheckProvider : IUnknown
     ///    </tr> <tr> <td width="40%"> <dl> <dt>E_POINTER</dt> </dl> </td> <td width="60%"> <i>text</i> is a null
     ///    pointer. </td> </tr> </table>
     ///    
-    HRESULT ComprehensiveCheck(const(wchar)* text, IEnumSpellingError* value);
+    HRESULT ComprehensiveCheck(const(PWSTR) text, IEnumSpellingError* value);
 }
 
 ///A factory for instantiating a spell checker (ISpellCheckProvider) as well as providing functionality for determining
@@ -14149,7 +14161,7 @@ interface ISpellCheckProviderFactory : IUnknown
     ///    string. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%">
     ///    <i>languageTag</i> is a null pointer. </td> </tr> </table>
     ///    
-    HRESULT IsSupported(const(wchar)* languageTag, int* value);
+    HRESULT IsSupported(const(PWSTR) languageTag, BOOL* value);
     ///Creates a spell checker (implemented by a spell check provider) that supports the specified language. This
     ///interface is not used directly by clients, but by the Spell Checking API.
     ///Params:
@@ -14163,7 +14175,7 @@ interface ISpellCheckProviderFactory : IUnknown
     ///    <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>languageTag</i> is a null pointer. </td> </tr>
     ///    </table>
     ///    
-    HRESULT CreateSpellCheckProvider(const(wchar)* languageTag, ISpellCheckProvider* value);
+    HRESULT CreateSpellCheckProvider(const(PWSTR) languageTag, ISpellCheckProvider* value);
 }
 
 interface IFEClassFactory : IClassFactory
@@ -14183,7 +14195,7 @@ interface IFECommon : IUnknown
     ///    <ul> <li><b>S_OK</b> if this Microsoft IME is already the default IME.</li> <li><b>S_FALSE</b> if this
     ///    Microsoft IME is not the default IME.</li> <li>Otherwise <b>E_FAIL</b>.</li> </ul>
     ///    
-    HRESULT IsDefaultIME(char* szName, int cszName);
+    HRESULT IsDefaultIME(const(byte)* szName, int cszName);
     ///Allows the Microsoft IME to become the default IME in the keyboard layout. This method only applies when
     ///Microsoft IME uses the Input Method Manager (IMM) of the operating system.
     ///Returns:
@@ -14296,7 +14308,7 @@ interface IFELanguage : IUnknown
     ///    <dt><b>ERROR_SEM_TIMEOUT</b></dt> </dl> </td> <td width="60%"> Mutex timeout is occurred. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetJMorphResult(uint dwRequest, uint dwCMode, int cwchInput, const(wchar)* pwchInput, uint* pfCInfo, 
+    HRESULT GetJMorphResult(uint dwRequest, uint dwCMode, int cwchInput, const(PWSTR) pwchInput, uint* pfCInfo, 
                             MORRSLT** ppResult);
     ///Gets the conversion mode capability of the IFELanguage object.
     ///Params:
@@ -14390,7 +14402,7 @@ interface IFEDictionary : IUnknown
     ///    <li><b>IFED_E_NOT_FOUND</b></li> <li><b>IFED_E_INVALID_FORMAT</b></li> <li><b>IFED_E_OPEN_FAILED</b></li>
     ///    <li><b>E_FAIL</b></li> </ul>
     ///    
-    HRESULT Open(char* pchDictPath, IMESHF* pshf);
+    HRESULT Open(byte* pchDictPath, IMESHF* pshf);
     ///Closes a dictionary file. This method closes the file associated to this IFEDictionary object.
     ///Returns:
     ///    <b>S_OK</b> if successful, otherwise <b>E_FAIL</b>.
@@ -14420,7 +14432,7 @@ interface IFEDictionary : IUnknown
     ///    One of the following: <ul> <li><b>S_OK</b></li> <li><b>IFED_E_INVALID_FORMAT</b></li> <li><b>E_FAIL</b></li>
     ///    </ul>
     ///    
-    HRESULT GetHeader(char* pchDictPath, IMESHF* pshf, IMEFMT* pjfmt, uint* pulType);
+    HRESULT GetHeader(byte* pchDictPath, IMESHF* pshf, IMEFMT* pjfmt, uint* pulType);
     ///This method is obsolete starting with Windows 8, and is no longer supported.
     ///Params:
     ///    hwnd = The parent window handle.
@@ -14480,7 +14492,7 @@ interface IFEDictionary : IUnknown
     ///    width="60%"></td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"></td>
     ///    </tr> </table>
     ///    
-    HRESULT GetWords(const(wchar)* pwchFirst, const(wchar)* pwchLast, const(wchar)* pwchDisplay, uint ulPos, 
+    HRESULT GetWords(const(PWSTR) pwchFirst, const(PWSTR) pwchLast, const(PWSTR) pwchDisplay, uint ulPos, 
                      uint ulSelect, uint ulWordSrc, ubyte* pchBuffer, uint cbBuffer, uint* pcWrd);
     ///Gets the next word entry from a dictionary. This method is used only after GetWords to get additional words.
     ///Params:
@@ -14549,8 +14561,8 @@ interface IFEDictionary : IUnknown
     ///    
     HRESULT RegisterWord(IMEREG reg, IMEWRD* pwrd);
     HRESULT RegisterDependency(IMEREG reg, IMEDP* pdp);
-    HRESULT GetDependencies(const(wchar)* pwchKakariReading, const(wchar)* pwchKakariDisplay, uint ulKakariPos, 
-                            const(wchar)* pwchUkeReading, const(wchar)* pwchUkeDisplay, uint ulUkePos, IMEREL jrel, 
+    HRESULT GetDependencies(const(PWSTR) pwchKakariReading, const(PWSTR) pwchKakariDisplay, uint ulKakariPos, 
+                            const(PWSTR) pwchUkeReading, const(PWSTR) pwchUkeDisplay, uint ulUkePos, IMEREL jrel, 
                             uint ulWordSrc, ubyte* pchBuffer, uint cbBuffer, uint* pcdp);
     HRESULT NextDependencies(ubyte* pchBuffer, uint cbBuffer, uint* pcDp);
     HRESULT ConvertFromOldMSIME(const(byte)* pchDic, PFNLOG pfnLog, IMEREG reg);

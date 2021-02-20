@@ -7,11 +7,12 @@ public import windows.com : HRESULT, IUnknown;
 public import windows.displaydevices : POINT, RECT;
 public import windows.multimedia : joyrange_tag, joyreghwconfig_tag, joyreghwsettings_tag,
                                    joyreguservalues_tag;
-public import windows.systemservices : BOOL, HANDLE, HINSTANCE, NTSTATUS;
+public import windows.systemservices : BOOL, HANDLE, HINSTANCE, NTSTATUS, PSTR,
+                                       PWSTR;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : FILETIME, HKEY;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -48,8 +49,8 @@ alias LPDIENUMDEVICESBYSEMANTICSCBA = BOOL function(DIDEVICEINSTANCEA* param0, I
 alias LPDIENUMDEVICESBYSEMANTICSCBW = BOOL function(DIDEVICEINSTANCEW* param0, IDirectInputDevice8W param1, 
                                                     uint param2, uint param3, void* param4);
 alias LPFNSHOWJOYCPL = void function(HWND hWnd);
-alias LPDIJOYTYPECALLBACK = BOOL function(const(wchar)* param0, void* param1);
-alias PHIDP_INSERT_SCANCODES = ubyte function(void* Context, const(char)* NewScanCodes, uint Length);
+alias LPDIJOYTYPECALLBACK = BOOL function(const(PWSTR) param0, void* param1);
+alias PHIDP_INSERT_SCANCODES = ubyte function(void* Context, PSTR NewScanCodes, uint Length);
 
 // Structs
 
@@ -208,10 +209,10 @@ struct DIACTIONA
     size_t uAppData;
     uint   dwSemantic;
     uint   dwFlags;
-    union
+union
     {
-        const(char)* lptszActionName;
-        uint         uResIdString;
+        const(PSTR) lptszActionName;
+        uint        uResIdString;
     }
     GUID   guidInstance;
     uint   dwObjID;
@@ -223,10 +224,10 @@ struct DIACTIONW
     size_t uAppData;
     uint   dwSemantic;
     uint   dwFlags;
-    union
+union
     {
-        const(wchar)* lptszActionName;
-        uint          uResIdString;
+        const(PWSTR) lptszActionName;
+        uint         uResIdString;
     }
     GUID   guidInstance;
     uint   dwObjID;
@@ -286,7 +287,7 @@ struct DICONFIGUREDEVICESPARAMSA
 {
     uint             dwSize;
     uint             dwcUsers;
-    const(char)*     lptszUserNames;
+    PSTR             lptszUserNames;
     uint             dwcFormats;
     DIACTIONFORMATA* lprgFormats;
     HWND             hwnd;
@@ -298,7 +299,7 @@ struct DICONFIGUREDEVICESPARAMSW
 {
     uint             dwSize;
     uint             dwcUsers;
-    const(wchar)*    lptszUserNames;
+    PWSTR            lptszUserNames;
     uint             dwcFormats;
     DIACTIONFORMATW* lprgFormats;
     HWND             hwnd;
@@ -738,11 +739,11 @@ struct DIDEVICESTATE
 struct DIHIDFFINITINFO
 {
     ///Specifies the size of the structure in bytes. This member must be initialized before the structure is used.
-    uint          dwSize;
+    uint  dwSize;
     ///Points to a null-terminated Unicode string that identifies the device interface for the device. The driver can
     ///pass the device interface to the CreateFile function to obtain access to the device.
-    const(wchar)* pwszDeviceInterface;
-    GUID          GuidInstance;
+    PWSTR pwszDeviceInterface;
+    GUID  GuidInstance;
 }
 
 struct DIJOYTYPEINFO_DX5
@@ -1023,10 +1024,10 @@ struct MOUSE_INPUT_DATA
     ///coalesced. By default, these messages are coalesced. For more information about WM_MOUSEMOVE notification
     ///messages, see the Microsoft Software Development Kit (SDK) documentation </td> </tr> </table>
     ushort Flags;
-    union
+union
     {
         uint Buttons;
-        struct
+struct
         {
             ushort ButtonFlags;
             ushort ButtonData;
@@ -1094,9 +1095,9 @@ struct HIDP_BUTTON_CAPS
     ubyte    IsDesignatorRange;
     ubyte    IsAbsolute;
     uint[10] Reserved;
-    union
+union
     {
-        struct Range
+struct Range
         {
             ushort UsageMin;
             ushort UsageMax;
@@ -1107,7 +1108,7 @@ struct HIDP_BUTTON_CAPS
             ushort DataIndexMin;
             ushort DataIndexMax;
         }
-        struct NotRange
+struct NotRange
         {
             ushort Usage;
             ushort Reserved1;
@@ -1145,9 +1146,9 @@ struct HIDP_VALUE_CAPS
     int       LogicalMax;
     int       PhysicalMin;
     int       PhysicalMax;
-    union
+union
     {
-        struct Range
+struct Range
         {
             ushort UsageMin;
             ushort UsageMax;
@@ -1158,7 +1159,7 @@ struct HIDP_VALUE_CAPS
             ushort DataIndexMin;
             ushort DataIndexMax;
         }
-        struct NotRange
+struct NotRange
         {
             ushort Usage;
             ushort Reserved1;
@@ -1212,7 +1213,7 @@ struct HIDP_DATA
 {
     ushort DataIndex;
     ushort Reserved;
-    union
+union
     {
         uint  RawValue;
         ubyte On;
@@ -1236,9 +1237,9 @@ struct HIDP_EXTENDED_ATTRIBUTES
 
 struct HIDP_KEYBOARD_MODIFIER_STATE
 {
-    union
+union
     {
-        struct
+struct
         {
             uint _bitfield45;
         }
@@ -1282,98 +1283,99 @@ HRESULT DirectInput8Create(HINSTANCE hinst, uint dwVersion, const(GUID)* riidltf
 NTSTATUS HidP_GetCaps(ptrdiff_t PreparsedData, HIDP_CAPS* Capabilities);
 
 @DllImport("HID")
-NTSTATUS HidP_GetLinkCollectionNodes(char* LinkCollectionNodes, uint* LinkCollectionNodesLength, 
-                                     ptrdiff_t PreparsedData);
+NTSTATUS HidP_GetLinkCollectionNodes(HIDP_LINK_COLLECTION_NODE* LinkCollectionNodes, 
+                                     uint* LinkCollectionNodesLength, ptrdiff_t PreparsedData);
 
 @DllImport("HID")
 NTSTATUS HidP_GetSpecificButtonCaps(HIDP_REPORT_TYPE ReportType, ushort UsagePage, ushort LinkCollection, 
-                                    ushort Usage, char* ButtonCaps, ushort* ButtonCapsLength, 
+                                    ushort Usage, HIDP_BUTTON_CAPS* ButtonCaps, ushort* ButtonCapsLength, 
                                     ptrdiff_t PreparsedData);
 
 @DllImport("HID")
-NTSTATUS HidP_GetButtonCaps(HIDP_REPORT_TYPE ReportType, char* ButtonCaps, ushort* ButtonCapsLength, 
+NTSTATUS HidP_GetButtonCaps(HIDP_REPORT_TYPE ReportType, HIDP_BUTTON_CAPS* ButtonCaps, ushort* ButtonCapsLength, 
                             ptrdiff_t PreparsedData);
 
 @DllImport("HID")
 NTSTATUS HidP_GetSpecificValueCaps(HIDP_REPORT_TYPE ReportType, ushort UsagePage, ushort LinkCollection, 
-                                   ushort Usage, char* ValueCaps, ushort* ValueCapsLength, ptrdiff_t PreparsedData);
+                                   ushort Usage, HIDP_VALUE_CAPS* ValueCaps, ushort* ValueCapsLength, 
+                                   ptrdiff_t PreparsedData);
 
 @DllImport("HID")
-NTSTATUS HidP_GetValueCaps(HIDP_REPORT_TYPE ReportType, char* ValueCaps, ushort* ValueCapsLength, 
+NTSTATUS HidP_GetValueCaps(HIDP_REPORT_TYPE ReportType, HIDP_VALUE_CAPS* ValueCaps, ushort* ValueCapsLength, 
                            ptrdiff_t PreparsedData);
 
 @DllImport("HID")
 NTSTATUS HidP_GetExtendedAttributes(HIDP_REPORT_TYPE ReportType, ushort DataIndex, ptrdiff_t PreparsedData, 
-                                    char* Attributes, uint* LengthAttributes);
+                                    HIDP_EXTENDED_ATTRIBUTES* Attributes, uint* LengthAttributes);
 
 @DllImport("HID")
 NTSTATUS HidP_InitializeReportForID(HIDP_REPORT_TYPE ReportType, ubyte ReportID, ptrdiff_t PreparsedData, 
-                                    const(char)* Report, uint ReportLength);
+                                    PSTR Report, uint ReportLength);
 
 @DllImport("HID")
-NTSTATUS HidP_SetData(HIDP_REPORT_TYPE ReportType, char* DataList, uint* DataLength, ptrdiff_t PreparsedData, 
-                      const(char)* Report, uint ReportLength);
+NTSTATUS HidP_SetData(HIDP_REPORT_TYPE ReportType, HIDP_DATA* DataList, uint* DataLength, ptrdiff_t PreparsedData, 
+                      PSTR Report, uint ReportLength);
 
 @DllImport("HID")
-NTSTATUS HidP_GetData(HIDP_REPORT_TYPE ReportType, char* DataList, uint* DataLength, ptrdiff_t PreparsedData, 
-                      const(char)* Report, uint ReportLength);
+NTSTATUS HidP_GetData(HIDP_REPORT_TYPE ReportType, HIDP_DATA* DataList, uint* DataLength, ptrdiff_t PreparsedData, 
+                      PSTR Report, uint ReportLength);
 
 @DllImport("HID")
 uint HidP_MaxDataListLength(HIDP_REPORT_TYPE ReportType, ptrdiff_t PreparsedData);
 
 @DllImport("HID")
-NTSTATUS HidP_SetUsages(HIDP_REPORT_TYPE ReportType, ushort UsagePage, ushort LinkCollection, char* UsageList, 
-                        uint* UsageLength, ptrdiff_t PreparsedData, const(char)* Report, uint ReportLength);
+NTSTATUS HidP_SetUsages(HIDP_REPORT_TYPE ReportType, ushort UsagePage, ushort LinkCollection, ushort* UsageList, 
+                        uint* UsageLength, ptrdiff_t PreparsedData, PSTR Report, uint ReportLength);
 
 @DllImport("HID")
-NTSTATUS HidP_UnsetUsages(HIDP_REPORT_TYPE ReportType, ushort UsagePage, ushort LinkCollection, char* UsageList, 
-                          uint* UsageLength, ptrdiff_t PreparsedData, const(char)* Report, uint ReportLength);
+NTSTATUS HidP_UnsetUsages(HIDP_REPORT_TYPE ReportType, ushort UsagePage, ushort LinkCollection, ushort* UsageList, 
+                          uint* UsageLength, ptrdiff_t PreparsedData, PSTR Report, uint ReportLength);
 
 @DllImport("HID")
-NTSTATUS HidP_GetUsages(HIDP_REPORT_TYPE ReportType, ushort UsagePage, ushort LinkCollection, char* UsageList, 
-                        uint* UsageLength, ptrdiff_t PreparsedData, const(char)* Report, uint ReportLength);
+NTSTATUS HidP_GetUsages(HIDP_REPORT_TYPE ReportType, ushort UsagePage, ushort LinkCollection, ushort* UsageList, 
+                        uint* UsageLength, ptrdiff_t PreparsedData, PSTR Report, uint ReportLength);
 
 @DllImport("HID")
-NTSTATUS HidP_GetUsagesEx(HIDP_REPORT_TYPE ReportType, ushort LinkCollection, char* ButtonList, uint* UsageLength, 
-                          ptrdiff_t PreparsedData, const(char)* Report, uint ReportLength);
+NTSTATUS HidP_GetUsagesEx(HIDP_REPORT_TYPE ReportType, ushort LinkCollection, USAGE_AND_PAGE* ButtonList, 
+                          uint* UsageLength, ptrdiff_t PreparsedData, PSTR Report, uint ReportLength);
 
 @DllImport("HID")
 uint HidP_MaxUsageListLength(HIDP_REPORT_TYPE ReportType, ushort UsagePage, ptrdiff_t PreparsedData);
 
 @DllImport("HID")
 NTSTATUS HidP_SetUsageValue(HIDP_REPORT_TYPE ReportType, ushort UsagePage, ushort LinkCollection, ushort Usage, 
-                            uint UsageValue, ptrdiff_t PreparsedData, const(char)* Report, uint ReportLength);
+                            uint UsageValue, ptrdiff_t PreparsedData, PSTR Report, uint ReportLength);
 
 @DllImport("HID")
 NTSTATUS HidP_SetScaledUsageValue(HIDP_REPORT_TYPE ReportType, ushort UsagePage, ushort LinkCollection, 
-                                  ushort Usage, int UsageValue, ptrdiff_t PreparsedData, const(char)* Report, 
+                                  ushort Usage, int UsageValue, ptrdiff_t PreparsedData, PSTR Report, 
                                   uint ReportLength);
 
 @DllImport("HID")
 NTSTATUS HidP_SetUsageValueArray(HIDP_REPORT_TYPE ReportType, ushort UsagePage, ushort LinkCollection, 
-                                 ushort Usage, const(char)* UsageValue, ushort UsageValueByteLength, 
-                                 ptrdiff_t PreparsedData, const(char)* Report, uint ReportLength);
+                                 ushort Usage, PSTR UsageValue, ushort UsageValueByteLength, ptrdiff_t PreparsedData, 
+                                 PSTR Report, uint ReportLength);
 
 @DllImport("HID")
 NTSTATUS HidP_GetUsageValue(HIDP_REPORT_TYPE ReportType, ushort UsagePage, ushort LinkCollection, ushort Usage, 
-                            uint* UsageValue, ptrdiff_t PreparsedData, const(char)* Report, uint ReportLength);
+                            uint* UsageValue, ptrdiff_t PreparsedData, PSTR Report, uint ReportLength);
 
 @DllImport("HID")
 NTSTATUS HidP_GetScaledUsageValue(HIDP_REPORT_TYPE ReportType, ushort UsagePage, ushort LinkCollection, 
-                                  ushort Usage, int* UsageValue, ptrdiff_t PreparsedData, const(char)* Report, 
+                                  ushort Usage, int* UsageValue, ptrdiff_t PreparsedData, PSTR Report, 
                                   uint ReportLength);
 
 @DllImport("HID")
 NTSTATUS HidP_GetUsageValueArray(HIDP_REPORT_TYPE ReportType, ushort UsagePage, ushort LinkCollection, 
-                                 ushort Usage, const(char)* UsageValue, ushort UsageValueByteLength, 
-                                 ptrdiff_t PreparsedData, const(char)* Report, uint ReportLength);
+                                 ushort Usage, PSTR UsageValue, ushort UsageValueByteLength, ptrdiff_t PreparsedData, 
+                                 PSTR Report, uint ReportLength);
 
 @DllImport("HID")
-NTSTATUS HidP_UsageListDifference(char* PreviousUsageList, char* CurrentUsageList, char* BreakUsageList, 
-                                  char* MakeUsageList, uint UsageListLength);
+NTSTATUS HidP_UsageListDifference(ushort* PreviousUsageList, ushort* CurrentUsageList, ushort* BreakUsageList, 
+                                  ushort* MakeUsageList, uint UsageListLength);
 
 @DllImport("HID")
-NTSTATUS HidP_TranslateUsagesToI8042ScanCodes(char* ChangedUsageList, uint UsageListLength, 
+NTSTATUS HidP_TranslateUsagesToI8042ScanCodes(ushort* ChangedUsageList, uint UsageListLength, 
                                               HIDP_KEYBOARD_DIRECTION KeyAction, 
                                               HIDP_KEYBOARD_MODIFIER_STATE* ModifierState, 
                                               PHIDP_INSERT_SCANCODES InsertCodesProcedure, void* InsertCodesContext);
@@ -1394,22 +1396,22 @@ ubyte HidD_FreePreparsedData(ptrdiff_t PreparsedData);
 ubyte HidD_FlushQueue(HANDLE HidDeviceObject);
 
 @DllImport("HID")
-ubyte HidD_GetConfiguration(HANDLE HidDeviceObject, char* Configuration, uint ConfigurationLength);
+ubyte HidD_GetConfiguration(HANDLE HidDeviceObject, HIDD_CONFIGURATION* Configuration, uint ConfigurationLength);
 
 @DllImport("HID")
-ubyte HidD_SetConfiguration(HANDLE HidDeviceObject, char* Configuration, uint ConfigurationLength);
+ubyte HidD_SetConfiguration(HANDLE HidDeviceObject, HIDD_CONFIGURATION* Configuration, uint ConfigurationLength);
 
 @DllImport("HID")
-ubyte HidD_GetFeature(HANDLE HidDeviceObject, char* ReportBuffer, uint ReportBufferLength);
+ubyte HidD_GetFeature(HANDLE HidDeviceObject, void* ReportBuffer, uint ReportBufferLength);
 
 @DllImport("HID")
-ubyte HidD_SetFeature(HANDLE HidDeviceObject, char* ReportBuffer, uint ReportBufferLength);
+ubyte HidD_SetFeature(HANDLE HidDeviceObject, void* ReportBuffer, uint ReportBufferLength);
 
 @DllImport("HID")
-ubyte HidD_GetInputReport(HANDLE HidDeviceObject, char* ReportBuffer, uint ReportBufferLength);
+ubyte HidD_GetInputReport(HANDLE HidDeviceObject, void* ReportBuffer, uint ReportBufferLength);
 
 @DllImport("HID")
-ubyte HidD_SetOutputReport(HANDLE HidDeviceObject, char* ReportBuffer, uint ReportBufferLength);
+ubyte HidD_SetOutputReport(HANDLE HidDeviceObject, void* ReportBuffer, uint ReportBufferLength);
 
 @DllImport("HID")
 ubyte HidD_GetNumInputBuffers(HANDLE HidDeviceObject, uint* NumberBuffers);
@@ -1418,22 +1420,22 @@ ubyte HidD_GetNumInputBuffers(HANDLE HidDeviceObject, uint* NumberBuffers);
 ubyte HidD_SetNumInputBuffers(HANDLE HidDeviceObject, uint NumberBuffers);
 
 @DllImport("HID")
-ubyte HidD_GetPhysicalDescriptor(HANDLE HidDeviceObject, char* Buffer, uint BufferLength);
+ubyte HidD_GetPhysicalDescriptor(HANDLE HidDeviceObject, void* Buffer, uint BufferLength);
 
 @DllImport("HID")
-ubyte HidD_GetManufacturerString(HANDLE HidDeviceObject, char* Buffer, uint BufferLength);
+ubyte HidD_GetManufacturerString(HANDLE HidDeviceObject, void* Buffer, uint BufferLength);
 
 @DllImport("HID")
-ubyte HidD_GetProductString(HANDLE HidDeviceObject, char* Buffer, uint BufferLength);
+ubyte HidD_GetProductString(HANDLE HidDeviceObject, void* Buffer, uint BufferLength);
 
 @DllImport("HID")
-ubyte HidD_GetIndexedString(HANDLE HidDeviceObject, uint StringIndex, char* Buffer, uint BufferLength);
+ubyte HidD_GetIndexedString(HANDLE HidDeviceObject, uint StringIndex, void* Buffer, uint BufferLength);
 
 @DllImport("HID")
-ubyte HidD_GetSerialNumberString(HANDLE HidDeviceObject, char* Buffer, uint BufferLength);
+ubyte HidD_GetSerialNumberString(HANDLE HidDeviceObject, void* Buffer, uint BufferLength);
 
 @DllImport("HID")
-ubyte HidD_GetMsGenreDescriptor(HANDLE HidDeviceObject, char* Buffer, uint BufferLength);
+ubyte HidD_GetMsGenreDescriptor(HANDLE HidDeviceObject, void* Buffer, uint BufferLength);
 
 
 // Interfaces
@@ -1518,15 +1520,14 @@ interface IDirectInputDevice2A : IDirectInputDeviceA
 
 interface IDirectInputDevice7W : IDirectInputDevice2W
 {
-    HRESULT EnumEffectsInFile(const(wchar)* param0, LPDIENUMEFFECTSINFILECALLBACK param1, void* param2, 
-                              uint param3);
-    HRESULT WriteEffectToFile(const(wchar)* param0, uint param1, DIFILEEFFECT* param2, uint param3);
+    HRESULT EnumEffectsInFile(const(PWSTR) param0, LPDIENUMEFFECTSINFILECALLBACK param1, void* param2, uint param3);
+    HRESULT WriteEffectToFile(const(PWSTR) param0, uint param1, DIFILEEFFECT* param2, uint param3);
 }
 
 interface IDirectInputDevice7A : IDirectInputDevice2A
 {
-    HRESULT EnumEffectsInFile(const(char)* param0, LPDIENUMEFFECTSINFILECALLBACK param1, void* param2, uint param3);
-    HRESULT WriteEffectToFile(const(char)* param0, uint param1, DIFILEEFFECT* param2, uint param3);
+    HRESULT EnumEffectsInFile(const(PSTR) param0, LPDIENUMEFFECTSINFILECALLBACK param1, void* param2, uint param3);
+    HRESULT WriteEffectToFile(const(PSTR) param0, uint param1, DIFILEEFFECT* param2, uint param3);
 }
 
 interface IDirectInputDevice8W : IUnknown
@@ -1555,11 +1556,10 @@ interface IDirectInputDevice8W : IUnknown
     HRESULT Escape(DIEFFESCAPE* param0);
     HRESULT Poll();
     HRESULT SendDeviceData(uint param0, DIDEVICEOBJECTDATA* param1, uint* param2, uint param3);
-    HRESULT EnumEffectsInFile(const(wchar)* param0, LPDIENUMEFFECTSINFILECALLBACK param1, void* param2, 
-                              uint param3);
-    HRESULT WriteEffectToFile(const(wchar)* param0, uint param1, DIFILEEFFECT* param2, uint param3);
-    HRESULT BuildActionMap(DIACTIONFORMATW* param0, const(wchar)* param1, uint param2);
-    HRESULT SetActionMap(DIACTIONFORMATW* param0, const(wchar)* param1, uint param2);
+    HRESULT EnumEffectsInFile(const(PWSTR) param0, LPDIENUMEFFECTSINFILECALLBACK param1, void* param2, uint param3);
+    HRESULT WriteEffectToFile(const(PWSTR) param0, uint param1, DIFILEEFFECT* param2, uint param3);
+    HRESULT BuildActionMap(DIACTIONFORMATW* param0, const(PWSTR) param1, uint param2);
+    HRESULT SetActionMap(DIACTIONFORMATW* param0, const(PWSTR) param1, uint param2);
     HRESULT GetImageInfo(DIDEVICEIMAGEINFOHEADERW* param0);
 }
 
@@ -1589,10 +1589,10 @@ interface IDirectInputDevice8A : IUnknown
     HRESULT Escape(DIEFFESCAPE* param0);
     HRESULT Poll();
     HRESULT SendDeviceData(uint param0, DIDEVICEOBJECTDATA* param1, uint* param2, uint param3);
-    HRESULT EnumEffectsInFile(const(char)* param0, LPDIENUMEFFECTSINFILECALLBACK param1, void* param2, uint param3);
-    HRESULT WriteEffectToFile(const(char)* param0, uint param1, DIFILEEFFECT* param2, uint param3);
-    HRESULT BuildActionMap(DIACTIONFORMATA* param0, const(char)* param1, uint param2);
-    HRESULT SetActionMap(DIACTIONFORMATA* param0, const(char)* param1, uint param2);
+    HRESULT EnumEffectsInFile(const(PSTR) param0, LPDIENUMEFFECTSINFILECALLBACK param1, void* param2, uint param3);
+    HRESULT WriteEffectToFile(const(PSTR) param0, uint param1, DIFILEEFFECT* param2, uint param3);
+    HRESULT BuildActionMap(DIACTIONFORMATA* param0, const(PSTR) param1, uint param2);
+    HRESULT SetActionMap(DIACTIONFORMATA* param0, const(PSTR) param1, uint param2);
     HRESULT GetImageInfo(DIDEVICEIMAGEINFOHEADERA* param0);
 }
 
@@ -1616,12 +1616,12 @@ interface IDirectInputA : IUnknown
 
 interface IDirectInput2W : IDirectInputW
 {
-    HRESULT FindDevice(const(GUID)* param0, const(wchar)* param1, GUID* param2);
+    HRESULT FindDevice(const(GUID)* param0, const(PWSTR) param1, GUID* param2);
 }
 
 interface IDirectInput2A : IDirectInputA
 {
-    HRESULT FindDevice(const(GUID)* param0, const(char)* param1, GUID* param2);
+    HRESULT FindDevice(const(GUID)* param0, const(PSTR) param1, GUID* param2);
 }
 
 interface IDirectInput7W : IDirectInput2W
@@ -1641,8 +1641,8 @@ interface IDirectInput8W : IUnknown
     HRESULT GetDeviceStatus(const(GUID)* param0);
     HRESULT RunControlPanel(HWND param0, uint param1);
     HRESULT Initialize(HINSTANCE param0, uint param1);
-    HRESULT FindDevice(const(GUID)* param0, const(wchar)* param1, GUID* param2);
-    HRESULT EnumDevicesBySemantics(const(wchar)* param0, DIACTIONFORMATW* param1, 
+    HRESULT FindDevice(const(GUID)* param0, const(PWSTR) param1, GUID* param2);
+    HRESULT EnumDevicesBySemantics(const(PWSTR) param0, DIACTIONFORMATW* param1, 
                                    LPDIENUMDEVICESBYSEMANTICSCBW param2, void* param3, uint param4);
     HRESULT ConfigureDevices(LPDICONFIGUREDEVICESCALLBACK param0, DICONFIGUREDEVICESPARAMSW* param1, uint param2, 
                              void* param3);
@@ -1655,8 +1655,8 @@ interface IDirectInput8A : IUnknown
     HRESULT GetDeviceStatus(const(GUID)* param0);
     HRESULT RunControlPanel(HWND param0, uint param1);
     HRESULT Initialize(HINSTANCE param0, uint param1);
-    HRESULT FindDevice(const(GUID)* param0, const(char)* param1, GUID* param2);
-    HRESULT EnumDevicesBySemantics(const(char)* param0, DIACTIONFORMATA* param1, 
+    HRESULT FindDevice(const(GUID)* param0, const(PSTR) param1, GUID* param2);
+    HRESULT EnumDevicesBySemantics(const(PSTR) param0, DIACTIONFORMATA* param1, 
                                    LPDIENUMDEVICESBYSEMANTICSCBA param2, void* param3, uint param4);
     HRESULT ConfigureDevices(LPDICONFIGUREDEVICESCALLBACK param0, DICONFIGUREDEVICESPARAMSA* param1, uint param2, 
                              void* param3);
@@ -1776,16 +1776,16 @@ interface IDirectInputJoyConfig : IUnknown
     HRESULT SetCooperativeLevel(HWND param0, uint param1);
     HRESULT SendNotify();
     HRESULT EnumTypes(LPDIJOYTYPECALLBACK param0, void* param1);
-    HRESULT GetTypeInfo(const(wchar)* param0, DIJOYTYPEINFO* param1, uint param2);
-    HRESULT SetTypeInfo(const(wchar)* param0, DIJOYTYPEINFO* param1, uint param2);
-    HRESULT DeleteType(const(wchar)* param0);
+    HRESULT GetTypeInfo(const(PWSTR) param0, DIJOYTYPEINFO* param1, uint param2);
+    HRESULT SetTypeInfo(const(PWSTR) param0, DIJOYTYPEINFO* param1, uint param2);
+    HRESULT DeleteType(const(PWSTR) param0);
     HRESULT GetConfig(uint param0, DIJOYCONFIG* param1, uint param2);
     HRESULT SetConfig(uint param0, DIJOYCONFIG* param1, uint param2);
     HRESULT DeleteConfig(uint param0);
     HRESULT GetUserValues(DIJOYUSERVALUES* param0, uint param1);
     HRESULT SetUserValues(DIJOYUSERVALUES* param0, uint param1);
     HRESULT AddNewHardware(HWND param0, const(GUID)* param1);
-    HRESULT OpenTypeKey(const(wchar)* param0, uint param1, HKEY* param2);
+    HRESULT OpenTypeKey(const(PWSTR) param0, uint param1, HKEY* param2);
     ///The <b>IDirectInputJoyConfig8::OpenConfigKey </b>method opens IDirectInputJoyConfigthe registry key associated
     ///with a joystick configuration. Control panel applications can use this key to store per-joystick persistent
     ///information, such as button mappings. Such private information should be kept in a subkey named <b>OEM</b>; do
@@ -1855,7 +1855,7 @@ interface IDirectInputJoyConfig8 : IUnknown
     ///           <b>dwSize</b> member of the DIJOYTYPEINFO structure before calling this method.
     ///    arg3 = Specifies the parts of the DIJOYTYPEINFO structure pointed to by <i>pjti</i> that are to be filled. There may
     ///           be zero, one, or more of the following:
-    HRESULT GetTypeInfo(const(wchar)* param0, DIJOYTYPEINFO* param1, uint param2);
+    HRESULT GetTypeInfo(const(PWSTR) param0, DIJOYTYPEINFO* param1, uint param2);
     ///The <b>IDirectInputJoyConfig8::SetTypeInfo </b>method creates a new joystick type or redefines information about
     ///an existing joystick type.
     ///Params:
@@ -1867,13 +1867,13 @@ interface IDirectInputJoyConfig8 : IUnknown
     ///    arg4 = If the type name is an OEM type not in VID_xxxx&PID_yyyy format, this parameter will return the name in
     ///           VID_xxxx&PID_yyyy format that is assigned by Dinput. This VID_xxxx&PID_yyyy name should be used in
     ///           DIJOYCONFIG.wszType field when calling SetConfig.
-    HRESULT SetTypeInfo(const(wchar)* param0, DIJOYTYPEINFO* param1, uint param2, const(wchar)* param3);
+    HRESULT SetTypeInfo(const(PWSTR) param0, DIJOYTYPEINFO* param1, uint param2, PWSTR param3);
     ///The <b>IDirectInputJoyConfig8::DeleteType </b>method removes information about a joystick type. Use this method
     ///with caution; it is the caller's responsibility to ensure that no joystick refers to the deleted type.
     ///Params:
     ///    arg1 = Points to the name of the type. The name of the type cannot exceed MAX_PATH characters, including the
     ///           terminating null character. Also, the name cannot begin with a "
-    HRESULT DeleteType(const(wchar)* param0);
+    HRESULT DeleteType(const(PWSTR) param0);
     ///The <b>IDirectInputJoyConfig8::GetConfig </b>method obtains information about a joystick's configuration.
     ///Params:
     ///    arg1 = Indicates a joystick identification number. This is a nonnegative integer. To enumerate joysticks, begin with
@@ -1933,7 +1933,7 @@ interface IDirectInputJoyConfig8 : IUnknown
     ///    FACILITY_WIN32, ErrorCode) </b></dt> </dl> </td> <td width="60%"> A Win32 error code if access to the key is
     ///    denied by registry permissions or some other external factor. </td> </tr> </table>
     ///    
-    HRESULT OpenTypeKey(const(wchar)* param0, uint param1, HKEY* param2);
+    HRESULT OpenTypeKey(const(PWSTR) param0, uint param1, HKEY* param2);
     ///The <b>IDirectInputJoyConfig8::OpenAppStatusKey </b>method opens the root key of the application status registry
     ///keys, and obtains a handle to the key as a return parameter.
     ///Params:

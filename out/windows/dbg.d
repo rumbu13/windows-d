@@ -16,12 +16,12 @@ public import windows.structuredstorage : ILockBytes;
 public import windows.systemservices : BOOL, FLOATING_SAVE_AREA, HANDLE,
                                        IMAGE_LOAD_CONFIG_CODE_INTEGRITY,
                                        IServiceProvider, LARGE_INTEGER,
-                                       LPTHREAD_START_ROUTINE, NTSTATUS,
-                                       XSTATE_FEATURE;
+                                       LPTHREAD_START_ROUTINE, NTSTATUS, PSTR,
+                                       PWSTR, XSTATE_FEATURE;
 public import windows.windowsandmessaging : HWND;
-public import windows.windowsprogramming : TIME_ZONE_INFORMATION;
+public import windows.windowsprogramming : FORMAT_MESSAGE_OPTIONS, TIME_ZONE_INFORMATION;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -3989,11 +3989,11 @@ enum : int
 // Constants
 
 
-enum : int
+enum : HRESULT
 {
-    ACTIVPROF_E_PROFILER_PRESENT       = 0x80040200,
-    ACTIVPROF_E_PROFILER_ABSENT        = 0x80040201,
-    ACTIVPROF_E_UNABLE_TO_APPLY_ACTION = 0x80040202,
+    ACTIVPROF_E_PROFILER_PRESENT       = HRESULT(0x80040200),
+    ACTIVPROF_E_PROFILER_ABSENT        = HRESULT(0x80040201),
+    ACTIVPROF_E_UNABLE_TO_APPLY_ACTION = HRESULT(0x80040202),
 }
 
 // Callbacks
@@ -4079,6 +4079,255 @@ alias UnregisterAuthoringClientFunctionType = HRESULT function(IWebApplicationHo
 // Structs
 
 
+///Contains exception information that can be used by a debugger.
+struct EXCEPTION_DEBUG_INFO
+{
+    ///An EXCEPTION_RECORD structure with information specific to the exception. This includes the exception code,
+    ///flags, address, a pointer to a related exception, extra parameters, and so on.
+    EXCEPTION_RECORD ExceptionRecord;
+    ///A value that indicates whether the debugger has previously encountered the exception specified by the
+    ///<b>ExceptionRecord</b> member. If the <b>dwFirstChance</b> member is nonzero, this is the first time the debugger
+    ///has encountered the exception. Debuggers typically handle breakpoint and single-step exceptions when they are
+    ///first encountered. If this member is zero, the debugger has previously encountered the exception. This occurs
+    ///only if, during the search for structured exception handlers, either no handler was found or the exception was
+    ///continued.
+    uint             dwFirstChance;
+}
+
+///Contains thread-creation information that can be used by a debugger.
+struct CREATE_THREAD_DEBUG_INFO
+{
+    ///A handle to the thread whose creation caused the debugging event. If this member is <b>NULL</b>, the handle is
+    ///not valid. Otherwise, the debugger has THREAD_GET_CONTEXT, THREAD_SET_CONTEXT, and THREAD_SUSPEND_RESUME access
+    ///to the thread, allowing the debugger to read from and write to the registers of the thread and control execution
+    ///of the thread.
+    HANDLE hThread;
+    ///A pointer to a block of data. At offset 0x2C into this block is another pointer, called
+    ///ThreadLocalStoragePointer, that points to an array of per-module thread local storage blocks. This gives a
+    ///debugger access to per-thread data in the threads of the process being debugged using the same algorithms that a
+    ///compiler would use.
+    void*  lpThreadLocalBase;
+    ///A pointer to the starting address of the thread. This value may only be an approximation of the thread's starting
+    ///address, because any application with appropriate access to the thread can change the thread's context by using
+    ///the SetThreadContext function.
+    LPTHREAD_START_ROUTINE lpStartAddress;
+}
+
+///Contains process creation information that can be used by a debugger.
+struct CREATE_PROCESS_DEBUG_INFO
+{
+    ///A handle to the process's image file. If this member is <b>NULL</b>, the handle is not valid. Otherwise, the
+    ///debugger can use the member to read from and write to the image file. When the debugger is finished with this
+    ///file, it should close the handle using the CloseHandle function.
+    HANDLE hFile;
+    ///A handle to the process. If this member is <b>NULL</b>, the handle is not valid. Otherwise, the debugger can use
+    ///the member to read from and write to the process's memory.
+    HANDLE hProcess;
+    ///A handle to the initial thread of the process identified by the <b>hProcess</b> member. If <b>hThread</b> param
+    ///is <b>NULL</b>, the handle is not valid. Otherwise, the debugger has <b>THREAD_GET_CONTEXT</b>,
+    ///<b>THREAD_SET_CONTEXT</b>, and <b>THREAD_SUSPEND_RESUME</b> access to the thread, allowing the debugger to read
+    ///from and write to the registers of the thread and to control execution of the thread.
+    HANDLE hThread;
+    ///The base address of the executable image that the process is running.
+    void*  lpBaseOfImage;
+    ///The offset to the debugging information in the file identified by the <b>hFile</b> member.
+    uint   dwDebugInfoFileOffset;
+    ///The size of the debugging information in the file, in bytes. If this value is zero, there is no debugging
+    ///information.
+    uint   nDebugInfoSize;
+    ///A pointer to a block of data. At offset 0x2C into this block is another pointer, called
+    ///<code>ThreadLocalStoragePointer</code>, that points to an array of per-module thread local storage blocks. This
+    ///gives a debugger access to per-thread data in the threads of the process being debugged using the same algorithms
+    ///that a compiler would use.
+    void*  lpThreadLocalBase;
+    ///A pointer to the starting address of the thread. This value may only be an approximation of the thread's starting
+    ///address, because any application with appropriate access to the thread can change the thread's context by using
+    ///the SetThreadContext function.
+    LPTHREAD_START_ROUTINE lpStartAddress;
+    ///A pointer to the file name associated with the <b>hFile</b> member. This parameter may be <b>NULL</b>, or it may
+    ///contain the address of a string pointer in the address space of the process being debugged. That address may, in
+    ///turn, either be <b>NULL</b> or point to the actual filename. If <b>fUnicode</b> is a nonzero value, the name
+    ///string is Unicode; otherwise, it is ANSI. This member is strictly optional. Debuggers must be prepared to handle
+    ///the case where <b>lpImageName</b> is <b>NULL</b> or *<b>lpImageName</b> (in the address space of the process
+    ///being debugged) is <b>NULL</b>. Specifically, the system does not provide an image name for a create process
+    ///event, and will not likely pass an image name for the first DLL event. The system also does not provide this
+    ///information in the case of debug events that originate from a call to the DebugActiveProcess function.
+    void*  lpImageName;
+    ///A value that indicates whether a file name specified by the <b>lpImageName</b> member is Unicode or ANSI. A
+    ///nonzero value indicates Unicode; zero indicates ANSI.
+    ushort fUnicode;
+}
+
+///Contains the exit code for a terminating thread.
+struct EXIT_THREAD_DEBUG_INFO
+{
+    ///The exit code for the thread.
+    uint dwExitCode;
+}
+
+///Contains the exit code for a terminating process.
+struct EXIT_PROCESS_DEBUG_INFO
+{
+    ///The exit code for the process.
+    uint dwExitCode;
+}
+
+///Contains information about a dynamic-link library (DLL) that has just been loaded.
+struct LOAD_DLL_DEBUG_INFO
+{
+    ///A handle to the loaded DLL. If this member is <b>NULL</b>, the handle is not valid. Otherwise, the member is
+    ///opened for reading and read-sharing in the context of the debugger. When the debugger is finished with this file,
+    ///it should close the handle using the CloseHandle function.
+    HANDLE hFile;
+    ///A pointer to the base address of the DLL in the address space of the process loading the DLL.
+    void*  lpBaseOfDll;
+    ///The offset to the debugging information in the file identified by the <b>hFile</b> member, in bytes. The system
+    ///expects the debugging information to be in CodeView 4.0 format. This format is currently a derivative of Common
+    ///Object File Format (COFF).
+    uint   dwDebugInfoFileOffset;
+    ///The size of the debugging information in the file, in bytes. If this member is zero, there is no debugging
+    ///information.
+    uint   nDebugInfoSize;
+    ///A pointer to the file name associated with <b>hFile</b>. This member may be <b>NULL</b>, or it may contain the
+    ///address of a string pointer in the address space of the process being debugged. That address may, in turn, either
+    ///be <b>NULL</b> or point to the actual filename. If <b>fUnicode</b> is a nonzero value, the name string is
+    ///Unicode; otherwise, it is ANSI. This member is strictly optional. Debuggers must be prepared to handle the case
+    ///where <b>lpImageName</b> is <b>NULL</b> or *<b>lpImageName</b> (in the address space of the process being
+    ///debugged) is <b>NULL</b>. Specifically, the system will never provide an image name for a create process event,
+    ///and it will not likely pass an image name for the first DLL event. The system will also never provide this
+    ///information in the case of debugging events that originate from a call to the DebugActiveProcess function.
+    void*  lpImageName;
+    ///A value that indicates whether a filename specified by <b>lpImageName</b> is Unicode or ANSI. A nonzero value for
+    ///this member indicates Unicode; zero indicates ANSI.
+    ushort fUnicode;
+}
+
+///Contains information about a dynamic-link library (DLL) that has just been unloaded.
+struct UNLOAD_DLL_DEBUG_INFO
+{
+    ///A pointer to the base address of the DLL in the address space of the process unloading the DLL.
+    void* lpBaseOfDll;
+}
+
+///Contains the address, format, and length, in bytes, of a debugging string.
+struct OUTPUT_DEBUG_STRING_INFO
+{
+    ///The debugging string in the calling process's address space. The debugger can use the ReadProcessMemory function
+    ///to retrieve the value of the string.
+    PSTR   lpDebugStringData;
+    ///The format of the debugging string. If this member is zero, the debugging string is ANSI; if it is nonzero, the
+    ///string is Unicode.
+    ushort fUnicode;
+    ///The lower 16 bits of the length of the string in bytes. As nDebugStringLength is of type WORD, this does not
+    ///always contain the full length of the string in bytes. For example, if the original output string is longer than
+    ///65536 bytes, this field will contain a value that is less than the actual string length in bytes.
+    ushort nDebugStringLength;
+}
+
+///Contains the error that caused the RIP debug event.
+struct RIP_INFO
+{
+    ///The error that caused the RIP debug event. For more information, see Error Handling.
+    uint dwError;
+    ///Any additional information about the type of error that caused the RIP debug event. This member can be one of the
+    ///following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
+    ///id="SLE_ERROR"></a><a id="sle_error"></a><dl> <dt><b>SLE_ERROR</b></dt> <dt>0x00000001</dt> </dl> </td> <td
+    ///width="60%"> Indicates that invalid data was passed to the function that failed. This caused the application to
+    ///fail. </td> </tr> <tr> <td width="40%"><a id="SLE_MINORERROR"></a><a id="sle_minorerror"></a><dl>
+    ///<dt><b>SLE_MINORERROR</b></dt> <dt>0x00000002</dt> </dl> </td> <td width="60%"> Indicates that invalid data was
+    ///passed to the function, but the error probably will not cause the application to fail. </td> </tr> <tr> <td
+    ///width="40%"><a id="SLE_WARNING"></a><a id="sle_warning"></a><dl> <dt><b>SLE_WARNING</b></dt> <dt>0x00000003</dt>
+    ///</dl> </td> <td width="60%"> Indicates that potentially invalid data was passed to the function, but the function
+    ///completed processing. </td> </tr> <tr> <td width="40%"> <dl> <dt>0</dt> </dl> </td> <td width="60%"> Indicates
+    ///that only <b>dwError</b> was set. </td> </tr> </table>
+    uint dwType;
+}
+
+///Describes a debugging event.
+struct DEBUG_EVENT
+{
+    ///Type: <b>DWORD</b> The code that identifies the type of debugging event. This member can be one of the following
+    ///values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
+    ///id="CREATE_PROCESS_DEBUG_EVENT"></a><a id="create_process_debug_event"></a><dl>
+    ///<dt><b>CREATE_PROCESS_DEBUG_EVENT</b></dt> <dt>3</dt> </dl> </td> <td width="60%"> Reports a create-process
+    ///debugging event. The value of <b>u.CreateProcessInfo</b> specifies a CREATE_PROCESS_DEBUG_INFO structure. </td>
+    ///</tr> <tr> <td width="40%"><a id="CREATE_THREAD_DEBUG_EVENT"></a><a id="create_thread_debug_event"></a><dl>
+    ///<dt><b>CREATE_THREAD_DEBUG_EVENT</b></dt> <dt>2</dt> </dl> </td> <td width="60%"> Reports a create-thread
+    ///debugging event. The value of <b>u.CreateThread</b> specifies a CREATE_THREAD_DEBUG_INFO structure. </td> </tr>
+    ///<tr> <td width="40%"><a id="EXCEPTION_DEBUG_EVENT"></a><a id="exception_debug_event"></a><dl>
+    ///<dt><b>EXCEPTION_DEBUG_EVENT</b></dt> <dt>1</dt> </dl> </td> <td width="60%"> Reports an exception debugging
+    ///event. The value of <b>u.Exception</b> specifies an EXCEPTION_DEBUG_INFO structure. </td> </tr> <tr> <td
+    ///width="40%"><a id="EXIT_PROCESS_DEBUG_EVENT"></a><a id="exit_process_debug_event"></a><dl>
+    ///<dt><b>EXIT_PROCESS_DEBUG_EVENT</b></dt> <dt>5</dt> </dl> </td> <td width="60%"> Reports an exit-process
+    ///debugging event. The value of <b>u.ExitProcess</b> specifies an EXIT_PROCESS_DEBUG_INFO structure. </td> </tr>
+    ///<tr> <td width="40%"><a id="EXIT_THREAD_DEBUG_EVENT"></a><a id="exit_thread_debug_event"></a><dl>
+    ///<dt><b>EXIT_THREAD_DEBUG_EVENT</b></dt> <dt>4</dt> </dl> </td> <td width="60%"> Reports an exit-thread debugging
+    ///event. The value of <b>u.ExitThread</b> specifies an EXIT_THREAD_DEBUG_INFO structure. </td> </tr> <tr> <td
+    ///width="40%"><a id="LOAD_DLL_DEBUG_EVENT"></a><a id="load_dll_debug_event"></a><dl>
+    ///<dt><b>LOAD_DLL_DEBUG_EVENT</b></dt> <dt>6</dt> </dl> </td> <td width="60%"> Reports a load-dynamic-link-library
+    ///(DLL) debugging event. The value of <b>u.LoadDll</b> specifies a LOAD_DLL_DEBUG_INFO structure. </td> </tr> <tr>
+    ///<td width="40%"><a id="OUTPUT_DEBUG_STRING_EVENT"></a><a id="output_debug_string_event"></a><dl>
+    ///<dt><b>OUTPUT_DEBUG_STRING_EVENT</b></dt> <dt>8</dt> </dl> </td> <td width="60%"> Reports an
+    ///output-debugging-string debugging event. The value of <b>u.DebugString</b> specifies an OUTPUT_DEBUG_STRING_INFO
+    ///structure. </td> </tr> <tr> <td width="40%"><a id="RIP_EVENT"></a><a id="rip_event"></a><dl>
+    ///<dt><b>RIP_EVENT</b></dt> <dt>9</dt> </dl> </td> <td width="60%"> Reports a RIP-debugging event (system debugging
+    ///error). The value of <b>u.RipInfo</b> specifies a RIP_INFO structure. </td> </tr> <tr> <td width="40%"><a
+    ///id="UNLOAD_DLL_DEBUG_EVENT"></a><a id="unload_dll_debug_event"></a><dl> <dt><b>UNLOAD_DLL_DEBUG_EVENT</b></dt>
+    ///<dt>7</dt> </dl> </td> <td width="60%"> Reports an unload-DLL debugging event. The value of <b>u.UnloadDll</b>
+    ///specifies an UNLOAD_DLL_DEBUG_INFO structure. </td> </tr> </table>
+    uint dwDebugEventCode;
+    ///Type: <b>DWORD</b> The identifier of the process in which the debugging event occurred. A debugger uses this
+    ///value to locate the debugger's per-process structure. These values are not necessarily small integers that can be
+    ///used as table indices.
+    uint dwProcessId;
+    ///Type: <b>DWORD</b> The identifier of the thread in which the debugging event occurred. A debugger uses this value
+    ///to locate the debugger's per-thread structure. These values are not necessarily small integers that can be used
+    ///as table indices.
+    uint dwThreadId;
+union u
+    {
+        EXCEPTION_DEBUG_INFO Exception;
+        CREATE_THREAD_DEBUG_INFO CreateThread;
+        CREATE_PROCESS_DEBUG_INFO CreateProcessInfo;
+        EXIT_THREAD_DEBUG_INFO ExitThread;
+        EXIT_PROCESS_DEBUG_INFO ExitProcess;
+        LOAD_DLL_DEBUG_INFO  LoadDll;
+        UNLOAD_DLL_DEBUG_INFO UnloadDll;
+        OUTPUT_DEBUG_STRING_INFO DebugString;
+        RIP_INFO             RipInfo;
+    }
+}
+
+///Contains the flash status for a window and the number of times the system should flash the window.
+struct FLASHWINFO
+{
+    ///The size of the structure, in bytes.
+    uint cbSize;
+    ///A handle to the window to be flashed. The window can be either opened or minimized.
+    HWND hwnd;
+    ///The flash status. This parameter can be one or more of the following values. <table> <tr> <th>Value</th>
+    ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="FLASHW_ALL"></a><a id="flashw_all"></a><dl>
+    ///<dt><b>FLASHW_ALL</b></dt> <dt>0x00000003</dt> </dl> </td> <td width="60%"> Flash both the window caption and
+    ///taskbar button. This is equivalent to setting the FLASHW_CAPTION | FLASHW_TRAY flags. </td> </tr> <tr> <td
+    ///width="40%"><a id="FLASHW_CAPTION"></a><a id="flashw_caption"></a><dl> <dt><b>FLASHW_CAPTION</b></dt>
+    ///<dt>0x00000001</dt> </dl> </td> <td width="60%"> Flash the window caption. </td> </tr> <tr> <td width="40%"><a
+    ///id="FLASHW_STOP"></a><a id="flashw_stop"></a><dl> <dt><b>FLASHW_STOP</b></dt> <dt>0</dt> </dl> </td> <td
+    ///width="60%"> Stop flashing. The system restores the window to its original state. </td> </tr> <tr> <td
+    ///width="40%"><a id="FLASHW_TIMER"></a><a id="flashw_timer"></a><dl> <dt><b>FLASHW_TIMER</b></dt>
+    ///<dt>0x00000004</dt> </dl> </td> <td width="60%"> Flash continuously, until the FLASHW_STOP flag is set. </td>
+    ///</tr> <tr> <td width="40%"><a id="FLASHW_TIMERNOFG"></a><a id="flashw_timernofg"></a><dl>
+    ///<dt><b>FLASHW_TIMERNOFG</b></dt> <dt>0x0000000C</dt> </dl> </td> <td width="60%"> Flash continuously until the
+    ///window comes to the foreground. </td> </tr> <tr> <td width="40%"><a id="FLASHW_TRAY"></a><a
+    ///id="flashw_tray"></a><dl> <dt><b>FLASHW_TRAY</b></dt> <dt>0x00000002</dt> </dl> </td> <td width="60%"> Flash the
+    ///taskbar button. </td> </tr> </table>
+    uint dwFlags;
+    ///The number of times to flash the window.
+    uint uCount;
+    ///The rate at which the window is to be flashed, in milliseconds. If <b>dwTimeout</b> is zero, the function uses
+    ///the default cursor blink rate.
+    uint dwTimeout;
+}
+
 ///Contains processor-specific register data. The system uses <b>CONTEXT</b> structures to perform various internal
 ///operations. Refer to the header file WinNT.h for definitions of this structure for each processor architecture.
 struct CONTEXT
@@ -4117,16 +4366,16 @@ struct LDT_ENTRY
     ushort LimitLow;
     ///The low-order part of the base address of the segment.
     ushort BaseLow;
-    union HighWord
+union HighWord
     {
-        struct Bytes
+struct Bytes
         {
             ubyte BaseMid;
             ubyte Flags1;
             ubyte Flags2;
             ubyte BaseHi;
         }
-        struct Bits
+struct Bits
         {
             uint _bitfield9;
         }
@@ -4185,16 +4434,16 @@ struct WOW64_LDT_ENTRY
     ushort LimitLow;
     ///The low-order part of the base address of the segment.
     ushort BaseLow;
-    union HighWord
+union HighWord
     {
-        struct Bytes
+struct Bytes
         {
             ubyte BaseMid;
             ubyte Flags1;
             ubyte Flags2;
             ubyte BaseHi;
         }
-        struct Bits
+struct Bits
         {
             uint _bitfield10;
         }
@@ -4667,7 +4916,7 @@ struct IMAGE_SECTION_HEADER
     ///of a decimal number that is an offset into the string table. Executable images do not use a string table and do
     ///not support section names longer than eight characters.
     ubyte[8] Name;
-    union Misc
+union Misc
     {
         uint PhysicalAddress;
         uint VirtualSize;
@@ -5047,261 +5296,12 @@ align (4):
     ulong StartingAddress;
     ///The image address of the end of the function.
     ulong EndingAddress;
-    union
+union
     {
     align (4):
         ulong EndOfPrologue;
         ulong UnwindInfoAddress;
     }
-}
-
-///Contains exception information that can be used by a debugger.
-struct EXCEPTION_DEBUG_INFO
-{
-    ///An EXCEPTION_RECORD structure with information specific to the exception. This includes the exception code,
-    ///flags, address, a pointer to a related exception, extra parameters, and so on.
-    EXCEPTION_RECORD ExceptionRecord;
-    ///A value that indicates whether the debugger has previously encountered the exception specified by the
-    ///<b>ExceptionRecord</b> member. If the <b>dwFirstChance</b> member is nonzero, this is the first time the debugger
-    ///has encountered the exception. Debuggers typically handle breakpoint and single-step exceptions when they are
-    ///first encountered. If this member is zero, the debugger has previously encountered the exception. This occurs
-    ///only if, during the search for structured exception handlers, either no handler was found or the exception was
-    ///continued.
-    uint             dwFirstChance;
-}
-
-///Contains thread-creation information that can be used by a debugger.
-struct CREATE_THREAD_DEBUG_INFO
-{
-    ///A handle to the thread whose creation caused the debugging event. If this member is <b>NULL</b>, the handle is
-    ///not valid. Otherwise, the debugger has THREAD_GET_CONTEXT, THREAD_SET_CONTEXT, and THREAD_SUSPEND_RESUME access
-    ///to the thread, allowing the debugger to read from and write to the registers of the thread and control execution
-    ///of the thread.
-    HANDLE hThread;
-    ///A pointer to a block of data. At offset 0x2C into this block is another pointer, called
-    ///ThreadLocalStoragePointer, that points to an array of per-module thread local storage blocks. This gives a
-    ///debugger access to per-thread data in the threads of the process being debugged using the same algorithms that a
-    ///compiler would use.
-    void*  lpThreadLocalBase;
-    ///A pointer to the starting address of the thread. This value may only be an approximation of the thread's starting
-    ///address, because any application with appropriate access to the thread can change the thread's context by using
-    ///the SetThreadContext function.
-    LPTHREAD_START_ROUTINE lpStartAddress;
-}
-
-///Contains process creation information that can be used by a debugger.
-struct CREATE_PROCESS_DEBUG_INFO
-{
-    ///A handle to the process's image file. If this member is <b>NULL</b>, the handle is not valid. Otherwise, the
-    ///debugger can use the member to read from and write to the image file. When the debugger is finished with this
-    ///file, it should close the handle using the CloseHandle function.
-    HANDLE hFile;
-    ///A handle to the process. If this member is <b>NULL</b>, the handle is not valid. Otherwise, the debugger can use
-    ///the member to read from and write to the process's memory.
-    HANDLE hProcess;
-    ///A handle to the initial thread of the process identified by the <b>hProcess</b> member. If <b>hThread</b> param
-    ///is <b>NULL</b>, the handle is not valid. Otherwise, the debugger has <b>THREAD_GET_CONTEXT</b>,
-    ///<b>THREAD_SET_CONTEXT</b>, and <b>THREAD_SUSPEND_RESUME</b> access to the thread, allowing the debugger to read
-    ///from and write to the registers of the thread and to control execution of the thread.
-    HANDLE hThread;
-    ///The base address of the executable image that the process is running.
-    void*  lpBaseOfImage;
-    ///The offset to the debugging information in the file identified by the <b>hFile</b> member.
-    uint   dwDebugInfoFileOffset;
-    ///The size of the debugging information in the file, in bytes. If this value is zero, there is no debugging
-    ///information.
-    uint   nDebugInfoSize;
-    ///A pointer to a block of data. At offset 0x2C into this block is another pointer, called
-    ///<code>ThreadLocalStoragePointer</code>, that points to an array of per-module thread local storage blocks. This
-    ///gives a debugger access to per-thread data in the threads of the process being debugged using the same algorithms
-    ///that a compiler would use.
-    void*  lpThreadLocalBase;
-    ///A pointer to the starting address of the thread. This value may only be an approximation of the thread's starting
-    ///address, because any application with appropriate access to the thread can change the thread's context by using
-    ///the SetThreadContext function.
-    LPTHREAD_START_ROUTINE lpStartAddress;
-    ///A pointer to the file name associated with the <b>hFile</b> member. This parameter may be <b>NULL</b>, or it may
-    ///contain the address of a string pointer in the address space of the process being debugged. That address may, in
-    ///turn, either be <b>NULL</b> or point to the actual filename. If <b>fUnicode</b> is a nonzero value, the name
-    ///string is Unicode; otherwise, it is ANSI. This member is strictly optional. Debuggers must be prepared to handle
-    ///the case where <b>lpImageName</b> is <b>NULL</b> or *<b>lpImageName</b> (in the address space of the process
-    ///being debugged) is <b>NULL</b>. Specifically, the system does not provide an image name for a create process
-    ///event, and will not likely pass an image name for the first DLL event. The system also does not provide this
-    ///information in the case of debug events that originate from a call to the DebugActiveProcess function.
-    void*  lpImageName;
-    ///A value that indicates whether a file name specified by the <b>lpImageName</b> member is Unicode or ANSI. A
-    ///nonzero value indicates Unicode; zero indicates ANSI.
-    ushort fUnicode;
-}
-
-///Contains the exit code for a terminating thread.
-struct EXIT_THREAD_DEBUG_INFO
-{
-    ///The exit code for the thread.
-    uint dwExitCode;
-}
-
-///Contains the exit code for a terminating process.
-struct EXIT_PROCESS_DEBUG_INFO
-{
-    ///The exit code for the process.
-    uint dwExitCode;
-}
-
-///Contains information about a dynamic-link library (DLL) that has just been loaded.
-struct LOAD_DLL_DEBUG_INFO
-{
-    ///A handle to the loaded DLL. If this member is <b>NULL</b>, the handle is not valid. Otherwise, the member is
-    ///opened for reading and read-sharing in the context of the debugger. When the debugger is finished with this file,
-    ///it should close the handle using the CloseHandle function.
-    HANDLE hFile;
-    ///A pointer to the base address of the DLL in the address space of the process loading the DLL.
-    void*  lpBaseOfDll;
-    ///The offset to the debugging information in the file identified by the <b>hFile</b> member, in bytes. The system
-    ///expects the debugging information to be in CodeView 4.0 format. This format is currently a derivative of Common
-    ///Object File Format (COFF).
-    uint   dwDebugInfoFileOffset;
-    ///The size of the debugging information in the file, in bytes. If this member is zero, there is no debugging
-    ///information.
-    uint   nDebugInfoSize;
-    ///A pointer to the file name associated with <b>hFile</b>. This member may be <b>NULL</b>, or it may contain the
-    ///address of a string pointer in the address space of the process being debugged. That address may, in turn, either
-    ///be <b>NULL</b> or point to the actual filename. If <b>fUnicode</b> is a nonzero value, the name string is
-    ///Unicode; otherwise, it is ANSI. This member is strictly optional. Debuggers must be prepared to handle the case
-    ///where <b>lpImageName</b> is <b>NULL</b> or *<b>lpImageName</b> (in the address space of the process being
-    ///debugged) is <b>NULL</b>. Specifically, the system will never provide an image name for a create process event,
-    ///and it will not likely pass an image name for the first DLL event. The system will also never provide this
-    ///information in the case of debugging events that originate from a call to the DebugActiveProcess function.
-    void*  lpImageName;
-    ///A value that indicates whether a filename specified by <b>lpImageName</b> is Unicode or ANSI. A nonzero value for
-    ///this member indicates Unicode; zero indicates ANSI.
-    ushort fUnicode;
-}
-
-///Contains information about a dynamic-link library (DLL) that has just been unloaded.
-struct UNLOAD_DLL_DEBUG_INFO
-{
-    ///A pointer to the base address of the DLL in the address space of the process unloading the DLL.
-    void* lpBaseOfDll;
-}
-
-///Contains the address, format, and length, in bytes, of a debugging string.
-struct OUTPUT_DEBUG_STRING_INFO
-{
-    ///The debugging string in the calling process's address space. The debugger can use the ReadProcessMemory function
-    ///to retrieve the value of the string.
-    const(char)* lpDebugStringData;
-    ///The format of the debugging string. If this member is zero, the debugging string is ANSI; if it is nonzero, the
-    ///string is Unicode.
-    ushort       fUnicode;
-    ///The lower 16 bits of the length of the string in bytes. As nDebugStringLength is of type WORD, this does not
-    ///always contain the full length of the string in bytes. For example, if the original output string is longer than
-    ///65536 bytes, this field will contain a value that is less than the actual string length in bytes.
-    ushort       nDebugStringLength;
-}
-
-///Contains the error that caused the RIP debug event.
-struct RIP_INFO
-{
-    ///The error that caused the RIP debug event. For more information, see Error Handling.
-    uint dwError;
-    ///Any additional information about the type of error that caused the RIP debug event. This member can be one of the
-    ///following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
-    ///id="SLE_ERROR"></a><a id="sle_error"></a><dl> <dt><b>SLE_ERROR</b></dt> <dt>0x00000001</dt> </dl> </td> <td
-    ///width="60%"> Indicates that invalid data was passed to the function that failed. This caused the application to
-    ///fail. </td> </tr> <tr> <td width="40%"><a id="SLE_MINORERROR"></a><a id="sle_minorerror"></a><dl>
-    ///<dt><b>SLE_MINORERROR</b></dt> <dt>0x00000002</dt> </dl> </td> <td width="60%"> Indicates that invalid data was
-    ///passed to the function, but the error probably will not cause the application to fail. </td> </tr> <tr> <td
-    ///width="40%"><a id="SLE_WARNING"></a><a id="sle_warning"></a><dl> <dt><b>SLE_WARNING</b></dt> <dt>0x00000003</dt>
-    ///</dl> </td> <td width="60%"> Indicates that potentially invalid data was passed to the function, but the function
-    ///completed processing. </td> </tr> <tr> <td width="40%"> <dl> <dt>0</dt> </dl> </td> <td width="60%"> Indicates
-    ///that only <b>dwError</b> was set. </td> </tr> </table>
-    uint dwType;
-}
-
-///Describes a debugging event.
-struct DEBUG_EVENT
-{
-    ///Type: <b>DWORD</b> The code that identifies the type of debugging event. This member can be one of the following
-    ///values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
-    ///id="CREATE_PROCESS_DEBUG_EVENT"></a><a id="create_process_debug_event"></a><dl>
-    ///<dt><b>CREATE_PROCESS_DEBUG_EVENT</b></dt> <dt>3</dt> </dl> </td> <td width="60%"> Reports a create-process
-    ///debugging event. The value of <b>u.CreateProcessInfo</b> specifies a CREATE_PROCESS_DEBUG_INFO structure. </td>
-    ///</tr> <tr> <td width="40%"><a id="CREATE_THREAD_DEBUG_EVENT"></a><a id="create_thread_debug_event"></a><dl>
-    ///<dt><b>CREATE_THREAD_DEBUG_EVENT</b></dt> <dt>2</dt> </dl> </td> <td width="60%"> Reports a create-thread
-    ///debugging event. The value of <b>u.CreateThread</b> specifies a CREATE_THREAD_DEBUG_INFO structure. </td> </tr>
-    ///<tr> <td width="40%"><a id="EXCEPTION_DEBUG_EVENT"></a><a id="exception_debug_event"></a><dl>
-    ///<dt><b>EXCEPTION_DEBUG_EVENT</b></dt> <dt>1</dt> </dl> </td> <td width="60%"> Reports an exception debugging
-    ///event. The value of <b>u.Exception</b> specifies an EXCEPTION_DEBUG_INFO structure. </td> </tr> <tr> <td
-    ///width="40%"><a id="EXIT_PROCESS_DEBUG_EVENT"></a><a id="exit_process_debug_event"></a><dl>
-    ///<dt><b>EXIT_PROCESS_DEBUG_EVENT</b></dt> <dt>5</dt> </dl> </td> <td width="60%"> Reports an exit-process
-    ///debugging event. The value of <b>u.ExitProcess</b> specifies an EXIT_PROCESS_DEBUG_INFO structure. </td> </tr>
-    ///<tr> <td width="40%"><a id="EXIT_THREAD_DEBUG_EVENT"></a><a id="exit_thread_debug_event"></a><dl>
-    ///<dt><b>EXIT_THREAD_DEBUG_EVENT</b></dt> <dt>4</dt> </dl> </td> <td width="60%"> Reports an exit-thread debugging
-    ///event. The value of <b>u.ExitThread</b> specifies an EXIT_THREAD_DEBUG_INFO structure. </td> </tr> <tr> <td
-    ///width="40%"><a id="LOAD_DLL_DEBUG_EVENT"></a><a id="load_dll_debug_event"></a><dl>
-    ///<dt><b>LOAD_DLL_DEBUG_EVENT</b></dt> <dt>6</dt> </dl> </td> <td width="60%"> Reports a load-dynamic-link-library
-    ///(DLL) debugging event. The value of <b>u.LoadDll</b> specifies a LOAD_DLL_DEBUG_INFO structure. </td> </tr> <tr>
-    ///<td width="40%"><a id="OUTPUT_DEBUG_STRING_EVENT"></a><a id="output_debug_string_event"></a><dl>
-    ///<dt><b>OUTPUT_DEBUG_STRING_EVENT</b></dt> <dt>8</dt> </dl> </td> <td width="60%"> Reports an
-    ///output-debugging-string debugging event. The value of <b>u.DebugString</b> specifies an OUTPUT_DEBUG_STRING_INFO
-    ///structure. </td> </tr> <tr> <td width="40%"><a id="RIP_EVENT"></a><a id="rip_event"></a><dl>
-    ///<dt><b>RIP_EVENT</b></dt> <dt>9</dt> </dl> </td> <td width="60%"> Reports a RIP-debugging event (system debugging
-    ///error). The value of <b>u.RipInfo</b> specifies a RIP_INFO structure. </td> </tr> <tr> <td width="40%"><a
-    ///id="UNLOAD_DLL_DEBUG_EVENT"></a><a id="unload_dll_debug_event"></a><dl> <dt><b>UNLOAD_DLL_DEBUG_EVENT</b></dt>
-    ///<dt>7</dt> </dl> </td> <td width="60%"> Reports an unload-DLL debugging event. The value of <b>u.UnloadDll</b>
-    ///specifies an UNLOAD_DLL_DEBUG_INFO structure. </td> </tr> </table>
-    uint dwDebugEventCode;
-    ///Type: <b>DWORD</b> The identifier of the process in which the debugging event occurred. A debugger uses this
-    ///value to locate the debugger's per-process structure. These values are not necessarily small integers that can be
-    ///used as table indices.
-    uint dwProcessId;
-    ///Type: <b>DWORD</b> The identifier of the thread in which the debugging event occurred. A debugger uses this value
-    ///to locate the debugger's per-thread structure. These values are not necessarily small integers that can be used
-    ///as table indices.
-    uint dwThreadId;
-    union u
-    {
-        EXCEPTION_DEBUG_INFO Exception;
-        CREATE_THREAD_DEBUG_INFO CreateThread;
-        CREATE_PROCESS_DEBUG_INFO CreateProcessInfo;
-        EXIT_THREAD_DEBUG_INFO ExitThread;
-        EXIT_PROCESS_DEBUG_INFO ExitProcess;
-        LOAD_DLL_DEBUG_INFO  LoadDll;
-        UNLOAD_DLL_DEBUG_INFO UnloadDll;
-        OUTPUT_DEBUG_STRING_INFO DebugString;
-        RIP_INFO             RipInfo;
-    }
-}
-
-///Contains the flash status for a window and the number of times the system should flash the window.
-struct FLASHWINFO
-{
-    ///The size of the structure, in bytes.
-    uint cbSize;
-    ///A handle to the window to be flashed. The window can be either opened or minimized.
-    HWND hwnd;
-    ///The flash status. This parameter can be one or more of the following values. <table> <tr> <th>Value</th>
-    ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="FLASHW_ALL"></a><a id="flashw_all"></a><dl>
-    ///<dt><b>FLASHW_ALL</b></dt> <dt>0x00000003</dt> </dl> </td> <td width="60%"> Flash both the window caption and
-    ///taskbar button. This is equivalent to setting the FLASHW_CAPTION | FLASHW_TRAY flags. </td> </tr> <tr> <td
-    ///width="40%"><a id="FLASHW_CAPTION"></a><a id="flashw_caption"></a><dl> <dt><b>FLASHW_CAPTION</b></dt>
-    ///<dt>0x00000001</dt> </dl> </td> <td width="60%"> Flash the window caption. </td> </tr> <tr> <td width="40%"><a
-    ///id="FLASHW_STOP"></a><a id="flashw_stop"></a><dl> <dt><b>FLASHW_STOP</b></dt> <dt>0</dt> </dl> </td> <td
-    ///width="60%"> Stop flashing. The system restores the window to its original state. </td> </tr> <tr> <td
-    ///width="40%"><a id="FLASHW_TIMER"></a><a id="flashw_timer"></a><dl> <dt><b>FLASHW_TIMER</b></dt>
-    ///<dt>0x00000004</dt> </dl> </td> <td width="60%"> Flash continuously, until the FLASHW_STOP flag is set. </td>
-    ///</tr> <tr> <td width="40%"><a id="FLASHW_TIMERNOFG"></a><a id="flashw_timernofg"></a><dl>
-    ///<dt><b>FLASHW_TIMERNOFG</b></dt> <dt>0x0000000C</dt> </dl> </td> <td width="60%"> Flash continuously until the
-    ///window comes to the foreground. </td> </tr> <tr> <td width="40%"><a id="FLASHW_TRAY"></a><a
-    ///id="flashw_tray"></a><dl> <dt><b>FLASHW_TRAY</b></dt> <dt>0x00000002</dt> </dl> </td> <td width="60%"> Flash the
-    ///taskbar button. </td> </tr> </table>
-    uint dwFlags;
-    ///The number of times to flash the window.
-    uint uCount;
-    ///The rate at which the window is to be flashed, in milliseconds. If <b>dwTimeout</b> is zero, the function uses
-    ///the default cursor blink rate.
-    uint dwTimeout;
 }
 
 ///Represents a node in a wait chain.
@@ -5313,15 +5313,15 @@ struct WAITCHAIN_NODE_INFO
     ///The object status. This member is one of the following values from the <b>WCT_OBJECT_STATUS</b> enumeration type.
     ///<a id="WctStatusNoAccess"></a> <a id="wctstatusnoaccess"></a> <a id="WCTSTATUSNOACCESS"></a>
     WCT_OBJECT_STATUS ObjectStatus;
-    union
+union
     {
-        struct LockObject
+struct LockObject
         {
             ushort[128]   ObjectName;
             LARGE_INTEGER Timeout;
             BOOL          Alertable;
         }
-        struct ThreadObject
+struct ThreadObject
         {
             uint ProcessId;
             uint ThreadId;
@@ -5387,7 +5387,7 @@ align (4):
     uint  StreamDirectoryRva;
     ///The checksum for the minidump file. This member can be zero.
     uint  CheckSum;
-    union
+union
     {
         uint Reserved;
         uint TimeDateStamp;
@@ -5417,14 +5417,14 @@ struct MINIDUMP_STRING
 
 union CPU_INFORMATION
 {
-    struct X86CpuInfo
+struct X86CpuInfo
     {
         uint[3] VendorId;
         uint    VersionInformation;
         uint    FeatureInformation;
         uint    AMDExtendedCpuFeatures;
     }
-    struct OtherCpuInfo
+struct OtherCpuInfo
     {
     align (4):
         ulong[2] ProcessorFeatures;
@@ -5463,10 +5463,10 @@ struct MINIDUMP_SYSTEM_INFO
     ///where <i>xx</i> is the model number and <i>yy</i> is the stepping. Display this value of 0x0201 as follows: Model
     ///<i>xx</i>, Stepping <i>yy</i> </td> </tr> </table>
     ushort          ProcessorRevision;
-    union
+union
     {
         ushort Reserved0;
-        struct
+struct
         {
             ubyte NumberOfProcessors;
             ubyte ProductType;
@@ -5490,10 +5490,10 @@ struct MINIDUMP_SYSTEM_INFO
     ///An RVA (from the beginning of the dump) to a MINIDUMP_STRING that describes the latest Service Pack installed on
     ///the system. If no Service Pack has been installed, the string is empty.
     uint            CSDVersionRva;
-    union
+union
     {
         uint Reserved1;
-        struct
+struct
         {
             ushort SuiteMask;
             ushort Reserved2;
@@ -6465,7 +6465,7 @@ struct MINIDUMP_MODULE_CALLBACK
 {
 align (4):
     ///The fully qualified path of the module executable.
-    const(wchar)*    FullPath;
+    PWSTR            FullPath;
     ///The base address of the module executable image in memory.
     ulong            BaseOfImage;
     ///The size of the module executable image in memory, in bytes.
@@ -6559,7 +6559,7 @@ struct MINIDUMP_CALLBACK_INPUT
     HANDLE ProcessHandle;
     ///The type of callback function. This member can be one of the values in the MINIDUMP_CALLBACK_TYPE enumeration.
     uint   CallbackType;
-    union
+union
     {
         HRESULT              Status;
         MINIDUMP_THREAD_CALLBACK Thread;
@@ -6579,34 +6579,34 @@ struct MINIDUMP_CALLBACK_INPUT
 ///Contains information returned by the MiniDumpCallback function.
 struct MINIDUMP_CALLBACK_OUTPUT
 {
-    union
+union
     {
         uint    ModuleWriteFlags;
         uint    ThreadWriteFlags;
         uint    SecondaryFlags;
-        struct
+struct
         {
         align (4):
             ulong MemoryBase;
             uint  MemorySize;
         }
-        struct
+struct
         {
             BOOL CheckCancel;
             BOOL Cancel;
         }
         HANDLE  Handle;
-        struct
+struct
         {
             MINIDUMP_MEMORY_INFO VmRegion;
             BOOL                 Continue;
         }
-        struct
+struct
         {
             HRESULT              VmQueryStatus;
             MINIDUMP_MEMORY_INFO VmQueryResult;
         }
-        struct
+struct
         {
             HRESULT VmReadStatus;
             uint    VmReadBytesCompleted;
@@ -6638,10 +6638,10 @@ struct DebugPropertyInfo
 struct ExtendedDebugPropertyInfo
 {
     uint           dwValidFields;
-    ushort*        pszName;
-    ushort*        pszType;
-    ushort*        pszValue;
-    ushort*        pszFullName;
+    PWSTR          pszName;
+    PWSTR          pszType;
+    PWSTR          pszValue;
+    PWSTR          pszFullName;
     uint           dwAttrib;
     IDebugProperty pDebugProp;
     uint           nDISPID;
@@ -6677,21 +6677,21 @@ struct PROFILER_HEAP_OBJECT_SCOPE_LIST
 
 struct PROFILER_PROPERTY_TYPE_SUBSTRING_INFO
 {
-    uint          length;
-    const(wchar)* value;
+    uint         length;
+    const(PWSTR) value;
 }
 
 struct PROFILER_HEAP_OBJECT_RELATIONSHIP
 {
     uint relationshipId;
     __MIDL___MIDL_itf_activprof_0000_0002_0005 relationshipInfo;
-    union
+union
     {
-        double        numberValue;
-        const(wchar)* stringValue;
-        BSTR          bstrValue;
-        size_t        objectId;
-        void*         externalObjectAddress;
+        double       numberValue;
+        const(PWSTR) stringValue;
+        BSTR         bstrValue;
+        size_t       objectId;
+        void*        externalObjectAddress;
         PROFILER_PROPERTY_TYPE_SUBSTRING_INFO* subString;
     }
 }
@@ -6705,12 +6705,12 @@ struct PROFILER_HEAP_OBJECT_RELATIONSHIP_LIST
 struct PROFILER_HEAP_OBJECT_OPTIONAL_INFO
 {
     __MIDL___MIDL_itf_activprof_0000_0002_0002 infoType;
-    union
+union
     {
-        size_t        prototype;
-        const(wchar)* functionName;
-        uint          elementAttributesSize;
-        uint          elementTextChildrenSize;
+        size_t       prototype;
+        const(PWSTR) functionName;
+        uint         elementAttributesSize;
+        uint         elementTextChildrenSize;
         PROFILER_HEAP_OBJECT_SCOPE_LIST* scopeList;
         PROFILER_HEAP_OBJECT_RELATIONSHIP* internalProperty;
         PROFILER_HEAP_OBJECT_RELATIONSHIP_LIST* namePropertyList;
@@ -6726,7 +6726,7 @@ struct PROFILER_HEAP_OBJECT_OPTIONAL_INFO
 struct PROFILER_HEAP_OBJECT
 {
     uint   size;
-    union
+union
     {
         size_t objectId;
         void*  externalObjectAddress;
@@ -6770,41 +6770,6 @@ struct HTML_PAINT_DRAW_INFO
 
 // Functions
 
-///Retrieves a context record in the context of the caller.
-///Params:
-///    ContextRecord = A pointer to a CONTEXT structure.
-///Returns:
-///    This function does not return a value.
-///    
-@DllImport("KERNEL32")
-void RtlCaptureContext(CONTEXT* ContextRecord);
-
-///Initiates an unwind of procedure call frames.
-///Params:
-///    TargetFrame = A pointer to the call frame that is the target of the unwind. If this parameter is <b>NULL</b>, the function
-///                  performs an exit unwind.
-///    TargetIp = The continuation address of the unwind. This parameter is ignored if <i>TargetFrame</i> is <b>NULL</b>.
-///    ExceptionRecord = A pointer to an EXCEPTION_RECORD structure.
-///    ReturnValue = A value to be placed in the integer function return register before continuing execution.
-///Returns:
-///    This function does not return a value.
-///    
-@DllImport("KERNEL32")
-void RtlUnwind(void* TargetFrame, void* TargetIp, EXCEPTION_RECORD* ExceptionRecord, void* ReturnValue);
-
-///Retrieves the base address of the image that contains the specified PC value.
-///Params:
-///    PcValue = The PC value. The function searches all modules mapped into the address space of the calling process for a module
-///              that contains this value.
-///    BaseOfImage = The base address of the image containing the PC value. This value must be added to any relative addresses in the
-///                  headers to locate the image.
-///Returns:
-///    If the PC value is found, the function returns the base address of the image that contains the PC value. If no
-///    image contains the PC value, the function returns <b>NULL</b>.
-///    
-@DllImport("KERNEL32")
-void* RtlPcToFileHeader(void* PcValue, void** BaseOfImage);
-
 ///Reads data from an area of memory in a specified process. The entire area to be read must be accessible or the
 ///operation fails.
 ///Params:
@@ -6823,7 +6788,7 @@ void* RtlPcToFileHeader(void* PcValue, void** BaseOfImage);
 ///    function fails if the requested read operation crosses into an area of the process that is inaccessible.
 ///    
 @DllImport("KERNEL32")
-BOOL ReadProcessMemory(HANDLE hProcess, void* lpBaseAddress, char* lpBuffer, size_t nSize, 
+BOOL ReadProcessMemory(HANDLE hProcess, const(void)* lpBaseAddress, void* lpBuffer, size_t nSize, 
                        size_t* lpNumberOfBytesRead);
 
 ///Writes data to an area of memory in a specified process. The entire area to be written to must be accessible or the
@@ -6844,8 +6809,31 @@ BOOL ReadProcessMemory(HANDLE hProcess, void* lpBaseAddress, char* lpBuffer, siz
 ///    into an area of the process that is inaccessible.
 ///    
 @DllImport("KERNEL32")
-BOOL WriteProcessMemory(HANDLE hProcess, void* lpBaseAddress, char* lpBuffer, size_t nSize, 
+BOOL WriteProcessMemory(HANDLE hProcess, void* lpBaseAddress, const(void)* lpBuffer, size_t nSize, 
                         size_t* lpNumberOfBytesWritten);
+
+///Retrieves the context of the specified WOW64 thread.
+///Params:
+///    hThread = A handle to the thread whose context is to be retrieved. The handle must have <b>THREAD_GET_CONTEXT</b> access to
+///              the thread. For more information, see Thread Security and Access Rights.
+///    lpContext = A WOW64_CONTEXT structure. The caller must initialize the <b>ContextFlags</b> member of this structure.
+///Returns:
+///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get
+///    extended error information, call GetLastError.
+///    
+@DllImport("KERNEL32")
+BOOL Wow64GetThreadContext(HANDLE hThread, WOW64_CONTEXT* lpContext);
+
+///Sets the context of the specified WOW64 thread.
+///Params:
+///    hThread = A handle to the thread whose context is to be set.
+///    lpContext = A WOW64_CONTEXT structure. The caller must initialize the <b>ContextFlags</b> member of this structure.
+///Returns:
+///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get
+///    extended error information, call GetLastError.
+///    
+@DllImport("KERNEL32")
+BOOL Wow64SetThreadContext(HANDLE hThread, const(WOW64_CONTEXT)* lpContext);
 
 ///Flashes the specified window one time. It does not change the active state of the window. To flash the window a
 ///specified number of times, use the FlashWindowEx function.
@@ -6905,28 +6893,40 @@ BOOL MessageBeep(uint uType);
 @DllImport("USER32")
 void SetLastErrorEx(uint dwErrCode, uint dwType);
 
-///Retrieves the context of the specified WOW64 thread.
+///Retrieves a context record in the context of the caller.
 ///Params:
-///    hThread = A handle to the thread whose context is to be retrieved. The handle must have <b>THREAD_GET_CONTEXT</b> access to
-///              the thread. For more information, see Thread Security and Access Rights.
-///    lpContext = A WOW64_CONTEXT structure. The caller must initialize the <b>ContextFlags</b> member of this structure.
+///    ContextRecord = A pointer to a CONTEXT structure.
 ///Returns:
-///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get
-///    extended error information, call GetLastError.
+///    This function does not return a value.
 ///    
 @DllImport("KERNEL32")
-BOOL Wow64GetThreadContext(HANDLE hThread, WOW64_CONTEXT* lpContext);
+void RtlCaptureContext(CONTEXT* ContextRecord);
 
-///Sets the context of the specified WOW64 thread.
+///Initiates an unwind of procedure call frames.
 ///Params:
-///    hThread = A handle to the thread whose context is to be set.
-///    lpContext = A WOW64_CONTEXT structure. The caller must initialize the <b>ContextFlags</b> member of this structure.
+///    TargetFrame = A pointer to the call frame that is the target of the unwind. If this parameter is <b>NULL</b>, the function
+///                  performs an exit unwind.
+///    TargetIp = The continuation address of the unwind. This parameter is ignored if <i>TargetFrame</i> is <b>NULL</b>.
+///    ExceptionRecord = A pointer to an EXCEPTION_RECORD structure.
+///    ReturnValue = A value to be placed in the integer function return register before continuing execution.
 ///Returns:
-///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get
-///    extended error information, call GetLastError.
+///    This function does not return a value.
 ///    
 @DllImport("KERNEL32")
-BOOL Wow64SetThreadContext(HANDLE hThread, const(WOW64_CONTEXT)* lpContext);
+void RtlUnwind(void* TargetFrame, void* TargetIp, EXCEPTION_RECORD* ExceptionRecord, void* ReturnValue);
+
+///Retrieves the base address of the image that contains the specified PC value.
+///Params:
+///    PcValue = The PC value. The function searches all modules mapped into the address space of the calling process for a module
+///              that contains this value.
+///    BaseOfImage = The base address of the image containing the PC value. This value must be added to any relative addresses in the
+///                  headers to locate the image.
+///Returns:
+///    If the PC value is found, the function returns the base address of the image that contains the PC value. If no
+///    image contains the PC value, the function returns <b>NULL</b>.
+///    
+@DllImport("KERNEL32")
+void* RtlPcToFileHeader(void* PcValue, void** BaseOfImage);
 
 ///Retrieves the context of the specified thread. A 64-bit application can retrieve the context of a WOW64 thread using
 ///the [Wow64GetThreadContext](/windows/desktop/api/winbase/nf-winbase-wow64getthreadcontext).
@@ -6975,7 +6975,7 @@ BOOL SetThreadContext(HANDLE hThread, const(CONTEXT)* lpContext);
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL FlushInstructionCache(HANDLE hProcess, char* lpBaseAddress, size_t dwSize);
+BOOL FlushInstructionCache(HANDLE hProcess, const(void)* lpBaseAddress, size_t dwSize);
 
 ///Transfers execution control to the debugger. The behavior of the debugger thereafter is specific to the type of
 ///debugger used.
@@ -7146,8 +7146,8 @@ BOOL DebugBreakProcess(HANDLE Process);
 ///    information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-uint FormatMessageA(uint dwFlags, void* lpSource, uint dwMessageId, uint dwLanguageId, const(char)* lpBuffer, 
-                    uint nSize, byte** Arguments);
+uint FormatMessageA(FORMAT_MESSAGE_OPTIONS dwFlags, const(void)* lpSource, uint dwMessageId, uint dwLanguageId, 
+                    PSTR lpBuffer, uint nSize, byte** Arguments);
 
 ///Formats a message string. The function requires a message definition as input. The message definition can come from a
 ///buffer passed into the function. It can come from a message table resource in an already-loaded module. Or the caller
@@ -7254,8 +7254,8 @@ uint FormatMessageA(uint dwFlags, void* lpSource, uint dwMessageId, uint dwLangu
 ///    information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-uint FormatMessageW(uint dwFlags, void* lpSource, uint dwMessageId, uint dwLanguageId, const(wchar)* lpBuffer, 
-                    uint nSize, byte** Arguments);
+uint FormatMessageW(FORMAT_MESSAGE_OPTIONS dwFlags, const(void)* lpSource, uint dwMessageId, uint dwLanguageId, 
+                    PWSTR lpBuffer, uint nSize, byte** Arguments);
 
 ///Copies a source context structure (including any XState) onto an initialized destination context structure.
 ///Params:
@@ -7293,7 +7293,7 @@ BOOL CopyContext(CONTEXT* Destination, uint ContextFlags, CONTEXT* Source);
 ///    GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL InitializeContext(char* Buffer, uint ContextFlags, CONTEXT** Context, uint* ContextLength);
+BOOL InitializeContext(void* Buffer, uint ContextFlags, CONTEXT** Context, uint* ContextLength);
 
 ///Gets a mask of enabled XState features on x86 or x64 processors. The definition of XState feature bits are processor
 ///vendor specific. Please refer to the relevant processor reference manuals for additional information on a particular
@@ -7374,7 +7374,7 @@ void DebugBreak();
 ///Params:
 ///    lpOutputString = The null-terminated string to be displayed.
 @DllImport("KERNEL32")
-void OutputDebugStringA(const(char)* lpOutputString);
+void OutputDebugStringA(const(PSTR) lpOutputString);
 
 ///Sends a string to the debugger for display. <div class="alert"><b>Important</b> In the past, the operating system did
 ///not output Unicode strings via <b>OutputDebugStringW</b> and instead only output ASCII strings. To force
@@ -7384,7 +7384,7 @@ void OutputDebugStringA(const(char)* lpOutputString);
 ///Params:
 ///    lpOutputString = The null-terminated string to be displayed.
 @DllImport("KERNEL32")
-void OutputDebugStringW(const(wchar)* lpOutputString);
+void OutputDebugStringW(const(PWSTR) lpOutputString);
 
 ///Enables a debugger to continue a thread that previously reported a debugging event.
 ///Params:
@@ -7463,7 +7463,7 @@ BOOL DebugActiveProcessStop(uint dwProcessId);
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL CheckRemoteDebuggerPresent(HANDLE hProcess, int* pbDebuggerPresent);
+BOOL CheckRemoteDebuggerPresent(HANDLE hProcess, BOOL* pbDebuggerPresent);
 
 ///Waits for a debugging event to occur in a process being debugged. <div class="alert"><b>Important</b> In the past,
 ///the operating system did not output Unicode strings via <b>OutputDebugStringW</b> and instead only output ASCII
@@ -7531,7 +7531,8 @@ BOOL Beep(uint dwFreq, uint dwDuration);
 ///    This function does not return a value.
 ///    
 @DllImport("KERNEL32")
-void RaiseException(uint dwExceptionCode, uint dwExceptionFlags, uint nNumberOfArguments, char* lpArguments);
+void RaiseException(uint dwExceptionCode, uint dwExceptionFlags, uint nNumberOfArguments, 
+                    const(size_t)* lpArguments);
 
 ///An application-defined function that passes unhandled exceptions to the debugger, if the process is being debugged.
 ///Otherwise, it optionally displays an <b>Application Error</b> message box and causes the exception handler to be
@@ -7722,7 +7723,7 @@ void RaiseFailFastException(EXCEPTION_RECORD* pExceptionRecord, CONTEXT* pContex
 ///    uAction = This parameter must be zero.
 ///    lpMessageText = The null-terminated string that is displayed in the message box.
 @DllImport("KERNEL32")
-void FatalAppExitA(uint uAction, const(char)* lpMessageText);
+void FatalAppExitA(uint uAction, const(PSTR) lpMessageText);
 
 ///Displays a message box and terminates the application when the message box is closed. If the system is running with a
 ///debug version of Kernel32.dll, the message box gives the user the opportunity to terminate the application or to
@@ -7731,7 +7732,7 @@ void FatalAppExitA(uint uAction, const(char)* lpMessageText);
 ///    uAction = This parameter must be zero.
 ///    lpMessageText = The null-terminated string that is displayed in the message box.
 @DllImport("KERNEL32")
-void FatalAppExitW(uint uAction, const(wchar)* lpMessageText);
+void FatalAppExitW(uint uAction, const(PWSTR) lpMessageText);
 
 ///Retrieves the error mode for the calling thread.
 ///Returns:
@@ -7841,7 +7842,7 @@ void CloseThreadWaitChainSession(void* WctHandle);
 ///    
 @DllImport("ADVAPI32")
 BOOL GetThreadWaitChain(void* WctHandle, size_t Context, uint Flags, uint ThreadId, uint* NodeCount, 
-                        char* NodeInfoArray, int* IsCycle);
+                        WAITCHAIN_NODE_INFO* NodeInfoArray, int* IsCycle);
 
 ///Register COM callback functions for WCT.
 ///Params:
@@ -8788,7 +8789,7 @@ struct HTMLInputImage;
 interface IActiveScriptSite : IUnknown
 {
     HRESULT GetLCID(uint* plcid);
-    HRESULT GetItemInfo(ushort* pstrName, uint dwReturnMask, IUnknown* ppiunkItem, ITypeInfo* ppti);
+    HRESULT GetItemInfo(const(PWSTR) pstrName, uint dwReturnMask, IUnknown* ppiunkItem, ITypeInfo* ppti);
     HRESULT GetDocVersionString(BSTR* pbstrVersion);
     HRESULT OnScriptTerminate(const(VARIANT)* pvarResult, const(EXCEPINFO)* pexcepinfo);
     HRESULT OnStateChange(SCRIPTSTATE ssScriptState);
@@ -8838,9 +8839,9 @@ interface IActiveScript : IUnknown
     HRESULT SetScriptState(SCRIPTSTATE ss);
     HRESULT GetScriptState(SCRIPTSTATE* pssState);
     HRESULT Close();
-    HRESULT AddNamedItem(ushort* pstrName, uint dwFlags);
+    HRESULT AddNamedItem(const(PWSTR) pstrName, uint dwFlags);
     HRESULT AddTypeLib(const(GUID)* rguidTypeLib, uint dwMajor, uint dwMinor, uint dwFlags);
-    HRESULT GetScriptDispatch(ushort* pstrItemName, IDispatch* ppdisp);
+    HRESULT GetScriptDispatch(const(PWSTR) pstrItemName, IDispatch* ppdisp);
     HRESULT GetCurrentScriptThreadID(uint* pstidThread);
     HRESULT GetScriptThreadID(uint dwWin32ThreadId, uint* pstidThread);
     HRESULT GetScriptThreadState(uint stidThread, SCRIPTTHREADSTATE* pstsState);
@@ -8852,58 +8853,60 @@ interface IActiveScript : IUnknown
 interface IActiveScriptParse32 : IUnknown
 {
     HRESULT InitNew();
-    HRESULT AddScriptlet(ushort* pstrDefaultName, ushort* pstrCode, ushort* pstrItemName, ushort* pstrSubItemName, 
-                         ushort* pstrEventName, ushort* pstrDelimiter, uint dwSourceContextCookie, 
-                         uint ulStartingLineNumber, uint dwFlags, BSTR* pbstrName, EXCEPINFO* pexcepinfo);
-    HRESULT ParseScriptText(ushort* pstrCode, ushort* pstrItemName, IUnknown punkContext, ushort* pstrDelimiter, 
-                            uint dwSourceContextCookie, uint ulStartingLineNumber, uint dwFlags, VARIANT* pvarResult, 
-                            EXCEPINFO* pexcepinfo);
+    HRESULT AddScriptlet(const(PWSTR) pstrDefaultName, const(PWSTR) pstrCode, const(PWSTR) pstrItemName, 
+                         const(PWSTR) pstrSubItemName, const(PWSTR) pstrEventName, const(PWSTR) pstrDelimiter, 
+                         uint dwSourceContextCookie, uint ulStartingLineNumber, uint dwFlags, BSTR* pbstrName, 
+                         EXCEPINFO* pexcepinfo);
+    HRESULT ParseScriptText(const(PWSTR) pstrCode, const(PWSTR) pstrItemName, IUnknown punkContext, 
+                            const(PWSTR) pstrDelimiter, uint dwSourceContextCookie, uint ulStartingLineNumber, 
+                            uint dwFlags, VARIANT* pvarResult, EXCEPINFO* pexcepinfo);
 }
 
 @GUID("C7EF7658-E1EE-480E-97EA-D52CB4D76D17")
 interface IActiveScriptParse64 : IUnknown
 {
     HRESULT InitNew();
-    HRESULT AddScriptlet(ushort* pstrDefaultName, ushort* pstrCode, ushort* pstrItemName, ushort* pstrSubItemName, 
-                         ushort* pstrEventName, ushort* pstrDelimiter, ulong dwSourceContextCookie, 
-                         uint ulStartingLineNumber, uint dwFlags, BSTR* pbstrName, EXCEPINFO* pexcepinfo);
-    HRESULT ParseScriptText(ushort* pstrCode, ushort* pstrItemName, IUnknown punkContext, ushort* pstrDelimiter, 
-                            ulong dwSourceContextCookie, uint ulStartingLineNumber, uint dwFlags, 
-                            VARIANT* pvarResult, EXCEPINFO* pexcepinfo);
+    HRESULT AddScriptlet(const(PWSTR) pstrDefaultName, const(PWSTR) pstrCode, const(PWSTR) pstrItemName, 
+                         const(PWSTR) pstrSubItemName, const(PWSTR) pstrEventName, const(PWSTR) pstrDelimiter, 
+                         ulong dwSourceContextCookie, uint ulStartingLineNumber, uint dwFlags, BSTR* pbstrName, 
+                         EXCEPINFO* pexcepinfo);
+    HRESULT ParseScriptText(const(PWSTR) pstrCode, const(PWSTR) pstrItemName, IUnknown punkContext, 
+                            const(PWSTR) pstrDelimiter, ulong dwSourceContextCookie, uint ulStartingLineNumber, 
+                            uint dwFlags, VARIANT* pvarResult, EXCEPINFO* pexcepinfo);
 }
 
 @GUID("1CFF0050-6FDD-11D0-9328-00A0C90DCAA9")
 interface IActiveScriptParseProcedureOld32 : IUnknown
 {
-    HRESULT ParseProcedureText(ushort* pstrCode, ushort* pstrFormalParams, ushort* pstrItemName, 
-                               IUnknown punkContext, ushort* pstrDelimiter, uint dwSourceContextCookie, 
+    HRESULT ParseProcedureText(const(PWSTR) pstrCode, const(PWSTR) pstrFormalParams, const(PWSTR) pstrItemName, 
+                               IUnknown punkContext, const(PWSTR) pstrDelimiter, uint dwSourceContextCookie, 
                                uint ulStartingLineNumber, uint dwFlags, IDispatch* ppdisp);
 }
 
 @GUID("21F57128-08C9-4638-BA12-22D15D88DC5C")
 interface IActiveScriptParseProcedureOld64 : IUnknown
 {
-    HRESULT ParseProcedureText(ushort* pstrCode, ushort* pstrFormalParams, ushort* pstrItemName, 
-                               IUnknown punkContext, ushort* pstrDelimiter, ulong dwSourceContextCookie, 
+    HRESULT ParseProcedureText(const(PWSTR) pstrCode, const(PWSTR) pstrFormalParams, const(PWSTR) pstrItemName, 
+                               IUnknown punkContext, const(PWSTR) pstrDelimiter, ulong dwSourceContextCookie, 
                                uint ulStartingLineNumber, uint dwFlags, IDispatch* ppdisp);
 }
 
 @GUID("AA5B6A80-B834-11D0-932F-00A0C90DCAA9")
 interface IActiveScriptParseProcedure32 : IUnknown
 {
-    HRESULT ParseProcedureText(ushort* pstrCode, ushort* pstrFormalParams, ushort* pstrProcedureName, 
-                               ushort* pstrItemName, IUnknown punkContext, ushort* pstrDelimiter, 
-                               uint dwSourceContextCookie, uint ulStartingLineNumber, uint dwFlags, 
-                               IDispatch* ppdisp);
+    HRESULT ParseProcedureText(const(PWSTR) pstrCode, const(PWSTR) pstrFormalParams, 
+                               const(PWSTR) pstrProcedureName, const(PWSTR) pstrItemName, IUnknown punkContext, 
+                               const(PWSTR) pstrDelimiter, uint dwSourceContextCookie, uint ulStartingLineNumber, 
+                               uint dwFlags, IDispatch* ppdisp);
 }
 
 @GUID("C64713B6-E029-4CC5-9200-438B72890B6A")
 interface IActiveScriptParseProcedure64 : IUnknown
 {
-    HRESULT ParseProcedureText(ushort* pstrCode, ushort* pstrFormalParams, ushort* pstrProcedureName, 
-                               ushort* pstrItemName, IUnknown punkContext, ushort* pstrDelimiter, 
-                               ulong dwSourceContextCookie, uint ulStartingLineNumber, uint dwFlags, 
-                               IDispatch* ppdisp);
+    HRESULT ParseProcedureText(const(PWSTR) pstrCode, const(PWSTR) pstrFormalParams, 
+                               const(PWSTR) pstrProcedureName, const(PWSTR) pstrItemName, IUnknown punkContext, 
+                               const(PWSTR) pstrDelimiter, ulong dwSourceContextCookie, uint ulStartingLineNumber, 
+                               uint dwFlags, IDispatch* ppdisp);
 }
 
 @GUID("71EE5B20-FB04-11D1-B3A8-00A0C911E8B2")
@@ -8919,8 +8922,8 @@ interface IActiveScriptParseProcedure2_64 : IActiveScriptParseProcedure64
 @GUID("BB1A2AE3-A4F9-11CF-8F20-00805F2CD064")
 interface IActiveScriptEncode : IUnknown
 {
-    HRESULT EncodeSection(ushort* pchIn, uint cchIn, ushort* pchOut, uint cchOut, uint* pcchRet);
-    HRESULT DecodeScript(ushort* pchIn, uint cchIn, ushort* pchOut, uint cchOut, uint* pcchRet);
+    HRESULT EncodeSection(const(PWSTR) pchIn, uint cchIn, PWSTR pchOut, uint cchOut, uint* pcchRet);
+    HRESULT DecodeScript(const(PWSTR) pchIn, uint cchIn, PWSTR pchOut, uint cchOut, uint* pcchRet);
     HRESULT GetEncodeProgId(BSTR* pbstrOut);
 }
 
@@ -8933,7 +8936,7 @@ interface IActiveScriptHostEncode : IUnknown
 @GUID("63CDBCB0-C1B1-11D0-9336-00A0C90DCAA9")
 interface IBindEventHandler : IUnknown
 {
-    HRESULT BindHandler(ushort* pstrEvent, IDispatch pdisp);
+    HRESULT BindHandler(const(PWSTR) pstrEvent, IDispatch pdisp);
 }
 
 @GUID("B8DA6310-E19B-11D0-933C-00A0C90DCAA9")
@@ -8954,7 +8957,7 @@ interface IActiveScriptProperty : IUnknown
 @GUID("1DC9CA50-06EF-11D2-8415-006008C3FBFC")
 interface ITridentEventSink : IUnknown
 {
-    HRESULT FireEvent(ushort* pstrEvent, DISPPARAMS* pdp, VARIANT* pvarRes, EXCEPINFO* pei);
+    HRESULT FireEvent(const(PWSTR) pstrEvent, DISPPARAMS* pdp, VARIANT* pvarRes, EXCEPINFO* pei);
 }
 
 @GUID("6AA2C4A0-2B53-11D4-A2A0-00104BD35090")
@@ -8993,8 +8996,8 @@ interface IActiveScriptStringCompare : IUnknown
 interface IDebugProperty : IUnknown
 {
     HRESULT GetPropertyInfo(uint dwFieldSpec, uint nRadix, DebugPropertyInfo* pPropertyInfo);
-    HRESULT GetExtendedInfo(uint cInfos, char* rgguidExtendedInfo, char* rgvar);
-    HRESULT SetValueAsString(ushort* pszValue, uint nRadix);
+    HRESULT GetExtendedInfo(uint cInfos, GUID* rgguidExtendedInfo, VARIANT* rgvar);
+    HRESULT SetValueAsString(const(PWSTR) pszValue, uint nRadix);
     HRESULT EnumMembers(uint dwFieldSpec, uint nRadix, const(GUID)* refiid, IEnumDebugPropertyInfo* ppepi);
     HRESULT GetParent(IDebugProperty* ppDebugProp);
 }
@@ -9002,7 +9005,7 @@ interface IDebugProperty : IUnknown
 @GUID("51973C51-CB0C-11D0-B5C9-00A0244A0E7A")
 interface IEnumDebugPropertyInfo : IUnknown
 {
-    HRESULT Next(uint celt, char* pi, uint* pcEltsfetched);
+    HRESULT Next(uint celt, DebugPropertyInfo* pi, uint* pcEltsfetched);
     HRESULT Skip(uint celt);
     HRESULT Reset();
     HRESULT Clone(IEnumDebugPropertyInfo* ppepi);
@@ -9020,7 +9023,7 @@ interface IDebugExtendedProperty : IDebugProperty
 @GUID("51973C53-CB0C-11D0-B5C9-00A0244A0E7A")
 interface IEnumDebugExtendedPropertyInfo : IUnknown
 {
-    HRESULT Next(uint celt, char* rgExtendedPropertyInfo, uint* pceltFetched);
+    HRESULT Next(uint celt, ExtendedDebugPropertyInfo* rgExtendedPropertyInfo, uint* pceltFetched);
     HRESULT Skip(uint celt);
     HRESULT Reset();
     HRESULT Clone(IEnumDebugExtendedPropertyInfo* pedpe);
@@ -9065,10 +9068,10 @@ interface IDebugPropertyEnumType_Registers : IDebugPropertyEnumType_All
 @GUID("51973C10-CB0C-11D0-B5C9-00A0244A0E7A")
 interface IActiveScriptDebug32 : IUnknown
 {
-    HRESULT GetScriptTextAttributes(char* pstrCode, uint uNumCodeChars, ushort* pstrDelimiter, uint dwFlags, 
-                                    char* pattr);
-    HRESULT GetScriptletTextAttributes(char* pstrCode, uint uNumCodeChars, ushort* pstrDelimiter, uint dwFlags, 
-                                       char* pattr);
+    HRESULT GetScriptTextAttributes(const(PWSTR) pstrCode, uint uNumCodeChars, const(PWSTR) pstrDelimiter, 
+                                    uint dwFlags, ushort* pattr);
+    HRESULT GetScriptletTextAttributes(const(PWSTR) pstrCode, uint uNumCodeChars, const(PWSTR) pstrDelimiter, 
+                                       uint dwFlags, ushort* pattr);
     HRESULT EnumCodeContextsOfPosition(uint dwSourceContext, uint uCharacterOffset, uint uNumChars, 
                                        IEnumDebugCodeContexts* ppescc);
 }
@@ -9076,10 +9079,10 @@ interface IActiveScriptDebug32 : IUnknown
 @GUID("BC437E23-F5B8-47F4-BB79-7D1CE5483B86")
 interface IActiveScriptDebug64 : IUnknown
 {
-    HRESULT GetScriptTextAttributes(char* pstrCode, uint uNumCodeChars, ushort* pstrDelimiter, uint dwFlags, 
-                                    char* pattr);
-    HRESULT GetScriptletTextAttributes(char* pstrCode, uint uNumCodeChars, ushort* pstrDelimiter, uint dwFlags, 
-                                       char* pattr);
+    HRESULT GetScriptTextAttributes(const(PWSTR) pstrCode, uint uNumCodeChars, const(PWSTR) pstrDelimiter, 
+                                    uint dwFlags, ushort* pattr);
+    HRESULT GetScriptletTextAttributes(const(PWSTR) pstrCode, uint uNumCodeChars, const(PWSTR) pstrDelimiter, 
+                                       uint dwFlags, ushort* pattr);
     HRESULT EnumCodeContextsOfPosition(ulong dwSourceContext, uint uCharacterOffset, uint uNumChars, 
                                        IEnumDebugCodeContexts* ppescc);
 }
@@ -9091,8 +9094,8 @@ interface IActiveScriptSiteDebug32 : IUnknown
                                            IDebugDocumentContext* ppsc);
     HRESULT GetApplication(IDebugApplication32* ppda);
     HRESULT GetRootApplicationNode(IDebugApplicationNode* ppdanRoot);
-    HRESULT OnScriptErrorDebug(IActiveScriptErrorDebug pErrorDebug, int* pfEnterDebugger, 
-                               int* pfCallOnScriptErrorWhenContinuing);
+    HRESULT OnScriptErrorDebug(IActiveScriptErrorDebug pErrorDebug, BOOL* pfEnterDebugger, 
+                               BOOL* pfCallOnScriptErrorWhenContinuing);
 }
 
 @GUID("D6B96B0A-7463-402C-92AC-89984226942F")
@@ -9102,15 +9105,15 @@ interface IActiveScriptSiteDebug64 : IUnknown
                                            IDebugDocumentContext* ppsc);
     HRESULT GetApplication(IDebugApplication64* ppda);
     HRESULT GetRootApplicationNode(IDebugApplicationNode* ppdanRoot);
-    HRESULT OnScriptErrorDebug(IActiveScriptErrorDebug pErrorDebug, int* pfEnterDebugger, 
-                               int* pfCallOnScriptErrorWhenContinuing);
+    HRESULT OnScriptErrorDebug(IActiveScriptErrorDebug pErrorDebug, BOOL* pfEnterDebugger, 
+                               BOOL* pfCallOnScriptErrorWhenContinuing);
 }
 
 @GUID("BB722CCB-6AD2-41C6-B780-AF9C03EE69F5")
 interface IActiveScriptSiteDebugEx : IUnknown
 {
     HRESULT OnCanNotJITScriptErrorDebug(IActiveScriptErrorDebug pErrorDebug, 
-                                        int* pfCallOnScriptErrorWhenContinuing);
+                                        BOOL* pfCallOnScriptErrorWhenContinuing);
 }
 
 @GUID("51973C12-CB0C-11D0-B5C9-00A0244A0E7A")
@@ -9133,14 +9136,14 @@ interface IDebugExpression : IUnknown
     HRESULT Start(IDebugExpressionCallBack pdecb);
     HRESULT Abort();
     HRESULT QueryIsComplete();
-    HRESULT GetResultAsString(int* phrResult, BSTR* pbstrResult);
-    HRESULT GetResultAsDebugProperty(int* phrResult, IDebugProperty* ppdp);
+    HRESULT GetResultAsString(HRESULT* phrResult, BSTR* pbstrResult);
+    HRESULT GetResultAsDebugProperty(HRESULT* phrResult, IDebugProperty* ppdp);
 }
 
 @GUID("51973C15-CB0C-11D0-B5C9-00A0244A0E7A")
 interface IDebugExpressionContext : IUnknown
 {
-    HRESULT ParseLanguageText(ushort* pstrCode, uint nRadix, ushort* pstrDelimiter, uint dwFlags, 
+    HRESULT ParseLanguageText(const(PWSTR) pstrCode, uint nRadix, const(PWSTR) pstrDelimiter, uint dwFlags, 
                               IDebugExpression* ppe);
     HRESULT GetLanguageInfo(BSTR* pbstrLanguageName, GUID* pLanguageID);
 }
@@ -9194,7 +9197,7 @@ interface IDebugAsyncOperation : IUnknown
     HRESULT Start(IDebugAsyncOperationCallBack padocb);
     HRESULT Abort();
     HRESULT QueryIsComplete();
-    HRESULT GetResult(int* phrResult, IUnknown* ppunkResult);
+    HRESULT GetResult(HRESULT* phrResult, IUnknown* ppunkResult);
 }
 
 @GUID("51973C1C-CB0C-11D0-B5C9-00A0244A0E7A")
@@ -9252,7 +9255,8 @@ interface IDebugDocumentText : IDebugDocument
     HRESULT GetSize(uint* pcNumLines, uint* pcNumChars);
     HRESULT GetPositionOfLine(uint cLineNumber, uint* pcCharacterPosition);
     HRESULT GetLineOfPosition(uint cCharacterPosition, uint* pcLineNumber, uint* pcCharacterOffsetInLine);
-    HRESULT GetText(uint cCharacterPosition, char* pcharText, char* pstaTextAttr, uint* pcNumChars, uint cMaxChars);
+    HRESULT GetText(uint cCharacterPosition, PWSTR pcharText, ushort* pstaTextAttr, uint* pcNumChars, 
+                    uint cMaxChars);
     HRESULT GetPositionOfContext(IDebugDocumentContext psc, uint* pcCharacterPosition, uint* cNumChars);
     HRESULT GetContextOfPosition(uint cCharacterPosition, uint cNumChars, IDebugDocumentContext* ppsc);
 }
@@ -9271,15 +9275,15 @@ interface IDebugDocumentTextEvents : IUnknown
 @GUID("51973C24-CB0C-11D0-B5C9-00A0244A0E7A")
 interface IDebugDocumentTextAuthor : IDebugDocumentText
 {
-    HRESULT InsertText(uint cCharacterPosition, uint cNumToInsert, char* pcharText);
+    HRESULT InsertText(uint cCharacterPosition, uint cNumToInsert, ushort* pcharText);
     HRESULT RemoveText(uint cCharacterPosition, uint cNumToRemove);
-    HRESULT ReplaceTextA(uint cCharacterPosition, uint cNumToReplace, char* pcharText);
+    HRESULT ReplaceTextA(uint cCharacterPosition, uint cNumToReplace, ushort* pcharText);
 }
 
 @GUID("51973C25-CB0C-11D0-B5C9-00A0244A0E7A")
 interface IDebugDocumentTextExternalAuthor : IUnknown
 {
-    HRESULT GetPathName(BSTR* pbstrLongName, int* pfIsOriginalFile);
+    HRESULT GetPathName(BSTR* pbstrLongName, BOOL* pfIsOriginalFile);
     HRESULT GetFileName(BSTR* pbstrShortName);
     HRESULT NotifyChanged();
 }
@@ -9287,19 +9291,19 @@ interface IDebugDocumentTextExternalAuthor : IUnknown
 @GUID("51973C26-CB0C-11D0-B5C9-00A0244A0E7A")
 interface IDebugDocumentHelper32 : IUnknown
 {
-    HRESULT Init(IDebugApplication32 pda, ushort* pszShortName, ushort* pszLongName, uint docAttr);
+    HRESULT Init(IDebugApplication32 pda, const(PWSTR) pszShortName, const(PWSTR) pszLongName, uint docAttr);
     HRESULT Attach(IDebugDocumentHelper32 pddhParent);
     HRESULT Detach();
-    HRESULT AddUnicodeText(ushort* pszText);
-    HRESULT AddDBCSText(const(char)* pszText);
+    HRESULT AddUnicodeText(const(PWSTR) pszText);
+    HRESULT AddDBCSText(const(PSTR) pszText);
     HRESULT SetDebugDocumentHost(IDebugDocumentHost pddh);
     HRESULT AddDeferredText(uint cChars, uint dwTextStartCookie);
     HRESULT DefineScriptBlock(uint ulCharOffset, uint cChars, IActiveScript pas, BOOL fScriptlet, 
                               uint* pdwSourceContext);
     HRESULT SetDefaultTextAttr(ushort staTextAttr);
-    HRESULT SetTextAttributes(uint ulCharOffset, uint cChars, char* pstaTextAttr);
-    HRESULT SetLongName(ushort* pszLongName);
-    HRESULT SetShortName(ushort* pszShortName);
+    HRESULT SetTextAttributes(uint ulCharOffset, uint cChars, ushort* pstaTextAttr);
+    HRESULT SetLongName(const(PWSTR) pszLongName);
+    HRESULT SetShortName(const(PWSTR) pszShortName);
     HRESULT SetDocumentAttr(uint pszAttributes);
     HRESULT GetDebugApplicationNode(IDebugApplicationNode* ppdan);
     HRESULT GetScriptBlockInfo(uint dwSourceContext, IActiveScript* ppasd, uint* piCharPos, uint* pcChars);
@@ -9311,19 +9315,19 @@ interface IDebugDocumentHelper32 : IUnknown
 @GUID("C4C7363C-20FD-47F9-BD82-4855E0150871")
 interface IDebugDocumentHelper64 : IUnknown
 {
-    HRESULT Init(IDebugApplication64 pda, ushort* pszShortName, ushort* pszLongName, uint docAttr);
+    HRESULT Init(IDebugApplication64 pda, const(PWSTR) pszShortName, const(PWSTR) pszLongName, uint docAttr);
     HRESULT Attach(IDebugDocumentHelper64 pddhParent);
     HRESULT Detach();
-    HRESULT AddUnicodeText(ushort* pszText);
-    HRESULT AddDBCSText(const(char)* pszText);
+    HRESULT AddUnicodeText(const(PWSTR) pszText);
+    HRESULT AddDBCSText(const(PSTR) pszText);
     HRESULT SetDebugDocumentHost(IDebugDocumentHost pddh);
     HRESULT AddDeferredText(uint cChars, uint dwTextStartCookie);
     HRESULT DefineScriptBlock(uint ulCharOffset, uint cChars, IActiveScript pas, BOOL fScriptlet, 
                               ulong* pdwSourceContext);
     HRESULT SetDefaultTextAttr(ushort staTextAttr);
-    HRESULT SetTextAttributes(uint ulCharOffset, uint cChars, char* pstaTextAttr);
-    HRESULT SetLongName(ushort* pszLongName);
-    HRESULT SetShortName(ushort* pszShortName);
+    HRESULT SetTextAttributes(uint ulCharOffset, uint cChars, ushort* pstaTextAttr);
+    HRESULT SetLongName(const(PWSTR) pszLongName);
+    HRESULT SetShortName(const(PWSTR) pszShortName);
     HRESULT SetDocumentAttr(uint pszAttributes);
     HRESULT GetDebugApplicationNode(IDebugApplicationNode* ppdan);
     HRESULT GetScriptBlockInfo(ulong dwSourceContext, IActiveScript* ppasd, uint* piCharPos, uint* pcChars);
@@ -9335,12 +9339,12 @@ interface IDebugDocumentHelper64 : IUnknown
 @GUID("51973C27-CB0C-11D0-B5C9-00A0244A0E7A")
 interface IDebugDocumentHost : IUnknown
 {
-    HRESULT GetDeferredText(uint dwTextStartCookie, char* pcharText, char* pstaTextAttr, uint* pcNumChars, 
+    HRESULT GetDeferredText(uint dwTextStartCookie, PWSTR pcharText, ushort* pstaTextAttr, uint* pcNumChars, 
                             uint cMaxChars);
-    HRESULT GetScriptTextAttributes(char* pstrCode, uint uNumCodeChars, ushort* pstrDelimiter, uint dwFlags, 
-                                    char* pattr);
+    HRESULT GetScriptTextAttributes(const(PWSTR) pstrCode, uint uNumCodeChars, const(PWSTR) pstrDelimiter, 
+                                    uint dwFlags, ushort* pattr);
     HRESULT OnCreateDocumentContext(IUnknown* ppunkOuter);
-    HRESULT GetPathName(BSTR* pbstrLongName, int* pfIsOriginalFile);
+    HRESULT GetPathName(BSTR* pbstrLongName, BOOL* pfIsOriginalFile);
     HRESULT GetFileName(BSTR* pbstrShortName);
     HRESULT NotifyChanged();
 }
@@ -9364,7 +9368,7 @@ interface IApplicationDebugger : IUnknown
     HRESULT QueryAlive();
     HRESULT CreateInstanceAtDebugger(const(GUID)* rclsid, IUnknown pUnkOuter, uint dwClsContext, const(GUID)* riid, 
                                      IUnknown* ppvObject);
-    HRESULT onDebugOutput(ushort* pstr);
+    HRESULT onDebugOutput(const(PWSTR) pstr);
     HRESULT onHandleBreakPoint(IRemoteDebugApplicationThread prpt, BREAKREASON br, IActiveScriptErrorDebug pError);
     HRESULT onClose();
     HRESULT onDebuggerEvent(const(GUID)* riid, IUnknown punk);
@@ -9441,9 +9445,9 @@ interface IRemoteDebugApplication : IUnknown
 @GUID("51973C32-CB0C-11D0-B5C9-00A0244A0E7A")
 interface IDebugApplication32 : IRemoteDebugApplication
 {
-    HRESULT SetName(ushort* pstrName);
+    HRESULT SetName(const(PWSTR) pstrName);
     HRESULT StepOutComplete();
-    HRESULT DebugOutput(ushort* pstr);
+    HRESULT DebugOutput(const(PWSTR) pstr);
     HRESULT StartDebugSession();
     HRESULT HandleBreakPoint(BREAKREASON br, tagBREAKRESUME_ACTION* pbra);
     HRESULT Close();
@@ -9457,7 +9461,7 @@ interface IDebugApplication32 : IRemoteDebugApplication
     HRESULT CreateApplicationNode(IDebugApplicationNode* ppdanNew);
     HRESULT FireDebuggerEvent(const(GUID)* riid, IUnknown punk);
     HRESULT HandleRuntimeError(IActiveScriptErrorDebug pErrorDebug, IActiveScriptSite pScriptSite, 
-                               tagBREAKRESUME_ACTION* pbra, ERRORRESUMEACTION* perra, int* pfCallOnScriptError);
+                               tagBREAKRESUME_ACTION* pbra, ERRORRESUMEACTION* perra, BOOL* pfCallOnScriptError);
     BOOL    FCanJitDebug();
     BOOL    FIsAutoJitDebugEnabled();
     HRESULT AddGlobalExpressionContextProvider(IProvideExpressionContexts pdsfs, uint* pdwCookie);
@@ -9467,9 +9471,9 @@ interface IDebugApplication32 : IRemoteDebugApplication
 @GUID("4DEDC754-04C7-4F10-9E60-16A390FE6E62")
 interface IDebugApplication64 : IRemoteDebugApplication
 {
-    HRESULT SetName(ushort* pstrName);
+    HRESULT SetName(const(PWSTR) pstrName);
     HRESULT StepOutComplete();
-    HRESULT DebugOutput(ushort* pstr);
+    HRESULT DebugOutput(const(PWSTR) pstr);
     HRESULT StartDebugSession();
     HRESULT HandleBreakPoint(BREAKREASON br, tagBREAKRESUME_ACTION* pbra);
     HRESULT Close();
@@ -9484,7 +9488,7 @@ interface IDebugApplication64 : IRemoteDebugApplication
     HRESULT CreateApplicationNode(IDebugApplicationNode* ppdanNew);
     HRESULT FireDebuggerEvent(const(GUID)* riid, IUnknown punk);
     HRESULT HandleRuntimeError(IActiveScriptErrorDebug pErrorDebug, IActiveScriptSite pScriptSite, 
-                               tagBREAKRESUME_ACTION* pbra, ERRORRESUMEACTION* perra, int* pfCallOnScriptError);
+                               tagBREAKRESUME_ACTION* pbra, ERRORRESUMEACTION* perra, BOOL* pfCallOnScriptError);
     BOOL    FCanJitDebug();
     BOOL    FIsAutoJitDebugEnabled();
     HRESULT AddGlobalExpressionContextProvider(IProvideExpressionContexts pdsfs, ulong* pdwCookie);
@@ -9496,8 +9500,8 @@ interface IRemoteDebugApplicationEvents : IUnknown
 {
     HRESULT OnConnectDebugger(IApplicationDebugger pad);
     HRESULT OnDisconnectDebugger();
-    HRESULT OnSetName(ushort* pstrName);
-    HRESULT OnDebugOutput(ushort* pstr);
+    HRESULT OnSetName(const(PWSTR) pstrName);
+    HRESULT OnDebugOutput(const(PWSTR) pstr);
     HRESULT OnClose();
     HRESULT OnEnterBreakPoint(IRemoteDebugApplicationThread prdat);
     HRESULT OnLeaveBreakPoint(IRemoteDebugApplicationThread prdat);
@@ -9571,8 +9575,8 @@ interface IDebugApplicationThread : IRemoteDebugApplicationThread
     HRESULT SynchronousCallIntoThread32(IDebugThreadCall32 pstcb, uint dwParam1, uint dwParam2, uint dwParam3);
     HRESULT QueryIsCurrentThread();
     HRESULT QueryIsDebuggerThread();
-    HRESULT SetDescription(ushort* pstrDescription);
-    HRESULT SetStateString(ushort* pstrState);
+    HRESULT SetDescription(const(PWSTR) pstrDescription);
+    HRESULT SetStateString(const(PWSTR) pstrState);
 }
 
 @GUID("9DAC5886-DBAD-456D-9DEE-5DEC39AB3DDA")
@@ -9618,7 +9622,7 @@ interface IEnumRemoteDebugApplicationThreads : IUnknown
 interface IDebugFormatter : IUnknown
 {
     HRESULT GetStringForVariant(VARIANT* pvar, uint nRadix, BSTR* pbstrValue);
-    HRESULT GetVariantForString(ushort* pwstrValue, VARIANT* pvar);
+    HRESULT GetVariantForString(const(PWSTR) pwstrValue, VARIANT* pvar);
     HRESULT GetStringForVarType(ushort vt, TYPEDESC* ptdescArrayType, BSTR* pbstr);
 }
 
@@ -9634,9 +9638,9 @@ interface ISimpleConnectionPoint : IUnknown
 @GUID("51973C3F-CB0C-11D0-B5C9-00A0244A0E7A")
 interface IDebugHelper : IUnknown
 {
-    HRESULT CreatePropertyBrowser(VARIANT* pvar, ushort* bstrName, IDebugApplicationThread pdat, 
+    HRESULT CreatePropertyBrowser(VARIANT* pvar, const(PWSTR) bstrName, IDebugApplicationThread pdat, 
                                   IDebugProperty* ppdob);
-    HRESULT CreatePropertyBrowserEx(VARIANT* pvar, ushort* bstrName, IDebugApplicationThread pdat, 
+    HRESULT CreatePropertyBrowserEx(VARIANT* pvar, const(PWSTR) bstrName, IDebugApplicationThread pdat, 
                                     IDebugFormatter pdf, IDebugProperty* ppdob);
     HRESULT CreateSimpleConnectionPoint(IDispatch pdisp, ISimpleConnectionPoint* ppscp);
 }
@@ -9678,7 +9682,7 @@ interface IActiveScriptProfilerHeapEnum : IUnknown
     HRESULT GetOptionalInfo(PROFILER_HEAP_OBJECT* heapObject, uint celt, 
                             PROFILER_HEAP_OBJECT_OPTIONAL_INFO* optionalInfo);
     HRESULT FreeObjectAndOptionalInfo(uint celt, PROFILER_HEAP_OBJECT** heapObjects);
-    HRESULT GetNameIdMap(ushort*** pNameList, uint* pcelt);
+    HRESULT GetNameIdMap(PWSTR*** pNameList, uint* pcelt);
 }
 
 @GUID("0B403015-F381-4023-A5D0-6FED076DE716")
@@ -9706,8 +9710,8 @@ interface IActiveScriptProfilerCallback : IUnknown
     HRESULT Shutdown(HRESULT hrReason);
     HRESULT ScriptCompiled(int scriptId, __MIDL___MIDL_itf_activprof_0000_0000_0001 type, 
                            IUnknown pIDebugDocumentContext);
-    HRESULT FunctionCompiled(int functionId, int scriptId, const(wchar)* pwszFunctionName, 
-                             const(wchar)* pwszFunctionNameHint, IUnknown pIDebugDocumentContext);
+    HRESULT FunctionCompiled(int functionId, int scriptId, const(PWSTR) pwszFunctionName, 
+                             const(PWSTR) pwszFunctionNameHint, IUnknown pIDebugDocumentContext);
     HRESULT OnFunctionEnter(int scriptId, int functionId);
     HRESULT OnFunctionExit(int scriptId, int functionId);
 }
@@ -9715,8 +9719,8 @@ interface IActiveScriptProfilerCallback : IUnknown
 @GUID("31B7F8AD-A637-409C-B22F-040995B6103D")
 interface IActiveScriptProfilerCallback2 : IActiveScriptProfilerCallback
 {
-    HRESULT OnFunctionEnterByName(const(wchar)* pwszFunctionName, __MIDL___MIDL_itf_activprof_0000_0000_0001 type);
-    HRESULT OnFunctionExitByName(const(wchar)* pwszFunctionName, __MIDL___MIDL_itf_activprof_0000_0000_0001 type);
+    HRESULT OnFunctionEnterByName(const(PWSTR) pwszFunctionName, __MIDL___MIDL_itf_activprof_0000_0000_0001 type);
+    HRESULT OnFunctionExitByName(const(PWSTR) pwszFunctionName, __MIDL___MIDL_itf_activprof_0000_0000_0001 type);
 }
 
 @GUID("6AC5AD25-2037-4687-91DF-B59979D93D73")
@@ -9798,12 +9802,12 @@ interface IElementBehaviorFactory : IUnknown
 @GUID("3050F489-98B5-11CF-BB82-00AA00BDCE0B")
 interface IElementBehaviorSiteOM : IUnknown
 {
-    HRESULT RegisterEvent(ushort* pchEvent, int lFlags, int* plCookie);
-    HRESULT GetEventCookie(ushort* pchEvent, int* plCookie);
+    HRESULT RegisterEvent(PWSTR pchEvent, int lFlags, int* plCookie);
+    HRESULT GetEventCookie(PWSTR pchEvent, int* plCookie);
     HRESULT FireEvent(int lCookie, IHTMLEventObj pEventObject);
     HRESULT CreateEventObject(IHTMLEventObj* ppEventObject);
-    HRESULT RegisterName(ushort* pchName);
-    HRESULT RegisterUrn(ushort* pchUrn);
+    HRESULT RegisterName(PWSTR pchName);
+    HRESULT RegisterUrn(PWSTR pchUrn);
 }
 
 @GUID("3050F4AA-98B5-11CF-BB82-00AA00BDCE0B")
@@ -9811,7 +9815,7 @@ interface IElementBehaviorRender : IUnknown
 {
     HRESULT Draw(HDC hdc, int lLayer, RECT* pRect, IUnknown pReserved);
     HRESULT GetRenderInfo(int* plRenderInfo);
-    HRESULT HitTestPoint(POINT* pPoint, IUnknown pReserved, int* pbHit);
+    HRESULT HitTestPoint(POINT* pPoint, IUnknown pReserved, BOOL* pbHit);
 }
 
 @GUID("3050F4A7-98B5-11CF-BB82-00AA00BDCE0B")
@@ -13756,7 +13760,7 @@ interface IHTMLSelectElementEx : IUnknown
     HRESULT ShowDropdown(BOOL fShow);
     HRESULT SetSelectExFlags(uint lFlags);
     HRESULT GetSelectExFlags(uint* pFlags);
-    HRESULT GetDropdownOpen(int* pfOpen);
+    HRESULT GetDropdownOpen(BOOL* pfOpen);
 }
 
 @GUID("3050F244-98B5-11CF-BB82-00AA00BDCE0B")
@@ -19240,24 +19244,24 @@ interface IMarkupPointer : IUnknown
     HRESULT OwningDoc(IHTMLDocument2* ppDoc);
     HRESULT Gravity(POINTER_GRAVITY* pGravity);
     HRESULT SetGravity(POINTER_GRAVITY Gravity);
-    HRESULT Cling(int* pfCling);
+    HRESULT Cling(BOOL* pfCling);
     HRESULT SetCling(BOOL fCLing);
     HRESULT Unposition();
-    HRESULT IsPositioned(int* pfPositioned);
+    HRESULT IsPositioned(BOOL* pfPositioned);
     HRESULT GetContainer(IMarkupContainer* ppContainer);
     HRESULT MoveAdjacentToElement(IHTMLElement pElement, ELEMENT_ADJACENCY eAdj);
     HRESULT MoveToPointer(IMarkupPointer pPointer);
     HRESULT MoveToContainer(IMarkupContainer pContainer, BOOL fAtStart);
-    HRESULT Left(BOOL fMove, MARKUP_CONTEXT_TYPE* pContext, IHTMLElement* ppElement, int* pcch, char* pchText);
-    HRESULT Right(BOOL fMove, MARKUP_CONTEXT_TYPE* pContext, IHTMLElement* ppElement, int* pcch, char* pchText);
+    HRESULT Left(BOOL fMove, MARKUP_CONTEXT_TYPE* pContext, IHTMLElement* ppElement, int* pcch, PWSTR pchText);
+    HRESULT Right(BOOL fMove, MARKUP_CONTEXT_TYPE* pContext, IHTMLElement* ppElement, int* pcch, PWSTR pchText);
     HRESULT CurrentScope(IHTMLElement* ppElemCurrent);
-    HRESULT IsLeftOf(IMarkupPointer pPointerThat, int* pfResult);
-    HRESULT IsLeftOfOrEqualTo(IMarkupPointer pPointerThat, int* pfResult);
-    HRESULT IsRightOf(IMarkupPointer pPointerThat, int* pfResult);
-    HRESULT IsRightOfOrEqualTo(IMarkupPointer pPointerThat, int* pfResult);
-    HRESULT IsEqualTo(IMarkupPointer pPointerThat, int* pfAreEqual);
+    HRESULT IsLeftOf(IMarkupPointer pPointerThat, BOOL* pfResult);
+    HRESULT IsLeftOfOrEqualTo(IMarkupPointer pPointerThat, BOOL* pfResult);
+    HRESULT IsRightOf(IMarkupPointer pPointerThat, BOOL* pfResult);
+    HRESULT IsRightOfOrEqualTo(IMarkupPointer pPointerThat, BOOL* pfResult);
+    HRESULT IsEqualTo(IMarkupPointer pPointerThat, BOOL* pfAreEqual);
     HRESULT MoveUnit(MOVEUNIT_ACTION muAction);
-    HRESULT FindTextA(ushort* pchFindText, uint dwFlags, IMarkupPointer pIEndMatch, IMarkupPointer pIEndSearch);
+    HRESULT FindTextA(PWSTR pchFindText, uint dwFlags, IMarkupPointer pIEndMatch, IMarkupPointer pIEndSearch);
 }
 
 @GUID("3050F5F9-98B5-11CF-BB82-00AA00BDCE0B")
@@ -19295,7 +19299,7 @@ interface ISegmentList : IUnknown
 {
     HRESULT CreateIterator(ISegmentListIterator* ppIIter);
     HRESULT GetType(SELECTION_TYPE* peType);
-    HRESULT IsEmpty(int* pfEmpty);
+    HRESULT IsEmpty(BOOL* pfEmpty);
 }
 
 @GUID("3050F692-98B5-11CF-BB82-00AA00BDCE0B")
@@ -19315,10 +19319,10 @@ interface IHTMLCaret : IUnknown
                                  CARET_DIRECTION eDir);
     HRESULT MoveMarkupPointerToCaret(IMarkupPointer pIMarkupPointer);
     HRESULT MoveDisplayPointerToCaret(IDisplayPointer pDispPointer);
-    HRESULT IsVisible(int* pIsVisible);
+    HRESULT IsVisible(BOOL* pIsVisible);
     HRESULT Show(BOOL fScrollIntoView);
     HRESULT Hide();
-    HRESULT InsertText(ushort* pText, int lLen);
+    HRESULT InsertText(PWSTR pText, int lLen);
     HRESULT ScrollIntoView();
     HRESULT GetLocation(POINT* pPoint, BOOL fTranslate);
     HRESULT GetCaretDirection(CARET_DIRECTION* peDir);
@@ -19336,7 +19340,7 @@ interface IElementSegment : ISegment
 {
     HRESULT GetElement(IHTMLElement* ppIElement);
     HRESULT SetPrimary(BOOL fPrimary);
-    HRESULT IsPrimary(int* pfPrimary);
+    HRESULT IsPrimary(BOOL* pfPrimary);
 }
 
 @GUID("3050F690-98B5-11CF-BB82-00AA00BDCE0B")
@@ -19376,12 +19380,12 @@ interface IDisplayPointer : IUnknown
     HRESULT GetPointerGravity(POINTER_GRAVITY* peGravity);
     HRESULT SetDisplayGravity(DISPLAY_GRAVITY eGravity);
     HRESULT GetDisplayGravity(DISPLAY_GRAVITY* peGravity);
-    HRESULT IsPositioned(int* pfPositioned);
+    HRESULT IsPositioned(BOOL* pfPositioned);
     HRESULT Unposition();
-    HRESULT IsEqualTo(IDisplayPointer pDispPointer, int* pfIsEqual);
-    HRESULT IsLeftOf(IDisplayPointer pDispPointer, int* pfIsLeftOf);
-    HRESULT IsRightOf(IDisplayPointer pDispPointer, int* pfIsRightOf);
-    HRESULT IsAtBOL(int* pfBOL);
+    HRESULT IsEqualTo(IDisplayPointer pDispPointer, BOOL* pfIsEqual);
+    HRESULT IsLeftOf(IDisplayPointer pDispPointer, BOOL* pfIsLeftOf);
+    HRESULT IsRightOf(IDisplayPointer pDispPointer, BOOL* pfIsRightOf);
+    HRESULT IsAtBOL(BOOL* pfBOL);
     HRESULT MoveToMarkupPointer(IMarkupPointer pPointer, IDisplayPointer pDispLineContext);
     HRESULT ScrollIntoView();
     HRESULT GetLineInfo(ILineInfo* ppLineInfo);
@@ -19398,7 +19402,7 @@ interface IDisplayServices : IUnknown
     HRESULT GetCaret(IHTMLCaret* ppCaret);
     HRESULT GetComputedStyle(IMarkupPointer pPointer, IHTMLComputedStyle* ppComputedStyle);
     HRESULT ScrollRectIntoView(IHTMLElement pIElement, RECT rect);
-    HRESULT HasFlowLayout(IHTMLElement pIElement, int* pfHasFlowLayout);
+    HRESULT HasFlowLayout(IHTMLElement pIElement, BOOL* pfHasFlowLayout);
 }
 
 @GUID("3050F81A-98B5-11CF-BB82-00AA00BDCE0B")
@@ -19436,7 +19440,7 @@ interface ICSSFilter : IUnknown
 @GUID("C81984C4-74C8-11D2-BAA9-00C04FC2040E")
 interface ISecureUrlHost : IUnknown
 {
-    HRESULT ValidateSecureUrl(int* pfAllow, ushort* pchUrlInQuestion, uint dwFlags);
+    HRESULT ValidateSecureUrl(BOOL* pfAllow, PWSTR pchUrlInQuestion, uint dwFlags);
 }
 
 @GUID("3050F4A0-98B5-11CF-BB82-00AA00BDCE0B")
@@ -19444,7 +19448,7 @@ interface IMarkupServices : IUnknown
 {
     HRESULT CreateMarkupPointer(IMarkupPointer* ppPointer);
     HRESULT CreateMarkupContainer(IMarkupContainer* ppMarkupContainer);
-    HRESULT CreateElement(ELEMENT_TAG_ID tagID, ushort* pchAttributes, IHTMLElement* ppElement);
+    HRESULT CreateElement(ELEMENT_TAG_ID tagID, PWSTR pchAttributes, IHTMLElement* ppElement);
     HRESULT CloneElement(IHTMLElement pElemCloneThis, IHTMLElement* ppElementTheClone);
     HRESULT InsertElement(IHTMLElement pElementInsert, IMarkupPointer pPointerStart, IMarkupPointer pPointerFinish);
     HRESULT RemoveElement(IHTMLElement pElementRemove);
@@ -19453,18 +19457,18 @@ interface IMarkupServices : IUnknown
                  IMarkupPointer pPointerTarget);
     HRESULT Move(IMarkupPointer pPointerSourceStart, IMarkupPointer pPointerSourceFinish, 
                  IMarkupPointer pPointerTarget);
-    HRESULT InsertText(ushort* pchText, int cch, IMarkupPointer pPointerTarget);
-    HRESULT ParseString(ushort* pchHTML, uint dwFlags, IMarkupContainer* ppContainerResult, 
+    HRESULT InsertText(PWSTR pchText, int cch, IMarkupPointer pPointerTarget);
+    HRESULT ParseString(PWSTR pchHTML, uint dwFlags, IMarkupContainer* ppContainerResult, 
                         IMarkupPointer ppPointerStart, IMarkupPointer ppPointerFinish);
     HRESULT ParseGlobal(ptrdiff_t hglobalHTML, uint dwFlags, IMarkupContainer* ppContainerResult, 
                         IMarkupPointer pPointerStart, IMarkupPointer pPointerFinish);
-    HRESULT IsScopedElement(IHTMLElement pElement, int* pfScoped);
+    HRESULT IsScopedElement(IHTMLElement pElement, BOOL* pfScoped);
     HRESULT GetElementTagId(IHTMLElement pElement, ELEMENT_TAG_ID* ptagId);
     HRESULT GetTagIDForName(BSTR bstrName, ELEMENT_TAG_ID* ptagId);
     HRESULT GetNameForTagID(ELEMENT_TAG_ID tagId, BSTR* pbstrName);
     HRESULT MovePointersToRange(IHTMLTxtRange pIRange, IMarkupPointer pPointerStart, IMarkupPointer pPointerFinish);
     HRESULT MoveRangeToPointers(IMarkupPointer pPointerStart, IMarkupPointer pPointerFinish, IHTMLTxtRange pIRange);
-    HRESULT BeginUndoUnit(ushort* pchTitle);
+    HRESULT BeginUndoUnit(PWSTR pchTitle);
     HRESULT EndUndoUnit();
 }
 
@@ -19489,11 +19493,11 @@ interface IHTMLChangePlayback : IUnknown
 @GUID("3050F675-98B5-11CF-BB82-00AA00BDCE0B")
 interface IMarkupPointer2 : IMarkupPointer
 {
-    HRESULT IsAtWordBreak(int* pfAtBreak);
+    HRESULT IsAtWordBreak(BOOL* pfAtBreak);
     HRESULT GetMarkupPosition(int* plMP);
     HRESULT MoveToMarkupPosition(IMarkupContainer pContainer, int lMP);
     HRESULT MoveUnitBounded(MOVEUNIT_ACTION muAction, IMarkupPointer pIBoundary);
-    HRESULT IsInsideURL(IMarkupPointer pRight, int* pfResult);
+    HRESULT IsInsideURL(IMarkupPointer pRight, BOOL* pfResult);
     HRESULT MoveToContent(IHTMLElement pIElement, BOOL fAtStart);
 }
 
@@ -19504,7 +19508,7 @@ interface IMarkupTextFrags : IUnknown
     HRESULT GetTextFrag(int iFrag, BSTR* pbstrFrag, IMarkupPointer pPointerFrag);
     HRESULT RemoveTextFrag(int iFrag);
     HRESULT InsertTextFrag(int iFrag, BSTR bstrInsert, IMarkupPointer pPointerInsert);
-    HRESULT FindTextFragFromMarkupPointer(IMarkupPointer pPointerFind, int* piFrag, int* pfFragFound);
+    HRESULT FindTextFragFromMarkupPointer(IMarkupPointer pPointerFind, int* piFrag, BOOL* pfFragFound);
 }
 
 @GUID("E4E23071-4D07-11D2-AE76-0080C73BC199")
@@ -19615,13 +19619,13 @@ interface IHTMLComputedStyle : IUnknown
 @GUID("30510808-98B5-11CF-BB82-00AA00BDCE0B")
 interface IDeveloperConsoleMessageReceiver : IUnknown
 {
-    HRESULT Write(const(wchar)* source, DEV_CONSOLE_MESSAGE_LEVEL level, int messageId, const(wchar)* messageText);
-    HRESULT WriteWithUrl(const(wchar)* source, DEV_CONSOLE_MESSAGE_LEVEL level, int messageId, 
-                         const(wchar)* messageText, const(wchar)* fileUrl);
-    HRESULT WriteWithUrlAndLine(const(wchar)* source, DEV_CONSOLE_MESSAGE_LEVEL level, int messageId, 
-                                const(wchar)* messageText, const(wchar)* fileUrl, uint line);
-    HRESULT WriteWithUrlLineAndColumn(const(wchar)* source, DEV_CONSOLE_MESSAGE_LEVEL level, int messageId, 
-                                      const(wchar)* messageText, const(wchar)* fileUrl, uint line, uint column);
+    HRESULT Write(const(PWSTR) source, DEV_CONSOLE_MESSAGE_LEVEL level, int messageId, const(PWSTR) messageText);
+    HRESULT WriteWithUrl(const(PWSTR) source, DEV_CONSOLE_MESSAGE_LEVEL level, int messageId, 
+                         const(PWSTR) messageText, const(PWSTR) fileUrl);
+    HRESULT WriteWithUrlAndLine(const(PWSTR) source, DEV_CONSOLE_MESSAGE_LEVEL level, int messageId, 
+                                const(PWSTR) messageText, const(PWSTR) fileUrl, uint line);
+    HRESULT WriteWithUrlLineAndColumn(const(PWSTR) source, DEV_CONSOLE_MESSAGE_LEVEL level, int messageId, 
+                                      const(PWSTR) messageText, const(PWSTR) fileUrl, uint line, uint column);
 }
 
 @GUID("3051083A-98B5-11CF-BB82-00AA00BDCE0B")
@@ -19630,7 +19634,7 @@ interface IScriptEventHandler : IUnknown
     HRESULT FunctionName(BSTR* pbstrFunctionName);
     HRESULT DebugDocumentContext(IUnknown* ppDebugDocumentContext);
     HRESULT EventHandlerDispatch(IDispatch* ppDispHandler);
-    HRESULT UsesCapture(int* pfUsesCapture);
+    HRESULT UsesCapture(BOOL* pfUsesCapture);
     HRESULT Cookie(ulong* pullCookie);
 }
 
@@ -19661,7 +19665,7 @@ interface IScriptEventHandlerSourceInfo : IUnknown
 @GUID("3051083B-98B5-11CF-BB82-00AA00BDCE0B")
 interface IDOMEventRegistrationCallback : IUnknown
 {
-    HRESULT OnDOMEventListenerAdded(const(wchar)* pszEventType, IScriptEventHandler pHandler);
+    HRESULT OnDOMEventListenerAdded(const(PWSTR) pszEventType, IScriptEventHandler pHandler);
     HRESULT OnDOMEventListenerRemoved(ulong ullCookie);
 }
 
@@ -19669,7 +19673,7 @@ interface IDOMEventRegistrationCallback : IUnknown
 interface IEventTarget2 : IUnknown
 {
     HRESULT GetRegisteredEventTypes(SAFEARRAY** ppEventTypeArray);
-    HRESULT GetListenersForType(const(wchar)* pszEventType, SAFEARRAY** ppEventHandlerArray);
+    HRESULT GetListenersForType(const(PWSTR) pszEventType, SAFEARRAY** ppEventHandlerArray);
     HRESULT RegisterForDOMEventListeners(IDOMEventRegistrationCallback pCallback);
     HRESULT UnregisterForDOMEventListeners(IDOMEventRegistrationCallback pCallback);
 }
@@ -19717,7 +19721,7 @@ interface IHTMLPainter : IUnknown
     HRESULT Draw(RECT rcBounds, RECT rcUpdate, int lDrawFlags, HDC hdc, void* pvDrawObject);
     HRESULT OnResize(SIZE size);
     HRESULT GetPainterInfo(HTML_PAINTER_INFO* pInfo);
-    HRESULT HitTestPoint(POINT pt, int* pbHit, int* plPartID);
+    HRESULT HitTestPoint(POINT pt, BOOL* pbHit, int* plPartID);
 }
 
 @GUID("3050F6A7-98B5-11CF-BB82-00AA00BDCE0B")
@@ -19760,7 +19764,7 @@ interface IEnumPrivacyRecords : IUnknown
 {
     HRESULT Reset();
     HRESULT GetSize(uint* pSize);
-    HRESULT GetPrivacyImpacted(int* pState);
+    HRESULT GetPrivacyImpacted(BOOL* pState);
     HRESULT Next(BSTR* pbstrUrl, BSTR* pbstrPolicyRef, int* pdwReserved, uint* pdwPrivacyFlags);
 }
 
@@ -20063,13 +20067,13 @@ interface IElementBehaviorSiteOM2 : IElementBehaviorSiteOM
 @GUID("3050F4ED-98B5-11CF-BB82-00AA00BDCE0B")
 interface IElementBehaviorCategory : IUnknown
 {
-    HRESULT GetCategory(ushort** ppchCategory);
+    HRESULT GetCategory(PWSTR* ppchCategory);
 }
 
 @GUID("3050F4EE-98B5-11CF-BB82-00AA00BDCE0B")
 interface IElementBehaviorSiteCategory : IUnknown
 {
-    HRESULT GetRelatedBehaviors(int lDirection, ushort* pchCategory, IEnumUnknown* ppEnumerator);
+    HRESULT GetRelatedBehaviors(int lDirection, PWSTR pchCategory, IEnumUnknown* ppEnumerator);
 }
 
 @GUID("3050F646-98B5-11CF-BB82-00AA00BDCE0B")
@@ -20125,7 +20129,7 @@ interface ISurfacePresenter : IUnknown
 {
     HRESULT Present(uint uBuffer, RECT* pDirty);
     HRESULT GetBuffer(uint backBufferIndex, const(GUID)* riid, void** ppBuffer);
-    HRESULT IsCurrent(int* pIsCurrent);
+    HRESULT IsCurrent(BOOL* pIsCurrent);
 }
 
 @GUID("305106E1-98B5-11CF-BB82-00AA00BDCE0B")
@@ -20133,7 +20137,7 @@ interface IViewObjectPresentSite : IUnknown
 {
     HRESULT CreateSurfacePresenter(IUnknown pDevice, uint width, uint height, uint backBufferCount, 
                                    DXGI_FORMAT format, VIEW_OBJECT_ALPHA_MODE mode, ISurfacePresenter* ppQueue);
-    HRESULT IsHardwareComposition(int* pIsHardwareComposition);
+    HRESULT IsHardwareComposition(BOOL* pIsHardwareComposition);
     HRESULT SetCompositionMode(VIEW_OBJECT_COMPOSITION_MODE mode);
 }
 
@@ -20164,8 +20168,8 @@ interface IViewObjectPresentNotify : IUnknown
 @GUID("30510803-98B5-11CF-BB82-00AA00BDCE0B")
 interface ITrackingProtection : IUnknown
 {
-    HRESULT EvaluateUrl(BSTR bstrUrl, int* pfAllowed);
-    HRESULT GetEnabled(int* pfEnabled);
+    HRESULT EvaluateUrl(BSTR bstrUrl, BOOL* pfAllowed);
+    HRESULT GetEnabled(BOOL* pfEnabled);
 }
 
 @GUID("30510861-98B5-11CF-BB82-00AA00BDCE0B")
@@ -20191,7 +20195,7 @@ interface IWebApplicationScriptEvents : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT ScriptError(IHTMLWindow2 htmlWindow, IActiveScriptError scriptError, const(wchar)* url, 
+    HRESULT ScriptError(IHTMLWindow2 htmlWindow, IActiveScriptError scriptError, const(PWSTR) url, 
                         BOOL errorHandled);
 }
 
@@ -20210,8 +20214,8 @@ interface IWebApplicationNavigationEvents : IUnknown
     ///    Type: <b>HRESULT</b> Ignored by the host. If this method succeeds, it returns <b>S_OK</b>. Otherwise, it
     ///    returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT BeforeNavigate(IHTMLWindow2 htmlWindow, const(wchar)* url, uint navigationFlags, 
-                           const(wchar)* targetFrameName);
+    HRESULT BeforeNavigate(IHTMLWindow2 htmlWindow, const(PWSTR) url, uint navigationFlags, 
+                           const(PWSTR) targetFrameName);
     ///Fired when the document being navigated to becomes visible and enters the navigation stack.
     ///Params:
     ///    htmlWindow = Type: <b>IHTMLWindow2*</b> The window or frame in which the navigation is occurred.
@@ -20220,7 +20224,7 @@ interface IWebApplicationNavigationEvents : IUnknown
     ///    Type: <b>HRESULT</b> Ignored by the host. If this method succeeds, it returns <b>S_OK</b>. Otherwise, it
     ///    returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT NavigateComplete(IHTMLWindow2 htmlWindow, const(wchar)* url);
+    HRESULT NavigateComplete(IHTMLWindow2 htmlWindow, const(PWSTR) url);
     ///Fired when a binding error occurs (window or frameset element).
     ///Params:
     ///    htmlWindow = Type: <b>IHTMLWindow2*</b> The window ro frame in which the navigation error occurred.
@@ -20232,8 +20236,7 @@ interface IWebApplicationNavigationEvents : IUnknown
     ///    Type: <b>HRESULT</b> Ignored by the host. If this method succeeds, it returns <b>S_OK</b>. Otherwise, it
     ///    returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT NavigateError(IHTMLWindow2 htmlWindow, const(wchar)* url, const(wchar)* targetFrameName, 
-                          uint statusCode);
+    HRESULT NavigateError(IHTMLWindow2 htmlWindow, const(PWSTR) url, const(PWSTR) targetFrameName, uint statusCode);
     ///Fired when the document being navigated to reaches ReadyState_Complete.
     ///Params:
     ///    htmlWindow = Type: <b>IHTMLWindow2*</b> The window or frame in which the document is loaded.
@@ -20242,7 +20245,7 @@ interface IWebApplicationNavigationEvents : IUnknown
     ///    Type: <b>HRESULT</b> Ignored by the host. If this method succeeds, it returns <b>S_OK</b>. Otherwise, it
     ///    returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT DocumentComplete(IHTMLWindow2 htmlWindow, const(wchar)* url);
+    HRESULT DocumentComplete(IHTMLWindow2 htmlWindow, const(PWSTR) url);
     ///Download of a page has started.
     ///Returns:
     ///    Type: <b>HRESULT</b> Ignored by the host. If this method succeeds, it returns <b>S_OK</b>. Otherwise, it
@@ -20271,7 +20274,7 @@ interface IWebApplicationUIEvents : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SecurityProblem(uint securityProblem, int* result);
+    HRESULT SecurityProblem(uint securityProblem, HRESULT* result);
 }
 
 ///Enables an authoring app to receive notification of designer events and respond to those events.

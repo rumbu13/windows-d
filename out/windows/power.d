@@ -5,7 +5,7 @@ module windows.power;
 public import windows.core;
 public import windows.windowsprogramming : HKEY;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Functions

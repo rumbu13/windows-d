@@ -6,11 +6,11 @@ public import windows.core;
 public import windows.automation : BSTR, IDispatch, SAFEARRAY, VARIANT;
 public import windows.com : HRESULT, IUnknown;
 public import windows.controls : HPROPSHEETPAGE;
-public import windows.systemservices : BOOL;
+public import windows.systemservices : BOOL, PWSTR;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : SYSTEMTIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -575,7 +575,7 @@ interface ITaskTrigger : IUnknown
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Not enough memory is available. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetTriggerString(ushort** ppwszTrigger);
+    HRESULT GetTriggerString(PWSTR* ppwszTrigger);
 }
 
 ///<p class="CCE_Message">[[This API may be altered or unavailable in subsequent versions of the operating system or
@@ -656,7 +656,7 @@ interface IScheduledWorkItem : IUnknown
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Not enough memory is available. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetTriggerString(ushort iTrigger, ushort** ppwszTrigger);
+    HRESULT GetTriggerString(ushort iTrigger, PWSTR* ppwszTrigger);
     ///<p class="CCE_Message">[[This API may be altered or unavailable in subsequent versions of the operating system or
     ///product. Please use the Task Scheduler 2.0 Interfaces instead.] ] Retrieves the work item run times for a
     ///specified time period.
@@ -793,7 +793,7 @@ interface IScheduledWorkItem : IUnknown
     ///    width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The arguments are not valid.
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetStatus(int* phrStatus);
+    HRESULT GetStatus(HRESULT* phrStatus);
     ///<p class="CCE_Message">[[This API may be altered or unavailable in subsequent versions of the operating system or
     ///product. Please use the Task Scheduler 2.0 Interfaces instead.] ] Retrieves the last exit code returned by the
     ///executable associated with the work item on its last run. The method also returns the exit code returned to Task
@@ -825,7 +825,7 @@ interface IScheduledWorkItem : IUnknown
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Not enough memory is available. </td> </tr>
     ///    </table>
     ///    
-    HRESULT SetComment(const(wchar)* pwszComment);
+    HRESULT SetComment(const(PWSTR) pwszComment);
     ///<p class="CCE_Message">[[This API may be altered or unavailable in subsequent versions of the operating system or
     ///product. Please use the Task Scheduler 2.0 Interfaces instead.] ] Retrieves the comment for the work item.
     ///Params:
@@ -838,7 +838,7 @@ interface IScheduledWorkItem : IUnknown
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Not enough memory is available. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetComment(ushort** ppwszComment);
+    HRESULT GetComment(PWSTR* ppwszComment);
     ///<p class="CCE_Message">[[This API may be altered or unavailable in subsequent versions of the operating system or
     ///product. Please use the Task Scheduler 2.0 Interfaces instead.] ] Sets the name of the work item's creator.
     ///Params:
@@ -851,7 +851,7 @@ interface IScheduledWorkItem : IUnknown
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Not enough memory is available. </td> </tr>
     ///    </table>
     ///    
-    HRESULT SetCreator(const(wchar)* pwszCreator);
+    HRESULT SetCreator(const(PWSTR) pwszCreator);
     ///<p class="CCE_Message">[[This API may be altered or unavailable in subsequent versions of the operating system or
     ///product. Please use the Task Scheduler 2.0 Interfaces instead.] ] Retrieves the name of the creator of the work
     ///item.
@@ -867,7 +867,7 @@ interface IScheduledWorkItem : IUnknown
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Not enough memory is available. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetCreator(ushort** ppwszCreator);
+    HRESULT GetCreator(PWSTR* ppwszCreator);
     ///<p class="CCE_Message">[[This API may be altered or unavailable in subsequent versions of the operating system or
     ///product. Please use the Task Scheduler 2.0 Interfaces instead.] ] This method stores application-defined data
     ///associated with the work item.
@@ -1015,7 +1015,7 @@ interface IScheduledWorkItem : IUnknown
     ///    password at the time the job is created (during a call to IPersistFile::Save). Be aware that if this error
     ///    occurs, the job file will still be created. </td> </tr> </table>
     ///    
-    HRESULT SetAccountInformation(const(wchar)* pwszAccountName, const(wchar)* pwszPassword);
+    HRESULT SetAccountInformation(const(PWSTR) pwszAccountName, const(PWSTR) pwszPassword);
     ///<p class="CCE_Message">[[This API may be altered or unavailable in subsequent versions of the operating system or
     ///product. Please use the Task Scheduler 2.0 Interfaces instead.] ] Retrieves the account name for the work item.
     ///Params:
@@ -1034,7 +1034,7 @@ interface IScheduledWorkItem : IUnknown
     ///    available only on the Windows Server 2003, Windows 2000, and Windows XP operating systems. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetAccountInformation(ushort** ppwszAccountName);
+    HRESULT GetAccountInformation(PWSTR* ppwszAccountName);
 }
 
 ///<p class="CCE_Message">[[This API may be altered or unavailable in subsequent versions of the operating system or
@@ -1058,7 +1058,7 @@ interface ITask : IScheduledWorkItem
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Not enough memory is available. </td> </tr>
     ///    </table>
     ///    
-    HRESULT SetApplicationName(const(wchar)* pwszApplicationName);
+    HRESULT SetApplicationName(const(PWSTR) pwszApplicationName);
     ///<p class="CCE_Message">[[This API may be altered or unavailable in subsequent versions of the operating system or
     ///product. Please use the Task Scheduler 2.0 Interfaces instead.] ] This method retrieves the name of the
     ///application that the task is associated with.
@@ -1073,7 +1073,7 @@ interface ITask : IScheduledWorkItem
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Not enough memory is available. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetApplicationName(ushort** ppwszApplicationName);
+    HRESULT GetApplicationName(PWSTR* ppwszApplicationName);
     ///<p class="CCE_Message">[[This API may be altered or unavailable in subsequent versions of the operating system or
     ///product. Please use the Task Scheduler 2.0 Interfaces instead.] ] This method sets the command-line parameters
     ///for the task.
@@ -1089,7 +1089,7 @@ interface ITask : IScheduledWorkItem
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Not enough memory is available. </td> </tr>
     ///    </table>
     ///    
-    HRESULT SetParameters(const(wchar)* pwszParameters);
+    HRESULT SetParameters(const(PWSTR) pwszParameters);
     ///<p class="CCE_Message">[[This API may be altered or unavailable in subsequent versions of the operating system or
     ///product. Please use the Task Scheduler 2.0 Interfaces instead.] ] This method retrieves the task's command-line
     ///parameters.
@@ -1104,7 +1104,7 @@ interface ITask : IScheduledWorkItem
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Not enough memory is available. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetParameters(ushort** ppwszParameters);
+    HRESULT GetParameters(PWSTR* ppwszParameters);
     ///<p class="CCE_Message">[[This API may be altered or unavailable in subsequent versions of the operating system or
     ///product. Please use the Task Scheduler 2.0 Interfaces instead.] ] This method sets the working directory for the
     ///task.
@@ -1121,7 +1121,7 @@ interface ITask : IScheduledWorkItem
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Not enough memory is available. </td> </tr>
     ///    </table>
     ///    
-    HRESULT SetWorkingDirectory(const(wchar)* pwszWorkingDirectory);
+    HRESULT SetWorkingDirectory(const(PWSTR) pwszWorkingDirectory);
     ///<p class="CCE_Message">[[This API may be altered or unavailable in subsequent versions of the operating system or
     ///product. Please use the Task Scheduler 2.0 Interfaces instead.] ] This method retrieves the task'sworking
     ///directory.
@@ -1137,7 +1137,7 @@ interface ITask : IScheduledWorkItem
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Not enough memory is available. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetWorkingDirectory(ushort** ppwszWorkingDirectory);
+    HRESULT GetWorkingDirectory(PWSTR* ppwszWorkingDirectory);
     ///<p class="CCE_Message">[[This API may be altered or unavailable in subsequent versions of the operating system or
     ///product. Please use the Task Scheduler 2.0 Interfaces instead.] ] This method sets the priority for the task.
     ///Params:
@@ -1264,7 +1264,7 @@ interface IEnumWorkItems : IUnknown
     ///    invalid. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%">
     ///    Not enough memory is available. </td> </tr> </table>
     ///    
-    HRESULT Next(uint celt, ushort*** rgpwszNames, uint* pceltFetched);
+    HRESULT Next(uint celt, PWSTR** rgpwszNames, uint* pceltFetched);
     ///<p class="CCE_Message">[[This API may be altered or unavailable in subsequent versions of the operating system or
     ///product. Please use the Task Scheduler 2.0 Interfaces instead.] ] Skips the next specified number of tasks in the
     ///enumeration sequence.
@@ -1335,7 +1335,7 @@ interface ITaskScheduler : IUnknown
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> A memory allocation failure occurred. </td> </tr>
     ///    </table>
     ///    
-    HRESULT SetTargetComputer(const(wchar)* pwszComputer);
+    HRESULT SetTargetComputer(const(PWSTR) pwszComputer);
     ///<p class="CCE_Message">[[This API may be altered or unavailable in subsequent versions of the operating system or
     ///product. Please use the Task Scheduler 2.0 Interfaces instead.] ] The <b>GetTargetComputer</b> method returns the
     ///name of the computer on which ITaskScheduler is currently targeted.
@@ -1351,7 +1351,7 @@ interface ITaskScheduler : IUnknown
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Not enough memory is available. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetTargetComputer(ushort** ppwszComputer);
+    HRESULT GetTargetComputer(PWSTR* ppwszComputer);
     ///<p class="CCE_Message">[[This API may be altered or unavailable in subsequent versions of the operating system or
     ///product. Please use the Task Scheduler 2.0 Interfaces instead.] ] The <b>Enum</b> method retrieves a pointer to
     ///an OLE enumerator object that enumerates the tasks in the current task folder.
@@ -1385,7 +1385,7 @@ interface ITaskScheduler : IUnknown
     ///    <dt><b>SCHED_E_UNKNOWN_OBJECT_VERSION</b></dt> </dl> </td> <td width="60%"> The task object version is either
     ///    unsupported or invalid. </td> </tr> </table>
     ///    
-    HRESULT Activate(const(wchar)* pwszName, const(GUID)* riid, IUnknown* ppUnk);
+    HRESULT Activate(const(PWSTR) pwszName, const(GUID)* riid, IUnknown* ppUnk);
     ///<p class="CCE_Message">[[This API may be altered or unavailable in subsequent versions of the operating system or
     ///product. Please use the Task Scheduler 2.0 Interfaces instead.] ] The <b>Delete</b> method deletes a task.
     ///Params:
@@ -1398,7 +1398,7 @@ interface ITaskScheduler : IUnknown
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Not enough memory is available. </td> </tr>
     ///    </table>
     ///    
-    HRESULT Delete(const(wchar)* pwszName);
+    HRESULT Delete(const(PWSTR) pwszName);
     ///<p class="CCE_Message">[[This API may be altered or unavailable in subsequent versions of the operating system or
     ///product. Please use the Task Scheduler 2.0 Interfaces instead.] ] The <b>NewWorkItem</b> method creates a new
     ///work item, allocating space for the work item and retrieving its address.
@@ -1424,7 +1424,7 @@ interface ITaskScheduler : IUnknown
     ///    width="60%"> The caller does not have permission to perform the operation. For more information, see
     ///    Scheduled Work Items. </td> </tr> </table>
     ///    
-    HRESULT NewWorkItem(const(wchar)* pwszTaskName, const(GUID)* rclsid, const(GUID)* riid, IUnknown* ppUnk);
+    HRESULT NewWorkItem(const(PWSTR) pwszTaskName, const(GUID)* rclsid, const(GUID)* riid, IUnknown* ppUnk);
     ///<p class="CCE_Message">[[This API may be altered or unavailable in subsequent versions of the operating system or
     ///product. Please use the Task Scheduler 2.0 Interfaces instead.] ] The <b>AddWorkItem</b> method adds a task to
     ///the schedule of tasks.
@@ -1443,7 +1443,7 @@ interface ITaskScheduler : IUnknown
     ///    <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Not enough memory is available to complete
     ///    the operation. </td> </tr> </table>
     ///    
-    HRESULT AddWorkItem(const(wchar)* pwszTaskName, IScheduledWorkItem pWorkItem);
+    HRESULT AddWorkItem(const(PWSTR) pwszTaskName, IScheduledWorkItem pWorkItem);
     ///<p class="CCE_Message">[[This API may be altered or unavailable in subsequent versions of the operating system or
     ///product. Please use the Task Scheduler 2.0 Interfaces instead.] ] The <b>IsOfType</b> method checks the object's
     ///type to verify that it supports a particular interface.
@@ -1454,7 +1454,7 @@ interface ITaskScheduler : IUnknown
     ///    The <b>IsOfType</b> method returns S_OK if the object named by <i>pwszName</i> supports the interface
     ///    specified in <i>riid</i>. Otherwise, S_FALSE is returned.
     ///    
-    HRESULT IsOfType(const(wchar)* pwszName, const(GUID)* riid);
+    HRESULT IsOfType(const(PWSTR) pwszName, const(GUID)* riid);
 }
 
 ///<p class="CCE_Message">[[This API may be altered or unavailable in subsequent versions of the operating system or
@@ -1620,7 +1620,7 @@ interface ITaskHandler : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT Stop(int* pRetCode);
+    HRESULT Stop(HRESULT* pRetCode);
     ///Called to pause the COM handler. This method is optional and should only be implemented to give the Task
     ///Scheduler the ability to pause and restart the handler.
     ///Returns:

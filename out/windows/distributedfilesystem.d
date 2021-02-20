@@ -3,8 +3,9 @@
 module windows.distributedfilesystem;
 
 public import windows.core;
+public import windows.systemservices : PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -65,7 +66,7 @@ struct DFS_INFO_1
 {
     ///Pointer to a null-terminated Unicode string that specifies the Universal Naming Convention (UNC) path of a DFS
     ///root or link. For a link, the string can be in one of two forms. The first form is as follows: &
-    const(wchar)* EntryPath;
+    PWSTR EntryPath;
 }
 
 ///Contains information about a Distributed File System (DFS) root or link. This structure contains the name, status,
@@ -75,17 +76,17 @@ struct DFS_INFO_2
 {
     ///Pointer to a null-terminated Unicode string that specifies the Universal Naming Convention (UNC) path of a DFS
     ///root or link. For a link, the string can be in one of two forms. The first form is as follows: &
-    const(wchar)* EntryPath;
+    PWSTR EntryPath;
     ///Pointer to a null-terminated Unicode string that contains a comment associated with the DFS root or link.
-    const(wchar)* Comment;
+    PWSTR Comment;
     ///Specifies a set of bit flags that describe the DFS root or link. One <b>DFS_VOLUME_STATE</b> flag is set, and one
     ///<b>DFS_VOLUME_FLAVOR</b> flag is set. The <b>DFS_VOLUME_FLAVORS</b> bitmask (0x00000300) must be used to extract
     ///the DFS namespace flavor, and the <b>DFS_VOLUME_STATES</b> bitmask (0x0000000F) must be used to extract the DFS
     ///root or link state from this member. For an example that describes the interpretation of the flags, see the
     ///following Remarks section.
-    uint          State;
+    uint  State;
     ///Specifies the number of DFS targets.
-    uint          NumberOfStorages;
+    uint  NumberOfStorages;
 }
 
 ///Contains information about a DFS root or link target in a DFS namespace or from the cache maintained by the DFS
@@ -96,11 +97,11 @@ struct DFS_STORAGE_INFO
 {
     ///State of the target. When this structure is returned as a result of calling the NetDfsGetInfo function, this
     ///member can be one of the following values.
-    uint          State;
+    uint  State;
     ///Pointer to a null-terminated Unicode string that specifies the DFS root target or link target server name.
-    const(wchar)* ServerName;
+    PWSTR ServerName;
     ///Pointer to a null-terminated Unicode string that specifies the DFS root target or link target share name.
-    const(wchar)* ShareName;
+    PWSTR ShareName;
 }
 
 ///Contains information about a DFS target, including the DFS target server name and share name as well as the target's
@@ -110,9 +111,9 @@ struct DFS_STORAGE_INFO_1
     ///State of the target. This member can be one of the following values.
     uint                State;
     ///Pointer to a null-terminated Unicode string that specifies the DFS root target or link target server name.
-    const(wchar)*       ServerName;
+    PWSTR               ServerName;
     ///Pointer to a null-terminated Unicode string that specifies the DFS root target or link target share name.
-    const(wchar)*       ShareName;
+    PWSTR               ShareName;
     ///DFS_TARGET_PRIORITY structure that contains a DFS target's priority class and rank.
     DFS_TARGET_PRIORITY TargetPriority;
 }
@@ -124,9 +125,9 @@ struct DFS_INFO_3
 {
     ///Pointer to a null-terminated Unicode string that specifies the Universal Naming Convention (UNC) path of a DFS
     ///root or link. For a link, the string can be in one of two forms. The first form is as follows: &
-    const(wchar)*     EntryPath;
+    PWSTR             EntryPath;
     ///Pointer to a null-terminated Unicode string that contains a comment associated with the DFS root or link.
-    const(wchar)*     Comment;
+    PWSTR             Comment;
     ///Specifies a set of bit flags that describe the DFS root or link. One <b>DFS_VOLUME_STATE</b> flag is set, and one
     ///<b>DFS_VOLUME_FLAVOR</b> flag is set. The <b>DFS_VOLUME_FLAVORS</b> bitmask (0x00000300) must be used to extract
     ///the DFS namespace flavor, and the <b>DFS_VOLUME_STATES</b> bitmask (0x0000000F) must be used to extract the DFS
@@ -146,9 +147,9 @@ struct DFS_INFO_4
 {
     ///Pointer to a null-terminated Unicode string that specifies the Universal Naming Convention (UNC) path of a DFS
     ///root or link. For a link, the string can be in one of two forms. The first form is as follows: &
-    const(wchar)*     EntryPath;
+    PWSTR             EntryPath;
     ///Pointer to a null-terminated Unicode string that contains a comment associated with the DFS root or link.
-    const(wchar)*     Comment;
+    PWSTR             Comment;
     ///Specifies a set of bit flags that describe the DFS root or link. One <b>DFS_VOLUME_STATE</b> flag is set, and one
     ///<b>DFS_VOLUME_FLAVOR</b> flag is set. The <b>DFS_VOLUME_FLAVORS</b> bitmask (0x00000300) must be used to extract
     ///the DFS namespace flavor, and the <b>DFS_VOLUME_STATES</b> bitmask (0x0000000F) must be used to extract the DFS
@@ -172,26 +173,26 @@ struct DFS_INFO_5
 {
     ///Pointer to a null-terminated Unicode string that specifies the Universal Naming Convention (UNC) path of a DFS
     ///root or link. For a link, the string can be in one of two forms. The first form is as follows: &
-    const(wchar)* EntryPath;
+    PWSTR EntryPath;
     ///Pointer to a null-terminated Unicode string that contains a comment associated with the DFS root or link.
-    const(wchar)* Comment;
+    PWSTR Comment;
     ///Specifies a set of bit flags that describe the DFS root or link. One <b>DFS_VOLUME_STATE</b> flag is set, and one
     ///<b>DFS_VOLUME_FLAVOR</b> flag is set. For an example that describes the interpretation of the flags, see the
     ///Remarks section of DFS_INFO_2.
-    uint          State;
+    uint  State;
     ///Specifies the time-out, in seconds, of the DFS root or link.
-    uint          Timeout;
+    uint  Timeout;
     ///Specifies the GUID of the DFS root or link.
-    GUID          Guid;
+    GUID  Guid;
     ///Specifies a set of flags describing specific properties of a DFS namespace, root, or link.
-    uint          PropertyFlags;
+    uint  PropertyFlags;
     ///For domain-based DFS namespaces, this member specifies the size of the corresponding Active Directory data blob,
     ///in bytes. For stand-alone DFS namespaces, this member specifies the size of the metadata stored in the registry,
     ///including the key names and value names as well as the specific data items associated with them. This member is
     ///valid for DFS roots only.
-    uint          MetadataSize;
+    uint  MetadataSize;
     ///Specifies the number of targets for the DFS root or link.
-    uint          NumberOfStorages;
+    uint  NumberOfStorages;
 }
 
 ///Contains information about a Distributed File System (DFS) root or link. This structure contains the name, status,
@@ -203,9 +204,9 @@ struct DFS_INFO_6
 {
     ///Pointer to a null-terminated Unicode string that specifies the Universal Naming Convention (UNC) path of a DFS
     ///root or link. For a link, the string can be in one of two forms. The first form is as follows: &
-    const(wchar)*       EntryPath;
+    PWSTR               EntryPath;
     ///Pointer to a null-terminated Unicode string that contains a comment associated with the DFS root or link.
-    const(wchar)*       Comment;
+    PWSTR               Comment;
     ///Specifies a set of bit flags that describe the DFS root or link. One <b>DFS_VOLUME_STATE</b> flag is set, and one
     ///<b>DFS_VOLUME_FLAVOR</b> flag is set. The <b>DFS_VOLUME_FLAVORS</b> bitmask (0x00000300) must be used to extract
     ///the DFS namespace flavor, and the <b>DFS_VOLUME_STATES</b> bitmask (0x0000000F) must be used to extract the DFS
@@ -244,31 +245,31 @@ struct DFS_INFO_8
 {
     ///Pointer to a null-terminated Unicode string that specifies the Universal Naming Convention (UNC) path of a DFS
     ///root or link. For a link, the string can be in one of two forms. The first form is as follows: &
-    const(wchar)* EntryPath;
+    PWSTR EntryPath;
     ///Pointer to a null-terminated Unicode string that contains a comment associated with the DFS root or link.
-    const(wchar)* Comment;
+    PWSTR Comment;
     ///Specifies a set of bit flags that describe the DFS root or link. One <b>DFS_VOLUME_STATE</b> flag is set, and one
     ///<b>DFS_VOLUME_FLAVOR</b> flag is set. The <b>DFS_VOLUME_FLAVORS</b> bitmask (0x00000300) must be used to extract
     ///the DFS namespace flavor, and the <b>DFS_VOLUME_STATES</b> bitmask (0x0000000F) must be used to extract the DFS
     ///root or link state from this member. For an example that describes the interpretation of the flags, see the
     ///Remarks section of DFS_INFO_2.
-    uint          State;
+    uint  State;
     ///Specifies the time-out, in seconds, of the DFS root or link.
-    uint          Timeout;
+    uint  Timeout;
     ///Specifies the <b>GUID</b> of the DFS root or link.
-    GUID          Guid;
+    GUID  Guid;
     ///Specifies a set of flags that describe specific properties of a DFS namespace, root, or link.
-    uint          PropertyFlags;
+    uint  PropertyFlags;
     ///For domain-based DFS namespaces, this member specifies the size of the corresponding Active Directory data blob,
     ///in bytes. For stand-alone DFS namespaces, this field specifies the size of the metadata stored in the registry,
     ///including the key names and value names, in addition to the specific data items associated with them. This field
     ///is valid for DFS roots only.
-    uint          MetadataSize;
+    uint  MetadataSize;
     ///This member is reserved for system use.
-    uint          SdLengthReserved;
-    void*         pSecurityDescriptor;
+    uint  SdLengthReserved;
+    void* pSecurityDescriptor;
     ///Specifies the number of storage servers for the volume that contains the DFS root or link.
-    uint          NumberOfStorages;
+    uint  NumberOfStorages;
 }
 
 ///Contains the name, status, <b>GUID</b>, time-out, property flags, metadata size, DFS target information, link reparse
@@ -278,9 +279,9 @@ struct DFS_INFO_9
 {
     ///Pointer to a null-terminated Unicode string that specifies the Universal Naming Convention (UNC) path of a DFS
     ///root or link. For a link, the string can be in one of two forms. The first form is as follows: &
-    const(wchar)*       EntryPath;
+    PWSTR               EntryPath;
     ///Pointer to a null-terminated Unicode string that contains a comment associated with the DFS root or link.
-    const(wchar)*       Comment;
+    PWSTR               Comment;
     ///Specifies a set of bit flags that describe the DFS root or link. One <b>DFS_VOLUME_STATE</b> flag is set, and one
     ///<b>DFS_VOLUME_FLAVOR</b> flag is set. The <b>DFS_VOLUME_FLAVORS</b> bitmask (0x00000300) must be used to extract
     ///the DFS namespace flavor, and the <b>DFS_VOLUME_STATES</b> bitmask (0x0000000F) must be used to extract the DFS
@@ -325,7 +326,7 @@ struct DFS_INFO_100
     ///Pointer to a null-terminated Unicode string that contains the comment associated with the specified DFS root or
     ///link. The comment is associated with the DFS namespace root or link and not with a specific DFS root target or
     ///link target.
-    const(wchar)* Comment;
+    PWSTR Comment;
 }
 
 ///Describes the state of storage on a DFS root, link, root target, or link target.
@@ -370,19 +371,19 @@ struct DFS_INFO_104
 struct DFS_INFO_105
 {
     ///Pointer to a null-terminated Unicode string that contains a comment associated with the DFS root or link.
-    const(wchar)* Comment;
+    PWSTR Comment;
     ///Specifies a set of bit flags that describe the state of the DFS root or link; the state of the DFS namespace root
     ///cannot be changed. One <b>DFS_VOLUME_STATE</b> flag is set, and one <b>DFS_VOLUME_FLAVOR</b> flag is set. For an
     ///example that describes the interpretation of these flags, see the Remarks section of DFS_INFO_2.
-    uint          State;
+    uint  State;
     ///Specifies the time-out, in seconds, of the DFS root or link.
-    uint          Timeout;
+    uint  Timeout;
     ///Specifies a mask value that indicates which flags are valid for evaluation in the <b>PropertyFlags</b> field.
-    uint          PropertyFlagMask;
+    uint  PropertyFlagMask;
     ///Bitfield, with each bit responsible for a specific property applicable to the whole DFS namespace, the DFS root,
     ///or an individual DFS link, depending on the actual property. Any combination of bits is allowed unless indicated
     ///otherwise.
-    uint          PropertyFlags;
+    uint  PropertyFlags;
 }
 
 ///Contains the storage state and priority for a DFS root target or link target. This structure is only for use with the
@@ -400,24 +401,24 @@ struct DFS_INFO_106
 struct DFS_INFO_107
 {
     ///Pointer to a null-terminated Unicode string that contains a comment associated with the DFS root or link.
-    const(wchar)* Comment;
+    PWSTR Comment;
     ///Specifies a set of bit flags that describe the DFS root or link. One <b>DFS_VOLUME_STATE</b> flag is set, and one
     ///<b>DFS_VOLUME_FLAVOR</b> flag is set. The <b>DFS_VOLUME_FLAVORS</b> bitmask (0x00000300) must be used to extract
     ///the DFS namespace flavor, and the <b>DFS_VOLUME_STATES</b> bitmask (0x0000000F) must be used to extract the DFS
     ///root or link state from this member. For an example that describes the interpretation of the flags, see the
     ///Remarks section of DFS_INFO_2.
-    uint          State;
+    uint  State;
     ///Specifies the time-out, in seconds, of the DFS root or link.
-    uint          Timeout;
+    uint  Timeout;
     ///Specifies a mask value that indicates which flags are valid for evaluation in the <b>PropertyFlags</b> field.
-    uint          PropertyFlagMask;
+    uint  PropertyFlagMask;
     ///Bitfield, with each bit responsible for a specific property applicable to the whole DFS namespace, the DFS root,
     ///or an individual DFS link, depending on the actual property. Any combination of bits is allowed unless indicated
     ///otherwise.
-    uint          PropertyFlags;
+    uint  PropertyFlags;
     ///This member is reserved for system use.
-    uint          SdLengthReserved;
-    void*         pSecurityDescriptor;
+    uint  SdLengthReserved;
+    void* pSecurityDescriptor;
 }
 
 ///Contains the security descriptor for a DFS link's reparse point. This structure is only for use with the
@@ -433,23 +434,23 @@ struct DFS_INFO_150
 struct DFS_INFO_200
 {
     ///Pointer to a null-terminated Unicode string that contains the name of a domain-based DFS namespace.
-    const(wchar)* FtDfsName;
+    PWSTR FtDfsName;
 }
 
 ///Contains the name and type (domain-based or stand-alone) of a DFS namespace.
 struct DFS_INFO_300
 {
     ///Value that specifies the type of the DFS namespace. This member can be one of the following values.
-    uint          Flags;
+    uint  Flags;
     ///Pointer to a null-terminated Unicode string that contains the name of a DFS namespace. This member can have one
     ///of the following two formats. The first format is: &
-    const(wchar)* DfsName;
+    PWSTR DfsName;
 }
 
 struct DFS_SITENAME_INFO
 {
-    uint          SiteFlags;
-    const(wchar)* SiteName;
+    uint  SiteFlags;
+    PWSTR SiteName;
 }
 
 struct DFS_SITELIST_INFO
@@ -510,8 +511,7 @@ struct DFS_GET_PKT_ENTRY_STATE_ARG
 ///    system error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("dfscli")
-uint NetDfsAdd(const(wchar)* DfsEntryPath, const(wchar)* ServerName, const(wchar)* ShareName, 
-               const(wchar)* Comment, uint Flags);
+uint NetDfsAdd(PWSTR DfsEntryPath, PWSTR ServerName, PWSTR ShareName, PWSTR Comment, uint Flags);
 
 ///Creates a new stand-alone Distributed File System (DFS) namespace.
 ///Params:
@@ -526,7 +526,7 @@ uint NetDfsAdd(const(wchar)* DfsEntryPath, const(wchar)* ServerName, const(wchar
 ///    system error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("dfscli")
-uint NetDfsAddStdRoot(const(wchar)* ServerName, const(wchar)* RootShare, const(wchar)* Comment, uint Flags);
+uint NetDfsAddStdRoot(PWSTR ServerName, PWSTR RootShare, PWSTR Comment, uint Flags);
 
 ///Deletes a stand-alone Distributed File System (DFS) namespace.
 ///Params:
@@ -540,7 +540,7 @@ uint NetDfsAddStdRoot(const(wchar)* ServerName, const(wchar)* RootShare, const(w
 ///    system error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("dfscli")
-uint NetDfsRemoveStdRoot(const(wchar)* ServerName, const(wchar)* RootShare, uint Flags);
+uint NetDfsRemoveStdRoot(PWSTR ServerName, PWSTR RootShare, uint Flags);
 
 ///Creates a new domain-based Distributed File System (DFS) namespace. If the namespace already exists, the function
 ///adds the specified root target to it.
@@ -558,8 +558,7 @@ uint NetDfsRemoveStdRoot(const(wchar)* ServerName, const(wchar)* RootShare, uint
 ///    system error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("dfscli")
-uint NetDfsAddFtRoot(const(wchar)* ServerName, const(wchar)* RootShare, const(wchar)* FtDfsName, 
-                     const(wchar)* Comment, uint Flags);
+uint NetDfsAddFtRoot(PWSTR ServerName, PWSTR RootShare, PWSTR FtDfsName, PWSTR Comment, uint Flags);
 
 ///Removes the specified root target from a domain-based Distributed File System (DFS) namespace. If the last root
 ///target of the DFS namespace is being removed, the function also deletes the DFS namespace. A DFS namespace can be
@@ -577,7 +576,7 @@ uint NetDfsAddFtRoot(const(wchar)* ServerName, const(wchar)* RootShare, const(wc
 ///    system error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("dfscli")
-uint NetDfsRemoveFtRoot(const(wchar)* ServerName, const(wchar)* RootShare, const(wchar)* FtDfsName, uint Flags);
+uint NetDfsRemoveFtRoot(PWSTR ServerName, PWSTR RootShare, PWSTR FtDfsName, uint Flags);
 
 ///Removes the specified root target from a domain-based Distributed File System (DFS) namespace, even if the root
 ///target server is offline. If the last root target of the DFS namespace is being removed, the function also deletes
@@ -599,8 +598,7 @@ uint NetDfsRemoveFtRoot(const(wchar)* ServerName, const(wchar)* RootShare, const
 ///    system error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("dfscli")
-uint NetDfsRemoveFtRootForced(const(wchar)* DomainName, const(wchar)* ServerName, const(wchar)* RootShare, 
-                              const(wchar)* FtDfsName, uint Flags);
+uint NetDfsRemoveFtRootForced(PWSTR DomainName, PWSTR ServerName, PWSTR RootShare, PWSTR FtDfsName, uint Flags);
 
 ///Removes a Distributed File System (DFS) link or a specific link target of a DFS link in a DFS namespace. When
 ///removing a specific link target, the link itself is removed if the last link target of the link is removed.
@@ -616,7 +614,7 @@ uint NetDfsRemoveFtRootForced(const(wchar)* DomainName, const(wchar)* ServerName
 ///    system error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("dfscli")
-uint NetDfsRemove(const(wchar)* DfsEntryPath, const(wchar)* ServerName, const(wchar)* ShareName);
+uint NetDfsRemove(PWSTR DfsEntryPath, PWSTR ServerName, PWSTR ShareName);
 
 ///Enumerates the Distributed File System (DFS) namespaces hosted on a server or DFS links of a namespace hosted by a
 ///server.
@@ -643,8 +641,7 @@ uint NetDfsRemove(const(wchar)* DfsEntryPath, const(wchar)* ServerName, const(wc
 ///    error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("dfscli")
-uint NetDfsEnum(const(wchar)* DfsName, uint Level, uint PrefMaxLen, ubyte** Buffer, uint* EntriesRead, 
-                uint* ResumeHandle);
+uint NetDfsEnum(PWSTR DfsName, uint Level, uint PrefMaxLen, ubyte** Buffer, uint* EntriesRead, uint* ResumeHandle);
 
 ///Retrieves information about a specified Distributed File System (DFS) root or link in a DFS namespace.
 ///Params:
@@ -662,8 +659,7 @@ uint NetDfsEnum(const(wchar)* DfsName, uint Level, uint PrefMaxLen, ubyte** Buff
 ///    system error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("dfscli")
-uint NetDfsGetInfo(const(wchar)* DfsEntryPath, const(wchar)* ServerName, const(wchar)* ShareName, uint Level, 
-                   ubyte** Buffer);
+uint NetDfsGetInfo(PWSTR DfsEntryPath, PWSTR ServerName, PWSTR ShareName, uint Level, ubyte** Buffer);
 
 ///Sets or modifies information about a specific Distributed File System (DFS) root, root target, link, or link target.
 ///Params:
@@ -682,8 +678,7 @@ uint NetDfsGetInfo(const(wchar)* DfsEntryPath, const(wchar)* ServerName, const(w
 ///    error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("dfscli")
-uint NetDfsSetInfo(const(wchar)* DfsEntryPath, const(wchar)* ServerName, const(wchar)* ShareName, uint Level, 
-                   ubyte* Buffer);
+uint NetDfsSetInfo(PWSTR DfsEntryPath, PWSTR ServerName, PWSTR ShareName, uint Level, ubyte* Buffer);
 
 ///Retrieves information about a Distributed File System (DFS) root or link from the cache maintained by the DFS client.
 ///Params:
@@ -702,8 +697,7 @@ uint NetDfsSetInfo(const(wchar)* DfsEntryPath, const(wchar)* ServerName, const(w
 ///    system error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("dfscli")
-uint NetDfsGetClientInfo(const(wchar)* DfsEntryPath, const(wchar)* ServerName, const(wchar)* ShareName, uint Level, 
-                         ubyte** Buffer);
+uint NetDfsGetClientInfo(PWSTR DfsEntryPath, PWSTR ServerName, PWSTR ShareName, uint Level, ubyte** Buffer);
 
 ///Modifies information about a Distributed File System (DFS) root or link in the cache maintained by the DFS client.
 ///Params:
@@ -721,8 +715,7 @@ uint NetDfsGetClientInfo(const(wchar)* DfsEntryPath, const(wchar)* ServerName, c
 ///    system error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("dfscli")
-uint NetDfsSetClientInfo(const(wchar)* DfsEntryPath, const(wchar)* ServerName, const(wchar)* ShareName, uint Level, 
-                         ubyte* Buffer);
+uint NetDfsSetClientInfo(PWSTR DfsEntryPath, PWSTR ServerName, PWSTR ShareName, uint Level, ubyte* Buffer);
 
 ///Renames or moves a DFS link.
 ///Params:
@@ -736,7 +729,7 @@ uint NetDfsSetClientInfo(const(wchar)* DfsEntryPath, const(wchar)* ServerName, c
 ///    system error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("dfscli")
-uint NetDfsMove(const(wchar)* OldDfsEntryPath, const(wchar)* NewDfsEntryPath, uint Flags);
+uint NetDfsMove(PWSTR OldDfsEntryPath, PWSTR NewDfsEntryPath, uint Flags);
 
 ///Creates a domain-based or stand-alone DFS namespace or adds a new root target to an existing domain-based namespace.
 ///Params:
@@ -760,8 +753,7 @@ uint NetDfsMove(const(wchar)* OldDfsEntryPath, const(wchar)* NewDfsEntryPath, ui
 ///    is a system error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("dfscli")
-uint NetDfsAddRootTarget(const(wchar)* pDfsPath, const(wchar)* pTargetPath, uint MajorVersion, 
-                         const(wchar)* pComment, uint Flags);
+uint NetDfsAddRootTarget(PWSTR pDfsPath, PWSTR pTargetPath, uint MajorVersion, PWSTR pComment, uint Flags);
 
 ///Removes a DFS root target from a domain-based DFS namespace. If the root target is the last root target in the DFS
 ///namespace, this function removes the DFS namespace. This function can also be used to remove a stand-alone DFS
@@ -780,7 +772,7 @@ uint NetDfsAddRootTarget(const(wchar)* pDfsPath, const(wchar)* pTargetPath, uint
 ///    error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("dfscli")
-uint NetDfsRemoveRootTarget(const(wchar)* pDfsPath, const(wchar)* pTargetPath, uint Flags);
+uint NetDfsRemoveRootTarget(PWSTR pDfsPath, PWSTR pTargetPath, uint Flags);
 
 ///Retrieves the security descriptor for the root object of the specified DFS namespace.
 ///Params:
@@ -797,7 +789,7 @@ uint NetDfsRemoveRootTarget(const(wchar)* pDfsPath, const(wchar)* pTargetPath, u
 ///    system error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("dfscli")
-uint NetDfsGetSecurity(const(wchar)* DfsEntryPath, uint SecurityInformation, void** ppSecurityDescriptor, 
+uint NetDfsGetSecurity(PWSTR DfsEntryPath, uint SecurityInformation, void** ppSecurityDescriptor, 
                        uint* lpcbSecurityDescriptor);
 
 ///Sets the security descriptor for the root object of the specified DFS namespace.
@@ -813,7 +805,7 @@ uint NetDfsGetSecurity(const(wchar)* DfsEntryPath, uint SecurityInformation, voi
 ///    system error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("dfscli")
-uint NetDfsSetSecurity(const(wchar)* DfsEntryPath, uint SecurityInformation, void* pSecurityDescriptor);
+uint NetDfsSetSecurity(PWSTR DfsEntryPath, uint SecurityInformation, void* pSecurityDescriptor);
 
 ///Retrieves the security descriptor for the container object of the specified stand-alone DFS namespace.
 ///Params:
@@ -829,8 +821,8 @@ uint NetDfsSetSecurity(const(wchar)* DfsEntryPath, uint SecurityInformation, voi
 ///    system error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("dfscli")
-uint NetDfsGetStdContainerSecurity(const(wchar)* MachineName, uint SecurityInformation, 
-                                   void** ppSecurityDescriptor, uint* lpcbSecurityDescriptor);
+uint NetDfsGetStdContainerSecurity(PWSTR MachineName, uint SecurityInformation, void** ppSecurityDescriptor, 
+                                   uint* lpcbSecurityDescriptor);
 
 ///Sets the security descriptor for the container object of the specified stand-alone DFS namespace.
 ///Params:
@@ -845,7 +837,7 @@ uint NetDfsGetStdContainerSecurity(const(wchar)* MachineName, uint SecurityInfor
 ///    system error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("dfscli")
-uint NetDfsSetStdContainerSecurity(const(wchar)* MachineName, uint SecurityInformation, void* pSecurityDescriptor);
+uint NetDfsSetStdContainerSecurity(PWSTR MachineName, uint SecurityInformation, void* pSecurityDescriptor);
 
 ///Retrieves the security descriptor of the container object for the domain-based DFS namespaces in the specified Active
 ///Directory domain.
@@ -862,7 +854,7 @@ uint NetDfsSetStdContainerSecurity(const(wchar)* MachineName, uint SecurityInfor
 ///    system error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("dfscli")
-uint NetDfsGetFtContainerSecurity(const(wchar)* DomainName, uint SecurityInformation, void** ppSecurityDescriptor, 
+uint NetDfsGetFtContainerSecurity(PWSTR DomainName, uint SecurityInformation, void** ppSecurityDescriptor, 
                                   uint* lpcbSecurityDescriptor);
 
 ///Sets the security descriptor of the container object for the domain-based DFS namespaces in the specified Active
@@ -877,7 +869,7 @@ uint NetDfsGetFtContainerSecurity(const(wchar)* DomainName, uint SecurityInforma
 ///    system error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("dfscli")
-uint NetDfsSetFtContainerSecurity(const(wchar)* DomainName, uint SecurityInformation, void* pSecurityDescriptor);
+uint NetDfsSetFtContainerSecurity(PWSTR DomainName, uint SecurityInformation, void* pSecurityDescriptor);
 
 ///Determines the supported metadata version number.
 ///Params:
@@ -891,7 +883,7 @@ uint NetDfsSetFtContainerSecurity(const(wchar)* DomainName, uint SecurityInforma
 ///    system error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("dfscli")
-uint NetDfsGetSupportedNamespaceVersion(DFS_NAMESPACE_VERSION_ORIGIN Origin, const(wchar)* pName, 
+uint NetDfsGetSupportedNamespaceVersion(DFS_NAMESPACE_VERSION_ORIGIN Origin, PWSTR pName, 
                                         DFS_SUPPORTED_NAMESPACE_VERSION_INFO** ppVersionInfo);
 
 

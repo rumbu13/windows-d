@@ -12,7 +12,7 @@ public import windows.windowsportabledevices : IPortableDeviceKeyCollection, IPo
 public import windows.windowsprogramming : SYSTEMTIME;
 public import windows.windowspropertiessystem : PROPERTYKEY;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -220,7 +220,7 @@ interface ILocationPermissions : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> NULL was passed in for pfEnabled. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetGlobalLocationPermission(int* pfEnabled);
+    HRESULT GetGlobalLocationPermission(BOOL* pfEnabled);
     ///Gets the location capability of the Windows Store app of the given thread
     ///Params:
     ///    dwClientThreadId = Thread Id of the app to check the location capability of
@@ -487,7 +487,7 @@ interface ISensor : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> NULL was passed in for ppValues or pCount. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetEventInterest(char* ppValues, uint* pCount);
+    HRESULT GetEventInterest(GUID** ppValues, uint* pCount);
     ///Specifies the list of sensor events to receive.
     ///Params:
     ///    pValues = Pointer to an array of <b>GUID</b>s. Each <b>GUID</b> represents an event to receive. Set to <b>NULL</b> to
@@ -499,7 +499,7 @@ interface ISensor : IUnknown
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT SetEventInterest(char* pValues, uint count);
+    HRESULT SetEventInterest(GUID* pValues, uint count);
     ///Specifies the interface through which to receive sensor event notifications.
     ///Params:
     ///    pEvents = Pointer to the ISensorEvents callback interface that receives the event notifications. Set to <b>NULL</b> to

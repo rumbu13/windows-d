@@ -4,7 +4,7 @@ module windows.printdocs;
 
 public import windows.core;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Structs

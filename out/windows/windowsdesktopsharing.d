@@ -6,7 +6,7 @@ public import windows.core;
 public import windows.automation : BSTR, IDispatch, SAFEARRAY, VARIANT;
 public import windows.com : HRESULT, IUnknown;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -306,7 +306,7 @@ interface IRDPSRAPIAudioStream : IUnknown
     ///Returns:
     ///    If the method succeeds, the return value is <b>S_OK</b>. Otherwise, the return value is an error code.
     ///    
-    HRESULT GetBuffer(char* ppbData, uint* pcbData, ulong* pTimestamp);
+    HRESULT GetBuffer(ubyte** ppbData, uint* pcbData, ulong* pTimestamp);
     ///Releases the hold on the buffer after the GetBuffer method is called.
     ///Returns:
     ///    If the method succeeds, the return value is <b>S_OK</b>. Otherwise, the return value is an error code.

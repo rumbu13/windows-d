@@ -3,10 +3,10 @@
 module windows.snmp;
 
 public import windows.core;
-public import windows.systemservices : BOOL, HANDLE, ULARGE_INTEGER;
+public import windows.systemservices : BOOL, HANDLE, PSTR, ULARGE_INTEGER;
 public import windows.windowsandmessaging : HWND, LPARAM, WPARAM;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Callbacks
@@ -124,7 +124,7 @@ struct AsnAny
     ///id="snmp_exception_endofmibview"></a><dl> <dt><b>SNMP_EXCEPTION_ENDOFMIBVIEW</b></dt> </dl> </td> <td
     ///width="60%"> Indicates that the end of the MIB view has been reached. </td> </tr> </table>
     ubyte asnType;
-    union asnValue
+union asnValue
     {
     align (4):
         int                 number;
@@ -261,7 +261,7 @@ struct smiVALUE
     ///end of the MIB tree that the agent supports. </td> </tr> </table> The last three syntax types describe exception
     ///conditions under the SNMP version 2C (SNMPv2C) framework.
     uint syntax;
-    union value
+union value
     {
         int       sNumber;
         uint      uNumber;
@@ -556,7 +556,7 @@ void* SnmpUtilMemReAlloc(void* pMem, uint nBytes);
 ///    identifier pointed to by the <i>Oid</i> parameter.
 ///    
 @DllImport("snmpapi")
-byte* SnmpUtilOidToA(AsnObjectIdentifier* Oid);
+PSTR SnmpUtilOidToA(AsnObjectIdentifier* Oid);
 
 ///<p class="CCE_Message">[SNMP is available for use in the operating systems specified in the Requirements section. It
 ///may be altered or unavailable in subsequent versions. Instead, use Windows Remote Management, which is the Microsoft
@@ -576,7 +576,7 @@ byte* SnmpUtilOidToA(AsnObjectIdentifier* Oid);
 ///    of three periods ('...').
 ///    
 @DllImport("snmpapi")
-byte* SnmpUtilIdsToA(uint* Ids, uint IdLength);
+PSTR SnmpUtilIdsToA(uint* Ids, uint IdLength);
 
 ///<p class="CCE_Message">[SNMP is available for use in the operating systems specified in the Requirements section. It
 ///may be altered or unavailable in subsequent versions. Instead, use Windows Remote Management, which is the Microsoft
@@ -684,7 +684,7 @@ void SnmpSvcSetLogType(int nLogType);
 ///    This function does not return a value.
 ///    
 @DllImport("snmpapi")
-void SnmpUtilDbgPrint(int nLogLevel, const(char)* szFormat);
+void SnmpUtilDbgPrint(int nLogLevel, PSTR szFormat);
 
 ///<p class="CCE_Message">[SNMP is available for use in the operating systems specified in the Requirements section. It
 ///may be altered or unavailable in subsequent versions. Instead, use Windows Remote Management, which is the Microsoft
@@ -707,7 +707,7 @@ void SnmpUtilDbgPrint(int nLogLevel, const(char)* szFormat);
 ///    allocation error. This function may also return Windows Sockets error codes.
 ///    
 @DllImport("mgmtapi")
-void* SnmpMgrOpen(const(char)* lpAgentAddress, const(char)* lpAgentCommunity, int nTimeOut, int nRetries);
+void* SnmpMgrOpen(PSTR lpAgentAddress, PSTR lpAgentCommunity, int nTimeOut, int nRetries);
 
 ///<p class="CCE_Message">[SNMP is available for use in the operating systems specified in the Requirements section. It
 ///may be altered or unavailable in subsequent versions. Instead, use Windows Remote Management, which is the Microsoft
@@ -819,7 +819,7 @@ int SnmpMgrRequest(void* session, ubyte requestType, SnmpVarBindList* variableBi
 ///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero.
 ///    
 @DllImport("mgmtapi")
-BOOL SnmpMgrStrToOid(const(char)* string, AsnObjectIdentifier* oid);
+BOOL SnmpMgrStrToOid(PSTR string, AsnObjectIdentifier* oid);
 
 ///<p class="CCE_Message">[SNMP is available for use in the operating systems specified in the Requirements section. It
 ///may be altered or unavailable in subsequent versions. Instead, use Windows Remote Management, which is the Microsoft
@@ -832,7 +832,7 @@ BOOL SnmpMgrStrToOid(const(char)* string, AsnObjectIdentifier* oid);
 ///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero.
 ///    
 @DllImport("mgmtapi")
-BOOL SnmpMgrOidToStr(AsnObjectIdentifier* oid, byte** string);
+BOOL SnmpMgrOidToStr(AsnObjectIdentifier* oid, PSTR* string);
 
 ///<p class="CCE_Message">[SNMP is available for use in the operating systems specified in the Requirements section. It
 ///may be altered or unavailable in subsequent versions. Instead, use Windows Remote Management, which is the Microsoft
@@ -1744,7 +1744,7 @@ uint SnmpCleanupEx();
 ///    undefined error occurred. </td> </tr> </table>
 ///    
 @DllImport("wsnmp32")
-ptrdiff_t SnmpStrToEntity(ptrdiff_t session, const(char)* string);
+ptrdiff_t SnmpStrToEntity(ptrdiff_t session, const(PSTR) string);
 
 ///<p class="CCE_Message">[SNMP is available for use in the operating systems specified in the Requirements section. It
 ///may be altered or unavailable in subsequent versions. Instead, use Windows Remote Management, which is the Microsoft
@@ -1770,7 +1770,7 @@ ptrdiff_t SnmpStrToEntity(ptrdiff_t session, const(char)* string);
 ///    </td> <td width="60%"> An unknown or undefined error occurred. </td> </tr> </table>
 ///    
 @DllImport("wsnmp32")
-uint SnmpEntityToStr(ptrdiff_t entity, uint size, const(char)* string);
+uint SnmpEntityToStr(ptrdiff_t entity, uint size, PSTR string);
 
 ///<p class="CCE_Message">[SNMP is available for use in the operating systems specified in the Requirements section. It
 ///may be altered or unavailable in subsequent versions. Instead, use Windows Remote Management, which is the Microsoft
@@ -2406,7 +2406,7 @@ uint SnmpGetLastError(ptrdiff_t session);
 ///    undefined error occurred. </td> </tr> </table>
 ///    
 @DllImport("wsnmp32")
-uint SnmpStrToOid(const(char)* string, smiOID* dstOID);
+uint SnmpStrToOid(const(PSTR) string, smiOID* dstOID);
 
 ///<p class="CCE_Message">[SNMP is available for use in the operating systems specified in the Requirements section. It
 ///may be altered or unavailable in subsequent versions. Instead, use Windows Remote Management, which is the Microsoft
@@ -2437,7 +2437,7 @@ uint SnmpStrToOid(const(char)* string, smiOID* dstOID);
 ///    </tr> </table>
 ///    
 @DllImport("wsnmp32")
-uint SnmpOidToStr(smiOID* srcOID, uint size, const(char)* string);
+uint SnmpOidToStr(smiOID* srcOID, uint size, PSTR string);
 
 ///<p class="CCE_Message">[SNMP is available for use in the operating systems specified in the Requirements section. It
 ///may be altered or unavailable in subsequent versions. Instead, use Windows Remote Management, which is the Microsoft

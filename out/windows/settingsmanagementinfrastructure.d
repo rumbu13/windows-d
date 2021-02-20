@@ -6,9 +6,9 @@ public import windows.core;
 public import windows.automation : BSTR, VARIANT;
 public import windows.com : HRESULT, IUnknown;
 public import windows.structuredstorage : IStream;
-public import windows.systemservices : BOOL;
+public import windows.systemservices : BOOL, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -149,7 +149,7 @@ interface IItemEnumerator : IUnknown
     ///    This method returns an HRESULT value. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td
     ///    width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> Indicates success. </td> </tr> </table>
     ///    
-    HRESULT MoveNext(int* ItemValid);
+    HRESULT MoveNext(BOOL* ItemValid);
     ///Resets the state of the enumerator to its initialized state. You must immediately follow
     ///<b>IItemEnumerator::Reset</b> with a call to IItemEnumerator::MoveNext on the enumerator in order to set the
     ///current pointer at the first position in the enumeration.
@@ -172,7 +172,7 @@ interface ISettingsIdentity : IUnknown
     ///    This method returns an HRESULT value. <b>S_OK</b> indicates success. If the attribute specified by Name is
     ///    not recognized, this function returns <b>WCM_E_ATTRIBUTENOTFOUND</b>.
     ///    
-    HRESULT GetAttribute(void* Reserved, const(wchar)* Name, BSTR* Value);
+    HRESULT GetAttribute(void* Reserved, const(PWSTR) Name, BSTR* Value);
     ///Sets an identity attribute for a namespace identity.
     ///Params:
     ///    Reserved = Reserved. Must be <b>NULL</b>.
@@ -182,7 +182,7 @@ interface ISettingsIdentity : IUnknown
     ///    This method returns an HRESULT value. <b>S_OK</b> indicates success. It returns
     ///    <b>WCM_E_ATTRIBUTENOTALLOWED</b> if the attribute specified by Name is not recognized.
     ///    
-    HRESULT SetAttribute(void* Reserved, const(wchar)* Name, const(wchar)* Value);
+    HRESULT SetAttribute(void* Reserved, const(PWSTR) Name, const(PWSTR) Value);
     ///Returns the flags for a namespace identity.
     ///Params:
     ///    Flags = The identity flags for the namespace identity.
@@ -236,7 +236,7 @@ interface ITargetInfo : IUnknown
     ///    width="40%"> <dl> <dt><b>E_OUTOFMEMORY </b></dt> </dl> </td> <td width="60%"> Indicates that system resources
     ///    are low. </td> </tr> </table>
     ///    
-    HRESULT SetTemporaryStoreLocation(const(wchar)* TemporaryStoreLocation);
+    HRESULT SetTemporaryStoreLocation(const(PWSTR) TemporaryStoreLocation);
     ///Gets the unique identifier associated with the current target.
     ///Params:
     ///    TargetID = The unique identifier associated with the current target.
@@ -267,7 +267,7 @@ interface ITargetInfo : IUnknown
     ///    (<b>ERROR_INVALID_OPERATION</b>) if the target processor architecture has been set. May return
     ///    <b>E_OUTOFMEMORY</b> if system resources are low.
     ///    
-    HRESULT SetTargetProcessorArchitecture(const(wchar)* ProcessorArchitecture);
+    HRESULT SetTargetProcessorArchitecture(const(PWSTR) ProcessorArchitecture);
     ///Gets a property value for the offline installation location.
     ///Params:
     ///    Offline = <b>True</b> if the installation location is offline.
@@ -281,7 +281,7 @@ interface ITargetInfo : IUnknown
     ///    width="60%"> Indicates that there are insufficient resources to return information to the user. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetProperty(BOOL Offline, const(wchar)* Property, BSTR* Value);
+    HRESULT GetProperty(BOOL Offline, const(PWSTR) Property, BSTR* Value);
     ///Sets a property value for the offline installation location.
     ///Params:
     ///    Offline = <b>True</b> if installation location is offline.
@@ -290,7 +290,7 @@ interface ITargetInfo : IUnknown
     ///Returns:
     ///    This method returns an HRESULT value. <b>S_OK</b> indicates success.
     ///    
-    HRESULT SetProperty(BOOL Offline, const(wchar)* Property, const(wchar)* Value);
+    HRESULT SetProperty(BOOL Offline, const(PWSTR) Property, const(PWSTR) Value);
     ///Gets the enumerator used to access the collection of offline properties.
     ///Params:
     ///    Enumerator = A pointer to an IItemEnumerator object that provides access to the collection of offline properties.
@@ -307,7 +307,7 @@ interface ITargetInfo : IUnknown
     ///    This method returns an HRESULT value. <b>S_OK</b> indicates success. This method may return
     ///    <b>E_OUTOFMEMORY</b> if there are insufficient resources to return information to the user.
     ///    
-    HRESULT ExpandTarget(BOOL Offline, const(wchar)* Location, BSTR* ExpandedLocation);
+    HRESULT ExpandTarget(BOOL Offline, const(PWSTR) Location, BSTR* ExpandedLocation);
     ///Expands a location string to indicate the offline installation location.
     ///Params:
     ///    Offline = <b>True</b> if the installation location is offline.
@@ -317,7 +317,7 @@ interface ITargetInfo : IUnknown
     ///    This method returns an HRESULT value. <b>S_OK</b> indicates success. This method may return
     ///    <b>E_OUTOFMEMORY</b> if there are insufficient resources to return information to the user.
     ///    
-    HRESULT ExpandTargetPath(BOOL Offline, const(wchar)* Location, BSTR* ExpandedLocation);
+    HRESULT ExpandTargetPath(BOOL Offline, const(PWSTR) Location, BSTR* ExpandedLocation);
     ///Sets the module path for the offline installation location.
     ///Params:
     ///    Module = The name of the module.
@@ -325,7 +325,7 @@ interface ITargetInfo : IUnknown
     ///Returns:
     ///    This method returns an HRESULT value. <b>S_OK</b> indicates success.
     ///    
-    HRESULT SetModulePath(const(wchar)* Module, const(wchar)* Path);
+    HRESULT SetModulePath(const(PWSTR) Module, const(PWSTR) Path);
     ///Loads the module from the offline installation location.
     ///Params:
     ///    Module = The name of the module.
@@ -333,7 +333,7 @@ interface ITargetInfo : IUnknown
     ///Returns:
     ///    This method returns an HRESULT value. <b>S_OK</b> indicates success.
     ///    
-    HRESULT LoadModule(const(wchar)* Module, ptrdiff_t* ModuleHandle);
+    HRESULT LoadModule(const(PWSTR) Module, ptrdiff_t* ModuleHandle);
     ///Sets an opaque context object for wow64 redirection.
     ///Params:
     ///    InstallerModule = The name of the installer module.
@@ -341,7 +341,7 @@ interface ITargetInfo : IUnknown
     ///Returns:
     ///    This method returns an HRESULT value. <b>S_OK</b> indicates success.
     ///    
-    HRESULT SetWow64Context(const(wchar)* InstallerModule, ubyte* Wow64Context);
+    HRESULT SetWow64Context(const(PWSTR) InstallerModule, ubyte* Wow64Context);
     ///Translates paths for wow64 redirection.
     ///Params:
     ///    ClientArchitecture = The name of the client architecture.
@@ -350,7 +350,7 @@ interface ITargetInfo : IUnknown
     ///Returns:
     ///    This method returns an HRESULT value. <b>S_OK</b> indicates success.
     ///    
-    HRESULT TranslateWow64(const(wchar)* ClientArchitecture, const(wchar)* Value, BSTR* TranslatedValue);
+    HRESULT TranslateWow64(const(PWSTR) ClientArchitecture, const(PWSTR) Value, BSTR* TranslatedValue);
     ///Sets the location of the schema hive.
     ///Params:
     ///    pwzHiveDir = A pointer to the location of the schema hive.
@@ -361,7 +361,7 @@ interface ITargetInfo : IUnknown
     ///    is low on resources. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td
     ///    width="60%"> Indicates that the location <i>pwzHiveDir</i> is not a directory. </td> </tr> </table>
     ///    
-    HRESULT SetSchemaHiveLocation(const(wchar)* pwzHiveDir);
+    HRESULT SetSchemaHiveLocation(const(PWSTR) pwzHiveDir);
     ///Get the location of the schema hive.
     ///Params:
     ///    pHiveLocation = A pointer to the schema hive location.
@@ -378,7 +378,7 @@ interface ITargetInfo : IUnknown
     ///    This method returns an HRESULT value. <b>S_OK</b> indicates success. May return <b>E_OUTOFMEMORY</b> if the
     ///    system is low on resources.
     ///    
-    HRESULT SetSchemaHiveMountName(const(wchar)* pwzMountName);
+    HRESULT SetSchemaHiveMountName(const(PWSTR) pwzMountName);
     ///Gets the name of the mount location of the schema hive.
     ///Params:
     ///    pMountName = The name of the mount location of the schema hive. The value of <i>pMountName</i> is <b>NULL</b> on return if
@@ -539,7 +539,7 @@ interface ISettingsEngine : IUnknown
     ///Returns:
     ///    This method returns an HRESULT value. <b>S_OK</b> indicates success.
     ///    
-    HRESULT ApplySettingsContext(ISettingsContext SettingsContext, ushort*** pppwzIdentities, size_t* pcIdentities);
+    HRESULT ApplySettingsContext(ISettingsContext SettingsContext, PWSTR** pppwzIdentities, size_t* pcIdentities);
     HRESULT GetSettingsContext(ISettingsContext* SettingsContext);
 }
 
@@ -633,7 +633,7 @@ interface ISettingsItem : IUnknown
     ///Returns:
     ///    This method returns an HRESULT value. <b>S_OK</b> indicates success.
     ///    
-    HRESULT HasChild(int* ItemHasChild);
+    HRESULT HasChild(BOOL* ItemHasChild);
     ///Gets the dictionary of the child items that correspond to this item.
     ///Params:
     ///    Children = An IItemEnumerator interface pointer used to access the children.
@@ -663,7 +663,7 @@ interface ISettingsItem : IUnknown
     ///    <dt><b>HRESULT_FROM_WIN32(ERROR_INVALID_OPERATION)</b></dt> </dl> </td> <td width="60%"> Indicates that the
     ///    item does not support children. </td> </tr> </table>
     ///    
-    HRESULT GetChild(const(wchar)* Name, ISettingsItem* Child);
+    HRESULT GetChild(const(PWSTR) Name, ISettingsItem* Child);
     ///Gets a setting based on the given path.
     ///Params:
     ///    Path = Path of the list element or attribute to retrieve. The path is relative to the current setting.
@@ -679,7 +679,7 @@ interface ISettingsItem : IUnknown
     ///    width="40%"> <dl> <dt><b>WCM_E_INVALIDKEY </b></dt> </dl> </td> <td width="60%"> Indicates that the path is
     ///    incorrectly specified and references the wrong key for the list item. </td> </tr> </table>
     ///    
-    HRESULT GetSettingByPath(const(wchar)* Path, ISettingsItem* Setting);
+    HRESULT GetSettingByPath(const(PWSTR) Path, ISettingsItem* Setting);
     ///Creates a setting object specified by the path.
     ///Params:
     ///    Path = A pointer to the path.
@@ -699,7 +699,7 @@ interface ISettingsItem : IUnknown
     ///    <dt><b>WCM_E_INVALIDKEY</b></dt> </dl> </td> <td width="60%"> Indicates that the path is incorrectly
     ///    specified and references the wrong key for a list item. </td> </tr> </table>
     ///    
-    HRESULT CreateSettingByPath(const(wchar)* Path, ISettingsItem* Setting);
+    HRESULT CreateSettingByPath(const(PWSTR) Path, ISettingsItem* Setting);
     ///Removes a setting object specified by its path. Unlike GetSettingByPath, the use of
     ///<b>ISettingsItem::RemoveSettingByPath</b> is not advocated for attributes.
     ///Params:
@@ -720,7 +720,7 @@ interface ISettingsItem : IUnknown
     ///    width="60%"> Indicates that the path is incorrectly specified and references the wrong key for the list item.
     ///    </td> </tr> </table>
     ///    
-    HRESULT RemoveSettingByPath(const(wchar)* Path);
+    HRESULT RemoveSettingByPath(const(PWSTR) Path);
     ///Gets the list information for this item.
     ///Params:
     ///    KeyName = The name of the key.
@@ -776,7 +776,7 @@ interface ISettingsItem : IUnknown
     ///    </b></dt> </dl> </td> <td width="60%"> Indicates that the path is incorrectly specified and references the
     ///    wrong key for the list item. </td> </tr> </table>
     ///    
-    HRESULT RemoveListElement(const(wchar)* ElementName);
+    HRESULT RemoveListElement(const(PWSTR) ElementName);
     ///Gets the dictionary of attributes.
     ///Params:
     ///    Attributes = A pointer to an IItemEnumerator object that represents the dictionary of attributes.
@@ -797,7 +797,7 @@ interface ISettingsItem : IUnknown
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Indicates that there are insufficient resources to
     ///    return information to the user. </td> </tr> </table>
     ///    
-    HRESULT GetAttribute(const(wchar)* Name, VARIANT* Value);
+    HRESULT GetAttribute(const(PWSTR) Name, VARIANT* Value);
     ///Gets the path for the item.
     ///Params:
     ///    Path = The path to the current setting. This path should be handled as opaque, and should be used only for
@@ -895,7 +895,7 @@ interface ISettingsNamespace : IUnknown
     ///    width="40%"> <dl> <dt><b>WCM_E_WRONGESCAPESTRING</b></dt> </dl> </td> <td width="60%"> Indicates that the
     ///    path is incorrectly specified and references the wrong key for a list item. </td> </tr> </table>
     ///    
-    HRESULT GetSettingByPath(const(wchar)* Path, ISettingsItem* Setting);
+    HRESULT GetSettingByPath(const(PWSTR) Path, ISettingsItem* Setting);
     ///Creates a setting object specified by its path.
     ///Params:
     ///    Path = The path of the setting object.
@@ -916,7 +916,7 @@ interface ISettingsNamespace : IUnknown
     ///    width="40%"> <dl> <dt><b>WCM_E_INVALIDKEY</b></dt> </dl> </td> <td width="60%"> Indicates that the path is
     ///    incorrectly specified and references the wrong key for a list item. </td> </tr> </table>
     ///    
-    HRESULT CreateSettingByPath(const(wchar)* Path, ISettingsItem* Setting);
+    HRESULT CreateSettingByPath(const(PWSTR) Path, ISettingsItem* Setting);
     ///Removes the setting object specified by a path.
     ///Params:
     ///    Path = The path of the setting object.
@@ -935,7 +935,7 @@ interface ISettingsNamespace : IUnknown
     ///    <td width="40%"> <dl> <dt><b>WCM_E_INVALIDKEY</b></dt> </dl> </td> <td width="60%"> Indicates that the path
     ///    is incorrectly specified and references the wrong key for the list item. </td> </tr> </table>
     ///    
-    HRESULT RemoveSettingByPath(const(wchar)* Path);
+    HRESULT RemoveSettingByPath(const(PWSTR) Path);
     ///Gets the value of an attribute of the namespace.
     ///Params:
     ///    Name = The name of the attribute.
@@ -948,7 +948,7 @@ interface ISettingsNamespace : IUnknown
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Indicates that there are insufficient resources to
     ///    return information to the user. </td> </tr> </table>
     ///    
-    HRESULT GetAttribute(const(wchar)* Name, VARIANT* Value);
+    HRESULT GetAttribute(const(PWSTR) Name, VARIANT* Value);
 }
 
 ///Retrieves the code and description for errors and warnings returned by various operations.
@@ -969,7 +969,7 @@ interface ISettingsResult : IUnknown
     ///Returns:
     ///    This method returns an HRESULT value. <b>S_OK</b> indicates success.
     ///    
-    HRESULT GetErrorCode(int* hrOut);
+    HRESULT GetErrorCode(HRESULT* hrOut);
     ///Returns the description of the context that surrounds the error.
     ///Params:
     ///    description = The text that describes the context.
@@ -1081,7 +1081,7 @@ interface ISettingsContext : IUnknown
     ///    <b>WCM_E_NAMESPACENOTFOUND</b> if <i>pIdentity</i> specifies a namespace that is not currently in the
     ///    context. It returns <b>WCM_E_STATENODENOTFOUND</b> if <i>pwzSetting</i> is not changed in the context.
     ///    
-    HRESULT RevertSetting(ISettingsIdentity pIdentity, const(wchar)* pwzSetting);
+    HRESULT RevertSetting(ISettingsIdentity pIdentity, const(PWSTR) pwzSetting);
 }
 
 

@@ -24,12 +24,13 @@ public import windows.mib : MIB_ANYCASTIPADDRESS_ROW, MIB_ANYCASTIPADDRESS_TABLE
                             MIB_UNICASTIPADDRESS_ROW, MIB_UNICASTIPADDRESS_TABLE;
 public import windows.networkdrivers : MIB_IF_TABLE_LEVEL, NET_IF_CONNECTION_TYPE,
                                        SOCKADDR_IN6_LH, TUNNEL_TYPE;
-public import windows.systemservices : BOOL, FARPROC, HANDLE, NTSTATUS, OVERLAPPED;
+public import windows.systemservices : BOOL, FARPROC, HANDLE, NTSTATUS, OVERLAPPED,
+                                       PSTR, PWSTR;
 public import windows.winsock : SOCKADDR, SOCKET_ADDRESS, in6_addr, in_addr,
                                 sockaddr_in;
 public import windows.windowsfiltering : DL_EUI48;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -484,8 +485,6 @@ alias PINTERFACE_TIMESTAMP_CONFIG_CHANGE_CALLBACK = void function();
 // Structs
 
 
-alias IcmpHandle = ptrdiff_t;
-
 ///The <b>IP_OPTION_INFORMATION</b> structure describes the options to be included in the header of an IP packet.
 struct ip_option_information
 {
@@ -750,7 +749,7 @@ union NET_LUID_LH
 {
     ///Type: <b>ULONG64</b> A 64-bit value that represents the LUID.
     ulong Value;
-    struct Info
+struct Info
     {
         ulong _bitfield61;
     }
@@ -776,32 +775,32 @@ struct IP_ADDRESS_PREFIX
 
 struct DNS_SETTINGS
 {
-    uint          Version;
-    ulong         Flags;
-    const(wchar)* Hostname;
-    const(wchar)* Domain;
-    const(wchar)* SearchList;
+    uint  Version;
+    ulong Flags;
+    PWSTR Hostname;
+    PWSTR Domain;
+    PWSTR SearchList;
 }
 
 struct DNS_INTERFACE_SETTINGS
 {
-    uint          Version;
-    ulong         Flags;
-    const(wchar)* Domain;
-    const(wchar)* NameServer;
-    const(wchar)* SearchList;
-    uint          RegistrationEnabled;
-    uint          RegisterAdapterName;
-    uint          EnableLLMNR;
-    uint          QueryAdapterName;
-    const(wchar)* ProfileNameServer;
+    uint  Version;
+    ulong Flags;
+    PWSTR Domain;
+    PWSTR NameServer;
+    PWSTR SearchList;
+    uint  RegistrationEnabled;
+    uint  RegisterAdapterName;
+    uint  EnableLLMNR;
+    uint  QueryAdapterName;
+    PWSTR ProfileNameServer;
 }
 
 struct DNS_INTERFACE_SETTINGS_EX
 {
     DNS_INTERFACE_SETTINGS SettingsV1;
-    uint          DisableUnconstrainedQueries;
-    const(wchar)* SupplementalSearchList;
+    uint  DisableUnconstrainedQueries;
+    PWSTR SupplementalSearchList;
 }
 
 ///The <b>TCPIP_OWNER_MODULE_BASIC_INFO</b> structure contains pointers to the module name and module path values
@@ -811,10 +810,10 @@ struct TCPIP_OWNER_MODULE_BASIC_INFO
 {
     ///A pointer to the name of the module. This field should be a <b>NULL</b> pointer when passed to
     ///GetOwnerModuleFromTcpEntry or GetOwnerModuleFromTcp6Entry function.
-    const(wchar)* pModuleName;
+    PWSTR pModuleName;
     ///A pointer to the full path of the module, including the module name. This field should be a <b>NULL</b> pointer
     ///when passed to GetOwnerModuleFromTcpEntry or GetOwnerModuleFromTcp6Entry function.
-    const(wchar)* pModulePath;
+    PWSTR pModulePath;
 }
 
 struct MIB_IPDESTROW
@@ -940,10 +939,10 @@ struct IP_ADAPTER_INFO
 ///for a particular adapter.
 struct IP_ADAPTER_UNICAST_ADDRESS_LH
 {
-    union
+union
     {
         ulong Alignment;
-        struct
+struct
         {
             uint Length;
             uint Flags;
@@ -983,10 +982,10 @@ struct IP_ADAPTER_UNICAST_ADDRESS_LH
 ///for a particular adapter.
 struct IP_ADAPTER_UNICAST_ADDRESS_XP
 {
-    union
+union
     {
         ulong Alignment;
-        struct
+struct
         {
             uint Length;
             uint Flags;
@@ -1021,10 +1020,10 @@ struct IP_ADAPTER_UNICAST_ADDRESS_XP
 ///a particular adapter.
 struct IP_ADAPTER_ANYCAST_ADDRESS_XP
 {
-    union
+union
     {
         ulong Alignment;
-        struct
+struct
         {
             uint Length;
             uint Flags;
@@ -1041,10 +1040,10 @@ struct IP_ADAPTER_ANYCAST_ADDRESS_XP
 ///a particular adapter.
 struct IP_ADAPTER_MULTICAST_ADDRESS_XP
 {
-    union
+union
     {
         ulong Alignment;
-        struct
+struct
         {
             uint Length;
             uint Flags;
@@ -1062,10 +1061,10 @@ struct IP_ADAPTER_MULTICAST_ADDRESS_XP
 ///addresses for a particular adapter.
 struct IP_ADAPTER_DNS_SERVER_ADDRESS_XP
 {
-    union
+union
     {
         ulong Alignment;
-        struct
+struct
         {
             uint Length;
             uint Reserved;
@@ -1081,10 +1080,10 @@ struct IP_ADAPTER_DNS_SERVER_ADDRESS_XP
 ///address in a linked list of WINS server addresses for a particular adapter.
 struct IP_ADAPTER_WINS_SERVER_ADDRESS_LH
 {
-    union
+union
     {
         ulong Alignment;
-        struct
+struct
         {
             uint Length;
             uint Reserved;
@@ -1100,10 +1099,10 @@ struct IP_ADAPTER_WINS_SERVER_ADDRESS_LH
 ///for a particular adapter.
 struct IP_ADAPTER_GATEWAY_ADDRESS_LH
 {
-    union
+union
     {
         ulong Alignment;
-        struct
+struct
         {
             uint Length;
             uint Reserved;
@@ -1118,10 +1117,10 @@ struct IP_ADAPTER_GATEWAY_ADDRESS_LH
 ///The <b>IP_ADAPTER_PREFIX</b> structure stores an IP address prefix.
 struct IP_ADAPTER_PREFIX_XP
 {
-    union
+union
     {
         ulong Alignment;
-        struct
+struct
         {
             uint Length;
             uint Flags;
@@ -1150,10 +1149,10 @@ struct IP_ADAPTER_DNS_SUFFIX
 ///structures.
 struct IP_ADAPTER_ADDRESSES_LH
 {
-    union
+union
     {
         ulong Alignment;
-        struct
+struct
         {
             uint Length;
             uint IfIndex;
@@ -1164,7 +1163,7 @@ struct IP_ADAPTER_ADDRESSES_LH
     ///Type: <b>PCHAR</b> An array of characters that contains the name of the adapter with which these addresses are
     ///associated. Unlike an adapter's friendly name, the adapter name specified in <b>AdapterName</b> is permanent and
     ///cannot be modified by the user.
-    const(char)*   AdapterName;
+    PSTR           AdapterName;
     ///Type: <b>PIP_ADAPTER_UNICAST_ADDRESS</b> A pointer to the first IP_ADAPTER_UNICAST_ADDRESS structure in a linked
     ///list of IP unicast addresses for the adapter.
     IP_ADAPTER_UNICAST_ADDRESS_LH* FirstUnicastAddress;
@@ -1178,25 +1177,25 @@ struct IP_ADAPTER_ADDRESSES_LH
     ///linked list of DNS server addresses for the adapter.
     IP_ADAPTER_DNS_SERVER_ADDRESS_XP* FirstDnsServerAddress;
     ///Type: <b>PWCHAR</b> The Domain Name System (DNS) suffix associated with this adapter.
-    const(wchar)*  DnsSuffix;
+    PWSTR          DnsSuffix;
     ///Type: <b>PWCHAR</b> A description for the adapter. This member is read-only.
-    const(wchar)*  Description;
+    PWSTR          Description;
     ///Type: <b>PWCHAR</b> A user-friendly name for the adapter. For example: "Local Area Connection 1." This name
     ///appears in contexts such as the <b>ipconfig</b> command line program and the Connection folder. This member is
     ///read only and can't be modified using any IP Helper functions. This member is the ifAlias field used by NDIS as
     ///described in RFC 2863. The ifAlias field can be set by an NDIS interface provider when the NDIS driver is
     ///installed. For NDIS miniport drivers, this field is set by NDIS.
-    const(wchar)*  FriendlyName;
+    PWSTR          FriendlyName;
     ///Type: <b>BYTE[MAX_ADAPTER_ADDRESS_LENGTH]</b> The Media Access Control (MAC) address for the adapter. For
     ///example, on an Ethernet network this member would specify the Ethernet hardware address.
     ubyte[8]       PhysicalAddress;
     ///Type: <b>DWORD</b> The length, in bytes, of the address specified in the <b>PhysicalAddress</b> member. For
     ///interfaces that do not have a data-link layer, this value is zero.
     uint           PhysicalAddressLength;
-    union
+union
     {
         uint Flags;
-        struct
+struct
         {
             uint _bitfield62;
         }
@@ -1390,10 +1389,10 @@ struct IP_ADAPTER_ADDRESSES_LH
 ///structures.
 struct IP_ADAPTER_ADDRESSES_XP
 {
-    union
+union
     {
         ulong Alignment;
-        struct
+struct
         {
             uint Length;
             uint IfIndex;
@@ -1404,7 +1403,7 @@ struct IP_ADAPTER_ADDRESSES_XP
     ///Type: <b>PCHAR</b> An array of characters that contains the name of the adapter with which these addresses are
     ///associated. Unlike an adapter's friendly name, the adapter name specified in <b>AdapterName</b> is permanent and
     ///cannot be modified by the user.
-    const(char)*   AdapterName;
+    PSTR           AdapterName;
     ///Type: <b>PIP_ADAPTER_UNICAST_ADDRESS</b> A pointer to the first IP_ADAPTER_UNICAST_ADDRESS structure in a linked
     ///list of IP unicast addresses for the adapter.
     IP_ADAPTER_UNICAST_ADDRESS_XP* FirstUnicastAddress;
@@ -1418,15 +1417,15 @@ struct IP_ADAPTER_ADDRESSES_XP
     ///linked list of DNS server addresses for the adapter.
     IP_ADAPTER_DNS_SERVER_ADDRESS_XP* FirstDnsServerAddress;
     ///Type: <b>PWCHAR</b> The Domain Name System (DNS) suffix associated with this adapter.
-    const(wchar)*  DnsSuffix;
+    PWSTR          DnsSuffix;
     ///Type: <b>PWCHAR</b> A description for the adapter. This member is read-only.
-    const(wchar)*  Description;
+    PWSTR          Description;
     ///Type: <b>PWCHAR</b> A user-friendly name for the adapter. For example: "Local Area Connection 1." This name
     ///appears in contexts such as the <b>ipconfig</b> command line program and the Connection folder. This member is
     ///read only and can't be modified using any IP Helper functions. This member is the ifAlias field used by NDIS as
     ///described in RFC 2863. The ifAlias field can be set by an NDIS interface provider when the NDIS driver is
     ///installed. For NDIS miniport drivers, this field is set by NDIS.
-    const(wchar)*  FriendlyName;
+    PWSTR          FriendlyName;
     ///Type: <b>BYTE[MAX_ADAPTER_ADDRESS_LENGTH]</b> The Media Access Control (MAC) address for the adapter. For
     ///example, on an Ethernet network this member would specify the Ethernet hardware address.
     ubyte[8]       PhysicalAddress;
@@ -2211,6 +2210,12 @@ struct INTERFACE_HARDWARE_CROSSTIMESTAMP
 struct HIFTIMESTAMPCHANGE__
 {
     int unused;
+}
+
+@RAIIFree!IcmpCloseHandle
+struct IcmpHandle
+{
+    ptrdiff_t Value;
 }
 
 ///The <b>NET_ADDRESS_INFO</b> structure contains IP address information returned by the ParseNetworkString function.
@@ -3836,7 +3841,7 @@ NTSTATUS ConvertInterfaceNameToLuidA(const(byte)* InterfaceName, NET_LUID_LH* In
 ///    was invalid. This error is returned if the <i>InterfaceLuid</i> parameter was <b>NULL</b>. </td> </tr> </table>
 ///    
 @DllImport("IPHLPAPI")
-NTSTATUS ConvertInterfaceNameToLuidW(const(wchar)* InterfaceName, NET_LUID_LH* InterfaceLuid);
+NTSTATUS ConvertInterfaceNameToLuidW(const(PWSTR) InterfaceName, NET_LUID_LH* InterfaceLuid);
 
 ///The <b>ConvertInterfaceLuidToNameA</b> function converts a locally unique identifier (LUID) for a network interface
 ///to the ANSI interface name.
@@ -3858,7 +3863,7 @@ NTSTATUS ConvertInterfaceNameToLuidW(const(wchar)* InterfaceName, NET_LUID_LH* I
 ///    not large enough as specified in the <i>Length</i> parameter to hold the interface name. </td> </tr> </table>
 ///    
 @DllImport("IPHLPAPI")
-NTSTATUS ConvertInterfaceLuidToNameA(const(NET_LUID_LH)* InterfaceLuid, const(char)* InterfaceName, size_t Length);
+NTSTATUS ConvertInterfaceLuidToNameA(const(NET_LUID_LH)* InterfaceLuid, PSTR InterfaceName, size_t Length);
 
 ///The <b>ConvertInterfaceLuidToNameW</b> function converts a locally unique identifier (LUID) for a network interface
 ///to the Unicode interface name.
@@ -3880,7 +3885,7 @@ NTSTATUS ConvertInterfaceLuidToNameA(const(NET_LUID_LH)* InterfaceLuid, const(ch
 ///    not large enough as specified in the <i>Length</i> parameter to hold the interface name. </td> </tr> </table>
 ///    
 @DllImport("IPHLPAPI")
-NTSTATUS ConvertInterfaceLuidToNameW(const(NET_LUID_LH)* InterfaceLuid, const(wchar)* InterfaceName, size_t Length);
+NTSTATUS ConvertInterfaceLuidToNameW(const(NET_LUID_LH)* InterfaceLuid, PWSTR InterfaceName, size_t Length);
 
 ///The <b>ConvertInterfaceLuidToIndex</b> function converts a locally unique identifier (LUID) for a network interface
 ///to the local index for the interface.
@@ -3936,8 +3941,7 @@ NTSTATUS ConvertInterfaceIndexToLuid(uint InterfaceIndex, NET_LUID_LH* Interface
 ///    was not large enough as specified in the <i>Length</i> parameter to hold the alias name. </td> </tr> </table>
 ///    
 @DllImport("IPHLPAPI")
-NTSTATUS ConvertInterfaceLuidToAlias(const(NET_LUID_LH)* InterfaceLuid, const(wchar)* InterfaceAlias, 
-                                     size_t Length);
+NTSTATUS ConvertInterfaceLuidToAlias(const(NET_LUID_LH)* InterfaceLuid, PWSTR InterfaceAlias, size_t Length);
 
 ///The <b>ConvertInterfaceAliasToLuid</b> function converts an interface alias name for a network interface to the
 ///locally unique identifier (LUID) for the interface.
@@ -3952,7 +3956,7 @@ NTSTATUS ConvertInterfaceLuidToAlias(const(NET_LUID_LH)* InterfaceLuid, const(wc
 ///    parameter was <b>NULL</b> or if the <i>InterfaceAlias</i> parameter was invalid. </td> </tr> </table>
 ///    
 @DllImport("IPHLPAPI")
-NTSTATUS ConvertInterfaceAliasToLuid(const(wchar)* InterfaceAlias, NET_LUID_LH* InterfaceLuid);
+NTSTATUS ConvertInterfaceAliasToLuid(const(PWSTR) InterfaceAlias, NET_LUID_LH* InterfaceLuid);
 
 ///The <b>ConvertInterfaceLuidToGuid</b> function converts a locally unique identifier (LUID) for a network interface to
 ///a globally unique identifier (GUID) for the interface.
@@ -3992,7 +3996,7 @@ NTSTATUS ConvertInterfaceGuidToLuid(const(GUID)* InterfaceGuid, NET_LUID_LH* Int
 ///    On success, <b>if_nametoindex</b> returns the local interface index. On failure, zero is returned.
 ///    
 @DllImport("IPHLPAPI")
-uint if_nametoindex(const(char)* InterfaceName);
+uint if_nametoindex(const(PSTR) InterfaceName);
 
 ///The <b>if_indextoname</b> function converts the local index for a network interface to the ANSI interface name.
 ///Params:
@@ -4005,7 +4009,7 @@ uint if_nametoindex(const(char)* InterfaceName);
 ///    interface name. On failure, a <b>NULL</b> pointer is returned.
 ///    
 @DllImport("IPHLPAPI")
-byte* if_indextoname(uint InterfaceIndex, const(char)* InterfaceName);
+PSTR if_indextoname(uint InterfaceIndex, PSTR InterfaceName);
 
 @DllImport("IPHLPAPI")
 void GetCurrentThreadCompartmentScope(uint* CompartmentScope, uint* CompartmentId);
@@ -4112,7 +4116,7 @@ NTSTATUS GetNetworkConnectivityHintForInterface(uint InterfaceIndex,
 @DllImport("IPHLPAPI")
 NTSTATUS NotifyNetworkConnectivityHintChange(PNETWORK_CONNECTIVITY_HINT_CHANGE_CALLBACK Callback, 
                                              void* CallerContext, ubyte InitialNotification, 
-                                             ptrdiff_t* NotificationHandle);
+                                             HANDLE* NotificationHandle);
 
 ///The <b>IcmpCreateFile</b> function opens a handle on which IPv4 ICMP echo requests can be issued.
 ///Returns:
@@ -4179,8 +4183,8 @@ BOOL IcmpCloseHandle(HANDLE IcmpHandle);
 ///    </table>
 ///    
 @DllImport("IPHLPAPI")
-uint IcmpSendEcho(HANDLE IcmpHandle, uint DestinationAddress, char* RequestData, ushort RequestSize, 
-                  ip_option_information* RequestOptions, char* ReplyBuffer, uint ReplySize, uint Timeout);
+uint IcmpSendEcho(HANDLE IcmpHandle, uint DestinationAddress, void* RequestData, ushort RequestSize, 
+                  ip_option_information* RequestOptions, void* ReplyBuffer, uint ReplySize, uint Timeout);
 
 ///The <b>IcmpSendEcho2</b> function sends an IPv4 ICMP echo request and returns either immediately (if <i>Event</i> or
 ///<i>ApcRoutine</i> is non-<b>NULL</b>) or returns after the specified time-out. The <i>ReplyBuffer</i> contains the
@@ -4235,7 +4239,7 @@ uint IcmpSendEcho(HANDLE IcmpHandle, uint DestinationAddress, char* RequestData,
 ///    
 @DllImport("IPHLPAPI")
 uint IcmpSendEcho2(HANDLE IcmpHandle, HANDLE Event, FARPROC ApcRoutine, void* ApcContext, uint DestinationAddress, 
-                   char* RequestData, ushort RequestSize, ip_option_information* RequestOptions, char* ReplyBuffer, 
+                   void* RequestData, ushort RequestSize, ip_option_information* RequestOptions, void* ReplyBuffer, 
                    uint ReplySize, uint Timeout);
 
 ///The <b>IcmpSendEcho2Ex</b> function sends an IPv4 ICMP echo request and returns either immediately (if <i>Event</i>
@@ -4291,8 +4295,8 @@ uint IcmpSendEcho2(HANDLE IcmpHandle, HANDLE Event, FARPROC ApcRoutine, void* Ap
 ///    
 @DllImport("IPHLPAPI")
 uint IcmpSendEcho2Ex(HANDLE IcmpHandle, HANDLE Event, FARPROC ApcRoutine, void* ApcContext, uint SourceAddress, 
-                     uint DestinationAddress, char* RequestData, ushort RequestSize, 
-                     ip_option_information* RequestOptions, char* ReplyBuffer, uint ReplySize, uint Timeout);
+                     uint DestinationAddress, void* RequestData, ushort RequestSize, 
+                     ip_option_information* RequestOptions, void* ReplyBuffer, uint ReplySize, uint Timeout);
 
 ///The <b>Icmp6SendEcho2</b> function sends an IPv6 ICMPv6 echo request and returns either immediately (if <i>Event</i>
 ///or <i>ApcRoutine</i> is non-<b>NULL</b>) or returns after the specified time-out. The <i>ReplyBuffer</i> contains the
@@ -4356,8 +4360,8 @@ uint IcmpSendEcho2Ex(HANDLE IcmpHandle, HANDLE Event, FARPROC ApcRoutine, void* 
 ///    
 @DllImport("IPHLPAPI")
 uint Icmp6SendEcho2(HANDLE IcmpHandle, HANDLE Event, FARPROC ApcRoutine, void* ApcContext, 
-                    SOCKADDR_IN6_LH* SourceAddress, SOCKADDR_IN6_LH* DestinationAddress, char* RequestData, 
-                    ushort RequestSize, ip_option_information* RequestOptions, char* ReplyBuffer, uint ReplySize, 
+                    SOCKADDR_IN6_LH* SourceAddress, SOCKADDR_IN6_LH* DestinationAddress, void* RequestData, 
+                    ushort RequestSize, ip_option_information* RequestOptions, void* ReplyBuffer, uint ReplySize, 
                     uint Timeout);
 
 ///The <b>IcmpParseReplies</b> function parses the reply buffer provided and returns the number of ICMP echo request
@@ -4372,7 +4376,7 @@ uint Icmp6SendEcho2(HANDLE IcmpHandle, HANDLE Event, FARPROC ApcRoutine, void* A
 ///    zero on error. Call GetLastError for additional error information.
 ///    
 @DllImport("IPHLPAPI")
-uint IcmpParseReplies(char* ReplyBuffer, uint ReplySize);
+uint IcmpParseReplies(void* ReplyBuffer, uint ReplySize);
 
 ///The <b>Icmp6ParseReplies</b> function parses the reply buffer provided and returns an IPv6 ICMPv6 echo response reply
 ///if found.
@@ -4391,7 +4395,7 @@ uint IcmpParseReplies(char* ReplyBuffer, uint ReplySize);
 ///    FormatMessage to obtain the message string for the returned error. </td> </tr> </table>
 ///    
 @DllImport("IPHLPAPI")
-uint Icmp6ParseReplies(char* ReplyBuffer, uint ReplySize);
+uint Icmp6ParseReplies(void* ReplyBuffer, uint ReplySize);
 
 ///The <b>GetNumberOfInterfaces</b> functions retrieves the number of interfaces on the local computer.
 ///Params:
@@ -4452,7 +4456,7 @@ uint GetIfEntry(MIB_IFROW* pIfRow);
 ///    </td> </tr> </table>
 ///    
 @DllImport("IPHLPAPI")
-uint GetIfTable(char* pIfTable, uint* pdwSize, BOOL bOrder);
+uint GetIfTable(MIB_IFTABLE* pIfTable, uint* pdwSize, BOOL bOrder);
 
 ///The <b>GetIpAddrTable</b> function retrieves the interface–to–IPv4 address mapping table.
 ///Params:
@@ -4477,7 +4481,7 @@ uint GetIfTable(char* pIfTable, uint* pdwSize, BOOL bOrder);
 ///    returned error. </td> </tr> </table>
 ///    
 @DllImport("IPHLPAPI")
-uint GetIpAddrTable(char* pIpAddrTable, uint* pdwSize, BOOL bOrder);
+uint GetIpAddrTable(MIB_IPADDRTABLE* pIpAddrTable, uint* pdwSize, BOOL bOrder);
 
 ///The <b>GetIpNetTable</b> function retrieves the IPv4 to physical address mapping table.
 ///Params:
@@ -4504,7 +4508,7 @@ uint GetIpAddrTable(char* pIpAddrTable, uint* pdwSize, BOOL bOrder);
 ///    FormatMessage to obtain the message string for the returned error. </td> </tr> </table>
 ///    
 @DllImport("IPHLPAPI")
-uint GetIpNetTable(char* IpNetTable, uint* SizePointer, BOOL Order);
+uint GetIpNetTable(MIB_IPNETTABLE* IpNetTable, uint* SizePointer, BOOL Order);
 
 ///The <b>GetIpForwardTable</b> function retrieves the IPv4 routing table.
 ///Params:
@@ -4531,7 +4535,7 @@ uint GetIpNetTable(char* IpNetTable, uint* SizePointer, BOOL Order);
 ///    FormatMessage to obtain the message string for the returned error. </td> </tr> </table>
 ///    
 @DllImport("IPHLPAPI")
-uint GetIpForwardTable(char* pIpForwardTable, uint* pdwSize, BOOL bOrder);
+uint GetIpForwardTable(MIB_IPFORWARDTABLE* pIpForwardTable, uint* pdwSize, BOOL bOrder);
 
 ///The <b>GetTcpTable</b> function retrieves the IPv4 TCP connection table.
 ///Params:
@@ -4561,7 +4565,7 @@ uint GetIpForwardTable(char* pIpForwardTable, uint* pdwSize, BOOL bOrder);
 ///    string for the returned error. </td> </tr> </table>
 ///    
 @DllImport("IPHLPAPI")
-uint GetTcpTable(char* TcpTable, uint* SizePointer, BOOL Order);
+uint GetTcpTable(MIB_TCPTABLE* TcpTable, uint* SizePointer, BOOL Order);
 
 ///The <b>GetExtendedTcpTable</b> function retrieves a table that contains a list of TCP endpoints available to the
 ///application.
@@ -4601,7 +4605,7 @@ uint GetTcpTable(char* TcpTable, uint* SizePointer, BOOL Order);
 ///    TCP_TABLE_CLASS enumeration. </td> </tr> </table>
 ///    
 @DllImport("IPHLPAPI")
-uint GetExtendedTcpTable(char* pTcpTable, uint* pdwSize, BOOL bOrder, uint ulAf, TCP_TABLE_CLASS TableClass, 
+uint GetExtendedTcpTable(void* pTcpTable, uint* pdwSize, BOOL bOrder, uint ulAf, TCP_TABLE_CLASS TableClass, 
                          uint Reserved);
 
 ///The <b>GetOwnerModuleFromTcpEntry</b> function retrieves data about the module that issued the context bind for a
@@ -4639,7 +4643,7 @@ uint GetExtendedTcpTable(char* pTcpTable, uint* pdwSize, BOOL bOrder, uint ulAf,
 ///    
 @DllImport("IPHLPAPI")
 uint GetOwnerModuleFromTcpEntry(MIB_TCPROW_OWNER_MODULE* pTcpEntry, TCPIP_OWNER_MODULE_INFO_CLASS Class, 
-                                char* pBuffer, uint* pdwSize);
+                                void* pBuffer, uint* pdwSize);
 
 ///The <b>GetUdpTable</b> function retrieves the IPv4 User Datagram Protocol (UDP) listener table.
 ///Params:
@@ -4664,7 +4668,7 @@ uint GetOwnerModuleFromTcpEntry(MIB_TCPROW_OWNER_MODULE* pTcpEntry, TCPIP_OWNER_
 ///    obtain the message string for the returned error. </td> </tr> </table>
 ///    
 @DllImport("IPHLPAPI")
-uint GetUdpTable(char* UdpTable, uint* SizePointer, BOOL Order);
+uint GetUdpTable(MIB_UDPTABLE* UdpTable, uint* SizePointer, BOOL Order);
 
 ///The <b>GetExtendedUdpTable</b> function retrieves a table that contains a list of UDP endpoints available to the
 ///application.
@@ -4703,7 +4707,7 @@ uint GetUdpTable(char* UdpTable, uint* SizePointer, BOOL Order);
 ///    UDP_TABLE_CLASS enumeration. </td> </tr> </table>
 ///    
 @DllImport("IPHLPAPI")
-uint GetExtendedUdpTable(char* pUdpTable, uint* pdwSize, BOOL bOrder, uint ulAf, UDP_TABLE_CLASS TableClass, 
+uint GetExtendedUdpTable(void* pUdpTable, uint* pdwSize, BOOL bOrder, uint ulAf, UDP_TABLE_CLASS TableClass, 
                          uint Reserved);
 
 ///The <b>GetOwnerModuleFromUdpEntry</b> function retrieves data about the module that issued the context bind for a
@@ -4730,7 +4734,7 @@ uint GetExtendedUdpTable(char* pUdpTable, uint* pdwSize, BOOL bOrder, uint ulAf,
 ///    
 @DllImport("IPHLPAPI")
 uint GetOwnerModuleFromUdpEntry(MIB_UDPROW_OWNER_MODULE* pUdpEntry, TCPIP_OWNER_MODULE_INFO_CLASS Class, 
-                                char* pBuffer, uint* pdwSize);
+                                void* pBuffer, uint* pdwSize);
 
 ///The <b>GetTcpTable2</b> function retrieves the IPv4 TCP connection table.
 ///Params:
@@ -4755,7 +4759,7 @@ uint GetOwnerModuleFromUdpEntry(MIB_UDPROW_OWNER_MODULE* pUdpEntry, TCPIP_OWNER_
 ///    width="60%"> Use FormatMessage to obtain the message string for the returned error. </td> </tr> </table>
 ///    
 @DllImport("IPHLPAPI")
-uint GetTcpTable2(char* TcpTable, uint* SizePointer, BOOL Order);
+uint GetTcpTable2(MIB_TCPTABLE2* TcpTable, uint* SizePointer, BOOL Order);
 
 ///The <b>GetTcp6Table</b> function retrieves the TCP connection table for IPv6.
 ///Params:
@@ -4781,7 +4785,7 @@ uint GetTcpTable2(char* TcpTable, uint* SizePointer, BOOL Order);
 ///    width="60%"> Use FormatMessage to obtain the message string for the returned error. </td> </tr> </table>
 ///    
 @DllImport("IPHLPAPI")
-uint GetTcp6Table(char* TcpTable, uint* SizePointer, BOOL Order);
+uint GetTcp6Table(MIB_TCP6TABLE* TcpTable, uint* SizePointer, BOOL Order);
 
 ///The <b>GetTcp6Table2</b> function retrieves the TCP connection table for IPv6.
 ///Params:
@@ -4807,7 +4811,7 @@ uint GetTcp6Table(char* TcpTable, uint* SizePointer, BOOL Order);
 ///    width="60%"> Use FormatMessage to obtain the message string for the returned error. </td> </tr> </table>
 ///    
 @DllImport("IPHLPAPI")
-uint GetTcp6Table2(char* TcpTable, uint* SizePointer, BOOL Order);
+uint GetTcp6Table2(MIB_TCP6TABLE2* TcpTable, uint* SizePointer, BOOL Order);
 
 ///The <b>GetPerTcpConnectionEStats</b> function retrieves extended statistics for an IPv4 TCP connection.
 ///Params:
@@ -4924,8 +4928,8 @@ uint GetTcp6Table2(char* TcpTable, uint* SizePointer, BOOL Order);
 ///    </table>
 ///    
 @DllImport("IPHLPAPI")
-uint GetPerTcpConnectionEStats(MIB_TCPROW_LH* Row, TCP_ESTATS_TYPE EstatsType, char* Rw, uint RwVersion, 
-                               uint RwSize, char* Ros, uint RosVersion, uint RosSize, char* Rod, uint RodVersion, 
+uint GetPerTcpConnectionEStats(MIB_TCPROW_LH* Row, TCP_ESTATS_TYPE EstatsType, ubyte* Rw, uint RwVersion, 
+                               uint RwSize, ubyte* Ros, uint RosVersion, uint RosSize, ubyte* Rod, uint RodVersion, 
                                uint RodSize);
 
 ///The <b>SetPerTcpConnectionEStats</b> function sets a value in the read/write information for an IPv4 TCP connection.
@@ -4961,7 +4965,7 @@ uint GetPerTcpConnectionEStats(MIB_TCPROW_LH* Row, TCP_ESTATS_TYPE EstatsType, c
 ///    FormatMessage to obtain the message string for the returned error. </td> </tr> </table>
 ///    
 @DllImport("IPHLPAPI")
-uint SetPerTcpConnectionEStats(MIB_TCPROW_LH* Row, TCP_ESTATS_TYPE EstatsType, char* Rw, uint RwVersion, 
+uint SetPerTcpConnectionEStats(MIB_TCPROW_LH* Row, TCP_ESTATS_TYPE EstatsType, ubyte* Rw, uint RwVersion, 
                                uint RwSize, uint Offset);
 
 ///The <b>GetPerTcp6ConnectionEStats</b> function retrieves extended statistics for an IPv6 TCP connection.
@@ -5079,8 +5083,8 @@ uint SetPerTcpConnectionEStats(MIB_TCPROW_LH* Row, TCP_ESTATS_TYPE EstatsType, c
 ///    </table>
 ///    
 @DllImport("IPHLPAPI")
-uint GetPerTcp6ConnectionEStats(MIB_TCP6ROW* Row, TCP_ESTATS_TYPE EstatsType, char* Rw, uint RwVersion, 
-                                uint RwSize, char* Ros, uint RosVersion, uint RosSize, char* Rod, uint RodVersion, 
+uint GetPerTcp6ConnectionEStats(MIB_TCP6ROW* Row, TCP_ESTATS_TYPE EstatsType, ubyte* Rw, uint RwVersion, 
+                                uint RwSize, ubyte* Ros, uint RosVersion, uint RosSize, ubyte* Rod, uint RodVersion, 
                                 uint RodSize);
 
 ///The <b>SetPerTcp6ConnectionEStats</b> function sets a value in the read/write information for an IPv6 TCP connection.
@@ -5150,7 +5154,7 @@ uint GetPerTcp6ConnectionEStats(MIB_TCP6ROW* Row, TCP_ESTATS_TYPE EstatsType, ch
 ///    FormatMessage to obtain the message string for the returned error. </td> </tr> </table>
 ///    
 @DllImport("IPHLPAPI")
-uint SetPerTcp6ConnectionEStats(MIB_TCP6ROW* Row, TCP_ESTATS_TYPE EstatsType, char* Rw, uint RwVersion, 
+uint SetPerTcp6ConnectionEStats(MIB_TCP6ROW* Row, TCP_ESTATS_TYPE EstatsType, ubyte* Rw, uint RwVersion, 
                                 uint RwSize, uint Offset);
 
 ///The <b>GetOwnerModuleFromTcp6Entry</b> function retrieves data about the module that issued the context bind for a
@@ -5187,7 +5191,7 @@ uint SetPerTcp6ConnectionEStats(MIB_TCP6ROW* Row, TCP_ESTATS_TYPE EstatsType, ch
 ///    
 @DllImport("IPHLPAPI")
 uint GetOwnerModuleFromTcp6Entry(MIB_TCP6ROW_OWNER_MODULE* pTcpEntry, TCPIP_OWNER_MODULE_INFO_CLASS Class, 
-                                 char* pBuffer, uint* pdwSize);
+                                 void* pBuffer, uint* pdwSize);
 
 ///The <b>GetUdp6Table</b> function retrieves the IPv6 User Datagram Protocol (UDP) listener table.
 ///Params:
@@ -5212,7 +5216,7 @@ uint GetOwnerModuleFromTcp6Entry(MIB_TCP6ROW_OWNER_MODULE* pTcpEntry, TCPIP_OWNE
 ///    returned error. </td> </tr> </table>
 ///    
 @DllImport("IPHLPAPI")
-uint GetUdp6Table(char* Udp6Table, uint* SizePointer, BOOL Order);
+uint GetUdp6Table(MIB_UDP6TABLE* Udp6Table, uint* SizePointer, BOOL Order);
 
 ///The <b>GetOwnerModuleFromUdp6Entry</b> function retrieves data about the module that issued the context bind for a
 ///specific IPv6 UDP endpoint in a MIB table row.
@@ -5238,10 +5242,10 @@ uint GetUdp6Table(char* Udp6Table, uint* SizePointer, BOOL Order);
 ///    
 @DllImport("IPHLPAPI")
 uint GetOwnerModuleFromUdp6Entry(MIB_UDP6ROW_OWNER_MODULE* pUdpEntry, TCPIP_OWNER_MODULE_INFO_CLASS Class, 
-                                 char* pBuffer, uint* pdwSize);
+                                 void* pBuffer, uint* pdwSize);
 
 @DllImport("IPHLPAPI")
-uint GetOwnerModuleFromPidAndInfo(uint ulPid, ulong* pInfo, TCPIP_OWNER_MODULE_INFO_CLASS Class, char* pBuffer, 
+uint GetOwnerModuleFromPidAndInfo(uint ulPid, ulong* pInfo, TCPIP_OWNER_MODULE_INFO_CLASS Class, void* pBuffer, 
                                   uint* pdwSize);
 
 ///The <b>GetIpStatistics</b> function retrieves the IP statistics for the current computer.
@@ -5814,7 +5818,7 @@ uint SetTcpEntry(MIB_TCPROW_LH* pTcpRow);
 ///    string for the returned error. </td> </tr> </table>
 ///    
 @DllImport("IPHLPAPI")
-uint GetInterfaceInfo(char* pIfTable, uint* dwOutBufLen);
+uint GetInterfaceInfo(IP_INTERFACE_INFO* pIfTable, uint* dwOutBufLen);
 
 ///The <b>GetUniDirectionalAdapterInfo</b> function retrieves information about the unidirectional adapters installed on
 ///the local computer. A unidirectional adapter is an adapter that can receive datagrams, but not transmit them.
@@ -5828,7 +5832,7 @@ uint GetInterfaceInfo(char* pIfTable, uint* dwOutBufLen);
 ///    message string for the returned error.
 ///    
 @DllImport("IPHLPAPI")
-uint GetUniDirectionalAdapterInfo(char* pIPIfInfo, uint* dwOutBufLen);
+uint GetUniDirectionalAdapterInfo(IP_UNIDIRECTIONAL_ADAPTER_ADDRESS* pIPIfInfo, uint* dwOutBufLen);
 
 ///<p class="CCE_Message">[This function is no longer available for use as of Windows Vista. Instead, use the
 ///GetAdaptersAddresses function and the associated IP_ADAPTER_ADDRESSES structure.] The
@@ -5937,7 +5941,7 @@ uint GetBestRoute(uint dwDestAddr, uint dwSourceAddr, MIB_IPFORWARDROW* pBestRou
 ///    Windows 98/95 and Windows NT 4.0. </td> </tr> </table>
 ///    
 @DllImport("IPHLPAPI")
-uint NotifyAddrChange(ptrdiff_t* Handle, OVERLAPPED* overlapped);
+uint NotifyAddrChange(HANDLE* Handle, OVERLAPPED* overlapped);
 
 ///The <b>NotifyRouteChange</b> function causes a notification to be sent to the caller whenever a change occurs in the
 ///IPv4 routing table.
@@ -5961,7 +5965,7 @@ uint NotifyAddrChange(ptrdiff_t* Handle, OVERLAPPED* overlapped);
 ///    Windows 98/95 and Windows NT 4.0. </td> </tr> </table>
 ///    
 @DllImport("IPHLPAPI")
-uint NotifyRouteChange(ptrdiff_t* Handle, OVERLAPPED* overlapped);
+uint NotifyRouteChange(HANDLE* Handle, OVERLAPPED* overlapped);
 
 ///The <b>CancelIPChangeNotify</b> function cancels notification of IPv4 address and route changes previously requested
 ///with successful calls to the NotifyAddrChange or NotifyRouteChange functions.
@@ -5979,7 +5983,7 @@ BOOL CancelIPChangeNotify(OVERLAPPED* notifyOverlapped);
 ///    message string for the returned error.
 ///    
 @DllImport("IPHLPAPI")
-uint GetAdapterIndex(const(wchar)* AdapterName, uint* IfIndex);
+uint GetAdapterIndex(PWSTR AdapterName, uint* IfIndex);
 
 ///The <b>AddIPAddress</b> function adds the specified IPv4 address to the specified adapter.
 ///Params:
@@ -6061,7 +6065,7 @@ uint DeleteIPAddress(uint NTEContext);
 ///    string for the returned error. </td> </tr> </table>
 ///    
 @DllImport("IPHLPAPI")
-uint GetNetworkParams(char* pFixedInfo, uint* pOutBufLen);
+uint GetNetworkParams(FIXED_INFO_W2KSP1* pFixedInfo, uint* pOutBufLen);
 
 ///The <b>GetAdaptersInfo</b> function retrieves adapter information for the local computer. <b>On Windows XP and later:
 ///</b>Use the GetAdaptersAddresses function instead of <b>GetAdaptersInfo</b>.
@@ -6090,7 +6094,7 @@ uint GetNetworkParams(char* pFixedInfo, uint* pOutBufLen);
 ///    function fails, use FormatMessage to obtain the message string for the returned error. </td> </tr> </table>
 ///    
 @DllImport("IPHLPAPI")
-uint GetAdaptersInfo(char* AdapterInfo, uint* SizePointer);
+uint GetAdaptersInfo(IP_ADAPTER_INFO* AdapterInfo, uint* SizePointer);
 
 ///The <b>GetAdapterOrderMap</b> function obtains an adapter order map that indicates priority for interfaces on the
 ///local computer.
@@ -6170,7 +6174,8 @@ IP_ADAPTER_ORDER_MAP* GetAdapterOrderMap();
 ///    Use FormatMessage to obtain the message string for the returned error. </td> </tr> </table>
 ///    
 @DllImport("IPHLPAPI")
-uint GetAdaptersAddresses(uint Family, uint Flags, void* Reserved, char* AdapterAddresses, uint* SizePointer);
+uint GetAdaptersAddresses(uint Family, uint Flags, void* Reserved, IP_ADAPTER_ADDRESSES_LH* AdapterAddresses, 
+                          uint* SizePointer);
 
 ///The <b>GetPerAdapterInfo</b> function retrieves information about the adapter corresponding to the specified
 ///interface.
@@ -6196,7 +6201,7 @@ uint GetAdaptersAddresses(uint Family, uint Flags, void* Reserved, char* Adapter
 ///    returned error. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("IPHLPAPI")
-uint GetPerAdapterInfo(uint IfIndex, char* pPerAdapterInfo, uint* pOutBufLen);
+uint GetPerAdapterInfo(uint IfIndex, IP_PER_ADAPTER_INFO_W2KSP1* pPerAdapterInfo, uint* pOutBufLen);
 
 ///This function is reserved for system use, and you should not call it from your code.
 ///Params:
@@ -6319,7 +6324,7 @@ uint IpRenewAddress(IP_ADAPTER_INDEX_MAP* AdapterInfo);
 ///    returned error. </td> </tr> </table>
 ///    
 @DllImport("IPHLPAPI")
-uint SendARP(uint DestIP, uint SrcIP, char* pMacAddr, uint* PhyAddrLen);
+uint SendARP(uint DestIP, uint SrcIP, void* pMacAddr, uint* PhyAddrLen);
 
 ///The <b>GetRTTAndHopCount</b> function determines the round-trip time (RTT) and hop count to the specified
 ///destination.
@@ -6442,7 +6447,7 @@ uint RestoreMediaSense(OVERLAPPED* pOverlapped, uint* lpdwEnableCount);
 ///    returned error.
 ///    
 @DllImport("IPHLPAPI")
-uint GetIpErrorString(uint ErrorCode, const(wchar)* Buffer, uint* Size);
+uint GetIpErrorString(uint ErrorCode, PWSTR Buffer, uint* Size);
 
 ///<p class="CCE_Message">[<b>ResolveNeighbor</b> is no longer available for use as of Windows Vista. Instead, use
 ///ResolveIpNetEntry2.] The <b>ResolveNeighbor</b> function resolves the physical address for a neighbor IP address
@@ -6463,7 +6468,7 @@ uint GetIpErrorString(uint ErrorCode, const(wchar)* Buffer, uint* Size);
 ///    <td width="60%"> The request is not supported. </td> </tr> </table>
 ///    
 @DllImport("IPHLPAPI")
-uint ResolveNeighbor(SOCKADDR* NetworkAddress, char* PhysicalAddress, uint* PhysicalAddressLength);
+uint ResolveNeighbor(SOCKADDR* NetworkAddress, void* PhysicalAddress, uint* PhysicalAddressLength);
 
 ///The <b>CreatePersistentTcpPortReservation</b> function creates a persistent TCP port reservation for a consecutive
 ///block of TCP ports on the local computer.
@@ -6616,7 +6621,7 @@ uint LookupPersistentUdpPortReservation(ushort StartPort, ushort NumberOfPorts, 
 ///    used by the caller to easily append more information to the string.
 ///    
 @DllImport("ntdll")
-byte* RtlIpv4AddressToStringA(const(in_addr)* Addr, const(char)* S);
+PSTR RtlIpv4AddressToStringA(const(in_addr)* Addr, PSTR S);
 
 ///The <b>RtlIpv4AddressToString</b> function converts an IPv4 address to a string in Internet standard dotted-decimal
 ///format.
@@ -6629,7 +6634,7 @@ byte* RtlIpv4AddressToStringA(const(in_addr)* Addr, const(char)* S);
 ///    used by the caller to easily append more information to the string.
 ///    
 @DllImport("ntdll")
-ushort* RtlIpv4AddressToStringW(const(in_addr)* Addr, const(wchar)* S);
+PWSTR RtlIpv4AddressToStringW(const(in_addr)* Addr, PWSTR S);
 
 ///The <b>RtlIpv4AddressToStringEx</b> function converts an IPv4 address and port number to a string in Internet
 ///standard format.
@@ -6653,8 +6658,7 @@ ushort* RtlIpv4AddressToStringW(const(in_addr)* Addr, const(wchar)* S);
 ///    to obtain the message string for the returned error. </td> </tr> </table>
 ///    
 @DllImport("ntdll")
-int RtlIpv4AddressToStringExW(const(in_addr)* Address, ushort Port, const(wchar)* AddressString, 
-                              uint* AddressStringLength);
+int RtlIpv4AddressToStringExW(const(in_addr)* Address, ushort Port, PWSTR AddressString, uint* AddressStringLength);
 
 ///The <b>RtlIpv4StringToAddress</b> function converts a string representation of an IPv4 address to a binary IPv4
 ///address.
@@ -6679,7 +6683,7 @@ int RtlIpv4AddressToStringExW(const(in_addr)* Address, ushort Port, const(wchar)
 ///    the message string for the returned error. </td> </tr> </table>
 ///    
 @DllImport("ntdll")
-int RtlIpv4StringToAddressA(const(char)* S, ubyte Strict, byte** Terminator, in_addr* Addr);
+int RtlIpv4StringToAddressA(const(PSTR) S, ubyte Strict, PSTR* Terminator, in_addr* Addr);
 
 ///The <b>RtlIpv4StringToAddress</b> function converts a string representation of an IPv4 address to a binary IPv4
 ///address.
@@ -6704,7 +6708,7 @@ int RtlIpv4StringToAddressA(const(char)* S, ubyte Strict, byte** Terminator, in_
 ///    the message string for the returned error. </td> </tr> </table>
 ///    
 @DllImport("ntdll")
-int RtlIpv4StringToAddressW(const(wchar)* S, ubyte Strict, ushort** Terminator, in_addr* Addr);
+int RtlIpv4StringToAddressW(const(PWSTR) S, ubyte Strict, PWSTR* Terminator, in_addr* Addr);
 
 ///The <b>RtlIpv4StringToAddressEx</b> function converts a string representation of an IPv4 address and port number to a
 ///binary IPv4 address and port.
@@ -6733,7 +6737,7 @@ int RtlIpv4StringToAddressW(const(wchar)* S, ubyte Strict, ushort** Terminator, 
 ///    </table>
 ///    
 @DllImport("ntdll")
-int RtlIpv4StringToAddressExW(const(wchar)* AddressString, ubyte Strict, in_addr* Address, ushort* Port);
+int RtlIpv4StringToAddressExW(const(PWSTR) AddressString, ubyte Strict, in_addr* Address, ushort* Port);
 
 ///The <b>RtlIpv6AddressToString</b> function converts an IPv6 address to a string in Internet standard format.
 ///Params:
@@ -6745,7 +6749,7 @@ int RtlIpv4StringToAddressExW(const(wchar)* AddressString, ubyte Strict, in_addr
 ///    used by the caller to easily append more information to the string.
 ///    
 @DllImport("ntdll")
-byte* RtlIpv6AddressToStringA(const(in6_addr)* Addr, const(char)* S);
+PSTR RtlIpv6AddressToStringA(const(in6_addr)* Addr, PSTR S);
 
 ///The <b>RtlIpv6AddressToString</b> function converts an IPv6 address to a string in Internet standard format.
 ///Params:
@@ -6757,7 +6761,7 @@ byte* RtlIpv6AddressToStringA(const(in6_addr)* Addr, const(char)* S);
 ///    used by the caller to easily append more information to the string.
 ///    
 @DllImport("ntdll")
-ushort* RtlIpv6AddressToStringW(const(in6_addr)* Addr, const(wchar)* S);
+PWSTR RtlIpv6AddressToStringW(const(in6_addr)* Addr, PWSTR S);
 
 ///The <b>RtlIpv6AddressToStringEx</b> function converts an IPv6 address, scope ID, and port number to a string.
 ///Params:
@@ -6781,7 +6785,7 @@ ushort* RtlIpv6AddressToStringW(const(in6_addr)* Addr, const(wchar)* S);
 ///    FormatMessage to obtain the message string for the returned error. </td> </tr> </table>
 ///    
 @DllImport("ntdll")
-int RtlIpv6AddressToStringExW(const(in6_addr)* Address, uint ScopeId, ushort Port, const(wchar)* AddressString, 
+int RtlIpv6AddressToStringExW(const(in6_addr)* Address, uint ScopeId, ushort Port, PWSTR AddressString, 
                               uint* AddressStringLength);
 
 ///The <b>RtlIpv6StringToAddress</b> function converts a string representation of an IPv6 address to a binary IPv6
@@ -6801,7 +6805,7 @@ int RtlIpv6AddressToStringExW(const(in6_addr)* Address, uint ScopeId, ushort Por
 ///    obtain the message string for the returned error. </td> </tr> </table>
 ///    
 @DllImport("ntdll")
-int RtlIpv6StringToAddressA(const(char)* S, byte** Terminator, in6_addr* Addr);
+int RtlIpv6StringToAddressA(const(PSTR) S, PSTR* Terminator, in6_addr* Addr);
 
 ///The <b>RtlIpv6StringToAddress</b> function converts a string representation of an IPv6 address to a binary IPv6
 ///address.
@@ -6820,7 +6824,7 @@ int RtlIpv6StringToAddressA(const(char)* S, byte** Terminator, in6_addr* Addr);
 ///    obtain the message string for the returned error. </td> </tr> </table>
 ///    
 @DllImport("ntdll")
-int RtlIpv6StringToAddressW(const(wchar)* S, ushort** Terminator, in6_addr* Addr);
+int RtlIpv6StringToAddressW(const(PWSTR) S, PWSTR* Terminator, in6_addr* Addr);
 
 ///The <b>RtlIpv6StringToAddressEx</b> function converts a string representation of an IPv6 address, scope ID, and port
 ///number to a binary IPv6 address, scope ID, and port.
@@ -6843,7 +6847,7 @@ int RtlIpv6StringToAddressW(const(wchar)* S, ushort** Terminator, in6_addr* Addr
 ///    FormatMessage to obtain the message string for the returned error. </td> </tr> </table>
 ///    
 @DllImport("ntdll")
-int RtlIpv6StringToAddressExW(const(wchar)* AddressString, in6_addr* Address, uint* ScopeId, ushort* Port);
+int RtlIpv6StringToAddressExW(const(PWSTR) AddressString, in6_addr* Address, uint* ScopeId, ushort* Port);
 
 ///The <b>RtlEthernetAddressToString</b> function converts a binary Ethernet address to a string representation of the
 ///Ethernet MAC address.
@@ -6857,7 +6861,7 @@ int RtlIpv6StringToAddressExW(const(wchar)* AddressString, in6_addr* Address, ui
 ///    This can be used by the caller to easily append more information to the string.
 ///    
 @DllImport("ntdll")
-byte* RtlEthernetAddressToStringA(const(DL_EUI48)* Addr, const(char)* S);
+PSTR RtlEthernetAddressToStringA(const(DL_EUI48)* Addr, PSTR S);
 
 ///The <b>RtlEthernetAddressToString</b> function converts a binary Ethernet address to a string representation of the
 ///Ethernet MAC address.
@@ -6871,7 +6875,7 @@ byte* RtlEthernetAddressToStringA(const(DL_EUI48)* Addr, const(char)* S);
 ///    This can be used by the caller to easily append more information to the string.
 ///    
 @DllImport("ntdll")
-ushort* RtlEthernetAddressToStringW(const(DL_EUI48)* Addr, const(wchar)* S);
+PWSTR RtlEthernetAddressToStringW(const(DL_EUI48)* Addr, PWSTR S);
 
 ///The <b>RtlEthernetStringToAddress</b> function converts a string representation of an Ethernet MAC address to a
 ///binary format of the Ethernet address.
@@ -6890,7 +6894,7 @@ ushort* RtlEthernetAddressToStringW(const(DL_EUI48)* Addr, const(wchar)* S);
 ///    FormatMessage to obtain the message string for the returned error. </td> </tr> </table>
 ///    
 @DllImport("ntdll")
-int RtlEthernetStringToAddressA(const(char)* S, byte** Terminator, DL_EUI48* Addr);
+int RtlEthernetStringToAddressA(const(PSTR) S, PSTR* Terminator, DL_EUI48* Addr);
 
 ///The <b>RtlEthernetStringToAddress</b> function converts a string representation of an Ethernet MAC address to a
 ///binary format of the Ethernet address.
@@ -6909,6 +6913,6 @@ int RtlEthernetStringToAddressA(const(char)* S, byte** Terminator, DL_EUI48* Add
 ///    FormatMessage to obtain the message string for the returned error. </td> </tr> </table>
 ///    
 @DllImport("ntdll")
-int RtlEthernetStringToAddressW(const(wchar)* S, ushort** Terminator, DL_EUI48* Addr);
+int RtlEthernetStringToAddressW(const(PWSTR) S, PWSTR* Terminator, DL_EUI48* Addr);
 
 

@@ -6,14 +6,15 @@ public import windows.core;
 public import windows.com : HRESULT, IUnknown;
 public import windows.coreaudio : IMMDeviceCollection, KSP_PIN;
 public import windows.directshow : IReferenceClock;
-public import windows.multimedia : WAVEFORMATEX, midiopenstrmid_tag;
+public import windows.multimedia : HMIDI, WAVEFORMATEX, midiopenstrmid_tag;
 public import windows.remotedesktopservices : APO_CONNECTION_PROPERTY;
 public import windows.structuredstorage : PROPVARIANT;
-public import windows.systemservices : BOOL, D3DVECTOR, HANDLE, OVERLAPPED;
+public import windows.systemservices : BOOL, D3DVECTOR, HANDLE, OVERLAPPED, PSTR,
+                                       PWSTR;
 public import windows.windowsandmessaging : HWND, LPARAM;
 public import windows.windowspropertiessystem : PROPERTYKEY;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -146,8 +147,8 @@ enum : int
 // Callbacks
 
 alias FNAPONOTIFICATIONCALLBACK = HRESULT function(APO_REG_PROPERTIES* pProperties, void* pvRefData);
-alias LPDSENUMCALLBACKA = BOOL function(GUID* param0, const(char)* param1, const(char)* param2, void* param3);
-alias LPDSENUMCALLBACKW = BOOL function(GUID* param0, const(wchar)* param1, const(wchar)* param2, void* param3);
+alias LPDSENUMCALLBACKA = BOOL function(GUID* param0, const(PSTR) param1, const(PSTR) param2, void* param3);
+alias LPDSENUMCALLBACKW = BOOL function(GUID* param0, const(PWSTR) param1, const(PWSTR) param2, void* param3);
 
 // Structs
 
@@ -268,7 +269,7 @@ struct AudioFXExtensionParams
     ///Parameters for the Property Page extension.
     LPARAM         AddPageParam;
     ///The ID for the audio endpoint.
-    const(wchar)*  pwstrEndpointID;
+    PWSTR          pwstrEndpointID;
     ///An IPropertyStore object.
     IPropertyStore pFxProperties;
 }
@@ -895,18 +896,18 @@ struct MIDIOPENDESC
 align (1):
     ///Specifies the handle that the client uses to reference the device. This handle is assigned by WINMM. Use this
     ///handle when you notify the client with the DriverCallback function.
-    ptrdiff_t hMidi;
+    HMIDI  hMidi;
     ///Specifies either the address of a callback function, a window handle, or a task handle, depending on the flags
     ///that are specified in the dwParam2 parameter of the MODM_OPEN message. If this field contains a handle, it is
     ///contained in the low-order word.
-    size_t    dwCallback;
+    size_t dwCallback;
     ///Specifies a pointer to a DWORD that contains instance information for the client. This instance information is
     ///returned to the client whenever the driver notifies the client by using the <b>DriverCallback</b> function.
-    size_t    dwInstance;
+    size_t dwInstance;
     ///Specifies a device node for the MIDI output device, if it is a Plug and Play (PnP) MIDI device.
-    size_t    dnDevNode;
+    size_t dnDevNode;
     ///Specifies the number of stream identifiers, if a stream is open.
-    uint      cIds;
+    uint   cIds;
     ///Specifies an array of device identifiers. The number of identifiers is given by the <b>cIds</b> member.
     midiopenstrmid_tag[1] rgIds;
 }
@@ -963,7 +964,7 @@ interface IAudioMediaType : IUnknown
     ///    The <code>IsCompressedFormat</code> method returns S_OK if the audio data format is compressed, otherwise it
     ///    returns an error code.
     ///    
-    HRESULT IsCompressedFormat(int* pfCompressed);
+    HRESULT IsCompressedFormat(BOOL* pfCompressed);
     ///The <code>IsEqual</code> method compares two media types and determines whether they are identical.
     ///Params:
     ///    pIAudioType = Specifies a pointer to an IAudioMediaType interface of the media type to compare.
@@ -1116,7 +1117,7 @@ interface IAudioProcessingObject : IUnknown
     ///    HRESULTS</b></dt> </dl> </td> <td width="60%"> These additional error conditions are tracked by the audio
     ///    engine. </td> </tr> </table>
     ///    
-    HRESULT Initialize(uint cbDataSize, char* pbyData);
+    HRESULT Initialize(uint cbDataSize, ubyte* pbyData);
     ///This method negotiates with the Windows Vista audio engine to establish a data format for the stream of audio
     ///data.
     ///Params:
@@ -1250,7 +1251,7 @@ interface IAudioSystemEffectsCustomFormats : IUnknown
     ///    </td> <td width="60%"> Return buffer cannot be allocated </td> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> nFormat is out of range </td> </tr> </table>
     ///    
-    HRESULT GetFormatRepresentation(uint nFormat, ushort** ppwstrFormatRep);
+    HRESULT GetFormatRepresentation(uint nFormat, PWSTR* ppwstrFormatRep);
 }
 
 interface IDirectSound : IUnknown
@@ -1274,7 +1275,7 @@ interface IDirectSoundBuffer : IUnknown
 {
     HRESULT GetCaps(DSBCAPS* pDSBufferCaps);
     HRESULT GetCurrentPosition(uint* pdwCurrentPlayCursor, uint* pdwCurrentWriteCursor);
-    HRESULT GetFormat(char* pwfxFormat, uint dwSizeAllocated, uint* pdwSizeWritten);
+    HRESULT GetFormat(WAVEFORMATEX* pwfxFormat, uint dwSizeAllocated, uint* pdwSizeWritten);
     HRESULT GetVolume(int* plVolume);
     HRESULT GetPan(int* plPan);
     HRESULT GetFrequency(uint* pdwFrequency);
@@ -1289,14 +1290,14 @@ interface IDirectSoundBuffer : IUnknown
     HRESULT SetPan(int lPan);
     HRESULT SetFrequency(uint dwFrequency);
     HRESULT Stop();
-    HRESULT Unlock(char* pvAudioPtr1, uint dwAudioBytes1, char* pvAudioPtr2, uint dwAudioBytes2);
+    HRESULT Unlock(void* pvAudioPtr1, uint dwAudioBytes1, void* pvAudioPtr2, uint dwAudioBytes2);
     HRESULT Restore();
 }
 
 interface IDirectSoundBuffer8 : IDirectSoundBuffer
 {
-    HRESULT SetFX(uint dwEffectsCount, char* pDSFXDesc, char* pdwResultCodes);
-    HRESULT AcquireResources(uint dwFlags, uint dwEffectsCount, char* pdwResultCodes);
+    HRESULT SetFX(uint dwEffectsCount, DSEFFECTDESC* pDSFXDesc, uint* pdwResultCodes);
+    HRESULT AcquireResources(uint dwFlags, uint dwEffectsCount, uint* pdwResultCodes);
     HRESULT GetObjectInPath(const(GUID)* rguidObject, uint dwIndex, const(GUID)* rguidInterface, void** ppObject);
 }
 
@@ -1354,25 +1355,25 @@ interface IDirectSoundCaptureBuffer : IUnknown
 {
     HRESULT GetCaps(DSCBCAPS* pDSCBCaps);
     HRESULT GetCurrentPosition(uint* pdwCapturePosition, uint* pdwReadPosition);
-    HRESULT GetFormat(char* pwfxFormat, uint dwSizeAllocated, uint* pdwSizeWritten);
+    HRESULT GetFormat(WAVEFORMATEX* pwfxFormat, uint dwSizeAllocated, uint* pdwSizeWritten);
     HRESULT GetStatus(uint* pdwStatus);
     HRESULT Initialize(IDirectSoundCapture pDirectSoundCapture, DSCBUFFERDESC* pcDSCBufferDesc);
     HRESULT Lock(uint dwOffset, uint dwBytes, void** ppvAudioPtr1, uint* pdwAudioBytes1, void** ppvAudioPtr2, 
                  uint* pdwAudioBytes2, uint dwFlags);
     HRESULT Start(uint dwFlags);
     HRESULT Stop();
-    HRESULT Unlock(char* pvAudioPtr1, uint dwAudioBytes1, char* pvAudioPtr2, uint dwAudioBytes2);
+    HRESULT Unlock(void* pvAudioPtr1, uint dwAudioBytes1, void* pvAudioPtr2, uint dwAudioBytes2);
 }
 
 interface IDirectSoundCaptureBuffer8 : IDirectSoundCaptureBuffer
 {
     HRESULT GetObjectInPath(const(GUID)* rguidObject, uint dwIndex, const(GUID)* rguidInterface, void** ppObject);
-    HRESULT GetFXStatus(uint dwEffectsCount, char* pdwFXStatus);
+    HRESULT GetFXStatus(uint dwEffectsCount, uint* pdwFXStatus);
 }
 
 interface IDirectSoundNotify : IUnknown
 {
-    HRESULT SetNotificationPositions(uint dwPositionNotifies, char* pcPositionNotifies);
+    HRESULT SetNotificationPositions(uint dwPositionNotifies, DSBPOSITIONNOTIFY* pcPositionNotifies);
 }
 
 interface IDirectSoundFXGargle : IUnknown
@@ -1505,7 +1506,7 @@ interface IDirectMusicDownloadedInstrument : IUnknown
 interface IDirectMusicCollection : IUnknown
 {
     HRESULT GetInstrument(uint dwPatch, IDirectMusicInstrument* ppInstrument);
-    HRESULT EnumInstrument(uint dwIndex, uint* pdwPatch, const(wchar)* pwszName, uint dwNameLen);
+    HRESULT EnumInstrument(uint dwIndex, uint* pdwPatch, PWSTR pwszName, uint dwNameLen);
 }
 
 interface IDirectMusicDownload : IUnknown
@@ -1628,7 +1629,7 @@ interface IDirectMusicSynth : IUnknown
     ///    width="40%"> <dl> <dt><b>DMUS_E_UNKNOWNDOWNLOAD</b></dt> </dl> </td> <td width="60%"> Indicates that the
     ///    download data is neither instrument nor wave. </td> </tr> </table>
     ///    
-    HRESULT Download(ptrdiff_t* phDownload, void* pvData, int* pbFree);
+    HRESULT Download(HANDLE* phDownload, void* pvData, int* pbFree);
     ///The <code>Unload</code> method unloads a DLS resource (waveform or articulation data for a MIDI instrument) that
     ///was previously downloaded by a call to IDirectMusicSynth::Download.
     ///Params:

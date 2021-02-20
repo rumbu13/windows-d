@@ -8,10 +8,10 @@ public import windows.iphelper : SOCKADDR_INET;
 public import windows.networkdrivers : SOCKADDR_STORAGE_LH, SOCKET_ADDRESS_LIST;
 public import windows.qualityofservice : QOS;
 public import windows.systemservices : BOOL, FARPROC, HANDLE, LARGE_INTEGER, OVERLAPPED,
-                                       PROCESSOR_NUMBER;
+                                       PROCESSOR_NUMBER, PSTR, PWSTR;
 public import windows.windowsandmessaging : HWND, LPARAM, WPARAM;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -434,10 +434,10 @@ alias LPWSAOVERLAPPED_COMPLETION_ROUTINE = void function(uint dwError, uint cbTr
 alias LPFN_TRANSMITFILE = BOOL function(size_t hSocket, HANDLE hFile, uint nNumberOfBytesToWrite, 
                                         uint nNumberOfBytesPerSend, OVERLAPPED* lpOverlapped, 
                                         TRANSMIT_FILE_BUFFERS* lpTransmitBuffers, uint dwReserved);
-alias LPFN_ACCEPTEX = BOOL function(size_t sListenSocket, size_t sAcceptSocket, char* lpOutputBuffer, 
+alias LPFN_ACCEPTEX = BOOL function(size_t sListenSocket, size_t sAcceptSocket, void* lpOutputBuffer, 
                                     uint dwReceiveDataLength, uint dwLocalAddressLength, uint dwRemoteAddressLength, 
                                     uint* lpdwBytesReceived, OVERLAPPED* lpOverlapped);
-alias LPFN_GETACCEPTEXSOCKADDRS = void function(char* lpOutputBuffer, uint dwReceiveDataLength, 
+alias LPFN_GETACCEPTEXSOCKADDRS = void function(void* lpOutputBuffer, uint dwReceiveDataLength, 
                                                 uint dwLocalAddressLength, uint dwRemoteAddressLength, 
                                                 SOCKADDR** LocalSockaddr, int* LocalSockaddrLength, 
                                                 SOCKADDR** RemoteSockaddr, int* RemoteSockaddrLength);
@@ -588,8 +588,8 @@ alias LPFN_TRANSMITPACKETS = BOOL function(size_t hSocket, TRANSMIT_PACKETS_ELEM
 ///    descriptor is not a socket. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>WSAETIMEDOUT</b></dt> </dl> </td> <td
 ///    width="60%"> The attempt to connect timed out without establishing a connection. </td> </tr> </table>
 ///    
-alias LPFN_CONNECTEX = BOOL function(size_t s, char* name, int namelen, char* lpSendBuffer, uint dwSendDataLength, 
-                                     uint* lpdwBytesSent, OVERLAPPED* lpOverlapped);
+alias LPFN_CONNECTEX = BOOL function(size_t s, const(SOCKADDR)* name, int namelen, void* lpSendBuffer, 
+                                     uint dwSendDataLength, uint* lpdwBytesSent, OVERLAPPED* lpOverlapped);
 ///The **DisconnectEx** function closes a connection on a socket, and allows the socket handle to be reused. > [!Note] >
 ///This function is a Microsoft-specific extension to the Windows Sockets specification.
 ///Params:
@@ -771,7 +771,7 @@ alias LPFN_WSAPOLL = int function(WSAPOLLFD* fdarray, uint nfds, int timeout);
 ///    socket is closed locally or remotely, or the **SIO\_FLUSH** command in
 ///    [**WSAIoctl**](../winsock2/nf-winsock2-wsaioctl.md) is executed on this socket.<br/> |
 ///    
-alias LPFN_RIORECEIVE = BOOL function(RIO_RQ_t* SocketQueue, char* pData, uint DataBufferCount, uint Flags, 
+alias LPFN_RIORECEIVE = BOOL function(RIO_RQ_t* SocketQueue, RIO_BUF* pData, uint DataBufferCount, uint Flags, 
                                       void* RequestContext);
 ///The **RIOReceiveEx** function receives network data on a connected registered I/O TCP socket or a bound registered
 ///I/O UDP socket with additional options for use with the Winsock registered I/O extensions.
@@ -857,7 +857,7 @@ alias LPFN_RIORECEIVE = BOOL function(RIO_RQ_t* SocketQueue, char* pData, uint D
 ///    socket is closed locally or remotely, or the the SIO\_FLUSH command in
 ///    [**WSAIoctl**](../winsock2/nf-winsock2-wsaioctl.md) is executed.<br/> |
 ///    
-alias LPFN_RIORECEIVEEX = int function(RIO_RQ_t* SocketQueue, char* pData, uint DataBufferCount, 
+alias LPFN_RIORECEIVEEX = int function(RIO_RQ_t* SocketQueue, RIO_BUF* pData, uint DataBufferCount, 
                                        RIO_BUF* pLocalAddress, RIO_BUF* pRemoteAddress, RIO_BUF* pControlContext, 
                                        RIO_BUF* pFlags, uint Flags, void* RequestContext);
 ///The **RIOSend** function sends network data on a connected registered I/O TCP socket or a bound registered I/O UDP
@@ -924,7 +924,7 @@ alias LPFN_RIORECEIVEEX = int function(RIO_RQ_t* SocketQueue, char* pData, uint 
 ///    <dt>**[WSA\_IO\_PENDING](/windows/win32/winsock/windows-sockets-error-codes-2#wsa-io-pending)**</dt> </dl> | The
 ///    operation has been successfully initiated and the completion will be queued at a later time.<br/> |
 ///    
-alias LPFN_RIOSEND = BOOL function(RIO_RQ_t* SocketQueue, char* pData, uint DataBufferCount, uint Flags, 
+alias LPFN_RIOSEND = BOOL function(RIO_RQ_t* SocketQueue, RIO_BUF* pData, uint DataBufferCount, uint Flags, 
                                    void* RequestContext);
 ///The **RIOSendEx** function sends network data on a connected registered I/O TCP socket or a bound registered I/O UDP
 ///socket with additional options for use with the Winsock registered I/O extensions.
@@ -1000,7 +1000,7 @@ alias LPFN_RIOSEND = BOOL function(RIO_RQ_t* SocketQueue, char* pData, uint Data
 ///    <dt>**[WSA\_IO\_PENDING](/windows/win32/winsock/windows-sockets-error-codes-2#wsa-io-pending)**</dt> </dl> | The
 ///    operation has been successfully initiated and the completion will be queued at a later time.<br/> |
 ///    
-alias LPFN_RIOSENDEX = BOOL function(RIO_RQ_t* SocketQueue, char* pData, uint DataBufferCount, 
+alias LPFN_RIOSENDEX = BOOL function(RIO_RQ_t* SocketQueue, RIO_BUF* pData, uint DataBufferCount, 
                                      RIO_BUF* pLocalAddress, RIO_BUF* pRemoteAddress, RIO_BUF* pControlContext, 
                                      RIO_BUF* pFlags, uint Flags, void* RequestContext);
 ///The **RIOCloseCompletionQueue** function closes an existing completion queue used for I/O completion notification by
@@ -1089,7 +1089,7 @@ alias LPFN_RIOCREATEREQUESTQUEUE = RIO_RQ_t* function(size_t Socket, uint MaxOut
 ///    of the [**RIO\_CQ**](/windows/win32/winsock/riocqueue) passed in the *CQ* parameter has become corrupt due to
 ///    memory corruption or misuse of the RIO functions.
 ///    
-alias LPFN_RIODEQUEUECOMPLETION = uint function(RIO_CQ_t* CQ, char* Array, uint ArraySize);
+alias LPFN_RIODEQUEUECOMPLETION = uint function(RIO_CQ_t* CQ, RIORESULT* Array, uint ArraySize);
 ///The **RIODeregisterBuffer** function deregisters a registered buffer used with the Winsock registered I/O extensions.
 ///Params:
 ///    BufferId = A descriptor identifying a registered buffer.
@@ -1126,7 +1126,7 @@ alias LPFN_RIONOTIFY = int function(RIO_CQ_t* CQ);
 ///    <dt>**[WSAEINVAL](/windows/win32/winsock/windows-sockets-error-codes-2#wsaeinval)**</dt> </dl> | An invalid
 ///    parameter was passed to the function. <br/> This error is returned if the *DataLength* parameter is zero.<br/> |
 ///    
-alias LPFN_RIOREGISTERBUFFER = RIO_BUFFERID_t* function(const(char)* DataBuffer, uint DataLength);
+alias LPFN_RIOREGISTERBUFFER = RIO_BUFFERID_t* function(PSTR DataBuffer, uint DataLength);
 ///The **RIOResizeCompletionQueue** function resizes an I/O completion queue to be either larger or smaller for use with
 ///the Winsock registered I/O extensions.
 ///Params:
@@ -1237,7 +1237,7 @@ alias LPWSAUSERAPC = void function(size_t dwContext);
 ///    are present to be accepted. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>WSAEACCES</b></dl> </dl> </td> <td
 ///    width="60%"> The connection request that was offered has timed out or been withdrawn. </td> </tr> </table>
 ///    
-alias LPWSPACCEPT = size_t function(size_t s, char* addr, int* addrlen, LPCONDITIONPROC lpfnCondition, 
+alias LPWSPACCEPT = size_t function(size_t s, SOCKADDR* addr, int* addrlen, LPCONDITIONPROC lpfnCondition, 
                                     size_t dwCallbackData, int* lpErrno);
 ///The **LPWSPAddressToString** function converts all components of a sockaddr structure into a human
 ///readableâ€“numeric string representation of the address. This is used mainly for display purposes.
@@ -1259,8 +1259,8 @@ alias LPWSPACCEPT = size_t function(size_t s, char* addr, int* addrlen, LPCONDIT
 ///    the provider, or the specified <i>lpProtocolInfo</i> did not refer to a WSAProtocol_Info structure supported by
 ///    the provider. </td> </tr> </table> <div> </div>
 ///    
-alias LPWSPADDRESSTOSTRING = int function(char* lpsaAddress, uint dwAddressLength, 
-                                          WSAPROTOCOL_INFOW* lpProtocolInfo, const(wchar)* lpszAddressString, 
+alias LPWSPADDRESSTOSTRING = int function(SOCKADDR* lpsaAddress, uint dwAddressLength, 
+                                          WSAPROTOCOL_INFOW* lpProtocolInfo, PWSTR lpszAddressString, 
                                           uint* lpdwAddressStringLength, int* lpErrno);
 ///The **LPWSPAsyncSelect** function requests Windows message-based event notification of network events for a socket.
 ///Params:
@@ -1330,7 +1330,7 @@ alias LPWSPASYNCSELECT = int function(size_t s, HWND hWnd, uint wMsg, int lEvent
 ///    many connections. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>WSAENOTSOCK</b></dl> </dl> </td> <td width="60%">
 ///    The descriptor is not a socket. </td> </tr> </table>
 ///    
-alias LPWSPBIND = int function(size_t s, char* name, int namelen, int* lpErrno);
+alias LPWSPBIND = int function(size_t s, const(SOCKADDR)* name, int namelen, int* lpErrno);
 ///The **LPWSPCancelBlockingCall** function cancels a blocking call that is currently in progress.
 ///Params:
 ///    lpErrno = Pointer to the error code.
@@ -1425,8 +1425,8 @@ alias LPWSPCLOSESOCKET = int function(size_t s, int* lpErrno);
 ///    <dl> <dt><b>WSAEACCES</b></dl> </dl> </td> <td width="60%"> An attempt to connect datagram socket to broadcast
 ///    address failed because <b>WSPSetSockOpt</b> SO_BROADCAST is not enabled. </td> </tr> </table>
 ///    
-alias LPWSPCONNECT = int function(size_t s, char* name, int namelen, WSABUF* lpCallerData, WSABUF* lpCalleeData, 
-                                  QOS* lpSQOS, QOS* lpGQOS, int* lpErrno);
+alias LPWSPCONNECT = int function(size_t s, const(SOCKADDR)* name, int namelen, WSABUF* lpCallerData, 
+                                  WSABUF* lpCalleeData, QOS* lpSQOS, QOS* lpGQOS, int* lpErrno);
 ///The **LPWSPDuplicateSocket** function returns a <b>WSAPROTOCOL_INFO</b> structure that can be used to create a new
 ///socket descriptor for a shared socket.
 ///Params:
@@ -1556,7 +1556,7 @@ alias LPWSPGETOVERLAPPEDRESULT = BOOL function(size_t s, OVERLAPPED* lpOverlappe
 ///    <tr> <td width="40%"> <dl> <dt><b>WSAENOTSOCK</b></dl> </dl> </td> <td width="60%"> The descriptor is not a
 ///    socket. </td> </tr> </table>
 ///    
-alias LPWSPGETPEERNAME = int function(size_t s, char* name, int* namelen, int* lpErrno);
+alias LPWSPGETPEERNAME = int function(size_t s, SOCKADDR* name, int* namelen, int* lpErrno);
 ///The **LPWSPGetSockName** function gets the local name for a socket.
 ///Params:
 ///    s = Descriptor identifying a bound socket.
@@ -1577,7 +1577,7 @@ alias LPWSPGETPEERNAME = int function(size_t s, char* name, int* namelen, int* l
 ///    with <b>LPWSPBind</b>, or ADDR_ANY is specified in **LPWSPBind** but connection has not yet occurred. </td> </tr>
 ///    </table>
 ///    
-alias LPWSPGETSOCKNAME = int function(size_t s, char* name, int* namelen, int* lpErrno);
+alias LPWSPGETSOCKNAME = int function(size_t s, SOCKADDR* name, int* namelen, int* lpErrno);
 ///The **LPWSPGetSockOpt** function retrieves a socket option.
 ///Params:
 ///    s = A descriptor identifying a socket.
@@ -1600,7 +1600,7 @@ alias LPWSPGETSOCKNAME = int function(size_t s, char* name, int* namelen, int* l
 ///    family. </td> </tr> <tr> <td width="40%"> <dl> <dt>WSAENOTSOCK</dt> </dl> </td> <td width="60%"> The descriptor
 ///    is not a socket. </td> </tr> </table>
 ///    
-alias LPWSPGETSOCKOPT = int function(size_t s, int level, int optname, char* optval, int* optlen, int* lpErrno);
+alias LPWSPGETSOCKOPT = int function(size_t s, int level, int optname, byte* optval, int* optlen, int* lpErrno);
 ///The **WSPGetQOSByName** function initializes a <b>QOS</b> structure based on a named template, or retrieves an
 ///enumeration of the available template names.
 ///Params:
@@ -1664,8 +1664,8 @@ alias LPWSPGETQOSBYNAME = BOOL function(size_t s, WSABUF* lpQOSName, QOS* lpQOS,
 ///    <dt>[WSAEWOULDBLOCK](/windows/win32/winsock/windows-sockets-error-codes-2#wsaewouldblock) | The socket is marked
 ///    as nonblocking and the requested operation would block.<br/>
 ///    
-alias LPWSPIOCTL = int function(size_t s, uint dwIoControlCode, char* lpvInBuffer, uint cbInBuffer, 
-                                char* lpvOutBuffer, uint cbOutBuffer, uint* lpcbBytesReturned, 
+alias LPWSPIOCTL = int function(size_t s, uint dwIoControlCode, void* lpvInBuffer, uint cbInBuffer, 
+                                void* lpvOutBuffer, uint cbOutBuffer, uint* lpcbBytesReturned, 
                                 OVERLAPPED* lpOverlapped, LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine, 
                                 WSATHREADID* lpThreadId, int* lpErrno);
 ///The **WSPJoinLeaf** function joins a leaf node into a multipoint session, exchanges connect data, and specifies
@@ -1724,7 +1724,7 @@ alias LPWSPIOCTL = int function(size_t s, uint dwIoControlCode, char* lpvInBuffe
 ///    </tr> <tr> <td width="40%"> <dl> <dt><b>WSAETIMEDOUT</b></dl> </dl> </td> <td width="60%"> An attempt to join
 ///    timed out without establishing a multipoint session. </td> </tr> </table> <div> </div>
 ///    
-alias LPWSPJOINLEAF = size_t function(size_t s, char* name, int namelen, WSABUF* lpCallerData, 
+alias LPWSPJOINLEAF = size_t function(size_t s, const(SOCKADDR)* name, int namelen, WSABUF* lpCallerData, 
                                       WSABUF* lpCalleeData, QOS* lpSQOS, QOS* lpGQOS, uint dwFlags, int* lpErrno);
 ///The **LPWSPListen** function establishes a socket to listen for incoming connections.
 ///Params:
@@ -1808,7 +1808,7 @@ alias LPWSPLISTEN = int function(size_t s, int backlog, int* lpErrno);
 ///    width="40%"> <dl> <dt>WSA_OPERATION_ABORTED</dt> </dl> </td> <td width="60%"> Overlapped operation has been
 ///    canceled due to the closure of the socket. </td> </tr> </table>
 ///    
-alias LPWSPRECV = int function(size_t s, char* lpBuffers, uint dwBufferCount, uint* lpNumberOfBytesRecvd, 
+alias LPWSPRECV = int function(size_t s, WSABUF* lpBuffers, uint dwBufferCount, uint* lpNumberOfBytesRecvd, 
                                uint* lpFlags, OVERLAPPED* lpOverlapped, 
                                LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine, WSATHREADID* lpThreadId, 
                                int* lpErrno);
@@ -1893,8 +1893,8 @@ alias LPWSPRECVDISCONNECT = int function(size_t s, WSABUF* lpInboundDisconnectDa
 ///    <tr> <td width="40%"> <dl> <dt>WSA_OPERATION_ABORTED</dt> </dl> </td> <td width="60%"> Overlapped operation has
 ///    been canceled due to the closure of the socket. </td> </tr> </table>
 ///    
-alias LPWSPRECVFROM = int function(size_t s, char* lpBuffers, uint dwBufferCount, uint* lpNumberOfBytesRecvd, 
-                                   uint* lpFlags, char* lpFrom, int* lpFromlen, OVERLAPPED* lpOverlapped, 
+alias LPWSPRECVFROM = int function(size_t s, WSABUF* lpBuffers, uint dwBufferCount, uint* lpNumberOfBytesRecvd, 
+                                   uint* lpFlags, SOCKADDR* lpFrom, int* lpFromlen, OVERLAPPED* lpOverlapped, 
                                    LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine, WSATHREADID* lpThreadId, 
                                    int* lpErrno);
 ///The **LPWSPSelect** function determines the status of one or more sockets.
@@ -1979,7 +1979,7 @@ alias LPWSPSELECT = int function(int nfds, fd_set* readfds, fd_set* writefds, fd
 ///    </dl> </td> <td width="60%"> Overlapped operation has been canceled due to the closure of the socket, or the
 ///    execution of the SIO_FLUSH command in <b>LPWSPIoctl</b>. </tr> </table>
 ///    
-alias LPWSPSEND = int function(size_t s, char* lpBuffers, uint dwBufferCount, uint* lpNumberOfBytesSent, 
+alias LPWSPSEND = int function(size_t s, WSABUF* lpBuffers, uint dwBufferCount, uint* lpNumberOfBytesSent, 
                                uint dwFlags, OVERLAPPED* lpOverlapped, 
                                LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine, WSATHREADID* lpThreadId, 
                                int* lpErrno);
@@ -2069,8 +2069,8 @@ alias LPWSPSENDDISCONNECT = int function(size_t s, WSABUF* lpOutboundDisconnectD
 ///    <dt>WSA_OPERATION_ABORTED</b></dl> </dl> </td> <td width="60%"> Overlapped operation has been canceled due to the
 ///    closure of the socket, or the execution of the SIO_FLUSH command in <b>LPWSPIoctl</b>. </td> </tr> </table>
 ///    
-alias LPWSPSENDTO = int function(size_t s, char* lpBuffers, uint dwBufferCount, uint* lpNumberOfBytesSent, 
-                                 uint dwFlags, char* lpTo, int iTolen, OVERLAPPED* lpOverlapped, 
+alias LPWSPSENDTO = int function(size_t s, WSABUF* lpBuffers, uint dwBufferCount, uint* lpNumberOfBytesSent, 
+                                 uint dwFlags, const(SOCKADDR)* lpTo, int iTolen, OVERLAPPED* lpOverlapped, 
                                  LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine, WSATHREADID* lpThreadId, 
                                  int* lpErrno);
 ///The **LPWSPSetSockOpt** function sets a socket option.
@@ -2100,7 +2100,8 @@ alias LPWSPSENDTO = int function(size_t s, char* lpBuffers, uint dwBufferCount, 
 ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>WSAENOTSOCK</b></dl> </dl> </td> <td width="60%"> The descriptor is
 ///    not a socket. </td> </tr> </table>
 ///    
-alias LPWSPSETSOCKOPT = int function(size_t s, int level, int optname, char* optval, int optlen, int* lpErrno);
+alias LPWSPSETSOCKOPT = int function(size_t s, int level, int optname, const(byte)* optval, int optlen, 
+                                     int* lpErrno);
 ///The **LPWSPShutdown** function disables sends and/or receives on a socket.
 ///Params:
 ///    s = Descriptor identifying a socket.
@@ -2170,15 +2171,15 @@ alias LPWSPSOCKET = size_t function(int af, int type, int protocol, WSAPROTOCOL_
 ///    address family, or the specified <i>lpProtocolInfo</i> did not refer to a WSAProtocol_Info structure supported by
 ///    the provider. </td> </tr> </table> <div> </div>
 ///    
-alias LPWSPSTRINGTOADDRESS = int function(const(wchar)* AddressString, int AddressFamily, 
-                                          WSAPROTOCOL_INFOW* lpProtocolInfo, char* lpAddress, int* lpAddressLength, 
-                                          int* lpErrno);
+alias LPWSPSTRINGTOADDRESS = int function(PWSTR AddressString, int AddressFamily, 
+                                          WSAPROTOCOL_INFOW* lpProtocolInfo, SOCKADDR* lpAddress, 
+                                          int* lpAddressLength, int* lpErrno);
 alias LPWPUCLOSEEVENT = BOOL function(HANDLE hEvent, int* lpErrno);
 alias LPWPUCLOSESOCKETHANDLE = int function(size_t s, int* lpErrno);
 alias LPWPUCREATEEVENT = HANDLE function(int* lpErrno);
 alias LPWPUCREATESOCKETHANDLE = size_t function(uint dwCatalogEntryId, size_t dwContext, int* lpErrno);
 alias LPWPUFDISSET = int function(size_t s, fd_set* fdset);
-alias LPWPUGETPROVIDERPATH = int function(GUID* lpProviderId, char* lpszProviderDllPath, int* lpProviderDllPathLen, 
+alias LPWPUGETPROVIDERPATH = int function(GUID* lpProviderId, PWSTR lpszProviderDllPath, int* lpProviderDllPathLen, 
                                           int* lpErrno);
 alias LPWPUMODIFYIFSHANDLE = size_t function(uint dwCatalogEntryId, size_t ProposedHandle, int* lpErrno);
 alias LPWPUPOSTMESSAGE = BOOL function(HWND hWnd, uint Msg, WPARAM wParam, LPARAM lParam);
@@ -2195,17 +2196,19 @@ alias LPWPUCOMPLETEOVERLAPPEDREQUEST = int function(size_t s, OVERLAPPED* lpOver
                                                     uint cbTransferred, int* lpErrno);
 alias LPWSPSTARTUP = int function(ushort wVersionRequested, WSPData* lpWSPData, WSAPROTOCOL_INFOW* lpProtocolInfo, 
                                   WSPUPCALLTABLE UpcallTable, WSPPROC_TABLE* lpProcTable);
-alias LPWSCENUMPROTOCOLS = int function(int* lpiProtocols, char* lpProtocolBuffer, uint* lpdwBufferLength, 
-                                        int* lpErrno);
+alias LPWSCENUMPROTOCOLS = int function(int* lpiProtocols, WSAPROTOCOL_INFOW* lpProtocolBuffer, 
+                                        uint* lpdwBufferLength, int* lpErrno);
 alias LPWSCDEINSTALLPROVIDER = int function(GUID* lpProviderId, int* lpErrno);
-alias LPWSCINSTALLPROVIDER = int function(GUID* lpProviderId, const(wchar)* lpszProviderDllPath, 
-                                          char* lpProtocolInfoList, uint dwNumberOfEntries, int* lpErrno);
-alias LPWSCGETPROVIDERPATH = int function(GUID* lpProviderId, char* lpszProviderDllPath, int* lpProviderDllPathLen, 
+alias LPWSCINSTALLPROVIDER = int function(GUID* lpProviderId, const(PWSTR) lpszProviderDllPath, 
+                                          const(WSAPROTOCOL_INFOW)* lpProtocolInfoList, uint dwNumberOfEntries, 
                                           int* lpErrno);
-alias LPWSCUPDATEPROVIDER = int function(GUID* lpProviderId, const(wchar)* lpszProviderDllPath, 
-                                         char* lpProtocolInfoList, uint dwNumberOfEntries, int* lpErrno);
-alias LPWSCINSTALLNAMESPACE = int function(const(wchar)* lpszIdentifier, const(wchar)* lpszPathName, 
-                                           uint dwNameSpace, uint dwVersion, GUID* lpProviderId);
+alias LPWSCGETPROVIDERPATH = int function(GUID* lpProviderId, PWSTR lpszProviderDllPath, int* lpProviderDllPathLen, 
+                                          int* lpErrno);
+alias LPWSCUPDATEPROVIDER = int function(GUID* lpProviderId, const(PWSTR) lpszProviderDllPath, 
+                                         const(WSAPROTOCOL_INFOW)* lpProtocolInfoList, uint dwNumberOfEntries, 
+                                         int* lpErrno);
+alias LPWSCINSTALLNAMESPACE = int function(PWSTR lpszIdentifier, PWSTR lpszPathName, uint dwNameSpace, 
+                                           uint dwVersion, GUID* lpProviderId);
 alias LPWSCUNINSTALLNAMESPACE = int function(GUID* lpProviderId);
 alias LPWSCENABLENSPROVIDER = int function(GUID* lpProviderId, BOOL fEnable);
 ///The **NSPCleanup** function terminates the use of a particular Windows Sockets namespace service provider.
@@ -2298,7 +2301,7 @@ alias LPNSPCLEANUP = int function(GUID* lpProviderId);
 ///    
 alias LPNSPLOOKUPSERVICEBEGIN = int function(GUID* lpProviderId, WSAQUERYSETW* lpqsRestrictions, 
                                              WSASERVICECLASSINFOW* lpServiceClassInfo, uint dwControlFlags, 
-                                             ptrdiff_t* lphLookup);
+                                             HANDLE* lphLookup);
 ///The **NSPLookupServiceNext** function is called after obtaining a handle from a previous call to
 ///NSPLookupServiceBegin in order to retrieve the requested service information. The provider will pass a WSAQUERYSET
 ///structure in the <i>lpqsResults</i> buffer. The client should call this function until it returns **WSA_E_NOMORE**,
@@ -2341,7 +2344,7 @@ alias LPNSPLOOKUPSERVICEBEGIN = int function(GUID* lpProviderId, WSAQUERYSETW* l
 ///    </td> </tr> </table>
 ///    
 alias LPNSPLOOKUPSERVICENEXT = int function(HANDLE hLookup, uint dwControlFlags, uint* lpdwBufferLength, 
-                                            char* lpqsResults);
+                                            WSAQUERYSETW* lpqsResults);
 ///The **NSPIoctl** function sends an IOCTL to a namespace service provider.
 ///Params:
 ///    hLookup = The lookup handle returned from a previous call to the NSPLookupServiceBegin function.
@@ -2391,8 +2394,8 @@ alias LPNSPLOOKUPSERVICENEXT = int function(HANDLE hLookup, uint dwControlFlags,
 ///    This error is used as a special notification for the SIO_NSP_NOTIFY_CHANGE IOCTL when the <i>lpCompletion</i>
 ///    parameter is **NULL** (a poll) to indicate that a query set remains valid. </td> </tr> </table>
 ///    
-alias LPNSPIOCTL = int function(HANDLE hLookup, uint dwControlCode, char* lpvInBuffer, uint cbInBuffer, 
-                                char* lpvOutBuffer, uint cbOutBuffer, uint* lpcbBytesReturned, 
+alias LPNSPIOCTL = int function(HANDLE hLookup, uint dwControlCode, void* lpvInBuffer, uint cbInBuffer, 
+                                void* lpvOutBuffer, uint cbOutBuffer, uint* lpcbBytesReturned, 
                                 WSACOMPLETION* lpCompletion, WSATHREADID* lpThreadId);
 ///The **NSPLookupServiceEnd** function is called to free the handle after previous calls to NSPLookupServiceBegin and
 ///NSPLookupServiceNext. It is possible to receive an **NSPLookupServiceEnd** call on another thread while processing an
@@ -2648,7 +2651,7 @@ alias LPNSPV2CLEANUP = int function(GUID* lpProviderId, void* pvClientSessionArg
 ///    </dl> </td> <td width="60%"> There is not enough memory available to perform this operation. </td> </tr> </table>
 ///    
 alias LPNSPV2LOOKUPSERVICEBEGIN = int function(GUID* lpProviderId, WSAQUERYSET2W* lpqsRestrictions, 
-                                               uint dwControlFlags, void* lpvClientSessionArg, ptrdiff_t* lphLookup);
+                                               uint dwControlFlags, void* lpvClientSessionArg, HANDLE* lphLookup);
 ///The **NSPv2LookupServiceNextEx** function is called after obtaining a handle from a previous call to
 ///NSPv2LookupServiceBegin in order to retrieve the requested information from a namespace version-2 service provider.
 ///Params:
@@ -2777,30 +2780,25 @@ alias LPWSCWRITENAMESPACEORDER = int function(GUID* lpProviderId, uint dwNumberO
 // Structs
 
 
-///The <b>BLOB</b> structure, derived from Binary Large Object, contains information about a block of data.
-struct BLOB
+@RAIIFree!WSACloseEvent
+struct HWSAEVENT
 {
-    ///Size of the block of data pointed to by <b>pBlobData</b>, in bytes.
-    uint   cbSize;
-    ///Pointer to a block of data.
-    ubyte* pBlobData;
+    ptrdiff_t Value;
 }
-
-alias HWSAEVENT = ptrdiff_t;
 
 ///The <b>in_addr</b> structure represents an IPv4 Internet address.
 struct in_addr
 {
-    union S_un
+union S_un
     {
-        struct S_un_b
+struct S_un_b
         {
             ubyte s_b1;
             ubyte s_b2;
             ubyte s_b3;
             ubyte s_b4;
         }
-        struct S_un_w
+struct S_un_w
         {
             ushort s_w1;
             ushort s_w2;
@@ -2911,9 +2909,9 @@ struct SOCKET_PROCESSOR_AFFINITY
 
 struct SCOPE_ID
 {
-    union
+union
     {
-        struct
+struct
         {
             uint _bitfield199;
         }
@@ -3173,7 +3171,7 @@ struct addrinfoW
     ///<dt>0x00080000</dt> </dl> </td> <td width="60%"> Disable the automatic International Domain Name encoding using
     ///Punycode in the name resolution functions called by the GetAddrInfoW function. This option is supported on
     ///Windows 8, Windows Server 2012, and later. </td> </tr> </table>
-    int           ai_flags;
+    int        ai_flags;
     ///Type: <b>int</b> The address family. Possible values for the address family are defined in the <i>Winsock2.h</i>
     ///header file. On the Windows SDK released for Windows Vista and later,, the organization of header files has
     ///changed and the possible values for the address family are defined in the <i>Ws2def.h</i> header file. Note that
@@ -3197,7 +3195,7 @@ struct addrinfoW
     ///infrared port and driver installed. </td> </tr> <tr> <td width="40%"><a id="AF_BTH"></a><a id="af_bth"></a><dl>
     ///<dt><b>AF_BTH</b></dt> <dt>32</dt> </dl> </td> <td width="60%"> The Bluetooth address family. This address family
     ///is only supported if a Bluetooth adapter is installed on Windows Server 2003 or later. </td> </tr> </table>
-    int           ai_family;
+    int        ai_family;
     ///Type: <b>int</b> The socket type. Possible values for the socket type are defined in the <i>Winsock2.h</i>
     ///include file. The following table lists the possible values for the socket type supported for Windows Sockets 2.
     ///<table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SOCK_STREAM"></a><a
@@ -3224,7 +3222,7 @@ struct addrinfoW
     ///<i>Winsock2.h</i> and <i>Ws2def.h</i> header files will be periodically updated as new socket types, address
     ///families, and protocols are defined. In Windows Sockets 1.1, the only possible socket types are
     ///<b>SOCK_DATAGRAM</b> and <b>SOCK_STREAM</b>.
-    int           ai_socktype;
+    int        ai_socktype;
     ///Type: <b>int</b> The protocol type. The possible options are specific to the address family and socket type
     ///specified. Possible values for the <b>ai_protocol</b> are defined in <i>Winsock2.h</i> and the <i>Wsrm.h</i>
     ///header files. On the Windows SDK released for Windows Vista and later,, the organization of header files has
@@ -3246,18 +3244,18 @@ struct addrinfoW
     ///<b>ai_socktype</b> member is <b>SOCK_RDM</b>. On the Windows SDK released for Windows Vista and later, this value
     ///is also called <b>IPPROTO_PGM</b>. </td> </tr> </table> If the <b>ai_family</b> member is <b>AF_IRDA</b>, then
     ///the <b>ai_protocol</b> must be 0.
-    int           ai_protocol;
+    int        ai_protocol;
     ///Type: <b>size_t</b> The length, in bytes, of the buffer pointed to by the <b>ai_addr</b> member.
-    size_t        ai_addrlen;
+    size_t     ai_addrlen;
     ///Type: <b>PWSTR</b> The canonical name for the host.
-    const(wchar)* ai_canonname;
+    PWSTR      ai_canonname;
     ///Type: <b>struct sockaddr*</b> A pointer to a sockaddr structure. The <b>ai_addr</b> member in each returned
     ///ADDRINFOW structure points to a filled-in socket address structure. The length, in bytes, of each returned
     ///<b>ADDRINFOW</b> structure is specified in the <b>ai_addrlen</b> member.
-    SOCKADDR*     ai_addr;
+    SOCKADDR*  ai_addr;
     ///Type: <b>struct addrinfoW*</b> A pointer to the next structure in a linked list. This parameter is set to
     ///<b>NULL</b> in the last <b>addrinfoW</b> structure of a linked list.
-    addrinfoW*    ai_next;
+    addrinfoW* ai_next;
 }
 
 ///The <b>addrinfoex</b> structure is used by the GetAddrInfoEx function to hold host address information.
@@ -3477,7 +3475,7 @@ struct addrinfoexW
     ///<dt>0x00080000</dt> </dl> </td> <td width="60%"> Disable the automatic International Domain Name encoding using
     ///Punycode in the name resolution functions called by the GetAddrInfoEx function. This option is supported on
     ///Windows 8, Windows Server 2012, and later. </td> </tr> </table>
-    int           ai_flags;
+    int          ai_flags;
     ///Type: <b>int</b> The address family. Possible values for the address family are defined in the <i>Winsock2.h</i>
     ///include file. On the Windows SDK released for Windows Vista and later,, the organization of header files has
     ///changed and the possible values for the address family are defined in the <i>Ws2def.h</i> header file. Note that
@@ -3501,7 +3499,7 @@ struct addrinfoexW
     ///infrared port and driver installed. </td> </tr> <tr> <td width="40%"><a id="AF_BTH"></a><a id="af_bth"></a><dl>
     ///<dt><b>AF_BTH</b></dt> <dt>32</dt> </dl> </td> <td width="60%"> The Bluetooth address family. This address family
     ///is only supported if a Bluetooth adapter is installed on Windows Server 2003 or later. </td> </tr> </table>
-    int           ai_family;
+    int          ai_family;
     ///Type: <b>int</b> The socket type. Possible values for the socket type are defined in the <i>Winsock2.h</i>
     ///include file. The following table lists the possible values for the socket type supported for Windows Sockets 2:
     ///<table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SOCK_STREAM"></a><a
@@ -3528,7 +3526,7 @@ struct addrinfoexW
     ///<i>Winsock2.h</i> and <i>Ws2def.h</i> header files will be periodically updated as new socket types, address
     ///families, and protocols are defined. In Windows Sockets 1.1, the only possible socket types are
     ///<b>SOCK_DATAGRAM</b> and <b>SOCK_STREAM</b>.
-    int           ai_socktype;
+    int          ai_socktype;
     ///Type: <b>int</b> The protocol type. The possible options are specific to the address family and socket type
     ///specified. Possible values for the <b>ai_protocol</b> are defined in <i>Winsock2.h</i> and the <i>Wsrm.h</i>
     ///header files. On the Windows SDK released for Windows Vista and later,, the organization of header files has
@@ -3550,26 +3548,26 @@ struct addrinfoexW
     ///<b>ai_socktype</b> member is <b>SOCK_RDM</b>. On the Windows SDK released for Windows Vista and later, this value
     ///is also called <b>IPPROTO_PGM</b>. </td> </tr> </table> If the <b>ai_family</b> member is <b>AF_IRDA</b>, then
     ///the <b>ai_protocol</b> must be 0.
-    int           ai_protocol;
+    int          ai_protocol;
     ///Type: <b>size_t</b> The length, in bytes, of the buffer pointed to by the <b>ai_addr</b> member.
-    size_t        ai_addrlen;
+    size_t       ai_addrlen;
     ///Type: <b>PCTSTR</b> The canonical name for the host.
-    const(wchar)* ai_canonname;
+    PWSTR        ai_canonname;
     ///Type: <b>struct sockaddr*</b> A pointer to a sockaddr structure. The <b>ai_addr</b> member in each returned
     ///<b>addrinfoex</b> structure points to a filled-in socket address structure. The length, in bytes, of each
     ///returned <b>addrinfoex</b> structure is specified in the <b>ai_addrlen</b> member.
-    SOCKADDR*     ai_addr;
+    SOCKADDR*    ai_addr;
     ///Type: <b>void*</b> A pointer to data that is used to return provider-specific namespace information that is
     ///associated with the name beyond a list of addresses. The length, in bytes, of the buffer pointed to by
     ///<b>ai_blob</b> must be specified in the <b>ai_bloblen</b> member.
-    void*         ai_blob;
+    void*        ai_blob;
     ///Type: <b>size_t</b> The length, in bytes, of the <b>ai_blob</b> member.
-    size_t        ai_bloblen;
+    size_t       ai_bloblen;
     ///Type: <b>LPGUID</b> A pointer to the GUID of a specific namespace provider.
-    GUID*         ai_provider;
+    GUID*        ai_provider;
     ///Type: <b>struct addrinfoex*</b> A pointer to the next structure in a linked list. This parameter is set to
     ///<b>NULL</b> in the last <b>addrinfoex</b> structure of a linked list.
-    addrinfoexW*  ai_next;
+    addrinfoexW* ai_next;
 }
 
 ///The <b>addrinfoex2</b> structure is used by the GetAddrInfoEx function to hold host address information when both a
@@ -3850,7 +3848,7 @@ struct addrinfoex2W
     ///The length, in bytes, of the buffer pointed to by the <b>ai_addr</b> member.
     size_t        ai_addrlen;
     ///The canonical name for the host.
-    const(wchar)* ai_canonname;
+    PWSTR         ai_canonname;
     ///A pointer to a sockaddr structure. The <b>ai_addr</b> member in each returned <b>addrinfoex2</b> structure points
     ///to a filled-in socket address structure. The length, in bytes, of each returned <b>addrinfoex2</b> structure is
     ///specified in the <b>ai_addrlen</b> member.
@@ -3869,7 +3867,7 @@ struct addrinfoex2W
     ///The version number of this structure. The value currently used for this version of the structure is 2.
     int           ai_version;
     ///The fully qualified domain name for the host.
-    const(wchar)* ai_fqdn;
+    PWSTR         ai_fqdn;
 }
 
 ///The <b>addrinfoex3</b> structure is used by the GetAddrInfoEx function to hold host address information when a
@@ -3928,7 +3926,7 @@ struct addrinfoex3
     ///<dt><b>AI_EXTENDED</b></dt> <dt>0x80000000</dt> </dl> </td> <td width="60%"> Indicates that the current object is
     ///extended: that is, an addrinfoex2 or greater. This option is supported on Windows 8.1, Windows Server 2012 R2,
     ///and later. </td> </tr> </table>
-    int           ai_flags;
+    int          ai_flags;
     ///The address family. The possible values for the address family are defined in the <i>Ws2def.h</i> header file.
     ///Note that the <i>Ws2def.h</i> header file is automatically included in <i>Winsock2.h</i>, and should never be
     ///used directly. The values currently supported are <b>AF_INET</b> or <b>AF_INET6</b>, which are the Internet
@@ -3950,7 +3948,7 @@ struct addrinfoex3
     ///infrared port and driver installed. </td> </tr> <tr> <td width="40%"><a id="AF_BTH"></a><a id="af_bth"></a><dl>
     ///<dt><b>AF_BTH</b></dt> <dt>32</dt> </dl> </td> <td width="60%"> The Bluetooth address family. This address family
     ///is only supported if a Bluetooth adapter is installed. </td> </tr> </table>
-    int           ai_family;
+    int          ai_family;
     ///The socket type. Possible values for the socket type are defined in the <i>Winsock2.h</i> include file. The
     ///following table lists the possible values for the socket type supported for Windows Sockets 2: <table> <tr>
     ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SOCK_STREAM"></a><a id="sock_stream"></a><dl>
@@ -3977,7 +3975,7 @@ struct addrinfoex3
     ///<i>Winsock2.h</i> and <i>Ws2def.h</i> header files will be periodically updated as new socket types, address
     ///families, and protocols are defined. In Windows Sockets 1.1, the only possible socket types are
     ///<b>SOCK_DATAGRAM</b> and <b>SOCK_STREAM</b>.
-    int           ai_socktype;
+    int          ai_socktype;
     ///The protocol type. The possible options are specific to the address family and socket type specified. Possible
     ///values for the <b>ai_protocol</b> are defined in <i>Winsock2.h</i> and the <i>Wsrm.h</i> header files. On the
     ///Windows SDK released for Windows Vista and later,, the organization of header files has changed and this member
@@ -3999,33 +3997,33 @@ struct addrinfoex3
     ///<b>ai_socktype</b> member is <b>SOCK_RDM</b>. On the Windows SDK released for Windows Vista and later, this value
     ///is also called <b>IPPROTO_PGM</b>. </td> </tr> </table> If the <b>ai_family</b> member is <b>AF_IRDA</b>, then
     ///the <b>ai_protocol</b> must be 0.
-    int           ai_protocol;
+    int          ai_protocol;
     ///The length, in bytes, of the buffer pointed to by the <b>ai_addr</b> member.
-    size_t        ai_addrlen;
+    size_t       ai_addrlen;
     ///The canonical name for the host.
-    const(wchar)* ai_canonname;
+    PWSTR        ai_canonname;
     ///A pointer to a sockaddr structure. The <b>ai_addr</b> member in each returned <b>addrinfoex3</b> structure points
     ///to a filled-in socket address structure. The length, in bytes, of each returned <b>addrinfoex3</b> structure is
     ///specified in the <b>ai_addrlen</b> member.
-    SOCKADDR*     ai_addr;
+    SOCKADDR*    ai_addr;
     ///A pointer to data that is used to return provider-specific namespace information that is associated with the name
     ///beyond a list of addresses. The length, in bytes, of the buffer pointed to by <b>ai_blob</b> must be specified in
     ///the <b>ai_bloblen</b> member.
-    void*         ai_blob;
+    void*        ai_blob;
     ///The length, in bytes, of the <b>ai_blob</b> member.
-    size_t        ai_bloblen;
+    size_t       ai_bloblen;
     ///A pointer to the GUID of a specific namespace provider.
-    GUID*         ai_provider;
+    GUID*        ai_provider;
     ///A pointer to the next structure in a linked list. This parameter is set to <b>NULL</b> in the last
     ///<b>addrinfoex3</b> structure of a linked list.
-    addrinfoex3*  ai_next;
+    addrinfoex3* ai_next;
     ///The version number of this structure. The value currently used for this version of the structure is 3.
-    int           ai_version;
+    int          ai_version;
     ///The fully qualified domain name for the host.
-    const(wchar)* ai_fqdn;
+    PWSTR        ai_fqdn;
     ///The interface index, as defined by the IP_ADAPTER_ADDRESSES.<i>IfIndex</i> property returned in
     ///GetAdaptersAddresses.
-    int           ai_interfaceindex;
+    int          ai_interfaceindex;
 }
 
 ///The <b>addrinfoex4</b> structure is used by the GetAddrInfoEx function to hold host address information when a
@@ -4087,7 +4085,7 @@ struct addrinfoex4
     ///id="ai_resolution_handle"></a><dl> <dt><b>AI_RESOLUTION_HANDLE</b></dt> <dt>0x40000000</dt> </dl> </td> <td
     ///width="60%"> A resolution handle is returned in the <b>ai_resolutionhandle</b> member. This option is supported
     ///on Windows 10, Windows Server 2016, and later. </td> </tr> </table>
-    int           ai_flags;
+    int          ai_flags;
     ///The address family. The possible values for the address family are defined in the <i>Ws2def.h</i> header file.
     ///Note that the <i>Ws2def.h</i> header file is automatically included in <i>Winsock2.h</i>, and should never be
     ///used directly. The values currently supported are <b>AF_INET</b> or <b>AF_INET6</b>, which are the Internet
@@ -4109,7 +4107,7 @@ struct addrinfoex4
     ///infrared port and driver installed. </td> </tr> <tr> <td width="40%"><a id="AF_BTH"></a><a id="af_bth"></a><dl>
     ///<dt><b>AF_BTH</b></dt> <dt>32</dt> </dl> </td> <td width="60%"> The Bluetooth address family. This address family
     ///is only supported if a Bluetooth adapter is installed. </td> </tr> </table>
-    int           ai_family;
+    int          ai_family;
     ///The socket type. Possible values for the socket type are defined in the <i>Winsock2.h</i> include file. The
     ///following table lists the possible values for the socket type supported for Windows Sockets 2: <table> <tr>
     ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SOCK_STREAM"></a><a id="sock_stream"></a><dl>
@@ -4136,7 +4134,7 @@ struct addrinfoex4
     ///<i>Winsock2.h</i> and <i>Ws2def.h</i> header files will be periodically updated as new socket types, address
     ///families, and protocols are defined. In Windows Sockets 1.1, the only possible socket types are
     ///<b>SOCK_DATAGRAM</b> and <b>SOCK_STREAM</b>.
-    int           ai_socktype;
+    int          ai_socktype;
     ///The protocol type. The possible options are specific to the address family and socket type specified. Possible
     ///values for the <b>ai_protocol</b> are defined in <i>Winsock2.h</i> and the <i>Wsrm.h</i> header files. On the
     ///Windows SDK released for Windows Vista and later,, the organization of header files has changed and this member
@@ -4158,35 +4156,35 @@ struct addrinfoex4
     ///<b>ai_socktype</b> member is <b>SOCK_RDM</b>. On the Windows SDK released for Windows Vista and later, this value
     ///is also called <b>IPPROTO_PGM</b>. </td> </tr> </table> If the <b>ai_family</b> member is <b>AF_IRDA</b>, then
     ///the <b>ai_protocol</b> must be 0.
-    int           ai_protocol;
+    int          ai_protocol;
     ///The length, in bytes, of the buffer pointed to by the <b>ai_addr</b> member.
-    size_t        ai_addrlen;
+    size_t       ai_addrlen;
     ///The canonical name for the host.
-    const(wchar)* ai_canonname;
+    PWSTR        ai_canonname;
     ///A pointer to a sockaddr structure. The <b>ai_addr</b> member in each returned <b>addrinfoex4</b> structure points
     ///to a filled-in socket address structure. The length, in bytes, of each returned <b>addrinfoex4</b> structure is
     ///specified in the <b>ai_addrlen</b> member.
-    SOCKADDR*     ai_addr;
+    SOCKADDR*    ai_addr;
     ///A pointer to data that is used to return provider-specific namespace information that is associated with the name
     ///beyond a list of addresses. The length, in bytes, of the buffer pointed to by <b>ai_blob</b> must be specified in
     ///the <b>ai_bloblen</b> member.
-    void*         ai_blob;
+    void*        ai_blob;
     ///The length, in bytes, of the <b>ai_blob</b> member.
-    size_t        ai_bloblen;
+    size_t       ai_bloblen;
     ///A pointer to the GUID of a specific namespace provider.
-    GUID*         ai_provider;
+    GUID*        ai_provider;
     ///A pointer to the next structure in a linked list. This parameter is set to <b>NULL</b> in the last
     ///<b>addrinfoex4</b> structure of a linked list.
-    addrinfoex4*  ai_next;
+    addrinfoex4* ai_next;
     ///The version number of this structure. The value currently used for this version of the structure is 4.
-    int           ai_version;
+    int          ai_version;
     ///The fully qualified domain name for the host.
-    const(wchar)* ai_fqdn;
+    PWSTR        ai_fqdn;
     ///The interface index, as defined by the IP_ADAPTER_ADDRESSES.<i>IfIndex</i> property returned in
     ///GetAdaptersAddresses.
-    int           ai_interfaceindex;
+    int          ai_interfaceindex;
     ///Handle pointing to the fully qualified domain name for the host.
-    HANDLE        ai_resolutionhandle;
+    HANDLE       ai_resolutionhandle;
 }
 
 ///The <b>fd_set</b> structure is used by various Windows Sockets functions and service providers, such as the select
@@ -4835,24 +4833,24 @@ struct WSACOMPLETION
 {
     ///Type: <b>WSACOMPLETIONTYPE</b> The type of completion notification required. See Remarks.
     WSACOMPLETIONTYPE Type;
-    union Parameters
+union Parameters
     {
-        struct WindowMessage
+struct WindowMessage
         {
             HWND   hWnd;
             uint   uMsg;
             WPARAM context;
         }
-        struct Event
+struct Event
         {
             OVERLAPPED* lpOverlapped;
         }
-        struct Apc
+struct Apc
         {
             OVERLAPPED* lpOverlapped;
             LPWSAOVERLAPPED_COMPLETION_ROUTINE lpfnCompletionProc;
         }
-        struct Port
+struct Port
         {
             OVERLAPPED* lpOverlapped;
             HANDLE      hPort;
@@ -4890,7 +4888,7 @@ struct WSAQUERYSETA
     uint         dwSize;
     ///Type: <b>LPTSTR</b> A pointer to an optional NULL-terminated string that contains service name. The semantics for
     ///using wildcards within the string are not defined, but can be supported by certain namespace providers.
-    const(char)* lpszServiceInstanceName;
+    PSTR         lpszServiceInstanceName;
     ///Type: <b>LPGUID</b> The GUID corresponding to the service class. This member is required to be set.
     GUID*        lpServiceClassId;
     ///Type: <b>LPWSAVERSION</b> A pointer to an optional desired version number of the namespace provider. This member
@@ -4898,7 +4896,7 @@ struct WSAQUERYSETA
     ///less than the value supplied).
     WSAVERSION*  lpVersion;
     ///Type: <b>LPTSTR</b> This member is ignored for queries.
-    const(char)* lpszComment;
+    PSTR         lpszComment;
     ///Type: <b>DWORD</b> A namespace identifier that determines which namespace providers are queried. Passing a
     ///specific namespace identifier will result in only namespace providers that support the specified namespace being
     ///queried. Specifying <b>NS_ALL</b> will result in all installed and active namespace providers being queried.
@@ -4928,7 +4926,7 @@ struct WSAQUERYSETA
     ///namespace provider.
     GUID*        lpNSProviderId;
     ///Type: <b>LPTSTR</b> A pointer to an optional starting point of the query in a hierarchical namespace.
-    const(char)* lpszContext;
+    PSTR         lpszContext;
     ///Type: <b>DWORD</b> The size, in bytes, of the protocol constraint array. This member can be zero.
     uint         dwNumberOfProtocols;
     ///Type: <b>LPAFPROTOCOLS</b> A pointer to an optional array of AFPROTOCOLS structures. Only services that utilize
@@ -4937,7 +4935,7 @@ struct WSAQUERYSETA
     ///Type: <b>LPTSTR</b> A pointer to an optional NULL-terminated query string. Some namespaces, such as Whois++,
     ///support enriched SQL-like queries that are contained in a simple text string. This parameter is used to specify
     ///that string.
-    const(char)* lpszQueryString;
+    PSTR         lpszQueryString;
     ///Type: <b>DWORD</b> This member is ignored for queries.
     uint         dwNumberOfCsAddrs;
     ///Type: <b>LPCSADDR_INFO</b> This member is ignored for queries.
@@ -4956,86 +4954,18 @@ struct WSAQUERYSETW
 {
     ///Type: <b>DWORD</b> The size, in bytes, of the <b>WSAQUERYSET</b> structure. This member is used as a versioning
     ///mechanism since the size of the <b>WSAQUERYSET</b> structure has changed on later versions of Windows.
-    uint          dwSize;
+    uint         dwSize;
     ///Type: <b>LPTSTR</b> A pointer to an optional NULL-terminated string that contains service name. The semantics for
     ///using wildcards within the string are not defined, but can be supported by certain namespace providers.
-    const(wchar)* lpszServiceInstanceName;
+    PWSTR        lpszServiceInstanceName;
     ///Type: <b>LPGUID</b> The GUID corresponding to the service class. This member is required to be set.
-    GUID*         lpServiceClassId;
-    ///Type: <b>LPWSAVERSION</b> A pointer to an optional desired version number of the namespace provider. This member
-    ///provides version comparison semantics (that is, the version requested must match exactly, or version must be not
-    ///less than the value supplied).
-    WSAVERSION*   lpVersion;
-    ///Type: <b>LPTSTR</b> This member is ignored for queries.
-    const(wchar)* lpszComment;
-    ///Type: <b>DWORD</b> A namespace identifier that determines which namespace providers are queried. Passing a
-    ///specific namespace identifier will result in only namespace providers that support the specified namespace being
-    ///queried. Specifying <b>NS_ALL</b> will result in all installed and active namespace providers being queried.
-    ///Options for the <b>dwNameSpace</b> member are listed in the <i>Winsock2.h</i> include file. Several new namespace
-    ///providers are included with Windows Vista and later. Other namespace providers can be installed, so the following
-    ///possible values are only those commonly available. Many other values are possible. <table> <tr> <th>Value</th>
-    ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="NS_ALL"></a><a id="ns_all"></a><dl> <dt><b>NS_ALL</b></dt>
-    ///</dl> </td> <td width="60%"> All installed and active namespaces. </td> </tr> <tr> <td width="40%"><a
-    ///id="NS_BTH"></a><a id="ns_bth"></a><dl> <dt><b>NS_BTH</b></dt> </dl> </td> <td width="60%"> The Bluetooth
-    ///namespace. This namespace identifier is supported on Windows Vista and later. </td> </tr> <tr> <td width="40%"><a
-    ///id="NS_DNS"></a><a id="ns_dns"></a><dl> <dt><b>NS_DNS</b></dt> </dl> </td> <td width="60%"> The domain name
-    ///system (DNS) namespace. </td> </tr> <tr> <td width="40%"><a id="NS_EMAIL"></a><a id="ns_email"></a><dl>
-    ///<dt><b>NS_EMAIL</b></dt> </dl> </td> <td width="60%"> The email namespace. This namespace identifier is supported
-    ///on Windows Vista and later. </td> </tr> <tr> <td width="40%"><a id="NS_NLA"></a><a id="ns_nla"></a><dl>
-    ///<dt><b>NS_NLA</b></dt> </dl> </td> <td width="60%"> The network location awareness (NLA) namespace. This
-    ///namespace identifier is supported on Windows XP and later. </td> </tr> <tr> <td width="40%"><a
-    ///id="NS_PNRPNAME"></a><a id="ns_pnrpname"></a><dl> <dt><b>NS_PNRPNAME</b></dt> </dl> </td> <td width="60%"> The
-    ///peer-to-peer name space for a specific peer name. This namespace identifier is supported on Windows Vista and
-    ///later. </td> </tr> <tr> <td width="40%"><a id="NS_PNRPCLOUD"></a><a id="ns_pnrpcloud"></a><dl>
-    ///<dt><b>NS_PNRPCLOUD</b></dt> </dl> </td> <td width="60%"> The peer-to-peer name space for a collection of peer
-    ///names. This namespace identifier is supported on Windows Vista and later. </td> </tr> </table>
-    uint          dwNameSpace;
-    ///Type: <b>LPGUID</b> A pointer to an optional GUID of a specific namespace provider to query in the case where
-    ///multiple namespace providers are registered under a single namespace such as <b>NS_DNS</b>. Passing the GUID for
-    ///a specific namespace provider will result in only the specified namespace provider being queried. The
-    ///WSAEnumNameSpaceProviders and WSAEnumNameSpaceProvidersEx functions can be called to retrieve the GUID for a
-    ///namespace provider.
-    GUID*         lpNSProviderId;
-    ///Type: <b>LPTSTR</b> A pointer to an optional starting point of the query in a hierarchical namespace.
-    const(wchar)* lpszContext;
-    ///Type: <b>DWORD</b> The size, in bytes, of the protocol constraint array. This member can be zero.
-    uint          dwNumberOfProtocols;
-    ///Type: <b>LPAFPROTOCOLS</b> A pointer to an optional array of AFPROTOCOLS structures. Only services that utilize
-    ///these protocols will be returned.
-    AFPROTOCOLS*  lpafpProtocols;
-    ///Type: <b>LPTSTR</b> A pointer to an optional NULL-terminated query string. Some namespaces, such as Whois++,
-    ///support enriched SQL-like queries that are contained in a simple text string. This parameter is used to specify
-    ///that string.
-    const(wchar)* lpszQueryString;
-    ///Type: <b>DWORD</b> This member is ignored for queries.
-    uint          dwNumberOfCsAddrs;
-    ///Type: <b>LPCSADDR_INFO</b> This member is ignored for queries.
-    CSADDR_INFO*  lpcsaBuffer;
-    ///Type: <b>DWORD</b> This member is ignored for queries.
-    uint          dwOutputFlags;
-    ///Type: <b>LPBLOB</b> An optional pointer to data that is used to query or set provider-specific namespace
-    ///information. The format of this information is specific to the namespace provider.
-    BLOB*         lpBlob;
-}
-
-///The <b>WSAQUERYSET2</b> structure provides relevant information about a given service, including service class ID,
-///service name , applicable namespace identifier and protocol information, as well as a set of transport addresses at
-///which the service listens.
-struct WSAQUERYSET2A
-{
-    ///Type: <b>DWORD</b> The size, in bytes, of the <b>WSAQUERYSET2</b> structure. This member is used as a versioning
-    ///mechanism since the size of the <b>WSAQUERYSET2</b> structure may change on later versions of Windows.
-    uint         dwSize;
-    ///Type: <b>LPTSTR</b> A pointer to an optional <b>NULL</b>-terminated string that contains service name. The
-    ///semantics for using wildcards within the string are not defined, but can be supported by certain namespace
-    ///providers.
-    const(char)* lpszServiceInstanceName;
+    GUID*        lpServiceClassId;
     ///Type: <b>LPWSAVERSION</b> A pointer to an optional desired version number of the namespace provider. This member
     ///provides version comparison semantics (that is, the version requested must match exactly, or version must be not
     ///less than the value supplied).
     WSAVERSION*  lpVersion;
     ///Type: <b>LPTSTR</b> This member is ignored for queries.
-    const(char)* lpszComment;
+    PWSTR        lpszComment;
     ///Type: <b>DWORD</b> A namespace identifier that determines which namespace providers are queried. Passing a
     ///specific namespace identifier will result in only namespace providers that support the specified namespace being
     ///queried. Specifying <b>NS_ALL</b> will result in all installed and active namespace providers being queried.
@@ -5065,16 +4995,16 @@ struct WSAQUERYSET2A
     ///namespace provider.
     GUID*        lpNSProviderId;
     ///Type: <b>LPTSTR</b> A pointer to an optional starting point of the query in a hierarchical namespace.
-    const(char)* lpszContext;
+    PWSTR        lpszContext;
     ///Type: <b>DWORD</b> The size, in bytes, of the protocol constraint array. This member can be zero.
     uint         dwNumberOfProtocols;
     ///Type: <b>LPAFPROTOCOLS</b> A pointer to an optional array of AFPROTOCOLS structures. Only services that utilize
     ///these protocols will be returned.
     AFPROTOCOLS* lpafpProtocols;
-    ///Type: <b>LPTSTR</b> A pointer to an optional <b>NULL</b>-terminated query string. Some namespaces, such as
-    ///Whois++, support enriched SQL-like queries that are contained in a simple text string. This parameter is used to
-    ///specify that string.
-    const(char)* lpszQueryString;
+    ///Type: <b>LPTSTR</b> A pointer to an optional NULL-terminated query string. Some namespaces, such as Whois++,
+    ///support enriched SQL-like queries that are contained in a simple text string. This parameter is used to specify
+    ///that string.
+    PWSTR        lpszQueryString;
     ///Type: <b>DWORD</b> This member is ignored for queries.
     uint         dwNumberOfCsAddrs;
     ///Type: <b>LPCSADDR_INFO</b> This member is ignored for queries.
@@ -5089,21 +5019,21 @@ struct WSAQUERYSET2A
 ///The <b>WSAQUERYSET2</b> structure provides relevant information about a given service, including service class ID,
 ///service name , applicable namespace identifier and protocol information, as well as a set of transport addresses at
 ///which the service listens.
-struct WSAQUERYSET2W
+struct WSAQUERYSET2A
 {
     ///Type: <b>DWORD</b> The size, in bytes, of the <b>WSAQUERYSET2</b> structure. This member is used as a versioning
     ///mechanism since the size of the <b>WSAQUERYSET2</b> structure may change on later versions of Windows.
-    uint          dwSize;
+    uint         dwSize;
     ///Type: <b>LPTSTR</b> A pointer to an optional <b>NULL</b>-terminated string that contains service name. The
     ///semantics for using wildcards within the string are not defined, but can be supported by certain namespace
     ///providers.
-    const(wchar)* lpszServiceInstanceName;
+    PSTR         lpszServiceInstanceName;
     ///Type: <b>LPWSAVERSION</b> A pointer to an optional desired version number of the namespace provider. This member
     ///provides version comparison semantics (that is, the version requested must match exactly, or version must be not
     ///less than the value supplied).
-    WSAVERSION*   lpVersion;
+    WSAVERSION*  lpVersion;
     ///Type: <b>LPTSTR</b> This member is ignored for queries.
-    const(wchar)* lpszComment;
+    PSTR         lpszComment;
     ///Type: <b>DWORD</b> A namespace identifier that determines which namespace providers are queried. Passing a
     ///specific namespace identifier will result in only namespace providers that support the specified namespace being
     ///queried. Specifying <b>NS_ALL</b> will result in all installed and active namespace providers being queried.
@@ -5125,33 +5055,101 @@ struct WSAQUERYSET2W
     ///later. </td> </tr> <tr> <td width="40%"><a id="NS_PNRPCLOUD"></a><a id="ns_pnrpcloud"></a><dl>
     ///<dt><b>NS_PNRPCLOUD</b></dt> </dl> </td> <td width="60%"> The peer-to-peer name space for a collection of peer
     ///names. This namespace identifier is supported on Windows Vista and later. </td> </tr> </table>
-    uint          dwNameSpace;
+    uint         dwNameSpace;
     ///Type: <b>LPGUID</b> A pointer to an optional GUID of a specific namespace provider to query in the case where
     ///multiple namespace providers are registered under a single namespace such as <b>NS_DNS</b>. Passing the GUID for
     ///a specific namespace provider will result in only the specified namespace provider being queried. The
     ///WSAEnumNameSpaceProviders and WSAEnumNameSpaceProvidersEx functions can be called to retrieve the GUID for a
     ///namespace provider.
-    GUID*         lpNSProviderId;
+    GUID*        lpNSProviderId;
     ///Type: <b>LPTSTR</b> A pointer to an optional starting point of the query in a hierarchical namespace.
-    const(wchar)* lpszContext;
+    PSTR         lpszContext;
     ///Type: <b>DWORD</b> The size, in bytes, of the protocol constraint array. This member can be zero.
-    uint          dwNumberOfProtocols;
+    uint         dwNumberOfProtocols;
     ///Type: <b>LPAFPROTOCOLS</b> A pointer to an optional array of AFPROTOCOLS structures. Only services that utilize
     ///these protocols will be returned.
-    AFPROTOCOLS*  lpafpProtocols;
+    AFPROTOCOLS* lpafpProtocols;
     ///Type: <b>LPTSTR</b> A pointer to an optional <b>NULL</b>-terminated query string. Some namespaces, such as
     ///Whois++, support enriched SQL-like queries that are contained in a simple text string. This parameter is used to
     ///specify that string.
-    const(wchar)* lpszQueryString;
+    PSTR         lpszQueryString;
     ///Type: <b>DWORD</b> This member is ignored for queries.
-    uint          dwNumberOfCsAddrs;
+    uint         dwNumberOfCsAddrs;
     ///Type: <b>LPCSADDR_INFO</b> This member is ignored for queries.
-    CSADDR_INFO*  lpcsaBuffer;
+    CSADDR_INFO* lpcsaBuffer;
     ///Type: <b>DWORD</b> This member is ignored for queries.
-    uint          dwOutputFlags;
+    uint         dwOutputFlags;
     ///Type: <b>LPBLOB</b> An optional pointer to data that is used to query or set provider-specific namespace
     ///information. The format of this information is specific to the namespace provider.
-    BLOB*         lpBlob;
+    BLOB*        lpBlob;
+}
+
+///The <b>WSAQUERYSET2</b> structure provides relevant information about a given service, including service class ID,
+///service name , applicable namespace identifier and protocol information, as well as a set of transport addresses at
+///which the service listens.
+struct WSAQUERYSET2W
+{
+    ///Type: <b>DWORD</b> The size, in bytes, of the <b>WSAQUERYSET2</b> structure. This member is used as a versioning
+    ///mechanism since the size of the <b>WSAQUERYSET2</b> structure may change on later versions of Windows.
+    uint         dwSize;
+    ///Type: <b>LPTSTR</b> A pointer to an optional <b>NULL</b>-terminated string that contains service name. The
+    ///semantics for using wildcards within the string are not defined, but can be supported by certain namespace
+    ///providers.
+    PWSTR        lpszServiceInstanceName;
+    ///Type: <b>LPWSAVERSION</b> A pointer to an optional desired version number of the namespace provider. This member
+    ///provides version comparison semantics (that is, the version requested must match exactly, or version must be not
+    ///less than the value supplied).
+    WSAVERSION*  lpVersion;
+    ///Type: <b>LPTSTR</b> This member is ignored for queries.
+    PWSTR        lpszComment;
+    ///Type: <b>DWORD</b> A namespace identifier that determines which namespace providers are queried. Passing a
+    ///specific namespace identifier will result in only namespace providers that support the specified namespace being
+    ///queried. Specifying <b>NS_ALL</b> will result in all installed and active namespace providers being queried.
+    ///Options for the <b>dwNameSpace</b> member are listed in the <i>Winsock2.h</i> include file. Several new namespace
+    ///providers are included with Windows Vista and later. Other namespace providers can be installed, so the following
+    ///possible values are only those commonly available. Many other values are possible. <table> <tr> <th>Value</th>
+    ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="NS_ALL"></a><a id="ns_all"></a><dl> <dt><b>NS_ALL</b></dt>
+    ///</dl> </td> <td width="60%"> All installed and active namespaces. </td> </tr> <tr> <td width="40%"><a
+    ///id="NS_BTH"></a><a id="ns_bth"></a><dl> <dt><b>NS_BTH</b></dt> </dl> </td> <td width="60%"> The Bluetooth
+    ///namespace. This namespace identifier is supported on Windows Vista and later. </td> </tr> <tr> <td width="40%"><a
+    ///id="NS_DNS"></a><a id="ns_dns"></a><dl> <dt><b>NS_DNS</b></dt> </dl> </td> <td width="60%"> The domain name
+    ///system (DNS) namespace. </td> </tr> <tr> <td width="40%"><a id="NS_EMAIL"></a><a id="ns_email"></a><dl>
+    ///<dt><b>NS_EMAIL</b></dt> </dl> </td> <td width="60%"> The email namespace. This namespace identifier is supported
+    ///on Windows Vista and later. </td> </tr> <tr> <td width="40%"><a id="NS_NLA"></a><a id="ns_nla"></a><dl>
+    ///<dt><b>NS_NLA</b></dt> </dl> </td> <td width="60%"> The network location awareness (NLA) namespace. This
+    ///namespace identifier is supported on Windows XP and later. </td> </tr> <tr> <td width="40%"><a
+    ///id="NS_PNRPNAME"></a><a id="ns_pnrpname"></a><dl> <dt><b>NS_PNRPNAME</b></dt> </dl> </td> <td width="60%"> The
+    ///peer-to-peer name space for a specific peer name. This namespace identifier is supported on Windows Vista and
+    ///later. </td> </tr> <tr> <td width="40%"><a id="NS_PNRPCLOUD"></a><a id="ns_pnrpcloud"></a><dl>
+    ///<dt><b>NS_PNRPCLOUD</b></dt> </dl> </td> <td width="60%"> The peer-to-peer name space for a collection of peer
+    ///names. This namespace identifier is supported on Windows Vista and later. </td> </tr> </table>
+    uint         dwNameSpace;
+    ///Type: <b>LPGUID</b> A pointer to an optional GUID of a specific namespace provider to query in the case where
+    ///multiple namespace providers are registered under a single namespace such as <b>NS_DNS</b>. Passing the GUID for
+    ///a specific namespace provider will result in only the specified namespace provider being queried. The
+    ///WSAEnumNameSpaceProviders and WSAEnumNameSpaceProvidersEx functions can be called to retrieve the GUID for a
+    ///namespace provider.
+    GUID*        lpNSProviderId;
+    ///Type: <b>LPTSTR</b> A pointer to an optional starting point of the query in a hierarchical namespace.
+    PWSTR        lpszContext;
+    ///Type: <b>DWORD</b> The size, in bytes, of the protocol constraint array. This member can be zero.
+    uint         dwNumberOfProtocols;
+    ///Type: <b>LPAFPROTOCOLS</b> A pointer to an optional array of AFPROTOCOLS structures. Only services that utilize
+    ///these protocols will be returned.
+    AFPROTOCOLS* lpafpProtocols;
+    ///Type: <b>LPTSTR</b> A pointer to an optional <b>NULL</b>-terminated query string. Some namespaces, such as
+    ///Whois++, support enriched SQL-like queries that are contained in a simple text string. This parameter is used to
+    ///specify that string.
+    PWSTR        lpszQueryString;
+    ///Type: <b>DWORD</b> This member is ignored for queries.
+    uint         dwNumberOfCsAddrs;
+    ///Type: <b>LPCSADDR_INFO</b> This member is ignored for queries.
+    CSADDR_INFO* lpcsaBuffer;
+    ///Type: <b>DWORD</b> This member is ignored for queries.
+    uint         dwOutputFlags;
+    ///Type: <b>LPBLOB</b> An optional pointer to data that is used to query or set provider-specific namespace
+    ///information. The format of this information is specific to the namespace provider.
+    BLOB*        lpBlob;
 }
 
 ///The <b>WSANSCLASSINFO</b> structure provides individual parameter information for a specific Windows Sockets
@@ -5159,15 +5157,15 @@ struct WSAQUERYSET2W
 struct WSANSCLASSINFOA
 {
     ///String value associated with the parameter, such as SAPID, TCPPORT, and so forth.
-    const(char)* lpszName;
+    PSTR  lpszName;
     ///GUID associated with the namespace.
-    uint         dwNameSpace;
+    uint  dwNameSpace;
     ///Value type for the parameter, such as REG_DWORD or REG_SZ, and so forth.
-    uint         dwValueType;
+    uint  dwValueType;
     ///Size of the parameter provided in <b>lpValue</b>, in bytes.
-    uint         dwValueSize;
+    uint  dwValueSize;
     ///Pointer to the value of the parameter.
-    void*        lpValue;
+    void* lpValue;
 }
 
 ///The <b>WSANSCLASSINFO</b> structure provides individual parameter information for a specific Windows Sockets
@@ -5175,15 +5173,15 @@ struct WSANSCLASSINFOA
 struct WSANSCLASSINFOW
 {
     ///String value associated with the parameter, such as SAPID, TCPPORT, and so forth.
-    const(wchar)* lpszName;
+    PWSTR lpszName;
     ///GUID associated with the namespace.
-    uint          dwNameSpace;
+    uint  dwNameSpace;
     ///Value type for the parameter, such as REG_DWORD or REG_SZ, and so forth.
-    uint          dwValueType;
+    uint  dwValueType;
     ///Size of the parameter provided in <b>lpValue</b>, in bytes.
-    uint          dwValueSize;
+    uint  dwValueSize;
     ///Pointer to the value of the parameter.
-    void*         lpValue;
+    void* lpValue;
 }
 
 ///The <b>WSASERVICECLASSINFO</b> structure contains information about a specified service class. For each service class
@@ -5193,7 +5191,7 @@ struct WSASERVICECLASSINFOA
     ///Unique Identifier (GUID) for the service class.
     GUID*            lpServiceClassId;
     ///Well known name associated with the service class.
-    const(char)*     lpszServiceClassName;
+    PSTR             lpszServiceClassName;
     ///Number of entries in <b>lpClassInfos</b>.
     uint             dwCount;
     ///Array of WSANSCLASSINFO structures that contains information about the service class.
@@ -5207,7 +5205,7 @@ struct WSASERVICECLASSINFOW
     ///Unique Identifier (GUID) for the service class.
     GUID*            lpServiceClassId;
     ///Well known name associated with the service class.
-    const(wchar)*    lpszServiceClassName;
+    PWSTR            lpszServiceClassName;
     ///Number of entries in <b>lpClassInfos</b>.
     uint             dwCount;
     ///Array of WSANSCLASSINFO structures that contains information about the service class.
@@ -5218,7 +5216,7 @@ struct WSASERVICECLASSINFOW
 struct WSANAMESPACE_INFOA
 {
     ///Type: <b>GUID</b> A unique GUID for this namespace provider.
-    GUID         NSProviderId;
+    GUID NSProviderId;
     ///Type: <b>DWORD</b> The namespace supported by this provider. Possible values for the <b>dwNameSpace</b> member
     ///are listed in the <i>Winsock2.h</i> include file. Several namespace providers are included with Windows Vista and
     ///later. Other namespace providers can be installed, so the following possible values are only those commonly
@@ -5238,22 +5236,22 @@ struct WSANAMESPACE_INFOA
     ///width="40%"><a id="NS_PNRPCLOUD"></a><a id="ns_pnrpcloud"></a><dl> <dt><b>NS_PNRPCLOUD</b></dt> </dl> </td> <td
     ///width="60%"> The peer-to-peer name space for a collection of peer names. This namespace identifier is supported
     ///on Windows Vista and later. </td> </tr> </table>
-    uint         dwNameSpace;
+    uint dwNameSpace;
     ///Type: <b>BOOL</b> If <b>TRUE</b>, indicates that this namespace provider is active. If <b>FALSE</b>, the
     ///namespace provider is inactive and is not accessible for queries, even if the query specifically references this
     ///namespace provider.
-    BOOL         fActive;
+    BOOL fActive;
     ///Type: <b>DWORD</b> The version number of the namespace provider.
-    uint         dwVersion;
+    uint dwVersion;
     ///Type: <b>LPTSTR</b> A display string that identifies the namespace provider.
-    const(char)* lpszIdentifier;
+    PSTR lpszIdentifier;
 }
 
 ///The <b>WSANAMESPACE_INFO</b> structure contains all registration information for a namespace provider.
 struct WSANAMESPACE_INFOW
 {
     ///Type: <b>GUID</b> A unique GUID for this namespace provider.
-    GUID          NSProviderId;
+    GUID  NSProviderId;
     ///Type: <b>DWORD</b> The namespace supported by this provider. Possible values for the <b>dwNameSpace</b> member
     ///are listed in the <i>Winsock2.h</i> include file. Several namespace providers are included with Windows Vista and
     ///later. Other namespace providers can be installed, so the following possible values are only those commonly
@@ -5273,22 +5271,22 @@ struct WSANAMESPACE_INFOW
     ///width="40%"><a id="NS_PNRPCLOUD"></a><a id="ns_pnrpcloud"></a><dl> <dt><b>NS_PNRPCLOUD</b></dt> </dl> </td> <td
     ///width="60%"> The peer-to-peer name space for a collection of peer names. This namespace identifier is supported
     ///on Windows Vista and later. </td> </tr> </table>
-    uint          dwNameSpace;
+    uint  dwNameSpace;
     ///Type: <b>BOOL</b> If <b>TRUE</b>, indicates that this namespace provider is active. If <b>FALSE</b>, the
     ///namespace provider is inactive and is not accessible for queries, even if the query specifically references this
     ///namespace provider.
-    BOOL          fActive;
+    BOOL  fActive;
     ///Type: <b>DWORD</b> The version number of the namespace provider.
-    uint          dwVersion;
+    uint  dwVersion;
     ///Type: <b>LPTSTR</b> A display string that identifies the namespace provider.
-    const(wchar)* lpszIdentifier;
+    PWSTR lpszIdentifier;
 }
 
 ///The <b>WSANAMESPACE_INFOEX</b> structure contains all registration information for a namespace provider.
 struct WSANAMESPACE_INFOEXA
 {
     ///Type: <b>GUID</b> A unique GUID for this namespace provider.
-    GUID         NSProviderId;
+    GUID NSProviderId;
     ///Type: <b>DWORD</b> The namespace supported by this provider. Possible values for the <b>dwNameSpace</b> member
     ///are listed in the <i>Winsock2.h</i> include file. Several namespace providers are included with Windows Vista and
     ///later. Other namespace providers can be installed, so the following possible values are only those commonly
@@ -5308,24 +5306,24 @@ struct WSANAMESPACE_INFOEXA
     ///width="40%"><a id="NS_PNRPCLOUD"></a><a id="ns_pnrpcloud"></a><dl> <dt><b>NS_PNRPCLOUD</b></dt> </dl> </td> <td
     ///width="60%"> The peer-to-peer name space for a collection of peer names. This namespace identifier is supported
     ///on Windows Vista and later. </td> </tr> </table>
-    uint         dwNameSpace;
+    uint dwNameSpace;
     ///Type: <b>BOOL</b> If <b>TRUE</b>, indicates that this namespace provider is active. If <b>FALSE</b>, the
     ///namespace provider is inactive and is not accessible for queries, even if the query specifically references this
     ///namespace provider.
-    BOOL         fActive;
+    BOOL fActive;
     ///Type: <b>DWORD</b> The version number of the namespace provider.
-    uint         dwVersion;
+    uint dwVersion;
     ///Type: <b>LPTSTR</b> A display string that identifies the namespace provider.
-    const(char)* lpszIdentifier;
+    PSTR lpszIdentifier;
     ///Type: <b>BLOB</b> A provider-specific data blob associated with namespace entry.
-    BLOB         ProviderSpecific;
+    BLOB ProviderSpecific;
 }
 
 ///The <b>WSANAMESPACE_INFOEX</b> structure contains all registration information for a namespace provider.
 struct WSANAMESPACE_INFOEXW
 {
     ///Type: <b>GUID</b> A unique GUID for this namespace provider.
-    GUID          NSProviderId;
+    GUID  NSProviderId;
     ///Type: <b>DWORD</b> The namespace supported by this provider. Possible values for the <b>dwNameSpace</b> member
     ///are listed in the <i>Winsock2.h</i> include file. Several namespace providers are included with Windows Vista and
     ///later. Other namespace providers can be installed, so the following possible values are only those commonly
@@ -5345,17 +5343,17 @@ struct WSANAMESPACE_INFOEXW
     ///width="40%"><a id="NS_PNRPCLOUD"></a><a id="ns_pnrpcloud"></a><dl> <dt><b>NS_PNRPCLOUD</b></dt> </dl> </td> <td
     ///width="60%"> The peer-to-peer name space for a collection of peer names. This namespace identifier is supported
     ///on Windows Vista and later. </td> </tr> </table>
-    uint          dwNameSpace;
+    uint  dwNameSpace;
     ///Type: <b>BOOL</b> If <b>TRUE</b>, indicates that this namespace provider is active. If <b>FALSE</b>, the
     ///namespace provider is inactive and is not accessible for queries, even if the query specifically references this
     ///namespace provider.
-    BOOL          fActive;
+    BOOL  fActive;
     ///Type: <b>DWORD</b> The version number of the namespace provider.
-    uint          dwVersion;
+    uint  dwVersion;
     ///Type: <b>LPTSTR</b> A display string that identifies the namespace provider.
-    const(wchar)* lpszIdentifier;
+    PWSTR lpszIdentifier;
     ///Type: <b>BLOB</b> A provider-specific data blob associated with namespace entry.
-    BLOB          ProviderSpecific;
+    BLOB  ProviderSpecific;
 }
 
 ///The <b>WSAPOLLFD</b> structure stores socket information used by the WSAPoll function.
@@ -5390,7 +5388,7 @@ struct WSAPOLLFD
 ///The IN6_ADDR structure specifies an IPv6 transport address.
 struct in6_addr
 {
-    union u
+union u
     {
         ubyte[16] Byte;
         ushort[8] Word;
@@ -5896,15 +5894,15 @@ struct WINDOWS_IAS_SET
     byte[64]  irdaClassName;
     byte[256] irdaAttribName;
     uint      irdaAttribType;
-    union irdaAttribute
+union irdaAttribute
     {
         int irdaAttribInt;
-        struct irdaAttribOctetSeq
+struct irdaAttribOctetSeq
         {
             ushort      Len;
             ubyte[1024] OctetSeq;
         }
-        struct irdaAttribUsrStr
+struct irdaAttribUsrStr
         {
             ubyte      Len;
             ubyte      CharSet;
@@ -5919,15 +5917,15 @@ struct WINDOWS_IAS_QUERY
     byte[64]  irdaClassName;
     byte[256] irdaAttribName;
     uint      irdaAttribType;
-    union irdaAttribute
+union irdaAttribute
     {
         int irdaAttribInt;
-        struct irdaAttribOctetSeq
+struct irdaAttribOctetSeq
         {
             uint        Len;
             ubyte[1024] OctetSeq;
         }
-        struct irdaAttribUsrStr
+struct irdaAttribUsrStr
         {
             uint       Len;
             uint       CharSet;
@@ -6444,7 +6442,7 @@ struct AALUSER_PARAMETERS
 struct AAL_PARAMETERS_IE
 {
     AAL_TYPE AALType;
-    union AALSpecificParameters
+union AALSpecificParameters
     {
         AAL5_PARAMETERS    AAL5Parameters;
         AALUSER_PARAMETERS AALUserParameters;
@@ -6615,9 +6613,9 @@ struct TRANSMIT_PACKETS_ELEMENT
     uint dwElFlags;
     ///Type: <b>ULONG</b> The number of bytes to transmit. If zero, the entire file is transmitted.
     uint cLength;
-    union
+union
     {
-        struct
+struct
         {
             LARGE_INTEGER nFileOffset;
             HANDLE        hFile;
@@ -6628,33 +6626,33 @@ struct TRANSMIT_PACKETS_ELEMENT
 
 struct NLA_BLOB
 {
-    struct header
+struct header
     {
         NLA_BLOB_DATA_TYPE type;
         uint               dwSize;
         uint               nextOffset;
     }
-    union data
+union data
     {
         byte[1] rawData;
-        struct interfaceData
+struct interfaceData
         {
             uint    dwType;
             uint    dwSpeed;
             byte[1] adapterName;
         }
-        struct locationData
+struct locationData
         {
             byte[1] information;
         }
-        struct connectivity
+struct connectivity
         {
             NLA_CONNECTIVITY_TYPE type;
             NLA_INTERNET internet;
         }
-        struct ICS
+struct ICS
         {
-            struct remote
+struct remote
             {
                 uint        speed;
                 uint        type;
@@ -6689,14 +6687,14 @@ struct RIO_NOTIFICATION_COMPLETION
 {
     ///The type of completion to use with the RIONotify function when sending or receiving data.
     RIO_NOTIFICATION_COMPLETION_TYPE Type;
-    union
+union
     {
-        struct Event
+struct Event
         {
             HANDLE EventHandle;
             BOOL   NotifyReset;
         }
-        struct Iocp
+struct Iocp
         {
             HANDLE IocpHandle;
             void*  CompletionKey;
@@ -6962,16 +6960,16 @@ struct NSPV2_ROUTINE
 
 struct NS_INFOA
 {
-    uint         dwNameSpace;
-    uint         dwNameSpaceFlags;
-    const(char)* lpNameSpace;
+    uint dwNameSpace;
+    uint dwNameSpaceFlags;
+    PSTR lpNameSpace;
 }
 
 struct NS_INFOW
 {
-    uint          dwNameSpace;
-    uint          dwNameSpaceFlags;
-    const(wchar)* lpNameSpace;
+    uint  dwNameSpace;
+    uint  dwNameSpaceFlags;
+    PWSTR lpNameSpace;
 }
 
 struct SERVICE_TYPE_VALUE
@@ -7008,7 +7006,7 @@ struct SERVICE_TYPE_VALUE_ABSA
     ///id="NS_TCPIP_LOCAL"></a><a id="ns_tcpip_local"></a><dl> <dt><b>NS_TCPIP_LOCAL</b></dt> </dl> </td> <td
     ///width="60%"> Local TCP/IP name resolution mechanisms, including comparisons against the local host name and looks
     ///up host names and IP addresses in cache of host to IP address mappings. </td> </tr> </table>
-    uint         dwNameSpace;
+    uint  dwNameSpace;
     ///Type: <b>DWORD</b> The type of the value data. Specify one of the following types: <table> <tr> <th>Value</th>
     ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="REG_BINARY"></a><a id="reg_binary"></a><dl>
     ///<dt><b>REG_BINARY</b></dt> </dl> </td> <td width="60%"> Binary data in any form. </td> </tr> <tr> <td
@@ -7018,10 +7016,10 @@ struct SERVICE_TYPE_VALUE_ABSA
     ///strings, terminated by two null characters. </td> </tr> <tr> <td width="40%"><a id="REG_SZ"></a><a
     ///id="reg_sz"></a><dl> <dt><b>REG_SZ</b></dt> </dl> </td> <td width="60%"> A null-terminated string. </td> </tr>
     ///</table>
-    uint         dwValueType;
+    uint  dwValueType;
     ///Type: <b>DWORD</b> The size, in bytes, of the value pointed to by the <b>lpValue</b> member. In the case of
     ///REG_SZ and REG_MULTI_SZ string data, the terminating characters are counted as part of the size.
-    uint         dwValueSize;
+    uint  dwValueSize;
     ///Type: <b>LPTSTR</b> A pointer to a <b>NULL</b>-terminated string that is the name of the value. This name is
     ///specific to a namespace. Several commonly used value name strings are associated with defined constants. These
     ///name strings include the following. <table> <tr> <th>Constant</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
@@ -7033,9 +7031,9 @@ struct SERVICE_TYPE_VALUE_ABSA
     ///<dt><b>SERVICE_TYPE_VALUE_TCPPORT</b></dt> </dl> </td> <td width="60%"> "TcpPort" </td> </tr> <tr> <td
     ///width="40%"><a id="SERVICE_TYPE_VALUE_UDPPORT"></a><a id="service_type_value_udpport"></a><dl>
     ///<dt><b>SERVICE_TYPE_VALUE_UDPPORT</b></dt> </dl> </td> <td width="60%"> "UdpPort" </td> </tr> </table>
-    const(char)* lpValueName;
+    PSTR  lpValueName;
     ///Type: <b>PVOID</b> A pointer to the value data.
-    void*        lpValue;
+    void* lpValue;
 }
 
 ///The <b>SERVICE_TYPE_VALUE_ABS</b> structure contains information about a network-service type value. This information
@@ -7063,7 +7061,7 @@ struct SERVICE_TYPE_VALUE_ABSW
     ///id="NS_TCPIP_LOCAL"></a><a id="ns_tcpip_local"></a><dl> <dt><b>NS_TCPIP_LOCAL</b></dt> </dl> </td> <td
     ///width="60%"> Local TCP/IP name resolution mechanisms, including comparisons against the local host name and looks
     ///up host names and IP addresses in cache of host to IP address mappings. </td> </tr> </table>
-    uint          dwNameSpace;
+    uint  dwNameSpace;
     ///Type: <b>DWORD</b> The type of the value data. Specify one of the following types: <table> <tr> <th>Value</th>
     ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="REG_BINARY"></a><a id="reg_binary"></a><dl>
     ///<dt><b>REG_BINARY</b></dt> </dl> </td> <td width="60%"> Binary data in any form. </td> </tr> <tr> <td
@@ -7073,10 +7071,10 @@ struct SERVICE_TYPE_VALUE_ABSW
     ///strings, terminated by two null characters. </td> </tr> <tr> <td width="40%"><a id="REG_SZ"></a><a
     ///id="reg_sz"></a><dl> <dt><b>REG_SZ</b></dt> </dl> </td> <td width="60%"> A null-terminated string. </td> </tr>
     ///</table>
-    uint          dwValueType;
+    uint  dwValueType;
     ///Type: <b>DWORD</b> The size, in bytes, of the value pointed to by the <b>lpValue</b> member. In the case of
     ///REG_SZ and REG_MULTI_SZ string data, the terminating characters are counted as part of the size.
-    uint          dwValueSize;
+    uint  dwValueSize;
     ///Type: <b>LPTSTR</b> A pointer to a <b>NULL</b>-terminated string that is the name of the value. This name is
     ///specific to a namespace. Several commonly used value name strings are associated with defined constants. These
     ///name strings include the following. <table> <tr> <th>Constant</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
@@ -7088,9 +7086,9 @@ struct SERVICE_TYPE_VALUE_ABSW
     ///<dt><b>SERVICE_TYPE_VALUE_TCPPORT</b></dt> </dl> </td> <td width="60%"> "TcpPort" </td> </tr> <tr> <td
     ///width="40%"><a id="SERVICE_TYPE_VALUE_UDPPORT"></a><a id="service_type_value_udpport"></a><dl>
     ///<dt><b>SERVICE_TYPE_VALUE_UDPPORT</b></dt> </dl> </td> <td width="60%"> "UdpPort" </td> </tr> </table>
-    const(wchar)* lpValueName;
+    PWSTR lpValueName;
     ///Type: <b>PVOID</b> A pointer to the value data.
-    void*         lpValue;
+    void* lpValue;
 }
 
 struct SERVICE_TYPE_INFO
@@ -7106,9 +7104,9 @@ struct SERVICE_TYPE_INFO_ABSA
 {
     ///Pointer to a zero-terminated string that is the name of the network service type. This name is the same in all
     ///namespaces, and is used by the GetTypeByName and <b>GetNameByType</b> functions.
-    const(char)* lpTypeName;
+    PSTR lpTypeName;
     ///Number of SERVICE_TYPE_VALUE_ABS structures in the <b>Values</b> member array that follows <b>dwValueCount</b>.
-    uint         dwValueCount;
+    uint dwValueCount;
     ///Array of SERVICE_TYPE_VALUE_ABS structures. Each of these structures contains information about a service type
     ///value that the operating system or network service may need when an instance of this network service type is
     ///registered with a namespace. The information in these structures may be specific to a namespace. For example, if
@@ -7123,9 +7121,9 @@ struct SERVICE_TYPE_INFO_ABSW
 {
     ///Pointer to a zero-terminated string that is the name of the network service type. This name is the same in all
     ///namespaces, and is used by the GetTypeByName and <b>GetNameByType</b> functions.
-    const(wchar)* lpTypeName;
+    PWSTR lpTypeName;
     ///Number of SERVICE_TYPE_VALUE_ABS structures in the <b>Values</b> member array that follows <b>dwValueCount</b>.
-    uint          dwValueCount;
+    uint  dwValueCount;
     ///Array of SERVICE_TYPE_VALUE_ABS structures. Each of these structures contains information about a service type
     ///value that the operating system or network service may need when an instance of this network service type is
     ///registered with a namespace. The information in these structures may be specific to a namespace. For example, if
@@ -7183,12 +7181,12 @@ struct SERVICE_INFOA
     ///the <i>dwNameSpace</i> parameter set to a specific service name, the network service name can be a common name or
     ///a distinguished name. A distinguished name distinguishes the service to a unique location with a directory
     ///service. An example of a distinguished name for a network service is "MS\\SYS\\NT\\DEV\\My SQL Server".
-    const(char)*       lpServiceName;
+    PSTR               lpServiceName;
     ///Type: <b>LPTSTR</b> A pointer to a <b>NULL</b>-terminated string that is a comment or description for the network
     ///service. For example, "Used for development upgrades."
-    const(char)*       lpComment;
+    PSTR               lpComment;
     ///Type: <b>LPTSTR</b> A pointer to a <b>NULL</b>-terminated string that contains locale information.
-    const(char)*       lpLocale;
+    PSTR               lpLocale;
     ///Type: <b>DWORD</b> A hint as to how to display the network service in a network browsing user interface. This can
     ///be one of the following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="RESOURCEDISPLAYTYPE_DOMAIN"></a><a id="resourcedisplaytype_domain"></a><dl>
@@ -7216,7 +7214,7 @@ struct SERVICE_INFOA
     uint               dwTime;
     ///Type: <b>LPTSTR</b> A pointer to a <b>NULL</b>-terminated string that is the name of the computer on which the
     ///network service is running.
-    const(char)*       lpMachineName;
+    PSTR               lpMachineName;
     ///Type: <b>LPSERVICE_ADDRESSES</b> A pointer to a SERVICE_ADDRESSES structure that contains an array of
     ///SERVICE_ADDRESS structures. Each <b>SERVICE_ADDRESS</b> structure contains information about a network service
     ///address. A network service can call the getsockname function to determine the local address of the system.
@@ -7244,12 +7242,12 @@ struct SERVICE_INFOW
     ///the <i>dwNameSpace</i> parameter set to a specific service name, the network service name can be a common name or
     ///a distinguished name. A distinguished name distinguishes the service to a unique location with a directory
     ///service. An example of a distinguished name for a network service is "MS\\SYS\\NT\\DEV\\My SQL Server".
-    const(wchar)*      lpServiceName;
+    PWSTR              lpServiceName;
     ///Type: <b>LPTSTR</b> A pointer to a <b>NULL</b>-terminated string that is a comment or description for the network
     ///service. For example, "Used for development upgrades."
-    const(wchar)*      lpComment;
+    PWSTR              lpComment;
     ///Type: <b>LPTSTR</b> A pointer to a <b>NULL</b>-terminated string that contains locale information.
-    const(wchar)*      lpLocale;
+    PWSTR              lpLocale;
     ///Type: <b>DWORD</b> A hint as to how to display the network service in a network browsing user interface. This can
     ///be one of the following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="RESOURCEDISPLAYTYPE_DOMAIN"></a><a id="resourcedisplaytype_domain"></a><dl>
@@ -7277,7 +7275,7 @@ struct SERVICE_INFOW
     uint               dwTime;
     ///Type: <b>LPTSTR</b> A pointer to a <b>NULL</b>-terminated string that is the name of the computer on which the
     ///network service is running.
-    const(wchar)*      lpMachineName;
+    PWSTR              lpMachineName;
     ///Type: <b>LPSERVICE_ADDRESSES</b> A pointer to a SERVICE_ADDRESSES structure that contains an array of
     ///SERVICE_ADDRESS structures. Each <b>SERVICE_ADDRESS</b> structure contains information about a network service
     ///address. A network service can call the getsockname function to determine the local address of the system.
@@ -7410,22 +7408,22 @@ struct PROTOCOL_INFOA
     ///the protocol supports message fragmentation; physical network MTU is hidden from applications. </td> </tr> <tr>
     ///<td width="40%"><a id="XP_ENCRYPTS"></a><a id="xp_encrypts"></a><dl> <dt><b>XP_ENCRYPTS</b></dt> </dl> </td> <td
     ///width="60%"> If this flag is set, the protocol supports data encryption. </td> </tr> </table>
-    uint         dwServiceFlags;
+    uint dwServiceFlags;
     ///Type: <b>INT</b> Value to pass as the <i>af</i> parameter when the socket function is called to open a socket for
     ///the protocol. This address family value uniquely defines the structure of protocol addresses, also known as
     ///<b>sockaddr</b> structures, used by the protocol.
-    int          iAddressFamily;
+    int  iAddressFamily;
     ///Type: <b>INT</b> Maximum length of a socket address supported by the protocol, in bytes.
-    int          iMaxSockAddr;
+    int  iMaxSockAddr;
     ///Type: <b>INT</b> Minimum length of a socket address supported by the protocol, in bytes.
-    int          iMinSockAddr;
+    int  iMinSockAddr;
     ///Type: <b>INT</b> Value to pass as the <i>type</i> parameter when the <b>socket</b> function is called to open a
     ///socket for the protocol. Note that if XP_PSEUDO_STREAM is set in <b>dwServiceFlags</b>, the application can
     ///specify SOCK_STREAM as the <i>type</i> parameter to <b>socket</b>, regardless of the value of <b>iSocketType</b>.
-    int          iSocketType;
+    int  iSocketType;
     ///Type: <b>INT</b> Value to pass as the <i>protocol</i> parameter when the <b>socket</b> function is called to open
     ///a socket for the protocol.
-    int          iProtocol;
+    int  iProtocol;
     ///Type: <b>DWORD</b> Maximum message size supported by the protocol, in bytes. This is the maximum size of a
     ///message that can be sent from or received by the host. For protocols that do not support message framing, the
     ///actual maximum size of a message that can be sent to a given address may be less than this value. The following
@@ -7434,10 +7432,10 @@ struct PROTOCOL_INFOA
     ///the concept of message size is not relevant. </td> </tr> <tr> <td width="40%"><a id="0xFFFFFFFF"></a><a
     ///id="0xffffffff"></a><a id="0XFFFFFFFF"></a><dl> <dt><b>0xFFFFFFFF</b></dt> </dl> </td> <td width="60%"> The
     ///protocol is message-oriented, but there is no maximum message size. </td> </tr> </table>
-    uint         dwMessageSize;
+    uint dwMessageSize;
     ///Type: <b>LPTSTR</b> Pointer to a zero-terminated string that supplies a name for the protocol; for example,
     ///"SPX2."
-    const(char)* lpProtocol;
+    PSTR lpProtocol;
 }
 
 ///The <b>PROTOCOL_INFO</b> structure contains information about a protocol.
@@ -7485,22 +7483,22 @@ struct PROTOCOL_INFOW
     ///the protocol supports message fragmentation; physical network MTU is hidden from applications. </td> </tr> <tr>
     ///<td width="40%"><a id="XP_ENCRYPTS"></a><a id="xp_encrypts"></a><dl> <dt><b>XP_ENCRYPTS</b></dt> </dl> </td> <td
     ///width="60%"> If this flag is set, the protocol supports data encryption. </td> </tr> </table>
-    uint          dwServiceFlags;
+    uint  dwServiceFlags;
     ///Type: <b>INT</b> Value to pass as the <i>af</i> parameter when the socket function is called to open a socket for
     ///the protocol. This address family value uniquely defines the structure of protocol addresses, also known as
     ///<b>sockaddr</b> structures, used by the protocol.
-    int           iAddressFamily;
+    int   iAddressFamily;
     ///Type: <b>INT</b> Maximum length of a socket address supported by the protocol, in bytes.
-    int           iMaxSockAddr;
+    int   iMaxSockAddr;
     ///Type: <b>INT</b> Minimum length of a socket address supported by the protocol, in bytes.
-    int           iMinSockAddr;
+    int   iMinSockAddr;
     ///Type: <b>INT</b> Value to pass as the <i>type</i> parameter when the <b>socket</b> function is called to open a
     ///socket for the protocol. Note that if XP_PSEUDO_STREAM is set in <b>dwServiceFlags</b>, the application can
     ///specify SOCK_STREAM as the <i>type</i> parameter to <b>socket</b>, regardless of the value of <b>iSocketType</b>.
-    int           iSocketType;
+    int   iSocketType;
     ///Type: <b>INT</b> Value to pass as the <i>protocol</i> parameter when the <b>socket</b> function is called to open
     ///a socket for the protocol.
-    int           iProtocol;
+    int   iProtocol;
     ///Type: <b>DWORD</b> Maximum message size supported by the protocol, in bytes. This is the maximum size of a
     ///message that can be sent from or received by the host. For protocols that do not support message framing, the
     ///actual maximum size of a message that can be sent to a given address may be less than this value. The following
@@ -7509,40 +7507,40 @@ struct PROTOCOL_INFOW
     ///the concept of message size is not relevant. </td> </tr> <tr> <td width="40%"><a id="0xFFFFFFFF"></a><a
     ///id="0xffffffff"></a><a id="0XFFFFFFFF"></a><dl> <dt><b>0xFFFFFFFF</b></dt> </dl> </td> <td width="60%"> The
     ///protocol is message-oriented, but there is no maximum message size. </td> </tr> </table>
-    uint          dwMessageSize;
+    uint  dwMessageSize;
     ///Type: <b>LPTSTR</b> Pointer to a zero-terminated string that supplies a name for the protocol; for example,
     ///"SPX2."
-    const(wchar)* lpProtocol;
+    PWSTR lpProtocol;
 }
 
 struct NETRESOURCE2A
 {
-    uint         dwScope;
-    uint         dwType;
-    uint         dwUsage;
-    uint         dwDisplayType;
-    const(char)* lpLocalName;
-    const(char)* lpRemoteName;
-    const(char)* lpComment;
-    NS_INFOA     ns_info;
-    GUID         ServiceType;
-    uint         dwProtocols;
-    int*         lpiProtocols;
+    uint     dwScope;
+    uint     dwType;
+    uint     dwUsage;
+    uint     dwDisplayType;
+    PSTR     lpLocalName;
+    PSTR     lpRemoteName;
+    PSTR     lpComment;
+    NS_INFOA ns_info;
+    GUID     ServiceType;
+    uint     dwProtocols;
+    int*     lpiProtocols;
 }
 
 struct NETRESOURCE2W
 {
-    uint          dwScope;
-    uint          dwType;
-    uint          dwUsage;
-    uint          dwDisplayType;
-    const(wchar)* lpLocalName;
-    const(wchar)* lpRemoteName;
-    const(wchar)* lpComment;
-    NS_INFOA      ns_info;
-    GUID          ServiceType;
-    uint          dwProtocols;
-    int*          lpiProtocols;
+    uint     dwScope;
+    uint     dwType;
+    uint     dwUsage;
+    uint     dwDisplayType;
+    PWSTR    lpLocalName;
+    PWSTR    lpRemoteName;
+    PWSTR    lpComment;
+    NS_INFOA ns_info;
+    GUID     ServiceType;
+    uint     dwProtocols;
+    int*     lpiProtocols;
 }
 
 struct SERVICE_ASYNC_INFO
@@ -7550,6 +7548,15 @@ struct SERVICE_ASYNC_INFO
     LPSERVICE_CALLBACK_PROC lpServiceCallbackProc;
     LPARAM lParam;
     HANDLE hAsyncTaskHandle;
+}
+
+///The <b>BLOB</b> structure, derived from Binary Large Object, contains information about a block of data.
+struct BLOB
+{
+    ///Size of the block of data pointed to by <b>pBlobData</b>, in bytes.
+    uint   cbSize;
+    ///Pointer to a block of data.
+    ubyte* pBlobData;
 }
 
 // Functions
@@ -7597,7 +7604,7 @@ int __WSAFDIsSet(size_t fd, fd_set* param1);
 ///    and no connections are present to be accepted. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-size_t accept(size_t s, char* addr, int* addrlen);
+size_t accept(size_t s, SOCKADDR* addr, int* addrlen);
 
 ///The <b>bind</b> function associates a local address with a socket.
 ///Params:
@@ -7639,7 +7646,7 @@ size_t accept(size_t s, char* addr, int* addrlen);
 ///    socket. This error is returned if the descriptor in the <i>s</i> parameter is not a socket. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int bind(size_t s, char* name, int namelen);
+int bind(size_t s, const(SOCKADDR)* name, int namelen);
 
 ///The <b>closesocket</b> function closes an existing socket.
 ///Params:
@@ -7727,7 +7734,7 @@ int closesocket(size_t s);
 ///    setsockopt option SO_BROADCAST is not enabled. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int connect(size_t s, char* name, int namelen);
+int connect(size_t s, const(SOCKADDR)* name, int namelen);
 
 ///The <b>ioctlsocket</b> function controls the I/O mode of a socket.
 ///Params:
@@ -7769,7 +7776,7 @@ int ioctlsocket(size_t s, int cmd, uint* argp);
 ///    not a socket. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int getpeername(size_t s, char* name, int* namelen);
+int getpeername(size_t s, SOCKADDR* name, int* namelen);
 
 ///The <b>getsockname</b> function retrieves the local name for a socket.
 ///Params:
@@ -7792,7 +7799,7 @@ int getpeername(size_t s, char* name, int* namelen);
 ///    occurred. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int getsockname(size_t s, char* name, int* namelen);
+int getsockname(size_t s, SOCKADDR* name, int* namelen);
 
 ///The <b>getsockopt</b> function retrieves a socket option.
 ///Params:
@@ -7819,7 +7826,7 @@ int getsockname(size_t s, char* name, int* namelen);
 ///    <dt><b>WSAENOTSOCK</b></dt> </dl> </td> <td width="60%"> The descriptor is not a socket. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int getsockopt(size_t s, int level, int optname, char* optval, int* optlen);
+int getsockopt(size_t s, int level, int optname, byte* optval, int* optlen);
 
 ///The <b>htonl</b> function converts a <b>u_long</b> from host to TCP/IP network byte order (which is big-endian).
 ///Params:
@@ -7958,7 +7965,7 @@ ushort ntohs(ushort netshort);
 ///    Unreachable" message. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int recv(size_t s, char* buf, int len, int flags);
+int recv(size_t s, byte* buf, int len, int flags);
 
 ///The <b>recvfrom</b> function receives a datagram, and stores the source address.
 ///Params:
@@ -8007,7 +8014,7 @@ int recv(size_t s, char* buf, int len, int flags);
 ///    message. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int recvfrom(size_t s, char* buf, int len, int flags, char* from, int* fromlen);
+int recvfrom(size_t s, byte* buf, int len, int flags, SOCKADDR* from, int* fromlen);
 
 ///The <b>select</b> function determines the status of one or more sockets, waiting if necessary, to perform synchronous
 ///I/O.
@@ -8094,7 +8101,7 @@ int select(int nfds, fd_set* readfds, fd_set* writefds, fd_set* exceptfds, const
 ///    </table>
 ///    
 @DllImport("WS2_32")
-int send(size_t s, char* buf, int len, int flags);
+int send(size_t s, const(byte)* buf, int len, int flags);
 
 ///The <b>sendto</b> function sends data to a specific destination.
 ///Params:
@@ -8154,7 +8161,7 @@ int send(size_t s, char* buf, int len, int flags);
 ///    without notice. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int sendto(size_t s, char* buf, int len, int flags, char* to, int tolen);
+int sendto(size_t s, const(byte)* buf, int len, int flags, const(SOCKADDR)* to, int tolen);
 
 ///The <b>setsockopt</b> function sets a socket option.
 ///Params:
@@ -8185,7 +8192,7 @@ int sendto(size_t s, char* buf, int len, int flags, char* to, int tolen);
 ///    not a socket. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int setsockopt(size_t s, int level, int optname, char* optval, int optlen);
+int setsockopt(size_t s, int level, int optname, const(byte)* optval, int optlen);
 
 ///The <b>shutdown</b> function disables sends or receives on a socket.
 ///Params:
@@ -8375,7 +8382,7 @@ size_t socket(int af, int type, int protocol);
 ///        <tr> <td width="40%"><a id="AF_INET6"></a><a id="af_inet6"></a><dl> <dt><b>AF_INET6</b></dt> <dt>23</dt> </dl>
 ///        </td> <td width="60%"> The Internet Protocol version 6 (IPv6) address family. </td> </tr> </table>
 @DllImport("WS2_32")
-hostent* gethostbyaddr(char* addr, int len, int type);
+hostent* gethostbyaddr(const(byte)* addr, int len, int type);
 
 ///The <b>gethostbyname</b> function retrieves host information corresponding to a host name from a host database. <div
 ///class="alert"><b>Note</b> The <b>gethostbyname</b> function has been deprecated by the introduction of the
@@ -8403,7 +8410,7 @@ hostent* gethostbyname(const(byte)* name);
 ///    or the service provider is still processing a callback function. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int gethostname(char* name, int namelen);
+int gethostname(byte* name, int namelen);
 
 ///The <b>GetHostNameW</b> function retrieves the standard host name for the local computer as a Unicode string.
 ///Params:
@@ -8420,7 +8427,7 @@ int gethostname(char* name, int namelen);
 ///    </td> <td width="60%"> The network subsystem has failed. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int GetHostNameW(const(wchar)* name, int namelen);
+int GetHostNameW(PWSTR name, int namelen);
 
 ///The <b>getservbyport</b> function retrieves service information corresponding to a port and protocol.
 ///Params:
@@ -8658,7 +8665,7 @@ int WSACancelBlockingCall();
 ///    due to resource or other constraints within the Windows Sockets implementation.</td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-HANDLE WSAAsyncGetServByName(HWND hWnd, uint wMsg, const(byte)* name, const(byte)* proto, char* buf, int buflen);
+HANDLE WSAAsyncGetServByName(HWND hWnd, uint wMsg, const(byte)* name, const(byte)* proto, byte* buf, int buflen);
 
 ///The <b>WSAAsyncGetServByPort</b> function asynchronously retrieves service information that corresponds to a port and
 ///protocol.
@@ -8703,7 +8710,7 @@ HANDLE WSAAsyncGetServByName(HWND hWnd, uint wMsg, const(byte)* name, const(byte
 ///    due to resource or other constraints within the Windows Sockets implementation.</td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-HANDLE WSAAsyncGetServByPort(HWND hWnd, uint wMsg, int port, const(byte)* proto, char* buf, int buflen);
+HANDLE WSAAsyncGetServByPort(HWND hWnd, uint wMsg, int port, const(byte)* proto, byte* buf, int buflen);
 
 ///The <b>WSAAsyncGetProtoByName</b> function asynchronously retrieves protocol information that corresponds to a
 ///protocol name.
@@ -8746,7 +8753,7 @@ HANDLE WSAAsyncGetServByPort(HWND hWnd, uint wMsg, int port, const(byte)* proto,
 ///    </table>
 ///    
 @DllImport("WS2_32")
-HANDLE WSAAsyncGetProtoByName(HWND hWnd, uint wMsg, const(byte)* name, char* buf, int buflen);
+HANDLE WSAAsyncGetProtoByName(HWND hWnd, uint wMsg, const(byte)* name, byte* buf, int buflen);
 
 ///The <b>WSAAsyncGetProtoByNumber</b> function asynchronously retrieves protocol information that corresponds to a
 ///protocol number.
@@ -8788,7 +8795,7 @@ HANDLE WSAAsyncGetProtoByName(HWND hWnd, uint wMsg, const(byte)* name, char* buf
 ///    due to resource or other constraints within the Windows Sockets implementation.</td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-HANDLE WSAAsyncGetProtoByNumber(HWND hWnd, uint wMsg, int number, char* buf, int buflen);
+HANDLE WSAAsyncGetProtoByNumber(HWND hWnd, uint wMsg, int number, byte* buf, int buflen);
 
 ///The <b>WSAAsyncGetHostByName</b> function asynchronously retrieves host information that corresponds to a host name.
 ///<div class="alert"><b>Note</b> The <b>WSAAsyncGetHostByName</b> function is not designed to provide parallel
@@ -8806,7 +8813,7 @@ HANDLE WSAAsyncGetProtoByNumber(HWND hWnd, uint wMsg, int number, char* buf, int
 ///        bytes is recommended.
 ///    e = Size of data area for the <i>buf</i> parameter, in bytes.
 @DllImport("WS2_32")
-HANDLE WSAAsyncGetHostByName(HWND hWnd, uint wMsg, const(byte)* name, char* buf, int buflen);
+HANDLE WSAAsyncGetHostByName(HWND hWnd, uint wMsg, const(byte)* name, byte* buf, int buflen);
 
 ///The <b>WSAAsyncGetHostByAddr</b> function asynchronously retrieves host information that corresponds to an address.
 ///<div class="alert"><b>Note</b> The <b>WSAAsyncGetHostByAddr</b> function is not designed to provide parallel
@@ -8826,7 +8833,7 @@ HANDLE WSAAsyncGetHostByName(HWND hWnd, uint wMsg, const(byte)* name, char* buf,
 ///        recommended.
 ///    g = Size of data area for the <i>buf</i> parameter, in bytes.
 @DllImport("WS2_32")
-HANDLE WSAAsyncGetHostByAddr(HWND hWnd, uint wMsg, char* addr, int len, int type, char* buf, int buflen);
+HANDLE WSAAsyncGetHostByAddr(HWND hWnd, uint wMsg, const(byte)* addr, int len, int type, byte* buf, int buflen);
 
 ///The <b>WSACancelAsyncRequest</b> function cancels an incomplete asynchronous operation.
 ///Params:
@@ -8960,7 +8967,7 @@ int WSAAsyncSelect(size_t s, HWND hWnd, uint wMsg, int lEvent);
 ///    </tr> </table>
 ///    
 @DllImport("WS2_32")
-size_t WSAAccept(size_t s, char* addr, int* addrlen, LPCONDITIONPROC lpfnCondition, size_t dwCallbackData);
+size_t WSAAccept(size_t s, SOCKADDR* addr, int* addrlen, LPCONDITIONPROC lpfnCondition, size_t dwCallbackData);
 
 ///The <b>WSACloseEvent</b> function closes an open event object handle.
 ///Params:
@@ -9050,8 +9057,8 @@ BOOL WSACloseEvent(HANDLE hEvent);
 ///    broadcast address failed because setsockopt SO_BROADCAST is not enabled. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSAConnect(size_t s, char* name, int namelen, WSABUF* lpCallerData, WSABUF* lpCalleeData, QOS* lpSQOS, 
-               QOS* lpGQOS);
+int WSAConnect(size_t s, const(SOCKADDR)* name, int namelen, WSABUF* lpCallerData, WSABUF* lpCalleeData, 
+               QOS* lpSQOS, QOS* lpGQOS);
 
 ///The <b>WSAConnectByName</b> function establishes a connection to a specified host and port. This function is provided
 ///to allow a quick connection to a network endpoint given a host name and port. This function supports both IPv4 and
@@ -9098,9 +9105,9 @@ int WSAConnect(size_t s, char* name, int namelen, WSABUF* lpCallerData, WSABUF* 
 ///    before the <i>timeout</i> parameter was exceeded. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-BOOL WSAConnectByNameW(size_t s, const(wchar)* nodename, const(wchar)* servicename, uint* LocalAddressLength, 
-                       char* LocalAddress, uint* RemoteAddressLength, char* RemoteAddress, const(timeval)* timeout, 
-                       OVERLAPPED* Reserved);
+BOOL WSAConnectByNameW(size_t s, PWSTR nodename, PWSTR servicename, uint* LocalAddressLength, 
+                       SOCKADDR* LocalAddress, uint* RemoteAddressLength, SOCKADDR* RemoteAddress, 
+                       const(timeval)* timeout, OVERLAPPED* Reserved);
 
 ///The <b>WSAConnectByName</b> function establishes a connection to a specified host and port. This function is provided
 ///to allow a quick connection to a network endpoint given a host name and port. This function supports both IPv4 and
@@ -9147,9 +9154,9 @@ BOOL WSAConnectByNameW(size_t s, const(wchar)* nodename, const(wchar)* servicena
 ///    before the <i>timeout</i> parameter was exceeded. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-BOOL WSAConnectByNameA(size_t s, const(char)* nodename, const(char)* servicename, uint* LocalAddressLength, 
-                       char* LocalAddress, uint* RemoteAddressLength, char* RemoteAddress, const(timeval)* timeout, 
-                       OVERLAPPED* Reserved);
+BOOL WSAConnectByNameA(size_t s, const(PSTR) nodename, const(PSTR) servicename, uint* LocalAddressLength, 
+                       SOCKADDR* LocalAddress, uint* RemoteAddressLength, SOCKADDR* RemoteAddress, 
+                       const(timeval)* timeout, OVERLAPPED* Reserved);
 
 ///The <b>WSAConnectByList</b> function establishes a connection to one out of a collection of possible endpoints
 ///represented by a set of destination addresses (host names and ports). This function takes all the destination
@@ -9194,8 +9201,9 @@ BOOL WSAConnectByNameA(size_t s, const(char)* nodename, const(char)* servicename
 ///    application was not received before the <i>timeout</i> parameter was exceeded. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-BOOL WSAConnectByList(size_t s, SOCKET_ADDRESS_LIST* SocketAddress, uint* LocalAddressLength, char* LocalAddress, 
-                      uint* RemoteAddressLength, char* RemoteAddress, const(timeval)* timeout, OVERLAPPED* Reserved);
+BOOL WSAConnectByList(size_t s, SOCKET_ADDRESS_LIST* SocketAddress, uint* LocalAddressLength, 
+                      SOCKADDR* LocalAddress, uint* RemoteAddressLength, SOCKADDR* RemoteAddress, 
+                      const(timeval)* timeout, OVERLAPPED* Reserved);
 
 ///The <b>WSACreateEvent</b> function creates a new event object.
 ///Returns:
@@ -9316,7 +9324,7 @@ int WSAEnumNetworkEvents(size_t s, HANDLE hEventObject, WSANETWORKEVENTS* lpNetw
 ///    </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSAEnumProtocolsA(int* lpiProtocols, char* lpProtocolBuffer, uint* lpdwBufferLength);
+int WSAEnumProtocolsA(int* lpiProtocols, WSAPROTOCOL_INFOA* lpProtocolBuffer, uint* lpdwBufferLength);
 
 ///The <b>WSAEnumProtocols</b> function retrieves information about available transport protocols.
 ///Params:
@@ -9346,7 +9354,7 @@ int WSAEnumProtocolsA(int* lpiProtocols, char* lpProtocolBuffer, uint* lpdwBuffe
 ///    </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSAEnumProtocolsW(int* lpiProtocols, char* lpProtocolBuffer, uint* lpdwBufferLength);
+int WSAEnumProtocolsW(int* lpiProtocols, WSAPROTOCOL_INFOW* lpProtocolBuffer, uint* lpdwBufferLength);
 
 ///The <b>WSAEventSelect</b> function specifies an event object to be associated with the specified set of FD_XXX
 ///network events.
@@ -9587,7 +9595,7 @@ int WSAHtons(size_t s, ushort hostshort, ushort* lpnetshort);
 ///    <b>SIO_KEEPALIVE_VALS</b> IOCTL was made on a datagram socket. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSAIoctl(size_t s, uint dwIoControlCode, char* lpvInBuffer, uint cbInBuffer, char* lpvOutBuffer, 
+int WSAIoctl(size_t s, uint dwIoControlCode, void* lpvInBuffer, uint cbInBuffer, void* lpvOutBuffer, 
              uint cbOutBuffer, uint* lpcbBytesReturned, OVERLAPPED* lpOverlapped, 
              LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine);
 
@@ -9656,8 +9664,8 @@ int WSAIoctl(size_t s, uint dwIoControlCode, char* lpvInBuffer, uint cbInBuffer,
 ///    </table>
 ///    
 @DllImport("WS2_32")
-size_t WSAJoinLeaf(size_t s, char* name, int namelen, WSABUF* lpCallerData, WSABUF* lpCalleeData, QOS* lpSQOS, 
-                   QOS* lpGQOS, uint dwFlags);
+size_t WSAJoinLeaf(size_t s, const(SOCKADDR)* name, int namelen, WSABUF* lpCallerData, WSABUF* lpCalleeData, 
+                   QOS* lpSQOS, QOS* lpGQOS, uint dwFlags);
 
 ///The <b>WSANtohl</b> function converts a <b>u_long</b> from network byte order to host byte order.
 ///Params:
@@ -9761,7 +9769,7 @@ int WSANtohs(size_t s, ushort netshort, ushort* lphostshort);
 ///    overlapped operation has been canceled due to the closure of the socket. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSARecv(size_t s, char* lpBuffers, uint dwBufferCount, uint* lpNumberOfBytesRecvd, uint* lpFlags, 
+int WSARecv(size_t s, WSABUF* lpBuffers, uint dwBufferCount, uint* lpNumberOfBytesRecvd, uint* lpFlags, 
             OVERLAPPED* lpOverlapped, LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine);
 
 ///The <b>WSARecvDisconnect</b> function terminates reception on a socket, and retrieves the disconnect data if the
@@ -9844,8 +9852,8 @@ int WSARecvDisconnect(size_t s, WSABUF* lpInboundDisconnectData);
 ///    to the closure of the socket. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSARecvFrom(size_t s, char* lpBuffers, uint dwBufferCount, uint* lpNumberOfBytesRecvd, uint* lpFlags, 
-                char* lpFrom, int* lpFromlen, OVERLAPPED* lpOverlapped, 
+int WSARecvFrom(size_t s, WSABUF* lpBuffers, uint dwBufferCount, uint* lpNumberOfBytesRecvd, uint* lpFlags, 
+                SOCKADDR* lpFrom, int* lpFromlen, OVERLAPPED* lpOverlapped, 
                 LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine);
 
 ///The <b>WSAResetEvent</b> function resets the state of the specified event object to nonsignaled.
@@ -9930,7 +9938,7 @@ BOOL WSAResetEvent(HANDLE hEvent);
 ///    </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSASend(size_t s, char* lpBuffers, uint dwBufferCount, uint* lpNumberOfBytesSent, uint dwFlags, 
+int WSASend(size_t s, WSABUF* lpBuffers, uint dwBufferCount, uint* lpNumberOfBytesSent, uint dwFlags, 
             OVERLAPPED* lpOverlapped, LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine);
 
 ///The <b>WSASendMsg</b> function sends data and optional control information from connected and unconnected sockets.
@@ -10091,8 +10099,9 @@ int WSASendDisconnect(size_t s, WSABUF* lpOutboundDisconnectData);
 ///    to the closure of the socket, or the execution of the SIO_FLUSH command in WSAIoctl. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSASendTo(size_t s, char* lpBuffers, uint dwBufferCount, uint* lpNumberOfBytesSent, uint dwFlags, char* lpTo, 
-              int iTolen, OVERLAPPED* lpOverlapped, LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine);
+int WSASendTo(size_t s, WSABUF* lpBuffers, uint dwBufferCount, uint* lpNumberOfBytesSent, uint dwFlags, 
+              const(SOCKADDR)* lpTo, int iTolen, OVERLAPPED* lpOverlapped, 
+              LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine);
 
 ///The <b>WSASetEvent</b> function sets the state of the specified event object to signaled.
 ///Params:
@@ -10625,7 +10634,8 @@ size_t WSASocketW(int af, int type, int protocol, WSAPROTOCOL_INFOW* lpProtocolI
 ///    </table>
 ///    
 @DllImport("WS2_32")
-uint WSAWaitForMultipleEvents(uint cEvents, char* lphEvents, BOOL fWaitAll, uint dwTimeout, BOOL fAlertable);
+uint WSAWaitForMultipleEvents(uint cEvents, const(HANDLE)* lphEvents, BOOL fWaitAll, uint dwTimeout, 
+                              BOOL fAlertable);
 
 ///The <b>WSAAddressToString</b> function converts all components of a sockaddr structure into a human-readable string
 ///representation of the address. This is intended to be used mainly for display purposes. If the caller requires that
@@ -10660,8 +10670,8 @@ uint WSAWaitForMultipleEvents(uint cEvents, char* lphEvents, BOOL fWaitAll, uint
 ///    application must first call WSAStartup before calling any Windows Sockets functions. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSAAddressToStringA(char* lpsaAddress, uint dwAddressLength, WSAPROTOCOL_INFOA* lpProtocolInfo, 
-                        const(char)* lpszAddressString, uint* lpdwAddressStringLength);
+int WSAAddressToStringA(SOCKADDR* lpsaAddress, uint dwAddressLength, WSAPROTOCOL_INFOA* lpProtocolInfo, 
+                        PSTR lpszAddressString, uint* lpdwAddressStringLength);
 
 ///The <b>WSAAddressToString</b> function converts all components of a sockaddr structure into a human-readable string
 ///representation of the address. This is intended to be used mainly for display purposes. If the caller requires that
@@ -10696,8 +10706,8 @@ int WSAAddressToStringA(char* lpsaAddress, uint dwAddressLength, WSAPROTOCOL_INF
 ///    application must first call WSAStartup before calling any Windows Sockets functions. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSAAddressToStringW(char* lpsaAddress, uint dwAddressLength, WSAPROTOCOL_INFOW* lpProtocolInfo, 
-                        const(wchar)* lpszAddressString, uint* lpdwAddressStringLength);
+int WSAAddressToStringW(SOCKADDR* lpsaAddress, uint dwAddressLength, WSAPROTOCOL_INFOW* lpProtocolInfo, 
+                        PWSTR lpszAddressString, uint* lpdwAddressStringLength);
 
 ///The <b>WSAStringToAddress</b> function converts a network address in its standard text presentation form into its
 ///numeric binary form in a sockaddr structure, suitable for passing to Windows Sockets routines that take such a
@@ -10725,8 +10735,8 @@ int WSAAddressToStringW(char* lpsaAddress, uint dwAddressLength, WSAPROTOCOL_INF
 ///    insufficient memory to perform the operation. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSAStringToAddressA(const(char)* AddressString, int AddressFamily, WSAPROTOCOL_INFOA* lpProtocolInfo, 
-                        char* lpAddress, int* lpAddressLength);
+int WSAStringToAddressA(PSTR AddressString, int AddressFamily, WSAPROTOCOL_INFOA* lpProtocolInfo, 
+                        SOCKADDR* lpAddress, int* lpAddressLength);
 
 ///The <b>WSAStringToAddress</b> function converts a network address in its standard text presentation form into its
 ///numeric binary form in a sockaddr structure, suitable for passing to Windows Sockets routines that take such a
@@ -10754,8 +10764,8 @@ int WSAStringToAddressA(const(char)* AddressString, int AddressFamily, WSAPROTOC
 ///    insufficient memory to perform the operation. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSAStringToAddressW(const(wchar)* AddressString, int AddressFamily, WSAPROTOCOL_INFOW* lpProtocolInfo, 
-                        char* lpAddress, int* lpAddressLength);
+int WSAStringToAddressW(PWSTR AddressString, int AddressFamily, WSAPROTOCOL_INFOW* lpProtocolInfo, 
+                        SOCKADDR* lpAddress, int* lpAddressLength);
 
 ///The <b>WSALookupServiceBegin</b> function initiates a client query that is constrained by the information contained
 ///within a WSAQUERYSET structure. <b>WSALookupServiceBegin</b> only returns a handle, which should be used by
@@ -10818,7 +10828,7 @@ int WSAStringToAddressW(const(wchar)* AddressString, int AddressFamily, WSAPROTO
 ///    discovery request if no remote bluetooth devices were found. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSALookupServiceBeginA(WSAQUERYSETA* lpqsRestrictions, uint dwControlFlags, ptrdiff_t* lphLookup);
+int WSALookupServiceBeginA(WSAQUERYSETA* lpqsRestrictions, uint dwControlFlags, HANDLE* lphLookup);
 
 ///The <b>WSALookupServiceBegin</b> function initiates a client query that is constrained by the information contained
 ///within a WSAQUERYSET structure. <b>WSALookupServiceBegin</b> only returns a handle, which should be used by
@@ -10881,7 +10891,7 @@ int WSALookupServiceBeginA(WSAQUERYSETA* lpqsRestrictions, uint dwControlFlags, 
 ///    discovery request if no remote bluetooth devices were found. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSALookupServiceBeginW(WSAQUERYSETW* lpqsRestrictions, uint dwControlFlags, ptrdiff_t* lphLookup);
+int WSALookupServiceBeginW(WSAQUERYSETW* lpqsRestrictions, uint dwControlFlags, HANDLE* lphLookup);
 
 ///The <b>WSALookupServiceNext</b> function is called after obtaining a handle from a previous call to
 ///WSALookupServiceBegin in order to retrieve the requested service information. The provider will pass back a
@@ -10964,7 +10974,7 @@ int WSALookupServiceBeginW(WSAQUERYSETW* lpqsRestrictions, uint dwControlFlags, 
 ///    width="60%"> There was insufficient memory to perform the operation. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSALookupServiceNextA(HANDLE hLookup, uint dwControlFlags, uint* lpdwBufferLength, char* lpqsResults);
+int WSALookupServiceNextA(HANDLE hLookup, uint dwControlFlags, uint* lpdwBufferLength, WSAQUERYSETA* lpqsResults);
 
 ///The <b>WSALookupServiceNext</b> function is called after obtaining a handle from a previous call to
 ///WSALookupServiceBegin in order to retrieve the requested service information. The provider will pass back a
@@ -11047,7 +11057,7 @@ int WSALookupServiceNextA(HANDLE hLookup, uint dwControlFlags, uint* lpdwBufferL
 ///    width="60%"> There was insufficient memory to perform the operation. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSALookupServiceNextW(HANDLE hLookup, uint dwControlFlags, uint* lpdwBufferLength, char* lpqsResults);
+int WSALookupServiceNextW(HANDLE hLookup, uint dwControlFlags, uint* lpdwBufferLength, WSAQUERYSETW* lpqsResults);
 
 ///The Windows Sockets <b>WSANSPIoctl</b> function enables developers to make I/O control calls to a registered
 ///namespace.
@@ -11093,7 +11103,7 @@ int WSALookupServiceNextW(HANDLE hLookup, uint dwControlFlags, uint* lpdwBufferL
 ///    to indicate that a query set remains valid. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSANSPIoctl(HANDLE hLookup, uint dwControlCode, char* lpvInBuffer, uint cbInBuffer, char* lpvOutBuffer, 
+int WSANSPIoctl(HANDLE hLookup, uint dwControlCode, void* lpvInBuffer, uint cbInBuffer, void* lpvOutBuffer, 
                 uint cbOutBuffer, uint* lpcbBytesReturned, WSACOMPLETION* lpCompletion);
 
 ///The <b>WSALookupServiceEnd</b> function is called to free the handle after previous calls to WSALookupServiceBegin
@@ -11225,7 +11235,7 @@ int WSARemoveServiceClass(GUID* lpServiceClassId);
 ///    
 @DllImport("WS2_32")
 int WSAGetServiceClassInfoA(GUID* lpProviderId, GUID* lpServiceClassId, uint* lpdwBufSize, 
-                            char* lpServiceClassInfo);
+                            WSASERVICECLASSINFOA* lpServiceClassInfo);
 
 ///The <b>WSAGetServiceClassInfo</b> function retrieves the class information (schema) pertaining to a specified service
 ///class from a specified namespace provider.
@@ -11260,7 +11270,7 @@ int WSAGetServiceClassInfoA(GUID* lpProviderId, GUID* lpServiceClassId, uint* lp
 ///    
 @DllImport("WS2_32")
 int WSAGetServiceClassInfoW(GUID* lpProviderId, GUID* lpServiceClassId, uint* lpdwBufSize, 
-                            char* lpServiceClassInfo);
+                            WSASERVICECLASSINFOW* lpServiceClassInfo);
 
 ///The <b>WSAEnumNameSpaceProviders</b> function retrieves information on available namespace providers.
 ///Params:
@@ -11286,7 +11296,7 @@ int WSAGetServiceClassInfoW(GUID* lpProviderId, GUID* lpServiceClassId, uint* lp
 ///    operation. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSAEnumNameSpaceProvidersA(uint* lpdwBufferLength, char* lpnspBuffer);
+int WSAEnumNameSpaceProvidersA(uint* lpdwBufferLength, WSANAMESPACE_INFOA* lpnspBuffer);
 
 ///The <b>WSAEnumNameSpaceProviders</b> function retrieves information on available namespace providers.
 ///Params:
@@ -11312,7 +11322,7 @@ int WSAEnumNameSpaceProvidersA(uint* lpdwBufferLength, char* lpnspBuffer);
 ///    operation. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSAEnumNameSpaceProvidersW(uint* lpdwBufferLength, char* lpnspBuffer);
+int WSAEnumNameSpaceProvidersW(uint* lpdwBufferLength, WSANAMESPACE_INFOW* lpnspBuffer);
 
 ///The <b>WSAEnumNameSpaceProvidersEx</b> function retrieves information on available namespace providers.
 ///Params:
@@ -11338,7 +11348,7 @@ int WSAEnumNameSpaceProvidersW(uint* lpdwBufferLength, char* lpnspBuffer);
 ///    operation. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSAEnumNameSpaceProvidersExA(uint* lpdwBufferLength, char* lpnspBuffer);
+int WSAEnumNameSpaceProvidersExA(uint* lpdwBufferLength, WSANAMESPACE_INFOEXA* lpnspBuffer);
 
 ///The <b>WSAEnumNameSpaceProvidersEx</b> function retrieves information on available namespace providers.
 ///Params:
@@ -11364,7 +11374,7 @@ int WSAEnumNameSpaceProvidersExA(uint* lpdwBufferLength, char* lpnspBuffer);
 ///    operation. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSAEnumNameSpaceProvidersExW(uint* lpdwBufferLength, char* lpnspBuffer);
+int WSAEnumNameSpaceProvidersExW(uint* lpdwBufferLength, WSANAMESPACE_INFOEXW* lpnspBuffer);
 
 ///The <b>WSAGetServiceClassNameByClassId</b> function retrieves the name of the service associated with the specified
 ///type. This name is the generic service name, like FTP or SNA, and not the name of a specific instance of that
@@ -11394,8 +11404,7 @@ int WSAEnumNameSpaceProvidersExW(uint* lpdwBufferLength, char* lpnspBuffer);
 ///    </table>
 ///    
 @DllImport("WS2_32")
-int WSAGetServiceClassNameByClassIdA(GUID* lpServiceClassId, const(char)* lpszServiceClassName, 
-                                     uint* lpdwBufferLength);
+int WSAGetServiceClassNameByClassIdA(GUID* lpServiceClassId, PSTR lpszServiceClassName, uint* lpdwBufferLength);
 
 ///The <b>WSAGetServiceClassNameByClassId</b> function retrieves the name of the service associated with the specified
 ///type. This name is the generic service name, like FTP or SNA, and not the name of a specific instance of that
@@ -11425,8 +11434,7 @@ int WSAGetServiceClassNameByClassIdA(GUID* lpServiceClassId, const(char)* lpszSe
 ///    </table>
 ///    
 @DllImport("WS2_32")
-int WSAGetServiceClassNameByClassIdW(GUID* lpServiceClassId, const(wchar)* lpszServiceClassName, 
-                                     uint* lpdwBufferLength);
+int WSAGetServiceClassNameByClassIdW(GUID* lpServiceClassId, PWSTR lpszServiceClassName, uint* lpdwBufferLength);
 
 ///The <b>WSASetService</b> function registers or removes from the registry a service instance within one or more
 ///namespaces.
@@ -11533,7 +11541,7 @@ int WSASetServiceW(WSAQUERYSETW* lpqsRegInfo, WSAESETSERVICEOP essoperation, uin
 ///    system environment does not support provider installation or removal without restart. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSAProviderConfigChange(ptrdiff_t* lpNotificationHandle, OVERLAPPED* lpOverlapped, 
+int WSAProviderConfigChange(HANDLE* lpNotificationHandle, OVERLAPPED* lpOverlapped, 
                             LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine);
 
 ///The <b>WSAPoll</b> function determines status of one or more sockets.
@@ -11567,18 +11575,17 @@ int WSAProviderConfigChange(ptrdiff_t* lpNotificationHandle, OVERLAPPED* lpOverl
 int WSAPoll(WSAPOLLFD* fdArray, uint fds, int timeout);
 
 @DllImport("ntdll")
-int RtlIpv4AddressToStringExA(const(in_addr)* Address, ushort Port, const(char)* AddressString, 
+int RtlIpv4AddressToStringExA(const(in_addr)* Address, ushort Port, PSTR AddressString, uint* AddressStringLength);
+
+@DllImport("ntdll")
+int RtlIpv4StringToAddressExA(const(PSTR) AddressString, ubyte Strict, in_addr* Address, ushort* Port);
+
+@DllImport("ntdll")
+int RtlIpv6AddressToStringExA(const(in6_addr)* Address, uint ScopeId, ushort Port, PSTR AddressString, 
                               uint* AddressStringLength);
 
 @DllImport("ntdll")
-int RtlIpv4StringToAddressExA(const(char)* AddressString, ubyte Strict, in_addr* Address, ushort* Port);
-
-@DllImport("ntdll")
-int RtlIpv6AddressToStringExA(const(in6_addr)* Address, uint ScopeId, ushort Port, const(char)* AddressString, 
-                              uint* AddressStringLength);
-
-@DllImport("ntdll")
-int RtlIpv6StringToAddressExA(const(char)* AddressString, in6_addr* Address, uint* ScopeId, ushort* Port);
+int RtlIpv6StringToAddressExA(const(PSTR) AddressString, in6_addr* Address, uint* ScopeId, ushort* Port);
 
 ///The <b>WSARecvEx</b> function receives data from a connected socket or a bound connectionless socket. The
 ///<b>WSARecvEx</b> function is similar to the recv function, except that the <i>flags</i> parameter is used only to
@@ -11631,7 +11638,7 @@ int RtlIpv6StringToAddressExA(const(char)* AddressString, in6_addr* Address, uin
 ///    must occur before using this function. </td> </tr> </table>
 ///    
 @DllImport("MSWSOCK")
-int WSARecvEx(size_t s, char* buf, int len, int* flags);
+int WSARecvEx(size_t s, byte* buf, int len, int* flags);
 
 ///The <b>TransmitFile</b> function transmits file data over a connected socket handle. This function uses the operating
 ///system's cache manager to retrieve the file data, and provides high-performance file data transfer over sockets.<div
@@ -11773,7 +11780,7 @@ BOOL TransmitFile(size_t hSocket, HANDLE hFile, uint nNumberOfBytesToWrite, uint
 ///    indicated, but was subsequently terminated by the remote peer prior to accepting the call.
 ///    
 @DllImport("MSWSOCK")
-BOOL AcceptEx(size_t sListenSocket, size_t sAcceptSocket, char* lpOutputBuffer, uint dwReceiveDataLength, 
+BOOL AcceptEx(size_t sListenSocket, size_t sAcceptSocket, void* lpOutputBuffer, uint dwReceiveDataLength, 
               uint dwLocalAddressLength, uint dwRemoteAddressLength, uint* lpdwBytesReceived, 
               OVERLAPPED* lpOverlapped);
 
@@ -11796,7 +11803,7 @@ BOOL AcceptEx(size_t sListenSocket, size_t sAcceptSocket, char* lpOutputBuffer, 
 ///                     would be returned by the getpeername function). This parameter must be specified.
 ///    RemoteSockaddrLength = The size, in bytes, of the local address. This parameter must be specified.
 @DllImport("MSWSOCK")
-void GetAcceptExSockaddrs(char* lpOutputBuffer, uint dwReceiveDataLength, uint dwLocalAddressLength, 
+void GetAcceptExSockaddrs(void* lpOutputBuffer, uint dwReceiveDataLength, uint dwLocalAddressLength, 
                           uint dwRemoteAddressLength, SOCKADDR** LocalSockaddr, int* LocalSockaddrLength, 
                           SOCKADDR** RemoteSockaddr, int* RemoteSockaddrLength);
 
@@ -11822,7 +11829,7 @@ void GetAcceptExSockaddrs(char* lpOutputBuffer, uint dwReceiveDataLength, uint d
 ///    </table>
 ///    
 @DllImport("WS2_32")
-int WSCEnumProtocols(int* lpiProtocols, char* lpProtocolBuffer, uint* lpdwBufferLength, int* lpErrno);
+int WSCEnumProtocols(int* lpiProtocols, WSAPROTOCOL_INFOW* lpProtocolBuffer, uint* lpdwBufferLength, int* lpErrno);
 
 ///The **WSCDeinstallProvider** function removes the specified transport provider from the system configuration
 ///database.
@@ -11877,8 +11884,8 @@ int WSCDeinstallProvider(GUID* lpProviderId, int* lpErrno);
 ///    catalog entry. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSCInstallProvider(GUID* lpProviderId, const(wchar)* lpszProviderDllPath, char* lpProtocolInfoList, 
-                       uint dwNumberOfEntries, int* lpErrno);
+int WSCInstallProvider(GUID* lpProviderId, const(PWSTR) lpszProviderDllPath, 
+                       const(WSAPROTOCOL_INFOW)* lpProtocolInfoList, uint dwNumberOfEntries, int* lpErrno);
 
 ///The **WSCGetProviderPath** function retrieves the DLL path for the specified provider.
 ///Params:
@@ -11897,7 +11904,7 @@ int WSCInstallProvider(GUID* lpProviderId, const(wchar)* lpszProviderDllPath, ch
 ///    address space, or <i>lpProviderDllPathLen</i> is too small. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSCGetProviderPath(GUID* lpProviderId, char* lpszProviderDllPath, int* lpProviderDllPathLen, int* lpErrno);
+int WSCGetProviderPath(GUID* lpProviderId, PWSTR lpszProviderDllPath, int* lpProviderDllPathLen, int* lpErrno);
 
 ///The **WSCUpdateProvider** function modifies the specified transport provider in the system configuration database.
 ///Params:
@@ -11925,8 +11932,8 @@ int WSCGetProviderPath(GUID* lpProviderId, char* lpszProviderDllPath, int* lpPro
 ///    allocate a new catalog entry. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSCUpdateProvider(GUID* lpProviderId, const(wchar)* lpszProviderDllPath, char* lpProtocolInfoList, 
-                      uint dwNumberOfEntries, int* lpErrno);
+int WSCUpdateProvider(GUID* lpProviderId, const(PWSTR) lpszProviderDllPath, 
+                      const(WSAPROTOCOL_INFOW)* lpProtocolInfoList, uint dwNumberOfEntries, int* lpErrno);
 
 ///<div class="alert">**Note** Layered Service Providers are deprecated. Starting with Windows 8 and Windows Server
 ///2012, use Windows Filtering Platform.</div><div> </div>The **WSCSetProviderInfo** function sets the data value for
@@ -11954,7 +11961,7 @@ int WSCUpdateProvider(GUID* lpProviderId, const(wchar)* lpszProviderDllPath, cha
 ///    allocate a new catalog entry. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSCSetProviderInfo(GUID* lpProviderId, WSC_PROVIDER_INFO_TYPE InfoType, char* Info, size_t InfoSize, 
+int WSCSetProviderInfo(GUID* lpProviderId, WSC_PROVIDER_INFO_TYPE InfoType, ubyte* Info, size_t InfoSize, 
                        uint Flags, int* lpErrno);
 
 ///<div class="alert">**Note** Layered Service Providers are deprecated. Starting with Windows 8 and Windows Server
@@ -11989,7 +11996,7 @@ int WSCSetProviderInfo(GUID* lpProviderId, WSC_PROVIDER_INFO_TYPE InfoType, char
 ///    </table>
 ///    
 @DllImport("WS2_32")
-int WSCGetProviderInfo(GUID* lpProviderId, WSC_PROVIDER_INFO_TYPE InfoType, char* Info, size_t* InfoSize, 
+int WSCGetProviderInfo(GUID* lpProviderId, WSC_PROVIDER_INFO_TYPE InfoType, ubyte* Info, size_t* InfoSize, 
                        uint Flags, int* lpErrno);
 
 ///<div class="alert">**Note** Layered Service Providers are deprecated. Starting with Windows 8 and Windows Server
@@ -12024,7 +12031,7 @@ int WSCGetProviderInfo(GUID* lpProviderId, WSC_PROVIDER_INFO_TYPE InfoType, char
 ///    Winsock catalog entry or an application ID entry. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSCSetApplicationCategory(const(wchar)* Path, uint PathLength, const(wchar)* Extra, uint ExtraLength, 
+int WSCSetApplicationCategory(const(PWSTR) Path, uint PathLength, const(PWSTR) Extra, uint ExtraLength, 
                               uint PermittedLspCategories, uint* pPrevPermLspCat, int* lpErrno);
 
 ///<div class="alert">**Note** Layered Service Providers are deprecated. Starting with Windows 8 and Windows Server
@@ -12061,7 +12068,7 @@ int WSCSetApplicationCategory(const(wchar)* Path, uint PathLength, const(wchar)*
 ///    entry. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSCGetApplicationCategory(const(wchar)* Path, uint PathLength, const(wchar)* Extra, uint ExtraLength, 
+int WSCGetApplicationCategory(const(PWSTR) Path, uint PathLength, const(PWSTR) Extra, uint ExtraLength, 
                               uint* pPermittedLspCategories, int* lpErrno);
 
 ///The **WPUCompleteOverlappedRequest** function performs overlapped I/O completion notification for overlapped I/O
@@ -12117,7 +12124,7 @@ int WPUCompleteOverlappedRequest(size_t s, OVERLAPPED* lpOverlapped, uint dwErro
 ///    is returned when there is insufficient memory to allocate a new catalog entry. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSCInstallNameSpace(const(wchar)* lpszIdentifier, const(wchar)* lpszPathName, uint dwNameSpace, uint dwVersion, 
+int WSCInstallNameSpace(PWSTR lpszIdentifier, PWSTR lpszPathName, uint dwNameSpace, uint dwVersion, 
                         GUID* lpProviderId);
 
 ///The **WSCUnInstallNameSpace** function uninstalls the indicated name-space provider.
@@ -12169,8 +12176,8 @@ int WSCUnInstallNameSpace(GUID* lpProviderId);
 ///    is returned when there is insufficient memory to allocate a new catalog entry. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int WSCInstallNameSpaceEx(const(wchar)* lpszIdentifier, const(wchar)* lpszPathName, uint dwNameSpace, 
-                          uint dwVersion, GUID* lpProviderId, BLOB* lpProviderSpecific);
+int WSCInstallNameSpaceEx(PWSTR lpszIdentifier, PWSTR lpszPathName, uint dwNameSpace, uint dwVersion, 
+                          GUID* lpProviderId, BLOB* lpProviderSpecific);
 
 ///The **WSCEnableNSProvider** function changes the state of a given namespace provider. It is intended to give the
 ///end-user the ability to change the state of the namespace providers.
@@ -12290,7 +12297,7 @@ int WSAProviderCompleteAsyncCall(HANDLE hAsyncCall, int iRetCode);
 ///    *<i>lpdwBufferLength</i>. </td> </tr> </table>
 ///    
 @DllImport("MSWSOCK")
-int EnumProtocolsA(int* lpiProtocols, char* lpProtocolBuffer, uint* lpdwBufferLength);
+int EnumProtocolsA(int* lpiProtocols, void* lpProtocolBuffer, uint* lpdwBufferLength);
 
 ///The <b>EnumProtocols</b> function retrieves information about a specified set of network protocols that are active on
 ///a local host. <div class="alert"><b>Note</b> The <b>EnumProtocols</b> function is a Microsoft-specific extension to
@@ -12329,7 +12336,7 @@ int EnumProtocolsA(int* lpiProtocols, char* lpProtocolBuffer, uint* lpdwBufferLe
 ///    *<i>lpdwBufferLength</i>. </td> </tr> </table>
 ///    
 @DllImport("MSWSOCK")
-int EnumProtocolsW(int* lpiProtocols, char* lpProtocolBuffer, uint* lpdwBufferLength);
+int EnumProtocolsW(int* lpiProtocols, void* lpProtocolBuffer, uint* lpdwBufferLength);
 
 ///<p class="CCE_Message">[<b>GetAddressByName</b> is no longer available for use as of Windows Sockets 2. Instead, use
 ///the functions detailed in Protocol-Independent Name Resolution.] The <b>GetAddressByName</b> function queries a
@@ -12421,9 +12428,9 @@ int EnumProtocolsW(int* lpiProtocols, char* lpProtocolBuffer, uint* lpdwBufferLe
 ///    *<i>lpdwBufferLength</i>. </td> </tr> </table>
 ///    
 @DllImport("MSWSOCK")
-int GetAddressByNameA(uint dwNameSpace, GUID* lpServiceType, const(char)* lpServiceName, int* lpiProtocols, 
-                      uint dwResolution, SERVICE_ASYNC_INFO* lpServiceAsyncInfo, char* lpCsaddrBuffer, 
-                      uint* lpdwBufferLength, const(char)* lpAliasBuffer, uint* lpdwAliasBufferLength);
+int GetAddressByNameA(uint dwNameSpace, GUID* lpServiceType, PSTR lpServiceName, int* lpiProtocols, 
+                      uint dwResolution, SERVICE_ASYNC_INFO* lpServiceAsyncInfo, void* lpCsaddrBuffer, 
+                      uint* lpdwBufferLength, PSTR lpAliasBuffer, uint* lpdwAliasBufferLength);
 
 ///<p class="CCE_Message">[<b>GetAddressByName</b> is no longer available for use as of Windows Sockets 2. Instead, use
 ///the functions detailed in Protocol-Independent Name Resolution.] The <b>GetAddressByName</b> function queries a
@@ -12515,9 +12522,9 @@ int GetAddressByNameA(uint dwNameSpace, GUID* lpServiceType, const(char)* lpServ
 ///    *<i>lpdwBufferLength</i>. </td> </tr> </table>
 ///    
 @DllImport("MSWSOCK")
-int GetAddressByNameW(uint dwNameSpace, GUID* lpServiceType, const(wchar)* lpServiceName, int* lpiProtocols, 
-                      uint dwResolution, SERVICE_ASYNC_INFO* lpServiceAsyncInfo, char* lpCsaddrBuffer, 
-                      uint* lpdwBufferLength, const(wchar)* lpAliasBuffer, uint* lpdwAliasBufferLength);
+int GetAddressByNameW(uint dwNameSpace, GUID* lpServiceType, PWSTR lpServiceName, int* lpiProtocols, 
+                      uint dwResolution, SERVICE_ASYNC_INFO* lpServiceAsyncInfo, void* lpCsaddrBuffer, 
+                      uint* lpdwBufferLength, PWSTR lpAliasBuffer, uint* lpdwAliasBufferLength);
 
 ///The <b>GetTypeByName</b> function retrieves a service type <b>GUID</b> for a network service specified by name. <div
 ///class="alert"><b>Note</b> The <b>GetTypeByName</b> function is a Microsoft-specific extension to the Windows Sockets
@@ -12539,7 +12546,7 @@ int GetAddressByNameW(uint dwNameSpace, GUID* lpServiceType, const(wchar)* lpSer
 ///    </td> </tr> </table>
 ///    
 @DllImport("MSWSOCK")
-int GetTypeByNameA(const(char)* lpServiceName, GUID* lpServiceType);
+int GetTypeByNameA(PSTR lpServiceName, GUID* lpServiceType);
 
 ///The <b>GetTypeByName</b> function retrieves a service type <b>GUID</b> for a network service specified by name. <div
 ///class="alert"><b>Note</b> The <b>GetTypeByName</b> function is a Microsoft-specific extension to the Windows Sockets
@@ -12561,7 +12568,7 @@ int GetTypeByNameA(const(char)* lpServiceName, GUID* lpServiceType);
 ///    </td> </tr> </table>
 ///    
 @DllImport("MSWSOCK")
-int GetTypeByNameW(const(wchar)* lpServiceName, GUID* lpServiceType);
+int GetTypeByNameW(PWSTR lpServiceName, GUID* lpServiceType);
 
 ///The <b>GetNameByType</b> function retrieves the name of a network service for the specified service type. <div
 ///class="alert"><b>Note</b> The <b>GetNameByType</b> function is a Microsoft-specific extension to the Windows Sockets
@@ -12581,7 +12588,7 @@ int GetTypeByNameW(const(wchar)* lpServiceName, GUID* lpServiceType);
 ///    SOCKET_ERROR (–1). To get extended error information, call GetLastError.
 ///    
 @DllImport("MSWSOCK")
-int GetNameByTypeA(GUID* lpServiceType, const(char)* lpServiceName, uint dwNameLength);
+int GetNameByTypeA(GUID* lpServiceType, PSTR lpServiceName, uint dwNameLength);
 
 ///The <b>GetNameByType</b> function retrieves the name of a network service for the specified service type. <div
 ///class="alert"><b>Note</b> The <b>GetNameByType</b> function is a Microsoft-specific extension to the Windows Sockets
@@ -12601,7 +12608,7 @@ int GetNameByTypeA(GUID* lpServiceType, const(char)* lpServiceName, uint dwNameL
 ///    SOCKET_ERROR (–1). To get extended error information, call GetLastError.
 ///    
 @DllImport("MSWSOCK")
-int GetNameByTypeW(GUID* lpServiceType, const(wchar)* lpServiceName, uint dwNameLength);
+int GetNameByTypeW(GUID* lpServiceType, PWSTR lpServiceName, uint dwNameLength);
 
 ///The <b>SetService</b> function registers or removes from the registry a network service within one or more
 ///namespaces. The function can also add or remove a network service type within one or more namespaces. <div
@@ -12834,7 +12841,7 @@ int SetServiceW(uint dwNameSpace, uint dwOperation, uint dwFlags, SERVICE_INFOW*
 ///    specified namespace is not in use. The function return value is zero in this case. </td> </tr> </table>
 ///    
 @DllImport("MSWSOCK")
-int GetServiceA(uint dwNameSpace, GUID* lpGuid, const(char)* lpServiceName, uint dwProperties, char* lpBuffer, 
+int GetServiceA(uint dwNameSpace, GUID* lpGuid, PSTR lpServiceName, uint dwProperties, void* lpBuffer, 
                 uint* lpdwBufferSize, SERVICE_ASYNC_INFO* lpServiceAsyncInfo);
 
 ///The <b>GetService</b> function retrieves information about a network service in the context of a set of default
@@ -12924,7 +12931,7 @@ int GetServiceA(uint dwNameSpace, GUID* lpGuid, const(char)* lpServiceName, uint
 ///    specified namespace is not in use. The function return value is zero in this case. </td> </tr> </table>
 ///    
 @DllImport("MSWSOCK")
-int GetServiceW(uint dwNameSpace, GUID* lpGuid, const(wchar)* lpServiceName, uint dwProperties, char* lpBuffer, 
+int GetServiceW(uint dwNameSpace, GUID* lpGuid, PWSTR lpServiceName, uint dwProperties, void* lpBuffer, 
                 uint* lpdwBufferSize, SERVICE_ASYNC_INFO* lpServiceAsyncInfo);
 
 ///The <b>getaddrinfo</b> function provides protocol-independent translation from an ANSI host name to an address.
@@ -12989,7 +12996,7 @@ int GetServiceW(uint dwNameSpace, GUID* lpGuid, const(wchar)* lpServiceName, uin
 ///    parameter. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int getaddrinfo(const(char)* pNodeName, const(char)* pServiceName, const(ADDRINFOA)* pHints, ADDRINFOA** ppResult);
+int getaddrinfo(const(PSTR) pNodeName, const(PSTR) pServiceName, const(ADDRINFOA)* pHints, ADDRINFOA** ppResult);
 
 ///The <b>GetAddrInfoW</b> function provides protocol-independent translation from a Unicode host name to an address.
 ///Params:
@@ -13053,8 +13060,7 @@ int getaddrinfo(const(char)* pNodeName, const(char)* pServiceName, const(ADDRINF
 ///    parameter. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int GetAddrInfoW(const(wchar)* pNodeName, const(wchar)* pServiceName, const(addrinfoW)* pHints, 
-                 addrinfoW** ppResult);
+int GetAddrInfoW(const(PWSTR) pNodeName, const(PWSTR) pServiceName, const(addrinfoW)* pHints, addrinfoW** ppResult);
 
 ///The <b>GetAddrInfoEx</b> function provides protocol-independent name resolution with additional parameters to qualify
 ///which namespace providers should handle the request.
@@ -13195,9 +13201,9 @@ int GetAddrInfoW(const(wchar)* pNodeName, const(wchar)* pServiceName, const(addr
 ///    addrinfoexstructure pointed to by the <i>pHints</i> parameter. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int GetAddrInfoExA(const(char)* pName, const(char)* pServiceName, uint dwNameSpace, GUID* lpNspId, 
+int GetAddrInfoExA(const(PSTR) pName, const(PSTR) pServiceName, uint dwNameSpace, GUID* lpNspId, 
                    const(addrinfoexA)* hints, addrinfoexA** ppResult, timeval* timeout, OVERLAPPED* lpOverlapped, 
-                   LPLOOKUPSERVICE_COMPLETION_ROUTINE lpCompletionRoutine, ptrdiff_t* lpNameHandle);
+                   LPLOOKUPSERVICE_COMPLETION_ROUTINE lpCompletionRoutine, HANDLE* lpNameHandle);
 
 ///The <b>GetAddrInfoEx</b> function provides protocol-independent name resolution with additional parameters to qualify
 ///which namespace providers should handle the request.
@@ -13332,9 +13338,9 @@ int GetAddrInfoExA(const(char)* pName, const(char)* pServiceName, uint dwNameSpa
 ///    addrinfoexstructure pointed to by the <i>pHints</i> parameter. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int GetAddrInfoExW(const(wchar)* pName, const(wchar)* pServiceName, uint dwNameSpace, GUID* lpNspId, 
+int GetAddrInfoExW(const(PWSTR) pName, const(PWSTR) pServiceName, uint dwNameSpace, GUID* lpNspId, 
                    const(addrinfoexW)* hints, addrinfoexW** ppResult, timeval* timeout, OVERLAPPED* lpOverlapped, 
-                   LPLOOKUPSERVICE_COMPLETION_ROUTINE lpCompletionRoutine, ptrdiff_t* lpHandle);
+                   LPLOOKUPSERVICE_COMPLETION_ROUTINE lpCompletionRoutine, HANDLE* lpHandle);
 
 ///The <b>GetAddrInfoExCancel</b> function cancels an asynchronous operation by the GetAddrInfoEx function.
 ///Params:
@@ -13345,7 +13351,7 @@ int GetAddrInfoExW(const(wchar)* pName, const(wchar)* pServiceName, uint dwNameS
 ///    error code, as found in the Windows Sockets Error Codes.
 ///    
 @DllImport("WS2_32")
-int GetAddrInfoExCancel(ptrdiff_t* lpHandle);
+int GetAddrInfoExCancel(HANDLE* lpHandle);
 
 ///The <b>GetAddrInfoExOverlappedResult</b> function gets the return code for an <b>OVERLAPPED</b> structure used by an
 ///asynchronous operation for the GetAddrInfoEx function.
@@ -13423,10 +13429,10 @@ int GetAddrInfoExOverlappedResult(OVERLAPPED* lpOverlapped);
 ///    </td> <td width="60%"> A memory allocation failure occurred. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int SetAddrInfoExA(const(char)* pName, const(char)* pServiceName, SOCKET_ADDRESS* pAddresses, uint dwAddressCount, 
+int SetAddrInfoExA(const(PSTR) pName, const(PSTR) pServiceName, SOCKET_ADDRESS* pAddresses, uint dwAddressCount, 
                    BLOB* lpBlob, uint dwFlags, uint dwNameSpace, GUID* lpNspId, timeval* timeout, 
                    OVERLAPPED* lpOverlapped, LPLOOKUPSERVICE_COMPLETION_ROUTINE lpCompletionRoutine, 
-                   ptrdiff_t* lpNameHandle);
+                   HANDLE* lpNameHandle);
 
 ///The <b>SetAddrInfoEx</b> function registers or deregisters a name, a service name, and associated addresses with a
 ///specific namespace provider.
@@ -13492,10 +13498,10 @@ int SetAddrInfoExA(const(char)* pName, const(char)* pServiceName, SOCKET_ADDRESS
 ///    </td> <td width="60%"> A memory allocation failure occurred. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int SetAddrInfoExW(const(wchar)* pName, const(wchar)* pServiceName, SOCKET_ADDRESS* pAddresses, 
-                   uint dwAddressCount, BLOB* lpBlob, uint dwFlags, uint dwNameSpace, GUID* lpNspId, 
-                   timeval* timeout, OVERLAPPED* lpOverlapped, 
-                   LPLOOKUPSERVICE_COMPLETION_ROUTINE lpCompletionRoutine, ptrdiff_t* lpNameHandle);
+int SetAddrInfoExW(const(PWSTR) pName, const(PWSTR) pServiceName, SOCKET_ADDRESS* pAddresses, uint dwAddressCount, 
+                   BLOB* lpBlob, uint dwFlags, uint dwNameSpace, GUID* lpNspId, timeval* timeout, 
+                   OVERLAPPED* lpOverlapped, LPLOOKUPSERVICE_COMPLETION_ROUTINE lpCompletionRoutine, 
+                   HANDLE* lpNameHandle);
 
 ///The <b>freeaddrinfo</b> function frees address information that the getaddrinfo function dynamically allocates in
 ///addrinfo structures.
@@ -13586,8 +13592,8 @@ void FreeAddrInfoExW(addrinfoexW* pAddrInfoEx);
 ///    for IPv6. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int getnameinfo(char* pSockaddr, int SockaddrLength, const(char)* pNodeBuffer, uint NodeBufferSize, 
-                const(char)* pServiceBuffer, uint ServiceBufferSize, int Flags);
+int getnameinfo(const(SOCKADDR)* pSockaddr, int SockaddrLength, PSTR pNodeBuffer, uint NodeBufferSize, 
+                PSTR pServiceBuffer, uint ServiceBufferSize, int Flags);
 
 ///The <b>GetNameInfoW</b> function provides protocol-independent name resolution from an address to a Unicode host name
 ///and from a port number to the Unicode service name.
@@ -13637,8 +13643,8 @@ int getnameinfo(char* pSockaddr, int SockaddrLength, const(char)* pNodeBuffer, u
 ///    </table>
 ///    
 @DllImport("WS2_32")
-int GetNameInfoW(char* pSockaddr, int SockaddrLength, const(wchar)* pNodeBuffer, uint NodeBufferSize, 
-                 const(wchar)* pServiceBuffer, uint ServiceBufferSize, int Flags);
+int GetNameInfoW(const(SOCKADDR)* pSockaddr, int SockaddrLength, PWSTR pNodeBuffer, uint NodeBufferSize, 
+                 PWSTR pServiceBuffer, uint ServiceBufferSize, int Flags);
 
 ///The <b>InetPton</b> function converts an IPv4 or IPv6 Internet network address in its standard text presentation form
 ///into its numeric binary form. The ANSI version of this function is <b>inet_pton</b>.
@@ -13679,7 +13685,7 @@ int GetNameInfoW(char* pSockaddr, int SockaddrLength, const(wchar)* pNodeBuffer,
 ///    <i>pAddrBuf</i> parameters are <b>NULL</b> or are not part of the user address space. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int inet_pton(int Family, const(char)* pszAddrString, char* pAddrBuf);
+int inet_pton(int Family, const(PSTR) pszAddrString, void* pAddrBuf);
 
 ///The <b>InetPton</b> function converts an IPv4 or IPv6 Internet network address in its standard text presentation form
 ///into its numeric binary form. The ANSI version of this function is <b>inet_pton</b>.
@@ -13720,7 +13726,7 @@ int inet_pton(int Family, const(char)* pszAddrString, char* pAddrBuf);
 ///    <i>pAddrBuf</i> parameters are <b>NULL</b> or are not part of the user address space. </td> </tr> </table>
 ///    
 @DllImport("WS2_32")
-int InetPtonW(int Family, const(wchar)* pszAddrString, char* pAddrBuf);
+int InetPtonW(int Family, const(PWSTR) pszAddrString, void* pAddrBuf);
 
 ///The <b>InetNtop</b> function converts an IPv4 or IPv6 Internet network address into a string in Internet standard
 ///format. The ANSI version of this function is <b>inet_ntop</b>.
@@ -13758,7 +13764,7 @@ int InetPtonW(int Family, const(wchar)* pszAddrString, char* pAddrBuf);
 ///    </tr> </table>
 ///    
 @DllImport("WS2_32")
-byte* inet_ntop(int Family, const(void)* pAddr, const(char)* pStringBuf, size_t StringBufSize);
+PSTR inet_ntop(int Family, const(void)* pAddr, PSTR pStringBuf, size_t StringBufSize);
 
 ///The <b>InetNtop</b> function converts an IPv4 or IPv6 Internet network address into a string in Internet standard
 ///format. The ANSI version of this function is <b>inet_ntop</b>.
@@ -13796,7 +13802,7 @@ byte* inet_ntop(int Family, const(void)* pAddr, const(char)* pStringBuf, size_t 
 ///    </tr> </table>
 ///    
 @DllImport("WS2_32")
-ushort* InetNtopW(int Family, const(void)* pAddr, const(wchar)* pStringBuf, size_t StringBufSize);
+PWSTR InetNtopW(int Family, const(void)* pAddr, PWSTR pStringBuf, size_t StringBufSize);
 
 ///The <b>WSASetSocketSecurity</b> function enables and applies security for a socket.
 ///Params:
@@ -13824,7 +13830,8 @@ ushort* InetNtopW(int Family, const(void)* pAddr, const(wchar)* pStringBuf, size
 ///    in the <i>Socket</i> parameter is not a valid socket. </td> </tr> </table>
 ///    
 @DllImport("fwpuclnt")
-int WSASetSocketSecurity(size_t Socket, char* SecuritySettings, uint SecuritySettingsLen, OVERLAPPED* Overlapped, 
+int WSASetSocketSecurity(size_t Socket, const(SOCKET_SECURITY_SETTINGS)* SecuritySettings, 
+                         uint SecuritySettingsLen, OVERLAPPED* Overlapped, 
                          LPWSAOVERLAPPED_COMPLETION_ROUTINE CompletionRoutine);
 
 ///The <b>WSAQuerySocketSecurity</b> function queries information about the security applied to a connection on a
@@ -13879,8 +13886,9 @@ int WSASetSocketSecurity(size_t Socket, char* SecuritySettings, uint SecuritySet
 ///    not a valid socket. </td> </tr> </table>
 ///    
 @DllImport("fwpuclnt")
-int WSAQuerySocketSecurity(size_t Socket, char* SecurityQueryTemplate, uint SecurityQueryTemplateLen, 
-                           char* SecurityQueryInfo, uint* SecurityQueryInfoLen, OVERLAPPED* Overlapped, 
+int WSAQuerySocketSecurity(size_t Socket, const(SOCKET_SECURITY_QUERY_TEMPLATE)* SecurityQueryTemplate, 
+                           uint SecurityQueryTemplateLen, SOCKET_SECURITY_QUERY_INFO* SecurityQueryInfo, 
+                           uint* SecurityQueryInfoLen, OVERLAPPED* Overlapped, 
                            LPWSAOVERLAPPED_COMPLETION_ROUTINE CompletionRoutine);
 
 ///The <b>WSASetSocketPeerTargetName</b> function is used to specify the peer target name (SPN) that corresponds to a
@@ -13913,7 +13921,8 @@ int WSAQuerySocketSecurity(size_t Socket, char* SecurityQueryTemplate, uint Secu
 ///    descriptor passed in the <i>Socket</i> parameter is not a valid socket. </td> </tr> </table>
 ///    
 @DllImport("fwpuclnt")
-int WSASetSocketPeerTargetName(size_t Socket, char* PeerTargetName, uint PeerTargetNameLen, OVERLAPPED* Overlapped, 
+int WSASetSocketPeerTargetName(size_t Socket, const(SOCKET_PEER_TARGET_NAME)* PeerTargetName, 
+                               uint PeerTargetNameLen, OVERLAPPED* Overlapped, 
                                LPWSAOVERLAPPED_COMPLETION_ROUTINE CompletionRoutine);
 
 ///The <b>WSADeleteSocketPeerTargetName</b> function removes the association between a peer target name and an IP
@@ -13942,8 +13951,8 @@ int WSASetSocketPeerTargetName(size_t Socket, char* PeerTargetName, uint PeerTar
 ///    <i>Socket</i> parameter is not a valid socket. </td> </tr> </table>
 ///    
 @DllImport("fwpuclnt")
-int WSADeleteSocketPeerTargetName(size_t Socket, char* PeerAddr, uint PeerAddrLen, OVERLAPPED* Overlapped, 
-                                  LPWSAOVERLAPPED_COMPLETION_ROUTINE CompletionRoutine);
+int WSADeleteSocketPeerTargetName(size_t Socket, const(SOCKADDR)* PeerAddr, uint PeerAddrLen, 
+                                  OVERLAPPED* Overlapped, LPWSAOVERLAPPED_COMPLETION_ROUTINE CompletionRoutine);
 
 ///The <b>WSAImpersonateSocketPeer</b> function is used to impersonate the security principal corresponding to a socket
 ///peer in order to perform application-level authorization.
@@ -13965,7 +13974,7 @@ int WSADeleteSocketPeerTargetName(size_t Socket, char* PeerAddr, uint PeerAddrLe
 ///    not a valid socket. </td> </tr> </table>
 ///    
 @DllImport("fwpuclnt")
-int WSAImpersonateSocketPeer(size_t Socket, char* PeerAddr, uint PeerAddrLen);
+int WSAImpersonateSocketPeer(size_t Socket, const(SOCKADDR)* PeerAddr, uint PeerAddrLen);
 
 ///The <b>WSARevertImpersonation</b> function terminates the impersonation of a socket peer. This must be called after
 ///calling WSAImpersonateSocketPeer and finishing any access checks.

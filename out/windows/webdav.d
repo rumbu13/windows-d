@@ -3,9 +3,9 @@
 module windows.webdav;
 
 public import windows.core;
-public import windows.systemservices : BOOL, HANDLE;
+public import windows.systemservices : BOOL, HANDLE, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -73,9 +73,9 @@ alias PFNDAVAUTHCALLBACK_FREECRED = uint function(void* pbuffer);
 ///    If the function succeeds, the return value is ERROR_SUCCESS. If the function fails, the return value is a system
 ///    error code.
 ///    
-alias PFNDAVAUTHCALLBACK = uint function(const(wchar)* lpwzServerName, const(wchar)* lpwzRemoteName, 
-                                         uint dwAuthScheme, uint dwFlags, DAV_CALLBACK_CRED* pCallbackCred, 
-                                         AUTHNEXTSTEP* NextStep, PFNDAVAUTHCALLBACK_FREECRED* pFreeCred);
+alias PFNDAVAUTHCALLBACK = uint function(PWSTR lpwzServerName, PWSTR lpwzRemoteName, uint dwAuthScheme, 
+                                         uint dwFlags, DAV_CALLBACK_CRED* pCallbackCred, AUTHNEXTSTEP* NextStep, 
+                                         PFNDAVAUTHCALLBACK_FREECRED* pFreeCred);
 
 // Structs
 
@@ -98,13 +98,13 @@ struct DAV_CALLBACK_AUTH_UNP
 {
     ///A pointer to a string that contains the user name. This string is allocated by the DavAuthCallback callback
     ///function.
-    const(wchar)* pszUserName;
+    PWSTR pszUserName;
     ///The length, in WCHAR, of the user name, not including the terminating <b>NULL</b> character.
-    uint          ulUserNameLength;
+    uint  ulUserNameLength;
     ///A pointer to a string that contains the password. This string is allocated by DavAuthCallback.
-    const(wchar)* pszPassword;
+    PWSTR pszPassword;
     ///The length, in WCHAR, of the password, not including the terminating <b>NULL</b> character.
-    uint          ulPasswordLength;
+    uint  ulPasswordLength;
 }
 
 ///Stores user credential information that was retrieved by the DavAuthCallback callback function.
@@ -143,8 +143,8 @@ struct DAV_CALLBACK_CRED
 ///    error code.
 ///    
 @DllImport("NETAPI32")
-uint DavAddConnection(HANDLE* ConnectionHandle, const(wchar)* RemoteName, const(wchar)* UserName, 
-                      const(wchar)* Password, char* ClientCert, uint CertSize);
+uint DavAddConnection(HANDLE* ConnectionHandle, const(PWSTR) RemoteName, const(PWSTR) UserName, 
+                      const(PWSTR) Password, ubyte* ClientCert, uint CertSize);
 
 ///Closes a connection that was created by using the DavAddConnection function.
 ///Params:
@@ -171,7 +171,7 @@ uint DavDeleteConnection(HANDLE ConnectionHandle);
 ///             fails with ERROR_INSUFFICIENT_BUFFER, on output the variable receives the number of characters needed to store
 ///             the UNC path, including the terminating <b>NULL</b> character.
 @DllImport("NETAPI32")
-uint DavGetUNCFromHTTPPath(const(wchar)* Url, const(wchar)* UncPath, uint* lpSize);
+uint DavGetUNCFromHTTPPath(const(PWSTR) Url, PWSTR UncPath, uint* lpSize);
 
 ///Converts the specified UNC path to an equivalent HTTP path.
 ///Params:
@@ -184,7 +184,7 @@ uint DavGetUNCFromHTTPPath(const(wchar)* Url, const(wchar)* UncPath, uint* lpSiz
 ///             variable receives the number of characters needed to store the HTTP path, including the "http://" or "https://"
 ///             prefix and the terminating <b>NULL</b> character.
 @DllImport("NETAPI32")
-uint DavGetHTTPFromUNCPath(const(wchar)* UncPath, const(wchar)* Url, uint* lpSize);
+uint DavGetHTTPFromUNCPath(const(PWSTR) UncPath, PWSTR Url, uint* lpSize);
 
 ///Returns the file lock owner for a file that is locked on a WebDAV server.
 ///Params:
@@ -208,8 +208,7 @@ uint DavGetHTTPFromUNCPath(const(wchar)* UncPath, const(wchar)* Url, uint* lpSiz
 ///    pointer. </td> </tr> </table>
 ///    
 @DllImport("davclnt")
-uint DavGetTheLockOwnerOfTheFile(const(wchar)* FileName, const(wchar)* LockOwnerName, 
-                                 uint* LockOwnerNameLengthInBytes);
+uint DavGetTheLockOwnerOfTheFile(const(PWSTR) FileName, PWSTR LockOwnerName, uint* LockOwnerNameLengthInBytes);
 
 ///Retrieves the extended error code information that the WebDAV server returned for the previous failed I/O operation.
 ///Params:
@@ -231,7 +230,7 @@ uint DavGetTheLockOwnerOfTheFile(const(wchar)* FileName, const(wchar)* LockOwner
 ///    </tr> </table>
 ///    
 @DllImport("NETAPI32")
-uint DavGetExtendedError(HANDLE hFile, uint* ExtError, const(wchar)* ExtErrorString, uint* cChSize);
+uint DavGetExtendedError(HANDLE hFile, uint* ExtError, PWSTR ExtErrorString, uint* cChSize);
 
 ///Flushes the data from the local version of a remote file to the WebDAV server.
 ///Params:
@@ -253,7 +252,7 @@ uint DavFlushFile(HANDLE hFile);
 ///    error code.
 ///    
 @DllImport("davclnt")
-uint DavInvalidateCache(const(wchar)* URLName);
+uint DavInvalidateCache(const(PWSTR) URLName);
 
 ///Closes all connections to a WebDAV server or a remote file or directory on a WebDAV server.
 ///Params:
@@ -263,7 +262,7 @@ uint DavInvalidateCache(const(wchar)* URLName);
 ///             parameter to <b>FALSE</b> if the connection should be closed only if there are no open files. Set this parameter
 ///             to <b>TRUE</b> if the connection should be closed even if there are open files.
 @DllImport("davclnt")
-uint DavCancelConnectionsToServer(const(wchar)* lpName, BOOL fForce);
+uint DavCancelConnectionsToServer(PWSTR lpName, BOOL fForce);
 
 ///Registers an application-defined callback function that the WebDAV client can use to prompt the user for credentials.
 ///Params:

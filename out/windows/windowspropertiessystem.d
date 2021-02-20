@@ -12,15 +12,115 @@ public import windows.shell : IDelayedPropertyStoreFactory, IObjectWithPropertyK
                               STRRET;
 public import windows.structuredstorage : IPropertySetStorage, IPropertyStorage, IStream,
                                           PROPSPEC, PROPVARIANT;
-public import windows.systemservices : BOOL, HANDLE, HINSTANCE;
+public import windows.systemservices : BOOL, HANDLE, HINSTANCE, PSTR, PWSTR;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : FILETIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
 
+
+///Specifies possible status values used in the System.SyncTransferStatus property.
+alias SYNC_TRANSFER_STATUS = int;
+enum : int
+{
+    ///There is no current sync activity.
+    STS_NONE                   = 0x00000000,
+    ///The file is pending upload.
+    STS_NEEDSUPLOAD            = 0x00000001,
+    ///The file is pending download.
+    STS_NEEDSDOWNLOAD          = 0x00000002,
+    ///The file is currently being uploaded or downloaded.
+    STS_TRANSFERRING           = 0x00000004,
+    ///The current transfer is paused.
+    STS_PAUSED                 = 0x00000008,
+    ///An error was encountered during the last sync operation.
+    STS_HASERROR               = 0x00000010,
+    ///The sync engine is retrieving metadata from the cloud.
+    STS_FETCHING_METADATA      = 0x00000020,
+    STS_USER_REQUESTED_REFRESH = 0x00000040,
+    STS_HASWARNING             = 0x00000080,
+    STS_EXCLUDED               = 0x00000100,
+    STS_INCOMPLETE             = 0x00000200,
+    STS_PLACEHOLDER_IFEMPTY    = 0x00000400,
+}
+
+///Specifies the states that a placeholder file can have. Retrieve this value through the System.FilePlaceholderStatus
+///(PKEY_FilePlaceholderStatus) property.
+alias PLACEHOLDER_STATES = int;
+enum : int
+{
+    ///None of the other states apply at this time.
+    PS_NONE                            = 0x00000000,
+    ///May already be or eventually will be available offline.
+    PS_MARKED_FOR_OFFLINE_AVAILABILITY = 0x00000001,
+    ///The primary stream has been made fully available.
+    PS_FULL_PRIMARY_STREAM_AVAILABLE   = 0x00000002,
+    ///The file is accessible through a call to the CreateFile function, without requesting the opening of reparse
+    ///points.
+    PS_CREATE_FILE_ACCESSIBLE          = 0x00000004,
+    PS_CLOUDFILE_PLACEHOLDER           = 0x00000008,
+    PS_DEFAULT                         = 0x00000007,
+    PS_ALL                             = 0x0000000f,
+}
+
+///Specifies property features.
+alias _PROPERTYUI_FLAGS = int;
+enum : int
+{
+    ///There are no special features defined.
+    PUIF_DEFAULT          = 0x00000000,
+    ///The property should be right aligned.
+    PUIF_RIGHTALIGN       = 0x00000001,
+    PUIF_NOLABELININFOTIP = 0x00000002,
+}
+
+///Provides operation status flags.
+alias PDOPSTATUS = int;
+enum : int
+{
+    ///Operation is running, no user intervention.
+    PDOPS_RUNNING   = 0x00000001,
+    ///Operation has been paused by the user.
+    PDOPS_PAUSED    = 0x00000002,
+    ///Operation has been canceled by the user - now go undo.
+    PDOPS_CANCELLED = 0x00000003,
+    ///Operation has been stopped by the user - terminate completely.
+    PDOPS_STOPPED   = 0x00000004,
+    PDOPS_ERRORS    = 0x00000005,
+}
+
+///Specifies values used by any sync engine to expose their internal engine states to the Property Store's
+///PKEY_StorageProviderStatus value in the File Indexer To update the property, first call IShellItem2::GetPropertyStore
+///with the GPS_EXTRINSICPROPERTIES flag. Next, call the IPropertyStore::SetValue method of the returned object,
+///specifying the PKEY_StorageProviderStatus key, to set the property's bitmask value using these
+///SYNC_ENGINE_STATE_FLAGS.
+alias SYNC_ENGINE_STATE_FLAGS = int;
+enum : int
+{
+    ///No state.
+    SESF_NONE                          = 0x00000000,
+    ///The user's cloud storage quota is nearing capacity. This is dependent on the user's total quota space.
+    SESF_SERVICE_QUOTA_NEARING_LIMIT   = 0x00000001,
+    ///The user's cloud storage quota is filled.
+    SESF_SERVICE_QUOTA_EXCEEDED_LIMIT  = 0x00000002,
+    ///The user's account credentials are invalid.
+    SESF_AUTHENTICATION_ERROR          = 0x00000004,
+    ///The sync engine is paused because of metered network settings.
+    SESF_PAUSED_DUE_TO_METERED_NETWORK = 0x00000008,
+    ///The drive that contains the sync engine's content has reached the maximum allowed space.
+    SESF_PAUSED_DUE_TO_DISK_SPACE_FULL = 0x00000010,
+    ///The user has exceeded their daily limit of requests or data transfers to the service.
+    SESF_PAUSED_DUE_TO_CLIENT_POLICY   = 0x00000020,
+    ///The service has requested the system to throttle requests.
+    SESF_PAUSED_DUE_TO_SERVICE_POLICY  = 0x00000040,
+    ///The service can't be reached at this time.
+    SESF_SERVICE_UNAVAILABLE           = 0x00000080,
+    SESF_PAUSED_DUE_TO_USER_REQUEST    = 0x00000100,
+    SESF_ALL_FLAGS                     = 0x000001ff,
+}
 
 ///Indicates flags that modify the property store object retrieved by methods that create a property store, such as
 ///IShellItem2::GetPropertyStore or IPropertyStoreFactory::GetPropertyStore.
@@ -499,106 +599,6 @@ enum : int
     DPF_STOPPED          = 0x00000010,
 }
 
-///Specifies possible status values used in the System.SyncTransferStatus property.
-alias SYNC_TRANSFER_STATUS = int;
-enum : int
-{
-    ///There is no current sync activity.
-    STS_NONE                   = 0x00000000,
-    ///The file is pending upload.
-    STS_NEEDSUPLOAD            = 0x00000001,
-    ///The file is pending download.
-    STS_NEEDSDOWNLOAD          = 0x00000002,
-    ///The file is currently being uploaded or downloaded.
-    STS_TRANSFERRING           = 0x00000004,
-    ///The current transfer is paused.
-    STS_PAUSED                 = 0x00000008,
-    ///An error was encountered during the last sync operation.
-    STS_HASERROR               = 0x00000010,
-    ///The sync engine is retrieving metadata from the cloud.
-    STS_FETCHING_METADATA      = 0x00000020,
-    STS_USER_REQUESTED_REFRESH = 0x00000040,
-    STS_HASWARNING             = 0x00000080,
-    STS_EXCLUDED               = 0x00000100,
-    STS_INCOMPLETE             = 0x00000200,
-    STS_PLACEHOLDER_IFEMPTY    = 0x00000400,
-}
-
-///Specifies the states that a placeholder file can have. Retrieve this value through the System.FilePlaceholderStatus
-///(PKEY_FilePlaceholderStatus) property.
-alias PLACEHOLDER_STATES = int;
-enum : int
-{
-    ///None of the other states apply at this time.
-    PS_NONE                            = 0x00000000,
-    ///May already be or eventually will be available offline.
-    PS_MARKED_FOR_OFFLINE_AVAILABILITY = 0x00000001,
-    ///The primary stream has been made fully available.
-    PS_FULL_PRIMARY_STREAM_AVAILABLE   = 0x00000002,
-    ///The file is accessible through a call to the CreateFile function, without requesting the opening of reparse
-    ///points.
-    PS_CREATE_FILE_ACCESSIBLE          = 0x00000004,
-    PS_CLOUDFILE_PLACEHOLDER           = 0x00000008,
-    PS_DEFAULT                         = 0x00000007,
-    PS_ALL                             = 0x0000000f,
-}
-
-///Specifies property features.
-alias _PROPERTYUI_FLAGS = int;
-enum : int
-{
-    ///There are no special features defined.
-    PUIF_DEFAULT          = 0x00000000,
-    ///The property should be right aligned.
-    PUIF_RIGHTALIGN       = 0x00000001,
-    PUIF_NOLABELININFOTIP = 0x00000002,
-}
-
-///Provides operation status flags.
-alias PDOPSTATUS = int;
-enum : int
-{
-    ///Operation is running, no user intervention.
-    PDOPS_RUNNING   = 0x00000001,
-    ///Operation has been paused by the user.
-    PDOPS_PAUSED    = 0x00000002,
-    ///Operation has been canceled by the user - now go undo.
-    PDOPS_CANCELLED = 0x00000003,
-    ///Operation has been stopped by the user - terminate completely.
-    PDOPS_STOPPED   = 0x00000004,
-    PDOPS_ERRORS    = 0x00000005,
-}
-
-///Specifies values used by any sync engine to expose their internal engine states to the Property Store's
-///PKEY_StorageProviderStatus value in the File Indexer To update the property, first call IShellItem2::GetPropertyStore
-///with the GPS_EXTRINSICPROPERTIES flag. Next, call the IPropertyStore::SetValue method of the returned object,
-///specifying the PKEY_StorageProviderStatus key, to set the property's bitmask value using these
-///SYNC_ENGINE_STATE_FLAGS.
-alias SYNC_ENGINE_STATE_FLAGS = int;
-enum : int
-{
-    ///No state.
-    SESF_NONE                          = 0x00000000,
-    ///The user's cloud storage quota is nearing capacity. This is dependent on the user's total quota space.
-    SESF_SERVICE_QUOTA_NEARING_LIMIT   = 0x00000001,
-    ///The user's cloud storage quota is filled.
-    SESF_SERVICE_QUOTA_EXCEEDED_LIMIT  = 0x00000002,
-    ///The user's account credentials are invalid.
-    SESF_AUTHENTICATION_ERROR          = 0x00000004,
-    ///The sync engine is paused because of metered network settings.
-    SESF_PAUSED_DUE_TO_METERED_NETWORK = 0x00000008,
-    ///The drive that contains the sync engine's content has reached the maximum allowed space.
-    SESF_PAUSED_DUE_TO_DISK_SPACE_FULL = 0x00000010,
-    ///The user has exceeded their daily limit of requests or data transfers to the service.
-    SESF_PAUSED_DUE_TO_CLIENT_POLICY   = 0x00000020,
-    ///The service has requested the system to throttle requests.
-    SESF_PAUSED_DUE_TO_SERVICE_POLICY  = 0x00000040,
-    ///The service can't be reached at this time.
-    SESF_SERVICE_UNAVAILABLE           = 0x00000080,
-    SESF_PAUSED_DUE_TO_USER_REQUEST    = 0x00000100,
-    SESF_ALL_FLAGS                     = 0x000001ff,
-}
-
 // Structs
 
 
@@ -611,10 +611,6 @@ struct PROPERTYKEY
     ///that you set this value to PID_FIRST_USABLE. Any value greater than or equal to 2 is acceptable. <div
     ///class="alert"><b>Note</b> Values of 0 and 1 are reserved and should not be used.</div> <div> </div>
     uint pid;
-}
-
-struct SERIALIZEDPROPSTORAGE
-{
 }
 
 ///This structure contains information from a .pif file. It is used by PifMgr_GetProperties.
@@ -646,7 +642,184 @@ align (1):
     byte[260] achPIFFile;
 }
 
+struct SERIALIZEDPROPSTORAGE
+{
+}
+
 // Functions
+
+///Retrieves an object that represents a specific window's collection of properties, which allows those properties to be
+///queried or set.
+///Params:
+///    hwnd = Type: <b>HWND</b> A handle to the window whose properties are being retrieved.
+///    riid = Type: <b>REFIID</b> A reference to the IID of the property store object to retrieve through <i>ppv</i>. This is
+///           typically IID_IPropertyStore.
+///    ppv = Type: <b>void**</b> When this function returns, contains the interface pointer requested in <i>riid</i>. This is
+///          typically IPropertyStore.
+///Returns:
+///    Type: <b>HRESULT</b> If this function succeeds, it returns <b
+///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
+///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+///    
+@DllImport("SHELL32")
+HRESULT SHGetPropertyStoreForWindow(HWND hwnd, const(GUID)* riid, void** ppv);
+
+///Retrieves an object that supports IPropertyStore or related interfaces from a pointer to an item identifier list
+///(PIDL).
+///Params:
+///    pidl = Type: <b>PCIDLIST_ABSOLUTE</b> A pointer to an item ID list.
+///    flags = Type: <b>GETPROPERTYSTOREFLAGS</b> One or more values from the GETPROPERTYSTOREFLAGS constants. This parameter
+///            can also be <b>NULL</b>.
+///    riid = Type: <b>REFIID</b> A reference to the desired interface ID.
+@DllImport("SHELL32")
+HRESULT SHGetPropertyStoreFromIDList(ITEMIDLIST* pidl, GETPROPERTYSTOREFLAGS flags, const(GUID)* riid, void** ppv);
+
+///Returns a property store for an item, given a path or parsing name.
+///Params:
+///    pszPath = Type: <b>PCWSTR</b> A pointer to a null-terminated Unicode string that specifies the item path.
+///    pbc = Type: <b>IBindCtx*</b> A pointer to a IBindCtx object, which provides access to a bind context. This value can be
+///          <b>NULL</b>.
+///    flags = Type: <b>GETPROPERTYSTOREFLAGS</b> One or more values from the GETPROPERTYSTOREFLAGS constants. This parameter
+///            can also be <b>NULL</b>.
+///    riid = Type: <b>REFIID</b> A reference to the desired interface ID.
+///    ppv = Type: <b>void**</b> When this function returns, contains the interface pointer requested in <i>riid</i>. This is
+///          typically IPropertyStore or a related interface.
+///Returns:
+///    Type: <b>HRESULT</b> If this function succeeds, it returns <b
+///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
+///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+///    
+@DllImport("SHELL32")
+HRESULT SHGetPropertyStoreFromParsingName(const(PWSTR) pszPath, IBindCtx pbc, GETPROPERTYSTOREFLAGS flags, 
+                                          const(GUID)* riid, void** ppv);
+
+///Adds default properties to the property store as registered for the specified file extension.
+///Params:
+///    pszExt = Type: <b>PCWSTR</b> A pointer to a null-terminated, Unicode string that specifies the extension.
+///    pPropStore = Type: <b>IPropertyStore*</b> A pointer to the IPropertyStore interface that defines the default properties to
+///                 add.
+///Returns:
+///    Type: <b>HRESULT</b> If this function succeeds, it returns <b
+///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
+///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+///    
+@DllImport("SHELL32")
+HRESULT SHAddDefaultPropertiesByExt(const(PWSTR) pszExt, IPropertyStore pPropStore);
+
+///<p class="CCE_Message">[<b>PifMgr_OpenProperties</b> is available for use in the operating systems specified in the
+///Requirements section. It may be altered or unavailable in subsequent versions.] Opens the .pif file associated with a
+///Microsoft MS-DOS application, and returns a handle to the application's properties.
+///Params:
+///    pszApp = Type: <b>PCWSTR</b> A null-terminated Unicode string that contains the application's name.
+///    pszPIF = Type: <b>PCWSTR</b> A null-terminated Unicode string that contains the name of the .pif file.
+///    hInf = Type: <b>UINT</b> A handle to the application's .inf file. Set this value to zero if there is no .inf file. Set
+///           this value to -1 to prevent the .inf file from being processed.
+///    flOpt = Type: <b>UINT</b> A flag that controls how the function operates.
+///Returns:
+///    Type: <b>HANDLE</b> Returns a handle to the application's properties. Use this handle when you call the related
+///    .pif functions.
+///    
+@DllImport("SHELL32")
+HANDLE PifMgr_OpenProperties(const(PWSTR) pszApp, const(PWSTR) pszPIF, uint hInf, uint flOpt);
+
+///<p class="CCE_Message">[<b>PifMgr_GetProperties</b> is available for use in the operating systems specified in the
+///Requirements section. It may be altered or unavailable in subsequent versions.] Returns a specified block of data
+///from a .pif file.
+///Params:
+///    hProps = Type: <b>HANDLE</b> A handle to an application's properties. This parameter should be set to the value that is
+///             returned by PifMgr_OpenProperties.
+///    pszGroup = Type: <b>PCSTR</b> A null-terminated string that contains the property group name. It can be one of the
+///               following, or any other name that corresponds to a valid .pif extension.
+///    lpProps = Type: <b>void*</b> When this function returns, contains a pointer to a PROPPRG structure.
+///    cbProps = Type: <b>int</b> The size of the buffer, in bytes, pointed to by <i>lpProps</i>.
+///    flOpt = Type: <b>UINT</b> Set this parameter to GETPROPS_NONE.
+///Returns:
+///    Type: <b>int</b> Returns <b>NULL</b> if successful. If unsuccessful, the function returns the handle to the
+///    application properties that were passed as <i>hProps</i>.
+///    
+@DllImport("SHELL32")
+int PifMgr_GetProperties(HANDLE hProps, const(PSTR) pszGroup, void* lpProps, int cbProps, uint flOpt);
+
+///<p class="CCE_Message">[<b>PifMgr_SetProperties</b> is available for use in the operating systems specified in the
+///Requirements section. It may be altered or unavailable in subsequent versions.] Assigns values to a block of data
+///from a .pif file.
+///Params:
+///    hProps = Type: <b>HANDLE</b> A handle to the application's properties. This parameter should be set to the value that is
+///             returned by PifMgr_OpenProperties.
+///    pszGroup = Type: <b>PCSTR</b> A null-terminated ANSI string containing the property group name. It can be one of the
+///               following, or any other name that corresponds to a valid .pif extension.
+///    lpProps = Type: <b>const void*</b> A property group record buffer that holds the data.
+///    cbProps = Type: <b>int</b> The size of the buffer, in bytes, pointed to by <i>lpProps</i>.
+///    flOpt = Type: <b>UINT</b> Always SETPROPS_NONE.
+///Returns:
+///    Type: <b>int</b> Returns the amount of information transferred, in bytes. Returns zero if the group cannot be
+///    found or an error occurs.
+///    
+@DllImport("SHELL32")
+int PifMgr_SetProperties(HANDLE hProps, const(PSTR) pszGroup, const(void)* lpProps, int cbProps, uint flOpt);
+
+///<p class="CCE_Message">[<b>PifMgr_CloseProperties</b> is available for use in the operating systems specified in the
+///Requirements section. It may be altered or unavailable in subsequent versions.] Closes application properties that
+///were opened with PifMgr_OpenProperties.
+///Params:
+///    hProps = Type: <b>HANDLE</b> A handle to the application's properties. This parameter should be set to the value that is
+///             returned by PifMgr_OpenProperties.
+///    flOpt = Type: <b>UINT</b> A flag that specifies how the function operates.
+///Returns:
+///    Type: <b>int</b> Returns <b>NULL</b> if successful. If unsuccessful, the functions returns the handle to the
+///    application properties that was passed as <i>hProps</i>.
+///    
+@DllImport("SHELL32")
+HANDLE PifMgr_CloseProperties(HANDLE hProps, uint flOpt);
+
+///<p class="CCE_Message">[This function is available through Windows XP Service Pack 2 (SP2) and Windows Server 2003.
+///It might be altered or unavailable in subsequent versions of Windows.] Ensures proper handling of code page retrieval
+///or assignment for the requested property set operation.
+///Params:
+///    psstg = Type: <b>IPropertySetStorage*</b> A pointer to an IPropertySetStorage interface.
+///    fmtid = Type: <b>REFFMTID</b> A property set ID to open. The values for this parameter can be either one of those defined
+///            in Predefined Property Set Format Identifiers or any other FMTID that you register.
+///    pclsid = Type: <b>const CLSID*</b> A pointer to the CLSID associated with the set. This parameter can be <b>NULL</b>.
+///    grfFlags = Type: <b>DWORD</b> One or more members of the PROPSETFLAG enumeration that determine how the property set is
+///               created and opened. All sets containing ANSI bytes should be created with PROPSETFLAG_ANSI, otherwise
+///               PROPSETFLAG_DEFAULT.
+///    grfMode = Type: <b>DWORD</b> The flags from the STGM enumeration that indicate conditions for creating and deleting the
+///              object and access modes for the object. Must contain STGM_DIRECT | STGM_SHARE_EXCLUSIVE.
+///    dwDisposition = Type: <b>DWORD</b> One of the following values, defined in Fileapi.h.
+///    ppstg = Type: <b>IPropertyStorage**</b> When this method returns, contains an IPropertyStorage interface pointer.
+///    puCodePage = Type: <b>UINT*</b> When this method returns, contains the address of the code page ID for the set.
+@DllImport("SHELL32")
+HRESULT SHPropStgCreate(IPropertySetStorage psstg, const(GUID)* fmtid, const(GUID)* pclsid, uint grfFlags, 
+                        uint grfMode, uint dwDisposition, IPropertyStorage* ppstg, uint* puCodePage);
+
+///<p class="CCE_Message">[This function is available through Windows XP Service Pack 2 (SP2) and Windows Server 2003.
+///It might be altered or unavailable in subsequent versions of Windows.] Wraps the IPropertyStorage::ReadMultiple
+///function to ensure that ANSI and Unicode translations are handled properly for deprecated property sets.
+///Params:
+///    pps = Type: <b>IPropertyStorage*</b> An IPropertyStorage interface pointer that identifies the property store.
+///    uCodePage = Type: <b>UINT</b> A code page value for ANSI string properties.
+///    cpspec = Type: <b>ULONG</b> A count of properties being read.
+///    rgpspec = Type: <b>PROPSPEC const[]</b> An array of properties to be read.
+///    rgvar = Type: <b>PROPVARIANT[]</b> An array of PROPVARIANT types that, when this function returns successfully, receives
+///            the property values.
+@DllImport("SHELL32")
+HRESULT SHPropStgReadMultiple(IPropertyStorage pps, uint uCodePage, uint cpspec, const(PROPSPEC)* rgpspec, 
+                              PROPVARIANT* rgvar);
+
+///<p class="CCE_Message">[This function is available through Windows XP Service Pack 2 (SP2) and Windows Server 2003.
+///It might be altered or unavailable in subsequent versions of Windows.] Wraps the IPropertyStorage::WriteMultiple
+///function to ensure that ANSI and Unicode translations are handled properly for deprecated property sets.
+///Params:
+///    pps = Type: <b>IPropertyStorage*</b> An IPropertyStorage interface pointer that identifies the property store.
+///    puCodePage = Type: <b>UINT*</b> A pointer to the code page value for ANSI string properties.
+///    cpspec = Type: <b>ULONG</b> A count of properties being set.
+///    rgpspec = Type: <b>PROPSPEC const[]</b> An array of PROPSPEC structures that contain the property information to be set.
+///    rgvar = Type: <b>PROPVARIANT[]</b> An array of PROPVARIANT types to set the property values.
+///    propidNameFirst = Type: <b>PROPID</b> The minimum value for property identifiers when they must be allocated. The value should be
+///                      greater than or equal to PID_FIRST_USABLE.
+@DllImport("SHELL32")
+HRESULT SHPropStgWriteMultiple(IPropertyStorage pps, uint* puCodePage, uint cpspec, const(PROPSPEC)* rgpspec, 
+                               PROPVARIANT* rgvar, uint propidNameFirst);
 
 ///Extracts data from a PROPVARIANT structure into a Windows Runtime property value. Note that in some cases more than
 ///one PROPVARIANT type maps to a single Windows Runtime property type.
@@ -699,7 +872,7 @@ HRESULT WinRTPropertyValueToPropVariant(IUnknown punkPropertyValue, PROPVARIANT*
 ///    
 @DllImport("PROPSYS")
 HRESULT PSFormatForDisplay(const(PROPERTYKEY)* propkey, const(PROPVARIANT)* propvar, 
-                           PROPDESC_FORMAT_FLAGS pdfFlags, const(wchar)* pwszText, uint cchText);
+                           PROPDESC_FORMAT_FLAGS pdfFlags, PWSTR pwszText, uint cchText);
 
 ///Gets a formatted, Unicode string representation of a property value stored in a PROPVARIANT structure. This function
 ///allocates memory for the output string.
@@ -723,7 +896,7 @@ HRESULT PSFormatForDisplay(const(PROPERTYKEY)* propkey, const(PROPVARIANT)* prop
 ///    
 @DllImport("PROPSYS")
 HRESULT PSFormatForDisplayAlloc(const(PROPERTYKEY)* key, const(PROPVARIANT)* propvar, PROPDESC_FORMAT_FLAGS pdff, 
-                                ushort** ppszDisplay);
+                                PWSTR* ppszDisplay);
 
 ///Gets a formatted, Unicode string representation of a property value stored in a property store. This function
 ///allocates memory for the output string.
@@ -743,7 +916,7 @@ HRESULT PSFormatForDisplayAlloc(const(PROPERTYKEY)* key, const(PROPVARIANT)* pro
 ///    
 @DllImport("PROPSYS")
 HRESULT PSFormatPropertyValue(IPropertyStore pps, IPropertyDescription ppd, PROPDESC_FORMAT_FLAGS pdff, 
-                              ushort** ppszDisplay);
+                              PWSTR* ppszDisplay);
 
 ///Gets an instance of a property description interface for a specified property.
 ///Params:
@@ -757,8 +930,7 @@ HRESULT PSFormatPropertyValue(IPropertyStore pps, IPropertyDescription ppd, PROP
 ///    <dt><b>TYPE_E_ELEMENTNOTFOUND</b></dt> </dl> </td> <td width="60%"></td> </tr> </table>
 ///    
 @DllImport("PROPSYS")
-HRESULT PSGetImageReferenceForValue(const(PROPERTYKEY)* propkey, const(PROPVARIANT)* propvar, 
-                                    ushort** ppszImageRes);
+HRESULT PSGetImageReferenceForValue(const(PROPERTYKEY)* propkey, const(PROPVARIANT)* propvar, PWSTR* ppszImageRes);
 
 ///Creates a string that identifies a property from that property's key.
 ///Params:
@@ -772,7 +944,7 @@ HRESULT PSGetImageReferenceForValue(const(PROPERTYKEY)* propkey, const(PROPVARIA
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSStringFromPropertyKey(const(PROPERTYKEY)* pkey, const(wchar)* psz, uint cch);
+HRESULT PSStringFromPropertyKey(const(PROPERTYKEY)* pkey, PWSTR psz, uint cch);
 
 ///Converts a string to a PROPERTYKEY structure.
 ///Params:
@@ -784,7 +956,7 @@ HRESULT PSStringFromPropertyKey(const(PROPERTYKEY)* pkey, const(wchar)* psz, uin
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyKeyFromString(const(wchar)* pszString, PROPERTYKEY* pkey);
+HRESULT PSPropertyKeyFromString(const(PWSTR) pszString, PROPERTYKEY* pkey);
 
 ///Creates an in-memory property store.
 ///Params:
@@ -817,7 +989,7 @@ HRESULT PSCreateMemoryPropertyStore(const(GUID)* riid, void** ppv);
 ///    
 @DllImport("PROPSYS")
 HRESULT PSCreateDelayedMultiplexPropertyStore(GETPROPERTYSTOREFLAGS flags, IDelayedPropertyStoreFactory pdpsf, 
-                                              char* rgStoreIds, uint cStores, const(GUID)* riid, void** ppv);
+                                              const(uint)* rgStoreIds, uint cStores, const(GUID)* riid, void** ppv);
 
 ///Creates a read-only property store that contains multiple property stores, each of which must support either
 ///IPropertyStore or IPropertySetStorage.
@@ -834,7 +1006,7 @@ HRESULT PSCreateDelayedMultiplexPropertyStore(GETPROPERTYSTOREFLAGS flags, IDela
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSCreateMultiplexPropertyStore(char* prgpunkStores, uint cStores, const(GUID)* riid, void** ppv);
+HRESULT PSCreateMultiplexPropertyStore(IUnknown* prgpunkStores, uint cStores, const(GUID)* riid, void** ppv);
 
 ///Creates a container for a set of IPropertyChange objects. This container can be used with IFileOperation to apply a
 ///set of property changes to a set of files.
@@ -856,8 +1028,8 @@ HRESULT PSCreateMultiplexPropertyStore(char* prgpunkStores, uint cStores, const(
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSCreatePropertyChangeArray(char* rgpropkey, char* rgflags, char* rgpropvar, uint cChanges, 
-                                    const(GUID)* riid, void** ppv);
+HRESULT PSCreatePropertyChangeArray(const(PROPERTYKEY)* rgpropkey, const(PKA_FLAGS)* rgflags, 
+                                    const(PROPVARIANT)* rgpropvar, uint cChanges, const(GUID)* riid, void** ppv);
 
 ///Creates a simple property change.
 ///Params:
@@ -906,7 +1078,7 @@ HRESULT PSGetPropertyDescription(const(PROPERTYKEY)* propkey, const(GUID)* riid,
 ///    schema subsystem cache. </td> </tr> </table>
 ///    
 @DllImport("PROPSYS")
-HRESULT PSGetPropertyDescriptionByName(const(wchar)* pszCanonicalName, const(GUID)* riid, void** ppv);
+HRESULT PSGetPropertyDescriptionByName(const(PWSTR) pszCanonicalName, const(GUID)* riid, void** ppv);
 
 ///Gets the class identifier (CLSID) of a per-computer, registered file property handler.
 ///Params:
@@ -917,7 +1089,7 @@ HRESULT PSGetPropertyDescriptionByName(const(wchar)* pszCanonicalName, const(GUI
 ///    Type: <b>PSSTDAPI</b> Returns <b>S_OK</b> if successful, or an error value otherwise.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSLookupPropertyHandlerCLSID(const(wchar)* pszFilePath, GUID* pclsid);
+HRESULT PSLookupPropertyHandlerCLSID(const(PWSTR) pszFilePath, GUID* pclsid);
 
 ///Retrieves a property handler for a Shell item.
 ///Params:
@@ -1000,7 +1172,7 @@ HRESULT PSSetPropertyValue(IPropertyStore pps, IPropertyDescription ppd, const(P
 ///    failed to register. The specific failures are logged in the application event log. </td> </tr> </table>
 ///    
 @DllImport("PROPSYS")
-HRESULT PSRegisterPropertySchema(const(wchar)* pszPath);
+HRESULT PSRegisterPropertySchema(const(PWSTR) pszPath);
 
 ///Informs the schema subsystem of the removal of a property description schema file.
 ///Params:
@@ -1014,7 +1186,7 @@ HRESULT PSRegisterPropertySchema(const(wchar)* pszPath);
 ///    context does not have proper privileges. </td> </tr> </table>
 ///    
 @DllImport("PROPSYS")
-HRESULT PSUnregisterPropertySchema(const(wchar)* pszPath);
+HRESULT PSUnregisterPropertySchema(const(PWSTR) pszPath);
 
 ///Not supported. It is valid to call this function, but it is not implemented to perform any function so there is no
 ///reason to do so.
@@ -1050,7 +1222,7 @@ HRESULT PSEnumeratePropertyDescriptions(PROPDESC_ENUMFILTER filterOn, const(GUID
 ///    the schema subsystem cache. </td> </tr> </table>
 ///    
 @DllImport("PROPSYS")
-HRESULT PSGetPropertyKeyFromName(const(wchar)* pszName, PROPERTYKEY* ppropkey);
+HRESULT PSGetPropertyKeyFromName(const(PWSTR) pszName, PROPERTYKEY* ppropkey);
 
 ///Retrieves the canonical name of the property, given its PROPERTYKEY.
 ///Params:
@@ -1064,7 +1236,7 @@ HRESULT PSGetPropertyKeyFromName(const(wchar)* pszName, PROPERTYKEY* ppropkey);
 ///    width="60%"> Indicates that the PROPERTYKEY does not exist in the schema subsystem cache. </td> </tr> </table>
 ///    
 @DllImport("PROPSYS")
-HRESULT PSGetNameFromPropertyKey(const(PROPERTYKEY)* propkey, ushort** ppszCanonicalName);
+HRESULT PSGetNameFromPropertyKey(const(PROPERTYKEY)* propkey, PWSTR* ppszCanonicalName);
 
 ///Converts the value of a property to the canonical value, according to the property description.
 ///Params:
@@ -1103,7 +1275,7 @@ HRESULT PSCoerceToCanonicalValue(const(PROPERTYKEY)* key, PROPVARIANT* ppropvar)
 ///    parameter is <b>NULL</b>. </td> </tr> </table>
 ///    
 @DllImport("PROPSYS")
-HRESULT PSGetPropertyDescriptionListFromString(const(wchar)* pszPropList, const(GUID)* riid, void** ppv);
+HRESULT PSGetPropertyDescriptionListFromString(const(PWSTR) pszPropList, const(GUID)* riid, void** ppv);
 
 ///Wraps an IPropertySetStorage interface in an IPropertyStore interface.
 ///Params:
@@ -1175,7 +1347,8 @@ HRESULT PSGetPropertySystem(const(GUID)* riid, void** ppv);
 ///    Type: <b>PSSTDAPI</b> Returns <b>S_OK</b> if successful, or an error value otherwise.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSGetPropertyFromPropertyStorage(char* psps, uint cb, const(PROPERTYKEY)* rpkey, PROPVARIANT* ppropvar);
+HRESULT PSGetPropertyFromPropertyStorage(SERIALIZEDPROPSTORAGE* psps, uint cb, const(PROPERTYKEY)* rpkey, 
+                                         PROPVARIANT* ppropvar);
 
 ///Gets a value from serialized property storage by property name.
 ///Params:
@@ -1188,7 +1361,8 @@ HRESULT PSGetPropertyFromPropertyStorage(char* psps, uint cb, const(PROPERTYKEY)
 ///    Type: <b>PSSTDAPI</b> Returns <b>S_OK</b> if successful, or an error value otherwise.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSGetNamedPropertyFromPropertyStorage(char* psps, uint cb, const(wchar)* pszName, PROPVARIANT* ppropvar);
+HRESULT PSGetNamedPropertyFromPropertyStorage(SERIALIZEDPROPSTORAGE* psps, uint cb, const(PWSTR) pszName, 
+                                              PROPVARIANT* ppropvar);
 
 ///Reads the type of data value of a property that is stored in a property bag.
 ///Params:
@@ -1207,7 +1381,7 @@ HRESULT PSGetNamedPropertyFromPropertyStorage(char* psps, uint cb, const(wchar)*
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_ReadType(IPropertyBag propBag, const(wchar)* propName, VARIANT* var, ushort type);
+HRESULT PSPropertyBag_ReadType(IPropertyBag propBag, const(PWSTR) propName, VARIANT* var, ushort type);
 
 ///Reads the string data value of a property in a property bag.
 ///Params:
@@ -1223,8 +1397,7 @@ HRESULT PSPropertyBag_ReadType(IPropertyBag propBag, const(wchar)* propName, VAR
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_ReadStr(IPropertyBag propBag, const(wchar)* propName, const(wchar)* value, 
-                              int characterCount);
+HRESULT PSPropertyBag_ReadStr(IPropertyBag propBag, const(PWSTR) propName, PWSTR value, int characterCount);
 
 ///Reads a string data value from a property in a property bag and allocates memory for the string that is read.
 ///Params:
@@ -1240,7 +1413,7 @@ HRESULT PSPropertyBag_ReadStr(IPropertyBag propBag, const(wchar)* propName, cons
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_ReadStrAlloc(IPropertyBag propBag, const(wchar)* propName, ushort** value);
+HRESULT PSPropertyBag_ReadStrAlloc(IPropertyBag propBag, const(PWSTR) propName, PWSTR* value);
 
 ///Reads a <b>BSTR</b> data value from a property in a property bag.
 ///Params:
@@ -1254,7 +1427,7 @@ HRESULT PSPropertyBag_ReadStrAlloc(IPropertyBag propBag, const(wchar)* propName,
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_ReadBSTR(IPropertyBag propBag, const(wchar)* propName, BSTR* value);
+HRESULT PSPropertyBag_ReadBSTR(IPropertyBag propBag, const(PWSTR) propName, BSTR* value);
 
 ///Sets the string value of a property in a property bag.
 ///Params:
@@ -1268,7 +1441,7 @@ HRESULT PSPropertyBag_ReadBSTR(IPropertyBag propBag, const(wchar)* propName, BST
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_WriteStr(IPropertyBag propBag, const(wchar)* propName, const(wchar)* value);
+HRESULT PSPropertyBag_WriteStr(IPropertyBag propBag, const(PWSTR) propName, const(PWSTR) value);
 
 ///Sets the <b>BSTR</b> value of a property in a property bag.
 ///Params:
@@ -1282,7 +1455,7 @@ HRESULT PSPropertyBag_WriteStr(IPropertyBag propBag, const(wchar)* propName, con
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_WriteBSTR(IPropertyBag propBag, const(wchar)* propName, BSTR value);
+HRESULT PSPropertyBag_WriteBSTR(IPropertyBag propBag, const(PWSTR) propName, BSTR value);
 
 ///Reads an <b>int</b> data value from a property in a property bag.
 ///Params:
@@ -1296,7 +1469,7 @@ HRESULT PSPropertyBag_WriteBSTR(IPropertyBag propBag, const(wchar)* propName, BS
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_ReadInt(IPropertyBag propBag, const(wchar)* propName, int* value);
+HRESULT PSPropertyBag_ReadInt(IPropertyBag propBag, const(PWSTR) propName, int* value);
 
 ///Sets the <b>int</b> value of a property in a property bag.
 ///Params:
@@ -1310,7 +1483,7 @@ HRESULT PSPropertyBag_ReadInt(IPropertyBag propBag, const(wchar)* propName, int*
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_WriteInt(IPropertyBag propBag, const(wchar)* propName, int value);
+HRESULT PSPropertyBag_WriteInt(IPropertyBag propBag, const(PWSTR) propName, int value);
 
 ///Reads the SHORT data value of a property in a property bag.
 ///Params:
@@ -1324,7 +1497,7 @@ HRESULT PSPropertyBag_WriteInt(IPropertyBag propBag, const(wchar)* propName, int
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_ReadSHORT(IPropertyBag propBag, const(wchar)* propName, short* value);
+HRESULT PSPropertyBag_ReadSHORT(IPropertyBag propBag, const(PWSTR) propName, short* value);
 
 ///Sets the SHORT value of a property in a property bag.
 ///Params:
@@ -1338,7 +1511,7 @@ HRESULT PSPropertyBag_ReadSHORT(IPropertyBag propBag, const(wchar)* propName, sh
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_WriteSHORT(IPropertyBag propBag, const(wchar)* propName, short value);
+HRESULT PSPropertyBag_WriteSHORT(IPropertyBag propBag, const(PWSTR) propName, short value);
 
 ///Reads a <b>LONG</b> data value from a property in a property bag.
 ///Params:
@@ -1352,7 +1525,7 @@ HRESULT PSPropertyBag_WriteSHORT(IPropertyBag propBag, const(wchar)* propName, s
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_ReadLONG(IPropertyBag propBag, const(wchar)* propName, int* value);
+HRESULT PSPropertyBag_ReadLONG(IPropertyBag propBag, const(PWSTR) propName, int* value);
 
 ///Sets the <b>LONG</b> value of a property in a property bag.
 ///Params:
@@ -1366,7 +1539,7 @@ HRESULT PSPropertyBag_ReadLONG(IPropertyBag propBag, const(wchar)* propName, int
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_WriteLONG(IPropertyBag propBag, const(wchar)* propName, int value);
+HRESULT PSPropertyBag_WriteLONG(IPropertyBag propBag, const(PWSTR) propName, int value);
 
 ///Reads a <b>DWORD</b> data value from property in a property bag.
 ///Params:
@@ -1380,7 +1553,7 @@ HRESULT PSPropertyBag_WriteLONG(IPropertyBag propBag, const(wchar)* propName, in
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_ReadDWORD(IPropertyBag propBag, const(wchar)* propName, uint* value);
+HRESULT PSPropertyBag_ReadDWORD(IPropertyBag propBag, const(PWSTR) propName, uint* value);
 
 ///Sets the <b>DWORD</b> value of a property in a property bag.
 ///Params:
@@ -1394,7 +1567,7 @@ HRESULT PSPropertyBag_ReadDWORD(IPropertyBag propBag, const(wchar)* propName, ui
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_WriteDWORD(IPropertyBag propBag, const(wchar)* propName, uint value);
+HRESULT PSPropertyBag_WriteDWORD(IPropertyBag propBag, const(PWSTR) propName, uint value);
 
 ///Reads the <b>BOOL</b> data value of a property in a property bag.
 ///Params:
@@ -1409,7 +1582,7 @@ HRESULT PSPropertyBag_WriteDWORD(IPropertyBag propBag, const(wchar)* propName, u
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_ReadBOOL(IPropertyBag propBag, const(wchar)* propName, int* value);
+HRESULT PSPropertyBag_ReadBOOL(IPropertyBag propBag, const(PWSTR) propName, BOOL* value);
 
 ///Sets the <b>BOOL</b> value of a property in a property bag.
 ///Params:
@@ -1423,7 +1596,7 @@ HRESULT PSPropertyBag_ReadBOOL(IPropertyBag propBag, const(wchar)* propName, int
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_WriteBOOL(IPropertyBag propBag, const(wchar)* propName, BOOL value);
+HRESULT PSPropertyBag_WriteBOOL(IPropertyBag propBag, const(PWSTR) propName, BOOL value);
 
 ///Retrieves the property coordinates stored in a POINTL structure of a specified property bag.
 ///Params:
@@ -1438,7 +1611,7 @@ HRESULT PSPropertyBag_WriteBOOL(IPropertyBag propBag, const(wchar)* propName, BO
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_ReadPOINTL(IPropertyBag propBag, const(wchar)* propName, POINTL* value);
+HRESULT PSPropertyBag_ReadPOINTL(IPropertyBag propBag, const(PWSTR) propName, POINTL* value);
 
 ///Stores the property coordinates in aPOINTL structure of a specified property bag.
 ///Params:
@@ -1453,7 +1626,7 @@ HRESULT PSPropertyBag_ReadPOINTL(IPropertyBag propBag, const(wchar)* propName, P
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_WritePOINTL(IPropertyBag propBag, const(wchar)* propName, const(POINTL)* value);
+HRESULT PSPropertyBag_WritePOINTL(IPropertyBag propBag, const(PWSTR) propName, const(POINTL)* value);
 
 ///Retrieves the property coordinates stored in a POINTS structure of a specified property bag.
 ///Params:
@@ -1468,7 +1641,7 @@ HRESULT PSPropertyBag_WritePOINTL(IPropertyBag propBag, const(wchar)* propName, 
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_ReadPOINTS(IPropertyBag propBag, const(wchar)* propName, POINTS* value);
+HRESULT PSPropertyBag_ReadPOINTS(IPropertyBag propBag, const(PWSTR) propName, POINTS* value);
 
 ///Stores the property coordinates in aPOINTS structure of a specified property bag.
 ///Params:
@@ -1482,7 +1655,7 @@ HRESULT PSPropertyBag_ReadPOINTS(IPropertyBag propBag, const(wchar)* propName, P
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_WritePOINTS(IPropertyBag propBag, const(wchar)* propName, const(POINTS)* value);
+HRESULT PSPropertyBag_WritePOINTS(IPropertyBag propBag, const(PWSTR) propName, const(POINTS)* value);
 
 ///Retrieves the coordinates of a rectangle stored in a property contained in a specified property bag.
 ///Params:
@@ -1497,7 +1670,7 @@ HRESULT PSPropertyBag_WritePOINTS(IPropertyBag propBag, const(wchar)* propName, 
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_ReadRECTL(IPropertyBag propBag, const(wchar)* propName, RECTL* value);
+HRESULT PSPropertyBag_ReadRECTL(IPropertyBag propBag, const(PWSTR) propName, RECTL* value);
 
 ///Stores the coordinates of a rectangle in a property in a property bag.
 ///Params:
@@ -1511,7 +1684,7 @@ HRESULT PSPropertyBag_ReadRECTL(IPropertyBag propBag, const(wchar)* propName, RE
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_WriteRECTL(IPropertyBag propBag, const(wchar)* propName, const(RECTL)* value);
+HRESULT PSPropertyBag_WriteRECTL(IPropertyBag propBag, const(PWSTR) propName, const(RECTL)* value);
 
 ///Reads the data stream stored in a given property contained in a specified property bag.
 ///Params:
@@ -1526,7 +1699,7 @@ HRESULT PSPropertyBag_WriteRECTL(IPropertyBag propBag, const(wchar)* propName, c
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_ReadStream(IPropertyBag propBag, const(wchar)* propName, IStream* value);
+HRESULT PSPropertyBag_ReadStream(IPropertyBag propBag, const(PWSTR) propName, IStream* value);
 
 ///Writes a data stream to a property in a property bag.
 ///Params:
@@ -1540,7 +1713,7 @@ HRESULT PSPropertyBag_ReadStream(IPropertyBag propBag, const(wchar)* propName, I
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_WriteStream(IPropertyBag propBag, const(wchar)* propName, IStream value);
+HRESULT PSPropertyBag_WriteStream(IPropertyBag propBag, const(PWSTR) propName, IStream value);
 
 ///Deletes a property from a property bag.
 ///Params:
@@ -1553,7 +1726,7 @@ HRESULT PSPropertyBag_WriteStream(IPropertyBag propBag, const(wchar)* propName, 
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_Delete(IPropertyBag propBag, const(wchar)* propName);
+HRESULT PSPropertyBag_Delete(IPropertyBag propBag, const(PWSTR) propName);
 
 ///Reads a <b>ULONGLONG</b> data value from a property in a property bag.
 ///Params:
@@ -1567,7 +1740,7 @@ HRESULT PSPropertyBag_Delete(IPropertyBag propBag, const(wchar)* propName);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_ReadULONGLONG(IPropertyBag propBag, const(wchar)* propName, ulong* value);
+HRESULT PSPropertyBag_ReadULONGLONG(IPropertyBag propBag, const(PWSTR) propName, ulong* value);
 
 ///Sets the <b>ULONGLONG</b> value of a property in a property bag.
 ///Params:
@@ -1581,7 +1754,7 @@ HRESULT PSPropertyBag_ReadULONGLONG(IPropertyBag propBag, const(wchar)* propName
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_WriteULONGLONG(IPropertyBag propBag, const(wchar)* propName, ulong value);
+HRESULT PSPropertyBag_WriteULONGLONG(IPropertyBag propBag, const(PWSTR) propName, ulong value);
 
 ///Reads a given property of an unknown data value in a property bag.
 ///Params:
@@ -1598,7 +1771,7 @@ HRESULT PSPropertyBag_WriteULONGLONG(IPropertyBag propBag, const(wchar)* propNam
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_ReadUnknown(IPropertyBag propBag, const(wchar)* propName, const(GUID)* riid, void** ppv);
+HRESULT PSPropertyBag_ReadUnknown(IPropertyBag propBag, const(PWSTR) propName, const(GUID)* riid, void** ppv);
 
 ///Writes a property of an unknown data value in a property bag.
 ///Params:
@@ -1613,7 +1786,7 @@ HRESULT PSPropertyBag_ReadUnknown(IPropertyBag propBag, const(wchar)* propName, 
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_WriteUnknown(IPropertyBag propBag, const(wchar)* propName, IUnknown punk);
+HRESULT PSPropertyBag_WriteUnknown(IPropertyBag propBag, const(PWSTR) propName, IUnknown punk);
 
 ///Reads the GUID data value from a property in a property bag.
 ///Params:
@@ -1627,7 +1800,7 @@ HRESULT PSPropertyBag_WriteUnknown(IPropertyBag propBag, const(wchar)* propName,
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_ReadGUID(IPropertyBag propBag, const(wchar)* propName, GUID* value);
+HRESULT PSPropertyBag_ReadGUID(IPropertyBag propBag, const(PWSTR) propName, GUID* value);
 
 ///Sets the GUID value of a property in a property bag.
 ///Params:
@@ -1641,7 +1814,7 @@ HRESULT PSPropertyBag_ReadGUID(IPropertyBag propBag, const(wchar)* propName, GUI
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_WriteGUID(IPropertyBag propBag, const(wchar)* propName, const(GUID)* value);
+HRESULT PSPropertyBag_WriteGUID(IPropertyBag propBag, const(PWSTR) propName, const(GUID)* value);
 
 ///Reads the property key of a property in a specified property bag.
 ///Params:
@@ -1655,7 +1828,7 @@ HRESULT PSPropertyBag_WriteGUID(IPropertyBag propBag, const(wchar)* propName, co
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_ReadPropertyKey(IPropertyBag propBag, const(wchar)* propName, PROPERTYKEY* value);
+HRESULT PSPropertyBag_ReadPropertyKey(IPropertyBag propBag, const(PWSTR) propName, PROPERTYKEY* value);
 
 ///Sets the property key value of a property in a property bag.
 ///Params:
@@ -1670,7 +1843,7 @@ HRESULT PSPropertyBag_ReadPropertyKey(IPropertyBag propBag, const(wchar)* propNa
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PSPropertyBag_WritePropertyKey(IPropertyBag propBag, const(wchar)* propName, const(PROPERTYKEY)* value);
+HRESULT PSPropertyBag_WritePropertyKey(IPropertyBag propBag, const(PWSTR) propName, const(PROPERTYKEY)* value);
 
 ///Initializes a PROPVARIANT structure based on a string resource embedded in an executable file.
 ///Params:
@@ -1696,7 +1869,7 @@ HRESULT InitPropVariantFromResource(HINSTANCE hinst, uint id, PROPVARIANT* pprop
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT InitPropVariantFromBuffer(char* pv, uint cb, PROPVARIANT* ppropvar);
+HRESULT InitPropVariantFromBuffer(const(void)* pv, uint cb, PROPVARIANT* ppropvar);
 
 ///Initializes a PROPVARIANT structure based on a class identifier (CLSID).
 ///Params:
@@ -1785,7 +1958,7 @@ HRESULT InitPropVariantFromStrRet(STRRET* pstrret, ITEMIDLIST* pidl, PROPVARIANT
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT InitPropVariantFromBooleanVector(char* prgf, uint cElems, PROPVARIANT* ppropvar);
+HRESULT InitPropVariantFromBooleanVector(const(BOOL)* prgf, uint cElems, PROPVARIANT* ppropvar);
 
 ///Initializes a PROPVARIANT structure based on a specified vector of 16-bit integer values.
 ///Params:
@@ -1799,7 +1972,7 @@ HRESULT InitPropVariantFromBooleanVector(char* prgf, uint cElems, PROPVARIANT* p
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT InitPropVariantFromInt16Vector(char* prgn, uint cElems, PROPVARIANT* ppropvar);
+HRESULT InitPropVariantFromInt16Vector(const(short)* prgn, uint cElems, PROPVARIANT* ppropvar);
 
 ///Initializes a PROPVARIANT structure based on a vector of 16-bit unsigned integer values.
 ///Params:
@@ -1813,7 +1986,7 @@ HRESULT InitPropVariantFromInt16Vector(char* prgn, uint cElems, PROPVARIANT* ppr
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT InitPropVariantFromUInt16Vector(char* prgn, uint cElems, PROPVARIANT* ppropvar);
+HRESULT InitPropVariantFromUInt16Vector(const(ushort)* prgn, uint cElems, PROPVARIANT* ppropvar);
 
 ///Initializes a PROPVARIANT structure based on a vector of 32-bit integer values.
 ///Params:
@@ -1827,7 +2000,7 @@ HRESULT InitPropVariantFromUInt16Vector(char* prgn, uint cElems, PROPVARIANT* pp
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT InitPropVariantFromInt32Vector(char* prgn, uint cElems, PROPVARIANT* ppropvar);
+HRESULT InitPropVariantFromInt32Vector(const(int)* prgn, uint cElems, PROPVARIANT* ppropvar);
 
 ///Initializes a PROPVARIANT structure based on a vector of 32-bit unsigned integer values.
 ///Params:
@@ -1841,7 +2014,7 @@ HRESULT InitPropVariantFromInt32Vector(char* prgn, uint cElems, PROPVARIANT* ppr
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT InitPropVariantFromUInt32Vector(char* prgn, uint cElems, PROPVARIANT* ppropvar);
+HRESULT InitPropVariantFromUInt32Vector(const(uint)* prgn, uint cElems, PROPVARIANT* ppropvar);
 
 ///Initializes a PROPVARIANT structure based on a vector of <b>Int64</b> values.
 ///Params:
@@ -1855,7 +2028,7 @@ HRESULT InitPropVariantFromUInt32Vector(char* prgn, uint cElems, PROPVARIANT* pp
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT InitPropVariantFromInt64Vector(char* prgn, uint cElems, PROPVARIANT* ppropvar);
+HRESULT InitPropVariantFromInt64Vector(const(long)* prgn, uint cElems, PROPVARIANT* ppropvar);
 
 ///Initializes a PROPVARIANT structure based on a vector of 64-bit unsigned integers.
 ///Params:
@@ -1869,7 +2042,7 @@ HRESULT InitPropVariantFromInt64Vector(char* prgn, uint cElems, PROPVARIANT* ppr
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT InitPropVariantFromUInt64Vector(char* prgn, uint cElems, PROPVARIANT* ppropvar);
+HRESULT InitPropVariantFromUInt64Vector(const(ulong)* prgn, uint cElems, PROPVARIANT* ppropvar);
 
 ///Initializes a PROPVARIANT structure based on a specified vector of <b>double</b> values.
 ///Params:
@@ -1883,7 +2056,7 @@ HRESULT InitPropVariantFromUInt64Vector(char* prgn, uint cElems, PROPVARIANT* pp
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT InitPropVariantFromDoubleVector(char* prgn, uint cElems, PROPVARIANT* ppropvar);
+HRESULT InitPropVariantFromDoubleVector(const(double)* prgn, uint cElems, PROPVARIANT* ppropvar);
 
 ///Initializes a PROPVARIANT structure from a specified vector of FILETIME values.
 ///Params:
@@ -1897,7 +2070,7 @@ HRESULT InitPropVariantFromDoubleVector(char* prgn, uint cElems, PROPVARIANT* pp
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT InitPropVariantFromFileTimeVector(char* prgft, uint cElems, PROPVARIANT* ppropvar);
+HRESULT InitPropVariantFromFileTimeVector(const(FILETIME)* prgft, uint cElems, PROPVARIANT* ppropvar);
 
 ///Initializes a PROPVARIANT structure from a specified string vector.
 ///Params:
@@ -1910,7 +2083,7 @@ HRESULT InitPropVariantFromFileTimeVector(char* prgft, uint cElems, PROPVARIANT*
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT InitPropVariantFromStringVector(char* prgsz, uint cElems, PROPVARIANT* ppropvar);
+HRESULT InitPropVariantFromStringVector(PWSTR* prgsz, uint cElems, PROPVARIANT* ppropvar);
 
 ///Initializes a PROPVARIANT structure from a specified string. The string is parsed as a semi-colon delimited list (for
 ///example: "A;B;C").
@@ -1923,7 +2096,7 @@ HRESULT InitPropVariantFromStringVector(char* prgsz, uint cElems, PROPVARIANT* p
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT InitPropVariantFromStringAsVector(const(wchar)* psz, PROPVARIANT* ppropvar);
+HRESULT InitPropVariantFromStringAsVector(const(PWSTR) psz, PROPVARIANT* ppropvar);
 
 ///Extracts the Boolean property value of a PROPVARIANT structure. If no value exists, then the specified default value
 ///is returned.
@@ -2023,7 +2196,7 @@ double PropVariantToDoubleWithDefault(const(PROPVARIANT)* propvarIn, double dblD
 ///    Type: <b>PCWSTR</b> Returns string value or default, or the default.
 ///    
 @DllImport("PROPSYS")
-ushort* PropVariantToStringWithDefault(const(PROPVARIANT)* propvarIn, const(wchar)* pszDefault);
+PWSTR PropVariantToStringWithDefault(const(PROPVARIANT)* propvarIn, const(PWSTR) pszDefault);
 
 ///Extracts a Boolean property value of a PROPVARIANT structure. If no value can be extracted, then a default value is
 ///assigned.
@@ -2037,7 +2210,7 @@ ushort* PropVariantToStringWithDefault(const(PROPVARIANT)* propvarIn, const(wcha
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PropVariantToBoolean(const(PROPVARIANT)* propvarIn, int* pfRet);
+HRESULT PropVariantToBoolean(const(PROPVARIANT)* propvarIn, BOOL* pfRet);
 
 ///Extracts an Int16 property value of a PROPVARIANT structure.
 ///Params:
@@ -2149,7 +2322,7 @@ HRESULT PropVariantToDouble(const(PROPVARIANT)* propvarIn, double* pdblRet);
 ///    </tr> </table>
 ///    
 @DllImport("PROPSYS")
-HRESULT PropVariantToBuffer(const(PROPVARIANT)* propvar, char* pv, uint cb);
+HRESULT PropVariantToBuffer(const(PROPVARIANT)* propvar, void* pv, uint cb);
 
 ///Extracts a string value from a PROPVARIANT structure.
 ///Params:
@@ -2168,7 +2341,7 @@ HRESULT PropVariantToBuffer(const(PROPVARIANT)* propvar, char* pv, uint cb);
 ///    extraction failed for some other reason. </td> </tr> </table>
 ///    
 @DllImport("PROPSYS")
-HRESULT PropVariantToString(const(PROPVARIANT)* propvar, const(wchar)* psz, uint cch);
+HRESULT PropVariantToString(const(PROPVARIANT)* propvar, PWSTR psz, uint cch);
 
 ///Extracts a GUID value from a PROPVARIANT structure.
 ///Params:
@@ -2192,7 +2365,7 @@ HRESULT PropVariantToGUID(const(PROPVARIANT)* propvar, GUID* pguid);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PropVariantToStringAlloc(const(PROPVARIANT)* propvar, ushort** ppszOut);
+HRESULT PropVariantToStringAlloc(const(PROPVARIANT)* propvar, PWSTR* ppszOut);
 
 ///Extracts the BSTR property value of a PROPVARIANT structure.
 ///Params:
@@ -2261,7 +2434,7 @@ uint PropVariantGetElementCount(const(PROPVARIANT)* propvar);
 ///    </tr> </table>
 ///    
 @DllImport("PROPSYS")
-HRESULT PropVariantToBooleanVector(const(PROPVARIANT)* propvar, char* prgf, uint crgf, uint* pcElem);
+HRESULT PropVariantToBooleanVector(const(PROPVARIANT)* propvar, BOOL* prgf, uint crgf, uint* pcElem);
 
 ///Extracts a vector of <b>Int16</b> values from a PROPVARIANT structure.
 ///Params:
@@ -2281,7 +2454,7 @@ HRESULT PropVariantToBooleanVector(const(PROPVARIANT)* propvar, char* prgf, uint
 ///    </tr> </table>
 ///    
 @DllImport("PROPSYS")
-HRESULT PropVariantToInt16Vector(const(PROPVARIANT)* propvar, char* prgn, uint crgn, uint* pcElem);
+HRESULT PropVariantToInt16Vector(const(PROPVARIANT)* propvar, short* prgn, uint crgn, uint* pcElem);
 
 ///Extracts data from a PROPVARIANT structure into an <b>unsigned short</b> vector.
 ///Params:
@@ -2302,7 +2475,7 @@ HRESULT PropVariantToInt16Vector(const(PROPVARIANT)* propvar, char* prgn, uint c
 ///    </tr> </table>
 ///    
 @DllImport("PROPSYS")
-HRESULT PropVariantToUInt16Vector(const(PROPVARIANT)* propvar, char* prgn, uint crgn, uint* pcElem);
+HRESULT PropVariantToUInt16Vector(const(PROPVARIANT)* propvar, ushort* prgn, uint crgn, uint* pcElem);
 
 ///Extracts a vector of <b>long</b> values from a PROPVARIANT structure.
 ///Params:
@@ -2322,7 +2495,7 @@ HRESULT PropVariantToUInt16Vector(const(PROPVARIANT)* propvar, char* prgn, uint 
 ///    </tr> </table>
 ///    
 @DllImport("PROPSYS")
-HRESULT PropVariantToInt32Vector(const(PROPVARIANT)* propvar, char* prgn, uint crgn, uint* pcElem);
+HRESULT PropVariantToInt32Vector(const(PROPVARIANT)* propvar, int* prgn, uint crgn, uint* pcElem);
 
 ///Extracts data from a PROPVARIANT structure into an <b>ULONG</b> vector.
 ///Params:
@@ -2342,7 +2515,7 @@ HRESULT PropVariantToInt32Vector(const(PROPVARIANT)* propvar, char* prgn, uint c
 ///    </tr> </table>
 ///    
 @DllImport("PROPSYS")
-HRESULT PropVariantToUInt32Vector(const(PROPVARIANT)* propvar, char* prgn, uint crgn, uint* pcElem);
+HRESULT PropVariantToUInt32Vector(const(PROPVARIANT)* propvar, uint* prgn, uint crgn, uint* pcElem);
 
 ///Extracts data from a PROPVARIANT structure into an <b>Int64</b> vector.
 ///Params:
@@ -2363,7 +2536,7 @@ HRESULT PropVariantToUInt32Vector(const(PROPVARIANT)* propvar, char* prgn, uint 
 ///    </tr> </table>
 ///    
 @DllImport("PROPSYS")
-HRESULT PropVariantToInt64Vector(const(PROPVARIANT)* propvar, char* prgn, uint crgn, uint* pcElem);
+HRESULT PropVariantToInt64Vector(const(PROPVARIANT)* propvar, long* prgn, uint crgn, uint* pcElem);
 
 ///Extracts data from a PROPVARIANT structure into a <b>ULONGLONG</b> vector.
 ///Params:
@@ -2384,7 +2557,7 @@ HRESULT PropVariantToInt64Vector(const(PROPVARIANT)* propvar, char* prgn, uint c
 ///    </tr> </table>
 ///    
 @DllImport("PROPSYS")
-HRESULT PropVariantToUInt64Vector(const(PROPVARIANT)* propvar, char* prgn, uint crgn, uint* pcElem);
+HRESULT PropVariantToUInt64Vector(const(PROPVARIANT)* propvar, ulong* prgn, uint crgn, uint* pcElem);
 
 ///Extracts a vector of doubles from a PROPVARIANT structure.
 ///Params:
@@ -2400,7 +2573,7 @@ HRESULT PropVariantToUInt64Vector(const(PROPVARIANT)* propvar, char* prgn, uint 
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PropVariantToDoubleVector(const(PROPVARIANT)* propvar, char* prgn, uint crgn, uint* pcElem);
+HRESULT PropVariantToDoubleVector(const(PROPVARIANT)* propvar, double* prgn, uint crgn, uint* pcElem);
 
 ///Extracts data from a PROPVARIANT structure into a FILETIME vector.
 ///Params:
@@ -2421,7 +2594,7 @@ HRESULT PropVariantToDoubleVector(const(PROPVARIANT)* propvar, char* prgn, uint 
 ///    </tr> </table>
 ///    
 @DllImport("PROPSYS")
-HRESULT PropVariantToFileTimeVector(const(PROPVARIANT)* propvar, char* prgft, uint crgft, uint* pcElem);
+HRESULT PropVariantToFileTimeVector(const(PROPVARIANT)* propvar, FILETIME* prgft, uint crgft, uint* pcElem);
 
 ///Extracts a vector of strings from a PROPVARIANT structure.
 ///Params:
@@ -2442,7 +2615,7 @@ HRESULT PropVariantToFileTimeVector(const(PROPVARIANT)* propvar, char* prgft, ui
 ///    </tr> </table>
 ///    
 @DllImport("PROPSYS")
-HRESULT PropVariantToStringVector(const(PROPVARIANT)* propvar, char* prgsz, uint crgsz, uint* pcElem);
+HRESULT PropVariantToStringVector(const(PROPVARIANT)* propvar, PWSTR* prgsz, uint crgsz, uint* pcElem);
 
 ///Extracts data from a PROPVARIANT structure into a newly allocated Boolean vector.
 ///Params:
@@ -2459,7 +2632,7 @@ HRESULT PropVariantToStringVector(const(PROPVARIANT)* propvar, char* prgsz, uint
 ///    </tr> </table>
 ///    
 @DllImport("PROPSYS")
-HRESULT PropVariantToBooleanVectorAlloc(const(PROPVARIANT)* propvar, int** pprgf, uint* pcElem);
+HRESULT PropVariantToBooleanVectorAlloc(const(PROPVARIANT)* propvar, BOOL** pprgf, uint* pcElem);
 
 ///Extracts data from a PROPVARIANT structure into a newly allocated <b>Int16</b> vector.
 ///Params:
@@ -2609,7 +2782,7 @@ HRESULT PropVariantToFileTimeVectorAlloc(const(PROPVARIANT)* propvar, FILETIME**
 ///    </tr> </table>
 ///    
 @DllImport("PROPSYS")
-HRESULT PropVariantToStringVectorAlloc(const(PROPVARIANT)* propvar, ushort*** pprgsz, uint* pcElem);
+HRESULT PropVariantToStringVectorAlloc(const(PROPVARIANT)* propvar, PWSTR** pprgsz, uint* pcElem);
 
 ///Extracts a single Boolean element from a PROPVARIANT structure of type <code>VT_BOOL</code>, <code>VT_VECTOR |
 ///VT_BOOL</code>, or <code>VT_ARRAY | VT_BOOL</code>.
@@ -2623,7 +2796,7 @@ HRESULT PropVariantToStringVectorAlloc(const(PROPVARIANT)* propvar, ushort*** pp
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PropVariantGetBooleanElem(const(PROPVARIANT)* propvar, uint iElem, int* pfVal);
+HRESULT PropVariantGetBooleanElem(const(PROPVARIANT)* propvar, uint iElem, BOOL* pfVal);
 
 ///Extracts a single Int16 element from a PROPVARIANT structure of type VT_I2, VT_VECTOR | VT_I2, or VT_ARRAY | VT_I2.
 ///Params:
@@ -2747,7 +2920,7 @@ HRESULT PropVariantGetFileTimeElem(const(PROPVARIANT)* propvar, uint iElem, FILE
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT PropVariantGetStringElem(const(PROPVARIANT)* propvar, uint iElem, ushort** ppszVal);
+HRESULT PropVariantGetStringElem(const(PROPVARIANT)* propvar, uint iElem, PWSTR* ppszVal);
 
 ///Frees the memory and references used by an array of PROPVARIANT structures stored in an array.
 ///Params:
@@ -2757,7 +2930,7 @@ HRESULT PropVariantGetStringElem(const(PROPVARIANT)* propvar, uint iElem, ushort
 ///    No return value.
 ///    
 @DllImport("PROPSYS")
-void ClearPropVariantArray(char* rgPropVar, uint cVars);
+void ClearPropVariantArray(PROPVARIANT* rgPropVar, uint cVars);
 
 ///Extends PropVariantCompare by allowing the caller to compare two PROPVARIANT structures based on specified comparison
 ///units and flags.
@@ -2841,7 +3014,7 @@ HRESULT InitVariantFromResource(HINSTANCE hinst, uint id, VARIANT* pvar);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT InitVariantFromBuffer(char* pv, uint cb, VARIANT* pvar);
+HRESULT InitVariantFromBuffer(const(void)* pv, uint cb, VARIANT* pvar);
 
 ///Initializes a VARIANT structure based on a <b>GUID</b>. The structure is initialized as a <b>VT_BSTR</b> type.
 ///Params:
@@ -2878,7 +3051,7 @@ HRESULT InitVariantFromFileTime(const(FILETIME)* pft, VARIANT* pvar);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT InitVariantFromFileTimeArray(char* prgft, uint cElems, VARIANT* pvar);
+HRESULT InitVariantFromFileTimeArray(const(FILETIME)* prgft, uint cElems, VARIANT* pvar);
 
 ///Initializes a VARIANT structure with a string stored in a STRRET structure.
 ///Params:
@@ -2917,7 +3090,7 @@ HRESULT InitVariantFromVariantArrayElem(const(VARIANT)* varIn, uint iElem, VARIA
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT InitVariantFromBooleanArray(char* prgf, uint cElems, VARIANT* pvar);
+HRESULT InitVariantFromBooleanArray(const(BOOL)* prgf, uint cElems, VARIANT* pvar);
 
 ///Initializes a VARIANT structure with an array of 16-bit integer values.
 ///Params:
@@ -2930,7 +3103,7 @@ HRESULT InitVariantFromBooleanArray(char* prgf, uint cElems, VARIANT* pvar);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT InitVariantFromInt16Array(char* prgn, uint cElems, VARIANT* pvar);
+HRESULT InitVariantFromInt16Array(const(short)* prgn, uint cElems, VARIANT* pvar);
 
 ///Initializes a VARIANT structure with an array of unsigned 16-bit integer values.
 ///Params:
@@ -2943,7 +3116,7 @@ HRESULT InitVariantFromInt16Array(char* prgn, uint cElems, VARIANT* pvar);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT InitVariantFromUInt16Array(char* prgn, uint cElems, VARIANT* pvar);
+HRESULT InitVariantFromUInt16Array(const(ushort)* prgn, uint cElems, VARIANT* pvar);
 
 ///Initializes a VARIANT structure with an array of 32-bit integer values.
 ///Params:
@@ -2956,7 +3129,7 @@ HRESULT InitVariantFromUInt16Array(char* prgn, uint cElems, VARIANT* pvar);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT InitVariantFromInt32Array(char* prgn, uint cElems, VARIANT* pvar);
+HRESULT InitVariantFromInt32Array(const(int)* prgn, uint cElems, VARIANT* pvar);
 
 ///Initializes a VARIANT structure with an array of unsigned 32-bit integer values.
 ///Params:
@@ -2969,7 +3142,7 @@ HRESULT InitVariantFromInt32Array(char* prgn, uint cElems, VARIANT* pvar);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT InitVariantFromUInt32Array(char* prgn, uint cElems, VARIANT* pvar);
+HRESULT InitVariantFromUInt32Array(const(uint)* prgn, uint cElems, VARIANT* pvar);
 
 ///Initializes a VARIANT structure with an array of 64-bit integer values.
 ///Params:
@@ -2982,7 +3155,7 @@ HRESULT InitVariantFromUInt32Array(char* prgn, uint cElems, VARIANT* pvar);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT InitVariantFromInt64Array(char* prgn, uint cElems, VARIANT* pvar);
+HRESULT InitVariantFromInt64Array(const(long)* prgn, uint cElems, VARIANT* pvar);
 
 ///Initializes a VARIANT structure with an array of unsigned 64-bit integer values.
 ///Params:
@@ -2995,7 +3168,7 @@ HRESULT InitVariantFromInt64Array(char* prgn, uint cElems, VARIANT* pvar);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT InitVariantFromUInt64Array(char* prgn, uint cElems, VARIANT* pvar);
+HRESULT InitVariantFromUInt64Array(const(ulong)* prgn, uint cElems, VARIANT* pvar);
 
 ///Initializes a VARIANT structure with an array of values of type DOUBLE.
 ///Params:
@@ -3008,7 +3181,7 @@ HRESULT InitVariantFromUInt64Array(char* prgn, uint cElems, VARIANT* pvar);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT InitVariantFromDoubleArray(char* prgn, uint cElems, VARIANT* pvar);
+HRESULT InitVariantFromDoubleArray(const(double)* prgn, uint cElems, VARIANT* pvar);
 
 ///Initializes a VARIANT structure with an array of strings.
 ///Params:
@@ -3021,7 +3194,7 @@ HRESULT InitVariantFromDoubleArray(char* prgn, uint cElems, VARIANT* pvar);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT InitVariantFromStringArray(char* prgsz, uint cElems, VARIANT* pvar);
+HRESULT InitVariantFromStringArray(PWSTR* prgsz, uint cElems, VARIANT* pvar);
 
 ///Extracts a <b>BOOL</b> value from a VARIANT structure. If no value exists, then the specified default value is
 ///returned.
@@ -3102,7 +3275,7 @@ double VariantToDoubleWithDefault(const(VARIANT)* varIn, double dblDefault);
 ///    pszDefault = Type: <b>LPCWSTR</b> Pointer to the default Unicode string property value, for use where no value currently
 ///                 exists.
 @DllImport("PROPSYS")
-ushort* VariantToStringWithDefault(const(VARIANT)* varIn, const(wchar)* pszDefault);
+PWSTR VariantToStringWithDefault(const(VARIANT)* varIn, const(PWSTR) pszDefault);
 
 ///Extracts the value of a Boolean property from a VARIANT structure. If no value can be extracted, then a default value
 ///is assigned.
@@ -3116,7 +3289,7 @@ ushort* VariantToStringWithDefault(const(VARIANT)* varIn, const(wchar)* pszDefau
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT VariantToBoolean(const(VARIANT)* varIn, int* pfRet);
+HRESULT VariantToBoolean(const(VARIANT)* varIn, BOOL* pfRet);
 
 ///Extracts the <b>Int16</b> property value of a variant structure. If no value can be extracted, then a default value
 ///is assigned by this function.
@@ -3194,7 +3367,7 @@ HRESULT VariantToDouble(const(VARIANT)* varIn, double* pdblRet);
 ///    width="60%"> The VARIANT buffer value had fewer than <i>cb</i> bytes. </td> </tr> </table>
 ///    
 @DllImport("PROPSYS")
-HRESULT VariantToBuffer(const(VARIANT)* varIn, char* pv, uint cb);
+HRESULT VariantToBuffer(const(VARIANT)* varIn, void* pv, uint cb);
 
 ///Extracts a <b>GUID</b> property value of a variant structure.
 ///Params:
@@ -3210,7 +3383,7 @@ HRESULT VariantToGUID(const(VARIANT)* varIn, GUID* pguid);
 ///    pszBuf = Type: <b>PWSTR</b> Pointer to the extracted property value if one exists; otherwise, empty.
 ///    cchBuf = Type: <b>UINT</b> Specifies string length, in characters.
 @DllImport("PROPSYS")
-HRESULT VariantToString(const(VARIANT)* varIn, const(wchar)* pszBuf, uint cchBuf);
+HRESULT VariantToString(const(VARIANT)* varIn, PWSTR pszBuf, uint cchBuf);
 
 ///Extracts the variant value of a variant structure to a newly-allocated string. If no value can be extracted, then a
 ///default value is assigned.
@@ -3218,7 +3391,7 @@ HRESULT VariantToString(const(VARIANT)* varIn, const(wchar)* pszBuf, uint cchBuf
 ///    varIn = Type: <b>REFVARIANT</b> Reference to a source variant structure.
 ///    ppszBuf = Type: <b>PWSTR</b> Pointer to the extracted property value if one exists; otherwise, empty.
 @DllImport("PROPSYS")
-HRESULT VariantToStringAlloc(const(VARIANT)* varIn, ushort** ppszBuf);
+HRESULT VariantToStringAlloc(const(VARIANT)* varIn, PWSTR* ppszBuf);
 
 ///Extracts a date and time value in Microsoft MS-DOS format from a VARIANT structure.
 ///Params:
@@ -3276,7 +3449,7 @@ uint VariantGetElementCount(const(VARIANT)* varIn);
 ///    width="60%"> The VARIANT was not of the appropriate type. </td> </tr> </table>
 ///    
 @DllImport("PROPSYS")
-HRESULT VariantToBooleanArray(const(VARIANT)* var, char* prgf, uint crgn, uint* pcElem);
+HRESULT VariantToBooleanArray(const(VARIANT)* var, BOOL* prgf, uint crgn, uint* pcElem);
 
 ///Extracts data from a vector structure into an <b>Int16</b> array.
 ///Params:
@@ -3285,7 +3458,7 @@ HRESULT VariantToBooleanArray(const(VARIANT)* var, char* prgf, uint crgn, uint* 
 ///    crgn = Type: <b>ULONG</b> Specifies <b>Int16</b> array size.
 ///    pcElem = Type: <b>ULONG*</b> Pointer to the count of <b>Int16</b> elements extracted from source variant structure.
 @DllImport("PROPSYS")
-HRESULT VariantToInt16Array(const(VARIANT)* var, char* prgn, uint crgn, uint* pcElem);
+HRESULT VariantToInt16Array(const(VARIANT)* var, short* prgn, uint crgn, uint* pcElem);
 
 ///Extracts data from a vector structure into an unsigned <b>Int16</b> array.
 ///Params:
@@ -3295,7 +3468,7 @@ HRESULT VariantToInt16Array(const(VARIANT)* var, char* prgn, uint crgn, uint* pc
 ///    pcElem = Type: <b>ULONG*</b> Pointer to the count of unsigned <b>Int16</b> elements extracted from source variant
 ///             structure.
 @DllImport("PROPSYS")
-HRESULT VariantToUInt16Array(const(VARIANT)* var, char* prgn, uint crgn, uint* pcElem);
+HRESULT VariantToUInt16Array(const(VARIANT)* var, ushort* prgn, uint crgn, uint* pcElem);
 
 ///Extracts data from a vector structure into an <b>Int32</b> array.
 ///Params:
@@ -3304,7 +3477,7 @@ HRESULT VariantToUInt16Array(const(VARIANT)* var, char* prgn, uint crgn, uint* p
 ///    crgn = Type: <b>ULONG</b> Specifies <b>Int32</b> array size.
 ///    pcElem = Type: <b>ULONG*</b> Pointer to the count of <b>Int32</b> elements extracted from source variant structure.
 @DllImport("PROPSYS")
-HRESULT VariantToInt32Array(const(VARIANT)* var, char* prgn, uint crgn, uint* pcElem);
+HRESULT VariantToInt32Array(const(VARIANT)* var, int* prgn, uint crgn, uint* pcElem);
 
 ///Extracts data from a vector structure into an unsigned <b>Int32</b> array.
 ///Params:
@@ -3314,7 +3487,7 @@ HRESULT VariantToInt32Array(const(VARIANT)* var, char* prgn, uint crgn, uint* pc
 ///    pcElem = Type: <b>ULONG*</b> Pointer to the count of unsigned <b>Int32</b> elements extracted from source variant
 ///             structure.
 @DllImport("PROPSYS")
-HRESULT VariantToUInt32Array(const(VARIANT)* var, char* prgn, uint crgn, uint* pcElem);
+HRESULT VariantToUInt32Array(const(VARIANT)* var, uint* prgn, uint crgn, uint* pcElem);
 
 ///Extracts data from a vector structure into an <b>Int64</b> array.
 ///Params:
@@ -3323,7 +3496,7 @@ HRESULT VariantToUInt32Array(const(VARIANT)* var, char* prgn, uint crgn, uint* p
 ///    crgn = Type: <b>ULONG</b> Specifies Int64 array size.
 ///    pcElem = Type: <b>ULONG*</b> Pointer to the count of Int64 elements extracted from source variant structure.
 @DllImport("PROPSYS")
-HRESULT VariantToInt64Array(const(VARIANT)* var, char* prgn, uint crgn, uint* pcElem);
+HRESULT VariantToInt64Array(const(VARIANT)* var, long* prgn, uint crgn, uint* pcElem);
 
 ///Extracts data from a vector structure into an unsigned <b>Int64</b> array.
 ///Params:
@@ -3333,7 +3506,7 @@ HRESULT VariantToInt64Array(const(VARIANT)* var, char* prgn, uint crgn, uint* pc
 ///    pcElem = Type: <b>ULONG*</b> Pointer to the count of unsigned <b>Int64</b> elements extracted from source variant
 ///             structure.
 @DllImport("PROPSYS")
-HRESULT VariantToUInt64Array(const(VARIANT)* var, char* prgn, uint crgn, uint* pcElem);
+HRESULT VariantToUInt64Array(const(VARIANT)* var, ulong* prgn, uint crgn, uint* pcElem);
 
 ///Extracts an array of <b>DOUBLE</b> values from a VARIANT structure.
 ///Params:
@@ -3352,7 +3525,7 @@ HRESULT VariantToUInt64Array(const(VARIANT)* var, char* prgn, uint crgn, uint* p
 ///    width="60%"> The VARIANT was not of the appropriate type. </td> </tr> </table>
 ///    
 @DllImport("PROPSYS")
-HRESULT VariantToDoubleArray(const(VARIANT)* var, char* prgn, uint crgn, uint* pcElem);
+HRESULT VariantToDoubleArray(const(VARIANT)* var, double* prgn, uint crgn, uint* pcElem);
 
 ///Extracts data from a vector structure into a String array.
 ///Params:
@@ -3361,7 +3534,7 @@ HRESULT VariantToDoubleArray(const(VARIANT)* var, char* prgn, uint crgn, uint* p
 ///    crgsz = Type: <b>ULONG</b> Specifies string array size.
 ///    pcElem = Type: <b>ULONG*</b> Pointer to the count of string elements extracted from source variant structure.
 @DllImport("PROPSYS")
-HRESULT VariantToStringArray(const(VARIANT)* var, char* prgsz, uint crgsz, uint* pcElem);
+HRESULT VariantToStringArray(const(VARIANT)* var, PWSTR* prgsz, uint crgsz, uint* pcElem);
 
 ///Allocates an array of <b>BOOL</b> values then extracts data from a VARIANT structure into that array.
 ///Params:
@@ -3376,7 +3549,7 @@ HRESULT VariantToStringArray(const(VARIANT)* var, char* prgsz, uint crgsz, uint*
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("PROPSYS")
-HRESULT VariantToBooleanArrayAlloc(const(VARIANT)* var, int** pprgf, uint* pcElem);
+HRESULT VariantToBooleanArrayAlloc(const(VARIANT)* var, BOOL** pprgf, uint* pcElem);
 
 ///Extracts data from a vector structure into a newly-allocated <b>Int16</b> array.
 ///Params:
@@ -3453,7 +3626,7 @@ HRESULT VariantToDoubleArrayAlloc(const(VARIANT)* var, double** pprgn, uint* pcE
 ///    pprgsz = Type: <b>PWSTR**</b> The address of a pointer to the string data extracted from source variant structure.
 ///    pcElem = Type: <b>ULONG*</b> Pointer to the count of string elements extracted from source variant structure.
 @DllImport("PROPSYS")
-HRESULT VariantToStringArrayAlloc(const(VARIANT)* var, ushort*** pprgsz, uint* pcElem);
+HRESULT VariantToStringArrayAlloc(const(VARIANT)* var, PWSTR** pprgsz, uint* pcElem);
 
 ///Extracts a single Boolean element from a variant structure.
 ///Params:
@@ -3461,7 +3634,7 @@ HRESULT VariantToStringArrayAlloc(const(VARIANT)* var, ushort*** pprgsz, uint* p
 ///    iElem = Type: <b>ULONG</b> Specifies vector or array index; otherwise, value must be 0.
 ///    pfVal = Type: <b>BOOL*</b> Pointer to the extracted element value.
 @DllImport("PROPSYS")
-HRESULT VariantGetBooleanElem(const(VARIANT)* var, uint iElem, int* pfVal);
+HRESULT VariantGetBooleanElem(const(VARIANT)* var, uint iElem, BOOL* pfVal);
 
 ///Extracts a single <b>Int16</b> element from a variant structure.
 ///Params:
@@ -3525,7 +3698,7 @@ HRESULT VariantGetDoubleElem(const(VARIANT)* var, uint iElem, double* pnVal);
 ///    iElem = Type: <b>ULONG</b> Specifies a vector or array index; otherwise, value must be 0.
 ///    ppszVal = Type: <b>PWSTR*</b> The address of a pointer to the extracted element value.
 @DllImport("PROPSYS")
-HRESULT VariantGetStringElem(const(VARIANT)* var, uint iElem, ushort** ppszVal);
+HRESULT VariantGetStringElem(const(VARIANT)* var, uint iElem, PWSTR* ppszVal);
 
 ///Frees the memory and references used by an array of VARIANT structures stored in an array.
 ///Params:
@@ -3535,7 +3708,7 @@ HRESULT VariantGetStringElem(const(VARIANT)* var, uint iElem, ushort** ppszVal);
 ///    No return value.
 ///    
 @DllImport("PROPSYS")
-void ClearVariantArray(char* pvars, uint cvars);
+void ClearVariantArray(VARIANT* pvars, uint cvars);
 
 ///Compares two variant structures, based on default comparison rules.
 ///Params:
@@ -3548,178 +3721,6 @@ void ClearVariantArray(char* pvars, uint cvars);
 @DllImport("PROPSYS")
 int VariantCompare(const(VARIANT)* var1, const(VARIANT)* var2);
 
-///Retrieves an object that represents a specific window's collection of properties, which allows those properties to be
-///queried or set.
-///Params:
-///    hwnd = Type: <b>HWND</b> A handle to the window whose properties are being retrieved.
-///    riid = Type: <b>REFIID</b> A reference to the IID of the property store object to retrieve through <i>ppv</i>. This is
-///           typically IID_IPropertyStore.
-///    ppv = Type: <b>void**</b> When this function returns, contains the interface pointer requested in <i>riid</i>. This is
-///          typically IPropertyStore.
-///Returns:
-///    Type: <b>HRESULT</b> If this function succeeds, it returns <b
-///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
-///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
-///    
-@DllImport("SHELL32")
-HRESULT SHGetPropertyStoreForWindow(HWND hwnd, const(GUID)* riid, void** ppv);
-
-///Retrieves an object that supports IPropertyStore or related interfaces from a pointer to an item identifier list
-///(PIDL).
-///Params:
-///    pidl = Type: <b>PCIDLIST_ABSOLUTE</b> A pointer to an item ID list.
-///    flags = Type: <b>GETPROPERTYSTOREFLAGS</b> One or more values from the GETPROPERTYSTOREFLAGS constants. This parameter
-///            can also be <b>NULL</b>.
-///    riid = Type: <b>REFIID</b> A reference to the desired interface ID.
-@DllImport("SHELL32")
-HRESULT SHGetPropertyStoreFromIDList(ITEMIDLIST* pidl, GETPROPERTYSTOREFLAGS flags, const(GUID)* riid, void** ppv);
-
-///Returns a property store for an item, given a path or parsing name.
-///Params:
-///    pszPath = Type: <b>PCWSTR</b> A pointer to a null-terminated Unicode string that specifies the item path.
-///    pbc = Type: <b>IBindCtx*</b> A pointer to a IBindCtx object, which provides access to a bind context. This value can be
-///          <b>NULL</b>.
-///    flags = Type: <b>GETPROPERTYSTOREFLAGS</b> One or more values from the GETPROPERTYSTOREFLAGS constants. This parameter
-///            can also be <b>NULL</b>.
-///    riid = Type: <b>REFIID</b> A reference to the desired interface ID.
-///    ppv = Type: <b>void**</b> When this function returns, contains the interface pointer requested in <i>riid</i>. This is
-///          typically IPropertyStore or a related interface.
-///Returns:
-///    Type: <b>HRESULT</b> If this function succeeds, it returns <b
-///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
-///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
-///    
-@DllImport("SHELL32")
-HRESULT SHGetPropertyStoreFromParsingName(const(wchar)* pszPath, IBindCtx pbc, GETPROPERTYSTOREFLAGS flags, 
-                                          const(GUID)* riid, void** ppv);
-
-///Adds default properties to the property store as registered for the specified file extension.
-///Params:
-///    pszExt = Type: <b>PCWSTR</b> A pointer to a null-terminated, Unicode string that specifies the extension.
-///    pPropStore = Type: <b>IPropertyStore*</b> A pointer to the IPropertyStore interface that defines the default properties to
-///                 add.
-///Returns:
-///    Type: <b>HRESULT</b> If this function succeeds, it returns <b
-///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
-///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
-///    
-@DllImport("SHELL32")
-HRESULT SHAddDefaultPropertiesByExt(const(wchar)* pszExt, IPropertyStore pPropStore);
-
-///<p class="CCE_Message">[<b>PifMgr_OpenProperties</b> is available for use in the operating systems specified in the
-///Requirements section. It may be altered or unavailable in subsequent versions.] Opens the .pif file associated with a
-///Microsoft MS-DOS application, and returns a handle to the application's properties.
-///Params:
-///    pszApp = Type: <b>PCWSTR</b> A null-terminated Unicode string that contains the application's name.
-///    pszPIF = Type: <b>PCWSTR</b> A null-terminated Unicode string that contains the name of the .pif file.
-///    hInf = Type: <b>UINT</b> A handle to the application's .inf file. Set this value to zero if there is no .inf file. Set
-///           this value to -1 to prevent the .inf file from being processed.
-///    flOpt = Type: <b>UINT</b> A flag that controls how the function operates.
-///Returns:
-///    Type: <b>HANDLE</b> Returns a handle to the application's properties. Use this handle when you call the related
-///    .pif functions.
-///    
-@DllImport("SHELL32")
-HANDLE PifMgr_OpenProperties(const(wchar)* pszApp, const(wchar)* pszPIF, uint hInf, uint flOpt);
-
-///<p class="CCE_Message">[<b>PifMgr_GetProperties</b> is available for use in the operating systems specified in the
-///Requirements section. It may be altered or unavailable in subsequent versions.] Returns a specified block of data
-///from a .pif file.
-///Params:
-///    hProps = Type: <b>HANDLE</b> A handle to an application's properties. This parameter should be set to the value that is
-///             returned by PifMgr_OpenProperties.
-///    pszGroup = Type: <b>PCSTR</b> A null-terminated string that contains the property group name. It can be one of the
-///               following, or any other name that corresponds to a valid .pif extension.
-///    lpProps = Type: <b>void*</b> When this function returns, contains a pointer to a PROPPRG structure.
-///    cbProps = Type: <b>int</b> The size of the buffer, in bytes, pointed to by <i>lpProps</i>.
-///    flOpt = Type: <b>UINT</b> Set this parameter to GETPROPS_NONE.
-///Returns:
-///    Type: <b>int</b> Returns <b>NULL</b> if successful. If unsuccessful, the function returns the handle to the
-///    application properties that were passed as <i>hProps</i>.
-///    
-@DllImport("SHELL32")
-int PifMgr_GetProperties(HANDLE hProps, const(char)* pszGroup, char* lpProps, int cbProps, uint flOpt);
-
-///<p class="CCE_Message">[<b>PifMgr_SetProperties</b> is available for use in the operating systems specified in the
-///Requirements section. It may be altered or unavailable in subsequent versions.] Assigns values to a block of data
-///from a .pif file.
-///Params:
-///    hProps = Type: <b>HANDLE</b> A handle to the application's properties. This parameter should be set to the value that is
-///             returned by PifMgr_OpenProperties.
-///    pszGroup = Type: <b>PCSTR</b> A null-terminated ANSI string containing the property group name. It can be one of the
-///               following, or any other name that corresponds to a valid .pif extension.
-///    lpProps = Type: <b>const void*</b> A property group record buffer that holds the data.
-///    cbProps = Type: <b>int</b> The size of the buffer, in bytes, pointed to by <i>lpProps</i>.
-///    flOpt = Type: <b>UINT</b> Always SETPROPS_NONE.
-///Returns:
-///    Type: <b>int</b> Returns the amount of information transferred, in bytes. Returns zero if the group cannot be
-///    found or an error occurs.
-///    
-@DllImport("SHELL32")
-int PifMgr_SetProperties(HANDLE hProps, const(char)* pszGroup, char* lpProps, int cbProps, uint flOpt);
-
-///<p class="CCE_Message">[<b>PifMgr_CloseProperties</b> is available for use in the operating systems specified in the
-///Requirements section. It may be altered or unavailable in subsequent versions.] Closes application properties that
-///were opened with PifMgr_OpenProperties.
-///Params:
-///    hProps = Type: <b>HANDLE</b> A handle to the application's properties. This parameter should be set to the value that is
-///             returned by PifMgr_OpenProperties.
-///    flOpt = Type: <b>UINT</b> A flag that specifies how the function operates.
-///Returns:
-///    Type: <b>int</b> Returns <b>NULL</b> if successful. If unsuccessful, the functions returns the handle to the
-///    application properties that was passed as <i>hProps</i>.
-///    
-@DllImport("SHELL32")
-HANDLE PifMgr_CloseProperties(HANDLE hProps, uint flOpt);
-
-///<p class="CCE_Message">[This function is available through Windows XP Service Pack 2 (SP2) and Windows Server 2003.
-///It might be altered or unavailable in subsequent versions of Windows.] Ensures proper handling of code page retrieval
-///or assignment for the requested property set operation.
-///Params:
-///    psstg = Type: <b>IPropertySetStorage*</b> A pointer to an IPropertySetStorage interface.
-///    fmtid = Type: <b>REFFMTID</b> A property set ID to open. The values for this parameter can be either one of those defined
-///            in Predefined Property Set Format Identifiers or any other FMTID that you register.
-///    pclsid = Type: <b>const CLSID*</b> A pointer to the CLSID associated with the set. This parameter can be <b>NULL</b>.
-///    grfFlags = Type: <b>DWORD</b> One or more members of the PROPSETFLAG enumeration that determine how the property set is
-///               created and opened. All sets containing ANSI bytes should be created with PROPSETFLAG_ANSI, otherwise
-///               PROPSETFLAG_DEFAULT.
-///    grfMode = Type: <b>DWORD</b> The flags from the STGM enumeration that indicate conditions for creating and deleting the
-///              object and access modes for the object. Must contain STGM_DIRECT | STGM_SHARE_EXCLUSIVE.
-///    dwDisposition = Type: <b>DWORD</b> One of the following values, defined in Fileapi.h.
-///    ppstg = Type: <b>IPropertyStorage**</b> When this method returns, contains an IPropertyStorage interface pointer.
-///    puCodePage = Type: <b>UINT*</b> When this method returns, contains the address of the code page ID for the set.
-@DllImport("SHELL32")
-HRESULT SHPropStgCreate(IPropertySetStorage psstg, const(GUID)* fmtid, const(GUID)* pclsid, uint grfFlags, 
-                        uint grfMode, uint dwDisposition, IPropertyStorage* ppstg, uint* puCodePage);
-
-///<p class="CCE_Message">[This function is available through Windows XP Service Pack 2 (SP2) and Windows Server 2003.
-///It might be altered or unavailable in subsequent versions of Windows.] Wraps the IPropertyStorage::ReadMultiple
-///function to ensure that ANSI and Unicode translations are handled properly for deprecated property sets.
-///Params:
-///    pps = Type: <b>IPropertyStorage*</b> An IPropertyStorage interface pointer that identifies the property store.
-///    uCodePage = Type: <b>UINT</b> A code page value for ANSI string properties.
-///    cpspec = Type: <b>ULONG</b> A count of properties being read.
-///    rgpspec = Type: <b>PROPSPEC const[]</b> An array of properties to be read.
-///    rgvar = Type: <b>PROPVARIANT[]</b> An array of PROPVARIANT types that, when this function returns successfully, receives
-///            the property values.
-@DllImport("SHELL32")
-HRESULT SHPropStgReadMultiple(IPropertyStorage pps, uint uCodePage, uint cpspec, char* rgpspec, char* rgvar);
-
-///<p class="CCE_Message">[This function is available through Windows XP Service Pack 2 (SP2) and Windows Server 2003.
-///It might be altered or unavailable in subsequent versions of Windows.] Wraps the IPropertyStorage::WriteMultiple
-///function to ensure that ANSI and Unicode translations are handled properly for deprecated property sets.
-///Params:
-///    pps = Type: <b>IPropertyStorage*</b> An IPropertyStorage interface pointer that identifies the property store.
-///    puCodePage = Type: <b>UINT*</b> A pointer to the code page value for ANSI string properties.
-///    cpspec = Type: <b>ULONG</b> A count of properties being set.
-///    rgpspec = Type: <b>PROPSPEC const[]</b> An array of PROPSPEC structures that contain the property information to be set.
-///    rgvar = Type: <b>PROPVARIANT[]</b> An array of PROPVARIANT types to set the property values.
-///    propidNameFirst = Type: <b>PROPID</b> The minimum value for property identifiers when they must be allocated. The value should be
-///                      greater than or equal to PID_FIRST_USABLE.
-@DllImport("SHELL32")
-HRESULT SHPropStgWriteMultiple(IPropertyStorage pps, uint* puCodePage, uint cpspec, char* rgpspec, char* rgvar, 
-                               uint propidNameFirst);
-
 
 // Interfaces
 
@@ -3731,6 +3732,68 @@ struct InMemoryPropertyStoreMarshalByValue;
 
 @GUID("B8967F85-58AE-4F46-9FB2-5D7904798F4B")
 struct PropertySystem;
+
+///Developers should use IPropertyDescription instead.
+@GUID("757A7D9F-919A-4118-99D7-DBB208C8CC66")
+interface IPropertyUI : IUnknown
+{
+    ///Developers should use IPropertyDescription instead. Reads the characters of the specified property name and
+    ///identifies the FMTID and PROPID of the property.
+    ///Params:
+    ///    pszName = Type: <b>LPWSTR</b> A string specifying the property name to parse.
+    ///    pfmtid = Type: <b>FMTID*</b> The FMTID of the parsed property.
+    ///    ppid = Type: <b>PROPID*</b> The PROPID of the parsed property name.
+    ///    pchEaten = Type: <b>ULONG*</b> The number of characters that were consumed in parsing <i>pszName</i>.
+    HRESULT ParsePropertyName(const(PWSTR) pszName, GUID* pfmtid, uint* ppid, uint* pchEaten);
+    HRESULT GetCannonicalName(const(GUID)* fmtid, uint pid, PWSTR pwszText, uint cchText);
+    ///Developers should use IPropertyDescription instead. Gets a string specifying the name of the property suitable
+    ///for display to users.
+    ///Params:
+    ///    fmtid = Type: <b>REFFMTID</b> The FMTID of the property.
+    ///    pid = Type: <b>PROPID</b> The PROPID of the property.
+    ///    flags = Type: <b>PROPERTYUI_NAME_FLAGS</b> One of the following PROPERTYUI_NAME_FLAGS values:
+    ///    pwszText = Type: <b>LPWSTR</b> A string specifying the property.
+    ///    cchText = Type: <b>DWORD</b> The length of the property display name.
+    HRESULT GetDisplayName(const(GUID)* fmtid, uint pid, uint flags, PWSTR pwszText, uint cchText);
+    ///Developers should use IPropertyDescription instead. Gets the property description of a specified property.
+    ///Params:
+    ///    fmtid = Type: <b>REFFMTID</b> The FMTID of the property.
+    ///    pid = Type: <b>PROPID</b> The PROPID of the property.
+    ///    pwszText = Type: <b>LPWSTR</b> The description of the property.
+    ///    cchText = Type: <b>DWORD</b> The length of the property description.
+    HRESULT GetPropertyDescription(const(GUID)* fmtid, uint pid, PWSTR pwszText, uint cchText);
+    ///Developers should use IPropertyDescription instead. Gets the width of the property description.
+    ///Params:
+    ///    fmtid = Type: <b>REFFMTID</b> The FMTID of the property.
+    ///    pid = Type: <b>PROPID</b> The PROPID of the property.
+    ///    pcxChars = Type: <b>ULONG*</b> The width of the property description.
+    HRESULT GetDefaultWidth(const(GUID)* fmtid, uint pid, uint* pcxChars);
+    ///Developers should use IPropertyDescription instead. Gets property feature flags for a specified property.
+    ///Params:
+    ///    fmtid = Type: <b>REFFMTID</b> The FMTID of the property.
+    ///    pid = Type: <b>PROPID</b> The PROPID of the property.
+    ///    pflags = Type: <b>PROPERTYUI_FLAGS*</b> The PROPERTYUI_FLAGS for the property.
+    HRESULT GetFlags(const(GUID)* fmtid, uint pid, uint* pflags);
+    ///Developers should use IPropertyDescription instead. Gets a formatted, Unicode string representation of a property
+    ///value.
+    ///Params:
+    ///    fmtid = Type: <b>REFFMTID</b>
+    ///    pid = Type: <b>PROPID</b>
+    ///    ppropvar = Type: <b>PROPVARIANT*</b> A PROPVARIANT structure that contains the type and value of the property.
+    ///    puiff = Type: <b>PROPERTYUI_FORMAT_FLAGS</b> The format for the returned property value.
+    ///    pwszText = Type: <b>LPWSTR</b> The property value, formatted for display.
+    ///    cchText = Type: <b>DWORD</b>
+    HRESULT FormatForDisplay(const(GUID)* fmtid, uint pid, const(PROPVARIANT)* ppropvar, uint puiff, 
+                             PWSTR pwszText, uint cchText);
+    ///Developers should use IPropertyDescription instead. Gets
+    ///Params:
+    ///    fmtid = Type: <b>REFFMTID</b> The FMTID of the property.
+    ///    pid = Type: <b>PROPID</b> The PROPID of the property.
+    ///    pwszHelpFile = Type: <b>LPWSTR</b> The fully qualified path of the Help file.
+    ///    cch = Type: <b>DWORD</b>
+    ///    puHelpID = Type: <b>UINT*</b> The Help context ID for the property.
+    HRESULT GetHelpInfo(const(GUID)* fmtid, uint pid, PWSTR pwszHelpFile, uint cch, uint* puHelpID);
+}
 
 ///Exposes a method that encapsulates a change to a single property.
 @GUID("F917BC8A-1BBA-4478-A245-1BDE03EB9431")
@@ -3879,7 +3942,7 @@ interface IPropertyEnumType : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetDisplayText(ushort** ppszDisplay);
+    HRESULT GetDisplayText(PWSTR* ppszDisplay);
 }
 
 ///Exposes methods that extract data from enumeration information. IPropertyEnumType2 extends IPropertyEnumType.
@@ -3890,7 +3953,7 @@ interface IPropertyEnumType2 : IPropertyEnumType
     ///Params:
     ///    ppszImageRes = Type: <b>LPWSTR*</b> A pointer to a buffer that, when this method returns successfully, receives a string of
     ///                   the form &lt;dll name&gt;,-&lt;resid&gt; that is suitable to be passed to PathParseIconLocation.
-    HRESULT GetImageReference(ushort** ppszImageRes);
+    HRESULT GetImageReference(PWSTR* ppszImageRes);
 }
 
 ///Exposes methods that enumerate the possible values for a property.
@@ -3945,7 +4008,7 @@ interface IPropertyDescription : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetCanonicalName(ushort** ppszName);
+    HRESULT GetCanonicalName(PWSTR* ppszName);
     ///Gets the variant type of the property.
     ///Params:
     ///    pvartype = Type: <b>VARTYPE*</b> When this method returns, contains a pointer to a VARTYPE that indicates the property
@@ -3966,7 +4029,7 @@ interface IPropertyDescription : IUnknown
     ///    width="60%"> The <i>ppszDisplayName</i> parameter is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Memory allocation failed. </td> </tr> </table>
     ///    
-    HRESULT GetDisplayName(ushort** ppszName);
+    HRESULT GetDisplayName(PWSTR* ppszName);
     ///Gets the text used in edit controls hosted in various dialog boxes.
     ///Params:
     ///    ppszInvite = Type: <b>LPWSTR*</b> When this method returns, contains the address of a pointer to a null-terminated Unicode
@@ -3976,7 +4039,7 @@ interface IPropertyDescription : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetEditInvitation(ushort** ppszInvite);
+    HRESULT GetEditInvitation(PWSTR* ppszInvite);
     ///Gets a set of flags that describe the uses and capabilities of the property.
     ///Params:
     ///    mask = Type: <b>PROPDESC_TYPE_FLAGS</b> A mask that specifies which type flags to retrieve. A combination of values
@@ -4055,8 +4118,8 @@ interface IPropertyDescription : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetRelativeDescription(const(PROPVARIANT)* propvar1, const(PROPVARIANT)* propvar2, ushort** ppszDesc1, 
-                                   ushort** ppszDesc2);
+    HRESULT GetRelativeDescription(const(PROPVARIANT)* propvar1, const(PROPVARIANT)* propvar2, PWSTR* ppszDesc1, 
+                                   PWSTR* ppszDesc2);
     ///Gets the current sort description flags for the property, which indicate the particular wordings of sort
     ///offerings.
     ///Params:
@@ -4080,7 +4143,7 @@ interface IPropertyDescription : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetSortDescriptionLabel(BOOL fDescending, ushort** ppszDescription);
+    HRESULT GetSortDescriptionLabel(BOOL fDescending, PWSTR* ppszDescription);
     ///Gets a value that describes how the property values are displayed when multiple items are selected in the UI.
     ///Params:
     ///    paggtype = Type: <b>PROPDESC_AGGREGATION_TYPE*</b> When this method returns, contains a pointer to a value that
@@ -4145,7 +4208,7 @@ interface IPropertyDescription : IUnknown
     ///    insufficient space. The destination buffer is modified to contain a truncated version of the ideal result and
     ///    is <b>null</b>-terminated. </td> </tr> </table>
     ///    
-    HRESULT FormatForDisplay(const(PROPVARIANT)* propvar, PROPDESC_FORMAT_FLAGS pdfFlags, ushort** ppszDisplay);
+    HRESULT FormatForDisplay(const(PROPVARIANT)* propvar, PROPDESC_FORMAT_FLAGS pdfFlags, PWSTR* ppszDisplay);
     ///Gets a value that indicates whether a property is canonical according to the definition of the property
     ///description.
     ///Params:
@@ -4163,7 +4226,7 @@ interface IPropertyDescription2 : IPropertyDescription
     ///    propvar = Type: <b>REFPROPVARIANT</b> The PROPVARIANT for which to get an image.
     ///    ppszImageRes = Type: <b>LPWSTR*</b> A pointer to a buffer that receives, when this method returns successfully, a string of
     ///                   the form &lt;dll name&gt;,-&lt;resid&gt; that is suitable to be passed to PathParseIconLocation.
-    HRESULT GetImageReferenceForValue(const(PROPVARIANT)* propvar, ushort** ppszImageRes);
+    HRESULT GetImageReferenceForValue(const(PROPVARIANT)* propvar, PWSTR* ppszImageRes);
 }
 
 ///Exposes methods to get the "sort by" columns properties for an item. This interface is used by UI objects that want
@@ -4227,7 +4290,7 @@ interface IPropertyDescriptionSearchInfo : IPropertyDescription
     ///Params:
     ///    ppszProjection = Type: <b>LPWSTR*</b> When this method returns successfully, contains a pointer to a string containing the
     ///                     canonical name of the item.
-    HRESULT GetProjectionString(ushort** ppszProjection);
+    HRESULT GetProjectionString(PWSTR* ppszProjection);
     ///Gets the maximum size value from the property schema's searchInfo element.
     ///Params:
     ///    pcbMaxSize = Type: <b>UINT*</b> Pointer to a value that, when this method returns successfully, receives the value of the
@@ -4252,7 +4315,7 @@ interface IPropertyDescriptionRelatedPropertyInfo : IPropertyDescription
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetRelatedProperty(const(wchar)* pszRelationshipName, const(GUID)* riid, void** ppv);
+    HRESULT GetRelatedProperty(const(PWSTR) pszRelationshipName, const(GUID)* riid, void** ppv);
 }
 
 ///Exposes methods that get property descriptions, register and unregister property schemas, enumerate property
@@ -4289,7 +4352,7 @@ interface IPropertySystem : IUnknown
     ///    width="40%"> <dl> <dt><b>TYPE_E_ELEMENTNOTFOUND</b></dt> </dl> </td> <td width="60%"> Indicates that the
     ///    canonical name does not exist in the schema subsystem cache. </td> </tr> </table>
     ///    
-    HRESULT GetPropertyDescriptionByName(const(wchar)* pszCanonicalName, const(GUID)* riid, void** ppv);
+    HRESULT GetPropertyDescriptionByName(const(PWSTR) pszCanonicalName, const(GUID)* riid, void** ppv);
     ///Gets an instance of the subsystem object that implements IPropertyDescriptionList, to obtain an ordered
     ///collection of property descriptions, based on the provided string.
     ///Params:
@@ -4302,7 +4365,7 @@ interface IPropertySystem : IUnknown
     ///    Indicates interface is obtained. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl>
     ///    </td> <td width="60%"> Indicates <i>ppv</i> is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetPropertyDescriptionListFromString(const(wchar)* pszPropList, const(GUID)* riid, void** ppv);
+    HRESULT GetPropertyDescriptionListFromString(const(PWSTR) pszPropList, const(GUID)* riid, void** ppv);
     ///Gets an instance of the subsystem object that implements IPropertyDescriptionList, to obtain either the entire or
     ///a partial list of property descriptions in the system.
     ///Params:
@@ -4337,7 +4400,7 @@ interface IPropertySystem : IUnknown
     ///    Memory allocation failed. </td> </tr> </table>
     ///    
     HRESULT FormatForDisplay(const(PROPERTYKEY)* key, const(PROPVARIANT)* propvar, PROPDESC_FORMAT_FLAGS pdff, 
-                             const(wchar)* pszText, uint cchText);
+                             PWSTR pszText, uint cchText);
     ///Gets a string representation of a property value to an allocated memory buffer.
     ///Params:
     ///    key = Type: <b>REFPROPERTYKEY</b> A reference to the desired PROPERTYKEY.
@@ -4356,7 +4419,7 @@ interface IPropertySystem : IUnknown
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Indicates allocation failed. </td> </tr> </table>
     ///    
     HRESULT FormatForDisplayAlloc(const(PROPERTYKEY)* key, const(PROPVARIANT)* propvar, PROPDESC_FORMAT_FLAGS pdff, 
-                                  ushort** ppszDisplay);
+                                  PWSTR* ppszDisplay);
     ///Informs the schema subsystem of the addition of a property description schema file.
     ///Params:
     ///    pszPath = Type: <b>LPCWSTR</b> Pointer to the file path for the .propdesc file on the local machine.
@@ -4368,7 +4431,7 @@ interface IPropertySystem : IUnknown
     ///    width="40%"> <dl> <dt><b>INPLACE_S_TRUNCATED</b></dt> </dl> </td> <td width="60%"> Indicates one or more of
     ///    the property descriptions in the schema was not registered. </td> </tr> </table>
     ///    
-    HRESULT RegisterPropertySchema(const(wchar)* pszPath);
+    HRESULT RegisterPropertySchema(const(PWSTR) pszPath);
     ///Informs the schema subsystem of the removal of a property description schema (.propdesc) file, using a file path
     ///to the .propdesc file on the local machine.
     ///Params:
@@ -4379,7 +4442,7 @@ interface IPropertySystem : IUnknown
     ///    Indicates schema is unregistered. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_ACCESSDENIED</b></dt> </dl>
     ///    </td> <td width="60%"> Indicates calling context does not have proper privileges. </td> </tr> </table>
     ///    
-    HRESULT UnregisterPropertySchema(const(wchar)* pszPath);
+    HRESULT UnregisterPropertySchema(const(PWSTR) pszPath);
     ///Not supported.
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following values. <table> <tr> <th>Return code</th>
@@ -4453,68 +4516,6 @@ interface IPropertyStoreFactory : IUnknown
 interface IPropertySystemChangeNotify : IUnknown
 {
     HRESULT SchemaRefreshed();
-}
-
-///Developers should use IPropertyDescription instead.
-@GUID("757A7D9F-919A-4118-99D7-DBB208C8CC66")
-interface IPropertyUI : IUnknown
-{
-    ///Developers should use IPropertyDescription instead. Reads the characters of the specified property name and
-    ///identifies the FMTID and PROPID of the property.
-    ///Params:
-    ///    pszName = Type: <b>LPWSTR</b> A string specifying the property name to parse.
-    ///    pfmtid = Type: <b>FMTID*</b> The FMTID of the parsed property.
-    ///    ppid = Type: <b>PROPID*</b> The PROPID of the parsed property name.
-    ///    pchEaten = Type: <b>ULONG*</b> The number of characters that were consumed in parsing <i>pszName</i>.
-    HRESULT ParsePropertyName(const(wchar)* pszName, GUID* pfmtid, uint* ppid, uint* pchEaten);
-    HRESULT GetCannonicalName(const(GUID)* fmtid, uint pid, const(wchar)* pwszText, uint cchText);
-    ///Developers should use IPropertyDescription instead. Gets a string specifying the name of the property suitable
-    ///for display to users.
-    ///Params:
-    ///    fmtid = Type: <b>REFFMTID</b> The FMTID of the property.
-    ///    pid = Type: <b>PROPID</b> The PROPID of the property.
-    ///    flags = Type: <b>PROPERTYUI_NAME_FLAGS</b> One of the following PROPERTYUI_NAME_FLAGS values:
-    ///    pwszText = Type: <b>LPWSTR</b> A string specifying the property.
-    ///    cchText = Type: <b>DWORD</b> The length of the property display name.
-    HRESULT GetDisplayName(const(GUID)* fmtid, uint pid, uint flags, const(wchar)* pwszText, uint cchText);
-    ///Developers should use IPropertyDescription instead. Gets the property description of a specified property.
-    ///Params:
-    ///    fmtid = Type: <b>REFFMTID</b> The FMTID of the property.
-    ///    pid = Type: <b>PROPID</b> The PROPID of the property.
-    ///    pwszText = Type: <b>LPWSTR</b> The description of the property.
-    ///    cchText = Type: <b>DWORD</b> The length of the property description.
-    HRESULT GetPropertyDescription(const(GUID)* fmtid, uint pid, const(wchar)* pwszText, uint cchText);
-    ///Developers should use IPropertyDescription instead. Gets the width of the property description.
-    ///Params:
-    ///    fmtid = Type: <b>REFFMTID</b> The FMTID of the property.
-    ///    pid = Type: <b>PROPID</b> The PROPID of the property.
-    ///    pcxChars = Type: <b>ULONG*</b> The width of the property description.
-    HRESULT GetDefaultWidth(const(GUID)* fmtid, uint pid, uint* pcxChars);
-    ///Developers should use IPropertyDescription instead. Gets property feature flags for a specified property.
-    ///Params:
-    ///    fmtid = Type: <b>REFFMTID</b> The FMTID of the property.
-    ///    pid = Type: <b>PROPID</b> The PROPID of the property.
-    ///    pflags = Type: <b>PROPERTYUI_FLAGS*</b> The PROPERTYUI_FLAGS for the property.
-    HRESULT GetFlags(const(GUID)* fmtid, uint pid, uint* pflags);
-    ///Developers should use IPropertyDescription instead. Gets a formatted, Unicode string representation of a property
-    ///value.
-    ///Params:
-    ///    fmtid = Type: <b>REFFMTID</b>
-    ///    pid = Type: <b>PROPID</b>
-    ///    ppropvar = Type: <b>PROPVARIANT*</b> A PROPVARIANT structure that contains the type and value of the property.
-    ///    puiff = Type: <b>PROPERTYUI_FORMAT_FLAGS</b> The format for the returned property value.
-    ///    pwszText = Type: <b>LPWSTR</b> The property value, formatted for display.
-    ///    cchText = Type: <b>DWORD</b>
-    HRESULT FormatForDisplay(const(GUID)* fmtid, uint pid, const(PROPVARIANT)* ppropvar, uint puiff, 
-                             const(wchar)* pwszText, uint cchText);
-    ///Developers should use IPropertyDescription instead. Gets
-    ///Params:
-    ///    fmtid = Type: <b>REFFMTID</b> The FMTID of the property.
-    ///    pid = Type: <b>PROPID</b> The PROPID of the property.
-    ///    pwszHelpFile = Type: <b>LPWSTR</b> The fully qualified path of the Help file.
-    ///    cch = Type: <b>DWORD</b>
-    ///    puHelpID = Type: <b>UINT*</b> The Help context ID for the property.
-    HRESULT GetHelpInfo(const(GUID)* fmtid, uint pid, const(wchar)* pwszHelpFile, uint cch, uint* puHelpID);
 }
 
 

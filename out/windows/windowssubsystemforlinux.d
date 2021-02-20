@@ -4,7 +4,7 @@ module windows.windowssubsystemforlinux;
 
 public import windows.core;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums

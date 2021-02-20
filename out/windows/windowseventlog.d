@@ -3,10 +3,10 @@
 module windows.windowseventlog;
 
 public import windows.core;
-public import windows.systemservices : BOOL, HANDLE;
+public import windows.systemservices : BOOL, HANDLE, PSTR, PWSTR;
 public import windows.windowsprogramming : FILETIME, SYSTEMTIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -719,48 +719,48 @@ alias EVT_SUBSCRIBE_CALLBACK = uint function(EVT_SUBSCRIBE_NOTIFY_ACTION Action,
 ///Contains event data or property values.
 struct EVT_VARIANT
 {
-    union
+union
     {
-        BOOL          BooleanVal;
-        byte          SByteVal;
-        short         Int16Val;
-        int           Int32Val;
-        long          Int64Val;
-        ubyte         ByteVal;
-        ushort        UInt16Val;
-        uint          UInt32Val;
-        ulong         UInt64Val;
-        float         SingleVal;
-        double        DoubleVal;
-        ulong         FileTimeVal;
-        SYSTEMTIME*   SysTimeVal;
-        GUID*         GuidVal;
-        const(wchar)* StringVal;
-        const(char)*  AnsiStringVal;
-        ubyte*        BinaryVal;
-        void*         SidVal;
-        size_t        SizeTVal;
-        int*          BooleanArr;
-        byte*         SByteArr;
-        short*        Int16Arr;
-        int*          Int32Arr;
-        long*         Int64Arr;
-        ubyte*        ByteArr;
-        ushort*       UInt16Arr;
-        uint*         UInt32Arr;
-        ulong*        UInt64Arr;
-        float*        SingleArr;
-        double*       DoubleArr;
-        FILETIME*     FileTimeArr;
-        SYSTEMTIME*   SysTimeArr;
-        GUID*         GuidArr;
-        ushort**      StringArr;
-        byte**        AnsiStringArr;
-        void**        SidArr;
-        size_t*       SizeTArr;
-        ptrdiff_t     EvtHandleVal;
-        const(wchar)* XmlVal;
-        ushort**      XmlValArr;
+        BOOL         BooleanVal;
+        byte         SByteVal;
+        short        Int16Val;
+        int          Int32Val;
+        long         Int64Val;
+        ubyte        ByteVal;
+        ushort       UInt16Val;
+        uint         UInt32Val;
+        ulong        UInt64Val;
+        float        SingleVal;
+        double       DoubleVal;
+        ulong        FileTimeVal;
+        SYSTEMTIME*  SysTimeVal;
+        GUID*        GuidVal;
+        const(PWSTR) StringVal;
+        const(PSTR)  AnsiStringVal;
+        ubyte*       BinaryVal;
+        void*        SidVal;
+        size_t       SizeTVal;
+        BOOL*        BooleanArr;
+        byte*        SByteArr;
+        short*       Int16Arr;
+        int*         Int32Arr;
+        long*        Int64Arr;
+        ubyte*       ByteArr;
+        ushort*      UInt16Arr;
+        uint*        UInt32Arr;
+        ulong*       UInt64Arr;
+        float*       SingleArr;
+        double*      DoubleArr;
+        FILETIME*    FileTimeArr;
+        SYSTEMTIME*  SysTimeArr;
+        GUID*        GuidArr;
+        PWSTR*       StringArr;
+        PSTR*        AnsiStringArr;
+        void**       SidArr;
+        size_t*      SizeTArr;
+        ptrdiff_t    EvtHandleVal;
+        const(PWSTR) XmlVal;
+        PWSTR*       XmlValArr;
     }
     ///The number of elements in the array of values. Use <b>Count</b> if the <b>Type</b> member has the
     ///<b>EVT_VARIANT_TYPE_ARRAY</b> flag set.
@@ -777,16 +777,16 @@ struct EVT_VARIANT
 struct EVT_RPC_LOGIN
 {
     ///The name of the remote computer to connect to.
-    const(wchar)* Server;
+    PWSTR Server;
     ///The user name to use to connect to the remote computer.
-    const(wchar)* User;
+    PWSTR User;
     ///The domain to which the user account belongs. Optional.
-    const(wchar)* Domain;
+    PWSTR Domain;
     ///The password for the user account.
-    const(wchar)* Password;
+    PWSTR Password;
     ///The authentication method to use to authenticate the user when connecting to the remote computer. For possible
     ///authentication methods, see the EVT_RPC_LOGIN_FLAGS enumeration.
-    uint          Flags;
+    uint  Flags;
 }
 
 // Functions
@@ -804,7 +804,7 @@ struct EVT_RPC_LOGIN
 ///    remote computer; otherwise, <b>NULL</b>. If <b>NULL</b>, call GetLastError function to get the error code.
 ///    
 @DllImport("wevtapi")
-ptrdiff_t EvtOpenSession(EVT_LOGIN_CLASS LoginClass, char* Login, uint Timeout, uint Flags);
+ptrdiff_t EvtOpenSession(EVT_LOGIN_CLASS LoginClass, void* Login, uint Timeout, uint Flags);
 
 ///Closes an open handle.
 ///Params:
@@ -844,7 +844,7 @@ BOOL EvtCancel(ptrdiff_t Object);
 ///    The return value is ERROR_SUCCESS if the call succeeded; otherwise, a Win32 error code.
 ///    
 @DllImport("wevtapi")
-uint EvtGetExtendedStatus(uint BufferSize, const(wchar)* Buffer, uint* BufferUsed);
+uint EvtGetExtendedStatus(uint BufferSize, PWSTR Buffer, uint* BufferUsed);
 
 ///Runs a query to retrieve events from a channel or log file that match the specified query criteria.
 ///Params:
@@ -864,7 +864,7 @@ uint EvtGetExtendedStatus(uint BufferSize, const(wchar)* Buffer, uint* BufferUse
 ///    the GetLastError function to get the error code.
 ///    
 @DllImport("wevtapi")
-ptrdiff_t EvtQuery(ptrdiff_t Session, const(wchar)* Path, const(wchar)* Query, uint Flags);
+ptrdiff_t EvtQuery(ptrdiff_t Session, const(PWSTR) Path, const(PWSTR) Query, uint Flags);
 
 ///Gets the next event from the query or subscription results.
 ///Params:
@@ -883,7 +883,7 @@ ptrdiff_t EvtQuery(ptrdiff_t Session, const(wchar)* Path, const(wchar)* Query, u
 ///    error code, call the GetLastError function. </td> </tr> </table>
 ///    
 @DllImport("wevtapi")
-BOOL EvtNext(ptrdiff_t ResultSet, uint EventsSize, char* Events, uint Timeout, uint Flags, uint* Returned);
+BOOL EvtNext(ptrdiff_t ResultSet, uint EventsSize, ptrdiff_t* Events, uint Timeout, uint Flags, uint* Returned);
 
 ///Seeks to a specific event in a query result set.
 ///Params:
@@ -937,7 +937,7 @@ BOOL EvtSeek(ptrdiff_t ResultSet, long Position, ptrdiff_t Bookmark, uint Timeou
 ///    when done.
 ///    
 @DllImport("wevtapi")
-ptrdiff_t EvtSubscribe(ptrdiff_t Session, HANDLE SignalEvent, const(wchar)* ChannelPath, const(wchar)* Query, 
+ptrdiff_t EvtSubscribe(ptrdiff_t Session, HANDLE SignalEvent, const(PWSTR) ChannelPath, const(PWSTR) Query, 
                        ptrdiff_t Bookmark, void* Context, EVT_SUBSCRIBE_CALLBACK Callback, uint Flags);
 
 ///Creates a context that specifies the information in the event that you want to render.
@@ -955,7 +955,7 @@ ptrdiff_t EvtSubscribe(ptrdiff_t Session, HANDLE SignalEvent, const(wchar)* Chan
 ///    <b>NULL</b>. If <b>NULL</b>, call the GetLastError function to get the error code.
 ///    
 @DllImport("wevtapi")
-ptrdiff_t EvtCreateRenderContext(uint ValuePathsCount, char* ValuePaths, uint Flags);
+ptrdiff_t EvtCreateRenderContext(uint ValuePathsCount, PWSTR* ValuePaths, uint Flags);
 
 ///Renders an XML fragment based on the rendering context that you specify.
 ///Params:
@@ -982,7 +982,7 @@ ptrdiff_t EvtCreateRenderContext(uint ValuePathsCount, char* ValuePaths, uint Fl
 ///    GetLastError function to get the error code. </td> </tr> </table>
 ///    
 @DllImport("wevtapi")
-BOOL EvtRender(ptrdiff_t Context, ptrdiff_t Fragment, uint Flags, uint BufferSize, char* Buffer, uint* BufferUsed, 
+BOOL EvtRender(ptrdiff_t Context, ptrdiff_t Fragment, uint Flags, uint BufferSize, void* Buffer, uint* BufferUsed, 
                uint* PropertyCount);
 
 ///Formats a message string.
@@ -1021,8 +1021,8 @@ BOOL EvtRender(ptrdiff_t Context, ptrdiff_t Fragment, uint Flags, uint BufferSiz
 ///    GetLastError function to get the error code. </td> </tr> </table>
 ///    
 @DllImport("wevtapi")
-BOOL EvtFormatMessage(ptrdiff_t PublisherMetadata, ptrdiff_t Event, uint MessageId, uint ValueCount, char* Values, 
-                      uint Flags, uint BufferSize, const(wchar)* Buffer, uint* BufferUsed);
+BOOL EvtFormatMessage(ptrdiff_t PublisherMetadata, ptrdiff_t Event, uint MessageId, uint ValueCount, 
+                      EVT_VARIANT* Values, uint Flags, uint BufferSize, PWSTR Buffer, uint* BufferUsed);
 
 ///Gets a handle to a channel or log file that you can then use to get information about the channel or log file.
 ///Params:
@@ -1036,7 +1036,7 @@ BOOL EvtFormatMessage(ptrdiff_t PublisherMetadata, ptrdiff_t Event, uint Message
 ///    GetLastError function to get the error code.
 ///    
 @DllImport("wevtapi")
-ptrdiff_t EvtOpenLog(ptrdiff_t Session, const(wchar)* Path, uint Flags);
+ptrdiff_t EvtOpenLog(ptrdiff_t Session, const(PWSTR) Path, uint Flags);
 
 ///Gets information about a channel or log file.
 ///Params:
@@ -1056,7 +1056,7 @@ ptrdiff_t EvtOpenLog(ptrdiff_t Session, const(wchar)* Path, uint Flags);
 ///    
 @DllImport("wevtapi")
 BOOL EvtGetLogInfo(ptrdiff_t Log, EVT_LOG_PROPERTY_ID PropertyId, uint PropertyValueBufferSize, 
-                   char* PropertyValueBuffer, uint* PropertyValueBufferUsed);
+                   EVT_VARIANT* PropertyValueBuffer, uint* PropertyValueBufferUsed);
 
 ///Removes all events from the specified channel and writes them to the target log file.
 ///Params:
@@ -1072,7 +1072,7 @@ BOOL EvtGetLogInfo(ptrdiff_t Log, EVT_LOG_PROPERTY_ID PropertyId, uint PropertyV
 ///    GetLastError function to get the error code. </td> </tr> </table>
 ///    
 @DllImport("wevtapi")
-BOOL EvtClearLog(ptrdiff_t Session, const(wchar)* ChannelPath, const(wchar)* TargetFilePath, uint Flags);
+BOOL EvtClearLog(ptrdiff_t Session, const(PWSTR) ChannelPath, const(PWSTR) TargetFilePath, uint Flags);
 
 ///Copies events from the specified channel or log file and writes them to the target log file.
 ///Params:
@@ -1096,7 +1096,7 @@ BOOL EvtClearLog(ptrdiff_t Session, const(wchar)* ChannelPath, const(wchar)* Tar
 ///    GetLastError function to get the error code. </td> </tr> </table>
 ///    
 @DllImport("wevtapi")
-BOOL EvtExportLog(ptrdiff_t Session, const(wchar)* Path, const(wchar)* Query, const(wchar)* TargetFilePath, 
+BOOL EvtExportLog(ptrdiff_t Session, const(PWSTR) Path, const(PWSTR) Query, const(PWSTR) TargetFilePath, 
                   uint Flags);
 
 ///Adds localized strings to the events in the specified log file.
@@ -1114,7 +1114,7 @@ BOOL EvtExportLog(ptrdiff_t Session, const(wchar)* Path, const(wchar)* Query, co
 ///    GetLastError function to get the error code. </td> </tr> </table>
 ///    
 @DllImport("wevtapi")
-BOOL EvtArchiveExportedLog(ptrdiff_t Session, const(wchar)* LogFilePath, uint Locale, uint Flags);
+BOOL EvtArchiveExportedLog(ptrdiff_t Session, const(PWSTR) LogFilePath, uint Locale, uint Flags);
 
 ///Gets a handle that you use to enumerate the list of channels that are registered on the computer.
 ///Params:
@@ -1143,7 +1143,7 @@ ptrdiff_t EvtOpenChannelEnum(ptrdiff_t Session, uint Flags);
 ///    error code, call the GetLastError function. </td> </tr> </table>
 ///    
 @DllImport("wevtapi")
-BOOL EvtNextChannelPath(ptrdiff_t ChannelEnum, uint ChannelPathBufferSize, const(wchar)* ChannelPathBuffer, 
+BOOL EvtNextChannelPath(ptrdiff_t ChannelEnum, uint ChannelPathBufferSize, PWSTR ChannelPathBuffer, 
                         uint* ChannelPathBufferUsed);
 
 ///Gets a handle that you use to read or modify a channel's configuration property.
@@ -1157,7 +1157,7 @@ BOOL EvtNextChannelPath(ptrdiff_t ChannelEnum, uint ChannelPathBufferSize, const
 ///    <b>NULL</b>, call GetLastError function to get the error code.
 ///    
 @DllImport("wevtapi")
-ptrdiff_t EvtOpenChannelConfig(ptrdiff_t Session, const(wchar)* ChannelPath, uint Flags);
+ptrdiff_t EvtOpenChannelConfig(ptrdiff_t Session, const(PWSTR) ChannelPath, uint Flags);
 
 ///Saves the changes made to a channel's configuration.
 ///Params:
@@ -1209,7 +1209,7 @@ BOOL EvtSetChannelConfigProperty(ptrdiff_t ChannelConfig, EVT_CHANNEL_CONFIG_PRO
 ///    
 @DllImport("wevtapi")
 BOOL EvtGetChannelConfigProperty(ptrdiff_t ChannelConfig, EVT_CHANNEL_CONFIG_PROPERTY_ID PropertyId, uint Flags, 
-                                 uint PropertyValueBufferSize, char* PropertyValueBuffer, 
+                                 uint PropertyValueBufferSize, EVT_VARIANT* PropertyValueBuffer, 
                                  uint* PropertyValueBufferUsed);
 
 ///Gets a handle that you use to enumerate the list of registered providers on the computer.
@@ -1239,7 +1239,7 @@ ptrdiff_t EvtOpenPublisherEnum(ptrdiff_t Session, uint Flags);
 ///    error code, call the GetLastError function. </td> </tr> </table>
 ///    
 @DllImport("wevtapi")
-BOOL EvtNextPublisherId(ptrdiff_t PublisherEnum, uint PublisherIdBufferSize, const(wchar)* PublisherIdBuffer, 
+BOOL EvtNextPublisherId(ptrdiff_t PublisherEnum, uint PublisherIdBufferSize, PWSTR PublisherIdBuffer, 
                         uint* PublisherIdBufferUsed);
 
 ///Gets a handle that you use to read the specified provider's metadata.
@@ -1259,7 +1259,7 @@ BOOL EvtNextPublisherId(ptrdiff_t PublisherEnum, uint PublisherIdBufferSize, con
 ///    call GetLastError function to get the error code.
 ///    
 @DllImport("wevtapi")
-ptrdiff_t EvtOpenPublisherMetadata(ptrdiff_t Session, const(wchar)* PublisherId, const(wchar)* LogFilePath, 
+ptrdiff_t EvtOpenPublisherMetadata(ptrdiff_t Session, const(PWSTR) PublisherId, const(PWSTR) LogFilePath, 
                                    uint Locale, uint Flags);
 
 ///Gets the specified provider metadata property.
@@ -1282,7 +1282,7 @@ ptrdiff_t EvtOpenPublisherMetadata(ptrdiff_t Session, const(wchar)* PublisherId,
 @DllImport("wevtapi")
 BOOL EvtGetPublisherMetadataProperty(ptrdiff_t PublisherMetadata, EVT_PUBLISHER_METADATA_PROPERTY_ID PropertyId, 
                                      uint Flags, uint PublisherMetadataPropertyBufferSize, 
-                                     char* PublisherMetadataPropertyBuffer, 
+                                     EVT_VARIANT* PublisherMetadataPropertyBuffer, 
                                      uint* PublisherMetadataPropertyBufferUsed);
 
 ///Gets a handle that you use to enumerate the list of events that the provider defines.
@@ -1326,7 +1326,7 @@ ptrdiff_t EvtNextEventMetadata(ptrdiff_t EventMetadataEnum, uint Flags);
 ///    
 @DllImport("wevtapi")
 BOOL EvtGetEventMetadataProperty(ptrdiff_t EventMetadata, EVT_EVENT_METADATA_PROPERTY_ID PropertyId, uint Flags, 
-                                 uint EventMetadataPropertyBufferSize, char* EventMetadataPropertyBuffer, 
+                                 uint EventMetadataPropertyBufferSize, EVT_VARIANT* EventMetadataPropertyBuffer, 
                                  uint* EventMetadataPropertyBufferUsed);
 
 ///Gets the number of elements in the array of objects.
@@ -1362,7 +1362,7 @@ BOOL EvtGetObjectArraySize(ptrdiff_t ObjectArray, uint* ObjectArraySize);
 ///    
 @DllImport("wevtapi")
 BOOL EvtGetObjectArrayProperty(ptrdiff_t ObjectArray, uint PropertyId, uint ArrayIndex, uint Flags, 
-                               uint PropertyValueBufferSize, char* PropertyValueBuffer, 
+                               uint PropertyValueBufferSize, EVT_VARIANT* PropertyValueBuffer, 
                                uint* PropertyValueBufferUsed);
 
 ///Gets information about a query that you ran that identifies the list of channels or log files that the query
@@ -1385,7 +1385,7 @@ BOOL EvtGetObjectArrayProperty(ptrdiff_t ObjectArray, uint PropertyId, uint Arra
 ///    
 @DllImport("wevtapi")
 BOOL EvtGetQueryInfo(ptrdiff_t QueryOrSubscription, EVT_QUERY_PROPERTY_ID PropertyId, uint PropertyValueBufferSize, 
-                     char* PropertyValueBuffer, uint* PropertyValueBufferUsed);
+                     EVT_VARIANT* PropertyValueBuffer, uint* PropertyValueBufferUsed);
 
 ///Creates a bookmark that identifies an event in a channel.
 ///Params:
@@ -1395,7 +1395,7 @@ BOOL EvtGetQueryInfo(ptrdiff_t QueryOrSubscription, EVT_QUERY_PROPERTY_ID Proper
 ///    function to get the error code.
 ///    
 @DllImport("wevtapi")
-ptrdiff_t EvtCreateBookmark(const(wchar)* BookmarkXml);
+ptrdiff_t EvtCreateBookmark(const(PWSTR) BookmarkXml);
 
 ///Updates the bookmark with information that identifies the specified event.
 ///Params:
@@ -1429,6 +1429,6 @@ BOOL EvtUpdateBookmark(ptrdiff_t Bookmark, ptrdiff_t Event);
 ///    
 @DllImport("wevtapi")
 BOOL EvtGetEventInfo(ptrdiff_t Event, EVT_EVENT_PROPERTY_ID PropertyId, uint PropertyValueBufferSize, 
-                     char* PropertyValueBuffer, uint* PropertyValueBufferUsed);
+                     EVT_VARIANT* PropertyValueBuffer, uint* PropertyValueBufferUsed);
 
 

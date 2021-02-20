@@ -6,11 +6,11 @@ public import windows.core;
 public import windows.automation : BSTR, IDispatch, VARIANT;
 public import windows.com : HRESULT, IEnumUnknown, IUnknown;
 public import windows.directshow : ALLOCATOR_PROPERTIES, AM_MEDIA_TYPE;
-public import windows.systemservices : BOOL, CY, HANDLE, HINSTANCE;
+public import windows.systemservices : BOOL, CY, HANDLE, HINSTANCE, PSTR, PWSTR;
 public import windows.windowsandmessaging : HWND, WPARAM;
 public import windows.windowsprogramming : SYSTEMTIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -1757,7 +1757,7 @@ align (1):
 struct LINEAGENTGROUPENTRY
 {
 align (1):
-    struct GroupID
+struct GroupID
     {
     align (1):
         uint dwGroupID1;
@@ -3067,7 +3067,7 @@ align (1):
     ///One of the LINEINITIALIZEEXOPTION_ Constants. Specifies the event notification mechanism the application desires
     ///to use.
     uint dwOptions;
-    union Handles
+union Handles
     {
     align (1):
         HANDLE hEvent;
@@ -3307,40 +3307,40 @@ align (1):
     ///One of the LINEPROXYREQUEST_ Constants. Identifies the type of function and the union component that defines the
     ///remaining data in the structure.
     uint dwRequestType;
-    union
+union
     {
-        struct SetAgentGroup
+struct SetAgentGroup
         {
         align (1):
             uint               dwAddressID;
             LINEAGENTGROUPLIST GroupList;
         }
-        struct SetAgentState
+struct SetAgentState
         {
         align (1):
             uint dwAddressID;
             uint dwAgentState;
             uint dwNextAgentState;
         }
-        struct SetAgentActivity
+struct SetAgentActivity
         {
         align (1):
             uint dwAddressID;
             uint dwActivityID;
         }
-        struct GetAgentCaps
+struct GetAgentCaps
         {
         align (1):
             uint          dwAddressID;
             LINEAGENTCAPS AgentCaps;
         }
-        struct GetAgentStatus
+struct GetAgentStatus
         {
         align (1):
             uint            dwAddressID;
             LINEAGENTSTATUS AgentStatus;
         }
-        struct AgentSpecific
+struct AgentSpecific
         {
         align (1):
             uint     dwAddressID;
@@ -3348,19 +3348,19 @@ align (1):
             uint     dwSize;
             ubyte[1] Params;
         }
-        struct GetAgentActivityList
+struct GetAgentActivityList
         {
         align (1):
             uint dwAddressID;
             LINEAGENTACTIVITYLIST ActivityList;
         }
-        struct GetAgentGroupList
+struct GetAgentGroupList
         {
         align (1):
             uint               dwAddressID;
             LINEAGENTGROUPLIST GroupList;
         }
-        struct CreateAgent
+struct CreateAgent
         {
         align (1):
             uint hAgent;
@@ -3369,26 +3369,26 @@ align (1):
             uint dwAgentPINSize;
             uint dwAgentPINOffset;
         }
-        struct SetAgentStateEx
+struct SetAgentStateEx
         {
         align (1):
             uint hAgent;
             uint dwAgentState;
             uint dwNextAgentState;
         }
-        struct SetAgentMeasurementPeriod
+struct SetAgentMeasurementPeriod
         {
         align (1):
             uint hAgent;
             uint dwMeasurementPeriod;
         }
-        struct GetAgentInfo
+struct GetAgentInfo
         {
         align (1):
             uint          hAgent;
             LINEAGENTINFO AgentInfo;
         }
-        struct CreateAgentSession
+struct CreateAgentSession
         {
         align (1):
             uint hAgentSession;
@@ -3398,44 +3398,44 @@ align (1):
             GUID GroupID;
             uint dwWorkingAddressID;
         }
-        struct GetAgentSessionList
+struct GetAgentSessionList
         {
         align (1):
             uint                 hAgent;
             LINEAGENTSESSIONLIST SessionList;
         }
-        struct GetAgentSessionInfo
+struct GetAgentSessionInfo
         {
         align (1):
             uint                 hAgentSession;
             LINEAGENTSESSIONINFO SessionInfo;
         }
-        struct SetAgentSessionState
+struct SetAgentSessionState
         {
         align (1):
             uint hAgentSession;
             uint dwAgentSessionState;
             uint dwNextAgentSessionState;
         }
-        struct GetQueueList
+struct GetQueueList
         {
         align (1):
             GUID          GroupID;
             LINEQUEUELIST QueueList;
         }
-        struct SetQueueMeasurementPeriod
+struct SetQueueMeasurementPeriod
         {
         align (1):
             uint dwQueueID;
             uint dwMeasurementPeriod;
         }
-        struct GetQueueInfo
+struct GetQueueInfo
         {
         align (1):
             uint          dwQueueID;
             LINEQUEUEINFO QueueInfo;
         }
-        struct GetGroupList
+struct GetGroupList
         {
             LINEAGENTGROUPLIST GroupList;
         }
@@ -3820,7 +3820,7 @@ align (1):
     ///One of the PHONEINITIALIZEEXOPTION_ Constants. Specifies the event notification mechanism the application desires
     ///to use.
     uint dwOptions;
-    union Handles
+union Handles
     {
     align (1):
         HANDLE hEvent;
@@ -3989,14 +3989,14 @@ struct MSP_EVENT_INFO
     MSP_EVENT Event;
     ///MSP handle; may be <b>NULL</b>.
     int*      hCall;
-    union
+union
     {
-        struct MSP_ADDRESS_EVENT_INFO
+struct MSP_ADDRESS_EVENT_INFO
         {
             MSP_ADDRESS_EVENT Type;
             ITTerminal        pTerminal;
         }
-        struct MSP_CALL_EVENT_INFO
+struct MSP_CALL_EVENT_INFO
         {
             MSP_CALL_EVENT       Type;
             MSP_CALL_EVENT_CAUSE Cause;
@@ -4004,17 +4004,17 @@ struct MSP_EVENT_INFO
             ITTerminal           pTerminal;
             HRESULT              hrError;
         }
-        struct MSP_TSP_DATA
+struct MSP_TSP_DATA
         {
             uint     dwBufferSize;
             ubyte[1] pBuffer;
         }
-        struct MSP_PRIVATE_EVENT_INFO
+struct MSP_PRIVATE_EVENT_INFO
         {
             IDispatch pEvent;
             int       lEventCode;
         }
-        struct MSP_FILE_TERMINAL_EVENT_INFO
+struct MSP_FILE_TERMINAL_EVENT_INFO
         {
             ITTerminal           pParentFileTerminal;
             ITFileTrack          pFileTrack;
@@ -4022,17 +4022,17 @@ struct MSP_EVENT_INFO
             FT_STATE_EVENT_CAUSE ftecEventCause;
             HRESULT              hrErrorCode;
         }
-        struct MSP_ASR_TERMINAL_EVENT_INFO
+struct MSP_ASR_TERMINAL_EVENT_INFO
         {
             ITTerminal pASRTerminal;
             HRESULT    hrErrorCode;
         }
-        struct MSP_TTS_TERMINAL_EVENT_INFO
+struct MSP_TTS_TERMINAL_EVENT_INFO
         {
             ITTerminal pTTSTerminal;
             HRESULT    hrErrorCode;
         }
-        struct MSP_TONE_TERMINAL_EVENT_INFO
+struct MSP_TONE_TERMINAL_EVENT_INFO
         {
             ITTerminal pToneTerminal;
             HRESULT    hrErrorCode;
@@ -4064,7 +4064,7 @@ struct MSP_EVENT_INFO
 ///    LINEERR_USERUSERINFOTOOBIG.
 ///    
 @DllImport("TAPI32")
-int lineAccept(uint hCall, const(char)* lpsUserUserInfo, uint dwSize);
+int lineAccept(uint hCall, const(PSTR) lpsUserUserInfo, uint dwSize);
 
 ///The <b>lineAddProvider</b> function installs a new telephony service provider into the telephony system.
 ///Params:
@@ -4079,7 +4079,7 @@ int lineAccept(uint hCall, const(char)* lpsUserUserInfo, uint dwSize);
 ///    LINEERR_OPERATIONFAILED.
 ///    
 @DllImport("TAPI32")
-int lineAddProvider(const(char)* lpszProviderFilename, HWND hwndOwner, uint* lpdwPermanentProviderID);
+int lineAddProvider(const(PSTR) lpszProviderFilename, HWND hwndOwner, uint* lpdwPermanentProviderID);
 
 ///The <b>lineAddProvider</b> function installs a new telephony service provider into the telephony system.
 ///Params:
@@ -4094,7 +4094,7 @@ int lineAddProvider(const(char)* lpszProviderFilename, HWND hwndOwner, uint* lpd
 ///    LINEERR_OPERATIONFAILED.
 ///    
 @DllImport("TAPI32")
-int lineAddProviderA(const(char)* lpszProviderFilename, HWND hwndOwner, uint* lpdwPermanentProviderID);
+int lineAddProviderA(const(PSTR) lpszProviderFilename, HWND hwndOwner, uint* lpdwPermanentProviderID);
 
 ///The <b>lineAddProvider</b> function installs a new telephony service provider into the telephony system.
 ///Params:
@@ -4109,7 +4109,7 @@ int lineAddProviderA(const(char)* lpszProviderFilename, HWND hwndOwner, uint* lp
 ///    LINEERR_OPERATIONFAILED.
 ///    
 @DllImport("TAPI32")
-int lineAddProviderW(const(wchar)* lpszProviderFilename, HWND hwndOwner, uint* lpdwPermanentProviderID);
+int lineAddProviderW(const(PWSTR) lpszProviderFilename, HWND hwndOwner, uint* lpdwPermanentProviderID);
 
 ///The <b>lineAddToConference</b> function adds the call specified by <i>hConsultCall</i> to the conference call
 ///specified by <i>hConfCall</i>.
@@ -4181,7 +4181,7 @@ int lineAgentSpecific(uint hLine, uint dwAddressID, uint dwAgentExtensionIDIndex
 ///    LINEERR_NOTOWNER.
 ///    
 @DllImport("TAPI32")
-int lineAnswer(uint hCall, const(char)* lpsUserUserInfo, uint dwSize);
+int lineAnswer(uint hCall, const(PSTR) lpsUserUserInfo, uint dwSize);
 
 ///The <b>lineBlindTransfer</b> function performs a blind or single-step transfer of the specified call to the specified
 ///destination address.
@@ -4201,7 +4201,7 @@ int lineAnswer(uint hCall, const(char)* lpsUserUserInfo, uint dwSize);
 ///    LINEERR_ADDRESSBLOCKED, LINEERR_OPERATIONFAILED.
 ///    
 @DllImport("TAPI32")
-int lineBlindTransfer(uint hCall, const(char)* lpszDestAddress, uint dwCountryCode);
+int lineBlindTransfer(uint hCall, const(PSTR) lpszDestAddress, uint dwCountryCode);
 
 ///The <b>lineBlindTransfer</b> function performs a blind or single-step transfer of the specified call to the specified
 ///destination address.
@@ -4221,7 +4221,7 @@ int lineBlindTransfer(uint hCall, const(char)* lpszDestAddress, uint dwCountryCo
 ///    LINEERR_ADDRESSBLOCKED, LINEERR_OPERATIONFAILED.
 ///    
 @DllImport("TAPI32")
-int lineBlindTransferA(uint hCall, const(char)* lpszDestAddress, uint dwCountryCode);
+int lineBlindTransferA(uint hCall, const(PSTR) lpszDestAddress, uint dwCountryCode);
 
 ///The <b>lineBlindTransfer</b> function performs a blind or single-step transfer of the specified call to the specified
 ///destination address.
@@ -4242,7 +4242,7 @@ int lineBlindTransferA(uint hCall, const(char)* lpszDestAddress, uint dwCountryC
 ///    LINEERR_ADDRESSBLOCKED, LINEERR_OPERATIONFAILED.
 ///    
 @DllImport("TAPI32")
-int lineBlindTransferW(uint hCall, const(wchar)* lpszDestAddressW, uint dwCountryCode);
+int lineBlindTransferW(uint hCall, const(PWSTR) lpszDestAddressW, uint dwCountryCode);
 
 ///The <b>lineClose</b> function closes the specified open line device.
 ///Params:
@@ -4321,7 +4321,7 @@ int lineCompleteTransfer(uint hCall, uint hConsultCall, uint* lphConfCall, uint 
 ///    LINEERR_OPERATIONUNAVAIL, LINEERR_NODEVICE.
 ///    
 @DllImport("TAPI32")
-int lineConfigDialog(uint dwDeviceID, HWND hwndOwner, const(char)* lpszDeviceClass);
+int lineConfigDialog(uint dwDeviceID, HWND hwndOwner, const(PSTR) lpszDeviceClass);
 
 ///The <b>lineConfigDialog</b> function causes the provider of the specified line device to display a dialog box
 ///(attached to <i>hwndOwner</i> of the application) to allow the user to configure parameters related to the line
@@ -4341,7 +4341,7 @@ int lineConfigDialog(uint dwDeviceID, HWND hwndOwner, const(char)* lpszDeviceCla
 ///    LINEERR_OPERATIONUNAVAIL, LINEERR_NODEVICE.
 ///    
 @DllImport("TAPI32")
-int lineConfigDialogA(uint dwDeviceID, HWND hwndOwner, const(char)* lpszDeviceClass);
+int lineConfigDialogA(uint dwDeviceID, HWND hwndOwner, const(PSTR) lpszDeviceClass);
 
 ///The <b>lineConfigDialog</b> function causes the provider of the specified line device to display a dialog box
 ///(attached to <i>hwndOwner</i> of the application) to allow the user to configure parameters related to the line
@@ -4361,7 +4361,7 @@ int lineConfigDialogA(uint dwDeviceID, HWND hwndOwner, const(char)* lpszDeviceCl
 ///    LINEERR_OPERATIONUNAVAIL, LINEERR_NODEVICE.
 ///    
 @DllImport("TAPI32")
-int lineConfigDialogW(uint dwDeviceID, HWND hwndOwner, const(wchar)* lpszDeviceClass);
+int lineConfigDialogW(uint dwDeviceID, HWND hwndOwner, const(PWSTR) lpszDeviceClass);
 
 ///The <b>lineConfigDialogEdit</b> function causes the provider of the specified line device to display a dialog box
 ///(attached to <i>hwndOwner</i> of the application) to allow the user to configure parameters related to the line
@@ -4392,7 +4392,7 @@ int lineConfigDialogW(uint dwDeviceID, HWND hwndOwner, const(wchar)* lpszDeviceC
 ///    LINEERR_OPERATIONUNAVAIL, LINEERR_NOMEM, LINEERR_NODEVICE.
 ///    
 @DllImport("TAPI32")
-int lineConfigDialogEdit(uint dwDeviceID, HWND hwndOwner, const(char)* lpszDeviceClass, 
+int lineConfigDialogEdit(uint dwDeviceID, HWND hwndOwner, const(PSTR) lpszDeviceClass, 
                          const(void)* lpDeviceConfigIn, uint dwSize, VARSTRING* lpDeviceConfigOut);
 
 ///The <b>lineConfigDialogEdit</b> function causes the provider of the specified line device to display a dialog box
@@ -4424,7 +4424,7 @@ int lineConfigDialogEdit(uint dwDeviceID, HWND hwndOwner, const(char)* lpszDevic
 ///    LINEERR_OPERATIONUNAVAIL, LINEERR_NOMEM, LINEERR_NODEVICE.
 ///    
 @DllImport("TAPI32")
-int lineConfigDialogEditA(uint dwDeviceID, HWND hwndOwner, const(char)* lpszDeviceClass, 
+int lineConfigDialogEditA(uint dwDeviceID, HWND hwndOwner, const(PSTR) lpszDeviceClass, 
                           const(void)* lpDeviceConfigIn, uint dwSize, VARSTRING* lpDeviceConfigOut);
 
 ///The <b>lineConfigDialogEdit</b> function causes the provider of the specified line device to display a dialog box
@@ -4456,7 +4456,7 @@ int lineConfigDialogEditA(uint dwDeviceID, HWND hwndOwner, const(char)* lpszDevi
 ///    LINEERR_OPERATIONUNAVAIL, LINEERR_NOMEM, LINEERR_NODEVICE.
 ///    
 @DllImport("TAPI32")
-int lineConfigDialogEditW(uint dwDeviceID, HWND hwndOwner, const(wchar)* lpszDeviceClass, 
+int lineConfigDialogEditW(uint dwDeviceID, HWND hwndOwner, const(PWSTR) lpszDeviceClass, 
                           const(void)* lpDeviceConfigIn, uint dwSize, VARSTRING* lpDeviceConfigOut);
 
 ///The <b>lineConfigProvider</b> function causes a service provider to display its configuration dialog box.
@@ -4490,7 +4490,7 @@ int lineConfigProvider(HWND hwndOwner, uint dwPermanentProviderID);
 ///    LINEERR_OPERATIONUNAVAIL, LINEERR_RESOURCEUNAVAIL, LINEERR_UNINITIALIZED.
 ///    
 @DllImport("TAPI32")
-int lineCreateAgentW(uint hLine, const(wchar)* lpszAgentID, const(wchar)* lpszAgentPIN, uint* lphAgent);
+int lineCreateAgentW(uint hLine, const(PWSTR) lpszAgentID, const(PWSTR) lpszAgentPIN, uint* lphAgent);
 
 ///The <b>lineCreateAgent</b> function creates a new Agent object. It generates a LINE_PROXYREQUEST message to be sent
 ///to a registered proxy function handler, referencing a LINEPROXYREQUEST structure of type
@@ -4511,7 +4511,7 @@ int lineCreateAgentW(uint hLine, const(wchar)* lpszAgentID, const(wchar)* lpszAg
 ///    LINEERR_OPERATIONUNAVAIL, LINEERR_RESOURCEUNAVAIL, LINEERR_UNINITIALIZED.
 ///    
 @DllImport("TAPI32")
-int lineCreateAgentA(uint hLine, const(char)* lpszAgentID, const(char)* lpszAgentPIN, uint* lphAgent);
+int lineCreateAgentA(uint hLine, const(PSTR) lpszAgentID, const(PSTR) lpszAgentPIN, uint* lphAgent);
 
 ///The <b>lineCreateAgentSession</b> function creates a new AgentSession object. It generates a LINE_PROXYREQUEST
 ///message to be sent to a registered proxy function handler, referencing a LINEPROXYREQUEST structure of type
@@ -4532,7 +4532,7 @@ int lineCreateAgentA(uint hLine, const(char)* lpszAgentID, const(char)* lpszAgen
 ///    LINEERR_OPERATIONUNAVAIL, LINEERR_RESOURCEUNAVAIL, LINEERR_UNINITIALIZED.
 ///    
 @DllImport("TAPI32")
-int lineCreateAgentSessionW(uint hLine, uint hAgent, const(wchar)* lpszAgentPIN, uint dwWorkingAddressID, 
+int lineCreateAgentSessionW(uint hLine, uint hAgent, const(PWSTR) lpszAgentPIN, uint dwWorkingAddressID, 
                             GUID* lpGroupID, uint* lphAgentSession);
 
 ///The <b>lineCreateAgentSession</b> function creates a new AgentSession object. It generates a LINE_PROXYREQUEST
@@ -4554,7 +4554,7 @@ int lineCreateAgentSessionW(uint hLine, uint hAgent, const(wchar)* lpszAgentPIN,
 ///    LINEERR_OPERATIONUNAVAIL, LINEERR_RESOURCEUNAVAIL, LINEERR_UNINITIALIZED.
 ///    
 @DllImport("TAPI32")
-int lineCreateAgentSessionA(uint hLine, uint hAgent, const(char)* lpszAgentPIN, uint dwWorkingAddressID, 
+int lineCreateAgentSessionA(uint hLine, uint hAgent, const(PSTR) lpszAgentPIN, uint dwWorkingAddressID, 
                             GUID* lpGroupID, uint* lphAgentSession);
 
 ///The <b>lineDeallocateCall</b> function deallocates the specified call handle.
@@ -4631,7 +4631,7 @@ int lineDevSpecificFeature(uint hLine, uint dwFeature, void* lpParams, uint dwSi
 ///    LINEERR_INVALCOUNTRYCODE.
 ///    
 @DllImport("TAPI32")
-int lineDial(uint hCall, const(char)* lpszDestAddress, uint dwCountryCode);
+int lineDial(uint hCall, const(PSTR) lpszDestAddress, uint dwCountryCode);
 
 ///The <b>lineDial</b> function dials the specified dialable number on the specified call.
 ///Params:
@@ -4651,7 +4651,7 @@ int lineDial(uint hCall, const(char)* lpszDestAddress, uint dwCountryCode);
 ///    LINEERR_INVALCOUNTRYCODE.
 ///    
 @DllImport("TAPI32")
-int lineDialA(uint hCall, const(char)* lpszDestAddress, uint dwCountryCode);
+int lineDialA(uint hCall, const(PSTR) lpszDestAddress, uint dwCountryCode);
 
 ///The <b>lineDial</b> function dials the specified dialable number on the specified call.
 ///Params:
@@ -4671,7 +4671,7 @@ int lineDialA(uint hCall, const(char)* lpszDestAddress, uint dwCountryCode);
 ///    LINEERR_INVALCOUNTRYCODE.
 ///    
 @DllImport("TAPI32")
-int lineDialW(uint hCall, const(wchar)* lpszDestAddress, uint dwCountryCode);
+int lineDialW(uint hCall, const(PWSTR) lpszDestAddress, uint dwCountryCode);
 
 ///The <b>lineDrop</b> function drops or disconnects the specified call. The application has the option to specify
 ///user-user information to be transmitted as part of the call disconnect.
@@ -4694,7 +4694,7 @@ int lineDialW(uint hCall, const(wchar)* lpszDestAddress, uint dwCountryCode);
 ///    LINEERR_UNINITIALIZED.
 ///    
 @DllImport("TAPI32")
-int lineDrop(uint hCall, const(char)* lpsUserUserInfo, uint dwSize);
+int lineDrop(uint hCall, const(PSTR) lpsUserUserInfo, uint dwSize);
 
 ///The <b>lineForward</b> function forwards calls destined for the specified address on the specified line, according to
 ///the specified forwarding instructions. When an originating address (<i>dwAddressID</i>) is forwarded, the specified
@@ -4841,8 +4841,8 @@ int lineForwardW(uint hLine, uint bAllAddresses, uint dwAddressID, const(LINEFOR
 ///    LINEERR_RESOURCEUNAVAIL, LINEERR_INVALPOINTER, LINEERR_UNINITIALIZED.
 ///    
 @DllImport("TAPI32")
-int lineGatherDigits(uint hCall, uint dwDigitModes, const(char)* lpsDigits, uint dwNumDigits, 
-                     const(char)* lpszTerminationDigits, uint dwFirstDigitTimeout, uint dwInterDigitTimeout);
+int lineGatherDigits(uint hCall, uint dwDigitModes, PSTR lpsDigits, uint dwNumDigits, 
+                     const(PSTR) lpszTerminationDigits, uint dwFirstDigitTimeout, uint dwInterDigitTimeout);
 
 ///The <b>lineGatherDigits</b> function initiates the buffered gathering of digits on the specified call. The
 ///application specifies a buffer in which to place the digits and the maximum number of digits to be collected.
@@ -4881,8 +4881,8 @@ int lineGatherDigits(uint hCall, uint dwDigitModes, const(char)* lpsDigits, uint
 ///    LINEERR_RESOURCEUNAVAIL, LINEERR_INVALPOINTER, LINEERR_UNINITIALIZED.
 ///    
 @DllImport("TAPI32")
-int lineGatherDigitsA(uint hCall, uint dwDigitModes, const(char)* lpsDigits, uint dwNumDigits, 
-                      const(char)* lpszTerminationDigits, uint dwFirstDigitTimeout, uint dwInterDigitTimeout);
+int lineGatherDigitsA(uint hCall, uint dwDigitModes, PSTR lpsDigits, uint dwNumDigits, 
+                      const(PSTR) lpszTerminationDigits, uint dwFirstDigitTimeout, uint dwInterDigitTimeout);
 
 ///The <b>lineGatherDigits</b> function initiates the buffered gathering of digits on the specified call. The
 ///application specifies a buffer in which to place the digits and the maximum number of digits to be collected.
@@ -4921,8 +4921,8 @@ int lineGatherDigitsA(uint hCall, uint dwDigitModes, const(char)* lpsDigits, uin
 ///    LINEERR_RESOURCEUNAVAIL, LINEERR_INVALPOINTER, LINEERR_UNINITIALIZED.
 ///    
 @DllImport("TAPI32")
-int lineGatherDigitsW(uint hCall, uint dwDigitModes, const(wchar)* lpsDigits, uint dwNumDigits, 
-                      const(wchar)* lpszTerminationDigits, uint dwFirstDigitTimeout, uint dwInterDigitTimeout);
+int lineGatherDigitsW(uint hCall, uint dwDigitModes, PWSTR lpsDigits, uint dwNumDigits, 
+                      const(PWSTR) lpszTerminationDigits, uint dwFirstDigitTimeout, uint dwInterDigitTimeout);
 
 ///The <b>lineGenerateDigits</b> function initiates the generation of the specified digits on the specified call as
 ///inband tones using the specified signaling mode. Calling this function with a <b>NULL</b> value for <i>lpszDigits</i>
@@ -4952,7 +4952,7 @@ int lineGatherDigitsW(uint hCall, uint dwDigitModes, const(wchar)* lpsDigits, ui
 ///    LINEERR_UNINITIALIZED.
 ///    
 @DllImport("TAPI32")
-int lineGenerateDigits(uint hCall, uint dwDigitMode, const(char)* lpszDigits, uint dwDuration);
+int lineGenerateDigits(uint hCall, uint dwDigitMode, const(PSTR) lpszDigits, uint dwDuration);
 
 ///The <b>lineGenerateDigits</b> function initiates the generation of the specified digits on the specified call as
 ///inband tones using the specified signaling mode. Calling this function with a <b>NULL</b> value for <i>lpszDigits</i>
@@ -4982,7 +4982,7 @@ int lineGenerateDigits(uint hCall, uint dwDigitMode, const(char)* lpszDigits, ui
 ///    LINEERR_UNINITIALIZED.
 ///    
 @DllImport("TAPI32")
-int lineGenerateDigitsA(uint hCall, uint dwDigitMode, const(char)* lpszDigits, uint dwDuration);
+int lineGenerateDigitsA(uint hCall, uint dwDigitMode, const(PSTR) lpszDigits, uint dwDuration);
 
 ///The <b>lineGenerateDigits</b> function initiates the generation of the specified digits on the specified call as
 ///inband tones using the specified signaling mode. Calling this function with a <b>NULL</b> value for <i>lpszDigits</i>
@@ -5012,7 +5012,7 @@ int lineGenerateDigitsA(uint hCall, uint dwDigitMode, const(char)* lpszDigits, u
 ///    LINEERR_UNINITIALIZED.
 ///    
 @DllImport("TAPI32")
-int lineGenerateDigitsW(uint hCall, uint dwDigitMode, const(wchar)* lpszDigits, uint dwDuration);
+int lineGenerateDigitsW(uint hCall, uint dwDigitMode, const(PWSTR) lpszDigits, uint dwDuration);
 
 ///The <b>lineGenerateTone</b> function generates the specified inband tone over the specified call. Invoking this
 ///function with a zero for <i>dwToneMode</i> aborts the tone generation currently in progress on the specified call.
@@ -5153,7 +5153,7 @@ int lineGetAddressCapsW(uint hLineApp, uint dwDeviceID, uint dwAddressID, uint d
 ///    LINEERR_INVALPOINTER, LINEERR_RESOURCEUNAVAIL, LINEERR_INVALADDRESS, LINEERR_UNINITIALIZED, LINEERR_NOMEM.
 ///    
 @DllImport("TAPI32")
-int lineGetAddressID(uint hLine, uint* lpdwAddressID, uint dwAddressMode, const(char)* lpsAddress, uint dwSize);
+int lineGetAddressID(uint hLine, uint* lpdwAddressID, uint dwAddressMode, const(PSTR) lpsAddress, uint dwSize);
 
 ///The <b>lineGetAddressID</b> function returns the address identifier associated with an address in a different format
 ///on the specified line.
@@ -5174,7 +5174,7 @@ int lineGetAddressID(uint hLine, uint* lpdwAddressID, uint dwAddressMode, const(
 ///    LINEERR_INVALPOINTER, LINEERR_RESOURCEUNAVAIL, LINEERR_INVALADDRESS, LINEERR_UNINITIALIZED, LINEERR_NOMEM.
 ///    
 @DllImport("TAPI32")
-int lineGetAddressIDA(uint hLine, uint* lpdwAddressID, uint dwAddressMode, const(char)* lpsAddress, uint dwSize);
+int lineGetAddressIDA(uint hLine, uint* lpdwAddressID, uint dwAddressMode, const(PSTR) lpsAddress, uint dwSize);
 
 ///The <b>lineGetAddressID</b> function returns the address identifier associated with an address in a different format
 ///on the specified line.
@@ -5195,7 +5195,7 @@ int lineGetAddressIDA(uint hLine, uint* lpdwAddressID, uint dwAddressMode, const
 ///    LINEERR_INVALPOINTER, LINEERR_RESOURCEUNAVAIL, LINEERR_INVALADDRESS, LINEERR_UNINITIALIZED, LINEERR_NOMEM.
 ///    
 @DllImport("TAPI32")
-int lineGetAddressIDW(uint hLine, uint* lpdwAddressID, uint dwAddressMode, const(wchar)* lpsAddress, uint dwSize);
+int lineGetAddressIDW(uint hLine, uint* lpdwAddressID, uint dwAddressMode, const(PWSTR) lpsAddress, uint dwSize);
 
 ///The <b>lineGetAddressStatus</b> function allows an application to query the specified address for its current status.
 ///Params:
@@ -5505,7 +5505,7 @@ int lineGetAgentStatusW(uint hLine, uint dwAddressID, LINEAGENTSTATUS* lpAgentSt
 ///    <b>LINEERR_STRUCTURETOOSMALL</b>.
 ///    
 @DllImport("TAPI32")
-int lineGetAppPriority(const(char)* lpszAppFilename, uint dwMediaMode, LINEEXTENSIONID* lpExtensionID, 
+int lineGetAppPriority(const(PSTR) lpszAppFilename, uint dwMediaMode, LINEEXTENSIONID* lpExtensionID, 
                        uint dwRequestMode, VARSTRING* lpExtensionName, uint* lpdwPriority);
 
 ///The <b>lineGetAppPriority</b> function enables an application to determine whether or not it is in the handoff
@@ -5541,7 +5541,7 @@ int lineGetAppPriority(const(char)* lpszAppFilename, uint dwMediaMode, LINEEXTEN
 ///    <b>LINEERR_STRUCTURETOOSMALL</b>.
 ///    
 @DllImport("TAPI32")
-int lineGetAppPriorityA(const(char)* lpszAppFilename, uint dwMediaMode, LINEEXTENSIONID* lpExtensionID, 
+int lineGetAppPriorityA(const(PSTR) lpszAppFilename, uint dwMediaMode, LINEEXTENSIONID* lpExtensionID, 
                         uint dwRequestMode, VARSTRING* lpExtensionName, uint* lpdwPriority);
 
 ///The <b>lineGetAppPriority</b> function enables an application to determine whether or not it is in the handoff
@@ -5577,7 +5577,7 @@ int lineGetAppPriorityA(const(char)* lpszAppFilename, uint dwMediaMode, LINEEXTE
 ///    <b>LINEERR_STRUCTURETOOSMALL</b>.
 ///    
 @DllImport("TAPI32")
-int lineGetAppPriorityW(const(wchar)* lpszAppFilename, uint dwMediaMode, LINEEXTENSIONID* lpExtensionID, 
+int lineGetAppPriorityW(const(PWSTR) lpszAppFilename, uint dwMediaMode, LINEEXTENSIONID* lpExtensionID, 
                         uint dwRequestMode, VARSTRING* lpExtensionName, uint* lpdwPriority);
 
 ///The <b>lineGetCallInfo</b> function enables an application to obtain fixed information about the specified call.
@@ -5832,7 +5832,7 @@ int lineGetDevCapsW(uint hLineApp, uint dwDeviceID, uint dwAPIVersion, uint dwEx
 ///    LINEERR_UNINITIALIZED, LINEERR_NODEVICE.
 ///    
 @DllImport("TAPI32")
-int lineGetDevConfig(uint dwDeviceID, VARSTRING* lpDeviceConfig, const(char)* lpszDeviceClass);
+int lineGetDevConfig(uint dwDeviceID, VARSTRING* lpDeviceConfig, const(PSTR) lpszDeviceClass);
 
 ///The <b>lineGetDevConfig</b> function returns an "opaque" data structure object, the contents of which are specific to
 ///the line (service provider) and device class. The data structure object stores the current configuration of a
@@ -5855,7 +5855,7 @@ int lineGetDevConfig(uint dwDeviceID, VARSTRING* lpDeviceConfig, const(char)* lp
 ///    LINEERR_UNINITIALIZED, LINEERR_NODEVICE.
 ///    
 @DllImport("TAPI32")
-int lineGetDevConfigA(uint dwDeviceID, VARSTRING* lpDeviceConfig, const(char)* lpszDeviceClass);
+int lineGetDevConfigA(uint dwDeviceID, VARSTRING* lpDeviceConfig, const(PSTR) lpszDeviceClass);
 
 ///The <b>lineGetDevConfig</b> function returns an "opaque" data structure object, the contents of which are specific to
 ///the line (service provider) and device class. The data structure object stores the current configuration of a
@@ -5878,7 +5878,7 @@ int lineGetDevConfigA(uint dwDeviceID, VARSTRING* lpDeviceConfig, const(char)* l
 ///    LINEERR_UNINITIALIZED, LINEERR_NODEVICE.
 ///    
 @DllImport("TAPI32")
-int lineGetDevConfigW(uint dwDeviceID, VARSTRING* lpDeviceConfig, const(wchar)* lpszDeviceClass);
+int lineGetDevConfigW(uint dwDeviceID, VARSTRING* lpDeviceConfig, const(PWSTR) lpszDeviceClass);
 
 ///The <b>lineGetGroupList</b> function returns a list of ACD groups available on the ACD system. It generates a
 ///LINE_PROXYREQUEST message to be sent to a registered proxy function handler, referencing a LINEPROXYREQUEST structure
@@ -5933,7 +5933,7 @@ int lineGetGroupListW(uint hLine, LINEAGENTGROUPLIST* lpGroupList);
 ///    LINEERR_INVALDEVICECLASS, LINEERR_UNINITIALIZED, LINEERR_NOMEM, LINEERR_NODEVICE.
 ///    
 @DllImport("TAPI32")
-int lineGetIcon(uint dwDeviceID, const(char)* lpszDeviceClass, ptrdiff_t* lphIcon);
+int lineGetIcon(uint dwDeviceID, const(PSTR) lpszDeviceClass, ptrdiff_t* lphIcon);
 
 ///The <b>lineGetIcon</b> function allows an application to retrieve a service line device-specific (or
 ///provider-specific) icon for display to the user.
@@ -5950,7 +5950,7 @@ int lineGetIcon(uint dwDeviceID, const(char)* lpszDeviceClass, ptrdiff_t* lphIco
 ///    LINEERR_INVALDEVICECLASS, LINEERR_UNINITIALIZED, LINEERR_NOMEM, LINEERR_NODEVICE.
 ///    
 @DllImport("TAPI32")
-int lineGetIconA(uint dwDeviceID, const(char)* lpszDeviceClass, ptrdiff_t* lphIcon);
+int lineGetIconA(uint dwDeviceID, const(PSTR) lpszDeviceClass, ptrdiff_t* lphIcon);
 
 ///The <b>lineGetIcon</b> function allows an application to retrieve a service line device-specific (or
 ///provider-specific) icon for display to the user.
@@ -5967,7 +5967,7 @@ int lineGetIconA(uint dwDeviceID, const(char)* lpszDeviceClass, ptrdiff_t* lphIc
 ///    LINEERR_INVALDEVICECLASS, LINEERR_UNINITIALIZED, LINEERR_NOMEM, LINEERR_NODEVICE.
 ///    
 @DllImport("TAPI32")
-int lineGetIconW(uint dwDeviceID, const(wchar)* lpszDeviceClass, ptrdiff_t* lphIcon);
+int lineGetIconW(uint dwDeviceID, const(PWSTR) lpszDeviceClass, ptrdiff_t* lphIcon);
 
 ///The <b>lineGetID</b> function returns a device identifier for the specified device class associated with the selected
 ///line, address, or call.
@@ -5996,7 +5996,7 @@ int lineGetIconW(uint dwDeviceID, const(wchar)* lpszDeviceClass, ptrdiff_t* lphI
 ///    
 @DllImport("TAPI32")
 int lineGetID(uint hLine, uint dwAddressID, uint hCall, uint dwSelect, VARSTRING* lpDeviceID, 
-              const(char)* lpszDeviceClass);
+              const(PSTR) lpszDeviceClass);
 
 ///The <b>lineGetID</b> function returns a device identifier for the specified device class associated with the selected
 ///line, address, or call.
@@ -6025,7 +6025,7 @@ int lineGetID(uint hLine, uint dwAddressID, uint hCall, uint dwSelect, VARSTRING
 ///    
 @DllImport("TAPI32")
 int lineGetIDA(uint hLine, uint dwAddressID, uint hCall, uint dwSelect, VARSTRING* lpDeviceID, 
-               const(char)* lpszDeviceClass);
+               const(PSTR) lpszDeviceClass);
 
 ///The <b>lineGetID</b> function returns a device identifier for the specified device class associated with the selected
 ///line, address, or call.
@@ -6054,7 +6054,7 @@ int lineGetIDA(uint hLine, uint dwAddressID, uint hCall, uint dwSelect, VARSTRIN
 ///    
 @DllImport("TAPI32")
 int lineGetIDW(uint hLine, uint dwAddressID, uint hCall, uint dwSelect, VARSTRING* lpDeviceID, 
-               const(wchar)* lpszDeviceClass);
+               const(PWSTR) lpszDeviceClass);
 
 ///The <b>lineGetLineDevStatus</b> function enables an application to query the specified open line device for its
 ///current status.
@@ -6452,7 +6452,7 @@ int lineGetTranslateCapsW(uint hLineApp, uint dwAPIVersion, LINETRANSLATECAPS* l
 ///    LINEERR_INVALPOINTER, LINEERR_TARGETSELF, LINEERR_NOMEM, LINEERR_UNINITIALIZED, LINEERR_NOTOWNER.
 ///    
 @DllImport("TAPI32")
-int lineHandoff(uint hCall, const(char)* lpszFileName, uint dwMediaMode);
+int lineHandoff(uint hCall, const(PSTR) lpszFileName, uint dwMediaMode);
 
 ///The <b>lineHandoff</b> function gives ownership of the specified call to another application. The application can be
 ///either specified directly by its file name or indirectly as the highest priority application that handles calls of
@@ -6473,7 +6473,7 @@ int lineHandoff(uint hCall, const(char)* lpszFileName, uint dwMediaMode);
 ///    LINEERR_INVALPOINTER, LINEERR_TARGETSELF, LINEERR_NOMEM, LINEERR_UNINITIALIZED, LINEERR_NOTOWNER.
 ///    
 @DllImport("TAPI32")
-int lineHandoffA(uint hCall, const(char)* lpszFileName, uint dwMediaMode);
+int lineHandoffA(uint hCall, const(PSTR) lpszFileName, uint dwMediaMode);
 
 ///The <b>lineHandoff</b> function gives ownership of the specified call to another application. The application can be
 ///either specified directly by its file name or indirectly as the highest priority application that handles calls of
@@ -6494,7 +6494,7 @@ int lineHandoffA(uint hCall, const(char)* lpszFileName, uint dwMediaMode);
 ///    LINEERR_INVALPOINTER, LINEERR_TARGETSELF, LINEERR_NOMEM, LINEERR_UNINITIALIZED, LINEERR_NOTOWNER.
 ///    
 @DllImport("TAPI32")
-int lineHandoffW(uint hCall, const(wchar)* lpszFileName, uint dwMediaMode);
+int lineHandoffW(uint hCall, const(PWSTR) lpszFileName, uint dwMediaMode);
 
 ///The <b>lineHold</b> function places the specified call on hold.
 ///Params:
@@ -6535,7 +6535,7 @@ int lineHold(uint hCall);
 ///    LINEERR_NOMULTIPLEINSTANCE.
 ///    
 @DllImport("TAPI32")
-int lineInitialize(uint* lphLineApp, HINSTANCE hInstance, LINECALLBACK lpfnCallback, const(char)* lpszAppName, 
+int lineInitialize(uint* lphLineApp, HINSTANCE hInstance, LINECALLBACK lpfnCallback, const(PSTR) lpszAppName, 
                    uint* lpdwNumDevs);
 
 ///The <b>lineInitializeEx</b> function initializes the application's use of TAPI for subsequent use of the line
@@ -6575,7 +6575,7 @@ int lineInitialize(uint* lphLineApp, HINSTANCE hInstance, LINECALLBACK lpfnCallb
 ///    
 @DllImport("TAPI32")
 int lineInitializeExA(uint* lphLineApp, HINSTANCE hInstance, LINECALLBACK lpfnCallback, 
-                      const(char)* lpszFriendlyAppName, uint* lpdwNumDevs, uint* lpdwAPIVersion, 
+                      const(PSTR) lpszFriendlyAppName, uint* lpdwNumDevs, uint* lpdwAPIVersion, 
                       LINEINITIALIZEEXPARAMS* lpLineInitializeExParams);
 
 ///The <b>lineInitializeEx</b> function initializes the application's use of TAPI for subsequent use of the line
@@ -6615,7 +6615,7 @@ int lineInitializeExA(uint* lphLineApp, HINSTANCE hInstance, LINECALLBACK lpfnCa
 ///    
 @DllImport("TAPI32")
 int lineInitializeExW(uint* lphLineApp, HINSTANCE hInstance, LINECALLBACK lpfnCallback, 
-                      const(wchar)* lpszFriendlyAppName, uint* lpdwNumDevs, uint* lpdwAPIVersion, 
+                      const(PWSTR) lpszFriendlyAppName, uint* lpdwNumDevs, uint* lpdwAPIVersion, 
                       LINEINITIALIZEEXPARAMS* lpLineInitializeExParams);
 
 ///The <b>lineMakeCall</b> function places a call on the specified line to the specified destination address.
@@ -6650,7 +6650,7 @@ int lineInitializeExW(uint* lphLineApp, HINSTANCE hInstance, LINECALLBACK lpfnCa
 ///    LINEERR_INVALCALLPARAMS, LINEERR_UNINITIALIZED, LINEERR_INVALCOUNTRYCODE, LINEERR_USERUSERINFOTOOBIG.
 ///    
 @DllImport("TAPI32")
-int lineMakeCall(uint hLine, uint* lphCall, const(char)* lpszDestAddress, uint dwCountryCode, 
+int lineMakeCall(uint hLine, uint* lphCall, const(PSTR) lpszDestAddress, uint dwCountryCode, 
                  const(LINECALLPARAMS)* lpCallParams);
 
 ///The <b>lineMakeCall</b> function places a call on the specified line to the specified destination address.
@@ -6685,7 +6685,7 @@ int lineMakeCall(uint hLine, uint* lphCall, const(char)* lpszDestAddress, uint d
 ///    LINEERR_INVALCALLPARAMS, LINEERR_UNINITIALIZED, LINEERR_INVALCOUNTRYCODE, LINEERR_USERUSERINFOTOOBIG.
 ///    
 @DllImport("TAPI32")
-int lineMakeCallA(uint hLine, uint* lphCall, const(char)* lpszDestAddress, uint dwCountryCode, 
+int lineMakeCallA(uint hLine, uint* lphCall, const(PSTR) lpszDestAddress, uint dwCountryCode, 
                   const(LINECALLPARAMS)* lpCallParams);
 
 ///The <b>lineMakeCall</b> function places a call on the specified line to the specified destination address.
@@ -6720,7 +6720,7 @@ int lineMakeCallA(uint hLine, uint* lphCall, const(char)* lpszDestAddress, uint 
 ///    LINEERR_INVALCALLPARAMS, LINEERR_UNINITIALIZED, LINEERR_INVALCOUNTRYCODE, LINEERR_USERUSERINFOTOOBIG.
 ///    
 @DllImport("TAPI32")
-int lineMakeCallW(uint hLine, uint* lphCall, const(wchar)* lpszDestAddress, uint dwCountryCode, 
+int lineMakeCallW(uint hLine, uint* lphCall, const(PWSTR) lpszDestAddress, uint dwCountryCode, 
                   const(LINECALLPARAMS)* lpCallParams);
 
 ///The <b>lineMonitorDigits</b> function enables and disables the unbuffered detection of digits received on the call.
@@ -7032,7 +7032,7 @@ int lineOpenW(uint hLineApp, uint dwDeviceID, uint* lphLine, uint dwAPIVersion, 
 ///    LINEERR_STRUCTURETOOSMALL, LINEERR_NOMEM, LINEERR_UNINITIALIZED.
 ///    
 @DllImport("TAPI32")
-int linePark(uint hCall, uint dwParkMode, const(char)* lpszDirAddress, VARSTRING* lpNonDirAddress);
+int linePark(uint hCall, uint dwParkMode, const(PSTR) lpszDirAddress, VARSTRING* lpNonDirAddress);
 
 ///The <b>linePark</b> function parks the specified call according to the specified park mode.
 ///Params:
@@ -7057,7 +7057,7 @@ int linePark(uint hCall, uint dwParkMode, const(char)* lpszDirAddress, VARSTRING
 ///    LINEERR_STRUCTURETOOSMALL, LINEERR_NOMEM, LINEERR_UNINITIALIZED.
 ///    
 @DllImport("TAPI32")
-int lineParkA(uint hCall, uint dwParkMode, const(char)* lpszDirAddress, VARSTRING* lpNonDirAddress);
+int lineParkA(uint hCall, uint dwParkMode, const(PSTR) lpszDirAddress, VARSTRING* lpNonDirAddress);
 
 ///The <b>linePark</b> function parks the specified call according to the specified park mode.
 ///Params:
@@ -7082,7 +7082,7 @@ int lineParkA(uint hCall, uint dwParkMode, const(char)* lpszDirAddress, VARSTRIN
 ///    LINEERR_STRUCTURETOOSMALL, LINEERR_NOMEM, LINEERR_UNINITIALIZED.
 ///    
 @DllImport("TAPI32")
-int lineParkW(uint hCall, uint dwParkMode, const(wchar)* lpszDirAddress, VARSTRING* lpNonDirAddress);
+int lineParkW(uint hCall, uint dwParkMode, const(PWSTR) lpszDirAddress, VARSTRING* lpNonDirAddress);
 
 ///The <b>linePickup</b> function picks up a call alerting at the specified destination address and returns a call
 ///handle for the picked-up call. If invoked with <b>NULL</b> for the <i>lpszDestAddress</i> parameter, a group pickup
@@ -7109,7 +7109,7 @@ int lineParkW(uint hCall, uint dwParkMode, const(wchar)* lpszDirAddress, VARSTRI
 ///    LINEERR_INVALLINEHANDLE, LINEERR_RESOURCEUNAVAIL, LINEERR_INVALPOINTER, LINEERR_UNINITIALIZED.
 ///    
 @DllImport("TAPI32")
-int linePickup(uint hLine, uint dwAddressID, uint* lphCall, const(char)* lpszDestAddress, const(char)* lpszGroupID);
+int linePickup(uint hLine, uint dwAddressID, uint* lphCall, const(PSTR) lpszDestAddress, const(PSTR) lpszGroupID);
 
 ///The <b>linePickup</b> function picks up a call alerting at the specified destination address and returns a call
 ///handle for the picked-up call. If invoked with <b>NULL</b> for the <i>lpszDestAddress</i> parameter, a group pickup
@@ -7136,8 +7136,7 @@ int linePickup(uint hLine, uint dwAddressID, uint* lphCall, const(char)* lpszDes
 ///    LINEERR_INVALLINEHANDLE, LINEERR_RESOURCEUNAVAIL, LINEERR_INVALPOINTER, LINEERR_UNINITIALIZED.
 ///    
 @DllImport("TAPI32")
-int linePickupA(uint hLine, uint dwAddressID, uint* lphCall, const(char)* lpszDestAddress, 
-                const(char)* lpszGroupID);
+int linePickupA(uint hLine, uint dwAddressID, uint* lphCall, const(PSTR) lpszDestAddress, const(PSTR) lpszGroupID);
 
 ///The <b>linePickup</b> function picks up a call alerting at the specified destination address and returns a call
 ///handle for the picked-up call. If invoked with <b>NULL</b> for the <i>lpszDestAddress</i> parameter, a group pickup
@@ -7164,8 +7163,8 @@ int linePickupA(uint hLine, uint dwAddressID, uint* lphCall, const(char)* lpszDe
 ///    LINEERR_INVALLINEHANDLE, LINEERR_RESOURCEUNAVAIL, LINEERR_INVALPOINTER, LINEERR_UNINITIALIZED.
 ///    
 @DllImport("TAPI32")
-int linePickupW(uint hLine, uint dwAddressID, uint* lphCall, const(wchar)* lpszDestAddress, 
-                const(wchar)* lpszGroupID);
+int linePickupW(uint hLine, uint dwAddressID, uint* lphCall, const(PWSTR) lpszDestAddress, 
+                const(PWSTR) lpszGroupID);
 
 ///The <b>linePrepareAddToConference</b> function prepares an existing conference call for the addition of another
 ///party.
@@ -7292,7 +7291,7 @@ int lineProxyResponse(uint hLine, LINEPROXYREQUEST* lpProxyRequest, uint dwResul
 ///    LINEERR_UNINITIALIZED, LINEERR_NOMEM.
 ///    
 @DllImport("TAPI32")
-int lineRedirect(uint hCall, const(char)* lpszDestAddress, uint dwCountryCode);
+int lineRedirect(uint hCall, const(PSTR) lpszDestAddress, uint dwCountryCode);
 
 ///The <b>lineRedirect</b> function redirects the specified offering call to the specified destination address.
 ///Params:
@@ -7310,7 +7309,7 @@ int lineRedirect(uint hCall, const(char)* lpszDestAddress, uint dwCountryCode);
 ///    LINEERR_UNINITIALIZED, LINEERR_NOMEM.
 ///    
 @DllImport("TAPI32")
-int lineRedirectA(uint hCall, const(char)* lpszDestAddress, uint dwCountryCode);
+int lineRedirectA(uint hCall, const(PSTR) lpszDestAddress, uint dwCountryCode);
 
 ///The <b>lineRedirect</b> function redirects the specified offering call to the specified destination address.
 ///Params:
@@ -7328,7 +7327,7 @@ int lineRedirectA(uint hCall, const(char)* lpszDestAddress, uint dwCountryCode);
 ///    LINEERR_UNINITIALIZED, LINEERR_NOMEM.
 ///    
 @DllImport("TAPI32")
-int lineRedirectW(uint hCall, const(wchar)* lpszDestAddress, uint dwCountryCode);
+int lineRedirectW(uint hCall, const(PWSTR) lpszDestAddress, uint dwCountryCode);
 
 ///The <b>lineRegisterRequestRecipient</b> function registers the invoking application as a recipient of requests for
 ///the specified request mode.
@@ -7429,7 +7428,7 @@ int lineSecureCall(uint hCall);
 ///    LINEERR_UNINITIALIZED.
 ///    
 @DllImport("TAPI32")
-int lineSendUserUserInfo(uint hCall, const(char)* lpsUserUserInfo, uint dwSize);
+int lineSendUserUserInfo(uint hCall, const(PSTR) lpsUserUserInfo, uint dwSize);
 
 ///The <b>lineSetAgentActivity</b> function sets the agent activity code associated with a particular address.
 ///Params:
@@ -7562,8 +7561,8 @@ int lineSetAgentState(uint hLine, uint dwAddressID, uint dwAgentState, uint dwNe
 ///    <b>LINEERR_RESOURCEUNAVAIL</b>, <b>LINEERR_INVALPOINTER</b>.
 ///    
 @DllImport("TAPI32")
-int lineSetAppPriority(const(char)* lpszAppFilename, uint dwMediaMode, LINEEXTENSIONID* lpExtensionID, 
-                       uint dwRequestMode, const(char)* lpszExtensionName, uint dwPriority);
+int lineSetAppPriority(const(PSTR) lpszAppFilename, uint dwMediaMode, LINEEXTENSIONID* lpExtensionID, 
+                       uint dwRequestMode, const(PSTR) lpszExtensionName, uint dwPriority);
 
 ///The <b>lineSetAppPriority</b> function enables an application to set its priority in the handoff priority list for a
 ///particular media type or Assisted Telephony request mode, or to remove itself from the priority list.
@@ -7590,8 +7589,8 @@ int lineSetAppPriority(const(char)* lpszAppFilename, uint dwMediaMode, LINEEXTEN
 ///    <b>LINEERR_RESOURCEUNAVAIL</b>, <b>LINEERR_INVALPOINTER</b>.
 ///    
 @DllImport("TAPI32")
-int lineSetAppPriorityA(const(char)* lpszAppFilename, uint dwMediaMode, LINEEXTENSIONID* lpExtensionID, 
-                        uint dwRequestMode, const(char)* lpszExtensionName, uint dwPriority);
+int lineSetAppPriorityA(const(PSTR) lpszAppFilename, uint dwMediaMode, LINEEXTENSIONID* lpExtensionID, 
+                        uint dwRequestMode, const(PSTR) lpszExtensionName, uint dwPriority);
 
 ///The <b>lineSetAppPriority</b> function enables an application to set its priority in the handoff priority list for a
 ///particular media type or Assisted Telephony request mode, or to remove itself from the priority list.
@@ -7618,8 +7617,8 @@ int lineSetAppPriorityA(const(char)* lpszAppFilename, uint dwMediaMode, LINEEXTE
 ///    <b>LINEERR_RESOURCEUNAVAIL</b>, <b>LINEERR_INVALPOINTER</b>.
 ///    
 @DllImport("TAPI32")
-int lineSetAppPriorityW(const(wchar)* lpszAppFilename, uint dwMediaMode, LINEEXTENSIONID* lpExtensionID, 
-                        uint dwRequestMode, const(wchar)* lpszExtensionName, uint dwPriority);
+int lineSetAppPriorityW(const(PWSTR) lpszAppFilename, uint dwMediaMode, LINEEXTENSIONID* lpExtensionID, 
+                        uint dwRequestMode, const(PWSTR) lpszExtensionName, uint dwPriority);
 
 ///The <b>lineSetAppSpecific</b> function enables an application to set the application-specific field of the specified
 ///call's call-information record.
@@ -7767,7 +7766,7 @@ int lineSetCurrentLocation(uint hLineApp, uint dwLocation);
 ///    LINEERR_UNINITIALIZED, LINEERR_NOMEM, LINEERR_NODEVICE.
 ///    
 @DllImport("TAPI32")
-int lineSetDevConfig(uint dwDeviceID, const(void)* lpDeviceConfig, uint dwSize, const(char)* lpszDeviceClass);
+int lineSetDevConfig(uint dwDeviceID, const(void)* lpDeviceConfig, uint dwSize, const(PSTR) lpszDeviceClass);
 
 ///The <b>lineSetDevConfig</b> function allows the application to restore the configuration of a media stream device on
 ///a line device to a setup previously obtained using lineGetDevConfig. For example, the contents of this structure
@@ -7788,7 +7787,7 @@ int lineSetDevConfig(uint dwDeviceID, const(void)* lpDeviceConfig, uint dwSize, 
 ///    LINEERR_UNINITIALIZED, LINEERR_NOMEM, LINEERR_NODEVICE.
 ///    
 @DllImport("TAPI32")
-int lineSetDevConfigA(uint dwDeviceID, const(void)* lpDeviceConfig, uint dwSize, const(char)* lpszDeviceClass);
+int lineSetDevConfigA(uint dwDeviceID, const(void)* lpDeviceConfig, uint dwSize, const(PSTR) lpszDeviceClass);
 
 ///The <b>lineSetDevConfig</b> function allows the application to restore the configuration of a media stream device on
 ///a line device to a setup previously obtained using lineGetDevConfig. For example, the contents of this structure
@@ -7809,7 +7808,7 @@ int lineSetDevConfigA(uint dwDeviceID, const(void)* lpDeviceConfig, uint dwSize,
 ///    LINEERR_UNINITIALIZED, LINEERR_NOMEM, LINEERR_NODEVICE.
 ///    
 @DllImport("TAPI32")
-int lineSetDevConfigW(uint dwDeviceID, const(void)* lpDeviceConfig, uint dwSize, const(wchar)* lpszDeviceClass);
+int lineSetDevConfigW(uint dwDeviceID, const(void)* lpDeviceConfig, uint dwSize, const(PWSTR) lpszDeviceClass);
 
 ///The <b>lineSetLineDevStatus</b> function sets the line device status. Except for basic parameter validation, it is a
 ///straight pass-through to the service provider. The service provider sends a LINE_LINEDEVSTATE message to inform
@@ -7976,7 +7975,7 @@ int lineSetTerminal(uint hLine, uint dwAddressID, uint hCall, uint dwSelect, uin
 ///    LINEERR_UNINITIALIZED, LINEERR_INVALLOCATION.
 ///    
 @DllImport("TAPI32")
-int lineSetTollList(uint hLineApp, uint dwDeviceID, const(char)* lpszAddressIn, uint dwTollListOption);
+int lineSetTollList(uint hLineApp, uint dwDeviceID, const(PSTR) lpszAddressIn, uint dwTollListOption);
 
 ///The <b>lineSetTollList</b> function manipulates the toll list.
 ///Params:
@@ -7993,7 +7992,7 @@ int lineSetTollList(uint hLineApp, uint dwDeviceID, const(char)* lpszAddressIn, 
 ///    LINEERR_UNINITIALIZED, LINEERR_INVALLOCATION.
 ///    
 @DllImport("TAPI32")
-int lineSetTollListA(uint hLineApp, uint dwDeviceID, const(char)* lpszAddressIn, uint dwTollListOption);
+int lineSetTollListA(uint hLineApp, uint dwDeviceID, const(PSTR) lpszAddressIn, uint dwTollListOption);
 
 ///The <b>lineSetTollList</b> function manipulates the toll list.
 ///Params:
@@ -8011,7 +8010,7 @@ int lineSetTollListA(uint hLineApp, uint dwDeviceID, const(char)* lpszAddressIn,
 ///    LINEERR_UNINITIALIZED, LINEERR_INVALLOCATION.
 ///    
 @DllImport("TAPI32")
-int lineSetTollListW(uint hLineApp, uint dwDeviceID, const(wchar)* lpszAddressInW, uint dwTollListOption);
+int lineSetTollListW(uint hLineApp, uint dwDeviceID, const(PWSTR) lpszAddressInW, uint dwTollListOption);
 
 ///The <b>lineSetupConference</b> function sets up a conference call for the addition of the third party.
 ///Params:
@@ -8271,8 +8270,8 @@ int lineSwapHold(uint hActiveCall, uint hHeldCall);
 ///    LINEERR_RESOURCEUNAVAIL, LINEERR_INVALCARD, LINEERR_STRUCTURETOOSMALL, LINEERR_INVALPARAM.
 ///    
 @DllImport("TAPI32")
-int lineTranslateAddress(uint hLineApp, uint dwDeviceID, uint dwAPIVersion, const(char)* lpszAddressIn, 
-                         uint dwCard, uint dwTranslateOptions, LINETRANSLATEOUTPUT* lpTranslateOutput);
+int lineTranslateAddress(uint hLineApp, uint dwDeviceID, uint dwAPIVersion, const(PSTR) lpszAddressIn, uint dwCard, 
+                         uint dwTranslateOptions, LINETRANSLATEOUTPUT* lpTranslateOutput);
 
 ///The <b>lineTranslateAddress</b> function translates the specified address into another format.
 ///Params:
@@ -8311,7 +8310,7 @@ int lineTranslateAddress(uint hLineApp, uint dwDeviceID, uint dwAPIVersion, cons
 ///    LINEERR_RESOURCEUNAVAIL, LINEERR_INVALCARD, LINEERR_STRUCTURETOOSMALL, LINEERR_INVALPARAM.
 ///    
 @DllImport("TAPI32")
-int lineTranslateAddressA(uint hLineApp, uint dwDeviceID, uint dwAPIVersion, const(char)* lpszAddressIn, 
+int lineTranslateAddressA(uint hLineApp, uint dwDeviceID, uint dwAPIVersion, const(PSTR) lpszAddressIn, 
                           uint dwCard, uint dwTranslateOptions, LINETRANSLATEOUTPUT* lpTranslateOutput);
 
 ///The <b>lineTranslateAddress</b> function translates the specified address into another format.
@@ -8351,7 +8350,7 @@ int lineTranslateAddressA(uint hLineApp, uint dwDeviceID, uint dwAPIVersion, con
 ///    LINEERR_RESOURCEUNAVAIL, LINEERR_INVALCARD, LINEERR_STRUCTURETOOSMALL, LINEERR_INVALPARAM.
 ///    
 @DllImport("TAPI32")
-int lineTranslateAddressW(uint hLineApp, uint dwDeviceID, uint dwAPIVersion, const(wchar)* lpszAddressIn, 
+int lineTranslateAddressW(uint hLineApp, uint dwDeviceID, uint dwAPIVersion, const(PWSTR) lpszAddressIn, 
                           uint dwCard, uint dwTranslateOptions, LINETRANSLATEOUTPUT* lpTranslateOutput);
 
 ///The <b>lineTranslateDialog</b> function displays an application-modal dialog box that allows the user to change the
@@ -8380,7 +8379,7 @@ int lineTranslateAddressW(uint hLineApp, uint dwDeviceID, uint dwAPIVersion, con
 ///    
 @DllImport("TAPI32")
 int lineTranslateDialog(uint hLineApp, uint dwDeviceID, uint dwAPIVersion, HWND hwndOwner, 
-                        const(char)* lpszAddressIn);
+                        const(PSTR) lpszAddressIn);
 
 ///The <b>lineTranslateDialog</b> function displays an application-modal dialog box that allows the user to change the
 ///current location of a phone number about to be dialed, adjust location and calling card parameters, and see the
@@ -8408,7 +8407,7 @@ int lineTranslateDialog(uint hLineApp, uint dwDeviceID, uint dwAPIVersion, HWND 
 ///    
 @DllImport("TAPI32")
 int lineTranslateDialogA(uint hLineApp, uint dwDeviceID, uint dwAPIVersion, HWND hwndOwner, 
-                         const(char)* lpszAddressIn);
+                         const(PSTR) lpszAddressIn);
 
 ///The <b>lineTranslateDialog</b> function displays an application-modal dialog box that allows the user to change the
 ///current location of a phone number about to be dialed, adjust location and calling card parameters, and see the
@@ -8436,7 +8435,7 @@ int lineTranslateDialogA(uint hLineApp, uint dwDeviceID, uint dwAPIVersion, HWND
 ///    
 @DllImport("TAPI32")
 int lineTranslateDialogW(uint hLineApp, uint dwDeviceID, uint dwAPIVersion, HWND hwndOwner, 
-                         const(wchar)* lpszAddressIn);
+                         const(PWSTR) lpszAddressIn);
 
 ///The <b>lineUncompleteCall</b> function cancels the specified call completion request on the specified line.
 ///Params:
@@ -8485,7 +8484,7 @@ int lineUnhold(uint hCall);
 ///    LINEERR_RESOURCEUNAVAIL, LINEERR_INVALPOINTER, LINEERR_UNINITIALIZED, LINEERR_NOMEM.
 ///    
 @DllImport("TAPI32")
-int lineUnpark(uint hLine, uint dwAddressID, uint* lphCall, const(char)* lpszDestAddress);
+int lineUnpark(uint hLine, uint dwAddressID, uint* lphCall, const(PSTR) lpszDestAddress);
 
 ///The <b>lineUnpark</b> function retrieves the call parked at the specified address and returns a call handle for it.
 ///Params:
@@ -8506,7 +8505,7 @@ int lineUnpark(uint hLine, uint dwAddressID, uint* lphCall, const(char)* lpszDes
 ///    LINEERR_RESOURCEUNAVAIL, LINEERR_INVALPOINTER, LINEERR_UNINITIALIZED, LINEERR_NOMEM.
 ///    
 @DllImport("TAPI32")
-int lineUnparkA(uint hLine, uint dwAddressID, uint* lphCall, const(char)* lpszDestAddress);
+int lineUnparkA(uint hLine, uint dwAddressID, uint* lphCall, const(PSTR) lpszDestAddress);
 
 ///The <b>lineUnpark</b> function retrieves the call parked at the specified address and returns a call handle for it.
 ///Params:
@@ -8527,7 +8526,7 @@ int lineUnparkA(uint hLine, uint dwAddressID, uint* lphCall, const(char)* lpszDe
 ///    LINEERR_RESOURCEUNAVAIL, LINEERR_INVALPOINTER, LINEERR_UNINITIALIZED, LINEERR_NOMEM.
 ///    
 @DllImport("TAPI32")
-int lineUnparkW(uint hLine, uint dwAddressID, uint* lphCall, const(wchar)* lpszDestAddress);
+int lineUnparkW(uint hLine, uint dwAddressID, uint* lphCall, const(PWSTR) lpszDestAddress);
 
 ///The <b>phoneClose</b> function closes the specified open phone device.
 ///Params:
@@ -8558,7 +8557,7 @@ int phoneClose(uint hPhone);
 ///    PHONEERR_UNINITIALIZED, PHONEERR_NODEVICE.
 ///    
 @DllImport("TAPI32")
-int phoneConfigDialog(uint dwDeviceID, HWND hwndOwner, const(char)* lpszDeviceClass);
+int phoneConfigDialog(uint dwDeviceID, HWND hwndOwner, const(PSTR) lpszDeviceClass);
 
 ///The <b>phoneConfigDialog</b> function causes the provider of the specified phone device to display a modal dialog box
 ///(attached to the application's <i>hwndOwner</i> parameter) that allows the user to configure parameters related to
@@ -8578,7 +8577,7 @@ int phoneConfigDialog(uint dwDeviceID, HWND hwndOwner, const(char)* lpszDeviceCl
 ///    PHONEERR_UNINITIALIZED, PHONEERR_NODEVICE.
 ///    
 @DllImport("TAPI32")
-int phoneConfigDialogA(uint dwDeviceID, HWND hwndOwner, const(char)* lpszDeviceClass);
+int phoneConfigDialogA(uint dwDeviceID, HWND hwndOwner, const(PSTR) lpszDeviceClass);
 
 ///The <b>phoneConfigDialog</b> function causes the provider of the specified phone device to display a modal dialog box
 ///(attached to the application's <i>hwndOwner</i> parameter) that allows the user to configure parameters related to
@@ -8598,7 +8597,7 @@ int phoneConfigDialogA(uint dwDeviceID, HWND hwndOwner, const(char)* lpszDeviceC
 ///    PHONEERR_UNINITIALIZED, PHONEERR_NODEVICE.
 ///    
 @DllImport("TAPI32")
-int phoneConfigDialogW(uint dwDeviceID, HWND hwndOwner, const(wchar)* lpszDeviceClass);
+int phoneConfigDialogW(uint dwDeviceID, HWND hwndOwner, const(PWSTR) lpszDeviceClass);
 
 ///The <b>phoneDevSpecific</b> function is used as a general extension mechanism to enable a Telephony API
 ///implementation to provide features not described in the other TAPI functions. The meanings of these extensions are
@@ -8808,7 +8807,7 @@ int phoneGetHookSwitch(uint hPhone, uint* lpdwHookSwitchDevs);
 ///    PHONEERR_INVALDEVICECLASS, PHONEERR_UNINITIALIZED, PHONEERR_NOMEM, PHONEERR_NODEVICE.
 ///    
 @DllImport("TAPI32")
-int phoneGetIcon(uint dwDeviceID, const(char)* lpszDeviceClass, ptrdiff_t* lphIcon);
+int phoneGetIcon(uint dwDeviceID, const(PSTR) lpszDeviceClass, ptrdiff_t* lphIcon);
 
 ///The <b>phoneGetIcon</b> function allows an application to retrieve a service phone device-specific (or
 ///provider-specific) icon that can be displayed to the user.
@@ -8825,7 +8824,7 @@ int phoneGetIcon(uint dwDeviceID, const(char)* lpszDeviceClass, ptrdiff_t* lphIc
 ///    PHONEERR_INVALDEVICECLASS, PHONEERR_UNINITIALIZED, PHONEERR_NOMEM, PHONEERR_NODEVICE.
 ///    
 @DllImport("TAPI32")
-int phoneGetIconA(uint dwDeviceID, const(char)* lpszDeviceClass, ptrdiff_t* lphIcon);
+int phoneGetIconA(uint dwDeviceID, const(PSTR) lpszDeviceClass, ptrdiff_t* lphIcon);
 
 ///The <b>phoneGetIcon</b> function allows an application to retrieve a service phone device-specific (or
 ///provider-specific) icon that can be displayed to the user.
@@ -8842,7 +8841,7 @@ int phoneGetIconA(uint dwDeviceID, const(char)* lpszDeviceClass, ptrdiff_t* lphI
 ///    PHONEERR_INVALDEVICECLASS, PHONEERR_UNINITIALIZED, PHONEERR_NOMEM, PHONEERR_NODEVICE.
 ///    
 @DllImport("TAPI32")
-int phoneGetIconW(uint dwDeviceID, const(wchar)* lpszDeviceClass, ptrdiff_t* lphIcon);
+int phoneGetIconW(uint dwDeviceID, const(PWSTR) lpszDeviceClass, ptrdiff_t* lphIcon);
 
 ///The <b>phoneGetID</b> function returns a device identifier for the given device class associated with the specified
 ///phone device.
@@ -8860,7 +8859,7 @@ int phoneGetIconW(uint dwDeviceID, const(wchar)* lpszDeviceClass, ptrdiff_t* lph
 ///    PHONEERR_OPERATIONUNAVAIL.
 ///    
 @DllImport("TAPI32")
-int phoneGetID(uint hPhone, VARSTRING* lpDeviceID, const(char)* lpszDeviceClass);
+int phoneGetID(uint hPhone, VARSTRING* lpDeviceID, const(PSTR) lpszDeviceClass);
 
 ///The <b>phoneGetID</b> function returns a device identifier for the given device class associated with the specified
 ///phone device.
@@ -8878,7 +8877,7 @@ int phoneGetID(uint hPhone, VARSTRING* lpDeviceID, const(char)* lpszDeviceClass)
 ///    PHONEERR_OPERATIONUNAVAIL.
 ///    
 @DllImport("TAPI32")
-int phoneGetIDA(uint hPhone, VARSTRING* lpDeviceID, const(char)* lpszDeviceClass);
+int phoneGetIDA(uint hPhone, VARSTRING* lpDeviceID, const(PSTR) lpszDeviceClass);
 
 ///The <b>phoneGetID</b> function returns a device identifier for the given device class associated with the specified
 ///phone device.
@@ -8896,7 +8895,7 @@ int phoneGetIDA(uint hPhone, VARSTRING* lpDeviceID, const(char)* lpszDeviceClass
 ///    PHONEERR_OPERATIONUNAVAIL.
 ///    
 @DllImport("TAPI32")
-int phoneGetIDW(uint hPhone, VARSTRING* lpDeviceID, const(wchar)* lpszDeviceClass);
+int phoneGetIDW(uint hPhone, VARSTRING* lpDeviceID, const(PWSTR) lpszDeviceClass);
 
 ///The <b>phoneGetLamp</b> function returns the current lamp mode of the specified lamp.
 ///Params:
@@ -9047,7 +9046,7 @@ int phoneGetVolume(uint hPhone, uint dwHookSwitchDev, uint* lpdwVolume);
 ///    PHONEERR_REINIT, PHONEERR_RESOURCEUNAVAIL, PHONEERR_NODEVICE, PHONEERR_NODRIVER, PHONEERR_INVALPARAM
 ///    
 @DllImport("TAPI32")
-int phoneInitialize(uint* lphPhoneApp, HINSTANCE hInstance, PHONECALLBACK lpfnCallback, const(char)* lpszAppName, 
+int phoneInitialize(uint* lphPhoneApp, HINSTANCE hInstance, PHONECALLBACK lpfnCallback, const(PSTR) lpszAppName, 
                     uint* lpdwNumDevs);
 
 ///The <b>phoneInitializeEx</b> function initializes the application's use of TAPI for subsequent use of the phone
@@ -9086,7 +9085,7 @@ int phoneInitialize(uint* lphPhoneApp, HINSTANCE hInstance, PHONECALLBACK lpfnCa
 ///    
 @DllImport("TAPI32")
 int phoneInitializeExA(uint* lphPhoneApp, HINSTANCE hInstance, PHONECALLBACK lpfnCallback, 
-                       const(char)* lpszFriendlyAppName, uint* lpdwNumDevs, uint* lpdwAPIVersion, 
+                       const(PSTR) lpszFriendlyAppName, uint* lpdwNumDevs, uint* lpdwAPIVersion, 
                        PHONEINITIALIZEEXPARAMS* lpPhoneInitializeExParams);
 
 ///The <b>phoneInitializeEx</b> function initializes the application's use of TAPI for subsequent use of the phone
@@ -9125,7 +9124,7 @@ int phoneInitializeExA(uint* lphPhoneApp, HINSTANCE hInstance, PHONECALLBACK lpf
 ///    
 @DllImport("TAPI32")
 int phoneInitializeExW(uint* lphPhoneApp, HINSTANCE hInstance, PHONECALLBACK lpfnCallback, 
-                       const(wchar)* lpszFriendlyAppName, uint* lpdwNumDevs, uint* lpdwAPIVersion, 
+                       const(PWSTR) lpszFriendlyAppName, uint* lpdwNumDevs, uint* lpdwAPIVersion, 
                        PHONEINITIALIZEEXPARAMS* lpPhoneInitializeExParams);
 
 ///The <b>phoneNegotiateAPIVersion</b> allows an application to negotiate an API version to use for the specified phone
@@ -9294,7 +9293,7 @@ int phoneSetData(uint hPhone, uint dwDataID, const(void)* lpData, uint dwSize);
 ///    PHONEERR_RESOURCEUNAVAIL.
 ///    
 @DllImport("TAPI32")
-int phoneSetDisplay(uint hPhone, uint dwRow, uint dwColumn, const(char)* lpsDisplay, uint dwSize);
+int phoneSetDisplay(uint hPhone, uint dwRow, uint dwColumn, const(PSTR) lpsDisplay, uint dwSize);
 
 ///The <b>phoneSetGain</b> function sets the gain of the microphone of the specified hookswitch device to the specified
 ///gain level.
@@ -9434,7 +9433,7 @@ int phoneShutdown(uint hPhoneApp);
 ///    TAPIERR_REQUESTFAILED.
 ///    
 @DllImport("TAPI32")
-int tapiGetLocationInfo(const(char)* lpszCountryCode, const(char)* lpszCityCode);
+int tapiGetLocationInfo(PSTR lpszCountryCode, PSTR lpszCityCode);
 
 ///The <b>tapiGetLocationInfo</b> function returns the country or region code and city (area) code that the user has set
 ///in the current location parameters in the Telephony Control Panel. The application can use this information to assist
@@ -9448,7 +9447,7 @@ int tapiGetLocationInfo(const(char)* lpszCountryCode, const(char)* lpszCityCode)
 ///    TAPIERR_REQUESTFAILED.
 ///    
 @DllImport("TAPI32")
-int tapiGetLocationInfoA(const(char)* lpszCountryCode, const(char)* lpszCityCode);
+int tapiGetLocationInfoA(PSTR lpszCountryCode, PSTR lpszCityCode);
 
 ///The <b>tapiGetLocationInfo</b> function returns the country or region code and city (area) code that the user has set
 ///in the current location parameters in the Telephony Control Panel. The application can use this information to assist
@@ -9468,7 +9467,7 @@ int tapiGetLocationInfoA(const(char)* lpszCountryCode, const(char)* lpszCityCode
 ///    TAPIERR_REQUESTFAILED.
 ///    
 @DllImport("TAPI32")
-int tapiGetLocationInfoW(const(wchar)* lpszCountryCodeW, const(wchar)* lpszCityCodeW);
+int tapiGetLocationInfoW(PWSTR lpszCountryCodeW, PWSTR lpszCityCodeW);
 
 ///Closes a call request made by a previous call to tapiRequestMediaCall. <div class="alert"><b>Note</b> The
 ///tapiRequestDrop function is nonfunctional and obsolete for all classes of Windows-based applications. It should not
@@ -9504,8 +9503,8 @@ int tapiRequestDrop(HWND hwnd, WPARAM wRequestID);
 ///    are: TAPIERR_NOREQUESTRECIPIENT, TAPIERR_INVALDESTADDRESS, TAPIERR_REQUESTQUEUEFULL, TAPIERR_INVALPOINTER.
 ///    
 @DllImport("TAPI32")
-int tapiRequestMakeCall(const(char)* lpszDestAddress, const(char)* lpszAppName, const(char)* lpszCalledParty, 
-                        const(char)* lpszComment);
+int tapiRequestMakeCall(const(PSTR) lpszDestAddress, const(PSTR) lpszAppName, const(PSTR) lpszCalledParty, 
+                        const(PSTR) lpszComment);
 
 ///The <b>tapiRequestMakeCall</b> function requests the establishment of a voice call. A call-manager application is
 ///responsible for establishing the call on behalf of the requesting application, which is then controlled by the user's
@@ -9529,8 +9528,8 @@ int tapiRequestMakeCall(const(char)* lpszDestAddress, const(char)* lpszAppName, 
 ///    are: TAPIERR_NOREQUESTRECIPIENT, TAPIERR_INVALDESTADDRESS, TAPIERR_REQUESTQUEUEFULL, TAPIERR_INVALPOINTER.
 ///    
 @DllImport("TAPI32")
-int tapiRequestMakeCallA(const(char)* lpszDestAddress, const(char)* lpszAppName, const(char)* lpszCalledParty, 
-                         const(char)* lpszComment);
+int tapiRequestMakeCallA(const(PSTR) lpszDestAddress, const(PSTR) lpszAppName, const(PSTR) lpszCalledParty, 
+                         const(PSTR) lpszComment);
 
 ///The <b>tapiRequestMakeCall</b> function requests the establishment of a voice call. A call-manager application is
 ///responsible for establishing the call on behalf of the requesting application, which is then controlled by the user's
@@ -9554,23 +9553,23 @@ int tapiRequestMakeCallA(const(char)* lpszDestAddress, const(char)* lpszAppName,
 ///    are: TAPIERR_NOREQUESTRECIPIENT, TAPIERR_INVALDESTADDRESS, TAPIERR_REQUESTQUEUEFULL, TAPIERR_INVALPOINTER.
 ///    
 @DllImport("TAPI32")
-int tapiRequestMakeCallW(const(wchar)* lpszDestAddress, const(wchar)* lpszAppName, const(wchar)* lpszCalledParty, 
-                         const(wchar)* lpszComment);
+int tapiRequestMakeCallW(const(PWSTR) lpszDestAddress, const(PWSTR) lpszAppName, const(PWSTR) lpszCalledParty, 
+                         const(PWSTR) lpszComment);
 
 @DllImport("TAPI32")
-int tapiRequestMediaCall(HWND hwnd, WPARAM wRequestID, const(char)* lpszDeviceClass, const(char)* lpDeviceID, 
-                         uint dwSize, uint dwSecure, const(char)* lpszDestAddress, const(char)* lpszAppName, 
-                         const(char)* lpszCalledParty, const(char)* lpszComment);
+int tapiRequestMediaCall(HWND hwnd, WPARAM wRequestID, const(PSTR) lpszDeviceClass, const(PSTR) lpDeviceID, 
+                         uint dwSize, uint dwSecure, const(PSTR) lpszDestAddress, const(PSTR) lpszAppName, 
+                         const(PSTR) lpszCalledParty, const(PSTR) lpszComment);
 
 @DllImport("TAPI32")
-int tapiRequestMediaCallA(HWND hwnd, WPARAM wRequestID, const(char)* lpszDeviceClass, const(char)* lpDeviceID, 
-                          uint dwSize, uint dwSecure, const(char)* lpszDestAddress, const(char)* lpszAppName, 
-                          const(char)* lpszCalledParty, const(char)* lpszComment);
+int tapiRequestMediaCallA(HWND hwnd, WPARAM wRequestID, const(PSTR) lpszDeviceClass, const(PSTR) lpDeviceID, 
+                          uint dwSize, uint dwSecure, const(PSTR) lpszDestAddress, const(PSTR) lpszAppName, 
+                          const(PSTR) lpszCalledParty, const(PSTR) lpszComment);
 
 @DllImport("TAPI32")
-int tapiRequestMediaCallW(HWND hwnd, WPARAM wRequestID, const(wchar)* lpszDeviceClass, const(wchar)* lpDeviceID, 
-                          uint dwSize, uint dwSecure, const(wchar)* lpszDestAddress, const(wchar)* lpszAppName, 
-                          const(wchar)* lpszCalledParty, const(wchar)* lpszComment);
+int tapiRequestMediaCallW(HWND hwnd, WPARAM wRequestID, const(PWSTR) lpszDeviceClass, const(PWSTR) lpDeviceID, 
+                          uint dwSize, uint dwSecure, const(PWSTR) lpszDestAddress, const(PWSTR) lpszAppName, 
+                          const(PWSTR) lpszCalledParty, const(PWSTR) lpszComment);
 
 
 // Interfaces
@@ -11743,7 +11742,7 @@ interface ITCallInfo : IDispatch
     ///    parameter is not a valid value. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>TAPI_E_INVALCALLSTATE</b></dt>
     ///    </dl> </td> <td width="60%"> The current call state is not valid for this operation. </td> </tr> </table>
     ///    
-    HRESULT GetCallInfoBuffer(CALLINFO_BUFFER CallInfoBuffer, uint* pdwSize, char* ppCallInfoBuffer);
+    HRESULT GetCallInfoBuffer(CALLINFO_BUFFER CallInfoBuffer, uint* pdwSize, ubyte** ppCallInfoBuffer);
     ///The <b>SetCallInfoBuffer</b> method sets call information items that require a buffer, such as user-user
     ///information. Automation client applications, such as those written in Visual Basic, must use the
     ///ITCallInfo::put_CallInfoBuffer method.
@@ -11761,7 +11760,7 @@ interface ITCallInfo : IDispatch
     ///    valid value. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>TAPI_E_INVALCALLSTATE</b></dt> </dl> </td> <td
     ///    width="60%"> The current call state is not valid for this operation. </td> </tr> </table>
     ///    
-    HRESULT SetCallInfoBuffer(CALLINFO_BUFFER CallInfoBuffer, uint dwSize, char* pCallInfoBuffer);
+    HRESULT SetCallInfoBuffer(CALLINFO_BUFFER CallInfoBuffer, uint dwSize, ubyte* pCallInfoBuffer);
     ///The <b>ReleaseUserUserInfo</b> method informs the service provider that the application has processed the
     ///user-user information obtained from the ITCallInfo::GetCallInfoBuffer method, called with the CIB_USERUSERINFO
     ///member of CALLINFO_BUFFER, and subsequently received user-user information can now be written.
@@ -12272,7 +12271,7 @@ interface ITLegacyAddressMediaControl : IUnknown
     ///    <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>pdwSize</i> or <i>ppDeviceID</i> parameter is
     ///    not a valid pointer. </td> </tr> </table>
     ///    
-    HRESULT GetID(BSTR pDeviceClass, uint* pdwSize, char* ppDeviceID);
+    HRESULT GetID(BSTR pDeviceClass, uint* pdwSize, ubyte** ppDeviceID);
     ///The <b>GetDevConfig</b> method returns an opaque data structure. The exact contents are specific to the service
     ///provider and device class. The data structure specifies the configuration of a device associated with a
     ///particular line device. For example, the contents of this structure could specify data rate, character format,
@@ -12289,7 +12288,7 @@ interface ITLegacyAddressMediaControl : IUnknown
     ///    <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Insufficient memory exists to perform the
     ///    operation. </td> </tr> </table>
     ///    
-    HRESULT GetDevConfig(BSTR pDeviceClass, uint* pdwSize, char* ppDeviceConfig);
+    HRESULT GetDevConfig(BSTR pDeviceClass, uint* pdwSize, ubyte** ppDeviceConfig);
     ///The <b>SetDevConfig</b> function allows the application to restore the configuration of a media stream device on
     ///a line device to a setup previously obtained using GetDevConfig.
     ///Params:
@@ -12305,7 +12304,7 @@ interface ITLegacyAddressMediaControl : IUnknown
     ///    </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Insufficient
     ///    memory exists to perform the operation. </td> </tr> </table>
     ///    
-    HRESULT SetDevConfig(BSTR pDeviceClass, uint dwSize, char* pDeviceConfig);
+    HRESULT SetDevConfig(BSTR pDeviceClass, uint dwSize, ubyte* pDeviceConfig);
 }
 
 ///The <b>ITPrivateEvent</b> interface exposes methods that allows an application to process events generated by a
@@ -12410,8 +12409,8 @@ interface ITLegacyAddressMediaControl2 : ITLegacyAddressMediaControl
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT ConfigDialogEdit(HWND hwndOwner, BSTR pDeviceClass, uint dwSizeIn, char* pDeviceConfigIn, 
-                             uint* pdwSizeOut, char* ppDeviceConfigOut);
+    HRESULT ConfigDialogEdit(HWND hwndOwner, BSTR pDeviceClass, uint dwSizeIn, ubyte* pDeviceConfigIn, 
+                             uint* pdwSizeOut, ubyte** ppDeviceConfigOut);
 }
 
 ///The <b>ITLegacyCallMediaControl</b> interface supports legacy applications that must communicate directly with a
@@ -12459,7 +12458,7 @@ interface ITLegacyCallMediaControl : IDispatch
     ///    to perform the operation. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td
     ///    width="60%"> The <i>pdwSize</i> or <i>ppDeviceID</i> parameter is not a valid pointer. </td> </tr> </table>
     ///    
-    HRESULT GetID(BSTR pDeviceClass, uint* pdwSize, char* ppDeviceID);
+    HRESULT GetID(BSTR pDeviceClass, uint* pdwSize, ubyte** ppDeviceID);
     ///The <b>SetMediaType</b> method sets the media type(s) for the current call in its LINECALLINFO structure. For
     ///more information, see lineSetMediaMode.
     ///Params:
@@ -12851,7 +12850,7 @@ interface IEnumPhone : IUnknown
     ///    operation. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The
     ///    <i>ppElements</i> parameter is not a valid pointer. </td> </tr> </table>
     ///    
-    HRESULT Next(uint celt, char* ppElements, uint* pceltFetched);
+    HRESULT Next(uint celt, ITPhone* ppElements, uint* pceltFetched);
     ///The <b>Reset</b> method resets the enumeration sequence to the beginning. This method is hidden from Visual Basic
     ///and scripting languages.
     ///Returns:
@@ -12971,7 +12970,7 @@ interface IEnumTerminalClass : IUnknown
     ///    pointer. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%">
     ///    Insufficient memory exists to perform the operation. </td> </tr> </table>
     ///    
-    HRESULT Next(uint celt, char* pElements, uint* pceltFetched);
+    HRESULT Next(uint celt, GUID* pElements, uint* pceltFetched);
     ///The <b>Reset</b> method resets to the beginning of the enumeration sequence. This method is hidden from Visual
     ///Basic and scripting languages.
     ///Returns:
@@ -13089,7 +13088,7 @@ interface IEnumAddress : IUnknown
     ///    pointer. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%">
     ///    Insufficient memory exists to perform the operation. </td> </tr> </table>
     ///    
-    HRESULT Next(uint celt, char* ppElements, uint* pceltFetched);
+    HRESULT Next(uint celt, ITAddress* ppElements, uint* pceltFetched);
     ///The <b>Reset</b> method resets to the beginning of the enumeration sequence. This method is hidden from Visual
     ///Basic and scripting languages.
     ///Returns:
@@ -13148,7 +13147,7 @@ interface IEnumCallHub : IUnknown
     ///    pointer. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%">
     ///    Insufficient memory exists to perform the operation. </td> </tr> </table>
     ///    
-    HRESULT Next(uint celt, char* ppElements, uint* pceltFetched);
+    HRESULT Next(uint celt, ITCallHub* ppElements, uint* pceltFetched);
     ///The <b>Reset</b> method resets to the beginning of the enumeration sequence. This method is hidden from Visual
     ///Basic and scripting languages.
     ///Returns:
@@ -13208,7 +13207,7 @@ interface IEnumBstr : IUnknown
     ///    <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>ppStrings</i> parameter is not a valid pointer.
     ///    </td> </tr> </table>
     ///    
-    HRESULT Next(uint celt, char* ppStrings, uint* pceltFetched);
+    HRESULT Next(uint celt, BSTR* ppStrings, uint* pceltFetched);
     ///The <b>Reset</b> method resets to the beginning of the enumeration sequence. This method is hidden from Visual
     ///Basic and scripting languages.
     HRESULT Reset();
@@ -13254,7 +13253,7 @@ interface IEnumPluggableTerminalClassInfo : IUnknown
     ///    operation. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The
     ///    <i>ppElements</i> parameter is not a valid pointer. </td> </tr> </table>
     ///    
-    HRESULT Next(uint celt, char* ppElements, uint* pceltFetched);
+    HRESULT Next(uint celt, ITPluggableTerminalClassInfo* ppElements, uint* pceltFetched);
     ///The <b>Reset</b> method resets the enumeration sequence to the beginning. This method is hidden from Visual Basic
     ///and scripting languages.
     ///Returns:
@@ -13315,7 +13314,7 @@ interface IEnumPluggableSuperclassInfo : IUnknown
     ///    operation. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The
     ///    <i>ppElements</i> parameter is not a valid pointer. </td> </tr> </table>
     ///    
-    HRESULT Next(uint celt, char* ppElements, uint* pceltFetched);
+    HRESULT Next(uint celt, ITPluggableTerminalSuperclassInfo* ppElements, uint* pceltFetched);
     ///The <b>Reset</b> method resets the enumeration sequence to the beginning. This method is hidden from Visual Basic
     ///and scripting languages.
     ///Returns:
@@ -13607,7 +13606,7 @@ interface ITCallMediaEvent : IDispatch
     ///    to perform the operation. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td
     ///    width="60%"> The <i>phrError</i> parameter is not a valid pointer. </td> </tr> </table>
     ///    
-    HRESULT get_Error(int* phrError);
+    HRESULT get_Error(HRESULT* phrError);
     ///The <b>get_Terminal</b> method gets the terminal associated with the event.
     ///Params:
     ///    ppTerminal = Pointer to ITTerminal interface.
@@ -14223,7 +14222,7 @@ interface ITFileTerminalEvent : IDispatch
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT get_Error(int* phrErrorCode);
+    HRESULT get_Error(HRESULT* phrErrorCode);
 }
 
 ///The <b>ITTTSTerminalEvent</b> interface contains methods that retrieve the description of Text-to-Speech (TTS)
@@ -14260,7 +14259,7 @@ interface ITTTSTerminalEvent : IDispatch
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT get_Error(int* phrErrorCode);
+    HRESULT get_Error(HRESULT* phrErrorCode);
 }
 
 ///The <b>ITASRTerminalEvent</b> interface contains methods that retrieve the description of Automatic Speech
@@ -14296,7 +14295,7 @@ interface ITASRTerminalEvent : IDispatch
     ///Returns:
     ///    If the method succeeds, it returns S_OK. Otherwise, it returns an error value.
     ///    
-    HRESULT get_Error(int* phrErrorCode);
+    HRESULT get_Error(HRESULT* phrErrorCode);
 }
 
 ///The <b>ITToneTerminalEvent</b> interface contains methods that retrieve the description of tone terminal events that
@@ -14332,7 +14331,7 @@ interface ITToneTerminalEvent : IDispatch
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT get_Error(int* phrErrorCode);
+    HRESULT get_Error(HRESULT* phrErrorCode);
 }
 
 ///The <b>ITQOSEvent</b> interface contains methods that retrieve the description of quality of service (QOS) events.
@@ -17435,7 +17434,7 @@ interface ITAllocatorProperties : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK. Otherwise, it returns an error value.
     ///    
-    HRESULT GetAllocateBuffers(int* pbAllocBuffers);
+    HRESULT GetAllocateBuffers(BOOL* pbAllocBuffers);
     ///The <b>SetBufferSize</b> method sets the size of the allocator buffer.
     ///Params:
     ///    BufferSize = Size of the allocator buffer.
@@ -17569,7 +17568,7 @@ interface ITMSPAddress : IUnknown
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Insufficient memory exists to perform the
     ///    operation. </td> </tr> </table>
     ///    
-    HRESULT ReceiveTSPData(IUnknown pMSPCall, char* pBuffer, uint dwSize);
+    HRESULT ReceiveTSPData(IUnknown pMSPCall, ubyte* pBuffer, uint dwSize);
     ///The <b>GetEvent</b> method retrieves event information.
     ///Params:
     ///    pdwSize = A pointer to a DWORD that contains the size, in bytes, of <i>pEventBuffer</i>. On success, <i>pdwSize</i>
@@ -17588,7 +17587,7 @@ interface ITMSPAddress : IUnknown
     ///    width="40%"> <dl> <dt><b>TAPI_E_NOEVENT</b></dt> </dl> </td> <td width="60%"> No event has occurred. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetEvent(uint* pdwSize, char* pEventBuffer);
+    HRESULT GetEvent(uint* pdwSize, ubyte* pEventBuffer);
 }
 
 @GUID("9F34325B-7E62-11D2-9457-00C04F8EC888")
@@ -17907,7 +17906,7 @@ interface IEnumDialableAddrs : IUnknown
     ///    <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>ppElements</i> parameter is not a valid
     ///    pointer. </td> </tr> </table>
     ///    
-    HRESULT Next(uint celt, char* ppElements, uint* pcFetched);
+    HRESULT Next(uint celt, BSTR* ppElements, uint* pcFetched);
     ///<p class="CCE_Message">[Rendezvous IP Telephony Conferencing controls and interfaces are not available for use in
     ///Windows Vista, Windows Server 2008, and subsequent versions of the operating system. The RTC Client API provides
     ///similar functionality.] The <b>Reset</b> method resets to the beginning of the enumeration sequence.
@@ -18089,7 +18088,7 @@ interface IEnumDirectoryObject : IUnknown
     ///    <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>pVal</i> parameter is not a valid pointer.
     ///    </td> </tr> </table>
     ///    
-    HRESULT Next(uint celt, char* pVal, uint* pcFetched);
+    HRESULT Next(uint celt, ITDirectoryObject* pVal, uint* pcFetched);
     ///<p class="CCE_Message">[Rendezvous IP Telephony Conferencing controls and interfaces are not available for use in
     ///Windows Vista, Windows Server 2008, and subsequent versions of the operating system. The RTC Client API provides
     ///similar functionality.] The <b>Reset</b> method resets to the beginning of enumeration sequence.
@@ -18429,7 +18428,7 @@ interface IEnumDirectory : IUnknown
     ///    <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>ppElements</i> parameter is not a valid
     ///    pointer. </td> </tr> </table>
     ///    
-    HRESULT Next(uint celt, char* ppElements, uint* pcFetched);
+    HRESULT Next(uint celt, ITDirectory* ppElements, uint* pcFetched);
     ///<p class="CCE_Message">[Rendezvous IP Telephony Conferencing controls and interfaces are not available for use in
     ///Windows Vista, Windows Server 2008, and subsequent versions of the operating system. The RTC Client API provides
     ///similar functionality.] The <b>Reset</b> method resets to the beginning of the enumeration sequence.
@@ -18954,9 +18953,8 @@ interface IMcastAddressAllocation : IDispatch
     ///    pointer argument. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td
     ///    width="60%"> Not enough memory exists to create the required objects. </td> </tr> </table>
     ///    
-    HRESULT CreateLeaseInfo(double LeaseStartTime, double LeaseStopTime, uint dwNumAddresses, ushort** ppAddresses, 
-                            const(wchar)* pRequestID, const(wchar)* pServerAddress, 
-                            IMcastLeaseInfo* ppReleaseRequest);
+    HRESULT CreateLeaseInfo(double LeaseStartTime, double LeaseStopTime, uint dwNumAddresses, PWSTR* ppAddresses, 
+                            PWSTR pRequestID, PWSTR pServerAddress, IMcastLeaseInfo* ppReleaseRequest);
     ///<p class="CCE_Message">[Rendezvous IP Telephony Conferencing controls and interfaces are not available for use in
     ///Windows Vista, Windows Server 2008, and subsequent versions of the operating system. The RTC Client API provides
     ///similar functionality.] The <b>CreateLeaseInfoFromVariant</b> method creates a lease information object for a

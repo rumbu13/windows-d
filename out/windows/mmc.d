@@ -8,10 +8,10 @@ public import windows.com : HRESULT, IDataObject, IEnumString, IUnknown;
 public import windows.controls : HPROPSHEETPAGE;
 public import windows.gdi : HBITMAP, HICON, HPALETTE;
 public import windows.legacywindowsenvironmentfeatures : _ColumnSortOrder;
-public import windows.systemservices : BOOL, LRESULT;
+public import windows.systemservices : BOOL, LRESULT, PWSTR;
 public import windows.windowsandmessaging : HWND, LPARAM;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -460,7 +460,7 @@ enum : int
 struct MMC_SNAPIN_PROPERTY
 {
     ///Name of the property.
-    ushort*             pszPropName;
+    const(PWSTR)        pszPropName;
     ///The property's value; if the property is being changed, this is the new value.
     VARIANT             varValue;
     ///The action taking place on the property, as defined in MMC_PROPERTY_ACTION.
@@ -473,18 +473,18 @@ struct MMC_SNAPIN_PROPERTY
 struct MMCBUTTON
 {
     ///A value that specifies the zero-based index of a button image.
-    int     nBitmap;
+    int   nBitmap;
     ///A value that specifies the command identifier returned when a button is clicked. This can be any integer value
     ///the user wants. Only the low word of the <b>int</b> is used.
-    int     idCommand;
+    int   idCommand;
     ///A value that specifies the button-state flags. This member can be any of the following values:
-    ubyte   fsState;
+    ubyte fsState;
     ///A value that specifies the button style. This member can be any combination of the following values:
-    ubyte   fsType;
+    ubyte fsType;
     ///A pointer to the text associated with a particular instance of the <b>MMCBUTTON</b> structure.
-    ushort* lpButtonText;
+    PWSTR lpButtonText;
     ///A pointer to the text for a particular tooltip.
-    ushort* lpTooltipText;
+    PWSTR lpTooltipText;
 }
 
 ///The <b>RESULTDATAITEM</b> structure specifies or receives the attributes of result items in the result pane of the
@@ -516,7 +516,7 @@ struct RESULTDATAITEM
     ///snap-in can use <b>MMC_TEXTCALLBACK</b> instead of <b>MMC_CALLBACK</b>. The <b>MMC_TEXTCALLBACK</b> value is a
     ///type-correct (no casting necessary) version of <b>MMC_CALLBACK</b>. <b>MMC_TEXTCALLBACK</b> is introduced in MMC
     ///version 1.2.
-    ushort*   str;
+    PWSTR     str;
     ///Virtual image index of the list view item's icon in the large and small icon image lists. Be aware that the
     ///virtual image index is mapped internally to the actual index. This member can also be specified as a callback
     ///item: <b>MMC_CALLBACK</b> or <b>MMC_IMAGECALLBACK</b>. The <b>MMC_IMAGECALLBACK</b> value is a type-correct (no
@@ -536,11 +536,11 @@ struct RESULTDATAITEM
 struct RESULTFINDINFO
 {
     ///Null-terminated string to match.
-    ushort* psz;
+    PWSTR psz;
     ///Index at which to start search.
-    int     nStart;
+    int   nStart;
     ///One or both of the following flags:
-    uint    dwOptions;
+    uint  dwOptions;
 }
 
 ///The <b>SCOPEDATAITEM</b> structure specifies items to be inserted into the scope pane.
@@ -558,7 +558,7 @@ struct SCOPEDATAITEM
     ///pointer to the null-terminated string that contains the item text.</li> </ul> Be aware that the snap-in can use
     ///<b>MMC_TEXTCALLBACK</b> instead of <b>MMC_CALLBACK</b>. The <b>MMC_TEXTCALLBACK</b> value is a type-correct (no
     ///casting necessary) version of <b>MMC_CALLBACK</b>. <b>MMC_TEXTCALLBACK</b> is introduced in MMC version 1.2.
-    ushort*   displayname;
+    PWSTR     displayname;
     ///Virtual image index in the image list when the item is in the nonselected state. Be aware that the virtual image
     ///index is mapped internally to the actual index. This member can also be specified as a callback item:
     ///<b>MMC_CALLBACK</b> or <b>MMC_IMAGECALLBACK</b>. The <b>MMC_IMAGECALLBACK</b> is a type-correct (no casting
@@ -613,10 +613,10 @@ struct CONTEXTMENUITEM
 {
     ///A pointer to a null-terminated string that contains the name of the menu item or of the submenu. This member
     ///cannot be <b>NULL</b> except for a separator or insertion point.
-    const(wchar)* strName;
+    PWSTR strName;
     ///A pointer to a null-terminated string that contains the text that is displayed in the status bar when this item
     ///is highlighted. This member can be <b>NULL</b>.
-    const(wchar)* strStatusBarText;
+    PWSTR strStatusBarText;
     ///A value that specifies the command identifier for menu items. If this menu item is added by
     ///IExtendContextMenu::AddMenuItems and then selected, this is the command ID that is passed back to
     ///IExtendContextMenu::Command. If this menu item is added by the IContextMenuProvider interface and then selected,
@@ -626,15 +626,15 @@ struct CONTEXTMENUITEM
     ///information, see the following list). Carefully read the following discussion because specific bits in the new
     ///insertion point ID must be on and others must be off. Some bits in the command ID require special handling for
     ///items that are not insertion points or submenus.
-    int           lCommandID;
+    int   lCommandID;
     ///A value that specifies where in the context menu the new item should be added. Snap-ins can only add items to
     ///insertion points created by the menu creator or the primary snap-in. The following are the insertion points
     ///created by MMC in the default context menus for items in the scope pane and list view result pane:
-    int           lInsertionPointID;
+    int   lInsertionPointID;
     ///A value that specifies one or more of the following style flags:
-    int           fFlags;
+    int   fFlags;
     ///A value that specifies one or more of the following flags:
-    int           fSpecialFlags;
+    int   fSpecialFlags;
 }
 
 ///The <b>MENUBUTTONDATA</b> structure contains values used to create buttons on a toolbar.
@@ -656,13 +656,13 @@ struct MMC_FILTERDATA
     ///When a snap-in sets a text filter value, pszText points to the filter string to set and cchTextMax sets the
     ///maximum length of the filter string that the user can type into the filter field. When a snap-in reads a text
     ///filter value, pszText points to a buffer to receive the text and cchTextMax gives the length of the buffer.
-    ushort* pszText;
+    PWSTR pszText;
     ///For more information, see the description for pszText.
-    int     cchTextMax;
+    int   cchTextMax;
     ///When a snap-in sets a numeric filter value, lValue contains the filter value. The filter field converts the value
     ///to a string and places it in the filter control. When a snap-in reads a numeric filter value, the current filter
     ///value is converted to binary and returned in lValue.
-    int     lValue;
+    int   lValue;
 }
 
 ///The MMC_RESTORE_VIEW structure is introduced in MMC 1.1. The MMC_RESTORE_VIEW structure contains information about a
@@ -677,7 +677,7 @@ struct MMC_RESTORE_VIEW
     ptrdiff_t cookie;
     ///A pointer to a string that specifies the view type used to display the result pane for the item specified by
     ///cookie. For more information about view types, see the ppViewType parameter for IComponent::GetResultViewType.
-    ushort*   pViewType;
+    PWSTR     pViewType;
     ///A value that specifies the view option settings used to display the result pane for the item specified by cookie.
     ///For more information about view options, see the pViewOptions parameter of IComponent::GetResultViewType.
     int       lViewOptions;
@@ -787,7 +787,7 @@ struct MMC_TASK_DISPLAY_SYMBOL
     ///A pointer to a null-terminated string that contains the font family name of the symbol to display. For example,
     ///the following string specifies that the font is Webdings: "Webdings". This should never be set to a <b>NULL</b>
     ///string or an empty string.
-    ushort* szFontFamilyName;
+    PWSTR szFontFamilyName;
     ///A pointer to a null-terminated string that contains the resource path to the EOT (embedded OpenType) file that
     ///contains the font for the symbol to display. The string should have the following form:
     ///"res://<i>filepath</i>/imgpath". where <i>filepath</i> is the full path to the snap-in's DLL that stores the
@@ -795,9 +795,9 @@ struct MMC_TASK_DISPLAY_SYMBOL
     ///example, the following string specifies that the snap-in DLL (snapin.dll) has a path of
     ///"c:\windows\system32\snapin.dll" and that the resource path is img/myfont.eot:
     ///"res://c:\\windows\\system32\\snapin.dll/img/myfont.eot".
-    ushort* szURLtoEOT;
+    PWSTR szURLtoEOT;
     ///A pointer to a null-terminated string that contains the character or characters to display in the symbol.
-    ushort* szSymbolString;
+    PWSTR szSymbolString;
 }
 
 ///The <b>MMC_TASK_DISPLAY_BITMAP</b> structure is introduced in MMC 1.1. The <b>MMC_TASK_DISPLAY_BITMAP</b> structure
@@ -815,13 +815,13 @@ struct MMC_TASK_DISPLAY_BITMAP
     ///string, <i>szMouseOffBitmap</i> must be a valid string that contains the location of a valid image. If one of
     ///these strings is <b>NULL</b>, the other string is used for both. If both mouse image locations are <b>NULL</b>,
     ///the task is not displayed.
-    ushort* szMouseOverBitmap;
+    PWSTR szMouseOverBitmap;
     ///A pointer to a null-terminated string that contains the resource path to the image file for the image displayed
     ///for the task when the mouse is not in the task's image or text area. See <b>szMouseOverBitmap</b> for the format
     ///of the string. If <b>szMouseOffBitmap</b> points to a <b>NULL</b> string, <b>szMouseOverBitmap</b> must be a
     ///valid string that contains the location of a valid image. If one of these strings is <b>NULL</b>, the other
     ///string is used for both. If both mouse image locations are <b>NULL</b>, the task is not displayed.
-    ushort* szMouseOffBitmap;
+    PWSTR szMouseOffBitmap;
 }
 
 ///The <b>MMC_TASK_DISPLAY_OBJECT</b> structure is introduced in MMC 1.1. The <b>MMC_TASK_DISPLAY_OBJECT</b> structure
@@ -835,7 +835,7 @@ struct MMC_TASK_DISPLAY_OBJECT
     ///Value of type MMC_TASK_DISPLAY_TYPE that specifies the type of image displayed as the background. The image can
     ///be one of three types: symbol, GIF, or bitmap.
     MMC_TASK_DISPLAY_TYPE eDisplayType;
-    union
+union
     {
         MMC_TASK_DISPLAY_BITMAP uBitmap;
         MMC_TASK_DISPLAY_SYMBOL uSymbol;
@@ -852,20 +852,20 @@ struct MMC_TASK
     ///A pointer to a null-terminated string that contains the text placed directly to the right of the mouse-over
     ///image. This text serves as the label for the task. This text should be an action in the imperative such as "Add a
     ///new user."
-    ushort*         szText;
+    PWSTR           szText;
     ///A pointer to a null-terminated string that contains the descriptive text placed in the upper-right corner when
     ///the user moves the mouse over the mouse-over image or the label text for the task. This text serves as the
     ///description for the task such as "Creates a new account, creates a mailbox, and sets up everything a user must
     ///access the network."
-    ushort*         szHelpString;
+    PWSTR           szHelpString;
     ///Value of type MMC_ACTION_TYPE that specifies the type of action triggered when a user clicks a task on a taskpad.
     ///There are three types of actions:
     MMC_ACTION_TYPE eActionType;
-    union
+union
     {
         ptrdiff_t nCommandID;
-        ushort*   szActionURL;
-        ushort*   szScript;
+        PWSTR     szActionURL;
+        PWSTR     szScript;
     }
 }
 
@@ -883,7 +883,7 @@ struct MMC_LISTPAD_INFO
     ///title for the entire taskpad that appears at the top of the taskpad and appears on every standard MMC taskpad.
     ///The <b>szTitle</b> member of <b>MMC_LISTPAD_INFO</b> is the label for the list control and appears only on MMC
     ///list view taskpads.
-    ushort*   szTitle;
+    PWSTR     szTitle;
     ///A pointer to a null-terminated string that contains the text placed on a button that is directly above the list
     ///control and to the right of the <b>szTitle</b> text. When the user clicks this button on the taskpad, MMC calls
     ///the IExtendTaskPad::TaskNotify method of the snap-in and passes the value specified in <b>nCommandID</b> as a
@@ -891,7 +891,7 @@ struct MMC_LISTPAD_INFO
     ///to <b>VT_I4</b> and an <b>lVal</b> member that contains the command ID. To make the button to appear with no
     ///text, set <b>szButtonText</b> to an empty string. To hide this button to appear on the taskpad, set
     ///<b>szButtonText</b> to <b>NULL</b>.
-    ushort*   szButtonText;
+    PWSTR     szButtonText;
     ///Value that serves as an identifier for the button specified by <b>szButtonText</b>. It is recommended that you
     ///make this value unique to each taskpad to help identify the taskpad that sent the button-click notification. When
     ///the user clicks this button, MMC calls the IExtendTaskPad::TaskNotify method of the snap-in and passes this value
@@ -999,7 +999,7 @@ struct RESULT_VIEW_TYPE_INFO
     ///Snap-in-provided identifier for this view type. When implementing IComponent2::GetResultViewType2, this member
     ///must contain a valid view description string; otherwise, MMC will not initialize your snap-in. Additionally, this
     ///value must be created by means of CoTaskMemAlloc. It will be freed by MMC, not the snap-in.
-    ushort*       pstrPersistableViewDescription;
+    PWSTR         pstrPersistableViewDescription;
     ///MMC_VIEW_TYPE enumeration value specifying the view type. This member is the structure's union discriminator and
     ///determines which members of the union are valid. This member is one of the following values.
     MMC_VIEW_TYPE eViewType;
@@ -1007,15 +1007,15 @@ struct RESULT_VIEW_TYPE_INFO
     ///<b>RVTI_MISC_OPTIONS_NOLISTVIEWS</b>, no list views are contained in the view (the console refrains from
     ///presenting standard list view choices on the <b>View</b> menu). Otherwise, this value is zero.
     uint          dwMiscOptions;
-    union
+union
     {
         uint dwListOptions;
-        struct
+struct
         {
-            uint    dwHTMLOptions;
-            ushort* pstrURL;
+            uint  dwHTMLOptions;
+            PWSTR pstrURL;
         }
-        struct
+struct
         {
             uint     dwOCXOptions;
             IUnknown pUnkControl;
@@ -1034,10 +1034,10 @@ struct CONTEXTMENUITEM2
 {
     ///A pointer to a null-terminated string that contains the name of the menu item or of the submenu. This member
     ///cannot be <b>NULL</b> except for a separator or insertion point.
-    const(wchar)* strName;
+    PWSTR strName;
     ///A pointer to a null-terminated string that contains the text that is displayed on the status bar when this item
     ///is highlighted. This member can be <b>NULL</b>.
-    const(wchar)* strStatusBarText;
+    PWSTR strStatusBarText;
     ///A value that specifies the command identifier for menu items. If the menu item is added by
     ///IExtendContextMenu::AddMenuItems and then selected, <i>lCommandID</i> is the command ID parameter that is passed
     ///back to IExtendContextMenu::Command. If this menu item is added by the IContextMenuProvider interface and then
@@ -1047,20 +1047,20 @@ struct CONTEXTMENUITEM2
     ///subsequent calls as <i>lInsertionPointID</i> (for more information, see the following list). Carefully read the
     ///following discussion because specific bits in the new insertion point ID must be on and others must be off. The
     ///following bits in the command ID require special handling for items that are not insertion points or submenus.
-    int           lCommandID;
+    int   lCommandID;
     ///A value that specifies where in the context menu the new item should be added. Snap-ins can only add items to
     ///insertion points that are created by the menu creator or the primary snap-in. The following are the insertion
     ///points created by MMC in the default context menus for items in the scope pane and list view result pane:
-    int           lInsertionPointID;
+    int   lInsertionPointID;
     ///A value that specifies one or more of the following style flags:
-    int           fFlags;
+    int   fFlags;
     ///A value that specifies one or more of the following flags:
-    int           fSpecialFlags;
+    int   fSpecialFlags;
     ///The language-independent name of the menu item. Retrieve this value in MMC 2.0 Automation Object Model
     ///applications by getting the MenuItem.LanguageIndependentName property. The <b>strLanguageIndependentName</b>
     ///member cannot be <b>NULL</b> or an empty string unless a separator or insertion point is added; otherwise, the
     ///IContextMenuCallback::AddItem method will fail with <b>E_INVALIDARG</b> as the return value.
-    const(wchar)* strLanguageIndependentName;
+    PWSTR strLanguageIndependentName;
 }
 
 ///The <b>MMC_EXT_VIEW_DATA</b> structure is introduced in MMC 2.0. The <b>MMC_EXT_VIEW_DATA</b> structure is used by a
@@ -1068,17 +1068,17 @@ struct CONTEXTMENUITEM2
 struct MMC_EXT_VIEW_DATA
 {
     ///GUID for the view; this value uniquely identifies the view and is used to restore the view.
-    GUID    viewID;
+    GUID         viewID;
     ///URL to the HTML used in the result pane; this typically points to an HTML resource in the snap-in's DLL.
-    ushort* pszURL;
+    const(PWSTR) pszURL;
     ///Title of the view extension.
-    ushort* pszViewTitle;
+    const(PWSTR) pszViewTitle;
     ///This value is reserved for future use.
-    ushort* pszTooltipText;
+    const(PWSTR) pszTooltipText;
     ///If <b>TRUE</b>, the <b>Standard</b> tab does not appear in the tab selector; otherwise, the <b>Standard</b> tab
     ///appears. There is usually no need to display the <b>Standard</b> tab if the view extension snap-in displays the
     ///list of the primary snap-in.
-    BOOL    bReplacesDefaultView;
+    BOOL         bReplacesDefaultView;
 }
 
 // Interfaces
@@ -1120,7 +1120,7 @@ interface ISnapinProperties : IUnknown
     ///    If successful, the return value is <b>S_OK</b>; a snap-in can prevent a change or deletion from occurring by
     ///    returning <b>E_FAIL</b>.
     ///    
-    HRESULT PropertiesChanged(int cProperties, char* pProperties);
+    HRESULT PropertiesChanged(int cProperties, MMC_SNAPIN_PROPERTY* pProperties);
 }
 
 ///The <b>ISnapinPropertiesCallback</b> interface adds property names for the snap-in. This interface is implemented by
@@ -1132,7 +1132,7 @@ interface ISnapinPropertiesCallback : IUnknown
     ///Params:
     ///    pszPropName = The property name.
     ///    dwFlags = This parameter can be one or more of the following flags.
-    HRESULT AddPropertyName(ushort* pszPropName, uint dwFlags);
+    HRESULT AddPropertyName(const(PWSTR) pszPropName, uint dwFlags);
 }
 
 @GUID("A3AFB9CC-B653-4741-86AB-F0470EC1384C")
@@ -1143,10 +1143,10 @@ interface _Application : IDispatch
     HRESULT get_Document(Document* Document);
     HRESULT Load(BSTR Filename);
     HRESULT get_Frame(Frame* Frame);
-    HRESULT get_Visible(int* Visible);
+    HRESULT get_Visible(BOOL* Visible);
     HRESULT Show();
     HRESULT Hide();
-    HRESULT get_UserControl(int* UserControl);
+    HRESULT get_UserControl(BOOL* UserControl);
     HRESULT put_UserControl(BOOL UserControl);
     HRESULT get_VersionMajor(int* VersionMajor);
     HRESULT get_VersionMinor(int* VersionMinor);
@@ -1203,7 +1203,7 @@ interface Node : IDispatch
     HRESULT get_Name(ushort** Name);
     HRESULT get_Property(BSTR PropertyName, ushort** PropertyValue);
     HRESULT get_Bookmark(ushort** Bookmark);
-    HRESULT IsScopeNode(int* IsScopeNode);
+    HRESULT IsScopeNode(BOOL* IsScopeNode);
     HRESULT get_Nodetype(ushort** Nodetype);
 }
 
@@ -1229,7 +1229,7 @@ interface Document : IDispatch
     HRESULT get_Name(ushort** Name);
     HRESULT put_Name(BSTR Name);
     HRESULT get_Location(ushort** Location);
-    HRESULT get_IsSaved(int* IsSaved);
+    HRESULT get_IsSaved(BOOL* IsSaved);
     HRESULT get_Mode(_DocumentMode* Mode);
     HRESULT put_Mode(_DocumentMode Mode);
     HRESULT get_RootNode(Node* Node);
@@ -1296,10 +1296,10 @@ interface Column : IDispatch
     HRESULT put_Width(int Width);
     HRESULT get_DisplayPosition(int* DisplayPosition);
     HRESULT put_DisplayPosition(int Index);
-    HRESULT get_Hidden(int* Hidden);
+    HRESULT get_Hidden(BOOL* Hidden);
     HRESULT put_Hidden(BOOL Hidden);
     HRESULT SetAsSortColumn(_ColumnSortOrder SortOrder);
-    HRESULT IsSortColumn(int* IsSortColumn);
+    HRESULT IsSortColumn(BOOL* IsSortColumn);
 }
 
 @GUID("D6B8C29D-A1FF-4D72-AAB0-E381E9B9338D")
@@ -1325,7 +1325,7 @@ interface View : IDispatch
     HRESULT SelectAll();
     HRESULT Select(Node Node);
     HRESULT Deselect(Node Node);
-    HRESULT IsSelected(Node Node, int* IsSelected);
+    HRESULT IsSelected(Node Node, BOOL* IsSelected);
     HRESULT DisplayScopeNodePropertySheet(VARIANT ScopeNode);
     HRESULT DisplaySelectionPropertySheet();
     HRESULT CopyScopeNode(VARIANT ScopeNode);
@@ -1343,7 +1343,7 @@ interface View : IDispatch
     HRESULT ExecuteShellCommand(BSTR Command, BSTR Directory, BSTR Parameters, BSTR WindowState);
     HRESULT get_Frame(Frame* Frame);
     HRESULT Close();
-    HRESULT get_ScopeTreeVisible(int* Visible);
+    HRESULT get_ScopeTreeVisible(BOOL* Visible);
     HRESULT put_ScopeTreeVisible(BOOL Visible);
     HRESULT Back();
     HRESULT Forward();
@@ -1382,7 +1382,7 @@ interface MenuItem : IDispatch
     HRESULT get_Path(ushort** Path);
     HRESULT get_LanguageIndependentPath(ushort** LanguageIndependentPath);
     HRESULT Execute();
-    HRESULT get_Enabled(int* Enabled);
+    HRESULT get_Enabled(BOOL* Enabled);
 }
 
 @GUID("2886ABC2-A425-42B2-91C6-E25C0E04581C")
@@ -1531,7 +1531,7 @@ interface IComponent : IUnknown
     ///Returns:
     ///    This method can return one of these values.
     ///    
-    HRESULT GetResultViewType(ptrdiff_t cookie, ushort** ppViewType, int* pViewOptions);
+    HRESULT GetResultViewType(ptrdiff_t cookie, PWSTR* ppViewType, int* pViewOptions);
     ///The <b>IComponent::GetDisplayInfo</b> method retrieves display information for an item in the result pane.
     ///Params:
     ///    pResultDataItem = A pointer to a RESULTDATAITEM structure. On input, the mask member specifies the type of data required and
@@ -1669,7 +1669,7 @@ interface IConsole : IUnknown
     ///    This method can return one of these values.
     ///    
     HRESULT UpdateAllViews(IDataObject lpDataObject, LPARAM data, ptrdiff_t hint);
-    HRESULT MessageBoxA(const(wchar)* lpszText, const(wchar)* lpszTitle, uint fuStyle, int* piRetval);
+    HRESULT MessageBoxA(const(PWSTR) lpszText, const(PWSTR) lpszTitle, uint fuStyle, int* piRetval);
     ///Queries for the IConsoleVerb interface.
     ///Params:
     ///    ppConsoleVerb = A pointer to the address of a variable that receives the IConsoleVerb interface pointer.
@@ -1721,7 +1721,7 @@ interface IHeaderCtrl : IUnknown
     ///Returns:
     ///    This method can return one of these values.
     ///    
-    HRESULT InsertColumn(int nCol, const(wchar)* title, int nFormat, int nWidth);
+    HRESULT InsertColumn(int nCol, const(PWSTR) title, int nFormat, int nWidth);
     ///Removes a column from the header of the result view.
     ///Params:
     ///    nCol = A zero-based index that identifies the column to be removed.
@@ -1737,7 +1737,7 @@ interface IHeaderCtrl : IUnknown
     ///Returns:
     ///    This method can return one of these values.
     ///    
-    HRESULT SetColumnText(int nCol, const(wchar)* title);
+    HRESULT SetColumnText(int nCol, const(PWSTR) title);
     ///Retrieves text from a specified column.
     ///Params:
     ///    nCol = A zero-based index that identifies the column from which the text is to be retrieved.
@@ -1746,7 +1746,7 @@ interface IHeaderCtrl : IUnknown
     ///Returns:
     ///    This method can return one of these values.
     ///    
-    HRESULT GetColumnText(int nCol, ushort** pText);
+    HRESULT GetColumnText(int nCol, PWSTR* pText);
     ///Sets the width, in pixels, of a specific column.
     ///Params:
     ///    nCol = A zero-based index that specifies the location of the column relative to other columns in the result pane.
@@ -2038,7 +2038,7 @@ interface IResultData : IUnknown
     ///Returns:
     ///    This method can return one of these values.
     ///    
-    HRESULT SetDescBarText(ushort* DescText);
+    HRESULT SetDescBarText(PWSTR DescText);
     ///The <b>IResultData::SetItemCount</b> method sets the number of items in a virtual list.
     ///Params:
     ///    nItemCount = The number of items that the control will contain.
@@ -2202,7 +2202,7 @@ interface IPropertySheetProvider : IUnknown
     ///Returns:
     ///    This method can return one of these values.
     ///    
-    HRESULT CreatePropertySheet(const(wchar)* title, ubyte type, ptrdiff_t cookie, IDataObject pIDataObjectm, 
+    HRESULT CreatePropertySheet(const(PWSTR) title, ubyte type, ptrdiff_t cookie, IDataObject pIDataObjectm, 
                                 uint dwOptions);
     ///The <b>IPropertySheetProvider::FindPropertySheet</b> method determines whether a specific property sheet exists.
     ///Params:
@@ -2390,7 +2390,7 @@ interface IToolbar : IUnknown
     ///Returns:
     ///    This method can return one of these values.
     ///    
-    HRESULT GetButtonState(int idCommand, MMC_BUTTON_STATE nState, int* pState);
+    HRESULT GetButtonState(int idCommand, MMC_BUTTON_STATE nState, BOOL* pState);
     ///The <b>IToolbar::SetButtonState</b> method enables a snap-in to set an attribute of a button.
     ///Params:
     ///    idCommand = A unique value that the snap-in has associated with a button using the InsertButton or AddButtons method
@@ -2420,7 +2420,7 @@ interface IConsoleVerb : IUnknown
     ///Returns:
     ///    This method can return one of these values.
     ///    
-    HRESULT GetVerbState(MMC_CONSOLE_VERB eCmdID, MMC_BUTTON_STATE nState, int* pState);
+    HRESULT GetVerbState(MMC_CONSOLE_VERB eCmdID, MMC_BUTTON_STATE nState, BOOL* pState);
     ///The SetVerbState method enables a snap-in to set a given verb's button state.
     ///Params:
     ///    eCmdID = A value that specifies the command identifier of the verb. Values are taken from the MMC_CONSOLE_VERB
@@ -2459,21 +2459,21 @@ interface ISnapinAbout : IUnknown
     ///Returns:
     ///    This method can return one of these values.
     ///    
-    HRESULT GetSnapinDescription(ushort** lpDescription);
+    HRESULT GetSnapinDescription(PWSTR* lpDescription);
     ///The <b>ISnapinAbout::GetProvider</b> method enables the console to obtain the snap-in provider name.
     ///Params:
     ///    lpName = A pointer to the text of the snap-in provider name.
     ///Returns:
     ///    This method can return one of these values.
     ///    
-    HRESULT GetProvider(ushort** lpName);
+    HRESULT GetProvider(PWSTR* lpName);
     ///The ISnapinAbout::GetSnapinVersion method enables the console to obtain the snap-in's version number.
     ///Params:
     ///    lpVersion = A pointer to the text of the snap-in version number.
     ///Returns:
     ///    This method can return one of these values.
     ///    
-    HRESULT GetSnapinVersion(ushort** lpVersion);
+    HRESULT GetSnapinVersion(PWSTR* lpVersion);
     ///The <b>ISnapinAbout::GetSnapinImage</b> method enables the console to obtain the snap-in's main icon to be used
     ///in the About box.
     ///Params:
@@ -2511,7 +2511,7 @@ interface IMenuButton : IUnknown
     ///Returns:
     ///    This method can return one of these values.
     ///    
-    HRESULT AddButton(int idCommand, ushort* lpButtonText, ushort* lpTooltipText);
+    HRESULT AddButton(int idCommand, PWSTR lpButtonText, PWSTR lpTooltipText);
     ///The <b>IMenuButton::SetButton</b> method enables a user to set the text attributes of a button in the menu bar
     ///that is changed.
     ///Params:
@@ -2522,7 +2522,7 @@ interface IMenuButton : IUnknown
     ///Returns:
     ///    This method can return one of these values.
     ///    
-    HRESULT SetButton(int idCommand, ushort* lpButtonText, ushort* lpTooltipText);
+    HRESULT SetButton(int idCommand, PWSTR lpButtonText, PWSTR lpTooltipText);
     ///The <b>IMenuButton::SetButtonState</b> method enables a user to change the state of a menu button.
     ///Params:
     ///    idCommand = A value that specifies a user-supplied value that uniquely identifies the menu button in which the state is
@@ -2550,7 +2550,7 @@ interface ISnapinHelp : IUnknown
     ///Returns:
     ///    This method can return one of these values.
     ///    
-    HRESULT GetHelpTopic(ushort** lpCompiledHelpFile);
+    HRESULT GetHelpTopic(PWSTR* lpCompiledHelpFile);
 }
 
 ///The <b>IExtendPropertySheet2</b> interface is introduced in MMC 1.1. The <b>IExtendPropertySheet2</b> interface
@@ -2587,7 +2587,7 @@ interface IExtendPropertySheet2 : IExtendPropertySheet
     ///    This method can return one of these values.
     ///    
     HRESULT GetWatermarks(IDataObject lpIDataObject, HBITMAP* lphWatermark, HBITMAP* lphHeader, 
-                          HPALETTE* lphPalette, int* bStretch);
+                          HPALETTE* lphPalette, BOOL* bStretch);
 }
 
 ///The <b>IHeaderCtrl2</b> interface is introduced in MMC 1.2. The <b>IHeaderCtrl2</b> interface enables the
@@ -2653,7 +2653,7 @@ interface ISnapinHelp2 : ISnapinHelp
     ///Returns:
     ///    This method can return one of these values.
     ///    
-    HRESULT GetLinkedTopics(ushort** lpCompiledHelpFiles);
+    HRESULT GetLinkedTopics(PWSTR* lpCompiledHelpFiles);
 }
 
 ///The <b>IEnumTASK</b> interface is introduced in MMC 1.1. The <b>IEnumTASK</b> interface enables a snap-in component
@@ -2737,7 +2737,7 @@ interface IExtendTaskPad : IUnknown
     ///Returns:
     ///    This method can return one of these values.
     ///    
-    HRESULT EnumTasks(IDataObject pdo, ushort* szTaskGroup, IEnumTASK* ppEnumTASK);
+    HRESULT EnumTasks(IDataObject pdo, PWSTR szTaskGroup, IEnumTASK* ppEnumTASK);
     ///The <b>IExtendTaskPad::GetTitle</b> method enables MMC to get the taskpad title text to display in taskpads that
     ///use MMC taskpad templates.
     ///Params:
@@ -2749,7 +2749,7 @@ interface IExtendTaskPad : IUnknown
     ///Returns:
     ///    This method can return one of these values.
     ///    
-    HRESULT GetTitle(ushort* pszGroup, ushort** pszTitle);
+    HRESULT GetTitle(PWSTR pszGroup, PWSTR* pszTitle);
     ///The <b>IExtendTaskPad::GetDescriptiveText</b> method enables MMC to get the taskpad's descriptive text to display
     ///in taskpads that use MMC taskpad templates.
     ///Params:
@@ -2762,7 +2762,7 @@ interface IExtendTaskPad : IUnknown
     ///Returns:
     ///    This method can return one of these values.
     ///    
-    HRESULT GetDescriptiveText(ushort* pszGroup, ushort** pszDescriptiveText);
+    HRESULT GetDescriptiveText(PWSTR pszGroup, PWSTR* pszDescriptiveText);
     ///The <b>IExtendTaskPad::GetBackground</b> method enables MMC to get the taskpad's background image to display in
     ///taskpads that use MMC taskpad templates.
     ///Params:
@@ -2774,7 +2774,7 @@ interface IExtendTaskPad : IUnknown
     ///Returns:
     ///    This method can return one of these values.
     ///    
-    HRESULT GetBackground(ushort* pszGroup, MMC_TASK_DISPLAY_OBJECT* pTDO);
+    HRESULT GetBackground(PWSTR pszGroup, MMC_TASK_DISPLAY_OBJECT* pTDO);
     ///The <b>IExtendTaskPad::GetListPadInfo</b> method is used for list-view taskpads only. It enables MMC to get the
     ///title text for the list control, the text for an optional button, and the command ID passed to
     ///IExtendTaskPad::TaskNotify when that optional button is clicked.
@@ -2788,7 +2788,7 @@ interface IExtendTaskPad : IUnknown
     ///Returns:
     ///    This method can return one of these values.
     ///    
-    HRESULT GetListPadInfo(ushort* pszGroup, MMC_LISTPAD_INFO* lpListPadInfo);
+    HRESULT GetListPadInfo(PWSTR pszGroup, MMC_LISTPAD_INFO* lpListPadInfo);
 }
 
 ///The <b>IConsole2</b> interface is introduced in MMC 1.1. The <b>IConsole2</b> interface enables communication with
@@ -2818,7 +2818,7 @@ interface IConsole2 : IConsole
     ///Returns:
     ///    This method can return one of these values.
     ///    
-    HRESULT SetStatusText(ushort* pszStatusText);
+    HRESULT SetStatusText(PWSTR pszStatusText);
 }
 
 ///The <b>IDisplayHelp</b> interface is introduced in MMC version 1.1. The <b>IDisplayHelp</b> interface enables a
@@ -2847,7 +2847,7 @@ interface IDisplayHelp : IUnknown
     ///Returns:
     ///    This method can return one of these values.
     ///    
-    HRESULT ShowTopic(ushort* pszHelpTopic);
+    HRESULT ShowTopic(PWSTR pszHelpTopic);
 }
 
 ///The <b>IRequiredExtensions</b> interface is introduced in MMC 1.1. The <b>IRequiredExtensions</b> interface enables a
@@ -2894,7 +2894,7 @@ interface IStringTable : IUnknown
     ///Returns:
     ///    This method can return one of these values.
     ///    
-    HRESULT AddString(ushort* pszAdd, uint* pStringID);
+    HRESULT AddString(const(PWSTR) pszAdd, uint* pStringID);
     ///The <b>IStringTable::GetString</b> method enables a snap-in to retrieve a string from the snap-in's string table.
     ///Params:
     ///    StringID = The ID of the string to be retrieved from the snap-in's string table.
@@ -2905,7 +2905,7 @@ interface IStringTable : IUnknown
     ///Returns:
     ///    This method can return one of these values.
     ///    
-    HRESULT GetString(uint StringID, uint cchBuffer, char* lpBuffer, uint* pcchOut);
+    HRESULT GetString(uint StringID, uint cchBuffer, PWSTR lpBuffer, uint* pcchOut);
     ///The <b>IStringTable::GetStringLength</b> method enables a snap-in to determine the length of a string in the
     ///snap-in's string table.
     ///Params:
@@ -2936,7 +2936,7 @@ interface IStringTable : IUnknown
     ///Returns:
     ///    This method can return one of these values.
     ///    
-    HRESULT FindString(ushort* pszFind, uint* pStringID);
+    HRESULT FindString(const(PWSTR) pszFind, uint* pStringID);
     ///The <b>IStringTable::Enumerate</b> method supplies a pointer to an IEnumString interface on an enumerator that
     ///can return the strings in a snap-in's string table. The IEnumString interface is a standard COM interface.
     ///Params:
@@ -3021,7 +3021,7 @@ interface IMessageView : IUnknown
     ///Returns:
     ///    This method can return one of these values.
     ///    
-    HRESULT SetTitleText(ushort* pszTitleText);
+    HRESULT SetTitleText(const(PWSTR) pszTitleText);
     ///The <b>IMessageView::SetBodyText</b> method enables a snap-in to set the body text for the result pane message
     ///displayed using the MMC message OCX control.
     ///Params:
@@ -3029,7 +3029,7 @@ interface IMessageView : IUnknown
     ///Returns:
     ///    This method can return one of these values.
     ///    
-    HRESULT SetBodyText(ushort* pszBodyText);
+    HRESULT SetBodyText(const(PWSTR) pszBodyText);
     ///The <b>IMessageView::SetIcon</b> method enables a snap-in to set the icon for the result pane message displayed
     ///using the MMC message OCX control.
     ///Params:
@@ -3100,46 +3100,6 @@ interface IComponentData2 : IComponentData
 @GUID("79A2D615-4A10-4ED4-8C65-8633F9335095")
 interface IComponent2 : IComponent
 {
-    ///The QueryDispatch method returns the snap-in IDispatch interface for a specified item. MMC will expose this
-    ///interface through the MMC 2.0 Automation object model. Script, or other applications, can access the IDispatch
-    ///interface for the item represented by the specified cookie through the View.SnapinScopeObject and
-    ///View.SnapinSelectionObject methods.
-    ///Params:
-    ///    cookie = A value that specifies the context item (or items) for which the IDispatch interface is requested. The cookie
-    ///             value is previously provided by the snap-in, and MMC uses it in this method call.
-    ///    type = A value that specifies the data object as one of the following constant values, which, are members of the
-    ///           DATA_OBJECT_TYPES enumeration.
-    ///    ppDispatch = A dispatch interface pointer. The snap-in sets *ppDispatch to the IDispatch interface that corresponds to the
-    ///                 cookie value.
-    ///Returns:
-    ///    If successful, the return value is <b>S_OK</b>. Other return values indicate an error code.
-    ///    
-    HRESULT QueryDispatch(ptrdiff_t cookie, DATA_OBJECT_TYPES type, IDispatch* ppDispatch);
-    ///The <b>GetResultViewType2</b> method retrieves the result view type. This method supersedes the
-    ///IComponent::GetResultViewType method.
-    ///Params:
-    ///    cookie = A value that specifies the snapin-provided unique identifier for the scope item. For more details about
-    ///             cookies in MMC, see Cookies.
-    ///    pResultViewType = A pointer to the RESULT_VIEW_TYPE_INFO structure for the result view. If your snap-in implements IComponent2,
-    ///                      the <b>pstrPersistableViewDescription</b> member of the <b>RESULT_VIEW_TYPE_INFO</b> structure must contain a
-    ///                      valid view description string; otherwise, MMC will not initialize your snap-in. The
-    ///                      <b>pstrPersistableViewDescription</b> member must be allocated by CoTaskMemAlloc. The snap-in must not free
-    ///                      <b>pstrPersistableViewDescription</b>, as it will be freed by MMC.
-    ///Returns:
-    ///    If successful, the return value is S_OK. Other return values indicate an error code.
-    ///    
-    HRESULT GetResultViewType2(ptrdiff_t cookie, RESULT_VIEW_TYPE_INFO* pResultViewType);
-    ///The <b>RestoreResultView</b> method restores the result view. This method enables a snap-in to restore
-    ///snap-in-specific details of a result view. For more information, see Restoring Result Views. This method
-    ///supersedes the use of the MMCN_RESTORE_VIEW notification.
-    ///Params:
-    ///    cookie = A value that specifies the unique identifier whose result view will be restored.
-    ///    pResultViewType = A pointer to the RESULT_VIEW_TYPE_INFO structure for the result view.
-    ///Returns:
-    ///    If successful, the return value is S_OK. The snap-in can return S_FALSE to prevent MMC from restoring the
-    ///    view based on the information in *<i>pResultViewType</i>. Other return values indicate an error code.
-    ///    
-    HRESULT RestoreResultView(ptrdiff_t cookie, RESULT_VIEW_TYPE_INFO* pResultViewType);
 }
 
 ///The <b>IContextMenuCallback2</b> interface is used to add menu items to a context menu. This interface supersedes

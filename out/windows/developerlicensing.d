@@ -7,7 +7,7 @@ public import windows.com : HRESULT;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : FILETIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Functions

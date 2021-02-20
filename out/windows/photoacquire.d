@@ -9,12 +9,12 @@ public import windows.com : HRESULT, IEnumString, IUnknown;
 public import windows.displaydevices : SIZE;
 public import windows.gdi : HBITMAP, HICON;
 public import windows.structuredstorage : IStream, PROPVARIANT;
-public import windows.systemservices : BOOL;
+public import windows.systemservices : BOOL, PWSTR;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : FILETIME;
 public import windows.windowspropertiessystem : PROPERTYKEY;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -208,7 +208,7 @@ interface IPhotoAcquireItem : IUnknown
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT CanDelete(int* pfCanDelete);
+    HRESULT CanDelete(BOOL* pfCanDelete);
     ///The <code>Delete</code> method deletes an item.
     ///Returns:
     ///    The method returns an <b>HRESULT</b>. Possible values include, but are not limited to, those in the following
@@ -378,7 +378,7 @@ interface IPhotoAcquireProgressCB : IUnknown
     ///    width="60%"> The method succeeded. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_NOTIMPL</b></dt> </dl>
     ///    </td> <td width="60%"> The method is not implemented. </td> </tr> </table>
     ///    
-    HRESULT Cancelled(int* pfCancelled);
+    HRESULT Cancelled(BOOL* pfCancelled);
     ///The <code>StartEnumeration</code> method provides extended functionality when the enumeration of items to acquire
     ///begins. The application provides the implementation of the <code>StartEnumeration</code> method.
     ///Params:
@@ -453,7 +453,7 @@ interface IPhotoAcquireProgressCB : IUnknown
     ///    width="60%"> The method succeeded. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_NOTIMPL</b></dt> </dl>
     ///    </td> <td width="60%"> The method is not yet implemented. </td> </tr> </table>
     ///    
-    HRESULT DirectoryCreated(const(wchar)* pszDirectory);
+    HRESULT DirectoryCreated(const(PWSTR) pszDirectory);
     ///The <code>UpdateTransferPercent</code> method provides extended functionality when the percentage of items
     ///transferred changes. The application provides the implementation of the <code>UpdateTransferPercent</code>
     ///method.
@@ -582,7 +582,7 @@ interface IPhotoAcquireProgressCB : IUnknown
     ///    width="60%"> The method succeeded. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_NOTIMPL</b></dt> </dl>
     ///    </td> <td width="60%"> The method is not yet implemented </td> </tr> </table>
     ///    
-    HRESULT GetDeleteAfterAcquire(int* pfDeleteAfterAcquire);
+    HRESULT GetDeleteAfterAcquire(BOOL* pfDeleteAfterAcquire);
     ///The <code>ErrorAdvise</code> method provides custom error handling for errors that occur during acquisition. The
     ///application provides the implementation of the <code>ErrorAdvise</code> method.
     ///Params:
@@ -623,7 +623,7 @@ interface IPhotoAcquireProgressCB : IUnknown
     ///    width="60%"> The method succeeded. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_NOTIMPL</b></dt> </dl>
     ///    </td> <td width="60%"> The method is not yet implemented </td> </tr> </table>
     ///    
-    HRESULT ErrorAdvise(HRESULT hr, const(wchar)* pszErrorMessage, ERROR_ADVISE_MESSAGE_TYPE nMessageType, 
+    HRESULT ErrorAdvise(HRESULT hr, const(PWSTR) pszErrorMessage, ERROR_ADVISE_MESSAGE_TYPE nMessageType, 
                         ERROR_ADVISE_RESULT* pnErrorAdviseResult);
     ///The <code>GetUserInput</code> method overrides the default functionality that displays a message prompting the
     ///user for string input during acquisition. The application provides the implementation of the
@@ -695,7 +695,7 @@ interface IPhotoProgressDialog : IUnknown
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT SetTitle(const(wchar)* pszTitle);
+    HRESULT SetTitle(const(PWSTR) pszTitle);
     ///The <code>ShowCheckbox</code> method indicates whether to show the check box in the progress dialog box
     ///indicating whether to delete images after transfer.
     ///Params:
@@ -717,7 +717,7 @@ interface IPhotoProgressDialog : IUnknown
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT SetCheckboxText(PROGRESS_DIALOG_CHECKBOX_ID nCheckboxId, const(wchar)* pszCheckboxText);
+    HRESULT SetCheckboxText(PROGRESS_DIALOG_CHECKBOX_ID nCheckboxId, const(PWSTR) pszCheckboxText);
     HRESULT SetCheckboxCheck(PROGRESS_DIALOG_CHECKBOX_ID nCheckboxId, BOOL fChecked);
     ///The <code>SetCheckboxTooltip</code> method sets the tooltip text for the check box in the progress dialog box.
     ///Params:
@@ -728,7 +728,7 @@ interface IPhotoProgressDialog : IUnknown
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT SetCheckboxTooltip(PROGRESS_DIALOG_CHECKBOX_ID nCheckboxId, const(wchar)* pszCheckboxTooltipText);
+    HRESULT SetCheckboxTooltip(PROGRESS_DIALOG_CHECKBOX_ID nCheckboxId, const(PWSTR) pszCheckboxTooltipText);
     ///The <code>IsCheckboxChecked</code> method indicates whether the check box in the progress dialog box (typically
     ///indicating whether to delete files after transfer) is selected.
     ///Params:
@@ -741,7 +741,7 @@ interface IPhotoProgressDialog : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> A <b>NULL</b> pointer was passed where a
     ///    non-<b>NULL</b> pointer was expected. </td> </tr> </table>
     ///    
-    HRESULT IsCheckboxChecked(PROGRESS_DIALOG_CHECKBOX_ID nCheckboxId, int* pfChecked);
+    HRESULT IsCheckboxChecked(PROGRESS_DIALOG_CHECKBOX_ID nCheckboxId, BOOL* pfChecked);
     ///Sets the caption of the progress dialog box.
     ///Params:
     ///    pszTitle = Pointer to a null-terminated string containing the title of the progress dialog box.
@@ -750,7 +750,7 @@ interface IPhotoProgressDialog : IUnknown
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT SetCaption(const(wchar)* pszTitle);
+    HRESULT SetCaption(const(PWSTR) pszTitle);
     ///Sets either the thumbnail image displayed in the progress dialog box, the icon in the title bar of the progress
     ///dialog box, or the icon in ALT+TAB key combination windows.
     ///Params:
@@ -795,9 +795,9 @@ interface IPhotoProgressDialog : IUnknown
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT SetProgressText(const(wchar)* pszProgressText);
+    HRESULT SetProgressText(const(PWSTR) pszProgressText);
     HRESULT SetActionLinkCallback(IPhotoProgressActionCB pPhotoProgressActionCB);
-    HRESULT SetActionLinkText(const(wchar)* pszCaption);
+    HRESULT SetActionLinkText(const(PWSTR) pszCaption);
     HRESULT ShowActionLink(BOOL fShow);
     ///The <code>IsCancelled</code> method indicates whether the operation has been canceled via the progress dialog
     ///box.
@@ -810,7 +810,7 @@ interface IPhotoProgressDialog : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> A <b>NULL</b> pointer was passed </td> </tr>
     ///    </table>
     ///    
-    HRESULT IsCancelled(int* pfCancelled);
+    HRESULT IsCancelled(BOOL* pfCancelled);
     ///Retrieves descriptive information entered by the user, such as the tag name of the images to store.
     ///Params:
     ///    riidType = Specifies the interface identifier (ID) of the prompt type. Currently, the only supported value is
@@ -937,7 +937,7 @@ interface IPhotoAcquire : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> A non-<b>NULL</b> pointer was expected. </td>
     ///    </tr> </table>
     ///    
-    HRESULT CreatePhotoSource(const(wchar)* pszDevice, IPhotoAcquireSource* ppPhotoAcquireSource);
+    HRESULT CreatePhotoSource(const(PWSTR) pszDevice, IPhotoAcquireSource* ppPhotoAcquireSource);
     ///The <code>Acquire</code> method acquires photos from a device.
     ///Params:
     ///    pPhotoAcquireSource = Pointer to an IPhotoAcquireSource object representing the device from which to acquire photos. Initialize
@@ -954,7 +954,7 @@ interface IPhotoAcquire : IUnknown
     ///    </table>
     ///    
     HRESULT Acquire(IPhotoAcquireSource pPhotoAcquireSource, BOOL fShowProgress, HWND hWndParent, 
-                    const(wchar)* pszApplicationName, IPhotoAcquireProgressCB pPhotoAcquireProgressCB);
+                    const(PWSTR) pszApplicationName, IPhotoAcquireProgressCB pPhotoAcquireProgressCB);
     ///The <code>EnumResults</code> method retrieves an enumeration containing the paths of all files successfully
     ///transferred during the most recent call to Acquire.
     ///Params:
@@ -984,7 +984,7 @@ interface IPhotoAcquireSettings : IUnknown
     ///    <dl> <dt><b>E_NOTIMPL</b></dt> </dl> </td> <td width="60%"> This method is not yet implemented. </td> </tr>
     ///    </table>
     ///    
-    HRESULT InitializeFromRegistry(const(wchar)* pszRegistryKey);
+    HRESULT InitializeFromRegistry(const(PWSTR) pszRegistryKey);
     ///The <code>SetFlags</code> method sets the photo acquire flags.
     ///Params:
     ///    dwPhotoAcquireFlags = Double word value containing the photo acquire flags.
@@ -1003,7 +1003,7 @@ interface IPhotoAcquireSettings : IUnknown
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT SetOutputFilenameTemplate(const(wchar)* pszTemplate);
+    HRESULT SetOutputFilenameTemplate(const(PWSTR) pszTemplate);
     ///The <code>SetSequencePaddingWidth</code> method sets a value indicating how wide sequential fields in filenames
     ///will be.
     ///Params:
@@ -1032,7 +1032,7 @@ interface IPhotoAcquireSettings : IUnknown
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT SetGroupTag(const(wchar)* pszGroupTag);
+    HRESULT SetGroupTag(const(PWSTR) pszGroupTag);
     ///The <code>SetAcquisitionTime</code> method sets the acquisition time explicitly.
     ///Params:
     ///    pftAcquisitionTime = Specifies the acquisition time.
@@ -1084,7 +1084,7 @@ interface IPhotoAcquireSettings : IUnknown
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT GetSequenceZeroPadding(int* pfZeroPad);
+    HRESULT GetSequenceZeroPadding(BOOL* pfZeroPad);
     ///The <code>GetGroupTag</code> method retrieves a tag string for the group of files being downloaded from the
     ///device.
     ///Params:
@@ -1123,7 +1123,7 @@ interface IPhotoAcquireOptionsDialog : IUnknown
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT Initialize(const(wchar)* pszRegistryRoot);
+    HRESULT Initialize(const(PWSTR) pszRegistryRoot);
     ///The <code>Create</code> method creates and displays a modeless instance of the photo options dialog box, hosted
     ///within a parent window.
     ///Params:
@@ -1174,7 +1174,7 @@ interface IPhotoAcquireDeviceSelectionDialog : IUnknown
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT SetTitle(const(wchar)* pszTitle);
+    HRESULT SetTitle(const(PWSTR) pszTitle);
     ///The <code>SetPrompt</code> method sets the text displayed in the dialog box that prompts the user to select a
     ///device.
     ///Params:
@@ -1184,7 +1184,7 @@ interface IPhotoAcquireDeviceSelectionDialog : IUnknown
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT SetSubmitButtonText(const(wchar)* pszSubmitButtonText);
+    HRESULT SetSubmitButtonText(const(PWSTR) pszSubmitButtonText);
     ///The <code>DoModal</code> method displays a device selection dialog box. The function returns when the user
     ///selects a device using the modal dialog box.
     ///Params:
@@ -1251,7 +1251,7 @@ interface IPhotoAcquirePlugin : IUnknown
     ///    <dt><b>E_NOTIMPL</b></dt> </dl> </td> <td width="60%"> The method is not implemented. </td> </tr> </table>
     ///    
     HRESULT ProcessItem(uint dwAcquireStage, IPhotoAcquireItem pPhotoAcquireItem, IStream pOriginalItemStream, 
-                        const(wchar)* pszFinalFilename, IPropertyStore pPropertyStore);
+                        const(PWSTR) pszFinalFilename, IPropertyStore pPropertyStore);
     ///Provides extended functionality when a transfer session is completed. The application provides the implementation
     ///of the <b>TransferComplete</b> method.
     ///Params:

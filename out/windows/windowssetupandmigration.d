@@ -5,7 +5,7 @@ module windows.windowssetupandmigration;
 public import windows.core;
 public import windows.systemservices : BOOL;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Callbacks
@@ -22,7 +22,7 @@ alias OOBE_COMPLETED_CALLBACK = void function(void* CallbackContext);
 ///Params:
 ///    isOOBEComplete = Pointer to a variable that will receive the completion of OOBE upon success.
 @DllImport("KERNEL32")
-BOOL OOBEComplete(int* isOOBEComplete);
+BOOL OOBEComplete(BOOL* isOOBEComplete);
 
 ///Registers a callback to be called once OOBE (Windows Welcome) has been completed.
 ///Params:

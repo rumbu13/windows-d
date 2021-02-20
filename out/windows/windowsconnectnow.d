@@ -4,8 +4,9 @@ module windows.windowsconnectnow;
 
 public import windows.core;
 public import windows.com : HRESULT, IUnknown;
+public import windows.systemservices : PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -830,7 +831,7 @@ interface IWCNDevice : IUnknown
     ///    width="60%"> The password type is WCN_PASSWORD_TYPE_PUSH_BUTTON and the password length is not zero. The
     ///    password type is not WCN_PASSWORD_TYPE_PUSH_BUTTON or WCN_PASSWORD_TYPE_PIN. </td> </tr> </table>
     ///    
-    HRESULT SetPassword(WCN_PASSWORD_TYPE Type, uint dwPasswordLength, char* pbPassword);
+    HRESULT SetPassword(WCN_PASSWORD_TYPE Type, uint dwPasswordLength, const(ubyte)* pbPassword);
     ///The <b>IWCNDevice::Connect</b> method initiates the session.
     ///Params:
     ///    pNotify = A pointer to the implemented IWCNConnectNotify callback interface which specifies if a connection has been
@@ -860,7 +861,7 @@ interface IWCNDevice : IUnknown
     ///    specified by <i>pbBuffer</i> is not large enough to contain the returned attribute value. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetAttribute(WCN_ATTRIBUTE_TYPE AttributeType, uint dwMaxBufferSize, char* pbBuffer, 
+    HRESULT GetAttribute(WCN_ATTRIBUTE_TYPE AttributeType, uint dwMaxBufferSize, ubyte* pbBuffer, 
                          uint* pdwBufferUsed);
     ///The GetIntegerAttribute method gets a cached attribute from the device as an integer.
     ///Params:
@@ -897,7 +898,7 @@ interface IWCNDevice : IUnknown
     ///    <td width="40%"> <dl> <dt><b>HRESULT_FROM_WIN32(ERROR_INVALID_DATATYPE)</b></dt> </dl> </td> <td width="60%">
     ///    This attribute cannot be expressed as a string. For example, if it is an integer. </td> </tr> </table>
     ///    
-    HRESULT GetStringAttribute(WCN_ATTRIBUTE_TYPE AttributeType, uint cchMaxString, char* wszString);
+    HRESULT GetStringAttribute(WCN_ATTRIBUTE_TYPE AttributeType, uint cchMaxString, ushort* wszString);
     ///The <b>IWCNDevice::GetNetworkProfile</b> method gets a network profile from the device.
     ///Params:
     ///    cchMaxStringLength = The allocated size, in characters, of <i>wszProfile</i>.
@@ -907,7 +908,7 @@ interface IWCNDevice : IUnknown
     ///    <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The network profile was successfully
     ///    retrieved. </td> </tr> </table>
     ///    
-    HRESULT GetNetworkProfile(uint cchMaxStringLength, const(wchar)* wszProfile);
+    HRESULT GetNetworkProfile(uint cchMaxStringLength, PWSTR wszProfile);
     ///The <b>IWCNDevice::SetNetworkProfile</b> method queues an XML WLAN profile to be provisioned to the device. This
     ///method may only be called prior to IWCNDevice::Connect.
     ///Params:
@@ -920,7 +921,7 @@ interface IWCNDevice : IUnknown
     ///    width="40%"> <dl> <dt><b>HRESULT_FROM_WIN32(ERROR_BAD_PROFILE)</b></dt> </dl> </td> <td width="60%"> The
     ///    provided XML profile cannot be read. </td> </tr> </table>
     ///    
-    HRESULT SetNetworkProfile(const(wchar)* pszProfileXml);
+    HRESULT SetNetworkProfile(const(PWSTR) pszProfileXml);
     ///The <b>GetVendorExtension</b> method gets a cached vendor extension from the device.
     ///Params:
     ///    pVendorExtSpec = A pointer to a user-defined <b>WCN_VENDOR_EXTENSION_SPEC</b> structure that describes the vendor extension to
@@ -938,7 +939,7 @@ interface IWCNDevice : IUnknown
     ///    </tr> </table>
     ///    
     HRESULT GetVendorExtension(const(WCN_VENDOR_EXTENSION_SPEC)* pVendorExtSpec, uint dwMaxBufferSize, 
-                               char* pbBuffer, uint* pdwBufferUsed);
+                               ubyte* pbBuffer, uint* pdwBufferUsed);
     ///The <b>IWCNDevice::SetVendorExtension</b> method queues a vendor extension for use in the pending session. This
     ///function may only be called prior to IWCNDevice::Connect.
     ///Params:
@@ -954,15 +955,17 @@ interface IWCNDevice : IUnknown
     ///    </td> <td width="60%"> The number of vendor extensions has exceeded the current implementation limit, which
     ///    is currently equal to 25 vendor extensions per session. </td> </tr> </table>
     ///    
-    HRESULT SetVendorExtension(const(WCN_VENDOR_EXTENSION_SPEC)* pVendorExtSpec, uint cbBuffer, char* pbBuffer);
+    HRESULT SetVendorExtension(const(WCN_VENDOR_EXTENSION_SPEC)* pVendorExtSpec, uint cbBuffer, 
+                               const(ubyte)* pbBuffer);
     ///The <b>IWCNDevice::Unadvise</b> method removes any callback previously set via IWCNDevice::Connect.
     ///Returns:
     ///    This method does not return a value.
     ///    
     HRESULT Unadvise();
     HRESULT SetNFCPasswordParams(WCN_PASSWORD_TYPE Type, uint dwOOBPasswordID, uint dwPasswordLength, 
-                                 char* pbPassword, uint dwRemotePublicKeyHashLength, char* pbRemotePublicKeyHash, 
-                                 uint dwDHKeyBlobLength, char* pbDHKeyBlob);
+                                 const(ubyte)* pbPassword, uint dwRemotePublicKeyHashLength, 
+                                 const(ubyte)* pbRemotePublicKeyHash, uint dwDHKeyBlobLength, 
+                                 const(ubyte)* pbDHKeyBlob);
 }
 
 ///Use this interface to receive a success or failure notification when a Windows Connect Now connect session completes.

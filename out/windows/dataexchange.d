@@ -3,11 +3,12 @@
 module windows.dataexchange;
 
 public import windows.core;
+public import windows.gdi : HMETAFILE;
 public import windows.security : SECURITY_QUALITY_OF_SERVICE;
-public import windows.systemservices : BOOL, HANDLE;
+public import windows.systemservices : BOOL, HANDLE, PSTR, PWSTR;
 public import windows.windowsandmessaging : HWND, LPARAM, WPARAM;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Callbacks
@@ -44,6 +45,18 @@ alias PFNCALLBACK = ptrdiff_t function(uint wType, uint wFmt, ptrdiff_t hConv, p
 // Structs
 
 
+///Contains data to be passed to another application by the WM_COPYDATA message.
+struct COPYDATASTRUCT
+{
+    ///Type: <b>ULONG_PTR</b> The type of the data to be passed to the receiving application. The receiving application
+    ///defines the valid types.
+    size_t dwData;
+    ///Type: <b>DWORD</b> The size, in bytes, of the data pointed to by the <b>lpData</b> member.
+    uint   cbData;
+    ///Type: <b>PVOID</b> The data to be passed to the receiving application. This member can be <b>NULL</b>.
+    void*  lpData;
+}
+
 ///Defines the metafile picture format used for exchanging metafile data through the clipboard.
 struct METAFILEPICT
 {
@@ -66,19 +79,7 @@ struct METAFILEPICT
     ///ignored; only the ratio is used.
     int       yExt;
     ///Type: <b>HMETAFILE</b> A handle to a memory metafile.
-    ptrdiff_t hMF;
-}
-
-///Contains data to be passed to another application by the WM_COPYDATA message.
-struct COPYDATASTRUCT
-{
-    ///Type: <b>ULONG_PTR</b> The type of the data to be passed to the receiving application. The receiving application
-    ///defines the valid types.
-    size_t dwData;
-    ///Type: <b>DWORD</b> The size, in bytes, of the data pointed to by the <b>lpData</b> member.
-    uint   cbData;
-    ///Type: <b>PVOID</b> The data to be passed to the receiving application. This member can be <b>NULL</b>.
-    void*  lpData;
+    HMETAFILE hMF;
 }
 
 ///Contains status flags that a DDE application passes to its partner as part of the WM_DDE_ACK message. The flags
@@ -647,7 +648,7 @@ HANDLE GetClipboardData(uint uFormat);
 ///    function fails, the return value is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-uint RegisterClipboardFormatA(const(char)* lpszFormat);
+uint RegisterClipboardFormatA(const(PSTR) lpszFormat);
 
 ///Registers a new clipboard format. This format can then be used as a valid clipboard format.
 ///Params:
@@ -657,7 +658,7 @@ uint RegisterClipboardFormatA(const(char)* lpszFormat);
 ///    function fails, the return value is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-uint RegisterClipboardFormatW(const(wchar)* lpszFormat);
+uint RegisterClipboardFormatW(const(PWSTR) lpszFormat);
 
 ///Retrieves the number of different data formats currently on the clipboard.
 ///Returns:
@@ -701,7 +702,7 @@ uint EnumClipboardFormats(uint format);
 ///    or is predefined. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-int GetClipboardFormatNameA(uint format, const(char)* lpszFormatName, int cchMaxCount);
+int GetClipboardFormatNameA(uint format, PSTR lpszFormatName, int cchMaxCount);
 
 ///Retrieves from the clipboard the name of the specified registered format. The function copies the name to the
 ///specified buffer.
@@ -717,7 +718,7 @@ int GetClipboardFormatNameA(uint format, const(char)* lpszFormatName, int cchMax
 ///    or is predefined. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-int GetClipboardFormatNameW(uint format, const(wchar)* lpszFormatName, int cchMaxCount);
+int GetClipboardFormatNameW(uint format, PWSTR lpszFormatName, int cchMaxCount);
 
 ///Empties the clipboard and frees handles to data in the clipboard. The function then assigns ownership of the
 ///clipboard to the window that currently has the clipboard open.
@@ -751,7 +752,7 @@ BOOL IsClipboardFormatAvailable(uint format);
 ///    in any of the specified formats, the return value is –1. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-int GetPriorityClipboardFormat(char* paFormatPriorityList, int cFormats);
+int GetPriorityClipboardFormat(uint* paFormatPriorityList, int cFormats);
 
 ///Retrieves the handle to the window that currently has the clipboard open.
 ///Returns:
@@ -789,7 +790,219 @@ BOOL RemoveClipboardFormatListener(HWND hwnd);
 ///    cFormats = Type: <b>UINT</b> The number of entries in the array pointed to by <i>lpuiFormats</i>.
 ///    pcFormatsOut = Type: <b>PUINT</b> The actual number of clipboard formats in the array pointed to by <i>lpuiFormats</i>.
 @DllImport("USER32")
-BOOL GetUpdatedClipboardFormats(char* lpuiFormats, uint cFormats, uint* pcFormatsOut);
+BOOL GetUpdatedClipboardFormats(uint* lpuiFormats, uint cFormats, uint* pcFormatsOut);
+
+///Decrements the reference count of a global string atom. If the atom's reference count reaches zero,
+///<b>GlobalDeleteAtom</b> removes the string associated with the atom from the global atom table.
+///Params:
+///    nAtom = Type: <b>ATOM</b> The atom and character string to be deleted.
+///Returns:
+///    Type: <b>ATOM</b> The function always returns (<b>ATOM</b>) 0. To determine whether the function has failed, call
+///    SetLastError with <b>ERROR_SUCCESS</b> before calling <b>GlobalDeleteAtom</b>, then call GetLastError. If the
+///    last error code is still <b>ERROR_SUCCESS</b>, <b>GlobalDeleteAtom</b> has succeeded.
+///    
+@DllImport("KERNEL32")
+ushort GlobalDeleteAtom(ushort nAtom);
+
+///Initializes the local atom table and sets the number of hash buckets to the specified size.
+///Params:
+///    nSize = Type: <b>DWORD</b> The number of hash buckets to use for the atom table. If this parameter is zero, the default
+///            number of hash buckets are created. To achieve better performance, specify a prime number in <i>nSize</i>.
+///Returns:
+///    Type: <b>BOOL</b> If the function succeeds, the return value is nonzero. If the function fails, the return value
+///    is zero.
+///    
+@DllImport("KERNEL32")
+BOOL InitAtomTable(uint nSize);
+
+///Decrements the reference count of a local string atom. If the atom's reference count is reduced to zero,
+///<b>DeleteAtom</b> removes the string associated with the atom from the local atom table.
+///Params:
+///    nAtom = Type: <b>ATOM</b> The atom to be deleted.
+///Returns:
+///    Type: <b>ATOM</b> If the function succeeds, the return value is zero. If the function fails, the return value is
+///    the <i>nAtom</i> parameter. To get extended error information, call GetLastError.
+///    
+@DllImport("KERNEL32")
+ushort DeleteAtom(ushort nAtom);
+
+///Adds a character string to the global atom table and returns a unique value (an atom) identifying the string.
+///Params:
+///    lpString = Type: <b>LPCTSTR</b> The null-terminated string to be added. The string can have a maximum size of 255 bytes.
+///               Strings that differ only in case are considered identical. The case of the first string of this name added to the
+///               table is preserved and returned by the GlobalGetAtomName function. Alternatively, you can use an integer atom
+///               that has been converted using the MAKEINTATOM macro. See the Remarks for more information.
+///Returns:
+///    Type: <b>ATOM</b> If the function succeeds, the return value is the newly created atom. If the function fails,
+///    the return value is zero. To get extended error information, call GetLastError.
+///    
+@DllImport("KERNEL32")
+ushort GlobalAddAtomA(const(PSTR) lpString);
+
+///Adds a character string to the global atom table and returns a unique value (an atom) identifying the string.
+///Params:
+///    lpString = Type: <b>LPCTSTR</b> The null-terminated string to be added. The string can have a maximum size of 255 bytes.
+///               Strings that differ only in case are considered identical. The case of the first string of this name added to the
+///               table is preserved and returned by the GlobalGetAtomName function. Alternatively, you can use an integer atom
+///               that has been converted using the MAKEINTATOM macro. See the Remarks for more information.
+///Returns:
+///    Type: <b>ATOM</b> If the function succeeds, the return value is the newly created atom. If the function fails,
+///    the return value is zero. To get extended error information, call GetLastError.
+///    
+@DllImport("KERNEL32")
+ushort GlobalAddAtomW(const(PWSTR) lpString);
+
+///Adds a character string to the global atom table and returns a unique value (an atom) identifying the string.
+///Params:
+///    lpString = The null-terminated string to be added. The string can have a maximum size of 255 bytes. Strings that differ only
+///               in case are considered identical. The case of the first string of this name added to the table is preserved and
+///               returned by the GlobalGetAtomName function. Alternatively, you can use an integer atom that has been converted
+///               using the MAKEINTATOM macro. See the Remarks for more information.
+///    Flags = 
+///Returns:
+///    If the function succeeds, the return value is the newly created atom. If the function fails, the return value is
+///    zero. To get extended error information, call GetLastError.
+///    
+@DllImport("KERNEL32")
+ushort GlobalAddAtomExA(const(PSTR) lpString, uint Flags);
+
+///Adds a character string to the global atom table and returns a unique value (an atom) identifying the string.
+///Params:
+///    lpString = The null-terminated string to be added. The string can have a maximum size of 255 bytes. Strings that differ only
+///               in case are considered identical. The case of the first string of this name added to the table is preserved and
+///               returned by the GlobalGetAtomName function. Alternatively, you can use an integer atom that has been converted
+///               using the MAKEINTATOM macro. See the Remarks for more information.
+///    Flags = 
+///Returns:
+///    If the function succeeds, the return value is the newly created atom. If the function fails, the return value is
+///    zero. To get extended error information, call GetLastError.
+///    
+@DllImport("KERNEL32")
+ushort GlobalAddAtomExW(const(PWSTR) lpString, uint Flags);
+
+///Searches the global atom table for the specified character string and retrieves the global atom associated with that
+///string.
+///Params:
+///    lpString = Type: <b>LPCTSTR</b> The null-terminated character string for which to search. Alternatively, you can use an
+///               integer atom that has been converted using the MAKEINTATOM macro. See the Remarks for more information.
+///Returns:
+///    Type: <b>ATOM</b> If the function succeeds, the return value is the global atom associated with the given string.
+///    If the function fails, the return value is zero. To get extended error information, call GetLastError.
+///    
+@DllImport("KERNEL32")
+ushort GlobalFindAtomA(const(PSTR) lpString);
+
+///Searches the global atom table for the specified character string and retrieves the global atom associated with that
+///string.
+///Params:
+///    lpString = Type: <b>LPCTSTR</b> The null-terminated character string for which to search. Alternatively, you can use an
+///               integer atom that has been converted using the MAKEINTATOM macro. See the Remarks for more information.
+///Returns:
+///    Type: <b>ATOM</b> If the function succeeds, the return value is the global atom associated with the given string.
+///    If the function fails, the return value is zero. To get extended error information, call GetLastError.
+///    
+@DllImport("KERNEL32")
+ushort GlobalFindAtomW(const(PWSTR) lpString);
+
+///Retrieves a copy of the character string associated with the specified global atom.
+///Params:
+///    nAtom = Type: <b>ATOM</b> The global atom associated with the character string to be retrieved.
+///    lpBuffer = Type: <b>LPTSTR</b> The buffer for the character string.
+///    nSize = Type: <b>int</b> The size, in characters, of the buffer.
+///Returns:
+///    Type: <b>UINT</b> If the function succeeds, the return value is the length of the string copied to the buffer, in
+///    characters, not including the terminating null character. If the function fails, the return value is zero. To get
+///    extended error information, call GetLastError.
+///    
+@DllImport("KERNEL32")
+uint GlobalGetAtomNameA(ushort nAtom, PSTR lpBuffer, int nSize);
+
+///Retrieves a copy of the character string associated with the specified global atom.
+///Params:
+///    nAtom = Type: <b>ATOM</b> The global atom associated with the character string to be retrieved.
+///    lpBuffer = Type: <b>LPTSTR</b> The buffer for the character string.
+///    nSize = Type: <b>int</b> The size, in characters, of the buffer.
+///Returns:
+///    Type: <b>UINT</b> If the function succeeds, the return value is the length of the string copied to the buffer, in
+///    characters, not including the terminating null character. If the function fails, the return value is zero. To get
+///    extended error information, call GetLastError.
+///    
+@DllImport("KERNEL32")
+uint GlobalGetAtomNameW(ushort nAtom, PWSTR lpBuffer, int nSize);
+
+///Adds a character string to the local atom table and returns a unique value (an atom) identifying the string.
+///Params:
+///    lpString = Type: <b>LPCTSTR</b> The null-terminated string to be added. The string can have a maximum size of 255 bytes.
+///               Strings differing only in case are considered identical. The case of the first string added is preserved and
+///               returned by the GetAtomName function. Alternatively, you can use an integer atom that has been converted using
+///               the MAKEINTATOM macro. See the Remarks for more information.
+///Returns:
+///    Type: <b>ATOM</b> If the function succeeds, the return value is the newly created atom. If the function fails,
+///    the return value is zero. To get extended error information, call GetLastError.
+///    
+@DllImport("KERNEL32")
+ushort AddAtomA(const(PSTR) lpString);
+
+///Adds a character string to the local atom table and returns a unique value (an atom) identifying the string.
+///Params:
+///    lpString = Type: <b>LPCTSTR</b> The null-terminated string to be added. The string can have a maximum size of 255 bytes.
+///               Strings differing only in case are considered identical. The case of the first string added is preserved and
+///               returned by the GetAtomName function. Alternatively, you can use an integer atom that has been converted using
+///               the MAKEINTATOM macro. See the Remarks for more information.
+///Returns:
+///    Type: <b>ATOM</b> If the function succeeds, the return value is the newly created atom. If the function fails,
+///    the return value is zero. To get extended error information, call GetLastError.
+///    
+@DllImport("KERNEL32")
+ushort AddAtomW(const(PWSTR) lpString);
+
+///Searches the local atom table for the specified character string and retrieves the atom associated with that string.
+///Params:
+///    lpString = Type: <b>LPCTSTR</b> The character string for which to search. Alternatively, you can use an integer atom that
+///               has been converted using the MAKEINTATOM macro. See Remarks for more information.
+///Returns:
+///    Type: <b>ATOM</b> If the function succeeds, the return value is the atom associated with the given string. If the
+///    function fails, the return value is zero. To get extended error information, call GetLastError.
+///    
+@DllImport("KERNEL32")
+ushort FindAtomA(const(PSTR) lpString);
+
+///Searches the local atom table for the specified character string and retrieves the atom associated with that string.
+///Params:
+///    lpString = Type: <b>LPCTSTR</b> The character string for which to search. Alternatively, you can use an integer atom that
+///               has been converted using the MAKEINTATOM macro. See Remarks for more information.
+///Returns:
+///    Type: <b>ATOM</b> If the function succeeds, the return value is the atom associated with the given string. If the
+///    function fails, the return value is zero. To get extended error information, call GetLastError.
+///    
+@DllImport("KERNEL32")
+ushort FindAtomW(const(PWSTR) lpString);
+
+///Retrieves a copy of the character string associated with the specified local atom.
+///Params:
+///    nAtom = Type: <b>ATOM</b> The local atom that identifies the character string to be retrieved.
+///    lpBuffer = Type: <b>LPTSTR</b> The character string.
+///    nSize = Type: <b>int</b> The size, in characters, of the buffer.
+///Returns:
+///    Type: <b>UINT</b> If the function succeeds, the return value is the length of the string copied to the buffer, in
+///    characters, not including the terminating null character. If the function fails, the return value is zero. To get
+///    extended error information, call GetLastError.
+///    
+@DllImport("KERNEL32")
+uint GetAtomNameA(ushort nAtom, PSTR lpBuffer, int nSize);
+
+///Retrieves a copy of the character string associated with the specified local atom.
+///Params:
+///    nAtom = Type: <b>ATOM</b> The local atom that identifies the character string to be retrieved.
+///    lpBuffer = Type: <b>LPTSTR</b> The character string.
+///    nSize = Type: <b>int</b> The size, in characters, of the buffer.
+///Returns:
+///    Type: <b>UINT</b> If the function succeeds, the return value is the length of the string copied to the buffer, in
+///    characters, not including the terminating null character. If the function fails, the return value is zero. To get
+///    extended error information, call GetLastError.
+///    
+@DllImport("KERNEL32")
+uint GetAtomNameW(ushort nAtom, PWSTR lpBuffer, int nSize);
 
 ///Specifies the quality of service (QOS) a raw Dynamic Data Exchange (DDE) application desires for future DDE
 ///conversations it initiates. The specified QOS applies to any conversations started while those settings are in place.
@@ -1418,7 +1631,7 @@ ptrdiff_t DdeClientTransaction(ubyte* pData, uint cbData, ptrdiff_t hConv, ptrdi
 ///    following values:
 ///    
 @DllImport("USER32")
-ptrdiff_t DdeCreateDataHandle(uint idInst, char* pSrc, uint cb, uint cbOff, ptrdiff_t hszItem, uint wFmt, 
+ptrdiff_t DdeCreateDataHandle(uint idInst, ubyte* pSrc, uint cb, uint cbOff, ptrdiff_t hszItem, uint wFmt, 
                               uint afCmd);
 
 ///Adds data to the specified Dynamic Data Exchange (DDE) object. An application can add data starting at any offset
@@ -1438,7 +1651,7 @@ ptrdiff_t DdeCreateDataHandle(uint idInst, char* pSrc, uint cb, uint cbOff, ptrd
 ///    DdeGetLastError function can be used to get the error code, which can be one of the following values:
 ///    
 @DllImport("USER32")
-ptrdiff_t DdeAddData(ptrdiff_t hData, char* pSrc, uint cb, uint cbOff);
+ptrdiff_t DdeAddData(ptrdiff_t hData, ubyte* pSrc, uint cb, uint cbOff);
 
 ///Copies data from the specified Dynamic Data Exchange (DDE) object to the specified local buffer.
 ///Params:
@@ -1456,7 +1669,7 @@ ptrdiff_t DdeAddData(ptrdiff_t hData, char* pSrc, uint cb, uint cbOff);
 ///    be one of the following values:
 ///    
 @DllImport("USER32")
-uint DdeGetData(ptrdiff_t hData, char* pDst, uint cbMax, uint cbOff);
+uint DdeGetData(ptrdiff_t hData, ubyte* pDst, uint cbMax, uint cbOff);
 
 ///Provides access to the data in the specified Dynamic Data Exchange (DDE) object. An application must call the
 ///DdeUnaccessData function when it has finished accessing the data in the object.
@@ -1562,7 +1775,7 @@ uint DdeGetLastError(uint idInst);
 ///    values:
 ///    
 @DllImport("USER32")
-ptrdiff_t DdeCreateStringHandleA(uint idInst, const(char)* psz, int iCodePage);
+ptrdiff_t DdeCreateStringHandleA(uint idInst, const(PSTR) psz, int iCodePage);
 
 ///Creates a handle that identifies the specified string. A Dynamic Data Exchange (DDE) client or server application can
 ///pass the string handle as a parameter to other Dynamic Data Exchange Management Library (DDEML) functions.
@@ -1579,7 +1792,7 @@ ptrdiff_t DdeCreateStringHandleA(uint idInst, const(char)* psz, int iCodePage);
 ///    values:
 ///    
 @DllImport("USER32")
-ptrdiff_t DdeCreateStringHandleW(uint idInst, const(wchar)* psz, int iCodePage);
+ptrdiff_t DdeCreateStringHandleW(uint idInst, const(PWSTR) psz, int iCodePage);
 
 ///Copies text associated with a string handle into a buffer.
 ///Params:
@@ -1601,7 +1814,7 @@ ptrdiff_t DdeCreateStringHandleW(uint idInst, const(wchar)* psz, int iCodePage);
 ///    parameter (not including the terminating null character). If an error occurs, the return value is 0L.
 ///    
 @DllImport("USER32")
-uint DdeQueryStringA(uint idInst, ptrdiff_t hsz, const(char)* psz, uint cchMax, int iCodePage);
+uint DdeQueryStringA(uint idInst, ptrdiff_t hsz, PSTR psz, uint cchMax, int iCodePage);
 
 ///Copies text associated with a string handle into a buffer.
 ///Params:
@@ -1623,7 +1836,7 @@ uint DdeQueryStringA(uint idInst, ptrdiff_t hsz, const(char)* psz, uint cchMax, 
 ///    parameter (not including the terminating null character). If an error occurs, the return value is 0L.
 ///    
 @DllImport("USER32")
-uint DdeQueryStringW(uint idInst, ptrdiff_t hsz, const(wchar)* psz, uint cchMax, int iCodePage);
+uint DdeQueryStringW(uint idInst, ptrdiff_t hsz, PWSTR psz, uint cchMax, int iCodePage);
 
 ///Frees a string handle in the calling application.
 ///Params:
@@ -1666,217 +1879,5 @@ BOOL DdeKeepStringHandle(uint idInst, ptrdiff_t hsz);
 ///    
 @DllImport("USER32")
 int DdeCmpStringHandles(ptrdiff_t hsz1, ptrdiff_t hsz2);
-
-///Decrements the reference count of a global string atom. If the atom's reference count reaches zero,
-///<b>GlobalDeleteAtom</b> removes the string associated with the atom from the global atom table.
-///Params:
-///    nAtom = Type: <b>ATOM</b> The atom and character string to be deleted.
-///Returns:
-///    Type: <b>ATOM</b> The function always returns (<b>ATOM</b>) 0. To determine whether the function has failed, call
-///    SetLastError with <b>ERROR_SUCCESS</b> before calling <b>GlobalDeleteAtom</b>, then call GetLastError. If the
-///    last error code is still <b>ERROR_SUCCESS</b>, <b>GlobalDeleteAtom</b> has succeeded.
-///    
-@DllImport("KERNEL32")
-ushort GlobalDeleteAtom(ushort nAtom);
-
-///Initializes the local atom table and sets the number of hash buckets to the specified size.
-///Params:
-///    nSize = Type: <b>DWORD</b> The number of hash buckets to use for the atom table. If this parameter is zero, the default
-///            number of hash buckets are created. To achieve better performance, specify a prime number in <i>nSize</i>.
-///Returns:
-///    Type: <b>BOOL</b> If the function succeeds, the return value is nonzero. If the function fails, the return value
-///    is zero.
-///    
-@DllImport("KERNEL32")
-BOOL InitAtomTable(uint nSize);
-
-///Decrements the reference count of a local string atom. If the atom's reference count is reduced to zero,
-///<b>DeleteAtom</b> removes the string associated with the atom from the local atom table.
-///Params:
-///    nAtom = Type: <b>ATOM</b> The atom to be deleted.
-///Returns:
-///    Type: <b>ATOM</b> If the function succeeds, the return value is zero. If the function fails, the return value is
-///    the <i>nAtom</i> parameter. To get extended error information, call GetLastError.
-///    
-@DllImport("KERNEL32")
-ushort DeleteAtom(ushort nAtom);
-
-///Adds a character string to the global atom table and returns a unique value (an atom) identifying the string.
-///Params:
-///    lpString = Type: <b>LPCTSTR</b> The null-terminated string to be added. The string can have a maximum size of 255 bytes.
-///               Strings that differ only in case are considered identical. The case of the first string of this name added to the
-///               table is preserved and returned by the GlobalGetAtomName function. Alternatively, you can use an integer atom
-///               that has been converted using the MAKEINTATOM macro. See the Remarks for more information.
-///Returns:
-///    Type: <b>ATOM</b> If the function succeeds, the return value is the newly created atom. If the function fails,
-///    the return value is zero. To get extended error information, call GetLastError.
-///    
-@DllImport("KERNEL32")
-ushort GlobalAddAtomA(const(char)* lpString);
-
-///Adds a character string to the global atom table and returns a unique value (an atom) identifying the string.
-///Params:
-///    lpString = Type: <b>LPCTSTR</b> The null-terminated string to be added. The string can have a maximum size of 255 bytes.
-///               Strings that differ only in case are considered identical. The case of the first string of this name added to the
-///               table is preserved and returned by the GlobalGetAtomName function. Alternatively, you can use an integer atom
-///               that has been converted using the MAKEINTATOM macro. See the Remarks for more information.
-///Returns:
-///    Type: <b>ATOM</b> If the function succeeds, the return value is the newly created atom. If the function fails,
-///    the return value is zero. To get extended error information, call GetLastError.
-///    
-@DllImport("KERNEL32")
-ushort GlobalAddAtomW(const(wchar)* lpString);
-
-///Adds a character string to the global atom table and returns a unique value (an atom) identifying the string.
-///Params:
-///    lpString = The null-terminated string to be added. The string can have a maximum size of 255 bytes. Strings that differ only
-///               in case are considered identical. The case of the first string of this name added to the table is preserved and
-///               returned by the GlobalGetAtomName function. Alternatively, you can use an integer atom that has been converted
-///               using the MAKEINTATOM macro. See the Remarks for more information.
-///    Flags = 
-///Returns:
-///    If the function succeeds, the return value is the newly created atom. If the function fails, the return value is
-///    zero. To get extended error information, call GetLastError.
-///    
-@DllImport("KERNEL32")
-ushort GlobalAddAtomExA(const(char)* lpString, uint Flags);
-
-///Adds a character string to the global atom table and returns a unique value (an atom) identifying the string.
-///Params:
-///    lpString = The null-terminated string to be added. The string can have a maximum size of 255 bytes. Strings that differ only
-///               in case are considered identical. The case of the first string of this name added to the table is preserved and
-///               returned by the GlobalGetAtomName function. Alternatively, you can use an integer atom that has been converted
-///               using the MAKEINTATOM macro. See the Remarks for more information.
-///    Flags = 
-///Returns:
-///    If the function succeeds, the return value is the newly created atom. If the function fails, the return value is
-///    zero. To get extended error information, call GetLastError.
-///    
-@DllImport("KERNEL32")
-ushort GlobalAddAtomExW(const(wchar)* lpString, uint Flags);
-
-///Searches the global atom table for the specified character string and retrieves the global atom associated with that
-///string.
-///Params:
-///    lpString = Type: <b>LPCTSTR</b> The null-terminated character string for which to search. Alternatively, you can use an
-///               integer atom that has been converted using the MAKEINTATOM macro. See the Remarks for more information.
-///Returns:
-///    Type: <b>ATOM</b> If the function succeeds, the return value is the global atom associated with the given string.
-///    If the function fails, the return value is zero. To get extended error information, call GetLastError.
-///    
-@DllImport("KERNEL32")
-ushort GlobalFindAtomA(const(char)* lpString);
-
-///Searches the global atom table for the specified character string and retrieves the global atom associated with that
-///string.
-///Params:
-///    lpString = Type: <b>LPCTSTR</b> The null-terminated character string for which to search. Alternatively, you can use an
-///               integer atom that has been converted using the MAKEINTATOM macro. See the Remarks for more information.
-///Returns:
-///    Type: <b>ATOM</b> If the function succeeds, the return value is the global atom associated with the given string.
-///    If the function fails, the return value is zero. To get extended error information, call GetLastError.
-///    
-@DllImport("KERNEL32")
-ushort GlobalFindAtomW(const(wchar)* lpString);
-
-///Retrieves a copy of the character string associated with the specified global atom.
-///Params:
-///    nAtom = Type: <b>ATOM</b> The global atom associated with the character string to be retrieved.
-///    lpBuffer = Type: <b>LPTSTR</b> The buffer for the character string.
-///    nSize = Type: <b>int</b> The size, in characters, of the buffer.
-///Returns:
-///    Type: <b>UINT</b> If the function succeeds, the return value is the length of the string copied to the buffer, in
-///    characters, not including the terminating null character. If the function fails, the return value is zero. To get
-///    extended error information, call GetLastError.
-///    
-@DllImport("KERNEL32")
-uint GlobalGetAtomNameA(ushort nAtom, const(char)* lpBuffer, int nSize);
-
-///Retrieves a copy of the character string associated with the specified global atom.
-///Params:
-///    nAtom = Type: <b>ATOM</b> The global atom associated with the character string to be retrieved.
-///    lpBuffer = Type: <b>LPTSTR</b> The buffer for the character string.
-///    nSize = Type: <b>int</b> The size, in characters, of the buffer.
-///Returns:
-///    Type: <b>UINT</b> If the function succeeds, the return value is the length of the string copied to the buffer, in
-///    characters, not including the terminating null character. If the function fails, the return value is zero. To get
-///    extended error information, call GetLastError.
-///    
-@DllImport("KERNEL32")
-uint GlobalGetAtomNameW(ushort nAtom, const(wchar)* lpBuffer, int nSize);
-
-///Adds a character string to the local atom table and returns a unique value (an atom) identifying the string.
-///Params:
-///    lpString = Type: <b>LPCTSTR</b> The null-terminated string to be added. The string can have a maximum size of 255 bytes.
-///               Strings differing only in case are considered identical. The case of the first string added is preserved and
-///               returned by the GetAtomName function. Alternatively, you can use an integer atom that has been converted using
-///               the MAKEINTATOM macro. See the Remarks for more information.
-///Returns:
-///    Type: <b>ATOM</b> If the function succeeds, the return value is the newly created atom. If the function fails,
-///    the return value is zero. To get extended error information, call GetLastError.
-///    
-@DllImport("KERNEL32")
-ushort AddAtomA(const(char)* lpString);
-
-///Adds a character string to the local atom table and returns a unique value (an atom) identifying the string.
-///Params:
-///    lpString = Type: <b>LPCTSTR</b> The null-terminated string to be added. The string can have a maximum size of 255 bytes.
-///               Strings differing only in case are considered identical. The case of the first string added is preserved and
-///               returned by the GetAtomName function. Alternatively, you can use an integer atom that has been converted using
-///               the MAKEINTATOM macro. See the Remarks for more information.
-///Returns:
-///    Type: <b>ATOM</b> If the function succeeds, the return value is the newly created atom. If the function fails,
-///    the return value is zero. To get extended error information, call GetLastError.
-///    
-@DllImport("KERNEL32")
-ushort AddAtomW(const(wchar)* lpString);
-
-///Searches the local atom table for the specified character string and retrieves the atom associated with that string.
-///Params:
-///    lpString = Type: <b>LPCTSTR</b> The character string for which to search. Alternatively, you can use an integer atom that
-///               has been converted using the MAKEINTATOM macro. See Remarks for more information.
-///Returns:
-///    Type: <b>ATOM</b> If the function succeeds, the return value is the atom associated with the given string. If the
-///    function fails, the return value is zero. To get extended error information, call GetLastError.
-///    
-@DllImport("KERNEL32")
-ushort FindAtomA(const(char)* lpString);
-
-///Searches the local atom table for the specified character string and retrieves the atom associated with that string.
-///Params:
-///    lpString = Type: <b>LPCTSTR</b> The character string for which to search. Alternatively, you can use an integer atom that
-///               has been converted using the MAKEINTATOM macro. See Remarks for more information.
-///Returns:
-///    Type: <b>ATOM</b> If the function succeeds, the return value is the atom associated with the given string. If the
-///    function fails, the return value is zero. To get extended error information, call GetLastError.
-///    
-@DllImport("KERNEL32")
-ushort FindAtomW(const(wchar)* lpString);
-
-///Retrieves a copy of the character string associated with the specified local atom.
-///Params:
-///    nAtom = Type: <b>ATOM</b> The local atom that identifies the character string to be retrieved.
-///    lpBuffer = Type: <b>LPTSTR</b> The character string.
-///    nSize = Type: <b>int</b> The size, in characters, of the buffer.
-///Returns:
-///    Type: <b>UINT</b> If the function succeeds, the return value is the length of the string copied to the buffer, in
-///    characters, not including the terminating null character. If the function fails, the return value is zero. To get
-///    extended error information, call GetLastError.
-///    
-@DllImport("KERNEL32")
-uint GetAtomNameA(ushort nAtom, const(char)* lpBuffer, int nSize);
-
-///Retrieves a copy of the character string associated with the specified local atom.
-///Params:
-///    nAtom = Type: <b>ATOM</b> The local atom that identifies the character string to be retrieved.
-///    lpBuffer = Type: <b>LPTSTR</b> The character string.
-///    nSize = Type: <b>int</b> The size, in characters, of the buffer.
-///Returns:
-///    Type: <b>UINT</b> If the function succeeds, the return value is the length of the string copied to the buffer, in
-///    characters, not including the terminating null character. If the function fails, the return value is zero. To get
-///    extended error information, call GetLastError.
-///    
-@DllImport("KERNEL32")
-uint GetAtomNameW(ushort nAtom, const(wchar)* lpBuffer, int nSize);
 
 

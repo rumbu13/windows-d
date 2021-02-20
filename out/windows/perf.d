@@ -3,11 +3,11 @@
 module windows.perf;
 
 public import windows.core;
-public import windows.systemservices : BOOL, HANDLE, LARGE_INTEGER;
+public import windows.systemservices : BOOL, HANDLE, LARGE_INTEGER, PSTR, PWSTR;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : FILETIME, SYSTEMTIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -76,6 +76,48 @@ enum PerfCounterDataType : int
 
 // Callbacks
 
+///Collects the performance data and returns it to the consumer. Implement and export this function if you are writing a
+///performance DLL to provide performance data. The system calls this function whenever a consumer queries the registry
+///for performance data. The **CollectPerformanceData** function is a placeholder for the application-defined function
+///name.
+///Params:
+///    lpValueName = Type: **LPWSTR** Null-terminated string that contains the query string (for example, "Global" or "238") passed to
+///                  the [RegQueryValueEx](/windows/desktop/api/winreg/nf-winreg-regqueryvalueexa) function. For a list of possible
+///                  values for *lpValueName*, see [Using the Registry Functions to Consume Counter
+///                  Data](/windows/desktop/PerfCtrs/using-the-registry-functions-to-consume-counter-data). > [!NOTE] > This parameter
+///                  is annotated as optional (nullable), however a null value is not valid and can result in an error.
+///    lppData = Type: **LPVOID \*** Consumer-allocated buffer that contains the performance data. On output (where *pData* refers
+///              to the pointer pointed to by *lppData*), set *pData* to one byte past the end of your data. Note that the data
+///              must conform to the [PERF_OBJECT_TYPE](ns-winperf-perf_object_type.md) structure. If this function fails, leave
+///              the *pData* pointer value unchanged.
+///    lpcbTotalBytes = Type: **LPDWORD** On input, specifies the size, in bytes, of the *pData* buffer (where *pData* refers to the
+///                     pointer pointed to by *lppData*). On output, set *lpcbTotalBytes* to the size, in bytes, of the data written to
+///                     the *pData* buffer. The size must be 8-byte aligned. If this function fails, set *lpcbTotalBytes* to zero.
+///    lpNumObjectTypes = Type: **LPDWORD** Set *lpNumObjectTypes* to the number of object [types](ns-winperf-perf_object_type.md) (not
+///                       [instances](ns-winperf-perf_instance_definition.md)) written to the *pData* buffer (where *pData* refers to the
+///                       pointer pointed to by *lppData*). If this function fails, set *lpNumObjectTypes* to zero. > [!NOTE] > This
+///                       parameter is annotated as both *In* and *Out*, however this parameter should not be used as input.
+///Returns:
+///    One of the following values: | Return code | Description | |-------------|-------------| | **ERROR_MORE_DATA** |
+///    The size of the *pData* buffer (where *pData* refers to the pointer pointed to by *lppData*) as specified by
+///    *lpcbTotalBytes* is not large enough to store the data. Leave *pData* unchanged, and set *lpcbTotalBytes* and
+///    *lpNumObjectTypes* to zero. No attempt is made to indicate the required buffer size, because this can change
+///    before the next call. | | **ERROR_SUCCESS** | Return this value in all cases other than the **ERROR_MORE_DATA**
+///    case, even if no data is returned or an error occurs. To report errors other than insufficient buffer size, use
+///    the Application Event Log. |
+///    
+alias PM_COLLECT_PROC = uint function(PWSTR lpValueName, void** lppData, uint* lpcbTotalBytes, 
+                                      uint* lpNumObjectTypes);
+///Performs the cleanup required by your performance DLL. Implement and export this function if you are writing a
+///performance DLL to provide performance data. The system calls this function whenever a consumer closes the registry
+///key used to collect performance data. The <b>ClosePerformanceData</b> function is a placeholder for the
+///application-defined function name.
+///Params:
+///    Arg1 = 
+///Returns:
+///    This function should return ERROR_SUCCESS.
+///    
+alias PM_CLOSE_PROC = uint function();
 ///Providers can implement this function to receive notification when consumers perform certain actions, such as adding
 ///or removing counters from a query. PERFLIB calls the callback before the consumer's request completes. The
 ///<b>PERFLIBREQUEST</b> type defines a pointer to this callback function. The <b>ControlCallback</b> function is a
@@ -144,55 +186,206 @@ alias PERF_MEM_FREE = void function(void* pBuffer, void* pContext);
 ///    code is passed back to the caller of PdhBrowseCounters.
 ///    
 alias CounterPathCallBack = int function(size_t param0);
-///Collects the performance data and returns it to the consumer. Implement and export this function if you are writing a
-///performance DLL to provide performance data. The system calls this function whenever a consumer queries the registry
-///for performance data. The **CollectPerformanceData** function is a placeholder for the application-defined function
-///name.
-///Params:
-///    lpValueName = Type: **LPWSTR** Null-terminated string that contains the query string (for example, "Global" or "238") passed to
-///                  the [RegQueryValueEx](/windows/desktop/api/winreg/nf-winreg-regqueryvalueexa) function. For a list of possible
-///                  values for *lpValueName*, see [Using the Registry Functions to Consume Counter
-///                  Data](/windows/desktop/PerfCtrs/using-the-registry-functions-to-consume-counter-data). > [!NOTE] > This parameter
-///                  is annotated as optional (nullable), however a null value is not valid and can result in an error.
-///    lppData = Type: **LPVOID \*** Consumer-allocated buffer that contains the performance data. On output (where *pData* refers
-///              to the pointer pointed to by *lppData*), set *pData* to one byte past the end of your data. Note that the data
-///              must conform to the [PERF_OBJECT_TYPE](ns-winperf-perf_object_type.md) structure. If this function fails, leave
-///              the *pData* pointer value unchanged.
-///    lpcbTotalBytes = Type: **LPDWORD** On input, specifies the size, in bytes, of the *pData* buffer (where *pData* refers to the
-///                     pointer pointed to by *lppData*). On output, set *lpcbTotalBytes* to the size, in bytes, of the data written to
-///                     the *pData* buffer. The size must be 8-byte aligned. If this function fails, set *lpcbTotalBytes* to zero.
-///    lpNumObjectTypes = Type: **LPDWORD** Set *lpNumObjectTypes* to the number of object [types](ns-winperf-perf_object_type.md) (not
-///                       [instances](ns-winperf-perf_instance_definition.md)) written to the *pData* buffer (where *pData* refers to the
-///                       pointer pointed to by *lppData*). If this function fails, set *lpNumObjectTypes* to zero. > [!NOTE] > This
-///                       parameter is annotated as both *In* and *Out*, however this parameter should not be used as input.
-///Returns:
-///    One of the following values: | Return code | Description | |-------------|-------------| | **ERROR_MORE_DATA** |
-///    The size of the *pData* buffer (where *pData* refers to the pointer pointed to by *lppData*) as specified by
-///    *lpcbTotalBytes* is not large enough to store the data. Leave *pData* unchanged, and set *lpcbTotalBytes* and
-///    *lpNumObjectTypes* to zero. No attempt is made to indicate the required buffer size, because this can change
-///    before the next call. | | **ERROR_SUCCESS** | Return this value in all cases other than the **ERROR_MORE_DATA**
-///    case, even if no data is returned or an error occurs. To report errors other than insufficient buffer size, use
-///    the Application Event Log. |
-///    
-alias PM_COLLECT_PROC = uint function(const(wchar)* lpValueName, void** lppData, uint* lpcbTotalBytes, 
-                                      uint* lpNumObjectTypes);
-///Performs the cleanup required by your performance DLL. Implement and export this function if you are writing a
-///performance DLL to provide performance data. The system calls this function whenever a consumer closes the registry
-///key used to collect performance data. The <b>ClosePerformanceData</b> function is a placeholder for the
-///application-defined function name.
-///Params:
-///    Arg1 = 
-///Returns:
-///    This function should return ERROR_SUCCESS.
-///    
-alias PM_CLOSE_PROC = uint function();
 
 // Structs
 
 
-alias PerfProviderHandle = ptrdiff_t;
+///Describes the performance data block that you queried, for example, the number of performance objects returned by the
+///provider and the time-based values that you use when calculating performance values.
+struct PERF_DATA_BLOCK
+{
+    ///Array of four wide-characters that contains "PERF".
+    ushort[4]     Signature;
+    ///Indicates if the counter values are in big endian format or little endian format. If one, the counter values are
+    ///in little endian format. If zero, the counter values are in big endian format. This value may be zero (big endian
+    ///format) if you retrieve performance data from a foreign computer, such as a UNIX computer.
+    uint          LittleEndian;
+    ///Version of the performance structures.
+    uint          Version;
+    ///Revision of the performance structures.
+    uint          Revision;
+    ///Total size of the performance data block, in bytes.
+    uint          TotalByteLength;
+    ///Size of this structure, in bytes. You use the header length to find the first PERF_OBJECT_TYPE structure in the
+    ///performance data block.
+    uint          HeaderLength;
+    ///Number of performance objects in the performance data block.
+    uint          NumObjectTypes;
+    ///Reserved.
+    int           DefaultObject;
+    ///Time when the system was monitored. This member is in Coordinated Universal Time (UTC) format.
+    SYSTEMTIME    SystemTime;
+    ///Performance-counter value, in counts, for the system being monitored. For more information, see
+    ///QueryPerformanceCounter.
+    LARGE_INTEGER PerfTime;
+    ///Performance-counter frequency, in counts per second, for the system being monitored. For more information, see
+    ///QueryPerformanceFrequency.
+    LARGE_INTEGER PerfFreq;
+    ///Performance-counter value, in 100 nanosecond units, for the system being monitored. For more information, see
+    ///GetSystemTimeAsFileTime.
+    LARGE_INTEGER PerfTime100nSec;
+    ///Size of the computer name located at <b>SystemNameOffset</b>, in bytes.
+    uint          SystemNameLength;
+    ///Offset from the beginning of this structure to the Unicode name of the computer being monitored.
+    uint          SystemNameOffset;
+}
 
-alias PerfQueryHandle = ptrdiff_t;
+///Describes object-specific performance information, for example, the number of instances of the object and the number
+///of counters that the object defines.
+struct PERF_OBJECT_TYPE
+{
+    ///Size of the object-specific data, in bytes. This member is the offset from the beginning of this structure to the
+    ///next <b>PERF_OBJECT_TYPE</b> structure, if one exists.
+    uint          TotalByteLength;
+    ///Size of this structure plus the size of all the PERF_COUNTER_DEFINITION structures. If the object is a multiple
+    ///instance object (the <b>NumInstances</b> member is not zero), this member is the offset from the beginning of
+    ///this structure to the first PERF_INSTANCE_DEFINITION structure. Otherwise, this value is the offset to the
+    ///PERF_COUNTER_BLOCK.
+    uint          DefinitionLength;
+    ///Size of this structure, in bytes. This member is the offset from the beginning of this structure to the first
+    ///PERF_COUNTER_DEFINITION structure.
+    uint          HeaderLength;
+    ///Index to the object's name in the title database. For details on using the index to retrieve the object's name,
+    ///see Retrieving Counter Names and Help Text. Providers specify the index value in their initialization file. For
+    ///details, see Adding Counter Names and Descriptions to the Registry.
+    uint          ObjectNameTitleIndex;
+    ///Reserved.
+    PWSTR         ObjectNameTitle;
+    ///Index to the object's help text in the title database. For details on using the index to retrieve the object's
+    ///help text, see Retrieving Counter Names and Help Text. Providers specify the index value in their initialization
+    ///file. For details, see Adding Counter Names and Descriptions to the Registry.
+    uint          ObjectHelpTitleIndex;
+    ///Reserved.
+    PWSTR         ObjectHelpTitle;
+    ///Level of detail. Consumers use this value to control display complexity. This value is the minimum detail level
+    ///of all the counters for a given object. This member can be one of the following values. <table> <tr> <th>Detail
+    ///level</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="PERF_DETAIL_NOVICE"></a><a
+    ///id="perf_detail_novice"></a><dl> <dt><b>PERF_DETAIL_NOVICE</b></dt> </dl> </td> <td width="60%"> The counter data
+    ///is provided for all users. </td> </tr> <tr> <td width="40%"><a id="PERF_DETAIL_ADVANCED"></a><a
+    ///id="perf_detail_advanced"></a><dl> <dt><b>PERF_DETAIL_ADVANCED</b></dt> </dl> </td> <td width="60%"> The counter
+    ///data is provided for advanced users. </td> </tr> <tr> <td width="40%"><a id="PERF_DETAIL_EXPERT"></a><a
+    ///id="perf_detail_expert"></a><dl> <dt><b>PERF_DETAIL_EXPERT</b></dt> </dl> </td> <td width="60%"> The counter data
+    ///is provided for expert users. </td> </tr> <tr> <td width="40%"><a id="PERF_DETAIL_WIZARD"></a><a
+    ///id="perf_detail_wizard"></a><dl> <dt><b>PERF_DETAIL_WIZARD</b></dt> </dl> </td> <td width="60%"> The counter data
+    ///is provided for system designers. </td> </tr> </table>
+    uint          DetailLevel;
+    ///Number of PERF_COUNTER_DEFINITION blocks returned by the object.
+    uint          NumCounters;
+    ///Index to the counter's name in the title database of the default counter whose information is to be displayed
+    ///when this object is selected in the Performance tool. This member may be –1 to indicate that there is no
+    ///default.
+    int           DefaultCounter;
+    ///Number of object instances for which counters are being provided. If the object can have zero or more instances,
+    ///but has none at present, this value should be zero. If the object cannot have multiple instances, this value
+    ///should be PERF_NO_INSTANCES.
+    int           NumInstances;
+    ///This member is zero if the instance strings are Unicode strings. Otherwise, this member is the code-page
+    ///identifier of the instance names. You can use the code-page value when calling MultiByteToWideChar to convert the
+    ///string to Unicode.
+    uint          CodePage;
+    ///Provider generated timestamp that consumers use when calculating counter values. For example, this could be the
+    ///current value, in counts, of the high-resolution performance counter. Providers need to provide this value if the
+    ///counter types of their counters include the <b>PERF_OBJECT_TIMER</b> flag. Otherwise, consumers use the
+    ///<b>PerfTime</b> value from PERF_DATA_BLOCK.
+    LARGE_INTEGER PerfTime;
+    ///Provider generated frequency value that consumers use when calculating counter values. For example, this could be
+    ///the current frequency, in counts per second, of the high-resolution performance counter. Providers need to
+    ///provide this value if the counter types of their counters include the <b>PERF_OBJECT_TIMER</b> flag. Otherwise,
+    ///consumers use the <b>PerfFreq</b> value from PERF_DATA_BLOCK.
+    LARGE_INTEGER PerfFreq;
+}
+
+///Describes a performance counter.
+struct PERF_COUNTER_DEFINITION
+{
+    ///Size of this structure, in bytes.
+    uint  ByteLength;
+    ///Index of the counter's name in the title database. For details on using the index to retrieve the counter's name,
+    ///see Retrieving Counter Names and Help Text. To set this value, providers add the counter's offset value defined
+    ///in their symbol file to the <b>First Counter</b> registry value. For details, see Adding Counter Names and
+    ///Descriptions to the Registry and Implementing the OpenPerformanceData function. This value should be zero if the
+    ///counter is a base counter (<b>CounterType</b> includes the PERF_COUNTER_BASE flag).
+    uint  CounterNameTitleIndex;
+    ///Reserved.
+    PWSTR CounterNameTitle;
+    ///Index to the counter's help text in the title database. For details on using the index to retrieve the counter's
+    ///help text, see Retrieving Counter Names and Help Text. To set this value, providers add the counter's offset
+    ///value defined in their symbol file to the <b>First Help</b> registry value. For details, see Adding Counter Names
+    ///and Descriptions to the Registry and Implementing the OpenPerformanceData function. This value should be zero if
+    ///the counter is a base counter (<b>CounterType</b> includes the PERF_COUNTER_BASE flag).
+    uint  CounterHelpTitleIndex;
+    ///Reserved.
+    PWSTR CounterHelpTitle;
+    ///Scale factor to use when graphing the counter value. Valid values range from -7 to 7 (the values correspond to
+    ///0.0000001 - 10000000). If this value is zero, the scale value is 1; if this value is 1, the scale value is 10; if
+    ///this value is –1, the scale value is .10; and so on.
+    int   DefaultScale;
+    ///Level of detail for the counter. Consumers use this value to control display complexity. This member can be one
+    ///of the following values. <table> <tr> <th>Detail level</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
+    ///id="PERF_DETAIL_NOVICE"></a><a id="perf_detail_novice"></a><dl> <dt><b>PERF_DETAIL_NOVICE</b></dt> </dl> </td>
+    ///<td width="60%"> The counter data is provided for all users. </td> </tr> <tr> <td width="40%"><a
+    ///id="PERF_DETAIL_ADVANCED"></a><a id="perf_detail_advanced"></a><dl> <dt><b>PERF_DETAIL_ADVANCED</b></dt> </dl>
+    ///</td> <td width="60%"> The counter data is provided for advanced users. </td> </tr> <tr> <td width="40%"><a
+    ///id="PERF_DETAIL_EXPERT"></a><a id="perf_detail_expert"></a><dl> <dt><b>PERF_DETAIL_EXPERT</b></dt> </dl> </td>
+    ///<td width="60%"> The counter data is provided for expert users. </td> </tr> <tr> <td width="40%"><a
+    ///id="PERF_DETAIL_WIZARD"></a><a id="perf_detail_wizard"></a><dl> <dt><b>PERF_DETAIL_WIZARD</b></dt> </dl> </td>
+    ///<td width="60%"> The counter data is provided for system designers. </td> </tr> </table>
+    uint  DetailLevel;
+    ///Type of counter. For a list of predefined counter types, see the Counter Types section of the Windows Server 2003
+    ///Deployment Kit. Consumers use the counter type to determine how to calculate and display the counter value.
+    ///Providers should limit their choice of counter types to the predefined list.
+    uint  CounterType;
+    ///Counter size, in bytes. Currently, only DWORDs (4 bytes) and ULONGLONGs (8 bytes) are used to provide counter
+    ///values.
+    uint  CounterSize;
+    ///Offset from the start of the PERF_COUNTER_BLOCK structure to the first byte of this counter. The location of the
+    ///<b>PERF_COUNTER_BLOCK</b> structure within the PERF_OBJECT_TYPE block depends on if the object contains
+    ///instances. For details, see Performance Data Format. Note that multiple counters can use the same raw data and
+    ///point to the same offset in the PERF_COUNTER_BLOCK block.
+    uint  CounterOffset;
+}
+
+///Describes an instance of a performance object.
+struct PERF_INSTANCE_DEFINITION
+{
+    ///Size of this structure, including the instance name that follows, in bytes. This value must be an 8-byte
+    ///multiple.
+    uint ByteLength;
+    ///Index of the name of the parent object in the title database. For example, if the object is a thread, the parent
+    ///object is a process, or if the object is a logical drive, the parent is a physical drive.
+    uint ParentObjectTitleIndex;
+    ///Position of the instance within the parent object that is associated with this instance. The position is
+    ///zero-based.
+    uint ParentObjectInstance;
+    ///A unique identifier that you can use to identify the instance instead of using the name to identify the instance.
+    ///If you do not use unique identifiers to distinguish the counter instances, set this member to PERF_NO_UNIQUE_ID.
+    int  UniqueID;
+    ///Offset from the beginning of this structure to the Unicode name of this instance.
+    uint NameOffset;
+    ///Length of the instance name, including the null-terminator, in bytes. This member is zero if the instance does
+    ///not have a name. Do not include in the length any padding that you added to the instance name to ensure that
+    ///<b>ByteLength</b> is aligned to an 8-byte boundary.
+    uint NameLength;
+}
+
+///Describes the block of memory that contains the raw performance counter data for an object's counters.
+struct PERF_COUNTER_BLOCK
+{
+    ///Size of this structure and the raw counter data that follows, in bytes.
+    uint ByteLength;
+}
+
+@RAIIFree!PerfStopProvider
+struct PerfProviderHandle
+{
+    ptrdiff_t Value;
+}
+
+@RAIIFree!PerfCloseQueryHandle
+struct PerfQueryHandle
+{
+    ptrdiff_t Value;
+}
 
 ///Defines information about a counter set that a provider uses. The CTRPP tool automatically generates this structure
 ///based on the schema you specify.
@@ -663,7 +856,7 @@ struct PDH_RAW_COUNTER_ITEM_A
 {
     ///Pointer to a null-terminated string that specifies the instance name of the counter. The string is appended to
     ///the end of this structure.
-    const(char)*    szName;
+    PSTR            szName;
     ///A PDH_RAW_COUNTER structure that contains the raw counter value of the instance.
     PDH_RAW_COUNTER RawValue;
 }
@@ -673,7 +866,7 @@ struct PDH_RAW_COUNTER_ITEM_W
 {
     ///Pointer to a null-terminated string that specifies the instance name of the counter. The string is appended to
     ///the end of this structure.
-    const(wchar)*   szName;
+    PWSTR           szName;
     ///A PDH_RAW_COUNTER structure that contains the raw counter value of the instance.
     PDH_RAW_COUNTER RawValue;
 }
@@ -684,13 +877,13 @@ struct PDH_FMT_COUNTERVALUE
     ///Counter status that indicates if the counter value is valid. Check this member before using the data in a
     ///calculation or displaying its value. For a list of possible values, see Checking PDH Interface Return Values.
     uint CStatus;
-    union
+union
     {
-        int           longValue;
-        double        doubleValue;
-        long          largeValue;
-        const(char)*  AnsiStringValue;
-        const(wchar)* WideStringValue;
+        int          longValue;
+        double       doubleValue;
+        long         largeValue;
+        const(PSTR)  AnsiStringValue;
+        const(PWSTR) WideStringValue;
     }
 }
 
@@ -699,7 +892,7 @@ struct PDH_FMT_COUNTERVALUE_ITEM_A
 {
     ///Pointer to a null-terminated string that specifies the instance name of the counter. The string is appended to
     ///the end of this structure.
-    const(char)*         szName;
+    PSTR                 szName;
     ///A PDH_FMT_COUNTERVALUE structure that contains the counter value of the instance.
     PDH_FMT_COUNTERVALUE FmtValue;
 }
@@ -709,7 +902,7 @@ struct PDH_FMT_COUNTERVALUE_ITEM_W
 {
     ///Pointer to a null-terminated string that specifies the instance name of the counter. The string is appended to
     ///the end of this structure.
-    const(wchar)*        szName;
+    PWSTR                szName;
     ///A PDH_FMT_COUNTERVALUE structure that contains the counter value of the instance.
     PDH_FMT_COUNTERVALUE FmtValue;
 }
@@ -734,60 +927,60 @@ struct PDH_STATISTICS
 struct PDH_COUNTER_PATH_ELEMENTS_A
 {
     ///Pointer to a null-terminated string that specifies the computer name.
-    const(char)* szMachineName;
+    PSTR szMachineName;
     ///Pointer to a null-terminated string that specifies the object name.
-    const(char)* szObjectName;
+    PSTR szObjectName;
     ///Pointer to a null-terminated string that specifies the instance name. Can contain a wildcard character.
-    const(char)* szInstanceName;
+    PSTR szInstanceName;
     ///Pointer to a null-terminated string that specifies the parent instance name. Can contain a wildcard character.
-    const(char)* szParentInstance;
+    PSTR szParentInstance;
     ///Index used to uniquely identify duplicate instance names.
-    uint         dwInstanceIndex;
+    uint dwInstanceIndex;
     ///Pointer to a null-terminated string that specifies the counter name.
-    const(char)* szCounterName;
+    PSTR szCounterName;
 }
 
 ///The <b>PDH_COUNTER_PATH_ELEMENTS</b> structure contains the components of a counter path.
 struct PDH_COUNTER_PATH_ELEMENTS_W
 {
     ///Pointer to a null-terminated string that specifies the computer name.
-    const(wchar)* szMachineName;
+    PWSTR szMachineName;
     ///Pointer to a null-terminated string that specifies the object name.
-    const(wchar)* szObjectName;
+    PWSTR szObjectName;
     ///Pointer to a null-terminated string that specifies the instance name. Can contain a wildcard character.
-    const(wchar)* szInstanceName;
+    PWSTR szInstanceName;
     ///Pointer to a null-terminated string that specifies the parent instance name. Can contain a wildcard character.
-    const(wchar)* szParentInstance;
+    PWSTR szParentInstance;
     ///Index used to uniquely identify duplicate instance names.
-    uint          dwInstanceIndex;
+    uint  dwInstanceIndex;
     ///Pointer to a null-terminated string that specifies the counter name.
-    const(wchar)* szCounterName;
+    PWSTR szCounterName;
 }
 
 ///The <b>PDH_DATA_ITEM_PATH_ELEMENTS</b> structure contains the path elements of a specific data item.
 struct PDH_DATA_ITEM_PATH_ELEMENTS_A
 {
     ///Pointer to a null-terminated string that specifies the name of the computer where the data item resides.
-    const(char)* szMachineName;
+    PSTR szMachineName;
     ///GUID of the object where the data item resides.
-    GUID         ObjectGUID;
+    GUID ObjectGUID;
     ///Identifier of the data item.
-    uint         dwItemId;
+    uint dwItemId;
     ///Pointer to a null-terminated string that specifies the name of the data item instance.
-    const(char)* szInstanceName;
+    PSTR szInstanceName;
 }
 
 ///The <b>PDH_DATA_ITEM_PATH_ELEMENTS</b> structure contains the path elements of a specific data item.
 struct PDH_DATA_ITEM_PATH_ELEMENTS_W
 {
     ///Pointer to a null-terminated string that specifies the name of the computer where the data item resides.
-    const(wchar)* szMachineName;
+    PWSTR szMachineName;
     ///GUID of the object where the data item resides.
-    GUID          ObjectGUID;
+    GUID  ObjectGUID;
     ///Identifier of the data item.
-    uint          dwItemId;
+    uint  dwItemId;
     ///Pointer to a null-terminated string that specifies the name of the data item instance.
-    const(wchar)* szInstanceName;
+    PWSTR szInstanceName;
 }
 
 ///The <b>PDH_COUNTER_INFO</b> structure contains information describing the properties of a counter. This information
@@ -795,46 +988,46 @@ struct PDH_DATA_ITEM_PATH_ELEMENTS_W
 struct PDH_COUNTER_INFO_A
 {
     ///Size of the structure, including the appended strings, in bytes.
-    uint         dwLength;
+    uint    dwLength;
     ///Counter type. For a list of counter types, see the Counter Types section of the Windows Server 2003 Deployment
     ///Kit. The counter type constants are defined in Winperf.h.
-    uint         dwType;
+    uint    dwType;
     ///Counter version information. Not used.
-    uint         CVersion;
+    uint    CVersion;
     ///Counter status that indicates if the counter value is valid. For a list of possible values, see Checking PDH
     ///Interface Return Values.
-    uint         CStatus;
+    uint    CStatus;
     ///Scale factor to use when computing the displayable value of the counter. The scale factor is a power of ten. The
     ///valid range of this parameter is PDH_MIN_SCALE (–7) (the returned value is the actual value times
     ///10<sup>–</sup>⁷) to PDH_MAX_SCALE (+7) (the returned value is the actual value times 10⁺⁷). A value of
     ///zero will set the scale to one, so that the actual value is returned
-    int          lScale;
+    int     lScale;
     ///Default scale factor as suggested by the counter's provider.
-    int          lDefaultScale;
+    int     lDefaultScale;
     ///The value passed in the <i>dwUserData</i> parameter when calling PdhAddCounter.
-    size_t       dwUserData;
+    size_t  dwUserData;
     ///The value passed in the <i>dwUserData</i> parameter when calling PdhOpenQuery.
-    size_t       dwQueryUserData;
+    size_t  dwQueryUserData;
     ///<b>Null</b>-terminated string that specifies the full counter path. The string follows this structure in memory.
-    const(char)* szFullPath;
-    union
+    PSTR    szFullPath;
+union
     {
         PDH_DATA_ITEM_PATH_ELEMENTS_A DataItemPath;
         PDH_COUNTER_PATH_ELEMENTS_A CounterPath;
-        struct
+struct
         {
-            const(char)* szMachineName;
-            const(char)* szObjectName;
-            const(char)* szInstanceName;
-            const(char)* szParentInstance;
-            uint         dwInstanceIndex;
-            const(char)* szCounterName;
+            PSTR szMachineName;
+            PSTR szObjectName;
+            PSTR szInstanceName;
+            PSTR szParentInstance;
+            uint dwInstanceIndex;
+            PSTR szCounterName;
         }
     }
     ///Help text that describes the counter. Is <b>NULL</b> if the source is a log file.
-    const(char)* szExplainText;
+    PSTR    szExplainText;
     ///Start of the string data that is appended to the structure.
-    uint[1]      DataBuffer;
+    uint[1] DataBuffer;
 }
 
 ///The <b>PDH_COUNTER_INFO</b> structure contains information describing the properties of a counter. This information
@@ -842,46 +1035,46 @@ struct PDH_COUNTER_INFO_A
 struct PDH_COUNTER_INFO_W
 {
     ///Size of the structure, including the appended strings, in bytes.
-    uint          dwLength;
+    uint    dwLength;
     ///Counter type. For a list of counter types, see the Counter Types section of the Windows Server 2003 Deployment
     ///Kit. The counter type constants are defined in Winperf.h.
-    uint          dwType;
+    uint    dwType;
     ///Counter version information. Not used.
-    uint          CVersion;
+    uint    CVersion;
     ///Counter status that indicates if the counter value is valid. For a list of possible values, see Checking PDH
     ///Interface Return Values.
-    uint          CStatus;
+    uint    CStatus;
     ///Scale factor to use when computing the displayable value of the counter. The scale factor is a power of ten. The
     ///valid range of this parameter is PDH_MIN_SCALE (–7) (the returned value is the actual value times
     ///10<sup>–</sup>⁷) to PDH_MAX_SCALE (+7) (the returned value is the actual value times 10⁺⁷). A value of
     ///zero will set the scale to one, so that the actual value is returned
-    int           lScale;
+    int     lScale;
     ///Default scale factor as suggested by the counter's provider.
-    int           lDefaultScale;
+    int     lDefaultScale;
     ///The value passed in the <i>dwUserData</i> parameter when calling PdhAddCounter.
-    size_t        dwUserData;
+    size_t  dwUserData;
     ///The value passed in the <i>dwUserData</i> parameter when calling PdhOpenQuery.
-    size_t        dwQueryUserData;
+    size_t  dwQueryUserData;
     ///<b>Null</b>-terminated string that specifies the full counter path. The string follows this structure in memory.
-    const(wchar)* szFullPath;
-    union
+    PWSTR   szFullPath;
+union
     {
         PDH_DATA_ITEM_PATH_ELEMENTS_W DataItemPath;
         PDH_COUNTER_PATH_ELEMENTS_W CounterPath;
-        struct
+struct
         {
-            const(wchar)* szMachineName;
-            const(wchar)* szObjectName;
-            const(wchar)* szInstanceName;
-            const(wchar)* szParentInstance;
-            uint          dwInstanceIndex;
-            const(wchar)* szCounterName;
+            PWSTR szMachineName;
+            PWSTR szObjectName;
+            PWSTR szInstanceName;
+            PWSTR szParentInstance;
+            uint  dwInstanceIndex;
+            PWSTR szCounterName;
         }
     }
     ///Help text that describes the counter. Is <b>NULL</b> if the source is a log file.
-    const(wchar)* szExplainText;
+    PWSTR   szExplainText;
     ///Start of the string data that is appended to the structure.
-    uint[1]       DataBuffer;
+    uint[1] DataBuffer;
 }
 
 ///The <b>PDH_TIME_INFO</b> structure contains information on time intervals as applied to the sampling of performance
@@ -922,78 +1115,78 @@ struct PDH_RAW_LOG_RECORD
 
 struct PDH_LOG_SERVICE_QUERY_INFO_A
 {
-    uint         dwSize;
-    uint         dwFlags;
-    uint         dwLogQuota;
-    const(char)* szLogFileCaption;
-    const(char)* szDefaultDir;
-    const(char)* szBaseFileName;
-    uint         dwFileType;
-    uint         dwReserved;
-    union
+    uint dwSize;
+    uint dwFlags;
+    uint dwLogQuota;
+    PSTR szLogFileCaption;
+    PSTR szDefaultDir;
+    PSTR szBaseFileName;
+    uint dwFileType;
+    uint dwReserved;
+union
     {
-        struct
+struct
         {
-            uint         PdlAutoNameInterval;
-            uint         PdlAutoNameUnits;
-            const(char)* PdlCommandFilename;
-            const(char)* PdlCounterList;
-            uint         PdlAutoNameFormat;
-            uint         PdlSampleInterval;
-            FILETIME     PdlLogStartTime;
-            FILETIME     PdlLogEndTime;
+            uint     PdlAutoNameInterval;
+            uint     PdlAutoNameUnits;
+            PSTR     PdlCommandFilename;
+            PSTR     PdlCounterList;
+            uint     PdlAutoNameFormat;
+            uint     PdlSampleInterval;
+            FILETIME PdlLogStartTime;
+            FILETIME PdlLogEndTime;
         }
-        struct
+struct
         {
-            uint         TlNumberOfBuffers;
-            uint         TlMinimumBuffers;
-            uint         TlMaximumBuffers;
-            uint         TlFreeBuffers;
-            uint         TlBufferSize;
-            uint         TlEventsLost;
-            uint         TlLoggerThreadId;
-            uint         TlBuffersWritten;
-            uint         TlLogHandle;
-            const(char)* TlLogFileName;
+            uint TlNumberOfBuffers;
+            uint TlMinimumBuffers;
+            uint TlMaximumBuffers;
+            uint TlFreeBuffers;
+            uint TlBufferSize;
+            uint TlEventsLost;
+            uint TlLoggerThreadId;
+            uint TlBuffersWritten;
+            uint TlLogHandle;
+            PSTR TlLogFileName;
         }
     }
 }
 
 struct PDH_LOG_SERVICE_QUERY_INFO_W
 {
-    uint          dwSize;
-    uint          dwFlags;
-    uint          dwLogQuota;
-    const(wchar)* szLogFileCaption;
-    const(wchar)* szDefaultDir;
-    const(wchar)* szBaseFileName;
-    uint          dwFileType;
-    uint          dwReserved;
-    union
+    uint  dwSize;
+    uint  dwFlags;
+    uint  dwLogQuota;
+    PWSTR szLogFileCaption;
+    PWSTR szDefaultDir;
+    PWSTR szBaseFileName;
+    uint  dwFileType;
+    uint  dwReserved;
+union
     {
-        struct
+struct
         {
-            uint          PdlAutoNameInterval;
-            uint          PdlAutoNameUnits;
-            const(wchar)* PdlCommandFilename;
-            const(wchar)* PdlCounterList;
-            uint          PdlAutoNameFormat;
-            uint          PdlSampleInterval;
-            FILETIME      PdlLogStartTime;
-            FILETIME      PdlLogEndTime;
+            uint     PdlAutoNameInterval;
+            uint     PdlAutoNameUnits;
+            PWSTR    PdlCommandFilename;
+            PWSTR    PdlCounterList;
+            uint     PdlAutoNameFormat;
+            uint     PdlSampleInterval;
+            FILETIME PdlLogStartTime;
+            FILETIME PdlLogEndTime;
         }
-        struct
+struct
         {
-            uint          TlNumberOfBuffers;
-            uint          TlMinimumBuffers;
-            uint          TlMaximumBuffers;
-            uint          TlFreeBuffers;
-            uint          TlBufferSize;
-            uint          TlEventsLost;
-            uint          TlLoggerThreadId;
-            uint          TlBuffersWritten;
-            uint          TlLogHandle;
-            const(wchar)* TlLogFileName;
+            uint  TlNumberOfBuffers;
+            uint  TlMinimumBuffers;
+            uint  TlMaximumBuffers;
+            uint  TlFreeBuffers;
+            uint  TlBufferSize;
+            uint  TlEventsLost;
+            uint  TlLoggerThreadId;
+            uint  TlBuffersWritten;
+            uint  TlLogHandle;
+            PWSTR TlLogFileName;
         }
     }
 }
@@ -1010,7 +1203,7 @@ struct PDH_BROWSE_DLG_CONFIG_HW
     ///Pointer to a MULTI_SZ that contains the selected counter paths. If <b>bInitializePath</b> is <b>TRUE</b>, you can
     ///use this member to specify a counter path whose components are used to highlight entries in computer, object,
     ///counter, and instance lists when the dialog is first displayed.
-    const(wchar)*       szReturnPathBuffer;
+    PWSTR               szReturnPathBuffer;
     ///Size of the <b>szReturnPathBuffer</b> buffer, in <b>TCHARs</b>. If the callback function reallocates a new
     ///buffer, it must also update this value.
     uint                cchReturnPathLength;
@@ -1042,7 +1235,7 @@ struct PDH_BROWSE_DLG_CONFIG_HW
     uint                dwDefaultDetailLevel;
     ///Pointer to a <b>null</b>-terminated string that specifies the optional caption to display in the caption bar of
     ///the dialog box. If this member is <b>NULL</b>, the caption will be <b>Browse Performance Counters</b>.
-    const(wchar)*       szDialogBoxCaption;
+    PWSTR               szDialogBoxCaption;
 }
 
 ///The <b>PDH_BROWSE_DLG_CONFIG_H</b> structure is used by the PdhBrowseCountersH function to configure the <b>Browse
@@ -1057,7 +1250,7 @@ struct PDH_BROWSE_DLG_CONFIG_HA
     ///Pointer to a MULTI_SZ that contains the selected counter paths. If <b>bInitializePath</b> is <b>TRUE</b>, you can
     ///use this member to specify a counter path whose components are used to highlight entries in computer, object,
     ///counter, and instance lists when the dialog is first displayed.
-    const(char)*        szReturnPathBuffer;
+    PSTR                szReturnPathBuffer;
     ///Size of the <b>szReturnPathBuffer</b> buffer, in <b>TCHARs</b>. If the callback function reallocates a new
     ///buffer, it must also update this value.
     uint                cchReturnPathLength;
@@ -1089,7 +1282,7 @@ struct PDH_BROWSE_DLG_CONFIG_HA
     uint                dwDefaultDetailLevel;
     ///Pointer to a <b>null</b>-terminated string that specifies the optional caption to display in the caption bar of
     ///the dialog box. If this member is <b>NULL</b>, the caption will be <b>Browse Performance Counters</b>.
-    const(char)*        szDialogBoxCaption;
+    PSTR                szDialogBoxCaption;
 }
 
 ///The <b>PDH_BROWSE_DLG_CONFIG</b> structure is used by the PdhBrowseCounters function to configure the <b>Browse
@@ -1102,11 +1295,11 @@ struct PDH_BROWSE_DLG_CONFIG_W
     ///Pointer to a <b>null</b>-terminated string that specifies the name of the log file from which the list of
     ///counters is retrieved. If <b>NULL</b>, the list of counters is retrieved from the local computer (or remote
     ///computer if specified).
-    const(wchar)*       szDataSource;
+    PWSTR               szDataSource;
     ///Pointer to a MULTI_SZ that contains the selected counter paths. If <b>bInitializePath</b> is <b>TRUE</b>, you can
     ///use this member to specify a counter path whose components are used to highlight entries in computer, object,
     ///counter, and instance lists when the dialog is first displayed.
-    const(wchar)*       szReturnPathBuffer;
+    PWSTR               szReturnPathBuffer;
     ///Size of the <b>szReturnPathBuffer</b> buffer, in <b>TCHARs</b>. If the callback function reallocates a new
     ///buffer, it must also update this value.
     uint                cchReturnPathLength;
@@ -1138,7 +1331,7 @@ struct PDH_BROWSE_DLG_CONFIG_W
     uint                dwDefaultDetailLevel;
     ///Pointer to a <b>null</b>-terminated string that specifies the optional caption to display in the caption bar of
     ///the dialog box. If this member is <b>NULL</b>, the caption will be <b>Browse Performance Counters</b>.
-    const(wchar)*       szDialogBoxCaption;
+    PWSTR               szDialogBoxCaption;
 }
 
 ///The <b>PDH_BROWSE_DLG_CONFIG</b> structure is used by the PdhBrowseCounters function to configure the <b>Browse
@@ -1151,11 +1344,11 @@ struct PDH_BROWSE_DLG_CONFIG_A
     ///Pointer to a <b>null</b>-terminated string that specifies the name of the log file from which the list of
     ///counters is retrieved. If <b>NULL</b>, the list of counters is retrieved from the local computer (or remote
     ///computer if specified).
-    const(char)*        szDataSource;
+    PSTR                szDataSource;
     ///Pointer to a MULTI_SZ that contains the selected counter paths. If <b>bInitializePath</b> is <b>TRUE</b>, you can
     ///use this member to specify a counter path whose components are used to highlight entries in computer, object,
     ///counter, and instance lists when the dialog is first displayed.
-    const(char)*        szReturnPathBuffer;
+    PSTR                szReturnPathBuffer;
     ///Size of the <b>szReturnPathBuffer</b> buffer, in <b>TCHARs</b>. If the callback function reallocates a new
     ///buffer, it must also update this value.
     uint                cchReturnPathLength;
@@ -1187,192 +1380,7 @@ struct PDH_BROWSE_DLG_CONFIG_A
     uint                dwDefaultDetailLevel;
     ///Pointer to a <b>null</b>-terminated string that specifies the optional caption to display in the caption bar of
     ///the dialog box. If this member is <b>NULL</b>, the caption will be <b>Browse Performance Counters</b>.
-    const(char)*        szDialogBoxCaption;
-}
-
-///Describes the performance data block that you queried, for example, the number of performance objects returned by the
-///provider and the time-based values that you use when calculating performance values.
-struct PERF_DATA_BLOCK
-{
-    ///Array of four wide-characters that contains "PERF".
-    ushort[4]     Signature;
-    ///Indicates if the counter values are in big endian format or little endian format. If one, the counter values are
-    ///in little endian format. If zero, the counter values are in big endian format. This value may be zero (big endian
-    ///format) if you retrieve performance data from a foreign computer, such as a UNIX computer.
-    uint          LittleEndian;
-    ///Version of the performance structures.
-    uint          Version;
-    ///Revision of the performance structures.
-    uint          Revision;
-    ///Total size of the performance data block, in bytes.
-    uint          TotalByteLength;
-    ///Size of this structure, in bytes. You use the header length to find the first PERF_OBJECT_TYPE structure in the
-    ///performance data block.
-    uint          HeaderLength;
-    ///Number of performance objects in the performance data block.
-    uint          NumObjectTypes;
-    ///Reserved.
-    int           DefaultObject;
-    ///Time when the system was monitored. This member is in Coordinated Universal Time (UTC) format.
-    SYSTEMTIME    SystemTime;
-    ///Performance-counter value, in counts, for the system being monitored. For more information, see
-    ///QueryPerformanceCounter.
-    LARGE_INTEGER PerfTime;
-    ///Performance-counter frequency, in counts per second, for the system being monitored. For more information, see
-    ///QueryPerformanceFrequency.
-    LARGE_INTEGER PerfFreq;
-    ///Performance-counter value, in 100 nanosecond units, for the system being monitored. For more information, see
-    ///GetSystemTimeAsFileTime.
-    LARGE_INTEGER PerfTime100nSec;
-    ///Size of the computer name located at <b>SystemNameOffset</b>, in bytes.
-    uint          SystemNameLength;
-    ///Offset from the beginning of this structure to the Unicode name of the computer being monitored.
-    uint          SystemNameOffset;
-}
-
-///Describes object-specific performance information, for example, the number of instances of the object and the number
-///of counters that the object defines.
-struct PERF_OBJECT_TYPE
-{
-    ///Size of the object-specific data, in bytes. This member is the offset from the beginning of this structure to the
-    ///next <b>PERF_OBJECT_TYPE</b> structure, if one exists.
-    uint          TotalByteLength;
-    ///Size of this structure plus the size of all the PERF_COUNTER_DEFINITION structures. If the object is a multiple
-    ///instance object (the <b>NumInstances</b> member is not zero), this member is the offset from the beginning of
-    ///this structure to the first PERF_INSTANCE_DEFINITION structure. Otherwise, this value is the offset to the
-    ///PERF_COUNTER_BLOCK.
-    uint          DefinitionLength;
-    ///Size of this structure, in bytes. This member is the offset from the beginning of this structure to the first
-    ///PERF_COUNTER_DEFINITION structure.
-    uint          HeaderLength;
-    ///Index to the object's name in the title database. For details on using the index to retrieve the object's name,
-    ///see Retrieving Counter Names and Help Text. Providers specify the index value in their initialization file. For
-    ///details, see Adding Counter Names and Descriptions to the Registry.
-    uint          ObjectNameTitleIndex;
-    ///Reserved.
-    const(wchar)* ObjectNameTitle;
-    ///Index to the object's help text in the title database. For details on using the index to retrieve the object's
-    ///help text, see Retrieving Counter Names and Help Text. Providers specify the index value in their initialization
-    ///file. For details, see Adding Counter Names and Descriptions to the Registry.
-    uint          ObjectHelpTitleIndex;
-    ///Reserved.
-    const(wchar)* ObjectHelpTitle;
-    ///Level of detail. Consumers use this value to control display complexity. This value is the minimum detail level
-    ///of all the counters for a given object. This member can be one of the following values. <table> <tr> <th>Detail
-    ///level</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="PERF_DETAIL_NOVICE"></a><a
-    ///id="perf_detail_novice"></a><dl> <dt><b>PERF_DETAIL_NOVICE</b></dt> </dl> </td> <td width="60%"> The counter data
-    ///is provided for all users. </td> </tr> <tr> <td width="40%"><a id="PERF_DETAIL_ADVANCED"></a><a
-    ///id="perf_detail_advanced"></a><dl> <dt><b>PERF_DETAIL_ADVANCED</b></dt> </dl> </td> <td width="60%"> The counter
-    ///data is provided for advanced users. </td> </tr> <tr> <td width="40%"><a id="PERF_DETAIL_EXPERT"></a><a
-    ///id="perf_detail_expert"></a><dl> <dt><b>PERF_DETAIL_EXPERT</b></dt> </dl> </td> <td width="60%"> The counter data
-    ///is provided for expert users. </td> </tr> <tr> <td width="40%"><a id="PERF_DETAIL_WIZARD"></a><a
-    ///id="perf_detail_wizard"></a><dl> <dt><b>PERF_DETAIL_WIZARD</b></dt> </dl> </td> <td width="60%"> The counter data
-    ///is provided for system designers. </td> </tr> </table>
-    uint          DetailLevel;
-    ///Number of PERF_COUNTER_DEFINITION blocks returned by the object.
-    uint          NumCounters;
-    ///Index to the counter's name in the title database of the default counter whose information is to be displayed
-    ///when this object is selected in the Performance tool. This member may be –1 to indicate that there is no
-    ///default.
-    int           DefaultCounter;
-    ///Number of object instances for which counters are being provided. If the object can have zero or more instances,
-    ///but has none at present, this value should be zero. If the object cannot have multiple instances, this value
-    ///should be PERF_NO_INSTANCES.
-    int           NumInstances;
-    ///This member is zero if the instance strings are Unicode strings. Otherwise, this member is the code-page
-    ///identifier of the instance names. You can use the code-page value when calling MultiByteToWideChar to convert the
-    ///string to Unicode.
-    uint          CodePage;
-    ///Provider generated timestamp that consumers use when calculating counter values. For example, this could be the
-    ///current value, in counts, of the high-resolution performance counter. Providers need to provide this value if the
-    ///counter types of their counters include the <b>PERF_OBJECT_TIMER</b> flag. Otherwise, consumers use the
-    ///<b>PerfTime</b> value from PERF_DATA_BLOCK.
-    LARGE_INTEGER PerfTime;
-    ///Provider generated frequency value that consumers use when calculating counter values. For example, this could be
-    ///the current frequency, in counts per second, of the high-resolution performance counter. Providers need to
-    ///provide this value if the counter types of their counters include the <b>PERF_OBJECT_TIMER</b> flag. Otherwise,
-    ///consumers use the <b>PerfFreq</b> value from PERF_DATA_BLOCK.
-    LARGE_INTEGER PerfFreq;
-}
-
-///Describes a performance counter.
-struct PERF_COUNTER_DEFINITION
-{
-    ///Size of this structure, in bytes.
-    uint          ByteLength;
-    ///Index of the counter's name in the title database. For details on using the index to retrieve the counter's name,
-    ///see Retrieving Counter Names and Help Text. To set this value, providers add the counter's offset value defined
-    ///in their symbol file to the <b>First Counter</b> registry value. For details, see Adding Counter Names and
-    ///Descriptions to the Registry and Implementing the OpenPerformanceData function. This value should be zero if the
-    ///counter is a base counter (<b>CounterType</b> includes the PERF_COUNTER_BASE flag).
-    uint          CounterNameTitleIndex;
-    ///Reserved.
-    const(wchar)* CounterNameTitle;
-    ///Index to the counter's help text in the title database. For details on using the index to retrieve the counter's
-    ///help text, see Retrieving Counter Names and Help Text. To set this value, providers add the counter's offset
-    ///value defined in their symbol file to the <b>First Help</b> registry value. For details, see Adding Counter Names
-    ///and Descriptions to the Registry and Implementing the OpenPerformanceData function. This value should be zero if
-    ///the counter is a base counter (<b>CounterType</b> includes the PERF_COUNTER_BASE flag).
-    uint          CounterHelpTitleIndex;
-    ///Reserved.
-    const(wchar)* CounterHelpTitle;
-    ///Scale factor to use when graphing the counter value. Valid values range from -7 to 7 (the values correspond to
-    ///0.0000001 - 10000000). If this value is zero, the scale value is 1; if this value is 1, the scale value is 10; if
-    ///this value is –1, the scale value is .10; and so on.
-    int           DefaultScale;
-    ///Level of detail for the counter. Consumers use this value to control display complexity. This member can be one
-    ///of the following values. <table> <tr> <th>Detail level</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
-    ///id="PERF_DETAIL_NOVICE"></a><a id="perf_detail_novice"></a><dl> <dt><b>PERF_DETAIL_NOVICE</b></dt> </dl> </td>
-    ///<td width="60%"> The counter data is provided for all users. </td> </tr> <tr> <td width="40%"><a
-    ///id="PERF_DETAIL_ADVANCED"></a><a id="perf_detail_advanced"></a><dl> <dt><b>PERF_DETAIL_ADVANCED</b></dt> </dl>
-    ///</td> <td width="60%"> The counter data is provided for advanced users. </td> </tr> <tr> <td width="40%"><a
-    ///id="PERF_DETAIL_EXPERT"></a><a id="perf_detail_expert"></a><dl> <dt><b>PERF_DETAIL_EXPERT</b></dt> </dl> </td>
-    ///<td width="60%"> The counter data is provided for expert users. </td> </tr> <tr> <td width="40%"><a
-    ///id="PERF_DETAIL_WIZARD"></a><a id="perf_detail_wizard"></a><dl> <dt><b>PERF_DETAIL_WIZARD</b></dt> </dl> </td>
-    ///<td width="60%"> The counter data is provided for system designers. </td> </tr> </table>
-    uint          DetailLevel;
-    ///Type of counter. For a list of predefined counter types, see the Counter Types section of the Windows Server 2003
-    ///Deployment Kit. Consumers use the counter type to determine how to calculate and display the counter value.
-    ///Providers should limit their choice of counter types to the predefined list.
-    uint          CounterType;
-    ///Counter size, in bytes. Currently, only DWORDs (4 bytes) and ULONGLONGs (8 bytes) are used to provide counter
-    ///values.
-    uint          CounterSize;
-    ///Offset from the start of the PERF_COUNTER_BLOCK structure to the first byte of this counter. The location of the
-    ///<b>PERF_COUNTER_BLOCK</b> structure within the PERF_OBJECT_TYPE block depends on if the object contains
-    ///instances. For details, see Performance Data Format. Note that multiple counters can use the same raw data and
-    ///point to the same offset in the PERF_COUNTER_BLOCK block.
-    uint          CounterOffset;
-}
-
-///Describes an instance of a performance object.
-struct PERF_INSTANCE_DEFINITION
-{
-    ///Size of this structure, including the instance name that follows, in bytes. This value must be an 8-byte
-    ///multiple.
-    uint ByteLength;
-    ///Index of the name of the parent object in the title database. For example, if the object is a thread, the parent
-    ///object is a process, or if the object is a logical drive, the parent is a physical drive.
-    uint ParentObjectTitleIndex;
-    ///Position of the instance within the parent object that is associated with this instance. The position is
-    ///zero-based.
-    uint ParentObjectInstance;
-    ///A unique identifier that you can use to identify the instance instead of using the name to identify the instance.
-    ///If you do not use unique identifiers to distinguish the counter instances, set this member to PERF_NO_UNIQUE_ID.
-    int  UniqueID;
-    ///Offset from the beginning of this structure to the Unicode name of this instance.
-    uint NameOffset;
-    ///Length of the instance name, including the null-terminator, in bytes. This member is zero if the instance does
-    ///not have a name. Do not include in the length any padding that you added to the instance name to ensure that
-    ///<b>ByteLength</b> is aligned to an 8-byte boundary.
-    uint NameLength;
-}
-
-///Describes the block of memory that contains the raw performance counter data for an object's counters.
-struct PERF_COUNTER_BLOCK
-{
-    ///Size of this structure and the raw counter data that follows, in bytes.
-    uint ByteLength;
+    PSTR                szDialogBoxCaption;
 }
 
 // Functions
@@ -1391,7 +1399,7 @@ struct PERF_COUNTER_BLOCK
 ///    error codes.
 ///    
 @DllImport("loadperf")
-uint LoadPerfCounterTextStringsA(const(char)* lpCommandLine, BOOL bQuietModeArg);
+uint LoadPerfCounterTextStringsA(PSTR lpCommandLine, BOOL bQuietModeArg);
 
 ///Loads onto the computer the performance objects and counters defined in the specified initialization file.
 ///Params:
@@ -1407,7 +1415,7 @@ uint LoadPerfCounterTextStringsA(const(char)* lpCommandLine, BOOL bQuietModeArg)
 ///    error codes.
 ///    
 @DllImport("loadperf")
-uint LoadPerfCounterTextStringsW(const(wchar)* lpCommandLine, BOOL bQuietModeArg);
+uint LoadPerfCounterTextStringsW(PWSTR lpCommandLine, BOOL bQuietModeArg);
 
 ///Unloads performance objects and counters from the computer for the specified application.
 ///Params:
@@ -1421,7 +1429,7 @@ uint LoadPerfCounterTextStringsW(const(wchar)* lpCommandLine, BOOL bQuietModeArg
 ///    the system error codes.
 ///    
 @DllImport("loadperf")
-uint UnloadPerfCounterTextStringsW(const(wchar)* lpCommandLine, BOOL bQuietModeArg);
+uint UnloadPerfCounterTextStringsW(PWSTR lpCommandLine, BOOL bQuietModeArg);
 
 ///Unloads performance objects and counters from the computer for the specified application.
 ///Params:
@@ -1435,27 +1443,27 @@ uint UnloadPerfCounterTextStringsW(const(wchar)* lpCommandLine, BOOL bQuietModeA
 ///    the system error codes.
 ///    
 @DllImport("loadperf")
-uint UnloadPerfCounterTextStringsA(const(char)* lpCommandLine, BOOL bQuietModeArg);
+uint UnloadPerfCounterTextStringsA(PSTR lpCommandLine, BOOL bQuietModeArg);
 
 @DllImport("loadperf")
-uint UpdatePerfNameFilesA(const(char)* szNewCtrFilePath, const(char)* szNewHlpFilePath, const(char)* szLanguageID, 
+uint UpdatePerfNameFilesA(const(PSTR) szNewCtrFilePath, const(PSTR) szNewHlpFilePath, PSTR szLanguageID, 
                           size_t dwFlags);
 
 @DllImport("loadperf")
-uint UpdatePerfNameFilesW(const(wchar)* szNewCtrFilePath, const(wchar)* szNewHlpFilePath, 
-                          const(wchar)* szLanguageID, size_t dwFlags);
+uint UpdatePerfNameFilesW(const(PWSTR) szNewCtrFilePath, const(PWSTR) szNewHlpFilePath, PWSTR szLanguageID, 
+                          size_t dwFlags);
 
 @DllImport("loadperf")
-uint SetServiceAsTrustedA(const(char)* szReserved, const(char)* szServiceName);
+uint SetServiceAsTrustedA(const(PSTR) szReserved, const(PSTR) szServiceName);
 
 @DllImport("loadperf")
-uint SetServiceAsTrustedW(const(wchar)* szReserved, const(wchar)* szServiceName);
+uint SetServiceAsTrustedW(const(PWSTR) szReserved, const(PWSTR) szServiceName);
 
 @DllImport("loadperf")
-uint BackupPerfRegistryToFileW(const(wchar)* szFileName, const(wchar)* szCommentString);
+uint BackupPerfRegistryToFileW(const(PWSTR) szFileName, const(PWSTR) szCommentString);
 
 @DllImport("loadperf")
-uint RestorePerfRegistryFromFileW(const(wchar)* szFileName, const(wchar)* szLangId);
+uint RestorePerfRegistryFromFileW(const(PWSTR) szFileName, const(PWSTR) szLangId);
 
 ///Registers the provider.
 ///Params:
@@ -1509,7 +1517,7 @@ uint PerfStopProvider(PerfProviderHandle ProviderHandle);
 ///    code.
 ///    
 @DllImport("ADVAPI32")
-uint PerfSetCounterSetInfo(HANDLE ProviderHandle, char* Template, uint TemplateSize);
+uint PerfSetCounterSetInfo(HANDLE ProviderHandle, PERF_COUNTERSET_INFO* Template, uint TemplateSize);
 
 ///Creates an instance of the specified counter set. Providers use this function.
 ///Params:
@@ -1531,7 +1539,7 @@ uint PerfSetCounterSetInfo(HANDLE ProviderHandle, char* Template, uint TemplateS
 ///    
 @DllImport("ADVAPI32")
 PERF_COUNTERSET_INSTANCE* PerfCreateInstance(PerfProviderHandle ProviderHandle, GUID* CounterSetGuid, 
-                                             const(wchar)* Name, uint Id);
+                                             const(PWSTR) Name, uint Id);
 
 ///Deletes an instance of the counter set created by the PerfCreateInstance function. Providers use this function.
 ///Params:
@@ -1563,7 +1571,7 @@ uint PerfDeleteInstance(PerfProviderHandle Provider, PERF_COUNTERSET_INSTANCE* I
 ///    GetLastError.
 ///    
 @DllImport("ADVAPI32")
-PERF_COUNTERSET_INSTANCE* PerfQueryInstance(HANDLE ProviderHandle, GUID* CounterSetGuid, const(wchar)* Name, 
+PERF_COUNTERSET_INSTANCE* PerfQueryInstance(HANDLE ProviderHandle, GUID* CounterSetGuid, const(PWSTR) Name, 
                                             uint Id);
 
 ///Updates the value of a counter whose value is a pointer to the actual data. Providers use this function.
@@ -1739,7 +1747,7 @@ uint PerfDecrementULongLongCounterValue(HANDLE Provider, PERF_COUNTERSET_INSTANC
 ///    function again. </td> </tr> </table> For other types of failures, the return value is a system error code.
 ///    
 @DllImport("ADVAPI32")
-uint PerfEnumerateCounterSet(const(wchar)* szMachine, char* pCounterSetIds, uint cCounterSetIds, 
+uint PerfEnumerateCounterSet(const(PWSTR) szMachine, GUID* pCounterSetIds, uint cCounterSetIds, 
                              uint* pcCounterSetIdsActual);
 
 ///Gets the names and identifiers of the active instances of a counter set on the specified system.
@@ -1772,8 +1780,8 @@ uint PerfEnumerateCounterSet(const(wchar)* szMachine, char* pCounterSetIds, uint
 ///    function again. </td> </tr> </table> For other types of failures, the return value is a system error code.
 ///    
 @DllImport("ADVAPI32")
-uint PerfEnumerateCounterSetInstances(const(wchar)* szMachine, GUID* pCounterSetId, char* pInstances, 
-                                      uint cbInstances, uint* pcbInstancesActual);
+uint PerfEnumerateCounterSetInstances(const(PWSTR) szMachine, GUID* pCounterSetId, 
+                                      PERF_INSTANCE_HEADER* pInstances, uint cbInstances, uint* pcbInstancesActual);
 
 ///Gets information about a counter set on the specified system.
 ///Params:
@@ -1811,8 +1819,9 @@ uint PerfEnumerateCounterSetInstances(const(wchar)* szMachine, GUID* pCounterSet
 ///    types of failures, the return value is a system error code.
 ///    
 @DllImport("ADVAPI32")
-uint PerfQueryCounterSetRegistrationInfo(const(wchar)* szMachine, GUID* pCounterSetId, PerfRegInfoType requestCode, 
-                                         uint requestLangId, char* pbRegInfo, uint cbRegInfo, uint* pcbRegInfoActual);
+uint PerfQueryCounterSetRegistrationInfo(const(PWSTR) szMachine, GUID* pCounterSetId, PerfRegInfoType requestCode, 
+                                         uint requestLangId, ubyte* pbRegInfo, uint cbRegInfo, 
+                                         uint* pcbRegInfoActual);
 
 ///Creates a handle that references a query on the specified system. A query is a list of counter specifications.
 ///Params:
@@ -1823,7 +1832,7 @@ uint PerfQueryCounterSetRegistrationInfo(const(wchar)* szMachine, GUID* pCounter
 ///    code.
 ///    
 @DllImport("ADVAPI32")
-uint PerfOpenQueryHandle(const(wchar)* szMachine, PerfQueryHandle* phQuery);
+uint PerfOpenQueryHandle(const(PWSTR) szMachine, PerfQueryHandle* phQuery);
 
 ///Closes a query handle that you opened by calling PerfOpenQueryHandle.
 ///Params:
@@ -1860,7 +1869,8 @@ uint PerfCloseQueryHandle(HANDLE hQuery);
 ///    </table> For other types of failures, the return value is a system error code.
 ///    
 @DllImport("ADVAPI32")
-uint PerfQueryCounterInfo(PerfQueryHandle hQuery, char* pCounters, uint cbCounters, uint* pcbCountersActual);
+uint PerfQueryCounterInfo(PerfQueryHandle hQuery, PERF_COUNTER_IDENTIFIER* pCounters, uint cbCounters, 
+                          uint* pcbCountersActual);
 
 ///Gets the values of the performance counters that match the counter specifications in the specified query.
 ///Params:
@@ -1888,7 +1898,7 @@ uint PerfQueryCounterInfo(PerfQueryHandle hQuery, char* pCounters, uint cbCounte
 ///    For other types of failures, the return value is a system error code.
 ///    
 @DllImport("ADVAPI32")
-uint PerfQueryCounterData(PerfQueryHandle hQuery, char* pCounterBlock, uint cbCounterBlock, 
+uint PerfQueryCounterData(PerfQueryHandle hQuery, PERF_DATA_HEADER* pCounterBlock, uint cbCounterBlock, 
                           uint* pcbCounterBlockActual);
 
 ///Adds performance counter specifications to the specified query.
@@ -1901,7 +1911,7 @@ uint PerfQueryCounterData(PerfQueryHandle hQuery, char* pCounterBlock, uint cbCo
 ///    code.
 ///    
 @DllImport("ADVAPI32")
-uint PerfAddCounters(PerfQueryHandle hQuery, char* pCounters, uint cbCounters);
+uint PerfAddCounters(PerfQueryHandle hQuery, PERF_COUNTER_IDENTIFIER* pCounters, uint cbCounters);
 
 ///Removes the specified performance counter specifications from the specified query.
 ///Params:
@@ -1913,7 +1923,7 @@ uint PerfAddCounters(PerfQueryHandle hQuery, char* pCounters, uint cbCounters);
 ///    code.
 ///    
 @DllImport("ADVAPI32")
-uint PerfDeleteCounters(PerfQueryHandle hQuery, char* pCounters, uint cbCounters);
+uint PerfDeleteCounters(PerfQueryHandle hQuery, PERF_COUNTER_IDENTIFIER* pCounters, uint cbCounters);
 
 ///Returns the version of the currently installed Pdh.dll file. <div class="alert"><b>Note</b> This function is obsolete
 ///and no longer supported.</div><div> </div>
@@ -1944,7 +1954,7 @@ int PdhGetDllVersion(uint* lpdwVersion);
 ///    code or a PDH error code.
 ///    
 @DllImport("pdh")
-int PdhOpenQueryW(const(wchar)* szDataSource, size_t dwUserData, ptrdiff_t* phQuery);
+int PdhOpenQueryW(const(PWSTR) szDataSource, size_t dwUserData, ptrdiff_t* phQuery);
 
 ///Creates a new query that is used to manage the collection of performance data. To use handles to data sources, use
 ///the PdhOpenQueryH function.
@@ -1959,7 +1969,7 @@ int PdhOpenQueryW(const(wchar)* szDataSource, size_t dwUserData, ptrdiff_t* phQu
 ///    code or a PDH error code.
 ///    
 @DllImport("pdh")
-int PdhOpenQueryA(const(char)* szDataSource, size_t dwUserData, ptrdiff_t* phQuery);
+int PdhOpenQueryA(const(PSTR) szDataSource, size_t dwUserData, ptrdiff_t* phQuery);
 
 ///Adds the specified counter to the query.
 ///Params:
@@ -1988,7 +1998,7 @@ int PdhOpenQueryA(const(char)* szDataSource, size_t dwUserData, ptrdiff_t* phQue
 ///    </dl> </td> <td width="60%"> Unable to allocate memory required to complete the function. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhAddCounterW(ptrdiff_t hQuery, const(wchar)* szFullCounterPath, size_t dwUserData, ptrdiff_t* phCounter);
+int PdhAddCounterW(ptrdiff_t hQuery, const(PWSTR) szFullCounterPath, size_t dwUserData, ptrdiff_t* phCounter);
 
 ///Adds the specified counter to the query.
 ///Params:
@@ -2017,7 +2027,7 @@ int PdhAddCounterW(ptrdiff_t hQuery, const(wchar)* szFullCounterPath, size_t dwU
 ///    </dl> </td> <td width="60%"> Unable to allocate memory required to complete the function. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhAddCounterA(ptrdiff_t hQuery, const(char)* szFullCounterPath, size_t dwUserData, ptrdiff_t* phCounter);
+int PdhAddCounterA(ptrdiff_t hQuery, const(PSTR) szFullCounterPath, size_t dwUserData, ptrdiff_t* phCounter);
 
 ///Adds the specified language-neutral counter to the query.
 ///Params:
@@ -2046,7 +2056,7 @@ int PdhAddCounterA(ptrdiff_t hQuery, const(char)* szFullCounterPath, size_t dwUs
 ///    </dl> </td> <td width="60%"> Unable to allocate memory required to complete the function. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhAddEnglishCounterW(ptrdiff_t hQuery, const(wchar)* szFullCounterPath, size_t dwUserData, 
+int PdhAddEnglishCounterW(ptrdiff_t hQuery, const(PWSTR) szFullCounterPath, size_t dwUserData, 
                           ptrdiff_t* phCounter);
 
 ///Adds the specified language-neutral counter to the query.
@@ -2076,8 +2086,7 @@ int PdhAddEnglishCounterW(ptrdiff_t hQuery, const(wchar)* szFullCounterPath, siz
 ///    </dl> </td> <td width="60%"> Unable to allocate memory required to complete the function. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhAddEnglishCounterA(ptrdiff_t hQuery, const(char)* szFullCounterPath, size_t dwUserData, 
-                          ptrdiff_t* phCounter);
+int PdhAddEnglishCounterA(ptrdiff_t hQuery, const(PSTR) szFullCounterPath, size_t dwUserData, ptrdiff_t* phCounter);
 
 ///Collects the current raw data value for all counters in the specified query and updates the status code of each
 ///counter.
@@ -2116,7 +2125,7 @@ int PdhCollectQueryDataWithTime(ptrdiff_t hQuery, long* pllTimeStamp);
 ///    width="60%"> The function is unable to allocate a required temporary buffer. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhValidatePathExW(ptrdiff_t hDataSource, const(wchar)* szFullPathBuffer);
+int PdhValidatePathExW(ptrdiff_t hDataSource, const(PWSTR) szFullPathBuffer);
 
 ///Validates that the specified counter is present on the computer or in the log file.
 ///Params:
@@ -2140,7 +2149,7 @@ int PdhValidatePathExW(ptrdiff_t hDataSource, const(wchar)* szFullPathBuffer);
 ///    width="60%"> The function is unable to allocate a required temporary buffer. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhValidatePathExA(ptrdiff_t hDataSource, const(char)* szFullPathBuffer);
+int PdhValidatePathExA(ptrdiff_t hDataSource, const(PSTR) szFullPathBuffer);
 
 ///Removes a counter from a query.
 ///Params:
@@ -2259,7 +2268,7 @@ int PdhGetFormattedCounterValue(ptrdiff_t hCounter, uint dwFormat, uint* lpdwTyp
 ///    
 @DllImport("pdh")
 int PdhGetFormattedCounterArrayA(ptrdiff_t hCounter, uint dwFormat, uint* lpdwBufferSize, uint* lpdwItemCount, 
-                                 char* ItemBuffer);
+                                 PDH_FMT_COUNTERVALUE_ITEM_A* ItemBuffer);
 
 ///Returns an array of formatted counter values. Use this function when you want to format the counter values of a
 ///counter that contains a wildcard character for the instance name.
@@ -2303,7 +2312,7 @@ int PdhGetFormattedCounterArrayA(ptrdiff_t hCounter, uint dwFormat, uint* lpdwBu
 ///    
 @DllImport("pdh")
 int PdhGetFormattedCounterArrayW(ptrdiff_t hCounter, uint dwFormat, uint* lpdwBufferSize, uint* lpdwItemCount, 
-                                 char* ItemBuffer);
+                                 PDH_FMT_COUNTERVALUE_ITEM_W* ItemBuffer);
 
 ///Returns the current raw value of the counter.
 ///Params:
@@ -2349,7 +2358,8 @@ int PdhGetRawCounterValue(ptrdiff_t hCounter, uint* lpdwType, PDH_RAW_COUNTER* p
 ///    </table>
 ///    
 @DllImport("pdh")
-int PdhGetRawCounterArrayA(ptrdiff_t hCounter, uint* lpdwBufferSize, uint* lpdwItemCount, char* ItemBuffer);
+int PdhGetRawCounterArrayA(ptrdiff_t hCounter, uint* lpdwBufferSize, uint* lpdwItemCount, 
+                           PDH_RAW_COUNTER_ITEM_A* ItemBuffer);
 
 ///Returns an array of raw values from the specified counter. Use this function when you want to retrieve the raw
 ///counter values of a counter that contains a wildcard character for the instance name.
@@ -2377,7 +2387,8 @@ int PdhGetRawCounterArrayA(ptrdiff_t hCounter, uint* lpdwBufferSize, uint* lpdwI
 ///    </table>
 ///    
 @DllImport("pdh")
-int PdhGetRawCounterArrayW(ptrdiff_t hCounter, uint* lpdwBufferSize, uint* lpdwItemCount, char* ItemBuffer);
+int PdhGetRawCounterArrayW(ptrdiff_t hCounter, uint* lpdwBufferSize, uint* lpdwItemCount, 
+                           PDH_RAW_COUNTER_ITEM_W* ItemBuffer);
 
 ///Calculates the displayable value of two raw counter values.
 ///Params:
@@ -2481,7 +2492,8 @@ int PdhComputeCounterStatistics(ptrdiff_t hCounter, uint dwFormat, uint dwFirstE
 ///    than the required size, you should not rely on the returned size to reallocate the buffer. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhGetCounterInfoW(ptrdiff_t hCounter, ubyte bRetrieveExplainText, uint* pdwBufferSize, char* lpBuffer);
+int PdhGetCounterInfoW(ptrdiff_t hCounter, ubyte bRetrieveExplainText, uint* pdwBufferSize, 
+                       PDH_COUNTER_INFO_W* lpBuffer);
 
 ///Retrieves information about a counter, such as data size, counter type, path, and user-supplied data values.
 ///Params:
@@ -2509,7 +2521,8 @@ int PdhGetCounterInfoW(ptrdiff_t hCounter, ubyte bRetrieveExplainText, uint* pdw
 ///    than the required size, you should not rely on the returned size to reallocate the buffer. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhGetCounterInfoA(ptrdiff_t hCounter, ubyte bRetrieveExplainText, uint* pdwBufferSize, char* lpBuffer);
+int PdhGetCounterInfoA(ptrdiff_t hCounter, ubyte bRetrieveExplainText, uint* pdwBufferSize, 
+                       PDH_COUNTER_INFO_A* lpBuffer);
 
 ///Sets the scale factor that is applied to the calculated value of the specified counter when you request the formatted
 ///counter value. If the PDH_FMT_NOSCALE flag is set, then this scale factor is ignored.
@@ -2546,7 +2559,7 @@ int PdhSetCounterScaleFactor(ptrdiff_t hCounter, int lFactor);
 ///    system or an insufficient memory paging file. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhConnectMachineW(const(wchar)* szMachineName);
+int PdhConnectMachineW(const(PWSTR) szMachineName);
 
 ///Connects to the specified computer.
 ///Params:
@@ -2564,7 +2577,7 @@ int PdhConnectMachineW(const(wchar)* szMachineName);
 ///    system or an insufficient memory paging file. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhConnectMachineA(const(char)* szMachineName);
+int PdhConnectMachineA(const(PSTR) szMachineName);
 
 ///Returns a list of the computer names associated with counters in a log file. The computer names were either specified
 ///when adding counters to the query or when calling the PdhConnectMachine function. The computers listed include those
@@ -2594,7 +2607,9 @@ int PdhConnectMachineA(const(char)* szMachineName);
 ///    less than the required size. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhEnumMachinesW(const(wchar)* szDataSource, const(wchar)* mszMachineList, uint* pcchBufferSize);
+int PdhEnumMachinesW(const(PWSTR) szDataSource, 
+                     /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PWSTR mszMachineList, 
+                     uint* pcchBufferSize);
 
 ///Returns a list of the computer names associated with counters in a log file. The computer names were either specified
 ///when adding counters to the query or when calling the PdhConnectMachine function. The computers listed include those
@@ -2624,7 +2639,9 @@ int PdhEnumMachinesW(const(wchar)* szDataSource, const(wchar)* mszMachineList, u
 ///    less than the required size. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhEnumMachinesA(const(char)* szDataSource, const(char)* mszMachineList, uint* pcchBufferSize);
+int PdhEnumMachinesA(const(PSTR) szDataSource, 
+                     /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PSTR mszMachineList, 
+                     uint* pcchBufferSize);
 
 ///Returns a list of objects available on the specified computer or in the specified log file. To use handles to data
 ///sources, use the PdhEnumObjectsH function.
@@ -2677,7 +2694,8 @@ int PdhEnumMachinesA(const(char)* szDataSource, const(char)* mszMachineList, uin
 ///    required size. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhEnumObjectsW(const(wchar)* szDataSource, const(wchar)* szMachineName, const(wchar)* mszObjectList, 
+int PdhEnumObjectsW(const(PWSTR) szDataSource, const(PWSTR) szMachineName, 
+                    /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PWSTR mszObjectList, 
                     uint* pcchBufferSize, uint dwDetailLevel, BOOL bRefresh);
 
 ///Returns a list of objects available on the specified computer or in the specified log file. To use handles to data
@@ -2731,7 +2749,8 @@ int PdhEnumObjectsW(const(wchar)* szDataSource, const(wchar)* szMachineName, con
 ///    required size. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhEnumObjectsA(const(char)* szDataSource, const(char)* szMachineName, const(char)* mszObjectList, 
+int PdhEnumObjectsA(const(PSTR) szDataSource, const(PSTR) szMachineName, 
+                    /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PSTR mszObjectList, 
                     uint* pcchBufferSize, uint dwDetailLevel, BOOL bRefresh);
 
 ///Returns the specified object's counter and instance names that exist on the specified computer or in the specified
@@ -2793,8 +2812,10 @@ int PdhEnumObjectsA(const(char)* szDataSource, const(char)* szMachineName, const
 ///    specified computer or in the specified log file. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhEnumObjectItemsW(const(wchar)* szDataSource, const(wchar)* szMachineName, const(wchar)* szObjectName, 
-                        const(wchar)* mszCounterList, uint* pcchCounterListLength, const(wchar)* mszInstanceList, 
+int PdhEnumObjectItemsW(const(PWSTR) szDataSource, const(PWSTR) szMachineName, const(PWSTR) szObjectName, 
+                        /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PWSTR mszCounterList, 
+                        uint* pcchCounterListLength, 
+                        /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PWSTR mszInstanceList, 
                         uint* pcchInstanceListLength, uint dwDetailLevel, uint dwFlags);
 
 ///Returns the specified object's counter and instance names that exist on the specified computer or in the specified
@@ -2856,8 +2877,10 @@ int PdhEnumObjectItemsW(const(wchar)* szDataSource, const(wchar)* szMachineName,
 ///    specified computer or in the specified log file. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhEnumObjectItemsA(const(char)* szDataSource, const(char)* szMachineName, const(char)* szObjectName, 
-                        const(char)* mszCounterList, uint* pcchCounterListLength, const(char)* mszInstanceList, 
+int PdhEnumObjectItemsA(const(PSTR) szDataSource, const(PSTR) szMachineName, const(PSTR) szObjectName, 
+                        /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PSTR mszCounterList, 
+                        uint* pcchCounterListLength, 
+                        /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PSTR mszInstanceList, 
                         uint* pcchInstanceListLength, uint dwDetailLevel, uint dwFlags);
 
 ///Creates a full counter path using the members specified in the PDH_COUNTER_PATH_ELEMENTS structure.
@@ -2893,7 +2916,7 @@ int PdhEnumObjectItemsA(const(char)* szDataSource, const(char)* szMachineName, c
 ///    input is greater than zero but less than the required size. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhMakeCounterPathW(PDH_COUNTER_PATH_ELEMENTS_W* pCounterPathElements, const(wchar)* szFullPathBuffer, 
+int PdhMakeCounterPathW(PDH_COUNTER_PATH_ELEMENTS_W* pCounterPathElements, PWSTR szFullPathBuffer, 
                         uint* pcchBufferSize, uint dwFlags);
 
 ///Creates a full counter path using the members specified in the PDH_COUNTER_PATH_ELEMENTS structure.
@@ -2929,7 +2952,7 @@ int PdhMakeCounterPathW(PDH_COUNTER_PATH_ELEMENTS_W* pCounterPathElements, const
 ///    input is greater than zero but less than the required size. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhMakeCounterPathA(PDH_COUNTER_PATH_ELEMENTS_A* pCounterPathElements, const(char)* szFullPathBuffer, 
+int PdhMakeCounterPathA(PDH_COUNTER_PATH_ELEMENTS_A* pCounterPathElements, PSTR szFullPathBuffer, 
                         uint* pcchBufferSize, uint dwFlags);
 
 ///Parses the elements of the counter path and stores the results in the PDH_COUNTER_PATH_ELEMENTS structure.
@@ -2960,8 +2983,8 @@ int PdhMakeCounterPathA(PDH_COUNTER_PATH_ELEMENTS_A* pCounterPathElements, const
 ///    order to complete the function. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhParseCounterPathW(const(wchar)* szFullPathBuffer, char* pCounterPathElements, uint* pdwBufferSize, 
-                         uint dwFlags);
+int PdhParseCounterPathW(const(PWSTR) szFullPathBuffer, PDH_COUNTER_PATH_ELEMENTS_W* pCounterPathElements, 
+                         uint* pdwBufferSize, uint dwFlags);
 
 ///Parses the elements of the counter path and stores the results in the PDH_COUNTER_PATH_ELEMENTS structure.
 ///Params:
@@ -2991,8 +3014,8 @@ int PdhParseCounterPathW(const(wchar)* szFullPathBuffer, char* pCounterPathEleme
 ///    order to complete the function. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhParseCounterPathA(const(char)* szFullPathBuffer, char* pCounterPathElements, uint* pdwBufferSize, 
-                         uint dwFlags);
+int PdhParseCounterPathA(const(PSTR) szFullPathBuffer, PDH_COUNTER_PATH_ELEMENTS_A* pCounterPathElements, 
+                         uint* pdwBufferSize, uint dwFlags);
 
 ///Parses the elements of an instance string.
 ///Params:
@@ -3027,9 +3050,8 @@ int PdhParseCounterPathA(const(char)* szFullPathBuffer, char* pCounterPathElemen
 ///    cannot be parsed. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhParseInstanceNameW(const(wchar)* szInstanceString, const(wchar)* szInstanceName, 
-                          uint* pcchInstanceNameLength, const(wchar)* szParentName, uint* pcchParentNameLength, 
-                          uint* lpIndex);
+int PdhParseInstanceNameW(const(PWSTR) szInstanceString, PWSTR szInstanceName, uint* pcchInstanceNameLength, 
+                          PWSTR szParentName, uint* pcchParentNameLength, uint* lpIndex);
 
 ///Parses the elements of an instance string.
 ///Params:
@@ -3064,8 +3086,8 @@ int PdhParseInstanceNameW(const(wchar)* szInstanceString, const(wchar)* szInstan
 ///    cannot be parsed. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhParseInstanceNameA(const(char)* szInstanceString, const(char)* szInstanceName, uint* pcchInstanceNameLength, 
-                          const(char)* szParentName, uint* pcchParentNameLength, uint* lpIndex);
+int PdhParseInstanceNameA(const(PSTR) szInstanceString, PSTR szInstanceName, uint* pcchInstanceNameLength, 
+                          PSTR szParentName, uint* pcchParentNameLength, uint* lpIndex);
 
 ///Validates that the counter is present on the computer specified in the counter path.
 ///Params:
@@ -3086,7 +3108,7 @@ int PdhParseInstanceNameA(const(char)* szInstanceString, const(char)* szInstance
 ///    width="60%"> The function is unable to allocate a required temporary buffer. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhValidatePathW(const(wchar)* szFullPathBuffer);
+int PdhValidatePathW(const(PWSTR) szFullPathBuffer);
 
 ///Validates that the counter is present on the computer specified in the counter path.
 ///Params:
@@ -3107,7 +3129,7 @@ int PdhValidatePathW(const(wchar)* szFullPathBuffer);
 ///    width="60%"> The function is unable to allocate a required temporary buffer. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhValidatePathA(const(char)* szFullPathBuffer);
+int PdhValidatePathA(const(PSTR) szFullPathBuffer);
 
 ///Retrieves the name of the default object. This name can be used to set the initial object selection in the Browse
 ///Counter dialog box. To use handles to data sources, use the PdhGetDefaultPerfObjectH function.
@@ -3138,8 +3160,8 @@ int PdhValidatePathA(const(char)* szFullPathBuffer);
 ///    <td width="60%"> The specified computer is offline or unavailable. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhGetDefaultPerfObjectW(const(wchar)* szDataSource, const(wchar)* szMachineName, 
-                             const(wchar)* szDefaultObjectName, uint* pcchBufferSize);
+int PdhGetDefaultPerfObjectW(const(PWSTR) szDataSource, const(PWSTR) szMachineName, PWSTR szDefaultObjectName, 
+                             uint* pcchBufferSize);
 
 ///Retrieves the name of the default object. This name can be used to set the initial object selection in the Browse
 ///Counter dialog box. To use handles to data sources, use the PdhGetDefaultPerfObjectH function.
@@ -3170,8 +3192,8 @@ int PdhGetDefaultPerfObjectW(const(wchar)* szDataSource, const(wchar)* szMachine
 ///    <td width="60%"> The specified computer is offline or unavailable. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhGetDefaultPerfObjectA(const(char)* szDataSource, const(char)* szMachineName, 
-                             const(char)* szDefaultObjectName, uint* pcchBufferSize);
+int PdhGetDefaultPerfObjectA(const(PSTR) szDataSource, const(PSTR) szMachineName, PSTR szDefaultObjectName, 
+                             uint* pcchBufferSize);
 
 ///Retrieves the name of the default counter for the specified object. This name can be used to set the initial counter
 ///selection in the Browse Counter dialog box. To use handles to data sources, use the PdhGetDefaultPerfCounterH
@@ -3209,8 +3231,8 @@ int PdhGetDefaultPerfObjectA(const(char)* szDataSource, const(char)* szMachineNa
 ///    </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhGetDefaultPerfCounterW(const(wchar)* szDataSource, const(wchar)* szMachineName, const(wchar)* szObjectName, 
-                              const(wchar)* szDefaultCounterName, uint* pcchBufferSize);
+int PdhGetDefaultPerfCounterW(const(PWSTR) szDataSource, const(PWSTR) szMachineName, const(PWSTR) szObjectName, 
+                              PWSTR szDefaultCounterName, uint* pcchBufferSize);
 
 ///Retrieves the name of the default counter for the specified object. This name can be used to set the initial counter
 ///selection in the Browse Counter dialog box. To use handles to data sources, use the PdhGetDefaultPerfCounterH
@@ -3248,8 +3270,8 @@ int PdhGetDefaultPerfCounterW(const(wchar)* szDataSource, const(wchar)* szMachin
 ///    </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhGetDefaultPerfCounterA(const(char)* szDataSource, const(char)* szMachineName, const(char)* szObjectName, 
-                              const(char)* szDefaultCounterName, uint* pcchBufferSize);
+int PdhGetDefaultPerfCounterA(const(PSTR) szDataSource, const(PSTR) szMachineName, const(PSTR) szObjectName, 
+                              PSTR szDefaultCounterName, uint* pcchBufferSize);
 
 ///Displays a <b>Browse Counters</b> dialog box that the user can use to select one or more counters that they want to
 ///add to the query. To use handles to data sources, use the PdhBrowseCountersH function.
@@ -3302,7 +3324,8 @@ int PdhBrowseCountersA(PDH_BROWSE_DLG_CONFIG_A* pBrowseDlgData);
 ///    memory to support this function. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhExpandCounterPathW(const(wchar)* szWildCardPath, const(wchar)* mszExpandedPathList, 
+int PdhExpandCounterPathW(const(PWSTR) szWildCardPath, 
+                          /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PWSTR mszExpandedPathList, 
                           uint* pcchPathListLength);
 
 ///Examines the specified computer (or local computer if none is specified) for counters and instances of counters that
@@ -3334,7 +3357,9 @@ int PdhExpandCounterPathW(const(wchar)* szWildCardPath, const(wchar)* mszExpande
 ///    memory to support this function. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhExpandCounterPathA(const(char)* szWildCardPath, const(char)* mszExpandedPathList, uint* pcchPathListLength);
+int PdhExpandCounterPathA(const(PSTR) szWildCardPath, 
+                          /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PSTR mszExpandedPathList, 
+                          uint* pcchPathListLength);
 
 ///Returns the performance object name or counter name corresponding to the specified index.
 ///Params:
@@ -3360,7 +3385,7 @@ int PdhExpandCounterPathA(const(char)* szWildCardPath, const(char)* mszExpandedP
 ///    input is greater than zero but less than the required size. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhLookupPerfNameByIndexW(const(wchar)* szMachineName, uint dwNameIndex, const(wchar)* szNameBuffer, 
+int PdhLookupPerfNameByIndexW(const(PWSTR) szMachineName, uint dwNameIndex, PWSTR szNameBuffer, 
                               uint* pcchNameBufferSize);
 
 ///Returns the performance object name or counter name corresponding to the specified index.
@@ -3387,7 +3412,7 @@ int PdhLookupPerfNameByIndexW(const(wchar)* szMachineName, uint dwNameIndex, con
 ///    input is greater than zero but less than the required size. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhLookupPerfNameByIndexA(const(char)* szMachineName, uint dwNameIndex, const(char)* szNameBuffer, 
+int PdhLookupPerfNameByIndexA(const(PSTR) szMachineName, uint dwNameIndex, PSTR szNameBuffer, 
                               uint* pcchNameBufferSize);
 
 ///Returns the counter index corresponding to the specified counter name.
@@ -3404,7 +3429,7 @@ int PdhLookupPerfNameByIndexA(const(char)* szMachineName, uint dwNameIndex, cons
 ///    width="60%"> A parameter is not valid or is incorrectly formatted. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhLookupPerfIndexByNameW(const(wchar)* szMachineName, const(wchar)* szNameBuffer, uint* pdwIndex);
+int PdhLookupPerfIndexByNameW(const(PWSTR) szMachineName, const(PWSTR) szNameBuffer, uint* pdwIndex);
 
 ///Returns the counter index corresponding to the specified counter name.
 ///Params:
@@ -3420,7 +3445,7 @@ int PdhLookupPerfIndexByNameW(const(wchar)* szMachineName, const(wchar)* szNameB
 ///    width="60%"> A parameter is not valid or is incorrectly formatted. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhLookupPerfIndexByNameA(const(char)* szMachineName, const(char)* szNameBuffer, uint* pdwIndex);
+int PdhLookupPerfIndexByNameA(const(PSTR) szMachineName, const(PSTR) szNameBuffer, uint* pdwIndex);
 
 ///Examines the specified computer or log file and returns those counter paths that match the given counter path which
 ///contains wildcard characters. To use handles to data sources, use the PdhExpandWildCardPathH function.
@@ -3464,8 +3489,9 @@ int PdhLookupPerfIndexByNameA(const(char)* szMachineName, const(char)* szNameBuf
 ///    width="60%"> Unable to find the specified object on the computer or in the log file. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhExpandWildCardPathA(const(char)* szDataSource, const(char)* szWildCardPath, 
-                           const(char)* mszExpandedPathList, uint* pcchPathListLength, uint dwFlags);
+int PdhExpandWildCardPathA(const(PSTR) szDataSource, const(PSTR) szWildCardPath, 
+                           /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PSTR mszExpandedPathList, 
+                           uint* pcchPathListLength, uint dwFlags);
 
 ///Examines the specified computer or log file and returns those counter paths that match the given counter path which
 ///contains wildcard characters. To use handles to data sources, use the PdhExpandWildCardPathH function.
@@ -3509,8 +3535,9 @@ int PdhExpandWildCardPathA(const(char)* szDataSource, const(char)* szWildCardPat
 ///    width="60%"> Unable to find the specified object on the computer or in the log file. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhExpandWildCardPathW(const(wchar)* szDataSource, const(wchar)* szWildCardPath, 
-                           const(wchar)* mszExpandedPathList, uint* pcchPathListLength, uint dwFlags);
+int PdhExpandWildCardPathW(const(PWSTR) szDataSource, const(PWSTR) szWildCardPath, 
+                           /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PWSTR mszExpandedPathList, 
+                           uint* pcchPathListLength, uint dwFlags);
 
 ///Opens the specified log file for reading or writing.
 ///Params:
@@ -3578,8 +3605,8 @@ int PdhExpandWildCardPathW(const(wchar)* szDataSource, const(wchar)* szWildCardP
 ///    code or a PDH error code.
 ///    
 @DllImport("pdh")
-int PdhOpenLogW(const(wchar)* szLogFileName, uint dwAccessFlags, uint* lpdwLogType, ptrdiff_t hQuery, 
-                uint dwMaxSize, const(wchar)* szUserCaption, ptrdiff_t* phLog);
+int PdhOpenLogW(const(PWSTR) szLogFileName, uint dwAccessFlags, uint* lpdwLogType, ptrdiff_t hQuery, 
+                uint dwMaxSize, const(PWSTR) szUserCaption, ptrdiff_t* phLog);
 
 ///Opens the specified log file for reading or writing.
 ///Params:
@@ -3647,8 +3674,8 @@ int PdhOpenLogW(const(wchar)* szLogFileName, uint dwAccessFlags, uint* lpdwLogTy
 ///    code or a PDH error code.
 ///    
 @DllImport("pdh")
-int PdhOpenLogA(const(char)* szLogFileName, uint dwAccessFlags, uint* lpdwLogType, ptrdiff_t hQuery, 
-                uint dwMaxSize, const(char)* szUserCaption, ptrdiff_t* phLog);
+int PdhOpenLogA(const(PSTR) szLogFileName, uint dwAccessFlags, uint* lpdwLogType, ptrdiff_t hQuery, uint dwMaxSize, 
+                const(PSTR) szUserCaption, ptrdiff_t* phLog);
 
 ///Collects counter data for the current query and writes the data to the log file.
 ///Params:
@@ -3664,7 +3691,7 @@ int PdhOpenLogA(const(char)* szLogFileName, uint dwAccessFlags, uint* lpdwLogTyp
 ///    <i>szUserString</i> parameter. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhUpdateLogW(ptrdiff_t hLog, const(wchar)* szUserString);
+int PdhUpdateLogW(ptrdiff_t hLog, const(PWSTR) szUserString);
 
 ///Collects counter data for the current query and writes the data to the log file.
 ///Params:
@@ -3680,7 +3707,7 @@ int PdhUpdateLogW(ptrdiff_t hLog, const(wchar)* szUserString);
 ///    <i>szUserString</i> parameter. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhUpdateLogA(ptrdiff_t hLog, const(char)* szUserString);
+int PdhUpdateLogA(ptrdiff_t hLog, const(PSTR) szUserString);
 
 ///Synchronizes the information in the log file catalog with the performance data in the log file. <div
 ///class="alert"><b>Note</b> This function is obsolete.</div><div> </div>
@@ -3754,7 +3781,7 @@ int PdhCloseLog(ptrdiff_t hLog, uint dwFlags);
 ///    <i>szDataSource</i> parameter. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhSelectDataSourceW(HWND hWndOwner, uint dwFlags, const(wchar)* szDataSource, uint* pcchBufferLength);
+int PdhSelectDataSourceW(HWND hWndOwner, uint dwFlags, PWSTR szDataSource, uint* pcchBufferLength);
 
 ///Displays a dialog window that prompts the user to specify the source of the performance data.
 ///Params:
@@ -3782,7 +3809,7 @@ int PdhSelectDataSourceW(HWND hWndOwner, uint dwFlags, const(wchar)* szDataSourc
 ///    <i>szDataSource</i> parameter. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhSelectDataSourceA(HWND hWndOwner, uint dwFlags, const(char)* szDataSource, uint* pcchBufferLength);
+int PdhSelectDataSourceA(HWND hWndOwner, uint dwFlags, PSTR szDataSource, uint* pcchBufferLength);
 
 ///Determines if the specified query is a real-time query.
 ///Params:
@@ -3829,7 +3856,8 @@ int PdhSetQueryTimeRange(ptrdiff_t hQuery, PDH_TIME_INFO* pInfo);
 ///    source is a real-time data source. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhGetDataSourceTimeRangeW(const(wchar)* szDataSource, uint* pdwNumEntries, char* pInfo, uint* pdwBufferSize);
+int PdhGetDataSourceTimeRangeW(const(PWSTR) szDataSource, uint* pdwNumEntries, PDH_TIME_INFO* pInfo, 
+                               uint* pdwBufferSize);
 
 ///Determines the time range, number of entries and, if applicable, the size of the buffer containing the performance
 ///data from the specified input source. To use handles to data sources, use the PdhGetDataSourceTimeRangeH function.
@@ -3849,7 +3877,8 @@ int PdhGetDataSourceTimeRangeW(const(wchar)* szDataSource, uint* pdwNumEntries, 
 ///    source is a real-time data source. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhGetDataSourceTimeRangeA(const(char)* szDataSource, uint* pdwNumEntries, char* pInfo, uint* pdwBufferSize);
+int PdhGetDataSourceTimeRangeA(const(PSTR) szDataSource, uint* pdwNumEntries, PDH_TIME_INFO* pInfo, 
+                               uint* pdwBufferSize);
 
 ///Uses a separate thread to collect the current raw data value for all counters in the specified query. The function
 ///then signals the application-defined event and waits the specified time interval before returning.
@@ -3947,7 +3976,8 @@ int PdhGetCounterTimeBase(ptrdiff_t hCounter, long* pTimeBase);
 ///    complete the function. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhReadRawLogRecord(ptrdiff_t hLog, FILETIME ftRecord, char* pRawLogRecord, uint* pdwBufferLength);
+int PdhReadRawLogRecord(ptrdiff_t hLog, FILETIME ftRecord, PDH_RAW_LOG_RECORD* pRawLogRecord, 
+                        uint* pdwBufferLength);
 
 ///Specifies the source of the real-time data.
 ///Params:
@@ -3978,7 +4008,7 @@ int PdhSetDefaultRealTimeDataSource(uint dwDataSourceId);
 ///    a PDH error code.
 ///    
 @DllImport("pdh")
-int PdhBindInputDataSourceW(ptrdiff_t* phDataSource, const(wchar)* LogFileNameList);
+int PdhBindInputDataSourceW(ptrdiff_t* phDataSource, const(PWSTR) LogFileNameList);
 
 ///Binds one or more binary log files together for reading log data.
 ///Params:
@@ -3992,7 +4022,7 @@ int PdhBindInputDataSourceW(ptrdiff_t* phDataSource, const(wchar)* LogFileNameLi
 ///    a PDH error code.
 ///    
 @DllImport("pdh")
-int PdhBindInputDataSourceA(ptrdiff_t* phDataSource, const(char)* LogFileNameList);
+int PdhBindInputDataSourceA(ptrdiff_t* phDataSource, const(PSTR) LogFileNameList);
 
 ///Creates a new query that is used to manage the collection of performance data. This function is identical to the
 ///PdhOpenQuery function, except that it supports the use of handles to data sources.
@@ -4035,7 +4065,9 @@ int PdhOpenQueryH(ptrdiff_t hDataSource, size_t dwUserData, ptrdiff_t* phQuery);
 ///    less than the required size. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhEnumMachinesHW(ptrdiff_t hDataSource, const(wchar)* mszMachineList, uint* pcchBufferSize);
+int PdhEnumMachinesHW(ptrdiff_t hDataSource, 
+                      /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PWSTR mszMachineList, 
+                      uint* pcchBufferSize);
 
 ///Returns a list of the computer names associated with counters in a log file. The computer names were either specified
 ///when adding counters to the query or when calling the PdhConnectMachine function. The computers listed include those
@@ -4064,7 +4096,9 @@ int PdhEnumMachinesHW(ptrdiff_t hDataSource, const(wchar)* mszMachineList, uint*
 ///    less than the required size. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhEnumMachinesHA(ptrdiff_t hDataSource, const(char)* mszMachineList, uint* pcchBufferSize);
+int PdhEnumMachinesHA(ptrdiff_t hDataSource, 
+                      /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PSTR mszMachineList, 
+                      uint* pcchBufferSize);
 
 ///Returns a list of objects available on the specified computer or in the specified log file. This function is
 ///identical to PdhEnumObjects, except that it supports the use of handles to data sources.
@@ -4115,7 +4149,8 @@ int PdhEnumMachinesHA(ptrdiff_t hDataSource, const(char)* mszMachineList, uint* 
 ///    required size. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhEnumObjectsHW(ptrdiff_t hDataSource, const(wchar)* szMachineName, const(wchar)* mszObjectList, 
+int PdhEnumObjectsHW(ptrdiff_t hDataSource, const(PWSTR) szMachineName, 
+                     /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PWSTR mszObjectList, 
                      uint* pcchBufferSize, uint dwDetailLevel, BOOL bRefresh);
 
 ///Returns a list of objects available on the specified computer or in the specified log file. This function is
@@ -4167,7 +4202,8 @@ int PdhEnumObjectsHW(ptrdiff_t hDataSource, const(wchar)* szMachineName, const(w
 ///    required size. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhEnumObjectsHA(ptrdiff_t hDataSource, const(char)* szMachineName, const(char)* mszObjectList, 
+int PdhEnumObjectsHA(ptrdiff_t hDataSource, const(PSTR) szMachineName, 
+                     /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PSTR mszObjectList, 
                      uint* pcchBufferSize, uint dwDetailLevel, BOOL bRefresh);
 
 ///Returns the specified object's counter and instance names that exist on the specified computer or in the specified
@@ -4228,8 +4264,10 @@ int PdhEnumObjectsHA(ptrdiff_t hDataSource, const(char)* szMachineName, const(ch
 ///    specified computer or in the specified log file. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhEnumObjectItemsHW(ptrdiff_t hDataSource, const(wchar)* szMachineName, const(wchar)* szObjectName, 
-                         const(wchar)* mszCounterList, uint* pcchCounterListLength, const(wchar)* mszInstanceList, 
+int PdhEnumObjectItemsHW(ptrdiff_t hDataSource, const(PWSTR) szMachineName, const(PWSTR) szObjectName, 
+                         /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PWSTR mszCounterList, 
+                         uint* pcchCounterListLength, 
+                         /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PWSTR mszInstanceList, 
                          uint* pcchInstanceListLength, uint dwDetailLevel, uint dwFlags);
 
 ///Returns the specified object's counter and instance names that exist on the specified computer or in the specified
@@ -4290,8 +4328,10 @@ int PdhEnumObjectItemsHW(ptrdiff_t hDataSource, const(wchar)* szMachineName, con
 ///    specified computer or in the specified log file. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhEnumObjectItemsHA(ptrdiff_t hDataSource, const(char)* szMachineName, const(char)* szObjectName, 
-                         const(char)* mszCounterList, uint* pcchCounterListLength, const(char)* mszInstanceList, 
+int PdhEnumObjectItemsHA(ptrdiff_t hDataSource, const(PSTR) szMachineName, const(PSTR) szObjectName, 
+                         /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PSTR mszCounterList, 
+                         uint* pcchCounterListLength, 
+                         /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PSTR mszInstanceList, 
                          uint* pcchInstanceListLength, uint dwDetailLevel, uint dwFlags);
 
 ///Examines the specified computer or log file and returns those counter paths that match the given counter path which
@@ -4334,7 +4374,8 @@ int PdhEnumObjectItemsHA(ptrdiff_t hDataSource, const(char)* szMachineName, cons
 ///    computer or in the log file. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhExpandWildCardPathHW(ptrdiff_t hDataSource, const(wchar)* szWildCardPath, const(wchar)* mszExpandedPathList, 
+int PdhExpandWildCardPathHW(ptrdiff_t hDataSource, const(PWSTR) szWildCardPath, 
+                            /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PWSTR mszExpandedPathList, 
                             uint* pcchPathListLength, uint dwFlags);
 
 ///Examines the specified computer or log file and returns those counter paths that match the given counter path which
@@ -4377,7 +4418,8 @@ int PdhExpandWildCardPathHW(ptrdiff_t hDataSource, const(wchar)* szWildCardPath,
 ///    computer or in the log file. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhExpandWildCardPathHA(ptrdiff_t hDataSource, const(char)* szWildCardPath, const(char)* mszExpandedPathList, 
+int PdhExpandWildCardPathHA(ptrdiff_t hDataSource, const(PSTR) szWildCardPath, 
+                            /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PSTR mszExpandedPathList, 
                             uint* pcchPathListLength, uint dwFlags);
 
 ///Determines the time range, number of entries and, if applicable, the size of the buffer containing the performance
@@ -4399,7 +4441,8 @@ int PdhExpandWildCardPathHA(ptrdiff_t hDataSource, const(char)* szWildCardPath, 
 ///    source is a real-time data source. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhGetDataSourceTimeRangeH(ptrdiff_t hDataSource, uint* pdwNumEntries, char* pInfo, uint* pdwBufferSize);
+int PdhGetDataSourceTimeRangeH(ptrdiff_t hDataSource, uint* pdwNumEntries, PDH_TIME_INFO* pInfo, 
+                               uint* pdwBufferSize);
 
 ///Retrieves the name of the default object. This name can be used to set the initial object selection in the Browse
 ///Counter dialog box. This function is identical to the PdhGetDefaultPerfObject function, except that it supports the
@@ -4432,8 +4475,8 @@ int PdhGetDataSourceTimeRangeH(ptrdiff_t hDataSource, uint* pdwNumEntries, char*
 ///    found. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhGetDefaultPerfObjectHW(ptrdiff_t hDataSource, const(wchar)* szMachineName, 
-                              const(wchar)* szDefaultObjectName, uint* pcchBufferSize);
+int PdhGetDefaultPerfObjectHW(ptrdiff_t hDataSource, const(PWSTR) szMachineName, PWSTR szDefaultObjectName, 
+                              uint* pcchBufferSize);
 
 ///Retrieves the name of the default object. This name can be used to set the initial object selection in the Browse
 ///Counter dialog box. This function is identical to the PdhGetDefaultPerfObject function, except that it supports the
@@ -4466,7 +4509,7 @@ int PdhGetDefaultPerfObjectHW(ptrdiff_t hDataSource, const(wchar)* szMachineName
 ///    found. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhGetDefaultPerfObjectHA(ptrdiff_t hDataSource, const(char)* szMachineName, const(char)* szDefaultObjectName, 
+int PdhGetDefaultPerfObjectHA(ptrdiff_t hDataSource, const(PSTR) szMachineName, PSTR szDefaultObjectName, 
                               uint* pcchBufferSize);
 
 ///Retrieves the name of the default counter for the specified object. This name can be used to set the initial counter
@@ -4506,8 +4549,8 @@ int PdhGetDefaultPerfObjectHA(ptrdiff_t hDataSource, const(char)* szMachineName,
 ///    </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhGetDefaultPerfCounterHW(ptrdiff_t hDataSource, const(wchar)* szMachineName, const(wchar)* szObjectName, 
-                               const(wchar)* szDefaultCounterName, uint* pcchBufferSize);
+int PdhGetDefaultPerfCounterHW(ptrdiff_t hDataSource, const(PWSTR) szMachineName, const(PWSTR) szObjectName, 
+                               PWSTR szDefaultCounterName, uint* pcchBufferSize);
 
 ///Retrieves the name of the default counter for the specified object. This name can be used to set the initial counter
 ///selection in the Browse Counter dialog box. This function is identical to PdhGetDefaultPerfCounter, except that it
@@ -4546,8 +4589,8 @@ int PdhGetDefaultPerfCounterHW(ptrdiff_t hDataSource, const(wchar)* szMachineNam
 ///    </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhGetDefaultPerfCounterHA(ptrdiff_t hDataSource, const(char)* szMachineName, const(char)* szObjectName, 
-                               const(char)* szDefaultCounterName, uint* pcchBufferSize);
+int PdhGetDefaultPerfCounterHA(ptrdiff_t hDataSource, const(PSTR) szMachineName, const(PSTR) szObjectName, 
+                               PSTR szDefaultCounterName, uint* pcchBufferSize);
 
 ///Displays a <b>Browse Counters</b> dialog box that the user can use to select one or more counters that they want to
 ///add to the query. This function is identical to the PdhBrowseCounters function, except that it supports the use of
@@ -4574,40 +4617,16 @@ int PdhBrowseCountersHW(PDH_BROWSE_DLG_CONFIG_HW* pBrowseDlgData);
 int PdhBrowseCountersHA(PDH_BROWSE_DLG_CONFIG_HA* pBrowseDlgData);
 
 @DllImport("pdh")
-int PdhVerifySQLDBW(const(wchar)* szDataSource);
+int PdhVerifySQLDBW(const(PWSTR) szDataSource);
 
 @DllImport("pdh")
-int PdhVerifySQLDBA(const(char)* szDataSource);
+int PdhVerifySQLDBA(const(PSTR) szDataSource);
 
 @DllImport("pdh")
-int PdhCreateSQLTablesW(const(wchar)* szDataSource);
+int PdhCreateSQLTablesW(const(PWSTR) szDataSource);
 
 @DllImport("pdh")
-int PdhCreateSQLTablesA(const(char)* szDataSource);
-
-///Enumerates the names of the log sets within the DSN.
-///Params:
-///    szDataSource = <b>Null</b>-terminated string that specifies the DSN.
-///    mszDataSetNameList = Caller-allocated buffer that receives the list of <b>null</b>-terminated log set names. The list is terminated
-///                         with a <b>null</b>-terminator character. Set to <b>NULL</b> if the <i>pcchBufferLength</i> parameter is zero.
-///    pcchBufferLength = Size of the <i>mszLogSetNameList</i> buffer, in <b>TCHARs</b>. If zero on input, the function returns
-///                       PDH_MORE_DATA and sets this parameter to the required buffer size. If the buffer is larger than the required
-///                       size, the function sets this parameter to the actual size of the buffer that was used. If the specified size on
-///                       input is greater than zero but less than the required size, you should not rely on the returned size to
-///                       reallocate the buffer.
-///Returns:
-///    If the function succeeds, it returns ERROR_SUCCESS. If the function fails, the return value is a system error
-///    code or a PDH error code. The following are possible values. <table> <tr> <th>Return code</th>
-///    <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>PDH_MORE_DATA</b></dt> </dl> </td> <td width="60%">
-///    The size of the <i>mszLogSetNameList</i> buffer is too small to contain all the data. This return value is
-///    expected if <i>pcchBufferLength</i> is zero on input. If the specified size on input is greater than zero but
-///    less than the required size, you should not rely on the returned size to reallocate the buffer. </td> </tr> <tr>
-///    <td width="40%"> <dl> <dt><b>PDH_INVALID_ARGUMENT</b></dt> </dl> </td> <td width="60%"> A parameter is not valid.
-///    For example, on some releases you could receive this error if the specified size on input is greater than zero
-///    but less than the required size. </td> </tr> </table>
-///    
-@DllImport("pdh")
-int PdhEnumLogSetNamesW(const(wchar)* szDataSource, const(wchar)* mszDataSetNameList, uint* pcchBufferLength);
+int PdhCreateSQLTablesA(const(PSTR) szDataSource);
 
 ///Enumerates the names of the log sets within the DSN.
 ///Params:
@@ -4631,7 +4650,35 @@ int PdhEnumLogSetNamesW(const(wchar)* szDataSource, const(wchar)* mszDataSetName
 ///    but less than the required size. </td> </tr> </table>
 ///    
 @DllImport("pdh")
-int PdhEnumLogSetNamesA(const(char)* szDataSource, const(char)* mszDataSetNameList, uint* pcchBufferLength);
+int PdhEnumLogSetNamesW(const(PWSTR) szDataSource, 
+                        /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PWSTR mszDataSetNameList, 
+                        uint* pcchBufferLength);
+
+///Enumerates the names of the log sets within the DSN.
+///Params:
+///    szDataSource = <b>Null</b>-terminated string that specifies the DSN.
+///    mszDataSetNameList = Caller-allocated buffer that receives the list of <b>null</b>-terminated log set names. The list is terminated
+///                         with a <b>null</b>-terminator character. Set to <b>NULL</b> if the <i>pcchBufferLength</i> parameter is zero.
+///    pcchBufferLength = Size of the <i>mszLogSetNameList</i> buffer, in <b>TCHARs</b>. If zero on input, the function returns
+///                       PDH_MORE_DATA and sets this parameter to the required buffer size. If the buffer is larger than the required
+///                       size, the function sets this parameter to the actual size of the buffer that was used. If the specified size on
+///                       input is greater than zero but less than the required size, you should not rely on the returned size to
+///                       reallocate the buffer.
+///Returns:
+///    If the function succeeds, it returns ERROR_SUCCESS. If the function fails, the return value is a system error
+///    code or a PDH error code. The following are possible values. <table> <tr> <th>Return code</th>
+///    <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>PDH_MORE_DATA</b></dt> </dl> </td> <td width="60%">
+///    The size of the <i>mszLogSetNameList</i> buffer is too small to contain all the data. This return value is
+///    expected if <i>pcchBufferLength</i> is zero on input. If the specified size on input is greater than zero but
+///    less than the required size, you should not rely on the returned size to reallocate the buffer. </td> </tr> <tr>
+///    <td width="40%"> <dl> <dt><b>PDH_INVALID_ARGUMENT</b></dt> </dl> </td> <td width="60%"> A parameter is not valid.
+///    For example, on some releases you could receive this error if the specified size on input is greater than zero
+///    but less than the required size. </td> </tr> </table>
+///    
+@DllImport("pdh")
+int PdhEnumLogSetNamesA(const(PSTR) szDataSource, 
+                        /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PSTR mszDataSetNameList, 
+                        uint* pcchBufferLength);
 
 @DllImport("pdh")
 int PdhGetLogSetGUID(ptrdiff_t hLog, GUID* pGuid, int* pRunId);

@@ -5,7 +5,7 @@ module windows.gamingdeviceinfo;
 public import windows.core;
 public import windows.com : HRESULT;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums

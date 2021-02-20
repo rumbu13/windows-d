@@ -4,6 +4,6 @@ module windows.interop;
 
 public import windows.core;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 

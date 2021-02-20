@@ -4,9 +4,9 @@ module windows.services;
 
 public import windows.core;
 public import windows.security : SC_HANDLE__;
-public import windows.systemservices : BOOL;
+public import windows.systemservices : BOOL, PSTR, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Functions
@@ -127,9 +127,9 @@ extern(Windows):
 ///    
 @DllImport("ADVAPI32")
 BOOL ChangeServiceConfigA(SC_HANDLE__* hService, uint dwServiceType, uint dwStartType, uint dwErrorControl, 
-                          const(char)* lpBinaryPathName, const(char)* lpLoadOrderGroup, uint* lpdwTagId, 
-                          const(char)* lpDependencies, const(char)* lpServiceStartName, const(char)* lpPassword, 
-                          const(char)* lpDisplayName);
+                          const(PSTR) lpBinaryPathName, const(PSTR) lpLoadOrderGroup, uint* lpdwTagId, 
+                          const(PSTR) lpDependencies, const(PSTR) lpServiceStartName, const(PSTR) lpPassword, 
+                          const(PSTR) lpDisplayName);
 
 ///Changes the configuration parameters of a service. To change the optional configuration parameters, use the
 ///ChangeServiceConfig2 function.
@@ -247,9 +247,9 @@ BOOL ChangeServiceConfigA(SC_HANDLE__* hService, uint dwServiceType, uint dwStar
 ///    
 @DllImport("ADVAPI32")
 BOOL ChangeServiceConfigW(SC_HANDLE__* hService, uint dwServiceType, uint dwStartType, uint dwErrorControl, 
-                          const(wchar)* lpBinaryPathName, const(wchar)* lpLoadOrderGroup, uint* lpdwTagId, 
-                          const(wchar)* lpDependencies, const(wchar)* lpServiceStartName, const(wchar)* lpPassword, 
-                          const(wchar)* lpDisplayName);
+                          const(PWSTR) lpBinaryPathName, const(PWSTR) lpLoadOrderGroup, uint* lpdwTagId, 
+                          const(PWSTR) lpDependencies, const(PWSTR) lpServiceStartName, const(PWSTR) lpPassword, 
+                          const(PWSTR) lpDisplayName);
 
 ///Creates a service object and adds it to the specified service control manager database.
 ///Params:
@@ -375,10 +375,10 @@ BOOL ChangeServiceConfigW(SC_HANDLE__* hService, uint dwServiceType, uint dwStar
 ///    </table>
 ///    
 @DllImport("ADVAPI32")
-SC_HANDLE__* CreateServiceA(SC_HANDLE__* hSCManager, const(char)* lpServiceName, const(char)* lpDisplayName, 
+SC_HANDLE__* CreateServiceA(SC_HANDLE__* hSCManager, const(PSTR) lpServiceName, const(PSTR) lpDisplayName, 
                             uint dwDesiredAccess, uint dwServiceType, uint dwStartType, uint dwErrorControl, 
-                            const(char)* lpBinaryPathName, const(char)* lpLoadOrderGroup, uint* lpdwTagId, 
-                            const(char)* lpDependencies, const(char)* lpServiceStartName, const(char)* lpPassword);
+                            const(PSTR) lpBinaryPathName, const(PSTR) lpLoadOrderGroup, uint* lpdwTagId, 
+                            const(PSTR) lpDependencies, const(PSTR) lpServiceStartName, const(PSTR) lpPassword);
 
 ///Creates a service object and adds it to the specified service control manager database.
 ///Params:
@@ -504,9 +504,9 @@ SC_HANDLE__* CreateServiceA(SC_HANDLE__* hSCManager, const(char)* lpServiceName,
 ///    </table>
 ///    
 @DllImport("ADVAPI32")
-SC_HANDLE__* CreateServiceW(SC_HANDLE__* hSCManager, const(wchar)* lpServiceName, const(wchar)* lpDisplayName, 
+SC_HANDLE__* CreateServiceW(SC_HANDLE__* hSCManager, const(PWSTR) lpServiceName, const(PWSTR) lpDisplayName, 
                             uint dwDesiredAccess, uint dwServiceType, uint dwStartType, uint dwErrorControl, 
-                            const(wchar)* lpBinaryPathName, const(wchar)* lpLoadOrderGroup, uint* lpdwTagId, 
-                            const(wchar)* lpDependencies, const(wchar)* lpServiceStartName, const(wchar)* lpPassword);
+                            const(PWSTR) lpBinaryPathName, const(PWSTR) lpLoadOrderGroup, uint* lpdwTagId, 
+                            const(PWSTR) lpDependencies, const(PWSTR) lpServiceStartName, const(PWSTR) lpPassword);
 
 

@@ -12,11 +12,12 @@ public import windows.kernel : LUID;
 public import windows.multimedia : WAVEFORMATEX, WAVEFORMATEXTENSIBLE;
 public import windows.remotedesktopservices : APO_CONNECTION_PROPERTY;
 public import windows.structuredstorage : PROPVARIANT;
-public import windows.systemservices : BOOL, HANDLE, LARGE_INTEGER, ULARGE_INTEGER;
+public import windows.systemservices : BOOL, HANDLE, LARGE_INTEGER, PSTR, PWSTR,
+                                       ULARGE_INTEGER;
 public import windows.windowsandmessaging : HWND, LPARAM;
 public import windows.windowspropertiessystem : PROPERTYKEY;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -1959,6 +1960,11 @@ alias YIELDPROC = uint function(uint mciId, uint dwYieldData);
 // Structs
 
 
+struct HTASK
+{
+    ptrdiff_t Value;
+}
+
 struct MCI_GENERIC_PARMS
 {
 align (1):
@@ -1968,21 +1974,21 @@ align (1):
 struct MCI_OPEN_PARMSA
 {
 align (1):
-    size_t       dwCallback;
-    uint         wDeviceID;
-    const(char)* lpstrDeviceType;
-    const(char)* lpstrElementName;
-    const(char)* lpstrAlias;
+    size_t      dwCallback;
+    uint        wDeviceID;
+    const(PSTR) lpstrDeviceType;
+    const(PSTR) lpstrElementName;
+    const(PSTR) lpstrAlias;
 }
 
 struct MCI_OPEN_PARMSW
 {
 align (1):
-    size_t        dwCallback;
-    uint          wDeviceID;
-    const(wchar)* lpstrDeviceType;
-    const(wchar)* lpstrElementName;
-    const(wchar)* lpstrAlias;
+    size_t       dwCallback;
+    uint         wDeviceID;
+    const(PWSTR) lpstrDeviceType;
+    const(PWSTR) lpstrElementName;
+    const(PWSTR) lpstrAlias;
 }
 
 struct MCI_PLAY_PARMS
@@ -2012,17 +2018,17 @@ align (1):
 struct MCI_INFO_PARMSA
 {
 align (1):
-    size_t       dwCallback;
-    const(char)* lpstrReturn;
-    uint         dwRetSize;
+    size_t dwCallback;
+    PSTR   lpstrReturn;
+    uint   dwRetSize;
 }
 
 struct MCI_INFO_PARMSW
 {
 align (1):
-    size_t        dwCallback;
-    const(wchar)* lpstrReturn;
-    uint          dwRetSize;
+    size_t dwCallback;
+    PWSTR  lpstrReturn;
+    uint   dwRetSize;
 }
 
 struct MCI_GETDEVCAPS_PARMS
@@ -2036,21 +2042,21 @@ align (1):
 struct MCI_SYSINFO_PARMSA
 {
 align (1):
-    size_t       dwCallback;
-    const(char)* lpstrReturn;
-    uint         dwRetSize;
-    uint         dwNumber;
-    uint         wDeviceType;
+    size_t dwCallback;
+    PSTR   lpstrReturn;
+    uint   dwRetSize;
+    uint   dwNumber;
+    uint   wDeviceType;
 }
 
 struct MCI_SYSINFO_PARMSW
 {
 align (1):
-    size_t        dwCallback;
-    const(wchar)* lpstrReturn;
-    uint          dwRetSize;
-    uint          dwNumber;
-    uint          wDeviceType;
+    size_t dwCallback;
+    PWSTR  lpstrReturn;
+    uint   dwRetSize;
+    uint   dwNumber;
+    uint   wDeviceType;
 }
 
 struct MCI_SET_PARMS
@@ -2072,29 +2078,29 @@ align (1):
 struct MCI_SAVE_PARMSA
 {
 align (1):
-    size_t       dwCallback;
-    const(char)* lpfilename;
+    size_t      dwCallback;
+    const(PSTR) lpfilename;
 }
 
 struct MCI_SAVE_PARMSW
 {
 align (1):
-    size_t        dwCallback;
-    const(wchar)* lpfilename;
+    size_t       dwCallback;
+    const(PWSTR) lpfilename;
 }
 
 struct MCI_LOAD_PARMSA
 {
 align (1):
-    size_t       dwCallback;
-    const(char)* lpfilename;
+    size_t      dwCallback;
+    const(PSTR) lpfilename;
 }
 
 struct MCI_LOAD_PARMSW
 {
 align (1):
-    size_t        dwCallback;
-    const(wchar)* lpfilename;
+    size_t       dwCallback;
+    const(PWSTR) lpfilename;
 }
 
 struct MCI_RECORD_PARMS
@@ -2124,37 +2130,37 @@ align (1):
 struct MCI_VD_ESCAPE_PARMSA
 {
 align (1):
-    size_t       dwCallback;
-    const(char)* lpstrCommand;
+    size_t      dwCallback;
+    const(PSTR) lpstrCommand;
 }
 
 struct MCI_VD_ESCAPE_PARMSW
 {
 align (1):
-    size_t        dwCallback;
-    const(wchar)* lpstrCommand;
+    size_t       dwCallback;
+    const(PWSTR) lpstrCommand;
 }
 
 struct MCI_WAVE_OPEN_PARMSA
 {
 align (1):
-    size_t       dwCallback;
-    uint         wDeviceID;
-    const(char)* lpstrDeviceType;
-    const(char)* lpstrElementName;
-    const(char)* lpstrAlias;
-    uint         dwBufferSeconds;
+    size_t      dwCallback;
+    uint        wDeviceID;
+    const(PSTR) lpstrDeviceType;
+    const(PSTR) lpstrElementName;
+    const(PSTR) lpstrAlias;
+    uint        dwBufferSeconds;
 }
 
 struct MCI_WAVE_OPEN_PARMSW
 {
 align (1):
-    size_t        dwCallback;
-    uint          wDeviceID;
-    const(wchar)* lpstrDeviceType;
-    const(wchar)* lpstrElementName;
-    const(wchar)* lpstrAlias;
-    uint          dwBufferSeconds;
+    size_t       dwCallback;
+    uint         wDeviceID;
+    const(PWSTR) lpstrDeviceType;
+    const(PWSTR) lpstrElementName;
+    const(PWSTR) lpstrAlias;
+    uint         dwBufferSeconds;
 }
 
 struct MCI_WAVE_DELETE_PARMS
@@ -2201,25 +2207,25 @@ align (1):
 struct MCI_ANIM_OPEN_PARMSA
 {
 align (1):
-    size_t       dwCallback;
-    uint         wDeviceID;
-    const(char)* lpstrDeviceType;
-    const(char)* lpstrElementName;
-    const(char)* lpstrAlias;
-    uint         dwStyle;
-    HWND         hWndParent;
+    size_t      dwCallback;
+    uint        wDeviceID;
+    const(PSTR) lpstrDeviceType;
+    const(PSTR) lpstrElementName;
+    const(PSTR) lpstrAlias;
+    uint        dwStyle;
+    HWND        hWndParent;
 }
 
 struct MCI_ANIM_OPEN_PARMSW
 {
 align (1):
-    size_t        dwCallback;
-    uint          wDeviceID;
-    const(wchar)* lpstrDeviceType;
-    const(wchar)* lpstrElementName;
-    const(wchar)* lpstrAlias;
-    uint          dwStyle;
-    HWND          hWndParent;
+    size_t       dwCallback;
+    uint         wDeviceID;
+    const(PWSTR) lpstrDeviceType;
+    const(PWSTR) lpstrElementName;
+    const(PWSTR) lpstrAlias;
+    uint         dwStyle;
+    HWND         hWndParent;
 }
 
 struct MCI_ANIM_PLAY_PARMS
@@ -2241,19 +2247,19 @@ align (1):
 struct MCI_ANIM_WINDOW_PARMSA
 {
 align (1):
-    size_t       dwCallback;
-    HWND         hWnd;
-    uint         nCmdShow;
-    const(char)* lpstrText;
+    size_t      dwCallback;
+    HWND        hWnd;
+    uint        nCmdShow;
+    const(PSTR) lpstrText;
 }
 
 struct MCI_ANIM_WINDOW_PARMSW
 {
 align (1):
-    size_t        dwCallback;
-    HWND          hWnd;
-    uint          nCmdShow;
-    const(wchar)* lpstrText;
+    size_t       dwCallback;
+    HWND         hWnd;
+    uint         nCmdShow;
+    const(PWSTR) lpstrText;
 }
 
 struct MCI_ANIM_RECT_PARMS
@@ -2274,43 +2280,43 @@ align (1):
 struct MCI_OVLY_OPEN_PARMSA
 {
 align (1):
-    size_t       dwCallback;
-    uint         wDeviceID;
-    const(char)* lpstrDeviceType;
-    const(char)* lpstrElementName;
-    const(char)* lpstrAlias;
-    uint         dwStyle;
-    HWND         hWndParent;
+    size_t      dwCallback;
+    uint        wDeviceID;
+    const(PSTR) lpstrDeviceType;
+    const(PSTR) lpstrElementName;
+    const(PSTR) lpstrAlias;
+    uint        dwStyle;
+    HWND        hWndParent;
 }
 
 struct MCI_OVLY_OPEN_PARMSW
 {
 align (1):
-    size_t        dwCallback;
-    uint          wDeviceID;
-    const(wchar)* lpstrDeviceType;
-    const(wchar)* lpstrElementName;
-    const(wchar)* lpstrAlias;
-    uint          dwStyle;
-    HWND          hWndParent;
+    size_t       dwCallback;
+    uint         wDeviceID;
+    const(PWSTR) lpstrDeviceType;
+    const(PWSTR) lpstrElementName;
+    const(PWSTR) lpstrAlias;
+    uint         dwStyle;
+    HWND         hWndParent;
 }
 
 struct MCI_OVLY_WINDOW_PARMSA
 {
 align (1):
-    size_t       dwCallback;
-    HWND         hWnd;
-    uint         nCmdShow;
-    const(char)* lpstrText;
+    size_t      dwCallback;
+    HWND        hWnd;
+    uint        nCmdShow;
+    const(PSTR) lpstrText;
 }
 
 struct MCI_OVLY_WINDOW_PARMSW
 {
 align (1):
-    size_t        dwCallback;
-    HWND          hWnd;
-    uint          nCmdShow;
-    const(wchar)* lpstrText;
+    size_t       dwCallback;
+    HWND         hWnd;
+    uint         nCmdShow;
+    const(PWSTR) lpstrText;
 }
 
 struct MCI_OVLY_RECT_PARMS
@@ -2323,33 +2329,33 @@ align (1):
 struct MCI_OVLY_SAVE_PARMSA
 {
 align (1):
-    size_t       dwCallback;
-    const(char)* lpfilename;
-    RECT         rc;
+    size_t      dwCallback;
+    const(PSTR) lpfilename;
+    RECT        rc;
 }
 
 struct MCI_OVLY_SAVE_PARMSW
 {
 align (1):
-    size_t        dwCallback;
-    const(wchar)* lpfilename;
-    RECT          rc;
+    size_t       dwCallback;
+    const(PWSTR) lpfilename;
+    RECT         rc;
 }
 
 struct MCI_OVLY_LOAD_PARMSA
 {
 align (1):
-    size_t       dwCallback;
-    const(char)* lpfilename;
-    RECT         rc;
+    size_t      dwCallback;
+    const(PSTR) lpfilename;
+    RECT        rc;
 }
 
 struct MCI_OVLY_LOAD_PARMSW
 {
 align (1):
-    size_t        dwCallback;
-    const(wchar)* lpfilename;
-    RECT          rc;
+    size_t       dwCallback;
+    const(PWSTR) lpfilename;
+    RECT         rc;
 }
 
 struct KSPRIORITY
@@ -2360,9 +2366,9 @@ struct KSPRIORITY
 
 struct KSIDENTIFIER
 {
-    union
+union
     {
-        struct
+struct
         {
             GUID Set;
             uint Id;
@@ -2418,12 +2424,12 @@ struct KSPROPERTY_MEMBERSHEADER
 
 union KSPROPERTY_BOUNDS_LONG
 {
-    struct
+struct
     {
         int SignedMinimum;
         int SignedMaximum;
     }
-    struct
+struct
     {
         uint UnsignedMinimum;
         uint UnsignedMaximum;
@@ -2432,12 +2438,12 @@ union KSPROPERTY_BOUNDS_LONG
 
 union KSPROPERTY_BOUNDS_LONGLONG
 {
-    struct
+struct
     {
         long SignedMinimum;
         long SignedMaximum;
     }
-    struct
+struct
     {
         ulong UnsignedMinimum;
         ulong UnsignedMaximum;
@@ -2460,20 +2466,20 @@ struct KSPROPERTY_STEPPING_LONGLONG
 struct KSEVENTDATA
 {
     uint NotificationType;
-    union
+union
     {
-        struct EventHandle
+struct EventHandle
         {
             HANDLE    Event;
             size_t[2] Reserved;
         }
-        struct SemaphoreHandle
+struct SemaphoreHandle
         {
             HANDLE Semaphore;
             uint   Reserved;
             int    Adjustment;
         }
-        struct Alignment
+struct Alignment
         {
             void*        Unused;
             ptrdiff_t[2] Alignment;
@@ -2492,7 +2498,7 @@ struct KSRELATIVEEVENT
 {
     uint         Size;
     uint         Flags;
-    union
+union
     {
         HANDLE ObjectHandle;
         void*  ObjectPointer;
@@ -2575,7 +2581,7 @@ struct KSP_PIN
 {
     KSIDENTIFIER Property;
     uint         PinId;
-    union
+union
     {
         uint Reserved;
         uint Flags;
@@ -2597,7 +2603,7 @@ struct KSPIN_CINSTANCES
 
 union KSDATAFORMAT
 {
-    struct
+struct
     {
         uint FormatSize;
         uint Flags;
@@ -2635,7 +2641,7 @@ struct KSPIN_PHYSICALCONNECTION
 
 struct KSALLOCATOR_FRAMING
 {
-    union
+union
     {
         uint OptionsFlags;
         uint RequirementsFlags;
@@ -2643,7 +2649,7 @@ struct KSALLOCATOR_FRAMING
     uint PoolType;
     uint Frames;
     uint FrameSize;
-    union
+union
     {
         uint FileAlignment;
         int  FramePitch;
@@ -2680,7 +2686,7 @@ struct KS_FRAMING_ITEM
     uint             BusFlags;
     uint             Flags;
     uint             Frames;
-    union
+union
     {
         uint FileAlignment;
         int  FramePitch;
@@ -2746,9 +2752,9 @@ struct KSSTREAM_UVC_METADATATYPE_TIMESTAMP
 {
     uint   PresentationTimeStamp;
     uint   SourceClockReference;
-    union
+union
     {
-        struct
+struct
         {
             ushort _bitfield2;
         }
@@ -2850,7 +2856,7 @@ struct KSPROPERTY_SERIAL
 
 union MF_MDL_SHARED_PAYLOAD_KEY
 {
-    struct combined
+struct combined
     {
         uint  pHandle;
         uint  fHandle;
@@ -2966,17 +2972,17 @@ struct KSAUDIO_MIC_ARRAY_GEOMETRY
 
 struct DS3DVECTOR
 {
-    union
+union
     {
         float x;
         float dvX;
     }
-    union
+union
     {
         float y;
         float dvY;
     }
-    union
+union
     {
         float z;
         float dvZ;
@@ -3249,7 +3255,7 @@ struct KSAUDIO_MIX_CAPS
     BOOL Mute;
     int  Minimum;
     int  Maximum;
-    union
+union
     {
         int Reset;
         int Resolution;
@@ -3594,7 +3600,7 @@ struct KS_VIDEOINFO
     uint                dwBitErrorRate;
     long                AvgTimePerFrame;
     KS_BITMAPINFOHEADER bmiHeader;
-    union
+union
     {
         KS_RGBQUAD[256]      bmiColors;
         uint[3]              dwBitMasks;
@@ -3645,7 +3651,7 @@ struct KS_VIDEOINFOHEADER2
     uint                dwCopyProtectFlags;
     uint                dwPictAspectRatioX;
     uint                dwPictAspectRatioY;
-    union
+union
     {
         uint dwControlFlags;
         uint dwReserved1;
@@ -4106,15 +4112,15 @@ struct KS_FRAME_INFO
     HANDLE hDirectDraw;
     HANDLE hSurfaceHandle;
     RECT   DirectDrawRect;
-    union
+union
     {
         int  lSurfacePitch;
         uint Reserved1;
     }
     uint   Reserved2;
-    union
+union
     {
-        struct
+struct
         {
             uint Reserved3;
             uint Reserved4;
@@ -4431,7 +4437,7 @@ struct KSPROPERTY_CAMERACONTROL_REGION_OF_INTEREST_S
     BOOL AutoFocusLock;
     BOOL AutoExposureLock;
     BOOL AutoWhitebalanceLock;
-    union
+union
     {
         uint Capabilities;
         uint Configuration;
@@ -4456,7 +4462,7 @@ struct KSCAMERA_EXTENDEDPROP_HEADER
 
 struct KSCAMERA_EXTENDEDPROP_VALUE
 {
-    union Value
+union Value
     {
         double         dbl;
         ulong          ull;
@@ -4675,12 +4681,12 @@ struct KSCAMERA_EXTENDEDPROP_PROFILE
 
 struct KSCAMERA_PROFILE_MEDIAINFO
 {
-    struct Resolution
+struct Resolution
     {
         uint X;
         uint Y;
     }
-    struct MaxFrameRate
+struct MaxFrameRate
     {
         uint Numerator;
         uint Denominator;
@@ -4695,9 +4701,9 @@ struct KSCAMERA_PROFILE_MEDIAINFO
 struct KSCAMERA_PROFILE_PININFO
 {
     GUID PinCategory;
-    union
+union
     {
-        struct
+struct
         {
             ushort PinIndex;
             ushort ProfileSensorType;
@@ -4728,9 +4734,9 @@ struct KSDEVICE_PROFILE_INFO
 {
     uint Type;
     uint Size;
-    union
+union
     {
-        struct Camera
+struct Camera
         {
             KSCAMERA_PROFILE_INFO Info;
             uint Reserved;
@@ -4784,7 +4790,7 @@ struct DEVCAPS
 struct KSPROPERTY_EXTDEVICE_S
 {
     KSIDENTIFIER Property;
-    union u
+union u
     {
         DEVCAPS     Capabilities;
         uint        DevPort;
@@ -4876,14 +4882,14 @@ struct TRANSPORT_STATE
 struct KSPROPERTY_EXTXPORT_S
 {
     KSIDENTIFIER Property;
-    union u
+union u
     {
         uint            Capabilities;
         uint            SignalMode;
         uint            LoadMedium;
         MEDIUM_INFO     MediumInfo;
         TRANSPORT_STATE XPrtState;
-        struct Timecode
+struct Timecode
         {
             ubyte frame;
             ubyte second;
@@ -4892,7 +4898,7 @@ struct KSPROPERTY_EXTXPORT_S
         }
         uint            dwTimecode;
         uint            dwAbsTrackNumber;
-        struct RawAVC
+struct RawAVC
         {
             uint       PayloadSize;
             ubyte[512] Payload;
@@ -4903,14 +4909,14 @@ struct KSPROPERTY_EXTXPORT_S
 struct KSPROPERTY_EXTXPORT_NODE_S
 {
     KSP_NODE NodeProperty;
-    union u
+union u
     {
         uint            Capabilities;
         uint            SignalMode;
         uint            LoadMedium;
         MEDIUM_INFO     MediumInfo;
         TRANSPORT_STATE XPrtState;
-        struct Timecode
+struct Timecode
         {
             ubyte frame;
             ubyte second;
@@ -4919,7 +4925,7 @@ struct KSPROPERTY_EXTXPORT_NODE_S
         }
         uint            dwTimecode;
         uint            dwAbsTrackNumber;
-        struct RawAVC
+struct RawAVC
         {
             uint       PayloadSize;
             ubyte[512] Payload;
@@ -5299,9 +5305,9 @@ struct KSAUDIOMODULE_PROPERTY
 
 struct KSAUDIOMODULE_NOTIFICATION
 {
-    union
+union
     {
-        struct ProviderId
+struct ProviderId
         {
             GUID DeviceId;
             GUID ClassId;
@@ -5594,36 +5600,34 @@ uint mciSendCommandA(uint mciId, uint uMsg, size_t dwParam1, size_t dwParam2);
 uint mciSendCommandW(uint mciId, uint uMsg, size_t dwParam1, size_t dwParam2);
 
 @DllImport("WINMM")
-uint mciSendStringA(const(char)* lpstrCommand, const(char)* lpstrReturnString, uint uReturnLength, 
-                    HWND hwndCallback);
+uint mciSendStringA(const(PSTR) lpstrCommand, PSTR lpstrReturnString, uint uReturnLength, HWND hwndCallback);
 
 @DllImport("WINMM")
-uint mciSendStringW(const(wchar)* lpstrCommand, const(wchar)* lpstrReturnString, uint uReturnLength, 
-                    HWND hwndCallback);
+uint mciSendStringW(const(PWSTR) lpstrCommand, PWSTR lpstrReturnString, uint uReturnLength, HWND hwndCallback);
 
 @DllImport("WINMM")
-uint mciGetDeviceIDA(const(char)* pszDevice);
+uint mciGetDeviceIDA(const(PSTR) pszDevice);
 
 @DllImport("WINMM")
-uint mciGetDeviceIDW(const(wchar)* pszDevice);
+uint mciGetDeviceIDW(const(PWSTR) pszDevice);
 
 @DllImport("WINMM")
-uint mciGetDeviceIDFromElementIDA(uint dwElementID, const(char)* lpstrType);
+uint mciGetDeviceIDFromElementIDA(uint dwElementID, const(PSTR) lpstrType);
 
 @DllImport("WINMM")
-uint mciGetDeviceIDFromElementIDW(uint dwElementID, const(wchar)* lpstrType);
+uint mciGetDeviceIDFromElementIDW(uint dwElementID, const(PWSTR) lpstrType);
 
 @DllImport("WINMM")
-BOOL mciGetErrorStringA(uint mcierr, const(char)* pszText, uint cchText);
+BOOL mciGetErrorStringA(uint mcierr, PSTR pszText, uint cchText);
 
 @DllImport("WINMM")
-BOOL mciGetErrorStringW(uint mcierr, const(wchar)* pszText, uint cchText);
+BOOL mciGetErrorStringW(uint mcierr, PWSTR pszText, uint cchText);
 
 @DllImport("WINMM")
 BOOL mciSetYieldProc(uint mciId, YIELDPROC fpYieldProc, uint dwYieldData);
 
 @DllImport("WINMM")
-ptrdiff_t mciGetCreatorTask(uint mciId);
+HTASK mciGetCreatorTask(uint mciId);
 
 @DllImport("WINMM")
 YIELDPROC mciGetYieldProc(uint mciId, uint* pdwYieldData);
@@ -5632,7 +5636,7 @@ YIELDPROC mciGetYieldProc(uint mciId, uint* pdwYieldData);
 size_t mciGetDriverData(uint wDeviceID);
 
 @DllImport("WINMM")
-uint mciLoadCommandResource(HANDLE hInstance, const(wchar)* lpResName, uint wType);
+uint mciLoadCommandResource(HANDLE hInstance, const(PWSTR) lpResName, uint wType);
 
 @DllImport("WINMM")
 BOOL mciSetDriverData(uint wDeviceID, size_t dwData);
@@ -5647,31 +5651,29 @@ BOOL mciDriverNotify(HANDLE hwndCallback, uint wDeviceID, uint uStatus);
 BOOL mciFreeCommandResource(uint wTable);
 
 @DllImport("ksuser")
-uint KsCreateAllocator(HANDLE ConnectionHandle, KSALLOCATOR_FRAMING* AllocatorFraming, ptrdiff_t* AllocatorHandle);
+uint KsCreateAllocator(HANDLE ConnectionHandle, KSALLOCATOR_FRAMING* AllocatorFraming, HANDLE* AllocatorHandle);
 
 @DllImport("ksuser")
-uint KsCreateClock(HANDLE ConnectionHandle, KSCLOCK_CREATE* ClockCreate, ptrdiff_t* ClockHandle);
+uint KsCreateClock(HANDLE ConnectionHandle, KSCLOCK_CREATE* ClockCreate, HANDLE* ClockHandle);
 
 @DllImport("ksuser")
-uint KsCreatePin(HANDLE FilterHandle, KSPIN_CONNECT* Connect, uint DesiredAccess, ptrdiff_t* ConnectionHandle);
+uint KsCreatePin(HANDLE FilterHandle, KSPIN_CONNECT* Connect, uint DesiredAccess, HANDLE* ConnectionHandle);
 
 @DllImport("ksuser")
-uint KsCreateTopologyNode(HANDLE ParentHandle, KSNODE_CREATE* NodeCreate, uint DesiredAccess, 
-                          ptrdiff_t* NodeHandle);
+uint KsCreateTopologyNode(HANDLE ParentHandle, KSNODE_CREATE* NodeCreate, uint DesiredAccess, HANDLE* NodeHandle);
 
 @DllImport("ksuser")
-HRESULT KsCreateAllocator2(HANDLE ConnectionHandle, KSALLOCATOR_FRAMING* AllocatorFraming, 
-                           ptrdiff_t* AllocatorHandle);
+HRESULT KsCreateAllocator2(HANDLE ConnectionHandle, KSALLOCATOR_FRAMING* AllocatorFraming, HANDLE* AllocatorHandle);
 
 @DllImport("ksuser")
-HRESULT KsCreateClock2(HANDLE ConnectionHandle, KSCLOCK_CREATE* ClockCreate, ptrdiff_t* ClockHandle);
+HRESULT KsCreateClock2(HANDLE ConnectionHandle, KSCLOCK_CREATE* ClockCreate, HANDLE* ClockHandle);
 
 @DllImport("ksuser")
-HRESULT KsCreatePin2(HANDLE FilterHandle, KSPIN_CONNECT* Connect, uint DesiredAccess, ptrdiff_t* ConnectionHandle);
+HRESULT KsCreatePin2(HANDLE FilterHandle, KSPIN_CONNECT* Connect, uint DesiredAccess, HANDLE* ConnectionHandle);
 
 @DllImport("ksuser")
 HRESULT KsCreateTopologyNode2(HANDLE ParentHandle, KSNODE_CREATE* NodeCreate, uint DesiredAccess, 
-                              ptrdiff_t* NodeHandle);
+                              HANDLE* NodeHandle);
 
 ///Enables Windows Store apps to access preexisting Component Object Model (COM) interfaces in the WASAPI family.
 ///Params:
@@ -5696,7 +5698,7 @@ HRESULT KsCreateTopologyNode2(HANDLE ParentHandle, KSNODE_CREATE* NodeCreate, ui
 ///    agile object (aggregating a free-threaded marshaler). </td> </tr> </table>
 ///    
 @DllImport("MMDevAPI")
-HRESULT ActivateAudioInterfaceAsync(const(wchar)* deviceInterfacePath, const(GUID)* riid, 
+HRESULT ActivateAudioInterfaceAsync(const(PWSTR) deviceInterfacePath, const(GUID)* riid, 
                                     PROPVARIANT* activationParams, 
                                     IActivateAudioInterfaceCompletionHandler completionHandler, 
                                     IActivateAudioInterfaceAsyncOperation* activationOperation);
@@ -7601,7 +7603,7 @@ interface IAudioClient2 : IAudioClient
     ///    The <b>IsOffloadCapable</b> method returns <b>S_OK</b> to indicate that it has completed successfully.
     ///    Otherwise it returns an appropriate error code.
     ///    
-    HRESULT IsOffloadCapable(AUDIO_STREAM_CATEGORY Category, int* pbOffloadCapable);
+    HRESULT IsOffloadCapable(AUDIO_STREAM_CATEGORY Category, BOOL* pbOffloadCapable);
     ///Sets the properties of the audio stream by populating an AudioClientProperties structure.
     ///Params:
     ///    pProperties = Pointer to an AudioClientProperties structure.
@@ -8108,7 +8110,7 @@ interface ISimpleAudioVolume : IUnknown
     ///    <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is
     ///    not running. </td> </tr> </table>
     ///    
-    HRESULT SetMute(const(int) bMute, GUID* EventContext);
+    HRESULT SetMute(const(BOOL) bMute, GUID* EventContext);
     ///The <b>GetMute</b> method retrieves the current muting state for the audio session.
     ///Params:
     ///    pbMute = Pointer to a <b>BOOL</b> variable into which the method writes the muting state. <b>TRUE</b> indicates that
@@ -8123,7 +8125,7 @@ interface ISimpleAudioVolume : IUnknown
     ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows
     ///    audio service is not running. </td> </tr> </table>
     ///    
-    HRESULT GetMute(int* pbMute);
+    HRESULT GetMute(BOOL* pbMute);
 }
 
 ///The <b>IAudioStreamVolume</b> interface enables a client to control and monitor the volume levels for all of the
@@ -8216,7 +8218,7 @@ interface IAudioStreamVolume : IUnknown
     ///    <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is not
     ///    running. </td> </tr> </table>
     ///    
-    HRESULT SetAllVolumes(uint dwCount, char* pfVolumes);
+    HRESULT SetAllVolumes(uint dwCount, const(float)* pfVolumes);
     ///The <b>GetAllVolumes</b> method retrieves the volume levels for all the channels in the audio stream.
     ///Params:
     ///    dwCount = The number of elements in the <i>pfVolumes</i> array. The <i>dwCount</i> parameter must equal the number of
@@ -8237,15 +8239,15 @@ interface IAudioStreamVolume : IUnknown
     ///    <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is
     ///    not running. </td> </tr> </table>
     ///    
-    HRESULT GetAllVolumes(uint dwCount, char* pfVolumes);
+    HRESULT GetAllVolumes(uint dwCount, float* pfVolumes);
 }
 
 @GUID("28724C91-DF35-4856-9F76-D6A26413F3DF")
 interface IAudioAmbisonicsControl : IUnknown
 {
-    HRESULT SetData(char* pAmbisonicsParams, uint cbAmbisonicsParams);
+    HRESULT SetData(const(AMBISONICS_PARAMS)* pAmbisonicsParams, uint cbAmbisonicsParams);
     HRESULT SetHeadTracking(BOOL bEnableHeadTracking);
-    HRESULT GetHeadTracking(int* pbEnableHeadTracking);
+    HRESULT GetHeadTracking(BOOL* pbEnableHeadTracking);
     HRESULT SetRotation(float X, float Y, float Z, float W);
 }
 
@@ -8365,7 +8367,7 @@ interface IChannelAudioVolume : IUnknown
     ///    <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is
     ///    not running. </td> </tr> </table>
     ///    
-    HRESULT SetAllVolumes(uint dwCount, char* pfVolumes, GUID* EventContext);
+    HRESULT SetAllVolumes(uint dwCount, const(float)* pfVolumes, GUID* EventContext);
     ///The <b>GetAllVolumes</b> method retrieves the volume levels for all the channels in the audio session.
     ///Params:
     ///    dwCount = The number of elements in the <i>pfVolumes</i> array. The <i>dwCount</i> parameter must equal the number of
@@ -8386,7 +8388,7 @@ interface IChannelAudioVolume : IUnknown
     ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows
     ///    audio service is not running. </td> </tr> </table>
     ///    
-    HRESULT GetAllVolumes(uint dwCount, char* pfVolumes);
+    HRESULT GetAllVolumes(uint dwCount, float* pfVolumes);
 }
 
 ///Provides a list of supported audio formats. The most preferred format is first in the list. Get a reference to this
@@ -8468,7 +8470,7 @@ interface ISpatialAudioObjectBase : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK.
     ///    
-    HRESULT IsActive(int* isActive);
+    HRESULT IsActive(BOOL* isActive);
     ///Gets a value specifying the type of audio object that is represented by the ISpatialAudioObject. This value
     ///indicates if the object is dynamic or static. If the object is static, one and only one of the static audio
     ///channel values to which the object is assigned is returned.
@@ -9044,7 +9046,7 @@ interface IMMNotificationClient : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an error code.
     ///    
-    HRESULT OnDeviceStateChanged(const(wchar)* pwstrDeviceId, uint dwNewState);
+    HRESULT OnDeviceStateChanged(const(PWSTR) pwstrDeviceId, uint dwNewState);
     ///The <b>OnDeviceAdded</b> method indicates that a new audio endpoint device has been added.
     ///Params:
     ///    pwstrDeviceId = Pointer to the endpoint ID string that identifies the audio endpoint device. This parameter points to a
@@ -9053,7 +9055,7 @@ interface IMMNotificationClient : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an error code.
     ///    
-    HRESULT OnDeviceAdded(const(wchar)* pwstrDeviceId);
+    HRESULT OnDeviceAdded(const(PWSTR) pwstrDeviceId);
     ///The <b>OnDeviceRemoved</b> method indicates that an audio endpoint device has been removed.
     ///Params:
     ///    pwstrDeviceId = Pointer to the endpoint ID string that identifies the audio endpoint device. This parameter points to a
@@ -9062,7 +9064,7 @@ interface IMMNotificationClient : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an error code.
     ///    
-    HRESULT OnDeviceRemoved(const(wchar)* pwstrDeviceId);
+    HRESULT OnDeviceRemoved(const(PWSTR) pwstrDeviceId);
     ///The <b>OnDefaultDeviceChanged</b> method notifies the client that the default audio endpoint device for a
     ///particular device role has changed.
     ///Params:
@@ -9078,7 +9080,7 @@ interface IMMNotificationClient : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an error code.
     ///    
-    HRESULT OnDefaultDeviceChanged(EDataFlow flow, ERole role, const(wchar)* pwstrDefaultDeviceId);
+    HRESULT OnDefaultDeviceChanged(EDataFlow flow, ERole role, const(PWSTR) pwstrDefaultDeviceId);
     ///The <b>OnPropertyValueChanged</b> method indicates that the value of a property belonging to an audio endpoint
     ///device has changed.
     ///Params:
@@ -9091,7 +9093,7 @@ interface IMMNotificationClient : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an error code.
     ///    
-    HRESULT OnPropertyValueChanged(const(wchar)* pwstrDeviceId, const(PROPERTYKEY) key);
+    HRESULT OnPropertyValueChanged(const(PWSTR) pwstrDeviceId, const(PROPERTYKEY) key);
 }
 
 ///The <b>IMMDevice</b> interface encapsulates the generic features of a multimedia device resource. In the current
@@ -9178,7 +9180,7 @@ interface IMMDevice : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pwstrId</i> is
     ///    <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetId(ushort** ppstrId);
+    HRESULT GetId(PWSTR* ppstrId);
     ///The <b>GetState</b> method retrieves the current device state.
     ///Params:
     ///    pdwState = Pointer to a <b>DWORD</b> variable into which the method writes the current state of the device. The
@@ -9335,7 +9337,7 @@ interface IMMDeviceEnumerator : IUnknown
     ///    width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Out of memory. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetDevice(const(wchar)* pwstrId, IMMDevice* ppDevice);
+    HRESULT GetDevice(const(PWSTR) pwstrId, IMMDevice* ppDevice);
     ///The <b>RegisterEndpointNotificationCallback</b> method registers a client's notification callback interface.
     ///Params:
     ///    pClient = Pointer to the IMMNotificationClient interface that the client is registering for notification callbacks.
@@ -9401,7 +9403,7 @@ interface IActivateAudioInterfaceAsyncOperation : IUnknown
     ///    <dt><b>E_ILLEGAL_METHOD_CALL</b></dt> </dl> </td> <td width="60%"> The method was called before the
     ///    asynchronous operation was complete. </td> </tr> </table>
     ///    
-    HRESULT GetActivateResult(int* activateResult, IUnknown* activatedInterface);
+    HRESULT GetActivateResult(HRESULT* activateResult, IUnknown* activatedInterface);
 }
 
 ///The <b>IAudioEndpointOffloadStreamVolume</b> interface allows the client application to manipulate the volume level
@@ -9538,7 +9540,7 @@ interface IAudioLfxControl : IUnknown
     ///    The <b>GetLocalEffectsState</b> method returns <b>S_OK</b> to indicate that it has completed successfully.
     ///    Otherwise it returns an appropriate error code.
     ///    
-    HRESULT GetLocalEffectsState(int* pbEnabled);
+    HRESULT GetLocalEffectsState(BOOL* pbEnabled);
 }
 
 ///The <b>IHardwareAudioEngineBase</b> interface is implemented by audio endpoints for the audio stack to use to
@@ -9556,7 +9558,7 @@ interface IHardwareAudioEngineBase : IUnknown
     ///    The <b>GetAvailableOffloadConnectorCount</b> method returns <b>S_OK</b> to indicate that it has completed
     ///    successfully. Otherwise it returns an appropriate error code.
     ///    
-    HRESULT GetAvailableOffloadConnectorCount(const(wchar)* _pwstrDeviceId, uint _uConnectorId, 
+    HRESULT GetAvailableOffloadConnectorCount(PWSTR _pwstrDeviceId, uint _uConnectorId, 
                                               uint* _pAvailableConnectorInstanceCount);
     ///The <b>GetEngineFormat</b> method retrieves the current data format of the offloaded audio stream.
     ///Params:
@@ -9597,7 +9599,7 @@ interface IHardwareAudioEngineBase : IUnknown
     ///    The <b>GetGfxState</b> method returns S_OK to indicate that it has completed successfully. Otherwise it
     ///    returns an appropriate error code.
     ///    
-    HRESULT GetGfxState(IMMDevice pDevice, int* _pbEnable);
+    HRESULT GetGfxState(IMMDevice pDevice, BOOL* _pbEnable);
 }
 
 ///The <b>IPerChannelDbLevel</b> interface represents a generic subunit control interface that provides per-channel
@@ -9717,7 +9719,7 @@ interface IPerChannelDbLevel : IUnknown
     ///    </td> <td width="60%"> Pointer <i>aLevelsDB</i> is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Out of memory. </td> </tr> </table>
     ///    
-    HRESULT SetLevelAllChannels(char* aLevelsDB, uint cChannels, GUID* pguidEventContext);
+    HRESULT SetLevelAllChannels(float* aLevelsDB, uint cChannels, GUID* pguidEventContext);
 }
 
 ///The <b>IAudioVolumeLevel</b> interface provides access to a hardware volume control. The client obtains a reference
@@ -9809,7 +9811,7 @@ interface IAudioLoudness : IUnknown
     ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>pbEnabled</i> is
     ///    <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetEnabled(int* pbEnabled);
+    HRESULT GetEnabled(BOOL* pbEnabled);
     ///The <b>SetEnabled</b> method enables or disables the loudness control.
     ///Params:
     ///    bEnable = The new loudness state. If <i>bEnable</i> is <b>TRUE</b> (nonzero), the method enables loudness. If
@@ -9961,7 +9963,7 @@ interface IAudioMute : IUnknown
     ///    <table> <tr> <th>Return code </th> <th>Description </th> </tr> <tr> <td>E_POINTER</td> <td>Pointer
     ///    <i>pbMuted</i> is <b>NULL</b>.</td> </tr> </table>
     ///    
-    HRESULT GetMute(int* pbMuted);
+    HRESULT GetMute(BOOL* pbMuted);
 }
 
 ///The <b>IAudioBass</b> interface provides access to a hardware bass-level control. The client obtains a reference to
@@ -10034,7 +10036,7 @@ interface IAudioAutoGainControl : IUnknown
     ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>pbEnabled</i> is
     ///    <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetEnabled(int* pbEnabled);
+    HRESULT GetEnabled(BOOL* pbEnabled);
     ///The <b>SetEnabled</b> method enables or disables the AGC.
     ///Params:
     ///    bEnable = The new AGC state. If this parameter is <b>TRUE</b> (nonzero), the method enables AGC. If <b>FALSE</b>, it
@@ -10216,7 +10218,7 @@ interface IKsFormatSupport : IUnknown
     ///    <i>pbSupported</i> is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl>
     ///    </td> <td width="60%"> The format specifier is not valid. </td> </tr> </table>
     ///    
-    HRESULT IsFormatSupported(KSDATAFORMAT* pKsFormat, uint cbFormat, int* pbSupported);
+    HRESULT IsFormatSupported(KSDATAFORMAT* pKsFormat, uint cbFormat, BOOL* pbSupported);
     ///The <b>GetDevicePreferredFormat</b> method gets the preferred audio stream format for the connection.
     ///Params:
     ///    ppKsFormat = Pointer to a pointer variable into which the method writes the address of a buffer that contains the format
@@ -10422,7 +10424,7 @@ interface IPart : IUnknown
     ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>ppwstrName</i> is
     ///    <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetName(ushort** ppwstrName);
+    HRESULT GetName(PWSTR* ppwstrName);
     ///The <b>GetLocalId</b> method gets the local ID of this part.
     ///Params:
     ///    pnId = Pointer to a <b>UINT</b> variable into which the method writes the local ID of this part.
@@ -10447,7 +10449,7 @@ interface IPart : IUnknown
     ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td
     ///    width="60%"> Out of memory. </td> </tr> </table>
     ///    
-    HRESULT GetGlobalId(ushort** ppwstrGlobalId);
+    HRESULT GetGlobalId(PWSTR* ppwstrGlobalId);
     ///The <b>GetPartType</b> method gets the part type of this part.
     ///Params:
     ///    pPartType = Pointer to a PartType variable into which the method writes the part type. The part type is one of the
@@ -10685,7 +10687,7 @@ interface IConnector : IUnknown
     ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Pointer <i>pbConnected</i> is
     ///    <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT IsConnected(int* pbConnected);
+    HRESULT IsConnected(BOOL* pbConnected);
     ///The <b>GetConnectedTo</b> method gets the connector to which this connector is connected.
     ///Params:
     ///    ppConTo = Pointer to a pointer variable into which the method writes the address of the IConnector interface of the
@@ -10721,7 +10723,7 @@ interface IConnector : IUnknown
     ///    Parameter <i>ppwstrConnectorId</i> is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Out of memory. </td> </tr> </table>
     ///    
-    HRESULT GetConnectorIdConnectedTo(ushort** ppwstrConnectorId);
+    HRESULT GetConnectorIdConnectedTo(PWSTR* ppwstrConnectorId);
     ///The <b>GetDeviceIdConnectedTo</b> method gets the device identifier of the audio device, if any, that this
     ///connector is connected to.
     ///Params:
@@ -10739,7 +10741,7 @@ interface IConnector : IUnknown
     ///    example, a Software_IO connection). </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_MEMORY</b></dt> </dl>
     ///    </td> <td width="60%"> Out of memory. </td> </tr> </table>
     ///    
-    HRESULT GetDeviceIdConnectedTo(ushort** ppwstrDeviceId);
+    HRESULT GetDeviceIdConnectedTo(PWSTR* ppwstrDeviceId);
 }
 
 ///The <b>ISubunit</b> interface represents a hardware subunit (for example, a volume control) that lies in the data
@@ -10771,7 +10773,7 @@ interface IControlInterface : IUnknown
     ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td
     ///    width="60%"> Out of memory. </td> </tr> </table>
     ///    
-    HRESULT GetName(ushort** ppwstrName);
+    HRESULT GetName(PWSTR* ppwstrName);
     ///The <b>GetIID</b> method gets the interface ID of the function-specific control interface of the part.
     ///Params:
     ///    pIID = Pointer to a GUID variable into which the method writes the interface ID of the function-specific control
@@ -10910,7 +10912,7 @@ interface IDeviceTopology : IUnknown
     ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td
     ///    width="60%"> Out of memory. </td> </tr> </table>
     ///    
-    HRESULT GetDeviceId(ushort** ppwstrDeviceId);
+    HRESULT GetDeviceId(PWSTR* ppwstrDeviceId);
     ///The <b>GetSignalPath</b> method gets a list of parts in the signal path that links two parts, if the path exists.
     ///Params:
     ///    pIPartFrom = Pointer to the "from" part. This parameter is a pointer to the IPart interface of the part at the beginning
@@ -11250,7 +11252,7 @@ interface IAudioEndpointVolume : IUnknown
     ///    <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> Parameter <i>pbMute</i> is
     ///    <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetMute(int* pbMute);
+    HRESULT GetMute(BOOL* pbMute);
     ///The <b>GetVolumeStepInfo</b> method gets information about the current step in the volume range.
     ///Params:
     ///    pnStep = Pointer to a <b>UINT</b> variable into which the method writes the current step index. This index is a value
@@ -11457,7 +11459,7 @@ interface IAudioSessionEvents : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an error code.
     ///    
-    HRESULT OnDisplayNameChanged(const(wchar)* NewDisplayName, GUID* EventContext);
+    HRESULT OnDisplayNameChanged(const(PWSTR) NewDisplayName, GUID* EventContext);
     ///The <b>OnIconPathChanged</b> method notifies the client that the display icon for the session has changed.
     ///Params:
     ///    NewIconPath = The path for the new display icon for the session. This parameter points to a string that contains the path
@@ -11467,7 +11469,7 @@ interface IAudioSessionEvents : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an error code.
     ///    
-    HRESULT OnIconPathChanged(const(wchar)* NewIconPath, GUID* EventContext);
+    HRESULT OnIconPathChanged(const(PWSTR) NewIconPath, GUID* EventContext);
     ///The <b>OnSimpleVolumeChanged</b> method notifies the client that the volume level or muting state of the audio
     ///session has changed.
     ///Params:
@@ -11502,7 +11504,7 @@ interface IAudioSessionEvents : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an error code.
     ///    
-    HRESULT OnChannelVolumeChanged(uint ChannelCount, char* NewChannelVolumeArray, uint ChangedChannel, 
+    HRESULT OnChannelVolumeChanged(uint ChannelCount, float* NewChannelVolumeArray, uint ChangedChannel, 
                                    GUID* EventContext);
     ///The <b>OnGroupingParamChanged</b> method notifies the client that the grouping parameter for the session has
     ///changed.
@@ -11594,7 +11596,7 @@ interface IAudioSessionControl : IUnknown
     ///    <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is not
     ///    running. </td> </tr> </table>
     ///    
-    HRESULT GetDisplayName(ushort** pRetVal);
+    HRESULT GetDisplayName(PWSTR* pRetVal);
     ///The <b>SetDisplayName</b> method assigns a display name to the current session.
     ///Params:
     ///    Value = Pointer to a null-terminated, wide-character string that contains the display name for the session.
@@ -11615,7 +11617,7 @@ interface IAudioSessionControl : IUnknown
     ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows
     ///    audio service is not running. </td> </tr> </table>
     ///    
-    HRESULT SetDisplayName(const(wchar)* Value, GUID* EventContext);
+    HRESULT SetDisplayName(const(PWSTR) Value, GUID* EventContext);
     ///The <b>GetIconPath</b> method retrieves the path for the display icon for the audio session.
     ///Params:
     ///    pRetVal = Pointer to a pointer variable into which the method writes the address of a null-terminated, wide-character
@@ -11635,7 +11637,7 @@ interface IAudioSessionControl : IUnknown
     ///    <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows audio service is not
     ///    running. </td> </tr> </table>
     ///    
-    HRESULT GetIconPath(ushort** pRetVal);
+    HRESULT GetIconPath(PWSTR* pRetVal);
     ///The <b>SetIconPath</b> method assigns a display icon to the current session.
     ///Params:
     ///    Value = Pointer to a null-terminated, wide-character string that specifies the path and file name of an .ico, .dll,
@@ -11657,7 +11659,7 @@ interface IAudioSessionControl : IUnknown
     ///    <td width="40%"> <dl> <dt><b>AUDCLNT_E_SERVICE_NOT_RUNNING</b></dt> </dl> </td> <td width="60%"> The Windows
     ///    audio service is not running. </td> </tr> </table>
     ///    
-    HRESULT SetIconPath(const(wchar)* Value, GUID* EventContext);
+    HRESULT SetIconPath(const(PWSTR) Value, GUID* EventContext);
     ///The <b>GetGroupingParam</b> method retrieves the grouping parameter of the audio session.
     ///Params:
     ///    pRetVal = Output pointer for the grouping-parameter GUID. This parameter must be a valid, non-<b>NULL</b> pointer to a
@@ -11757,7 +11759,7 @@ interface IAudioSessionControl2 : IAudioSessionControl
     ///    </tr> <tr> <td width="40%"> <dl> <dt>AUDCLNT_E_DEVICE_INVALIDATED</dt> </dl> </td> <td width="60%"> The audio
     ///    session is disconnected on the default audio device. </td> </tr> </table>
     ///    
-    HRESULT GetSessionIdentifier(ushort** pRetVal);
+    HRESULT GetSessionIdentifier(PWSTR* pRetVal);
     ///The <b>GetSessionInstanceIdentifier</b> method retrieves the identifier of the audio session instance.
     ///Params:
     ///    pRetVal = Pointer to the address of a null-terminated, wide-character string that receives the identifier of a
@@ -11771,7 +11773,7 @@ interface IAudioSessionControl2 : IAudioSessionControl
     ///    </tr> <tr> <td width="40%"> <dl> <dt>AUDCLNT_E_DEVICE_INVALIDATED</dt> </dl> </td> <td width="60%"> The audio
     ///    session is disconnected on the default audio device. </td> </tr> </table>
     ///    
-    HRESULT GetSessionInstanceIdentifier(ushort** pRetVal);
+    HRESULT GetSessionInstanceIdentifier(PWSTR* pRetVal);
     ///The <b>GetProcessId</b> method retrieves the process identifier of the audio session.
     ///Params:
     ///    pRetVal = Pointer to a <b>DWORD</b> variable that receives the process identifier of the audio session.
@@ -11896,7 +11898,7 @@ interface IAudioVolumeDuckNotification : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK.
     ///    
-    HRESULT OnVolumeDuckNotification(const(wchar)* sessionID, uint countCommunicationSessions);
+    HRESULT OnVolumeDuckNotification(const(PWSTR) sessionID, uint countCommunicationSessions);
     ///The <b>OnVolumeUnduckNotification</b> method sends a notification about a pending system unducking event. For
     ///more information, see Implementation Considerations for Ducking Notifications.
     ///Params:
@@ -11906,7 +11908,7 @@ interface IAudioVolumeDuckNotification : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK.
     ///    
-    HRESULT OnVolumeUnduckNotification(const(wchar)* sessionID);
+    HRESULT OnVolumeUnduckNotification(const(PWSTR) sessionID);
 }
 
 ///The <b>IAudioSessionNotification</b> interface provides notification when an audio session is created.
@@ -12013,7 +12015,7 @@ interface IAudioSessionManager2 : IAudioSessionManager
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt>E_OUTOFMEMORY</dt> </dl> </td> <td width="60%"> Internal object
     ///    could not be created due to insufficient memory. </td> </tr> </table>
     ///    
-    HRESULT RegisterDuckNotification(const(wchar)* sessionID, IAudioVolumeDuckNotification duckNotification);
+    HRESULT RegisterDuckNotification(const(PWSTR) sessionID, IAudioVolumeDuckNotification duckNotification);
     ///The <b>UnregisterDuckNotification</b> method deletes a previous registration by the application to receive
     ///notifications.
     ///Params:
@@ -12137,7 +12139,7 @@ interface ISpatialAudioMetadataWriter : IUnknown
     ///    <dt><b>SPTLAUD_MD_CLNT_E_NO_ITEMOFFSET_WRITTEN</b></dt> </dl> </td> <td width="60%"> WriteNextItem was not
     ///    called after Open was called and before the call to <b>WriteNextItemCommand</b>. </td> </tr> </table>
     ///    
-    HRESULT WriteNextItemCommand(ubyte commandID, char* valueBuffer, uint valueBufferLength);
+    HRESULT WriteNextItemCommand(ubyte commandID, const(void)* valueBuffer, uint valueBufferLength);
     ///Completes any needed operations on the metadata buffer and releases the specified ISpatialAudioMetadataItems
     ///object.
     ///Returns:
@@ -12208,7 +12210,7 @@ interface ISpatialAudioMetadataReader : IUnknown
     ///    for writing with a call to Close. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl>
     ///    </td> <td width="60%"> One of the provided pointers is not valid. </td> </tr> </table>
     ///    
-    HRESULT ReadNextItemCommand(ubyte* commandID, char* valueBuffer, uint maxValueBufferLength, 
+    HRESULT ReadNextItemCommand(ubyte* commandID, void* valueBuffer, uint maxValueBufferLength, 
                                 uint* valueBufferLength);
     ///Completes any necessary operations on the SpatialAudioMetadataItems object and releases the object.
     ///Returns:
@@ -12303,7 +12305,7 @@ interface ISpatialAudioMetadataItemsBuffer : IUnknown
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> One of the provided pointers is not valid. The
     ///    supplied buffer is not large enough to hold the maximum number of metadata items. </td> </tr> </table>
     ///    
-    HRESULT AttachToBuffer(char* buffer, uint bufferLength);
+    HRESULT AttachToBuffer(ubyte* buffer, uint bufferLength);
     ///Attaches a previously populated buffer for storage of ISpatialAudioMetadataItems objects. The metadata items
     ///already in the buffer are retained.
     ///Params:
@@ -12327,7 +12329,7 @@ interface ISpatialAudioMetadataItemsBuffer : IUnknown
     ///    metadata items. Call GetSpatialAudioMetadataItemsBufferLength to determine the required buffer size. </td>
     ///    </tr> </table>
     ///    
-    HRESULT AttachToPopulatedBuffer(char* buffer, uint bufferLength);
+    HRESULT AttachToPopulatedBuffer(ubyte* buffer, uint bufferLength);
     ///Detaches the buffer. Memory can only be attached to a single metadata item at a time.
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, possible return codes include, but are not limited to,
@@ -12446,7 +12448,7 @@ interface ISpatialAudioObjectForMetadataCommands : ISpatialAudioObjectBase
     ///Returns:
     ///    If the method succeeds, it returns S_OK.
     ///    
-    HRESULT WriteNextMetadataCommand(ubyte commandID, char* valueBuffer, uint valueBufferLength);
+    HRESULT WriteNextMetadataCommand(ubyte commandID, void* valueBuffer, uint valueBufferLength);
 }
 
 ///Used to write spatial audio metadata for applications that require multiple metadata items per buffer with

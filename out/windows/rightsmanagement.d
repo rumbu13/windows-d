@@ -4,11 +4,11 @@ module windows.rightsmanagement;
 
 public import windows.core;
 public import windows.com : HRESULT;
-public import windows.systemservices : BOOL, FARPROC;
+public import windows.systemservices : BOOL, FARPROC, PWSTR;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : SYSTEMTIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -217,17 +217,17 @@ struct DRMID
 {
     ///Specifies the version of the structure. If you are programming in C, this should be set to <b>DRMIDVERSION</b>
     ///(0).
-    uint          uVersion;
+    uint  uVersion;
     ///A pointer to a null-terminated Unicode string that contains the ID type. If you are using this parameter to
     ///create a bound license, you must specify the same value that you set in the <i>wszIDType</i> parameter of the
     ///DRMSetMetaData function. For more information, see DRMBOUNDLICENSEPARAMS. If you are using this parameter in the
     ///DRMCreateEnablingPrincipal function, the value can be <b>NULL</b>.
-    const(wchar)* wszIDType;
+    PWSTR wszIDType;
     ///A pointer to a null-terminated Unicode string that contains the object ID. If you are using this parameter to
     ///create a bound license, you must specify the same value that you set in the <i>wszID</i> parameter of the
     ///DRMSetMetaData function. For more information, see DRMBOUNDLICENSEPARAMS. If you are using this parameter in the
     ///DRMCreateEnablingPrincipal function, the value can be <b>NULL</b>.
-    const(wchar)* wszID;
+    PWSTR wszID;
 }
 
 ///>[!Note] >The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for use in Windows
@@ -238,34 +238,34 @@ struct DRMID
 struct DRMBOUNDLICENSEPARAMS
 {
     ///Specifies the version of the structure. This member should be set to <b>DRMBOUNDLICENSEPARAMSVERSION</b>.
-    uint          uVersion;
+    uint  uVersion;
     ///A handle to an enabling principal in the end-user license that should be bound. Create this handle by using the
     ///DRMCreateEnablingPrincipal function. The default for this member is <b>NULL</b>. If <b>NULL</b> is used, the
     ///application will bind to the first principal in the license.
-    uint          hEnablingPrincipal;
+    uint  hEnablingPrincipal;
     ///Reserved for future use. This member must be set to <b>NULL</b>.
-    uint          hSecureStore;
+    uint  hSecureStore;
     ///A pointer to a null-terminated Unicode string that contains a comma-delimited list of the rights requested. This
     ///member cannot be <b>NULL</b>, and the string must contain valid rights such as EDIT and OWNER.
-    const(wchar)* wszRightsRequested;
+    PWSTR wszRightsRequested;
     ///A pointer to a null-terminated Unicode string that contains the name of the rights group to use in the license;
     ///for more information, see Remarks. This member can be set to <b>NULL</b> if it is not used.
-    const(wchar)* wszRightsGroup;
+    PWSTR wszRightsGroup;
     ///A DRMID structure that identifies the content to which you are trying to bind. You must set the <i>wszID</i> and
     ///<i>wszIDType</i> parameters of this structure to the values you specified in the <i>wszContentId</i> and
     ///<i>wszContentIdType</i> parameters, respectively, in the DRMSetMetaData function. If the values are <b>NULL</b>
     ///or they do not match the corresponding values in <b>DRMSetMetaData</b>, the DRMCreateBoundLicense function
     ///returns an error.
-    DRMID         idResource;
+    DRMID idResource;
     ///Reserved for future use. This member must be set to zero.
-    uint          cAuthenticatorCount;
+    uint  cAuthenticatorCount;
     ///Reserved for future use. This member must be set to <b>NULL</b>.
-    uint*         rghAuthenticators;
+    uint* rghAuthenticators;
     ///A pointer to a null-terminated Unicode string that contains the certificate for the enabling principal (the
     ///rights account certificate). This member can be set to <b>NULL</b> if it is not used.
-    const(wchar)* wszDefaultEnablingPrincipalCredentials;
+    PWSTR wszDefaultEnablingPrincipalCredentials;
     ///Optional. Contains flags for additional settings. This member can be zero or the following value.
-    uint          dwFlags;
+    uint  dwFlags;
 }
 
 ///>[!Note] >The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for use in Windows
@@ -279,18 +279,18 @@ struct DRM_LICENSE_ACQ_DATA
 {
     ///Version of this structure, for backward compatibility. In C, this value should be initialized to
     ///<b>DRMLICENSEACQDATAVERSION</b>.
-    uint          uVersion;
+    uint   uVersion;
     ///URL of a license-granting website.
-    const(wchar)* wszURL;
+    PWSTR  wszURL;
     ///The path and file name of a local HTML file that will automatically send a license request when loaded in a
     ///browser.
-    const(wchar)* wszLocalFilename;
+    PWSTR  wszLocalFilename;
     ///Pointer to a URL-safe base64-encoded string containing the license request.
-    ubyte*        pbPostData;
+    ubyte* pbPostData;
     ///The post data size in characters, plus one for a null terminator.
-    uint          dwPostDataSize;
+    uint   dwPostDataSize;
     ///A human-readable name for the license-granting website.
-    const(wchar)* wszFriendlyName;
+    PWSTR  wszFriendlyName;
 }
 
 ///>[!Note] >The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for use in Windows
@@ -302,14 +302,14 @@ struct DRM_ACTSERV_INFO
 {
     ///Version of this structure, for backward compatibility. When using C, this value should be initialized to
     ///<b>DRMACTSERVINFOVERSION</b>. In C++ this is done automatically.
-    uint          uVersion;
+    uint  uVersion;
     ///This member is reserved and must be set to <b>NULL</b>.
-    const(wchar)* wszPubKey;
+    PWSTR wszPubKey;
     ///URL for a service that performs activation. Use DRMGetServiceLocation to find a service location if none is
     ///known, or pass in <b>NULL</b> to use Passport service discovery. The URL should have the form
     ///<b>http://</b><i>CompanyName</i><b>/_wmcs/certification</b>, for example,
     ///http://blueyonderairlines/_wmcs/certification. The parameter defaults to <b>NULL</b> in C++.
-    const(wchar)* wszURL;
+    PWSTR wszURL;
 }
 
 ///>[!Note] >The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for use in Windows
@@ -399,8 +399,8 @@ HRESULT DRMGetClientVersion(DRM_CLIENT_VERSION_INFO* pDRMClientVersionInfo);
 ///    
 @DllImport("msdrm")
 HRESULT DRMInitEnvironment(DRMSECURITYPROVIDERTYPE eSecurityProviderType, DRMSPECTYPE eSpecification, 
-                           const(wchar)* wszSecurityProvider, const(wchar)* wszManifestCredentials, 
-                           const(wchar)* wszMachineCredentials, uint* phEnv, uint* phDefaultLibrary);
+                           PWSTR wszSecurityProvider, PWSTR wszManifestCredentials, PWSTR wszMachineCredentials, 
+                           uint* phEnv, uint* phDefaultLibrary);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -421,8 +421,8 @@ HRESULT DRMInitEnvironment(DRMSECURITYPROVIDERTYPE eSecurityProviderType, DRMSPE
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMLoadLibrary(uint hEnv, DRMSPECTYPE eSpecification, const(wchar)* wszLibraryProvider, 
-                       const(wchar)* wszCredentials, uint* phLibrary);
+HRESULT DRMLoadLibrary(uint hEnv, DRMSPECTYPE eSpecification, PWSTR wszLibraryProvider, PWSTR wszCredentials, 
+                       uint* phLibrary);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -446,8 +446,8 @@ HRESULT DRMLoadLibrary(uint hEnv, DRMSPECTYPE eSpecification, const(wchar)* wszL
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMCreateEnablingPrincipal(uint hEnv, uint hLibrary, const(wchar)* wszObject, DRMID* pidPrincipal, 
-                                   const(wchar)* wszCredentials, uint* phEnablingPrincipal);
+HRESULT DRMCreateEnablingPrincipal(uint hEnv, uint hLibrary, PWSTR wszObject, DRMID* pidPrincipal, 
+                                   PWSTR wszCredentials, uint* phEnablingPrincipal);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -520,7 +520,7 @@ HRESULT DRMDuplicateEnvironmentHandle(uint hToCopy, uint* phCopy);
 ///    value that indicates the error. For a list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMRegisterRevocationList(uint hEnv, const(wchar)* wszRevocationList);
+HRESULT DRMRegisterRevocationList(uint hEnv, PWSTR wszRevocationList);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -618,7 +618,7 @@ HRESULT DRMDecrypt(uint hCryptoProvider, uint iPosition, uint cNumInBytes, ubyte
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMCreateBoundLicense(uint hEnv, DRMBOUNDLICENSEPARAMS* pParams, const(wchar)* wszLicenseChain, 
+HRESULT DRMCreateBoundLicense(uint hEnv, DRMBOUNDLICENSEPARAMS* pParams, PWSTR wszLicenseChain, 
                               uint* phBoundLicense, uint* phErrorLog);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
@@ -639,8 +639,8 @@ HRESULT DRMCreateBoundLicense(uint hEnv, DRMBOUNDLICENSEPARAMS* pParams, const(w
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMCreateEnablingBitsDecryptor(uint hBoundLicense, const(wchar)* wszRight, uint hAuxLib, 
-                                       const(wchar)* wszAuxPlug, uint* phDecryptor);
+HRESULT DRMCreateEnablingBitsDecryptor(uint hBoundLicense, PWSTR wszRight, uint hAuxLib, PWSTR wszAuxPlug, 
+                                       uint* phDecryptor);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -659,8 +659,8 @@ HRESULT DRMCreateEnablingBitsDecryptor(uint hBoundLicense, const(wchar)* wszRigh
 ///    that indicates the error. For a list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMCreateEnablingBitsEncryptor(uint hBoundLicense, const(wchar)* wszRight, uint hAuxLib, 
-                                       const(wchar)* wszAuxPlug, uint* phEncryptor);
+HRESULT DRMCreateEnablingBitsEncryptor(uint hBoundLicense, PWSTR wszRight, uint hAuxLib, PWSTR wszAuxPlug, 
+                                       uint* phEncryptor);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -679,8 +679,8 @@ HRESULT DRMCreateEnablingBitsEncryptor(uint hBoundLicense, const(wchar)* wszRigh
 ///    that indicates the error. For a list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMAttest(uint hEnablingPrincipal, const(wchar)* wszData, DRMATTESTTYPE eType, uint* pcAttestedBlob, 
-                  const(wchar)* wszAttestedBlob);
+HRESULT DRMAttest(uint hEnablingPrincipal, PWSTR wszData, DRMATTESTTYPE eType, uint* pcAttestedBlob, 
+                  PWSTR wszAttestedBlob);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -732,8 +732,7 @@ HRESULT DRMGetTime(uint hEnv, DRMTIMETYPE eTimerIdType, SYSTEMTIME* poTimeObject
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMGetInfo(uint handle, const(wchar)* wszAttribute, DRMENCODINGTYPE* peEncoding, uint* pcBuffer, 
-                   ubyte* pbBuffer);
+HRESULT DRMGetInfo(uint handle, PWSTR wszAttribute, DRMENCODINGTYPE* peEncoding, uint* pcBuffer, ubyte* pbBuffer);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -760,7 +759,7 @@ HRESULT DRMGetInfo(uint handle, const(wchar)* wszAttribute, DRMENCODINGTYPE* peE
 ///    that indicates the error. For a list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMGetEnvironmentInfo(uint handle, const(wchar)* wszAttribute, DRMENCODINGTYPE* peEncoding, uint* pcBuffer, 
+HRESULT DRMGetEnvironmentInfo(uint handle, PWSTR wszAttribute, DRMENCODINGTYPE* peEncoding, uint* pcBuffer, 
                               ubyte* pbBuffer);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
@@ -777,7 +776,7 @@ HRESULT DRMGetEnvironmentInfo(uint handle, const(wchar)* wszAttribute, DRMENCODI
 ///    that indicates the error. For a list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMGetProcAddress(uint hLibrary, const(wchar)* wszProcName, FARPROC* ppfnProcAddress);
+HRESULT DRMGetProcAddress(uint hLibrary, PWSTR wszProcName, FARPROC* ppfnProcAddress);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -794,7 +793,7 @@ HRESULT DRMGetProcAddress(uint hLibrary, const(wchar)* wszProcName, FARPROC* ppf
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMGetBoundLicenseObjectCount(uint hQueryRoot, const(wchar)* wszSubObjectType, uint* pcSubObjects);
+HRESULT DRMGetBoundLicenseObjectCount(uint hQueryRoot, PWSTR wszSubObjectType, uint* pcSubObjects);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -812,7 +811,7 @@ HRESULT DRMGetBoundLicenseObjectCount(uint hQueryRoot, const(wchar)* wszSubObjec
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMGetBoundLicenseObject(uint hQueryRoot, const(wchar)* wszSubObjectType, uint iWhich, uint* phSubObject);
+HRESULT DRMGetBoundLicenseObject(uint hQueryRoot, PWSTR wszSubObjectType, uint iWhich, uint* phSubObject);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -829,7 +828,7 @@ HRESULT DRMGetBoundLicenseObject(uint hQueryRoot, const(wchar)* wszSubObjectType
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMGetBoundLicenseAttributeCount(uint hQueryRoot, const(wchar)* wszAttribute, uint* pcAttributes);
+HRESULT DRMGetBoundLicenseAttributeCount(uint hQueryRoot, PWSTR wszAttribute, uint* pcAttributes);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -849,8 +848,8 @@ HRESULT DRMGetBoundLicenseAttributeCount(uint hQueryRoot, const(wchar)* wszAttri
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMGetBoundLicenseAttribute(uint hQueryRoot, const(wchar)* wszAttribute, uint iWhich, 
-                                    DRMENCODINGTYPE* peEncoding, uint* pcBuffer, ubyte* pbBuffer);
+HRESULT DRMGetBoundLicenseAttribute(uint hQueryRoot, PWSTR wszAttribute, uint iWhich, DRMENCODINGTYPE* peEncoding, 
+                                    uint* pcBuffer, ubyte* pbBuffer);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -878,8 +877,8 @@ HRESULT DRMGetBoundLicenseAttribute(uint hQueryRoot, const(wchar)* wszAttribute,
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMCreateClientSession(DRMCALLBACK pfnCallback, uint uCallbackVersion, 
-                               const(wchar)* wszGroupIDProviderType, const(wchar)* wszGroupID, uint* phClient);
+HRESULT DRMCreateClientSession(DRMCALLBACK pfnCallback, uint uCallbackVersion, PWSTR wszGroupIDProviderType, 
+                               PWSTR wszGroupID, uint* phClient);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -959,9 +958,8 @@ HRESULT DRMActivate(uint hClient, uint uFlags, uint uLangID, DRM_ACTSERV_INFO* p
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMGetServiceLocation(uint hClient, uint uServiceType, uint uServiceLocation, 
-                              const(wchar)* wszIssuanceLicense, uint* puServiceURLLength, 
-                              const(wchar)* wszServiceURL);
+HRESULT DRMGetServiceLocation(uint hClient, uint uServiceType, uint uServiceLocation, PWSTR wszIssuanceLicense, 
+                              uint* puServiceURLLength, PWSTR wszServiceURL);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -983,7 +981,7 @@ HRESULT DRMGetServiceLocation(uint hClient, uint uServiceType, uint uServiceLoca
 ///    
 @DllImport("msdrm")
 HRESULT DRMCreateLicenseStorageSession(uint hEnv, uint hDefaultLibrary, uint hClient, uint uFlags, 
-                                       const(wchar)* wszIssuanceLicense, uint* phLicenseStorage);
+                                       PWSTR wszIssuanceLicense, uint* phLicenseStorage);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -1002,7 +1000,7 @@ HRESULT DRMCreateLicenseStorageSession(uint hEnv, uint hDefaultLibrary, uint hCl
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMAddLicense(uint hLicenseStorage, uint uFlags, const(wchar)* wszLicense);
+HRESULT DRMAddLicense(uint hLicenseStorage, uint uFlags, PWSTR wszLicense);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -1027,7 +1025,7 @@ HRESULT DRMAddLicense(uint hLicenseStorage, uint uFlags, const(wchar)* wszLicens
 ///    that indicates the error. For a list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMAcquireAdvisories(uint hLicenseStorage, const(wchar)* wszLicense, const(wchar)* wszURL, void* pvContext);
+HRESULT DRMAcquireAdvisories(uint hLicenseStorage, PWSTR wszLicense, PWSTR wszURL, void* pvContext);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -1063,8 +1061,8 @@ HRESULT DRMAcquireAdvisories(uint hLicenseStorage, const(wchar)* wszLicense, con
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMEnumerateLicense(uint hSession, uint uFlags, uint uIndex, int* pfSharedFlag, uint* puCertificateDataLen, 
-                            const(wchar)* wszCertificateData);
+HRESULT DRMEnumerateLicense(uint hSession, uint uFlags, uint uIndex, BOOL* pfSharedFlag, 
+                            uint* puCertificateDataLen, PWSTR wszCertificateData);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -1103,9 +1101,8 @@ HRESULT DRMEnumerateLicense(uint hSession, uint uFlags, uint uIndex, int* pfShar
 ///    a list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMAcquireLicense(uint hSession, uint uFlags, const(wchar)* wszGroupIdentityCredential, 
-                          const(wchar)* wszRequestedRights, const(wchar)* wszCustomData, const(wchar)* wszURL, 
-                          void* pvContext);
+HRESULT DRMAcquireLicense(uint hSession, uint uFlags, PWSTR wszGroupIdentityCredential, PWSTR wszRequestedRights, 
+                          PWSTR wszCustomData, PWSTR wszURL, void* pvContext);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -1128,7 +1125,7 @@ HRESULT DRMAcquireLicense(uint hSession, uint uFlags, const(wchar)* wszGroupIden
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMDeleteLicense(uint hSession, const(wchar)* wszLicenseId);
+HRESULT DRMDeleteLicense(uint hSession, PWSTR wszLicenseId);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -1178,8 +1175,7 @@ HRESULT DRMDuplicateSession(uint hSessionIn, uint* phSessionOut);
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMGetSecurityProvider(uint uFlags, uint* puTypeLen, const(wchar)* wszType, uint* puPathLen, 
-                               const(wchar)* wszPath);
+HRESULT DRMGetSecurityProvider(uint uFlags, uint* puTypeLen, PWSTR wszType, uint* puPathLen, PWSTR wszPath);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -1198,8 +1194,8 @@ HRESULT DRMGetSecurityProvider(uint uFlags, uint* puTypeLen, const(wchar)* wszTy
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMEncode(const(wchar)* wszAlgID, uint uDataLen, ubyte* pbDecodedData, uint* puEncodedStringLen, 
-                  const(wchar)* wszEncodedString);
+HRESULT DRMEncode(PWSTR wszAlgID, uint uDataLen, ubyte* pbDecodedData, uint* puEncodedStringLen, 
+                  PWSTR wszEncodedString);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -1216,8 +1212,7 @@ HRESULT DRMEncode(const(wchar)* wszAlgID, uint uDataLen, ubyte* pbDecodedData, u
 ///    that indicates the error. For a list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMDecode(const(wchar)* wszAlgID, const(wchar)* wszEncodedString, uint* puDecodedDataLen, 
-                  ubyte* pbDecodedData);
+HRESULT DRMDecode(PWSTR wszAlgID, PWSTR wszEncodedString, uint* puDecodedDataLen, ubyte* pbDecodedData);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -1240,8 +1235,7 @@ HRESULT DRMDecode(const(wchar)* wszAlgID, const(wchar)* wszEncodedString, uint* 
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMConstructCertificateChain(uint cCertificates, char* rgwszCertificates, uint* pcChain, 
-                                     const(wchar)* wszChain);
+HRESULT DRMConstructCertificateChain(uint cCertificates, PWSTR* rgwszCertificates, uint* pcChain, PWSTR wszChain);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -1257,7 +1251,7 @@ HRESULT DRMConstructCertificateChain(uint cCertificates, char* rgwszCertificates
 ///    that indicates the error. For a list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMParseUnboundLicense(const(wchar)* wszCertificate, uint* phQueryRoot);
+HRESULT DRMParseUnboundLicense(PWSTR wszCertificate, uint* phQueryRoot);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -1289,7 +1283,7 @@ HRESULT DRMCloseQueryHandle(uint hQuery);
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMGetUnboundLicenseObjectCount(uint hQueryRoot, const(wchar)* wszSubObjectType, uint* pcSubObjects);
+HRESULT DRMGetUnboundLicenseObjectCount(uint hQueryRoot, PWSTR wszSubObjectType, uint* pcSubObjects);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -1308,7 +1302,7 @@ HRESULT DRMGetUnboundLicenseObjectCount(uint hQueryRoot, const(wchar)* wszSubObj
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMGetUnboundLicenseObject(uint hQueryRoot, const(wchar)* wszSubObjectType, uint iIndex, uint* phSubQuery);
+HRESULT DRMGetUnboundLicenseObject(uint hQueryRoot, PWSTR wszSubObjectType, uint iIndex, uint* phSubQuery);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -1326,7 +1320,7 @@ HRESULT DRMGetUnboundLicenseObject(uint hQueryRoot, const(wchar)* wszSubObjectTy
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMGetUnboundLicenseAttributeCount(uint hQueryRoot, const(wchar)* wszAttributeType, uint* pcAttributes);
+HRESULT DRMGetUnboundLicenseAttributeCount(uint hQueryRoot, PWSTR wszAttributeType, uint* pcAttributes);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -1347,7 +1341,7 @@ HRESULT DRMGetUnboundLicenseAttributeCount(uint hQueryRoot, const(wchar)* wszAtt
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMGetUnboundLicenseAttribute(uint hQueryRoot, const(wchar)* wszAttributeType, uint iWhich, 
+HRESULT DRMGetUnboundLicenseAttribute(uint hQueryRoot, PWSTR wszAttributeType, uint iWhich, 
                                       DRMENCODINGTYPE* peEncoding, uint* pcBuffer, ubyte* pbBuffer);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
@@ -1364,7 +1358,7 @@ HRESULT DRMGetUnboundLicenseAttribute(uint hQueryRoot, const(wchar)* wszAttribut
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMGetCertificateChainCount(const(wchar)* wszChain, uint* pcCertCount);
+HRESULT DRMGetCertificateChainCount(PWSTR wszChain, uint* pcCertCount);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -1382,7 +1376,7 @@ HRESULT DRMGetCertificateChainCount(const(wchar)* wszChain, uint* pcCertCount);
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMDeconstructCertificateChain(const(wchar)* wszChain, uint iWhich, uint* pcCert, const(wchar)* wszCert);
+HRESULT DRMDeconstructCertificateChain(PWSTR wszChain, uint iWhich, uint* pcCert, PWSTR wszCert);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -1407,9 +1401,8 @@ HRESULT DRMDeconstructCertificateChain(const(wchar)* wszChain, uint iWhich, uint
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMVerify(const(wchar)* wszData, uint* pcAttestedData, const(wchar)* wszAttestedData, 
-                  DRMATTESTTYPE* peType, uint* pcPrincipal, const(wchar)* wszPrincipal, uint* pcManifest, 
-                  const(wchar)* wszManifest);
+HRESULT DRMVerify(PWSTR wszData, uint* pcAttestedData, PWSTR wszAttestedData, DRMATTESTTYPE* peType, 
+                  uint* pcPrincipal, PWSTR wszPrincipal, uint* pcManifest, PWSTR wszManifest);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -1432,8 +1425,7 @@ HRESULT DRMVerify(const(wchar)* wszData, uint* pcAttestedData, const(wchar)* wsz
 ///    value that indicates the error. For a list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMCreateUser(const(wchar)* wszUserName, const(wchar)* wszUserId, const(wchar)* wszUserIdType, 
-                      uint* phUser);
+HRESULT DRMCreateUser(PWSTR wszUserName, PWSTR wszUserId, PWSTR wszUserIdType, uint* phUser);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -1464,8 +1456,8 @@ HRESULT DRMCreateUser(const(wchar)* wszUserName, const(wchar)* wszUserId, const(
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMCreateRight(const(wchar)* wszRightName, SYSTEMTIME* pstFrom, SYSTEMTIME* pstUntil, uint cExtendedInfo, 
-                       char* pwszExtendedInfoName, char* pwszExtendedInfoValue, uint* phRight);
+HRESULT DRMCreateRight(PWSTR wszRightName, SYSTEMTIME* pstFrom, SYSTEMTIME* pstUntil, uint cExtendedInfo, 
+                       PWSTR* pwszExtendedInfoName, PWSTR* pwszExtendedInfoValue, uint* phRight);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -1523,9 +1515,9 @@ HRESULT DRMCreateRight(const(wchar)* wszRightName, SYSTEMTIME* pstFrom, SYSTEMTI
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMCreateIssuanceLicense(SYSTEMTIME* pstTimeFrom, SYSTEMTIME* pstTimeUntil, 
-                                 const(wchar)* wszReferralInfoName, const(wchar)* wszReferralInfoURL, uint hOwner, 
-                                 const(wchar)* wszIssuanceLicense, uint hBoundLicense, uint* phIssuanceLicense);
+HRESULT DRMCreateIssuanceLicense(SYSTEMTIME* pstTimeFrom, SYSTEMTIME* pstTimeUntil, PWSTR wszReferralInfoName, 
+                                 PWSTR wszReferralInfoURL, uint hOwner, PWSTR wszIssuanceLicense, uint hBoundLicense, 
+                                 uint* phIssuanceLicense);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -1591,9 +1583,8 @@ HRESULT DRMClearAllRights(uint hIssuanceLicense);
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMSetMetaData(uint hIssuanceLicense, const(wchar)* wszContentId, const(wchar)* wszContentIdType, 
-                       const(wchar)* wszSKUId, const(wchar)* wszSKUIdType, const(wchar)* wszContentType, 
-                       const(wchar)* wszContentName);
+HRESULT DRMSetMetaData(uint hIssuanceLicense, PWSTR wszContentId, PWSTR wszContentIdType, PWSTR wszSKUId, 
+                       PWSTR wszSKUIdType, PWSTR wszContentType, PWSTR wszContentName);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -1644,9 +1635,8 @@ HRESULT DRMSetMetaData(uint hIssuanceLicense, const(wchar)* wszContentId, const(
 ///    
 @DllImport("msdrm")
 HRESULT DRMSetUsagePolicy(uint hIssuanceLicense, DRM_USAGEPOLICY_TYPE eUsagePolicyType, BOOL fDelete, 
-                          BOOL fExclusion, const(wchar)* wszName, const(wchar)* wszMinVersion, 
-                          const(wchar)* wszMaxVersion, const(wchar)* wszPublicKey, const(wchar)* wszDigestAlgorithm, 
-                          ubyte* pbDigest, uint cbDigest);
+                          BOOL fExclusion, PWSTR wszName, PWSTR wszMinVersion, PWSTR wszMaxVersion, 
+                          PWSTR wszPublicKey, PWSTR wszDigestAlgorithm, ubyte* pbDigest, uint cbDigest);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -1670,9 +1660,8 @@ HRESULT DRMSetUsagePolicy(uint hIssuanceLicense, DRM_USAGEPOLICY_TYPE eUsagePoli
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMSetRevocationPoint(uint hIssuanceLicense, BOOL fDelete, const(wchar)* wszId, const(wchar)* wszIdType, 
-                              const(wchar)* wszURL, SYSTEMTIME* pstFrequency, const(wchar)* wszName, 
-                              const(wchar)* wszPublicKey);
+HRESULT DRMSetRevocationPoint(uint hIssuanceLicense, BOOL fDelete, PWSTR wszId, PWSTR wszIdType, PWSTR wszURL, 
+                              SYSTEMTIME* pstFrequency, PWSTR wszName, PWSTR wszPublicKey);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -1691,8 +1680,7 @@ HRESULT DRMSetRevocationPoint(uint hIssuanceLicense, BOOL fDelete, const(wchar)*
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMSetApplicationSpecificData(uint hIssuanceLicense, BOOL fDelete, const(wchar)* wszName, 
-                                      const(wchar)* wszValue);
+HRESULT DRMSetApplicationSpecificData(uint hIssuanceLicense, BOOL fDelete, PWSTR wszName, PWSTR wszValue);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -1714,8 +1702,8 @@ HRESULT DRMSetApplicationSpecificData(uint hIssuanceLicense, BOOL fDelete, const
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMSetNameAndDescription(uint hIssuanceLicense, BOOL fDelete, uint lcid, const(wchar)* wszName, 
-                                 const(wchar)* wszDescription);
+HRESULT DRMSetNameAndDescription(uint hIssuanceLicense, BOOL fDelete, uint lcid, PWSTR wszName, 
+                                 PWSTR wszDescription);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -1756,7 +1744,7 @@ HRESULT DRMSetIntervalTime(uint hIssuanceLicense, uint cDays);
 ///    
 @DllImport("msdrm")
 HRESULT DRMGetIssuanceLicenseTemplate(uint hIssuanceLicense, uint* puIssuanceLicenseTemplateLength, 
-                                      const(wchar)* wszIssuanceLicenseTemplate);
+                                      PWSTR wszIssuanceLicenseTemplate);
 
 ///> [!NOTE] > The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for use in
 ///Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It may be
@@ -1807,8 +1795,8 @@ HRESULT DRMGetIssuanceLicenseTemplate(uint hIssuanceLicense, uint* puIssuanceLic
 ///    
 @DllImport("msdrm")
 HRESULT DRMGetSignedIssuanceLicense(uint hEnv, uint hIssuanceLicense, uint uFlags, ubyte* pbSymKey, uint cbSymKey, 
-                                    const(wchar)* wszSymKeyType, const(wchar)* wszClientLicensorCertificate, 
-                                    DRMCALLBACK pfnCallback, const(wchar)* wszURL, void* pvContext);
+                                    PWSTR wszSymKeyType, PWSTR wszClientLicensorCertificate, DRMCALLBACK pfnCallback, 
+                                    PWSTR wszURL, void* pvContext);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -1852,8 +1840,8 @@ HRESULT DRMGetSignedIssuanceLicense(uint hEnv, uint hIssuanceLicense, uint uFlag
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMGetSignedIssuanceLicenseEx(uint hEnv, uint hIssuanceLicense, uint uFlags, char* pbSymKey, uint cbSymKey, 
-                                      const(wchar)* wszSymKeyType, void* pvReserved, uint hEnablingPrincipal, 
+HRESULT DRMGetSignedIssuanceLicenseEx(uint hEnv, uint hIssuanceLicense, uint uFlags, ubyte* pbSymKey, 
+                                      uint cbSymKey, PWSTR wszSymKeyType, void* pvReserved, uint hEnablingPrincipal, 
                                       uint hBoundLicenseCLC, DRMCALLBACK pfnCallback, void* pvContext);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
@@ -1924,8 +1912,8 @@ HRESULT DRMDuplicatePubHandle(uint hPubIn, uint* phPubOut);
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMGetUserInfo(uint hUser, uint* puUserNameLength, const(wchar)* wszUserName, uint* puUserIdLength, 
-                       const(wchar)* wszUserId, uint* puUserIdTypeLength, const(wchar)* wszUserIdType);
+HRESULT DRMGetUserInfo(uint hUser, uint* puUserNameLength, PWSTR wszUserName, uint* puUserIdLength, 
+                       PWSTR wszUserId, uint* puUserIdTypeLength, PWSTR wszUserIdType);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -1953,7 +1941,7 @@ HRESULT DRMGetUserInfo(uint hUser, uint* puUserNameLength, const(wchar)* wszUser
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMGetRightInfo(uint hRight, uint* puRightNameLength, const(wchar)* wszRightName, SYSTEMTIME* pstFrom, 
+HRESULT DRMGetRightInfo(uint hRight, uint* puRightNameLength, PWSTR wszRightName, SYSTEMTIME* pstFrom, 
                         SYSTEMTIME* pstUntil);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
@@ -1987,8 +1975,8 @@ HRESULT DRMGetRightInfo(uint hRight, uint* puRightNameLength, const(wchar)* wszR
 ///    
 @DllImport("msdrm")
 HRESULT DRMGetRightExtendedInfo(uint hRight, uint uIndex, uint* puExtendedInfoNameLength, 
-                                const(wchar)* wszExtendedInfoName, uint* puExtendedInfoValueLength, 
-                                const(wchar)* wszExtendedInfoValue);
+                                PWSTR wszExtendedInfoName, uint* puExtendedInfoValueLength, 
+                                PWSTR wszExtendedInfoValue);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -2092,11 +2080,10 @@ HRESULT DRMGetUserRights(uint hIssuanceLicense, uint hUser, uint uIndex, uint* p
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMGetMetaData(uint hIssuanceLicense, uint* puContentIdLength, const(wchar)* wszContentId, 
-                       uint* puContentIdTypeLength, const(wchar)* wszContentIdType, uint* puSKUIdLength, 
-                       const(wchar)* wszSKUId, uint* puSKUIdTypeLength, const(wchar)* wszSKUIdType, 
-                       uint* puContentTypeLength, const(wchar)* wszContentType, uint* puContentNameLength, 
-                       const(wchar)* wszContentName);
+HRESULT DRMGetMetaData(uint hIssuanceLicense, uint* puContentIdLength, PWSTR wszContentId, 
+                       uint* puContentIdTypeLength, PWSTR wszContentIdType, uint* puSKUIdLength, PWSTR wszSKUId, 
+                       uint* puSKUIdTypeLength, PWSTR wszSKUIdType, uint* puContentTypeLength, PWSTR wszContentType, 
+                       uint* puContentNameLength, PWSTR wszContentName);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -2128,8 +2115,8 @@ HRESULT DRMGetMetaData(uint hIssuanceLicense, uint* puContentIdLength, const(wch
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMGetApplicationSpecificData(uint hIssuanceLicense, uint uIndex, uint* puNameLength, 
-                                      const(wchar)* wszName, uint* puValueLength, const(wchar)* wszValue);
+HRESULT DRMGetApplicationSpecificData(uint hIssuanceLicense, uint uIndex, uint* puNameLength, PWSTR wszName, 
+                                      uint* puValueLength, PWSTR wszValue);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -2175,9 +2162,9 @@ HRESULT DRMGetApplicationSpecificData(uint hIssuanceLicense, uint uIndex, uint* 
 ///    
 @DllImport("msdrm")
 HRESULT DRMGetIssuanceLicenseInfo(uint hIssuanceLicense, SYSTEMTIME* pstTimeFrom, SYSTEMTIME* pstTimeUntil, 
-                                  uint uFlags, uint* puDistributionPointNameLength, 
-                                  const(wchar)* wszDistributionPointName, uint* puDistributionPointURLLength, 
-                                  const(wchar)* wszDistributionPointURL, uint* phOwner, int* pfOfficial);
+                                  uint uFlags, uint* puDistributionPointNameLength, PWSTR wszDistributionPointName, 
+                                  uint* puDistributionPointURLLength, PWSTR wszDistributionPointURL, uint* phOwner, 
+                                  BOOL* pfOfficial);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -2232,10 +2219,9 @@ HRESULT DRMGetIssuanceLicenseInfo(uint hIssuanceLicense, SYSTEMTIME* pstTimeFrom
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMGetRevocationPoint(uint hIssuanceLicense, uint* puIdLength, const(wchar)* wszId, uint* puIdTypeLength, 
-                              const(wchar)* wszIdType, uint* puURLLength, const(wchar)* wszRL, 
-                              SYSTEMTIME* pstFrequency, uint* puNameLength, const(wchar)* wszName, 
-                              uint* puPublicKeyLength, const(wchar)* wszPublicKey);
+HRESULT DRMGetRevocationPoint(uint hIssuanceLicense, uint* puIdLength, PWSTR wszId, uint* puIdTypeLength, 
+                              PWSTR wszIdType, uint* puURLLength, PWSTR wszRL, SYSTEMTIME* pstFrequency, 
+                              uint* puNameLength, PWSTR wszName, uint* puPublicKeyLength, PWSTR wszPublicKey);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -2311,10 +2297,10 @@ HRESULT DRMGetRevocationPoint(uint hIssuanceLicense, uint* puIdLength, const(wch
 ///    
 @DllImport("msdrm")
 HRESULT DRMGetUsagePolicy(uint hIssuanceLicense, uint uIndex, DRM_USAGEPOLICY_TYPE* peUsagePolicyType, 
-                          int* pfExclusion, uint* puNameLength, const(wchar)* wszName, uint* puMinVersionLength, 
-                          const(wchar)* wszMinVersion, uint* puMaxVersionLength, const(wchar)* wszMaxVersion, 
-                          uint* puPublicKeyLength, const(wchar)* wszPublicKey, uint* puDigestAlgorithmLength, 
-                          const(wchar)* wszDigestAlgorithm, uint* pcbDigest, ubyte* pbDigest);
+                          BOOL* pfExclusion, uint* puNameLength, PWSTR wszName, uint* puMinVersionLength, 
+                          PWSTR wszMinVersion, uint* puMaxVersionLength, PWSTR wszMaxVersion, 
+                          uint* puPublicKeyLength, PWSTR wszPublicKey, uint* puDigestAlgorithmLength, 
+                          PWSTR wszDigestAlgorithm, uint* pcbDigest, ubyte* pbDigest);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -2347,7 +2333,7 @@ HRESULT DRMGetUsagePolicy(uint hIssuanceLicense, uint uIndex, DRM_USAGEPOLICY_TY
 ///    
 @DllImport("msdrm")
 HRESULT DRMGetNameAndDescription(uint hIssuanceLicense, uint uIndex, uint* pulcid, uint* puNameLength, 
-                                 const(wchar)* wszName, uint* puDescriptionLength, const(wchar)* wszDescription);
+                                 PWSTR wszName, uint* puDescriptionLength, PWSTR wszDescription);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -2366,7 +2352,7 @@ HRESULT DRMGetNameAndDescription(uint hIssuanceLicense, uint uIndex, uint* pulci
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMGetOwnerLicense(uint hIssuanceLicense, uint* puOwnerLicenseLength, const(wchar)* wszOwnerLicense);
+HRESULT DRMGetOwnerLicense(uint hIssuanceLicense, uint* puOwnerLicenseLength, PWSTR wszOwnerLicense);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -2427,7 +2413,7 @@ HRESULT DRMRegisterProtectedWindow(uint hEnv, HWND hwnd);
 ///    list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("msdrm")
-HRESULT DRMIsWindowProtected(HWND hwnd, int* pfProtected);
+HRESULT DRMIsWindowProtected(HWND hwnd, BOOL* pfProtected);
 
 ///<p class="CCE_Message">[The AD RMS SDK leveraging functionality exposed by the client in Msdrm.dll is available for
 ///use in Windows Server 2008, Windows Vista, Windows Server 2008 R2, Windows 7, Windows Server 2012, and Windows 8. It
@@ -2457,6 +2443,6 @@ HRESULT DRMIsWindowProtected(HWND hwnd, int* pfProtected);
 ///    
 @DllImport("msdrm")
 HRESULT DRMAcquireIssuanceLicenseTemplate(uint hClient, uint uFlags, void* pvReserved, uint cTemplates, 
-                                          char* pwszTemplateIds, const(wchar)* wszUrl, void* pvContext);
+                                          PWSTR* pwszTemplateIds, PWSTR wszUrl, void* pvContext);
 
 

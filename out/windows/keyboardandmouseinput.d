@@ -4,10 +4,11 @@ module windows.keyboardandmouseinput;
 
 public import windows.core;
 public import windows.displaydevices : POINT;
-public import windows.systemservices : BOOL, HANDLE, LRESULT;
+public import windows.systemservices : BOOL, HANDLE, LRESULT, PSTR, PWSTR;
+public import windows.textservices : HKL;
 public import windows.windowsandmessaging : HWND, WPARAM;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Structs
@@ -197,7 +198,7 @@ struct INPUT
     ///id="INPUT_HARDWARE"></a><a id="input_hardware"></a><dl> <dt><b>INPUT_HARDWARE</b></dt> <dt>2</dt> </dl> </td> <td
     ///width="60%"> The event is a hardware event. Use the <b>hi</b> structure of the union. </td> </tr> </table>
     uint type;
-    union
+union
     {
         MOUSEINPUT    mi;
         KEYBDINPUT    ki;
@@ -255,10 +256,10 @@ struct RAWMOUSE
     ///<dt>0x08</dt> </dl> </td> <td width="60%"> This mouse movement event was not coalesced. Mouse movement events can
     ///be coalescened by default.<br/> Windows XP/2000: This value is not supported. </td> </tr> </table>
     ushort usFlags;
-    union
+union
     {
         uint ulButtons;
-        struct
+struct
         {
             ushort usButtonFlags;
             ushort usButtonData;
@@ -315,7 +316,7 @@ struct RAWINPUT
 {
     ///Type: <b>RAWINPUTHEADER</b> The raw input data.
     RAWINPUTHEADER header;
-    union data
+union data
     {
         RAWMOUSE    mouse;
         RAWKEYBOARD keyboard;
@@ -390,7 +391,7 @@ struct RID_DEVICE_INFO
     ///<tr> <td width="40%"><a id="RIM_TYPEHID"></a><a id="rim_typehid"></a><dl> <dt><b>RIM_TYPEHID</b></dt> <dt>2</dt>
     ///</dl> </td> <td width="60%"> Data comes from an HID that is not a keyboard or a mouse. </td> </tr> </table>
     uint dwType;
-    union
+union
     {
         RID_DEVICE_INFO_MOUSE mouse;
         RID_DEVICE_INFO_KEYBOARD keyboard;
@@ -468,18 +469,12 @@ struct RAWINPUTDEVICELIST
     uint   dwType;
 }
 
-// Functions
+struct HRAWINPUT
+{
+    ptrdiff_t Value;
+}
 
-///Posts messages when the mouse pointer leaves a window or hovers over a window for a specified amount of time. This
-///function calls TrackMouseEvent if it exists, otherwise it emulates it.
-///Params:
-///    lpEventTrack = Type: <b>LPTRACKMOUSEEVENT</b> A pointer to a TRACKMOUSEEVENT structure that contains tracking information.
-///Returns:
-///    Type: <b>BOOL</b> If the function succeeds, the return value is nonzero. If the function fails, return value is
-///    zero.
-///    
-@DllImport("COMCTL32")
-BOOL _TrackMouseEvent(TRACKMOUSEEVENT* lpEventTrack);
+// Functions
 
 ///Loads a new input locale identifier (formerly called the keyboard layout) into the system. <b>Prior to Windows 8:</b>
 ///Several input locale identifiers can be loaded at a time, but only one per process is active at a time. Loading
@@ -540,7 +535,7 @@ BOOL _TrackMouseEvent(TRACKMOUSEEVENT* lpEventTrack);
 ///    of the system. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-ptrdiff_t LoadKeyboardLayoutA(const(char)* pwszKLID, uint Flags);
+HKL LoadKeyboardLayoutA(const(PSTR) pwszKLID, uint Flags);
 
 ///Loads a new input locale identifier (formerly called the keyboard layout) into the system. <b>Prior to Windows 8:</b>
 ///Several input locale identifiers can be loaded at a time, but only one per process is active at a time. Loading
@@ -601,7 +596,7 @@ ptrdiff_t LoadKeyboardLayoutA(const(char)* pwszKLID, uint Flags);
 ///    of the system. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-ptrdiff_t LoadKeyboardLayoutW(const(wchar)* pwszKLID, uint Flags);
+HKL LoadKeyboardLayoutW(const(PWSTR) pwszKLID, uint Flags);
 
 ///Sets the input locale identifier (formerly called the keyboard layout handle) for the calling thread or the current
 ///process. The input locale identifier specifies a locale as well as the physical layout of the keyboard.
@@ -643,7 +638,7 @@ ptrdiff_t LoadKeyboardLayoutW(const(wchar)* pwszKLID, uint Flags);
 ///    function.
 ///    
 @DllImport("USER32")
-ptrdiff_t ActivateKeyboardLayout(ptrdiff_t hkl, uint Flags);
+HKL ActivateKeyboardLayout(HKL hkl, uint Flags);
 
 ///Translates the specified virtual-key code and keyboard state to the corresponding Unicode character or characters.
 ///Params:
@@ -677,8 +672,8 @@ ptrdiff_t ActivateKeyboardLayout(ptrdiff_t hkl, uint Flags);
 ///    any extra characters are invalid and should be ignored. </td> </tr> </table>
 ///    
 @DllImport("USER32")
-int ToUnicodeEx(uint wVirtKey, uint wScanCode, char* lpKeyState, const(wchar)* pwszBuff, int cchBuff, uint wFlags, 
-                ptrdiff_t dwhkl);
+int ToUnicodeEx(uint wVirtKey, uint wScanCode, const(ubyte)* lpKeyState, PWSTR pwszBuff, int cchBuff, uint wFlags, 
+                HKL dwhkl);
 
 ///Unloads an input locale identifier (formerly called a keyboard layout).
 ///Params:
@@ -690,7 +685,7 @@ int ToUnicodeEx(uint wVirtKey, uint wScanCode, char* lpKeyState, const(wchar)* p
 ///    </ul> To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL UnloadKeyboardLayout(ptrdiff_t hkl);
+BOOL UnloadKeyboardLayout(HKL hkl);
 
 ///Retrieves the name of the active input locale identifier (formerly called the keyboard layout) for the system.
 ///Params:
@@ -702,7 +697,7 @@ BOOL UnloadKeyboardLayout(ptrdiff_t hkl);
 ///    is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL GetKeyboardLayoutNameA(const(char)* pwszKLID);
+BOOL GetKeyboardLayoutNameA(PSTR pwszKLID);
 
 ///Retrieves the name of the active input locale identifier (formerly called the keyboard layout) for the system.
 ///Params:
@@ -714,7 +709,7 @@ BOOL GetKeyboardLayoutNameA(const(char)* pwszKLID);
 ///    is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL GetKeyboardLayoutNameW(const(wchar)* pwszKLID);
+BOOL GetKeyboardLayoutNameW(PWSTR pwszKLID);
 
 ///Retrieves the input locale identifiers (formerly called keyboard layout handles) corresponding to the current set of
 ///input locales in the system. The function copies the identifiers to the specified buffer.
@@ -728,7 +723,7 @@ BOOL GetKeyboardLayoutNameW(const(wchar)* pwszKLID);
 ///    error information, call GetLastError.
 ///    
 @DllImport("USER32")
-int GetKeyboardLayoutList(int nBuff, char* lpList);
+int GetKeyboardLayoutList(int nBuff, HKL* lpList);
 
 ///Retrieves the active input locale identifier (formerly called the keyboard layout).
 ///Params:
@@ -739,7 +734,7 @@ int GetKeyboardLayoutList(int nBuff, char* lpList);
 ///    keyboard.
 ///    
 @DllImport("USER32")
-ptrdiff_t GetKeyboardLayout(uint idThread);
+HKL GetKeyboardLayout(uint idThread);
 
 ///Retrieves a history of up to 64 previous coordinates of the mouse or pen.
 ///Params:
@@ -767,7 +762,8 @@ ptrdiff_t GetKeyboardLayout(uint idThread);
 ///    function returns –1. For extended error information, your application can call GetLastError.
 ///    
 @DllImport("USER32")
-int GetMouseMovePointsEx(uint cbSize, MOUSEMOVEPOINT* lppt, char* lpptBuf, int nBufPoints, uint resolution);
+int GetMouseMovePointsEx(uint cbSize, MOUSEMOVEPOINT* lppt, MOUSEMOVEPOINT* lpptBuf, int nBufPoints, 
+                         uint resolution);
 
 ///Posts messages when the mouse pointer leaves a window or hovers over a window for a specified amount of time. <div
 ///class="alert"><b>Note</b> The _TrackMouseEvent function calls <b>TrackMouseEvent</b> if it exists, otherwise
@@ -946,7 +942,7 @@ short GetAsyncKeyState(int vKey);
 ///    is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL GetKeyboardState(char* lpKeyState);
+BOOL GetKeyboardState(ubyte* lpKeyState);
 
 ///Copies an array of keyboard key states into the calling thread's keyboard input-state table. This is the same table
 ///accessed by the GetKeyboardState and GetKeyState functions. Changes made to this table do not affect keyboard input
@@ -958,7 +954,7 @@ BOOL GetKeyboardState(char* lpKeyState);
 ///    is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL SetKeyboardState(char* lpKeyState);
+BOOL SetKeyboardState(ubyte* lpKeyState);
 
 ///Retrieves a string that represents the name of a key.
 ///Params:
@@ -977,7 +973,7 @@ BOOL SetKeyboardState(char* lpKeyState);
 ///    function fails, the return value is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-int GetKeyNameTextA(int lParam, const(char)* lpString, int cchSize);
+int GetKeyNameTextA(int lParam, PSTR lpString, int cchSize);
 
 ///Retrieves a string that represents the name of a key.
 ///Params:
@@ -996,7 +992,7 @@ int GetKeyNameTextA(int lParam, const(char)* lpString, int cchSize);
 ///    function fails, the return value is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-int GetKeyNameTextW(int lParam, const(wchar)* lpString, int cchSize);
+int GetKeyNameTextW(int lParam, PWSTR lpString, int cchSize);
 
 ///Retrieves information about the current keyboard.
 ///Params:
@@ -1037,7 +1033,7 @@ int GetKeyboardType(int nTypeFlag);
 ///    layout cannot be composed with the specified virtual key to form a single character. </td> </tr> </table>
 ///    
 @DllImport("USER32")
-int ToAscii(uint uVirtKey, uint uScanCode, char* lpKeyState, ushort* lpChar, uint uFlags);
+int ToAscii(uint uVirtKey, uint uScanCode, const(ubyte)* lpKeyState, ushort* lpChar, uint uFlags);
 
 ///Translates the specified virtual-key code and keyboard state to the corresponding character or characters. The
 ///function translates the code using the input language and physical keyboard layout identified by the input locale
@@ -1064,7 +1060,7 @@ int ToAscii(uint uVirtKey, uint uScanCode, char* lpKeyState, ushort* lpChar, uin
 ///    layout cannot be composed with the specified virtual key to form a single character. </td> </tr> </table>
 ///    
 @DllImport("USER32")
-int ToAsciiEx(uint uVirtKey, uint uScanCode, char* lpKeyState, ushort* lpChar, uint uFlags, ptrdiff_t dwhkl);
+int ToAsciiEx(uint uVirtKey, uint uScanCode, const(ubyte)* lpKeyState, ushort* lpChar, uint uFlags, HKL dwhkl);
 
 ///Translates the specified virtual-key code and keyboard state to the corresponding Unicode character or characters. To
 ///specify a handle to the keyboard layout to use to translate the specified code, use the ToUnicodeEx function.
@@ -1097,7 +1093,7 @@ int ToAsciiEx(uint uVirtKey, uint uScanCode, char* lpKeyState, ushort* lpChar, u
 ///    any extra characters are invalid and should be ignored. </td> </tr> </table>
 ///    
 @DllImport("USER32")
-int ToUnicode(uint wVirtKey, uint wScanCode, char* lpKeyState, const(wchar)* pwszBuff, int cchBuff, uint wFlags);
+int ToUnicode(uint wVirtKey, uint wScanCode, const(ubyte)* lpKeyState, PWSTR pwszBuff, int cchBuff, uint wFlags);
 
 ///Maps OEMASCII codes 0 through 0x0FF into the OEM scan codes and shift states. The function provides information that
 ///allows a program to send OEM text to another program by simulating keyboard input.
@@ -1180,7 +1176,7 @@ short VkKeyScanW(ushort ch);
 ///    contain –1.
 ///    
 @DllImport("USER32")
-short VkKeyScanExA(byte ch, ptrdiff_t dwhkl);
+short VkKeyScanExA(byte ch, HKL dwhkl);
 
 ///Translates a character to the corresponding virtual-key code and shift state. The function translates the character
 ///using the input language and physical keyboard layout identified by the input locale identifier.
@@ -1202,7 +1198,7 @@ short VkKeyScanExA(byte ch, ptrdiff_t dwhkl);
 ///    contain –1.
 ///    
 @DllImport("USER32")
-short VkKeyScanExW(ushort ch, ptrdiff_t dwhkl);
+short VkKeyScanExW(ushort ch, HKL dwhkl);
 
 ///Synthesizes a keystroke. The system can use such a synthesized keystroke to generate a WM_KEYUP or WM_KEYDOWN
 ///message. The keyboard driver's interrupt handler calls the <b>keybd_event</b> function. <div
@@ -1303,7 +1299,7 @@ void mouse_event(uint dwFlags, uint dx, uint dy, uint dwData, size_t dwExtraInfo
 ///    GetLastError nor the return value will indicate the failure was caused by UIPI blocking.
 ///    
 @DllImport("USER32")
-uint SendInput(uint cInputs, char* pInputs, int cbSize);
+uint SendInput(uint cInputs, INPUT* pInputs, int cbSize);
 
 ///Retrieves the time of the last input event.
 ///Params:
@@ -1392,7 +1388,7 @@ uint MapVirtualKeyW(uint uCode, uint uMapType);
 ///    value of *uCode* and *uMapType*. If there is no translation, the return value is zero.
 ///    
 @DllImport("USER32")
-uint MapVirtualKeyExA(uint uCode, uint uMapType, ptrdiff_t dwhkl);
+uint MapVirtualKeyExA(uint uCode, uint uMapType, HKL dwhkl);
 
 ///Translates (maps) a virtual-key code into a scan code or character value, or translates a scan code into a
 ///virtual-key code. The function translates the codes using the input language and an input locale identifier.
@@ -1422,7 +1418,7 @@ uint MapVirtualKeyExA(uint uCode, uint uMapType, ptrdiff_t dwhkl);
 ///    value of *uCode* and *uMapType*. If there is no translation, the return value is zero.
 ///    
 @DllImport("USER32")
-uint MapVirtualKeyExW(uint uCode, uint uMapType, ptrdiff_t dwhkl);
+uint MapVirtualKeyExW(uint uCode, uint uMapType, HKL dwhkl);
 
 ///Retrieves a handle to the window (if any) that has captured the mouse. Only one window at a time can capture the
 ///mouse; this window receives mouse input whether or not the cursor is within its borders.
@@ -1537,7 +1533,7 @@ BOOL BlockInput(BOOL fBlockIt);
 ///    into pData. If there is an error, the return value is (<b>UINT</b>)-1.
 ///    
 @DllImport("USER32")
-uint GetRawInputData(ptrdiff_t hRawInput, uint uiCommand, char* pData, uint* pcbSize, uint cbSizeHeader);
+uint GetRawInputData(HRAWINPUT hRawInput, uint uiCommand, void* pData, uint* pcbSize, uint cbSizeHeader);
 
 ///Retrieves information about the raw input device.
 ///Params:
@@ -1562,7 +1558,7 @@ uint GetRawInputData(ptrdiff_t hRawInput, uint uiCommand, char* pData, uint* pcb
 ///    to the minimum size required for the <i>pData</i> buffer. Call GetLastError to identify any other errors.
 ///    
 @DllImport("USER32")
-uint GetRawInputDeviceInfoA(HANDLE hDevice, uint uiCommand, char* pData, uint* pcbSize);
+uint GetRawInputDeviceInfoA(HANDLE hDevice, uint uiCommand, void* pData, uint* pcbSize);
 
 ///Retrieves information about the raw input device.
 ///Params:
@@ -1587,7 +1583,7 @@ uint GetRawInputDeviceInfoA(HANDLE hDevice, uint uiCommand, char* pData, uint* p
 ///    to the minimum size required for the <i>pData</i> buffer. Call GetLastError to identify any other errors.
 ///    
 @DllImport("USER32")
-uint GetRawInputDeviceInfoW(HANDLE hDevice, uint uiCommand, char* pData, uint* pcbSize);
+uint GetRawInputDeviceInfoW(HANDLE hDevice, uint uiCommand, void* pData, uint* pcbSize);
 
 ///Performs a buffered read of the raw input messages data found in the calling thread's message queue.
 ///Params:
@@ -1603,7 +1599,7 @@ uint GetRawInputDeviceInfoW(HANDLE hDevice, uint uiCommand, char* pData, uint* p
 ///    [GetLastError](/windows/win32/api/errhandlingapi/nf-errhandlingapi-getlasterror) for the error code.
 ///    
 @DllImport("USER32")
-uint GetRawInputBuffer(char* pData, uint* pcbSize, uint cbSizeHeader);
+uint GetRawInputBuffer(RAWINPUT* pData, uint* pcbSize, uint cbSizeHeader);
 
 ///Registers the devices that supply the raw input data.
 ///Params:
@@ -1616,7 +1612,7 @@ uint GetRawInputBuffer(char* pData, uint* pcbSize, uint cbSizeHeader);
 ///    GetLastError for more information.
 ///    
 @DllImport("USER32")
-BOOL RegisterRawInputDevices(char* pRawInputDevices, uint uiNumDevices, uint cbSize);
+BOOL RegisterRawInputDevices(RAWINPUTDEVICE* pRawInputDevices, uint uiNumDevices, uint cbSize);
 
 ///Retrieves the information about the raw input devices for the current application.
 ///Params:
@@ -1631,7 +1627,7 @@ BOOL RegisterRawInputDevices(char* pRawInputDevices, uint uiNumDevices, uint cbS
 ///    GetLastError.
 ///    
 @DllImport("USER32")
-uint GetRegisteredRawInputDevices(char* pRawInputDevices, uint* puiNumDevices, uint cbSize);
+uint GetRegisteredRawInputDevices(RAWINPUTDEVICE* pRawInputDevices, uint* puiNumDevices, uint cbSize);
 
 ///Enumerates the raw input devices attached to the system.
 ///Params:
@@ -1649,7 +1645,7 @@ uint GetRegisteredRawInputDevices(char* pRawInputDevices, uint* puiNumDevices, u
 ///    GetLastError returns the error indication.
 ///    
 @DllImport("USER32")
-uint GetRawInputDeviceList(char* pRawInputDeviceList, uint* puiNumDevices, uint cbSize);
+uint GetRawInputDeviceList(RAWINPUTDEVICELIST* pRawInputDeviceList, uint* puiNumDevices, uint cbSize);
 
 ///Unlike DefWindowProcA and DefWindowProcW, this function doesn't do any processing. <b>DefRawInputProc</b> only checks
 ///whether <b>cbSizeHeader</b>'s value corresponds to the expected size of RAWINPUTHEADER.
@@ -1661,6 +1657,17 @@ uint GetRawInputDeviceList(char* pRawInputDeviceList, uint* puiNumDevices, uint 
 ///    Type: <b>LRESULT</b> If successful, the function returns <b>0</b>. Otherwise it returns <b>-1</b>.
 ///    
 @DllImport("USER32")
-LRESULT DefRawInputProc(char* paRawInput, int nInput, uint cbSizeHeader);
+LRESULT DefRawInputProc(RAWINPUT** paRawInput, int nInput, uint cbSizeHeader);
+
+///Posts messages when the mouse pointer leaves a window or hovers over a window for a specified amount of time. This
+///function calls TrackMouseEvent if it exists, otherwise it emulates it.
+///Params:
+///    lpEventTrack = Type: <b>LPTRACKMOUSEEVENT</b> A pointer to a TRACKMOUSEEVENT structure that contains tracking information.
+///Returns:
+///    Type: <b>BOOL</b> If the function succeeds, the return value is nonzero. If the function fails, return value is
+///    zero.
+///    
+@DllImport("COMCTL32")
+BOOL _TrackMouseEvent(TRACKMOUSEEVENT* lpEventTrack);
 
 

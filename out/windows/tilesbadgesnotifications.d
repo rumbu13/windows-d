@@ -4,8 +4,9 @@ module windows.tilesbadgesnotifications;
 
 public import windows.core;
 public import windows.com : HRESULT, IUnknown;
+public import windows.systemservices : PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Structs
@@ -18,9 +19,9 @@ extern(Windows):
 struct NOTIFICATION_USER_INPUT_DATA
 {
     ///The ID of the user input field in the XML payload.
-    const(wchar)* Key;
+    const(PWSTR) Key;
     ///The input value selected by the user for a given input field.
-    const(wchar)* Value;
+    const(PWSTR) Value;
 }
 
 // Interfaces
@@ -44,7 +45,8 @@ interface INotificationActivationCallback : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT Activate(const(wchar)* appUserModelId, const(wchar)* invokedArgs, char* data, uint count);
+    HRESULT Activate(const(PWSTR) appUserModelId, const(PWSTR) invokedArgs, 
+                     const(NOTIFICATION_USER_INPUT_DATA)* data, uint count);
 }
 
 

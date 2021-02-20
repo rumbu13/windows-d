@@ -8,7 +8,7 @@ public import windows.systemservices : HANDLE, OVERLAPPED;
 public import windows.winsock : in6_addr, in_addr;
 public import windows.windowsfiltering : DL_EUI48;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -89,7 +89,7 @@ struct WNV_NOTIFICATION_PARAM
 ///Defines an IP address object.
 struct WNV_IP_ADDRESS
 {
-    union IP
+union IP
     {
         in_addr   v4;
         in6_addr  v6;
@@ -165,7 +165,7 @@ struct WNV_OBJECT_CHANGE_PARAM
 {
     ///Type: <b>WNV_OBJECT_TYPE</b> The object type that causes the change notification.
     WNV_OBJECT_TYPE ObjectType;
-    union ObjectParam
+union ObjectParam
     {
         WNV_PROVIDER_ADDRESS_CHANGE_PARAM ProviderAddressChange;
         WNV_CUSTOMER_ADDRESS_CHANGE_PARAM CustomerAddressChange;

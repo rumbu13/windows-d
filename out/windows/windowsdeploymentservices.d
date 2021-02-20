@@ -5,11 +5,11 @@ module windows.windowsdeploymentservices;
 public import windows.core;
 public import windows.automation : BSTR, IDispatch;
 public import windows.com : HRESULT, IUnknown;
-public import windows.systemservices : BOOL, HANDLE, ULARGE_INTEGER;
+public import windows.systemservices : BOOL, HANDLE, PWSTR, ULARGE_INTEGER;
 public import windows.windowsandmessaging : LPARAM, WPARAM;
 public import windows.windowsprogramming : HKEY, SYSTEMTIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -309,7 +309,7 @@ enum : int
 ///Defines a callback function that can receive debugging messages from the WDS client.
 ///Params:
 ///    pwszFormat = A pointer to a null-terminated string value that contains a formatted string.
-alias PFN_WdsCliTraceFunction = void function(const(wchar)* pwszFormat, byte* Params);
+alias PFN_WdsCliTraceFunction = void function(const(PWSTR) pwszFormat, byte* Params);
 ///Defines a callback function that WDS can call for progress notification and error messages during a file or image
 ///transfer.
 ///Params:
@@ -358,7 +358,7 @@ alias PFN_WdsTransportClientSessionStartEx = void function(HANDLE hSessionKey, v
 ///    pCallerData = Pointer to the caller specific data for this session. This data was specified in the call to
 ///                  WdsTransportClientStartSession function.
 ///    pMetadata = Data provided by the content provider that is associated with this object in some manner.
-alias PFN_WdsTransportClientReceiveMetadata = void function(HANDLE hSessionKey, void* pCallerData, char* pMetadata, 
+alias PFN_WdsTransportClientReceiveMetadata = void function(HANDLE hSessionKey, void* pCallerData, void* pMetadata, 
                                                             uint ulSize);
 ///The PFN_WdsTransportClientReceiveContents callback is used by the multicast client to indicate that a block of data
 ///is ready to be used.
@@ -369,7 +369,7 @@ alias PFN_WdsTransportClientReceiveMetadata = void function(HANDLE hSessionKey, 
 ///    pContents = 
 ///    ulSize = The size of the data in <i>pCallerData</i>.
 ///    pullContentOffset = 
-alias PFN_WdsTransportClientReceiveContents = void function(HANDLE hSessionKey, void* pCallerData, char* pContents, 
+alias PFN_WdsTransportClientReceiveContents = void function(HANDLE hSessionKey, void* pCallerData, void* pContents, 
                                                             uint ulSize, ULARGE_INTEGER* pullContentOffset);
 ///The PFN_WdsTransportClientSessionCompete callback is used by the client to indicate that no more callbacks will be
 ///sent to the consumer and that the session either completed successfully or encountered a non-recoverable error.
@@ -391,11 +391,11 @@ alias PFN_WdsTransportClientSessionNegotiate = void function(HANDLE hSessionKey,
 struct WDS_CLI_CRED
 {
     ///The user name associated with the credentials.
-    const(wchar)* pwszUserName;
+    const(PWSTR) pwszUserName;
     ///The domain for the user name associated with the credentials.
-    const(wchar)* pwszDomain;
+    const(PWSTR) pwszDomain;
     ///The password for the user name associated with the credentials.
-    const(wchar)* pwszPassword;
+    const(PWSTR) pwszPassword;
 }
 
 ///The <b>PXE_DHCP_OPTION</b> structure can be used with the Windows Deployment Services PXE Server API.
@@ -432,7 +432,7 @@ align (1):
     ubyte[16]       HardwareAddress;
     ubyte[64]       HostName;
     ubyte[128]      BootFileName;
-    union
+union
     {
     align (1):
         ubyte[4] bMagicCookie;
@@ -500,16 +500,16 @@ struct PXE_DHCPV6_RELAY_MESSAGE
 struct PXE_PROVIDER
 {
     ///Size of the <b>PXE_PROVIDER</b> structure.
-    uint          uSizeOfStruct;
+    uint  uSizeOfStruct;
     ///Address of a null-terminated string that specifies the display name of the provider. This name is displayed to
     ///the user and must be unique among registered providers.
-    const(wchar)* pwszName;
+    PWSTR pwszName;
     ///Address of a null-terminated string that specifies the full path to the provider DLL.
-    const(wchar)* pwszFilePath;
+    PWSTR pwszFilePath;
     ///Indicates whether the provider is critical. If a critical provider fails, the WDS server will also fail.
-    BOOL          bIsCritical;
+    BOOL  bIsCritical;
     ///Index of a provider in the list of registered providers.
-    uint          uIndex;
+    uint  uIndex;
 }
 
 ///Specifies the network address for a packet.
@@ -539,7 +539,7 @@ struct PXE_ADDRESS
     ///<b>uIpAddress</b>, <b>uAddrLen</b>, and <b>uPort</b> are ignored. For received packets, this flag is not used.
     ///</td> </tr> </table>
     uint   uFlags;
-    union
+union
     {
         ubyte[16] bAddress;
         uint      uIpAddress;
@@ -600,13 +600,13 @@ struct TRANSPORTCLIENT_SESSION_INFO
 struct WDS_TRANSPORTCLIENT_REQUEST
 {
     ///The length of this structure in bytes.
-    uint          ulLength;
+    uint         ulLength;
     ///The version of the API that the caller is built against. The multicast client may reject the request based on
     ///this value. This member must contain the following value. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr>
     ///<td width="40%"><a id="WDS_TRANSPORT_CLIENT_CURRENT_API_VERSION"></a><a
     ///id="wds_transport_client_current_api_version"></a><dl> <dt><b>WDS_TRANSPORT_CLIENT_CURRENT_API_VERSION</b></dt>
     ///<dt>1</dt> </dl> </td> <td width="60%"> The current version. </td> </tr> </table>
-    uint          ulApiVersion;
+    uint         ulApiVersion;
     ///This member can contain one of the following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td
     ///width="40%"><a id="WDS_TRANSPORTCLIENT_AUTH"></a><a id="wds_transportclient_auth"></a><dl>
     ///<dt><b>WDS_TRANSPORTCLIENT_AUTH</b></dt> <dt>0x1</dt> </dl> </td> <td width="60%"> Authentication information
@@ -615,26 +615,26 @@ struct WDS_TRANSPORTCLIENT_REQUEST
     ///id="wds_transportclient_no_auth"></a><dl> <dt><b>WDS_TRANSPORTCLIENT_NO_AUTH</b></dt> <dt>0x2</dt> </dl> </td>
     ///<td width="60%"> No authentication information will be sent to the server. If the server is not configured to
     ///accept these requests, the request will fail. </td> </tr> </table>
-    uint          ulAuthLevel;
+    uint         ulAuthLevel;
     ///Server name.
-    const(wchar)* pwszServer;
+    const(PWSTR) pwszServer;
     ///Namespace of the object to retrieve.
-    const(wchar)* pwszNamespace;
+    const(PWSTR) pwszNamespace;
     ///Specifies the name of the object to retrieve. Object names are provider dependent.
-    const(wchar)* pwszObjectName;
+    const(PWSTR) pwszObjectName;
     ///Specifies how much data in bytes the consumer can store in its queue. Once this threshold is reached, the client
     ///will not send any more writes to the consumer until some memory is released with WdsTransportClientCompleteWrite.
-    uint          ulCacheSize;
+    uint         ulCacheSize;
     ///Specifies the protocol to be used for this transfer. This member can contain the following value. <table> <tr>
     ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="WDS_TRANSPORTCLIENT_PROTOCOL_MULTICAST"></a><a
     ///id="wds_transportclient_protocol_multicast"></a><dl> <dt><b>WDS_TRANSPORTCLIENT_PROTOCOL_MULTICAST</b></dt>
     ///<dt>0x00000001</dt> </dl> </td> <td width="60%"> The file will be transferred using an efficient multicast
     ///protocol. </td> </tr> </table>
-    uint          ulProtocol;
+    uint         ulProtocol;
     ///Protocol data structure for the protocol. The structure is <b>NULL</b> for
     ///<b>WDS_TRANSPORTCLIENT_PROTOCOL_MULTICAST</b> protocol.
-    void*         pvProtocolData;
-    uint          ulProtocolDataLength;
+    void*        pvProtocolData;
+    uint         ulProtocolDataLength;
 }
 
 struct WDS_TRANSPORTCLIENT_CALLBACKS
@@ -671,7 +671,7 @@ HRESULT WdsCliRegisterTrace(PFN_WdsCliTraceFunction pfn);
 ///    ppwszArray = Pointer to the array of string values being freed.
 ///    ulCount = Number of strings in the array that is pointed to by <i>ppwszArray</i>.
 @DllImport("WDSCLIENTAPI")
-HRESULT WdsCliFreeStringArray(char* ppwszArray, uint ulCount);
+HRESULT WdsCliFreeStringArray(PWSTR* ppwszArray, uint ulCount);
 
 ///Starts the enumeration of images stored on a WDS server and returns a find handle that references the first image.
 ///Params:
@@ -685,7 +685,7 @@ HRESULT WdsCliFreeStringArray(char* ppwszArray, uint ulCount);
 ///    If the function succeeds, the return is <b>S_OK</b>.
 ///    
 @DllImport("WDSCLIENTAPI")
-HRESULT WdsCliFindFirstImage(HANDLE hSession, ptrdiff_t* phFindHandle);
+HRESULT WdsCliFindFirstImage(HANDLE hSession, HANDLE* phFindHandle);
 
 ///Advances the reference of a find handle to the next image stored on a WDS server.
 ///Params:
@@ -722,7 +722,7 @@ HRESULT WdsCliGetEnumerationFlags(HANDLE Handle, uint* pdwFlags);
 ///    If the function succeeds, the return is <b>S_OK</b>.
 ///    
 @DllImport("WDSCLIENTAPI")
-HRESULT WdsCliGetImageHandleFromFindHandle(HANDLE FindHandle, ptrdiff_t* phImageHandle);
+HRESULT WdsCliGetImageHandleFromFindHandle(HANDLE FindHandle, HANDLE* phImageHandle);
 
 ///Returns an image handle from a completed transfer handle. The handle is to the local copy of the image that's been
 ///transferred from the server to the client.
@@ -734,7 +734,7 @@ HRESULT WdsCliGetImageHandleFromFindHandle(HANDLE FindHandle, ptrdiff_t* phImage
 ///    If the function succeeds, the return is <b>S_OK</b>.
 ///    
 @DllImport("WDSCLIENTAPI")
-HRESULT WdsCliGetImageHandleFromTransferHandle(HANDLE hTransfer, ptrdiff_t* phImageHandle);
+HRESULT WdsCliGetImageHandleFromTransferHandle(HANDLE hTransfer, HANDLE* phImageHandle);
 
 ///Starts a new session with a WDS server.
 ///Params:
@@ -747,7 +747,7 @@ HRESULT WdsCliGetImageHandleFromTransferHandle(HANDLE hTransfer, ptrdiff_t* phIm
 ///    <b>FALSE</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("WDSCLIENTAPI")
-HRESULT WdsCliCreateSession(const(wchar)* pwszServer, WDS_CLI_CRED* pCred, ptrdiff_t* phSession);
+HRESULT WdsCliCreateSession(PWSTR pwszServer, WDS_CLI_CRED* pCred, HANDLE* phSession);
 
 ///Converts a session with a WDS server into an authenticated session.
 ///Params:
@@ -781,8 +781,8 @@ HRESULT WdsCliAuthorizeSession(HANDLE hSession, WDS_CLI_CRED* pCred);
 ///    return value is <b>HRESULT_FROM_WIN32(ERROR_ALREADY_INITIALIZED)</b>.
 ///    
 @DllImport("WDSCLIENTAPI")
-HRESULT WdsCliInitializeLog(HANDLE hSession, uint ulClientArchitecture, const(wchar)* pwszClientId, 
-                            const(wchar)* pwszClientAddress);
+HRESULT WdsCliInitializeLog(HANDLE hSession, uint ulClientArchitecture, PWSTR pwszClientId, 
+                            PWSTR pwszClientAddress);
 
 ///Sends a log event to the WDS server.
 ///Params:
@@ -829,7 +829,7 @@ HRESULT WdsCliLog(HANDLE hSession, uint ulLogLevel, uint ulMessageCode);
 ///    If the function succeeds, the return is <b>S_OK</b>.
 ///    
 @DllImport("WDSCLIENTAPI")
-HRESULT WdsCliGetImageName(HANDLE hIfh, ushort** ppwszValue);
+HRESULT WdsCliGetImageName(HANDLE hIfh, PWSTR* ppwszValue);
 
 ///Returns a description of the current image.
 ///Params:
@@ -840,13 +840,13 @@ HRESULT WdsCliGetImageName(HANDLE hIfh, ushort** ppwszValue);
 ///    If the function succeeds, the return is <b>S_OK</b>.
 ///    
 @DllImport("WDSCLIENTAPI")
-HRESULT WdsCliGetImageDescription(HANDLE hIfh, ushort** ppwszValue);
+HRESULT WdsCliGetImageDescription(HANDLE hIfh, PWSTR* ppwszValue);
 
 @DllImport("WDSCLIENTAPI")
 HRESULT WdsCliGetImageType(HANDLE hIfh, WDS_CLI_IMAGE_TYPE* pImageType);
 
 @DllImport("WDSCLIENTAPI")
-HRESULT WdsCliGetImageFiles(HANDLE hIfh, ushort*** pppwszFiles, uint* pdwCount);
+HRESULT WdsCliGetImageFiles(HANDLE hIfh, PWSTR** pppwszFiles, uint* pdwCount);
 
 ///Returns the default language of the current image.
 ///Params:
@@ -858,7 +858,7 @@ HRESULT WdsCliGetImageFiles(HANDLE hIfh, ushort*** pppwszFiles, uint* pdwCount);
 ///    If the function succeeds, the return is <b>S_OK</b>.
 ///    
 @DllImport("WDSCLIENTAPI")
-HRESULT WdsCliGetImageLanguage(HANDLE hIfh, ushort** ppwszValue);
+HRESULT WdsCliGetImageLanguage(HANDLE hIfh, PWSTR* ppwszValue);
 
 ///Returns an array of languages supported by the current image.
 ///Params:
@@ -882,7 +882,7 @@ HRESULT WdsCliGetImageLanguages(HANDLE hIfh, byte*** pppszValues, uint* pdwNumVa
 ///    If the function succeeds, the return is <b>S_OK</b>.
 ///    
 @DllImport("WDSCLIENTAPI")
-HRESULT WdsCliGetImageVersion(HANDLE hIfh, ushort** ppwszValue);
+HRESULT WdsCliGetImageVersion(HANDLE hIfh, PWSTR* ppwszValue);
 
 ///Returns the path to the file that contains the current image.
 ///Params:
@@ -894,7 +894,7 @@ HRESULT WdsCliGetImageVersion(HANDLE hIfh, ushort** ppwszValue);
 ///    If the function succeeds, the return is <b>S_OK</b>.
 ///    
 @DllImport("WDSCLIENTAPI")
-HRESULT WdsCliGetImagePath(HANDLE hIfh, ushort** ppwszValue);
+HRESULT WdsCliGetImagePath(HANDLE hIfh, PWSTR* ppwszValue);
 
 ///Returns the index within the Windows Imaging Format(WIM) file for the current image.
 ///Params:
@@ -958,7 +958,7 @@ HRESULT WdsCliGetImageSize(HANDLE hIfh, ulong* pullValue);
 ///    If the function succeeds, the return is <b>S_OK</b>.
 ///    
 @DllImport("WDSCLIENTAPI")
-HRESULT WdsCliGetImageHalName(HANDLE hIfh, ushort** ppwszValue);
+HRESULT WdsCliGetImageHalName(HANDLE hIfh, PWSTR* ppwszValue);
 
 ///Returns the name of the image group for the current image.
 ///Params:
@@ -969,7 +969,7 @@ HRESULT WdsCliGetImageHalName(HANDLE hIfh, ushort** ppwszValue);
 ///    If the function succeeds, the return is <b>S_OK</b>.
 ///    
 @DllImport("WDSCLIENTAPI")
-HRESULT WdsCliGetImageGroup(HANDLE hIfh, ushort** ppwszValue);
+HRESULT WdsCliGetImageGroup(HANDLE hIfh, PWSTR* ppwszValue);
 
 ///Returns the namespace of the current image.
 ///Params:
@@ -981,10 +981,10 @@ HRESULT WdsCliGetImageGroup(HANDLE hIfh, ushort** ppwszValue);
 ///    If the function succeeds, the return is <b>S_OK</b>.
 ///    
 @DllImport("WDSCLIENTAPI")
-HRESULT WdsCliGetImageNamespace(HANDLE hIfh, ushort** ppwszValue);
+HRESULT WdsCliGetImageNamespace(HANDLE hIfh, PWSTR* ppwszValue);
 
 @DllImport("WDSCLIENTAPI")
-HRESULT WdsCliGetImageParameter(HANDLE hIfh, WDS_CLI_IMAGE_PARAM_TYPE ParamType, char* pResponse, 
+HRESULT WdsCliGetImageParameter(HANDLE hIfh, WDS_CLI_IMAGE_PARAM_TYPE ParamType, void* pResponse, 
                                 uint uResponseLen);
 
 ///Returns the size of the current file transfer.
@@ -1019,8 +1019,8 @@ void WdsCliSetTransferBufferSize(uint ulSizeInBytes);
 ///    If the function succeeds, the return is <b>S_OK</b>.
 ///    
 @DllImport("WDSCLIENTAPI")
-HRESULT WdsCliTransferImage(HANDLE hImage, const(wchar)* pwszLocalPath, uint dwFlags, uint dwReserved, 
-                            PFN_WdsCliCallback pfnWdsCliCallback, void* pvUserData, ptrdiff_t* phTransfer);
+HRESULT WdsCliTransferImage(HANDLE hImage, PWSTR pwszLocalPath, uint dwFlags, uint dwReserved, 
+                            PFN_WdsCliCallback pfnWdsCliCallback, void* pvUserData, HANDLE* phTransfer);
 
 ///Transfers a file from a WDS server to the WDS client using a multicast transfer protocol.
 ///Params:
@@ -1043,9 +1043,9 @@ HRESULT WdsCliTransferImage(HANDLE hImage, const(wchar)* pwszLocalPath, uint dwF
 ///    If the function succeeds, the return is <b>S_OK</b>.
 ///    
 @DllImport("WDSCLIENTAPI")
-HRESULT WdsCliTransferFile(const(wchar)* pwszServer, const(wchar)* pwszNamespace, const(wchar)* pwszRemoteFilePath, 
-                           const(wchar)* pwszLocalFilePath, uint dwFlags, uint dwReserved, 
-                           PFN_WdsCliCallback pfnWdsCliCallback, void* pvUserData, ptrdiff_t* phTransfer);
+HRESULT WdsCliTransferFile(const(PWSTR) pwszServer, const(PWSTR) pwszNamespace, const(PWSTR) pwszRemoteFilePath, 
+                           const(PWSTR) pwszLocalFilePath, uint dwFlags, uint dwReserved, 
+                           PFN_WdsCliCallback pfnWdsCliCallback, void* pvUserData, HANDLE* phTransfer);
 
 ///Cancels a WDS transfer operation.
 ///Params:
@@ -1081,7 +1081,7 @@ HRESULT WdsCliWaitForTransfer(HANDLE hTransfer);
 ///    If the function succeeds, the return is <b>S_OK</b>.
 ///    
 @DllImport("WDSCLIENTAPI")
-HRESULT WdsCliObtainDriverPackages(HANDLE hImage, ushort** ppwszServerName, ushort*** pppwszDriverPackages, 
+HRESULT WdsCliObtainDriverPackages(HANDLE hImage, PWSTR* ppwszServerName, PWSTR** pppwszDriverPackages, 
                                    uint* pulCount);
 
 ///This function obtains the driver packages (INF files) that are applicable to the specified WDS driver query XML. The
@@ -1097,8 +1097,8 @@ HRESULT WdsCliObtainDriverPackages(HANDLE hImage, ushort** ppwszServerName, usho
 ///                           <b>\\172.31.224.245\REMINST\Stores\Drivers\driver.inf</b> in the array gives the full path to driver.inf.
 ///    pulCount = The number of driver packages returned by pppwszDriverPackages.
 @DllImport("WDSCLIENTAPI")
-HRESULT WdsCliObtainDriverPackagesEx(HANDLE hSession, const(wchar)* pwszMachineInfo, ushort** ppwszServerName, 
-                                     ushort*** pppwszDriverPackages, uint* pulCount);
+HRESULT WdsCliObtainDriverPackagesEx(HANDLE hSession, PWSTR pwszMachineInfo, PWSTR* ppwszServerName, 
+                                     PWSTR** pppwszDriverPackages, uint* pulCount);
 
 ///This function generates an XML string which can be used to query a WDS server for driver packages using the
 ///WdsCliObtainDriverPackagesEx function. The target OS information section of the WDS driver query XML is generated if
@@ -1109,7 +1109,7 @@ HRESULT WdsCliObtainDriverPackagesEx(HANDLE hSession, const(wchar)* pwszMachineI
 ///    ppwszDriverQuery = A pointer to a pointer to a string that receives the generated WDS driver query XML. The caller has to free this
 ///                       buffer using "delete\[\]\(\*ppwszDriverQuery\)".
 @DllImport("WDSCLIENTAPI")
-HRESULT WdsCliGetDriverQueryXml(const(wchar)* pwszWinDirPath, ushort** ppwszDriverQuery);
+HRESULT WdsCliGetDriverQueryXml(PWSTR pwszWinDirPath, PWSTR* ppwszDriverQuery);
 
 ///Registers a provider with the system. Providers use this function during installation to register with the system. On
 ///successful registration, a registry key handle is returned that should be used to store configuration information.
@@ -1131,7 +1131,7 @@ HRESULT WdsCliGetDriverQueryXml(const(wchar)* pwszWinDirPath, ushort** ppwszDriv
 ///    If the function succeeds, the return value is <b>ERROR_SUCCESS</b>.
 ///    
 @DllImport("WDSPXE")
-uint PxeProviderRegister(const(wchar)* pszProviderName, const(wchar)* pszModulePath, uint Index, BOOL bIsCritical, 
+uint PxeProviderRegister(const(PWSTR) pszProviderName, const(PWSTR) pszModulePath, uint Index, BOOL bIsCritical, 
                          HKEY* phProviderKey);
 
 ///Removes a provider from the list of registered providers.
@@ -1141,7 +1141,7 @@ uint PxeProviderRegister(const(wchar)* pszProviderName, const(wchar)* pszModuleP
 ///    If the function succeeds, the return value is <b>ERROR_SUCCESS</b>.
 ///    
 @DllImport("WDSPXE")
-uint PxeProviderUnRegister(const(wchar)* pszProviderName);
+uint PxeProviderUnRegister(const(PWSTR) pszProviderName);
 
 ///Returns the index of the specified provider in the list of registered providers.
 ///Params:
@@ -1151,7 +1151,7 @@ uint PxeProviderUnRegister(const(wchar)* pszProviderName);
 ///    If the function succeeds, the return value is <b>ERROR_SUCCESS</b>.
 ///    
 @DllImport("WDSPXE")
-uint PxeProviderQueryIndex(const(wchar)* pszProviderName, uint* puIndex);
+uint PxeProviderQueryIndex(const(PWSTR) pszProviderName, uint* puIndex);
 
 ///Starts an enumeration of registered providers.
 ///Params:
@@ -1230,7 +1230,7 @@ uint PxeRegisterCallback(HANDLE hProvider, uint CallbackType, void* pCallbackFun
 ///    If the function succeeds, the return value is <b>ERROR_SUCCESS</b>.
 ///    
 @DllImport("WDSPXE")
-uint PxeSendReply(HANDLE hClientRequest, char* pPacket, uint uPacketLen, PXE_ADDRESS* pAddress);
+uint PxeSendReply(HANDLE hClientRequest, void* pPacket, uint uPacketLen, PXE_ADDRESS* pAddress);
 
 ///Passes the results of processing the client request asynchronously. This function should be called only if the
 ///PxeProviderRecvRequest function returns <b>ERROR_IO_PENDING</b>.
@@ -1282,10 +1282,10 @@ uint PxeAsyncRecvDone(HANDLE hClientRequest, uint Action);
 ///    If the function succeeds, the return value is <b>ERROR_SUCCESS</b>.
 ///    
 @DllImport("WDSPXE")
-uint PxeTrace(HANDLE hProvider, uint Severity, const(wchar)* pszFormat);
+uint PxeTrace(HANDLE hProvider, uint Severity, const(PWSTR) pszFormat);
 
 @DllImport("WDSPXE")
-uint PxeTraceV(HANDLE hProvider, uint Severity, const(wchar)* pszFormat, byte* Params);
+uint PxeTraceV(HANDLE hProvider, uint Severity, const(PWSTR) pszFormat, byte* Params);
 
 ///Allocates a packet to be sent with the PxeSendReply function.
 ///Params:
@@ -1342,7 +1342,7 @@ uint PxePacketFree(HANDLE hProvider, HANDLE hClientRequest, void* pPacket);
 ///    If the function succeeds, the return value is <b>ERROR_SUCCESS</b>.
 ///    
 @DllImport("WDSPXE")
-uint PxeProviderSetAttribute(HANDLE hProvider, uint Attribute, char* pParameterBuffer, uint uParamLen);
+uint PxeProviderSetAttribute(HANDLE hProvider, uint Attribute, void* pParameterBuffer, uint uParamLen);
 
 ///Initializes a response packet as a DHCP reply packet.
 ///Params:
@@ -1356,7 +1356,7 @@ uint PxeProviderSetAttribute(HANDLE hProvider, uint Attribute, char* pParameterB
 ///    If the function succeeds, the return value is <b>ERROR_SUCCESS</b>.
 ///    
 @DllImport("WDSPXE")
-uint PxeDhcpInitialize(char* pRecvPacket, uint uRecvPacketLen, char* pReplyPacket, uint uMaxReplyPacketLen, 
+uint PxeDhcpInitialize(void* pRecvPacket, uint uRecvPacketLen, void* pReplyPacket, uint uMaxReplyPacketLen, 
                        uint* puReplyPacketLen);
 
 ///Initializes a response packet as a DHCPv6 reply packet. For RELAY-FORW messages, this function initializes the
@@ -1372,7 +1372,7 @@ uint PxeDhcpInitialize(char* pRecvPacket, uint uRecvPacketLen, char* pReplyPacke
 ///    pcbReplyUsed = Address of a <b>ULONG</b> that on successful completion will receive the length of the packet pointed to by the
 ///                   <i>pReply</i> parameter.
 @DllImport("WDSPXE")
-uint PxeDhcpv6Initialize(char* pRequest, uint cbRequest, char* pReply, uint cbReply, uint* pcbReplyUsed);
+uint PxeDhcpv6Initialize(void* pRequest, uint cbRequest, void* pReply, uint cbReply, uint* pcbReplyUsed);
 
 ///Appends a DHCP option to the reply packet.
 ///Params:
@@ -1389,8 +1389,8 @@ uint PxeDhcpv6Initialize(char* pRequest, uint cbRequest, char* pReply, uint cbRe
 ///    If the function succeeds, the return value is <b>ERROR_SUCCESS</b>.
 ///    
 @DllImport("WDSPXE")
-uint PxeDhcpAppendOption(char* pReplyPacket, uint uMaxReplyPacketLen, uint* puReplyPacketLen, ubyte bOption, 
-                         ubyte bOptionLen, char* pValue);
+uint PxeDhcpAppendOption(void* pReplyPacket, uint uMaxReplyPacketLen, uint* puReplyPacketLen, ubyte bOption, 
+                         ubyte bOptionLen, void* pValue);
 
 ///Appends a DHCPv6 option to the reply packet.
 ///Params:
@@ -1405,8 +1405,8 @@ uint PxeDhcpAppendOption(char* pReplyPacket, uint uMaxReplyPacketLen, uint* puRe
 ///    If the function succeeds, the return value is <b>ERROR_SUCCESS</b>.
 ///    
 @DllImport("WDSPXE")
-uint PxeDhcpv6AppendOption(char* pReply, uint cbReply, uint* pcbReplyUsed, ushort wOptionType, ushort cbOption, 
-                           char* pOption);
+uint PxeDhcpv6AppendOption(void* pReply, uint cbReply, uint* pcbReplyUsed, ushort wOptionType, ushort cbOption, 
+                           void* pOption);
 
 ///Appends a DHCP option to the reply packet.
 ///Params:
@@ -1420,8 +1420,8 @@ uint PxeDhcpv6AppendOption(char* pReply, uint cbReply, uint* pcbReplyUsed, ushor
 ///    If the function succeeds, the return value is <b>ERROR_SUCCESS</b>.
 ///    
 @DllImport("WDSPXE")
-uint PxeDhcpAppendOptionRaw(char* pReplyPacket, uint uMaxReplyPacketLen, uint* puReplyPacketLen, ushort uBufferLen, 
-                            char* pBuffer);
+uint PxeDhcpAppendOptionRaw(void* pReplyPacket, uint uMaxReplyPacketLen, uint* puReplyPacketLen, ushort uBufferLen, 
+                            void* pBuffer);
 
 ///Appends a DHCPv6 option to the reply packet.
 ///Params:
@@ -1437,7 +1437,7 @@ uint PxeDhcpAppendOptionRaw(char* pReplyPacket, uint uMaxReplyPacketLen, uint* p
 ///    If the function succeeds, the return value is <b>ERROR_SUCCESS</b>.
 ///    
 @DllImport("WDSPXE")
-uint PxeDhcpv6AppendOptionRaw(char* pReply, uint cbReply, uint* pcbReplyUsed, ushort cbBuffer, char* pBuffer);
+uint PxeDhcpv6AppendOptionRaw(void* pReply, uint cbReply, uint* pcbReplyUsed, ushort cbBuffer, void* pBuffer);
 
 ///Validates that a packet is a DHCP packet.
 ///Params:
@@ -1455,7 +1455,7 @@ uint PxeDhcpv6AppendOptionRaw(char* pReply, uint cbReply, uint* pcbReplyUsed, us
 ///    If the function succeeds, the return value is <b>ERROR_SUCCESS</b>.
 ///    
 @DllImport("WDSPXE")
-uint PxeDhcpIsValid(char* pPacket, uint uPacketLen, BOOL bRequestPacket, int* pbPxeOptionPresent);
+uint PxeDhcpIsValid(void* pPacket, uint uPacketLen, BOOL bRequestPacket, BOOL* pbPxeOptionPresent);
 
 ///Validates that a packet is a valid DHCPv6 packet. For more information about valid DHCPv6 packets, developers should
 ///refer to the Dynamic Host Configuration Protocol for IPv6 (RFC 3315) maintained by The Internet Engineering Task
@@ -1474,7 +1474,7 @@ uint PxeDhcpIsValid(char* pPacket, uint uPacketLen, BOOL bRequestPacket, int* pb
 ///    If the function succeeds, the return value is <b>ERROR_SUCCESS</b>.
 ///    
 @DllImport("WDSPXE")
-uint PxeDhcpv6IsValid(char* pPacket, uint uPacketLen, BOOL bRequestPacket, int* pbPxeOptionPresent);
+uint PxeDhcpv6IsValid(void* pPacket, uint uPacketLen, BOOL bRequestPacket, BOOL* pbPxeOptionPresent);
 
 ///Retrieves an option value from a DHCP packet.
 ///Params:
@@ -1495,7 +1495,7 @@ uint PxeDhcpv6IsValid(char* pPacket, uint uPacketLen, BOOL bRequestPacket, int* 
 ///    magic cookie are verified. </td> </tr> </table>
 ///    
 @DllImport("WDSPXE")
-uint PxeDhcpGetOptionValue(char* pPacket, uint uPacketLen, uint uInstance, ubyte bOption, ubyte* pbOptionLen, 
+uint PxeDhcpGetOptionValue(void* pPacket, uint uPacketLen, uint uInstance, ubyte bOption, ubyte* pbOptionLen, 
                            void** ppOptionValue);
 
 ///Retrieves an option value from a DHCPv6 packet.
@@ -1517,7 +1517,7 @@ uint PxeDhcpGetOptionValue(char* pPacket, uint uPacketLen, uint uInstance, ubyte
 ///    length and magic cookie are verified. </td> </tr> </table>
 ///    
 @DllImport("WDSPXE")
-uint PxeDhcpv6GetOptionValue(char* pPacket, uint uPacketLen, uint uInstance, ushort wOption, ushort* pwOptionLen, 
+uint PxeDhcpv6GetOptionValue(void* pPacket, uint uPacketLen, uint uInstance, ushort wOption, ushort* pwOptionLen, 
                              void** ppOptionValue);
 
 ///Retrieves an option value from the Vendor Specific Information field (43) of a DHCP packet.
@@ -1539,7 +1539,7 @@ uint PxeDhcpv6GetOptionValue(char* pPacket, uint uPacketLen, uint uInstance, ush
 ///    magic cookie are verified. </td> </tr> </table>
 ///    
 @DllImport("WDSPXE")
-uint PxeDhcpGetVendorOptionValue(char* pPacket, uint uPacketLen, ubyte bOption, uint uInstance, ubyte* pbOptionLen, 
+uint PxeDhcpGetVendorOptionValue(void* pPacket, uint uPacketLen, ubyte bOption, uint uInstance, ubyte* pbOptionLen, 
                                  void** ppOptionValue);
 
 ///Retrieves option values from the OPTION_VENDOR_OPTS (17) field of a DHCPv6 packet.
@@ -1564,7 +1564,7 @@ uint PxeDhcpGetVendorOptionValue(char* pPacket, uint uPacketLen, ubyte bOption, 
 ///    and magic cookie are verified. </td> </tr> </table>
 ///    
 @DllImport("WDSPXE")
-uint PxeDhcpv6GetVendorOptionValue(char* pPacket, uint uPacketLen, uint dwEnterpriseNumber, ushort wOption, 
+uint PxeDhcpv6GetVendorOptionValue(void* pPacket, uint uPacketLen, uint dwEnterpriseNumber, ushort wOption, 
                                    uint uInstance, ushort* pwOptionLen, void** ppOptionValue);
 
 ///This function can be used by a provider to parse RELAY-FORW messages and their nested OPTION_RELAY_MSG messages. The
@@ -1586,8 +1586,9 @@ uint PxeDhcpv6GetVendorOptionValue(char* pPacket, uint uPacketLen, uint dwEnterp
 ///    pcbInnerPacket = Specifies a pointer to a <b>ULONG</b> value which on success will be set to the size, in bytes, of the innermost
 ///                     packet in the relay chain which is the original client request packet.
 @DllImport("WDSPXE")
-uint PxeDhcpv6ParseRelayForw(char* pRelayForwPacket, uint uRelayForwPacketLen, char* pRelayMessages, 
-                             uint nRelayMessages, uint* pnRelayMessages, ubyte** ppInnerPacket, uint* pcbInnerPacket);
+uint PxeDhcpv6ParseRelayForw(void* pRelayForwPacket, uint uRelayForwPacketLen, 
+                             PXE_DHCPV6_NESTED_RELAY_MESSAGE* pRelayMessages, uint nRelayMessages, 
+                             uint* pnRelayMessages, ubyte** ppInnerPacket, uint* pcbInnerPacket);
 
 ///Generates a RELAY-REPL message. For more information about RELAY-REPL and RELAY-FORW messages, developers should
 ///refer to the Dynamic Host Configuration Protocol for IPv6 (RFC 3315) maintained by The Internet Engineering Task
@@ -1605,8 +1606,9 @@ uint PxeDhcpv6ParseRelayForw(char* pRelayForwPacket, uint uRelayForwPacketLen, c
 ///    pcbReplyBuffer = On success, this is set to the actual size of the RELAY-REPL packet in the buffer pointed to by
 ///                     <i>pRelyBuffer</i>.
 @DllImport("WDSPXE")
-uint PxeDhcpv6CreateRelayRepl(char* pRelayMessages, uint nRelayMessages, char* pInnerPacket, uint cbInnerPacket, 
-                              char* pReplyBuffer, uint cbReplyBuffer, uint* pcbReplyBuffer);
+uint PxeDhcpv6CreateRelayRepl(PXE_DHCPV6_NESTED_RELAY_MESSAGE* pRelayMessages, uint nRelayMessages, 
+                              ubyte* pInnerPacket, uint cbInnerPacket, void* pReplyBuffer, uint cbReplyBuffer, 
+                              uint* pcbReplyBuffer);
 
 ///Returns information about the PXE server.
 ///Params:
@@ -1622,7 +1624,7 @@ uint PxeDhcpv6CreateRelayRepl(char* pRelayMessages, uint nRelayMessages, char* p
 ///    If the function succeeds, the return value is <b>ERROR_SUCCESS</b>.
 ///    
 @DllImport("WDSPXE")
-uint PxeGetServerInfo(uint uInfoType, char* pBuffer, uint uBufferLen);
+uint PxeGetServerInfo(uint uInfoType, void* pBuffer, uint uBufferLen);
 
 ///Returns information about the PXE server. For more information about the OPTION_SERVERID option, developers should
 ///refer to the Dynamic Host Configuration Protocol for IPv6 (RFC 3315) maintained by The Internet Engineering Task
@@ -1644,7 +1646,7 @@ uint PxeGetServerInfo(uint uInfoType, char* pBuffer, uint uBufferLen);
 ///    If the function succeeds, the return value is <b>ERROR_SUCCESS</b>.
 ///    
 @DllImport("WDSPXE")
-uint PxeGetServerInfoEx(uint uInfoType, char* pBuffer, uint uBufferLen, uint* puBufferUsed);
+uint PxeGetServerInfoEx(uint uInfoType, void* pBuffer, uint uBufferLen, uint* puBufferUsed);
 
 ///Registers a provider callback with the multicast server.
 ///Params:
@@ -1671,7 +1673,7 @@ HRESULT WdsTransportServerCompleteRead(HANDLE hProvider, uint ulBytesRead, void*
 ///    pwszFormat = A pointer to a null-terminated string value that contains a formatted string.
 ///    arg4 = Additional arguments.
 @DllImport("WDSMC")
-HRESULT WdsTransportServerTrace(HANDLE hProvider, uint Severity, const(wchar)* pwszFormat);
+HRESULT WdsTransportServerTrace(HANDLE hProvider, uint Severity, const(PWSTR) pwszFormat);
 
 ///Sends a debugging message.
 ///Params:
@@ -1680,7 +1682,7 @@ HRESULT WdsTransportServerTrace(HANDLE hProvider, uint Severity, const(wchar)* p
 ///    pwszFormat = A pointer to a null-terminated string value that contains a formatted string.
 ///    Params = A list of parameters used by the formatted string.
 @DllImport("WDSMC")
-HRESULT WdsTransportServerTraceV(HANDLE hProvider, uint Severity, const(wchar)* pwszFormat, byte* Params);
+HRESULT WdsTransportServerTraceV(HANDLE hProvider, uint Severity, const(PWSTR) pwszFormat, byte* Params);
 
 ///Allocates a buffer in memory.
 ///Params:
@@ -1712,7 +1714,7 @@ uint WdsTransportClientInitialize();
 ///    
 @DllImport("WDSTPTC")
 uint WdsTransportClientInitializeSession(WDS_TRANSPORTCLIENT_REQUEST* pSessionRequest, void* pCallerData, 
-                                         ptrdiff_t* hSessionKey);
+                                         HANDLE* hSessionKey);
 
 ///Registers a callback with the multicast client.
 ///Params:
@@ -1838,7 +1840,7 @@ uint WdsTransportClientShutdown();
 ///    phHandle = A handle to the packet. This handle can be used by the WdsBpQueryOption function and must be closed using the
 ///               WdsBpCloseHandle function.
 @DllImport("WDSBP")
-uint WdsBpParseInitialize(char* pPacket, uint uPacketLen, ubyte* pbPacketType, HANDLE* phHandle);
+uint WdsBpParseInitialize(void* pPacket, uint uPacketLen, ubyte* pbPacketType, HANDLE* phHandle);
 
 ///Receives a handle to the packet sent by the network boot program.
 ///Params:
@@ -1862,7 +1864,7 @@ uint WdsBpParseInitialize(char* pPacket, uint uPacketLen, ubyte* pbPacketType, H
 ///    phHandle = A handle to the packet. This handle can be used by the WdsBpQueryOption function and must be closed using the
 ///               WdsBpCloseHandle function.
 @DllImport("WDSBP")
-uint WdsBpParseInitializev6(char* pPacket, uint uPacketLen, ubyte* pbPacketType, HANDLE* phHandle);
+uint WdsBpParseInitializev6(void* pPacket, uint uPacketLen, ubyte* pbPacketType, HANDLE* phHandle);
 
 ///Constructs options for the WDS network boot program.
 ///Params:
@@ -1904,7 +1906,7 @@ uint WdsBpCloseHandle(HANDLE hHandle);
 ///    puBytes = If the buffer is large enough for the value, this parameter receives the number of bytes copied to <i>pValue</i>.
 ///              If not enough space is available, this parameter receives the total number of bytes required to store the value.
 @DllImport("WDSBP")
-uint WdsBpQueryOption(HANDLE hHandle, uint uOption, uint uValueLen, char* pValue, uint* puBytes);
+uint WdsBpQueryOption(HANDLE hHandle, uint uOption, uint uValueLen, void* pValue, uint* puBytes);
 
 ///Adds an option to the packet.
 ///Params:
@@ -1913,7 +1915,7 @@ uint WdsBpQueryOption(HANDLE hHandle, uint uOption, uint uValueLen, char* pValue
 ///    uValueLen = The length, in bytes, for the value.
 ///    pValue = A pointer to a location that contains the value for the option.
 @DllImport("WDSBP")
-uint WdsBpAddOption(HANDLE hHandle, uint uOption, uint uValueLen, char* pValue);
+uint WdsBpAddOption(HANDLE hHandle, uint uOption, uint uValueLen, void* pValue);
 
 ///Copies information into a buffer that should be added to your DHCP packet options.
 ///Params:
@@ -1924,7 +1926,7 @@ uint WdsBpAddOption(HANDLE hHandle, uint uOption, uint uValueLen, char* pValue);
 ///    pBuffer = A pointer to a location in memory that receives the information that is being sent to the network boot program.
 ///    puBytes = The number of bytes copied to the buffer.
 @DllImport("WDSBP")
-uint WdsBpGetOptionBuffer(HANDLE hHandle, uint uBufferLen, char* pBuffer, uint* puBytes);
+uint WdsBpGetOptionBuffer(HANDLE hHandle, uint uBufferLen, void* pBuffer, uint* puBytes);
 
 
 // Interfaces

@@ -7,11 +7,12 @@ public import windows.automation : BSTR, IDispatch, VARIANT;
 public import windows.com : HRESULT, IUnknown;
 public import windows.gdi : HFONT, HICON;
 public import windows.security : SC_HANDLE__;
-public import windows.systemservices : BOOL, HANDLE, LARGE_INTEGER, SECURITY_ATTRIBUTES,
-                                       SECURITY_DESCRIPTOR_RELATIVE, ULARGE_INTEGER;
+public import windows.systemservices : BOOL, HANDLE, LARGE_INTEGER, NTSTATUS, PWSTR,
+                                       SECURITY_ATTRIBUTES, SECURITY_DESCRIPTOR_RELATIVE,
+                                       ULARGE_INTEGER;
 public import windows.windowsprogramming : FILETIME, HKEY, SYSTEMTIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -3001,30 +3002,30 @@ enum : int
 
 // Callbacks
 
-alias PCLUSAPI_GET_NODE_CLUSTER_STATE = uint function(const(wchar)* lpszNodeName, uint* pdwClusterState);
-alias PCLUSAPI_OPEN_CLUSTER = _HCLUSTER* function(const(wchar)* lpszClusterName);
-alias PCLUSAPI_OPEN_CLUSTER_EX = _HCLUSTER* function(const(wchar)* lpszClusterName, uint dwDesiredAccess, 
+alias PCLUSAPI_GET_NODE_CLUSTER_STATE = uint function(const(PWSTR) lpszNodeName, uint* pdwClusterState);
+alias PCLUSAPI_OPEN_CLUSTER = _HCLUSTER* function(const(PWSTR) lpszClusterName);
+alias PCLUSAPI_OPEN_CLUSTER_EX = _HCLUSTER* function(const(PWSTR) lpszClusterName, uint dwDesiredAccess, 
                                                      uint* lpdwGrantedAccess);
 alias PCLUSAPI_CLOSE_CLUSTER = BOOL function(_HCLUSTER* hCluster);
-alias PCLUSAPI_SetClusterName = uint function(_HCLUSTER* hCluster, const(wchar)* lpszNewClusterName);
-alias PCLUSAPI_GET_CLUSTER_INFORMATION = uint function(_HCLUSTER* hCluster, const(wchar)* lpszClusterName, 
+alias PCLUSAPI_SetClusterName = uint function(_HCLUSTER* hCluster, const(PWSTR) lpszNewClusterName);
+alias PCLUSAPI_GET_CLUSTER_INFORMATION = uint function(_HCLUSTER* hCluster, PWSTR lpszClusterName, 
                                                        uint* lpcchClusterName, CLUSTERVERSIONINFO* lpClusterInfo);
-alias PCLUSAPI_GET_CLUSTER_QUORUM_RESOURCE = uint function(_HCLUSTER* hCluster, const(wchar)* lpszResourceName, 
-                                                           uint* lpcchResourceName, const(wchar)* lpszDeviceName, 
+alias PCLUSAPI_GET_CLUSTER_QUORUM_RESOURCE = uint function(_HCLUSTER* hCluster, PWSTR lpszResourceName, 
+                                                           uint* lpcchResourceName, PWSTR lpszDeviceName, 
                                                            uint* lpcchDeviceName, uint* lpdwMaxQuorumLogSize);
-alias PCLUSAPI_SET_CLUSTER_QUORUM_RESOURCE = uint function(_HRESOURCE* hResource, const(wchar)* lpszDeviceName, 
+alias PCLUSAPI_SET_CLUSTER_QUORUM_RESOURCE = uint function(_HRESOURCE* hResource, const(PWSTR) lpszDeviceName, 
                                                            uint dwMaxQuoLogSize);
-alias PCLUSAPI_BACKUP_CLUSTER_DATABASE = uint function(_HCLUSTER* hCluster, const(wchar)* lpszPathName);
-alias PCLUSAPI_RESTORE_CLUSTER_DATABASE = uint function(const(wchar)* lpszPathName, BOOL bForce, 
-                                                        const(wchar)* lpszQuorumDriveLetter);
+alias PCLUSAPI_BACKUP_CLUSTER_DATABASE = uint function(_HCLUSTER* hCluster, const(PWSTR) lpszPathName);
+alias PCLUSAPI_RESTORE_CLUSTER_DATABASE = uint function(const(PWSTR) lpszPathName, BOOL bForce, 
+                                                        const(PWSTR) lpszQuorumDriveLetter);
 alias PCLUSAPI_SET_CLUSTER_NETWORK_PRIORITY_ORDER = uint function(_HCLUSTER* hCluster, uint NetworkCount, 
-                                                                  char* NetworkList);
-alias PCLUSAPI_SET_CLUSTER_SERVICE_ACCOUNT_PASSWORD = uint function(const(wchar)* lpszClusterName, 
-                                                                    const(wchar)* lpszNewPassword, uint dwFlags, 
-                                                                    char* lpReturnStatusBuffer, 
+                                                                  _HNETWORK** NetworkList);
+alias PCLUSAPI_SET_CLUSTER_SERVICE_ACCOUNT_PASSWORD = uint function(const(PWSTR) lpszClusterName, 
+                                                                    const(PWSTR) lpszNewPassword, uint dwFlags, 
+                                                                    CLUSTER_SET_PASSWORD_STATUS* lpReturnStatusBuffer, 
                                                                     uint* lpcbReturnStatusBufferSize);
 alias PCLUSAPI_CLUSTER_CONTROL = uint function(_HCLUSTER* hCluster, _HNODE* hHostNode, uint dwControlCode, 
-                                               char* lpInBuffer, uint nInBufferSize, char* lpOutBuffer, 
+                                               void* lpInBuffer, uint nInBufferSize, void* lpOutBuffer, 
                                                uint nOutBufferSize, uint* lpBytesReturned);
 ///Retrieves status information for a rolling upgrade of the operating system on a cluster.
 ///<b>PCLUSTER_UPGRADE_PROGRESS_CALLBACK</b> type defines a pointer to this function.
@@ -3046,24 +3047,24 @@ alias PCLUSAPI_CREATE_CLUSTER_NOTIFY_PORT_V2 = _HCHANGE* function(_HCHANGE* hCha
                                                                   uint dwFilterCount, size_t dwNotifyKey);
 alias PCLUSAPI_REGISTER_CLUSTER_NOTIFY_V2 = uint function(_HCHANGE* hChange, NOTIFY_FILTER_AND_TYPE Filter, 
                                                           HANDLE hObject, size_t dwNotifyKey);
-alias PCLUSAPI_GET_NOTIFY_EVENT_HANDLE_V2 = uint function(_HCHANGE* hChange, ptrdiff_t* lphTargetEvent);
+alias PCLUSAPI_GET_NOTIFY_EVENT_HANDLE_V2 = uint function(_HCHANGE* hChange, HANDLE* lphTargetEvent);
 alias PCLUSAPI_GET_CLUSTER_NOTIFY_V2 = uint function(_HCHANGE* hChange, size_t* lpdwNotifyKey, 
                                                      NOTIFY_FILTER_AND_TYPE* pFilterAndType, ubyte* buffer, 
-                                                     uint* lpcchBufferSize, const(wchar)* lpszObjectId, 
-                                                     uint* lpcchObjectId, const(wchar)* lpszParentId, 
-                                                     uint* lpcchParentId, const(wchar)* lpszName, uint* lpcchName, 
-                                                     const(wchar)* lpszType, uint* lpcchType, uint dwMilliseconds);
+                                                     uint* lpcchBufferSize, PWSTR lpszObjectId, uint* lpcchObjectId, 
+                                                     PWSTR lpszParentId, uint* lpcchParentId, PWSTR lpszName, 
+                                                     uint* lpcchName, PWSTR lpszType, uint* lpcchType, 
+                                                     uint dwMilliseconds);
 alias PCLUSAPI_CREATE_CLUSTER_NOTIFY_PORT = _HCHANGE* function(_HCHANGE* hChange, _HCLUSTER* hCluster, 
                                                                uint dwFilter, size_t dwNotifyKey);
 alias PCLUSAPI_REGISTER_CLUSTER_NOTIFY = uint function(_HCHANGE* hChange, uint dwFilterType, HANDLE hObject, 
                                                        size_t dwNotifyKey);
 alias PCLUSAPI_GET_CLUSTER_NOTIFY = uint function(_HCHANGE* hChange, size_t* lpdwNotifyKey, uint* lpdwFilterType, 
-                                                  const(wchar)* lpszName, uint* lpcchName, uint dwMilliseconds);
+                                                  PWSTR lpszName, uint* lpcchName, uint dwMilliseconds);
 alias PCLUSAPI_CLOSE_CLUSTER_NOTIFY_PORT = BOOL function(_HCHANGE* hChange);
 alias PCLUSAPI_CLUSTER_OPEN_ENUM = _HCLUSENUM* function(_HCLUSTER* hCluster, uint dwType);
 alias PCLUSAPI_CLUSTER_GET_ENUM_COUNT = uint function(_HCLUSENUM* hEnum);
-alias PCLUSAPI_CLUSTER_ENUM = uint function(_HCLUSENUM* hEnum, uint dwIndex, uint* lpdwType, 
-                                            const(wchar)* lpszName, uint* lpcchName);
+alias PCLUSAPI_CLUSTER_ENUM = uint function(_HCLUSENUM* hEnum, uint dwIndex, uint* lpdwType, PWSTR lpszName, 
+                                            uint* lpcchName);
 alias PCLUSAPI_CLUSTER_CLOSE_ENUM = uint function(_HCLUSENUM* hEnum);
 alias PCLUSAPI_CLUSTER_OPEN_ENUM_EX = _HCLUSENUMEX* function(_HCLUSTER* hCluster, uint dwType, void* pOptions);
 alias PCLUSAPI_CLUSTER_GET_ENUM_COUNT_EX = uint function(_HCLUSENUMEX* hClusterEnum);
@@ -3071,25 +3072,25 @@ alias PCLUSAPI_CLUSTER_ENUM_EX = uint function(_HCLUSENUMEX* hClusterEnum, uint 
                                                uint* cbItem);
 alias PCLUSAPI_CLUSTER_CLOSE_ENUM_EX = uint function(_HCLUSENUMEX* hClusterEnum);
 alias PCLUSAPI_CREATE_CLUSTER_GROUP_GROUPSET = _HGROUPSET* function(_HCLUSTER* hCluster, 
-                                                                    const(wchar)* lpszGroupSetName);
+                                                                    const(PWSTR) lpszGroupSetName);
 alias PCLUSAPI_OPEN_CLUSTER_GROUP_GROUPSET = _HGROUPSET* function(_HCLUSTER* hCluster, 
-                                                                  const(wchar)* lpszGroupSetName);
+                                                                  const(PWSTR) lpszGroupSetName);
 alias PCLUSAPI_CLOSE_CLUSTER_GROUP_GROUPSET = BOOL function(_HGROUPSET* hGroupSet);
 alias PCLUSAPI_DELETE_CLUSTER_GROUP_GROUPSET = uint function(_HGROUPSET* hGroupSet);
 alias PCLUSAPI_CLUSTER_ADD_GROUP_TO_GROUP_GROUPSET = uint function(_HGROUPSET* hGroupSet, _HGROUP* hGroup);
 alias PCLUSAPI_CLUSTER_REMOVE_GROUP_FROM_GROUP_GROUPSET = uint function(_HGROUPSET* hGroupSet, _HGROUP* hGroupName);
 alias PCLUSAPI_CLUSTER_GROUP_GROUPSET_CONTROL = uint function(_HGROUPSET* hGroupSet, _HNODE* hHostNode, 
-                                                              uint dwControlCode, char* lpInBuffer, 
-                                                              uint cbInBufferSize, char* lpOutBuffer, 
+                                                              uint dwControlCode, void* lpInBuffer, 
+                                                              uint cbInBufferSize, void* lpOutBuffer, 
                                                               uint cbOutBufferSize, uint* lpBytesReturned);
 alias PCLUSAPI_ADD_CLUSTER_GROUP_DEPENDENCY = uint function(_HGROUP* hDependentGroup, _HGROUP* hProviderGroup);
 alias PCLUSAPI_SET_GROUP_DEPENDENCY_EXPRESSION = uint function(_HGROUP* hGroupSet, 
-                                                               const(wchar)* lpszDependencyExpression);
+                                                               const(PWSTR) lpszDependencyExpression);
 alias PCLUSAPI_REMOVE_CLUSTER_GROUP_DEPENDENCY = uint function(_HGROUP* hGroup, _HGROUP* hDependsOn);
 alias PCLUSAPI_ADD_CLUSTER_GROUP_GROUPSET_DEPENDENCY = uint function(_HGROUPSET* hDependentGroupSet, 
                                                                      _HGROUPSET* hProviderGroupSet);
 alias PCLUSAPI_SET_CLUSTER_GROUP_GROUPSET_DEPENDENCY_EXPRESSION = uint function(_HGROUPSET* hGroupSet, 
-                                                                                const(wchar)* lpszDependencyExpression);
+                                                                                const(PWSTR) lpszDependencyExpression);
 alias PCLUSAPI_REMOVE_CLUSTER_GROUP_GROUPSET_DEPENDENCY = uint function(_HGROUPSET* hGroupSet, 
                                                                         _HGROUPSET* hDependsOn);
 alias PCLUSAPI_ADD_CLUSTER_GROUP_TO_GROUP_GROUPSET_DEPENDENCY = uint function(_HGROUP* hDependentGroup, 
@@ -3098,32 +3099,32 @@ alias PCLUSAPI_REMOVE_CLUSTER_GROUP_TO_GROUP_GROUPSET_DEPENDENCY = uint function
                                                                                  _HGROUPSET* hDependsOn);
 alias PCLUSAPI_GET_CLUSTER_FROM_GROUP_GROUPSET = _HCLUSTER* function(_HGROUPSET* hGroupSet);
 alias PCLUSAPI_ADD_CROSS_CLUSTER_GROUPSET_DEPENDENCY = uint function(_HGROUPSET* hDependentGroupSet, 
-                                                                     const(wchar)* lpRemoteClusterName, 
-                                                                     const(wchar)* lpRemoteGroupSetName);
+                                                                     const(PWSTR) lpRemoteClusterName, 
+                                                                     const(PWSTR) lpRemoteGroupSetName);
 alias PCLUSAPI_REMOVE_CROSS_CLUSTER_GROUPSET_DEPENDENCY = uint function(_HGROUPSET* hDependentGroupSet, 
-                                                                        const(wchar)* lpRemoteClusterName, 
-                                                                        const(wchar)* lpRemoteGroupSetName);
+                                                                        const(PWSTR) lpRemoteClusterName, 
+                                                                        const(PWSTR) lpRemoteGroupSetName);
 alias PCLUSAPI_CREATE_CLUSTER_AVAILABILITY_SET = _HGROUPSET* function(_HCLUSTER* hCluster, 
-                                                                      const(wchar)* lpAvailabilitySetName, 
+                                                                      const(PWSTR) lpAvailabilitySetName, 
                                                                       CLUSTER_AVAILABILITY_SET_CONFIG* pAvailabilitySetConfig);
-alias PCLUSAPI_CLUSTER_CREATE_AFFINITY_RULE = uint function(_HCLUSTER* hCluster, const(wchar)* ruleName, 
+alias PCLUSAPI_CLUSTER_CREATE_AFFINITY_RULE = uint function(_HCLUSTER* hCluster, const(PWSTR) ruleName, 
                                                             CLUS_AFFINITY_RULE_TYPE ruleType);
-alias PCLUSAPI_CLUSTER_REMOVE_AFFINITY_RULE = uint function(_HCLUSTER* hCluster, const(wchar)* ruleName);
-alias PCLUSAPI_CLUSTER_ADD_GROUP_TO_AFFINITY_RULE = uint function(_HCLUSTER* hCluster, const(wchar)* ruleName, 
+alias PCLUSAPI_CLUSTER_REMOVE_AFFINITY_RULE = uint function(_HCLUSTER* hCluster, const(PWSTR) ruleName);
+alias PCLUSAPI_CLUSTER_ADD_GROUP_TO_AFFINITY_RULE = uint function(_HCLUSTER* hCluster, const(PWSTR) ruleName, 
                                                                   _HGROUP* hGroup);
-alias PCLUSAPI_CLUSTER_REMOVE_GROUP_FROM_AFFINITY_RULE = uint function(_HCLUSTER* hCluster, const(wchar)* ruleName, 
+alias PCLUSAPI_CLUSTER_REMOVE_GROUP_FROM_AFFINITY_RULE = uint function(_HCLUSTER* hCluster, const(PWSTR) ruleName, 
                                                                        _HGROUP* hGroup);
-alias PCLUSAPI_CLUSTER_AFFINITY_RULE_CONTROL = uint function(_HCLUSTER* hCluster, const(wchar)* affinityRuleName, 
-                                                             _HNODE* hHostNode, uint dwControlCode, char* lpInBuffer, 
-                                                             uint cbInBufferSize, char* lpOutBuffer, 
+alias PCLUSAPI_CLUSTER_AFFINITY_RULE_CONTROL = uint function(_HCLUSTER* hCluster, const(PWSTR) affinityRuleName, 
+                                                             _HNODE* hHostNode, uint dwControlCode, void* lpInBuffer, 
+                                                             uint cbInBufferSize, void* lpOutBuffer, 
                                                              uint cbOutBufferSize, uint* lpBytesReturned);
-alias PCLUSAPI_OPEN_CLUSTER_NODE = _HNODE* function(_HCLUSTER* hCluster, const(wchar)* lpszNodeName);
-alias PCLUSAPI_OPEN_CLUSTER_NODE_EX = _HNODE* function(_HCLUSTER* hCluster, const(wchar)* lpszNodeName, 
+alias PCLUSAPI_OPEN_CLUSTER_NODE = _HNODE* function(_HCLUSTER* hCluster, const(PWSTR) lpszNodeName);
+alias PCLUSAPI_OPEN_CLUSTER_NODE_EX = _HNODE* function(_HCLUSTER* hCluster, const(PWSTR) lpszNodeName, 
                                                        uint dwDesiredAccess, uint* lpdwGrantedAccess);
 alias PCLUSAPI_OPEN_NODE_BY_ID = _HNODE* function(_HCLUSTER* hCluster, uint nodeId);
 alias PCLUSAPI_CLOSE_CLUSTER_NODE = BOOL function(_HNODE* hNode);
 alias PCLUSAPI_GET_CLUSTER_NODE_STATE = CLUSTER_NODE_STATE function(_HNODE* hNode);
-alias PCLUSAPI_GET_CLUSTER_NODE_ID = uint function(_HNODE* hNode, const(wchar)* lpszNodeId, uint* lpcchName);
+alias PCLUSAPI_GET_CLUSTER_NODE_ID = uint function(_HNODE* hNode, PWSTR lpszNodeId, uint* lpcchName);
 alias PCLUSAPI_GET_CLUSTER_FROM_NODE = _HCLUSTER* function(_HNODE* hNode);
 alias PCLUSAPI_PAUSE_CLUSTER_NODE = uint function(_HNODE* hNode);
 alias PCLUSAPI_RESUME_CLUSTER_NODE = uint function(_HNODE* hNode);
@@ -3137,32 +3138,32 @@ alias PCLUSAPI_CLUSTER_NODE_CLOSE_ENUM_EX = uint function(_HNODEENUMEX* hNodeEnu
 alias PCLUSAPI_CLUSTER_NODE_GET_ENUM_COUNT = uint function(_HNODEENUM* hNodeEnum);
 alias PCLUSAPI_CLUSTER_NODE_CLOSE_ENUM = uint function(_HNODEENUM* hNodeEnum);
 alias PCLUSAPI_CLUSTER_NODE_ENUM = uint function(_HNODEENUM* hNodeEnum, uint dwIndex, uint* lpdwType, 
-                                                 const(wchar)* lpszName, uint* lpcchName);
-alias PCLUSAPI_EVICT_CLUSTER_NODE_EX = uint function(_HNODE* hNode, uint dwTimeOut, int* phrCleanupStatus);
-alias PCLUSAPI_GET_CLUSTER_RESOURCE_TYPE_KEY = HKEY function(_HCLUSTER* hCluster, const(wchar)* lpszTypeName, 
+                                                 PWSTR lpszName, uint* lpcchName);
+alias PCLUSAPI_EVICT_CLUSTER_NODE_EX = uint function(_HNODE* hNode, uint dwTimeOut, HRESULT* phrCleanupStatus);
+alias PCLUSAPI_GET_CLUSTER_RESOURCE_TYPE_KEY = HKEY function(_HCLUSTER* hCluster, const(PWSTR) lpszTypeName, 
                                                              uint samDesired);
-alias PCLUSAPI_CREATE_CLUSTER_GROUP = _HGROUP* function(_HCLUSTER* hCluster, const(wchar)* lpszGroupName);
-alias PCLUSAPI_OPEN_CLUSTER_GROUP = _HGROUP* function(_HCLUSTER* hCluster, const(wchar)* lpszGroupName);
-alias PCLUSAPI_OPEN_CLUSTER_GROUP_EX = _HGROUP* function(_HCLUSTER* hCluster, const(wchar)* lpszGroupName, 
+alias PCLUSAPI_CREATE_CLUSTER_GROUP = _HGROUP* function(_HCLUSTER* hCluster, const(PWSTR) lpszGroupName);
+alias PCLUSAPI_OPEN_CLUSTER_GROUP = _HGROUP* function(_HCLUSTER* hCluster, const(PWSTR) lpszGroupName);
+alias PCLUSAPI_OPEN_CLUSTER_GROUP_EX = _HGROUP* function(_HCLUSTER* hCluster, const(PWSTR) lpszGroupName, 
                                                          uint dwDesiredAccess, uint* lpdwGrantedAccess);
 alias PCLUSAPI_PAUSE_CLUSTER_NODE_EX = uint function(_HNODE* hNode, BOOL bDrainNode, uint dwPauseFlags, 
                                                      _HNODE* hNodeDrainTarget);
 alias PCLUSAPI_RESUME_CLUSTER_NODE_EX = uint function(_HNODE* hNode, 
                                                       CLUSTER_NODE_RESUME_FAILBACK_TYPE eResumeFailbackType, 
                                                       uint dwResumeFlagsReserved);
-alias PCLUSAPI_CREATE_CLUSTER_GROUPEX = _HGROUP* function(_HCLUSTER* hCluster, const(wchar)* lpszGroupName, 
+alias PCLUSAPI_CREATE_CLUSTER_GROUPEX = _HGROUP* function(_HCLUSTER* hCluster, const(PWSTR) lpszGroupName, 
                                                           CLUSTER_CREATE_GROUP_INFO* pGroupInfo);
 alias PCLUSAPI_CLUSTER_GROUP_OPEN_ENUM_EX = _HGROUPENUMEX* function(_HCLUSTER* hCluster, 
-                                                                    const(wchar)* lpszProperties, uint cbProperties, 
-                                                                    const(wchar)* lpszRoProperties, 
+                                                                    const(PWSTR) lpszProperties, uint cbProperties, 
+                                                                    const(PWSTR) lpszRoProperties, 
                                                                     uint cbRoProperties, uint dwFlags);
 alias PCLUSAPI_CLUSTER_GROUP_GET_ENUM_COUNT_EX = uint function(_HGROUPENUMEX* hGroupEnumEx);
 alias PCLUSAPI_CLUSTER_GROUP_ENUM_EX = uint function(_HGROUPENUMEX* hGroupEnumEx, uint dwIndex, 
                                                      CLUSTER_GROUP_ENUM_ITEM* pItem, uint* cbItem);
 alias PCLUSAPI_CLUSTER_GROUP_CLOSE_ENUM_EX = uint function(_HGROUPENUMEX* hGroupEnumEx);
 alias PCLUSAPI_CLUSTER_RESOURCE_OPEN_ENUM_EX = _HRESENUMEX* function(_HCLUSTER* hCluster, 
-                                                                     const(wchar)* lpszProperties, uint cbProperties, 
-                                                                     const(wchar)* lpszRoProperties, 
+                                                                     const(PWSTR) lpszProperties, uint cbProperties, 
+                                                                     const(PWSTR) lpszRoProperties, 
                                                                      uint cbRoProperties, uint dwFlags);
 alias PCLUSAPI_CLUSTER_RESOURCE_GET_ENUM_COUNT_EX = uint function(_HRESENUMEX* hResourceEnumEx);
 alias PCLUSAPI_CLUSTER_RESOURCE_ENUM_EX = uint function(_HRESENUMEX* hResourceEnumEx, uint dwIndex, 
@@ -3171,10 +3172,10 @@ alias PCLUSAPI_CLUSTER_RESOURCE_CLOSE_ENUM_EX = uint function(_HRESENUMEX* hReso
 alias PCLUSAPI_RESTART_CLUSTER_RESOURCE = uint function(_HRESOURCE* hResource, uint dwFlags);
 alias PCLUSAPI_CLOSE_CLUSTER_GROUP = BOOL function(_HGROUP* hGroup);
 alias PCLUSAPI_GET_CLUSTER_FROM_GROUP = _HCLUSTER* function(_HGROUP* hGroup);
-alias PCLUSAPI_GET_CLUSTER_GROUP_STATE = CLUSTER_GROUP_STATE function(_HGROUP* hGroup, const(wchar)* lpszNodeName, 
+alias PCLUSAPI_GET_CLUSTER_GROUP_STATE = CLUSTER_GROUP_STATE function(_HGROUP* hGroup, PWSTR lpszNodeName, 
                                                                       uint* lpcchNodeName);
-alias PCLUSAPI_SET_CLUSTER_GROUP_NAME = uint function(_HGROUP* hGroup, const(wchar)* lpszGroupName);
-alias PCLUSAPI_SET_CLUSTER_GROUP_NODE_LIST = uint function(_HGROUP* hGroup, uint NodeCount, char* NodeList);
+alias PCLUSAPI_SET_CLUSTER_GROUP_NAME = uint function(_HGROUP* hGroup, const(PWSTR) lpszGroupName);
+alias PCLUSAPI_SET_CLUSTER_GROUP_NODE_LIST = uint function(_HGROUP* hGroup, uint NodeCount, _HNODE** NodeList);
 alias PCLUSAPI_ONLINE_CLUSTER_GROUP = uint function(_HGROUP* hGroup, _HNODE* hDestinationNode);
 alias PCLUSAPI_MOVE_CLUSTER_GROUP = uint function(_HGROUP* hGroup, _HNODE* hDestinationNode);
 alias PCLUSAPI_OFFLINE_CLUSTER_GROUP = uint function(_HGROUP* hGroup);
@@ -3183,22 +3184,21 @@ alias PCLUSAPI_DESTROY_CLUSTER_GROUP = uint function(_HGROUP* hGroup);
 alias PCLUSAPI_CLUSTER_GROUP_OPEN_ENUM = _HGROUPENUM* function(_HGROUP* hGroup, uint dwType);
 alias PCLUSAPI_CLUSTER_GROUP_GET_ENUM_COUNT = uint function(_HGROUPENUM* hGroupEnum);
 alias PCLUSAPI_CLUSTER_GROUP_ENUM = uint function(_HGROUPENUM* hGroupEnum, uint dwIndex, uint* lpdwType, 
-                                                  const(wchar)* lpszResourceName, uint* lpcchName);
+                                                  PWSTR lpszResourceName, uint* lpcchName);
 alias PCLUSAPI_CLUSTER_GROUP_CLOSE_ENUM = uint function(_HGROUPENUM* hGroupEnum);
-alias PCLUSAPI_CREATE_CLUSTER_RESOURCE = _HRESOURCE* function(_HGROUP* hGroup, const(wchar)* lpszResourceName, 
-                                                              const(wchar)* lpszResourceType, uint dwFlags);
-alias PCLUSAPI_OPEN_CLUSTER_RESOURCE = _HRESOURCE* function(_HCLUSTER* hCluster, const(wchar)* lpszResourceName);
-alias PCLUSAPI_OPEN_CLUSTER_RESOURCE_EX = _HRESOURCE* function(_HCLUSTER* hCluster, const(wchar)* lpszResourceName, 
+alias PCLUSAPI_CREATE_CLUSTER_RESOURCE = _HRESOURCE* function(_HGROUP* hGroup, const(PWSTR) lpszResourceName, 
+                                                              const(PWSTR) lpszResourceType, uint dwFlags);
+alias PCLUSAPI_OPEN_CLUSTER_RESOURCE = _HRESOURCE* function(_HCLUSTER* hCluster, const(PWSTR) lpszResourceName);
+alias PCLUSAPI_OPEN_CLUSTER_RESOURCE_EX = _HRESOURCE* function(_HCLUSTER* hCluster, const(PWSTR) lpszResourceName, 
                                                                uint dwDesiredAccess, uint* lpdwGrantedAccess);
 alias PCLUSAPI_CLOSE_CLUSTER_RESOURCE = BOOL function(_HRESOURCE* hResource);
 alias PCLUSAPI_GET_CLUSTER_FROM_RESOURCE = _HCLUSTER* function(_HRESOURCE* hResource);
 alias PCLUSAPI_DELETE_CLUSTER_RESOURCE = uint function(_HRESOURCE* hResource);
 alias PCLUSAPI_GET_CLUSTER_RESOURCE_STATE = CLUSTER_RESOURCE_STATE function(_HRESOURCE* hResource, 
-                                                                            const(wchar)* lpszNodeName, 
-                                                                            uint* lpcchNodeName, 
-                                                                            const(wchar)* lpszGroupName, 
+                                                                            PWSTR lpszNodeName, uint* lpcchNodeName, 
+                                                                            PWSTR lpszGroupName, 
                                                                             uint* lpcchGroupName);
-alias PCLUSAPI_SET_CLUSTER_RESOURCE_NAME = uint function(_HRESOURCE* hResource, const(wchar)* lpszResourceName);
+alias PCLUSAPI_SET_CLUSTER_RESOURCE_NAME = uint function(_HRESOURCE* hResource, const(PWSTR) lpszResourceName);
 alias PCLUSAPI_FAIL_CLUSTER_RESOURCE = uint function(_HRESOURCE* hResource);
 alias PCLUSAPI_ONLINE_CLUSTER_RESOURCE = uint function(_HRESOURCE* hResource);
 alias PCLUSAPI_OFFLINE_CLUSTER_RESOURCE = uint function(_HRESOURCE* hResource);
@@ -3210,85 +3210,82 @@ alias PCLUSAPI_REMOVE_CLUSTER_RESOURCE_NODE = uint function(_HRESOURCE* hResourc
 alias PCLUSAPI_ADD_CLUSTER_RESOURCE_DEPENDENCY = uint function(_HRESOURCE* hResource, _HRESOURCE* hDependsOn);
 alias PCLUSAPI_REMOVE_CLUSTER_RESOURCE_DEPENDENCY = uint function(_HRESOURCE* hResource, _HRESOURCE* hDependsOn);
 alias PCLUSAPI_SET_CLUSTER_RESOURCE_DEPENDENCY_EXPRESSION = uint function(_HRESOURCE* hResource, 
-                                                                          const(wchar)* lpszDependencyExpression);
+                                                                          const(PWSTR) lpszDependencyExpression);
 alias PCLUSAPI_GET_CLUSTER_RESOURCE_DEPENDENCY_EXPRESSION = uint function(_HRESOURCE* hResource, 
-                                                                          const(wchar)* lpszDependencyExpression, 
+                                                                          PWSTR lpszDependencyExpression, 
                                                                           uint* lpcchDependencyExpression);
 alias PCLUSAPI_ADD_RESOURCE_TO_CLUSTER_SHARED_VOLUMES = uint function(_HRESOURCE* hResource);
 alias PCLUSAPI_REMOVE_RESOURCE_FROM_CLUSTER_SHARED_VOLUMES = uint function(_HRESOURCE* hResource);
-alias PCLUSAPI_IS_FILE_ON_CLUSTER_SHARED_VOLUME = uint function(const(wchar)* lpszPathName, 
-                                                                int* pbFileIsOnSharedVolume);
-alias PCLUSAPI_SHARED_VOLUME_SET_SNAPSHOT_STATE = uint function(GUID guidSnapshotSet, const(wchar)* lpszVolumeName, 
+alias PCLUSAPI_IS_FILE_ON_CLUSTER_SHARED_VOLUME = uint function(const(PWSTR) lpszPathName, 
+                                                                BOOL* pbFileIsOnSharedVolume);
+alias PCLUSAPI_SHARED_VOLUME_SET_SNAPSHOT_STATE = uint function(GUID guidSnapshotSet, const(PWSTR) lpszVolumeName, 
                                                                 CLUSTER_SHARED_VOLUME_SNAPSHOT_STATE state);
 alias PCLUSAPI_CAN_RESOURCE_BE_DEPENDENT = BOOL function(_HRESOURCE* hResource, _HRESOURCE* hResourceDependent);
 alias PCLUSAPI_CLUSTER_RESOURCE_CONTROL = uint function(_HRESOURCE* hResource, _HNODE* hHostNode, 
-                                                        uint dwControlCode, char* lpInBuffer, uint cbInBufferSize, 
-                                                        char* lpOutBuffer, uint cbOutBufferSize, 
+                                                        uint dwControlCode, void* lpInBuffer, uint cbInBufferSize, 
+                                                        void* lpOutBuffer, uint cbOutBufferSize, 
                                                         uint* lpBytesReturned);
 alias PCLUSAPI_CLUSTER_RESOURCE_TYPE_CONTROL = uint function(_HCLUSTER* hCluster, 
-                                                             const(wchar)* lpszResourceTypeName, _HNODE* hHostNode, 
-                                                             uint dwControlCode, char* lpInBuffer, 
-                                                             uint nInBufferSize, char* lpOutBuffer, 
+                                                             const(PWSTR) lpszResourceTypeName, _HNODE* hHostNode, 
+                                                             uint dwControlCode, void* lpInBuffer, 
+                                                             uint nInBufferSize, void* lpOutBuffer, 
                                                              uint nOutBufferSize, uint* lpBytesReturned);
 alias PCLUSAPI_CLUSTER_GROUP_CONTROL = uint function(_HGROUP* hGroup, _HNODE* hHostNode, uint dwControlCode, 
-                                                     char* lpInBuffer, uint nInBufferSize, char* lpOutBuffer, 
+                                                     void* lpInBuffer, uint nInBufferSize, void* lpOutBuffer, 
                                                      uint nOutBufferSize, uint* lpBytesReturned);
 alias PCLUSAPI_CLUSTER_NODE_CONTROL = uint function(_HNODE* hNode, _HNODE* hHostNode, uint dwControlCode, 
-                                                    char* lpInBuffer, uint nInBufferSize, char* lpOutBuffer, 
+                                                    void* lpInBuffer, uint nInBufferSize, void* lpOutBuffer, 
                                                     uint nOutBufferSize, uint* lpBytesReturned);
-alias PCLUSAPI_GET_CLUSTER_RESOURCE_NETWORK_NAME = BOOL function(_HRESOURCE* hResource, const(wchar)* lpBuffer, 
+alias PCLUSAPI_GET_CLUSTER_RESOURCE_NETWORK_NAME = BOOL function(_HRESOURCE* hResource, PWSTR lpBuffer, 
                                                                  uint* nSize);
 alias PCLUSAPI_CLUSTER_RESOURCE_OPEN_ENUM = _HRESENUM* function(_HRESOURCE* hResource, uint dwType);
 alias PCLUSAPI_CLUSTER_RESOURCE_GET_ENUM_COUNT = uint function(_HRESENUM* hResEnum);
 alias PCLUSAPI_CLUSTER_RESOURCE_ENUM = uint function(_HRESENUM* hResEnum, uint dwIndex, uint* lpdwType, 
-                                                     const(wchar)* lpszName, uint* lpcchName);
+                                                     PWSTR lpszName, uint* lpcchName);
 alias PCLUSAPI_CLUSTER_RESOURCE_CLOSE_ENUM = uint function(_HRESENUM* hResEnum);
-alias PCLUSAPI_CREATE_CLUSTER_RESOURCE_TYPE = uint function(_HCLUSTER* hCluster, 
-                                                            const(wchar)* lpszResourceTypeName, 
-                                                            const(wchar)* lpszDisplayName, 
-                                                            const(wchar)* lpszResourceTypeDll, 
+alias PCLUSAPI_CREATE_CLUSTER_RESOURCE_TYPE = uint function(_HCLUSTER* hCluster, const(PWSTR) lpszResourceTypeName, 
+                                                            const(PWSTR) lpszDisplayName, 
+                                                            const(PWSTR) lpszResourceTypeDll, 
                                                             uint dwLooksAlivePollInterval, 
                                                             uint dwIsAlivePollInterval);
-alias PCLUSAPI_DELETE_CLUSTER_RESOURCE_TYPE = uint function(_HCLUSTER* hCluster, 
-                                                            const(wchar)* lpszResourceTypeName);
+alias PCLUSAPI_DELETE_CLUSTER_RESOURCE_TYPE = uint function(_HCLUSTER* hCluster, const(PWSTR) lpszResourceTypeName);
 alias PCLUSAPI_CLUSTER_RESOURCE_TYPE_OPEN_ENUM = _HRESTYPEENUM* function(_HCLUSTER* hCluster, 
-                                                                         const(wchar)* lpszResourceTypeName, 
+                                                                         const(PWSTR) lpszResourceTypeName, 
                                                                          uint dwType);
 alias PCLUSAPI_CLUSTER_RESOURCE_TYPE_GET_ENUM_COUNT = uint function(_HRESTYPEENUM* hResTypeEnum);
 alias PCLUSAPI_CLUSTER_RESOURCE_TYPE_ENUM = uint function(_HRESTYPEENUM* hResTypeEnum, uint dwIndex, 
-                                                          uint* lpdwType, const(wchar)* lpszName, uint* lpcchName);
+                                                          uint* lpdwType, PWSTR lpszName, uint* lpcchName);
 alias PCLUSAPI_CLUSTER_RESOURCE_TYPE_CLOSE_ENUM = uint function(_HRESTYPEENUM* hResTypeEnum);
-alias PCLUSAPI_OPEN_CLUSTER_NETWORK = _HNETWORK* function(_HCLUSTER* hCluster, const(wchar)* lpszNetworkName);
-alias PCLUSAPI_OPEN_CLUSTER_NETWORK_EX = _HNETWORK* function(_HCLUSTER* hCluster, const(wchar)* lpszNetworkName, 
+alias PCLUSAPI_OPEN_CLUSTER_NETWORK = _HNETWORK* function(_HCLUSTER* hCluster, const(PWSTR) lpszNetworkName);
+alias PCLUSAPI_OPEN_CLUSTER_NETWORK_EX = _HNETWORK* function(_HCLUSTER* hCluster, const(PWSTR) lpszNetworkName, 
                                                              uint dwDesiredAccess, uint* lpdwGrantedAccess);
 alias PCLUSAPI_CLOSE_CLUSTER_NETWORK = BOOL function(_HNETWORK* hNetwork);
 alias PCLUSAPI_GET_CLUSTER_FROM_NETWORK = _HCLUSTER* function(_HNETWORK* hNetwork);
 alias PCLUSAPI_CLUSTER_NETWORK_OPEN_ENUM = _HNETWORKENUM* function(_HNETWORK* hNetwork, uint dwType);
 alias PCLUSAPI_CLUSTER_NETWORK_GET_ENUM_COUNT = uint function(_HNETWORKENUM* hNetworkEnum);
 alias PCLUSAPI_CLUSTER_NETWORK_ENUM = uint function(_HNETWORKENUM* hNetworkEnum, uint dwIndex, uint* lpdwType, 
-                                                    const(wchar)* lpszName, uint* lpcchName);
+                                                    PWSTR lpszName, uint* lpcchName);
 alias PCLUSAPI_CLUSTER_NETWORK_CLOSE_ENUM = uint function(_HNETWORKENUM* hNetworkEnum);
 alias PCLUSAPI_GET_CLUSTER_NETWORK_STATE = CLUSTER_NETWORK_STATE function(_HNETWORK* hNetwork);
-alias PCLUSAPI_SET_CLUSTER_NETWORK_NAME = uint function(_HNETWORK* hNetwork, const(wchar)* lpszName);
-alias PCLUSAPI_GET_CLUSTER_NETWORK_ID = uint function(_HNETWORK* hNetwork, const(wchar)* lpszNetworkId, 
-                                                      uint* lpcchName);
+alias PCLUSAPI_SET_CLUSTER_NETWORK_NAME = uint function(_HNETWORK* hNetwork, const(PWSTR) lpszName);
+alias PCLUSAPI_GET_CLUSTER_NETWORK_ID = uint function(_HNETWORK* hNetwork, PWSTR lpszNetworkId, uint* lpcchName);
 alias PCLUSAPI_CLUSTER_NETWORK_CONTROL = uint function(_HNETWORK* hNetwork, _HNODE* hHostNode, uint dwControlCode, 
-                                                       char* lpInBuffer, uint nInBufferSize, char* lpOutBuffer, 
+                                                       void* lpInBuffer, uint nInBufferSize, void* lpOutBuffer, 
                                                        uint nOutBufferSize, uint* lpBytesReturned);
 alias PCLUSAPI_OPEN_CLUSTER_NET_INTERFACE = _HNETINTERFACE* function(_HCLUSTER* hCluster, 
-                                                                     const(wchar)* lpszInterfaceName);
+                                                                     const(PWSTR) lpszInterfaceName);
 alias PCLUSAPI_OPEN_CLUSTER_NETINTERFACE_EX = _HNETINTERFACE* function(_HCLUSTER* hCluster, 
-                                                                       const(wchar)* lpszNetInterfaceName, 
+                                                                       const(PWSTR) lpszNetInterfaceName, 
                                                                        uint dwDesiredAccess, uint* lpdwGrantedAccess);
-alias PCLUSAPI_GET_CLUSTER_NET_INTERFACE = uint function(_HCLUSTER* hCluster, const(wchar)* lpszNodeName, 
-                                                         const(wchar)* lpszNetworkName, 
-                                                         const(wchar)* lpszInterfaceName, uint* lpcchInterfaceName);
+alias PCLUSAPI_GET_CLUSTER_NET_INTERFACE = uint function(_HCLUSTER* hCluster, const(PWSTR) lpszNodeName, 
+                                                         const(PWSTR) lpszNetworkName, PWSTR lpszInterfaceName, 
+                                                         uint* lpcchInterfaceName);
 alias PCLUSAPI_CLOSE_CLUSTER_NET_INTERFACE = BOOL function(_HNETINTERFACE* hNetInterface);
 alias PCLUSAPI_GET_CLUSTER_FROM_NET_INTERFACE = _HCLUSTER* function(_HNETINTERFACE* hNetInterface);
 alias PCLUSAPI_GET_CLUSTER_NET_INTERFACE_STATE = CLUSTER_NETINTERFACE_STATE function(_HNETINTERFACE* hNetInterface);
 alias PCLUSAPI_CLUSTER_NET_INTERFACE_CONTROL = uint function(_HNETINTERFACE* hNetInterface, _HNODE* hHostNode, 
-                                                             uint dwControlCode, char* lpInBuffer, 
-                                                             uint nInBufferSize, char* lpOutBuffer, 
+                                                             uint dwControlCode, void* lpInBuffer, 
+                                                             uint nInBufferSize, void* lpOutBuffer, 
                                                              uint nOutBufferSize, uint* lpBytesReturned);
 alias PCLUSAPI_GET_CLUSTER_KEY = HKEY function(_HCLUSTER* hCluster, uint samDesired);
 alias PCLUSAPI_GET_CLUSTER_GROUP_KEY = HKEY function(_HGROUP* hGroup, uint samDesired);
@@ -3296,35 +3293,35 @@ alias PCLUSAPI_GET_CLUSTER_RESOURCE_KEY = HKEY function(_HRESOURCE* hResource, u
 alias PCLUSAPI_GET_CLUSTER_NODE_KEY = HKEY function(_HNODE* hNode, uint samDesired);
 alias PCLUSAPI_GET_CLUSTER_NETWORK_KEY = HKEY function(_HNETWORK* hNetwork, uint samDesired);
 alias PCLUSAPI_GET_CLUSTER_NET_INTERFACE_KEY = HKEY function(_HNETINTERFACE* hNetInterface, uint samDesired);
-alias PCLUSAPI_CLUSTER_REG_CREATE_KEY = int function(HKEY hKey, const(wchar)* lpszSubKey, uint dwOptions, 
+alias PCLUSAPI_CLUSTER_REG_CREATE_KEY = int function(HKEY hKey, const(PWSTR) lpszSubKey, uint dwOptions, 
                                                      uint samDesired, SECURITY_ATTRIBUTES* lpSecurityAttributes, 
                                                      HKEY* phkResult, uint* lpdwDisposition);
-alias PCLUSAPI_CLUSTER_REG_OPEN_KEY = int function(HKEY hKey, const(wchar)* lpszSubKey, uint samDesired, 
+alias PCLUSAPI_CLUSTER_REG_OPEN_KEY = int function(HKEY hKey, const(PWSTR) lpszSubKey, uint samDesired, 
                                                    HKEY* phkResult);
-alias PCLUSAPI_CLUSTER_REG_DELETE_KEY = int function(HKEY hKey, const(wchar)* lpszSubKey);
+alias PCLUSAPI_CLUSTER_REG_DELETE_KEY = int function(HKEY hKey, const(PWSTR) lpszSubKey);
 alias PCLUSAPI_CLUSTER_REG_CLOSE_KEY = int function(HKEY hKey);
-alias PCLUSAPI_CLUSTER_REG_ENUM_KEY = int function(HKEY hKey, uint dwIndex, const(wchar)* lpszName, 
-                                                   uint* lpcchName, FILETIME* lpftLastWriteTime);
-alias PCLUSAPI_CLUSTER_REG_SET_VALUE = uint function(HKEY hKey, const(wchar)* lpszValueName, uint dwType, 
+alias PCLUSAPI_CLUSTER_REG_ENUM_KEY = int function(HKEY hKey, uint dwIndex, PWSTR lpszName, uint* lpcchName, 
+                                                   FILETIME* lpftLastWriteTime);
+alias PCLUSAPI_CLUSTER_REG_SET_VALUE = uint function(HKEY hKey, const(PWSTR) lpszValueName, uint dwType, 
                                                      const(ubyte)* lpData, uint cbData);
-alias PCLUSAPI_CLUSTER_REG_DELETE_VALUE = uint function(HKEY hKey, const(wchar)* lpszValueName);
-alias PCLUSAPI_CLUSTER_REG_QUERY_VALUE = int function(HKEY hKey, const(wchar)* lpszValueName, uint* lpdwValueType, 
-                                                      char* lpData, uint* lpcbData);
-alias PCLUSAPI_CLUSTER_REG_ENUM_VALUE = uint function(HKEY hKey, uint dwIndex, const(wchar)* lpszValueName, 
-                                                      uint* lpcchValueName, uint* lpdwType, char* lpData, 
+alias PCLUSAPI_CLUSTER_REG_DELETE_VALUE = uint function(HKEY hKey, const(PWSTR) lpszValueName);
+alias PCLUSAPI_CLUSTER_REG_QUERY_VALUE = int function(HKEY hKey, const(PWSTR) lpszValueName, uint* lpdwValueType, 
+                                                      ubyte* lpData, uint* lpcbData);
+alias PCLUSAPI_CLUSTER_REG_ENUM_VALUE = uint function(HKEY hKey, uint dwIndex, PWSTR lpszValueName, 
+                                                      uint* lpcchValueName, uint* lpdwType, ubyte* lpData, 
                                                       uint* lpcbData);
 alias PCLUSAPI_CLUSTER_REG_QUERY_INFO_KEY = int function(HKEY hKey, uint* lpcSubKeys, uint* lpcbMaxSubKeyLen, 
                                                          uint* lpcValues, uint* lpcbMaxValueNameLen, 
                                                          uint* lpcbMaxValueLen, uint* lpcbSecurityDescriptor, 
                                                          FILETIME* lpftLastWriteTime);
 alias PCLUSAPI_CLUSTER_REG_GET_KEY_SECURITY = int function(HKEY hKey, uint RequestedInformation, 
-                                                           char* pSecurityDescriptor, uint* lpcbSecurityDescriptor);
+                                                           void* pSecurityDescriptor, uint* lpcbSecurityDescriptor);
 alias PCLUSAPI_CLUSTER_REG_SET_KEY_SECURITY = int function(HKEY hKey, uint SecurityInformation, 
                                                            void* pSecurityDescriptor);
 alias PCLUSAPI_CLUSTER_REG_SYNC_DATABASE = int function(_HCLUSTER* hCluster, uint flags);
 alias PCLUSAPI_CLUSTER_REG_CREATE_BATCH = int function(HKEY hKey, _HREGBATCH** pHREGBATCH);
 alias PCLUSTER_REG_BATCH_ADD_COMMAND = int function(_HREGBATCH* hRegBatch, CLUSTER_REG_COMMAND dwCommand, 
-                                                    const(wchar)* wzName, uint dwOptions, char* lpData, uint cbData);
+                                                    PWSTR wzName, uint dwOptions, const(void)* lpData, uint cbData);
 alias PCLUSTER_REG_CLOSE_BATCH = int function(_HREGBATCH* hRegBatch, BOOL bCommit, int* failedCommandNumber);
 alias PCLUSTER_REG_BATCH_READ_COMMAND = int function(_HREGBATCHNOTIFICATION* hBatchNotification, 
                                                      CLUSTER_BATCH_COMMAND* pBatchCommand);
@@ -3334,8 +3331,8 @@ alias PCLUSTER_REG_CLOSE_BATCH_NOTIFY_PORT = int function(_HREGBATCHPORT* hBatch
 alias PCLUSTER_REG_GET_BATCH_NOTIFICATION = int function(_HREGBATCHPORT* hBatchNotify, 
                                                          _HREGBATCHNOTIFICATION** phBatchNotification);
 alias PCLUSTER_REG_CREATE_READ_BATCH = int function(HKEY hKey, _HREGREADBATCH** phRegReadBatch);
-alias PCLUSTER_REG_READ_BATCH_ADD_COMMAND = int function(_HREGREADBATCH* hRegReadBatch, const(wchar)* wzSubkeyName, 
-                                                         const(wchar)* wzValueName);
+alias PCLUSTER_REG_READ_BATCH_ADD_COMMAND = int function(_HREGREADBATCH* hRegReadBatch, const(PWSTR) wzSubkeyName, 
+                                                         const(PWSTR) wzValueName);
 alias PCLUSTER_REG_CLOSE_READ_BATCH = int function(_HREGREADBATCH* hRegReadBatch, 
                                                    _HREGREADBATCHREPLY** phRegReadBatchReply);
 alias PCLUSTER_REG_CLOSE_READ_BATCH_EX = int function(_HREGREADBATCH* hRegReadBatch, uint flags, 
@@ -3343,7 +3340,7 @@ alias PCLUSTER_REG_CLOSE_READ_BATCH_EX = int function(_HREGREADBATCH* hRegReadBa
 alias PCLUSTER_REG_READ_BATCH_REPLY_NEXT_COMMAND = int function(_HREGREADBATCHREPLY* hRegReadBatchReply, 
                                                                 CLUSTER_READ_BATCH_COMMAND* pBatchCommand);
 alias PCLUSTER_REG_CLOSE_READ_BATCH_REPLY = int function(_HREGREADBATCHREPLY* hRegReadBatchReply);
-alias PCLUSTER_SET_ACCOUNT_ACCESS = uint function(_HCLUSTER* hCluster, const(wchar)* szAccountSID, uint dwAccess, 
+alias PCLUSTER_SET_ACCOUNT_ACCESS = uint function(_HCLUSTER* hCluster, const(PWSTR) szAccountSID, uint dwAccess, 
                                                   uint dwControlType);
 ///Callback function that receives regular updates on the progression of the setup of the cluster. This callback is used
 ///during processing of the CreateCluster, AddClusterNode, and DestroyCluster functions.
@@ -3364,7 +3361,7 @@ alias PCLUSTER_SET_ACCOUNT_ACCESS = uint function(_HCLUSTER* hCluster, const(wch
 alias PCLUSTER_SETUP_PROGRESS_CALLBACK = BOOL function(void* pvCallbackArg, CLUSTER_SETUP_PHASE eSetupPhase, 
                                                        CLUSTER_SETUP_PHASE_TYPE ePhaseType, 
                                                        CLUSTER_SETUP_PHASE_SEVERITY ePhaseSeverity, 
-                                                       uint dwPercentComplete, const(wchar)* lpszObjectName, 
+                                                       uint dwPercentComplete, const(PWSTR) lpszObjectName, 
                                                        uint dwStatus);
 alias PCLUSAPI_CREATE_CLUSTER = _HCLUSTER* function(CREATE_CLUSTER_CONFIG* pConfig, 
                                                     PCLUSTER_SETUP_PROGRESS_CALLBACK pfnProgressCallback, 
@@ -3377,7 +3374,7 @@ alias PCLUSAPI_CREATE_CLUSTER_NAME_ACCOUNT = uint function(_HCLUSTER* hCluster,
                                                            PCLUSTER_SETUP_PROGRESS_CALLBACK pfnProgressCallback, 
                                                            void* pvCallbackArg);
 alias PCLUSAPI_REMOVE_CLUSTER_NAME_ACCOUNT = uint function(_HCLUSTER* hCluster);
-alias PCLUSAPI_ADD_CLUSTER_NODE = _HNODE* function(_HCLUSTER* hCluster, const(wchar)* lpszNodeName, 
+alias PCLUSAPI_ADD_CLUSTER_NODE = _HNODE* function(_HCLUSTER* hCluster, const(PWSTR) lpszNodeName, 
                                                    PCLUSTER_SETUP_PROGRESS_CALLBACK pfnProgressCallback, 
                                                    void* pvCallbackArg);
 alias PCLUSAPI_DESTROY_CLUSTER = uint function(_HCLUSTER* hCluster, 
@@ -3429,7 +3426,7 @@ alias PQUORUM_RESOURCE_LOST = void function(ptrdiff_t Resource);
 ///    FormatString = Null-terminated Unicode string that includes the information to be recorded. This string must be in the same
 ///                   format as that passed to the FormatMessage function.
 ///    Arg1 = 
-alias PLOG_EVENT_ROUTINE = void function(ptrdiff_t ResourceHandle, LOG_LEVEL LogLevel, const(wchar)* FormatString);
+alias PLOG_EVENT_ROUTINE = void function(ptrdiff_t ResourceHandle, LOG_LEVEL LogLevel, const(PWSTR) FormatString);
 ///Opens a resource. The <b>POPEN_ROUTINE</b> type defines a pointer to this function.
 ///Params:
 ///    ResourceName = Name of the resource to open.
@@ -3439,7 +3436,7 @@ alias PLOG_EVENT_ROUTINE = void function(ptrdiff_t ResourceHandle, LOG_LEVEL Log
 ///    If the operation was successful, <i>Open</i> returns a resource identifier (<b>RESID</b>). If the operation was
 ///    not successful, <i>Open</i> returns <b>NULL</b>. Call SetLastError to specify that an error has occurred.
 ///    
-alias POPEN_ROUTINE = void* function(const(wchar)* ResourceName, HKEY ResourceKey, ptrdiff_t ResourceHandle);
+alias POPEN_ROUTINE = void* function(const(PWSTR) ResourceName, HKEY ResourceKey, ptrdiff_t ResourceHandle);
 ///Closes a resource. The <b>PCLOSE_ROUTINE</b> type defines a pointer to this function.
 ///Params:
 ///    Resource = 
@@ -3464,7 +3461,7 @@ alias PCLOSE_ROUTINE = void function(void* Resource);
 ///    is pending, and a thread has been activated to process the online request. </td> </tr> </table> If the operation
 ///    was not successful for other reasons, <i>Online</i> should return one of the system error codes.
 ///    
-alias PONLINE_ROUTINE = uint function(void* Resource, ptrdiff_t* EventHandle);
+alias PONLINE_ROUTINE = uint function(void* Resource, HANDLE* EventHandle);
 ///Marks a resource as unavailable for use after cleanup processing is complete. The <b>POFFLINE_ROUTINE</b> type
 ///defines a pointer to this function.
 ///Params:
@@ -3580,7 +3577,7 @@ alias PRESOURCE_CONTROL_ROUTINE = uint function(void* Resource, uint ControlCode
 ///    width="60%"> The resource DLL requested that the Resource Monitor perform default processing (if any) for
 ///    <i>ControlCode</i> in addition to processing supplied by the DLL (if any). </td> </tr> </table>
 ///    
-alias PRESOURCE_TYPE_CONTROL_ROUTINE = uint function(const(wchar)* ResourceTypeName, uint ControlCode, 
+alias PRESOURCE_TYPE_CONTROL_ROUTINE = uint function(const(PWSTR) ResourceTypeName, uint ControlCode, 
                                                      void* InBuffer, uint InBufferSize, void* OutBuffer, 
                                                      uint OutBufferSize, uint* BytesReturned);
 ///Opens a resource. The <b>POPEN_V2_ROUTINE</b> type defines a pointer to this function.
@@ -3593,7 +3590,7 @@ alias PRESOURCE_TYPE_CONTROL_ROUTINE = uint function(const(wchar)* ResourceTypeN
 ///    If the operation was successful, returns a resource identifier (<b>RESID</b>). If the operation was not
 ///    successful, returns <b>NULL</b>. Call SetLastError to specify that an error has occurred.
 ///    
-alias POPEN_V2_ROUTINE = void* function(const(wchar)* ResourceName, HKEY ResourceKey, ptrdiff_t ResourceHandle, 
+alias POPEN_V2_ROUTINE = void* function(const(PWSTR) ResourceName, HKEY ResourceKey, ptrdiff_t ResourceHandle, 
                                         uint OpenFlags);
 ///Marks a resource as available for use. The <b>PONLINE_V2_ROUTINE</b> type defines a pointer to this function.
 ///Params:
@@ -3618,7 +3615,7 @@ alias POPEN_V2_ROUTINE = void* function(const(wchar)* ResourceName, HKEY Resourc
 ///    is pending, and a thread has been activated to process the online request. </td> </tr> </table> If the operation
 ///    was not successful for other reasons, a system error code is returned.
 ///    
-alias PONLINE_V2_ROUTINE = uint function(void* Resource, ptrdiff_t* EventHandle, uint OnlineFlags, char* InBuffer, 
+alias PONLINE_V2_ROUTINE = uint function(void* Resource, HANDLE* EventHandle, uint OnlineFlags, ubyte* InBuffer, 
                                          uint InBufferSize, uint Reserved);
 ///Marks a resource as unavailable for use after cleanup processing is complete. The <b>POFFLINE_V2_ROUTINE</b> type
 ///defines a pointer to this function.
@@ -3639,8 +3636,8 @@ alias PONLINE_V2_ROUTINE = uint function(void* Resource, ptrdiff_t* EventHandle,
 ///    request. </td> </tr> </table> If the operation was not successful for other reasons, this function returns one of
 ///    the system error codes.
 ///    
-alias POFFLINE_V2_ROUTINE = uint function(void* Resource, const(wchar)* DestinationNodeName, uint OfflineFlags, 
-                                          char* InBuffer, uint InBufferSize, uint Reserved);
+alias POFFLINE_V2_ROUTINE = uint function(void* Resource, const(PWSTR) DestinationNodeName, uint OfflineFlags, 
+                                          ubyte* InBuffer, uint InBufferSize, uint Reserved);
 ///Cancels an operation on a resource.
 ///Params:
 ///    Resource = The resource ID of the resource.
@@ -3676,7 +3673,7 @@ alias PCANCEL_ROUTINE = uint function(void* Resource, uint CancelFlags_RESERVED)
 ///    
 alias PBEGIN_RESCALL_ROUTINE = uint function(void* Resource, uint ControlCode, void* InBuffer, uint InBufferSize, 
                                              void* OutBuffer, uint OutBufferSize, uint* BytesReturned, long context, 
-                                             int* ReturnedAsynchronously);
+                                             BOOL* ReturnedAsynchronously);
 ///Starts a call to a resource control code. The <b>PBEGIN_RESTYPECALL_ROUTINE</b> type defines a pointer to this
 ///callback function.
 ///Params:
@@ -3699,9 +3696,9 @@ alias PBEGIN_RESCALL_ROUTINE = uint function(void* Resource, uint ControlCode, v
 ///    <tr> <td width="40%"> <dl> <dt><b>ERROR_INVALID_FUNCTION</b></dt> </dl> </td> <td width="60%"> The requested
 ///    control code is not supported. </td> </tr> </table>
 ///    
-alias PBEGIN_RESTYPECALL_ROUTINE = uint function(const(wchar)* ResourceTypeName, uint ControlCode, void* InBuffer, 
+alias PBEGIN_RESTYPECALL_ROUTINE = uint function(const(PWSTR) ResourceTypeName, uint ControlCode, void* InBuffer, 
                                                  uint InBufferSize, void* OutBuffer, uint OutBufferSize, 
-                                                 uint* BytesReturned, long context, int* ReturnedAsynchronously);
+                                                 uint* BytesReturned, long context, BOOL* ReturnedAsynchronously);
 ///The <b>PBEGIN_RESCALL_AS_USER_ROUTINE</b> type defines a pointer to this callback function.
 ///Params:
 ///    Resource = TBD
@@ -3720,7 +3717,7 @@ alias PBEGIN_RESTYPECALL_ROUTINE = uint function(const(wchar)* ResourceTypeName,
 alias PBEGIN_RESCALL_AS_USER_ROUTINE = uint function(void* Resource, HANDLE TokenHandle, uint ControlCode, 
                                                      void* InBuffer, uint InBufferSize, void* OutBuffer, 
                                                      uint OutBufferSize, uint* BytesReturned, long context, 
-                                                     int* ReturnedAsynchronously);
+                                                     BOOL* ReturnedAsynchronously);
 ///The <b>PBEGIN_RESTYPECALL_AS_USER_ROUTINE</b> type defines a pointer to this callback function.
 ///Params:
 ///    ResourceTypeName = TBD
@@ -3736,10 +3733,10 @@ alias PBEGIN_RESCALL_AS_USER_ROUTINE = uint function(void* Resource, HANDLE Toke
 ///Returns:
 ///    TBD
 ///    
-alias PBEGIN_RESTYPECALL_AS_USER_ROUTINE = uint function(const(wchar)* ResourceTypeName, HANDLE TokenHandle, 
+alias PBEGIN_RESTYPECALL_AS_USER_ROUTINE = uint function(const(PWSTR) ResourceTypeName, HANDLE TokenHandle, 
                                                          uint ControlCode, void* InBuffer, uint InBufferSize, 
                                                          void* OutBuffer, uint OutBufferSize, uint* BytesReturned, 
-                                                         long context, int* ReturnedAsynchronously);
+                                                         long context, BOOL* ReturnedAsynchronously);
 ///Loads a resource DLL, returning a structure containing a function table and a version number. The
 ///<b>PSTARTUP_ROUTINE</b> type defines a pointer to this function.
 ///Params:
@@ -3760,7 +3757,7 @@ alias PBEGIN_RESTYPECALL_AS_USER_ROUTINE = uint function(const(wchar)* ResourceT
 ///    <i>MinVersionSupported</i> and <i>MaxVersionSupported</i> parameters. </td> </tr> </table> If the operation was
 ///    not successful, <i>Startup</i> should return one of the system error codes.
 ///    
-alias PSTARTUP_ROUTINE = uint function(const(wchar)* ResourceType, uint MinVersionSupported, 
+alias PSTARTUP_ROUTINE = uint function(const(PWSTR) ResourceType, uint MinVersionSupported, 
                                        uint MaxVersionSupported, PSET_RESOURCE_STATUS_ROUTINE SetResourceStatus, 
                                        PLOG_EVENT_ROUTINE LogEvent, CLRES_FUNCTION_TABLE** FunctionTable);
 ///Reports that locked mode was configured for a resource.
@@ -3837,7 +3834,8 @@ alias PEXTEND_RES_TYPE_CONTROL_CALL = uint function(const(long) context, uint ne
 ///Returns:
 ///    TBD
 ///    
-alias PRAISE_RES_TYPE_NOTIFICATION = uint function(const(wchar)* ResourceType, char* pPayload, uint payloadSize);
+alias PRAISE_RES_TYPE_NOTIFICATION = uint function(const(PWSTR) ResourceType, const(ubyte)* pPayload, 
+                                                   uint payloadSize);
 ///The <b>PCHANGE_RESOURCE_PROCESS_FOR_DUMPS</b> type defines a pointer to this function.
 ///Params:
 ///    resource = TBD
@@ -3847,7 +3845,7 @@ alias PRAISE_RES_TYPE_NOTIFICATION = uint function(const(wchar)* ResourceType, c
 ///Returns:
 ///    TBD
 ///    
-alias PCHANGE_RESOURCE_PROCESS_FOR_DUMPS = uint function(ptrdiff_t resource, const(wchar)* processName, 
+alias PCHANGE_RESOURCE_PROCESS_FOR_DUMPS = uint function(ptrdiff_t resource, const(PWSTR) processName, 
                                                          uint processId, BOOL isAdd);
 ///The <b>PCHANGE_RES_TYPE_PROCESS_FOR_DUMPS</b> type defines a pointer to this function.
 ///Params:
@@ -3858,7 +3856,7 @@ alias PCHANGE_RESOURCE_PROCESS_FOR_DUMPS = uint function(ptrdiff_t resource, con
 ///Returns:
 ///    TBD
 ///    
-alias PCHANGE_RES_TYPE_PROCESS_FOR_DUMPS = uint function(const(wchar)* resourceTypeName, const(wchar)* processName, 
+alias PCHANGE_RES_TYPE_PROCESS_FOR_DUMPS = uint function(const(PWSTR) resourceTypeName, const(PWSTR) processName, 
                                                          uint processId, BOOL isAdd);
 ///Sets the internal state of a resource
 ///Params:
@@ -3884,44 +3882,44 @@ alias PSET_RESOURCE_LOCKED_MODE_EX_ROUTINE = uint function(ptrdiff_t ResourceHan
 ///    width="60%"> The resource DLL does not support a version that falls in the range identified by the
 ///    <i>MinVersionSupported</i> and <i>MaxVersionSupported</i> parameters. </td> </tr> </table>
 ///    
-alias PSTARTUP_EX_ROUTINE = uint function(const(wchar)* ResourceType, uint MinVersionSupported, 
+alias PSTARTUP_EX_ROUTINE = uint function(const(PWSTR) ResourceType, uint MinVersionSupported, 
                                           uint MaxVersionSupported, 
                                           CLRES_CALLBACK_FUNCTION_TABLE* MonitorCallbackFunctions, 
                                           CLRES_FUNCTION_TABLE** ResourceDllInterfaceFunctions);
-alias PRESUTIL_START_RESOURCE_SERVICE = uint function(const(wchar)* pszServiceName, SC_HANDLE__** phServiceHandle);
-alias PRESUTIL_VERIFY_RESOURCE_SERVICE = uint function(const(wchar)* pszServiceName);
-alias PRESUTIL_STOP_RESOURCE_SERVICE = uint function(const(wchar)* pszServiceName);
+alias PRESUTIL_START_RESOURCE_SERVICE = uint function(const(PWSTR) pszServiceName, SC_HANDLE__** phServiceHandle);
+alias PRESUTIL_VERIFY_RESOURCE_SERVICE = uint function(const(PWSTR) pszServiceName);
+alias PRESUTIL_STOP_RESOURCE_SERVICE = uint function(const(PWSTR) pszServiceName);
 alias PRESUTIL_VERIFY_SERVICE = uint function(SC_HANDLE__* hServiceHandle);
 alias PRESUTIL_STOP_SERVICE = uint function(SC_HANDLE__* hServiceHandle);
-alias PRESUTIL_CREATE_DIRECTORY_TREE = uint function(const(wchar)* pszPath);
-alias PRESUTIL_IS_PATH_VALID = BOOL function(const(wchar)* pszPath);
+alias PRESUTIL_CREATE_DIRECTORY_TREE = uint function(const(PWSTR) pszPath);
+alias PRESUTIL_IS_PATH_VALID = BOOL function(const(PWSTR) pszPath);
 alias PRESUTIL_ENUM_PROPERTIES = uint function(const(RESUTIL_PROPERTY_ITEM)* pPropertyTable, 
-                                               const(wchar)* pszOutProperties, uint cbOutPropertiesSize, 
+                                               PWSTR pszOutProperties, uint cbOutPropertiesSize, 
                                                uint* pcbBytesReturned, uint* pcbRequired);
-alias PRESUTIL_ENUM_PRIVATE_PROPERTIES = uint function(HKEY hkeyClusterKey, const(wchar)* pszOutProperties, 
+alias PRESUTIL_ENUM_PRIVATE_PROPERTIES = uint function(HKEY hkeyClusterKey, PWSTR pszOutProperties, 
                                                        uint cbOutPropertiesSize, uint* pcbBytesReturned, 
                                                        uint* pcbRequired);
 alias PRESUTIL_GET_PROPERTIES = uint function(HKEY hkeyClusterKey, const(RESUTIL_PROPERTY_ITEM)* pPropertyTable, 
-                                              char* pOutPropertyList, uint cbOutPropertyListSize, 
+                                              void* pOutPropertyList, uint cbOutPropertyListSize, 
                                               uint* pcbBytesReturned, uint* pcbRequired);
 alias PRESUTIL_GET_ALL_PROPERTIES = uint function(HKEY hkeyClusterKey, 
                                                   const(RESUTIL_PROPERTY_ITEM)* pPropertyTable, 
-                                                  char* pOutPropertyList, uint cbOutPropertyListSize, 
+                                                  void* pOutPropertyList, uint cbOutPropertyListSize, 
                                                   uint* pcbBytesReturned, uint* pcbRequired);
-alias PRESUTIL_GET_PRIVATE_PROPERTIES = uint function(HKEY hkeyClusterKey, char* pOutPropertyList, 
+alias PRESUTIL_GET_PRIVATE_PROPERTIES = uint function(HKEY hkeyClusterKey, void* pOutPropertyList, 
                                                       uint cbOutPropertyListSize, uint* pcbBytesReturned, 
                                                       uint* pcbRequired);
 alias PRESUTIL_GET_PROPERTY_SIZE = uint function(HKEY hkeyClusterKey, 
                                                  const(RESUTIL_PROPERTY_ITEM)* pPropertyTableItem, 
                                                  uint* pcbOutPropertyListSize, uint* pnPropertyCount);
 alias PRESUTIL_GET_PROPERTY = uint function(HKEY hkeyClusterKey, const(RESUTIL_PROPERTY_ITEM)* pPropertyTableItem, 
-                                            char* pOutPropertyItem, uint* pcbOutPropertyItemSize);
+                                            void** pOutPropertyItem, uint* pcbOutPropertyItemSize);
 alias PRESUTIL_VERIFY_PROPERTY_TABLE = uint function(const(RESUTIL_PROPERTY_ITEM)* pPropertyTable, void* Reserved, 
-                                                     BOOL bAllowUnknownProperties, char* pInPropertyList, 
+                                                     BOOL bAllowUnknownProperties, const(void)* pInPropertyList, 
                                                      uint cbInPropertyListSize, ubyte* pOutParams);
 alias PRESUTIL_SET_PROPERTY_TABLE = uint function(HKEY hkeyClusterKey, 
                                                   const(RESUTIL_PROPERTY_ITEM)* pPropertyTable, void* Reserved, 
-                                                  BOOL bAllowUnknownProperties, char* pInPropertyList, 
+                                                  BOOL bAllowUnknownProperties, const(void)* pInPropertyList, 
                                                   uint cbInPropertyListSize, ubyte* pOutParams);
 alias PRESUTIL_SET_PROPERTY_TABLE_EX = uint function(HKEY hkeyClusterKey, 
                                                      const(RESUTIL_PROPERTY_ITEM)* pPropertyTable, void* Reserved, 
@@ -3940,13 +3938,13 @@ alias PRESUTIL_SET_PROPERTY_PARAMETER_BLOCK_EX = uint function(HKEY hkeyClusterK
                                                                ubyte* pOutParams);
 alias PRESUTIL_SET_UNKNOWN_PROPERTIES = uint function(HKEY hkeyClusterKey, 
                                                       const(RESUTIL_PROPERTY_ITEM)* pPropertyTable, 
-                                                      char* pInPropertyList, uint cbInPropertyListSize);
+                                                      const(void)* pInPropertyList, uint cbInPropertyListSize);
 alias PRESUTIL_GET_PROPERTIES_TO_PARAMETER_BLOCK = uint function(HKEY hkeyClusterKey, 
                                                                  const(RESUTIL_PROPERTY_ITEM)* pPropertyTable, 
                                                                  ubyte* pOutParams, BOOL bCheckForRequiredProperties, 
-                                                                 ushort** pszNameOfPropInError);
+                                                                 PWSTR* pszNameOfPropInError);
 alias PRESUTIL_PROPERTY_LIST_FROM_PARAMETER_BLOCK = uint function(const(RESUTIL_PROPERTY_ITEM)* pPropertyTable, 
-                                                                  char* pOutPropertyList, 
+                                                                  void* pOutPropertyList, 
                                                                   uint* pcbOutPropertyListSize, 
                                                                   const(ubyte)* pInParams, uint* pcbBytesReturned, 
                                                                   uint* pcbRequired);
@@ -3958,42 +3956,43 @@ alias PRESUTIL_ADD_UNKNOWN_PROPERTIES = uint function(HKEY hkeyClusterKey,
                                                       const(RESUTIL_PROPERTY_ITEM)* pPropertyTable, 
                                                       void* pOutPropertyList, uint pcbOutPropertyListSize, 
                                                       uint* pcbBytesReturned, uint* pcbRequired);
-alias PRESUTIL_SET_PRIVATE_PROPERTY_LIST = uint function(HKEY hkeyClusterKey, char* pInPropertyList, 
+alias PRESUTIL_SET_PRIVATE_PROPERTY_LIST = uint function(HKEY hkeyClusterKey, const(void)* pInPropertyList, 
                                                          uint cbInPropertyListSize);
-alias PRESUTIL_VERIFY_PRIVATE_PROPERTY_LIST = uint function(char* pInPropertyList, uint cbInPropertyListSize);
-alias PRESUTIL_DUP_STRING = ushort* function(const(wchar)* pszInString);
-alias PRESUTIL_GET_BINARY_VALUE = uint function(HKEY hkeyClusterKey, const(wchar)* pszValueName, char* ppbOutValue, 
-                                                uint* pcbOutValueSize);
-alias PRESUTIL_GET_SZ_VALUE = ushort* function(HKEY hkeyClusterKey, const(wchar)* pszValueName);
-alias PRESUTIL_GET_EXPAND_SZ_VALUE = ushort* function(HKEY hkeyClusterKey, const(wchar)* pszValueName, 
-                                                      BOOL bExpand);
-alias PRESUTIL_GET_DWORD_VALUE = uint function(HKEY hkeyClusterKey, const(wchar)* pszValueName, uint* pdwOutValue, 
+alias PRESUTIL_VERIFY_PRIVATE_PROPERTY_LIST = uint function(const(void)* pInPropertyList, 
+                                                            uint cbInPropertyListSize);
+alias PRESUTIL_DUP_STRING = PWSTR function(const(PWSTR) pszInString);
+alias PRESUTIL_GET_BINARY_VALUE = uint function(HKEY hkeyClusterKey, const(PWSTR) pszValueName, 
+                                                ubyte** ppbOutValue, uint* pcbOutValueSize);
+alias PRESUTIL_GET_SZ_VALUE = PWSTR function(HKEY hkeyClusterKey, const(PWSTR) pszValueName);
+alias PRESUTIL_GET_EXPAND_SZ_VALUE = PWSTR function(HKEY hkeyClusterKey, const(PWSTR) pszValueName, BOOL bExpand);
+alias PRESUTIL_GET_DWORD_VALUE = uint function(HKEY hkeyClusterKey, const(PWSTR) pszValueName, uint* pdwOutValue, 
                                                uint dwDefaultValue);
-alias PRESUTIL_GET_QWORD_VALUE = uint function(HKEY hkeyClusterKey, const(wchar)* pszValueName, ulong* pqwOutValue, 
+alias PRESUTIL_GET_QWORD_VALUE = uint function(HKEY hkeyClusterKey, const(PWSTR) pszValueName, ulong* pqwOutValue, 
                                                ulong qwDefaultValue);
-alias PRESUTIL_SET_BINARY_VALUE = uint function(HKEY hkeyClusterKey, const(wchar)* pszValueName, char* pbNewValue, 
-                                                uint cbNewValueSize, char* ppbOutValue, uint* pcbOutValueSize);
-alias PRESUTIL_SET_SZ_VALUE = uint function(HKEY hkeyClusterKey, const(wchar)* pszValueName, 
-                                            const(wchar)* pszNewValue, ushort** ppszOutString);
-alias PRESUTIL_SET_EXPAND_SZ_VALUE = uint function(HKEY hkeyClusterKey, const(wchar)* pszValueName, 
-                                                   const(wchar)* pszNewValue, ushort** ppszOutString);
-alias PRESUTIL_SET_MULTI_SZ_VALUE = uint function(HKEY hkeyClusterKey, const(wchar)* pszValueName, 
-                                                  const(wchar)* pszNewValue, uint cbNewValueSize, char* ppszOutValue, 
+alias PRESUTIL_SET_BINARY_VALUE = uint function(HKEY hkeyClusterKey, const(PWSTR) pszValueName, 
+                                                const(ubyte)* pbNewValue, uint cbNewValueSize, ubyte** ppbOutValue, 
+                                                uint* pcbOutValueSize);
+alias PRESUTIL_SET_SZ_VALUE = uint function(HKEY hkeyClusterKey, const(PWSTR) pszValueName, 
+                                            const(PWSTR) pszNewValue, PWSTR* ppszOutString);
+alias PRESUTIL_SET_EXPAND_SZ_VALUE = uint function(HKEY hkeyClusterKey, const(PWSTR) pszValueName, 
+                                                   const(PWSTR) pszNewValue, PWSTR* ppszOutString);
+alias PRESUTIL_SET_MULTI_SZ_VALUE = uint function(HKEY hkeyClusterKey, const(PWSTR) pszValueName, 
+                                                  const(PWSTR) pszNewValue, uint cbNewValueSize, PWSTR* ppszOutValue, 
                                                   uint* pcbOutValueSize);
-alias PRESUTIL_SET_DWORD_VALUE = uint function(HKEY hkeyClusterKey, const(wchar)* pszValueName, uint dwNewValue, 
+alias PRESUTIL_SET_DWORD_VALUE = uint function(HKEY hkeyClusterKey, const(PWSTR) pszValueName, uint dwNewValue, 
                                                uint* pdwOutValue);
-alias PRESUTIL_SET_QWORD_VALUE = uint function(HKEY hkeyClusterKey, const(wchar)* pszValueName, ulong qwNewValue, 
+alias PRESUTIL_SET_QWORD_VALUE = uint function(HKEY hkeyClusterKey, const(PWSTR) pszValueName, ulong qwNewValue, 
                                                ulong* pqwOutValue);
 alias PRESUTIL_GET_BINARY_PROPERTY = uint function(ubyte** ppbOutValue, uint* pcbOutValueSize, 
-                                                   const(CLUSPROP_BINARY)* pValueStruct, char* pbOldValue, 
-                                                   uint cbOldValueSize, char* ppPropertyList, 
+                                                   const(CLUSPROP_BINARY)* pValueStruct, const(ubyte)* pbOldValue, 
+                                                   uint cbOldValueSize, ubyte** ppPropertyList, 
                                                    uint* pcbPropertyListSize);
-alias PRESUTIL_GET_SZ_PROPERTY = uint function(ushort** ppszOutValue, const(CLUSPROP_SZ)* pValueStruct, 
-                                               const(wchar)* pszOldValue, char* ppPropertyList, 
+alias PRESUTIL_GET_SZ_PROPERTY = uint function(PWSTR* ppszOutValue, const(CLUSPROP_SZ)* pValueStruct, 
+                                               const(PWSTR) pszOldValue, ubyte** ppPropertyList, 
                                                uint* pcbPropertyListSize);
-alias PRESUTIL_GET_MULTI_SZ_PROPERTY = uint function(ushort** ppszOutValue, uint* pcbOutValueSize, 
-                                                     const(CLUSPROP_SZ)* pValueStruct, const(wchar)* pszOldValue, 
-                                                     uint cbOldValueSize, char* ppPropertyList, 
+alias PRESUTIL_GET_MULTI_SZ_PROPERTY = uint function(PWSTR* ppszOutValue, uint* pcbOutValueSize, 
+                                                     const(CLUSPROP_SZ)* pValueStruct, const(PWSTR) pszOldValue, 
+                                                     uint cbOldValueSize, ubyte** ppPropertyList, 
                                                      uint* pcbPropertyListSize);
 alias PRESUTIL_GET_DWORD_PROPERTY = uint function(uint* pdwOutValue, const(CLUSPROP_DWORD)* pValueStruct, 
                                                   uint dwOldValue, uint dwMinimum, uint dwMaximum, 
@@ -4006,39 +4005,38 @@ alias PRESUTIL_GET_FILETIME_PROPERTY = uint function(FILETIME* pftOutValue, cons
                                                      ubyte** ppPropertyList, uint* pcbPropertyListSize);
 alias PRESUTIL_GET_ENVIRONMENT_WITH_NET_NAME = void* function(_HRESOURCE* hResource);
 alias PRESUTIL_FREE_ENVIRONMENT = uint function(void* lpEnvironment);
-alias PRESUTIL_EXPAND_ENVIRONMENT_STRINGS = ushort* function(const(wchar)* pszSrc);
-alias PRESUTIL_SET_RESOURCE_SERVICE_ENVIRONMENT = uint function(const(wchar)* pszServiceName, 
-                                                                _HRESOURCE* hResource, 
+alias PRESUTIL_EXPAND_ENVIRONMENT_STRINGS = PWSTR function(const(PWSTR) pszSrc);
+alias PRESUTIL_SET_RESOURCE_SERVICE_ENVIRONMENT = uint function(const(PWSTR) pszServiceName, _HRESOURCE* hResource, 
                                                                 PLOG_EVENT_ROUTINE pfnLogEvent, 
                                                                 ptrdiff_t hResourceHandle);
-alias PRESUTIL_REMOVE_RESOURCE_SERVICE_ENVIRONMENT = uint function(const(wchar)* pszServiceName, 
+alias PRESUTIL_REMOVE_RESOURCE_SERVICE_ENVIRONMENT = uint function(const(PWSTR) pszServiceName, 
                                                                    PLOG_EVENT_ROUTINE pfnLogEvent, 
                                                                    ptrdiff_t hResourceHandle);
-alias PRESUTIL_SET_RESOURCE_SERVICE_START_PARAMETERS = uint function(const(wchar)* pszServiceName, 
+alias PRESUTIL_SET_RESOURCE_SERVICE_START_PARAMETERS = uint function(const(PWSTR) pszServiceName, 
                                                                      SC_HANDLE__* schSCMHandle, 
                                                                      SC_HANDLE__** phService, 
                                                                      PLOG_EVENT_ROUTINE pfnLogEvent, 
                                                                      ptrdiff_t hResourceHandle);
-alias PRESUTIL_FIND_SZ_PROPERTY = uint function(char* pPropertyList, uint cbPropertyListSize, 
-                                                const(wchar)* pszPropertyName, ushort** pszPropertyValue);
-alias PRESUTIL_FIND_EXPAND_SZ_PROPERTY = uint function(char* pPropertyList, uint cbPropertyListSize, 
-                                                       const(wchar)* pszPropertyName, ushort** pszPropertyValue);
-alias PRESUTIL_FIND_EXPANDED_SZ_PROPERTY = uint function(char* pPropertyList, uint cbPropertyListSize, 
-                                                         const(wchar)* pszPropertyName, ushort** pszPropertyValue);
-alias PRESUTIL_FIND_DWORD_PROPERTY = uint function(char* pPropertyList, uint cbPropertyListSize, 
-                                                   const(wchar)* pszPropertyName, uint* pdwPropertyValue);
-alias PRESUTIL_FIND_BINARY_PROPERTY = uint function(char* pPropertyList, uint cbPropertyListSize, 
-                                                    const(wchar)* pszPropertyName, char* pbPropertyValue, 
+alias PRESUTIL_FIND_SZ_PROPERTY = uint function(const(void)* pPropertyList, uint cbPropertyListSize, 
+                                                const(PWSTR) pszPropertyName, PWSTR* pszPropertyValue);
+alias PRESUTIL_FIND_EXPAND_SZ_PROPERTY = uint function(const(void)* pPropertyList, uint cbPropertyListSize, 
+                                                       const(PWSTR) pszPropertyName, PWSTR* pszPropertyValue);
+alias PRESUTIL_FIND_EXPANDED_SZ_PROPERTY = uint function(const(void)* pPropertyList, uint cbPropertyListSize, 
+                                                         const(PWSTR) pszPropertyName, PWSTR* pszPropertyValue);
+alias PRESUTIL_FIND_DWORD_PROPERTY = uint function(const(void)* pPropertyList, uint cbPropertyListSize, 
+                                                   const(PWSTR) pszPropertyName, uint* pdwPropertyValue);
+alias PRESUTIL_FIND_BINARY_PROPERTY = uint function(const(void)* pPropertyList, uint cbPropertyListSize, 
+                                                    const(PWSTR) pszPropertyName, ubyte** pbPropertyValue, 
                                                     uint* pcbPropertyValueSize);
-alias PRESUTIL_FIND_MULTI_SZ_PROPERTY = uint function(char* pPropertyList, uint cbPropertyListSize, 
-                                                      const(wchar)* pszPropertyName, char* pszPropertyValue, 
+alias PRESUTIL_FIND_MULTI_SZ_PROPERTY = uint function(const(void)* pPropertyList, uint cbPropertyListSize, 
+                                                      const(PWSTR) pszPropertyName, PWSTR* pszPropertyValue, 
                                                       uint* pcbPropertyValueSize);
-alias PRESUTIL_FIND_LONG_PROPERTY = uint function(char* pPropertyList, uint cbPropertyListSize, 
-                                                  const(wchar)* pszPropertyName, int* plPropertyValue);
-alias PRESUTIL_FIND_ULARGEINTEGER_PROPERTY = uint function(char* pPropertyList, uint cbPropertyListSize, 
-                                                           const(wchar)* pszPropertyName, ulong* plPropertyValue);
-alias PRESUTIL_FIND_FILETIME_PROPERTY = uint function(char* pPropertyList, uint cbPropertyListSize, 
-                                                      const(wchar)* pszPropertyName, FILETIME* pftPropertyValue);
+alias PRESUTIL_FIND_LONG_PROPERTY = uint function(const(void)* pPropertyList, uint cbPropertyListSize, 
+                                                  const(PWSTR) pszPropertyName, int* plPropertyValue);
+alias PRESUTIL_FIND_ULARGEINTEGER_PROPERTY = uint function(const(void)* pPropertyList, uint cbPropertyListSize, 
+                                                           const(PWSTR) pszPropertyName, ulong* plPropertyValue);
+alias PRESUTIL_FIND_FILETIME_PROPERTY = uint function(const(void)* pPropertyList, uint cbPropertyListSize, 
+                                                      const(PWSTR) pszPropertyName, FILETIME* pftPropertyValue);
 ///Initializes a worker thread with the specified callback routine. The <b>PWORKER_START_ROUTINE</b> type defines a
 ///pointer to this function.
 ///Params:
@@ -4072,86 +4070,82 @@ alias LPRESOURCE_CALLBACK_EX = uint function(_HCLUSTER* param0, _HRESOURCE* para
 alias LPGROUP_CALLBACK_EX = uint function(_HCLUSTER* param0, _HGROUP* param1, _HGROUP* param2, void* param3);
 alias LPNODE_CALLBACK = uint function(_HCLUSTER* param0, _HNODE* param1, CLUSTER_NODE_STATE param2, void* param3);
 alias PRESUTIL_RESOURCES_EQUAL = BOOL function(_HRESOURCE* hSelf, _HRESOURCE* hResource);
-alias PRESUTIL_RESOURCE_TYPES_EQUAL = BOOL function(const(wchar)* lpszResourceTypeName, _HRESOURCE* hResource);
+alias PRESUTIL_RESOURCE_TYPES_EQUAL = BOOL function(const(PWSTR) lpszResourceTypeName, _HRESOURCE* hResource);
 alias PRESUTIL_IS_RESOURCE_CLASS_EQUAL = BOOL function(CLUS_RESOURCE_CLASS_INFO* prci, _HRESOURCE* hResource);
-alias PRESUTIL_ENUM_RESOURCES = uint function(_HRESOURCE* hSelf, const(wchar)* lpszResTypeName, 
+alias PRESUTIL_ENUM_RESOURCES = uint function(_HRESOURCE* hSelf, const(PWSTR) lpszResTypeName, 
                                               LPRESOURCE_CALLBACK pResCallBack, void* pParameter);
 alias PRESUTIL_ENUM_RESOURCES_EX = uint function(_HCLUSTER* hCluster, _HRESOURCE* hSelf, 
-                                                 const(wchar)* lpszResTypeName, LPRESOURCE_CALLBACK_EX pResCallBack, 
+                                                 const(PWSTR) lpszResTypeName, LPRESOURCE_CALLBACK_EX pResCallBack, 
                                                  void* pParameter);
-alias PRESUTIL_GET_RESOURCE_DEPENDENCY = _HRESOURCE* function(HANDLE hSelf, const(wchar)* lpszResourceType);
+alias PRESUTIL_GET_RESOURCE_DEPENDENCY = _HRESOURCE* function(HANDLE hSelf, const(PWSTR) lpszResourceType);
 alias PRESUTIL_GET_RESOURCE_DEPENDENCY_BY_NAME = _HRESOURCE* function(_HCLUSTER* hCluster, HANDLE hSelf, 
-                                                                      const(wchar)* lpszResourceType, BOOL bRecurse);
+                                                                      const(PWSTR) lpszResourceType, BOOL bRecurse);
 alias PRESUTIL_GET_RESOURCE_DEPENDENCY_BY_CLASS = _HRESOURCE* function(_HCLUSTER* hCluster, HANDLE hSelf, 
                                                                        CLUS_RESOURCE_CLASS_INFO* prci, BOOL bRecurse);
-alias PRESUTIL_GET_RESOURCE_NAME_DEPENDENCY = _HRESOURCE* function(const(wchar)* lpszResourceName, 
-                                                                   const(wchar)* lpszResourceType);
-alias PRESUTIL_GET_RESOURCE_DEPENDENTIP_ADDRESS_PROPS = uint function(_HRESOURCE* hResource, 
-                                                                      const(wchar)* pszAddress, uint* pcchAddress, 
-                                                                      const(wchar)* pszSubnetMask, 
-                                                                      uint* pcchSubnetMask, const(wchar)* pszNetwork, 
+alias PRESUTIL_GET_RESOURCE_NAME_DEPENDENCY = _HRESOURCE* function(const(PWSTR) lpszResourceName, 
+                                                                   const(PWSTR) lpszResourceType);
+alias PRESUTIL_GET_RESOURCE_DEPENDENTIP_ADDRESS_PROPS = uint function(_HRESOURCE* hResource, PWSTR pszAddress, 
+                                                                      uint* pcchAddress, PWSTR pszSubnetMask, 
+                                                                      uint* pcchSubnetMask, PWSTR pszNetwork, 
                                                                       uint* pcchNetwork);
 alias PRESUTIL_FIND_DEPENDENT_DISK_RESOURCE_DRIVE_LETTER = uint function(_HCLUSTER* hCluster, 
-                                                                         _HRESOURCE* hResource, 
-                                                                         const(wchar)* pszDriveLetter, 
+                                                                         _HRESOURCE* hResource, PWSTR pszDriveLetter, 
                                                                          uint* pcchDriveLetter);
 alias PRESUTIL_TERMINATE_SERVICE_PROCESS_FROM_RES_DLL = uint function(uint dwServicePid, BOOL bOffline, 
                                                                       uint* pdwResourceState, 
                                                                       PLOG_EVENT_ROUTINE pfnLogEvent, 
                                                                       ptrdiff_t hResourceHandle);
 alias PRESUTIL_GET_PROPERTY_FORMATS = uint function(const(RESUTIL_PROPERTY_ITEM)* pPropertyTable, 
-                                                    char* pOutPropertyFormatList, uint cbPropertyFormatListSize, 
+                                                    void* pOutPropertyFormatList, uint cbPropertyFormatListSize, 
                                                     uint* pcbBytesReturned, uint* pcbRequired);
 alias PRESUTIL_GET_CORE_CLUSTER_RESOURCES = uint function(_HCLUSTER* hCluster, _HRESOURCE** phClusterNameResource, 
                                                           _HRESOURCE** phClusterIPAddressResource, 
                                                           _HRESOURCE** phClusterQuorumResource);
-alias PRESUTIL_GET_RESOURCE_NAME = uint function(_HRESOURCE* hResource, const(wchar)* pszResourceName, 
+alias PRESUTIL_GET_RESOURCE_NAME = uint function(_HRESOURCE* hResource, PWSTR pszResourceName, 
                                                  uint* pcchResourceNameInOut);
-alias PCLUSTER_IS_PATH_ON_SHARED_VOLUME = BOOL function(const(wchar)* lpszPathName);
-alias PCLUSTER_GET_VOLUME_PATH_NAME = BOOL function(const(wchar)* lpszFileName, const(wchar)* lpszVolumePathName, 
+alias PCLUSTER_IS_PATH_ON_SHARED_VOLUME = BOOL function(const(PWSTR) lpszPathName);
+alias PCLUSTER_GET_VOLUME_PATH_NAME = BOOL function(const(PWSTR) lpszFileName, PWSTR lpszVolumePathName, 
                                                     uint cchBufferLength);
-alias PCLUSTER_GET_VOLUME_NAME_FOR_VOLUME_MOUNT_POINT = BOOL function(const(wchar)* lpszVolumeMountPoint, 
-                                                                      const(wchar)* lpszVolumeName, 
-                                                                      uint cchBufferLength);
-alias PCLUSTER_PREPARE_SHARED_VOLUME_FOR_BACKUP = uint function(const(wchar)* lpszFileName, 
-                                                                const(wchar)* lpszVolumePathName, 
-                                                                uint* lpcchVolumePathName, 
-                                                                const(wchar)* lpszVolumeName, uint* lpcchVolumeName);
-alias PCLUSTER_CLEAR_BACKUP_STATE_FOR_SHARED_VOLUME = uint function(const(wchar)* lpszVolumePathName);
-alias PRESUTIL_SET_RESOURCE_SERVICE_START_PARAMETERS_EX = uint function(const(wchar)* pszServiceName, 
+alias PCLUSTER_GET_VOLUME_NAME_FOR_VOLUME_MOUNT_POINT = BOOL function(const(PWSTR) lpszVolumeMountPoint, 
+                                                                      PWSTR lpszVolumeName, uint cchBufferLength);
+alias PCLUSTER_PREPARE_SHARED_VOLUME_FOR_BACKUP = uint function(const(PWSTR) lpszFileName, 
+                                                                PWSTR lpszVolumePathName, uint* lpcchVolumePathName, 
+                                                                PWSTR lpszVolumeName, uint* lpcchVolumeName);
+alias PCLUSTER_CLEAR_BACKUP_STATE_FOR_SHARED_VOLUME = uint function(const(PWSTR) lpszVolumePathName);
+alias PRESUTIL_SET_RESOURCE_SERVICE_START_PARAMETERS_EX = uint function(const(PWSTR) pszServiceName, 
                                                                         SC_HANDLE__* schSCMHandle, 
                                                                         SC_HANDLE__** phService, 
                                                                         uint dwDesiredAccess, 
                                                                         PLOG_EVENT_ROUTINE pfnLogEvent, 
                                                                         ptrdiff_t hResourceHandle);
 alias PRESUTIL_ENUM_RESOURCES_EX2 = uint function(_HCLUSTER* hCluster, _HRESOURCE* hSelf, 
-                                                  const(wchar)* lpszResTypeName, LPRESOURCE_CALLBACK_EX pResCallBack, 
+                                                  const(PWSTR) lpszResTypeName, LPRESOURCE_CALLBACK_EX pResCallBack, 
                                                   void* pParameter, uint dwDesiredAccess);
-alias PRESUTIL_GET_RESOURCE_DEPENDENCY_EX = _HRESOURCE* function(HANDLE hSelf, const(wchar)* lpszResourceType, 
+alias PRESUTIL_GET_RESOURCE_DEPENDENCY_EX = _HRESOURCE* function(HANDLE hSelf, const(PWSTR) lpszResourceType, 
                                                                  uint dwDesiredAccess);
 alias PRESUTIL_GET_RESOURCE_DEPENDENCY_BY_NAME_EX = _HRESOURCE* function(_HCLUSTER* hCluster, HANDLE hSelf, 
-                                                                         const(wchar)* lpszResourceType, 
+                                                                         const(PWSTR) lpszResourceType, 
                                                                          BOOL bRecurse, uint dwDesiredAccess);
 alias PRESUTIL_GET_RESOURCE_DEPENDENCY_BY_CLASS_EX = _HRESOURCE* function(_HCLUSTER* hCluster, HANDLE hSelf, 
                                                                           CLUS_RESOURCE_CLASS_INFO* prci, 
                                                                           BOOL bRecurse, uint dwDesiredAccess);
-alias PRESUTIL_GET_RESOURCE_NAME_DEPENDENCY_EX = _HRESOURCE* function(const(wchar)* lpszResourceName, 
-                                                                      const(wchar)* lpszResourceType, 
+alias PRESUTIL_GET_RESOURCE_NAME_DEPENDENCY_EX = _HRESOURCE* function(const(PWSTR) lpszResourceName, 
+                                                                      const(PWSTR) lpszResourceType, 
                                                                       uint dwDesiredAccess);
 alias PRESUTIL_GET_CORE_CLUSTER_RESOURCES_EX = uint function(_HCLUSTER* hClusterIn, 
                                                              _HRESOURCE** phClusterNameResourceOut, 
                                                              _HRESOURCE** phClusterIPAddressResourceOut, 
                                                              _HRESOURCE** phClusterQuorumResourceOut, 
                                                              uint dwDesiredAccess);
-alias POPEN_CLUSTER_CRYPT_PROVIDER = _HCLUSCRYPTPROVIDER* function(const(wchar)* lpszResource, byte* lpszProvider, 
+alias POPEN_CLUSTER_CRYPT_PROVIDER = _HCLUSCRYPTPROVIDER* function(const(PWSTR) lpszResource, byte* lpszProvider, 
                                                                    uint dwType, uint dwFlags);
-alias POPEN_CLUSTER_CRYPT_PROVIDEREX = _HCLUSCRYPTPROVIDER* function(const(wchar)* lpszResource, 
-                                                                     const(wchar)* lpszKeyname, byte* lpszProvider, 
+alias POPEN_CLUSTER_CRYPT_PROVIDEREX = _HCLUSCRYPTPROVIDER* function(const(PWSTR) lpszResource, 
+                                                                     const(PWSTR) lpszKeyname, byte* lpszProvider, 
                                                                      uint dwType, uint dwFlags);
 alias PCLOSE_CLUSTER_CRYPT_PROVIDER = uint function(_HCLUSCRYPTPROVIDER* hClusCryptProvider);
-alias PCLUSTER_ENCRYPT = uint function(_HCLUSCRYPTPROVIDER* hClusCryptProvider, char* pData, uint cbData, 
+alias PCLUSTER_ENCRYPT = uint function(_HCLUSCRYPTPROVIDER* hClusCryptProvider, ubyte* pData, uint cbData, 
                                        ubyte** ppData, uint* pcbData);
-alias PCLUSTER_DECRYPT = uint function(_HCLUSCRYPTPROVIDER* hClusCryptProvider, char* pCryptInput, 
+alias PCLUSTER_DECRYPT = uint function(_HCLUSCRYPTPROVIDER* hClusCryptProvider, ubyte* pCryptInput, 
                                        uint cbCryptInput, ubyte** ppCryptOutput, uint* pcbCryptOutput);
 alias PFREE_CLUSTER_CRYPT = uint function(void* pCryptInfo);
 alias PREGISTER_APPINSTANCE = uint function(HANDLE ProcessHandle, GUID* AppInstanceId, 
@@ -4159,7 +4153,7 @@ alias PREGISTER_APPINSTANCE = uint function(HANDLE ProcessHandle, GUID* AppInsta
 alias PREGISTER_APPINSTANCE_VERSION = uint function(GUID* AppInstanceId, ulong InstanceVersionHigh, 
                                                     ulong InstanceVersionLow);
 alias PQUERY_APPINSTANCE_VERSION = uint function(GUID* AppInstanceId, ulong* InstanceVersionHigh, 
-                                                 ulong* InstanceVersionLow, int* VersionStatus);
+                                                 ulong* InstanceVersionLow, NTSTATUS* VersionStatus);
 alias PRESET_ALL_APPINSTANCE_VERSIONS = uint function();
 alias SET_APP_INSTANCE_CSV_FLAGS = uint function(HANDLE ProcessHandle, uint Mask, uint Flags);
 
@@ -4359,7 +4353,7 @@ struct CLUSTER_BATCH_COMMAND
     ///0.
     uint                dwOptions;
     ///The name of the value or key relative to the command issued by <b>Command</b>.
-    const(wchar)*       wzName;
+    const(PWSTR)        wzName;
     ///A pointer to the data relative to the command issued by <b>Command</b>. The value of this member is <b>NULL</b>
     ///for all the commands except the <b>CLUSREG_SET_VALUE</b> and <b>CLUSREG_DELETE_VALUE</b> commands.
     const(ubyte)*       lpData;
@@ -4376,9 +4370,9 @@ struct CLUSTER_READ_BATCH_COMMAND
     ///The registry value type or the read error type, depending on the <i>Command</i> result.
     uint                dwOptions;
     ///The name of the key requested in the read command.
-    const(wchar)*       wzSubkeyName;
+    const(PWSTR)        wzSubkeyName;
     ///The name of the value requested in the read command.
-    const(wchar)*       wzValueName;
+    const(PWSTR)        wzValueName;
     ///A pointer to value data.
     const(ubyte)*       lpData;
     ///The count, in bytes, of the <i>lpData</i> value data.
@@ -4390,17 +4384,17 @@ struct CLUSTER_READ_BATCH_COMMAND
 struct CLUSTER_ENUM_ITEM
 {
     ///The version of the <b>CLUSTER_ENUM_ITEM</b> structure.
-    uint          dwVersion;
+    uint  dwVersion;
     ///A bitmask that specifies the type of the cluster object.
-    uint          dwType;
+    uint  dwType;
     ///The size, in bytes, of the <b>lpszId</b> field.
-    uint          cbId;
+    uint  cbId;
     ///The ID of the cluster.
-    const(wchar)* lpszId;
+    PWSTR lpszId;
     ///The size, in bytes, of the <b>lpszName</b> field.
-    uint          cbName;
+    uint  cbName;
     ///The name of the cluster.
-    const(wchar)* lpszName;
+    PWSTR lpszName;
 }
 
 ///Allows the caller to provide additional properties when creating a new group.
@@ -4454,9 +4448,9 @@ struct CLUSTER_SET_PASSWORD_STATUS
 struct CLUSTER_IP_ENTRY
 {
     ///A <b>NULL</b>-terminated Unicode string containing a valid IPv4 or IPv6 numeric network address.
-    const(wchar)* lpszIpAddress;
+    const(PWSTR) lpszIpAddress;
     ///Specifies the number of bits in the subnet mask, for example 24 for an IPv4 netmask of 255.255.255.0.
-    uint          dwPrefixLength;
+    uint         dwPrefixLength;
 }
 
 ///Defines the initial cluster configuration. This structure is passed in the <i>pConfig</i> parameter to the
@@ -4466,11 +4460,11 @@ struct CREATE_CLUSTER_CONFIG
     ///Version. Set this to <b>CLUSAPI_VERSION</b>.
     uint              dwVersion;
     ///Name of the cluster.
-    const(wchar)*     lpszClusterName;
+    const(PWSTR)      lpszClusterName;
     ///Count of nodes in the array pointed to by the <b>ppszNodeNames</b> member.
     uint              cNodes;
     ///Address of array of pointers to strings, each naming a node to be added to the new cluster.
-    ushort**          ppszNodeNames;
+    PWSTR*            ppszNodeNames;
     ///Count of nodes in the array pointed to by the <b>pIpEntries</b> member. If zero (0), no IP Address or Network
     ///Name resources will be created.
     uint              cIpEntries;
@@ -4500,21 +4494,21 @@ struct CREATE_CLUSTER_NAME_ACCOUNT
 {
     ///The major version of the OS that runs on the cluster. This member must be set to a value greater than
     ///<b>CLUSAPI_VERSION_WINDOWSBLUE</b>.
-    uint          dwVersion;
+    uint         dwVersion;
     ///The cluster name that represents the cluster on the domain.
-    const(wchar)* lpszClusterName;
+    const(PWSTR) lpszClusterName;
     ///Reserved for future use. This value must be "0".
-    uint          dwFlags;
+    uint         dwFlags;
     ///The user name for the domain credentials.
-    const(wchar)* pszUserName;
+    const(PWSTR) pszUserName;
     ///The password for the domain credentials.
-    const(wchar)* pszPassword;
+    const(PWSTR) pszPassword;
     ///The domain name to join.
-    const(wchar)* pszDomain;
+    const(PWSTR) pszDomain;
     ///The management point type.
     CLUSTER_MGMT_POINT_TYPE managementPointType;
     CLUSTER_MGMT_POINT_RESTYPE managementPointResType;
-    ubyte         bUpgradeVCOs;
+    ubyte        bUpgradeVCOs;
 }
 
 ///Represents a filter for a notification port that was created by the CreateClusterNotifyPortV2 function. A filter
@@ -4556,17 +4550,17 @@ struct CLUSTER_GROUP_ENUM_ITEM
     ///The size, in bytes, of the <b>lpszId</b> field.
     uint                cbId;
     ///The Id of the cluster group.
-    const(wchar)*       lpszId;
+    PWSTR               lpszId;
     ///The size, in bytes, of the <b>IpszName</b> field.
     uint                cbName;
     ///The name of the cluster group.
-    const(wchar)*       lpszName;
+    PWSTR               lpszName;
     ///The current state of the cluster group.
     CLUSTER_GROUP_STATE state;
     ///The size, in bytes, of the <b>IpszOwnerNode</b> field.
     uint                cbOwnerNode;
     ///The name of the cluster node hosting the group.
-    const(wchar)*       lpszOwnerNode;
+    PWSTR               lpszOwnerNode;
     ///The group flags.
     uint                dwFlags;
     ///The size, in bytes, of the <b>pProperties</b> field.
@@ -4583,31 +4577,31 @@ struct CLUSTER_GROUP_ENUM_ITEM
 struct CLUSTER_RESOURCE_ENUM_ITEM
 {
     ///The version of this structure.
-    uint          dwVersion;
+    uint  dwVersion;
     ///The size, in bytes, of the <b>lpszId</b> field.
-    uint          cbId;
+    uint  cbId;
     ///The ID of the cluster resource.
-    const(wchar)* lpszId;
+    PWSTR lpszId;
     ///The size, in bytes, of the <b>IpszName</b> field.
-    uint          cbName;
+    uint  cbName;
     ///The name of the cluster resource.
-    const(wchar)* lpszName;
+    PWSTR lpszName;
     ///The size, in bytes, of the <b>IpszOwnerNode</b> field.
-    uint          cbOwnerGroupName;
+    uint  cbOwnerGroupName;
     ///The name of the cluster resource that hosts the group.
-    const(wchar)* lpszOwnerGroupName;
+    PWSTR lpszOwnerGroupName;
     ///The size, in bytes, of the <b>lpszOwnerGroupId</b> field.
-    uint          cbOwnerGroupId;
+    uint  cbOwnerGroupId;
     ///The group ID of the cluster group for the resource.
-    const(wchar)* lpszOwnerGroupId;
+    PWSTR lpszOwnerGroupId;
     ///The size, in bytes, of the <b>pProperties</b> field.
-    uint          cbProperties;
+    uint  cbProperties;
     ///A pointer to a list of names of common properties.
-    void*         pProperties;
+    void* pProperties;
     ///The size, in bytes, of the <b>pRoProperties</b> field.
-    uint          cbRoProperties;
+    uint  cbRoProperties;
     ///A pointer to a list of names of read-only common properties.
-    void*         pRoProperties;
+    void* pRoProperties;
 }
 
 ///Represents information about the Failover attempts for a group failure.
@@ -4666,7 +4660,7 @@ union CLUSPROP_SYNTAX
     ///A DWORD that describes the format and type of the data value. The CLUSTER_PROPERTY_SYNTAX enumeration defines the
     ///possible values.
     uint dw;
-    struct
+struct
     {
         ushort wFormat;
         ushort wType;
@@ -4759,7 +4753,7 @@ struct CLUSPROP_LARGE_INTEGER
 struct CLUSPROP_SECURITY_DESCRIPTOR
 {
     CLUSPROP_VALUE __AnonymousBase_clusapi_L5174_C54;
-    union
+union
     {
         SECURITY_DESCRIPTOR_RELATIVE sd;
         ubyte rgbSecurityDescriptor;
@@ -4780,11 +4774,11 @@ struct CLUSPROP_FILETIME
 ///return value of some control code operations.
 struct CLUS_RESOURCE_CLASS_INFO
 {
-    union
+union
     {
-        struct
+struct
         {
-            union
+union
             {
                 uint dw;
                 CLUSTER_RESOURCE_CLASS rc;
@@ -4974,7 +4968,7 @@ struct CLUSTER_SHARED_VOLUME_STATE_INFO_EX
 struct CLUSTER_SHARED_VOLUME_RENAME_INPUT_VOLUME
 {
     CLUSTER_SHARED_VOLUME_RENAME_INPUT_TYPE InputType;
-    union
+union
     {
         ulong       VolumeOffset;
         ushort[260] VolumeId;
@@ -5093,9 +5087,9 @@ struct CLUSPROP_FTSET_INFO
 ///value of some control code operations.
 struct CLUS_SCSI_ADDRESS
 {
-    union
+union
     {
-        struct
+struct
         {
             ubyte PortNumber;
             ubyte PathId;
@@ -5339,7 +5333,7 @@ union CLUSPROP_BUFFER_HELPER
     ///Pointer to a buffer containing an array of signed <b>long</b> values.
     int*               pl;
     ///Pointer to a buffer containing a <b>NULL</b>-terminated Unicode string value.
-    const(wchar)*      psz;
+    PWSTR              psz;
     ///Pointer to a CLUSPROP_LIST structure describing the beginning of a property list.
     CLUSPROP_LIST*     pList;
     ///Pointer to a CLUSPROP_SYNTAX structure describing the format and type of a value.
@@ -5675,7 +5669,7 @@ struct CLRES_FUNCTION_TABLE
     uint TableSize;
     ///The supported version of the Resource API. This can contain one of these values:
     uint Version;
-    union
+union
     {
         CLRES_V1_FUNCTIONS V1Functions;
         CLRES_V2_FUNCTIONS V2Functions;
@@ -5719,13 +5713,13 @@ struct RESUTIL_FILETIME_DATA
 struct RESUTIL_PROPERTY_ITEM
 {
     ///The name of the property.
-    const(wchar)* Name;
+    PWSTR Name;
     ///Optional name of the cluster database subkey for the property. This parameter can be <b>NULL</b>.
-    const(wchar)* KeyName;
+    PWSTR KeyName;
     ///Describes the format of the property such as <b>CLUSPROP_FORMAT_BINARY</b> or <b>CLUSPROP_FORMAT_DWORD</b>. For a
     ///list of valid format values, see the <b>wFormat</b> member of CLUSPROP_SYNTAX.
-    uint          Format;
-    union
+    uint  Format;
+union
     {
         size_t DefaultPtr;
         uint   Default;
@@ -5737,13 +5731,13 @@ struct RESUTIL_PROPERTY_ITEM
     ///Minimum data value for the property. For data values with the <b>CLUSPROP_FORMAT_BINARY</b> and
     ///<b>CLUSPROP_FORMAT_MULTI_SZ</b> formats, the <b>Minimum</b> member contains the byte size of the default data
     ///value specified by <b>Default</b>.
-    uint          Minimum;
+    uint  Minimum;
     ///Maximum data value for the property.
-    uint          Maximum;
+    uint  Maximum;
     ///Bitmask that describes the property.
-    uint          Flags;
+    uint  Flags;
     ///Byte offset to the actual property data. The data is stored in a buffer known as a parameter block.
-    uint          Offset;
+    uint  Offset;
 }
 
 ///Represents a function table for the StartupEx callback function.
@@ -5816,17 +5810,17 @@ struct POST_UPGRADE_VERSION_INFO
 struct CLUSTER_HEALTH_FAULT
 {
     ///TBD
-    const(wchar)* Id;
-    uint          ErrorType;
+    PWSTR Id;
+    uint  ErrorType;
     ///TBD
-    uint          ErrorCode;
+    uint  ErrorCode;
     ///TBD
-    const(wchar)* Description;
+    PWSTR Description;
     ///TBD
-    const(wchar)* Provider;
+    PWSTR Provider;
     ///TBD
-    uint          Flags;
-    uint          Reserved;
+    uint  Flags;
+    uint  Reserved;
 }
 
 ///TBD
@@ -5916,7 +5910,7 @@ struct WitnessTagHelper
 ///    returns a system error code.
 ///    
 @DllImport("CLUSAPI")
-uint GetNodeClusterState(const(wchar)* lpszNodeName, uint* pdwClusterState);
+uint GetNodeClusterState(const(PWSTR) lpszNodeName, uint* pdwClusterState);
 
 ///Opens a connection to a cluster and returns a handle to it.
 ///Params:
@@ -5931,7 +5925,7 @@ uint GetNodeClusterState(const(wchar)* lpszNodeName, uint* pdwClusterState);
 ///    GetLastError. </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-_HCLUSTER* OpenCluster(const(wchar)* lpszClusterName);
+_HCLUSTER* OpenCluster(const(PWSTR) lpszClusterName);
 
 ///Opens a connection to a cluster and returns a handle to it.
 ///Params:
@@ -5954,7 +5948,7 @@ _HCLUSTER* OpenCluster(const(wchar)* lpszClusterName);
 ///    <b>RPC_S_PROCNUM_OUT_OF_RANGE</b> (1745). </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-_HCLUSTER* OpenClusterEx(const(wchar)* lpszClusterName, uint DesiredAccess, uint* GrantedAccess);
+_HCLUSTER* OpenClusterEx(const(PWSTR) lpszClusterName, uint DesiredAccess, uint* GrantedAccess);
 
 ///Closes a cluster handle. The <b>PCLUSAPI_CLOSE_CLUSTER</b> type defines a pointer to this function.
 ///Params:
@@ -5974,7 +5968,7 @@ BOOL CloseCluster(_HCLUSTER* hCluster);
 ///    the function returns a system error code.
 ///    
 @DllImport("CLUSAPI")
-uint SetClusterName(_HCLUSTER* hCluster, const(wchar)* lpszNewClusterName);
+uint SetClusterName(_HCLUSTER* hCluster, const(PWSTR) lpszNewClusterName);
 
 ///Retrieves a cluster's name and version. The <b>PCLUSAPI_GET_CLUSTER_INFORMATION</b> type defines a pointer to this
 ///function.
@@ -5996,7 +5990,7 @@ uint SetClusterName(_HCLUSTER* hCluster, const(wchar)* lpszNewClusterName);
 ///    <b>NULL</b>. </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-uint GetClusterInformation(_HCLUSTER* hCluster, const(wchar)* lpszClusterName, uint* lpcchClusterName, 
+uint GetClusterInformation(_HCLUSTER* hCluster, PWSTR lpszClusterName, uint* lpcchClusterName, 
                            CLUSTERVERSIONINFO* lpClusterInfo);
 
 ///Returns the name of a cluster's quorum resource. The <b>PCLUSAPI_GET_CLUSTER_QUORUM_RESOURCE</b> type defines a
@@ -6024,8 +6018,8 @@ uint GetClusterInformation(_HCLUSTER* hCluster, const(wchar)* lpszClusterName, u
 ///    result, excluding the terminating <b>NULL</b>. </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-uint GetClusterQuorumResource(_HCLUSTER* hCluster, const(wchar)* lpszResourceName, uint* lpcchResourceName, 
-                              const(wchar)* lpszDeviceName, uint* lpcchDeviceName, uint* lpdwMaxQuorumLogSize);
+uint GetClusterQuorumResource(_HCLUSTER* hCluster, PWSTR lpszResourceName, uint* lpcchResourceName, 
+                              PWSTR lpszDeviceName, uint* lpcchDeviceName, uint* lpdwMaxQuorumLogSize);
 
 ///Establishes a resource as the quorum resource for a cluster. The <b>PCLUSAPI_SET_CLUSTER_QUORUM_RESOURCE</b> type
 ///defines a pointer to this function.
@@ -6050,7 +6044,7 @@ uint GetClusterQuorumResource(_HCLUSTER* hCluster, const(wchar)* lpszResourceNam
 ///    (0x138C)</dt> </dl> </td> <td width="60%"> The quorum resource is not online. </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-uint SetClusterQuorumResource(_HRESOURCE* hResource, const(wchar)* lpszDeviceName, uint dwMaxQuoLogSize);
+uint SetClusterQuorumResource(_HRESOURCE* hResource, const(PWSTR) lpszDeviceName, uint dwMaxQuoLogSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems specified in the Requirements
 ///section. Support for this function was removed in Windows Server 2008 and this function does nothing and returns
@@ -6066,7 +6060,7 @@ uint SetClusterQuorumResource(_HRESOURCE* hResource, const(wchar)* lpszDeviceNam
 ///    error codes.
 ///    
 @DllImport("CLUSAPI")
-uint BackupClusterDatabase(_HCLUSTER* hCluster, const(wchar)* lpszPathName);
+uint BackupClusterDatabase(_HCLUSTER* hCluster, const(PWSTR) lpszPathName);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems specified in the Requirements
 ///section. Support for this function was removed in Windows Server 2008 and this function does nothing and returns
@@ -6101,7 +6095,7 @@ uint BackupClusterDatabase(_HCLUSTER* hCluster, const(wchar)* lpszPathName);
 ///    current quorum disk to the values stored in the backup. </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-uint RestoreClusterDatabase(const(wchar)* lpszPathName, BOOL bForce, const(wchar)* lpszQuorumDriveLetter);
+uint RestoreClusterDatabase(const(PWSTR) lpszPathName, BOOL bForce, const(PWSTR) lpszQuorumDriveLetter);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems specified in the Requirements
 ///section. Support for this method was removed in Windows Server 2008 and this function does nothing and returns
@@ -6121,7 +6115,7 @@ uint RestoreClusterDatabase(const(wchar)* lpszPathName, BOOL bForce, const(wchar
 ///    </dl> </td> <td width="60%"> There was a duplicate network in <i>NetworkList</i>. </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-uint SetClusterNetworkPriorityOrder(_HCLUSTER* hCluster, uint NetworkCount, char* NetworkList);
+uint SetClusterNetworkPriorityOrder(_HCLUSTER* hCluster, uint NetworkCount, _HNETWORK** NetworkList);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems specified in the Requirements
 ///section. Support for this function was removed in Windows Server 2008 and this function does nothing and returns
@@ -6153,8 +6147,9 @@ uint SetClusterNetworkPriorityOrder(_HCLUSTER* hCluster, uint NetworkCount, char
 ///    <i>lpReturnStatusBuffer</i> was not large enough to hold the resulting data. </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-uint SetClusterServiceAccountPassword(const(wchar)* lpszClusterName, const(wchar)* lpszNewPassword, uint dwFlags, 
-                                      char* lpReturnStatusBuffer, uint* lpcbReturnStatusBufferSize);
+uint SetClusterServiceAccountPassword(const(PWSTR) lpszClusterName, const(PWSTR) lpszNewPassword, uint dwFlags, 
+                                      CLUSTER_SET_PASSWORD_STATUS* lpReturnStatusBuffer, 
+                                      uint* lpcbReturnStatusBufferSize);
 
 ///Initiates an operation that affects a cluster. The operation performed depends on the control code passed to the
 ///<i>dwControlCode</i> parameter.
@@ -6197,8 +6192,8 @@ uint SetClusterServiceAccountPassword(const(wchar)* lpszClusterName, const(wchar
 ///    <i>lpcbBytesReturned</i> (if not <b>NULL</b> on input) is unreliable. </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-uint ClusterControl(_HCLUSTER* hCluster, _HNODE* hHostNode, uint dwControlCode, char* lpInBuffer, 
-                    uint nInBufferSize, char* lpOutBuffer, uint nOutBufferSize, uint* lpBytesReturned);
+uint ClusterControl(_HCLUSTER* hCluster, _HNODE* hHostNode, uint dwControlCode, void* lpInBuffer, 
+                    uint nInBufferSize, void* lpOutBuffer, uint nOutBufferSize, uint* lpBytesReturned);
 
 ///Initiates a rolling upgrade of the operating system on a cluster. <b>PCLUSAPI_CLUSTER_UPGRADE</b> defines a pointer
 ///to this function.
@@ -6262,7 +6257,7 @@ uint RegisterClusterNotifyV2(_HCHANGE* hChange, NOTIFY_FILTER_AND_TYPE Filter, H
 ///    returns a system error code.
 ///    
 @DllImport("CLUSAPI")
-uint GetNotifyEventHandle(_HCHANGE* hChange, ptrdiff_t* lphTargetEvent);
+uint GetNotifyEventHandle(_HCHANGE* hChange, HANDLE* lphTargetEvent);
 
 ///Retrieves information about the next notification event for a notification port.
 ///Params:
@@ -6307,9 +6302,9 @@ uint GetNotifyEventHandle(_HCHANGE* hChange, ptrdiff_t* lphTargetEvent);
 ///    
 @DllImport("CLUSAPI")
 uint GetClusterNotifyV2(_HCHANGE* hChange, size_t* lpdwNotifyKey, NOTIFY_FILTER_AND_TYPE* pFilterAndType, 
-                        char* buffer, uint* lpbBufferSize, const(wchar)* lpszObjectId, uint* lpcchObjectId, 
-                        const(wchar)* lpszParentId, uint* lpcchParentId, const(wchar)* lpszName, uint* lpcchName, 
-                        const(wchar)* lpszType, uint* lpcchType, uint dwMilliseconds);
+                        ubyte* buffer, uint* lpbBufferSize, PWSTR lpszObjectId, uint* lpcchObjectId, 
+                        PWSTR lpszParentId, uint* lpcchParentId, PWSTR lpszName, uint* lpcchName, PWSTR lpszType, 
+                        uint* lpcchType, uint dwMilliseconds);
 
 ///Creates or modifies a notification port. For information on notification ports, see Receiving Cluster Events. The
 ///<b>PCLUSAPI_CREATE_CLUSTER_NOTIFY_PORT</b> type defines a pointer to this function.
@@ -6378,7 +6373,7 @@ uint RegisterClusterNotify(_HCHANGE* hChange, uint dwFilterType, HANDLE hObject,
 ///    </table>
 ///    
 @DllImport("CLUSAPI")
-uint GetClusterNotify(_HCHANGE* hChange, size_t* lpdwNotifyKey, uint* lpdwFilterType, const(wchar)* lpszName, 
+uint GetClusterNotify(_HCHANGE* hChange, size_t* lpdwNotifyKey, uint* lpdwFilterType, PWSTR lpszName, 
                       uint* lpcchName, uint dwMilliseconds);
 
 ///Closes a notification port established through CreateClusterNotifyPort. The <b>PCLUSAPI_CLOSE_CLUSTER_NOTIFY_PORT</b>
@@ -6436,7 +6431,7 @@ uint ClusterGetEnumCount(_HCLUSENUM* hEnum);
 ///    </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-uint ClusterEnum(_HCLUSENUM* hEnum, uint dwIndex, uint* lpdwType, const(wchar)* lpszName, uint* lpcchName);
+uint ClusterEnum(_HCLUSENUM* hEnum, uint dwIndex, uint* lpdwType, PWSTR lpszName, uint* lpcchName);
 
 ///Closes a cluster enumeration handle originally opened by ClusterOpenEnum.
 ///Params:
@@ -6506,14 +6501,14 @@ uint ClusterCloseEnumEx(_HCLUSENUMEX* hClusterEnum);
 ///    hCluster = A handle to the target cluster.
 ///    groupSetName = Pointer to a null-terminated Unicode string containing the name of the groupset to be added.
 @DllImport("CLUSAPI")
-_HGROUPSET* CreateClusterGroupSet(_HCLUSTER* hCluster, const(wchar)* groupSetName);
+_HGROUPSET* CreateClusterGroupSet(_HCLUSTER* hCluster, const(PWSTR) groupSetName);
 
 ///Opens a handle to the specified groupset.
 ///Params:
 ///    hCluster = A handle to the cluster containing the collection.
 ///    lpszGroupSetName = The name of the collection to be opened
 @DllImport("CLUSAPI")
-_HGROUPSET* OpenClusterGroupSet(_HCLUSTER* hCluster, const(wchar)* lpszGroupSetName);
+_HGROUPSET* OpenClusterGroupSet(_HCLUSTER* hCluster, const(PWSTR) lpszGroupSetName);
 
 ///Closes a groupset handle returned from OpenClusterGroupSet.
 ///Params:
@@ -6565,8 +6560,8 @@ uint ClusterRemoveGroupFromGroupSet(_HGROUP* hGroup);
 ///    lpBytesReturned = Returns the actual size (in bytes) of the data resulting from the operation. If this information is not needed,
 ///                      pass <b>NULL</b> for <i>lpBytesReturned</i>.
 @DllImport("CLUSAPI")
-uint ClusterGroupSetControl(_HGROUPSET* hGroupSet, _HNODE* hHostNode, uint dwControlCode, char* lpInBuffer, 
-                            uint cbInBufferSize, char* lpOutBuffer, uint cbOutBufferSize, uint* lpBytesReturned);
+uint ClusterGroupSetControl(_HGROUPSET* hGroupSet, _HNODE* hHostNode, uint dwControlCode, void* lpInBuffer, 
+                            uint cbInBufferSize, void* lpOutBuffer, uint cbOutBufferSize, uint* lpBytesReturned);
 
 ///Adds a dependency between two cluster groups.
 ///Params:
@@ -6580,7 +6575,7 @@ uint AddClusterGroupDependency(_HGROUP* hDependentGroup, _HGROUP* hProviderGroup
 ///    hGroup = A handle to the group on which to set the dependency expression.
 ///    lpszDependencyExpression = The dependency expression to set on the group.
 @DllImport("CLUSAPI")
-uint SetGroupDependencyExpression(_HGROUP* hGroup, const(wchar)* lpszDependencyExpression);
+uint SetGroupDependencyExpression(_HGROUP* hGroup, const(PWSTR) lpszDependencyExpression);
 
 ///Removes a dependency between two cluster groups.
 ///Params:
@@ -6601,7 +6596,7 @@ uint AddClusterGroupSetDependency(_HGROUPSET* hDependentGroupSet, _HGROUPSET* hP
 ///    hGroupSet = The collection to receive the dependency expression
 ///    lpszDependencyExprssion = The dependency expression for <i>hCollection</i>
 @DllImport("CLUSAPI")
-uint SetClusterGroupSetDependencyExpression(_HGROUPSET* hGroupSet, const(wchar)* lpszDependencyExprssion);
+uint SetClusterGroupSetDependencyExpression(_HGROUPSET* hGroupSet, const(PWSTR) lpszDependencyExprssion);
 
 ///Removes a groupset from a groupset's dependency expression.
 ///Params:
@@ -6645,7 +6640,7 @@ uint ClusterGroupSetGetEnumCount(_HGROUPSETENUM* hGroupSetEnum);
 ///                parameter. This size should include the terminating null character. When the function returns, the variable
 ///                contains the number of characters stored in the buffer, not including the terminating null character.
 @DllImport("CLUSAPI")
-uint ClusterGroupSetEnum(_HGROUPSETENUM* hGroupSetEnum, uint dwIndex, const(wchar)* lpszName, uint* lpcchName);
+uint ClusterGroupSetEnum(_HGROUPSETENUM* hGroupSetEnum, uint dwIndex, PWSTR lpszName, uint* lpcchName);
 
 ///Closes an open enumeration for a groupset.
 ///Params:
@@ -6654,35 +6649,35 @@ uint ClusterGroupSetEnum(_HGROUPSETENUM* hGroupSetEnum, uint dwIndex, const(wcha
 uint ClusterGroupSetCloseEnum(_HGROUPSETENUM* hGroupSetEnum);
 
 @DllImport("CLUSAPI")
-uint AddCrossClusterGroupSetDependency(_HGROUPSET* hDependentGroupSet, const(wchar)* lpRemoteClusterName, 
-                                       const(wchar)* lpRemoteGroupSetName);
+uint AddCrossClusterGroupSetDependency(_HGROUPSET* hDependentGroupSet, const(PWSTR) lpRemoteClusterName, 
+                                       const(PWSTR) lpRemoteGroupSetName);
 
 @DllImport("CLUSAPI")
-uint RemoveCrossClusterGroupSetDependency(_HGROUPSET* hDependentGroupSet, const(wchar)* lpRemoteClusterName, 
-                                          const(wchar)* lpRemoteGroupSetName);
+uint RemoveCrossClusterGroupSetDependency(_HGROUPSET* hDependentGroupSet, const(PWSTR) lpRemoteClusterName, 
+                                          const(PWSTR) lpRemoteGroupSetName);
 
 @DllImport("CLUSAPI")
-_HGROUPSET* CreateClusterAvailabilitySet(_HCLUSTER* hCluster, const(wchar)* lpAvailabilitySetName, 
+_HGROUPSET* CreateClusterAvailabilitySet(_HCLUSTER* hCluster, const(PWSTR) lpAvailabilitySetName, 
                                          CLUSTER_AVAILABILITY_SET_CONFIG* pAvailabilitySetConfig);
 
 @DllImport("CLUSAPI")
-uint ClusterNodeReplacement(_HCLUSTER* hCluster, const(wchar)* lpszNodeNameCurrent, const(wchar)* lpszNodeNameNew);
+uint ClusterNodeReplacement(_HCLUSTER* hCluster, const(PWSTR) lpszNodeNameCurrent, const(PWSTR) lpszNodeNameNew);
 
 @DllImport("CLUSAPI")
-uint ClusterCreateAffinityRule(_HCLUSTER* hCluster, const(wchar)* ruleName, CLUS_AFFINITY_RULE_TYPE ruleType);
+uint ClusterCreateAffinityRule(_HCLUSTER* hCluster, const(PWSTR) ruleName, CLUS_AFFINITY_RULE_TYPE ruleType);
 
 @DllImport("CLUSAPI")
-uint ClusterRemoveAffinityRule(_HCLUSTER* hCluster, const(wchar)* ruleName);
+uint ClusterRemoveAffinityRule(_HCLUSTER* hCluster, const(PWSTR) ruleName);
 
 @DllImport("CLUSAPI")
-uint ClusterAddGroupToAffinityRule(_HCLUSTER* hCluster, const(wchar)* ruleName, _HGROUP* hGroup);
+uint ClusterAddGroupToAffinityRule(_HCLUSTER* hCluster, const(PWSTR) ruleName, _HGROUP* hGroup);
 
 @DllImport("CLUSAPI")
-uint ClusterRemoveGroupFromAffinityRule(_HCLUSTER* hCluster, const(wchar)* ruleName, _HGROUP* hGroup);
+uint ClusterRemoveGroupFromAffinityRule(_HCLUSTER* hCluster, const(PWSTR) ruleName, _HGROUP* hGroup);
 
 @DllImport("CLUSAPI")
-uint ClusterAffinityRuleControl(_HCLUSTER* hCluster, const(wchar)* affinityRuleName, _HNODE* hHostNode, 
-                                uint dwControlCode, char* lpInBuffer, uint cbInBufferSize, char* lpOutBuffer, 
+uint ClusterAffinityRuleControl(_HCLUSTER* hCluster, const(PWSTR) affinityRuleName, _HNODE* hHostNode, 
+                                uint dwControlCode, void* lpInBuffer, uint cbInBufferSize, void* lpOutBuffer, 
                                 uint cbOutBufferSize, uint* lpBytesReturned);
 
 ///Opens a node and returns a handle to it. The <b>PCLUSAPI_OPEN_CLUSTER_NODE</b> type defines a pointer to this
@@ -6698,7 +6693,7 @@ uint ClusterAffinityRuleControl(_HCLUSTER* hCluster, const(wchar)* affinityRuleN
 ///    </table>
 ///    
 @DllImport("CLUSAPI")
-_HNODE* OpenClusterNode(_HCLUSTER* hCluster, const(wchar)* lpszNodeName);
+_HNODE* OpenClusterNode(_HCLUSTER* hCluster, const(PWSTR) lpszNodeName);
 
 ///Opens a node and returns a handle to it.
 ///Params:
@@ -6720,7 +6715,7 @@ _HNODE* OpenClusterNode(_HCLUSTER* hCluster, const(wchar)* lpszNodeName);
 ///    <b>RPC_S_PROCNUM_OUT_OF_RANGE</b> (1745). </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-_HNODE* OpenClusterNodeEx(_HCLUSTER* hCluster, const(wchar)* lpszNodeName, uint dwDesiredAccess, 
+_HNODE* OpenClusterNodeEx(_HCLUSTER* hCluster, const(PWSTR) lpszNodeName, uint dwDesiredAccess, 
                           uint* lpdwGrantedAccess);
 
 @DllImport("CLUSAPI")
@@ -6777,7 +6772,7 @@ CLUSTER_NODE_STATE GetClusterNodeState(_HNODE* hNode);
 ///    characters. GetClusterNodeId sets the content of <i>lpcchName</i> to the required length. </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-uint GetClusterNodeId(_HNODE* hNode, const(wchar)* lpszNodeId, uint* lpcchName);
+uint GetClusterNodeId(_HNODE* hNode, PWSTR lpszNodeId, uint* lpcchName);
 
 ///Returns a handle to the cluster associated with a node. The <b>PCLUSAPI_GET_CLUSTER_FROM_NODE</b> type defines a
 ///pointer to this function.
@@ -6829,8 +6824,8 @@ uint EvictClusterNode(_HNODE* hNode);
 ///    lpszNodeName = The name of the node.
 ///    lpszNetworkName = The name of the network.
 @DllImport("CLUSAPI")
-_HNETINTERFACEENUM* ClusterNetInterfaceOpenEnum(_HCLUSTER* hCluster, const(wchar)* lpszNodeName, 
-                                                const(wchar)* lpszNetworkName);
+_HNETINTERFACEENUM* ClusterNetInterfaceOpenEnum(_HCLUSTER* hCluster, const(PWSTR) lpszNodeName, 
+                                                const(PWSTR) lpszNetworkName);
 
 ///Enumerates the network interfaces installed on a cluster, returning one name with each call.
 ///Params:
@@ -6842,8 +6837,7 @@ _HNETINTERFACEENUM* ClusterNetInterfaceOpenEnum(_HCLUSTER* hCluster, const(wchar
 ///                characters the buffer can hold, including the terminating <b>NULL</b>. On output, indicates the number of
 ///                characters in the resulting name, excluding the terminating <b>NULL</b>.
 @DllImport("CLUSAPI")
-uint ClusterNetInterfaceEnum(_HNETINTERFACEENUM* hNetInterfaceEnum, uint dwIndex, const(wchar)* lpszName, 
-                             uint* lpcchName);
+uint ClusterNetInterfaceEnum(_HNETINTERFACEENUM* hNetInterfaceEnum, uint dwIndex, PWSTR lpszName, uint* lpcchName);
 
 ///Closes a network interface enumeration handle.
 ///Params:
@@ -6959,7 +6953,7 @@ uint ClusterNodeCloseEnum(_HNODEENUM* hNodeEnum);
 ///    </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-uint ClusterNodeEnum(_HNODEENUM* hNodeEnum, uint dwIndex, uint* lpdwType, const(wchar)* lpszName, uint* lpcchName);
+uint ClusterNodeEnum(_HNODEENUM* hNodeEnum, uint dwIndex, uint* lpdwType, PWSTR lpszName, uint* lpcchName);
 
 ///Evicts a node from the cluster and initiates cleanup operations on the node. The
 ///<b>PCLUSAPI_EVICT_CLUSTER_NODE_EX</b> type defines a pointer to this function.
@@ -6976,7 +6970,7 @@ uint ClusterNodeEnum(_HNODEENUM* hNodeEnum, uint dwIndex, uint* lpdwType, const(
 ///    </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-uint EvictClusterNodeEx(_HNODE* hNode, uint dwTimeOut, int* phrCleanupStatus);
+uint EvictClusterNodeEx(_HNODE* hNode, uint dwTimeOut, HRESULT* phrCleanupStatus);
 
 ///Opens the root of the cluster database subtree for a resource type.
 ///Params:
@@ -6989,7 +6983,7 @@ uint EvictClusterNodeEx(_HNODE* hNode, uint dwTimeOut, int* phrCleanupStatus);
 ///    fails, the function returns <b>NULL</b>. For more information about the error, call GetLastError.
 ///    
 @DllImport("CLUSAPI")
-HKEY GetClusterResourceTypeKey(_HCLUSTER* hCluster, const(wchar)* lpszTypeName, uint samDesired);
+HKEY GetClusterResourceTypeKey(_HCLUSTER* hCluster, const(PWSTR) lpszTypeName, uint samDesired);
 
 ///Adds a group to a cluster and returns a handle to the newly added group. The <b>PCLUSAPI_CREATE_CLUSTER_GROUP</b>
 ///type defines a pointer to this function.
@@ -7002,7 +6996,7 @@ HKEY GetClusterResourceTypeKey(_HCLUSTER* hCluster, const(wchar)* lpszTypeName, 
 ///    <b>NULL</b>. For more information about the error, call GetLastError.
 ///    
 @DllImport("CLUSAPI")
-_HGROUP* CreateClusterGroup(_HCLUSTER* hCluster, const(wchar)* lpszGroupName);
+_HGROUP* CreateClusterGroup(_HCLUSTER* hCluster, const(PWSTR) lpszGroupName);
 
 ///Opens a failover cluster group and returns a handle to it.
 ///Params:
@@ -7015,7 +7009,7 @@ _HGROUP* CreateClusterGroup(_HCLUSTER* hCluster, const(wchar)* lpszGroupName);
 ///    handle.
 ///    
 @DllImport("CLUSAPI")
-_HGROUP* OpenClusterGroup(_HCLUSTER* hCluster, const(wchar)* lpszGroupName);
+_HGROUP* OpenClusterGroup(_HCLUSTER* hCluster, const(PWSTR) lpszGroupName);
 
 ///Opens a failover cluster group and returns a handle to it.
 ///Params:
@@ -7036,7 +7030,7 @@ _HGROUP* OpenClusterGroup(_HCLUSTER* hCluster, const(wchar)* lpszGroupName);
 ///    <b>RPC_S_PROCNUM_OUT_OF_RANGE</b> (1745). </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-_HGROUP* OpenClusterGroupEx(_HCLUSTER* hCluster, const(wchar)* lpszGroupName, uint dwDesiredAccess, 
+_HGROUP* OpenClusterGroupEx(_HCLUSTER* hCluster, const(PWSTR) lpszGroupName, uint dwDesiredAccess, 
                             uint* lpdwGrantedAccess);
 
 ///Requests that a node temporarily suspends its cluster activity.
@@ -7078,7 +7072,7 @@ uint ResumeClusterNodeEx(_HNODE* hNode, CLUSTER_NODE_RESUME_FAILBACK_TYPE eResum
 ///    the function returns <b>NULL</b>.
 ///    
 @DllImport("CLUSAPI")
-_HGROUP* CreateClusterGroupEx(_HCLUSTER* hCluster, const(wchar)* lpszGroupName, 
+_HGROUP* CreateClusterGroupEx(_HCLUSTER* hCluster, const(PWSTR) lpszGroupName, 
                               CLUSTER_CREATE_GROUP_INFO* pGroupInfo);
 
 ///Opens a handle to the group enumeration.The <b>PCLUSAPI_CLUSTER_GROUP_OPEN_ENUM_EX</b> type defines a pointer to this
@@ -7095,8 +7089,8 @@ _HGROUP* CreateClusterGroupEx(_HCLUSTER* hCluster, const(wchar)* lpszGroupName,
 ///    function returns <b>NULL</b>.
 ///    
 @DllImport("CLUSAPI")
-_HGROUPENUMEX* ClusterGroupOpenEnumEx(_HCLUSTER* hCluster, const(wchar)* lpszProperties, uint cbProperties, 
-                                      const(wchar)* lpszRoProperties, uint cbRoProperties, uint dwFlags);
+_HGROUPENUMEX* ClusterGroupOpenEnumEx(_HCLUSTER* hCluster, const(PWSTR) lpszProperties, uint cbProperties, 
+                                      const(PWSTR) lpszRoProperties, uint cbRoProperties, uint dwFlags);
 
 ///Returns the number of elements in the enumeration.The <b>PCLUSAPI_CLUSTER_GROUP_GET_ENUM_COUNT_EX</b> type defines a
 ///pointer to this function.
@@ -7150,8 +7144,8 @@ uint ClusterGroupCloseEnumEx(_HGROUPENUMEX* hGroupEnumEx);
 ///    returns <b>NULL</b>. For more information about the error, call the GetLastError function.
 ///    
 @DllImport("CLUSAPI")
-_HRESENUMEX* ClusterResourceOpenEnumEx(_HCLUSTER* hCluster, const(wchar)* lpszProperties, uint cbProperties, 
-                                       const(wchar)* lpszRoProperties, uint cbRoProperties, uint dwFlags);
+_HRESENUMEX* ClusterResourceOpenEnumEx(_HCLUSTER* hCluster, const(PWSTR) lpszProperties, uint cbProperties, 
+                                       const(PWSTR) lpszRoProperties, uint cbRoProperties, uint dwFlags);
 
 ///Returns the number of cluster objects that are associated with a resource enumeration handle.
 ///Params:
@@ -7212,7 +7206,7 @@ uint ClusterResourceCloseEnumEx(_HRESENUMEX* hResourceEnumEx);
 ///    <dt><b>ERROR_IO_PENDING</b></dt> </dl> </td> <td width="60%"> The operation is in progress. </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-uint OnlineClusterGroupEx(_HGROUP* hGroup, _HNODE* hDestinationNode, uint dwOnlineFlags, char* lpInBuffer, 
+uint OnlineClusterGroupEx(_HGROUP* hGroup, _HNODE* hDestinationNode, uint dwOnlineFlags, ubyte* lpInBuffer, 
                           uint cbInBufferSize);
 
 ///Extends the OfflineClusterGroup method. The client can use the flags to control failover policies of the group and
@@ -7237,7 +7231,7 @@ uint OnlineClusterGroupEx(_HGROUP* hGroup, _HNODE* hDestinationNode, uint dwOnli
 ///    immediately with no changes to group state.
 ///    
 @DllImport("CLUSAPI")
-uint OfflineClusterGroupEx(_HGROUP* hGroup, uint dwOfflineFlags, char* lpInBuffer, uint cbInBufferSize);
+uint OfflineClusterGroupEx(_HGROUP* hGroup, uint dwOfflineFlags, ubyte* lpInBuffer, uint cbInBufferSize);
 
 ///Brings an offline or failed resource online.
 ///Params:
@@ -7254,7 +7248,7 @@ uint OfflineClusterGroupEx(_HGROUP* hGroup, uint dwOfflineFlags, char* lpInBuffe
 ///    its Online entry point function. </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-uint OnlineClusterResourceEx(_HRESOURCE* hResource, uint dwOnlineFlags, char* lpInBuffer, uint cbInBufferSize);
+uint OnlineClusterResourceEx(_HRESOURCE* hResource, uint dwOnlineFlags, ubyte* lpInBuffer, uint cbInBufferSize);
 
 ///Extends the OfflineClusterResource method. The client can use the flags to control policies of the resource and the
 ///input buffer to send specific instructions for the offline operation to the resource. For instance, the input buffer
@@ -7274,7 +7268,7 @@ uint OnlineClusterResourceEx(_HRESOURCE* hResource, uint dwOnlineFlags, char* lp
 ///    immediately with no changes to resource state.
 ///    
 @DllImport("CLUSAPI")
-uint OfflineClusterResourceEx(_HRESOURCE* hResource, uint dwOfflineFlags, char* lpInBuffer, uint cbInBufferSize);
+uint OfflineClusterResourceEx(_HRESOURCE* hResource, uint dwOfflineFlags, ubyte* lpInBuffer, uint cbInBufferSize);
 
 ///Extends the existing MoveClusterGroup method with the addition of flags and a buffer. The flags control the behavior
 ///of the cluster failover policy, and the input buffer enables the client to send special instructions to the resources
@@ -7298,7 +7292,7 @@ uint OfflineClusterResourceEx(_HRESOURCE* hResource, uint dwOfflineFlags, char* 
 ///    of the move request.
 ///    
 @DllImport("CLUSAPI")
-uint MoveClusterGroupEx(_HGROUP* hGroup, _HNODE* hDestinationNode, uint dwMoveFlags, char* lpInBuffer, 
+uint MoveClusterGroupEx(_HGROUP* hGroup, _HNODE* hDestinationNode, uint dwMoveFlags, ubyte* lpInBuffer, 
                         uint cbInBufferSize);
 
 ///Enables a client to cancel a MoveClusterGroup or MoveClusterGroupEx operation that is pending for a group. The group
@@ -7373,7 +7367,7 @@ _HCLUSTER* GetClusterFromGroup(_HGROUP* hGroup);
 ///    in a pending state. There are no failed resources. </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-CLUSTER_GROUP_STATE GetClusterGroupState(_HGROUP* hGroup, const(wchar)* lpszNodeName, uint* lpcchNodeName);
+CLUSTER_GROUP_STATE GetClusterGroupState(_HGROUP* hGroup, PWSTR lpszNodeName, uint* lpcchNodeName);
 
 ///Sets the name for a group. The <b>PCLUSAPI_SET_CLUSTER_GROUP_NAME</b> type defines a pointer to this function.
 ///Params:
@@ -7384,7 +7378,7 @@ CLUSTER_GROUP_STATE GetClusterGroupState(_HGROUP* hGroup, const(wchar)* lpszNode
 ///    returns a system error code.
 ///    
 @DllImport("CLUSAPI")
-uint SetClusterGroupName(_HGROUP* hGroup, const(wchar)* lpszGroupName);
+uint SetClusterGroupName(_HGROUP* hGroup, const(PWSTR) lpszGroupName);
 
 ///Sets the preferred node list for a group. The <b>PCLUSAPI_SET_CLUSTER_GROUP_NODE_LIST</b> type defines a pointer to
 ///this function.
@@ -7399,7 +7393,7 @@ uint SetClusterGroupName(_HGROUP* hGroup, const(wchar)* lpszGroupName);
 ///    returns a system error code.
 ///    
 @DllImport("CLUSAPI")
-uint SetClusterGroupNodeList(_HGROUP* hGroup, uint NodeCount, char* NodeList);
+uint SetClusterGroupNodeList(_HGROUP* hGroup, uint NodeCount, _HNODE** NodeList);
 
 ///Brings a group online. The <b>PCLUSAPI_ONLINE_CLUSTER_GROUP</b> type defines a pointer to this function.
 ///Params:
@@ -7511,7 +7505,7 @@ uint ClusterGroupGetEnumCount(_HGROUPENUM* hGroupEnum);
 ///    error code.
 ///    
 @DllImport("CLUSAPI")
-uint ClusterGroupEnum(_HGROUPENUM* hGroupEnum, uint dwIndex, uint* lpdwType, const(wchar)* lpszResourceName, 
+uint ClusterGroupEnum(_HGROUPENUM* hGroupEnum, uint dwIndex, uint* lpdwType, PWSTR lpszResourceName, 
                       uint* lpcchName);
 
 ///Closes a group enumeration handle. The <b>PCLUSAPI_CLUSTER_GROUP_CLOSE_ENUM</b> type defines a pointer to this
@@ -7538,7 +7532,7 @@ uint ClusterGroupCloseEnum(_HGROUPENUM* hGroupEnum);
 ///    <b>NULL</b>. For more information about the error, call GetLastError.
 ///    
 @DllImport("CLUSAPI")
-_HRESOURCE* CreateClusterResource(_HGROUP* hGroup, const(wchar)* lpszResourceName, const(wchar)* lpszResourceType, 
+_HRESOURCE* CreateClusterResource(_HGROUP* hGroup, const(PWSTR) lpszResourceName, const(PWSTR) lpszResourceType, 
                                   uint dwFlags);
 
 ///Opens a resource and returns a handle to it. The <b>PCLUSAPI_OPEN_CLUSTER_RESOURCE</b> type defines a pointer to this
@@ -7555,7 +7549,7 @@ _HRESOURCE* CreateClusterResource(_HGROUP* hGroup, const(wchar)* lpszResourceNam
 ///    </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-_HRESOURCE* OpenClusterResource(_HCLUSTER* hCluster, const(wchar)* lpszResourceName);
+_HRESOURCE* OpenClusterResource(_HCLUSTER* hCluster, const(PWSTR) lpszResourceName);
 
 ///Opens a resource and returns a handle to it.
 ///Params:
@@ -7578,7 +7572,7 @@ _HRESOURCE* OpenClusterResource(_HCLUSTER* hCluster, const(wchar)* lpszResourceN
 ///    <b>RPC_S_PROCNUM_OUT_OF_RANGE</b> (1745). </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-_HRESOURCE* OpenClusterResourceEx(_HCLUSTER* hCluster, const(wchar)* lpszResourceName, uint dwDesiredAccess, 
+_HRESOURCE* OpenClusterResourceEx(_HCLUSTER* hCluster, const(PWSTR) lpszResourceName, uint dwDesiredAccess, 
                                   uint* lpdwGrantedAccess);
 
 ///Closes a resource handle. The <b>PCLUSAPI_CLOSE_CLUSTER_RESOURCE</b> type defines a pointer to this function.
@@ -7658,9 +7652,8 @@ uint DeleteClusterResource(_HRESOURCE* hResource);
 ///    </table>
 ///    
 @DllImport("CLUSAPI")
-CLUSTER_RESOURCE_STATE GetClusterResourceState(_HRESOURCE* hResource, const(wchar)* lpszNodeName, 
-                                               uint* lpcchNodeName, const(wchar)* lpszGroupName, 
-                                               uint* lpcchGroupName);
+CLUSTER_RESOURCE_STATE GetClusterResourceState(_HRESOURCE* hResource, PWSTR lpszNodeName, uint* lpcchNodeName, 
+                                               PWSTR lpszGroupName, uint* lpcchGroupName);
 
 ///Sets the name for a resource. The <b>PCLUSAPI_SET_CLUSTER_RESOURCE_NAME</b> type defines a pointer to this function.
 ///Params:
@@ -7672,7 +7665,7 @@ CLUSTER_RESOURCE_STATE GetClusterResourceState(_HRESOURCE* hResource, const(wcha
 ///    returns a system error code.
 ///    
 @DllImport("CLUSAPI")
-uint SetClusterResourceName(_HRESOURCE* hResource, const(wchar)* lpszResourceName);
+uint SetClusterResourceName(_HRESOURCE* hResource, const(PWSTR) lpszResourceName);
 
 ///Initiates a resource failure. The <b>PCLUSAPI_FAIL_CLUSTER_RESOURCE</b> type defines a pointer to this function.
 ///Params:
@@ -7800,7 +7793,7 @@ uint RemoveClusterResourceDependency(_HRESOURCE* hResource, _HRESOURCE* hDepends
 ///    <b>ERROR_SUCCESS</b> (0) if successful.
 ///    
 @DllImport("CLUSAPI")
-uint SetClusterResourceDependencyExpression(_HRESOURCE* hResource, const(wchar)* lpszDependencyExpression);
+uint SetClusterResourceDependencyExpression(_HRESOURCE* hResource, const(PWSTR) lpszDependencyExpression);
 
 ///Retrieves the dependency expression associated with the specified resource. The
 ///<b>PCLUSAPI_GET_CLUSTER_RESOURCE_DEPENDENCY_EXPRESSION</b> type defines a pointer to this function.
@@ -7812,7 +7805,7 @@ uint SetClusterResourceDependencyExpression(_HRESOURCE* hResource, const(wchar)*
 ///    <b>ERROR_SUCCESS</b> (0) if successful.
 ///    
 @DllImport("CLUSAPI")
-uint GetClusterResourceDependencyExpression(_HRESOURCE* hResource, const(wchar)* lpszDependencyExpression, 
+uint GetClusterResourceDependencyExpression(_HRESOURCE* hResource, PWSTR lpszDependencyExpression, 
                                             uint* lpcchDependencyExpression);
 
 ///Adds storage to Cluster Shared Volumes. The <b>PCLUSAPI_ADD_RESOURCE_TO_CLUSTER_SHARED_VOLUMES</b> type defines a
@@ -7847,7 +7840,7 @@ uint RemoveResourceFromClusterSharedVolumes(_HRESOURCE* hResource);
 ///    error codes.
 ///    
 @DllImport("CLUSAPI")
-uint IsFileOnClusterSharedVolume(const(wchar)* lpszPathName, int* pbFileIsOnSharedVolume);
+uint IsFileOnClusterSharedVolume(const(PWSTR) lpszPathName, BOOL* pbFileIsOnSharedVolume);
 
 ///Updates the state of a snapshot of a cluster shared volume.
 ///Params:
@@ -7859,7 +7852,7 @@ uint IsFileOnClusterSharedVolume(const(wchar)* lpszPathName, int* pbFileIsOnShar
 ///    <b>NULL</b>. For more information about the error, call GetLastError.
 ///    
 @DllImport("CLUSAPI")
-uint ClusterSharedVolumeSetSnapshotState(GUID guidSnapshotSet, const(wchar)* lpszVolumeName, 
+uint ClusterSharedVolumeSetSnapshotState(GUID guidSnapshotSet, const(PWSTR) lpszVolumeName, 
                                          CLUSTER_SHARED_VOLUME_SNAPSHOT_STATE state);
 
 ///Determines if one resource can be dependent upon another resource. The <b>PCLUSAPI_CAN_RESOURCE_BE_DEPENDENT</b> type
@@ -7953,8 +7946,8 @@ BOOL CanResourceBeDependent(_HRESOURCE* hResource, _HRESOURCE* hResourceDependen
 ///    </table>
 ///    
 @DllImport("CLUSAPI")
-uint ClusterResourceControl(_HRESOURCE* hResource, _HNODE* hHostNode, uint dwControlCode, char* lpInBuffer, 
-                            uint cbInBufferSize, char* lpOutBuffer, uint cbOutBufferSize, uint* lpBytesReturned);
+uint ClusterResourceControl(_HRESOURCE* hResource, _HNODE* hHostNode, uint dwControlCode, void* lpInBuffer, 
+                            uint cbInBufferSize, void* lpOutBuffer, uint cbOutBufferSize, uint* lpBytesReturned);
 
 ///Initiates an operation affecting a resource. The operation performed depends on the control code passed to the
 ///<i>dwControlCode</i> parameter.
@@ -7995,8 +7988,8 @@ uint ClusterResourceControl(_HRESOURCE* hResource, _HNODE* hHostNode, uint dwCon
 ///    </table>
 ///    
 @DllImport("CLUSAPI")
-uint ClusterResourceControlAsUser(_HRESOURCE* hResource, _HNODE* hHostNode, uint dwControlCode, char* lpInBuffer, 
-                                  uint cbInBufferSize, char* lpOutBuffer, uint cbOutBufferSize, 
+uint ClusterResourceControlAsUser(_HRESOURCE* hResource, _HNODE* hHostNode, uint dwControlCode, void* lpInBuffer, 
+                                  uint cbInBufferSize, void* lpOutBuffer, uint cbOutBufferSize, 
                                   uint* lpBytesReturned);
 
 ///Initiates an operation affecting a resource type. The operation performed depends on the control code passed to the
@@ -8046,8 +8039,8 @@ uint ClusterResourceControlAsUser(_HRESOURCE* hResource, _HNODE* hHostNode, uint
 ///    <i>lpBytesReturned</i> is unreliable. </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-uint ClusterResourceTypeControl(_HCLUSTER* hCluster, const(wchar)* lpszResourceTypeName, _HNODE* hHostNode, 
-                                uint dwControlCode, char* lpInBuffer, uint nInBufferSize, char* lpOutBuffer, 
+uint ClusterResourceTypeControl(_HCLUSTER* hCluster, const(PWSTR) lpszResourceTypeName, _HNODE* hHostNode, 
+                                uint dwControlCode, void* lpInBuffer, uint nInBufferSize, void* lpOutBuffer, 
                                 uint nOutBufferSize, uint* lpBytesReturned);
 
 ///Initiates an operation affecting a resource type. The operation performed depends on the control code passed to the
@@ -8084,8 +8077,8 @@ uint ClusterResourceTypeControl(_HCLUSTER* hCluster, const(wchar)* lpszResourceT
 ///    <i>lpBytesReturned</i> is unreliable. </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-uint ClusterResourceTypeControlAsUser(_HCLUSTER* hCluster, const(wchar)* lpszResourceTypeName, _HNODE* hHostNode, 
-                                      uint dwControlCode, char* lpInBuffer, uint nInBufferSize, char* lpOutBuffer, 
+uint ClusterResourceTypeControlAsUser(_HCLUSTER* hCluster, const(PWSTR) lpszResourceTypeName, _HNODE* hHostNode, 
+                                      uint dwControlCode, void* lpInBuffer, uint nInBufferSize, void* lpOutBuffer, 
                                       uint nOutBufferSize, uint* lpBytesReturned);
 
 ///Initiates an operation that affects a group. The operation performed depends on the control code passed to the
@@ -8127,8 +8120,8 @@ uint ClusterResourceTypeControlAsUser(_HCLUSTER* hCluster, const(wchar)* lpszRes
 ///    <i>lpBytesReturned</i> (if not <b>NULL</b> on input) is unreliable. </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-uint ClusterGroupControl(_HGROUP* hGroup, _HNODE* hHostNode, uint dwControlCode, char* lpInBuffer, 
-                         uint nInBufferSize, char* lpOutBuffer, uint nOutBufferSize, uint* lpBytesReturned);
+uint ClusterGroupControl(_HGROUP* hGroup, _HNODE* hHostNode, uint dwControlCode, void* lpInBuffer, 
+                         uint nInBufferSize, void* lpOutBuffer, uint nOutBufferSize, uint* lpBytesReturned);
 
 ///Initiates an operation that affects a node. The operation performed depends on the control code passed to the
 ///<i>dwControlCode</i> parameter.
@@ -8169,8 +8162,8 @@ uint ClusterGroupControl(_HGROUP* hGroup, _HNODE* hHostNode, uint dwControlCode,
 ///    <i>lpBytesReturned</i> (if not <b>NULL</b> on input) is unreliable. </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-uint ClusterNodeControl(_HNODE* hNode, _HNODE* hHostNode, uint dwControlCode, char* lpInBuffer, uint nInBufferSize, 
-                        char* lpOutBuffer, uint nOutBufferSize, uint* lpBytesReturned);
+uint ClusterNodeControl(_HNODE* hNode, _HNODE* hHostNode, uint dwControlCode, void* lpInBuffer, uint nInBufferSize, 
+                        void* lpOutBuffer, uint nOutBufferSize, uint* lpBytesReturned);
 
 ///Retrieves the Name private property of the Network Name resource on which a resource is dependent. The
 ///<b>PCLUSAPI_GET_CLUSTER_RESOURCE_NETWORK_NAME</b> type defines a pointer to this function.
@@ -8186,7 +8179,7 @@ uint ClusterNodeControl(_HNODE* hNode, _HNODE* hHostNode, uint dwControlCode, ch
 ///    <b>FALSE</b>. For more information about the error, call GetLastError.
 ///    
 @DllImport("CLUSAPI")
-BOOL GetClusterResourceNetworkName(_HRESOURCE* hResource, const(wchar)* lpBuffer, uint* nSize);
+BOOL GetClusterResourceNetworkName(_HRESOURCE* hResource, PWSTR lpBuffer, uint* nSize);
 
 ///Opens an enumerator for iterating through a resource's dependencies and nodes. The
 ///<b>PCLUSAPI_CLUSTER_RESOURCE_OPEN_ENUM</b> type defines a pointer to this function.
@@ -8233,8 +8226,7 @@ uint ClusterResourceGetEnumCount(_HRESENUM* hResEnum);
 ///    </td> <td width="60%"> Any other returned error code indicates that the operation failed. </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-uint ClusterResourceEnum(_HRESENUM* hResEnum, uint dwIndex, uint* lpdwType, const(wchar)* lpszName, 
-                         uint* lpcchName);
+uint ClusterResourceEnum(_HRESENUM* hResEnum, uint dwIndex, uint* lpdwType, PWSTR lpszName, uint* lpcchName);
 
 ///Closes a resource enumeration handle. The <b>PCLUSAPI_CLUSTER_RESOURCE_CLOSE_ENUM</b> type defines a pointer to this
 ///function.
@@ -8267,8 +8259,8 @@ uint ClusterResourceCloseEnum(_HRESENUM* hResEnum);
 ///    returns a system error code.
 ///    
 @DllImport("CLUSAPI")
-uint CreateClusterResourceType(_HCLUSTER* hCluster, const(wchar)* lpszResourceTypeName, 
-                               const(wchar)* lpszDisplayName, const(wchar)* lpszResourceTypeDll, 
+uint CreateClusterResourceType(_HCLUSTER* hCluster, const(PWSTR) lpszResourceTypeName, 
+                               const(PWSTR) lpszDisplayName, const(PWSTR) lpszResourceTypeDll, 
                                uint dwLooksAlivePollInterval, uint dwIsAlivePollInterval);
 
 ///Removes a resource type from a cluster. The <b>PCLUSAPI_DELETE_CLUSTER_RESOURCE_TYPE</b> type defines a pointer to
@@ -8281,7 +8273,7 @@ uint CreateClusterResourceType(_HCLUSTER* hCluster, const(wchar)* lpszResourceTy
 ///    returns a system error code.
 ///    
 @DllImport("CLUSAPI")
-uint DeleteClusterResourceType(_HCLUSTER* hCluster, const(wchar)* lpszResourceTypeName);
+uint DeleteClusterResourceType(_HCLUSTER* hCluster, const(PWSTR) lpszResourceTypeName);
 
 ///Opens an enumerator for iterating through a resource type's possible owner nodes or resources. The
 ///<b>PCLUSAPI_CLUSTER_RESOURCE_TYPE_OPEN_ENUM</b> type defines a pointer to this function.
@@ -8296,7 +8288,7 @@ uint DeleteClusterResourceType(_HCLUSTER* hCluster, const(wchar)* lpszResourceTy
 ///    error, call the function GetLastError.
 ///    
 @DllImport("CLUSAPI")
-_HRESTYPEENUM* ClusterResourceTypeOpenEnum(_HCLUSTER* hCluster, const(wchar)* lpszResourceTypeName, uint dwType);
+_HRESTYPEENUM* ClusterResourceTypeOpenEnum(_HCLUSTER* hCluster, const(PWSTR) lpszResourceTypeName, uint dwType);
 
 ///Returns the number of cluster objects associated with a resource_type enumeration handle. The
 ///<b>PCLUSAPI_CLUSTER_RESOURCE_TYPE_GET_ENUM_COUNT</b> type defines a pointer to this function.
@@ -8329,7 +8321,7 @@ uint ClusterResourceTypeGetEnumCount(_HRESTYPEENUM* hResTypeEnum);
 ///    <dt><b>System error code</b></dt> </dl> </td> <td width="60%"> The operation failed. </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-uint ClusterResourceTypeEnum(_HRESTYPEENUM* hResTypeEnum, uint dwIndex, uint* lpdwType, const(wchar)* lpszName, 
+uint ClusterResourceTypeEnum(_HRESTYPEENUM* hResTypeEnum, uint dwIndex, uint* lpdwType, PWSTR lpszName, 
                              uint* lpcchName);
 
 ///Closes a resource type enumeration handle. The <b>PCLUSAPI_CLUSTER_RESOURCE_TYPE_CLOSE_ENUM</b> type defines a
@@ -8355,7 +8347,7 @@ uint ClusterResourceTypeCloseEnum(_HRESTYPEENUM* hResTypeEnum);
 ///    network handle.
 ///    
 @DllImport("CLUSAPI")
-_HNETWORK* OpenClusterNetwork(_HCLUSTER* hCluster, const(wchar)* lpszNetworkName);
+_HNETWORK* OpenClusterNetwork(_HCLUSTER* hCluster, const(PWSTR) lpszNetworkName);
 
 ///Opens a connection to a network and returns a handle to it.
 ///Params:
@@ -8376,7 +8368,7 @@ _HNETWORK* OpenClusterNetwork(_HCLUSTER* hCluster, const(wchar)* lpszNetworkName
 ///    <b>RPC_S_PROCNUM_OUT_OF_RANGE</b> (1745). </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-_HNETWORK* OpenClusterNetworkEx(_HCLUSTER* hCluster, const(wchar)* lpszNetworkName, uint dwDesiredAccess, 
+_HNETWORK* OpenClusterNetworkEx(_HCLUSTER* hCluster, const(PWSTR) lpszNetworkName, uint dwDesiredAccess, 
                                 uint* lpdwGrantedAccess);
 
 ///Closes a network handle. The <b>PCLUSAPI_CLOSE_CLUSTER_NETWORK</b> type defines a pointer to this function.
@@ -8447,8 +8439,7 @@ uint ClusterNetworkGetEnumCount(_HNETWORKENUM* hNetworkEnum);
 ///    This value is returned if there are no more objects of the requested type to be returned. </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-uint ClusterNetworkEnum(_HNETWORKENUM* hNetworkEnum, uint dwIndex, uint* lpdwType, const(wchar)* lpszName, 
-                        uint* lpcchName);
+uint ClusterNetworkEnum(_HNETWORKENUM* hNetworkEnum, uint dwIndex, uint* lpdwType, PWSTR lpszName, uint* lpcchName);
 
 ///Closes a network enumeration handle. The <b>PCLUSAPI_CLUSTER_NETWORK_CLOSE_ENUM</b> type defines a pointer to this
 ///function.
@@ -8493,7 +8484,7 @@ CLUSTER_NETWORK_STATE GetClusterNetworkState(_HNETWORK* hNetwork);
 ///    returns a system error code.
 ///    
 @DllImport("CLUSAPI")
-uint SetClusterNetworkName(_HNETWORK* hNetwork, const(wchar)* lpszName);
+uint SetClusterNetworkName(_HNETWORK* hNetwork, const(PWSTR) lpszName);
 
 ///Returns the identifier of a network. The <b>PCLUSAPI_GET_CLUSTER_NETWORK_ID</b> type defines a pointer to this
 ///function.
@@ -8513,7 +8504,7 @@ uint SetClusterNetworkName(_HNETWORK* hNetwork, const(wchar)* lpszName);
 ///    <b>NULL</b>. </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-uint GetClusterNetworkId(_HNETWORK* hNetwork, const(wchar)* lpszNetworkId, uint* lpcchName);
+uint GetClusterNetworkId(_HNETWORK* hNetwork, PWSTR lpszNetworkId, uint* lpcchName);
 
 ///Initiates an operation on a network. The operation performed depends on the control code passed to the
 ///<i>dwControlCode</i> parameter.
@@ -8554,8 +8545,8 @@ uint GetClusterNetworkId(_HNETWORK* hNetwork, const(wchar)* lpszNetworkId, uint*
 ///    <i>lpBytesReturned</i> (if not <b>NULL</b> on input) is unreliable. </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-uint ClusterNetworkControl(_HNETWORK* hNetwork, _HNODE* hHostNode, uint dwControlCode, char* lpInBuffer, 
-                           uint nInBufferSize, char* lpOutBuffer, uint nOutBufferSize, uint* lpBytesReturned);
+uint ClusterNetworkControl(_HNETWORK* hNetwork, _HNODE* hHostNode, uint dwControlCode, void* lpInBuffer, 
+                           uint nInBufferSize, void* lpOutBuffer, uint nOutBufferSize, uint* lpBytesReturned);
 
 ///Opens a handle to a network interface. The <b>PCLUSAPI_OPEN_CLUSTER_NET_INTERFACE</b> type defines a pointer to this
 ///function.
@@ -8569,7 +8560,7 @@ uint ClusterNetworkControl(_HNETWORK* hNetwork, _HNODE* hHostNode, uint dwContro
 ///    the error, call the function GetLastError. </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-_HNETINTERFACE* OpenClusterNetInterface(_HCLUSTER* hCluster, const(wchar)* lpszInterfaceName);
+_HNETINTERFACE* OpenClusterNetInterface(_HCLUSTER* hCluster, const(PWSTR) lpszInterfaceName);
 
 ///Opens a handle to a network interface.
 ///Params:
@@ -8590,7 +8581,7 @@ _HNETINTERFACE* OpenClusterNetInterface(_HCLUSTER* hCluster, const(wchar)* lpszI
 ///    <b>GetLastError</b> function will return <b>RPC_S_PROCNUM_OUT_OF_RANGE</b> (1745). </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-_HNETINTERFACE* OpenClusterNetInterfaceEx(_HCLUSTER* hCluster, const(wchar)* lpszInterfaceName, 
+_HNETINTERFACE* OpenClusterNetInterfaceEx(_HCLUSTER* hCluster, const(PWSTR) lpszInterfaceName, 
                                           uint dwDesiredAccess, uint* lpdwGrantedAccess);
 
 ///Returns the name of a node's interface to a network in a cluster. The <b>PCLUSAPI_GET_CLUSTER_NET_INTERFACE</b> type
@@ -8612,8 +8603,8 @@ _HNETINTERFACE* OpenClusterNetInterfaceEx(_HCLUSTER* hCluster, const(wchar)* lps
 ///    <b>NULL</b>. </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-uint GetClusterNetInterface(_HCLUSTER* hCluster, const(wchar)* lpszNodeName, const(wchar)* lpszNetworkName, 
-                            const(wchar)* lpszInterfaceName, uint* lpcchInterfaceName);
+uint GetClusterNetInterface(_HCLUSTER* hCluster, const(PWSTR) lpszNodeName, const(PWSTR) lpszNetworkName, 
+                            PWSTR lpszInterfaceName, uint* lpcchInterfaceName);
 
 ///Closes a network interface handle. The <b>PCLUSAPI_CLOSE_CLUSTER_NET_INTERFACE</b> type defines a pointer to this
 ///function.
@@ -8704,7 +8695,7 @@ CLUSTER_NETINTERFACE_STATE GetClusterNetInterfaceState(_HNETINTERFACE* hNetInter
 ///    
 @DllImport("CLUSAPI")
 uint ClusterNetInterfaceControl(_HNETINTERFACE* hNetInterface, _HNODE* hHostNode, uint dwControlCode, 
-                                char* lpInBuffer, uint nInBufferSize, char* lpOutBuffer, uint nOutBufferSize, 
+                                void* lpInBuffer, uint nInBufferSize, void* lpOutBuffer, uint nOutBufferSize, 
                                 uint* lpBytesReturned);
 
 ///Opens the root of the cluster database subtree for a cluster.
@@ -8796,7 +8787,7 @@ HKEY GetClusterNetInterfaceKey(_HNETINTERFACE* hNetInterface, uint samDesired);
 ///    returns a system error code.
 ///    
 @DllImport("CLUSAPI")
-int ClusterRegCreateKey(HKEY hKey, const(wchar)* lpszSubKey, uint dwOptions, uint samDesired, 
+int ClusterRegCreateKey(HKEY hKey, const(PWSTR) lpszSubKey, uint dwOptions, uint samDesired, 
                         SECURITY_ATTRIBUTES* lpSecurityAttributes, HKEY* phkResult, uint* lpdwDisposition);
 
 ///Opens an existing cluster database key.
@@ -8814,7 +8805,7 @@ int ClusterRegCreateKey(HKEY hKey, const(wchar)* lpszSubKey, uint dwOptions, uin
 ///    returns a system error code.
 ///    
 @DllImport("CLUSAPI")
-int ClusterRegOpenKey(HKEY hKey, const(wchar)* lpszSubKey, uint samDesired, HKEY* phkResult);
+int ClusterRegOpenKey(HKEY hKey, const(PWSTR) lpszSubKey, uint samDesired, HKEY* phkResult);
 
 ///Deletes a cluster database key.
 ///Params:
@@ -8827,7 +8818,7 @@ int ClusterRegOpenKey(HKEY hKey, const(wchar)* lpszSubKey, uint samDesired, HKEY
 ///    returns a system error code.
 ///    
 @DllImport("CLUSAPI")
-int ClusterRegDeleteKey(HKEY hKey, const(wchar)* lpszSubKey);
+int ClusterRegDeleteKey(HKEY hKey, const(PWSTR) lpszSubKey);
 
 ///Releases the handle of a cluster database key.
 ///Params:
@@ -8862,8 +8853,7 @@ int ClusterRegCloseKey(HKEY hKey);
 ///    <dt><b>System error code</b></dt> </dl> </td> <td width="60%"> The operation failed. </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-int ClusterRegEnumKey(HKEY hKey, uint dwIndex, const(wchar)* lpszName, uint* lpcchName, 
-                      FILETIME* lpftLastWriteTime);
+int ClusterRegEnumKey(HKEY hKey, uint dwIndex, PWSTR lpszName, uint* lpcchName, FILETIME* lpftLastWriteTime);
 
 ///Sets a value for a cluster database key.
 ///Params:
@@ -8881,7 +8871,7 @@ int ClusterRegEnumKey(HKEY hKey, uint dwIndex, const(wchar)* lpszName, uint* lpc
 ///    returns a system error code.
 ///    
 @DllImport("CLUSAPI")
-uint ClusterRegSetValue(HKEY hKey, const(wchar)* lpszValueName, uint dwType, const(ubyte)* lpData, uint cbData);
+uint ClusterRegSetValue(HKEY hKey, const(PWSTR) lpszValueName, uint dwType, const(ubyte)* lpData, uint cbData);
 
 ///Removes a named value from a cluster database key.
 ///Params:
@@ -8892,7 +8882,7 @@ uint ClusterRegSetValue(HKEY hKey, const(wchar)* lpszValueName, uint dwType, con
 ///    returns a system error code.
 ///    
 @DllImport("CLUSAPI")
-uint ClusterRegDeleteValue(HKEY hKey, const(wchar)* lpszValueName);
+uint ClusterRegDeleteValue(HKEY hKey, const(PWSTR) lpszValueName);
 
 ///Returns the name, type, and data components associated with a value for an open cluster database key.
 ///Params:
@@ -8914,7 +8904,7 @@ uint ClusterRegDeleteValue(HKEY hKey, const(wchar)* lpszValueName);
 ///    </table>
 ///    
 @DllImport("CLUSAPI")
-int ClusterRegQueryValue(HKEY hKey, const(wchar)* lpszValueName, uint* lpdwValueType, char* lpData, uint* lpcbData);
+int ClusterRegQueryValue(HKEY hKey, const(PWSTR) lpszValueName, uint* lpdwValueType, ubyte* lpData, uint* lpcbData);
 
 ///Enumerates the values of an open cluster database key.
 ///Params:
@@ -8945,8 +8935,8 @@ int ClusterRegQueryValue(HKEY hKey, const(wchar)* lpszValueName, uint* lpdwValue
 ///    </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-uint ClusterRegEnumValue(HKEY hKey, uint dwIndex, const(wchar)* lpszValueName, uint* lpcchValueName, 
-                         uint* lpdwType, char* lpData, uint* lpcbData);
+uint ClusterRegEnumValue(HKEY hKey, uint dwIndex, PWSTR lpszValueName, uint* lpcchValueName, uint* lpdwType, 
+                         ubyte* lpData, uint* lpcbData);
 
 ///Returns information about a cluster database key.
 ///Params:
@@ -8982,7 +8972,7 @@ int ClusterRegQueryInfoKey(HKEY hKey, uint* lpcSubKeys, uint* lpcchMaxSubKeyLen,
 ///    returns a system error code.
 ///    
 @DllImport("CLUSAPI")
-int ClusterRegGetKeySecurity(HKEY hKey, uint RequestedInformation, char* pSecurityDescriptor, 
+int ClusterRegGetKeySecurity(HKEY hKey, uint RequestedInformation, void* pSecurityDescriptor, 
                              uint* lpcbSecurityDescriptor);
 
 ///Sets the security attributes for a cluster database key.
@@ -9059,8 +9049,8 @@ int ClusterRegCreateBatch(HKEY hKey, _HREGBATCH** pHREGBATCH);
 ///    registry key that the batch is attempting to execute commands on is not the current key. </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-int ClusterRegBatchAddCommand(_HREGBATCH* hRegBatch, CLUSTER_REG_COMMAND dwCommand, const(wchar)* wzName, 
-                              uint dwOptions, char* lpData, uint cbData);
+int ClusterRegBatchAddCommand(_HREGBATCH* hRegBatch, CLUSTER_REG_COMMAND dwCommand, const(PWSTR) wzName, 
+                              uint dwOptions, const(void)* lpData, uint cbData);
 
 ///Executes or ignores the batch created by the ClusterRegCreateBatch function.
 ///Params:
@@ -9201,8 +9191,8 @@ int ClusterRegCreateReadBatch(HKEY hKey, _HREGREADBATCH** phRegReadBatch);
 ///    </dl> </td> <td width="60%"> <i>hRegReadBatch</i> is <b>NULL</b> or not valid. </td> </tr> </table>
 ///    
 @DllImport("CLUSAPI")
-int ClusterRegReadBatchAddCommand(_HREGREADBATCH* hRegReadBatch, const(wchar)* wzSubkeyName, 
-                                  const(wchar)* wzValueName);
+int ClusterRegReadBatchAddCommand(_HREGREADBATCH* hRegReadBatch, const(PWSTR) wzSubkeyName, 
+                                  const(PWSTR) wzValueName);
 
 ///Executes a read batch and returns results from the read batch executions.
 ///Params:
@@ -9281,7 +9271,7 @@ int ClusterRegCloseReadBatchReply(_HREGREADBATCHREPLY* hRegReadBatchReply);
 ///    returns a system error code.
 ///    
 @DllImport("CLUSAPI")
-uint ClusterSetAccountAccess(_HCLUSTER* hCluster, const(wchar)* szAccountSID, uint dwAccess, uint dwControlType);
+uint ClusterSetAccountAccess(_HCLUSTER* hCluster, const(PWSTR) szAccountSID, uint dwAccess, uint dwControlType);
 
 ///Creates and starts a cluster. The cluster consists of the set of nodes specified, with the Network Name, IP Address,
 ///and quorum resources if specified. The <b>PCLUSAPI_CREATE_CLUSTER</b> type defines a pointer to this function.
@@ -9325,19 +9315,19 @@ uint CreateClusterNameAccount(_HCLUSTER* hCluster, CREATE_CLUSTER_NAME_ACCOUNT* 
 uint RemoveClusterNameAccount(_HCLUSTER* hCluster, BOOL bDeleteComputerObjects);
 
 @DllImport("CLUSAPI")
-uint DetermineCNOResTypeFromNodelist(uint cNodes, ushort** ppszNodeNames, CLUSTER_MGMT_POINT_RESTYPE* pCNOResType);
+uint DetermineCNOResTypeFromNodelist(uint cNodes, PWSTR* ppszNodeNames, CLUSTER_MGMT_POINT_RESTYPE* pCNOResType);
 
 @DllImport("CLUSAPI")
 uint DetermineCNOResTypeFromCluster(_HCLUSTER* hCluster, CLUSTER_MGMT_POINT_RESTYPE* pCNOResType);
 
 @DllImport("CLUSAPI")
-uint DetermineClusterCloudTypeFromNodelist(uint cNodes, ushort** ppszNodeNames, CLUSTER_CLOUD_TYPE* pCloudType);
+uint DetermineClusterCloudTypeFromNodelist(uint cNodes, PWSTR* ppszNodeNames, CLUSTER_CLOUD_TYPE* pCloudType);
 
 @DllImport("CLUSAPI")
 uint DetermineClusterCloudTypeFromCluster(_HCLUSTER* hCluster, CLUSTER_CLOUD_TYPE* pCloudType);
 
 @DllImport("CLUSAPI")
-uint GetNodeCloudTypeDW(const(wchar)* ppszNodeName, uint* NodeCloudType);
+uint GetNodeCloudTypeDW(const(PWSTR) ppszNodeName, uint* NodeCloudType);
 
 ///Adds a notification type to a cluster notification port.This allows an application to register for notification
 ///events that only affect a particular cluster object.
@@ -9352,7 +9342,7 @@ uint GetNodeCloudTypeDW(const(wchar)* ppszNodeName, uint* NodeCloudType);
 ///    
 @DllImport("CLUSAPI")
 uint RegisterClusterResourceTypeNotifyV2(_HCHANGE* hChange, _HCLUSTER* hCluster, long Flags, 
-                                         const(wchar)* resTypeName, size_t dwNotifyKey);
+                                         const(PWSTR) resTypeName, size_t dwNotifyKey);
 
 ///Adds a node to an existing cluster. The <b>PCLUSAPI_ADD_CLUSTER_NODE</b> type defines a pointer to this function.
 ///Params:
@@ -9365,17 +9355,17 @@ uint RegisterClusterResourceTypeNotifyV2(_HCHANGE* hChange, _HCLUSTER* hCluster,
 ///    more information about the error, call the GetLastError function.
 ///    
 @DllImport("CLUSAPI")
-_HNODE* AddClusterNode(_HCLUSTER* hCluster, const(wchar)* lpszNodeName, 
+_HNODE* AddClusterNode(_HCLUSTER* hCluster, const(PWSTR) lpszNodeName, 
                        PCLUSTER_SETUP_PROGRESS_CALLBACK pfnProgressCallback, void* pvCallbackArg);
 
 @DllImport("CLUSAPI")
-uint AddClusterStorageNode(_HCLUSTER* hCluster, const(wchar)* lpszNodeName, 
+uint AddClusterStorageNode(_HCLUSTER* hCluster, const(PWSTR) lpszNodeName, 
                            PCLUSTER_SETUP_PROGRESS_CALLBACK pfnProgressCallback, void* pvCallbackArg, 
-                           const(wchar)* lpszClusterStorageNodeDescription, 
-                           const(wchar)* lpszClusterStorageNodeLocation);
+                           const(PWSTR) lpszClusterStorageNodeDescription, 
+                           const(PWSTR) lpszClusterStorageNodeLocation);
 
 @DllImport("CLUSAPI")
-uint RemoveClusterStorageNode(_HCLUSTER* hCluster, const(wchar)* lpszClusterStorageEnclosureName, uint dwTimeout, 
+uint RemoveClusterStorageNode(_HCLUSTER* hCluster, const(PWSTR) lpszClusterStorageEnclosureName, uint dwTimeout, 
                               uint dwFlags);
 
 ///Removes a cluster. The <b>PCLUSAPI_DESTROY_CLUSTER</b> type defines a pointer to this function.
@@ -9431,7 +9421,7 @@ uint ClusGetClusterHealthFaults(_HCLUSTER* hCluster, CLUSTER_HEALTH_FAULT_ARRAY*
 ///    id = TBD
 ///    flags = TBD
 @DllImport("RESUTILS")
-uint ClusRemoveClusterHealthFault(_HCLUSTER* hCluster, const(wchar)* id, uint flags);
+uint ClusRemoveClusterHealthFault(_HCLUSTER* hCluster, const(PWSTR) id, uint flags);
 
 ///TBD
 ///Params:
@@ -9453,14 +9443,14 @@ uint ClusAddClusterHealthFault(_HCLUSTER* hCluster, CLUSTER_HEALTH_FAULT* failur
 ///    width="60%"> The service was not started. </td> </tr> </table>
 ///    
 @DllImport("RESUTILS")
-uint ResUtilStartResourceService(const(wchar)* pszServiceName, SC_HANDLE__** phServiceHandle);
+uint ResUtilStartResourceService(const(PWSTR) pszServiceName, SC_HANDLE__** phServiceHandle);
 
 ///Verifies that a named service is starting or currently running. The <b>PRESUTIL_VERIFY_RESOURCE_SERVICE</b> type
 ///defines a pointer to this function.
 ///Params:
 ///    pszServiceName = Null-terminated Unicode string containing the name of the service to verify.
 @DllImport("RESUTILS")
-uint ResUtilVerifyResourceService(const(wchar)* pszServiceName);
+uint ResUtilVerifyResourceService(const(PWSTR) pszServiceName);
 
 ///Stops a named service. The <b>PRESUTIL_STOP_RESOURCE_SERVICE</b> type defines a pointer to this function.
 ///Params:
@@ -9472,7 +9462,7 @@ uint ResUtilVerifyResourceService(const(wchar)* pszServiceName);
 ///    Service did not stop after a reasonable number of retries. </td> </tr> </table>
 ///    
 @DllImport("RESUTILS")
-uint ResUtilStopResourceService(const(wchar)* pszServiceName);
+uint ResUtilStopResourceService(const(PWSTR) pszServiceName);
 
 ///Checks if a service identified by a handle is starting or currently running. The <b>PRESUTIL_VERIFY_SERVICE</b> type
 ///defines a pointer to this function.
@@ -9502,13 +9492,13 @@ uint ResUtilStopService(SC_HANDLE__* hServiceHandle);
 ///    returns a system error code.
 ///    
 @DllImport("RESUTILS")
-uint ResUtilCreateDirectoryTree(const(wchar)* pszPath);
+uint ResUtilCreateDirectoryTree(const(PWSTR) pszPath);
 
 ///Checks whether a path is syntactically valid.
 ///Params:
 ///    pszPath = Pointer to the path to check.
 @DllImport("RESUTILS")
-BOOL ResUtilIsPathValid(const(wchar)* pszPath);
+BOOL ResUtilIsPathValid(const(PWSTR) pszPath);
 
 ///Enumerates the property names of a cluster object. The <b>PRESUTIL_ENUM_PROPERTIES</b> type defines a pointer to this
 ///function.
@@ -9531,7 +9521,7 @@ BOOL ResUtilIsPathValid(const(wchar)* pszPath);
 ///    size. </td> </tr> </table>
 ///    
 @DllImport("RESUTILS")
-uint ResUtilEnumProperties(const(RESUTIL_PROPERTY_ITEM)* pPropertyTable, const(wchar)* pszOutProperties, 
+uint ResUtilEnumProperties(const(RESUTIL_PROPERTY_ITEM)* pPropertyTable, PWSTR pszOutProperties, 
                            uint cbOutPropertiesSize, uint* pcbBytesReturned, uint* pcbRequired);
 
 ///Retrieves the names of a cluster object's private properties. The <b>PRESUTIL_ENUM_PRIVATE_PROPERTIES</b> type
@@ -9554,7 +9544,7 @@ uint ResUtilEnumProperties(const(RESUTIL_PROPERTY_ITEM)* pPropertyTable, const(w
 ///    size. </td> </tr> </table>
 ///    
 @DllImport("RESUTILS")
-uint ResUtilEnumPrivateProperties(HKEY hkeyClusterKey, const(wchar)* pszOutProperties, uint cbOutPropertiesSize, 
+uint ResUtilEnumPrivateProperties(HKEY hkeyClusterKey, PWSTR pszOutProperties, uint cbOutPropertiesSize, 
                                   uint* pcbBytesReturned, uint* pcbRequired);
 
 ///Retrieves properties specified by a property table from the cluster database and returns them in a property list. The
@@ -9578,7 +9568,7 @@ uint ResUtilEnumPrivateProperties(HKEY hkeyClusterKey, const(wchar)* pszOutPrope
 ///    
 @DllImport("RESUTILS")
 uint ResUtilGetProperties(HKEY hkeyClusterKey, const(RESUTIL_PROPERTY_ITEM)* pPropertyTable, 
-                          char* pOutPropertyList, uint cbOutPropertyListSize, uint* pcbBytesReturned, 
+                          void* pOutPropertyList, uint cbOutPropertyListSize, uint* pcbBytesReturned, 
                           uint* pcbRequired);
 
 ///Returns a property list that includes all of the default and unknown properties for a cluster object. The
@@ -9602,7 +9592,7 @@ uint ResUtilGetProperties(HKEY hkeyClusterKey, const(RESUTIL_PROPERTY_ITEM)* pPr
 ///    
 @DllImport("RESUTILS")
 uint ResUtilGetAllProperties(HKEY hkeyClusterKey, const(RESUTIL_PROPERTY_ITEM)* pPropertyTable, 
-                             char* pOutPropertyList, uint cbOutPropertyListSize, uint* pcbBytesReturned, 
+                             void* pOutPropertyList, uint cbOutPropertyListSize, uint* pcbBytesReturned, 
                              uint* pcbRequired);
 
 ///Returns private properties for a cluster object. The <b>PRESUTIL_GET_PRIVATE_PROPERTIES</b> type defines a pointer to
@@ -9626,7 +9616,7 @@ uint ResUtilGetAllProperties(HKEY hkeyClusterKey, const(RESUTIL_PROPERTY_ITEM)* 
 ///    size. </td> </tr> </table>
 ///    
 @DllImport("RESUTILS")
-uint ResUtilGetPrivateProperties(HKEY hkeyClusterKey, char* pOutPropertyList, uint cbOutPropertyListSize, 
+uint ResUtilGetPrivateProperties(HKEY hkeyClusterKey, void* pOutPropertyList, uint cbOutPropertyListSize, 
                                  uint* pcbBytesReturned, uint* pcbRequired);
 
 ///Returns the total number of bytes required for a specified property.
@@ -9666,7 +9656,7 @@ uint ResUtilGetPropertySize(HKEY hkeyClusterKey, const(RESUTIL_PROPERTY_ITEM)* p
 ///    
 @DllImport("RESUTILS")
 uint ResUtilGetProperty(HKEY hkeyClusterKey, const(RESUTIL_PROPERTY_ITEM)* pPropertyTableItem, 
-                        char* pOutPropertyItem, uint* pcbOutPropertyItemSize);
+                        void** pOutPropertyItem, uint* pcbOutPropertyItemSize);
 
 ///Uses a property table to verify that a property list is correctly formatted.
 ///Params:
@@ -9691,8 +9681,8 @@ uint ResUtilGetProperty(HKEY hkeyClusterKey, const(RESUTIL_PROPERTY_ITEM)* pProp
 ///    
 @DllImport("RESUTILS")
 uint ResUtilVerifyPropertyTable(const(RESUTIL_PROPERTY_ITEM)* pPropertyTable, void* Reserved, 
-                                BOOL bAllowUnknownProperties, char* pInPropertyList, uint cbInPropertyListSize, 
-                                ubyte* pOutParams);
+                                BOOL bAllowUnknownProperties, const(void)* pInPropertyList, 
+                                uint cbInPropertyListSize, ubyte* pOutParams);
 
 ///Sets properties in the cluster database based on a property list from a property table..
 ///Params:
@@ -9720,7 +9710,7 @@ uint ResUtilVerifyPropertyTable(const(RESUTIL_PROPERTY_ITEM)* pPropertyTable, vo
 ///    
 @DllImport("RESUTILS")
 uint ResUtilSetPropertyTable(HKEY hkeyClusterKey, const(RESUTIL_PROPERTY_ITEM)* pPropertyTable, void* Reserved, 
-                             BOOL bAllowUnknownProperties, char* pInPropertyList, uint cbInPropertyListSize, 
+                             BOOL bAllowUnknownProperties, const(void)* pInPropertyList, uint cbInPropertyListSize, 
                              ubyte* pOutParams);
 
 ///Sets properties in the cluster database based on a property list from a property table.
@@ -9821,7 +9811,7 @@ uint ResUtilSetPropertyParameterBlockEx(HKEY hkeyClusterKey, const(RESUTIL_PROPE
 ///    
 @DllImport("RESUTILS")
 uint ResUtilSetUnknownProperties(HKEY hkeyClusterKey, const(RESUTIL_PROPERTY_ITEM)* pPropertyTable, 
-                                 char* pInPropertyList, uint cbInPropertyListSize);
+                                 const(void)* pInPropertyList, uint cbInPropertyListSize);
 
 ///Retrieves properties specified by a property table from the cluster database and returns them in a parameter block.
 ///Params:
@@ -9842,7 +9832,7 @@ uint ResUtilSetUnknownProperties(HKEY hkeyClusterKey, const(RESUTIL_PROPERTY_ITE
 @DllImport("RESUTILS")
 uint ResUtilGetPropertiesToParameterBlock(HKEY hkeyClusterKey, const(RESUTIL_PROPERTY_ITEM)* pPropertyTable, 
                                           ubyte* pOutParams, BOOL bCheckForRequiredProperties, 
-                                          ushort** pszNameOfPropInError);
+                                          PWSTR* pszNameOfPropInError);
 
 ///Constructs a property list from a property table and a parameter block.
 ///Params:
@@ -9866,7 +9856,7 @@ uint ResUtilGetPropertiesToParameterBlock(HKEY hkeyClusterKey, const(RESUTIL_PRO
 ///    </td> <td width="60%"> There was an error allocating memory. </td> </tr> </table>
 ///    
 @DllImport("RESUTILS")
-uint ResUtilPropertyListFromParameterBlock(const(RESUTIL_PROPERTY_ITEM)* pPropertyTable, char* pOutPropertyList, 
+uint ResUtilPropertyListFromParameterBlock(const(RESUTIL_PROPERTY_ITEM)* pPropertyTable, void* pOutPropertyList, 
                                            uint* pcbOutPropertyListSize, const(ubyte)* pInParams, 
                                            uint* pcbBytesReturned, uint* pcbRequired);
 
@@ -9934,7 +9924,7 @@ uint ResUtilAddUnknownProperties(HKEY hkeyClusterKey, const(RESUTIL_PROPERTY_ITE
 ///    invalid. </td> </tr> </table>
 ///    
 @DllImport("RESUTILS")
-uint ResUtilSetPrivatePropertyList(HKEY hkeyClusterKey, char* pInPropertyList, uint cbInPropertyListSize);
+uint ResUtilSetPrivatePropertyList(HKEY hkeyClusterKey, const(void)* pInPropertyList, uint cbInPropertyListSize);
 
 ///Verifies that a property list is correctly formatted.
 ///Params:
@@ -9945,7 +9935,7 @@ uint ResUtilSetPrivatePropertyList(HKEY hkeyClusterKey, char* pInPropertyList, u
 ///    returns a system error code.
 ///    
 @DllImport("RESUTILS")
-uint ResUtilVerifyPrivatePropertyList(char* pInPropertyList, uint cbInPropertyListSize);
+uint ResUtilVerifyPrivatePropertyList(const(void)* pInPropertyList, uint cbInPropertyListSize);
 
 ///Duplicates a null-terminated Unicode string.
 ///Params:
@@ -9955,7 +9945,7 @@ uint ResUtilVerifyPrivatePropertyList(char* pInPropertyList, uint cbInPropertyLi
 ///    operation fails, the function returns <b>NULL</b>. For more information, call the function GetLastError.
 ///    
 @DllImport("RESUTILS")
-ushort* ResUtilDupString(const(wchar)* pszInString);
+PWSTR ResUtilDupString(const(PWSTR) pszInString);
 
 ///Returns a binary value from the cluster database.
 ///Params:
@@ -9970,7 +9960,7 @@ ushort* ResUtilDupString(const(wchar)* pszInString);
 ///    width="60%"> There was an error allocating memory for the value. </td> </tr> </table>
 ///    
 @DllImport("RESUTILS")
-uint ResUtilGetBinaryValue(HKEY hkeyClusterKey, const(wchar)* pszValueName, char* ppbOutValue, 
+uint ResUtilGetBinaryValue(HKEY hkeyClusterKey, const(PWSTR) pszValueName, ubyte** ppbOutValue, 
                            uint* pcbOutValueSize);
 
 ///Returns a string value from the cluster database.
@@ -9982,7 +9972,7 @@ uint ResUtilGetBinaryValue(HKEY hkeyClusterKey, const(wchar)* pszValueName, char
 ///    operation fails, the function returns <b>NULL</b>. For more information, call the function GetLastError.
 ///    
 @DllImport("RESUTILS")
-ushort* ResUtilGetSzValue(HKEY hkeyClusterKey, const(wchar)* pszValueName);
+PWSTR ResUtilGetSzValue(HKEY hkeyClusterKey, const(PWSTR) pszValueName);
 
 ///Returns a numeric value from the cluster database.
 ///Params:
@@ -9997,7 +9987,7 @@ ushort* ResUtilGetSzValue(HKEY hkeyClusterKey, const(wchar)* pszValueName);
 ///    width="60%"> The value pointed to by <i>ValueName</i> is not a numeric value. </td> </tr> </table>
 ///    
 @DllImport("RESUTILS")
-uint ResUtilGetDwordValue(HKEY hkeyClusterKey, const(wchar)* pszValueName, uint* pdwOutValue, uint dwDefaultValue);
+uint ResUtilGetDwordValue(HKEY hkeyClusterKey, const(PWSTR) pszValueName, uint* pdwOutValue, uint dwDefaultValue);
 
 ///TBD
 ///Params:
@@ -10005,8 +9995,7 @@ uint ResUtilGetDwordValue(HKEY hkeyClusterKey, const(wchar)* pszValueName, uint*
 ///    pszValueName = TBD
 ///    pqwOutValue = TBD
 @DllImport("RESUTILS")
-uint ResUtilGetQwordValue(HKEY hkeyClusterKey, const(wchar)* pszValueName, ulong* pqwOutValue, 
-                          ulong qwDefaultValue);
+uint ResUtilGetQwordValue(HKEY hkeyClusterKey, const(PWSTR) pszValueName, ulong* pqwOutValue, ulong qwDefaultValue);
 
 ///Sets a binary value in the cluster database.
 ///Params:
@@ -10023,8 +10012,8 @@ uint ResUtilGetQwordValue(HKEY hkeyClusterKey, const(wchar)* pszValueName, ulong
 ///    width="60%"> An error occurred during memory allocation. </td> </tr> </table>
 ///    
 @DllImport("RESUTILS")
-uint ResUtilSetBinaryValue(HKEY hkeyClusterKey, const(wchar)* pszValueName, char* pbNewValue, uint cbNewValueSize, 
-                           char* ppbOutValue, uint* pcbOutValueSize);
+uint ResUtilSetBinaryValue(HKEY hkeyClusterKey, const(PWSTR) pszValueName, const(ubyte)* pbNewValue, 
+                           uint cbNewValueSize, ubyte** ppbOutValue, uint* pcbOutValueSize);
 
 ///Sets a string value in the cluster database. The <b>PRESUTIL_SET_SZ_VALUE</b> type defines a pointer to this
 ///function.
@@ -10041,8 +10030,8 @@ uint ResUtilSetBinaryValue(HKEY hkeyClusterKey, const(wchar)* pszValueName, char
 ///    width="60%"> An error occurred while attempting to allocate memory. </td> </tr> </table>
 ///    
 @DllImport("RESUTILS")
-uint ResUtilSetSzValue(HKEY hkeyClusterKey, const(wchar)* pszValueName, const(wchar)* pszNewValue, 
-                       ushort** ppszOutString);
+uint ResUtilSetSzValue(HKEY hkeyClusterKey, const(PWSTR) pszValueName, const(PWSTR) pszNewValue, 
+                       PWSTR* ppszOutString);
 
 ///Sets an expandable string value in the cluster database. The <b>PRESUTIL_SET_EXPAND_SZ_VALUE</b> type defines a
 ///pointer to this function.
@@ -10059,8 +10048,8 @@ uint ResUtilSetSzValue(HKEY hkeyClusterKey, const(wchar)* pszValueName, const(wc
 ///    width="60%"> An error occurred while attempting to allocate memory. </td> </tr> </table>
 ///    
 @DllImport("RESUTILS")
-uint ResUtilSetExpandSzValue(HKEY hkeyClusterKey, const(wchar)* pszValueName, const(wchar)* pszNewValue, 
-                             ushort** ppszOutString);
+uint ResUtilSetExpandSzValue(HKEY hkeyClusterKey, const(PWSTR) pszValueName, const(PWSTR) pszNewValue, 
+                             PWSTR* ppszOutString);
 
 ///Sets a multiple string value in the cluster database. The <b>PRESUTIL_SET_MULTI_SZ_VALUE</b> type defines a pointer
 ///to this function.
@@ -10079,8 +10068,8 @@ uint ResUtilSetExpandSzValue(HKEY hkeyClusterKey, const(wchar)* pszValueName, co
 ///    width="60%"> An error occurred while attempting to allocate memory. </td> </tr> </table>
 ///    
 @DllImport("RESUTILS")
-uint ResUtilSetMultiSzValue(HKEY hkeyClusterKey, const(wchar)* pszValueName, const(wchar)* pszNewValue, 
-                            uint cbNewValueSize, char* ppszOutValue, uint* pcbOutValueSize);
+uint ResUtilSetMultiSzValue(HKEY hkeyClusterKey, const(PWSTR) pszValueName, const(PWSTR) pszNewValue, 
+                            uint cbNewValueSize, PWSTR* ppszOutValue, uint* pcbOutValueSize);
 
 ///Sets a numeric value in the cluster database. The <b>PRESUTIL_SET_DWORD_VALUE</b> type defines a pointer to this
 ///function.
@@ -10094,7 +10083,7 @@ uint ResUtilSetMultiSzValue(HKEY hkeyClusterKey, const(wchar)* pszValueName, con
 ///    returns a system error code.
 ///    
 @DllImport("RESUTILS")
-uint ResUtilSetDwordValue(HKEY hkeyClusterKey, const(wchar)* pszValueName, uint dwNewValue, uint* pdwOutValue);
+uint ResUtilSetDwordValue(HKEY hkeyClusterKey, const(PWSTR) pszValueName, uint dwNewValue, uint* pdwOutValue);
 
 ///TBD. The <b>PRESUTIL_SET_QWORD_VALUE</b> type defines a pointer to this function.
 ///Params:
@@ -10102,7 +10091,7 @@ uint ResUtilSetDwordValue(HKEY hkeyClusterKey, const(wchar)* pszValueName, uint 
 ///    pszValueName = 
 ///    qwNewValue = 
 @DllImport("RESUTILS")
-uint ResUtilSetQwordValue(HKEY hkeyClusterKey, const(wchar)* pszValueName, ulong qwNewValue, ulong* pqwOutValue);
+uint ResUtilSetQwordValue(HKEY hkeyClusterKey, const(PWSTR) pszValueName, ulong qwNewValue, ulong* pqwOutValue);
 
 ///Sets a value in the cluster database.
 ///Params:
@@ -10113,7 +10102,7 @@ uint ResUtilSetQwordValue(HKEY hkeyClusterKey, const(wchar)* pszValueName, ulong
 ///    valueSize = The size of the new value, in bytes.
 ///    flags = The flags that specify settings for the operation.
 @DllImport("RESUTILS")
-uint ResUtilSetValueEx(HKEY hkeyClusterKey, const(wchar)* valueName, uint valueType, char* valueData, 
+uint ResUtilSetValueEx(HKEY hkeyClusterKey, const(PWSTR) valueName, uint valueType, const(ubyte)* valueData, 
                        uint valueSize, uint flags);
 
 ///Retrieves a binary property from a property list and advances a pointer to the next property in the list. The
@@ -10136,7 +10125,8 @@ uint ResUtilSetValueEx(HKEY hkeyClusterKey, const(wchar)* valueName, uint valueT
 ///    
 @DllImport("RESUTILS")
 uint ResUtilGetBinaryProperty(ubyte** ppbOutValue, uint* pcbOutValueSize, const(CLUSPROP_BINARY)* pValueStruct, 
-                              char* pbOldValue, uint cbOldValueSize, char* ppPropertyList, uint* pcbPropertyListSize);
+                              const(ubyte)* pbOldValue, uint cbOldValueSize, ubyte** ppPropertyList, 
+                              uint* pcbPropertyListSize);
 
 ///Retrieves a string property from a property list and advances a pointer to the next property in the list. The
 ///<b>PRESUTIL_GET_SZ_PROPERTY</b> type defines a pointer to this function.
@@ -10155,8 +10145,8 @@ uint ResUtilGetBinaryProperty(ubyte** ppbOutValue, uint* pcbOutValueSize, const(
 ///    width="60%"> The data is formatted incorrectly. </td> </tr> </table>
 ///    
 @DllImport("RESUTILS")
-uint ResUtilGetSzProperty(ushort** ppszOutValue, const(CLUSPROP_SZ)* pValueStruct, const(wchar)* pszOldValue, 
-                          char* ppPropertyList, uint* pcbPropertyListSize);
+uint ResUtilGetSzProperty(PWSTR* ppszOutValue, const(CLUSPROP_SZ)* pValueStruct, const(PWSTR) pszOldValue, 
+                          ubyte** ppPropertyList, uint* pcbPropertyListSize);
 
 ///Retrieves a multiple string property from a property list and advances a pointer to the next property in the list.
 ///The <b>PRESUTIL_GET_MULTI_SZ_PROPERTY</b> type defines a pointer to this function.
@@ -10177,8 +10167,8 @@ uint ResUtilGetSzProperty(ushort** ppszOutValue, const(CLUSPROP_SZ)* pValueStruc
 ///    width="60%"> The data is formatted incorrectly. </td> </tr> </table>
 ///    
 @DllImport("RESUTILS")
-uint ResUtilGetMultiSzProperty(ushort** ppszOutValue, uint* pcbOutValueSize, const(CLUSPROP_SZ)* pValueStruct, 
-                               const(wchar)* pszOldValue, uint cbOldValueSize, char* ppPropertyList, 
+uint ResUtilGetMultiSzProperty(PWSTR* ppszOutValue, uint* pcbOutValueSize, const(CLUSPROP_SZ)* pValueStruct, 
+                               const(PWSTR) pszOldValue, uint cbOldValueSize, ubyte** ppPropertyList, 
                                uint* pcbPropertyListSize);
 
 ///Retrieves a <b>DWORD</b> property from a property list and advances a pointer to the next property in the list. The
@@ -10261,7 +10251,7 @@ uint ResUtilFreeEnvironment(void* lpEnvironment);
 ///    LocalFree. If the operation fails, the function returns <b>NULL</b>. For more information, call GetLastError.
 ///    
 @DllImport("RESUTILS")
-ushort* ResUtilExpandEnvironmentStrings(const(wchar)* pszSrc);
+PWSTR ResUtilExpandEnvironmentStrings(const(PWSTR) pszSrc);
 
 ///Adjusts the environment data for a service so that the service uses a cluster network name to identify its location.
 ///This function must be called from a resource DLL. The <b>PRESUTIL_SET_RESOURCE_SERVICE_ENVIRONMENT</b> type defines a
@@ -10277,7 +10267,7 @@ ushort* ResUtilExpandEnvironmentStrings(const(wchar)* pszSrc);
 ///    returns a system error code.
 ///    
 @DllImport("RESUTILS")
-uint ResUtilSetResourceServiceEnvironment(const(wchar)* pszServiceName, _HRESOURCE* hResource, 
+uint ResUtilSetResourceServiceEnvironment(const(PWSTR) pszServiceName, _HRESOURCE* hResource, 
                                           PLOG_EVENT_ROUTINE pfnLogEvent, ptrdiff_t hResourceHandle);
 
 ///Removes the environment data from a service. This function must be called from a resource DLL. The
@@ -10292,7 +10282,7 @@ uint ResUtilSetResourceServiceEnvironment(const(wchar)* pszServiceName, _HRESOUR
 ///    returns a system error code.
 ///    
 @DllImport("RESUTILS")
-uint ResUtilRemoveResourceServiceEnvironment(const(wchar)* pszServiceName, PLOG_EVENT_ROUTINE pfnLogEvent, 
+uint ResUtilRemoveResourceServiceEnvironment(const(PWSTR) pszServiceName, PLOG_EVENT_ROUTINE pfnLogEvent, 
                                              ptrdiff_t hResourceHandle);
 
 ///Adjusts the start parameters of a specified service so that it will operate correctly as a cluster resource. It must
@@ -10312,7 +10302,7 @@ uint ResUtilRemoveResourceServiceEnvironment(const(wchar)* pszServiceName, PLOG_
 ///    returns a system error code.
 ///    
 @DllImport("RESUTILS")
-uint ResUtilSetResourceServiceStartParameters(const(wchar)* pszServiceName, SC_HANDLE__* schSCMHandle, 
+uint ResUtilSetResourceServiceStartParameters(const(PWSTR) pszServiceName, SC_HANDLE__* schSCMHandle, 
                                               SC_HANDLE__** phService, PLOG_EVENT_ROUTINE pfnLogEvent, 
                                               ptrdiff_t hResourceHandle);
 
@@ -10336,8 +10326,8 @@ uint ResUtilSetResourceServiceStartParameters(const(wchar)* pszServiceName, SC_H
 ///    </table>
 ///    
 @DllImport("RESUTILS")
-uint ResUtilFindSzProperty(char* pPropertyList, uint cbPropertyListSize, const(wchar)* pszPropertyName, 
-                           ushort** pszPropertyValue);
+uint ResUtilFindSzProperty(const(void)* pPropertyList, uint cbPropertyListSize, const(PWSTR) pszPropertyName, 
+                           PWSTR* pszPropertyValue);
 
 ///Locates an expandable string property in a property list. The <b>PRESUTIL_FIND_EXPAND_SZ_PROPERTY</b> type defines a
 ///pointer to this function.
@@ -10359,8 +10349,8 @@ uint ResUtilFindSzProperty(char* pPropertyList, uint cbPropertyListSize, const(w
 ///    </table>
 ///    
 @DllImport("RESUTILS")
-uint ResUtilFindExpandSzProperty(char* pPropertyList, uint cbPropertyListSize, const(wchar)* pszPropertyName, 
-                                 ushort** pszPropertyValue);
+uint ResUtilFindExpandSzProperty(const(void)* pPropertyList, uint cbPropertyListSize, const(PWSTR) pszPropertyName, 
+                                 PWSTR* pszPropertyValue);
 
 ///Locates an expanded string property value in a property list. The <b>PRESUTIL_FIND_EXPANDED_SZ_PROPERTY</b> type
 ///defines a pointer to this function.
@@ -10382,8 +10372,8 @@ uint ResUtilFindExpandSzProperty(char* pPropertyList, uint cbPropertyListSize, c
 ///    </table>
 ///    
 @DllImport("RESUTILS")
-uint ResUtilFindExpandedSzProperty(char* pPropertyList, uint cbPropertyListSize, const(wchar)* pszPropertyName, 
-                                   ushort** pszPropertyValue);
+uint ResUtilFindExpandedSzProperty(const(void)* pPropertyList, uint cbPropertyListSize, 
+                                   const(PWSTR) pszPropertyName, PWSTR* pszPropertyValue);
 
 ///Locates an unsigned long property value in a property list. The <b>PRESUTIL_FIND_DWORD_PROPERTY</b> type defines a
 ///pointer to this function.
@@ -10401,7 +10391,7 @@ uint ResUtilFindExpandedSzProperty(char* pPropertyList, uint cbPropertyListSize,
 ///    property list. </td> </tr> </table>
 ///    
 @DllImport("RESUTILS")
-uint ResUtilFindDwordProperty(char* pPropertyList, uint cbPropertyListSize, const(wchar)* pszPropertyName, 
+uint ResUtilFindDwordProperty(const(void)* pPropertyList, uint cbPropertyListSize, const(PWSTR) pszPropertyName, 
                               uint* pdwPropertyValue);
 
 ///Locates a specified binary property in a property list and can also return the value of the property. The
@@ -10426,8 +10416,8 @@ uint ResUtilFindDwordProperty(char* pPropertyList, uint cbPropertyListSize, cons
 ///    </table>
 ///    
 @DllImport("RESUTILS")
-uint ResUtilFindBinaryProperty(char* pPropertyList, uint cbPropertyListSize, const(wchar)* pszPropertyName, 
-                               char* pbPropertyValue, uint* pcbPropertyValueSize);
+uint ResUtilFindBinaryProperty(const(void)* pPropertyList, uint cbPropertyListSize, const(PWSTR) pszPropertyName, 
+                               ubyte** pbPropertyValue, uint* pcbPropertyValueSize);
 
 ///Locates a multiple string property in a property list. The <b>PRESUTIL_FIND_MULTI_SZ_PROPERTY</b> type defines a
 ///pointer to this function.
@@ -10451,8 +10441,8 @@ uint ResUtilFindBinaryProperty(char* pPropertyList, uint cbPropertyListSize, con
 ///    </table>
 ///    
 @DllImport("RESUTILS")
-uint ResUtilFindMultiSzProperty(char* pPropertyList, uint cbPropertyListSize, const(wchar)* pszPropertyName, 
-                                char* pszPropertyValue, uint* pcbPropertyValueSize);
+uint ResUtilFindMultiSzProperty(const(void)* pPropertyList, uint cbPropertyListSize, const(PWSTR) pszPropertyName, 
+                                PWSTR* pszPropertyValue, uint* pcbPropertyValueSize);
 
 ///Locates a signed long property value in a property list. The <b>PRESUTIL_FIND_LONG_PROPERTY</b> type defines a
 ///pointer to this function.
@@ -10470,7 +10460,7 @@ uint ResUtilFindMultiSzProperty(char* pPropertyList, uint cbPropertyListSize, co
 ///    property list. </td> </tr> </table>
 ///    
 @DllImport("RESUTILS")
-uint ResUtilFindLongProperty(char* pPropertyList, uint cbPropertyListSize, const(wchar)* pszPropertyName, 
+uint ResUtilFindLongProperty(const(void)* pPropertyList, uint cbPropertyListSize, const(PWSTR) pszPropertyName, 
                              int* plPropertyValue);
 
 ///Gets a large integer property value from a property list. The <b>PRESUTIL_FIND_ULARGEINTEGER_PROPERTY</b> type
@@ -10485,8 +10475,8 @@ uint ResUtilFindLongProperty(char* pPropertyList, uint cbPropertyListSize, const
 ///    returns a system error code. The following is a possible error code.
 ///    
 @DllImport("RESUTILS")
-uint ResUtilFindULargeIntegerProperty(char* pPropertyList, uint cbPropertyListSize, const(wchar)* pszPropertyName, 
-                                      ulong* plPropertyValue);
+uint ResUtilFindULargeIntegerProperty(const(void)* pPropertyList, uint cbPropertyListSize, 
+                                      const(PWSTR) pszPropertyName, ulong* plPropertyValue);
 
 ///TBD. The <b>PRESUTIL_FIND_FILETIME_PROPERTY</b> type defines a pointer to this function.
 ///Params:
@@ -10494,7 +10484,7 @@ uint ResUtilFindULargeIntegerProperty(char* pPropertyList, uint cbPropertyListSi
 ///    cbPropertyListSize = 
 ///    pszPropertyName = 
 @DllImport("RESUTILS")
-uint ResUtilFindFileTimeProperty(char* pPropertyList, uint cbPropertyListSize, const(wchar)* pszPropertyName, 
+uint ResUtilFindFileTimeProperty(const(void)* pPropertyList, uint cbPropertyListSize, const(PWSTR) pszPropertyName, 
                                  FILETIME* pftPropertyValue);
 
 ///Creates a worker thread. The <b>PCLUSAPI_CLUS_WORKER_CREATE</b> type defines a pointer to this function.
@@ -10564,7 +10554,7 @@ uint ClusWorkerTerminateEx(CLUS_WORKER* ClusWorker, uint TimeoutInMilliseconds, 
 ///    terminated within the specified timeout. </td> </tr> </table> Returns a system error code on failure.
 ///    
 @DllImport("RESUTILS")
-uint ClusWorkersTerminate(char* ClusWorkers, const(size_t) ClusWorkersCount, uint TimeoutInMilliseconds, 
+uint ClusWorkersTerminate(CLUS_WORKER** ClusWorkers, const(size_t) ClusWorkersCount, uint TimeoutInMilliseconds, 
                           BOOL WaitOnly);
 
 ///Tests whether two resource handles represent the same resource. The <b>PRESUTIL_RESOURCES_EQUAL</b> type defines a
@@ -10589,7 +10579,7 @@ BOOL ResUtilResourcesEqual(_HRESOURCE* hSelf, _HRESOURCE* hResource);
 ///    function returns <b>FALSE</b>.
 ///    
 @DllImport("RESUTILS")
-BOOL ResUtilResourceTypesEqual(const(wchar)* lpszResourceTypeName, _HRESOURCE* hResource);
+BOOL ResUtilResourceTypesEqual(const(PWSTR) lpszResourceTypeName, _HRESOURCE* hResource);
 
 ///Tests whether the resource class of a specified resource is equal to a specified resource class. The
 ///<b>PRESUTIL_IS_RESOURCE_CLASS_EQUAL</b> type defines a pointer to this function.
@@ -10623,7 +10613,7 @@ BOOL ResUtilIsResourceClassEqual(CLUS_RESOURCE_CLASS_INFO* prci, _HRESOURCE* hRe
 ///    value returned by the callback function.
 ///    
 @DllImport("RESUTILS")
-uint ResUtilEnumResources(_HRESOURCE* hSelf, const(wchar)* lpszResTypeName, LPRESOURCE_CALLBACK pResCallBack, 
+uint ResUtilEnumResources(_HRESOURCE* hSelf, const(PWSTR) lpszResTypeName, LPRESOURCE_CALLBACK pResCallBack, 
                           void* pParameter);
 
 ///Enumerates all of the resources in a specified cluster and initiates a user-defined operation for each resource. The
@@ -10646,7 +10636,7 @@ uint ResUtilEnumResources(_HRESOURCE* hSelf, const(wchar)* lpszResTypeName, LPRE
 ///    immediately halts the enumeration and returns the value that is returned by the callback function.
 ///    
 @DllImport("RESUTILS")
-uint ResUtilEnumResourcesEx(_HCLUSTER* hCluster, _HRESOURCE* hSelf, const(wchar)* lpszResTypeName, 
+uint ResUtilEnumResourcesEx(_HCLUSTER* hCluster, _HRESOURCE* hSelf, const(PWSTR) lpszResTypeName, 
                             LPRESOURCE_CALLBACK_EX pResCallBack, void* pParameter);
 
 ///Enumerates the dependencies of a specified resource and returns a handle to a dependency of a specified type. The
@@ -10660,7 +10650,7 @@ uint ResUtilEnumResourcesEx(_HCLUSTER* hCluster, _HRESOURCE* hSelf, const(wchar)
 ///    operation fails, the function returns <b>NULL</b>. For more information, call the GetLastError function.
 ///    
 @DllImport("RESUTILS")
-_HRESOURCE* ResUtilGetResourceDependency(HANDLE hSelf, const(wchar)* lpszResourceType);
+_HRESOURCE* ResUtilGetResourceDependency(HANDLE hSelf, const(PWSTR) lpszResourceType);
 
 ///Enumerates the dependencies of a specified resource in a specified cluster and returns a handle to a dependency of a
 ///specified type. The <b>PRESUTIL_GET_RESOURCE_DEPENDENCY_BY_NAME</b> type defines a pointer to this function.
@@ -10681,7 +10671,7 @@ _HRESOURCE* ResUtilGetResourceDependency(HANDLE hSelf, const(wchar)* lpszResourc
 ///    </table>
 ///    
 @DllImport("RESUTILS")
-_HRESOURCE* ResUtilGetResourceDependencyByName(_HCLUSTER* hCluster, HANDLE hSelf, const(wchar)* lpszResourceType, 
+_HRESOURCE* ResUtilGetResourceDependencyByName(_HCLUSTER* hCluster, HANDLE hSelf, const(PWSTR) lpszResourceType, 
                                                BOOL bRecurse);
 
 ///Enumerates the dependencies of a specified resource in a specified cluster and returns a handle to a dependency that
@@ -10716,7 +10706,7 @@ _HRESOURCE* ResUtilGetResourceDependencyByClass(_HCLUSTER* hCluster, HANDLE hSel
 ///    function GetLastError.
 ///    
 @DllImport("RESUTILS")
-_HRESOURCE* ResUtilGetResourceNameDependency(const(wchar)* lpszResourceName, const(wchar)* lpszResourceType);
+_HRESOURCE* ResUtilGetResourceNameDependency(const(PWSTR) lpszResourceName, const(PWSTR) lpszResourceType);
 
 ///Retrieves the private properties of the first IP Address dependency found for a specified resource. The
 ///<b>PRESUTIL_GET_RESOURCE_DEPENDENTIP_ADDRESS_PROPS</b> type defines a pointer to this function.
@@ -10743,9 +10733,9 @@ _HRESOURCE* ResUtilGetResourceNameDependency(const(wchar)* lpszResourceName, con
 ///    was too small to hold the resulting data. </td> </tr> </table>
 ///    
 @DllImport("RESUTILS")
-uint ResUtilGetResourceDependentIPAddressProps(_HRESOURCE* hResource, const(wchar)* pszAddress, uint* pcchAddress, 
-                                               const(wchar)* pszSubnetMask, uint* pcchSubnetMask, 
-                                               const(wchar)* pszNetwork, uint* pcchNetwork);
+uint ResUtilGetResourceDependentIPAddressProps(_HRESOURCE* hResource, PWSTR pszAddress, uint* pcchAddress, 
+                                               PWSTR pszSubnetMask, uint* pcchSubnetMask, PWSTR pszNetwork, 
+                                               uint* pcchNetwork);
 
 ///Retrieves the drive letter associated with a Physical Disk dependency of a resource. The
 ///<b>PRESUTIL_FIND_DEPENDENT_DISK_RESOURCE_DRIVE_LETTER</b> type defines a pointer to this function.
@@ -10766,8 +10756,8 @@ uint ResUtilGetResourceDependentIPAddressProps(_HRESOURCE* hResource, const(wcha
 ///    size. </td> </tr> </table>
 ///    
 @DllImport("RESUTILS")
-uint ResUtilFindDependentDiskResourceDriveLetter(_HCLUSTER* hCluster, _HRESOURCE* hResource, 
-                                                 const(wchar)* pszDriveLetter, uint* pcchDriveLetter);
+uint ResUtilFindDependentDiskResourceDriveLetter(_HCLUSTER* hCluster, _HRESOURCE* hResource, PWSTR pszDriveLetter, 
+                                                 uint* pcchDriveLetter);
 
 ///Attempts to terminate the process of a service being managed as a cluster resource by a resource DLL. The
 ///<b>PRESUTIL_TERMINATE_SERVICE_PROCESS_FROM_RES_DLL</b> type defines a pointer to this function.
@@ -10806,7 +10796,7 @@ uint ResUtilTerminateServiceProcessFromResDll(uint dwServicePid, BOOL bOffline, 
 ///    Returns <b>ERROR_SUCCESS</b> if the operation was successful.
 ///    
 @DllImport("RESUTILS")
-uint ResUtilGetPropertyFormats(const(RESUTIL_PROPERTY_ITEM)* pPropertyTable, char* pOutPropertyFormatList, 
+uint ResUtilGetPropertyFormats(const(RESUTIL_PROPERTY_ITEM)* pPropertyTable, void* pOutPropertyFormatList, 
                                uint cbPropertyFormatListSize, uint* pcbBytesReturned, uint* pcbRequired);
 
 ///Returns handles to the core Network Name, IP Address and quorum resources. The
@@ -10831,7 +10821,7 @@ uint ResUtilGetCoreClusterResources(_HCLUSTER* hCluster, _HRESOURCE** phClusterN
 ///    pcchResourceNameInOut = On input, specifies the size of the buffer pointed to by <i>pszResourceName</i>, in wide characters. On output,
 ///                            specifies the actual size of the resource name returned as a count of wide characters.
 @DllImport("RESUTILS")
-uint ResUtilGetResourceName(_HRESOURCE* hResource, const(wchar)* pszResourceName, uint* pcchResourceNameInOut);
+uint ResUtilGetResourceName(_HRESOURCE* hResource, PWSTR pszResourceName, uint* pcchResourceNameInOut);
 
 ///Determines whether or not a specific role has been assigned to a cluster.
 ///Params:
@@ -10862,7 +10852,7 @@ CLUSTER_ROLE_STATE ResUtilGetClusterRoleState(_HCLUSTER* hCluster, CLUSTER_ROLE 
 ///    that is owned by a local cluster node; otherwise, <b>FALSE</b>.
 ///    
 @DllImport("RESUTILS")
-BOOL ClusterIsPathOnSharedVolume(const(wchar)* lpszPathName);
+BOOL ClusterIsPathOnSharedVolume(const(PWSTR) lpszPathName);
 
 ///<p class="CCE_Message">[<b>ClusterGetVolumePathName</b> is available for use in the operating systems specified in
 ///the Requirements section. It may be altered or unavailable in subsequent versions. Instead, use GetVolumePathName.]
@@ -10879,7 +10869,7 @@ BOOL ClusterIsPathOnSharedVolume(const(wchar)* lpszPathName);
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("RESUTILS")
-BOOL ClusterGetVolumePathName(const(wchar)* lpszFileName, const(wchar)* lpszVolumePathName, uint cchBufferLength);
+BOOL ClusterGetVolumePathName(const(PWSTR) lpszFileName, PWSTR lpszVolumePathName, uint cchBufferLength);
 
 ///<p class="CCE_Message">[<b>ClusterGetVolumeNameForVolumeMountPoint</b> is available for use in the operating systems
 ///specified in the Requirements section. It may be altered or unavailable in subsequent versions. Instead, use
@@ -10901,7 +10891,7 @@ BOOL ClusterGetVolumePathName(const(wchar)* lpszFileName, const(wchar)* lpszVolu
 ///    <b>ERROR_CSV_VOLUME_NOT_LOCAL</b> (5951) error.
 ///    
 @DllImport("RESUTILS")
-BOOL ClusterGetVolumeNameForVolumeMountPoint(const(wchar)* lpszVolumeMountPoint, const(wchar)* lpszVolumeName, 
+BOOL ClusterGetVolumeNameForVolumeMountPoint(const(PWSTR) lpszVolumeMountPoint, PWSTR lpszVolumeName, 
                                              uint cchBufferLength);
 
 ///<p class="CCE_Message">[<b>ClusterPrepareSharedVolumeForBackup</b> is available for use in the operating systems
@@ -10926,9 +10916,8 @@ BOOL ClusterGetVolumeNameForVolumeMountPoint(const(wchar)* lpszVolumeMountPoint,
 ///    error codes.
 ///    
 @DllImport("RESUTILS")
-uint ClusterPrepareSharedVolumeForBackup(const(wchar)* lpszFileName, const(wchar)* lpszVolumePathName, 
-                                         uint* lpcchVolumePathName, const(wchar)* lpszVolumeName, 
-                                         uint* lpcchVolumeName);
+uint ClusterPrepareSharedVolumeForBackup(const(PWSTR) lpszFileName, PWSTR lpszVolumePathName, 
+                                         uint* lpcchVolumePathName, PWSTR lpszVolumeName, uint* lpcchVolumeName);
 
 ///Clears the backup state for the cluster shared volume (CSV). The <b>PCLUSTER_CLEAR_BACKUP_STATE_FOR_SHARED_VOLUME</b>
 ///type defines a pointer to this function.
@@ -10940,7 +10929,7 @@ uint ClusterPrepareSharedVolumeForBackup(const(wchar)* lpszFileName, const(wchar
 ///    system error codes.
 ///    
 @DllImport("RESUTILS")
-uint ClusterClearBackupStateForSharedVolume(const(wchar)* lpszVolumePathName);
+uint ClusterClearBackupStateForSharedVolume(const(PWSTR) lpszVolumePathName);
 
 ///Adjusts the start parameters of a specified service so that it operates correctly as a cluster resource. It must be
 ///called from a resource DLL. The <b>PRESUTIL_SET_RESOURCE_SERVICE_START_PARAMETERS_EX</b> type defines a pointer to
@@ -10963,7 +10952,7 @@ uint ClusterClearBackupStateForSharedVolume(const(wchar)* lpszVolumePathName);
 ///    returns a system error code.
 ///    
 @DllImport("RESUTILS")
-uint ResUtilSetResourceServiceStartParametersEx(const(wchar)* pszServiceName, SC_HANDLE__* schSCMHandle, 
+uint ResUtilSetResourceServiceStartParametersEx(const(PWSTR) pszServiceName, SC_HANDLE__* schSCMHandle, 
                                                 SC_HANDLE__** phService, uint dwDesiredAccess, 
                                                 PLOG_EVENT_ROUTINE pfnLogEvent, ptrdiff_t hResourceHandle);
 
@@ -10990,7 +10979,7 @@ uint ResUtilSetResourceServiceStartParametersEx(const(wchar)* pszServiceName, SC
 ///    immediately halts the enumeration and returns the value returned by the callback function.
 ///    
 @DllImport("RESUTILS")
-uint ResUtilEnumResourcesEx2(_HCLUSTER* hCluster, _HRESOURCE* hSelf, const(wchar)* lpszResTypeName, 
+uint ResUtilEnumResourcesEx2(_HCLUSTER* hCluster, _HRESOURCE* hSelf, const(PWSTR) lpszResTypeName, 
                              LPRESOURCE_CALLBACK_EX pResCallBack, void* pParameter, uint dwDesiredAccess);
 
 ///Enumerates the dependencies of a specified resource and returns a handle to a dependency of a specified type. The
@@ -11008,7 +10997,7 @@ uint ResUtilEnumResourcesEx2(_HCLUSTER* hCluster, _HRESOURCE* hSelf, const(wchar
 ///    call the GetLastError function.
 ///    
 @DllImport("RESUTILS")
-_HRESOURCE* ResUtilGetResourceDependencyEx(HANDLE hSelf, const(wchar)* lpszResourceType, uint dwDesiredAccess);
+_HRESOURCE* ResUtilGetResourceDependencyEx(HANDLE hSelf, const(PWSTR) lpszResourceType, uint dwDesiredAccess);
 
 ///Enumerates the dependencies of a specified resource in a specified cluster and returns a handle to a dependency of a
 ///specified type. The <b>PRESUTIL_GET_RESOURCE_DEPENDENCY_BY_NAME_EX</b> type defines a pointer to this function.
@@ -11032,7 +11021,7 @@ _HRESOURCE* ResUtilGetResourceDependencyEx(HANDLE hSelf, const(wchar)* lpszResou
 ///    call the function GetLastError. </td> </tr> </table>
 ///    
 @DllImport("RESUTILS")
-_HRESOURCE* ResUtilGetResourceDependencyByNameEx(_HCLUSTER* hCluster, HANDLE hSelf, const(wchar)* lpszResourceType, 
+_HRESOURCE* ResUtilGetResourceDependencyByNameEx(_HCLUSTER* hCluster, HANDLE hSelf, const(PWSTR) lpszResourceType, 
                                                  BOOL bRecurse, uint dwDesiredAccess);
 
 ///Enumerates the dependencies of a specified resource in a specified cluster and returns a handle to a dependency that
@@ -11075,7 +11064,7 @@ _HRESOURCE* ResUtilGetResourceDependencyByClassEx(_HCLUSTER* hCluster, HANDLE hS
 ///    function GetLastError.
 ///    
 @DllImport("RESUTILS")
-_HRESOURCE* ResUtilGetResourceNameDependencyEx(const(wchar)* lpszResourceName, const(wchar)* lpszResourceType, 
+_HRESOURCE* ResUtilGetResourceNameDependencyEx(const(PWSTR) lpszResourceName, const(PWSTR) lpszResourceType, 
                                                uint dwDesiredAccess);
 
 ///Returns handles to the core, Network Name, IP Address, and quorum resources. The
@@ -11109,11 +11098,11 @@ uint ResUtilGetCoreClusterResourcesEx(_HCLUSTER* hClusterIn, _HRESOURCE** phClus
 ///    to the CSP.
 ///    
 @DllImport("RESUTILS")
-_HCLUSCRYPTPROVIDER* OpenClusterCryptProvider(const(wchar)* lpszResource, byte* lpszProvider, uint dwType, 
+_HCLUSCRYPTPROVIDER* OpenClusterCryptProvider(const(PWSTR) lpszResource, byte* lpszProvider, uint dwType, 
                                               uint dwFlags);
 
 @DllImport("RESUTILS")
-_HCLUSCRYPTPROVIDER* OpenClusterCryptProviderEx(const(wchar)* lpszResource, const(wchar)* lpszKeyname, 
+_HCLUSCRYPTPROVIDER* OpenClusterCryptProviderEx(const(PWSTR) lpszResource, const(PWSTR) lpszKeyname, 
                                                 byte* lpszProvider, uint dwType, uint dwFlags);
 
 ///Closes a handle to a Cryptographic Service Provider (CSP). The <b>PCLOSE_CLUSTER_CRYPT_PROVIDER</b> type defines a
@@ -11139,7 +11128,7 @@ uint CloseClusterCryptProvider(_HCLUSCRYPTPROVIDER* hClusCryptProvider);
 ///    system error code.
 ///    
 @DllImport("RESUTILS")
-uint ClusterEncrypt(_HCLUSCRYPTPROVIDER* hClusCryptProvider, char* pData, uint cbData, ubyte** ppData, 
+uint ClusterEncrypt(_HCLUSCRYPTPROVIDER* hClusCryptProvider, ubyte* pData, uint cbData, ubyte** ppData, 
                     uint* pcbData);
 
 ///Decrypts Checkpointing data for a Cryptographic Service Provider (CSP).
@@ -11154,7 +11143,7 @@ uint ClusterEncrypt(_HCLUSCRYPTPROVIDER* hClusCryptProvider, char* pData, uint c
 ///    system error code.
 ///    
 @DllImport("RESUTILS")
-uint ClusterDecrypt(_HCLUSCRYPTPROVIDER* hClusCryptProvider, char* pCryptInput, uint cbCryptInput, 
+uint ClusterDecrypt(_HCLUSCRYPTPROVIDER* hClusCryptProvider, ubyte* pCryptInput, uint cbCryptInput, 
                     ubyte** ppCryptOutput, uint* pcbCryptOutput);
 
 ///TBD
@@ -11190,10 +11179,10 @@ BOOL ResUtilPaxosComparer(const(PaxosTagCStruct)* left, const(PaxosTagCStruct)* 
 BOOL ResUtilLeftPaxosIsLessThanRight(const(PaxosTagCStruct)* left, const(PaxosTagCStruct)* right);
 
 @DllImport("RESUTILS")
-uint ResUtilsDeleteKeyTree(HKEY key, const(wchar)* keyName, BOOL treatNoKeyAsError);
+uint ResUtilsDeleteKeyTree(HKEY key, const(PWSTR) keyName, BOOL treatNoKeyAsError);
 
 @DllImport("RESUTILS")
-uint ResUtilGroupsEqual(_HGROUP* hSelf, _HGROUP* hGroup, int* pEqual);
+uint ResUtilGroupsEqual(_HGROUP* hSelf, _HGROUP* hGroup, BOOL* pEqual);
 
 @DllImport("RESUTILS")
 uint ResUtilEnumGroups(_HCLUSTER* hCluster, _HGROUP* hSelf, LPGROUP_CALLBACK_EX pResCallBack, void* pParameter);
@@ -11252,7 +11241,7 @@ uint RegisterAppInstanceVersion(GUID* AppInstanceId, ulong InstanceVersionHigh, 
 
 @DllImport("NTLANMAN")
 uint QueryAppInstanceVersion(GUID* AppInstanceId, ulong* InstanceVersionHigh, ulong* InstanceVersionLow, 
-                             int* VersionStatus);
+                             NTSTATUS* VersionStatus);
 
 @DllImport("NTLANMAN")
 uint ResetAllAppInstanceVersions();
@@ -12181,7 +12170,7 @@ interface ISClusResource : IDispatch
     HRESULT get_CryptoKeys(ISClusCryptoKeys* ppCryptoKeys);
     HRESULT get_TypeName(BSTR* pbstrTypeName);
     HRESULT get_Type(ISClusResType* ppResourceType);
-    HRESULT get_MaintenanceMode(int* pbMaintenanceMode);
+    HRESULT get_MaintenanceMode(BOOL* pbMaintenanceMode);
     HRESULT put_MaintenanceMode(BOOL bMaintenanceMode);
 }
 

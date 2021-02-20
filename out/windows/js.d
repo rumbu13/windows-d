@@ -7,8 +7,9 @@ public import windows.automation : VARIANT;
 public import windows.com : HRESULT;
 public import windows.dbg : IActiveScriptProfilerCallback, IActiveScriptProfilerHeapEnum,
                             IDebugApplication32, __MIDL___MIDL_itf_activprof_0000_0000_0002;
+public import windows.systemservices : PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -154,24 +155,24 @@ JsErrorCode JsStartDebugging(IDebugApplication32 debugApplication);
 JsErrorCode JsIdle(uint* nextIdleTick);
 
 @DllImport("chakra")
-JsErrorCode JsParseScript(const(ushort)* script, size_t sourceContext, const(ushort)* sourceUrl, void** result);
+JsErrorCode JsParseScript(const(PWSTR) script, size_t sourceContext, const(PWSTR) sourceUrl, void** result);
 
 @DllImport("chakra")
-JsErrorCode JsRunScript(const(ushort)* script, size_t sourceContext, const(ushort)* sourceUrl, void** result);
+JsErrorCode JsRunScript(const(PWSTR) script, size_t sourceContext, const(PWSTR) sourceUrl, void** result);
 
 @DllImport("chakra")
-JsErrorCode JsSerializeScript(const(ushort)* script, char* buffer, uint* bufferSize);
+JsErrorCode JsSerializeScript(const(PWSTR) script, ubyte* buffer, uint* bufferSize);
 
 @DllImport("chakra")
-JsErrorCode JsParseSerializedScript(const(ushort)* script, ubyte* buffer, size_t sourceContext, 
-                                    const(ushort)* sourceUrl, void** result);
+JsErrorCode JsParseSerializedScript(const(PWSTR) script, ubyte* buffer, size_t sourceContext, 
+                                    const(PWSTR) sourceUrl, void** result);
 
 @DllImport("chakra")
-JsErrorCode JsRunSerializedScript(const(ushort)* script, ubyte* buffer, size_t sourceContext, 
-                                  const(ushort)* sourceUrl, void** result);
+JsErrorCode JsRunSerializedScript(const(PWSTR) script, ubyte* buffer, size_t sourceContext, const(PWSTR) sourceUrl, 
+                                  void** result);
 
 @DllImport("chakra")
-JsErrorCode JsGetPropertyIdFromName(const(ushort)* name, void** propertyId);
+JsErrorCode JsGetPropertyIdFromName(const(PWSTR) name, void** propertyId);
 
 @DllImport("chakra")
 JsErrorCode JsGetPropertyNameFromId(void* propertyId, const(ushort)** name);
@@ -216,7 +217,7 @@ JsErrorCode JsConvertValueToNumber(void* value, void** numberValue);
 JsErrorCode JsGetStringLength(void* stringValue, int* length);
 
 @DllImport("chakra")
-JsErrorCode JsPointerToString(char* stringValue, size_t stringLength, void** value);
+JsErrorCode JsPointerToString(const(PWSTR) stringValue, size_t stringLength, void** value);
 
 @DllImport("chakra")
 JsErrorCode JsStringToPointer(void* value, const(ushort)** stringValue, size_t* stringLength);
@@ -306,10 +307,10 @@ JsErrorCode JsSetExternalData(void* object, void* externalData);
 JsErrorCode JsCreateArray(uint length, void** result);
 
 @DllImport("chakra")
-JsErrorCode JsCallFunction(void* function_, char* arguments, ushort argumentCount, void** result);
+JsErrorCode JsCallFunction(void* function_, void** arguments, ushort argumentCount, void** result);
 
 @DllImport("chakra")
-JsErrorCode JsConstructObject(void* function_, char* arguments, ushort argumentCount, void** result);
+JsErrorCode JsConstructObject(void* function_, void** arguments, ushort argumentCount, void** result);
 
 @DllImport("chakra")
 JsErrorCode JsCreateFunction(JsNativeFunction nativeFunction, void* callbackState, void** function_);

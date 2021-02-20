@@ -5,12 +5,12 @@ module windows.windowswebservices;
 public import windows.core;
 public import windows.com : HRESULT;
 public import windows.security : CERT_CONTEXT, SecPkgContext_IssuerListInfoEx;
-public import windows.systemservices : BOOL, DECIMAL;
+public import windows.systemservices : BOOL, DECIMAL, PWSTR;
 public import windows.winrt : IInspectable;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : FILETIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -225,6 +225,9 @@ enum : int
     WS_XML_WRITER_PROPERTY_COMPRESS_EMPTY_ELEMENTS            = 0x00000011,
     WS_XML_WRITER_PROPERTY_EMIT_UNCOMPRESSED_EMPTY_ELEMENTS   = 0x00000012,
 }
+
+///Each XML buffer property is identified by an ID and has an associated value.
+alias WS_XML_BUFFER_PROPERTY_ID = int;
 
 ///The type of WS_XML_TEXT structure.
 alias WS_XML_TEXT_TYPE = int;
@@ -1602,6 +1605,9 @@ enum : int
     WS_SECURITY_HEADER_LAYOUT_LAX_WITH_TIMESTAMP_FIRST = 0x00000003,
     WS_SECURITY_HEADER_LAYOUT_LAX_WITH_TIMESTAMP_LAST  = 0x00000004,
 }
+
+///Identifies the properties representing security algorithm knobs.
+alias WS_SECURITY_ALGORITHM_PROPERTY_ID = int;
 
 ///Defines the security algorithms to be used with WS-Security. These values are relevant to message security bindings
 ///and mixed-mode security bindings.
@@ -3795,7 +3801,7 @@ enum int WS_URL_FLAGS_ZERO_TERMINATE = 0x00000004;
 ///Returns:
 ///    This callback function does not return a value.
 ///    
-alias WS_READ_CALLBACK = HRESULT function(void* callbackState, char* bytes, uint maxSize, uint* actualSize, 
+alias WS_READ_CALLBACK = HRESULT function(void* callbackState, void* bytes, uint maxSize, uint* actualSize, 
                                           const(WS_ASYNC_CONTEXT)* asyncContext, WS_ERROR* error);
 ///Used by the WS_XML_WRITER function to write a specified buffer to a user-determined destination.
 ///Params:
@@ -3806,7 +3812,7 @@ alias WS_READ_CALLBACK = HRESULT function(void* callbackState, char* bytes, uint
 ///    asyncContext = A pointer to a WS_ASYNC_CONTEXT structure containing information on how to invoke the function asynchronously.
 ///                   Assigned <b>NULL</b> if invoking synchronously.
 ///    error = A pointer to a WS_ERROR data structure where additional error information should be stored if the function fails.
-alias WS_WRITE_CALLBACK = HRESULT function(void* callbackState, char* buffers, uint count, 
+alias WS_WRITE_CALLBACK = HRESULT function(void* callbackState, const(WS_BYTES)* buffers, uint count, 
                                            const(WS_ASYNC_CONTEXT)* asyncContext, WS_ERROR* error);
 ///Used by the WsPushBytes function to request that data be written.
 ///Params:
@@ -3833,7 +3839,7 @@ alias WS_PUSH_BYTES_CALLBACK = HRESULT function(void* callbackState, WS_WRITE_CA
 ///    <dt><b>WS_S_ASYNC</b></dt> </dl> </td> <td width="60%"> The asynchronous operation is still pending. </td> </tr>
 ///    </table>
 ///    
-alias WS_PULL_BYTES_CALLBACK = HRESULT function(void* callbackState, char* bytes, uint maxSize, uint* actualSize, 
+alias WS_PULL_BYTES_CALLBACK = HRESULT function(void* callbackState, void* bytes, uint maxSize, uint* actualSize, 
                                                 const(WS_ASYNC_CONTEXT)* asyncContext, WS_ERROR* error);
 ///Determines whether the specified string can be written in optimized form. This callback is used in
 ///WS_XML_WRITER_BINARY_ENCODING
@@ -3843,7 +3849,7 @@ alias WS_PULL_BYTES_CALLBACK = HRESULT function(void* callbackState, char* bytes
 ///    found = Whether or not the string was found in the dynamic dictionary is returned here.
 ///    id = The id of the string is returned here.
 ///    error = Specifies where additional error information should be stored if the function fails.
-alias WS_DYNAMIC_STRING_CALLBACK = HRESULT function(void* callbackState, const(WS_XML_STRING)* string, int* found, 
+alias WS_DYNAMIC_STRING_CALLBACK = HRESULT function(void* callbackState, const(WS_XML_STRING)* string, BOOL* found, 
                                                     uint* id, WS_ERROR* error);
 ///The callback function parameter used with the asynchronous model.
 ///Params:
@@ -3881,7 +3887,7 @@ alias WS_ASYNC_FUNCTION = HRESULT function(HRESULT hr, WS_CALLBACK_MODEL callbac
 ///                      This pointer will be passed to all the other channel callbacks for this particular channel instance. If this
 ///                      callback is successful, then the WS_FREE_CHANNEL_CALLBACKwill be used to free the channel instance returned in
 ///                      this parameter.
-alias WS_CREATE_CHANNEL_CALLBACK = HRESULT function(WS_CHANNEL_TYPE channelType, char* channelParameters, 
+alias WS_CREATE_CHANNEL_CALLBACK = HRESULT function(WS_CHANNEL_TYPE channelType, const(void)* channelParameters, 
                                                     uint channelParametersSize, void** channelInstance, 
                                                     WS_ERROR* error);
 ///Handles the WsFreeChannel call for a WS_CUSTOM_CHANNEL_BINDING.
@@ -4013,7 +4019,7 @@ alias WS_CLOSE_CHANNEL_CALLBACK = HRESULT function(void* channelInstance, const(
 ///    may return other errors not listed above. </td> </tr> </table>
 ///    
 alias WS_SET_CHANNEL_PROPERTY_CALLBACK = HRESULT function(void* channelInstance, WS_CHANNEL_PROPERTY_ID id, 
-                                                          char* value, uint valueSize, WS_ERROR* error);
+                                                          const(void)* value, uint valueSize, WS_ERROR* error);
 ///Handles the WsGetChannelProperty call for a WS_CUSTOM_CHANNEL_BINDING.
 ///Params:
 ///    channelInstance = The pointer to the state specific to this channel instance, as created by the WS_CREATE_CHANNEL_CALLBACK.
@@ -4031,7 +4037,7 @@ alias WS_SET_CHANNEL_PROPERTY_CALLBACK = HRESULT function(void* channelInstance,
 ///    above. </td> </tr> </table>
 ///    
 alias WS_GET_CHANNEL_PROPERTY_CALLBACK = HRESULT function(void* channelInstance, WS_CHANNEL_PROPERTY_ID id, 
-                                                          char* value, uint valueSize, WS_ERROR* error);
+                                                          void* value, uint valueSize, WS_ERROR* error);
 ///Handles the WsReadMessageStart call for a WS_CUSTOM_CHANNEL_BINDING.
 ///Params:
 ///    channelInstance = The pointer to the state specific to this channel instance, as created by the WS_CREATE_CHANNEL_CALLBACK.
@@ -4396,7 +4402,7 @@ alias WS_ENCODER_START_CALLBACK = HRESULT function(void* encoderContext, const(W
 ///    <tr> <td width="40%"> <dl> <dt><b> Other Errors </b></dt> </dl> </td> <td width="60%"> This function may return
 ///    other errors not listed above. </td> </tr> </table>
 ///    
-alias WS_ENCODER_ENCODE_CALLBACK = HRESULT function(void* encoderContext, char* buffers, uint count, 
+alias WS_ENCODER_ENCODE_CALLBACK = HRESULT function(void* encoderContext, const(WS_BYTES)* buffers, uint count, 
                                                     const(WS_ASYNC_CONTEXT)* asyncContext, WS_ERROR* error);
 ///Encodes the end of a message.
 ///Params:
@@ -4482,7 +4488,7 @@ alias WS_DECODER_START_CALLBACK = HRESULT function(void* encoderContext, const(W
 ///    <tr> <td width="40%"> <dl> <dt><b> Other Errors </b></dt> </dl> </td> <td width="60%"> This function may return
 ///    other errors not listed above. </td> </tr> </table>
 ///    
-alias WS_DECODER_DECODE_CALLBACK = HRESULT function(void* encoderContext, char* buffer, uint maxLength, 
+alias WS_DECODER_DECODE_CALLBACK = HRESULT function(void* encoderContext, void* buffer, uint maxLength, 
                                                     uint* length, const(WS_ASYNC_CONTEXT)* asyncContext, 
                                                     WS_ERROR* error);
 ///Decodes the end of a message.
@@ -4527,7 +4533,7 @@ alias WS_HTTP_REDIRECT_CALLBACK = HRESULT function(void* state, const(WS_STRING)
 ///    listenerInstance = A pointer to an allocated structure that represents the listener instance. This pointer will be passed to all the
 ///                       other listener callbacks for this particular listener instance. If this callback is successful, then the
 ///                       WS_FREE_LISTENER_CALLBACKwill be used to free the listener instance.
-alias WS_CREATE_LISTENER_CALLBACK = HRESULT function(WS_CHANNEL_TYPE channelType, char* listenerParameters, 
+alias WS_CREATE_LISTENER_CALLBACK = HRESULT function(WS_CHANNEL_TYPE channelType, const(void)* listenerParameters, 
                                                      uint listenerParametersSize, void** listenerInstance, 
                                                      WS_ERROR* error);
 ///Handles the WsFreeListener call for a WS_CUSTOM_CHANNEL_BINDING.
@@ -4606,7 +4612,7 @@ alias WS_CLOSE_LISTENER_CALLBACK = HRESULT function(void* listenerInstance, cons
 ///    </table>
 ///    
 alias WS_GET_LISTENER_PROPERTY_CALLBACK = HRESULT function(void* listenerInstance, WS_LISTENER_PROPERTY_ID id, 
-                                                           char* value, uint valueSize, WS_ERROR* error);
+                                                           void* value, uint valueSize, WS_ERROR* error);
 ///Handles the WsSetListenerProperty call for a WS_CUSTOM_CHANNEL_BINDING.
 ///Params:
 ///    listenerInstance = The pointer to the state specific to this listener instance, as created by the WS_CREATE_LISTENER_CALLBACK.
@@ -4624,7 +4630,7 @@ alias WS_GET_LISTENER_PROPERTY_CALLBACK = HRESULT function(void* listenerInstanc
 ///    may return other errors not listed above. </td> </tr> </table>
 ///    
 alias WS_SET_LISTENER_PROPERTY_CALLBACK = HRESULT function(void* listenerInstance, WS_LISTENER_PROPERTY_ID id, 
-                                                           char* value, uint valueSize, WS_ERROR* error);
+                                                           const(void)* value, uint valueSize, WS_ERROR* error);
 ///Handles the WsAcceptChannel call for a WS_CUSTOM_CHANNEL_BINDING.
 ///Params:
 ///    listenerInstance = The pointer to the state specific to this listener instance, as created by the WS_CREATE_LISTENER_CALLBACK.
@@ -4686,7 +4692,8 @@ alias WS_ABORT_LISTENER_CALLBACK = HRESULT function(void* listenerInstance, WS_E
 ///    <td width="40%"> <dl> <dt><b> Other Errors </b></dt> </dl> </td> <td width="60%"> This function may return other
 ///    errors not listed above. </td> </tr> </table>
 ///    
-alias WS_CREATE_CHANNEL_FOR_LISTENER_CALLBACK = HRESULT function(void* listenerInstance, char* channelParameters, 
+alias WS_CREATE_CHANNEL_FOR_LISTENER_CALLBACK = HRESULT function(void* listenerInstance, 
+                                                                 const(void)* channelParameters, 
                                                                  uint channelParametersSize, void** channelInstance, 
                                                                  WS_ERROR* error);
 ///Notifies the caller that the message has completed its use of either the WS_XML_READER structure that was supplied to
@@ -4809,7 +4816,7 @@ alias WS_DURATION_COMPARISON_CALLBACK = HRESULT function(const(WS_DURATION)* dur
 ///    This callback function does not return a value.
 ///    
 alias WS_READ_TYPE_CALLBACK = HRESULT function(WS_XML_READER* reader, WS_TYPE_MAPPING typeMapping, 
-                                               const(void)* descriptionData, WS_HEAP* heap, char* value, 
+                                               const(void)* descriptionData, WS_HEAP* heap, void* value, 
                                                uint valueSize, WS_ERROR* error);
 ///Invoked to write an element when WS_CUSTOM_TYPEhas been specified. This allows writing of XML constructs which do not
 ///easily map to the core serialization model.
@@ -4828,7 +4835,7 @@ alias WS_READ_TYPE_CALLBACK = HRESULT function(WS_XML_READER* reader, WS_TYPE_MA
 ///    This callback function does not return a value.
 ///    
 alias WS_WRITE_TYPE_CALLBACK = HRESULT function(WS_XML_WRITER* writer, WS_TYPE_MAPPING typeMapping, 
-                                                const(void)* descriptionData, char* value, uint valueSize, 
+                                                const(void)* descriptionData, const(void)* value, uint valueSize, 
                                                 WS_ERROR* error);
 ///Determines if a value is the default value. This callback is used before a value that is handled by a WS_CUSTOM_TYPE
 ///is serialized. Support for default values is enabled by specifying when WS_FIELD_OPTIONAL in the
@@ -4845,8 +4852,8 @@ alias WS_WRITE_TYPE_CALLBACK = HRESULT function(WS_XML_WRITER* writer, WS_TYPE_M
 ///    valueSize = The size, in bytes, of the value being serialized.
 ///    isDefault = Whether or not the value is the default value.
 ///    error = Specifies where additional error information should be stored if the function fails.
-alias WS_IS_DEFAULT_VALUE_CALLBACK = HRESULT function(const(void)* descriptionData, char* value, 
-                                                      char* defaultValue, uint valueSize, int* isDefault, 
+alias WS_IS_DEFAULT_VALUE_CALLBACK = HRESULT function(const(void)* descriptionData, const(void)* value, 
+                                                      const(void)* defaultValue, uint valueSize, BOOL* isDefault, 
                                                       WS_ERROR* error);
 ///Invoked when a WS_MESSAGE is received on an endpoint configured with a WS_SERVICE_CONTRACT which has
 ///defaultMessageHandlerCallback set. The incoming WS_MESSAGE, the serviceProxy along with other parameters is made
@@ -4921,7 +4928,7 @@ alias WS_SERVICE_CLOSE_CHANNEL_CALLBACK = HRESULT function(const(WS_OPERATION_CO
 ///    context = The incoming message with headers only.
 ///    authorized = Set to <b>TRUE</b>, if authorization succeeded, <b>FALSE</b> if authorization failed.
 ///    error = Specifies where additional error information should be stored if the function fails.
-alias WS_SERVICE_SECURITY_CALLBACK = HRESULT function(const(WS_OPERATION_CONTEXT)* context, int* authorized, 
+alias WS_SERVICE_SECURITY_CALLBACK = HRESULT function(const(WS_OPERATION_CONTEXT)* context, BOOL* authorized, 
                                                       WS_ERROR* error);
 ///Invoked when the headers of the input message are about to be sent, or when output message headers are just received.
 ///Params:
@@ -5394,9 +5401,9 @@ struct WS_XML_READER_BINARY_ENCODING
 struct WS_STRING
 {
     ///The number of characters in the string.
-    uint    length;
+    uint  length;
     ///The array of characters that make up the string.
-    ushort* chars;
+    PWSTR chars;
 }
 
 ///Used to indicate that the reader should interpret the bytes it reads as in MTOM format.
@@ -7438,7 +7445,7 @@ struct WS_SECURITY_BINDING_PROPERTY_CONSTRAINT
     ///The total size of the allowedValues array, in bytes. This size must be a multiple of the size of the type of the
     ///value of the property.
     uint  allowedValuesSize;
-    struct out_
+struct out_
     {
         WS_SECURITY_BINDING_PROPERTY securityBindingProperty;
     }
@@ -7461,7 +7468,7 @@ struct WS_SSL_TRANSPORT_SECURITY_BINDING_CONSTRAINT
     ///The base binding constraint that this binding constraint derives from. There are no binding-specific properties
     ///are defined for this binding constraint at this time.
     WS_SECURITY_BINDING_CONSTRAINT bindingConstraint;
-    struct out_
+struct out_
     {
         BOOL clientCertCredentialRequired;
     }
@@ -7524,7 +7531,7 @@ struct WS_REQUEST_SECURITY_TOKEN_PROPERTY_CONSTRAINT
     ///The total size of the allowedValues array, in bytes. This size must be a multiple of the size of the type of the
     ///value of the property.
     uint  allowedValuesSize;
-    struct out_
+struct out_
     {
         WS_REQUEST_SECURITY_TOKEN_PROPERTY requestSecurityTokenProperty;
     }
@@ -7551,7 +7558,7 @@ struct WS_ISSUED_TOKEN_MESSAGE_SECURITY_BINDING_CONSTRAINT
     ///The number of elements in the requestSecurityTokenPropertyConstraints array. If the array has zero elements, the
     ///requestSecurityTokenPropertyConstraints field may be <b>NULL</b>.
     uint           requestSecurityTokenPropertyConstraintCount;
-    struct out_
+struct out_
     {
         WS_ENDPOINT_ADDRESS* issuerAddress;
         WS_XML_BUFFER*       requestSecurityTokenTemplate;
@@ -7596,7 +7603,7 @@ struct WS_SECURITY_PROPERTY_CONSTRAINT
     ///The total size of the allowedValues array, in bytes. This size must be a multiple of the size of the type of the
     ///value of the property.
     uint  allowedValuesSize;
-    struct out_
+struct out_
     {
         WS_SECURITY_PROPERTY securityProperty;
     }
@@ -7657,7 +7664,7 @@ struct WS_CHANNEL_PROPERTY_CONSTRAINT
     ///The total size of the <b>allowedValues</b> array, in bytes. This size must be a multiple of the size of the type
     ///of the value of the property.
     uint  allowedValuesSize;
-    struct out_
+struct out_
     {
         WS_CHANNEL_PROPERTY channelProperty;
     }
@@ -7679,7 +7686,7 @@ struct WS_ENDPOINT_POLICY_EXTENSION
     WS_XML_STRING*      assertionName;
     ///Namespace of the assertion to be retrieved as an extension.
     WS_XML_STRING*      assertionNs;
-    struct out_
+struct out_
     {
         WS_XML_BUFFER* assertionValue;
     }
@@ -8189,35 +8196,35 @@ struct WS_TCP_SSPI_KERBEROS_APREQ_SECURITY_CONTEXT_BINDING_TEMPLATE
 
 struct WEBAUTHN_RP_ENTITY_INFORMATION
 {
-    uint          dwVersion;
-    const(wchar)* pwszId;
-    const(wchar)* pwszName;
-    const(wchar)* pwszIcon;
+    uint         dwVersion;
+    const(PWSTR) pwszId;
+    const(PWSTR) pwszName;
+    const(PWSTR) pwszIcon;
 }
 
 struct WEBAUTHN_USER_ENTITY_INFORMATION
 {
-    uint          dwVersion;
-    uint          cbId;
-    ubyte*        pbId;
-    const(wchar)* pwszName;
-    const(wchar)* pwszIcon;
-    const(wchar)* pwszDisplayName;
+    uint         dwVersion;
+    uint         cbId;
+    ubyte*       pbId;
+    const(PWSTR) pwszName;
+    const(PWSTR) pwszIcon;
+    const(PWSTR) pwszDisplayName;
 }
 
 struct WEBAUTHN_CLIENT_DATA
 {
-    uint          dwVersion;
-    uint          cbClientDataJSON;
-    ubyte*        pbClientDataJSON;
-    const(wchar)* pwszHashAlgId;
+    uint         dwVersion;
+    uint         cbClientDataJSON;
+    ubyte*       pbClientDataJSON;
+    const(PWSTR) pwszHashAlgId;
 }
 
 struct WEBAUTHN_COSE_CREDENTIAL_PARAMETER
 {
-    uint          dwVersion;
-    const(wchar)* pwszCredentialType;
-    int           lAlg;
+    uint         dwVersion;
+    const(PWSTR) pwszCredentialType;
+    int          lAlg;
 }
 
 struct WEBAUTHN_COSE_CREDENTIAL_PARAMETERS
@@ -8228,10 +8235,10 @@ struct WEBAUTHN_COSE_CREDENTIAL_PARAMETERS
 
 struct WEBAUTHN_CREDENTIAL
 {
-    uint          dwVersion;
-    uint          cbId;
-    ubyte*        pbId;
-    const(wchar)* pwszCredentialType;
+    uint         dwVersion;
+    uint         cbId;
+    ubyte*       pbId;
+    const(PWSTR) pwszCredentialType;
 }
 
 struct WEBAUTHN_CREDENTIALS
@@ -8242,11 +8249,11 @@ struct WEBAUTHN_CREDENTIALS
 
 struct WEBAUTHN_CREDENTIAL_EX
 {
-    uint          dwVersion;
-    uint          cbId;
-    ubyte*        pbId;
-    const(wchar)* pwszCredentialType;
-    uint          dwTransports;
+    uint         dwVersion;
+    uint         cbId;
+    ubyte*       pbId;
+    const(PWSTR) pwszCredentialType;
+    uint         dwTransports;
 }
 
 struct WEBAUTHN_CREDENTIAL_LIST
@@ -8263,9 +8270,9 @@ struct WEBAUTHN_CRED_PROTECT_EXTENSION_IN
 
 struct WEBAUTHN_EXTENSION
 {
-    const(wchar)* pwszExtensionIdentifier;
-    uint          cbExtension;
-    void*         pvExtension;
+    const(PWSTR) pwszExtensionIdentifier;
+    uint         cbExtension;
+    void*        pvExtension;
 }
 
 struct WEBAUTHN_EXTENSIONS
@@ -8298,8 +8305,8 @@ struct WEBAUTHN_AUTHENTICATOR_GET_ASSERTION_OPTIONS
     uint                 dwAuthenticatorAttachment;
     uint                 dwUserVerificationRequirement;
     uint                 dwFlags;
-    const(wchar)*        pwszU2fAppId;
-    int*                 pbU2fAppId;
+    const(PWSTR)         pwszU2fAppId;
+    BOOL*                pbU2fAppId;
     GUID*                pCancellationId;
     WEBAUTHN_CREDENTIAL_LIST* pAllowCredentialList;
 }
@@ -8313,13 +8320,13 @@ struct WEBAUTHN_X5C
 struct WEBAUTHN_COMMON_ATTESTATION
 {
     uint          dwVersion;
-    const(wchar)* pwszAlg;
+    const(PWSTR)  pwszAlg;
     int           lAlg;
     uint          cbSignature;
     ubyte*        pbSignature;
     uint          cX5c;
     WEBAUTHN_X5C* pX5c;
-    const(wchar)* pwszVer;
+    const(PWSTR)  pwszVer;
     uint          cbCertInfo;
     ubyte*        pbCertInfo;
     uint          cbPubArea;
@@ -8329,7 +8336,7 @@ struct WEBAUTHN_COMMON_ATTESTATION
 struct WEBAUTHN_CREDENTIAL_ATTESTATION
 {
     uint                dwVersion;
-    const(wchar)*       pwszFormatType;
+    const(PWSTR)        pwszFormatType;
     uint                cbAuthenticatorData;
     ubyte*              pbAuthenticatorData;
     uint                cbAttestation;
@@ -8394,8 +8401,8 @@ struct WEBAUTHN_ASSERTION
 ///    
 @DllImport("webservices")
 HRESULT WsStartReaderCanonicalization(WS_XML_READER* reader, WS_WRITE_CALLBACK writeCallback, 
-                                      void* writeCallbackState, char* properties, uint propertyCount, 
-                                      WS_ERROR* error);
+                                      void* writeCallbackState, const(WS_XML_CANONICALIZATION_PROPERTY)* properties, 
+                                      uint propertyCount, WS_ERROR* error);
 
 ///This function stops XML canonicalization started by a preceding WsStartReaderCanonicalization function call. Any
 ///remaining canonical bytes buffered by the reader will be written to the callback function.
@@ -8432,8 +8439,8 @@ HRESULT WsEndReaderCanonicalization(WS_XML_READER* reader, WS_ERROR* error);
 ///    
 @DllImport("webservices")
 HRESULT WsStartWriterCanonicalization(WS_XML_WRITER* writer, WS_WRITE_CALLBACK writeCallback, 
-                                      void* writeCallbackState, char* properties, uint propertyCount, 
-                                      WS_ERROR* error);
+                                      void* writeCallbackState, const(WS_XML_CANONICALIZATION_PROPERTY)* properties, 
+                                      uint propertyCount, WS_ERROR* error);
 
 ///This function stops XML canonicalization started by the preceding WsStartWriterCanonicalization call. Remaining
 ///canonical bytes buffered by the writer are written to the callback function.
@@ -8461,8 +8468,8 @@ HRESULT WsEndWriterCanonicalization(WS_XML_WRITER* writer, WS_ERROR* error);
 ///             empty.
 ///    error = Pointer to a WS_ERROR structure that receives additional error information if the function fails.
 @DllImport("webservices")
-HRESULT WsCreateXmlBuffer(WS_HEAP* heap, char* properties, uint propertyCount, WS_XML_BUFFER** buffer, 
-                          WS_ERROR* error);
+HRESULT WsCreateXmlBuffer(WS_HEAP* heap, const(WS_XML_BUFFER_PROPERTY)* properties, uint propertyCount, 
+                          WS_XML_BUFFER** buffer, WS_ERROR* error);
 
 ///Removes the node at the specified position from the xml buffer. If positioned on an element it will remove the
 ///element including all of its children and its corresponding end element, otherwise it will remove a single node. The
@@ -8490,7 +8497,8 @@ HRESULT WsRemoveNode(const(WS_XML_NODE_POSITION)* nodePosition, WS_ERROR* error)
 ///    If the function succeeds, it returns NO_ERROR; otherwise, it returns an HRESULT error code.
 ///    
 @DllImport("webservices")
-HRESULT WsCreateReader(char* properties, uint propertyCount, WS_XML_READER** reader, WS_ERROR* error);
+HRESULT WsCreateReader(const(WS_XML_READER_PROPERTY)* properties, uint propertyCount, WS_XML_READER** reader, 
+                       WS_ERROR* error);
 
 ///Sets the encoding and input sources for an XML Reader. These settings override settings made when the Reader was
 ///created.<div class="alert"><b>Note</b> If both encoding and input are <b>NULL</b> the reader will operate as if it is
@@ -8511,7 +8519,8 @@ HRESULT WsCreateReader(char* properties, uint propertyCount, WS_XML_READER** rea
 ///    
 @DllImport("webservices")
 HRESULT WsSetInput(WS_XML_READER* reader, const(WS_XML_READER_ENCODING)* encoding, 
-                   const(WS_XML_READER_INPUT)* input, char* properties, uint propertyCount, WS_ERROR* error);
+                   const(WS_XML_READER_INPUT)* input, const(WS_XML_READER_PROPERTY)* properties, uint propertyCount, 
+                   WS_ERROR* error);
 
 ///Sets Reader input to a specified XML buffer. Reader properties specified to <b>WsSetInputToBuffer</b> override
 ///properties set by WsCreateReader. The reader does not modify WS_XML_BUFFER input data. <div class="alert"><b>Note</b>
@@ -8529,8 +8538,8 @@ HRESULT WsSetInput(WS_XML_READER* reader, const(WS_XML_READER_ENCODING)* encodin
 ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("webservices")
-HRESULT WsSetInputToBuffer(WS_XML_READER* reader, WS_XML_BUFFER* buffer, char* properties, uint propertyCount, 
-                           WS_ERROR* error);
+HRESULT WsSetInputToBuffer(WS_XML_READER* reader, WS_XML_BUFFER* buffer, const(WS_XML_READER_PROPERTY)* properties, 
+                           uint propertyCount, WS_ERROR* error);
 
 ///Releases the memory resource associated with an XML_Reader object.
 @DllImport("webservices")
@@ -8549,7 +8558,7 @@ void WsFreeReader(WS_XML_READER* reader);
 ///    error = A pointer to a WS_ERROR object where additional information about the error should be stored if the function
 ///            fails.
 @DllImport("webservices")
-HRESULT WsGetReaderProperty(WS_XML_READER* reader, WS_XML_READER_PROPERTY_ID id, char* value, uint valueSize, 
+HRESULT WsGetReaderProperty(WS_XML_READER* reader, WS_XML_READER_PROPERTY_ID id, void* value, uint valueSize, 
                             WS_ERROR* error);
 
 ///The function returns the XML node at the current position of the XML reader.
@@ -8621,7 +8630,7 @@ HRESULT WsReadStartElement(WS_XML_READER* reader, WS_ERROR* error);
 ///    
 @DllImport("webservices")
 HRESULT WsReadToStartElement(WS_XML_READER* reader, const(WS_XML_STRING)* localName, const(WS_XML_STRING)* ns, 
-                             int* found, WS_ERROR* error);
+                             BOOL* found, WS_ERROR* error);
 
 ///Moves the Reader to the specified attribute so that the content may be read using WsReadValue, WsReadChars, or
 ///WsReadBytes. If the reader is not positioned on a start element then it returns a <b>WS_E_INVALID_FORMAT</b>
@@ -8749,7 +8758,7 @@ HRESULT WsFindAttribute(WS_XML_READER* reader, const(WS_XML_STRING)* localName, 
 ///    <dt><b>WS_E_QUOTA_EXCEEDED</b></dt> </dl> </td> <td width="60%"> A quota was exceeded. </td> </tr> </table>
 ///    
 @DllImport("webservices")
-HRESULT WsReadValue(WS_XML_READER* reader, WS_VALUE_TYPE valueType, char* value, uint valueSize, WS_ERROR* error);
+HRESULT WsReadValue(WS_XML_READER* reader, WS_VALUE_TYPE valueType, void* value, uint valueSize, WS_ERROR* error);
 
 ///Reads a specified number of text characters from the Reader.
 ///Params:
@@ -8768,7 +8777,7 @@ HRESULT WsReadValue(WS_XML_READER* reader, WS_VALUE_TYPE valueType, char* value,
 ///    <dt><b>WS_E_QUOTA_EXCEEDED</b></dt> </dl> </td> <td width="60%"> A quota was exceeded. </td> </tr> </table>
 ///    
 @DllImport("webservices")
-HRESULT WsReadChars(WS_XML_READER* reader, char* chars, uint maxCharCount, uint* actualCharCount, WS_ERROR* error);
+HRESULT WsReadChars(WS_XML_READER* reader, PWSTR chars, uint maxCharCount, uint* actualCharCount, WS_ERROR* error);
 
 ///Reads a specified number of text characters from the reader and returns them encoded in UTF-8.
 ///Params:
@@ -8787,7 +8796,7 @@ HRESULT WsReadChars(WS_XML_READER* reader, char* chars, uint maxCharCount, uint*
 ///    <dt><b>WS_E_QUOTA_EXCEEDED</b></dt> </dl> </td> <td width="60%"> A quota was exceeded. </td> </tr> </table>
 ///    
 @DllImport("webservices")
-HRESULT WsReadCharsUtf8(WS_XML_READER* reader, char* bytes, uint maxByteCount, uint* actualByteCount, 
+HRESULT WsReadCharsUtf8(WS_XML_READER* reader, ubyte* bytes, uint maxByteCount, uint* actualByteCount, 
                         WS_ERROR* error);
 
 ///Reads text from the Reader and decodes the characters as bytes according to the base64 specification.
@@ -8807,7 +8816,7 @@ HRESULT WsReadCharsUtf8(WS_XML_READER* reader, char* bytes, uint maxByteCount, u
 ///    <dt><b>WS_E_QUOTA_EXCEEDED</b></dt> </dl> </td> <td width="60%"> A quota was exceeded. </td> </tr> </table>
 ///    
 @DllImport("webservices")
-HRESULT WsReadBytes(WS_XML_READER* reader, char* bytes, uint maxByteCount, uint* actualByteCount, WS_ERROR* error);
+HRESULT WsReadBytes(WS_XML_READER* reader, void* bytes, uint maxByteCount, uint* actualByteCount, WS_ERROR* error);
 
 ///Reads a series of elements from the reader and interprets their content according to the specified value type.
 ///Params:
@@ -8831,7 +8840,7 @@ HRESULT WsReadBytes(WS_XML_READER* reader, char* bytes, uint maxByteCount, uint*
 ///    
 @DllImport("webservices")
 HRESULT WsReadArray(WS_XML_READER* reader, const(WS_XML_STRING)* localName, const(WS_XML_STRING)* ns, 
-                    WS_VALUE_TYPE valueType, char* array, uint arraySize, uint itemOffset, uint itemCount, 
+                    WS_VALUE_TYPE valueType, void* array, uint arraySize, uint itemOffset, uint itemCount, 
                     uint* actualItemCount, WS_ERROR* error);
 
 ///Returns the current position of the reader. This can only be used on a reader that is set to an XmlBuffer.
@@ -8882,7 +8891,7 @@ HRESULT WsSetReaderPosition(WS_XML_READER* reader, const(WS_XML_NODE_POSITION)* 
 ///    allowed due to the current state of the object. </td> </tr> </table>
 ///    
 @DllImport("webservices")
-HRESULT WsMoveReader(WS_XML_READER* reader, WS_MOVE_TO moveTo, int* found, WS_ERROR* error);
+HRESULT WsMoveReader(WS_XML_READER* reader, WS_MOVE_TO moveTo, BOOL* found, WS_ERROR* error);
 
 ///creates an XML Writer with the specified properties.
 ///Params:
@@ -8898,7 +8907,8 @@ HRESULT WsMoveReader(WS_XML_READER* reader, WS_MOVE_TO moveTo, int* found, WS_ER
 ///    </td> <td width="60%"> One or more arguments are invalid. </td> </tr> </table>
 ///    
 @DllImport("webservices")
-HRESULT WsCreateWriter(char* properties, uint propertyCount, WS_XML_WRITER** writer, WS_ERROR* error);
+HRESULT WsCreateWriter(const(WS_XML_WRITER_PROPERTY)* properties, uint propertyCount, WS_XML_WRITER** writer, 
+                       WS_ERROR* error);
 
 ///Releases the memory resource associated with an XML Writer object.
 ///Params:
@@ -8924,7 +8934,8 @@ void WsFreeWriter(WS_XML_WRITER* writer);
 ///    
 @DllImport("webservices")
 HRESULT WsSetOutput(WS_XML_WRITER* writer, const(WS_XML_WRITER_ENCODING)* encoding, 
-                    const(WS_XML_WRITER_OUTPUT)* output, char* properties, uint propertyCount, WS_ERROR* error);
+                    const(WS_XML_WRITER_OUTPUT)* output, const(WS_XML_WRITER_PROPERTY)* properties, 
+                    uint propertyCount, WS_ERROR* error);
 
 ///This operation positions the Writer at the end of the specified buffer. When an XML Writer has an XML Buffer set as
 ///output the Writer can be used in a "random access" fashion and the functions WsGetWriterPosition, WsSetWriterPosition
@@ -8945,8 +8956,8 @@ HRESULT WsSetOutput(WS_XML_WRITER* writer, const(WS_XML_WRITER_ENCODING)* encodi
 ///    invalid. </td> </tr> </table>
 ///    
 @DllImport("webservices")
-HRESULT WsSetOutputToBuffer(WS_XML_WRITER* writer, WS_XML_BUFFER* buffer, char* properties, uint propertyCount, 
-                            WS_ERROR* error);
+HRESULT WsSetOutputToBuffer(WS_XML_WRITER* writer, WS_XML_BUFFER* buffer, 
+                            const(WS_XML_WRITER_PROPERTY)* properties, uint propertyCount, WS_ERROR* error);
 
 ///Retrieves a specified XML Writer property. The property to retrieve is identified by a WS_XML WRITER_PROPERTY_ID
 ///input parameter.
@@ -8959,7 +8970,7 @@ HRESULT WsSetOutputToBuffer(WS_XML_WRITER* writer, WS_XML_BUFFER* buffer, char* 
 ///    error = A pointer to a WS_ERROR object where additional information about the error should be stored if the function
 ///            fails.
 @DllImport("webservices")
-HRESULT WsGetWriterProperty(WS_XML_WRITER* writer, WS_XML_WRITER_PROPERTY_ID id, char* value, uint valueSize, 
+HRESULT WsGetWriterProperty(WS_XML_WRITER* writer, WS_XML_WRITER_PROPERTY_ID id, void* value, uint valueSize, 
                             WS_ERROR* error);
 
 ///Instructs the writer to invoke the callbackspecified in WS_XML_WRITER_STREAM_OUTPUT if sufficient data has been
@@ -9112,7 +9123,8 @@ HRESULT WsWriteEndAttribute(WS_XML_WRITER* writer, WS_ERROR* error);
 ///    width="60%"> The operation is not allowed due to the current state of the object. </td> </tr> </table>
 ///    
 @DllImport("webservices")
-HRESULT WsWriteValue(WS_XML_WRITER* writer, WS_VALUE_TYPE valueType, char* value, uint valueSize, WS_ERROR* error);
+HRESULT WsWriteValue(WS_XML_WRITER* writer, WS_VALUE_TYPE valueType, const(void)* value, uint valueSize, 
+                     WS_ERROR* error);
 
 ///Writes a WS_XML_BUFFER to a writer.
 ///Params:
@@ -9168,8 +9180,8 @@ HRESULT WsReadXmlBuffer(WS_XML_READER* reader, WS_HEAP* heap, WS_XML_BUFFER** xm
 ///    
 @DllImport("webservices")
 HRESULT WsWriteXmlBufferToBytes(WS_XML_WRITER* writer, WS_XML_BUFFER* xmlBuffer, 
-                                const(WS_XML_WRITER_ENCODING)* encoding, char* properties, uint propertyCount, 
-                                WS_HEAP* heap, void** bytes, uint* byteCount, WS_ERROR* error);
+                                const(WS_XML_WRITER_ENCODING)* encoding, const(WS_XML_WRITER_PROPERTY)* properties, 
+                                uint propertyCount, WS_HEAP* heap, void** bytes, uint* byteCount, WS_ERROR* error);
 
 ///Uses a reader to convert a set of encoded bytes to a WS_XML_BUFFER.
 ///Params:
@@ -9192,9 +9204,9 @@ HRESULT WsWriteXmlBufferToBytes(WS_XML_WRITER* writer, WS_XML_BUFFER* xmlBuffer,
 ///    </tr> </table>
 ///    
 @DllImport("webservices")
-HRESULT WsReadXmlBufferFromBytes(WS_XML_READER* reader, const(WS_XML_READER_ENCODING)* encoding, char* properties, 
-                                 uint propertyCount, char* bytes, uint byteCount, WS_HEAP* heap, 
-                                 WS_XML_BUFFER** xmlBuffer, WS_ERROR* error);
+HRESULT WsReadXmlBufferFromBytes(WS_XML_READER* reader, const(WS_XML_READER_ENCODING)* encoding, 
+                                 const(WS_XML_READER_PROPERTY)* properties, uint propertyCount, const(void)* bytes, 
+                                 uint byteCount, WS_HEAP* heap, WS_XML_BUFFER** xmlBuffer, WS_ERROR* error);
 
 ///This operation sends a series of elements to an XML Writer.
 ///Params:
@@ -9215,7 +9227,7 @@ HRESULT WsReadXmlBufferFromBytes(WS_XML_READER* reader, const(WS_XML_READER_ENCO
 ///    
 @DllImport("webservices")
 HRESULT WsWriteArray(WS_XML_WRITER* writer, const(WS_XML_STRING)* localName, const(WS_XML_STRING)* ns, 
-                     WS_VALUE_TYPE valueType, char* array, uint arraySize, uint itemOffset, uint itemCount, 
+                     WS_VALUE_TYPE valueType, const(void)* array, uint arraySize, uint itemOffset, uint itemCount, 
                      WS_ERROR* error);
 
 ///Writes an XML qualified name to the Writer.
@@ -9258,7 +9270,7 @@ HRESULT WsWriteQualifiedName(WS_XML_WRITER* writer, const(WS_XML_STRING)* prefix
 ///    width="60%"> The operation is not allowed due to the current state of the object. </td> </tr> </table>
 ///    
 @DllImport("webservices")
-HRESULT WsWriteChars(WS_XML_WRITER* writer, const(wchar)* chars, uint charCount, WS_ERROR* error);
+HRESULT WsWriteChars(WS_XML_WRITER* writer, const(PWSTR) chars, uint charCount, WS_ERROR* error);
 
 ///Writes a series of characters encoded as UTF-8 to an element or attribute. To write characters to an attribute value,
 ///call WsWriteStartAttribute first. Only whitespace characters may be written at the root of an xml document unless the
@@ -9277,7 +9289,7 @@ HRESULT WsWriteChars(WS_XML_WRITER* writer, const(wchar)* chars, uint charCount,
 ///    width="60%"> The operation is not allowed due to the current state of the object. </td> </tr> </table>
 ///    
 @DllImport("webservices")
-HRESULT WsWriteCharsUtf8(WS_XML_WRITER* writer, char* bytes, uint byteCount, WS_ERROR* error);
+HRESULT WsWriteCharsUtf8(WS_XML_WRITER* writer, const(ubyte)* bytes, uint byteCount, WS_ERROR* error);
 
 ///Writes bytes to the writer in a format optimized for the encoding. When writing in a text encoding, it will emit the
 ///bytes encoded in base64. When writing to a binary format, it will emit the bytes directly.
@@ -9295,7 +9307,7 @@ HRESULT WsWriteCharsUtf8(WS_XML_WRITER* writer, char* bytes, uint byteCount, WS_
 ///    </tr> </table>
 ///    
 @DllImport("webservices")
-HRESULT WsWriteBytes(WS_XML_WRITER* writer, char* bytes, uint byteCount, WS_ERROR* error);
+HRESULT WsWriteBytes(WS_XML_WRITER* writer, const(void)* bytes, uint byteCount, WS_ERROR* error);
 
 ///Establishes a callback to be invoked to write bytes within an element. In some encodings this can be more efficient
 ///by eliminating a copy of the data.
@@ -9468,7 +9480,7 @@ HRESULT WsSetWriterPosition(WS_XML_WRITER* writer, const(WS_XML_NODE_POSITION)* 
 ///    expected format or did not have the expected value. </td> </tr> </table>
 ///    
 @DllImport("webservices")
-HRESULT WsMoveWriter(WS_XML_WRITER* writer, WS_MOVE_TO moveTo, int* found, WS_ERROR* error);
+HRESULT WsMoveWriter(WS_XML_WRITER* writer, WS_MOVE_TO moveTo, BOOL* found, WS_ERROR* error);
 
 ///Removes leading and trailing whitespace from a sequence of characters.
 ///Params:
@@ -9482,7 +9494,7 @@ HRESULT WsMoveWriter(WS_XML_WRITER* writer, WS_MOVE_TO moveTo, int* found, WS_ER
 ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("webservices")
-HRESULT WsTrimXmlWhitespace(char* chars, uint charCount, ushort** trimmedChars, uint* trimmedCount, 
+HRESULT WsTrimXmlWhitespace(PWSTR chars, uint charCount, ushort** trimmedChars, uint* trimmedCount, 
                             WS_ERROR* error);
 
 ///Verifies whether the input string is a valid XML NCName.
@@ -9491,7 +9503,7 @@ HRESULT WsTrimXmlWhitespace(char* chars, uint charCount, ushort** trimmedChars, 
 ///    ncNameCharCount = The length of the <i>ncNameChars</i> string.
 ///    error = Specifies where additional error information should be stored if the function fails.
 @DllImport("webservices")
-HRESULT WsVerifyXmlNCName(const(wchar)* ncNameChars, uint ncNameCharCount, WS_ERROR* error);
+HRESULT WsVerifyXmlNCName(const(PWSTR) ncNameChars, uint ncNameCharCount, WS_ERROR* error);
 
 ///Compares two WS_XML_STRING objects for equality. The operation performs an ordinal comparison of the character values
 ///contained by the String objects.
@@ -9628,9 +9640,9 @@ HRESULT WsAsyncExecute(WS_ASYNC_STATE* asyncState, WS_ASYNC_FUNCTION operation, 
 ///    return other errors not listed above. </td> </tr> </table>
 ///    
 @DllImport("webservices")
-HRESULT WsCreateChannel(WS_CHANNEL_TYPE channelType, WS_CHANNEL_BINDING channelBinding, char* properties, 
-                        uint propertyCount, const(WS_SECURITY_DESCRIPTION)* securityDescription, 
-                        WS_CHANNEL** channel, WS_ERROR* error);
+HRESULT WsCreateChannel(WS_CHANNEL_TYPE channelType, WS_CHANNEL_BINDING channelBinding, 
+                        const(WS_CHANNEL_PROPERTY)* properties, uint propertyCount, 
+                        const(WS_SECURITY_DESCRIPTION)* securityDescription, WS_CHANNEL** channel, WS_ERROR* error);
 
 ///Open a channel to an endpoint.
 ///Params:
@@ -9772,7 +9784,7 @@ HRESULT WsOpenChannel(WS_CHANNEL* channel, const(WS_ENDPOINT_ADDRESS)* endpointA
 ///    
 @DllImport("webservices")
 HRESULT WsSendMessage(WS_CHANNEL* channel, WS_MESSAGE* message, const(WS_MESSAGE_DESCRIPTION)* messageDescription, 
-                      WS_WRITE_OPTION writeOption, char* bodyValue, uint bodyValueSize, 
+                      WS_WRITE_OPTION writeOption, const(void)* bodyValue, uint bodyValueSize, 
                       const(WS_ASYNC_CONTEXT)* asyncContext, WS_ERROR* error);
 
 ///Receive a message and deserialize the body of the message as a value.
@@ -9865,10 +9877,10 @@ HRESULT WsSendMessage(WS_CHANNEL* channel, WS_MESSAGE* message, const(WS_MESSAGE
 ///    other errors not listed above. </td> </tr> </table>
 ///    
 @DllImport("webservices")
-HRESULT WsReceiveMessage(WS_CHANNEL* channel, WS_MESSAGE* message, char* messageDescriptions, 
-                         uint messageDescriptionCount, WS_RECEIVE_OPTION receiveOption, 
-                         WS_READ_OPTION readBodyOption, WS_HEAP* heap, char* value, uint valueSize, uint* index, 
-                         const(WS_ASYNC_CONTEXT)* asyncContext, WS_ERROR* error);
+HRESULT WsReceiveMessage(WS_CHANNEL* channel, WS_MESSAGE* message, 
+                         const(WS_MESSAGE_DESCRIPTION)** messageDescriptions, uint messageDescriptionCount, 
+                         WS_RECEIVE_OPTION receiveOption, WS_READ_OPTION readBodyOption, WS_HEAP* heap, void* value, 
+                         uint valueSize, uint* index, const(WS_ASYNC_CONTEXT)* asyncContext, WS_ERROR* error);
 
 ///Used to send a request message and receive a correlated reply message.
 ///Params:
@@ -9965,9 +9977,9 @@ HRESULT WsReceiveMessage(WS_CHANNEL* channel, WS_MESSAGE* message, char* message
 @DllImport("webservices")
 HRESULT WsRequestReply(WS_CHANNEL* channel, WS_MESSAGE* requestMessage, 
                        const(WS_MESSAGE_DESCRIPTION)* requestMessageDescription, WS_WRITE_OPTION writeOption, 
-                       char* requestBodyValue, uint requestBodyValueSize, WS_MESSAGE* replyMessage, 
+                       const(void)* requestBodyValue, uint requestBodyValueSize, WS_MESSAGE* replyMessage, 
                        const(WS_MESSAGE_DESCRIPTION)* replyMessageDescription, WS_READ_OPTION readOption, 
-                       WS_HEAP* heap, char* value, uint valueSize, const(WS_ASYNC_CONTEXT)* asyncContext, 
+                       WS_HEAP* heap, void* value, uint valueSize, const(WS_ASYNC_CONTEXT)* asyncContext, 
                        WS_ERROR* error);
 
 ///Sends a message which is a reply to a received message.
@@ -10021,7 +10033,7 @@ HRESULT WsRequestReply(WS_CHANNEL* channel, WS_MESSAGE* requestMessage,
 @DllImport("webservices")
 HRESULT WsSendReplyMessage(WS_CHANNEL* channel, WS_MESSAGE* replyMessage, 
                            const(WS_MESSAGE_DESCRIPTION)* replyMessageDescription, WS_WRITE_OPTION writeOption, 
-                           char* replyBodyValue, uint replyBodyValueSize, WS_MESSAGE* requestMessage, 
+                           const(void)* replyBodyValue, uint replyBodyValueSize, WS_MESSAGE* requestMessage, 
                            const(WS_ASYNC_CONTEXT)* asyncContext, WS_ERROR* error);
 
 ///Sends a fault message given a WS_ERROR object.
@@ -10077,7 +10089,7 @@ HRESULT WsSendFaultMessageForError(WS_CHANNEL* channel, WS_MESSAGE* replyMessage
 ///    error = A pointer to a WS_ERROR object where additional information about the error should be stored if the function
 ///            fails.
 @DllImport("webservices")
-HRESULT WsGetChannelProperty(WS_CHANNEL* channel, WS_CHANNEL_PROPERTY_ID id, char* value, uint valueSize, 
+HRESULT WsGetChannelProperty(WS_CHANNEL* channel, WS_CHANNEL_PROPERTY_ID id, void* value, uint valueSize, 
                              WS_ERROR* error);
 
 ///Sets a property of the channel.
@@ -10090,7 +10102,7 @@ HRESULT WsGetChannelProperty(WS_CHANNEL* channel, WS_CHANNEL_PROPERTY_ID id, cha
 ///    error = A pointer to a WS_ERROR object where additional information about the error should be stored if the function
 ///            fails.
 @DllImport("webservices")
-HRESULT WsSetChannelProperty(WS_CHANNEL* channel, WS_CHANNEL_PROPERTY_ID id, char* value, uint valueSize, 
+HRESULT WsSetChannelProperty(WS_CHANNEL* channel, WS_CHANNEL_PROPERTY_ID id, const(void)* value, uint valueSize, 
                              WS_ERROR* error);
 
 ///Write out all the headers of the message to the channel, and prepare to write the body elements.
@@ -10488,7 +10500,7 @@ HRESULT WsShutdownSessionChannel(WS_CHANNEL* channel, const(WS_ASYNC_CONTEXT)* a
 ///    error = Specifies where additional error information should be stored if the function fails.
 @DllImport("webservices")
 HRESULT WsGetOperationContextProperty(const(WS_OPERATION_CONTEXT)* context, 
-                                      const(WS_OPERATION_CONTEXT_PROPERTY_ID) id, char* value, uint valueSize, 
+                                      const(WS_OPERATION_CONTEXT_PROPERTY_ID) id, void* value, uint valueSize, 
                                       WS_ERROR* error);
 
 ///Retrieves an XML Dictionary object. The retrieved Dictionary is returned by the <i>dictionary</i> reference
@@ -10531,7 +10543,7 @@ HRESULT WsGetDictionary(WS_ENCODING encoding, WS_XML_DICTIONARY** dictionary, WS
 @DllImport("webservices")
 HRESULT WsReadEndpointAddressExtension(WS_XML_READER* reader, WS_ENDPOINT_ADDRESS* endpointAddress, 
                                        WS_ENDPOINT_ADDRESS_EXTENSION_TYPE extensionType, WS_READ_OPTION readOption, 
-                                       WS_HEAP* heap, char* value, uint valueSize, WS_ERROR* error);
+                                       WS_HEAP* heap, void* value, uint valueSize, WS_ERROR* error);
 
 ///Creates an error object that can passed to functions to record rich error information.
 ///Params:
@@ -10547,7 +10559,7 @@ HRESULT WsReadEndpointAddressExtension(WS_XML_READER* reader, WS_ENDPOINT_ADDRES
 ///    return other errors not listed above. </td> </tr> </table>
 ///    
 @DllImport("webservices")
-HRESULT WsCreateError(char* properties, uint propertyCount, WS_ERROR** error);
+HRESULT WsCreateError(const(WS_ERROR_PROPERTY)* properties, uint propertyCount, WS_ERROR** error);
 
 ///Adds a specified error string to the error object.
 ///Params:
@@ -10596,7 +10608,7 @@ HRESULT WsCopyError(WS_ERROR* source, WS_ERROR* destination);
 ///    buffer = A pointer referencing the location to store the retrieved property.
 ///    bufferSize = The number of bytes allocated by the caller to store the retrieved property.
 @DllImport("webservices")
-HRESULT WsGetErrorProperty(WS_ERROR* error, WS_ERROR_PROPERTY_ID id, char* buffer, uint bufferSize);
+HRESULT WsGetErrorProperty(WS_ERROR* error, WS_ERROR_PROPERTY_ID id, void* buffer, uint bufferSize);
 
 ///Sets an WS_ERROR object property.
 ///Params:
@@ -10607,7 +10619,7 @@ HRESULT WsGetErrorProperty(WS_ERROR* error, WS_ERROR_PROPERTY_ID id, char* buffe
 ///            property.
 ///    valueSize = The size in bytes of the property value.
 @DllImport("webservices")
-HRESULT WsSetErrorProperty(WS_ERROR* error, WS_ERROR_PROPERTY_ID id, char* value, uint valueSize);
+HRESULT WsSetErrorProperty(WS_ERROR* error, WS_ERROR_PROPERTY_ID id, const(void)* value, uint valueSize);
 
 ///Releases the content of the <i>error</i> object parameter but does not release the resource allocated to the
 ///<i>error</i> object parameter. <div class="alert"><b>Note</b> The "reset" effect of this function returns the
@@ -10636,7 +10648,7 @@ void WsFreeError(WS_ERROR* error);
 ///             The pointer must have an alignment compatible with the type of the property.</div> <div> </div>
 ///    bufferSize = The number of bytes allocated by the caller to store the retrieved property.
 @DllImport("webservices")
-HRESULT WsGetFaultErrorProperty(WS_ERROR* error, WS_FAULT_ERROR_PROPERTY_ID id, char* buffer, uint bufferSize);
+HRESULT WsGetFaultErrorProperty(WS_ERROR* error, WS_FAULT_ERROR_PROPERTY_ID id, void* buffer, uint bufferSize);
 
 ///Set a Fault property of a WS_ERROR object.
 ///Params:
@@ -10646,7 +10658,7 @@ HRESULT WsGetFaultErrorProperty(WS_ERROR* error, WS_FAULT_ERROR_PROPERTY_ID id, 
 ///    value = The property value to set. The pointer must have an alignment compatible with the type of the property.
 ///    valueSize = The size in bytes of the property value.
 @DllImport("webservices")
-HRESULT WsSetFaultErrorProperty(WS_ERROR* error, WS_FAULT_ERROR_PROPERTY_ID id, char* value, uint valueSize);
+HRESULT WsSetFaultErrorProperty(WS_ERROR* error, WS_FAULT_ERROR_PROPERTY_ID id, const(void)* value, uint valueSize);
 
 ///Constructs a WS_FAULT from a specified error object.
 ///Params:
@@ -10690,7 +10702,7 @@ HRESULT WsCreateFaultFromError(WS_ERROR* error, HRESULT faultErrorCode, WS_FAULT
 ///    
 @DllImport("webservices")
 HRESULT WsSetFaultErrorDetail(WS_ERROR* error, const(WS_FAULT_DETAIL_DESCRIPTION)* faultDetailDescription, 
-                              WS_WRITE_OPTION writeOption, char* value, uint valueSize);
+                              WS_WRITE_OPTION writeOption, const(void)* value, uint valueSize);
 
 ///Read the fault detail stored in a WS_ERROR object.
 ///Params:
@@ -10716,7 +10728,7 @@ HRESULT WsSetFaultErrorDetail(WS_ERROR* error, const(WS_FAULT_DETAIL_DESCRIPTION
 ///    
 @DllImport("webservices")
 HRESULT WsGetFaultErrorDetail(WS_ERROR* error, const(WS_FAULT_DETAIL_DESCRIPTION)* faultDetailDescription, 
-                              WS_READ_OPTION readOption, WS_HEAP* heap, char* value, uint valueSize);
+                              WS_READ_OPTION readOption, WS_HEAP* heap, void* value, uint valueSize);
 
 ///Creates a heap object.
 ///Params:
@@ -10766,7 +10778,7 @@ HRESULT WsAlloc(WS_HEAP* heap, size_t size, void** ptr, WS_ERROR* error);
 ///    error = A pointer to a WS_ERROR object where additional information about the error should be stored if the function
 ///            fails.
 @DllImport("webservices")
-HRESULT WsGetHeapProperty(WS_HEAP* heap, WS_HEAP_PROPERTY_ID id, char* value, uint valueSize, WS_ERROR* error);
+HRESULT WsGetHeapProperty(WS_HEAP* heap, WS_HEAP_PROPERTY_ID id, void* value, uint valueSize, WS_ERROR* error);
 
 ///Releases all Heap allocations. Allocations made on the Heap using WsAlloc are no longer valid. Allocation for the
 ///Heap object itself is not released.
@@ -10809,9 +10821,10 @@ void WsFreeHeap(WS_HEAP* heap);
 ///    This function may return other errors not listed above. </td> </tr> </table>
 ///    
 @DllImport("webservices")
-HRESULT WsCreateListener(WS_CHANNEL_TYPE channelType, WS_CHANNEL_BINDING channelBinding, char* properties, 
-                         uint propertyCount, const(WS_SECURITY_DESCRIPTION)* securityDescription, 
-                         WS_LISTENER** listener, WS_ERROR* error);
+HRESULT WsCreateListener(WS_CHANNEL_TYPE channelType, WS_CHANNEL_BINDING channelBinding, 
+                         const(WS_LISTENER_PROPERTY)* properties, uint propertyCount, 
+                         const(WS_SECURITY_DESCRIPTION)* securityDescription, WS_LISTENER** listener, 
+                         WS_ERROR* error);
 
 ///Initiates "listening" on a specified address. Once a listener is opened channels can be accepted from it. If the open
 ///is successful the Listener must be closed using the WsCloseListener function before Listener resources can be
@@ -10949,7 +10962,7 @@ void WsFreeListener(WS_LISTENER* listener);
 ///    error = A pointer to a WS_ERROR object where additional information about the error should be stored if the function
 ///            fails.
 @DllImport("webservices")
-HRESULT WsGetListenerProperty(WS_LISTENER* listener, WS_LISTENER_PROPERTY_ID id, char* value, uint valueSize, 
+HRESULT WsGetListenerProperty(WS_LISTENER* listener, WS_LISTENER_PROPERTY_ID id, void* value, uint valueSize, 
                               WS_ERROR* error);
 
 ///Sets a Listenerobject property.
@@ -10963,8 +10976,8 @@ HRESULT WsGetListenerProperty(WS_LISTENER* listener, WS_LISTENER_PROPERTY_ID id,
 ///    error = A pointer to a WS_ERROR object where additional information about the error should be stored if the function
 ///            fails.
 @DllImport("webservices")
-HRESULT WsSetListenerProperty(WS_LISTENER* listener, WS_LISTENER_PROPERTY_ID id, char* value, uint valueSize, 
-                              WS_ERROR* error);
+HRESULT WsSetListenerProperty(WS_LISTENER* listener, WS_LISTENER_PROPERTY_ID id, const(void)* value, 
+                              uint valueSize, WS_ERROR* error);
 
 ///Creates a channel associated with a specified listener.
 ///Params:
@@ -10986,8 +10999,8 @@ HRESULT WsSetListenerProperty(WS_LISTENER* listener, WS_LISTENER_PROPERTY_ID id,
 ///    return other errors not listed above. </td> </tr> </table>
 ///    
 @DllImport("webservices")
-HRESULT WsCreateChannelForListener(WS_LISTENER* listener, char* properties, uint propertyCount, 
-                                   WS_CHANNEL** channel, WS_ERROR* error);
+HRESULT WsCreateChannelForListener(WS_LISTENER* listener, const(WS_CHANNEL_PROPERTY)* properties, 
+                                   uint propertyCount, WS_CHANNEL** channel, WS_ERROR* error);
 
 ///Creates a message object with the specified properties.
 ///Params:
@@ -11009,7 +11022,8 @@ HRESULT WsCreateChannelForListener(WS_LISTENER* listener, char* properties, uint
 ///    
 @DllImport("webservices")
 HRESULT WsCreateMessage(WS_ENVELOPE_VERSION envelopeVersion, WS_ADDRESSING_VERSION addressingVersion, 
-                        char* properties, uint propertyCount, WS_MESSAGE** message, WS_ERROR* error);
+                        const(WS_MESSAGE_PROPERTY)* properties, uint propertyCount, WS_MESSAGE** message, 
+                        WS_ERROR* error);
 
 ///Creates a message for use with a specified channel.
 ///Params:
@@ -11029,8 +11043,8 @@ HRESULT WsCreateMessage(WS_ENVELOPE_VERSION envelopeVersion, WS_ADDRESSING_VERSI
 ///    errors not listed above. </td> </tr> </table>
 ///    
 @DllImport("webservices")
-HRESULT WsCreateMessageForChannel(WS_CHANNEL* channel, char* properties, uint propertyCount, WS_MESSAGE** message, 
-                                  WS_ERROR* error);
+HRESULT WsCreateMessageForChannel(WS_CHANNEL* channel, const(WS_MESSAGE_PROPERTY)* properties, uint propertyCount, 
+                                  WS_MESSAGE** message, WS_ERROR* error);
 
 ///This function initializes the headers for the message in preparation for processing. After a message has been
 ///initialized an application can add additional headers. On success the message is in WS_MESSAGE_STATE_INITIALIZED
@@ -11122,7 +11136,7 @@ HRESULT WsGetHeaderAttributes(WS_MESSAGE* message, WS_XML_READER* reader, uint* 
 ///    
 @DllImport("webservices")
 HRESULT WsGetHeader(WS_MESSAGE* message, WS_HEADER_TYPE headerType, WS_TYPE valueType, WS_READ_OPTION readOption, 
-                    WS_HEAP* heap, char* value, uint valueSize, WS_ERROR* error);
+                    WS_HEAP* heap, void* value, uint valueSize, WS_ERROR* error);
 
 ///Finds an application-defined header of the message and deserializes it.
 ///Params:
@@ -11155,7 +11169,7 @@ HRESULT WsGetHeader(WS_MESSAGE* message, WS_HEADER_TYPE headerType, WS_TYPE valu
 @DllImport("webservices")
 HRESULT WsGetCustomHeader(WS_MESSAGE* message, const(WS_ELEMENT_DESCRIPTION)* customHeaderDescription, 
                           WS_REPEATING_HEADER_OPTION repeatingOption, uint headerIndex, WS_READ_OPTION readOption, 
-                          WS_HEAP* heap, char* value, uint valueSize, uint* headerAttributes, WS_ERROR* error);
+                          WS_HEAP* heap, void* value, uint valueSize, uint* headerAttributes, WS_ERROR* error);
 
 ///Removes the standard WS_HEADER_TYPE object from a message. The function is designed to handle types of headers that
 ///appear once in the message and are targeted at the ultimate receiver. Headers targeted with a role other than
@@ -11200,7 +11214,7 @@ HRESULT WsRemoveHeader(WS_MESSAGE* message, WS_HEADER_TYPE headerType, WS_ERROR*
 ///    
 @DllImport("webservices")
 HRESULT WsSetHeader(WS_MESSAGE* message, WS_HEADER_TYPE headerType, WS_TYPE valueType, WS_WRITE_OPTION writeOption, 
-                    char* value, uint valueSize, WS_ERROR* error);
+                    const(void)* value, uint valueSize, WS_ERROR* error);
 
 ///Removes a custom header from the message. This function is designed to handle types of headers that appear once in
 ///the message and are targeted at the ultimate receiver. Headers targeted with a role other than ultimate receiver are
@@ -11248,7 +11262,7 @@ HRESULT WsRemoveCustomHeader(WS_MESSAGE* message, const(WS_XML_STRING)* headerNa
 ///    
 @DllImport("webservices")
 HRESULT WsAddCustomHeader(WS_MESSAGE* message, const(WS_ELEMENT_DESCRIPTION)* headerDescription, 
-                          WS_WRITE_OPTION writeOption, char* value, uint valueSize, uint headerAttributes, 
+                          WS_WRITE_OPTION writeOption, const(void)* value, uint valueSize, uint headerAttributes, 
                           WS_ERROR* error);
 
 ///Adds a specified mapped header to the message.
@@ -11272,7 +11286,7 @@ HRESULT WsAddCustomHeader(WS_MESSAGE* message, const(WS_ELEMENT_DESCRIPTION)* he
 ///    
 @DllImport("webservices")
 HRESULT WsAddMappedHeader(WS_MESSAGE* message, const(WS_XML_STRING)* headerName, WS_TYPE valueType, 
-                          WS_WRITE_OPTION writeOption, char* value, uint valueSize, WS_ERROR* error);
+                          WS_WRITE_OPTION writeOption, const(void)* value, uint valueSize, WS_ERROR* error);
 
 ///Removes all instances of a mapped header from the message.
 ///Params:
@@ -11318,7 +11332,7 @@ HRESULT WsRemoveMappedHeader(WS_MESSAGE* message, const(WS_XML_STRING)* headerNa
 @DllImport("webservices")
 HRESULT WsGetMappedHeader(WS_MESSAGE* message, const(WS_XML_STRING)* headerName, 
                           WS_REPEATING_HEADER_OPTION repeatingOption, uint headerIndex, WS_TYPE valueType, 
-                          WS_READ_OPTION readOption, WS_HEAP* heap, char* value, uint valueSize, WS_ERROR* error);
+                          WS_READ_OPTION readOption, WS_HEAP* heap, void* value, uint valueSize, WS_ERROR* error);
 
 ///Writes a value in the body of a message. This is a helper function that serializes a value to the XML Writer of the
 ///message. The message state must be set to <b>WS_MESSAGE_STATE_WRITING</b>. This function does not cause any state
@@ -11343,7 +11357,7 @@ HRESULT WsGetMappedHeader(WS_MESSAGE* message, const(WS_XML_STRING)* headerName,
 ///    
 @DllImport("webservices")
 HRESULT WsWriteBody(WS_MESSAGE* message, const(WS_ELEMENT_DESCRIPTION)* bodyDescription, 
-                    WS_WRITE_OPTION writeOption, char* value, uint valueSize, WS_ERROR* error);
+                    WS_WRITE_OPTION writeOption, const(void)* value, uint valueSize, WS_ERROR* error);
 
 ///This is a helper function that deserializes a value from the XML Readerof the message. The WS_MESSAGE_STATE must be
 ///set to <b>WS_MESSAGE_STATE_READING</b>. This function does not cause any state transitions.
@@ -11368,7 +11382,7 @@ HRESULT WsWriteBody(WS_MESSAGE* message, const(WS_ELEMENT_DESCRIPTION)* bodyDesc
 ///    
 @DllImport("webservices")
 HRESULT WsReadBody(WS_MESSAGE* message, const(WS_ELEMENT_DESCRIPTION)* bodyDescription, WS_READ_OPTION readOption, 
-                   WS_HEAP* heap, char* value, uint valueSize, WS_ERROR* error);
+                   WS_HEAP* heap, void* value, uint valueSize, WS_ERROR* error);
 
 ///Writes the start of the message including the current set of headers of the message and prepares to write the body
 ///elementss. This function is designed for writing messages to destinations other than channels. To write a message to
@@ -11480,7 +11494,7 @@ HRESULT WsReadEnvelopeEnd(WS_MESSAGE* message, WS_ERROR* error);
 ///    error = A pointer to a WS_ERROR object where additional information about the error should be stored if the function
 ///            fails.
 @DllImport("webservices")
-HRESULT WsGetMessageProperty(WS_MESSAGE* message, WS_MESSAGE_PROPERTY_ID id, char* value, uint valueSize, 
+HRESULT WsGetMessageProperty(WS_MESSAGE* message, WS_MESSAGE_PROPERTY_ID id, void* value, uint valueSize, 
                              WS_ERROR* error);
 
 ///This operation sets a Messageproperty.
@@ -11494,7 +11508,7 @@ HRESULT WsGetMessageProperty(WS_MESSAGE* message, WS_MESSAGE_PROPERTY_ID id, cha
 ///    error = A pointer to a WS_ERROR object where additional information about the error should be stored if the function
 ///            fails.
 @DllImport("webservices")
-HRESULT WsSetMessageProperty(WS_MESSAGE* message, WS_MESSAGE_PROPERTY_ID id, char* value, uint valueSize, 
+HRESULT WsSetMessageProperty(WS_MESSAGE* message, WS_MESSAGE_PROPERTY_ID id, const(void)* value, uint valueSize, 
                              WS_ERROR* error);
 
 ///Addresses a message to a specified endpoint address.
@@ -11647,8 +11661,9 @@ HRESULT WsFlushBody(WS_MESSAGE* message, uint minSize, const(WS_ASYNC_CONTEXT)* 
 ///    pending. </td> </tr> </table>
 ///    
 @DllImport("webservices")
-HRESULT WsRequestSecurityToken(WS_CHANNEL* channel, char* properties, uint propertyCount, 
-                               WS_SECURITY_TOKEN** token, const(WS_ASYNC_CONTEXT)* asyncContext, WS_ERROR* error);
+HRESULT WsRequestSecurityToken(WS_CHANNEL* channel, const(WS_REQUEST_SECURITY_TOKEN_PROPERTY)* properties, 
+                               uint propertyCount, WS_SECURITY_TOKEN** token, const(WS_ASYNC_CONTEXT)* asyncContext, 
+                               WS_ERROR* error);
 
 ///Extracts a field or a property from a security token. If the queried property does not use the <i>heap</i> parameter,
 ///the returned data is owned by the security token and remains valid as long as the security token itself remains
@@ -11665,7 +11680,7 @@ HRESULT WsRequestSecurityToken(WS_CHANNEL* channel, char* properties, uint prope
 ///           WS_SECURITY_TOKEN_PROPERTY_SYMMETRIC_KEY and must be <b>NULL</b> otherwise.
 ///    error = Specifies where additional error information should be stored if the function fails.
 @DllImport("webservices")
-HRESULT WsGetSecurityTokenProperty(WS_SECURITY_TOKEN* securityToken, WS_SECURITY_TOKEN_PROPERTY_ID id, char* value, 
+HRESULT WsGetSecurityTokenProperty(WS_SECURITY_TOKEN* securityToken, WS_SECURITY_TOKEN_PROPERTY_ID id, void* value, 
                                    uint valueSize, WS_HEAP* heap, WS_ERROR* error);
 
 ///Creates a security token from its specified XML form.
@@ -11693,8 +11708,9 @@ HRESULT WsGetSecurityTokenProperty(WS_SECURITY_TOKEN* securityToken, WS_SECURITY
 ///            service.
 ///    error = Pointer to a WS_ERROR structure that receives additional error information if the function fails.
 @DllImport("webservices")
-HRESULT WsCreateXmlSecurityToken(WS_XML_BUFFER* tokenXml, WS_SECURITY_KEY_HANDLE* tokenKey, char* properties, 
-                                 uint propertyCount, WS_SECURITY_TOKEN** token, WS_ERROR* error);
+HRESULT WsCreateXmlSecurityToken(WS_XML_BUFFER* tokenXml, WS_SECURITY_KEY_HANDLE* tokenKey, 
+                                 const(WS_XML_SECURITY_TOKEN_PROPERTY)* properties, uint propertyCount, 
+                                 WS_SECURITY_TOKEN** token, WS_ERROR* error);
 
 ///Releases the memory resource associated with a <b>Security Token</b> object.
 @DllImport("webservices")
@@ -11720,7 +11736,7 @@ HRESULT WsRevokeSecurityContext(WS_SECURITY_CONTEXT* securityContext, WS_ERROR* 
 ///    error = Specifies where additional error information should be stored if the function fails.
 @DllImport("webservices")
 HRESULT WsGetSecurityContextProperty(WS_SECURITY_CONTEXT* securityContext, WS_SECURITY_CONTEXT_PROPERTY_ID id, 
-                                     char* value, uint valueSize, WS_ERROR* error);
+                                     void* value, uint valueSize, WS_ERROR* error);
 
 ///Read an element producing a value of the specified WS_TYPE.
 ///Params:
@@ -11742,7 +11758,7 @@ HRESULT WsGetSecurityContextProperty(WS_SECURITY_CONTEXT* securityContext, WS_SE
 ///    
 @DllImport("webservices")
 HRESULT WsReadElement(WS_XML_READER* reader, const(WS_ELEMENT_DESCRIPTION)* elementDescription, 
-                      WS_READ_OPTION readOption, WS_HEAP* heap, char* value, uint valueSize, WS_ERROR* error);
+                      WS_READ_OPTION readOption, WS_HEAP* heap, void* value, uint valueSize, WS_ERROR* error);
 
 ///Read an attribute producing a value of the specified WS_TYPE.
 ///Params:
@@ -11764,7 +11780,7 @@ HRESULT WsReadElement(WS_XML_READER* reader, const(WS_ELEMENT_DESCRIPTION)* elem
 ///    
 @DllImport("webservices")
 HRESULT WsReadAttribute(WS_XML_READER* reader, const(WS_ATTRIBUTE_DESCRIPTION)* attributeDescription, 
-                        WS_READ_OPTION readOption, WS_HEAP* heap, char* value, uint valueSize, WS_ERROR* error);
+                        WS_READ_OPTION readOption, WS_HEAP* heap, void* value, uint valueSize, WS_ERROR* error);
 
 ///Read a value of a given WS_TYPE from XML according to the WS_TYPE_MAPPING.
 ///Params:
@@ -11791,7 +11807,7 @@ HRESULT WsReadAttribute(WS_XML_READER* reader, const(WS_ATTRIBUTE_DESCRIPTION)* 
 ///    
 @DllImport("webservices")
 HRESULT WsReadType(WS_XML_READER* reader, WS_TYPE_MAPPING typeMapping, WS_TYPE type, const(void)* typeDescription, 
-                   WS_READ_OPTION readOption, WS_HEAP* heap, char* value, uint valueSize, WS_ERROR* error);
+                   WS_READ_OPTION readOption, WS_HEAP* heap, void* value, uint valueSize, WS_ERROR* error);
 
 ///Write a typed value as an XML element.
 ///Params:
@@ -11811,7 +11827,7 @@ HRESULT WsReadType(WS_XML_READER* reader, WS_TYPE_MAPPING typeMapping, WS_TYPE t
 ///    
 @DllImport("webservices")
 HRESULT WsWriteElement(WS_XML_WRITER* writer, const(WS_ELEMENT_DESCRIPTION)* elementDescription, 
-                       WS_WRITE_OPTION writeOption, char* value, uint valueSize, WS_ERROR* error);
+                       WS_WRITE_OPTION writeOption, const(void)* value, uint valueSize, WS_ERROR* error);
 
 ///Write a typed value as an XML attribute.
 ///Params:
@@ -11831,7 +11847,7 @@ HRESULT WsWriteElement(WS_XML_WRITER* writer, const(WS_ELEMENT_DESCRIPTION)* ele
 ///    
 @DllImport("webservices")
 HRESULT WsWriteAttribute(WS_XML_WRITER* writer, const(WS_ATTRIBUTE_DESCRIPTION)* attributeDescription, 
-                         WS_WRITE_OPTION writeOption, char* value, uint valueSize, WS_ERROR* error);
+                         WS_WRITE_OPTION writeOption, const(void)* value, uint valueSize, WS_ERROR* error);
 
 ///Write a value of a given WS_TYPE to XML according to the WS_TYPE_MAPPING.
 ///Params:
@@ -11857,7 +11873,7 @@ HRESULT WsWriteAttribute(WS_XML_WRITER* writer, const(WS_ATTRIBUTE_DESCRIPTION)*
 ///    
 @DllImport("webservices")
 HRESULT WsWriteType(WS_XML_WRITER* writer, WS_TYPE_MAPPING typeMapping, WS_TYPE type, const(void)* typeDescription, 
-                    WS_WRITE_OPTION writeOption, char* value, uint valueSize, WS_ERROR* error);
+                    WS_WRITE_OPTION writeOption, const(void)* value, uint valueSize, WS_ERROR* error);
 
 ///A service operation can use this function to register for a cancel notification. It is only valid to call this API
 ///when the service operation is executing. The behavior for calling it after the completion of Service Operation is not
@@ -11888,7 +11904,7 @@ HRESULT WsRegisterOperationForCancel(const(WS_OPERATION_CONTEXT)* context,
 ///    error = A pointer to a WS_ERROR object where additional information about the error should be stored if the function
 ///            fails.
 @DllImport("webservices")
-HRESULT WsGetServiceHostProperty(WS_SERVICE_HOST* serviceHost, const(WS_SERVICE_PROPERTY_ID) id, char* value, 
+HRESULT WsGetServiceHostProperty(WS_SERVICE_HOST* serviceHost, const(WS_SERVICE_PROPERTY_ID) id, void* value, 
                                  uint valueSize, WS_ERROR* error);
 
 ///Creates a service host for the specified endpoints.
@@ -11903,8 +11919,9 @@ HRESULT WsGetServiceHostProperty(WS_SERVICE_HOST* serviceHost, const(WS_SERVICE_
 ///                  host. When you no longer need this structure, you must free it by calling WsFreeServiceHost.
 ///    error = Pointer to a WS_ERROR structure that receives additional error information if the function fails.
 @DllImport("webservices")
-HRESULT WsCreateServiceHost(char* endpoints, const(ushort) endpointCount, char* serviceProperties, 
-                            uint servicePropertyCount, WS_SERVICE_HOST** serviceHost, WS_ERROR* error);
+HRESULT WsCreateServiceHost(const(WS_SERVICE_ENDPOINT)** endpoints, const(ushort) endpointCount, 
+                            const(WS_SERVICE_PROPERTY)* serviceProperties, uint servicePropertyCount, 
+                            WS_SERVICE_HOST** serviceHost, WS_ERROR* error);
 
 ///Opens a Service Host for communication and starts the Listeners on all the endpoints. Client applications cannot
 ///connect to Service endpoints until <b>WsOpenSerivceHost</b> is called.
@@ -11997,7 +12014,7 @@ HRESULT WsResetServiceHost(WS_SERVICE_HOST* serviceHost, WS_ERROR* error);
 ///    error = This parameter is a WS_ERROR pointer to where additional information about the error should be stored if the
 ///            function fails.
 @DllImport("webservices")
-HRESULT WsGetServiceProxyProperty(WS_SERVICE_PROXY* serviceProxy, const(WS_PROXY_PROPERTY_ID) id, char* value, 
+HRESULT WsGetServiceProxyProperty(WS_SERVICE_PROXY* serviceProxy, const(WS_PROXY_PROPERTY_ID) id, void* value, 
                                   uint valueSize, WS_ERROR* error);
 
 ///Creates a service proxy with the specified properties.
@@ -12018,8 +12035,9 @@ HRESULT WsGetServiceProxyProperty(WS_SERVICE_PROXY* serviceProxy, const(WS_PROXY
 ///    error = Pointer to a WS_ERROR structure that receives additional error information if the function fails.
 @DllImport("webservices")
 HRESULT WsCreateServiceProxy(const(WS_CHANNEL_TYPE) channelType, const(WS_CHANNEL_BINDING) channelBinding, 
-                             const(WS_SECURITY_DESCRIPTION)* securityDescription, char* properties, 
-                             const(uint) propertyCount, char* channelProperties, const(uint) channelPropertyCount, 
+                             const(WS_SECURITY_DESCRIPTION)* securityDescription, 
+                             const(WS_PROXY_PROPERTY)* properties, const(uint) propertyCount, 
+                             const(WS_CHANNEL_PROPERTY)* channelProperties, const(uint) channelPropertyCount, 
                              WS_SERVICE_PROXY** serviceProxy, WS_ERROR* error);
 
 ///Opens a Service Proxy to a Service endpoint. On success client applications can make calls using the Service Proxy.
@@ -12126,7 +12144,7 @@ HRESULT WsAbandonCall(WS_SERVICE_PROXY* serviceProxy, uint callId, WS_ERROR* err
 ///    error = Pointer to a WS_ERROR structure that receives additional error information if the function fails.
 @DllImport("webservices")
 HRESULT WsCall(WS_SERVICE_PROXY* serviceProxy, const(WS_OPERATION_DESCRIPTION)* operation, const(void)** arguments, 
-               WS_HEAP* heap, char* callProperties, const(uint) callPropertyCount, 
+               WS_HEAP* heap, const(WS_CALL_PROPERTY)* callProperties, const(uint) callPropertyCount, 
                const(WS_ASYNC_CONTEXT)* asyncContext, WS_ERROR* error);
 
 ///Evaluates the components of an URL to determine its "scheme". A WS_URL_SCHEME_TYPE value is encapsulated in a WS_URL
@@ -12235,7 +12253,8 @@ HRESULT WsFileTimeToDateTime(const(FILETIME)* fileTime, WS_DATETIME* dateTime, W
 ///               you no longer need this structure, you must free it by calling WsFreeMetadata.
 ///    error = Pointer to a WS_ERROR structure that receives additional error information if the function fails.
 @DllImport("webservices")
-HRESULT WsCreateMetadata(char* properties, uint propertyCount, WS_METADATA** metadata, WS_ERROR* error);
+HRESULT WsCreateMetadata(const(WS_METADATA_PROPERTY)* properties, uint propertyCount, WS_METADATA** metadata, 
+                         WS_ERROR* error);
 
 ///Reads a Metadata element and adds it to the Metadata documents of the Metadata object. The Metadata object state must
 ///be set to <b>WS_METADATA_STATE_CREATED</b>. On error the Metadata object state is reset to
@@ -12306,7 +12325,7 @@ HRESULT WsResetMetadata(WS_METADATA* metadata, WS_ERROR* error);
 ///    error = A pointer to a WS_ERROR object where additional information about the error should be stored if the function
 ///            fails.
 @DllImport("webservices")
-HRESULT WsGetMetadataProperty(WS_METADATA* metadata, WS_METADATA_PROPERTY_ID id, char* value, uint valueSize, 
+HRESULT WsGetMetadataProperty(WS_METADATA* metadata, WS_METADATA_PROPERTY_ID id, void* value, uint valueSize, 
                               WS_ERROR* error);
 
 ///This function returns the address of a missing document that is referenced by the metadata object. Each document that
@@ -12413,7 +12432,7 @@ HRESULT WsMatchPolicyAlternative(WS_POLICY* policy, uint alternativeIndex,
 ///    errors not listed above. </td> </tr> </table>
 ///    
 @DllImport("webservices")
-HRESULT WsGetPolicyProperty(WS_POLICY* policy, WS_POLICY_PROPERTY_ID id, char* value, uint valueSize, 
+HRESULT WsGetPolicyProperty(WS_POLICY* policy, WS_POLICY_PROPERTY_ID id, void* value, uint valueSize, 
                             WS_ERROR* error);
 
 ///Retrieves the number of alternatives available in the policy object. The alternative count can be used to loop
@@ -12459,9 +12478,9 @@ HRESULT WsGetPolicyAlternativeCount(WS_POLICY* policy, uint* count, WS_ERROR* er
 ///    If the function succeeds, it returns NO_ERROR; otherwise, it returns an HRESULT error code.
 ///    
 @DllImport("webservices")
-HRESULT WsCreateServiceProxyFromTemplate(WS_CHANNEL_TYPE channelType, char* properties, const(uint) propertyCount, 
-                                         WS_BINDING_TEMPLATE_TYPE templateType, char* templateValue, 
-                                         uint templateSize, const(void)* templateDescription, 
+HRESULT WsCreateServiceProxyFromTemplate(WS_CHANNEL_TYPE channelType, const(WS_PROXY_PROPERTY)* properties, 
+                                         const(uint) propertyCount, WS_BINDING_TEMPLATE_TYPE templateType, 
+                                         void* templateValue, uint templateSize, const(void)* templateDescription, 
                                          uint templateDescriptionSize, WS_SERVICE_PROXY** serviceProxy, 
                                          WS_ERROR* error);
 
@@ -12491,10 +12510,11 @@ HRESULT WsCreateServiceProxyFromTemplate(WS_CHANNEL_TYPE channelType, char* prop
 ///    If the function succeeds, it returns NO_ERROR; otherwise, it returns an HRESULT error code.
 ///    
 @DllImport("webservices")
-HRESULT WsCreateServiceEndpointFromTemplate(WS_CHANNEL_TYPE channelType, char* properties, uint propertyCount, 
+HRESULT WsCreateServiceEndpointFromTemplate(WS_CHANNEL_TYPE channelType, 
+                                            const(WS_SERVICE_ENDPOINT_PROPERTY)* properties, uint propertyCount, 
                                             const(WS_STRING)* addressUrl, const(WS_SERVICE_CONTRACT)* contract, 
                                             WS_SERVICE_SECURITY_CALLBACK authorizationCallback, WS_HEAP* heap, 
-                                            WS_BINDING_TEMPLATE_TYPE templateType, char* templateValue, 
+                                            WS_BINDING_TEMPLATE_TYPE templateType, void* templateValue, 
                                             uint templateSize, const(void)* templateDescription, 
                                             uint templateDescriptionSize, WS_SERVICE_ENDPOINT** serviceEndpoint, 
                                             WS_ERROR* error);
@@ -12503,7 +12523,7 @@ HRESULT WsCreateServiceEndpointFromTemplate(WS_CHANNEL_TYPE channelType, char* p
 uint WebAuthNGetApiVersionNumber();
 
 @DllImport("webauthn")
-HRESULT WebAuthNIsUserVerifyingPlatformAuthenticatorAvailable(int* pbIsUserVerifyingPlatformAuthenticatorAvailable);
+HRESULT WebAuthNIsUserVerifyingPlatformAuthenticatorAvailable(BOOL* pbIsUserVerifyingPlatformAuthenticatorAvailable);
 
 @DllImport("webauthn")
 HRESULT WebAuthNAuthenticatorMakeCredential(HWND hWnd, WEBAUTHN_RP_ENTITY_INFORMATION* pRpInformation, 
@@ -12514,7 +12534,7 @@ HRESULT WebAuthNAuthenticatorMakeCredential(HWND hWnd, WEBAUTHN_RP_ENTITY_INFORM
                                             WEBAUTHN_CREDENTIAL_ATTESTATION** ppWebAuthNCredentialAttestation);
 
 @DllImport("webauthn")
-HRESULT WebAuthNAuthenticatorGetAssertion(HWND hWnd, const(wchar)* pwszRpId, 
+HRESULT WebAuthNAuthenticatorGetAssertion(HWND hWnd, const(PWSTR) pwszRpId, 
                                           WEBAUTHN_CLIENT_DATA* pWebAuthNClientData, 
                                           WEBAUTHN_AUTHENTICATOR_GET_ASSERTION_OPTIONS* pWebAuthNGetAssertionOptions, 
                                           WEBAUTHN_ASSERTION** ppWebAuthNAssertion);
@@ -12532,7 +12552,7 @@ HRESULT WebAuthNGetCancellationId(GUID* pCancellationId);
 HRESULT WebAuthNCancelCurrentOperation(const(GUID)* pCancellationId);
 
 @DllImport("webauthn")
-ushort* WebAuthNGetErrorName(HRESULT hr);
+PWSTR WebAuthNGetErrorName(HRESULT hr);
 
 @DllImport("webauthn")
 HRESULT WebAuthNGetW3CExceptionDOMError(HRESULT hr);
@@ -12558,7 +12578,7 @@ interface IContentPrefetcherTaskTrigger : IInspectable
     ///    <dt><b>E_ACCESSDENIED</b></dt> </dl> </td> <td width="60%"> The method call was not made at the required
     ///    Medium Integrity Level (Medium IL). </td> </tr> </table>
     ///    
-    HRESULT TriggerContentPrefetcherTask(const(wchar)* packageFullName);
+    HRESULT TriggerContentPrefetcherTask(const(PWSTR) packageFullName);
     ///Indicates if an app package has registered for the content prefetch background task.
     ///Params:
     ///    packageFullName = The package ID.
@@ -12569,7 +12589,7 @@ interface IContentPrefetcherTaskTrigger : IInspectable
     ///    width="60%"> The method call was not made at the required Medium Integrity Level (Medium IL). </td> </tr>
     ///    </table>
     ///    
-    HRESULT IsRegisteredForContentPrefetch(const(wchar)* packageFullName, ubyte* isRegistered);
+    HRESULT IsRegisteredForContentPrefetch(const(PWSTR) packageFullName, ubyte* isRegistered);
 }
 
 

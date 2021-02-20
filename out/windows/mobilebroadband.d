@@ -5,8 +5,9 @@ module windows.mobilebroadband;
 public import windows.core;
 public import windows.automation : BSTR, SAFEARRAY;
 public import windows.com : HRESULT, IUnknown;
+public import windows.systemservices : BOOL, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -942,7 +943,7 @@ interface IMbnConnection : IUnknown
     ///    <dt><b>E_MBN_MAX_ACTIVATED_CONTEXTS</b></dt> </dl> </td> <td width="60%"> There is already an active Mobile
     ///    Broadband context. Multiple active contexts are not supported. </td> </tr> </table>
     ///    
-    HRESULT Connect(MBN_CONNECTION_MODE connectionMode, const(wchar)* strProfile, uint* requestID);
+    HRESULT Connect(MBN_CONNECTION_MODE connectionMode, const(PWSTR) strProfile, uint* requestID);
     ///> [!IMPORTANT] > Starting in Windows 10, version 1803, the Win32 APIs described in this section are replaced by
     ///the Windows Runtime APIs in the [Windows.Networking.Connectivity](/uwp/api/windows.networking.connectivity)
     ///namespace. Disconnects a data connection.
@@ -1415,7 +1416,7 @@ interface IMbnInterfaceManager : IUnknown
     ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td
     ///    width="60%"> Could not allocate the required memory. </td> </tr> </table>
     ///    
-    HRESULT GetInterface(const(wchar)* interfaceID, IMbnInterface* mbnInterface);
+    HRESULT GetInterface(const(PWSTR) interfaceID, IMbnInterface* mbnInterface);
     ///> [!IMPORTANT] > Starting in Windows 10, version 1803, the Win32 APIs described in this section are replaced by
     ///the Windows Runtime APIs in the [Windows.Networking.Connectivity](/uwp/api/windows.networking.connectivity)
     ///namespace. Gets a list of all available IMbnInterface objects.
@@ -1646,7 +1647,7 @@ interface IMbnRegistration : IUnknown
     ///    mode. If the device is already in the requested mode and connected to the requested provider, then the return
     ///    code will be <b>S_OK</b>. </td> </tr> </table>
     ///    
-    HRESULT SetRegisterMode(MBN_REGISTER_MODE registerMode, const(wchar)* providerID, uint dataClass, 
+    HRESULT SetRegisterMode(MBN_REGISTER_MODE registerMode, const(PWSTR) providerID, uint dataClass, 
                             uint* requestID);
 }
 
@@ -1751,7 +1752,7 @@ interface IMbnConnectionManager : IUnknown
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Could not allocate the required memory. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetConnection(const(wchar)* connectionID, IMbnConnection* mbnConnection);
+    HRESULT GetConnection(const(PWSTR) connectionID, IMbnConnection* mbnConnection);
     ///> [!IMPORTANT] > Starting in Windows 10, version 1803, the Win32 APIs described in this section are replaced by
     ///the Windows Runtime APIs in the [Windows.Networking.Connectivity](/uwp/api/windows.networking.connectivity)
     ///namespace. Gets a list of available connections.
@@ -2210,7 +2211,7 @@ interface IMbnConnectionContext : IUnknown
     ///    <dt><b>E_INVALID_ARG</b></dt> </dl> </td> <td width="60%"> <i>providerID</i> is not valid. </td> </tr>
     ///    </table>
     ///    
-    HRESULT SetProvisionedContext(MBN_CONTEXT provisionedContexts, const(wchar)* providerID, uint* requestID);
+    HRESULT SetProvisionedContext(MBN_CONTEXT provisionedContexts, const(PWSTR) providerID, uint* requestID);
 }
 
 ///> [!IMPORTANT] > Starting in Windows 10, version 1803, the Win32 APIs described in this section are replaced by the
@@ -2306,7 +2307,7 @@ interface IMbnConnectionProfileManager : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>HRESULT_FROM_WIN32(ERROR_NOT_FOUND)</b></dt> </dl> </td> <td width="60%"> A
     ///    profile with the given name does not exist. </td> </tr> </table>
     ///    
-    HRESULT GetConnectionProfile(IMbnInterface mbnInterface, const(wchar)* profileName, 
+    HRESULT GetConnectionProfile(IMbnInterface mbnInterface, const(PWSTR) profileName, 
                                  IMbnConnectionProfile* connectionProfile);
     ///> [!IMPORTANT] > Starting in Windows 10, version 1803, the Win32 APIs described in this section are replaced by
     ///the Windows Runtime APIs in the [Windows.Networking.Connectivity](/uwp/api/windows.networking.connectivity)
@@ -2327,7 +2328,7 @@ interface IMbnConnectionProfileManager : IUnknown
     ///    the default profile flag in the XML data, however the default profile already exists for the Mobile Broadband
     ///    device. </td> </tr> </table>
     ///    
-    HRESULT CreateConnectionProfile(const(wchar)* xmlProfile);
+    HRESULT CreateConnectionProfile(const(PWSTR) xmlProfile);
 }
 
 ///> [!IMPORTANT] > Starting in Windows 10, version 1803, the Win32 APIs described in this section are replaced by the
@@ -2365,7 +2366,7 @@ interface IMbnConnectionProfile : IUnknown
     ///    <dt><b>HRESULT_FROM_WIN32(ERROR_SERVICE_NOT_ACTIVE)</b></dt> </dl> </td> <td width="60%"> The Mobile
     ///    Broadband service is not running on this system. </td> </tr> </table>
     ///    
-    HRESULT UpdateProfile(const(wchar)* strProfile);
+    HRESULT UpdateProfile(const(PWSTR) strProfile);
     ///> [!IMPORTANT] > Starting in Windows 10, version 1803, the Win32 APIs described in this section are replaced by
     ///the Windows Runtime APIs in the [Windows.Networking.Connectivity](/uwp/api/windows.networking.connectivity)
     ///namespace. Deletes the profile from the system.
@@ -2413,7 +2414,7 @@ interface IMbnSmsConfiguration : IUnknown
     ///> [!IMPORTANT] > Starting in Windows 10, version 1803, the Win32 APIs described in this section are replaced by
     ///the Windows Runtime APIs in the [Windows.Networking.Connectivity](/uwp/api/windows.networking.connectivity)
     ///namespace. SMS default Service Center address. This property is read/write.
-    HRESULT put_ServiceCenterAddress(const(wchar)* scAddress);
+    HRESULT put_ServiceCenterAddress(const(PWSTR) scAddress);
     ///> [!IMPORTANT] > Starting in Windows 10, version 1803, the Win32 APIs described in this section are replaced by
     ///the Windows Runtime APIs in the [Windows.Networking.Connectivity](/uwp/api/windows.networking.connectivity)
     ///namespace. SMS message memory capacity. This property is read-only.
@@ -2562,7 +2563,7 @@ interface IMbnSms : IUnknown
     ///    support sending SMS messages in the requested format. For example, if this function is called for a CDMA
     ///    device. </td> </tr> </table>
     ///    
-    HRESULT SmsSendPdu(const(wchar)* pduData, ubyte size, uint* requestID);
+    HRESULT SmsSendPdu(const(PWSTR) pduData, ubyte size, uint* requestID);
     ///> [!IMPORTANT] > Starting in Windows 10, version 1803, the Win32 APIs described in this section are replaced by
     ///the Windows Runtime APIs in the [Windows.Networking.Connectivity](/uwp/api/windows.networking.connectivity)
     ///namespace. Sends a message in CDMA format.
@@ -2589,7 +2590,7 @@ interface IMbnSms : IUnknown
     ///    support sending SMS messages in the requested format. For example, if this function is called for a GSM
     ///    device. </td> </tr> </table>
     ///    
-    HRESULT SmsSendCdma(const(wchar)* address, MBN_SMS_CDMA_ENCODING encoding, MBN_SMS_CDMA_LANG language, 
+    HRESULT SmsSendCdma(const(PWSTR) address, MBN_SMS_CDMA_ENCODING encoding, MBN_SMS_CDMA_LANG language, 
                         uint sizeInCharacters, SAFEARRAY* message, uint* requestID);
     ///> [!IMPORTANT] > Starting in Windows 10, version 1803, the Win32 APIs described in this section are replaced by
     ///the Windows Runtime APIs in the [Windows.Networking.Connectivity](/uwp/api/windows.networking.connectivity)
@@ -3692,11 +3693,11 @@ interface IMbnDeviceService : IUnknown
     ///> [!IMPORTANT] > Starting in Windows 10, version 1803, the Win32 APIs described in this section are replaced by
     ///the Windows Runtime APIs in the [Windows.Networking.Connectivity](/uwp/api/windows.networking.connectivity)
     ///namespace. Reports if the device service command session is open. This property is read-only.
-    HRESULT get_IsCommandSessionOpen(int* value);
+    HRESULT get_IsCommandSessionOpen(BOOL* value);
     ///> [!IMPORTANT] > Starting in Windows 10, version 1803, the Win32 APIs described in this section are replaced by
     ///the Windows Runtime APIs in the [Windows.Networking.Connectivity](/uwp/api/windows.networking.connectivity)
     ///namespace. Reports if the device service data session is open. This property is read-only.
-    HRESULT get_IsDataSessionOpen(int* value);
+    HRESULT get_IsDataSessionOpen(BOOL* value);
 }
 
 ///> [!IMPORTANT] > Starting in Windows 10, version 1803, the Win32 APIs described in this section are replaced by the
@@ -3741,7 +3742,7 @@ interface IMbnPin : IUnknown
     ///    <dt><b>HRESULT_FROM_WIN32(ERROR_NOT_FOUND)</b></dt> </dl> </td> <td width="60%"> Invalid interface. Most
     ///    likely the Mobile Broadband device has been removed from the system. </td> </tr> </table>
     ///    
-    HRESULT Enable(const(wchar)* pin, uint* requestID);
+    HRESULT Enable(const(PWSTR) pin, uint* requestID);
     ///> [!IMPORTANT] > Starting in Windows 10, version 1803, the Win32 APIs described in this section are replaced by
     ///the Windows Runtime APIs in the [Windows.Networking.Connectivity](/uwp/api/windows.networking.connectivity)
     ///namespace. Disables a PIN.
@@ -3758,7 +3759,7 @@ interface IMbnPin : IUnknown
     ///    <dt><b>HRESULT_FROM_WIN32(ERROR_NOT_FOUND)</b></dt> </dl> </td> <td width="60%"> Invalid interface. Most
     ///    likely the Mobile Broadband device has been removed from the system. </td> </tr> </table>
     ///    
-    HRESULT Disable(const(wchar)* pin, uint* requestID);
+    HRESULT Disable(const(PWSTR) pin, uint* requestID);
     ///> [!IMPORTANT] > Starting in Windows 10, version 1803, the Win32 APIs described in this section are replaced by
     ///the Windows Runtime APIs in the [Windows.Networking.Connectivity](/uwp/api/windows.networking.connectivity)
     ///namespace. Enters a PIN.
@@ -3775,7 +3776,7 @@ interface IMbnPin : IUnknown
     ///    <dt><b>HRESULT_FROM_WIN32(ERROR_NOT_FOUND)</b></dt> </dl> </td> <td width="60%"> Invalid interface. Most
     ///    likely the Mobile Broadband device has been removed from the system. </td> </tr> </table>
     ///    
-    HRESULT Enter(const(wchar)* pin, uint* requestID);
+    HRESULT Enter(const(PWSTR) pin, uint* requestID);
     ///> [!IMPORTANT] > Starting in Windows 10, version 1803, the Win32 APIs described in this section are replaced by
     ///the Windows Runtime APIs in the [Windows.Networking.Connectivity](/uwp/api/windows.networking.connectivity)
     ///namespace. Changes the PIN.
@@ -3793,7 +3794,7 @@ interface IMbnPin : IUnknown
     ///    <dt><b>HRESULT_FROM_WIN32(ERROR_NOT_FOUND)</b></dt> </dl> </td> <td width="60%"> Invalid interface. Most
     ///    likely the Mobile Broadband device has been removed from the system. </td> </tr> </table>
     ///    
-    HRESULT Change(const(wchar)* pin, const(wchar)* newPin, uint* requestID);
+    HRESULT Change(const(PWSTR) pin, const(PWSTR) newPin, uint* requestID);
     ///> [!IMPORTANT] > Starting in Windows 10, version 1803, the Win32 APIs described in this section are replaced by
     ///the Windows Runtime APIs in the [Windows.Networking.Connectivity](/uwp/api/windows.networking.connectivity)
     ///namespace. Unblocks a blocked PIN.
@@ -3813,7 +3814,7 @@ interface IMbnPin : IUnknown
     ///    <dt><b>E_ACCESSDENIED</b></dt> </dl> </td> <td width="60%"> This method is not allowed for calling process
     ///    privileges. </td> </tr> </table>
     ///    
-    HRESULT Unblock(const(wchar)* puk, const(wchar)* newPin, uint* requestID);
+    HRESULT Unblock(const(PWSTR) puk, const(PWSTR) newPin, uint* requestID);
     ///> [!IMPORTANT] > Starting in Windows 10, version 1803, the Win32 APIs described in this section are replaced by
     ///the Windows Runtime APIs in the [Windows.Networking.Connectivity](/uwp/api/windows.networking.connectivity)
     ///namespace. Gets the IMbnPinManager.

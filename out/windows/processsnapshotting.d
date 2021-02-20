@@ -4,10 +4,11 @@ module windows.processsnapshotting;
 
 public import windows.core;
 public import windows.dbg : CONTEXT;
-public import windows.systemservices : BOOL, HANDLE, LARGE_INTEGER, MEMORY_BASIC_INFORMATION;
+public import windows.systemservices : BOOL, HANDLE, LARGE_INTEGER, MEMORY_BASIC_INFORMATION,
+                                       PWSTR;
 public import windows.windowsprogramming : FILETIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -364,42 +365,42 @@ struct PSS_AUXILIARY_PAGE_ENTRY
 struct PSS_VA_SPACE_ENTRY
 {
     ///Information about the VA region. For more information, see MEMORY_BASIC_INFORMATION.
-    void*          BaseAddress;
+    void*        BaseAddress;
     ///Information about the VA region. For more information, see MEMORY_BASIC_INFORMATION.
-    void*          AllocationBase;
+    void*        AllocationBase;
     ///Information about the VA region. For more information, see MEMORY_BASIC_INFORMATION.
-    uint           AllocationProtect;
+    uint         AllocationProtect;
     ///Information about the VA region. For more information, see MEMORY_BASIC_INFORMATION.
-    size_t         RegionSize;
+    size_t       RegionSize;
     ///Information about the VA region. For more information, see MEMORY_BASIC_INFORMATION.
-    uint           State;
+    uint         State;
     ///Information about the VA region. For more information, see MEMORY_BASIC_INFORMATION.
-    uint           Protect;
+    uint         Protect;
     ///Information about the VA region. For more information, see MEMORY_BASIC_INFORMATION.
-    uint           Type;
+    uint         Type;
     ///If section information was captured and the region is an executable image (<b>MEM_IMAGE</b>), this is the
     ///<b>TimeDateStamp</b> value from the Portable Executable (PE) header which describes the image. It is the low 32
     ///bits of the number of seconds since 00:00 January 1, 1970 (a C run-time time_t value), that indicates when the
     ///file was created.
-    uint           TimeDateStamp;
+    uint         TimeDateStamp;
     ///If section information was captured and the region is an executable image (<b>MEM_IMAGE</b>), this is the
     ///<b>SizeOfImage</b> value from the Portable Executable (PE) header which describes the image. It is the size (in
     ///bytes) of the image, including all headers, as the image is loaded in memory.
-    uint           SizeOfImage;
+    uint         SizeOfImage;
     ///If section information was captured and the region is an executable image (<b>MEM_IMAGE</b>), this is the
     ///<b>ImageBase</b> value from the Portable Executable (PE) header which describes the image. It is the preferred
     ///address of the first byte of the image when loaded into memory.
-    void*          ImageBase;
+    void*        ImageBase;
     ///If section information was captured and the region is an executable image (<b>MEM_IMAGE</b>), this is the
     ///<b>CheckSum</b> value from the Portable Executable (PE) header which describes the image. It is the image file
     ///checksum.
-    uint           CheckSum;
+    uint         CheckSum;
     ///The length of the mapped file name buffer, in bytes.
-    ushort         MappedFileNameLength;
+    ushort       MappedFileNameLength;
     ///If section information was captured, this is the file path backing the section (if any). The path may be in NT
     ///namespace. The string may not be terminated by a <b>NULL</b> character. The pointer is valid for the lifetime of
     ///the walk marker passed to PssWalkSnapshot.
-    const(ushort)* MappedFileName;
+    const(PWSTR) MappedFileName;
 }
 
 ///Holds information about a handle returned by PssWalkSnapshot.
@@ -431,15 +432,15 @@ struct PSS_HANDLE_ENTRY
     ushort           TypeNameLength;
     ///The type name of the object referenced by this handle. The buffer may not terminated by a <b>NULL</b> character.
     ///The pointer is valid for the lifetime of the walk marker passed to PssWalkSnapshot.
-    const(ushort)*   TypeName;
+    const(PWSTR)     TypeName;
     ///The length of <b>ObjectName</b>, in bytes.
     ushort           ObjectNameLength;
     ///Specifies the name of the object referenced by this handle. The buffer may not terminated by a <b>NULL</b>
     ///character. The pointer is valid for the lifetime of the walk marker passed to PssWalkSnapshot.
-    const(ushort)*   ObjectName;
-    union TypeSpecificInformation
+    const(PWSTR)     ObjectName;
+union TypeSpecificInformation
     {
-        struct Process
+struct Process
         {
             uint   ExitStatus;
             void*  PebBaseAddress;
@@ -449,7 +450,7 @@ struct PSS_HANDLE_ENTRY
             uint   ParentProcessId;
             uint   Flags;
         }
-        struct Thread
+struct Thread
         {
             uint   ExitStatus;
             void*  TebBaseAddress;
@@ -460,25 +461,25 @@ struct PSS_HANDLE_ENTRY
             int    BasePriority;
             void*  Win32StartAddress;
         }
-        struct Mutant
+struct Mutant
         {
             int  CurrentCount;
             BOOL Abandoned;
             uint OwnerProcessId;
             uint OwnerThreadId;
         }
-        struct Event
+struct Event
         {
             BOOL ManualReset;
             BOOL Signaled;
         }
-        struct Section
+struct Section
         {
             void*         BaseAddress;
             uint          AllocationAttributes;
             LARGE_INTEGER MaximumSize;
         }
-        struct Semaphore
+struct Semaphore
         {
             int CurrentCount;
             int MaximumCount;
@@ -593,7 +594,7 @@ uint PssFreeSnapshot(HANDLE ProcessHandle, HPSS__* SnapshotHandle);
 ///    error code.
 ///    
 @DllImport("KERNEL32")
-uint PssQuerySnapshot(HPSS__* SnapshotHandle, PSS_QUERY_INFORMATION_CLASS InformationClass, char* Buffer, 
+uint PssQuerySnapshot(HPSS__* SnapshotHandle, PSS_QUERY_INFORMATION_CLASS InformationClass, void* Buffer, 
                       uint BufferLength);
 
 ///Returns information from the current walk position and advanced the walk marker to the next position.
@@ -621,7 +622,7 @@ uint PssQuerySnapshot(HPSS__* SnapshotHandle, PSS_QUERY_INFORMATION_CLASS Inform
 ///    
 @DllImport("KERNEL32")
 uint PssWalkSnapshot(HPSS__* SnapshotHandle, PSS_WALK_INFORMATION_CLASS InformationClass, 
-                     HPSSWALK__* WalkMarkerHandle, char* Buffer, uint BufferLength);
+                     HPSSWALK__* WalkMarkerHandle, void* Buffer, uint BufferLength);
 
 ///Duplicates a snapshot handle from one process to another.
 ///Params:

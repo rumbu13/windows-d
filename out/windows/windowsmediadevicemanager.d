@@ -6,9 +6,9 @@ public import windows.core;
 public import windows.com : HRESULT, ISpecifyPropertyPages, IUnknown;
 public import windows.displaydevices : RECT;
 public import windows.structuredstorage : PROPVARIANT;
-public import windows.systemservices : BOOL;
+public import windows.systemservices : BOOL, PSTR, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -313,8 +313,8 @@ enum : const(wchar)*
     g_wszWMDMMediaGuid  = "WMDM/MediaGuid",
 }
 
-enum uint MTP_COMMAND_MAX_PARAMS = 0x00000005;
-enum ushort MTP_RESPONSE_OK = 0x2001;
+enum GUID EVENT_WMDM_CONTENT_TRANSFER = GUID("339c9bf4-bcfe-4ed8-94df-eaf8c26ab61b");
+enum uint MTP_RESPONSE_MAX_PARAMS = 0x00000005;
 
 // Structs
 
@@ -363,8 +363,8 @@ struct _tagVIDEOINFOHEADER
 
 struct WMFILECAPABILITIES
 {
-    const(wchar)* pwszMimeType;
-    uint          dwReserved;
+    PWSTR pwszMimeType;
+    uint  dwReserved;
 }
 
 struct __OPAQUECOMMAND
@@ -406,7 +406,7 @@ struct __WMDMRIGHTS
 
 struct __WMDMMetadataView
 {
-    ushort*  pwszViewName;
+    PWSTR    pwszViewName;
     uint     nDepth;
     ushort** ppwszTags;
 }
@@ -426,9 +426,9 @@ struct WMDM_PROP_VALUES_ENUM
 
 struct WMDM_PROP_DESC
 {
-    const(wchar)* pwszPropName;
+    PWSTR pwszPropName;
     WMDM_ENUM_PROP_VALID_VALUES_FORM ValidValuesForm;
-    union ValidValues
+union ValidValues
     {
         WMDM_PROP_VALUES_RANGE ValidValuesRange;
         WMDM_PROP_VALUES_ENUM EnumeratedValidValues;
@@ -619,7 +619,7 @@ interface IWMDMMetaData : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT AddItem(WMDM_TAG_DATATYPE Type, const(wchar)* pwszTagName, char* pValue, uint iLength);
+    HRESULT AddItem(WMDM_TAG_DATATYPE Type, const(PWSTR) pwszTagName, ubyte* pValue, uint iLength);
     ///The <b>QueryByName</b> method retrieves the value of a property specified by name.
     ///Params:
     ///    pwszTagName = Pointer to a wide-character <b>null</b>-terminated string specifying the property name. A list of standard
@@ -635,7 +635,7 @@ interface IWMDMMetaData : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT QueryByName(const(wchar)* pwszTagName, WMDM_TAG_DATATYPE* pType, char* pValue, uint* pcbLength);
+    HRESULT QueryByName(const(PWSTR) pwszTagName, WMDM_TAG_DATATYPE* pType, ubyte** pValue, uint* pcbLength);
     ///The <b>QueryByIndex</b> method retrieves the value of a property specified by index.
     ///Params:
     ///    iIndex = Integer specifying the zero-based index of the property. The number of items is obtained through the
@@ -653,7 +653,8 @@ interface IWMDMMetaData : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT QueryByIndex(uint iIndex, ushort** ppwszName, WMDM_TAG_DATATYPE* pType, char* ppValue, uint* pcbLength);
+    HRESULT QueryByIndex(uint iIndex, ushort** ppwszName, WMDM_TAG_DATATYPE* pType, ubyte** ppValue, 
+                         uint* pcbLength);
     ///The <b>GetItemCount</b> method retrieves the total number of properties held by the interface.
     ///Params:
     ///    iCount = Pointer to an integer that receives the total number of metadata properties stored by the interface.
@@ -730,7 +731,7 @@ interface IWMDeviceManager2 : IWMDeviceManager
     ///    <dt><b>S_FALSE</b></dt> </dl> </td> <td width="60%"> There is no connected device found with canonical name
     ///    <i>pwszCanonicalName</i>. </td> </tr> </table>
     ///    
-    HRESULT GetDeviceFromCanonicalName(const(wchar)* pwszCanonicalName, IWMDMDevice* ppDevice);
+    HRESULT GetDeviceFromCanonicalName(const(PWSTR) pwszCanonicalName, IWMDMDevice* ppDevice);
     ///The <b>EnumDevices2</b> method retrieves an enumeration interface that is used to enumerate portable devices
     ///connected to the computer. Microsoft strongly recommends that applications use the <b>EnumDevices2</b> method
     ///instead of IWMDeviceManager::EnumDevices.
@@ -823,7 +824,7 @@ interface IWMDMStorageGlobals : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetSerialNumber(__WMDMID* pSerialNum, char* abMac);
+    HRESULT GetSerialNumber(__WMDMID* pSerialNum, ubyte* abMac);
     ///The <b>GetTotalSize</b> method retrieves the total size in bytes of the storage medium associated with the
     ///<b>IWMDMStorageGlobals</b> interface.
     ///Params:
@@ -999,7 +1000,7 @@ interface IWMDMStorage : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetName(const(wchar)* pwszName, uint nMaxChars);
+    HRESULT GetName(PWSTR pwszName, uint nMaxChars);
     ///The <b>GetDate</b> method retrieves the date when the storage was last modified.
     ///Params:
     ///    pDateTimeUTC = Pointer to a <b>WMDMDATETIME</b> structure specifying the date on which the storage object (file or folder)
@@ -1036,7 +1037,7 @@ interface IWMDMStorage : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetRights(char* ppRights, uint* pnRightsCount, char* abMac);
+    HRESULT GetRights(__WMDMRIGHTS** ppRights, uint* pnRightsCount, ubyte* abMac);
     ///The <b>EnumStorage</b> method retrieves an <b>IWMDMEnumStorage</b> interface to enumerate the immediate child
     ///storages of the current storage.
     ///Params:
@@ -1080,7 +1081,7 @@ interface IWMDMStorage2 : IWMDMStorage
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetStorage(const(wchar)* pszStorageName, IWMDMStorage* ppStorage);
+    HRESULT GetStorage(const(PWSTR) pszStorageName, IWMDMStorage* ppStorage);
     ///The <b>SetAttributes2</b> method sets extended attributes of the storage.
     ///Params:
     ///    dwAttributes = <b>DWORD</b> specifying the base attributes defined in the IWMDMStorage::SetAttributes method.
@@ -1185,7 +1186,7 @@ interface IWMDMStorage3 : IWMDMStorage2
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> An unspecified
     ///    error occurred. </td> </tr> </table>
     ///    
-    HRESULT SetEnumPreference(WMDM_STORAGE_ENUM_MODE* pMode, uint nViews, char* pViews);
+    HRESULT SetEnumPreference(WMDM_STORAGE_ENUM_MODE* pMode, uint nViews, __WMDMMetadataView* pViews);
 }
 
 ///The <b>IWMDMStorage4</b> interface extends <b>IWMDMStorage3</b> by providing methods for retrieving a subset of
@@ -1207,7 +1208,7 @@ interface IWMDMStorage4 : IWMDMStorage3
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT SetReferences(uint dwRefs, char* ppIWMDMStorage);
+    HRESULT SetReferences(uint dwRefs, IWMDMStorage* ppIWMDMStorage);
     ///The <b>GetReferences</b> method retrieves an array of pointers to <b>IWMDMStorage</b> objects pointed to by this
     ///storage. An abstract album or playlist is typically stored as a collection of references on an MTP device.
     ///Params:
@@ -1224,7 +1225,7 @@ interface IWMDMStorage4 : IWMDMStorage3
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetReferences(uint* pdwRefs, char* pppIWMDMStorage);
+    HRESULT GetReferences(uint* pdwRefs, IWMDMStorage** pppIWMDMStorage);
     ///The <b>GetRightsWithProgress</b> method retrieves the rights information for the storage object, providing a
     ///callback mechanism for monitoring progress.
     ///Params:
@@ -1240,7 +1241,7 @@ interface IWMDMStorage4 : IWMDMStorage3
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetRightsWithProgress(IWMDMProgress3 pIProgressCallback, char* ppRights, uint* pnRightsCount);
+    HRESULT GetRightsWithProgress(IWMDMProgress3 pIProgressCallback, __WMDMRIGHTS** ppRights, uint* pnRightsCount);
     ///The <b>GetSpecifiedMetadata</b> method retrieves one or more specific metadata properties from the storage.
     ///Params:
     ///    cProperties = Count of properties to retrieve.
@@ -1254,7 +1255,7 @@ interface IWMDMStorage4 : IWMDMStorage3
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetSpecifiedMetadata(uint cProperties, char* ppwszPropNames, IWMDMMetaData* ppMetadata);
+    HRESULT GetSpecifiedMetadata(uint cProperties, PWSTR* ppwszPropNames, IWMDMMetaData* ppMetadata);
     ///The <b>FindStorage</b> method retrieves a storage in the current root storage, based on its persistent unique
     ///identifier.
     ///Params:
@@ -1268,7 +1269,7 @@ interface IWMDMStorage4 : IWMDMStorage3
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT FindStorage(WMDM_FIND_SCOPE findScope, const(wchar)* pwszUniqueID, IWMDMStorage* ppStorage);
+    HRESULT FindStorage(WMDM_FIND_SCOPE findScope, const(PWSTR) pwszUniqueID, IWMDMStorage* ppStorage);
     ///The <b>GetParent</b> method retrieves the parent of the storage.
     ///Params:
     ///    ppStorage = Pointer to the IWMDMStorage interface of the parent storage. The caller must release this interface when
@@ -1326,7 +1327,7 @@ interface IWMDMOperation : IUnknown
     ///    width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> An unspecified error occurred, and the
     ///    read operation should be cancelled without finishing. </td> </tr> </table>
     ///    
-    HRESULT GetObjectName(const(wchar)* pwszName, uint nMaxChars);
+    HRESULT GetObjectName(PWSTR pwszName, uint nMaxChars);
     ///The <b>SetObjectName</b> method assigns a name to the content being read or written. This method is currently not
     ///called by Windows Media Device Manager.
     ///Params:
@@ -1340,7 +1341,7 @@ interface IWMDMOperation : IUnknown
     ///    width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> An unspecified error occurred, and the
     ///    read operation should be cancelled without finishing. </td> </tr> </table>
     ///    
-    HRESULT SetObjectName(const(wchar)* pwszName, uint nMaxChars);
+    HRESULT SetObjectName(PWSTR pwszName, uint nMaxChars);
     ///The <b>GetObjectAttributes</b> method allows the application to specify attributes for an object being written to
     ///a device. Windows Media Device Manager calls this method before a file is written to the device in order to learn
     ///the file's attributes.
@@ -1425,7 +1426,7 @@ interface IWMDMOperation : IUnknown
     ///    width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> An unspecified error occurred, and the
     ///    read operation should be cancelled without finishing. </td> </tr> </table>
     ///    
-    HRESULT TransferObjectData(char* pData, uint* pdwSize, char* abMac);
+    HRESULT TransferObjectData(ubyte* pData, uint* pdwSize, ubyte* abMac);
     ///The <b>End</b> method indicates that a read or write operation is finished, whether successful or not, and it
     ///returns a completion code.
     ///Params:
@@ -1439,7 +1440,7 @@ interface IWMDMOperation : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT End(int* phCompletionCode, IUnknown pNewObject);
+    HRESULT End(HRESULT* phCompletionCode, IUnknown pNewObject);
 }
 
 ///The optional, application-implemented <b>IWMDMOperation2</b> interface extends IWMDMOperation by providing methods to
@@ -1502,7 +1503,7 @@ interface IWMDMOperation3 : IWMDMOperation
     ///    width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> An unspecified error occurred, and the
     ///    read operation should be cancelled without finishing. </td> </tr> </table>
     ///    
-    HRESULT TransferObjectDataOnClearChannel(char* pData, uint* pdwSize);
+    HRESULT TransferObjectDataOnClearChannel(ubyte* pData, uint* pdwSize);
 }
 
 ///The optional, application-implemented <b>IWMDMProgress</b> allows an application to track the progress of operations,
@@ -1672,7 +1673,7 @@ interface IWMDMDevice : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetName(const(wchar)* pwszName, uint nMaxChars);
+    HRESULT GetName(PWSTR pwszName, uint nMaxChars);
     ///The <b>GetManufacturer</b> method retrieves the name of the manufacturer of the device.
     ///Params:
     ///    pwszName = Pointer to a wide-character, null-terminated string specifying the manufacturer's name. The buffer must be
@@ -1685,7 +1686,7 @@ interface IWMDMDevice : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetManufacturer(const(wchar)* pwszName, uint nMaxChars);
+    HRESULT GetManufacturer(PWSTR pwszName, uint nMaxChars);
     ///The <b>GetVersion</b> method retrieves the manufacturer-defined version number of the device.
     ///Params:
     ///    pdwVersion = Pointer to a <b>DWORD</b> specifying the version number.
@@ -1731,7 +1732,7 @@ interface IWMDMDevice : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetSerialNumber(__WMDMID* pSerialNumber, char* abMac);
+    HRESULT GetSerialNumber(__WMDMID* pSerialNumber, ubyte* abMac);
     ///The <b>GetPowerSource</b> method retrieves information about the power source and the percentage of power
     ///remaining for the device.
     ///Params:
@@ -1807,7 +1808,8 @@ interface IWMDMDevice : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetFormatSupport(char* ppFormatEx, uint* pnFormatCount, char* pppwszMimeType, uint* pnMimeTypeCount);
+    HRESULT GetFormatSupport(_tWAVEFORMATEX** ppFormatEx, uint* pnFormatCount, PWSTR** pppwszMimeType, 
+                             uint* pnMimeTypeCount);
     ///The <b>SendOpaqueCommand</b> method sends a device-specific command to the device through Windows Media Device
     ///Manager. Windows Media Device Manager does not attempt to read the command.
     ///Params:
@@ -1840,7 +1842,7 @@ interface IWMDMDevice2 : IWMDMDevice
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetStorage(const(wchar)* pszStorageName, IWMDMStorage* ppStorage);
+    HRESULT GetStorage(const(PWSTR) pszStorageName, IWMDMStorage* ppStorage);
     ///The <b>GetFormatSupport2</b> method retrieves the formats supported by the device, including audio and video
     ///codecs, and MIME file formats.
     ///Params:
@@ -1869,8 +1871,9 @@ interface IWMDMDevice2 : IWMDMDevice
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetFormatSupport2(uint dwFlags, char* ppAudioFormatEx, uint* pnAudioFormatCount, char* ppVideoFormatEx, 
-                              uint* pnVideoFormatCount, char* ppFileType, uint* pnFileTypeCount);
+    HRESULT GetFormatSupport2(uint dwFlags, _tWAVEFORMATEX** ppAudioFormatEx, uint* pnAudioFormatCount, 
+                              _tagVIDEOINFOHEADER** ppVideoFormatEx, uint* pnVideoFormatCount, 
+                              WMFILECAPABILITIES** ppFileType, uint* pnFileTypeCount);
     ///The <b>GetSpecifyPropertyPages</b> method retrieves the property page for the device. Property pages can be used
     ///to report device-specific properties and branding information.
     ///Params:
@@ -1887,7 +1890,8 @@ interface IWMDMDevice2 : IWMDMDevice
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetSpecifyPropertyPages(ISpecifyPropertyPages* ppSpecifyPropPages, char* pppUnknowns, uint* pcUnks);
+    HRESULT GetSpecifyPropertyPages(ISpecifyPropertyPages* ppSpecifyPropPages, IUnknown** pppUnknowns, 
+                                    uint* pcUnks);
     ///The <b>GetCanonicalName</b> method retrieves the canonical name of the device.
     ///Params:
     ///    pwszPnPName = Wide-character buffer for the canonical names. This buffer must be allocated and released by the caller.
@@ -1903,7 +1907,7 @@ interface IWMDMDevice2 : IWMDMDevice
     ///    canonical name. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> An
     ///    unspecified error occurred. </td> </tr> </table>
     ///    
-    HRESULT GetCanonicalName(const(wchar)* pwszPnPName, uint nMaxChars);
+    HRESULT GetCanonicalName(PWSTR pwszPnPName, uint nMaxChars);
 }
 
 ///The <b>IWMDMDevice3</b> interface extends <b>IWMDMDevice2</b> by providing methods to query a device for properties,
@@ -1923,7 +1927,7 @@ interface IWMDMDevice3 : IWMDMDevice2
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetProperty(const(wchar)* pwszPropName, PROPVARIANT* pValue);
+    HRESULT GetProperty(const(PWSTR) pwszPropName, PROPVARIANT* pValue);
     ///The <b>SetProperty</b> method sets a specific device property, if it is writable.
     ///Params:
     ///    pwszPropName = A wide character, null-terminated string name of the property to set. This overwrites any existing property
@@ -1936,7 +1940,7 @@ interface IWMDMDevice3 : IWMDMDevice2
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT SetProperty(const(wchar)* pwszPropName, const(PROPVARIANT)* pValue);
+    HRESULT SetProperty(const(PWSTR) pwszPropName, const(PROPVARIANT)* pValue);
     ///The <b>GetFormatCapability</b> method retrieves device support for files of a specified format. The capabilities
     ///are expressed as supported properties and their allowed values.
     ///Params:
@@ -1974,7 +1978,7 @@ interface IWMDMDevice3 : IWMDMDevice2
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT DeviceIoControl(uint dwIoControlCode, char* lpInBuffer, uint nInBufferSize, char* lpOutBuffer, 
+    HRESULT DeviceIoControl(uint dwIoControlCode, ubyte* lpInBuffer, uint nInBufferSize, ubyte* lpOutBuffer, 
                             uint* pnOutBufferSize);
     ///The <b>FindStorage</b> method finds a storage by its persistent unique identifier. Unlike other methods, this
     ///method can search recursively from the root storage.
@@ -1989,7 +1993,7 @@ interface IWMDMDevice3 : IWMDMDevice2
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT FindStorage(WMDM_FIND_SCOPE findScope, const(wchar)* pwszUniqueID, IWMDMStorage* ppStorage);
+    HRESULT FindStorage(WMDM_FIND_SCOPE findScope, const(PWSTR) pwszUniqueID, IWMDMStorage* ppStorage);
 }
 
 ///The <b>IWMDMDeviceSession</b> interface improves the efficiency of device operations by bundling multiple operations
@@ -2014,7 +2018,7 @@ interface IWMDMDeviceSession : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT BeginSession(WMDM_SESSION_TYPE type, char* pCtx, uint dwSizeCtx);
+    HRESULT BeginSession(WMDM_SESSION_TYPE type, ubyte* pCtx, uint dwSizeCtx);
     ///The <b>EndSession</b> method ends a device session.
     ///Params:
     ///    type = A WMDM_SESSION_TYPE describing the type of session to end. This must be the same bitwise <b>OR</b> of the
@@ -2031,7 +2035,7 @@ interface IWMDMDeviceSession : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT EndSession(WMDM_SESSION_TYPE type, char* pCtx, uint dwSizeCtx);
+    HRESULT EndSession(WMDM_SESSION_TYPE type, ubyte* pCtx, uint dwSizeCtx);
 }
 
 ///The <b>IWMDMEnumDevice</b> interface enumerates portable devices attached to a computer. To obtain this interface,
@@ -2053,7 +2057,7 @@ interface IWMDMEnumDevice : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT Next(uint celt, char* ppDevice, uint* pceltFetched);
+    HRESULT Next(uint celt, IWMDMDevice* ppDevice, uint* pceltFetched);
     ///The <b>Skip</b> method skips over a specified number of devices in the enumeration sequence.
     ///Params:
     ///    celt = Number of devices to skip.
@@ -2250,7 +2254,7 @@ interface IWMDMEnumStorage : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT Next(uint celt, char* ppStorage, uint* pceltFetched);
+    HRESULT Next(uint celt, IWMDMStorage* ppStorage, uint* pceltFetched);
     ///The <b>Skip</b> method skips over the specified number of storages in the enumeration sequence.
     ///Params:
     ///    celt = The number of storages to skip.
@@ -2330,7 +2334,7 @@ interface IWMDMStorageControl : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT Insert(uint fuMode, const(wchar)* pwszFile, IWMDMOperation pOperation, IWMDMProgress pProgress, 
+    HRESULT Insert(uint fuMode, PWSTR pwszFile, IWMDMOperation pOperation, IWMDMProgress pProgress, 
                    IWMDMStorage* ppNewObject);
     ///The <b>Delete</b> method permanently deletes this storage.
     ///Params:
@@ -2367,7 +2371,7 @@ interface IWMDMStorageControl : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT Rename(uint fuMode, const(wchar)* pwszNewName, IWMDMProgress pProgress);
+    HRESULT Rename(uint fuMode, PWSTR pwszNewName, IWMDMProgress pProgress);
     ///The <b>Read</b> method copies the current storage to the computer.
     ///Params:
     ///    fuMode = Processing mode used for the <b>Read</b> operation. The following table lists the processing modes that can
@@ -2400,7 +2404,7 @@ interface IWMDMStorageControl : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT Read(uint fuMode, const(wchar)* pwszFile, IWMDMProgress pProgress, IWMDMOperation pOperation);
+    HRESULT Read(uint fuMode, PWSTR pwszFile, IWMDMProgress pProgress, IWMDMOperation pOperation);
     ///The <b>Move</b> method moves the current storage to a new location on the device.
     ///Params:
     ///    fuMode = Processing mode by which to invoke the <b>Move</b> operation and the type of move to make. Specify exactly
@@ -2483,8 +2487,8 @@ interface IWMDMStorageControl2 : IWMDMStorageControl
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT Insert2(uint fuMode, const(wchar)* pwszFileSource, const(wchar)* pwszFileDest, 
-                    IWMDMOperation pOperation, IWMDMProgress pProgress, IUnknown pUnknown, IWMDMStorage* ppNewObject);
+    HRESULT Insert2(uint fuMode, PWSTR pwszFileSource, PWSTR pwszFileDest, IWMDMOperation pOperation, 
+                    IWMDMProgress pProgress, IUnknown pUnknown, IWMDMStorage* ppNewObject);
 }
 
 ///The <b>IWMDMStorageControl3</b> interface extends <b>IWMDMStorageControl2</b> by providing an <b>Insert</b> method
@@ -2556,9 +2560,8 @@ interface IWMDMStorageControl3 : IWMDMStorageControl2
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT Insert3(uint fuMode, uint fuType, const(wchar)* pwszFileSource, const(wchar)* pwszFileDest, 
-                    IWMDMOperation pOperation, IWMDMProgress pProgress, IWMDMMetaData pMetaData, IUnknown pUnknown, 
-                    IWMDMStorage* ppNewObject);
+    HRESULT Insert3(uint fuMode, uint fuType, PWSTR pwszFileSource, PWSTR pwszFileDest, IWMDMOperation pOperation, 
+                    IWMDMProgress pProgress, IWMDMMetaData pMetaData, IUnknown pUnknown, IWMDMStorage* ppNewObject);
 }
 
 ///The <b>IWMDMObjectInfo</b> interface gets and sets information that controls how playable files on device are handled
@@ -2672,7 +2675,7 @@ interface IWMDMRevoked : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetRevocationURL(char* ppwszRevocationURL, uint* pdwBufferLen, uint* pdwRevokedBitFlag);
+    HRESULT GetRevocationURL(PWSTR* ppwszRevocationURL, uint* pdwBufferLen, uint* pdwRevokedBitFlag);
 }
 
 ///The optional, application-implemented <b>IWMDMNotification</b> interface allows applications and service providers to
@@ -2699,7 +2702,7 @@ interface IWMDMNotification : IUnknown
     ///    The return value is an <b>HRESULT</b> in which application can return results of its processing of the
     ///    message. The return value is ignored by WMDM.
     ///    
-    HRESULT WMDMMessage(uint dwMessageType, const(wchar)* pwszCanonicalName);
+    HRESULT WMDMMessage(uint dwMessageType, const(PWSTR) pwszCanonicalName);
 }
 
 ///The <b>IMDServiceProvider</b> interface is the initial interface that Windows Media Device Manager uses to connect to
@@ -2757,7 +2760,7 @@ interface IMDServiceProvider2 : IMDServiceProvider
     ///    If the method succeeds it returns S_OK. If the method fails, it returns the Windows Media Device Manager
     ///    error codes.
     ///    
-    HRESULT CreateDevice(const(wchar)* pwszDevicePath, uint* pdwCount, char* pppDeviceArray);
+    HRESULT CreateDevice(const(PWSTR) pwszDevicePath, uint* pdwCount, IMDSPDevice** pppDeviceArray);
 }
 
 ///The <b>IMDServiceProvider3</b> interface extends the IMDServiceProvider2 interface by providing a method for setting
@@ -2813,7 +2816,7 @@ interface IMDSPEnumDevice : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT Next(uint celt, char* ppDevice, uint* pceltFetched);
+    HRESULT Next(uint celt, IMDSPDevice* ppDevice, uint* pceltFetched);
     ///The <b>Skip</b> method skips over the next specified number of media device interface(s) in the enumeration
     ///sequence.
     ///Params:
@@ -2866,7 +2869,7 @@ interface IMDSPDevice : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetName(const(wchar)* pwszName, uint nMaxChars);
+    HRESULT GetName(PWSTR pwszName, uint nMaxChars);
     ///The <b>GetManufacturer</b> method retrieves the name of the manufacturer of the device.
     ///Params:
     ///    pwszName = Pointer to a caller-allocated wide character array that receives the manufacturer name string.
@@ -2877,7 +2880,7 @@ interface IMDSPDevice : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetManufacturer(const(wchar)* pwszName, uint nMaxChars);
+    HRESULT GetManufacturer(PWSTR pwszName, uint nMaxChars);
     ///The <b>GetVersion</b> method retrieves the version number of the device.
     ///Params:
     ///    pdwVersion = Pointer to a <b>DWORD</b> to receive the version number of the device.
@@ -2923,7 +2926,7 @@ interface IMDSPDevice : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetSerialNumber(__WMDMID* pSerialNumber, char* abMac);
+    HRESULT GetSerialNumber(__WMDMID* pSerialNumber, ubyte* abMac);
     ///The <b>GetPowerSource</b> method reports whether the device is capable of running on batteries, external power,
     ///or both, and on which type of power source it is currently running. If the device is running on batteries, this
     ///method also reports the percentage of total power remaining in the batteries.
@@ -3014,7 +3017,8 @@ interface IMDSPDevice : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetFormatSupport(char* pFormatEx, uint* pnFormatCount, char* pppwszMimeType, uint* pnMimeTypeCount);
+    HRESULT GetFormatSupport(_tWAVEFORMATEX** pFormatEx, uint* pnFormatCount, PWSTR** pppwszMimeType, 
+                             uint* pnMimeTypeCount);
     ///The <b>SendOpaqueCommand</b> method sends a command through Windows Media Device Manager. Without acting on it,
     ///Windows Media Device Manager passes the command through to a device.
     ///Params:
@@ -3044,7 +3048,7 @@ interface IMDSPDevice2 : IMDSPDevice
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetStorage(const(wchar)* pszStorageName, IMDSPStorage* ppStorage);
+    HRESULT GetStorage(const(PWSTR) pszStorageName, IMDSPStorage* ppStorage);
     ///The <b>GetFormatSupport2</b> method gets the formats supported by a device, including audio and video codecs, and
     ///MIME file formats.
     ///Params:
@@ -3070,8 +3074,9 @@ interface IMDSPDevice2 : IMDSPDevice
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetFormatSupport2(uint dwFlags, char* ppAudioFormatEx, uint* pnAudioFormatCount, char* ppVideoFormatEx, 
-                              uint* pnVideoFormatCount, char* ppFileType, uint* pnFileTypeCount);
+    HRESULT GetFormatSupport2(uint dwFlags, _tWAVEFORMATEX** ppAudioFormatEx, uint* pnAudioFormatCount, 
+                              _tagVIDEOINFOHEADER** ppVideoFormatEx, uint* pnVideoFormatCount, 
+                              WMFILECAPABILITIES** ppFileType, uint* pnFileTypeCount);
     ///The <b>GetSpecifyPropertyPages</b> method gets property pages describing non-standard capabilities of portable
     ///devices.
     ///Params:
@@ -3085,7 +3090,8 @@ interface IMDSPDevice2 : IMDSPDevice
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetSpecifyPropertyPages(ISpecifyPropertyPages* ppSpecifyPropPages, char* pppUnknowns, uint* pcUnks);
+    HRESULT GetSpecifyPropertyPages(ISpecifyPropertyPages* ppSpecifyPropPages, IUnknown** pppUnknowns, 
+                                    uint* pcUnks);
     ///The <b>GetCanonicalPName</b> method gets the canonical name of a device.
     ///Params:
     ///    pwszPnPName = A wide character, null-terminated buffer holding the canonical name. The caller allocates and releases this
@@ -3096,7 +3102,7 @@ interface IMDSPDevice2 : IMDSPDevice
     ///    The method returns an <b>HRESULT</b>. Possible values include, but are not limited to, those in the following
     ///    table.
     ///    
-    HRESULT GetCanonicalName(const(wchar)* pwszPnPName, uint nMaxChars);
+    HRESULT GetCanonicalName(PWSTR pwszPnPName, uint nMaxChars);
 }
 
 ///The <b>IMDSPDevice3</b> interface must be supported for devices that expect to synchronize with Windows Media Player.
@@ -3118,7 +3124,7 @@ interface IMDSPDevice3 : IMDSPDevice2
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetProperty(const(wchar)* pwszPropName, PROPVARIANT* pValue);
+    HRESULT GetProperty(const(PWSTR) pwszPropName, PROPVARIANT* pValue);
     ///The <b>SetProperty</b> method sets a specific device property that is writable.
     ///Params:
     ///    pwszPropName = Name of device property being set.
@@ -3129,7 +3135,7 @@ interface IMDSPDevice3 : IMDSPDevice2
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT SetProperty(const(wchar)* pwszPropName, const(PROPVARIANT)* pValue);
+    HRESULT SetProperty(const(PWSTR) pwszPropName, const(PROPVARIANT)* pValue);
     ///The <b>GetFormatCapability</b> method retrieves information from a device about the values or ranges of values
     ///supported by the device for each aspect of a particular object format.
     ///Params:
@@ -3156,7 +3162,7 @@ interface IMDSPDevice3 : IMDSPDevice2
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT DeviceIoControl(uint dwIoControlCode, char* lpInBuffer, uint nInBufferSize, char* lpOutBuffer, 
+    HRESULT DeviceIoControl(uint dwIoControlCode, ubyte* lpInBuffer, uint nInBufferSize, ubyte* lpOutBuffer, 
                             uint* pnOutBufferSize);
     ///The <b>FindStorage</b> method finds a storage with the given persistent unique identifier. The persistent unique
     ///identifier of a storage is described by the <b>g_wszWMDMPersistentUniqueID</b> property of that storage.
@@ -3173,7 +3179,7 @@ interface IMDSPDevice3 : IMDSPDevice2
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT FindStorage(WMDM_FIND_SCOPE findScope, const(wchar)* pwszUniqueID, IMDSPStorage* ppStorage);
+    HRESULT FindStorage(WMDM_FIND_SCOPE findScope, const(PWSTR) pwszUniqueID, IMDSPStorage* ppStorage);
 }
 
 ///The <b>IMDSPDeviceControl</b> interface provides methods for controlling devices. After this interface is acquired
@@ -3352,7 +3358,7 @@ interface IMDSPEnumStorage : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT Next(uint celt, char* ppStorage, uint* pceltFetched);
+    HRESULT Next(uint celt, IMDSPStorage* ppStorage, uint* pceltFetched);
     ///The <b>Skip</b> method skips over the next specified number of storage interface(s) in the enumeration sequence.
     ///Params:
     ///    celt = Number of elements to skip.
@@ -3441,7 +3447,7 @@ interface IMDSPStorage : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetName(const(wchar)* pwszName, uint nMaxChars);
+    HRESULT GetName(PWSTR pwszName, uint nMaxChars);
     ///The <b>GetDate</b> method retrieves the date on which the storage object (file or folder) was most recently
     ///modified.
     ///Params:
@@ -3479,7 +3485,7 @@ interface IMDSPStorage : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetRights(char* ppRights, uint* pnRightsCount, char* abMac);
+    HRESULT GetRights(__WMDMRIGHTS** ppRights, uint* pnRightsCount, ubyte* abMac);
     ///The <b>CreateStorage</b> method creates a new storage and returns a pointer to the <b>IMDSPStorage</b> interface
     ///on the newly created storage. This method is optional unless <i>dwAttributes</i> is WMDM_FILE_ATTR_FILE. In that
     ///case, this method must be implemented and must not return WMDM_E_NOTSUPPORTED or E_NOTIMPL. For more information,
@@ -3523,8 +3529,7 @@ interface IMDSPStorage : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT CreateStorage(uint dwAttributes, _tWAVEFORMATEX* pFormat, const(wchar)* pwszName, 
-                          IMDSPStorage* ppNewStorage);
+    HRESULT CreateStorage(uint dwAttributes, _tWAVEFORMATEX* pFormat, PWSTR pwszName, IMDSPStorage* ppNewStorage);
     ///The <b>EnumStorage</b> method accesses the <b>IMDSPEnumStorage</b> interface to enumerate the individual storage
     ///media on a device.
     ///Params:
@@ -3567,7 +3572,7 @@ interface IMDSPStorage2 : IMDSPStorage
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetStorage(const(wchar)* pszStorageName, IMDSPStorage* ppStorage);
+    HRESULT GetStorage(const(PWSTR) pszStorageName, IMDSPStorage* ppStorage);
     ///The <b>CreateStorage2</b> method creates a new storage with the specified name and returns a pointer to the
     ///<b>IMDSPStorage</b> interface on the newly created storage.
     ///Params:
@@ -3589,7 +3594,7 @@ interface IMDSPStorage2 : IMDSPStorage
     ///    list of possible error codes, see Error Codes.
     ///    
     HRESULT CreateStorage2(uint dwAttributes, uint dwAttributesEx, _tWAVEFORMATEX* pAudioFormat, 
-                           _tagVIDEOINFOHEADER* pVideoFormat, const(wchar)* pwszName, ulong qwFileSize, 
+                           _tagVIDEOINFOHEADER* pVideoFormat, PWSTR pwszName, ulong qwFileSize, 
                            IMDSPStorage* ppNewStorage);
     ///The <b>SetAttributes2</b> method extends <b>IMDSPStorage::SetAttributes</b> by enabling you to set audio and
     ///video formats and extended attributes of a storage object.
@@ -3679,7 +3684,7 @@ interface IMDSPStorage4 : IMDSPStorage3
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT SetReferences(uint dwRefs, char* ppISPStorage);
+    HRESULT SetReferences(uint dwRefs, IMDSPStorage* ppISPStorage);
     ///The <b>GetReferences</b> method returns an array of pointers to <b>IMDSPStorage</b> objects comprising the
     ///references contained in an association storage, such as one representing playlist or album objects.
     ///Params:
@@ -3693,7 +3698,7 @@ interface IMDSPStorage4 : IMDSPStorage3
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetReferences(uint* pdwRefs, char* pppISPStorage);
+    HRESULT GetReferences(uint* pdwRefs, IMDSPStorage** pppISPStorage);
     ///The <b>CreateStorageWithMetadata</b> method creates a new storage, applying the given metadata to the new
     ///storage, and returns a pointer to the <b>IMDSPStorage</b> interface on the newly created storage. The new storage
     ///can be created at the same level or can be inserted into the current storage. This method is useful if the device
@@ -3739,7 +3744,7 @@ interface IMDSPStorage4 : IMDSPStorage3
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT CreateStorageWithMetadata(uint dwAttributes, const(wchar)* pwszName, IWMDMMetaData pMetadata, 
+    HRESULT CreateStorageWithMetadata(uint dwAttributes, const(PWSTR) pwszName, IWMDMMetaData pMetadata, 
                                       ulong qwFileSize, IMDSPStorage* ppNewStorage);
     ///The <b>GetSpecifiedMetadata</b> method retrieves only the specified metadata object for a storage.
     ///Params:
@@ -3753,7 +3758,7 @@ interface IMDSPStorage4 : IMDSPStorage3
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetSpecifiedMetadata(uint cProperties, char* ppwszPropNames, IWMDMMetaData pMetadata);
+    HRESULT GetSpecifiedMetadata(uint cProperties, PWSTR* ppwszPropNames, IWMDMMetaData pMetadata);
     ///The <b>FindStorage</b> method finds a storage with the given persistent unique identifier. The persistent unique
     ///identifier of a storage is described by the <b>g_wszWMDMPersistentUniqueID</b> property of that storage.
     ///Params:
@@ -3769,7 +3774,7 @@ interface IMDSPStorage4 : IMDSPStorage3
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT FindStorage(WMDM_FIND_SCOPE findScope, const(wchar)* pwszUniqueID, IMDSPStorage* ppStorage);
+    HRESULT FindStorage(WMDM_FIND_SCOPE findScope, const(PWSTR) pwszUniqueID, IMDSPStorage* ppStorage);
     ///The <b>GetParent</b> method retrieves the parent of the current storage.
     ///Params:
     ///    ppStorage = Pointer to the returned parent storage object.
@@ -3831,7 +3836,7 @@ interface IMDSPStorageGlobals : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetSerialNumber(__WMDMID* pSerialNum, char* abMac);
+    HRESULT GetSerialNumber(__WMDMID* pSerialNum, ubyte* abMac);
     ///The <b>GetTotalSize</b> method retrieves the total size, in bytes, of the medium associated with this
     ///<b>IMDSPStorageGlobals</b> interface.
     ///Params:
@@ -4066,7 +4071,7 @@ interface IMDSPObject : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT Read(char* pData, uint* pdwSize, char* abMac);
+    HRESULT Read(ubyte* pData, uint* pdwSize, ubyte* abMac);
     ///The <b>Write</b> method writes data to the object at the current position within the object. This operation is
     ///valid only if the storage object represents a file.
     ///Params:
@@ -4083,7 +4088,7 @@ interface IMDSPObject : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT Write(char* pData, uint* pdwSize, char* abMac);
+    HRESULT Write(ubyte* pData, uint* pdwSize, ubyte* abMac);
     ///The <b>Delete</b> method removes an object or objects from a storage medium on a media device.
     ///Params:
     ///    fuMode = Flag that must always be set to WMDM_MODE_RECURSIVE by the client. If the object is a folder, it and its
@@ -4126,7 +4131,7 @@ interface IMDSPObject : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT Rename(const(wchar)* pwszNewName, IWMDMProgress pProgress);
+    HRESULT Rename(PWSTR pwszNewName, IWMDMProgress pProgress);
     ///The <b>Move</b> method moves a file or folder on a media device.
     ///Params:
     ///    fuMode = Processing mode by which to invoke the <b>Move</b> operation and the method by which to move. Specify exactly
@@ -4183,7 +4188,7 @@ interface IMDSPObject2 : IMDSPObject
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT ReadOnClearChannel(char* pData, uint* pdwSize);
+    HRESULT ReadOnClearChannel(ubyte* pData, uint* pdwSize);
     ///The <b>WriteOnClearChannel</b> method writes data to the object to the current position within the object,
     ///without using secure authenticated channels. This operation is valid only if the storage object represents a
     ///file. If <b>IMDSPObject2</b> is supported, this method must be implemented. Windows Media Device Manager does not
@@ -4198,7 +4203,7 @@ interface IMDSPObject2 : IMDSPObject
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT WriteOnClearChannel(char* pData, uint* pdwSize);
+    HRESULT WriteOnClearChannel(ubyte* pData, uint* pdwSize);
 }
 
 ///The <b>IMDSPDirectTransfer</b> interface enables Windows Media Device Manager to delegate content transfer to the
@@ -4239,8 +4244,8 @@ interface IMDSPDirectTransfer : IUnknown
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>HRESULT_FROM_WIN32(ERROR_NOT_SUPPORTED)</b></dt> </dl> </td>
     ///    <td width="60%"> Transfer of the specified content is not supported on the device. </td> </tr> </table>
     ///    
-    HRESULT TransferToDevice(const(wchar)* pwszSourceFilePath, IWMDMOperation pSourceOperation, uint fuFlags, 
-                             const(wchar)* pwszDestinationName, IWMDMMetaData pSourceMetaData, 
+    HRESULT TransferToDevice(const(PWSTR) pwszSourceFilePath, IWMDMOperation pSourceOperation, uint fuFlags, 
+                             PWSTR pwszDestinationName, IWMDMMetaData pSourceMetaData, 
                              IWMDMProgress pTransferProgress, IMDSPStorage* ppNewObject);
 }
 
@@ -4260,7 +4265,7 @@ interface IMDSPRevoked : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetRevocationURL(char* ppwszRevocationURL, uint* pdwBufferLen);
+    HRESULT GetRevocationURL(PWSTR* ppwszRevocationURL, uint* pdwBufferLen);
 }
 
 ///The <b>ISCPSecureAuthenticate</b> interface is the primary interface of the secure content provider, which Windows
@@ -4340,7 +4345,7 @@ interface ISCPSecureQuery : IUnknown
     ///    </dl> </td> <td width="60%"> An unspecified error occurred. </td> </tr> </table>
     ///    
     HRESULT GetDataDemands(uint* pfuFlags, uint* pdwMinRightsData, uint* pdwMinExamineData, uint* pdwMinDecideData, 
-                           char* abMac);
+                           ubyte* abMac);
     ///The <b>ExamineData</b> method determines rights and responsibility for the content by examining data that Windows
     ///Media Device Manager passes to this method.
     ///Params:
@@ -4372,7 +4377,7 @@ interface ISCPSecureQuery : IUnknown
     ///    <b>NULL</b> pointer. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td
     ///    width="60%"> An unspecified error occurred. </td> </tr> </table>
     ///    
-    HRESULT ExamineData(uint fuFlags, const(wchar)* pwszExtension, char* pData, uint dwSize, char* abMac);
+    HRESULT ExamineData(uint fuFlags, PWSTR pwszExtension, ubyte* pData, uint dwSize, ubyte* abMac);
     ///The <b>MakeDecision</b> method determines whether access to the content is allowed. If access is allowed, this
     ///method returns the interface that will be used to access the content.
     ///Params:
@@ -4418,9 +4423,9 @@ interface ISCPSecureQuery : IUnknown
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> An unspecified
     ///    error occurred. </td> </tr> </table>
     ///    
-    HRESULT MakeDecision(uint fuFlags, char* pData, uint dwSize, uint dwAppSec, char* pbSPSessionKey, 
+    HRESULT MakeDecision(uint fuFlags, ubyte* pData, uint dwSize, uint dwAppSec, ubyte* pbSPSessionKey, 
                          uint dwSessionKeyLen, IMDSPStorageGlobals pStorageGlobals, ISCPSecureExchange* ppExchange, 
-                         char* abMac);
+                         ubyte* abMac);
     ///The <b>GetRights</b> method retrieves rights information for the current piece of content. Rights are
     ///file-specific.
     ///Params:
@@ -4454,8 +4459,8 @@ interface ISCPSecureQuery : IUnknown
     ///    is invalid or is a <b>NULL</b> pointer. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl>
     ///    </td> <td width="60%"> An unspecified error occurred. </td> </tr> </table>
     ///    
-    HRESULT GetRights(char* pData, uint dwSize, char* pbSPSessionKey, uint dwSessionKeyLen, 
-                      IMDSPStorageGlobals pStgGlobals, char* ppRights, uint* pnRightsCount, char* abMac);
+    HRESULT GetRights(ubyte* pData, uint dwSize, ubyte* pbSPSessionKey, uint dwSessionKeyLen, 
+                      IMDSPStorageGlobals pStgGlobals, __WMDMRIGHTS** ppRights, uint* pnRightsCount, ubyte* abMac);
 }
 
 ///The <b>ISCPSecureQuery2</b> interface extends ISCPSecureQuery through functionality that determines whether the
@@ -4518,11 +4523,11 @@ interface ISCPSecureQuery2 : ISCPSecureQuery
     ///    </dl> </td> <td width="60%"> The application certificate that the secure content provider uses to talk to the
     ///    DRM client has been revoked. </td> </tr> </table>
     ///    
-    HRESULT MakeDecision2(uint fuFlags, char* pData, uint dwSize, uint dwAppSec, char* pbSPSessionKey, 
-                          uint dwSessionKeyLen, IMDSPStorageGlobals pStorageGlobals, char* pAppCertApp, 
-                          uint dwAppCertAppLen, char* pAppCertSP, uint dwAppCertSPLen, char* pszRevocationURL, 
+    HRESULT MakeDecision2(uint fuFlags, ubyte* pData, uint dwSize, uint dwAppSec, ubyte* pbSPSessionKey, 
+                          uint dwSessionKeyLen, IMDSPStorageGlobals pStorageGlobals, ubyte* pAppCertApp, 
+                          uint dwAppCertAppLen, ubyte* pAppCertSP, uint dwAppCertSPLen, PWSTR* pszRevocationURL, 
                           uint* pdwRevocationURLLen, uint* pdwRevocationBitFlag, ulong* pqwFileSize, 
-                          IUnknown pUnknown, ISCPSecureExchange* ppExchange, char* abMac);
+                          IUnknown pUnknown, ISCPSecureExchange* ppExchange, ubyte* abMac);
 }
 
 ///The <b>ISCPSecureExchange</b> interface is used to exchange secured content and rights associated with content. The
@@ -4561,7 +4566,7 @@ interface ISCPSecureExchange : IUnknown
     ///    a <b>NULL</b> pointer. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td
     ///    width="60%"> An unspecified error occurred. </td> </tr> </table>
     ///    
-    HRESULT TransferContainerData(char* pData, uint dwSize, uint* pfuReadyFlags, char* abMac);
+    HRESULT TransferContainerData(ubyte* pData, uint dwSize, uint* pfuReadyFlags, ubyte* abMac);
     ///The <b>ObjectData</b> method transfers a block of object data back to Windows Media Device Manager.
     ///Params:
     ///    pData = Pointer to a buffer to receive data. This parameter is included in the output message authentication code and
@@ -4582,7 +4587,7 @@ interface ISCPSecureExchange : IUnknown
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> An unspecified
     ///    error occurred. </td> </tr> </table>
     ///    
-    HRESULT ObjectData(char* pData, uint* pdwSize, char* abMac);
+    HRESULT ObjectData(ubyte* pData, uint* pdwSize, ubyte* abMac);
     ///The <b>TransferComplete</b> method is called by Windows Media Device Manager to signal the end of a secure
     ///transfer of data. In this method, the secure content provider can perform any additional processing required to
     ///enable the content on the target device.
@@ -4639,8 +4644,8 @@ interface ISCPSecureExchange2 : ISCPSecureExchange
     ///    a <b>NULL</b> pointer. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td
     ///    width="60%"> An unspecified error occurred. </td> </tr> </table>
     ///    
-    HRESULT TransferContainerData2(char* pData, uint dwSize, IWMDMProgress3 pProgressCallback, uint* pfuReadyFlags, 
-                                   char* abMac);
+    HRESULT TransferContainerData2(ubyte* pData, uint dwSize, IWMDMProgress3 pProgressCallback, 
+                                   uint* pfuReadyFlags, ubyte* abMac);
 }
 
 ///The <b>ISCPSecureExchange3</b> interface extends <b>ISCPSecureExchange2</b> by providing improved data exchange
@@ -4681,9 +4686,9 @@ interface ISCPSecureExchange3 : ISCPSecureExchange2
     ///    <b>NULL</b> pointer. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td
     ///    width="60%"> An unspecified error occurred. </td> </tr> </table>
     ///    
-    HRESULT TransferContainerDataOnClearChannel(IMDSPDevice pDevice, char* pData, uint dwSize, 
+    HRESULT TransferContainerDataOnClearChannel(IMDSPDevice pDevice, ubyte* pData, uint dwSize, 
                                                 IWMDMProgress3 pProgressCallback, uint* pfuReadyFlags);
-    HRESULT GetObjectDataOnClearChannel(IMDSPDevice pDevice, char* pData, uint* pdwSize);
+    HRESULT GetObjectDataOnClearChannel(IMDSPDevice pDevice, ubyte* pData, uint* pdwSize);
     ///The <b>TransferCompleteForDevice</b> method is called by Windows Media Device Manager to signal the end of a data
     ///transfer for a specific device.
     ///Params:
@@ -4716,7 +4721,7 @@ interface ISCPSession : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If the method fails, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT BeginSession(IMDSPDevice pIDevice, char* pCtx, uint dwSizeCtx);
+    HRESULT BeginSession(IMDSPDevice pIDevice, ubyte* pCtx, uint dwSizeCtx);
     ///The <b>EndSession</b> method indicates the ending of a transfer session.
     ///Params:
     ///    pCtx = Pointer to the context.
@@ -4724,7 +4729,7 @@ interface ISCPSession : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If the method fails, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT EndSession(char* pCtx, uint dwSizeCtx);
+    HRESULT EndSession(ubyte* pCtx, uint dwSizeCtx);
     ///The <b>GetSecureQuery</b> method is used to obtain a secure query object for the session.
     ///Params:
     ///    ppSecureQuery = Pointer to a secure query object.
@@ -4766,9 +4771,9 @@ interface ISCPSecureQuery3 : ISCPSecureQuery2
     ///    </td> <td width="60%"> A parameter is invalid or is a <b>NULL</b> pointer. </td> </tr> <tr> <td width="40%">
     ///    <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> An unspecified error occurred. </td> </tr> </table>
     ///    
-    HRESULT GetRightsOnClearChannel(char* pData, uint dwSize, char* pbSPSessionKey, uint dwSessionKeyLen, 
+    HRESULT GetRightsOnClearChannel(ubyte* pData, uint dwSize, ubyte* pbSPSessionKey, uint dwSessionKeyLen, 
                                     IMDSPStorageGlobals pStgGlobals, IWMDMProgress3 pProgressCallback, 
-                                    char* ppRights, uint* pnRightsCount);
+                                    __WMDMRIGHTS** ppRights, uint* pnRightsCount);
     ///The <b>MakeDecisionOnClearChannel</b> method determines whether access to the content is allowed on a clear
     ///channel. If access is allowed, this method returns the interface used to access the content.
     ///Params:
@@ -4825,12 +4830,13 @@ interface ISCPSecureQuery3 : ISCPSecureQuery2
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> An unspecified
     ///    error occurred. </td> </tr> </table>
     ///    
-    HRESULT MakeDecisionOnClearChannel(uint fuFlags, char* pData, uint dwSize, uint dwAppSec, char* pbSPSessionKey, 
-                                       uint dwSessionKeyLen, IMDSPStorageGlobals pStorageGlobals, 
-                                       IWMDMProgress3 pProgressCallback, char* pAppCertApp, uint dwAppCertAppLen, 
-                                       char* pAppCertSP, uint dwAppCertSPLen, char* pszRevocationURL, 
-                                       uint* pdwRevocationURLLen, uint* pdwRevocationBitFlag, ulong* pqwFileSize, 
-                                       IUnknown pUnknown, ISCPSecureExchange* ppExchange);
+    HRESULT MakeDecisionOnClearChannel(uint fuFlags, ubyte* pData, uint dwSize, uint dwAppSec, 
+                                       ubyte* pbSPSessionKey, uint dwSessionKeyLen, 
+                                       IMDSPStorageGlobals pStorageGlobals, IWMDMProgress3 pProgressCallback, 
+                                       ubyte* pAppCertApp, uint dwAppCertAppLen, ubyte* pAppCertSP, 
+                                       uint dwAppCertSPLen, PWSTR* pszRevocationURL, uint* pdwRevocationURLLen, 
+                                       uint* pdwRevocationBitFlag, ulong* pqwFileSize, IUnknown pUnknown, 
+                                       ISCPSecureExchange* ppExchange);
 }
 
 ///The <b>IComponentAuthenticate</b> interface provides secure, encrypted communication between modules of Windows Media
@@ -4857,7 +4863,7 @@ interface IComponentAuthenticate : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT SACAuth(uint dwProtocolID, uint dwPass, char* pbDataIn, uint dwDataInLen, char* ppbDataOut, 
+    HRESULT SACAuth(uint dwProtocolID, uint dwPass, ubyte* pbDataIn, uint dwDataInLen, ubyte** ppbDataOut, 
                     uint* pdwDataOutLen);
     ///The <b>SACGetProtocols</b> method is used by a component to discover the authentication protocols supported by
     ///another component.
@@ -4872,7 +4878,7 @@ interface IComponentAuthenticate : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT SACGetProtocols(char* ppdwProtocols, uint* pdwProtocolCount);
+    HRESULT SACGetProtocols(uint** ppdwProtocols, uint* pdwProtocolCount);
 }
 
 ///The <b>IWMDMLogger</b> interface is used by Windows Media Device Manager applications and service providers to log
@@ -4893,7 +4899,7 @@ interface IWMDMLogger : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT IsEnabled(int* pfEnabled);
+    HRESULT IsEnabled(BOOL* pfEnabled);
     ///The <b>Enable</b> method enables or disables logging. Logging is enabled by default.
     ///Params:
     ///    fEnable = Flag that enables logging if it is true and disables logging if it is <b>false</b>.
@@ -4915,7 +4921,7 @@ interface IWMDMLogger : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT GetLogFileName(const(char)* pszFilename, uint nMaxChars);
+    HRESULT GetLogFileName(PSTR pszFilename, uint nMaxChars);
     ///The <b>SetLogFileName</b> method sets the full path to the current log file. All subsequent log entries will be
     ///placed in this file.
     ///Params:
@@ -4926,7 +4932,7 @@ interface IWMDMLogger : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT SetLogFileName(const(char)* pszFilename);
+    HRESULT SetLogFileName(PSTR pszFilename);
     ///The <b>LogString</b> method logs a string to the current log file. A carriage return and line feed are added to
     ///each log entry.
     ///Params:
@@ -4945,7 +4951,7 @@ interface IWMDMLogger : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT LogString(uint dwFlags, const(char)* pszSrcName, const(char)* pszLog);
+    HRESULT LogString(uint dwFlags, PSTR pszSrcName, PSTR pszLog);
     ///The <b>LogDword</b> method logs a <b>DWORD</b> value to the current log file. A carriage return and line feed are
     ///added to each log entry.
     ///Params:
@@ -4965,7 +4971,7 @@ interface IWMDMLogger : IUnknown
     ///    converted to HRESULT values </li> <li>Windows Media Device Manager error codes </li> </ul> For an extensive
     ///    list of possible error codes, see Error Codes.
     ///    
-    HRESULT LogDword(uint dwFlags, const(char)* pszSrcName, const(char)* pszLogFormat, uint dwLog);
+    HRESULT LogDword(uint dwFlags, PSTR pszSrcName, PSTR pszLogFormat, uint dwLog);
     ///The <b>Reset</b> method deletes the contents of the current log file.
     ///Returns:
     ///    The method returns an <b>HRESULT</b>. All the interface methods in Windows Media Device Manager can return

@@ -6,11 +6,11 @@ public import windows.core;
 public import windows.com : HRESULT, IUnknown;
 public import windows.gdi : HBITMAP;
 public import windows.structuredstorage : IStream, PROPVARIANT;
-public import windows.systemservices : HINSTANCE;
+public import windows.systemservices : HINSTANCE, PWSTR;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowspropertiessystem : PROPERTYKEY;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -264,11 +264,11 @@ struct UI_EVENTPARAMS_COMMAND
     ///The ID of the Command directly related to the event, which is specified in the markup resource file.
     uint             CommandID;
     ///The Command name that is associated with <b>CommandId</b>.
-    const(wchar)*    CommandName;
+    const(PWSTR)     CommandName;
     ///The ID for the parent of the Command, which is specified in the markup resource file.
     uint             ParentCommandID;
     ///The Command name of the parent that is associated with <b>CommandId</b>.
-    const(wchar)*    ParentCommandName;
+    const(PWSTR)     ParentCommandName;
     ///<b>SelectionIndex</b> is used only when a UI_EVENTTYPE_CommandExecuted has been fired in response to the user
     ///selecting an item within a ComboBox or item gallery. In those cases, <b>SelectionIndex</b> contains the index of
     ///the selected item. In all other cases, it is set to 0.
@@ -282,7 +282,7 @@ struct UI_EVENTPARAMS
 {
     ///One of the values from UI_EVENTTYPE.
     UI_EVENTTYPE EventType;
-    union
+union
     {
         int Modes;
         UI_EVENTPARAMS_COMMAND Params;
@@ -390,7 +390,7 @@ interface IUIFramework : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT LoadUI(HINSTANCE instance, const(wchar)* resourceName);
+    HRESULT LoadUI(HINSTANCE instance, const(PWSTR) resourceName);
     ///Retrieves the address of a pointer to an interface that represents a Windows Ribbon framework View, such as
     ///IUIRibbon or IUIContextualUI.
     ///Params:

@@ -15,15 +15,51 @@ public import windows.packaging : IOpcCertificateEnumerator, IOpcCertificateSet,
 public import windows.printdocs : XPS_GLYPH_INDEX;
 public import windows.security : CERT_CONTEXT;
 public import windows.structuredstorage : ISequentialStream, IStream;
-public import windows.systemservices : BOOL, SECURITY_ATTRIBUTES;
+public import windows.systemservices : BOOL, PSTR, PWSTR, SECURITY_ATTRIBUTES;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : SYSTEMTIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
 
+
+alias PSINJECT_POINT = ushort;
+enum : ushort
+{
+    PSINJECT_BEGINSTREAM                = 0x0001,
+    PSINJECT_PSADOBE                    = 0x0002,
+    PSINJECT_PAGESATEND                 = 0x0003,
+    PSINJECT_PAGES                      = 0x0004,
+    PSINJECT_DOCNEEDEDRES               = 0x0005,
+    PSINJECT_DOCSUPPLIEDRES             = 0x0006,
+    PSINJECT_PAGEORDER                  = 0x0007,
+    PSINJECT_ORIENTATION                = 0x0008,
+    PSINJECT_BOUNDINGBOX                = 0x0009,
+    PSINJECT_DOCUMENTPROCESSCOLORS      = 0x000a,
+    PSINJECT_COMMENTS                   = 0x000b,
+    PSINJECT_BEGINDEFAULTS              = 0x000c,
+    PSINJECT_ENDDEFAULTS                = 0x000d,
+    PSINJECT_BEGINPROLOG                = 0x000e,
+    PSINJECT_ENDPROLOG                  = 0x000f,
+    PSINJECT_BEGINSETUP                 = 0x0010,
+    PSINJECT_ENDSETUP                   = 0x0011,
+    PSINJECT_TRAILER                    = 0x0012,
+    PSINJECT_EOF                        = 0x0013,
+    PSINJECT_ENDSTREAM                  = 0x0014,
+    PSINJECT_DOCUMENTPROCESSCOLORSATEND = 0x0015,
+    PSINJECT_PAGENUMBER                 = 0x0064,
+    PSINJECT_BEGINPAGESETUP             = 0x0065,
+    PSINJECT_ENDPAGESETUP               = 0x0066,
+    PSINJECT_PAGETRAILER                = 0x0067,
+    PSINJECT_PLATECOLOR                 = 0x0068,
+    PSINJECT_SHOWPAGE                   = 0x0069,
+    PSINJECT_PAGEBBOX                   = 0x006a,
+    PSINJECT_ENDPAGECOMMENTS            = 0x006b,
+    PSINJECT_VMSAVE                     = 0x00c8,
+    PSINJECT_VMRESTORE                  = 0x00c9,
+}
 
 ///Describes the tiling behavior of a tile brush.
 alias XPS_TILE_MODE = int;
@@ -420,7 +456,7 @@ struct PSINJECTDATA
 {
     ///The number of bytes of raw data to be injected. The raw data begins immediately following this structure. This
     ///size does not include the size of the <b>PSINJECTDATA</b> structure.
-    uint   DataBytes;
+    uint           DataBytes;
     ///Specifies where to inject the raw data in the PostScript output. This member can be one of the following values.
     ///<table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td>PSINJECT_BEGINSTREAM</td> <td>Before the first byte
     ///of job stream.</td> </tr> <tr> <td>PSINJECT_PSADOBE</td> <td>Before %!PS-Adobe.</td> </tr> <tr>
@@ -447,11 +483,11 @@ struct PSINJECTDATA
     ///driver's %%PageBoundingBox</td> </tr> <tr> <td>PSINJECT_ENDPAGECOMMENTS</td> <td>Before %%EndPageComments</td>
     ///</tr> <tr> <td>PSINJECT_VMSAVE</td> <td>Before save operator</td> </tr> <tr> <td>PSINJECT_VMRESTORE</td>
     ///<td>After restore operator</td> </tr> </table>
-    ushort InjectionPoint;
+    PSINJECT_POINT InjectionPoint;
     ///The page number (starting from 1) to which the injection data is applied. Specify zero to apply the injection
     ///data to all pages. This member is meaningful only for page level injection points starting from
     ///PSINJECT_PAGENUMBER. For other injection points, set <b>PageNumber</b> to zero.
-    ushort PageNumber;
+    ushort         PageNumber;
 }
 
 ///The <b>PSFEATURE_OUTPUT</b> structure contains information about PostScript driver output options. This structure is
@@ -527,9 +563,9 @@ struct DEVMODEA
     ///<td><b>dmPanningWidth</b></td> </tr> <tr> <td>DM_PANNINGHEIGHT</td> <td><b>dmPanningHeight</b></td> </tr>
     ///</table>
     uint      dmFields;
-    union
+union
     {
-        struct
+struct
         {
             short dmOrientation;
             short dmPaperSize;
@@ -540,7 +576,7 @@ struct DEVMODEA
             short dmDefaultSource;
             short dmPrintQuality;
         }
-        struct
+struct
         {
             POINTL dmPosition;
             uint   dmDisplayOrientation;
@@ -588,7 +624,7 @@ struct DEVMODEA
     ///Specifies the height, in pixels, of the visible device surface. Display drivers use this member, for example, in
     ///the ChangeDisplaySettings function. Printer drivers do not use this member.
     uint      dmPelsHeight;
-    union
+union
     {
         uint dmDisplayFlags;
         uint dmNup;
@@ -654,23 +690,23 @@ struct DEVMODEA
 struct DOCINFOA
 {
     ///The size, in bytes, of the structure.
-    int          cbSize;
+    int         cbSize;
     ///Pointer to a null-terminated string that specifies the name of the document.
-    const(char)* lpszDocName;
+    const(PSTR) lpszDocName;
     ///Pointer to a null-terminated string that specifies the name of an output file. If this pointer is <b>NULL</b>,
     ///the output will be sent to the device identified by the device context handle that was passed to the StartDoc
     ///function.
-    const(char)* lpszOutput;
+    const(PSTR) lpszOutput;
     ///Pointer to a null-terminated string that specifies the type of data used to record the print job. The legal
     ///values for this member can be found by calling EnumPrintProcessorDatatypes and can include such values as raw,
     ///emf, or XPS_PASS. This member can be <b>NULL</b>. Note that the requested data type might be ignored.
-    const(char)* lpszDatatype;
+    const(PSTR) lpszDatatype;
     ///Specifies additional information about the print job. This member must be zero or one of the following values.
     ///<table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td>DI_APPBANDING</td> <td>Applications that use banding
     ///should set this flag for optimal performance during printing.</td> </tr> <tr> <td>DI_ROPS_READ_DESTINATION</td>
     ///<td>The application will use raster operations that involve reading from the destination surface.</td> </tr>
     ///</table>
-    uint         fwType;
+    uint        fwType;
 }
 
 ///The <b>DOCINFO</b> structure contains the input and output file names and other information used by the StartDoc
@@ -678,23 +714,23 @@ struct DOCINFOA
 struct DOCINFOW
 {
     ///The size, in bytes, of the structure.
-    int           cbSize;
+    int          cbSize;
     ///Pointer to a null-terminated string that specifies the name of the document.
-    const(wchar)* lpszDocName;
+    const(PWSTR) lpszDocName;
     ///Pointer to a null-terminated string that specifies the name of an output file. If this pointer is <b>NULL</b>,
     ///the output will be sent to the device identified by the device context handle that was passed to the StartDoc
     ///function.
-    const(wchar)* lpszOutput;
+    const(PWSTR) lpszOutput;
     ///Pointer to a null-terminated string that specifies the type of data used to record the print job. The legal
     ///values for this member can be found by calling EnumPrintProcessorDatatypes and can include such values as raw,
     ///emf, or XPS_PASS. This member can be <b>NULL</b>. Note that the requested data type might be ignored.
-    const(wchar)* lpszDatatype;
+    const(PWSTR) lpszDatatype;
     ///Specifies additional information about the print job. This member must be zero or one of the following values.
     ///<table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td>DI_APPBANDING</td> <td>Applications that use banding
     ///should set this flag for optimal performance during printing.</td> </tr> <tr> <td>DI_ROPS_READ_DESTINATION</td>
     ///<td>The application will use raster operations that involve reading from the destination surface.</td> </tr>
     ///</table>
-    uint          fwType;
+    uint         fwType;
 }
 
 ///Represents an x- and y-coordinate pair in two-dimensional space.
@@ -771,23 +807,23 @@ struct XPS_MATRIX
 struct XPS_COLOR
 {
     XPS_COLOR_TYPE colorType;
-    union value
+union value
     {
-        struct sRGB
+struct sRGB
         {
             ubyte alpha;
             ubyte red;
             ubyte green;
             ubyte blue;
         }
-        struct scRGB
+struct scRGB
         {
             float alpha;
             float red;
             float green;
             float blue;
         }
-        struct context
+struct context
         {
             ubyte    channelCount;
             float[9] channels;
@@ -819,6 +855,21 @@ struct HPTPROVIDER__
 }
 
 // Functions
+
+///The <b>PrintWindow</b> function copies a visual window into the specified device context (DC), typically a printer
+///DC.
+///Params:
+///    hwnd = A handle to the window that will be copied.
+///    hdcBlt = A handle to the device context.
+///    nFlags = The drawing options. It can be one of the following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr>
+///             <tr> <td width="40%"><a id="PW_CLIENTONLY"></a><a id="pw_clientonly"></a><dl> <dt><b>PW_CLIENTONLY</b></dt> </dl>
+///             </td> <td width="60%"> Only the client area of the window is copied to <i>hdcBlt</i>. By default, the entire
+///             window is copied. </td> </tr> </table>
+///Returns:
+///    If the function succeeds, it returns a nonzero value. If the function fails, it returns zero.
+///    
+@DllImport("USER32")
+BOOL PrintWindow(HWND hwnd, HDC hdcBlt, uint nFlags);
 
 ///The <b>DeviceCapabilities</b> function retrieves the capabilities of a printer driver.
 ///Params:
@@ -961,7 +1012,7 @@ struct HPTPROVIDER__
 ///    or there was a general function failure.
 ///    
 @DllImport("WINSPOOL")
-int DeviceCapabilitiesA(const(char)* pDevice, const(char)* pPort, ushort fwCapability, const(char)* pOutput, 
+int DeviceCapabilitiesA(const(PSTR) pDevice, const(PSTR) pPort, ushort fwCapability, PSTR pOutput, 
                         const(DEVMODEA)* pDevMode);
 
 ///The <b>DeviceCapabilities</b> function retrieves the capabilities of a printer driver.
@@ -1105,7 +1156,7 @@ int DeviceCapabilitiesA(const(char)* pDevice, const(char)* pPort, ushort fwCapab
 ///    or there was a general function failure.
 ///    
 @DllImport("WINSPOOL")
-int DeviceCapabilitiesW(const(wchar)* pDevice, const(wchar)* pPort, ushort fwCapability, const(wchar)* pOutput, 
+int DeviceCapabilitiesW(const(PWSTR) pDevice, const(PWSTR) pPort, ushort fwCapability, PWSTR pOutput, 
                         const(DEVMODEW)* pDevMode);
 
 ///The <b>Escape</b> function enables an application to access the system-defined device capabilities that are not
@@ -1124,7 +1175,7 @@ int DeviceCapabilitiesW(const(wchar)* pDevice, const(wchar)* pPort, ushort fwCap
 ///    fails, the return value is a system error code.
 ///    
 @DllImport("GDI32")
-int Escape(HDC hdc, int iEscape, int cjIn, const(char)* pvIn, void* pvOut);
+int Escape(HDC hdc, int iEscape, int cjIn, const(PSTR) pvIn, void* pvOut);
 
 ///The <b>ExtEscape</b> function enables an application to access device capabilities that are not available through
 ///GDI.
@@ -1171,7 +1222,7 @@ int Escape(HDC hdc, int iEscape, int cjIn, const(char)* pvIn, void* pvOut);
 ///    the escape is not implemented. A return value less than zero indicates an error.
 ///    
 @DllImport("GDI32")
-int ExtEscape(HDC hdc, int iEscape, int cjInput, const(char)* lpInData, int cjOutput, const(char)* lpOutData);
+int ExtEscape(HDC hdc, int iEscape, int cjInput, const(PSTR) lpInData, int cjOutput, PSTR lpOutData);
 
 ///The <b>StartDoc</b> function starts a print job.
 ///Params:
@@ -1250,21 +1301,6 @@ int AbortDoc(HDC hdc);
 @DllImport("GDI32")
 int SetAbortProc(HDC hdc, ABORTPROC proc);
 
-///The <b>PrintWindow</b> function copies a visual window into the specified device context (DC), typically a printer
-///DC.
-///Params:
-///    hwnd = A handle to the window that will be copied.
-///    hdcBlt = A handle to the device context.
-///    nFlags = The drawing options. It can be one of the following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr>
-///             <tr> <td width="40%"><a id="PW_CLIENTONLY"></a><a id="pw_clientonly"></a><dl> <dt><b>PW_CLIENTONLY</b></dt> </dl>
-///             </td> <td width="60%"> Only the client area of the window is copied to <i>hdcBlt</i>. By default, the entire
-///             window is copied. </td> </tr> </table>
-///Returns:
-///    If the function succeeds, it returns a nonzero value. If the function fails, it returns zero.
-///    
-@DllImport("USER32")
-BOOL PrintWindow(HWND hwnd, HDC hdcBlt, uint nFlags);
-
 ///Retrieves the highest (latest) version of the Print Schema that the specified printer supports.
 ///Params:
 ///    pszPrinterName = A pointer to the full name of a print queue.
@@ -1274,7 +1310,7 @@ BOOL PrintWindow(HWND hwnd, HDC hdcBlt, uint nFlags);
 ///    more information about COM error codes, see Error Handling.
 ///    
 @DllImport("prntvpt")
-HRESULT PTQuerySchemaVersionSupport(const(wchar)* pszPrinterName, uint* pMaxVersion);
+HRESULT PTQuerySchemaVersionSupport(const(PWSTR) pszPrinterName, uint* pMaxVersion);
 
 ///Opens an instance of a print ticket provider.
 ///Params:
@@ -1286,7 +1322,7 @@ HRESULT PTQuerySchemaVersionSupport(const(wchar)* pszPrinterName, uint* pMaxVers
 ///    more information about COM error codes, see Error Handling.
 ///    
 @DllImport("prntvpt")
-HRESULT PTOpenProvider(const(wchar)* pszPrinterName, uint dwVersion, HPTPROVIDER__** phProvider);
+HRESULT PTOpenProvider(const(PWSTR) pszPrinterName, uint dwVersion, HPTPROVIDER__** phProvider);
 
 ///Opens an instance of a print ticket provider.
 ///Params:
@@ -1300,7 +1336,7 @@ HRESULT PTOpenProvider(const(wchar)* pszPrinterName, uint dwVersion, HPTPROVIDER
 ///    more information about COM error codes, see Error Handling.
 ///    
 @DllImport("prntvpt")
-HRESULT PTOpenProviderEx(const(wchar)* pszPrinterName, uint dwMaxVersion, uint dwPrefVersion, 
+HRESULT PTOpenProviderEx(const(PWSTR) pszPrinterName, uint dwMaxVersion, uint dwPrefVersion, 
                          HPTPROVIDER__** phProvider, uint* pUsedVersion);
 
 ///Closes a print ticket provider handle.
@@ -1376,7 +1412,7 @@ HRESULT PTGetPrintDeviceCapabilities(HPTPROVIDER__* hProvider, IStream pPrintTic
 ///    If the operation succeeds, the return value is S_OK. Otherwise, returns an error message.
 ///    
 @DllImport("prntvpt")
-HRESULT PTGetPrintDeviceResources(HPTPROVIDER__* hProvider, const(wchar)* pszLocaleName, IStream pPrintTicket, 
+HRESULT PTGetPrintDeviceResources(HPTPROVIDER__* hProvider, const(PWSTR) pszLocaleName, IStream pPrintTicket, 
                                   IStream pDeviceResources, BSTR* pbstrErrorMessage);
 
 ///Merges two print tickets and returns a valid, viable print ticket.
@@ -1578,7 +1614,7 @@ interface IXpsOMVisual : IXpsOMShareable
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> <tr> <td width="40%">
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>key</i> is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetTransformLookup(ushort** key);
+    HRESULT GetTransformLookup(PWSTR* key);
     ///Sets the lookup key name of a shared matrix transform in a resource dictionary.
     ///Params:
     ///    key = The lookup key name of the matrix transform in the dictionary.
@@ -1594,7 +1630,7 @@ interface IXpsOMVisual : IXpsOMShareable
     ///    <dt><b>XPS_E_LOOKUP_NOT_FOUND</b></dt> </dl> </td> <td width="60%"> No object could be found with a key name
     ///    that matched the value passed in <i>key</i>. </td> </tr> </table>
     ///    
-    HRESULT SetTransformLookup(const(wchar)* key);
+    HRESULT SetTransformLookup(const(PWSTR) key);
     ///Gets a pointer to the IXpsOMGeometry interface that contains the resolved geometry of the visual's clipping
     ///region.
     ///Params:
@@ -1669,7 +1705,7 @@ interface IXpsOMVisual : IXpsOMShareable
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> <tr> <td width="40%">
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>key</i> is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetClipGeometryLookup(ushort** key);
+    HRESULT GetClipGeometryLookup(PWSTR* key);
     ///Sets the lookup key name of a shared clip geometry in a resource dictionary.
     ///Params:
     ///    key = The lookup key name of the clip geometry in the dictionary. A <b>NULL</b> pointer clears the previously
@@ -1686,7 +1722,7 @@ interface IXpsOMVisual : IXpsOMShareable
     ///    <dt><b>XPS_E_LOOKUP_NOT_FOUND</b></dt> </dl> </td> <td width="60%"> No object could be found with a key name
     ///    that matched the value passed in <i>key</i>. </td> </tr> </table>
     ///    
-    HRESULT SetClipGeometryLookup(const(wchar)* key);
+    HRESULT SetClipGeometryLookup(const(PWSTR) key);
     ///Gets the opacity value of this visual.
     ///Params:
     ///    opacity = The opacity value.
@@ -1783,7 +1819,7 @@ interface IXpsOMVisual : IXpsOMShareable
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> <tr> <td width="40%">
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>key</i> is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetOpacityMaskBrushLookup(ushort** key);
+    HRESULT GetOpacityMaskBrushLookup(PWSTR* key);
     ///Sets the lookup key name of a shared opacity mask brush in a resource dictionary.
     ///Params:
     ///    key = The lookup key name of the opacity mask brush in the dictionary. A <b>NULL</b> pointer clears the previously
@@ -1800,7 +1836,7 @@ interface IXpsOMVisual : IXpsOMShareable
     ///    <dt><b>XPS_E_LOOKUP_NOT_FOUND</b></dt> </dl> </td> <td width="60%"> No object could be found with a key name
     ///    that matched the value passed in <i>key</i>. </td> </tr> </table>
     ///    
-    HRESULT SetOpacityMaskBrushLookup(const(wchar)* key);
+    HRESULT SetOpacityMaskBrushLookup(const(PWSTR) key);
     ///Gets the <b>Name</b> property of the visual.
     ///Params:
     ///    name = The <b>Name</b> property string. If the <b>Name</b> property has not been set, a <b>NULL</b> pointer is
@@ -1812,7 +1848,7 @@ interface IXpsOMVisual : IXpsOMShareable
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> <tr> <td width="40%">
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>name</i> is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetName(ushort** name);
+    HRESULT GetName(PWSTR* name);
     ///Sets the <b>Name</b> property of the visual.
     ///Params:
     ///    name = The name of the visual. A <b>NULL</b> pointer clears the <b>Name</b> property.
@@ -1824,7 +1860,7 @@ interface IXpsOMVisual : IXpsOMShareable
     ///    <dl> <dt><b>XPS_E_INVALID_NAME</b></dt> </dl> </td> <td width="60%"> According to the XML Paper
     ///    Specification, the string that is passed in <i>name</i> is not a valid name. </td> </tr> </table>
     ///    
-    HRESULT SetName(const(wchar)* name);
+    HRESULT SetName(const(PWSTR) name);
     ///Gets a value that indicates whether the visual is the target of a hyperlink.
     ///Params:
     ///    isHyperlink = The Boolean value that indicates whether the visual is the target of a hyperlink. <table> <tr> <th>Value</th>
@@ -1840,7 +1876,7 @@ interface IXpsOMVisual : IXpsOMShareable
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>isHyperlink</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetIsHyperlinkTarget(int* isHyperlink);
+    HRESULT GetIsHyperlinkTarget(BOOL* isHyperlink);
     ///Specifies whether the visual is the target of a hyperlink.
     ///Params:
     ///    isHyperlink = The Boolean value that specifies whether the visual is the target of a hyperlink. <table> <tr> <th>Value</th>
@@ -1889,7 +1925,7 @@ interface IXpsOMVisual : IXpsOMShareable
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>language</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetLanguage(ushort** language);
+    HRESULT GetLanguage(PWSTR* language);
     ///Sets the <b>Language</b> property of the visual.
     ///Params:
     ///    language = The language string that specifies the language of the visual and of its contents. A <b>NULL</b> pointer
@@ -1902,7 +1938,7 @@ interface IXpsOMVisual : IXpsOMShareable
     ///    <dl> <dt><b>XPS_E_INVALID_LANGUAGE</b></dt> </dl> </td> <td width="60%"> The value of <i>language</i> is
     ///    formatted incorrectly or specifies a language that is not valid. </td> </tr> </table>
     ///    
-    HRESULT SetLanguage(const(wchar)* language);
+    HRESULT SetLanguage(const(PWSTR) language);
 }
 
 ///The base interface for all XPS document part interfaces.
@@ -1980,14 +2016,14 @@ interface IXpsOMGlyphsEditor : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>unicodeString</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetUnicodeString(ushort** unicodeString);
+    HRESULT GetUnicodeString(PWSTR* unicodeString);
     ///Sets the text in unescaped UTF-16 scalar values.
     ///Params:
     ///    unicodeString = The address of a UTF-16 Unicode string. A <b>NULL</b> pointer clears the property.
     ///Returns:
     ///    If the method succeeds, it returns S_OK; otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT SetUnicodeString(const(wchar)* unicodeString);
+    HRESULT SetUnicodeString(const(PWSTR) unicodeString);
     ///Gets the number of glyph indices.
     ///Params:
     ///    indexCount = The glyph index count.
@@ -2161,7 +2197,7 @@ interface IXpsOMGlyphsEditor : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>isSideways</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetIsSideways(int* isSideways);
+    HRESULT GetIsSideways(BOOL* isSideways);
     ///Sets the value that indicates whether the text is to be rendered with the glyphs rotated sideways.
     ///Params:
     ///    isSideways = The Boolean value that indicates whether the text is to be rendered with the glyphs rotated sideways. <table>
@@ -2184,7 +2220,7 @@ interface IXpsOMGlyphsEditor : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>deviceFontName</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetDeviceFontName(ushort** deviceFontName);
+    HRESULT GetDeviceFontName(PWSTR* deviceFontName);
     ///Sets the name of the device font.
     ///Params:
     ///    deviceFontName = A pointer to the string that contains the name of the device font in its unescaped form. A <b>NULL</b>
@@ -2192,7 +2228,7 @@ interface IXpsOMGlyphsEditor : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK; otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT SetDeviceFontName(const(wchar)* deviceFontName);
+    HRESULT SetDeviceFontName(const(PWSTR) deviceFontName);
 }
 
 ///Describes the text that appears on a page. The IXpsOMGlyphsEditor interface is used to modify the text that is
@@ -2212,7 +2248,7 @@ interface IXpsOMGlyphs : IXpsOMVisual
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>unicodeString</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetUnicodeString(ushort** unicodeString);
+    HRESULT GetUnicodeString(PWSTR* unicodeString);
     ///Gets the number of Glyph indices.
     ///Params:
     ///    indexCount = The number of glyph indices.
@@ -2313,7 +2349,7 @@ interface IXpsOMGlyphs : IXpsOMVisual
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>isSideways</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetIsSideways(int* isSideways);
+    HRESULT GetIsSideways(BOOL* isSideways);
     ///Gets the name of the device font.
     ///Params:
     ///    deviceFontName = The string that contains the unescaped name of the device font. If the name has not been set, a <b>NULL</b>
@@ -2326,7 +2362,7 @@ interface IXpsOMGlyphs : IXpsOMVisual
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>deviceFontName</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetDeviceFontName(ushort** deviceFontName);
+    HRESULT GetDeviceFontName(PWSTR* deviceFontName);
     ///Gets the style simulations that will be applied when rendering the glyphs.
     ///Params:
     ///    styleSimulations = The XPS_STYLE_SIMULATION value that describes the style simulations to be applied.
@@ -2522,7 +2558,7 @@ interface IXpsOMGlyphs : IXpsOMVisual
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> <tr> <td width="40%">
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>key</i> is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetFillBrushLookup(ushort** key);
+    HRESULT GetFillBrushLookup(PWSTR* key);
     ///Sets the lookup key name of a shared fill brush.
     ///Params:
     ///    key = A string variable that contains the key name of the fill brush that is stored in the resource dictionary and
@@ -2539,7 +2575,7 @@ interface IXpsOMGlyphs : IXpsOMVisual
     ///    <dt><b>XPS_E_LOOKUP_NOT_FOUND</b></dt> </dl> </td> <td width="60%"> No object could be found with a key name
     ///    that matched the value passed in <i>key</i>. </td> </tr> </table>
     ///    
-    HRESULT SetFillBrushLookup(const(wchar)* key);
+    HRESULT SetFillBrushLookup(const(PWSTR) key);
     ///Gets a pointer to the IXpsOMGlyphsEditor interface that will be used to edit the glyphs in the object.
     ///Params:
     ///    editor = A pointer to the IXpsOMGlyphsEditor interface.
@@ -2782,7 +2818,7 @@ interface IXpsOMGeometry : IXpsOMShareable
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>lookup</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetTransformLookup(ushort** lookup);
+    HRESULT GetTransformLookup(PWSTR* lookup);
     ///Sets the lookup key name of a shared matrix transform in a resource dictionary.
     ///Params:
     ///    lookup = The key name of the shared matrix transform in the resource dictionary.
@@ -2798,7 +2834,7 @@ interface IXpsOMGeometry : IXpsOMShareable
     ///    <dt><b>XPS_E_LOOKUP_NOT_FOUND</b></dt> </dl> </td> <td width="60%"> No object could be found with a key name
     ///    that matches the value passed in <i>lookup</i>. </td> </tr> </table>
     ///    
-    HRESULT SetTransformLookup(const(wchar)* lookup);
+    HRESULT SetTransformLookup(const(PWSTR) lookup);
     ///Makes a deep copy of the interface.
     ///Params:
     ///    geometry = A pointer to the copy of the interface.
@@ -2906,7 +2942,7 @@ interface IXpsOMGeometryFigure : IUnknown
     ///    references a buffer that is not large enough to receive the segment stroke data. <i>segmentCount</i> contains
     ///    the required number of elements. </td> </tr> </table>
     ///    
-    HRESULT GetSegmentStrokes(uint* segmentCount, int* segmentStrokes);
+    HRESULT GetSegmentStrokes(uint* segmentCount, BOOL* segmentStrokes);
     ///Sets the segment information and data points for segments in the figure.
     ///Params:
     ///    segmentCount = The number of segments. This value is also the number of elements in the arrays that are referenced by
@@ -2938,7 +2974,7 @@ interface IXpsOMGeometryFigure : IUnknown
     ///    </td> </tr> </table>
     ///    
     HRESULT SetSegments(uint segmentCount, uint segmentDataCount, const(XPS_SEGMENT_TYPE)* segmentTypes, 
-                        const(float)* segmentData, const(int)* segmentStrokes);
+                        const(float)* segmentData, const(BOOL)* segmentStrokes);
     ///Gets the starting point of the figure.
     ///Params:
     ///    startPoint = The coordinates of the starting point of the figure.
@@ -2979,7 +3015,7 @@ interface IXpsOMGeometryFigure : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>isClosed</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetIsClosed(int* isClosed);
+    HRESULT GetIsClosed(BOOL* isClosed);
     ///Sets a value that indicates whether the figure is closed.
     ///Params:
     ///    isClosed = The value to be set. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
@@ -3005,7 +3041,7 @@ interface IXpsOMGeometryFigure : IUnknown
     ///    <td width="60%"> The method succeeded. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl>
     ///    </td> <td width="60%"> <i>isFilled</i> is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetIsFilled(int* isFilled);
+    HRESULT GetIsFilled(BOOL* isFilled);
     ///Sets a value that indicates whether the figure is filled.
     ///Params:
     ///    isFilled = The value to be set. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
@@ -3189,7 +3225,7 @@ interface IXpsOMPath : IXpsOMVisual
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>lookup</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetGeometryLookup(ushort** lookup);
+    HRESULT GetGeometryLookup(PWSTR* lookup);
     ///Sets the lookup key name of a shared geometry in a resource dictionary. Here, the geometry describes the resolved
     ///fill area to be set for this path.
     ///Params:
@@ -3206,7 +3242,7 @@ interface IXpsOMPath : IXpsOMVisual
     ///    <dt><b>XPS_E_LOOKUP_NOT_FOUND</b></dt> </dl> </td> <td width="60%"> No object could be found with a key name
     ///    that matched the value passed in <i>lookup</i>. </td> </tr> </table>
     ///    
-    HRESULT SetGeometryLookup(const(wchar)* lookup);
+    HRESULT SetGeometryLookup(const(PWSTR) lookup);
     ///Gets the short textual description of the object's contents. This description is used by accessibility clients to
     ///describe the object.
     ///Params:
@@ -3220,7 +3256,7 @@ interface IXpsOMPath : IXpsOMVisual
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>shortDescription</i> is <b>NULL</b>. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetAccessibilityShortDescription(ushort** shortDescription);
+    HRESULT GetAccessibilityShortDescription(PWSTR* shortDescription);
     ///Sets the short textual description of the object's contents. This description is used by accessibility clients to
     ///describe the object.
     ///Params:
@@ -3228,7 +3264,7 @@ interface IXpsOMPath : IXpsOMVisual
     ///Returns:
     ///    If the method succeeds, it returns S_OK; otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT SetAccessibilityShortDescription(const(wchar)* shortDescription);
+    HRESULT SetAccessibilityShortDescription(const(PWSTR) shortDescription);
     ///Gets the long (detailed) textual description of the object's contents. This description is used by accessibility
     ///clients to describe the object.
     ///Params:
@@ -3242,7 +3278,7 @@ interface IXpsOMPath : IXpsOMVisual
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>longDescription</i> is <b>NULL</b>. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetAccessibilityLongDescription(ushort** longDescription);
+    HRESULT GetAccessibilityLongDescription(PWSTR* longDescription);
     ///Sets the long (detailed) textual description of the object's contents. This description is used by accessibility
     ///clients to describe the object.
     ///Params:
@@ -3250,7 +3286,7 @@ interface IXpsOMPath : IXpsOMVisual
     ///Returns:
     ///    If the method succeeds, it returns S_OK; otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT SetAccessibilityLongDescription(const(wchar)* longDescription);
+    HRESULT SetAccessibilityLongDescription(const(PWSTR) longDescription);
     ///Gets a Boolean value that indicates whether the path is to be snapped to device pixels when the path is rendered.
     ///Params:
     ///    snapsToPixels = A Boolean value that indicates whether the path is to be snapped to device pixels when the path is rendered.
@@ -3267,7 +3303,7 @@ interface IXpsOMPath : IXpsOMVisual
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>snapsToPixels</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetSnapsToPixels(int* snapsToPixels);
+    HRESULT GetSnapsToPixels(BOOL* snapsToPixels);
     ///Sets a Boolean value that indicates whether the path will be snapped to device pixels when that path is being
     ///rendered.
     ///Params:
@@ -3350,7 +3386,7 @@ interface IXpsOMPath : IXpsOMVisual
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>lookup</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetStrokeBrushLookup(ushort** lookup);
+    HRESULT GetStrokeBrushLookup(PWSTR* lookup);
     ///Sets the lookup key name of a shared brush to be used as the stroke brush.The shared brush is stored in a
     ///resource dictionary.
     ///Params:
@@ -3367,7 +3403,7 @@ interface IXpsOMPath : IXpsOMVisual
     ///    <dt><b>XPS_E_LOOKUP_NOT_FOUND</b></dt> </dl> </td> <td width="60%"> No object could be found with a key name
     ///    that matched the value passed in <i>lookup</i>. </td> </tr> </table>
     ///    
-    HRESULT SetStrokeBrushLookup(const(wchar)* lookup);
+    HRESULT SetStrokeBrushLookup(const(PWSTR) lookup);
     ///Gets a pointer to the IXpsOMDashCollection interface that contains the XPS_DASH structures that define the dash
     ///pattern of the stroke.
     ///Params:
@@ -3618,7 +3654,7 @@ interface IXpsOMPath : IXpsOMVisual
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>lookup</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetFillBrushLookup(ushort** lookup);
+    HRESULT GetFillBrushLookup(PWSTR* lookup);
     ///Sets the lookup key name of a shared brush in a resource dictionary, to be used as the fill brush.
     ///Params:
     ///    lookup = The key name of the brush in a resource dictionary, to be used as the fill brush.
@@ -3634,7 +3670,7 @@ interface IXpsOMPath : IXpsOMVisual
     ///    <dt><b>XPS_E_LOOKUP_NOT_FOUND</b></dt> </dl> </td> <td width="60%"> No object could be found with a key name
     ///    that matched the value passed in <i>lookup</i>. </td> </tr> </table>
     ///    
-    HRESULT SetFillBrushLookup(const(wchar)* lookup);
+    HRESULT SetFillBrushLookup(const(PWSTR) lookup);
     ///Makes a deep copy of the interface.
     ///Params:
     ///    path = A pointer to the copy of the interface.
@@ -3876,7 +3912,7 @@ interface IXpsOMTileBrush : IXpsOMBrush
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> <tr> <td width="40%">
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>key</i> is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetTransformLookup(ushort** key);
+    HRESULT GetTransformLookup(PWSTR* key);
     ///Sets the lookup key name of a shared matrix transform that will be used as the transform for this brush.The
     ///shared matrix transform that is referenced by the lookup key is stored in the resource dictionary.
     ///Params:
@@ -3894,7 +3930,7 @@ interface IXpsOMTileBrush : IXpsOMBrush
     ///    <dt><b>XPS_E_LOOKUP_NOT_FOUND</b></dt> </dl> </td> <td width="60%"> No object could be found with a key name
     ///    that matched the value passed in <i>key</i>. </td> </tr> </table>
     ///    
-    HRESULT SetTransformLookup(const(wchar)* key);
+    HRESULT SetTransformLookup(const(PWSTR) key);
     ///Gets the portion of the source image to be used by the tile.
     ///Params:
     ///    viewbox = The XPS_RECT structure that describes the area of the source content to be used by the tile.
@@ -4041,7 +4077,7 @@ interface IXpsOMVisualBrush : IXpsOMTileBrush
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>lookup</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetVisualLookup(ushort** lookup);
+    HRESULT GetVisualLookup(PWSTR* lookup);
     ///Sets the lookup key name of the shared visual, which is stored in a resource dictionary, to be used as the source
     ///for the brush.
     ///Params:
@@ -4059,7 +4095,7 @@ interface IXpsOMVisualBrush : IXpsOMTileBrush
     ///    <dt><b>XPS_E_LOOKUP_NOT_FOUND</b></dt> </dl> </td> <td width="60%"> No object could be found with a key name
     ///    that matched the value passed in <i>key</i>. </td> </tr> </table>
     ///    
-    HRESULT SetVisualLookup(const(wchar)* lookup);
+    HRESULT SetVisualLookup(const(PWSTR) lookup);
     ///Makes a deep copy of the interface.
     ///Params:
     ///    visualBrush = A pointer to the copy of the interface.
@@ -4342,7 +4378,7 @@ interface IXpsOMGradientBrush : IXpsOMBrush
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> <tr> <td width="40%">
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>key</i> is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetTransformLookup(ushort** key);
+    HRESULT GetTransformLookup(PWSTR* key);
     ///Sets the name of the lookup key of a shared matrix transform that is to be used for the brush. The key name
     ///identifies a shared resource in a resource dictionary.
     ///Params:
@@ -4359,7 +4395,7 @@ interface IXpsOMGradientBrush : IXpsOMBrush
     ///    <dt><b>XPS_E_LOOKUP_NOT_FOUND</b></dt> </dl> </td> <td width="60%"> No object could be found with a key name
     ///    that matched the value passed in <i>key</i>. </td> </tr> </table>
     ///    
-    HRESULT SetTransformLookup(const(wchar)* key);
+    HRESULT SetTransformLookup(const(PWSTR) key);
     ///Gets the XPS_SPREAD_METHOD value, which describes how the area outside of the gradient region will be rendered.
     ///Params:
     ///    spreadMethod = The XPS_SPREAD_METHOD value that describes how the area outside of the gradient region will be rendered. The
@@ -4677,7 +4713,7 @@ interface IXpsOMDictionary : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK; otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT GetAt(uint index, ushort** key, IXpsOMShareable* entry);
+    HRESULT GetAt(uint index, PWSTR* key, IXpsOMShareable* entry);
     ///Gets the IXpsOMShareable interface pointer of the entry that contains the specified key.
     ///Params:
     ///    key = The entry's key to be found in the dictionary.
@@ -4688,7 +4724,7 @@ interface IXpsOMDictionary : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK; otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT GetByKey(const(wchar)* key, IXpsOMShareable beforeEntry, IXpsOMShareable* entry);
+    HRESULT GetByKey(const(PWSTR) key, IXpsOMShareable beforeEntry, IXpsOMShareable* entry);
     ///Gets the index of an IXpsOMShareable interface from the dictionary.
     ///Params:
     ///    entry = The IXpsOMShareable interface pointer to be found in the dictionary.
@@ -4717,7 +4753,7 @@ interface IXpsOMDictionary : IUnknown
     ///    recognized interface implementation. Custom implementation of XPS Document API interfaces is not supported.
     ///    </td> </tr> </table>
     ///    
-    HRESULT Append(const(wchar)* key, IXpsOMShareable entry);
+    HRESULT Append(const(PWSTR) key, IXpsOMShareable entry);
     ///Inserts an IXpsOMShareable interface at a specified location in the dictionary and sets the key to identify the
     ///interface.
     ///Params:
@@ -4736,7 +4772,7 @@ interface IXpsOMDictionary : IUnknown
     ///    recognized interface implementation. Custom implementation of XPS Document API interfaces is not supported.
     ///    </td> </tr> </table>
     ///    
-    HRESULT InsertAt(uint index, const(wchar)* key, IXpsOMShareable entry);
+    HRESULT InsertAt(uint index, const(PWSTR) key, IXpsOMShareable entry);
     ///Removes and releases the entry from a specified location in the dictionary.
     ///Params:
     ///    index = The zero-based index in the dictionary from which an entry is to be removed and released.
@@ -4760,7 +4796,7 @@ interface IXpsOMDictionary : IUnknown
     ///    recognized interface implementation. Custom implementation of XPS Document API interfaces is not supported.
     ///    </td> </tr> </table>
     ///    
-    HRESULT SetAt(uint index, const(wchar)* key, IXpsOMShareable entry);
+    HRESULT SetAt(uint index, const(PWSTR) key, IXpsOMShareable entry);
     ///Makes a deep copy of the interface.
     ///Params:
     ///    dictionary = A pointer to the copy of the interface.
@@ -5444,7 +5480,7 @@ interface IXpsOMCanvas : IXpsOMVisual
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>useAliasedEdgeMode</i> is <b>NULL</b>. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetUseAliasedEdgeMode(int* useAliasedEdgeMode);
+    HRESULT GetUseAliasedEdgeMode(BOOL* useAliasedEdgeMode);
     ///Sets the value that determines whether the edges of objects in this canvas will be rendered using the aliased
     ///edge mode.
     ///Params:
@@ -5474,7 +5510,7 @@ interface IXpsOMCanvas : IXpsOMVisual
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>shortDescription</i> is <b>NULL</b>. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetAccessibilityShortDescription(ushort** shortDescription);
+    HRESULT GetAccessibilityShortDescription(PWSTR* shortDescription);
     ///Sets the short textual description of the object's contents. This text is used by accessibility clients to
     ///describe the object.
     ///Params:
@@ -5483,7 +5519,7 @@ interface IXpsOMCanvas : IXpsOMVisual
     ///Returns:
     ///    If the method succeeds, it returns S_OK; otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT SetAccessibilityShortDescription(const(wchar)* shortDescription);
+    HRESULT SetAccessibilityShortDescription(const(PWSTR) shortDescription);
     ///Gets the long (detailed) textual description of the object's contents. This text is used by accessibility clients
     ///to describe the object.
     ///Params:
@@ -5497,7 +5533,7 @@ interface IXpsOMCanvas : IXpsOMVisual
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>longDescription</i> is <b>NULL</b>. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetAccessibilityLongDescription(ushort** longDescription);
+    HRESULT GetAccessibilityLongDescription(PWSTR* longDescription);
     ///Sets the long (detailed) textual description of the object's contents. This text is used by accessibility clients
     ///to describe the object.
     ///Params:
@@ -5506,7 +5542,7 @@ interface IXpsOMCanvas : IXpsOMVisual
     ///Returns:
     ///    If the method succeeds, it returns S_OK; otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT SetAccessibilityLongDescription(const(wchar)* longDescription);
+    HRESULT SetAccessibilityLongDescription(const(PWSTR) longDescription);
     ///Gets a pointer to the resolved IXpsOMDictionary interface of the dictionary associated with the canvas.
     ///Params:
     ///    resourceDictionary = A pointer to the resolved IXpsOMDictionary interface of the dictionary. The value that is returned in this
@@ -5730,7 +5766,7 @@ interface IXpsOMPage : IXpsOMPart
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>language</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetLanguage(ushort** language);
+    HRESULT GetLanguage(PWSTR* language);
     ///Sets the <b>Language</b> property of the page.
     ///Params:
     ///    language = A language tag string that represents the language of the page content. A <b>NULL</b> pointer clears the
@@ -5743,7 +5779,7 @@ interface IXpsOMPage : IXpsOMPart
     ///    <dl> <dt><b>XPS_E_INVALID_LANGUAGE</b></dt> </dl> </td> <td width="60%"> The language string contains one or
     ///    more language strings that are not valid. </td> </tr> </table>
     ///    
-    HRESULT SetLanguage(const(wchar)* language);
+    HRESULT SetLanguage(const(PWSTR) language);
     ///Gets the <b>Name</b> property of the page.
     ///Params:
     ///    name = The <b>Name</b> property of the page. A <b>NULL</b> pointer is returned if the <b>Name</b> property has not
@@ -5755,7 +5791,7 @@ interface IXpsOMPage : IXpsOMPart
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> <tr> <td width="40%">
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>name</i> is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetName(ushort** name);
+    HRESULT GetName(PWSTR* name);
     ///Sets the <b>Name</b> property of this page.
     ///Params:
     ///    name = A pointer to the name string to be set as the page's <b>Name</b> property. A <b>NULL</b> pointer clears any
@@ -5768,7 +5804,7 @@ interface IXpsOMPage : IXpsOMPart
     ///    <dl> <dt><b>XPS_E_INVALID_NAME</b></dt> </dl> </td> <td width="60%"> The name string contains a character
     ///    that is not valid. </td> </tr> </table>
     ///    
-    HRESULT SetName(const(wchar)* name);
+    HRESULT SetName(const(PWSTR) name);
     ///Gets a Boolean value that indicates whether the page is the target of a hyperlink.
     ///Params:
     ///    isHyperlinkTarget = A Boolean value that indicates whether the page is the target of a hyperlink. <table> <tr> <th>Value</th>
@@ -5783,7 +5819,7 @@ interface IXpsOMPage : IXpsOMPart
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>isHyperlinkTarget</i> is <b>NULL</b>. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetIsHyperlinkTarget(int* isHyperlinkTarget);
+    HRESULT GetIsHyperlinkTarget(BOOL* isHyperlinkTarget);
     ///Specifies whether the page is the target of a hyperlink.
     ///Params:
     ///    isHyperlinkTarget = The Boolean value that indicates whether the page is the target of a hyperlink. <table> <tr> <th>Value</th>
@@ -5918,7 +5954,7 @@ interface IXpsOMPage : IXpsOMPart
     ///    <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> <i>type</i> refers to an object type that is not
     ///    recognized. </td> </tr> </table>
     ///    
-    HRESULT GenerateUnusedLookupKey(XPS_OBJECT_TYPE type, ushort** key);
+    HRESULT GenerateUnusedLookupKey(XPS_OBJECT_TYPE type, PWSTR* key);
     ///Makes a deep copy of the interface.
     ///Params:
     ///    page = A pointer to the copy of the interface.
@@ -5998,7 +6034,7 @@ interface IXpsOMPageReference : IUnknown
     ///    <td width="60%"> The method succeeded. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl>
     ///    </td> <td width="60%"> <i>isPageLoaded</i> is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT IsPageLoaded(int* isPageLoaded);
+    HRESULT IsPageLoaded(BOOL* isPageLoaded);
     ///Gets the suggested dimensions of the page.
     ///Params:
     ///    pageDimensions = The suggested dimensions of the page. Size is described in XPS units. There are 96 XPS units per inch. For
@@ -6166,7 +6202,7 @@ interface IXpsOMPageReference : IUnknown
     ///    <td width="60%"> The method succeeded. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl>
     ///    </td> <td width="60%"> <i>restrictedFonts</i> is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT HasRestrictedFonts(int* restrictedFonts);
+    HRESULT HasRestrictedFonts(BOOL* restrictedFonts);
     ///Makes a deep copy of the interface.
     ///Params:
     ///    pageReference = A pointer to the copy of the interface.
@@ -6493,7 +6529,7 @@ interface IXpsOMCoreProperties : IXpsOMPart
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>category</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetCategory(ushort** category);
+    HRESULT GetCategory(PWSTR* category);
     ///Sets the <b>category</b> property.
     ///Params:
     ///    category = The string to be written to the <b>category</b> property. A <b>NULL</b> pointer clears the <b>category</b>
@@ -6501,7 +6537,7 @@ interface IXpsOMCoreProperties : IXpsOMPart
     ///Returns:
     ///    If the method succeeds, it returns S_OK; otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT SetCategory(const(wchar)* category);
+    HRESULT SetCategory(const(PWSTR) category);
     ///Gets the <b>contentStatus</b> property.
     ///Params:
     ///    contentStatus = The string that is read from the <b>contentStatus</b> property.
@@ -6513,7 +6549,7 @@ interface IXpsOMCoreProperties : IXpsOMPart
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>contentStatus</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetContentStatus(ushort** contentStatus);
+    HRESULT GetContentStatus(PWSTR* contentStatus);
     ///Sets the <b>contentStatus</b> property.
     ///Params:
     ///    contentStatus = The string to be written to the <b>contentStatus</b> property. A <b>NULL</b> pointer clears the
@@ -6521,7 +6557,7 @@ interface IXpsOMCoreProperties : IXpsOMPart
     ///Returns:
     ///    If the method succeeds, it returns S_OK; otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT SetContentStatus(const(wchar)* contentStatus);
+    HRESULT SetContentStatus(const(PWSTR) contentStatus);
     ///Gets the <b>contentType</b> property.
     ///Params:
     ///    contentType = The string that is read from the <b>contentType</b> property.
@@ -6533,7 +6569,7 @@ interface IXpsOMCoreProperties : IXpsOMPart
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>contentType</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetContentType(ushort** contentType);
+    HRESULT GetContentType(PWSTR* contentType);
     ///Sets the <b>contentType</b> property.
     ///Params:
     ///    contentType = The string to be written to the <b>contentType</b> property. A <b>NULL</b> pointer clears the
@@ -6541,7 +6577,7 @@ interface IXpsOMCoreProperties : IXpsOMPart
     ///Returns:
     ///    If the method succeeds, it returns S_OK; otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT SetContentType(const(wchar)* contentType);
+    HRESULT SetContentType(const(PWSTR) contentType);
     ///Gets the <b>created</b> property.
     ///Params:
     ///    created = The date and time that are read from the <b>created</b> property.
@@ -6577,7 +6613,7 @@ interface IXpsOMCoreProperties : IXpsOMPart
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>creator</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetCreator(ushort** creator);
+    HRESULT GetCreator(PWSTR* creator);
     ///Sets the <b>creator</b> property.
     ///Params:
     ///    creator = The string to be written to the <b>creator</b> property. A <b>NULL</b> pointer clears the <b>creator</b>
@@ -6585,7 +6621,7 @@ interface IXpsOMCoreProperties : IXpsOMPart
     ///Returns:
     ///    If the method succeeds, it returns S_OK; otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT SetCreator(const(wchar)* creator);
+    HRESULT SetCreator(const(PWSTR) creator);
     ///Gets the <b>description</b> property.
     ///Params:
     ///    description = The string that is read from the <b>description</b> property.
@@ -6597,14 +6633,14 @@ interface IXpsOMCoreProperties : IXpsOMPart
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>description</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetDescription(ushort** description);
+    HRESULT GetDescription(PWSTR* description);
     ///Sets the <b>description</b> property.
     ///Params:
     ///    description = The string to be written to the <b>description</b> property. A <b>NULL</b> pointer clears this property.
     ///Returns:
     ///    If the method succeeds, it returns S_OK; otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT SetDescription(const(wchar)* description);
+    HRESULT SetDescription(const(PWSTR) description);
     ///Gets the <b>identifier</b> property.
     ///Params:
     ///    identifier = The string that is read from the <b>identifier</b> property.
@@ -6616,7 +6652,7 @@ interface IXpsOMCoreProperties : IXpsOMPart
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>identifier</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetIdentifier(ushort** identifier);
+    HRESULT GetIdentifier(PWSTR* identifier);
     ///Sets the <b>identifier</b> property.
     ///Params:
     ///    identifier = The string to be written to the <b>identifier</b> property. A <b>NULL</b> pointer clears the
@@ -6624,7 +6660,7 @@ interface IXpsOMCoreProperties : IXpsOMPart
     ///Returns:
     ///    If the method succeeds, it returns S_OK; otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT SetIdentifier(const(wchar)* identifier);
+    HRESULT SetIdentifier(const(PWSTR) identifier);
     ///Gets the <b>keywords</b> property.
     ///Params:
     ///    keywords = The string that is read from the <b>keywords</b> property.
@@ -6636,7 +6672,7 @@ interface IXpsOMCoreProperties : IXpsOMPart
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>keywords</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetKeywords(ushort** keywords);
+    HRESULT GetKeywords(PWSTR* keywords);
     ///Sets the <b>keywords</b> property.
     ///Params:
     ///    keywords = The string that contains the keywords to be written to the <b>keywords</b> property. A <b>NULL</b> pointer
@@ -6644,7 +6680,7 @@ interface IXpsOMCoreProperties : IXpsOMPart
     ///Returns:
     ///    If the method succeeds, it returns S_OK; otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT SetKeywords(const(wchar)* keywords);
+    HRESULT SetKeywords(const(PWSTR) keywords);
     ///Gets the <b>language</b> property.
     ///Params:
     ///    language = The value that is read from the <b>language</b> property.
@@ -6656,7 +6692,7 @@ interface IXpsOMCoreProperties : IXpsOMPart
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>language</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetLanguage(ushort** language);
+    HRESULT GetLanguage(PWSTR* language);
     ///Sets the <b>language</b> property.
     ///Params:
     ///    language = The string that contains the language value to be written to the <b>language</b> property. A <b>NULL</b>
@@ -6664,7 +6700,7 @@ interface IXpsOMCoreProperties : IXpsOMPart
     ///Returns:
     ///    If the method succeeds, it returns S_OK; otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT SetLanguage(const(wchar)* language);
+    HRESULT SetLanguage(const(PWSTR) language);
     ///Gets the <b>lastModifiedBy</b> property.
     ///Params:
     ///    lastModifiedBy = The value that is read from the <b>lastModifiedBy</b> property.
@@ -6676,7 +6712,7 @@ interface IXpsOMCoreProperties : IXpsOMPart
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>lastModifiedBy</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetLastModifiedBy(ushort** lastModifiedBy);
+    HRESULT GetLastModifiedBy(PWSTR* lastModifiedBy);
     ///Sets the <b>lastModifiedBy</b> property.
     ///Params:
     ///    lastModifiedBy = The string that contains the value to be written to the <b>lastModifiedBy</b> property. A <b>NULL</b> pointer
@@ -6684,7 +6720,7 @@ interface IXpsOMCoreProperties : IXpsOMPart
     ///Returns:
     ///    If the method succeeds, it returns S_OK; otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT SetLastModifiedBy(const(wchar)* lastModifiedBy);
+    HRESULT SetLastModifiedBy(const(PWSTR) lastModifiedBy);
     ///Gets the <b>lastPrinted</b> property.
     ///Params:
     ///    lastPrinted = The date and time that are read from the <b>lastPrinted</b> property.
@@ -6744,7 +6780,7 @@ interface IXpsOMCoreProperties : IXpsOMPart
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>revision</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetRevision(ushort** revision);
+    HRESULT GetRevision(PWSTR* revision);
     ///Sets the <b>revision</b> property.
     ///Params:
     ///    revision = The string to be written to the <b>revision</b> property. A <b>NULL</b> pointer clears the <b>revision</b>
@@ -6752,7 +6788,7 @@ interface IXpsOMCoreProperties : IXpsOMPart
     ///Returns:
     ///    If the method succeeds, it returns S_OK; otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT SetRevision(const(wchar)* revision);
+    HRESULT SetRevision(const(PWSTR) revision);
     ///Gets the <b>subject</b> property.
     ///Params:
     ///    subject = The string that is read from the <b>subject</b> property.
@@ -6764,7 +6800,7 @@ interface IXpsOMCoreProperties : IXpsOMPart
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>subject</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetSubject(ushort** subject);
+    HRESULT GetSubject(PWSTR* subject);
     ///Sets the <b>subject</b> property.
     ///Params:
     ///    subject = The string to be written to the <b>subject</b> property. A <b>NULL</b> pointer clears the <b>subject</b>
@@ -6772,7 +6808,7 @@ interface IXpsOMCoreProperties : IXpsOMPart
     ///Returns:
     ///    If the method succeeds, it returns S_OK; otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT SetSubject(const(wchar)* subject);
+    HRESULT SetSubject(const(PWSTR) subject);
     ///Gets the <b>title</b> property.
     ///Params:
     ///    title = The string that is read from the <b>title</b> property.
@@ -6783,7 +6819,7 @@ interface IXpsOMCoreProperties : IXpsOMPart
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> <tr> <td width="40%">
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>title</i> is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetTitle(ushort** title);
+    HRESULT GetTitle(PWSTR* title);
     ///Sets the <b>title</b> property.
     ///Params:
     ///    title = The string to be written to the <b>title</b> property. A <b>NULL</b> pointer clears the <b>title</b>
@@ -6791,7 +6827,7 @@ interface IXpsOMCoreProperties : IXpsOMPart
     ///Returns:
     ///    If the method succeeds, it returns S_OK; otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT SetTitle(const(wchar)* title);
+    HRESULT SetTitle(const(PWSTR) title);
     ///Gets the <b>version</b> property.
     ///Params:
     ///    version = The string that is read from the <b>version</b> property.
@@ -6803,7 +6839,7 @@ interface IXpsOMCoreProperties : IXpsOMPart
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>version</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetVersion(ushort** version_);
+    HRESULT GetVersion(PWSTR* version_);
     ///Sets the <b>version</b> property.
     ///Params:
     ///    version = The string to be written to the <b>version</b> property. A <b>NULL</b> pointer clears the <b>version</b>
@@ -6811,7 +6847,7 @@ interface IXpsOMCoreProperties : IXpsOMPart
     ///Returns:
     ///    If the method succeeds, it returns S_OK; otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT SetVersion(const(wchar)* version_);
+    HRESULT SetVersion(const(PWSTR) version_);
     ///Makes a deep copy of the interface.
     ///Params:
     ///    coreProperties = A pointer to the copy of the interface.
@@ -6966,7 +7002,7 @@ interface IXpsOMPackage : IUnknown
     ///    </table> This method calls the Packaging API. For information about the Packaging API return values, see
     ///    Packaging Errors.
     ///    
-    HRESULT WriteToFile(const(wchar)* fileName, SECURITY_ATTRIBUTES* securityAttributes, uint flagsAndAttributes, 
+    HRESULT WriteToFile(const(PWSTR) fileName, SECURITY_ATTRIBUTES* securityAttributes, uint flagsAndAttributes, 
                         BOOL optimizeMarkupSize);
     ///Writes the XPS package to a specified stream.
     ///Params:
@@ -7024,7 +7060,7 @@ interface IXpsOMObjectFactory : IUnknown
     ///    </td> </tr> </table> This method calls the Packaging API. For information about the Packaging API return
     ///    values, see Packaging Errors.
     ///    
-    HRESULT CreatePackageFromFile(const(wchar)* filename, BOOL reuseObjects, IXpsOMPackage* package_);
+    HRESULT CreatePackageFromFile(const(PWSTR) filename, BOOL reuseObjects, IXpsOMPackage* package_);
     ///Opens a stream that contains an XPS package, and returns an instantiated XPS document object tree.
     ///Params:
     ///    stream = The stream that contains an XPS package.
@@ -7215,7 +7251,7 @@ interface IXpsOMObjectFactory : IUnknown
     ///    width="40%"> <dl> <dt><b>XPS_E_INVALID_PAGE_SIZE</b></dt> </dl> </td> <td width="60%"> <i>pageDimensions</i>
     ///    contains an invalid page size or invalid page size values. </td> </tr> </table>
     ///    
-    HRESULT CreatePage(const(XPS_SIZE)* pageDimensions, const(wchar)* language, IOpcPartUri partUri, 
+    HRESULT CreatePage(const(XPS_SIZE)* pageDimensions, const(PWSTR) language, IOpcPartUri partUri, 
                        IXpsOMPage* page);
     ///Reads the page markup from the specified stream to create and populate an IXpsOMPage interface.
     ///Params:
@@ -7628,7 +7664,7 @@ interface IXpsOMObjectFactory : IUnknown
     ///    This method calls the Packaging API. For information about the Packaging API return values, see Packaging
     ///    Errors.
     ///    
-    HRESULT CreatePackageWriterOnFile(const(wchar)* fileName, SECURITY_ATTRIBUTES* securityAttributes, 
+    HRESULT CreatePackageWriterOnFile(const(PWSTR) fileName, SECURITY_ATTRIBUTES* securityAttributes, 
                                       uint flagsAndAttributes, BOOL optimizeMarkupSize, 
                                       XPS_INTERLEAVING interleaving, IOpcPartUri documentSequencePartName, 
                                       IXpsOMCoreProperties coreProperties, IXpsOMImageResource packageThumbnail, 
@@ -7685,7 +7721,7 @@ interface IXpsOMObjectFactory : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>partUri</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT CreatePartUri(const(wchar)* uri, IOpcPartUri* partUri);
+    HRESULT CreatePartUri(const(PWSTR) uri, IOpcPartUri* partUri);
     ///Creates a read-only IStream over the specified file.
     ///Params:
     ///    filename = The name of the file to be opened.
@@ -7699,7 +7735,7 @@ interface IXpsOMObjectFactory : IUnknown
     ///    </td> </tr> </table> This method calls the Packaging API. For information about the Packaging API return
     ///    values, see Packaging Errors.
     ///    
-    HRESULT CreateReadOnlyStreamOnFile(const(wchar)* filename, IStream* stream);
+    HRESULT CreateReadOnlyStreamOnFile(const(PWSTR) filename, IStream* stream);
 }
 
 ///A collection of name strings.
@@ -7720,7 +7756,7 @@ interface IXpsOMNameCollection : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK; otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT GetAt(uint index, ushort** name);
+    HRESULT GetAt(uint index, PWSTR* name);
 }
 
 ///A collection of IOpcPartUri interface pointers.
@@ -7893,7 +7929,7 @@ interface IXpsOMPackageWriter : IUnknown
     ///    returned, all components of the XPS OM should be released and discarded. </td> </tr> </table> This method
     ///    calls the Packaging API. For information about the Packaging API return values, see Packaging Errors.
     ///    
-    HRESULT IsClosed(int* isClosed);
+    HRESULT IsClosed(BOOL* isClosed);
 }
 
 ///Provides the method to create an IXpsOMPackageWriter that can be used by a print job that was created by the
@@ -7967,7 +8003,7 @@ interface IXpsOMObjectFactory1 : IXpsOMObjectFactory
     ///    values that are not listed here, see XPS Document Errors. S_OK: The document type is XPS_DOCUMENT_TYPE_ XPS
     ///    or XPS_DOCUMENT_TYPE_ OPENXPS.
     ///    
-    HRESULT GetDocumentTypeFromFile(const(wchar)* filename, XPS_DOCUMENT_TYPE* documentType);
+    HRESULT GetDocumentTypeFromFile(const(PWSTR) filename, XPS_DOCUMENT_TYPE* documentType);
     ///Detects the type of XPS document that is stored in the specified stream.
     ///Params:
     ///    xpsDocumentStream = [in] A stream that contains XPS OM data. The stream must support sequential reading and the read position of
@@ -8034,7 +8070,7 @@ interface IXpsOMObjectFactory1 : IXpsOMObjectFactory
     ///    values that are not listed here, see XPS Document Errors. S_OK: The method succeeded and packageWriter was
     ///    set correctly. E_INVALIDARG: The document type was not a valid XPS document format.
     ///    
-    HRESULT CreatePackageWriterOnFile1(const(wchar)* fileName, SECURITY_ATTRIBUTES* securityAttributes, 
+    HRESULT CreatePackageWriterOnFile1(const(PWSTR) fileName, SECURITY_ATTRIBUTES* securityAttributes, 
                                        uint flagsAndAttributes, BOOL optimizeMarkupSize, 
                                        XPS_INTERLEAVING interleaving, IOpcPartUri documentSequencePartName, 
                                        IXpsOMCoreProperties coreProperties, IXpsOMImageResource packageThumbnail, 
@@ -8110,8 +8146,8 @@ interface IXpsOMObjectFactory1 : IXpsOMObjectFactory
     ///    the document type XPS_E_ABSOLUTE_REFERENCE: The OpenXPS document contains XML elements that use absolute URIs
     ///    to reference other parts in the document.
     ///    
-    HRESULT CreatePackageFromFile1(const(wchar)* filename, BOOL reuseObjects, IXpsOMPackage1* package_);
-    HRESULT CreatePage1(const(XPS_SIZE)* pageDimensions, const(wchar)* language, IOpcPartUri partUri, 
+    HRESULT CreatePackageFromFile1(const(PWSTR) filename, BOOL reuseObjects, IXpsOMPackage1* package_);
+    HRESULT CreatePage1(const(XPS_SIZE)* pageDimensions, const(PWSTR) language, IOpcPartUri partUri, 
                         IXpsOMPage1* page);
     ///Reads the page markup from the specified stream to create and populate an IXpsOMPage1 interface.
     ///Params:
@@ -8195,7 +8231,7 @@ interface IXpsOMPackage1 : IXpsOMPackage
     ///    specified as XPS_DOCUMENT_TYPE_UNSPECIFIED. XPS_E_INVALID_CONTENT_TYPE: An image resource in the package is
     ///    of a type that is not supported by the document type specified in documentType.
     ///    
-    HRESULT WriteToFile1(const(wchar)* fileName, SECURITY_ATTRIBUTES* securityAttributes, uint flagsAndAttributes, 
+    HRESULT WriteToFile1(const(PWSTR) fileName, SECURITY_ATTRIBUTES* securityAttributes, uint flagsAndAttributes, 
                          BOOL optimizeMarkupSize, XPS_DOCUMENT_TYPE documentType);
     ///Writes an XPS OM to a stream as an XPS package of a specified type.
     ///Params:
@@ -8359,7 +8395,7 @@ interface IXpsSigningOptions : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK; otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT GetSignatureId(ushort** signatureId);
+    HRESULT GetSignatureId(PWSTR* signatureId);
     ///Sets the value of the <b>Id</b> attribute of the <b>Signature</b> element.
     ///Params:
     ///    signatureId = The string value to be set as the <b>Id</b> attribute of the <b>Signature</b> element. If this parameter is
@@ -8367,7 +8403,7 @@ interface IXpsSigningOptions : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK; otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT SetSignatureId(const(wchar)* signatureId);
+    HRESULT SetSignatureId(const(PWSTR) signatureId);
     ///Gets the signature method.
     ///Params:
     ///    signatureMethod = The signature method that is expressed as a URI. If no signature method has been set, a <b>NULL</b> pointer
@@ -8375,7 +8411,7 @@ interface IXpsSigningOptions : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK; otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT GetSignatureMethod(ushort** signatureMethod);
+    HRESULT GetSignatureMethod(PWSTR* signatureMethod);
     ///Sets the signature method.
     ///Params:
     ///    signatureMethod = The signature method expressed as a URI. This parameter must refer to a valid signature method. The following
@@ -8383,14 +8419,14 @@ interface IXpsSigningOptions : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK; otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT SetSignatureMethod(const(wchar)* signatureMethod);
+    HRESULT SetSignatureMethod(const(PWSTR) signatureMethod);
     ///Gets the current digest method.
     ///Params:
     ///    digestMethod = The current digest method. The following digest methods have been tested in Windows 7:
     ///Returns:
     ///    If the method succeeds, it returns S_OK; otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT GetDigestMethod(ushort** digestMethod);
+    HRESULT GetDigestMethod(PWSTR* digestMethod);
     ///Sets the URI of the digest method.
     ///Params:
     ///    digestMethod = The URI of the digest method. This parameter must refer to the URI of a valid digest method. The following
@@ -8398,7 +8434,7 @@ interface IXpsSigningOptions : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK; otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT SetDigestMethod(const(wchar)* digestMethod);
+    HRESULT SetDigestMethod(const(PWSTR) digestMethod);
     ///Gets the part name of the document's signature part.
     ///Params:
     ///    signaturePartName = A pointer to an IOpcPartUri interface that contains the part name of the document's signature part. If a
@@ -8532,7 +8568,7 @@ interface IXpsSignature : IUnknown
     ///    width="40%"> <dl> <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> The interface is not connected to
     ///    the signature manager. </td> </tr> </table>
     ///    
-    HRESULT GetSignatureId(ushort** sigId);
+    HRESULT GetSignatureId(PWSTR* sigId);
     ///Gets the encrypted hash value of the signature.
     ///Params:
     ///    signatureHashValue = The byte array that represents the encrypted hash value of the signature.
@@ -8571,7 +8607,7 @@ interface IXpsSignature : IUnknown
     ///    <dl> <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> The interface is not connected to the
     ///    signature manager. </td> </tr> </table>
     ///    
-    HRESULT GetSigningTime(ushort** sigDateTimeString);
+    HRESULT GetSigningTime(PWSTR* sigDateTimeString);
     ///Gets the format of the signing time.
     ///Params:
     ///    timeFormat = The value of OPC_SIGNATURE_TIME_FORMAT that describes the format of the signing time.
@@ -8777,7 +8813,7 @@ interface IXpsSignatureBlock : IUnknown
     ///    signature manager, or <i>requestId</i> is <b>NULL</b> and a unique ID string could not be generated. </td>
     ///    </tr> </table>
     ///    
-    HRESULT CreateRequest(const(wchar)* requestId, IXpsSignatureRequest* signatureRequest);
+    HRESULT CreateRequest(const(PWSTR) requestId, IXpsSignatureRequest* signatureRequest);
 }
 
 ///A collection of IXpsSignatureRequest interfaces.
@@ -8825,7 +8861,7 @@ interface IXpsSignatureRequest : IUnknown
     ///    <td width="40%"> <dl> <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> The interface is not
     ///    connected to the signature manager. </td> </tr> </table>
     ///    
-    HRESULT GetIntent(ushort** intent);
+    HRESULT GetIntent(PWSTR* intent);
     ///Sets the string that describes the intent or meaning of the signature.
     ///Params:
     ///    intent = The string that describes the intent or meaning of the signature.
@@ -8838,7 +8874,7 @@ interface IXpsSignatureRequest : IUnknown
     ///    <td width="40%"> <dl> <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> The interface is not
     ///    connected to the signature manager. </td> </tr> </table>
     ///    
-    HRESULT SetIntent(const(wchar)* intent);
+    HRESULT SetIntent(const(PWSTR) intent);
     ///Gets the identity of the person who has signed or is requesting to sign the package.
     ///Params:
     ///    signerName = The identity of the person who has signed or is requesting to sign the package.
@@ -8851,7 +8887,7 @@ interface IXpsSignatureRequest : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> The interface is not
     ///    connected to the signature manager. </td> </tr> </table>
     ///    
-    HRESULT GetRequestedSigner(ushort** signerName);
+    HRESULT GetRequestedSigner(PWSTR* signerName);
     ///Sets the identity of the person who signed or is requested to sign the package.
     ///Params:
     ///    signerName = The identity of the person who signed or is requesting to sign the package.
@@ -8864,7 +8900,7 @@ interface IXpsSignatureRequest : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> The interface is not
     ///    connected to the signature manager. </td> </tr> </table>
     ///    
-    HRESULT SetRequestedSigner(const(wchar)* signerName);
+    HRESULT SetRequestedSigner(const(PWSTR) signerName);
     ///Gets the date and time before which the requested signer must sign the specified parts of the document.
     ///Params:
     ///    dateString = A string that contains the date and time before which the requested signer must sign the specified parts of
@@ -8881,7 +8917,7 @@ interface IXpsSignatureRequest : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> The interface is not
     ///    connected to the signature manager. </td> </tr> </table>
     ///    
-    HRESULT GetRequestSignByDate(ushort** dateString);
+    HRESULT GetRequestSignByDate(PWSTR* dateString);
     ///Sets the date and time before which the requested signer must sign the specified parts of the document.
     ///Params:
     ///    dateString = A string that contains the date and time before which the requested signer must sign the specified parts of
@@ -8897,7 +8933,7 @@ interface IXpsSignatureRequest : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> The interface is not
     ///    connected to the signature manager. </td> </tr> </table>
     ///    
-    HRESULT SetRequestSignByDate(const(wchar)* dateString);
+    HRESULT SetRequestSignByDate(const(PWSTR) dateString);
     ///Gets the legal jurisdiction of the package signing location.
     ///Params:
     ///    place = The legal jurisdiction of the package signing location
@@ -8910,7 +8946,7 @@ interface IXpsSignatureRequest : IUnknown
     ///    width="40%"> <dl> <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> The interface is not connected to
     ///    the signature manager. </td> </tr> </table>
     ///    
-    HRESULT GetSigningLocale(ushort** place);
+    HRESULT GetSigningLocale(PWSTR* place);
     ///Sets the legal jurisdiction of the package signing location.
     ///Params:
     ///    place = The legal jurisdiction of the package signing location.
@@ -8923,7 +8959,7 @@ interface IXpsSignatureRequest : IUnknown
     ///    width="40%"> <dl> <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> The interface is not connected to
     ///    the signature manager. </td> </tr> </table>
     ///    
-    HRESULT SetSigningLocale(const(wchar)* place);
+    HRESULT SetSigningLocale(const(PWSTR) place);
     ///Gets the page and the location on the page where the visible digital signature or the digital signature request
     ///will be displayed.
     ///Params:
@@ -8974,7 +9010,7 @@ interface IXpsSignatureRequest : IUnknown
     ///    <td width="40%"> <dl> <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> The interface is not
     ///    connected to the signature manager. </td> </tr> </table>
     ///    
-    HRESULT GetRequestId(ushort** requestId);
+    HRESULT GetRequestId(PWSTR* requestId);
     ///Gets a pointer to an IXpsSignature interface that contains the XPS digital signature with the same unique
     ///identifier as the signature request.
     ///Params:
@@ -9008,7 +9044,7 @@ interface IXpsSignatureManager : IUnknown
     ///    <td width="40%"> <dl> <dt><b>XPS_E_PACKAGE_ALREADY_OPENED</b></dt> </dl> </td> <td width="60%"> An XPS
     ///    package has already been opened in the signature manager. </td> </tr> </table>
     ///    
-    HRESULT LoadPackageFile(const(wchar)* fileName);
+    HRESULT LoadPackageFile(const(PWSTR) fileName);
     ///Loads an XPS package from a stream into the digital signature manager.
     ///Params:
     ///    stream = The stream that contains the XPS package to be loaded.
@@ -9150,7 +9186,7 @@ interface IXpsSignatureManager : IUnknown
     ///    <td width="40%"> <dl> <dt><b>XPS_E_PACKAGE_NOT_OPENED</b></dt> </dl> </td> <td width="60%"> An XPS package
     ///    has not yet been opened in the signature manager. </td> </tr> </table>
     ///    
-    HRESULT SavePackageToFile(const(wchar)* fileName, SECURITY_ATTRIBUTES* securityAttributes, 
+    HRESULT SavePackageToFile(const(PWSTR) fileName, SECURITY_ATTRIBUTES* securityAttributes, 
                               uint flagsAndAttributes);
     ///Saves the XPS package by writing it to a stream.
     ///Params:
@@ -9180,7 +9216,7 @@ interface IPrintDocumentPackageTarget : IUnknown
     ///    If the <b>GetPackageTargetTypes</b> method completes successfully, it returns an S_OK. Otherwise it returns
     ///    the appropriate HRESULT error code.
     ///    
-    HRESULT GetPackageTargetTypes(uint* targetCount, char* targetTypes);
+    HRESULT GetPackageTargetTypes(uint* targetCount, GUID** targetTypes);
     ///Retrieves the pointer to the specific document package target, which allows the client to add a document with the
     ///given target type. Clients can call this method multiple times but they always have to use the same target ID.
     ///Params:
@@ -9233,7 +9269,7 @@ interface IPrintDocumentPackageTargetFactory : IUnknown
     ///    If the <b>CreateDocumentPackageTargetForPrintJob</b> method completes successfully, it returns an S_OK.
     ///    Otherwise it returns the appropriate HRESULT error code.
     ///    
-    HRESULT CreateDocumentPackageTargetForPrintJob(const(wchar)* printerName, const(wchar)* jobName, 
+    HRESULT CreateDocumentPackageTargetForPrintJob(const(PWSTR) printerName, const(PWSTR) jobName, 
                                                    IStream jobOutputStream, IStream jobPrintTicketStream, 
                                                    IPrintDocumentPackageTarget* docPackageTarget);
 }

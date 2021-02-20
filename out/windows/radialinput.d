@@ -7,7 +7,7 @@ public import windows.com : HRESULT;
 public import windows.winrt : IInspectable;
 public import windows.windowsandmessaging : HWND;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Interfaces

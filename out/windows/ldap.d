@@ -4,9 +4,9 @@ module windows.ldap;
 
 public import windows.core;
 public import windows.security : CERT_CONTEXT, SecPkgContext_IssuerListInfoEx;
-public import windows.systemservices : HANDLE;
+public import windows.systemservices : HANDLE, PSTR, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -82,14 +82,13 @@ enum : int
 
 // Callbacks
 
-alias DBGPRINT = uint function(const(char)* Format);
-alias QUERYFORCONNECTION = uint function(ldap* PrimaryConnection, ldap* ReferralFromConnection, 
-                                         const(wchar)* NewDN, const(char)* HostName, uint PortNumber, 
-                                         void* SecAuthIdentity, void* CurrentUserToken, ldap** ConnectionToUse);
-alias NOTIFYOFNEWCONNECTION = ubyte function(ldap* PrimaryConnection, ldap* ReferralFromConnection, 
-                                             const(wchar)* NewDN, const(char)* HostName, ldap* NewConnection, 
-                                             uint PortNumber, void* SecAuthIdentity, void* CurrentUser, 
-                                             uint ErrorCodeFromBind);
+alias DBGPRINT = uint function(const(PSTR) Format);
+alias QUERYFORCONNECTION = uint function(ldap* PrimaryConnection, ldap* ReferralFromConnection, PWSTR NewDN, 
+                                         PSTR HostName, uint PortNumber, void* SecAuthIdentity, 
+                                         void* CurrentUserToken, ldap** ConnectionToUse);
+alias NOTIFYOFNEWCONNECTION = ubyte function(ldap* PrimaryConnection, ldap* ReferralFromConnection, PWSTR NewDN, 
+                                             PSTR HostName, ldap* NewConnection, uint PortNumber, 
+                                             void* SecAuthIdentity, void* CurrentUser, uint ErrorCodeFromBind);
 alias DEREFERENCECONNECTION = uint function(ldap* PrimaryConnection, ldap* ConnectionToDereference);
 ///The <b>QUERYCLIENTCERT</b> function is a client-side function that enables the server to request a certificate from
 ///the client when establishing a Secure Sockets Layer (SSL) connection.
@@ -121,28 +120,28 @@ alias VERIFYSERVERCERT = ubyte function(ldap* Connection, CERT_CONTEXT** pServer
 ///track referrals is available in LDAP 3.
 struct ldap
 {
-    struct ld_sb
+struct ld_sb
     {
         size_t    sb_sd;
         ubyte[41] Reserved1;
         size_t    sb_naddr;
         ubyte[24] Reserved2;
     }
-    const(char)* ld_host;
-    uint         ld_version;
-    ubyte        ld_lberoptions;
-    uint         ld_deref;
-    uint         ld_timelimit;
-    uint         ld_sizelimit;
-    uint         ld_errno;
-    const(char)* ld_matched;
-    const(char)* ld_error;
-    uint         ld_msgid;
-    ubyte[25]    Reserved3;
-    uint         ld_cldaptries;
-    uint         ld_cldaptimeout;
-    uint         ld_refhoplimit;
-    uint         ld_options;
+    PSTR      ld_host;
+    uint      ld_version;
+    ubyte     ld_lberoptions;
+    uint      ld_deref;
+    uint      ld_timelimit;
+    uint      ld_sizelimit;
+    uint      ld_errno;
+    PSTR      ld_matched;
+    PSTR      ld_error;
+    uint      ld_msgid;
+    ubyte[25] Reserved3;
+    uint      ld_cldaptries;
+    uint      ld_cldaptimeout;
+    uint      ld_refhoplimit;
+    uint      ld_options;
 }
 
 ///The <b>LDAP_TIMEVAL</b> structure is used to represent an interval of time.
@@ -159,9 +158,9 @@ struct LDAP_TIMEVAL
 struct LDAP_BERVAL
 {
     ///Length, in bytes, of binary data.
-    uint         bv_len;
+    uint bv_len;
     ///Pointer to the binary data.
-    const(char)* bv_val;
+    PSTR bv_val;
 }
 
 ///The <b>LDAPMessage</b> structure is used by an LDAP function to return results and error data.
@@ -186,24 +185,24 @@ struct LDAPMessage
 struct ldapcontrolA
 {
     ///Pointer to a wide, null-terminated string that indicates control type, such as "1.2.840.113556.1.4.805".
-    const(char)* ldctl_oid;
+    PSTR        ldctl_oid;
     ///The data associated with the control, if any. If no data is associated with the control, set this member to
     ///<b>NULL</b>.
-    LDAP_BERVAL  ldctl_value;
+    LDAP_BERVAL ldctl_value;
     ///Indicates whether the control is critical, called the Criticality field.
-    ubyte        ldctl_iscritical;
+    ubyte       ldctl_iscritical;
 }
 
 ///The <b>LDAPControl</b> structure represents both client-side and server controls.
 struct ldapcontrolW
 {
     ///Pointer to a wide, null-terminated string that indicates control type, such as "1.2.840.113556.1.4.805".
-    const(wchar)* ldctl_oid;
+    PWSTR       ldctl_oid;
     ///The data associated with the control, if any. If no data is associated with the control, set this member to
     ///<b>NULL</b>.
-    LDAP_BERVAL   ldctl_value;
+    LDAP_BERVAL ldctl_value;
     ///Indicates whether the control is critical, called the Criticality field.
-    ubyte         ldctl_iscritical;
+    ubyte       ldctl_iscritical;
 }
 
 ///The <b>LDAPMod</b> structure holds data required to perform a modification operation.
@@ -213,12 +212,12 @@ struct ldapmodW
     ///<b>OR</b> operator to combine the operation value with <b>LDAP_MOD_BVALUES</b> to indicate that the
     ///<b>mod_vals</b> union uses the <b>modv_bvals</b> member. If <b>LDAP_MOD_BVALUES</b> is not set, the union uses
     ///the <b>modv_strvals</b> member.
-    uint          mod_op;
+    uint  mod_op;
     ///Pointer to a null-terminated string that specifies the name of the attribute to modify.
-    const(wchar)* mod_type;
-    union mod_vals
+    PWSTR mod_type;
+union mod_vals
     {
-        ushort**      modv_strvals;
+        PWSTR*        modv_strvals;
         LDAP_BERVAL** modv_bvals;
     }
 }
@@ -230,12 +229,12 @@ struct ldapmodA
     ///<b>OR</b> operator to combine the operation value with <b>LDAP_MOD_BVALUES</b> to indicate that the
     ///<b>mod_vals</b> union uses the <b>modv_bvals</b> member. If <b>LDAP_MOD_BVALUES</b> is not set, the union uses
     ///the <b>modv_strvals</b> member.
-    uint         mod_op;
+    uint mod_op;
     ///Pointer to a null-terminated string that specifies the name of the attribute to modify.
-    const(char)* mod_type;
-    union mod_vals
+    PSTR mod_type;
+union mod_vals
     {
-        byte**        modv_strvals;
+        PSTR*         modv_strvals;
         LDAP_BERVAL** modv_bvals;
     }
 }
@@ -244,7 +243,7 @@ struct ldapmodA
 struct berelement
 {
     ///Pointer to an opaque buffer. Do not attempt to access it.
-    const(char)* opaque;
+    PSTR opaque;
 }
 
 struct ldap_version_info
@@ -279,19 +278,19 @@ struct ldapapiinfoW
 {
     ///The version of this structure, which must be set to <b>LDAP_API_INFO_VERSION</b> before a call to
     ///ldap_get_option.
-    int           ldapai_info_version;
+    int    ldapai_info_version;
     ///The current revision number of this LDAP API library.
-    int           ldapai_api_version;
+    int    ldapai_api_version;
     ///The latest LDAP version supported by this LDAP API library.
-    int           ldapai_protocol_version;
+    int    ldapai_protocol_version;
     ///Pointer to an array of null-terminated strings that indicate what API extensions are supported.
-    ushort**      ldapai_extensions;
+    PWSTR* ldapai_extensions;
     ///Pointer to a null-terminated string that contains the name of the API vendor. This implementation returns the
     ///string ""Microsoft Corporation."".
-    const(wchar)* ldapai_vendor_name;
+    PWSTR  ldapai_vendor_name;
     ///The API vendor version number. This implementation returns an integer value in the format of MMnn, where MM is
     ///the major version number * 100, and nn is the minor version number. For example, version 5.10 is returned as 510.
-    int           ldapai_vendor_version;
+    int    ldapai_vendor_version;
 }
 
 ///The <b>LDAPAPIFeatureInfo</b> structure retrieves data about any supported LDAP API extensions.
@@ -315,15 +314,15 @@ struct LDAPAPIFeatureInfoW
 {
     ///The version of this structure, which must be set to <b>LDAP_FEATURE_INFO_VERSION</b> before the call to
     ///ldap_get_option is performed.
-    int           ldapaif_info_version;
+    int   ldapaif_info_version;
     ///A pointer to a null-terminated string that contains the name of the desired API extension. This value is set
     ///before the call to ldap_get_option is performed, and should match one of the strings returned in the
     ///<b>ldapai_extensions</b> member of LDAPAPIInfo set from a previous call to <b>ldap_get_option</b>.
-    const(wchar)* ldapaif_name;
+    PWSTR ldapaif_name;
     ///The vendor API extension version number. This implementation returns an integer value in the format of MMnnn,
     ///where MM is the major version number * 1000, and nnn is the minor version number. For example, version 1.001
     ///would be returned as the number 1001.
-    int           ldapaif_version;
+    int   ldapaif_version;
 }
 
 struct ldapsearch
@@ -336,14 +335,14 @@ struct ldapsortkeyW
     ///Pointer to a null-terminated string that specifies the name of the attribute to use as a sort key. Use multiple
     ///<b>LDAPSortKey</b> structures to specify multiple sort keys. Be aware that Active Directory supports only a
     ///single sort key.
-    const(wchar)* sk_attrtype;
+    PWSTR sk_attrtype;
     ///Pointer to a null-terminated string that specifies the object identifier of the matching rule for the sort.
     ///Should be set to <b>NULL</b> if you do not want to explicitly specify a matching rule for the sort. Specifying an
     ///explicitly set matching rule is supported only by Windows Server 2003.
-    const(wchar)* sk_matchruleoid;
+    PWSTR sk_matchruleoid;
     ///If <b>TRUE</b>, specifies that the sort be ordered from lowest to highest. If <b>FALSE</b>, the sort order is
     ///from highest to lowest.
-    ubyte         sk_reverseorder;
+    ubyte sk_reverseorder;
 }
 
 ///The <b>LDAPSortKey</b> structure stores sorting criteria for use by sort controls.
@@ -352,14 +351,14 @@ struct ldapsortkeyA
     ///Pointer to a null-terminated string that specifies the name of the attribute to use as a sort key. Use multiple
     ///<b>LDAPSortKey</b> structures to specify multiple sort keys. Be aware that Active Directory supports only a
     ///single sort key.
-    const(char)* sk_attrtype;
+    PSTR  sk_attrtype;
     ///Pointer to a null-terminated string that specifies the object identifier of the matching rule for the sort.
     ///Should be set to <b>NULL</b> if you do not want to explicitly specify a matching rule for the sort. Specifying an
     ///explicitly set matching rule is supported only by Windows Server 2003.
-    const(char)* sk_matchruleoid;
+    PSTR  sk_matchruleoid;
     ///If <b>TRUE</b>, specifies that the sort be ordered from lowest to highest. If <b>FALSE</b>, the sort order is
     ///from highest to lowest.
-    ubyte        sk_reverseorder;
+    ubyte sk_reverseorder;
 }
 
 ///The <b>LDAPVLVInfo</b> structure is used to set up the search parameters for a virtual list view (VLV) request
@@ -454,7 +453,7 @@ struct LDAP_REFERRAL_CALLBACK
 ///    <b>NULL</b>. Use the LdapGetLastError function to retrieve the error code.
 ///    
 @DllImport("WLDAP32")
-ldap* ldap_openW(const(ushort)* HostName, uint PortNumber);
+ldap* ldap_openW(const(PWSTR) HostName, uint PortNumber);
 
 ///<p class="CCE_Message">[ldap_open is available for use in the operating systems specified in the Requirements
 ///section; however, it is not recommended. Instead, use ldap_init.] The <b>ldap_open</b> function creates and
@@ -474,7 +473,7 @@ ldap* ldap_openW(const(ushort)* HostName, uint PortNumber);
 ///    <b>NULL</b>. Use the LdapGetLastError function to retrieve the error code.
 ///    
 @DllImport("WLDAP32")
-ldap* ldap_openA(const(byte)* HostName, uint PortNumber);
+ldap* ldap_openA(const(PSTR) HostName, uint PortNumber);
 
 ///The <b>ldap_init</b> function initializes a session with an LDAP server.
 ///Params:
@@ -491,7 +490,7 @@ ldap* ldap_openA(const(byte)* HostName, uint PortNumber);
 ///    returns <b>NULL</b>. Use LdapGetLastError to retrieve the error code.
 ///    
 @DllImport("WLDAP32")
-ldap* ldap_initW(const(ushort)* HostName, uint PortNumber);
+ldap* ldap_initW(const(PWSTR) HostName, uint PortNumber);
 
 ///The <b>ldap_init</b> function initializes a session with an LDAP server.
 ///Params:
@@ -508,7 +507,7 @@ ldap* ldap_initW(const(ushort)* HostName, uint PortNumber);
 ///    returns <b>NULL</b>. Use LdapGetLastError to retrieve the error code.
 ///    
 @DllImport("WLDAP32")
-ldap* ldap_initA(const(byte)* HostName, uint PortNumber);
+ldap* ldap_initA(const(PSTR) HostName, uint PortNumber);
 
 ///The <b>ldap_sslinit</b> function initializes a Secure Sockets Layer (SSL) session with an LDAP server.
 ///Params:
@@ -525,7 +524,7 @@ ldap* ldap_initA(const(byte)* HostName, uint PortNumber);
 ///    value is <b>NULL</b>. Use LdapGetLastError to retrieve the error code.
 ///    
 @DllImport("WLDAP32")
-ldap* ldap_sslinitW(const(wchar)* HostName, uint PortNumber, int secure);
+ldap* ldap_sslinitW(PWSTR HostName, uint PortNumber, int secure);
 
 ///The <b>ldap_sslinit</b> function initializes a Secure Sockets Layer (SSL) session with an LDAP server.
 ///Params:
@@ -542,7 +541,7 @@ ldap* ldap_sslinitW(const(wchar)* HostName, uint PortNumber, int secure);
 ///    value is <b>NULL</b>. Use LdapGetLastError to retrieve the error code.
 ///    
 @DllImport("WLDAP32")
-ldap* ldap_sslinitA(const(char)* HostName, uint PortNumber, int secure);
+ldap* ldap_sslinitA(PSTR HostName, uint PortNumber, int secure);
 
 ///The <b>ldap_connect</b> function establishes a connection with the server.
 ///Params:
@@ -574,7 +573,7 @@ uint ldap_connect(ldap* ld, LDAP_TIMEVAL* timeout);
 ///    <b>NULL</b>. Use the LdapGetLastError function to retrieve the error code.
 ///    
 @DllImport("WLDAP32")
-ldap* ldap_open(const(char)* HostName, uint PortNumber);
+ldap* ldap_open(PSTR HostName, uint PortNumber);
 
 ///The <b>ldap_init</b> function initializes a session with an LDAP server.
 ///Params:
@@ -591,7 +590,7 @@ ldap* ldap_open(const(char)* HostName, uint PortNumber);
 ///    returns <b>NULL</b>. Use LdapGetLastError to retrieve the error code.
 ///    
 @DllImport("WLDAP32")
-ldap* ldap_init(const(char)* HostName, uint PortNumber);
+ldap* ldap_init(PSTR HostName, uint PortNumber);
 
 ///The <b>ldap_sslinit</b> function initializes a Secure Sockets Layer (SSL) session with an LDAP server.
 ///Params:
@@ -608,7 +607,7 @@ ldap* ldap_init(const(char)* HostName, uint PortNumber);
 ///    value is <b>NULL</b>. Use LdapGetLastError to retrieve the error code.
 ///    
 @DllImport("WLDAP32")
-ldap* ldap_sslinit(const(char)* HostName, uint PortNumber, int secure);
+ldap* ldap_sslinit(PSTR HostName, uint PortNumber, int secure);
 
 ///The <b>cldap_open</b> function establishes a session with an LDAP server over a connectionless User Datagram Protocol
 ///(UDP) service. This is an alternate to using TCP/IP.
@@ -626,7 +625,7 @@ ldap* ldap_sslinit(const(char)* HostName, uint PortNumber, int secure);
 ///    is <b>NULL</b>. To get the error code, call LdapGetLastError or the Win32 function GetLastError.
 ///    
 @DllImport("WLDAP32")
-ldap* cldap_openW(const(wchar)* HostName, uint PortNumber);
+ldap* cldap_openW(PWSTR HostName, uint PortNumber);
 
 ///The <b>cldap_open</b> function establishes a session with an LDAP server over a connectionless User Datagram Protocol
 ///(UDP) service. This is an alternate to using TCP/IP.
@@ -644,7 +643,7 @@ ldap* cldap_openW(const(wchar)* HostName, uint PortNumber);
 ///    is <b>NULL</b>. To get the error code, call LdapGetLastError or the Win32 function GetLastError.
 ///    
 @DllImport("WLDAP32")
-ldap* cldap_openA(const(char)* HostName, uint PortNumber);
+ldap* cldap_openA(PSTR HostName, uint PortNumber);
 
 ///The <b>cldap_open</b> function establishes a session with an LDAP server over a connectionless User Datagram Protocol
 ///(UDP) service. This is an alternate to using TCP/IP.
@@ -662,7 +661,7 @@ ldap* cldap_openA(const(char)* HostName, uint PortNumber);
 ///    is <b>NULL</b>. To get the error code, call LdapGetLastError or the Win32 function GetLastError.
 ///    
 @DllImport("WLDAP32")
-ldap* cldap_open(const(char)* HostName, uint PortNumber);
+ldap* cldap_open(PSTR HostName, uint PortNumber);
 
 ///The <b>ldap_unbind</b> function frees resources associated with an LDAP session.
 ///Params:
@@ -757,7 +756,7 @@ uint ldap_set_optionW(ldap* ld, int option, const(void)* invalue);
 ///    -1 and sets the session error parameters in the LDAP data structure.
 ///    
 @DllImport("WLDAP32")
-uint ldap_simple_bindW(ldap* ld, const(wchar)* dn, const(wchar)* passwd);
+uint ldap_simple_bindW(ldap* ld, PWSTR dn, PWSTR passwd);
 
 ///The <b>ldap_simple_bind</b> functionasynchronously authenticates a client to a server, using a plaintext password.
 ///<div class="alert"><b>Caution</b> This function sends the name and password without encrypting them, and therefore
@@ -774,7 +773,7 @@ uint ldap_simple_bindW(ldap* ld, const(wchar)* dn, const(wchar)* passwd);
 ///    -1 and sets the session error parameters in the LDAP data structure.
 ///    
 @DllImport("WLDAP32")
-uint ldap_simple_bindA(ldap* ld, const(char)* dn, const(char)* passwd);
+uint ldap_simple_bindA(ldap* ld, PSTR dn, PSTR passwd);
 
 ///The <b>ldap_simple_bind_s</b> function synchronously authenticates a client to a server, using a plaintext password.
 ///<div class="alert"><b>Caution</b> This function sends the name and password without encrypting them, and an
@@ -791,7 +790,7 @@ uint ldap_simple_bindA(ldap* ld, const(char)* dn, const(char)* passwd);
 ///    code. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_simple_bind_sW(ldap* ld, const(wchar)* dn, const(wchar)* passwd);
+uint ldap_simple_bind_sW(ldap* ld, PWSTR dn, PWSTR passwd);
 
 ///The <b>ldap_simple_bind_s</b> function synchronously authenticates a client to a server, using a plaintext password.
 ///<div class="alert"><b>Caution</b> This function sends the name and password without encrypting them, and an
@@ -808,7 +807,7 @@ uint ldap_simple_bind_sW(ldap* ld, const(wchar)* dn, const(wchar)* passwd);
 ///    code. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_simple_bind_sA(ldap* ld, const(char)* dn, const(char)* passwd);
+uint ldap_simple_bind_sA(ldap* ld, PSTR dn, PSTR passwd);
 
 ///The <b>ldap_bind</b> function asynchronously authenticates a client with the LDAP server. The bind operation
 ///identifies a client to the directory server by providing a distinguished name and some type of authentication
@@ -829,7 +828,7 @@ uint ldap_simple_bind_sA(ldap* ld, const(char)* dn, const(char)* passwd);
 ///    it returns –1 and sets the session error parameters in the LDAP structure.
 ///    
 @DllImport("WLDAP32")
-uint ldap_bindW(ldap* ld, const(wchar)* dn, const(wchar)* cred, uint method);
+uint ldap_bindW(ldap* ld, PWSTR dn, PWSTR cred, uint method);
 
 ///The <b>ldap_bind</b> function asynchronously authenticates a client with the LDAP server. The bind operation
 ///identifies a client to the directory server by providing a distinguished name and some type of authentication
@@ -850,7 +849,7 @@ uint ldap_bindW(ldap* ld, const(wchar)* dn, const(wchar)* cred, uint method);
 ///    it returns –1 and sets the session error parameters in the LDAP structure.
 ///    
 @DllImport("WLDAP32")
-uint ldap_bindA(ldap* ld, const(char)* dn, const(char)* cred, uint method);
+uint ldap_bindA(ldap* ld, PSTR dn, PSTR cred, uint method);
 
 ///The <b>ldap_bind_s</b> function synchronously authenticates a client to the LDAP server.
 ///Params:
@@ -868,7 +867,7 @@ uint ldap_bindA(ldap* ld, const(char)* dn, const(char)* cred, uint method);
 ///    code. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_bind_sW(ldap* ld, const(wchar)* dn, const(wchar)* cred, uint method);
+uint ldap_bind_sW(ldap* ld, PWSTR dn, PWSTR cred, uint method);
 
 ///The <b>ldap_bind_s</b> function synchronously authenticates a client to the LDAP server.
 ///Params:
@@ -886,7 +885,7 @@ uint ldap_bind_sW(ldap* ld, const(wchar)* dn, const(wchar)* cred, uint method);
 ///    code. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_bind_sA(ldap* ld, const(char)* dn, const(char)* cred, uint method);
+uint ldap_bind_sA(ldap* ld, PSTR dn, PSTR cred, uint method);
 
 ///The <b>ldap_sasl_bind</b> is an asynchronous function that authenticates a client to the LDAP server using SASL.
 ///Params:
@@ -904,7 +903,7 @@ uint ldap_bind_sA(ldap* ld, const(char)* dn, const(char)* cred, uint method);
 ///    code. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-int ldap_sasl_bindA(ldap* ExternalHandle, const(byte)* DistName, const(byte)* AuthMechanism, 
+int ldap_sasl_bindA(ldap* ExternalHandle, const(PSTR) DistName, const(PSTR) AuthMechanism, 
                     const(LDAP_BERVAL)* cred, ldapcontrolA** ServerCtrls, ldapcontrolA** ClientCtrls, 
                     int* MessageNumber);
 
@@ -924,7 +923,7 @@ int ldap_sasl_bindA(ldap* ExternalHandle, const(byte)* DistName, const(byte)* Au
 ///    code. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-int ldap_sasl_bindW(ldap* ExternalHandle, const(ushort)* DistName, const(ushort)* AuthMechanism, 
+int ldap_sasl_bindW(ldap* ExternalHandle, const(PWSTR) DistName, const(PWSTR) AuthMechanism, 
                     const(LDAP_BERVAL)* cred, ldapcontrolW** ServerCtrls, ldapcontrolW** ClientCtrls, 
                     int* MessageNumber);
 
@@ -945,7 +944,7 @@ int ldap_sasl_bindW(ldap* ExternalHandle, const(ushort)* DistName, const(ushort)
 ///    code. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-int ldap_sasl_bind_sA(ldap* ExternalHandle, const(byte)* DistName, const(byte)* AuthMechanism, 
+int ldap_sasl_bind_sA(ldap* ExternalHandle, const(PSTR) DistName, const(PSTR) AuthMechanism, 
                       const(LDAP_BERVAL)* cred, ldapcontrolA** ServerCtrls, ldapcontrolA** ClientCtrls, 
                       LDAP_BERVAL** ServerData);
 
@@ -966,7 +965,7 @@ int ldap_sasl_bind_sA(ldap* ExternalHandle, const(byte)* DistName, const(byte)* 
 ///    code. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-int ldap_sasl_bind_sW(ldap* ExternalHandle, const(ushort)* DistName, const(ushort)* AuthMechanism, 
+int ldap_sasl_bind_sW(ldap* ExternalHandle, const(PWSTR) DistName, const(PWSTR) AuthMechanism, 
                       const(LDAP_BERVAL)* cred, ldapcontrolW** ServerCtrls, ldapcontrolW** ClientCtrls, 
                       LDAP_BERVAL** ServerData);
 
@@ -985,7 +984,7 @@ int ldap_sasl_bind_sW(ldap* ExternalHandle, const(ushort)* DistName, const(ushor
 ///    -1 and sets the session error parameters in the LDAP data structure.
 ///    
 @DllImport("WLDAP32")
-uint ldap_simple_bind(ldap* ld, const(byte)* dn, const(byte)* passwd);
+uint ldap_simple_bind(ldap* ld, const(PSTR) dn, const(PSTR) passwd);
 
 ///The <b>ldap_simple_bind_s</b> function synchronously authenticates a client to a server, using a plaintext password.
 ///<div class="alert"><b>Caution</b> This function sends the name and password without encrypting them, and an
@@ -1002,7 +1001,7 @@ uint ldap_simple_bind(ldap* ld, const(byte)* dn, const(byte)* passwd);
 ///    code. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_simple_bind_s(ldap* ld, const(byte)* dn, const(byte)* passwd);
+uint ldap_simple_bind_s(ldap* ld, const(PSTR) dn, const(PSTR) passwd);
 
 ///The <b>ldap_bind</b> function asynchronously authenticates a client with the LDAP server. The bind operation
 ///identifies a client to the directory server by providing a distinguished name and some type of authentication
@@ -1023,7 +1022,7 @@ uint ldap_simple_bind_s(ldap* ld, const(byte)* dn, const(byte)* passwd);
 ///    it returns –1 and sets the session error parameters in the LDAP structure.
 ///    
 @DllImport("WLDAP32")
-uint ldap_bind(ldap* ld, const(byte)* dn, const(byte)* cred, uint method);
+uint ldap_bind(ldap* ld, const(PSTR) dn, const(PSTR) cred, uint method);
 
 ///The <b>ldap_bind_s</b> function synchronously authenticates a client to the LDAP server.
 ///Params:
@@ -1041,7 +1040,7 @@ uint ldap_bind(ldap* ld, const(byte)* dn, const(byte)* cred, uint method);
 ///    code. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_bind_s(ldap* ld, const(byte)* dn, const(byte)* cred, uint method);
+uint ldap_bind_s(ldap* ld, const(PSTR) dn, const(PSTR) cred, uint method);
 
 ///The <b>ldap_search</b> function searches the LDAP directory and returns a requested set of attributes for each
 ///matched entry.
@@ -1061,8 +1060,7 @@ uint ldap_bind_s(ldap* ld, const(byte)* dn, const(byte)* cred, uint method);
 ///    –1 and sets the session error parameters in the LDAP data structure.
 ///    
 @DllImport("WLDAP32")
-uint ldap_searchW(ldap* ld, const(ushort)* base, uint scope_, const(ushort)* filter, ushort** attrs, 
-                  uint attrsonly);
+uint ldap_searchW(ldap* ld, const(PWSTR) base, uint scope_, const(PWSTR) filter, ushort** attrs, uint attrsonly);
 
 ///The <b>ldap_search</b> function searches the LDAP directory and returns a requested set of attributes for each
 ///matched entry.
@@ -1082,7 +1080,7 @@ uint ldap_searchW(ldap* ld, const(ushort)* base, uint scope_, const(ushort)* fil
 ///    –1 and sets the session error parameters in the LDAP data structure.
 ///    
 @DllImport("WLDAP32")
-uint ldap_searchA(ldap* ld, const(byte)* base, uint scope_, const(byte)* filter, byte** attrs, uint attrsonly);
+uint ldap_searchA(ldap* ld, const(PSTR) base, uint scope_, const(PSTR) filter, byte** attrs, uint attrsonly);
 
 ///The <b>ldap_search_s</b> function synchronously searches the LDAP directory and returns a requested set of attributes
 ///for each matched entry.
@@ -1107,8 +1105,8 @@ uint ldap_searchA(ldap* ld, const(byte)* base, uint scope_, const(byte)* filter,
 ///    the following code example. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_search_sW(ldap* ld, const(ushort)* base, uint scope_, const(ushort)* filter, ushort** attrs, 
-                    uint attrsonly, LDAPMessage** res);
+uint ldap_search_sW(ldap* ld, const(PWSTR) base, uint scope_, const(PWSTR) filter, ushort** attrs, uint attrsonly, 
+                    LDAPMessage** res);
 
 ///The <b>ldap_search_s</b> function synchronously searches the LDAP directory and returns a requested set of attributes
 ///for each matched entry.
@@ -1133,7 +1131,7 @@ uint ldap_search_sW(ldap* ld, const(ushort)* base, uint scope_, const(ushort)* f
 ///    the following code example. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_search_sA(ldap* ld, const(byte)* base, uint scope_, const(byte)* filter, byte** attrs, uint attrsonly, 
+uint ldap_search_sA(ldap* ld, const(PSTR) base, uint scope_, const(PSTR) filter, byte** attrs, uint attrsonly, 
                     LDAPMessage** res);
 
 ///The <b>ldap_search_st</b> function synchronously searches the LDAP directory and returns a requested set of
@@ -1161,8 +1159,8 @@ uint ldap_search_sA(ldap* ld, const(byte)* base, uint scope_, const(byte)* filte
 ///    the following code example. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_search_stW(ldap* ld, const(ushort)* base, uint scope_, const(ushort)* filter, ushort** attrs, 
-                     uint attrsonly, LDAP_TIMEVAL* timeout, LDAPMessage** res);
+uint ldap_search_stW(ldap* ld, const(PWSTR) base, uint scope_, const(PWSTR) filter, ushort** attrs, uint attrsonly, 
+                     LDAP_TIMEVAL* timeout, LDAPMessage** res);
 
 ///The <b>ldap_search_st</b> function synchronously searches the LDAP directory and returns a requested set of
 ///attributes for each entry matched. An additional parameter specifies a local time-out for the search. The function is
@@ -1189,7 +1187,7 @@ uint ldap_search_stW(ldap* ld, const(ushort)* base, uint scope_, const(ushort)* 
 ///    the following code example. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_search_stA(ldap* ld, const(byte)* base, uint scope_, const(byte)* filter, byte** attrs, uint attrsonly, 
+uint ldap_search_stA(ldap* ld, const(PSTR) base, uint scope_, const(PSTR) filter, byte** attrs, uint attrsonly, 
                      LDAP_TIMEVAL* timeout, LDAPMessage** res);
 
 ///The <b>ldap_search_ext</b> function searches the LDAP directory and returns a requested set of attributes for each
@@ -1216,7 +1214,7 @@ uint ldap_search_stA(ldap* ld, const(byte)* base, uint scope_, const(byte)* filt
 ///    code. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_search_extW(ldap* ld, const(ushort)* base, uint scope_, const(ushort)* filter, ushort** attrs, 
+uint ldap_search_extW(ldap* ld, const(PWSTR) base, uint scope_, const(PWSTR) filter, ushort** attrs, 
                       uint attrsonly, ldapcontrolW** ServerControls, ldapcontrolW** ClientControls, uint TimeLimit, 
                       uint SizeLimit, uint* MessageNumber);
 
@@ -1244,7 +1242,7 @@ uint ldap_search_extW(ldap* ld, const(ushort)* base, uint scope_, const(ushort)*
 ///    code. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_search_extA(ldap* ld, const(byte)* base, uint scope_, const(byte)* filter, byte** attrs, uint attrsonly, 
+uint ldap_search_extA(ldap* ld, const(PSTR) base, uint scope_, const(PSTR) filter, byte** attrs, uint attrsonly, 
                       ldapcontrolA** ServerControls, ldapcontrolA** ClientControls, uint TimeLimit, uint SizeLimit, 
                       uint* MessageNumber);
 
@@ -1276,7 +1274,7 @@ uint ldap_search_extA(ldap* ld, const(byte)* base, uint scope_, const(byte)* fil
 ///    see the following code example. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_search_ext_sW(ldap* ld, const(ushort)* base, uint scope_, const(ushort)* filter, ushort** attrs, 
+uint ldap_search_ext_sW(ldap* ld, const(PWSTR) base, uint scope_, const(PWSTR) filter, ushort** attrs, 
                         uint attrsonly, ldapcontrolW** ServerControls, ldapcontrolW** ClientControls, 
                         LDAP_TIMEVAL* timeout, uint SizeLimit, LDAPMessage** res);
 
@@ -1308,9 +1306,9 @@ uint ldap_search_ext_sW(ldap* ld, const(ushort)* base, uint scope_, const(ushort
 ///    see the following code example. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_search_ext_sA(ldap* ld, const(byte)* base, uint scope_, const(byte)* filter, byte** attrs, 
-                        uint attrsonly, ldapcontrolA** ServerControls, ldapcontrolA** ClientControls, 
-                        LDAP_TIMEVAL* timeout, uint SizeLimit, LDAPMessage** res);
+uint ldap_search_ext_sA(ldap* ld, const(PSTR) base, uint scope_, const(PSTR) filter, byte** attrs, uint attrsonly, 
+                        ldapcontrolA** ServerControls, ldapcontrolA** ClientControls, LDAP_TIMEVAL* timeout, 
+                        uint SizeLimit, LDAPMessage** res);
 
 ///The <b>ldap_search</b> function searches the LDAP directory and returns a requested set of attributes for each
 ///matched entry.
@@ -1330,7 +1328,7 @@ uint ldap_search_ext_sA(ldap* ld, const(byte)* base, uint scope_, const(byte)* f
 ///    –1 and sets the session error parameters in the LDAP data structure.
 ///    
 @DllImport("WLDAP32")
-uint ldap_search(ldap* ld, const(char)* base, uint scope_, const(char)* filter, byte** attrs, uint attrsonly);
+uint ldap_search(ldap* ld, PSTR base, uint scope_, PSTR filter, byte** attrs, uint attrsonly);
 
 ///The <b>ldap_search_s</b> function synchronously searches the LDAP directory and returns a requested set of attributes
 ///for each matched entry.
@@ -1355,8 +1353,7 @@ uint ldap_search(ldap* ld, const(char)* base, uint scope_, const(char)* filter, 
 ///    the following code example. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_search_s(ldap* ld, const(char)* base, uint scope_, const(char)* filter, byte** attrs, uint attrsonly, 
-                   LDAPMessage** res);
+uint ldap_search_s(ldap* ld, PSTR base, uint scope_, PSTR filter, byte** attrs, uint attrsonly, LDAPMessage** res);
 
 ///The <b>ldap_search_st</b> function synchronously searches the LDAP directory and returns a requested set of
 ///attributes for each entry matched. An additional parameter specifies a local time-out for the search. The function is
@@ -1383,7 +1380,7 @@ uint ldap_search_s(ldap* ld, const(char)* base, uint scope_, const(char)* filter
 ///    the following code example. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_search_st(ldap* ld, const(char)* base, uint scope_, const(char)* filter, byte** attrs, uint attrsonly, 
+uint ldap_search_st(ldap* ld, PSTR base, uint scope_, PSTR filter, byte** attrs, uint attrsonly, 
                     LDAP_TIMEVAL* timeout, LDAPMessage** res);
 
 ///The <b>ldap_search_ext</b> function searches the LDAP directory and returns a requested set of attributes for each
@@ -1410,7 +1407,7 @@ uint ldap_search_st(ldap* ld, const(char)* base, uint scope_, const(char)* filte
 ///    code. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_search_ext(ldap* ld, const(char)* base, uint scope_, const(char)* filter, byte** attrs, uint attrsonly, 
+uint ldap_search_ext(ldap* ld, PSTR base, uint scope_, PSTR filter, byte** attrs, uint attrsonly, 
                      ldapcontrolA** ServerControls, ldapcontrolA** ClientControls, uint TimeLimit, uint SizeLimit, 
                      uint* MessageNumber);
 
@@ -1442,7 +1439,7 @@ uint ldap_search_ext(ldap* ld, const(char)* base, uint scope_, const(char)* filt
 ///    see the following code example. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_search_ext_s(ldap* ld, const(char)* base, uint scope_, const(char)* filter, byte** attrs, uint attrsonly, 
+uint ldap_search_ext_s(ldap* ld, PSTR base, uint scope_, PSTR filter, byte** attrs, uint attrsonly, 
                        ldapcontrolA** ServerControls, ldapcontrolA** ClientControls, LDAP_TIMEVAL* timeout, 
                        uint SizeLimit, LDAPMessage** res);
 
@@ -1455,7 +1452,7 @@ uint ldap_search_ext_s(ldap* ld, const(char)* base, uint scope_, const(char)* fi
 ///    more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_check_filterW(ldap* ld, const(wchar)* SearchFilter);
+uint ldap_check_filterW(ldap* ld, PWSTR SearchFilter);
 
 ///The <b>ldap_check_filter</b> function is used to verify filter syntax.
 ///Params:
@@ -1466,7 +1463,7 @@ uint ldap_check_filterW(ldap* ld, const(wchar)* SearchFilter);
 ///    more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_check_filterA(ldap* ld, const(char)* SearchFilter);
+uint ldap_check_filterA(ldap* ld, PSTR SearchFilter);
 
 ///The <b>ldap_modify</b> function changes an existing entry.
 ///Params:
@@ -1478,7 +1475,7 @@ uint ldap_check_filterA(ldap* ld, const(char)* SearchFilter);
 ///    –1 and sets the session error parameters in the LDAP data structure.
 ///    
 @DllImport("WLDAP32")
-uint ldap_modifyW(ldap* ld, const(wchar)* dn, ldapmodW** mods);
+uint ldap_modifyW(ldap* ld, PWSTR dn, ldapmodW** mods);
 
 ///The <b>ldap_modify</b> function changes an existing entry.
 ///Params:
@@ -1490,7 +1487,7 @@ uint ldap_modifyW(ldap* ld, const(wchar)* dn, ldapmodW** mods);
 ///    –1 and sets the session error parameters in the LDAP data structure.
 ///    
 @DllImport("WLDAP32")
-uint ldap_modifyA(ldap* ld, const(char)* dn, ldapmodA** mods);
+uint ldap_modifyA(ldap* ld, PSTR dn, ldapmodA** mods);
 
 ///The <b>ldap_modify_s</b> function changes an existing entry.
 ///Params:
@@ -1502,7 +1499,7 @@ uint ldap_modifyA(ldap* ld, const(char)* dn, ldapmodA** mods);
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_modify_sW(ldap* ld, const(wchar)* dn, ldapmodW** mods);
+uint ldap_modify_sW(ldap* ld, PWSTR dn, ldapmodW** mods);
 
 ///The <b>ldap_modify_s</b> function changes an existing entry.
 ///Params:
@@ -1514,7 +1511,7 @@ uint ldap_modify_sW(ldap* ld, const(wchar)* dn, ldapmodW** mods);
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_modify_sA(ldap* ld, const(char)* dn, ldapmodA** mods);
+uint ldap_modify_sA(ldap* ld, PSTR dn, ldapmodA** mods);
 
 ///The <b>ldap_modify_ext</b> function changes an existing entry.
 ///Params:
@@ -1529,7 +1526,7 @@ uint ldap_modify_sA(ldap* ld, const(char)* dn, ldapmodA** mods);
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_modify_extW(ldap* ld, const(ushort)* dn, ldapmodW** mods, ldapcontrolW** ServerControls, 
+uint ldap_modify_extW(ldap* ld, const(PWSTR) dn, ldapmodW** mods, ldapcontrolW** ServerControls, 
                       ldapcontrolW** ClientControls, uint* MessageNumber);
 
 ///The <b>ldap_modify_ext</b> function changes an existing entry.
@@ -1545,7 +1542,7 @@ uint ldap_modify_extW(ldap* ld, const(ushort)* dn, ldapmodW** mods, ldapcontrolW
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_modify_extA(ldap* ld, const(byte)* dn, ldapmodA** mods, ldapcontrolA** ServerControls, 
+uint ldap_modify_extA(ldap* ld, const(PSTR) dn, ldapmodA** mods, ldapcontrolA** ServerControls, 
                       ldapcontrolA** ClientControls, uint* MessageNumber);
 
 ///The <b>ldap_modify_ext_s</b> function changes an existing entry.
@@ -1560,7 +1557,7 @@ uint ldap_modify_extA(ldap* ld, const(byte)* dn, ldapmodA** mods, ldapcontrolA**
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_modify_ext_sW(ldap* ld, const(ushort)* dn, ldapmodW** mods, ldapcontrolW** ServerControls, 
+uint ldap_modify_ext_sW(ldap* ld, const(PWSTR) dn, ldapmodW** mods, ldapcontrolW** ServerControls, 
                         ldapcontrolW** ClientControls);
 
 ///The <b>ldap_modify_ext_s</b> function changes an existing entry.
@@ -1575,7 +1572,7 @@ uint ldap_modify_ext_sW(ldap* ld, const(ushort)* dn, ldapmodW** mods, ldapcontro
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_modify_ext_sA(ldap* ld, const(byte)* dn, ldapmodA** mods, ldapcontrolA** ServerControls, 
+uint ldap_modify_ext_sA(ldap* ld, const(PSTR) dn, ldapmodA** mods, ldapcontrolA** ServerControls, 
                         ldapcontrolA** ClientControls);
 
 ///The <b>ldap_modify</b> function changes an existing entry.
@@ -1588,7 +1585,7 @@ uint ldap_modify_ext_sA(ldap* ld, const(byte)* dn, ldapmodA** mods, ldapcontrolA
 ///    –1 and sets the session error parameters in the LDAP data structure.
 ///    
 @DllImport("WLDAP32")
-uint ldap_modify(ldap* ld, const(char)* dn, ldapmodA** mods);
+uint ldap_modify(ldap* ld, PSTR dn, ldapmodA** mods);
 
 ///The <b>ldap_modify_s</b> function changes an existing entry.
 ///Params:
@@ -1600,7 +1597,7 @@ uint ldap_modify(ldap* ld, const(char)* dn, ldapmodA** mods);
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_modify_s(ldap* ld, const(char)* dn, ldapmodA** mods);
+uint ldap_modify_s(ldap* ld, PSTR dn, ldapmodA** mods);
 
 ///The <b>ldap_modify_ext</b> function changes an existing entry.
 ///Params:
@@ -1615,7 +1612,7 @@ uint ldap_modify_s(ldap* ld, const(char)* dn, ldapmodA** mods);
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_modify_ext(ldap* ld, const(byte)* dn, ldapmodA** mods, ldapcontrolA** ServerControls, 
+uint ldap_modify_ext(ldap* ld, const(PSTR) dn, ldapmodA** mods, ldapcontrolA** ServerControls, 
                      ldapcontrolA** ClientControls, uint* MessageNumber);
 
 ///The <b>ldap_modify_ext_s</b> function changes an existing entry.
@@ -1630,7 +1627,7 @@ uint ldap_modify_ext(ldap* ld, const(byte)* dn, ldapmodA** mods, ldapcontrolA** 
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_modify_ext_s(ldap* ld, const(byte)* dn, ldapmodA** mods, ldapcontrolA** ServerControls, 
+uint ldap_modify_ext_s(ldap* ld, const(PSTR) dn, ldapmodA** mods, ldapcontrolA** ServerControls, 
                        ldapcontrolA** ClientControls);
 
 ///The <b>ldap_modrdn2</b> function changes the relative distinguished name of an LDAP entry. This function is obsolete.
@@ -1646,7 +1643,7 @@ uint ldap_modify_ext_s(ldap* ld, const(byte)* dn, ldapmodA** mods, ldapcontrolA*
 ///    –1 and sets the session error parameters in the LDAP data structure.
 ///    
 @DllImport("WLDAP32")
-uint ldap_modrdn2W(ldap* ExternalHandle, const(ushort)* DistinguishedName, const(ushort)* NewDistinguishedName, 
+uint ldap_modrdn2W(ldap* ExternalHandle, const(PWSTR) DistinguishedName, const(PWSTR) NewDistinguishedName, 
                    int DeleteOldRdn);
 
 ///The <b>ldap_modrdn2</b> function changes the relative distinguished name of an LDAP entry. This function is obsolete.
@@ -1662,7 +1659,7 @@ uint ldap_modrdn2W(ldap* ExternalHandle, const(ushort)* DistinguishedName, const
 ///    –1 and sets the session error parameters in the LDAP data structure.
 ///    
 @DllImport("WLDAP32")
-uint ldap_modrdn2A(ldap* ExternalHandle, const(byte)* DistinguishedName, const(byte)* NewDistinguishedName, 
+uint ldap_modrdn2A(ldap* ExternalHandle, const(PSTR) DistinguishedName, const(PSTR) NewDistinguishedName, 
                    int DeleteOldRdn);
 
 ///The <b>ldap_modrdn</b> function changes the relative distinguished name of an LDAP entry. This function is obsolete
@@ -1677,7 +1674,7 @@ uint ldap_modrdn2A(ldap* ExternalHandle, const(byte)* DistinguishedName, const(b
 ///    –1 and sets the session error parameters in the LDAP data structure.
 ///    
 @DllImport("WLDAP32")
-uint ldap_modrdnW(ldap* ExternalHandle, const(ushort)* DistinguishedName, const(ushort)* NewDistinguishedName);
+uint ldap_modrdnW(ldap* ExternalHandle, const(PWSTR) DistinguishedName, const(PWSTR) NewDistinguishedName);
 
 ///The <b>ldap_modrdn</b> function changes the relative distinguished name of an LDAP entry. This function is obsolete
 ///and is provided for backward compatibility with earlier versions of LDAP. For LDAP 3 or later, use the
@@ -1691,7 +1688,7 @@ uint ldap_modrdnW(ldap* ExternalHandle, const(ushort)* DistinguishedName, const(
 ///    –1 and sets the session error parameters in the LDAP data structure.
 ///    
 @DllImport("WLDAP32")
-uint ldap_modrdnA(ldap* ExternalHandle, const(byte)* DistinguishedName, const(byte)* NewDistinguishedName);
+uint ldap_modrdnA(ldap* ExternalHandle, const(PSTR) DistinguishedName, const(PSTR) NewDistinguishedName);
 
 ///The <b>ldap_modrdn2_s</b> function changes the relative distinguished name of an LDAP entry. This function is
 ///obsolete. For LDAP 3 or later, use the ldap_rename_ext or ldap_rename_ext_s functions.
@@ -1706,7 +1703,7 @@ uint ldap_modrdnA(ldap* ExternalHandle, const(byte)* DistinguishedName, const(by
 ///    code. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_modrdn2_sW(ldap* ExternalHandle, const(ushort)* DistinguishedName, const(ushort)* NewDistinguishedName, 
+uint ldap_modrdn2_sW(ldap* ExternalHandle, const(PWSTR) DistinguishedName, const(PWSTR) NewDistinguishedName, 
                      int DeleteOldRdn);
 
 ///The <b>ldap_modrdn2_s</b> function changes the relative distinguished name of an LDAP entry. This function is
@@ -1722,7 +1719,7 @@ uint ldap_modrdn2_sW(ldap* ExternalHandle, const(ushort)* DistinguishedName, con
 ///    code. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_modrdn2_sA(ldap* ExternalHandle, const(byte)* DistinguishedName, const(byte)* NewDistinguishedName, 
+uint ldap_modrdn2_sA(ldap* ExternalHandle, const(PSTR) DistinguishedName, const(PSTR) NewDistinguishedName, 
                      int DeleteOldRdn);
 
 ///The <b>ldap_modrdn_s</b> function changes the relative distinguished name of an LDAP entry. This function is obsolete
@@ -1737,7 +1734,7 @@ uint ldap_modrdn2_sA(ldap* ExternalHandle, const(byte)* DistinguishedName, const
 ///    code. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_modrdn_sW(ldap* ExternalHandle, const(ushort)* DistinguishedName, const(ushort)* NewDistinguishedName);
+uint ldap_modrdn_sW(ldap* ExternalHandle, const(PWSTR) DistinguishedName, const(PWSTR) NewDistinguishedName);
 
 ///The <b>ldap_modrdn_s</b> function changes the relative distinguished name of an LDAP entry. This function is obsolete
 ///and is provided for backward compatibility with earlier versions of LDAP. For LDAP 3 or later, use the
@@ -1751,7 +1748,7 @@ uint ldap_modrdn_sW(ldap* ExternalHandle, const(ushort)* DistinguishedName, cons
 ///    code. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_modrdn_sA(ldap* ExternalHandle, const(byte)* DistinguishedName, const(byte)* NewDistinguishedName);
+uint ldap_modrdn_sA(ldap* ExternalHandle, const(PSTR) DistinguishedName, const(PSTR) NewDistinguishedName);
 
 ///The <b>ldap_modrdn2</b> function changes the relative distinguished name of an LDAP entry. This function is obsolete.
 ///For LDAP 3 or later, use the ldap_rename_ext or ldap_rename_ext_s functions.
@@ -1766,7 +1763,7 @@ uint ldap_modrdn_sA(ldap* ExternalHandle, const(byte)* DistinguishedName, const(
 ///    –1 and sets the session error parameters in the LDAP data structure.
 ///    
 @DllImport("WLDAP32")
-uint ldap_modrdn2(ldap* ExternalHandle, const(byte)* DistinguishedName, const(byte)* NewDistinguishedName, 
+uint ldap_modrdn2(ldap* ExternalHandle, const(PSTR) DistinguishedName, const(PSTR) NewDistinguishedName, 
                   int DeleteOldRdn);
 
 ///The <b>ldap_modrdn</b> function changes the relative distinguished name of an LDAP entry. This function is obsolete
@@ -1781,7 +1778,7 @@ uint ldap_modrdn2(ldap* ExternalHandle, const(byte)* DistinguishedName, const(by
 ///    –1 and sets the session error parameters in the LDAP data structure.
 ///    
 @DllImport("WLDAP32")
-uint ldap_modrdn(ldap* ExternalHandle, const(byte)* DistinguishedName, const(byte)* NewDistinguishedName);
+uint ldap_modrdn(ldap* ExternalHandle, const(PSTR) DistinguishedName, const(PSTR) NewDistinguishedName);
 
 ///The <b>ldap_modrdn2_s</b> function changes the relative distinguished name of an LDAP entry. This function is
 ///obsolete. For LDAP 3 or later, use the ldap_rename_ext or ldap_rename_ext_s functions.
@@ -1796,7 +1793,7 @@ uint ldap_modrdn(ldap* ExternalHandle, const(byte)* DistinguishedName, const(byt
 ///    code. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_modrdn2_s(ldap* ExternalHandle, const(byte)* DistinguishedName, const(byte)* NewDistinguishedName, 
+uint ldap_modrdn2_s(ldap* ExternalHandle, const(PSTR) DistinguishedName, const(PSTR) NewDistinguishedName, 
                     int DeleteOldRdn);
 
 ///The <b>ldap_modrdn_s</b> function changes the relative distinguished name of an LDAP entry. This function is obsolete
@@ -1811,7 +1808,7 @@ uint ldap_modrdn2_s(ldap* ExternalHandle, const(byte)* DistinguishedName, const(
 ///    code. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_modrdn_s(ldap* ExternalHandle, const(byte)* DistinguishedName, const(byte)* NewDistinguishedName);
+uint ldap_modrdn_s(ldap* ExternalHandle, const(PSTR) DistinguishedName, const(PSTR) NewDistinguishedName);
 
 ///The <b>ldap_rename_ext</b> function starts an asynchronous operation that changes the distinguished name of an entry
 ///in the directory. This function is available effective with LDAP 3.
@@ -1832,9 +1829,8 @@ uint ldap_modrdn_s(ldap* ExternalHandle, const(byte)* DistinguishedName, const(b
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_rename_extW(ldap* ld, const(ushort)* dn, const(ushort)* NewRDN, const(ushort)* NewParent, 
-                      int DeleteOldRdn, ldapcontrolW** ServerControls, ldapcontrolW** ClientControls, 
-                      uint* MessageNumber);
+uint ldap_rename_extW(ldap* ld, const(PWSTR) dn, const(PWSTR) NewRDN, const(PWSTR) NewParent, int DeleteOldRdn, 
+                      ldapcontrolW** ServerControls, ldapcontrolW** ClientControls, uint* MessageNumber);
 
 ///The <b>ldap_rename_ext</b> function starts an asynchronous operation that changes the distinguished name of an entry
 ///in the directory. This function is available effective with LDAP 3.
@@ -1855,7 +1851,7 @@ uint ldap_rename_extW(ldap* ld, const(ushort)* dn, const(ushort)* NewRDN, const(
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_rename_extA(ldap* ld, const(byte)* dn, const(byte)* NewRDN, const(byte)* NewParent, int DeleteOldRdn, 
+uint ldap_rename_extA(ldap* ld, const(PSTR) dn, const(PSTR) NewRDN, const(PSTR) NewParent, int DeleteOldRdn, 
                       ldapcontrolA** ServerControls, ldapcontrolA** ClientControls, uint* MessageNumber);
 
 ///The <b>ldap_rename_ext_s</b> function is a synchronous operation that changes the distinguished name of an entry in
@@ -1875,8 +1871,8 @@ uint ldap_rename_extA(ldap* ld, const(byte)* dn, const(byte)* NewRDN, const(byte
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_rename_ext_sW(ldap* ld, const(ushort)* dn, const(ushort)* NewRDN, const(ushort)* NewParent, 
-                        int DeleteOldRdn, ldapcontrolW** ServerControls, ldapcontrolW** ClientControls);
+uint ldap_rename_ext_sW(ldap* ld, const(PWSTR) dn, const(PWSTR) NewRDN, const(PWSTR) NewParent, int DeleteOldRdn, 
+                        ldapcontrolW** ServerControls, ldapcontrolW** ClientControls);
 
 ///The <b>ldap_rename_ext_s</b> function is a synchronous operation that changes the distinguished name of an entry in
 ///the directory. This function is available effective with LDAP 3.
@@ -1895,7 +1891,7 @@ uint ldap_rename_ext_sW(ldap* ld, const(ushort)* dn, const(ushort)* NewRDN, cons
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_rename_ext_sA(ldap* ld, const(byte)* dn, const(byte)* NewRDN, const(byte)* NewParent, int DeleteOldRdn, 
+uint ldap_rename_ext_sA(ldap* ld, const(PSTR) dn, const(PSTR) NewRDN, const(PSTR) NewParent, int DeleteOldRdn, 
                         ldapcontrolA** ServerControls, ldapcontrolA** ClientControls);
 
 ///The <b>ldap_rename_ext</b> function starts an asynchronous operation that changes the distinguished name of an entry
@@ -1917,7 +1913,7 @@ uint ldap_rename_ext_sA(ldap* ld, const(byte)* dn, const(byte)* NewRDN, const(by
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_rename_ext(ldap* ld, const(byte)* dn, const(byte)* NewRDN, const(byte)* NewParent, int DeleteOldRdn, 
+uint ldap_rename_ext(ldap* ld, const(PSTR) dn, const(PSTR) NewRDN, const(PSTR) NewParent, int DeleteOldRdn, 
                      ldapcontrolA** ServerControls, ldapcontrolA** ClientControls, uint* MessageNumber);
 
 ///The <b>ldap_rename_ext_s</b> function is a synchronous operation that changes the distinguished name of an entry in
@@ -1937,7 +1933,7 @@ uint ldap_rename_ext(ldap* ld, const(byte)* dn, const(byte)* NewRDN, const(byte)
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_rename_ext_s(ldap* ld, const(byte)* dn, const(byte)* NewRDN, const(byte)* NewParent, int DeleteOldRdn, 
+uint ldap_rename_ext_s(ldap* ld, const(PSTR) dn, const(PSTR) NewRDN, const(PSTR) NewParent, int DeleteOldRdn, 
                        ldapcontrolA** ServerControls, ldapcontrolA** ClientControls);
 
 ///The <b>ldap_add</b> function initiates an asynchronous add operation to a directory tree. For an add operation to
@@ -1953,7 +1949,7 @@ uint ldap_rename_ext_s(ldap* ld, const(byte)* dn, const(byte)* NewRDN, const(byt
 ///    LdapGetLastError.
 ///    
 @DllImport("WLDAP32")
-uint ldap_addW(ldap* ld, const(wchar)* dn, ldapmodW** attrs);
+uint ldap_addW(ldap* ld, PWSTR dn, ldapmodW** attrs);
 
 ///The <b>ldap_add</b> function initiates an asynchronous add operation to a directory tree. For an add operation to
 ///succeed, the parent of the entry added must exist, or the parent must be empty (equal to the distinguished name of
@@ -1968,7 +1964,7 @@ uint ldap_addW(ldap* ld, const(wchar)* dn, ldapmodW** attrs);
 ///    LdapGetLastError.
 ///    
 @DllImport("WLDAP32")
-uint ldap_addA(ldap* ld, const(char)* dn, ldapmodA** attrs);
+uint ldap_addA(ldap* ld, PSTR dn, ldapmodA** attrs);
 
 ///The <b>ldap_add_s</b> function initiates a synchronous add operation that adds an entry to a tree. The parent of the
 ///entry being added must already exist or the parent must be empty (equal to the root distinguished name) for an add
@@ -1983,7 +1979,7 @@ uint ldap_addA(ldap* ld, const(char)* dn, ldapmodA** attrs);
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_add_sW(ldap* ld, const(wchar)* dn, ldapmodW** attrs);
+uint ldap_add_sW(ldap* ld, PWSTR dn, ldapmodW** attrs);
 
 ///The <b>ldap_add_s</b> function initiates a synchronous add operation that adds an entry to a tree. The parent of the
 ///entry being added must already exist or the parent must be empty (equal to the root distinguished name) for an add
@@ -1998,7 +1994,7 @@ uint ldap_add_sW(ldap* ld, const(wchar)* dn, ldapmodW** attrs);
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_add_sA(ldap* ld, const(char)* dn, ldapmodA** attrs);
+uint ldap_add_sA(ldap* ld, PSTR dn, ldapmodA** attrs);
 
 ///The <b>ldap_add_ext</b> function initiates an asynchronous add operation to a tree. The parent of the entry added
 ///must exist, or the parent must be empty (equal to the distinguished name of the root) for an add operation to
@@ -2016,7 +2012,7 @@ uint ldap_add_sA(ldap* ld, const(char)* dn, ldapmodA** attrs);
 ///    more information, see Error Handling.
 ///    
 @DllImport("WLDAP32")
-uint ldap_add_extW(ldap* ld, const(ushort)* dn, ldapmodW** attrs, ldapcontrolW** ServerControls, 
+uint ldap_add_extW(ldap* ld, const(PWSTR) dn, ldapmodW** attrs, ldapcontrolW** ServerControls, 
                    ldapcontrolW** ClientControls, uint* MessageNumber);
 
 ///The <b>ldap_add_ext</b> function initiates an asynchronous add operation to a tree. The parent of the entry added
@@ -2035,7 +2031,7 @@ uint ldap_add_extW(ldap* ld, const(ushort)* dn, ldapmodW** attrs, ldapcontrolW**
 ///    more information, see Error Handling.
 ///    
 @DllImport("WLDAP32")
-uint ldap_add_extA(ldap* ld, const(byte)* dn, ldapmodA** attrs, ldapcontrolA** ServerControls, 
+uint ldap_add_extA(ldap* ld, const(PSTR) dn, ldapmodA** attrs, ldapcontrolA** ServerControls, 
                    ldapcontrolA** ClientControls, uint* MessageNumber);
 
 ///The <b>ldap_add_ext_s</b> function initiates a synchronous add operation to a tree. For an add operation to succeed,
@@ -2052,7 +2048,7 @@ uint ldap_add_extA(ldap* ld, const(byte)* dn, ldapmodA** attrs, ldapcontrolA** S
 ///    more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_add_ext_sW(ldap* ld, const(ushort)* dn, ldapmodW** attrs, ldapcontrolW** ServerControls, 
+uint ldap_add_ext_sW(ldap* ld, const(PWSTR) dn, ldapmodW** attrs, ldapcontrolW** ServerControls, 
                      ldapcontrolW** ClientControls);
 
 ///The <b>ldap_add_ext_s</b> function initiates a synchronous add operation to a tree. For an add operation to succeed,
@@ -2069,7 +2065,7 @@ uint ldap_add_ext_sW(ldap* ld, const(ushort)* dn, ldapmodW** attrs, ldapcontrolW
 ///    more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_add_ext_sA(ldap* ld, const(byte)* dn, ldapmodA** attrs, ldapcontrolA** ServerControls, 
+uint ldap_add_ext_sA(ldap* ld, const(PSTR) dn, ldapmodA** attrs, ldapcontrolA** ServerControls, 
                      ldapcontrolA** ClientControls);
 
 ///The <b>ldap_add</b> function initiates an asynchronous add operation to a directory tree. For an add operation to
@@ -2085,7 +2081,7 @@ uint ldap_add_ext_sA(ldap* ld, const(byte)* dn, ldapmodA** attrs, ldapcontrolA**
 ///    LdapGetLastError.
 ///    
 @DllImport("WLDAP32")
-uint ldap_add(ldap* ld, const(char)* dn, ldapmodA** attrs);
+uint ldap_add(ldap* ld, PSTR dn, ldapmodA** attrs);
 
 ///The <b>ldap_add_s</b> function initiates a synchronous add operation that adds an entry to a tree. The parent of the
 ///entry being added must already exist or the parent must be empty (equal to the root distinguished name) for an add
@@ -2100,7 +2096,7 @@ uint ldap_add(ldap* ld, const(char)* dn, ldapmodA** attrs);
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_add_s(ldap* ld, const(char)* dn, ldapmodA** attrs);
+uint ldap_add_s(ldap* ld, PSTR dn, ldapmodA** attrs);
 
 ///The <b>ldap_add_ext</b> function initiates an asynchronous add operation to a tree. The parent of the entry added
 ///must exist, or the parent must be empty (equal to the distinguished name of the root) for an add operation to
@@ -2118,7 +2114,7 @@ uint ldap_add_s(ldap* ld, const(char)* dn, ldapmodA** attrs);
 ///    more information, see Error Handling.
 ///    
 @DllImport("WLDAP32")
-uint ldap_add_ext(ldap* ld, const(byte)* dn, ldapmodA** attrs, ldapcontrolA** ServerControls, 
+uint ldap_add_ext(ldap* ld, const(PSTR) dn, ldapmodA** attrs, ldapcontrolA** ServerControls, 
                   ldapcontrolA** ClientControls, uint* MessageNumber);
 
 ///The <b>ldap_add_ext_s</b> function initiates a synchronous add operation to a tree. For an add operation to succeed,
@@ -2135,7 +2131,7 @@ uint ldap_add_ext(ldap* ld, const(byte)* dn, ldapmodA** attrs, ldapcontrolA** Se
 ///    more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_add_ext_s(ldap* ld, const(byte)* dn, ldapmodA** attrs, ldapcontrolA** ServerControls, 
+uint ldap_add_ext_s(ldap* ld, const(PSTR) dn, ldapmodA** attrs, ldapcontrolA** ServerControls, 
                     ldapcontrolA** ClientControls);
 
 ///Use the <b>ldap_compare</b> function to determine whether an attribute for a given entry holds a known value.
@@ -2150,7 +2146,7 @@ uint ldap_add_ext_s(ldap* ld, const(byte)* dn, ldapmodA** attrs, ldapcontrolA** 
 ///    LdapGetLastError.
 ///    
 @DllImport("WLDAP32")
-uint ldap_compareW(ldap* ld, const(ushort)* dn, const(ushort)* attr, const(wchar)* value);
+uint ldap_compareW(ldap* ld, const(PWSTR) dn, const(PWSTR) attr, PWSTR value);
 
 ///Use the <b>ldap_compare</b> function to determine whether an attribute for a given entry holds a known value.
 ///Params:
@@ -2164,7 +2160,7 @@ uint ldap_compareW(ldap* ld, const(ushort)* dn, const(ushort)* attr, const(wchar
 ///    LdapGetLastError.
 ///    
 @DllImport("WLDAP32")
-uint ldap_compareA(ldap* ld, const(byte)* dn, const(byte)* attr, const(char)* value);
+uint ldap_compareA(ldap* ld, const(PSTR) dn, const(PSTR) attr, PSTR value);
 
 ///Use the <b>ldap_compare_s</b> function to determine whether an attribute for a given entry holds a known value.
 ///Params:
@@ -2178,7 +2174,7 @@ uint ldap_compareA(ldap* ld, const(byte)* dn, const(byte)* attr, const(char)* va
 ///    error code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_compare_sW(ldap* ld, const(ushort)* dn, const(ushort)* attr, const(wchar)* value);
+uint ldap_compare_sW(ldap* ld, const(PWSTR) dn, const(PWSTR) attr, PWSTR value);
 
 ///Use the <b>ldap_compare_s</b> function to determine whether an attribute for a given entry holds a known value.
 ///Params:
@@ -2192,7 +2188,7 @@ uint ldap_compare_sW(ldap* ld, const(ushort)* dn, const(ushort)* attr, const(wch
 ///    error code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_compare_sA(ldap* ld, const(byte)* dn, const(byte)* attr, const(char)* value);
+uint ldap_compare_sA(ldap* ld, const(PSTR) dn, const(PSTR) attr, PSTR value);
 
 ///Use the <b>ldap_compare</b> function to determine whether an attribute for a given entry holds a known value.
 ///Params:
@@ -2206,7 +2202,7 @@ uint ldap_compare_sA(ldap* ld, const(byte)* dn, const(byte)* attr, const(char)* 
 ///    LdapGetLastError.
 ///    
 @DllImport("WLDAP32")
-uint ldap_compare(ldap* ld, const(byte)* dn, const(byte)* attr, const(char)* value);
+uint ldap_compare(ldap* ld, const(PSTR) dn, const(PSTR) attr, PSTR value);
 
 ///Use the <b>ldap_compare_s</b> function to determine whether an attribute for a given entry holds a known value.
 ///Params:
@@ -2220,7 +2216,7 @@ uint ldap_compare(ldap* ld, const(byte)* dn, const(byte)* attr, const(char)* val
 ///    error code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_compare_s(ldap* ld, const(byte)* dn, const(byte)* attr, const(char)* value);
+uint ldap_compare_s(ldap* ld, const(PSTR) dn, const(PSTR) attr, PSTR value);
 
 ///Use the <b>ldap_compare_ext</b> function to determine if an attribute, for a given entry, holds a known value.
 ///Params:
@@ -2238,7 +2234,7 @@ uint ldap_compare_s(ldap* ld, const(byte)* dn, const(byte)* attr, const(char)* v
 ///    more information, see Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_compare_extW(ldap* ld, const(ushort)* dn, const(ushort)* Attr, const(ushort)* Value, LDAP_BERVAL* Data, 
+uint ldap_compare_extW(ldap* ld, const(PWSTR) dn, const(PWSTR) Attr, const(PWSTR) Value, LDAP_BERVAL* Data, 
                        ldapcontrolW** ServerControls, ldapcontrolW** ClientControls, uint* MessageNumber);
 
 ///Use the <b>ldap_compare_ext</b> function to determine if an attribute, for a given entry, holds a known value.
@@ -2257,7 +2253,7 @@ uint ldap_compare_extW(ldap* ld, const(ushort)* dn, const(ushort)* Attr, const(u
 ///    more information, see Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_compare_extA(ldap* ld, const(byte)* dn, const(byte)* Attr, const(byte)* Value, LDAP_BERVAL* Data, 
+uint ldap_compare_extA(ldap* ld, const(PSTR) dn, const(PSTR) Attr, const(PSTR) Value, LDAP_BERVAL* Data, 
                        ldapcontrolA** ServerControls, ldapcontrolA** ClientControls, uint* MessageNumber);
 
 ///Use the <b>ldap_compare_ext_s</b> function to determine if an attribute, for a given entry, holds a known value.
@@ -2276,7 +2272,7 @@ uint ldap_compare_extA(ldap* ld, const(byte)* dn, const(byte)* Attr, const(byte)
 ///    more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_compare_ext_sW(ldap* ld, const(ushort)* dn, const(ushort)* Attr, const(ushort)* Value, LDAP_BERVAL* Data, 
+uint ldap_compare_ext_sW(ldap* ld, const(PWSTR) dn, const(PWSTR) Attr, const(PWSTR) Value, LDAP_BERVAL* Data, 
                          ldapcontrolW** ServerControls, ldapcontrolW** ClientControls);
 
 ///Use the <b>ldap_compare_ext_s</b> function to determine if an attribute, for a given entry, holds a known value.
@@ -2295,7 +2291,7 @@ uint ldap_compare_ext_sW(ldap* ld, const(ushort)* dn, const(ushort)* Attr, const
 ///    more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_compare_ext_sA(ldap* ld, const(byte)* dn, const(byte)* Attr, const(byte)* Value, LDAP_BERVAL* Data, 
+uint ldap_compare_ext_sA(ldap* ld, const(PSTR) dn, const(PSTR) Attr, const(PSTR) Value, LDAP_BERVAL* Data, 
                          ldapcontrolA** ServerControls, ldapcontrolA** ClientControls);
 
 ///Use the <b>ldap_compare_ext</b> function to determine if an attribute, for a given entry, holds a known value.
@@ -2314,7 +2310,7 @@ uint ldap_compare_ext_sA(ldap* ld, const(byte)* dn, const(byte)* Attr, const(byt
 ///    more information, see Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_compare_ext(ldap* ld, const(byte)* dn, const(byte)* Attr, const(byte)* Value, LDAP_BERVAL* Data, 
+uint ldap_compare_ext(ldap* ld, const(PSTR) dn, const(PSTR) Attr, const(PSTR) Value, LDAP_BERVAL* Data, 
                       ldapcontrolA** ServerControls, ldapcontrolA** ClientControls, uint* MessageNumber);
 
 ///Use the <b>ldap_compare_ext_s</b> function to determine if an attribute, for a given entry, holds a known value.
@@ -2333,7 +2329,7 @@ uint ldap_compare_ext(ldap* ld, const(byte)* dn, const(byte)* Attr, const(byte)*
 ///    more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_compare_ext_s(ldap* ld, const(byte)* dn, const(byte)* Attr, const(byte)* Value, LDAP_BERVAL* Data, 
+uint ldap_compare_ext_s(ldap* ld, const(PSTR) dn, const(PSTR) Attr, const(PSTR) Value, LDAP_BERVAL* Data, 
                         ldapcontrolA** ServerControls, ldapcontrolA** ClientControls);
 
 ///The <b>ldap_delete</b> function deletes an entry from the directory tree.
@@ -2346,7 +2342,7 @@ uint ldap_compare_ext_s(ldap* ld, const(byte)* dn, const(byte)* Attr, const(byte
 ///    value, use LdapGetLastError.
 ///    
 @DllImport("WLDAP32")
-uint ldap_deleteW(ldap* ld, const(ushort)* dn);
+uint ldap_deleteW(ldap* ld, const(PWSTR) dn);
 
 ///The <b>ldap_delete</b> function deletes an entry from the directory tree.
 ///Params:
@@ -2358,7 +2354,7 @@ uint ldap_deleteW(ldap* ld, const(ushort)* dn);
 ///    value, use LdapGetLastError.
 ///    
 @DllImport("WLDAP32")
-uint ldap_deleteA(ldap* ld, const(byte)* dn);
+uint ldap_deleteA(ldap* ld, const(PSTR) dn);
 
 ///The <b>ldap_delete_s</b> function is a synchronous operation that removes a leaf entry from the directory tree.
 ///Params:
@@ -2369,7 +2365,7 @@ uint ldap_deleteA(ldap* ld, const(byte)* dn);
 ///    code. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_delete_sW(ldap* ld, const(ushort)* dn);
+uint ldap_delete_sW(ldap* ld, const(PWSTR) dn);
 
 ///The <b>ldap_delete_s</b> function is a synchronous operation that removes a leaf entry from the directory tree.
 ///Params:
@@ -2380,7 +2376,7 @@ uint ldap_delete_sW(ldap* ld, const(ushort)* dn);
 ///    code. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_delete_sA(ldap* ld, const(byte)* dn);
+uint ldap_delete_sA(ldap* ld, const(PSTR) dn);
 
 ///The <b>ldap_delete_ext</b> function is an extended routine that removes a leaf entry from the directory tree.
 ///Params:
@@ -2394,7 +2390,7 @@ uint ldap_delete_sA(ldap* ld, const(byte)* dn);
 ///    more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_delete_extW(ldap* ld, const(ushort)* dn, ldapcontrolW** ServerControls, ldapcontrolW** ClientControls, 
+uint ldap_delete_extW(ldap* ld, const(PWSTR) dn, ldapcontrolW** ServerControls, ldapcontrolW** ClientControls, 
                       uint* MessageNumber);
 
 ///The <b>ldap_delete_ext</b> function is an extended routine that removes a leaf entry from the directory tree.
@@ -2409,7 +2405,7 @@ uint ldap_delete_extW(ldap* ld, const(ushort)* dn, ldapcontrolW** ServerControls
 ///    more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_delete_extA(ldap* ld, const(byte)* dn, ldapcontrolA** ServerControls, ldapcontrolA** ClientControls, 
+uint ldap_delete_extA(ldap* ld, const(PSTR) dn, ldapcontrolA** ServerControls, ldapcontrolA** ClientControls, 
                       uint* MessageNumber);
 
 ///The <b>ldap_delete_ext_s</b> function is an extended routine that performs a synchronous operation to remove a leaf
@@ -2424,7 +2420,7 @@ uint ldap_delete_extA(ldap* ld, const(byte)* dn, ldapcontrolA** ServerControls, 
 ///    more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_delete_ext_sW(ldap* ld, const(ushort)* dn, ldapcontrolW** ServerControls, ldapcontrolW** ClientControls);
+uint ldap_delete_ext_sW(ldap* ld, const(PWSTR) dn, ldapcontrolW** ServerControls, ldapcontrolW** ClientControls);
 
 ///The <b>ldap_delete_ext_s</b> function is an extended routine that performs a synchronous operation to remove a leaf
 ///entry from the directory tree.
@@ -2438,7 +2434,7 @@ uint ldap_delete_ext_sW(ldap* ld, const(ushort)* dn, ldapcontrolW** ServerContro
 ///    more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_delete_ext_sA(ldap* ld, const(byte)* dn, ldapcontrolA** ServerControls, ldapcontrolA** ClientControls);
+uint ldap_delete_ext_sA(ldap* ld, const(PSTR) dn, ldapcontrolA** ServerControls, ldapcontrolA** ClientControls);
 
 ///The <b>ldap_delete</b> function deletes an entry from the directory tree.
 ///Params:
@@ -2450,7 +2446,7 @@ uint ldap_delete_ext_sA(ldap* ld, const(byte)* dn, ldapcontrolA** ServerControls
 ///    value, use LdapGetLastError.
 ///    
 @DllImport("WLDAP32")
-uint ldap_delete(ldap* ld, const(char)* dn);
+uint ldap_delete(ldap* ld, PSTR dn);
 
 ///The <b>ldap_delete_s</b> function is a synchronous operation that removes a leaf entry from the directory tree.
 ///Params:
@@ -2461,7 +2457,7 @@ uint ldap_delete(ldap* ld, const(char)* dn);
 ///    code. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_delete_s(ldap* ld, const(char)* dn);
+uint ldap_delete_s(ldap* ld, PSTR dn);
 
 ///The <b>ldap_delete_ext</b> function is an extended routine that removes a leaf entry from the directory tree.
 ///Params:
@@ -2475,7 +2471,7 @@ uint ldap_delete_s(ldap* ld, const(char)* dn);
 ///    more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_delete_ext(ldap* ld, const(byte)* dn, ldapcontrolA** ServerControls, ldapcontrolA** ClientControls, 
+uint ldap_delete_ext(ldap* ld, const(PSTR) dn, ldapcontrolA** ServerControls, ldapcontrolA** ClientControls, 
                      uint* MessageNumber);
 
 ///The <b>ldap_delete_ext_s</b> function is an extended routine that performs a synchronous operation to remove a leaf
@@ -2490,7 +2486,7 @@ uint ldap_delete_ext(ldap* ld, const(byte)* dn, ldapcontrolA** ServerControls, l
 ///    more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_delete_ext_s(ldap* ld, const(byte)* dn, ldapcontrolA** ServerControls, ldapcontrolA** ClientControls);
+uint ldap_delete_ext_s(ldap* ld, const(PSTR) dn, ldapcontrolA** ServerControls, ldapcontrolA** ClientControls);
 
 ///A client calls <b>ldap_abandon</b> to cancel an in-process asynchronous LDAP call.
 ///Params:
@@ -2573,8 +2569,8 @@ uint ldap_result2error(ldap* ld, LDAPMessage* res, uint freeit);
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_parse_resultW(ldap* Connection, LDAPMessage* ResultMessage, uint* ReturnCode, ushort** MatchedDNs, 
-                        ushort** ErrorMessage, ushort*** Referrals, ldapcontrolW*** ServerControls, ubyte Freeit);
+uint ldap_parse_resultW(ldap* Connection, LDAPMessage* ResultMessage, uint* ReturnCode, PWSTR* MatchedDNs, 
+                        PWSTR* ErrorMessage, ushort*** Referrals, ldapcontrolW*** ServerControls, ubyte Freeit);
 
 ///The <b>ldap_parse_result</b> function parses responses from the server and returns the appropriate fields.
 ///Params:
@@ -2601,8 +2597,8 @@ uint ldap_parse_resultW(ldap* Connection, LDAPMessage* ResultMessage, uint* Retu
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_parse_resultA(ldap* Connection, LDAPMessage* ResultMessage, uint* ReturnCode, byte** MatchedDNs, 
-                        byte** ErrorMessage, byte*** Referrals, ldapcontrolA*** ServerControls, ubyte Freeit);
+uint ldap_parse_resultA(ldap* Connection, LDAPMessage* ResultMessage, uint* ReturnCode, PSTR* MatchedDNs, 
+                        PSTR* ErrorMessage, byte*** Referrals, ldapcontrolA*** ServerControls, ubyte Freeit);
 
 ///The <b>ldap_parse_extended_result</b> parses the results of an LDAP extended operation.
 ///Params:
@@ -2620,7 +2616,7 @@ uint ldap_parse_resultA(ldap* Connection, LDAPMessage* ResultMessage, uint* Retu
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_parse_extended_resultA(ldap* Connection, LDAPMessage* ResultMessage, byte** ResultOID, 
+uint ldap_parse_extended_resultA(ldap* Connection, LDAPMessage* ResultMessage, PSTR* ResultOID, 
                                  LDAP_BERVAL** ResultData, ubyte Freeit);
 
 ///The <b>ldap_parse_extended_result</b> parses the results of an LDAP extended operation.
@@ -2639,7 +2635,7 @@ uint ldap_parse_extended_resultA(ldap* Connection, LDAPMessage* ResultMessage, b
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_parse_extended_resultW(ldap* Connection, LDAPMessage* ResultMessage, ushort** ResultOID, 
+uint ldap_parse_extended_resultW(ldap* Connection, LDAPMessage* ResultMessage, PWSTR* ResultOID, 
                                  LDAP_BERVAL** ResultData, ubyte Freeit);
 
 ///The <b>ldap_controls_free</b> function frees an array of LDAPControl structures.
@@ -2727,8 +2723,8 @@ uint ldap_free_controlsA(ldapcontrolA** Controls);
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_parse_result(ldap* Connection, LDAPMessage* ResultMessage, uint* ReturnCode, byte** MatchedDNs, 
-                       byte** ErrorMessage, byte*** Referrals, ldapcontrolA*** ServerControls, ubyte Freeit);
+uint ldap_parse_result(ldap* Connection, LDAPMessage* ResultMessage, uint* ReturnCode, PSTR* MatchedDNs, 
+                       PSTR* ErrorMessage, PSTR** Referrals, ldapcontrolA*** ServerControls, ubyte Freeit);
 
 ///The <b>ldap_controls_free</b> function frees an array of LDAPControl structures.
 ///Params:
@@ -2767,7 +2763,7 @@ uint ldap_free_controls(ldapcontrolA** Controls);
 ///    If the function fails, a pointer to <b>NULL</b> is returned.
 ///    
 @DllImport("WLDAP32")
-ushort* ldap_err2stringW(uint err);
+PWSTR ldap_err2stringW(uint err);
 
 ///The <b>ldap_err2string</b> function converts a numeric LDAP error code into a null-terminated character string that
 ///describes the error.
@@ -2778,7 +2774,7 @@ ushort* ldap_err2stringW(uint err);
 ///    If the function fails, a pointer to <b>NULL</b> is returned.
 ///    
 @DllImport("WLDAP32")
-byte* ldap_err2stringA(uint err);
+PSTR ldap_err2stringA(uint err);
 
 ///The <b>ldap_err2string</b> function converts a numeric LDAP error code into a null-terminated character string that
 ///describes the error.
@@ -2789,7 +2785,7 @@ byte* ldap_err2stringA(uint err);
 ///    If the function fails, a pointer to <b>NULL</b> is returned.
 ///    
 @DllImport("WLDAP32")
-byte* ldap_err2string(uint err);
+PSTR ldap_err2string(uint err);
 
 ///This function is not supported. The <b>ldap_perror</b> function is an obsolete function. It exists only for
 ///compatibility. <div class="alert"><b>Note</b> Obsolete. Use the LdapGetLastError function instead.</div><div> </div>
@@ -2797,7 +2793,7 @@ byte* ldap_err2string(uint err);
 ///    ld = Session handle.
 ///    msg = A message.
 @DllImport("WLDAP32")
-void ldap_perror(ldap* ld, const(byte)* msg);
+void ldap_perror(ldap* ld, const(PSTR) msg);
 
 ///The <b>ldap_first_entry</b> function returns the first entry of a message.
 ///Params:
@@ -2846,7 +2842,7 @@ uint ldap_count_entries(ldap* ld, LDAPMessage* res);
 ///    returns <b>NULL</b> and sets the session error parameter in the LDAP data structure to the LDAP error code.
 ///    
 @DllImport("WLDAP32")
-ushort* ldap_first_attributeW(ldap* ld, LDAPMessage* entry, berelement** ptr);
+PWSTR ldap_first_attributeW(ldap* ld, LDAPMessage* entry, berelement** ptr);
 
 ///For a given directory entry, the <b>ldap_first_attribute</b> function returns the first attribute.
 ///Params:
@@ -2860,7 +2856,7 @@ ushort* ldap_first_attributeW(ldap* ld, LDAPMessage* entry, berelement** ptr);
 ///    returns <b>NULL</b> and sets the session error parameter in the LDAP data structure to the LDAP error code.
 ///    
 @DllImport("WLDAP32")
-byte* ldap_first_attributeA(ldap* ld, LDAPMessage* entry, berelement** ptr);
+PSTR ldap_first_attributeA(ldap* ld, LDAPMessage* entry, berelement** ptr);
 
 ///For a given directory entry, the <b>ldap_first_attribute</b> function returns the first attribute.
 ///Params:
@@ -2874,7 +2870,7 @@ byte* ldap_first_attributeA(ldap* ld, LDAPMessage* entry, berelement** ptr);
 ///    returns <b>NULL</b> and sets the session error parameter in the LDAP data structure to the LDAP error code.
 ///    
 @DllImport("WLDAP32")
-byte* ldap_first_attribute(ldap* ld, LDAPMessage* entry, berelement** ptr);
+PSTR ldap_first_attribute(ldap* ld, LDAPMessage* entry, berelement** ptr);
 
 ///For a given entry, the <b>ldap_next_attribute</b> function returns the next attribute.
 ///Params:
@@ -2888,7 +2884,7 @@ byte* ldap_first_attribute(ldap* ld, LDAPMessage* entry, berelement** ptr);
 ///    session error parameter in the LDAP data structure to the LDAP error code.
 ///    
 @DllImport("WLDAP32")
-ushort* ldap_next_attributeW(ldap* ld, LDAPMessage* entry, berelement* ptr);
+PWSTR ldap_next_attributeW(ldap* ld, LDAPMessage* entry, berelement* ptr);
 
 ///For a given entry, the <b>ldap_next_attribute</b> function returns the next attribute.
 ///Params:
@@ -2902,7 +2898,7 @@ ushort* ldap_next_attributeW(ldap* ld, LDAPMessage* entry, berelement* ptr);
 ///    session error parameter in the LDAP data structure to the LDAP error code.
 ///    
 @DllImport("WLDAP32")
-byte* ldap_next_attributeA(ldap* ld, LDAPMessage* entry, berelement* ptr);
+PSTR ldap_next_attributeA(ldap* ld, LDAPMessage* entry, berelement* ptr);
 
 ///For a given entry, the <b>ldap_next_attribute</b> function returns the next attribute.
 ///Params:
@@ -2916,7 +2912,7 @@ byte* ldap_next_attributeA(ldap* ld, LDAPMessage* entry, berelement* ptr);
 ///    session error parameter in the LDAP data structure to the LDAP error code.
 ///    
 @DllImport("WLDAP32")
-byte* ldap_next_attribute(ldap* ld, LDAPMessage* entry, berelement* ptr);
+PSTR ldap_next_attribute(ldap* ld, LDAPMessage* entry, berelement* ptr);
 
 ///The <b>ldap_get_values</b> function retrieves the list of values of a given attribute.
 ///Params:
@@ -2931,7 +2927,7 @@ byte* ldap_next_attribute(ldap* ld, LDAPMessage* entry, berelement* ptr);
 ///    returns <b>NULL</b> and the session error parameter in the LDAP data structure is set to the LDAP error code.
 ///    
 @DllImport("WLDAP32")
-ushort** ldap_get_valuesW(ldap* ld, LDAPMessage* entry, const(ushort)* attr);
+PWSTR* ldap_get_valuesW(ldap* ld, LDAPMessage* entry, const(PWSTR) attr);
 
 ///The <b>ldap_get_values</b> function retrieves the list of values of a given attribute.
 ///Params:
@@ -2946,7 +2942,7 @@ ushort** ldap_get_valuesW(ldap* ld, LDAPMessage* entry, const(ushort)* attr);
 ///    returns <b>NULL</b> and the session error parameter in the LDAP data structure is set to the LDAP error code.
 ///    
 @DllImport("WLDAP32")
-byte** ldap_get_valuesA(ldap* ld, LDAPMessage* entry, const(byte)* attr);
+PSTR* ldap_get_valuesA(ldap* ld, LDAPMessage* entry, const(PSTR) attr);
 
 ///The <b>ldap_get_values</b> function retrieves the list of values of a given attribute.
 ///Params:
@@ -2961,7 +2957,7 @@ byte** ldap_get_valuesA(ldap* ld, LDAPMessage* entry, const(byte)* attr);
 ///    returns <b>NULL</b> and the session error parameter in the LDAP data structure is set to the LDAP error code.
 ///    
 @DllImport("WLDAP32")
-byte** ldap_get_values(ldap* ld, LDAPMessage* entry, const(byte)* attr);
+PSTR* ldap_get_values(ldap* ld, LDAPMessage* entry, const(PSTR) attr);
 
 ///The <b>ldap_get_values_len</b> function retrieves the list of values for a given attribute.
 ///Params:
@@ -2975,7 +2971,7 @@ byte** ldap_get_values(ldap* ld, LDAPMessage* entry, const(byte)* attr);
 ///    and the session error parameter in the LDAP data structure is set to the LDAP error code.
 ///    
 @DllImport("WLDAP32")
-LDAP_BERVAL** ldap_get_values_lenW(ldap* ExternalHandle, LDAPMessage* Message, const(ushort)* attr);
+LDAP_BERVAL** ldap_get_values_lenW(ldap* ExternalHandle, LDAPMessage* Message, const(PWSTR) attr);
 
 ///The <b>ldap_get_values_len</b> function retrieves the list of values for a given attribute.
 ///Params:
@@ -2989,7 +2985,7 @@ LDAP_BERVAL** ldap_get_values_lenW(ldap* ExternalHandle, LDAPMessage* Message, c
 ///    and the session error parameter in the LDAP data structure is set to the LDAP error code.
 ///    
 @DllImport("WLDAP32")
-LDAP_BERVAL** ldap_get_values_lenA(ldap* ExternalHandle, LDAPMessage* Message, const(byte)* attr);
+LDAP_BERVAL** ldap_get_values_lenA(ldap* ExternalHandle, LDAPMessage* Message, const(PSTR) attr);
 
 ///The <b>ldap_get_values_len</b> function retrieves the list of values for a given attribute.
 ///Params:
@@ -3003,7 +2999,7 @@ LDAP_BERVAL** ldap_get_values_lenA(ldap* ExternalHandle, LDAPMessage* Message, c
 ///    and the session error parameter in the LDAP data structure is set to the LDAP error code.
 ///    
 @DllImport("WLDAP32")
-LDAP_BERVAL** ldap_get_values_len(ldap* ExternalHandle, LDAPMessage* Message, const(byte)* attr);
+LDAP_BERVAL** ldap_get_values_len(ldap* ExternalHandle, LDAPMessage* Message, const(PSTR) attr);
 
 ///The <b>ldap_count_values</b> function counts the number of values in a list.
 ///Params:
@@ -3013,7 +3009,7 @@ LDAP_BERVAL** ldap_get_values_len(ldap* ExternalHandle, LDAPMessage* Message, co
 ///    passed as the argument, 0 is returned. If an invalid argument is passed, the value returned is undefined.
 ///    
 @DllImport("WLDAP32")
-uint ldap_count_valuesW(ushort** vals);
+uint ldap_count_valuesW(PWSTR* vals);
 
 ///The <b>ldap_count_values</b> function counts the number of values in a list.
 ///Params:
@@ -3023,7 +3019,7 @@ uint ldap_count_valuesW(ushort** vals);
 ///    passed as the argument, 0 is returned. If an invalid argument is passed, the value returned is undefined.
 ///    
 @DllImport("WLDAP32")
-uint ldap_count_valuesA(byte** vals);
+uint ldap_count_valuesA(PSTR* vals);
 
 ///The <b>ldap_count_values</b> function counts the number of values in a list.
 ///Params:
@@ -3033,7 +3029,7 @@ uint ldap_count_valuesA(byte** vals);
 ///    passed as the argument, 0 is returned. If an invalid argument is passed, the value returned is undefined.
 ///    
 @DllImport("WLDAP32")
-uint ldap_count_values(byte** vals);
+uint ldap_count_values(PSTR* vals);
 
 ///The <b>ldap_count_values_len</b> function counts the number of values in a list.
 ///Params:
@@ -3053,7 +3049,7 @@ uint ldap_count_values_len(LDAP_BERVAL** vals);
 ///    code. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_value_freeW(ushort** vals);
+uint ldap_value_freeW(PWSTR* vals);
 
 ///The <b>ldap_value_free</b> function frees a structure returned by ldap_get_values.
 ///Params:
@@ -3063,7 +3059,7 @@ uint ldap_value_freeW(ushort** vals);
 ///    code. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_value_freeA(byte** vals);
+uint ldap_value_freeA(PSTR* vals);
 
 ///The <b>ldap_value_free</b> function frees a structure returned by ldap_get_values.
 ///Params:
@@ -3073,7 +3069,7 @@ uint ldap_value_freeA(byte** vals);
 ///    code. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_value_free(byte** vals);
+uint ldap_value_free(PSTR* vals);
 
 ///The <b>ldap_value_free_len</b> frees berval structures that were returned by ldap_get_values_len.
 ///Params:
@@ -3094,7 +3090,7 @@ uint ldap_value_free_len(LDAP_BERVAL** vals);
 ///    If the function fails, it returns <b>NULL</b> and sets the session error parameters in the LDAP data structure.
 ///    
 @DllImport("WLDAP32")
-ushort* ldap_get_dnW(ldap* ld, LDAPMessage* entry);
+PWSTR ldap_get_dnW(ldap* ld, LDAPMessage* entry);
 
 ///The <b>ldap_get_dn</b> function retrieves the distinguished name for a given entry.
 ///Params:
@@ -3105,7 +3101,7 @@ ushort* ldap_get_dnW(ldap* ld, LDAPMessage* entry);
 ///    If the function fails, it returns <b>NULL</b> and sets the session error parameters in the LDAP data structure.
 ///    
 @DllImport("WLDAP32")
-byte* ldap_get_dnA(ldap* ld, LDAPMessage* entry);
+PSTR ldap_get_dnA(ldap* ld, LDAPMessage* entry);
 
 ///The <b>ldap_get_dn</b> function retrieves the distinguished name for a given entry.
 ///Params:
@@ -3116,7 +3112,7 @@ byte* ldap_get_dnA(ldap* ld, LDAPMessage* entry);
 ///    If the function fails, it returns <b>NULL</b> and sets the session error parameters in the LDAP data structure.
 ///    
 @DllImport("WLDAP32")
-byte* ldap_get_dn(ldap* ld, LDAPMessage* entry);
+PSTR ldap_get_dn(ldap* ld, LDAPMessage* entry);
 
 ///The <b>ldap_explode_dn</b> function breaks up an entry name into its component parts.
 ///Params:
@@ -3128,7 +3124,7 @@ byte* ldap_get_dn(ldap* ld, LDAPMessage* entry);
 ///    components of the distinguished name supplied.
 ///    
 @DllImport("WLDAP32")
-ushort** ldap_explode_dnW(const(ushort)* dn, uint notypes);
+PWSTR* ldap_explode_dnW(const(PWSTR) dn, uint notypes);
 
 ///The <b>ldap_explode_dn</b> function breaks up an entry name into its component parts.
 ///Params:
@@ -3140,7 +3136,7 @@ ushort** ldap_explode_dnW(const(ushort)* dn, uint notypes);
 ///    components of the distinguished name supplied.
 ///    
 @DllImport("WLDAP32")
-byte** ldap_explode_dnA(const(byte)* dn, uint notypes);
+PSTR* ldap_explode_dnA(const(PSTR) dn, uint notypes);
 
 ///The <b>ldap_explode_dn</b> function breaks up an entry name into its component parts.
 ///Params:
@@ -3152,7 +3148,7 @@ byte** ldap_explode_dnA(const(byte)* dn, uint notypes);
 ///    components of the distinguished name supplied.
 ///    
 @DllImport("WLDAP32")
-byte** ldap_explode_dn(const(byte)* dn, uint notypes);
+PSTR* ldap_explode_dn(const(PSTR) dn, uint notypes);
 
 ///The <b>ldap_dn2ufn</b> function converts a distinguished name to a user-friendly format.
 ///Params:
@@ -3162,7 +3158,7 @@ byte** ldap_explode_dn(const(byte)* dn, uint notypes);
 ///    string. If the function fails, <b>NULL</b> is returned.
 ///    
 @DllImport("WLDAP32")
-ushort* ldap_dn2ufnW(const(ushort)* dn);
+PWSTR ldap_dn2ufnW(const(PWSTR) dn);
 
 ///The <b>ldap_dn2ufn</b> function converts a distinguished name to a user-friendly format.
 ///Params:
@@ -3172,7 +3168,7 @@ ushort* ldap_dn2ufnW(const(ushort)* dn);
 ///    string. If the function fails, <b>NULL</b> is returned.
 ///    
 @DllImport("WLDAP32")
-byte* ldap_dn2ufnA(const(byte)* dn);
+PSTR ldap_dn2ufnA(const(PSTR) dn);
 
 ///The <b>ldap_dn2ufn</b> function converts a distinguished name to a user-friendly format.
 ///Params:
@@ -3182,7 +3178,7 @@ byte* ldap_dn2ufnA(const(byte)* dn);
 ///    string. If the function fails, <b>NULL</b> is returned.
 ///    
 @DllImport("WLDAP32")
-byte* ldap_dn2ufn(const(byte)* dn);
+PSTR ldap_dn2ufn(const(PSTR) dn);
 
 ///The <b>ldap_memfree</b> function frees memory allocated from the LDAP heap.
 ///Params:
@@ -3191,7 +3187,7 @@ byte* ldap_dn2ufn(const(byte)* dn);
 ///    None.
 ///    
 @DllImport("WLDAP32")
-void ldap_memfreeW(const(wchar)* Block);
+void ldap_memfreeW(PWSTR Block);
 
 ///The <b>ldap_memfree</b> function frees memory allocated from the LDAP heap.
 ///Params:
@@ -3200,7 +3196,7 @@ void ldap_memfreeW(const(wchar)* Block);
 ///    None.
 ///    
 @DllImport("WLDAP32")
-void ldap_memfreeA(const(char)* Block);
+void ldap_memfreeA(PSTR Block);
 
 ///The <b>ber_bvfree</b> function frees a berval structure.
 ///Params:
@@ -3218,7 +3214,7 @@ void ber_bvfree(LDAP_BERVAL* bv);
 ///    None.
 ///    
 @DllImport("WLDAP32")
-void ldap_memfree(const(char)* Block);
+void ldap_memfree(PSTR Block);
 
 ///The <b>ldap_ufn2dn</b> function converts a user-friendly name to a distinguished name.
 ///Params:
@@ -3230,7 +3226,7 @@ void ldap_memfree(const(char)* Block);
 ///    code. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_ufn2dnW(const(ushort)* ufn, ushort** pDn);
+uint ldap_ufn2dnW(const(PWSTR) ufn, PWSTR* pDn);
 
 ///The <b>ldap_ufn2dn</b> function converts a user-friendly name to a distinguished name.
 ///Params:
@@ -3242,7 +3238,7 @@ uint ldap_ufn2dnW(const(ushort)* ufn, ushort** pDn);
 ///    code. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_ufn2dnA(const(byte)* ufn, byte** pDn);
+uint ldap_ufn2dnA(const(PSTR) ufn, PSTR* pDn);
 
 ///The <b>ldap_ufn2dn</b> function converts a user-friendly name to a distinguished name.
 ///Params:
@@ -3254,7 +3250,7 @@ uint ldap_ufn2dnA(const(byte)* ufn, byte** pDn);
 ///    code. For more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_ufn2dn(const(byte)* ufn, byte** pDn);
+uint ldap_ufn2dn(const(PSTR) ufn, PSTR* pDn);
 
 @DllImport("WLDAP32")
 uint ldap_startup(ldap_version_info* version_, HANDLE* Instance);
@@ -3284,8 +3280,8 @@ uint ldap_cleanup(HANDLE hInstance);
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_escape_filter_elementW(const(char)* sourceFilterElement, uint sourceLength, 
-                                 const(wchar)* destFilterElement, uint destLength);
+uint ldap_escape_filter_elementW(PSTR sourceFilterElement, uint sourceLength, PWSTR destFilterElement, 
+                                 uint destLength);
 
 ///The <b>ldap_escape_filter_element</b> function converts a filter element to a null-terminated character string that
 ///can be passed safely in a search filter.
@@ -3299,8 +3295,8 @@ uint ldap_escape_filter_elementW(const(char)* sourceFilterElement, uint sourceLe
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_escape_filter_elementA(const(char)* sourceFilterElement, uint sourceLength, 
-                                 const(char)* destFilterElement, uint destLength);
+uint ldap_escape_filter_elementA(PSTR sourceFilterElement, uint sourceLength, PSTR destFilterElement, 
+                                 uint destLength);
 
 ///The <b>ldap_escape_filter_element</b> function converts a filter element to a null-terminated character string that
 ///can be passed safely in a search filter.
@@ -3314,8 +3310,8 @@ uint ldap_escape_filter_elementA(const(char)* sourceFilterElement, uint sourceLe
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_escape_filter_element(const(char)* sourceFilterElement, uint sourceLength, 
-                                const(char)* destFilterElement, uint destLength);
+uint ldap_escape_filter_element(PSTR sourceFilterElement, uint sourceLength, PSTR destFilterElement, 
+                                uint destLength);
 
 @DllImport("WLDAP32")
 uint ldap_set_dbg_flags(uint NewFlags);
@@ -3335,7 +3331,7 @@ void ldap_set_dbg_routine(DBGPRINT DebugPrintRoutine);
 ///    zero, the required size of the destination buffer is returned.
 ///    
 @DllImport("WLDAP32")
-int LdapUTF8ToUnicode(const(char)* lpSrcStr, int cchSrc, const(wchar)* lpDestStr, int cchDest);
+int LdapUTF8ToUnicode(const(PSTR) lpSrcStr, int cchSrc, PWSTR lpDestStr, int cchDest);
 
 ///The <b>LdapUnicodeToUTF8</b> function converts Unicode strings to UTF-8. Modules that do not have the UTF-8 code page
 ///can call this function.
@@ -3350,7 +3346,7 @@ int LdapUTF8ToUnicode(const(char)* lpSrcStr, int cchSrc, const(wchar)* lpDestStr
 ///    zero, the required size of the destination buffer is returned.
 ///    
 @DllImport("WLDAP32")
-int LdapUnicodeToUTF8(const(wchar)* lpSrcStr, int cchSrc, const(char)* lpDestStr, int cchDest);
+int LdapUnicodeToUTF8(const(PWSTR) lpSrcStr, int cchSrc, PSTR lpDestStr, int cchDest);
 
 ///The <b>ldap_create_sort_control</b> function is used to format a list of sort keys into a search control. Support for
 ///controls is available effective with LDAP 3, but whether the sort control is supported or not is dependent on the
@@ -3395,7 +3391,7 @@ uint ldap_create_sort_controlW(ldap* ExternalHandle, ldapsortkeyW** SortKeys, ub
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_parse_sort_controlA(ldap* ExternalHandle, ldapcontrolA** Control, uint* Result, byte** Attribute);
+uint ldap_parse_sort_controlA(ldap* ExternalHandle, ldapcontrolA** Control, uint* Result, PSTR* Attribute);
 
 ///The <b>ldap_parse_sort_control</b> function parses the sort control returned by the server.
 ///Params:
@@ -3408,7 +3404,7 @@ uint ldap_parse_sort_controlA(ldap* ExternalHandle, ldapcontrolA** Control, uint
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_parse_sort_controlW(ldap* ExternalHandle, ldapcontrolW** Control, uint* Result, ushort** Attribute);
+uint ldap_parse_sort_controlW(ldap* ExternalHandle, ldapcontrolW** Control, uint* Result, PWSTR* Attribute);
 
 ///The <b>ldap_create_sort_control</b> function is used to format a list of sort keys into a search control. Support for
 ///controls is available effective with LDAP 3, but whether the sort control is supported or not is dependent on the
@@ -3437,7 +3433,7 @@ uint ldap_create_sort_control(ldap* ExternalHandle, ldapsortkeyA** SortKeys, uby
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_parse_sort_control(ldap* ExternalHandle, ldapcontrolA** Control, uint* Result, byte** Attribute);
+uint ldap_parse_sort_control(ldap* ExternalHandle, ldapcontrolA** Control, uint* Result, PSTR* Attribute);
 
 ///The <b>ldap_encode_sort_control</b> function formats a list of sort keys into a search control. This function is
 ///obsolete. Instead, use ldap_create_sort_control.
@@ -3595,8 +3591,8 @@ uint ldap_parse_page_control(ldap* ExternalHandle, ldapcontrolA** ServerControls
 ///    ldap_search_abandon_page to free the returned structure.
 ///    
 @DllImport("WLDAP32")
-ldapsearch* ldap_search_init_pageW(ldap* ExternalHandle, const(ushort)* DistinguishedName, uint ScopeOfSearch, 
-                                   const(ushort)* SearchFilter, ushort** AttributeList, uint AttributesOnly, 
+ldapsearch* ldap_search_init_pageW(ldap* ExternalHandle, const(PWSTR) DistinguishedName, uint ScopeOfSearch, 
+                                   const(PWSTR) SearchFilter, ushort** AttributeList, uint AttributesOnly, 
                                    ldapcontrolW** ServerControls, ldapcontrolW** ClientControls, uint PageTimeLimit, 
                                    uint TotalSizeLimit, ldapsortkeyW** SortKeys);
 
@@ -3627,8 +3623,8 @@ ldapsearch* ldap_search_init_pageW(ldap* ExternalHandle, const(ushort)* Distingu
 ///    ldap_search_abandon_page to free the returned structure.
 ///    
 @DllImport("WLDAP32")
-ldapsearch* ldap_search_init_pageA(ldap* ExternalHandle, const(byte)* DistinguishedName, uint ScopeOfSearch, 
-                                   const(byte)* SearchFilter, byte** AttributeList, uint AttributesOnly, 
+ldapsearch* ldap_search_init_pageA(ldap* ExternalHandle, const(PSTR) DistinguishedName, uint ScopeOfSearch, 
+                                   const(PSTR) SearchFilter, byte** AttributeList, uint AttributesOnly, 
                                    ldapcontrolA** ServerControls, ldapcontrolA** ClientControls, uint PageTimeLimit, 
                                    uint TotalSizeLimit, ldapsortkeyA** SortKeys);
 
@@ -3659,8 +3655,8 @@ ldapsearch* ldap_search_init_pageA(ldap* ExternalHandle, const(byte)* Distinguis
 ///    ldap_search_abandon_page to free the returned structure.
 ///    
 @DllImport("WLDAP32")
-ldapsearch* ldap_search_init_page(ldap* ExternalHandle, const(byte)* DistinguishedName, uint ScopeOfSearch, 
-                                  const(byte)* SearchFilter, byte** AttributeList, uint AttributesOnly, 
+ldapsearch* ldap_search_init_page(ldap* ExternalHandle, const(PSTR) DistinguishedName, uint ScopeOfSearch, 
+                                  const(PSTR) SearchFilter, byte** AttributeList, uint AttributesOnly, 
                                   ldapcontrolA** ServerControls, ldapcontrolA** ClientControls, uint PageTimeLimit, 
                                   uint TotalSizeLimit, ldapsortkeyA** SortKeys);
 
@@ -3906,7 +3902,7 @@ uint ldap_count_references(ldap* ld, LDAPMessage* res);
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_parse_referenceW(ldap* Connection, LDAPMessage* ResultMessage, ushort*** Referrals);
+uint ldap_parse_referenceW(ldap* Connection, LDAPMessage* ResultMessage, PWSTR** Referrals);
 
 ///The <b>ldap_parse_reference</b> function returns a list of subordinate referrals in a search response message.
 ///Params:
@@ -3918,7 +3914,7 @@ uint ldap_parse_referenceW(ldap* Connection, LDAPMessage* ResultMessage, ushort*
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_parse_referenceA(ldap* Connection, LDAPMessage* ResultMessage, byte*** Referrals);
+uint ldap_parse_referenceA(ldap* Connection, LDAPMessage* ResultMessage, PSTR** Referrals);
 
 ///The <b>ldap_parse_reference</b> function returns a list of subordinate referrals in a search response message.
 ///Params:
@@ -3930,7 +3926,7 @@ uint ldap_parse_referenceA(ldap* Connection, LDAPMessage* ResultMessage, byte***
 ///    code. See Return Values for more information.
 ///    
 @DllImport("WLDAP32")
-uint ldap_parse_reference(ldap* Connection, LDAPMessage* ResultMessage, byte*** Referrals);
+uint ldap_parse_reference(ldap* Connection, LDAPMessage* ResultMessage, PSTR** Referrals);
 
 ///The <b>ldap_extended_operation</b> function enables you to pass extended LDAP operations to the server.
 ///Params:
@@ -3946,7 +3942,7 @@ uint ldap_parse_reference(ldap* Connection, LDAPMessage* ResultMessage, byte*** 
 ///    more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_extended_operationW(ldap* ld, const(ushort)* Oid, LDAP_BERVAL* Data, ldapcontrolW** ServerControls, 
+uint ldap_extended_operationW(ldap* ld, const(PWSTR) Oid, LDAP_BERVAL* Data, ldapcontrolW** ServerControls, 
                               ldapcontrolW** ClientControls, uint* MessageNumber);
 
 ///The <b>ldap_extended_operation</b> function enables you to pass extended LDAP operations to the server.
@@ -3963,7 +3959,7 @@ uint ldap_extended_operationW(ldap* ld, const(ushort)* Oid, LDAP_BERVAL* Data, l
 ///    more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_extended_operationA(ldap* ld, const(byte)* Oid, LDAP_BERVAL* Data, ldapcontrolA** ServerControls, 
+uint ldap_extended_operationA(ldap* ld, const(PSTR) Oid, LDAP_BERVAL* Data, ldapcontrolA** ServerControls, 
                               ldapcontrolA** ClientControls, uint* MessageNumber);
 
 ///The <b>ldap_extended_operation_s</b> function is used to pass extended LDAP operations to the server.
@@ -3984,9 +3980,8 @@ uint ldap_extended_operationA(ldap* ld, const(byte)* Oid, LDAP_BERVAL* Data, lda
 ///    more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_extended_operation_sA(ldap* ExternalHandle, const(char)* Oid, LDAP_BERVAL* Data, 
-                                ldapcontrolA** ServerControls, ldapcontrolA** ClientControls, byte** ReturnedOid, 
-                                LDAP_BERVAL** ReturnedData);
+uint ldap_extended_operation_sA(ldap* ExternalHandle, PSTR Oid, LDAP_BERVAL* Data, ldapcontrolA** ServerControls, 
+                                ldapcontrolA** ClientControls, PSTR* ReturnedOid, LDAP_BERVAL** ReturnedData);
 
 ///The <b>ldap_extended_operation_s</b> function is used to pass extended LDAP operations to the server.
 ///Params:
@@ -4006,9 +4001,8 @@ uint ldap_extended_operation_sA(ldap* ExternalHandle, const(char)* Oid, LDAP_BER
 ///    more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_extended_operation_sW(ldap* ExternalHandle, const(wchar)* Oid, LDAP_BERVAL* Data, 
-                                ldapcontrolW** ServerControls, ldapcontrolW** ClientControls, ushort** ReturnedOid, 
-                                LDAP_BERVAL** ReturnedData);
+uint ldap_extended_operation_sW(ldap* ExternalHandle, PWSTR Oid, LDAP_BERVAL* Data, ldapcontrolW** ServerControls, 
+                                ldapcontrolW** ClientControls, PWSTR* ReturnedOid, LDAP_BERVAL** ReturnedData);
 
 ///The <b>ldap_extended_operation</b> function enables you to pass extended LDAP operations to the server.
 ///Params:
@@ -4024,7 +4018,7 @@ uint ldap_extended_operation_sW(ldap* ExternalHandle, const(wchar)* Oid, LDAP_BE
 ///    more information, see Return Values.
 ///    
 @DllImport("WLDAP32")
-uint ldap_extended_operation(ldap* ld, const(byte)* Oid, LDAP_BERVAL* Data, ldapcontrolA** ServerControls, 
+uint ldap_extended_operation(ldap* ld, const(PSTR) Oid, LDAP_BERVAL* Data, ldapcontrolA** ServerControls, 
                              ldapcontrolA** ClientControls, uint* MessageNumber);
 
 ///The <b>ldap_close_extended_op</b> function ends a request that was made by calling ldap_extended_operation.
@@ -4198,7 +4192,7 @@ int ber_flatten(berelement* pBerElement, LDAP_BERVAL** pBerVal);
 ///    If the function succeeds, a non-negative number is returned. If the function fails, -1 is returned.
 ///    
 @DllImport("WLDAP32")
-int ber_printf(berelement* pBerElement, const(char)* fmt);
+int ber_printf(berelement* pBerElement, PSTR fmt);
 
 ///The <b>ber_scanf</b> function decodes a BER element in a similar manner as sscanf_s. One important difference is that
 ///some state status data is kept with the <b>BerElement</b> argument so that multiple calls can be made to
@@ -4212,6 +4206,6 @@ int ber_printf(berelement* pBerElement, const(char)* fmt);
 ///    On error, the function returns LBER_ERROR.
 ///    
 @DllImport("WLDAP32")
-uint ber_scanf(berelement* pBerElement, const(char)* fmt);
+uint ber_scanf(berelement* pBerElement, PSTR fmt);
 
 

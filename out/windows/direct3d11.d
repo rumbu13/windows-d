@@ -13,9 +13,9 @@ public import windows.mediafoundation : D3D11_FEATURE_VIDEO, D3D11_VIDEO_DECODER
                                         ID3D11CryptoSession, ID3D11VideoContext2,
                                         ID3D11VideoDecoder, ID3D11VideoDecoderOutputView,
                                         ID3D11VideoDevice1;
-public import windows.systemservices : BOOL, HANDLE, SECURITY_ATTRIBUTES;
+public import windows.systemservices : BOOL, HANDLE, PSTR, PWSTR, SECURITY_ATTRIBUTES;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -2447,8 +2447,8 @@ enum : int
 }
 
 ///Describes parameters that are used to create a device.
-alias D3D11_CREATE_DEVICE_FLAG = int;
-enum : int
+alias D3D11_CREATE_DEVICE_FLAG = uint;
+enum : uint
 {
     ///Use this flag if your application will only call methods of Direct3D 11 interfaces from a single thread. By
     ///default, the ID3D11Device object is thread-safe. By using this flag, you can increase performance. However, if
@@ -4391,7 +4391,7 @@ enum : int
 // Constants
 
 
-enum int D3D11_SDK_VERSION = 0x00000007;
+enum uint D3D11_SDK_VERSION = 0x00000007;
 enum int D3D_FL9_3_REQ_TEXTURE1D_U_DIMENSION = 0x00001000;
 enum int D3D_FL9_3_REQ_TEXTURE2D_U_OR_V_DIMENSION = 0x00001000;
 enum int D3D_FL9_3_REQ_TEXTURECUBE_DIMENSION = 0x00001000;
@@ -4400,9 +4400,20 @@ enum int D3D_FL9_2_IA_PRIMITIVE_MAX_COUNT = 0x000fffff;
 enum int D3D_FL9_3_SIMULTANEOUS_RENDER_TARGET_COUNT = 0x00000004;
 enum int D3D_FL9_2_MAX_TEXTURE_REPEAT = 0x00000800;
 
+enum : GUID
+{
+    WKPDID_D3DDebugObjectName  = GUID("429b8c22-9188-4b0c-8742-acb0bf85c200"),
+    WKPDID_D3DDebugObjectNameW = GUID("4cca5fd8-921f-42c8-8566-70caf2a9b741"),
+}
+
+enum : GUID
+{
+    D3D_TEXTURE_LAYOUT_ROW_MAJOR             = GUID("b5dc234f-72bb-4bec-9705-8cf258df6b6c"),
+    D3D_TEXTURE_LAYOUT_64KB_STANDARD_SWIZZLE = GUID("4c0f29e3-3f5f-4d35-84c9-bc0983b62c28"),
+}
+
 enum : int
 {
-    D3D_COMPONENT_MASK_X = 0x00000001,
     D3D_COMPONENT_MASK_Y = 0x00000002,
     D3D_COMPONENT_MASK_Z = 0x00000004,
     D3D_COMPONENT_MASK_W = 0x00000008,
@@ -4412,13 +4423,13 @@ enum : int
 
 alias PFN_DESTRUCTION_CALLBACK = void function(void* pData);
 alias PFN_D3D11_CREATE_DEVICE = HRESULT function(IDXGIAdapter param0, D3D_DRIVER_TYPE param1, ptrdiff_t param2, 
-                                                 uint param3, char* param4, uint FeatureLevels, uint param6, 
-                                                 ID3D11Device* param7, D3D_FEATURE_LEVEL* param8, 
+                                                 uint param3, const(D3D_FEATURE_LEVEL)* param4, uint FeatureLevels, 
+                                                 uint param6, ID3D11Device* param7, D3D_FEATURE_LEVEL* param8, 
                                                  ID3D11DeviceContext* param9);
 alias PFN_D3D11_CREATE_DEVICE_AND_SWAP_CHAIN = HRESULT function(IDXGIAdapter param0, D3D_DRIVER_TYPE param1, 
-                                                                ptrdiff_t param2, uint param3, char* param4, 
-                                                                uint FeatureLevels, uint param6, 
-                                                                const(DXGI_SWAP_CHAIN_DESC)* param7, 
+                                                                ptrdiff_t param2, uint param3, 
+                                                                const(D3D_FEATURE_LEVEL)* param4, uint FeatureLevels, 
+                                                                uint param6, const(DXGI_SWAP_CHAIN_DESC)* param7, 
                                                                 IDXGISwapChain* param8, ID3D11Device* param9, 
                                                                 D3D_FEATURE_LEVEL* param10, 
                                                                 ID3D11DeviceContext* param11);
@@ -4430,62 +4441,62 @@ alias PFN_D3D11_CREATE_DEVICE_AND_SWAP_CHAIN = HRESULT function(IDXGIAdapter par
 struct D3D_SHADER_MACRO
 {
     ///The macro name.
-    const(char)* Name;
+    const(PSTR) Name;
     ///The macro definition.
-    const(char)* Definition;
+    const(PSTR) Definition;
 }
 
 ///A description of a single element for the input-assembler stage.
 struct D3D11_INPUT_ELEMENT_DESC
 {
     ///Type: <b>LPCSTR</b> The HLSL semantic associated with this element in a shader input-signature.
-    const(char)* SemanticName;
+    const(PSTR) SemanticName;
     ///Type: <b>UINT</b> The semantic index for the element. A semantic index modifies a semantic, with an integer index
     ///number. A semantic index is only needed in a case where there is more than one element with the same semantic.
     ///For example, a 4x4 matrix would have four components each with the semantic name ``` matrix ``` , however each of
     ///the four component would have different semantic indices (0, 1, 2, and 3).
-    uint         SemanticIndex;
+    uint        SemanticIndex;
     ///Type: <b>DXGI_FORMAT</b> The data type of the element data. See DXGI_FORMAT.
-    DXGI_FORMAT  Format;
+    DXGI_FORMAT Format;
     ///Type: <b>UINT</b> An integer value that identifies the input-assembler (see input slot). Valid values are between
     ///0 and 15, defined in D3D11.h.
-    uint         InputSlot;
+    uint        InputSlot;
     ///Type: <b>UINT</b> Optional. Offset (in bytes) from the start of the vertex. Use D3D11_APPEND_ALIGNED_ELEMENT for
     ///convenience to define the current element directly after the previous one, including any packing if necessary.
-    uint         AlignedByteOffset;
+    uint        AlignedByteOffset;
     ///Type: <b>D3D11_INPUT_CLASSIFICATION</b> Identifies the input data class for a single input slot (see
     ///D3D11_INPUT_CLASSIFICATION).
     D3D11_INPUT_CLASSIFICATION InputSlotClass;
     ///Type: <b>UINT</b> The number of instances to draw using the same per-instance data before advancing in the buffer
     ///by one element. This value must be 0 for an element that contains per-vertex data (the slot class is set to
     ///D3D11_INPUT_PER_VERTEX_DATA).
-    uint         InstanceDataStepRate;
+    uint        InstanceDataStepRate;
 }
 
 ///Description of a vertex element in a vertex buffer in an output slot.
 struct D3D11_SO_DECLARATION_ENTRY
 {
     ///Type: <b>UINT</b> Zero-based, stream number.
-    uint         Stream;
+    uint        Stream;
     ///Type: <b>LPCSTR</b> Type of output element; possible values include: <b>"POSITION"</b>, <b>"NORMAL"</b>, or
     ///<b>"TEXCOORD0"</b>. Note that if <i>SemanticName</i> is <b>NULL</b> then <i>ComponentCount</i> can be greater
     ///than 4 and the described entry will be a gap in the stream out where no data will be written.
-    const(char)* SemanticName;
+    const(PSTR) SemanticName;
     ///Type: <b>UINT</b> Output element's zero-based index. Should be used if, for example, you have more than one
     ///texture coordinate stored in each vertex.
-    uint         SemanticIndex;
+    uint        SemanticIndex;
     ///Type: <b>BYTE</b> Which component of the entry to begin writing out to. Valid values are 0 to 3. For example, if
     ///you only wish to output to the y and z components of a position, then StartComponent should be 1 and
     ///ComponentCount should be 2.
-    ubyte        StartComponent;
+    ubyte       StartComponent;
     ///Type: <b>BYTE</b> The number of components of the entry to write out to. Valid values are 1 to 4. For example, if
     ///you only wish to output to the y and z components of a position, then StartComponent should be 1 and
     ///ComponentCount should be 2. Note that if <i>SemanticName</i> is <b>NULL</b> then <i>ComponentCount</i> can be
     ///greater than 4 and the described entry will be a gap in the stream out where no data will be written.
-    ubyte        ComponentCount;
+    ubyte       ComponentCount;
     ///Type: <b>BYTE</b> The associated stream output buffer that is bound to the pipeline (see
     ///ID3D11DeviceContext::SOSetTargets). The valid range for <i>OutputSlot</i> is 0 to 3.
-    ubyte        OutputSlot;
+    ubyte       OutputSlot;
 }
 
 ///Defines the dimensions of a viewport.
@@ -4844,12 +4855,12 @@ struct D3D11_TEXTURE3D_DESC
 ///Specifies the elements in a buffer resource to use in a shader-resource view.
 struct D3D11_BUFFER_SRV
 {
-    union
+union
     {
         uint FirstElement;
         uint ElementOffset;
     }
-    union
+union
     {
         uint NumElements;
         uint ElementWidth;
@@ -4989,7 +5000,7 @@ struct D3D11_SHADER_RESOURCE_VIEW_DESC
     ///*ViewDimension* to the same resource type as that of the underlying resource. This parameter also determines
     ///which _SRV to use in the union below.
     D3D_SRV_DIMENSION ViewDimension;
-    union
+union
     {
         D3D11_BUFFER_SRV   Buffer;
         D3D11_TEX1D_SRV    Texture1D;
@@ -5008,12 +5019,12 @@ struct D3D11_SHADER_RESOURCE_VIEW_DESC
 ///Specifies the elements in a buffer resource to use in a render-target view.
 struct D3D11_BUFFER_RTV
 {
-    union
+union
     {
         uint FirstElement;
         uint ElementOffset;
     }
-    union
+union
     {
         uint NumElements;
         uint ElementWidth;
@@ -5093,7 +5104,7 @@ struct D3D11_RENDER_TARGET_VIEW_DESC
     ///Type: <b>D3D11_RTV_DIMENSION</b> The resource type (see D3D11_RTV_DIMENSION), which specifies how the
     ///render-target resource will be accessed.
     D3D11_RTV_DIMENSION ViewDimension;
-    union
+union
     {
         D3D11_BUFFER_RTV  Buffer;
         D3D11_TEX1D_RTV   Texture1D;
@@ -5169,7 +5180,7 @@ struct D3D11_DEPTH_STENCIL_VIEW_DESC
     ///Type: <b>UINT</b> A value that describes whether the texture is read only. Pass 0 to specify that it is not read
     ///only; otherwise, pass one of the members of the D3D11_DSV_FLAG enumerated type.
     uint                Flags;
-    union
+union
     {
         D3D11_TEX1D_DSV   Texture1D;
         D3D11_TEX1D_ARRAY_DSV Texture1DArray;
@@ -5247,7 +5258,7 @@ struct D3D11_UNORDERED_ACCESS_VIEW_DESC
     ///Type: <b>D3D11_UAV_DIMENSION</b> The resource type (see D3D11_UAV_DIMENSION), which specifies how the resource
     ///will be accessed.
     D3D11_UAV_DIMENSION ViewDimension;
-    union
+union
     {
         D3D11_BUFFER_UAV Buffer;
         D3D11_TEX1D_UAV  Texture1D;
@@ -5746,7 +5757,7 @@ struct CD3D11_VIDEO_DEFAULT
 ///Specifies the protection level for video content.
 union D3D11_AUTHENTICATED_PROTECTION_FLAGS
 {
-    struct Flags
+struct Flags
     {
         uint _bitfield12;
     }
@@ -5764,7 +5775,7 @@ struct D3D11_MESSAGE
     ///Type: <b>D3D11_MESSAGE_ID</b> The ID of the message. See D3D11_MESSAGE_ID.
     D3D11_MESSAGE_ID ID;
     ///Type: <b>const char*</b> The message string.
-    const(byte)*     pDescription;
+    const(ubyte)*    pDescription;
     ///Type: <b>SIZE_T</b> The length of pDescription in bytes.
     size_t           DescriptionByteLength;
 }
@@ -6194,7 +6205,7 @@ struct D3D11_SHADER_RESOURCE_VIEW_DESC1
     ///A D3D11_SRV_DIMENSION-typed value that specifies the resource type of the view. This type is the same as the
     ///resource type of the underlying resource. This member also determines which _SRV to use in the union below.
     D3D_SRV_DIMENSION ViewDimension;
-    union
+union
     {
         D3D11_BUFFER_SRV   Buffer;
         D3D11_TEX1D_SRV    Texture1D;
@@ -6240,7 +6251,7 @@ struct D3D11_RENDER_TARGET_VIEW_DESC1
     ///A D3D11_RTV_DIMENSION-typed value that specifies the resource type and how the render-target resource will be
     ///accessed.
     D3D11_RTV_DIMENSION ViewDimension;
-    union
+union
     {
         D3D11_BUFFER_RTV  Buffer;
         D3D11_TEX1D_RTV   Texture1D;
@@ -6283,7 +6294,7 @@ struct D3D11_UNORDERED_ACCESS_VIEW_DESC1
     ///A D3D11_UAV_DIMENSION-typed value that specifies the resource type of the view. This type is the same as the
     ///resource type of the underlying resource. This member also determines which _UAV to use in the union below.
     D3D11_UAV_DIMENSION ViewDimension;
-    union
+union
     {
         D3D11_BUFFER_UAV Buffer;
         D3D11_TEX1D_UAV  Texture1D;
@@ -6354,7 +6365,7 @@ struct D3D11_SIGNATURE_PARAMETER_DESC
 {
     ///Type: <b>LPCSTR</b> A per-parameter string that identifies how the data will be used. For more info, see
     ///Semantics.
-    const(char)*      SemanticName;
+    const(PSTR)       SemanticName;
     ///Type: <b>UINT</b> Semantic index that modifies the semantic. Used to differentiate different parameters that use
     ///the same semantic.
     uint              SemanticIndex;
@@ -6382,7 +6393,7 @@ struct D3D11_SIGNATURE_PARAMETER_DESC
 struct D3D11_SHADER_BUFFER_DESC
 {
     ///Type: <b>LPCSTR</b> The name of the buffer.
-    const(char)*     Name;
+    const(PSTR)      Name;
     ///Type: <b>D3D_CBUFFER_TYPE</b> A D3D_CBUFFER_TYPE-typed value that indicates the intended use of the constant
     ///data.
     D3D_CBUFFER_TYPE Type;
@@ -6399,24 +6410,24 @@ struct D3D11_SHADER_BUFFER_DESC
 struct D3D11_SHADER_VARIABLE_DESC
 {
     ///Type: <b>LPCSTR</b> The variable name.
-    const(char)* Name;
+    const(PSTR) Name;
     ///Type: <b>UINT</b> Offset from the start of the parent structure to the beginning of the variable.
-    uint         StartOffset;
+    uint        StartOffset;
     ///Type: <b>UINT</b> Size of the variable (in bytes).
-    uint         Size;
+    uint        Size;
     ///Type: <b>UINT</b> A combination of D3D_SHADER_VARIABLE_FLAGS-typed values that are combined by using a bitwise OR
     ///operation. The resulting value identifies shader-variable properties.
-    uint         uFlags;
+    uint        uFlags;
     ///Type: <b>LPVOID</b> The default value for initializing the variable.
-    void*        DefaultValue;
+    void*       DefaultValue;
     ///Type: <b>UINT</b> Offset from the start of the variable to the beginning of the texture.
-    uint         StartTexture;
+    uint        StartTexture;
     ///Type: <b>UINT</b> The size of the texture, in bytes.
-    uint         TextureSize;
+    uint        TextureSize;
     ///Type: <b>UINT</b> Offset from the start of the variable to the beginning of the sampler.
-    uint         StartSampler;
+    uint        StartSampler;
     ///Type: <b>UINT</b> The size of the sampler, in bytes.
-    uint         SamplerSize;
+    uint        SamplerSize;
 }
 
 ///Describes a shader-variable type.
@@ -6428,20 +6439,20 @@ struct D3D11_SHADER_TYPE_DESC
     ///Type: <b>D3D_SHADER_VARIABLE_TYPE</b> A D3D_SHADER_VARIABLE_TYPE-typed value that identifies the variable type.
     D3D_SHADER_VARIABLE_TYPE Type;
     ///Type: <b>UINT</b> Number of rows in a matrix. Otherwise a numeric type returns 1, any other type returns 0.
-    uint         Rows;
+    uint        Rows;
     ///Type: <b>UINT</b> Number of columns in a matrix. Otherwise a numeric type returns 1, any other type returns 0.
-    uint         Columns;
+    uint        Columns;
     ///Type: <b>UINT</b> Number of elements in an array; otherwise 0.
-    uint         Elements;
+    uint        Elements;
     ///Type: <b>UINT</b> Number of members in the structure; otherwise 0.
-    uint         Members;
+    uint        Members;
     ///Type: <b>UINT</b> Offset, in bytes, between the start of the parent structure and this variable. Can be 0 if not
     ///a structure member.
-    uint         Offset;
+    uint        Offset;
     ///Type: <b>LPCSTR</b> Name of the shader-variable type. This member can be <b>NULL</b> if it isn't used. This
     ///member supports dynamic shader linkage interface types, which have names. For more info about dynamic shader
     ///linkage, see Dynamic Linking.
-    const(char)* Name;
+    const(PSTR) Name;
 }
 
 ///Describes a shader.
@@ -6450,7 +6461,7 @@ struct D3D11_SHADER_DESC
     ///Type: <b>UINT</b> Shader version.
     uint          Version;
     ///Type: <b>LPCSTR</b> The name of the originator of the shader.
-    const(char)*  Creator;
+    const(PSTR)   Creator;
     ///Type: <b>UINT</b> Shader compilation/parse flags.
     uint          Flags;
     ///Type: <b>UINT</b> The number of shader-constant buffers.
@@ -6534,7 +6545,7 @@ struct D3D11_SHADER_DESC
 struct D3D11_SHADER_INPUT_BIND_DESC
 {
     ///Type: <b>LPCSTR</b> Name of the shader resource.
-    const(char)*      Name;
+    const(PSTR)       Name;
     ///Type: <b>D3D_SHADER_INPUT_TYPE</b> A D3D_SHADER_INPUT_TYPE-typed value that identifies the type of data in the
     ///resource.
     D3D_SHADER_INPUT_TYPE Type;
@@ -6559,12 +6570,12 @@ struct D3D11_SHADER_INPUT_BIND_DESC
 struct D3D11_LIBRARY_DESC
 {
     ///Type: <b>LPCSTR</b> The name of the originator of the library.
-    const(char)* Creator;
+    const(PSTR) Creator;
     ///Type: <b>UINT</b> A combination of D3DCOMPILE Constants that are combined by using a bitwise OR operation. The
     ///resulting value specifies how the compiler compiles.
-    uint         Flags;
+    uint        Flags;
     ///Type: <b>UINT</b> The number of functions exported from the library.
-    uint         FunctionCount;
+    uint        FunctionCount;
 }
 
 ///Describes a function.
@@ -6573,7 +6584,7 @@ struct D3D11_FUNCTION_DESC
     ///Type: <b>UINT</b> The shader version.
     uint              Version;
     ///Type: <b>LPCSTR</b> The name of the originator of the function.
-    const(char)*      Creator;
+    const(PSTR)       Creator;
     ///Type: <b>UINT</b> A combination of D3DCOMPILE Constants that are combined by using a bitwise OR operation. The
     ///resulting value specifies shader compilation and parsing.
     uint              Flags;
@@ -6631,7 +6642,7 @@ struct D3D11_FUNCTION_DESC
     ///values, see ID3D11ShaderReflection::GetRequiresFlags.
     ulong             RequiredFeatureFlags;
     ///Type: <b>LPCSTR</b> The name of the function.
-    const(char)*      Name;
+    const(PSTR)       Name;
     ///Type: <b>INT</b> The number of logical parameters in the function signature, not including the return value.
     int               FunctionParameterCount;
     ///Type: <b>BOOL</b> Indicates whether the function returns a value. <b>TRUE</b> indicates it returns a value;
@@ -6649,10 +6660,10 @@ struct D3D11_FUNCTION_DESC
 struct D3D11_PARAMETER_DESC
 {
     ///Type: <b>LPCSTR</b> The name of the function parameter.
-    const(char)*        Name;
+    const(PSTR)         Name;
     ///Type: <b>LPCSTR</b> The HLSL semantic that is associated with this function parameter. This name includes the
     ///index, for example, SV_Target[n].
-    const(char)*        SemanticName;
+    const(PSTR)         SemanticName;
     ///Type: <b>D3D_SHADER_VARIABLE_TYPE</b> A D3D_SHADER_VARIABLE_TYPE-typed value that identifies the variable type
     ///for the parameter.
     D3D_SHADER_VARIABLE_TYPE Type;
@@ -6748,7 +6759,7 @@ struct D3D11_SHADER_TRACE_DESC
     ///<td>D3D11_SHADER_TRACE_FLAG_RECORD_REGISTER_READS (0x2)</td> <td>The shader trace object records
     ///register-reads.</td> </tr> </table>
     uint              Flags;
-    union
+union
     {
         D3D11_VERTEX_SHADER_TRACE_DESC VertexShaderTraceDesc;
         D3D11_HULL_SHADER_TRACE_DESC HullShaderTraceDesc;
@@ -6860,7 +6871,7 @@ struct D3D11_TRACE_REGISTER
 {
     ///A D3D11_TRACE_REGISTER_TYPE-typed value that identifies the type of register that the shader-trace object uses.
     D3D11_TRACE_REGISTER_TYPE RegType;
-    union
+union
     {
         ushort    Index1D;
         ushort[2] Index2D;
@@ -6989,8 +7000,9 @@ struct D3DX11_FFT_BUFFER_INFO
 ///    computer. Install the latest Windows SDK to get the correct version.
 ///    
 @DllImport("d3d11")
-HRESULT D3D11CreateDevice(IDXGIAdapter pAdapter, D3D_DRIVER_TYPE DriverType, ptrdiff_t Software, uint Flags, 
-                          char* pFeatureLevels, uint FeatureLevels, uint SDKVersion, ID3D11Device* ppDevice, 
+HRESULT D3D11CreateDevice(IDXGIAdapter pAdapter, D3D_DRIVER_TYPE DriverType, ptrdiff_t Software, 
+                          D3D11_CREATE_DEVICE_FLAG Flags, const(D3D_FEATURE_LEVEL)* pFeatureLevels, 
+                          uint FeatureLevels, uint SDKVersion, ID3D11Device* ppDevice, 
                           D3D_FEATURE_LEVEL* pFeatureLevel, ID3D11DeviceContext* ppImmediateContext);
 
 ///Creates a device that represents the display adapter and a swap chain used for rendering.
@@ -7038,7 +7050,8 @@ HRESULT D3D11CreateDevice(IDXGIAdapter pAdapter, D3D_DRIVER_TYPE DriverType, ptr
 ///    
 @DllImport("d3d11")
 HRESULT D3D11CreateDeviceAndSwapChain(IDXGIAdapter pAdapter, D3D_DRIVER_TYPE DriverType, ptrdiff_t Software, 
-                                      uint Flags, char* pFeatureLevels, uint FeatureLevels, uint SDKVersion, 
+                                      D3D11_CREATE_DEVICE_FLAG Flags, const(D3D_FEATURE_LEVEL)* pFeatureLevels, 
+                                      uint FeatureLevels, uint SDKVersion, 
                                       const(DXGI_SWAP_CHAIN_DESC)* pSwapChainDesc, IDXGISwapChain* ppSwapChain, 
                                       ID3D11Device* ppDevice, D3D_FEATURE_LEVEL* pFeatureLevel, 
                                       ID3D11DeviceContext* ppImmediateContext);
@@ -7071,7 +7084,7 @@ HRESULT D3D11CreateDeviceAndSwapChain(IDXGIAdapter pAdapter, D3D_DRIVER_TYPE Dri
 ///    Type: <b>HRESULT</b> This method returns an HRESULT error code.
 ///    
 @DllImport("D3DCOMPILER_47")
-HRESULT D3DDisassemble11Trace(char* pSrcData, size_t SrcDataSize, ID3D11ShaderTrace pTrace, uint StartStep, 
+HRESULT D3DDisassemble11Trace(const(void)* pSrcData, size_t SrcDataSize, ID3D11ShaderTrace pTrace, uint StartStep, 
                               uint NumSteps, uint Flags, ID3DBlob* ppDisassembly);
 
 ///Creates a scan context.
@@ -7306,7 +7319,7 @@ interface ID3DInclude
     ///    fails one of the <b>D3D10CompileShader***</b> functions. </li> <li>The effect fails one of the
     ///    <b>D3D10CreateEffect***</b> functions. </li> </ul>
     ///    
-    HRESULT Open(D3D_INCLUDE_TYPE IncludeType, const(char)* pFileName, void* pParentData, void** ppData, 
+    HRESULT Open(D3D_INCLUDE_TYPE IncludeType, const(PSTR) pFileName, const(void)* pParentData, void** ppData, 
                  uint* pBytes);
     ///A user-implemented method for closing a shader #include file.
     ///Params:
@@ -7319,7 +7332,7 @@ interface ID3DInclude
     ///    language (HLSL) shader fails one of the <b>D3D10CompileShader***</b> functions. </li> <li>The effect fails
     ///    one of the <b>D3D10CreateEffect***</b> functions. </li> </ul>
     ///    
-    HRESULT Close(void* pData);
+    HRESULT Close(const(void)* pData);
 }
 
 ///A device-child interface accesses data used by a device.
@@ -7341,7 +7354,7 @@ interface ID3D11DeviceChild : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the Direct3D 11 Return Codes.
     ///    
-    HRESULT GetPrivateData(const(GUID)* guid, uint* pDataSize, char* pData);
+    HRESULT GetPrivateData(const(GUID)* guid, uint* pDataSize, void* pData);
     ///Set application-defined data to a device child and associate that data with an application-defined guid.
     ///Params:
     ///    guid = Type: <b>REFGUID</b> Guid associated with the data.
@@ -7351,7 +7364,7 @@ interface ID3D11DeviceChild : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the following Direct3D 11 Return Codes.
     ///    
-    HRESULT SetPrivateData(const(GUID)* guid, uint DataSize, char* pData);
+    HRESULT SetPrivateData(const(GUID)* guid, uint DataSize, const(void)* pData);
     ///Associate an IUnknown-derived interface with this device child and associate that interface with an
     ///application-defined guid.
     ///Params:
@@ -7631,12 +7644,12 @@ interface ID3D11ClassInstance : ID3D11DeviceChild
     ///Params:
     ///    pInstanceName = Type: <b>LPSTR</b> The instance name of the current HLSL class.
     ///    pBufferLength = Type: <b>SIZE_T*</b> The length of the <i>pInstanceName</i> parameter.
-    void GetInstanceName(const(char)* pInstanceName, size_t* pBufferLength);
+    void GetInstanceName(PSTR pInstanceName, size_t* pBufferLength);
     ///Gets the type of the current HLSL class.
     ///Params:
     ///    pTypeName = Type: <b>LPSTR</b> Type of the current HLSL class.
     ///    pBufferLength = Type: <b>SIZE_T*</b> The length of the <i>pTypeName</i> parameter.
-    void GetTypeName(const(char)* pTypeName, size_t* pBufferLength);
+    void GetTypeName(PSTR pTypeName, size_t* pBufferLength);
 }
 
 ///This interface encapsulates an HLSL dynamic linkage.
@@ -7652,7 +7665,7 @@ interface ID3D11ClassLinkage : ID3D11DeviceChild
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns S_OK if successful; otherwise, returns one of the Direct3D 11 Return Codes.
     ///    
-    HRESULT GetClassInstance(const(char)* pClassInstanceName, uint InstanceIndex, ID3D11ClassInstance* ppInstance);
+    HRESULT GetClassInstance(const(PSTR) pClassInstanceName, uint InstanceIndex, ID3D11ClassInstance* ppInstance);
     ///Initializes a class-instance object that represents an HLSL class instance.
     ///Params:
     ///    pClassTypeName = Type: <b>LPCSTR</b> The type name of a class to initialize.
@@ -7669,7 +7682,7 @@ interface ID3D11ClassLinkage : ID3D11DeviceChild
     ///    Type: <b>HRESULT</b> Returns S_OK if successful; otherwise, returns one of the following Direct3D 11 Return
     ///    Codes.
     ///    
-    HRESULT CreateClassInstance(const(char)* pClassTypeName, uint ConstantBufferOffset, uint ConstantVectorOffset, 
+    HRESULT CreateClassInstance(const(PSTR) pClassTypeName, uint ConstantBufferOffset, uint ConstantVectorOffset, 
                                 uint TextureOffset, uint SamplerOffset, ID3D11ClassInstance* ppInstance);
 }
 
@@ -7698,7 +7711,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///    NumBuffers = Type: <b>UINT</b> Number of buffers to set (ranges from 0 to
     ///                 <b>D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT</b> - <i>StartSlot</i>).
     ///    ppConstantBuffers = Type: <b>ID3D11Buffer*</b> Array of constant buffers (see ID3D11Buffer) being given to the device.
-    void    VSSetConstantBuffers(uint StartSlot, uint NumBuffers, char* ppConstantBuffers);
+    void    VSSetConstantBuffers(uint StartSlot, uint NumBuffers, ID3D11Buffer* ppConstantBuffers);
     ///Bind an array of shader resources to the pixel shader stage.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin setting shader resources to (ranges from
@@ -7706,7 +7719,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///    NumViews = Type: <b>UINT</b> Number of shader resources to set. Up to a maximum of 128 slots are available for shader
     ///               resources (ranges from 0 to D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot).
     ///    ppShaderResourceViews = Type: <b>ID3D11ShaderResourceView*</b> Array of shader resource view interfaces to set to the device.
-    void    PSSetShaderResources(uint StartSlot, uint NumViews, char* ppShaderResourceViews);
+    void    PSSetShaderResources(uint StartSlot, uint NumViews, ID3D11ShaderResourceView* ppShaderResourceViews);
     ///Sets a pixel shader to the device.
     ///Params:
     ///    pPixelShader = Type: <b>ID3D11PixelShader*</b> Pointer to a pixel shader (see ID3D11PixelShader). Passing in <b>NULL</b>
@@ -7715,7 +7728,8 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///                       ID3D11ClassInstance). Each interface used by a shader must have a corresponding class instance or the shader
     ///                       will get disabled. Set ppClassInstances to <b>NULL</b> if the shader does not use any interfaces.
     ///    NumClassInstances = Type: <b>UINT</b> The number of class-instance interfaces in the array.
-    void    PSSetShader(ID3D11PixelShader pPixelShader, char* ppClassInstances, uint NumClassInstances);
+    void    PSSetShader(ID3D11PixelShader pPixelShader, ID3D11ClassInstance* ppClassInstances, 
+                        uint NumClassInstances);
     ///Set an array of sampler states to the pixel shader pipeline stage.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin setting samplers to (ranges from 0 to
@@ -7724,7 +7738,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///                  available (ranges from 0 to D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT - StartSlot).
     ///    ppSamplers = Type: <b>ID3D11SamplerState*</b> Pointer to an array of sampler-state interfaces (see ID3D11SamplerState).
     ///                 See Remarks.
-    void    PSSetSamplers(uint StartSlot, uint NumSamplers, char* ppSamplers);
+    void    PSSetSamplers(uint StartSlot, uint NumSamplers, ID3D11SamplerState* ppSamplers);
     ///Set a vertex shader to the device.
     ///Params:
     ///    pVertexShader = Type: <b>ID3D11VertexShader*</b> Pointer to a vertex shader (see ID3D11VertexShader). Passing in <b>NULL</b>
@@ -7733,7 +7747,8 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///                       ID3D11ClassInstance). Each interface used by a shader must have a corresponding class instance or the shader
     ///                       will get disabled. Set ppClassInstances to <b>NULL</b> if the shader does not use any interfaces.
     ///    NumClassInstances = Type: <b>UINT</b> The number of class-instance interfaces in the array.
-    void    VSSetShader(ID3D11VertexShader pVertexShader, char* ppClassInstances, uint NumClassInstances);
+    void    VSSetShader(ID3D11VertexShader pVertexShader, ID3D11ClassInstance* ppClassInstances, 
+                        uint NumClassInstances);
     ///Draw indexed, non-instanced primitives.
     ///Params:
     ///    IndexCount = Type: <b>UINT</b> Number of indices to draw.
@@ -7775,7 +7790,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///    NumBuffers = Type: <b>UINT</b> Number of buffers to set (ranges from 0 to
     ///                 <b>D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT</b> - <i>StartSlot</i>).
     ///    ppConstantBuffers = Type: <b>ID3D11Buffer*</b> Array of constant buffers (see ID3D11Buffer) being given to the device.
-    void    PSSetConstantBuffers(uint StartSlot, uint NumBuffers, char* ppConstantBuffers);
+    void    PSSetConstantBuffers(uint StartSlot, uint NumBuffers, ID3D11Buffer* ppConstantBuffers);
     ///Bind an input-layout object to the input-assembler stage.
     ///Params:
     ///    pInputLayout = Type: <b>ID3D11InputLayout*</b> A pointer to the input-layout object (see ID3D11InputLayout), which describes
@@ -7798,8 +7813,8 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///    pOffsets = Type: <b>const UINT*</b> Pointer to an array of offset values; one offset value for each buffer in the
     ///               vertex-buffer array. Each offset is the number of bytes between the first element of a vertex buffer and the
     ///               first element that will be used.
-    void    IASetVertexBuffers(uint StartSlot, uint NumBuffers, char* ppVertexBuffers, char* pStrides, 
-                               char* pOffsets);
+    void    IASetVertexBuffers(uint StartSlot, uint NumBuffers, ID3D11Buffer* ppVertexBuffers, 
+                               const(uint)* pStrides, const(uint)* pOffsets);
     ///Bind an index buffer to the input-assembler stage.
     ///Params:
     ///    pIndexBuffer = Type: <b>ID3D11Buffer*</b> A pointer to an ID3D11Buffer object, that contains indices. The index buffer must
@@ -7833,7 +7848,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///    NumBuffers = Type: <b>UINT</b> Number of buffers to set (ranges from 0 to
     ///                 <b>D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT</b> - <i>StartSlot</i>).
     ///    ppConstantBuffers = Type: <b>ID3D11Buffer*</b> Array of constant buffers (see ID3D11Buffer) being given to the device.
-    void    GSSetConstantBuffers(uint StartSlot, uint NumBuffers, char* ppConstantBuffers);
+    void    GSSetConstantBuffers(uint StartSlot, uint NumBuffers, ID3D11Buffer* ppConstantBuffers);
     ///Set a geometry shader to the device.
     ///Params:
     ///    pShader = Type: <b>ID3D11GeometryShader*</b> Pointer to a geometry shader (see ID3D11GeometryShader). Passing in
@@ -7842,7 +7857,8 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///                       ID3D11ClassInstance). Each interface used by a shader must have a corresponding class instance or the shader
     ///                       will get disabled. Set ppClassInstances to <b>NULL</b> if the shader does not use any interfaces.
     ///    NumClassInstances = Type: <b>UINT</b> The number of class-instance interfaces in the array.
-    void    GSSetShader(ID3D11GeometryShader pShader, char* ppClassInstances, uint NumClassInstances);
+    void    GSSetShader(ID3D11GeometryShader pShader, ID3D11ClassInstance* ppClassInstances, 
+                        uint NumClassInstances);
     ///Bind information about the primitive type, and data order that describes input data for the input assembler
     ///stage.
     ///Params:
@@ -7856,7 +7872,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///    NumViews = Type: <b>UINT</b> Number of shader resources to set. Up to a maximum of 128 slots are available for shader
     ///               resources (range is from 0 to D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot).
     ///    ppShaderResourceViews = Type: <b>ID3D11ShaderResourceView*</b> Array of shader resource view interfaces to set to the device.
-    void    VSSetShaderResources(uint StartSlot, uint NumViews, char* ppShaderResourceViews);
+    void    VSSetShaderResources(uint StartSlot, uint NumViews, ID3D11ShaderResourceView* ppShaderResourceViews);
     ///Set an array of sampler states to the vertex shader pipeline stage.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin setting samplers to (ranges from 0 to
@@ -7865,7 +7881,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///                  available (ranges from 0 to D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT - StartSlot).
     ///    ppSamplers = Type: <b>ID3D11SamplerState*</b> Pointer to an array of sampler-state interfaces (see ID3D11SamplerState).
     ///                 See Remarks.
-    void    VSSetSamplers(uint StartSlot, uint NumSamplers, char* ppSamplers);
+    void    VSSetSamplers(uint StartSlot, uint NumSamplers, ID3D11SamplerState* ppSamplers);
     ///Mark the beginning of a series of commands.
     ///Params:
     ///    pAsync = Type: <b>ID3D11Asynchronous*</b> A pointer to an ID3D11Asynchronous interface.
@@ -7889,7 +7905,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///    S_FALSE indicates that the data is not yet available. If the data is not yet available, the application must
     ///    call <b>GetData</b> until the data is available.
     ///    
-    HRESULT GetData(ID3D11Asynchronous pAsync, char* pData, uint DataSize, uint GetDataFlags);
+    HRESULT GetData(ID3D11Asynchronous pAsync, void* pData, uint DataSize, uint GetDataFlags);
     ///Set a rendering predicate.
     ///Params:
     ///    pPredicate = Type: <b>ID3D11Predicate*</b> A pointer to the ID3D11Predicate interface that represents the rendering
@@ -7905,7 +7921,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///    NumViews = Type: <b>UINT</b> Number of shader resources to set. Up to a maximum of 128 slots are available for shader
     ///               resources(ranges from 0 to D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot).
     ///    ppShaderResourceViews = Type: <b>ID3D11ShaderResourceView*</b> Array of shader resource view interfaces to set to the device.
-    void    GSSetShaderResources(uint StartSlot, uint NumViews, char* ppShaderResourceViews);
+    void    GSSetShaderResources(uint StartSlot, uint NumViews, ID3D11ShaderResourceView* ppShaderResourceViews);
     ///Set an array of sampler states to the geometry shader pipeline stage.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin setting samplers to (ranges from 0 to
@@ -7914,7 +7930,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///                  available (ranges from 0 to D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT - StartSlot).
     ///    ppSamplers = Type: <b>ID3D11SamplerState*</b> Pointer to an array of sampler-state interfaces (see ID3D11SamplerState).
     ///                 See Remarks.
-    void    GSSetSamplers(uint StartSlot, uint NumSamplers, char* ppSamplers);
+    void    GSSetSamplers(uint StartSlot, uint NumSamplers, ID3D11SamplerState* ppSamplers);
     ///Bind one or more render targets atomically and the depth-stencil buffer to the output-merger stage.
     ///Params:
     ///    NumViews = Type: <b>UINT</b> Number of render targets to bind (ranges between 0 and
@@ -7925,7 +7941,8 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///                          are bound.
     ///    pDepthStencilView = Type: <b>ID3D11DepthStencilView*</b> Pointer to a ID3D11DepthStencilView that represents the depth-stencil
     ///                        view to bind to the device. If this parameter is <b>NULL</b>, the depth-stencil view is not bound.
-    void    OMSetRenderTargets(uint NumViews, char* ppRenderTargetViews, ID3D11DepthStencilView pDepthStencilView);
+    void    OMSetRenderTargets(uint NumViews, ID3D11RenderTargetView* ppRenderTargetViews, 
+                               ID3D11DepthStencilView pDepthStencilView);
     ///Binds resources to the output-merger stage.
     ///Params:
     ///    NumRTVs = Type: <b>UINT</b> Number of render targets to bind (ranges between 0 and
@@ -7954,10 +7971,11 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///                        <i>pUAVInitialCounts</i> is relevant only for UAVs that were created with either D3D11_BUFFER_UAV_FLAG_APPEND
     ///                        or <b>D3D11_BUFFER_UAV_FLAG_COUNTER</b> specified when the UAV was created; otherwise, the argument is
     ///                        ignored.
-    void    OMSetRenderTargetsAndUnorderedAccessViews(uint NumRTVs, char* ppRenderTargetViews, 
+    void    OMSetRenderTargetsAndUnorderedAccessViews(uint NumRTVs, ID3D11RenderTargetView* ppRenderTargetViews, 
                                                       ID3D11DepthStencilView pDepthStencilView, uint UAVStartSlot, 
-                                                      uint NumUAVs, char* ppUnorderedAccessViews, 
-                                                      char* pUAVInitialCounts);
+                                                      uint NumUAVs, 
+                                                      ID3D11UnorderedAccessView* ppUnorderedAccessViews, 
+                                                      const(uint)* pUAVInitialCounts);
     ///Set the blend state of the output-merger stage.
     ///Params:
     ///    pBlendState = Type: <b>ID3D11BlendState*</b> Pointer to a blend-state interface (see ID3D11BlendState). Pass <b>NULL</b>
@@ -7986,7 +8004,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///                  must have been created with the D3D11_BIND_STREAM_OUTPUT flag.
     ///    pOffsets = Type: <b>const UINT*</b> Array of offsets to the output buffers from <i>ppSOTargets</i>, one offset for each
     ///               buffer. The offset values must be in bytes.
-    void    SOSetTargets(uint NumBuffers, char* ppSOTargets, char* pOffsets);
+    void    SOSetTargets(uint NumBuffers, ID3D11Buffer* ppSOTargets, const(uint)* pOffsets);
     ///Draw geometry of an unknown size.
     void    DrawAuto();
     ///Draw indexed, instanced, GPU-generated primitives.
@@ -8028,12 +8046,12 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///    pViewports = Type: <b>const D3D11_VIEWPORT*</b> An array of D3D11_VIEWPORT structures to bind to the device. See the
     ///                 structure page for details about how the viewport size is dependent on the device feature level which has
     ///                 changed between Direct3D 11 and Direct3D 10.
-    void    RSSetViewports(uint NumViewports, char* pViewports);
+    void    RSSetViewports(uint NumViewports, const(D3D11_VIEWPORT)* pViewports);
     ///Bind an array of scissor rectangles to the rasterizer stage.
     ///Params:
     ///    NumRects = Type: <b>UINT</b> Number of scissor rectangles to bind.
     ///    pRects = Type: <b>const D3D11_RECT*</b> An array of scissor rectangles (see D3D11_RECT).
-    void    RSSetScissorRects(uint NumRects, char* pRects);
+    void    RSSetScissorRects(uint NumRects, const(RECT)* pRects);
     ///Copy a region from a source resource to a destination resource.
     ///Params:
     ///    pDstResource = Type: <b>ID3D11Resource*</b> A pointer to the destination resource (see ID3D11Resource).
@@ -8162,7 +8180,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///    NumViews = Type: <b>UINT</b> Number of shader resources to set. Up to a maximum of 128 slots are available for shader
     ///               resources(ranges from 0 to D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot).
     ///    ppShaderResourceViews = Type: <b>ID3D11ShaderResourceView*</b> Array of shader resource view interfaces to set to the device.
-    void    HSSetShaderResources(uint StartSlot, uint NumViews, char* ppShaderResourceViews);
+    void    HSSetShaderResources(uint StartSlot, uint NumViews, ID3D11ShaderResourceView* ppShaderResourceViews);
     ///Set a hull shader to the device.
     ///Params:
     ///    pHullShader = Type: <b>ID3D11HullShader*</b> Pointer to a hull shader (see ID3D11HullShader). Passing in <b>NULL</b>
@@ -8171,7 +8189,8 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///                       ID3D11ClassInstance). Each interface used by a shader must have a corresponding class instance or the shader
     ///                       will get disabled. Set ppClassInstances to <b>NULL</b> if the shader does not use any interfaces.
     ///    NumClassInstances = Type: <b>UINT</b> The number of class-instance interfaces in the array.
-    void    HSSetShader(ID3D11HullShader pHullShader, char* ppClassInstances, uint NumClassInstances);
+    void    HSSetShader(ID3D11HullShader pHullShader, ID3D11ClassInstance* ppClassInstances, 
+                        uint NumClassInstances);
     ///Set an array of sampler states to the hull-shader stage.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the zero-based array to begin setting samplers to (ranges from 0 to
@@ -8180,7 +8199,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///                  available (ranges from 0 to D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT - StartSlot).
     ///    ppSamplers = Type: <b>ID3D11SamplerState*</b> Pointer to an array of sampler-state interfaces (see ID3D11SamplerState).
     ///                 See Remarks.
-    void    HSSetSamplers(uint StartSlot, uint NumSamplers, char* ppSamplers);
+    void    HSSetSamplers(uint StartSlot, uint NumSamplers, ID3D11SamplerState* ppSamplers);
     ///Set the constant buffers used by the hull-shader stage.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin setting constant buffers to (ranges from
@@ -8188,7 +8207,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///    NumBuffers = Type: <b>UINT</b> Number of buffers to set (ranges from 0 to
     ///                 <b>D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT</b> - <i>StartSlot</i>).
     ///    ppConstantBuffers = Type: <b>ID3D11Buffer*</b> Array of constant buffers (see ID3D11Buffer) being given to the device.
-    void    HSSetConstantBuffers(uint StartSlot, uint NumBuffers, char* ppConstantBuffers);
+    void    HSSetConstantBuffers(uint StartSlot, uint NumBuffers, ID3D11Buffer* ppConstantBuffers);
     ///Bind an array of shader resources to the domain-shader stage.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin setting shader resources to (ranges from
@@ -8196,7 +8215,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///    NumViews = Type: <b>UINT</b> Number of shader resources to set. Up to a maximum of 128 slots are available for shader
     ///               resources(ranges from 0 to D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot).
     ///    ppShaderResourceViews = Type: <b>ID3D11ShaderResourceView*</b> Array of shader resource view interfaces to set to the device.
-    void    DSSetShaderResources(uint StartSlot, uint NumViews, char* ppShaderResourceViews);
+    void    DSSetShaderResources(uint StartSlot, uint NumViews, ID3D11ShaderResourceView* ppShaderResourceViews);
     ///Set a domain shader to the device.
     ///Params:
     ///    pDomainShader = Type: <b>ID3D11DomainShader*</b> Pointer to a domain shader (see ID3D11DomainShader). Passing in <b>NULL</b>
@@ -8205,7 +8224,8 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///                       ID3D11ClassInstance). Each interface used by a shader must have a corresponding class instance or the shader
     ///                       will get disabled. Set ppClassInstances to <b>NULL</b> if the shader does not use any interfaces.
     ///    NumClassInstances = Type: <b>UINT</b> The number of class-instance interfaces in the array.
-    void    DSSetShader(ID3D11DomainShader pDomainShader, char* ppClassInstances, uint NumClassInstances);
+    void    DSSetShader(ID3D11DomainShader pDomainShader, ID3D11ClassInstance* ppClassInstances, 
+                        uint NumClassInstances);
     ///Set an array of sampler states to the domain-shader stage.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin setting samplers to (ranges from 0 to
@@ -8214,7 +8234,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///                  available (ranges from 0 to D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT - StartSlot).
     ///    ppSamplers = Type: <b>ID3D11SamplerState*</b> Pointer to an array of sampler-state interfaces (see ID3D11SamplerState).
     ///                 See Remarks.
-    void    DSSetSamplers(uint StartSlot, uint NumSamplers, char* ppSamplers);
+    void    DSSetSamplers(uint StartSlot, uint NumSamplers, ID3D11SamplerState* ppSamplers);
     ///Sets the constant buffers used by the domain-shader stage.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the zero-based array to begin setting constant buffers to (ranges from 0 to
@@ -8222,7 +8242,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///    NumBuffers = Type: <b>UINT</b> Number of buffers to set (ranges from 0 to
     ///                 <b>D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT</b> - <i>StartSlot</i>).
     ///    ppConstantBuffers = Type: <b>ID3D11Buffer*</b> Array of constant buffers (see ID3D11Buffer) being given to the device.
-    void    DSSetConstantBuffers(uint StartSlot, uint NumBuffers, char* ppConstantBuffers);
+    void    DSSetConstantBuffers(uint StartSlot, uint NumBuffers, ID3D11Buffer* ppConstantBuffers);
     ///Bind an array of shader resources to the compute-shader stage.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin setting shader resources to (ranges from
@@ -8230,7 +8250,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///    NumViews = Type: <b>UINT</b> Number of shader resources to set. Up to a maximum of 128 slots are available for shader
     ///               resources(ranges from 0 to D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot).
     ///    ppShaderResourceViews = Type: <b>ID3D11ShaderResourceView*</b> Array of shader resource view interfaces to set to the device.
-    void    CSSetShaderResources(uint StartSlot, uint NumViews, char* ppShaderResourceViews);
+    void    CSSetShaderResources(uint StartSlot, uint NumViews, ID3D11ShaderResourceView* ppShaderResourceViews);
     ///Sets an array of views for an unordered resource.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index of the first element in the zero-based array to begin setting (ranges from 0 to
@@ -8243,8 +8263,9 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///                        <i>pUAVInitialCounts</i> is only relevant for UAVs that were created with either D3D11_BUFFER_UAV_FLAG_APPEND
     ///                        or <b>D3D11_BUFFER_UAV_FLAG_COUNTER</b> specified when the UAV was created; otherwise, the argument is
     ///                        ignored.
-    void    CSSetUnorderedAccessViews(uint StartSlot, uint NumUAVs, char* ppUnorderedAccessViews, 
-                                      char* pUAVInitialCounts);
+    void    CSSetUnorderedAccessViews(uint StartSlot, uint NumUAVs, 
+                                      ID3D11UnorderedAccessView* ppUnorderedAccessViews, 
+                                      const(uint)* pUAVInitialCounts);
     ///Set a compute shader to the device.
     ///Params:
     ///    pComputeShader = Type: <b>ID3D11ComputeShader*</b> Pointer to a compute shader (see ID3D11ComputeShader). Passing in
@@ -8253,7 +8274,8 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///                       ID3D11ClassInstance). Each interface used by a shader must have a corresponding class instance or the shader
     ///                       will get disabled. Set ppClassInstances to <b>NULL</b> if the shader does not use any interfaces.
     ///    NumClassInstances = Type: <b>UINT</b> The number of class-instance interfaces in the array.
-    void    CSSetShader(ID3D11ComputeShader pComputeShader, char* ppClassInstances, uint NumClassInstances);
+    void    CSSetShader(ID3D11ComputeShader pComputeShader, ID3D11ClassInstance* ppClassInstances, 
+                        uint NumClassInstances);
     ///Set an array of sampler states to the compute-shader stage.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin setting samplers to (ranges from 0 to
@@ -8262,7 +8284,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///                  available (ranges from 0 to D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT - StartSlot).
     ///    ppSamplers = Type: <b>ID3D11SamplerState*</b> Pointer to an array of sampler-state interfaces (see ID3D11SamplerState).
     ///                 See Remarks.
-    void    CSSetSamplers(uint StartSlot, uint NumSamplers, char* ppSamplers);
+    void    CSSetSamplers(uint StartSlot, uint NumSamplers, ID3D11SamplerState* ppSamplers);
     ///Sets the constant buffers used by the compute-shader stage.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the zero-based array to begin setting constant buffers to (ranges from 0 to
@@ -8270,7 +8292,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///    NumBuffers = Type: <b>UINT</b> Number of buffers to set (ranges from 0 to
     ///                 <b>D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT</b> - <i>StartSlot</i>).
     ///    ppConstantBuffers = Type: <b>ID3D11Buffer*</b> Array of constant buffers (see ID3D11Buffer) being given to the device.
-    void    CSSetConstantBuffers(uint StartSlot, uint NumBuffers, char* ppConstantBuffers);
+    void    CSSetConstantBuffers(uint StartSlot, uint NumBuffers, ID3D11Buffer* ppConstantBuffers);
     ///Get the constant buffers used by the vertex shader pipeline stage.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin retrieving constant buffers from (ranges
@@ -8279,7 +8301,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///                 D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT - StartSlot).
     ///    ppConstantBuffers = Type: <b>ID3D11Buffer**</b> Array of constant buffer interface pointers (see ID3D11Buffer) to be returned by
     ///                        the method.
-    void    VSGetConstantBuffers(uint StartSlot, uint NumBuffers, char* ppConstantBuffers);
+    void    VSGetConstantBuffers(uint StartSlot, uint NumBuffers, ID3D11Buffer* ppConstantBuffers);
     ///Get the pixel shader resources.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin getting shader resources from (ranges
@@ -8288,7 +8310,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///               for shader resources (ranges from 0 to D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot).
     ///    ppShaderResourceViews = Type: <b>ID3D11ShaderResourceView**</b> Array of shader resource view interfaces to be returned by the
     ///                            device.
-    void    PSGetShaderResources(uint StartSlot, uint NumViews, char* ppShaderResourceViews);
+    void    PSGetShaderResources(uint StartSlot, uint NumViews, ID3D11ShaderResourceView* ppShaderResourceViews);
     ///Get the pixel shader currently set on the device.
     ///Params:
     ///    ppPixelShader = Type: <b>ID3D11PixelShader**</b> Address of a pointer to a pixel shader (see ID3D11PixelShader) to be
@@ -8296,7 +8318,8 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///    ppClassInstances = Type: <b>ID3D11ClassInstance**</b> Pointer to an array of class instance interfaces (see
     ///                       ID3D11ClassInstance).
     ///    pNumClassInstances = Type: <b>UINT*</b> The number of class-instance elements in the array.
-    void    PSGetShader(ID3D11PixelShader* ppPixelShader, char* ppClassInstances, uint* pNumClassInstances);
+    void    PSGetShader(ID3D11PixelShader* ppPixelShader, ID3D11ClassInstance* ppClassInstances, 
+                        uint* pNumClassInstances);
     ///Get an array of sampler states from the pixel shader pipeline stage.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into a zero-based array to begin getting samplers from (ranges from 0 to
@@ -8305,7 +8328,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///                  sampler slots available (ranges from 0 to D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT - StartSlot).
     ///    ppSamplers = Type: <b>ID3D11SamplerState**</b> Arry of sampler-state interface pointers (see ID3D11SamplerState) to be
     ///                 returned by the device.
-    void    PSGetSamplers(uint StartSlot, uint NumSamplers, char* ppSamplers);
+    void    PSGetSamplers(uint StartSlot, uint NumSamplers, ID3D11SamplerState* ppSamplers);
     ///Get the vertex shader currently set on the device.
     ///Params:
     ///    ppVertexShader = Type: <b>ID3D11VertexShader**</b> Address of a pointer to a vertex shader (see ID3D11VertexShader) to be
@@ -8313,7 +8336,8 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///    ppClassInstances = Type: <b>ID3D11ClassInstance**</b> Pointer to an array of class instance interfaces (see
     ///                       ID3D11ClassInstance).
     ///    pNumClassInstances = Type: <b>UINT*</b> The number of class-instance elements in the array.
-    void    VSGetShader(ID3D11VertexShader* ppVertexShader, char* ppClassInstances, uint* pNumClassInstances);
+    void    VSGetShader(ID3D11VertexShader* ppVertexShader, ID3D11ClassInstance* ppClassInstances, 
+                        uint* pNumClassInstances);
     ///Get the constant buffers used by the pixel shader pipeline stage.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin retrieving constant buffers from (ranges
@@ -8322,7 +8346,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///                 D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT - StartSlot).
     ///    ppConstantBuffers = Type: <b>ID3D11Buffer**</b> Array of constant buffer interface pointers (see ID3D11Buffer) to be returned by
     ///                        the method.
-    void    PSGetConstantBuffers(uint StartSlot, uint NumBuffers, char* ppConstantBuffers);
+    void    PSGetConstantBuffers(uint StartSlot, uint NumBuffers, ID3D11Buffer* ppConstantBuffers);
     ///Get a pointer to the input-layout object that is bound to the input-assembler stage.
     ///Params:
     ///    ppInputLayout = Type: <b>ID3D11InputLayout**</b> A pointer to the input-layout object (see ID3D11InputLayout), which
@@ -8345,8 +8369,8 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///    pOffsets = Type: <b>UINT*</b> Pointer to an array of offset values returned by the method; one offset value for each
     ///               buffer in the vertex-buffer array. Each offset is the number of bytes between the first element of a vertex
     ///               buffer and the first element that will be used.
-    void    IAGetVertexBuffers(uint StartSlot, uint NumBuffers, char* ppVertexBuffers, char* pStrides, 
-                               char* pOffsets);
+    void    IAGetVertexBuffers(uint StartSlot, uint NumBuffers, ID3D11Buffer* ppVertexBuffers, uint* pStrides, 
+                               uint* pOffsets);
     ///Get a pointer to the index buffer that is bound to the input-assembler stage.
     ///Params:
     ///    pIndexBuffer = Type: <b>ID3D11Buffer**</b> A pointer to an index buffer returned by the method (see ID3D11Buffer).
@@ -8363,7 +8387,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///                 D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT - StartSlot).
     ///    ppConstantBuffers = Type: <b>ID3D11Buffer**</b> Array of constant buffer interface pointers (see ID3D11Buffer) to be returned by
     ///                        the method.
-    void    GSGetConstantBuffers(uint StartSlot, uint NumBuffers, char* ppConstantBuffers);
+    void    GSGetConstantBuffers(uint StartSlot, uint NumBuffers, ID3D11Buffer* ppConstantBuffers);
     ///Get the geometry shader currently set on the device.
     ///Params:
     ///    ppGeometryShader = Type: <b>ID3D11GeometryShader**</b> Address of a pointer to a geometry shader (see ID3D11GeometryShader) to
@@ -8371,7 +8395,8 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///    ppClassInstances = Type: <b>ID3D11ClassInstance**</b> Pointer to an array of class instance interfaces (see
     ///                       ID3D11ClassInstance).
     ///    pNumClassInstances = Type: <b>UINT*</b> The number of class-instance elements in the array.
-    void    GSGetShader(ID3D11GeometryShader* ppGeometryShader, char* ppClassInstances, uint* pNumClassInstances);
+    void    GSGetShader(ID3D11GeometryShader* ppGeometryShader, ID3D11ClassInstance* ppClassInstances, 
+                        uint* pNumClassInstances);
     ///Get information about the primitive type, and data order that describes input data for the input assembler stage.
     ///Params:
     ///    pTopology = Type: <b>D3D11_PRIMITIVE_TOPOLOGY*</b> A pointer to the type of primitive, and ordering of the primitive data
@@ -8385,7 +8410,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///               for shader resources (ranges from 0 to D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot).
     ///    ppShaderResourceViews = Type: <b>ID3D11ShaderResourceView**</b> Array of shader resource view interfaces to be returned by the
     ///                            device.
-    void    VSGetShaderResources(uint StartSlot, uint NumViews, char* ppShaderResourceViews);
+    void    VSGetShaderResources(uint StartSlot, uint NumViews, ID3D11ShaderResourceView* ppShaderResourceViews);
     ///Get an array of sampler states from the vertex shader pipeline stage.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into a zero-based array to begin getting samplers from (ranges from 0 to
@@ -8394,14 +8419,14 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///                  sampler slots available (ranges from 0 to D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT - StartSlot).
     ///    ppSamplers = Type: <b>ID3D11SamplerState**</b> Arry of sampler-state interface pointers (see ID3D11SamplerState) to be
     ///                 returned by the device.
-    void    VSGetSamplers(uint StartSlot, uint NumSamplers, char* ppSamplers);
+    void    VSGetSamplers(uint StartSlot, uint NumSamplers, ID3D11SamplerState* ppSamplers);
     ///Get the rendering predicate state.
     ///Params:
     ///    ppPredicate = Type: <b>ID3D11Predicate**</b> Address of a pointer to a predicate (see ID3D11Predicate). Value stored here
     ///                  will be <b>NULL</b> upon device creation.
     ///    pPredicateValue = Type: <b>BOOL*</b> Address of a boolean to fill with the predicate comparison value. <b>FALSE</b> upon device
     ///                      creation.
-    void    GetPredication(ID3D11Predicate* ppPredicate, int* pPredicateValue);
+    void    GetPredication(ID3D11Predicate* ppPredicate, BOOL* pPredicateValue);
     ///Get the geometry shader resources.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin getting shader resources from (ranges
@@ -8410,7 +8435,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///               for shader resources (ranges from 0 to D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot).
     ///    ppShaderResourceViews = Type: <b>ID3D11ShaderResourceView**</b> Array of shader resource view interfaces to be returned by the
     ///                            device.
-    void    GSGetShaderResources(uint StartSlot, uint NumViews, char* ppShaderResourceViews);
+    void    GSGetShaderResources(uint StartSlot, uint NumViews, ID3D11ShaderResourceView* ppShaderResourceViews);
     ///Get an array of sampler state interfaces from the geometry shader pipeline stage.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into a zero-based array to begin getting samplers from (ranges from 0 to
@@ -8418,7 +8443,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///    NumSamplers = Type: <b>UINT</b> Number of samplers to get from a device context. Each pipeline stage has a total of 16
     ///                  sampler slots available (ranges from 0 to D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT - StartSlot).
     ///    ppSamplers = Type: <b>ID3D11SamplerState**</b> Pointer to an array of sampler-state interfaces (see ID3D11SamplerState).
-    void    GSGetSamplers(uint StartSlot, uint NumSamplers, char* ppSamplers);
+    void    GSGetSamplers(uint StartSlot, uint NumSamplers, ID3D11SamplerState* ppSamplers);
     ///Get pointers to the resources bound to the output-merger stage.
     ///Params:
     ///    NumViews = Type: <b>UINT</b> Number of render targets to retrieve.
@@ -8426,7 +8451,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///                          target views. Specify <b>NULL</b> for this parameter when retrieval of a render target is not needed.
     ///    ppDepthStencilView = Type: <b>ID3D11DepthStencilView**</b> Pointer to a ID3D11DepthStencilView, which represents a depth-stencil
     ///                         view. Specify <b>NULL</b> for this parameter when retrieval of the depth-stencil view is not needed.
-    void    OMGetRenderTargets(uint NumViews, char* ppRenderTargetViews, 
+    void    OMGetRenderTargets(uint NumViews, ID3D11RenderTargetView* ppRenderTargetViews, 
                                ID3D11DepthStencilView* ppDepthStencilView);
     ///Get pointers to the resources bound to the output-merger stage.
     ///Params:
@@ -8444,9 +8469,10 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///    ppUnorderedAccessViews = Type: <b>ID3D11UnorderedAccessView**</b> Pointer to an array of ID3D11UnorderedAccessViews, which represent
     ///                             unordered-access views that are retrieved. Specify <b>NULL</b> for this parameter when retrieval of
     ///                             unordered-access views is not required.
-    void    OMGetRenderTargetsAndUnorderedAccessViews(uint NumRTVs, char* ppRenderTargetViews, 
+    void    OMGetRenderTargetsAndUnorderedAccessViews(uint NumRTVs, ID3D11RenderTargetView* ppRenderTargetViews, 
                                                       ID3D11DepthStencilView* ppDepthStencilView, uint UAVStartSlot, 
-                                                      uint NumUAVs, char* ppUnorderedAccessViews);
+                                                      uint NumUAVs, 
+                                                      ID3D11UnorderedAccessView* ppUnorderedAccessViews);
     ///Get the blend state of the output-merger stage.
     ///Params:
     ///    ppBlendState = Type: <b>ID3D11BlendState**</b> Address of a pointer to a blend-state interface (see ID3D11BlendState).
@@ -8463,7 +8489,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///Params:
     ///    NumBuffers = Type: <b>UINT</b> Number of buffers to get.
     ///    ppSOTargets = Type: <b>ID3D11Buffer**</b> An array of output buffers (see ID3D11Buffer) to be retrieved from the device.
-    void    SOGetTargets(uint NumBuffers, char* ppSOTargets);
+    void    SOGetTargets(uint NumBuffers, ID3D11Buffer* ppSOTargets);
     ///Get the rasterizer state from the rasterizer stage of the pipeline.
     ///Params:
     ///    ppRasterizerState = Type: <b>ID3D11RasterizerState**</b> Address of a pointer to a rasterizer-state interface (see
@@ -8486,7 +8512,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///                 greater than the actual number of viewports currently bound, unused elements of the array contain 0. For info
     ///                 about how the viewport size depends on the device feature level, which has changed between Direct3D 11 and
     ///                 Direct3D 10, see <b>D3D11_VIEWPORT</b>.
-    void    RSGetViewports(uint* pNumViewports, char* pViewports);
+    void    RSGetViewports(uint* pNumViewports, D3D11_VIEWPORT* pViewports);
     ///Get the array of scissor rectangles bound to the rasterizer stage.
     ///Params:
     ///    pNumRects = Type: <b>UINT*</b> The number of scissor rectangles (ranges between 0 and
@@ -8494,7 +8520,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///                <i>pNumRects</i> to see how many rectangles would be returned.
     ///    pRects = Type: <b>D3D11_RECT*</b> An array of scissor rectangles (see D3D11_RECT). If NumRects is greater than the
     ///             number of scissor rects currently bound, then unused members of the array will contain 0.
-    void    RSGetScissorRects(uint* pNumRects, char* pRects);
+    void    RSGetScissorRects(uint* pNumRects, RECT* pRects);
     ///Get the hull-shader resources.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin getting shader resources from (ranges
@@ -8503,7 +8529,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///               for shader resources (ranges from 0 to D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot).
     ///    ppShaderResourceViews = Type: <b>ID3D11ShaderResourceView**</b> Array of shader resource view interfaces to be returned by the
     ///                            device.
-    void    HSGetShaderResources(uint StartSlot, uint NumViews, char* ppShaderResourceViews);
+    void    HSGetShaderResources(uint StartSlot, uint NumViews, ID3D11ShaderResourceView* ppShaderResourceViews);
     ///Get the hull shader currently set on the device.
     ///Params:
     ///    ppHullShader = Type: <b>ID3D11HullShader**</b> Address of a pointer to a hull shader (see ID3D11HullShader) to be returned
@@ -8511,7 +8537,8 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///    ppClassInstances = Type: <b>ID3D11ClassInstance**</b> Pointer to an array of class instance interfaces (see
     ///                       ID3D11ClassInstance).
     ///    pNumClassInstances = Type: <b>UINT*</b> The number of class-instance elements in the array.
-    void    HSGetShader(ID3D11HullShader* ppHullShader, char* ppClassInstances, uint* pNumClassInstances);
+    void    HSGetShader(ID3D11HullShader* ppHullShader, ID3D11ClassInstance* ppClassInstances, 
+                        uint* pNumClassInstances);
     ///Get an array of sampler state interfaces from the hull-shader stage.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into a zero-based array to begin getting samplers from (ranges from 0 to
@@ -8519,7 +8546,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///    NumSamplers = Type: <b>UINT</b> Number of samplers to get from a device context. Each pipeline stage has a total of 16
     ///                  sampler slots available (ranges from 0 to D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT - StartSlot).
     ///    ppSamplers = Type: <b>ID3D11SamplerState**</b> Pointer to an array of sampler-state interfaces (see ID3D11SamplerState).
-    void    HSGetSamplers(uint StartSlot, uint NumSamplers, char* ppSamplers);
+    void    HSGetSamplers(uint StartSlot, uint NumSamplers, ID3D11SamplerState* ppSamplers);
     ///Get the constant buffers used by the hull-shader stage.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin retrieving constant buffers from (ranges
@@ -8528,7 +8555,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///                 D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT - StartSlot).
     ///    ppConstantBuffers = Type: <b>ID3D11Buffer**</b> Array of constant buffer interface pointers (see ID3D11Buffer) to be returned by
     ///                        the method.
-    void    HSGetConstantBuffers(uint StartSlot, uint NumBuffers, char* ppConstantBuffers);
+    void    HSGetConstantBuffers(uint StartSlot, uint NumBuffers, ID3D11Buffer* ppConstantBuffers);
     ///Get the domain-shader resources.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin getting shader resources from (ranges
@@ -8537,7 +8564,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///               for shader resources (ranges from 0 to D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot).
     ///    ppShaderResourceViews = Type: <b>ID3D11ShaderResourceView**</b> Array of shader resource view interfaces to be returned by the
     ///                            device.
-    void    DSGetShaderResources(uint StartSlot, uint NumViews, char* ppShaderResourceViews);
+    void    DSGetShaderResources(uint StartSlot, uint NumViews, ID3D11ShaderResourceView* ppShaderResourceViews);
     ///Get the domain shader currently set on the device.
     ///Params:
     ///    ppDomainShader = Type: <b>ID3D11DomainShader**</b> Address of a pointer to a domain shader (see ID3D11DomainShader) to be
@@ -8545,7 +8572,8 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///    ppClassInstances = Type: <b>ID3D11ClassInstance**</b> Pointer to an array of class instance interfaces (see
     ///                       ID3D11ClassInstance).
     ///    pNumClassInstances = Type: <b>UINT*</b> The number of class-instance elements in the array.
-    void    DSGetShader(ID3D11DomainShader* ppDomainShader, char* ppClassInstances, uint* pNumClassInstances);
+    void    DSGetShader(ID3D11DomainShader* ppDomainShader, ID3D11ClassInstance* ppClassInstances, 
+                        uint* pNumClassInstances);
     ///Get an array of sampler state interfaces from the domain-shader stage.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into a zero-based array to begin getting samplers from (ranges from 0 to
@@ -8553,7 +8581,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///    NumSamplers = Type: <b>UINT</b> Number of samplers to get from a device context. Each pipeline stage has a total of 16
     ///                  sampler slots available (ranges from 0 to D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT - StartSlot).
     ///    ppSamplers = Type: <b>ID3D11SamplerState**</b> Pointer to an array of sampler-state interfaces (see ID3D11SamplerState).
-    void    DSGetSamplers(uint StartSlot, uint NumSamplers, char* ppSamplers);
+    void    DSGetSamplers(uint StartSlot, uint NumSamplers, ID3D11SamplerState* ppSamplers);
     ///Get the constant buffers used by the domain-shader stage.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin retrieving constant buffers from (ranges
@@ -8562,7 +8590,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///                 D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT - StartSlot).
     ///    ppConstantBuffers = Type: <b>ID3D11Buffer**</b> Array of constant buffer interface pointers (see ID3D11Buffer) to be returned by
     ///                        the method.
-    void    DSGetConstantBuffers(uint StartSlot, uint NumBuffers, char* ppConstantBuffers);
+    void    DSGetConstantBuffers(uint StartSlot, uint NumBuffers, ID3D11Buffer* ppConstantBuffers);
     ///Get the compute-shader resources.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin getting shader resources from (ranges
@@ -8571,7 +8599,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///               for shader resources (ranges from 0 to D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot).
     ///    ppShaderResourceViews = Type: <b>ID3D11ShaderResourceView**</b> Array of shader resource view interfaces to be returned by the
     ///                            device.
-    void    CSGetShaderResources(uint StartSlot, uint NumViews, char* ppShaderResourceViews);
+    void    CSGetShaderResources(uint StartSlot, uint NumViews, ID3D11ShaderResourceView* ppShaderResourceViews);
     ///Gets an array of views for an unordered resource.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index of the first element in the zero-based array to return (ranges from 0 to
@@ -8579,7 +8607,8 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///    NumUAVs = Type: <b>UINT</b> Number of views to get (ranges from 0 to D3D11_1_UAV_SLOT_COUNT - StartSlot).
     ///    ppUnorderedAccessViews = Type: <b>ID3D11UnorderedAccessView**</b> A pointer to an array of interface pointers (see
     ///                             ID3D11UnorderedAccessView) to get.
-    void    CSGetUnorderedAccessViews(uint StartSlot, uint NumUAVs, char* ppUnorderedAccessViews);
+    void    CSGetUnorderedAccessViews(uint StartSlot, uint NumUAVs, 
+                                      ID3D11UnorderedAccessView* ppUnorderedAccessViews);
     ///Get the compute shader currently set on the device.
     ///Params:
     ///    ppComputeShader = Type: <b>ID3D11ComputeShader**</b> Address of a pointer to a Compute shader (see ID3D11ComputeShader) to be
@@ -8587,7 +8616,8 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///    ppClassInstances = Type: <b>ID3D11ClassInstance**</b> Pointer to an array of class instance interfaces (see
     ///                       ID3D11ClassInstance).
     ///    pNumClassInstances = Type: <b>UINT*</b> The number of class-instance elements in the array.
-    void    CSGetShader(ID3D11ComputeShader* ppComputeShader, char* ppClassInstances, uint* pNumClassInstances);
+    void    CSGetShader(ID3D11ComputeShader* ppComputeShader, ID3D11ClassInstance* ppClassInstances, 
+                        uint* pNumClassInstances);
     ///Get an array of sampler state interfaces from the compute-shader stage.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into a zero-based array to begin getting samplers from (ranges from 0 to
@@ -8595,7 +8625,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///    NumSamplers = Type: <b>UINT</b> Number of samplers to get from a device context. Each pipeline stage has a total of 16
     ///                  sampler slots available (ranges from 0 to D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT - StartSlot).
     ///    ppSamplers = Type: <b>ID3D11SamplerState**</b> Pointer to an array of sampler-state interfaces (see ID3D11SamplerState).
-    void    CSGetSamplers(uint StartSlot, uint NumSamplers, char* ppSamplers);
+    void    CSGetSamplers(uint StartSlot, uint NumSamplers, ID3D11SamplerState* ppSamplers);
     ///Get the constant buffers used by the compute-shader stage.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin retrieving constant buffers from (ranges
@@ -8604,7 +8634,7 @@ interface ID3D11DeviceContext : ID3D11DeviceChild
     ///                 D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT - StartSlot).
     ///    ppConstantBuffers = Type: <b>ID3D11Buffer**</b> Array of constant buffer interface pointers (see ID3D11Buffer) to be returned by
     ///                        the method.
-    void    CSGetConstantBuffers(uint StartSlot, uint NumBuffers, char* ppConstantBuffers);
+    void    CSGetConstantBuffers(uint StartSlot, uint NumBuffers, ID3D11Buffer* ppConstantBuffers);
     ///Restore all default settings.
     void    ClearState();
     ///Sends queued-up commands in the command buffer to the graphics processing unit (GPU).
@@ -8688,7 +8718,8 @@ interface ID3D11Device : IUnknown
     ///    Type: <b>HRESULT</b> If the method succeeds, the return code is S_OK. See Direct3D 11 Return Codes for
     ///    failing error codes.
     ///    
-    HRESULT CreateTexture1D(const(D3D11_TEXTURE1D_DESC)* pDesc, char* pInitialData, ID3D11Texture1D* ppTexture1D);
+    HRESULT CreateTexture1D(const(D3D11_TEXTURE1D_DESC)* pDesc, const(D3D11_SUBRESOURCE_DATA)* pInitialData, 
+                            ID3D11Texture1D* ppTexture1D);
     ///Create an array of 2D textures.
     ///Params:
     ///    pDesc = Type: <b>const D3D11_TEXTURE2D_DESC*</b> A pointer to a D3D11_TEXTURE2D_DESC structure that describes a 2D
@@ -8711,7 +8742,8 @@ interface ID3D11Device : IUnknown
     ///    Type: <b>HRESULT</b> If the method succeeds, the return code is S_OK. See Direct3D 11 Return Codes for
     ///    failing error codes.
     ///    
-    HRESULT CreateTexture2D(const(D3D11_TEXTURE2D_DESC)* pDesc, char* pInitialData, ID3D11Texture2D* ppTexture2D);
+    HRESULT CreateTexture2D(const(D3D11_TEXTURE2D_DESC)* pDesc, const(D3D11_SUBRESOURCE_DATA)* pInitialData, 
+                            ID3D11Texture2D* ppTexture2D);
     ///Create a single 3D texture.
     ///Params:
     ///    pDesc = Type: <b>const D3D11_TEXTURE3D_DESC*</b> A pointer to a D3D11_TEXTURE3D_DESC structure that describes a 3D
@@ -8734,7 +8766,8 @@ interface ID3D11Device : IUnknown
     ///    Type: <b>HRESULT</b> If the method succeeds, the return code is S_OK. See Direct3D 11 Return Codes for
     ///    failing error codes.
     ///    
-    HRESULT CreateTexture3D(const(D3D11_TEXTURE3D_DESC)* pDesc, char* pInitialData, ID3D11Texture3D* ppTexture3D);
+    HRESULT CreateTexture3D(const(D3D11_TEXTURE3D_DESC)* pDesc, const(D3D11_SUBRESOURCE_DATA)* pInitialData, 
+                            ID3D11Texture3D* ppTexture3D);
     ///Create a shader-resource view for accessing data in a resource.
     ///Params:
     ///    pResource = Type: <b>ID3D11Resource*</b> Pointer to the resource that will serve as input to a shader. This resource must
@@ -8811,8 +8844,9 @@ interface ID3D11Device : IUnknown
     ///    Type: <b>HRESULT</b> If the method succeeds, the return code is S_OK. See Direct3D 11 Return Codes for
     ///    failing error codes.
     ///    
-    HRESULT CreateInputLayout(char* pInputElementDescs, uint NumElements, char* pShaderBytecodeWithInputSignature, 
-                              size_t BytecodeLength, ID3D11InputLayout* ppInputLayout);
+    HRESULT CreateInputLayout(const(D3D11_INPUT_ELEMENT_DESC)* pInputElementDescs, uint NumElements, 
+                              const(void)* pShaderBytecodeWithInputSignature, size_t BytecodeLength, 
+                              ID3D11InputLayout* ppInputLayout);
     ///Create a vertex-shader object from a compiled shader.
     ///Params:
     ///    pShaderBytecode = Type: <b>const void*</b> A pointer to the compiled shader.
@@ -8825,8 +8859,8 @@ interface ID3D11Device : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the Direct3D 11 Return Codes.
     ///    
-    HRESULT CreateVertexShader(char* pShaderBytecode, size_t BytecodeLength, ID3D11ClassLinkage pClassLinkage, 
-                               ID3D11VertexShader* ppVertexShader);
+    HRESULT CreateVertexShader(const(void)* pShaderBytecode, size_t BytecodeLength, 
+                               ID3D11ClassLinkage pClassLinkage, ID3D11VertexShader* ppVertexShader);
     ///Create a geometry shader.
     ///Params:
     ///    pShaderBytecode = Type: <b>const void*</b> A pointer to the compiled shader.
@@ -8839,8 +8873,8 @@ interface ID3D11Device : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the following Direct3D 11 Return Codes.
     ///    
-    HRESULT CreateGeometryShader(char* pShaderBytecode, size_t BytecodeLength, ID3D11ClassLinkage pClassLinkage, 
-                                 ID3D11GeometryShader* ppGeometryShader);
+    HRESULT CreateGeometryShader(const(void)* pShaderBytecode, size_t BytecodeLength, 
+                                 ID3D11ClassLinkage pClassLinkage, ID3D11GeometryShader* ppGeometryShader);
     ///Creates a geometry shader that can write to streaming output buffers.
     ///Params:
     ///    pShaderBytecode = Type: <b>const void*</b> A pointer to the compiled geometry shader for a standard geometry shader plus stream
@@ -8867,9 +8901,9 @@ interface ID3D11Device : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the Direct3D 11 Return Codes.
     ///    
-    HRESULT CreateGeometryShaderWithStreamOutput(char* pShaderBytecode, size_t BytecodeLength, 
-                                                 char* pSODeclaration, uint NumEntries, char* pBufferStrides, 
-                                                 uint NumStrides, uint RasterizedStream, 
+    HRESULT CreateGeometryShaderWithStreamOutput(const(void)* pShaderBytecode, size_t BytecodeLength, 
+                                                 const(D3D11_SO_DECLARATION_ENTRY)* pSODeclaration, uint NumEntries, 
+                                                 const(uint)* pBufferStrides, uint NumStrides, uint RasterizedStream, 
                                                  ID3D11ClassLinkage pClassLinkage, 
                                                  ID3D11GeometryShader* ppGeometryShader);
     ///Create a pixel shader.
@@ -8884,8 +8918,8 @@ interface ID3D11Device : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the following Direct3D 11 Return Codes.
     ///    
-    HRESULT CreatePixelShader(char* pShaderBytecode, size_t BytecodeLength, ID3D11ClassLinkage pClassLinkage, 
-                              ID3D11PixelShader* ppPixelShader);
+    HRESULT CreatePixelShader(const(void)* pShaderBytecode, size_t BytecodeLength, 
+                              ID3D11ClassLinkage pClassLinkage, ID3D11PixelShader* ppPixelShader);
     ///Create a hull shader.
     ///Params:
     ///    pShaderBytecode = Type: <b>const void*</b> A pointer to a compiled shader.
@@ -8896,7 +8930,7 @@ interface ID3D11Device : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the Direct3D 11 Return Codes.
     ///    
-    HRESULT CreateHullShader(char* pShaderBytecode, size_t BytecodeLength, ID3D11ClassLinkage pClassLinkage, 
+    HRESULT CreateHullShader(const(void)* pShaderBytecode, size_t BytecodeLength, ID3D11ClassLinkage pClassLinkage, 
                              ID3D11HullShader* ppHullShader);
     ///Create a domain shader.
     ///Params:
@@ -8910,8 +8944,8 @@ interface ID3D11Device : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the following Direct3D 11 Return Codes.
     ///    
-    HRESULT CreateDomainShader(char* pShaderBytecode, size_t BytecodeLength, ID3D11ClassLinkage pClassLinkage, 
-                               ID3D11DomainShader* ppDomainShader);
+    HRESULT CreateDomainShader(const(void)* pShaderBytecode, size_t BytecodeLength, 
+                               ID3D11ClassLinkage pClassLinkage, ID3D11DomainShader* ppDomainShader);
     ///Create a compute shader.
     ///Params:
     ///    pShaderBytecode = Type: <b>const void*</b> A pointer to a compiled shader.
@@ -8925,8 +8959,8 @@ interface ID3D11Device : IUnknown
     ///    Type: <b>HRESULT</b> This method returns E_OUTOFMEMORY if there is insufficient memory to create the compute
     ///    shader. See Direct3D 11 Return Codes for other possible return values.
     ///    
-    HRESULT CreateComputeShader(char* pShaderBytecode, size_t BytecodeLength, ID3D11ClassLinkage pClassLinkage, 
-                                ID3D11ComputeShader* ppComputeShader);
+    HRESULT CreateComputeShader(const(void)* pShaderBytecode, size_t BytecodeLength, 
+                                ID3D11ClassLinkage pClassLinkage, ID3D11ComputeShader* ppComputeShader);
     ///Creates class linkage libraries to enable dynamic shader linkage.
     ///Params:
     ///    ppLinkage = Type: <b>ID3D11ClassLinkage**</b> A pointer to a class-linkage interface pointer (see ID3D11ClassLinkage).
@@ -9077,8 +9111,8 @@ interface ID3D11Device : IUnknown
     ///    Type: <b>HRESULT</b> This method returns one of the following Direct3D 11 Return Codes.
     ///    
     HRESULT CheckCounter(const(D3D11_COUNTER_DESC)* pDesc, D3D11_COUNTER_TYPE* pType, uint* pActiveCounters, 
-                         const(char)* szName, uint* pNameLength, const(char)* szUnits, uint* pUnitsLength, 
-                         const(char)* szDescription, uint* pDescriptionLength);
+                         PSTR szName, uint* pNameLength, PSTR szUnits, uint* pUnitsLength, PSTR szDescription, 
+                         uint* pDescriptionLength);
     ///Gets information about the features that are supported by the current graphics driver.
     ///Params:
     ///    Feature = Type: <b>D3D11_FEATURE</b> A member of the D3D11_FEATURE enumerated type that describes which feature to
@@ -9091,7 +9125,7 @@ interface ID3D11Device : IUnknown
     ///    is passed to the <i>pFeatureSupportData</i> parameter or a size mismatch is detected for the
     ///    <i>FeatureSupportDataSize</i> parameter.
     ///    
-    HRESULT CheckFeatureSupport(D3D11_FEATURE Feature, char* pFeatureSupportData, uint FeatureSupportDataSize);
+    HRESULT CheckFeatureSupport(D3D11_FEATURE Feature, void* pFeatureSupportData, uint FeatureSupportDataSize);
     ///Get application-defined data from a device.
     ///Params:
     ///    guid = Type: <b>REFGUID</b> Guid associated with the data.
@@ -9103,7 +9137,7 @@ interface ID3D11Device : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the codes described in the topic Direct3D 11 Return Codes.
     ///    
-    HRESULT GetPrivateData(const(GUID)* guid, uint* pDataSize, char* pData);
+    HRESULT GetPrivateData(const(GUID)* guid, uint* pDataSize, void* pData);
     ///Set data to a device and associate that data with a guid.
     ///Params:
     ///    guid = Type: <b>REFGUID</b> Guid associated with the data.
@@ -9113,7 +9147,7 @@ interface ID3D11Device : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the following Direct3D 11 Return Codes.
     ///    
-    HRESULT SetPrivateData(const(GUID)* guid, uint DataSize, char* pData);
+    HRESULT SetPrivateData(const(GUID)* guid, uint DataSize, const(void)* pData);
     ///Associate an IUnknown-derived interface with this device child and associate that interface with an
     ///application-defined guid.
     ///Params:
@@ -9330,7 +9364,7 @@ interface ID3D11InfoQueue : IUnknown
     HRESULT SetMessageCountLimit(ulong MessageCountLimit);
     ///Clear all messages from the message queue.
     void    ClearStoredMessages();
-    HRESULT GetMessageA(ulong MessageIndex, char* pMessage, size_t* pMessageByteLength);
+    HRESULT GetMessageA(ulong MessageIndex, D3D11_MESSAGE* pMessage, size_t* pMessageByteLength);
     ///Get the number of messages that were allowed to pass through a storage filter.
     ///Returns:
     ///    Type: <b>UINT64</b> Number of messages allowed by a storage filter.
@@ -9376,7 +9410,7 @@ interface ID3D11InfoQueue : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the following Direct3D 11 Return Codes.
     ///    
-    HRESULT GetStorageFilter(char* pFilter, size_t* pFilterByteLength);
+    HRESULT GetStorageFilter(D3D11_INFO_QUEUE_FILTER* pFilter, size_t* pFilterByteLength);
     ///Remove a storage filter from the top of the storage-filter stack.
     void    ClearStorageFilter();
     ///Push an empty storage filter onto the storage-filter stack.
@@ -9418,7 +9452,7 @@ interface ID3D11InfoQueue : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the following Direct3D 11 Return Codes.
     ///    
-    HRESULT GetRetrievalFilter(char* pFilter, size_t* pFilterByteLength);
+    HRESULT GetRetrievalFilter(D3D11_INFO_QUEUE_FILTER* pFilter, size_t* pFilterByteLength);
     ///Remove a retrieval filter from the top of the retrieval-filter stack.
     void    ClearRetrievalFilter();
     ///Push an empty retrieval filter onto the retrieval-filter stack.
@@ -9456,7 +9490,7 @@ interface ID3D11InfoQueue : IUnknown
     ///    Type: <b>HRESULT</b> This method returns one of the following Direct3D 11 Return Codes.
     ///    
     HRESULT AddMessage(D3D11_MESSAGE_CATEGORY Category, D3D11_MESSAGE_SEVERITY Severity, D3D11_MESSAGE_ID ID, 
-                       const(char)* pDescription);
+                       const(PSTR) pDescription);
     ///Add a user-defined message to the message queue and send that message to debug output.
     ///Params:
     ///    Severity = Type: <b>D3D11_MESSAGE_SEVERITY</b> Severity of a message (see D3D11_MESSAGE_SEVERITY).
@@ -9464,7 +9498,7 @@ interface ID3D11InfoQueue : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the following Direct3D 11 Return Codes.
     ///    
-    HRESULT AddApplicationMessage(D3D11_MESSAGE_SEVERITY Severity, const(char)* pDescription);
+    HRESULT AddApplicationMessage(D3D11_MESSAGE_SEVERITY Severity, const(PSTR) pDescription);
     ///Set a message category to break on when a message with that category passes through the storage filter.
     ///Params:
     ///    Category = Type: <b>D3D11_MESSAGE_CATEGORY</b> Message category to break on (see D3D11_MESSAGE_CATEGORY).
@@ -9637,8 +9671,8 @@ interface ID3D11DeviceContext1 : ID3D11DeviceContext
     ///                    constant buffer that the shader uses. Each number of constants starts from its respective offset that is
     ///                    specified in the <i>pFirstConstant</i> array. Each number of constants must be a multiple of 16 constants, in
     ///                    the range [0..4096].
-    void VSSetConstantBuffers1(uint StartSlot, uint NumBuffers, char* ppConstantBuffers, char* pFirstConstant, 
-                               char* pNumConstants);
+    void VSSetConstantBuffers1(uint StartSlot, uint NumBuffers, ID3D11Buffer* ppConstantBuffers, 
+                               const(uint)* pFirstConstant, const(uint)* pNumConstants);
     ///Sets the constant buffers that the hull-shader stage of the pipeline uses.
     ///Params:
     ///    StartSlot = Index into the device's zero-based array to begin setting constant buffers to (ranges from 0 to
@@ -9655,8 +9689,8 @@ interface ID3D11DeviceContext1 : ID3D11DeviceContext
     ///                    number specifies the number of constants that are contained in the constant buffer that the shader uses. Each
     ///                    number of constants starts from its respective offset that is specified in the <i>pFirstConstant</i> array.
     ///                    Each number of constants must be a multiple of 16 constants, in the range [0..4096].
-    void HSSetConstantBuffers1(uint StartSlot, uint NumBuffers, char* ppConstantBuffers, char* pFirstConstant, 
-                               char* pNumConstants);
+    void HSSetConstantBuffers1(uint StartSlot, uint NumBuffers, ID3D11Buffer* ppConstantBuffers, 
+                               const(uint)* pFirstConstant, const(uint)* pNumConstants);
     ///Sets the constant buffers that the domain-shader stage uses.
     ///Params:
     ///    StartSlot = Index into the zero-based array to begin setting constant buffers to (ranges from 0 to
@@ -9673,8 +9707,8 @@ interface ID3D11DeviceContext1 : ID3D11DeviceContext
     ///                    number specifies the number of constants that are contained in the constant buffer that the shader uses. Each
     ///                    number of constants starts from its respective offset that is specified in the <i>pFirstConstant</i> array.
     ///                    Each number of constants must be a multiple of 16 constants, in the range [0..4096].
-    void DSSetConstantBuffers1(uint StartSlot, uint NumBuffers, char* ppConstantBuffers, char* pFirstConstant, 
-                               char* pNumConstants);
+    void DSSetConstantBuffers1(uint StartSlot, uint NumBuffers, ID3D11Buffer* ppConstantBuffers, 
+                               const(uint)* pFirstConstant, const(uint)* pNumConstants);
     ///Sets the constant buffers that the geometry shader pipeline stage uses.
     ///Params:
     ///    StartSlot = Index into the device's zero-based array to begin setting constant buffers to (ranges from 0 to
@@ -9691,8 +9725,8 @@ interface ID3D11DeviceContext1 : ID3D11DeviceContext
     ///                    number specifies the number of constants that are contained in the constant buffer that the shader uses. Each
     ///                    number of constants starts from its respective offset that is specified in the <i>pFirstConstant</i> array.
     ///                    Each number of constants must be a multiple of 16 constants, in the range [0..4096].
-    void GSSetConstantBuffers1(uint StartSlot, uint NumBuffers, char* ppConstantBuffers, char* pFirstConstant, 
-                               char* pNumConstants);
+    void GSSetConstantBuffers1(uint StartSlot, uint NumBuffers, ID3D11Buffer* ppConstantBuffers, 
+                               const(uint)* pFirstConstant, const(uint)* pNumConstants);
     ///Sets the constant buffers that the pixel shader pipeline stage uses, and enables the shader to access other parts
     ///of the buffer.
     ///Params:
@@ -9711,8 +9745,8 @@ interface ID3D11DeviceContext1 : ID3D11DeviceContext
     ///                    constant buffer that the shader uses. Each number of constants starts from its respective offset that is
     ///                    specified in the <i>pFirstConstant</i> array. Each number of constants must be a multiple of 16 constants, in
     ///                    the range [0..4096].
-    void PSSetConstantBuffers1(uint StartSlot, uint NumBuffers, char* ppConstantBuffers, char* pFirstConstant, 
-                               char* pNumConstants);
+    void PSSetConstantBuffers1(uint StartSlot, uint NumBuffers, ID3D11Buffer* ppConstantBuffers, 
+                               const(uint)* pFirstConstant, const(uint)* pNumConstants);
     ///Sets the constant buffers that the compute-shader stage uses.
     ///Params:
     ///    StartSlot = Index into the zero-based array to begin setting constant buffers to (ranges from 0 to
@@ -9729,8 +9763,8 @@ interface ID3D11DeviceContext1 : ID3D11DeviceContext
     ///                    number specifies the number of constants that are contained in the constant buffer that the shader uses. Each
     ///                    number of constants starts from its respective offset that is specified in the <i>pFirstConstant</i> array.
     ///                    Each number of constants must be a multiple of 16 constants, in the range [0..4096].
-    void CSSetConstantBuffers1(uint StartSlot, uint NumBuffers, char* ppConstantBuffers, char* pFirstConstant, 
-                               char* pNumConstants);
+    void CSSetConstantBuffers1(uint StartSlot, uint NumBuffers, ID3D11Buffer* ppConstantBuffers, 
+                               const(uint)* pFirstConstant, const(uint)* pNumConstants);
     ///Gets the constant buffers that the vertex shader pipeline stage uses.
     ///Params:
     ///    StartSlot = Index into the device's zero-based array to begin retrieving constant buffers from (ranges from 0 to
@@ -9748,8 +9782,8 @@ interface ID3D11DeviceContext1 : ID3D11DeviceContext
     ///                    shader uses. Each number of constants starts from its respective offset that is specified in the
     ///                    <i>pFirstConstant</i> array. The runtime sets <i>pNumConstants</i> to <b>NULL</b> if it doesn't specify the
     ///                    numbers of constants in each buffer.
-    void VSGetConstantBuffers1(uint StartSlot, uint NumBuffers, char* ppConstantBuffers, char* pFirstConstant, 
-                               char* pNumConstants);
+    void VSGetConstantBuffers1(uint StartSlot, uint NumBuffers, ID3D11Buffer* ppConstantBuffers, 
+                               uint* pFirstConstant, uint* pNumConstants);
     ///Gets the constant buffers that the hull-shader stage uses.
     ///Params:
     ///    StartSlot = Index into the device's zero-based array to begin retrieving constant buffers from (ranges from 0 to
@@ -9767,8 +9801,8 @@ interface ID3D11DeviceContext1 : ID3D11DeviceContext
     ///                    shader uses. Each number of constants starts from its respective offset that is specified in the
     ///                    <i>pFirstConstant</i> array. The runtime sets <i>pNumConstants</i> to <b>NULL</b> if it doesn't specify the
     ///                    numbers of constants in each buffer.
-    void HSGetConstantBuffers1(uint StartSlot, uint NumBuffers, char* ppConstantBuffers, char* pFirstConstant, 
-                               char* pNumConstants);
+    void HSGetConstantBuffers1(uint StartSlot, uint NumBuffers, ID3D11Buffer* ppConstantBuffers, 
+                               uint* pFirstConstant, uint* pNumConstants);
     ///Gets the constant buffers that the domain-shader stage uses.
     ///Params:
     ///    StartSlot = Index into the device's zero-based array to begin retrieving constant buffers from (ranges from 0 to
@@ -9786,8 +9820,8 @@ interface ID3D11DeviceContext1 : ID3D11DeviceContext
     ///                    shader uses. Each number of constants starts from its respective offset that is specified in the
     ///                    <i>pFirstConstant</i> array. The runtime sets <i>pNumConstants</i> to <b>NULL</b> if it doesn't specify the
     ///                    numbers of constants in each buffer.
-    void DSGetConstantBuffers1(uint StartSlot, uint NumBuffers, char* ppConstantBuffers, char* pFirstConstant, 
-                               char* pNumConstants);
+    void DSGetConstantBuffers1(uint StartSlot, uint NumBuffers, ID3D11Buffer* ppConstantBuffers, 
+                               uint* pFirstConstant, uint* pNumConstants);
     ///Gets the constant buffers that the geometry shader pipeline stage uses.
     ///Params:
     ///    StartSlot = Index into the device's zero-based array to begin retrieving constant buffers from (ranges from 0 to
@@ -9805,8 +9839,8 @@ interface ID3D11DeviceContext1 : ID3D11DeviceContext
     ///                    shader uses. Each number of constants starts from its respective offset that is specified in the
     ///                    <i>pFirstConstant</i> array. The runtime sets <i>pNumConstants</i> to <b>NULL</b> if it doesn't specify the
     ///                    numbers of constants in each buffer.
-    void GSGetConstantBuffers1(uint StartSlot, uint NumBuffers, char* ppConstantBuffers, char* pFirstConstant, 
-                               char* pNumConstants);
+    void GSGetConstantBuffers1(uint StartSlot, uint NumBuffers, ID3D11Buffer* ppConstantBuffers, 
+                               uint* pFirstConstant, uint* pNumConstants);
     ///Gets the constant buffers that the pixel shader pipeline stage uses.
     ///Params:
     ///    StartSlot = Index into the device's zero-based array to begin retrieving constant buffers from (ranges from 0 to
@@ -9824,8 +9858,8 @@ interface ID3D11DeviceContext1 : ID3D11DeviceContext
     ///                    shader uses. Each number of constants starts from its respective offset that is specified in the
     ///                    <i>pFirstConstant</i> array. The runtime sets <i>pNumConstants</i> to <b>NULL</b> if it doesn't specify the
     ///                    numbers of constants in each buffer.
-    void PSGetConstantBuffers1(uint StartSlot, uint NumBuffers, char* ppConstantBuffers, char* pFirstConstant, 
-                               char* pNumConstants);
+    void PSGetConstantBuffers1(uint StartSlot, uint NumBuffers, ID3D11Buffer* ppConstantBuffers, 
+                               uint* pFirstConstant, uint* pNumConstants);
     ///Gets the constant buffers that the compute-shader stage uses.
     ///Params:
     ///    StartSlot = Index into the device's zero-based array to begin retrieving constant buffers from (ranges from 0 to
@@ -9843,8 +9877,8 @@ interface ID3D11DeviceContext1 : ID3D11DeviceContext
     ///                    shader uses. Each number of constants starts from its respective offset that is specified in the
     ///                    <i>pFirstConstant</i> array. The runtime sets <i>pNumConstants</i> to <b>NULL</b> if it doesn't specify the
     ///                    numbers of constants in each buffer.
-    void CSGetConstantBuffers1(uint StartSlot, uint NumBuffers, char* ppConstantBuffers, char* pFirstConstant, 
-                               char* pNumConstants);
+    void CSGetConstantBuffers1(uint StartSlot, uint NumBuffers, ID3D11Buffer* ppConstantBuffers, 
+                               uint* pFirstConstant, uint* pNumConstants);
     ///Activates the given context state object and changes the current device behavior to Direct3D 11, Direct3D 10.1,
     ///or Direct3D 10.
     ///Params:
@@ -9861,7 +9895,7 @@ interface ID3D11DeviceContext1 : ID3D11DeviceContext
     ///    pRect = An array of D3D11_RECT structures for the rectangles in the resource view to clear. If <b>NULL</b>,
     ///            <b>ClearView</b> clears the entire surface.
     ///    NumRects = Number of rectangles in the array that the <i>pRect</i> parameter specifies.
-    void ClearView(ID3D11View pView, const(float)* Color, char* pRect, uint NumRects);
+    void ClearView(ID3D11View pView, const(float)* Color, const(RECT)* pRect, uint NumRects);
     ///Discards the specified elements in a resource view from the device context.
     ///Params:
     ///    pResourceView = Type: <b>ID3D11View*</b> A pointer to the ID3D11View interface for the resource view to discard. The resource
@@ -9871,7 +9905,7 @@ interface ID3D11DeviceContext1 : ID3D11DeviceContext
     ///    pRects = Type: <b>const D3D11_RECT*</b> An array of D3D11_RECT structures for the rectangles in the resource view to
     ///             discard. If <b>NULL</b>, <b>DiscardView1</b> discards the entire view and behaves the same as DiscardView.
     ///    NumRects = Type: <b>UINT</b> Number of rectangles in the array that the <i>pRects</i> parameter specifies.
-    void DiscardView1(ID3D11View pResourceView, char* pRects, uint NumRects);
+    void DiscardView1(ID3D11View pResourceView, const(RECT)* pRects, uint NumRects);
 }
 
 ///The device interface represents a virtual adapter; it is used to create resources. <b>ID3D11Device1</b> adds new
@@ -9954,9 +9988,9 @@ interface ID3D11Device1 : ID3D11Device
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the Direct3D 11 Return Codes.
     ///    
-    HRESULT CreateDeviceContextState(uint Flags, char* pFeatureLevels, uint FeatureLevels, uint SDKVersion, 
-                                     const(GUID)* EmulatedInterface, D3D_FEATURE_LEVEL* pChosenFeatureLevel, 
-                                     ID3DDeviceContextState* ppContextState);
+    HRESULT CreateDeviceContextState(uint Flags, const(D3D_FEATURE_LEVEL)* pFeatureLevels, uint FeatureLevels, 
+                                     uint SDKVersion, const(GUID)* EmulatedInterface, 
+                                     D3D_FEATURE_LEVEL* pChosenFeatureLevel, ID3DDeviceContextState* ppContextState);
     ///Gives a device access to a shared resource that is referenced by a handle and that was created on a different
     ///device. You must have previously created the resource as shared and specified that it uses NT handles (that is,
     ///you set the D3D11_RESOURCE_MISC_SHARED_NTHANDLE flag).
@@ -9991,7 +10025,7 @@ interface ID3D11Device1 : ID3D11Device
     ///    fails with E_NOTIMPL because NTHANDLES are used. For more info about the Platform Update for Windows 7, see
     ///    Platform Update for Windows 7.
     ///    
-    HRESULT OpenSharedResourceByName(const(wchar)* lpName, uint dwDesiredAccess, const(GUID)* returnedInterface, 
+    HRESULT OpenSharedResourceByName(const(PWSTR) lpName, uint dwDesiredAccess, const(GUID)* returnedInterface, 
                                      void** ppResource);
 }
 
@@ -10013,7 +10047,7 @@ interface ID3DUserDefinedAnnotation : IUnknown
     ///    ID3DUserDefinedAnnotation::EndEvent method. The return value is –1 if the calling application is not
     ///    running under a Direct3D profiling tool.
     ///    
-    int  BeginEvent(const(wchar)* Name);
+    int  BeginEvent(const(PWSTR) Name);
     ///Marks the end of a section of event code.
     ///Returns:
     ///    Returns the number of previous calls to the ID3DUserDefinedAnnotation::BeginEvent method that have not yet
@@ -10026,7 +10060,7 @@ interface ID3DUserDefinedAnnotation : IUnknown
     ///    Name = A <b>NULL</b>-terminated <b>UNICODE</b> string that contains the name of the marker. The name is not relevant
     ///           to the operating system. You can choose a name that is meaningful when the calling application is running
     ///           under the Direct3D profiling tool. A <b>NULL</b> pointer produces undefined results.
-    void SetMarker(const(wchar)* Name);
+    void SetMarker(const(PWSTR) Name);
     ///Determines whether the calling application is running under a Microsoft Direct3D profiling tool.
     ///Returns:
     ///    The return value is nonzero if the calling application is running under a Direct3D profiling tool such as
@@ -10072,9 +10106,10 @@ interface ID3D11DeviceContext2 : ID3D11DeviceContext1
     ///    or a driver upgrade for the video card has occurred. </li> </ul>
     ///    
     HRESULT UpdateTileMappings(ID3D11Resource pTiledResource, uint NumTiledResourceRegions, 
-                               char* pTiledResourceRegionStartCoordinates, char* pTiledResourceRegionSizes, 
-                               ID3D11Buffer pTilePool, uint NumRanges, char* pRangeFlags, 
-                               char* pTilePoolStartOffsets, char* pRangeTileCounts, uint Flags);
+                               const(D3D11_TILED_RESOURCE_COORDINATE)* pTiledResourceRegionStartCoordinates, 
+                               const(D3D11_TILE_REGION_SIZE)* pTiledResourceRegionSizes, ID3D11Buffer pTilePool, 
+                               uint NumRanges, const(uint)* pRangeFlags, const(uint)* pTilePoolStartOffsets, 
+                               const(uint)* pRangeTileCounts, uint Flags);
     ///Copies mappings from a source tiled resource to a destination tiled resource.
     ///Params:
     ///    pDestTiledResource = Type: <b>ID3D11Resource*</b> A pointer to the destination tiled resource.
@@ -10178,12 +10213,12 @@ interface ID3D11DeviceContext2 : ID3D11DeviceContext1
     ///Params:
     ///    pLabel = An optional string that will be logged to ETW when ETW logging is active. If <b>‘
     ///    Data = A signed data value that will be logged to ETW when ETW logging is active.
-    void    SetMarkerInt(const(wchar)* pLabel, int Data);
+    void    SetMarkerInt(const(PWSTR) pLabel, int Data);
     ///Allows applications to annotate the beginning of a range of graphics commands.
     ///Params:
     ///    pLabel = An optional string that will be logged to ETW when ETW logging is active. If <b>‘
     ///    Data = A signed data value that will be logged to ETW when ETW logging is active.
-    void    BeginEventInt(const(wchar)* pLabel, int Data);
+    void    BeginEventInt(const(PWSTR) pLabel, int Data);
     ///Allows applications to annotate the end of a range of graphics commands.
     void    EndEvent();
 }
@@ -10241,7 +10276,8 @@ interface ID3D11Device2 : ID3D11Device1
     void    GetResourceTiling(ID3D11Resource pTiledResource, uint* pNumTilesForEntireResource, 
                               D3D11_PACKED_MIP_DESC* pPackedMipDesc, 
                               D3D11_TILE_SHAPE* pStandardTileShapeForNonPackedMips, uint* pNumSubresourceTilings, 
-                              uint FirstSubresourceTilingToGet, char* pSubresourceTilingsForNonPackedMips);
+                              uint FirstSubresourceTilingToGet, 
+                              D3D11_SUBRESOURCE_TILING* pSubresourceTilingsForNonPackedMips);
     ///Get the number of quality levels available during multisampling.
     ///Params:
     ///    Format = Type: <b>DXGI_FORMAT</b> The texture format during multisampling.
@@ -10362,7 +10398,7 @@ interface ID3D11DeviceContext3 : ID3D11DeviceContext2
     ///Params:
     ///    pHwProtectionEnable = Type: <b>BOOL*</b> After this method returns, points to a BOOL that indicates whether hardware protection is
     ///                          enabled.
-    void GetHardwareProtectionState(int* pHwProtectionEnable);
+    void GetHardwareProtectionState(BOOL* pHwProtectionEnable);
 }
 
 ///Represents a fence, an object used for synchronization of the CPU and one or more GPUs. This interface is equivalent
@@ -10407,7 +10443,7 @@ interface ID3D11Fence : ID3D11DeviceChild
     ///    sufficient memory is not available to create the handle.</li> <li>Possibly other error codes that are
     ///    described in the Direct3D 11 Return Codes topic. </li> </ul>
     ///    
-    HRESULT CreateSharedHandle(const(SECURITY_ATTRIBUTES)* pAttributes, uint dwAccess, const(wchar)* lpName, 
+    HRESULT CreateSharedHandle(const(SECURITY_ATTRIBUTES)* pAttributes, uint dwAccess, const(PWSTR) lpName, 
                                HANDLE* pHandle);
     ///Gets the current value of the fence. This member function is equivalent to the Direct3D 12
     ///ID3D12Fence::GetCompletedValue member function, and applies between Direct3D 11 and Direct3D 12 in interop
@@ -10489,7 +10525,7 @@ interface ID3D11Device3 : ID3D11Device2
     ///    Type: <b>HRESULT</b> If the method succeeds, the return code is <b>S_OK</b>. See Direct3D 11 Return Codes for
     ///    failing error codes.
     ///    
-    HRESULT CreateTexture2D1(const(D3D11_TEXTURE2D_DESC1)* pDesc1, char* pInitialData, 
+    HRESULT CreateTexture2D1(const(D3D11_TEXTURE2D_DESC1)* pDesc1, const(D3D11_SUBRESOURCE_DATA)* pInitialData, 
                              ID3D11Texture2D1* ppTexture2D);
     ///Creates a 3D texture.
     ///Params:
@@ -10513,7 +10549,7 @@ interface ID3D11Device3 : ID3D11Device2
     ///    Type: <b>HRESULT</b> If the method succeeds, the return code is <b>S_OK</b>. See Direct3D 11 Return Codes for
     ///    failing error codes.
     ///    
-    HRESULT CreateTexture3D1(const(D3D11_TEXTURE3D_DESC1)* pDesc1, char* pInitialData, 
+    HRESULT CreateTexture3D1(const(D3D11_TEXTURE3D_DESC1)* pDesc1, const(D3D11_SUBRESOURCE_DATA)* pInitialData, 
                              ID3D11Texture3D1* ppTexture3D);
     ///Creates a rasterizer state object that informs the rasterizer stage how to behave and forces the sample count
     ///while UAV rendering or rasterizing.
@@ -10756,11 +10792,11 @@ interface ID3D11VideoDevice2 : ID3D11VideoDevice1
     ///    the *pFeatureSupportData* parameter or a size mismatch is detected for the *FeatureSupportDataSize*
     ///    parameter.
     ///    
-    HRESULT CheckFeatureSupport(D3D11_FEATURE_VIDEO Feature, char* pFeatureSupportData, 
+    HRESULT CheckFeatureSupport(D3D11_FEATURE_VIDEO Feature, void* pFeatureSupportData, 
                                 uint FeatureSupportDataSize);
     HRESULT NegotiateCryptoSessionKeyExchangeMT(ID3D11CryptoSession pCryptoSession, 
                                                 D3D11_CRYPTO_SESSION_KEY_EXCHANGE_FLAGS flags, uint DataSize, 
-                                                char* pData);
+                                                void* pData);
 }
 
 ///Provides the video functionality of a Microsoft Direct3D 11 device. This interface provides the
@@ -10798,9 +10834,10 @@ interface ID3D11VideoContext3 : ID3D11VideoContext2
     ///    Returns **S\_OK** if successful.
     ///    
     HRESULT DecoderBeginFrame1(ID3D11VideoDecoder pDecoder, ID3D11VideoDecoderOutputView pView, 
-                               uint ContentKeySize, char* pContentKey, uint NumComponentHistograms, 
-                               char* pHistogramOffsets, char* ppHistogramBuffers);
-    HRESULT SubmitDecoderBuffers2(ID3D11VideoDecoder pDecoder, uint NumBuffers, char* pBufferDesc);
+                               uint ContentKeySize, const(void)* pContentKey, uint NumComponentHistograms, 
+                               const(uint)* pHistogramOffsets, ID3D11Buffer* ppHistogramBuffers);
+    HRESULT SubmitDecoderBuffers2(ID3D11VideoDecoder pDecoder, uint NumBuffers, 
+                                  const(D3D11_VIDEO_DECODER_BUFFER_DESC2)* pBufferDesc);
 }
 
 ///This shader-reflection interface provides access to variable type.
@@ -10827,14 +10864,14 @@ interface ID3D11ShaderReflectionType
     ///Returns:
     ///    Type: <b>ID3D11ShaderReflectionType*</b> A pointer to a ID3D11ShaderReflectionType Interface.
     ///    
-    ID3D11ShaderReflectionType GetMemberTypeByName(const(char)* Name);
+    ID3D11ShaderReflectionType GetMemberTypeByName(const(PSTR) Name);
     ///Get a shader-reflection-variable type.
     ///Params:
     ///    Index = Type: <b>UINT</b> Zero-based index.
     ///Returns:
     ///    Type: <b>LPCSTR</b> The variable type.
     ///    
-    byte*   GetMemberTypeName(uint Index);
+    PSTR    GetMemberTypeName(uint Index);
     ///Indicates whether two ID3D11ShaderReflectionType Interface pointers have the same underlying type.
     ///Params:
     ///    pType = Type: <b>ID3D11ShaderReflectionType*</b> A pointer to a ID3D11ShaderReflectionType Interface.
@@ -10943,7 +10980,7 @@ interface ID3D11ShaderReflectionConstantBuffer
     ///    GetVariableByName successfully completed, call ID3D11ShaderReflectionVariable::GetDesc and check the returned
     ///    <b>HRESULT</b>; any return value other than success means that GetVariableByName failed.
     ///    
-    ID3D11ShaderReflectionVariable GetVariableByName(const(char)* Name);
+    ID3D11ShaderReflectionVariable GetVariableByName(const(PSTR) Name);
 }
 
 ///A shader-reflection interface accesses shader information.
@@ -10972,7 +11009,7 @@ interface ID3D11ShaderReflection : IUnknown
     ///    Type: <b>ID3D11ShaderReflectionConstantBuffer*</b> A pointer to a constant buffer (see
     ///    ID3D11ShaderReflectionConstantBuffer Interface).
     ///    
-    ID3D11ShaderReflectionConstantBuffer GetConstantBufferByName(const(char)* Name);
+    ID3D11ShaderReflectionConstantBuffer GetConstantBufferByName(const(PSTR) Name);
     ///Get a description of how a resource is bound to a shader.
     ///Params:
     ///    ResourceIndex = Type: <b>UINT</b> A zero-based resource index.
@@ -11015,7 +11052,7 @@ interface ID3D11ShaderReflection : IUnknown
     ///Returns:
     ///    Type: <b>ID3D11ShaderReflectionVariable*</b> Returns a ID3D11ShaderReflectionVariable Interface interface.
     ///    
-    ID3D11ShaderReflectionVariable GetVariableByName(const(char)* Name);
+    ID3D11ShaderReflectionVariable GetVariableByName(const(PSTR) Name);
     ///Get a description of how a resource is bound to a shader.
     ///Params:
     ///    Name = Type: <b>LPCSTR</b> The constant-buffer name of the resource.
@@ -11024,7 +11061,7 @@ interface ID3D11ShaderReflection : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 11 Return Codes.
     ///    
-    HRESULT GetResourceBindingDescByName(const(char)* Name, D3D11_SHADER_INPUT_BIND_DESC* pDesc);
+    HRESULT GetResourceBindingDescByName(const(PSTR) Name, D3D11_SHADER_INPUT_BIND_DESC* pDesc);
     ///Gets the number of Mov instructions.
     ///Returns:
     ///    Type: <b>UINT</b> Returns the number of Mov instructions.
@@ -11163,7 +11200,7 @@ interface ID3D11FunctionReflection
     ///    Type: <b>ID3D11ShaderReflectionConstantBuffer*</b> A pointer to a ID3D11ShaderReflectionConstantBuffer
     ///    interface that represents the constant buffer.
     ///    
-    ID3D11ShaderReflectionConstantBuffer GetConstantBufferByName(const(char)* Name);
+    ID3D11ShaderReflectionConstantBuffer GetConstantBufferByName(const(PSTR) Name);
     ///Gets a description of how a resource is bound to a function.
     ///Params:
     ///    ResourceIndex = Type: <b>UINT</b> A zero-based resource index.
@@ -11179,7 +11216,7 @@ interface ID3D11FunctionReflection
     ///Returns:
     ///    Type: <b>ID3D11ShaderReflectionVariable*</b> Returns a ID3D11ShaderReflectionVariable Interface interface.
     ///    
-    ID3D11ShaderReflectionVariable GetVariableByName(const(char)* Name);
+    ID3D11ShaderReflectionVariable GetVariableByName(const(PSTR) Name);
     ///Gets a description of how a resource is bound to a function.
     ///Params:
     ///    Name = Type: <b>LPCSTR</b> The constant-buffer name of the resource.
@@ -11188,7 +11225,7 @@ interface ID3D11FunctionReflection
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the Direct3D 11 Return Codes.
     ///    
-    HRESULT GetResourceBindingDescByName(const(char)* Name, D3D11_SHADER_INPUT_BIND_DESC* pDesc);
+    HRESULT GetResourceBindingDescByName(const(PSTR) Name, D3D11_SHADER_INPUT_BIND_DESC* pDesc);
     ///Gets the function parameter reflector.
     ///Params:
     ///    ParameterIndex = Type: <b>INT</b> The zero-based index of the function parameter reflector to retrieve.
@@ -11232,7 +11269,7 @@ interface ID3D11Module : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns S_OK if successful; otherwise, returns one of the Direct3D 11 Return Codes.
     ///    
-    HRESULT CreateInstance(const(char)* pNamespace, ID3D11ModuleInstance* ppModuleInstance);
+    HRESULT CreateInstance(const(PSTR) pNamespace, ID3D11ModuleInstance* ppModuleInstance);
 }
 
 ///A module-instance interface is used for resource rebinding. <div class="alert"><b>Note</b> This interface is part of
@@ -11266,7 +11303,7 @@ interface ID3D11ModuleInstance : IUnknown
     ///    <li><b>E_FAIL</b> for an invalid rebinding, for example, the rebinding is out-of-bounds </li> <li>Possibly
     ///    one of the other Direct3D 11 Return Codes </li> </ul>
     ///    
-    HRESULT BindConstantBufferByName(const(char)* pName, uint uDstSlot, uint cbDstOffset);
+    HRESULT BindConstantBufferByName(const(PSTR) pName, uint uDstSlot, uint cbDstOffset);
     ///Rebinds a texture or buffer from source slot to destination slot.
     ///Params:
     ///    uSrcSlot = Type: <b>UINT</b> The first source slot number for rebinding.
@@ -11290,7 +11327,7 @@ interface ID3D11ModuleInstance : IUnknown
     ///    <li><b>E_FAIL</b> for an invalid rebinding, for example, the rebinding is out-of-bounds</li> <li>Possibly one
     ///    of the other Direct3D 11 Return Codes </li> </ul>
     ///    
-    HRESULT BindResourceByName(const(char)* pName, uint uDstSlot, uint uCount);
+    HRESULT BindResourceByName(const(PSTR) pName, uint uDstSlot, uint uCount);
     ///Rebinds a sampler from source slot to destination slot.
     ///Params:
     ///    uSrcSlot = Type: <b>UINT</b> The first source slot number for rebinding.
@@ -11314,7 +11351,7 @@ interface ID3D11ModuleInstance : IUnknown
     ///    <li><b>E_FAIL</b> for an invalid rebinding, for example, the rebinding is out-of-bounds</li> <li>Possibly one
     ///    of the other Direct3D 11 Return Codes </li> </ul>
     ///    
-    HRESULT BindSamplerByName(const(char)* pName, uint uDstSlot, uint uCount);
+    HRESULT BindSamplerByName(const(PSTR) pName, uint uDstSlot, uint uCount);
     ///Rebinds an unordered access view (UAV) from source slot to destination slot.
     ///Params:
     ///    uSrcSlot = Type: <b>UINT</b> The first source slot number for rebinding.
@@ -11338,7 +11375,7 @@ interface ID3D11ModuleInstance : IUnknown
     ///    <li><b>E_FAIL</b> for an invalid rebinding, for example, the rebinding is out-of-bounds</li> <li>Possibly one
     ///    of the other Direct3D 11 Return Codes </li> </ul>
     ///    
-    HRESULT BindUnorderedAccessViewByName(const(char)* pName, uint uDstSlot, uint uCount);
+    HRESULT BindUnorderedAccessViewByName(const(PSTR) pName, uint uDstSlot, uint uCount);
     ///Rebinds a resource as an unordered access view (UAV) from source slot to destination slot.
     ///Params:
     ///    uSrcSrvSlot = Type: <b>UINT</b> The first source slot number for rebinding.
@@ -11362,7 +11399,7 @@ interface ID3D11ModuleInstance : IUnknown
     ///    <li><b>E_FAIL</b> for an invalid rebinding, for example, the rebinding is out-of-bounds</li> <li>Possibly one
     ///    of the other Direct3D 11 Return Codes </li> </ul>
     ///    
-    HRESULT BindResourceAsUnorderedAccessViewByName(const(char)* pSrvName, uint uDstUavSlot, uint uCount);
+    HRESULT BindResourceAsUnorderedAccessViewByName(const(PSTR) pSrvName, uint uDstUavSlot, uint uCount);
 }
 
 ///A linker interface is used to link a shader module. <div class="alert"><b>Note</b> This interface is part of the HLSL
@@ -11385,7 +11422,7 @@ interface ID3D11Linker : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns S_OK if successful; otherwise, returns one of the Direct3D 11 Return Codes.
     ///    
-    HRESULT Link(ID3D11ModuleInstance pEntry, const(char)* pEntryName, const(char)* pTargetName, uint uFlags, 
+    HRESULT Link(ID3D11ModuleInstance pEntry, const(PSTR) pEntryName, const(PSTR) pTargetName, uint uFlags, 
                  ID3DBlob* ppShaderBlob, ID3DBlob* ppErrorBuffer);
     ///Adds an instance of a library module to be used for linking.
     ///Params:
@@ -11440,7 +11477,8 @@ interface ID3D11FunctionLinkingGraph : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns S_OK if successful; otherwise, returns one of the Direct3D 11 Return Codes.
     ///    
-    HRESULT SetInputSignature(char* pInputParameters, uint cInputParameters, ID3D11LinkingNode* ppInputNode);
+    HRESULT SetInputSignature(const(D3D11_PARAMETER_DESC)* pInputParameters, uint cInputParameters, 
+                              ID3D11LinkingNode* ppInputNode);
     ///Sets the output signature of the function-linking-graph.
     ///Params:
     ///    pOutputParameters = Type: <b>const D3D11_PARAMETER_DESC*</b> An array of D3D11_PARAMETER_DESC structures for the parameters of
@@ -11451,7 +11489,8 @@ interface ID3D11FunctionLinkingGraph : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns S_OK if successful; otherwise, returns one of the Direct3D 11 Return Codes.
     ///    
-    HRESULT SetOutputSignature(char* pOutputParameters, uint cOutputParameters, ID3D11LinkingNode* ppOutputNode);
+    HRESULT SetOutputSignature(const(D3D11_PARAMETER_DESC)* pOutputParameters, uint cOutputParameters, 
+                               ID3D11LinkingNode* ppOutputNode);
     ///Creates a call-function linking node to use in the function-linking-graph.
     ///Params:
     ///    pModuleInstanceNamespace = Type: <b>LPCSTR</b> The optional namespace for the function, or <b>NULL</b> if no namespace is needed.
@@ -11463,8 +11502,8 @@ interface ID3D11FunctionLinkingGraph : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns S_OK if successful; otherwise, returns one of the Direct3D 11 Return Codes.
     ///    
-    HRESULT CallFunction(const(char)* pModuleInstanceNamespace, ID3D11Module pModuleWithFunctionPrototype, 
-                         const(char)* pFunctionName, ID3D11LinkingNode* ppCallNode);
+    HRESULT CallFunction(const(PSTR) pModuleInstanceNamespace, ID3D11Module pModuleWithFunctionPrototype, 
+                         const(PSTR) pFunctionName, ID3D11LinkingNode* ppCallNode);
     ///Passes a value from a source linking node to a destination linking node.
     ///Params:
     ///    pSrcNode = Type: <b>ID3D11LinkingNode*</b> A pointer to the ID3D11LinkingNode interface for the source linking node.
@@ -11489,8 +11528,8 @@ interface ID3D11FunctionLinkingGraph : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns S_OK if successful; otherwise, returns one of the Direct3D 11 Return Codes.
     ///    
-    HRESULT PassValueWithSwizzle(ID3D11LinkingNode pSrcNode, int SrcParameterIndex, const(char)* pSrcSwizzle, 
-                                 ID3D11LinkingNode pDstNode, int DstParameterIndex, const(char)* pDstSwizzle);
+    HRESULT PassValueWithSwizzle(ID3D11LinkingNode pSrcNode, int SrcParameterIndex, const(PSTR) pSrcSwizzle, 
+                                 ID3D11LinkingNode pDstNode, int DstParameterIndex, const(PSTR) pDstSwizzle);
     ///Gets the error from the last function call of the function-linking-graph.
     ///Params:
     ///    ppErrorBuffer = Type: <b>ID3DBlob**</b> An pointer to a variable that receives a pointer to the ID3DBlob interface that you
@@ -11761,8 +11800,8 @@ interface ID3DX11FFT : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the return codes described in the topic Direct3D 11 Return Codes.
     ///    
-    HRESULT AttachBuffersAndPrecompute(uint NumTempBuffers, char* ppTempBuffers, uint NumPrecomputeBuffers, 
-                                       char* ppPrecomputeBufferSizes);
+    HRESULT AttachBuffersAndPrecompute(uint NumTempBuffers, ID3D11UnorderedAccessView* ppTempBuffers, 
+                                       uint NumPrecomputeBuffers, ID3D11UnorderedAccessView* ppPrecomputeBufferSizes);
     ///Performs a forward FFT.
     ///Params:
     ///    pInputBuffer = Type: <b>const ID3D11UnorderedAccessView*</b> Pointer to ID3D11UnorderedAccessView onto the input buffer.

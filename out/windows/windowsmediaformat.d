@@ -9,10 +9,10 @@ public import windows.directshow : AM_MEDIA_TYPE, BITMAPINFOHEADER, IAMVideoAcce
                                    IPin;
 public import windows.displaydevices : RECT;
 public import windows.structuredstorage : IStream;
-public import windows.systemservices : BOOL;
+public import windows.systemservices : BOOL, PWSTR;
 public import windows.windowsandmessaging : LPARAM;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -855,6 +855,95 @@ enum : const(wchar)*
 enum const(wchar)* g_wszEnableFrameInterpolation = "EnableFrameInterpolation";
 enum const(wchar)* g_wszWMIsCompilation = "WM/IsCompilation";
 
+enum : GUID
+{
+    WMMEDIATYPE_Video          = GUID("73646976-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_RGB1        = GUID("e436eb78-524f-11ce-9f53-0020af0ba770"),
+    WMMEDIASUBTYPE_RGB4        = GUID("e436eb79-524f-11ce-9f53-0020af0ba770"),
+    WMMEDIASUBTYPE_RGB8        = GUID("e436eb7a-524f-11ce-9f53-0020af0ba770"),
+    WMMEDIASUBTYPE_RGB565      = GUID("e436eb7b-524f-11ce-9f53-0020af0ba770"),
+    WMMEDIASUBTYPE_RGB555      = GUID("e436eb7c-524f-11ce-9f53-0020af0ba770"),
+    WMMEDIASUBTYPE_RGB24       = GUID("e436eb7d-524f-11ce-9f53-0020af0ba770"),
+    WMMEDIASUBTYPE_RGB32       = GUID("e436eb7e-524f-11ce-9f53-0020af0ba770"),
+    WMMEDIASUBTYPE_I420        = GUID("30323449-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_IYUV        = GUID("56555949-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_YV12        = GUID("32315659-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_YUY2        = GUID("32595559-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_P422        = GUID("32323450-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_UYVY        = GUID("59565955-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_YVYU        = GUID("55595659-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_YVU9        = GUID("39555659-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_VIDEOIMAGE  = GUID("1d4a45f2-e5f6-4b44-8388-f0ae5c0e0c37"),
+    WMMEDIASUBTYPE_MP43        = GUID("3334504d-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_MP4S        = GUID("5334504d-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_M4S2        = GUID("3253344d-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_WMV1        = GUID("31564d57-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_WMV2        = GUID("32564d57-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_MSS1        = GUID("3153534d-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_MPEG2_VIDEO = GUID("e06d8026-db46-11cf-b4d1-00805f6cbbea"),
+}
+
+enum : GUID
+{
+    WMMEDIASUBTYPE_PCM              = GUID("00000001-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_DRM              = GUID("00000009-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_WMAudioV9        = GUID("00000162-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_WMAudio_Lossless = GUID("00000163-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_MSS2             = GUID("3253534d-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_WMSP1            = GUID("0000000a-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_WMSP2            = GUID("0000000b-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_WMV3             = GUID("33564d57-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_WMVP             = GUID("50564d57-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_WVP2             = GUID("32505657-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_WMVA             = GUID("41564d57-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_WVC1             = GUID("31435657-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_WMAudioV8        = GUID("00000161-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_WMAudioV7        = GUID("00000161-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_WMAudioV2        = GUID("00000161-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_ACELPnet         = GUID("00000130-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_MP3              = GUID("00000055-0000-0010-8000-00aa00389b71"),
+    WMMEDIASUBTYPE_WebStream        = GUID("776257d4-c627-41cb-8f81-7ac7ff1c40cc"),
+}
+
+enum : GUID
+{
+    WMMEDIATYPE_Image        = GUID("34a50fd8-8aa5-4386-81fe-a0efe0488e31"),
+    WMMEDIATYPE_FileTransfer = GUID("d9e47579-930e-4427-adfc-ad80f290e470"),
+    WMMEDIATYPE_Text         = GUID("9bba1ea7-5ab2-4829-ba57-0940209bcf3e"),
+}
+
+enum : GUID
+{
+    WMFORMAT_MPEG2Video   = GUID("e06d80e3-db46-11cf-b4d1-00805f6cbbea"),
+    WMFORMAT_WaveFormatEx = GUID("05589f81-c356-11ce-bf01-00aa0055595a"),
+    WMFORMAT_Script       = GUID("5c8510f2-debe-4ca7-bba5-f07a104f8dff"),
+    WMFORMAT_WebStream    = GUID("da1e6b13-8359-4050-b398-388e965bf00c"),
+}
+
+enum : GUID
+{
+    WM_SampleExtensionGUID_OutputCleanPoint     = GUID("f72a3c6f-6eb4-4ebc-b192-09ad9759e828"),
+    WM_SampleExtensionGUID_Timecode             = GUID("399595ec-8667-4e2d-8fdb-98814ce76c1e"),
+    WM_SampleExtensionGUID_ChromaLocation       = GUID("4c5acca0-9276-4b2c-9e4c-a0edefdd217e"),
+    WM_SampleExtensionGUID_ColorSpaceInfo       = GUID("f79ada56-30eb-4f2b-9f7a-f24b139a1157"),
+    WM_SampleExtensionGUID_UserDataInfo         = GUID("732bb4fa-78be-4549-99bd-02db1a55b7a8"),
+    WM_SampleExtensionGUID_FileName             = GUID("e165ec0e-19ed-45d7-b4a7-25cbd1e28e9b"),
+    WM_SampleExtensionGUID_ContentType          = GUID("d590dc20-07bc-436c-9cf7-f3bbfbf1a4dc"),
+    WM_SampleExtensionGUID_PixelAspectRatio     = GUID("1b1ee554-f9ea-4bc8-821a-376b74e4c4b8"),
+    WM_SampleExtensionGUID_SampleDuration       = GUID("c6bd9450-867f-4907-83a3-c77921b733ad"),
+    WM_SampleExtensionGUID_SampleProtectionSalt = GUID("5403deee-b9ee-438f-aa83-3804997e569d"),
+}
+
+enum : GUID
+{
+    CLSID_WMMUTEX_Bitrate      = GUID("d6e22a01-35da-11d1-9034-00a0c90349be"),
+    CLSID_WMMUTEX_Presentation = GUID("d6e22a02-35da-11d1-9034-00a0c90349be"),
+    CLSID_WMMUTEX_Unknown      = GUID("d6e22a03-35da-11d1-9034-00a0c90349be"),
+}
+
+enum GUID CLSID_WMBandwidthSharing_Partial = GUID("af6060ab-5197-11d2-b6af-00c04fd908e9");
+enum GUID WMT_DMOCATEGORY_VIDEO_WATERMARK = GUID("187cc922-8efc-4404-9daf-63f4830df1bc");
+
 // Structs
 
 
@@ -953,24 +1042,24 @@ struct WM_READER_CLIENTINFO
     ///Size of the structure in bytes.
     uint    cbSize;
     ///Two-letter or three-letter language code.
-    ushort* wszLang;
+    PWSTR   wszLang;
     ///The browser's user-agent string.
-    ushort* wszBrowserUserAgent;
+    PWSTR   wszBrowserUserAgent;
     ///Web page that contains the plug-in.
-    ushort* wszBrowserWebPage;
+    PWSTR   wszBrowserWebPage;
     ///Reserved.
     ulong   qwReserved;
     ///Unused. See Remarks.
     LPARAM* pReserved;
     ///Host application's .exe file; for example, Iexplore.exe.
-    ushort* wszHostExe;
+    PWSTR   wszHostExe;
     ///Version number of the host application. The value is four unsigned <b>WORD</b> values packed into a 64-bit
     ///integer. When the client information is logged, each <b>WORD</b> value is unpacked and translated into its
     ///decimal equivalent. For example, if the value is 0x0001000200030004, the version number is logged as "1.2.3.4".
     ulong   qwHostVersion;
     ///String identifying the player application. For example, "WMPlayer/9.0.0.0" identifies version 9 of the Windows
     ///Media Player.
-    ushort* wszPlayerUserAgent;
+    PWSTR   wszPlayerUserAgent;
 }
 
 ///The <b>WM_CLIENT_PROPERTIES </b>structure records information about the client.
@@ -986,13 +1075,13 @@ struct WM_CLIENT_PROPERTIES
 struct WM_CLIENT_PROPERTIES_EX
 {
     ///<b>DWORD</b> containing the size of the structure.
-    uint          cbSize;
+    uint         cbSize;
     ///String containing the client's IP address in dot notation (for example, "192.168.10.2").
-    const(wchar)* pwszIPAddress;
+    const(PWSTR) pwszIPAddress;
     ///String containing the client's port number.
-    const(wchar)* pwszPort;
+    const(PWSTR) pwszPort;
     ///String containing the client's name on the domain name server (DNS), if known.
-    const(wchar)* pwszDNSName;
+    const(PWSTR) pwszDNSName;
 }
 
 ///The <b>WM_PORT_NUMBER_RANGE</b> structure describes the range of port numbers used by the
@@ -1098,7 +1187,7 @@ struct WM_PICTURE
 align (1):
     ///Pointer to a wide-character null-terminated string containing the multipurpose Internet mail extension (MIME)
     ///type of the picture.
-    const(wchar)* pwszMIMEType;
+    PWSTR  pwszMIMEType;
     ///<b>BYTE</b> value containing one of the following values.<table> <tr> <th>Value</th> <th>Description</th> </tr>
     ///<tr> <td>0</td> <td>Picture of a type not specifically listed in this table</td> </tr> <tr> <td>1</td> <td>32
     ///pixel by 32 pixel file icon. Use only with portable network graphics (PNG) format</td> </tr> <tr> <td>2</td>
@@ -1114,13 +1203,13 @@ align (1):
     ///<td>17</td> <td>A bright colored fish</td> </tr> <tr> <td>18</td> <td>Illustration</td> </tr> <tr> <td>19</td>
     ///<td>Logo of the band or artist</td> </tr> <tr> <td>20</td> <td>Logo of the publisher or studio</td> </tr>
     ///</table>
-    ubyte         bPictureType;
+    ubyte  bPictureType;
     ///Pointer to a wide-character null-terminated string containing a description of the picture.
-    const(wchar)* pwszDescription;
+    PWSTR  pwszDescription;
     ///<b>DWORD</b> value containing the size, in bytes, of the picture data pointed to by <b>pbData</b>.
-    uint          dwDataLen;
+    uint   dwDataLen;
     ///Pointer to a <b>BYTE</b> array containing the picture data.
-    ubyte*        pbData;
+    ubyte* pbData;
 }
 
 ///The <b>WM_SYNCHRONISED_LYRICS</b> structure is used as the data item for the WM/Lyrics_Synchronised complex metadata
@@ -1132,7 +1221,7 @@ align (1):
     ///<th>Value</th> <th>Description</th> </tr> <tr> <td>1</td> <td>Time stamps are 32-bit values containing the
     ///absolute time of the lyric in frame numbers.</td> </tr> <tr> <td>2</td> <td>Time stamps are 32-bit values
     ///containing the absolute time of the lyric in milliseconds.</td> </tr> </table>
-    ubyte         bTimeStampFormat;
+    ubyte  bTimeStampFormat;
     ///<b>BYTE</b> specifying the type of synchronized strings that are in the lyrics data. Set to one of the following
     ///values.<table> <tr> <th>Value</th> <th>Description</th> </tr> <tr> <td>0</td> <td>Synchronized strings other than
     ///the types listed in this table</td> </tr> <tr> <td>1</td> <td>Song lyrics</td> </tr> <tr> <td>2</td> <td>Text
@@ -1140,17 +1229,17 @@ align (1):
     ///pieces, like "Adagio"</td> </tr> <tr> <td>4</td> <td>Events, such as stage directions in operas</td> </tr> <tr>
     ///<td>5</td> <td>Chord notations</td> </tr> <tr> <td>6</td> <td>Trivia information</td> </tr> <tr> <td>7</td>
     ///<td>URLs to Web pages</td> </tr> <tr> <td>8</td> <td>URLs to images</td> </tr> </table>
-    ubyte         bContentType;
+    ubyte  bContentType;
     ///Pointer to a wide-character null-terminated string containing data from the encoding application. An individual
     ///application can use this member in any way desired.
-    const(wchar)* pwszContentDescriptor;
+    PWSTR  pwszContentDescriptor;
     ///<b>DWORD</b> containing the length, in bytes, of the lyric data pointed to by <b>pbLyrics</b>.
-    uint          dwLyricsLen;
+    uint   dwLyricsLen;
     ///Pointer to a <b>BYTE</b> array containing the lyrics. You can break the lyrics into syllables, or divide them in
     ///some other way that suits the needs of your application. Each syllable or part is included as a null-terminated,
     ///wide-character string followed by a 32-bit time stamp. The unit of measurement for the time stamp is determined
     ///by the value of <b>bTimeStampFormat</b>.
-    ubyte*        pbLyrics;
+    ubyte* pbLyrics;
 }
 
 ///The <b>WM_USER_WEB_URL</b> structure is used as the data item for the WM/UserWebURL complex metadata attribute.
@@ -1159,9 +1248,9 @@ struct WM_USER_WEB_URL
 align (1):
     ///Pointer to a wide-character null-terminated string containing the description of the Web site pointed to by the
     ///URL.
-    const(wchar)* pwszDescription;
+    PWSTR pwszDescription;
     ///Pointer to a wide-character null-terminated string containing the URL.
-    const(wchar)* pwszURL;
+    PWSTR pwszURL;
 }
 
 ///The <b>WM_USER_TEXT</b> structure is used as the data item for the WM/Text complex metadata attribute.
@@ -1169,9 +1258,9 @@ struct WM_USER_TEXT
 {
 align (1):
     ///Pointer to a wide-character null-terminated string containing the description of the text entry.
-    const(wchar)* pwszDescription;
+    PWSTR pwszDescription;
     ///Pointer to a wide-character null-terminated string containing the text.
-    const(wchar)* pwszText;
+    PWSTR pwszText;
 }
 
 ///The <b>WM_LEAKY_BUCKET_PAIR </b>structure describes the buffering requirements for a VBR file. This structure is used
@@ -1202,11 +1291,11 @@ struct WMT_WATERMARK_ENTRY
     ///A value from the <b>WMT_WATERMARK_ENTRY_TYPE</b> enumeration type specifying the type of watermarking system.
     WMT_WATERMARK_ENTRY_TYPE wmetType;
     ///GUID value identifying the watermarking system.
-    GUID          clsid;
+    GUID  clsid;
     ///The size of display name in wide characters.
-    uint          cbDisplayName;
+    uint  cbDisplayName;
     ///Pointer to a wide-character null-terminated string containing the display name.
-    const(wchar)* pwszDisplayName;
+    PWSTR pwszDisplayName;
 }
 
 ///<p class="CCE_Message">[This structure is no longer available for use as of the Windows Media Video 9 Image v2 codec.
@@ -1662,7 +1751,7 @@ struct DRM_COPY_OPL
 ///    </td> </tr> </table>
 ///    
 @DllImport("WMVCore")
-HRESULT WMIsContentProtected(const(wchar)* pwszFileName, int* pfIsProtected);
+HRESULT WMIsContentProtected(const(PWSTR) pwszFileName, BOOL* pfIsProtected);
 
 ///The <b>WMCreateWriter</b> function creates a writer object.
 ///Params:
@@ -2232,7 +2321,7 @@ interface IWMWriter : IUnknown
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>NS_E_INVALID_STATE</b></dt> </dl> </td> <td width="60%"> The
     ///    writer is not in a configurable state. </td> </tr> </table>
     ///    
-    HRESULT SetOutputFilename(const(wchar)* pwszFilename);
+    HRESULT SetOutputFilename(const(PWSTR) pwszFilename);
     ///The <b>GetInputCount</b> method retrieves the number of uncompressed input streams.
     ///Params:
     ///    pcInputs = Pointer to a count of inputs.
@@ -2411,7 +2500,7 @@ interface IWMDRMWriter : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT GenerateKeySeed(ushort* pwszKeySeed, uint* pcwchLength);
+    HRESULT GenerateKeySeed(PWSTR pwszKeySeed, uint* pcwchLength);
     ///<p class="CCE_Message">[<b>GenerateKeyID</b> is available for use in the operating systems specified in the
     ///Requirements section. It may be altered or unavailable in subsequent versions. Instead, use Microsoft PlayReady.
     ///] The <b>GenerateKeyID</b> method generates a DRM key ID.
@@ -2423,7 +2512,7 @@ interface IWMDRMWriter : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT GenerateKeyID(ushort* pwszKeyID, uint* pcwchLength);
+    HRESULT GenerateKeyID(PWSTR pwszKeyID, uint* pcwchLength);
     ///<p class="CCE_Message">[<b>GenerateSigningKeyPair</b> is available for use in the operating systems specified in
     ///the Requirements section. It may be altered or unavailable in subsequent versions. Instead, use Microsoft
     ///PlayReady. ] The <b>GenerateSigningKeyPair</b> method generates a public and private key pair that are used to
@@ -2443,7 +2532,7 @@ interface IWMDRMWriter : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT GenerateSigningKeyPair(ushort* pwszPrivKey, uint* pcwchPrivKeyLength, ushort* pwszPubKey, 
+    HRESULT GenerateSigningKeyPair(PWSTR pwszPrivKey, uint* pcwchPrivKeyLength, PWSTR pwszPubKey, 
                                    uint* pcwchPubKeyLength);
     ///<p class="CCE_Message">[<b>SetDRMAttribute</b> is available for use in the operating systems specified in the
     ///Requirements section. It may be altered or unavailable in subsequent versions. Instead, use Microsoft PlayReady.
@@ -2457,7 +2546,7 @@ interface IWMDRMWriter : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT SetDRMAttribute(ushort wStreamNum, const(wchar)* pszName, WMT_ATTR_DATATYPE Type, const(ubyte)* pValue, 
+    HRESULT SetDRMAttribute(ushort wStreamNum, const(PWSTR) pszName, WMT_ATTR_DATATYPE Type, const(ubyte)* pValue, 
                             ushort cbLength);
 }
 
@@ -2534,7 +2623,7 @@ interface IWMInputMediaProps : IWMMediaProps
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ASF_E_BUFFERTOOSMALL</b></dt> </dl> </td> <td width="60%"> The
     ///    <i>pwszName</i> parameter is not large enough. </td> </tr> </table>
     ///    
-    HRESULT GetConnectionName(ushort* pwszName, ushort* pcchName);
+    HRESULT GetConnectionName(PWSTR pwszName, ushort* pcchName);
     ///The <b>GetGroupName</b> method is not implemented, and returns an empty string.
     ///Params:
     ///    pwszName = Pointer to a wide-character <b>null</b>-terminated string containing the name. Pass <b>NULL</b> to retrieve
@@ -2550,7 +2639,7 @@ interface IWMInputMediaProps : IWMMediaProps
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ASF_E_BUFFERTOOSMALL</b></dt> </dl> </td> <td width="60%"> The
     ///    <i>pwszName</i> parameter is not large enough. </td> </tr> </table>
     ///    
-    HRESULT GetGroupName(ushort* pwszName, ushort* pcchName);
+    HRESULT GetGroupName(PWSTR pwszName, ushort* pcchName);
 }
 
 ///The <b>IWMPropertyVault</b> interface provides methods to store and retrieve properties. Currently, you can use this
@@ -2589,7 +2678,7 @@ interface IWMPropertyVault : IUnknown
     ///    width="40%"> <dl> <dt><b>ASF_E_BUFFERTOOSMALL</b></dt> </dl> </td> <td width="60%"> <i>pdwSize</i> specifies
     ///    a size for <i>pValue</i> that is not large enough to hold the data. </td> </tr> </table>
     ///    
-    HRESULT GetPropertyByName(const(wchar)* pszName, WMT_ATTR_DATATYPE* pType, ubyte* pValue, uint* pdwSize);
+    HRESULT GetPropertyByName(const(PWSTR) pszName, WMT_ATTR_DATATYPE* pType, ubyte* pValue, uint* pdwSize);
     ///The <b>SetProperty</b> method sets the values for a property. If the property named already exists in the
     ///property vault, <b>SetProperty</b> changes its value as specified. If the property named does not exist,
     ///<b>SetProperty</b> adds it to the property vault.
@@ -2638,7 +2727,7 @@ interface IWMPropertyVault : IUnknown
     ///    allocate memory for a new property. OR The method cannot allocate memory for a new value. </td> </tr>
     ///    </table>
     ///    
-    HRESULT SetProperty(const(wchar)* pszName, WMT_ATTR_DATATYPE pType, ubyte* pValue, uint dwSize);
+    HRESULT SetProperty(const(PWSTR) pszName, WMT_ATTR_DATATYPE pType, ubyte* pValue, uint dwSize);
     ///The <b>GetPropertyByIndex</b> method retrieves a property from the vault by its index value.
     ///Params:
     ///    dwIndex = <b>DWORD</b> containing the property index.
@@ -2660,7 +2749,7 @@ interface IWMPropertyVault : IUnknown
     ///    <dt><b>ASF_E_BUFFERTOOSMALL</b></dt> </dl> </td> <td width="60%"> One of the buffers (<i>pszName</i> or
     ///    <i>pValue</i>) is not big enough to hold the property information. </td> </tr> </table>
     ///    
-    HRESULT GetPropertyByIndex(uint dwIndex, const(wchar)* pszName, uint* pdwNameLen, WMT_ATTR_DATATYPE* pType, 
+    HRESULT GetPropertyByIndex(uint dwIndex, PWSTR pszName, uint* pdwNameLen, WMT_ATTR_DATATYPE* pType, 
                                ubyte* pValue, uint* pdwSize);
     ///The <b>CopyPropertiesFrom</b> method copies all of the properties from another property vault to this one.
     ///Params:
@@ -2712,7 +2801,7 @@ interface IWMIStreamProps : IUnknown
     ///    width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> <i>pszName</i> specifies an invalid
     ///    property name. </td> </tr> </table>
     ///    
-    HRESULT GetProperty(const(wchar)* pszName, WMT_ATTR_DATATYPE* pType, ubyte* pValue, uint* pdwSize);
+    HRESULT GetProperty(const(PWSTR) pszName, WMT_ATTR_DATATYPE* pType, ubyte* pValue, uint* pdwSize);
 }
 
 ///The <b>IWMReader</b> interface is used to open, close, start, pause, resume, and unlock the <b>WMReader</b> object.
@@ -2738,7 +2827,7 @@ interface IWMReader : IUnknown
     ///    not enough available memory. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_UNEXPECTED</b></dt> </dl> </td>
     ///    <td width="60%"> The method failed for an unspecified reason. </td> </tr> </table>
     ///    
-    HRESULT Open(const(wchar)* pwszURL, IWMReaderCallback pCallback, void* pvContext);
+    HRESULT Open(const(PWSTR) pwszURL, IWMReaderCallback pCallback, void* pvContext);
     ///The <b>Close</b> method deletes all outputs on the reader and releases the file resources.
     ///Returns:
     ///    The method returns an <b>HRESULT</b>. Possible values include, but are not limited to, those in the following
@@ -2881,7 +2970,7 @@ interface IWMSyncReader : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT Open(const(wchar)* pwszFilename);
+    HRESULT Open(const(PWSTR) pwszFilename);
     ///The <b>Close</b> method removes a file from the synchronous reader.
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an <b>HRESULT</b> error code.
@@ -3020,7 +3109,7 @@ interface IWMSyncReader : IUnknown
     ///    <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> No file is open in the synchronous reader. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetReadStreamSamples(ushort wStreamNum, int* pfCompressed);
+    HRESULT GetReadStreamSamples(ushort wStreamNum, BOOL* pfCompressed);
     ///The <b>GetOutputSetting</b> method retrieves a setting for a particular output by name.
     ///Params:
     ///    dwOutputNum = <b>DWORD</b> containing the output number.
@@ -3045,7 +3134,7 @@ interface IWMSyncReader : IUnknown
     ///    <dt><b>NS_E_INVALID_REQUEST</b></dt> </dl> </td> <td width="60%"> <i>pszName</i> specifies an unsupported
     ///    setting. </td> </tr> </table>
     ///    
-    HRESULT GetOutputSetting(uint dwOutputNum, const(wchar)* pszName, WMT_ATTR_DATATYPE* pType, ubyte* pValue, 
+    HRESULT GetOutputSetting(uint dwOutputNum, const(PWSTR) pszName, WMT_ATTR_DATATYPE* pType, ubyte* pValue, 
                              ushort* pcbLength);
     ///The <b>SetOutputSetting</b> method specifies a named setting for a particular output.
     ///Params:
@@ -3067,7 +3156,7 @@ interface IWMSyncReader : IUnknown
     ///    </tr> <tr> <td width="40%"> <dl> <dt><b>NS_E_INVALID_REQUEST</b></dt> </dl> </td> <td width="60%">
     ///    <i>pszName</i> specifies an unsupported setting. </td> </tr> </table>
     ///    
-    HRESULT SetOutputSetting(uint dwOutputNum, const(wchar)* pszName, WMT_ATTR_DATATYPE Type, const(ubyte)* pValue, 
+    HRESULT SetOutputSetting(uint dwOutputNum, const(PWSTR) pszName, WMT_ATTR_DATATYPE Type, const(ubyte)* pValue, 
                              ushort cbLength);
     ///The <b>GetOutputCount</b> method retrieves the number of outputs that exist for the file open in the synchronous
     ///reader.
@@ -3300,7 +3389,7 @@ interface IWMOutputMediaProps : IWMMediaProps
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ASF_E_BUFFERTOOSMALL</b></dt> </dl> </td> <td width="60%"> The
     ///    buffer pointed to by the <i>pwszName</i> parameter is not large enough. </td> </tr> </table>
     ///    
-    HRESULT GetStreamGroupName(ushort* pwszName, ushort* pcchName);
+    HRESULT GetStreamGroupName(PWSTR pwszName, ushort* pcchName);
     ///The <b>GetConnectionName</b> method retrieves the name of the connection to be used for output.
     ///Params:
     ///    pwszName = Pointer to a wide-character <b>null</b>-terminated string containing the name. Pass <b>NULL</b> to retrieve
@@ -3316,7 +3405,7 @@ interface IWMOutputMediaProps : IWMMediaProps
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ASF_E_BUFFERTOOSMALL</b></dt> </dl> </td> <td width="60%"> The
     ///    buffer pointed to by <i>pcchName</i> is not large enough for the requested name. </td> </tr> </table>
     ///    
-    HRESULT GetConnectionName(ushort* pwszName, ushort* pcchName);
+    HRESULT GetConnectionName(PWSTR pwszName, ushort* pcchName);
 }
 
 ///The <b>IWMStatusCallback</b> interface is implemented by the application to receive status information from various
@@ -3407,8 +3496,8 @@ interface IWMCredentialCallback : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT AcquireCredentials(ushort* pwszRealm, ushort* pwszSite, ushort* pwszUser, uint cchUser, 
-                               ushort* pwszPassword, uint cchPassword, HRESULT hrStatus, uint* pdwFlags);
+    HRESULT AcquireCredentials(PWSTR pwszRealm, PWSTR pwszSite, PWSTR pwszUser, uint cchUser, PWSTR pwszPassword, 
+                               uint cchPassword, HRESULT hrStatus, uint* pdwFlags);
 }
 
 ///The <b>IWMMetadataEditor</b> interface is used to edit metadata information in ASF file headers. It is obtained by
@@ -3429,7 +3518,7 @@ interface IWMMetadataEditor : IUnknown
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> There is not enough available memory. </td> </tr>
     ///    </table>
     ///    
-    HRESULT Open(const(wchar)* pwszFilename);
+    HRESULT Open(const(PWSTR) pwszFilename);
     ///The <b>Close</b> method closes the open file without saving any changes.
     ///Returns:
     ///    This method always returns S_OK.
@@ -3477,7 +3566,7 @@ interface IWMMetadataEditor2 : IWMMetadataEditor
     ///    file sharing. OR Read access has been requested without indicating read-and-delete file sharing. OR The
     ///    access mode requested is not available with this method. </td> </tr> </table>
     ///    
-    HRESULT OpenEx(const(wchar)* pwszFilename, uint dwDesiredAccess, uint dwShareMode);
+    HRESULT OpenEx(const(PWSTR) pwszFilename, uint dwDesiredAccess, uint dwShareMode);
 }
 
 ///<p class="CCE_Message">[<b>IWMDRMEditor</b> is available for use in the operating systems specified in the
@@ -3501,7 +3590,7 @@ interface IWMDRMEditor : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT GetDRMProperty(const(wchar)* pwstrName, WMT_ATTR_DATATYPE* pdwType, ubyte* pValue, ushort* pcbLength);
+    HRESULT GetDRMProperty(const(PWSTR) pwstrName, WMT_ATTR_DATATYPE* pdwType, ubyte* pValue, ushort* pcbLength);
 }
 
 ///The <b>IWMHeaderInfo</b> interface sets and retrieves information in the header section of an ASF file. You can
@@ -3573,7 +3662,7 @@ interface IWMHeaderInfo : IUnknown
     ///    contain the attribute value. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ASF_E_NOTFOUND</b></dt> </dl>
     ///    </td> <td width="60%"> There is no attribute at <i>wIndex</i>. </td> </tr> </table>
     ///    
-    HRESULT GetAttributeByIndex(ushort wIndex, ushort* pwStreamNum, ushort* pwszName, ushort* pcchNameLen, 
+    HRESULT GetAttributeByIndex(ushort wIndex, ushort* pwStreamNum, PWSTR pwszName, ushort* pcchNameLen, 
                                 WMT_ATTR_DATATYPE* pType, ubyte* pValue, ushort* pcbLength);
     ///The <b>GetAttributeByName</b> method returns a descriptive attribute that is stored in the header section of the
     ///ASF file. Now that attribute names can be duplicated in a file, this method is obsolete. To find attributes of a
@@ -3603,7 +3692,7 @@ interface IWMHeaderInfo : IUnknown
     ///    unspecified reason. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>NS_E_INVALID_STATE</b></dt> </dl> </td> <td
     ///    width="60%"> The object is not in a configurable state, or no profile has been set. </td> </tr> </table>
     ///    
-    HRESULT GetAttributeByName(ushort* pwStreamNum, const(wchar)* pszName, WMT_ATTR_DATATYPE* pType, ubyte* pValue, 
+    HRESULT GetAttributeByName(ushort* pwStreamNum, const(PWSTR) pszName, WMT_ATTR_DATATYPE* pType, ubyte* pValue, 
                                ushort* pcbLength);
     ///The <b>SetAttribute</b> method sets a descriptive attribute that is stored in the header section of the ASF file.
     ///This method is replaced by IWMHeaderInfo3::AddAttribute, and should not be used.
@@ -3625,7 +3714,7 @@ interface IWMHeaderInfo : IUnknown
     ///    <dt><b>NS_E_INVALID_STATE</b></dt> </dl> </td> <td width="60%"> The object is not in a configurable state, or
     ///    no profile has been set. </td> </tr> </table>
     ///    
-    HRESULT SetAttribute(ushort wStreamNum, const(wchar)* pszName, WMT_ATTR_DATATYPE Type, const(ubyte)* pValue, 
+    HRESULT SetAttribute(ushort wStreamNum, const(PWSTR) pszName, WMT_ATTR_DATATYPE Type, const(ubyte)* pValue, 
                          ushort cbLength);
     ///The <b>GetMarkerCount</b> method returns the number of markers currently in the header section of the ASF file.
     ///Params:
@@ -3660,7 +3749,7 @@ interface IWMHeaderInfo : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> The method failed for an
     ///    unspecified reason. </td> </tr> </table>
     ///    
-    HRESULT GetMarker(ushort wIndex, ushort* pwszMarkerName, ushort* pcchMarkerNameLen, ulong* pcnsMarkerTime);
+    HRESULT GetMarker(ushort wIndex, PWSTR pwszMarkerName, ushort* pcchMarkerNameLen, ulong* pcnsMarkerTime);
     ///The <b>AddMarker</b> method adds a marker, consisting of a name and a specific time, to the header section of the
     ///ASF file.
     ///Params:
@@ -3677,7 +3766,7 @@ interface IWMHeaderInfo : IUnknown
     ///    <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> The method failed for an unspecified reason. </td>
     ///    </tr> </table>
     ///    
-    HRESULT AddMarker(const(wchar)* pwszMarkerName, ulong cnsMarkerTime);
+    HRESULT AddMarker(PWSTR pwszMarkerName, ulong cnsMarkerTime);
     ///The <b>RemoveMarker</b> method removes a marker from the header section of the ASF file.
     ///Params:
     ///    wIndex = <b>WORD</b> containing the index of the marker.
@@ -3736,7 +3825,7 @@ interface IWMHeaderInfo : IUnknown
     ///    <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> The method failed for an unspecified reason. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetScript(ushort wIndex, ushort* pwszType, ushort* pcchTypeLen, ushort* pwszCommand, 
+    HRESULT GetScript(ushort wIndex, PWSTR pwszType, ushort* pcchTypeLen, PWSTR pwszCommand, 
                       ushort* pcchCommandLen, ulong* pcnsScriptTime);
     ///The <b>AddScript</b> method adds a script, consisting of type and command strings, and a specific time, to the
     ///header section of the ASF file.
@@ -3757,7 +3846,7 @@ interface IWMHeaderInfo : IUnknown
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> The method
     ///    failed for an unspecified reason. </td> </tr> </table>
     ///    
-    HRESULT AddScript(const(wchar)* pwszType, const(wchar)* pwszCommand, ulong cnsScriptTime);
+    HRESULT AddScript(PWSTR pwszType, PWSTR pwszCommand, ulong cnsScriptTime);
     ///The <b>RemoveScript</b> method enables the object to remove a script from the header section of the ASF file.
     ///Params:
     ///    wIndex = <b>WORD</b> containing the index of the script.
@@ -3806,8 +3895,8 @@ interface IWMHeaderInfo2 : IWMHeaderInfo
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT GetCodecInfo(uint wIndex, ushort* pcchName, ushort* pwszName, ushort* pcchDescription, 
-                         ushort* pwszDescription, WMT_CODEC_INFO_TYPE* pCodecType, ushort* pcbCodecInfo, 
+    HRESULT GetCodecInfo(uint wIndex, ushort* pcchName, PWSTR pwszName, ushort* pcchDescription, 
+                         PWSTR pwszDescription, WMT_CODEC_INFO_TYPE* pCodecType, ushort* pcbCodecInfo, 
                          ubyte* pbCodecInfo);
 }
 
@@ -3863,7 +3952,7 @@ interface IWMHeaderInfo3 : IWMHeaderInfo2
     ///    valid language index, or <i>pwszName</i> is not a valid name. </td> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> A pointer is not valid. </td> </tr> </table>
     ///    
-    HRESULT GetAttributeIndices(ushort wStreamNum, const(wchar)* pwszName, ushort* pwLangIndex, ushort* pwIndices, 
+    HRESULT GetAttributeIndices(ushort wStreamNum, const(PWSTR) pwszName, ushort* pwLangIndex, ushort* pwIndices, 
                                 ushort* pwCount);
     ///The <b>GetAttributeByIndexEx</b> method retrieves the value of an attribute specified by the attribute index. You
     ///can use this method in conjunction with the GetAttributeCountEx method to retrieve all of the attributes
@@ -3894,7 +3983,7 @@ interface IWMHeaderInfo3 : IWMHeaderInfo2
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> A pointer is
     ///    not valid. </td> </tr> </table>
     ///    
-    HRESULT GetAttributeByIndexEx(ushort wStreamNum, ushort wIndex, const(wchar)* pwszName, ushort* pwNameLen, 
+    HRESULT GetAttributeByIndexEx(ushort wStreamNum, ushort wIndex, PWSTR pwszName, ushort* pwNameLen, 
                                   WMT_ATTR_DATATYPE* pType, ushort* pwLangIndex, ubyte* pValue, uint* pdwDataLength);
     ///The <b>ModifyAttribute</b> method modifies the settings of an existing attribute.
     ///Params:
@@ -3950,7 +4039,7 @@ interface IWMHeaderInfo3 : IWMHeaderInfo2
     ///    <i>dwLength</i> is too small. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>NS_E_INVALID_REQUEST</b></dt>
     ///    </dl> </td> <td width="60%"> <i>wStreamNum</i> is not a valid stream number. </td> </tr> </table>
     ///    
-    HRESULT AddAttribute(ushort wStreamNum, const(wchar)* pszName, ushort* pwIndex, WMT_ATTR_DATATYPE Type, 
+    HRESULT AddAttribute(ushort wStreamNum, const(PWSTR) pszName, ushort* pwIndex, WMT_ATTR_DATATYPE Type, 
                          ushort wLangIndex, const(ubyte)* pValue, uint dwLength);
     ///The <b>DeleteAttribute</b> method removes an attribute from the file header.
     ///Params:
@@ -3980,8 +4069,8 @@ interface IWMHeaderInfo3 : IWMHeaderInfo2
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT AddCodecInfo(const(wchar)* pwszName, const(wchar)* pwszDescription, WMT_CODEC_INFO_TYPE codecType, 
-                         ushort cbCodecInfo, ubyte* pbCodecInfo);
+    HRESULT AddCodecInfo(PWSTR pwszName, PWSTR pwszDescription, WMT_CODEC_INFO_TYPE codecType, ushort cbCodecInfo, 
+                         ubyte* pbCodecInfo);
 }
 
 ///The <b>IWMProfileManager</b> interface is used to create profiles, load existing profiles, and save profiles. It can
@@ -4041,7 +4130,7 @@ interface IWMProfileManager : IUnknown
     ///    </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Either the
     ///    <i>ppProfile</i> or <i>pwszProfile</i> parameter is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT LoadProfileByData(const(wchar)* pwszProfile, IWMProfile* ppProfile);
+    HRESULT LoadProfileByData(const(PWSTR) pwszProfile, IWMProfile* ppProfile);
     ///The <b>SaveProfile</b> method saves a profile into an XML-formatted string.
     ///Params:
     ///    pIWMProfile = Pointer to the IWMProfile interface of the object containing the profile data to be saved.
@@ -4058,7 +4147,7 @@ interface IWMProfileManager : IUnknown
     ///    </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Either the
     ///    <i>pIWMProfile</i> or <i>pdwLength</i> parameter is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT SaveProfile(IWMProfile pIWMProfile, ushort* pwszProfile, uint* pdwLength);
+    HRESULT SaveProfile(IWMProfile pIWMProfile, PWSTR pwszProfile, uint* pdwLength);
     ///The <b>GetSystemProfileCount</b> method retrieves the number of system profiles.
     ///Params:
     ///    pcProfiles = Pointer to a count of the system profiles.
@@ -4193,7 +4282,7 @@ interface IWMProfile : IUnknown
     ///    <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> The method failed for an unspecified reason. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetName(ushort* pwszName, uint* pcchName);
+    HRESULT GetName(PWSTR pwszName, uint* pcchName);
     ///The <b>SetName</b> method specifies the name of a profile.
     ///Params:
     ///    pwszName = Pointer to a wide-character <b>null</b>-terminated string containing the name. Profile names are limited to
@@ -4205,7 +4294,7 @@ interface IWMProfile : IUnknown
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The <i>pwszName</i> parameter is <b>NULL</b>.
     ///    </td> </tr> </table>
     ///    
-    HRESULT SetName(const(wchar)* pwszName);
+    HRESULT SetName(const(PWSTR) pwszName);
     ///The <b>GetDescription</b> method retrieves the profile description. The description is a string that contains an
     ///explanation of what the profile should be used for.
     ///Params:
@@ -4224,7 +4313,7 @@ interface IWMProfile : IUnknown
     ///    width="40%"> <dl> <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> The method failed for an
     ///    unspecified reason. </td> </tr> </table>
     ///    
-    HRESULT GetDescription(ushort* pwszDescription, uint* pcchDescription);
+    HRESULT GetDescription(PWSTR pwszDescription, uint* pcchDescription);
     ///The <b>SetDescription</b> method specifies the description of a profile. The description is a string that
     ///contains an explanation of what the profile should be used for.
     ///Params:
@@ -4237,7 +4326,7 @@ interface IWMProfile : IUnknown
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The <i>pwszDescription</i> parameter is
     ///    <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT SetDescription(const(wchar)* pwszDescription);
+    HRESULT SetDescription(const(PWSTR) pwszDescription);
     ///The <b>GetStreamCount</b> method retrieves the number of streams in a profile.
     ///Params:
     ///    pcStreams = Pointer to a count of streams.
@@ -4662,7 +4751,7 @@ interface IWMStreamConfig : IUnknown
     ///    width="60%"> The name value contained in the <i>pcchStreamName</i> parameter is too large for the
     ///    <i>pwszStreamName</i> array. </td> </tr> </table>
     ///    
-    HRESULT GetStreamName(ushort* pwszStreamName, ushort* pcchStreamName);
+    HRESULT GetStreamName(PWSTR pwszStreamName, ushort* pcchStreamName);
     ///The <b>SetStreamName</b> method assigns a name to the stream represented by the stream configuration object.
     ///Params:
     ///    pwszStreamName = Pointer to a wide-character <b>null</b>-terminated string containing the stream name. Stream names are
@@ -4674,7 +4763,7 @@ interface IWMStreamConfig : IUnknown
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The <i>pwszStreamName</i> parameter is
     ///    <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT SetStreamName(const(wchar)* pwszStreamName);
+    HRESULT SetStreamName(PWSTR pwszStreamName);
     ///The <b>GetConnectionName</b> method retrieves the input name given to the stream.
     ///Params:
     ///    pwszInputName = Pointer to a wide-character <b>null</b>-terminated string containing the input name. Pass <b>NULL</b> to
@@ -4691,7 +4780,7 @@ interface IWMStreamConfig : IUnknown
     ///    width="60%"> The name value contained in the <i>pcchInputName</i> parameter is too large for the
     ///    <i>pwszInputName</i> array. </td> </tr> </table>
     ///    
-    HRESULT GetConnectionName(ushort* pwszInputName, ushort* pcchInputName);
+    HRESULT GetConnectionName(PWSTR pwszInputName, ushort* pcchInputName);
     ///The <b>SetConnectionName</b> method specifies a name for an input. If the profile you are creating contains
     ///multiple bit rate mutual exclusion, each of the mutually exclusive streams must have the same connection name.
     ///Params:
@@ -4704,7 +4793,7 @@ interface IWMStreamConfig : IUnknown
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The <i>pwszInputName</i> parameter is
     ///    <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT SetConnectionName(const(wchar)* pwszInputName);
+    HRESULT SetConnectionName(PWSTR pwszInputName);
     ///The <b>GetBitrate</b> method retrieves the bit rate for the stream.
     ///Params:
     ///    pdwBitrate = Pointer to a <b>DWORD</b> containing the bit rate, in bits per second.
@@ -4850,14 +4939,14 @@ interface IWMStreamConfig3 : IWMStreamConfig2
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT GetLanguage(ushort* pwszLanguageString, ushort* pcchLanguageStringLength);
+    HRESULT GetLanguage(PWSTR pwszLanguageString, ushort* pcchLanguageStringLength);
     ///The <b>SetLanguage</b> method sets the language for a stream using an RFC1766-compliant string.
     ///Params:
     ///    pwszLanguageString = Pointer to a wide-character null-terminated string containing the language string.
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT SetLanguage(const(wchar)* pwszLanguageString);
+    HRESULT SetLanguage(PWSTR pwszLanguageString);
 }
 
 ///The <b>IWMPacketSize</b> interface controls the maximum size of packets in an ASF file. Its methods are used to
@@ -5026,7 +5115,7 @@ interface IWMMutualExclusion2 : IWMMutualExclusion
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The <i>pcchName</i> parameter is <b>NULL</b>.
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetName(ushort* pwszName, ushort* pcchName);
+    HRESULT GetName(PWSTR pwszName, ushort* pcchName);
     ///The <b>SetName</b> method assigns a name to a mutual exclusion object.
     ///Params:
     ///    pwszName = Pointer to a wide-character null-terminated string containing the name you want to assign.
@@ -5037,7 +5126,7 @@ interface IWMMutualExclusion2 : IWMMutualExclusion
     ///    <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> The method was unable to allocate memory to
     ///    hold the name. </td> </tr> </table>
     ///    
-    HRESULT SetName(const(wchar)* pwszName);
+    HRESULT SetName(PWSTR pwszName);
     ///The <b>GetRecordCount</b> method retrieves the number of records present in the mutual exclusion object.
     ///Params:
     ///    pwRecordCount = Pointer to a <b>WORD</b> containing the number of records that exist in the mutual exclusion object.
@@ -5093,7 +5182,7 @@ interface IWMMutualExclusion2 : IWMMutualExclusion
     ///    <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> The method is unable to access the record for an
     ///    unspecified reason. </td> </tr> </table>
     ///    
-    HRESULT GetRecordName(ushort wRecordNumber, ushort* pwszRecordName, ushort* pcchRecordName);
+    HRESULT GetRecordName(ushort wRecordNumber, PWSTR pwszRecordName, ushort* pcchRecordName);
     ///The <b>SetRecordName</b> method assigns a name to a record. You should assign a name to every record so that you
     ///can easily identify the records in the future.
     ///Params:
@@ -5107,7 +5196,7 @@ interface IWMMutualExclusion2 : IWMMutualExclusion
     ///    <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> The method was unable to allocate memory for
     ///    the name. </td> </tr> </table>
     ///    
-    HRESULT SetRecordName(ushort wRecordNumber, const(wchar)* pwszRecordName);
+    HRESULT SetRecordName(ushort wRecordNumber, PWSTR pwszRecordName);
     ///The <b>GetStreamsForRecord</b> method retrieves the list of streams that are present in a record.
     ///Params:
     ///    wRecordNumber = <b>WORD</b> containing the record number for which to retrieve the streams.
@@ -5376,7 +5465,7 @@ interface IWMWriterAdvanced : IUnknown
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> <i>pfRealTime</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT IsRealTime(int* pfRealTime);
+    HRESULT IsRealTime(BOOL* pfRealTime);
     ///The <b>GetWriterTime</b> method retrieves the clock time that the writer is working to.
     ///Params:
     ///    pcnsCurrentTime = Pointer to a variable containing the current time in 100-nanosecond units.
@@ -5450,7 +5539,7 @@ interface IWMWriterAdvanced2 : IWMWriterAdvanced
     ///    <i>dwInputNum</i> is larger than the number of existing inputs OR <i>pType</i>, <i>pcbLength</i>, or
     ///    <i>pszName</i> is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetInputSetting(uint dwInputNum, const(wchar)* pszName, WMT_ATTR_DATATYPE* pType, ubyte* pValue, 
+    HRESULT GetInputSetting(uint dwInputNum, const(PWSTR) pszName, WMT_ATTR_DATATYPE* pType, ubyte* pValue, 
                             ushort* pcbLength);
     ///The <b>SetInputSetting</b> method specifies a named setting for a particular input.
     ///Params:
@@ -5471,7 +5560,7 @@ interface IWMWriterAdvanced2 : IWMWriterAdvanced
     ///    width="60%"> This setting cannot be changed while the writer is running. </td> </tr> <tr> <td width="40%">
     ///    <dl> <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> Unspecified error. </td> </tr> </table>
     ///    
-    HRESULT SetInputSetting(uint dwInputNum, const(wchar)* pszName, WMT_ATTR_DATATYPE Type, const(ubyte)* pValue, 
+    HRESULT SetInputSetting(uint dwInputNum, const(PWSTR) pszName, WMT_ATTR_DATATYPE Type, const(ubyte)* pValue, 
                             ushort cbLength);
 }
 
@@ -5680,7 +5769,7 @@ interface IWMWriterPostView : IUnknown
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> NULL value passed to
     ///    <i>pfReceivePostViewSamples</i>. </td> </tr> </table>
     ///    
-    HRESULT GetReceivePostViewSamples(ushort wStreamNum, int* pfReceivePostViewSamples);
+    HRESULT GetReceivePostViewSamples(ushort wStreamNum, BOOL* pfReceivePostViewSamples);
     ///The <b>GetPostViewProps</b> method retrieves the properties for the specified output stream.
     ///Params:
     ///    wStreamNumber = <b>WORD</b> containing the stream number.
@@ -5761,7 +5850,7 @@ interface IWMWriterPostView : IUnknown
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> NULL value passed in to <i>pfAllocate</i>.
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetAllocateForPostView(ushort wStreamNumber, int* pfAllocate);
+    HRESULT GetAllocateForPostView(ushort wStreamNumber, BOOL* pfAllocate);
 }
 
 ///The <b>IWMWriterSink</b> interface is the basic interface of all writer sinks, including the file, network, and push
@@ -5788,7 +5877,7 @@ interface IWMWriterSink : IUnknown
     ///Returns:
     ///    This method is implemented by the application. It should always return S_OK.
     ///    
-    HRESULT IsRealTime(int* pfRealTime);
+    HRESULT IsRealTime(BOOL* pfRealTime);
     ///The <b>AllocateDataUnit</b> method is called by the writer object when it needs a buffer to deliver a data unit.
     ///Your implementation of this method returns a buffer of at least the size passed in. You can manage buffers
     ///internally in any way that you like. The simplest method is to create a new buffer object for each call, but
@@ -5861,7 +5950,7 @@ interface IWMWriterFileSink : IWMWriterSink
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>pwszFilename</i> parameter is <b>NULL</b>.
     ///    </td> </tr> </table>
     ///    
-    HRESULT Open(const(wchar)* pwszFilename);
+    HRESULT Open(const(PWSTR) pwszFilename);
 }
 
 ///The <b>IWMWriterFileSink2</b> interface provides extended management of a file sink. This interface can be obtained
@@ -5898,7 +5987,7 @@ interface IWMWriterFileSink2 : IWMWriterFileSink
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The <i>pfStopped</i> parameter is <b>NULL</b>.
     ///    </td> </tr> </table>
     ///    
-    HRESULT IsStopped(int* pfStopped);
+    HRESULT IsStopped(BOOL* pfStopped);
     ///The <b>GetFileDuration</b> method retrieves the duration of the portion of the file that has been written.
     ///Params:
     ///    pcnsDuration = Pointer to variable specifying the duration, in 100-nanosecond units.
@@ -5936,7 +6025,7 @@ interface IWMWriterFileSink2 : IWMWriterFileSink
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The <i>pfClosed</i> parameter is <b>NULL</b>.
     ///    </td> </tr> </table>
     ///    
-    HRESULT IsClosed(int* pfClosed);
+    HRESULT IsClosed(BOOL* pfClosed);
 }
 
 ///The <b>IWMWriterFileSink3</b> interface provides additional functionality to the file sink object. To obtain a
@@ -5969,7 +6058,7 @@ interface IWMWriterFileSink3 : IWMWriterFileSink2
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> <i>pfAutoIndexing</i> is <b>NULL</b>. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetAutoIndexing(int* pfAutoIndexing);
+    HRESULT GetAutoIndexing(BOOL* pfAutoIndexing);
     ///The <b>SetControlStream</b> method enables you to specify that a stream should be used as a control stream. You
     ///can also use this method to indicate that a previously specified control stream should no longer be used as a
     ///control stream.
@@ -6031,7 +6120,7 @@ interface IWMWriterFileSink3 : IWMWriterFileSink2
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>pfUnbuffered</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetUnbufferedIO(int* pfUnbufferedIO);
+    HRESULT GetUnbufferedIO(BOOL* pfUnbufferedIO);
     ///The <b>CompleteOperations</b> method stops the writer sink after completing all operations in progress. This
     ///method is used with unbuffered I/O.
     ///Returns:
@@ -6109,7 +6198,7 @@ interface IWMWriterNetworkSink : IWMWriterSink
     ///    <dt><b>NS_E_INVALID_REQUEST</b></dt> </dl> </td> <td width="60%"> The network sink is not connected. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetHostURL(ushort* pwszURL, uint* pcchURL);
+    HRESULT GetHostURL(PWSTR pwszURL, uint* pcchURL);
     ///The <b>Open</b> method opens a network port, and starts listening for network connections.
     ///Params:
     ///    pdwPortNum = On input, pointer to a variable that specifies the port number. Set this value to zero if you want the
@@ -6208,8 +6297,8 @@ interface IWMClientConnections2 : IWMClientConnections
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT GetClientInfo(uint dwClientNum, ushort* pwszNetworkAddress, uint* pcchNetworkAddress, ushort* pwszPort, 
-                          uint* pcchPort, ushort* pwszDNSName, uint* pcchDNSName);
+    HRESULT GetClientInfo(uint dwClientNum, PWSTR pwszNetworkAddress, uint* pcchNetworkAddress, PWSTR pwszPort, 
+                          uint* pcchPort, PWSTR pwszDNSName, uint* pcchDNSName);
 }
 
 ///A call to <b>QueryInterface</b> from a reader object exposes the advanced functionality described in this section.
@@ -6239,7 +6328,7 @@ interface IWMReaderAdvanced : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>pfUserClock</i> parameter is <b>NULL</b>.
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetUserProvidedClock(int* pfUserClock);
+    HRESULT GetUserProvidedClock(BOOL* pfUserClock);
     ///The <b>DeliverTime</b> method provides the reader with a clock time. Use this method only when the application is
     ///providing the clock.
     ///Params:
@@ -6272,7 +6361,7 @@ interface IWMReaderAdvanced : IUnknown
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>NS_E_INVALID_REQUEST</b></dt> </dl> </td> <td width="60%"> The
     ///    reader object has not opened a file yet. </td> </tr> </table>
     ///    
-    HRESULT GetManualStreamSelection(int* pfSelection);
+    HRESULT GetManualStreamSelection(BOOL* pfSelection);
     ///The <b>SetStreamsSelected</b> method specifies which streams are selected when manual stream selection is
     ///enabled.
     ///Params:
@@ -6328,7 +6417,7 @@ interface IWMReaderAdvanced : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>pfGetCallbacks</i> parameter is
     ///    <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetReceiveSelectionCallbacks(int* pfGetCallbacks);
+    HRESULT GetReceiveSelectionCallbacks(BOOL* pfGetCallbacks);
     ///The <b>SetReceiveStreamSamples</b> method specifies whether stream samples are delivered to the
     ///IWMReaderCallbackAdvanced::OnStreamSample callback.
     ///Params:
@@ -6358,7 +6447,7 @@ interface IWMReaderAdvanced : IUnknown
     ///    <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> The method failed for an unspecified reason. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetReceiveStreamSamples(ushort wStreamNum, int* pfReceiveStreamSamples);
+    HRESULT GetReceiveStreamSamples(ushort wStreamNum, BOOL* pfReceiveStreamSamples);
     ///The <b>SetAllocateForOutput</b> method specifies whether the reader allocates its own buffers for output samples
     ///or gets buffers from your application.
     ///Params:
@@ -6377,7 +6466,7 @@ interface IWMReaderAdvanced : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT GetAllocateForOutput(uint dwOutputNum, int* pfAllocate);
+    HRESULT GetAllocateForOutput(uint dwOutputNum, BOOL* pfAllocate);
     ///The <b>SetAllocateForStream</b> method specifies whether the reader uses
     ///IWMReaderCallbackAdvanced::AllocateForStream to allocate buffers for stream samples.
     ///Params:
@@ -6397,7 +6486,7 @@ interface IWMReaderAdvanced : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT GetAllocateForStream(ushort dwSreamNum, int* pfAllocate);
+    HRESULT GetAllocateForStream(ushort dwSreamNum, BOOL* pfAllocate);
     ///The <b>GetStatistics</b> method retrieves the current reader statistics.
     ///Params:
     ///    pStatistics = Pointer to a WM_READER_STATISTICS structure.
@@ -6527,7 +6616,7 @@ interface IWMReaderAdvanced2 : IWMReaderAdvanced
     ///    <dt><b>STG_E_MEDIUMFULL</b></dt> </dl> </td> <td width="60%"> There is not enough free disk space. See the
     ///    note in the Remarks below. </td> </tr> </table>
     ///    
-    HRESULT SaveFileAs(const(wchar)* pwszFilename);
+    HRESULT SaveFileAs(const(PWSTR) pwszFilename);
     ///The <b>GetProtocolName</b> method retrieves the name of the protocol that is being used.
     ///Params:
     ///    pwszProtocol = Pointer to a buffer that receives a string containing the protocol name. Pass <b>NULL</b> to retrieve the
@@ -6543,7 +6632,7 @@ interface IWMReaderAdvanced2 : IWMReaderAdvanced
     ///    not been determined, or no file is open. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt>
     ///    </dl> </td> <td width="60%"> The <i>pcchProtocol</i> parameter is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetProtocolName(ushort* pwszProtocol, uint* pcchProtocol);
+    HRESULT GetProtocolName(PWSTR pwszProtocol, uint* pcchProtocol);
     ///The <b>StartAtMarker</b> method starts the reader from a specified marker.
     ///Params:
     ///    wMarkerIndex = <b>WORD</b> containing the marker index.
@@ -6576,7 +6665,7 @@ interface IWMReaderAdvanced2 : IWMReaderAdvanced
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT GetOutputSetting(uint dwOutputNum, const(wchar)* pszName, WMT_ATTR_DATATYPE* pType, ubyte* pValue, 
+    HRESULT GetOutputSetting(uint dwOutputNum, const(PWSTR) pszName, WMT_ATTR_DATATYPE* pType, ubyte* pValue, 
                              ushort* pcbLength);
     ///The <b>SetOutputSetting</b> method specifies a named setting for a particular output.
     ///Params:
@@ -6589,7 +6678,7 @@ interface IWMReaderAdvanced2 : IWMReaderAdvanced
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT SetOutputSetting(uint dwOutputNum, const(wchar)* pszName, WMT_ATTR_DATATYPE Type, const(ubyte)* pValue, 
+    HRESULT SetOutputSetting(uint dwOutputNum, const(PWSTR) pszName, WMT_ATTR_DATATYPE Type, const(ubyte)* pValue, 
                              ushort cbLength);
     ///The <b>Preroll</b> method is used to begin prerolling (buffering data) for the reader.
     ///Params:
@@ -6621,7 +6710,7 @@ interface IWMReaderAdvanced2 : IWMReaderAdvanced
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> A <b>NULL</b> or invalid argument was passed
     ///    in. </td> </tr> </table>
     ///    
-    HRESULT GetLogClientID(int* pfLogClientID);
+    HRESULT GetLogClientID(BOOL* pfLogClientID);
     ///The <b>StopBuffering</b> method requests that the reader send the WMT_BUFFERING_STOP message as soon as possible.
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an <b>HRESULT</b> error code.
@@ -6753,7 +6842,7 @@ interface IWMReaderAdvanced4 : IWMReaderAdvanced3
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT GetLanguage(uint dwOutputNum, ushort wLanguage, ushort* pwszLanguageString, 
+    HRESULT GetLanguage(uint dwOutputNum, ushort wLanguage, PWSTR pwszLanguageString, 
                         ushort* pcchLanguageStringLength);
     ///The <b>GetMaxSpeedFactor</b> method retrieves the maximum playback rate that can be delivered by the source. For
     ///network content, this value reflects the available bandwidth relative to the maximum bit rate of the content.
@@ -6776,7 +6865,7 @@ interface IWMReaderAdvanced4 : IWMReaderAdvanced3
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> <tr> <td width="40%">
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> NULL pointer argument. </td> </tr> </table>
     ///    
-    HRESULT IsUsingFastCache(int* pfUsingFastCache);
+    HRESULT IsUsingFastCache(BOOL* pfUsingFastCache);
     ///The <b>AddLogParam</b> method adds a named value to the logging information that the reader object will send to
     ///the sever.
     ///Params:
@@ -6794,7 +6883,7 @@ interface IWMReaderAdvanced4 : IWMReaderAdvanced3
     ///    string length. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td
     ///    width="60%"> Insufficient memory. </td> </tr> </table>
     ///    
-    HRESULT AddLogParam(const(wchar)* wszNameSpace, const(wchar)* wszName, const(wchar)* wszValue);
+    HRESULT AddLogParam(const(PWSTR) wszNameSpace, const(PWSTR) wszName, const(PWSTR) wszValue);
     ///The <b>SendLogParams</b> method sends log entries to the originating server. Call this method after calling
     ///<b>AddLogParam</b>.
     ///Returns:
@@ -6814,7 +6903,7 @@ interface IWMReaderAdvanced4 : IWMReaderAdvanced3
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT CanSaveFileAs(int* pfCanSave);
+    HRESULT CanSaveFileAs(BOOL* pfCanSave);
     ///The <b>CancelSaveFileAs</b> method cancels a file save resulting from a call to IWMReaderAdvanced2::SaveFileAs.
     ///Returns:
     ///    The method returns an <b>HRESULT</b>. Possible values include, but are not limited to, those in the following
@@ -6834,7 +6923,7 @@ interface IWMReaderAdvanced4 : IWMReaderAdvanced3
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> <b>NULL</b> pointer argument. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetURL(ushort* pwszURL, uint* pcchURL);
+    HRESULT GetURL(PWSTR pwszURL, uint* pcchURL);
 }
 
 ///The <b>IWMReaderAdvanced5</b> interface enables you to associate a player-hook callback interface with the reader
@@ -7161,8 +7250,7 @@ interface IWMDRMReader : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT SetDRMProperty(const(wchar)* pwstrName, WMT_ATTR_DATATYPE dwType, const(ubyte)* pValue, 
-                           ushort cbLength);
+    HRESULT SetDRMProperty(const(PWSTR) pwstrName, WMT_ATTR_DATATYPE dwType, const(ubyte)* pValue, ushort cbLength);
     ///<p class="CCE_Message">[<b>GetDRMProperty</b> is available for use in the operating systems specified in the
     ///Requirements section. It may be altered or unavailable in subsequent versions. Instead, use Microsoft PlayReady.
     ///] The <b>GetDRMProperty</b> method retrieves DRM-specific file attributes and run-time properties.
@@ -7174,7 +7262,7 @@ interface IWMDRMReader : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT GetDRMProperty(const(wchar)* pwstrName, WMT_ATTR_DATATYPE* pdwType, ubyte* pValue, ushort* pcbLength);
+    HRESULT GetDRMProperty(const(PWSTR) pwstrName, WMT_ATTR_DATATYPE* pdwType, ubyte* pValue, ushort* pcbLength);
 }
 
 ///<p class="CCE_Message">[<b>IWMDRMReader2</b> is available for use in the operating systems specified in the
@@ -7300,7 +7388,7 @@ interface IWMReaderPlaylistBurn : IUnknown
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT InitPlaylistBurn(uint cFiles, ushort** ppwszFilenames, IWMStatusCallback pCallback, void* pvContext);
+    HRESULT InitPlaylistBurn(uint cFiles, PWSTR* ppwszFilenames, IWMStatusCallback pCallback, void* pvContext);
     ///The <b>GetInitResults</b> method retrieves the results of the playlist file check.
     ///Params:
     ///    cFiles = Number of files in the playlist. This is also the number of members in the array referenced by
@@ -7316,7 +7404,7 @@ interface IWMReaderPlaylistBurn : IUnknown
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT GetInitResults(uint cFiles, int* phrStati);
+    HRESULT GetInitResults(uint cFiles, HRESULT* phrStati);
     ///The <b>Cancel</b> method cancels an initiated playlist burn before initialization is finished.
     ///Returns:
     ///    The method returns an <b>HRESULT</b>. Possible values include, but are not limited to, those in the following
@@ -7406,7 +7494,7 @@ interface IWMReaderNetworkConfig : IUnknown
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> NULL or invalid argument passed in. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetProxySettings(const(wchar)* pwszProtocol, WMT_PROXY_SETTINGS* pProxySetting);
+    HRESULT GetProxySettings(const(PWSTR) pwszProtocol, WMT_PROXY_SETTINGS* pProxySetting);
     ///The <b>SetProxySettings</b> method specifies the proxy settings.
     ///Params:
     ///    pwszProtocol = Pointer to a wide-character null-terminated string containing the protocol name. Supported names are HTTP and
@@ -7419,7 +7507,7 @@ interface IWMReaderNetworkConfig : IUnknown
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> NULL or invalid argument passed in. </td>
     ///    </tr> </table>
     ///    
-    HRESULT SetProxySettings(const(wchar)* pwszProtocol, WMT_PROXY_SETTINGS ProxySetting);
+    HRESULT SetProxySettings(const(PWSTR) pwszProtocol, WMT_PROXY_SETTINGS ProxySetting);
     ///The <b>GetProxyHostName</b> method retrieves the name of the host to use as the proxy.
     ///Params:
     ///    pwszProtocol = Pointer to a string that contains a protocol name, such as "http" or "mms". The string is not case-sensitive.
@@ -7436,7 +7524,7 @@ interface IWMReaderNetworkConfig : IUnknown
     ///    <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> <b>NULL</b> or invalid argument passed in. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetProxyHostName(const(wchar)* pwszProtocol, ushort* pwszHostName, uint* pcchHostName);
+    HRESULT GetProxyHostName(const(PWSTR) pwszProtocol, PWSTR pwszHostName, uint* pcchHostName);
     ///The <b>SetProxyHostName</b> method specifies the proxy host name.
     ///Params:
     ///    pwszProtocol = Pointer to a wide-character <b>null</b>-terminated string containing the protocol.
@@ -7449,7 +7537,7 @@ interface IWMReaderNetworkConfig : IUnknown
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> <b>NULL</b> or invalid argument passed in.
     ///    </td> </tr> </table>
     ///    
-    HRESULT SetProxyHostName(const(wchar)* pwszProtocol, const(wchar)* pwszHostName);
+    HRESULT SetProxyHostName(const(PWSTR) pwszProtocol, const(PWSTR) pwszHostName);
     ///The <b>GetProxyPort</b> method retrieves the port number of the proxy server.
     ///Params:
     ///    pwszProtocol = Pointer to a string that contains a protocol name, such as "http" or "mms". The string is not case-sensitive.
@@ -7464,7 +7552,7 @@ interface IWMReaderNetworkConfig : IUnknown
     ///    <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> NULL or invalid argument passed in. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetProxyPort(const(wchar)* pwszProtocol, uint* pdwPort);
+    HRESULT GetProxyPort(const(PWSTR) pwszProtocol, uint* pdwPort);
     ///The <b>SetProxyPort</b> method specifies the proxy port.
     ///Params:
     ///    pwszProtocol = Pointer to a wide-character null-terminated string containing the protocol.
@@ -7476,7 +7564,7 @@ interface IWMReaderNetworkConfig : IUnknown
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> NULL or invalid argument passed in. </td>
     ///    </tr> </table>
     ///    
-    HRESULT SetProxyPort(const(wchar)* pwszProtocol, uint dwPort);
+    HRESULT SetProxyPort(const(PWSTR) pwszProtocol, uint dwPort);
     ///The <b>GetProxyExceptionList</b> method retrieves the list of computers, domains, or addresses for which the
     ///reader object bypasses the proxy server.
     ///Params:
@@ -7494,7 +7582,7 @@ interface IWMReaderNetworkConfig : IUnknown
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ASF_E_BUFFERTOOSMALL</b></dt> </dl> </td> <td width="60%"> The
     ///    size of the buffer passed in is not large enough to hold the return string. </td> </tr> </table>
     ///    
-    HRESULT GetProxyExceptionList(const(wchar)* pwszProtocol, ushort* pwszExceptionList, uint* pcchExceptionList);
+    HRESULT GetProxyExceptionList(const(PWSTR) pwszProtocol, PWSTR pwszExceptionList, uint* pcchExceptionList);
     ///The <b>SetProxyExceptionList</b> method specifies the proxy exception list.
     ///Params:
     ///    pwszProtocol = Pointer to a wide-character null-terminated string containing the protocol.
@@ -7507,7 +7595,7 @@ interface IWMReaderNetworkConfig : IUnknown
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> NULL or invalid argument passed in. </td>
     ///    </tr> </table>
     ///    
-    HRESULT SetProxyExceptionList(const(wchar)* pwszProtocol, const(wchar)* pwszExceptionList);
+    HRESULT SetProxyExceptionList(const(PWSTR) pwszProtocol, const(PWSTR) pwszExceptionList);
     ///The <b>GetProxyBypassForLocal</b> method queries whether the reader object bypasses the proxy server for local
     ///URLs.
     ///Params:
@@ -7524,7 +7612,7 @@ interface IWMReaderNetworkConfig : IUnknown
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%">
     ///    Insufficient memory to complete task </td> </tr> </table>
     ///    
-    HRESULT GetProxyBypassForLocal(const(wchar)* pwszProtocol, int* pfBypassForLocal);
+    HRESULT GetProxyBypassForLocal(const(PWSTR) pwszProtocol, BOOL* pfBypassForLocal);
     ///The <b>SetProxyBypassForLocal</b> method specifies the configuration setting for bypassing the proxy for local
     ///hosts.
     ///Params:
@@ -7538,7 +7626,7 @@ interface IWMReaderNetworkConfig : IUnknown
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> NULL or invalid argument passed in. </td>
     ///    </tr> </table>
     ///    
-    HRESULT SetProxyBypassForLocal(const(wchar)* pwszProtocol, BOOL fBypassForLocal);
+    HRESULT SetProxyBypassForLocal(const(PWSTR) pwszProtocol, BOOL fBypassForLocal);
     ///The <b>GetForceRerunAutoProxyDetection</b> method ascertains whether forced rerun detection is enabled.
     ///Params:
     ///    pfForceRerunDetection = Pointer to a Boolean value that is set to True if forced rerun detection has been enabled.
@@ -7549,7 +7637,7 @@ interface IWMReaderNetworkConfig : IUnknown
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> NULL or invalid argument passed in. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetForceRerunAutoProxyDetection(int* pfForceRerunDetection);
+    HRESULT GetForceRerunAutoProxyDetection(BOOL* pfForceRerunDetection);
     ///The <b>SetForceRerunAutoProxyDetection</b> method enables or disables forced rerun detection.
     ///Params:
     ///    fForceRerunDetection = Boolean value that is True if forced rerun detection is to be enabled.
@@ -7571,7 +7659,7 @@ interface IWMReaderNetworkConfig : IUnknown
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> NULL or invalid argument passed in. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetEnableMulticast(int* pfEnableMulticast);
+    HRESULT GetEnableMulticast(BOOL* pfEnableMulticast);
     ///The <b>SetEnableMulticast</b> method enables or disables multicasting.
     ///Params:
     ///    fEnableMulticast = Boolean value that is True if multicasting is to be enabled.
@@ -7595,7 +7683,7 @@ interface IWMReaderNetworkConfig : IUnknown
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> NULL or invalid argument passed in. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetEnableHTTP(int* pfEnableHTTP);
+    HRESULT GetEnableHTTP(BOOL* pfEnableHTTP);
     ///The <b>SetEnableHTTP</b> method enables or disables HTTP.
     ///Params:
     ///    fEnableHTTP = Boolean value that is True if HTTP is to be enabled. Set this value to true if the reader can use HTTP when
@@ -7621,7 +7709,7 @@ interface IWMReaderNetworkConfig : IUnknown
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> NULL or invalid argument passed in. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetEnableUDP(int* pfEnableUDP);
+    HRESULT GetEnableUDP(BOOL* pfEnableUDP);
     ///The <b>SetEnableUDP</b> method enables or disables UDP.
     ///Params:
     ///    fEnableUDP = Boolean value that is True if UDP is to be enabled. Set this to true if the reader can use UDP-based MMS
@@ -7647,7 +7735,7 @@ interface IWMReaderNetworkConfig : IUnknown
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> NULL or invalid argument passed in. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetEnableTCP(int* pfEnableTCP);
+    HRESULT GetEnableTCP(BOOL* pfEnableTCP);
     ///The <b>SetEnableTCP</b> method enables or disables TCP.
     ///Params:
     ///    fEnableTCP = Boolean value that is True if TCP is to be enabled. Set this to true if the SDK can use TCP-based MMS
@@ -7714,7 +7802,7 @@ interface IWMReaderNetworkConfig : IUnknown
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> <b>NULL</b> or invalid argument passed in.
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetSupportedProtocolName(uint dwProtocolNum, ushort* pwszProtocolName, uint* pcchProtocolName);
+    HRESULT GetSupportedProtocolName(uint dwProtocolNum, PWSTR pwszProtocolName, uint* pcchProtocolName);
     ///The <b>AddLoggingUrl</b> method specifies a server that receive logging information from the reader object.
     ///Params:
     ///    pwszUrl = Specifies a string containing the URL.
@@ -7726,7 +7814,7 @@ interface IWMReaderNetworkConfig : IUnknown
     ///    </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Unable to create
     ///    or add the URL. </td> </tr> </table>
     ///    
-    HRESULT AddLoggingUrl(const(wchar)* pwszUrl);
+    HRESULT AddLoggingUrl(const(PWSTR) pwszUrl);
     ///The <b>GetLoggingUrl</b> method retrieves a URL from the list of servers that receive logging information from
     ///the reader object. Use the <b>IWMReaderNetworkConfig::GetLoggingUrl</b> method to add servers to the list.
     ///Params:
@@ -7743,7 +7831,7 @@ interface IWMReaderNetworkConfig : IUnknown
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ASF_E_BUFFERTOOSMALL</b></dt> </dl> </td> <td width="60%"> Size
     ///    passed in to <i>pcchUrl</i> is too small. </td> </tr> </table>
     ///    
-    HRESULT GetLoggingUrl(uint dwIndex, const(wchar)* pwszUrl, uint* pcchUrl);
+    HRESULT GetLoggingUrl(uint dwIndex, PWSTR pwszUrl, uint* pcchUrl);
     ///The <b>GetLoggingUrlCount</b> method retrieves the number of URLs in the current list of logging URLs.
     ///Params:
     ///    pdwUrlCount = Pointer to a <b>DWORD</b> containing the URL count.
@@ -7774,7 +7862,7 @@ interface IWMReaderNetworkConfig2 : IWMReaderNetworkConfig
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> <tr> <td width="40%">
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> NULL pointer argument. </td> </tr> </table>
     ///    
-    HRESULT GetEnableContentCaching(int* pfEnableContentCaching);
+    HRESULT GetEnableContentCaching(BOOL* pfEnableContentCaching);
     ///The <b>SetEnableContentCaching</b> method enables or disables content caching. If content caching is enabled,
     ///content that is being streamed can be cached locally.
     ///Params:
@@ -7796,7 +7884,7 @@ interface IWMReaderNetworkConfig2 : IWMReaderNetworkConfig
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> <tr> <td width="40%">
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> NULL pointer argument. </td> </tr> </table>
     ///    
-    HRESULT GetEnableFastCache(int* pfEnableFastCache);
+    HRESULT GetEnableFastCache(BOOL* pfEnableFastCache);
     ///The <b>SetEnableFastCache</b> method enables or disables Fast Cache streaming. Fast Cache streaming enables
     ///network content to be streamed faster than the playback rate, if bandwidth allows.
     ///Params:
@@ -7867,7 +7955,7 @@ interface IWMReaderNetworkConfig2 : IWMReaderNetworkConfig
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> <tr> <td width="40%">
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> NULL pointer argument. </td> </tr> </table>
     ///    
-    HRESULT GetEnableResends(int* pfEnableResends);
+    HRESULT GetEnableResends(BOOL* pfEnableResends);
     ///The <b>SetEnableResends</b> method enables or disables resends.
     ///Params:
     ///    fEnableResends = Pointer to a Boolean value that is True to enable resends.
@@ -7889,7 +7977,7 @@ interface IWMReaderNetworkConfig2 : IWMReaderNetworkConfig
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> <tr> <td width="40%">
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> NULL pointer argument. </td> </tr> </table>
     ///    
-    HRESULT GetEnableThinning(int* pfEnableThinning);
+    HRESULT GetEnableThinning(BOOL* pfEnableThinning);
     ///The <b>SetEnableThinning</b> method enables or disables Intelligent Streaming. Intelligent Streaming is the
     ///communication between the reader and the streaming server that enables the server to change the content sent
     ///based on available bandwidth.
@@ -7978,7 +8066,7 @@ interface IWMIndexer : IUnknown
     ///    <i>pCallback</i> is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>NS_E_BUSY</b></dt> </dl> </td>
     ///    <td width="60%"> The method cannot start indexing in the current state. </td> </tr> </table>
     ///    
-    HRESULT StartIndexing(const(wchar)* pwszURL, IWMStatusCallback pCallback, void* pvContext);
+    HRESULT StartIndexing(const(PWSTR) pwszURL, IWMStatusCallback pCallback, void* pvContext);
     ///The <b>Cancel</b> method cancels the current indexing operation.
     ///Returns:
     ///    This method always returns S_OK.
@@ -8110,7 +8198,7 @@ interface IWMBackupRestoreProps : IUnknown
     ///Returns:
     ///    The method returns E_NOTIMPL.
     ///    
-    HRESULT GetPropByIndex(ushort wIndex, ushort* pwszName, ushort* pcchNameLen, WMT_ATTR_DATATYPE* pType, 
+    HRESULT GetPropByIndex(ushort wIndex, PWSTR pwszName, ushort* pcchNameLen, WMT_ATTR_DATATYPE* pType, 
                            ubyte* pValue, ushort* pcbLength);
     ///<p class="CCE_Message">[<b>GetPropByName</b> is available for use in the operating systems specified in the
     ///Requirements section. It may be altered or unavailable in subsequent versions. Instead, use Microsoft PlayReady.
@@ -8124,9 +8212,9 @@ interface IWMBackupRestoreProps : IUnknown
     ///Returns:
     ///    The method returns E_NOTIMPL.
     ///    
-    HRESULT GetPropByName(const(wchar)* pszName, WMT_ATTR_DATATYPE* pType, ubyte* pValue, ushort* pcbLength);
-    HRESULT SetPropA(const(wchar)* pszName, WMT_ATTR_DATATYPE Type, const(ubyte)* pValue, ushort cbLength);
-    HRESULT RemovePropA(const(wchar)* pcwszName);
+    HRESULT GetPropByName(const(PWSTR) pszName, WMT_ATTR_DATATYPE* pType, ubyte* pValue, ushort* pcbLength);
+    HRESULT SetPropA(const(PWSTR) pszName, WMT_ATTR_DATATYPE Type, const(ubyte)* pValue, ushort cbLength);
+    HRESULT RemovePropA(const(PWSTR) pcwszName);
     ///<p class="CCE_Message">[<b>RemoveAllProps</b> is available for use in the operating systems specified in the
     ///Requirements section. It may be altered or unavailable in subsequent versions. Instead, use Microsoft PlayReady.
     ///] The <b>RemoveAllProps</b> method removes all properties.
@@ -8232,7 +8320,7 @@ interface IWMCodecInfo2 : IWMCodecInfo
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> An invalid or <b>null</b> value has been
     ///    passed in. </td> </tr> </table>
     ///    
-    HRESULT GetCodecName(const(GUID)* guidType, uint dwCodecIndex, ushort* wszName, uint* pcchName);
+    HRESULT GetCodecName(const(GUID)* guidType, uint dwCodecIndex, PWSTR wszName, uint* pcchName);
     ///The <b>GetCodecFormatDesc</b> method retrieves a description of a specified codec format. This method also
     ///retrieves a stream configuration object containing the settings for the codec format.
     ///Params:
@@ -8259,7 +8347,7 @@ interface IWMCodecInfo2 : IWMCodecInfo
     ///    passed in. </td> </tr> </table>
     ///    
     HRESULT GetCodecFormatDesc(const(GUID)* guidType, uint dwCodecIndex, uint dwFormatIndex, 
-                               IWMStreamConfig* ppIStreamConfig, ushort* wszDesc, uint* pcchDesc);
+                               IWMStreamConfig* ppIStreamConfig, PWSTR wszDesc, uint* pcchDesc);
 }
 
 ///The <b>IWMCodecInfo3</b> interface retrieves properties from a codec. You can retrieve a pointer to
@@ -8299,7 +8387,7 @@ interface IWMCodecInfo3 : IWMCodecInfo2
     ///    <i>pdwSize</i> is <b>NULL</b>. OR <i>guidType</i> specifies an invalid input type. OR <i>pszName</i>
     ///    specifies an invalid property name. </td> </tr> </table>
     ///    
-    HRESULT GetCodecFormatProp(const(GUID)* guidType, uint dwCodecIndex, uint dwFormatIndex, const(wchar)* pszName, 
+    HRESULT GetCodecFormatProp(const(GUID)* guidType, uint dwCodecIndex, uint dwFormatIndex, const(PWSTR) pszName, 
                                WMT_ATTR_DATATYPE* pType, ubyte* pValue, uint* pdwSize);
     ///The <b>GetCodecProp</b> method retrieves a codec property.
     ///Params:
@@ -8335,7 +8423,7 @@ interface IWMCodecInfo3 : IWMCodecInfo2
     ///    <i>pdwSize</i> is <b>NULL</b>. OR <i>guidType</i> specifies an invalid input type. OR <i>pszName</i>
     ///    specifies an invalid property name. </td> </tr> </table>
     ///    
-    HRESULT GetCodecProp(const(GUID)* guidType, uint dwCodecIndex, const(wchar)* pszName, WMT_ATTR_DATATYPE* pType, 
+    HRESULT GetCodecProp(const(GUID)* guidType, uint dwCodecIndex, const(PWSTR) pszName, WMT_ATTR_DATATYPE* pType, 
                          ubyte* pValue, uint* pdwSize);
     ///The <b>SetCodecEnumerationSetting</b> method sets the value of one codec enumeration setting. Codec enumeration
     ///settings dictate the codec formats that can be enumerated by the methods of IWMCodecInfo.
@@ -8363,7 +8451,7 @@ interface IWMCodecInfo3 : IWMCodecInfo2
     ///    codec. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>NS_E_UNSUPPORTED_PROPERTY</b></dt> </dl> </td> <td
     ///    width="60%"> The enumeration setting specified is not valid for the codec. </td> </tr> </table>
     ///    
-    HRESULT SetCodecEnumerationSetting(const(GUID)* guidType, uint dwCodecIndex, const(wchar)* pszName, 
+    HRESULT SetCodecEnumerationSetting(const(GUID)* guidType, uint dwCodecIndex, const(PWSTR) pszName, 
                                        WMT_ATTR_DATATYPE Type, const(ubyte)* pValue, uint dwSize);
     ///The <b>GetCodecEnumerationSetting</b> method retrieves the current value for one codec enumeration setting. Codec
     ///enumeration settings dictate the codec formats that can be enumerated by the methods of IWMCodecInfo. You can
@@ -8397,7 +8485,7 @@ interface IWMCodecInfo3 : IWMCodecInfo2
     ///    <dl> <dt><b>NS_E_UNSUPPORTED_PROPERTY</b></dt> </dl> </td> <td width="60%"> The enumeration setting specified
     ///    is not valid for the codec. </td> </tr> </table>
     ///    
-    HRESULT GetCodecEnumerationSetting(const(GUID)* guidType, uint dwCodecIndex, const(wchar)* pszName, 
+    HRESULT GetCodecEnumerationSetting(const(GUID)* guidType, uint dwCodecIndex, const(PWSTR) pszName, 
                                        WMT_ATTR_DATATYPE* pType, ubyte* pValue, uint* pdwSize);
 }
 
@@ -8431,7 +8519,7 @@ interface IWMLanguageList : IUnknown
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT GetLanguageDetails(ushort wIndex, ushort* pwszLanguageString, ushort* pcchLanguageStringLength);
+    HRESULT GetLanguageDetails(ushort wIndex, PWSTR pwszLanguageString, ushort* pcchLanguageStringLength);
     ///The <b>AddLanguageByRFC1766String</b> method adds an entry to the list of supported languages for a file based
     ///upon a language tag compliant with RFC 1766.
     ///Params:
@@ -8442,7 +8530,7 @@ interface IWMLanguageList : IUnknown
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT AddLanguageByRFC1766String(const(wchar)* pwszLanguageString, ushort* pwIndex);
+    HRESULT AddLanguageByRFC1766String(PWSTR pwszLanguageString, ushort* pwIndex);
 }
 
 ///The <b>IWMWriterPushSink</b> interface enables the application to send ASF files to a publishing point on a Windows
@@ -8472,7 +8560,7 @@ interface IWMWriterPushSink : IWMWriterSink
     ///    width="60%"> Insufficient memory. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>NS_E_INVALID_NAME</b></dt>
     ///    </dl> </td> <td width="60%"> Host name is not valid. </td> </tr> </table>
     ///    
-    HRESULT Connect(const(wchar)* pwszURL, const(wchar)* pwszTemplateURL, BOOL fAutoDestroy);
+    HRESULT Connect(const(PWSTR) pwszURL, const(PWSTR) pwszTemplateURL, BOOL fAutoDestroy);
     ///The <b>Disconnect</b> method disconnects the push sink from the server.
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an <b>HRESULT</b> error code.
@@ -8716,7 +8804,7 @@ interface IWMRegisteredDevice : IUnknown
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT IsValid(int* pfValid);
+    HRESULT IsValid(BOOL* pfValid);
     ///The <b>IsApproved</b> method retrieves the approval status of the device. Approved devices are able to receive
     ///and play media data.
     ///Params:
@@ -8726,7 +8814,7 @@ interface IWMRegisteredDevice : IUnknown
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT IsApproved(int* pfApproved);
+    HRESULT IsApproved(BOOL* pfApproved);
     ///The <b>IsWmdrmCompliant</b> method retrieves the DRM compliance status of the device. Compliant devices can
     ///receive data using the Windows Media DRM 10 for Network Devices protocol.
     ///Params:
@@ -8737,7 +8825,7 @@ interface IWMRegisteredDevice : IUnknown
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT IsWmdrmCompliant(int* pfCompliant);
+    HRESULT IsWmdrmCompliant(BOOL* pfCompliant);
     ///The <b>IsOpened</b> method retrieves the open status of the device. An open device is ready to receive media
     ///data.
     ///Params:
@@ -8748,7 +8836,7 @@ interface IWMRegisteredDevice : IUnknown
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT IsOpened(int* pfOpened);
+    HRESULT IsOpened(BOOL* pfOpened);
     ///The <b>Open</b> method opens the device so that it can receive media data.
     ///Returns:
     ///    The method returns an <b>HRESULT</b>. Possible values include, but are not limited to, those in the following
@@ -9230,8 +9318,8 @@ interface IWMImageInfo : IUnknown
     ///    size for the corresponding output parameter. <i>pcchMIMEType</i> <i>pcchDescription</i> <i>pcbImageData</i>
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetImage(uint wIndex, ushort* pcchMIMEType, ushort* pwszMIMEType, ushort* pcchDescription, 
-                     ushort* pwszDescription, ushort* pImageType, uint* pcbImageData, ubyte* pbImageData);
+    HRESULT GetImage(uint wIndex, ushort* pcchMIMEType, PWSTR pwszMIMEType, ushort* pcchDescription, 
+                     PWSTR pwszDescription, ushort* pImageType, uint* pcbImageData, ubyte* pbImageData);
 }
 
 ///The <b>IWMLicenseRevocationAgent</b> interface handles messages from a DRM license server that involve license
@@ -9368,7 +9456,7 @@ interface IWMSecureChannel : IWMAuthorizer
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT WMSC_IsConnected(int* pfIsConnected);
+    HRESULT WMSC_IsConnected(BOOL* pfIsConnected);
     ///<p class="CCE_Message">[<b>WMSC_Disconnect</b> is available for use in the operating systems specified in the
     ///Requirements section. It may be altered or unavailable in subsequent versions. Instead, use Microsoft PlayReady.
     ///] The <b>WMSC_Disconnect</b> method destroys the secure connection.
@@ -9478,9 +9566,9 @@ interface INSNetSourceCreator : IUnknown
     ///    internal resource. </td> </tr> </table>
     ///    
     HRESULT Initialize();
-    HRESULT CreateNetSource(const(wchar)* pszStreamName, IUnknown pMonitor, ubyte* pData, IUnknown pUserContext, 
+    HRESULT CreateNetSource(const(PWSTR) pszStreamName, IUnknown pMonitor, ubyte* pData, IUnknown pUserContext, 
                             IUnknown pCallback, ulong qwContext);
-    HRESULT GetNetSourceProperties(const(wchar)* pszStreamName, IUnknown* ppPropertiesNode);
+    HRESULT GetNetSourceProperties(const(PWSTR) pszStreamName, IUnknown* ppPropertiesNode);
     HRESULT GetNetSourceSharedNamespace(IUnknown* ppSharedNamespace);
     ///The <b>GetNetSourceAdminInterface</b> method retrieves a pointer to the <b>IDispatch</b> interface of the
     ///administrative network source object.
@@ -9500,9 +9588,9 @@ interface INSNetSourceCreator : IUnknown
     ///    <dt><b>NS_E_UNKNOWN_PROTOCOL</b></dt> </dl> </td> <td width="60%"> The protocol specified by
     ///    <i>pwszStreamName</i> is not supported. </td> </tr> </table>
     ///    
-    HRESULT GetNetSourceAdminInterface(const(wchar)* pszStreamName, VARIANT* pVal);
+    HRESULT GetNetSourceAdminInterface(const(PWSTR) pszStreamName, VARIANT* pVal);
     HRESULT GetNumProtocolsSupported(uint* pcProtocols);
-    HRESULT GetProtocolName(uint dwProtocolNum, ushort* pwszProtocolName, ushort* pcchProtocolName);
+    HRESULT GetProtocolName(uint dwProtocolNum, PWSTR pwszProtocolName, ushort* pcchProtocolName);
     ///The <b>Shutdown</b> method properly disposes of all allocated memory used by the network source creator. You must
     ///call this method when you are finished using the network source creator, to ensure that all resources are
     ///released.
@@ -9619,7 +9707,7 @@ interface IWMSInternalAdminNetSource : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT GetCredentials(BSTR bstrRealm, BSTR* pbstrName, BSTR* pbstrPassword, int* pfConfirmedGood);
+    HRESULT GetCredentials(BSTR bstrRealm, BSTR* pbstrName, BSTR* pbstrPassword, BOOL* pfConfirmedGood);
     ///The <b>DeleteCredentials</b> method removes a password from the cache. This method has been superseded by
     ///IWMSInternalAdminNetSource2::DeleteCredentialsEx. The methods of <b>IWMSInternalAdminNetSource2</b> are much more
     ///secure than the password caching methods in <b>IWMSInternalAdminNetSource</b> and should be used if available.
@@ -9673,7 +9761,7 @@ interface IWMSInternalAdminNetSource : IUnknown
     ///    proxies configured, this value is returned when there are no more configured proxy servers. </td> </tr>
     ///    </table>
     ///    
-    HRESULT FindProxyForURL(BSTR bstrProtocol, BSTR bstrHost, int* pfProxyEnabled, BSTR* pbstrProxyServer, 
+    HRESULT FindProxyForURL(BSTR bstrProtocol, BSTR bstrHost, BOOL* pfProxyEnabled, BSTR* pbstrProxyServer, 
                             uint* pdwProxyPort, uint* pdwProxyContext);
     ///Registers a proxy failure.
     ///Params:
@@ -9694,7 +9782,7 @@ interface IWMSInternalAdminNetSource : IUnknown
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an <b>HRESULT</b> error code.
     ///    
     HRESULT ShutdownProxyContext(uint dwProxyContext);
-    HRESULT IsUsingIE(uint dwProxyContext, int* pfIsUsingIE);
+    HRESULT IsUsingIE(uint dwProxyContext, BOOL* pfIsUsingIE);
 }
 
 ///The <b>IWMSInternalAdminNetSource2</b> interface provides improved methods for password caching. These methods should
@@ -9751,7 +9839,7 @@ interface IWMSInternalAdminNetSource2 : IUnknown
     ///    
     HRESULT GetCredentialsEx(BSTR bstrRealm, BSTR bstrUrl, BOOL fProxy, 
                              NETSOURCE_URLCREDPOLICY_SETTINGS* pdwUrlPolicy, BSTR* pbstrName, BSTR* pbstrPassword, 
-                             int* pfConfirmedGood);
+                             BOOL* pfConfirmedGood);
     ///The <b>DeleteCredentialsEx</b> method removes a password from the cache. This improved version of
     ///IWMSInternalAdminNetSource::DeleteCredentials uses the combination of realm, URL, and proxy use to identify the
     ///credentials. This is an improvement over using the realm by itself, which can easily be spoofed by malicious
@@ -9766,7 +9854,7 @@ interface IWMSInternalAdminNetSource2 : IUnknown
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an <b>HRESULT</b> error code.
     ///    
     HRESULT DeleteCredentialsEx(BSTR bstrRealm, BSTR bstrUrl, BOOL fProxy);
-    HRESULT FindProxyForURLEx(BSTR bstrProtocol, BSTR bstrHost, BSTR bstrUrl, int* pfProxyEnabled, 
+    HRESULT FindProxyForURLEx(BSTR bstrProtocol, BSTR bstrHost, BSTR bstrUrl, BOOL* pfProxyEnabled, 
                               BSTR* pbstrProxyServer, uint* pdwProxyPort, uint* pdwProxyContext);
 }
 
@@ -9801,7 +9889,7 @@ interface IWMSInternalAdminNetSource3 : IWMSInternalAdminNetSource2
     ///    proxies configured, this value is returned when there are no more configured proxy servers. </td> </tr>
     ///    </table>
     ///    
-    HRESULT FindProxyForURLEx2(BSTR bstrProtocol, BSTR bstrHost, BSTR bstrUrl, int* pfProxyEnabled, 
+    HRESULT FindProxyForURLEx2(BSTR bstrProtocol, BSTR bstrHost, BSTR bstrUrl, BOOL* pfProxyEnabled, 
                                BSTR* pbstrProxyServer, uint* pdwProxyPort, ulong* pqwProxyContext);
     HRESULT RegisterProxyFailure2(HRESULT hrParam, ulong qwProxyContext);
     ///The <b>ShutdownProxyContext2</b> method releases the internal resources used by
@@ -9814,7 +9902,7 @@ interface IWMSInternalAdminNetSource3 : IWMSInternalAdminNetSource2
     ///    If the method succeeds, it returns S_OK. If it fails, it returns an <b>HRESULT</b> error code.
     ///    
     HRESULT ShutdownProxyContext2(ulong qwProxyContext);
-    HRESULT IsUsingIE2(ulong qwProxyContext, int* pfIsUsingIE);
+    HRESULT IsUsingIE2(ulong qwProxyContext, BOOL* pfIsUsingIE);
     ///The <b>SetCredentialsEx2</b> method adds a password to the cache. This improved version of
     ///<b>IWMSInternalAdminNetSource2::SetCredentialsEx</b> adds a flag (<i>fClearTextAuthentication</i>) that indicates
     ///whether credentials were sent in unencrypted form over the network.
@@ -9863,7 +9951,7 @@ interface IWMSInternalAdminNetSource3 : IWMSInternalAdminNetSource2
     ///    
     HRESULT GetCredentialsEx2(BSTR bstrRealm, BSTR bstrUrl, BOOL fProxy, BOOL fClearTextAuthentication, 
                               NETSOURCE_URLCREDPOLICY_SETTINGS* pdwUrlPolicy, BSTR* pbstrName, BSTR* pbstrPassword, 
-                              int* pfConfirmedGood);
+                              BOOL* pfConfirmedGood);
 }
 
 

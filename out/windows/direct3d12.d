@@ -16,11 +16,11 @@ public import windows.direct3d11 : D3D_CBUFFER_TYPE, D3D_FEATURE_LEVEL, D3D_INTE
 public import windows.displaydevices : RECT;
 public import windows.dxgi : DXGI_FORMAT, DXGI_SAMPLE_DESC;
 public import windows.kernel : LUID;
-public import windows.systemservices : BOOL, HANDLE, SECURITY_ATTRIBUTES;
+public import windows.systemservices : BOOL, HANDLE, PSTR, PWSTR, SECURITY_ATTRIBUTES;
 public import windows.winrt : IInspectable;
 public import windows.windowsandmessaging : HWND;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -4556,25 +4556,29 @@ enum : uint
     D3D12_SHADING_RATE_VALID_MASK   = 0x00000003,
 }
 
+enum GUID D3D12TiledResourceTier4 = GUID("c9c4725f-a81a-4f56-8c5b-c51039d694fb");
+
 // Callbacks
 
 alias PFN_D3D12_SERIALIZE_ROOT_SIGNATURE = HRESULT function(const(D3D12_ROOT_SIGNATURE_DESC)* pRootSignature, 
                                                             D3D_ROOT_SIGNATURE_VERSION Version, ID3DBlob* ppBlob, 
                                                             ID3DBlob* ppErrorBlob);
-alias PFN_D3D12_CREATE_ROOT_SIGNATURE_DESERIALIZER = HRESULT function(char* pSrcData, size_t SrcDataSizeInBytes, 
+alias PFN_D3D12_CREATE_ROOT_SIGNATURE_DESERIALIZER = HRESULT function(const(void)* pSrcData, 
+                                                                      size_t SrcDataSizeInBytes, 
                                                                       const(GUID)* pRootSignatureDeserializerInterface, 
                                                                       void** ppRootSignatureDeserializer);
 alias PFN_D3D12_SERIALIZE_VERSIONED_ROOT_SIGNATURE = HRESULT function(const(D3D12_VERSIONED_ROOT_SIGNATURE_DESC)* pRootSignature, 
                                                                       ID3DBlob* ppBlob, ID3DBlob* ppErrorBlob);
-alias PFN_D3D12_CREATE_VERSIONED_ROOT_SIGNATURE_DESERIALIZER = HRESULT function(char* pSrcData, 
+alias PFN_D3D12_CREATE_VERSIONED_ROOT_SIGNATURE_DESERIALIZER = HRESULT function(const(void)* pSrcData, 
                                                                                 size_t SrcDataSizeInBytes, 
                                                                                 const(GUID)* pRootSignatureDeserializerInterface, 
                                                                                 void** ppRootSignatureDeserializer);
 alias PFN_D3D12_CREATE_DEVICE = HRESULT function(IUnknown param0, D3D_FEATURE_LEVEL param1, const(GUID)* param2, 
                                                  void** param3);
 alias PFN_D3D12_GET_DEBUG_INTERFACE = HRESULT function(const(GUID)* param0, void** param1);
-alias PFN_D3D11ON12_CREATE_DEVICE = HRESULT function(IUnknown param0, uint param1, char* param2, 
-                                                     uint FeatureLevels, char* param4, uint NumQueues, uint param6, 
+alias PFN_D3D11ON12_CREATE_DEVICE = HRESULT function(IUnknown param0, uint param1, 
+                                                     const(D3D_FEATURE_LEVEL)* param2, uint FeatureLevels, 
+                                                     IUnknown* param4, uint NumQueues, uint param6, 
                                                      ID3D11Device* param7, ID3D11DeviceContext* param8, 
                                                      D3D_FEATURE_LEVEL* param9);
 
@@ -4601,52 +4605,52 @@ struct D3D12_COMMAND_QUEUE_DESC
 struct D3D12_INPUT_ELEMENT_DESC
 {
     ///The HLSL semantic associated with this element in a shader input-signature.
-    const(char)* SemanticName;
+    const(PSTR) SemanticName;
     ///The semantic index for the element. A semantic index modifies a semantic, with an integer index number. A
     ///semantic index is only needed in a case where there is more than one element with the same semantic. For example,
     ///a 4x4 matrix would have four components each with the semantic name <b>matrix</b>, however each of the four
     ///component would have different semantic indices (0, 1, 2, and 3).
-    uint         SemanticIndex;
+    uint        SemanticIndex;
     ///A DXGI_FORMAT-typed value that specifies the format of the element data.
-    DXGI_FORMAT  Format;
+    DXGI_FORMAT Format;
     ///An integer value that identifies the input-assembler. For more info, see Input Slots. Valid values are between 0
     ///and 15.
-    uint         InputSlot;
+    uint        InputSlot;
     ///Optional. Offset, in bytes, to this element from the start of the vertex. Use D3D12_APPEND_ALIGNED_ELEMENT
     ///(0xffffffff) for convenience to define the current element directly after the previous one, including any packing
     ///if necessary.
-    uint         AlignedByteOffset;
+    uint        AlignedByteOffset;
     ///A value that identifies the input data class for a single input slot.
     D3D12_INPUT_CLASSIFICATION InputSlotClass;
     ///The number of instances to draw using the same per-instance data before advancing in the buffer by one element.
     ///This value must be 0 for an element that contains per-vertex data (the slot class is set to the
     ///D3D12_INPUT_PER_VERTEX_DATA member of D3D12_INPUT_CLASSIFICATION).
-    uint         InstanceDataStepRate;
+    uint        InstanceDataStepRate;
 }
 
 ///Describes a vertex element in a vertex buffer in an output slot.
 struct D3D12_SO_DECLARATION_ENTRY
 {
     ///Zero-based, stream number.
-    uint         Stream;
+    uint        Stream;
     ///Type of output element; possible values include: <b>"POSITION"</b>, <b>"NORMAL"</b>, or <b>"TEXCOORD0"</b>. Note
     ///that if <b>SemanticName</b> is <b>NULL</b> then <b>ComponentCount</b> can be greater than 4 and the described
     ///entry will be a gap in the stream out where no data will be written.
-    const(char)* SemanticName;
+    const(PSTR) SemanticName;
     ///Output element's zero-based index. Use, for example, if you have more than one texture coordinate stored in each
     ///vertex.
-    uint         SemanticIndex;
+    uint        SemanticIndex;
     ///The component of the entry to begin writing out to. Valid values are 0 to 3. For example, if you only wish to
     ///output to the y and z components of a position, <b>StartComponent</b> is 1 and <b>ComponentCount</b> is 2.
-    ubyte        StartComponent;
+    ubyte       StartComponent;
     ///The number of components of the entry to write out to. Valid values are 1 to 4. For example, if you only wish to
     ///output to the y and z components of a position, <b>StartComponent</b> is 1 and <b>ComponentCount</b> is 2. Note
     ///that if <b>SemanticName</b> is <b>NULL</b> then <b>ComponentCount</b> can be greater than 4 and the described
     ///entry will be a gap in the stream out where no data will be written.
-    ubyte        ComponentCount;
+    ubyte       ComponentCount;
     ///The associated stream output buffer that is bound to the pipeline. The valid range for <b>OutputSlot</b> is 0 to
     ///3.
-    ubyte        OutputSlot;
+    ubyte       OutputSlot;
 }
 
 ///Describes the dimensions of a viewport.
@@ -5508,7 +5512,7 @@ struct D3D12_CLEAR_VALUE
     ///used during the clear operation. It indicates whether the <i>Color</i> or the <i>DepthStencil</i> member is valid
     ///and how to convert the values for usage with the resource.
     DXGI_FORMAT Format;
-    union
+union
     {
         float[4] Color;
         D3D12_DEPTH_STENCIL_VALUE DepthStencil;
@@ -5692,7 +5696,7 @@ struct D3D12_RESOURCE_BARRIER
     D3D12_RESOURCE_BARRIER_TYPE Type;
     ///Specifies a D3D12_RESOURCE_BARRIER_FLAGS enumeration constant such as for "begin only" or "end only".
     D3D12_RESOURCE_BARRIER_FLAGS Flags;
-    union
+union
     {
         D3D12_RESOURCE_TRANSITION_BARRIER Transition;
         D3D12_RESOURCE_ALIASING_BARRIER Aliasing;
@@ -5736,7 +5740,7 @@ struct D3D12_TEXTURE_COPY_LOCATION
     ///Specifies which type of resource location this is: a subresource of a texture, or a description of a texture
     ///layout which can be applied to a buffer. This D3D12_TEXTURE_COPY_TYPE enum indicates which union member to use.
     D3D12_TEXTURE_COPY_TYPE Type;
-    union
+union
     {
         D3D12_PLACED_SUBRESOURCE_FOOTPRINT PlacedFootprint;
         uint SubresourceIndex;
@@ -5937,7 +5941,7 @@ struct D3D12_SHADER_RESOURCE_VIEW_DESC
     ///texture is accessed in a shader via this shader resource view (SRV). For example, it can route component 1
     ///(green) from memory, or the constant `0`, into component 2 (`.b`) of the value given to the shader.
     uint                Shader4ComponentMapping;
-    union
+union
     {
         D3D12_BUFFER_SRV  Buffer;
         D3D12_TEX1D_SRV   Texture1D;
@@ -6071,7 +6075,7 @@ struct D3D12_UNORDERED_ACCESS_VIEW_DESC
     ///A D3D12_UAV_DIMENSION-typed value that specifies the resource type of the view. This type specifies how the
     ///resource will be accessed. This member also determines which _UAV to use in the union below.
     D3D12_UAV_DIMENSION ViewDimension;
-    union
+union
     {
         D3D12_BUFFER_UAV Buffer;
         D3D12_TEX1D_UAV  Texture1D;
@@ -6168,7 +6172,7 @@ struct D3D12_RENDER_TARGET_VIEW_DESC
     ///specifies how the resource will be accessed. This member also determines which _RTV to use in the following
     ///union.
     D3D12_RTV_DIMENSION ViewDimension;
-    union
+union
     {
         D3D12_BUFFER_RTV  Buffer;
         D3D12_TEX1D_RTV   Texture1D;
@@ -6245,7 +6249,7 @@ struct D3D12_DEPTH_STENCIL_VIEW_DESC
     ///resulting value specifies whether the texture is read only. Pass 0 to specify that it isn't read only; otherwise,
     ///pass one or more of the members of the <b>D3D12_DSV_FLAGS</b> enumerated type.
     D3D12_DSV_FLAGS     Flags;
-    union
+union
     {
         D3D12_TEX1D_DSV   Texture1D;
         D3D12_TEX1D_ARRAY_DSV Texture1DArray;
@@ -6332,7 +6336,7 @@ struct D3D12_ROOT_PARAMETER
     ///A D3D12_ROOT_PARAMETER_TYPE-typed value that specifies the type of root signature slot. This member determines
     ///which type to use in the union below.
     D3D12_ROOT_PARAMETER_TYPE ParameterType;
-    union
+union
     {
         D3D12_ROOT_DESCRIPTOR_TABLE DescriptorTable;
         D3D12_ROOT_CONSTANTS Constants;
@@ -6456,7 +6460,7 @@ struct D3D12_ROOT_PARAMETER1
     ///A D3D12_ROOT_PARAMETER_TYPE-typed value that specifies the type of root signature slot. This member determines
     ///which type to use in the union below.
     D3D12_ROOT_PARAMETER_TYPE ParameterType;
-    union
+union
     {
         D3D12_ROOT_DESCRIPTOR_TABLE1 DescriptorTable;
         D3D12_ROOT_CONSTANTS Constants;
@@ -6489,7 +6493,7 @@ struct D3D12_VERSIONED_ROOT_SIGNATURE_DESC
 {
     ///Specifies one member of D3D_ROOT_SIGNATURE_VERSION that determines the contents of the union.
     D3D_ROOT_SIGNATURE_VERSION Version;
-    union
+union
     {
         D3D12_ROOT_SIGNATURE_DESC Desc_1_0;
         D3D12_ROOT_SIGNATURE_DESC1 Desc_1_1;
@@ -6657,27 +6661,27 @@ struct D3D12_INDIRECT_ARGUMENT_DESC
 {
     ///A single D3D12_INDIRECT_ARGUMENT_TYPE enumeration constant.
     D3D12_INDIRECT_ARGUMENT_TYPE Type;
-    union
+union
     {
-        struct VertexBuffer
+struct VertexBuffer
         {
             uint Slot;
         }
-        struct Constant
+struct Constant
         {
             uint RootParameterIndex;
             uint DestOffsetIn32BitValues;
             uint Num32BitValuesToSet;
         }
-        struct ConstantBufferView
+struct ConstantBufferView
         {
             uint RootParameterIndex;
         }
-        struct ShaderResourceView
+struct ShaderResourceView
         {
             uint RootParameterIndex;
         }
-        struct UnorderedAccessView
+struct UnorderedAccessView
         {
             uint RootParameterIndex;
         }
@@ -6734,7 +6738,7 @@ struct D3D12_PROTECTED_RESOURCE_SESSION_DESC
 struct D3D12_META_COMMAND_PARAMETER_DESC
 {
     ///Type: <b>LPCWSTR</b> The parameter name.
-    const(wchar)* Name;
+    const(PWSTR) Name;
     ///Type: <b>D3D12_META_COMMAND_PARAMETER_TYPE</b> A D3D12_META_COMMAND_PARAMETER_TYPE specifying the parameter type.
     D3D12_META_COMMAND_PARAMETER_TYPE Type;
     ///Type: <b>D3D12_META_COMMAND_PARAMETER_FLAGS</b> A D3D12_META_COMMAND_PARAMETER_FLAGS specifying the parameter
@@ -6742,16 +6746,16 @@ struct D3D12_META_COMMAND_PARAMETER_DESC
     D3D12_META_COMMAND_PARAMETER_FLAGS Flags;
     ///Type: <b>D3D12_RESOURCE_STATES</b> A D3D12_RESOURCE_STATES specifying the expected state of a resource parameter.
     D3D12_RESOURCE_STATES RequiredResourceState;
-    uint          StructureOffset;
+    uint         StructureOffset;
 }
 
 ///Describes a meta command.
 struct D3D12_META_COMMAND_DESC
 {
     ///Type: <b>GUID</b> A GUID uniquely identifying the meta command.
-    GUID          Id;
+    GUID         Id;
     ///Type: <b>LPCWSTR</b> The meta command name.
-    const(wchar)* Name;
+    const(PWSTR) Name;
     ///Type: <b>D3D12_GRAPHICS_STATES</b> Declares the command list states that are modified by the call to initialize
     ///the meta command. If all state bits are set, then that's equivalent to calling
     ///ID3D12GraphicsCommandList::ClearState.
@@ -6807,9 +6811,9 @@ struct D3D12_EXPORT_DESC
     ///case <i>Name</i> must be the unmodified name, whereas <i>ExportToRename</i> can be either a modified or
     ///unmodified name. A given internal name may be exported multiple times with different renames (and/or not
     ///renamed).
-    const(wchar)*      Name;
+    const(PWSTR)       Name;
     ///If non-null, this is the name of an export to use but then rename when exported.
-    const(wchar)*      ExportToRename;
+    const(PWSTR)       ExportToRename;
     D3D12_EXPORT_FLAGS Flags;
 }
 
@@ -6843,35 +6847,35 @@ struct D3D12_SUBOBJECT_TO_EXPORTS_ASSOCIATION
     const(D3D12_STATE_SUBOBJECT)* pSubobjectToAssociate;
     ///Size of the <i>pExports</i> array. If 0, this is being explicitly defined as a default association. Another way
     ///to define a default association is to omit this subobject association for that subobject completely.
-    uint     NumExports;
+    uint   NumExports;
     ///The array of exports with which the subobject is associated.
-    ushort** pExports;
+    PWSTR* pExports;
 }
 
 ///This subobject is unsupported in the current release.
 struct D3D12_DXIL_SUBOBJECT_TO_EXPORTS_ASSOCIATION
 {
-    const(wchar)* SubobjectToAssociate;
+    const(PWSTR) SubobjectToAssociate;
     ///Size of the <i>pExports</i> array. If 0, this is being explicitly defined as a default association. Another way
     ///to define a default association is to omit this subobject association for that subobject completely.
-    uint          NumExports;
-    ushort**      pExports;
+    uint         NumExports;
+    PWSTR*       pExports;
 }
 
 ///Describes a raytracing hit group state subobject that can be included in a state object.
 struct D3D12_HIT_GROUP_DESC
 {
     ///The name of the hit group.
-    const(wchar)*        HitGroupExport;
+    const(PWSTR)         HitGroupExport;
     ///A value from the D3D12_HIT_GROUP_TYPE enumeration specifying the type of the hit group.
     D3D12_HIT_GROUP_TYPE Type;
     ///Optional name of the any-hit shader associated with the hit group. This field can be used with all hit group
     ///types.
-    const(wchar)*        AnyHitShaderImport;
+    const(PWSTR)         AnyHitShaderImport;
     ///Optional name of the closest-hit shader associated with the hit group. This field can be used with all hit group
     ///types.
-    const(wchar)*        ClosestHitShaderImport;
-    const(wchar)*        IntersectionShaderImport;
+    const(PWSTR)         ClosestHitShaderImport;
+    const(PWSTR)         IntersectionShaderImport;
 }
 
 ///A state subobject that represents a shader configuration.
@@ -7105,7 +7109,7 @@ struct D3D12_RAYTRACING_GEOMETRY_DESC
     D3D12_RAYTRACING_GEOMETRY_TYPE Type;
     ///The geometry flags
     D3D12_RAYTRACING_GEOMETRY_FLAGS Flags;
-    union
+union
     {
         D3D12_RAYTRACING_GEOMETRY_TRIANGLES_DESC Triangles;
         D3D12_RAYTRACING_GEOMETRY_AABBS_DESC AABBs;
@@ -7128,7 +7132,7 @@ struct D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS
     uint NumDescs;
     ///How geometry descriptions are specified; either an array of descriptions or an array of pointers to descriptions.
     D3D12_ELEMENTS_LAYOUT DescsLayout;
-    union
+union
     {
         ulong InstanceDescs;
         const(D3D12_RAYTRACING_GEOMETRY_DESC)* pGeometryDescs;
@@ -7182,13 +7186,13 @@ struct D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO
 struct D3D12_AUTO_BREADCRUMB_NODE
 {
     ///A pointer to the ANSI debug name of the outstanding command list (if any).
-    const(byte)*       pCommandListDebugNameA;
+    const(ubyte)*      pCommandListDebugNameA;
     ///A pointer to the wide debug name of the outstanding command list (if any).
-    const(ushort)*     pCommandListDebugNameW;
+    const(PWSTR)       pCommandListDebugNameW;
     ///A pointer to the ANSI debug name of the outstanding command queue (if any).
-    const(byte)*       pCommandQueueDebugNameA;
+    const(ubyte)*      pCommandQueueDebugNameA;
     ///A pointer to the wide debug name of the outstanding command queue (if any).
-    const(ushort)*     pCommandQueueDebugNameW;
+    const(PWSTR)       pCommandQueueDebugNameW;
     ///A pointer to the [ID3D12GraphicsCommandList interface](nn-d3d12-id3d12graphicscommandlist.md) representing the
     ///outstanding command list at the time of execution.
     ID3D12GraphicsCommandList pCommandList;
@@ -7211,16 +7215,16 @@ struct D3D12_AUTO_BREADCRUMB_NODE
 
 struct D3D12_DRED_BREADCRUMB_CONTEXT
 {
-    uint           BreadcrumbIndex;
-    const(ushort)* pContextString;
+    uint         BreadcrumbIndex;
+    const(PWSTR) pContextString;
 }
 
 struct D3D12_AUTO_BREADCRUMB_NODE1
 {
-    const(byte)*       pCommandListDebugNameA;
-    const(ushort)*     pCommandListDebugNameW;
-    const(byte)*       pCommandQueueDebugNameA;
-    const(ushort)*     pCommandQueueDebugNameW;
+    const(ubyte)*      pCommandListDebugNameA;
+    const(PWSTR)       pCommandListDebugNameW;
+    const(ubyte)*      pCommandQueueDebugNameA;
+    const(PWSTR)       pCommandQueueDebugNameW;
     ID3D12GraphicsCommandList pCommandList;
     ID3D12CommandQueue pCommandQueue;
     uint               BreadcrumbCount;
@@ -7257,9 +7261,9 @@ struct D3D12_DEVICE_REMOVED_EXTENDED_DATA
 struct D3D12_DRED_ALLOCATION_NODE
 {
     ///A pointer to the ANSI debug name of the allocated runtime object.
-    const(byte)*   ObjectNameA;
+    const(ubyte)* ObjectNameA;
     ///A pointer to the wide debug name of the allocated runtime object.
-    const(ushort)* ObjectNameW;
+    const(PWSTR)  ObjectNameW;
     ///A [D3D12_DRED_ALLOCATION_TYPE](ne-d3d12-d3d12_dred_allocation_type.md) value representing the runtime object's
     ///allocation type.
     D3D12_DRED_ALLOCATION_TYPE AllocationType;
@@ -7270,8 +7274,8 @@ struct D3D12_DRED_ALLOCATION_NODE
 
 struct D3D12_DRED_ALLOCATION_NODE1
 {
-    const(byte)*    ObjectNameA;
-    const(ushort)*  ObjectNameW;
+    const(ubyte)*   ObjectNameA;
+    const(PWSTR)    ObjectNameW;
     D3D12_DRED_ALLOCATION_TYPE AllocationType;
     const(D3D12_DRED_ALLOCATION_NODE1)* pNext;
     const(IUnknown) pObject;
@@ -7350,7 +7354,7 @@ struct D3D12_VERSIONED_DEVICE_REMOVED_EXTENDED_DATA
     ///A [D3D12_DRED_VERSION](ne-d3d12-d3d12_dred_version.md) value, specifying a DRED version. This value determines
     ///which inner data member (of the union) is active.
     D3D12_DRED_VERSION Version;
-    union
+union
     {
         D3D12_DEVICE_REMOVED_EXTENDED_DATA Dred_1_0;
         D3D12_DEVICE_REMOVED_EXTENDED_DATA1 Dred_1_1;
@@ -7400,7 +7404,7 @@ struct D3D12_RENDER_PASS_BEGINNING_ACCESS
 {
     ///A D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE. The type of access being requested.
     D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE Type;
-    union
+union
     {
         D3D12_RENDER_PASS_BEGINNING_ACCESS_CLEAR_PARAMETERS Clear;
     }
@@ -7449,7 +7453,7 @@ struct D3D12_RENDER_PASS_ENDING_ACCESS
 {
     ///A D3D12_RENDER_PASS_ENDING_ACCESS_TYPE. The type of access being requested.
     D3D12_RENDER_PASS_ENDING_ACCESS_TYPE Type;
-    union
+union
     {
         D3D12_RENDER_PASS_ENDING_ACCESS_RESOLVE_PARAMETERS Resolve;
     }
@@ -7586,7 +7590,7 @@ struct D3D12_MESSAGE
     ///The ID of the message. See D3D12_MESSAGE_ID.
     D3D12_MESSAGE_ID ID;
     ///The message string.
-    const(byte)*     pDescription;
+    const(ubyte)*    pDescription;
     ///The length of <i>pDescription</i>, in bytes.
     size_t           DescriptionByteLength;
 }
@@ -7682,7 +7686,7 @@ struct D3D11_RESOURCE_FLAGS
 struct D3D12_SIGNATURE_PARAMETER_DESC
 {
     ///A per-parameter string that identifies how the data will be used. For more info, see Semantics.
-    const(char)*      SemanticName;
+    const(PSTR)       SemanticName;
     ///Semantic index that modifies the semantic. Used to differentiate different parameters that use the same semantic.
     uint              SemanticIndex;
     ///The register that will contain this variable's data.
@@ -7709,7 +7713,7 @@ struct D3D12_SIGNATURE_PARAMETER_DESC
 struct D3D12_SHADER_BUFFER_DESC
 {
     ///The name of the buffer.
-    const(char)*     Name;
+    const(PSTR)      Name;
     ///A D3D_CBUFFER_TYPE-typed value that indicates the intended use of the constant data.
     D3D_CBUFFER_TYPE Type;
     ///The number of unique variables.
@@ -7725,24 +7729,24 @@ struct D3D12_SHADER_BUFFER_DESC
 struct D3D12_SHADER_VARIABLE_DESC
 {
     ///The variable name.
-    const(char)* Name;
+    const(PSTR) Name;
     ///Offset from the start of the parent structure to the beginning of the variable.
-    uint         StartOffset;
+    uint        StartOffset;
     ///Size of the variable (in bytes).
-    uint         Size;
+    uint        Size;
     ///A combination of D3D_SHADER_VARIABLE_FLAGS-typed values that are combined by using a bitwise-OR operation. The
     ///resulting value identifies shader-variable properties.
-    uint         uFlags;
+    uint        uFlags;
     ///The default value for initializing the variable. Emits default values for reflection.
-    void*        DefaultValue;
+    void*       DefaultValue;
     ///Offset from the start of the variable to the beginning of the texture.
-    uint         StartTexture;
+    uint        StartTexture;
     ///The size of the texture, in bytes.
-    uint         TextureSize;
+    uint        TextureSize;
     ///Offset from the start of the variable to the beginning of the sampler.
-    uint         StartSampler;
+    uint        StartSampler;
     ///The size of the sampler, in bytes.
-    uint         SamplerSize;
+    uint        SamplerSize;
 }
 
 ///Describes a shader-variable type.
@@ -7754,20 +7758,20 @@ struct D3D12_SHADER_TYPE_DESC
     ///A D3D_SHADER_VARIABLE_TYPE-typed value that identifies the variable type.
     D3D_SHADER_VARIABLE_TYPE Type;
     ///Number of rows in a matrix. Otherwise a numeric type returns 1, any other type returns 0.
-    uint         Rows;
+    uint        Rows;
     ///Number of columns in a matrix. Otherwise a numeric type returns 1, any other type returns 0.
-    uint         Columns;
+    uint        Columns;
     ///Number of elements in an array; otherwise 0.
-    uint         Elements;
+    uint        Elements;
     ///Number of members in the structure; otherwise 0.
-    uint         Members;
+    uint        Members;
     ///Offset, in bytes, between the start of the parent structure and this variable. Can be 0 if not a structure
     ///member.
-    uint         Offset;
+    uint        Offset;
     ///Name of the shader-variable type. This member can be <b>NULL</b> if it isn't used. This member supports dynamic
     ///shader linkage interface types, which have names. For more info about dynamic shader linkage, see Dynamic
     ///Linking.
-    const(char)* Name;
+    const(PSTR) Name;
 }
 
 ///Describes a shader.
@@ -7780,7 +7784,7 @@ struct D3D12_SHADER_DESC
     ///<li>Minor version = (Version &amp; 0x0000000F)</li> </ul>
     uint          Version;
     ///The name of the originator of the shader.
-    const(char)*  Creator;
+    const(PSTR)   Creator;
     ///Shader compilation/parse flags.
     uint          Flags;
     ///The number of shader-constant buffers.
@@ -7859,7 +7863,7 @@ struct D3D12_SHADER_DESC
 struct D3D12_SHADER_INPUT_BIND_DESC
 {
     ///Name of the shader resource.
-    const(char)*      Name;
+    const(PSTR)       Name;
     ///A D3D_SHADER_INPUT_TYPE-typed value that identifies the type of data in the resource.
     D3D_SHADER_INPUT_TYPE Type;
     ///Starting bind point.
@@ -7885,12 +7889,12 @@ struct D3D12_SHADER_INPUT_BIND_DESC
 struct D3D12_LIBRARY_DESC
 {
     ///The name of the originator of the library.
-    const(char)* Creator;
+    const(PSTR) Creator;
     ///A combination of D3DCOMPILE Constants that are combined by using a bitwise OR operation. The resulting value
     ///specifies how the compiler compiles.
-    uint         Flags;
+    uint        Flags;
     ///The number of functions exported from the library.
-    uint         FunctionCount;
+    uint        FunctionCount;
 }
 
 ///Describes a function.
@@ -7899,7 +7903,7 @@ struct D3D12_FUNCTION_DESC
     ///The shader version. See also D3D12_SHADER_VERSION_TYPE.
     uint              Version;
     ///The name of the originator of the function.
-    const(char)*      Creator;
+    const(PSTR)       Creator;
     ///A combination of D3DCOMPILE Constants that are combined by using a bitwise OR operation. The resulting value
     ///specifies shader compilation and parsing.
     uint              Flags;
@@ -7957,7 +7961,7 @@ struct D3D12_FUNCTION_DESC
     ///ID3D12ShaderReflection::GetRequiresFlags.
     ulong             RequiredFeatureFlags;
     ///The name of the function.
-    const(char)*      Name;
+    const(PSTR)       Name;
     ///The number of logical parameters in the function signature, not including the return value.
     int               FunctionParameterCount;
     ///Indicates whether the function returns a value. <b>TRUE</b> indicates it returns a value; otherwise, <b>FALSE</b>
@@ -7975,10 +7979,10 @@ struct D3D12_FUNCTION_DESC
 struct D3D12_PARAMETER_DESC
 {
     ///The name of the function parameter.
-    const(char)*        Name;
+    const(PSTR)         Name;
     ///The HLSL semantic that is associated with this function parameter. This name includes the index, for example,
     ///SV_Target[n].
-    const(char)*        SemanticName;
+    const(PSTR)         SemanticName;
     ///A D3D_SHADER_VARIABLE_TYPE-typed value that identifies the variable type for the parameter.
     D3D_SHADER_VARIABLE_TYPE Type;
     ///A D3D_SHADER_VARIABLE_CLASS-typed value that identifies the variable class for the parameter as one of scalar,
@@ -8034,7 +8038,7 @@ HRESULT D3D12SerializeRootSignature(const(D3D12_ROOT_SIGNATURE_DESC)* pRootSigna
 ///    Type: <b>HRESULT</b> Returns <b>S_OK</b> if successful; otherwise, returns one of the Direct3D 12 Return Codes.
 ///    
 @DllImport("d3d12")
-HRESULT D3D12CreateRootSignatureDeserializer(char* pSrcData, size_t SrcDataSizeInBytes, 
+HRESULT D3D12CreateRootSignatureDeserializer(const(void)* pSrcData, size_t SrcDataSizeInBytes, 
                                              const(GUID)* pRootSignatureDeserializerInterface, 
                                              void** ppRootSignatureDeserializer);
 
@@ -8064,7 +8068,7 @@ HRESULT D3D12SerializeVersionedRootSignature(const(D3D12_VERSIONED_ROOT_SIGNATUR
 ///    Type: <b>HRESULT</b> Returns <b>S_OK</b> if successful; otherwise, returns one of the Direct3D 12 Return Codes.
 ///    
 @DllImport("d3d12")
-HRESULT D3D12CreateVersionedRootSignatureDeserializer(char* pSrcData, size_t SrcDataSizeInBytes, 
+HRESULT D3D12CreateVersionedRootSignatureDeserializer(const(void)* pSrcData, size_t SrcDataSizeInBytes, 
                                                       const(GUID)* pRootSignatureDeserializerInterface, 
                                                       void** ppRootSignatureDeserializer);
 
@@ -8116,8 +8120,8 @@ HRESULT D3D12GetDebugInterface(const(GUID)* riid, void** ppvDebug);
 ///    feature is in correct, the experimental features specified are not compatible, or other errors.
 ///    
 @DllImport("d3d12")
-HRESULT D3D12EnableExperimentalFeatures(uint NumFeatures, char* pIIDs, char* pConfigurationStructs, 
-                                        char* pConfigurationStructSizes);
+HRESULT D3D12EnableExperimentalFeatures(uint NumFeatures, const(GUID)* pIIDs, void* pConfigurationStructs, 
+                                        uint* pConfigurationStructSizes);
 
 ///Creates a device that uses Direct3D 11 functionality in Direct3D 12, specifying a pre-existing Direct3D 12 device to
 ///use for Direct3D 11 interop.
@@ -8149,9 +8153,10 @@ HRESULT D3D12EnableExperimentalFeatures(uint NumFeatures, char* pIIDs, char* pCo
 ///    Windows SDK to get the correct version.
 ///    
 @DllImport("d3d11")
-HRESULT D3D11On12CreateDevice(IUnknown pDevice, uint Flags, char* pFeatureLevels, uint FeatureLevels, 
-                              char* ppCommandQueues, uint NumQueues, uint NodeMask, ID3D11Device* ppDevice, 
-                              ID3D11DeviceContext* ppImmediateContext, D3D_FEATURE_LEVEL* pChosenFeatureLevel);
+HRESULT D3D11On12CreateDevice(IUnknown pDevice, uint Flags, const(D3D_FEATURE_LEVEL)* pFeatureLevels, 
+                              uint FeatureLevels, IUnknown* ppCommandQueues, uint NumQueues, uint NodeMask, 
+                              ID3D11Device* ppDevice, ID3D11DeviceContext* ppImmediateContext, 
+                              D3D_FEATURE_LEVEL* pChosenFeatureLevel);
 
 
 // Interfaces
@@ -8172,7 +8177,7 @@ interface ID3D12Object : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the Direct3D 12 Return Codes.
     ///    
-    HRESULT GetPrivateData(const(GUID)* guid, uint* pDataSize, char* pData);
+    HRESULT GetPrivateData(const(GUID)* guid, uint* pDataSize, void* pData);
     ///Sets application-defined data to a device object and associates that data with an application-defined
     ///<b>GUID</b>.
     ///Params:
@@ -8184,7 +8189,7 @@ interface ID3D12Object : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the Direct3D 12 Return Codes.
     ///    
-    HRESULT SetPrivateData(const(GUID)* guid, uint DataSize, char* pData);
+    HRESULT SetPrivateData(const(GUID)* guid, uint DataSize, const(void)* pData);
     ///Associates an IUnknown-derived interface with the device object and associates that interface with an
     ///application-defined <b>GUID</b>.
     ///Params:
@@ -8202,7 +8207,7 @@ interface ID3D12Object : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the Direct3D 12 Return Codes.
     ///    
-    HRESULT SetName(const(wchar)* Name);
+    HRESULT SetName(const(PWSTR) Name);
 }
 
 ///An interface from which other core interfaces inherit from, including (but not limited to) ID3D12PipelineLibrary,
@@ -8642,16 +8647,16 @@ interface ID3D12GraphicsCommandList : ID3D12CommandList
     ///    NumViewports = Type: <b>UINT</b> Number of viewports to bind. The range of valid values is (0,
     ///                   D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE).
     ///    pViewports = Type: <b>const D3D12_VIEWPORT*</b> An array of D3D12_VIEWPORT structures to bind to the device.
-    void    RSSetViewports(uint NumViewports, char* pViewports);
+    void    RSSetViewports(uint NumViewports, const(D3D12_VIEWPORT)* pViewports);
     ///Binds an array of scissor rectangles to the rasterizer stage.
     ///Params:
     ///    NumRects = Type: <b>UINT</b> The number of scissor rectangles to bind.
     ///    pRects = Type: <b>const D3D12_RECT*</b> An array of scissor rectangles.
-    void    RSSetScissorRects(uint NumRects, char* pRects);
+    void    RSSetScissorRects(uint NumRects, const(RECT)* pRects);
     ///Sets the blend factor that modulate values for a pixel shader, render target, or both.
     ///Params:
     ///    BlendFactor = Type: <b>const FLOAT[4]</b> Array of blend factors, one for each RGBA component.
-    void    OMSetBlendFactor(char* BlendFactor);
+    void    OMSetBlendFactor(const(float)* BlendFactor);
     ///Sets the reference value for depth stencil tests.
     ///Params:
     ///    StencilRef = Type: <b>UINT</b> Reference value to perform against when doing a depth-stencil test.
@@ -8664,7 +8669,7 @@ interface ID3D12GraphicsCommandList : ID3D12CommandList
     ///Params:
     ///    NumBarriers = Type: <b>UINT</b> The number of submitted barrier descriptions.
     ///    pBarriers = Type: <b>const D3D12_RESOURCE_BARRIER*</b> Pointer to an array of barrier descriptions.
-    void    ResourceBarrier(uint NumBarriers, char* pBarriers);
+    void    ResourceBarrier(uint NumBarriers, const(D3D12_RESOURCE_BARRIER)* pBarriers);
     ///Executes a bundle.
     ///Params:
     ///    pCommandList = Type: <b>ID3D12GraphicsCommandList*</b> Specifies the ID3D12GraphicsCommandList that determines the bundle to
@@ -8680,7 +8685,7 @@ interface ID3D12GraphicsCommandList : ID3D12CommandList
     ///                        [**D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER**](/windows/win32/api/d3d12/nf-d3d12-id3d12graphicscommandlist-setdescriptorheaps).
     ///                        Only one descriptor heap of each type can be set at one time, which means a maximum of 2 heaps (one sampler,
     ///                        one CBV/SRV/UAV) can be set at one time.
-    void    SetDescriptorHeaps(uint NumDescriptorHeaps, char* ppDescriptorHeaps);
+    void    SetDescriptorHeaps(uint NumDescriptorHeaps, ID3D12DescriptorHeap* ppDescriptorHeaps);
     ///Sets the layout of the compute root signature.
     ///Params:
     ///    pRootSignature = Type: <b>ID3D12RootSignature*</b> A pointer to the ID3D12RootSignature object.
@@ -8717,7 +8722,7 @@ interface ID3D12GraphicsCommandList : ID3D12CommandList
     ///    Num32BitValuesToSet = Type: <b>UINT</b> The number of constants to set in the root signature.
     ///    pSrcData = Type: <b>const void*</b> The source data for the group of constants to set.
     ///    DestOffsetIn32BitValues = Type: <b>UINT</b> The offset, in 32-bit values, to set the first constant of the group in the root signature.
-    void    SetComputeRoot32BitConstants(uint RootParameterIndex, uint Num32BitValuesToSet, char* pSrcData, 
+    void    SetComputeRoot32BitConstants(uint RootParameterIndex, uint Num32BitValuesToSet, const(void)* pSrcData, 
                                          uint DestOffsetIn32BitValues);
     ///Sets a group of constants in the graphics root signature.
     ///Params:
@@ -8725,7 +8730,7 @@ interface ID3D12GraphicsCommandList : ID3D12CommandList
     ///    Num32BitValuesToSet = Type: <b>UINT</b> The number of constants to set in the root signature.
     ///    pSrcData = Type: <b>const void*</b> The source data for the group of constants to set.
     ///    DestOffsetIn32BitValues = Type: <b>UINT</b> The offset, in 32-bit values, to set the first constant of the group in the root signature.
-    void    SetGraphicsRoot32BitConstants(uint RootParameterIndex, uint Num32BitValuesToSet, char* pSrcData, 
+    void    SetGraphicsRoot32BitConstants(uint RootParameterIndex, uint Num32BitValuesToSet, const(void)* pSrcData, 
                                           uint DestOffsetIn32BitValues);
     ///Sets a CPU descriptor handle for the constant buffer in the compute root signature.
     ///Params:
@@ -8773,14 +8778,14 @@ interface ID3D12GraphicsCommandList : ID3D12CommandList
     ///    NumViews = Type: <b>UINT</b> The number of views in the <i>pViews</i> array.
     ///    pViews = Type: <b>const D3D12_VERTEX_BUFFER_VIEW*</b> Specifies the vertex buffer views in an array of
     ///             D3D12_VERTEX_BUFFER_VIEW structures.
-    void    IASetVertexBuffers(uint StartSlot, uint NumViews, char* pViews);
+    void    IASetVertexBuffers(uint StartSlot, uint NumViews, const(D3D12_VERTEX_BUFFER_VIEW)* pViews);
     ///Sets the stream output buffer views.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin setting stream output buffers.
     ///    NumViews = Type: <b>UINT</b> The number of entries in the <i>pViews</i> array.
     ///    pViews = Type: <b>const D3D12_STREAM_OUTPUT_BUFFER_VIEW*</b> Specifies an array of D3D12_STREAM_OUTPUT_BUFFER_VIEW
     ///             structures.
-    void    SOSetTargets(uint StartSlot, uint NumViews, char* pViews);
+    void    SOSetTargets(uint StartSlot, uint NumViews, const(D3D12_STREAM_OUTPUT_BUFFER_VIEW)* pViews);
     ///Sets CPU descriptor handles for the render targets and depth stencil.
     ///Params:
     ///    NumRenderTargetDescriptors = Type: <b>UINT</b> The number of entries in the <i>pRenderTargetDescriptors</i> array (ranges between 0 and
@@ -8820,7 +8825,7 @@ interface ID3D12GraphicsCommandList : ID3D12CommandList
     ///    pRects = Type: <b>const <b>D3D12_RECT</b>*</b> An array of <b>D3D12_RECT</b> structures for the rectangles in the
     ///             resource view to clear. If <b>NULL</b>, <b>ClearDepthStencilView</b> clears the entire resource view.
     void    ClearDepthStencilView(D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView, D3D12_CLEAR_FLAGS ClearFlags, 
-                                  float Depth, ubyte Stencil, uint NumRects, char* pRects);
+                                  float Depth, ubyte Stencil, uint NumRects, const(RECT)* pRects);
     ///Sets all the elements in a render target to one value.
     ///Params:
     ///    RenderTargetView = Type: <b>D3D12_CPU_DESCRIPTOR_HANDLE</b> Specifies a D3D12_CPU_DESCRIPTOR_HANDLE structure that describes the
@@ -8830,7 +8835,7 @@ interface ID3D12GraphicsCommandList : ID3D12CommandList
     ///    pRects = Type: <b>const D3D12_RECT*</b> An array of <b>D3D12_RECT</b> structures for the rectangles in the resource
     ///             view to clear. If <b>NULL</b>, <b>ClearRenderTargetView</b> clears the entire resource view.
     void    ClearRenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE RenderTargetView, const(float)* ColorRGBA, 
-                                  uint NumRects, char* pRects);
+                                  uint NumRects, const(RECT)* pRects);
     ///Sets all the elements in a unordered-access view (UAV) to the specified integer values.
     ///Params:
     ///    ViewGPUHandleInCurrentHeap = Type: [in] **[D3D12_GPU_DESCRIPTOR_HANDLE](./ns-d3d12-d3d12_gpu_descriptor_handle.md)** A
@@ -8856,7 +8861,7 @@ interface ID3D12GraphicsCommandList : ID3D12CommandList
     ///             clears the entire resource view.
     void    ClearUnorderedAccessViewUint(D3D12_GPU_DESCRIPTOR_HANDLE ViewGPUHandleInCurrentHeap, 
                                          D3D12_CPU_DESCRIPTOR_HANDLE ViewCPUHandle, ID3D12Resource pResource, 
-                                         const(uint)* Values, uint NumRects, char* pRects);
+                                         const(uint)* Values, uint NumRects, const(RECT)* pRects);
     ///Sets all of the elements in an unordered-access view (UAV) to the specified float values.
     ///Params:
     ///    ViewGPUHandleInCurrentHeap = Type: [in] **[D3D12_GPU_DESCRIPTOR_HANDLE](./ns-d3d12-d3d12_gpu_descriptor_handle.md)** A
@@ -8882,7 +8887,7 @@ interface ID3D12GraphicsCommandList : ID3D12CommandList
     ///             clears the entire resource view.
     void    ClearUnorderedAccessViewFloat(D3D12_GPU_DESCRIPTOR_HANDLE ViewGPUHandleInCurrentHeap, 
                                           D3D12_CPU_DESCRIPTOR_HANDLE ViewCPUHandle, ID3D12Resource pResource, 
-                                          const(float)* Values, uint NumRects, char* pRects);
+                                          const(float)* Values, uint NumRects, const(RECT)* pRects);
     ///Indicates that the contents of a resource don't need to be preserved. The function may re-initialize resource
     ///metadata in some cases.
     ///Params:
@@ -8928,13 +8933,13 @@ interface ID3D12GraphicsCommandList : ID3D12CommandList
     ///    Metadata = Type: <b>UINT</b> Internal.
     ///    pData = Type: <b>const void*</b> Internal.
     ///    Size = Type: <b>UINT</b> Internal.
-    void    SetMarker(uint Metadata, char* pData, uint Size);
+    void    SetMarker(uint Metadata, const(void)* pData, uint Size);
     ///Not intended to be called directly. Use the PIX event runtime to insert events into a command list.
     ///Params:
     ///    Metadata = Type: <b>UINT</b> Internal.
     ///    pData = Type: <b>const void*</b> Internal.
     ///    Size = Type: <b>UINT</b> Internal.
-    void    BeginEvent(uint Metadata, char* pData, uint Size);
+    void    BeginEvent(uint Metadata, const(void)* pData, uint Size);
     ///Not intended to be called directly. Use the PIX event runtime to insert events into a command list.
     void    EndEvent();
     ///Apps perform indirect draws/dispatches using the <b>ExecuteIndirect</b> method.
@@ -8991,8 +8996,8 @@ interface ID3D12GraphicsCommandList1 : ID3D12GraphicsCommandList
     ///                                  updated before the primary data element is itself atomically copied. This ensures that the entire operation
     ///                                  is logically atomic; that is, the primary data element never refers to an incomplete data payload.
     void AtomicCopyBufferUINT(ID3D12Resource pDstBuffer, ulong DstOffset, ID3D12Resource pSrcBuffer, 
-                              ulong SrcOffset, uint Dependencies, char* ppDependentResources, 
-                              char* pDependentSubresourceRanges);
+                              ulong SrcOffset, uint Dependencies, ID3D12Resource* ppDependentResources, 
+                              const(D3D12_SUBRESOURCE_RANGE_UINT64)* pDependentSubresourceRanges);
     ///Atomically copies a primary data element of type UINT64 from one resource to another, along with optional
     ///dependent resources. These 'dependent resourses' are so-named because they depend upon the primary data element
     ///to locate them, typically the key element is an address, index, or other handle that refers to one or more the
@@ -9018,8 +9023,8 @@ interface ID3D12GraphicsCommandList1 : ID3D12GraphicsCommandList
     ///                                  updated before the primary data element is itself atomically copied. This ensures that the entire operation
     ///                                  is logically atomic; that is, the primary data element never refers to an incomplete data payload.
     void AtomicCopyBufferUINT64(ID3D12Resource pDstBuffer, ulong DstOffset, ID3D12Resource pSrcBuffer, 
-                                ulong SrcOffset, uint Dependencies, char* ppDependentResources, 
-                                char* pDependentSubresourceRanges);
+                                ulong SrcOffset, uint Dependencies, ID3D12Resource* ppDependentResources, 
+                                const(D3D12_SUBRESOURCE_RANGE_UINT64)* pDependentSubresourceRanges);
     ///This method enables you to change the depth bounds dynamically.
     ///Params:
     ///    Min = Type: <b>FLOAT</b> SAL: <code>_In_</code> Specifies the minimum depth bounds. The default value is 0. NaN
@@ -9045,7 +9050,7 @@ interface ID3D12GraphicsCommandList1 : ID3D12GraphicsCommandList
     ///                       to the lower-left pixel, and the final group to the lower-right pixel. If centroid interpolation is used
     ///                       during rendering, the order of positions for each pixel determines centroid-sampling prioritiy. That is, the
     ///                       first covered sample in the order specified is chosen as the centroid sample location.
-    void SetSamplePositions(uint NumSamplesPerPixel, uint NumPixels, char* pSamplePositions);
+    void SetSamplePositions(uint NumSamplesPerPixel, uint NumPixels, D3D12_SAMPLE_POSITION* pSamplePositions);
     ///Copy a region of a multisampled or compressed resource into a non-multisampled or non-compressed resource.
     ///Params:
     ///    pDstResource = Type: <b>ID3D12Resource*</b> SAL: <code>_In_</code> Destination resource. Must be created with the
@@ -9097,7 +9102,8 @@ interface ID3D12GraphicsCommandList2 : ID3D12GraphicsCommandList1
     ///    pModes = The address of an array containing a number of D3D12_WRITEBUFFERIMMEDIATE_MODE structures equal to
     ///             <i>Count</i>. The default value is <b>null</b>; passing <b>null</b> causes the system to write all immediate
     ///             values using <b>D3D12_WRITEBUFFERIMMEDIATE_MODE_DEFAULT</b>.
-    void WriteBufferImmediate(uint Count, char* pParams, char* pModes);
+    void WriteBufferImmediate(uint Count, const(D3D12_WRITEBUFFERIMMEDIATE_PARAMETER)* pParams, 
+                              const(D3D12_WRITEBUFFERIMMEDIATE_MODE)* pModes);
 }
 
 ///Provides methods for submitting command lists, synchronizing command list execution, instrumenting the command queue,
@@ -9124,9 +9130,10 @@ interface ID3D12CommandQueue : ID3D12Pageable
     ///                       <i>NumRanges</i> parameter specifies the number of values in the array.
     ///    Flags = A combination of D3D12_TILE_MAPPING_FLAGS values that are combined by using a bitwise OR operation.
     void    UpdateTileMappings(ID3D12Resource pResource, uint NumResourceRegions, 
-                               char* pResourceRegionStartCoordinates, char* pResourceRegionSizes, ID3D12Heap pHeap, 
-                               uint NumRanges, char* pRangeFlags, char* pHeapRangeStartOffsets, 
-                               char* pRangeTileCounts, D3D12_TILE_MAPPING_FLAGS Flags);
+                               const(D3D12_TILED_RESOURCE_COORDINATE)* pResourceRegionStartCoordinates, 
+                               const(D3D12_TILE_REGION_SIZE)* pResourceRegionSizes, ID3D12Heap pHeap, uint NumRanges, 
+                               const(D3D12_TILE_RANGE_FLAGS)* pRangeFlags, const(uint)* pHeapRangeStartOffsets, 
+                               const(uint)* pRangeTileCounts, D3D12_TILE_MAPPING_FLAGS Flags);
     ///Copies mappings from a source reserved resource to a destination reserved resource.
     ///Params:
     ///    pDstResource = A pointer to the destination reserved resource.
@@ -9146,19 +9153,19 @@ interface ID3D12CommandQueue : ID3D12Pageable
     ///Params:
     ///    NumCommandLists = The number of command lists to be executed.
     ///    ppCommandLists = The array of ID3D12CommandList command lists to be executed.
-    void    ExecuteCommandLists(uint NumCommandLists, char* ppCommandLists);
+    void    ExecuteCommandLists(uint NumCommandLists, ID3D12CommandList* ppCommandLists);
     ///Not intended to be called directly. Use the PIX event runtime to insert events into a command queue.
     ///Params:
     ///    Metadata = Type: <b>UINT</b> Internal.
     ///    pData = Type: <b>const void*</b> Internal.
     ///    Size = Type: <b>UINT</b> Internal.
-    void    SetMarker(uint Metadata, char* pData, uint Size);
+    void    SetMarker(uint Metadata, const(void)* pData, uint Size);
     ///Not intended to be called directly. Use the PIX event runtime to insert events into a command queue.
     ///Params:
     ///    Metadata = Type: <b>UINT</b> Internal.
     ///    pData = Type: <b>const void*</b> Internal.
     ///    Size = Type: <b>UINT</b> Internal.
-    void    BeginEvent(uint Metadata, char* pData, uint Size);
+    void    BeginEvent(uint Metadata, const(void)* pData, uint Size);
     ///Not intended to be called directly. Use the PIX event runtime to insert events into a command queue.
     void    EndEvent();
     ///Updates a fence to a specified value.
@@ -9324,7 +9331,7 @@ interface ID3D12Device : ID3D12Object
     ///    type is passed to the <i>pFeatureSupportData</i> parameter or if a size mismatch is detected for the
     ///    <i>FeatureSupportDataSize</i> parameter.
     ///    
-    HRESULT CheckFeatureSupport(D3D12_FEATURE Feature, char* pFeatureSupportData, uint FeatureSupportDataSize);
+    HRESULT CheckFeatureSupport(D3D12_FEATURE Feature, void* pFeatureSupportData, uint FeatureSupportDataSize);
     ///Creates a descriptor heap object.
     ///Params:
     ///    pDescriptorHeapDesc = Type: <b>const D3D12_DESCRIPTOR_HEAP_DESC*</b> A pointer to a D3D12_DESCRIPTOR_HEAP_DESC structure that
@@ -9365,7 +9372,7 @@ interface ID3D12Device : ID3D12Object
     ///    Codes. This method returns <b>E_INVALIDARG</b> if the blob that <i>pBlobWithRootSignature</i> points to is
     ///    invalid.
     ///    
-    HRESULT CreateRootSignature(uint nodeMask, char* pBlobWithRootSignature, size_t blobLengthInBytes, 
+    HRESULT CreateRootSignature(uint nodeMask, const(void)* pBlobWithRootSignature, size_t blobLengthInBytes, 
                                 const(GUID)* riid, void** ppvRootSignature);
     ///Creates a constant-buffer view for accessing resource data.
     ///Params:
@@ -9474,10 +9481,11 @@ interface ID3D12Device : ID3D12Object
     ///    DescriptorHeapsType = Type: <b>D3D12_DESCRIPTOR_HEAP_TYPE</b> The D3D12_DESCRIPTOR_HEAP_TYPE-typed value that specifies the type of
     ///                          descriptor heap to copy with. This is required as different descriptor types may have different sizes. Both
     ///                          the source and destination descriptor heaps must have the same type, else the debug layer will emit an error.
-    void    CopyDescriptors(uint NumDestDescriptorRanges, char* pDestDescriptorRangeStarts, 
-                            char* pDestDescriptorRangeSizes, uint NumSrcDescriptorRanges, 
-                            char* pSrcDescriptorRangeStarts, char* pSrcDescriptorRangeSizes, 
-                            D3D12_DESCRIPTOR_HEAP_TYPE DescriptorHeapsType);
+    void    CopyDescriptors(uint NumDestDescriptorRanges, 
+                            const(D3D12_CPU_DESCRIPTOR_HANDLE)* pDestDescriptorRangeStarts, 
+                            const(uint)* pDestDescriptorRangeSizes, uint NumSrcDescriptorRanges, 
+                            const(D3D12_CPU_DESCRIPTOR_HANDLE)* pSrcDescriptorRangeStarts, 
+                            const(uint)* pSrcDescriptorRangeSizes, D3D12_DESCRIPTOR_HEAP_TYPE DescriptorHeapsType);
     ///Copies descriptors from a source to a destination.
     ///Params:
     ///    NumDescriptors = Type: <b>UINT</b> The number of descriptors to copy.
@@ -9513,7 +9521,7 @@ interface ID3D12Device : ID3D12Object
     ///    about video memory allocated for the specified array of resources.
     ///    
     D3D12_RESOURCE_ALLOCATION_INFO GetResourceAllocationInfo(uint visibleMask, uint numResourceDescs, 
-                                                             char* pResourceDescs);
+                                                             const(D3D12_RESOURCE_DESC)* pResourceDescs);
     ///Divulges the equivalent custom heap properties that are used for non-custom heap types, based on the adapter's
     ///architectural properties.
     ///Params:
@@ -9721,7 +9729,7 @@ interface ID3D12Device : ID3D12Object
     ///    described in the Direct3D 12 Return Codes topic. </li> </ul>
     ///    
     HRESULT CreateSharedHandle(ID3D12DeviceChild pObject, const(SECURITY_ATTRIBUTES)* pAttributes, uint Access, 
-                               const(wchar)* Name, HANDLE* pHandle);
+                               const(PWSTR) Name, HANDLE* pHandle);
     ///Opens a handle for shared resources, shared heaps, and shared fences, by using HANDLE and REFIID.
     ///Params:
     ///    NTHandle = Type: <b>HANDLE</b> The handle that was output by the call to ID3D12Device::CreateSharedHandle.
@@ -9745,7 +9753,7 @@ interface ID3D12Device : ID3D12Object
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the Direct3D 12 Return Codes.
     ///    
-    HRESULT OpenSharedHandleByName(const(wchar)* Name, uint Access, HANDLE* pNTHandle);
+    HRESULT OpenSharedHandleByName(const(PWSTR) Name, uint Access, HANDLE* pNTHandle);
     ///Makes objects resident for the device.
     ///Params:
     ///    NumObjects = Type: <b>UINT</b> The number of objects in the <i>ppObjects</i> array to make resident for the device.
@@ -9755,7 +9763,7 @@ interface ID3D12Device : ID3D12Object
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the Direct3D 12 Return Codes.
     ///    
-    HRESULT MakeResident(uint NumObjects, char* ppObjects);
+    HRESULT MakeResident(uint NumObjects, ID3D12Pageable* ppObjects);
     ///Enables the page-out of data, which precludes GPU access of that data.
     ///Params:
     ///    NumObjects = Type: <b>UINT</b> The number of objects in the <i>ppObjects</i> array to evict from the device.
@@ -9765,7 +9773,7 @@ interface ID3D12Device : ID3D12Object
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the Direct3D 12 Return Codes.
     ///    
-    HRESULT Evict(uint NumObjects, char* ppObjects);
+    HRESULT Evict(uint NumObjects, ID3D12Pageable* ppObjects);
     ///Creates a fence object.
     ///Params:
     ///    InitialValue = Type: <b>UINT64</b> The initial value for the fence.
@@ -9808,8 +9816,9 @@ interface ID3D12Device : ID3D12Object
     ///                      the row pitch from that will give you 256 as it is aligned to D3D12_TEXTURE_DATA_PITCH_ALIGNMENT.
     ///    pTotalBytes = Type: <b>UINT64*</b> A pointer to an integer variable, to be filled with the total size, in bytes.
     void    GetCopyableFootprints(const(D3D12_RESOURCE_DESC)* pResourceDesc, uint FirstSubresource, 
-                                  uint NumSubresources, ulong BaseOffset, char* pLayouts, char* pNumRows, 
-                                  char* pRowSizeInBytes, ulong* pTotalBytes);
+                                  uint NumSubresources, ulong BaseOffset, 
+                                  D3D12_PLACED_SUBRESOURCE_FOOTPRINT* pLayouts, uint* pNumRows, 
+                                  ulong* pRowSizeInBytes, ulong* pTotalBytes);
     ///Creates a query heap. A query heap contains an array of queries.
     ///Params:
     ///    pDesc = Type: <b>const D3D12_QUERY_HEAP_DESC*</b> Specifies the query heap in a D3D12_QUERY_HEAP_DESC structure.
@@ -9873,7 +9882,8 @@ interface ID3D12Device : ID3D12Object
     void    GetResourceTiling(ID3D12Resource pTiledResource, uint* pNumTilesForEntireResource, 
                               D3D12_PACKED_MIP_INFO* pPackedMipDesc, 
                               D3D12_TILE_SHAPE* pStandardTileShapeForNonPackedMips, uint* pNumSubresourceTilings, 
-                              uint FirstSubresourceTilingToGet, char* pSubresourceTilingsForNonPackedMips);
+                              uint FirstSubresourceTilingToGet, 
+                              D3D12_SUBRESOURCE_TILING* pSubresourceTilingsForNonPackedMips);
     ///Gets a locally unique identifier for the current device (adapter).
     ///Returns:
     ///    Type: <b>LUID</b> The locally unique identifier for the adapter.
@@ -9893,7 +9903,7 @@ interface ID3D12PipelineLibrary : ID3D12DeviceChild
     ///    Type: <b>HRESULT</b> This method returns an HRESULT success or error code, including E_INVALIDARG if the name
     ///    already exists, E_OUTOFMEMORY if unable to allocate storage in the library.
     ///    
-    HRESULT StorePipeline(const(wchar)* pName, ID3D12PipelineState pPipeline);
+    HRESULT StorePipeline(const(PWSTR) pName, ID3D12PipelineState pPipeline);
     ///Retrieves the requested PSO from the library.
     ///Params:
     ///    pName = Type: <b>LPCWSTR</b> The unique name of the PSO.
@@ -9909,7 +9919,7 @@ interface ID3D12PipelineLibrary : ID3D12DeviceChild
     ///    the name doesn’t exist, or if the input description doesn’t match the data in the library, and
     ///    E_OUTOFMEMORY if unable to allocate the return PSO.
     ///    
-    HRESULT LoadGraphicsPipeline(const(wchar)* pName, const(D3D12_GRAPHICS_PIPELINE_STATE_DESC)* pDesc, 
+    HRESULT LoadGraphicsPipeline(const(PWSTR) pName, const(D3D12_GRAPHICS_PIPELINE_STATE_DESC)* pDesc, 
                                  const(GUID)* riid, void** ppPipelineState);
     ///Retrieves the requested PSO from the library. The input desc is matched against the data in the current library
     ///database, and remembered in order to prevent duplication of PSO contents.
@@ -9927,7 +9937,7 @@ interface ID3D12PipelineLibrary : ID3D12DeviceChild
     ///    the name doesn’t exist, or if the input description doesn’t match the data in the library, and
     ///    E_OUTOFMEMORY if unable to allocate the return PSO.
     ///    
-    HRESULT LoadComputePipeline(const(wchar)* pName, const(D3D12_COMPUTE_PIPELINE_STATE_DESC)* pDesc, 
+    HRESULT LoadComputePipeline(const(PWSTR) pName, const(D3D12_COMPUTE_PIPELINE_STATE_DESC)* pDesc, 
                                 const(GUID)* riid, void** ppPipelineState);
     ///Returns the amount of memory required to serialize the current contents of the database.
     ///Returns:
@@ -9945,7 +9955,7 @@ interface ID3D12PipelineLibrary : ID3D12DeviceChild
     ///    Type: <b>HRESULT</b> This method returns an HRESULT success or error code, including E_INVALIDARG if the
     ///    buffer provided isn’t big enough.
     ///    
-    HRESULT Serialize(char* pData, size_t DataSizeInBytes);
+    HRESULT Serialize(void* pData, size_t DataSizeInBytes);
 }
 
 ///Manages a pipeline library. This interface extends ID3D12PipelineLibrary to load PSOs from a pipeline state stream
@@ -9970,7 +9980,7 @@ interface ID3D12PipelineLibrary1 : ID3D12PipelineLibrary
     ///    the name doesn't exist or the stream description doesn't match the data in the library, and E_OUTOFMEMORY if
     ///    the function is unable to allocate the resulting PSO.
     ///    
-    HRESULT LoadPipeline(const(wchar)* pName, const(D3D12_PIPELINE_STATE_STREAM_DESC)* pDesc, const(GUID)* riid, 
+    HRESULT LoadPipeline(const(PWSTR) pName, const(D3D12_PIPELINE_STATE_STREAM_DESC)* pDesc, const(GUID)* riid, 
                          void** ppPipelineState);
 }
 
@@ -10011,7 +10021,7 @@ interface ID3D12Device1 : ID3D12Device
     ///    creating the actual library and returns S_FALSE if the library would have been created. Also, the feature
     ///    requires an updated driver, and attempting to use it on old drivers will return DXGI_ERROR_UNSUPPORTED.
     ///    
-    HRESULT CreatePipelineLibrary(char* pLibraryBlob, size_t BlobLength, const(GUID)* riid, 
+    HRESULT CreatePipelineLibrary(const(void)* pLibraryBlob, size_t BlobLength, const(GUID)* riid, 
                                   void** ppPipelineLibrary);
     ///Specifies an event that should be fired when one or more of a collection of fences reach specific values.
     ///Params:
@@ -10025,7 +10035,7 @@ interface ID3D12Device1 : ID3D12Device
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns an HRESULT success or error code.
     ///    
-    HRESULT SetEventOnMultipleFenceCompletion(char* ppFences, char* pFenceValues, uint NumFences, 
+    HRESULT SetEventOnMultipleFenceCompletion(ID3D12Fence* ppFences, const(ulong)* pFenceValues, uint NumFences, 
                                               D3D12_MULTIPLE_FENCE_WAIT_FLAGS Flags, HANDLE hEvent);
     ///This method sets residency priorities of a specified list of objects.
     ///Params:
@@ -10037,7 +10047,8 @@ interface ID3D12Device1 : ID3D12Device
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns an HRESULT success or error code.
     ///    
-    HRESULT SetResidencyPriority(uint NumObjects, char* ppObjects, char* pPriorities);
+    HRESULT SetResidencyPriority(uint NumObjects, ID3D12Pageable* ppObjects, 
+                                 const(D3D12_RESIDENCY_PRIORITY)* pPriorities);
 }
 
 ///Represents a virtual adapter. This interface extends ID3D12Device1 to create pipeline state objects from pipeline
@@ -10121,7 +10132,7 @@ interface ID3D12Device3 : ID3D12Device2
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the Direct3D 12 Return Codes.
     ///    
-    HRESULT EnqueueMakeResident(D3D12_RESIDENCY_FLAGS Flags, uint NumObjects, char* ppObjects, 
+    HRESULT EnqueueMakeResident(D3D12_RESIDENCY_FLAGS Flags, uint NumObjects, ID3D12Pageable* ppObjects, 
                                 ID3D12Fence pFenceToSignal, ulong FenceValueToSignal);
 }
 
@@ -10354,7 +10365,8 @@ interface ID3D12Device4 : ID3D12Device3
     ///    about video memory allocated for the specified array of resources.
     ///    
     D3D12_RESOURCE_ALLOCATION_INFO GetResourceAllocationInfo1(uint visibleMask, uint numResourceDescs, 
-                                                              char* pResourceDescs, char* pResourceAllocationInfo1);
+                                                              const(D3D12_RESOURCE_DESC)* pResourceDescs, 
+                                                              D3D12_RESOURCE_ALLOCATION_INFO1* pResourceAllocationInfo1);
 }
 
 ///Represents an application-defined callback used for being notified of lifetime changes of an object.
@@ -10419,7 +10431,7 @@ interface ID3D12StateObjectProperties : IUnknown
     ///    different state object with same associations, like any root signatures, it will have the same identifier. If
     ///    the shader isn’t fully resolved in the state object, the return value is <b>nullptr</b>.
     ///    
-    void* GetShaderIdentifier(const(wchar)* pExportName);
+    void* GetShaderIdentifier(const(PWSTR) pExportName);
     ///Gets the amount of stack memory required to invoke a raytracing shader in HLSL.
     ///Params:
     ///    pExportName = The shader entrypoint in the state object for which to retrieve stack size. For hit groups, an individual
@@ -10434,7 +10446,7 @@ interface ID3D12StateObjectProperties : IUnknown
     ///    ensure that bad return values don’t get lost when summed up with other values as part of calculating an
     ///    overall pipeline stack size.
     ///    
-    ulong GetShaderStackSize(const(wchar)* pExportName);
+    ulong GetShaderStackSize(const(PWSTR) pExportName);
     ///Gets the current pipeline stack size.
     ///Returns:
     ///    The current pipeline stack size in bytes. When called on non-executable state objects, such as collections,
@@ -10486,7 +10498,7 @@ interface ID3D12Device5 : ID3D12Device4
     ///    Type: **[HRESULT](/windows/win32/com/structure-of-com-error-codes)** If this method succeeds, it returns
     ///    <b>S_OK</b>. Otherwise, it returns an [HRESULT](/windows/win32/com/structure-of-com-error-codes) error code.
     ///    
-    HRESULT EnumerateMetaCommands(uint* pNumMetaCommands, char* pDescs);
+    HRESULT EnumerateMetaCommands(uint* pNumMetaCommands, D3D12_META_COMMAND_DESC* pDescs);
     ///Queries reflection metadata about the parameters of the specified meta command.
     ///Params:
     ///    CommandId = Type: <b>REFIID</b> A reference to the globally unique identifier (GUID) of the meta command whose parameters
@@ -10507,7 +10519,7 @@ interface ID3D12Device5 : ID3D12Device4
     ///    
     HRESULT EnumerateMetaCommandParameters(const(GUID)* CommandId, D3D12_META_COMMAND_PARAMETER_STAGE Stage, 
                                            uint* pTotalStructureSizeInBytes, uint* pParameterCount, 
-                                           char* pParameterDescs);
+                                           D3D12_META_COMMAND_PARAMETER_DESC* pParameterDescs);
     ///Creates an instance of the specified meta command.
     ///Params:
     ///    CommandId = Type: <b>REFIID</b> A reference to the globally unique identifier (GUID) of the meta command that you wish to
@@ -10529,7 +10541,7 @@ interface ID3D12Device5 : ID3D12Device4
     ///    <dt>DXGI_ERROR_UNSUPPORTED</dt> </dl> </td> <td width="60%"> The current hardware does not support the
     ///    algorithm being requested </td> </tr> </table>
     ///    
-    HRESULT CreateMetaCommand(const(GUID)* CommandId, uint NodeMask, char* pCreationParametersData, 
+    HRESULT CreateMetaCommand(const(GUID)* CommandId, uint NodeMask, const(void)* pCreationParametersData, 
                               size_t CreationParametersDataSizeInBytes, const(GUID)* riid, void** ppMetaCommand);
     ///Creates an [ID3D12StateObject](/windows/win32/api/d3d12/nn-d3d12-id3d12stateobject).
     ///Params:
@@ -10668,7 +10680,7 @@ interface ID3D12Device6 : ID3D12Device5
     ///    
     HRESULT SetBackgroundProcessingMode(D3D12_BACKGROUND_PROCESSING_MODE Mode, 
                                         D3D12_MEASUREMENTS_ACTION MeasurementsAction, 
-                                        HANDLE hEventToSignalUponCompletion, int* pbFurtherMeasurementsDesired);
+                                        HANDLE hEventToSignalUponCompletion, BOOL* pbFurtherMeasurementsDesired);
 }
 
 ///Monitors the validity of a protected resource session. This interface extends
@@ -10763,7 +10775,8 @@ interface ID3D12Device8 : ID3D12Device7
     ///    about video memory allocated for the specified array of resources.
     ///    
     D3D12_RESOURCE_ALLOCATION_INFO GetResourceAllocationInfo2(uint visibleMask, uint numResourceDescs, 
-                                                              char* pResourceDescs, char* pResourceAllocationInfo1);
+                                                              const(D3D12_RESOURCE_DESC1)* pResourceDescs, 
+                                                              D3D12_RESOURCE_ALLOCATION_INFO1* pResourceAllocationInfo1);
     ///Creates both a resource and an implicit heap (optionally for a protected session), such that the heap is big
     ///enough to contain the entire resource, and the resource is mapped to the heap. Also see
     ///[ID3D12Device::CreateCommittedResource](/windows/win32/api/d3d12/nf-d3d12-id3d12device-createcommittedresource)
@@ -10898,8 +10911,9 @@ interface ID3D12Device8 : ID3D12Device7
     ///    pTotalBytes = Type: [out, optional] <b>UINT64*</b> A pointer to an integer variable, to be filled with the total size, in
     ///                  bytes.
     void    GetCopyableFootprints1(const(D3D12_RESOURCE_DESC1)* pResourceDesc, uint FirstSubresource, 
-                                   uint NumSubresources, ulong BaseOffset, char* pLayouts, char* pNumRows, 
-                                   char* pRowSizeInBytes, ulong* pTotalBytes);
+                                   uint NumSubresources, ulong BaseOffset, 
+                                   D3D12_PLACED_SUBRESOURCE_FOOTPRINT* pLayouts, uint* pNumRows, 
+                                   ulong* pRowSizeInBytes, ulong* pTotalBytes);
 }
 
 @GUID("9D5E227A-4430-4161-88B3-3ECA6BB16E19")
@@ -10981,7 +10995,7 @@ interface ID3D12GraphicsCommandList4 : ID3D12GraphicsCommandList3
     ///                    characteristics.
     ///    Flags = A D3D12_RENDER_PASS_FLAGS. The nature/requirements of the render pass; for example, whether it is a
     ///            suspending or a resuming render pass, or whether it wants to write to unordered access view(s).
-    void BeginRenderPass(uint NumRenderTargets, char* pRenderTargets, 
+    void BeginRenderPass(uint NumRenderTargets, const(D3D12_RENDER_PASS_RENDER_TARGET_DESC)* pRenderTargets, 
                          const(D3D12_RENDER_PASS_DEPTH_STENCIL_DESC)* pDepthStencil, D3D12_RENDER_PASS_FLAGS Flags);
     ///Marks the ending of a render pass.
     void EndRenderPass();
@@ -10999,7 +11013,7 @@ interface ID3D12GraphicsCommandList4 : ID3D12GraphicsCommandList3
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    void InitializeMetaCommand(ID3D12MetaCommand pMetaCommand, char* pInitializationParametersData, 
+    void InitializeMetaCommand(ID3D12MetaCommand pMetaCommand, const(void)* pInitializationParametersData, 
                                size_t InitializationParametersDataSizeInBytes);
     ///Records the execution (or invocation) of the specified meta command into a graphics command list. Call
     ///ID3D12GraphicsCommandList4::InitializeMetaCommand before executing a meta command. During invocation, you can
@@ -11017,7 +11031,7 @@ interface ID3D12GraphicsCommandList4 : ID3D12GraphicsCommandList3
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    void ExecuteMetaCommand(ID3D12MetaCommand pMetaCommand, char* pExecutionParametersData, 
+    void ExecuteMetaCommand(ID3D12MetaCommand pMetaCommand, const(void)* pExecutionParametersData, 
                             size_t ExecutionParametersDataSizeInBytes);
     ///Performs a raytracing acceleration structure build on the GPU and optionally outputs post-build information
     ///immediately after the build.
@@ -11027,7 +11041,8 @@ interface ID3D12GraphicsCommandList4 : ID3D12GraphicsCommandList3
     ///    pPostbuildInfoDescs = Optional array of descriptions for post-build info to generate describing properties of the acceleration
     ///                          structure that was built.
     void BuildRaytracingAccelerationStructure(const(D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC)* pDesc, 
-                                              uint NumPostbuildInfoDescs, char* pPostbuildInfoDescs);
+                                              uint NumPostbuildInfoDescs, 
+                                              const(D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_DESC)* pPostbuildInfoDescs);
     ///Emits post-build properties for a set of acceleration structures. This enables applications to know the output
     ///resource requirements for performing acceleration structure operations via
     ///ID3D12GraphicsCommandList4::CopyRaytracingAccelerationStructure.
@@ -11042,7 +11057,7 @@ interface ID3D12GraphicsCommandList4 : ID3D12GraphicsCommandList3
     ///                                       to must be in state D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE.
     void EmitRaytracingAccelerationStructurePostbuildInfo(const(D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_DESC)* pDesc, 
                                                           uint NumSourceAccelerationStructures, 
-                                                          char* pSourceAccelerationStructureData);
+                                                          const(ulong)* pSourceAccelerationStructureData);
     ///Copies a source acceleration structure to destination memory while applying the specified transformation.
     ///Params:
     ///    DestAccelerationStructureData = The destination memory. The required size can be discovered by calling
@@ -11161,7 +11176,7 @@ interface ID3D12DebugDevice1 : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the Direct3D 12 Return Codes.
     ///    
-    HRESULT SetDebugParameter(D3D12_DEBUG_DEVICE_PARAMETER_TYPE Type, char* pData, uint DataSize);
+    HRESULT SetDebugParameter(D3D12_DEBUG_DEVICE_PARAMETER_TYPE Type, const(void)* pData, uint DataSize);
     ///Gets optional device-wide Debug Layer settings.
     ///Params:
     ///    Type = Type: <b>D3D12_DEBUG_DEVICE_PARAMETER_TYPE</b> Specifies a D3D12_DEBUG_DEVICE_PARAMETER_TYPE value that
@@ -11173,7 +11188,7 @@ interface ID3D12DebugDevice1 : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the Direct3D 12 Return Codes.
     ///    
-    HRESULT GetDebugParameter(D3D12_DEBUG_DEVICE_PARAMETER_TYPE Type, char* pData, uint DataSize);
+    HRESULT GetDebugParameter(D3D12_DEBUG_DEVICE_PARAMETER_TYPE Type, void* pData, uint DataSize);
     ///Specifies the amount of information to report on a device object's lifetime.
     ///Params:
     ///    Flags = Type: <b>D3D12_RLDO_FLAGS</b> A value from the D3D12_RLDO_FLAGS enumeration. This method uses the value in
@@ -11217,8 +11232,8 @@ interface ID3D12DebugDevice : IUnknown
 @GUID("60ECCBC1-378D-4DF1-894C-F8AC5CE4D7DD")
 interface ID3D12DebugDevice2 : ID3D12DebugDevice
 {
-    HRESULT SetDebugParameter(D3D12_DEBUG_DEVICE_PARAMETER_TYPE Type, char* pData, uint DataSize);
-    HRESULT GetDebugParameter(D3D12_DEBUG_DEVICE_PARAMETER_TYPE Type, char* pData, uint DataSize);
+    HRESULT SetDebugParameter(D3D12_DEBUG_DEVICE_PARAMETER_TYPE Type, const(void)* pData, uint DataSize);
+    HRESULT GetDebugParameter(D3D12_DEBUG_DEVICE_PARAMETER_TYPE Type, void* pData, uint DataSize);
 }
 
 ///Provides methods to monitor and debug a command queue.
@@ -11268,7 +11283,7 @@ interface ID3D12DebugCommandList1 : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the Direct3D 12 Return Codes.
     ///    
-    HRESULT SetDebugParameter(D3D12_DEBUG_COMMAND_LIST_PARAMETER_TYPE Type, char* pData, uint DataSize);
+    HRESULT SetDebugParameter(D3D12_DEBUG_COMMAND_LIST_PARAMETER_TYPE Type, const(void)* pData, uint DataSize);
     ///Gets optional Command List Debug Layer settings.
     ///Params:
     ///    Type = Type: <b>D3D12_DEBUG_COMMAND_LIST_PARAMETER_TYPE</b> Specifies a D3D12_DEBUG_COMMAND_LIST_PARAMETER_TYPE
@@ -11280,7 +11295,7 @@ interface ID3D12DebugCommandList1 : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns S_OK if successful, otherwise E_INVALIDARG.
     ///    
-    HRESULT GetDebugParameter(D3D12_DEBUG_COMMAND_LIST_PARAMETER_TYPE Type, char* pData, uint DataSize);
+    HRESULT GetDebugParameter(D3D12_DEBUG_COMMAND_LIST_PARAMETER_TYPE Type, void* pData, uint DataSize);
 }
 
 ///Provides methods to monitor and debug a command list.
@@ -11317,8 +11332,8 @@ interface ID3D12DebugCommandList : IUnknown
 @GUID("AEB575CF-4E06-48BE-BA3B-C450FC96652E")
 interface ID3D12DebugCommandList2 : ID3D12DebugCommandList
 {
-    HRESULT SetDebugParameter(D3D12_DEBUG_COMMAND_LIST_PARAMETER_TYPE Type, char* pData, uint DataSize);
-    HRESULT GetDebugParameter(D3D12_DEBUG_COMMAND_LIST_PARAMETER_TYPE Type, char* pData, uint DataSize);
+    HRESULT SetDebugParameter(D3D12_DEBUG_COMMAND_LIST_PARAMETER_TYPE Type, const(void)* pData, uint DataSize);
+    HRESULT GetDebugParameter(D3D12_DEBUG_COMMAND_LIST_PARAMETER_TYPE Type, void* pData, uint DataSize);
 }
 
 ///Part of a contract between D3D11On12 diagnostic layers and graphics diagnostics tools. This interface facilitates
@@ -11363,7 +11378,7 @@ interface ID3D12InfoQueue : IUnknown
     HRESULT SetMessageCountLimit(ulong MessageCountLimit);
     ///Clear all messages from the message queue.
     void    ClearStoredMessages();
-    HRESULT GetMessageA(ulong MessageIndex, char* pMessage, size_t* pMessageByteLength);
+    HRESULT GetMessageA(ulong MessageIndex, D3D12_MESSAGE* pMessage, size_t* pMessageByteLength);
     ///Get the number of messages that were allowed to pass through a storage filter.
     ///Returns:
     ///    Type: <b>UINT64</b> Number of messages allowed by a storage filter.
@@ -11411,7 +11426,7 @@ interface ID3D12InfoQueue : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the Direct3D 12 Return Codes.
     ///    
-    HRESULT GetStorageFilter(char* pFilter, size_t* pFilterByteLength);
+    HRESULT GetStorageFilter(D3D12_INFO_QUEUE_FILTER* pFilter, size_t* pFilterByteLength);
     ///Remove a storage filter from the top of the storage-filter stack.
     void    ClearStorageFilter();
     ///Push an empty storage filter onto the storage-filter stack.
@@ -11453,7 +11468,7 @@ interface ID3D12InfoQueue : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the Direct3D 12 Return Codes.
     ///    
-    HRESULT GetRetrievalFilter(char* pFilter, size_t* pFilterByteLength);
+    HRESULT GetRetrievalFilter(D3D12_INFO_QUEUE_FILTER* pFilter, size_t* pFilterByteLength);
     ///Remove a retrieval filter from the top of the retrieval-filter stack.
     void    ClearRetrievalFilter();
     ///Push an empty retrieval filter onto the retrieval-filter stack.
@@ -11491,7 +11506,7 @@ interface ID3D12InfoQueue : IUnknown
     ///    Type: <b>HRESULT</b> This method returns one of the Direct3D 12 Return Codes.
     ///    
     HRESULT AddMessage(D3D12_MESSAGE_CATEGORY Category, D3D12_MESSAGE_SEVERITY Severity, D3D12_MESSAGE_ID ID, 
-                       const(char)* pDescription);
+                       const(PSTR) pDescription);
     ///Adds a user-defined message to the message queue and sends that message to debug output.
     ///Params:
     ///    Severity = Type: <b>D3D12_MESSAGE_SEVERITY</b> Severity of a message.
@@ -11499,7 +11514,7 @@ interface ID3D12InfoQueue : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the Direct3D 12 Return Codes.
     ///    
-    HRESULT AddApplicationMessage(D3D12_MESSAGE_SEVERITY Severity, const(char)* pDescription);
+    HRESULT AddApplicationMessage(D3D12_MESSAGE_SEVERITY Severity, const(PSTR) pDescription);
     ///Set a message category to break on when a message with that category passes through the storage filter.
     ///Params:
     ///    Category = Type: <b>D3D12_MESSAGE_CATEGORY</b> Message category to break on.
@@ -11595,7 +11610,7 @@ interface ID3D12GraphicsCommandList5 : ID3D12GraphicsCommandList4
     ///                return b; case D3D12_SHADING_RATE_COMBINER_MAX: return max(a, b); case D3D12_SHADING_RATE_COMBINER_MIN:
     ///                return min(a, b); case D3D12_SHADING_RATE_COMBINER_SUM: return min(MaxShadingRate, a + b); case default:
     ///                return a; } } ```
-    void RSSetShadingRate(D3D12_SHADING_RATE baseShadingRate, char* combiners);
+    void RSSetShadingRate(D3D12_SHADING_RATE baseShadingRate, const(D3D12_SHADING_RATE_COMBINER)* combiners);
     ///Sets the screen-space shading-rate image for variable-rate shading (VRS). For more info, see [Variable-rate
     ///shading (VRS)](/windows/desktop/direct3d12/vrs). This method requires Tier2 [Variable-rate shading
     ///(VRS)](/windows/desktop/direct3d12/vrs) support. See
@@ -11658,13 +11673,13 @@ interface ID3D11On12Device : IUnknown
     ///Params:
     ///    ppResources = Type: <b>ID3D11Resource*</b> Specifies a pointer to a set of D3D11 resources, defined by ID3D11Resource.
     ///    NumResources = Type: <b>UINT</b> Count of the number of resources.
-    void    ReleaseWrappedResources(char* ppResources, uint NumResources);
+    void    ReleaseWrappedResources(ID3D11Resource* ppResources, uint NumResources);
     ///Acquires D3D11 resources for use with D3D 11on12. Indicates that rendering to the wrapped resources can begin
     ///again.
     ///Params:
     ///    ppResources = Type: <b>ID3D11Resource*</b> Specifies a pointer to a set of D3D11 resources, defined by ID3D11Resource.
     ///    NumResources = Type: <b>UINT</b> Count of the number of resources.
-    void    AcquireWrappedResources(char* ppResources, uint NumResources);
+    void    AcquireWrappedResources(ID3D11Resource* ppResources, uint NumResources);
 }
 
 ///Enables better interoperability with a component that might be handed a Direct3D 11 device, but which wants to
@@ -11729,7 +11744,8 @@ interface ID3D11On12Device2 : ID3D11On12Device1
     ///    **S_OK**. Otherwise, it returns an [HRESULT](/windows/desktop/com/structure-of-com-error-codes) [error
     ///    code](/windows/desktop/com/com-error-codes-10).
     ///    
-    HRESULT ReturnUnderlyingResource(ID3D11Resource pResource11, uint NumSync, char* pSignalValues, char* ppFences);
+    HRESULT ReturnUnderlyingResource(ID3D11Resource pResource11, uint NumSync, ulong* pSignalValues, 
+                                     ID3D12Fence* ppFences);
 }
 
 ///This shader-reflection interface provides access to variable type.
@@ -11756,14 +11772,14 @@ interface ID3D12ShaderReflectionType
     ///Returns:
     ///    Type: <b>ID3D12ShaderReflectionType*</b> A pointer to a ID3D12ShaderReflectionType Interface.
     ///    
-    ID3D12ShaderReflectionType GetMemberTypeByName(const(char)* Name);
+    ID3D12ShaderReflectionType GetMemberTypeByName(const(PSTR) Name);
     ///Gets a shader-reflection-variable type.
     ///Params:
     ///    Index = Type: <b>UINT</b> Zero-based index.
     ///Returns:
     ///    Type: <b>LPCSTR</b> The variable type.
     ///    
-    byte*   GetMemberTypeName(uint Index);
+    PSTR    GetMemberTypeName(uint Index);
     ///Indicates whether two ID3D12ShaderReflectionType Interface pointers have the same underlying type.
     ///Params:
     ///    pType = Type: <b>ID3D12ShaderReflectionType*</b> A pointer to a ID3D12ShaderReflectionType Interface.
@@ -11872,7 +11888,7 @@ interface ID3D12ShaderReflectionConstantBuffer
     ///    GetVariableByName successfully completed, call ID3D12ShaderReflectionVariable::GetDesc and check the returned
     ///    <b>HRESULT</b>; any return value other than success means that GetVariableByName failed.
     ///    
-    ID3D12ShaderReflectionVariable GetVariableByName(const(char)* Name);
+    ID3D12ShaderReflectionVariable GetVariableByName(const(PSTR) Name);
 }
 
 ///A shader-reflection interface accesses shader information.
@@ -11901,7 +11917,7 @@ interface ID3D12ShaderReflection : IUnknown
     ///    Type: <b>ID3D12ShaderReflectionConstantBuffer*</b> A pointer to a constant buffer (see
     ///    ID3D12ShaderReflectionConstantBuffer Interface).
     ///    
-    ID3D12ShaderReflectionConstantBuffer GetConstantBufferByName(const(char)* Name);
+    ID3D12ShaderReflectionConstantBuffer GetConstantBufferByName(const(PSTR) Name);
     ///Gets a description of how a resource is bound to a shader.
     ///Params:
     ///    ResourceIndex = Type: <b>UINT</b> A zero-based resource index.
@@ -11944,7 +11960,7 @@ interface ID3D12ShaderReflection : IUnknown
     ///Returns:
     ///    Type: <b>ID3D12ShaderReflectionVariable*</b> Returns a ID3D12ShaderReflectionVariable Interface interface.
     ///    
-    ID3D12ShaderReflectionVariable GetVariableByName(const(char)* Name);
+    ID3D12ShaderReflectionVariable GetVariableByName(const(PSTR) Name);
     ///Gets a description of how a resource is bound to a shader.
     ///Params:
     ///    Name = Type: <b>LPCSTR</b> The constant-buffer name of the resource.
@@ -11953,7 +11969,7 @@ interface ID3D12ShaderReflection : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the Direct3D 12 Return Codes.
     ///    
-    HRESULT GetResourceBindingDescByName(const(char)* Name, D3D12_SHADER_INPUT_BIND_DESC* pDesc);
+    HRESULT GetResourceBindingDescByName(const(PSTR) Name, D3D12_SHADER_INPUT_BIND_DESC* pDesc);
     ///Gets the number of Mov instructions.
     ///Returns:
     ///    Type: <b>UINT</b> Returns the number of Mov instructions.
@@ -12101,7 +12117,7 @@ interface ID3D12FunctionReflection
     ///    Type: <b>ID3D12ShaderReflectionConstantBuffer*</b> A pointer to a ID3D12ShaderReflectionConstantBuffer
     ///    interface that represents the constant buffer.
     ///    
-    ID3D12ShaderReflectionConstantBuffer GetConstantBufferByName(const(char)* Name);
+    ID3D12ShaderReflectionConstantBuffer GetConstantBufferByName(const(PSTR) Name);
     ///Gets a description of how a resource is bound to a function.
     ///Params:
     ///    ResourceIndex = Type: <b>UINT</b> A zero-based resource index.
@@ -12117,7 +12133,7 @@ interface ID3D12FunctionReflection
     ///Returns:
     ///    Type: <b>ID3D12ShaderReflectionVariable*</b> Returns a ID3D12ShaderReflectionVariable Interface interface.
     ///    
-    ID3D12ShaderReflectionVariable GetVariableByName(const(char)* Name);
+    ID3D12ShaderReflectionVariable GetVariableByName(const(PSTR) Name);
     ///Gets a description of how a resource is bound to a function.
     ///Params:
     ///    Name = Type: <b>LPCSTR</b> The constant-buffer name of the resource.
@@ -12126,7 +12142,7 @@ interface ID3D12FunctionReflection
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the Direct3D 12 Return Codes.
     ///    
-    HRESULT GetResourceBindingDescByName(const(char)* Name, D3D12_SHADER_INPUT_BIND_DESC* pDesc);
+    HRESULT GetResourceBindingDescByName(const(PSTR) Name, D3D12_SHADER_INPUT_BIND_DESC* pDesc);
     ///Gets the function parameter reflector.
     ///Params:
     ///    ParameterIndex = Type: <b>INT</b> The zero-based index of the function parameter reflector to retrieve.

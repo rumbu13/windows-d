@@ -3,9 +3,9 @@
 module windows.processstatus;
 
 public import windows.core;
-public import windows.systemservices : BOOL, HANDLE;
+public import windows.systemservices : BOOL, HANDLE, PSTR, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Callbacks
@@ -22,7 +22,7 @@ extern(Windows):
 ///    return FALSE.
 ///    
 alias PENUM_PAGE_FILE_CALLBACKW = BOOL function(void* pContext, ENUM_PAGE_FILE_INFORMATION* pPageFileInfo, 
-                                                const(wchar)* lpFilename);
+                                                const(PWSTR) lpFilename);
 ///An application-defined callback function used with the EnumPageFiles function. The <b>PENUM_PAGE_FILE_CALLBACK</b>
 ///type defines a pointer to this callback function. <b>EnumPageFilesProc</b> is a placeholder for the
 ///application-defined function name.
@@ -35,7 +35,7 @@ alias PENUM_PAGE_FILE_CALLBACKW = BOOL function(void* pContext, ENUM_PAGE_FILE_I
 ///    return FALSE.
 ///    
 alias PENUM_PAGE_FILE_CALLBACKA = BOOL function(void* pContext, ENUM_PAGE_FILE_INFORMATION* pPageFileInfo, 
-                                                const(char)* lpFilename);
+                                                const(PSTR) lpFilename);
 
 // Structs
 
@@ -57,7 +57,7 @@ union PSAPI_WORKING_SET_BLOCK
     ///The working set information. See the description of the structure members for information about the layout of
     ///this variable.
     size_t Flags;
-    struct
+struct
     {
         size_t _bitfield95;
     }
@@ -78,13 +78,13 @@ union PSAPI_WORKING_SET_EX_BLOCK
     ///The working set information. See the description of the structure members for information about the layout of
     ///this variable.
     size_t Flags;
-    union
+union
     {
-        struct
+struct
         {
             size_t _bitfield96;
         }
-        struct Invalid
+struct Invalid
         {
             size_t _bitfield97;
         }
@@ -233,25 +233,25 @@ struct ENUM_PAGE_FILE_INFORMATION
 // Functions
 
 @DllImport("KERNEL32")
-BOOL K32EnumProcesses(char* lpidProcess, uint cb, uint* lpcbNeeded);
+BOOL K32EnumProcesses(uint* lpidProcess, uint cb, uint* lpcbNeeded);
 
 @DllImport("KERNEL32")
-BOOL K32EnumProcessModules(HANDLE hProcess, char* lphModule, uint cb, uint* lpcbNeeded);
+BOOL K32EnumProcessModules(HANDLE hProcess, ptrdiff_t* lphModule, uint cb, uint* lpcbNeeded);
 
 @DllImport("KERNEL32")
-BOOL K32EnumProcessModulesEx(HANDLE hProcess, char* lphModule, uint cb, uint* lpcbNeeded, uint dwFilterFlag);
+BOOL K32EnumProcessModulesEx(HANDLE hProcess, ptrdiff_t* lphModule, uint cb, uint* lpcbNeeded, uint dwFilterFlag);
 
 @DllImport("KERNEL32")
-uint K32GetModuleBaseNameA(HANDLE hProcess, ptrdiff_t hModule, const(char)* lpBaseName, uint nSize);
+uint K32GetModuleBaseNameA(HANDLE hProcess, ptrdiff_t hModule, PSTR lpBaseName, uint nSize);
 
 @DllImport("KERNEL32")
-uint K32GetModuleBaseNameW(HANDLE hProcess, ptrdiff_t hModule, const(wchar)* lpBaseName, uint nSize);
+uint K32GetModuleBaseNameW(HANDLE hProcess, ptrdiff_t hModule, PWSTR lpBaseName, uint nSize);
 
 @DllImport("KERNEL32")
-uint K32GetModuleFileNameExA(HANDLE hProcess, ptrdiff_t hModule, const(char)* lpFilename, uint nSize);
+uint K32GetModuleFileNameExA(HANDLE hProcess, ptrdiff_t hModule, PSTR lpFilename, uint nSize);
 
 @DllImport("KERNEL32")
-uint K32GetModuleFileNameExW(HANDLE hProcess, ptrdiff_t hModule, const(wchar)* lpFilename, uint nSize);
+uint K32GetModuleFileNameExW(HANDLE hProcess, ptrdiff_t hModule, PWSTR lpFilename, uint nSize);
 
 @DllImport("KERNEL32")
 BOOL K32GetModuleInformation(HANDLE hProcess, ptrdiff_t hModule, MODULEINFO* lpmodinfo, uint cb);
@@ -260,40 +260,40 @@ BOOL K32GetModuleInformation(HANDLE hProcess, ptrdiff_t hModule, MODULEINFO* lpm
 BOOL K32EmptyWorkingSet(HANDLE hProcess);
 
 @DllImport("KERNEL32")
-BOOL K32QueryWorkingSet(HANDLE hProcess, char* pv, uint cb);
+BOOL K32QueryWorkingSet(HANDLE hProcess, void* pv, uint cb);
 
 @DllImport("KERNEL32")
-BOOL K32QueryWorkingSetEx(HANDLE hProcess, char* pv, uint cb);
+BOOL K32QueryWorkingSetEx(HANDLE hProcess, void* pv, uint cb);
 
 @DllImport("KERNEL32")
 BOOL K32InitializeProcessForWsWatch(HANDLE hProcess);
 
 @DllImport("KERNEL32")
-BOOL K32GetWsChanges(HANDLE hProcess, char* lpWatchInfo, uint cb);
+BOOL K32GetWsChanges(HANDLE hProcess, PSAPI_WS_WATCH_INFORMATION* lpWatchInfo, uint cb);
 
 @DllImport("KERNEL32")
-BOOL K32GetWsChangesEx(HANDLE hProcess, char* lpWatchInfoEx, uint* cb);
+BOOL K32GetWsChangesEx(HANDLE hProcess, PSAPI_WS_WATCH_INFORMATION_EX* lpWatchInfoEx, uint* cb);
 
 @DllImport("KERNEL32")
-uint K32GetMappedFileNameW(HANDLE hProcess, void* lpv, const(wchar)* lpFilename, uint nSize);
+uint K32GetMappedFileNameW(HANDLE hProcess, void* lpv, PWSTR lpFilename, uint nSize);
 
 @DllImport("KERNEL32")
-uint K32GetMappedFileNameA(HANDLE hProcess, void* lpv, const(char)* lpFilename, uint nSize);
+uint K32GetMappedFileNameA(HANDLE hProcess, void* lpv, PSTR lpFilename, uint nSize);
 
 @DllImport("KERNEL32")
-BOOL K32EnumDeviceDrivers(char* lpImageBase, uint cb, uint* lpcbNeeded);
+BOOL K32EnumDeviceDrivers(void** lpImageBase, uint cb, uint* lpcbNeeded);
 
 @DllImport("KERNEL32")
-uint K32GetDeviceDriverBaseNameA(void* ImageBase, const(char)* lpFilename, uint nSize);
+uint K32GetDeviceDriverBaseNameA(void* ImageBase, PSTR lpFilename, uint nSize);
 
 @DllImport("KERNEL32")
-uint K32GetDeviceDriverBaseNameW(void* ImageBase, const(wchar)* lpBaseName, uint nSize);
+uint K32GetDeviceDriverBaseNameW(void* ImageBase, PWSTR lpBaseName, uint nSize);
 
 @DllImport("KERNEL32")
-uint K32GetDeviceDriverFileNameA(void* ImageBase, const(char)* lpFilename, uint nSize);
+uint K32GetDeviceDriverFileNameA(void* ImageBase, PSTR lpFilename, uint nSize);
 
 @DllImport("KERNEL32")
-uint K32GetDeviceDriverFileNameW(void* ImageBase, const(wchar)* lpFilename, uint nSize);
+uint K32GetDeviceDriverFileNameW(void* ImageBase, PWSTR lpFilename, uint nSize);
 
 @DllImport("KERNEL32")
 BOOL K32GetProcessMemoryInfo(HANDLE Process, PROCESS_MEMORY_COUNTERS* ppsmemCounters, uint cb);
@@ -308,9 +308,9 @@ BOOL K32EnumPageFilesW(PENUM_PAGE_FILE_CALLBACKW pCallBackRoutine, void* pContex
 BOOL K32EnumPageFilesA(PENUM_PAGE_FILE_CALLBACKA pCallBackRoutine, void* pContext);
 
 @DllImport("KERNEL32")
-uint K32GetProcessImageFileNameA(HANDLE hProcess, const(char)* lpImageFileName, uint nSize);
+uint K32GetProcessImageFileNameA(HANDLE hProcess, PSTR lpImageFileName, uint nSize);
 
 @DllImport("KERNEL32")
-uint K32GetProcessImageFileNameW(HANDLE hProcess, const(wchar)* lpImageFileName, uint nSize);
+uint K32GetProcessImageFileNameW(HANDLE hProcess, PWSTR lpImageFileName, uint nSize);
 
 

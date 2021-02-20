@@ -6,11 +6,12 @@ public import windows.core;
 public import windows.automation : BSTR, IDispatch, VARIANT;
 public import windows.com : HRESULT, IUnknown;
 public import windows.structuredstorage : ISequentialStream;
+public import windows.systemservices : PWSTR;
 public import windows.windowsprogramming : DOMNodeType, FILETIME, IXMLDOMDocument,
                                            IXMLDOMNode, IXMLDOMNodeList,
                                            IXMLDOMParseError;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -359,13 +360,13 @@ struct __msxml6_ReferenceRemainingTypes__
 struct XHR_COOKIE
 {
     ///A null-terminated string that specifies the URL in the cookie.
-    ushort*  pwszUrl;
+    PWSTR    pwszUrl;
     ///A null-terminated string that specifies the name in the cookie.
-    ushort*  pwszName;
+    PWSTR    pwszName;
     ///A null-terminated string that specifies the value in the cookie.
-    ushort*  pwszValue;
+    PWSTR    pwszValue;
     ///A null-terminated string that specifies the user policy in the cookie.
-    ushort*  pwszP3PPolicy;
+    PWSTR    pwszP3PPolicy;
     ///A null-terminated string that specifies the date and time at which the cookie expires.
     FILETIME ftExpires;
     ///A set of bit flags that specifies properties of the cookie. This member can be one of the values from the
@@ -581,10 +582,10 @@ interface IServerXMLHTTPRequest2 : IServerXMLHTTPRequest
 @GUID("A4F96ED0-F829-476E-81C0-CDC7BD2A0802")
 interface ISAXXMLReader : IUnknown
 {
-    HRESULT getFeature(const(ushort)* pwchName, short* pvfValue);
-    HRESULT putFeature(const(ushort)* pwchName, short vfValue);
-    HRESULT getProperty(const(ushort)* pwchName, VARIANT* pvarValue);
-    HRESULT putProperty(const(ushort)* pwchName, VARIANT varValue);
+    HRESULT getFeature(const(PWSTR) pwchName, short* pvfValue);
+    HRESULT putFeature(const(PWSTR) pwchName, short vfValue);
+    HRESULT getProperty(const(PWSTR) pwchName, VARIANT* pvarValue);
+    HRESULT putProperty(const(PWSTR) pwchName, VARIANT varValue);
     HRESULT getEntityResolver(ISAXEntityResolver* ppResolver);
     HRESULT putEntityResolver(ISAXEntityResolver pResolver);
     HRESULT getContentHandler(ISAXContentHandler* ppHandler);
@@ -594,11 +595,11 @@ interface ISAXXMLReader : IUnknown
     HRESULT getErrorHandler(ISAXErrorHandler* ppHandler);
     HRESULT putErrorHandler(ISAXErrorHandler pHandler);
     HRESULT getBaseURL(const(ushort)** ppwchBaseUrl);
-    HRESULT putBaseURL(const(ushort)* pwchBaseUrl);
+    HRESULT putBaseURL(const(PWSTR) pwchBaseUrl);
     HRESULT getSecureBaseURL(const(ushort)** ppwchSecureBaseUrl);
-    HRESULT putSecureBaseURL(const(ushort)* pwchSecureBaseUrl);
+    HRESULT putSecureBaseURL(const(PWSTR) pwchSecureBaseUrl);
     HRESULT parse(VARIANT varInput);
-    HRESULT parseURL(const(ushort)* pwchUrl);
+    HRESULT parseURL(const(PWSTR) pwchUrl);
 }
 
 @GUID("70409222-CA09-4475-ACB8-40312FE8D145")
@@ -620,7 +621,7 @@ interface ISAXLocator : IUnknown
 @GUID("99BCA7BD-E8C4-4D5F-A0CF-6D907901FF07")
 interface ISAXEntityResolver : IUnknown
 {
-    HRESULT resolveEntity(const(ushort)* pwchPublicId, const(ushort)* pwchSystemId, VARIANT* pvarInput);
+    HRESULT resolveEntity(const(PWSTR) pwchPublicId, const(PWSTR) pwchSystemId, VARIANT* pvarInput);
 }
 
 @GUID("1545CDFA-9E4E-4497-A8A4-2BF7D0112C44")
@@ -629,60 +630,59 @@ interface ISAXContentHandler : IUnknown
     HRESULT putDocumentLocator(ISAXLocator pLocator);
     HRESULT startDocument();
     HRESULT endDocument();
-    HRESULT startPrefixMapping(const(ushort)* pwchPrefix, int cchPrefix, const(ushort)* pwchUri, int cchUri);
-    HRESULT endPrefixMapping(const(ushort)* pwchPrefix, int cchPrefix);
-    HRESULT startElement(const(ushort)* pwchNamespaceUri, int cchNamespaceUri, const(ushort)* pwchLocalName, 
-                         int cchLocalName, const(ushort)* pwchQName, int cchQName, ISAXAttributes pAttributes);
-    HRESULT endElement(const(ushort)* pwchNamespaceUri, int cchNamespaceUri, const(ushort)* pwchLocalName, 
-                       int cchLocalName, const(ushort)* pwchQName, int cchQName);
-    HRESULT characters(const(ushort)* pwchChars, int cchChars);
-    HRESULT ignorableWhitespace(const(ushort)* pwchChars, int cchChars);
-    HRESULT processingInstruction(const(ushort)* pwchTarget, int cchTarget, const(ushort)* pwchData, int cchData);
-    HRESULT skippedEntity(const(ushort)* pwchName, int cchName);
+    HRESULT startPrefixMapping(const(PWSTR) pwchPrefix, int cchPrefix, const(PWSTR) pwchUri, int cchUri);
+    HRESULT endPrefixMapping(const(PWSTR) pwchPrefix, int cchPrefix);
+    HRESULT startElement(const(PWSTR) pwchNamespaceUri, int cchNamespaceUri, const(PWSTR) pwchLocalName, 
+                         int cchLocalName, const(PWSTR) pwchQName, int cchQName, ISAXAttributes pAttributes);
+    HRESULT endElement(const(PWSTR) pwchNamespaceUri, int cchNamespaceUri, const(PWSTR) pwchLocalName, 
+                       int cchLocalName, const(PWSTR) pwchQName, int cchQName);
+    HRESULT characters(const(PWSTR) pwchChars, int cchChars);
+    HRESULT ignorableWhitespace(const(PWSTR) pwchChars, int cchChars);
+    HRESULT processingInstruction(const(PWSTR) pwchTarget, int cchTarget, const(PWSTR) pwchData, int cchData);
+    HRESULT skippedEntity(const(PWSTR) pwchName, int cchName);
 }
 
 @GUID("E15C1BAF-AFB3-4D60-8C36-19A8C45DEFED")
 interface ISAXDTDHandler : IUnknown
 {
-    HRESULT notationDecl(const(ushort)* pwchName, int cchName, const(ushort)* pwchPublicId, int cchPublicId, 
-                         const(ushort)* pwchSystemId, int cchSystemId);
-    HRESULT unparsedEntityDecl(const(ushort)* pwchName, int cchName, const(ushort)* pwchPublicId, int cchPublicId, 
-                               const(ushort)* pwchSystemId, int cchSystemId, const(ushort)* pwchNotationName, 
+    HRESULT notationDecl(const(PWSTR) pwchName, int cchName, const(PWSTR) pwchPublicId, int cchPublicId, 
+                         const(PWSTR) pwchSystemId, int cchSystemId);
+    HRESULT unparsedEntityDecl(const(PWSTR) pwchName, int cchName, const(PWSTR) pwchPublicId, int cchPublicId, 
+                               const(PWSTR) pwchSystemId, int cchSystemId, const(PWSTR) pwchNotationName, 
                                int cchNotationName);
 }
 
 @GUID("A60511C4-CCF5-479E-98A3-DC8DC545B7D0")
 interface ISAXErrorHandler : IUnknown
 {
-    HRESULT error(ISAXLocator pLocator, const(ushort)* pwchErrorMessage, HRESULT hrErrorCode);
-    HRESULT fatalError(ISAXLocator pLocator, const(ushort)* pwchErrorMessage, HRESULT hrErrorCode);
-    HRESULT ignorableWarning(ISAXLocator pLocator, const(ushort)* pwchErrorMessage, HRESULT hrErrorCode);
+    HRESULT error(ISAXLocator pLocator, const(PWSTR) pwchErrorMessage, HRESULT hrErrorCode);
+    HRESULT fatalError(ISAXLocator pLocator, const(PWSTR) pwchErrorMessage, HRESULT hrErrorCode);
+    HRESULT ignorableWarning(ISAXLocator pLocator, const(PWSTR) pwchErrorMessage, HRESULT hrErrorCode);
 }
 
 @GUID("7F85D5F5-47A8-4497-BDA5-84BA04819EA6")
 interface ISAXLexicalHandler : IUnknown
 {
-    HRESULT startDTD(const(ushort)* pwchName, int cchName, const(ushort)* pwchPublicId, int cchPublicId, 
-                     const(ushort)* pwchSystemId, int cchSystemId);
+    HRESULT startDTD(const(PWSTR) pwchName, int cchName, const(PWSTR) pwchPublicId, int cchPublicId, 
+                     const(PWSTR) pwchSystemId, int cchSystemId);
     HRESULT endDTD();
-    HRESULT startEntity(const(ushort)* pwchName, int cchName);
-    HRESULT endEntity(const(ushort)* pwchName, int cchName);
+    HRESULT startEntity(const(PWSTR) pwchName, int cchName);
+    HRESULT endEntity(const(PWSTR) pwchName, int cchName);
     HRESULT startCDATA();
     HRESULT endCDATA();
-    HRESULT comment(const(ushort)* pwchChars, int cchChars);
+    HRESULT comment(const(PWSTR) pwchChars, int cchChars);
 }
 
 @GUID("862629AC-771A-47B2-8337-4E6843C1BE90")
 interface ISAXDeclHandler : IUnknown
 {
-    HRESULT elementDecl(const(ushort)* pwchName, int cchName, const(ushort)* pwchModel, int cchModel);
-    HRESULT attributeDecl(const(ushort)* pwchElementName, int cchElementName, const(ushort)* pwchAttributeName, 
-                          int cchAttributeName, const(ushort)* pwchType, int cchType, 
-                          const(ushort)* pwchValueDefault, int cchValueDefault, const(ushort)* pwchValue, 
-                          int cchValue);
-    HRESULT internalEntityDecl(const(ushort)* pwchName, int cchName, const(ushort)* pwchValue, int cchValue);
-    HRESULT externalEntityDecl(const(ushort)* pwchName, int cchName, const(ushort)* pwchPublicId, int cchPublicId, 
-                               const(ushort)* pwchSystemId, int cchSystemId);
+    HRESULT elementDecl(const(PWSTR) pwchName, int cchName, const(PWSTR) pwchModel, int cchModel);
+    HRESULT attributeDecl(const(PWSTR) pwchElementName, int cchElementName, const(PWSTR) pwchAttributeName, 
+                          int cchAttributeName, const(PWSTR) pwchType, int cchType, const(PWSTR) pwchValueDefault, 
+                          int cchValueDefault, const(PWSTR) pwchValue, int cchValue);
+    HRESULT internalEntityDecl(const(PWSTR) pwchName, int cchName, const(PWSTR) pwchValue, int cchValue);
+    HRESULT externalEntityDecl(const(PWSTR) pwchName, int cchName, const(PWSTR) pwchPublicId, int cchPublicId, 
+                               const(PWSTR) pwchSystemId, int cchSystemId);
 }
 
 @GUID("F078ABE1-45D2-4832-91EA-4466CE2F25C9")
@@ -694,17 +694,17 @@ interface ISAXAttributes : IUnknown
     HRESULT getQName(int nIndex, const(ushort)** ppwchQName, int* pcchQName);
     HRESULT getName(int nIndex, const(ushort)** ppwchUri, int* pcchUri, const(ushort)** ppwchLocalName, 
                     int* pcchLocalName, const(ushort)** ppwchQName, int* pcchQName);
-    HRESULT getIndexFromName(const(ushort)* pwchUri, int cchUri, const(ushort)* pwchLocalName, int cchLocalName, 
+    HRESULT getIndexFromName(const(PWSTR) pwchUri, int cchUri, const(PWSTR) pwchLocalName, int cchLocalName, 
                              int* pnIndex);
-    HRESULT getIndexFromQName(const(ushort)* pwchQName, int cchQName, int* pnIndex);
+    HRESULT getIndexFromQName(const(PWSTR) pwchQName, int cchQName, int* pnIndex);
     HRESULT getType(int nIndex, const(ushort)** ppwchType, int* pcchType);
-    HRESULT getTypeFromName(const(ushort)* pwchUri, int cchUri, const(ushort)* pwchLocalName, int cchLocalName, 
+    HRESULT getTypeFromName(const(PWSTR) pwchUri, int cchUri, const(PWSTR) pwchLocalName, int cchLocalName, 
                             const(ushort)** ppwchType, int* pcchType);
-    HRESULT getTypeFromQName(const(ushort)* pwchQName, int cchQName, const(ushort)** ppwchType, int* pcchType);
+    HRESULT getTypeFromQName(const(PWSTR) pwchQName, int cchQName, const(ushort)** ppwchType, int* pcchType);
     HRESULT getValue(int nIndex, const(ushort)** ppwchValue, int* pcchValue);
-    HRESULT getValueFromName(const(ushort)* pwchUri, int cchUri, const(ushort)* pwchLocalName, int cchLocalName, 
+    HRESULT getValueFromName(const(PWSTR) pwchUri, int cchUri, const(PWSTR) pwchLocalName, int cchLocalName, 
                              const(ushort)** ppwchValue, int* pcchValue);
-    HRESULT getValueFromQName(const(ushort)* pwchQName, int cchQName, const(ushort)** ppwchValue, int* pcchValue);
+    HRESULT getValueFromQName(const(PWSTR) pwchQName, int cchQName, const(ushort)** ppwchValue, int* pcchValue);
 }
 
 @GUID("8C033CAA-6CD6-4F73-B728-4531AF74945F")
@@ -907,10 +907,10 @@ interface IMXNamespaceManager : IUnknown
     HRESULT pushContext();
     HRESULT pushNodeContext(IXMLDOMNode contextNode, short fDeep);
     HRESULT popContext();
-    HRESULT declarePrefix(const(wchar)* prefix, const(wchar)* namespaceURI);
-    HRESULT getDeclaredPrefix(int nIndex, char* pwchPrefix, int* pcchPrefix);
-    HRESULT getPrefix(const(wchar)* pwszNamespaceURI, int nIndex, char* pwchPrefix, int* pcchPrefix);
-    HRESULT getURI(const(wchar)* pwchPrefix, IXMLDOMNode pContextNode, char* pwchUri, int* pcchUri);
+    HRESULT declarePrefix(const(PWSTR) prefix, const(PWSTR) namespaceURI);
+    HRESULT getDeclaredPrefix(int nIndex, PWSTR pwchPrefix, int* pcchPrefix);
+    HRESULT getPrefix(const(PWSTR) pwszNamespaceURI, int nIndex, PWSTR pwchPrefix, int* pcchPrefix);
+    HRESULT getURI(const(PWSTR) pwchPrefix, IXMLDOMNode pContextNode, PWSTR pwchUri, int* pcchUri);
 }
 
 @GUID("C90352F7-643C-4FBC-BB23-E996EB2D51FD")
@@ -1100,7 +1100,7 @@ interface IXMLHTTPRequest2Callback : IUnknown
     ///    Returns <b>S_OK</b> on success. <div class="alert"><b>Note</b> This callback function must not throw
     ///    exceptions.</div> <div> </div>
     ///    
-    HRESULT OnRedirect(IXMLHTTPRequest2 pXHR, const(wchar)* pwszRedirectUrl);
+    HRESULT OnRedirect(IXMLHTTPRequest2 pXHR, const(PWSTR) pwszRedirectUrl);
     ///Occurs after an HTTP request has been sent to the server and the server has responded with response headers.
     ///Params:
     ///    pXHR = The initial HTTP request object that returns the headers.
@@ -1111,7 +1111,7 @@ interface IXMLHTTPRequest2Callback : IUnknown
     ///    Returns <b>S_OK</b> on success. <div class="alert"><b>Note</b> This callback function must not throw
     ///    exceptions.</div> <div> </div>
     ///    
-    HRESULT OnHeadersAvailable(IXMLHTTPRequest2 pXHR, uint dwStatus, const(wchar)* pwszStatus);
+    HRESULT OnHeadersAvailable(IXMLHTTPRequest2 pXHR, uint dwStatus, const(PWSTR) pwszStatus);
     ///Occurs when a client receives part of the HTTP response data from the server.
     ///Params:
     ///    pXHR = The initial HTTP request.
@@ -1174,9 +1174,9 @@ interface IXMLHTTPRequest2 : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> on success.
     ///    
-    HRESULT Open(const(wchar)* pwszMethod, const(wchar)* pwszUrl, IXMLHTTPRequest2Callback pStatusCallback, 
-                 const(wchar)* pwszUserName, const(wchar)* pwszPassword, const(wchar)* pwszProxyUserName, 
-                 const(wchar)* pwszProxyPassword);
+    HRESULT Open(const(PWSTR) pwszMethod, const(PWSTR) pwszUrl, IXMLHTTPRequest2Callback pStatusCallback, 
+                 const(PWSTR) pwszUserName, const(PWSTR) pwszPassword, const(PWSTR) pwszProxyUserName, 
+                 const(PWSTR) pwszProxyPassword);
     ///Sends an HTTP request to the server asynchronously. On success, methods on the IXMLHTTPRequest2Callback interface
     ///implemented by the app are called to process the response.
     ///Params:
@@ -1300,7 +1300,7 @@ interface IXMLHTTPRequest2 : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> on success.
     ///    
-    HRESULT SetRequestHeader(const(wchar)* pwszHeader, const(wchar)* pwszValue);
+    HRESULT SetRequestHeader(const(PWSTR) pwszHeader, const(PWSTR) pwszValue);
     ///Retrieves the values of all the HTTP response headers.
     ///Params:
     ///    ppwszHeaders = The returned header information. Free the memory used for this parameter using the CoTaskMemFree method.
@@ -1319,8 +1319,8 @@ interface IXMLHTTPRequest2 : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> on success; <b>E_FAIL</b> indicates an error.
     ///    
-    HRESULT GetCookie(const(wchar)* pwszUrl, const(wchar)* pwszName, uint dwFlags, uint* pcCookies, 
-                      char* ppCookies);
+    HRESULT GetCookie(const(PWSTR) pwszUrl, const(PWSTR) pwszName, uint dwFlags, uint* pcCookies, 
+                      XHR_COOKIE** ppCookies);
     ///Retrieves the value of an HTTP header from the response headers.
     ///Params:
     ///    pwszHeader = A case-insensitive header name.
@@ -1329,7 +1329,7 @@ interface IXMLHTTPRequest2 : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> on success.
     ///    
-    HRESULT GetResponseHeader(const(wchar)* pwszHeader, ushort** ppwszValue);
+    HRESULT GetResponseHeader(const(PWSTR) pwszHeader, ushort** ppwszValue);
 }
 
 ///Defines callbacks that notify an application with an outstanding IXMLHTTPRequest3 request of events that affect HTTP
@@ -1349,7 +1349,7 @@ interface IXMLHTTPRequest3Callback : IXMLHTTPRequest2Callback
     ///    Returns <b>S_OK</b> on success.
     ///    
     HRESULT OnServerCertificateReceived(IXMLHTTPRequest3 pXHR, uint dwCertificateErrors, 
-                                        uint cServerCertificateChain, char* rgServerCertificateChain);
+                                        uint cServerCertificateChain, const(XHR_CERT)* rgServerCertificateChain);
     ///Occurs when a client receives a request for a client certificate during SSL negotiation with the server.
     ///Params:
     ///    pXHR = The initial HTTP request.
@@ -1358,7 +1358,7 @@ interface IXMLHTTPRequest3Callback : IXMLHTTPRequest2Callback
     ///Returns:
     ///    Returns <b>S_OK</b> on success.
     ///    
-    HRESULT OnClientCertificateRequested(IXMLHTTPRequest3 pXHR, uint cIssuerList, char* rgpwszIssuerList);
+    HRESULT OnClientCertificateRequested(IXMLHTTPRequest3 pXHR, uint cIssuerList, const(ushort)** rgpwszIssuerList);
 }
 
 ///Provides the methods and properties needed to configure and send HTTP requests and use callbacks to receive
@@ -1375,8 +1375,8 @@ interface IXMLHTTPRequest3 : IXMLHTTPRequest2
     ///Returns:
     ///    Returns S_OK on success.
     ///    
-    HRESULT SetClientCertificate(uint cbClientCertificateHash, char* pbClientCertificateHash, 
-                                 const(wchar)* pwszPin);
+    HRESULT SetClientCertificate(uint cbClientCertificateHash, const(ubyte)* pbClientCertificateHash, 
+                                 const(PWSTR) pwszPin);
 }
 
 

@@ -5,9 +5,9 @@ module windows.machinelearning;
 public import windows.core;
 public import windows.com : HRESULT, IUnknown;
 public import windows.direct3d12 : ID3D12Device, ID3D12Resource;
-public import windows.systemservices : BOOL;
+public import windows.systemservices : BOOL, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -190,12 +190,12 @@ struct WINML_SEQUENCE_BINDING_DESC
     uint ElementCount;
     ///A WINML_TENSOR_DATA_TYPE containing the element tensor data type.
     WINML_TENSOR_DATA_TYPE ElementType;
-    union
+union
     {
-        ushort** pStrings;
-        long*    pInts;
-        float*   pFloats;
-        double*  pDoubles;
+        PWSTR*  pStrings;
+        long*   pInts;
+        float*  pFloats;
+        double* pDoubles;
     }
 }
 
@@ -209,19 +209,19 @@ struct WINML_MAP_BINDING_DESC
     uint ElementCount;
     ///A WINML_TENSOR_DATA_TYPE containing the key element tensor data type.
     WINML_TENSOR_DATA_TYPE KeyType;
-    union
+union
     {
-        ushort** pStringKeys;
-        long*    pIntKeys;
+        PWSTR* pStringKeys;
+        long*  pIntKeys;
     }
     ///A WINML_TENSOR_DATA_TYPE containing the field element tensor data type.
     WINML_TENSOR_DATA_TYPE Fields;
-    union
+union
     {
-        ushort** pStringFields;
-        long*    pIntFields;
-        float*   pFloatFields;
-        double*  pDoubleFields;
+        PWSTR*  pStringFields;
+        long*   pIntFields;
+        float*  pFloatFields;
+        double* pDoubleFields;
     }
 }
 
@@ -264,10 +264,10 @@ struct WINML_RESOURCE_BINDING_DESC
 struct WINML_BINDING_DESC
 {
     ///The name of the WinML binding.
-    const(wchar)*      Name;
+    const(PWSTR)       Name;
     ///A WINML_BINDING_TYPE containing the type of the WinML binding.
     WINML_BINDING_TYPE BindType;
-    union
+union
     {
         WINML_TENSOR_BINDING_DESC Tensor;
         WINML_SEQUENCE_BINDING_DESC Sequence;
@@ -330,14 +330,14 @@ struct WINML_IMAGE_VARIABLE_DESC
 struct WINML_VARIABLE_DESC
 {
     ///The name of the variable.
-    const(wchar)*      Name;
+    PWSTR              Name;
     ///The description of the variable.
-    const(wchar)*      Description;
+    PWSTR              Description;
     ///A WINML_FEATURE_TYPE containing the feature type of variable.
     WINML_FEATURE_TYPE FeatureType;
     ///<b>true</b> if the variable is required; otherwise, <b>false</b>.
     BOOL               Required;
-    union
+union
     {
         WINML_TENSOR_VARIABLE_DESC Tensor;
         WINML_SEQUENCE_VARIABLE_DESC Sequence;
@@ -353,20 +353,20 @@ struct WINML_VARIABLE_DESC
 struct WINML_MODEL_DESC
 {
     ///The author of the model.
-    const(wchar)* Author;
+    PWSTR  Author;
     ///The name of the model.
-    const(wchar)* Name;
+    PWSTR  Name;
     ///The domain of the model.
-    const(wchar)* Domain;
+    PWSTR  Domain;
     ///The description of the model.
-    const(wchar)* Description;
-    size_t        Version;
+    PWSTR  Description;
+    size_t Version;
 }
 
 struct MLOperatorEdgeDescription
 {
     MLOperatorEdgeType edgeType;
-    union
+union
     {
         ulong reserved;
         MLOperatorTensorDataType tensorDataType;
@@ -377,7 +377,7 @@ struct MLOperatorSchemaEdgeDescription
 {
     MLOperatorParameterOptions options;
     MLOperatorSchemaEdgeTypeFormat typeFormat;
-    union
+union
     {
         const(void)* reserved;
         const(byte)* typeLabel;
@@ -404,7 +404,7 @@ struct MLOperatorAttributeNameValue
     const(byte)* name;
     MLOperatorAttributeType type;
     uint         valueCount;
-    union
+union
     {
         const(void)*  reserved;
         const(long)*  ints;
@@ -491,7 +491,7 @@ interface IWinMLModel : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT EnumerateMetadata(uint Index, ushort** pKey, ushort** pValue);
+    HRESULT EnumerateMetadata(uint Index, PWSTR* pKey, PWSTR* pValue);
     ///<p class="CCE_Message">[Some information relates to pre-released product which may be substantially modified
     ///before it's commercially released. Microsoft makes no warranties, express or implied, with respect to the
     ///information provided here.] <b>These APIs have been deprecated and should no longer be used: </b>Please use
@@ -547,7 +547,7 @@ interface IWinMLEvaluationContext : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetValueByName(const(wchar)* Name, WINML_BINDING_DESC** pDescriptor);
+    HRESULT GetValueByName(const(PWSTR) Name, WINML_BINDING_DESC** pDescriptor);
     ///<p class="CCE_Message">[Some information relates to pre-released product which may be substantially modified
     ///before it's commercially released. Microsoft makes no warranties, express or implied, with respect to the
     ///information provided here.] <b>These APIs have been deprecated and should no longer be used: </b>Please use
@@ -577,7 +577,7 @@ interface IWinMLRuntime : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT LoadModel(const(wchar)* Path, IWinMLModel* ppModel);
+    HRESULT LoadModel(const(PWSTR) Path, IWinMLModel* ppModel);
     ///<p class="CCE_Message">[Some information relates to pre-released product which may be substantially modified
     ///before it's commercially released. Microsoft makes no warranties, express or implied, with respect to the
     ///information provided here.] <b>These APIs have been deprecated and should no longer be used: </b>Please use
@@ -630,20 +630,20 @@ interface IMLOperatorAttributes : IUnknown
 {
     HRESULT GetAttributeElementCount(const(byte)* name, MLOperatorAttributeType type, uint* elementCount);
     HRESULT GetAttribute(const(byte)* name, MLOperatorAttributeType type, uint elementCount, 
-                         size_t elementByteSize, char* value);
+                         size_t elementByteSize, void* value);
     HRESULT GetStringAttributeElementLength(const(byte)* name, uint elementIndex, uint* attributeElementByteSize);
     HRESULT GetStringAttributeElement(const(byte)* name, uint elementIndex, uint attributeElementByteSize, 
-                                      char* attributeElement);
+                                      byte* attributeElement);
 }
 
 @GUID("F20E8CBE-3B28-4248-BE95-F96FBC6E4643")
 interface IMLOperatorTensorShapeDescription : IUnknown
 {
     HRESULT GetInputTensorDimensionCount(uint inputIndex, uint* dimensionCount);
-    HRESULT GetInputTensorShape(uint inputIndex, uint dimensionCount, char* dimensions);
+    HRESULT GetInputTensorShape(uint inputIndex, uint dimensionCount, uint* dimensions);
     bool    HasOutputShapeDescription();
     HRESULT GetOutputTensorDimensionCount(uint outputIndex, uint* dimensionCount);
-    HRESULT GetOutputTensorShape(uint outputIndex, uint dimensionCount, char* dimensions);
+    HRESULT GetOutputTensorShape(uint outputIndex, uint dimensionCount, uint* dimensions);
 }
 
 @GUID("5459B53D-A0FC-4665-ADDD-70171EF7E631")
@@ -664,7 +664,7 @@ interface IMLOperatorKernelCreationContext : IMLOperatorAttributes
 interface IMLOperatorTensor : IUnknown
 {
     uint    GetDimensionCount();
-    HRESULT GetShape(uint dimensionCount, char* dimensions);
+    HRESULT GetShape(uint dimensionCount, uint* dimensions);
     MLOperatorTensorDataType GetTensorDataType();
     bool    IsCpuData();
     bool    IsDataInterface();
@@ -677,7 +677,8 @@ interface IMLOperatorKernelContext : IUnknown
 {
     HRESULT GetInputTensor(uint inputIndex, IMLOperatorTensor* tensor);
     HRESULT GetOutputTensor(uint outputIndex, IMLOperatorTensor* tensor);
-    HRESULT GetOutputTensor(uint outputIndex, uint dimensionCount, char* dimensionSizes, IMLOperatorTensor* tensor);
+    HRESULT GetOutputTensor(uint outputIndex, uint dimensionCount, const(uint)* dimensionSizes, 
+                            IMLOperatorTensor* tensor);
     HRESULT AllocateTemporaryData(size_t size, IUnknown* data);
     void    GetExecutionInterface(IUnknown* executionObject);
 }
@@ -697,7 +698,7 @@ interface IMLOperatorShapeInferenceContext : IMLOperatorAttributes
     bool    IsOutputValid(uint outputIndex);
     HRESULT GetInputEdgeDescription(uint inputIndex, MLOperatorEdgeDescription* edgeDescription);
     HRESULT GetInputTensorDimensionCount(uint inputIndex, uint* dimensionCount);
-    HRESULT GetInputTensorShape(uint inputIndex, uint dimensionCount, char* dimensions);
+    HRESULT GetInputTensorShape(uint inputIndex, uint dimensionCount, uint* dimensions);
     HRESULT SetOutputTensorShape(uint outputIndex, uint dimensionCount, const(uint)* dimensions);
 }
 
@@ -733,9 +734,9 @@ interface IMLOperatorKernelFactory : IUnknown
 @GUID("2AF9DD2D-B516-4672-9AB5-530C208493AD")
 interface IMLOperatorRegistry : IUnknown
 {
-    HRESULT RegisterOperatorSetSchema(const(MLOperatorSetId)* operatorSetId, int baselineVersion, char* schema, 
-                                      uint schemaCount, IMLOperatorTypeInferrer typeInferrer, 
-                                      IMLOperatorShapeInferrer shapeInferrer);
+    HRESULT RegisterOperatorSetSchema(const(MLOperatorSetId)* operatorSetId, int baselineVersion, 
+                                      const(MLOperatorSchemaDescription)** schema, uint schemaCount, 
+                                      IMLOperatorTypeInferrer typeInferrer, IMLOperatorShapeInferrer shapeInferrer);
     HRESULT RegisterOperatorKernel(const(MLOperatorKernelDescription)* operatorKernel, 
                                    IMLOperatorKernelFactory operatorKernelFactory, 
                                    IMLOperatorShapeInferrer shapeInferrer);

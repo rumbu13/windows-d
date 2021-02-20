@@ -3,9 +3,9 @@
 module windows.netshell;
 
 public import windows.core;
-public import windows.systemservices : BOOL, HANDLE;
+public import windows.systemservices : BOOL, HANDLE, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -62,7 +62,7 @@ enum : int
 
 // Callbacks
 
-alias GET_RESOURCE_STRING_FN = uint function(uint dwMsgID, const(wchar)* lpBuffer, uint nBufferMax);
+alias GET_RESOURCE_STRING_FN = uint function(uint dwMsgID, PWSTR lpBuffer, uint nBufferMax);
 alias PGET_RESOURCE_STRING_FN = uint function();
 ///The <b>NS_CONTEXT_COMMIT_FN</b> command is the commit function for helpers. The commit function commits commands used
 ///for committing offline commands, and is registered in the RegisterContext function. The following is an example of a
@@ -92,7 +92,7 @@ alias PNS_CONTEXT_COMMIT_FN = uint function();
 ///Returns:
 ///    Returns NO_ERROR upon success. Any other return value indicates an error.
 ///    
-alias NS_CONTEXT_CONNECT_FN = uint function(const(wchar)* pwszMachine);
+alias NS_CONTEXT_CONNECT_FN = uint function(const(PWSTR) pwszMachine);
 alias PNS_CONTEXT_CONNECT_FN = uint function();
 ///The <b>NS_CONTEXT_DUMP_FN</b> command is the dump function for helpers. The dump function is used to print comments,
 ///and is registered in the RegisterContext function. The following is an example of a dump function. Be aware that
@@ -106,8 +106,8 @@ alias PNS_CONTEXT_CONNECT_FN = uint function();
 ///Returns:
 ///    Returns NO_ERROR upon success. Any other return value indicates an error.
 ///    
-alias NS_CONTEXT_DUMP_FN = uint function(const(wchar)* pwszRouter, char* ppwcArguments, uint dwArgCount, 
-                                         void* pvData);
+alias NS_CONTEXT_DUMP_FN = uint function(const(PWSTR) pwszRouter, PWSTR* ppwcArguments, uint dwArgCount, 
+                                         const(void)* pvData);
 alias PNS_CONTEXT_DUMP_FN = uint function();
 ///The <b>NS_DLL_STOP_FN</b> command is the DLL stop function for helper DLLs. The DLL stop function provides an
 ///opportunity for helper DLLs to release any resources before being unloaded, and is registered in the RegisterContext
@@ -158,8 +158,8 @@ alias PNS_HELPER_STOP_FN = uint function();
 ///Returns:
 ///    Returns NO_ERROR upon success. Any other return value indicates an error.
 ///    
-alias FN_HANDLE_CMD = uint function(const(wchar)* pwszMachine, char* ppwcArguments, uint dwCurrentIndex, 
-                                    uint dwArgCount, uint dwFlags, void* pvData, int* pbDone);
+alias FN_HANDLE_CMD = uint function(const(PWSTR) pwszMachine, PWSTR* ppwcArguments, uint dwCurrentIndex, 
+                                    uint dwArgCount, uint dwFlags, const(void)* pvData, BOOL* pbDone);
 alias PFN_HANDLE_CMD = uint function();
 ///The <b>NS_OSVERSIONCHECK</b> command is the operating system check function for helpers. This function can be called
 ///on a per-function basis, and verifies whether the associated function is supported on the specified operating system.
@@ -179,9 +179,9 @@ alias PFN_HANDLE_CMD = uint function();
 ///    Returns <b>TRUE</b> of the command or group should be available, <b>FALSE</b> if the command or group should be
 ///    hidden.
 ///    
-alias NS_OSVERSIONCHECK = BOOL function(uint CIMOSType, uint CIMOSProductSuite, const(wchar)* CIMOSVersion, 
-                                        const(wchar)* CIMOSBuildNumber, const(wchar)* CIMServicePackMajorVersion, 
-                                        const(wchar)* CIMServicePackMinorVersion, uint uiReserved, uint dwReserved);
+alias NS_OSVERSIONCHECK = BOOL function(uint CIMOSType, uint CIMOSProductSuite, const(PWSTR) CIMOSVersion, 
+                                        const(PWSTR) CIMOSBuildNumber, const(PWSTR) CIMServicePackMajorVersion, 
+                                        const(PWSTR) CIMServicePackMinorVersion, uint uiReserved, uint dwReserved);
 alias PNS_OSVERSIONCHECK = BOOL function();
 ///The <b>InitHelperDll</b> function is called by NetShell to perform an initial loading of a helper.
 ///Params:
@@ -198,16 +198,16 @@ alias PNS_DLL_INIT_FN = uint function();
 
 struct TOKEN_VALUE
 {
-    const(wchar)* pwszToken;
-    uint          dwValue;
+    const(PWSTR) pwszToken;
+    uint         dwValue;
 }
 
 ///The <b>NS_HELPER_ATTRIBUTES</b> structure provides attributes of a helper.
 struct NS_HELPER_ATTRIBUTES
 {
-    union
+union
     {
-        struct
+struct
         {
             uint dwVersion;
             uint dwReserved;
@@ -227,7 +227,7 @@ struct NS_HELPER_ATTRIBUTES
 struct CMD_ENTRY
 {
     ///The token (name) for the command.
-    const(wchar)*      pwszCmdToken;
+    const(PWSTR)       pwszCmdToken;
     ///A function that handles the command. For more information, see FN_HANDLE_CMD.
     PFN_HANDLE_CMD     pfnCmdHandler;
     ///A short help message. This is the message identifier from the resource file of the helper DLL.
@@ -247,7 +247,7 @@ struct CMD_ENTRY
 struct CMD_GROUP_ENTRY
 {
     ///The token (name) for the command group
-    const(wchar)*      pwszCmdGroupToken;
+    const(PWSTR)       pwszCmdGroupToken;
     ///A short help message.
     uint               dwShortCmdHelpToken;
     ///The number of elements in the command group.
@@ -265,9 +265,9 @@ struct CMD_GROUP_ENTRY
 ///The <b>NS_CONTEXT_ATTRIBUTES</b> structure defines attributes of a context.
 struct NS_CONTEXT_ATTRIBUTES
 {
-    union
+union
     {
-        struct
+struct
         {
             uint dwVersion;
             uint dwReserved;
@@ -276,7 +276,7 @@ struct NS_CONTEXT_ATTRIBUTES
     }
     ///A unicode string that identifies the new context. This string is the command available to users. The string must
     ///not contain spaces.
-    const(wchar)*       pwszContext;
+    PWSTR               pwszContext;
     ///A pointer to the GUID of this helper. Identical to the value passed to the RegisterHelper function as the
     ///<b>pguidHelper</b> member of the NS_HELPER_ATTRIBUTES structure.
     GUID                guidHelper;
@@ -321,7 +321,7 @@ struct NS_CONTEXT_ATTRIBUTES
 struct TAG_TYPE
 {
     ///A tag string, in UNICODE.
-    const(wchar)* pwszTag;
+    const(PWSTR) pwszTag;
     ///Specifies whether the tag is required. <table> <tr> <th>Flag</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="NS_REQ_ZERO"></a><a id="ns_req_zero"></a><dl> <dt><b>NS_REQ_ZERO</b></dt> </dl> </td> <td width="60%"> Tag is
     ///optional. </td> </tr> <tr> <td width="40%"><a id="NS_REQ_PRESENT"></a><a id="ns_req_present"></a><dl>
@@ -331,9 +331,9 @@ struct TAG_TYPE
     ///</tr> <tr> <td width="40%"><a id="NS_REQ_ONE_OR_MORE"></a><a id="ns_req_one_or_more"></a><dl>
     ///<dt><b>NS_REQ_ONE_OR_MORE</b></dt> </dl> </td> <td width="60%"> Multiple copies of the tag is allowed. Tag must
     ///be present. </td> </tr> </table>
-    uint          dwRequired;
+    uint         dwRequired;
     ///This value specifies whether the tag is present. <b>TRUE</b> indicates the tag is present.
-    BOOL          bPresent;
+    BOOL         bPresent;
 }
 
 // Functions
@@ -350,7 +350,7 @@ struct TAG_TYPE
 ///    pdwValue = Upon success, the <i>pdwValue</i> parameter is filled with the value associated with the token in the
 ///               <i>pEnumTable</i> array.
 @DllImport("NETSH")
-uint MatchEnumTag(HANDLE hModule, const(wchar)* pwcArg, uint dwNumArg, const(TOKEN_VALUE)* pEnumTable, 
+uint MatchEnumTag(HANDLE hModule, const(PWSTR) pwcArg, uint dwNumArg, const(TOKEN_VALUE)* pEnumTable, 
                   uint* pdwValue);
 
 ///The <b>MatchToken</b> function determines whether a user-entered string matches a specific string. A match exists if
@@ -362,7 +362,7 @@ uint MatchEnumTag(HANDLE hModule, const(wchar)* pwcArg, uint dwNumArg, const(TOK
 ///    Returns <b>TRUE</b> if there is a match, <b>FALSE</b> if not.
 ///    
 @DllImport("NETSH")
-BOOL MatchToken(const(wchar)* pwszUserToken, const(wchar)* pwszCmdToken);
+BOOL MatchToken(const(PWSTR) pwszUserToken, const(PWSTR) pwszCmdToken);
 
 ///The <b>PreprocessCommand</b> function parses an argument string and verifies that all required tags are present.
 ///Params:
@@ -391,8 +391,8 @@ BOOL MatchToken(const(wchar)* pwszUserToken, const(wchar)* pwszCmdToken);
 ///    available to carry out the command. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("NETSH")
-uint PreprocessCommand(HANDLE hModule, char* ppwcArguments, uint dwCurrentIndex, uint dwArgCount, char* pttTags, 
-                       uint dwTagCount, uint dwMinArgs, uint dwMaxArgs, char* pdwTagType);
+uint PreprocessCommand(HANDLE hModule, PWSTR* ppwcArguments, uint dwCurrentIndex, uint dwArgCount, 
+                       TAG_TYPE* pttTags, uint dwTagCount, uint dwMinArgs, uint dwMaxArgs, uint* pdwTagType);
 
 ///The <b>PrintError</b> function displays a system or application error message to the NetShell console.
 ///Params:
@@ -424,7 +424,7 @@ uint PrintMessageFromModule(HANDLE hModule, uint dwMsgId);
 ///    Returns the number of characters printed. Returns zero upon failure.
 ///    
 @DllImport("NETSH")
-uint PrintMessage(const(wchar)* pwszFormat);
+uint PrintMessage(const(PWSTR) pwszFormat);
 
 ///The <b>RegisterContext</b> function registers a helper context with NetShell. The <b>RegisterContext</b> function
 ///should be called from the NS_HELPER_START_FN entry point (the start function) passed to the RegisterHelper function

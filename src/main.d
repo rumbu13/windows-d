@@ -340,9 +340,18 @@ void dumpEnums(std.stdio.File f, const ref Metadata db, string namespace, bool d
 void dumpEnum(std.stdio.File f, const ref TypeDef e, bool docs = false)
 {
     foreach(ca; e.attributes)
-        f.writefln("//ENUM ATTR: %s : %s", ca.name, ca.value);
+    {
+        if (ca.name == "FlagsAttribute")
+        {
+            //can't find any use
+        }
+        else
+            f.writefln("//ENUM ATTR: %s : %s", ca.name, ca.value);
+    }
     
-    bool trueEnum = seemsLikeTrueEnum(e.name);
+    bool hasMembers =  e.fields.any!(a => !a.fieldAttributes.hasRuntimeSpecialName);
+
+    bool trueEnum = hasMembers && seemsLikeTrueEnum(e.name);
 
     size_t maxLen;
     foreach(fx; e.fields)
@@ -353,20 +362,25 @@ void dumpEnum(std.stdio.File f, const ref TypeDef e, bool docs = false)
 
     auto typeText = getEnumTypeText(e);
 
-    if (e.fields.any!(a => !a.fieldAttributes.hasRuntimeSpecialName))
-    {
-        MDMatcher* doc = docs ? findDoc(e.name) : null;
-        f.writeln;
-        if (doc)
-            dumpDocumentation(f, doc.description, 0);
+    
+ 
+    MDMatcher* doc = docs ? findDoc(e.name) : null;
+    f.writeln;
+    if (doc)
+        dumpDocumentation(f, doc.description, 0);
         
-        if (!trueEnum)
-        {
-            f.writefln("alias %s = %s;", e.name, typeText);
+
+    if (!trueEnum)
+    {
+        f.writefln("alias %s = %s;", e.name, typeText);
+        if (hasMembers)
             f.writefln("enum : %s", typeText);
-        }
-        else
-            f.writefln("enum %s : %s", e.name, typeText);            
+    }
+    else
+        f.writefln("enum %s : %s", e.name, typeText);  
+    
+    if (hasMembers)
+    {
         f.writeln("{");
         foreach(fx; e.fields)
         {            
@@ -398,6 +412,7 @@ void dumpEnum(std.stdio.File f, const ref TypeDef e, bool docs = false)
         }   
         f.writeln("}");
     }
+    
     
 }
 
@@ -491,16 +506,31 @@ void dumpApisConstants(std.stdio.File f, const ref Metadata db, string namespace
 
 void dumpFieldCollection(std.stdio.File f, Field[] flds, bool wasOne)
 {
+    auto sig = flds[0].signature.typeSig;
+    bool isStruct = sig.type.peek!TypeRef || sig.type.peek!TypeDef; 
+    bool isGuidConst = flds[0].attributes.canFind!(a => a.name == "GuidConstAttribute");
+    auto typeText = isGuidConst ? "GUID" : getFieldTypeText(flds[0]);
+    if (isGuidConst)
+        isStruct = true;
+
+
     if (flds.length == 1)
     {
         if (!wasOne)
             f.writeln;
         f.write("enum ");                
-        f.write(getFieldTypeText(flds[0]));   
+        f.write(typeText);   
         f.write(" ");
         f.write(safeWords.get(flds[0].name, flds[0].name));
         f.write(" = ");
+        if (isStruct)
+        {
+            f.write(typeText);
+            f.write("(");                
+        }
         dumpConstant(f, flds[0].constant.get.value);
+        if (isStruct)
+            f.write(")");                
         f.writeln(";");
     }
     else
@@ -513,8 +543,10 @@ void dumpFieldCollection(std.stdio.File f, Field[] flds, bool wasOne)
         }
 
         f.writeln;
-        f.write("enum : ");                
-        f.writeln (getFieldTypeText(flds[0]));                      
+        f.write("enum : ");       
+        
+        
+        f.writeln (typeText);                      
         f.writeln("{");
         foreach(fx; flds)
         {            
@@ -530,13 +562,21 @@ void dumpFieldCollection(std.stdio.File f, Field[] flds, bool wasOne)
                     f.write("".padLeft(' ', 4));
                     break;
                 }
+
             }
             auto name = safeWords.get(fx.name, fx.name);
             f.write(name);
             if (name.length < maxLen)
                 f.write("".padLeft(' ', maxLen - name.length));
             f.write(" = ");
+            if (isStruct)
+            {
+                f.write(typeText);
+                f.write("(");                
+            }
             dumpConstant(f, fx.constant.get.value);
+            if (isStruct)
+                f.write(")");
             f.writeln(",");
         }
         f.writeln("}");
@@ -661,12 +701,6 @@ void dumpStruct(std.stdio.File f, const ref TypeDef struc, int level = 0, string
 {
     if (!level)
         f.writeln;
-    f.write("".padLeft(' ', level * 4));
-
-    if (struc.name == "CQFORM")
-    {
-        auto s = "";
-    }
 
     MDMatcher* doc = level == 0 && docs ? findDoc(struc.name) : null;
     if (doc)
@@ -676,21 +710,22 @@ void dumpStruct(std.stdio.File f, const ref TypeDef struc, int level = 0, string
     {
         if (ca.name == "NativeTypedefAttribute")
         {
-            auto fld = struc.fields.front;
-            f.writef("alias ");
-            f.writef(struc.name);
-            f.writef(" = ");
-            string text = getFieldTypeText(fld);
-            f.writef(text);
-            f.writeln(";");
-            return;
+            //do nothing
         }
         else if (ca.name == "RAIIFreeAttribute")
         {
-            //just ignore
+            f.write("".padLeft(' ', level * 4));
+            auto fixed = ca.value.fixed[0];
+            auto element = fixed.value.get!ElementSig;
+            auto str = element.value.get!string;
+            f.writefln("@RAIIFree!%s", str);
         }
         else
+        {
+            f.write("".padLeft(' ', level * 4));
             f.writefln("//STRUCT ATTR: %s : %s", ca.name, ca.value);        
+            
+        }
     }
 
     string[string] types;
@@ -1005,7 +1040,6 @@ string getTypeText(const ref TypeSig sig, bool isConst = false, int nativeReplac
         }
     }
     
-    
     if (isConst)
         s ~= "const(";
 
@@ -1073,6 +1107,7 @@ string getTypeText(const ref TypeSig sig, bool isConst = false, int nativeReplac
             s ~= format("[%d]", sig.arraySizes[i]);
     }
 
+    
     for (int i = 0; i < sig.ptrCount; ++i)
         s ~= '*';
 
@@ -1096,7 +1131,11 @@ string getFieldTypeText(const ref Field field, bool checkConst = false)
             auto element = fixed.value.get!ElementSig;
             nativeReplacement = element.value.get!int;
         }
-        else if(ca.name == "ObsoleteAttribute")
+        else if (ca.name == "NotNullTerminated")
+        {
+            //cant't find any use
+        }
+        else if(ca.name == "ObsoleteAttribute" || ca.name == "GuidConstAttribute")
         {
             //ignore now, use when writing field
         }
@@ -1151,7 +1190,23 @@ string getParamText(const ref ParamSig sig, const ref Param param)
         }
         else if (ca.name == "ComOutPtrAttribute")
         {
-            //just ignore
+            //can't find any use
+        }
+        else if (ca.name == "NativeArrayInfoAttribute")
+        {
+            //cant't find any use
+        }
+        else if (ca.name == "NotNullTerminated")
+        {
+            //cant't find any use
+        }
+        else if (ca.name == "RetValAttribute")
+        {
+            //cant't find any use
+        }
+        else if (ca.name == "NullNullTerminatedAttribute")
+        {
+            //cant't find any use
         }
         else
             s = format("/*PARAM ATTR: %s : %s*/", ca.name, ca.value);
@@ -1182,7 +1237,7 @@ string[string] safeWords;
 bool[string] skipInterfaces;
 bool[string] skipMethods;
 
-void buildDependencies(TypeDef type, string namespace, StringSet rb)
+void buildDependencies(Metadata* meta, TypeDef type, string namespace, StringSet rb)
 {
     foreach(field; type.fields)
     {
@@ -1195,7 +1250,7 @@ void buildDependencies(TypeDef type, string namespace, StringSet rb)
     {
         foreach(nstruct; nestedMap[type].byKey)
         {
-            buildDependencies(nstruct, namespace, rb);
+            buildDependencies(meta, nstruct, namespace, rb);
         }
     }
 
@@ -1220,11 +1275,44 @@ void buildDependencies(TypeDef type, string namespace, StringSet rb)
         auto dep = fullnameof(interf.implementation);
         if (namespace == "Windows.Win32.DirectShow" && dep == "Windows.Win32.Mmc.IComponent")
             dep = "Windows.Win32.DirectShow.IComponent";
-        if (namespace == "Windows.Win32.Controls" && dep == "Windows.Win32.Mmc.IImageList")
+        else if (namespace == "Windows.Win32.Controls" && dep == "Windows.Win32.Mmc.IImageList")
             dep = "Windows.Win32.Controls.IImageList";
+        else if (namespace == "Windows.Win32.Mmc" && dep == "Windows.Win32.DirectShow.IComponent")
+            dep = "Windows.Win32.Mmc.IComponent";
         if (dep.length && dep[0] != '.' && !dep.startsWith(namespace))                
             rb.insert(dep);   
-    }            
+    }   
+
+    if (type.isValueType)
+    {
+        foreach(attr; type.attributes)
+        {
+            if (attr.name == "RAIIFreeAttribute")
+            {
+                auto fixed = attr.value.fixed[0];
+                auto element = fixed.value.get!ElementSig;
+                auto str = element.value.get!string;
+                foreach(t; meta.typeDefTable.items)
+                {
+                    if (t.name == "Apis")
+                    {
+                        foreach(m; t.methods)
+                        {
+                            if (m.name == str)
+                            {
+                                auto dep = t.namespace ~ '.' ~ m.name;
+                                if (!dep.startsWith(namespace ~ '.'))
+                                    rb.insert(dep);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
 }
 
 
@@ -1440,6 +1528,8 @@ MDMatcher* findDoc(string name)
     //    if(m.value.match(name))
     //        return m.key in docMatcher;
     //}
+    if (!matcher)
+        writefln("No doc match: %s", name);
     return matcher;
 }
 
@@ -1665,7 +1755,7 @@ int main(string[] args)
 
         foreach(type; getTypeDefs(metadata, namespace))
         {            
-            buildDependencies(type, namespace, rb);
+            buildDependencies(&metadata, type, namespace, rb);
         }
     }
 
@@ -1675,7 +1765,16 @@ int main(string[] args)
     
     
     if (exists(outDirectory) && isDir(outDirectory))
-        rmdirRecurse(outDirectory);
+    {
+        try
+        {
+           rmdirRecurse(outDirectory);
+        }
+        catch(FileException)
+        {
+            writefln("Warning, cannot delete %s", buildNormalizedPath(absolutePath(outDirectory)));
+        }
+    }
     
     bool mustCopyCore = true;
     foreach(namespace; namespaces)
@@ -1736,7 +1835,7 @@ int main(string[] args)
             f.writeln(";");
 
         f.writeln;
-        f.writeln("extern(Windows):");
+        f.writeln("extern(Windows) @nogc nothrow:");
         f.writeln;
                 
         dumpEnums(f, metadata, namespace, docsDirectory.length > 0);    

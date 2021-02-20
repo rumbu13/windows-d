@@ -7,10 +7,10 @@ public import windows.audio : IPropertyStore;
 public import windows.com : HRESULT, IUnknown;
 public import windows.security : CERT_CONTEXT;
 public import windows.structuredstorage : PROPVARIANT;
-public import windows.systemservices : BOOL, HANDLE, IServiceProvider;
+public import windows.systemservices : BOOL, HANDLE, IServiceProvider, PWSTR;
 public import windows.windowspropertiessystem : PROPERTYKEY;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -277,22 +277,6 @@ alias PWSD_SOAP_MESSAGE_HANDLER = HRESULT function(IUnknown thisUnknown, WSD_EVE
 // Structs
 
 
-struct IFunctionInstanceQuery2
-{
-}
-
-struct IFunctionInstanceCollectionQuery2
-{
-}
-
-struct IFunctionInstanceCollectionQueryCollection
-{
-}
-
-struct IFunctionDiscoveryProviderRefresh
-{
-}
-
 ///Represents a timestamp.
 struct WSD_DATETIME
 {
@@ -430,7 +414,7 @@ struct WSD_SECURITY_CERT_VALIDATION
     ///<dt><b>WSDAPI_SSL_CERT_IGNORE_INVALID_CN</b></dt> <dt>0x10</dt> </dl> </td> <td width="60%"> Ignore invalid
     ///common name certificate errors. </td> </tr> </table>
     uint           dwCertCheckOptions;
-    const(wchar)*  pszCNGHashAlgId;
+    const(PWSTR)   pszCNGHashAlgId;
     ubyte*         pbCertHash;
     uint           dwCertHashSize;
 }
@@ -537,7 +521,7 @@ struct WSD_PORT_TYPE
 struct WSD_RELATIONSHIP_METADATA
 {
     ///A WS-Discovery Type.
-    const(wchar)*      Type;
+    const(PWSTR)       Type;
     ///Reference to a WSD_HOST_METADATA structure that contains metadata for all services hosted by a device.
     WSD_HOST_METADATA* Data;
     WSDXML_ELEMENT*    Any;
@@ -579,7 +563,7 @@ struct WSD_SERVICE_METADATA
     WSD_NAME_LIST*  Types;
     ///The URI of the service. This URI must be valid when a <b>WSD_SERVICE_METADATA</b> structure is passed to
     ///IWSDDeviceHost::SetMetadata. Applications are responsible for URI validation.
-    const(wchar)*   ServiceId;
+    const(PWSTR)    ServiceId;
     WSDXML_ELEMENT* Any;
 }
 
@@ -590,9 +574,9 @@ struct WSD_THIS_DEVICE_METADATA
     ///device. It should be set to fewer than 256 characters.
     WSD_LOCALIZED_STRING_LIST* FriendlyName;
     ///The firmware version of the device. It should be set to fewer than 256 characters.
-    const(wchar)*   FirmwareVersion;
+    const(PWSTR)    FirmwareVersion;
     ///The serial number of the device. It should be set to fewer than 256 characters.
-    const(wchar)*   SerialNumber;
+    const(PWSTR)    SerialNumber;
     ///Reference to a WSDXML_ELEMENT structure that provides an extensible space for devices to add custom metadata to
     ///the device specific section. For example, you can use this to add a user-defined name for the device.
     WSDXML_ELEMENT* Any;
@@ -605,17 +589,17 @@ struct WSD_THIS_MODEL_METADATA
     ///fewer than 2048 characters.
     WSD_LOCALIZED_STRING_LIST* Manufacturer;
     ///The URL to a Web site for the device manufacturer. The URL should have fewer than 2048 characters.
-    const(wchar)*   ManufacturerUrl;
+    const(PWSTR)    ManufacturerUrl;
     ///Reference to a WSD_LOCALIZED_STRING_LIST structure that specifies model names. This is a list of localized
     ///friendly names that should be set to fewer than 256 characters.
     WSD_LOCALIZED_STRING_LIST* ModelName;
     ///The model number. This should be set to fewer than 256 characters.
-    const(wchar)*   ModelNumber;
+    const(PWSTR)    ModelNumber;
     ///The URL to a Web site for this device model. The URL should have fewer than 2048 characters.
-    const(wchar)*   ModelUrl;
+    const(PWSTR)    ModelUrl;
     ///An HTML page for this device. This can be relative to a base URL set by XML Base. The URL should have fewer than
     ///2048 characters.
-    const(wchar)*   PresentationUrl;
+    const(PWSTR)    PresentationUrl;
     ///Reference to a WSDXML_ELEMENT structure that specifies extension content allowed by the XML <b>ANY</b> keyword.
     WSDXML_ELEMENT* Any;
 }
@@ -662,9 +646,9 @@ struct WSD_SOAP_FAULT
     ///A WSD_SOAP_FAULT_REASON structure that contains localized human readable explanations of the fault.
     WSD_SOAP_FAULT_REASON* Reason;
     ///The SOAP node on the SOAP message path that caused the fault.
-    const(wchar)*        Node;
+    const(PWSTR)         Node;
     ///The SOAP role in which the <b>Node</b> was acting at the time the fault occurred.
-    const(wchar)*        Role;
+    const(PWSTR)         Role;
     ///A WSDXML_ELEMENT structure that contains application-specific error information pertaining to the fault.
     WSDXML_ELEMENT*      Detail;
 }
@@ -673,30 +657,30 @@ struct WSD_SOAP_FAULT
 struct WSD_APP_SEQUENCE
 {
     ///The instance identifier.
-    ulong         InstanceId;
+    ulong        InstanceId;
     ///The sequence identifier.
-    const(wchar)* SequenceId;
+    const(PWSTR) SequenceId;
     ///The message number.
-    ulong         MessageNumber;
+    ulong        MessageNumber;
 }
 
 ///Represents a RelatesTo SOAP envelope header block, as specified by the WS-Addressing specification.
 struct WSD_HEADER_RELATESTO
 {
     ///Reference to a WSDXML_NAME structure that contains the relationship type as a qualified name.
-    WSDXML_NAME*  RelationshipType;
-    const(wchar)* MessageID;
+    WSDXML_NAME* RelationshipType;
+    const(PWSTR) MessageID;
 }
 
 ///Provides SOAP header data for the WSD_SOAP_MESSAGE structure.
 struct WSD_SOAP_HEADER
 {
     ///The URI to which the SOAP message is addressed.
-    const(wchar)*        To;
+    const(PWSTR)         To;
     ///The action encoded by the SOAP message.
-    const(wchar)*        Action;
+    const(PWSTR)         Action;
     ///An identifier that distinguishes the message from others from the same sender.
-    const(wchar)*        MessageID;
+    const(PWSTR)         MessageID;
     ///In response messages, specifies the message ID of the matching request message.
     WSD_HEADER_RELATESTO RelatesTo;
     ///In request messages, a reference to a WSD_ENDPOINT_REFERENCE structure that specifies to the endpoint to which
@@ -820,7 +804,7 @@ struct WSD_BYE
 struct WSD_SCOPES
 {
     ///A matching rule used for scopes.
-    const(wchar)* MatchBy;
+    const(PWSTR)  MatchBy;
     WSD_URI_LIST* Scopes;
 }
 
@@ -867,7 +851,7 @@ struct WSD_REFERENCE_PROPERTIES
 struct WSD_ENDPOINT_REFERENCE
 {
     ///The endpoint address.
-    const(wchar)*   Address;
+    const(PWSTR)    Address;
     ///WSD_REFERENCE_PROPERTIES structure that specifies additional data used to uniquely identify the endpoint.
     WSD_REFERENCE_PROPERTIES ReferenceProperties;
     ///WSD_REFERENCE_PARAMETERS structure that specifies additional opaque data used by the endpoint.
@@ -902,9 +886,9 @@ struct WSD_METADATA_SECTION
     ///<dt><b>http://schemas.xmlsoap.org/ws/2006/02/devprof/Relationship</b></dt> </dl> </td> <td width="60%"> The
     ///metadata section contains metadata about the relationship between two or more services. If the <b>Data</b> member
     ///is specified, then its type is WSD_RELATIONSHIP_METADATA. </td> </tr> </table>
-    const(wchar)*   Dialect;
+    const(PWSTR)    Dialect;
     ///The dialect-specific identifier for the scope/domain/namespace of the metadata section.
-    const(wchar)*   Identifier;
+    const(PWSTR)    Identifier;
     ///Reference to a binary representation of the metadata. The type of metadata is specified by <b>Dialect</b>. This
     ///member is ignored if <b>Dialect</b> does not have a value of
     ///http://schemas.xmlsoap.org/ws/2006/02/devprof/ThisModel,
@@ -914,7 +898,7 @@ struct WSD_METADATA_SECTION
     ///Reference to a WSD_ENDPOINT_REFERENCE structure used identify the endpoint from which metadata can be retrieved.
     WSD_ENDPOINT_REFERENCE* MetadataReference;
     ///A URI that specifies the location from which metadata can be retrieved.
-    const(wchar)*   Location;
+    const(PWSTR)    Location;
     WSDXML_ELEMENT* Any;
 }
 
@@ -931,7 +915,7 @@ struct WSD_URI_LIST
 {
     ///Reference to the next node in the single-linked list of <b>WSD_URI_LIST</b> structures.
     WSD_URI_LIST* Next;
-    const(wchar)* Element;
+    const(PWSTR)  Element;
 }
 
 ///Represents a boolean expression used for filtering events
@@ -951,9 +935,9 @@ struct WSD_EVENTING_FILTER
     ///id="HTTP___SCHEMAS.XMLSOAP.ORG_WS_2006_02_DEVPROF_ACTION"></a><dl>
     ///<dt><b>http://schemas.xmlsoap.org/ws/2006/02/devprof/Action</b></dt> </dl> </td> <td width="60%"> The boolean
     ///expression uses the Action filter dialect. </td> </tr> </table>
-    const(wchar)* Dialect;
+    const(PWSTR) Dialect;
     WSD_EVENTING_FILTER_ACTION* FilterAction;
-    void*         Data;
+    void*        Data;
 }
 
 ///Represents the expiration time of a WS-Eventing message.
@@ -979,18 +963,18 @@ struct WSD_EVENTING_DELIVERY_MODE
     ///id="HTTP___SCHEMAS.XMLSOAP.ORG_WS_2004_08_EVENTING_DELIVERYMODES_PUSH"></a><dl>
     ///<dt><b>http://schemas.xmlsoap.org/ws/2004/08/eventing/DeliveryModes/Push</b></dt> </dl> </td> <td width="60%">
     ///Push mode delivery is used. </td> </tr> </table>
-    const(wchar)* Mode;
+    const(PWSTR) Mode;
     WSD_EVENTING_DELIVERY_MODE_PUSH* Push;
-    void*         Data;
+    void*        Data;
 }
 
 ///Represents a single localized string.
 struct WSD_LOCALIZED_STRING
 {
     ///The standard language code used for localization. Valid language codes are specified in RFC 1766.
-    const(wchar)* lang;
+    const(PWSTR) lang;
     ///The string data in the localized language.
-    const(wchar)* String;
+    const(PWSTR) String;
 }
 
 ///Represents a WS-MetadataExchange GetMetadata response message.
@@ -1083,7 +1067,7 @@ struct RESPONSEBODY_SubscriptionEnd
     ///id="HTTP___SCHEMAS.XMLSOAP.ORG_WS_2004_08_EVENTING_DELIVERYFAILURE"></a><dl>
     ///<dt><b>http://schemas.xmlsoap.org/ws/2004/08/eventing/DeliveryFailure</b></dt> </dl> </td> <td width="60%"> The
     ///event source ended the subscription because the delivery of notifications failed. </td> </tr> </table>
-    const(wchar)*   Status;
+    const(PWSTR)    Status;
     ///Reference to a WSD_LOCALIZED_STRING that contains a human-readable explanation of the reason the subscription
     ///ended.
     WSD_LOCALIZED_STRING* Reason;
@@ -1104,7 +1088,7 @@ struct WSD_EVENT
     ///The event type.
     uint                EventType;
     ///Pointer to the protocol string when dispatch by tags is required.
-    ushort*             DispatchTag;
+    PWSTR               DispatchTag;
     ///Reference to a WSD_HANDLER_CONTEXT structure that specifies the handler context.
     WSD_HANDLER_CONTEXT HandlerContext;
     ///Reference to a WSD_SOAP_MESSAGE structure that describes the event.
@@ -1118,15 +1102,15 @@ struct WSD_EVENT
 struct WSDXML_NAMESPACE
 {
     ///The URI that identifies the namespace.
-    const(wchar)* Uri;
+    const(PWSTR) Uri;
     ///The preferred prefix to be used in XML prefix mappings.
-    const(wchar)* PreferredPrefix;
+    const(PWSTR) PreferredPrefix;
     ///Reference to an array of WSDXML_NAME structures that specify the names in the namespace.
-    WSDXML_NAME*  Names;
+    WSDXML_NAME* Names;
     ///The number of names in the <b>Names</b> array.
-    ushort        NamesCount;
+    ushort       NamesCount;
     ///The encoded reference for the namespace.
-    ushort        Encoding;
+    ushort       Encoding;
 }
 
 ///Specifies an XML qualified name.
@@ -1135,14 +1119,14 @@ struct WSDXML_NAME
     ///Reference to a WSDXML_NAMESPACE structure that specifies the namespace of the qualified name.
     WSDXML_NAMESPACE* Space;
     ///The local name of the qualified name.
-    ushort*           LocalName;
+    PWSTR             LocalName;
 }
 
 ///Describes an XSD type. This structure is populated by generated code.
 struct WSDXML_TYPE
 {
     ///The optional URI that identifies the type.
-    const(wchar)* Uri;
+    const(PWSTR)  Uri;
     const(ubyte)* Table;
 }
 
@@ -1155,7 +1139,7 @@ struct WSDXML_PREFIX_MAPPING
     WSDXML_PREFIX_MAPPING* Next;
     ///Reference to a WSDXML_NAMESPACE structure.
     WSDXML_NAMESPACE* Space;
-    ushort*           Prefix;
+    PWSTR             Prefix;
 }
 
 ///Describes an XML attribute.
@@ -1168,7 +1152,7 @@ struct WSDXML_ATTRIBUTE
     ///Reference to a WSDXML_NAME structure that specifies the qualified name of the attribute.
     WSDXML_NAME*      Name;
     ///The value of the attribute.
-    ushort*           Value;
+    PWSTR             Value;
 }
 
 ///Describes an XML node.
@@ -1206,7 +1190,7 @@ struct WSDXML_TEXT
     ///The text contained in the XML node. The maximum length of this string is WSD_MAX_TEXT_LENGTH (8192). The text
     ///must consist of UTF-16 encoded characters. The text cannot contain raw XML, as special characters are rendered
     ///using the equivalent entity reference. For example, <code>&lt;</code> is rendered as <code>&amp;lt;</code>.
-    ushort*     Text;
+    PWSTR       Text;
 }
 
 ///Represents a node in a linked list of XML elements.
@@ -1226,7 +1210,7 @@ struct WSDXML_ELEMENT_LIST
 ///    ppName = Reference to a WSDXML_NAME structure that contains the returned built-in name. The memory usage of <i>ppName</i>
 ///             is managed elsewhere. Consequently, the calling application should not attempt to deallocate <i>ppName</i>.
 @DllImport("wsdapi")
-HRESULT WSDXMLGetNameFromBuiltinNamespace(const(wchar)* pszNamespace, const(wchar)* pszName, WSDXML_NAME** ppName);
+HRESULT WSDXMLGetNameFromBuiltinNamespace(const(PWSTR) pszNamespace, const(PWSTR) pszName, WSDXML_NAME** ppName);
 
 ///Creates a new IWSDXMLContext object.
 ///Params:
@@ -1271,7 +1255,7 @@ HRESULT WSDCreateHttpAddress(IWSDHttpAddress* ppAddress);
 ///    cbInBuffer = The size, in bytes, of the data pointed to by <i>pVoid</i>. If <i>dwOption</i> is set to
 ///                 WSDAPI_OPTION_MAX_INBOUND_MESSAGE_SIZE, this parameter should be set to <code>sizeof(DWORD)</code>.
 @DllImport("wsdapi")
-HRESULT WSDSetConfigurationOption(uint dwOption, char* pVoid, uint cbInBuffer);
+HRESULT WSDSetConfigurationOption(uint dwOption, void* pVoid, uint cbInBuffer);
 
 ///Gets a WSDAPI configuration option.
 ///Params:
@@ -1284,7 +1268,7 @@ HRESULT WSDSetConfigurationOption(uint dwOption, char* pVoid, uint cbInBuffer);
 ///    cbOutBuffer = The size, in bytes, of the data pointed to by <i>pVoid</i>. If <i>dwOption</i> is set to
 ///                  WSDAPI_OPTION_MAX_INBOUND_MESSAGE_SIZE, then this parameter should be set to <code>sizeof(DWORD)</code>.
 @DllImport("wsdapi")
-HRESULT WSDGetConfigurationOption(uint dwOption, char* pVoid, uint cbOutBuffer);
+HRESULT WSDGetConfigurationOption(uint dwOption, void* pVoid, uint cbOutBuffer);
 
 ///Allocates a linked memory block.
 ///Params:
@@ -1323,7 +1307,7 @@ void WSDDetachLinkedMemory(void* pVoid);
 ///    ppAny = Reference to a WSDXML_ELEMENT that contains the created element. <i>ppAny</i> must be freed with a call to
 ///            WSDFreeLinkedMemory.
 @DllImport("wsdapi")
-HRESULT WSDXMLBuildAnyForSingleElement(WSDXML_NAME* pElementName, const(wchar)* pszText, WSDXML_ELEMENT** ppAny);
+HRESULT WSDXMLBuildAnyForSingleElement(WSDXML_NAME* pElementName, const(PWSTR) pszText, WSDXML_ELEMENT** ppAny);
 
 ///Retrieves a text value from a specified child element of an XML <b>any</b> element.
 ///Params:
@@ -1335,8 +1319,8 @@ HRESULT WSDXMLBuildAnyForSingleElement(WSDXML_NAME* pElementName, const(wchar)* 
 ///                <i>ppszValue</i> is managed elsewhere. Consequently, the calling application should not attempt to deallocate
 ///                <i>ppszValue</i>.
 @DllImport("wsdapi")
-HRESULT WSDXMLGetValueFromAny(const(wchar)* pszNamespace, const(wchar)* pszName, WSDXML_ELEMENT* pAny, 
-                              ushort** ppszValue);
+HRESULT WSDXMLGetValueFromAny(const(PWSTR) pszNamespace, const(PWSTR) pszName, WSDXML_ELEMENT* pAny, 
+                              PWSTR* ppszValue);
 
 ///Adds a sibling element.
 ///Params:
@@ -1377,8 +1361,8 @@ HRESULT WSDXMLCleanupElement(WSDXML_ELEMENT* pAny);
 ///    </tr> </table>
 ///    
 @DllImport("wsdapi")
-HRESULT WSDGenerateFault(const(wchar)* pszCode, const(wchar)* pszSubCode, const(wchar)* pszReason, 
-                         const(wchar)* pszDetail, IWSDXMLContext pContext, WSD_SOAP_FAULT** ppFault);
+HRESULT WSDGenerateFault(const(PWSTR) pszCode, const(PWSTR) pszSubCode, const(PWSTR) pszReason, 
+                         const(PWSTR) pszDetail, IWSDXMLContext pContext, WSD_SOAP_FAULT** ppFault);
 
 ///Generates a SOAP fault.
 ///Params:
@@ -1398,7 +1382,7 @@ HRESULT WSDGenerateFault(const(wchar)* pszCode, const(wchar)* pszSubCode, const(
 ///    
 @DllImport("wsdapi")
 HRESULT WSDGenerateFaultEx(WSDXML_NAME* pCode, WSDXML_NAME* pSubCode, WSD_LOCALIZED_STRING_LIST* pReasons, 
-                           const(wchar)* pszDetail, WSD_SOAP_FAULT** ppFault);
+                           const(PWSTR) pszDetail, WSD_SOAP_FAULT** ppFault);
 
 ///Encodes a URI according to URI encoding rules in RFC2396.
 ///Params:
@@ -1417,7 +1401,7 @@ HRESULT WSDGenerateFaultEx(WSDXML_NAME* pCode, WSDXML_NAME* pSubCode, WSD_LOCALI
 ///    </td> </tr> </table>
 ///    
 @DllImport("wsdapi")
-HRESULT WSDUriEncode(const(wchar)* source, uint cchSource, char* destOut, uint* cchDestOut);
+HRESULT WSDUriEncode(const(PWSTR) source, uint cchSource, PWSTR* destOut, uint* cchDestOut);
 
 ///Decodes a URI according to the rules in RFC2396.
 ///Params:
@@ -1436,7 +1420,7 @@ HRESULT WSDUriEncode(const(wchar)* source, uint cchSource, char* destOut, uint* 
 ///    </td> </tr> </table>
 ///    
 @DllImport("wsdapi")
-HRESULT WSDUriDecode(const(wchar)* source, uint cchSource, char* destOut, uint* cchDestOut);
+HRESULT WSDUriDecode(const(PWSTR) source, uint cchSource, PWSTR* destOut, uint* cchDestOut);
 
 ///Creates a device host and returns a pointer to the IWSDDeviceHost interface.
 ///Params:
@@ -1469,7 +1453,7 @@ HRESULT WSDUriDecode(const(wchar)* source, uint cchSource, char* destOut, uint* 
 ///    </tr> </table>
 ///    
 @DllImport("wsdapi")
-HRESULT WSDCreateDeviceHost(const(wchar)* pszLocalId, IWSDXMLContext pContext, IWSDDeviceHost* ppDeviceHost);
+HRESULT WSDCreateDeviceHost(const(PWSTR) pszLocalId, IWSDXMLContext pContext, IWSDDeviceHost* ppDeviceHost);
 
 ///Creates a device host and returns a pointer to the IWSDDeviceHost interface.
 ///Params:
@@ -1511,7 +1495,7 @@ HRESULT WSDCreateDeviceHost(const(wchar)* pszLocalId, IWSDXMLContext pContext, I
 ///    operation. </td> </tr> </table>
 ///    
 @DllImport("wsdapi")
-HRESULT WSDCreateDeviceHostAdvanced(const(wchar)* pszLocalId, IWSDXMLContext pContext, char* ppHostAddresses, 
+HRESULT WSDCreateDeviceHostAdvanced(const(PWSTR) pszLocalId, IWSDXMLContext pContext, IWSDAddress* ppHostAddresses, 
                                     uint dwHostAddressCount, IWSDDeviceHost* ppDeviceHost);
 
 ///Creates a device host that can support signed messages and returns a pointer to the IWSDDeviceHost interface.
@@ -1546,7 +1530,7 @@ HRESULT WSDCreateDeviceHostAdvanced(const(wchar)* pszLocalId, IWSDXMLContext pCo
 ///    </tr> </table>
 ///    
 @DllImport("wsdapi")
-HRESULT WSDCreateDeviceHost2(const(wchar)* pszLocalId, IWSDXMLContext pContext, char* pConfigParams, 
+HRESULT WSDCreateDeviceHost2(const(PWSTR) pszLocalId, IWSDXMLContext pContext, WSD_CONFIG_PARAM* pConfigParams, 
                              uint dwConfigParamCount, IWSDDeviceHost* ppDeviceHost);
 
 ///Creates a device proxy and returns a pointer to the IWSDDeviceProxy interface.
@@ -1577,7 +1561,7 @@ HRESULT WSDCreateDeviceHost2(const(wchar)* pszLocalId, IWSDXMLContext pContext, 
 ///    </tr> </table>
 ///    
 @DllImport("wsdapi")
-HRESULT WSDCreateDeviceProxy(const(wchar)* pszDeviceId, const(wchar)* pszLocalId, IWSDXMLContext pContext, 
+HRESULT WSDCreateDeviceProxy(const(PWSTR) pszDeviceId, const(PWSTR) pszLocalId, IWSDXMLContext pContext, 
                              IWSDDeviceProxy* ppDeviceProxy);
 
 ///Creates a device proxy and returns a pointer to the IWSDDeviceProxy interface.
@@ -1614,9 +1598,8 @@ HRESULT WSDCreateDeviceProxy(const(wchar)* pszDeviceId, const(wchar)* pszLocalId
 ///    </tr> </table>
 ///    
 @DllImport("wsdapi")
-HRESULT WSDCreateDeviceProxyAdvanced(const(wchar)* pszDeviceId, IWSDAddress pDeviceAddress, 
-                                     const(wchar)* pszLocalId, IWSDXMLContext pContext, 
-                                     IWSDDeviceProxy* ppDeviceProxy);
+HRESULT WSDCreateDeviceProxyAdvanced(const(PWSTR) pszDeviceId, IWSDAddress pDeviceAddress, const(PWSTR) pszLocalId, 
+                                     IWSDXMLContext pContext, IWSDDeviceProxy* ppDeviceProxy);
 
 ///Creates a device proxy that can support signed messages and returns a pointer to the IWSDDeviceProxy interface.
 ///Params:
@@ -1648,8 +1631,9 @@ HRESULT WSDCreateDeviceProxyAdvanced(const(wchar)* pszDeviceId, IWSDAddress pDev
 ///    </tr> </table>
 ///    
 @DllImport("wsdapi")
-HRESULT WSDCreateDeviceProxy2(const(wchar)* pszDeviceId, const(wchar)* pszLocalId, IWSDXMLContext pContext, 
-                              char* pConfigParams, uint dwConfigParamCount, IWSDDeviceProxy* ppDeviceProxy);
+HRESULT WSDCreateDeviceProxy2(const(PWSTR) pszDeviceId, const(PWSTR) pszLocalId, IWSDXMLContext pContext, 
+                              WSD_CONFIG_PARAM* pConfigParams, uint dwConfigParamCount, 
+                              IWSDDeviceProxy* ppDeviceProxy);
 
 ///Creates an IWSDiscoveryProvider object.
 ///Params:
@@ -1667,8 +1651,8 @@ HRESULT WSDCreateDiscoveryProvider(IWSDXMLContext pContext, IWSDiscoveryProvider
 ///    dwConfigParamCount = The total number of structures passed in <i>pConfigParams</i>.
 ///    ppProvider = Returns a reference to the initialized IWSDiscoveryProvider object. Cannot be <b>NULL</b>.
 @DllImport("wsdapi")
-HRESULT WSDCreateDiscoveryProvider2(IWSDXMLContext pContext, char* pConfigParams, uint dwConfigParamCount, 
-                                    IWSDiscoveryProvider* ppProvider);
+HRESULT WSDCreateDiscoveryProvider2(IWSDXMLContext pContext, WSD_CONFIG_PARAM* pConfigParams, 
+                                    uint dwConfigParamCount, IWSDiscoveryProvider* ppProvider);
 
 ///Creates an IWSDiscoveryPublisher object.
 ///Params:
@@ -1686,8 +1670,8 @@ HRESULT WSDCreateDiscoveryPublisher(IWSDXMLContext pContext, IWSDiscoveryPublish
 ///    dwConfigParamCount = The total number of structures passed in <i>pConfigParams</i>.
 ///    ppPublisher = Returns a reference to the initialized IWSDiscoveryPublisher object. Cannot be <b>NULL</b>.
 @DllImport("wsdapi")
-HRESULT WSDCreateDiscoveryPublisher2(IWSDXMLContext pContext, char* pConfigParams, uint dwConfigParamCount, 
-                                     IWSDiscoveryPublisher* ppPublisher);
+HRESULT WSDCreateDiscoveryPublisher2(IWSDXMLContext pContext, WSD_CONFIG_PARAM* pConfigParams, 
+                                     uint dwConfigParamCount, IWSDiscoveryPublisher* ppPublisher);
 
 ///Creates an IWSDOutboundAttachment object.
 ///Params:
@@ -1744,7 +1728,7 @@ interface IFunctionDiscoveryNotification : IUnknown
     ///    </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The value of one
     ///    of the input parameters is invalid. </td> </tr> </table>
     ///    
-    HRESULT OnError(HRESULT hr, ulong fdqcQueryContext, const(wchar)* pszProvider);
+    HRESULT OnError(HRESULT hr, ulong fdqcQueryContext, const(PWSTR) pszProvider);
     ///<p class="CCE_Message">[Function Discovery is available for use in the operating systems specified in the
     ///Requirements section. It may be altered or unavailable in subsequent versions.] Receives any add, remove, or
     ///update events during a notification.
@@ -1781,7 +1765,7 @@ interface IFunctionDiscoveryNotification : IUnknown
     ///    </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The value of one
     ///    of the input parameters is invalid. </td> </tr> </table>
     ///    
-    HRESULT OnEvent(uint dwEventID, ulong fdqcQueryContext, const(wchar)* pszProvider);
+    HRESULT OnEvent(uint dwEventID, ulong fdqcQueryContext, const(PWSTR) pszProvider);
 }
 
 ///<p class="CCE_Message">[Function Discovery is available for use in the operating systems specified in the
@@ -1818,7 +1802,7 @@ interface IFunctionDiscovery : IUnknown
     ///    <dt><b>E_PENDING</b></dt> </dl> </td> <td width="60%"> The call was executed for a provider that returns
     ///    results asynchronously. </td> </tr> </table>
     ///    
-    HRESULT GetInstanceCollection(const(wchar)* pszCategory, const(wchar)* pszSubCategory, 
+    HRESULT GetInstanceCollection(const(PWSTR) pszCategory, const(PWSTR) pszSubCategory, 
                                   BOOL fIncludeAllSubCategories, 
                                   IFunctionInstanceCollection* ppIFunctionInstanceCollection);
     ///<p class="CCE_Message">[Function Discovery is available for use in the operating systems specified in the
@@ -1839,7 +1823,7 @@ interface IFunctionDiscovery : IUnknown
     ///    </tr> <tr> <td width="40%"> <dl> <dt><b>E_PENDING</b></dt> </dl> </td> <td width="60%"> The call was executed
     ///    for a provider that returns results asynchronously. </td> </tr> </table>
     ///    
-    HRESULT GetInstance(const(wchar)* pszFunctionInstanceIdentity, IFunctionInstance* ppIFunctionInstance);
+    HRESULT GetInstance(const(PWSTR) pszFunctionInstanceIdentity, IFunctionInstance* ppIFunctionInstance);
     ///<p class="CCE_Message">[Function Discovery is available for use in the operating systems specified in the
     ///Requirements section. It may be altered or unavailable in subsequent versions.] Creates a query for a collection
     ///of specific function instances.
@@ -1873,7 +1857,7 @@ interface IFunctionDiscovery : IUnknown
     ///    <dt><b>HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)</b></dt> <dt>0x80070002</dt> </dl> </td> <td width="60%"> The
     ///    value of <i>pszCategory</i> or <i>pszSubCategory</i> is unknown. </td> </tr> </table>
     ///    
-    HRESULT CreateInstanceCollectionQuery(const(wchar)* pszCategory, const(wchar)* pszSubCategory, 
+    HRESULT CreateInstanceCollectionQuery(const(PWSTR) pszCategory, const(PWSTR) pszSubCategory, 
                                           BOOL fIncludeAllSubCategories, 
                                           IFunctionDiscoveryNotification pIFunctionDiscoveryNotification, 
                                           ulong* pfdqcQueryContext, 
@@ -1897,7 +1881,7 @@ interface IFunctionDiscovery : IUnknown
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> The method is unable to allocate the memory
     ///    required to perform this operation. </td> </tr> </table>
     ///    
-    HRESULT CreateInstanceQuery(const(wchar)* pszFunctionInstanceIdentity, 
+    HRESULT CreateInstanceQuery(const(PWSTR) pszFunctionInstanceIdentity, 
                                 IFunctionDiscoveryNotification pIFunctionDiscoveryNotification, 
                                 ulong* pfdqcQueryContext, IFunctionInstanceQuery* ppIFunctionInstanceQuery);
     ///<p class="CCE_Message">[Function Discovery is available for use in the operating systems specified in the
@@ -1930,8 +1914,8 @@ interface IFunctionDiscovery : IUnknown
     ///    parameter was specified. This error is returned when the length of the <i>pszSubCategory</i> string exceeds
     ///    MAX_PATH. </td> </tr> </table>
     ///    
-    HRESULT AddInstance(SystemVisibilityFlags enumSystemVisibility, const(wchar)* pszCategory, 
-                        const(wchar)* pszSubCategory, const(wchar)* pszCategoryIdentity, 
+    HRESULT AddInstance(SystemVisibilityFlags enumSystemVisibility, const(PWSTR) pszCategory, 
+                        const(PWSTR) pszSubCategory, const(PWSTR) pszCategoryIdentity, 
                         IFunctionInstance* ppIFunctionInstance);
     ///<p class="CCE_Message">[Function Discovery is available for use in the operating systems specified in the
     ///Requirements section. It may be altered or unavailable in subsequent versions.] Removes the specified function
@@ -1955,8 +1939,8 @@ interface IFunctionDiscovery : IUnknown
     ///    <dt><b>HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)</b></dt> <dt>0x80070002</dt> </dl> </td> <td width="60%"> The
     ///    value of <i>pszCategory</i> or <i>pszSubCategory</i> is unknown. </td> </tr> </table>
     ///    
-    HRESULT RemoveInstance(SystemVisibilityFlags enumSystemVisibility, const(wchar)* pszCategory, 
-                           const(wchar)* pszSubCategory, const(wchar)* pszCategoryIdentity);
+    HRESULT RemoveInstance(SystemVisibilityFlags enumSystemVisibility, const(PWSTR) pszCategory, 
+                           const(PWSTR) pszSubCategory, const(PWSTR) pszCategoryIdentity);
 }
 
 ///<p class="CCE_Message">[Function Discovery is available for use in the operating systems specified in the
@@ -2077,7 +2061,7 @@ interface IFunctionInstanceCollection : IUnknown
     ///    width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> The method is unable to allocate
     ///    the memory required to perform this operation. </td> </tr> </table>
     ///    
-    HRESULT Get(const(wchar)* pszInstanceIdentity, uint* pdwIndex, IFunctionInstance* ppIFunctionInstance);
+    HRESULT Get(const(PWSTR) pszInstanceIdentity, uint* pdwIndex, IFunctionInstance* ppIFunctionInstance);
     ///<p class="CCE_Message">[Function Discovery is available for use in the operating systems specified in the
     ///Requirements section. It may be altered or unavailable in subsequent versions.] Gets the specified function
     ///instance, by index.
@@ -2149,7 +2133,7 @@ interface IFunctionInstanceCollection : IUnknown
 interface IPropertyStoreCollection : IUnknown
 {
     HRESULT GetCount(uint* pdwCount);
-    HRESULT Get(const(wchar)* pszInstanceIdentity, uint* pdwIndex, IPropertyStore* ppIPropertyStore);
+    HRESULT Get(const(PWSTR) pszInstanceIdentity, uint* pdwIndex, IPropertyStore* ppIPropertyStore);
     HRESULT Item(uint dwIndex, IPropertyStore* ppIPropertyStore);
     HRESULT Add(IPropertyStore pIPropertyStore);
     HRESULT Remove(uint dwIndex, IPropertyStore* pIPropertyStore);
@@ -2226,7 +2210,7 @@ interface IFunctionInstanceCollectionQuery : IUnknown
     ///    </td> <td width="60%"> The method is unable to allocate the memory required to perform this operation. </td>
     ///    </tr> </table>
     ///    
-    HRESULT AddQueryConstraint(const(wchar)* pszConstraintName, const(wchar)* pszConstraintValue);
+    HRESULT AddQueryConstraint(const(PWSTR) pszConstraintName, const(PWSTR) pszConstraintValue);
     ///<p class="CCE_Message">[Function Discovery is available for use in the operating systems specified in the
     ///Requirements section. It may be altered or unavailable in subsequent versions.] Adds a property constraint to the
     ///query. This method limits query results to only function instances with a property key (PKEY) matching the
@@ -2590,8 +2574,8 @@ interface IProviderPublishing : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>pszSubCategory</i>,
     ///    <i>pszProviderInstanceIdentity</i>, or <i>ppInstance</i> parameter is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT CreateInstance(SystemVisibilityFlags enumVisibilityFlags, const(wchar)* pszSubCategory, 
-                           const(wchar)* pszProviderInstanceIdentity, IFunctionInstance* ppIFunctionInstance);
+    HRESULT CreateInstance(SystemVisibilityFlags enumVisibilityFlags, const(PWSTR) pszSubCategory, 
+                           const(PWSTR) pszProviderInstanceIdentity, IFunctionInstance* ppIFunctionInstance);
     ///<p class="CCE_Message">[Function Discovery is available for use in the operating systems specified in the
     ///Requirements section. It may be altered or unavailable in subsequent versions.] Deletes an existing function
     ///instance.
@@ -2610,8 +2594,8 @@ interface IProviderPublishing : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>pSiteInfo</i>, <i>pszSubCategory</i>, or
     ///    <i>pszProviderInstanceIdentity</i> parameter is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT RemoveInstance(SystemVisibilityFlags enumVisibilityFlags, const(wchar)* pszSubCategory, 
-                           const(wchar)* pszProviderInstanceIdentity);
+    HRESULT RemoveInstance(SystemVisibilityFlags enumVisibilityFlags, const(PWSTR) pszSubCategory, 
+                           const(PWSTR) pszProviderInstanceIdentity);
 }
 
 ///<p class="CCE_Message">[Function Discovery is available for use in the operating systems specified in the
@@ -2652,7 +2636,7 @@ interface IFunctionDiscoveryProviderFactory : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CreateInstance(const(wchar)* pszSubCategory, const(wchar)* pszProviderInstanceIdentity, 
+    HRESULT CreateInstance(const(PWSTR) pszSubCategory, const(PWSTR) pszProviderInstanceIdentity, 
                            ptrdiff_t iProviderInstanceContext, IPropertyStore pIPropertyStore, 
                            IFunctionDiscoveryProvider pIFunctionDiscoveryProvider, 
                            IFunctionInstance* ppIFunctionInstance);
@@ -2691,7 +2675,7 @@ interface IFunctionDiscoveryProviderQuery : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT IsInstanceQuery(int* pisInstanceQuery, ushort** ppszConstraintValue);
+    HRESULT IsInstanceQuery(BOOL* pisInstanceQuery, ushort** ppszConstraintValue);
     ///<p class="CCE_Message">[Function Discovery is available for use in the operating systems specified in the
     ///Requirements section. It may be altered or unavailable in subsequent versions.] Determines whether a query is for
     ///function instances in a specific subcategory.
@@ -2702,7 +2686,7 @@ interface IFunctionDiscoveryProviderQuery : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT IsSubcategoryQuery(int* pisSubcategoryQuery, ushort** ppszConstraintValue);
+    HRESULT IsSubcategoryQuery(BOOL* pisSubcategoryQuery, ushort** ppszConstraintValue);
     ///<p class="CCE_Message">[Function Discovery is available for use in the operating systems specified in the
     ///Requirements section. It may be altered or unavailable in subsequent versions.] Retrieves the current query
     ///constraints.
@@ -2757,7 +2741,7 @@ interface IProviderQueryConstraintCollection : IUnknown
     ///    </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The
     ///    <i>pszConstraintName</i> or <i>ppszConstraintValue</i> parameter is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT Get(const(wchar)* pszConstraintName, ushort** ppszConstraintValue);
+    HRESULT Get(const(PWSTR) pszConstraintName, ushort** ppszConstraintValue);
     ///<p class="CCE_Message">[Function Discovery is available for use in the operating systems specified in the
     ///Requirements section. It may be altered or unavailable in subsequent versions.] Gets the name and value of the
     ///specified query constraint, by index.
@@ -2931,7 +2915,7 @@ interface IPNPXAssociation : IUnknown
     ///    method succeeded. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%">
     ///    The method failed. </td> </tr> </table>
     ///    
-    HRESULT Associate(const(wchar)* pszSubcategory);
+    HRESULT Associate(const(PWSTR) pszSubcategory);
     ///<p class="CCE_Message">[Function Discovery is available for use in the operating systems specified in the
     ///Requirements section. It may be altered or unavailable in subsequent versions.] Marks an association database
     ///entry as unassociated. If a function instance is unassociated, then it is a <i>not present</i> instance and the
@@ -2944,7 +2928,7 @@ interface IPNPXAssociation : IUnknown
     ///    method succeeded. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%">
     ///    The method failed. </td> </tr> </table>
     ///    
-    HRESULT Unassociate(const(wchar)* pszSubcategory);
+    HRESULT Unassociate(const(PWSTR) pszSubcategory);
     ///<p class="CCE_Message">[Function Discovery is available for use in the operating systems specified in the
     ///Requirements section. It may be altered or unavailable in subsequent versions.] Removes an entry from the
     ///association database.
@@ -2956,7 +2940,7 @@ interface IPNPXAssociation : IUnknown
     ///    method succeeded. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%">
     ///    The method failed. </td> </tr> </table>
     ///    
-    HRESULT Delete(const(wchar)* pszSubcategory);
+    HRESULT Delete(const(PWSTR) pszSubcategory);
 }
 
 ///<p class="CCE_Message">[Function Discovery is available for use in the operating systems specified in the
@@ -2982,7 +2966,7 @@ interface IPNPXDeviceAssociation : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> The method failed. </td> </tr>
     ///    </table>
     ///    
-    HRESULT Associate(const(wchar)* pszSubCategory, IFunctionDiscoveryNotification pIFunctionDiscoveryNotification);
+    HRESULT Associate(const(PWSTR) pszSubCategory, IFunctionDiscoveryNotification pIFunctionDiscoveryNotification);
     ///<p class="CCE_Message">[Function Discovery is available for use in the operating systems specified in the
     ///Requirements section. It may be altered or unavailable in subsequent versions.] Marks an association database
     ///entry as unassociated and sends an appropriate notification.
@@ -2995,7 +2979,7 @@ interface IPNPXDeviceAssociation : IUnknown
     ///    method succeeded. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%">
     ///    The method failed. </td> </tr> </table>
     ///    
-    HRESULT Unassociate(const(wchar)* pszSubCategory, 
+    HRESULT Unassociate(const(PWSTR) pszSubCategory, 
                         IFunctionDiscoveryNotification pIFunctionDiscoveryNotification);
     ///<p class="CCE_Message">[Function Discovery is available for use in the operating systems specified in the
     ///Requirements section. It may be altered or unavailable in subsequent versions.] Removes an entry from the
@@ -3009,7 +2993,7 @@ interface IPNPXDeviceAssociation : IUnknown
     ///    method succeeded. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%">
     ///    The method failed. </td> </tr> </table>
     ///    
-    HRESULT Delete(const(wchar)* pszSubcategory, IFunctionDiscoveryNotification pIFunctionDiscoveryNotification);
+    HRESULT Delete(const(PWSTR) pszSubcategory, IFunctionDiscoveryNotification pIFunctionDiscoveryNotification);
 }
 
 ///Is a collection of namespaces and types used in a WSDAPI stack.
@@ -3038,7 +3022,7 @@ interface IWSDXMLContext : IUnknown
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> The method failed.
     ///    </td> </tr> </table>
     ///    
-    HRESULT AddNamespace(const(wchar)* pszUri, const(wchar)* pszSuggestedPrefix, WSDXML_NAMESPACE** ppNamespace);
+    HRESULT AddNamespace(const(PWSTR) pszUri, const(PWSTR) pszSuggestedPrefix, WSDXML_NAMESPACE** ppNamespace);
     ///Creates an object that represents a name in a namespace in an XML context. If the name already exists in the
     ///namespace, no new name will be added, and the name object for the existing name will be returned.
     ///Params:
@@ -3057,7 +3041,7 @@ interface IWSDXMLContext : IUnknown
     ///    </dl> </td> <td width="60%"> Insufficient memory to complete the operation. </td> </tr> <tr> <td width="40%">
     ///    <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> The method failed. </td> </tr> </table>
     ///    
-    HRESULT AddNameToNamespace(const(wchar)* pszUri, const(wchar)* pszName, WSDXML_NAME** ppName);
+    HRESULT AddNameToNamespace(const(PWSTR) pszUri, const(PWSTR) pszName, WSDXML_NAME** ppName);
     ///Associates custom namespaces with the XML context object. This method should only be called by generated code,
     ///and should not be called directly by a WSDAPI client. Instead, the code generator will provide wrappers that
     ///access this method properly.
@@ -3074,7 +3058,7 @@ interface IWSDXMLContext : IUnknown
     ///    </td> <td width="60%"> Insufficient memory to complete the operation. </td> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> The method failed. </td> </tr> </table>
     ///    
-    HRESULT SetNamespaces(char* pNamespaces, ushort wNamespacesCount, ubyte bLayerNumber);
+    HRESULT SetNamespaces(const(WSDXML_NAMESPACE)** pNamespaces, ushort wNamespacesCount, ubyte bLayerNumber);
     ///Associates custom message types with the XML context object. This method should only be called by generated code,
     ///and should not be called directly by a WSDAPI client. Instead, the code generator will provide wrappers that
     ///access this method properly.
@@ -3091,7 +3075,7 @@ interface IWSDXMLContext : IUnknown
     ///    </td> <td width="60%"> Insufficient memory to complete the operation. </td> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> The method failed. </td> </tr> </table>
     ///    
-    HRESULT SetTypes(char* pTypes, uint dwTypesCount, ubyte bLayerNumber);
+    HRESULT SetTypes(const(WSDXML_TYPE)** pTypes, uint dwTypesCount, ubyte bLayerNumber);
 }
 
 ///Provides access to the individual components of a transport address.
@@ -3114,7 +3098,7 @@ interface IWSDAddress : IUnknown
     ///    <td width="60%"> <i>pszBuffer</i> is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>E_ABORT</b></dt> </dl> </td> <td width="60%"> The method could not be completed. </td> </tr> </table>
     ///    
-    HRESULT Serialize(const(wchar)* pszBuffer, uint cchLength, BOOL fSafe);
+    HRESULT Serialize(PWSTR pszBuffer, uint cchLength, BOOL fSafe);
     ///Parses the address, validates its component parts and saves them in the object.
     ///Params:
     ///    pszBuffer = Address to save in the object.
@@ -3127,7 +3111,7 @@ interface IWSDAddress : IUnknown
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Insufficient memory to complete the operation.
     ///    </td> </tr> </table>
     ///    
-    HRESULT Deserialize(const(wchar)* pszBuffer);
+    HRESULT Deserialize(const(PWSTR) pszBuffer);
 }
 
 ///Represents an IP-based transport address. You should not create an instance of the <b>IWSDTransportAddress</b>
@@ -3161,7 +3145,7 @@ interface IWSDTransportAddress : IWSDAddress
     ///    address has not yet been set. To set the transport address, call SetTransportAddress with a non-<b>NULL</b>
     ///    address. </td> </tr> </table>
     ///    
-    HRESULT GetTransportAddress(ushort** ppszAddress);
+    HRESULT GetTransportAddress(PWSTR* ppszAddress);
     ///Gets a pointer to a string representation of the address object. The format of the string varies, and is
     ///determined by the implementing interface (either IWSDHttpAddress or IWSDUdpAddress).
     ///Params:
@@ -3179,7 +3163,7 @@ interface IWSDTransportAddress : IWSDAddress
     ///    address has not yet been set. To set the transport address, call SetTransportAddress with a non-<b>NULL</b>
     ///    address. </td> </tr> </table>
     ///    
-    HRESULT GetTransportAddressEx(BOOL fSafe, ushort** ppszAddress);
+    HRESULT GetTransportAddressEx(BOOL fSafe, PWSTR* ppszAddress);
     ///Sets the string representation of the transport address. The format of the string varies, and is determined by
     ///the implementing interface (either IWSDHttpAddress or IWSDUdpAddress).
     ///Params:
@@ -3194,7 +3178,7 @@ interface IWSDTransportAddress : IWSDAddress
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Insufficient memory to complete the operation.
     ///    </td> </tr> </table>
     ///    
-    HRESULT SetTransportAddress(const(wchar)* pszAddress);
+    HRESULT SetTransportAddress(const(PWSTR) pszAddress);
 }
 
 ///Use this interface to communicate message specific information up and down the protocol stack.
@@ -3417,7 +3401,7 @@ interface IWSDHttpMessageParameters : IWSDMessageParameters
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%">
     ///    Insufficient memory to complete the operation. </td> </tr> </table>
     ///    
-    HRESULT SetInboundHttpHeaders(const(wchar)* pszHeaders);
+    HRESULT SetInboundHttpHeaders(const(PWSTR) pszHeaders);
     ///Retrieves the current HTTP headers used for inbound SOAP-over-HTTP transmissions.
     ///Params:
     ///    ppszHeaders = Pointer used to receive the current HTTP headers in use. Do not deallocate this pointer.
@@ -3429,7 +3413,7 @@ interface IWSDHttpMessageParameters : IWSDMessageParameters
     ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> There
     ///    are no headers available. </td> </tr> </table>
     ///    
-    HRESULT GetInboundHttpHeaders(ushort** ppszHeaders);
+    HRESULT GetInboundHttpHeaders(PWSTR* ppszHeaders);
     ///Sets the HTTP headers used for outbound SOAP-over-HTTP transmissions.
     ///Params:
     ///    pszHeaders = The HTTP headers to be set.
@@ -3441,7 +3425,7 @@ interface IWSDHttpMessageParameters : IWSDMessageParameters
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%">
     ///    Insufficient memory to complete the operation. </td> </tr> </table>
     ///    
-    HRESULT SetOutboundHttpHeaders(const(wchar)* pszHeaders);
+    HRESULT SetOutboundHttpHeaders(const(PWSTR) pszHeaders);
     ///Retrieves the current HTTP headers used for outbound SOAP-over-HTTP transmissions.
     ///Params:
     ///    ppszHeaders = Pointer used to receive the current HTTP headers in use. Do not deallocate this pointer.
@@ -3453,7 +3437,7 @@ interface IWSDHttpMessageParameters : IWSDMessageParameters
     ///    <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> There
     ///    are no headers available. </td> </tr> </table>
     ///    
-    HRESULT GetOutboundHttpHeaders(ushort** ppszHeaders);
+    HRESULT GetOutboundHttpHeaders(PWSTR* ppszHeaders);
     ///Sets the transport ID for the current transaction.
     ///Params:
     ///    pszId = Pointer to the desired transport ID for the current transaction.
@@ -3465,7 +3449,7 @@ interface IWSDHttpMessageParameters : IWSDMessageParameters
     ///    WSD_MAX_TEXT_LENGTH (8192). </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td>
     ///    <td width="60%"> Insufficient memory to complete the operation. </td> </tr> </table>
     ///    
-    HRESULT SetID(const(wchar)* pszId);
+    HRESULT SetID(const(PWSTR) pszId);
     ///Retrieves the transport ID for the current transaction.
     ///Params:
     ///    ppszId = Pointer used to return the transport ID for the current transaction. Do not deallocate this pointer.
@@ -3477,7 +3461,7 @@ interface IWSDHttpMessageParameters : IWSDMessageParameters
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> The transport ID
     ///    is not available. </td> </tr> </table>
     ///    
-    HRESULT GetID(ushort** ppszId);
+    HRESULT GetID(PWSTR* ppszId);
     ///Sets the private transmission context for the current transaction.
     ///Params:
     ///    pContext = Pointer to the desired private transmission context for the current transaction.
@@ -3540,7 +3524,7 @@ interface IWSDHttpAddress : IWSDTransportAddress
     ///    width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>ppszPath</i> is <b>NULL</b>.
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetPath(ushort** ppszPath);
+    HRESULT GetPath(PWSTR* ppszPath);
     ///Sets the URI path for this address.
     ///Params:
     ///    pszPath = The URI path to use for this address.
@@ -3552,7 +3536,7 @@ interface IWSDHttpAddress : IWSDTransportAddress
     ///    <i>pszPath</i> exceeds WSD_MAX_TEXT_LENGTH (8192). </td> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> The method failed. </td> </tr> </table>
     ///    
-    HRESULT SetPath(const(wchar)* pszPath);
+    HRESULT SetPath(const(PWSTR) pszPath);
 }
 
 ///Retrieves the client SSL certificate.
@@ -3624,7 +3608,7 @@ interface IWSDSignatureProperty : IUnknown
     ///    <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%">
     ///    Method succeeded. </td> </tr> </table>
     ///    
-    HRESULT IsMessageSigned(int* pbSigned);
+    HRESULT IsMessageSigned(BOOL* pbSigned);
     ///Specifies if a message signature is trusted.
     ///Params:
     ///    pbSignatureTrusted = A pointer to a boolean that specifies if a message signature is trusted.
@@ -3633,8 +3617,8 @@ interface IWSDSignatureProperty : IUnknown
     ///    <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%">
     ///    Method succeeded. </td> </tr> </table>
     ///    
-    HRESULT IsMessageSignatureTrusted(int* pbSignatureTrusted);
-    HRESULT GetKeyInfo(char* pbKeyInfo, uint* pdwKeyInfoSize);
+    HRESULT IsMessageSignatureTrusted(BOOL* pbSignatureTrusted);
+    HRESULT GetKeyInfo(ubyte* pbKeyInfo, uint* pdwKeyInfoSize);
     ///Gets the signature of a message.
     ///Params:
     ///    pbSignature = A pointer to a buffer that will be filled with the signature of the message.
@@ -3649,7 +3633,7 @@ interface IWSDSignatureProperty : IUnknown
     ///    large enough to hold the information. <i>pdwSignatureSize</i> now specifies the required buffer size. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetSignature(char* pbSignature, uint* pdwSignatureSize);
+    HRESULT GetSignature(ubyte* pbSignature, uint* pdwSignatureSize);
     ///Gets the hash of a message signature.
     ///Params:
     ///    pbSignedInfoHash = A pointer to a buffer that will be filled with the hash of the message signature.
@@ -3664,7 +3648,7 @@ interface IWSDSignatureProperty : IUnknown
     ///    not large enough to hold the information. <i>pdwHashSize</i> now specifies the required buffer size. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetSignedInfoHash(char* pbSignedInfoHash, uint* pdwHashSize);
+    HRESULT GetSignedInfoHash(ubyte* pbSignedInfoHash, uint* pdwHashSize);
 }
 
 ///Represents a DPWS-compliant device . The device host will announce its presence on the network using the WS-Discovery
@@ -3711,7 +3695,8 @@ interface IWSDDeviceHost : IUnknown
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_ABORT</b></dt> </dl> </td> <td width="60%"> Initialization
     ///    could not be completed. </td> </tr> </table>
     ///    
-    HRESULT Init(const(wchar)* pszLocalId, IWSDXMLContext pContext, char* ppHostAddresses, uint dwHostAddressCount);
+    HRESULT Init(const(PWSTR) pszLocalId, IWSDXMLContext pContext, IWSDAddress* ppHostAddresses, 
+                 uint dwHostAddressCount);
     ///Starts the device host and publishes the device host using a WS-Discovery Hello message. If a notification sink
     ///is passed to this method, then the notification sink is also registered. After <b>Start</b> has been called
     ///successfully, the device host will automatically respond to Probe and Resolve messages.
@@ -3800,7 +3785,7 @@ interface IWSDDeviceHost : IUnknown
     ///    exceeds WSD_MAX_TEXT_LENGTH (8192), or a service matching <i>pszServiceId</i> has already been registered.
     ///    </td> </tr> </table>
     ///    
-    HRESULT RegisterService(const(wchar)* pszServiceId, IUnknown pService);
+    HRESULT RegisterService(const(PWSTR) pszServiceId, IUnknown pService);
     ///Unregisters a service object that was registered using RegisterService and removes the service from the device
     ///host metadata.
     ///Params:
@@ -3816,7 +3801,7 @@ interface IWSDDeviceHost : IUnknown
     ///    It may have failed because the host has not been initialized. Call Init to initialize a device host. </td>
     ///    </tr> </table>
     ///    
-    HRESULT RetireService(const(wchar)* pszServiceId);
+    HRESULT RetireService(const(PWSTR) pszServiceId);
     ///Registers a service object for incoming requests, but does not add the service to the device host metadata. This
     ///is used for transient (dynamic) services.
     ///Params:
@@ -3843,7 +3828,7 @@ interface IWSDDeviceHost : IUnknown
     ///    width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Insufficient memory to complete
     ///    the operation. </td> </tr> </table>
     ///    
-    HRESULT AddDynamicService(const(wchar)* pszServiceId, const(wchar)* pszEndpointAddress, 
+    HRESULT AddDynamicService(const(PWSTR) pszServiceId, const(PWSTR) pszEndpointAddress, 
                               const(WSD_PORT_TYPE)* pPortType, const(WSDXML_NAME)* pPortName, 
                               const(WSDXML_ELEMENT)* pAny, IUnknown pService);
     ///Unregisters a service object that was registered using AddDynamicService. An unregistered service object does not
@@ -3860,7 +3845,7 @@ interface IWSDDeviceHost : IUnknown
     ///    It may have failed because the host has not been initialized. Call Init to initialize a device host. </td>
     ///    </tr> </table>
     ///    
-    HRESULT RemoveDynamicService(const(wchar)* pszServiceId);
+    HRESULT RemoveDynamicService(const(PWSTR) pszServiceId);
     ///Controls whether or not the service is advertised using WS-Discovery.
     ///Params:
     ///    pszServiceId = The ID for the service.
@@ -3874,7 +3859,7 @@ interface IWSDDeviceHost : IUnknown
     ///    <b>NULL</b>, the length in characters of <i>pszServiceId</i> exceeds WSD_MAX_TEXT_LENGTH (8192), or
     ///    <i>pszServiceId</i> does not correspond to a registered service. </td> </tr> </table>
     ///    
-    HRESULT SetServiceDiscoverable(const(wchar)* pszServiceId, BOOL fDiscoverable);
+    HRESULT SetServiceDiscoverable(const(PWSTR) pszServiceId, BOOL fDiscoverable);
     ///Notifies all subscribed clients that an event has occurred.
     ///Params:
     ///    pszServiceId = The ID of the service that generates the event.
@@ -3891,7 +3876,7 @@ interface IWSDDeviceHost : IUnknown
     ///    by <i>pszServiceId</i> is not subscribed to the event specified by the <i>ResponseType</i> member of
     ///    <i>pOperation</i>. </td> </tr> </table>
     ///    
-    HRESULT SignalEvent(const(wchar)* pszServiceId, const(void)* pBody, const(WSD_OPERATION)* pOperation);
+    HRESULT SignalEvent(const(PWSTR) pszServiceId, const(void)* pBody, const(WSD_OPERATION)* pOperation);
 }
 
 ///Provides device-related notifications to an instance of an IWSDDeviceHost object.
@@ -3907,7 +3892,7 @@ interface IWSDDeviceHostNotify : IUnknown
     ///    <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%">
     ///    Method completed successfully. </td> </tr> </table>
     ///    
-    HRESULT GetService(const(wchar)* pszServiceId, IUnknown* ppService);
+    HRESULT GetService(const(PWSTR) pszServiceId, IUnknown* ppService);
 }
 
 ///The <b>IWSDServiceMessaging</b> interface is used by generated stub code to send faults or responses to incoming
@@ -4033,7 +4018,7 @@ interface IWSDEndpointProxy : IUnknown
     ///    Method completed successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td>
     ///    <td width="60%"> <i>ppszErrorInfo</i> is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetErrorInfo(ushort** ppszErrorInfo);
+    HRESULT GetErrorInfo(PWSTR* ppszErrorInfo);
     ///Retrieves information on the last received fault.
     ///Params:
     ///    ppFault = Pointer to a pointer to a WSD_SOAP_FAULT structure containing the SOAP fault information.
@@ -4184,9 +4169,10 @@ interface IWSDServiceProxyEventing : IWSDServiceProxy
     ///    Insufficient memory to complete the operation. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt>
     ///    </dl> </td> <td width="60%"> The method failed. </td> </tr> </table>
     ///    
-    HRESULT SubscribeToMultipleOperations(char* pOperations, uint dwOperationCount, IUnknown pUnknown, 
-                                          const(WSD_EVENTING_EXPIRES)* pExpires, const(WSDXML_ELEMENT)* pAny, 
-                                          WSD_EVENTING_EXPIRES** ppExpires, WSDXML_ELEMENT** ppAny);
+    HRESULT SubscribeToMultipleOperations(const(WSD_OPERATION)* pOperations, uint dwOperationCount, 
+                                          IUnknown pUnknown, const(WSD_EVENTING_EXPIRES)* pExpires, 
+                                          const(WSDXML_ELEMENT)* pAny, WSD_EVENTING_EXPIRES** ppExpires, 
+                                          WSDXML_ELEMENT** ppAny);
     ///Initializes an asynchronous operation that subscribes to a collection of notifications or solicit/response
     ///events.
     ///Params:
@@ -4207,10 +4193,10 @@ interface IWSDServiceProxyEventing : IWSDServiceProxy
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT BeginSubscribeToMultipleOperations(char* pOperations, uint dwOperationCount, IUnknown pUnknown, 
-                                               const(WSD_EVENTING_EXPIRES)* pExpires, const(WSDXML_ELEMENT)* pAny, 
-                                               IUnknown pAsyncState, IWSDAsyncCallback pAsyncCallback, 
-                                               IWSDAsyncResult* ppResult);
+    HRESULT BeginSubscribeToMultipleOperations(const(WSD_OPERATION)* pOperations, uint dwOperationCount, 
+                                               IUnknown pUnknown, const(WSD_EVENTING_EXPIRES)* pExpires, 
+                                               const(WSDXML_ELEMENT)* pAny, IUnknown pAsyncState, 
+                                               IWSDAsyncCallback pAsyncCallback, IWSDAsyncResult* ppResult);
     ///Completes an asynchronous operation that subscribes to a collection of notifications or solicit/response events.
     ///Params:
     ///    pOperations = Pointer to an array of references to WSD_OPERATION structures that specify the subscribed operations.
@@ -4225,8 +4211,9 @@ interface IWSDServiceProxyEventing : IWSDServiceProxy
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT EndSubscribeToMultipleOperations(char* pOperations, uint dwOperationCount, IWSDAsyncResult pResult, 
-                                             WSD_EVENTING_EXPIRES** ppExpires, WSDXML_ELEMENT** ppAny);
+    HRESULT EndSubscribeToMultipleOperations(const(WSD_OPERATION)* pOperations, uint dwOperationCount, 
+                                             IWSDAsyncResult pResult, WSD_EVENTING_EXPIRES** ppExpires, 
+                                             WSDXML_ELEMENT** ppAny);
     ///Cancels a collection of subscriptions to notifications or solicit/response events.
     ///Params:
     ///    pOperations = Pointer to an array of references to WSD_OPERATION structures that specify the operations to unsubscribe
@@ -4241,7 +4228,8 @@ interface IWSDServiceProxyEventing : IWSDServiceProxy
     ///    </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>pOperation</i> is
     ///    NULL. </td> </tr> </table>
     ///    
-    HRESULT UnsubscribeToMultipleOperations(char* pOperations, uint dwOperationCount, const(WSDXML_ELEMENT)* pAny);
+    HRESULT UnsubscribeToMultipleOperations(const(WSD_OPERATION)* pOperations, uint dwOperationCount, 
+                                            const(WSDXML_ELEMENT)* pAny);
     ///Initializes an asynchronous cancelation request for a subscription to a collection of notifications or
     ///solicit/response events.
     ///Params:
@@ -4259,7 +4247,7 @@ interface IWSDServiceProxyEventing : IWSDServiceProxy
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT BeginUnsubscribeToMultipleOperations(char* pOperations, uint dwOperationCount, 
+    HRESULT BeginUnsubscribeToMultipleOperations(const(WSD_OPERATION)* pOperations, uint dwOperationCount, 
                                                  const(WSDXML_ELEMENT)* pAny, IUnknown pAsyncState, 
                                                  IWSDAsyncCallback pAsyncCallback, IWSDAsyncResult* ppResult);
     ///Completes an asynchronous cancellation request for a subscription to a collection of notifications or
@@ -4273,7 +4261,8 @@ interface IWSDServiceProxyEventing : IWSDServiceProxy
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT EndUnsubscribeToMultipleOperations(char* pOperations, uint dwOperationCount, IWSDAsyncResult pResult);
+    HRESULT EndUnsubscribeToMultipleOperations(const(WSD_OPERATION)* pOperations, uint dwOperationCount, 
+                                               IWSDAsyncResult pResult);
     ///Renews a collection of existing notification subscriptions by submitting a new duration.
     ///Params:
     ///    pOperations = Pointer to an array of references to WSD_OPERATION structures that specify the operation subscriptions to
@@ -4290,7 +4279,7 @@ interface IWSDServiceProxyEventing : IWSDServiceProxy
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT RenewMultipleOperations(char* pOperations, uint dwOperationCount, 
+    HRESULT RenewMultipleOperations(const(WSD_OPERATION)* pOperations, uint dwOperationCount, 
                                     const(WSD_EVENTING_EXPIRES)* pExpires, const(WSDXML_ELEMENT)* pAny, 
                                     WSD_EVENTING_EXPIRES** ppExpires, WSDXML_ELEMENT** ppAny);
     ///Initializes an asynchronous operation that renews a collection of existing notification subscriptions by
@@ -4311,7 +4300,7 @@ interface IWSDServiceProxyEventing : IWSDServiceProxy
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT BeginRenewMultipleOperations(char* pOperations, uint dwOperationCount, 
+    HRESULT BeginRenewMultipleOperations(const(WSD_OPERATION)* pOperations, uint dwOperationCount, 
                                          const(WSD_EVENTING_EXPIRES)* pExpires, const(WSDXML_ELEMENT)* pAny, 
                                          IUnknown pAsyncState, IWSDAsyncCallback pAsyncCallback, 
                                          IWSDAsyncResult* ppResult);
@@ -4331,8 +4320,9 @@ interface IWSDServiceProxyEventing : IWSDServiceProxy
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT EndRenewMultipleOperations(char* pOperations, uint dwOperationCount, IWSDAsyncResult pResult, 
-                                       WSD_EVENTING_EXPIRES** ppExpires, WSDXML_ELEMENT** ppAny);
+    HRESULT EndRenewMultipleOperations(const(WSD_OPERATION)* pOperations, uint dwOperationCount, 
+                                       IWSDAsyncResult pResult, WSD_EVENTING_EXPIRES** ppExpires, 
+                                       WSDXML_ELEMENT** ppAny);
     ///Retrieves the current status for a collection of event subscriptions.
     ///Params:
     ///    pOperations = Pointer to an array of references to WSD_OPERATION structures that specify the operation subscriptions to get
@@ -4348,8 +4338,9 @@ interface IWSDServiceProxyEventing : IWSDServiceProxy
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetStatusForMultipleOperations(char* pOperations, uint dwOperationCount, const(WSDXML_ELEMENT)* pAny, 
-                                           WSD_EVENTING_EXPIRES** ppExpires, WSDXML_ELEMENT** ppAny);
+    HRESULT GetStatusForMultipleOperations(const(WSD_OPERATION)* pOperations, uint dwOperationCount, 
+                                           const(WSDXML_ELEMENT)* pAny, WSD_EVENTING_EXPIRES** ppExpires, 
+                                           WSDXML_ELEMENT** ppAny);
     ///Begins an asynchronous operation that retrieves the current status for a collection of event subscriptions.
     ///Params:
     ///    pOperations = Pointer to an array of references to WSD_OPERATION structures that specify the operation subscriptions to get
@@ -4366,7 +4357,7 @@ interface IWSDServiceProxyEventing : IWSDServiceProxy
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT BeginGetStatusForMultipleOperations(char* pOperations, uint dwOperationCount, 
+    HRESULT BeginGetStatusForMultipleOperations(const(WSD_OPERATION)* pOperations, uint dwOperationCount, 
                                                 const(WSDXML_ELEMENT)* pAny, IUnknown pAsyncState, 
                                                 IWSDAsyncCallback pAsyncCallback, IWSDAsyncResult* ppResult);
     ///Completes an asynchronous operation that retrieves the current status for a collection of event subscriptions.
@@ -4384,8 +4375,9 @@ interface IWSDServiceProxyEventing : IWSDServiceProxy
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT EndGetStatusForMultipleOperations(char* pOperations, uint dwOperationCount, IWSDAsyncResult pResult, 
-                                              WSD_EVENTING_EXPIRES** ppExpires, WSDXML_ELEMENT** ppAny);
+    HRESULT EndGetStatusForMultipleOperations(const(WSD_OPERATION)* pOperations, uint dwOperationCount, 
+                                              IWSDAsyncResult pResult, WSD_EVENTING_EXPIRES** ppExpires, 
+                                              WSDXML_ELEMENT** ppAny);
 }
 
 ///Represents a remote Devices Profile for Web Services (DPWS) device for client applications and middleware. To get
@@ -4412,7 +4404,7 @@ interface IWSDDeviceProxy : IUnknown
     ///    <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Insufficient memory to complete the
     ///    operation. </td> </tr> </table>
     ///    
-    HRESULT Init(const(wchar)* pszDeviceId, IWSDAddress pDeviceAddress, const(wchar)* pszLocalId, 
+    HRESULT Init(const(PWSTR) pszDeviceId, IWSDAddress pDeviceAddress, const(PWSTR) pszLocalId, 
                  IWSDXMLContext pContext, IWSDDeviceProxy pSponsor);
     ///Sends an asynchronous request for metadata.
     ///Params:
@@ -4506,7 +4498,7 @@ interface IWSDDeviceProxy : IUnknown
     ///    <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> There is no endpoint associated with the service proxy.
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetServiceProxyById(const(wchar)* pszServiceId, IWSDServiceProxy* ppServiceProxy);
+    HRESULT GetServiceProxyById(const(PWSTR) pszServiceId, IWSDServiceProxy* ppServiceProxy);
     ///Retrieves a generic IWSDServiceProxy proxy for a service exposed by the device by port type name.
     ///Params:
     ///    pType = Reference to a WSDXML_NAME structure that specifies the port type name.
@@ -4639,16 +4631,16 @@ interface IWSDEventingStatus : IUnknown
     ///Called when the subscription for the specified event action was successfully renewed.
     ///Params:
     ///    pszSubscriptionAction = URI of the event action.
-    void SubscriptionRenewed(const(wchar)* pszSubscriptionAction);
+    void SubscriptionRenewed(const(PWSTR) pszSubscriptionAction);
     ///Called when the subscription for the specified event action could not be renewed.
     ///Params:
     ///    pszSubscriptionAction = URI of the event action.
     ///    hr = HRESULT indicating the nature of the error.
-    void SubscriptionRenewalFailed(const(wchar)* pszSubscriptionAction, HRESULT hr);
+    void SubscriptionRenewalFailed(const(PWSTR) pszSubscriptionAction, HRESULT hr);
     ///Called when the device terminated the subscription.
     ///Params:
     ///    pszSubscriptionAction = URI of the event action.
-    void SubscriptionEnded(const(wchar)* pszSubscriptionAction);
+    void SubscriptionEnded(const(PWSTR) pszSubscriptionAction);
 }
 
 ///This interface is used to discover services on the network advertised by WS-Discovery. To get this interface, you can
@@ -4716,7 +4708,7 @@ interface IWSDiscoveryProvider : IUnknown
     ///    width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Not enough memory exists to
     ///    perform the operation. </td> </tr> </table>
     ///    
-    HRESULT SearchById(const(wchar)* pszId, const(wchar)* pszTag);
+    HRESULT SearchById(const(PWSTR) pszId, const(PWSTR) pszTag);
     ///Initializes a search for WS-Discovery hosts by device address.
     ///Params:
     ///    pszAddress = The HTTP transport address of the device.
@@ -4732,7 +4724,7 @@ interface IWSDiscoveryProvider : IUnknown
     ///    <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Not enough memory exists to
     ///    perform the operation. </td> </tr> </table>
     ///    
-    HRESULT SearchByAddress(const(wchar)* pszAddress, const(wchar)* pszTag);
+    HRESULT SearchByAddress(const(PWSTR) pszAddress, const(PWSTR) pszTag);
     ///Initializes a search for WS-Discovery hosts by device type.
     ///Params:
     ///    pTypesList = Pointer to a WSD_NAME_LIST structure that represents the list of discovery provider types to search for. May
@@ -4753,7 +4745,7 @@ interface IWSDiscoveryProvider : IUnknown
     ///    </td> </tr> </table>
     ///    
     HRESULT SearchByType(const(WSD_NAME_LIST)* pTypesList, const(WSD_URI_LIST)* pScopesList, 
-                         const(wchar)* pszMatchBy, const(wchar)* pszTag);
+                         const(PWSTR) pszMatchBy, const(PWSTR) pszTag);
     ///Gets the XML context associated with this provider.
     ///Params:
     ///    ppContext = Pointer to a pointer variable containing the XML context.
@@ -4795,7 +4787,7 @@ interface IWSDiscoveryProviderNotify : IUnknown
     ///Returns:
     ///    The return value is not meaningful. An implementer should return <b>S_OK</b>.
     ///    
-    HRESULT SearchFailed(HRESULT hr, const(wchar)* pszTag);
+    HRESULT SearchFailed(HRESULT hr, const(PWSTR) pszTag);
     ///Called to indicate a user initiated search has successfully completed and no more matches for the search will be
     ///accepted.
     ///Params:
@@ -4803,7 +4795,7 @@ interface IWSDiscoveryProviderNotify : IUnknown
     ///Returns:
     ///    The return value is not meaningful. An implementer should return S_OK.
     ///    
-    HRESULT SearchComplete(const(wchar)* pszTag);
+    HRESULT SearchComplete(const(PWSTR) pszTag);
 }
 
 ///This interface represents a remotely discovered host. WSDAPI returns this interface when calling
@@ -4896,7 +4888,7 @@ interface IWSDiscoveredService : IUnknown
     ///    width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>ppszTag</i> is <b>NULL</b>. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetProbeResolveTag(ushort** ppszTag);
+    HRESULT GetProbeResolveTag(PWSTR* ppszTag);
     ///Retrieves the string representation of the remote transport (IP) address.
     ///Params:
     ///    ppszRemoteTransportAddress = String representation of the remote transport (IP) address. Is <b>NULL</b> if not available. Do not
@@ -4908,7 +4900,7 @@ interface IWSDiscoveredService : IUnknown
     ///    width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>ppszRemoteTransportAddress</i> is
     ///    <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetRemoteTransportAddress(ushort** ppszRemoteTransportAddress);
+    HRESULT GetRemoteTransportAddress(PWSTR* ppszRemoteTransportAddress);
     ///Retrieves the string representation of the local transport (IP) address.
     ///Params:
     ///    ppszLocalTransportAddress = String representation of the local transport (IP) address. Is <b>NULL</b> if not available. Do not deallocate
@@ -4920,7 +4912,7 @@ interface IWSDiscoveredService : IUnknown
     ///    width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>ppszLocalTransportAddress</i> is
     ///    <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetLocalTransportAddress(ushort** ppszLocalTransportAddress);
+    HRESULT GetLocalTransportAddress(PWSTR* ppszLocalTransportAddress);
     ///Retrieves the GUID of the local network interface over which the message was received.
     ///Params:
     ///    pGuid = GUID of the local network interface over which the message was received. Structure will be cleared if the
@@ -5038,8 +5030,8 @@ interface IWSDiscoveryPublisher : IUnknown
     ///    RegisterNotificationSink. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td>
     ///    <td width="60%"> Insufficient memory to complete the operation. </td> </tr> </table>
     ///    
-    HRESULT Publish(const(wchar)* pszId, ulong ullMetadataVersion, ulong ullInstanceId, ulong ullMessageNumber, 
-                    const(wchar)* pszSessionId, const(WSD_NAME_LIST)* pTypesList, const(WSD_URI_LIST)* pScopesList, 
+    HRESULT Publish(const(PWSTR) pszId, ulong ullMetadataVersion, ulong ullInstanceId, ulong ullMessageNumber, 
+                    const(PWSTR) pszSessionId, const(WSD_NAME_LIST)* pTypesList, const(WSD_URI_LIST)* pScopesList, 
                     const(WSD_URI_LIST)* pXAddrsList);
     ///Announces the departure of a network host by sending a Bye message.
     ///Params:
@@ -5071,7 +5063,7 @@ interface IWSDiscoveryPublisher : IUnknown
     ///    width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Insufficient memory to complete
     ///    the operation. </td> </tr> </table>
     ///    
-    HRESULT UnPublish(const(wchar)* pszId, ulong ullInstanceId, ulong ullMessageNumber, const(wchar)* pszSessionId, 
+    HRESULT UnPublish(const(PWSTR) pszId, ulong ullInstanceId, ulong ullMessageNumber, const(PWSTR) pszSessionId, 
                       const(WSDXML_ELEMENT)* pAny);
     ///Determines whether a Probe message matches the specified host and sends a WS-Discovery ProbeMatches message if
     ///the match is made.
@@ -5120,9 +5112,9 @@ interface IWSDiscoveryPublisher : IUnknown
     ///    the operation. </td> </tr> </table>
     ///    
     HRESULT MatchProbe(const(WSD_SOAP_MESSAGE)* pProbeMessage, IWSDMessageParameters pMessageParameters, 
-                       const(wchar)* pszId, ulong ullMetadataVersion, ulong ullInstanceId, ulong ullMessageNumber, 
-                       const(wchar)* pszSessionId, const(WSD_NAME_LIST)* pTypesList, 
-                       const(WSD_URI_LIST)* pScopesList, const(WSD_URI_LIST)* pXAddrsList);
+                       const(PWSTR) pszId, ulong ullMetadataVersion, ulong ullInstanceId, ulong ullMessageNumber, 
+                       const(PWSTR) pszSessionId, const(WSD_NAME_LIST)* pTypesList, const(WSD_URI_LIST)* pScopesList, 
+                       const(WSD_URI_LIST)* pXAddrsList);
     ///Determines whether a Resolve message matches the specified host and sends a WS-Discovery ResolveMatches message
     ///if the match is made.
     ///Params:
@@ -5170,8 +5162,8 @@ interface IWSDiscoveryPublisher : IUnknown
     ///    the operation. </td> </tr> </table>
     ///    
     HRESULT MatchResolve(const(WSD_SOAP_MESSAGE)* pResolveMessage, IWSDMessageParameters pMessageParameters, 
-                         const(wchar)* pszId, ulong ullMetadataVersion, ulong ullInstanceId, ulong ullMessageNumber, 
-                         const(wchar)* pszSessionId, const(WSD_NAME_LIST)* pTypesList, 
+                         const(PWSTR) pszId, ulong ullMetadataVersion, ulong ullInstanceId, ulong ullMessageNumber, 
+                         const(PWSTR) pszSessionId, const(WSD_NAME_LIST)* pTypesList, 
                          const(WSD_URI_LIST)* pScopesList, const(WSD_URI_LIST)* pXAddrsList);
     ///Announces the presence of a network host by sending a Hello message with extended information.
     ///Params:
@@ -5221,8 +5213,8 @@ interface IWSDiscoveryPublisher : IUnknown
     ///    RegisterNotificationSink. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td>
     ///    <td width="60%"> Insufficient memory to complete the operation. </td> </tr> </table>
     ///    
-    HRESULT PublishEx(const(wchar)* pszId, ulong ullMetadataVersion, ulong ullInstanceId, ulong ullMessageNumber, 
-                      const(wchar)* pszSessionId, const(WSD_NAME_LIST)* pTypesList, const(WSD_URI_LIST)* pScopesList, 
+    HRESULT PublishEx(const(PWSTR) pszId, ulong ullMetadataVersion, ulong ullInstanceId, ulong ullMessageNumber, 
+                      const(PWSTR) pszSessionId, const(WSD_NAME_LIST)* pTypesList, const(WSD_URI_LIST)* pScopesList, 
                       const(WSD_URI_LIST)* pXAddrsList, const(WSDXML_ELEMENT)* pHeaderAny, 
                       const(WSDXML_ELEMENT)* pReferenceParameterAny, const(WSDXML_ELEMENT)* pPolicyAny, 
                       const(WSDXML_ELEMENT)* pEndpointReferenceAny, const(WSDXML_ELEMENT)* pAny);
@@ -5282,8 +5274,8 @@ interface IWSDiscoveryPublisher : IUnknown
     ///    the operation. </td> </tr> </table>
     ///    
     HRESULT MatchProbeEx(const(WSD_SOAP_MESSAGE)* pProbeMessage, IWSDMessageParameters pMessageParameters, 
-                         const(wchar)* pszId, ulong ullMetadataVersion, ulong ullInstanceId, ulong ullMessageNumber, 
-                         const(wchar)* pszSessionId, const(WSD_NAME_LIST)* pTypesList, 
+                         const(PWSTR) pszId, ulong ullMetadataVersion, ulong ullInstanceId, ulong ullMessageNumber, 
+                         const(PWSTR) pszSessionId, const(WSD_NAME_LIST)* pTypesList, 
                          const(WSD_URI_LIST)* pScopesList, const(WSD_URI_LIST)* pXAddrsList, 
                          const(WSDXML_ELEMENT)* pHeaderAny, const(WSDXML_ELEMENT)* pReferenceParameterAny, 
                          const(WSDXML_ELEMENT)* pPolicyAny, const(WSDXML_ELEMENT)* pEndpointReferenceAny, 
@@ -5344,8 +5336,8 @@ interface IWSDiscoveryPublisher : IUnknown
     ///    the operation. </td> </tr> </table>
     ///    
     HRESULT MatchResolveEx(const(WSD_SOAP_MESSAGE)* pResolveMessage, IWSDMessageParameters pMessageParameters, 
-                           const(wchar)* pszId, ulong ullMetadataVersion, ulong ullInstanceId, 
-                           ulong ullMessageNumber, const(wchar)* pszSessionId, const(WSD_NAME_LIST)* pTypesList, 
+                           const(PWSTR) pszId, ulong ullMetadataVersion, ulong ullInstanceId, ulong ullMessageNumber, 
+                           const(PWSTR) pszSessionId, const(WSD_NAME_LIST)* pTypesList, 
                            const(WSD_URI_LIST)* pScopesList, const(WSD_URI_LIST)* pXAddrsList, 
                            const(WSDXML_ELEMENT)* pHeaderAny, const(WSDXML_ELEMENT)* pReferenceParameterAny, 
                            const(WSDXML_ELEMENT)* pPolicyAny, const(WSDXML_ELEMENT)* pEndpointReferenceAny, 
@@ -5425,7 +5417,7 @@ interface IWSDScopeMatchingRule : IUnknown
     ///    <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%">
     ///    Method completed successfully. </td> </tr> </table>
     ///    
-    HRESULT GetScopeRule(ushort** ppszScopeMatchingRule);
+    HRESULT GetScopeRule(PWSTR* ppszScopeMatchingRule);
     ///Is called to compare two scopes to determine if they match.
     ///Params:
     ///    pszScope1 = Pointer to the first scope matching rule.
@@ -5437,7 +5429,7 @@ interface IWSDScopeMatchingRule : IUnknown
     ///    <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%">
     ///    Method completed successfully. </td> </tr> </table>
     ///    
-    HRESULT MatchScopes(const(wchar)* pszScope1, const(wchar)* pszScope2, int* pfMatch);
+    HRESULT MatchScopes(const(PWSTR) pszScope1, const(PWSTR) pszScope2, BOOL* pfMatch);
 }
 
 ///Is the base interface for all other attachment types.
@@ -5468,7 +5460,7 @@ interface IWSDOutboundAttachment : IWSDAttachment
     ///    width="60%"> Internal buffers were not available. The data was not accepted and queued for transmission.
     ///    </td> </tr> </table>
     ///    
-    HRESULT Write(char* pBuffer, uint dwBytesToWrite, uint* pdwNumberOfBytesWritten);
+    HRESULT Write(const(ubyte)* pBuffer, uint dwBytesToWrite, uint* pdwNumberOfBytesWritten);
     ///Closes the current attachment MIME data stream.
     ///Returns:
     ///    Possible return values include, but are not limited to, the following: <table> <tr> <th>Return code</th>
@@ -5514,7 +5506,7 @@ interface IWSDInboundAttachment : IWSDAttachment
     ///    width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> <i>pdwNumberofBytesRead</i> is
     ///    <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT Read(char* pBuffer, uint dwBytesToRead, uint* pdwNumberOfBytesRead);
+    HRESULT Read(ubyte* pBuffer, uint dwBytesToRead, uint* pdwNumberOfBytesRead);
     ///Closes the current attachment MIME data stream.
     ///Returns:
     ///    This method can return one of these values. Possible return values include, but are not limited to, the

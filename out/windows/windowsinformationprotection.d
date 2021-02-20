@@ -5,11 +5,11 @@ module windows.windowsinformationprotection;
 public import windows.core;
 public import windows.appxpackaging : PACKAGE_ID;
 public import windows.com : HRESULT, IUnknown;
-public import windows.systemservices : HANDLE, NTSTATUS;
-public import windows.winrt : IInspectable;
+public import windows.systemservices : BOOL, HANDLE, NTSTATUS, PWSTR;
+public import windows.winrt : HSTRING, IInspectable;
 public import windows.windowsandmessaging : HWND;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -56,7 +56,7 @@ struct FILE_UNPROTECT_OPTIONS
 ///    enterpriseId = The enterprise ID to set in the current thread's token.
 ///    threadNetworkContext = On success, holds the existing thread token.
 @DllImport("srpapi")
-HRESULT SrpCreateThreadNetworkContext(const(wchar)* enterpriseId, HTHREAD_NETWORK_CONTEXT* threadNetworkContext);
+HRESULT SrpCreateThreadNetworkContext(const(PWSTR) enterpriseId, HTHREAD_NETWORK_CONTEXT* threadNetworkContext);
 
 ///<div class="alert"><b>Note</b> Windows Information Protection (WIP) policy can be applied on Windows 10, version
 ///1607.</div> <div> </div>Restores a thread back to the original context, which may have been optionally returned from
@@ -74,7 +74,7 @@ HRESULT SrpCloseThreadNetworkContext(HTHREAD_NETWORK_CONTEXT* threadNetworkConte
 ///    tokenHandle = The token handle on which the intent is to be set.
 ///    enterpriseId = The enterprise ID to set as intent.
 @DllImport("srpapi")
-HRESULT SrpSetTokenEnterpriseId(HANDLE tokenHandle, const(wchar)* enterpriseId);
+HRESULT SrpSetTokenEnterpriseId(HANDLE tokenHandle, const(PWSTR) enterpriseId);
 
 ///<div class="alert"><b>Note</b> Windows Information Protection (WIP) policy cannot be applied on Windows 10, version
 ///1511 (build 10586) or earlier.</div> <div> </div>Gets the list of enterprise identifiers for the given token. The
@@ -87,7 +87,7 @@ HRESULT SrpSetTokenEnterpriseId(HANDLE tokenHandle, const(wchar)* enterpriseId);
 ///    enterpriseIds = An array of enterprise ID string pointers.
 ///    enterpriseIdCount = The enterprise ID count on the token. Zero if the token is not explicitly enterprise allowed.
 @DllImport("srpapi")
-HRESULT SrpGetEnterpriseIds(HANDLE tokenHandle, uint* numberOfBytes, char* enterpriseIds, uint* enterpriseIdCount);
+HRESULT SrpGetEnterpriseIds(HANDLE tokenHandle, uint* numberOfBytes, PWSTR* enterpriseIds, uint* enterpriseIdCount);
 
 ///<div class="alert"><b>Note</b> Windows Information Protection (WIP) policy can be applied on Windows 10, version
 ///1607.</div> <div> </div>Enables permissive mode for file encryption on the current thread and all threads this thread
@@ -97,7 +97,7 @@ HRESULT SrpGetEnterpriseIds(HANDLE tokenHandle, uint* numberOfBytes, char* enter
 ///Params:
 ///    enterpriseId = Contains enterprise ID string. In TH2 this is not used.
 @DllImport("srpapi")
-HRESULT SrpEnablePermissiveModeFileEncryption(const(wchar)* enterpriseId);
+HRESULT SrpEnablePermissiveModeFileEncryption(const(PWSTR) enterpriseId);
 
 ///<div class="alert"><b>Note</b> Windows Information Protection (WIP) policy can be applied on Windows 10, version
 ///1607.</div> <div> </div>Disables permissive mode for file encryption on the current thread. Use
@@ -131,7 +131,7 @@ NTSTATUS SrpIsTokenService(HANDLE TokenHandle, ubyte* IsTokenService);
 ///    packageId = Provides package name, publisher name, and version of the packaged app.
 ///    isAllowed = A boolean value that indicates whether the app is allowed to execute.
 @DllImport("srpapi")
-HRESULT SrpDoesPolicyAllowAppExecution(const(PACKAGE_ID)* packageId, int* isAllowed);
+HRESULT SrpDoesPolicyAllowAppExecution(const(PACKAGE_ID)* packageId, BOOL* isAllowed);
 
 ///<div class="alert"><b>Note</b> Windows Information Protection (WIP) policy can be applied on Windows 10, version
 ///1607.</div> <div> </div>Protects the data in a file to an enterprise identity, so that only users who are associated
@@ -142,10 +142,10 @@ HRESULT SrpDoesPolicyAllowAppExecution(const(PACKAGE_ID)* packageId, int* isAllo
 ///    identity = The enterprise identity for which the data is protected. This identity is an email address or domain that is
 ///               managed.
 @DllImport("efswrt")
-HRESULT ProtectFileToEnterpriseIdentity(const(wchar)* fileOrFolderPath, const(wchar)* identity);
+HRESULT ProtectFileToEnterpriseIdentity(const(PWSTR) fileOrFolderPath, const(PWSTR) identity);
 
 @DllImport("efswrt")
-HRESULT UnprotectFile(const(wchar)* fileOrFolderPath, const(FILE_UNPROTECT_OPTIONS)* options);
+HRESULT UnprotectFile(const(PWSTR) fileOrFolderPath, const(FILE_UNPROTECT_OPTIONS)* options);
 
 
 // Interfaces
@@ -170,7 +170,7 @@ interface IProtectionPolicyManagerInterop : IInspectable
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT RequestAccessForWindowAsync(HWND appWindow, ptrdiff_t sourceIdentity, ptrdiff_t targetIdentity, 
+    HRESULT RequestAccessForWindowAsync(HWND appWindow, HSTRING sourceIdentity, HSTRING targetIdentity, 
                                         const(GUID)* riid, void** asyncOperation);
     ///<div class="alert"><b>Note</b> Windows Information Protection (WIP) policy can be applied on Windows 10, version
     ///1607.</div> <div> </div>Returns the protection policy manager object associated with the current app window.
@@ -206,8 +206,8 @@ interface IProtectionPolicyManagerInterop2 : IInspectable
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT RequestAccessForAppWithWindowAsync(HWND appWindow, ptrdiff_t sourceIdentity, 
-                                               ptrdiff_t appPackageFamilyName, const(GUID)* riid, 
+    HRESULT RequestAccessForAppWithWindowAsync(HWND appWindow, HSTRING sourceIdentity, 
+                                               HSTRING appPackageFamilyName, const(GUID)* riid, 
                                                void** asyncOperation);
     ///<div class="alert"><b>Note</b> Windows Information Protection (WIP) policy can be applied on Windows 10, version
     ///1607.</div> <div> </div>Request access to enterprise protected content for an identity.
@@ -225,8 +225,8 @@ interface IProtectionPolicyManagerInterop2 : IInspectable
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT RequestAccessWithAuditingInfoForWindowAsync(HWND appWindow, ptrdiff_t sourceIdentity, 
-                                                        ptrdiff_t targetIdentity, IUnknown auditInfoUnk, 
+    HRESULT RequestAccessWithAuditingInfoForWindowAsync(HWND appWindow, HSTRING sourceIdentity, 
+                                                        HSTRING targetIdentity, IUnknown auditInfoUnk, 
                                                         const(GUID)* riid, void** asyncOperation);
     ///Request access to enterprise protected content for an identity.
     ///Params:
@@ -244,9 +244,8 @@ interface IProtectionPolicyManagerInterop2 : IInspectable
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT RequestAccessWithMessageForWindowAsync(HWND appWindow, ptrdiff_t sourceIdentity, 
-                                                   ptrdiff_t targetIdentity, IUnknown auditInfoUnk, 
-                                                   ptrdiff_t messageFromApp, const(GUID)* riid, 
+    HRESULT RequestAccessWithMessageForWindowAsync(HWND appWindow, HSTRING sourceIdentity, HSTRING targetIdentity, 
+                                                   IUnknown auditInfoUnk, HSTRING messageFromApp, const(GUID)* riid, 
                                                    void** asyncOperation);
     ///<div class="alert"><b>Note</b> Windows Information Protection (WIP) policy can be applied on Windows 10, version
     ///1607.</div> <div> </div>Request access to enterprise-protected content for a specific target app.
@@ -264,8 +263,8 @@ interface IProtectionPolicyManagerInterop2 : IInspectable
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT RequestAccessForAppWithAuditingInfoForWindowAsync(HWND appWindow, ptrdiff_t sourceIdentity, 
-                                                              ptrdiff_t appPackageFamilyName, IUnknown auditInfoUnk, 
+    HRESULT RequestAccessForAppWithAuditingInfoForWindowAsync(HWND appWindow, HSTRING sourceIdentity, 
+                                                              HSTRING appPackageFamilyName, IUnknown auditInfoUnk, 
                                                               const(GUID)* riid, void** asyncOperation);
     ///<div class="alert"><b>Note</b> Windows Information Protection (WIP) policy can be applied on Windows 10, version
     ///1607.</div> <div> </div>Request access to enterprise-protected content for a specific target app.
@@ -284,31 +283,30 @@ interface IProtectionPolicyManagerInterop2 : IInspectable
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT RequestAccessForAppWithMessageForWindowAsync(HWND appWindow, ptrdiff_t sourceIdentity, 
-                                                         ptrdiff_t appPackageFamilyName, IUnknown auditInfoUnk, 
-                                                         ptrdiff_t messageFromApp, const(GUID)* riid, 
+    HRESULT RequestAccessForAppWithMessageForWindowAsync(HWND appWindow, HSTRING sourceIdentity, 
+                                                         HSTRING appPackageFamilyName, IUnknown auditInfoUnk, 
+                                                         HSTRING messageFromApp, const(GUID)* riid, 
                                                          void** asyncOperation);
 }
 
 @GUID("C1C03933-B398-4D93-B0FD-2972ADF802C2")
 interface IProtectionPolicyManagerInterop3 : IInspectable
 {
-    HRESULT RequestAccessWithBehaviorForWindowAsync(HWND appWindow, ptrdiff_t sourceIdentity, 
-                                                    ptrdiff_t targetIdentity, IUnknown auditInfoUnk, 
-                                                    ptrdiff_t messageFromApp, uint behavior, const(GUID)* riid, 
-                                                    void** asyncOperation);
-    HRESULT RequestAccessForAppWithBehaviorForWindowAsync(HWND appWindow, ptrdiff_t sourceIdentity, 
-                                                          ptrdiff_t appPackageFamilyName, IUnknown auditInfoUnk, 
-                                                          ptrdiff_t messageFromApp, uint behavior, const(GUID)* riid, 
+    HRESULT RequestAccessWithBehaviorForWindowAsync(HWND appWindow, HSTRING sourceIdentity, HSTRING targetIdentity, 
+                                                    IUnknown auditInfoUnk, HSTRING messageFromApp, uint behavior, 
+                                                    const(GUID)* riid, void** asyncOperation);
+    HRESULT RequestAccessForAppWithBehaviorForWindowAsync(HWND appWindow, HSTRING sourceIdentity, 
+                                                          HSTRING appPackageFamilyName, IUnknown auditInfoUnk, 
+                                                          HSTRING messageFromApp, uint behavior, const(GUID)* riid, 
                                                           void** asyncOperation);
     HRESULT RequestAccessToFilesForAppForWindowAsync(HWND appWindow, IUnknown sourceItemListUnk, 
-                                                     ptrdiff_t appPackageFamilyName, IUnknown auditInfoUnk, 
+                                                     HSTRING appPackageFamilyName, IUnknown auditInfoUnk, 
                                                      const(GUID)* riid, void** asyncOperation);
     HRESULT RequestAccessToFilesForAppWithMessageAndBehaviorForWindowAsync(HWND appWindow, 
                                                                            IUnknown sourceItemListUnk, 
-                                                                           ptrdiff_t appPackageFamilyName, 
+                                                                           HSTRING appPackageFamilyName, 
                                                                            IUnknown auditInfoUnk, 
-                                                                           ptrdiff_t messageFromApp, uint behavior, 
+                                                                           HSTRING messageFromApp, uint behavior, 
                                                                            const(GUID)* riid, void** asyncOperation);
     HRESULT RequestAccessToFilesForProcessForWindowAsync(HWND appWindow, IUnknown sourceItemListUnk, 
                                                          uint processId, IUnknown auditInfoUnk, const(GUID)* riid, 
@@ -316,8 +314,8 @@ interface IProtectionPolicyManagerInterop3 : IInspectable
     HRESULT RequestAccessToFilesForProcessWithMessageAndBehaviorForWindowAsync(HWND appWindow, 
                                                                                IUnknown sourceItemListUnk, 
                                                                                uint processId, IUnknown auditInfoUnk, 
-                                                                               ptrdiff_t messageFromApp, 
-                                                                               uint behavior, const(GUID)* riid, 
+                                                                               HSTRING messageFromApp, uint behavior, 
+                                                                               const(GUID)* riid, 
                                                                                void** asyncOperation);
 }
 

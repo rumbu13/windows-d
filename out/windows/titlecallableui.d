@@ -5,9 +5,9 @@ module windows.titlecallableui;
 public import windows.core;
 public import windows.com : HRESULT;
 public import windows.systemservices : BOOL;
-public import windows.winrt : IInspectable;
+public import windows.winrt : HSTRING, IInspectable;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -75,8 +75,8 @@ alias GameUICompletionRoutine = void function(HRESULT returnCode, void* context)
 ///    returnCode = Type: <b>HRESULT</b> Do not use. This API is only supported for Xbox developers.
 ///    context = Type: <b>VOID*</b> Do not use. This API is only supported for Xbox developers.
 ///    selectedXuids = Type: <b>const HSTRING*</b> Do not use. This API is only supported for Xbox developers.
-alias PlayerPickerUICompletionRoutine = void function(HRESULT returnCode, void* context, char* selectedXuids, 
-                                                      size_t selectedXuidsCount);
+alias PlayerPickerUICompletionRoutine = void function(HRESULT returnCode, void* context, 
+                                                      const(HSTRING)* selectedXuids, size_t selectedXuidsCount);
 
 // Functions
 
@@ -90,8 +90,8 @@ alias PlayerPickerUICompletionRoutine = void function(HRESULT returnCode, void* 
 ///    completionRoutine = Type: <b>GameUICompletionRoutine</b> Do not use. This API is only supported for Xbox developers.
 ///    context = Type: <b>void*</b> Do not use. This API is only supported for Xbox developers.
 @DllImport("api-ms-win-gaming-tcui-l1-1-0")
-HRESULT ShowGameInviteUI(ptrdiff_t serviceConfigurationId, ptrdiff_t sessionTemplateName, ptrdiff_t sessionId, 
-                         ptrdiff_t invitationDisplayText, GameUICompletionRoutine completionRoutine, void* context);
+HRESULT ShowGameInviteUI(HSTRING serviceConfigurationId, HSTRING sessionTemplateName, HSTRING sessionId, 
+                         HSTRING invitationDisplayText, GameUICompletionRoutine completionRoutine, void* context);
 
 ///Do not use. This API is only supported for Xbox developers. To learn more about becoming a Xbox developer, see
 ///Developing Games for Xbox One and Windows 10.
@@ -106,9 +106,10 @@ HRESULT ShowGameInviteUI(ptrdiff_t serviceConfigurationId, ptrdiff_t sessionTemp
 ///    completionRoutine = Type: <b>PlayerPickerUICompletionRoutine</b> Do not use. This API is only supported for Xbox developers.
 ///    context = Type: <b>void*</b> Do not use. This API is only supported for Xbox developers.
 @DllImport("api-ms-win-gaming-tcui-l1-1-0")
-HRESULT ShowPlayerPickerUI(ptrdiff_t promptDisplayText, char* xuids, size_t xuidsCount, char* preSelectedXuids, 
-                           size_t preSelectedXuidsCount, size_t minSelectionCount, size_t maxSelectionCount, 
-                           PlayerPickerUICompletionRoutine completionRoutine, void* context);
+HRESULT ShowPlayerPickerUI(HSTRING promptDisplayText, const(HSTRING)* xuids, size_t xuidsCount, 
+                           const(HSTRING)* preSelectedXuids, size_t preSelectedXuidsCount, size_t minSelectionCount, 
+                           size_t maxSelectionCount, PlayerPickerUICompletionRoutine completionRoutine, 
+                           void* context);
 
 ///Do not use. This API is only supported for Xbox developers. To learn more about becoming a Xbox developer, see
 ///Developing Games for Xbox One and Windows 10.
@@ -117,7 +118,7 @@ HRESULT ShowPlayerPickerUI(ptrdiff_t promptDisplayText, char* xuids, size_t xuid
 ///    completionRoutine = Type: <b>GameUICompletionRoutine</b> Do not use. This API is only supported for Xbox developers.
 ///    context = Type: <b>void*</b> Do not use. This API is only supported for Xbox developers.
 @DllImport("api-ms-win-gaming-tcui-l1-1-0")
-HRESULT ShowProfileCardUI(ptrdiff_t targetUserXuid, GameUICompletionRoutine completionRoutine, void* context);
+HRESULT ShowProfileCardUI(HSTRING targetUserXuid, GameUICompletionRoutine completionRoutine, void* context);
 
 ///Do not use. This API is only supported for Xbox developers. To learn more about becoming a Xbox developer, see
 ///Developing Games for Xbox One and Windows 10.
@@ -126,7 +127,7 @@ HRESULT ShowProfileCardUI(ptrdiff_t targetUserXuid, GameUICompletionRoutine comp
 ///    completionRoutine = Type: <b>GameUICompletionRoutine</b> Do not use. This API is only supported for Xbox developers.
 ///    context = Type: <b>void*</b> Do not use. This API is only supported for Xbox developers.
 @DllImport("api-ms-win-gaming-tcui-l1-1-0")
-HRESULT ShowChangeFriendRelationshipUI(ptrdiff_t targetUserXuid, GameUICompletionRoutine completionRoutine, 
+HRESULT ShowChangeFriendRelationshipUI(HSTRING targetUserXuid, GameUICompletionRoutine completionRoutine, 
                                        void* context);
 
 ///Do not use. This API is only supported for Xbox developers. To learn more about becoming a Xbox developer, see
@@ -160,7 +161,7 @@ BOOL TryCancelPendingGameUI();
 ///    completionRoutine = Type: <b>GameUICompletionRoutine</b> Do not use. This API is only supported for Xbox developers.
 ///    context = Type: <b>void*</b> Do not use. This API is only supported for Xbox developers.
 @DllImport("api-ms-win-gaming-tcui-l1-1-1")
-HRESULT CheckGamingPrivilegeWithUI(uint privilegeId, ptrdiff_t scope_, ptrdiff_t policy, ptrdiff_t friendlyMessage, 
+HRESULT CheckGamingPrivilegeWithUI(uint privilegeId, HSTRING scope_, HSTRING policy, HSTRING friendlyMessage, 
                                    GameUICompletionRoutine completionRoutine, void* context);
 
 ///Do not use. This API is only supported for Xbox developers. To learn more about becoming a Xbox developer, see
@@ -171,25 +172,25 @@ HRESULT CheckGamingPrivilegeWithUI(uint privilegeId, ptrdiff_t scope_, ptrdiff_t
 ///    policy = Type: <b>HSTRING</b> Specifies a HSTRING that ... TBD
 ///    hasPrivilege = Type: <b>BOOL*</b> Do not use. This API is only supported for Xbox developers.
 @DllImport("api-ms-win-gaming-tcui-l1-1-1")
-HRESULT CheckGamingPrivilegeSilently(uint privilegeId, ptrdiff_t scope_, ptrdiff_t policy, int* hasPrivilege);
+HRESULT CheckGamingPrivilegeSilently(uint privilegeId, HSTRING scope_, HSTRING policy, BOOL* hasPrivilege);
 
 @DllImport("api-ms-win-gaming-tcui-l1-1-2")
-HRESULT ShowGameInviteUIForUser(IInspectable user, ptrdiff_t serviceConfigurationId, ptrdiff_t sessionTemplateName, 
-                                ptrdiff_t sessionId, ptrdiff_t invitationDisplayText, 
+HRESULT ShowGameInviteUIForUser(IInspectable user, HSTRING serviceConfigurationId, HSTRING sessionTemplateName, 
+                                HSTRING sessionId, HSTRING invitationDisplayText, 
                                 GameUICompletionRoutine completionRoutine, void* context);
 
 @DllImport("api-ms-win-gaming-tcui-l1-1-2")
-HRESULT ShowPlayerPickerUIForUser(IInspectable user, ptrdiff_t promptDisplayText, char* xuids, size_t xuidsCount, 
-                                  char* preSelectedXuids, size_t preSelectedXuidsCount, size_t minSelectionCount, 
-                                  size_t maxSelectionCount, PlayerPickerUICompletionRoutine completionRoutine, 
-                                  void* context);
+HRESULT ShowPlayerPickerUIForUser(IInspectable user, HSTRING promptDisplayText, const(HSTRING)* xuids, 
+                                  size_t xuidsCount, const(HSTRING)* preSelectedXuids, size_t preSelectedXuidsCount, 
+                                  size_t minSelectionCount, size_t maxSelectionCount, 
+                                  PlayerPickerUICompletionRoutine completionRoutine, void* context);
 
 @DllImport("api-ms-win-gaming-tcui-l1-1-2")
-HRESULT ShowProfileCardUIForUser(IInspectable user, ptrdiff_t targetUserXuid, 
+HRESULT ShowProfileCardUIForUser(IInspectable user, HSTRING targetUserXuid, 
                                  GameUICompletionRoutine completionRoutine, void* context);
 
 @DllImport("api-ms-win-gaming-tcui-l1-1-2")
-HRESULT ShowChangeFriendRelationshipUIForUser(IInspectable user, ptrdiff_t targetUserXuid, 
+HRESULT ShowChangeFriendRelationshipUIForUser(IInspectable user, HSTRING targetUserXuid, 
                                               GameUICompletionRoutine completionRoutine, void* context);
 
 @DllImport("api-ms-win-gaming-tcui-l1-1-2")
@@ -197,24 +198,23 @@ HRESULT ShowTitleAchievementsUIForUser(IInspectable user, uint titleId, GameUICo
                                        void* context);
 
 @DllImport("api-ms-win-gaming-tcui-l1-1-2")
-HRESULT CheckGamingPrivilegeWithUIForUser(IInspectable user, uint privilegeId, ptrdiff_t scope_, ptrdiff_t policy, 
-                                          ptrdiff_t friendlyMessage, GameUICompletionRoutine completionRoutine, 
+HRESULT CheckGamingPrivilegeWithUIForUser(IInspectable user, uint privilegeId, HSTRING scope_, HSTRING policy, 
+                                          HSTRING friendlyMessage, GameUICompletionRoutine completionRoutine, 
                                           void* context);
 
 @DllImport("api-ms-win-gaming-tcui-l1-1-2")
-HRESULT CheckGamingPrivilegeSilentlyForUser(IInspectable user, uint privilegeId, ptrdiff_t scope_, 
-                                            ptrdiff_t policy, int* hasPrivilege);
+HRESULT CheckGamingPrivilegeSilentlyForUser(IInspectable user, uint privilegeId, HSTRING scope_, HSTRING policy, 
+                                            BOOL* hasPrivilege);
 
 @DllImport("api-ms-win-gaming-tcui-l1-1-3")
-HRESULT ShowGameInviteUIWithContext(ptrdiff_t serviceConfigurationId, ptrdiff_t sessionTemplateName, 
-                                    ptrdiff_t sessionId, ptrdiff_t invitationDisplayText, 
-                                    ptrdiff_t customActivationContext, GameUICompletionRoutine completionRoutine, 
-                                    void* context);
+HRESULT ShowGameInviteUIWithContext(HSTRING serviceConfigurationId, HSTRING sessionTemplateName, HSTRING sessionId, 
+                                    HSTRING invitationDisplayText, HSTRING customActivationContext, 
+                                    GameUICompletionRoutine completionRoutine, void* context);
 
 @DllImport("api-ms-win-gaming-tcui-l1-1-3")
-HRESULT ShowGameInviteUIWithContextForUser(IInspectable user, ptrdiff_t serviceConfigurationId, 
-                                           ptrdiff_t sessionTemplateName, ptrdiff_t sessionId, 
-                                           ptrdiff_t invitationDisplayText, ptrdiff_t customActivationContext, 
+HRESULT ShowGameInviteUIWithContextForUser(IInspectable user, HSTRING serviceConfigurationId, 
+                                           HSTRING sessionTemplateName, HSTRING sessionId, 
+                                           HSTRING invitationDisplayText, HSTRING customActivationContext, 
                                            GameUICompletionRoutine completionRoutine, void* context);
 
 @DllImport("api-ms-win-gaming-tcui-l1-1-4")

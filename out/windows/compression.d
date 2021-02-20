@@ -1,11 +1,11 @@
 // Written in the D programming language.
 
-module out.windows.compression;
+module windows.compression;
 
 public import windows.core;
 public import windows.systemservices : BOOL;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -32,8 +32,6 @@ alias PFN_COMPRESS_FREE = void function(void* UserContext, void* Memory);
 // Structs
 
 
-alias COMPRESSOR_HANDLE = ptrdiff_t;
-
 ///A structure containing optional memory allocation and deallocation routines.
 struct COMPRESS_ALLOCATION_ROUTINES
 {
@@ -42,6 +40,12 @@ struct COMPRESS_ALLOCATION_ROUTINES
     ///Callback that deallocates memory.
     PFN_COMPRESS_FREE Free;
     void*             UserContext;
+}
+
+@RAIIFree!CloseDecompressor
+struct COMPRESSOR_HANDLE
+{
+    ptrdiff_t Value;
 }
 
 // Functions
@@ -84,7 +88,7 @@ BOOL CreateCompressor(uint Algorithm, COMPRESS_ALLOCATION_ROUTINES* AllocationRo
 ///    
 @DllImport("Cabinet")
 BOOL SetCompressorInformation(COMPRESSOR_HANDLE CompressorHandle, 
-                              COMPRESS_INFORMATION_CLASS CompressInformationClass, char* CompressInformation, 
+                              COMPRESS_INFORMATION_CLASS CompressInformationClass, const(void)* CompressInformation, 
                               size_t CompressInformationSize);
 
 ///Queries a compressor for information for a particular compression algorithm.
@@ -100,7 +104,7 @@ BOOL SetCompressorInformation(COMPRESSOR_HANDLE CompressorHandle,
 ///    
 @DllImport("Cabinet")
 BOOL QueryCompressorInformation(COMPRESSOR_HANDLE CompressorHandle, 
-                                COMPRESS_INFORMATION_CLASS CompressInformationClass, char* CompressInformation, 
+                                COMPRESS_INFORMATION_CLASS CompressInformationClass, void* CompressInformation, 
                                 size_t CompressInformationSize);
 
 ///Takes a block of information and compresses it.
@@ -118,8 +122,8 @@ BOOL QueryCompressorInformation(COMPRESSOR_HANDLE CompressorHandle,
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("Cabinet")
-BOOL Compress(COMPRESSOR_HANDLE CompressorHandle, char* UncompressedData, size_t UncompressedDataSize, 
-              char* CompressedBuffer, size_t CompressedBufferSize, size_t* CompressedDataSize);
+BOOL Compress(COMPRESSOR_HANDLE CompressorHandle, const(void)* UncompressedData, size_t UncompressedDataSize, 
+              void* CompressedBuffer, size_t CompressedBufferSize, size_t* CompressedDataSize);
 
 ///Prepares the compressor for the compression of a new stream. The compressor object retains properties set with
 ///SetCompressorInformation. The sequence of blocks generated is independent of previous blocks.
@@ -181,7 +185,7 @@ BOOL CreateDecompressor(uint Algorithm, COMPRESS_ALLOCATION_ROUTINES* Allocation
 ///    
 @DllImport("Cabinet")
 BOOL SetDecompressorInformation(ptrdiff_t DecompressorHandle, COMPRESS_INFORMATION_CLASS CompressInformationClass, 
-                                char* CompressInformation, size_t CompressInformationSize);
+                                const(void)* CompressInformation, size_t CompressInformationSize);
 
 ///Use this function to query information about a particular compression algorithm.
 ///Params:
@@ -196,7 +200,7 @@ BOOL SetDecompressorInformation(ptrdiff_t DecompressorHandle, COMPRESS_INFORMATI
 ///    
 @DllImport("Cabinet")
 BOOL QueryDecompressorInformation(ptrdiff_t DecompressorHandle, 
-                                  COMPRESS_INFORMATION_CLASS CompressInformationClass, char* CompressInformation, 
+                                  COMPRESS_INFORMATION_CLASS CompressInformationClass, void* CompressInformation, 
                                   size_t CompressInformationSize);
 
 ///Takes a block of compressed information and decompresses it.
@@ -214,8 +218,8 @@ BOOL QueryDecompressorInformation(ptrdiff_t DecompressorHandle,
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("Cabinet")
-BOOL Decompress(ptrdiff_t DecompressorHandle, char* CompressedData, size_t CompressedDataSize, 
-                char* UncompressedBuffer, size_t UncompressedBufferSize, size_t* UncompressedDataSize);
+BOOL Decompress(ptrdiff_t DecompressorHandle, const(void)* CompressedData, size_t CompressedDataSize, 
+                void* UncompressedBuffer, size_t UncompressedBufferSize, size_t* UncompressedDataSize);
 
 ///Prepares the decompressor for the decompression of a new stream.
 ///Params:

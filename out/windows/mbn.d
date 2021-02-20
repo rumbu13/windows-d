@@ -12,7 +12,7 @@ public import windows.mobilebroadband : MBN_BAND_CLASS, MBN_CONTEXT_CONSTANTS, M
                                         MBN_SIGNAL_CONSTANTS, MBN_SMS_CAPS,
                                         MBN_SMS_STATUS_FLAG, WWAEXT_SMS_CONSTANTS;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums

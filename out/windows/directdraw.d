@@ -4,14 +4,13 @@ module windows.directdraw;
 
 public import windows.core;
 public import windows.com : HRESULT, IUnknown;
-public import windows.direct2d : PALETTEENTRY;
 public import windows.directshow : DDCOLORKEY;
 public import windows.displaydevices : RECT, SIZE;
-public import windows.gdi : HDC, RGNDATA;
-public import windows.systemservices : BOOL, HANDLE, LARGE_INTEGER;
+public import windows.gdi : HDC, HMONITOR, PALETTEENTRY, RGNDATA;
+public import windows.systemservices : BOOL, HANDLE, LARGE_INTEGER, PSTR, PWSTR;
 public import windows.windowsandmessaging : HWND;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Callbacks
@@ -26,7 +25,7 @@ extern(Windows):
 ///Returns:
 ///    The callback function returns nonzero to continue the enumeration. It returns zero to stop the enumeration.
 ///    
-alias LPDDENUMCALLBACKA = BOOL function(GUID* param0, const(char)* param1, const(char)* param2, void* param3);
+alias LPDDENUMCALLBACKA = BOOL function(GUID* param0, PSTR param1, PSTR param2, void* param3);
 ///The <i>DDEnumCallback</i> function is an application-defined callback function for the DirectDrawEnumerate function.
 ///Params:
 ///    Arg1 = A pointer to the unique identifier of the DirectDraw object.
@@ -37,7 +36,7 @@ alias LPDDENUMCALLBACKA = BOOL function(GUID* param0, const(char)* param1, const
 ///Returns:
 ///    The callback function returns nonzero to continue the enumeration. It returns zero to stop the enumeration.
 ///    
-alias LPDDENUMCALLBACKW = BOOL function(GUID* param0, const(wchar)* param1, const(wchar)* param2, void* param3);
+alias LPDDENUMCALLBACKW = BOOL function(GUID* param0, PWSTR param1, PWSTR param2, void* param3);
 ///The <i>DDEnumCallbackEx</i> function is an application-defined callback function for the DirectDrawEnumerateEx
 ///function.
 ///Params:
@@ -52,8 +51,7 @@ alias LPDDENUMCALLBACKW = BOOL function(GUID* param0, const(wchar)* param1, cons
 ///Returns:
 ///    The callback function returns nonzero to continue the enumeration. It returns zero to stop the enumeration.
 ///    
-alias LPDDENUMCALLBACKEXA = BOOL function(GUID* param0, const(char)* param1, const(char)* param2, void* param3, 
-                                          ptrdiff_t param4);
+alias LPDDENUMCALLBACKEXA = BOOL function(GUID* param0, PSTR param1, PSTR param2, void* param3, HMONITOR param4);
 ///The <i>DDEnumCallbackEx</i> function is an application-defined callback function for the DirectDrawEnumerateEx
 ///function.
 ///Params:
@@ -68,8 +66,7 @@ alias LPDDENUMCALLBACKEXA = BOOL function(GUID* param0, const(char)* param1, con
 ///Returns:
 ///    The callback function returns nonzero to continue the enumeration. It returns zero to stop the enumeration.
 ///    
-alias LPDDENUMCALLBACKEXW = BOOL function(GUID* param0, const(wchar)* param1, const(wchar)* param2, void* param3, 
-                                          ptrdiff_t param4);
+alias LPDDENUMCALLBACKEXW = BOOL function(GUID* param0, PWSTR param1, PWSTR param2, void* param3, HMONITOR param4);
 alias LPDIRECTDRAWENUMERATEEXA = HRESULT function(LPDDENUMCALLBACKEXA lpCallback, void* lpContext, uint dwFlags);
 alias LPDIRECTDRAWENUMERATEEXW = HRESULT function(LPDDENUMCALLBACKEXW lpCallback, void* lpContext, uint dwFlags);
 alias LPDDENUMCALLBACK = BOOL function();
@@ -190,14 +187,14 @@ struct DDBLTFX
     uint       dwZBufferBaseDest;
     ///Bit depth of the destination z-constant.
     uint       dwZDestConstBitDepth;
-    union
+union
     {
         uint               dwZDestConst;
         IDirectDrawSurface lpDDSZBufferDest;
     }
     ///Bit depth of the source z-constant.
     uint       dwZSrcConstBitDepth;
-    union
+union
     {
         uint               dwZSrcConst;
         IDirectDrawSurface lpDDSZBufferSrc;
@@ -210,19 +207,19 @@ struct DDBLTFX
     uint       dwReserved;
     ///Bit depth of the destination alpha constant.
     uint       dwAlphaDestConstBitDepth;
-    union
+union
     {
         uint               dwAlphaDestConst;
         IDirectDrawSurface lpDDSAlphaDest;
     }
     ///Bit depth of the source alpha constant.
     uint       dwAlphaSrcConstBitDepth;
-    union
+union
     {
         uint               dwAlphaSrcConst;
         IDirectDrawSurface lpDDSAlphaSrc;
     }
-    union
+union
     {
         uint               dwFillColor;
         uint               dwFillDepth;
@@ -249,7 +246,7 @@ struct DDSCAPSEX
 {
     uint dwCaps2;
     uint dwCaps3;
-    union
+union
     {
         uint dwCaps4;
         uint dwVolumeDepth;
@@ -261,7 +258,7 @@ struct DDSCAPS2
     uint dwCaps;
     uint dwCaps2;
     uint dwCaps3;
-    union
+union
     {
         uint dwCaps4;
         uint dwVolumeDepth;
@@ -892,7 +889,7 @@ struct DDPIXELFORMAT
     uint dwFlags;
     ///A FourCC code.
     uint dwFourCC;
-    union
+union
     {
         uint dwRGBBitCount;
         uint dwYUVBitCount;
@@ -902,7 +899,7 @@ struct DDPIXELFORMAT
         uint dwBumpBitCount;
         uint dwPrivateFormatBitCount;
     }
-    union
+union
     {
         uint dwRBitMask;
         uint dwYBitMask;
@@ -911,26 +908,26 @@ struct DDPIXELFORMAT
         uint dwBumpDuBitMask;
         uint dwOperations;
     }
-    union
+union
     {
         uint dwGBitMask;
         uint dwUBitMask;
         uint dwZBitMask;
         uint dwBumpDvBitMask;
-        struct MultiSampleCaps
+struct MultiSampleCaps
         {
             ushort wFlipMSTypes;
             ushort wBltMSTypes;
         }
     }
-    union
+union
     {
         uint dwBBitMask;
         uint dwVBitMask;
         uint dwStencilBitMask;
         uint dwBumpLuminanceBitMask;
     }
-    union
+union
     {
         uint dwRGBAlphaBitMask;
         uint dwYUVAlphaBitMask;
@@ -953,14 +950,14 @@ struct DDOVERLAYFX
     uint       dwReserved;
     ///Bit depth used to specify the alpha constant for a destination.
     uint       dwAlphaDestConstBitDepth;
-    union
+union
     {
         uint               dwAlphaDestConst;
         IDirectDrawSurface lpDDSAlphaDest;
     }
     ///Bit depth used to specify the alpha constant for a source.
     uint       dwAlphaSrcConstBitDepth;
-    union
+union
     {
         uint               dwAlphaSrcConst;
         IDirectDrawSurface lpDDSAlphaSrc;
@@ -1047,13 +1044,13 @@ struct DDSURFACEDESC
     uint          dwFlags;
     uint          dwHeight;
     uint          dwWidth;
-    union
+union
     {
         int  lPitch;
         uint dwLinearSize;
     }
     uint          dwBackBufferCount;
-    union
+union
     {
         uint dwMipMapCount;
         uint dwZBufferBitDepth;
@@ -1076,17 +1073,17 @@ struct DDSURFACEDESC2
     uint       dwFlags;
     uint       dwHeight;
     uint       dwWidth;
-    union
+union
     {
         int  lPitch;
         uint dwLinearSize;
     }
-    union
+union
     {
         uint dwBackBufferCount;
         uint dwDepth;
     }
-    union
+union
     {
         uint dwMipMapCount;
         uint dwRefreshRate;
@@ -1095,7 +1092,7 @@ struct DDSURFACEDESC2
     uint       dwAlphaBitDepth;
     uint       dwReserved;
     void*      lpSurface;
-    union
+union
     {
         DDCOLORKEY ddckCKDestOverlay;
         uint       dwEmptyFaceColor;
@@ -1103,7 +1100,7 @@ struct DDSURFACEDESC2
     DDCOLORKEY ddckCKDestBlt;
     DDCOLORKEY ddckCKSrcOverlay;
     DDCOLORKEY ddckCKSrcBlt;
-    union
+union
     {
         DDPIXELFORMAT ddpfPixelFormat;
         uint          dwFVF;
@@ -1745,7 +1742,7 @@ interface IDirectDrawClipper : IUnknown
     ///    If the method succeeds, the return value is DD_OK. If it fails, the method can return one of the following
     ///    error values: <ul> <li>DDERR_INVALIDOBJECT</li> <li>DDERR_INVALIDPARAMS</li> </ul>
     ///    
-    HRESULT IsClipListChanged(int* param0);
+    HRESULT IsClipListChanged(BOOL* param0);
     ///Sets or deletes the clip list that is used by the IDirectDrawSurface7::Blt, IDirectDrawSurface7::BltBatch, and
     ///IDirectDrawSurface7::UpdateOverlay methods on surfaces to which the parent DirectDrawClipper object is attached.
     ///Params:

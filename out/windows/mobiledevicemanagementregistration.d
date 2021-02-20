@@ -4,9 +4,9 @@ module windows.mobiledevicemanagementregistration;
 
 public import windows.core;
 public import windows.com : HRESULT;
-public import windows.systemservices : BOOL, HANDLE;
+public import windows.systemservices : BOOL, HANDLE, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -28,17 +28,17 @@ enum : int
 struct MANAGEMENT_SERVICE_INFO
 {
     ///The URI of the Mobile Device Management service.
-    const(wchar)* pszMDMServiceUri;
+    PWSTR pszMDMServiceUri;
     ///The URI of the Authentication service.
-    const(wchar)* pszAuthenticationUri;
+    PWSTR pszAuthenticationUri;
 }
 
 struct MANAGEMENT_REGISTRATION_INFO
 {
-    BOOL          fDeviceRegisteredWithManagement;
-    uint          dwDeviceRegistionKind;
-    const(wchar)* pszUPN;
-    const(wchar)* pszMDMServiceUri;
+    BOOL  fDeviceRegisteredWithManagement;
+    uint  dwDeviceRegistionKind;
+    PWSTR pszUPN;
+    PWSTR pszMDMServiceUri;
 }
 
 // Functions
@@ -73,8 +73,7 @@ HRESULT GetDeviceRegistrationInfo(REGISTRATION_INFORMATION_CLASS DeviceInformati
 ///    <i>pfIsDeviceRegisteredWithManagement</i> parameter will be updated to indicate whether the device is registered.
 ///    
 @DllImport("MDMRegistration")
-HRESULT IsDeviceRegisteredWithManagement(int* pfIsDeviceRegisteredWithManagement, uint cchUPN, 
-                                         const(wchar)* pszUPN);
+HRESULT IsDeviceRegisteredWithManagement(BOOL* pfIsDeviceRegisteredWithManagement, uint cchUPN, PWSTR pszUPN);
 
 ///Checks whether MDM registration is allowed by local policy.
 ///Params:
@@ -85,10 +84,10 @@ HRESULT IsDeviceRegisteredWithManagement(int* pfIsDeviceRegisteredWithManagement
 ///    the returned value describes the error. Possible values include those listed at MDM Registration Error Values.
 ///    
 @DllImport("MDMRegistration")
-HRESULT IsManagementRegistrationAllowed(int* pfIsManagementRegistrationAllowed);
+HRESULT IsManagementRegistrationAllowed(BOOL* pfIsManagementRegistrationAllowed);
 
 @DllImport("MDMRegistration")
-HRESULT IsMdmUxWithoutAadAllowed(int* isEnrollmentAllowed);
+HRESULT IsMdmUxWithoutAadAllowed(BOOL* isEnrollmentAllowed);
 
 ///Indicates to the MDM agent that the device is managed externally and is not to be registered with an MDM service.
 ///Params:
@@ -112,7 +111,7 @@ HRESULT SetManagedExternally(BOOL IsManagedExternally);
 ///    describes the error. Possible values include those listed at MDM Registration Error Values.
 ///    
 @DllImport("MDMRegistration")
-HRESULT DiscoverManagementService(const(wchar)* pszUPN, MANAGEMENT_SERVICE_INFO** ppMgmtInfo);
+HRESULT DiscoverManagementService(const(PWSTR) pszUPN, MANAGEMENT_SERVICE_INFO** ppMgmtInfo);
 
 ///Registers a device with a MDM service, using Azure Active Directory (AAD) credentials.
 ///Params:
@@ -145,8 +144,8 @@ HRESULT RegisterDeviceWithManagementUsingAADDeviceCredentials();
 ///    describes the error. Possible values include those listed at MDM Registration Error Values.
 ///    
 @DllImport("MDMRegistration")
-HRESULT RegisterDeviceWithManagement(const(wchar)* pszUPN, const(wchar)* ppszMDMServiceUri, 
-                                     const(wchar)* ppzsAccessToken);
+HRESULT RegisterDeviceWithManagement(const(PWSTR) pszUPN, const(PWSTR) ppszMDMServiceUri, 
+                                     const(PWSTR) ppzsAccessToken);
 
 ///Unregisters a device with the MDM service
 ///Params:
@@ -156,7 +155,7 @@ HRESULT RegisterDeviceWithManagement(const(wchar)* pszUPN, const(wchar)* ppszMDM
 ///    describes the error. Possible values include those listed at MDM Registration Error Values.
 ///    
 @DllImport("MDMRegistration")
-HRESULT UnregisterDeviceWithManagement(const(wchar)* enrollmentID);
+HRESULT UnregisterDeviceWithManagement(const(PWSTR) enrollmentID);
 
 ///Retrieves the management app hyperlink associated with the MDM service.
 ///Params:
@@ -168,7 +167,7 @@ HRESULT UnregisterDeviceWithManagement(const(wchar)* enrollmentID);
 ///    describes the error. Possible values include those listed at MDM Registration Error Values.
 ///    
 @DllImport("MDMRegistration")
-HRESULT GetManagementAppHyperlink(uint cchHyperlink, const(wchar)* pszHyperlink);
+HRESULT GetManagementAppHyperlink(uint cchHyperlink, PWSTR pszHyperlink);
 
 ///Discovers the MDM service using a candidate server. The discovery process uses the [MS-MDE]: Mobile Device Enrollment
 ///Protocol protocol.
@@ -184,7 +183,7 @@ HRESULT GetManagementAppHyperlink(uint cchHyperlink, const(wchar)* pszHyperlink)
 ///    describes the error. Possible values include those listed at MDM Registration Error Values.
 ///    
 @DllImport("MDMRegistration")
-HRESULT DiscoverManagementServiceEx(const(wchar)* pszUPN, const(wchar)* pszDiscoveryServiceCandidate, 
+HRESULT DiscoverManagementServiceEx(const(PWSTR) pszUPN, const(PWSTR) pszDiscoveryServiceCandidate, 
                                     MANAGEMENT_SERVICE_INFO** ppMgmtInfo);
 
 

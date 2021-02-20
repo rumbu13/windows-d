@@ -3,9 +3,9 @@
 module windows.ipc;
 
 public import windows.core;
-public import windows.systemservices : BOOL, HANDLE, SECURITY_ATTRIBUTES;
+public import windows.systemservices : BOOL, HANDLE, PSTR, SECURITY_ATTRIBUTES;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Functions
@@ -130,7 +130,7 @@ extern(Windows):
 ///    GetLastError.
 ///    
 @DllImport("KERNEL32")
-HANDLE CreateNamedPipeA(const(char)* lpName, uint dwOpenMode, uint dwPipeMode, uint nMaxInstances, 
+HANDLE CreateNamedPipeA(const(PSTR) lpName, uint dwOpenMode, uint dwPipeMode, uint nMaxInstances, 
                         uint nOutBufferSize, uint nInBufferSize, uint nDefaultTimeOut, 
                         SECURITY_ATTRIBUTES* lpSecurityAttributes);
 
@@ -154,6 +154,6 @@ HANDLE CreateNamedPipeA(const(char)* lpName, uint dwOpenMode, uint dwPipeMode, u
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL WaitNamedPipeA(const(char)* lpNamedPipeName, uint nTimeOut);
+BOOL WaitNamedPipeA(const(PSTR) lpNamedPipeName, uint nTimeOut);
 
 

@@ -7,11 +7,11 @@ public import windows.automation : BSTR;
 public import windows.com : HRESULT, IUnknown, STGMEDIUM;
 public import windows.structuredstorage : IEnumSTATPROPSTG, IStream, PROPSPEC, PROPVARIANT,
                                           STATPROPSETSTG;
-public import windows.systemservices : BOOL;
+public import windows.systemservices : BOOL, PWSTR;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : FILETIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -69,8 +69,8 @@ struct WIA_DITHER_PATTERN_DATA
 struct WIA_PROPID_TO_NAME
 {
     ///Type: <b>PROPID</b> WIA property ID.
-    uint    propid;
-    ushort* pszName;
+    uint  propid;
+    PWSTR pszName;
 }
 
 ///The <b>WIA_FORMAT_INFO</b> structure specifies valid format and media type pairs for a device.
@@ -174,6 +174,128 @@ struct WIA_DEV_CAP
 
 @GUID("3908C3CD-4478-4536-AF2F-10C25D4EF89A")
 struct WiaVideo;
+
+///The <b>IWiaVideo</b> interface provides methods that allow an application that uses Windows Image Acquisition (WIA)
+///services to acquire still images from a streaming video device. <div class="alert"><b>Note</b> WIA does not support
+///video devices in Windows Server 2003, Windows Vista, and later. For those versions of the Windows, use DirectShow to
+///acquire images from video.</div><div> </div>
+@GUID("D52920AA-DB88-41F0-946C-E00DC0A19CFA")
+interface IWiaVideo : IUnknown
+{
+    ///The <b>IWiaVideo::PreviewVisible</b> property specifies whether the video playback is visible in its parent
+    ///window. This does not affect the WIAVIDEO_STATE of the video. This property is read/write.
+    HRESULT get_PreviewVisible(BOOL* pbPreviewVisible);
+    ///The <b>IWiaVideo::PreviewVisible</b> property specifies whether the video playback is visible in its parent
+    ///window. This does not affect the WIAVIDEO_STATE of the video. This property is read/write.
+    HRESULT put_PreviewVisible(BOOL bPreviewVisible);
+    ///The <b>IWiaVideo::ImagesDirectory</b> property specifies the full path and directory where images are stored when
+    ///calling the IWiaVideo::TakePicture method. This property is read/write.
+    HRESULT get_ImagesDirectory(BSTR* pbstrImageDirectory);
+    ///The <b>IWiaVideo::ImagesDirectory</b> property specifies the full path and directory where images are stored when
+    ///calling the IWiaVideo::TakePicture method. This property is read/write.
+    HRESULT put_ImagesDirectory(BSTR bstrImageDirectory);
+    ///The <b>IWiaVideo::CreateVideoByWiaDevID</b> method creates a connection to a streaming video device from its
+    ///WIA_DIP_DEV_ID property.
+    ///Params:
+    ///    bstrWiaDeviceID = Type: <b>BSTR</b> Specifies the value of the video device's WIA_DIP_DEV_ID property.
+    ///    hwndParent = Type: <b>HWND</b> Specifies the window in which to display the streaming video.
+    ///    bStretchToFitParent = Type: <b>BOOL</b> Specifies whether the video display is stretched to fit the parent window. Set this
+    ///                          parameter to <b>TRUE</b> if the display should be stretched to fit the parent window; otherwise, set to
+    ///                          <b>FALSE</b>.
+    ///    bAutoBeginPlayback = Type: <b>BOOL</b> Specifies whether the streaming video begins playback as soon as this method returns. Set
+    ///                         this parameter to <b>TRUE</b> to cause immediate playback; set it to <b>FALSE</b> to require a call to
+    ///                         IWiaVideo::Play before video playback begins.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+    ///    
+    HRESULT CreateVideoByWiaDevID(BSTR bstrWiaDeviceID, HWND hwndParent, BOOL bStretchToFitParent, 
+                                  BOOL bAutoBeginPlayback);
+    ///The <b>IWiaVideo::CreateVideoByDevNum</b> method creates a connection to a streaming video device with the device
+    ///number obtained from a Directshow enumeration.
+    ///Params:
+    ///    uiDeviceNumber = Type: <b>UINT</b> Specifies the video device's Directshow device number.
+    ///    hwndParent = Type: <b>HWND</b> Specifies the window in which to display the streaming video.
+    ///    bStretchToFitParent = Type: <b>BOOL</b> Specifies whether the video display is stretched to fit the parent window. Set this
+    ///                          parameter to <b>TRUE</b> if the display should be stretched to fit the parent window; otherwise, set to
+    ///                          <b>FALSE</b>.
+    ///    bAutoBeginPlayback = Type: <b>BOOL</b> Specifies whether the streaming video begins playback as soon as this method returns. Set
+    ///                         this parameter to <b>TRUE</b> to cause immediate playback; set it to <b>FALSE</b> to require a call to
+    ///                         IWiaVideo::Play before video playback begins.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+    ///    
+    HRESULT CreateVideoByDevNum(uint uiDeviceNumber, HWND hwndParent, BOOL bStretchToFitParent, 
+                                BOOL bAutoBeginPlayback);
+    ///The <b>IWiaVideo::CreateVideoByName</b> method creates a connection to a streaming video device with the friendly
+    ///device name obtained from a Directshow enumeration.
+    ///Params:
+    ///    bstrFriendlyName = Type: <b>BSTR</b> Specifies the video device's friendly name obtained from a Directshow device enumeration.
+    ///    hwndParent = Type: <b>HWND</b> Specifies the window in which to display the streaming video.
+    ///    bStretchToFitParent = Type: <b>BOOL</b> Specifies whether the video display is stretched to fit the parent window. Set this
+    ///                          parameter to <b>TRUE</b> if the display should be stretched to fit the parent window; otherwise, set to
+    ///                          <b>FALSE</b>.
+    ///    bAutoBeginPlayback = Type: <b>BOOL</b> Specifies whether the streaming video begins playback as soon as this method returns. Set
+    ///                         this parameter to <b>TRUE</b> to cause immediate playback; set it to <b>FALSE</b> to require a call to
+    ///                         IWiaVideo::Play before video playback begins.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+    ///    
+    HRESULT CreateVideoByName(BSTR bstrFriendlyName, HWND hwndParent, BOOL bStretchToFitParent, 
+                              BOOL bAutoBeginPlayback);
+    ///The <b>IWiaVideo::DestroyVideo</b> method shuts down the streaming video. To restart video playback, the
+    ///application must call one of the IWiaVideo CreateVideo methods again.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+    ///    
+    HRESULT DestroyVideo();
+    ///Begins playback of streaming video.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> If the method succeeds or the video is already playing, this method returns S_OK. If the
+    ///    method fails, it returns a standard COM error code.
+    ///    
+    HRESULT Play();
+    ///The <b>IWiaVideo::Pause</b> method pauses video playback.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+    ///    
+    HRESULT Pause();
+    ///The <b>IWiaVideo::TakePicture</b> method extracts a still image from the video stream, and saves the image as a
+    ///JPEG file.
+    ///Params:
+    ///    pbstrNewImageFilename = Type: <b>BSTR*</b> Receives the full path and filename of the JPEG file that this method creates.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+    ///    
+    HRESULT TakePicture(BSTR* pbstrNewImageFilename);
+    ///The <b>IWiaVideo::ResizeVideo</b> method resizes the video playback to the largest supported resolution that fits
+    ///inside the parent window. Call this method whenever the parent window is moved or resized.
+    ///Params:
+    ///    bStretchToFitParent = Type: <b>BOOL</b> Specifies whether the video playback is stretched to fill the parent window.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+    ///    
+    HRESULT ResizeVideo(BOOL bStretchToFitParent);
+    ///The <b>IWiaVideo::GetCurrentState</b> method specifies the state of the video stream as a member of the
+    ///WIAVIDEO_STATE enumeration.
+    ///Params:
+    ///    pState = Type: <b>WIAVIDEO_STATE*</b> A member of the WIAVIDEO_STATE enumeration that specifies the current state of
+    ///             the video stream.
+    HRESULT GetCurrentState(WIAVIDEO_STATE* pState);
+}
 
 ///Applications use the <b>IWiaDevMgr</b> interface to create and manage image acquisition devices. They also use it to
 ///register to receive device events. <div class="alert"><b>Note</b> For Windows Vista applications, use IWiaDevMgr2
@@ -707,7 +829,7 @@ interface IWiaItem : IUnknown
     ///Params:
     ///    ulSize = Type: <b>ULONG</b>
     ///    pBuffer = Type: <b>BYTE*</b>
-    HRESULT Diagnostic(uint ulSize, char* pBuffer);
+    HRESULT Diagnostic(uint ulSize, ubyte* pBuffer);
 }
 
 ///The <b>IWiaPropertyStorage</b> interface is used to access information about the IWiaItem object's properties.
@@ -715,13 +837,13 @@ interface IWiaItem : IUnknown
 @GUID("98B5E8A0-29CC-491A-AAC0-E6DB4FDCCEB6")
 interface IWiaPropertyStorage : IUnknown
 {
-    HRESULT ReadMultiple(uint cpspec, char* rgpspec, char* rgpropvar);
+    HRESULT ReadMultiple(uint cpspec, const(PROPSPEC)* rgpspec, PROPVARIANT* rgpropvar);
     HRESULT WriteMultiple(uint cpspec, const(PROPSPEC)* rgpspec, const(PROPVARIANT)* rgpropvar, 
                           uint propidNameFirst);
-    HRESULT DeleteMultiple(uint cpspec, char* rgpspec);
-    HRESULT ReadPropertyNames(uint cpropid, char* rgpropid, char* rglpwstrName);
-    HRESULT WritePropertyNames(uint cpropid, char* rgpropid, char* rglpwstrName);
-    HRESULT DeletePropertyNames(uint cpropid, char* rgpropid);
+    HRESULT DeleteMultiple(uint cpspec, const(PROPSPEC)* rgpspec);
+    HRESULT ReadPropertyNames(uint cpropid, const(uint)* rgpropid, PWSTR** rglpwstrName);
+    HRESULT WritePropertyNames(uint cpropid, const(uint)* rgpropid, const(PWSTR)** rglpwstrName);
+    HRESULT DeletePropertyNames(uint cpropid, const(uint)* rgpropid);
     HRESULT Commit(uint grfCommitFlags);
     HRESULT Revert();
     HRESULT Enum(IEnumSTATPROPSTG* ppenum);
@@ -752,7 +874,7 @@ interface IWiaPropertyStorage : IUnknown
     ///    <tr> <td>ERROR_NO_UNICODE_TRANSLATION</td> <td>A translation from Unicode to ANSI or ANSI to Unicode
     ///    failed.</td> </tr> </table>
     ///    
-    HRESULT GetPropertyAttributes(uint cpspec, char* rgpspec, char* rgflags, char* rgpropvar);
+    HRESULT GetPropertyAttributes(uint cpspec, PROPSPEC* rgpspec, uint* rgflags, PROPVARIANT* rgpropvar);
     ///The <b>IWiaPropertyStorage::GetCount</b> method returns the number of properties stored in the property storage.
     ///Params:
     ///    pulNumProps = Type: <b>ULONG*</b> Receives the number of properties stored in the property storage.
@@ -1005,7 +1127,7 @@ interface IWiaItemExtras : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT Escape(uint dwEscapeCode, char* lpInData, uint cbInDataSize, char* pOutData, uint dwOutDataSize, 
+    HRESULT Escape(uint dwEscapeCode, ubyte* lpInData, uint cbInDataSize, ubyte* pOutData, uint dwOutDataSize, 
                    uint* pdwActualDataSize);
     ///The <b>IWiaItemExtras::CancelPendingIO</b> method cancels all pending input/output operations on the driver.
     ///Returns:
@@ -1014,128 +1136,6 @@ interface IWiaItemExtras : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT CancelPendingIO();
-}
-
-///The <b>IWiaVideo</b> interface provides methods that allow an application that uses Windows Image Acquisition (WIA)
-///services to acquire still images from a streaming video device. <div class="alert"><b>Note</b> WIA does not support
-///video devices in Windows Server 2003, Windows Vista, and later. For those versions of the Windows, use DirectShow to
-///acquire images from video.</div><div> </div>
-@GUID("D52920AA-DB88-41F0-946C-E00DC0A19CFA")
-interface IWiaVideo : IUnknown
-{
-    ///The <b>IWiaVideo::PreviewVisible</b> property specifies whether the video playback is visible in its parent
-    ///window. This does not affect the WIAVIDEO_STATE of the video. This property is read/write.
-    HRESULT get_PreviewVisible(int* pbPreviewVisible);
-    ///The <b>IWiaVideo::PreviewVisible</b> property specifies whether the video playback is visible in its parent
-    ///window. This does not affect the WIAVIDEO_STATE of the video. This property is read/write.
-    HRESULT put_PreviewVisible(BOOL bPreviewVisible);
-    ///The <b>IWiaVideo::ImagesDirectory</b> property specifies the full path and directory where images are stored when
-    ///calling the IWiaVideo::TakePicture method. This property is read/write.
-    HRESULT get_ImagesDirectory(BSTR* pbstrImageDirectory);
-    ///The <b>IWiaVideo::ImagesDirectory</b> property specifies the full path and directory where images are stored when
-    ///calling the IWiaVideo::TakePicture method. This property is read/write.
-    HRESULT put_ImagesDirectory(BSTR bstrImageDirectory);
-    ///The <b>IWiaVideo::CreateVideoByWiaDevID</b> method creates a connection to a streaming video device from its
-    ///WIA_DIP_DEV_ID property.
-    ///Params:
-    ///    bstrWiaDeviceID = Type: <b>BSTR</b> Specifies the value of the video device's WIA_DIP_DEV_ID property.
-    ///    hwndParent = Type: <b>HWND</b> Specifies the window in which to display the streaming video.
-    ///    bStretchToFitParent = Type: <b>BOOL</b> Specifies whether the video display is stretched to fit the parent window. Set this
-    ///                          parameter to <b>TRUE</b> if the display should be stretched to fit the parent window; otherwise, set to
-    ///                          <b>FALSE</b>.
-    ///    bAutoBeginPlayback = Type: <b>BOOL</b> Specifies whether the streaming video begins playback as soon as this method returns. Set
-    ///                         this parameter to <b>TRUE</b> to cause immediate playback; set it to <b>FALSE</b> to require a call to
-    ///                         IWiaVideo::Play before video playback begins.
-    ///Returns:
-    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
-    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
-    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
-    ///    
-    HRESULT CreateVideoByWiaDevID(BSTR bstrWiaDeviceID, HWND hwndParent, BOOL bStretchToFitParent, 
-                                  BOOL bAutoBeginPlayback);
-    ///The <b>IWiaVideo::CreateVideoByDevNum</b> method creates a connection to a streaming video device with the device
-    ///number obtained from a Directshow enumeration.
-    ///Params:
-    ///    uiDeviceNumber = Type: <b>UINT</b> Specifies the video device's Directshow device number.
-    ///    hwndParent = Type: <b>HWND</b> Specifies the window in which to display the streaming video.
-    ///    bStretchToFitParent = Type: <b>BOOL</b> Specifies whether the video display is stretched to fit the parent window. Set this
-    ///                          parameter to <b>TRUE</b> if the display should be stretched to fit the parent window; otherwise, set to
-    ///                          <b>FALSE</b>.
-    ///    bAutoBeginPlayback = Type: <b>BOOL</b> Specifies whether the streaming video begins playback as soon as this method returns. Set
-    ///                         this parameter to <b>TRUE</b> to cause immediate playback; set it to <b>FALSE</b> to require a call to
-    ///                         IWiaVideo::Play before video playback begins.
-    ///Returns:
-    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
-    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
-    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
-    ///    
-    HRESULT CreateVideoByDevNum(uint uiDeviceNumber, HWND hwndParent, BOOL bStretchToFitParent, 
-                                BOOL bAutoBeginPlayback);
-    ///The <b>IWiaVideo::CreateVideoByName</b> method creates a connection to a streaming video device with the friendly
-    ///device name obtained from a Directshow enumeration.
-    ///Params:
-    ///    bstrFriendlyName = Type: <b>BSTR</b> Specifies the video device's friendly name obtained from a Directshow device enumeration.
-    ///    hwndParent = Type: <b>HWND</b> Specifies the window in which to display the streaming video.
-    ///    bStretchToFitParent = Type: <b>BOOL</b> Specifies whether the video display is stretched to fit the parent window. Set this
-    ///                          parameter to <b>TRUE</b> if the display should be stretched to fit the parent window; otherwise, set to
-    ///                          <b>FALSE</b>.
-    ///    bAutoBeginPlayback = Type: <b>BOOL</b> Specifies whether the streaming video begins playback as soon as this method returns. Set
-    ///                         this parameter to <b>TRUE</b> to cause immediate playback; set it to <b>FALSE</b> to require a call to
-    ///                         IWiaVideo::Play before video playback begins.
-    ///Returns:
-    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
-    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
-    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
-    ///    
-    HRESULT CreateVideoByName(BSTR bstrFriendlyName, HWND hwndParent, BOOL bStretchToFitParent, 
-                              BOOL bAutoBeginPlayback);
-    ///The <b>IWiaVideo::DestroyVideo</b> method shuts down the streaming video. To restart video playback, the
-    ///application must call one of the IWiaVideo CreateVideo methods again.
-    ///Returns:
-    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
-    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
-    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
-    ///    
-    HRESULT DestroyVideo();
-    ///Begins playback of streaming video.
-    ///Returns:
-    ///    Type: <b>HRESULT</b> If the method succeeds or the video is already playing, this method returns S_OK. If the
-    ///    method fails, it returns a standard COM error code.
-    ///    
-    HRESULT Play();
-    ///The <b>IWiaVideo::Pause</b> method pauses video playback.
-    ///Returns:
-    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
-    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
-    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
-    ///    
-    HRESULT Pause();
-    ///The <b>IWiaVideo::TakePicture</b> method extracts a still image from the video stream, and saves the image as a
-    ///JPEG file.
-    ///Params:
-    ///    pbstrNewImageFilename = Type: <b>BSTR*</b> Receives the full path and filename of the JPEG file that this method creates.
-    ///Returns:
-    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
-    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
-    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
-    ///    
-    HRESULT TakePicture(BSTR* pbstrNewImageFilename);
-    ///The <b>IWiaVideo::ResizeVideo</b> method resizes the video playback to the largest supported resolution that fits
-    ///inside the parent window. Call this method whenever the parent window is moved or resized.
-    ///Params:
-    ///    bStretchToFitParent = Type: <b>BOOL</b> Specifies whether the video playback is stretched to fill the parent window.
-    ///Returns:
-    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
-    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
-    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
-    ///    
-    HRESULT ResizeVideo(BOOL bStretchToFitParent);
-    ///The <b>IWiaVideo::GetCurrentState</b> method specifies the state of the video stream as a member of the
-    ///WIAVIDEO_STATE enumeration.
-    ///Params:
-    ///    pState = Type: <b>WIAVIDEO_STATE*</b> A member of the WIAVIDEO_STATE enumeration that specifies the current state of
-    ///             the video stream.
-    HRESULT GetCurrentState(WIAVIDEO_STATE* pState);
 }
 
 

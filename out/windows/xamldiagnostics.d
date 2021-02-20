@@ -7,10 +7,10 @@ public import windows.automation : BSTR, SAFEARRAY;
 public import windows.com : HRESULT, IUnknown;
 public import windows.displaydevices : RECT;
 public import windows.dxgi : DXGI_ALPHA_MODE, DXGI_FORMAT;
-public import windows.systemservices : BOOL;
+public import windows.systemservices : BOOL, PWSTR;
 public import windows.winrt : IInspectable;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -221,6 +221,25 @@ struct BitmapDescription
     DXGI_ALPHA_MODE AlphaMode;
 }
 
+// Functions
+
+@DllImport("Windows.UI.Xaml")
+HRESULT InitializeXamlDiagnostic(const(PWSTR) endPointName, uint pid, const(PWSTR) wszDllXamlDiagnostics, 
+                                 const(PWSTR) wszTAPDllName, GUID tapClsid);
+
+///Initializes a Xaml Diagnostics session. This is the entry point for any debugging tool using the XAML Diagnostic
+///APIs.
+///Params:
+///    endPointName = The end point name for Visual Diagnostics.
+///    pid = The pid of the process to connect to.
+///    wszDllXamlDiagnostics = The path to XamlDiagnostics.dll.
+///    wszTAPDllName = The name of the DLL to be injected in the process.
+///    tapClsid = The COM CLSID of the DLL to be injected in the process.
+@DllImport("Windows.UI.Xaml")
+HRESULT InitializeXamlDiagnosticsEx(const(PWSTR) endPointName, uint pid, const(PWSTR) wszDllXamlDiagnostics, 
+                                    const(PWSTR) wszTAPDllName, GUID tapClsid, const(PWSTR) wszInitializationData);
+
+
 // Interfaces
 
 ///Communicates the state of the visual tree.
@@ -252,7 +271,7 @@ interface IVisualTreeServiceCallback2 : IVisualTreeServiceCallback
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT OnElementStateChanged(ulong element, VisualElementState elementState, const(wchar)* context);
+    HRESULT OnElementStateChanged(ulong element, VisualElementState elementState, const(PWSTR) context);
 }
 
 ///Provides methods to manage a XAML visual tree.
@@ -281,7 +300,7 @@ interface IVisualTreeService : IUnknown
     ///    If this method succeeds, it returns <b>S_OK</b>. Otherwise, it returns an <b>HRESULT</b> error code. This
     ///    method should not fail in normal conditions.
     ///    
-    HRESULT GetEnums(uint* pCount, char* ppEnums);
+    HRESULT GetEnums(uint* pCount, EnumType** ppEnums);
     ///Creates an instance of any XAML runtime, enum, or primitive type.
     ///Params:
     ///    typeName = The type name. (Should be from PropertyChainValue.Type.)
@@ -303,8 +322,9 @@ interface IVisualTreeService : IUnknown
     ///    If this method succeeds, it returns <b>S_OK</b>. Otherwise, it returns an <b>HRESULT</b> error code. This
     ///    method should not fail in normal conditions.
     ///    
-    HRESULT GetPropertyValuesChain(ulong instanceHandle, uint* pSourceCount, char* ppPropertySources, 
-                                   uint* pPropertyCount, char* ppPropertyValues);
+    HRESULT GetPropertyValuesChain(ulong instanceHandle, uint* pSourceCount, 
+                                   PropertyChainSource** ppPropertySources, uint* pPropertyCount, 
+                                   PropertyChainValue** ppPropertyValues);
     ///Sets a property value on a XAML element.
     ///Params:
     ///    instanceHandle = A handle to the element to set the property on.
@@ -340,7 +360,7 @@ interface IVisualTreeService : IUnknown
     ///    If this method succeeds, it returns <b>S_OK</b>. Otherwise, it returns an <b>HRESULT</b> error code.
     ///    
     HRESULT GetCollectionElements(ulong instanceHandle, uint startIndex, uint* pElementCount, 
-                                  char* ppElementValues);
+                                  CollectionElementValue** ppElementValues);
     ///Adds a child element to the collection at the specified index.
     ///Params:
     ///    parent = A handle to the collection object.
@@ -418,7 +438,7 @@ interface IXamlDiagnostics : IUnknown
     ///Returns:
     ///    If this method succeeds, it returns <b>S_OK</b>. Otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT HitTest(RECT rect, uint* pCount, char* ppInstanceHandles);
+    HRESULT HitTest(RECT rect, uint* pCount, ulong** ppInstanceHandles);
     ///Adds an IInspectable to the XAML Diagnostics cache and returns the newly created <b>InstanceHandle</b> for the
     ///object.
     ///Params:
@@ -452,7 +472,7 @@ interface IBitmapData : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CopyBytesTo(uint sourceOffsetInBytes, uint maxBytesToCopy, char* pvBytes, uint* numberOfBytesCopied);
+    HRESULT CopyBytesTo(uint sourceOffsetInBytes, uint maxBytesToCopy, ubyte* pvBytes, uint* numberOfBytesCopied);
     ///Gets the stride of the data. This is the length in bytes of each row of the bitmap.
     ///Params:
     ///    pStride = The length in bytes of each row of the bitmap.
@@ -495,7 +515,7 @@ interface IVisualTreeService2 : IVisualTreeService
     ///    <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> No property with <i>propertyName</i> was found, or
     ///    the property cannot be applied to <i>object</i>. </td> </tr> </table>
     ///    
-    HRESULT GetPropertyIndex(ulong object, const(wchar)* propertyName, uint* pPropertyIndex);
+    HRESULT GetPropertyIndex(ulong object, const(PWSTR) propertyName, uint* pPropertyIndex);
     ///Gets the effective value of the specified dependency property.
     ///Params:
     ///    object = The dependency object to get the property value from.
@@ -554,7 +574,7 @@ interface IVisualTreeService3 : IVisualTreeService2
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT ResolveResource(ulong resourceContext, const(wchar)* resourceName, ResourceType resourceType, 
+    HRESULT ResolveResource(ulong resourceContext, const(PWSTR) resourceName, ResourceType resourceType, 
                             uint propertyIndex);
     ///Gets an item from a ResourceDictionary.
     ///Params:
@@ -566,7 +586,7 @@ interface IVisualTreeService3 : IVisualTreeService2
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetDictionaryItem(ulong dictionaryHandle, const(wchar)* resourceName, BOOL resourceIsImplicitStyle, 
+    HRESULT GetDictionaryItem(ulong dictionaryHandle, const(PWSTR) resourceName, BOOL resourceIsImplicitStyle, 
                               ulong* resourceHandle);
     ///Adds an item to a ResourceDictionary, and re-resolves all elements in the tree that reference a resource with the
     ///specified key.

@@ -5,12 +5,48 @@ module windows.indexserver;
 public import windows.core;
 public import windows.com : HRESULT, IUnknown;
 public import windows.structuredstorage : IStorage, IStream, PROPSPEC, PROPVARIANT;
+public import windows.systemservices : PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
 
+
+///> [!Note] > Indexing Service is no longer supported as of Windows XP and is unavailable for use as of Windows 8.
+///Instead, use [Windows Search](/windows/desktop/search/-search-3x-wds-overview) for client side search and [Microsoft
+///Search Server Express](https://www.microsoft.com/download/details.aspx?id=18914) for server side search. Describes
+///the type of break that separates the current word from the previous word.
+alias WORDREP_BREAK_TYPE = int;
+enum : int
+{
+    ///A word break is placed between this word and the previous word that was placed in the <b>WordSink</b>. This break
+    ///is the default used by the PutWord method.
+    WORDREP_BREAK_EOW = 0x00000000,
+    ///A sentence break is placed between this word and the previous word.
+    WORDREP_BREAK_EOS = 0x00000001,
+    ///A paragraph break is placed between this word and the previous word.
+    WORDREP_BREAK_EOP = 0x00000002,
+    ///A chapter break is placed between this word and the previous word.
+    WORDREP_BREAK_EOC = 0x00000003,
+}
+
+///> [!Note] > Indexing Service is no longer supported as of Windows XP and is unavailable for use as of Windows 8.
+///Instead, use [Windows Search](/windows/desktop/search/-search-3x-wds-overview) for client side search and [Microsoft
+///Search Server Express](https://www.microsoft.com/download/details.aspx?id=18914) for server side search. The
+///<b>DBKINDENUM</b> enumerated type specifies the combination of GUID, property number, or property name to use to
+///identify a database object.
+alias DBKINDENUM = int;
+enum : int
+{
+    DBKIND_GUID_NAME    = 0x00000000,
+    DBKIND_GUID_PROPID  = 0x00000001,
+    DBKIND_NAME         = 0x00000002,
+    DBKIND_PGUID_NAME   = 0x00000003,
+    DBKIND_PGUID_PROPID = 0x00000004,
+    DBKIND_PROPID       = 0x00000005,
+    DBKIND_GUID         = 0x00000006,
+}
 
 ///<p class="CCE_Message">[Indexing Service is no longer supported as of Windows XP and is unavailable for use as of
 ///Windows 8. Instead, use Windows Search for client side search and Microsoft Search Server Express for server side
@@ -108,43 +144,32 @@ enum : int
     CHUNK_EOC      = 0x00000004,
 }
 
-///> [!Note] > Indexing Service is no longer supported as of Windows XP and is unavailable for use as of Windows 8.
-///Instead, use [Windows Search](/windows/desktop/search/-search-3x-wds-overview) for client side search and [Microsoft
-///Search Server Express](https://www.microsoft.com/download/details.aspx?id=18914) for server side search. Describes
-///the type of break that separates the current word from the previous word.
-alias WORDREP_BREAK_TYPE = int;
-enum : int
-{
-    ///A word break is placed between this word and the previous word that was placed in the <b>WordSink</b>. This break
-    ///is the default used by the PutWord method.
-    WORDREP_BREAK_EOW = 0x00000000,
-    ///A sentence break is placed between this word and the previous word.
-    WORDREP_BREAK_EOS = 0x00000001,
-    ///A paragraph break is placed between this word and the previous word.
-    WORDREP_BREAK_EOP = 0x00000002,
-    ///A chapter break is placed between this word and the previous word.
-    WORDREP_BREAK_EOC = 0x00000003,
-}
-
-///> [!Note] > Indexing Service is no longer supported as of Windows XP and is unavailable for use as of Windows 8.
-///Instead, use [Windows Search](/windows/desktop/search/-search-3x-wds-overview) for client side search and [Microsoft
-///Search Server Express](https://www.microsoft.com/download/details.aspx?id=18914) for server side search. The
-///<b>DBKINDENUM</b> enumerated type specifies the combination of GUID, property number, or property name to use to
-///identify a database object.
-alias DBKINDENUM = int;
-enum : int
-{
-    DBKIND_GUID_NAME    = 0x00000000,
-    DBKIND_GUID_PROPID  = 0x00000001,
-    DBKIND_NAME         = 0x00000002,
-    DBKIND_PGUID_NAME   = 0x00000003,
-    DBKIND_PGUID_PROPID = 0x00000004,
-    DBKIND_PROPID       = 0x00000005,
-    DBKIND_GUID         = 0x00000006,
-}
-
 // Structs
 
+
+///<p class="CCE_Message">[Indexing Service is no longer supported as of Windows XP and is unavailable for use as of
+///Windows 8. Instead, use Windows Search for client side search and Microsoft Search Server Express for server side
+///search.] The <b>DBID</b> structure encapsulates various ways of identifying a database object. It is used by nodes
+///that must represent a column name, such as column_name, index_name, table_name, schema_name, catalog_name, and so
+///forth. (For more information on these nodes, see Catalog of DML Nodes.) This structure is also used to define
+///bindings.
+struct DBID
+{
+align (2):
+union uGuid
+    {
+    align (2):
+        GUID  guid;
+        GUID* pguid;
+    }
+    uint eKind;
+union uName
+    {
+    align (2):
+        PWSTR pwszName;
+        uint  ulPropid;
+    }
+}
 
 ///> [!Note] > Indexing Service is no longer supported as of Windows XP and is unavailable for use as of Windows 8.
 ///Instead, use [Windows Search](/windows/desktop/search/-search-3x-wds-overview) for client side search and [Microsoft
@@ -257,30 +282,6 @@ struct STAT_CHUNK
     uint            cwcLenSource;
 }
 
-///<p class="CCE_Message">[Indexing Service is no longer supported as of Windows XP and is unavailable for use as of
-///Windows 8. Instead, use Windows Search for client side search and Microsoft Search Server Express for server side
-///search.] The <b>DBID</b> structure encapsulates various ways of identifying a database object. It is used by nodes
-///that must represent a column name, such as column_name, index_name, table_name, schema_name, catalog_name, and so
-///forth. (For more information on these nodes, see Catalog of DML Nodes.) This structure is also used to define
-///bindings.
-struct DBID
-{
-align (2):
-    union uGuid
-    {
-    align (2):
-        GUID  guid;
-        GUID* pguid;
-    }
-    uint eKind;
-    union uName
-    {
-    align (2):
-        ushort* pwszName;
-        uint    ulPropid;
-    }
-}
-
 // Functions
 
 ///<p class="CCE_Message">[Indexing Service is unsupported as of Windows XP. Instead, use Windows Search for client side
@@ -303,10 +304,10 @@ align (2):
 ///    occurred. </td> </tr> </table>
 ///    
 @DllImport("query")
-HRESULT LoadIFilter(const(wchar)* pwcsPath, IUnknown pUnkOuter, void** ppIUnk);
+HRESULT LoadIFilter(const(PWSTR) pwcsPath, IUnknown pUnkOuter, void** ppIUnk);
 
 @DllImport("query")
-HRESULT LoadIFilterEx(const(wchar)* pwcsPath, uint dwFlags, const(GUID)* riid, void** ppIUnk);
+HRESULT LoadIFilterEx(const(PWSTR) pwcsPath, uint dwFlags, const(GUID)* riid, void** ppIUnk);
 
 ///<p class="CCE_Message">[Indexing Service is unsupported as of Windows XP. Instead, use Windows Search for client side
 ///search and Microsoft Search Server Express for server side search.] Retrieves the IFilter interface pointer for the
@@ -356,6 +357,39 @@ HRESULT BindIFilterFromStream(IStream pStm, IUnknown pUnkOuter, void** ppIUnk);
 
 
 // Interfaces
+
+///> [!Note] > Indexing Service is no longer supported as of Windows XP and is unavailable for use as of Windows 8.
+///Instead, use [Windows Search](/windows/desktop/search/-search-3x-wds-overview) for client side search and [Microsoft
+///Search Server Express](https://www.microsoft.com/download/details.aspx?id=18914) for server side search. Handles
+///phrases that word breakers parse from query text during query time.
+@GUID("CC906FF0-C058-101A-B554-08002B33B0E6")
+interface IPhraseSink : IUnknown
+{
+    ///Puts a small query-time phrase in the IPhraseSink object for WordBreaker.
+    ///Params:
+    ///    pwcNoun = A pointer to a buffer that contains a word being modified.
+    ///    cwcNoun = The number of characters in <i>pwcNoun</i>. There is no limit on the size of a query-time phrase.
+    ///    pwcModifier = A pointer to the word modifying <i>pwcNoun</i>.
+    ///    cwcModifier = The number of characters in <i>pwcModifier</i>. There is no limit on the size of a query-time phrase.
+    ///    ulAttachmentType = A wordbreaker-specific value which a wordbreaker can use to store additional information about the method of
+    ///                       composition.
+    ///Returns:
+    ///    If this method succeeds, it returns <b>S_OK</b>. Otherwise, it returns an <b>HRESULT</b> error code.
+    ///    
+    HRESULT PutSmallPhrase(const(PWSTR) pwcNoun, uint cwcNoun, const(PWSTR) pwcModifier, uint cwcModifier, 
+                           uint ulAttachmentType);
+    ///Puts a query-time phrase in the IPhraseSink object.
+    ///Params:
+    ///    pwcPhrase = A pointer to a buffer that contains a phrase.
+    ///    cwcPhrase = The number of characters in <i>pwcPhrase</i>. There is no limit on the size of a query-time phrase.
+    ///Returns:
+    ///    This method can return one of these values. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The operation was completed
+    ///    successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>PSINK_E_QUERY_ONLY </b></dt> </dl> </td> <td
+    ///    width="60%"> PutPhrase was called at index time instead of query time. </td> </tr> </table>
+    ///    
+    HRESULT PutPhrase(const(PWSTR) pwcPhrase, uint cwcPhrase);
+}
 
 ///> [!Note] > Indexing Service is no longer supported as of Windows XP and is unavailable for use as of Windows 8.
 ///Instead, use [Windows Search](/windows/desktop/search/-search-3x-wds-overview) for client side search and [Microsoft
@@ -440,7 +474,7 @@ interface IFilter : IUnknown
     ///    method will return FILTER_E_NO_MORE_TEXT. This optimization can save time by eliminating unnecessary calls to
     ///    <b>GetText</b>. </td> </tr> </table>
     ///    
-    int GetText(uint* pcwcBuffer, ushort* awcBuffer);
+    int GetText(uint* pcwcBuffer, PWSTR awcBuffer);
     ///> [!Note] > Indexing Service is no longer supported as of Windows XP and is unavailable for use as of Windows 8.
     ///Instead, use [Windows Search](/windows/desktop/search/-search-3x-wds-overview) for client side search and
     ///[Microsoft Search Server Express](https://www.microsoft.com/download/details.aspx?id=18914) for server side
@@ -477,39 +511,6 @@ interface IFilter : IUnknown
     ///    region. </td> </tr> </table>
     ///    
     int BindRegion(FILTERREGION origPos, const(GUID)* riid, void** ppunk);
-}
-
-///> [!Note] > Indexing Service is no longer supported as of Windows XP and is unavailable for use as of Windows 8.
-///Instead, use [Windows Search](/windows/desktop/search/-search-3x-wds-overview) for client side search and [Microsoft
-///Search Server Express](https://www.microsoft.com/download/details.aspx?id=18914) for server side search. Handles
-///phrases that word breakers parse from query text during query time.
-@GUID("CC906FF0-C058-101A-B554-08002B33B0E6")
-interface IPhraseSink : IUnknown
-{
-    ///Puts a small query-time phrase in the IPhraseSink object for WordBreaker.
-    ///Params:
-    ///    pwcNoun = A pointer to a buffer that contains a word being modified.
-    ///    cwcNoun = The number of characters in <i>pwcNoun</i>. There is no limit on the size of a query-time phrase.
-    ///    pwcModifier = A pointer to the word modifying <i>pwcNoun</i>.
-    ///    cwcModifier = The number of characters in <i>pwcModifier</i>. There is no limit on the size of a query-time phrase.
-    ///    ulAttachmentType = A wordbreaker-specific value which a wordbreaker can use to store additional information about the method of
-    ///                       composition.
-    ///Returns:
-    ///    If this method succeeds, it returns <b>S_OK</b>. Otherwise, it returns an <b>HRESULT</b> error code.
-    ///    
-    HRESULT PutSmallPhrase(const(wchar)* pwcNoun, uint cwcNoun, const(wchar)* pwcModifier, uint cwcModifier, 
-                           uint ulAttachmentType);
-    ///Puts a query-time phrase in the IPhraseSink object.
-    ///Params:
-    ///    pwcPhrase = A pointer to a buffer that contains a phrase.
-    ///    cwcPhrase = The number of characters in <i>pwcPhrase</i>. There is no limit on the size of a query-time phrase.
-    ///Returns:
-    ///    This method can return one of these values. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
-    ///    <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The operation was completed
-    ///    successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>PSINK_E_QUERY_ONLY </b></dt> </dl> </td> <td
-    ///    width="60%"> PutPhrase was called at index time instead of query time. </td> </tr> </table>
-    ///    
-    HRESULT PutPhrase(const(wchar)* pwcPhrase, uint cwcPhrase);
 }
 
 

@@ -7,10 +7,10 @@ public import windows.automation : BSTR;
 public import windows.com : HRESULT, IUnknown;
 public import windows.gdi : HCOLORSPACE, HDC, HPALETTE, RGBTRIPLE;
 public import windows.kernel : LUID;
-public import windows.systemservices : BOOL, HANDLE;
+public import windows.systemservices : BOOL, HANDLE, PSTR, PWSTR;
 public import windows.windowsandmessaging : DLGPROC, HWND, LPARAM;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -244,7 +244,7 @@ enum : int
 ///    This function must return a positive value to continue enumeration, or zero to stop enumeration. It may not
 ///    return a negative value.
 ///    
-alias ICMENUMPROCA = int function(const(char)* param0, LPARAM param1);
+alias ICMENUMPROCA = int function(PSTR param0, LPARAM param1);
 ///The <b>EnumICMProfilesProcCallback</b> callback is an application-defined callback function that processes color
 ///profile data from <b>EnumICMProfiles</b> .
 ///Params:
@@ -254,7 +254,7 @@ alias ICMENUMPROCA = int function(const(char)* param0, LPARAM param1);
 ///    This function must return a positive value to continue enumeration, or zero to stop enumeration. It may not
 ///    return a negative value.
 ///    
-alias ICMENUMPROCW = int function(const(wchar)* param0, LPARAM param1);
+alias ICMENUMPROCW = int function(PWSTR param0, LPARAM param1);
 ///TBD
 ///Params:
 ///    Arg1 = TBD
@@ -648,7 +648,7 @@ union COLOR
     NAMEDCOLOR      named;
     ///TBD
     HiFiCOLOR       hifi;
-    struct
+struct
     {
         uint  reserved1;
         void* reserved2;
@@ -750,6 +750,80 @@ struct PROFILE
 struct ENUMTYPEA
 {
     ///The size of this structure in bytes.
+    uint        dwSize;
+    ///The version number of the **ENUMTYPE** structure. Should be set to ENUM\_TYPE\_VERSION.
+    uint        dwVersion;
+    ///Indicates which fields in this structure are being used. Can be set to any combination of the following constant
+    ///values. ET\_DEVICENAME ET\_MEDIATYPE ET\_DITHERMODE ET\_RESOLUTION ET\_CMMTYPE ET\_CLASS ET\_DATACOLORSPACE
+    ///ET\_CONNECTIONSPACE ET\_SIGNATURE ET\_PLATFORM ET\_PROFILEFLAGS ET\_MANUFACTURER ET\_MODEL ET\_ATTRIBUTES
+    ///ET\_RENDERINGINTENT ET\_CREATOR ET\_DEVICECLASS
+    uint        dwFields;
+    ///User friendly name of the device.
+    const(PSTR) pDeviceName;
+    ///Indicates which type of media is associated with the profile, such as a printer or screen.
+    uint        dwMediaType;
+    ///Indicates the style of dithering that will be used when an image is displayed.
+    uint        dwDitheringMode;
+    ///The horizontal (x) and vertical (y) resolution in pixels of the device on which the image will be displayed. The
+    ///x resolution is stored in **dwResolution\[0\]**, and the y resolution is kept in **dwResolution\[1\]**.
+    uint[2]     dwResolution;
+    ///The identification number of the CMM that is used in the profile. Identification numbers are registered with the
+    ///ICC.
+    uint        dwCMMType;
+    ///Indicates the profile class. For a description of profile classes, see [Using Device Profiles with
+    ///WCS](using-device-profiles-with-wcs.md). A profile class may have any of the following values. | Profile Class |
+    ///Signature | |--------------------------------|-------------------| | Input Device Profile | CLASS\_SCANNER | |
+    ///Display Device Profile | CLASS\_MONITOR | | Output Device Profile | CLASS\_PRINTER | | Device Link Profile |
+    ///CLASS\_LINK | | Color Space Conversion Profile | CLASS\_COLORSPACE | | Abstract Profile | CLASS\_ABSTRACT | |
+    ///Named Color Profile | CLASS\_NAMED | | Color Appearance Model Profile | CLASS\_CAMP | | Color Gamut Map Model
+    ///Profile | CLASS\_GMMP |
+    uint        dwClass;
+    ///A signature value that indicates the color space in which the profile data is defined. Can be any value from the
+    ///[Color Space Constants](color-space-constants.md).
+    uint        dwDataColorSpace;
+    ///A signature value that indicates the color space in which the profile connection space (PCS) is defined. Can be
+    ///any of the following values. | Profile Class | Signature | |---------------|------------| | XYZ | SPACE\_XYZ | |
+    ///Lab | SPACE\_Lab | When the **dwClass** member is set to CLASS\_LINK, the PCS is taken from the
+    ///**dwDataColorSpace** member.
+    uint        dwConnectionSpace;
+    ///Reserved for internal use.
+    uint        dwSignature;
+    ///The primary platform for which the profile was created. The member can be set to any of the following values. |
+    ///Platform | Value | |------------------------|--------| | Apple Computer, Inc. | 'APPL' | | Microsoft Corp. |
+    ///'MSFT' | | Silicon Graphics, Inc. | 'SGI' | | Sun Microsystems, Inc. | 'SUNW' | | Taligent | 'TGNT' |
+    uint        dwPlatform;
+    ///Bit flags containing hints that the CMM uses to interpret the profile data and can be set to one of the following
+    ///values. | Constant | Meaning |
+    ///|-----------------------|--------------------------------------------------------------------------------------------------------------------------|
+    ///| FLAG\_EMBEDDEDPROFILE | The profile is embedded in a bitmap file. | | FLAG\_DEPENDENTONDATA | The profile can't
+    ///be used independently of the embedded color data. Used for profiles that are embedded in bitmap files. |
+    uint        dwProfileFlags;
+    ///The identification number of the device profile manufacturer. All manufacturer identification numbers are
+    ///registered with the ICC.
+    uint        dwManufacturer;
+    ///The device manufacturer's device model number. All model identification numbers are registered with the ICC.
+    uint        dwModel;
+    ///Attributes of profile that can be any of the following values. | Constant | Meaning |
+    ///|----------------------|------------------------------------------------------------------------------------------|
+    ///| ATTRIB\_TRANSPARENCY | Turns transparency on. If this flag is not used, the attribute is reflective by default.
+    ///| | ATTRIB\_MATTE | Turns matte display on. If this flag is not used, the attribute is glossy by default. |
+    uint[2]     dwAttributes;
+    ///The profile rendering intent that can be set to one of the following values: INTENT\_PERCEPTUAL
+    ///INTENT\_SATURATION INTENT\_RELATIVE\_COLORIMETRIC INTENT\_ABSOLUTE\_COLORIMETRIC For more information, see
+    ///[Rendering intents](rendering-intents.md).
+    uint        dwRenderingIntent;
+    ///Signature of the software that created the profile. Signatures are registered with the ICC.
+    uint        dwCreator;
+    ///Indicates the device class. A device class may have one of the following values. | Profile Class | Signature |
+    ///|------------------------|----------------| | Input Device Profile | CLASS\_SCANNER | | Display Device Profile |
+    ///CLASS\_MONITOR | | Output Device Profile | CLASS\_PRINTER |
+    uint        dwDeviceClass;
+}
+
+///Contains information that defines the profile enumeration constraints.
+struct ENUMTYPEW
+{
+    ///The size of this structure in bytes.
     uint         dwSize;
     ///The version number of the **ENUMTYPE** structure. Should be set to ENUM\_TYPE\_VERSION.
     uint         dwVersion;
@@ -759,7 +833,7 @@ struct ENUMTYPEA
     ///ET\_RENDERINGINTENT ET\_CREATOR ET\_DEVICECLASS
     uint         dwFields;
     ///User friendly name of the device.
-    const(char)* pDeviceName;
+    const(PWSTR) pDeviceName;
     ///Indicates which type of media is associated with the profile, such as a printer or screen.
     uint         dwMediaType;
     ///Indicates the style of dithering that will be used when an image is displayed.
@@ -820,80 +894,6 @@ struct ENUMTYPEA
     uint         dwDeviceClass;
 }
 
-///Contains information that defines the profile enumeration constraints.
-struct ENUMTYPEW
-{
-    ///The size of this structure in bytes.
-    uint          dwSize;
-    ///The version number of the **ENUMTYPE** structure. Should be set to ENUM\_TYPE\_VERSION.
-    uint          dwVersion;
-    ///Indicates which fields in this structure are being used. Can be set to any combination of the following constant
-    ///values. ET\_DEVICENAME ET\_MEDIATYPE ET\_DITHERMODE ET\_RESOLUTION ET\_CMMTYPE ET\_CLASS ET\_DATACOLORSPACE
-    ///ET\_CONNECTIONSPACE ET\_SIGNATURE ET\_PLATFORM ET\_PROFILEFLAGS ET\_MANUFACTURER ET\_MODEL ET\_ATTRIBUTES
-    ///ET\_RENDERINGINTENT ET\_CREATOR ET\_DEVICECLASS
-    uint          dwFields;
-    ///User friendly name of the device.
-    const(wchar)* pDeviceName;
-    ///Indicates which type of media is associated with the profile, such as a printer or screen.
-    uint          dwMediaType;
-    ///Indicates the style of dithering that will be used when an image is displayed.
-    uint          dwDitheringMode;
-    ///The horizontal (x) and vertical (y) resolution in pixels of the device on which the image will be displayed. The
-    ///x resolution is stored in **dwResolution\[0\]**, and the y resolution is kept in **dwResolution\[1\]**.
-    uint[2]       dwResolution;
-    ///The identification number of the CMM that is used in the profile. Identification numbers are registered with the
-    ///ICC.
-    uint          dwCMMType;
-    ///Indicates the profile class. For a description of profile classes, see [Using Device Profiles with
-    ///WCS](using-device-profiles-with-wcs.md). A profile class may have any of the following values. | Profile Class |
-    ///Signature | |--------------------------------|-------------------| | Input Device Profile | CLASS\_SCANNER | |
-    ///Display Device Profile | CLASS\_MONITOR | | Output Device Profile | CLASS\_PRINTER | | Device Link Profile |
-    ///CLASS\_LINK | | Color Space Conversion Profile | CLASS\_COLORSPACE | | Abstract Profile | CLASS\_ABSTRACT | |
-    ///Named Color Profile | CLASS\_NAMED | | Color Appearance Model Profile | CLASS\_CAMP | | Color Gamut Map Model
-    ///Profile | CLASS\_GMMP |
-    uint          dwClass;
-    ///A signature value that indicates the color space in which the profile data is defined. Can be any value from the
-    ///[Color Space Constants](color-space-constants.md).
-    uint          dwDataColorSpace;
-    ///A signature value that indicates the color space in which the profile connection space (PCS) is defined. Can be
-    ///any of the following values. | Profile Class | Signature | |---------------|------------| | XYZ | SPACE\_XYZ | |
-    ///Lab | SPACE\_Lab | When the **dwClass** member is set to CLASS\_LINK, the PCS is taken from the
-    ///**dwDataColorSpace** member.
-    uint          dwConnectionSpace;
-    ///Reserved for internal use.
-    uint          dwSignature;
-    ///The primary platform for which the profile was created. The member can be set to any of the following values. |
-    ///Platform | Value | |------------------------|--------| | Apple Computer, Inc. | 'APPL' | | Microsoft Corp. |
-    ///'MSFT' | | Silicon Graphics, Inc. | 'SGI' | | Sun Microsystems, Inc. | 'SUNW' | | Taligent | 'TGNT' |
-    uint          dwPlatform;
-    ///Bit flags containing hints that the CMM uses to interpret the profile data and can be set to one of the following
-    ///values. | Constant | Meaning |
-    ///|-----------------------|--------------------------------------------------------------------------------------------------------------------------|
-    ///| FLAG\_EMBEDDEDPROFILE | The profile is embedded in a bitmap file. | | FLAG\_DEPENDENTONDATA | The profile can't
-    ///be used independently of the embedded color data. Used for profiles that are embedded in bitmap files. |
-    uint          dwProfileFlags;
-    ///The identification number of the device profile manufacturer. All manufacturer identification numbers are
-    ///registered with the ICC.
-    uint          dwManufacturer;
-    ///The device manufacturer's device model number. All model identification numbers are registered with the ICC.
-    uint          dwModel;
-    ///Attributes of profile that can be any of the following values. | Constant | Meaning |
-    ///|----------------------|------------------------------------------------------------------------------------------|
-    ///| ATTRIB\_TRANSPARENCY | Turns transparency on. If this flag is not used, the attribute is reflective by default.
-    ///| | ATTRIB\_MATTE | Turns matte display on. If this flag is not used, the attribute is glossy by default. |
-    uint[2]       dwAttributes;
-    ///The profile rendering intent that can be set to one of the following values: INTENT\_PERCEPTUAL
-    ///INTENT\_SATURATION INTENT\_RELATIVE\_COLORIMETRIC INTENT\_ABSOLUTE\_COLORIMETRIC For more information, see
-    ///[Rendering intents](rendering-intents.md).
-    uint          dwRenderingIntent;
-    ///Signature of the software that created the profile. Signatures are registered with the ICC.
-    uint          dwCreator;
-    ///Indicates the device class. A device class may have one of the following values. | Profile Class | Signature |
-    ///|------------------------|----------------| | Input Device Profile | CLASS\_SCANNER | | Display Device Profile |
-    ///CLASS\_MONITOR | | Output Device Profile | CLASS\_PRINTER |
-    uint          dwDeviceClass;
-}
-
 ///The **COLORMATCHSETUP** structure contains information that the
 ///[**SetupColorMatchingW**](/windows/win32/api/icm/nf-icm-setupcolormatchingw) function uses to initialize the
 ///**ColorManagement** dialog box. After the user closes the dialog box, **SetupColorMatching** returns information
@@ -948,13 +948,13 @@ struct COLORMATCHSETUPW
     ///Pointer to an application-specified string which describes the source profile of the item for which color
     ///management is to be performed. If this is **NULL**, the Image Source control displays the name of the Windows
     ///default color profile.
-    const(wchar)* pSourceName;
+    const(PWSTR)  pSourceName;
     ///Points to a string naming the monitor to be used for color management. If this is not the name of a valid
     ///monitor, the first enumerated monitor is used.
-    const(wchar)* pDisplayName;
+    const(PWSTR)  pDisplayName;
     ///Points to a string naming the printer on which the image is to be rendered. If this is not a valid printer name,
     ///the default printer is used and named in the dialog.
-    const(wchar)* pPrinterName;
+    const(PWSTR)  pPrinterName;
     ///The type of color management desired. Valid values are: INTENT\_PERCEPTUAL INTENT\_SATURATION
     ///INTENT\_RELATIVE\_COLORIMETRIC INTENT\_ABSOLUTE\_COLORIMETRIC For more information, see [Rendering
     ///intents](rendering-intents.md).
@@ -966,7 +966,7 @@ struct COLORMATCHSETUPW
     ///Pointer to a buffer in which to place the name of the user-selected monitor profile. If the
     ///CMS\_SETMONITORPROFILE flag is used, this flag can also be used to select a profile other than the monitor
     ///default when the dialog is first displayed.
-    const(wchar)* pMonitorProfile;
+    PWSTR         pMonitorProfile;
     ///The size of the buffer pointed to by the **pMonitorProfile** member, in characters. If the buffer is not large
     ///enough to hold the selected name, the name is truncated to this size, and ERROR\_INSUFFICIENT\_BUFFER is
     ///returned. A buffer of MAX\_PATH size always works.
@@ -974,7 +974,7 @@ struct COLORMATCHSETUPW
     ///Points to a buffer in which to place the name of the user-selected printer profile. If the CMS\_SETPRINTERPROFILE
     ///flag is used, this flag can also be used to select a profile other than the printer default when the dialog is
     ///first displayed.
-    const(wchar)* pPrinterProfile;
+    PWSTR         pPrinterProfile;
     ///The size of the buffer pointed to by the **pPrinterProfile** member, in characters. If the buffer is not large
     ///enough to hold the selected name, the name is truncated to this size, and ERROR\_INSUFFICIENT\_BUFFER is
     ///returned. A buffer of MAX\_PATH size always works.
@@ -982,7 +982,7 @@ struct COLORMATCHSETUPW
     ///Points to a buffer in which to place the name of the user-selected target profile for proofing. If the
     ///CMS\_SETTARGETPROFILE flag is used, this flag can also be used to select a profile other than the printer default
     ///when the dialog is first displayed.
-    const(wchar)* pTargetProfile;
+    PWSTR         pTargetProfile;
     ///The size of the buffer pointed to by the **pTargetProfile** member, in characters. If the buffer is not large
     ///enough to hold the selected name, the name is truncated to this size, and ERROR\_INSUFFICIENT\_BUFFER is
     ///returned. A buffer of MAX\_PATH size always works.
@@ -1061,13 +1061,13 @@ struct COLORMATCHSETUPA
     ///Pointer to an application-specified string which describes the source profile of the item for which color
     ///management is to be performed. If this is **NULL**, the Image Source control displays the name of the Windows
     ///default color profile.
-    const(char)*  pSourceName;
+    const(PSTR)   pSourceName;
     ///Points to a string naming the monitor to be used for color management. If this is not the name of a valid
     ///monitor, the first enumerated monitor is used.
-    const(char)*  pDisplayName;
+    const(PSTR)   pDisplayName;
     ///Points to a string naming the printer on which the image is to be rendered. If this is not a valid printer name,
     ///the default printer is used and named in the dialog.
-    const(char)*  pPrinterName;
+    const(PSTR)   pPrinterName;
     ///The type of color management desired. Valid values are: INTENT\_PERCEPTUAL INTENT\_SATURATION
     ///INTENT\_RELATIVE\_COLORIMETRIC INTENT\_ABSOLUTE\_COLORIMETRIC For more information, see [Rendering
     ///intents](rendering-intents.md).
@@ -1079,7 +1079,7 @@ struct COLORMATCHSETUPA
     ///Pointer to a buffer in which to place the name of the user-selected monitor profile. If the
     ///CMS\_SETMONITORPROFILE flag is used, this flag can also be used to select a profile other than the monitor
     ///default when the dialog is first displayed.
-    const(char)*  pMonitorProfile;
+    PSTR          pMonitorProfile;
     ///The size of the buffer pointed to by the **pMonitorProfile** member, in characters. If the buffer is not large
     ///enough to hold the selected name, the name is truncated to this size, and ERROR\_INSUFFICIENT\_BUFFER is
     ///returned. A buffer of MAX\_PATH size always works.
@@ -1087,7 +1087,7 @@ struct COLORMATCHSETUPA
     ///Points to a buffer in which to place the name of the user-selected printer profile. If the CMS\_SETPRINTERPROFILE
     ///flag is used, this flag can also be used to select a profile other than the printer default when the dialog is
     ///first displayed.
-    const(char)*  pPrinterProfile;
+    PSTR          pPrinterProfile;
     ///The size of the buffer pointed to by the **pPrinterProfile** member, in characters. If the buffer is not large
     ///enough to hold the selected name, the name is truncated to this size, and ERROR\_INSUFFICIENT\_BUFFER is
     ///returned. A buffer of MAX\_PATH size always works.
@@ -1095,7 +1095,7 @@ struct COLORMATCHSETUPA
     ///Points to a buffer in which to place the name of the user-selected target profile for proofing. If the
     ///CMS\_SETTARGETPROFILE flag is used, this flag can also be used to select a profile other than the printer default
     ///when the dialog is first displayed.
-    const(char)*  pTargetProfile;
+    PSTR          pTargetProfile;
     ///The size of the buffer pointed to by the **pTargetProfile** member, in characters. If the buffer is not large
     ///enough to hold the selected name, the name is truncated to this size, and ERROR\_INSUFFICIENT\_BUFFER is
     ///returned. A buffer of MAX\_PATH size always works.
@@ -1130,7 +1130,7 @@ struct XYYPoint
 struct WhitePoint
 {
     int type;
-    union
+union
     {
         XYYPoint xyY;
         float    CCT;
@@ -1197,7 +1197,7 @@ int SetICMMode(HDC hdc, int mode);
 ///    If this function succeeds, the return value is a nonzero value. If this function fails, the return value is zero.
 ///    
 @DllImport("GDI32")
-BOOL CheckColorsInGamut(HDC hdc, char* lpRGBTriple, char* dlpBuffer, uint nCount);
+BOOL CheckColorsInGamut(HDC hdc, RGBTRIPLE* lpRGBTriple, void* dlpBuffer, uint nCount);
 
 ///The <b>GetColorSpace</b> function retrieves the handle to the input color space from a specified device context.
 ///Params:
@@ -1218,7 +1218,7 @@ HCOLORSPACE GetColorSpace(HDC hdc);
 ///    If this function succeeds, the return value is TRUE. If this function fails, the return value is <b>FALSE</b>.
 ///    
 @DllImport("GDI32")
-BOOL GetLogColorSpaceA(HCOLORSPACE hColorSpace, char* lpBuffer, uint nSize);
+BOOL GetLogColorSpaceA(HCOLORSPACE hColorSpace, LOGCOLORSPACEA* lpBuffer, uint nSize);
 
 ///The <b>GetLogColorSpace</b> function retrieves the color space definition identified by a specified handle.
 ///Params:
@@ -1229,7 +1229,7 @@ BOOL GetLogColorSpaceA(HCOLORSPACE hColorSpace, char* lpBuffer, uint nSize);
 ///    If this function succeeds, the return value is TRUE. If this function fails, the return value is <b>FALSE</b>.
 ///    
 @DllImport("GDI32")
-BOOL GetLogColorSpaceW(HCOLORSPACE hColorSpace, char* lpBuffer, uint nSize);
+BOOL GetLogColorSpaceW(HCOLORSPACE hColorSpace, LOGCOLORSPACEW* lpBuffer, uint nSize);
 
 ///The <b>CreateColorSpace</b> function creates a logical color space.
 ///Params:
@@ -1289,7 +1289,7 @@ BOOL DeleteColorSpace(HCOLORSPACE hcs);
 ///    If this function fails, the return value is <b>FALSE</b>.
 ///    
 @DllImport("GDI32")
-BOOL GetICMProfileA(HDC hdc, uint* pBufSize, const(char)* pszFilename);
+BOOL GetICMProfileA(HDC hdc, uint* pBufSize, PSTR pszFilename);
 
 ///The <b>GetICMProfile</b> function retrieves the file name of the current output color profile for a specified device
 ///context.
@@ -1308,7 +1308,7 @@ BOOL GetICMProfileA(HDC hdc, uint* pBufSize, const(char)* pszFilename);
 ///    If this function fails, the return value is <b>FALSE</b>.
 ///    
 @DllImport("GDI32")
-BOOL GetICMProfileW(HDC hdc, uint* pBufSize, const(wchar)* pszFilename);
+BOOL GetICMProfileW(HDC hdc, uint* pBufSize, PWSTR pszFilename);
 
 ///The <b>SetICMProfile</b> function sets a specified color profile as the output profile for a specified device context
 ///(DC).
@@ -1320,7 +1320,7 @@ BOOL GetICMProfileW(HDC hdc, uint* pBufSize, const(wchar)* pszFilename);
 ///    <b>FALSE</b>.
 ///    
 @DllImport("GDI32")
-BOOL SetICMProfileA(HDC hdc, const(char)* lpFileName);
+BOOL SetICMProfileA(HDC hdc, PSTR lpFileName);
 
 ///The <b>SetICMProfile</b> function sets a specified color profile as the output profile for a specified device context
 ///(DC).
@@ -1332,7 +1332,7 @@ BOOL SetICMProfileA(HDC hdc, const(char)* lpFileName);
 ///    <b>FALSE</b>.
 ///    
 @DllImport("GDI32")
-BOOL SetICMProfileW(HDC hdc, const(wchar)* lpFileName);
+BOOL SetICMProfileW(HDC hdc, PWSTR lpFileName);
 
 ///The <b>GetDeviceGammaRamp</b> function gets the gamma ramp on direct color display boards having drivers that support
 ///downloadable gamma ramps in hardware. > [!IMPORTANT] > We strongly recommend that you don't use this API. Use of this
@@ -1347,7 +1347,7 @@ BOOL SetICMProfileW(HDC hdc, const(wchar)* lpFileName);
 ///    <b>FALSE</b>.
 ///    
 @DllImport("GDI32")
-BOOL GetDeviceGammaRamp(HDC hdc, char* lpRamp);
+BOOL GetDeviceGammaRamp(HDC hdc, void* lpRamp);
 
 ///The <b>SetDeviceGammaRamp</b> function sets the gamma ramp on direct color display boards having drivers that support
 ///downloadable gamma ramps in hardware. > [!IMPORTANT] > We strongly recommend that you don't use this API. Use of this
@@ -1382,7 +1382,7 @@ BOOL GetDeviceGammaRamp(HDC hdc, char* lpRamp);
 ///    <b>FALSE</b>.
 ///    
 @DllImport("GDI32")
-BOOL SetDeviceGammaRamp(HDC hdc, char* lpRamp);
+BOOL SetDeviceGammaRamp(HDC hdc, void* lpRamp);
 
 ///The <b>ColorMatchToTarget</b> function enables you to preview colors as they would appear on the target device.
 ///Params:
@@ -1465,7 +1465,7 @@ int EnumICMProfilesW(HDC hdc, ICMENUMPROCW proc, LPARAM param2);
 ///    <b>FALSE</b>.
 ///    
 @DllImport("GDI32")
-BOOL UpdateICMRegKeyA(uint reserved, const(char)* lpszCMID, const(char)* lpszFileName, uint command);
+BOOL UpdateICMRegKeyA(uint reserved, PSTR lpszCMID, PSTR lpszFileName, uint command);
 
 ///<i>(Obsolete; retained for backward compatibility)</i> The <b>UpdateICMRegKey</b> function manages color profiles and
 ///Color Management Modules in the system.
@@ -1498,7 +1498,7 @@ BOOL UpdateICMRegKeyA(uint reserved, const(char)* lpszCMID, const(char)* lpszFil
 ///    <b>FALSE</b>.
 ///    
 @DllImport("GDI32")
-BOOL UpdateICMRegKeyW(uint reserved, const(wchar)* lpszCMID, const(wchar)* lpszFileName, uint command);
+BOOL UpdateICMRegKeyW(uint reserved, PWSTR lpszCMID, PWSTR lpszFileName, uint command);
 
 ///The <b>ColorCorrectPalette</b> function corrects the entries of a palette using the WCS 1.0 parameters in the
 ///specified device context.
@@ -1622,7 +1622,7 @@ BOOL CloseColorProfile(ptrdiff_t hProfile);
 ///    is **FALSE**. For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL GetColorProfileFromHandle(ptrdiff_t hProfile, char* pProfile, uint* pcbProfile);
+BOOL GetColorProfileFromHandle(ptrdiff_t hProfile, ubyte* pProfile, uint* pcbProfile);
 
 ///Allows you to determine whether the specified profile is a valid International Color Consortium (ICC) profile, or a
 ///valid Windows Color System (WCS) profile handle that can be used for color management. WCS profile validation doesn't
@@ -1639,7 +1639,7 @@ BOOL GetColorProfileFromHandle(ptrdiff_t hProfile, char* pProfile, uint* pcbProf
 ///    **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL IsColorProfileValid(ptrdiff_t hProfile, int* pbValid);
+BOOL IsColorProfileValid(ptrdiff_t hProfile, BOOL* pbValid);
 
 ///Converts a logical [color space](c.md) to a [device profile](d.md).
 ///Params:
@@ -1725,7 +1725,7 @@ BOOL GetColorProfileElementTag(ptrdiff_t hProfile, uint dwIndex, uint* pTag);
 ///    For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL IsColorProfileTagPresent(ptrdiff_t hProfile, uint tag, int* pbPresent);
+BOOL IsColorProfileTagPresent(ptrdiff_t hProfile, uint tag, BOOL* pbPresent);
 
 ///Copies data from a specified tagged profile element of a specified color profile into a buffer.
 ///Params:
@@ -1745,8 +1745,8 @@ BOOL IsColorProfileTagPresent(ptrdiff_t hProfile, uint tag, int* pbPresent);
 ///    For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL GetColorProfileElement(ptrdiff_t hProfile, uint tag, uint dwOffset, uint* pcbElement, char* pElement, 
-                            int* pbReference);
+BOOL GetColorProfileElement(ptrdiff_t hProfile, uint tag, uint dwOffset, uint* pcbElement, void* pElement, 
+                            BOOL* pbReference);
 
 ///Sets the header data in a specified ICC color profile.
 ///Params:
@@ -1757,7 +1757,7 @@ BOOL GetColorProfileElement(ptrdiff_t hProfile, uint tag, uint dwOffset, uint* p
 ///    For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL SetColorProfileHeader(ptrdiff_t hProfile, char* pHeader);
+BOOL SetColorProfileHeader(ptrdiff_t hProfile, PROFILEHEADER* pHeader);
 
 ///Sets the size of a tagged element in an ICC color profile.
 ///Params:
@@ -1785,7 +1785,7 @@ BOOL SetColorProfileElementSize(ptrdiff_t hProfile, uint tagType, uint pcbElemen
 ///    For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL SetColorProfileElement(ptrdiff_t hProfile, uint tag, uint dwOffset, uint* pcbElement, char* pElement);
+BOOL SetColorProfileElement(ptrdiff_t hProfile, uint tag, uint dwOffset, uint* pcbElement, void* pElement);
 
 ///Creates in a specified ICC color profile a new tag that references the same data as an existing tag.
 ///Params:
@@ -1819,8 +1819,8 @@ BOOL SetColorProfileElementReference(ptrdiff_t hProfile, uint newTag, uint refTa
 ///    is **FALSE**. For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL GetPS2ColorSpaceArray(ptrdiff_t hProfile, uint dwIntent, uint dwCSAType, char* pPS2ColorSpaceArray, 
-                           uint* pcbPS2ColorSpaceArray, int* pbBinary);
+BOOL GetPS2ColorSpaceArray(ptrdiff_t hProfile, uint dwIntent, uint dwCSAType, ubyte* pPS2ColorSpaceArray, 
+                           uint* pcbPS2ColorSpaceArray, BOOL* pbBinary);
 
 ///Retrieves the PostScript Level 2 color [rendering intent](r.md) from an ICC color profile.
 ///Params:
@@ -1839,7 +1839,8 @@ BOOL GetPS2ColorSpaceArray(ptrdiff_t hProfile, uint dwIntent, uint dwCSAType, ch
 ///    **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL GetPS2ColorRenderingIntent(ptrdiff_t hProfile, uint dwIntent, char* pBuffer, uint* pcbPS2ColorRenderingIntent);
+BOOL GetPS2ColorRenderingIntent(ptrdiff_t hProfile, uint dwIntent, ubyte* pBuffer, 
+                                uint* pcbPS2ColorRenderingIntent);
 
 ///Retrieves the PostScript Level 2 color rendering dictionary from the specified ICC color profile.
 ///Params:
@@ -1860,8 +1861,8 @@ BOOL GetPS2ColorRenderingIntent(ptrdiff_t hProfile, uint dwIntent, char* pBuffer
 ///    is **FALSE**.
 ///    
 @DllImport("mscms")
-BOOL GetPS2ColorRenderingDictionary(ptrdiff_t hProfile, uint dwIntent, char* pPS2ColorRenderingDictionary, 
-                                    uint* pcbPS2ColorRenderingDictionary, int* pbBinary);
+BOOL GetPS2ColorRenderingDictionary(ptrdiff_t hProfile, uint dwIntent, ubyte* pPS2ColorRenderingDictionary, 
+                                    uint* pcbPS2ColorRenderingDictionary, BOOL* pbBinary);
 
 ///Retrieves information about the International Color Consortium (ICC) named color profile that is specified in the
 ///first parameter.
@@ -1872,7 +1873,7 @@ BOOL GetPS2ColorRenderingDictionary(ptrdiff_t hProfile, uint dwIntent, char* pPS
 ///    If this function succeeds, the return value is **TRUE**. If this function fails, the return value is **FALSE**.
 ///    
 @DllImport("mscms")
-BOOL GetNamedProfileInfo(ptrdiff_t hProfile, char* pNamedProfileInfo);
+BOOL GetNamedProfileInfo(ptrdiff_t hProfile, NAMED_PROFILE_INFO* pNamedProfileInfo);
 
 ///Converts color names in a named color space to index numbers in an International Color Consortium (ICC) color
 ///profile.
@@ -1887,7 +1888,7 @@ BOOL GetNamedProfileInfo(ptrdiff_t hProfile, char* pNamedProfileInfo);
 ///    the return value is **FALSE**.
 ///    
 @DllImport("mscms")
-BOOL ConvertColorNameToIndex(ptrdiff_t hProfile, char* paColorName, char* paIndex, uint dwCount);
+BOOL ConvertColorNameToIndex(ptrdiff_t hProfile, byte** paColorName, uint* paIndex, uint dwCount);
 
 ///Transforms indices in a color space to an array of names in a named color space.
 ///Params:
@@ -1900,7 +1901,7 @@ BOOL ConvertColorNameToIndex(ptrdiff_t hProfile, char* paColorName, char* paInde
 ///    value is **FALSE**.
 ///    
 @DllImport("mscms")
-BOOL ConvertIndexToColorName(ptrdiff_t hProfile, char* paIndex, char* paColorName, uint dwCount);
+BOOL ConvertIndexToColorName(ptrdiff_t hProfile, uint* paIndex, byte** paColorName, uint dwCount);
 
 ///Creates an International Color Consortium (ICC) *device link profile* from a set of color profiles, using the
 ///specified intents.
@@ -1924,7 +1925,7 @@ BOOL ConvertIndexToColorName(ptrdiff_t hProfile, char* paIndex, char* paColorNam
 ///    For extended error information, call GetLastError.
 ///    
 @DllImport("mscms")
-BOOL CreateDeviceLinkProfile(char* hProfile, uint nProfiles, char* padwIntent, uint nIntents, uint dwFlags, 
+BOOL CreateDeviceLinkProfile(ptrdiff_t* hProfile, uint nProfiles, uint* padwIntent, uint nIntents, uint dwFlags, 
                              ubyte** pProfileData, uint indexPreferredCMM);
 
 ///Creates a color transform that applications can use to perform color management.
@@ -1993,7 +1994,7 @@ ptrdiff_t CreateColorTransformW(LOGCOLORSPACEW* pLogColorSpace, ptrdiff_t hDestP
 ///    return value is **NULL**. For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-ptrdiff_t CreateMultiProfileTransform(char* pahProfiles, uint nProfiles, char* padwIntent, uint nIntents, 
+ptrdiff_t CreateMultiProfileTransform(ptrdiff_t* pahProfiles, uint nProfiles, uint* padwIntent, uint nIntents, 
                                       uint dwFlags, uint indexPreferredCMM);
 
 ///Deletes a given color transform.
@@ -2057,7 +2058,7 @@ BOOL TranslateBitmapBits(ptrdiff_t hColorTransform, void* pSrcBits, BMFORMAT bmI
 ///    
 @DllImport("mscms")
 BOOL CheckBitmapBits(ptrdiff_t hColorTransform, void* pSrcBits, BMFORMAT bmInput, uint dwWidth, uint dwHeight, 
-                     uint dwStride, char* paResult, PBMCALLBACKFN pfnCallback, LPARAM lpCallbackData);
+                     uint dwStride, ubyte* paResult, PBMCALLBACKFN pfnCallback, LPARAM lpCallbackData);
 
 ///Translates an array of colors from the source [color space](c.md) to the destination color space as defined by a
 ///color transform.
@@ -2073,8 +2074,8 @@ BOOL CheckBitmapBits(ptrdiff_t hColorTransform, void* pSrcBits, BMFORMAT bmInput
 ///    For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL TranslateColors(ptrdiff_t hColorTransform, char* paInputColors, uint nColors, COLORTYPE ctInput, 
-                     char* paOutputColors, COLORTYPE ctOutput);
+BOOL TranslateColors(ptrdiff_t hColorTransform, COLOR* paInputColors, uint nColors, COLORTYPE ctInput, 
+                     COLOR* paOutputColors, COLORTYPE ctOutput);
 
 ///Determines whether the colors in an array lie within the output [gamut](/windows/win32/wcs/g) of a specified
 ///transform.
@@ -2089,7 +2090,7 @@ BOOL TranslateColors(ptrdiff_t hColorTransform, char* paInputColors, uint nColor
 ///    For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL CheckColors(ptrdiff_t hColorTransform, char* paInputColors, uint nColors, COLORTYPE ctInput, char* paResult);
+BOOL CheckColors(ptrdiff_t hColorTransform, COLOR* paInputColors, uint nColors, COLORTYPE ctInput, ubyte* paResult);
 
 ///Retrieves various information about the color management module (CMM) that created the specified color transform.
 ///Params:
@@ -2122,7 +2123,7 @@ uint GetCMMInfo(ptrdiff_t hColorTransform, uint param1);
 ///    For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL RegisterCMMA(const(char)* pMachineName, uint cmmID, const(char)* pCMMdll);
+BOOL RegisterCMMA(const(PSTR) pMachineName, uint cmmID, const(PSTR) pCMMdll);
 
 ///Associates a specified identification value with the specified color management module dynamic link library (CMM
 ///DLL). When this ID appears in a color profile, Windows can then locate the corresponding CMM so as to create a
@@ -2138,7 +2139,7 @@ BOOL RegisterCMMA(const(char)* pMachineName, uint cmmID, const(char)* pCMMdll);
 ///    For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL RegisterCMMW(const(wchar)* pMachineName, uint cmmID, const(wchar)* pCMMdll);
+BOOL RegisterCMMW(const(PWSTR) pMachineName, uint cmmID, const(PWSTR) pCMMdll);
 
 ///Dissociates a specified ID value from a given color management module dynamic-link library (CMM DLL).
 ///Params:
@@ -2152,7 +2153,7 @@ BOOL RegisterCMMW(const(wchar)* pMachineName, uint cmmID, const(wchar)* pCMMdll)
 ///    For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL UnregisterCMMA(const(char)* pMachineName, uint cmmID);
+BOOL UnregisterCMMA(const(PSTR) pMachineName, uint cmmID);
 
 ///Dissociates a specified ID value from a given color management module dynamic-link library (CMM DLL).
 ///Params:
@@ -2166,7 +2167,7 @@ BOOL UnregisterCMMA(const(char)* pMachineName, uint cmmID);
 ///    For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL UnregisterCMMW(const(wchar)* pMachineName, uint cmmID);
+BOOL UnregisterCMMW(const(PWSTR) pMachineName, uint cmmID);
 
 ///Allows you to select the preferred color management module (CMM) to use.
 ///Params:
@@ -2191,7 +2192,7 @@ BOOL SelectCMM(uint dwCMMType);
 ///    For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL GetColorDirectoryA(const(char)* pMachineName, const(char)* pBuffer, uint* pdwSize);
+BOOL GetColorDirectoryA(const(PSTR) pMachineName, PSTR pBuffer, uint* pdwSize);
 
 ///Retrieves the path of the Windows COLOR directory on a specified machine.
 ///Params:
@@ -2205,7 +2206,7 @@ BOOL GetColorDirectoryA(const(char)* pMachineName, const(char)* pBuffer, uint* p
 ///    For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL GetColorDirectoryW(const(wchar)* pMachineName, const(wchar)* pBuffer, uint* pdwSize);
+BOOL GetColorDirectoryW(const(PWSTR) pMachineName, PWSTR pBuffer, uint* pdwSize);
 
 ///Installs a given profile for use on a specified machine. The profile is also copied to the COLOR directory.
 ///Params:
@@ -2217,7 +2218,7 @@ BOOL GetColorDirectoryW(const(wchar)* pMachineName, const(wchar)* pBuffer, uint*
 ///    For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL InstallColorProfileA(const(char)* pMachineName, const(char)* pProfileName);
+BOOL InstallColorProfileA(const(PSTR) pMachineName, const(PSTR) pProfileName);
 
 ///Installs a given profile for use on a specified machine. The profile is also copied to the COLOR directory.
 ///Params:
@@ -2229,7 +2230,7 @@ BOOL InstallColorProfileA(const(char)* pMachineName, const(char)* pProfileName);
 ///    For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL InstallColorProfileW(const(wchar)* pMachineName, const(wchar)* pProfileName);
+BOOL InstallColorProfileW(const(PWSTR) pMachineName, const(PWSTR) pProfileName);
 
 ///Removes a specified color profile from a specified computer. Associated files are optionally deleted from the system.
 ///Params:
@@ -2243,7 +2244,7 @@ BOOL InstallColorProfileW(const(wchar)* pMachineName, const(wchar)* pProfileName
 ///    For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL UninstallColorProfileA(const(char)* pMachineName, const(char)* pProfileName, BOOL bDelete);
+BOOL UninstallColorProfileA(const(PSTR) pMachineName, const(PSTR) pProfileName, BOOL bDelete);
 
 ///Removes a specified color profile from a specified computer. Associated files are optionally deleted from the system.
 ///Params:
@@ -2257,7 +2258,7 @@ BOOL UninstallColorProfileA(const(char)* pMachineName, const(char)* pProfileName
 ///    For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL UninstallColorProfileW(const(wchar)* pMachineName, const(wchar)* pProfileName, BOOL bDelete);
+BOOL UninstallColorProfileW(const(PWSTR) pMachineName, const(PWSTR) pProfileName, BOOL bDelete);
 
 ///Enumerates all the profiles satisfying the given enumeration criteria.
 ///Params:
@@ -2275,7 +2276,7 @@ BOOL UninstallColorProfileW(const(wchar)* pMachineName, const(wchar)* pProfileNa
 ///    [GetLastError](/windows/win32/api/errhandlingapi/nf-errhandlingapi-getlasterror).
 ///    
 @DllImport("mscms")
-BOOL EnumColorProfilesA(const(char)* pMachineName, ENUMTYPEA* pEnumRecord, char* pEnumerationBuffer, 
+BOOL EnumColorProfilesA(const(PSTR) pMachineName, ENUMTYPEA* pEnumRecord, ubyte* pEnumerationBuffer, 
                         uint* pdwSizeOfEnumerationBuffer, uint* pnProfiles);
 
 ///Enumerates all the profiles satisfying the given enumeration criteria.
@@ -2294,7 +2295,7 @@ BOOL EnumColorProfilesA(const(char)* pMachineName, ENUMTYPEA* pEnumRecord, char*
 ///    [GetLastError](/windows/win32/api/errhandlingapi/nf-errhandlingapi-getlasterror).
 ///    
 @DllImport("mscms")
-BOOL EnumColorProfilesW(const(wchar)* pMachineName, ENUMTYPEW* pEnumRecord, char* pEnumerationBuffer, 
+BOOL EnumColorProfilesW(const(PWSTR) pMachineName, ENUMTYPEW* pEnumRecord, ubyte* pEnumerationBuffer, 
                         uint* pdwSizeOfEnumerationBuffer, uint* pnProfiles);
 
 ///Registers a specified profile for a given standard [color space](c.md). The profile can be queried using
@@ -2311,7 +2312,7 @@ BOOL EnumColorProfilesW(const(wchar)* pMachineName, ENUMTYPEW* pEnumRecord, char
 ///    [GetLastError](/windows/win32/api/errhandlingapi/nf-errhandlingapi-getlasterror).
 ///    
 @DllImport("mscms")
-BOOL SetStandardColorSpaceProfileA(const(char)* pMachineName, uint dwProfileID, const(char)* pProfilename);
+BOOL SetStandardColorSpaceProfileA(const(PSTR) pMachineName, uint dwProfileID, const(PSTR) pProfilename);
 
 ///Registers a specified profile for a given standard [color space](c.md). The profile can be queried using
 ///[GetStandardColorSpaceProfileW](/windows/win32/api/icm/nf-icm-getstandardcolorspaceprofilew).
@@ -2327,7 +2328,7 @@ BOOL SetStandardColorSpaceProfileA(const(char)* pMachineName, uint dwProfileID, 
 ///    [GetLastError](/windows/win32/api/errhandlingapi/nf-errhandlingapi-getlasterror).
 ///    
 @DllImport("mscms")
-BOOL SetStandardColorSpaceProfileW(const(wchar)* pMachineName, uint dwProfileID, const(wchar)* pProfileName);
+BOOL SetStandardColorSpaceProfileW(const(PWSTR) pMachineName, uint dwProfileID, const(PWSTR) pProfileName);
 
 ///Retrieves the color profile registered for the specified standard [color space](c.md).
 ///Params:
@@ -2344,7 +2345,7 @@ BOOL SetStandardColorSpaceProfileW(const(wchar)* pMachineName, uint dwProfileID,
 ///    For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL GetStandardColorSpaceProfileA(const(char)* pMachineName, uint dwSCS, const(char)* pBuffer, uint* pcbSize);
+BOOL GetStandardColorSpaceProfileA(const(PSTR) pMachineName, uint dwSCS, PSTR pBuffer, uint* pcbSize);
 
 ///Retrieves the color profile registered for the specified standard [color space](c.md).
 ///Params:
@@ -2361,7 +2362,7 @@ BOOL GetStandardColorSpaceProfileA(const(char)* pMachineName, uint dwSCS, const(
 ///    For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL GetStandardColorSpaceProfileW(const(wchar)* pMachineName, uint dwSCS, const(wchar)* pBuffer, uint* pcbSize);
+BOOL GetStandardColorSpaceProfileW(const(PWSTR) pMachineName, uint dwSCS, PWSTR pBuffer, uint* pcbSize);
 
 ///Associates a specified color profile with a specified device.
 ///Params:
@@ -2375,8 +2376,7 @@ BOOL GetStandardColorSpaceProfileW(const(wchar)* pMachineName, uint dwSCS, const
 ///    [GetLastError](/windows/win32/api/errhandlingapi/nf-errhandlingapi-getlasterror).
 ///    
 @DllImport("mscms")
-BOOL AssociateColorProfileWithDeviceA(const(char)* pMachineName, const(char)* pProfileName, 
-                                      const(char)* pDeviceName);
+BOOL AssociateColorProfileWithDeviceA(const(PSTR) pMachineName, const(PSTR) pProfileName, const(PSTR) pDeviceName);
 
 ///Associates a specified color profile with a specified device.
 ///Params:
@@ -2390,8 +2390,8 @@ BOOL AssociateColorProfileWithDeviceA(const(char)* pMachineName, const(char)* pP
 ///    [GetLastError](/windows/win32/api/errhandlingapi/nf-errhandlingapi-getlasterror).
 ///    
 @DllImport("mscms")
-BOOL AssociateColorProfileWithDeviceW(const(wchar)* pMachineName, const(wchar)* pProfileName, 
-                                      const(wchar)* pDeviceName);
+BOOL AssociateColorProfileWithDeviceW(const(PWSTR) pMachineName, const(PWSTR) pProfileName, 
+                                      const(PWSTR) pDeviceName);
 
 ///Disassociates a specified color profile with a specified device on a specified computer.
 ///Params:
@@ -2404,8 +2404,8 @@ BOOL AssociateColorProfileWithDeviceW(const(wchar)* pMachineName, const(wchar)* 
 ///    For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL DisassociateColorProfileFromDeviceA(const(char)* pMachineName, const(char)* pProfileName, 
-                                         const(char)* pDeviceName);
+BOOL DisassociateColorProfileFromDeviceA(const(PSTR) pMachineName, const(PSTR) pProfileName, 
+                                         const(PSTR) pDeviceName);
 
 ///Disassociates a specified color profile with a specified device on a specified computer.
 ///Params:
@@ -2418,8 +2418,8 @@ BOOL DisassociateColorProfileFromDeviceA(const(char)* pMachineName, const(char)*
 ///    For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL DisassociateColorProfileFromDeviceW(const(wchar)* pMachineName, const(wchar)* pProfileName, 
-                                         const(wchar)* pDeviceName);
+BOOL DisassociateColorProfileFromDeviceW(const(PWSTR) pMachineName, const(PWSTR) pProfileName, 
+                                         const(PWSTR) pDeviceName);
 
 ///Creates a Color Management dialog box that lets the user choose whether to enable color management and, if so,
 ///provides control over the color profiles used and over the [rendering intent](r.md).
@@ -2434,7 +2434,7 @@ BOOL DisassociateColorProfileFromDeviceW(const(wchar)* pMachineName, const(wchar
 ///    dialog was canceled. For extended error information, call **GetLastError**.
 ///    
 @DllImport("ICMUI")
-BOOL SetupColorMatchingW(char* pcms);
+BOOL SetupColorMatchingW(COLORMATCHSETUPW* pcms);
 
 ///Creates a Color Management dialog box that lets the user choose whether to enable color management and, if so,
 ///provides control over the color profiles used and over the [rendering intent](r.md).
@@ -2449,7 +2449,7 @@ BOOL SetupColorMatchingW(char* pcms);
 ///    dialog was canceled. For extended error information, call **GetLastError**.
 ///    
 @DllImport("ICMUI")
-BOOL SetupColorMatchingA(char* pcms);
+BOOL SetupColorMatchingA(COLORMATCHSETUPA* pcms);
 
 ///Associates a specified WCS color profile with a specified device.
 ///Params:
@@ -2462,8 +2462,8 @@ BOOL SetupColorMatchingA(char* pcms);
 ///    For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL WcsAssociateColorProfileWithDevice(WCS_PROFILE_MANAGEMENT_SCOPE scope_, const(wchar)* pProfileName, 
-                                        const(wchar)* pDeviceName);
+BOOL WcsAssociateColorProfileWithDevice(WCS_PROFILE_MANAGEMENT_SCOPE scope_, const(PWSTR) pProfileName, 
+                                        const(PWSTR) pDeviceName);
 
 ///Disassociates a specified WCS color profile from a specified device on a computer.
 ///Params:
@@ -2476,8 +2476,8 @@ BOOL WcsAssociateColorProfileWithDevice(WCS_PROFILE_MANAGEMENT_SCOPE scope_, con
 ///    For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL WcsDisassociateColorProfileFromDevice(WCS_PROFILE_MANAGEMENT_SCOPE scope_, const(wchar)* pProfileName, 
-                                           const(wchar)* pDeviceName);
+BOOL WcsDisassociateColorProfileFromDevice(WCS_PROFILE_MANAGEMENT_SCOPE scope_, const(PWSTR) pProfileName, 
+                                           const(PWSTR) pDeviceName);
 
 ///Returns the size, in bytes, of the buffer that is required by the
 ///[**WcsEnumColorProfiles**](/windows/win32/api/icm/nf-icm-wcsenumcolorprofiles) function to enumerate color profiles.
@@ -2510,7 +2510,7 @@ BOOL WcsEnumColorProfilesSize(WCS_PROFILE_MANAGEMENT_SCOPE scope_, ENUMTYPEW* pE
 ///    For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL WcsEnumColorProfiles(WCS_PROFILE_MANAGEMENT_SCOPE scope_, ENUMTYPEW* pEnumRecord, char* pBuffer, uint dwSize, 
+BOOL WcsEnumColorProfiles(WCS_PROFILE_MANAGEMENT_SCOPE scope_, ENUMTYPEW* pEnumRecord, ubyte* pBuffer, uint dwSize, 
                           uint* pnProfiles);
 
 ///Returns the size, in bytes, of the default color profile name (including the **NULL** terminator), for a device.
@@ -2530,7 +2530,7 @@ BOOL WcsEnumColorProfiles(WCS_PROFILE_MANAGEMENT_SCOPE scope_, ENUMTYPEW* pEnumR
 ///    For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL WcsGetDefaultColorProfileSize(WCS_PROFILE_MANAGEMENT_SCOPE scope_, const(wchar)* pDeviceName, 
+BOOL WcsGetDefaultColorProfileSize(WCS_PROFILE_MANAGEMENT_SCOPE scope_, const(PWSTR) pDeviceName, 
                                    COLORPROFILETYPE cptColorProfileType, COLORPROFILESUBTYPE cpstColorProfileSubType, 
                                    uint dwProfileID, uint* pcbProfileName);
 
@@ -2552,9 +2552,9 @@ BOOL WcsGetDefaultColorProfileSize(WCS_PROFILE_MANAGEMENT_SCOPE scope_, const(wc
 ///    For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL WcsGetDefaultColorProfile(WCS_PROFILE_MANAGEMENT_SCOPE scope_, const(wchar)* pDeviceName, 
+BOOL WcsGetDefaultColorProfile(WCS_PROFILE_MANAGEMENT_SCOPE scope_, const(PWSTR) pDeviceName, 
                                COLORPROFILETYPE cptColorProfileType, COLORPROFILESUBTYPE cpstColorProfileSubType, 
-                               uint dwProfileID, uint cbProfileName, const(wchar)* pProfileName);
+                               uint dwProfileID, uint cbProfileName, PWSTR pProfileName);
 
 ///Sets the default color profile name for the specified profile type in the specified profile management scope.
 ///Params:
@@ -2575,9 +2575,9 @@ BOOL WcsGetDefaultColorProfile(WCS_PROFILE_MANAGEMENT_SCOPE scope_, const(wchar)
 ///    [GetLastError](/windows/win32/api/errhandlingapi/nf-errhandlingapi-getlasterror).
 ///    
 @DllImport("mscms")
-BOOL WcsSetDefaultColorProfile(WCS_PROFILE_MANAGEMENT_SCOPE scope_, const(wchar)* pDeviceName, 
+BOOL WcsSetDefaultColorProfile(WCS_PROFILE_MANAGEMENT_SCOPE scope_, const(PWSTR) pDeviceName, 
                                COLORPROFILETYPE cptColorProfileType, COLORPROFILESUBTYPE cpstColorProfileSubType, 
-                               uint dwProfileID, const(wchar)* pProfileName);
+                               uint dwProfileID, const(PWSTR) pProfileName);
 
 ///Sets the default rendering intent in the specified profile management scope.
 ///Params:
@@ -2619,7 +2619,7 @@ BOOL WcsGetDefaultRenderingIntent(WCS_PROFILE_MANAGEMENT_SCOPE scope_, uint* pdw
 ///    For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL WcsGetUsePerUserProfiles(const(wchar)* pDeviceName, uint dwDeviceClass, int* pUsePerUserProfiles);
+BOOL WcsGetUsePerUserProfiles(const(PWSTR) pDeviceName, uint dwDeviceClass, BOOL* pUsePerUserProfiles);
 
 ///Enables a user to specify whether or not to use a per-user profile association list for the specified device.
 ///Params:
@@ -2634,7 +2634,7 @@ BOOL WcsGetUsePerUserProfiles(const(wchar)* pDeviceName, uint dwDeviceClass, int
 ///    For extended error information, call **GetLastError**.
 ///    
 @DllImport("mscms")
-BOOL WcsSetUsePerUserProfiles(const(wchar)* pDeviceName, uint dwDeviceClass, BOOL usePerUserProfiles);
+BOOL WcsSetUsePerUserProfiles(const(PWSTR) pDeviceName, uint dwDeviceClass, BOOL usePerUserProfiles);
 
 ///Translates an array of colors from the source color space to the destination color space as defined by a color
 ///transform.
@@ -2657,8 +2657,8 @@ BOOL WcsSetUsePerUserProfiles(const(wchar)* pDeviceName, uint dwDeviceClass, BOO
 ///    
 @DllImport("mscms")
 BOOL WcsTranslateColors(ptrdiff_t hColorTransform, uint nColors, uint nInputChannels, COLORDATATYPE cdtInput, 
-                        uint cbInput, char* pInputData, uint nOutputChannels, COLORDATATYPE cdtOutput, uint cbOutput, 
-                        char* pOutputData);
+                        uint cbInput, void* pInputData, uint nOutputChannels, COLORDATATYPE cdtOutput, uint cbOutput, 
+                        void* pOutputData);
 
 ///Determines whether the colors in an array are within the output gamut of a specified WCS color transform.
 ///Params:
@@ -2676,7 +2676,7 @@ BOOL WcsTranslateColors(ptrdiff_t hColorTransform, uint nColors, uint nInputChan
 ///    
 @DllImport("mscms")
 BOOL WcsCheckColors(ptrdiff_t hColorTransform, uint nColors, uint nInputChannels, COLORDATATYPE cdtInput, 
-                    uint cbInput, char* pInputData, char* paResult);
+                    uint cbInput, void* pInputData, ubyte* paResult);
 
 ///Determines whether given colors lie within the output [gamut](/windows/win32/wcs/g) of a specified transform.
 ///Params:
@@ -2698,7 +2698,8 @@ BOOL WcsCheckColors(ptrdiff_t hColorTransform, uint nColors, uint nInputChannels
 ///    error value defined in Winerror.h.
 ///    
 @DllImport("ICM32")
-BOOL CMCheckColors(ptrdiff_t hcmTransform, char* lpaInputColors, uint nColors, COLORTYPE ctInput, char* lpaResult);
+BOOL CMCheckColors(ptrdiff_t hcmTransform, COLOR* lpaInputColors, uint nColors, COLORTYPE ctInput, 
+                   ubyte* lpaResult);
 
 ///Checks bitmap colors against an output gamut.
 ///Params:
@@ -2716,7 +2717,7 @@ BOOL CMCheckColors(ptrdiff_t hcmTransform, char* lpaInputColors, uint nColors, C
 ///    
 @DllImport("ICM32")
 BOOL CMCheckRGBs(ptrdiff_t hcmTransform, void* lpSrcBits, BMFORMAT bmInput, uint dwWidth, uint dwHeight, 
-                 uint dwStride, char* lpaResult, PBMCALLBACKFN pfnCallback, LPARAM ulCallbackData);
+                 uint dwStride, ubyte* lpaResult, PBMCALLBACKFN pfnCallback, LPARAM ulCallbackData);
 
 ///Converts color names in a named color space to index numbers in a color profile.
 ///Params:
@@ -2730,7 +2731,7 @@ BOOL CMCheckRGBs(ptrdiff_t hcmTransform, void* lpSrcBits, BMFORMAT bmInput, uint
 ///    value defined in Winerror.h.
 ///    
 @DllImport("ICM32")
-BOOL CMConvertColorNameToIndex(ptrdiff_t hProfile, char* paColorName, char* paIndex, uint dwCount);
+BOOL CMConvertColorNameToIndex(ptrdiff_t hProfile, byte** paColorName, uint* paIndex, uint dwCount);
 
 ///Transforms indices in a color space to an array of names in a named color space.
 ///Params:
@@ -2744,7 +2745,7 @@ BOOL CMConvertColorNameToIndex(ptrdiff_t hProfile, char* paColorName, char* paIn
 ///    defined in Winerror.h.
 ///    
 @DllImport("ICM32")
-BOOL CMConvertIndexToColorName(ptrdiff_t hProfile, char* paIndex, char* paColorName, uint dwCount);
+BOOL CMConvertIndexToColorName(ptrdiff_t hProfile, uint* paIndex, byte** paColorName, uint dwCount);
 
 ///Creates a [device link profile](/windows/win32/wcs/d) in the format specified by the International Color Consortium
 ///in its ICC Profile Format Specification.
@@ -2764,8 +2765,8 @@ BOOL CMConvertIndexToColorName(ptrdiff_t hProfile, char* paIndex, char* paColorN
 ///    value defined in Winerror.h.
 ///    
 @DllImport("ICM32")
-BOOL CMCreateDeviceLinkProfile(char* pahProfiles, uint nProfiles, char* padwIntents, uint nIntents, uint dwFlags, 
-                               ubyte** lpProfileData);
+BOOL CMCreateDeviceLinkProfile(ptrdiff_t* pahProfiles, uint nProfiles, uint* padwIntents, uint nIntents, 
+                               uint dwFlags, ubyte** lpProfileData);
 
 ///Accepts an array of profiles or a single [device link profile](/windows/win32/wcs/d) and creates a color transform.
 ///This transform is a mapping from the color space specified by the first profile to that of the second profile and so
@@ -2786,7 +2787,7 @@ BOOL CMCreateDeviceLinkProfile(char* pahProfiles, uint nProfiles, char* padwInte
 ///    error, the CMM should use **SetLastError** to set the last error to a valid error value as defined in Winerror.h.
 ///    
 @DllImport("ICM32")
-ptrdiff_t CMCreateMultiProfileTransform(char* pahProfiles, uint nProfiles, char* padwIntents, uint nIntents, 
+ptrdiff_t CMCreateMultiProfileTransform(ptrdiff_t* pahProfiles, uint nProfiles, uint* padwIntents, uint nIntents, 
                                         uint dwFlags);
 
 ///\[**CMCreateProfileW** is no longer available for use as of Windows Vista.\] Creates a display color profile from a
@@ -2867,7 +2868,7 @@ ptrdiff_t CMCreateTransformExt(LOGCOLORSPACEA* lpColorSpace, void* lpDevCharacte
 ///    [GetLastError](/windows/win32/api/errhandlingapi/nf-errhandlingapi-getlasterror) to retrieve the error.
 ///    
 @DllImport("ICM32")
-BOOL CMCheckColorsInGamut(ptrdiff_t hcmTransform, char* lpaRGBTriple, char* lpaResult, uint nCount);
+BOOL CMCheckColorsInGamut(ptrdiff_t hcmTransform, RGBTRIPLE* lpaRGBTriple, ubyte* lpaResult, uint nCount);
 
 ///\[**CMCreateProfile** is no longer available for use as of Windows Vista.\] Creates a display color profile from a
 ///[**LOGCOLORSPACEA**](/windows/win32/api/wingdi/ns-wingdi-logcolorspacea) structure.
@@ -3027,8 +3028,8 @@ BOOL CMIsProfileValid(ptrdiff_t hProfile, int* lpbValid);
 ///    should call **SetLastError** to set the last error to a valid error value defined in Winerror.h.
 ///    
 @DllImport("ICM32")
-BOOL CMTranslateColors(ptrdiff_t hcmTransform, char* lpaInputColors, uint nColors, COLORTYPE ctInput, 
-                       char* lpaOutputColors, COLORTYPE ctOutput);
+BOOL CMTranslateColors(ptrdiff_t hcmTransform, COLOR* lpaInputColors, uint nColors, COLORTYPE ctInput, 
+                       COLOR* lpaOutputColors, COLORTYPE ctOutput);
 
 ///Translates a bitmap from one defined format into a different defined format and calls a callback function
 ///periodically, if one is specified, to report progress and permit the calling application to terminate the
@@ -3174,7 +3175,7 @@ ptrdiff_t WcsCreateIccProfile(ptrdiff_t hWcsProfile, uint dwOptions);
 ///    If this function succeeds, the return value is **TRUE**. If this function fails, the return value is **FALSE**.
 ///    
 @DllImport("mscms")
-BOOL WcsGetCalibrationManagementState(int* pbIsEnabled);
+BOOL WcsGetCalibrationManagementState(BOOL* pbIsEnabled);
 
 ///Enables or disables system management of the display calibration state.
 ///Params:
@@ -3187,13 +3188,13 @@ BOOL WcsGetCalibrationManagementState(int* pbIsEnabled);
 BOOL WcsSetCalibrationManagementState(BOOL bIsEnabled);
 
 @DllImport("mscms")
-HRESULT ColorAdapterGetSystemModifyWhitePointCaps(int* whitePointAdjCapable, int* isColorOverrideActive);
+HRESULT ColorAdapterGetSystemModifyWhitePointCaps(BOOL* whitePointAdjCapable, BOOL* isColorOverrideActive);
 
 @DllImport("mscms")
 HRESULT ColorAdapterUpdateDisplayGamma(DisplayID displayID, DisplayTransformLut* displayTransform, BOOL internal);
 
 @DllImport("mscms")
-HRESULT ColorAdapterUpdateDeviceProfile(DisplayID displayID, const(wchar)* profName);
+HRESULT ColorAdapterUpdateDeviceProfile(DisplayID displayID, PWSTR profName);
 
 @DllImport("mscms")
 HRESULT ColorAdapterGetDisplayCurrentStateID(DisplayID displayID, DisplayStateID* displayStateID);
@@ -3207,12 +3208,12 @@ HRESULT ColorAdapterGetDisplayTargetWhitePoint(DisplayID displayID, WhitePoint* 
                                                uint* whitepointID);
 
 @DllImport("mscms")
-HRESULT ColorAdapterGetDisplayProfile(DisplayID displayID, const(wchar)* displayProfile, uint* profileID, 
-                                      int* bUseAccurate);
+HRESULT ColorAdapterGetDisplayProfile(DisplayID displayID, PWSTR displayProfile, uint* profileID, 
+                                      BOOL* bUseAccurate);
 
 @DllImport("mscms")
 HRESULT ColorAdapterGetCurrentProfileCalibration(DisplayID displayID, uint maxCalibrationBlobSize, uint* blobSize, 
-                                                 char* calibrationBlob);
+                                                 ubyte* calibrationBlob);
 
 @DllImport("mscms")
 HRESULT ColorAdapterRegisterOEMColorService(HANDLE* registration);
@@ -3231,7 +3232,7 @@ HRESULT ColorAdapterUnregisterOEMColorService(HANDLE registration);
 ///    
 ///    
 @DllImport("mscms")
-HRESULT ColorProfileAddDisplayAssociation(WCS_PROFILE_MANAGEMENT_SCOPE scope_, const(wchar)* profileName, 
+HRESULT ColorProfileAddDisplayAssociation(WCS_PROFILE_MANAGEMENT_SCOPE scope_, const(PWSTR) profileName, 
                                           LUID targetAdapterID, uint sourceID, BOOL setAsDefault, 
                                           BOOL associateAsAdvancedColor);
 
@@ -3245,7 +3246,7 @@ HRESULT ColorProfileAddDisplayAssociation(WCS_PROFILE_MANAGEMENT_SCOPE scope_, c
 ///    
 ///    
 @DllImport("mscms")
-HRESULT ColorProfileRemoveDisplayAssociation(WCS_PROFILE_MANAGEMENT_SCOPE scope_, const(wchar)* profileName, 
+HRESULT ColorProfileRemoveDisplayAssociation(WCS_PROFILE_MANAGEMENT_SCOPE scope_, const(PWSTR) profileName, 
                                              LUID targetAdapterID, uint sourceID, BOOL dissociateAdvancedColor);
 
 ///Params:
@@ -3259,7 +3260,7 @@ HRESULT ColorProfileRemoveDisplayAssociation(WCS_PROFILE_MANAGEMENT_SCOPE scope_
 ///    
 ///    
 @DllImport("mscms")
-HRESULT ColorProfileSetDisplayDefaultAssociation(WCS_PROFILE_MANAGEMENT_SCOPE scope_, const(wchar)* profileName, 
+HRESULT ColorProfileSetDisplayDefaultAssociation(WCS_PROFILE_MANAGEMENT_SCOPE scope_, const(PWSTR) profileName, 
                                                  COLORPROFILETYPE profileType, COLORPROFILESUBTYPE profileSubType, 
                                                  LUID targetAdapterID, uint sourceID);
 
@@ -3274,7 +3275,7 @@ HRESULT ColorProfileSetDisplayDefaultAssociation(WCS_PROFILE_MANAGEMENT_SCOPE sc
 ///    
 @DllImport("mscms")
 HRESULT ColorProfileGetDisplayList(WCS_PROFILE_MANAGEMENT_SCOPE scope_, LUID targetAdapterID, uint sourceID, 
-                                   ushort*** profileList, uint* profileCount);
+                                   PWSTR** profileList, uint* profileCount);
 
 ///Params:
 ///    scope = 
@@ -3289,7 +3290,7 @@ HRESULT ColorProfileGetDisplayList(WCS_PROFILE_MANAGEMENT_SCOPE scope_, LUID tar
 @DllImport("mscms")
 HRESULT ColorProfileGetDisplayDefault(WCS_PROFILE_MANAGEMENT_SCOPE scope_, LUID targetAdapterID, uint sourceID, 
                                       COLORPROFILETYPE profileType, COLORPROFILESUBTYPE profileSubType, 
-                                      ushort** profileName);
+                                      PWSTR* profileName);
 
 ///Params:
 ///    targetAdapterID = 
@@ -3340,7 +3341,8 @@ interface IDeviceModelPlugIn : IUnknown
     ///    If this function succeeds, the return value is S_OK. If this function fails, the return value is E_FAIL. For
     ///    extended error information, call <b>GetLastError</b>.
     ///    
-    HRESULT DeviceToColorimetricColors(uint cColors, uint cChannels, char* pDeviceValues, char* pXYZColors);
+    HRESULT DeviceToColorimetricColors(uint cColors, uint cChannels, const(float)* pDeviceValues, 
+                                       XYZColorF* pXYZColors);
     ///Returns the appropriate XYZ colors in response to the specified number of colors, channels, device colors and the
     ///proprietary plug-in algorithms.
     ///Params:
@@ -3351,7 +3353,8 @@ interface IDeviceModelPlugIn : IUnknown
     ///Returns:
     ///    If this function succeeds, the return value is S_OK. If this function fails, the return value is E_FAIL.
     ///    
-    HRESULT ColorimetricToDeviceColors(uint cColors, uint cChannels, char* pXYZColors, char* pDeviceValues);
+    HRESULT ColorimetricToDeviceColors(uint cColors, uint cChannels, const(XYZColorF)* pXYZColors, 
+                                       float* pDeviceValues);
     ///Returns the appropriate device colors in response to the incoming number of colors, channels, black information,
     ///Commission Internationale l'Eclairge XYZ (CIEXYZ) colors and the proprietary plug-in algorithms.
     ///Params:
@@ -3364,8 +3367,8 @@ interface IDeviceModelPlugIn : IUnknown
     ///    If this function succeeds, the return value is S_OK. If this function fails, the return value is E_FAIL. For
     ///    extended error information, call <b>GetLastError</b>.
     ///    
-    HRESULT ColorimetricToDeviceColorsWithBlack(uint cColors, uint cChannels, char* pXYZColors, 
-                                                char* pBlackInformation, char* pDeviceValues);
+    HRESULT ColorimetricToDeviceColorsWithBlack(uint cColors, uint cChannels, const(XYZColorF)* pXYZColors, 
+                                                const(BlackInformation)* pBlackInformation, float* pDeviceValues);
     ///Provides the plug-in with parameters to determine where in the transform sequence the specific plug-in occurs.
     ///Params:
     ///    iModelPosition = The one-based model position of the other device model in the workflow of <i>uiNumModels</i>, as provided in
@@ -3404,8 +3407,8 @@ interface IDeviceModelPlugIn : IUnknown
     ///Returns:
     ///    If this function succeeds, the return value is S_OK. If this function fails, the return value is E_FAIL.
     ///    
-    HRESULT GetGamutBoundaryMesh(uint cChannels, uint cVertices, uint cTriangles, char* pVertices, 
-                                 char* pTriangles);
+    HRESULT GetGamutBoundaryMesh(uint cChannels, uint cVertices, uint cTriangles, float* pVertices, 
+                                 GamutShellTriangle* pTriangles);
     ///The IDeviceModelPlugIn::GetNeutralAxisSize function returns the number of data points along the neutral axis that
     ///are returned by the GetNeutralAxis function. It is provided so that a Color Management Module (CMM) can allocate
     ///an appropriately sized buffer.
@@ -3423,7 +3426,7 @@ interface IDeviceModelPlugIn : IUnknown
     ///Returns:
     ///    If this function succeeds, the return value is S_OK. If this function fails, the return value is E_FAIL.
     ///    
-    HRESULT GetNeutralAxis(uint cColors, char* pXYZColors);
+    HRESULT GetNeutralAxis(uint cColors, XYZColorF* pXYZColors);
 }
 
 ///Describes the methods that are defined for the IGamutMapModelPlugIn Component Object Model (COM) interface.
@@ -3455,7 +3458,8 @@ interface IGamutMapModelPlugIn : IUnknown
     ///Returns:
     ///    If this function succeeds, the return value is S_OK. If this function fails, the return value is E_FAIL.
     ///    
-    HRESULT SourceToDestinationAppearanceColors(uint cColors, char* pInputColors, char* pOutputColors);
+    HRESULT SourceToDestinationAppearanceColors(uint cColors, const(JChColorF)* pInputColors, 
+                                                JChColorF* pOutputColors);
 }
 
 

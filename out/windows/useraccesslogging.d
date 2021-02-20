@@ -5,10 +5,10 @@ module windows.useraccesslogging;
 public import windows.core;
 public import windows.com : HRESULT, IUnknown;
 public import windows.networkdrivers : SOCKADDR_STORAGE_LH;
-public import windows.systemservices : BOOL, HANDLE;
+public import windows.systemservices : BOOL, HANDLE, PWSTR;
 public import windows.textservices : ITfFunction;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Structs
@@ -72,7 +72,7 @@ HRESULT UalInstrument(UAL_DATA_BLOB* Data);
 ///    wszRoleName = The name of the role or minor product within the major product to be registered with UAL. For example, "DHCP".
 ///    wszGuid = The GUID associated with the role specified by the <i>wszRoleName</i> parameter.
 @DllImport("ualapi")
-HRESULT UalRegisterProduct(const(wchar)* wszProductName, const(wchar)* wszRoleName, const(wchar)* wszGuid);
+HRESULT UalRegisterProduct(const(PWSTR) wszProductName, const(PWSTR) wszRoleName, const(PWSTR) wszGuid);
 
 
 // Interfaces
@@ -81,7 +81,7 @@ HRESULT UalRegisterProduct(const(wchar)* wszProductName, const(wchar)* wszRoleNa
 interface IEnumSpeechCommands : IUnknown
 {
     HRESULT Clone(IEnumSpeechCommands* ppEnum);
-    HRESULT Next(uint ulCount, char* pSpCmds, uint* pcFetched);
+    HRESULT Next(uint ulCount, ushort** pSpCmds, uint* pcFetched);
     HRESULT Reset();
     HRESULT Skip(uint ulCount);
 }
@@ -90,7 +90,7 @@ interface IEnumSpeechCommands : IUnknown
 interface ISpeechCommandProvider : IUnknown
 {
     HRESULT EnumSpeechCommands(ushort langid, IEnumSpeechCommands* ppEnum);
-    HRESULT ProcessCommand(const(wchar)* pszCommand, uint cch, ushort langid);
+    HRESULT ProcessCommand(const(PWSTR) pszCommand, uint cch, ushort langid);
 }
 
 @GUID("FCA6C349-A12F-43A3-8DD6-5A5A4282577B")

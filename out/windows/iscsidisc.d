@@ -3,9 +3,9 @@
 module windows.iscsidisc;
 
 public import windows.core;
-public import windows.systemservices : LARGE_INTEGER, STORAGE_DEVICE_NUMBER;
+public import windows.systemservices : LARGE_INTEGER, PSTR, PWSTR, STORAGE_DEVICE_NUMBER;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -369,9 +369,9 @@ struct NV_SEP_CACHE_PARAMETER
 {
     uint     Version;
     uint     Size;
-    union Flags
+union Flags
     {
-        struct CacheFlags
+struct CacheFlags
         {
             ubyte _bitfield47;
         }
@@ -442,11 +442,11 @@ struct HYBRID_INFORMATION
     NVCACHE_TYPE   CacheTypeDefault;
     uint           FractionBase;
     ulong          CacheSize;
-    struct Attributes
+struct Attributes
     {
         uint _bitfield48;
     }
-    struct Priorities
+struct Priorities
     {
         ubyte PriorityLevelCount;
         ubyte MaxPriorityBehavior;
@@ -454,7 +454,7 @@ struct HYBRID_INFORMATION
         ubyte Reserved;
         uint  DirtyThresholdLow;
         uint  DirtyThresholdHigh;
-        struct SupportedCommands
+struct SupportedCommands
         {
             uint _bitfield49;
             uint MaxEvictCommands;
@@ -499,7 +499,7 @@ struct STORAGE_FIRMWARE_SLOT_INFO
     ubyte    SlotNumber;
     ubyte    ReadOnly;
     ubyte[6] Reserved;
-    union Revision
+union Revision
     {
         ubyte[8] Info;
         ulong    AsUlonglong;
@@ -644,9 +644,9 @@ struct DUMP_DRIVER
 
 struct NTSCSI_UNICODE_STRING
 {
-    ushort        Length;
-    ushort        MaximumLength;
-    const(wchar)* Buffer;
+    ushort Length;
+    ushort MaximumLength;
+    PWSTR  Buffer;
 }
 
 struct DUMP_DRIVER_EX
@@ -661,7 +661,7 @@ struct STORAGE_ENDURANCE_INFO
 {
     uint      ValidFields;
     uint      GroupId;
-    struct Flags
+struct Flags
     {
         uint _bitfield50;
     }
@@ -811,7 +811,7 @@ struct IKE_AUTHENTICATION_INFORMATION
 {
     ///A IKE_AUTHENTICATION_METHOD structure that indicates the authentication method.
     IKE_AUTHENTICATION_METHOD AuthMethod;
-    union
+union
     {
         IKE_AUTHENTICATION_PRESHARED_KEY PsKey;
     }
@@ -1063,15 +1063,15 @@ struct ISCSI_CONNECTION_INFOW
     ///and AddIScsiConnection functions return this value via the UniqueConnectionId parameter.
     ISCSI_UNIQUE_SESSION_ID ConnectionId;
     ///A string that represents the IP address of the initiator.
-    const(wchar)* InitiatorAddress;
+    PWSTR    InitiatorAddress;
     ///A string that represents the IP address of the target.
-    const(wchar)* TargetAddress;
+    PWSTR    TargetAddress;
     ///The socket number on the initiator that establishes the connection.
-    ushort        InitiatorSocket;
+    ushort   InitiatorSocket;
     ///The socket number on the target that establishes the connection.
-    ushort        TargetSocket;
+    ushort   TargetSocket;
     ///The connection identifier for the connection.
-    ubyte[2]      CID;
+    ubyte[2] CID;
 }
 
 ///The <b>ISCSI_SESSION_INFO</b> structure contains session information.
@@ -1080,17 +1080,17 @@ struct ISCSI_SESSION_INFOW
     ///A ISCSI_UNIQUE_SESSION_ID structure containing a unique identifier that represents the session.
     ISCSI_UNIQUE_SESSION_ID SessionId;
     ///A string that represents the initiator name.
-    const(wchar)* InitiatorName;
+    PWSTR    InitiatorName;
     ///A string that represents the target node name.
-    const(wchar)* TargetNodeName;
+    PWSTR    TargetNodeName;
     ///A string that represents the target name.
-    const(wchar)* TargetName;
+    PWSTR    TargetName;
     ///The initiator-side identifier (ISID) used in the iSCSI protocol.
-    ubyte[6]      ISID;
+    ubyte[6] ISID;
     ///The target-side identifier (TSID) used in the iSCSI protocol.
-    ubyte[2]      TSID;
+    ubyte[2] TSID;
     ///The number of connections associated with the session.
-    uint          ConnectionCount;
+    uint     ConnectionCount;
     ///A pointer to a ISCSI_CONNECTION_INFO structure.
     ISCSI_CONNECTION_INFOW* Connections;
 }
@@ -1102,15 +1102,15 @@ struct ISCSI_CONNECTION_INFOA
     ///and AddIScsiConnection functions return this value via the UniqueConnectionId parameter.
     ISCSI_UNIQUE_SESSION_ID ConnectionId;
     ///A string that represents the IP address of the initiator.
-    const(char)* InitiatorAddress;
+    PSTR     InitiatorAddress;
     ///A string that represents the IP address of the target.
-    const(char)* TargetAddress;
+    PSTR     TargetAddress;
     ///The socket number on the initiator that establishes the connection.
-    ushort       InitiatorSocket;
+    ushort   InitiatorSocket;
     ///The socket number on the target that establishes the connection.
-    ushort       TargetSocket;
+    ushort   TargetSocket;
     ///The connection identifier for the connection.
-    ubyte[2]     CID;
+    ubyte[2] CID;
 }
 
 ///The <b>ISCSI_SESSION_INFO</b> structure contains session information.
@@ -1119,17 +1119,17 @@ struct ISCSI_SESSION_INFOA
     ///A ISCSI_UNIQUE_SESSION_ID structure containing a unique identifier that represents the session.
     ISCSI_UNIQUE_SESSION_ID SessionId;
     ///A string that represents the initiator name.
-    const(char)* InitiatorName;
+    PSTR     InitiatorName;
     ///A string that represents the target node name.
-    const(char)* TargetNodeName;
+    PSTR     TargetNodeName;
     ///A string that represents the target name.
-    const(char)* TargetName;
+    PSTR     TargetName;
     ///The initiator-side identifier (ISID) used in the iSCSI protocol.
-    ubyte[6]     ISID;
+    ubyte[6] ISID;
     ///The target-side identifier (TSID) used in the iSCSI protocol.
-    ubyte[2]     TSID;
+    ubyte[2] TSID;
     ///The number of connections associated with the session.
-    uint         ConnectionCount;
+    uint     ConnectionCount;
     ///A pointer to a ISCSI_CONNECTION_INFO structure.
     ISCSI_CONNECTION_INFOA* Connections;
 }
@@ -1374,8 +1374,8 @@ uint GetIScsiVersionInformation(ISCSI_VERSION_INFO* VersionInfo);
 ///    error code on failure.
 ///    
 @DllImport("ISCSIDSC")
-uint GetIScsiTargetInformationW(const(wchar)* TargetName, const(wchar)* DiscoveryMechanism, 
-                                TARGET_INFORMATION_CLASS InfoClass, uint* BufferSize, void* Buffer);
+uint GetIScsiTargetInformationW(PWSTR TargetName, PWSTR DiscoveryMechanism, TARGET_INFORMATION_CLASS InfoClass, 
+                                uint* BufferSize, void* Buffer);
 
 ///The <b>GetIscsiTargetInformation</b> function retrieves information about the specified target.
 ///Params:
@@ -1394,8 +1394,8 @@ uint GetIScsiTargetInformationW(const(wchar)* TargetName, const(wchar)* Discover
 ///    error code on failure.
 ///    
 @DllImport("ISCSIDSC")
-uint GetIScsiTargetInformationA(const(char)* TargetName, const(char)* DiscoveryMechanism, 
-                                TARGET_INFORMATION_CLASS InfoClass, uint* BufferSize, void* Buffer);
+uint GetIScsiTargetInformationA(PSTR TargetName, PSTR DiscoveryMechanism, TARGET_INFORMATION_CLASS InfoClass, 
+                                uint* BufferSize, void* Buffer);
 
 ///The <b>AddIscsiConnection</b> function adds a new iSCSI connection to an existing session.
 ///Params:
@@ -1458,7 +1458,7 @@ uint GetIScsiTargetInformationA(const(char)* TargetName, const(char)* DiscoveryM
 @DllImport("ISCSIDSC")
 uint AddIScsiConnectionW(ISCSI_UNIQUE_SESSION_ID* UniqueSessionId, void* Reserved, uint InitiatorPortNumber, 
                          ISCSI_TARGET_PORTALW* TargetPortal, ulong SecurityFlags, ISCSI_LOGIN_OPTIONS* LoginOptions, 
-                         uint KeySize, const(char)* Key, ISCSI_UNIQUE_SESSION_ID* ConnectionId);
+                         uint KeySize, PSTR Key, ISCSI_UNIQUE_SESSION_ID* ConnectionId);
 
 ///The <b>AddIscsiConnection</b> function adds a new iSCSI connection to an existing session.
 ///Params:
@@ -1521,7 +1521,7 @@ uint AddIScsiConnectionW(ISCSI_UNIQUE_SESSION_ID* UniqueSessionId, void* Reserve
 @DllImport("ISCSIDSC")
 uint AddIScsiConnectionA(ISCSI_UNIQUE_SESSION_ID* UniqueSessionId, void* Reserved, uint InitiatorPortNumber, 
                          ISCSI_TARGET_PORTALA* TargetPortal, ulong SecurityFlags, ISCSI_LOGIN_OPTIONS* LoginOptions, 
-                         uint KeySize, const(char)* Key, ISCSI_UNIQUE_SESSION_ID* ConnectionId);
+                         uint KeySize, PSTR Key, ISCSI_UNIQUE_SESSION_ID* ConnectionId);
 
 ///The <b>RemoveIscsiConnection</b> function removes a connection from an active session.
 ///Params:
@@ -1548,7 +1548,7 @@ uint RemoveIScsiConnection(ISCSI_UNIQUE_SESSION_ID* UniqueSessionId, ISCSI_UNIQU
 ///    code on failure.
 ///    
 @DllImport("ISCSIDSC")
-uint ReportIScsiTargetsW(ubyte ForceUpdate, uint* BufferSize, const(wchar)* Buffer);
+uint ReportIScsiTargetsW(ubyte ForceUpdate, uint* BufferSize, PWSTR Buffer);
 
 ///The <b>ReportIscsiTargets</b> function retrieves the list of targets that the iSCSI initiator service has discovered,
 ///and can also instruct the iSCSI initiator service to refresh the list.
@@ -1564,7 +1564,7 @@ uint ReportIScsiTargetsW(ubyte ForceUpdate, uint* BufferSize, const(wchar)* Buff
 ///    code on failure.
 ///    
 @DllImport("ISCSIDSC")
-uint ReportIScsiTargetsA(ubyte ForceUpdate, uint* BufferSize, const(char)* Buffer);
+uint ReportIScsiTargetsA(ubyte ForceUpdate, uint* BufferSize, PSTR Buffer);
 
 ///The <b>AddIscsiStaticTarget</b> function adds a target to the list of static targets available to the iSCSI
 ///initiator.
@@ -1595,7 +1595,7 @@ uint ReportIScsiTargetsA(ubyte ForceUpdate, uint* BufferSize, const(char)* Buffe
 ///    Returns ERROR_SUCCESS if the operation succeeds. Otherwise, it returns the appropriate Win32 or iSCSI error code.
 ///    
 @DllImport("ISCSIDSC")
-uint AddIScsiStaticTargetW(const(wchar)* TargetName, const(wchar)* TargetAlias, uint TargetFlags, ubyte Persist, 
+uint AddIScsiStaticTargetW(PWSTR TargetName, PWSTR TargetAlias, uint TargetFlags, ubyte Persist, 
                            ISCSI_TARGET_MAPPINGW* Mappings, ISCSI_LOGIN_OPTIONS* LoginOptions, 
                            ISCSI_TARGET_PORTAL_GROUPW* PortalGroup);
 
@@ -1628,7 +1628,7 @@ uint AddIScsiStaticTargetW(const(wchar)* TargetName, const(wchar)* TargetAlias, 
 ///    Returns ERROR_SUCCESS if the operation succeeds. Otherwise, it returns the appropriate Win32 or iSCSI error code.
 ///    
 @DllImport("ISCSIDSC")
-uint AddIScsiStaticTargetA(const(char)* TargetName, const(char)* TargetAlias, uint TargetFlags, ubyte Persist, 
+uint AddIScsiStaticTargetA(PSTR TargetName, PSTR TargetAlias, uint TargetFlags, ubyte Persist, 
                            ISCSI_TARGET_MAPPINGA* Mappings, ISCSI_LOGIN_OPTIONS* LoginOptions, 
                            ISCSI_TARGET_PORTAL_GROUPA* PortalGroup);
 
@@ -1640,7 +1640,7 @@ uint AddIScsiStaticTargetA(const(char)* TargetName, const(char)* TargetAlias, ui
 ///    Returns ERROR_SUCCESS if the operation succeeds. Otherwise, it returns the appropriate Win32 or iSCSI error code.
 ///    
 @DllImport("ISCSIDSC")
-uint RemoveIScsiStaticTargetW(const(wchar)* TargetName);
+uint RemoveIScsiStaticTargetW(PWSTR TargetName);
 
 ///The <b>RemoveIscsiStaticTarget</b> function removes a target from the list of static targets made available to the
 ///machine.
@@ -1650,7 +1650,7 @@ uint RemoveIScsiStaticTargetW(const(wchar)* TargetName);
 ///    Returns ERROR_SUCCESS if the operation succeeds. Otherwise, it returns the appropriate Win32 or iSCSI error code.
 ///    
 @DllImport("ISCSIDSC")
-uint RemoveIScsiStaticTargetA(const(char)* TargetName);
+uint RemoveIScsiStaticTargetA(PSTR TargetName);
 
 ///The <b>AddIscsiSendTargetPortal</b> function adds a static target portal to the list of target portals to which the
 ///iSCSI initiator service transmits <b>SendTargets</b> requests.
@@ -1706,7 +1706,7 @@ uint RemoveIScsiStaticTargetA(const(char)* TargetName);
 ///    Returns ERROR_SUCCESS if the operation succeeds. Otherwise, it returns the appropriate Win32 or iSCSI error code.
 ///    
 @DllImport("ISCSIDSC")
-uint AddIScsiSendTargetPortalW(const(wchar)* InitiatorInstance, uint InitiatorPortNumber, 
+uint AddIScsiSendTargetPortalW(PWSTR InitiatorInstance, uint InitiatorPortNumber, 
                                ISCSI_LOGIN_OPTIONS* LoginOptions, ulong SecurityFlags, ISCSI_TARGET_PORTALW* Portal);
 
 ///The <b>AddIscsiSendTargetPortal</b> function adds a static target portal to the list of target portals to which the
@@ -1763,8 +1763,8 @@ uint AddIScsiSendTargetPortalW(const(wchar)* InitiatorInstance, uint InitiatorPo
 ///    Returns ERROR_SUCCESS if the operation succeeds. Otherwise, it returns the appropriate Win32 or iSCSI error code.
 ///    
 @DllImport("ISCSIDSC")
-uint AddIScsiSendTargetPortalA(const(char)* InitiatorInstance, uint InitiatorPortNumber, 
-                               ISCSI_LOGIN_OPTIONS* LoginOptions, ulong SecurityFlags, ISCSI_TARGET_PORTALA* Portal);
+uint AddIScsiSendTargetPortalA(PSTR InitiatorInstance, uint InitiatorPortNumber, ISCSI_LOGIN_OPTIONS* LoginOptions, 
+                               ulong SecurityFlags, ISCSI_TARGET_PORTALA* Portal);
 
 ///The <b>RemoveIscsiSendTargetPortal</b> function removes a portal from the list of portals to which the iSCSI
 ///initiator service sends <b>SendTargets</b> requests for target discovery.
@@ -1779,8 +1779,7 @@ uint AddIScsiSendTargetPortalA(const(char)* InitiatorInstance, uint InitiatorPor
 ///    Returns ERROR_SUCCESS if the operation succeeds. Otherwise, it returns the appropriate Win32 or iSCSI error code.
 ///    
 @DllImport("ISCSIDSC")
-uint RemoveIScsiSendTargetPortalW(const(wchar)* InitiatorInstance, uint InitiatorPortNumber, 
-                                  ISCSI_TARGET_PORTALW* Portal);
+uint RemoveIScsiSendTargetPortalW(PWSTR InitiatorInstance, uint InitiatorPortNumber, ISCSI_TARGET_PORTALW* Portal);
 
 ///The <b>RemoveIscsiSendTargetPortal</b> function removes a portal from the list of portals to which the iSCSI
 ///initiator service sends <b>SendTargets</b> requests for target discovery.
@@ -1795,8 +1794,7 @@ uint RemoveIScsiSendTargetPortalW(const(wchar)* InitiatorInstance, uint Initiato
 ///    Returns ERROR_SUCCESS if the operation succeeds. Otherwise, it returns the appropriate Win32 or iSCSI error code.
 ///    
 @DllImport("ISCSIDSC")
-uint RemoveIScsiSendTargetPortalA(const(char)* InitiatorInstance, uint InitiatorPortNumber, 
-                                  ISCSI_TARGET_PORTALA* Portal);
+uint RemoveIScsiSendTargetPortalA(PSTR InitiatorInstance, uint InitiatorPortNumber, ISCSI_TARGET_PORTALA* Portal);
 
 ///The <b>RefreshIscsiSendTargetPortal</b> function instructs the iSCSI initiator service to establish a discovery
 ///session with the indicated target portal and transmit a <b>SendTargets</b> request to refresh the list of discovered
@@ -1813,8 +1811,7 @@ uint RemoveIScsiSendTargetPortalA(const(char)* InitiatorInstance, uint Initiator
 ///    Returns ERROR_SUCCESS if the operation succeeds. Otherwise, it returns the appropriate Win32 or iSCSI error code.
 ///    
 @DllImport("ISCSIDSC")
-uint RefreshIScsiSendTargetPortalW(const(wchar)* InitiatorInstance, uint InitiatorPortNumber, 
-                                   ISCSI_TARGET_PORTALW* Portal);
+uint RefreshIScsiSendTargetPortalW(PWSTR InitiatorInstance, uint InitiatorPortNumber, ISCSI_TARGET_PORTALW* Portal);
 
 ///The <b>RefreshIscsiSendTargetPortal</b> function instructs the iSCSI initiator service to establish a discovery
 ///session with the indicated target portal and transmit a <b>SendTargets</b> request to refresh the list of discovered
@@ -1831,8 +1828,7 @@ uint RefreshIScsiSendTargetPortalW(const(wchar)* InitiatorInstance, uint Initiat
 ///    Returns ERROR_SUCCESS if the operation succeeds. Otherwise, it returns the appropriate Win32 or iSCSI error code.
 ///    
 @DllImport("ISCSIDSC")
-uint RefreshIScsiSendTargetPortalA(const(char)* InitiatorInstance, uint InitiatorPortNumber, 
-                                   ISCSI_TARGET_PORTALA* Portal);
+uint RefreshIScsiSendTargetPortalA(PSTR InitiatorInstance, uint InitiatorPortNumber, ISCSI_TARGET_PORTALA* Portal);
 
 ///The <b>ReportIscsiSendTargetPortals</b> function retrieves a list of target portals that the iSCSI initiator service
 ///uses to perform automatic discovery with <b>SendTarget</b> requests.
@@ -1978,10 +1974,10 @@ uint ReportIScsiSendTargetPortalsExA(uint* PortalCount, uint* PortalInfoSize,
 ///    Returns ERROR_SUCCESS if the operation succeeds. Otherwise, it returns the appropriate Win32 or iSCSI error code.
 ///    
 @DllImport("ISCSIDSC")
-uint LoginIScsiTargetW(const(wchar)* TargetName, ubyte IsInformationalSession, const(wchar)* InitiatorInstance, 
+uint LoginIScsiTargetW(PWSTR TargetName, ubyte IsInformationalSession, PWSTR InitiatorInstance, 
                        uint InitiatorPortNumber, ISCSI_TARGET_PORTALW* TargetPortal, ulong SecurityFlags, 
-                       ISCSI_TARGET_MAPPINGW* Mappings, ISCSI_LOGIN_OPTIONS* LoginOptions, uint KeySize, 
-                       const(char)* Key, ubyte IsPersistent, ISCSI_UNIQUE_SESSION_ID* UniqueSessionId, 
+                       ISCSI_TARGET_MAPPINGW* Mappings, ISCSI_LOGIN_OPTIONS* LoginOptions, uint KeySize, PSTR Key, 
+                       ubyte IsPersistent, ISCSI_UNIQUE_SESSION_ID* UniqueSessionId, 
                        ISCSI_UNIQUE_SESSION_ID* UniqueConnectionId);
 
 ///The <b>LoginIscsiTarget</b> function establishes a full featured login session with the indicated target.
@@ -2064,10 +2060,10 @@ uint LoginIScsiTargetW(const(wchar)* TargetName, ubyte IsInformationalSession, c
 ///    Returns ERROR_SUCCESS if the operation succeeds. Otherwise, it returns the appropriate Win32 or iSCSI error code.
 ///    
 @DllImport("ISCSIDSC")
-uint LoginIScsiTargetA(const(char)* TargetName, ubyte IsInformationalSession, const(char)* InitiatorInstance, 
+uint LoginIScsiTargetA(PSTR TargetName, ubyte IsInformationalSession, PSTR InitiatorInstance, 
                        uint InitiatorPortNumber, ISCSI_TARGET_PORTALA* TargetPortal, ulong SecurityFlags, 
-                       ISCSI_TARGET_MAPPINGA* Mappings, ISCSI_LOGIN_OPTIONS* LoginOptions, uint KeySize, 
-                       const(char)* Key, ubyte IsPersistent, ISCSI_UNIQUE_SESSION_ID* UniqueSessionId, 
+                       ISCSI_TARGET_MAPPINGA* Mappings, ISCSI_LOGIN_OPTIONS* LoginOptions, uint KeySize, PSTR Key, 
+                       ubyte IsPersistent, ISCSI_UNIQUE_SESSION_ID* UniqueSessionId, 
                        ISCSI_UNIQUE_SESSION_ID* UniqueConnectionId);
 
 ///The <b>ReportIscsiPersistentLogins</b> function retrieves the list of persistent login targets.
@@ -2126,8 +2122,8 @@ uint LogoutIScsiTarget(ISCSI_UNIQUE_SESSION_ID* UniqueSessionId);
 ///    Returns ERROR_SUCCESS if the operation succeeds. Otherwise, it returns the appropriate Win32 or iSCSI error code.
 ///    
 @DllImport("ISCSIDSC")
-uint RemoveIScsiPersistentTargetW(const(wchar)* InitiatorInstance, uint InitiatorPortNumber, 
-                                  const(wchar)* TargetName, ISCSI_TARGET_PORTALW* Portal);
+uint RemoveIScsiPersistentTargetW(PWSTR InitiatorInstance, uint InitiatorPortNumber, PWSTR TargetName, 
+                                  ISCSI_TARGET_PORTALW* Portal);
 
 ///The <b>RemoveIscsiPersistentTarget</b> function removes a persistent login for the specified hardware initiator Host
 ///Bus Adapter (HBA), initiator port, and target portal.
@@ -2143,8 +2139,8 @@ uint RemoveIScsiPersistentTargetW(const(wchar)* InitiatorInstance, uint Initiato
 ///    Returns ERROR_SUCCESS if the operation succeeds. Otherwise, it returns the appropriate Win32 or iSCSI error code.
 ///    
 @DllImport("ISCSIDSC")
-uint RemoveIScsiPersistentTargetA(const(char)* InitiatorInstance, uint InitiatorPortNumber, 
-                                  const(char)* TargetName, ISCSI_TARGET_PORTALA* Portal);
+uint RemoveIScsiPersistentTargetA(PSTR InitiatorInstance, uint InitiatorPortNumber, PSTR TargetName, 
+                                  ISCSI_TARGET_PORTALA* Portal);
 
 ///The <b>SendScsiInquiry</b> function sends a SCSI INQUIRY command to the specified target.
 ///Params:
@@ -2239,7 +2235,7 @@ uint SendScsiReportLuns(ISCSI_UNIQUE_SESSION_ID* UniqueSessionId, ubyte* ScsiSta
 ///    or iSCSI error code on failure.
 ///    
 @DllImport("ISCSIDSC")
-uint ReportIScsiInitiatorListW(uint* BufferSize, const(wchar)* Buffer);
+uint ReportIScsiInitiatorListW(uint* BufferSize, PWSTR Buffer);
 
 ///The <b>ReportIscsiInitiatorList</b> function retrieves the list of initiator Host Bus Adapters that are running on
 ///the machine.
@@ -2255,7 +2251,7 @@ uint ReportIScsiInitiatorListW(uint* BufferSize, const(wchar)* Buffer);
 ///    or iSCSI error code on failure.
 ///    
 @DllImport("ISCSIDSC")
-uint ReportIScsiInitiatorListA(uint* BufferSize, const(char)* Buffer);
+uint ReportIScsiInitiatorListA(uint* BufferSize, PSTR Buffer);
 
 ///<b>ReportActiveIscsiTargetMappings</b> function retrieves the target mappings that are currently active for all
 ///initiators on the computer.
@@ -2310,8 +2306,8 @@ uint ReportActiveIScsiTargetMappingsA(uint* BufferSize, uint* MappingCount, ISCS
 ///    Returns ERROR_SUCCESS if the operation succeeds.Otherwise, it returns the appropriate Win32 or iSCSI error code.
 ///    
 @DllImport("ISCSIDSC")
-uint SetIScsiTunnelModeOuterAddressW(const(wchar)* InitiatorName, uint InitiatorPortNumber, 
-                                     const(wchar)* DestinationAddress, const(wchar)* OuterModeAddress, ubyte Persist);
+uint SetIScsiTunnelModeOuterAddressW(PWSTR InitiatorName, uint InitiatorPortNumber, PWSTR DestinationAddress, 
+                                     PWSTR OuterModeAddress, ubyte Persist);
 
 ///<b>SetIscsiTunnelModeOuterAddress</b> function establishes the tunnel-mode outer address that the indicated initiator
 ///Host Bus Adapter (HBA) uses when communicating in IPsec tunnel mode through the specified port.
@@ -2330,8 +2326,8 @@ uint SetIScsiTunnelModeOuterAddressW(const(wchar)* InitiatorName, uint Initiator
 ///    Returns ERROR_SUCCESS if the operation succeeds.Otherwise, it returns the appropriate Win32 or iSCSI error code.
 ///    
 @DllImport("ISCSIDSC")
-uint SetIScsiTunnelModeOuterAddressA(const(char)* InitiatorName, uint InitiatorPortNumber, 
-                                     const(char)* DestinationAddress, const(char)* OuterModeAddress, ubyte Persist);
+uint SetIScsiTunnelModeOuterAddressA(PSTR InitiatorName, uint InitiatorPortNumber, PSTR DestinationAddress, 
+                                     PSTR OuterModeAddress, ubyte Persist);
 
 ///The <b>SetIscsiIKEInfo</b> function establishes the IPsec policy and preshared key for the indicated initiator to use
 ///when performing iSCSI connections.
@@ -2347,8 +2343,8 @@ uint SetIScsiTunnelModeOuterAddressA(const(char)* InitiatorName, uint InitiatorP
 ///    Returns ERROR_SUCCESS if the operation succeeds. Otherwise, it returns the appropriate Win32 or iSCSI error code.
 ///    
 @DllImport("ISCSIDSC")
-uint SetIScsiIKEInfoW(const(wchar)* InitiatorName, uint InitiatorPortNumber, 
-                      IKE_AUTHENTICATION_INFORMATION* AuthInfo, ubyte Persist);
+uint SetIScsiIKEInfoW(PWSTR InitiatorName, uint InitiatorPortNumber, IKE_AUTHENTICATION_INFORMATION* AuthInfo, 
+                      ubyte Persist);
 
 ///The <b>SetIscsiIKEInfo</b> function establishes the IPsec policy and preshared key for the indicated initiator to use
 ///when performing iSCSI connections.
@@ -2364,8 +2360,8 @@ uint SetIScsiIKEInfoW(const(wchar)* InitiatorName, uint InitiatorPortNumber,
 ///    Returns ERROR_SUCCESS if the operation succeeds. Otherwise, it returns the appropriate Win32 or iSCSI error code.
 ///    
 @DllImport("ISCSIDSC")
-uint SetIScsiIKEInfoA(const(char)* InitiatorName, uint InitiatorPortNumber, 
-                      IKE_AUTHENTICATION_INFORMATION* AuthInfo, ubyte Persist);
+uint SetIScsiIKEInfoA(PSTR InitiatorName, uint InitiatorPortNumber, IKE_AUTHENTICATION_INFORMATION* AuthInfo, 
+                      ubyte Persist);
 
 ///The <b>GetIscsiIKEInfo</b> function retrieves the IPsec policy and any established pre-shared key values associated
 ///with an initiator Host-Bus Adapter (HBA).
@@ -2382,7 +2378,7 @@ uint SetIScsiIKEInfoA(const(char)* InitiatorName, uint InitiatorPortNumber,
 ///    this function will return a Winsock error code.
 ///    
 @DllImport("ISCSIDSC")
-uint GetIScsiIKEInfoW(const(wchar)* InitiatorName, uint InitiatorPortNumber, uint* Reserved, 
+uint GetIScsiIKEInfoW(PWSTR InitiatorName, uint InitiatorPortNumber, uint* Reserved, 
                       IKE_AUTHENTICATION_INFORMATION* AuthInfo);
 
 ///The <b>GetIscsiIKEInfo</b> function retrieves the IPsec policy and any established pre-shared key values associated
@@ -2400,7 +2396,7 @@ uint GetIScsiIKEInfoW(const(wchar)* InitiatorName, uint InitiatorPortNumber, uin
 ///    this function will return a Winsock error code.
 ///    
 @DllImport("ISCSIDSC")
-uint GetIScsiIKEInfoA(const(char)* InitiatorName, uint InitiatorPortNumber, uint* Reserved, 
+uint GetIScsiIKEInfoA(PSTR InitiatorName, uint InitiatorPortNumber, uint* Reserved, 
                       IKE_AUTHENTICATION_INFORMATION* AuthInfo);
 
 ///The <b>SetIscsiGroupPresharedKey</b> function establishes the default group preshared key for all initiators on the
@@ -2448,7 +2444,7 @@ uint SetIScsiInitiatorRADIUSSharedSecret(uint SharedSecretLength, ubyte* SharedS
 ///    Returns ERROR_SUCCESS if the operation succeeds. Otherwise, it returns the appropriate Win32 or iSCSI error code.
 ///    
 @DllImport("ISCSIDSC")
-uint SetIScsiInitiatorNodeNameW(const(wchar)* InitiatorNodeName);
+uint SetIScsiInitiatorNodeNameW(PWSTR InitiatorNodeName);
 
 ///The <b>SetIscsiInitiatorNodeName</b> function establishes an initiator node name for the computer. This name is
 ///utilized by any initiator nodes on the computer that are communicating with other nodes.
@@ -2459,7 +2455,7 @@ uint SetIScsiInitiatorNodeNameW(const(wchar)* InitiatorNodeName);
 ///    Returns ERROR_SUCCESS if the operation succeeds. Otherwise, it returns the appropriate Win32 or iSCSI error code.
 ///    
 @DllImport("ISCSIDSC")
-uint SetIScsiInitiatorNodeNameA(const(char)* InitiatorNodeName);
+uint SetIScsiInitiatorNodeNameA(PSTR InitiatorNodeName);
 
 ///The <b>GetIscsiInitiatorNodeName</b> function retrieves the common initiator node name that is used when establishing
 ///sessions from the local machine.
@@ -2471,7 +2467,7 @@ uint SetIScsiInitiatorNodeNameA(const(char)* InitiatorNodeName);
 ///    fails.
 ///    
 @DllImport("ISCSIDSC")
-uint GetIScsiInitiatorNodeNameW(const(wchar)* InitiatorNodeName);
+uint GetIScsiInitiatorNodeNameW(PWSTR InitiatorNodeName);
 
 ///The <b>GetIscsiInitiatorNodeName</b> function retrieves the common initiator node name that is used when establishing
 ///sessions from the local machine.
@@ -2483,7 +2479,7 @@ uint GetIScsiInitiatorNodeNameW(const(wchar)* InitiatorNodeName);
 ///    fails.
 ///    
 @DllImport("ISCSIDSC")
-uint GetIScsiInitiatorNodeNameA(const(char)* InitiatorNodeName);
+uint GetIScsiInitiatorNodeNameA(PSTR InitiatorNodeName);
 
 ///The <b>AddIsnsServer</b> function adds a new server to the list of Internet Storage Name Service (iSNS) servers that
 ///the iSCSI initiator service uses to discover targets.
@@ -2495,7 +2491,7 @@ uint GetIScsiInitiatorNodeNameA(const(char)* InitiatorNodeName);
 ///    iSNS server name, the <b>AddIsnsServer</b> routine returns ERROR_INVALID_PARAMETER.
 ///    
 @DllImport("ISCSIDSC")
-uint AddISNSServerW(const(wchar)* Address);
+uint AddISNSServerW(PWSTR Address);
 
 ///The <b>AddIsnsServer</b> function adds a new server to the list of Internet Storage Name Service (iSNS) servers that
 ///the iSCSI initiator service uses to discover targets.
@@ -2507,7 +2503,7 @@ uint AddISNSServerW(const(wchar)* Address);
 ///    iSNS server name, the <b>AddIsnsServer</b> routine returns ERROR_INVALID_PARAMETER.
 ///    
 @DllImport("ISCSIDSC")
-uint AddISNSServerA(const(char)* Address);
+uint AddISNSServerA(PSTR Address);
 
 ///The <b>RemoveIsnsServer</b> function removes a server from the list of Internet Storage Name Service (iSNS) servers
 ///that the iSCSI initiator service uses to discover targets.
@@ -2517,7 +2513,7 @@ uint AddISNSServerA(const(char)* Address);
 ///    Returns ERROR_SUCCESS if the operation succeeds. Otherwise, it returns the appropriate Win32 or iSCSI error code.
 ///    
 @DllImport("ISCSIDSC")
-uint RemoveISNSServerW(const(wchar)* Address);
+uint RemoveISNSServerW(PWSTR Address);
 
 ///The <b>RemoveIsnsServer</b> function removes a server from the list of Internet Storage Name Service (iSNS) servers
 ///that the iSCSI initiator service uses to discover targets.
@@ -2527,7 +2523,7 @@ uint RemoveISNSServerW(const(wchar)* Address);
 ///    Returns ERROR_SUCCESS if the operation succeeds. Otherwise, it returns the appropriate Win32 or iSCSI error code.
 ///    
 @DllImport("ISCSIDSC")
-uint RemoveISNSServerA(const(char)* Address);
+uint RemoveISNSServerA(PSTR Address);
 
 ///The <b>RefreshIsnsServer</b> function instructs the iSCSI initiator service to query the indicated Internet Storage
 ///Name Service (iSNS) server to refresh the list of discovered targets for the iSCSI initiator service.
@@ -2537,7 +2533,7 @@ uint RemoveISNSServerA(const(char)* Address);
 ///    Returns ERROR_SUCCESS if the operation succeeds. Otherwise, it returns the appropriate Win32 or iSCSI error code.
 ///    
 @DllImport("ISCSIDSC")
-uint RefreshISNSServerW(const(wchar)* Address);
+uint RefreshISNSServerW(PWSTR Address);
 
 ///The <b>RefreshIsnsServer</b> function instructs the iSCSI initiator service to query the indicated Internet Storage
 ///Name Service (iSNS) server to refresh the list of discovered targets for the iSCSI initiator service.
@@ -2547,7 +2543,7 @@ uint RefreshISNSServerW(const(wchar)* Address);
 ///    Returns ERROR_SUCCESS if the operation succeeds. Otherwise, it returns the appropriate Win32 or iSCSI error code.
 ///    
 @DllImport("ISCSIDSC")
-uint RefreshISNSServerA(const(char)* Address);
+uint RefreshISNSServerA(PSTR Address);
 
 ///The <b>ReportIsnsServerList</b> function retrieves the list of Internet Storage Name Service (iSNS) servers that the
 ///iSCSI initiator service queries for discovered targets.
@@ -2563,7 +2559,7 @@ uint RefreshISNSServerA(const(char)* Address);
 ///    failure.
 ///    
 @DllImport("ISCSIDSC")
-uint ReportISNSServerListW(uint* BufferSizeInChar, const(wchar)* Buffer);
+uint ReportISNSServerListW(uint* BufferSizeInChar, PWSTR Buffer);
 
 ///The <b>ReportIsnsServerList</b> function retrieves the list of Internet Storage Name Service (iSNS) servers that the
 ///iSCSI initiator service queries for discovered targets.
@@ -2579,7 +2575,7 @@ uint ReportISNSServerListW(uint* BufferSizeInChar, const(wchar)* Buffer);
 ///    failure.
 ///    
 @DllImport("ISCSIDSC")
-uint ReportISNSServerListA(uint* BufferSizeInChar, const(char)* Buffer);
+uint ReportISNSServerListA(uint* BufferSizeInChar, PSTR Buffer);
 
 ///The <b>GetIscsiSessionList</b> function retrieves the list of active iSCSI sessions.
 ///Params:
@@ -2684,7 +2680,7 @@ uint SetupPersistentIScsiDevices();
 ///    already in the persistent volume or device list. </td> </tr> </table>
 ///    
 @DllImport("ISCSIDSC")
-uint AddPersistentIScsiDeviceW(const(wchar)* DevicePath);
+uint AddPersistentIScsiDeviceW(PWSTR DevicePath);
 
 ///The <b>AddPersistentIscsiDevice</b> function adds a volume device name, drive letter, or mount point symbolic link to
 ///the list of iSCSI persistently bound volumes and devices.
@@ -2699,7 +2695,7 @@ uint AddPersistentIScsiDeviceW(const(wchar)* DevicePath);
 ///    already in the persistent volume or device list. </td> </tr> </table>
 ///    
 @DllImport("ISCSIDSC")
-uint AddPersistentIScsiDeviceA(const(char)* DevicePath);
+uint AddPersistentIScsiDeviceA(PSTR DevicePath);
 
 ///The <b>RemovePersistentIscsiDevice</b> function removes a device or volume from the list of persistently bound iSCSI
 ///volumes.
@@ -2711,7 +2707,7 @@ uint AddPersistentIScsiDeviceA(const(char)* DevicePath);
 ///    returns the appropriate Win32 or iSCSI error code on failure.
 ///    
 @DllImport("ISCSIDSC")
-uint RemovePersistentIScsiDeviceW(const(wchar)* DevicePath);
+uint RemovePersistentIScsiDeviceW(PWSTR DevicePath);
 
 ///The <b>RemovePersistentIscsiDevice</b> function removes a device or volume from the list of persistently bound iSCSI
 ///volumes.
@@ -2723,7 +2719,7 @@ uint RemovePersistentIScsiDeviceW(const(wchar)* DevicePath);
 ///    returns the appropriate Win32 or iSCSI error code on failure.
 ///    
 @DllImport("ISCSIDSC")
-uint RemovePersistentIScsiDeviceA(const(char)* DevicePath);
+uint RemovePersistentIScsiDeviceA(PSTR DevicePath);
 
 ///The <b>ClearPersistentIscsiDevices</b> function removes all volumes and devices from the list of persistently bound
 ///iSCSI volumes.
@@ -2745,7 +2741,7 @@ uint ClearPersistentIScsiDevices();
 ///    error code on failure.
 ///    
 @DllImport("ISCSIDSC")
-uint ReportPersistentIScsiDevicesW(uint* BufferSizeInChar, const(wchar)* Buffer);
+uint ReportPersistentIScsiDevicesW(uint* BufferSizeInChar, PWSTR Buffer);
 
 ///The <b>ReportPersistentIscsiDevices</b> function retrieves the list of persistently bound volumes and devices.
 ///Params:
@@ -2758,7 +2754,7 @@ uint ReportPersistentIScsiDevicesW(uint* BufferSizeInChar, const(wchar)* Buffer)
 ///    error code on failure.
 ///    
 @DllImport("ISCSIDSC")
-uint ReportPersistentIScsiDevicesA(uint* BufferSizeInChar, const(char)* Buffer);
+uint ReportPersistentIScsiDevicesA(uint* BufferSizeInChar, PSTR Buffer);
 
 ///The <b>ReportIscsiTargetPortals</b> function retrieves target portal information discovered by the iSCSI initiator
 ///service.
@@ -2774,8 +2770,8 @@ uint ReportPersistentIScsiDevicesA(uint* BufferSizeInChar, const(char)* Buffer);
 ///    error, this function will return a Winsock error code.
 ///    
 @DllImport("ISCSIDSC")
-uint ReportIScsiTargetPortalsW(const(wchar)* InitiatorName, const(wchar)* TargetName, ushort* TargetPortalTag, 
-                               uint* ElementCount, ISCSI_TARGET_PORTALW* Portals);
+uint ReportIScsiTargetPortalsW(PWSTR InitiatorName, PWSTR TargetName, ushort* TargetPortalTag, uint* ElementCount, 
+                               ISCSI_TARGET_PORTALW* Portals);
 
 ///The <b>ReportIscsiTargetPortals</b> function retrieves target portal information discovered by the iSCSI initiator
 ///service.
@@ -2791,8 +2787,8 @@ uint ReportIScsiTargetPortalsW(const(wchar)* InitiatorName, const(wchar)* Target
 ///    error, this function will return a Winsock error code.
 ///    
 @DllImport("ISCSIDSC")
-uint ReportIScsiTargetPortalsA(const(char)* InitiatorName, const(char)* TargetName, ushort* TargetPortalTag, 
-                               uint* ElementCount, ISCSI_TARGET_PORTALA* Portals);
+uint ReportIScsiTargetPortalsA(PSTR InitiatorName, PSTR TargetName, ushort* TargetPortalTag, uint* ElementCount, 
+                               ISCSI_TARGET_PORTALA* Portals);
 
 ///The <b>AddRadiusServer</b> function adds a new Remote Authentication Dial-In User Service (RADIUS) server to the list
 ///referenced by the iSCSI initiator service during authentication.
@@ -2805,7 +2801,7 @@ uint ReportIScsiTargetPortalsA(const(char)* InitiatorName, const(char)* TargetNa
 ///    </td> <td width="60%"> The supplied <i>Address</i> is invalid. </td> </tr> </table>
 ///    
 @DllImport("ISCSIDSC")
-uint AddRadiusServerW(const(wchar)* Address);
+uint AddRadiusServerW(PWSTR Address);
 
 ///The <b>AddRadiusServer</b> function adds a new Remote Authentication Dial-In User Service (RADIUS) server to the list
 ///referenced by the iSCSI initiator service during authentication.
@@ -2818,7 +2814,7 @@ uint AddRadiusServerW(const(wchar)* Address);
 ///    </td> <td width="60%"> The supplied <i>Address</i> is invalid. </td> </tr> </table>
 ///    
 @DllImport("ISCSIDSC")
-uint AddRadiusServerA(const(char)* Address);
+uint AddRadiusServerA(PSTR Address);
 
 ///The <b>RemoveRadiusServer</b> function removes a Remote Authentication Dial-In User Service (RADIUS) server entry
 ///from the RADIUS server list with which an iSCSI initiator is configured.
@@ -2829,7 +2825,7 @@ uint AddRadiusServerA(const(char)* Address);
 ///    error, this function will return a Winsock error code.
 ///    
 @DllImport("ISCSIDSC")
-uint RemoveRadiusServerW(const(wchar)* Address);
+uint RemoveRadiusServerW(PWSTR Address);
 
 ///The <b>RemoveRadiusServer</b> function removes a Remote Authentication Dial-In User Service (RADIUS) server entry
 ///from the RADIUS server list with which an iSCSI initiator is configured.
@@ -2840,7 +2836,7 @@ uint RemoveRadiusServerW(const(wchar)* Address);
 ///    error, this function will return a Winsock error code.
 ///    
 @DllImport("ISCSIDSC")
-uint RemoveRadiusServerA(const(char)* Address);
+uint RemoveRadiusServerA(PSTR Address);
 
 ///The <b>ReportRadiusServerList</b> function retrieves the list of Remote Authentication Dail-In Service (RADIUS)
 ///servers the iSCSI initiator service uses during authentication.
@@ -2853,7 +2849,7 @@ uint RemoveRadiusServerA(const(char)* Address);
 ///    error, this function will return a Winsock error code.
 ///    
 @DllImport("ISCSIDSC")
-uint ReportRadiusServerListW(uint* BufferSizeInChar, const(wchar)* Buffer);
+uint ReportRadiusServerListW(uint* BufferSizeInChar, PWSTR Buffer);
 
 ///The <b>ReportRadiusServerList</b> function retrieves the list of Remote Authentication Dail-In Service (RADIUS)
 ///servers the iSCSI initiator service uses during authentication.
@@ -2866,6 +2862,6 @@ uint ReportRadiusServerListW(uint* BufferSizeInChar, const(wchar)* Buffer);
 ///    error, this function will return a Winsock error code.
 ///    
 @DllImport("ISCSIDSC")
-uint ReportRadiusServerListA(uint* BufferSizeInChar, const(char)* Buffer);
+uint ReportRadiusServerListA(uint* BufferSizeInChar, PSTR Buffer);
 
 

@@ -3,9 +3,10 @@
 module windows.sync;
 
 public import windows.core;
-public import windows.systemservices : NamespaceHandle, RTL_CRITICAL_SECTION, SECURITY_ATTRIBUTES;
+public import windows.systemservices : NamespaceHandle, PSTR, RTL_CRITICAL_SECTION,
+                                       SECURITY_ATTRIBUTES;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Functions
@@ -35,7 +36,7 @@ void EnterCriticalSection(RTL_CRITICAL_SECTION* lpCriticalSection);
 ///    
 @DllImport("KERNEL32")
 NamespaceHandle CreatePrivateNamespaceA(SECURITY_ATTRIBUTES* lpPrivateNamespaceAttributes, 
-                                        void* lpBoundaryDescriptor, const(char)* lpAliasPrefix);
+                                        void* lpBoundaryDescriptor, const(PSTR) lpAliasPrefix);
 
 ///Opens a private namespace.
 ///Params:
@@ -46,6 +47,6 @@ NamespaceHandle CreatePrivateNamespaceA(SECURITY_ATTRIBUTES* lpPrivateNamespaceA
 ///    The function returns the handle to the existing namespace.
 ///    
 @DllImport("KERNEL32")
-NamespaceHandle OpenPrivateNamespaceA(void* lpBoundaryDescriptor, const(char)* lpAliasPrefix);
+NamespaceHandle OpenPrivateNamespaceA(void* lpBoundaryDescriptor, const(PSTR) lpAliasPrefix);
 
 

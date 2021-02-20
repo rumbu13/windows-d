@@ -8,15 +8,27 @@ public import windows.displaydevices : POINT, RECT;
 public import windows.gdi : HBITMAP, HBRUSH, HCURSOR, HDC, HICON;
 public import windows.shell : HELPINFO, LOGFONTA, LOGFONTW;
 public import windows.systemservices : BOOL, ENUMRESLANGPROCA, ENUMRESLANGPROCW,
-                                       HANDLE, HINSTANCE, LRESULT;
-public import windows.windowsandmessaging : HOOKPROC, HWND, LPARAM, MSG, UPDATELAYEREDWINDOWINFO,
-                                            WPARAM;
+                                       HANDLE, HINSTANCE, HRSRC, LRESULT, PSTR,
+                                       PWSTR;
+public import windows.windowsandmessaging : HHOOK, HOOKPROC, HWND, LPARAM, MSG,
+                                            UPDATELAYEREDWINDOWINFO, WPARAM;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
 
+
+alias DI_FLAGS = uint;
+enum : uint
+{
+    DI_MASK        = 0x00000001,
+    DI_IMAGE       = 0x00000002,
+    DI_NORMAL      = 0x00000003,
+    DI_COMPAT      = 0x00000004,
+    DI_DEFAULTSIZE = 0x00000008,
+    DI_NOMIRROR    = 0x00000010,
+}
 
 alias POINTER_INPUT_TYPE = int;
 enum : int
@@ -80,6 +92,10 @@ enum MrmResourceIndexerMessageSeverity : int
 
 // Callbacks
 
+alias WINSTAENUMPROCA = BOOL function(PSTR param0, LPARAM param1);
+alias WINSTAENUMPROCW = BOOL function(PWSTR param0, LPARAM param1);
+alias DESKTOPENUMPROCA = BOOL function(PSTR param0, LPARAM param1);
+alias DESKTOPENUMPROCW = BOOL function(PWSTR param0, LPARAM param1);
 ///An application-defined callback function used with the EnumResourceNames and EnumResourceNamesEx functions. It
 ///receives the type and name of a resource. The <b>ENUMRESNAMEPROC</b> type defines a pointer to this callback
 ///function. <i>EnumResNameProc</i> is a placeholder for the application-defined function name.
@@ -99,8 +115,7 @@ enum MrmResourceIndexerMessageSeverity : int
 ///Returns:
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> to continue enumeration or <b>FALSE</b> to stop enumeration.
 ///    
-alias ENUMRESNAMEPROCA = BOOL function(ptrdiff_t hModule, const(char)* lpType, const(char)* lpName, 
-                                       ptrdiff_t lParam);
+alias ENUMRESNAMEPROCA = BOOL function(ptrdiff_t hModule, const(PSTR) lpType, PSTR lpName, ptrdiff_t lParam);
 ///An application-defined callback function used with the EnumResourceNames and EnumResourceNamesEx functions. It
 ///receives the type and name of a resource. The <b>ENUMRESNAMEPROC</b> type defines a pointer to this callback
 ///function. <i>EnumResNameProc</i> is a placeholder for the application-defined function name.
@@ -120,8 +135,7 @@ alias ENUMRESNAMEPROCA = BOOL function(ptrdiff_t hModule, const(char)* lpType, c
 ///Returns:
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> to continue enumeration or <b>FALSE</b> to stop enumeration.
 ///    
-alias ENUMRESNAMEPROCW = BOOL function(ptrdiff_t hModule, const(wchar)* lpType, const(wchar)* lpName, 
-                                       ptrdiff_t lParam);
+alias ENUMRESNAMEPROCW = BOOL function(ptrdiff_t hModule, const(PWSTR) lpType, PWSTR lpName, ptrdiff_t lParam);
 ///An application-defined callback function used with the EnumResourceTypes and EnumResourceTypesEx functions. It
 ///receives resource types. The <b>ENUMRESTYPEPROC</b> type defines a pointer to this callback function.
 ///<i>EnumResTypeProc</i> is a placeholder for the application-defined function name.
@@ -137,7 +151,7 @@ alias ENUMRESNAMEPROCW = BOOL function(ptrdiff_t hModule, const(wchar)* lpType, 
 ///Returns:
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> to continue enumeration or <b>FALSE</b> to stop enumeration.
 ///    
-alias ENUMRESTYPEPROCA = BOOL function(ptrdiff_t hModule, const(char)* lpType, ptrdiff_t lParam);
+alias ENUMRESTYPEPROCA = BOOL function(ptrdiff_t hModule, PSTR lpType, ptrdiff_t lParam);
 ///An application-defined callback function used with the EnumResourceTypes and EnumResourceTypesEx functions. It
 ///receives resource types. The <b>ENUMRESTYPEPROC</b> type defines a pointer to this callback function.
 ///<i>EnumResTypeProc</i> is a placeholder for the application-defined function name.
@@ -153,66 +167,16 @@ alias ENUMRESTYPEPROCA = BOOL function(ptrdiff_t hModule, const(char)* lpType, p
 ///Returns:
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> to continue enumeration or <b>FALSE</b> to stop enumeration.
 ///    
-alias ENUMRESTYPEPROCW = BOOL function(ptrdiff_t hModule, const(wchar)* lpType, ptrdiff_t lParam);
+alias ENUMRESTYPEPROCW = BOOL function(ptrdiff_t hModule, PWSTR lpType, ptrdiff_t lParam);
 alias WNDPROC = LRESULT function(HWND param0, uint param1, WPARAM param2, LPARAM param3);
 alias WNDENUMPROC = BOOL function(HWND param0, LPARAM param1);
-alias PROPENUMPROC = BOOL function();
-alias PROPENUMPROCEX = BOOL function();
-alias EDITWORDBREAKPROC = int function();
-alias NAMEENUMPROCA = BOOL function(const(char)* param0, LPARAM param1);
-alias NAMEENUMPROCW = BOOL function(const(wchar)* param0, LPARAM param1);
-alias WINSTAENUMPROCA = BOOL function();
-alias DESKTOPENUMPROCA = BOOL function();
-alias WINSTAENUMPROCW = BOOL function();
-alias DESKTOPENUMPROCW = BOOL function();
-alias WINSTAENUMPROC = BOOL function();
-alias DESKTOPENUMPROC = BOOL function();
-alias PREGISTERCLASSNAMEW = ubyte function(const(wchar)* param0);
+alias NAMEENUMPROCA = BOOL function(PSTR param0, LPARAM param1);
+alias NAMEENUMPROCW = BOOL function(PWSTR param0, LPARAM param1);
+alias PREGISTERCLASSNAMEW = ubyte function(const(PWSTR) param0);
 alias MSGBOXCALLBACK = void function(HELPINFO* lpHelpInfo);
 
 // Structs
 
-
-alias HACCEL = ptrdiff_t;
-
-alias HMENU = ptrdiff_t;
-
-///Contains the error message or message box display text for a message table resource.
-struct MESSAGE_RESOURCE_ENTRY
-{
-    ///Type: <b>WORD</b> The length, in bytes, of the <b>MESSAGE_RESOURCE_ENTRY</b> structure.
-    ushort   Length;
-    ///Type: <b>WORD</b> Indicates that the string is encoded in Unicode, if equal to the value 0x0001. Indicates that
-    ///the string is encoded in ANSI, if equal to the value 0x0000.
-    ushort   Flags;
-    ///Type: <b>BYTE[1]</b> Pointer to an array that contains the error message or message box display text.
-    ubyte[1] Text;
-}
-
-///Contains information about message strings with identifiers in the range indicated by the <b>LowId</b> and
-///<b>HighId</b> members.
-struct MESSAGE_RESOURCE_BLOCK
-{
-    ///Type: <b>DWORD</b> The lowest message identifier contained within this structure.
-    uint LowId;
-    ///Type: <b>DWORD</b> The highest message identifier contained within this structure.
-    uint HighId;
-    ///Type: <b>DWORD</b> The offset, in bytes, from the beginning of the MESSAGE_RESOURCE_DATA structure to the
-    ///MESSAGE_RESOURCE_ENTRY structures in this <b>MESSAGE_RESOURCE_BLOCK</b>. The <b>MESSAGE_RESOURCE_ENTRY</b>
-    ///structures contain the message strings.
-    uint OffsetToEntries;
-}
-
-///Contains information about formatted text for display as an error message or in a message box in a message table
-///resource.
-struct MESSAGE_RESOURCE_DATA
-{
-    ///Type: <b>DWORD</b> The number of MESSAGE_RESOURCE_BLOCK structures.
-    uint NumberOfBlocks;
-    ///Type: <b>MESSAGE_RESOURCE_BLOCK[1]</b> An array of structures. The array is the size indicated by the
-    ///<b>NumberOfBlocks</b> member.
-    MESSAGE_RESOURCE_BLOCK[1] Blocks;
-}
 
 ///Contains version information for a file. This information is language and code page independent.
 struct VS_FIXEDFILEINFO
@@ -411,16 +375,6 @@ struct ACCEL
     ushort cmd;
 }
 
-struct HTOUCHINPUT__
-{
-    int unused;
-}
-
-struct HSYNTHETICPOINTERDEVICE__
-{
-    int unused;
-}
-
 ///Contains extended parameters for the TrackPopupMenuEx function.
 struct TPMPARAMS
 {
@@ -512,7 +466,7 @@ struct MENUITEMINFOA
 {
     ///Type: <b>UINT</b> The size of the structure, in bytes. The caller must set this member to
     ///<code>sizeof(MENUITEMINFO)</code>.
-    uint         cbSize;
+    uint    cbSize;
     ///Type: <b>UINT</b> Indicates the members to be retrieved or set. This member can be one or more of the following
     ///values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="MIIM_BITMAP"></a><a
     ///id="miim_bitmap"></a><dl> <dt><b>MIIM_BITMAP</b></dt> <dt>0x00000080</dt> </dl> </td> <td width="60%"> Retrieves
@@ -534,7 +488,7 @@ struct MENUITEMINFOA
     ///<dt><b>MIIM_TYPE</b></dt> <dt>0x00000010</dt> </dl> </td> <td width="60%"> Retrieves or sets the <b>fType</b> and
     ///<b>dwTypeData</b> members. <b>MIIM_TYPE</b> is replaced by <b>MIIM_BITMAP</b>, <b>MIIM_FTYPE</b>, and
     ///<b>MIIM_STRING</b>. </td> </tr> </table>
-    uint         fMask;
+    uint    fMask;
     ///Type: <b>UINT</b> The menu item type. This member can be one or more of the following values. The
     ///<b>MFT_BITMAP</b>, <b>MFT_SEPARATOR</b>, and <b>MFT_STRING</b> values cannot be combined with one another. Set
     ///<b>fMask</b> to <b>MIIM_TYPE</b> to use <b>fType</b>. <b>fType</b> is used only if <b>fMask</b> has a value of
@@ -571,7 +525,7 @@ struct MENUITEMINFOA
     ///width="60%"> Displays the menu item using a text string. The <b>dwTypeData</b> member is the pointer to a
     ///null-terminated string, and the <b>cch</b> member is the length of the string. <b>MFT_STRING</b> is replaced by
     ///<b>MIIM_STRING</b>. </td> </tr> </table>
-    uint         fType;
+    uint    fType;
     ///Type: <b>UINT</b> The menu item state. This member can be one or more of these values. Set <b>fMask</b> to
     ///<b>MIIM_STATE</b> to use <b>fState</b>. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td
     ///width="40%"><a id="MFS_CHECKED"></a><a id="mfs_checked"></a><dl> <dt><b>MFS_CHECKED</b></dt> <dt>0x00000008L</dt>
@@ -593,24 +547,24 @@ struct MENUITEMINFOA
     ///items, see the <b>hbmpChecked</b> member. </td> </tr> <tr> <td width="40%"><a id="MFS_UNHILITE"></a><a
     ///id="mfs_unhilite"></a><dl> <dt><b>MFS_UNHILITE</b></dt> <dt>0x00000000L</dt> </dl> </td> <td width="60%"> Removes
     ///the highlight from the menu item. This is the default state. </td> </tr> </table>
-    uint         fState;
+    uint    fState;
     ///Type: <b>UINT</b> An application-defined value that identifies the menu item. Set <b>fMask</b> to <b>MIIM_ID</b>
     ///to use <b>wID</b>.
-    uint         wID;
+    uint    wID;
     ///Type: <b>HMENU</b> A handle to the drop-down menu or submenu associated with the menu item. If the menu item is
     ///not an item that opens a drop-down menu or submenu, this member is <b>NULL</b>. Set <b>fMask</b> to
     ///<b>MIIM_SUBMENU</b> to use <b>hSubMenu</b>.
-    HMENU        hSubMenu;
+    HMENU   hSubMenu;
     ///Type: <b>HBITMAP</b> A handle to the bitmap to display next to the item if it is selected. If this member is
     ///<b>NULL</b>, a default bitmap is used. If the <b>MFT_RADIOCHECK</b> type value is specified, the default bitmap
     ///is a bullet. Otherwise, it is a check mark. Set <b>fMask</b> to <b>MIIM_CHECKMARKS</b> to use <b>hbmpChecked</b>.
-    HBITMAP      hbmpChecked;
+    HBITMAP hbmpChecked;
     ///Type: <b>HBITMAP</b> A handle to the bitmap to display next to the item if it is not selected. If this member is
     ///<b>NULL</b>, no bitmap is used. Set <b>fMask</b> to <b>MIIM_CHECKMARKS</b> to use <b>hbmpUnchecked</b>.
-    HBITMAP      hbmpUnchecked;
+    HBITMAP hbmpUnchecked;
     ///Type: <b>ULONG_PTR</b> An application-defined value associated with the menu item. Set <b>fMask</b> to
     ///<b>MIIM_DATA</b> to use <b>dwItemData</b>.
-    size_t       dwItemData;
+    size_t  dwItemData;
     ///Type: <b>LPTSTR</b> The contents of the menu item. The meaning of this member depends on the value of
     ///<b>fType</b> and is used only if the <b>MIIM_TYPE</b> flag is set in the <b>fMask</b> member. To retrieve a menu
     ///item of type <b>MFT_STRING</b>, first find the size of the string by setting the <b>dwTypeData</b> member of
@@ -621,7 +575,7 @@ struct MENUITEMINFOA
     ///is specified by the <b>fType</b> member. When using with the SetMenuItemInfo function, this member should contain
     ///a value whose type is specified by the <b>fType</b> member. <b>dwTypeData</b> is used only if the
     ///<b>MIIM_STRING</b> flag is set in the <b>fMask</b> member
-    const(char)* dwTypeData;
+    PSTR    dwTypeData;
     ///Type: <b>UINT</b> The length of the menu item text, in characters, when information is received about a menu item
     ///of the <b>MFT_STRING</b> type. However, <b>cch</b> is used only if the <b>MIIM_TYPE</b> flag is set in the
     ///<b>fMask</b> member and is zero otherwise. Also, <b>cch</b> is ignored when the content of a menu item is set by
@@ -631,7 +585,7 @@ struct MENUITEMINFOA
     ///the length of the menu item text. If the retrieved menu item is of some other type, <b>GetMenuItemInfo</b> sets
     ///the <b>cch</b> field to zero. The <b>cch</b> member is used when the <b>MIIM_STRING</b> flag is set in the
     ///<b>fMask</b> member.
-    uint         cch;
+    uint    cch;
     ///Type: <b>HBITMAP</b> A handle to the bitmap to be displayed, or it can be one of the values in the following
     ///table. It is used when the <b>MIIM_BITMAP</b> flag is set in the <b>fMask</b> member. <table> <tr> <th>Value</th>
     ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="HBMMENU_CALLBACK"></a><a id="hbmmenu_callback"></a><dl>
@@ -660,7 +614,7 @@ struct MENUITEMINFOA
     ///submenu. </td> </tr> <tr> <td width="40%"><a id="HBMMENU_SYSTEM"></a><a id="hbmmenu_system"></a><dl>
     ///<dt><b>HBMMENU_SYSTEM</b></dt> <dt>((HBITMAP) 1)</dt> </dl> </td> <td width="60%"> Windows icon or the icon of
     ///the window specified in <b>dwItemData</b>. </td> </tr> </table>
-    HBITMAP      hbmpItem;
+    HBITMAP hbmpItem;
 }
 
 ///Contains information about a menu item.
@@ -668,7 +622,7 @@ struct MENUITEMINFOW
 {
     ///Type: <b>UINT</b> The size of the structure, in bytes. The caller must set this member to
     ///<code>sizeof(MENUITEMINFO)</code>.
-    uint          cbSize;
+    uint    cbSize;
     ///Type: <b>UINT</b> Indicates the members to be retrieved or set. This member can be one or more of the following
     ///values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="MIIM_BITMAP"></a><a
     ///id="miim_bitmap"></a><dl> <dt><b>MIIM_BITMAP</b></dt> <dt>0x00000080</dt> </dl> </td> <td width="60%"> Retrieves
@@ -690,7 +644,7 @@ struct MENUITEMINFOW
     ///<dt><b>MIIM_TYPE</b></dt> <dt>0x00000010</dt> </dl> </td> <td width="60%"> Retrieves or sets the <b>fType</b> and
     ///<b>dwTypeData</b> members. <b>MIIM_TYPE</b> is replaced by <b>MIIM_BITMAP</b>, <b>MIIM_FTYPE</b>, and
     ///<b>MIIM_STRING</b>. </td> </tr> </table>
-    uint          fMask;
+    uint    fMask;
     ///Type: <b>UINT</b> The menu item type. This member can be one or more of the following values. The
     ///<b>MFT_BITMAP</b>, <b>MFT_SEPARATOR</b>, and <b>MFT_STRING</b> values cannot be combined with one another. Set
     ///<b>fMask</b> to <b>MIIM_TYPE</b> to use <b>fType</b>. <b>fType</b> is used only if <b>fMask</b> has a value of
@@ -727,7 +681,7 @@ struct MENUITEMINFOW
     ///width="60%"> Displays the menu item using a text string. The <b>dwTypeData</b> member is the pointer to a
     ///null-terminated string, and the <b>cch</b> member is the length of the string. <b>MFT_STRING</b> is replaced by
     ///<b>MIIM_STRING</b>. </td> </tr> </table>
-    uint          fType;
+    uint    fType;
     ///Type: <b>UINT</b> The menu item state. This member can be one or more of these values. Set <b>fMask</b> to
     ///<b>MIIM_STATE</b> to use <b>fState</b>. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td
     ///width="40%"><a id="MFS_CHECKED"></a><a id="mfs_checked"></a><dl> <dt><b>MFS_CHECKED</b></dt> <dt>0x00000008L</dt>
@@ -749,24 +703,24 @@ struct MENUITEMINFOW
     ///items, see the <b>hbmpChecked</b> member. </td> </tr> <tr> <td width="40%"><a id="MFS_UNHILITE"></a><a
     ///id="mfs_unhilite"></a><dl> <dt><b>MFS_UNHILITE</b></dt> <dt>0x00000000L</dt> </dl> </td> <td width="60%"> Removes
     ///the highlight from the menu item. This is the default state. </td> </tr> </table>
-    uint          fState;
+    uint    fState;
     ///Type: <b>UINT</b> An application-defined value that identifies the menu item. Set <b>fMask</b> to <b>MIIM_ID</b>
     ///to use <b>wID</b>.
-    uint          wID;
+    uint    wID;
     ///Type: <b>HMENU</b> A handle to the drop-down menu or submenu associated with the menu item. If the menu item is
     ///not an item that opens a drop-down menu or submenu, this member is <b>NULL</b>. Set <b>fMask</b> to
     ///<b>MIIM_SUBMENU</b> to use <b>hSubMenu</b>.
-    HMENU         hSubMenu;
+    HMENU   hSubMenu;
     ///Type: <b>HBITMAP</b> A handle to the bitmap to display next to the item if it is selected. If this member is
     ///<b>NULL</b>, a default bitmap is used. If the <b>MFT_RADIOCHECK</b> type value is specified, the default bitmap
     ///is a bullet. Otherwise, it is a check mark. Set <b>fMask</b> to <b>MIIM_CHECKMARKS</b> to use <b>hbmpChecked</b>.
-    HBITMAP       hbmpChecked;
+    HBITMAP hbmpChecked;
     ///Type: <b>HBITMAP</b> A handle to the bitmap to display next to the item if it is not selected. If this member is
     ///<b>NULL</b>, no bitmap is used. Set <b>fMask</b> to <b>MIIM_CHECKMARKS</b> to use <b>hbmpUnchecked</b>.
-    HBITMAP       hbmpUnchecked;
+    HBITMAP hbmpUnchecked;
     ///Type: <b>ULONG_PTR</b> An application-defined value associated with the menu item. Set <b>fMask</b> to
     ///<b>MIIM_DATA</b> to use <b>dwItemData</b>.
-    size_t        dwItemData;
+    size_t  dwItemData;
     ///Type: <b>LPTSTR</b> The contents of the menu item. The meaning of this member depends on the value of
     ///<b>fType</b> and is used only if the <b>MIIM_TYPE</b> flag is set in the <b>fMask</b> member. To retrieve a menu
     ///item of type <b>MFT_STRING</b>, first find the size of the string by setting the <b>dwTypeData</b> member of
@@ -777,7 +731,7 @@ struct MENUITEMINFOW
     ///is specified by the <b>fType</b> member. When using with the SetMenuItemInfo function, this member should contain
     ///a value whose type is specified by the <b>fType</b> member. <b>dwTypeData</b> is used only if the
     ///<b>MIIM_STRING</b> flag is set in the <b>fMask</b> member
-    const(wchar)* dwTypeData;
+    PWSTR   dwTypeData;
     ///Type: <b>UINT</b> The length of the menu item text, in characters, when information is received about a menu item
     ///of the <b>MFT_STRING</b> type. However, <b>cch</b> is used only if the <b>MIIM_TYPE</b> flag is set in the
     ///<b>fMask</b> member and is zero otherwise. Also, <b>cch</b> is ignored when the content of a menu item is set by
@@ -787,7 +741,7 @@ struct MENUITEMINFOW
     ///the length of the menu item text. If the retrieved menu item is of some other type, <b>GetMenuItemInfo</b> sets
     ///the <b>cch</b> field to zero. The <b>cch</b> member is used when the <b>MIIM_STRING</b> flag is set in the
     ///<b>fMask</b> member.
-    uint          cch;
+    uint    cch;
     ///Type: <b>HBITMAP</b> A handle to the bitmap to be displayed, or it can be one of the values in the following
     ///table. It is used when the <b>MIIM_BITMAP</b> flag is set in the <b>fMask</b> member. <table> <tr> <th>Value</th>
     ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="HBMMENU_CALLBACK"></a><a id="hbmmenu_callback"></a><dl>
@@ -816,7 +770,7 @@ struct MENUITEMINFOW
     ///submenu. </td> </tr> <tr> <td width="40%"><a id="HBMMENU_SYSTEM"></a><a id="hbmmenu_system"></a><dl>
     ///<dt><b>HBMMENU_SYSTEM</b></dt> <dt>((HBITMAP) 1)</dt> </dl> </td> <td width="60%"> Windows icon or the icon of
     ///the window specified in <b>dwItemData</b>. </td> </tr> </table>
-    HBITMAP       hbmpItem;
+    HBITMAP hbmpItem;
 }
 
 struct DROPSTRUCT
@@ -1058,25 +1012,15 @@ struct MENUBARINFO
     int   _bitfield69;
 }
 
-struct HRAWINPUT__
-{
-    int unused;
-}
-
-struct HGESTUREINFO__
-{
-    int unused;
-}
-
 ///Represents the context under which a resource is appropriate.
 struct IndexedResourceQualifier
 {
     ///The name of the qualifier, such as "language", "contrast", or "scale".
-    const(wchar)* name;
+    PWSTR name;
     ///The value of the qualifier. You should preserve the case of the qualifier value from the first instance of the
     ///qualifier discovered during indexing. The following values are examples of the qualifier values: <ul> <li>"100",
     ///"140", or "180" for scale.</li> <li>"fr-FR" for language.</li> <li>"high" for contrast. </li> </ul>
-    const(wchar)* value;
+    PWSTR value;
 }
 
 struct MrmResourceIndexerHandle
@@ -1087,8 +1031,57 @@ struct MrmResourceIndexerHandle
 struct MrmResourceIndexerMessage
 {
     MrmResourceIndexerMessageSeverity severity;
-    uint          id;
-    const(wchar)* text;
+    uint         id;
+    const(PWSTR) text;
+}
+
+@RAIIFree!DestroyAcceleratorTable
+struct HACCEL
+{
+    ptrdiff_t Value;
+}
+
+@RAIIFree!DestroyMenu
+struct HMENU
+{
+    ptrdiff_t Value;
+}
+
+///Contains the error message or message box display text for a message table resource.
+struct MESSAGE_RESOURCE_ENTRY
+{
+    ///Type: <b>WORD</b> The length, in bytes, of the <b>MESSAGE_RESOURCE_ENTRY</b> structure.
+    ushort   Length;
+    ///Type: <b>WORD</b> Indicates that the string is encoded in Unicode, if equal to the value 0x0001. Indicates that
+    ///the string is encoded in ANSI, if equal to the value 0x0000.
+    ushort   Flags;
+    ///Type: <b>BYTE[1]</b> Pointer to an array that contains the error message or message box display text.
+    ubyte[1] Text;
+}
+
+///Contains information about message strings with identifiers in the range indicated by the <b>LowId</b> and
+///<b>HighId</b> members.
+struct MESSAGE_RESOURCE_BLOCK
+{
+    ///Type: <b>DWORD</b> The lowest message identifier contained within this structure.
+    uint LowId;
+    ///Type: <b>DWORD</b> The highest message identifier contained within this structure.
+    uint HighId;
+    ///Type: <b>DWORD</b> The offset, in bytes, from the beginning of the MESSAGE_RESOURCE_DATA structure to the
+    ///MESSAGE_RESOURCE_ENTRY structures in this <b>MESSAGE_RESOURCE_BLOCK</b>. The <b>MESSAGE_RESOURCE_ENTRY</b>
+    ///structures contain the message strings.
+    uint OffsetToEntries;
+}
+
+///Contains information about formatted text for display as an error message or in a message box in a message table
+///resource.
+struct MESSAGE_RESOURCE_DATA
+{
+    ///Type: <b>DWORD</b> The number of MESSAGE_RESOURCE_BLOCK structures.
+    uint NumberOfBlocks;
+    ///Type: <b>MESSAGE_RESOURCE_BLOCK[1]</b> An array of structures. The array is the size indicated by the
+    ///<b>NumberOfBlocks</b> member.
+    MESSAGE_RESOURCE_BLOCK[1] Blocks;
 }
 
 // Functions
@@ -1120,7 +1113,7 @@ BOOL FreeResource(ptrdiff_t hResData);
 ///    GetLastError.
 ///    
 @DllImport("KERNEL32")
-ptrdiff_t LoadResource(ptrdiff_t hModule, ptrdiff_t hResInfo);
+ptrdiff_t LoadResource(ptrdiff_t hModule, HRSRC hResInfo);
 
 ///Loads a string resource from the executable file associated with a specified module and either copies the string into
 ///a buffer with a terminating null character or returns a read-only pointer to the string resource itself.
@@ -1142,7 +1135,7 @@ ptrdiff_t LoadResource(ptrdiff_t hModule, ptrdiff_t hResInfo);
 ///    information, call GetLastError.
 ///    
 @DllImport("USER32")
-int LoadStringA(HINSTANCE hInstance, uint uID, const(char)* lpBuffer, int cchBufferMax);
+int LoadStringA(HINSTANCE hInstance, uint uID, PSTR lpBuffer, int cchBufferMax);
 
 ///Loads a string resource from the executable file associated with a specified module and either copies the string into
 ///a buffer with a terminating null character or returns a read-only pointer to the string resource itself.
@@ -1164,7 +1157,7 @@ int LoadStringA(HINSTANCE hInstance, uint uID, const(char)* lpBuffer, int cchBuf
 ///    information, call GetLastError.
 ///    
 @DllImport("USER32")
-int LoadStringW(HINSTANCE hInstance, uint uID, const(wchar)* lpBuffer, int cchBufferMax);
+int LoadStringW(HINSTANCE hInstance, uint uID, PWSTR lpBuffer, int cchBufferMax);
 
 ///Retrieves a pointer to the specified resource in memory.
 ///Params:
@@ -1189,7 +1182,7 @@ void* LockResource(ptrdiff_t hResData);
 ///    function fails, the return value is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-uint SizeofResource(ptrdiff_t hModule, ptrdiff_t hResInfo);
+uint SizeofResource(ptrdiff_t hModule, HRSRC hResInfo);
 
 ///Enumerates language-specific resources, of the specified type and name, associated with a specified binary module.
 ///Extends EnumResourceLanguages by allowing more control over the enumeration.
@@ -1238,7 +1231,7 @@ uint SizeofResource(ptrdiff_t hModule, ptrdiff_t hResInfo);
 ///    call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL EnumResourceLanguagesExA(ptrdiff_t hModule, const(char)* lpType, const(char)* lpName, 
+BOOL EnumResourceLanguagesExA(ptrdiff_t hModule, const(PSTR) lpType, const(PSTR) lpName, 
                               ENUMRESLANGPROCA lpEnumFunc, ptrdiff_t lParam, uint dwFlags, ushort LangId);
 
 ///Enumerates language-specific resources, of the specified type and name, associated with a specified binary module.
@@ -1288,7 +1281,7 @@ BOOL EnumResourceLanguagesExA(ptrdiff_t hModule, const(char)* lpType, const(char
 ///    call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL EnumResourceLanguagesExW(ptrdiff_t hModule, const(wchar)* lpType, const(wchar)* lpName, 
+BOOL EnumResourceLanguagesExW(ptrdiff_t hModule, const(PWSTR) lpType, const(PWSTR) lpName, 
                               ENUMRESLANGPROCW lpEnumFunc, ptrdiff_t lParam, uint dwFlags, ushort LangId);
 
 ///Enumerates resources of a specified type that are associated with a specified binary module. The search can include
@@ -1333,7 +1326,7 @@ BOOL EnumResourceLanguagesExW(ptrdiff_t hModule, const(wchar)* lpType, const(wch
 ///    call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL EnumResourceNamesExA(ptrdiff_t hModule, const(char)* lpType, ENUMRESNAMEPROCA lpEnumFunc, ptrdiff_t lParam, 
+BOOL EnumResourceNamesExA(ptrdiff_t hModule, const(PSTR) lpType, ENUMRESNAMEPROCA lpEnumFunc, ptrdiff_t lParam, 
                           uint dwFlags, ushort LangId);
 
 ///Enumerates resources of a specified type that are associated with a specified binary module. The search can include
@@ -1378,7 +1371,7 @@ BOOL EnumResourceNamesExA(ptrdiff_t hModule, const(char)* lpType, ENUMRESNAMEPRO
 ///    call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL EnumResourceNamesExW(ptrdiff_t hModule, const(wchar)* lpType, ENUMRESNAMEPROCW lpEnumFunc, ptrdiff_t lParam, 
+BOOL EnumResourceNamesExW(ptrdiff_t hModule, const(PWSTR) lpType, ENUMRESNAMEPROCW lpEnumFunc, ptrdiff_t lParam, 
                           uint dwFlags, ushort LangId);
 
 ///Enumerates resource types associated with a specified binary module. The search can include both a language-neutral
@@ -1492,7 +1485,7 @@ BOOL EnumResourceTypesExW(ptrdiff_t hModule, ENUMRESTYPEPROCW lpEnumFunc, ptrdif
 ///    expected output. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-int wvsprintfA(const(char)* param0, const(char)* param1, byte* arglist);
+int wvsprintfA(PSTR param0, const(PSTR) param1, byte* arglist);
 
 ///Writes formatted data to the specified buffer using a pointer to a list of arguments. The items pointed to by the
 ///argument list are converted and copied to an output buffer according to the corresponding format specification in the
@@ -1515,7 +1508,7 @@ int wvsprintfA(const(char)* param0, const(char)* param1, byte* arglist);
 ///    expected output. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-int wvsprintfW(const(wchar)* param0, const(wchar)* param1, byte* arglist);
+int wvsprintfW(PWSTR param0, const(PWSTR) param1, byte* arglist);
 
 ///Writes formatted data to the specified buffer. Any arguments are converted and copied to the output buffer according
 ///to the corresponding format specification in the format string. The function appends a terminating null character to
@@ -1537,7 +1530,7 @@ int wvsprintfW(const(wchar)* param0, const(wchar)* param1, byte* arglist);
 ///    length of the expected output. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-int wsprintfA(const(char)* param0, const(char)* param1);
+int wsprintfA(PSTR param0, const(PSTR) param1);
 
 ///Writes formatted data to the specified buffer. Any arguments are converted and copied to the output buffer according
 ///to the corresponding format specification in the format string. The function appends a terminating null character to
@@ -1559,7 +1552,7 @@ int wsprintfA(const(char)* param0, const(char)* param1);
 ///    length of the expected output. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-int wsprintfW(const(wchar)* param0, const(wchar)* param1);
+int wsprintfW(PWSTR param0, const(PWSTR) param1);
 
 @DllImport("USER32")
 BOOL SetMessageQueue(int cMessagesMax);
@@ -1597,7 +1590,7 @@ LRESULT DefDlgProcA(HWND hDlg, uint Msg, WPARAM wParam, LPARAM lParam);
 ///    GetLastError returns <b>ERROR_INVALID_ADDRESS</b>.
 ///    
 @DllImport("USER32")
-BOOL CharToOemA(const(char)* pSrc, const(char)* pDst);
+BOOL CharToOemA(const(PSTR) pSrc, PSTR pDst);
 
 ///Translates a string into the OEM-defined character set. <div class="alert"><b>Warning</b> Do not use. See Security
 ///Considerations.</div><div> </div>
@@ -1613,7 +1606,7 @@ BOOL CharToOemA(const(char)* pSrc, const(char)* pDst);
 ///    GetLastError returns <b>ERROR_INVALID_ADDRESS</b>.
 ///    
 @DllImport("USER32")
-BOOL CharToOemW(const(wchar)* pSrc, const(char)* pDst);
+BOOL CharToOemW(const(PWSTR) pSrc, PSTR pDst);
 
 ///Translates a string from the OEM-defined character set into either an ANSI or a wide-character string. <div
 ///class="alert"><b>Warning</b> Do not use. See Security Considerations.</div><div> </div>
@@ -1629,7 +1622,7 @@ BOOL CharToOemW(const(wchar)* pSrc, const(char)* pDst);
 ///    GetLastError returns <b>ERROR_INVALID_ADDRESS</b>.
 ///    
 @DllImport("USER32")
-BOOL OemToCharA(const(char)* pSrc, const(char)* pDst);
+BOOL OemToCharA(const(PSTR) pSrc, PSTR pDst);
 
 ///Translates a string from the OEM-defined character set into either an ANSI or a wide-character string. <div
 ///class="alert"><b>Warning</b> Do not use. See Security Considerations.</div><div> </div>
@@ -1645,7 +1638,7 @@ BOOL OemToCharA(const(char)* pSrc, const(char)* pDst);
 ///    GetLastError returns <b>ERROR_INVALID_ADDRESS</b>.
 ///    
 @DllImport("USER32")
-BOOL OemToCharW(const(char)* pSrc, const(wchar)* pDst);
+BOOL OemToCharW(const(PSTR) pSrc, PWSTR pDst);
 
 ///Translates a specified number of characters in a string into the OEM-defined character set.
 ///Params:
@@ -1662,7 +1655,7 @@ BOOL OemToCharW(const(char)* pSrc, const(wchar)* pDst);
 ///    GetLastError returns <b>ERROR_INVALID_ADDRESS</b>.
 ///    
 @DllImport("USER32")
-BOOL CharToOemBuffA(const(char)* lpszSrc, const(char)* lpszDst, uint cchDstLength);
+BOOL CharToOemBuffA(const(PSTR) lpszSrc, PSTR lpszDst, uint cchDstLength);
 
 ///Translates a specified number of characters in a string into the OEM-defined character set.
 ///Params:
@@ -1679,7 +1672,7 @@ BOOL CharToOemBuffA(const(char)* lpszSrc, const(char)* lpszDst, uint cchDstLengt
 ///    GetLastError returns <b>ERROR_INVALID_ADDRESS</b>.
 ///    
 @DllImport("USER32")
-BOOL CharToOemBuffW(const(wchar)* lpszSrc, const(char)* lpszDst, uint cchDstLength);
+BOOL CharToOemBuffW(const(PWSTR) lpszSrc, PSTR lpszDst, uint cchDstLength);
 
 ///Translates a specified number of characters in a string from the OEM-defined character set into either an ANSI or a
 ///wide-character string.
@@ -1697,7 +1690,7 @@ BOOL CharToOemBuffW(const(wchar)* lpszSrc, const(char)* lpszDst, uint cchDstLeng
 ///    GetLastError returns <b>ERROR_INVALID_ADDRESS</b>.
 ///    
 @DllImport("USER32")
-BOOL OemToCharBuffA(const(char)* lpszSrc, const(char)* lpszDst, uint cchDstLength);
+BOOL OemToCharBuffA(const(PSTR) lpszSrc, PSTR lpszDst, uint cchDstLength);
 
 ///Translates a specified number of characters in a string from the OEM-defined character set into either an ANSI or a
 ///wide-character string.
@@ -1715,7 +1708,7 @@ BOOL OemToCharBuffA(const(char)* lpszSrc, const(char)* lpszDst, uint cchDstLengt
 ///    GetLastError returns <b>ERROR_INVALID_ADDRESS</b>.
 ///    
 @DllImport("USER32")
-BOOL OemToCharBuffW(const(char)* lpszSrc, const(wchar)* lpszDst, uint cchDstLength);
+BOOL OemToCharBuffW(const(PSTR) lpszSrc, PWSTR lpszDst, uint cchDstLength);
 
 ///Converts a character string or a single character to uppercase. If the operand is a character string, the function
 ///converts the characters in place.
@@ -1730,7 +1723,7 @@ BOOL OemToCharBuffW(const(char)* lpszSrc, const(wchar)* lpszDst, uint cchDstLeng
 ///    information for this function; do not call GetLastError.
 ///    
 @DllImport("USER32")
-byte* CharUpperA(const(char)* lpsz);
+PSTR CharUpperA(PSTR lpsz);
 
 ///Converts a character string or a single character to uppercase. If the operand is a character string, the function
 ///converts the characters in place.
@@ -1745,7 +1738,7 @@ byte* CharUpperA(const(char)* lpsz);
 ///    information for this function; do not call GetLastError.
 ///    
 @DllImport("USER32")
-ushort* CharUpperW(const(wchar)* lpsz);
+PWSTR CharUpperW(PWSTR lpsz);
 
 ///Converts lowercase characters in a buffer to uppercase characters. The function converts the characters in place.
 ///Params:
@@ -1758,7 +1751,7 @@ ushort* CharUpperW(const(wchar)* lpsz);
 ///    <b>CharUpperBuff</b>("Zenith of API Sets", 10) succeeds, the return value is 10.
 ///    
 @DllImport("USER32")
-uint CharUpperBuffA(const(char)* lpsz, uint cchLength);
+uint CharUpperBuffA(PSTR lpsz, uint cchLength);
 
 ///Converts lowercase characters in a buffer to uppercase characters. The function converts the characters in place.
 ///Params:
@@ -1771,7 +1764,7 @@ uint CharUpperBuffA(const(char)* lpsz, uint cchLength);
 ///    <b>CharUpperBuff</b>("Zenith of API Sets", 10) succeeds, the return value is 10.
 ///    
 @DllImport("USER32")
-uint CharUpperBuffW(const(wchar)* lpsz, uint cchLength);
+uint CharUpperBuffW(PWSTR lpsz, uint cchLength);
 
 ///Converts a character string or a single character to lowercase. If the operand is a character string, the function
 ///converts the characters in place.
@@ -1786,7 +1779,7 @@ uint CharUpperBuffW(const(wchar)* lpsz, uint cchLength);
 ///    information for this function; do not call GetLastError.
 ///    
 @DllImport("USER32")
-byte* CharLowerA(const(char)* lpsz);
+PSTR CharLowerA(PSTR lpsz);
 
 ///Converts a character string or a single character to lowercase. If the operand is a character string, the function
 ///converts the characters in place.
@@ -1801,7 +1794,7 @@ byte* CharLowerA(const(char)* lpsz);
 ///    information for this function; do not call GetLastError.
 ///    
 @DllImport("USER32")
-ushort* CharLowerW(const(wchar)* lpsz);
+PWSTR CharLowerW(PWSTR lpsz);
 
 ///Converts uppercase characters in a buffer to lowercase characters. The function converts the characters in place.
 ///Params:
@@ -1814,7 +1807,7 @@ ushort* CharLowerW(const(wchar)* lpsz);
 ///    <b>CharLowerBuff</b>("Acme of Operating Systems", 10) succeeds, the return value is 10.
 ///    
 @DllImport("USER32")
-uint CharLowerBuffA(const(char)* lpsz, uint cchLength);
+uint CharLowerBuffA(PSTR lpsz, uint cchLength);
 
 ///Converts uppercase characters in a buffer to lowercase characters. The function converts the characters in place.
 ///Params:
@@ -1827,7 +1820,7 @@ uint CharLowerBuffA(const(char)* lpsz, uint cchLength);
 ///    <b>CharLowerBuff</b>("Acme of Operating Systems", 10) succeeds, the return value is 10.
 ///    
 @DllImport("USER32")
-uint CharLowerBuffW(const(wchar)* lpsz, uint cchLength);
+uint CharLowerBuffW(PWSTR lpsz, uint cchLength);
 
 ///Retrieves a pointer to the next character in a string. This function can handle strings consisting of either single-
 ///or multi-byte characters.
@@ -1839,7 +1832,7 @@ uint CharLowerBuffW(const(wchar)* lpsz, uint cchLength);
 ///    is equal to <i>lpsz</i>.
 ///    
 @DllImport("USER32")
-byte* CharNextA(const(char)* lpsz);
+PSTR CharNextA(const(PSTR) lpsz);
 
 ///Retrieves a pointer to the next character in a string. This function can handle strings consisting of either single-
 ///or multi-byte characters.
@@ -1851,7 +1844,7 @@ byte* CharNextA(const(char)* lpsz);
 ///    is equal to <i>lpsz</i>.
 ///    
 @DllImport("USER32")
-ushort* CharNextW(const(wchar)* lpsz);
+PWSTR CharNextW(const(PWSTR) lpsz);
 
 ///Retrieves a pointer to the preceding character in a string. This function can handle strings consisting of either
 ///single- or multi-byte characters.
@@ -1863,7 +1856,7 @@ ushort* CharNextW(const(wchar)* lpsz);
 ///    character in the string if the <i>lpszCurrent</i> parameter equals the <i>lpszStart</i> parameter.
 ///    
 @DllImport("USER32")
-byte* CharPrevA(const(char)* lpszStart, const(char)* lpszCurrent);
+PSTR CharPrevA(const(PSTR) lpszStart, const(PSTR) lpszCurrent);
 
 ///Retrieves a pointer to the preceding character in a string. This function can handle strings consisting of either
 ///single- or multi-byte characters.
@@ -1875,7 +1868,7 @@ byte* CharPrevA(const(char)* lpszStart, const(char)* lpszCurrent);
 ///    character in the string if the <i>lpszCurrent</i> parameter equals the <i>lpszStart</i> parameter.
 ///    
 @DllImport("USER32")
-ushort* CharPrevW(const(wchar)* lpszStart, const(wchar)* lpszCurrent);
+PWSTR CharPrevW(const(PWSTR) lpszStart, const(PWSTR) lpszCurrent);
 
 ///Retrieves the pointer to the next character in a string. This function can handle strings consisting of either
 ///single- or multi-byte characters.
@@ -1896,7 +1889,7 @@ ushort* CharPrevW(const(wchar)* lpszStart, const(wchar)* lpszCurrent);
 ///    return value is equal to <i>lpCurrentChar</i>.
 ///    
 @DllImport("USER32")
-byte* CharNextExA(ushort CodePage, const(char)* lpCurrentChar, uint dwFlags);
+PSTR CharNextExA(ushort CodePage, const(PSTR) lpCurrentChar, uint dwFlags);
 
 ///Retrieves the pointer to the preceding character in a string. This function can handle strings consisting of either
 ///single- or multi-byte characters.
@@ -1917,7 +1910,7 @@ byte* CharNextExA(ushort CodePage, const(char)* lpCurrentChar, uint dwFlags);
 ///    character in the string if the <i>lpCurrentChar</i> parameter equals the <i>lpStart</i> parameter.
 ///    
 @DllImport("USER32")
-byte* CharPrevExA(ushort CodePage, const(char)* lpStart, const(char)* lpCurrentChar, uint dwFlags);
+PSTR CharPrevExA(ushort CodePage, const(PSTR) lpStart, const(PSTR) lpCurrentChar, uint dwFlags);
 
 ///Determines whether a character is an alphabetical character. This determination is based on the semantics of the
 ///language selected by the user during setup or through Control Panel.
@@ -2007,7 +2000,7 @@ BOOL IsCharLowerA(byte ch);
 ///    the function fails, the return value is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-HACCEL LoadAcceleratorsA(HINSTANCE hInstance, const(char)* lpTableName);
+HACCEL LoadAcceleratorsA(HINSTANCE hInstance, const(PSTR) lpTableName);
 
 ///Loads the specified accelerator table.
 ///Params:
@@ -2020,7 +2013,7 @@ HACCEL LoadAcceleratorsA(HINSTANCE hInstance, const(char)* lpTableName);
 ///    the function fails, the return value is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-HACCEL LoadAcceleratorsW(HINSTANCE hInstance, const(wchar)* lpTableName);
+HACCEL LoadAcceleratorsW(HINSTANCE hInstance, const(PWSTR) lpTableName);
 
 ///Creates an accelerator table.
 ///Params:
@@ -2032,7 +2025,7 @@ HACCEL LoadAcceleratorsW(HINSTANCE hInstance, const(wchar)* lpTableName);
 ///    otherwise, it is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-HACCEL CreateAcceleratorTableA(char* paccel, int cAccel);
+HACCEL CreateAcceleratorTableA(ACCEL* paccel, int cAccel);
 
 ///Creates an accelerator table.
 ///Params:
@@ -2044,7 +2037,7 @@ HACCEL CreateAcceleratorTableA(char* paccel, int cAccel);
 ///    otherwise, it is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-HACCEL CreateAcceleratorTableW(char* paccel, int cAccel);
+HACCEL CreateAcceleratorTableW(ACCEL* paccel, int cAccel);
 
 ///Destroys an accelerator table.
 ///Params:
@@ -2071,7 +2064,7 @@ BOOL DestroyAcceleratorTable(HACCEL hAccel);
 ///    entries in the original table. Otherwise, it specifies the number of accelerator-table entries that were copied.
 ///    
 @DllImport("USER32")
-int CopyAcceleratorTableA(HACCEL hAccelSrc, char* lpAccelDst, int cAccelEntries);
+int CopyAcceleratorTableA(HACCEL hAccelSrc, ACCEL* lpAccelDst, int cAccelEntries);
 
 ///Copies the specified accelerator table. This function is used to obtain the accelerator-table data that corresponds
 ///to an accelerator-table handle, or to determine the size of the accelerator-table data.
@@ -2085,7 +2078,7 @@ int CopyAcceleratorTableA(HACCEL hAccelSrc, char* lpAccelDst, int cAccelEntries)
 ///    entries in the original table. Otherwise, it specifies the number of accelerator-table entries that were copied.
 ///    
 @DllImport("USER32")
-int CopyAcceleratorTableW(HACCEL hAccelSrc, char* lpAccelDst, int cAccelEntries);
+int CopyAcceleratorTableW(HACCEL hAccelSrc, ACCEL* lpAccelDst, int cAccelEntries);
 
 ///Processes accelerator keys for menu commands. The function translates a WM_KEYDOWN or WM_SYSKEYDOWN message to a
 ///WM_COMMAND or WM_SYSCOMMAND message (if there is an entry for the key in the specified accelerator table) and then
@@ -2132,7 +2125,7 @@ int TranslateAcceleratorW(HWND hWnd, HACCEL hAccTable, MSG* lpMsg);
 ///    fails, the return value is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-HMENU LoadMenuA(HINSTANCE hInstance, const(char)* lpMenuName);
+HMENU LoadMenuA(HINSTANCE hInstance, const(PSTR) lpMenuName);
 
 ///Loads the specified menu resource from the executable (.exe) file associated with an application instance.
 ///Params:
@@ -2145,7 +2138,7 @@ HMENU LoadMenuA(HINSTANCE hInstance, const(char)* lpMenuName);
 ///    fails, the return value is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-HMENU LoadMenuW(HINSTANCE hInstance, const(wchar)* lpMenuName);
+HMENU LoadMenuW(HINSTANCE hInstance, const(PWSTR) lpMenuName);
 
 ///Loads the specified menu template in memory.
 ///Params:
@@ -2196,10 +2189,10 @@ HMENU GetMenu(HWND hWnd);
 BOOL SetMenu(HWND hWnd, HMENU hMenu);
 
 @DllImport("USER32")
-BOOL ChangeMenuA(HMENU hMenu, uint cmd, const(char)* lpszNewItem, uint cmdInsert, uint flags);
+BOOL ChangeMenuA(HMENU hMenu, uint cmd, const(PSTR) lpszNewItem, uint cmdInsert, uint flags);
 
 @DllImport("USER32")
-BOOL ChangeMenuW(HMENU hMenu, uint cmd, const(wchar)* lpszNewItem, uint cmdInsert, uint flags);
+BOOL ChangeMenuW(HMENU hMenu, uint cmd, const(PWSTR) lpszNewItem, uint cmdInsert, uint flags);
 
 ///Adds or removes highlighting from an item in a menu bar.
 ///Params:
@@ -2252,7 +2245,7 @@ BOOL HiliteMenuItem(HWND hWnd, HMENU hMenu, uint uIDHiliteItem, uint uHilite);
 ///    specified item is not of type <b>MIIM_STRING</b> or <b>MFT_STRING</b>, then the return value is zero.
 ///    
 @DllImport("USER32")
-int GetMenuStringA(HMENU hMenu, uint uIDItem, const(char)* lpString, int cchMax, uint flags);
+int GetMenuStringA(HMENU hMenu, uint uIDItem, PSTR lpString, int cchMax, uint flags);
 
 ///Copies the text string of the specified menu item into the specified buffer. <div class="alert"><b>Note</b> The
 ///<b>GetMenuString</b> function has been superseded. Use the GetMenuItemInfo function to retrieve the menu item
@@ -2280,7 +2273,7 @@ int GetMenuStringA(HMENU hMenu, uint uIDItem, const(char)* lpString, int cchMax,
 ///    specified item is not of type <b>MIIM_STRING</b> or <b>MFT_STRING</b>, then the return value is zero.
 ///    
 @DllImport("USER32")
-int GetMenuStringW(HMENU hMenu, uint uIDItem, const(wchar)* lpString, int cchMax, uint flags);
+int GetMenuStringW(HMENU hMenu, uint uIDItem, PWSTR lpString, int cchMax, uint flags);
 
 ///Retrieves the menu flags associated with the specified menu item. If the menu item opens a submenu, this function
 ///also returns the number of items in the submenu. <div class="alert"><b>Note</b> The <b>GetMenuState</b> function has
@@ -2543,7 +2536,7 @@ int GetMenuItemCount(HMENU hMenu);
 ///    is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL InsertMenuA(HMENU hMenu, uint uPosition, uint uFlags, size_t uIDNewItem, const(char)* lpNewItem);
+BOOL InsertMenuA(HMENU hMenu, uint uPosition, uint uFlags, size_t uIDNewItem, const(PSTR) lpNewItem);
 
 ///Inserts a new menu item into a menu, moving other items down the menu. <div class="alert"><b>Note</b> The
 ///<b>InsertMenu</b> function has been superseded by the InsertMenuItem function. You can still use <b>InsertMenu</b>,
@@ -2618,7 +2611,7 @@ BOOL InsertMenuA(HMENU hMenu, uint uPosition, uint uFlags, size_t uIDNewItem, co
 ///    is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL InsertMenuW(HMENU hMenu, uint uPosition, uint uFlags, size_t uIDNewItem, const(wchar)* lpNewItem);
+BOOL InsertMenuW(HMENU hMenu, uint uPosition, uint uFlags, size_t uIDNewItem, const(PWSTR) lpNewItem);
 
 ///Appends a new item to the end of the specified menu bar, drop-down menu, submenu, or shortcut menu. You can use this
 ///function to specify the content, appearance, and behavior of the menu item.
@@ -2681,7 +2674,7 @@ BOOL InsertMenuW(HMENU hMenu, uint uPosition, uint uFlags, size_t uIDNewItem, co
 ///    is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL AppendMenuA(HMENU hMenu, uint uFlags, size_t uIDNewItem, const(char)* lpNewItem);
+BOOL AppendMenuA(HMENU hMenu, uint uFlags, size_t uIDNewItem, const(PSTR) lpNewItem);
 
 ///Appends a new item to the end of the specified menu bar, drop-down menu, submenu, or shortcut menu. You can use this
 ///function to specify the content, appearance, and behavior of the menu item.
@@ -2744,7 +2737,7 @@ BOOL AppendMenuA(HMENU hMenu, uint uFlags, size_t uIDNewItem, const(char)* lpNew
 ///    is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL AppendMenuW(HMENU hMenu, uint uFlags, size_t uIDNewItem, const(wchar)* lpNewItem);
+BOOL AppendMenuW(HMENU hMenu, uint uFlags, size_t uIDNewItem, const(PWSTR) lpNewItem);
 
 ///Changes an existing menu item. This function is used to specify the content, appearance, and behavior of the menu
 ///item. <div class="alert"><b>Note</b> The <b>ModifyMenu</b> function has been superseded by the SetMenuItemInfo
@@ -2818,7 +2811,7 @@ BOOL AppendMenuW(HMENU hMenu, uint uFlags, size_t uIDNewItem, const(wchar)* lpNe
 ///    is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL ModifyMenuA(HMENU hMnu, uint uPosition, uint uFlags, size_t uIDNewItem, const(char)* lpNewItem);
+BOOL ModifyMenuA(HMENU hMnu, uint uPosition, uint uFlags, size_t uIDNewItem, const(PSTR) lpNewItem);
 
 ///Changes an existing menu item. This function is used to specify the content, appearance, and behavior of the menu
 ///item. <div class="alert"><b>Note</b> The <b>ModifyMenu</b> function has been superseded by the SetMenuItemInfo
@@ -2892,7 +2885,7 @@ BOOL ModifyMenuA(HMENU hMnu, uint uPosition, uint uFlags, size_t uIDNewItem, con
 ///    is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL ModifyMenuW(HMENU hMnu, uint uPosition, uint uFlags, size_t uIDNewItem, const(wchar)* lpNewItem);
+BOOL ModifyMenuW(HMENU hMnu, uint uPosition, uint uFlags, size_t uIDNewItem, const(PWSTR) lpNewItem);
 
 ///Deletes a menu item or detaches a submenu from the specified menu. If the menu item opens a drop-down menu or
 ///submenu, <b>RemoveMenu</b> does not destroy the menu or its handle, allowing the menu to be reused. Before this
@@ -3549,10 +3542,10 @@ ushort GetWindowWord(HWND hWnd, int nIndex);
 ushort SetWindowWord(HWND hWnd, int nIndex, ushort wNewWord);
 
 @DllImport("USER32")
-ptrdiff_t SetWindowsHookA(int nFilterType, HOOKPROC pfnFilterProc);
+HHOOK SetWindowsHookA(int nFilterType, HOOKPROC pfnFilterProc);
 
 @DllImport("USER32")
-ptrdiff_t SetWindowsHookW(int nFilterType, HOOKPROC pfnFilterProc);
+HHOOK SetWindowsHookW(int nFilterType, HOOKPROC pfnFilterProc);
 
 @DllImport("USER32")
 BOOL UnhookWindowsHook(int nCode, HOOKPROC pfnFilterProc);
@@ -3620,7 +3613,7 @@ BOOL CheckMenuRadioItem(HMENU hmenu, uint first, uint last, uint check, uint fla
 ///    function fails, the return value is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-HCURSOR LoadCursorA(HINSTANCE hInstance, const(char)* lpCursorName);
+HCURSOR LoadCursorA(HINSTANCE hInstance, const(PSTR) lpCursorName);
 
 ///Loads the specified cursor resource from the executable (.EXE) file associated with an application instance. <div
 ///class="alert"><b>Note</b> This function has been superseded by the LoadImage function.</div><div> </div>
@@ -3668,7 +3661,7 @@ HCURSOR LoadCursorA(HINSTANCE hInstance, const(char)* lpCursorName);
 ///    function fails, the return value is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-HCURSOR LoadCursorW(HINSTANCE hInstance, const(wchar)* lpCursorName);
+HCURSOR LoadCursorW(HINSTANCE hInstance, const(PWSTR) lpCursorName);
 
 ///Creates a cursor based on data contained in a file.
 ///Params:
@@ -3683,7 +3676,7 @@ HCURSOR LoadCursorW(HINSTANCE hInstance, const(wchar)* lpCursorName);
 ///    cannot be found. </td> </tr> </table>
 ///    
 @DllImport("USER32")
-HCURSOR LoadCursorFromFileA(const(char)* lpFileName);
+HCURSOR LoadCursorFromFileA(const(PSTR) lpFileName);
 
 ///Creates a cursor based on data contained in a file.
 ///Params:
@@ -3698,7 +3691,7 @@ HCURSOR LoadCursorFromFileA(const(char)* lpFileName);
 ///    cannot be found. </td> </tr> </table>
 ///    
 @DllImport("USER32")
-HCURSOR LoadCursorFromFileW(const(wchar)* lpFileName);
+HCURSOR LoadCursorFromFileW(const(PWSTR) lpFileName);
 
 ///Creates a cursor having the specified size, bit patterns, and hot spot.
 ///Params:
@@ -3806,7 +3799,7 @@ BOOL SetSystemCursor(HCURSOR hcur, uint id);
 ///    function fails, the return value is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-HICON LoadIconA(HINSTANCE hInstance, const(char)* lpIconName);
+HICON LoadIconA(HINSTANCE hInstance, const(PSTR) lpIconName);
 
 ///Loads the specified icon resource from the executable (.exe) file associated with an application instance. <div
 ///class="alert"><b>Note</b> This function has been superseded by the LoadImage function.</div><div> </div>
@@ -3843,7 +3836,7 @@ HICON LoadIconA(HINSTANCE hInstance, const(char)* lpIconName);
 ///    function fails, the return value is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-HICON LoadIconW(HINSTANCE hInstance, const(wchar)* lpIconName);
+HICON LoadIconW(HINSTANCE hInstance, const(PWSTR) lpIconName);
 
 ///<p class="CCE_Message">[This function is not intended for general use. It may be altered or unavailable in subsequent
 ///versions of Windows.] Creates an array of handles to icons that are extracted from a specified file.
@@ -3868,8 +3861,8 @@ HICON LoadIconW(HINSTANCE hInstance, const(wchar)* lpIconName);
 ///    Otherwise, the return value is 0xFFFFFFFF if the file is not found.
 ///    
 @DllImport("USER32")
-uint PrivateExtractIconsA(const(char)* szFileName, int nIconIndex, int cxIcon, int cyIcon, char* phicon, 
-                          char* piconid, uint nIcons, uint flags);
+uint PrivateExtractIconsA(const(PSTR) szFileName, int nIconIndex, int cxIcon, int cyIcon, HICON* phicon, 
+                          uint* piconid, uint nIcons, uint flags);
 
 ///<p class="CCE_Message">[This function is not intended for general use. It may be altered or unavailable in subsequent
 ///versions of Windows.] Creates an array of handles to icons that are extracted from a specified file.
@@ -3894,8 +3887,8 @@ uint PrivateExtractIconsA(const(char)* szFileName, int nIconIndex, int cxIcon, i
 ///    Otherwise, the return value is 0xFFFFFFFF if the file is not found.
 ///    
 @DllImport("USER32")
-uint PrivateExtractIconsW(const(wchar)* szFileName, int nIconIndex, int cxIcon, int cyIcon, char* phicon, 
-                          char* piconid, uint nIcons, uint flags);
+uint PrivateExtractIconsW(const(PWSTR) szFileName, int nIconIndex, int cxIcon, int cyIcon, HICON* phicon, 
+                          uint* piconid, uint nIcons, uint flags);
 
 ///Creates an icon that has the specified size, colors, and bit patterns.
 ///Params:
@@ -3940,7 +3933,7 @@ BOOL DestroyIcon(HICON hIcon);
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-int LookupIconIdFromDirectory(char* presbits, BOOL fIcon);
+int LookupIconIdFromDirectory(ubyte* presbits, BOOL fIcon);
 
 ///Searches through icon or cursor data for the icon or cursor that best fits the current display device.
 ///Params:
@@ -3964,7 +3957,7 @@ int LookupIconIdFromDirectory(char* presbits, BOOL fIcon);
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-int LookupIconIdFromDirectoryEx(char* presbits, BOOL fIcon, int cxDesired, int cyDesired, uint Flags);
+int LookupIconIdFromDirectoryEx(ubyte* presbits, BOOL fIcon, int cxDesired, int cyDesired, uint Flags);
 
 ///Creates an icon or cursor from resource bits describing the icon. To specify a desired height or width, use the
 ///CreateIconFromResourceEx function.
@@ -3982,7 +3975,7 @@ int LookupIconIdFromDirectoryEx(char* presbits, BOOL fIcon, int cxDesired, int c
 ///    fails, the return value is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-HICON CreateIconFromResource(char* presbits, uint dwResSize, BOOL fIcon, uint dwVer);
+HICON CreateIconFromResource(ubyte* presbits, uint dwResSize, BOOL fIcon, uint dwVer);
 
 ///Creates an icon or cursor from resource bits describing the icon.
 ///Params:
@@ -4020,7 +4013,7 @@ HICON CreateIconFromResource(char* presbits, uint dwResSize, BOOL fIcon, uint dw
 ///    fails, the return value is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-HICON CreateIconFromResourceEx(char* presbits, uint dwResSize, BOOL fIcon, uint dwVer, int cxDesired, 
+HICON CreateIconFromResourceEx(ubyte* presbits, uint dwResSize, BOOL fIcon, uint dwVer, int cxDesired, 
                                int cyDesired, uint Flags);
 
 ///Loads an icon, cursor, animated cursor, or bitmap.
@@ -4108,7 +4101,7 @@ HICON CreateIconFromResourceEx(char* presbits, uint dwResSize, BOOL fIcon, uint 
 ///    function fails, the return value is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-HANDLE LoadImageA(HINSTANCE hInst, const(char)* name, uint type, int cx, int cy, uint fuLoad);
+HANDLE LoadImageA(HINSTANCE hInst, const(PSTR) name, uint type, int cx, int cy, uint fuLoad);
 
 ///Loads an icon, cursor, animated cursor, or bitmap.
 ///Params:
@@ -4195,7 +4188,7 @@ HANDLE LoadImageA(HINSTANCE hInst, const(char)* name, uint type, int cx, int cy,
 ///    function fails, the return value is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-HANDLE LoadImageW(HINSTANCE hInst, const(wchar)* name, uint type, int cx, int cy, uint fuLoad);
+HANDLE LoadImageW(HINSTANCE hInst, const(PWSTR) name, uint type, int cx, int cy, uint fuLoad);
 
 ///Creates a new image (icon, cursor, or bitmap) and copies the attributes of the specified image to the new one. If
 ///necessary, the function stretches the bits to fit the desired size of the new image.
@@ -4285,7 +4278,7 @@ HANDLE CopyImage(HANDLE h, uint type, int cx, int cy, uint flags);
 ///    
 @DllImport("USER32")
 BOOL DrawIconEx(HDC hdc, int xLeft, int yTop, HICON hIcon, int cxWidth, int cyWidth, uint istepIfAniCur, 
-                HBRUSH hbrFlickerFreeDraw, uint diFlags);
+                HBRUSH hbrFlickerFreeDraw, DI_FLAGS diFlags);
 
 ///Creates an icon or cursor from an ICONINFO structure.
 ///Params:
@@ -4513,7 +4506,7 @@ BOOL GetCursorInfo(CURSORINFO* pci);
 BOOL GetMenuBarInfo(HWND hwnd, int idObject, int idItem, MENUBARINFO* pmbi);
 
 @DllImport("USER32")
-uint RealGetWindowClassA(HWND hwnd, const(char)* ptszClassName, uint cchClassNameMax);
+uint RealGetWindowClassA(HWND hwnd, PSTR ptszClassName, uint cchClassNameMax);
 
 ///Determines where to install a file based on whether it locates another version of the file in the system. The values
 ///<b>VerFindFile</b> returns in the specified buffers are used in a subsequent call to the VerInstallFile function.
@@ -4555,8 +4548,8 @@ uint RealGetWindowClassA(HWND hwnd, const(char)* ptszClassName, uint cchClassNam
 ///    determine which buffer was too small. </td> </tr> </table>
 ///    
 @DllImport("VERSION")
-uint VerFindFileA(uint uFlags, const(char)* szFileName, const(char)* szWinDir, const(char)* szAppDir, 
-                  const(char)* szCurDir, uint* puCurDirLen, const(char)* szDestDir, uint* puDestDirLen);
+uint VerFindFileA(uint uFlags, const(PSTR) szFileName, const(PSTR) szWinDir, const(PSTR) szAppDir, PSTR szCurDir, 
+                  uint* puCurDirLen, PSTR szDestDir, uint* puDestDirLen);
 
 ///Determines where to install a file based on whether it locates another version of the file in the system. The values
 ///<b>VerFindFile</b> returns in the specified buffers are used in a subsequent call to the VerInstallFile function.
@@ -4598,8 +4591,8 @@ uint VerFindFileA(uint uFlags, const(char)* szFileName, const(char)* szWinDir, c
 ///    determine which buffer was too small. </td> </tr> </table>
 ///    
 @DllImport("VERSION")
-uint VerFindFileW(uint uFlags, const(wchar)* szFileName, const(wchar)* szWinDir, const(wchar)* szAppDir, 
-                  const(wchar)* szCurDir, uint* puCurDirLen, const(wchar)* szDestDir, uint* puDestDirLen);
+uint VerFindFileW(uint uFlags, const(PWSTR) szFileName, const(PWSTR) szWinDir, const(PWSTR) szAppDir, 
+                  PWSTR szCurDir, uint* puCurDirLen, PWSTR szDestDir, uint* puDestDirLen);
 
 ///Installs the specified file based on information returned from the VerFindFile function. <b>VerInstallFile</b>
 ///decompresses the file, if necessary, assigns a unique filename, and checks for errors, such as outdated files.
@@ -4683,8 +4676,8 @@ uint VerFindFileW(uint uFlags, const(wchar)* szFileName, const(wchar)* szWinDir,
 ///    flag set. </td> </tr> </table>
 ///    
 @DllImport("VERSION")
-uint VerInstallFileA(uint uFlags, const(char)* szSrcFileName, const(char)* szDestFileName, const(char)* szSrcDir, 
-                     const(char)* szDestDir, const(char)* szCurDir, const(char)* szTmpFile, uint* puTmpFileLen);
+uint VerInstallFileA(uint uFlags, const(PSTR) szSrcFileName, const(PSTR) szDestFileName, const(PSTR) szSrcDir, 
+                     const(PSTR) szDestDir, const(PSTR) szCurDir, PSTR szTmpFile, uint* puTmpFileLen);
 
 ///Installs the specified file based on information returned from the VerFindFile function. <b>VerInstallFile</b>
 ///decompresses the file, if necessary, assigns a unique filename, and checks for errors, such as outdated files.
@@ -4768,9 +4761,8 @@ uint VerInstallFileA(uint uFlags, const(char)* szSrcFileName, const(char)* szDes
 ///    flag set. </td> </tr> </table>
 ///    
 @DllImport("VERSION")
-uint VerInstallFileW(uint uFlags, const(wchar)* szSrcFileName, const(wchar)* szDestFileName, 
-                     const(wchar)* szSrcDir, const(wchar)* szDestDir, const(wchar)* szCurDir, 
-                     const(wchar)* szTmpFile, uint* puTmpFileLen);
+uint VerInstallFileW(uint uFlags, const(PWSTR) szSrcFileName, const(PWSTR) szDestFileName, const(PWSTR) szSrcDir, 
+                     const(PWSTR) szDestDir, const(PWSTR) szCurDir, PWSTR szTmpFile, uint* puTmpFileLen);
 
 ///Determines whether the operating system can retrieve version information for a specified file. If version information
 ///is available, <b>GetFileVersionInfoSize</b> returns the size, in bytes, of that information.
@@ -4784,7 +4776,7 @@ uint VerInstallFileW(uint uFlags, const(wchar)* szSrcFileName, const(wchar)* szD
 ///    GetLastError.
 ///    
 @DllImport("VERSION")
-uint GetFileVersionInfoSizeA(const(char)* lptstrFilename, uint* lpdwHandle);
+uint GetFileVersionInfoSizeA(const(PSTR) lptstrFilename, uint* lpdwHandle);
 
 ///Determines whether the operating system can retrieve version information for a specified file. If version information
 ///is available, <b>GetFileVersionInfoSize</b> returns the size, in bytes, of that information.
@@ -4798,7 +4790,7 @@ uint GetFileVersionInfoSizeA(const(char)* lptstrFilename, uint* lpdwHandle);
 ///    GetLastError.
 ///    
 @DllImport("VERSION")
-uint GetFileVersionInfoSizeW(const(wchar)* lptstrFilename, uint* lpdwHandle);
+uint GetFileVersionInfoSizeW(const(PWSTR) lptstrFilename, uint* lpdwHandle);
 
 ///Retrieves version information for the specified file.
 ///Params:
@@ -4816,7 +4808,7 @@ uint GetFileVersionInfoSizeW(const(wchar)* lptstrFilename, uint* lpdwHandle);
 ///    is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("VERSION")
-BOOL GetFileVersionInfoA(const(char)* lptstrFilename, uint dwHandle, uint dwLen, char* lpData);
+BOOL GetFileVersionInfoA(const(PSTR) lptstrFilename, uint dwHandle, uint dwLen, void* lpData);
 
 ///Retrieves version information for the specified file.
 ///Params:
@@ -4834,7 +4826,7 @@ BOOL GetFileVersionInfoA(const(char)* lptstrFilename, uint dwHandle, uint dwLen,
 ///    is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("VERSION")
-BOOL GetFileVersionInfoW(const(wchar)* lptstrFilename, uint dwHandle, uint dwLen, char* lpData);
+BOOL GetFileVersionInfoW(const(PWSTR) lptstrFilename, uint dwHandle, uint dwLen, void* lpData);
 
 ///Determines whether the operating system can retrieve version information for a specified file. If version information
 ///is available, <b>GetFileVersionInfoSizeEx</b> returns the size, in bytes, of that information.
@@ -4858,7 +4850,7 @@ BOOL GetFileVersionInfoW(const(wchar)* lptstrFilename, uint dwHandle, uint dwLen
 ///    GetLastError.
 ///    
 @DllImport("VERSION")
-uint GetFileVersionInfoSizeExA(uint dwFlags, const(char)* lpwstrFilename, uint* lpdwHandle);
+uint GetFileVersionInfoSizeExA(uint dwFlags, const(PSTR) lpwstrFilename, uint* lpdwHandle);
 
 ///Determines whether the operating system can retrieve version information for a specified file. If version information
 ///is available, <b>GetFileVersionInfoSizeEx</b> returns the size, in bytes, of that information.
@@ -4882,7 +4874,7 @@ uint GetFileVersionInfoSizeExA(uint dwFlags, const(char)* lpwstrFilename, uint* 
 ///    GetLastError.
 ///    
 @DllImport("VERSION")
-uint GetFileVersionInfoSizeExW(uint dwFlags, const(wchar)* lpwstrFilename, uint* lpdwHandle);
+uint GetFileVersionInfoSizeExW(uint dwFlags, const(PWSTR) lpwstrFilename, uint* lpdwHandle);
 
 ///Retrieves version information for the specified file.
 ///Params:
@@ -4915,7 +4907,7 @@ uint GetFileVersionInfoSizeExW(uint dwFlags, const(wchar)* lpwstrFilename, uint*
 ///    is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("VERSION")
-BOOL GetFileVersionInfoExA(uint dwFlags, const(char)* lpwstrFilename, uint dwHandle, uint dwLen, char* lpData);
+BOOL GetFileVersionInfoExA(uint dwFlags, const(PSTR) lpwstrFilename, uint dwHandle, uint dwLen, void* lpData);
 
 ///Retrieves version information for the specified file.
 ///Params:
@@ -4948,7 +4940,7 @@ BOOL GetFileVersionInfoExA(uint dwFlags, const(char)* lpwstrFilename, uint dwHan
 ///    is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("VERSION")
-BOOL GetFileVersionInfoExW(uint dwFlags, const(wchar)* lpwstrFilename, uint dwHandle, uint dwLen, char* lpData);
+BOOL GetFileVersionInfoExW(uint dwFlags, const(PWSTR) lpwstrFilename, uint dwHandle, uint dwLen, void* lpData);
 
 ///Retrieves a description string for the language associated with a specified binary Microsoft language identifier.
 ///Params:
@@ -4966,7 +4958,7 @@ BOOL GetFileVersionInfoExW(uint dwFlags, const(wchar)* lpwstrFilename, uint dwHa
 ///    Unknown language identifiers do not produce errors.
 ///    
 @DllImport("KERNEL32")
-uint VerLanguageNameA(uint wLang, const(char)* szLang, uint cchLang);
+uint VerLanguageNameA(uint wLang, PSTR szLang, uint cchLang);
 
 ///Retrieves a description string for the language associated with a specified binary Microsoft language identifier.
 ///Params:
@@ -4984,7 +4976,7 @@ uint VerLanguageNameA(uint wLang, const(char)* szLang, uint cchLang);
 ///    Unknown language identifiers do not produce errors.
 ///    
 @DllImport("KERNEL32")
-uint VerLanguageNameW(uint wLang, const(wchar)* szLang, uint cchLang);
+uint VerLanguageNameW(uint wLang, PWSTR szLang, uint cchLang);
 
 ///Retrieves specified version information from the specified version-information resource. To retrieve the appropriate
 ///resource, before you call <b>VerQueryValue</b>, you must first call the GetFileVersionInfoSize function, and then the
@@ -5007,7 +4999,7 @@ uint VerLanguageNameW(uint wLang, const(wchar)* szLang, uint cchLang);
 ///    value is zero.
 ///    
 @DllImport("VERSION")
-BOOL VerQueryValueA(void* pBlock, const(char)* lpSubBlock, void** lplpBuffer, uint* puLen);
+BOOL VerQueryValueA(const(void)* pBlock, const(PSTR) lpSubBlock, void** lplpBuffer, uint* puLen);
 
 ///Retrieves specified version information from the specified version-information resource. To retrieve the appropriate
 ///resource, before you call <b>VerQueryValue</b>, you must first call the GetFileVersionInfoSize function, and then the
@@ -5030,7 +5022,7 @@ BOOL VerQueryValueA(void* pBlock, const(char)* lpSubBlock, void** lplpBuffer, ui
 ///    value is zero.
 ///    
 @DllImport("VERSION")
-BOOL VerQueryValueW(void* pBlock, const(wchar)* lpSubBlock, void** lplpBuffer, uint* puLen);
+BOOL VerQueryValueW(const(void)* pBlock, const(PWSTR) lpSubBlock, void** lplpBuffer, uint* puLen);
 
 ///Creates a new resource indexer for the specified paths of the root of the project files and the extension DLL.
 ///Params:
@@ -5047,7 +5039,7 @@ BOOL VerQueryValueW(void* pBlock, const(wchar)* lpSubBlock, void** lplpBuffer, u
 ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("MrmSupport")
-HRESULT CreateResourceIndexer(const(wchar)* projectRoot, const(wchar)* extensionDllPath, void** ppResourceIndexer);
+HRESULT CreateResourceIndexer(const(PWSTR) projectRoot, const(PWSTR) extensionDllPath, void** ppResourceIndexer);
 
 ///Frees the computational resources associated with the specified resource indexer.
 ///Params:
@@ -5070,8 +5062,8 @@ void DestroyResourceIndexer(void* resourceIndexer);
 ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("MrmSupport")
-HRESULT IndexFilePath(void* resourceIndexer, const(wchar)* filePath, ushort** ppResourceUri, uint* pQualifierCount, 
-                      char* ppQualifiers);
+HRESULT IndexFilePath(void* resourceIndexer, const(PWSTR) filePath, PWSTR* ppResourceUri, uint* pQualifierCount, 
+                      IndexedResourceQualifier** ppQualifiers);
 
 ///Frees the parameters that the IndexFilePath method returned.
 ///Params:
@@ -5081,56 +5073,56 @@ HRESULT IndexFilePath(void* resourceIndexer, const(wchar)* filePath, ushort** pp
 ///    qualifierCount = The number of indexed resource qualifiers that the list in the <i>ppQualifiers</i> parameter contains.
 ///    qualifiers = A list of indexed resource qualifiers that declare the context under which the resources are appropriate.
 @DllImport("MrmSupport")
-void DestroyIndexedResults(const(wchar)* resourceUri, uint qualifierCount, char* qualifiers);
+void DestroyIndexedResults(PWSTR resourceUri, uint qualifierCount, IndexedResourceQualifier* qualifiers);
 
 @DllImport("MrmSupport")
-HRESULT MrmCreateResourceIndexer(const(wchar)* packageFamilyName, const(wchar)* projectRoot, 
-                                 MrmPlatformVersion platformVersion, const(wchar)* defaultQualifiers, 
+HRESULT MrmCreateResourceIndexer(const(PWSTR) packageFamilyName, const(PWSTR) projectRoot, 
+                                 MrmPlatformVersion platformVersion, const(PWSTR) defaultQualifiers, 
                                  MrmResourceIndexerHandle* indexer);
 
 @DllImport("MrmSupport")
-HRESULT MrmCreateResourceIndexerFromPreviousSchemaFile(const(wchar)* projectRoot, 
+HRESULT MrmCreateResourceIndexerFromPreviousSchemaFile(const(PWSTR) projectRoot, 
                                                        MrmPlatformVersion platformVersion, 
-                                                       const(wchar)* defaultQualifiers, const(wchar)* schemaFile, 
+                                                       const(PWSTR) defaultQualifiers, const(PWSTR) schemaFile, 
                                                        MrmResourceIndexerHandle* indexer);
 
 @DllImport("MrmSupport")
-HRESULT MrmCreateResourceIndexerFromPreviousPriFile(const(wchar)* projectRoot, MrmPlatformVersion platformVersion, 
-                                                    const(wchar)* defaultQualifiers, const(wchar)* priFile, 
+HRESULT MrmCreateResourceIndexerFromPreviousPriFile(const(PWSTR) projectRoot, MrmPlatformVersion platformVersion, 
+                                                    const(PWSTR) defaultQualifiers, const(PWSTR) priFile, 
                                                     MrmResourceIndexerHandle* indexer);
 
 @DllImport("MrmSupport")
-HRESULT MrmCreateResourceIndexerFromPreviousSchemaData(const(wchar)* projectRoot, 
+HRESULT MrmCreateResourceIndexerFromPreviousSchemaData(const(PWSTR) projectRoot, 
                                                        MrmPlatformVersion platformVersion, 
-                                                       const(wchar)* defaultQualifiers, char* schemaXmlData, 
+                                                       const(PWSTR) defaultQualifiers, ubyte* schemaXmlData, 
                                                        uint schemaXmlSize, MrmResourceIndexerHandle* indexer);
 
 @DllImport("MrmSupport")
-HRESULT MrmCreateResourceIndexerFromPreviousPriData(const(wchar)* projectRoot, MrmPlatformVersion platformVersion, 
-                                                    const(wchar)* defaultQualifiers, char* priData, uint priSize, 
+HRESULT MrmCreateResourceIndexerFromPreviousPriData(const(PWSTR) projectRoot, MrmPlatformVersion platformVersion, 
+                                                    const(PWSTR) defaultQualifiers, ubyte* priData, uint priSize, 
                                                     MrmResourceIndexerHandle* indexer);
 
 @DllImport("MrmSupport")
-HRESULT MrmIndexString(MrmResourceIndexerHandle indexer, const(wchar)* resourceUri, const(wchar)* resourceString, 
-                       const(wchar)* qualifiers);
+HRESULT MrmIndexString(MrmResourceIndexerHandle indexer, const(PWSTR) resourceUri, const(PWSTR) resourceString, 
+                       const(PWSTR) qualifiers);
 
 @DllImport("MrmSupport")
-HRESULT MrmIndexEmbeddedData(MrmResourceIndexerHandle indexer, const(wchar)* resourceUri, char* embeddedData, 
-                             uint embeddedDataSize, const(wchar)* qualifiers);
+HRESULT MrmIndexEmbeddedData(MrmResourceIndexerHandle indexer, const(PWSTR) resourceUri, 
+                             const(ubyte)* embeddedData, uint embeddedDataSize, const(PWSTR) qualifiers);
 
 @DllImport("MrmSupport")
-HRESULT MrmIndexFile(MrmResourceIndexerHandle indexer, const(wchar)* resourceUri, const(wchar)* filePath, 
-                     const(wchar)* qualifiers);
+HRESULT MrmIndexFile(MrmResourceIndexerHandle indexer, const(PWSTR) resourceUri, const(PWSTR) filePath, 
+                     const(PWSTR) qualifiers);
 
 @DllImport("MrmSupport")
-HRESULT MrmIndexFileAutoQualifiers(MrmResourceIndexerHandle indexer, const(wchar)* filePath);
+HRESULT MrmIndexFileAutoQualifiers(MrmResourceIndexerHandle indexer, const(PWSTR) filePath);
 
 @DllImport("MrmSupport")
-HRESULT MrmIndexResourceContainerAutoQualifiers(MrmResourceIndexerHandle indexer, const(wchar)* containerPath);
+HRESULT MrmIndexResourceContainerAutoQualifiers(MrmResourceIndexerHandle indexer, const(PWSTR) containerPath);
 
 @DllImport("MrmSupport")
 HRESULT MrmCreateResourceFile(MrmResourceIndexerHandle indexer, MrmPackagingMode packagingMode, 
-                              MrmPackagingOptions packagingOptions, const(wchar)* outputDirectory);
+                              MrmPackagingOptions packagingOptions, const(PWSTR) outputDirectory);
 
 @DllImport("MrmSupport")
 HRESULT MrmCreateResourceFileInMemory(MrmResourceIndexerHandle indexer, MrmPackagingMode packagingMode, 
@@ -5138,7 +5130,8 @@ HRESULT MrmCreateResourceFileInMemory(MrmResourceIndexerHandle indexer, MrmPacka
                                       uint* outputPriSize);
 
 @DllImport("MrmSupport")
-HRESULT MrmPeekResourceIndexerMessages(MrmResourceIndexerHandle handle, char* messages, uint* numMsgs);
+HRESULT MrmPeekResourceIndexerMessages(MrmResourceIndexerHandle handle, MrmResourceIndexerMessage** messages, 
+                                       uint* numMsgs);
 
 @DllImport("MrmSupport")
 HRESULT MrmDestroyIndexerAndMessages(MrmResourceIndexerHandle indexer);
@@ -5147,23 +5140,23 @@ HRESULT MrmDestroyIndexerAndMessages(MrmResourceIndexerHandle indexer);
 HRESULT MrmFreeMemory(ubyte* data);
 
 @DllImport("MrmSupport")
-HRESULT MrmDumpPriFile(const(wchar)* indexFileName, const(wchar)* schemaPriFile, MrmDumpType dumpType, 
-                       const(wchar)* outputXmlFile);
+HRESULT MrmDumpPriFile(const(PWSTR) indexFileName, const(PWSTR) schemaPriFile, MrmDumpType dumpType, 
+                       const(PWSTR) outputXmlFile);
 
 @DllImport("MrmSupport")
-HRESULT MrmDumpPriFileInMemory(const(wchar)* indexFileName, const(wchar)* schemaPriFile, MrmDumpType dumpType, 
+HRESULT MrmDumpPriFileInMemory(const(PWSTR) indexFileName, const(PWSTR) schemaPriFile, MrmDumpType dumpType, 
                                ubyte** outputXmlData, uint* outputXmlSize);
 
 @DllImport("MrmSupport")
-HRESULT MrmDumpPriDataInMemory(char* inputPriData, uint inputPriSize, char* schemaPriData, uint schemaPriSize, 
+HRESULT MrmDumpPriDataInMemory(ubyte* inputPriData, uint inputPriSize, ubyte* schemaPriData, uint schemaPriSize, 
                                MrmDumpType dumpType, ubyte** outputXmlData, uint* outputXmlSize);
 
 @DllImport("MrmSupport")
-HRESULT MrmCreateConfig(MrmPlatformVersion platformVersion, const(wchar)* defaultQualifiers, 
-                        const(wchar)* outputXmlFile);
+HRESULT MrmCreateConfig(MrmPlatformVersion platformVersion, const(PWSTR) defaultQualifiers, 
+                        const(PWSTR) outputXmlFile);
 
 @DllImport("MrmSupport")
-HRESULT MrmCreateConfigInMemory(MrmPlatformVersion platformVersion, const(wchar)* defaultQualifiers, 
+HRESULT MrmCreateConfigInMemory(MrmPlatformVersion platformVersion, const(PWSTR) defaultQualifiers, 
                                 ubyte** outputXmlData, uint* outputXmlSize);
 
 ///Compares two character strings. The comparison is case-sensitive. To perform a comparison that is not case-sensitive,
@@ -5178,7 +5171,7 @@ HRESULT MrmCreateConfigInMemory(MrmPlatformVersion platformVersion, const(wchar)
 ///    is zero.
 ///    
 @DllImport("KERNEL32")
-int lstrcmpA(const(char)* lpString1, const(char)* lpString2);
+int lstrcmpA(const(PSTR) lpString1, const(PSTR) lpString2);
 
 ///Compares two character strings. The comparison is case-sensitive. To perform a comparison that is not case-sensitive,
 ///use the lstrcmpi function.
@@ -5192,7 +5185,7 @@ int lstrcmpA(const(char)* lpString1, const(char)* lpString2);
 ///    is zero.
 ///    
 @DllImport("KERNEL32")
-int lstrcmpW(const(wchar)* lpString1, const(wchar)* lpString2);
+int lstrcmpW(const(PWSTR) lpString1, const(PWSTR) lpString2);
 
 ///Compares two character strings. The comparison is not case-sensitive. To perform a comparison that is case-sensitive,
 ///use the lstrcmp function.
@@ -5206,7 +5199,7 @@ int lstrcmpW(const(wchar)* lpString1, const(wchar)* lpString2);
 ///    is zero.
 ///    
 @DllImport("KERNEL32")
-int lstrcmpiA(const(char)* lpString1, const(char)* lpString2);
+int lstrcmpiA(const(PSTR) lpString1, const(PSTR) lpString2);
 
 ///Compares two character strings. The comparison is not case-sensitive. To perform a comparison that is case-sensitive,
 ///use the lstrcmp function.
@@ -5220,7 +5213,7 @@ int lstrcmpiA(const(char)* lpString1, const(char)* lpString2);
 ///    is zero.
 ///    
 @DllImport("KERNEL32")
-int lstrcmpiW(const(wchar)* lpString1, const(wchar)* lpString2);
+int lstrcmpiW(const(PWSTR) lpString1, const(PWSTR) lpString2);
 
 ///Copies a specified number of characters from a source string into a buffer. <div class="alert"><b>Warning</b> Do not
 ///use. Consider using StringCchCopy instead. See Remarks.</div><div> </div>
@@ -5237,7 +5230,7 @@ int lstrcmpiW(const(wchar)* lpString1, const(wchar)* lpString2);
 ///    value is <b>NULL</b> and <i>lpString1</i> may not be null-terminated.
 ///    
 @DllImport("KERNEL32")
-byte* lstrcpynA(const(char)* lpString1, const(char)* lpString2, int iMaxLength);
+PSTR lstrcpynA(PSTR lpString1, const(PSTR) lpString2, int iMaxLength);
 
 ///Copies a specified number of characters from a source string into a buffer. <div class="alert"><b>Warning</b> Do not
 ///use. Consider using StringCchCopy instead. See Remarks.</div><div> </div>
@@ -5254,7 +5247,7 @@ byte* lstrcpynA(const(char)* lpString1, const(char)* lpString2, int iMaxLength);
 ///    value is <b>NULL</b> and <i>lpString1</i> may not be null-terminated.
 ///    
 @DllImport("KERNEL32")
-ushort* lstrcpynW(const(wchar)* lpString1, const(wchar)* lpString2, int iMaxLength);
+PWSTR lstrcpynW(PWSTR lpString1, const(PWSTR) lpString2, int iMaxLength);
 
 ///Copies a string to a buffer. <div class="alert"><b>Warning</b> Do not use. Consider using StringCchCopy instead. See
 ///Remarks.</div><div> </div>
@@ -5267,7 +5260,7 @@ ushort* lstrcpynW(const(wchar)* lpString1, const(wchar)* lpString2, int iMaxLeng
 ///    the return value is <b>NULL</b> and <i>lpString1</i> may not be null-terminated.
 ///    
 @DllImport("KERNEL32")
-byte* lstrcpyA(const(char)* lpString1, const(char)* lpString2);
+PSTR lstrcpyA(PSTR lpString1, const(PSTR) lpString2);
 
 ///Copies a string to a buffer. <div class="alert"><b>Warning</b> Do not use. Consider using StringCchCopy instead. See
 ///Remarks.</div><div> </div>
@@ -5280,7 +5273,7 @@ byte* lstrcpyA(const(char)* lpString1, const(char)* lpString2);
 ///    the return value is <b>NULL</b> and <i>lpString1</i> may not be null-terminated.
 ///    
 @DllImport("KERNEL32")
-ushort* lstrcpyW(const(wchar)* lpString1, const(wchar)* lpString2);
+PWSTR lstrcpyW(PWSTR lpString1, const(PWSTR) lpString2);
 
 ///Appends one string to another. <div class="alert"><b>Warning</b> Do not use. Consider using StringCchCat instead. See
 ///Security Considerations. </div><div> </div>
@@ -5293,7 +5286,7 @@ ushort* lstrcpyW(const(wchar)* lpString1, const(wchar)* lpString2);
 ///    the return value is <b>NULL</b> and <i>lpString1</i> may not be null-terminated.
 ///    
 @DllImport("KERNEL32")
-byte* lstrcatA(const(char)* lpString1, const(char)* lpString2);
+PSTR lstrcatA(PSTR lpString1, const(PSTR) lpString2);
 
 ///Appends one string to another. <div class="alert"><b>Warning</b> Do not use. Consider using StringCchCat instead. See
 ///Security Considerations. </div><div> </div>
@@ -5306,7 +5299,7 @@ byte* lstrcatA(const(char)* lpString1, const(char)* lpString2);
 ///    the return value is <b>NULL</b> and <i>lpString1</i> may not be null-terminated.
 ///    
 @DllImport("KERNEL32")
-ushort* lstrcatW(const(wchar)* lpString1, const(wchar)* lpString2);
+PWSTR lstrcatW(PWSTR lpString1, const(PWSTR) lpString2);
 
 ///Determines the length of the specified string (not including the terminating null character).
 ///Params:
@@ -5316,7 +5309,7 @@ ushort* lstrcatW(const(wchar)* lpString1, const(wchar)* lpString2);
 ///    the function returns 0.
 ///    
 @DllImport("KERNEL32")
-int lstrlenA(const(char)* lpString);
+int lstrlenA(const(PSTR) lpString);
 
 ///Determines the length of the specified string (not including the terminating null character).
 ///Params:
@@ -5326,7 +5319,7 @@ int lstrlenA(const(char)* lpString);
 ///    the function returns 0.
 ///    
 @DllImport("KERNEL32")
-int lstrlenW(const(wchar)* lpString);
+int lstrlenW(const(PWSTR) lpString);
 
 ///Determines the location of a resource with the specified type and name in the specified module. To specify a
 ///language, use the FindResourceEx function.
@@ -5346,7 +5339,7 @@ int lstrlenW(const(wchar)* lpString);
 ///    the return value is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-ptrdiff_t FindResourceA(ptrdiff_t hModule, const(char)* lpName, const(char)* lpType);
+HRSRC FindResourceA(ptrdiff_t hModule, const(PSTR) lpName, const(PSTR) lpType);
 
 ///Determines the location of the resource with the specified type, name, and language in the specified module.
 ///Params:
@@ -5369,7 +5362,7 @@ ptrdiff_t FindResourceA(ptrdiff_t hModule, const(char)* lpName, const(char)* lpT
 ///    the return value is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-ptrdiff_t FindResourceExA(ptrdiff_t hModule, const(char)* lpType, const(char)* lpName, ushort wLanguage);
+HRSRC FindResourceExA(ptrdiff_t hModule, const(PSTR) lpType, const(PSTR) lpName, ushort wLanguage);
 
 ///Enumerates resource types within a binary module. Starting with Windows Vista, this is typically a language-neutral
 ///Portable Executable (LN file), and the enumeration also includes resources from one of the corresponding
@@ -5435,7 +5428,7 @@ BOOL EnumResourceTypesW(ptrdiff_t hModule, ENUMRESTYPEPROCW lpEnumFunc, ptrdiff_
 ///    call [GetLastError](/windows/desktop/api/errhandlingapi/nf-errhandlingapi-getlasterror).
 ///    
 @DllImport("KERNEL32")
-BOOL EnumResourceNamesA(ptrdiff_t hModule, const(char)* lpType, ENUMRESNAMEPROCA lpEnumFunc, ptrdiff_t lParam);
+BOOL EnumResourceNamesA(ptrdiff_t hModule, const(PSTR) lpType, ENUMRESNAMEPROCA lpEnumFunc, ptrdiff_t lParam);
 
 ///Enumerates language-specific resources, of the specified type and name, associated with a binary module.
 ///Params:
@@ -5459,8 +5452,8 @@ BOOL EnumResourceNamesA(ptrdiff_t hModule, const(char)* lpType, ENUMRESNAMEPROCA
 ///    call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL EnumResourceLanguagesA(ptrdiff_t hModule, const(char)* lpType, const(char)* lpName, 
-                            ENUMRESLANGPROCA lpEnumFunc, ptrdiff_t lParam);
+BOOL EnumResourceLanguagesA(ptrdiff_t hModule, const(PSTR) lpType, const(PSTR) lpName, ENUMRESLANGPROCA lpEnumFunc, 
+                            ptrdiff_t lParam);
 
 ///Enumerates language-specific resources, of the specified type and name, associated with a binary module.
 ///Params:
@@ -5484,7 +5477,7 @@ BOOL EnumResourceLanguagesA(ptrdiff_t hModule, const(char)* lpType, const(char)*
 ///    call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL EnumResourceLanguagesW(ptrdiff_t hModule, const(wchar)* lpType, const(wchar)* lpName, 
+BOOL EnumResourceLanguagesW(ptrdiff_t hModule, const(PWSTR) lpType, const(PWSTR) lpName, 
                             ENUMRESLANGPROCW lpEnumFunc, ptrdiff_t lParam);
 
 ///Retrieves a handle that can be used by the UpdateResource function to add, delete, or replace resources in a binary
@@ -5503,7 +5496,7 @@ BOOL EnumResourceLanguagesW(ptrdiff_t hModule, const(wchar)* lpType, const(wchar
 ///    not exist, or the file cannot be opened for writing. To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-HANDLE BeginUpdateResourceA(const(char)* pFileName, BOOL bDeleteExistingResources);
+HANDLE BeginUpdateResourceA(const(PSTR) pFileName, BOOL bDeleteExistingResources);
 
 ///Retrieves a handle that can be used by the UpdateResource function to add, delete, or replace resources in a binary
 ///module.
@@ -5521,7 +5514,7 @@ HANDLE BeginUpdateResourceA(const(char)* pFileName, BOOL bDeleteExistingResource
 ///    not exist, or the file cannot be opened for writing. To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-HANDLE BeginUpdateResourceW(const(wchar)* pFileName, BOOL bDeleteExistingResources);
+HANDLE BeginUpdateResourceW(const(PWSTR) pFileName, BOOL bDeleteExistingResources);
 
 ///Adds, deletes, or replaces a resource in a portable executable (PE) file. There are some restrictions on resource
 ///updates in files that contain Resource Configuration (RC Config) data: language-neutral (LN) files and
@@ -5549,7 +5542,7 @@ HANDLE BeginUpdateResourceW(const(wchar)* pFileName, BOOL bDeleteExistingResourc
 ///    call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL UpdateResourceA(HANDLE hUpdate, const(char)* lpType, const(char)* lpName, ushort wLanguage, char* lpData, 
+BOOL UpdateResourceA(HANDLE hUpdate, const(PSTR) lpType, const(PSTR) lpName, ushort wLanguage, void* lpData, 
                      uint cb);
 
 ///Adds, deletes, or replaces a resource in a portable executable (PE) file. There are some restrictions on resource
@@ -5578,7 +5571,7 @@ BOOL UpdateResourceA(HANDLE hUpdate, const(char)* lpType, const(char)* lpName, u
 ///    call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL UpdateResourceW(HANDLE hUpdate, const(wchar)* lpType, const(wchar)* lpName, ushort wLanguage, char* lpData, 
+BOOL UpdateResourceW(HANDLE hUpdate, const(PWSTR) lpType, const(PWSTR) lpName, ushort wLanguage, void* lpData, 
                      uint cb);
 
 ///Commits or discards changes made prior to a call to UpdateResource.

@@ -6,11 +6,12 @@ public import windows.core;
 public import windows.automation : BSTR, IDispatch, VARIANT;
 public import windows.com : HRESULT, IUnknown;
 public import windows.gdi : HBITMAP;
+public import windows.systemservices : PWSTR;
 public import windows.windowsaccessibility : IAccessible;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : IXMLDOMNodeList;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -239,7 +240,7 @@ interface IWinSATInitiateEvents : IUnknown
     ///Returns:
     ///    This method should return S_OK; the value is ignored.
     ///    
-    HRESULT WinSATComplete(HRESULT hresult, const(wchar)* strDescription);
+    HRESULT WinSATComplete(HRESULT hresult, const(PWSTR) strDescription);
     ///<p class="CCE_Message">[IWinSATInitiateEvents::WinSATUpdate may be altered or unavailable for releases after
     ///Windows 8.1.] Receives notification when an assessment is making progress.
     ///Params:
@@ -250,7 +251,7 @@ interface IWinSATInitiateEvents : IUnknown
     ///Returns:
     ///    This method should return S_OK; the value is ignored.
     ///    
-    HRESULT WinSATUpdate(uint uCurrentTick, uint uTickTotal, const(wchar)* strCurrentState);
+    HRESULT WinSATUpdate(uint uCurrentTick, uint uTickTotal, const(PWSTR) strCurrentState);
 }
 
 ///<p class="CCE_Message">[IInitiateWinSATAssessment may be altered or unavailable for releases after Windows 8.1.]
@@ -282,7 +283,7 @@ interface IInitiateWinSATAssessment : IUnknown
     ///    <dt><b>WINSAT_ERROR_WINSAT_DOES_NOT_EXIST</b></dt> <dt>0x80040011</dt> </dl> </td> <td width="60%"> Could not
     ///    find the WinSAT program where expected. </td> </tr> </table>
     ///    
-    HRESULT InitiateAssessment(const(wchar)* cmdLine, IWinSATInitiateEvents pCallbacks, HWND callerHwnd);
+    HRESULT InitiateAssessment(const(PWSTR) cmdLine, IWinSATInitiateEvents pCallbacks, HWND callerHwnd);
     ///<p class="CCE_Message">[IInitiateWinSATAssessment::InitiateFormalAssessment may be altered or unavailable for
     ///releases after Windows 8.1.] Initiates a formal assessment.
     ///Params:
@@ -314,7 +315,7 @@ interface IInitiateWinSATAssessment : IUnknown
 @GUID("30E6018A-94A8-4FF8-A69A-71B67413F07B")
 interface IAccessibleWinSAT : IAccessible
 {
-    HRESULT SetAccessiblityData(const(wchar)* wsName, const(wchar)* wsValue, const(wchar)* wsDesc);
+    HRESULT SetAccessiblityData(const(PWSTR) wsName, const(PWSTR) wsValue, const(PWSTR) wsDesc);
 }
 
 @GUID("BC9A6A9F-AD4E-420E-9953-B34671E9DF22")

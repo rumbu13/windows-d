@@ -3,10 +3,10 @@
 module windows.windowsconnectionmanager;
 
 public import windows.core;
-public import windows.systemservices : BOOL;
+public import windows.systemservices : BOOL, PWSTR;
 public import windows.windowsprogramming : FILETIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -215,8 +215,8 @@ struct WCM_DATAPLAN_STATUS
 ///    Type: <b>DWORD</b> Returns ERROR_SUCCESS if successful, or an error value otherwise.
 ///    
 @DllImport("wcmapi")
-uint WcmQueryProperty(const(GUID)* pInterface, const(wchar)* strProfileName, WCM_PROPERTY Property, 
-                      void* pReserved, uint* pdwDataSize, ubyte** ppData);
+uint WcmQueryProperty(const(GUID)* pInterface, const(PWSTR) strProfileName, WCM_PROPERTY Property, void* pReserved, 
+                      uint* pdwDataSize, ubyte** ppData);
 
 ///The <b>WcmSetProperty</b> function sets the value of a WCM property.
 ///Params:
@@ -230,8 +230,8 @@ uint WcmQueryProperty(const(GUID)* pInterface, const(wchar)* strProfileName, WCM
 ///    Type: <b>DWORD</b> Returns ERROR_SUCCESS if successful, or an error value otherwise.
 ///    
 @DllImport("wcmapi")
-uint WcmSetProperty(const(GUID)* pInterface, const(wchar)* strProfileName, WCM_PROPERTY Property, void* pReserved, 
-                    uint dwDataSize, char* pbData);
+uint WcmSetProperty(const(GUID)* pInterface, const(PWSTR) strProfileName, WCM_PROPERTY Property, void* pReserved, 
+                    uint dwDataSize, const(ubyte)* pbData);
 
 ///The <b>WcmGetProfileList</b> function retrieves a list of profiles in preferred order, descending from the most
 ///preferred to the least preferred. The list includes all WCM-managed auto-connect profiles across all WCM-managed

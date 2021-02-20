@@ -5,7 +5,7 @@ module windows.kernel;
 public import windows.core;
 public import windows.dbg : CONTEXT, EXCEPTION_RECORD;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -18,15 +18,6 @@ enum : int
     ExceptionContinueSearch    = 0x00000001,
     ExceptionNestedException   = 0x00000002,
     ExceptionCollidedUnwind    = 0x00000003,
-}
-
-///The <b>COMPARTMENT_ID</b> enumeration indicates the network routing compartment identifier.
-alias COMPARTMENT_ID = int;
-enum : int
-{
-    ///Indicates that the routing compartment is undefined.
-    UNSPECIFIED_COMPARTMENT_ID = 0x00000000,
-    DEFAULT_COMPARTMENT_ID     = 0x00000001,
 }
 
 alias EVENT_TYPE = int;
@@ -84,6 +75,15 @@ enum : int
     MaxSuiteType            = 0x00000012,
 }
 
+///The <b>COMPARTMENT_ID</b> enumeration indicates the network routing compartment identifier.
+alias COMPARTMENT_ID = int;
+enum : int
+{
+    ///Indicates that the routing compartment is undefined.
+    UNSPECIFIED_COMPARTMENT_ID = 0x00000000,
+    DEFAULT_COMPARTMENT_ID     = 0x00000001,
+}
+
 // Callbacks
 
 alias EXCEPTION_ROUTINE = EXCEPTION_DISPOSITION function(EXCEPTION_RECORD* ExceptionRecord, void* EstablisherFrame, 
@@ -92,18 +92,9 @@ alias EXCEPTION_ROUTINE = EXCEPTION_DISPOSITION function(EXCEPTION_RECORD* Excep
 // Structs
 
 
-///Describes a local identifier for an adapter.
-struct LUID
-{
-    ///Specifies a DWORD that contains the unsigned lower numbers of the id.
-    uint LowPart;
-    ///Specifies a LONG that contains the signed high numbers of the id.
-    int  HighPart;
-}
-
 struct QUAD
 {
-    union
+union
     {
         long   UseThisFieldToCopy;
         double DoNotUseThisField;
@@ -141,16 +132,16 @@ struct SINGLE_LIST_ENTRY
 
 struct RTL_BALANCED_NODE
 {
-    union
+union
     {
         RTL_BALANCED_NODE[2]* Children;
-        struct
+struct
         {
             RTL_BALANCED_NODE* Left;
             RTL_BALANCED_NODE* Right;
         }
     }
-    union
+union
     {
         ubyte  _bitfield63;
         size_t ParentValue;
@@ -217,5 +208,14 @@ struct OBJECTID
 {
     GUID Lineage;
     uint Uniquifier;
+}
+
+///Describes a local identifier for an adapter.
+struct LUID
+{
+    ///Specifies a DWORD that contains the unsigned lower numbers of the id.
+    uint LowPart;
+    ///Specifies a LONG that contains the signed high numbers of the id.
+    int  HighPart;
 }
 

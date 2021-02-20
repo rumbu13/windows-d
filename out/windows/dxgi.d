@@ -5,12 +5,13 @@ module windows.dxgi;
 public import windows.core;
 public import windows.com : HRESULT, IUnknown;
 public import windows.displaydevices : POINT, RECT;
-public import windows.gdi : HDC;
+public import windows.gdi : HDC, HMONITOR;
 public import windows.kernel : LUID;
-public import windows.systemservices : BOOL, HANDLE, LARGE_INTEGER, SECURITY_ATTRIBUTES;
+public import windows.systemservices : BOOL, HANDLE, LARGE_INTEGER, PSTR, PWSTR,
+                                       SECURITY_ATTRIBUTES;
 public import windows.windowsandmessaging : HWND;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -1327,7 +1328,7 @@ struct DXGI_OUTPUT_DESC
     DXGI_MODE_ROTATION Rotation;
     ///Type: <b>HMONITOR</b> An HMONITOR handle that represents the display monitor. For more information, see HMONITOR
     ///and the Device Context.
-    ptrdiff_t          Monitor;
+    HMONITOR           Monitor;
 }
 
 ///Represents a handle to a shared resource.
@@ -1819,7 +1820,7 @@ struct DXGI_OUTPUT_DESC1
     DXGI_MODE_ROTATION Rotation;
     ///Type: <b>HMONITOR</b> An HMONITOR handle that represents the display monitor. For more information, see HMONITOR
     ///and the Device Context.
-    ptrdiff_t          Monitor;
+    HMONITOR           Monitor;
     ///Type: <b>UINT</b> The number of bits per color channel for the active wire format of the display attached to this
     ///output.
     uint               BitsPerColor;
@@ -1861,17 +1862,17 @@ struct DXGI_OUTPUT_DESC1
 struct DXGI_INFO_QUEUE_MESSAGE
 {
     ///A DXGI_DEBUG_ID value that identifies the entity that produced the message.
-    GUID         Producer;
+    GUID          Producer;
     ///A DXGI_INFO_QUEUE_MESSAGE_CATEGORY-typed value that specifies the category of the message.
     DXGI_INFO_QUEUE_MESSAGE_CATEGORY Category;
     ///A DXGI_INFO_QUEUE_MESSAGE_SEVERITY-typed value that specifies the severity of the message.
     DXGI_INFO_QUEUE_MESSAGE_SEVERITY Severity;
     ///An integer that uniquely identifies the message.
-    int          ID;
+    int           ID;
     ///The message string.
-    const(byte)* pDescription;
+    const(ubyte)* pDescription;
     ///The length of the message string at <b>pDescription</b>, in bytes.
-    size_t       DescriptionByteLength;
+    size_t        DescriptionByteLength;
 }
 
 ///Describes the types of messages to allow or deny to pass through a filter.
@@ -1988,7 +1989,7 @@ interface IDXGIObject : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the DXGI_ERROR values.
     ///    
-    HRESULT SetPrivateData(const(GUID)* Name, uint DataSize, char* pData);
+    HRESULT SetPrivateData(const(GUID)* Name, uint DataSize, const(void)* pData);
     ///Set an interface in the object's private data.
     ///Params:
     ///    Name = Type: <b>REFGUID</b> A GUID identifying the interface.
@@ -2005,7 +2006,7 @@ interface IDXGIObject : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following DXGI_ERROR.
     ///    
-    HRESULT GetPrivateData(const(GUID)* Name, uint* pDataSize, char* pData);
+    HRESULT GetPrivateData(const(GUID)* Name, uint* pDataSize, void* pData);
     ///Gets the parent of the object.
     ///Params:
     ///    riid = Type: <b>REFIID</b> The ID of the requested interface.
@@ -2299,7 +2300,7 @@ interface IDXGIOutput : IDXGIObject
     ///    a Remote Desktop Services session (formerly Terminal Services session), DXGI_ERROR_NOT_CURRENTLY_AVAILABLE is
     ///    returned.
     ///    
-    HRESULT GetDisplayModeList(DXGI_FORMAT EnumFormat, uint Flags, uint* pNumModes, char* pDesc);
+    HRESULT GetDisplayModeList(DXGI_FORMAT EnumFormat, uint Flags, uint* pNumModes, DXGI_MODE_DESC* pDesc);
     ///<p class="CCE_Message">[Starting with Direct3D 11.1, we recommend not to use <b>FindClosestMatchingMode</b>
     ///anymore to find the display mode that most closely matches the requested display mode. Instead, use
     ///IDXGIOutput1::FindClosestMatchingMode1, which supports stereo display mode.] Finds the display mode that most
@@ -2462,7 +2463,7 @@ interface IDXGISwapChain : IDXGIDeviceSubObject
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following DXGI_ERROR.
     ///    
-    HRESULT GetFullscreenState(int* pFullscreen, IDXGIOutput* ppTarget);
+    HRESULT GetFullscreenState(BOOL* pFullscreen, IDXGIOutput* ppTarget);
     ///<p class="CCE_Message">[Starting with Direct3D 11.1, we recommend not to use <b>GetDesc</b> anymore to get a
     ///description of the swap chain. Instead, use IDXGISwapChain1::GetDesc1.] Get a description of the swap chain.
     ///Params:
@@ -2632,7 +2633,7 @@ interface IDXGIDevice : IDXGIObject
     ///    Type: <b>HRESULT</b> Returns S_OK if successful; otherwise, returns DXGI_ERROR_DEVICE_REMOVED, E_INVALIDARG,
     ///    or E_POINTER (see Common HRESULT Values and WinError.h for more information).
     ///    
-    HRESULT QueryResourceResidency(char* ppResources, char* pResidencyStatus, uint NumResources);
+    HRESULT QueryResourceResidency(IUnknown* ppResources, DXGI_RESIDENCY* pResidencyStatus, uint NumResources);
     ///Sets the GPU thread priority.
     ///Params:
     ///    Priority = Type: <b>INT</b> A value that specifies the required GPU thread priority. This value must be between -7 and
@@ -2803,7 +2804,7 @@ interface IDXGIOutputDuplication : IDXGIObject
     ///    if <i>pDirtyRectsBuffer</i> is NULL.</li> <li>Possibly other error codes that are described in the DXGI_ERROR
     ///    topic.</li> </ul>
     ///    
-    HRESULT GetFrameDirtyRects(uint DirtyRectsBufferSize, char* pDirtyRectsBuffer, 
+    HRESULT GetFrameDirtyRects(uint DirtyRectsBufferSize, RECT* pDirtyRectsBuffer, 
                                uint* pDirtyRectsBufferSizeRequired);
     ///Gets information about the moved rectangles for the current desktop frame.
     ///Params:
@@ -2826,7 +2827,8 @@ interface IDXGIOutputDuplication : IDXGIObject
     ///    if <i>pMoveRectBuffer</i> is NULL.</li> <li>Possibly other error codes that are described in the DXGI_ERROR
     ///    topic.</li> </ul>
     ///    
-    HRESULT GetFrameMoveRects(uint MoveRectsBufferSize, char* pMoveRectBuffer, uint* pMoveRectsBufferSizeRequired);
+    HRESULT GetFrameMoveRects(uint MoveRectsBufferSize, DXGI_OUTDUPL_MOVE_RECT* pMoveRectBuffer, 
+                              uint* pMoveRectsBufferSizeRequired);
     ///Gets information about the new pointer shape for the current desktop frame.
     ///Params:
     ///    PointerShapeBufferSize = The size in bytes of the buffer that the caller passed to the <i>pPointerShapeBuffer</i> parameter.
@@ -2849,7 +2851,7 @@ interface IDXGIOutputDuplication : IDXGIObject
     ///    example, if <i>pPointerShapeInfo</i> is NULL.</li> <li>Possibly other error codes that are described in the
     ///    DXGI_ERROR topic.</li> </ul>
     ///    
-    HRESULT GetFramePointerShape(uint PointerShapeBufferSize, char* pPointerShapeBuffer, 
+    HRESULT GetFramePointerShape(uint PointerShapeBufferSize, void* pPointerShapeBuffer, 
                                  uint* pPointerShapeBufferSizeRequired, 
                                  DXGI_OUTDUPL_POINTER_SHAPE_INFO* pPointerShapeInfo);
     ///Provides the CPU with efficient access to a desktop image if that desktop image is already in system memory.
@@ -2969,7 +2971,7 @@ interface IDXGIResource1 : IDXGIResource
     ///    Windows 7 installed, <b>CreateSharedHandle</b> fails with E_NOTIMPL. For more info about the Platform Update
     ///    for Windows 7, see Platform Update for Windows 7.
     ///    
-    HRESULT CreateSharedHandle(const(SECURITY_ATTRIBUTES)* pAttributes, uint dwAccess, const(wchar)* lpName, 
+    HRESULT CreateSharedHandle(const(SECURITY_ATTRIBUTES)* pAttributes, uint dwAccess, const(PWSTR) lpName, 
                                HANDLE* pHandle);
 }
 
@@ -2988,7 +2990,7 @@ interface IDXGIDevice2 : IDXGIDevice1
     ///    <b>OfferResources</b> returns: <ul> <li>S_OK if resources were successfully offered</li> <li>E_INVALIDARG if
     ///    a resource in the array or the priority is invalid</li> </ul>
     ///    
-    HRESULT OfferResources(uint NumResources, char* ppResources, DXGI_OFFER_RESOURCE_PRIORITY Priority);
+    HRESULT OfferResources(uint NumResources, IDXGIResource* ppResources, DXGI_OFFER_RESOURCE_PRIORITY Priority);
     ///Restores access to resources that were previously offered by calling IDXGIDevice2::OfferResources.
     ///Params:
     ///    NumResources = The number of resources in the <i>ppResources</i> argument and <i>pDiscarded</i> argument arrays.
@@ -3002,7 +3004,7 @@ interface IDXGIDevice2 : IDXGIDevice1
     ///    <b>ReclaimResources</b> returns: <ul> <li>S_OK if resources were successfully reclaimed</li> <li>E_INVALIDARG
     ///    if the resources are invalid</li> </ul>
     ///    
-    HRESULT ReclaimResources(uint NumResources, char* ppResources, char* pDiscarded);
+    HRESULT ReclaimResources(uint NumResources, IDXGIResource* ppResources, BOOL* pDiscarded);
     ///Flushes any outstanding rendering commands and sets the specified event object to the signaled state after all
     ///previously submitted rendering commands complete.
     ///Params:
@@ -3392,7 +3394,7 @@ interface IDXGIOutput1 : IDXGIOutput
     ///    modes available can change immediately after calling this method, in which case DXGI_ERROR_MORE_DATA is
     ///    returned (if there is not enough room for all the display modes).
     ///    
-    HRESULT GetDisplayModeList1(DXGI_FORMAT EnumFormat, uint Flags, uint* pNumModes, char* pDesc);
+    HRESULT GetDisplayModeList1(DXGI_FORMAT EnumFormat, uint Flags, uint* pNumModes, DXGI_MODE_DESC1* pDesc);
     ///Finds the display mode that most closely matches the requested display mode.
     ///Params:
     ///    pModeToMatch = A pointer to the DXGI_MODE_DESC1 structure that describes the display mode to match. Members of
@@ -3897,7 +3899,7 @@ interface IDXGISwapChain3 : IDXGISwapChain2
     ///    DXGI_ERROR.
     ///    
     HRESULT ResizeBuffers1(uint BufferCount, uint Width, uint Height, DXGI_FORMAT Format, uint SwapChainFlags, 
-                           char* pCreationNodeMask, char* ppPresentQueue);
+                           const(uint)* pCreationNodeMask, IUnknown* ppPresentQueue);
 }
 
 ///Represents an adapter output (such as a monitor). The <b>IDXGIOutput4</b> interface exposes a method to check for
@@ -4058,8 +4060,8 @@ interface IDXGIOutput5 : IDXGIOutput4
     ///    <b>DuplicateOutput1</b> failed because the session is currently disconnected.</li> <li>Other error codes are
     ///    described in the DXGI_ERROR topic.</li> </ul>
     ///    
-    HRESULT DuplicateOutput1(IUnknown pDevice, uint Flags, uint SupportedFormatsCount, char* pSupportedFormats, 
-                             IDXGIOutputDuplication* ppOutputDuplication);
+    HRESULT DuplicateOutput1(IUnknown pDevice, uint Flags, uint SupportedFormatsCount, 
+                             const(DXGI_FORMAT)* pSupportedFormats, IDXGIOutputDuplication* ppOutputDuplication);
 }
 
 ///This interface exposes a single method for setting video metadata.
@@ -4075,7 +4077,7 @@ interface IDXGISwapChain4 : IDXGISwapChain3
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns an HRESULT success or error code.
     ///    
-    HRESULT SetHDRMetaData(DXGI_HDR_METADATA_TYPE Type, uint Size, char* pMetaData);
+    HRESULT SetHDRMetaData(DXGI_HDR_METADATA_TYPE Type, uint Size, void* pMetaData);
 }
 
 ///This interface provides updated methods to offer and reclaim resources.
@@ -4094,7 +4096,7 @@ interface IDXGIDevice4 : IDXGIDevice3
     ///    Type: <b>HRESULT</b> This method returns an HRESULT success or error code, which can include E_INVALIDARG if
     ///    a resource in the array, or the priority, is invalid.
     ///    
-    HRESULT OfferResources1(uint NumResources, char* ppResources, DXGI_OFFER_RESOURCE_PRIORITY Priority, 
+    HRESULT OfferResources1(uint NumResources, IDXGIResource* ppResources, DXGI_OFFER_RESOURCE_PRIORITY Priority, 
                             uint Flags);
     ///Restores access to resources that were previously offered by calling IDXGIDevice4::OfferResources1.
     ///Params:
@@ -4109,7 +4111,8 @@ interface IDXGIDevice4 : IDXGIDevice3
     ///    Type: <b>HRESULT</b> This method returns an HRESULT success or error code, including E_INVALIDARG if the
     ///    resources are invalid.
     ///    
-    HRESULT ReclaimResources1(uint NumResources, char* ppResources, char* pResults);
+    HRESULT ReclaimResources1(uint NumResources, IDXGIResource* ppResources, 
+                              DXGI_RECLAIM_RESOURCE_RESULTS* pResults);
 }
 
 ///This interface enables a single method to support variable refresh rate displays.
@@ -4125,7 +4128,7 @@ interface IDXGIFactory5 : IDXGIFactory4
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns an HRESULT success or error code.
     ///    
-    HRESULT CheckFeatureSupport(DXGI_FEATURE Feature, char* pFeatureSupportData, uint FeatureSupportDataSize);
+    HRESULT CheckFeatureSupport(DXGI_FEATURE Feature, void* pFeatureSupportData, uint FeatureSupportDataSize);
 }
 
 ///This interface represents a display subsystem, and extends this family of interfaces to expose a method to check for
@@ -4230,7 +4233,8 @@ interface IDXGIInfoQueue : IUnknown
     ///Params:
     ///    Producer = A DXGI_DEBUG_ID value that identifies the entity that clears the messages.
     void    ClearStoredMessages(GUID Producer);
-    HRESULT GetMessageA(GUID Producer, ulong MessageIndex, char* pMessage, size_t* pMessageByteLength);
+    HRESULT GetMessageA(GUID Producer, ulong MessageIndex, DXGI_INFO_QUEUE_MESSAGE* pMessage, 
+                        size_t* pMessageByteLength);
     ///Gets the number of messages that can pass through a retrieval filter.
     ///Params:
     ///    Producer = A DXGI_DEBUG_ID value that identifies the entity that gets the number.
@@ -4290,7 +4294,7 @@ interface IDXGIInfoQueue : IUnknown
     ///Returns:
     ///    Returns S_OK if successful; an error code otherwise. For a list of error codes, see DXGI_ERROR.
     ///    
-    HRESULT GetStorageFilter(GUID Producer, char* pFilter, size_t* pFilterByteLength);
+    HRESULT GetStorageFilter(GUID Producer, DXGI_INFO_QUEUE_FILTER* pFilter, size_t* pFilterByteLength);
     ///Removes a storage filter from the top of the storage-filter stack.
     ///Params:
     ///    Producer = A DXGI_DEBUG_ID value that identifies the entity that removes the filter.
@@ -4353,7 +4357,7 @@ interface IDXGIInfoQueue : IUnknown
     ///Returns:
     ///    Returns S_OK if successful; an error code otherwise. For a list of error codes, see DXGI_ERROR.
     ///    
-    HRESULT GetRetrievalFilter(GUID Producer, char* pFilter, size_t* pFilterByteLength);
+    HRESULT GetRetrievalFilter(GUID Producer, DXGI_INFO_QUEUE_FILTER* pFilter, size_t* pFilterByteLength);
     ///Removes a retrieval filter from the top of the retrieval-filter stack.
     ///Params:
     ///    Producer = A DXGI_DEBUG_ID value that identifies the entity that removes the filter.
@@ -4410,7 +4414,7 @@ interface IDXGIInfoQueue : IUnknown
     ///    Returns S_OK if successful; an error code otherwise. For a list of error codes, see DXGI_ERROR.
     ///    
     HRESULT AddMessage(GUID Producer, DXGI_INFO_QUEUE_MESSAGE_CATEGORY Category, 
-                       DXGI_INFO_QUEUE_MESSAGE_SEVERITY Severity, int ID, const(char)* pDescription);
+                       DXGI_INFO_QUEUE_MESSAGE_SEVERITY Severity, int ID, const(PSTR) pDescription);
     ///Adds a user-defined message to the message queue and sends that message to the debug output.
     ///Params:
     ///    Severity = A DXGI_INFO_QUEUE_MESSAGE_SEVERITY-typed value that specifies the severity of the message.
@@ -4418,7 +4422,7 @@ interface IDXGIInfoQueue : IUnknown
     ///Returns:
     ///    Returns S_OK if successful; an error code otherwise. For a list of error codes, see DXGI_ERROR.
     ///    
-    HRESULT AddApplicationMessage(DXGI_INFO_QUEUE_MESSAGE_SEVERITY Severity, const(char)* pDescription);
+    HRESULT AddApplicationMessage(DXGI_INFO_QUEUE_MESSAGE_SEVERITY Severity, const(PSTR) pDescription);
     ///Sets a message category to break on when a message with that category passes through the storage filter.
     ///Params:
     ///    Producer = A DXGI_DEBUG_ID value that identifies the entity that sets the breaking condition.

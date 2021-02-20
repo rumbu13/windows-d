@@ -5,26 +5,25 @@ module windows.displaydevices;
 public import windows.core;
 public import windows.com : HRESULT, IUnknown;
 public import windows.coreaudio : DDVIDEOPORTCONNECT;
-public import windows.direct2d : PALETTEENTRY;
 public import windows.directdraw : DDARGB, DDBLTFX, DDCOLORCONTROL, DDOVERLAYFX,
                                    DDPIXELFORMAT, DDSCAPS, DDSCAPS2, DDSCAPSEX,
                                    DDSURFACEDESC;
 public import windows.directshow : DDCOLORKEY;
 public import windows.gdi : BLENDFUNCTION, COLORADJUSTMENT, HBITMAP, HPALETTE,
-                            PANOSE, TRIVERTEX;
+                            PALETTEENTRY, PANOSE, TRIVERTEX;
 public import windows.kernel : LUID;
 public import windows.shell : LOGFONTW;
 public import windows.systemservices : BOOL, DDNTCORECAPS, DD_DESTROYDDLOCALDATA,
                                        DHPDEV__, DHSURF__, FLOAT_LONG, FREEOBJPROC,
-                                       HANDLE, HDEV__, HSEMAPHORE__, HSURF__,
-                                       LARGE_INTEGER, PDD_ALPHABLT, PDD_DESTROYDRIVER,
-                                       PDD_SETCOLORKEY, PDD_SETMODE,
-                                       PDD_SURFCB_SETCLIPLIST, PFN, POINTE,
-                                       POINTFIX, POINTQF, RECTFX, XFORMOBJ;
+                                       HANDLE, HSURF, LARGE_INTEGER, PDD_ALPHABLT,
+                                       PDD_DESTROYDRIVER, PDD_SETCOLORKEY,
+                                       PDD_SETMODE, PDD_SURFCB_SETCLIPLIST, PFN,
+                                       POINTE, POINTFIX, POINTQF, PSTR, PWSTR,
+                                       RECTFX, XFORMOBJ;
 public import windows.windowsprogramming : DDRAWI_DIRECTDRAW_GBL, DDRAWI_DIRECTDRAW_LCL,
                                            LPDDHAL_WAITFORVERTICALBLANK;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -711,512 +710,6 @@ alias PFN_DrvQueryGlyphAttrs = FD_GLYPHATTR* function(FONTOBJ* param0, uint para
 // Structs
 
 
-///The DEVMODEW structure is used for specifying characteristics of display and print devices in the Unicode (wide)
-///character set.
-struct DEVMODEW
-{
-    ///For a display, specifies the name of the display driver's DLL; for example, "perm3dd" for the 3Dlabs Permedia3
-    ///display driver. For a printer, specifies the "friendly name"; for example, "PCL/HP LaserJet" in the case of
-    ///PCL/HP LaserJet. If the name is greater than CCHDEVICENAME characters in length, the spooler truncates it to fit
-    ///in the array.
-    ushort[32] dmDeviceName;
-    ///Specifies the version number of this DEVMODEW structure. The current version number is identified by the
-    ///DM_SPECVERSION constant in <i>wingdi.h</i>.
-    ushort     dmSpecVersion;
-    ///For a printer, specifies the printer driver version number assigned by the printer driver developer. Display
-    ///drivers can set this member to DM_SPECVERSION.
-    ushort     dmDriverVersion;
-    ///Specifies the size in bytes of the public DEVMODEW structure, not including any private, driver-specified members
-    ///identified by the <b>dmDriverExtra</b> member.
-    ushort     dmSize;
-    ///Specifies the number of bytes of private driver data that follow the public structure members. If a device driver
-    ///does not provide private DEVMODEW members, this member should be set to zero.
-    ushort     dmDriverExtra;
-    ///Specifies bit flags identifying which of the following DEVMODEW members are in use. For example, the
-    ///DM_ORIENTATION flag is set when the <b>dmOrientation</b> member contains valid data. The DM_XXX flags are defined
-    ///in <i>wingdi.h</i>.
-    uint       dmFields;
-    union
-    {
-        struct
-        {
-            short dmOrientation;
-            short dmPaperSize;
-            short dmPaperLength;
-            short dmPaperWidth;
-            short dmScale;
-            short dmCopies;
-            short dmDefaultSource;
-            short dmPrintQuality;
-        }
-        struct
-        {
-            POINTL dmPosition;
-            uint   dmDisplayOrientation;
-            uint   dmDisplayFixedOutput;
-        }
-    }
-    ///For printers, specifies whether a color printer should print color or monochrome. This member can be one of
-    ///DMCOLOR_COLOR or DMCOLOR_MONOCHROME. This member is not used for displays.
-    short      dmColor;
-    ///For printers, specifies duplex (double-sided) printing for duplex-capable printers. This member can be one of the
-    ///following values:
-    short      dmDuplex;
-    ///For printers, specifies the <i>y</i> resolution of the printer, in DPI. If this member is used, the
-    ///<b>dmPrintQuality</b> member specifies the <i>x</i> resolution. This member is not used for displays.
-    short      dmYResolution;
-    ///For printers, specifies how TrueType fonts should be printed. This member must be one of the DMTT-prefixed
-    ///constants defined in <i>wingdi.h</i>. This member is not used for displays.
-    short      dmTTOption;
-    ///For printers, specifies whether multiple copies should be collated. This member can be one of the following
-    ///values:
-    short      dmCollate;
-    ///For printers, specifies the name of the form to use; such as "Letter" or "Legal". This must be a name that can be
-    ///obtain by calling the Win32 <b>EnumForms</b> function (described in the Microsoft Window SDK documentation). This
-    ///member is not used for displays.
-    ushort[32] dmFormName;
-    ///For displays, specifies the number of logical pixels per inch of a display device and should be equal to the
-    ///<b>ulLogPixels</b> member of the GDIINFO structure. This member is not used for printers.
-    ushort     dmLogPixels;
-    ///For displays, specifies the color resolution, in bits per pixel, of a display device. This member is not used for
-    ///printers.
-    uint       dmBitsPerPel;
-    ///For displays, specifies the width, in pixels, of the visible device surface. This member is not used for
-    ///printers.
-    uint       dmPelsWidth;
-    ///For displays, specifies the height, in pixels, of the visible device surface. This member is not used for
-    ///printers.
-    uint       dmPelsHeight;
-    union
-    {
-        uint dmDisplayFlags;
-        uint dmNup;
-    }
-    ///For displays, specifies the frequency, in hertz, of a display device in its current mode. This member is not used
-    ///for printers.
-    uint       dmDisplayFrequency;
-    ///Specifies one of the DMICMMETHOD-prefixed constants defined in <i>wingdi.h</i>.
-    uint       dmICMMethod;
-    ///Specifies one of the DMICM-prefixed constants defined in <i>wingdi.h</i>.
-    uint       dmICMIntent;
-    ///Specifies one of the DMMEDIA-prefixed constants defined in <i>wingdi.h</i>.
-    uint       dmMediaType;
-    ///Specifies one of the DMDITHER-prefixed constants defined in <i>wingdi.h</i>.
-    uint       dmDitherType;
-    ///Is reserved for system use and should be ignored by the driver.
-    uint       dmReserved1;
-    ///Is reserved for system use and should be ignored by the driver.
-    uint       dmReserved2;
-    ///Is reserved for system use and should be ignored by the driver.
-    uint       dmPanningWidth;
-    ///Is reserved for system use and should be ignored by the driver.
-    uint       dmPanningHeight;
-}
-
-///The DISPLAYCONFIG_RATIONAL structure describes a fractional value that represents vertical and horizontal frequencies
-///of a video mode (that is, vertical sync and horizontal sync).
-struct DISPLAYCONFIG_RATIONAL
-{
-    ///The numerator of the frequency fraction.
-    uint Numerator;
-    ///The denominator of the frequency fraction.
-    uint Denominator;
-}
-
-///The DISPLAYCONFIG_2DREGION structure represents a point or an offset in a two-dimensional space.
-struct DISPLAYCONFIG_2DREGION
-{
-    ///The horizontal component of the point or offset.
-    uint cx;
-    uint cy;
-}
-
-///The DISPLAYCONFIG_VIDEO_SIGNAL_INFO structure contains information about the video signal for a display.
-struct DISPLAYCONFIG_VIDEO_SIGNAL_INFO
-{
-    ///The pixel clock rate.
-    ulong pixelRate;
-    ///A DISPLAYCONFIG_RATIONAL structure that represents horizontal sync.
-    DISPLAYCONFIG_RATIONAL hSyncFreq;
-    ///A DISPLAYCONFIG_RATIONAL structure that represents vertical sync.
-    DISPLAYCONFIG_RATIONAL vSyncFreq;
-    ///A DISPLAYCONFIG_2DREGION structure that specifies the width and height (in pixels) of the active portion of the
-    ///video signal.
-    DISPLAYCONFIG_2DREGION activeSize;
-    ///A DISPLAYCONFIG_2DREGION structure that specifies the width and height (in pixels) of the entire video signal.
-    DISPLAYCONFIG_2DREGION totalSize;
-    union
-    {
-        struct AdditionalSignalInfo
-        {
-            uint _bitfield28;
-        }
-        uint videoStandard;
-    }
-    ///The scan-line ordering (for example, progressive or interlaced) of the video signal. For a list of possible
-    ///values, see the DISPLAYCONFIG_SCANLINE_ORDERING enumerated type.
-    DISPLAYCONFIG_SCANLINE_ORDERING scanLineOrdering;
-}
-
-///The <b>DISPLAYCONFIG_SOURCE_MODE</b> structure represents a point or an offset in a two-dimensional space.
-struct DISPLAYCONFIG_SOURCE_MODE
-{
-    ///The width in pixels of the source mode.
-    uint   width;
-    ///The height in pixels of the source mode.
-    uint   height;
-    ///A value from the DISPLAYCONFIG_PIXELFORMAT enumeration that specifies the pixel format of the source mode.
-    DISPLAYCONFIG_PIXELFORMAT pixelFormat;
-    ///A POINTL structure that specifies the position in the desktop coordinate space of the upper-left corner of this
-    ///source surface. The source surface that is located at (0, 0) is always the primary source surface.
-    POINTL position;
-}
-
-///The DISPLAYCONFIG_TARGET_MODE structure describes a display path target mode.
-struct DISPLAYCONFIG_TARGET_MODE
-{
-    ///A DISPLAYCONFIG_VIDEO_SIGNAL_INFO structure that contains a detailed description of the current target mode.
-    DISPLAYCONFIG_VIDEO_SIGNAL_INFO targetVideoSignalInfo;
-}
-
-///The DISPLAYCONFIG_DESKTOP_IMAGE_INFO structure contains information about the image displayed on the desktop.
-struct DISPLAYCONFIG_DESKTOP_IMAGE_INFO
-{
-    ///A POINTL structure that specifies the size of the VidPn source surface that is being displayed on the monitor.
-    POINTL PathSourceSize;
-    ///A RECTL structure that defines where the desktop image will be positioned within path source. Region must be
-    ///completely inside the bounds of the path source size.
-    RECTL  DesktopImageRegion;
-    RECTL  DesktopImageClip;
-}
-
-///The DISPLAYCONFIG_MODE_INFO structure contains either source mode or target mode information.
-struct DISPLAYCONFIG_MODE_INFO
-{
-    ///A value that indicates whether the <b>DISPLAYCONFIG_MODE_INFO</b> structure represents source or target mode
-    ///information. If <b>infoType</b> is DISPLAYCONFIG_MODE_INFO_TYPE_TARGET, the <i>targetMode</i> parameter value
-    ///contains a valid DISPLAYCONFIG_TARGET_MODE structure describing the specified target. If <b>infoType</b> is
-    ///DISPLAYCONFIG_MODE_INFO_TYPE_SOURCE, the <i>sourceMode</i> parameter value contains a valid
-    ///DISPLAYCONFIG_SOURCE_MODE structure describing the specified source.
-    DISPLAYCONFIG_MODE_INFO_TYPE infoType;
-    ///The source or target identifier on the specified adapter that this path relates to.
-    uint id;
-    ///The identifier of the adapter that this source or target mode information relates to.
-    LUID adapterId;
-    union
-    {
-        DISPLAYCONFIG_TARGET_MODE targetMode;
-        DISPLAYCONFIG_SOURCE_MODE sourceMode;
-        DISPLAYCONFIG_DESKTOP_IMAGE_INFO desktopImageInfo;
-    }
-}
-
-///The DISPLAYCONFIG_PATH_SOURCE_INFO structure contains source information for a single path.
-struct DISPLAYCONFIG_PATH_SOURCE_INFO
-{
-    ///The identifier of the adapter that this source information relates to.
-    LUID adapterId;
-    ///The source identifier on the specified adapter that this path relates to.
-    uint id;
-    union
-    {
-        uint modeInfoIdx;
-        struct
-        {
-            uint _bitfield29;
-        }
-    }
-    ///A bitwise OR of flag values that indicates the status of the source. The following values are supported:
-    uint statusFlags;
-}
-
-///The DISPLAYCONFIG_PATH_TARGET_INFO structure contains target information for a single path.
-struct DISPLAYCONFIG_PATH_TARGET_INFO
-{
-    ///The identifier of the adapter that the path is on.
-    LUID adapterId;
-    ///The target identifier on the specified adapter that this path relates to.
-    uint id;
-    union
-    {
-        uint modeInfoIdx;
-        struct
-        {
-            uint _bitfield30;
-        }
-    }
-    ///The target's connector type. For a list of possible values, see the DISPLAYCONFIG_VIDEO_OUTPUT_TECHNOLOGY
-    ///enumerated type.
-    DISPLAYCONFIG_VIDEO_OUTPUT_TECHNOLOGY outputTechnology;
-    ///A value that specifies the rotation of the target. For a list of possible values, see the DISPLAYCONFIG_ROTATION
-    ///enumerated type.
-    DISPLAYCONFIG_ROTATION rotation;
-    ///A value that specifies how the source image is scaled to the target. For a list of possible values, see the
-    ///DISPLAYCONFIG_SCALING enumerated type. For more information about scaling, see Scaling the Desktop Image.
-    DISPLAYCONFIG_SCALING scaling;
-    ///A DISPLAYCONFIG_RATIONAL structure that specifies the refresh rate of the target. If the caller specifies target
-    ///mode information, the operating system will instead use the refresh rate that is stored in the <b>vSyncFreq</b>
-    ///member of the DISPLAYCONFIG_VIDEO_SIGNAL_INFO structure. In this case, the caller specifies this value in the
-    ///<b>targetVideoSignalInfo</b> member of the DISPLAYCONFIG_TARGET_MODE structure. A refresh rate with both the
-    ///numerator and denominator set to zero indicates that the caller does not specify a refresh rate and the operating
-    ///system should use the most optimal refresh rate available. For this case, in a call to the SetDisplayConfig
-    ///function, the caller must set the <b>scanLineOrdering</b> member to the
-    ///DISPLAYCONFIG_SCANLINE_ORDERING_UNSPECIFIED value; otherwise, <b>SetDisplayConfig</b> fails.
-    DISPLAYCONFIG_RATIONAL refreshRate;
-    ///A value that specifies the scan-line ordering of the output on the target. For a list of possible values, see the
-    ///DISPLAYCONFIG_SCANLINE_ORDERING enumerated type. If the caller specifies target mode information, the operating
-    ///system will instead use the scan-line ordering that is stored in the <b>scanLineOrdering</b> member of the
-    ///DISPLAYCONFIG_VIDEO_SIGNAL_INFO structure. In this case, the caller specifies this value in the
-    ///<b>targetVideoSignalInfo</b> member of the DISPLAYCONFIG_TARGET_MODE structure.
-    DISPLAYCONFIG_SCANLINE_ORDERING scanLineOrdering;
-    ///A Boolean value that specifies whether the target is available. <b>TRUE</b> indicates that the target is
-    ///available. Because the asynchronous nature of display topology changes when a monitor is removed, a path might
-    ///still be marked as active even though the monitor has been removed. In such a case, <b>targetAvailable</b> could
-    ///be <b>FALSE</b> for an active path. This is typically a transient situation that will change after the operating
-    ///system takes action on the monitor removal.
-    BOOL targetAvailable;
-    ///A bitwise OR of flag values that indicates the status of the target. The following values are supported:
-    uint statusFlags;
-}
-
-///The DISPLAYCONFIG_PATH_INFO structure is used to describe a single path from a target to a source.
-struct DISPLAYCONFIG_PATH_INFO
-{
-    ///A DISPLAYCONFIG_PATH_SOURCE_INFO structure that contains the source information for the path.
-    DISPLAYCONFIG_PATH_SOURCE_INFO sourceInfo;
-    ///A DISPLAYCONFIG_PATH_TARGET_INFO structure that contains the target information for the path.
-    DISPLAYCONFIG_PATH_TARGET_INFO targetInfo;
-    ///A bitwise OR of flag values that indicates the state of the path. The following values are supported:
-    uint flags;
-}
-
-///The DISPLAYCONFIG_DEVICE_INFO_HEADER structure contains display information about the device.
-struct DISPLAYCONFIG_DEVICE_INFO_HEADER
-{
-    ///A DISPLAYCONFIG_DEVICE_INFO_TYPE enumerated value that determines the type of device information to retrieve or
-    ///set. The remainder of the packet for the retrieve or set operation follows immediately after the
-    ///DISPLAYCONFIG_DEVICE_INFO_HEADER structure.
-    DISPLAYCONFIG_DEVICE_INFO_TYPE type;
-    ///The size, in bytes, of the device information that is retrieved or set. This size includes the size of the header
-    ///and the size of the additional data that follows the header. This device information depends on the request type.
-    uint size;
-    ///A locally unique identifier (LUID) that identifies the adapter that the device information packet refers to.
-    LUID adapterId;
-    ///The source or target identifier to get or set the device information for. The meaning of this identifier is
-    ///related to the type of information being requested. For example, in the case of
-    ///DISPLAYCONFIG_DEVICE_INFO_GET_SOURCE_NAME, this is the source identifier.
-    uint id;
-}
-
-///The <b>DISPLAYCONFIG_SOURCE_DEVICE_NAME</b> structure contains the GDI device name for the source or view.
-struct DISPLAYCONFIG_SOURCE_DEVICE_NAME
-{
-    ///A DISPLAYCONFIG_DEVICE_INFO_HEADER structure that contains information about the request for the source device
-    ///name. The caller should set the <b>type</b> member of DISPLAYCONFIG_DEVICE_INFO_HEADER to
-    ///DISPLAYCONFIG_DEVICE_INFO_GET_SOURCE_NAME and the <b>adapterId</b> and <b>id</b> members of
-    ///DISPLAYCONFIG_DEVICE_INFO_HEADER to the source for which the caller wants the source device name. The caller
-    ///should set the <b>size</b> member of DISPLAYCONFIG_DEVICE_INFO_HEADER to at least the size of the
-    ///DISPLAYCONFIG_SOURCE_DEVICE_NAME structure.
-    DISPLAYCONFIG_DEVICE_INFO_HEADER header;
-    ///A NULL-terminated WCHAR string that is the GDI device name for the source, or view. This name can be used in a
-    ///call to <b>EnumDisplaySettings</b> to obtain a list of available modes for the specified source.
-    ushort[32] viewGdiDeviceName;
-}
-
-///The <b>DISPLAYCONFIG_TARGET_DEVICE_NAME_FLAGS</b> structure contains information about a target device.
-struct DISPLAYCONFIG_TARGET_DEVICE_NAME_FLAGS
-{
-    union
-    {
-        struct
-        {
-            uint _bitfield31;
-        }
-        uint value;
-    }
-}
-
-///The DISPLAYCONFIG_TARGET_DEVICE_NAME structure contains information about the target.
-struct DISPLAYCONFIG_TARGET_DEVICE_NAME
-{
-    ///A DISPLAYCONFIG_DEVICE_INFO_HEADER structure that contains information about the request for the target device
-    ///name. The caller should set the <b>type</b> member of DISPLAYCONFIG_DEVICE_INFO_HEADER to
-    ///DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_NAME and the <b>adapterId</b> and <b>id</b> members of
-    ///DISPLAYCONFIG_DEVICE_INFO_HEADER to the target for which the caller wants the target device name. The caller
-    ///should set the <b>size</b> member of DISPLAYCONFIG_DEVICE_INFO_HEADER to at least the size of the
-    ///DISPLAYCONFIG_TARGET_DEVICE_NAME structure.
-    DISPLAYCONFIG_DEVICE_INFO_HEADER header;
-    ///A DISPLAYCONFIG_TARGET_DEVICE_NAME_FLAGS structure that identifies, in bit-field flags, information about the
-    ///target.
-    DISPLAYCONFIG_TARGET_DEVICE_NAME_FLAGS flags;
-    ///A value from the DISPLAYCONFIG_VIDEO_OUTPUT_TECHNOLOGY enumeration that specifies the target's connector type.
-    DISPLAYCONFIG_VIDEO_OUTPUT_TECHNOLOGY outputTechnology;
-    ///The manufacture identifier from the monitor extended display identification data (EDID). This member is set only
-    ///when the <b>edidIdsValid</b> bit-field is set in the <b>flags</b> member.
-    ushort      edidManufactureId;
-    ///The product code from the monitor EDID. This member is set only when the <b>edidIdsValid</b> bit-field is set in
-    ///the <b>flags</b> member.
-    ushort      edidProductCodeId;
-    ///The one-based instance number of this particular target only when the adapter has multiple targets of this type.
-    ///The connector instance is a consecutive one-based number that is unique within each adapter. If this is the only
-    ///target of this type on the adapter, this value is zero.
-    uint        connectorInstance;
-    ///A NULL-terminated WCHAR string that is the device name for the monitor. This name can be used with
-    ///<i>SetupAPI.dll</i> to obtain the device name that is contained in the installation package.
-    ushort[64]  monitorFriendlyDeviceName;
-    ///A NULL-terminated WCHAR string that is the path to the device name for the monitor. This path can be used with
-    ///<i>SetupAPI.dll</i> to obtain the device name that is contained in the installation package.
-    ushort[128] monitorDevicePath;
-}
-
-///The <b>DISPLAYCONFIG_TARGET_PREFERRED_MODE</b> structure contains information about the preferred mode of a display.
-struct DISPLAYCONFIG_TARGET_PREFERRED_MODE
-{
-    ///A DISPLAYCONFIG_DEVICE_INFO_HEADER structure that contains information about the request for the target preferred
-    ///mode. The caller should set the <b>type</b> member of DISPLAYCONFIG_DEVICE_INFO_HEADER to
-    ///DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_PREFERRED_MODE and the <b>adapterId</b> and <b>id</b> members of
-    ///DISPLAYCONFIG_DEVICE_INFO_HEADER to the target for which the caller wants the preferred mode. The caller should
-    ///set the <b>size</b> member of DISPLAYCONFIG_DEVICE_INFO_HEADER to at least the size of the
-    ///DISPLAYCONFIG_TARGET_PREFERRED_MODE structure.
-    DISPLAYCONFIG_DEVICE_INFO_HEADER header;
-    ///The width in pixels of the best mode for the monitor that is connected to the target that the <b>targetMode</b>
-    ///member specifies.
-    uint width;
-    ///The height in pixels of the best mode for the monitor that is connected to the target that the <b>targetMode</b>
-    ///member specifies.
-    uint height;
-    ///A DISPLAYCONFIG_TARGET_MODE structure that describes the best target mode for the monitor that is connected to
-    ///the specified target.
-    DISPLAYCONFIG_TARGET_MODE targetMode;
-}
-
-///The DISPLAYCONFIG_ADAPTER_NAME structure contains information about the display adapter.
-struct DISPLAYCONFIG_ADAPTER_NAME
-{
-    ///A DISPLAYCONFIG_DEVICE_INFO_HEADER structure that contains information about the request for the adapter name.
-    ///The caller should set the <b>type</b> member of DISPLAYCONFIG_DEVICE_INFO_HEADER to
-    ///DISPLAYCONFIG_DEVICE_INFO_GET_ADAPTER_NAME and the <b>adapterId</b> member of DISPLAYCONFIG_DEVICE_INFO_HEADER to
-    ///the adapter identifier of the adapter for which the caller wants the name. For this request, the caller does not
-    ///need to set the <b>id</b> member of DISPLAYCONFIG_DEVICE_INFO_HEADER. The caller should set the <b>size</b>
-    ///member of DISPLAYCONFIG_DEVICE_INFO_HEADER to at least the size of the DISPLAYCONFIG_ADAPTER_NAME structure.
-    DISPLAYCONFIG_DEVICE_INFO_HEADER header;
-    ushort[128] adapterDevicePath;
-}
-
-///Specifies base output technology info for a given target ID.
-struct DISPLAYCONFIG_TARGET_BASE_TYPE
-{
-    ///A DISPLAYCONFIG_DEVICE_INFO_HEADER structure that contains info about the request for the target device name. The
-    ///caller should set the <b>type</b> member of <b>DISPLAYCONFIG_DEVICE_INFO_HEADER</b> to
-    ///<b>DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_BASE_TYPE</b> and the <b>adapterId</b> and <b>id</b> members of
-    ///<b>DISPLAYCONFIG_DEVICE_INFO_HEADER</b> to the target for which the caller wants the target device name. The
-    ///caller should set the <b>size</b> member of DISPLAYCONFIG_DEVICE_INFO_HEADER to at least the size of the
-    ///<b>DISPLAYCONFIG_TARGET_BASE_TYPE</b> structure.
-    DISPLAYCONFIG_DEVICE_INFO_HEADER header;
-    ///The base output technology, given as a constant value of the DISPLAYCONFIG_VIDEO_OUTPUT_TECHNOLOGY enumeration,
-    ///of the adapter and the target specified by the <b>header</b> member. See Remarks.
-    DISPLAYCONFIG_VIDEO_OUTPUT_TECHNOLOGY baseOutputTechnology;
-}
-
-///The DISPLAYCONFIG_SET_TARGET_PERSISTENCE structure contains information about setting the display.
-struct DISPLAYCONFIG_SET_TARGET_PERSISTENCE
-{
-    ///A DISPLAYCONFIG_DEVICE_INFO_HEADER structure that contains information for setting the target persistence. The
-    ///<b>type</b> member of DISPLAYCONFIG_DEVICE_INFO_HEADER is set to
-    ///DISPLAYCONFIG_DEVICE_INFO_SET_TARGET_PERSISTENCE. DISPLAYCONFIG_DEVICE_INFO_HEADER also contains the adapter and
-    ///target identifiers of the target to set the persistence for. The <b>size</b> member of
-    ///DISPLAYCONFIG_DEVICE_INFO_HEADER is set to at least the size of the DISPLAYCONFIG_SET_TARGET_PERSISTENCE
-    ///structure.
-    DISPLAYCONFIG_DEVICE_INFO_HEADER header;
-    union
-    {
-        struct
-        {
-            uint _bitfield32;
-        }
-        uint value;
-    }
-}
-
-///The DISPLAYCONFIG_SUPPORT_VIRTUAL_RESOLUTION structure contains information on the state of virtual resolution
-///support for the monitor.
-struct DISPLAYCONFIG_SUPPORT_VIRTUAL_RESOLUTION
-{
-    ///A DISPLAYCONFIG_DEVICE_INFO_HEADER structure that holds information on the type, size, adapterID, and ID of the
-    ///target the monitor is connected to.
-    DISPLAYCONFIG_DEVICE_INFO_HEADER header;
-    union
-    {
-        struct
-        {
-            uint _bitfield33;
-        }
-        uint value;
-    }
-}
-
-///The RECT structure defines a rectangle by the coordinates of its upper-left and lower-right corners.
-struct RECT
-{
-    ///Specifies the <i>x</i>-coordinate of the upper-left corner of the rectangle.
-    int left;
-    ///Specifies the <i>y</i>-coordinate of the upper-left corner of the rectangle.
-    int top;
-    ///Specifies the <i>x</i>-coordinate of the lower-right corner of the rectangle.
-    int right;
-    ///Specifies the <i>y</i>-coordinate of the lower-right corner of the rectangle.
-    int bottom;
-}
-
-///The RECTL structure defines a rectangle by the coordinates of its upper-left and lower-right corners.
-struct RECTL
-{
-    ///Specifies the <i>x</i>-coordinate of the upper-left corner of the rectangle.
-    int left;
-    ///Specifies the <i>y</i>-coordinate of the upper-left corner of the rectangle.
-    int top;
-    ///Specifies the <i>x</i>-coordinate of the lower-right corner of the rectangle.
-    int right;
-    ///Specifies the <i>y</i>-coordinate of the lower-right corner of the rectangle.
-    int bottom;
-}
-
-///The POINT structure defines the x- and y-coordinates of a point.
-struct POINT
-{
-    ///Specifies the <i>x</i>-coordinate of the point.
-    int x;
-    ///Specifies the <i>y</i>-coordinate of the point.
-    int y;
-}
-
-///The POINTL structure defines the x- and y-coordinates of a point.
-struct POINTL
-{
-    ///Specifies the <i>x</i>-coordinate of the point.
-    int x;
-    ///Specifies the <i>y</i>-coordinate of the point.
-    int y;
-}
-
-///The SIZE structure defines the width and height of a rectangle.
-struct SIZE
-{
-    ///Specifies the rectangle's width. The units depend on which function uses this structure.
-    int cx;
-    ///Specifies the rectangle's height. The units depend on which function uses this structure.
-    int cy;
-}
-
-///The POINTS structure defines the x- and y-coordinates of a point.
-struct POINTS
-{
-    ///Specifies the <i>x</i>-coordinate of the point.
-    short x;
-    ///Specifies the <i>y</i>-coordinate of the point.
-    short y;
-}
-
 ///The DDVIDEOPORTCAPS structure describes the capabilities and alignment restrictions of a hardware video port.
 struct DDVIDEOPORTCAPS
 {
@@ -1499,7 +992,7 @@ struct VIDEOMEMORY
     uint    dwFlags;
     ///Points to the starting address of a memory range in the heap.
     size_t  fpStart;
-    union
+union
     {
         size_t fpEnd;
         uint   dwWidth;
@@ -1510,7 +1003,7 @@ struct VIDEOMEMORY
     ///Specifies a DDSCAPS structure in which the driver returns the capabilities for which this chunk of memory cannot
     ///be used when no other memory is found on the first pass.
     DDSCAPS ddsCapsAlt;
-    union
+union
     {
         VMEMHEAP* lpHeap;
         uint      dwHeight;
@@ -1877,12 +1370,12 @@ struct DD_SURFACE_INT
 ///The DD_SURFACE_GLOBAL structure contains global surface-related data that can be shared between multiple surfaces.
 struct DD_SURFACE_GLOBAL
 {
-    union
+union
     {
         uint dwBlockSizeY;
         int  lSlicePitch;
     }
-    union
+union
     {
         VIDEOMEMORY* lpVidMemHeap;
         uint         dwBlockSizeX;
@@ -1895,7 +1388,7 @@ struct DD_SURFACE_GLOBAL
     ///<b>dwBlockSizeY</b> in offscreen memory. </td> </tr> <tr> <td> DDHAL_PLEASEALLOC_USERMEM </td> <td> DirectDraw
     ///should allocate a memory block of size <b>dwUserMemSize</b> in user-mode memory. </td> </tr> </table>
     size_t        fpVidMem;
-    union
+union
     {
         int  lPitch;
         uint dwLinearSize;
@@ -1989,12 +1482,12 @@ struct DD_SURFACE_LOCAL
     DDSCAPS            ddsCaps;
     ///Reserved for use by the display driver.
     size_t             dwReserved1;
-    union
+union
     {
         DDCOLORKEY ddckCKSrcOverlay;
         DDCOLORKEY ddckCKSrcBlt;
     }
-    union
+union
     {
         DDCOLORKEY ddckCKDestOverlay;
         DDCOLORKEY ddckCKDestBlt;
@@ -2148,7 +1641,7 @@ struct DD_MORESURFACECAPS
     ///structure manufactured from <b>DDCAPS.ddsCaps</b> and <b>DD_MORESURFACECAPS.ddsCapsMore</b>. A DDSCAPSEX
     ///structure is the same as a DDSCAPS2 structure without the <b>dwCaps</b> member.
     DDSCAPSEX ddsCapsMore;
-    struct ddsExtendedHeapRestrictions
+struct ddsExtendedHeapRestrictions
     {
         DDSCAPSEX ddsCapsEx;
         DDSCAPSEX ddsCapsExAlt;
@@ -3629,7 +3122,7 @@ struct DD_GETDRIVERSTATEDATA
     ///versions only</dt> <dt>Requests vertex-cache information in a D3DDEVINFO_VCACHE structure.</dt> </dl> </td> </tr>
     ///</table>
     uint    dwFlags;
-    union
+union
     {
         DD_DIRECTDRAW_GLOBAL* lpDD;
         size_t dwhContext;
@@ -4610,7 +4103,7 @@ struct DRIVEROBJ
     ///callback function returns <b>TRUE</b> if it is able to free the resource, and <b>FALSE</b> otherwise.
     FREEOBJPROC pFreeProc;
     ///GDI handle to the physical device associated with the object.
-    HDEV__*     hdev;
+    ptrdiff_t   hdev;
     ///Pointer to the driver's private instance data; that is, this member identifies the driver's PDEV.
     DHPDEV__*   dhpdev;
 }
@@ -4745,11 +4238,11 @@ struct SURFOBJ
     ///Handle to a surface, provided that the surface is device-managed. Otherwise, this member is zero.
     DHSURF__* dhsurf;
     ///Handle to the surface.
-    HSURF__*  hsurf;
+    HSURF     hsurf;
     ///Identifies the device's PDEV that is associated with the specified surface.
     DHPDEV__* dhpdev;
     ///GDI's logical handle to the PDEV associated with this device.
-    HDEV__*   hdev;
+    ptrdiff_t hdev;
     ///Specifies a SIZEL structure that contains the width and height, in pixels, of the surface. The SIZEL structure is
     ///identical to the SIZE structure.
     SIZE      sizlBitmap;
@@ -4939,23 +4432,23 @@ struct GLYPHDATA
 struct STROBJ
 {
     ///Specifies the number of glyphs in the STROBJ.
-    uint          cGlyphs;
+    uint      cGlyphs;
     ///Accelerator flags. This member can be any of the following values:
-    uint          flAccel;
+    uint      flAccel;
     ///Specifies whether the font is a fixed-pitch (monospace) font. If it is, this member is equal to the advance width
     ///of glyphs in pels; otherwise, it is zero. When this member is nonzero, GDI supplies a valid coordinate for only
     ///the first character in the string. All other character positions must be generated by the driver by successively
     ///adding the value of this member along the writing direction.
-    uint          ulCharInc;
+    uint      ulCharInc;
     ///Specifies a RECTL structure that describes the bounding box for the string.
-    RECTL         rclBkGround;
+    RECTL     rclBkGround;
     ///Pointer to the GLYPHPOS array for the whole string. Can be <b>NULL</b> (see the following <b>Remarks</b>
     ///section).
-    GLYPHPOS*     pgp;
+    GLYPHPOS* pgp;
     ///Pointer to the original Unicode string or <b>cGlyphs</b> characters. Contrary to its name, this string is not
     ///usually null-terminated. Also, this string is not always valid, such as in journalling with printer fonts, in
     ///which case this parameter will be <b>NULL</b>.
-    const(wchar)* pwszOrg;
+    PWSTR     pwszOrg;
 }
 
 ///The FONTINFO structure contains information regarding a specific font.
@@ -5118,9 +4611,9 @@ struct TYPE1_FONT
 struct ENGSAFESEMAPHORE
 {
     ///Handle to the semaphore.
-    HSEMAPHORE__* hsem;
+    HSEMAPHORE hsem;
     ///Specifies the reference count on the semaphore.
-    int           lCount;
+    int        lCount;
 }
 
 ///The FLOATOBJ structure is used to emulate a floating-point number.
@@ -5168,110 +4661,516 @@ struct ENG_TIME_FIELDS
     ushort usWeekday;
 }
 
-///The video miniport driver receives a pointer to a VIDEOPARAMETERS structure in the <b>InputBuffer</b> member of a
-///VIDEO_REQUEST_PACKET when the IOCTL request is IOCTL_VIDEO_HANDLE_VIDEOPARAMETERS. Depending on the <b>dwCommand</b>
-///member of the VIDEOPARAMETERS structure, the miniport driver should get or set the television connector and copy
-///protection capabilities of the device.
-struct VIDEOPARAMETERS
+///The DEVMODEW structure is used for specifying characteristics of display and print devices in the Unicode (wide)
+///character set.
+struct DEVMODEW
 {
-    ///Specifies the globally unique identifier (GUID) for this structure {02C62061-1097-11d1-920F-00A024DF156E}. A
-    ///video miniport driver must verify the GUID at the start of the structure before processing the structure.
-    GUID       Guid;
-    ///Is reserved and should be ignored by the video miniport driver.
-    uint       dwOffset;
-    ///Indicates the action to be performed by the driver. This member can be one of the following values:
-    uint       dwCommand;
-    ///Indicates which members of this structure contain valid data. When <b>dwCommand</b> is VP_COMMAND_GET, the driver
-    ///should set the appropriate bits in this member to indicate in which corresponding members it has returned valid
-    ///data. When <b>dwCommand</b> is VP_COMMAND_SET, the driver should set the functionality on the hardware according
-    ///to values in the members that correspond with the bits set in this member. This member can be a bitwise OR of the
-    ///values listed in the first column of the following table. <table> <tr> <th>Flag</th> <th>Corresponding
-    ///Members</th> <th>Commands</th> </tr> <tr> <td> VP_FLAGS_BRIGHTNESS </td> <td> <b>dwBrightness</b> </td> <td>
-    ///get/set </td> </tr> <tr> <td> VP_FLAGS_CONTRAST </td> <td> <b>dwContrast</b> </td> <td> get/set </td> </tr> <tr>
-    ///<td> VP_FLAGS_COPYPROTECT </td> <td> <b>dwCPType</b> <b>dwCPCommand</b> <b>dwCPStandard</b> <b>dwCPKey</b>
-    ///<b>bCP_APSTriggerBits</b> <b>bOEMCopyProtection</b> </td> <td> get/set set get set set get/set </td> </tr> <tr>
-    ///<td> VP_FLAGS_FLICKER </td> <td> <b>dwFlickerFilter</b> </td> <td> get/set </td> </tr> <tr> <td>
-    ///VP_FLAGS_MAX_UNSCALED </td> <td> <b>dwMaxUnscaledX</b> <b>dwMaxUnscaledY</b> </td> <td> get get </td> </tr> <tr>
-    ///<td> VP_FLAGS_OVERSCAN </td> <td> <b>dwOverscanX</b> <b>dwOverscanY</b> </td> <td> get/set get/set </td> </tr>
-    ///<tr> <td> VP_FLAGS_POSITION </td> <td> <b>dwPositionX</b> <b>dwPositionY</b> </td> <td> get/set get/set </td>
-    ///</tr> <tr> <td> VP_FLAGS_TV_MODE </td> <td> <b>dwMode</b> <b>dwAvailableModes</b> </td> <td> get/set get </td>
-    ///</tr> <tr> <td> VP_FLAGS_TV_STANDARD </td> <td> <b>dwTVStandard</b> <b>dwAvailableTVStandard</b> </td> <td>
-    ///get/set get </td> </tr> </table>
-    uint       dwFlags;
-    ///Specifies the current playback mode. This member is valid for both the VP_COMMAND_SET and VP_COMMAND_GET
-    ///commands, and can be one of the following values:
-    uint       dwMode;
-    ///Is the current world television standard. This member is valid for both the VP_COMMAND_SET and VP_COMMAND_GET
-    ///commands, and can be one of the following values: VP_TV_STANDARD_NTSC_M VP_TV_STANDARD_NTSC_M_J
-    ///VP_TV_STANDARD_NTSC_433 VP_TV_STANDARD_PAL_B VP_TV_STANDARD_PAL_D VP_TV_STANDARD_PAL_G VP_TV_STANDARD_PAL_H
-    ///VP_TV_STANDARD_PAL_I VP_TV_STANDARD_PAL_M VP_TV_STANDARD_PAL_N VP_TV_STANDARD_PAL_60 VP_TV_STANDARD_SECAM_B
-    ///VP_TV_STANDARD_SECAM_D VP_TV_STANDARD_SECAM_G VP_TV_STANDARD_SECAM_H VP_TV_STANDARD_SECAM_K
-    ///VP_TV_STANDARD_SECAM_K1 VP_TV_STANDARD_SECAM_L VP_TV_STANDARD_SECAM_L1 VP_TV_STANDARD_WIN_VGA
-    uint       dwTVStandard;
-    ///Indicates the playback modes the device is capable of. This member is only valid for the VP_COMMAND_GET command,
-    ///and can be a bitwise OR of the following values: VP_MODE_TV_PLAYBACK VP_MODE_WIN_GRAPHICS
-    uint       dwAvailableModes;
-    ///Specifies all available world television standards. This member is only valid for the VP_COMMAND_GET command, and
-    ///can be a bitwise OR of the following values: VP_TV_STANDARD_NTSC_M VP_TV_STANDARD_NTSC_M_J
-    ///VP_TV_STANDARD_NTSC_433 VP_TV_STANDARD_PAL_B VP_TV_STANDARD_PAL_D VP_TV_STANDARD_PAL_G VP_TV_STANDARD_PAL_H
-    ///VP_TV_STANDARD_PAL_I VP_TV_STANDARD_PAL_M VP_TV_STANDARD_PAL_N VP_TV_STANDARD_PAL_60 VP_TV_STANDARD_SECAM_B
-    ///VP_TV_STANDARD_SECAM_D VP_TV_STANDARD_SECAM_G VP_TV_STANDARD_SECAM_H VP_TV_STANDARD_SECAM_K
-    ///VP_TV_STANDARD_SECAM_K1 VP_TV_STANDARD_SECAM_L VP_TV_STANDARD_SECAM_L1 VP_TV_STANDARD_WIN_VGA
-    uint       dwAvailableTVStandard;
-    ///Is a value in tenths of a percent that indicates the flicker filter state. This member can be a value between
-    ///[0,1000], and is valid for both VP_COMMAND_GET and VP_COMMAND_SET.
-    uint       dwFlickerFilter;
-    ///Is a value in tenths of a percent that indicates the amount of overscan in <i>x</i>. This member can be a value
-    ///between [0,1000], and is valid for both VP_COMMAND_GET and VP_COMMAND_SET.
-    uint       dwOverScanX;
-    ///Is a value in tenths of a percent that indicates the amount of overscan in <i>y</i>. This member can be a value
-    ///between [0,1000], and is valid for both VP_COMMAND_GET and VP_COMMAND_SET.
-    uint       dwOverScanY;
-    ///Is the maximum <i>x</i> resolution that the TV can display without having the hardware scale the video image. The
-    ///miniport driver must set a value in this member when <b>dwCommand</b> is VP_COMMAND_GET. This member is invalid
-    ///for VP_COMMAND_SET.
-    uint       dwMaxUnscaledX;
-    ///Is the maximum <i>y</i> resolution that the TV can display without having the hardware scale the video image. The
-    ///miniport driver must set a value in this member when <b>dwCommand</b> is VP_COMMAND_GET. This member is invalid
-    ///for VP_COMMAND_SET.
-    uint       dwMaxUnscaledY;
-    ///Is the value used by the hardware to determine the current <i>x</i> position of the image on the TV. This member
-    ///is specified in pixels, and is valid for both VP_COMMAND_GET and VP_COMMAND_SET.
-    uint       dwPositionX;
-    ///Is the value used by the hardware to determine the current <i>y</i> position of the image on the TV. This member
-    ///is specified in scan lines, and is valid for both VP_COMMAND_GET and VP_COMMAND_SET.
-    uint       dwPositionY;
-    ///Is a percentage value that indicates the brightness setting on the TV. This member can be a value between
-    ///[0,100], and is valid for both VP_COMMAND_GET and VP_COMMAND_SET.
-    uint       dwBrightness;
-    ///Is a percentage value that indicates the contrast setting on the TV. This member can be a value between [0,100],
-    ///and is valid for both VP_COMMAND_GET and VP_COMMAND_SET.
-    uint       dwContrast;
-    ///Specifies the type of copy protection supported by the device. This member is valid for both the VP_COMMAND_SET
-    ///and VP_COMMAND_GET commands, and can be CP_TYPE_APS_TRIGGER.
-    uint       dwCPType;
-    ///Is the copy protection command. This member is only valid for the VP_COMMAND_SET command, and can be one of the
+    ///For a display, specifies the name of the display driver's DLL; for example, "perm3dd" for the 3Dlabs Permedia3
+    ///display driver. For a printer, specifies the "friendly name"; for example, "PCL/HP LaserJet" in the case of
+    ///PCL/HP LaserJet. If the name is greater than CCHDEVICENAME characters in length, the spooler truncates it to fit
+    ///in the array.
+    ushort[32] dmDeviceName;
+    ///Specifies the version number of this DEVMODEW structure. The current version number is identified by the
+    ///DM_SPECVERSION constant in <i>wingdi.h</i>.
+    ushort     dmSpecVersion;
+    ///For a printer, specifies the printer driver version number assigned by the printer driver developer. Display
+    ///drivers can set this member to DM_SPECVERSION.
+    ushort     dmDriverVersion;
+    ///Specifies the size in bytes of the public DEVMODEW structure, not including any private, driver-specified members
+    ///identified by the <b>dmDriverExtra</b> member.
+    ushort     dmSize;
+    ///Specifies the number of bytes of private driver data that follow the public structure members. If a device driver
+    ///does not provide private DEVMODEW members, this member should be set to zero.
+    ushort     dmDriverExtra;
+    ///Specifies bit flags identifying which of the following DEVMODEW members are in use. For example, the
+    ///DM_ORIENTATION flag is set when the <b>dmOrientation</b> member contains valid data. The DM_XXX flags are defined
+    ///in <i>wingdi.h</i>.
+    uint       dmFields;
+union
+    {
+struct
+        {
+            short dmOrientation;
+            short dmPaperSize;
+            short dmPaperLength;
+            short dmPaperWidth;
+            short dmScale;
+            short dmCopies;
+            short dmDefaultSource;
+            short dmPrintQuality;
+        }
+struct
+        {
+            POINTL dmPosition;
+            uint   dmDisplayOrientation;
+            uint   dmDisplayFixedOutput;
+        }
+    }
+    ///For printers, specifies whether a color printer should print color or monochrome. This member can be one of
+    ///DMCOLOR_COLOR or DMCOLOR_MONOCHROME. This member is not used for displays.
+    short      dmColor;
+    ///For printers, specifies duplex (double-sided) printing for duplex-capable printers. This member can be one of the
     ///following values:
-    uint       dwCPCommand;
-    ///Is the TV standards for which copy protection types are available. This member is only valid for the
-    ///VP_COMMAND_GET command, and can be a bitwise OR of the following values: VP_TV_STANDARD_NTSC_M
-    ///VP_TV_STANDARD_NTSC_M_J VP_TV_STANDARD_NTSC_433 VP_TV_STANDARD_PAL_B VP_TV_STANDARD_PAL_D VP_TV_STANDARD_PAL_G
-    ///VP_TV_STANDARD_PAL_H VP_TV_STANDARD_PAL_I VP_TV_STANDARD_PAL_M VP_TV_STANDARD_PAL_N VP_TV_STANDARD_PAL_60
-    ///VP_TV_STANDARD_SECAM_B VP_TV_STANDARD_SECAM_D VP_TV_STANDARD_SECAM_G VP_TV_STANDARD_SECAM_H
-    ///VP_TV_STANDARD_SECAM_K VP_TV_STANDARD_SECAM_K1 VP_TV_STANDARD_SECAM_L VP_TV_STANDARD_SECAM_L1
-    ///VP_TV_STANDARD_WIN_VGA
-    uint       dwCPStandard;
-    ///Is a driver-generated copy protection key that is unique to this instance of the driver. This member is valid
-    ///only for the VP_COMMAND_SET command. The miniport driver generates and returns this key when <b>dwCPCommand</b>
-    ///is set to VP_CP_CMD_ACTIVATE. The caller must set this key when the <b>dwCPCommand</b> field is either
-    ///VP_CP_CMD_DEACTIVATE or VP_CP_CMD_CHANGE. If the caller sets an incorrect key, the driver must not change the
-    ///current copy protection settings.
-    uint       dwCPKey;
-    ///Specifies DVD analog protection system (APS) trigger bit data. Bits zero and 1 are valid. This member is valid
-    ///only for the VP_COMMAND_SET command.
-    uint       bCP_APSTriggerBits;
-    ///OEM-specific copy protection data. This member is valid for both the VP_COMMAND_SET and VP_COMMAND_GET commands.
-    ubyte[256] bOEMCopyProtection;
+    short      dmDuplex;
+    ///For printers, specifies the <i>y</i> resolution of the printer, in DPI. If this member is used, the
+    ///<b>dmPrintQuality</b> member specifies the <i>x</i> resolution. This member is not used for displays.
+    short      dmYResolution;
+    ///For printers, specifies how TrueType fonts should be printed. This member must be one of the DMTT-prefixed
+    ///constants defined in <i>wingdi.h</i>. This member is not used for displays.
+    short      dmTTOption;
+    ///For printers, specifies whether multiple copies should be collated. This member can be one of the following
+    ///values:
+    short      dmCollate;
+    ///For printers, specifies the name of the form to use; such as "Letter" or "Legal". This must be a name that can be
+    ///obtain by calling the Win32 <b>EnumForms</b> function (described in the Microsoft Window SDK documentation). This
+    ///member is not used for displays.
+    ushort[32] dmFormName;
+    ///For displays, specifies the number of logical pixels per inch of a display device and should be equal to the
+    ///<b>ulLogPixels</b> member of the GDIINFO structure. This member is not used for printers.
+    ushort     dmLogPixels;
+    ///For displays, specifies the color resolution, in bits per pixel, of a display device. This member is not used for
+    ///printers.
+    uint       dmBitsPerPel;
+    ///For displays, specifies the width, in pixels, of the visible device surface. This member is not used for
+    ///printers.
+    uint       dmPelsWidth;
+    ///For displays, specifies the height, in pixels, of the visible device surface. This member is not used for
+    ///printers.
+    uint       dmPelsHeight;
+union
+    {
+        uint dmDisplayFlags;
+        uint dmNup;
+    }
+    ///For displays, specifies the frequency, in hertz, of a display device in its current mode. This member is not used
+    ///for printers.
+    uint       dmDisplayFrequency;
+    ///Specifies one of the DMICMMETHOD-prefixed constants defined in <i>wingdi.h</i>.
+    uint       dmICMMethod;
+    ///Specifies one of the DMICM-prefixed constants defined in <i>wingdi.h</i>.
+    uint       dmICMIntent;
+    ///Specifies one of the DMMEDIA-prefixed constants defined in <i>wingdi.h</i>.
+    uint       dmMediaType;
+    ///Specifies one of the DMDITHER-prefixed constants defined in <i>wingdi.h</i>.
+    uint       dmDitherType;
+    ///Is reserved for system use and should be ignored by the driver.
+    uint       dmReserved1;
+    ///Is reserved for system use and should be ignored by the driver.
+    uint       dmReserved2;
+    ///Is reserved for system use and should be ignored by the driver.
+    uint       dmPanningWidth;
+    ///Is reserved for system use and should be ignored by the driver.
+    uint       dmPanningHeight;
+}
+
+///The DISPLAYCONFIG_RATIONAL structure describes a fractional value that represents vertical and horizontal frequencies
+///of a video mode (that is, vertical sync and horizontal sync).
+struct DISPLAYCONFIG_RATIONAL
+{
+    ///The numerator of the frequency fraction.
+    uint Numerator;
+    ///The denominator of the frequency fraction.
+    uint Denominator;
+}
+
+///The DISPLAYCONFIG_2DREGION structure represents a point or an offset in a two-dimensional space.
+struct DISPLAYCONFIG_2DREGION
+{
+    ///The horizontal component of the point or offset.
+    uint cx;
+    uint cy;
+}
+
+///The DISPLAYCONFIG_VIDEO_SIGNAL_INFO structure contains information about the video signal for a display.
+struct DISPLAYCONFIG_VIDEO_SIGNAL_INFO
+{
+    ///The pixel clock rate.
+    ulong pixelRate;
+    ///A DISPLAYCONFIG_RATIONAL structure that represents horizontal sync.
+    DISPLAYCONFIG_RATIONAL hSyncFreq;
+    ///A DISPLAYCONFIG_RATIONAL structure that represents vertical sync.
+    DISPLAYCONFIG_RATIONAL vSyncFreq;
+    ///A DISPLAYCONFIG_2DREGION structure that specifies the width and height (in pixels) of the active portion of the
+    ///video signal.
+    DISPLAYCONFIG_2DREGION activeSize;
+    ///A DISPLAYCONFIG_2DREGION structure that specifies the width and height (in pixels) of the entire video signal.
+    DISPLAYCONFIG_2DREGION totalSize;
+union
+    {
+struct AdditionalSignalInfo
+        {
+            uint _bitfield28;
+        }
+        uint videoStandard;
+    }
+    ///The scan-line ordering (for example, progressive or interlaced) of the video signal. For a list of possible
+    ///values, see the DISPLAYCONFIG_SCANLINE_ORDERING enumerated type.
+    DISPLAYCONFIG_SCANLINE_ORDERING scanLineOrdering;
+}
+
+///The <b>DISPLAYCONFIG_SOURCE_MODE</b> structure represents a point or an offset in a two-dimensional space.
+struct DISPLAYCONFIG_SOURCE_MODE
+{
+    ///The width in pixels of the source mode.
+    uint   width;
+    ///The height in pixels of the source mode.
+    uint   height;
+    ///A value from the DISPLAYCONFIG_PIXELFORMAT enumeration that specifies the pixel format of the source mode.
+    DISPLAYCONFIG_PIXELFORMAT pixelFormat;
+    ///A POINTL structure that specifies the position in the desktop coordinate space of the upper-left corner of this
+    ///source surface. The source surface that is located at (0, 0) is always the primary source surface.
+    POINTL position;
+}
+
+///The DISPLAYCONFIG_TARGET_MODE structure describes a display path target mode.
+struct DISPLAYCONFIG_TARGET_MODE
+{
+    ///A DISPLAYCONFIG_VIDEO_SIGNAL_INFO structure that contains a detailed description of the current target mode.
+    DISPLAYCONFIG_VIDEO_SIGNAL_INFO targetVideoSignalInfo;
+}
+
+///The DISPLAYCONFIG_DESKTOP_IMAGE_INFO structure contains information about the image displayed on the desktop.
+struct DISPLAYCONFIG_DESKTOP_IMAGE_INFO
+{
+    ///A POINTL structure that specifies the size of the VidPn source surface that is being displayed on the monitor.
+    POINTL PathSourceSize;
+    ///A RECTL structure that defines where the desktop image will be positioned within path source. Region must be
+    ///completely inside the bounds of the path source size.
+    RECTL  DesktopImageRegion;
+    RECTL  DesktopImageClip;
+}
+
+///The DISPLAYCONFIG_MODE_INFO structure contains either source mode or target mode information.
+struct DISPLAYCONFIG_MODE_INFO
+{
+    ///A value that indicates whether the <b>DISPLAYCONFIG_MODE_INFO</b> structure represents source or target mode
+    ///information. If <b>infoType</b> is DISPLAYCONFIG_MODE_INFO_TYPE_TARGET, the <i>targetMode</i> parameter value
+    ///contains a valid DISPLAYCONFIG_TARGET_MODE structure describing the specified target. If <b>infoType</b> is
+    ///DISPLAYCONFIG_MODE_INFO_TYPE_SOURCE, the <i>sourceMode</i> parameter value contains a valid
+    ///DISPLAYCONFIG_SOURCE_MODE structure describing the specified source.
+    DISPLAYCONFIG_MODE_INFO_TYPE infoType;
+    ///The source or target identifier on the specified adapter that this path relates to.
+    uint id;
+    ///The identifier of the adapter that this source or target mode information relates to.
+    LUID adapterId;
+union
+    {
+        DISPLAYCONFIG_TARGET_MODE targetMode;
+        DISPLAYCONFIG_SOURCE_MODE sourceMode;
+        DISPLAYCONFIG_DESKTOP_IMAGE_INFO desktopImageInfo;
+    }
+}
+
+///The DISPLAYCONFIG_PATH_SOURCE_INFO structure contains source information for a single path.
+struct DISPLAYCONFIG_PATH_SOURCE_INFO
+{
+    ///The identifier of the adapter that this source information relates to.
+    LUID adapterId;
+    ///The source identifier on the specified adapter that this path relates to.
+    uint id;
+union
+    {
+        uint modeInfoIdx;
+struct
+        {
+            uint _bitfield29;
+        }
+    }
+    ///A bitwise OR of flag values that indicates the status of the source. The following values are supported:
+    uint statusFlags;
+}
+
+///The DISPLAYCONFIG_PATH_TARGET_INFO structure contains target information for a single path.
+struct DISPLAYCONFIG_PATH_TARGET_INFO
+{
+    ///The identifier of the adapter that the path is on.
+    LUID adapterId;
+    ///The target identifier on the specified adapter that this path relates to.
+    uint id;
+union
+    {
+        uint modeInfoIdx;
+struct
+        {
+            uint _bitfield30;
+        }
+    }
+    ///The target's connector type. For a list of possible values, see the DISPLAYCONFIG_VIDEO_OUTPUT_TECHNOLOGY
+    ///enumerated type.
+    DISPLAYCONFIG_VIDEO_OUTPUT_TECHNOLOGY outputTechnology;
+    ///A value that specifies the rotation of the target. For a list of possible values, see the DISPLAYCONFIG_ROTATION
+    ///enumerated type.
+    DISPLAYCONFIG_ROTATION rotation;
+    ///A value that specifies how the source image is scaled to the target. For a list of possible values, see the
+    ///DISPLAYCONFIG_SCALING enumerated type. For more information about scaling, see Scaling the Desktop Image.
+    DISPLAYCONFIG_SCALING scaling;
+    ///A DISPLAYCONFIG_RATIONAL structure that specifies the refresh rate of the target. If the caller specifies target
+    ///mode information, the operating system will instead use the refresh rate that is stored in the <b>vSyncFreq</b>
+    ///member of the DISPLAYCONFIG_VIDEO_SIGNAL_INFO structure. In this case, the caller specifies this value in the
+    ///<b>targetVideoSignalInfo</b> member of the DISPLAYCONFIG_TARGET_MODE structure. A refresh rate with both the
+    ///numerator and denominator set to zero indicates that the caller does not specify a refresh rate and the operating
+    ///system should use the most optimal refresh rate available. For this case, in a call to the SetDisplayConfig
+    ///function, the caller must set the <b>scanLineOrdering</b> member to the
+    ///DISPLAYCONFIG_SCANLINE_ORDERING_UNSPECIFIED value; otherwise, <b>SetDisplayConfig</b> fails.
+    DISPLAYCONFIG_RATIONAL refreshRate;
+    ///A value that specifies the scan-line ordering of the output on the target. For a list of possible values, see the
+    ///DISPLAYCONFIG_SCANLINE_ORDERING enumerated type. If the caller specifies target mode information, the operating
+    ///system will instead use the scan-line ordering that is stored in the <b>scanLineOrdering</b> member of the
+    ///DISPLAYCONFIG_VIDEO_SIGNAL_INFO structure. In this case, the caller specifies this value in the
+    ///<b>targetVideoSignalInfo</b> member of the DISPLAYCONFIG_TARGET_MODE structure.
+    DISPLAYCONFIG_SCANLINE_ORDERING scanLineOrdering;
+    ///A Boolean value that specifies whether the target is available. <b>TRUE</b> indicates that the target is
+    ///available. Because the asynchronous nature of display topology changes when a monitor is removed, a path might
+    ///still be marked as active even though the monitor has been removed. In such a case, <b>targetAvailable</b> could
+    ///be <b>FALSE</b> for an active path. This is typically a transient situation that will change after the operating
+    ///system takes action on the monitor removal.
+    BOOL targetAvailable;
+    ///A bitwise OR of flag values that indicates the status of the target. The following values are supported:
+    uint statusFlags;
+}
+
+///The DISPLAYCONFIG_PATH_INFO structure is used to describe a single path from a target to a source.
+struct DISPLAYCONFIG_PATH_INFO
+{
+    ///A DISPLAYCONFIG_PATH_SOURCE_INFO structure that contains the source information for the path.
+    DISPLAYCONFIG_PATH_SOURCE_INFO sourceInfo;
+    ///A DISPLAYCONFIG_PATH_TARGET_INFO structure that contains the target information for the path.
+    DISPLAYCONFIG_PATH_TARGET_INFO targetInfo;
+    ///A bitwise OR of flag values that indicates the state of the path. The following values are supported:
+    uint flags;
+}
+
+///The DISPLAYCONFIG_DEVICE_INFO_HEADER structure contains display information about the device.
+struct DISPLAYCONFIG_DEVICE_INFO_HEADER
+{
+    ///A DISPLAYCONFIG_DEVICE_INFO_TYPE enumerated value that determines the type of device information to retrieve or
+    ///set. The remainder of the packet for the retrieve or set operation follows immediately after the
+    ///DISPLAYCONFIG_DEVICE_INFO_HEADER structure.
+    DISPLAYCONFIG_DEVICE_INFO_TYPE type;
+    ///The size, in bytes, of the device information that is retrieved or set. This size includes the size of the header
+    ///and the size of the additional data that follows the header. This device information depends on the request type.
+    uint size;
+    ///A locally unique identifier (LUID) that identifies the adapter that the device information packet refers to.
+    LUID adapterId;
+    ///The source or target identifier to get or set the device information for. The meaning of this identifier is
+    ///related to the type of information being requested. For example, in the case of
+    ///DISPLAYCONFIG_DEVICE_INFO_GET_SOURCE_NAME, this is the source identifier.
+    uint id;
+}
+
+///The <b>DISPLAYCONFIG_SOURCE_DEVICE_NAME</b> structure contains the GDI device name for the source or view.
+struct DISPLAYCONFIG_SOURCE_DEVICE_NAME
+{
+    ///A DISPLAYCONFIG_DEVICE_INFO_HEADER structure that contains information about the request for the source device
+    ///name. The caller should set the <b>type</b> member of DISPLAYCONFIG_DEVICE_INFO_HEADER to
+    ///DISPLAYCONFIG_DEVICE_INFO_GET_SOURCE_NAME and the <b>adapterId</b> and <b>id</b> members of
+    ///DISPLAYCONFIG_DEVICE_INFO_HEADER to the source for which the caller wants the source device name. The caller
+    ///should set the <b>size</b> member of DISPLAYCONFIG_DEVICE_INFO_HEADER to at least the size of the
+    ///DISPLAYCONFIG_SOURCE_DEVICE_NAME structure.
+    DISPLAYCONFIG_DEVICE_INFO_HEADER header;
+    ///A NULL-terminated WCHAR string that is the GDI device name for the source, or view. This name can be used in a
+    ///call to <b>EnumDisplaySettings</b> to obtain a list of available modes for the specified source.
+    ushort[32] viewGdiDeviceName;
+}
+
+///The <b>DISPLAYCONFIG_TARGET_DEVICE_NAME_FLAGS</b> structure contains information about a target device.
+struct DISPLAYCONFIG_TARGET_DEVICE_NAME_FLAGS
+{
+union
+    {
+struct
+        {
+            uint _bitfield31;
+        }
+        uint value;
+    }
+}
+
+///The DISPLAYCONFIG_TARGET_DEVICE_NAME structure contains information about the target.
+struct DISPLAYCONFIG_TARGET_DEVICE_NAME
+{
+    ///A DISPLAYCONFIG_DEVICE_INFO_HEADER structure that contains information about the request for the target device
+    ///name. The caller should set the <b>type</b> member of DISPLAYCONFIG_DEVICE_INFO_HEADER to
+    ///DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_NAME and the <b>adapterId</b> and <b>id</b> members of
+    ///DISPLAYCONFIG_DEVICE_INFO_HEADER to the target for which the caller wants the target device name. The caller
+    ///should set the <b>size</b> member of DISPLAYCONFIG_DEVICE_INFO_HEADER to at least the size of the
+    ///DISPLAYCONFIG_TARGET_DEVICE_NAME structure.
+    DISPLAYCONFIG_DEVICE_INFO_HEADER header;
+    ///A DISPLAYCONFIG_TARGET_DEVICE_NAME_FLAGS structure that identifies, in bit-field flags, information about the
+    ///target.
+    DISPLAYCONFIG_TARGET_DEVICE_NAME_FLAGS flags;
+    ///A value from the DISPLAYCONFIG_VIDEO_OUTPUT_TECHNOLOGY enumeration that specifies the target's connector type.
+    DISPLAYCONFIG_VIDEO_OUTPUT_TECHNOLOGY outputTechnology;
+    ///The manufacture identifier from the monitor extended display identification data (EDID). This member is set only
+    ///when the <b>edidIdsValid</b> bit-field is set in the <b>flags</b> member.
+    ushort      edidManufactureId;
+    ///The product code from the monitor EDID. This member is set only when the <b>edidIdsValid</b> bit-field is set in
+    ///the <b>flags</b> member.
+    ushort      edidProductCodeId;
+    ///The one-based instance number of this particular target only when the adapter has multiple targets of this type.
+    ///The connector instance is a consecutive one-based number that is unique within each adapter. If this is the only
+    ///target of this type on the adapter, this value is zero.
+    uint        connectorInstance;
+    ///A NULL-terminated WCHAR string that is the device name for the monitor. This name can be used with
+    ///<i>SetupAPI.dll</i> to obtain the device name that is contained in the installation package.
+    ushort[64]  monitorFriendlyDeviceName;
+    ///A NULL-terminated WCHAR string that is the path to the device name for the monitor. This path can be used with
+    ///<i>SetupAPI.dll</i> to obtain the device name that is contained in the installation package.
+    ushort[128] monitorDevicePath;
+}
+
+///The <b>DISPLAYCONFIG_TARGET_PREFERRED_MODE</b> structure contains information about the preferred mode of a display.
+struct DISPLAYCONFIG_TARGET_PREFERRED_MODE
+{
+    ///A DISPLAYCONFIG_DEVICE_INFO_HEADER structure that contains information about the request for the target preferred
+    ///mode. The caller should set the <b>type</b> member of DISPLAYCONFIG_DEVICE_INFO_HEADER to
+    ///DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_PREFERRED_MODE and the <b>adapterId</b> and <b>id</b> members of
+    ///DISPLAYCONFIG_DEVICE_INFO_HEADER to the target for which the caller wants the preferred mode. The caller should
+    ///set the <b>size</b> member of DISPLAYCONFIG_DEVICE_INFO_HEADER to at least the size of the
+    ///DISPLAYCONFIG_TARGET_PREFERRED_MODE structure.
+    DISPLAYCONFIG_DEVICE_INFO_HEADER header;
+    ///The width in pixels of the best mode for the monitor that is connected to the target that the <b>targetMode</b>
+    ///member specifies.
+    uint width;
+    ///The height in pixels of the best mode for the monitor that is connected to the target that the <b>targetMode</b>
+    ///member specifies.
+    uint height;
+    ///A DISPLAYCONFIG_TARGET_MODE structure that describes the best target mode for the monitor that is connected to
+    ///the specified target.
+    DISPLAYCONFIG_TARGET_MODE targetMode;
+}
+
+///The DISPLAYCONFIG_ADAPTER_NAME structure contains information about the display adapter.
+struct DISPLAYCONFIG_ADAPTER_NAME
+{
+    ///A DISPLAYCONFIG_DEVICE_INFO_HEADER structure that contains information about the request for the adapter name.
+    ///The caller should set the <b>type</b> member of DISPLAYCONFIG_DEVICE_INFO_HEADER to
+    ///DISPLAYCONFIG_DEVICE_INFO_GET_ADAPTER_NAME and the <b>adapterId</b> member of DISPLAYCONFIG_DEVICE_INFO_HEADER to
+    ///the adapter identifier of the adapter for which the caller wants the name. For this request, the caller does not
+    ///need to set the <b>id</b> member of DISPLAYCONFIG_DEVICE_INFO_HEADER. The caller should set the <b>size</b>
+    ///member of DISPLAYCONFIG_DEVICE_INFO_HEADER to at least the size of the DISPLAYCONFIG_ADAPTER_NAME structure.
+    DISPLAYCONFIG_DEVICE_INFO_HEADER header;
+    ushort[128] adapterDevicePath;
+}
+
+///Specifies base output technology info for a given target ID.
+struct DISPLAYCONFIG_TARGET_BASE_TYPE
+{
+    ///A DISPLAYCONFIG_DEVICE_INFO_HEADER structure that contains info about the request for the target device name. The
+    ///caller should set the <b>type</b> member of <b>DISPLAYCONFIG_DEVICE_INFO_HEADER</b> to
+    ///<b>DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_BASE_TYPE</b> and the <b>adapterId</b> and <b>id</b> members of
+    ///<b>DISPLAYCONFIG_DEVICE_INFO_HEADER</b> to the target for which the caller wants the target device name. The
+    ///caller should set the <b>size</b> member of DISPLAYCONFIG_DEVICE_INFO_HEADER to at least the size of the
+    ///<b>DISPLAYCONFIG_TARGET_BASE_TYPE</b> structure.
+    DISPLAYCONFIG_DEVICE_INFO_HEADER header;
+    ///The base output technology, given as a constant value of the DISPLAYCONFIG_VIDEO_OUTPUT_TECHNOLOGY enumeration,
+    ///of the adapter and the target specified by the <b>header</b> member. See Remarks.
+    DISPLAYCONFIG_VIDEO_OUTPUT_TECHNOLOGY baseOutputTechnology;
+}
+
+///The DISPLAYCONFIG_SET_TARGET_PERSISTENCE structure contains information about setting the display.
+struct DISPLAYCONFIG_SET_TARGET_PERSISTENCE
+{
+    ///A DISPLAYCONFIG_DEVICE_INFO_HEADER structure that contains information for setting the target persistence. The
+    ///<b>type</b> member of DISPLAYCONFIG_DEVICE_INFO_HEADER is set to
+    ///DISPLAYCONFIG_DEVICE_INFO_SET_TARGET_PERSISTENCE. DISPLAYCONFIG_DEVICE_INFO_HEADER also contains the adapter and
+    ///target identifiers of the target to set the persistence for. The <b>size</b> member of
+    ///DISPLAYCONFIG_DEVICE_INFO_HEADER is set to at least the size of the DISPLAYCONFIG_SET_TARGET_PERSISTENCE
+    ///structure.
+    DISPLAYCONFIG_DEVICE_INFO_HEADER header;
+union
+    {
+struct
+        {
+            uint _bitfield32;
+        }
+        uint value;
+    }
+}
+
+///The DISPLAYCONFIG_SUPPORT_VIRTUAL_RESOLUTION structure contains information on the state of virtual resolution
+///support for the monitor.
+struct DISPLAYCONFIG_SUPPORT_VIRTUAL_RESOLUTION
+{
+    ///A DISPLAYCONFIG_DEVICE_INFO_HEADER structure that holds information on the type, size, adapterID, and ID of the
+    ///target the monitor is connected to.
+    DISPLAYCONFIG_DEVICE_INFO_HEADER header;
+union
+    {
+struct
+        {
+            uint _bitfield33;
+        }
+        uint value;
+    }
+}
+
+@RAIIFree!EngDeleteSemaphore
+struct HSEMAPHORE
+{
+    ptrdiff_t Value;
+}
+
+///The RECT structure defines a rectangle by the coordinates of its upper-left and lower-right corners.
+struct RECT
+{
+    ///Specifies the <i>x</i>-coordinate of the upper-left corner of the rectangle.
+    int left;
+    ///Specifies the <i>y</i>-coordinate of the upper-left corner of the rectangle.
+    int top;
+    ///Specifies the <i>x</i>-coordinate of the lower-right corner of the rectangle.
+    int right;
+    ///Specifies the <i>y</i>-coordinate of the lower-right corner of the rectangle.
+    int bottom;
+}
+
+///The RECTL structure defines a rectangle by the coordinates of its upper-left and lower-right corners.
+struct RECTL
+{
+    ///Specifies the <i>x</i>-coordinate of the upper-left corner of the rectangle.
+    int left;
+    ///Specifies the <i>y</i>-coordinate of the upper-left corner of the rectangle.
+    int top;
+    ///Specifies the <i>x</i>-coordinate of the lower-right corner of the rectangle.
+    int right;
+    ///Specifies the <i>y</i>-coordinate of the lower-right corner of the rectangle.
+    int bottom;
+}
+
+///The POINT structure defines the x- and y-coordinates of a point.
+struct POINT
+{
+    ///Specifies the <i>x</i>-coordinate of the point.
+    int x;
+    ///Specifies the <i>y</i>-coordinate of the point.
+    int y;
+}
+
+///The POINTL structure defines the x- and y-coordinates of a point.
+struct POINTL
+{
+    ///Specifies the <i>x</i>-coordinate of the point.
+    int x;
+    ///Specifies the <i>y</i>-coordinate of the point.
+    int y;
+}
+
+///The SIZE structure defines the width and height of a rectangle.
+struct SIZE
+{
+    ///Specifies the rectangle's width. The units depend on which function uses this structure.
+    int cx;
+    ///Specifies the rectangle's height. The units depend on which function uses this structure.
+    int cy;
+}
+
+///The POINTS structure defines the x- and y-coordinates of a point.
+struct POINTS
+{
+    ///Specifies the <i>x</i>-coordinate of the point.
+    short x;
+    ///Specifies the <i>y</i>-coordinate of the point.
+    short y;
 }
 
 ///The DDKERNELCAPS structure notifies the client what support, if any, exists in the miniport driver for the
@@ -5330,16 +5229,16 @@ struct DDKERNELCAPS
 ///allocated by HeapVidMemAllocAligned.
 struct SURFACEALIGNMENT
 {
-    union
+union
     {
-        struct Linear
+struct Linear
         {
             uint dwStartAlignment;
             uint dwPitchAlignment;
             uint dwFlags;
             uint dwReserved2;
         }
-        struct Rectangular
+struct Rectangular
         {
             uint dwXAlignment;
             uint dwYAlignment;
@@ -5798,6 +5697,112 @@ struct DDHAL_DESTROYDDLOCALDATA
     ///Specifies the location where the driver writes the return value of D3dDestroyDDLocal. A return code of D3D_OK
     ///indicates success. For more information, see Return Codes for Direct3D Driver Callbacks.
     HRESULT ddRVal;
+}
+
+///The video miniport driver receives a pointer to a VIDEOPARAMETERS structure in the <b>InputBuffer</b> member of a
+///VIDEO_REQUEST_PACKET when the IOCTL request is IOCTL_VIDEO_HANDLE_VIDEOPARAMETERS. Depending on the <b>dwCommand</b>
+///member of the VIDEOPARAMETERS structure, the miniport driver should get or set the television connector and copy
+///protection capabilities of the device.
+struct VIDEOPARAMETERS
+{
+    ///Specifies the globally unique identifier (GUID) for this structure {02C62061-1097-11d1-920F-00A024DF156E}. A
+    ///video miniport driver must verify the GUID at the start of the structure before processing the structure.
+    GUID       Guid;
+    ///Is reserved and should be ignored by the video miniport driver.
+    uint       dwOffset;
+    ///Indicates the action to be performed by the driver. This member can be one of the following values:
+    uint       dwCommand;
+    ///Indicates which members of this structure contain valid data. When <b>dwCommand</b> is VP_COMMAND_GET, the driver
+    ///should set the appropriate bits in this member to indicate in which corresponding members it has returned valid
+    ///data. When <b>dwCommand</b> is VP_COMMAND_SET, the driver should set the functionality on the hardware according
+    ///to values in the members that correspond with the bits set in this member. This member can be a bitwise OR of the
+    ///values listed in the first column of the following table. <table> <tr> <th>Flag</th> <th>Corresponding
+    ///Members</th> <th>Commands</th> </tr> <tr> <td> VP_FLAGS_BRIGHTNESS </td> <td> <b>dwBrightness</b> </td> <td>
+    ///get/set </td> </tr> <tr> <td> VP_FLAGS_CONTRAST </td> <td> <b>dwContrast</b> </td> <td> get/set </td> </tr> <tr>
+    ///<td> VP_FLAGS_COPYPROTECT </td> <td> <b>dwCPType</b> <b>dwCPCommand</b> <b>dwCPStandard</b> <b>dwCPKey</b>
+    ///<b>bCP_APSTriggerBits</b> <b>bOEMCopyProtection</b> </td> <td> get/set set get set set get/set </td> </tr> <tr>
+    ///<td> VP_FLAGS_FLICKER </td> <td> <b>dwFlickerFilter</b> </td> <td> get/set </td> </tr> <tr> <td>
+    ///VP_FLAGS_MAX_UNSCALED </td> <td> <b>dwMaxUnscaledX</b> <b>dwMaxUnscaledY</b> </td> <td> get get </td> </tr> <tr>
+    ///<td> VP_FLAGS_OVERSCAN </td> <td> <b>dwOverscanX</b> <b>dwOverscanY</b> </td> <td> get/set get/set </td> </tr>
+    ///<tr> <td> VP_FLAGS_POSITION </td> <td> <b>dwPositionX</b> <b>dwPositionY</b> </td> <td> get/set get/set </td>
+    ///</tr> <tr> <td> VP_FLAGS_TV_MODE </td> <td> <b>dwMode</b> <b>dwAvailableModes</b> </td> <td> get/set get </td>
+    ///</tr> <tr> <td> VP_FLAGS_TV_STANDARD </td> <td> <b>dwTVStandard</b> <b>dwAvailableTVStandard</b> </td> <td>
+    ///get/set get </td> </tr> </table>
+    uint       dwFlags;
+    ///Specifies the current playback mode. This member is valid for both the VP_COMMAND_SET and VP_COMMAND_GET
+    ///commands, and can be one of the following values:
+    uint       dwMode;
+    ///Is the current world television standard. This member is valid for both the VP_COMMAND_SET and VP_COMMAND_GET
+    ///commands, and can be one of the following values: VP_TV_STANDARD_NTSC_M VP_TV_STANDARD_NTSC_M_J
+    ///VP_TV_STANDARD_NTSC_433 VP_TV_STANDARD_PAL_B VP_TV_STANDARD_PAL_D VP_TV_STANDARD_PAL_G VP_TV_STANDARD_PAL_H
+    ///VP_TV_STANDARD_PAL_I VP_TV_STANDARD_PAL_M VP_TV_STANDARD_PAL_N VP_TV_STANDARD_PAL_60 VP_TV_STANDARD_SECAM_B
+    ///VP_TV_STANDARD_SECAM_D VP_TV_STANDARD_SECAM_G VP_TV_STANDARD_SECAM_H VP_TV_STANDARD_SECAM_K
+    ///VP_TV_STANDARD_SECAM_K1 VP_TV_STANDARD_SECAM_L VP_TV_STANDARD_SECAM_L1 VP_TV_STANDARD_WIN_VGA
+    uint       dwTVStandard;
+    ///Indicates the playback modes the device is capable of. This member is only valid for the VP_COMMAND_GET command,
+    ///and can be a bitwise OR of the following values: VP_MODE_TV_PLAYBACK VP_MODE_WIN_GRAPHICS
+    uint       dwAvailableModes;
+    ///Specifies all available world television standards. This member is only valid for the VP_COMMAND_GET command, and
+    ///can be a bitwise OR of the following values: VP_TV_STANDARD_NTSC_M VP_TV_STANDARD_NTSC_M_J
+    ///VP_TV_STANDARD_NTSC_433 VP_TV_STANDARD_PAL_B VP_TV_STANDARD_PAL_D VP_TV_STANDARD_PAL_G VP_TV_STANDARD_PAL_H
+    ///VP_TV_STANDARD_PAL_I VP_TV_STANDARD_PAL_M VP_TV_STANDARD_PAL_N VP_TV_STANDARD_PAL_60 VP_TV_STANDARD_SECAM_B
+    ///VP_TV_STANDARD_SECAM_D VP_TV_STANDARD_SECAM_G VP_TV_STANDARD_SECAM_H VP_TV_STANDARD_SECAM_K
+    ///VP_TV_STANDARD_SECAM_K1 VP_TV_STANDARD_SECAM_L VP_TV_STANDARD_SECAM_L1 VP_TV_STANDARD_WIN_VGA
+    uint       dwAvailableTVStandard;
+    ///Is a value in tenths of a percent that indicates the flicker filter state. This member can be a value between
+    ///[0,1000], and is valid for both VP_COMMAND_GET and VP_COMMAND_SET.
+    uint       dwFlickerFilter;
+    ///Is a value in tenths of a percent that indicates the amount of overscan in <i>x</i>. This member can be a value
+    ///between [0,1000], and is valid for both VP_COMMAND_GET and VP_COMMAND_SET.
+    uint       dwOverScanX;
+    ///Is a value in tenths of a percent that indicates the amount of overscan in <i>y</i>. This member can be a value
+    ///between [0,1000], and is valid for both VP_COMMAND_GET and VP_COMMAND_SET.
+    uint       dwOverScanY;
+    ///Is the maximum <i>x</i> resolution that the TV can display without having the hardware scale the video image. The
+    ///miniport driver must set a value in this member when <b>dwCommand</b> is VP_COMMAND_GET. This member is invalid
+    ///for VP_COMMAND_SET.
+    uint       dwMaxUnscaledX;
+    ///Is the maximum <i>y</i> resolution that the TV can display without having the hardware scale the video image. The
+    ///miniport driver must set a value in this member when <b>dwCommand</b> is VP_COMMAND_GET. This member is invalid
+    ///for VP_COMMAND_SET.
+    uint       dwMaxUnscaledY;
+    ///Is the value used by the hardware to determine the current <i>x</i> position of the image on the TV. This member
+    ///is specified in pixels, and is valid for both VP_COMMAND_GET and VP_COMMAND_SET.
+    uint       dwPositionX;
+    ///Is the value used by the hardware to determine the current <i>y</i> position of the image on the TV. This member
+    ///is specified in scan lines, and is valid for both VP_COMMAND_GET and VP_COMMAND_SET.
+    uint       dwPositionY;
+    ///Is a percentage value that indicates the brightness setting on the TV. This member can be a value between
+    ///[0,100], and is valid for both VP_COMMAND_GET and VP_COMMAND_SET.
+    uint       dwBrightness;
+    ///Is a percentage value that indicates the contrast setting on the TV. This member can be a value between [0,100],
+    ///and is valid for both VP_COMMAND_GET and VP_COMMAND_SET.
+    uint       dwContrast;
+    ///Specifies the type of copy protection supported by the device. This member is valid for both the VP_COMMAND_SET
+    ///and VP_COMMAND_GET commands, and can be CP_TYPE_APS_TRIGGER.
+    uint       dwCPType;
+    ///Is the copy protection command. This member is only valid for the VP_COMMAND_SET command, and can be one of the
+    ///following values:
+    uint       dwCPCommand;
+    ///Is the TV standards for which copy protection types are available. This member is only valid for the
+    ///VP_COMMAND_GET command, and can be a bitwise OR of the following values: VP_TV_STANDARD_NTSC_M
+    ///VP_TV_STANDARD_NTSC_M_J VP_TV_STANDARD_NTSC_433 VP_TV_STANDARD_PAL_B VP_TV_STANDARD_PAL_D VP_TV_STANDARD_PAL_G
+    ///VP_TV_STANDARD_PAL_H VP_TV_STANDARD_PAL_I VP_TV_STANDARD_PAL_M VP_TV_STANDARD_PAL_N VP_TV_STANDARD_PAL_60
+    ///VP_TV_STANDARD_SECAM_B VP_TV_STANDARD_SECAM_D VP_TV_STANDARD_SECAM_G VP_TV_STANDARD_SECAM_H
+    ///VP_TV_STANDARD_SECAM_K VP_TV_STANDARD_SECAM_K1 VP_TV_STANDARD_SECAM_L VP_TV_STANDARD_SECAM_L1
+    ///VP_TV_STANDARD_WIN_VGA
+    uint       dwCPStandard;
+    ///Is a driver-generated copy protection key that is unique to this instance of the driver. This member is valid
+    ///only for the VP_COMMAND_SET command. The miniport driver generates and returns this key when <b>dwCPCommand</b>
+    ///is set to VP_CP_CMD_ACTIVATE. The caller must set this key when the <b>dwCPCommand</b> field is either
+    ///VP_CP_CMD_DEACTIVATE or VP_CP_CMD_CHANGE. If the caller sets an incorrect key, the driver must not change the
+    ///current copy protection settings.
+    uint       dwCPKey;
+    ///Specifies DVD analog protection system (APS) trigger bit data. Bits zero and 1 are valid. This member is valid
+    ///only for the VP_COMMAND_SET command.
+    uint       bCP_APSTriggerBits;
+    ///OEM-specific copy protection data. This member is valid for both the VP_COMMAND_SET and VP_COMMAND_GET commands.
+    ubyte[256] bOEMCopyProtection;
 }
 
 // Functions
@@ -6279,7 +6284,7 @@ HBITMAP EngCreateBitmap(SIZE sizl, int lWidth, uint iFormat, uint fl, void* pvBi
 ///    and an error code is logged.
 ///    
 @DllImport("GDI32")
-HSURF__* EngCreateDeviceSurface(DHSURF__* dhsurf, SIZE sizl, uint iFormatCompat);
+HSURF EngCreateDeviceSurface(DHSURF__* dhsurf, SIZE sizl, uint iFormatCompat);
 
 ///The <b>EngCreateDeviceBitmap</b> function requests GDI to create a handle for a device bitmap.
 ///Params:
@@ -6301,7 +6306,7 @@ HBITMAP EngCreateDeviceBitmap(DHSURF__* dhsurf, SIZE sizl, uint iFormatCompat);
 ///Params:
 ///    hsurf = Handle to the surface to delete. This handle can be an HSURF or HBM.
 @DllImport("GDI32")
-BOOL EngDeleteSurface(HSURF__* hsurf);
+BOOL EngDeleteSurface(HSURF hsurf);
 
 ///The <b>EngLockSurface</b> function creates a user object for a given surface. This function gives drivers access to
 ///surfaces they create.
@@ -6312,7 +6317,7 @@ BOOL EngDeleteSurface(HSURF__* hsurf);
 ///    function returns <b>NULL</b>.
 ///    
 @DllImport("GDI32")
-SURFOBJ* EngLockSurface(HSURF__* hsurf);
+SURFOBJ* EngLockSurface(HSURF hsurf);
 
 ///The <b>EngUnlockSurface</b> function causes GDI to unlock the surface.
 ///Params:
@@ -6357,7 +6362,7 @@ BOOL EngEraseSurface(SURFOBJ* pso, RECTL* prcl, uint iColor);
 ///    to the GDI function it is implementing, and return GDI's return value.
 ///    
 @DllImport("GDI32")
-BOOL EngAssociateSurface(HSURF__* hsurf, HDEV__* hdev, uint flHooks);
+BOOL EngAssociateSurface(HSURF hsurf, ptrdiff_t hdev, uint flHooks);
 
 ///The <b>EngMarkBandingSurface </b>function marks the specified surface as a banding surface.
 ///Params:
@@ -6366,7 +6371,7 @@ BOOL EngAssociateSurface(HSURF__* hsurf, HDEV__* hdev, uint flHooks);
 ///    <b>EngMarkBandingSurface</b> returns <b>TRUE</b> upon success; otherwise it returns <b>FALSE</b>.
 ///    
 @DllImport("GDI32")
-BOOL EngMarkBandingSurface(HSURF__* hsurf);
+BOOL EngMarkBandingSurface(HSURF hsurf);
 
 ///The <b>EngCheckAbort</b> function enables a printer graphics DLL to determine if a print job should be terminated.
 ///Params:
@@ -7035,7 +7040,7 @@ int HT_Get8BPPMaskPalette(PALETTEENTRY* pPaletteEntry, BOOL Use8BPPMaskPal, ubyt
 ///    through the Microsoft Win32 <b>AddPrinterDriver</b> routine.
 ///    
 @DllImport("GDI32")
-ushort* EngGetPrinterDataFileName(HDEV__* hdev);
+PWSTR EngGetPrinterDataFileName(ptrdiff_t hdev);
 
 ///The <b>EngGetDriverName</b> function returns the name of the driver's DLL.
 ///Params:
@@ -7047,7 +7052,7 @@ ushort* EngGetPrinterDataFileName(HDEV__* hdev);
 ///    driver is first installed through the Win32 <b>AddPrinterDriver</b> routine.
 ///    
 @DllImport("GDI32")
-ushort* EngGetDriverName(HDEV__* hdev);
+PWSTR EngGetDriverName(ptrdiff_t hdev);
 
 ///The <b>EngLoadModule</b> function loads the specified data module into system memory for reading.
 ///Params:
@@ -7057,7 +7062,7 @@ ushort* EngGetDriverName(HDEV__* hdev);
 ///    return value is <b>NULL</b>.
 ///    
 @DllImport("GDI32")
-HANDLE EngLoadModule(const(wchar)* pwsz);
+HANDLE EngLoadModule(PWSTR pwsz);
 
 ///The <b>EngFindResource</b> function determines the location of a resource in a module.
 ///Params:
@@ -7088,7 +7093,7 @@ void EngFreeModule(HANDLE h);
 ///    function fails.
 ///    
 @DllImport("GDI32")
-HSEMAPHORE__* EngCreateSemaphore();
+HSEMAPHORE EngCreateSemaphore();
 
 ///The <b>EngAcquireSemaphore</b> function acquires the resource associated with the semaphore for exclusive access by
 ///the calling thread.
@@ -7098,7 +7103,7 @@ HSEMAPHORE__* EngCreateSemaphore();
 ///    None
 ///    
 @DllImport("GDI32")
-void EngAcquireSemaphore(HSEMAPHORE__* hsem);
+void EngAcquireSemaphore(HSEMAPHORE hsem);
 
 ///The <b>EngReleaseSemaphore</b> function releases the specified semaphore.
 ///Params:
@@ -7107,7 +7112,7 @@ void EngAcquireSemaphore(HSEMAPHORE__* hsem);
 ///    None
 ///    
 @DllImport("GDI32")
-void EngReleaseSemaphore(HSEMAPHORE__* hsem);
+void EngReleaseSemaphore(HSEMAPHORE hsem);
 
 ///The <b>EngDeleteSemaphore</b> function deletes a semaphore object from the system's resource list.
 ///Params:
@@ -7116,7 +7121,7 @@ void EngReleaseSemaphore(HSEMAPHORE__* hsem);
 ///    None
 ///    
 @DllImport("GDI32")
-void EngDeleteSemaphore(HSEMAPHORE__* hsem);
+void EngDeleteSemaphore(HSEMAPHORE hsem);
 
 ///The <b>EngMultiByteToUnicodeN</b> function converts the specified ANSI source string into a Unicode string using the
 ///current ANSI code page.
@@ -7131,8 +7136,8 @@ void EngDeleteSemaphore(HSEMAPHORE__* hsem);
 ///    None
 ///    
 @DllImport("GDI32")
-void EngMultiByteToUnicodeN(const(wchar)* UnicodeString, uint MaxBytesInUnicodeString, uint* BytesInUnicodeString, 
-                            const(char)* MultiByteString, uint BytesInMultiByteString);
+void EngMultiByteToUnicodeN(PWSTR UnicodeString, uint MaxBytesInUnicodeString, uint* BytesInUnicodeString, 
+                            PSTR MultiByteString, uint BytesInMultiByteString);
 
 ///The <b>EngUnicodeToMultiByteN</b> function converts the specified Unicode string into an ANSI string using the
 ///current ANSI code page.
@@ -7148,8 +7153,8 @@ void EngMultiByteToUnicodeN(const(wchar)* UnicodeString, uint MaxBytesInUnicodeS
 ///    None
 ///    
 @DllImport("GDI32")
-void EngUnicodeToMultiByteN(const(char)* MultiByteString, uint MaxBytesInMultiByteString, 
-                            uint* BytesInMultiByteString, const(wchar)* UnicodeString, uint BytesInUnicodeString);
+void EngUnicodeToMultiByteN(PSTR MultiByteString, uint MaxBytesInMultiByteString, uint* BytesInMultiByteString, 
+                            PWSTR UnicodeString, uint BytesInUnicodeString);
 
 ///The <b>EngQueryLocalTime</b> function queries the local time.
 ///Params:
@@ -7186,8 +7191,8 @@ FD_GLYPHSET* EngComputeGlyphSet(int nCodePage, int nFirstChar, int cChars);
 ///    successful. Otherwise, the function returns -1.
 ///    
 @DllImport("GDI32")
-int EngMultiByteToWideChar(uint CodePage, const(wchar)* WideCharString, int BytesInWideCharString, 
-                           const(char)* MultiByteString, int BytesInMultiByteString);
+int EngMultiByteToWideChar(uint CodePage, PWSTR WideCharString, int BytesInWideCharString, PSTR MultiByteString, 
+                           int BytesInMultiByteString);
 
 ///The <b>EngWideCharToMultiByte</b> function converts a wide character string into an ANSI source string using the
 ///specified code page.
@@ -7203,8 +7208,8 @@ int EngMultiByteToWideChar(uint CodePage, const(wchar)* WideCharString, int Byte
 ///    Otherwise, it returns -1.
 ///    
 @DllImport("GDI32")
-int EngWideCharToMultiByte(uint CodePage, const(wchar)* WideCharString, int BytesInWideCharString, 
-                           const(char)* MultiByteString, int BytesInMultiByteString);
+int EngWideCharToMultiByte(uint CodePage, PWSTR WideCharString, int BytesInWideCharString, PSTR MultiByteString, 
+                           int BytesInMultiByteString);
 
 ///The <b>EngGetCurrentCodePage</b> function returns the system's default OEM and ANSI code pages.
 ///Params:
@@ -7273,8 +7278,8 @@ int GetDisplayConfigBufferSizes(uint flags, uint* numPathArrayElements, uint* nu
 ///    </table>
 ///    
 @DllImport("USER32")
-int SetDisplayConfig(uint numPathArrayElements, char* pathArray, uint numModeInfoArrayElements, 
-                     char* modeInfoArray, uint flags);
+int SetDisplayConfig(uint numPathArrayElements, DISPLAYCONFIG_PATH_INFO* pathArray, uint numModeInfoArrayElements, 
+                     DISPLAYCONFIG_MODE_INFO* modeInfoArray, uint flags);
 
 ///The <b>QueryDisplayConfig</b> function retrieves information about all possible display paths for all display
 ///devices, or views, in the current setting.
@@ -7316,8 +7321,9 @@ int SetDisplayConfig(uint numPathArrayElements, char* pathArray, uint numModeInf
 ///    small. </td> </tr> </table>
 ///    
 @DllImport("USER32")
-int QueryDisplayConfig(uint flags, uint* numPathArrayElements, char* pathArray, uint* numModeInfoArrayElements, 
-                       char* modeInfoArray, DISPLAYCONFIG_TOPOLOGY_ID* currentTopologyId);
+int QueryDisplayConfig(uint flags, uint* numPathArrayElements, DISPLAYCONFIG_PATH_INFO* pathArray, 
+                       uint* numModeInfoArrayElements, DISPLAYCONFIG_MODE_INFO* modeInfoArray, 
+                       DISPLAYCONFIG_TOPOLOGY_ID* currentTopologyId);
 
 ///The <b>DisplayConfigGetDeviceInfo</b> function retrieves display configuration information about the device.
 ///Params:

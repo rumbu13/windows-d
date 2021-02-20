@@ -8,7 +8,7 @@ public import windows.displaydevices : RECT;
 public import windows.systemservices : BOOL, HANDLE;
 public import windows.windowsandmessaging : HWND, MSG;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -280,53 +280,6 @@ enum : int
     DIRECTMANIPULATION_AUTOSCROLL_CONFIGURATION_REVERSE = 0x00000002,
 }
 
-// Structs
-
-
-struct IDirectManipulationSnapPointsInertiaBehavior
-{
-}
-
-struct IDirectManipulationContent2
-{
-}
-
-struct IDirectManipulationViewport3
-{
-}
-
-struct IDirectManipulationPrimaryContent2
-{
-}
-
-struct IDirectManipulationParametricMotionBehavior
-{
-}
-
-struct IDirectManipulationParametricMotionCurve
-{
-}
-
-struct IDirectManipulationParametricRestPointList
-{
-}
-
-struct IDirectManipulationParametricRestPointBehavior
-{
-}
-
-struct IDirectManipulationCompositorPartner
-{
-}
-
-struct IDirectManipulationManagerPartner
-{
-}
-
-struct IDirectManipulationViewportPartner
-{
-}
-
 // Interfaces
 
 @GUID("34E211B6-3650-4F75-8334-FA359598E1C5")
@@ -386,7 +339,7 @@ interface IDirectManipulationManager : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns <b>S_OK</b>. Otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT ProcessInput(const(MSG)* message, int* handled);
+    HRESULT ProcessInput(const(MSG)* message, BOOL* handled);
     ///Gets a pointer to an IDirectManipulationUpdateManager object that receives compositor updates.
     ///Params:
     ///    riid = IID to the interface.
@@ -554,7 +507,7 @@ interface IDirectManipulationViewport : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns <b>S_OK</b>. Otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT SetViewportTransform(char* matrix, uint pointCount);
+    HRESULT SetViewportTransform(const(float)* matrix, uint pointCount);
     ///Specifies a display transform for the viewport, and synchronizes the output transform with the new value of the
     ///display transform.
     ///Params:
@@ -564,7 +517,7 @@ interface IDirectManipulationViewport : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns <b>S_OK</b>. Otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT SyncDisplayTransform(char* matrix, uint pointCount);
+    HRESULT SyncDisplayTransform(const(float)* matrix, uint pointCount);
     ///Gets the primary content of a viewport that implements IDirectManipulationContent and
     ///IDirectManipulationPrimaryContent. Primary content is an element that gets transformed (e.g. moved, scaled,
     ///rotated) in response to a user interaction. Primary content is created at the same time as the viewport and
@@ -804,7 +757,7 @@ interface IDirectManipulationContent : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns <b>S_OK</b>. Otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT GetOutputTransform(char* matrix, uint pointCount);
+    HRESULT GetOutputTransform(float* matrix, uint pointCount);
     ///Retrieves the transform applied to the content.
     ///Params:
     ///    matrix = The transform matrix.
@@ -813,7 +766,7 @@ interface IDirectManipulationContent : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns <b>S_OK</b>. Otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT GetContentTransform(char* matrix, uint pointCount);
+    HRESULT GetContentTransform(float* matrix, uint pointCount);
     ///Modifies the content transform while maintaining the output transform.
     ///Params:
     ///    matrix = The transform matrix.
@@ -822,7 +775,7 @@ interface IDirectManipulationContent : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns <b>S_OK</b>. Otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT SyncContentTransform(char* matrix, uint pointCount);
+    HRESULT SyncContentTransform(const(float)* matrix, uint pointCount);
 }
 
 ///Encapsulates the primary content inside a viewport. Primary content is the content specified during the creation of a
@@ -852,7 +805,7 @@ interface IDirectManipulationPrimaryContent : IUnknown
     ///    return <b>S_FALSE</b>. Otherwise, it returns an <b>HRESULT</b> error code. If invalid snap points are
     ///    specified, existing snap points might be affected.
     ///    
-    HRESULT SetSnapPoints(DIRECTMANIPULATION_MOTION_TYPES motion, char* points, uint pointCount);
+    HRESULT SetSnapPoints(DIRECTMANIPULATION_MOTION_TYPES motion, const(float)* points, uint pointCount);
     ///Specifies the type of snap point.
     ///Params:
     ///    motion = One or more of the DIRECTMANIPULATION_MOTION_TYPES enumeration values.
@@ -918,7 +871,7 @@ interface IDirectManipulationPrimaryContent : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns <b>S_OK</b>. Otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT GetInertiaEndTransform(char* matrix, uint pointCount);
+    HRESULT GetInertiaEndTransform(float* matrix, uint pointCount);
     ///Retrieves the center point of the manipulation in content coordinates. If there is no manipulation in progress,
     ///retrieves the center point of the viewport.
     ///Params:

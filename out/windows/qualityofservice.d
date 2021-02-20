@@ -4,10 +4,10 @@ module windows.qualityofservice;
 
 public import windows.core;
 public import windows.nativewifi : NETWORK_ADDRESS_LIST;
-public import windows.systemservices : BOOL, HANDLE, OVERLAPPED;
+public import windows.systemservices : BOOL, HANDLE, OVERLAPPED, PSTR, PWSTR;
 public import windows.winsock : SOCKADDR, WSABUF, in_addr;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -241,7 +241,7 @@ alias CBGETRSVPOBJECTS = uint* function(LPM_HANDLE__* LpmHandle, RHANDLE__* Requ
 ///    BufSize = Size of the buffer included with the notification event, in bytes.
 ///    Buffer = Buffer containing the detailed event information associated with <i>Event</i> and <i>SubCode</i>.
 alias TCI_NOTIFY_HANDLER = void function(HANDLE ClRegCtx, HANDLE ClIfcCtx, uint Event, HANDLE SubCode, 
-                                         uint BufSize, char* Buffer);
+                                         uint BufSize, void* Buffer);
 ///The <b>ClAddFlowComplete</b> function is used by traffic control to notify the client of the completion of its
 ///previous call to the TcAddFlow function. The <b>ClAddFlowComplete</b> callback function is optional. If this function
 ///is not specified, TcAddFlow will block until it completes.
@@ -466,7 +466,7 @@ struct RSVP_SESSION
 {
     ///RSVP Object Header, in the form of an RsvpObjHdr structure.
     RsvpObjHdr sess_header;
-    union sess_u
+union sess_u
     {
         Session_IPv4 sess_ipv4;
     }
@@ -486,7 +486,7 @@ struct RSVP_HOP
 {
     ///RSVP hop header, in the form of an RsvpObjHdr structure
     RsvpObjHdr hop_header;
-    union hop_u
+union hop_u
     {
         Rsvp_Hop_IPv4 hop_ipv4;
     }
@@ -526,7 +526,7 @@ struct FILTER_SPEC
 {
     ///RSVP Object Header for the FILTERSPEC, in the form of an RsvpObjHdr structure.
     RsvpObjHdr filt_header;
-    union filt_u
+union filt_u
     {
         Filter_Spec_IPv4    filt_ipv4;
         Filter_Spec_IPv4GPI filt_ipv4gpi;
@@ -545,7 +545,7 @@ struct RSVP_SCOPE
 {
     ///Scope header, in the form of an RsvpObjHdr structure.
     RsvpObjHdr scopl_header;
-    union scope_u
+union scope_u
     {
         Scope_list_ipv4 scopl_ipv4;
     }
@@ -570,7 +570,7 @@ struct ERROR_SPEC
 {
     ///Error header, in the form of an RsvpObjHdr structure.
     RsvpObjHdr errs_header;
-    union errs_u
+union errs_u
     {
         Error_Spec_IPv4 errs_ipv4;
     }
@@ -693,7 +693,7 @@ struct IntServTspecBody
 {
     ///Header for the corresponding Tspec object, expressed as IntServMainHdr structure.
     IntServMainHdr st_mh;
-    union tspec_u
+union tspec_u
     {
         GenTspec  gen_stspec;
         QualTspec qual_stspec;
@@ -752,7 +752,7 @@ struct IntServFlowSpec
     ///General information and length information for the flowspec object (this structure), expressed as an
     ///IntServMainHdr structure.
     IntServMainHdr spec_mh;
-    union spec_u
+union spec_u
     {
         CtrlLoadFlowspec CL_spec;
         GuarFlowSpec     G_spec;
@@ -773,12 +773,12 @@ struct IS_FLOWSPEC
 ///The <b>FLOW_DESC</b> structure contains flow descriptor information for RSVP.
 struct flow_desc
 {
-    union u1
+union u1
     {
         SENDER_TSPEC* stspec;
         IS_FLOWSPEC*  isflow;
     }
-    union u2
+union u2
     {
         FILTER_SPEC* stemp;
         FILTER_SPEC* fspec;
@@ -1135,12 +1135,12 @@ struct ADDRESS_LIST_DESCRIPTOR
 struct TC_IFC_DESCRIPTOR
 {
     ///Number of bytes from the beginning of the <b>TC_IFC_DESCRIPTOR</b> to the next <b>TC_IFC_DESCRIPTOR</b>.
-    uint          Length;
+    uint  Length;
     ///Pointer to a zero-terminated Unicode string representing the name of the packet shaper interface. This name is
     ///used in subsequent TC API calls to reference the interface.
-    const(wchar)* pInterfaceName;
+    PWSTR pInterfaceName;
     ///Pointer to a zero-terminated Unicode string naming the DeviceName of the interface.
-    const(wchar)* pInterfaceID;
+    PWSTR pInterfaceID;
     ///Network address list descriptor.
     ADDRESS_LIST_DESCRIPTOR AddressListDesc;
 }
@@ -1206,14 +1206,14 @@ struct IP_PATTERN
     uint     SrcAddr;
     ///Destination address.
     uint     DstAddr;
-    union S_un
+union S_un
     {
-        struct S_un_ports
+struct S_un_ports
         {
             ushort s_srcport;
             ushort s_dstport;
         }
-        struct S_un_icmp
+struct S_un_icmp
         {
             ubyte  s_type;
             ubyte  s_code;
@@ -1232,13 +1232,13 @@ struct IP_PATTERN
 ///filters.
 struct IPX_PATTERN
 {
-    struct Src
+struct Src
     {
         uint     NetworkAddress;
         ubyte[6] NodeAddress;
         ushort   Socket;
     }
-    struct Dest
+struct Dest
     {
         uint     NetworkAddress;
         ubyte[6] NodeAddress;
@@ -1311,7 +1311,7 @@ struct QOS
 ///    service is unavailable. The qWAVE service could not be started. </td> </tr> </table>
 ///    
 @DllImport("qwave")
-BOOL QOSCreateHandle(QOS_VERSION* Version, ptrdiff_t* QOSHandle);
+BOOL QOSCreateHandle(QOS_VERSION* Version, HANDLE* QOSHandle);
 
 ///The <b>QOSCloseHandle</b> function closes a handle returned by the QOSCreateHandle function.
 ///Params:
@@ -1410,7 +1410,7 @@ BOOL QOSStopTrackingClient(HANDLE QOSHandle, SOCKADDR* DestAddr, uint Flags);
 ///    should clean up and call QOSCreateHandle again. </td> </tr> </table>
 ///    
 @DllImport("qwave")
-BOOL QOSEnumerateFlows(HANDLE QOSHandle, uint* Size, char* Buffer);
+BOOL QOSEnumerateFlows(HANDLE QOSHandle, uint* Size, void* Buffer);
 
 ///The <b>QOSAddSocketToFlow</b> function adds a new flow for traffic.
 ///Params:
@@ -1558,7 +1558,7 @@ BOOL QOSRemoveSocketFromFlow(HANDLE QOSHandle, size_t Socket, uint FlowId, uint 
 ///    </dl> </td> <td width="60%"> The network connection with the remote host failed. </td> </tr> </table>
 ///    
 @DllImport("qwave")
-BOOL QOSSetFlow(HANDLE QOSHandle, uint FlowId, QOS_SET_FLOW Operation, uint Size, char* Buffer, uint Flags, 
+BOOL QOSSetFlow(HANDLE QOSHandle, uint FlowId, QOS_SET_FLOW Operation, uint Size, void* Buffer, uint Flags, 
                 OVERLAPPED* Overlapped);
 
 ///The <b>QOSQueryFlow</b> function requests information about a specific flow added to the QoS subsystem. This function
@@ -1627,7 +1627,7 @@ BOOL QOSSetFlow(HANDLE QOSHandle, uint FlowId, QOS_SET_FLOW Operation, uint Size
 ///    on the side of caution as it awaits more data before ascertaining the state of the network. </td> </tr> </table>
 ///    
 @DllImport("qwave")
-BOOL QOSQueryFlow(HANDLE QOSHandle, uint FlowId, QOS_QUERY_FLOW Operation, uint* Size, char* Buffer, uint Flags, 
+BOOL QOSQueryFlow(HANDLE QOSHandle, uint FlowId, QOS_QUERY_FLOW Operation, uint* Size, void* Buffer, uint Flags, 
                   OVERLAPPED* Overlapped);
 
 ///The <b>QOSNotifyFlow</b> function registers the calling application to receive a notification about changes in
@@ -1683,7 +1683,7 @@ BOOL QOSQueryFlow(HANDLE QOSHandle, uint FlowId, QOS_QUERY_FLOW Operation, uint*
 ///    the same type pending on this flow. </td> </tr> </table>
 ///    
 @DllImport("qwave")
-BOOL QOSNotifyFlow(HANDLE QOSHandle, uint FlowId, QOS_NOTIFY_FLOW Operation, uint* Size, char* Buffer, uint Flags, 
+BOOL QOSNotifyFlow(HANDLE QOSHandle, uint FlowId, QOS_NOTIFY_FLOW Operation, uint* Size, void* Buffer, uint Flags, 
                    OVERLAPPED* Overlapped);
 
 ///The <b>QOSCancel</b> function cancels a pending overlapped operation, like QOSSetFlow.
@@ -1738,7 +1738,7 @@ BOOL QOSCancel(HANDLE QOSHandle, OVERLAPPED* Overlapped);
 ///    
 @DllImport("TRAFFIC")
 uint TcRegisterClient(uint TciVersion, HANDLE ClRegCtx, TCI_CLIENT_FUNC_LIST* ClientHandlerList, 
-                      ptrdiff_t* pClientHandle);
+                      HANDLE* pClientHandle);
 
 ///The <b>TcEnumerateInterfaces</b> function enumerates all traffic control–enabled network interfaces. Clients are
 ///notified of interface changes through the ClNotifyHandler function.
@@ -1790,7 +1790,7 @@ uint TcEnumerateInterfaces(HANDLE ClientHandle, uint* pBufferSize, TC_IFC_DESCRI
 ///    handle is invalid. </td> </tr> </table>
 ///    
 @DllImport("TRAFFIC")
-uint TcOpenInterfaceA(const(char)* pInterfaceName, HANDLE ClientHandle, HANDLE ClIfcCtx, ptrdiff_t* pIfcHandle);
+uint TcOpenInterfaceA(PSTR pInterfaceName, HANDLE ClientHandle, HANDLE ClIfcCtx, HANDLE* pIfcHandle);
 
 ///The <b>TcOpenInterface</b> function opens an interface. The <b>TcOpenInterface</b> function identifies and opens an
 ///interface based on its text string, which is available from a call to TcEnumerateInterfaces. Once an interface is
@@ -1817,7 +1817,7 @@ uint TcOpenInterfaceA(const(char)* pInterfaceName, HANDLE ClientHandle, HANDLE C
 ///    handle is invalid. </td> </tr> </table>
 ///    
 @DllImport("TRAFFIC")
-uint TcOpenInterfaceW(const(wchar)* pInterfaceName, HANDLE ClientHandle, HANDLE ClIfcCtx, ptrdiff_t* pIfcHandle);
+uint TcOpenInterfaceW(PWSTR pInterfaceName, HANDLE ClientHandle, HANDLE ClIfcCtx, HANDLE* pIfcHandle);
 
 ///The <b>TcCloseInterface</b> function closes an interface previously opened with a call to TcOpenInterface. All flows
 ///and filters on a particular interface should be closed before closing the interface with a call to
@@ -1867,7 +1867,7 @@ uint TcCloseInterface(HANDLE IfcHandle);
 ///    because the interface is in the process of being closed. </td> </tr> </table>
 ///    
 @DllImport("TRAFFIC")
-uint TcQueryInterface(HANDLE IfcHandle, GUID* pGuidParam, ubyte NotifyChange, uint* pBufferSize, char* Buffer);
+uint TcQueryInterface(HANDLE IfcHandle, GUID* pGuidParam, ubyte NotifyChange, uint* pBufferSize, void* Buffer);
 
 ///The <b>TcSetInterface</b> function sets individual parameters for a given interface.
 ///Params:
@@ -1890,7 +1890,7 @@ uint TcQueryInterface(HANDLE IfcHandle, GUID* pGuidParam, ubyte NotifyChange, ui
 ///    not register for this GUID. </td> </tr> </table>
 ///    
 @DllImport("TRAFFIC")
-uint TcSetInterface(HANDLE IfcHandle, GUID* pGuidParam, uint BufferSize, char* Buffer);
+uint TcSetInterface(HANDLE IfcHandle, GUID* pGuidParam, uint BufferSize, void* Buffer);
 
 ///The <b>TcQueryFlow</b> function queries traffic control for the value of a specific flow parameter based on the name
 ///of the flow. The name of a flow can be retrieved from the TcEnumerateFlows function or from the TcGetFlowName
@@ -1916,7 +1916,7 @@ uint TcSetInterface(HANDLE IfcHandle, GUID* pGuidParam, uint BufferSize, char* B
 ///    </td> </tr> </table>
 ///    
 @DllImport("TRAFFIC")
-uint TcQueryFlowA(const(char)* pFlowName, GUID* pGuidParam, uint* pBufferSize, char* Buffer);
+uint TcQueryFlowA(PSTR pFlowName, GUID* pGuidParam, uint* pBufferSize, void* Buffer);
 
 ///The <b>TcQueryFlow</b> function queries traffic control for the value of a specific flow parameter based on the name
 ///of the flow. The name of a flow can be retrieved from the TcEnumerateFlows function or from the TcGetFlowName
@@ -1942,7 +1942,7 @@ uint TcQueryFlowA(const(char)* pFlowName, GUID* pGuidParam, uint* pBufferSize, c
 ///    </td> </tr> </table>
 ///    
 @DllImport("TRAFFIC")
-uint TcQueryFlowW(const(wchar)* pFlowName, GUID* pGuidParam, uint* pBufferSize, char* Buffer);
+uint TcQueryFlowW(PWSTR pFlowName, GUID* pGuidParam, uint* pBufferSize, void* Buffer);
 
 ///The <b>TcSetFlow</b> function sets individual parameters for a given flow.
 ///Params:
@@ -1968,7 +1968,7 @@ uint TcQueryFlowW(const(wchar)* pFlowName, GUID* pGuidParam, uint* pBufferSize, 
 ///    </td> </tr> </table>
 ///    
 @DllImport("TRAFFIC")
-uint TcSetFlowA(const(char)* pFlowName, GUID* pGuidParam, uint BufferSize, char* Buffer);
+uint TcSetFlowA(PSTR pFlowName, GUID* pGuidParam, uint BufferSize, void* Buffer);
 
 ///The <b>TcSetFlow</b> function sets individual parameters for a given flow.
 ///Params:
@@ -1994,7 +1994,7 @@ uint TcSetFlowA(const(char)* pFlowName, GUID* pGuidParam, uint BufferSize, char*
 ///    </td> </tr> </table>
 ///    
 @DllImport("TRAFFIC")
-uint TcSetFlowW(const(wchar)* pFlowName, GUID* pGuidParam, uint BufferSize, char* Buffer);
+uint TcSetFlowW(PWSTR pFlowName, GUID* pGuidParam, uint BufferSize, void* Buffer);
 
 ///The <b>TcAddFlow</b> function adds a new flow on the specified interface. Note that the successful addition of a flow
 ///does not necessarily indicate a change in the way traffic is handled; traffic handling changes are effected by
@@ -2045,7 +2045,7 @@ uint TcSetFlowW(const(wchar)* pFlowName, GUID* pGuidParam, uint BufferSize, char
 ///    not plugged into the adapter. </td> </tr> </table>
 ///    
 @DllImport("TRAFFIC")
-uint TcAddFlow(HANDLE IfcHandle, HANDLE ClFlowCtx, uint Flags, TC_GEN_FLOW* pGenericFlow, ptrdiff_t* pFlowHandle);
+uint TcAddFlow(HANDLE IfcHandle, HANDLE ClFlowCtx, uint Flags, TC_GEN_FLOW* pGenericFlow, HANDLE* pFlowHandle);
 
 ///The <b>TcGetFlowName</b> function provides the name of a flow that has been created by the calling client. Flow
 ///properties and other characteristics of flows are provided based on the name of a flow. Flow names can also be
@@ -2063,7 +2063,7 @@ uint TcAddFlow(HANDLE IfcHandle, HANDLE ClFlowCtx, uint Flags, TC_GEN_FLOW* pGen
 ///    width="60%"> The buffer is too small to contain the results. </td> </tr> </table>
 ///    
 @DllImport("TRAFFIC")
-uint TcGetFlowNameA(HANDLE FlowHandle, uint StrSize, const(char)* pFlowName);
+uint TcGetFlowNameA(HANDLE FlowHandle, uint StrSize, PSTR pFlowName);
 
 ///The <b>TcGetFlowName</b> function provides the name of a flow that has been created by the calling client. Flow
 ///properties and other characteristics of flows are provided based on the name of a flow. Flow names can also be
@@ -2081,7 +2081,7 @@ uint TcGetFlowNameA(HANDLE FlowHandle, uint StrSize, const(char)* pFlowName);
 ///    width="60%"> The buffer is too small to contain the results. </td> </tr> </table>
 ///    
 @DllImport("TRAFFIC")
-uint TcGetFlowNameW(HANDLE FlowHandle, uint StrSize, const(wchar)* pFlowName);
+uint TcGetFlowNameW(HANDLE FlowHandle, uint StrSize, PWSTR pFlowName);
 
 ///The <b>TcModifyFlow</b> function modifies an existing flow. When calling <b>TcModifyFlow</b>, new <i>Flowspec</i>
 ///parameters and any traffic control objects should be filled. Traffic control clients that have registered a
@@ -2161,7 +2161,7 @@ uint TcModifyFlow(HANDLE FlowHandle, TC_GEN_FLOW* pGenericFlow);
 ///    installed, modified, or deleted, and is not in a state that accepts filters. </td> </tr> </table>
 ///    
 @DllImport("TRAFFIC")
-uint TcAddFilter(HANDLE FlowHandle, TC_GEN_FILTER* pGenericFilter, ptrdiff_t* pFilterHandle);
+uint TcAddFilter(HANDLE FlowHandle, TC_GEN_FILTER* pGenericFilter, HANDLE* pFilterHandle);
 
 ///The <b>TcDeregisterClient</b> function deregisters a client with the Traffic Control Interface (TCI). Before
 ///deregistering, a client must delete each installed flow and filter with the TcDeleteFlow and TcDeleteFilter
@@ -2252,7 +2252,7 @@ uint TcDeleteFilter(HANDLE FilterHandle);
 ///    is no longer valid. </td> </tr> </table>
 ///    
 @DllImport("TRAFFIC")
-uint TcEnumerateFlows(HANDLE IfcHandle, ptrdiff_t* pEnumHandle, uint* pFlowCount, uint* pBufSize, 
+uint TcEnumerateFlows(HANDLE IfcHandle, HANDLE* pEnumHandle, uint* pFlowCount, uint* pBufSize, 
                       ENUMERATION_BUFFER* Buffer);
 
 

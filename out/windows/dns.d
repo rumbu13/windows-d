@@ -3,9 +3,9 @@
 module windows.dns;
 
 public import windows.core;
-public import windows.systemservices : BOOL, HANDLE;
+public import windows.systemservices : BOOL, HANDLE, PSTR, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -217,6 +217,12 @@ alias PMDNS_QUERY_CALLBACK = void function();
 // Structs
 
 
+@RAIIFree!DnsReleaseContextHandle
+struct DnsContextHandle
+{
+    ptrdiff_t Value;
+}
+
 ///The <b>IP4_ARRAY</b> structure stores an array of IPv4 addresses.
 struct IP4_ARRAY
 {
@@ -239,7 +245,7 @@ struct DNS_ADDR
     ///A value that contains the socket IP address. It is a sockaddr_in structure if the address is IPv4 and a
     ///sockaddr_in6 structure if the address is IPv6.
     byte[32] MaxSa;
-    union Data
+union Data
     {
     align (1):
         uint[8] DnsAddrUserDword;
@@ -342,14 +348,14 @@ struct DNS_A_DATA
 struct DNS_PTR_DATAW
 {
     ///A pointer to a string that represents the pointer (PTR) record data.
-    const(wchar)* pNameHost;
+    PWSTR pNameHost;
 }
 
 ///The <b>DNS_PTR_DATA</b> structure represents a DNS pointer (PTR) record as specified in section 3.3.12 of RFC 1035.
 struct DNS_PTR_DATAA
 {
     ///A pointer to a string that represents the pointer (PTR) record data.
-    const(char)* pNameHost;
+    PSTR pNameHost;
 }
 
 ///The <b>DNS_SOA_DATA</b> structure represents a DNS start of authority (SOA) record as specified in section 3.3.13 of
@@ -358,20 +364,20 @@ struct DNS_SOA_DATAW
 {
     ///A pointer to a string that represents the name of the authoritative DNS server for the zone to which the record
     ///belongs.
-    const(wchar)* pNamePrimaryServer;
+    PWSTR pNamePrimaryServer;
     ///A pointer to a string that represents the name of the responsible party for the zone to which the record belongs.
-    const(wchar)* pNameAdministrator;
+    PWSTR pNameAdministrator;
     ///The serial number of the SOA record.
-    uint          dwSerialNo;
+    uint  dwSerialNo;
     ///The time, in seconds, before the zone containing this record should be refreshed.
-    uint          dwRefresh;
+    uint  dwRefresh;
     ///The time, in seconds, before retrying a failed refresh of the zone to which this record belongs.
-    uint          dwRetry;
+    uint  dwRetry;
     ///The time, in seconds, before an unresponsive zone is no longer authoritative.
-    uint          dwExpire;
+    uint  dwExpire;
     ///The lower limit on the time, in seconds, that a DNS server or caching resolver are allowed to cache any resource
     ///records (RR) from the zone to which this record belongs.
-    uint          dwDefaultTtl;
+    uint  dwDefaultTtl;
 }
 
 ///The <b>DNS_SOA_DATA</b> structure represents a DNS start of authority (SOA) record as specified in section 3.3.13 of
@@ -380,20 +386,20 @@ struct DNS_SOA_DATAA
 {
     ///A pointer to a string that represents the name of the authoritative DNS server for the zone to which the record
     ///belongs.
-    const(char)* pNamePrimaryServer;
+    PSTR pNamePrimaryServer;
     ///A pointer to a string that represents the name of the responsible party for the zone to which the record belongs.
-    const(char)* pNameAdministrator;
+    PSTR pNameAdministrator;
     ///The serial number of the SOA record.
-    uint         dwSerialNo;
+    uint dwSerialNo;
     ///The time, in seconds, before the zone containing this record should be refreshed.
-    uint         dwRefresh;
+    uint dwRefresh;
     ///The time, in seconds, before retrying a failed refresh of the zone to which this record belongs.
-    uint         dwRetry;
+    uint dwRetry;
     ///The time, in seconds, before an unresponsive zone is no longer authoritative.
-    uint         dwExpire;
+    uint dwExpire;
     ///The lower limit on the time, in seconds, that a DNS server or caching resolver are allowed to cache any resource
     ///records (RR) from the zone to which this record belongs.
-    uint         dwDefaultTtl;
+    uint dwDefaultTtl;
 }
 
 ///The <b>DNS_MINFO_DATA</b> structure represents a DNS mail information (MINFO) record as specified in section 3.3.7 of
@@ -402,10 +408,10 @@ struct DNS_MINFO_DATAW
 {
     ///A pointer to a string that represents the fully qualified domain name (FQDN) of the mailbox responsible for the
     ///mailing list or mailbox specified in the record's owner name.
-    const(wchar)* pNameMailbox;
+    PWSTR pNameMailbox;
     ///A pointer to a string that represents the FQDN of the mailbox to receive error messages related to the mailing
     ///list.
-    const(wchar)* pNameErrorsMailbox;
+    PWSTR pNameErrorsMailbox;
 }
 
 ///The <b>DNS_MINFO_DATA</b> structure represents a DNS mail information (MINFO) record as specified in section 3.3.7 of
@@ -414,10 +420,10 @@ struct DNS_MINFO_DATAA
 {
     ///A pointer to a string that represents the fully qualified domain name (FQDN) of the mailbox responsible for the
     ///mailing list or mailbox specified in the record's owner name.
-    const(char)* pNameMailbox;
+    PSTR pNameMailbox;
     ///A pointer to a string that represents the FQDN of the mailbox to receive error messages related to the mailing
     ///list.
-    const(char)* pNameErrorsMailbox;
+    PSTR pNameErrorsMailbox;
 }
 
 ///The <b>DNS_MX_DATA</b> structure represents a DNS mail exchanger (MX) record as specified in section 3.3.9 of RFC
@@ -426,11 +432,11 @@ struct DNS_MX_DATAW
 {
     ///A pointer to a string that represents the fully qualified domain name (FQDN) of the host willing to act as a mail
     ///exchange.
-    const(wchar)* pNameExchange;
+    PWSTR  pNameExchange;
     ///A preference given to this resource record among others of the same owner. Lower values are preferred.
-    ushort        wPreference;
+    ushort wPreference;
     ///Reserved for padding. Do not use.
-    ushort        Pad;
+    ushort Pad;
 }
 
 ///The <b>DNS_MX_DATA</b> structure represents a DNS mail exchanger (MX) record as specified in section 3.3.9 of RFC
@@ -439,11 +445,11 @@ struct DNS_MX_DATAA
 {
     ///A pointer to a string that represents the fully qualified domain name (FQDN) of the host willing to act as a mail
     ///exchange.
-    const(char)* pNameExchange;
+    PSTR   pNameExchange;
     ///A preference given to this resource record among others of the same owner. Lower values are preferred.
-    ushort       wPreference;
+    ushort wPreference;
     ///Reserved for padding. Do not use.
-    ushort       Pad;
+    ushort Pad;
 }
 
 ///The <b>DNS_TXT_DATA</b> structure represents a DNS text (TXT) record as specified in section 3.3.14 of RFC 1035.
@@ -501,7 +507,7 @@ struct DNS_AAAA_DATA
 struct DNS_SIG_DATAW
 {
     ///The DNS Record Type of the signed RRs.
-    ushort        wTypeCovered;
+    ushort   wTypeCovered;
     ///A value that specifies the algorithm used to generate <b>Signature</b>. The possible values are shown in the
     ///following table. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="1"></a><dl>
     ///<dt><b>1</b></dt> </dl> </td> <td width="60%"> RSA/MD5 (RFC 2537) </td> </tr> <tr> <td width="40%"><a
@@ -510,25 +516,25 @@ struct DNS_SIG_DATAW
     ///width="40%"><a id="4"></a><dl> <dt><b>4</b></dt> </dl> </td> <td width="60%"> Elliptic curve cryptography </td>
     ///</tr> <tr> <td width="40%"><a id="5"></a><dl> <dt><b>5</b></dt> </dl> </td> <td width="60%"> RSA/SHA-1 (RFC 3110)
     ///</td> </tr> </table>
-    ubyte         chAlgorithm;
+    ubyte    chAlgorithm;
     ///The number of labels in the original signature RR owner name as specified in section 3.1.3 of RFC 4034.
-    ubyte         chLabelCount;
+    ubyte    chLabelCount;
     ///The Time-to-Live (TTL) value of the RR set signed by <b>Signature</b>.
-    uint          dwOriginalTtl;
+    uint     dwOriginalTtl;
     ///The expiration date of <b>Signature</b>, expressed in seconds since the beginning of January 1, 1970, Greenwich
     ///Mean Time (GMT), excluding leap seconds.
-    uint          dwExpiration;
+    uint     dwExpiration;
     ///The date and time at which <b>Signature</b> becomes valid, expressed in seconds since the beginning of January 1,
     ///1970, Greenwich Mean Time (GMT), excluding leap seconds.
-    uint          dwTimeSigned;
+    uint     dwTimeSigned;
     ///A value that represents the method to choose which public key is used to verify <b>Signature</b> as specified
     ///Appendix B of RFC 4034.
-    ushort        wKeyTag;
-    ushort        wSignatureLength;
+    ushort   wKeyTag;
+    ushort   wSignatureLength;
     ///A pointer to a string that represents the name of the <b>Signature</b> generator.
-    const(wchar)* pNameSigner;
+    PWSTR    pNameSigner;
     ///A <b>BYTE</b> array that contains the RR set signature as specified in section 3.1.8 of RFC 4034.
-    ubyte[1]      Signature;
+    ubyte[1] Signature;
 }
 
 ///The <b>DNS_RRSIG_DATA</b> structure represents a DNS Security Extensions (DNSSEC) cryptographic signature (SIG)
@@ -536,7 +542,7 @@ struct DNS_SIG_DATAW
 struct DNS_SIG_DATAA
 {
     ///The DNS Record Type of the signed RRs.
-    ushort       wTypeCovered;
+    ushort   wTypeCovered;
     ///A value that specifies the algorithm used to generate <b>Signature</b>. The possible values are shown in the
     ///following table. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="1"></a><dl>
     ///<dt><b>1</b></dt> </dl> </td> <td width="60%"> RSA/MD5 (RFC 2537) </td> </tr> <tr> <td width="40%"><a
@@ -545,25 +551,25 @@ struct DNS_SIG_DATAA
     ///width="40%"><a id="4"></a><dl> <dt><b>4</b></dt> </dl> </td> <td width="60%"> Elliptic curve cryptography </td>
     ///</tr> <tr> <td width="40%"><a id="5"></a><dl> <dt><b>5</b></dt> </dl> </td> <td width="60%"> RSA/SHA-1 (RFC 3110)
     ///</td> </tr> </table>
-    ubyte        chAlgorithm;
+    ubyte    chAlgorithm;
     ///The number of labels in the original signature RR owner name as specified in section 3.1.3 of RFC 4034.
-    ubyte        chLabelCount;
+    ubyte    chLabelCount;
     ///The Time-to-Live (TTL) value of the RR set signed by <b>Signature</b>.
-    uint         dwOriginalTtl;
+    uint     dwOriginalTtl;
     ///The expiration date of <b>Signature</b>, expressed in seconds since the beginning of January 1, 1970, Greenwich
     ///Mean Time (GMT), excluding leap seconds.
-    uint         dwExpiration;
+    uint     dwExpiration;
     ///The date and time at which <b>Signature</b> becomes valid, expressed in seconds since the beginning of January 1,
     ///1970, Greenwich Mean Time (GMT), excluding leap seconds.
-    uint         dwTimeSigned;
+    uint     dwTimeSigned;
     ///A value that represents the method to choose which public key is used to verify <b>Signature</b> as specified
     ///Appendix B of RFC 4034.
-    ushort       wKeyTag;
-    ushort       wSignatureLength;
+    ushort   wKeyTag;
+    ushort   wSignatureLength;
     ///A pointer to a string that represents the name of the <b>Signature</b> generator.
-    const(char)* pNameSigner;
+    PSTR     pNameSigner;
     ///A <b>BYTE</b> array that contains the RR set signature as specified in section 3.1.8 of RFC 4034.
-    ubyte[1]     Signature;
+    ubyte[1] Signature;
 }
 
 ///The <b>DNS_KEY_DATA</b> structure represents a DNS key (KEY) resource record (RR) as specified in RFC 3445.
@@ -610,14 +616,14 @@ struct DNS_NSEC_DATAW
 {
     ///A pointer to a string that represents the authoritative owner name of the next domain in the canonical ordering
     ///of the zone as specified in section 4.1.1 of RFC 4034.
-    const(wchar)* pNextDomainName;
+    PWSTR    pNextDomainName;
     ///The length, in bytes, of <b>TypeBitMaps</b>.
-    ushort        wTypeBitMapsLength;
+    ushort   wTypeBitMapsLength;
     ///Reserved. Do not use.
-    ushort        wPad;
+    ushort   wPad;
     ///A <b>BYTE</b> array that contains a bitmap that specifies which RR types are supported by the NSEC RR owner. Each
     ///bit in the array corresponds to a DNS Record Type as defined in section in section 4.1.2 of RFC 4034.
-    ubyte[1]      TypeBitMaps;
+    ubyte[1] TypeBitMaps;
 }
 
 ///The <b>DNS_NSEC_DATA</b> structure represents an NSEC resource record (RR) as specified in section 4 of RFC 4034.
@@ -625,14 +631,14 @@ struct DNS_NSEC_DATAA
 {
     ///A pointer to a string that represents the authoritative owner name of the next domain in the canonical ordering
     ///of the zone as specified in section 4.1.1 of RFC 4034.
-    const(char)* pNextDomainName;
+    PSTR     pNextDomainName;
     ///The length, in bytes, of <b>TypeBitMaps</b>.
-    ushort       wTypeBitMapsLength;
+    ushort   wTypeBitMapsLength;
     ///Reserved. Do not use.
-    ushort       wPad;
+    ushort   wPad;
     ///A <b>BYTE</b> array that contains a bitmap that specifies which RR types are supported by the NSEC RR owner. Each
     ///bit in the array corresponds to a DNS Record Type as defined in section in section 4.1.2 of RFC 4034.
-    ubyte[1]     TypeBitMaps;
+    ubyte[1] TypeBitMaps;
 }
 
 struct DNS_NSEC3_DATA
@@ -733,12 +739,12 @@ struct DNS_LOC_DATA
 struct DNS_NXT_DATAW
 {
     ///A pointer to a string that represents the name of the next domain.
-    const(wchar)* pNameNext;
+    PWSTR     pNameNext;
     ///The number of elements in the <b>wTypes</b> array. <b>wNumTypes</b> must be 2 or greater but cannot exceed 8.
-    ushort        wNumTypes;
+    ushort    wNumTypes;
     ///A <b>BYTE</b> array that contains a bitmap which specifies the RR types that are present in the next domain. Each
     ///bit in the array corresponds to a DNS Record Type as defined in section 5.2 of RFC 2535.
-    ushort[1]     wTypes;
+    ushort[1] wTypes;
 }
 
 ///The <b>DNS_NXT_DATA</b> structure represents a DNS next (NXT) resource record (RR) as specified in section 5 of RFC
@@ -746,46 +752,46 @@ struct DNS_NXT_DATAW
 struct DNS_NXT_DATAA
 {
     ///A pointer to a string that represents the name of the next domain.
-    const(char)* pNameNext;
+    PSTR      pNameNext;
     ///The number of elements in the <b>wTypes</b> array. <b>wNumTypes</b> must be 2 or greater but cannot exceed 8.
-    ushort       wNumTypes;
+    ushort    wNumTypes;
     ///A <b>BYTE</b> array that contains a bitmap which specifies the RR types that are present in the next domain. Each
     ///bit in the array corresponds to a DNS Record Type as defined in section 5.2 of RFC 2535.
-    ushort[1]    wTypes;
+    ushort[1] wTypes;
 }
 
 ///The <b>DNS_SRV_DATA</b> structure represents a DNS service (SRV) record as specified in RFC 2782.
 struct DNS_SRV_DATAW
 {
     ///A pointer to a string that represents the target host.
-    const(wchar)* pNameTarget;
+    PWSTR  pNameTarget;
     ///The priority of the target host specified in <b>pNameTarget</b>. Lower numbers imply higher priority to clients
     ///attempting to use this service.
-    ushort        wPriority;
+    ushort wPriority;
     ///The relative weight of the target host in <b>pNameTarget</b> to other hosts with the same <b>wPriority</b>. The
     ///chances of using this host should be proportional to its weight.
-    ushort        wWeight;
+    ushort wWeight;
     ///The port used on the target host for this service.
-    ushort        wPort;
+    ushort wPort;
     ///Reserved for padding. Do not use.
-    ushort        Pad;
+    ushort Pad;
 }
 
 ///The <b>DNS_SRV_DATA</b> structure represents a DNS service (SRV) record as specified in RFC 2782.
 struct DNS_SRV_DATAA
 {
     ///A pointer to a string that represents the target host.
-    const(char)* pNameTarget;
+    PSTR   pNameTarget;
     ///The priority of the target host specified in <b>pNameTarget</b>. Lower numbers imply higher priority to clients
     ///attempting to use this service.
-    ushort       wPriority;
+    ushort wPriority;
     ///The relative weight of the target host in <b>pNameTarget</b> to other hosts with the same <b>wPriority</b>. The
     ///chances of using this host should be proportional to its weight.
-    ushort       wWeight;
+    ushort wWeight;
     ///The port used on the target host for this service.
-    ushort       wPort;
+    ushort wPort;
     ///Reserved for padding. Do not use.
-    ushort       Pad;
+    ushort Pad;
 }
 
 ///The <b>DNS_NAPTR_DATA</b> structure represents a Naming Authority Pointer (NAPTR) DNS Resource Record (RR) as
@@ -793,20 +799,20 @@ struct DNS_SRV_DATAA
 struct DNS_NAPTR_DATAW
 {
     ///A value that determines the NAPTR RR processing order as defined in section 2 of RFC 2915.
-    ushort        wOrder;
+    ushort wOrder;
     ///A value that determines the NAPTR RR processing order for records with the same <b>wOrder</b> value as defined in
     ///section 2 of RFC 2915.
-    ushort        wPreference;
+    ushort wPreference;
     ///A pointer to a string that represents a set of NAPTR RR flags which determine the interpretation and processing
     ///of NAPTR record fields as defined in section 2 of RFC 2915.
-    const(wchar)* pFlags;
+    PWSTR  pFlags;
     ///A pointer to a string that represents the available services in this rewrite path as defined in section 2 of RFC
     ///2915.
-    const(wchar)* pService;
+    PWSTR  pService;
     ///A pointer to a string that represents a substitution expression as defined in sections 2 and 3 of RFC 2915.
-    const(wchar)* pRegularExpression;
+    PWSTR  pRegularExpression;
     ///A pointer to a string that represents the next NAPTR query name as defined in section 2 of RFC 2915.
-    const(wchar)* pReplacement;
+    PWSTR  pReplacement;
 }
 
 ///The <b>DNS_NAPTR_DATA</b> structure represents a Naming Authority Pointer (NAPTR) DNS Resource Record (RR) as
@@ -814,20 +820,20 @@ struct DNS_NAPTR_DATAW
 struct DNS_NAPTR_DATAA
 {
     ///A value that determines the NAPTR RR processing order as defined in section 2 of RFC 2915.
-    ushort       wOrder;
+    ushort wOrder;
     ///A value that determines the NAPTR RR processing order for records with the same <b>wOrder</b> value as defined in
     ///section 2 of RFC 2915.
-    ushort       wPreference;
+    ushort wPreference;
     ///A pointer to a string that represents a set of NAPTR RR flags which determine the interpretation and processing
     ///of NAPTR record fields as defined in section 2 of RFC 2915.
-    const(char)* pFlags;
+    PSTR   pFlags;
     ///A pointer to a string that represents the available services in this rewrite path as defined in section 2 of RFC
     ///2915.
-    const(char)* pService;
+    PSTR   pService;
     ///A pointer to a string that represents a substitution expression as defined in sections 2 and 3 of RFC 2915.
-    const(char)* pRegularExpression;
+    PSTR   pRegularExpression;
     ///A pointer to a string that represents the next NAPTR query name as defined in section 2 of RFC 2915.
-    const(char)* pReplacement;
+    PSTR   pReplacement;
 }
 
 ///The <b>DNS_ATMA_DATA</b> structure represents a DNS ATM address (ATMA) resource record (RR).
@@ -853,20 +859,20 @@ struct DNS_ATMA_DATA
 struct DNS_TKEY_DATAW
 {
     ///A pointer to a string that represents the name of the key as defined in section 2.1 of RFC 2930.
-    const(wchar)* pNameAlgorithm;
+    PWSTR  pNameAlgorithm;
     ///A pointer to a string representing the name of the algorithm as defined in section 2.3 of RFC 2930. <b>pKey</b>
     ///is used to derive the algorithm specific keys.
-    ubyte*        pAlgorithmPacket;
+    ubyte* pAlgorithmPacket;
     ///A pointer to the variable-length shared-secret key.
-    ubyte*        pKey;
+    ubyte* pKey;
     ///Reserved. Do not use.
-    ubyte*        pOtherData;
+    ubyte* pOtherData;
     ///The date and time at which the key was created, expressed in seconds since the beginning of January 1, 1970,
     ///Greenwich Mean Time (GMT), excluding leap seconds.
-    uint          dwCreateTime;
+    uint   dwCreateTime;
     ///The expiration date of the key, expressed in seconds since the beginning of January 1, 1970, Greenwich Mean Time
     ///(GMT), excluding leap seconds.
-    uint          dwExpireTime;
+    uint   dwExpireTime;
     ///A scheme used for key agreement or the purpose of the TKEY DNS Message. Possible values for <b>wMode</b> are
     ///listed below: <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="DNS_TKEY_MODE_SERVER_ASSIGN"></a><a id="dns_tkey_mode_server_assign"></a><dl>
@@ -879,7 +885,7 @@ struct DNS_TKEY_DATAW
     ///(GSS-API) negotiation. </td> </tr> <tr> <td width="40%"><a id="DNS_TKEY_MODE_RESOLVER_ASSIGN"></a><a
     ///id="dns_tkey_mode_resolver_assign"></a><dl> <dt><b>DNS_TKEY_MODE_RESOLVER_ASSIGN</b></dt> </dl> </td> <td
     ///width="60%"> The key is assigned by the DNS resolver and is not negotiated. </td> </tr> </table>
-    ushort        wMode;
+    ushort wMode;
     ///An error, expressed in expanded RCODE format that covers TSIG and TKEY RR processing. <table> <tr> <th>Value</th>
     ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="DNS_RCODE_BADSIG"></a><a id="dns_rcode_badsig"></a><dl>
     ///<dt><b>DNS_RCODE_BADSIG</b></dt> </dl> </td> <td width="60%"> The <b>pSignature</b> of the DNS_TSIG_DATA RR is
@@ -887,15 +893,15 @@ struct DNS_TKEY_DATAW
     ///<dt><b>DNS_RCODE_BADKEY</b></dt> </dl> </td> <td width="60%"> The <b>pKey</b> field is bad. </td> </tr> <tr> <td
     ///width="40%"><a id="DNS_RCODE_BADTIME"></a><a id="dns_rcode_badtime"></a><dl> <dt><b>DNS_RCODE_BADTIME</b></dt>
     ///</dl> </td> <td width="60%"> A timestamp is bad. </td> </tr> </table>
-    ushort        wError;
+    ushort wError;
     ///Length, in bytes, of the <b>pKey</b> member.
-    ushort        wKeyLength;
+    ushort wKeyLength;
     ///The length, in bytes, of the <b>pOtherData</b> member.
-    ushort        wOtherLength;
+    ushort wOtherLength;
     ///The length, in bytes, of the <b>pNameAlgorithm</b> member.
-    ubyte         cAlgNameLength;
+    ubyte  cAlgNameLength;
     ///Reserved. Do not use.
-    BOOL          bPacketPointers;
+    BOOL   bPacketPointers;
 }
 
 ///The <b>DNS_TKEY_DATA</b> structure represents a DNS TKEY resource record, used to establish and delete an algorithm's
@@ -903,20 +909,20 @@ struct DNS_TKEY_DATAW
 struct DNS_TKEY_DATAA
 {
     ///A pointer to a string that represents the name of the key as defined in section 2.1 of RFC 2930.
-    const(char)* pNameAlgorithm;
+    PSTR   pNameAlgorithm;
     ///A pointer to a string representing the name of the algorithm as defined in section 2.3 of RFC 2930. <b>pKey</b>
     ///is used to derive the algorithm specific keys.
-    ubyte*       pAlgorithmPacket;
+    ubyte* pAlgorithmPacket;
     ///A pointer to the variable-length shared-secret key.
-    ubyte*       pKey;
+    ubyte* pKey;
     ///Reserved. Do not use.
-    ubyte*       pOtherData;
+    ubyte* pOtherData;
     ///The date and time at which the key was created, expressed in seconds since the beginning of January 1, 1970,
     ///Greenwich Mean Time (GMT), excluding leap seconds.
-    uint         dwCreateTime;
+    uint   dwCreateTime;
     ///The expiration date of the key, expressed in seconds since the beginning of January 1, 1970, Greenwich Mean Time
     ///(GMT), excluding leap seconds.
-    uint         dwExpireTime;
+    uint   dwExpireTime;
     ///A scheme used for key agreement or the purpose of the TKEY DNS Message. Possible values for <b>wMode</b> are
     ///listed below: <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="DNS_TKEY_MODE_SERVER_ASSIGN"></a><a id="dns_tkey_mode_server_assign"></a><dl>
@@ -929,7 +935,7 @@ struct DNS_TKEY_DATAA
     ///(GSS-API) negotiation. </td> </tr> <tr> <td width="40%"><a id="DNS_TKEY_MODE_RESOLVER_ASSIGN"></a><a
     ///id="dns_tkey_mode_resolver_assign"></a><dl> <dt><b>DNS_TKEY_MODE_RESOLVER_ASSIGN</b></dt> </dl> </td> <td
     ///width="60%"> The key is assigned by the DNS resolver and is not negotiated. </td> </tr> </table>
-    ushort       wMode;
+    ushort wMode;
     ///An error, expressed in expanded RCODE format that covers TSIG and TKEY RR processing. <table> <tr> <th>Value</th>
     ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="DNS_RCODE_BADSIG"></a><a id="dns_rcode_badsig"></a><dl>
     ///<dt><b>DNS_RCODE_BADSIG</b></dt> </dl> </td> <td width="60%"> The <b>pSignature</b> of the DNS_TSIG_DATA RR is
@@ -937,15 +943,15 @@ struct DNS_TKEY_DATAA
     ///<dt><b>DNS_RCODE_BADKEY</b></dt> </dl> </td> <td width="60%"> The <b>pKey</b> field is bad. </td> </tr> <tr> <td
     ///width="40%"><a id="DNS_RCODE_BADTIME"></a><a id="dns_rcode_badtime"></a><dl> <dt><b>DNS_RCODE_BADTIME</b></dt>
     ///</dl> </td> <td width="60%"> A timestamp is bad. </td> </tr> </table>
-    ushort       wError;
+    ushort wError;
     ///Length, in bytes, of the <b>pKey</b> member.
-    ushort       wKeyLength;
+    ushort wKeyLength;
     ///The length, in bytes, of the <b>pOtherData</b> member.
-    ushort       wOtherLength;
+    ushort wOtherLength;
     ///The length, in bytes, of the <b>pNameAlgorithm</b> member.
-    ubyte        cAlgNameLength;
+    ubyte  cAlgNameLength;
     ///Reserved. Do not use.
-    BOOL         bPacketPointers;
+    BOOL   bPacketPointers;
 }
 
 ///The <b>DNS_TSIG_DATA</b> structure represents a secret key transaction authentication (TSIG) resource record (RR) as
@@ -954,7 +960,7 @@ struct DNS_TSIG_DATAW
 {
     ///A pointer to a string that represents the name of the key used to generate <b>pSignature</b> as defined in
     ///section 2.3 of RFC 2845.
-    const(wchar)* pNameAlgorithm;
+    PWSTR  pNameAlgorithm;
     ///A pointer to a string that represents the name of the algorithm used to generate <b>pSignature</b> as defined in
     ///section 2.3 of RFC 2845. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="gss.microsoft.com"></a><a id="GSS.MICROSOFT.COM"></a><dl> <dt><b>"gss.microsoft.com"</b></dt> </dl> </td> <td
@@ -962,21 +968,21 @@ struct DNS_TSIG_DATAW
     ///Authentication for DNS (GSS-API) as defined in RFC 3645. </td> </tr> <tr> <td width="40%"><a id="gss-tsig"></a><a
     ///id="GSS-TSIG"></a><dl> <dt><b>"gss-tsig"</b></dt> </dl> </td> <td width="60%"> Generic Security Service Algorithm
     ///for Secret Key Transaction Authentication for DNS (GSS-API) as defined in RFC 3645. </td> </tr> </table>
-    ubyte*        pAlgorithmPacket;
+    ubyte* pAlgorithmPacket;
     ///A pointer to the Message Authentication Code (MAC) generated by the algorithm in <b>pAlgorithmPacket</b>. The
     ///length, in bytes, and composition of <b>pSignature</b> are determined by <b>pAlgorithmPacket</b>.
-    ubyte*        pSignature;
+    ubyte* pSignature;
     ///If <b>wError</b> contains the RCODE, <b>BADTIME</b>, <b>pOtherData</b> is a BYTE array that contains the server's
     ///current time, otherwise it is <b>NULL</b>. Time is expressed in seconds since the beginning of January 1, 1970,
     ///Greenwich Mean Time (GMT), excluding leap seconds.
-    ubyte*        pOtherData;
+    ubyte* pOtherData;
     ///The time <b>pSignature</b> was generated, expressed in seconds since the beginning of January 1, 1970, Greenwich
     ///Mean Time (GMT), excluding leap seconds.
-    long          i64CreateTime;
+    long   i64CreateTime;
     ///The time, in seconds, <b>i64CreateTime</b> may be in error.
-    ushort        wFudgeTime;
+    ushort wFudgeTime;
     ///The Xid identifier of the original message.
-    ushort        wOriginalXid;
+    ushort wOriginalXid;
     ///An error, expressed in expanded RCODE format that covers TSIG and TKEY RR processing. <table> <tr> <th>Value</th>
     ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="DNS_RCODE_BADSIG"></a><a id="dns_rcode_badsig"></a><dl>
     ///<dt><b>DNS_RCODE_BADSIG</b></dt> </dl> </td> <td width="60%"> The <b>pSignature</b> field is bad. </td> </tr>
@@ -984,15 +990,15 @@ struct DNS_TSIG_DATAW
     ///<dt><b>DNS_RCODE_BADKEY</b></dt> </dl> </td> <td width="60%"> The <b>pKey</b> field of the DNS_TKEY_DATA RR is
     ///bad. </td> </tr> <tr> <td width="40%"><a id="DNS_RCODE_BADTIME"></a><a id="dns_rcode_badtime"></a><dl>
     ///<dt><b>DNS_RCODE_BADTIME</b></dt> </dl> </td> <td width="60%"> A timestamp is bad. </td> </tr> </table>
-    ushort        wError;
+    ushort wError;
     ///The length, in bytes, of the <b>pSignature</b> member.
-    ushort        wSigLength;
+    ushort wSigLength;
     ///The length, in bytes, of the <b>pOtherData</b> member.
-    ushort        wOtherLength;
+    ushort wOtherLength;
     ///The length, in bytes, of the <b>pAlgorithmPacket</b> member.
-    ubyte         cAlgNameLength;
+    ubyte  cAlgNameLength;
     ///Reserved for future use. Do not use.
-    BOOL          bPacketPointers;
+    BOOL   bPacketPointers;
 }
 
 ///The <b>DNS_TSIG_DATA</b> structure represents a secret key transaction authentication (TSIG) resource record (RR) as
@@ -1001,7 +1007,7 @@ struct DNS_TSIG_DATAA
 {
     ///A pointer to a string that represents the name of the key used to generate <b>pSignature</b> as defined in
     ///section 2.3 of RFC 2845.
-    const(char)* pNameAlgorithm;
+    PSTR   pNameAlgorithm;
     ///A pointer to a string that represents the name of the algorithm used to generate <b>pSignature</b> as defined in
     ///section 2.3 of RFC 2845. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="gss.microsoft.com"></a><a id="GSS.MICROSOFT.COM"></a><dl> <dt><b>"gss.microsoft.com"</b></dt> </dl> </td> <td
@@ -1009,21 +1015,21 @@ struct DNS_TSIG_DATAA
     ///Authentication for DNS (GSS-API) as defined in RFC 3645. </td> </tr> <tr> <td width="40%"><a id="gss-tsig"></a><a
     ///id="GSS-TSIG"></a><dl> <dt><b>"gss-tsig"</b></dt> </dl> </td> <td width="60%"> Generic Security Service Algorithm
     ///for Secret Key Transaction Authentication for DNS (GSS-API) as defined in RFC 3645. </td> </tr> </table>
-    ubyte*       pAlgorithmPacket;
+    ubyte* pAlgorithmPacket;
     ///A pointer to the Message Authentication Code (MAC) generated by the algorithm in <b>pAlgorithmPacket</b>. The
     ///length, in bytes, and composition of <b>pSignature</b> are determined by <b>pAlgorithmPacket</b>.
-    ubyte*       pSignature;
+    ubyte* pSignature;
     ///If <b>wError</b> contains the RCODE, <b>BADTIME</b>, <b>pOtherData</b> is a BYTE array that contains the server's
     ///current time, otherwise it is <b>NULL</b>. Time is expressed in seconds since the beginning of January 1, 1970,
     ///Greenwich Mean Time (GMT), excluding leap seconds.
-    ubyte*       pOtherData;
+    ubyte* pOtherData;
     ///The time <b>pSignature</b> was generated, expressed in seconds since the beginning of January 1, 1970, Greenwich
     ///Mean Time (GMT), excluding leap seconds.
-    long         i64CreateTime;
+    long   i64CreateTime;
     ///The time, in seconds, <b>i64CreateTime</b> may be in error.
-    ushort       wFudgeTime;
+    ushort wFudgeTime;
     ///The Xid identifier of the original message.
-    ushort       wOriginalXid;
+    ushort wOriginalXid;
     ///An error, expressed in expanded RCODE format that covers TSIG and TKEY RR processing. <table> <tr> <th>Value</th>
     ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="DNS_RCODE_BADSIG"></a><a id="dns_rcode_badsig"></a><dl>
     ///<dt><b>DNS_RCODE_BADSIG</b></dt> </dl> </td> <td width="60%"> The <b>pSignature</b> field is bad. </td> </tr>
@@ -1031,15 +1037,15 @@ struct DNS_TSIG_DATAA
     ///<dt><b>DNS_RCODE_BADKEY</b></dt> </dl> </td> <td width="60%"> The <b>pKey</b> field of the DNS_TKEY_DATA RR is
     ///bad. </td> </tr> <tr> <td width="40%"><a id="DNS_RCODE_BADTIME"></a><a id="dns_rcode_badtime"></a><dl>
     ///<dt><b>DNS_RCODE_BADTIME</b></dt> </dl> </td> <td width="60%"> A timestamp is bad. </td> </tr> </table>
-    ushort       wError;
+    ushort wError;
     ///The length, in bytes, of the <b>pSignature</b> member.
-    ushort       wSigLength;
+    ushort wSigLength;
     ///The length, in bytes, of the <b>pOtherData</b> member.
-    ushort       wOtherLength;
+    ushort wOtherLength;
     ///The length, in bytes, of the <b>pAlgorithmPacket</b> member.
-    ubyte        cAlgNameLength;
+    ubyte  cAlgNameLength;
     ///Reserved for future use. Do not use.
-    BOOL         bPacketPointers;
+    BOOL   bPacketPointers;
 }
 
 struct DNS_UNKNOWN_DATA
@@ -1079,13 +1085,13 @@ struct DNS_WINSR_DATAW
     ///</td> </tr> <tr> <td width="40%"><a id="DNS_WINS_FLAG_LOCAL"></a><a id="dns_wins_flag_local"></a><dl>
     ///<dt><b>DNS_WINS_FLAG_LOCAL</b></dt> </dl> </td> <td width="60%"> Record is local, do not replicate. </td> </tr>
     ///</table>
-    uint          dwMappingFlag;
+    uint  dwMappingFlag;
     ///The time, in seconds, that a DNS Server attempts resolution using WINS lookup.
-    uint          dwLookupTimeout;
+    uint  dwLookupTimeout;
     ///The time, in seconds, that a DNS Server using WINS lookup may cache the WINS Server's response.
-    uint          dwCacheTimeout;
+    uint  dwCacheTimeout;
     ///A pointer to a string that represents the domain name to append to the name returned by a WINS reverse-lookup.
-    const(wchar)* pNameResultDomain;
+    PWSTR pNameResultDomain;
 }
 
 ///The <b>DNS_WINSR_DATA</b> structure represents a DNS Windows Internet Name Service reverse-lookup (WINSR) record.
@@ -1098,13 +1104,13 @@ struct DNS_WINSR_DATAA
     ///</td> </tr> <tr> <td width="40%"><a id="DNS_WINS_FLAG_LOCAL"></a><a id="dns_wins_flag_local"></a><dl>
     ///<dt><b>DNS_WINS_FLAG_LOCAL</b></dt> </dl> </td> <td width="60%"> Record is local, do not replicate. </td> </tr>
     ///</table>
-    uint         dwMappingFlag;
+    uint dwMappingFlag;
     ///The time, in seconds, that a DNS Server attempts resolution using WINS lookup.
-    uint         dwLookupTimeout;
+    uint dwLookupTimeout;
     ///The time, in seconds, that a DNS Server using WINS lookup may cache the WINS Server's response.
-    uint         dwCacheTimeout;
+    uint dwCacheTimeout;
     ///A pointer to a string that represents the domain name to append to the name returned by a WINS reverse-lookup.
-    const(char)* pNameResultDomain;
+    PSTR pNameResultDomain;
 }
 
 ///The <b>DNS_RECORD_FLAGS</b> structure is used to set flags for use in the DNS_RECORD structure.
@@ -1117,28 +1123,28 @@ struct DNS_RECORD_FLAGS
 struct DNS_RECORDW
 {
     ///A pointer to the next <b>DNS_RECORD</b> structure.
-    DNS_RECORDW*  pNext;
+    DNS_RECORDW* pNext;
     ///A pointer to a string that represents the domain name of the record set. This must be in the string format that
     ///corresponds to the function called, such as ANSI, Unicode, or UTF8.
-    const(wchar)* pName;
+    PWSTR        pName;
     ///A value that represents the RR DNS Record Type. <b>wType</b> determines the format of <b>Data</b>. For example,
     ///if the value of <b>wType</b> is <b>DNS_TYPE_A</b>, the data type of <b>Data</b> is DNS_A_DATA.
-    ushort        wType;
+    ushort       wType;
     ///The length, in bytes, of <b>Data</b>. For fixed-length data types, this value is the size of the corresponding
     ///data type, such as <b>sizeof(DNS_A_DATA)</b>. For the non-fixed data types, use one of the following macros to
     ///determine the length of the data: <div class="code"><span codelanguage="ManagedCPlusPlus"><table> <tr>
     ///<th>C++</th> </tr> <tr> <td> <pre>
-    ushort        wDataLength;
-    union Flags
+    ushort       wDataLength;
+union Flags
     {
         uint             DW;
         DNS_RECORD_FLAGS S;
     }
     ///The DNS RR's Time To Live value (TTL), in seconds.
-    uint          dwTtl;
+    uint         dwTtl;
     ///Reserved. Do not use.
-    uint          dwReserved;
-    union Data
+    uint         dwReserved;
+union Data
     {
         DNS_A_DATA          A;
         DNS_SOA_DATAW       SOA;
@@ -1230,10 +1236,10 @@ struct DNS_RECORDW
 struct _DnsRecordOptW
 {
     DNS_RECORDW*   pNext;
-    const(wchar)*  pName;
+    PWSTR          pName;
     ushort         wType;
     ushort         wDataLength;
-    union Flags
+union Flags
     {
         uint             DW;
         DNS_RECORD_FLAGS S;
@@ -1241,7 +1247,7 @@ struct _DnsRecordOptW
     DNS_HEADER_EXT ExtHeader;
     ushort         wPayloadSize;
     ushort         wReserved;
-    union Data
+union Data
     {
         DNS_OPT_DATA OPT;
         DNS_OPT_DATA Opt;
@@ -1255,7 +1261,7 @@ struct DNS_RECORDA
     DNS_RECORDA* pNext;
     ///A pointer to a string that represents the domain name of the record set. This must be in the string format that
     ///corresponds to the function called, such as ANSI, Unicode, or UTF8.
-    const(char)* pName;
+    PSTR         pName;
     ///A value that represents the RR DNS Record Type. <b>wType</b> determines the format of <b>Data</b>. For example,
     ///if the value of <b>wType</b> is <b>DNS_TYPE_A</b>, the data type of <b>Data</b> is DNS_A_DATA.
     ushort       wType;
@@ -1264,7 +1270,7 @@ struct DNS_RECORDA
     ///determine the length of the data: <div class="code"><span codelanguage="ManagedCPlusPlus"><table> <tr>
     ///<th>C++</th> </tr> <tr> <td> <pre>
     ushort       wDataLength;
-    union Flags
+union Flags
     {
         uint             DW;
         DNS_RECORD_FLAGS S;
@@ -1273,7 +1279,7 @@ struct DNS_RECORDA
     uint         dwTtl;
     ///Reserved. Do not use.
     uint         dwReserved;
-    union Data
+union Data
     {
         DNS_A_DATA          A;
         DNS_SOA_DATAA       SOA;
@@ -1365,10 +1371,10 @@ struct DNS_RECORDA
 struct _DnsRecordOptA
 {
     DNS_RECORDA*   pNext;
-    const(char)*   pName;
+    PSTR           pName;
     ushort         wType;
     ushort         wDataLength;
-    union Flags
+union Flags
     {
         uint             DW;
         DNS_RECORD_FLAGS S;
@@ -1376,7 +1382,7 @@ struct _DnsRecordOptA
     DNS_HEADER_EXT ExtHeader;
     ushort         wPayloadSize;
     ushort         wReserved;
-    union Data
+union Data
     {
         DNS_OPT_DATA OPT;
         DNS_OPT_DATA Opt;
@@ -1397,13 +1403,13 @@ struct DNS_RRSET
 struct DNS_PROXY_INFORMATION
 {
     ///A value that specifies the structure version. This value must be 1.
-    uint          version_;
+    uint  version_;
     ///A DNS_PROXY_INFORMATION_TYPE enumeration that contains the proxy information type.
     DNS_PROXY_INFORMATION_TYPE proxyInformationType;
     ///A pointer to a string that contains the proxy server name if <b>proxyInformationType</b> is
     ///<b>DNS_PROXY_INFORMATION_PROXY_NAME</b>. Otherwise, this member is ignored. <div class="alert"><b>Note</b> To
     ///free this string, use the DnsFreeProxyName function.</div> <div> </div>
-    const(wchar)* proxyName;
+    PWSTR proxyName;
 }
 
 ///A <b>DNS_QUERY_RESULT</b> structure contains the DNS query results returned from a call to DnsQueryEx.
@@ -1436,7 +1442,7 @@ struct DNS_QUERY_REQUEST
     uint            Version;
     ///A pointer to a string that represents the DNS name to query. <div class="alert"><b>Note</b> If <b>QueryName</b>
     ///is NULL, the query is for the local machine name.</div> <div> </div>
-    const(wchar)*   QueryName;
+    const(PWSTR)    QueryName;
     ///A value that represents the Resource Record (RR) DNS Record Type that is queried. <b>QueryType</b> determines the
     ///format of data pointed to by <b>pQueryRecords</b> returned in the DNS_QUERY_RESULT structure. For example, if the
     ///value of <b>wType</b> is <b>DNS_TYPE_A</b>, the format of data pointed to by <b>pQueryRecords</b> is DNS_A_DATA.
@@ -1475,26 +1481,26 @@ struct DNS_MESSAGE_BUFFER
 
 struct DNS_CONNECTION_PROXY_INFO
 {
-    uint    Version;
-    ushort* pwszFriendlyName;
-    uint    Flags;
+    uint  Version;
+    PWSTR pwszFriendlyName;
+    uint  Flags;
     DNS_CONNECTION_PROXY_INFO_SWITCH Switch;
-    union
+union
     {
-        struct Config
+struct Config
         {
-            ushort* pwszServer;
-            ushort* pwszUsername;
-            ushort* pwszPassword;
-            ushort* pwszException;
-            ushort* pwszExtraInfo;
-            ushort  Port;
+            PWSTR  pwszServer;
+            PWSTR  pwszUsername;
+            PWSTR  pwszPassword;
+            PWSTR  pwszException;
+            PWSTR  pwszExtraInfo;
+            ushort Port;
         }
-        struct Script
+struct Script
         {
-            ushort* pwszScript;
-            ushort* pwszUsername;
-            ushort* pwszPassword;
+            PWSTR pwszScript;
+            PWSTR pwszUsername;
+            PWSTR pwszPassword;
         }
     }
 }
@@ -1502,10 +1508,10 @@ struct DNS_CONNECTION_PROXY_INFO
 struct DNS_CONNECTION_PROXY_INFO_EX
 {
     DNS_CONNECTION_PROXY_INFO ProxyInfo;
-    uint    dwInterfaceIndex;
-    ushort* pwszConnectionName;
-    BOOL    fDirectConfiguration;
-    HANDLE  hConnection;
+    uint   dwInterfaceIndex;
+    PWSTR  pwszConnectionName;
+    BOOL   fDirectConfiguration;
+    HANDLE hConnection;
 }
 
 struct DNS_CONNECTION_PROXY_ELEMENT
@@ -1533,8 +1539,8 @@ struct DNS_CONNECTION_NAME_LIST
 
 struct DNS_CONNECTION_IFINDEX_ENTRY
 {
-    const(wchar)* pwszConnectionName;
-    uint          dwIfIndex;
+    const(PWSTR) pwszConnectionName;
+    uint         dwIfIndex;
 }
 
 struct DNS_CONNECTION_IFINDEX_LIST
@@ -1545,13 +1551,13 @@ struct DNS_CONNECTION_IFINDEX_LIST
 
 struct DNS_CONNECTION_POLICY_ENTRY
 {
-    const(wchar)* pwszHost;
-    const(wchar)* pwszAppId;
-    uint          cbAppSid;
-    ubyte*        pbAppSid;
-    uint          nConnections;
-    ushort**      ppwszConnections;
-    uint          dwPolicyEntryFlags;
+    const(PWSTR) pwszHost;
+    const(PWSTR) pwszAppId;
+    uint         cbAppSid;
+    ubyte*       pbAppSid;
+    uint         nConnections;
+    PWSTR*       ppwszConnections;
+    uint         dwPolicyEntryFlags;
 }
 
 struct DNS_CONNECTION_POLICY_ENTRY_LIST
@@ -1566,27 +1572,27 @@ struct DNS_SERVICE_INSTANCE
     ///A string that represents the service name. This is a fully qualified domain name that begins with a service name,
     ///and ends with ".local". It takes the generalized form
     ///"\<ServiceName\>.\_\<ServiceType\>.\_\<TransportProtocol\>.local". For example, "MyMusicServer._http._tcp.local".
-    const(wchar)* pszInstanceName;
+    PWSTR        pszInstanceName;
     ///A string that represents the name of the host of the service.
-    const(wchar)* pszHostName;
+    PWSTR        pszHostName;
     ///A pointer to an **IP4_ADDRESS** structure that represents the service-associated IPv4 address.
-    uint*         ip4Address;
+    uint*        ip4Address;
     ///A pointer to an [IP6_ADDRESS](/windows/desktop/api/windns/ns-windns-ip6_address_1) structure that represents the
     ///service-associated IPv6 address.
-    IP6_ADDRESS*  ip6Address;
+    IP6_ADDRESS* ip6Address;
     ///A value that represents the port on which the service is running.
-    ushort        wPort;
+    ushort       wPort;
     ///A value that represents the service priority.
-    ushort        wPriority;
+    ushort       wPriority;
     ///A value that represents the service weight.
-    ushort        wWeight;
+    ushort       wWeight;
     ///The number of properties&mdash;defines the number of elements in the arrays of the `keys` and `values`
     ///parameters.
-    uint          dwPropertyCount;
-    ushort**      keys;
-    ushort**      values;
+    uint         dwPropertyCount;
+    PWSTR*       keys;
+    PWSTR*       values;
     ///A value that contains the interface index on which the service was discovered.
-    uint          dwInterfaceIndex;
+    uint         dwInterfaceIndex;
 }
 
 ///Used to cancel an asynchronous DNS-SD operation.
@@ -1602,21 +1608,21 @@ struct DNS_SERVICE_BROWSE_REQUEST
 {
     ///The structure version must be either **DNS_QUERY_REQUEST_VERSION1** or **DNS_QUERY_REQUEST_VERSION2**. The value
     ///determines which of `pBrowseCallback` or `pBrowseCallbackV2` is active.
-    uint          Version;
+    uint         Version;
     ///A value that contains the interface index over which the query is sent. If `InterfaceIndex` is 0, then all
     ///interfaces will be considered.
-    uint          InterfaceIndex;
+    uint         InterfaceIndex;
     ///A pointer to a string that represents the service type whose matching services you wish to browse for. It takes
     ///the generalized form "\_\<ServiceType\>.\_\<TransportProtocol\>.local". For example, "_http._tcp.local", which
     ///defines a query to browse for http services on the local link.
-    const(wchar)* QueryName;
-    union
+    const(PWSTR) QueryName;
+union
     {
         PDNS_SERVICE_BROWSE_CALLBACK pBrowseCallback;
         DNS_QUERY_COMPLETION_ROUTINE* pBrowseCallbackV2;
     }
     ///A pointer to a user context.
-    void*         pQueryContext;
+    void*        pQueryContext;
 }
 
 ///Contains the query parameters used in a call to [DnsServiceResolve](nf-windns-dnsserviceresolve.md). Use that
@@ -1624,19 +1630,19 @@ struct DNS_SERVICE_BROWSE_REQUEST
 struct DNS_SERVICE_RESOLVE_REQUEST
 {
     ///The structure version must be **DNS_QUERY_REQUEST_VERSION1**.
-    uint          Version;
+    uint  Version;
     ///A value that contains the interface index over which the query is sent. If `InterfaceIndex` is 0, then all
     ///interfaces will be considered.
-    uint          InterfaceIndex;
+    uint  InterfaceIndex;
     ///A pointer to a string that represents the service name. This is a fully qualified domain name that begins with a
     ///service name, and ends with ".local". It takes the generalized form
     ///"\<ServiceName\>.\_\<ServiceType\>.\_\<TransportProtocol\>.local". For example, "MyMusicServer._http._tcp.local".
-    const(wchar)* QueryName;
+    PWSTR QueryName;
     ///A pointer to a function (of type [DNS_SERVICE_RESOLVE_COMPLETE](nc-windns-dns_service_resolve_complete.md)) that
     ///represents the callback to be invoked asynchronously.
     PDNS_SERVICE_RESOLVE_COMPLETE pResolveCompletionCallback;
     ///A pointer to a user context.
-    void*         pQueryContext;
+    void* pQueryContext;
 }
 
 ///Contains the information necessary to advertise a service using
@@ -1686,7 +1692,7 @@ struct MDNS_QUERY_REQUEST
     ///Reserved. Do not use.
     uint                 ulRefCount;
     ///A string representing the name to be queried over mDNS.
-    const(wchar)*        Query;
+    const(PWSTR)         Query;
     ///A value representing the type of the records to be queried. See
     ///[DNS_RECORD_TYPE](/openspecs/windows_protocols/ms-dnsp/39b03b89-2264-4063-8198-d62f62a6441a) for possible values.
     ushort               QueryType;
@@ -1705,8 +1711,6 @@ struct MDNS_QUERY_REQUEST
     ///Reserved. Do not use.
     uint                 ulResendCount;
 }
-
-alias DnsContextHandle = ptrdiff_t;
 
 // Functions
 
@@ -1743,7 +1747,7 @@ alias DnsContextHandle = ptrdiff_t;
 ///    code as defined in Winerror.h.
 ///    
 @DllImport("DNSAPI")
-int DnsQueryConfig(DNS_CONFIG_TYPE Config, uint Flag, const(wchar)* pwsAdapterName, void* pReserved, char* pBuffer, 
+int DnsQueryConfig(DNS_CONFIG_TYPE Config, uint Flag, const(PWSTR) pwsAdapterName, void* pReserved, void* pBuffer, 
                    uint* pBufLen);
 
 ///The <b>DnsRecordCopyEx</b> function creates a copy of a specified resource record (RR). The <b>DnsRecordCopyEx</b>
@@ -1835,7 +1839,7 @@ void DnsFree(void* pData, DNS_FREE_TYPE FreeType);
 ///    code as defined in Winerror.h.
 ///    
 @DllImport("DNSAPI")
-int DnsQuery_A(const(char)* pszName, ushort wType, uint Options, void* pExtra, DNS_RECORDA** ppQueryResults, 
+int DnsQuery_A(const(PSTR) pszName, ushort wType, uint Options, void* pExtra, DNS_RECORDA** ppQueryResults, 
                void** pReserved);
 
 ///The <b>DnsQuery</b> function type is the generic query interface to the DNS namespace, and provides application
@@ -1860,7 +1864,7 @@ int DnsQuery_A(const(char)* pszName, ushort wType, uint Options, void* pExtra, D
 ///    code as defined in Winerror.h.
 ///    
 @DllImport("DNSAPI")
-int DnsQuery_UTF8(const(char)* pszName, ushort wType, uint Options, void* pExtra, DNS_RECORDA** ppQueryResults, 
+int DnsQuery_UTF8(const(PSTR) pszName, ushort wType, uint Options, void* pExtra, DNS_RECORDA** ppQueryResults, 
                   void** pReserved);
 
 ///The <b>DnsQuery</b> function type is the generic query interface to the DNS namespace, and provides application
@@ -1885,7 +1889,7 @@ int DnsQuery_UTF8(const(char)* pszName, ushort wType, uint Options, void* pExtra
 ///    code as defined in Winerror.h.
 ///    
 @DllImport("DNSAPI")
-int DnsQuery_W(const(wchar)* pszName, ushort wType, uint Options, void* pExtra, DNS_RECORDA** ppQueryResults, 
+int DnsQuery_W(const(PWSTR) pszName, ushort wType, uint Options, void* pExtra, DNS_RECORDA** ppQueryResults, 
                void** pReserved);
 
 ///The <b>DnsQueryEx</b> function is the asynchronous generic query interface to the DNS namespace, and provides
@@ -2132,7 +2136,7 @@ int DnsReplaceRecordSetUTF8(DNS_RECORDA* pReplaceSet, uint Options, HANDLE hCont
 ///    The <b>DnsValidateName</b> function has the following possible return values:
 ///    
 @DllImport("DNSAPI")
-int DnsValidateName_W(const(wchar)* pszName, DNS_NAME_FORMAT Format);
+int DnsValidateName_W(const(PWSTR) pszName, DNS_NAME_FORMAT Format);
 
 ///The <b>DnsValidateName</b> function validates the status of a specified DNS name. Like many DNS functions, the
 ///<b>DnsValidateName</b> function type is implemented in multiple forms to facilitate different character encoding.
@@ -2146,7 +2150,7 @@ int DnsValidateName_W(const(wchar)* pszName, DNS_NAME_FORMAT Format);
 ///    The <b>DnsValidateName</b> function has the following possible return values:
 ///    
 @DllImport("DNSAPI")
-int DnsValidateName_A(const(char)* pszName, DNS_NAME_FORMAT Format);
+int DnsValidateName_A(const(PSTR) pszName, DNS_NAME_FORMAT Format);
 
 ///The <b>DnsValidateName</b> function validates the status of a specified DNS name. Like many DNS functions, the
 ///<b>DnsValidateName</b> function type is implemented in multiple forms to facilitate different character encoding.
@@ -2160,7 +2164,7 @@ int DnsValidateName_A(const(char)* pszName, DNS_NAME_FORMAT Format);
 ///    The <b>DnsValidateName</b> function has the following possible return values:
 ///    
 @DllImport("DNSAPI")
-int DnsValidateName_UTF8(const(char)* pszName, DNS_NAME_FORMAT Format);
+int DnsValidateName_UTF8(const(PSTR) pszName, DNS_NAME_FORMAT Format);
 
 ///The <b>DnsNameCompare</b> function compares two DNS names. Like many DNS functions, the <b>DnsNameCompare</b>
 ///function type is implemented in multiple forms to facilitate different character encoding. Based on the character
@@ -2174,7 +2178,7 @@ int DnsValidateName_UTF8(const(char)* pszName, DNS_NAME_FORMAT Format);
 ///    Returns <b>TRUE</b> if the compared names are equivalent, <b>FALSE</b> if they are not.
 ///    
 @DllImport("DNSAPI")
-BOOL DnsNameCompare_A(const(char)* pName1, const(char)* pName2);
+BOOL DnsNameCompare_A(const(PSTR) pName1, const(PSTR) pName2);
 
 ///The <b>DnsNameCompare</b> function compares two DNS names. Like many DNS functions, the <b>DnsNameCompare</b>
 ///function type is implemented in multiple forms to facilitate different character encoding. Based on the character
@@ -2188,7 +2192,7 @@ BOOL DnsNameCompare_A(const(char)* pName1, const(char)* pName2);
 ///    Returns <b>TRUE</b> if the compared names are equivalent, <b>FALSE</b> if they are not.
 ///    
 @DllImport("DNSAPI")
-BOOL DnsNameCompare_W(const(wchar)* pName1, const(wchar)* pName2);
+BOOL DnsNameCompare_W(const(PWSTR) pName1, const(PWSTR) pName2);
 
 ///The <b>DnsWriteQuestionToBuffer</b> function type creates a DNS query message and stores it in a DNS_MESSAGE_BUFFER
 ///structure. Like many DNS functions, the <b>DnsWriteQuestionToBuffer</b> function type is implemented in multiple
@@ -2210,7 +2214,7 @@ BOOL DnsNameCompare_W(const(wchar)* pName1, const(wchar)* pName2);
 ///    Returns <b>TRUE</b> upon successful execution, otherwise <b>FALSE</b>.
 ///    
 @DllImport("DNSAPI")
-BOOL DnsWriteQuestionToBuffer_W(DNS_MESSAGE_BUFFER* pDnsBuffer, uint* pdwBufferSize, const(wchar)* pszName, 
+BOOL DnsWriteQuestionToBuffer_W(DNS_MESSAGE_BUFFER* pDnsBuffer, uint* pdwBufferSize, const(PWSTR) pszName, 
                                 ushort wType, ushort Xid, BOOL fRecursionDesired);
 
 ///The <b>DnsWriteQuestionToBuffer</b> function type creates a DNS query message and stores it in a DNS_MESSAGE_BUFFER
@@ -2233,7 +2237,7 @@ BOOL DnsWriteQuestionToBuffer_W(DNS_MESSAGE_BUFFER* pDnsBuffer, uint* pdwBufferS
 ///    Returns <b>TRUE</b> upon successful execution, otherwise <b>FALSE</b>.
 ///    
 @DllImport("DNSAPI")
-BOOL DnsWriteQuestionToBuffer_UTF8(DNS_MESSAGE_BUFFER* pDnsBuffer, uint* pdwBufferSize, const(char)* pszName, 
+BOOL DnsWriteQuestionToBuffer_UTF8(DNS_MESSAGE_BUFFER* pDnsBuffer, uint* pdwBufferSize, const(PSTR) pszName, 
                                    ushort wType, ushort Xid, BOOL fRecursionDesired);
 
 ///The <b>DnsExtractRecordsFromMessage</b> function type extracts resource records (RR) from a DNS message, and stores
@@ -2289,7 +2293,7 @@ int DnsExtractRecordsFromMessage_UTF8(DNS_MESSAGE_BUFFER* pDnsBuffer, ushort wMe
 ///    Winerror.h. The following are possible return values:
 ///    
 @DllImport("DNSAPI")
-uint DnsGetProxyInformation(const(wchar)* hostName, DNS_PROXY_INFORMATION* proxyInformation, 
+uint DnsGetProxyInformation(const(PWSTR) hostName, DNS_PROXY_INFORMATION* proxyInformation, 
                             DNS_PROXY_INFORMATION* defaultProxyInformation, 
                             DNS_PROXY_COMPLETION_ROUTINE completionRoutine, void* completionContext);
 
@@ -2298,10 +2302,10 @@ uint DnsGetProxyInformation(const(wchar)* hostName, DNS_PROXY_INFORMATION* proxy
 ///Params:
 ///    proxyName = A pointer to the <b>proxyName</b> string to be freed.
 @DllImport("DNSAPI")
-void DnsFreeProxyName(const(wchar)* proxyName);
+void DnsFreeProxyName(PWSTR proxyName);
 
 @DllImport("DNSAPI")
-uint DnsConnectionGetProxyInfoForHostUrl(const(wchar)* pwszHostUrl, char* pSelectionContext, 
+uint DnsConnectionGetProxyInfoForHostUrl(const(PWSTR) pwszHostUrl, ubyte* pSelectionContext, 
                                          uint dwSelectionContextLength, uint dwExplicitInterfaceIndex, 
                                          DNS_CONNECTION_PROXY_INFO_EX* pProxyInfoEx);
 
@@ -2309,21 +2313,21 @@ uint DnsConnectionGetProxyInfoForHostUrl(const(wchar)* pwszHostUrl, char* pSelec
 void DnsConnectionFreeProxyInfoEx(DNS_CONNECTION_PROXY_INFO_EX* pProxyInfoEx);
 
 @DllImport("DNSAPI")
-uint DnsConnectionGetProxyInfo(const(wchar)* pwszConnectionName, DNS_CONNECTION_PROXY_TYPE Type, 
+uint DnsConnectionGetProxyInfo(const(PWSTR) pwszConnectionName, DNS_CONNECTION_PROXY_TYPE Type, 
                                DNS_CONNECTION_PROXY_INFO* pProxyInfo);
 
 @DllImport("DNSAPI")
 void DnsConnectionFreeProxyInfo(DNS_CONNECTION_PROXY_INFO* pProxyInfo);
 
 @DllImport("DNSAPI")
-uint DnsConnectionSetProxyInfo(const(wchar)* pwszConnectionName, DNS_CONNECTION_PROXY_TYPE Type, 
+uint DnsConnectionSetProxyInfo(const(PWSTR) pwszConnectionName, DNS_CONNECTION_PROXY_TYPE Type, 
                                const(DNS_CONNECTION_PROXY_INFO)* pProxyInfo);
 
 @DllImport("DNSAPI")
-uint DnsConnectionDeleteProxyInfo(const(wchar)* pwszConnectionName, DNS_CONNECTION_PROXY_TYPE Type);
+uint DnsConnectionDeleteProxyInfo(const(PWSTR) pwszConnectionName, DNS_CONNECTION_PROXY_TYPE Type);
 
 @DllImport("DNSAPI")
-uint DnsConnectionGetProxyList(const(wchar)* pwszConnectionName, DNS_CONNECTION_PROXY_LIST* pProxyList);
+uint DnsConnectionGetProxyList(const(PWSTR) pwszConnectionName, DNS_CONNECTION_PROXY_LIST* pProxyList);
 
 @DllImport("DNSAPI")
 void DnsConnectionFreeProxyList(DNS_CONNECTION_PROXY_LIST* pProxyList);
@@ -2364,9 +2368,9 @@ uint DnsConnectionDeletePolicyEntries(DNS_CONNECTION_POLICY_TAG PolicyEntryTag);
 ///    [DnsServiceFreeInstance](nf-windns-dnsservicefreeinstance.md).
 ///    
 @DllImport("DNSAPI")
-DNS_SERVICE_INSTANCE* DnsServiceConstructInstance(const(wchar)* pServiceName, const(wchar)* pHostName, uint* pIp4, 
+DNS_SERVICE_INSTANCE* DnsServiceConstructInstance(const(PWSTR) pServiceName, const(PWSTR) pHostName, uint* pIp4, 
                                                   IP6_ADDRESS* pIp6, ushort wPort, ushort wPriority, ushort wWeight, 
-                                                  uint dwPropertiesCount, char* keys, char* values);
+                                                  uint dwPropertiesCount, PWSTR* keys, PWSTR* values);
 
 ///Used to copy a [DNS_SERVICE_INSTANCE](ns-windns-dns_service_instance.md) structure.
 ///Params:

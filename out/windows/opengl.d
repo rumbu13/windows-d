@@ -3,10 +3,10 @@
 module windows.opengl;
 
 public import windows.core;
-public import windows.gdi : HDC;
-public import windows.systemservices : BOOL, PROC;
+public import windows.gdi : HDC, HENHMETAFILE;
+public import windows.systemservices : BOOL, PROC, PSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Structs
@@ -223,6 +223,12 @@ struct LAYERPLANEDESCRIPTOR
     uint   crTransparent;
 }
 
+@RAIIFree!wglDeleteContext
+struct HGLRC
+{
+    ptrdiff_t Value;
+}
+
 // Functions
 
 ///The <b>ChoosePixelFormat</b> function attempts to match an appropriate pixel format supported by a device context to
@@ -289,7 +295,7 @@ int ChoosePixelFormat(HDC hdc, const(PIXELFORMATDESCRIPTOR)* ppfd);
 ///    information, call GetLastError.
 ///    
 @DllImport("GDI32")
-int DescribePixelFormat(HDC hdc, int iPixelFormat, uint nBytes, char* ppfd);
+int DescribePixelFormat(HDC hdc, int iPixelFormat, uint nBytes, PIXELFORMATDESCRIPTOR* ppfd);
 
 ///The <b>GetPixelFormat</b> function obtains the index of the currently selected pixel format of the specified device
 ///context.
@@ -331,7 +337,7 @@ BOOL SetPixelFormat(HDC hdc, int format, const(PIXELFORMATDESCRIPTOR)* ppfd);
 ///    value is GDI_ERROR. To get extended error information, call GetLastError.
 ///    
 @DllImport("GDI32")
-uint GetEnhMetaFilePixelFormat(ptrdiff_t hemf, uint cbBuffer, char* ppfd);
+uint GetEnhMetaFilePixelFormat(HENHMETAFILE hemf, uint cbBuffer, PIXELFORMATDESCRIPTOR* ppfd);
 
 ///The <b>wglCopyContext</b> function copies selected groups of rendering states from one OpenGL rendering context to
 ///another.
@@ -346,7 +352,7 @@ uint GetEnhMetaFilePixelFormat(ptrdiff_t hemf, uint cbBuffer, char* ppfd);
 ///    <b>FALSE</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("OPENGL32")
-BOOL wglCopyContext(ptrdiff_t param0, ptrdiff_t param1, uint param2);
+BOOL wglCopyContext(HGLRC param0, HGLRC param1, uint param2);
 
 ///The <b>wglCreateContext</b> function creates a new OpenGL rendering context, which is suitable for drawing on the
 ///device referenced by <i>hdc</i>. The rendering context has the same pixel format as the device context.
@@ -357,7 +363,7 @@ BOOL wglCopyContext(ptrdiff_t param0, ptrdiff_t param1, uint param2);
 ///    fails, the return value is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("OPENGL32")
-ptrdiff_t wglCreateContext(HDC param0);
+HGLRC wglCreateContext(HDC param0);
 
 ///The <b>wglCreateLayerContext</b> function creates a new OpenGL rendering context for drawing to a specified layer
 ///plane on a device context.
@@ -374,7 +380,7 @@ ptrdiff_t wglCreateContext(HDC param0);
 ///    return value is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("OPENGL32")
-ptrdiff_t wglCreateLayerContext(HDC param0, int param1);
+HGLRC wglCreateLayerContext(HDC param0, int param1);
 
 ///The <b>wglDeleteContext</b> function deletes a specified OpenGL rendering context.
 ///Params:
@@ -384,7 +390,7 @@ ptrdiff_t wglCreateLayerContext(HDC param0, int param1);
 ///    <b>FALSE</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("OPENGL32")
-BOOL wglDeleteContext(ptrdiff_t param0);
+BOOL wglDeleteContext(HGLRC param0);
 
 ///The <b>wglGetCurrentContext</b> function obtains a handle to the current OpenGL rendering context of the calling
 ///thread.
@@ -393,7 +399,7 @@ BOOL wglDeleteContext(ptrdiff_t param0);
 ///    that rendering context. Otherwise, the return value is <b>NULL</b>.
 ///    
 @DllImport("OPENGL32")
-ptrdiff_t wglGetCurrentContext();
+HGLRC wglGetCurrentContext();
 
 ///The <b>wglGetCurrentDC</b> function obtains a handle to the device context that is associated with the current OpenGL
 ///rendering context of the calling thread.
@@ -416,7 +422,7 @@ HDC wglGetCurrentDC();
 ///    GetLastError.
 ///    
 @DllImport("OPENGL32")
-PROC wglGetProcAddress(const(char)* param0);
+PROC wglGetProcAddress(const(PSTR) param0);
 
 ///The <b>wglMakeCurrent</b> function makes a specified OpenGL rendering context the calling thread's current rendering
 ///context. All subsequent OpenGL calls made by the thread are drawn on the device identified by <i>hdc</i>. You can
@@ -432,7 +438,7 @@ PROC wglGetProcAddress(const(char)* param0);
 ///    <b>FALSE</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("OPENGL32")
-BOOL wglMakeCurrent(HDC param0, ptrdiff_t param1);
+BOOL wglMakeCurrent(HDC param0, HGLRC param1);
 
 ///The <b>wglShareLists</b> function enables multiple OpenGL rendering contexts to share a single display-list space.
 ///Params:
@@ -444,7 +450,7 @@ BOOL wglMakeCurrent(HDC param0, ptrdiff_t param1);
 ///    <b>FALSE</b> and the display lists are not shared. To get extended error information, call GetLastError.
 ///    
 @DllImport("OPENGL32")
-BOOL wglShareLists(ptrdiff_t param0, ptrdiff_t param1);
+BOOL wglShareLists(HGLRC param0, HGLRC param1);
 
 ///The <b>wglUseFontBitmaps</b> function creates a set of bitmap display lists for use in the current OpenGL rendering
 ///context. The set of bitmap display lists is based on the glyphs in the currently selected font in the device context.

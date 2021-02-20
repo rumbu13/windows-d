@@ -6,17 +6,15 @@ public import windows.core;
 public import windows.displaydevices : DEVMODEW;
 public import windows.menusandresources : DESKTOPENUMPROCA, DESKTOPENUMPROCW, WINSTAENUMPROCA,
                                           WINSTAENUMPROCW, WNDENUMPROC;
-public import windows.systemservices : BOOL, HANDLE, SECURITY_ATTRIBUTES;
+public import windows.systemservices : BOOL, HANDLE, PSTR, PWSTR, SECURITY_ATTRIBUTES;
 public import windows.windowsandmessaging : LPARAM;
 public import windows.xps : DEVMODEA;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Structs
 
-
-alias HDESK = ptrdiff_t;
 
 ///Contains information about a window station or desktop handle.
 struct USEROBJECTFLAGS
@@ -34,6 +32,18 @@ struct USEROBJECTFLAGS
     ///width="60%"> Allows processes running in other accounts on the desktop to set hooks in this process. </td> </tr>
     ///</table>
     uint dwFlags;
+}
+
+@RAIIFree!CloseDesktop
+struct HDESK
+{
+    ptrdiff_t Value;
+}
+
+@RAIIFree!CloseWindowStation
+struct HWINSTA
+{
+    ptrdiff_t Value;
 }
 
 // Functions
@@ -65,7 +75,7 @@ struct USEROBJECTFLAGS
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-HDESK CreateDesktopA(const(char)* lpszDesktop, const(char)* lpszDevice, DEVMODEA* pDevmode, uint dwFlags, 
+HDESK CreateDesktopA(const(PSTR) lpszDesktop, const(PSTR) lpszDevice, DEVMODEA* pDevmode, uint dwFlags, 
                      uint dwDesiredAccess, SECURITY_ATTRIBUTES* lpsa);
 
 ///Creates a new desktop, associates it with the current window station of the calling process, and assigns it to the
@@ -95,7 +105,7 @@ HDESK CreateDesktopA(const(char)* lpszDesktop, const(char)* lpszDevice, DEVMODEA
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-HDESK CreateDesktopW(const(wchar)* lpszDesktop, const(wchar)* lpszDevice, DEVMODEW* pDevmode, uint dwFlags, 
+HDESK CreateDesktopW(const(PWSTR) lpszDesktop, const(PWSTR) lpszDevice, DEVMODEW* pDevmode, uint dwFlags, 
                      uint dwDesiredAccess, SECURITY_ATTRIBUTES* lpsa);
 
 ///Creates a new desktop with the specified heap, associates it with the current window station of the calling process,
@@ -126,7 +136,7 @@ HDESK CreateDesktopW(const(wchar)* lpszDesktop, const(wchar)* lpszDevice, DEVMOD
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-HDESK CreateDesktopExA(const(char)* lpszDesktop, const(char)* lpszDevice, DEVMODEA* pDevmode, uint dwFlags, 
+HDESK CreateDesktopExA(const(PSTR) lpszDesktop, const(PSTR) lpszDevice, DEVMODEA* pDevmode, uint dwFlags, 
                        uint dwDesiredAccess, SECURITY_ATTRIBUTES* lpsa, uint ulHeapSize, void* pvoid);
 
 ///Creates a new desktop with the specified heap, associates it with the current window station of the calling process,
@@ -157,7 +167,7 @@ HDESK CreateDesktopExA(const(char)* lpszDesktop, const(char)* lpszDevice, DEVMOD
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-HDESK CreateDesktopExW(const(wchar)* lpszDesktop, const(wchar)* lpszDevice, DEVMODEW* pDevmode, uint dwFlags, 
+HDESK CreateDesktopExW(const(PWSTR) lpszDesktop, const(PWSTR) lpszDevice, DEVMODEW* pDevmode, uint dwFlags, 
                        uint dwDesiredAccess, SECURITY_ATTRIBUTES* lpsa, uint ulHeapSize, void* pvoid);
 
 ///Opens the specified desktop object.
@@ -177,7 +187,7 @@ HDESK CreateDesktopExW(const(wchar)* lpszDesktop, const(wchar)* lpszDevice, DEVM
 ///    get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-HDESK OpenDesktopA(const(char)* lpszDesktop, uint dwFlags, BOOL fInherit, uint dwDesiredAccess);
+HDESK OpenDesktopA(const(PSTR) lpszDesktop, uint dwFlags, BOOL fInherit, uint dwDesiredAccess);
 
 ///Opens the specified desktop object.
 ///Params:
@@ -196,7 +206,7 @@ HDESK OpenDesktopA(const(char)* lpszDesktop, uint dwFlags, BOOL fInherit, uint d
 ///    get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-HDESK OpenDesktopW(const(wchar)* lpszDesktop, uint dwFlags, BOOL fInherit, uint dwDesiredAccess);
+HDESK OpenDesktopW(const(PWSTR) lpszDesktop, uint dwFlags, BOOL fInherit, uint dwDesiredAccess);
 
 ///Opens the desktop that receives user input.
 ///Params:
@@ -231,7 +241,7 @@ HDESK OpenInputDesktop(uint dwFlags, BOOL fInherit, uint dwDesiredAccess);
 ///    callback function can call SetLastError to set an error code for the caller to retrieve by calling GetLastError.
 ///    
 @DllImport("USER32")
-BOOL EnumDesktopsA(ptrdiff_t hwinsta, DESKTOPENUMPROCA lpEnumFunc, LPARAM lParam);
+BOOL EnumDesktopsA(HWINSTA hwinsta, DESKTOPENUMPROCA lpEnumFunc, LPARAM lParam);
 
 ///Enumerates all desktops associated with the specified window station of the calling process. The function passes the
 ///name of each desktop, in turn, to an application-defined callback function.
@@ -249,7 +259,7 @@ BOOL EnumDesktopsA(ptrdiff_t hwinsta, DESKTOPENUMPROCA lpEnumFunc, LPARAM lParam
 ///    callback function can call SetLastError to set an error code for the caller to retrieve by calling GetLastError.
 ///    
 @DllImport("USER32")
-BOOL EnumDesktopsW(ptrdiff_t hwinsta, DESKTOPENUMPROCW lpEnumFunc, LPARAM lParam);
+BOOL EnumDesktopsW(HWINSTA hwinsta, DESKTOPENUMPROCW lpEnumFunc, LPARAM lParam);
 
 ///Enumerates all top-level windows associated with the specified desktop. It passes the handle to each window, in turn,
 ///to an application-defined callback function.
@@ -343,8 +353,7 @@ HDESK GetThreadDesktop(uint dwThreadId);
 ///    function fails, the return value is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-ptrdiff_t CreateWindowStationA(const(char)* lpwinsta, uint dwFlags, uint dwDesiredAccess, 
-                               SECURITY_ATTRIBUTES* lpsa);
+HWINSTA CreateWindowStationA(const(PSTR) lpwinsta, uint dwFlags, uint dwDesiredAccess, SECURITY_ATTRIBUTES* lpsa);
 
 ///Creates a window station object, associates it with the calling process, and assigns it to the current session.
 ///Params:
@@ -369,8 +378,7 @@ ptrdiff_t CreateWindowStationA(const(char)* lpwinsta, uint dwFlags, uint dwDesir
 ///    function fails, the return value is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-ptrdiff_t CreateWindowStationW(const(wchar)* lpwinsta, uint dwFlags, uint dwDesiredAccess, 
-                               SECURITY_ATTRIBUTES* lpsa);
+HWINSTA CreateWindowStationW(const(PWSTR) lpwinsta, uint dwFlags, uint dwDesiredAccess, SECURITY_ATTRIBUTES* lpsa);
 
 ///Opens the specified window station.
 ///Params:
@@ -384,7 +392,7 @@ ptrdiff_t CreateWindowStationW(const(wchar)* lpwinsta, uint dwFlags, uint dwDesi
 ///    the return value is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-ptrdiff_t OpenWindowStationA(const(char)* lpszWinSta, BOOL fInherit, uint dwDesiredAccess);
+HWINSTA OpenWindowStationA(const(PSTR) lpszWinSta, BOOL fInherit, uint dwDesiredAccess);
 
 ///Opens the specified window station.
 ///Params:
@@ -398,7 +406,7 @@ ptrdiff_t OpenWindowStationA(const(char)* lpszWinSta, BOOL fInherit, uint dwDesi
 ///    the return value is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-ptrdiff_t OpenWindowStationW(const(wchar)* lpszWinSta, BOOL fInherit, uint dwDesiredAccess);
+HWINSTA OpenWindowStationW(const(PWSTR) lpszWinSta, BOOL fInherit, uint dwDesiredAccess);
 
 ///Enumerates all window stations in the current session. The function passes the name of each window station, in turn,
 ///to an application-defined callback function.
@@ -438,7 +446,7 @@ BOOL EnumWindowStationsW(WINSTAENUMPROCW lpEnumFunc, LPARAM lParam);
 ///    not set the last error code on failure.
 ///    
 @DllImport("USER32")
-BOOL CloseWindowStation(ptrdiff_t hWinSta);
+BOOL CloseWindowStation(HWINSTA hWinSta);
 
 ///Assigns the specified window station to the calling process. This enables the process to access objects in the window
 ///station such as desktops, the clipboard, and global atoms. All subsequent operations on the window station use the
@@ -451,7 +459,7 @@ BOOL CloseWindowStation(ptrdiff_t hWinSta);
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL SetProcessWindowStation(ptrdiff_t hWinSta);
+BOOL SetProcessWindowStation(HWINSTA hWinSta);
 
 ///Retrieves a handle to the current window station for the calling process.
 ///Returns:
@@ -459,7 +467,7 @@ BOOL SetProcessWindowStation(ptrdiff_t hWinSta);
 ///    value is NULL. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-ptrdiff_t GetProcessWindowStation();
+HWINSTA GetProcessWindowStation();
 
 ///Retrieves information about the specified window station or desktop object.
 ///Params:
@@ -497,7 +505,7 @@ ptrdiff_t GetProcessWindowStation();
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL GetUserObjectInformationA(HANDLE hObj, int nIndex, char* pvInfo, uint nLength, uint* lpnLengthNeeded);
+BOOL GetUserObjectInformationA(HANDLE hObj, int nIndex, void* pvInfo, uint nLength, uint* lpnLengthNeeded);
 
 ///Retrieves information about the specified window station or desktop object.
 ///Params:
@@ -535,7 +543,7 @@ BOOL GetUserObjectInformationA(HANDLE hObj, int nIndex, char* pvInfo, uint nLeng
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL GetUserObjectInformationW(HANDLE hObj, int nIndex, char* pvInfo, uint nLength, uint* lpnLengthNeeded);
+BOOL GetUserObjectInformationW(HANDLE hObj, int nIndex, void* pvInfo, uint nLength, uint* lpnLengthNeeded);
 
 ///Sets information about the specified window station or desktop object.
 ///Params:
@@ -561,7 +569,7 @@ BOOL GetUserObjectInformationW(HANDLE hObj, int nIndex, char* pvInfo, uint nLeng
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL SetUserObjectInformationA(HANDLE hObj, int nIndex, char* pvInfo, uint nLength);
+BOOL SetUserObjectInformationA(HANDLE hObj, int nIndex, void* pvInfo, uint nLength);
 
 ///Sets information about the specified window station or desktop object.
 ///Params:
@@ -587,6 +595,6 @@ BOOL SetUserObjectInformationA(HANDLE hObj, int nIndex, char* pvInfo, uint nLeng
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL SetUserObjectInformationW(HANDLE hObj, int nIndex, char* pvInfo, uint nLength);
+BOOL SetUserObjectInformationW(HANDLE hObj, int nIndex, void* pvInfo, uint nLength);
 
 

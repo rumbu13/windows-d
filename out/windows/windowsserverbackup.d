@@ -4,8 +4,9 @@ module windows.windowsserverbackup;
 
 public import windows.core;
 public import windows.com : HRESULT, IUnknown;
+public import windows.systemservices : PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -41,7 +42,7 @@ enum : int
 struct WSB_OB_STATUS_ENTRY_VALUE_TYPE_PAIR
 {
     ///Specifies the value for the parameter.
-    const(wchar)* m_wszObStatusEntryPairValue;
+    PWSTR m_wszObStatusEntryPairValue;
     ///Specifies the type of the value for the parameter.
     WSB_OB_STATUS_ENTRY_PAIR_TYPE m_ObStatusEntryPairType;
 }
@@ -82,17 +83,17 @@ struct WSB_OB_STATUS_INFO
 struct WSB_OB_REGISTRATION_INFO
 {
     ///The complete path to the resource DLL where the provider name and icon resources can be loaded from.
-    const(wchar)* m_wszResourceDLL;
+    PWSTR m_wszResourceDLL;
     ///The snap-in identifier of the cloud backup provider to be registered with Windows Server Backup.
-    GUID          m_guidSnapinId;
+    GUID  m_guidSnapinId;
     ///The resource identifier of the cloud backup provider name. This name will be shown in the Windows Server Backup
     ///MMC snap-in.
-    uint          m_dwProviderName;
+    uint  m_dwProviderName;
     ///The resource identifier of the cloud backup provider icon. This icon will be shown in the Windows Server Backup
     ///MMC snap-in.
-    uint          m_dwProviderIcon;
+    uint  m_dwProviderIcon;
     ///A flag to indicate whether the cloud backup provider can communicate with a remote cloud backup provider engine.
-    ubyte         m_bSupportsRemoting;
+    ubyte m_bSupportsRemoting;
 }
 
 // Interfaces
@@ -121,9 +122,9 @@ interface IWsbApplicationBackupSupport : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise. Possible return values include the following.
     ///    
-    HRESULT CheckConsistency(const(wchar)* wszWriterMetadata, const(wchar)* wszComponentName, 
-                             const(wchar)* wszComponentLogicalPath, uint cVolumes, char* rgwszSourceVolumePath, 
-                             char* rgwszSnapshotVolumePath, IWsbApplicationAsync* ppAsync);
+    HRESULT CheckConsistency(PWSTR wszWriterMetadata, PWSTR wszComponentName, PWSTR wszComponentLogicalPath, 
+                             uint cVolumes, PWSTR* rgwszSourceVolumePath, PWSTR* rgwszSnapshotVolumePath, 
+                             IWsbApplicationAsync* ppAsync);
 }
 
 ///Defines methods for performing application-specific restore tasks.
@@ -143,8 +144,8 @@ interface IWsbApplicationRestoreSupport : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise. Possible return values include the following.
     ///    
-    HRESULT PreRestore(const(wchar)* wszWriterMetadata, const(wchar)* wszComponentName, 
-                       const(wchar)* wszComponentLogicalPath, ubyte bNoRollForward);
+    HRESULT PreRestore(PWSTR wszWriterMetadata, PWSTR wszComponentName, PWSTR wszComponentLogicalPath, 
+                       ubyte bNoRollForward);
     ///Performs application-specific PostRestore operations.
     ///Params:
     ///    wszWriterMetadata = A string that contains the VSS writer's metadata.
@@ -158,8 +159,8 @@ interface IWsbApplicationRestoreSupport : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise. Possible return values include the following.
     ///    
-    HRESULT PostRestore(const(wchar)* wszWriterMetadata, const(wchar)* wszComponentName, 
-                        const(wchar)* wszComponentLogicalPath, ubyte bNoRollForward);
+    HRESULT PostRestore(PWSTR wszWriterMetadata, PWSTR wszComponentName, PWSTR wszComponentLogicalPath, 
+                        ubyte bNoRollForward);
     ///Specifies the order in which application components are to be restored.
     ///Params:
     ///    cComponents = The number of components to be restored. The value of this parameter can range from 0 to MAX_COMPONENTS.
@@ -172,8 +173,8 @@ interface IWsbApplicationRestoreSupport : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise. Possible return values include the following.
     ///    
-    HRESULT OrderComponents(uint cComponents, char* rgComponentName, char* rgComponentLogicalPaths, 
-                            char* prgComponentName, char* prgComponentLogicalPath);
+    HRESULT OrderComponents(uint cComponents, PWSTR* rgComponentName, PWSTR* rgComponentLogicalPaths, 
+                            PWSTR** prgComponentName, PWSTR** prgComponentLogicalPath);
     ///Reports whether the application supports roll-forward restore.
     ///Params:
     ///    pbRollForwardSupported = Receives <b>TRUE</b> if roll-forward restore is supported, or <b>FALSE</b> otherwise.
@@ -195,7 +196,7 @@ interface IWsbApplicationAsync : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT QueryStatus(int* phrResult);
+    HRESULT QueryStatus(HRESULT* phrResult);
     ///Cancels an incomplete asynchronous operation.
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.

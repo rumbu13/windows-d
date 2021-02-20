@@ -4,9 +4,9 @@ module windows.remotedifferentialcompression;
 
 public import windows.core;
 public import windows.com : HRESULT, IUnknown;
-public import windows.systemservices : BOOL;
+public import windows.systemservices : BOOL, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -397,7 +397,7 @@ interface IRdcGenerator : IUnknown
     ///Returns:
     ///    This method can return one of these values.
     ///    
-    HRESULT Process(BOOL endOfInput, int* endOfOutput, RdcBufferPointer* inputBuffer, uint depth, 
+    HRESULT Process(BOOL endOfInput, BOOL* endOfOutput, RdcBufferPointer* inputBuffer, uint depth, 
                     RdcBufferPointer** outputBuffers, RDC_ErrorCode* rdc_ErrorCode);
 }
 
@@ -426,7 +426,7 @@ interface IRdcFileReader : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT Read(ulong offsetFileStart, uint bytesToRead, uint* bytesActuallyRead, ubyte* buffer, int* eof);
+    HRESULT Read(ulong offsetFileStart, uint bytesToRead, uint* bytesActuallyRead, ubyte* buffer, BOOL* eof);
     ///The <b>GetFilePosition</b> method returns the current file position.
     ///Params:
     ///    offsetFromStart = Address of a <b>ULONGLONG</b> that will receive the current offset from the start of the data.
@@ -492,7 +492,7 @@ interface IRdcSignatureReader : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT ReadSignatures(RdcSignaturePointer* rdcSignaturePointer, int* endOfOutput);
+    HRESULT ReadSignatures(RdcSignaturePointer* rdcSignaturePointer, BOOL* endOfOutput);
 }
 
 ///The <b>IRdcComparator</b> interface is used to compare two signature streams (seed and source) and produce the list
@@ -520,8 +520,8 @@ interface IRdcComparator : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT Process(BOOL endOfInput, int* endOfOutput, RdcBufferPointer* inputBuffer, RdcNeedPointer* outputBuffer, 
-                    RDC_ErrorCode* rdc_ErrorCode);
+    HRESULT Process(BOOL endOfInput, BOOL* endOfOutput, RdcBufferPointer* inputBuffer, 
+                    RdcNeedPointer* outputBuffer, RDC_ErrorCode* rdc_ErrorCode);
 }
 
 ///The <b>IRdcLibrary</b> interface is the primary interface for using RDC.
@@ -654,7 +654,7 @@ interface ISimilarityTableDumpState : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetNextData(uint resultsSize, uint* resultsUsed, int* eof, SimilarityDumpData* results);
+    HRESULT GetNextData(uint resultsSize, uint* resultsUsed, BOOL* eof, SimilarityDumpData* results);
 }
 
 ///Provides methods that an RDC application can implement for manipulating a mapped view of a similarity traits table
@@ -797,7 +797,7 @@ interface ISimilarityTraitsTable : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CreateTable(ushort* path, BOOL truncate, ubyte* securityDescriptor, RdcCreatedTables* isNew);
+    HRESULT CreateTable(PWSTR path, BOOL truncate, ubyte* securityDescriptor, RdcCreatedTables* isNew);
     ///Creates or opens a similarity traits table using the RDC application's implementation of the
     ///ISimilarityTraitsMapping interface.
     ///Params:
@@ -896,7 +896,7 @@ interface ISimilarityFileIdTable : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CreateTable(ushort* path, BOOL truncate, ubyte* securityDescriptor, uint recordSize, 
+    HRESULT CreateTable(PWSTR path, BOOL truncate, ubyte* securityDescriptor, uint recordSize, 
                         RdcCreatedTables* isNew);
     ///Creates or opens a similarity file ID table using the RDC application's implementation of the IRdcFileWriter
     ///interface.
@@ -1045,7 +1045,7 @@ interface ISimilarity : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CreateTable(ushort* path, BOOL truncate, ubyte* securityDescriptor, uint recordSize, 
+    HRESULT CreateTable(PWSTR path, BOOL truncate, ubyte* securityDescriptor, uint recordSize, 
                         RdcCreatedTables* isNew);
     ///Creates or opens a similarity traits table and a similarity file ID table using the RDC application's
     ///implementations of the ISimilarityTraitsMapping and IRdcFileWriter interfaces.

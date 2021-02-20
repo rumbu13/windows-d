@@ -6,15 +6,122 @@ public import windows.core;
 public import windows.com : BYTE_SIZEDARR, FLAGGED_WORD_BLOB, HRESULT, HYPER_SIZEDARR,
                             IEnumUnknown, IUnknown, LONG_SIZEDARR,
                             SHORT_SIZEDARR, STGMEDIUM;
-public import windows.systemservices : BOOL, CY, DECIMAL, IServiceProvider;
+public import windows.systemservices : BOOL, CY, DECIMAL, IServiceProvider, PSTR,
+                                       PWSTR;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : SYSTEMTIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
 
+
+///Specifies the variant types.
+alias VARENUM = int;
+enum : int
+{
+    ///Not specified.
+    VT_EMPTY            = 0x00000000,
+    ///Null.
+    VT_NULL             = 0x00000001,
+    ///A 2-byte integer.
+    VT_I2               = 0x00000002,
+    ///A 4-byte integer.
+    VT_I4               = 0x00000003,
+    ///A 4-byte real.
+    VT_R4               = 0x00000004,
+    ///An 8-byte real.
+    VT_R8               = 0x00000005,
+    ///Currency.
+    VT_CY               = 0x00000006,
+    ///A date.
+    VT_DATE             = 0x00000007,
+    ///A string.
+    VT_BSTR             = 0x00000008,
+    ///An IDispatch pointer.
+    VT_DISPATCH         = 0x00000009,
+    ///An SCODE value.
+    VT_ERROR            = 0x0000000a,
+    ///A Boolean value. True is -1 and false is 0.
+    VT_BOOL             = 0x0000000b,
+    ///A variant pointer.
+    VT_VARIANT          = 0x0000000c,
+    ///An IUnknown pointer.
+    VT_UNKNOWN          = 0x0000000d,
+    ///A 16-byte fixed-pointer value.
+    VT_DECIMAL          = 0x0000000e,
+    ///A character.
+    VT_I1               = 0x00000010,
+    ///An unsigned character.
+    VT_UI1              = 0x00000011,
+    ///An unsigned short.
+    VT_UI2              = 0x00000012,
+    ///An unsigned long.
+    VT_UI4              = 0x00000013,
+    ///A 64-bit integer.
+    VT_I8               = 0x00000014,
+    ///A 64-bit unsigned integer.
+    VT_UI8              = 0x00000015,
+    ///An integer.
+    VT_INT              = 0x00000016,
+    ///An unsigned integer.
+    VT_UINT             = 0x00000017,
+    ///A C-style void.
+    VT_VOID             = 0x00000018,
+    ///An HRESULT value.
+    VT_HRESULT          = 0x00000019,
+    ///A pointer type.
+    VT_PTR              = 0x0000001a,
+    ///A safe array. Use VT_ARRAY in VARIANT.
+    VT_SAFEARRAY        = 0x0000001b,
+    ///A C-style array.
+    VT_CARRAY           = 0x0000001c,
+    ///A user-defined type.
+    VT_USERDEFINED      = 0x0000001d,
+    ///A null-terminated string.
+    VT_LPSTR            = 0x0000001e,
+    ///A wide null-terminated string.
+    VT_LPWSTR           = 0x0000001f,
+    ///A user-defined type.
+    VT_RECORD           = 0x00000024,
+    ///A signed machine register size width.
+    VT_INT_PTR          = 0x00000025,
+    ///An unsigned machine register size width.
+    VT_UINT_PTR         = 0x00000026,
+    ///A FILETIME value.
+    VT_FILETIME         = 0x00000040,
+    ///Length-prefixed bytes.
+    VT_BLOB             = 0x00000041,
+    ///The name of the stream follows.
+    VT_STREAM           = 0x00000042,
+    ///The name of the storage follows.
+    VT_STORAGE          = 0x00000043,
+    ///The stream contains an object.
+    VT_STREAMED_OBJECT  = 0x00000044,
+    ///The storage contains an object.
+    VT_STORED_OBJECT    = 0x00000045,
+    ///The blob contains an object.
+    VT_BLOB_OBJECT      = 0x00000046,
+    ///A clipboard format.
+    VT_CF               = 0x00000047,
+    ///A class ID.
+    VT_CLSID            = 0x00000048,
+    ///A stream with a GUID version.
+    VT_VERSIONED_STREAM = 0x00000049,
+    ///Reserved.
+    VT_BSTR_BLOB        = 0x00000fff,
+    ///A simple counted array.
+    VT_VECTOR           = 0x00001000,
+    ///A SAFEARRAY pointer.
+    VT_ARRAY            = 0x00002000,
+    ///A void pointer for local use.
+    VT_BYREF            = 0x00004000,
+    VT_RESERVED         = 0x00008000,
+    VT_ILLEGAL          = 0x0000ffff,
+    VT_ILLEGALMASKED    = 0x00000fff,
+    VT_TYPEMASK         = 0x00000fff,
+}
 
 alias SF_TYPE = int;
 enum : int
@@ -306,112 +413,6 @@ enum : int
     REGKIND_NONE     = 0x00000002,
 }
 
-///Specifies the variant types.
-alias VARENUM = int;
-enum : int
-{
-    ///Not specified.
-    VT_EMPTY            = 0x00000000,
-    ///Null.
-    VT_NULL             = 0x00000001,
-    ///A 2-byte integer.
-    VT_I2               = 0x00000002,
-    ///A 4-byte integer.
-    VT_I4               = 0x00000003,
-    ///A 4-byte real.
-    VT_R4               = 0x00000004,
-    ///An 8-byte real.
-    VT_R8               = 0x00000005,
-    ///Currency.
-    VT_CY               = 0x00000006,
-    ///A date.
-    VT_DATE             = 0x00000007,
-    ///A string.
-    VT_BSTR             = 0x00000008,
-    ///An IDispatch pointer.
-    VT_DISPATCH         = 0x00000009,
-    ///An SCODE value.
-    VT_ERROR            = 0x0000000a,
-    ///A Boolean value. True is -1 and false is 0.
-    VT_BOOL             = 0x0000000b,
-    ///A variant pointer.
-    VT_VARIANT          = 0x0000000c,
-    ///An IUnknown pointer.
-    VT_UNKNOWN          = 0x0000000d,
-    ///A 16-byte fixed-pointer value.
-    VT_DECIMAL          = 0x0000000e,
-    ///A character.
-    VT_I1               = 0x00000010,
-    ///An unsigned character.
-    VT_UI1              = 0x00000011,
-    ///An unsigned short.
-    VT_UI2              = 0x00000012,
-    ///An unsigned long.
-    VT_UI4              = 0x00000013,
-    ///A 64-bit integer.
-    VT_I8               = 0x00000014,
-    ///A 64-bit unsigned integer.
-    VT_UI8              = 0x00000015,
-    ///An integer.
-    VT_INT              = 0x00000016,
-    ///An unsigned integer.
-    VT_UINT             = 0x00000017,
-    ///A C-style void.
-    VT_VOID             = 0x00000018,
-    ///An HRESULT value.
-    VT_HRESULT          = 0x00000019,
-    ///A pointer type.
-    VT_PTR              = 0x0000001a,
-    ///A safe array. Use VT_ARRAY in VARIANT.
-    VT_SAFEARRAY        = 0x0000001b,
-    ///A C-style array.
-    VT_CARRAY           = 0x0000001c,
-    ///A user-defined type.
-    VT_USERDEFINED      = 0x0000001d,
-    ///A null-terminated string.
-    VT_LPSTR            = 0x0000001e,
-    ///A wide null-terminated string.
-    VT_LPWSTR           = 0x0000001f,
-    ///A user-defined type.
-    VT_RECORD           = 0x00000024,
-    ///A signed machine register size width.
-    VT_INT_PTR          = 0x00000025,
-    ///An unsigned machine register size width.
-    VT_UINT_PTR         = 0x00000026,
-    ///A FILETIME value.
-    VT_FILETIME         = 0x00000040,
-    ///Length-prefixed bytes.
-    VT_BLOB             = 0x00000041,
-    ///The name of the stream follows.
-    VT_STREAM           = 0x00000042,
-    ///The name of the storage follows.
-    VT_STORAGE          = 0x00000043,
-    ///The stream contains an object.
-    VT_STREAMED_OBJECT  = 0x00000044,
-    ///The storage contains an object.
-    VT_STORED_OBJECT    = 0x00000045,
-    ///The blob contains an object.
-    VT_BLOB_OBJECT      = 0x00000046,
-    ///A clipboard format.
-    VT_CF               = 0x00000047,
-    ///A class ID.
-    VT_CLSID            = 0x00000048,
-    ///A stream with a GUID version.
-    VT_VERSIONED_STREAM = 0x00000049,
-    ///Reserved.
-    VT_BSTR_BLOB        = 0x00000fff,
-    ///A simple counted array.
-    VT_VECTOR           = 0x00001000,
-    ///A SAFEARRAY pointer.
-    VT_ARRAY            = 0x00002000,
-    ///A void pointer for local use.
-    VT_BYREF            = 0x00004000,
-    VT_RESERVED         = 0x00008000,
-    VT_ILLEGAL          = 0x0000ffff,
-    VT_ILLEGALMASKED    = 0x00000fff,
-    VT_TYPEMASK         = 0x00000fff,
-}
-
 // Structs
 
 
@@ -463,7 +464,7 @@ struct _wireSAFEARR_HAVEIID
 struct _wireSAFEARRAY_UNION
 {
     uint sfType;
-    union u
+union u
     {
         _wireSAFEARR_BSTR    BstrStr;
         _wireSAFEARR_UNKNOWN UnknownStr;
@@ -536,15 +537,15 @@ struct SAFEARRAY
 ///VARIANTARGs cannot.
 struct VARIANT
 {
-    union
+union
     {
-        struct
+struct
         {
             ushort vt;
             ushort wReserved1;
             ushort wReserved2;
             ushort wReserved3;
-            union
+union
             {
                 long        llVal;
                 int         lVal;
@@ -591,7 +592,7 @@ struct VARIANT
                 ulong*      pullVal;
                 int*        pintVal;
                 uint*       puintVal;
-                struct
+struct
                 {
                     void*       pvRecord;
                     IRecordInfo pRecInfo;
@@ -618,7 +619,7 @@ struct _wireVARIANT
     ushort wReserved1;
     ushort wReserved2;
     ushort wReserved3;
-    union
+union
     {
         long                llVal;
         int                 lVal;
@@ -670,7 +671,7 @@ struct _wireVARIANT
 ///Describes the type of a variable, the return type of a function, or the type of a function parameter.
 struct TYPEDESC
 {
-    union
+union
     {
         TYPEDESC*  lptdesc;
         ARRAYDESC* lpadesc;
@@ -719,7 +720,7 @@ struct ELEMDESC
 {
     ///The type of the element.
     TYPEDESC tdesc;
-    union
+union
     {
         IDLDESC   idldesc;
         PARAMDESC paramdesc;
@@ -740,7 +741,7 @@ struct TYPEATTR
     ///The destructor ID, or MEMBERID_NIL if none.
     int      memidDestructor;
     ///Reserved.
-    ushort*  lpstrSchema;
+    PWSTR    lpstrSchema;
     ///The size of an instance of this type.
     uint     cbSizeInstance;
     ///The kind of type.
@@ -840,8 +841,8 @@ struct VARDESC
     ///The member ID.
     int      memid;
     ///Reserved.
-    ushort*  lpstrSchema;
-    union
+    PWSTR    lpstrSchema;
+union
     {
         uint     oInst;
         VARIANT* lpvarValue;
@@ -932,15 +933,15 @@ struct PARAMDATA
     ///The parameter name. Names should follow standard conventions for programming language access; that is, no
     ///embedded spaces or control characters, and 32 or fewer characters. The name should be localized because each type
     ///description provides names for a particular locale.
-    ushort* szName;
-    ushort  vt;
+    PWSTR  szName;
+    ushort vt;
 }
 
 ///Describes a method or property.
 struct METHODDATA
 {
     ///The method name.
-    ushort*    szName;
+    PWSTR      szName;
     ///An array of method parameters.
     PARAMDATA* ppdata;
     ///The ID of the method, as used in IDispatch.
@@ -1053,7 +1054,11 @@ struct WIA_MICR
     WIA_MICR_INFO[1] Micr;
 }
 
-alias BSTR = ptrdiff_t;
+@RAIIFree!SysFreeString
+struct BSTR
+{
+    ptrdiff_t Value;
+}
 
 // Functions
 
@@ -1080,13 +1085,68 @@ ubyte* BSTR_UserMarshal(uint* param0, ubyte* param1, BSTR* param2);
 ///    arg2 = The current buffer. This pointer may or may not be aligned on entry.
 ///    arg3 = The object.
 @DllImport("OLEAUT32")
-ubyte* BSTR_UserUnmarshal(uint* param0, char* param1, BSTR* param2);
+ubyte* BSTR_UserUnmarshal(uint* param0, ubyte* param1, BSTR* param2);
 
 ///Frees resources on the server side when called by RPC stub files.
 ///Params:
 ///    arg1 = The data used by RPC.
 @DllImport("OLEAUT32")
 void BSTR_UserFree(uint* param0, BSTR* param1);
+
+@DllImport("OLE32")
+uint HWND_UserSize(uint* param0, uint param1, HWND* param2);
+
+@DllImport("OLE32")
+ubyte* HWND_UserMarshal(uint* param0, ubyte* param1, HWND* param2);
+
+@DllImport("OLE32")
+ubyte* HWND_UserUnmarshal(uint* param0, ubyte* param1, HWND* param2);
+
+@DllImport("OLE32")
+void HWND_UserFree(uint* param0, HWND* param1);
+
+///Calculates the wire size of the BSTR object, and gets its handle and data.
+///Params:
+///    arg1 = The data used by RPC.
+///    arg2 = The current buffer offset where the object will be marshaled. The method has to account for any padding needed
+///           for the BSTR object to be properly aligned when it will be marshaled to the buffer.
+///    arg3 = The object.
+@DllImport("OLEAUT32")
+uint BSTR_UserSize64(uint* param0, uint param1, BSTR* param2);
+
+///Marshals a BSTR object into the RPC buffer.
+///Params:
+///    arg1 = The data used by RPC.
+///    arg2 = The current buffer. This pointer may or may not be aligned on entry.
+///    arg3 = The object.
+@DllImport("OLEAUT32")
+ubyte* BSTR_UserMarshal64(uint* param0, ubyte* param1, BSTR* param2);
+
+///Unmarshals a BSTR object from the RPC buffer.
+///Params:
+///    arg1 = The data used by RPC.
+///    arg2 = The current buffer. This pointer may or may not be aligned on entry.
+///    arg3 = The object.
+@DllImport("OLEAUT32")
+ubyte* BSTR_UserUnmarshal64(uint* param0, ubyte* param1, BSTR* param2);
+
+///Frees resources on the server side when called by RPC stub files.
+///Params:
+///    arg1 = The data used by RPC.
+@DllImport("OLEAUT32")
+void BSTR_UserFree64(uint* param0, BSTR* param1);
+
+@DllImport("OLE32")
+uint HWND_UserSize64(uint* param0, uint param1, HWND* param2);
+
+@DllImport("OLE32")
+ubyte* HWND_UserMarshal64(uint* param0, ubyte* param1, HWND* param2);
+
+@DllImport("OLE32")
+ubyte* HWND_UserUnmarshal64(uint* param0, ubyte* param1, HWND* param2);
+
+@DllImport("OLE32")
+void HWND_UserFree64(uint* param0, HWND* param1);
 
 ///Calculates the wire size of the SAFEARRAY object, and gets its handle and data.
 ///Params:
@@ -1114,44 +1174,13 @@ ubyte* LPSAFEARRAY_UserMarshal(uint* param0, ubyte* param1, SAFEARRAY** param2);
 ///           marshaled object.
 ///    arg3 = Receives the safe array that contains the data.
 @DllImport("OLEAUT32")
-ubyte* LPSAFEARRAY_UserUnmarshal(uint* param0, char* param1, SAFEARRAY** param2);
+ubyte* LPSAFEARRAY_UserUnmarshal(uint* param0, ubyte* param1, SAFEARRAY** param2);
 
 ///Frees resources on the server side when called by RPC stub files.
 ///Params:
 ///    arg1 = The data used by RPC.
 @DllImport("OLEAUT32")
 void LPSAFEARRAY_UserFree(uint* param0, SAFEARRAY** param1);
-
-///Calculates the wire size of the BSTR object, and gets its handle and data.
-///Params:
-///    arg1 = The data used by RPC.
-///    arg2 = The current buffer offset where the object will be marshaled. The method has to account for any padding needed
-///           for the BSTR object to be properly aligned when it will be marshaled to the buffer.
-///    arg3 = The object.
-@DllImport("OLEAUT32")
-uint BSTR_UserSize64(uint* param0, uint param1, BSTR* param2);
-
-///Marshals a BSTR object into the RPC buffer.
-///Params:
-///    arg1 = The data used by RPC.
-///    arg2 = The current buffer. This pointer may or may not be aligned on entry.
-///    arg3 = The object.
-@DllImport("OLEAUT32")
-ubyte* BSTR_UserMarshal64(uint* param0, ubyte* param1, BSTR* param2);
-
-///Unmarshals a BSTR object from the RPC buffer.
-///Params:
-///    arg1 = The data used by RPC.
-///    arg2 = The current buffer. This pointer may or may not be aligned on entry.
-///    arg3 = The object.
-@DllImport("OLEAUT32")
-ubyte* BSTR_UserUnmarshal64(uint* param0, char* param1, BSTR* param2);
-
-///Frees resources on the server side when called by RPC stub files.
-///Params:
-///    arg1 = The data used by RPC.
-@DllImport("OLEAUT32")
-void BSTR_UserFree64(uint* param0, BSTR* param1);
 
 ///Calculates the wire size of the SAFEARRAY object, and gets its handle and data.
 ///Params:
@@ -1179,7 +1208,7 @@ ubyte* LPSAFEARRAY_UserMarshal64(uint* param0, ubyte* param1, SAFEARRAY** param2
 ///           marshaled object.
 ///    arg3 = Receives the safe array that contains the data.
 @DllImport("OLEAUT32")
-ubyte* LPSAFEARRAY_UserUnmarshal64(uint* param0, char* param1, SAFEARRAY** param2);
+ubyte* LPSAFEARRAY_UserUnmarshal64(uint* param0, ubyte* param1, SAFEARRAY** param2);
 
 ///Frees resources on the server side when called by RPC stub files.
 ///Params:
@@ -1210,7 +1239,7 @@ ubyte* VARIANT_UserMarshal(uint* param0, ubyte* param1, VARIANT* param2);
 ///    arg2 = The current buffer. This pointer may or may not be aligned on entry.
 ///    arg3 = The object.
 @DllImport("OLEAUT32")
-ubyte* VARIANT_UserUnmarshal(uint* param0, char* param1, VARIANT* param2);
+ubyte* VARIANT_UserUnmarshal(uint* param0, ubyte* param1, VARIANT* param2);
 
 ///Frees resources on the server side when called by RPC stub files.
 ///Params:
@@ -1241,107 +1270,13 @@ ubyte* VARIANT_UserMarshal64(uint* param0, ubyte* param1, VARIANT* param2);
 ///    arg2 = The current buffer. This pointer may or may not be aligned on entry.
 ///    arg3 = The object.
 @DllImport("OLEAUT32")
-ubyte* VARIANT_UserUnmarshal64(uint* param0, char* param1, VARIANT* param2);
+ubyte* VARIANT_UserUnmarshal64(uint* param0, ubyte* param1, VARIANT* param2);
 
 ///Frees resources on the server side when called by RPC stub files.
 ///Params:
 ///    arg1 = The data used by RPC.
 @DllImport("OLEAUT32")
 void VARIANT_UserFree64(uint* param0, VARIANT* param1);
-
-@DllImport("OLE32")
-uint HWND_UserSize(uint* param0, uint param1, HWND* param2);
-
-@DllImport("OLE32")
-ubyte* HWND_UserMarshal(uint* param0, ubyte* param1, HWND* param2);
-
-@DllImport("OLE32")
-ubyte* HWND_UserUnmarshal(uint* param0, char* param1, HWND* param2);
-
-@DllImport("OLE32")
-void HWND_UserFree(uint* param0, HWND* param1);
-
-@DllImport("OLE32")
-uint HWND_UserSize64(uint* param0, uint param1, HWND* param2);
-
-@DllImport("OLE32")
-ubyte* HWND_UserMarshal64(uint* param0, ubyte* param1, HWND* param2);
-
-@DllImport("OLE32")
-ubyte* HWND_UserUnmarshal64(uint* param0, char* param1, HWND* param2);
-
-@DllImport("OLE32")
-void HWND_UserFree64(uint* param0, HWND* param1);
-
-@DllImport("OLE32")
-uint STGMEDIUM_UserSize(uint* param0, uint param1, STGMEDIUM* param2);
-
-@DllImport("OLE32")
-ubyte* STGMEDIUM_UserMarshal(uint* param0, ubyte* param1, STGMEDIUM* param2);
-
-@DllImport("OLE32")
-ubyte* STGMEDIUM_UserUnmarshal(uint* param0, char* param1, STGMEDIUM* param2);
-
-@DllImport("OLE32")
-void STGMEDIUM_UserFree(uint* param0, STGMEDIUM* param1);
-
-@DllImport("OLE32")
-uint STGMEDIUM_UserSize64(uint* param0, uint param1, STGMEDIUM* param2);
-
-@DllImport("OLE32")
-ubyte* STGMEDIUM_UserMarshal64(uint* param0, ubyte* param1, STGMEDIUM* param2);
-
-@DllImport("OLE32")
-ubyte* STGMEDIUM_UserUnmarshal64(uint* param0, char* param1, STGMEDIUM* param2);
-
-@DllImport("OLE32")
-void STGMEDIUM_UserFree64(uint* param0, STGMEDIUM* param1);
-
-///Creates an <b>IPictureDisp</b> object from a picture file on disk.
-///Params:
-///    varFileName = The path and name of the picture file to load.
-///    lplpdispPicture = The location that receives a pointer to the <b>IPictureDisp</b> object.
-///Returns:
-///    This method returns standard COM error codes in addition to the following values. <table> <tr> <th>Return
-///    code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%">
-///    The method completed successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>CTL_E_INVALIDPICTURE</b></dt>
-///    </dl> </td> <td width="60%"> Invalid picture file. </td> </tr> </table>
-///    
-@DllImport("OLEAUT32")
-HRESULT OleLoadPictureFile(VARIANT varFileName, IDispatch* lplpdispPicture);
-
-///Loads a picture from a file.
-///Params:
-///    varFileName = The path and name of the picture file to load.
-///    xSizeDesired = The desired length for the picture to be displayed.
-///    ySizeDesired = The desired height for the picture to be displayed.
-///    dwFlags = The desired color depth for the icon or cursor. Together with the desired size it is used to select the best
-///              matching image. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
-///              id="LP_MONOCHROME_"></a><a id="lp_monochrome_"></a><dl> <dt><b>LP_MONOCHROME </b></dt> </dl> </td> <td
-///              width="60%"> Creates a monochrome picture to display on a monitor. </td> </tr> <tr> <td width="40%"><a
-///              id="LP_VGACOLOR_"></a><a id="lp_vgacolor_"></a><dl> <dt><b>LP_VGACOLOR </b></dt> </dl> </td> <td width="60%">
-///              Creates a 16-color picture to display on a monitor. </td> </tr> <tr> <td width="40%"><a id="LP_COLOR_"></a><a
-///              id="lp_color_"></a><dl> <dt><b>LP_COLOR </b></dt> </dl> </td> <td width="60%"> Creates a 256-color picture to
-///              display on a monitor. </td> </tr> <tr> <td width="40%"><a id="LP_DEFAULT_"></a><a id="lp_default_"></a><dl>
-///              <dt><b>LP_DEFAULT </b></dt> </dl> </td> <td width="60%"> Selects the best color depth to use for the current
-///              display. </td> </tr> </table>
-///    lplpdispPicture = The location that receives a pointer to the picture.
-///Returns:
-///    This method returns standard COM error codes in addition to the following values. <table> <tr> <th>Return
-///    code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%">
-///    The method completed successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>DISP_E_PARAMNOTFOUND</b></dt>
-///    </dl> </td> <td width="60%"> <i>varFileName</i> is not valid. </td> </tr> </table>
-///    
-@DllImport("OLEAUT32")
-HRESULT OleLoadPictureFileEx(VARIANT varFileName, uint xSizeDesired, uint ySizeDesired, uint dwFlags, 
-                             IDispatch* lplpdispPicture);
-
-///Saves a picture to a file.
-///Params:
-///    lpdispPicture = Points to the <b>IPictureDisp</b> picture object.
-///    bstrFileName = The name of the file to save the picture to.
-@DllImport("OLEAUT32")
-HRESULT OleSavePictureFile(IDispatch lpdispPicture, BSTR bstrFileName);
 
 ///Allocates a new string and copies the passed string into it.
 ///Params:
@@ -1351,7 +1286,7 @@ HRESULT OleSavePictureFile(IDispatch lpdispPicture, BSTR bstrFileName);
 ///    <i>psz</i> is NULL or insufficient memory exists, returns NULL.
 ///    
 @DllImport("OLEAUT32")
-BSTR SysAllocString(const(ushort)* psz);
+BSTR SysAllocString(const(PWSTR) psz);
 
 ///Reallocates a previously allocated string to be the size of a second string and copies the second string into the
 ///reallocated memory.
@@ -1364,7 +1299,7 @@ BSTR SysAllocString(const(ushort)* psz);
 ///    <dt><b>FALSE</b></dt> </dl> </td> <td width="60%"> Insufficient memory exists. </td> </tr> </table>
 ///    
 @DllImport("OLEAUT32")
-int SysReAllocString(char* pbstr, const(ushort)* psz);
+int SysReAllocString(BSTR* pbstr, const(PWSTR) psz);
 
 ///Allocates a new string, copies the specified number of characters from the passed string, and appends a
 ///null-terminating character.
@@ -1376,7 +1311,7 @@ int SysReAllocString(char* pbstr, const(ushort)* psz);
 ///    A copy of the string, or <b>NULL</b> if there is insufficient memory to complete the operation.
 ///    
 @DllImport("OLEAUT32")
-BSTR SysAllocStringLen(char* strIn, uint ui);
+BSTR SysAllocStringLen(const(PWSTR) strIn, uint ui);
 
 ///Creates a new BSTR containing a specified number of characters from an old BSTR, and frees the old BSTR.
 ///Params:
@@ -1390,7 +1325,7 @@ BSTR SysAllocStringLen(char* strIn, uint ui);
 ///    <dt><b>FALSE</b></dt> </dl> </td> <td width="60%"> Insufficient memory exists. </td> </tr> </table>
 ///    
 @DllImport("OLEAUT32")
-int SysReAllocStringLen(char* pbstr, const(ushort)* psz, uint len);
+int SysReAllocStringLen(BSTR* pbstr, const(PWSTR) psz, uint len);
 
 ///<div class="alert"><b>Note</b> You should only call <b>SysAddRefString</b> if you are implementing a scripting engine
 ///that needs to guard against running potentially malicious scripts.</div><div> </div>Increases the pinning reference
@@ -1449,7 +1384,7 @@ uint SysStringByteLen(BSTR bstr);
 ///    A copy of the string, or NULL if there is insufficient memory to complete the operation.
 ///    
 @DllImport("OLEAUT32")
-BSTR SysAllocStringByteLen(const(char)* psz, uint len);
+BSTR SysAllocStringByteLen(const(PSTR) psz, uint len);
 
 ///Converts the MS-DOS representation of time to the date and time representation stored in a variant.
 ///Params:
@@ -1747,7 +1682,7 @@ HRESULT SafeArrayUnaccessData(SAFEARRAY* psa);
 ///    width="60%"> Memory could not be allocated for the element. </td> </tr> </table>
 ///    
 @DllImport("OLEAUT32")
-HRESULT SafeArrayGetElement(SAFEARRAY* psa, char* rgIndices, void* pv);
+HRESULT SafeArrayGetElement(SAFEARRAY* psa, int* rgIndices, void* pv);
 
 ///Stores the data element at the specified location in the array.
 ///Params:
@@ -1765,7 +1700,7 @@ HRESULT SafeArrayGetElement(SAFEARRAY* psa, char* rgIndices, void* pv);
 ///    width="60%"> Memory could not be allocated for the element. </td> </tr> </table>
 ///    
 @DllImport("OLEAUT32")
-HRESULT SafeArrayPutElement(SAFEARRAY* psa, char* rgIndices, void* pv);
+HRESULT SafeArrayPutElement(SAFEARRAY* psa, int* rgIndices, void* pv);
 
 ///Creates a copy of an existing safe array.
 ///Params:
@@ -1794,7 +1729,7 @@ HRESULT SafeArrayCopy(SAFEARRAY* psa, SAFEARRAY** ppsaOut);
 ///    arguments is not valid. </td> </tr> </table>
 ///    
 @DllImport("OLEAUT32")
-HRESULT SafeArrayPtrOfIndex(SAFEARRAY* psa, char* rgIndices, void** ppvData);
+HRESULT SafeArrayPtrOfIndex(SAFEARRAY* psa, int* rgIndices, void** ppvData);
 
 ///Sets the record info in the specified safe array.
 ///Params:
@@ -2070,7 +2005,7 @@ HRESULT VarUI1FromDate(double dateIn, ubyte* pbOut);
 ///              </table>
 ///    pbOut = The resulting value.
 @DllImport("OLEAUT32")
-HRESULT VarUI1FromStr(ushort* strIn, uint lcid, uint dwFlags, ubyte* pbOut);
+HRESULT VarUI1FromStr(const(PWSTR) strIn, uint lcid, uint dwFlags, ubyte* pbOut);
 
 ///Converts the default property of an IDispatch instance to an unsigned char value.
 ///Params:
@@ -2186,7 +2121,7 @@ HRESULT VarI2FromDate(double dateIn, short* psOut);
 ///              dates. </td> </tr> </table>
 ///    psOut = The resulting value.
 @DllImport("OLEAUT32")
-HRESULT VarI2FromStr(ushort* strIn, uint lcid, uint dwFlags, short* psOut);
+HRESULT VarI2FromStr(const(PWSTR) strIn, uint lcid, uint dwFlags, short* psOut);
 
 ///Converts the default property of an IDispatch instance to a short value.
 ///Params:
@@ -2302,7 +2237,7 @@ HRESULT VarI4FromDate(double dateIn, int* plOut);
 ///              dates. </td> </tr> </table>
 ///    plOut = The resulting value.
 @DllImport("OLEAUT32")
-HRESULT VarI4FromStr(ushort* strIn, uint lcid, uint dwFlags, int* plOut);
+HRESULT VarI4FromStr(const(PWSTR) strIn, uint lcid, uint dwFlags, int* plOut);
 
 ///Converts the default property of an IDispatch instance to a long value.
 ///Params:
@@ -2408,7 +2343,7 @@ HRESULT VarI8FromDate(double dateIn, long* pi64Out);
 ///              </table>
 ///    pi64Out = The resulting value.
 @DllImport("OLEAUT32")
-HRESULT VarI8FromStr(ushort* strIn, uint lcid, uint dwFlags, long* pi64Out);
+HRESULT VarI8FromStr(const(PWSTR) strIn, uint lcid, uint dwFlags, long* pi64Out);
 
 ///Converts the default property of an IDispatch instance to an 8-byte integer value.
 ///Params:
@@ -2524,7 +2459,7 @@ HRESULT VarR4FromDate(double dateIn, float* pfltOut);
 ///              dates. </td> </tr> </table>
 ///    pfltOut = The resulting value.
 @DllImport("OLEAUT32")
-HRESULT VarR4FromStr(ushort* strIn, uint lcid, uint dwFlags, float* pfltOut);
+HRESULT VarR4FromStr(const(PWSTR) strIn, uint lcid, uint dwFlags, float* pfltOut);
 
 ///Converts the default property of an IDispatch instance to a float value.
 ///Params:
@@ -2640,7 +2575,7 @@ HRESULT VarR8FromDate(double dateIn, double* pdblOut);
 ///              dates. </td> </tr> </table>
 ///    pdblOut = The resulting value.
 @DllImport("OLEAUT32")
-HRESULT VarR8FromStr(ushort* strIn, uint lcid, uint dwFlags, double* pdblOut);
+HRESULT VarR8FromStr(const(PWSTR) strIn, uint lcid, uint dwFlags, double* pdblOut);
 
 ///Converts the default property of an IDispatch instance to a double value.
 ///Params:
@@ -2758,7 +2693,7 @@ HRESULT VarDateFromCy(CY cyIn, double* pdateOut);
 ///              conversions to or from dates. </td> </tr> </table>
 ///    pdateOut = The resulting value.
 @DllImport("OLEAUT32")
-HRESULT VarDateFromStr(ushort* strIn, uint lcid, uint dwFlags, double* pdateOut);
+HRESULT VarDateFromStr(const(PWSTR) strIn, uint lcid, uint dwFlags, double* pdateOut);
 
 ///Converts the default property of an IDispatch instance to a date value.
 ///Params:
@@ -2874,7 +2809,7 @@ HRESULT VarCyFromDate(double dateIn, CY* pcyOut);
 ///              dates. </td> </tr> </table>
 ///    pcyOut = The resulting value.
 @DllImport("OLEAUT32")
-HRESULT VarCyFromStr(ushort* strIn, uint lcid, uint dwFlags, CY* pcyOut);
+HRESULT VarCyFromStr(const(PWSTR) strIn, uint lcid, uint dwFlags, CY* pcyOut);
 
 ///Converts the default property of an IDispatch instance to a currency value.
 ///Params:
@@ -3173,7 +3108,7 @@ HRESULT VarBoolFromCy(CY cyIn, short* pboolOut);
 ///              </td> <td width="60%"> Uses localized Boolean names. </td> </tr> </table>
 ///    pboolOut = The resulting value.
 @DllImport("OLEAUT32")
-HRESULT VarBoolFromStr(ushort* strIn, uint lcid, uint dwFlags, short* pboolOut);
+HRESULT VarBoolFromStr(const(PWSTR) strIn, uint lcid, uint dwFlags, short* pboolOut);
 
 ///Converts the default property of an IDispatch instance to a Boolean value.
 ///Params:
@@ -3284,7 +3219,7 @@ HRESULT VarI1FromCy(CY cyIn, byte* pcOut);
 ///              </table>
 ///    pcOut = The resulting value.
 @DllImport("OLEAUT32")
-HRESULT VarI1FromStr(ushort* strIn, uint lcid, uint dwFlags, byte* pcOut);
+HRESULT VarI1FromStr(const(PWSTR) strIn, uint lcid, uint dwFlags, byte* pcOut);
 
 ///Converts the default property of an IDispatch instance to a char value.
 ///Params:
@@ -3400,7 +3335,7 @@ HRESULT VarUI2FromCy(CY cyIn, ushort* puiOut);
 ///              dates. </td> </tr> </table>
 ///    puiOut = The resulting value.
 @DllImport("OLEAUT32")
-HRESULT VarUI2FromStr(ushort* strIn, uint lcid, uint dwFlags, ushort* puiOut);
+HRESULT VarUI2FromStr(const(PWSTR) strIn, uint lcid, uint dwFlags, ushort* puiOut);
 
 ///Converts the default property of an IDispatch instance to an unsigned short value.
 ///Params:
@@ -3516,7 +3451,7 @@ HRESULT VarUI4FromCy(CY cyIn, uint* pulOut);
 ///              dates. </td> </tr> </table>
 ///    pulOut = The resulting value.
 @DllImport("OLEAUT32")
-HRESULT VarUI4FromStr(ushort* strIn, uint lcid, uint dwFlags, uint* pulOut);
+HRESULT VarUI4FromStr(const(PWSTR) strIn, uint lcid, uint dwFlags, uint* pulOut);
 
 ///Converts the default property of an IDispatch instance to an unsigned long value.
 ///Params:
@@ -3620,7 +3555,7 @@ HRESULT VarUI8FromDate(double dateIn, ulong* pi64Out);
 ///              </table>
 ///    pi64Out = The resulting value.
 @DllImport("OLEAUT32")
-HRESULT VarUI8FromStr(ushort* strIn, uint lcid, uint dwFlags, ulong* pi64Out);
+HRESULT VarUI8FromStr(const(PWSTR) strIn, uint lcid, uint dwFlags, ulong* pi64Out);
 
 ///Converts the default property of an IDispatch instance to an 8-byte unsigned integer value.
 ///Params:
@@ -3736,7 +3671,7 @@ HRESULT VarDecFromCy(CY cyIn, DECIMAL* pdecOut);
 ///              dates. </td> </tr> </table>
 ///    pdecOut = The resulting value.
 @DllImport("OLEAUT32")
-HRESULT VarDecFromStr(ushort* strIn, uint lcid, uint dwFlags, DECIMAL* pdecOut);
+HRESULT VarDecFromStr(const(PWSTR) strIn, uint lcid, uint dwFlags, DECIMAL* pdecOut);
 
 ///Converts the default property of an IDispatch instance to a decimal value.
 ///Params:
@@ -3794,7 +3729,7 @@ HRESULT VarDecFromUI8(ulong ui64In, DECIMAL* pdecOut);
 ///             decimal, or hexadecimal. All leading zeros have been stripped off. For decimal numbers, trailing zeros are also
 ///             stripped off, unless the number is zero, in which case a single zero digit will be present.
 @DllImport("OLEAUT32")
-HRESULT VarParseNumFromStr(ushort* strIn, uint lcid, uint dwFlags, NUMPARSE* pnumprs, char* rgbDig);
+HRESULT VarParseNumFromStr(const(PWSTR) strIn, uint lcid, uint dwFlags, NUMPARSE* pnumprs, ubyte* rgbDig);
 
 ///Converts parsed results to a variant.
 ///Params:
@@ -3812,7 +3747,7 @@ HRESULT VarParseNumFromStr(ushort* strIn, uint lcid, uint dwFlags, NUMPARSE* pnu
 ///    represented in an allowed type. There is no error if precision is lost in the conversion. </td> </tr> </table>
 ///    
 @DllImport("OLEAUT32")
-HRESULT VarNumFromParseNum(NUMPARSE* pnumprs, char* rgbDig, uint dwVtBits, VARIANT* pvar);
+HRESULT VarNumFromParseNum(NUMPARSE* pnumprs, ubyte* rgbDig, uint dwVtBits, VARIANT* pvar);
 
 ///Returns the sum of two variants.
 ///Params:
@@ -4344,7 +4279,7 @@ HRESULT VarUdateFromDate(double dateIn, uint dwFlags, UDATE* pudateOut);
 ///    The function returns TRUE on success and FALSE otherwise.
 ///    
 @DllImport("OLEAUT32")
-HRESULT GetAltMonthNames(uint lcid, ushort*** prgp);
+HRESULT GetAltMonthNames(uint lcid, PWSTR** prgp);
 
 ///Formats a variant into string form by parsing a format string.
 ///Params:
@@ -4373,7 +4308,7 @@ HRESULT GetAltMonthNames(uint lcid, ushort*** prgp);
 ///    valid. </td> </tr> </table>
 ///    
 @DllImport("OLEAUT32")
-HRESULT VarFormat(VARIANT* pvarIn, ushort* pstrFormat, int iFirstDay, int iFirstWeek, uint dwFlags, BSTR* pbstrOut);
+HRESULT VarFormat(VARIANT* pvarIn, PWSTR pstrFormat, int iFirstDay, int iFirstWeek, uint dwFlags, BSTR* pbstrOut);
 
 ///Formats a variant containing named date and time information into a string.
 ///Params:
@@ -4536,7 +4471,7 @@ HRESULT VarMonthName(int iMonth, int fAbbrev, uint dwFlags, BSTR* pbstrOut);
 ///    The argument could not be coerced to the specified type. </td> </tr> </table>
 ///    
 @DllImport("OLEAUT32")
-HRESULT VarFormatFromTokens(VARIANT* pvarIn, ushort* pstrFormat, char* pbTokCur, uint dwFlags, BSTR* pbstrOut, 
+HRESULT VarFormatFromTokens(VARIANT* pvarIn, PWSTR pstrFormat, ubyte* pbTokCur, uint dwFlags, BSTR* pbstrOut, 
                             uint lcid);
 
 ///Parses the actual format string into a series of tokens which can be used to format variants using
@@ -4568,7 +4503,7 @@ HRESULT VarFormatFromTokens(VARIANT* pvarIn, ushort* pstrFormat, char* pbTokCur,
 ///    The destination token buffer is too small. </td> </tr> </table>
 ///    
 @DllImport("OLEAUT32")
-HRESULT VarTokenizeFormatString(ushort* pstrFormat, char* rgbTok, int cbTok, int iFirstDay, int iFirstWeek, 
+HRESULT VarTokenizeFormatString(PWSTR pstrFormat, ubyte* rgbTok, int cbTok, int iFirstDay, int iFirstWeek, 
                                 uint lcid, int* pcbActual);
 
 ///Computes a hash value for the specified name.
@@ -4577,7 +4512,7 @@ HRESULT VarTokenizeFormatString(ushort* pstrFormat, char* rgbTok, int cbTok, int
 ///    lcid = The LCID for the string.
 ///    szName = The string whose hash value is to be computed.
 @DllImport("OLEAUT32")
-uint LHashValOfNameSysA(SYSKIND syskind, uint lcid, const(char)* szName);
+uint LHashValOfNameSysA(SYSKIND syskind, uint lcid, const(PSTR) szName);
 
 ///Computes a hash value for a name.
 ///Params:
@@ -4585,7 +4520,7 @@ uint LHashValOfNameSysA(SYSKIND syskind, uint lcid, const(char)* szName);
 ///    lcid = The LCID for the string.
 ///    szName = The string whose hash value is to be computed.
 @DllImport("OLEAUT32")
-uint LHashValOfNameSys(SYSKIND syskind, uint lcid, const(ushort)* szName);
+uint LHashValOfNameSys(SYSKIND syskind, uint lcid, const(PWSTR) szName);
 
 ///Loads and registers a type library.
 ///Params:
@@ -4607,7 +4542,7 @@ uint LHashValOfNameSys(SYSKIND syskind, uint lcid, const(ushort)* szName);
 ///    width="60%"> The type library or DLL could not be loaded. </td> </tr> </table>
 ///    
 @DllImport("OLEAUT32")
-HRESULT LoadTypeLib(ushort* szFile, ITypeLib* pptlib);
+HRESULT LoadTypeLib(const(PWSTR) szFile, ITypeLib* pptlib);
 
 ///Loads a type library and (optionally) registers it in the system registry.
 ///Params:
@@ -4632,7 +4567,7 @@ HRESULT LoadTypeLib(ushort* szFile, ITypeLib* pptlib);
 ///    </td> </tr> </table>
 ///    
 @DllImport("OLEAUT32")
-HRESULT LoadTypeLibEx(ushort* szFile, REGKIND regkind, ITypeLib* pptlib);
+HRESULT LoadTypeLibEx(const(PWSTR) szFile, REGKIND regkind, ITypeLib* pptlib);
 
 ///Uses registry information to load a type library.
 ///Params:
@@ -4690,7 +4625,7 @@ HRESULT QueryPathOfRegTypeLib(const(GUID)* guid, ushort wMaj, ushort wMin, uint 
 ///    </td> <td width="60%"> The type library could not be opened. </td> </tr> </table>
 ///    
 @DllImport("OLEAUT32")
-HRESULT RegisterTypeLib(ITypeLib ptlib, ushort* szFullPath, ushort* szHelpDir);
+HRESULT RegisterTypeLib(ITypeLib ptlib, const(PWSTR) szFullPath, const(PWSTR) szHelpDir);
 
 ///Removes type library information from the system registry. Use this API to allow applications to properly uninstall
 ///themselves.
@@ -4731,7 +4666,7 @@ HRESULT UnRegisterTypeLib(const(GUID)* libID, ushort wVerMajor, ushort wVerMinor
 ///    </td> <td width="60%"> The type library could not be opened. </td> </tr> </table>
 ///    
 @DllImport("OLEAUT32")
-HRESULT RegisterTypeLibForUser(ITypeLib ptlib, ushort* szFullPath, ushort* szHelpDir);
+HRESULT RegisterTypeLibForUser(ITypeLib ptlib, PWSTR szFullPath, PWSTR szHelpDir);
 
 ///Removes type library information that was registered by using RegisterTypeLibForUser.
 ///Params:
@@ -4771,7 +4706,7 @@ HRESULT UnRegisterTypeLibForUser(const(GUID)* libID, ushort wMajorVerNum, ushort
 ///    </table> This method can also return the FACILITY_STORAGE errors.
 ///    
 @DllImport("OLEAUT32")
-HRESULT CreateTypeLib(SYSKIND syskind, ushort* szFile, ICreateTypeLib* ppctlib);
+HRESULT CreateTypeLib(SYSKIND syskind, const(PWSTR) szFile, ICreateTypeLib* ppctlib);
 
 ///Creates a type library in the current file format. The file and in-memory format for the current version of
 ///Automation makes use of memory-mapped files. The CreateTypeLib function is still available for creating a type
@@ -4781,7 +4716,7 @@ HRESULT CreateTypeLib(SYSKIND syskind, ushort* szFile, ICreateTypeLib* ppctlib);
 ///    szFile = The name of the file to create.
 ///    ppctlib = The ICreateTypeLib2 interface.
 @DllImport("OLEAUT32")
-HRESULT CreateTypeLib2(SYSKIND syskind, ushort* szFile, ICreateTypeLib2* ppctlib);
+HRESULT CreateTypeLib2(SYSKIND syskind, const(PWSTR) szFile, ICreateTypeLib2* ppctlib);
 
 ///Retrieves a parameter from the DISPPARAMS structure, checking both named parameters and positional parameters, and
 ///coerces the parameter to the specified type.
@@ -4820,7 +4755,7 @@ HRESULT DispGetParam(DISPPARAMS* pdispparams, uint position, ushort vtTarg, VARI
 ///    rgdispid = An array of DISPIDs to be filled in by this function. The first ID corresponds to the method name. Subsequent IDs
 ///               are interpreted as parameters to the method.
 @DllImport("OLEAUT32")
-HRESULT DispGetIDsOfNames(ITypeInfo ptinfo, char* rgszNames, uint cNames, char* rgdispid);
+HRESULT DispGetIDsOfNames(ITypeInfo ptinfo, PWSTR* rgszNames, uint cNames, int* rgdispid);
 
 ///Automatically calls member functions on an interface, given the type information for the interface. You can describe
 ///an interface with type information and implement Invoke for the interface using this single call.
@@ -4920,8 +4855,8 @@ HRESULT CreateStdDispatch(IUnknown punkOuter, void* pvThis, ITypeInfo ptinfo, IU
 ///    prgpvarg = The function parameters.
 ///    pvargResult = The function result.
 @DllImport("OLEAUT32")
-HRESULT DispCallFunc(void* pvInstance, size_t oVft, CALLCONV cc, ushort vtReturn, uint cActuals, char* prgvt, 
-                     char* prgpvarg, VARIANT* pvargResult);
+HRESULT DispCallFunc(void* pvInstance, size_t oVft, CALLCONV cc, ushort vtReturn, uint cActuals, ushort* prgvt, 
+                     VARIANT** prgpvarg, VARIANT* pvargResult);
 
 ///Registers an object as the active object for its class.
 ///Params:
@@ -5035,6 +4970,76 @@ void ClearCustData(CUSTDATA* pCustData);
 @DllImport("OLEAUT32")
 void OaEnablePerUserTLibRegistration();
 
+@DllImport("OLE32")
+uint STGMEDIUM_UserSize(uint* param0, uint param1, STGMEDIUM* param2);
+
+@DllImport("OLE32")
+ubyte* STGMEDIUM_UserMarshal(uint* param0, ubyte* param1, STGMEDIUM* param2);
+
+@DllImport("OLE32")
+ubyte* STGMEDIUM_UserUnmarshal(uint* param0, ubyte* param1, STGMEDIUM* param2);
+
+@DllImport("OLE32")
+void STGMEDIUM_UserFree(uint* param0, STGMEDIUM* param1);
+
+@DllImport("OLE32")
+uint STGMEDIUM_UserSize64(uint* param0, uint param1, STGMEDIUM* param2);
+
+@DllImport("OLE32")
+ubyte* STGMEDIUM_UserMarshal64(uint* param0, ubyte* param1, STGMEDIUM* param2);
+
+@DllImport("OLE32")
+ubyte* STGMEDIUM_UserUnmarshal64(uint* param0, ubyte* param1, STGMEDIUM* param2);
+
+@DllImport("OLE32")
+void STGMEDIUM_UserFree64(uint* param0, STGMEDIUM* param1);
+
+///Creates an <b>IPictureDisp</b> object from a picture file on disk.
+///Params:
+///    varFileName = The path and name of the picture file to load.
+///    lplpdispPicture = The location that receives a pointer to the <b>IPictureDisp</b> object.
+///Returns:
+///    This method returns standard COM error codes in addition to the following values. <table> <tr> <th>Return
+///    code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%">
+///    The method completed successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>CTL_E_INVALIDPICTURE</b></dt>
+///    </dl> </td> <td width="60%"> Invalid picture file. </td> </tr> </table>
+///    
+@DllImport("OLEAUT32")
+HRESULT OleLoadPictureFile(VARIANT varFileName, IDispatch* lplpdispPicture);
+
+///Loads a picture from a file.
+///Params:
+///    varFileName = The path and name of the picture file to load.
+///    xSizeDesired = The desired length for the picture to be displayed.
+///    ySizeDesired = The desired height for the picture to be displayed.
+///    dwFlags = The desired color depth for the icon or cursor. Together with the desired size it is used to select the best
+///              matching image. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
+///              id="LP_MONOCHROME_"></a><a id="lp_monochrome_"></a><dl> <dt><b>LP_MONOCHROME </b></dt> </dl> </td> <td
+///              width="60%"> Creates a monochrome picture to display on a monitor. </td> </tr> <tr> <td width="40%"><a
+///              id="LP_VGACOLOR_"></a><a id="lp_vgacolor_"></a><dl> <dt><b>LP_VGACOLOR </b></dt> </dl> </td> <td width="60%">
+///              Creates a 16-color picture to display on a monitor. </td> </tr> <tr> <td width="40%"><a id="LP_COLOR_"></a><a
+///              id="lp_color_"></a><dl> <dt><b>LP_COLOR </b></dt> </dl> </td> <td width="60%"> Creates a 256-color picture to
+///              display on a monitor. </td> </tr> <tr> <td width="40%"><a id="LP_DEFAULT_"></a><a id="lp_default_"></a><dl>
+///              <dt><b>LP_DEFAULT </b></dt> </dl> </td> <td width="60%"> Selects the best color depth to use for the current
+///              display. </td> </tr> </table>
+///    lplpdispPicture = The location that receives a pointer to the picture.
+///Returns:
+///    This method returns standard COM error codes in addition to the following values. <table> <tr> <th>Return
+///    code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%">
+///    The method completed successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>DISP_E_PARAMNOTFOUND</b></dt>
+///    </dl> </td> <td width="60%"> <i>varFileName</i> is not valid. </td> </tr> </table>
+///    
+@DllImport("OLEAUT32")
+HRESULT OleLoadPictureFileEx(VARIANT varFileName, uint xSizeDesired, uint ySizeDesired, uint dwFlags, 
+                             IDispatch* lplpdispPicture);
+
+///Saves a picture to a file.
+///Params:
+///    lpdispPicture = Points to the <b>IPictureDisp</b> picture object.
+///    bstrFileName = The name of the file to save the picture to.
+@DllImport("OLEAUT32")
+HRESULT OleSavePictureFile(IDispatch lpdispPicture, BSTR bstrFileName);
+
 
 // Interfaces
 
@@ -5089,7 +5094,7 @@ interface ICreateTypeInfo : IUnknown
     ///    operation. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>TYPE_E_INVALIDSTATE</b></dt> </dl> </td> <td
     ///    width="60%"> The state of the type library is not valid for this operation. </td> </tr> </table>
     ///    
-    HRESULT SetDocString(ushort* pStrDoc);
+    HRESULT SetDocString(PWSTR pStrDoc);
     ///Sets the Help context ID of the type information.
     ///Params:
     ///    dwHelpContext = A handle to the Help context.
@@ -5196,7 +5201,7 @@ interface ICreateTypeInfo : IUnknown
     ///    width="60%"> The state of the type library is not valid for this operation. </td> </tr> </table>
     ///    
     HRESULT SetAlignment(ushort cbAlignment);
-    HRESULT SetSchema(ushort* pStrSchema);
+    HRESULT SetSchema(PWSTR pStrSchema);
     ///Adds a variable or data member description to the type description.
     ///Params:
     ///    index = The index of the variable or data member to be added to the type description.
@@ -5231,7 +5236,7 @@ interface ICreateTypeInfo : IUnknown
     ///    <dt><b>TYPE_E_ELEMENTNOTFOUND</b></dt> </dl> </td> <td width="60%"> The element cannot be found. </td> </tr>
     ///    </table>
     ///    
-    HRESULT SetFuncAndParamNames(uint index, char* rgszNames, uint cNames);
+    HRESULT SetFuncAndParamNames(uint index, PWSTR* rgszNames, uint cNames);
     ///Sets the name of a variable.
     ///Params:
     ///    index = The index of the variable.
@@ -5246,7 +5251,7 @@ interface ICreateTypeInfo : IUnknown
     ///    operation. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>TYPE_E_ELEMENTNOTFOUND</b></dt> </dl> </td> <td
     ///    width="60%"> The element cannot be found. </td> </tr> </table>
     ///    
-    HRESULT SetVarName(uint index, ushort* szName);
+    HRESULT SetVarName(uint index, PWSTR szName);
     ///Sets the type description for which this type description is an alias, if TYPEKIND=TKIND_ALIAS.
     ///Params:
     ///    pTDescAlias = The type description.
@@ -5278,7 +5283,7 @@ interface ICreateTypeInfo : IUnknown
     ///    width="60%"> The element cannot be found. </td> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>TYPE_E_WRONGTYPEKIND</b></dt> </dl> </td> <td width="60%"> Type mismatch. </td> </tr> </table>
     ///    
-    HRESULT DefineFuncAsDllEntry(uint index, ushort* szDllName, ushort* szProcName);
+    HRESULT DefineFuncAsDllEntry(uint index, PWSTR szDllName, PWSTR szProcName);
     ///Sets the documentation string for the function with the specified index.
     ///Params:
     ///    index = The index of the function.
@@ -5295,7 +5300,7 @@ interface ICreateTypeInfo : IUnknown
     ///    <dt><b>TYPE_E_ELEMENTNOTFOUND</b></dt> </dl> </td> <td width="60%"> The element cannot be found. </td> </tr>
     ///    </table>
     ///    
-    HRESULT SetFuncDocString(uint index, ushort* szDocString);
+    HRESULT SetFuncDocString(uint index, PWSTR szDocString);
     ///Sets the documentation string for the variable with the specified index.
     ///Params:
     ///    index = The index of the variable.
@@ -5310,7 +5315,7 @@ interface ICreateTypeInfo : IUnknown
     ///    operation. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>TYPE_E_ELEMENTNOTFOUND</b></dt> </dl> </td> <td
     ///    width="60%"> The element cannot be found. </td> </tr> </table>
     ///    
-    HRESULT SetVarDocString(uint index, ushort* szDocString);
+    HRESULT SetVarDocString(uint index, PWSTR szDocString);
     ///Sets the Help context ID for the function with the specified index.
     ///Params:
     ///    index = The index of the function.
@@ -5571,7 +5576,7 @@ interface ICreateTypeInfo2 : ICreateTypeInfo
     ///    not valid. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY </b></dt> </dl> </td> <td width="60%">
     ///    Insufficient memory to complete the operation. </td> </tr> </table>
     ///    
-    HRESULT SetName(ushort* szName);
+    HRESULT SetName(PWSTR szName);
 }
 
 ///Provides the methods for creating and managing the component or file that contains type information. Type libraries
@@ -5598,7 +5603,7 @@ interface ICreateTypeLib : IUnknown
     ///    </tr> <tr> <td width="40%"> <dl> <dt><b>TYPE_E_WRONGTYPEKIND</b></dt> </dl> </td> <td width="60%"> Type
     ///    mismatch. </td> </tr> </table>
     ///    
-    HRESULT CreateTypeInfo(ushort* szName, TYPEKIND tkind, ICreateTypeInfo* ppCTInfo);
+    HRESULT CreateTypeInfo(PWSTR szName, TYPEKIND tkind, ICreateTypeInfo* ppCTInfo);
     ///Sets the name of the type library.
     ///Params:
     ///    szName = The name to be assigned to the library.
@@ -5612,7 +5617,7 @@ interface ICreateTypeLib : IUnknown
     ///    operation. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>TYPE_E_INVALIDSTATE</b></dt> </dl> </td> <td
     ///    width="60%"> The state of the type library is not valid for this operation. </td> </tr> </table>
     ///    
-    HRESULT SetName(ushort* szName);
+    HRESULT SetName(PWSTR szName);
     ///Sets the major and minor version numbers of the type library.
     ///Params:
     ///    wMajorVerNum = The major version number for the library.
@@ -5651,7 +5656,7 @@ interface ICreateTypeLib : IUnknown
     ///    <dt><b>STG_E_INSUFFICIENTMEMORY</b></dt> </dl> </td> <td width="60%"> Insufficient memory to complete the
     ///    operation. </td> </tr> </table>
     ///    
-    HRESULT SetDocString(ushort* szDoc);
+    HRESULT SetDocString(PWSTR szDoc);
     ///Sets the name of the Help file.
     ///Params:
     ///    szHelpFileName = The name of the Help file for the library.
@@ -5665,7 +5670,7 @@ interface ICreateTypeLib : IUnknown
     ///    operation. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>TYPE_E_INVALIDSTATE</b></dt> </dl> </td> <td
     ///    width="60%"> The state of the type library is not valid for this operation. </td> </tr> </table>
     ///    
-    HRESULT SetHelpFileName(ushort* szHelpFileName);
+    HRESULT SetHelpFileName(PWSTR szHelpFileName);
     ///Sets the Help context ID for retrieving general Help information for the type library.
     ///Params:
     ///    dwHelpContext = The Help context ID.
@@ -5740,7 +5745,7 @@ interface ICreateTypeLib2 : ICreateTypeLib
     ///    not valid. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%">
     ///    Insufficient memory to complete the operation. </td> </tr> </table>
     ///    
-    HRESULT DeleteTypeInfo(ushort* szName);
+    HRESULT DeleteTypeInfo(PWSTR szName);
     ///Sets a value to custom data.
     ///Params:
     ///    guid = The unique identifier for the data.
@@ -5774,7 +5779,7 @@ interface ICreateTypeLib2 : ICreateTypeLib
     ///    not valid. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%">
     ///    Insufficient memory to complete the operation. </td> </tr> </table>
     ///    
-    HRESULT SetHelpStringDll(ushort* szFileName);
+    HRESULT SetHelpStringDll(PWSTR szFileName);
 }
 
 ///Exposes objects, methods and properties to programming tools and other applications that support Automation. COM
@@ -5827,7 +5832,7 @@ interface IDispatch : IUnknown
     ///    corresponds to an unknown name. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>DISP_E_UNKNOWNLCID</b></dt>
     ///    </dl> </td> <td width="60%"> The locale identifier (LCID) was not recognized. </td> </tr> </table>
     ///    
-    HRESULT GetIDsOfNames(const(GUID)* riid, char* rgszNames, uint cNames, uint lcid, char* rgDispId);
+    HRESULT GetIDsOfNames(const(GUID)* riid, PWSTR* rgszNames, uint cNames, uint lcid, int* rgDispId);
     ///Provides access to properties and methods exposed by an object. The dispatch function DispInvoke provides a
     ///standard implementation of <b>Invoke</b>.
     ///Params:
@@ -5961,7 +5966,7 @@ interface ITypeComp : IUnknown
     ///    not valid. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY </b></dt> </dl> </td> <td width="60%">
     ///    Insufficient memory to complete the operation. </td> </tr> </table>
     ///    
-    HRESULT Bind(ushort* szName, uint lHashVal, ushort wFlags, ITypeInfo* ppTInfo, DESCKIND* pDescKind, 
+    HRESULT Bind(PWSTR szName, uint lHashVal, ushort wFlags, ITypeInfo* ppTInfo, DESCKIND* pDescKind, 
                  BINDPTR* pBindPtr);
     ///Binds to the type descriptions contained within a type library.
     ///Params:
@@ -5976,7 +5981,7 @@ interface ITypeComp : IUnknown
     ///    not valid. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY </b></dt> </dl> </td> <td width="60%">
     ///    Insufficient memory to complete the operation. </td> </tr> </table>
     ///    
-    HRESULT BindType(ushort* szName, uint lHashVal, ITypeInfo* ppTInfo, ITypeComp* ppTComp);
+    HRESULT BindType(PWSTR szName, uint lHashVal, ITypeInfo* ppTInfo, ITypeComp* ppTComp);
 }
 
 ///This section describes <b>ITypeInfo</b>, an interface typically used for reading information about objects. For
@@ -6049,7 +6054,7 @@ interface ITypeInfo : IUnknown
     ///    not valid. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY </b></dt> </dl> </td> <td width="60%">
     ///    Insufficient memory to complete the operation. </td> </tr> </table>
     ///    
-    HRESULT GetNames(int memid, char* rgBstrNames, uint cMaxNames, uint* pcNames);
+    HRESULT GetNames(int memid, BSTR* rgBstrNames, uint cMaxNames, uint* pcNames);
     ///If a type description describes a COM class, it retrieves the type description of the implemented interface
     ///types. For an interface, <b>GetRefTypeOfImplType</b> returns the type information for inherited interfaces, if
     ///any exist.
@@ -6091,7 +6096,7 @@ interface ITypeInfo : IUnknown
     ///    not valid. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY </b></dt> </dl> </td> <td width="60%">
     ///    Insufficient memory to complete the operation. </td> </tr> </table>
     ///    
-    HRESULT GetIDsOfNames(char* rgszNames, uint cNames, int* pMemId);
+    HRESULT GetIDsOfNames(PWSTR* rgszNames, uint cNames, int* pMemId);
     ///Invokes a method, or accesses a property of an object, that implements the interface described by the type
     ///description.
     ///Params:
@@ -6556,7 +6561,7 @@ interface ITypeLib : IUnknown
     ///    not valid. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY </b></dt> </dl> </td> <td width="60%">
     ///    Insufficient memory to complete the operation. </td> </tr> </table>
     ///    
-    HRESULT IsName(ushort* szNameBuf, uint lHashVal, int* pfName);
+    HRESULT IsName(PWSTR szNameBuf, uint lHashVal, BOOL* pfName);
     ///Finds occurrences of a type description in a type library. This may be used to quickly verify that a name exists
     ///in a type library.
     ///Params:
@@ -6578,7 +6583,7 @@ interface ITypeLib : IUnknown
     ///    not valid. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY </b></dt> </dl> </td> <td width="60%">
     ///    Insufficient memory to complete the operation. </td> </tr> </table>
     ///    
-    HRESULT FindName(ushort* szNameBuf, uint lHashVal, ITypeInfo* ppTInfo, int* rgMemId, ushort* pcFound);
+    HRESULT FindName(PWSTR szNameBuf, uint lHashVal, ITypeInfo* ppTInfo, int* rgMemId, ushort* pcFound);
     ///Releases the TLIBATTR originally obtained from GetLibAttr.
     ///Params:
     ///    pTLibAttr = The TLIBATTR to be freed.
@@ -6670,7 +6675,7 @@ interface ITypeChangeEvents : IUnknown
     ///    not valid. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%">
     ///    Insufficient memory to complete the operation. </td> </tr> </table>
     ///    
-    HRESULT RequestTypeChange(CHANGEKIND changeKind, ITypeInfo pTInfoBefore, ushort* pStrName, int* pfCancel);
+    HRESULT RequestTypeChange(CHANGEKIND changeKind, ITypeInfo pTInfoBefore, PWSTR pStrName, int* pfCancel);
     ///Raised after a type has been changed.
     ///Params:
     ///    changeKind = The type of change. <a id="CHANGEKIND_ADDMEMBER"></a> <a id="changekind_addmember"></a>
@@ -6685,7 +6690,7 @@ interface ITypeChangeEvents : IUnknown
     ///    not valid. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%">
     ///    Insufficient memory to complete the operation. </td> </tr> </table>
     ///    
-    HRESULT AfterTypeChange(CHANGEKIND changeKind, ITypeInfo pTInfoAfter, ushort* pStrName);
+    HRESULT AfterTypeChange(CHANGEKIND changeKind, ITypeInfo pTInfoAfter, PWSTR pStrName);
 }
 
 ///Provides detailed contextual error information.
@@ -6758,7 +6763,7 @@ interface ICreateErrorInfo : IUnknown
     ///    width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Insufficient memory to complete
     ///    the operation. </td> </tr> </table>
     ///    
-    HRESULT SetSource(ushort* szSource);
+    HRESULT SetSource(PWSTR szSource);
     ///Sets the textual description of the error.
     ///Params:
     ///    szDescription = A brief description of the error.
@@ -6768,7 +6773,7 @@ interface ICreateErrorInfo : IUnknown
     ///    width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Insufficient memory to complete
     ///    the operation. </td> </tr> </table>
     ///    
-    HRESULT SetDescription(ushort* szDescription);
+    HRESULT SetDescription(PWSTR szDescription);
     ///Sets the path of the Help file that describes the error.
     ///Params:
     ///    szHelpFile = The fully qualified path of the Help file that describes the error.
@@ -6778,7 +6783,7 @@ interface ICreateErrorInfo : IUnknown
     ///    width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Insufficient memory to complete
     ///    the operation. </td> </tr> </table>
     ///    
-    HRESULT SetHelpFile(ushort* szHelpFile);
+    HRESULT SetHelpFile(PWSTR szHelpFile);
     ///Sets the Help context identifier (ID) for the error.
     ///Params:
     ///    dwHelpContext = The Help context ID for the error.
@@ -6818,9 +6823,9 @@ interface ITypeFactory : IUnknown
 interface ITypeMarshal : IUnknown
 {
     HRESULT Size(void* pvType, uint dwDestContext, void* pvDestContext, uint* pSize);
-    HRESULT Marshal(void* pvType, uint dwDestContext, void* pvDestContext, uint cbBufferLength, char* pBuffer, 
+    HRESULT Marshal(void* pvType, uint dwDestContext, void* pvDestContext, uint cbBufferLength, ubyte* pBuffer, 
                     uint* pcbWritten);
-    HRESULT Unmarshal(void* pvType, uint dwFlags, uint cbBufferLength, char* pBuffer, uint* pcbRead);
+    HRESULT Unmarshal(void* pvType, uint dwFlags, uint cbBufferLength, ubyte* pBuffer, uint* pcbRead);
     HRESULT Free(void* pvType);
 }
 
@@ -6919,7 +6924,7 @@ interface IRecordInfo : IUnknown
     ///    width="40%"> <dl> <dt><b>E_INVALIDARG </b></dt> </dl> </td> <td width="60%"> One or more of the arguments is
     ///    not valid. </td> </tr> </table>
     ///    
-    HRESULT GetField(void* pvData, ushort* szFieldName, VARIANT* pvarField);
+    HRESULT GetField(void* pvData, const(PWSTR) szFieldName, VARIANT* pvarField);
     ///Returns a pointer to the value of a given field name without copying the value and allocating resources.
     ///Params:
     ///    pvData = The instance of a record.
@@ -6932,7 +6937,7 @@ interface IRecordInfo : IUnknown
     ///    width="40%"> <dl> <dt><b>E_INVALIDARG </b></dt> </dl> </td> <td width="60%"> One or more of the arguments is
     ///    not valid. </td> </tr> </table>
     ///    
-    HRESULT GetFieldNoCopy(void* pvData, ushort* szFieldName, VARIANT* pvarField, void** ppvDataCArray);
+    HRESULT GetFieldNoCopy(void* pvData, const(PWSTR) szFieldName, VARIANT* pvarField, void** ppvDataCArray);
     ///Puts a variant into a field.
     ///Params:
     ///    wFlags = The only legal values for the wFlags parameter is INVOKE_PROPERTYPUT or INVOKE_PROPERTYPUTREF. If
@@ -6953,7 +6958,7 @@ interface IRecordInfo : IUnknown
     ///    width="40%"> <dl> <dt><b>E_INVALIDARG </b></dt> </dl> </td> <td width="60%"> One or more of the arguments is
     ///    not valid. </td> </tr> </table>
     ///    
-    HRESULT PutField(uint wFlags, void* pvData, ushort* szFieldName, VARIANT* pvarField);
+    HRESULT PutField(uint wFlags, void* pvData, const(PWSTR) szFieldName, VARIANT* pvarField);
     ///Passes ownership of the data to the assigned field by placing the actual data into the
     ///field.<b>PutFieldNoCopy</b> is useful for saving resources because it allows you to place your data directly into
     ///a record field. <b>PutFieldNoCopy</b> differs from PutField because it does not copy the data referenced by the
@@ -6969,7 +6974,7 @@ interface IRecordInfo : IUnknown
     ///    width="40%"> <dl> <dt><b>E_INVALIDARG </b></dt> </dl> </td> <td width="60%"> One or more of the arguments is
     ///    not valid. </td> </tr> </table>
     ///    
-    HRESULT PutFieldNoCopy(uint wFlags, void* pvData, ushort* szFieldName, VARIANT* pvarField);
+    HRESULT PutFieldNoCopy(uint wFlags, void* pvData, const(PWSTR) szFieldName, VARIANT* pvarField);
     ///Gets the names of the fields of the record.
     ///Params:
     ///    pcNames = The number of names to return.
@@ -6985,7 +6990,7 @@ interface IRecordInfo : IUnknown
     ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG </b></dt> </dl> </td> <td width="60%"> One or more of the arguments
     ///    is not valid. </td> </tr> </table>
     ///    
-    HRESULT GetFieldNames(uint* pcNames, char* rgBstrNames);
+    HRESULT GetFieldNames(uint* pcNames, BSTR* rgBstrNames);
     ///Determines whether the record that is passed in matches that of the current record information.
     ///Params:
     ///    pRecordInfo = The information of the record.
@@ -7028,14 +7033,14 @@ interface IRecordInfo : IUnknown
 @GUID("3127CA40-446E-11CE-8135-00AA004BB851")
 interface IErrorLog : IUnknown
 {
-    HRESULT AddError(ushort* pszPropName, EXCEPINFO* pExcepInfo);
+    HRESULT AddError(const(PWSTR) pszPropName, EXCEPINFO* pExcepInfo);
 }
 
 @GUID("55272A00-42CB-11CE-8135-00AA004BB851")
 interface IPropertyBag : IUnknown
 {
-    HRESULT Read(ushort* pszPropName, VARIANT* pVar, IErrorLog pErrorLog);
-    HRESULT Write(ushort* pszPropName, VARIANT* pVar);
+    HRESULT Read(const(PWSTR) pszPropName, VARIANT* pVar, IErrorLog pErrorLog);
+    HRESULT Write(const(PWSTR) pszPropName, VARIANT* pVar);
 }
 
 @GUID("ED6A8A2A-B160-4E77-8F73-AA7435CD5C27")
@@ -7076,7 +7081,7 @@ interface IDispError : IUnknown
 {
     HRESULT QueryErrorInfo(GUID guidErrorType, IDispError* ppde);
     HRESULT GetNext(IDispError* ppde);
-    HRESULT GetHresult(int* phr);
+    HRESULT GetHresult(HRESULT* phr);
     HRESULT GetSource(BSTR* pbstrSource);
     HRESULT GetHelpInfo(BSTR* pbstrFileName, uint* pdwContext);
     HRESULT GetDescription(BSTR* pbstrDescription);

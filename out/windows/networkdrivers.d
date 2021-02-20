@@ -3,10 +3,10 @@
 module windows.networkdrivers;
 
 public import windows.core;
-public import windows.systemservices : NTSTATUS;
+public import windows.systemservices : NTSTATUS, PWSTR;
 public import windows.winsock : SCOPE_ID, SOCKET_ADDRESS, in6_addr;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -359,30 +359,6 @@ enum : int
 // Structs
 
 
-///<div class="alert"><b>Important</b> The Native 802.11 Wireless LAN interface is deprecated in Windows 10 and later.
-///Please use the WLAN Device Driver Interface (WDI) instead. For more information about WDI, see WLAN Universal Windows
-///driver model.</div><div> </div>The L2_NOTIFICATION_DATA structure is used by the IHV Extensions DLL to send
-///notifications to any service or applications that has registered for the notification.
-struct L2_NOTIFICATION_DATA
-{
-    ///This member specifies where the notification comes from. The IHV Extensions DLL must set this member to
-    ///L2_NOTIFICATION_SOURCE_WLAN_IHV.
-    uint  NotificationSource;
-    ///This member specifies the notification code for the status indication. This notification code must not have the
-    ///bit 0x10000 set.
-    uint  NotificationCode;
-    ///The globally unique identifier (GUID) for the wireless LAN (WLAN) adapter. The operating system passes the GUID
-    ///and other data related to the WLAN adapter through the <i>pDot11Adapter</i> parameter of the
-    ///Dot11ExtIhvInitAdapter function, which the operating system calls when it detects the arrival of the WLAN
-    ///adapter. For more information about this operation, see <a
-    ///href="/windows/desktop/api/l2cmn/ns-l2cmn-l2_notification_data">802.11 WLAN Adapter Arrival</a>.
-    GUID  InterfaceGuid;
-    ///The length, in bytes, of the data within the buffer referenced by the <b>pData</b> member. The IHV Extensions DLL
-    ///must set this member to zero if additional data is not required for the notification.
-    uint  dwDataSize;
-    void* pData;
-}
-
 ///The NET_PHYSICAL_LOCATION structure provides NDIS with information about the physical location of a registered
 ///network interface.
 struct NET_PHYSICAL_LOCATION_LH
@@ -547,11 +523,35 @@ struct SOCKADDR_IN6_LH
     uint     sin6_flowinfo;
     ///An IN6_ADDR structure that contains an IPv6 transport address.
     in6_addr sin6_addr;
-    union
+union
     {
         uint     sin6_scope_id;
         SCOPE_ID sin6_scope_struct;
     }
+}
+
+///<div class="alert"><b>Important</b> The Native 802.11 Wireless LAN interface is deprecated in Windows 10 and later.
+///Please use the WLAN Device Driver Interface (WDI) instead. For more information about WDI, see WLAN Universal Windows
+///driver model.</div><div> </div>The L2_NOTIFICATION_DATA structure is used by the IHV Extensions DLL to send
+///notifications to any service or applications that has registered for the notification.
+struct L2_NOTIFICATION_DATA
+{
+    ///This member specifies where the notification comes from. The IHV Extensions DLL must set this member to
+    ///L2_NOTIFICATION_SOURCE_WLAN_IHV.
+    uint  NotificationSource;
+    ///This member specifies the notification code for the status indication. This notification code must not have the
+    ///bit 0x10000 set.
+    uint  NotificationCode;
+    ///The globally unique identifier (GUID) for the wireless LAN (WLAN) adapter. The operating system passes the GUID
+    ///and other data related to the WLAN adapter through the <i>pDot11Adapter</i> parameter of the
+    ///Dot11ExtIhvInitAdapter function, which the operating system calls when it detects the arrival of the WLAN
+    ///adapter. For more information about this operation, see <a
+    ///href="/windows/desktop/api/l2cmn/ns-l2cmn-l2_notification_data">802.11 WLAN Adapter Arrival</a>.
+    GUID  InterfaceGuid;
+    ///The length, in bytes, of the data within the buffer referenced by the <b>pData</b> member. The IHV Extensions DLL
+    ///must set this member to zero if additional data is not required for the notification.
+    uint  dwDataSize;
+    void* pData;
 }
 
 // Functions
@@ -581,14 +581,14 @@ NTSTATUS SetSessionCompartmentId(uint SessionId, uint CompartmentId);
 ///    SiteId = Reserved.
 ///    NetworkName = Reserved.
 @DllImport("IPHLPAPI")
-NTSTATUS GetNetworkInformation(const(GUID)* NetworkGuid, uint* CompartmentId, uint* SiteId, 
-                               const(wchar)* NetworkName, uint Length);
+NTSTATUS GetNetworkInformation(const(GUID)* NetworkGuid, uint* CompartmentId, uint* SiteId, PWSTR NetworkName, 
+                               uint Length);
 
 ///Reserved for future use. Do not use this function.
 ///Params:
 ///    NetworkGuid = Reserved.
 ///    CompartmentId = Reserved.
 @DllImport("IPHLPAPI")
-NTSTATUS SetNetworkInformation(const(GUID)* NetworkGuid, uint CompartmentId, const(wchar)* NetworkName);
+NTSTATUS SetNetworkInformation(const(GUID)* NetworkGuid, uint CompartmentId, const(PWSTR) NetworkName);
 
 

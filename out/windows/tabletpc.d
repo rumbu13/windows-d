@@ -9,10 +9,10 @@ public import windows.com : HRESULT, IDataObject, IFontDisp, IPictureDisp,
 public import windows.controls : NMHDR;
 public import windows.displaydevices : POINT, RECT;
 public import windows.gdi : XFORM;
-public import windows.systemservices : BOOL;
+public import windows.systemservices : BOOL, PWSTR;
 public import windows.windowsandmessaging : HWND;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -1922,13 +1922,35 @@ enum : int
 
 enum const(wchar)* MICROSOFT_URL_EXPERIENCE_PROPERTY = "Microsoft TIP URL Experience";
 enum const(wchar)* MICROSOFT_TIP_COMBOBOXLIST_PROPERTY = "Microsoft TIP ComboBox List Window Identifier";
-enum int InkMinTransparencyValue = 0x00000000;
 
-enum : int
+enum : GUID
 {
-    InkCollectorClipInkToMargin = 0x00000000,
-    InkCollectorDefaultMargin   = 0x80000000,
+    GUID_PACKETPROPERTY_GUID_X                       = GUID("598a6a8f-52c0-4ba0-93af-af357411a561"),
+    GUID_PACKETPROPERTY_GUID_Y                       = GUID("b53f9f75-04e0-4498-a7ee-c30dbb5a9011"),
+    GUID_PACKETPROPERTY_GUID_Z                       = GUID("735adb30-0ebb-4788-a0e4-0f316490055d"),
+    GUID_PACKETPROPERTY_GUID_PACKET_STATUS           = GUID("6e0e07bf-afe7-4cf7-87d1-af6446208418"),
+    GUID_PACKETPROPERTY_GUID_TIMER_TICK              = GUID("436510c5-fed3-45d1-8b76-71d3ea7a829d"),
+    GUID_PACKETPROPERTY_GUID_SERIAL_NUMBER           = GUID("78a81b56-0935-4493-baae-00541a8a16c4"),
+    GUID_PACKETPROPERTY_GUID_NORMAL_PRESSURE         = GUID("7307502d-f9f4-4e18-b3f2-2ce1b1a3610c"),
+    GUID_PACKETPROPERTY_GUID_TANGENT_PRESSURE        = GUID("6da4488b-5244-41ec-905b-32d89ab80809"),
+    GUID_PACKETPROPERTY_GUID_BUTTON_PRESSURE         = GUID("8b7fefc4-96aa-4bfe-ac26-8a5f0be07bf5"),
+    GUID_PACKETPROPERTY_GUID_X_TILT_ORIENTATION      = GUID("a8d07b3a-8bf0-40b0-95a9-b80a6bb787bf"),
+    GUID_PACKETPROPERTY_GUID_Y_TILT_ORIENTATION      = GUID("0e932389-1d77-43af-ac00-5b950d6d4b2d"),
+    GUID_PACKETPROPERTY_GUID_AZIMUTH_ORIENTATION     = GUID("029123b4-8828-410b-b250-a0536595e5dc"),
+    GUID_PACKETPROPERTY_GUID_ALTITUDE_ORIENTATION    = GUID("82dec5c7-f6ba-4906-894f-66d68dfc456c"),
+    GUID_PACKETPROPERTY_GUID_TWIST_ORIENTATION       = GUID("0d324960-13b2-41e4-ace6-7ae9d43d2d3b"),
+    GUID_PACKETPROPERTY_GUID_PITCH_ROTATION          = GUID("7f7e57b7-be37-4be1-a356-7a84160e1893"),
+    GUID_PACKETPROPERTY_GUID_ROLL_ROTATION           = GUID("5d5d5e56-6ba9-4c5b-9fb0-851c91714e56"),
+    GUID_PACKETPROPERTY_GUID_YAW_ROTATION            = GUID("6a849980-7c3a-45b7-aa82-90a262950e89"),
+    GUID_PACKETPROPERTY_GUID_WIDTH                   = GUID("baabe94d-2712-48f5-be9d-8f8b5ea0711a"),
+    GUID_PACKETPROPERTY_GUID_HEIGHT                  = GUID("e61858d2-e447-4218-9d3f-18865c203df4"),
+    GUID_PACKETPROPERTY_GUID_FINGERCONTACTCONFIDENCE = GUID("e706c804-57f0-4f00-8a0c-853d57789be9"),
+    GUID_PACKETPROPERTY_GUID_DEVICE_CONTACT_ID       = GUID("02585b91-049b-4750-9615-df8948ab3c9c"),
 }
+
+enum int InkMaxTransparencyValue = 0x000000ff;
+enum int InkCollectorDefaultMargin = 0x80000000;
+enum GUID GUID_DYNAMIC_RENDERER_CACHED_DATA = GUID("bf531b92-25bf-4a95-89ad-0e476b34b4f5");
 
 // Callbacks
 
@@ -2434,7 +2456,7 @@ HRESULT AddStroke(HRECOCONTEXT__* hrc, const(PACKET_DESCRIPTION)* pPacketDesc, u
 ///                    <b>NULL</b>-terminated. To determine the required size of the buffer, set <i>pwcBestResult</i> to <b>NULL</b>;
 ///                    use <i>pcSize</i> to allocate the <i>pwcBestResult</i> buffer.
 @DllImport("inkobjcore")
-HRESULT GetBestResultString(HRECOCONTEXT__* hrc, uint* pcSize, char* pwcBestResult);
+HRESULT GetBestResultString(HRECOCONTEXT__* hrc, uint* pcSize, PWSTR pwcBestResult);
 
 ///Sets the recognition guide to use for boxed or lined input. You must call this function before you add strokes to the
 ///context.
@@ -2502,7 +2524,7 @@ HRESULT EndInkInput(HRECOCONTEXT__* hrc);
 ///                          sets the <i>pbPartialProcessing</i> parameter to <b>TRUE</b> if there is enough ink left to continue processing;
 ///                          otherwise, <b>FALSE</b>.
 @DllImport("inkobjcore")
-HRESULT Process(HRECOCONTEXT__* hrc, int* pbPartialProcessing);
+HRESULT Process(HRECOCONTEXT__* hrc, BOOL* pbPartialProcessing);
 
 ///Specifies the factoid a recognizer uses to constrain its search for the result. You specify a factoid if an input
 ///field is of a known type, such as if the input field contains a date. You call this function before processing the
@@ -2526,7 +2548,7 @@ HRESULT Process(HRECOCONTEXT__* hrc, int* pbPartialProcessing);
 ///    context contains an invalid value. </td> </tr> </table>
 ///    
 @DllImport("inkobjcore")
-HRESULT SetFactoid(HRECOCONTEXT__* hrc, uint cwcFactoid, const(wchar)* pwcFactoid);
+HRESULT SetFactoid(HRECOCONTEXT__* hrc, uint cwcFactoid, const(PWSTR) pwcFactoid);
 
 ///Specifies how the recognizer interprets the ink and determines the result string. Call this function before
 ///processing the ink for the first time. Therefore, call the <b>SetFlags</b> function before calling the Process
@@ -2618,8 +2640,8 @@ HRESULT GetLatticePtr(HRECOCONTEXT__* hrc, RECO_LATTICE** ppLattice);
 ///    invalid argument was specified. </td> </tr> </table>
 ///    
 @DllImport("inkobjcore")
-HRESULT SetTextContext(HRECOCONTEXT__* hrc, uint cwcBefore, const(wchar)* pwcBefore, uint cwcAfter, 
-                       const(wchar)* pwcAfter);
+HRESULT SetTextContext(HRECOCONTEXT__* hrc, uint cwcBefore, const(PWSTR) pwcBefore, uint cwcAfter, 
+                       const(PWSTR) pwcAfter);
 
 ///Enables one or more Unicode point ranges on the context.
 ///Params:
@@ -2658,7 +2680,7 @@ HRESULT SetEnabledUnicodeRanges(HRECOCONTEXT__* hrc, uint cRanges, CHARACTER_RAN
 ///    <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> An invalid argument was received. </td> </tr> </table>
 ///    
 @DllImport("inkobjcore")
-HRESULT IsStringSupported(HRECOCONTEXT__* hrc, uint wcString, const(wchar)* pwcString);
+HRESULT IsStringSupported(HRECOCONTEXT__* hrc, uint wcString, const(PWSTR) pwcString);
 
 ///Sets the word list for the current recognizer context to recognize.
 ///Params:
@@ -2684,7 +2706,7 @@ HRESULT SetWordList(HRECOCONTEXT__* hrc, HRECOWORDLIST__* hwl);
 ///    pcSize = A pointer to the size of the right separator.
 ///    pwcRightSeparator = A pointer to the right separator.
 @DllImport("inkobjcore")
-HRESULT GetRightSeparator(HRECOCONTEXT__* hrc, uint* pcSize, char* pwcRightSeparator);
+HRESULT GetRightSeparator(HRECOCONTEXT__* hrc, uint* pcSize, PWSTR pwcRightSeparator);
 
 ///Gets the left separator for the recognizer context.
 ///Params:
@@ -2692,7 +2714,7 @@ HRESULT GetRightSeparator(HRECOCONTEXT__* hrc, uint* pcSize, char* pwcRightSepar
 ///    pcSize = A pointer to the size of the left separator.
 ///    pwcLeftSeparator = A pointer to the left separator.
 @DllImport("inkobjcore")
-HRESULT GetLeftSeparator(HRECOCONTEXT__* hrc, uint* pcSize, char* pwcLeftSeparator);
+HRESULT GetLeftSeparator(HRECOCONTEXT__* hrc, uint* pcSize, PWSTR pwcLeftSeparator);
 
 ///Destroys the current word list.
 ///Params:
@@ -2714,7 +2736,8 @@ HRESULT DestroyWordList(HRECOWORDLIST__* hwl);
 ///    <td width="60%"> The pointer to the word list is incorrect. </td> </tr> </table>
 ///    
 @DllImport("inkobjcore")
-HRESULT AddWordsToWordList(HRECOWORDLIST__* hwl, char* pwcWords);
+HRESULT AddWordsToWordList(HRECOWORDLIST__* hwl, 
+                           /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PWSTR pwcWords);
 
 ///Creates a word list.
 ///Params:
@@ -2735,7 +2758,9 @@ HRESULT AddWordsToWordList(HRECOWORDLIST__* hwl, char* pwcWords);
 ///    space between words. All words up to the incorrect word are added to the word list. </td> </tr> </table>
 ///    
 @DllImport("inkobjcore")
-HRESULT MakeWordList(HRECOGNIZER__* hrec, char* pBuffer, HRECOWORDLIST__** phwl);
+HRESULT MakeWordList(HRECOGNIZER__* hrec, 
+                     /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PWSTR pBuffer, 
+                     HRECOWORDLIST__** phwl);
 
 ///<p class="CCE_Message">[Some information relates to pre-released product which may be substantially modified before
 ///it's commercially released. Microsoft makes no warranties, express or implied, with respect to the information
@@ -6375,7 +6400,7 @@ interface IInkLineInfo : IUnknown
     ///    <dt><b>ERROR_MORE_DATA</b></dt> </dl> </td> <td width="60%"> The <i>pwcRecogWord</i> buffer is not large
     ///    enough to accept the recognition alternate. </td> </tr> </table>
     ///    
-    HRESULT GetCandidate(uint nCandidateNum, const(wchar)* pwcRecogWord, uint* pcwcRecogWord, uint dwFlags);
+    HRESULT GetCandidate(uint nCandidateNum, PWSTR pwcRecogWord, uint* pcwcRecogWord, uint dwFlags);
     ///Updates one recognition <i>alternate</i> in the recognition result list, either by replacing an existing
     ///alternate, or by adding an alternate to the list.
     ///Params:
@@ -6389,7 +6414,7 @@ interface IInkLineInfo : IUnknown
     ///    width="60%"> Could not complete the operation. The recognition result list is not changed. </td> </tr>
     ///    </table>
     ///    
-    HRESULT SetCandidate(uint nCandidateNum, const(wchar)* strRecogWord);
+    HRESULT SetCandidate(uint nCandidateNum, PWSTR strRecogWord);
     ///Reserved.
     ///Returns:
     ///    This method can return one of these values. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
@@ -6883,7 +6908,7 @@ interface ITextInputPanel : IUnknown
     ///Requirements section. It may be altered or unavailable in subsequent versions. Instead, use
     ///IInputPanelConfiguration. ] Gets or sets a value that indicates whether the correction comb on the Tablet PC
     ///Input Panel is automatically expanded. This property is read/write.
-    HRESULT get_ExpandPostInsertionCorrection(int* Expand);
+    HRESULT get_ExpandPostInsertionCorrection(BOOL* Expand);
     ///<p class="CCE_Message">[ITextInputPanel is available for use in the operating systems specified in the
     ///Requirements section. It may be altered or unavailable in subsequent versions. Instead, use
     ///IInputPanelConfiguration. ] Gets or sets a value that indicates whether the correction comb on the Tablet PC
@@ -6893,7 +6918,7 @@ interface ITextInputPanel : IUnknown
     ///Requirements section. It may be altered or unavailable in subsequent versions. Instead, use
     ///IInputPanelConfiguration. ] Gets or sets a value that indicates whether the Tablet PC Input Panel is displayed
     ///automatically when the window to which it is attached gets focus. This property is read/write.
-    HRESULT get_InPlaceVisibleOnFocus(int* Visible);
+    HRESULT get_InPlaceVisibleOnFocus(BOOL* Visible);
     ///<p class="CCE_Message">[ITextInputPanel is available for use in the operating systems specified in the
     ///Requirements section. It may be altered or unavailable in subsequent versions. Instead, use
     ///IInputPanelConfiguration. ] Gets or sets a value that indicates whether the Tablet PC Input Panel is displayed
@@ -7017,7 +7042,7 @@ interface ITextInputPanelRunInfo : IUnknown
     ///    been set appropriately. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td
     ///    width="60%"> The <i>pfRunning</i> parameter was <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT IsTipRunning(int* pfRunning);
+    HRESULT IsTipRunning(BOOL* pfRunning);
 }
 
 ///<p class="CCE_Message">[Some information relates to pre-released product which may be substantially modified before
@@ -7451,7 +7476,7 @@ interface IRealTimeStylus : IUnknown
 {
     ///Gets or sets a value that specifies whether the RealTimeStylus object collects tablet pen data. This property is
     ///read/write.
-    HRESULT get_Enabled(int* pfEnable);
+    HRESULT get_Enabled(BOOL* pfEnable);
     ///Gets or sets a value that specifies whether the RealTimeStylus object collects tablet pen data. This property is
     ///read/write.
     HRESULT put_Enabled(BOOL fEnable);
@@ -7553,7 +7578,7 @@ interface IRealTimeStylus : IUnknown
     ///Returns:
     ///    For a description of the return values, see RealTimeStylus Classes and Interfaces.
     ///    
-    HRESULT AddCustomStylusDataToQueue(StylusQueue sq, const(GUID)* pGuidId, uint cbData, char* pbData);
+    HRESULT AddCustomStylusDataToQueue(StylusQueue sq, const(GUID)* pGuidId, uint cbData, ubyte* pbData);
     ///Clears the RealTimeStylus Class input and output queues of data.
     ///Returns:
     ///    For a description of the return values, see RealTimeStylus Classes and Interfaces.
@@ -7606,7 +7631,7 @@ interface IRealTimeStylus : IUnknown
     ///Returns:
     ///    For a description of the return values, see RealTimeStylus Classes and Interfaces.
     ///    
-    HRESULT GetAllTabletContextIds(uint* pcTcidCount, char* ppTcids);
+    HRESULT GetAllTabletContextIds(uint* pcTcidCount, uint** ppTcids);
     ///Retrieves the collection of styluses the RealTimeStylus Class object has encountered.
     ///Params:
     ///    ppiInkCursors = When this method returns, contains a pointer to the collection of styluses the RealTimeStylus Class object
@@ -7634,7 +7659,7 @@ interface IRealTimeStylus : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetDesiredPacketDescription(uint cProperties, char* pPropertyGuids);
+    HRESULT SetDesiredPacketDescription(uint cProperties, const(GUID)* pPropertyGuids);
     ///Retrieves the list of properties that have been requested to be included in the packet stream.
     ///Params:
     ///    pcProperties = The size, in bytes, of the <i>ppPropertyGUIDS</i> buffer.
@@ -7643,7 +7668,7 @@ interface IRealTimeStylus : IUnknown
     ///Returns:
     ///    For a description of the return values, see RealTimeStylus Classes and Interfaces.
     ///    
-    HRESULT GetDesiredPacketDescription(uint* pcProperties, char* ppPropertyGuids);
+    HRESULT GetDesiredPacketDescription(uint* pcProperties, GUID** ppPropertyGuids);
     ///Retrieves the packet properties and scaling factors.
     ///Params:
     ///    tcid = Specifies the tablet context identifier.
@@ -7655,7 +7680,7 @@ interface IRealTimeStylus : IUnknown
     ///    For a description of the return values, see RealTimeStylus Classes and Interfaces.
     ///    
     HRESULT GetPacketDescriptionData(uint tcid, float* pfInkToDeviceScaleX, float* pfInkToDeviceScaleY, 
-                                     uint* pcPacketProperties, char* ppPacketProperties);
+                                     uint* pcPacketProperties, PACKET_PROPERTY** ppPacketProperties);
 }
 
 ///Extends the IRealTimeStylus interface.
@@ -7668,7 +7693,7 @@ interface IRealTimeStylus2 : IUnknown
     ///Returns:
     ///    This method can return one of these values.
     ///    
-    HRESULT get_FlicksEnabled(int* pfEnable);
+    HRESULT get_FlicksEnabled(BOOL* pfEnable);
     ///Indicates if flick gesture recognition is enabled.
     ///Params:
     ///    fEnable = <b>TRUE</b> to enable flicks gesture recognition; <b>FALSE</b> to disable flicks.
@@ -7684,7 +7709,7 @@ interface IRealTimeStylus2 : IUnknown
 interface IRealTimeStylus3 : IUnknown
 {
     ///Indicates whether the IRealTimeStylus3 object has multitouch input enabled. This property is read/write.
-    HRESULT get_MultiTouchEnabled(int* pfEnable);
+    HRESULT get_MultiTouchEnabled(BOOL* pfEnable);
     ///Indicates whether the IRealTimeStylus3 object has multitouch input enabled. This property is read/write.
     HRESULT put_MultiTouchEnabled(BOOL fEnable);
 }
@@ -7727,8 +7752,9 @@ interface IStrokeBuilder : IUnknown
     ///Returns:
     ///    For a description of the return values, see RealTimeStylus Classes and Interfaces.
     ///    
-    HRESULT CreateStroke(uint cPktBuffLength, char* pPackets, uint cPacketProperties, char* pPacketProperties, 
-                         float fInkToDeviceScaleX, float fInkToDeviceScaleY, IInkStrokeDisp* ppIInkStroke);
+    HRESULT CreateStroke(uint cPktBuffLength, const(int)* pPackets, uint cPacketProperties, 
+                         const(PACKET_PROPERTY)* pPacketProperties, float fInkToDeviceScaleX, 
+                         float fInkToDeviceScaleY, IInkStrokeDisp* ppIInkStroke);
     ///Begins a stroke on an ink object by using packet data from a RealTimeStylus Class object.
     ///Params:
     ///    tcid = The tablet context identifier.
@@ -7743,8 +7769,9 @@ interface IStrokeBuilder : IUnknown
     ///Returns:
     ///    For a description of return values, see RealTimeStylus Classes and Interfaces.
     ///    
-    HRESULT BeginStroke(uint tcid, uint sid, const(int)* pPacket, uint cPacketProperties, char* pPacketProperties, 
-                        float fInkToDeviceScaleX, float fInkToDeviceScaleY, IInkStrokeDisp* ppIInkStroke);
+    HRESULT BeginStroke(uint tcid, uint sid, const(int)* pPacket, uint cPacketProperties, 
+                        PACKET_PROPERTY* pPacketProperties, float fInkToDeviceScaleX, float fInkToDeviceScaleY, 
+                        IInkStrokeDisp* ppIInkStroke);
     ///Adds a packet to the end of the digitizer input packet list.
     ///Params:
     ///    tcid = The context identifier for the tablet device to which the stylus belongs.
@@ -7755,7 +7782,7 @@ interface IStrokeBuilder : IUnknown
     ///Returns:
     ///    For a description of the return values, see RealTimeStylus Classes and Interfaces.
     ///    
-    HRESULT AppendPackets(uint tcid, uint sid, uint cPktBuffLength, char* pPackets);
+    HRESULT AppendPackets(uint tcid, uint sid, uint cPktBuffLength, const(int)* pPackets);
     ///Ends a stroke and returns the stroke object.
     ///Params:
     ///    tcid = The tablet context identifier.
@@ -7784,7 +7811,7 @@ interface IStylusPlugin : IUnknown
     ///Returns:
     ///    For a description of return values, see RealTimeStylus Classes and Interfaces.
     ///    
-    HRESULT RealTimeStylusEnabled(IRealTimeStylus piRtsSrc, uint cTcidCount, char* pTcids);
+    HRESULT RealTimeStylusEnabled(IRealTimeStylus piRtsSrc, uint cTcidCount, const(uint)* pTcids);
     ///Notifies the implementing plug-in that the RealTimeStylus Class (RTS) object is disabled.
     ///Params:
     ///    piRtsSrc = The RealTimeStylus Class object that sent the notification.
@@ -7793,7 +7820,7 @@ interface IStylusPlugin : IUnknown
     ///Returns:
     ///    For a description of return values, see RealTimeStylus Classes and Interfaces.
     ///    
-    HRESULT RealTimeStylusDisabled(IRealTimeStylus piRtsSrc, uint cTcidCount, char* pTcids);
+    HRESULT RealTimeStylusDisabled(IRealTimeStylus piRtsSrc, uint cTcidCount, const(uint)* pTcids);
     ///Notifies the implementing plug-in that the stylus is entering the detection range of the digitizer.
     ///Params:
     ///    piRtsSrc = The RealTimeStylus Class object that sent the notification.
@@ -7825,7 +7852,7 @@ interface IStylusPlugin : IUnknown
     ///    For a description of return values, RealTimeStylus Classes and Interfaces.
     ///    
     HRESULT StylusDown(IRealTimeStylus piRtsSrc, const(StylusInfo)* pStylusInfo, uint cPropCountPerPkt, 
-                       char* pPacket, int** ppInOutPkt);
+                       int* pPacket, int** ppInOutPkt);
     ///Notifies the implementing plug-in that the user has raised the tablet pen from the tablet digitizer surface.
     ///Params:
     ///    piRtsSrc = The RealTimeStylus Class (RTS) object that sent the notification.
@@ -7838,8 +7865,8 @@ interface IStylusPlugin : IUnknown
     ///Returns:
     ///    For a description of return values, see RealTimeStylus Classes and Interfaces.
     ///    
-    HRESULT StylusUp(IRealTimeStylus piRtsSrc, const(StylusInfo)* pStylusInfo, uint cPropCountPerPkt, 
-                     char* pPacket, int** ppInOutPkt);
+    HRESULT StylusUp(IRealTimeStylus piRtsSrc, const(StylusInfo)* pStylusInfo, uint cPropCountPerPkt, int* pPacket, 
+                     int** ppInOutPkt);
     ///Notifies the implementing plug-in that the user is pressing a stylus button.
     ///Params:
     ///    piRtsSrc = The RealTimeStylus Class object that sent the notification.
@@ -7878,7 +7905,7 @@ interface IStylusPlugin : IUnknown
     ///    For a description of return values, see Classes and Interfaces - Ink Analysis.
     ///    
     HRESULT InAirPackets(IRealTimeStylus piRtsSrc, const(StylusInfo)* pStylusInfo, uint cPktCount, 
-                         uint cPktBuffLength, char* pPackets, uint* pcInOutPkts, int** ppInOutPkts);
+                         uint cPktBuffLength, int* pPackets, uint* pcInOutPkts, int** ppInOutPkts);
     ///Notifies the object implementing the plug-in that the tablet pen is moving on the digitizer.
     ///Params:
     ///    piRtsSrc = The RealTimeStylus Class object that sent the notification.
@@ -7895,7 +7922,7 @@ interface IStylusPlugin : IUnknown
     ///    For a description of return values, see RealTimeStylus Classes and Interfaces.
     ///    
     HRESULT Packets(IRealTimeStylus piRtsSrc, const(StylusInfo)* pStylusInfo, uint cPktCount, uint cPktBuffLength, 
-                    char* pPackets, uint* pcInOutPkts, int** ppInOutPkts);
+                    int* pPackets, uint* pcInOutPkts, int** ppInOutPkts);
     ///Notifies the implementing plug-in that custom stylus data is available.
     ///Params:
     ///    piRtsSrc = The RealTimeStylus Class (RTS) object that sent the notification.
@@ -7905,7 +7932,8 @@ interface IStylusPlugin : IUnknown
     ///Returns:
     ///    For a description of return values, see RealTimeStylus Classes and Interfaces.
     ///    
-    HRESULT CustomStylusDataAdded(IRealTimeStylus piRtsSrc, const(GUID)* pGuidId, uint cbData, char* pbData);
+    HRESULT CustomStylusDataAdded(IRealTimeStylus piRtsSrc, const(GUID)* pGuidId, uint cbData, 
+                                  const(ubyte)* pbData);
     ///Notifies the implementing plug-in that a system event is available.
     ///Params:
     ///    piRtsSrc = The RealTimeStylus Class (RTS) object that sent the notification.
@@ -7981,7 +8009,7 @@ interface IStylusAsyncPlugin : IStylusPlugin
 interface IDynamicRenderer : IUnknown
 {
     ///Gets or sets a value that turns dynamic rendering on and off. This property is read/write.
-    HRESULT get_Enabled(int* bEnabled);
+    HRESULT get_Enabled(BOOL* bEnabled);
     ///Gets or sets a value that turns dynamic rendering on and off. This property is read/write.
     HRESULT put_Enabled(BOOL bEnabled);
     ///Gets or sets the window handle, HWND, associated with the DynamicRenderer Class object. This property is
@@ -8004,7 +8032,7 @@ interface IDynamicRenderer : IUnknown
     HRESULT putref_DrawingAttributes(IInkDrawingAttributes piDA);
     ///Gets or sets a value that indicates whether data caching is enabled for the DynamicRenderer Class object. This
     ///property is read/write.
-    HRESULT get_DataCacheEnabled(int* pfCacheData);
+    HRESULT get_DataCacheEnabled(BOOL* pfCacheData);
     ///Gets or sets a value that indicates whether data caching is enabled for the DynamicRenderer Class object. This
     ///property is read/write.
     HRESULT put_DataCacheEnabled(BOOL fCacheData);
@@ -8034,7 +8062,7 @@ interface IDynamicRenderer : IUnknown
 interface IGestureRecognizer : IUnknown
 {
     ///Gets or sets a value that indicates whether gesture recognition is enabled. This property is read/write.
-    HRESULT get_Enabled(int* pfEnabled);
+    HRESULT get_Enabled(BOOL* pfEnabled);
     ///Gets or sets a value that indicates whether gesture recognition is enabled. This property is read/write.
     HRESULT put_Enabled(BOOL fEnabled);
     ///Gets or sets the maximum number of strokes allowed per gesture recognition. This property is read/write.
@@ -8050,7 +8078,7 @@ interface IGestureRecognizer : IUnknown
     ///Returns:
     ///    For a description of return values, see RealTimeStylus Classes and Interfaces.
     ///    
-    HRESULT EnableGestures(uint cGestures, char* pGestures);
+    HRESULT EnableGestures(uint cGestures, const(int)* pGestures);
     ///Deletes past stroke information from the GestureRecognizer Class object.
     ///Returns:
     ///    For a description of return values see RealTimeStylus Classes and Interfaces.
@@ -8071,8 +8099,8 @@ interface ITipAutoCompleteClient : IUnknown
     HRESULT AdviseProvider(HWND hWndField, ITipAutoCompleteProvider pIProvider);
     HRESULT UnadviseProvider(HWND hWndField, ITipAutoCompleteProvider pIProvider);
     HRESULT UserSelection();
-    HRESULT PreferredRects(RECT* prcACList, RECT* prcField, RECT* prcModifiedACList, int* pfShownAboveTip);
-    HRESULT RequestShowUI(HWND hWndList, int* pfAllowShowing);
+    HRESULT PreferredRects(RECT* prcACList, RECT* prcField, RECT* prcModifiedACList, BOOL* pfShownAboveTip);
+    HRESULT RequestShowUI(HWND hWndList, BOOL* pfAllowShowing);
 }
 
 

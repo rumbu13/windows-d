@@ -17,8 +17,8 @@ public import windows.controls : HIMAGELIST, HPROPSHEETPAGE, LPFNADDPROPSHEETPAG
                                  NMHDR, TBBUTTON;
 public import windows.dbg : IEnumPrivacyRecords;
 public import windows.displaydevices : POINT, POINTL, RECT, RECTL, SIZE;
-public import windows.filesystem : WIN32_FIND_DATAA, WIN32_FIND_DATAW;
-public import windows.gdi : HBITMAP, HDC, HICON, HPALETTE;
+public import windows.filesystem : FILE_FLAGS_AND_ATTRIBUTES, WIN32_FIND_DATAA, WIN32_FIND_DATAW;
+public import windows.gdi : HBITMAP, HDC, HICON, HMONITOR, HPALETTE;
 public import windows.intl : CANDIDATEFORM, CANDIDATELIST, COMPOSITIONFORM, HIMCC__,
                              HIMC__, IMEMENUITEMINFOA, IMEMENUITEMINFOW,
                              REGISTERWORDA, REGISTERWORDW, STYLEBUFA,
@@ -31,8 +31,10 @@ public import windows.structuredstorage : IPropertySetStorage, IStorage, IStream
 public import windows.systemservices : BOOL, COORD, HANDLE, HINSTANCE, IServiceProvider,
                                        LARGE_INTEGER, LPTHREAD_START_ROUTINE,
                                        LRESULT, LSTATUS, NTSTATUS, OVERLAPPED,
-                                       PROCESS_INFORMATION, SECURITY_ATTRIBUTES,
-                                       STARTUPINFOW, ULARGE_INTEGER;
+                                       PROCESS_INFORMATION, PSTR, PWSTR,
+                                       SECURITY_ATTRIBUTES, STARTUPINFOW,
+                                       ULARGE_INTEGER;
+public import windows.textservices : HKL;
 public import windows.windowsandmessaging : CREATESTRUCTW, HWND, LPARAM, MSG, WPARAM;
 public import windows.windowsprogramming : FILETIME, HKEY, IWebBrowser2, IXMLDOMDocument,
                                            SYSTEMTIME;
@@ -41,11 +43,387 @@ public import windows.windowspropertiessystem : GETPROPERTYSTOREFLAGS, IProperty
                                                 IPropertyStoreFactory, PDOPSTATUS,
                                                 PROPERTYKEY, SERIALIZEDPROPSTORAGE;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
 
+
+alias SHGFI_FLAGS = int;
+enum : int
+{
+    SHGFI_ADDOVERLAYS       = 0x00000020,
+    SHGFI_ATTR_SPECIFIED    = 0x00020000,
+    SHGFI_ATTRIBUTES        = 0x00000800,
+    SHGFI_DISPLAYNAME       = 0x00000200,
+    SHGFI_EXETYPE           = 0x00002000,
+    SHGFI_ICON              = 0x00000100,
+    SHGFI_ICONLOCATION      = 0x00001000,
+    SHGFI_LARGEICON         = 0x00000000,
+    SHGFI_LINKOVERLAY       = 0x00008000,
+    SHGFI_OPENICON          = 0x00000002,
+    SHGFI_OVERLAYINDEX      = 0x00000040,
+    SHGFI_PIDL              = 0x00000008,
+    SHGFI_SELECTED          = 0x00010000,
+    SHGFI_SHELLICONSIZE     = 0x00000004,
+    SHGFI_SMALLICON         = 0x00000001,
+    SHGFI_SYSICONINDEX      = 0x00004000,
+    SHGFI_TYPENAME          = 0x00000400,
+    SHGFI_USEFILEATTRIBUTES = 0x00000010,
+}
+
+alias SHCNE_ID = uint;
+enum : uint
+{
+    SHCNE_RENAMEITEM       = 0x00000001,
+    SHCNE_CREATE           = 0x00000002,
+    SHCNE_DELETE           = 0x00000004,
+    SHCNE_MKDIR            = 0x00000008,
+    SHCNE_RMDIR            = 0x00000010,
+    SHCNE_MEDIAINSERTED    = 0x00000020,
+    SHCNE_MEDIAREMOVED     = 0x00000040,
+    SHCNE_DRIVEREMOVED     = 0x00000080,
+    SHCNE_DRIVEADD         = 0x00000100,
+    SHCNE_NETSHARE         = 0x00000200,
+    SHCNE_NETUNSHARE       = 0x00000400,
+    SHCNE_ATTRIBUTES       = 0x00000800,
+    SHCNE_UPDATEDIR        = 0x00001000,
+    SHCNE_UPDATEITEM       = 0x00002000,
+    SHCNE_SERVERDISCONNECT = 0x00004000,
+    SHCNE_UPDATEIMAGE      = 0x00008000,
+    SHCNE_DRIVEADDGUI      = 0x00010000,
+    SHCNE_RENAMEFOLDER     = 0x00020000,
+    SHCNE_FREESPACE        = 0x00040000,
+    SHCNE_EXTENDED_EVENT   = 0x04000000,
+    SHCNE_ASSOCCHANGED     = 0x08000000,
+    SHCNE_DISKEVENTS       = 0x0002381f,
+    SHCNE_GLOBALEVENTS     = 0x0c0581e0,
+    SHCNE_ALLEVENTS        = 0x7fffffff,
+    SHCNE_INTERRUPT        = 0x80000000,
+}
+
+alias SHCNRF_SOURCE = int;
+enum : int
+{
+    SHCNRF_InterruptLevel     = 0x00000001,
+    SHCNRF_ShellLevel         = 0x00000002,
+    SHCNRF_RecursiveInterrupt = 0x00001000,
+    SHCNRF_NewDelivery        = 0x00008000,
+}
+
+alias SHCNF_FLAGS = uint;
+enum : uint
+{
+    SHCNF_IDLIST          = 0x00000000,
+    SHCNF_PATHA           = 0x00000001,
+    SHCNF_PRINTERA        = 0x00000002,
+    SHCNF_DWORD           = 0x00000003,
+    SHCNF_PATHW           = 0x00000005,
+    SHCNF_PRINTERW        = 0x00000006,
+    SHCNF_TYPE            = 0x000000ff,
+    SHCNF_FLUSH           = 0x00001000,
+    SHCNF_FLUSHNOWAIT     = 0x00003000,
+    SHCNF_NOTIFYRECURSIVE = 0x00010000,
+    SHCNF_PATH            = 0x00000005,
+    SHCNF_PRINTER         = 0x00000006,
+}
+
+alias QITIPF_FLAGS = int;
+enum : int
+{
+    QITIPF_DEFAULT       = 0x00000000,
+    QITIPF_USENAME       = 0x00000001,
+    QITIPF_LINKNOTARGET  = 0x00000002,
+    QITIPF_LINKUSETARGET = 0x00000004,
+    QITIPF_USESLOWTIP    = 0x00000008,
+    QITIPF_SINGLELINE    = 0x00000010,
+    QIF_CACHED           = 0x00000001,
+    QIF_DONTEXPANDFOLDER = 0x00000002,
+}
+
+alias SHDID_ID = int;
+enum : int
+{
+    SHDID_ROOT_REGITEM         = 0x00000001,
+    SHDID_FS_FILE              = 0x00000002,
+    SHDID_FS_DIRECTORY         = 0x00000003,
+    SHDID_FS_OTHER             = 0x00000004,
+    SHDID_COMPUTER_DRIVE35     = 0x00000005,
+    SHDID_COMPUTER_DRIVE525    = 0x00000006,
+    SHDID_COMPUTER_REMOVABLE   = 0x00000007,
+    SHDID_COMPUTER_FIXED       = 0x00000008,
+    SHDID_COMPUTER_NETDRIVE    = 0x00000009,
+    SHDID_COMPUTER_CDROM       = 0x0000000a,
+    SHDID_COMPUTER_RAMDISK     = 0x0000000b,
+    SHDID_COMPUTER_OTHER       = 0x0000000c,
+    SHDID_NET_DOMAIN           = 0x0000000d,
+    SHDID_NET_SERVER           = 0x0000000e,
+    SHDID_NET_SHARE            = 0x0000000f,
+    SHDID_NET_RESTOFNET        = 0x00000010,
+    SHDID_NET_OTHER            = 0x00000011,
+    SHDID_COMPUTER_IMAGING     = 0x00000012,
+    SHDID_COMPUTER_AUDIO       = 0x00000013,
+    SHDID_COMPUTER_SHAREDDOCS  = 0x00000014,
+    SHDID_MOBILE_DEVICE        = 0x00000015,
+    SHDID_REMOTE_DESKTOP_DRIVE = 0x00000016,
+}
+
+alias SHGDFIL_FORMAT = int;
+enum : int
+{
+    SHGDFIL_FINDDATA      = 0x00000001,
+    SHGDFIL_NETRESOURCE   = 0x00000002,
+    SHGDFIL_DESCRIPTIONID = 0x00000003,
+}
+
+alias PRF_FLAGS = int;
+enum : int
+{
+    PRF_VERIFYEXISTS         = 0x00000001,
+    PRF_TRYPROGRAMEXTENSIONS = 0x00000003,
+    PRF_FIRSTDIRDEF          = 0x00000004,
+    PRF_DONTFINDLNK          = 0x00000008,
+    PRF_REQUIREABSOLUTE      = 0x00000010,
+}
+
+alias PCS_RET = uint;
+enum : uint
+{
+    PCS_FATAL        = 0x80000000,
+    PCS_REPLACEDCHAR = 0x00000001,
+    PCS_REMOVEDCHAR  = 0x00000002,
+    PCS_TRUNCATED    = 0x00000004,
+    PCS_PATHTOOLONG  = 0x00000008,
+}
+
+alias MM_FLAGS = uint;
+enum : uint
+{
+    MM_ADDSEPARATOR    = 0x00000001,
+    MM_SUBMENUSHAVEIDS = 0x00000002,
+    MM_DONTREMOVESEPS  = 0x00000004,
+}
+
+alias SHOP_TYPE = int;
+enum : int
+{
+    SHOP_PRINTERNAME = 0x00000001,
+    SHOP_FILEPATH    = 0x00000002,
+    SHOP_VOLUMEGUID  = 0x00000004,
+}
+
+alias SHFMT_ID = uint;
+enum : uint
+{
+    SHFMT_ID_DEFAULT = 0x0000ffff,
+}
+
+alias SHFMT_OPT = int;
+enum : int
+{
+    SHFMT_OPT_NONE    = 0x00000000,
+    SHFMT_OPT_FULL    = 0x00000001,
+    SHFMT_OPT_SYSONLY = 0x00000002,
+}
+
+alias SHFMT_RET = uint;
+enum : uint
+{
+    SHFMT_ERROR    = 0xffffffff,
+    SHFMT_CANCEL   = 0xfffffffe,
+    SHFMT_NOFORMAT = 0xfffffffd,
+}
+
+alias VALIDATEUNC_OPTION = int;
+enum : int
+{
+    VALIDATEUNC_CONNECT = 0x00000001,
+    VALIDATEUNC_NOUI    = 0x00000002,
+    VALIDATEUNC_PRINT   = 0x00000004,
+    VALIDATEUNC_PERSIST = 0x00000008,
+    VALIDATEUNC_VALID   = 0x0000000f,
+}
+
+alias SFVM_MESSAGE_ID = int;
+enum : int
+{
+    SFVM_MERGEMENU          = 0x00000001,
+    SFVM_INVOKECOMMAND      = 0x00000002,
+    SFVM_GETHELPTEXT        = 0x00000003,
+    SFVM_GETTOOLTIPTEXT     = 0x00000004,
+    SFVM_GETBUTTONINFO      = 0x00000005,
+    SFVM_GETBUTTONS         = 0x00000006,
+    SFVM_INITMENUPOPUP      = 0x00000007,
+    SFVM_FSNOTIFY           = 0x0000000e,
+    SFVM_WINDOWCREATED      = 0x0000000f,
+    SFVM_GETDETAILSOF       = 0x00000017,
+    SFVM_COLUMNCLICK        = 0x00000018,
+    SFVM_QUERYFSNOTIFY      = 0x00000019,
+    SFVM_DEFITEMCOUNT       = 0x0000001a,
+    SFVM_DEFVIEWMODE        = 0x0000001b,
+    SFVM_UNMERGEMENU        = 0x0000001c,
+    SFVM_UPDATESTATUSBAR    = 0x0000001f,
+    SFVM_BACKGROUNDENUM     = 0x00000020,
+    SFVM_DIDDRAGDROP        = 0x00000024,
+    SFVM_SETISFV            = 0x00000027,
+    SFVM_THISIDLIST         = 0x00000029,
+    SFVM_ADDPROPERTYPAGES   = 0x0000002f,
+    SFVM_BACKGROUNDENUMDONE = 0x00000030,
+    SFVM_GETNOTIFY          = 0x00000031,
+    SFVM_GETSORTDEFAULTS    = 0x00000035,
+    SFVM_SIZE               = 0x00000039,
+    SFVM_GETZONE            = 0x0000003a,
+    SFVM_GETPANE            = 0x0000003b,
+    SFVM_GETHELPTOPIC       = 0x0000003f,
+    SFVM_GETANIMATION       = 0x00000044,
+}
+
+alias SFVS_SELECT = int;
+enum : int
+{
+    SFVS_SELECT_NONE     = 0x00000000,
+    SFVS_SELECT_ALLITEMS = 0x00000001,
+    SFVS_SELECT_INVERT   = 0x00000002,
+}
+
+alias DFM_MESSAGE_ID = int;
+enum : int
+{
+    DFM_MERGECONTEXTMENU        = 0x00000001,
+    DFM_INVOKECOMMAND           = 0x00000002,
+    DFM_GETHELPTEXT             = 0x00000005,
+    DFM_WM_MEASUREITEM          = 0x00000006,
+    DFM_WM_DRAWITEM             = 0x00000007,
+    DFM_WM_INITMENUPOPUP        = 0x00000008,
+    DFM_VALIDATECMD             = 0x00000009,
+    DFM_MERGECONTEXTMENU_TOP    = 0x0000000a,
+    DFM_GETHELPTEXTW            = 0x0000000b,
+    DFM_INVOKECOMMANDEX         = 0x0000000c,
+    DFM_MAPCOMMANDNAME          = 0x0000000d,
+    DFM_GETDEFSTATICID          = 0x0000000e,
+    DFM_GETVERBW                = 0x0000000f,
+    DFM_GETVERBA                = 0x00000010,
+    DFM_MERGECONTEXTMENU_BOTTOM = 0x00000011,
+    DFM_MODIFYQCMFLAGS          = 0x00000012,
+}
+
+alias DFM_CMD = int;
+enum : int
+{
+    DFM_CMD_DELETE       = 0xffffffff,
+    DFM_CMD_MOVE         = 0xfffffffe,
+    DFM_CMD_COPY         = 0xfffffffd,
+    DFM_CMD_LINK         = 0xfffffffc,
+    DFM_CMD_PROPERTIES   = 0xfffffffb,
+    DFM_CMD_NEWFOLDER    = 0xfffffffa,
+    DFM_CMD_PASTE        = 0xfffffff9,
+    DFM_CMD_VIEWLIST     = 0xfffffff8,
+    DFM_CMD_VIEWDETAILS  = 0xfffffff7,
+    DFM_CMD_PASTELINK    = 0xfffffff6,
+    DFM_CMD_PASTESPECIAL = 0xfffffff5,
+    DFM_CMD_MODALPROP    = 0xfffffff4,
+    DFM_CMD_RENAME       = 0xfffffff3,
+}
+
+alias PID_IS = int;
+enum : int
+{
+    PID_IS_URL         = 0x00000002,
+    PID_IS_NAME        = 0x00000004,
+    PID_IS_WORKINGDIR  = 0x00000005,
+    PID_IS_HOTKEY      = 0x00000006,
+    PID_IS_SHOWCMD     = 0x00000007,
+    PID_IS_ICONINDEX   = 0x00000008,
+    PID_IS_ICONFILE    = 0x00000009,
+    PID_IS_WHATSNEW    = 0x0000000a,
+    PID_IS_AUTHOR      = 0x0000000b,
+    PID_IS_DESCRIPTION = 0x0000000c,
+    PID_IS_COMMENT     = 0x0000000d,
+    PID_IS_ROAMED      = 0x0000000f,
+}
+
+alias PID_INTSITE = int;
+enum : int
+{
+    PID_INTSITE_WHATSNEW     = 0x00000002,
+    PID_INTSITE_AUTHOR       = 0x00000003,
+    PID_INTSITE_LASTVISIT    = 0x00000004,
+    PID_INTSITE_LASTMOD      = 0x00000005,
+    PID_INTSITE_VISITCOUNT   = 0x00000006,
+    PID_INTSITE_DESCRIPTION  = 0x00000007,
+    PID_INTSITE_COMMENT      = 0x00000008,
+    PID_INTSITE_FLAGS        = 0x00000009,
+    PID_INTSITE_CONTENTLEN   = 0x0000000a,
+    PID_INTSITE_CONTENTCODE  = 0x0000000b,
+    PID_INTSITE_RECURSE      = 0x0000000c,
+    PID_INTSITE_WATCH        = 0x0000000d,
+    PID_INTSITE_SUBSCRIPTION = 0x0000000e,
+    PID_INTSITE_URL          = 0x0000000f,
+    PID_INTSITE_TITLE        = 0x00000010,
+    PID_INTSITE_CODEPAGE     = 0x00000012,
+    PID_INTSITE_TRACKING     = 0x00000013,
+    PID_INTSITE_ICONINDEX    = 0x00000014,
+    PID_INTSITE_ICONFILE     = 0x00000015,
+    PID_INTSITE_ROAMED       = 0x00000022,
+}
+
+alias PIDISF_FLAGS = int;
+enum : int
+{
+    PIDISF_RECENTLYCHANGED = 0x00000001,
+    PIDISF_CACHEDSTICKY    = 0x00000002,
+    PIDISF_CACHEIMAGES     = 0x00000010,
+    PIDISF_FOLLOWALLLINKS  = 0x00000020,
+}
+
+alias PIDISM_OPTIONS = int;
+enum : int
+{
+    PIDISM_GLOBAL    = 0x00000000,
+    PIDISM_WATCH     = 0x00000001,
+    PIDISM_DONTWATCH = 0x00000002,
+}
+
+alias PIDISR_INFO = int;
+enum : int
+{
+    PIDISR_UP_TO_DATE   = 0x00000000,
+    PIDISR_NEEDS_ADD    = 0x00000001,
+    PIDISR_NEEDS_UPDATE = 0x00000002,
+    PIDISR_NEEDS_DELETE = 0x00000003,
+}
+
+alias SSF_MASK = uint;
+enum : uint
+{
+    SSF_SHOWALLOBJECTS       = 0x00000001,
+    SSF_SHOWEXTENSIONS       = 0x00000002,
+    SSF_HIDDENFILEEXTS       = 0x00000004,
+    SSF_SERVERADMINUI        = 0x00000004,
+    SSF_SHOWCOMPCOLOR        = 0x00000008,
+    SSF_SORTCOLUMNS          = 0x00000010,
+    SSF_SHOWSYSFILES         = 0x00000020,
+    SSF_DOUBLECLICKINWEBVIEW = 0x00000080,
+    SSF_SHOWATTRIBCOL        = 0x00000100,
+    SSF_DESKTOPHTML          = 0x00000200,
+    SSF_WIN95CLASSIC         = 0x00000400,
+    SSF_DONTPRETTYPATH       = 0x00000800,
+    SSF_SHOWINFOTIP          = 0x00002000,
+    SSF_MAPNETDRVBUTTON      = 0x00001000,
+    SSF_NOCONFIRMRECYCLE     = 0x00008000,
+    SSF_HIDEICONS            = 0x00004000,
+    SSF_FILTER               = 0x00010000,
+    SSF_WEBVIEW              = 0x00020000,
+    SSF_SHOWSUPERHIDDEN      = 0x00040000,
+    SSF_SEPPROCESS           = 0x00080000,
+    SSF_NONETCRAWLING        = 0x00100000,
+    SSF_STARTPANELON         = 0x00200000,
+    SSF_SHOWSTARTPAGE        = 0x00400000,
+    SSF_AUTOCHECKSELECT      = 0x00800000,
+    SSF_ICONSONLY            = 0x01000000,
+    SSF_SHOWTYPEOVERLAY      = 0x02000000,
+    SSF_SHOWSTATUSBAR        = 0x04000000,
+}
 
 alias ASSOCCLASS = int;
 enum : int
@@ -5259,21 +5637,8 @@ enum int CTF_NOADDREFLIB = 0x00002000;
 
 // Callbacks
 
-///Defines the prototype for the callback function used by RemoveWindowSubclass and SetWindowSubclass.
-///Params:
-///    hWnd = Type: <b>HWND</b> The handle to the subclassed window.
-///    uMsg = Type: <b>UINT</b> The message being passed.
-///    wParam = Type: <b>WPARAM</b> Additional message information. The contents of this parameter depend on the value of
-///             <i>uMsg</i>.
-///    lParam = Type: <b>LPARAM</b> Additional message information. The contents of this parameter depend on the value of
-///             <i>uMsg</i>.
-///    uIdSubclass = Type: <b>UINT_PTR</b> The subclass ID.
-///    dwRefData = Type: <b>DWORD_PTR</b> The reference data provided to the SetWindowSubclass function. This can be used to
-///                associate the subclass instance with a "this" pointer.
-alias SUBCLASSPROC = LRESULT function(HWND hWnd, uint uMsg, WPARAM wParam, LPARAM lParam, size_t uIdSubclass, 
-                                      size_t dwRefData);
-alias PFNCANSHAREFOLDERW = HRESULT function(const(wchar)* pszPath);
-alias PFNSHOWSHAREFOLDERUIW = HRESULT function(HWND hwndParent, const(wchar)* pszPath);
+alias PFNCANSHAREFOLDERW = HRESULT function(const(PWSTR) pszPath);
+alias PFNSHOWSHAREFOLDERUIW = HRESULT function(HWND hwndParent, const(PWSTR) pszPath);
 alias LPFNSVADDPROPSHEETPAGE = BOOL function();
 ///<p class="CCE_Message">[<b>LPFNDFMCALLBACK</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions.] Defines the prototype for the
@@ -5342,9 +5707,106 @@ alias APPLET_PROC = int function(HWND hwndCpl, uint msg, LPARAM lParam1, LPARAM 
 ///               the suspended state.
 alias PAPPSTATE_CHANGE_ROUTINE = void function(ubyte Quiesced, void* Context);
 alias PAPPCONSTRAIN_CHANGE_ROUTINE = void function(ubyte Constrained, void* Context);
+///Defines the prototype for the callback function used by RemoveWindowSubclass and SetWindowSubclass.
+///Params:
+///    hWnd = Type: <b>HWND</b> The handle to the subclassed window.
+///    uMsg = Type: <b>UINT</b> The message being passed.
+///    wParam = Type: <b>WPARAM</b> Additional message information. The contents of this parameter depend on the value of
+///             <i>uMsg</i>.
+///    lParam = Type: <b>LPARAM</b> Additional message information. The contents of this parameter depend on the value of
+///             <i>uMsg</i>.
+///    uIdSubclass = Type: <b>UINT_PTR</b> The subclass ID.
+///    dwRefData = Type: <b>DWORD_PTR</b> The reference data provided to the SetWindowSubclass function. This can be used to
+///                associate the subclass instance with a "this" pointer.
+alias SUBCLASSPROC = LRESULT function(HWND hWnd, uint uMsg, WPARAM wParam, LPARAM lParam, size_t uIdSubclass, 
+                                      size_t dwRefData);
 
 // Structs
 
+
+///Contains information about an item for which context-sensitive help has been requested.
+struct HELPINFO
+{
+    ///Type: <b>UINT</b> The structure size, in bytes.
+    uint   cbSize;
+    ///Type: <b>int</b> The type of context for which help is requested. This member can be one of the following values.
+    ///- <b>HELPINFO_MENUITEM</b>: Help requested for a menu item. - <b>HELPINFO_WINDOW</b>: Help requested for a
+    ///control or window.
+    int    iContextType;
+    ///Type: <b>int</b> The identifier of the window or control if <b>iContextType</b> is <b>HELPINFO_WINDOW</b>, or
+    ///identifier of the menu item if <b>iContextType</b> is <b>HELPINFO_MENUITEM</b>.
+    int    iCtrlId;
+    ///Type: <b>HANDLE</b> The identifier of the child window or control if <b>iContextType</b> is
+    ///<b>HELPINFO_WINDOW</b>, or identifier of the associated menu if <b>iContextType</b> is <b>HELPINFO_MENUITEM</b>.
+    HANDLE hItemHandle;
+    ///Type: <b>DWORD</b> The help context identifier of the window or control.
+    size_t dwContextId;
+    POINT  MousePos;
+}
+
+///Specifies a keyword to search for and the keyword table to be searched by Windows Help.
+struct MULTIKEYHELPA
+{
+    ///Type: <b>DWORD</b> The structure size, in bytes.
+    uint    mkSize;
+    ///Type: <b>TCHAR</b> A single character that identifies the keyword table to search.
+    byte    mkKeylist;
+    ///Type: <b>TCHAR[1]</b> A null-terminated text string that specifies the keyword to locate in the keyword table.
+    byte[1] szKeyphrase;
+}
+
+///Specifies a keyword to search for and the keyword table to be searched by Windows Help.
+struct MULTIKEYHELPW
+{
+    ///Type: <b>DWORD</b> The structure size, in bytes.
+    uint      mkSize;
+    ///Type: <b>TCHAR</b> A single character that identifies the keyword table to search.
+    ushort    mkKeylist;
+    ///Type: <b>TCHAR[1]</b> A null-terminated text string that specifies the keyword to locate in the keyword table.
+    ushort[1] szKeyphrase;
+}
+
+///Contains the size and position of either a primary or secondary Help window. An application can set this information
+///by calling the WinHelp function with the HELP_SETWINPOS value.
+struct HELPWININFOA
+{
+    ///Type: <b>int</b> The size of this structure, in bytes.
+    int     wStructSize;
+    ///Type: <b>int</b> X-coordinate of the upper-left corner of the window, in screen coordinates.
+    int     x;
+    ///Type: <b>int</b> Y-coordinate of the upper-left corner of the window, in screen coordinates.
+    int     y;
+    ///Type: <b>int</b> The width of the window, in pixels.
+    int     dx;
+    ///Type: <b>int</b> The height of the window, in pixels.
+    int     dy;
+    ///Type: <b>int</b> Options for display of the window. Several values also determine the activation (focus) state of
+    ///the window or other windows. This member must be one of the following values.
+    int     wMax;
+    ///Type: <b>TCHAR[2]</b> The name of the window.
+    byte[2] rgchMember;
+}
+
+///Contains the size and position of either a primary or secondary Help window. An application can set this information
+///by calling the WinHelp function with the HELP_SETWINPOS value.
+struct HELPWININFOW
+{
+    ///Type: <b>int</b> The size of this structure, in bytes.
+    int       wStructSize;
+    ///Type: <b>int</b> X-coordinate of the upper-left corner of the window, in screen coordinates.
+    int       x;
+    ///Type: <b>int</b> Y-coordinate of the upper-left corner of the window, in screen coordinates.
+    int       y;
+    ///Type: <b>int</b> The width of the window, in pixels.
+    int       dx;
+    ///Type: <b>int</b> The height of the window, in pixels.
+    int       dy;
+    ///Type: <b>int</b> Options for display of the window. Several values also determine the activation (focus) state of
+    ///the window or other windows. This member must be one of the following values.
+    int       wMax;
+    ///Type: <b>TCHAR[2]</b> The name of the window.
+    ushort[2] rgchMember;
+}
 
 ///The <b>LOGFONT</b> structure defines the attributes of a font.
 struct LOGFONTA
@@ -5620,148 +6082,10 @@ struct LOGFONTW
     ushort[32] lfFaceName;
 }
 
-///Contains information about a software update.
-struct SOFTDISTINFO
+@RAIIFree!SHChangeNotification_Unlock
+struct ShFindChangeNotifcationHandle
 {
-    ///Type: <b>ULONG</b> The size of the structure, in bytes.
-    uint          cbSize;
-    ///Type: <b>DWORD</b> This parameter can take one of the following values.
-    uint          dwFlags;
-    ///Type: <b>DWORD</b> The advertised state. It can take one of the following values.
-    uint          dwAdState;
-    ///Type: <b>LPWSTR</b> A string that contains the contents of the TITLE flag from the associated .cdf file.
-    const(wchar)* szTitle;
-    ///Type: <b>LPWSTR</b> A string that contains the contents of the ABSTRACT flag from the associated .cdf file.
-    const(wchar)* szAbstract;
-    ///Type: <b>LPWSTR</b> A string that contains the URL of the webpage to advertise or install the update.
-    const(wchar)* szHREF;
-    ///Type: <b>DWORD</b> The most-significant unsigned long integer value of the installed version number.
-    uint          dwInstalledVersionMS;
-    ///Type: <b>DWORD</b> The least-significant unsigned long integer value of the installed version number.
-    uint          dwInstalledVersionLS;
-    ///Type: <b>DWORD</b> The most-significant unsigned long integer value of the update version number.
-    uint          dwUpdateVersionMS;
-    ///Type: <b>DWORD</b> The least-significant unsigned long integer value of the update version number.
-    uint          dwUpdateVersionLS;
-    ///Type: <b>DWORD</b> The most-significant unsigned long integer value of the advertised version number.
-    uint          dwAdvertisedVersionMS;
-    ///Type: <b>DWORD</b> The least-significant unsigned long integer value of the advertised version number.
-    uint          dwAdvertisedVersionLS;
-    ///Type: <b>DWORD</b> Reserved. Must be set to zero.
-    uint          dwReserved;
-}
-
-alias ShFindChangeNotifcationHandle = ptrdiff_t;
-
-///Contains information about an item for which context-sensitive help has been requested.
-struct HELPINFO
-{
-    ///Type: <b>UINT</b> The structure size, in bytes.
-    uint   cbSize;
-    ///Type: <b>int</b> The type of context for which help is requested. This member can be one of the following values.
-    ///- <b>HELPINFO_MENUITEM</b>: Help requested for a menu item. - <b>HELPINFO_WINDOW</b>: Help requested for a
-    ///control or window.
-    int    iContextType;
-    ///Type: <b>int</b> The identifier of the window or control if <b>iContextType</b> is <b>HELPINFO_WINDOW</b>, or
-    ///identifier of the menu item if <b>iContextType</b> is <b>HELPINFO_MENUITEM</b>.
-    int    iCtrlId;
-    ///Type: <b>HANDLE</b> The identifier of the child window or control if <b>iContextType</b> is
-    ///<b>HELPINFO_WINDOW</b>, or identifier of the associated menu if <b>iContextType</b> is <b>HELPINFO_MENUITEM</b>.
-    HANDLE hItemHandle;
-    ///Type: <b>DWORD</b> The help context identifier of the window or control.
-    size_t dwContextId;
-    POINT  MousePos;
-}
-
-///Specifies a keyword to search for and the keyword table to be searched by Windows Help.
-struct MULTIKEYHELPA
-{
-    ///Type: <b>DWORD</b> The structure size, in bytes.
-    uint    mkSize;
-    ///Type: <b>TCHAR</b> A single character that identifies the keyword table to search.
-    byte    mkKeylist;
-    ///Type: <b>TCHAR[1]</b> A null-terminated text string that specifies the keyword to locate in the keyword table.
-    byte[1] szKeyphrase;
-}
-
-///Specifies a keyword to search for and the keyword table to be searched by Windows Help.
-struct MULTIKEYHELPW
-{
-    ///Type: <b>DWORD</b> The structure size, in bytes.
-    uint      mkSize;
-    ///Type: <b>TCHAR</b> A single character that identifies the keyword table to search.
-    ushort    mkKeylist;
-    ///Type: <b>TCHAR[1]</b> A null-terminated text string that specifies the keyword to locate in the keyword table.
-    ushort[1] szKeyphrase;
-}
-
-///Contains the size and position of either a primary or secondary Help window. An application can set this information
-///by calling the WinHelp function with the HELP_SETWINPOS value.
-struct HELPWININFOA
-{
-    ///Type: <b>int</b> The size of this structure, in bytes.
-    int     wStructSize;
-    ///Type: <b>int</b> X-coordinate of the upper-left corner of the window, in screen coordinates.
-    int     x;
-    ///Type: <b>int</b> Y-coordinate of the upper-left corner of the window, in screen coordinates.
-    int     y;
-    ///Type: <b>int</b> The width of the window, in pixels.
-    int     dx;
-    ///Type: <b>int</b> The height of the window, in pixels.
-    int     dy;
-    ///Type: <b>int</b> Options for display of the window. Several values also determine the activation (focus) state of
-    ///the window or other windows. This member must be one of the following values.
-    int     wMax;
-    ///Type: <b>TCHAR[2]</b> The name of the window.
-    byte[2] rgchMember;
-}
-
-///Contains the size and position of either a primary or secondary Help window. An application can set this information
-///by calling the WinHelp function with the HELP_SETWINPOS value.
-struct HELPWININFOW
-{
-    ///Type: <b>int</b> The size of this structure, in bytes.
-    int       wStructSize;
-    ///Type: <b>int</b> X-coordinate of the upper-left corner of the window, in screen coordinates.
-    int       x;
-    ///Type: <b>int</b> Y-coordinate of the upper-left corner of the window, in screen coordinates.
-    int       y;
-    ///Type: <b>int</b> The width of the window, in pixels.
-    int       dx;
-    ///Type: <b>int</b> The height of the window, in pixels.
-    int       dy;
-    ///Type: <b>int</b> Options for display of the window. Several values also determine the activation (focus) state of
-    ///the window or other windows. This member must be one of the following values.
-    int       wMax;
-    ///Type: <b>TCHAR[2]</b> The name of the window.
-    ushort[2] rgchMember;
-}
-
-///Provides application category information to Add/Remove Programs in Control Panel. The APPCATEGORYINFOLIST structure
-///is used create a complete list of categories for an application publisher.
-struct APPCATEGORYINFO
-{
-    ///Type: <b>LCID</b> Unused.
-    uint          Locale;
-    ///Type: <b>LPWSTR</b> A pointer to a string containing the display name of the category. This string displays in
-    ///the <b>Category</b> list in Add/Remove Programs. This string buffer must be allocated using CoTaskMemAlloc and
-    ///freed using CoTaskMemFree.
-    const(wchar)* pszDescription;
-    ///Type: <b>GUID</b> A GUID identifying the application category.
-    GUID          AppCategoryId;
-}
-
-///Provides a list of supported application categories from an application publisher to Add/Remove Programs in Control
-///Panel.
-struct APPCATEGORYINFOLIST
-{
-    ///Type: <b>DWORD</b> A value of type <b>DWORD</b> that specifies the count of APPCATEGORYINFO elements in the array
-    ///pointed to by <b>pCategoryInfo</b>.
-    uint             cCategory;
-    ///Type: <b>APPCATEGORYINFO*</b> A pointer to an array of APPCATEGORYINFO structures. This array contains all the
-    ///categories an application publisher supports and must be allocated using CoTaskMemAlloc and freed using
-    ///CoTaskMemFree.
-    APPCATEGORYINFO* pCategoryInfo;
+    ptrdiff_t Value;
 }
 
 struct HDROP__
@@ -5773,21 +6097,21 @@ align (1):
 struct DRAGINFOA
 {
 align (1):
-    uint         uSize;
-    POINT        pt;
-    BOOL         fNC;
-    const(char)* lpFileList;
-    uint         grfKeyState;
+    uint  uSize;
+    POINT pt;
+    BOOL  fNC;
+    /*FIELD ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PSTR lpFileList;
+    uint  grfKeyState;
 }
 
 struct DRAGINFOW
 {
 align (1):
-    uint          uSize;
-    POINT         pt;
-    BOOL          fNC;
-    const(wchar)* lpFileList;
-    uint          grfKeyState;
+    uint  uSize;
+    POINT pt;
+    BOOL  fNC;
+    /*FIELD ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PWSTR lpFileList;
+    uint  grfKeyState;
 }
 
 ///Contains information about a system appbar message.
@@ -5824,9 +6148,9 @@ struct SHFILEOPSTRUCTA
 align (1):
     ///Type: <b>HWND</b> A window handle to the dialog box to display information about the status of the file
     ///operation.
-    HWND         hwnd;
+    HWND        hwnd;
     ///Type: <b>UINT</b> A value that indicates which operation to perform. One of the following values:
-    uint         wFunc;
+    uint        wFunc;
     ///Type: <b>PCZZTSTR</b> <div class="alert"><b>Note</b> This string must be double-null terminated.</div> <div>
     ///</div> A pointer to one or more source file names. These names should be fully qualified paths to prevent
     ///unexpected results. Standard MS-DOS wildcard characters, such as "*", are permitted <i>only</i> in the file-name
@@ -5834,7 +6158,7 @@ align (1):
     ///member is declared as a single null-terminated string, it is actually a buffer that can hold multiple
     ///null-delimited file names. Each file name is terminated by a single <b>NULL</b> character. The last file name is
     ///terminated with a double <b>NULL</b> character ("\0\0") to indicate the end of the buffer.
-    byte*        pFrom;
+    byte*       pFrom;
     ///Type: <b>PCZZTSTR</b> <div class="alert"><b>Note</b> This string must be double-null terminated.</div> <div>
     ///</div> A pointer to the destination file or directory name. This parameter must be set to <b>NULL</b> if it is
     ///not used. Wildcard characters are not allowed. Their use will lead to unpredictable results. Like <b>pFrom</b>,
@@ -5847,7 +6171,55 @@ align (1):
     ///the <b>fFlags</b> member specifies <b>FOF_MULTIDESTFILES</b>.</li> <li>Pack multiple names into the <b>pTo</b>
     ///string in the same way as for <b>pFrom</b>.</li> <li>Use fully qualified paths. Using relative paths is not
     ///prohibited, but can have unpredictable results.</li> </ul>
-    byte*        pTo;
+    byte*       pTo;
+    ///Type: <b>FILEOP_FLAGS</b> Flags that control the file operation. This member can take a combination of the
+    ///following flags.
+    ushort      fFlags;
+    ///Type: <b>BOOL</b> When the function returns, this member contains <b>TRUE</b> if any file operations were aborted
+    ///before they were completed; otherwise, <b>FALSE</b>. An operation can be manually aborted by the user through UI
+    ///or it can be silently aborted by the system if the FOF_NOERRORUI or FOF_NOCONFIRMATION flags were set.
+    BOOL        fAnyOperationsAborted;
+    ///Type: <b>LPVOID</b> When the function returns, this member contains a handle to a name mapping object that
+    ///contains the old and new names of the renamed files. This member is used only if the <b>fFlags</b> member
+    ///includes the <b>FOF_WANTMAPPINGHANDLE</b> flag. See Remarks for more details.
+    void*       hNameMappings;
+    ///Type: <b>PCTSTR</b> A pointer to the title of a progress dialog box. This is a null-terminated string. This
+    ///member is used only if <b>fFlags</b> includes the <b>FOF_SIMPLEPROGRESS</b> flag.
+    const(PSTR) lpszProgressTitle;
+}
+
+///Contains information that the SHFileOperation function uses to perform file operations. <div
+///class="alert"><b>Note</b> As of Windows Vista, the use of the IFileOperation interface is recommended over this
+///function.</div><div> </div>
+struct SHFILEOPSTRUCTW
+{
+align (1):
+    ///Type: <b>HWND</b> A window handle to the dialog box to display information about the status of the file
+    ///operation.
+    HWND         hwnd;
+    ///Type: <b>UINT</b> A value that indicates which operation to perform. One of the following values:
+    uint         wFunc;
+    ///Type: <b>PCZZTSTR</b> <div class="alert"><b>Note</b> This string must be double-null terminated.</div> <div>
+    ///</div> A pointer to one or more source file names. These names should be fully qualified paths to prevent
+    ///unexpected results. Standard MS-DOS wildcard characters, such as "*", are permitted <i>only</i> in the file-name
+    ///position. Using a wildcard character elsewhere in the string will lead to unpredictable results. Although this
+    ///member is declared as a single null-terminated string, it is actually a buffer that can hold multiple
+    ///null-delimited file names. Each file name is terminated by a single <b>NULL</b> character. The last file name is
+    ///terminated with a double <b>NULL</b> character ("\0\0") to indicate the end of the buffer.
+    /*FIELD ATTR: NullNullTerminated : CustomAttributeSig([], [])*/const(PWSTR) pFrom;
+    ///Type: <b>PCZZTSTR</b> <div class="alert"><b>Note</b> This string must be double-null terminated.</div> <div>
+    ///</div> A pointer to the destination file or directory name. This parameter must be set to <b>NULL</b> if it is
+    ///not used. Wildcard characters are not allowed. Their use will lead to unpredictable results. Like <b>pFrom</b>,
+    ///the <b>pTo</b> member is also a double-null terminated string and is handled in much the same way. However,
+    ///<b>pTo</b> must meet the following specifications: <ul> <li>Wildcard characters are not supported.</li> <li>Copy
+    ///and Move operations can specify destination directories that do not exist. In those cases, the system attempts to
+    ///create them and normally displays a dialog box to ask the user if they want to create the new directory. To
+    ///suppress this dialog box and have the directories created silently, set the <b>FOF_NOCONFIRMMKDIR</b> flag in
+    ///<b>fFlags</b>.</li> <li>For Copy and Move operations, the buffer can contain multiple destination file names if
+    ///the <b>fFlags</b> member specifies <b>FOF_MULTIDESTFILES</b>.</li> <li>Pack multiple names into the <b>pTo</b>
+    ///string in the same way as for <b>pFrom</b>.</li> <li>Use fully qualified paths. Using relative paths is not
+    ///prohibited, but can have unpredictable results.</li> </ul>
+    /*FIELD ATTR: NullNullTerminated : CustomAttributeSig([], [])*/const(PWSTR) pTo;
     ///Type: <b>FILEOP_FLAGS</b> Flags that control the file operation. This member can take a combination of the
     ///following flags.
     ushort       fFlags;
@@ -5861,55 +6233,7 @@ align (1):
     void*        hNameMappings;
     ///Type: <b>PCTSTR</b> A pointer to the title of a progress dialog box. This is a null-terminated string. This
     ///member is used only if <b>fFlags</b> includes the <b>FOF_SIMPLEPROGRESS</b> flag.
-    const(char)* lpszProgressTitle;
-}
-
-///Contains information that the SHFileOperation function uses to perform file operations. <div
-///class="alert"><b>Note</b> As of Windows Vista, the use of the IFileOperation interface is recommended over this
-///function.</div><div> </div>
-struct SHFILEOPSTRUCTW
-{
-align (1):
-    ///Type: <b>HWND</b> A window handle to the dialog box to display information about the status of the file
-    ///operation.
-    HWND          hwnd;
-    ///Type: <b>UINT</b> A value that indicates which operation to perform. One of the following values:
-    uint          wFunc;
-    ///Type: <b>PCZZTSTR</b> <div class="alert"><b>Note</b> This string must be double-null terminated.</div> <div>
-    ///</div> A pointer to one or more source file names. These names should be fully qualified paths to prevent
-    ///unexpected results. Standard MS-DOS wildcard characters, such as "*", are permitted <i>only</i> in the file-name
-    ///position. Using a wildcard character elsewhere in the string will lead to unpredictable results. Although this
-    ///member is declared as a single null-terminated string, it is actually a buffer that can hold multiple
-    ///null-delimited file names. Each file name is terminated by a single <b>NULL</b> character. The last file name is
-    ///terminated with a double <b>NULL</b> character ("\0\0") to indicate the end of the buffer.
-    const(wchar)* pFrom;
-    ///Type: <b>PCZZTSTR</b> <div class="alert"><b>Note</b> This string must be double-null terminated.</div> <div>
-    ///</div> A pointer to the destination file or directory name. This parameter must be set to <b>NULL</b> if it is
-    ///not used. Wildcard characters are not allowed. Their use will lead to unpredictable results. Like <b>pFrom</b>,
-    ///the <b>pTo</b> member is also a double-null terminated string and is handled in much the same way. However,
-    ///<b>pTo</b> must meet the following specifications: <ul> <li>Wildcard characters are not supported.</li> <li>Copy
-    ///and Move operations can specify destination directories that do not exist. In those cases, the system attempts to
-    ///create them and normally displays a dialog box to ask the user if they want to create the new directory. To
-    ///suppress this dialog box and have the directories created silently, set the <b>FOF_NOCONFIRMMKDIR</b> flag in
-    ///<b>fFlags</b>.</li> <li>For Copy and Move operations, the buffer can contain multiple destination file names if
-    ///the <b>fFlags</b> member specifies <b>FOF_MULTIDESTFILES</b>.</li> <li>Pack multiple names into the <b>pTo</b>
-    ///string in the same way as for <b>pFrom</b>.</li> <li>Use fully qualified paths. Using relative paths is not
-    ///prohibited, but can have unpredictable results.</li> </ul>
-    const(wchar)* pTo;
-    ///Type: <b>FILEOP_FLAGS</b> Flags that control the file operation. This member can take a combination of the
-    ///following flags.
-    ushort        fFlags;
-    ///Type: <b>BOOL</b> When the function returns, this member contains <b>TRUE</b> if any file operations were aborted
-    ///before they were completed; otherwise, <b>FALSE</b>. An operation can be manually aborted by the user through UI
-    ///or it can be silently aborted by the system if the FOF_NOERRORUI or FOF_NOCONFIRMATION flags were set.
-    BOOL          fAnyOperationsAborted;
-    ///Type: <b>LPVOID</b> When the function returns, this member contains a handle to a name mapping object that
-    ///contains the old and new names of the renamed files. This member is used only if the <b>fFlags</b> member
-    ///includes the <b>FOF_WANTMAPPINGHANDLE</b> flag. See Remarks for more details.
-    void*         hNameMappings;
-    ///Type: <b>PCTSTR</b> A pointer to the title of a progress dialog box. This is a null-terminated string. This
-    ///member is used only if <b>fFlags</b> includes the <b>FOF_SIMPLEPROGRESS</b> flag.
-    const(wchar)* lpszProgressTitle;
+    const(PWSTR) lpszProgressTitle;
 }
 
 ///Contains the old and new path names for each file that was moved, copied, or renamed by the SHFileOperation function.
@@ -5917,13 +6241,13 @@ struct SHNAMEMAPPINGA
 {
 align (1):
     ///Type: <b>LPTSTR</b> The address of a character buffer that contains the old path name.
-    const(char)* pszOldPath;
+    PSTR pszOldPath;
     ///Type: <b>LPTSTR</b> The address of a character buffer that contains the new path name.
-    const(char)* pszNewPath;
+    PSTR pszNewPath;
     ///Type: <b>int</b> The number of characters in <b>pszOldPath</b>.
-    int          cchOldPath;
+    int  cchOldPath;
     ///Type: <b>int</b> The number of characters in <b>pszNewPath</b>.
-    int          cchNewPath;
+    int  cchNewPath;
 }
 
 ///Contains the old and new path names for each file that was moved, copied, or renamed by the SHFileOperation function.
@@ -5931,17 +6255,167 @@ struct SHNAMEMAPPINGW
 {
 align (1):
     ///Type: <b>LPTSTR</b> The address of a character buffer that contains the old path name.
-    const(wchar)* pszOldPath;
+    PWSTR pszOldPath;
     ///Type: <b>LPTSTR</b> The address of a character buffer that contains the new path name.
-    const(wchar)* pszNewPath;
+    PWSTR pszNewPath;
     ///Type: <b>int</b> The number of characters in <b>pszOldPath</b>.
-    int           cchOldPath;
+    int   cchOldPath;
     ///Type: <b>int</b> The number of characters in <b>pszNewPath</b>.
-    int           cchNewPath;
+    int   cchNewPath;
 }
 
 ///Contains information used by ShellExecuteEx.
 struct SHELLEXECUTEINFOA
+{
+align (1):
+    ///Type: <b>DWORD</b> Required. The size of this structure, in bytes.
+    uint        cbSize;
+    ///Type: <b>ULONG</b> A combination of one or more of the following values that indicate the content and validity of
+    ///the other structure members: <table> <colgroup> <col span="1" style="width: 40%;"> <col span="1" style="width:
+    ///60%;"> </colgroup> <tr valign="top"> <td>SEE_MASK_DEFAULT (0x00000000)</td> <td>Use default values.</td> </tr>
+    ///<tr valign="top"> <td>SEE_MASK_CLASSNAME (0x00000001)</td> <td>Use the class name given by the <b>lpClass</b>
+    ///member. If both SEE_MASK_CLASSKEY and SEE_MASK_CLASSNAME are set, the class key is used.</td> </tr> <tr
+    ///valign="top"> <td>SEE_MASK_CLASSKEY (0x00000003) </td> <td>Use the class key given by the <b>hkeyClass</b>
+    ///member. If both SEE_MASK_CLASSKEY and SEE_MASK_CLASSNAME are set, the class key is used.</td> </tr> <tr
+    ///valign="top"> <td>SEE_MASK_IDLIST (0x00000004)</td> <td>Use the item identifier list given by the <b>lpIDList</b>
+    ///member. The <b>lpIDList</b> member must point to an ITEMIDLIST structure.</td> </tr> <tr valign="top">
+    ///<td>SEE_MASK_INVOKEIDLIST (0x0000000C)</td> <td>Use the IContextMenu interface of the selected item's shortcut
+    ///menu handler. Use either <b>lpFile</b> to identify the item by its file system path or <b>lpIDList</b> to
+    ///identify the item by its PIDL. This flag allows applications to use ShellExecuteEx to invoke verbs from shortcut
+    ///menu extensions instead of the static verbs listed in the registry. <div class="alert"><b>Note:</b>
+    ///SEE_MASK_INVOKEIDLIST overrides and implies SEE_MASK_IDLIST.</div> <div> </div> </td> </tr> <tr valign="top">
+    ///<td>SEE_MASK_ICON (0x00000010)</td> <td>Use the icon given by the <b>hIcon</b> member. This flag cannot be
+    ///combined with SEE_MASK_HMONITOR. <div class="alert"><b>Note:</b> This flag is used only in Windows XP and
+    ///earlier. It is ignored as of Windows Vista.</div> </td> </tr> <tr valign="top"> <td>SEE_MASK_HOTKEY
+    ///(0x00000020)</td> <td>Use the keyboard shortcut given by the <b>dwHotKey</b> member.</td> </tr> <tr valign="top">
+    ///<td>SEE_MASK_NOCLOSEPROCESS (0x00000040)</td> <td>Use to indicate that the <b>hProcess</b> member receives the
+    ///process handle. This handle is typically used to allow an application to find out when a process created with
+    ///ShellExecuteEx terminates. In some cases, such as when execution is satisfied through a DDE conversation, no
+    ///handle will be returned. The calling application is responsible for closing the handle when it is no longer
+    ///needed.</td> </tr> <tr valign="top"> <td>SEE_MASK_CONNECTNETDRV (0x00000080)</td> <td>Validate the share and
+    ///connect to a drive letter. This enables reconnection of disconnected network drives. The <b>lpFile</b> member is
+    ///a UNC path of a file on a network.</td> </tr> <tr valign="top"> <td>SEE_MASK_NOASYNC (0x00000100)</td> <td>Wait
+    ///for the execute operation to complete before returning. This flag should be used by callers that are using
+    ///ShellExecute forms that might result in an async activation, for example DDE, and create a process that might be
+    ///run on a background thread. (Note: ShellExecuteEx runs on a background thread by default if the caller's
+    ///threading model is not Apartment.) Calls to <b>ShellExecuteEx</b> from processes already running on background
+    ///threads should always pass this flag. Also, applications that exit immediately after calling
+    ///<b>ShellExecuteEx</b> should specify this flag. If the execute operation is performed on a background thread and
+    ///the caller did not specify the SEE_MASK_ASYNCOK flag, then the calling thread waits until the new process has
+    ///started before returning. This typically means that either CreateProcess has been called, the DDE communication
+    ///has completed, or that the custom execution delegate has notified ShellExecuteEx that it is done. If the
+    ///SEE_MASK_WAITFORINPUTIDLE flag is specified, then <b>ShellExecuteEx</b> calls WaitForInputIdle and waits for the
+    ///new process to idle before returning, with a maximum timeout of 1 minute. For further discussion on when this
+    ///flag is necessary, see the Remarks section.</td> </tr> <tr valign="top"> <td>SEE_MASK_FLAG_DDEWAIT
+    ///(0x00000100)</td> <td>The same as SEE_MASK_NOASYNC, use of that option is preferred.</td> </tr> <tr valign="top">
+    ///<td>SEE_MASK_DOENVSUBST (0x00000200)</td> <td>Expand any environment variables specified in the string given by
+    ///the <b>lpDirectory</b> or <b>lpFile</b> member.</td> </tr> <tr valign="top"> <td>SEE_MASK_FLAG_NO_UI
+    ///(0x00000400)</td> <td>Do not display an error message box if an error occurs.</td> </tr> <tr valign="top">
+    ///<td>SEE_MASK_UNICODE (0x00004000) </td> <td>Use this flag to indicate a Unicode application.</td> </tr> <tr
+    ///valign="top"> <td>SEE_MASK_NO_CONSOLE (0x00008000)</td> <td>Use to inherit the parent's console for the new
+    ///process instead of having it create a new console. It is the opposite of using a CREATE_NEW_CONSOLE flag with
+    ///CreateProcess.</td> </tr> <tr valign="top"> <td>SEE_MASK_ASYNCOK (0x00100000) </td> <td>The execution can be
+    ///performed on a background thread and the call should return immediately without waiting for the background thread
+    ///to finish. Note that in certain cases ShellExecuteEx ignores this flag and waits for the process to finish before
+    ///returning.</td> </tr> <tr valign="top"> <td>SEE_MASK_NOQUERYCLASSSTORE (0x01000000)</td> <td>Not used.</td> </tr>
+    ///<tr valign="top"> <td>SEE_MASK_HMONITOR (0x00200000)</td> <td>Use this flag when specifying a monitor on
+    ///multi-monitor systems. The monitor is specified in the <b>hMonitor</b> member. This flag cannot be combined with
+    ///SEE_MASK_ICON.</td> </tr> <tr valign="top"> <td>SEE_MASK_NOZONECHECKS (0x00800000)</td> <td>Do not perform a zone
+    ///check. This flag allows ShellExecuteEx to bypass zone checking put into place by IAttachmentExecute.</td> </tr>
+    ///<tr valign="top"> <td>SEE_MASK_WAITFORINPUTIDLE (0x02000000)</td> <td>After the new process is created, wait for
+    ///the process to become idle before returning, with a one minute timeout. See WaitForInputIdle for more
+    ///details.</td> </tr> <tr valign="top"> <td>SEE_MASK_FLAG_LOG_USAGE (0x04000000)</td> <td>Indicates a user
+    ///initiated launch that enables tracking of frequently used programs and other behaviors.</td> </tr> <tr
+    ///valign="top"> <td>SEE_MASK_FLAG_HINST_IS_SITE` (0x08000000)</td> <td>The <b>hInstApp</b> member is used to
+    ///specify the IUnknown of an object that implements IServiceProvider. This object will be used as a site pointer.
+    ///The site pointer is used to provide services to the ShellExecute function, the handler binding process, and
+    ///invoked verb handlers. To use <b>SEE_MASK_FLAG_HINST_IS_SITE</b> in operating systems prior to Windows 8, define
+    ///it manually in your program:
+    uint        fMask;
+    ///Type: <b>HWND</b> Optional. A handle to the parent window, used to display any message boxes that the system
+    ///might produce while executing this function. This value can be <b>NULL</b>.
+    HWND        hwnd;
+    ///Type: <b>LPCTSTR</b> A string, referred to as a <i>verb</i>, that specifies the action to be performed. The set
+    ///of available verbs depends on the particular file or folder. Generally, the actions available from an object's
+    ///shortcut menu are available verbs. This parameter can be <b>NULL</b>, in which case the default verb is used if
+    ///available. If not, the "open" verb is used. If neither verb is available, the system uses the first verb listed
+    ///in the registry. The following verbs are commonly used: - **edit**: Launches an editor and opens the document for
+    ///editing. If <b>lpFile</b> is not a document file, the function will fail. - **explore**: Explores the folder
+    ///specified by <b>lpFile</b>. - **find**: Initiates a search starting from the specified directory. - **open**:
+    ///Opens the file specified by the <b>lpFile</b> parameter. The file can be an executable file, a document file, or
+    ///a folder. - **print**: Prints the document file specified by <b>lpFile</b>. If <b>lpFile</b> is not a document
+    ///file, the function will fail. - **properties**: Displays the file or folder's properties. - **runas**: Launches
+    ///an application as Administrator. User Account Control (UAC) will prompt the user for consent to run the
+    ///application elevated or enter the credentials of an administrator account used to run the application.
+    const(PSTR) lpVerb;
+    ///Type: <b>LPCTSTR</b> The address of a null-terminated string that specifies the name of the file or object on
+    ///which ShellExecuteEx will perform the action specified by the <b>lpVerb</b> parameter. The system registry verbs
+    ///that are supported by the <b>ShellExecuteEx</b> function include "open" for executable files and document files
+    ///and "print" for document files for which a print handler has been registered. Other applications might have added
+    ///Shell verbs through the system registry, such as "play" for .avi and .wav files. To specify a Shell namespace
+    ///object, pass the fully qualified parse name and set the <b>SEE_MASK_INVOKEIDLIST</b> flag in the <b>fMask</b>
+    ///parameter. <div class="alert"><b>Note:</b> If the <b>SEE_MASK_INVOKEIDLIST</b> flag is set, you can use either
+    ///<b>lpFile</b> or <b>lpIDList</b> to identify the item by its file system path or its PIDL respectively. One of
+    ///the two values—<b>lpFile</b> or <b>lpIDList</b>—must be set.</div> <div class="alert"><b>Note:</b> If the
+    ///path is not included with the name, the current directory is assumed.</div>
+    const(PSTR) lpFile;
+    ///Type: <b>LPCTSTR</b> Optional. The address of a null-terminated string that contains the application parameters.
+    ///The parameters must be separated by spaces. If the <b>lpFile</b> member specifies a document file,
+    ///<b>lpParameters</b> should be <b>NULL</b>.
+    const(PSTR) lpParameters;
+    ///Type: <b>LPCTSTR</b> Optional. The address of a null-terminated string that specifies the name of the working
+    ///directory. If this member is <b>NULL</b>, the current directory is used as the working directory.
+    const(PSTR) lpDirectory;
+    ///Type: <b>int</b> Required. Flags that specify how an application is to be shown when it is opened; one of the SW_
+    ///values listed for the ShellExecute function. If <b>lpFile</b> specifies a document file, the flag is simply
+    ///passed to the associated application. It is up to the application to decide how to handle it.
+    int         nShow;
+    ///Type: <b>HINSTANCE</b> [out] If SEE_MASK_NOCLOSEPROCESS is set and the ShellExecuteEx call succeeds, it sets this
+    ///member to a value greater than 32. If the function fails, it is set to an SE_ERR_XXX error value that indicates
+    ///the cause of the failure. Although <b>hInstApp</b> is declared as an HINSTANCE for compatibility with 16-bit
+    ///Windows applications, it is not a true HINSTANCE. It can be cast only to an <b>int</b> and compared to either 32
+    ///or the following SE_ERR_XXX error codes. <br/> | Error Code | Reason | | ---------- | ------ | | SE_ERR_FNF (2) |
+    ///File not found. | | SE_ERR_PNF (3) | Path not found. | | SE_ERR_ACCESSDENIED (5) | Access denied. | | SE_ERR_OOM
+    ///(8) | Out of memory. | | SE_ERR_DLLNOTFOUND (32) | Dynamic-link library not found. | | SE_ERR_SHARE (26) | Cannot
+    ///share an open file. | | SE_ERR_ASSOCINCOMPLETE (27) | File association information not complete. | |
+    ///SE_ERR_DDETIMEOUT (28) | DDE operation timed out. | | SE_ERR_DDEFAIL (29) | DDE operation failed. | |
+    ///SE_ERR_DDEBUSY (30) | DDE operation is busy. | | SE_ERR_NOASSOC (31) | File association not available. |
+    HINSTANCE   hInstApp;
+    ///Type: <b>LPVOID</b> The address of an absolute ITEMIDLIST structure (PCIDLIST_ABSOLUTE) to contain an item
+    ///identifier list that uniquely identifies the file to execute. This member is ignored if the <b>fMask</b> member
+    ///does not include <b>SEE_MASK_IDLIST</b> or <b>SEE_MASK_INVOKEIDLIST</b>.
+    void*       lpIDList;
+    ///Type: <b>LPCTSTR</b> The address of a null-terminated string that specifies one of the following: - A ProgId. For
+    ///example, "Paint.Picture".</li> - A URI protocol scheme. For example, "http".</li> - A file extension. For
+    ///example, ".txt".</li> - A registry path under HKEY_CLASSES_ROOT that names a subkey that contains one or more
+    ///Shell verbs. This key will have a subkey that conforms to the Shell verb registry schema, such as <b>shell</b>&
+    const(PSTR) lpClass;
+    ///Type: <b>HKEY</b> A handle to the registry key for the file type. The access rights for this registry key should
+    ///be set to KEY_READ. This member is ignored if <b>fMask</b> does not include <b>SEE_MASK_CLASSKEY</b>.
+    HKEY        hkeyClass;
+    ///Type: <b>DWORD</b> A keyboard shortcut to associate with the application. The low-order word is the virtual key
+    ///code, and the high-order word is a modifier flag (HOTKEYF_). For a list of modifier flags, see the description of
+    ///the WM_SETHOTKEY message. This member is ignored if <b>fMask</b> does not include <b>SEE_MASK_HOTKEY</b>.
+    uint        dwHotKey;
+union
+    {
+    align (1):
+        HANDLE hIcon;
+        HANDLE hMonitor;
+    }
+    ///Type: <b>HANDLE</b> A handle to the newly started application. This member is set on return and is always
+    ///<b>NULL</b> unless <b>fMask</b> is set to <b>SEE_MASK_NOCLOSEPROCESS</b>. Even if <b>fMask</b> is set to
+    ///<b>SEE_MASK_NOCLOSEPROCESS</b>, <b>hProcess</b> will be <b>NULL</b> if no process was launched. For example, if a
+    ///document to be launched is a URL and an instance of Internet Explorer is already running, it will display the
+    ///document. No new process is launched, and <b>hProcess</b> will be <b>NULL</b>. <div class="alert"><b>Note:</b>
+    ///ShellExecuteEx does not always return an <b>hProcess</b>, even if a process is launched as the result of the
+    ///call. For example, an <b>hProcess</b> does not return when you use <b>SEE_MASK_INVOKEIDLIST</b> to invoke
+    ///IContextMenu.</div>
+    HANDLE      hProcess;
+}
+
+///Contains information used by ShellExecuteEx.
+struct SHELLEXECUTEINFOW
 {
 align (1):
     ///Type: <b>DWORD</b> Required. The size of this structure, in bytes.
@@ -6023,7 +6497,7 @@ align (1):
     ///file, the function will fail. - **properties**: Displays the file or folder's properties. - **runas**: Launches
     ///an application as Administrator. User Account Control (UAC) will prompt the user for consent to run the
     ///application elevated or enter the credentials of an administrator account used to run the application.
-    const(char)* lpVerb;
+    const(PWSTR) lpVerb;
     ///Type: <b>LPCTSTR</b> The address of a null-terminated string that specifies the name of the file or object on
     ///which ShellExecuteEx will perform the action specified by the <b>lpVerb</b> parameter. The system registry verbs
     ///that are supported by the <b>ShellExecuteEx</b> function include "open" for executable files and document files
@@ -6034,14 +6508,14 @@ align (1):
     ///<b>lpFile</b> or <b>lpIDList</b> to identify the item by its file system path or its PIDL respectively. One of
     ///the two values—<b>lpFile</b> or <b>lpIDList</b>—must be set.</div> <div class="alert"><b>Note:</b> If the
     ///path is not included with the name, the current directory is assumed.</div>
-    const(char)* lpFile;
+    const(PWSTR) lpFile;
     ///Type: <b>LPCTSTR</b> Optional. The address of a null-terminated string that contains the application parameters.
     ///The parameters must be separated by spaces. If the <b>lpFile</b> member specifies a document file,
     ///<b>lpParameters</b> should be <b>NULL</b>.
-    const(char)* lpParameters;
+    const(PWSTR) lpParameters;
     ///Type: <b>LPCTSTR</b> Optional. The address of a null-terminated string that specifies the name of the working
     ///directory. If this member is <b>NULL</b>, the current directory is used as the working directory.
-    const(char)* lpDirectory;
+    const(PWSTR) lpDirectory;
     ///Type: <b>int</b> Required. Flags that specify how an application is to be shown when it is opened; one of the SW_
     ///values listed for the ShellExecute function. If <b>lpFile</b> specifies a document file, the flag is simply
     ///passed to the associated application. It is up to the application to decide how to handle it.
@@ -6065,7 +6539,7 @@ align (1):
     ///example, "Paint.Picture".</li> - A URI protocol scheme. For example, "http".</li> - A file extension. For
     ///example, ".txt".</li> - A registry path under HKEY_CLASSES_ROOT that names a subkey that contains one or more
     ///Shell verbs. This key will have a subkey that conforms to the Shell verb registry schema, such as <b>shell</b>&
-    const(char)* lpClass;
+    const(PWSTR) lpClass;
     ///Type: <b>HKEY</b> A handle to the registry key for the file type. The access rights for this registry key should
     ///be set to KEY_READ. This member is ignored if <b>fMask</b> does not include <b>SEE_MASK_CLASSKEY</b>.
     HKEY         hkeyClass;
@@ -6073,7 +6547,7 @@ align (1):
     ///code, and the high-order word is a modifier flag (HOTKEYF_). For a list of modifier flags, see the description of
     ///the WM_SETHOTKEY message. This member is ignored if <b>fMask</b> does not include <b>SEE_MASK_HOTKEY</b>.
     uint         dwHotKey;
-    union
+union
     {
     align (1):
         HANDLE hIcon;
@@ -6088,156 +6562,6 @@ align (1):
     ///call. For example, an <b>hProcess</b> does not return when you use <b>SEE_MASK_INVOKEIDLIST</b> to invoke
     ///IContextMenu.</div>
     HANDLE       hProcess;
-}
-
-///Contains information used by ShellExecuteEx.
-struct SHELLEXECUTEINFOW
-{
-align (1):
-    ///Type: <b>DWORD</b> Required. The size of this structure, in bytes.
-    uint          cbSize;
-    ///Type: <b>ULONG</b> A combination of one or more of the following values that indicate the content and validity of
-    ///the other structure members: <table> <colgroup> <col span="1" style="width: 40%;"> <col span="1" style="width:
-    ///60%;"> </colgroup> <tr valign="top"> <td>SEE_MASK_DEFAULT (0x00000000)</td> <td>Use default values.</td> </tr>
-    ///<tr valign="top"> <td>SEE_MASK_CLASSNAME (0x00000001)</td> <td>Use the class name given by the <b>lpClass</b>
-    ///member. If both SEE_MASK_CLASSKEY and SEE_MASK_CLASSNAME are set, the class key is used.</td> </tr> <tr
-    ///valign="top"> <td>SEE_MASK_CLASSKEY (0x00000003) </td> <td>Use the class key given by the <b>hkeyClass</b>
-    ///member. If both SEE_MASK_CLASSKEY and SEE_MASK_CLASSNAME are set, the class key is used.</td> </tr> <tr
-    ///valign="top"> <td>SEE_MASK_IDLIST (0x00000004)</td> <td>Use the item identifier list given by the <b>lpIDList</b>
-    ///member. The <b>lpIDList</b> member must point to an ITEMIDLIST structure.</td> </tr> <tr valign="top">
-    ///<td>SEE_MASK_INVOKEIDLIST (0x0000000C)</td> <td>Use the IContextMenu interface of the selected item's shortcut
-    ///menu handler. Use either <b>lpFile</b> to identify the item by its file system path or <b>lpIDList</b> to
-    ///identify the item by its PIDL. This flag allows applications to use ShellExecuteEx to invoke verbs from shortcut
-    ///menu extensions instead of the static verbs listed in the registry. <div class="alert"><b>Note:</b>
-    ///SEE_MASK_INVOKEIDLIST overrides and implies SEE_MASK_IDLIST.</div> <div> </div> </td> </tr> <tr valign="top">
-    ///<td>SEE_MASK_ICON (0x00000010)</td> <td>Use the icon given by the <b>hIcon</b> member. This flag cannot be
-    ///combined with SEE_MASK_HMONITOR. <div class="alert"><b>Note:</b> This flag is used only in Windows XP and
-    ///earlier. It is ignored as of Windows Vista.</div> </td> </tr> <tr valign="top"> <td>SEE_MASK_HOTKEY
-    ///(0x00000020)</td> <td>Use the keyboard shortcut given by the <b>dwHotKey</b> member.</td> </tr> <tr valign="top">
-    ///<td>SEE_MASK_NOCLOSEPROCESS (0x00000040)</td> <td>Use to indicate that the <b>hProcess</b> member receives the
-    ///process handle. This handle is typically used to allow an application to find out when a process created with
-    ///ShellExecuteEx terminates. In some cases, such as when execution is satisfied through a DDE conversation, no
-    ///handle will be returned. The calling application is responsible for closing the handle when it is no longer
-    ///needed.</td> </tr> <tr valign="top"> <td>SEE_MASK_CONNECTNETDRV (0x00000080)</td> <td>Validate the share and
-    ///connect to a drive letter. This enables reconnection of disconnected network drives. The <b>lpFile</b> member is
-    ///a UNC path of a file on a network.</td> </tr> <tr valign="top"> <td>SEE_MASK_NOASYNC (0x00000100)</td> <td>Wait
-    ///for the execute operation to complete before returning. This flag should be used by callers that are using
-    ///ShellExecute forms that might result in an async activation, for example DDE, and create a process that might be
-    ///run on a background thread. (Note: ShellExecuteEx runs on a background thread by default if the caller's
-    ///threading model is not Apartment.) Calls to <b>ShellExecuteEx</b> from processes already running on background
-    ///threads should always pass this flag. Also, applications that exit immediately after calling
-    ///<b>ShellExecuteEx</b> should specify this flag. If the execute operation is performed on a background thread and
-    ///the caller did not specify the SEE_MASK_ASYNCOK flag, then the calling thread waits until the new process has
-    ///started before returning. This typically means that either CreateProcess has been called, the DDE communication
-    ///has completed, or that the custom execution delegate has notified ShellExecuteEx that it is done. If the
-    ///SEE_MASK_WAITFORINPUTIDLE flag is specified, then <b>ShellExecuteEx</b> calls WaitForInputIdle and waits for the
-    ///new process to idle before returning, with a maximum timeout of 1 minute. For further discussion on when this
-    ///flag is necessary, see the Remarks section.</td> </tr> <tr valign="top"> <td>SEE_MASK_FLAG_DDEWAIT
-    ///(0x00000100)</td> <td>The same as SEE_MASK_NOASYNC, use of that option is preferred.</td> </tr> <tr valign="top">
-    ///<td>SEE_MASK_DOENVSUBST (0x00000200)</td> <td>Expand any environment variables specified in the string given by
-    ///the <b>lpDirectory</b> or <b>lpFile</b> member.</td> </tr> <tr valign="top"> <td>SEE_MASK_FLAG_NO_UI
-    ///(0x00000400)</td> <td>Do not display an error message box if an error occurs.</td> </tr> <tr valign="top">
-    ///<td>SEE_MASK_UNICODE (0x00004000) </td> <td>Use this flag to indicate a Unicode application.</td> </tr> <tr
-    ///valign="top"> <td>SEE_MASK_NO_CONSOLE (0x00008000)</td> <td>Use to inherit the parent's console for the new
-    ///process instead of having it create a new console. It is the opposite of using a CREATE_NEW_CONSOLE flag with
-    ///CreateProcess.</td> </tr> <tr valign="top"> <td>SEE_MASK_ASYNCOK (0x00100000) </td> <td>The execution can be
-    ///performed on a background thread and the call should return immediately without waiting for the background thread
-    ///to finish. Note that in certain cases ShellExecuteEx ignores this flag and waits for the process to finish before
-    ///returning.</td> </tr> <tr valign="top"> <td>SEE_MASK_NOQUERYCLASSSTORE (0x01000000)</td> <td>Not used.</td> </tr>
-    ///<tr valign="top"> <td>SEE_MASK_HMONITOR (0x00200000)</td> <td>Use this flag when specifying a monitor on
-    ///multi-monitor systems. The monitor is specified in the <b>hMonitor</b> member. This flag cannot be combined with
-    ///SEE_MASK_ICON.</td> </tr> <tr valign="top"> <td>SEE_MASK_NOZONECHECKS (0x00800000)</td> <td>Do not perform a zone
-    ///check. This flag allows ShellExecuteEx to bypass zone checking put into place by IAttachmentExecute.</td> </tr>
-    ///<tr valign="top"> <td>SEE_MASK_WAITFORINPUTIDLE (0x02000000)</td> <td>After the new process is created, wait for
-    ///the process to become idle before returning, with a one minute timeout. See WaitForInputIdle for more
-    ///details.</td> </tr> <tr valign="top"> <td>SEE_MASK_FLAG_LOG_USAGE (0x04000000)</td> <td>Indicates a user
-    ///initiated launch that enables tracking of frequently used programs and other behaviors.</td> </tr> <tr
-    ///valign="top"> <td>SEE_MASK_FLAG_HINST_IS_SITE` (0x08000000)</td> <td>The <b>hInstApp</b> member is used to
-    ///specify the IUnknown of an object that implements IServiceProvider. This object will be used as a site pointer.
-    ///The site pointer is used to provide services to the ShellExecute function, the handler binding process, and
-    ///invoked verb handlers. To use <b>SEE_MASK_FLAG_HINST_IS_SITE</b> in operating systems prior to Windows 8, define
-    ///it manually in your program:
-    uint          fMask;
-    ///Type: <b>HWND</b> Optional. A handle to the parent window, used to display any message boxes that the system
-    ///might produce while executing this function. This value can be <b>NULL</b>.
-    HWND          hwnd;
-    ///Type: <b>LPCTSTR</b> A string, referred to as a <i>verb</i>, that specifies the action to be performed. The set
-    ///of available verbs depends on the particular file or folder. Generally, the actions available from an object's
-    ///shortcut menu are available verbs. This parameter can be <b>NULL</b>, in which case the default verb is used if
-    ///available. If not, the "open" verb is used. If neither verb is available, the system uses the first verb listed
-    ///in the registry. The following verbs are commonly used: - **edit**: Launches an editor and opens the document for
-    ///editing. If <b>lpFile</b> is not a document file, the function will fail. - **explore**: Explores the folder
-    ///specified by <b>lpFile</b>. - **find**: Initiates a search starting from the specified directory. - **open**:
-    ///Opens the file specified by the <b>lpFile</b> parameter. The file can be an executable file, a document file, or
-    ///a folder. - **print**: Prints the document file specified by <b>lpFile</b>. If <b>lpFile</b> is not a document
-    ///file, the function will fail. - **properties**: Displays the file or folder's properties. - **runas**: Launches
-    ///an application as Administrator. User Account Control (UAC) will prompt the user for consent to run the
-    ///application elevated or enter the credentials of an administrator account used to run the application.
-    const(wchar)* lpVerb;
-    ///Type: <b>LPCTSTR</b> The address of a null-terminated string that specifies the name of the file or object on
-    ///which ShellExecuteEx will perform the action specified by the <b>lpVerb</b> parameter. The system registry verbs
-    ///that are supported by the <b>ShellExecuteEx</b> function include "open" for executable files and document files
-    ///and "print" for document files for which a print handler has been registered. Other applications might have added
-    ///Shell verbs through the system registry, such as "play" for .avi and .wav files. To specify a Shell namespace
-    ///object, pass the fully qualified parse name and set the <b>SEE_MASK_INVOKEIDLIST</b> flag in the <b>fMask</b>
-    ///parameter. <div class="alert"><b>Note:</b> If the <b>SEE_MASK_INVOKEIDLIST</b> flag is set, you can use either
-    ///<b>lpFile</b> or <b>lpIDList</b> to identify the item by its file system path or its PIDL respectively. One of
-    ///the two values—<b>lpFile</b> or <b>lpIDList</b>—must be set.</div> <div class="alert"><b>Note:</b> If the
-    ///path is not included with the name, the current directory is assumed.</div>
-    const(wchar)* lpFile;
-    ///Type: <b>LPCTSTR</b> Optional. The address of a null-terminated string that contains the application parameters.
-    ///The parameters must be separated by spaces. If the <b>lpFile</b> member specifies a document file,
-    ///<b>lpParameters</b> should be <b>NULL</b>.
-    const(wchar)* lpParameters;
-    ///Type: <b>LPCTSTR</b> Optional. The address of a null-terminated string that specifies the name of the working
-    ///directory. If this member is <b>NULL</b>, the current directory is used as the working directory.
-    const(wchar)* lpDirectory;
-    ///Type: <b>int</b> Required. Flags that specify how an application is to be shown when it is opened; one of the SW_
-    ///values listed for the ShellExecute function. If <b>lpFile</b> specifies a document file, the flag is simply
-    ///passed to the associated application. It is up to the application to decide how to handle it.
-    int           nShow;
-    ///Type: <b>HINSTANCE</b> [out] If SEE_MASK_NOCLOSEPROCESS is set and the ShellExecuteEx call succeeds, it sets this
-    ///member to a value greater than 32. If the function fails, it is set to an SE_ERR_XXX error value that indicates
-    ///the cause of the failure. Although <b>hInstApp</b> is declared as an HINSTANCE for compatibility with 16-bit
-    ///Windows applications, it is not a true HINSTANCE. It can be cast only to an <b>int</b> and compared to either 32
-    ///or the following SE_ERR_XXX error codes. <br/> | Error Code | Reason | | ---------- | ------ | | SE_ERR_FNF (2) |
-    ///File not found. | | SE_ERR_PNF (3) | Path not found. | | SE_ERR_ACCESSDENIED (5) | Access denied. | | SE_ERR_OOM
-    ///(8) | Out of memory. | | SE_ERR_DLLNOTFOUND (32) | Dynamic-link library not found. | | SE_ERR_SHARE (26) | Cannot
-    ///share an open file. | | SE_ERR_ASSOCINCOMPLETE (27) | File association information not complete. | |
-    ///SE_ERR_DDETIMEOUT (28) | DDE operation timed out. | | SE_ERR_DDEFAIL (29) | DDE operation failed. | |
-    ///SE_ERR_DDEBUSY (30) | DDE operation is busy. | | SE_ERR_NOASSOC (31) | File association not available. |
-    HINSTANCE     hInstApp;
-    ///Type: <b>LPVOID</b> The address of an absolute ITEMIDLIST structure (PCIDLIST_ABSOLUTE) to contain an item
-    ///identifier list that uniquely identifies the file to execute. This member is ignored if the <b>fMask</b> member
-    ///does not include <b>SEE_MASK_IDLIST</b> or <b>SEE_MASK_INVOKEIDLIST</b>.
-    void*         lpIDList;
-    ///Type: <b>LPCTSTR</b> The address of a null-terminated string that specifies one of the following: - A ProgId. For
-    ///example, "Paint.Picture".</li> - A URI protocol scheme. For example, "http".</li> - A file extension. For
-    ///example, ".txt".</li> - A registry path under HKEY_CLASSES_ROOT that names a subkey that contains one or more
-    ///Shell verbs. This key will have a subkey that conforms to the Shell verb registry schema, such as <b>shell</b>&
-    const(wchar)* lpClass;
-    ///Type: <b>HKEY</b> A handle to the registry key for the file type. The access rights for this registry key should
-    ///be set to KEY_READ. This member is ignored if <b>fMask</b> does not include <b>SEE_MASK_CLASSKEY</b>.
-    HKEY          hkeyClass;
-    ///Type: <b>DWORD</b> A keyboard shortcut to associate with the application. The low-order word is the virtual key
-    ///code, and the high-order word is a modifier flag (HOTKEYF_). For a list of modifier flags, see the description of
-    ///the WM_SETHOTKEY message. This member is ignored if <b>fMask</b> does not include <b>SEE_MASK_HOTKEY</b>.
-    uint          dwHotKey;
-    union
-    {
-    align (1):
-        HANDLE hIcon;
-        HANDLE hMonitor;
-    }
-    ///Type: <b>HANDLE</b> A handle to the newly started application. This member is set on return and is always
-    ///<b>NULL</b> unless <b>fMask</b> is set to <b>SEE_MASK_NOCLOSEPROCESS</b>. Even if <b>fMask</b> is set to
-    ///<b>SEE_MASK_NOCLOSEPROCESS</b>, <b>hProcess</b> will be <b>NULL</b> if no process was launched. For example, if a
-    ///document to be launched is a URL and an instance of Internet Explorer is already running, it will display the
-    ///document. No new process is launched, and <b>hProcess</b> will be <b>NULL</b>. <div class="alert"><b>Note:</b>
-    ///ShellExecuteEx does not always return an <b>hProcess</b>, even if a process is launched as the result of the
-    ///call. For example, an <b>hProcess</b> does not return when you use <b>SEE_MASK_INVOKEIDLIST</b> to invoke
-    ///IContextMenu.</div>
-    HANDLE        hProcess;
 }
 
 ///<p class="CCE_Message">[SHCreateProcessAsUserW is no longer implemented in Windows XP or later versions.] Contains
@@ -6256,12 +6580,12 @@ align (1):
     ///SHCreateProcessAsUserW will perform the action specified by the <b>runas</b> verb. The <b>runas</b> verb must be
     ///supported by the file's class. <div class="alert"><b>Note</b> If the path is not included with the file name, the
     ///current directory is assumed.</div> <div> </div>
-    const(wchar)*        pszFile;
+    const(PWSTR)         pszFile;
     ///Type: <b>LPCWSTR</b> A pointer to a null-terminated Unicode string containing the application parameters. The
     ///parameters must be separated by spaces.
-    const(wchar)*        pszParameters;
+    const(PWSTR)         pszParameters;
     ///Type: <b>LPCWSTR</b> A null-terminated Unicode string that contains the current directory.
-    const(wchar)*        pszCurrentDirectory;
+    const(PWSTR)         pszCurrentDirectory;
     ///Type: <b>HANDLE</b> An Access token that can be used to represent a particular user. It is needed when there are
     ///multiple users for those folders that are treated as belonging to a single user. The calling application must
     ///have appropriate security privileges for the particular user, including TOKEN_QUERY and TOKEN_IMPERSONATE, and
@@ -6305,11 +6629,11 @@ struct ASSOCIATIONELEMENT
 align (1):
     ///Type: <b>ASSOCCLASS</b> Where to obtain association data and the form the data is stored in. One of the following
     ///values from the <b>ASSOCCLASS</b> enumeration.
-    ASSOCCLASS    ac;
+    ASSOCCLASS   ac;
     ///Type: <b>HKEY</b> A registry key that specifies a class that contains association information.
-    HKEY          hkClass;
+    HKEY         hkClass;
     ///Type: <b>PCWSTR</b> A pointer to the name of a class that contains association information.
-    const(wchar)* pszClass;
+    const(PWSTR) pszClass;
 }
 
 ///Contains the size and item count information retrieved by the SHQueryRecycleBin function.
@@ -6384,7 +6708,7 @@ align (1):
     ///balloon notification from the UI, either delete the icon (with NIM_DELETE) or set the <b>NIF_INFO</b> flag in
     ///<b>uFlags</b> and set <b>szInfo</b> to an empty string.
     byte[256] szInfo;
-    union
+union
     {
     align (1):
         uint uTimeout;
@@ -6475,7 +6799,7 @@ align (1):
     ///balloon notification from the UI, either delete the icon (with NIM_DELETE) or set the <b>NIF_INFO</b> flag in
     ///<b>uFlags</b> and set <b>szInfo</b> to an empty string.
     ushort[256] szInfo;
-    union
+union
     {
     align (1):
         uint uTimeout;
@@ -6589,17 +6913,17 @@ struct OPEN_PRINTER_PROPS_INFOA
 {
 align (1):
     ///Type: <b>DWORD</b> The size of the structure.
-    uint         dwSize;
+    uint dwSize;
     ///Type: <b>LPSTR</b> The name of the property sheet. If the specified sheet is not found, the property sheet still
     ///appears with the default first page.
-    const(char)* pszSheetName;
+    PSTR pszSheetName;
     ///Type: <b>UINT</b> The index of the property sheet in the array of property sheets that makes up the window. If
     ///empty or invalid, the default first page is displayed.
-    uint         uSheetIndex;
+    uint uSheetIndex;
     ///Type: <b>DWORD</b> Not used.
-    uint         dwFlags;
+    uint dwFlags;
     ///Type: <b>BOOL</b> <b>TRUE</b> if the property sheet should be modal; otherwise, <b>FALSE</b>.
-    BOOL         bModal;
+    BOOL bModal;
 }
 
 ///Identifies a particular property sheet in a printer's property pages and whether that property sheet should be modal.
@@ -6608,25 +6932,17 @@ struct OPEN_PRINTER_PROPS_INFOW
 {
 align (1):
     ///Type: <b>DWORD</b> The size of the structure.
-    uint          dwSize;
+    uint  dwSize;
     ///Type: <b>LPSTR</b> The name of the property sheet. If the specified sheet is not found, the property sheet still
     ///appears with the default first page.
-    const(wchar)* pszSheetName;
+    PWSTR pszSheetName;
     ///Type: <b>UINT</b> The index of the property sheet in the array of property sheets that makes up the window. If
     ///empty or invalid, the default first page is displayed.
-    uint          uSheetIndex;
+    uint  uSheetIndex;
     ///Type: <b>DWORD</b> Not used.
-    uint          dwFlags;
+    uint  dwFlags;
     ///Type: <b>BOOL</b> <b>TRUE</b> if the property sheet should be modal; otherwise, <b>FALSE</b>.
-    BOOL          bModal;
-}
-
-struct IMarkupCallback
-{
-}
-
-struct IControlMarkup
-{
+    BOOL  bModal;
 }
 
 ///Defines an item identifier.
@@ -6651,11 +6967,11 @@ struct STRRET
     ///Type: <b>UINT</b> A value that specifies the desired format of the string. This can be one of the following
     ///values.
     uint uType;
-    union
+union
     {
-        const(wchar)* pOleStr;
-        uint          uOffset;
-        byte[260]     cStr;
+        PWSTR      pOleStr;
+        uint       uOffset;
+        ubyte[260] cStr;
     }
 }
 
@@ -6677,19 +6993,67 @@ align (1):
 struct COMDLG_FILTERSPEC
 {
     ///Type: <b>LPCWSTR</b> A pointer to a buffer that contains the friendly name of the filter.
-    const(wchar)* pszName;
-    const(wchar)* pszSpec;
+    const(PWSTR) pszName;
+    const(PWSTR) pszSpec;
 }
 
 ///Contains information needed by IContextMenu::InvokeCommand to invoke a shortcut menu command.
 struct CMINVOKECOMMANDINFO
 {
     ///Type: <b>DWORD</b> The size of this structure, in bytes.
-    uint         cbSize;
+    uint        cbSize;
     ///Type: <b>DWORD</b> Zero, or one or more of the following flags.
-    uint         fMask;
+    uint        fMask;
     ///Type: <b>HWND</b> A handle to the window that is the owner of the shortcut menu. An extension can also use this
     ///handle as the owner of any message boxes or dialog boxes it displays.
+    HWND        hwnd;
+    ///Type: <b>LPCSTR</b> The address of a null-terminated string that specifies the language-independent name of the
+    ///command to carry out. This member is typically a string when a command is being activated by an application. The
+    ///system provides predefined constant values for the following command strings. <table class="clsStd"> <tr>
+    ///<th>Constant</th> <th>Command string</th> </tr> <tr> <td>CMDSTR_RUNAS</td> <td>"RunAs"</td> </tr> <tr>
+    ///<td>CMDSTR_PRINT</td> <td>"Print"</td> </tr> <tr> <td>CMDSTR_PREVIEW</td> <td>"Preview"</td> </tr> <tr>
+    ///<td>CMDSTR_OPEN</td> <td>"Open"</td> </tr> </table> This is not a fixed set; new canonical verbs can be invented
+    ///by context menu handlers and applications can invoke them. If a canonical verb exists and a menu handler does not
+    ///implement the canonical verb, it must return a failure code to enable the next handler to be able to handle this
+    ///verb. Failing to do this will break functionality in the system including ShellExecute. Alternatively, rather
+    ///than a pointer, this parameter can be MAKEINTRESOURCE(offset) where <i>offset</i> is the menu-identifier offset
+    ///of the command to carry out. Implementations can use the IS_INTRESOURCE macro to detect that this alternative is
+    ///being employed. The Shell uses this alternative when the user chooses a menu command.
+    const(PSTR) lpVerb;
+    ///Type: <b>LPCSTR</b> An optional string containing parameters that are passed to the command. The format of this
+    ///string is determined by the command that is to be invoked. This member is always <b>NULL</b> for menu items
+    ///inserted by a Shell extension.
+    const(PSTR) lpParameters;
+    ///Type: <b>LPCSTR</b> An optional working directory name. This member is always <b>NULL</b> for menu items inserted
+    ///by a Shell extension.
+    const(PSTR) lpDirectory;
+    ///Type: <b>int</b> A set of SW_ values to pass to the ShowWindow function if the command displays a window or
+    ///starts an application.
+    int         nShow;
+    ///Type: <b>DWORD</b> An optional keyboard shortcut to assign to any application activated by the command. If the
+    ///<b>fMask</b> parameter does not specify <b>CMIC_MASK_HOTKEY</b>, this member is ignored.
+    uint        dwHotKey;
+    ///Type: <b>HANDLE</b> An icon to use for any application activated by the command. If the <b>fMask</b> member does
+    ///not specify <b>CMIC_MASK_ICON</b>, this member is ignored.
+    HANDLE      hIcon;
+}
+
+///Contains extended information about a shortcut menu command. This structure is an extended version of
+///CMINVOKECOMMANDINFO that allows the use of Unicode values.
+struct CMINVOKECOMMANDINFOEX
+{
+    ///Type: <b>DWORD</b> The size of this structure, in bytes. This member should be filled in by callers of
+    ///IContextMenu::InvokeCommand and tested by the implementations to know that the structure is a
+    ///<b>CMINVOKECOMMANDINFOEX</b> structure rather than CMINVOKECOMMANDINFO.
+    uint         cbSize;
+    ///Type: <b>DWORD</b> Zero, or one or more of the following flags are set to indicate desired behavior and indicate
+    ///that other fields in the structure are to be used.
+    uint         fMask;
+    ///Type: <b>HWND</b> A handle to the window that is the owner of the shortcut menu. An extension can also use this
+    ///handle as the owner of any message boxes or dialog boxes it displays. Callers must specify a legitimate HWND that
+    ///can be used as the owner window for any UI that may be displayed. Failing to specify an HWND when calling from a
+    ///UI thread (one with windows already created) will result in reentrancy and possible bugs in the implementation of
+    ///a IContextMenu::InvokeCommand call.
     HWND         hwnd;
     ///Type: <b>LPCSTR</b> The address of a null-terminated string that specifies the language-independent name of the
     ///command to carry out. This member is typically a string when a command is being activated by an application. The
@@ -6703,83 +7067,35 @@ struct CMINVOKECOMMANDINFO
     ///than a pointer, this parameter can be MAKEINTRESOURCE(offset) where <i>offset</i> is the menu-identifier offset
     ///of the command to carry out. Implementations can use the IS_INTRESOURCE macro to detect that this alternative is
     ///being employed. The Shell uses this alternative when the user chooses a menu command.
-    const(char)* lpVerb;
-    ///Type: <b>LPCSTR</b> An optional string containing parameters that are passed to the command. The format of this
-    ///string is determined by the command that is to be invoked. This member is always <b>NULL</b> for menu items
-    ///inserted by a Shell extension.
-    const(char)* lpParameters;
+    const(PSTR)  lpVerb;
+    ///Type: <b>LPCSTR</b> Optional parameters. This member is always <b>NULL</b> for menu items inserted by a Shell
+    ///extension.
+    const(PSTR)  lpParameters;
     ///Type: <b>LPCSTR</b> An optional working directory name. This member is always <b>NULL</b> for menu items inserted
     ///by a Shell extension.
-    const(char)* lpDirectory;
+    const(PSTR)  lpDirectory;
     ///Type: <b>int</b> A set of SW_ values to pass to the ShowWindow function if the command displays a window or
     ///starts an application.
     int          nShow;
     ///Type: <b>DWORD</b> An optional keyboard shortcut to assign to any application activated by the command. If the
-    ///<b>fMask</b> parameter does not specify <b>CMIC_MASK_HOTKEY</b>, this member is ignored.
+    ///<b>fMask</b> member does not specify <b>CMIC_MASK_HOTKEY</b>, this member is ignored.
     uint         dwHotKey;
     ///Type: <b>HANDLE</b> An icon to use for any application activated by the command. If the <b>fMask</b> member does
     ///not specify <b>CMIC_MASK_ICON</b>, this member is ignored.
     HANDLE       hIcon;
-}
-
-///Contains extended information about a shortcut menu command. This structure is an extended version of
-///CMINVOKECOMMANDINFO that allows the use of Unicode values.
-struct CMINVOKECOMMANDINFOEX
-{
-    ///Type: <b>DWORD</b> The size of this structure, in bytes. This member should be filled in by callers of
-    ///IContextMenu::InvokeCommand and tested by the implementations to know that the structure is a
-    ///<b>CMINVOKECOMMANDINFOEX</b> structure rather than CMINVOKECOMMANDINFO.
-    uint          cbSize;
-    ///Type: <b>DWORD</b> Zero, or one or more of the following flags are set to indicate desired behavior and indicate
-    ///that other fields in the structure are to be used.
-    uint          fMask;
-    ///Type: <b>HWND</b> A handle to the window that is the owner of the shortcut menu. An extension can also use this
-    ///handle as the owner of any message boxes or dialog boxes it displays. Callers must specify a legitimate HWND that
-    ///can be used as the owner window for any UI that may be displayed. Failing to specify an HWND when calling from a
-    ///UI thread (one with windows already created) will result in reentrancy and possible bugs in the implementation of
-    ///a IContextMenu::InvokeCommand call.
-    HWND          hwnd;
-    ///Type: <b>LPCSTR</b> The address of a null-terminated string that specifies the language-independent name of the
-    ///command to carry out. This member is typically a string when a command is being activated by an application. The
-    ///system provides predefined constant values for the following command strings. <table class="clsStd"> <tr>
-    ///<th>Constant</th> <th>Command string</th> </tr> <tr> <td>CMDSTR_RUNAS</td> <td>"RunAs"</td> </tr> <tr>
-    ///<td>CMDSTR_PRINT</td> <td>"Print"</td> </tr> <tr> <td>CMDSTR_PREVIEW</td> <td>"Preview"</td> </tr> <tr>
-    ///<td>CMDSTR_OPEN</td> <td>"Open"</td> </tr> </table> This is not a fixed set; new canonical verbs can be invented
-    ///by context menu handlers and applications can invoke them. If a canonical verb exists and a menu handler does not
-    ///implement the canonical verb, it must return a failure code to enable the next handler to be able to handle this
-    ///verb. Failing to do this will break functionality in the system including ShellExecute. Alternatively, rather
-    ///than a pointer, this parameter can be MAKEINTRESOURCE(offset) where <i>offset</i> is the menu-identifier offset
-    ///of the command to carry out. Implementations can use the IS_INTRESOURCE macro to detect that this alternative is
-    ///being employed. The Shell uses this alternative when the user chooses a menu command.
-    const(char)*  lpVerb;
-    ///Type: <b>LPCSTR</b> Optional parameters. This member is always <b>NULL</b> for menu items inserted by a Shell
-    ///extension.
-    const(char)*  lpParameters;
-    ///Type: <b>LPCSTR</b> An optional working directory name. This member is always <b>NULL</b> for menu items inserted
-    ///by a Shell extension.
-    const(char)*  lpDirectory;
-    ///Type: <b>int</b> A set of SW_ values to pass to the ShowWindow function if the command displays a window or
-    ///starts an application.
-    int           nShow;
-    ///Type: <b>DWORD</b> An optional keyboard shortcut to assign to any application activated by the command. If the
-    ///<b>fMask</b> member does not specify <b>CMIC_MASK_HOTKEY</b>, this member is ignored.
-    uint          dwHotKey;
-    ///Type: <b>HANDLE</b> An icon to use for any application activated by the command. If the <b>fMask</b> member does
-    ///not specify <b>CMIC_MASK_ICON</b>, this member is ignored.
-    HANDLE        hIcon;
     ///Type: <b>LPCSTR</b> An ASCII title.
-    const(char)*  lpTitle;
+    const(PSTR)  lpTitle;
     ///Type: <b>LPCWSTR</b> A Unicode verb, for those commands that can use it.
-    const(wchar)* lpVerbW;
+    const(PWSTR) lpVerbW;
     ///Type: <b>LPCWSTR</b> A Unicode parameters, for those commands that can use it.
-    const(wchar)* lpParametersW;
+    const(PWSTR) lpParametersW;
     ///Type: <b>LPCWSTR</b> A Unicode directory, for those commands that can use it.
-    const(wchar)* lpDirectoryW;
+    const(PWSTR) lpDirectoryW;
     ///Type: <b>LPCWSTR</b> A Unicode title.
-    const(wchar)* lpTitleW;
+    const(PWSTR) lpTitleW;
     ///Type: <b>POINT</b> The point where the command is invoked. If the <b>fMask</b> member does not specify
     ///<b>CMIC_MASK_PTINVOKE</b>, this member is ignored. This member is not valid prior to Internet Explorer 4.0.
-    POINT         ptInvoke;
+    POINT        ptInvoke;
 }
 
 ///Specifies a folder shortcut's target folder and its attributes. This structure is used by
@@ -7048,61 +7364,61 @@ struct KNOWNFOLDER_DEFINITION
 {
     ///Type: <b>KF_CATEGORY</b> A single value from the KF_CATEGORY constants that classifies the folder as virtual,
     ///fixed, common, or per-user.
-    KF_CATEGORY   category;
+    KF_CATEGORY category;
     ///Type: <b>LPWSTR</b> A pointer to the non-localized, canonical name for the known folder, stored as a
     ///null-terminated Unicode string. If this folder is a common or per-user folder, this value is also used as the
     ///value name of the "User Shell Folders" registry settings. This name is meant to be a unique, human-readable name.
     ///Third parties are recommended to follow the format <code>Company.Application.Name</code>. The name given here
     ///should not be confused with the display name.
-    const(wchar)* pszName;
+    PWSTR       pszName;
     ///Type: <b>LPWSTR</b> A pointer to a short description of the known folder, stored as a null-terminated Unicode
     ///string. This description should include the folder's purpose and usage.
-    const(wchar)* pszDescription;
+    PWSTR       pszDescription;
     ///Type: <b>KNOWNFOLDERID</b> A KNOWNFOLDERID value that names another known folder to serve as the parent folder.
     ///Applies to common and per-user folders only. This value is used in conjunction with <b>pszRelativePath</b>. See
     ///<b>Remarks</b> for more details. This value is optional if no value is provided for <b>pszRelativePath</b>.
-    GUID          fidParent;
+    GUID        fidParent;
     ///Type: <b>LPWSTR</b> Optional. A pointer to a path relative to the parent folder specified in <b>fidParent</b>.
     ///This is a null-terminated Unicode string, refers to the physical file system path, and is not localized. Applies
     ///to common and per-user folders only. See <b>Remarks</b> for more details.
-    const(wchar)* pszRelativePath;
+    PWSTR       pszRelativePath;
     ///Type: <b>LPWSTR</b> A pointer to the Shell namespace folder path of the folder, stored as a null-terminated
     ///Unicode string. Applies to virtual folders only. For example, <code>Control Panel</code> has a parsing name of
     ///<code>::%CLSID_MyComputer%\::%CLSID_ControlPanel%</code>.
-    const(wchar)* pszParsingName;
+    PWSTR       pszParsingName;
     ///Type: <b>LPWSTR</b> Optional. A pointer to the default tooltip resource used for this known folder when it is
     ///created. This is a null-terminated Unicode string in this form: <b>Module name, Resource ID</b> For example,
     ///<code>@%_SYS_MOD_PATH%,-12688</code> is the tooltip for Common Pictures. When the folder is created, this string
     ///is stored in that folder's copy of Desktop.ini. It can be changed later by other Shell APIs. This resource might
     ///be localized. This information is not required for virtual folders.
-    const(wchar)* pszTooltip;
+    PWSTR       pszTooltip;
     ///Type: <b>LPWSTR</b> Optional. A pointer to the default localized name resource used when the folder is created.
     ///This is a null-terminated Unicode string in this form: <b>Module name, Resource ID</b> When the folder is
     ///created, this string is stored in that folder's copy of Desktop.ini. It can be changed later by other Shell APIs.
     ///This information is not required for virtual folders.
-    const(wchar)* pszLocalizedName;
+    PWSTR       pszLocalizedName;
     ///Type: <b>LPWSTR</b> Optional. A pointer to the default icon resource used when the folder is created. This is a
     ///null-terminated Unicode string in this form: <b>Module name, Resource ID</b> When the folder is created, this
     ///string is stored in that folder's copy of Desktop.ini. It can be changed later by other Shell APIs. This
     ///information is not required for virtual folders.
-    const(wchar)* pszIcon;
+    PWSTR       pszIcon;
     ///Type: <b>LPWSTR</b> Optional. A pointer to a Security Descriptor Definition Language format string. This is a
     ///null-terminated Unicode string that describes the default security descriptor that the folder receives when it is
     ///created. If this parameter is <b>NULL</b>, the new folder inherits the security descriptor of its parent. This is
     ///particularly useful for common folders that are accessed by all users.
-    const(wchar)* pszSecurity;
+    PWSTR       pszSecurity;
     ///Type: <b>DWORD</b> Optional. Default file system attributes given to the folder when it is created. For example,
     ///the file could be hidden and read-only (FILE_ATTRIBUTE_HIDDEN and FILE_ATTRIBUTE_READONLY). For a complete list
     ///of possible values, see the <i>dwFlagsAndAttributes</i> parameter of the CreateFile function. Set to -1 if not
     ///needed.
-    uint          dwAttributes;
+    uint        dwAttributes;
     ///Type: <b>KF_DEFINITION_FLAGS</b> Optional. One of more values from the KF_DEFINITION_FLAGS enumeration that allow
     ///you to restrict redirection, allow PC-to-PC roaming, and control the time at which the known folder is created.
     ///Set to 0 if not needed.
-    uint          kfdFlags;
+    uint        kfdFlags;
     ///Type: <b>FOLDERTYPEID</b> One of the FOLDERTYPEID values that identifies the known folder type based on its
     ///contents (such as documents, music, or photographs). This value is a GUID.
-    GUID          ftidType;
+    GUID        ftidType;
 }
 
 ///Accelerator table structure. Used by IPreviewHandlerFrame::GetWindowContext.
@@ -7116,29 +7432,29 @@ struct PREVIEWHANDLERFRAMEINFO
 struct BANNER_NOTIFICATION
 {
     BANNER_NOTIFICATION_EVENT event;
-    const(wchar)* providerIdentity;
-    const(wchar)* contentId;
+    const(PWSTR) providerIdentity;
+    const(PWSTR) contentId;
 }
 
 ///Custom draw structure used by INameSpaceTreeControlCustomDraw methods.
 struct NSTCCUSTOMDRAW
 {
     ///Type: <b>IShellItem*</b> A pointer to a Shell item.
-    IShellItem    psi;
+    IShellItem   psi;
     ///Type: <b>UINT</b> The current item state. See NMCUSTOMDRAW for more detail.
-    uint          uItemState;
+    uint         uItemState;
     ///Type: <b>NSTCITEMSTATE</b> The state of a tree item. See NSTCITEMSTATE.
-    uint          nstcis;
+    uint         nstcis;
     ///Type: <b>LPCWSTR</b> A pointer to a null-terminated Unicode string that contains the item text, if the structure
     ///specifies item attributes.
-    const(wchar)* pszText;
+    const(PWSTR) pszText;
     ///Type: <b>int</b> The index in the tree-view control's image list.
-    int           iImage;
+    int          iImage;
     ///Type: <b>HIMAGELIST</b> A handle to an image list.
-    HIMAGELIST    himl;
+    HIMAGELIST   himl;
     ///Type: <b>int</b> The zero-based level of the item being drawn.
-    int           iLevel;
-    int           iIndent;
+    int          iLevel;
+    int          iIndent;
 }
 
 ///Serves as the header for some of the extra data structures used by IShellLinkDataList.
@@ -7270,52 +7586,83 @@ align (1):
 struct SHFOLDERCUSTOMSETTINGS
 {
     ///Type: <b>DWORD</b> The size of the structure, in bytes.
-    uint          dwSize;
+    uint  dwSize;
     ///Type: <b>DWORD</b> A <b>DWORD</b> value specifying which folder attributes to read or write from this structure.
     ///Use one or more of the following values to indicate which structure members are valid:
-    uint          dwMask;
+    uint  dwMask;
     ///Type: <b>SHELLVIEWID*</b> The folder's GUID.
-    GUID*         pvid;
+    GUID* pvid;
     ///Type: <b>LPTSTR</b> A pointer to a null-terminated string containing the path to the folder's WebView template.
-    const(wchar)* pszWebViewTemplate;
+    PWSTR pszWebViewTemplate;
     ///Type: <b>DWORD</b> If the SHGetSetFolderCustomSettings parameter <i>dwReadWrite</i> is <b>FCS_READ</b>, this is
     ///the size of the <b>pszWebViewTemplate</b> buffer, in characters. If not, this is the number of characters to
     ///write from that buffer. Set this parameter to 0 to write the entire string.
-    uint          cchWebViewTemplate;
+    uint  cchWebViewTemplate;
     ///Type: <b>LPTSTR</b> A pointer to a null-terminated buffer containing the WebView template version.
-    const(wchar)* pszWebViewTemplateVersion;
+    PWSTR pszWebViewTemplateVersion;
     ///Type: <b>LPTSTR</b> A pointer to a null-terminated buffer containing the text of the folder's infotip.
-    const(wchar)* pszInfoTip;
+    PWSTR pszInfoTip;
     ///Type: <b>DWORD</b> If the SHGetSetFolderCustomSettings parameter <i>dwReadWrite</i> is <b>FCS_READ</b>, this is
     ///the size of the <b>pszInfoTip</b> buffer, in characters. If not, this is the number of characters to write from
     ///that buffer. Set this parameter to 0 to write the entire string.
-    uint          cchInfoTip;
+    uint  cchInfoTip;
     ///Type: <b>CLSID*</b> A pointer to a CLSID used to identify the folder in the Windows registry. Further folder
     ///information is stored in the registry under that CLSID entry.
-    GUID*         pclsid;
+    GUID* pclsid;
     ///Type: <b>DWORD</b> Not used.
-    uint          dwFlags;
+    uint  dwFlags;
     ///Type: <b>LPTSTR</b> A pointer to a null-terminated buffer containing the path to file containing the folder's
     ///icon.
-    const(wchar)* pszIconFile;
+    PWSTR pszIconFile;
     ///Type: <b>DWORD</b> If the SHGetSetFolderCustomSettings parameter <i>dwReadWrite</i> is <b>FCS_READ</b>, this is
     ///the size of the <b>pszIconFile</b> buffer, in characters. If not, this is the number of characters to write from
     ///that buffer. Set this parameter to 0 to write the entire string.
-    uint          cchIconFile;
+    uint  cchIconFile;
     ///Type: <b>int</b> The index of the icon within the file named in <b>pszIconFile</b>.
-    int           iIconIndex;
+    int   iIconIndex;
     ///Type: <b>LPTSTR</b> A pointer to a null-terminated buffer containing the path to the file containing the folder's
     ///logo image. This is the image used in thumbnail views.
-    const(wchar)* pszLogo;
+    PWSTR pszLogo;
     ///Type: <b>DWORD</b> If the SHGetSetFolderCustomSettings parameter <i>dwReadWrite</i> is <b>FCS_READ</b>, this is
     ///the size of the <b>pszLogo</b> buffer, in characters. If not, this is the number of characters to write from that
     ///buffer. Set this parameter to 0 to write the entire string.
-    uint          cchLogo;
+    uint  cchLogo;
 }
 
 ///Contains parameters for the SHBrowseForFolder function and receives information about the folder selected by the
 ///user.
 struct BROWSEINFOA
+{
+    ///Type: <b>HWND</b> A handle to the owner window for the dialog box.
+    HWND        hwndOwner;
+    ///Type: <b>PCIDLIST_ABSOLUTE</b> A PIDL that specifies the location of the root folder from which to start
+    ///browsing. Only the specified folder and its subfolders in the namespace hierarchy appear in the dialog box. This
+    ///member can be <b>NULL</b>; in that case, a default location is used.
+    ITEMIDLIST* pidlRoot;
+    ///Type: <b>LPTSTR</b> Pointer to a buffer to receive the display name of the folder selected by the user. The size
+    ///of this buffer is assumed to be MAX_PATH characters.
+    PSTR        pszDisplayName;
+    ///Type: <b>LPCTSTR</b> Pointer to a null-terminated string that is displayed above the tree view control in the
+    ///dialog box. This string can be used to specify instructions to the user.
+    const(PSTR) lpszTitle;
+    ///Type: <b>UINT</b> Flags that specify the options for the dialog box. This member can be 0 or a combination of the
+    ///following values. Version numbers refer to the minimum version of Shell32.dll required for SHBrowseForFolder to
+    ///recognize flags added in later releases. See Shell and Common Controls Versions for more information.
+    uint        ulFlags;
+    ///Type: <b>BFFCALLBACK</b> Pointer to an application-defined function that the dialog box calls when an event
+    ///occurs. For more information, see the BrowseCallbackProc function. This member can be <b>NULL</b>.
+    BFFCALLBACK lpfn;
+    ///Type: <b>LPARAM</b> An application-defined value that the dialog box passes to the callback function, if one is
+    ///specified in <b>lpfn</b>.
+    LPARAM      lParam;
+    ///Type: <b>int</b> An integer value that receives the index of the image associated with the selected folder,
+    ///stored in the system image list.
+    int         iImage;
+}
+
+///Contains parameters for the SHBrowseForFolder function and receives information about the folder selected by the
+///user.
+struct BROWSEINFOW
 {
     ///Type: <b>HWND</b> A handle to the owner window for the dialog box.
     HWND         hwndOwner;
@@ -7325,10 +7672,10 @@ struct BROWSEINFOA
     ITEMIDLIST*  pidlRoot;
     ///Type: <b>LPTSTR</b> Pointer to a buffer to receive the display name of the folder selected by the user. The size
     ///of this buffer is assumed to be MAX_PATH characters.
-    const(char)* pszDisplayName;
+    PWSTR        pszDisplayName;
     ///Type: <b>LPCTSTR</b> Pointer to a null-terminated string that is displayed above the tree view control in the
     ///dialog box. This string can be used to specify instructions to the user.
-    const(char)* lpszTitle;
+    const(PWSTR) lpszTitle;
     ///Type: <b>UINT</b> Flags that specify the options for the dialog box. This member can be 0 or a combination of the
     ///following values. Version numbers refer to the minimum version of Shell32.dll required for SHBrowseForFolder to
     ///recognize flags added in later releases. See Shell and Common Controls Versions for more information.
@@ -7342,37 +7689,6 @@ struct BROWSEINFOA
     ///Type: <b>int</b> An integer value that receives the index of the image associated with the selected folder,
     ///stored in the system image list.
     int          iImage;
-}
-
-///Contains parameters for the SHBrowseForFolder function and receives information about the folder selected by the
-///user.
-struct BROWSEINFOW
-{
-    ///Type: <b>HWND</b> A handle to the owner window for the dialog box.
-    HWND          hwndOwner;
-    ///Type: <b>PCIDLIST_ABSOLUTE</b> A PIDL that specifies the location of the root folder from which to start
-    ///browsing. Only the specified folder and its subfolders in the namespace hierarchy appear in the dialog box. This
-    ///member can be <b>NULL</b>; in that case, a default location is used.
-    ITEMIDLIST*   pidlRoot;
-    ///Type: <b>LPTSTR</b> Pointer to a buffer to receive the display name of the folder selected by the user. The size
-    ///of this buffer is assumed to be MAX_PATH characters.
-    const(wchar)* pszDisplayName;
-    ///Type: <b>LPCTSTR</b> Pointer to a null-terminated string that is displayed above the tree view control in the
-    ///dialog box. This string can be used to specify instructions to the user.
-    const(wchar)* lpszTitle;
-    ///Type: <b>UINT</b> Flags that specify the options for the dialog box. This member can be 0 or a combination of the
-    ///following values. Version numbers refer to the minimum version of Shell32.dll required for SHBrowseForFolder to
-    ///recognize flags added in later releases. See Shell and Common Controls Versions for more information.
-    uint          ulFlags;
-    ///Type: <b>BFFCALLBACK</b> Pointer to an application-defined function that the dialog box calls when an event
-    ///occurs. For more information, see the BrowseCallbackProc function. This member can be <b>NULL</b>.
-    BFFCALLBACK   lpfn;
-    ///Type: <b>LPARAM</b> An application-defined value that the dialog box passes to the callback function, if one is
-    ///specified in <b>lpfn</b>.
-    LPARAM        lParam;
-    ///Type: <b>int</b> An integer value that receives the index of the image associated with the selected folder,
-    ///stored in the system image list.
-    int           iImage;
 }
 
 ///Defines the CF_NETRESOURCE clipboard format.
@@ -7536,9 +7852,9 @@ struct SHARDAPPIDINFO
 {
 align (1):
     ///Type: <b>IShellItem*</b> Pointer to an IShellItem object that represents the object in the Shell namespace.
-    IShellItem    psi;
+    IShellItem   psi;
     ///Type: <b>PCWSTR</b> The application-defined AppUserModelID associated with the item.
-    const(wchar)* pszAppID;
+    const(PWSTR) pszAppID;
 }
 
 ///Contains data used by SHAddToRecentDocs to identify both an item—in this case by an absolute pointer to an item
@@ -7547,9 +7863,9 @@ struct SHARDAPPIDINFOIDLIST
 {
 align (1):
     ///Type: <b>PCIDLIST_ABSOLUTE</b> An absolute PIDL that gives the full path of the item in the Shell namespace.
-    ITEMIDLIST*   pidl;
+    ITEMIDLIST*  pidl;
     ///Type: <b>PCWSTR</b> The application-defined AppUserModelID associated with the item.
-    const(wchar)* pszAppID;
+    const(PWSTR) pszAppID;
 }
 
 ///Contains data used by SHAddToRecentDocs to identify both an item, in this case through an IShellLink, and the process
@@ -7560,9 +7876,9 @@ align (1):
     ///Type: <b>IShellLink*</b> Pointer to an IShellLink instance that, when launched, opens the item. The shortcut is
     ///not added by SHAddToRecentDocs to the user's <b>Recent</b> folder (CSIDL_RECENT, FOLDERID_Recent), but it is
     ///added to the <b>Recent</b> category in the specified application's Jump List.
-    IShellLinkA   psl;
+    IShellLinkA  psl;
     ///Type: <b>PCWSTR</b> The application-defined AppUserModelID associated with the item.
-    const(wchar)* pszAppID;
+    const(PWSTR) pszAppID;
 }
 
 ///<p class="CCE_Message">[<b>SHChangeDWORDAsIDList</b> is available for use in the operating systems specified in the
@@ -7611,8 +7927,8 @@ align (1):
 struct SHDESCRIPTIONID
 {
     ///Type: <b>DWORD</b> Receives a value that determines what type the item is. One of the following values.
-    uint dwDescriptionId;
-    GUID clsid;
+    SHDID_ID dwDescriptionId;
+    GUID     clsid;
 }
 
 ///<p class="CCE_Message">[<b>AUTO_SCROLL_DATA</b> is available for use in the operating systems specified in the
@@ -7664,13 +7980,13 @@ align (1):
 struct OPENASINFO
 {
     ///Type: <b>LPCWSTR</b> A pointer to the file name.
-    const(wchar)* pcszFile;
+    const(PWSTR) pcszFile;
     ///Type: <b>LPCWSTR</b> A pointer to the file type description. Set this parameter to <b>NULL</b> to use the file
     ///name extension of <b>pcszFile</b>.
-    const(wchar)* pcszClass;
+    const(PWSTR) pcszClass;
     ///Type: <b>OPEN_AS_INFO_FLAGS</b> The characteristics of the SHOpenWithDialog dialog box. One or more of the
     ///following values.
-    int           oaifInFlags;
+    int          oaifInFlags;
 }
 
 struct QCMINFO_IDMAP_PLACEMENT
@@ -7774,41 +8090,41 @@ struct SFV_CREATE
 struct DEFCONTEXTMENU
 {
     ///Type: <b>HWND</b> A handle to the context menu. Set this member to the handle returned from CreateMenu.
-    HWND              hwnd;
+    HWND           hwnd;
     ///Type: <b>IContextMenuCB*</b> A pointer to the IContextMenuCB interface supported by the callback object. This
     ///value is optional and can be <b>NULL</b>.
-    IContextMenuCB    pcmcb;
+    IContextMenuCB pcmcb;
     ///Type: <b>PCIDLIST_ABSOLUTE</b> The PIDL of the folder that contains the selected file object(s) or the folder of
     ///the context menu if no file objects are selected. This value is optional and can be <b>NULL</b>, in which case
     ///the PIDL is computed from the <b>psf</b> member.
-    ITEMIDLIST*       pidlFolder;
+    ITEMIDLIST*    pidlFolder;
     ///Type: <b>IShellFolder*</b> A pointer to the IShellFolder interface of the folder object that contains the
     ///selected file objects, or the folder that contains the context menu if no file objects are selected.
-    IShellFolder      psf;
+    IShellFolder   psf;
     ///Type: <b>UINT</b> The count of items in member <b>apidl</b>.
-    uint              cidl;
+    uint           cidl;
     ///Type: <b>PCUITEMID_CHILD_ARRAY</b> A pointer to a constant array of ITEMIDLIST structures. Each entry in the
     ///array describes a child item to which the context menu applies, for instance, a selected file the user wants to
     ///<b>Open</b>.
-    ITEMIDLIST**      apidl;
+    ITEMIDLIST**   apidl;
     ///Type: <b>IUnknown*</b> A pointer to the IQueryAssociations interface on the object from which to load extensions.
     ///This parameter is optional and thus can be <b>NULL</b>. If this value is <b>NULL</b> and members <b>aKeys</b> and
     ///<b>cKeys</b> are also <b>NULL</b> (see Remarks), <b>punkAssociationInfo</b> is computed from the <b>apidl</b>
     ///member and <b>cidl</b> via a request for <b>IQueryAssociations</b> through IShellFolder::GetUIObjectOf. If
     ///IShellFolder::GetUIObjectOf returns <b>E_NOTIMPL</b>, a default implementation is provided based on the
     ///<i>SFGAO_FOLDER</i> and <i>SFGAO_FILESYSTEM</i> attributes returned from IShellFolder::GetAttributesOf.
-    IUnknown          punkAssociationInfo;
+    IUnknown       punkAssociationInfo;
     ///Type: <b>UINT</b> The count of items in member <b>aKeys</b>. This value can be zero. If the value is zero, the
     ///extensions are loaded based on the object that supports interface IQueryAssociations as specified by member
     ///<b>punkAssociationInfo</b>. If the value is non-NULL, the extensions are loaded based only on member <b>aKeys</b>
     ///and not member <b>punkAssociationInfo</b>. <div class="alert"><b>Note</b> The maximum number of keys is 16.
     ///Callers must enforce this limit as the API does not. Failing to do so can result in memory corruption.</div>
     ///<div> </div>
-    uint              cKeys;
+    uint           cKeys;
     ///Type: <b>const HKEY*</b> A pointer to an HKEY that specifies the registry key from which to load extensions. This
     ///parameter is optional and can be <b>NULL</b>. If the value is <b>NULL</b>, the extensions are loaded based on the
     ///object that supports interface IQueryAssociations as specified in <b>punkAssociationInfo</b>.
-    const(ptrdiff_t)* aKeys;
+    const(HKEY)*   aKeys;
 }
 
 ///Contains additional arguments used by DFM_INVOKECOMMANDEX.
@@ -7970,7 +8286,7 @@ struct SHCOLUMNDATA
     ///Type: <b>ULONG</b> Reserved. Set to <b>NULL</b>.
     uint        dwReserved;
     ///Type: <b>WCHAR*</b> A pointer to a null-terminated Unicode string with a file name extension.
-    ushort*     pwszExt;
+    PWSTR       pwszExt;
     ///Type: <b>WCHAR[MAX_PATH]</b> A null-terminated Unicode string containing a fully qualified file path.
     ushort[260] wszFile;
 }
@@ -8026,7 +8342,7 @@ struct AASHELLMENUITEM
     ///AASHELLMENUFILENAME structure that contains the name of the file. Otherwise this member is <b>NULL</b>.
     AASHELLMENUFILENAME* lpName;
     ///Type: <b>LPTSTR</b> A pointer to the string that contains the text to use if there is no file.
-    const(wchar)*        psz;
+    PWSTR                psz;
 }
 
 ///Used by the ParseURL function to return the parsed URL.
@@ -8034,18 +8350,18 @@ struct PARSEDURLA
 {
     ///Type: <b>DWORD</b> [in] The size of the structure, in bytes. The calling application must set this member before
     ///calling the ParseURL function.
-    uint         cbSize;
+    uint        cbSize;
     ///Type: <b>LPCTSTR</b> [out] A pointer to the beginning of the protocol part of the URL.
-    const(char)* pszProtocol;
+    const(PSTR) pszProtocol;
     ///Type: <b>UINT</b> The number of characters in the URL's protocol section.
-    uint         cchProtocol;
+    uint        cchProtocol;
     ///Type: <b>LPCTSTR</b> [out] A pointer to the section of the URL that follows the protocol and colon (':'). For
     ///file URLs, the function also skips the leading "//" characters.
-    const(char)* pszSuffix;
+    const(PSTR) pszSuffix;
     ///Type: <b>UINT</b> [out] The number of characters in the URL's suffix.
-    uint         cchSuffix;
+    uint        cchSuffix;
     ///Type: <b>UINT</b> [out] A value from the URL_SCHEME enumeration that specifies the URL's scheme.
-    uint         nScheme;
+    uint        nScheme;
 }
 
 ///Used by the ParseURL function to return the parsed URL.
@@ -8053,18 +8369,18 @@ struct PARSEDURLW
 {
     ///Type: <b>DWORD</b> [in] The size of the structure, in bytes. The calling application must set this member before
     ///calling the ParseURL function.
-    uint          cbSize;
+    uint         cbSize;
     ///Type: <b>LPCTSTR</b> [out] A pointer to the beginning of the protocol part of the URL.
-    const(wchar)* pszProtocol;
+    const(PWSTR) pszProtocol;
     ///Type: <b>UINT</b> The number of characters in the URL's protocol section.
-    uint          cchProtocol;
+    uint         cchProtocol;
     ///Type: <b>LPCTSTR</b> [out] A pointer to the section of the URL that follows the protocol and colon (':'). For
     ///file URLs, the function also skips the leading "//" characters.
-    const(wchar)* pszSuffix;
+    const(PWSTR) pszSuffix;
     ///Type: <b>UINT</b> [out] The number of characters in the URL's suffix.
-    uint          cchSuffix;
+    uint         cchSuffix;
     ///Type: <b>UINT</b> [out] A value from the URL_SCHEME enumeration that specifies the URL's scheme.
-    uint          nScheme;
+    uint         nScheme;
 }
 
 ///Used by the QISearch function to describe a single interface.
@@ -8115,51 +8431,51 @@ struct APPINFODATA
 {
     ///Type: <b>DWORD</b> A value of type <b>DWORD</b> that specifies the size of the <b>APPINFODATA</b> data structure.
     ///This field is set by the Add/Remove Program executable code.
-    uint          cbSize;
+    uint  cbSize;
     ///Type: <b>DWORD</b> A value of type <b>DWORD</b> that specifies the bitmask that indicates which items in the
     ///structure are desired or valid. Implementations of GetAppInfo should inspect this value for bits that are set and
     ///attempt to provide values corresponding to those bits. Implementations should also return with bits set for only
     ///those members that are being returned.
-    uint          dwMask;
+    uint  dwMask;
     ///Type: <b>LPWSTR</b> A pointer to a string that contains the application display name. Memory for this string must
     ///be allocated using CoTaskMemAlloc and freed using CoTaskMemFree.
-    const(wchar)* pszDisplayName;
+    PWSTR pszDisplayName;
     ///Type: <b>LPWSTR</b> Not applicable to published applications.
-    const(wchar)* pszVersion;
-    const(wchar)* pszPublisher;
+    PWSTR pszVersion;
+    PWSTR pszPublisher;
     ///Type: <b>LPWSTR</b> Not applicable to published applications.
-    const(wchar)* pszProductID;
+    PWSTR pszProductID;
     ///Type: <b>LPWSTR</b> Not applicable to published applications.
-    const(wchar)* pszRegisteredOwner;
+    PWSTR pszRegisteredOwner;
     ///Type: <b>LPWSTR</b> Not applicable to published applications.
-    const(wchar)* pszRegisteredCompany;
+    PWSTR pszRegisteredCompany;
     ///Type: <b>LPWSTR</b> Not applicable to published applications. Type: <b>LPWSTR</b> Not applicable to published
     ///applications.
-    const(wchar)* pszLanguage;
+    PWSTR pszLanguage;
     ///Type: <b>LPWSTR</b> A URL to support information. This string is displayed as a link with the application name in
     ///Control Panel Add/Remove Programs. Memory for this string must be allocated using CoTaskMemAlloc and freed using
     ///CoTaskMemFree.
-    const(wchar)* pszSupportUrl;
+    PWSTR pszSupportUrl;
     ///Type: <b>LPWSTR</b> Not applicable to published applications.
-    const(wchar)* pszSupportTelephone;
+    PWSTR pszSupportTelephone;
     ///Type: <b>LPWSTR</b> Not applicable to published applications.
-    const(wchar)* pszHelpLink;
+    PWSTR pszHelpLink;
     ///Type: <b>LPWSTR</b> Not applicable to published applications.
-    const(wchar)* pszInstallLocation;
+    PWSTR pszInstallLocation;
     ///Type: <b>LPWSTR</b> Not applicable to published applications.
-    const(wchar)* pszInstallSource;
+    PWSTR pszInstallSource;
     ///Type: <b>LPWSTR</b> Not applicable to published applications.
-    const(wchar)* pszInstallDate;
+    PWSTR pszInstallDate;
     ///Type: <b>LPWSTR</b> Not applicable to published applications.
-    const(wchar)* pszContact;
+    PWSTR pszContact;
     ///Type: <b>LPWSTR</b> Not applicable to published applications.
-    const(wchar)* pszComments;
+    PWSTR pszComments;
     ///Type: <b>LPWSTR</b> Not applicable to published applications.
-    const(wchar)* pszImage;
+    PWSTR pszImage;
     ///Type: <b>LPWSTR</b> Not applicable to published applications.
-    const(wchar)* pszReadmeUrl;
+    PWSTR pszReadmeUrl;
     ///Type: <b>LPWSTR</b> Not applicable to published applications.
-    const(wchar)* pszUpdateInfoUrl;
+    PWSTR pszUpdateInfoUrl;
 }
 
 ///Provides specialized application information to <b>Add/Remove Programs</b> in Control Panel. This structure is not
@@ -8167,14 +8483,14 @@ struct APPINFODATA
 struct SLOWAPPINFO
 {
     ///Type: <b>ULONGLONG</b> The size of the application in bytes.
-    ulong         ullSize;
+    ulong    ullSize;
     ///Type: <b>FILETIME</b> The time the application was last used.
-    FILETIME      ftLastUsed;
+    FILETIME ftLastUsed;
     ///Type: <b>int</b> The count of times the application has been used.
-    int           iTimesUsed;
+    int      iTimesUsed;
     ///Type: <b>LPWSTR</b> A pointer to a string containing the path to the image that represents the application. The
     ///string buffer must be allocated using CoTaskMemAlloc and freed using CoTaskMemFree.
-    const(wchar)* pszImage;
+    PWSTR    pszImage;
 }
 
 ///Provides information about a published application from an application publisher to <b>Add/Remove Programs</b> in
@@ -8183,29 +8499,29 @@ struct PUBAPPINFO
 {
     ///Type: <b>DWORD</b> A value of type <b>DWORD</b> that specifies the size of the structure. This member is set by
     ///the <b>Add/Remove Programs</b> utility.
-    uint          cbSize;
+    uint       cbSize;
     ///Type: <b>DWORD</b> A bitmask that indicates which items in the structure are valid. This member can contain one
     ///or more PUBAPPINFOFLAGS.
-    uint          dwMask;
+    uint       dwMask;
     ///Type: <b>LPWSTR</b> A pointer to a string containing the display name of the publisher. This name appears in
     ///<b>Add/Remove Programs</b> if duplicate application names are encountered. The string buffer must be allocated
     ///using the Shell task allocator.
-    const(wchar)* pszSource;
+    PWSTR      pszSource;
     ///Type: <b>SYSTEMTIME</b> The time when an application manager schedules the application installation.
     ///<b>Add/Remove Programs</b> does not allow the user to schedule an installation time later than the value in this
     ///member. This member is ignored if it describes a time prior to the current time.
-    SYSTEMTIME    stAssigned;
+    SYSTEMTIME stAssigned;
     ///Type: <b>SYSTEMTIME</b>
-    SYSTEMTIME    stPublished;
+    SYSTEMTIME stPublished;
     ///Type: <b>SYSTEMTIME</b> The installation time that the user sets by clicking <b>Add Later</b>. <b>Add/Remove
     ///Programs</b> calls the IPublishedApp::Install method with the <i>pInstallTime</i> parameter pointing to a
     ///SYSTEMTIME structure that contains the time the user entered. The application publisher maintains this value for
     ///installation scheduling. IPublishedApp::GetPublishedAppInfo returns the scheduled installation time in this
     ///member if the scheduled time has not been canceled using IPublishedApp::Unschedule.
-    SYSTEMTIME    stScheduled;
+    SYSTEMTIME stScheduled;
     ///Type: <b>SYSTEMTIME</b> The time after which you cannot install the published application using <b>Add/Remove
     ///Programs</b>.
-    SYSTEMTIME    stExpire;
+    SYSTEMTIME stExpire;
 }
 
 ///Describes a single field in a credential. For example, a string or a user image.
@@ -8213,13 +8529,13 @@ struct CREDENTIAL_PROVIDER_FIELD_DESCRIPTOR
 {
     ///Type: <b>DWORD</b> The unique ID of the field. Fields should have a unique identifier compared to all other
     ///fields on a given credential provider. This is true regardless of whether the fields are displayed or hidden.
-    uint          dwFieldID;
+    uint  dwFieldID;
     ///Type: <b>CREDENTIAL_PROVIDER_FIELD_TYPE</b> The field type.
     CREDENTIAL_PROVIDER_FIELD_TYPE cpft;
     ///Type: <b>LPWSTR</b> A pointer to a buffer containing the friendly name of the field as a null-terminated Unicode
     ///string. This is used for accessibility and queuing purposes. For example, some standard fields would have friend
     ///names of "Username", "Password", and "Log On To".
-    const(wchar)* pszLabel;
+    PWSTR pszLabel;
     ///Type: <b>GUID</b> A GUID that uniquely identifies a type of field. This member enables you to wrap functionality
     ///provided by existing credential providers in their own providers. Wrapping credential providers is not
     ///recommended as it can lead to unexpected behavior that disables in-box credential providers. The following table
@@ -8242,7 +8558,7 @@ struct CREDENTIAL_PROVIDER_FIELD_DESCRIPTOR
     ///id="cpfg_credential_provider_label"></a><dl> <dt><b>CPFG_CREDENTIAL_PROVIDER_LABEL</b></dt>
     ///<dt>286BBFF3-BAD4-438F-B007-79B7267C3D48</dt> </dl> </td> <td width="60%"> <b>Introduced in Windows 8</b>: The
     ///label associated with a credential provider on the logon page. </td> </tr> </table>
-    GUID          guidFieldType;
+    GUID  guidFieldType;
 }
 
 ///Contains details about a credential.
@@ -8277,17 +8593,17 @@ struct SYNCMGR_CONFLICT_ID_INFO
 struct CONFIRM_CONFLICT_ITEM
 {
     ///Type: <b>IShellItem2*</b> A pointer to IShellItem2 interface.
-    IShellItem2   pShellItem;
+    IShellItem2 pShellItem;
     ///Type: <b>LPWSTR</b> A pointer to the original name. If set to <b>NULL</b> then IShellItem's display name will be
     ///used.
-    const(wchar)* pszOriginalName;
+    PWSTR       pszOriginalName;
     ///Type: <b>LPWSTR</b> A pointer to the alternate name. If multiple items are kept, then item must be renamed to
     ///this name. User may or may not have an ability to change the name.
-    const(wchar)* pszAlternateName;
+    PWSTR       pszAlternateName;
     ///Type: <b>LPWSTR</b> A pointer to the short location.
-    const(wchar)* pszLocationShort;
+    PWSTR       pszLocationShort;
     ///Type: <b>LPWSTR</b> A pointer to the full location.
-    const(wchar)* pszLocationFull;
+    PWSTR       pszLocationFull;
     SYNCMGR_CONFLICT_ITEM_TYPE nType;
 }
 
@@ -8295,8 +8611,8 @@ struct CONFIRM_CONFLICT_ITEM
 struct CONFIRM_CONFLICT_RESULT_INFO
 {
     ///Type: <b>LPWSTR</b> The new item name.
-    const(wchar)* pszNewName;
-    uint          iItemIndex;
+    PWSTR pszNewName;
+    uint  iItemIndex;
 }
 
 ///Contains a unique identifier for a thumbnail in the system thumbnail cache.
@@ -8312,17 +8628,17 @@ struct WTS_THUMBNAILID
 struct SYNCMGRPROGRESSITEM
 {
     ///Type: <b>DWORD</b> The size of the structure, in bytes.
-    uint          cbSize;
+    uint         cbSize;
     ///Type: <b>UINT</b> Flags from the SYNCMGRSTATUS enumeration that specify which members of this structure are used.
-    uint          mask;
+    uint         mask;
     ///Type: <b>LPCWSTR</b> Status text.
-    const(wchar)* lpcStatusText;
+    const(PWSTR) lpcStatusText;
     ///Type: <b>DWORD</b> One of the values from the SYNCMGRSTATUS enumeration.
-    uint          dwStatusType;
+    uint         dwStatusType;
     ///Type: <b>int</b> An integer that indicates the progress value.
-    int           iProgValue;
+    int          iProgValue;
     ///Type: <b>int</b> An integer that indicates the maximum progress value.
-    int           iMaxValue;
+    int          iMaxValue;
 }
 
 ///Provides error information for use in the ISyncMgrSynchronizeCallback::LogError method.
@@ -8379,22 +8695,22 @@ struct SYNCMGRHANDLERINFO
 struct WINDOWDATA
 {
     ///Type: <b>DWORD</b> The window ID.
-    uint          dwWindowID;
+    uint        dwWindowID;
     ///Type: <b>UINT</b> The codepage of the current entry.
-    uint          uiCP;
+    uint        uiCP;
     ///Type: <b>PIDLIST_ABSOLUTE</b> The current PIDL.
-    ITEMIDLIST*   pidl;
+    ITEMIDLIST* pidl;
     ///Type: <b>LPWSTR</b> A pointer to a buffer to hold the window URL.
-    const(wchar)* lpszUrl;
+    PWSTR       lpszUrl;
     ///Type: <b>LPWSTR</b> A pointer to a buffer to hold the window URL Location (local anchor).
-    const(wchar)* lpszUrlLocation;
-    const(wchar)* lpszTitle;
+    PWSTR       lpszUrlLocation;
+    PWSTR       lpszTitle;
 }
 
 struct HLITEM
 {
-    uint          uHLID;
-    const(wchar)* pwzFriendlyName;
+    uint  uHLID;
+    PWSTR pwzFriendlyName;
 }
 
 struct HLTBINFO
@@ -8450,7 +8766,7 @@ struct BASEBROWSERDATAXP
     ///Type: <b>HWND</b> A handle to the window returned by _psv->CreateViewWindow.
     HWND              _hwndView;
     ///Type: <b>LPWSTR</b> A pointer to a buffer containing the Unicode title text for the current location.
-    const(wchar)*     _pszTitleCur;
+    PWSTR             _pszTitleCur;
     ///Type: <b>PCIDLIST_ABSOLUTE</b> The PIDL of the pending target location. Once navigation is complete, this value
     ///moves to <b>_pidlCur</b>.
     ITEMIDLIST*       _pidlPending;
@@ -8465,7 +8781,7 @@ struct BASEBROWSERDATAXP
     HWND              _hwndViewPending;
     ///Type: <b>LPWSTR</b> A pointer to a buffer containing the Unicode title text for the pending target location. Once
     ///navigation is complete, this value moves to <b>_pszTitleCur</b>.
-    const(wchar)*     _pszTitlePending;
+    PWSTR             _pszTitlePending;
     ///Type: <b>BOOL</b> A value of type <b>BOOL</b> that indicates whether the browser is hosting folder content or web
     ///content.
     BOOL              _fIsViewMSHTML;
@@ -8518,7 +8834,7 @@ struct BASEBROWSERDATALH
     ///Type: <b>HWND</b> A handle to the window returned by _psv->CreateViewWindow.
     HWND              _hwndView;
     ///Type: <b>LPWSTR</b> A pointer to a buffer containing the Unicode title text for the current location.
-    const(wchar)*     _pszTitleCur;
+    PWSTR             _pszTitleCur;
     ///Type: <b>PCIDLIST_ABSOLUTE</b> The PIDL of the pending target location. Once navigation is complete, this value
     ///moves to <b>_pidlCur</b>.
     ITEMIDLIST*       _pidlPending;
@@ -8533,7 +8849,7 @@ struct BASEBROWSERDATALH
     HWND              _hwndViewPending;
     ///Type: <b>LPWSTR</b> A pointer to a buffer containing the Unicode title text for the pending target location. Once
     ///navigation is complete, this value moves to <b>_pszTitleCur</b>.
-    const(wchar)*     _pszTitlePending;
+    PWSTR             _pszTitlePending;
     ///Type: <b>BOOL</b> A value of type <b>BOOL</b> that indicates whether the browser is hosting folder content or web
     ///content.
     BOOL              _fIsViewMSHTML;
@@ -8574,10 +8890,10 @@ struct TOOLBARITEM
     ///borders.
     RECT           rcBorderTool;
     ///Type: <b>LPWSTR</b> A pointer to a buffer that contains the name of the toolbar item as a Unicode string.
-    const(wchar)*  pwszItem;
+    PWSTR          pwszItem;
     ///Type: <b>BOOL</b> <b>TRUE</b> if the toolbar item is currently visible; otherwise, <b>FALSE</b>.
     BOOL           fShow;
-    ptrdiff_t      hMon;
+    HMONITOR       hMon;
 }
 
 ///Contains resource information and an application-defined value for a dialog box supported by a Control Panel
@@ -8657,64 +8973,64 @@ align (1):
 struct PROFILEINFOA
 {
     ///Type: <b>DWORD</b> The size of this structure, in bytes.
-    uint         dwSize;
+    uint   dwSize;
     ///Type: <b>DWORD</b> This member can be one of the following flags:
-    uint         dwFlags;
+    uint   dwFlags;
     ///Type: <b>LPTSTR</b> A pointer to the name of the user. This member is used as the base name of the directory in
     ///which to store a new profile.
-    const(char)* lpUserName;
+    PSTR   lpUserName;
     ///Type: <b>LPTSTR</b> A pointer to the roaming user profile path. If the user does not have a roaming profile, this
     ///member can be <b>NULL</b>. To retrieve the user's roaming profile path, call the NetUserGetInfo function,
     ///specifying information level 3 or 4. For more information, see Remarks.
-    const(char)* lpProfilePath;
+    PSTR   lpProfilePath;
     ///Type: <b>LPTSTR</b> A pointer to the default user profile path. This member can be <b>NULL</b>.
-    const(char)* lpDefaultPath;
+    PSTR   lpDefaultPath;
     ///Type: <b>LPTSTR</b> A pointer to the name of the validating domain controller, in NetBIOS format.
-    const(char)* lpServerName;
+    PSTR   lpServerName;
     ///Type: <b>LPTSTR</b> Not used, set to <b>NULL</b>.
-    const(char)* lpPolicyPath;
+    PSTR   lpPolicyPath;
     ///Type: <b>HANDLE</b> A handle to the <b>HKEY_CURRENT_USER</b> registry subtree. For more information, see Remarks.
-    HANDLE       hProfile;
+    HANDLE hProfile;
 }
 
 ///Contains information used when loading or unloading a user profile.
 struct PROFILEINFOW
 {
     ///Type: <b>DWORD</b> The size of this structure, in bytes.
-    uint          dwSize;
+    uint   dwSize;
     ///Type: <b>DWORD</b> This member can be one of the following flags:
-    uint          dwFlags;
+    uint   dwFlags;
     ///Type: <b>LPTSTR</b> A pointer to the name of the user. This member is used as the base name of the directory in
     ///which to store a new profile.
-    const(wchar)* lpUserName;
+    PWSTR  lpUserName;
     ///Type: <b>LPTSTR</b> A pointer to the roaming user profile path. If the user does not have a roaming profile, this
     ///member can be <b>NULL</b>. To retrieve the user's roaming profile path, call the NetUserGetInfo function,
     ///specifying information level 3 or 4. For more information, see Remarks.
-    const(wchar)* lpProfilePath;
+    PWSTR  lpProfilePath;
     ///Type: <b>LPTSTR</b> A pointer to the default user profile path. This member can be <b>NULL</b>.
-    const(wchar)* lpDefaultPath;
+    PWSTR  lpDefaultPath;
     ///Type: <b>LPTSTR</b> A pointer to the name of the validating domain controller, in NetBIOS format.
-    const(wchar)* lpServerName;
+    PWSTR  lpServerName;
     ///Type: <b>LPTSTR</b> Not used, set to <b>NULL</b>.
-    const(wchar)* lpPolicyPath;
+    PWSTR  lpPolicyPath;
     ///Type: <b>HANDLE</b> A handle to the <b>HKEY_CURRENT_USER</b> registry subtree. For more information, see Remarks.
-    HANDLE        hProfile;
+    HANDLE hProfile;
 }
 
 struct urlinvokecommandinfoA
 {
-    uint         dwcbSize;
-    uint         dwFlags;
-    HWND         hwndParent;
-    const(char)* pcszVerb;
+    uint        dwcbSize;
+    uint        dwFlags;
+    HWND        hwndParent;
+    const(PSTR) pcszVerb;
 }
 
 struct urlinvokecommandinfoW
 {
-    uint          dwcbSize;
-    uint          dwFlags;
-    HWND          hwndParent;
-    const(wchar)* pcszVerb;
+    uint         dwcbSize;
+    uint         dwFlags;
+    HWND         hwndParent;
+    const(PWSTR) pcszVerb;
 }
 
 struct _APPSTATE_REGISTRATION
@@ -8733,7 +9049,7 @@ struct __MIDL___MIDL_itf_dimm_0000_0000_0012
     POINT            ptSoftKbdPos;
     uint             fdwConversion;
     uint             fdwSentence;
-    union lfFont
+union lfFont
     {
         LOGFONTA A;
         LOGFONTW W;
@@ -8786,70 +9102,65 @@ struct SERIALIZEDPROPERTYVALUE
     ubyte[1] rgb;
 }
 
+///Contains information about a software update.
+struct SOFTDISTINFO
+{
+    ///Type: <b>ULONG</b> The size of the structure, in bytes.
+    uint  cbSize;
+    ///Type: <b>DWORD</b> This parameter can take one of the following values.
+    uint  dwFlags;
+    ///Type: <b>DWORD</b> The advertised state. It can take one of the following values.
+    uint  dwAdState;
+    ///Type: <b>LPWSTR</b> A string that contains the contents of the TITLE flag from the associated .cdf file.
+    PWSTR szTitle;
+    ///Type: <b>LPWSTR</b> A string that contains the contents of the ABSTRACT flag from the associated .cdf file.
+    PWSTR szAbstract;
+    ///Type: <b>LPWSTR</b> A string that contains the URL of the webpage to advertise or install the update.
+    PWSTR szHREF;
+    ///Type: <b>DWORD</b> The most-significant unsigned long integer value of the installed version number.
+    uint  dwInstalledVersionMS;
+    ///Type: <b>DWORD</b> The least-significant unsigned long integer value of the installed version number.
+    uint  dwInstalledVersionLS;
+    ///Type: <b>DWORD</b> The most-significant unsigned long integer value of the update version number.
+    uint  dwUpdateVersionMS;
+    ///Type: <b>DWORD</b> The least-significant unsigned long integer value of the update version number.
+    uint  dwUpdateVersionLS;
+    ///Type: <b>DWORD</b> The most-significant unsigned long integer value of the advertised version number.
+    uint  dwAdvertisedVersionMS;
+    ///Type: <b>DWORD</b> The least-significant unsigned long integer value of the advertised version number.
+    uint  dwAdvertisedVersionLS;
+    ///Type: <b>DWORD</b> Reserved. Must be set to zero.
+    uint  dwReserved;
+}
+
+///Provides application category information to Add/Remove Programs in Control Panel. The APPCATEGORYINFOLIST structure
+///is used create a complete list of categories for an application publisher.
+struct APPCATEGORYINFO
+{
+    ///Type: <b>LCID</b> Unused.
+    uint  Locale;
+    ///Type: <b>LPWSTR</b> A pointer to a string containing the display name of the category. This string displays in
+    ///the <b>Category</b> list in Add/Remove Programs. This string buffer must be allocated using CoTaskMemAlloc and
+    ///freed using CoTaskMemFree.
+    PWSTR pszDescription;
+    ///Type: <b>GUID</b> A GUID identifying the application category.
+    GUID  AppCategoryId;
+}
+
+///Provides a list of supported application categories from an application publisher to Add/Remove Programs in Control
+///Panel.
+struct APPCATEGORYINFOLIST
+{
+    ///Type: <b>DWORD</b> A value of type <b>DWORD</b> that specifies the count of APPCATEGORYINFO elements in the array
+    ///pointed to by <b>pCategoryInfo</b>.
+    uint             cCategory;
+    ///Type: <b>APPCATEGORYINFO*</b> A pointer to an array of APPCATEGORYINFO structures. This array contains all the
+    ///categories an application publisher supports and must be allocated using CoTaskMemAlloc and freed using
+    ///CoTaskMemFree.
+    APPCATEGORYINFO* pCategoryInfo;
+}
+
 // Functions
-
-///Installs or updates a window subclass callback.
-///Params:
-///    hWnd = Type: <b>HWND</b> The handle of the window being subclassed.
-///    pfnSubclass = Type: <b>SUBCLASSPROC</b> A pointer to a window procedure. This pointer and the subclass ID uniquely identify
-///                  this subclass callback. For the callback function prototype, see SUBCLASSPROC.
-///    uIdSubclass = Type: <b>UINT_PTR</b> The subclass ID. This ID together with the subclass procedure uniquely identify a subclass.
-///                  To remove a subclass, pass the subclass procedure and this value to the RemoveWindowSubclass function. This value
-///                  is passed to the subclass procedure in the uIdSubclass parameter.
-///    dwRefData = Type: <b>DWORD_PTR</b> <b>DWORD_PTR</b> to reference data. The meaning of this value is determined by the calling
-///                application. This value is passed to the subclass procedure in the dwRefData parameter. A different dwRefData is
-///                associated with each combination of window handle, subclass procedure and uIdSubclass.
-///Returns:
-///    Type: <b>BOOL</b> <b>TRUE</b> if the subclass callback was successfully installed; otherwise, <b>FALSE</b>.
-///    
-@DllImport("COMCTL32")
-BOOL SetWindowSubclass(HWND hWnd, SUBCLASSPROC pfnSubclass, size_t uIdSubclass, size_t dwRefData);
-
-///Retrieves the reference data for the specified window subclass callback.
-///Params:
-///    hWnd = Type: <b>HWND</b> The handle of the window being subclassed.
-///    pfnSubclass = Type: <b>SUBCLASSPROC</b> A pointer to a window procedure. This pointer and the subclass ID uniquely identify
-///                  this subclass callback.
-///    uIdSubclass = Type: <b>UINT_PTR</b> <b>UINT_PTR</b> subclass ID. This ID and the callback pointer uniquely identify this
-///                  subclass callback. Note: On 64-bit versions of Windows this is a 64-bit value.
-///    pdwRefData = Type: <b>DWORD_PTR*</b> A pointer to a <b>DWORD</b> which will return the reference data. Note: On 64-bit
-///                 versions of Windows, pointers are 64-bit values.
-///Returns:
-///    Type: <b>BOOL</b> <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>TRUE</b></dt> </dl> </td> <td width="60%"> The subclass callback was successfully installed. </td> </tr>
-///    <tr> <td width="40%"> <dl> <dt><b>FALSE</b></dt> </dl> </td> <td width="60%"> The subclass callback was not
-///    installed. </td> </tr> </table>
-///    
-@DllImport("COMCTL32")
-BOOL GetWindowSubclass(HWND hWnd, SUBCLASSPROC pfnSubclass, size_t uIdSubclass, size_t* pdwRefData);
-
-///Removes a subclass callback from a window.
-///Params:
-///    hWnd = Type: <b>HWND</b> The handle of the window being subclassed.
-///    pfnSubclass = Type: <b>SUBCLASSPROC</b> A pointer to a window procedure. This pointer and the subclass ID uniquely identify
-///                  this subclass callback. For the callback function prototype, see SUBCLASSPROC.
-///    uIdSubclass = Type: <b>UINT_PTR</b> The <b>UINT_PTR</b> subclass ID. This ID and the callback pointer uniquely identify this
-///                  subclass callback. Note: On 64-bit versions of Windows this is a 64-bit value.
-///Returns:
-///    Type: <b>BOOL</b> <b>TRUE</b> if the subclass callback was successfully removed; otherwise, <b>FALSE</b>.
-///    
-@DllImport("COMCTL32")
-BOOL RemoveWindowSubclass(HWND hWnd, SUBCLASSPROC pfnSubclass, size_t uIdSubclass);
-
-///Calls the next handler in a window's subclass chain. The last handler in the subclass chain calls the original window
-///procedure for the window.
-///Params:
-///    hWnd = Type: <b>HWND</b> A handle to the window being subclassed.
-///    uMsg = Type: <b>UINT</b> A value of type unsigned <b>int</b> that specifies a window message.
-///    wParam = Type: <b>WPARAM</b> Specifies additional message information. The contents of this parameter depend on the value
-///             of the window message.
-///    lParam = Type: <b>LPARAM</b> Specifies additional message information. The contents of this parameter depend on the value
-///             of the window message. Note: On 64-bit versions of Windows LPARAM is a 64-bit value.
-///Returns:
-///    Type: <b>LRESULT</b> The returned value is specific to the message sent. This value should be ignored.
-///    
-@DllImport("COMCTL32")
-LRESULT DefSubclassProc(HWND hWnd, uint uMsg, WPARAM wParam, LPARAM lParam);
 
 ///Associates a Help context identifier with the specified window.
 ///Params:
@@ -8911,7 +9222,7 @@ uint GetMenuContextHelpId(HMENU param0);
 ///    GetLastError.
 ///    
 @DllImport("USER32")
-BOOL WinHelpA(HWND hWndMain, const(char)* lpszHelp, uint uCommand, size_t dwData);
+BOOL WinHelpA(HWND hWndMain, const(PSTR) lpszHelp, uint uCommand, size_t dwData);
 
 ///Launches Windows Help (Winhelp.exe) and passes additional data that indicates the nature of the help requested by the
 ///application.
@@ -8933,396 +9244,7 @@ BOOL WinHelpA(HWND hWndMain, const(char)* lpszHelp, uint uCommand, size_t dwData
 ///    GetLastError.
 ///    
 @DllImport("USER32")
-BOOL WinHelpW(HWND hWndMain, const(wchar)* lpszHelp, uint uCommand, size_t dwData);
-
-///Loads the specified user's profile. The profile can be a local user profile or a roaming user profile.
-///Params:
-///    hToken = Type: <b>HANDLE</b> Token for the user, which is returned by the LogonUser, CreateRestrictedToken,
-///             DuplicateToken, OpenProcessToken, or OpenThreadToken function. The token must have <b>TOKEN_QUERY</b>,
-///             <b>TOKEN_IMPERSONATE</b>, and <b>TOKEN_DUPLICATE</b> access. For more information, see Access Rights for
-///             Access-Token Objects.
-///    lpProfileInfo = Type: <b>LPPROFILEINFO</b> Pointer to a PROFILEINFO structure. <b>LoadUserProfile</b> fails and returns
-///                    <b>ERROR_INVALID_PARAMETER</b> if the <b>dwSize</b> member of the structure is not set to
-///                    <code>sizeof(PROFILEINFO)</code> or if the <b>lpUserName</b> member is <b>NULL</b>. For more information, see
-///                    Remarks.
-///Returns:
-///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
-///    GetLastError. The function fails and returns ERROR_INVALID_PARAMETER if the <b>dwSize</b> member of the structure
-///    at <i>lpProfileInfo</i> is not set to <code>sizeof(PROFILEINFO)</code> or if the <b>lpUserName</b> member is
-///    <b>NULL</b>.
-///    
-@DllImport("USERENV")
-BOOL LoadUserProfileA(HANDLE hToken, PROFILEINFOA* lpProfileInfo);
-
-///Loads the specified user's profile. The profile can be a local user profile or a roaming user profile.
-///Params:
-///    hToken = Type: <b>HANDLE</b> Token for the user, which is returned by the LogonUser, CreateRestrictedToken,
-///             DuplicateToken, OpenProcessToken, or OpenThreadToken function. The token must have <b>TOKEN_QUERY</b>,
-///             <b>TOKEN_IMPERSONATE</b>, and <b>TOKEN_DUPLICATE</b> access. For more information, see Access Rights for
-///             Access-Token Objects.
-///    lpProfileInfo = Type: <b>LPPROFILEINFO</b> Pointer to a PROFILEINFO structure. <b>LoadUserProfile</b> fails and returns
-///                    <b>ERROR_INVALID_PARAMETER</b> if the <b>dwSize</b> member of the structure is not set to
-///                    <code>sizeof(PROFILEINFO)</code> or if the <b>lpUserName</b> member is <b>NULL</b>. For more information, see
-///                    Remarks.
-///Returns:
-///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
-///    GetLastError. The function fails and returns ERROR_INVALID_PARAMETER if the <b>dwSize</b> member of the structure
-///    at <i>lpProfileInfo</i> is not set to <code>sizeof(PROFILEINFO)</code> or if the <b>lpUserName</b> member is
-///    <b>NULL</b>.
-///    
-@DllImport("USERENV")
-BOOL LoadUserProfileW(HANDLE hToken, PROFILEINFOW* lpProfileInfo);
-
-///Unloads a user's profile that was loaded by the LoadUserProfile function. The caller must have administrative
-///privileges on the computer. For more information, see the Remarks section of the <b>LoadUserProfile</b> function.
-///Params:
-///    hToken = Type: <b>HANDLE</b> Token for the user, returned from the LogonUser, CreateRestrictedToken, DuplicateToken,
-///             OpenProcessToken, or OpenThreadToken function. The token must have <b>TOKEN_IMPERSONATE</b> and
-///             <b>TOKEN_DUPLICATE</b> access. For more information, see Access Rights for Access-Token Objects.
-///    hProfile = Type: <b>HANDLE</b> Handle to the registry key. This value is the <b>hProfile</b> member of the PROFILEINFO
-///               structure. For more information see the Remarks section of LoadUserProfile and Registry Key Security and Access
-///               Rights.
-///Returns:
-///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
-///    GetLastError.
-///    
-@DllImport("USERENV")
-BOOL UnloadUserProfile(HANDLE hToken, HANDLE hProfile);
-
-///Retrieves the path to the root directory where user profiles are stored.
-///Params:
-///    lpProfileDir = Type: <b>LPTSTR</b> A pointer to a buffer that, when this function returns successfully, receives the path to the
-///                   profiles directory. Set this value to <b>NULL</b> to determine the required size of the buffer.
-///    lpcchSize = Type: <b>LPDWORD</b> Specifies the size of the <i>lpProfilesDir</i> buffer, in <b>TCHARs</b>. If the buffer
-///                specified by <i>lpProfilesDir</i> is not large enough or <i>lpProfilesDir</i> is <b>NULL</b>, the function fails
-///                and this parameter receives the necessary buffer size, including the terminating null character.
-///Returns:
-///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
-///    GetLastError.
-///    
-@DllImport("USERENV")
-BOOL GetProfilesDirectoryA(const(char)* lpProfileDir, uint* lpcchSize);
-
-///Retrieves the path to the root directory where user profiles are stored.
-///Params:
-///    lpProfileDir = Type: <b>LPTSTR</b> A pointer to a buffer that, when this function returns successfully, receives the path to the
-///                   profiles directory. Set this value to <b>NULL</b> to determine the required size of the buffer.
-///    lpcchSize = Type: <b>LPDWORD</b> Specifies the size of the <i>lpProfilesDir</i> buffer, in <b>TCHARs</b>. If the buffer
-///                specified by <i>lpProfilesDir</i> is not large enough or <i>lpProfilesDir</i> is <b>NULL</b>, the function fails
-///                and this parameter receives the necessary buffer size, including the terminating null character.
-///Returns:
-///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
-///    GetLastError.
-///    
-@DllImport("USERENV")
-BOOL GetProfilesDirectoryW(const(wchar)* lpProfileDir, uint* lpcchSize);
-
-///Retrieves the type of profile loaded for the current user.
-///Params:
-///    dwFlags = Type: <b>DWORD*</b> Pointer to a variable that receives the profile type. If the function succeeds, it sets one
-///              or more of the following values:
-///Returns:
-///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
-///    GetLastError.
-///    
-@DllImport("USERENV")
-BOOL GetProfileType(uint* dwFlags);
-
-///Deletes the user profile and all user-related settings from the specified computer. The caller must have
-///administrative privileges to delete a user's profile.
-///Params:
-///    lpSidString = Type: <b>LPCTSTR</b> Pointer to a string that specifies the user SID.
-///    lpProfilePath = Type: <b>LPCTSTR</b> Pointer to a string that specifies the profile path. If this parameter is <b>NULL</b>, the
-///                    function obtains the path from the registry.
-///    lpComputerName = Type: <b>LPCTSTR</b> Pointer to a string that specifies the name of the computer from which the profile is to be
-///                     deleted. If this parameter is <b>NULL</b>, the local computer name is used. <div class="alert"><b>Note</b> As of
-///                     Windows Vista, this parameter must be <b>NULL</b>. If it is not, this function fails with the error code
-///                     ERROR_INVALID_PARAMETER.</div> <div> </div>
-///Returns:
-///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
-///    GetLastError.
-///    
-@DllImport("USERENV")
-BOOL DeleteProfileA(const(char)* lpSidString, const(char)* lpProfilePath, const(char)* lpComputerName);
-
-///Deletes the user profile and all user-related settings from the specified computer. The caller must have
-///administrative privileges to delete a user's profile.
-///Params:
-///    lpSidString = Type: <b>LPCTSTR</b> Pointer to a string that specifies the user SID.
-///    lpProfilePath = Type: <b>LPCTSTR</b> Pointer to a string that specifies the profile path. If this parameter is <b>NULL</b>, the
-///                    function obtains the path from the registry.
-///    lpComputerName = Type: <b>LPCTSTR</b> Pointer to a string that specifies the name of the computer from which the profile is to be
-///                     deleted. If this parameter is <b>NULL</b>, the local computer name is used. <div class="alert"><b>Note</b> As of
-///                     Windows Vista, this parameter must be <b>NULL</b>. If it is not, this function fails with the error code
-///                     ERROR_INVALID_PARAMETER.</div> <div> </div>
-///Returns:
-///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
-///    GetLastError.
-///    
-@DllImport("USERENV")
-BOOL DeleteProfileW(const(wchar)* lpSidString, const(wchar)* lpProfilePath, const(wchar)* lpComputerName);
-
-///Creates a new user profile.
-///Params:
-///    pszUserSid = Type: <b>LPCWSTR</b> Pointer to the SID of the user as a string.
-///    pszUserName = Type: <b>LPCWSTR</b> The user name of the new user. This name is used as the base name for the profile directory.
-///    pszProfilePath = Type: <b>LPWSTR</b> When this function returns, contains a pointer to the full path of the profile.
-///    cchProfilePath = Type: <b>DWORD</b> Size of the buffer pointed to by <i>pszProfilePath</i>, in characters.
-///Returns:
-///    Type: <b>HRESULT</b> Returns S_OK if successful, or an error value otherwise, including the following: <table>
-///    <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>E_ACCESSDENIED</b></dt>
-///    </dl> </td> <td width="60%"> The caller does not have a sufficient permission level to create the profile. </td>
-///    </tr> <tr> <td width="40%"> <dl> <dt><b>HRESULT_FROM_WIN32(ERROR_ALREADY_EXISTS)</b></dt> </dl> </td> <td
-///    width="60%"> A profile already exists for the specified user. </td> </tr> </table>
-///    
-@DllImport("USERENV")
-HRESULT CreateProfile(const(wchar)* pszUserSid, const(wchar)* pszUserName, const(wchar)* pszProfilePath, 
-                      uint cchProfilePath);
-
-///Retrieves the path to the root of the default user's profile.
-///Params:
-///    lpProfileDir = Type: <b>LPTSTR</b> A pointer to a buffer that, when this function returns successfully, receives the path to the
-///                   default user's profile directory. Set this value to <b>NULL</b> to determine the required size of the buffer.
-///    lpcchSize = Type: <b>LPDWORD</b> Specifies the size of the <i>lpProfileDir</i> buffer, in <b>TCHARs</b>. If the buffer
-///                specified by <i>lpProfileDir</i> is not large enough or <i>lpProfileDir</i> is <b>NULL</b>, the function fails
-///                and this parameter receives the necessary buffer size, including the terminating null character.
-///Returns:
-///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
-///    GetLastError.
-///    
-@DllImport("USERENV")
-BOOL GetDefaultUserProfileDirectoryA(const(char)* lpProfileDir, uint* lpcchSize);
-
-///Retrieves the path to the root of the default user's profile.
-///Params:
-///    lpProfileDir = Type: <b>LPTSTR</b> A pointer to a buffer that, when this function returns successfully, receives the path to the
-///                   default user's profile directory. Set this value to <b>NULL</b> to determine the required size of the buffer.
-///    lpcchSize = Type: <b>LPDWORD</b> Specifies the size of the <i>lpProfileDir</i> buffer, in <b>TCHARs</b>. If the buffer
-///                specified by <i>lpProfileDir</i> is not large enough or <i>lpProfileDir</i> is <b>NULL</b>, the function fails
-///                and this parameter receives the necessary buffer size, including the terminating null character.
-///Returns:
-///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
-///    GetLastError.
-///    
-@DllImport("USERENV")
-BOOL GetDefaultUserProfileDirectoryW(const(wchar)* lpProfileDir, uint* lpcchSize);
-
-///Retrieves the path to the root of the directory that contains program data shared by all users.
-///Params:
-///    lpProfileDir = Type: <b>LPTSTR</b> A pointer to a buffer that, when this function returns successfully, receives the path. Set
-///                   this value to <b>NULL</b> to determine the required size of the buffer, including the terminating null character.
-///    lpcchSize = Type: <b>LPDWORD</b> A pointer to the size of the <i>lpProfileDir</i> buffer, in <b>TCHARs</b>. If the buffer
-///                specified by <i>lpProfileDir</i> is not large enough or <i>lpProfileDir</i> is <b>NULL</b>, the function fails
-///                and this parameter receives the necessary buffer size, including the terminating null character.
-///Returns:
-///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
-///    GetLastError.
-///    
-@DllImport("USERENV")
-BOOL GetAllUsersProfileDirectoryA(const(char)* lpProfileDir, uint* lpcchSize);
-
-///Retrieves the path to the root of the directory that contains program data shared by all users.
-///Params:
-///    lpProfileDir = Type: <b>LPTSTR</b> A pointer to a buffer that, when this function returns successfully, receives the path. Set
-///                   this value to <b>NULL</b> to determine the required size of the buffer, including the terminating null character.
-///    lpcchSize = Type: <b>LPDWORD</b> A pointer to the size of the <i>lpProfileDir</i> buffer, in <b>TCHARs</b>. If the buffer
-///                specified by <i>lpProfileDir</i> is not large enough or <i>lpProfileDir</i> is <b>NULL</b>, the function fails
-///                and this parameter receives the necessary buffer size, including the terminating null character.
-///Returns:
-///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
-///    GetLastError.
-///    
-@DllImport("USERENV")
-BOOL GetAllUsersProfileDirectoryW(const(wchar)* lpProfileDir, uint* lpcchSize);
-
-///Retrieves the path to the root directory of the specified user's profile.
-///Params:
-///    hToken = Type: <b>HANDLE</b> A token for the user, which is returned by the LogonUser, CreateRestrictedToken,
-///             DuplicateToken, OpenProcessToken, or OpenThreadToken function. The token must have TOKEN_QUERY access. For more
-///             information, see Access Rights for Access-Token Objects.
-///    lpProfileDir = Type: <b>LPTSTR</b> A pointer to a buffer that, when this function returns successfully, receives the path to the
-///                   specified user's profile directory.
-///    lpcchSize = Type: <b>LPDWORD</b> Specifies the size of the <i>lpProfileDir</i> buffer, in <b>TCHARs</b>. If the buffer
-///                specified by <i>lpProfileDir</i> is not large enough or <i>lpProfileDir</i> is <b>NULL</b>, the function fails
-///                and this parameter receives the necessary buffer size, including the terminating null character.
-///Returns:
-///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
-///    GetLastError.
-///    
-@DllImport("USERENV")
-BOOL GetUserProfileDirectoryA(HANDLE hToken, const(char)* lpProfileDir, uint* lpcchSize);
-
-///Retrieves the path to the root directory of the specified user's profile.
-///Params:
-///    hToken = Type: <b>HANDLE</b> A token for the user, which is returned by the LogonUser, CreateRestrictedToken,
-///             DuplicateToken, OpenProcessToken, or OpenThreadToken function. The token must have TOKEN_QUERY access. For more
-///             information, see Access Rights for Access-Token Objects.
-///    lpProfileDir = Type: <b>LPTSTR</b> A pointer to a buffer that, when this function returns successfully, receives the path to the
-///                   specified user's profile directory.
-///    lpcchSize = Type: <b>LPDWORD</b> Specifies the size of the <i>lpProfileDir</i> buffer, in <b>TCHARs</b>. If the buffer
-///                specified by <i>lpProfileDir</i> is not large enough or <i>lpProfileDir</i> is <b>NULL</b>, the function fails
-///                and this parameter receives the necessary buffer size, including the terminating null character.
-///Returns:
-///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
-///    GetLastError.
-///    
-@DllImport("USERENV")
-BOOL GetUserProfileDirectoryW(HANDLE hToken, const(wchar)* lpProfileDir, uint* lpcchSize);
-
-///Retrieves the environment variables for the specified user. This block can then be passed to the CreateProcessAsUser
-///function.
-///Params:
-///    lpEnvironment = Type: <b>LPVOID*</b> When this function returns, receives a pointer to the new environment block. The environment
-///                    block is an array of null-terminated Unicode strings. The list ends with two nulls (\0\0).
-///    hToken = Type: <b>HANDLE</b> Token for the user, returned from the LogonUser function. If this is a primary token, the
-///             token must have <b>TOKEN_QUERY</b> and <b>TOKEN_DUPLICATE</b> access. If the token is an impersonation token, it
-///             must have <b>TOKEN_QUERY</b> access. For more information, see Access Rights for Access-Token Objects. If this
-///             parameter is <b>NULL</b>, the returned environment block contains system variables only.
-///    bInherit = Type: <b>BOOL</b> Specifies whether to inherit from the current process' environment. If this value is
-///               <b>TRUE</b>, the process inherits the current process' environment. If this value is <b>FALSE</b>, the process
-///               does not inherit the current process' environment.
-///Returns:
-///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
-///    GetLastError.
-///    
-@DllImport("USERENV")
-BOOL CreateEnvironmentBlock(void** lpEnvironment, HANDLE hToken, BOOL bInherit);
-
-///Frees environment variables created by the CreateEnvironmentBlock function.
-///Params:
-///    lpEnvironment = Type: <b>LPVOID</b> Pointer to the environment block created by CreateEnvironmentBlock. The environment block is
-///                    an array of null-terminated Unicode strings. The list ends with two nulls (\0\0).
-///Returns:
-///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
-///    GetLastError.
-///    
-@DllImport("USERENV")
-BOOL DestroyEnvironmentBlock(void* lpEnvironment);
-
-///Expands the source string by using the environment block established for the specified user.
-///Params:
-///    hToken = Type: <b>HANDLE</b> Token for the user, returned from the LogonUser, CreateRestrictedToken, DuplicateToken,
-///             OpenProcessToken, or OpenThreadToken function. The token must have TOKEN_IMPERSONATE and TOKEN_QUERY access. In
-///             addition, as of Windows 7 the token must also have TOKEN_DUPLICATE access. For more information, see Access
-///             Rights for Access-Token Objects. If <i>hToken</i> is <b>NULL</b>, the environment block contains system variables
-///             only.
-///    lpSrc = Type: <b>LPCTSTR</b> Pointer to the null-terminated source string to be expanded.
-///    lpDest = Type: <b>LPTSTR</b> Pointer to a buffer that receives the expanded strings.
-///    dwSize = Type: <b>DWORD</b> Specifies the size of the <i>lpDest</i> buffer, in <b>TCHARs</b>.
-///Returns:
-///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
-///    GetLastError.
-///    
-@DllImport("USERENV")
-BOOL ExpandEnvironmentStringsForUserA(HANDLE hToken, const(char)* lpSrc, const(char)* lpDest, uint dwSize);
-
-///Expands the source string by using the environment block established for the specified user.
-///Params:
-///    hToken = Type: <b>HANDLE</b> Token for the user, returned from the LogonUser, CreateRestrictedToken, DuplicateToken,
-///             OpenProcessToken, or OpenThreadToken function. The token must have TOKEN_IMPERSONATE and TOKEN_QUERY access. In
-///             addition, as of Windows 7 the token must also have TOKEN_DUPLICATE access. For more information, see Access
-///             Rights for Access-Token Objects. If <i>hToken</i> is <b>NULL</b>, the environment block contains system variables
-///             only.
-///    lpSrc = Type: <b>LPCTSTR</b> Pointer to the null-terminated source string to be expanded.
-///    lpDest = Type: <b>LPTSTR</b> Pointer to a buffer that receives the expanded strings.
-///    dwSize = Type: <b>DWORD</b> Specifies the size of the <i>lpDest</i> buffer, in <b>TCHARs</b>.
-///Returns:
-///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
-///    GetLastError.
-///    
-@DllImport("USERENV")
-BOOL ExpandEnvironmentStringsForUserW(HANDLE hToken, const(wchar)* lpSrc, const(wchar)* lpDest, uint dwSize);
-
-///Creates a per-user, per-app profile for Windows Store apps.
-///Params:
-///    pszAppContainerName = The name of the app container. To ensure uniqueness, it is recommended that this string contains the app name as
-///                          well as the publisher. This string can be up to 64 characters in length. Further, it must fit into the pattern
-///                          described by the regular expression "[-_. A-Za-z0-9]+".
-///    pszDisplayName = The display name. This string can be up to 512 characters in length.
-///    pszDescription = A description for the app container. This string can be up to 2048 characters in length.
-///    pCapabilities = The SIDs that define the requested capabilities.
-///    dwCapabilityCount = The number of SIDs in <i>pCapabilities</i>.
-///    ppSidAppContainerSid = The SID for the profile. This buffer must be freed using the FreeSid function.
-///Returns:
-///    If this function succeeds, it returns a standard HRESULT code, including the following: <table> <tr> <th>Return
-///    code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%">
-///    The data store was created successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_ACCESSDENIED</b></dt>
-///    </dl> </td> <td width="60%"> The caller does not have permission to create the profile. </td> </tr> <tr> <td
-///    width="40%"> <dl> <dt><b>HRESULT_FROM_WIN32(ERROR_ALREADY_EXISTS)</b></dt> </dl> </td> <td width="60%"> The
-///    application data store already exists. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl>
-///    </td> <td width="60%"> The container name is <b>NULL</b>, or the container name, the display name, or the
-///    description strings exceed their specified respective limits for length. </td> </tr> </table>
-///    
-@DllImport("USERENV")
-HRESULT CreateAppContainerProfile(const(wchar)* pszAppContainerName, const(wchar)* pszDisplayName, 
-                                  const(wchar)* pszDescription, char* pCapabilities, uint dwCapabilityCount, 
-                                  void** ppSidAppContainerSid);
-
-///Deletes the specified per-user, per-app profile.<div class="alert"><b>Note</b> Deleting a non-existent profile
-///returns success.</div> <div> </div>
-///Params:
-///    pszAppContainerName = The name given to the profile in the call to the CreateAppContainerProfile function. This string is at most 64
-///                          characters in length, and fits into the pattern described by the regular expression "[-_. A-Za-z0-9]+".
-///Returns:
-///    If this function succeeds, it returns a standard HRESULT code, including the following: <table> <tr> <th>Return
-///    code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>HRESULT_FROM_WIN32(ERROR_NOT_SUPPORTED)</b></dt> </dl> </td> <td width="60%"> If the method is called from
-///    within an app container. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%">
-///    The profile was deleted successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl>
-///    </td> <td width="60%"> If the container name is <b>NULL</b>, or if it exceeds its specified limit for length.
-///    </td> </tr> </table>
-///    
-@DllImport("USERENV")
-HRESULT DeleteAppContainerProfile(const(wchar)* pszAppContainerName);
-
-///Gets the location of the registry storage associated with an app container.
-///Params:
-///    desiredAccess = Type: <b>REGSAM</b> The desired registry access.
-///    phAppContainerKey = Type: <b>PHKEY</b> A pointer to an HKEY that, when this function returns successfully, receives the registry
-///                        storage location for the current profile.
-///Returns:
-///    Type: <b>HRESULT</b> This function returns an <b>HRESULT</b> code, including but not limited to the following:
-///    <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt>
-///    </dl> </td> <td width="60%"> The operation completed successfully. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The caller is not running as or impersonating a user
-///    who can access this profile. </td> </tr> </table>
-///    
-@DllImport("USERENV")
-HRESULT GetAppContainerRegistryLocation(uint desiredAccess, HKEY* phAppContainerKey);
-
-///Gets the path of the local app data folder for the specified app container.
-///Params:
-///    pszAppContainerSid = A pointer to the SID of the app container.
-///    ppszPath = The address of a pointer to a string that, when this function returns successfully, receives the path of the
-///               local folder. It is the responsibility of the caller to free this string when it is no longer needed by calling
-///               the CoTaskMemFree function.
-///Returns:
-///    This function returns an <b>HRESULT</b> code, including but not limited to the following: <table> <tr> <th>Return
-///    code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%">
-///    The operation completed successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl>
-///    </td> <td width="60%"> The <i>pszAppContainerSid</i> or <i>ppszPath</i> parameter is <b>NULL</b>. </td> </tr>
-///    </table>
-///    
-@DllImport("USERENV")
-HRESULT GetAppContainerFolderPath(const(wchar)* pszAppContainerSid, ushort** ppszPath);
-
-///Gets the SID of the specified profile.
-///Params:
-///    pszAppContainerName = The name of the profile.
-///    ppsidAppContainerSid = The SID for the profile. This buffer must be freed using the FreeSid function.
-@DllImport("USERENV")
-HRESULT DeriveAppContainerSidFromAppContainerName(const(wchar)* pszAppContainerName, void** ppsidAppContainerSid);
-
-///<p class="CCE_Message">[DeriveRestrictedAppContainerSidFromAppContainerSidAndRestrictedName is reserved for future
-///use.] DeriveRestrictedAppContainerSidFromAppContainerSidAndRestrictedName is reserved for future use.
-///Params:
-///    psidAppContainerSid = Reserved.
-///    pszRestrictedAppContainerName = Reserved.
-///    ppsidRestrictedAppContainerSid = Reserved.
-@DllImport("USERENV")
-HRESULT DeriveRestrictedAppContainerSidFromAppContainerSidAndRestrictedName(void* psidAppContainerSid, 
-                                                                            const(wchar)* pszRestrictedAppContainerName, 
-                                                                            void** ppsidRestrictedAppContainerSid);
+BOOL WinHelpW(HWND hWndMain, const(PWSTR) lpszHelp, uint uCommand, size_t dwData);
 
 ///Parses a Unicode command line string and returns an array of pointers to the command line arguments, along with a
 ///count of such arguments, in a way that is similar to the standard C run-time <i>argv</i> and <i>argc</i> values.
@@ -9336,7 +9258,7 @@ HRESULT DeriveRestrictedAppContainerSidFromAppContainerSidAndRestrictedName(void
 ///    fails, the return value is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("SHELL32")
-ushort** CommandLineToArgvW(const(wchar)* lpCmdLine, int* pNumArgs);
+PWSTR* CommandLineToArgvW(const(PWSTR) lpCmdLine, int* pNumArgs);
 
 ///Retrieves the names of dropped files that result from a successful drag-and-drop operation.
 ///Params:
@@ -9358,7 +9280,7 @@ ushort** CommandLineToArgvW(const(wchar)* lpCmdLine, int* pNumArgs);
 ///    size, in characters, of the buffer, <i>not including</i> the terminating null character.
 ///    
 @DllImport("SHELL32")
-uint DragQueryFileA(HDROP__* hDrop, uint iFile, const(char)* lpszFile, uint cch);
+uint DragQueryFileA(HDROP__* hDrop, uint iFile, PSTR lpszFile, uint cch);
 
 ///Retrieves the names of dropped files that result from a successful drag-and-drop operation.
 ///Params:
@@ -9380,7 +9302,7 @@ uint DragQueryFileA(HDROP__* hDrop, uint iFile, const(char)* lpszFile, uint cch)
 ///    size, in characters, of the buffer, <i>not including</i> the terminating null character.
 ///    
 @DllImport("SHELL32")
-uint DragQueryFileW(HDROP__* hDrop, uint iFile, const(wchar)* lpszFile, uint cch);
+uint DragQueryFileW(HDROP__* hDrop, uint iFile, PWSTR lpszFile, uint cch);
 
 ///Retrieves the position of the mouse pointer at the time a file was dropped during a drag-and-drop operation.
 ///Params:
@@ -9457,8 +9379,8 @@ void DragAcceptFiles(HWND hWnd, BOOL fAccept);
 ///    </tr> </table>
 ///    
 @DllImport("SHELL32")
-HINSTANCE ShellExecuteA(HWND hwnd, const(char)* lpOperation, const(char)* lpFile, const(char)* lpParameters, 
-                        const(char)* lpDirectory, int nShowCmd);
+HINSTANCE ShellExecuteA(HWND hwnd, const(PSTR) lpOperation, const(PSTR) lpFile, const(PSTR) lpParameters, 
+                        const(PSTR) lpDirectory, int nShowCmd);
 
 ///Performs an operation on a specified file.
 ///Params:
@@ -9512,8 +9434,8 @@ HINSTANCE ShellExecuteA(HWND hwnd, const(char)* lpOperation, const(char)* lpFile
 ///    </tr> </table>
 ///    
 @DllImport("SHELL32")
-HINSTANCE ShellExecuteW(HWND hwnd, const(wchar)* lpOperation, const(wchar)* lpFile, const(wchar)* lpParameters, 
-                        const(wchar)* lpDirectory, int nShowCmd);
+HINSTANCE ShellExecuteW(HWND hwnd, const(PWSTR) lpOperation, const(PWSTR) lpFile, const(PWSTR) lpParameters, 
+                        const(PWSTR) lpDirectory, int nShowCmd);
 
 ///Retrieves the name of and handle to the executable (.exe) file associated with a specific document file.
 ///Params:
@@ -9540,7 +9462,7 @@ HINSTANCE ShellExecuteW(HWND hwnd, const(wchar)* lpOperation, const(wchar)* lpFi
 ///    file type with an executable file. </td> </tr> </table>
 ///    
 @DllImport("SHELL32")
-HINSTANCE FindExecutableA(const(char)* lpFile, const(char)* lpDirectory, const(char)* lpResult);
+HINSTANCE FindExecutableA(const(PSTR) lpFile, const(PSTR) lpDirectory, PSTR lpResult);
 
 ///Retrieves the name of and handle to the executable (.exe) file associated with a specific document file.
 ///Params:
@@ -9567,7 +9489,7 @@ HINSTANCE FindExecutableA(const(char)* lpFile, const(char)* lpDirectory, const(c
 ///    file type with an executable file. </td> </tr> </table>
 ///    
 @DllImport("SHELL32")
-HINSTANCE FindExecutableW(const(wchar)* lpFile, const(wchar)* lpDirectory, const(wchar)* lpResult);
+HINSTANCE FindExecutableW(const(PWSTR) lpFile, const(PWSTR) lpDirectory, PWSTR lpResult);
 
 ///Displays a <b>ShellAbout</b> dialog box.
 ///Params:
@@ -9583,7 +9505,7 @@ HINSTANCE FindExecutableW(const(wchar)* lpFile, const(wchar)* lpDirectory, const
 ///    Type: <b>int</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>.
 ///    
 @DllImport("SHELL32")
-int ShellAboutA(HWND hWnd, const(char)* szApp, const(char)* szOtherStuff, HICON hIcon);
+int ShellAboutA(HWND hWnd, const(PSTR) szApp, const(PSTR) szOtherStuff, HICON hIcon);
 
 ///Displays a <b>ShellAbout</b> dialog box.
 ///Params:
@@ -9599,7 +9521,7 @@ int ShellAboutA(HWND hWnd, const(char)* szApp, const(char)* szOtherStuff, HICON 
 ///    Type: <b>int</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>.
 ///    
 @DllImport("SHELL32")
-int ShellAboutW(HWND hWnd, const(wchar)* szApp, const(wchar)* szOtherStuff, HICON hIcon);
+int ShellAboutW(HWND hWnd, const(PWSTR) szApp, const(PWSTR) szOtherStuff, HICON hIcon);
 
 ///Creates a duplicate of a specified icon.
 ///Params:
@@ -9631,7 +9553,7 @@ HICON DuplicateIcon(HINSTANCE hInst, HICON hIcon);
 ///    <i>lpiIcon</i>. If the function fails, the return value is <b>NULL</b>.
 ///    
 @DllImport("SHELL32")
-HICON ExtractAssociatedIconA(HINSTANCE hInst, const(char)* pszIconPath, ushort* piIcon);
+HICON ExtractAssociatedIconA(HINSTANCE hInst, PSTR pszIconPath, ushort* piIcon);
 
 ///Gets a handle to an icon stored as a resource in a file or an icon stored in a file's associated executable file.
 ///Params:
@@ -9652,7 +9574,7 @@ HICON ExtractAssociatedIconA(HINSTANCE hInst, const(char)* pszIconPath, ushort* 
 ///    <i>lpiIcon</i>. If the function fails, the return value is <b>NULL</b>.
 ///    
 @DllImport("SHELL32")
-HICON ExtractAssociatedIconW(HINSTANCE hInst, const(wchar)* pszIconPath, ushort* piIcon);
+HICON ExtractAssociatedIconW(HINSTANCE hInst, PWSTR pszIconPath, ushort* piIcon);
 
 ///<p class="CCE_Message">[<b>ExtractAssociatedIconEx</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions.] Gets a handle to an icon stored as a
@@ -9677,7 +9599,7 @@ HICON ExtractAssociatedIconW(HINSTANCE hInst, const(wchar)* pszIconPath, ushort*
 ///    Type: <b>HICON</b> Returns the icon's handle if successful, otherwise <b>NULL</b>.
 ///    
 @DllImport("SHELL32")
-HICON ExtractAssociatedIconExA(HINSTANCE hInst, const(char)* pszIconPath, ushort* piIconIndex, ushort* piIconId);
+HICON ExtractAssociatedIconExA(HINSTANCE hInst, PSTR pszIconPath, ushort* piIconIndex, ushort* piIconId);
 
 ///<p class="CCE_Message">[<b>ExtractAssociatedIconEx</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions.] Gets a handle to an icon stored as a
@@ -9702,7 +9624,7 @@ HICON ExtractAssociatedIconExA(HINSTANCE hInst, const(char)* pszIconPath, ushort
 ///    Type: <b>HICON</b> Returns the icon's handle if successful, otherwise <b>NULL</b>.
 ///    
 @DllImport("SHELL32")
-HICON ExtractAssociatedIconExW(HINSTANCE hInst, const(wchar)* pszIconPath, ushort* piIconIndex, ushort* piIconId);
+HICON ExtractAssociatedIconExW(HINSTANCE hInst, PWSTR pszIconPath, ushort* piIconIndex, ushort* piIconId);
 
 ///Gets a handle to an icon from the specified executable file, DLL, or icon file. To retrieve an array of handles to
 ///large or small icons, use the ExtractIconEx function.
@@ -9723,7 +9645,7 @@ HICON ExtractAssociatedIconExW(HINSTANCE hInst, const(wchar)* pszIconPath, ushor
 ///    DLL, or icon file, the return is 1. If no icons were found in the file, the return value is <b>NULL</b>.
 ///    
 @DllImport("SHELL32")
-HICON ExtractIconA(HINSTANCE hInst, const(char)* pszExeFileName, uint nIconIndex);
+HICON ExtractIconA(HINSTANCE hInst, const(PSTR) pszExeFileName, uint nIconIndex);
 
 ///Gets a handle to an icon from the specified executable file, DLL, or icon file. To retrieve an array of handles to
 ///large or small icons, use the ExtractIconEx function.
@@ -9744,7 +9666,7 @@ HICON ExtractIconA(HINSTANCE hInst, const(char)* pszExeFileName, uint nIconIndex
 ///    DLL, or icon file, the return is 1. If no icons were found in the file, the return value is <b>NULL</b>.
 ///    
 @DllImport("SHELL32")
-HICON ExtractIconW(HINSTANCE hInst, const(wchar)* pszExeFileName, uint nIconIndex);
+HICON ExtractIconW(HINSTANCE hInst, const(PWSTR) pszExeFileName, uint nIconIndex);
 
 ///Sends an appbar message to the system.
 ///Params:
@@ -9779,7 +9701,7 @@ size_t SHAppBarMessage(uint dwMessage, APPBARDATA* pData);
 ///    for the buffer, <b>FALSE</b> is returned in the HIWORD and <i>cchSrc</i> in the LOWORD.
 ///    
 @DllImport("SHELL32")
-uint DoEnvironmentSubstA(const(char)* pszSrc, uint cchSrc);
+uint DoEnvironmentSubstA(PSTR pszSrc, uint cchSrc);
 
 ///<p class="CCE_Message">[This function is retained only for backward compatibility. Use ExpandEnvironmentStrings
 ///instead.] Parses an input string that contains references to one or more environment variables and replaces them with
@@ -9802,7 +9724,7 @@ uint DoEnvironmentSubstA(const(char)* pszSrc, uint cchSrc);
 ///    for the buffer, <b>FALSE</b> is returned in the HIWORD and <i>cchSrc</i> in the LOWORD.
 ///    
 @DllImport("SHELL32")
-uint DoEnvironmentSubstW(const(wchar)* pszSrc, uint cchSrc);
+uint DoEnvironmentSubstW(PWSTR pszSrc, uint cchSrc);
 
 ///The <b>ExtractIconEx</b> function creates an array of handles to large or small icons extracted from the specified
 ///executable file, DLL, or icon file.
@@ -9834,7 +9756,7 @@ uint DoEnvironmentSubstW(const(wchar)* pszSrc, uint cchSrc);
 ///    **GetLastError** returns **ERROR_FILE_NOT_FOUND** (2).
 ///    
 @DllImport("SHELL32")
-uint ExtractIconExA(const(char)* lpszFile, int nIconIndex, char* phiconLarge, char* phiconSmall, uint nIcons);
+uint ExtractIconExA(const(PSTR) lpszFile, int nIconIndex, HICON* phiconLarge, HICON* phiconSmall, uint nIcons);
 
 ///The <b>ExtractIconEx</b> function creates an array of handles to large or small icons extracted from the specified
 ///executable file, DLL, or icon file.
@@ -9866,7 +9788,7 @@ uint ExtractIconExA(const(char)* lpszFile, int nIconIndex, char* phiconLarge, ch
 ///    **GetLastError** returns **ERROR_FILE_NOT_FOUND** (2).
 ///    
 @DllImport("SHELL32")
-uint ExtractIconExW(const(wchar)* lpszFile, int nIconIndex, char* phiconLarge, char* phiconSmall, uint nIcons);
+uint ExtractIconExW(const(PWSTR) lpszFile, int nIconIndex, HICON* phiconLarge, HICON* phiconSmall, uint nIcons);
 
 ///Copies, moves, renames, or deletes a file system object. This function has been replaced in Windows Vista by
 ///IFileOperation.
@@ -10040,8 +9962,8 @@ BOOL SHCreateProcessAsUserW(SHCREATEPROCESSINFOW* pscpi);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHELL32")
-HRESULT SHEvaluateSystemCommandTemplate(const(wchar)* pszCmdTemplate, ushort** ppszApplication, 
-                                        ushort** ppszCommandLine, ushort** ppszParameters);
+HRESULT SHEvaluateSystemCommandTemplate(const(PWSTR) pszCmdTemplate, PWSTR* ppszApplication, 
+                                        PWSTR* ppszCommandLine, PWSTR* ppszParameters);
 
 ///Retrieves an object that implements an IQueryAssociations interface.
 ///Params:
@@ -10056,7 +9978,7 @@ HRESULT SHEvaluateSystemCommandTemplate(const(wchar)* pszCmdTemplate, ushort** p
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHELL32")
-HRESULT AssocCreateForClasses(char* rgClasses, uint cClasses, const(GUID)* riid, void** ppv);
+HRESULT AssocCreateForClasses(const(ASSOCIATIONELEMENT)* rgClasses, uint cClasses, const(GUID)* riid, void** ppv);
 
 ///Retrieves the size of the Recycle Bin and the number of items in it, for a specified drive.
 ///Params:
@@ -10071,7 +9993,7 @@ HRESULT AssocCreateForClasses(char* rgClasses, uint cClasses, const(GUID)* riid,
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHELL32")
-HRESULT SHQueryRecycleBinA(const(char)* pszRootPath, SHQUERYRBINFO* pSHQueryRBInfo);
+HRESULT SHQueryRecycleBinA(const(PSTR) pszRootPath, SHQUERYRBINFO* pSHQueryRBInfo);
 
 ///Retrieves the size of the Recycle Bin and the number of items in it, for a specified drive.
 ///Params:
@@ -10086,7 +10008,7 @@ HRESULT SHQueryRecycleBinA(const(char)* pszRootPath, SHQUERYRBINFO* pSHQueryRBIn
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHELL32")
-HRESULT SHQueryRecycleBinW(const(wchar)* pszRootPath, SHQUERYRBINFO* pSHQueryRBInfo);
+HRESULT SHQueryRecycleBinW(const(PWSTR) pszRootPath, SHQUERYRBINFO* pSHQueryRBInfo);
 
 ///Empties the Recycle Bin on the specified drive.
 ///Params:
@@ -10103,7 +10025,7 @@ HRESULT SHQueryRecycleBinW(const(wchar)* pszRootPath, SHQUERYRBINFO* pSHQueryRBI
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHELL32")
-HRESULT SHEmptyRecycleBinA(HWND hwnd, const(char)* pszRootPath, uint dwFlags);
+HRESULT SHEmptyRecycleBinA(HWND hwnd, const(PSTR) pszRootPath, uint dwFlags);
 
 ///Empties the Recycle Bin on the specified drive.
 ///Params:
@@ -10120,7 +10042,7 @@ HRESULT SHEmptyRecycleBinA(HWND hwnd, const(char)* pszRootPath, uint dwFlags);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHELL32")
-HRESULT SHEmptyRecycleBinW(HWND hwnd, const(wchar)* pszRootPath, uint dwFlags);
+HRESULT SHEmptyRecycleBinW(HWND hwnd, const(PWSTR) pszRootPath, uint dwFlags);
 
 ///Checks the state of the computer for the current user to determine whether sending a notification is appropriate.
 ///Params:
@@ -10208,7 +10130,8 @@ HRESULT Shell_NotifyIconGetRect(const(NOTIFYICONIDENTIFIER)* identifier, RECT* i
 ///    width="60%"> Console application or .bat file </td> </tr> </table>
 ///    
 @DllImport("SHELL32")
-size_t SHGetFileInfoA(const(char)* pszPath, uint dwFileAttributes, char* psfi, uint cbFileInfo, uint uFlags);
+size_t SHGetFileInfoA(const(PSTR) pszPath, FILE_FLAGS_AND_ATTRIBUTES dwFileAttributes, SHFILEINFOA* psfi, 
+                      uint cbFileInfo, SHGFI_FLAGS uFlags);
 
 ///Retrieves information about an object in the file system, such as a file, folder, directory, or drive root.
 ///Params:
@@ -10241,7 +10164,8 @@ size_t SHGetFileInfoA(const(char)* pszPath, uint dwFileAttributes, char* psfi, u
 ///    width="60%"> Console application or .bat file </td> </tr> </table>
 ///    
 @DllImport("SHELL32")
-size_t SHGetFileInfoW(const(wchar)* pszPath, uint dwFileAttributes, char* psfi, uint cbFileInfo, uint uFlags);
+size_t SHGetFileInfoW(const(PWSTR) pszPath, FILE_FLAGS_AND_ATTRIBUTES dwFileAttributes, SHFILEINFOW* psfi, 
+                      uint cbFileInfo, SHGFI_FLAGS uFlags);
 
 ///Retrieves information about system-defined Shell icons.
 ///Params:
@@ -10275,7 +10199,7 @@ HRESULT SHGetStockIconInfo(SHSTOCKICONID siid, uint uFlags, SHSTOCKICONINFO* psi
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if successful, <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHELL32")
-BOOL SHGetDiskFreeSpaceExA(const(char)* pszDirectoryName, ULARGE_INTEGER* pulFreeBytesAvailableToCaller, 
+BOOL SHGetDiskFreeSpaceExA(const(PSTR) pszDirectoryName, ULARGE_INTEGER* pulFreeBytesAvailableToCaller, 
                            ULARGE_INTEGER* pulTotalNumberOfBytes, ULARGE_INTEGER* pulTotalNumberOfFreeBytes);
 
 ///Retrieves disk space information for a disk volume.
@@ -10292,7 +10216,7 @@ BOOL SHGetDiskFreeSpaceExA(const(char)* pszDirectoryName, ULARGE_INTEGER* pulFre
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if successful, <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHELL32")
-BOOL SHGetDiskFreeSpaceExW(const(wchar)* pszDirectoryName, ULARGE_INTEGER* pulFreeBytesAvailableToCaller, 
+BOOL SHGetDiskFreeSpaceExW(const(PWSTR) pszDirectoryName, ULARGE_INTEGER* pulFreeBytesAvailableToCaller, 
                            ULARGE_INTEGER* pulTotalNumberOfBytes, ULARGE_INTEGER* pulTotalNumberOfFreeBytes);
 
 ///Creates a name for a new shortcut based on the shortcut's proposed target. This function does not create the
@@ -10316,8 +10240,7 @@ BOOL SHGetDiskFreeSpaceExW(const(wchar)* pszDirectoryName, ULARGE_INTEGER* pulFr
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if successful; otherwise, <b>FALSE</b>.
 ///    
 @DllImport("SHELL32")
-BOOL SHGetNewLinkInfoA(const(char)* pszLinkTo, const(char)* pszDir, const(char)* pszName, int* pfMustCopy, 
-                       uint uFlags);
+BOOL SHGetNewLinkInfoA(const(PSTR) pszLinkTo, const(PSTR) pszDir, PSTR pszName, BOOL* pfMustCopy, uint uFlags);
 
 ///Creates a name for a new shortcut based on the shortcut's proposed target. This function does not create the
 ///shortcut, just the name.
@@ -10340,8 +10263,7 @@ BOOL SHGetNewLinkInfoA(const(char)* pszLinkTo, const(char)* pszDir, const(char)*
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if successful; otherwise, <b>FALSE</b>.
 ///    
 @DllImport("SHELL32")
-BOOL SHGetNewLinkInfoW(const(wchar)* pszLinkTo, const(wchar)* pszDir, const(wchar)* pszName, int* pfMustCopy, 
-                       uint uFlags);
+BOOL SHGetNewLinkInfoW(const(PWSTR) pszLinkTo, const(PWSTR) pszDir, PWSTR pszName, BOOL* pfMustCopy, uint uFlags);
 
 ///Executes a command on a printer object. <div class="alert"><b>Note</b> This function has been deprecated as of
 ///Windows Vista. It is recommended that, in its place, you invoke verbs on printers through IContextMenu or
@@ -10360,7 +10282,7 @@ BOOL SHGetNewLinkInfoW(const(wchar)* pszLinkTo, const(wchar)* pszDir, const(wcha
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if successful; otherwise, <b>FALSE</b>.
 ///    
 @DllImport("SHELL32")
-BOOL SHInvokePrinterCommandA(HWND hwnd, uint uAction, const(char)* lpBuf1, const(char)* lpBuf2, BOOL fModal);
+BOOL SHInvokePrinterCommandA(HWND hwnd, uint uAction, const(PSTR) lpBuf1, const(PSTR) lpBuf2, BOOL fModal);
 
 ///Executes a command on a printer object. <div class="alert"><b>Note</b> This function has been deprecated as of
 ///Windows Vista. It is recommended that, in its place, you invoke verbs on printers through IContextMenu or
@@ -10379,7 +10301,7 @@ BOOL SHInvokePrinterCommandA(HWND hwnd, uint uAction, const(char)* lpBuf1, const
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if successful; otherwise, <b>FALSE</b>.
 ///    
 @DllImport("SHELL32")
-BOOL SHInvokePrinterCommandW(HWND hwnd, uint uAction, const(wchar)* lpBuf1, const(wchar)* lpBuf2, BOOL fModal);
+BOOL SHInvokePrinterCommandW(HWND hwnd, uint uAction, const(PWSTR) lpBuf1, const(PWSTR) lpBuf2, BOOL fModal);
 
 ///Signals the Shell that during the next operation requiring overlay information, it should load icon overlay
 ///identifiers that either failed creation or were not present for creation at startup. Identifiers that have already
@@ -10406,7 +10328,7 @@ HRESULT SHLoadNonloadedIconOverlayIdentifiers();
 ///    </dl> </td> <td width="60%"> The file or directory is not cached. </td> </tr> </table>
 ///    
 @DllImport("SHELL32")
-HRESULT SHIsFileAvailableOffline(const(wchar)* pwszPath, uint* pdwStatus);
+HRESULT SHIsFileAvailableOffline(const(PWSTR) pwszPath, uint* pdwStatus);
 
 ///Sets the localized name of a file in a Shell folder.
 ///Params:
@@ -10419,7 +10341,7 @@ HRESULT SHIsFileAvailableOffline(const(wchar)* pwszPath, uint* pdwStatus);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHELL32")
-HRESULT SHSetLocalizedName(const(wchar)* pszPath, const(wchar)* pszResModule, int idsRes);
+HRESULT SHSetLocalizedName(const(PWSTR) pszPath, const(PWSTR) pszResModule, int idsRes);
 
 ///Removes the localized name of a file in a Shell folder.
 ///Params:
@@ -10431,7 +10353,7 @@ HRESULT SHSetLocalizedName(const(wchar)* pszPath, const(wchar)* pszResModule, in
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHELL32")
-HRESULT SHRemoveLocalizedName(const(wchar)* pszPath);
+HRESULT SHRemoveLocalizedName(const(PWSTR) pszPath);
 
 ///Retrieves the localized name of a file in a Shell folder.
 ///Params:
@@ -10443,7 +10365,7 @@ HRESULT SHRemoveLocalizedName(const(wchar)* pszPath);
 ///    pidsRes = Type: <b>int*</b> When this function returns, contains a pointer to the ID of the localized file name in the
 ///              resource file.
 @DllImport("SHELL32")
-HRESULT SHGetLocalizedName(const(wchar)* pszPath, const(wchar)* pszResModule, uint cch, int* pidsRes);
+HRESULT SHGetLocalizedName(const(PWSTR) pszPath, PWSTR pszResModule, uint cch, int* pidsRes);
 
 ///<p class="CCE_Message">[<b>ShellMessageBox</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions.] <b>ShellMessageBox</b> is a special
@@ -10468,7 +10390,7 @@ HRESULT SHGetLocalizedName(const(wchar)* pszPath, const(wchar)* pszResModule, ui
 ///    GetLastError.
 ///    
 @DllImport("SHLWAPI")
-int ShellMessageBoxA(HINSTANCE hAppInst, HWND hWnd, const(char)* lpcText, const(char)* lpcTitle, uint fuStyle);
+int ShellMessageBoxA(HINSTANCE hAppInst, HWND hWnd, const(PSTR) lpcText, const(PSTR) lpcTitle, uint fuStyle);
 
 ///<p class="CCE_Message">[<b>ShellMessageBox</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions.] <b>ShellMessageBox</b> is a special
@@ -10493,13 +10415,13 @@ int ShellMessageBoxA(HINSTANCE hAppInst, HWND hWnd, const(char)* lpcText, const(
 ///    GetLastError.
 ///    
 @DllImport("SHLWAPI")
-int ShellMessageBoxW(HINSTANCE hAppInst, HWND hWnd, const(wchar)* lpcText, const(wchar)* lpcTitle, uint fuStyle);
+int ShellMessageBoxW(HINSTANCE hAppInst, HWND hWnd, const(PWSTR) lpcText, const(PWSTR) lpcTitle, uint fuStyle);
 
 @DllImport("SHELL32")
-BOOL IsLFNDriveA(const(char)* pszPath);
+BOOL IsLFNDriveA(const(PSTR) pszPath);
 
 @DllImport("SHELL32")
-BOOL IsLFNDriveW(const(wchar)* pszPath);
+BOOL IsLFNDriveW(const(PWSTR) pszPath);
 
 ///Enumerates the user accounts that have unread email.
 ///Params:
@@ -10514,8 +10436,7 @@ BOOL IsLFNDriveW(const(wchar)* pszPath);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHELL32")
-HRESULT SHEnumerateUnreadMailAccountsW(HKEY hKeyUser, uint dwIndex, const(wchar)* pszMailAddress, 
-                                       int cchMailAddress);
+HRESULT SHEnumerateUnreadMailAccountsW(HKEY hKeyUser, uint dwIndex, PWSTR pszMailAddress, int cchMailAddress);
 
 ///Retrieves a specified user's unread message count for any or all email accounts.
 ///Params:
@@ -10541,8 +10462,8 @@ HRESULT SHEnumerateUnreadMailAccountsW(HKEY hKeyUser, uint dwIndex, const(wchar)
 ///                             <i>pszShellExecuteCommand</i>. This parameter must be zero for total counts when <i>pszMailAddress</i> is
 ///                             <b>NULL</b>. It can also be <b>NULL</b> whenever the ShellExecute command string is not required.
 @DllImport("SHELL32")
-HRESULT SHGetUnreadMailCountW(HKEY hKeyUser, const(wchar)* pszMailAddress, uint* pdwCount, FILETIME* pFileTime, 
-                              const(wchar)* pszShellExecuteCommand, int cchShellExecuteCommand);
+HRESULT SHGetUnreadMailCountW(HKEY hKeyUser, const(PWSTR) pszMailAddress, uint* pdwCount, FILETIME* pFileTime, 
+                              PWSTR pszShellExecuteCommand, int cchShellExecuteCommand);
 
 ///Stores the current user's unread message count for a specified email account in the registry.
 ///Params:
@@ -10560,7 +10481,7 @@ HRESULT SHGetUnreadMailCountW(HKEY hKeyUser, const(wchar)* pszMailAddress, uint*
 ///    <i>pszMailAddress</i> or <i>pszShellExecuteCommand</i> parameters. </td> </tr> </table>
 ///    
 @DllImport("SHELL32")
-HRESULT SHSetUnreadMailCountW(const(wchar)* pszMailAddress, uint dwCount, const(wchar)* pszShellExecuteCommand);
+HRESULT SHSetUnreadMailCountW(const(PWSTR) pszMailAddress, uint dwCount, const(PWSTR) pszShellExecuteCommand);
 
 ///Uses CheckTokenMembership to test whether the given token is a member of the local group with the specified RID.
 ///Params:
@@ -10598,7 +10519,7 @@ BOOL InitNetworkAddressControl();
 ///    pszDrive = Type: <b>PCWSTR</b> The drive in which to check the media type.
 ///    pdwMediaContent = Type: <b>DWORD*</b> A pointer to the type of media in the given drive. A combination of ARCONTENT flags.
 @DllImport("SHELL32")
-HRESULT SHGetDriveMedia(const(wchar)* pszDrive, uint* pdwMediaContent);
+HRESULT SHGetDriveMedia(const(PWSTR) pszDrive, uint* pdwMediaContent);
 
 ///Deprecated. Returns a pointer to an ITEMIDLIST structure when passed a path.
 ///Params:
@@ -10608,7 +10529,7 @@ HRESULT SHGetDriveMedia(const(wchar)* pszDrive, uint* pdwMediaContent);
 ///    otherwise.
 ///    
 @DllImport("SHELL32")
-ITEMIDLIST* SHSimpleIDListFromPath(const(wchar)* pszPath);
+ITEMIDLIST* SHSimpleIDListFromPath(const(PWSTR) pszPath);
 
 ///Creates and initializes a Shell item object from a pointer to an item identifier list (PIDL). The resulting shell
 ///item object supports the IShellItem interface.
@@ -10647,7 +10568,7 @@ HRESULT SHCreateItemFromIDList(ITEMIDLIST* pidl, const(GUID)* riid, void** ppv);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHELL32")
-HRESULT SHCreateItemFromParsingName(const(wchar)* pszPath, IBindCtx pbc, const(GUID)* riid, void** ppv);
+HRESULT SHCreateItemFromParsingName(const(PWSTR) pszPath, IBindCtx pbc, const(GUID)* riid, void** ppv);
 
 ///Create a Shell item, given a parent folder and a child item ID.
 ///Params:
@@ -10675,7 +10596,7 @@ HRESULT SHCreateItemWithParent(ITEMIDLIST* pidlParent, IShellFolder psfParent, I
 ///    ppv = Type: <b>void**</b> When this function returns, contains the interface pointer requested in riid. This will
 ///          usually be IShellItem or IShellItem2.
 @DllImport("SHELL32")
-HRESULT SHCreateItemFromRelativeName(IShellItem psiParent, const(wchar)* pszName, IBindCtx pbc, const(GUID)* riid, 
+HRESULT SHCreateItemFromRelativeName(IShellItem psiParent, const(PWSTR) pszName, IBindCtx pbc, const(GUID)* riid, 
                                      void** ppv);
 
 ///Creates a Shell item object for a single file that exists inside a known folder.
@@ -10697,7 +10618,7 @@ HRESULT SHCreateItemFromRelativeName(IShellItem psiParent, const(wchar)* pszName
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHELL32")
-HRESULT SHCreateItemInKnownFolder(const(GUID)* kfid, uint dwKFFlags, const(wchar)* pszItem, const(GUID)* riid, 
+HRESULT SHCreateItemInKnownFolder(const(GUID)* kfid, uint dwKFFlags, const(PWSTR) pszItem, const(GUID)* riid, 
                                   void** ppv);
 
 ///Retrieves the pointer to an item identifier list (PIDL) of an object.
@@ -10738,7 +10659,7 @@ HRESULT SHGetItemFromObject(IUnknown punk, const(GUID)* riid, void** ppv);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHELL32")
-HRESULT SHGetNameFromIDList(ITEMIDLIST* pidl, SIGDN sigdnName, ushort** ppszName);
+HRESULT SHGetNameFromIDList(ITEMIDLIST* pidl, SIGDN sigdnName, PWSTR* ppszName);
 
 ///Creates an IShellItem or related object based on an item specified by an IDataObject.
 ///Params:
@@ -10770,7 +10691,7 @@ HRESULT SHGetItemFromDataObject(IDataObject pdtobj, DATAOBJ_GET_ITEM_FLAGS dwFla
 ///    ppsiItemArray = Type: <b>IShellItemArray**</b> When this function returns, contains the address of an IShellItemArray interface
 ///                    pointer.
 @DllImport("SHELL32")
-HRESULT SHCreateShellItemArray(ITEMIDLIST* pidlParent, IShellFolder psf, uint cidl, char* ppidl, 
+HRESULT SHCreateShellItemArray(ITEMIDLIST* pidlParent, IShellFolder psf, uint cidl, ITEMIDLIST** ppidl, 
                                IShellItemArray* ppsiItemArray);
 
 ///Creates a Shell item array object from a data object.
@@ -10793,7 +10714,7 @@ HRESULT SHCreateShellItemArrayFromDataObject(IDataObject pdo, const(GUID)* riid,
 ///    rgpidl = Type: <b>PCIDLIST_ABSOLUTE_ARRAY</b> A list of <i>cidl</i> constant pointers to ITEMIDLIST structures.
 ///    ppsiItemArray = Type: <b>IShellItemArray**</b> When this function returns, contains an IShellItemArray interface pointer.
 @DllImport("SHELL32")
-HRESULT SHCreateShellItemArrayFromIDLists(uint cidl, char* rgpidl, IShellItemArray* ppsiItemArray);
+HRESULT SHCreateShellItemArrayFromIDLists(uint cidl, ITEMIDLIST** rgpidl, IShellItemArray* ppsiItemArray);
 
 ///Creates an array of one element from a single Shell item.
 ///Params:
@@ -10843,7 +10764,7 @@ HRESULT SHCreateDefaultExtractIcon(const(GUID)* riid, void** ppv);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHELL32")
-HRESULT SetCurrentProcessExplicitAppUserModelID(const(wchar)* AppID);
+HRESULT SetCurrentProcessExplicitAppUserModelID(const(PWSTR) AppID);
 
 ///Retrieves the application-defined, explicit Application User Model ID (AppUserModelID) for the current process.
 ///Params:
@@ -10855,7 +10776,7 @@ HRESULT SetCurrentProcessExplicitAppUserModelID(const(wchar)* AppID);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHELL32")
-HRESULT GetCurrentProcessExplicitAppUserModelID(ushort** AppID);
+HRESULT GetCurrentProcessExplicitAppUserModelID(PWSTR* AppID);
 
 ///Retrieves the temporary property for the given item. A temporary property is a read/write store that holds properties
 ///only for the lifetime of the IShellItem object, rather than being persisted back into the item.
@@ -10898,8 +10819,8 @@ HRESULT SHSetTemporaryPropertyForItem(IShellItem psi, const(PROPERTYKEY)* propke
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHELL32")
-HRESULT SHShowManageLibraryUI(IShellItem psiLibrary, HWND hwndOwner, const(wchar)* pszTitle, 
-                              const(wchar)* pszInstruction, LIBRARYMANAGEDIALOGOPTIONS lmdOptions);
+HRESULT SHShowManageLibraryUI(IShellItem psiLibrary, HWND hwndOwner, const(PWSTR) pszTitle, 
+                              const(PWSTR) pszInstruction, LIBRARYMANAGEDIALOGOPTIONS lmdOptions);
 
 ///Resolves all locations in a library, even those locations that have been moved or renamed.
 ///Params:
@@ -10925,7 +10846,7 @@ HRESULT SHResolveLibrary(IShellItem psiLibrary);
 ///    ppEnumHandler = Type: <b>IEnumAssocHandlers**</b> When this method returns, contains the address of a pointer to an
 ///                    IEnumAssocHandlers object.
 @DllImport("SHELL32")
-HRESULT SHAssocEnumHandlers(const(wchar)* pszExtra, ASSOC_FILTER afFilter, IEnumAssocHandlers* ppEnumHandler);
+HRESULT SHAssocEnumHandlers(const(PWSTR) pszExtra, ASSOC_FILTER afFilter, IEnumAssocHandlers* ppEnumHandler);
 
 ///Gets an enumeration interface that provides access to handlers associated with a given protocol.
 ///Params:
@@ -10940,31 +10861,31 @@ HRESULT SHAssocEnumHandlers(const(wchar)* pszExtra, ASSOC_FILTER afFilter, IEnum
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHELL32")
-HRESULT SHAssocEnumHandlersForProtocolByApplication(const(wchar)* protocol, const(GUID)* riid, void** enumHandlers);
+HRESULT SHAssocEnumHandlersForProtocolByApplication(const(PWSTR) protocol, const(GUID)* riid, void** enumHandlers);
 
 @DllImport("OLE32")
-uint HMONITOR_UserSize(uint* param0, uint param1, ptrdiff_t* param2);
+uint HMONITOR_UserSize(uint* param0, uint param1, HMONITOR* param2);
 
 @DllImport("OLE32")
-ubyte* HMONITOR_UserMarshal(uint* param0, ubyte* param1, ptrdiff_t* param2);
+ubyte* HMONITOR_UserMarshal(uint* param0, ubyte* param1, HMONITOR* param2);
 
 @DllImport("OLE32")
-ubyte* HMONITOR_UserUnmarshal(uint* param0, char* param1, ptrdiff_t* param2);
+ubyte* HMONITOR_UserUnmarshal(uint* param0, ubyte* param1, HMONITOR* param2);
 
 @DllImport("OLE32")
-void HMONITOR_UserFree(uint* param0, ptrdiff_t* param1);
+void HMONITOR_UserFree(uint* param0, HMONITOR* param1);
 
 @DllImport("OLE32")
-uint HMONITOR_UserSize64(uint* param0, uint param1, ptrdiff_t* param2);
+uint HMONITOR_UserSize64(uint* param0, uint param1, HMONITOR* param2);
 
 @DllImport("OLE32")
-ubyte* HMONITOR_UserMarshal64(uint* param0, ubyte* param1, ptrdiff_t* param2);
+ubyte* HMONITOR_UserMarshal64(uint* param0, ubyte* param1, HMONITOR* param2);
 
 @DllImport("OLE32")
-ubyte* HMONITOR_UserUnmarshal64(uint* param0, char* param1, ptrdiff_t* param2);
+ubyte* HMONITOR_UserUnmarshal64(uint* param0, ubyte* param1, HMONITOR* param2);
 
 @DllImport("OLE32")
-void HMONITOR_UserFree64(uint* param0, ptrdiff_t* param1);
+void HMONITOR_UserFree64(uint* param0, HMONITOR* param1);
 
 ///Creates a file operation that sets the default properties on the Shell item that have not already been set.
 ///Params:
@@ -11034,7 +10955,7 @@ void SHFree(void* pv);
 ///    Type: <b>int</b> Returns the index of the overlay icon in the system image list if successful, or -1 otherwise.
 ///    
 @DllImport("SHELL32")
-int SHGetIconOverlayIndexA(const(char)* pszIconPath, int iIconIndex);
+int SHGetIconOverlayIndexA(const(PSTR) pszIconPath, int iIconIndex);
 
 ///Returns the index of the overlay icon in the system image list.
 ///Params:
@@ -11046,7 +10967,7 @@ int SHGetIconOverlayIndexA(const(char)* pszIconPath, int iIconIndex);
 ///    Type: <b>int</b> Returns the index of the overlay icon in the system image list if successful, or -1 otherwise.
 ///    
 @DllImport("SHELL32")
-int SHGetIconOverlayIndexW(const(wchar)* pszIconPath, int iIconIndex);
+int SHGetIconOverlayIndexW(const(PWSTR) pszIconPath, int iIconIndex);
 
 ///Clones an ITEMIDLIST structure.
 ///Params:
@@ -11171,7 +11092,7 @@ HRESULT ILLoadFromStreamEx(IStream pstm, ITEMIDLIST** pidl);
 ///    Type: <b>PIDLIST_ABSOLUTE</b> Returns a pointer to an ITEMIDLIST structure that corresponds to the path.
 ///    
 @DllImport("SHELL32")
-ITEMIDLIST* ILCreateFromPathA(const(char)* pszPath);
+ITEMIDLIST* ILCreateFromPathA(const(PSTR) pszPath);
 
 ///Returns the ITEMIDLIST structure associated with a specified file path.
 ///Params:
@@ -11181,7 +11102,7 @@ ITEMIDLIST* ILCreateFromPathA(const(char)* pszPath);
 ///    Type: <b>PIDLIST_ABSOLUTE</b> Returns a pointer to an ITEMIDLIST structure that corresponds to the path.
 ///    
 @DllImport("SHELL32")
-ITEMIDLIST* ILCreateFromPathW(const(wchar)* pszPath);
+ITEMIDLIST* ILCreateFromPathW(const(PWSTR) pszPath);
 
 ///<p class="CCE_Message">[<b>SHILCreateFromPath</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions. Applications should use
@@ -11195,7 +11116,7 @@ ITEMIDLIST* ILCreateFromPathW(const(wchar)* pszPath);
 ///               value contains those requested attributes. For a list of possible attribute flags for this parameter, see
 ///               IShellFolder::GetAttributesOf.
 @DllImport("SHELL32")
-HRESULT SHILCreateFromPath(const(wchar)* pszPath, ITEMIDLIST** ppidl, uint* rgfInOut);
+HRESULT SHILCreateFromPath(const(PWSTR) pszPath, ITEMIDLIST** ppidl, uint* rgfInOut);
 
 ///Appends or prepends an SHITEMID structure to an ITEMIDLIST structure.
 ///Params:
@@ -11221,7 +11142,7 @@ ITEMIDLIST* ILAppendID(ITEMIDLIST* pidl, SHITEMID* pmkid, BOOL fAppend);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if successful; otherwise, <b>FALSE</b>.
 ///    
 @DllImport("SHELL32")
-BOOL SHGetPathFromIDListEx(ITEMIDLIST* pidl, const(wchar)* pszPath, uint cchPath, int uOpts);
+BOOL SHGetPathFromIDListEx(ITEMIDLIST* pidl, PWSTR pszPath, uint cchPath, int uOpts);
 
 ///Converts an item identifier list to a file system path.
 ///Params:
@@ -11233,7 +11154,7 @@ BOOL SHGetPathFromIDListEx(ITEMIDLIST* pidl, const(wchar)* pszPath, uint cchPath
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if successful; otherwise, <b>FALSE</b>.
 ///    
 @DllImport("SHELL32")
-BOOL SHGetPathFromIDListA(ITEMIDLIST* pidl, const(char)* pszPath);
+BOOL SHGetPathFromIDListA(ITEMIDLIST* pidl, PSTR pszPath);
 
 ///Converts an item identifier list to a file system path.
 ///Params:
@@ -11245,7 +11166,7 @@ BOOL SHGetPathFromIDListA(ITEMIDLIST* pidl, const(char)* pszPath);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if successful; otherwise, <b>FALSE</b>.
 ///    
 @DllImport("SHELL32")
-BOOL SHGetPathFromIDListW(ITEMIDLIST* pidl, const(wchar)* pszPath);
+BOOL SHGetPathFromIDListW(ITEMIDLIST* pidl, PWSTR pszPath);
 
 ///<p class="CCE_Message">[<b>SHCreateDirectory</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions.] Creates a new file system folder.
@@ -11267,7 +11188,7 @@ BOOL SHGetPathFromIDListW(ITEMIDLIST* pidl, const(wchar)* pszPath);
 ///    </td> </tr> </table>
 ///    
 @DllImport("SHELL32")
-int SHCreateDirectory(HWND hwnd, const(wchar)* pszPath);
+int SHCreateDirectory(HWND hwnd, const(PWSTR) pszPath);
 
 ///<p class="CCE_Message">[This function is available through Windows XP Service Pack 2 (SP2) and Windows Server 2003.
 ///It might be altered or unavailable in subsequent versions of Windows.] Creates a new file system folder, with
@@ -11294,7 +11215,7 @@ int SHCreateDirectory(HWND hwnd, const(wchar)* pszPath);
 ///    </table>
 ///    
 @DllImport("SHELL32")
-int SHCreateDirectoryExA(HWND hwnd, const(char)* pszPath, const(SECURITY_ATTRIBUTES)* psa);
+int SHCreateDirectoryExA(HWND hwnd, const(PSTR) pszPath, const(SECURITY_ATTRIBUTES)* psa);
 
 ///<p class="CCE_Message">[This function is available through Windows XP Service Pack 2 (SP2) and Windows Server 2003.
 ///It might be altered or unavailable in subsequent versions of Windows.] Creates a new file system folder, with
@@ -11321,7 +11242,7 @@ int SHCreateDirectoryExA(HWND hwnd, const(char)* pszPath, const(SECURITY_ATTRIBU
 ///    </table>
 ///    
 @DllImport("SHELL32")
-int SHCreateDirectoryExW(HWND hwnd, const(wchar)* pszPath, const(SECURITY_ATTRIBUTES)* psa);
+int SHCreateDirectoryExW(HWND hwnd, const(PWSTR) pszPath, const(SECURITY_ATTRIBUTES)* psa);
 
 ///Opens a Windows Explorer window with specified items in a particular folder selected.
 ///Params:
@@ -11339,7 +11260,7 @@ int SHCreateDirectoryExW(HWND hwnd, const(wchar)* pszPath, const(SECURITY_ATTRIB
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHELL32")
-HRESULT SHOpenFolderAndSelectItems(ITEMIDLIST* pidlFolder, uint cidl, char* apidl, uint dwFlags);
+HRESULT SHOpenFolderAndSelectItems(ITEMIDLIST* pidlFolder, uint cidl, ITEMIDLIST** apidl, uint dwFlags);
 
 ///Creates an IShellItem object. <div class="alert"><b>Note</b> It is recommended that you use SHCreateItemWithParent or
 ///SHCreateItemFromIDList instead of this function.</div><div> </div>
@@ -11402,7 +11323,7 @@ ITEMIDLIST* SHCloneSpecialIDList(HWND hwnd, int csidl, BOOL fCreate);
 ///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>.
 ///    
 @DllImport("SHELL32")
-BOOL SHGetSpecialFolderPathA(HWND hwnd, const(char)* pszPath, int csidl, BOOL fCreate);
+BOOL SHGetSpecialFolderPathA(HWND hwnd, PSTR pszPath, int csidl, BOOL fCreate);
 
 ///<p class="CCE_Message">[<b>SHGetSpecialFolderPath</b> is not supported. Instead, use SHGetFolderPath.] Retrieves the
 ///path of a special folder, identified by its CSIDL.
@@ -11418,7 +11339,7 @@ BOOL SHGetSpecialFolderPathA(HWND hwnd, const(char)* pszPath, int csidl, BOOL fC
 ///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>.
 ///    
 @DllImport("SHELL32")
-BOOL SHGetSpecialFolderPathW(HWND hwnd, const(wchar)* pszPath, int csidl, BOOL fCreate);
+BOOL SHGetSpecialFolderPathW(HWND hwnd, PWSTR pszPath, int csidl, BOOL fCreate);
 
 ///<p class="CCE_Message">[<b>SHFlushSFCache</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions.] Flushes the special folder cache.
@@ -11464,7 +11385,7 @@ void SHFlushSFCache();
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHELL32")
-HRESULT SHGetFolderPathA(HWND hwnd, int csidl, HANDLE hToken, uint dwFlags, const(char)* pszPath);
+HRESULT SHGetFolderPathA(HWND hwnd, int csidl, HANDLE hToken, uint dwFlags, PSTR pszPath);
 
 ///Deprecated. Gets the path of a folder identified by a CSIDL value. <div class="alert"><b>Note</b> As of Windows
 ///Vista, this function is merely a wrapper for SHGetKnownFolderPath. The CSIDL value is translated to its associated
@@ -11505,7 +11426,7 @@ HRESULT SHGetFolderPathA(HWND hwnd, int csidl, HANDLE hToken, uint dwFlags, cons
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHELL32")
-HRESULT SHGetFolderPathW(HWND hwnd, int csidl, HANDLE hToken, uint dwFlags, const(wchar)* pszPath);
+HRESULT SHGetFolderPathW(HWND hwnd, int csidl, HANDLE hToken, uint dwFlags, PWSTR pszPath);
 
 ///Deprecated. Retrieves the path of a folder as an ITEMIDLIST structure.
 ///Params:
@@ -11565,7 +11486,7 @@ HRESULT SHGetFolderLocation(HWND hwnd, int csidl, HANDLE hToken, uint dwFlags, I
 ///    ("") of length zero.</li> </ul> </td> </tr> </table>
 ///    
 @DllImport("SHELL32")
-HRESULT SHSetFolderPathA(int csidl, HANDLE hToken, uint dwFlags, const(char)* pszPath);
+HRESULT SHSetFolderPathA(int csidl, HANDLE hToken, uint dwFlags, const(PSTR) pszPath);
 
 ///Deprecated. Assigns a new path to a system folder identified by its CSIDL.
 ///Params:
@@ -11596,7 +11517,7 @@ HRESULT SHSetFolderPathA(int csidl, HANDLE hToken, uint dwFlags, const(char)* ps
 ///    ("") of length zero.</li> </ul> </td> </tr> </table>
 ///    
 @DllImport("SHELL32")
-HRESULT SHSetFolderPathW(int csidl, HANDLE hToken, uint dwFlags, const(wchar)* pszPath);
+HRESULT SHSetFolderPathW(int csidl, HANDLE hToken, uint dwFlags, const(PWSTR) pszPath);
 
 ///Gets the path of a folder and appends a user-provided subfolder path.
 ///Params:
@@ -11624,8 +11545,8 @@ HRESULT SHSetFolderPathW(int csidl, HANDLE hToken, uint dwFlags, const(wchar)* p
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHELL32")
-HRESULT SHGetFolderPathAndSubDirA(HWND hwnd, int csidl, HANDLE hToken, uint dwFlags, const(char)* pszSubDir, 
-                                  const(char)* pszPath);
+HRESULT SHGetFolderPathAndSubDirA(HWND hwnd, int csidl, HANDLE hToken, uint dwFlags, const(PSTR) pszSubDir, 
+                                  PSTR pszPath);
 
 ///Gets the path of a folder and appends a user-provided subfolder path.
 ///Params:
@@ -11653,8 +11574,8 @@ HRESULT SHGetFolderPathAndSubDirA(HWND hwnd, int csidl, HANDLE hToken, uint dwFl
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHELL32")
-HRESULT SHGetFolderPathAndSubDirW(HWND hwnd, int csidl, HANDLE hToken, uint dwFlags, const(wchar)* pszSubDir, 
-                                  const(wchar)* pszPath);
+HRESULT SHGetFolderPathAndSubDirW(HWND hwnd, int csidl, HANDLE hToken, uint dwFlags, const(PWSTR) pszSubDir, 
+                                  PWSTR pszPath);
 
 ///Retrieves the path of a known folder as an ITEMIDLIST structure.
 ///Params:
@@ -11715,7 +11636,7 @@ HRESULT SHGetKnownFolderIDList(const(GUID)* rfid, uint dwFlags, HANDLE hToken, I
 ///    current system. </td> </tr> </table>
 ///    
 @DllImport("SHELL32")
-HRESULT SHSetKnownFolderPath(const(GUID)* rfid, uint dwFlags, HANDLE hToken, const(wchar)* pszPath);
+HRESULT SHSetKnownFolderPath(const(GUID)* rfid, uint dwFlags, HANDLE hToken, const(PWSTR) pszPath);
 
 ///Retrieves the full path of a known folder identified by the folder's KNOWNFOLDERID.
 ///Params:
@@ -11750,7 +11671,8 @@ HRESULT SHSetKnownFolderPath(const(GUID)* rfid, uint dwFlags, HANDLE hToken, con
 ///    of <b>KNOWNFOLDERID</b> values for the current system. </td> </tr> </table>
 ///    
 @DllImport("SHELL32")
-HRESULT SHGetKnownFolderPath(const(GUID)* rfid, uint dwFlags, HANDLE hToken, ushort** ppszPath);
+HRESULT SHGetKnownFolderPath(const(GUID)* rfid, uint dwFlags, HANDLE hToken, 
+                             /*PARAM ATTR: FreeWithAttribute : CustomAttributeSig([FixedArgSig(ElementSig(CoTaskMemFree))], [])*/PWSTR* ppszPath);
 
 ///Retrieves an IShellItem object that represents a known folder.
 ///Params:
@@ -11800,7 +11722,7 @@ HRESULT SHGetKnownFolderItem(const(GUID)* rfid, KNOWN_FOLDER_FLAG flags, HANDLE 
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHELL32")
-HRESULT SHGetSetFolderCustomSettings(SHFOLDERCUSTOMSETTINGS* pfcs, const(wchar)* pszPath, uint dwReadWrite);
+HRESULT SHGetSetFolderCustomSettings(SHFOLDERCUSTOMSETTINGS* pfcs, const(PWSTR) pszPath, uint dwReadWrite);
 
 ///Displays a dialog box that enables the user to select a Shell folder.
 ///Params:
@@ -11858,7 +11780,7 @@ HRESULT SHGetDesktopFolder(IShellFolder* ppshf);
 ///    dwItem1 = Type: <b>LPCVOID</b> Optional. First event-dependent value.
 ///    dwItem2 = Type: <b>LPCVOID</b> Optional. Second event-dependent value.
 @DllImport("SHELL32")
-void SHChangeNotify(int wEventId, uint uFlags, void* dwItem1, void* dwItem2);
+void SHChangeNotify(SHCNE_ID wEventId, SHCNF_FLAGS uFlags, const(void)* dwItem1, const(void)* dwItem2);
 
 ///Notifies the system that an item has been accessed, for the purposes of tracking those items used most recently and
 ///most frequently. This function can also be used to clear all usage data.
@@ -11873,7 +11795,7 @@ void SHChangeNotify(int wEventId, uint uFlags, void* dwItem1, void* dwItem2);
 ///         <li><b>Windows 7 and later only</b>. An IShellLink object that identifies the item through a shortcut.</li> </ul>
 ///         Set this parameter to <b>NULL</b> to clear all usage data on all items.
 @DllImport("SHELL32")
-void SHAddToRecentDocs(uint uFlags, void* pv);
+void SHAddToRecentDocs(uint uFlags, const(void)* pv);
 
 ///<p class="CCE_Message">[<b>SHHandleUpdateImage</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions.] Handles the <b>SHCNE_UPDATEIMAGE</b>
@@ -11900,7 +11822,7 @@ int SHHandleUpdateImage(ITEMIDLIST* pidlExtra);
 ///             The flags that are relevant to <b>SHUpdateImage</b> are <b>GIL_NOTFILENAME</b> and <b>GIL_SIMULATEDOC</b>.
 ///    iImageIndex = Type: <b>int</b> An integer that specifies the index in the system image list of the icon that is being updated.
 @DllImport("SHELL32")
-void SHUpdateImageA(const(char)* pszHashItem, int iIndex, uint uFlags, int iImageIndex);
+void SHUpdateImageA(const(PSTR) pszHashItem, int iIndex, uint uFlags, int iImageIndex);
 
 ///Notifies the Shell that an image in the system image list has changed.
 ///Params:
@@ -11915,7 +11837,7 @@ void SHUpdateImageA(const(char)* pszHashItem, int iIndex, uint uFlags, int iImag
 ///             The flags that are relevant to <b>SHUpdateImage</b> are <b>GIL_NOTFILENAME</b> and <b>GIL_SIMULATEDOC</b>.
 ///    iImageIndex = Type: <b>int</b> An integer that specifies the index in the system image list of the icon that is being updated.
 @DllImport("SHELL32")
-void SHUpdateImageW(const(wchar)* pszHashItem, int iIndex, uint uFlags, int iImageIndex);
+void SHUpdateImageW(const(PWSTR) pszHashItem, int iIndex, uint uFlags, int iImageIndex);
 
 ///Registers a window to receive notifications from the file system or Shell, if the file system supports notifications.
 ///Params:
@@ -11936,7 +11858,7 @@ void SHUpdateImageW(const(wchar)* pszHashItem, int iIndex, uint uFlags, int iIma
 ///    invalid parameters.
 ///    
 @DllImport("SHELL32")
-uint SHChangeNotifyRegister(HWND hwnd, int fSources, int fEvents, uint wMsg, int cEntries, 
+uint SHChangeNotifyRegister(HWND hwnd, SHCNRF_SOURCE fSources, int fEvents, uint wMsg, int cEntries, 
                             const(SHChangeNotifyEntry)* pshcne);
 
 ///Unregisters the client's window process from receiving SHChangeNotify messages.
@@ -12014,7 +11936,7 @@ HRESULT SHGetInstanceExplorer(IUnknown* ppunk);
 ///    Type: <b>HRESULT</b> Returns S_OK if successful, or E_INVALIDARG otherwise.
 ///    
 @DllImport("SHELL32")
-HRESULT SHGetDataFromIDListA(IShellFolder psf, ITEMIDLIST* pidl, int nFormat, char* pv, int cb);
+HRESULT SHGetDataFromIDListA(IShellFolder psf, ITEMIDLIST* pidl, SHGDFIL_FORMAT nFormat, void* pv, int cb);
 
 ///Retrieves extended property data from a relative identifier list.
 ///Params:
@@ -12035,7 +11957,7 @@ HRESULT SHGetDataFromIDListA(IShellFolder psf, ITEMIDLIST* pidl, int nFormat, ch
 ///    Type: <b>HRESULT</b> Returns S_OK if successful, or E_INVALIDARG otherwise.
 ///    
 @DllImport("SHELL32")
-HRESULT SHGetDataFromIDListW(IShellFolder psf, ITEMIDLIST* pidl, int nFormat, char* pv, int cb);
+HRESULT SHGetDataFromIDListW(IShellFolder psf, ITEMIDLIST* pidl, SHGDFIL_FORMAT nFormat, void* pv, int cb);
 
 ///<p class="CCE_Message">[This function is available through Windows XP Service Pack 2 (SP2) and Windows Server 2003.
 ///It might be altered or unavailable in subsequent versions of Windows.] Displays a dialog box that prompts the user to
@@ -12047,7 +11969,7 @@ HRESULT SHGetDataFromIDListW(IShellFolder psf, ITEMIDLIST* pidl, int nFormat, ch
 ///    dwReturn = Type: <b>DWORD</b> The flags that specify the type of shutdown. This parameter must include one of the following
 ///               values.
 @DllImport("SHELL32")
-int RestartDialog(HWND hwnd, const(wchar)* pszPrompt, uint dwReturn);
+int RestartDialog(HWND hwnd, const(PWSTR) pszPrompt, uint dwReturn);
 
 ///<p class="CCE_Message">[This function is available through Windows XP Service Pack 2 (SP2) and Windows Server 2003.
 ///It might be altered or unavailable in subsequent versions of Windows.] Displays a dialog box that asks the user to
@@ -12061,7 +11983,7 @@ int RestartDialog(HWND hwnd, const(wchar)* pszPrompt, uint dwReturn);
 ///    dwReasonCode = Type: <b>DWORD</b> <b>Windows XP:</b>Specifies the reason for initiating the shutdown. For more information, see
 ///                   System Shutdown Reason Codes. <b>Windows 2000:</b> This parameter is ignored.
 @DllImport("SHELL32")
-int RestartDialogEx(HWND hwnd, const(wchar)* pszPrompt, uint dwReturn, uint dwReasonCode);
+int RestartDialogEx(HWND hwnd, const(PWSTR) pszPrompt, uint dwReturn, uint dwReasonCode);
 
 ///<p class="CCE_Message">[<b>SHCoCreateInstance</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions. Instead, use CoCreateInstance.]
@@ -12080,7 +12002,7 @@ int RestartDialogEx(HWND hwnd, const(wchar)* pszPrompt, uint dwReturn, uint dwRe
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHELL32")
-HRESULT SHCoCreateInstance(const(wchar)* pszCLSID, const(GUID)* pclsid, IUnknown pUnkOuter, const(GUID)* riid, 
+HRESULT SHCoCreateInstance(const(PWSTR) pszCLSID, const(GUID)* pclsid, IUnknown pUnkOuter, const(GUID)* riid, 
                            void** ppv);
 
 ///Creates a data object in a parent folder.
@@ -12106,8 +12028,8 @@ HRESULT SHCoCreateInstance(const(wchar)* pszCLSID, const(GUID)* pclsid, IUnknown
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHELL32")
-HRESULT SHCreateDataObject(ITEMIDLIST* pidlFolder, uint cidl, char* apidl, IDataObject pdtInner, const(GUID)* riid, 
-                           void** ppv);
+HRESULT SHCreateDataObject(ITEMIDLIST* pidlFolder, uint cidl, ITEMIDLIST** apidl, IDataObject pdtInner, 
+                           const(GUID)* riid, void** ppv);
 
 ///<p class="CCE_Message">[<b>CIDLData_CreateFromIDArray</b> is available for use in the operating systems specified in
 ///the Requirements section. It may be altered or unavailable in subsequent versions.] Creates a data object with the
@@ -12126,7 +12048,7 @@ HRESULT SHCreateDataObject(ITEMIDLIST* pidlFolder, uint cidl, char* apidl, IData
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHELL32")
-HRESULT CIDLData_CreateFromIDArray(ITEMIDLIST* pidlFolder, uint cidl, char* apidl, IDataObject* ppdtobj);
+HRESULT CIDLData_CreateFromIDArray(ITEMIDLIST* pidlFolder, uint cidl, ITEMIDLIST** apidl, IDataObject* ppdtobj);
 
 ///<p class="CCE_Message">[<b>SHCreateStdEnumFmtEtc</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions.] Creates an IEnumFORMATETC object from
@@ -12137,7 +12059,7 @@ HRESULT CIDLData_CreateFromIDArray(ITEMIDLIST* pidlFolder, uint cidl, char* apid
 ///    ppenumFormatEtc = Type: <b>IEnumFORMATETC**</b> When this function returns successfully, receives an IEnumFORMATETC interface
 ///                      pointer. Receives <b>NULL</b> on failure.
 @DllImport("SHELL32")
-HRESULT SHCreateStdEnumFmtEtc(uint cfmt, char* afmt, IEnumFORMATETC* ppenumFormatEtc);
+HRESULT SHCreateStdEnumFmtEtc(uint cfmt, const(FORMATETC)* afmt, IEnumFORMATETC* ppenumFormatEtc);
 
 ///Executes a drag-and-drop operation. Supports drag source creation on demand, as well as drag images.
 ///Params:
@@ -12247,7 +12169,7 @@ BOOL DAD_AutoScroll(HWND hwnd, AUTO_SCROLL_DATA* pad, const(POINT)* pptNow);
 ///          contains either information pulled from the registry or default information.
 ///    cLength = Type: <b>int</b> The size of the structure pointed to by <i>pcs</i>, in bytes.
 @DllImport("SHELL32")
-BOOL ReadCabinetState(char* pcs, int cLength);
+BOOL ReadCabinetState(CABINETSTATE* pcs, int cLength);
 
 ///<p class="CCE_Message">[<b>WriteCabinetState</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions.] Writes the information contained in a
@@ -12274,8 +12196,8 @@ BOOL WriteCabinetState(CABINETSTATE* pcs);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if successful; otherwise, <b>FALSE</b>.
 ///    
 @DllImport("SHELL32")
-BOOL PathMakeUniqueName(const(wchar)* pszUniqueName, uint cchMax, const(wchar)* pszTemplate, 
-                        const(wchar)* pszLongPlate, const(wchar)* pszDir);
+BOOL PathMakeUniqueName(PWSTR pszUniqueName, uint cchMax, const(PWSTR) pszTemplate, const(PWSTR) pszLongPlate, 
+                        const(PWSTR) pszDir);
 
 ///<p class="CCE_Message">[<b>PathIsExe</b> is available for use in the operating systems specified in the Requirements
 ///section. It may be altered or unavailable in subsequent versions.] Determines whether a file is an executable by
@@ -12284,7 +12206,7 @@ BOOL PathMakeUniqueName(const(wchar)* pszUniqueName, uint cchMax, const(wchar)* 
 ///    pszPath = Type: <b>PCWSTR</b> A pointer to a null-terminated, Unicode string that contains the file path, which includes
 ///              the name of the file.
 @DllImport("SHELL32")
-BOOL PathIsExe(const(wchar)* pszPath);
+BOOL PathIsExe(const(PWSTR) pszPath);
 
 ///<p class="CCE_Message">[<b>PathCleanupSpec</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions.] Removes illegal characters from a
@@ -12311,7 +12233,7 @@ BOOL PathIsExe(const(wchar)* pszPath);
 ///    not a valid file name. This flag is always returned in conjunction with PCS_PATHTOOLONG. </td> </tr> </table>
 ///    
 @DllImport("SHELL32")
-int PathCleanupSpec(const(wchar)* pszDir, const(wchar)* pszSpec);
+PCS_RET PathCleanupSpec(const(PWSTR) pszDir, PWSTR pszSpec);
 
 ///<p class="CCE_Message">[<b>PathResolve</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions.] Converts a relative or unqualified
@@ -12329,7 +12251,7 @@ int PathCleanupSpec(const(wchar)* pszDir, const(wchar)* pszSpec);
 ///    error code that you can retrieve by calling GetLastError.
 ///    
 @DllImport("SHELL32")
-int PathResolve(const(wchar)* pszPath, ushort** dirs, uint fFlags);
+int PathResolve(PWSTR pszPath, ushort** dirs, PRF_FLAGS fFlags);
 
 ///<p class="CCE_Message">[This function is available through Windows XP Service Pack 2 (SP2) and Windows Server 2003.
 ///It might be altered or unavailable in subsequent versions of Windows.] Creates an <b>Open</b> dialog box so that the
@@ -12357,8 +12279,8 @@ int PathResolve(const(wchar)* pszPath, ushort** dirs, uint fFlags);
 ///    user cancels or closes the <b>Open</b> dialog box or an error occurs, the return value is <b>FALSE</b>.
 ///    
 @DllImport("SHELL32")
-BOOL GetFileNameFromBrowse(HWND hwnd, const(wchar)* pszFilePath, uint cchFilePath, const(wchar)* pszWorkingDir, 
-                           const(wchar)* pszDefExt, const(wchar)* pszFilters, const(wchar)* pszTitle);
+BOOL GetFileNameFromBrowse(HWND hwnd, PWSTR pszFilePath, uint cchFilePath, const(PWSTR) pszWorkingDir, 
+                           const(PWSTR) pszDefExt, const(PWSTR) pszFilters, const(PWSTR) pszTitle);
 
 ///<p class="CCE_Message">[<b>DriveType</b> is available for use in the operating systems specified in the Requirements
 ///section. It may be altered or unavailable in subsequent versions.] Determines the drive type based on the drive
@@ -12425,7 +12347,7 @@ int IsNetDrive(int iDrive);
 ///                   added. To allow all IDs, set this parameter to 0xFFFF.
 ///    uFlags = Type: <b>ULONG</b> One or more of the following flags.
 @DllImport("SHELL32")
-uint Shell_MergeMenus(HMENU hmDst, HMENU hmSrc, uint uInsert, uint uIDAdjust, uint uIDAdjustMax, uint uFlags);
+uint Shell_MergeMenus(HMENU hmDst, HMENU hmSrc, uint uInsert, uint uIDAdjust, uint uIDAdjustMax, MM_FLAGS uFlags);
 
 ///<p class="CCE_Message">[<b>SHObjectProperties</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions.] Invokes the <b>Properties</b> context
@@ -12438,7 +12360,8 @@ uint Shell_MergeMenus(HMENU hmDst, HMENU hmSrc, uint uInsert, uint uIDAdjust, ui
 ///    pszPropertyPage = Type: <b>PCWSTR</b> A null-terminated Unicode string that contains the name of the property sheet page to be
 ///                      opened initially. Set this parameter to <b>NULL</b> to specify the default page.
 @DllImport("SHELL32")
-BOOL SHObjectProperties(HWND hwnd, uint shopObjectType, const(wchar)* pszObjectName, const(wchar)* pszPropertyPage);
+BOOL SHObjectProperties(HWND hwnd, SHOP_TYPE shopObjectType, const(PWSTR) pszObjectName, 
+                        const(PWSTR) pszPropertyPage);
 
 ///<p class="CCE_Message">[<b>SHFormatDrive</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions.] Opens the Shell's <b>Format</b>
@@ -12461,7 +12384,7 @@ BOOL SHObjectProperties(HWND hwnd, uint shopObjectType, const(wchar)* pszObjectN
 ///    <td width="60%"> The drive cannot be formatted. </td> </tr> </table>
 ///    
 @DllImport("SHELL32")
-uint SHFormatDrive(HWND hwnd, uint drive, uint fmtID, uint options);
+uint SHFormatDrive(HWND hwnd, uint drive, SHFMT_ID fmtID, SHFMT_OPT options);
 
 ///<p class="CCE_Message">[<b>SHDestroyPropSheetExtArray</b> is available for use in the operating systems specified in
 ///the Requirements section. It may be altered or unavailable in subsequent versions.] Frees property sheet handlers
@@ -12510,7 +12433,7 @@ uint SHReplaceFromPropSheetExtArray(HPSXA__* hpsxa, uint uPageID, LPFNADDPROPSHE
 ///    pszValue = Type: <b>PCWSTR</b> A null-terminated Unicode string that specifies the value to be accessed.
 ///    grfMode = Type: <b>DWORD</b> The type of access for the stream. This can be one of the following values.
 @DllImport("SHELL32")
-IStream OpenRegStream(HKEY hkey, const(wchar)* pszSubkey, const(wchar)* pszValue, uint grfMode);
+IStream OpenRegStream(HKEY hkey, const(PWSTR) pszSubkey, const(PWSTR) pszValue, uint grfMode);
 
 ///<p class="CCE_Message">[<b>SHFindFiles</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions.] Displays the <b>Search</b> window UI.
@@ -12528,7 +12451,7 @@ BOOL SHFindFiles(ITEMIDLIST* pidlFolder, ITEMIDLIST* pidlSaveFile);
 ///Requirements section. It may be altered or unavailable in subsequent versions.] Retrieves the short path form of a
 ///specified input path.
 @DllImport("SHELL32")
-void PathGetShortPath(const(wchar)* pszLongPath);
+void PathGetShortPath(PWSTR pszLongPath);
 
 ///Creates a unique filename based on an existing filename.
 ///Params:
@@ -12546,15 +12469,15 @@ void PathGetShortPath(const(wchar)* pszLongPath);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if a unique name was successfully created; otherwise <b>FALSE</b>.
 ///    
 @DllImport("SHELL32")
-BOOL PathYetAnotherMakeUniqueName(const(wchar)* pszUniqueName, const(wchar)* pszPath, const(wchar)* pszShort, 
-                                  const(wchar)* pszFileSpec);
+BOOL PathYetAnotherMakeUniqueName(PWSTR pszUniqueName, const(PWSTR) pszPath, const(PWSTR) pszShort, 
+                                  const(PWSTR) pszFileSpec);
 
 ///<p class="CCE_Message">[<b>Win32DeleteFile</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions.] Deletes a file.
 ///Params:
 ///    pszPath = Type: <b>PCWSTR</b> A pointer to a buffer that contains the full name of the file to delete.
 @DllImport("SHELL32")
-BOOL Win32DeleteFile(const(wchar)* pszPath);
+BOOL Win32DeleteFile(const(PWSTR) pszPath);
 
 ///<p class="CCE_Message">[<b>SHRestricted</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions.] Determines whether a specified
@@ -12590,7 +12513,7 @@ BOOL SignalFileOpen(ITEMIDLIST* pidl);
 ///    
 @DllImport("SHELL32")
 HRESULT AssocGetDetailsOfPropKey(IShellFolder psf, ITEMIDLIST* pidl, const(PROPERTYKEY)* pkey, VARIANT* pv, 
-                                 int* pfFoundPropKey);
+                                 BOOL* pfFoundPropKey);
 
 ///<p class="CCE_Message">[<b>SHStartNetConnectionDialog</b> is available for use in the operating systems specified in
 ///the Requirements section. It may be altered or unavailable in subsequent versions.] Displays a general browsing
@@ -12605,7 +12528,7 @@ HRESULT AssocGetDetailsOfPropKey(IShellFolder psf, ITEMIDLIST* pidl, const(PROPE
 ///    Type: <b>HRESULT</b> Always returns S_OK.
 ///    
 @DllImport("SHELL32")
-HRESULT SHStartNetConnectionDialogW(HWND hwnd, const(wchar)* pszRemoteName, uint dwType);
+HRESULT SHStartNetConnectionDialogW(HWND hwnd, const(PWSTR) pszRemoteName, uint dwType);
 
 ///Provides a default handler to extract an icon from a file.
 ///Params:
@@ -12629,8 +12552,8 @@ HRESULT SHStartNetConnectionDialogW(HWND hwnd, const(wchar)* pszRemoteName, uint
 ///    cannot be accessed, or is being accessed through a slow link. </td> </tr> </table>
 ///    
 @DllImport("SHELL32")
-HRESULT SHDefExtractIconA(const(char)* pszIconFile, int iIndex, uint uFlags, HICON* phiconLarge, 
-                          HICON* phiconSmall, uint nIconSize);
+HRESULT SHDefExtractIconA(const(PSTR) pszIconFile, int iIndex, uint uFlags, HICON* phiconLarge, HICON* phiconSmall, 
+                          uint nIconSize);
 
 ///Provides a default handler to extract an icon from a file.
 ///Params:
@@ -12654,7 +12577,7 @@ HRESULT SHDefExtractIconA(const(char)* pszIconFile, int iIndex, uint uFlags, HIC
 ///    cannot be accessed, or is being accessed through a slow link. </td> </tr> </table>
 ///    
 @DllImport("SHELL32")
-HRESULT SHDefExtractIconW(const(wchar)* pszIconFile, int iIndex, uint uFlags, HICON* phiconLarge, 
+HRESULT SHDefExtractIconW(const(PWSTR) pszIconFile, int iIndex, uint uFlags, HICON* phiconLarge, 
                           HICON* phiconSmall, uint nIconSize);
 
 ///Displays the <b>Open With</b> dialog box.
@@ -12696,7 +12619,7 @@ BOOL Shell_GetImageLists(HIMAGELIST* phiml, HIMAGELIST* phimlSmall);
 ///    Type: <b>int</b> Returns the index of the image, or –1 on failure.
 ///    
 @DllImport("SHELL32")
-int Shell_GetCachedImageIndex(const(wchar)* pwszIconPath, int iIconIndex, uint uIconFlags);
+int Shell_GetCachedImageIndex(const(PWSTR) pwszIconPath, int iIconIndex, uint uIconFlags);
 
 ///<p class="CCE_Message">[<b>Shell_GetCachedImageIndex</b> is available for use in the operating systems specified in
 ///the Requirements section. It may be altered or unavailable in subsequent versions. Instead, use
@@ -12709,7 +12632,7 @@ int Shell_GetCachedImageIndex(const(wchar)* pwszIconPath, int iIconIndex, uint u
 ///    Type: <b>int</b> Returns the index of the image, or –1 on failure.
 ///    
 @DllImport("SHELL32")
-int Shell_GetCachedImageIndexA(const(char)* pszIconPath, int iIconIndex, uint uIconFlags);
+int Shell_GetCachedImageIndexA(const(PSTR) pszIconPath, int iIconIndex, uint uIconFlags);
 
 ///<p class="CCE_Message">[<b>Shell_GetCachedImageIndex</b> is available for use in the operating systems specified in
 ///the Requirements section. It may be altered or unavailable in subsequent versions. Instead, use
@@ -12722,7 +12645,7 @@ int Shell_GetCachedImageIndexA(const(char)* pszIconPath, int iIconIndex, uint uI
 ///    Type: <b>int</b> Returns the index of the image, or –1 on failure.
 ///    
 @DllImport("SHELL32")
-int Shell_GetCachedImageIndexW(const(wchar)* pszIconPath, int iIconIndex, uint uIconFlags);
+int Shell_GetCachedImageIndexW(const(PWSTR) pszIconPath, int iIconIndex, uint uIconFlags);
 
 ///<p class="CCE_Message">[<b>SHValidateUNC</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions.] Validates a Universal Naming
@@ -12735,7 +12658,7 @@ int Shell_GetCachedImageIndexW(const(wchar)* pszIconPath, int iIconIndex, uint u
 ///              This string must not be a constant string.
 ///    fConnect = Type: <b>UINT</b> One or more of the following values.
 @DllImport("SHELL32")
-BOOL SHValidateUNC(HWND hwndOwner, const(wchar)* pszFile, uint fConnect);
+BOOL SHValidateUNC(HWND hwndOwner, PWSTR pszFile, VALIDATEUNC_OPTION fConnect);
 
 ///Provides an interface that allows hosted Shell extensions and other components to prevent their host process from
 ///closing prematurely. The host process is typically Windows Explorer or Windows Internet Explorer, but this function
@@ -12821,8 +12744,8 @@ HRESULT SHCreateShellFolderView(const(SFV_CREATE)* pcsfv, IShellView* ppsv);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHELL32")
-HRESULT CDefFolderMenu_Create2(ITEMIDLIST* pidlFolder, HWND hwnd, uint cidl, char* apidl, IShellFolder psf, 
-                               LPFNDFMCALLBACK pfn, uint nKeys, char* ahkeys, IContextMenu* ppcm);
+HRESULT CDefFolderMenu_Create2(ITEMIDLIST* pidlFolder, HWND hwnd, uint cidl, ITEMIDLIST** apidl, IShellFolder psf, 
+                               LPFNDFMCALLBACK pfn, uint nKeys, const(HKEY)* ahkeys, IContextMenu* ppcm);
 
 ///Creates an object that represents the Shell's default context menu implementation.
 ///Params:
@@ -12873,7 +12796,7 @@ HRESULT SHCreateShellFolderViewEx(CSFV* pcsfv, IShellView* ppsv);
 ///    bSet = Type: <b>BOOL</b> <b>TRUE</b> to indicate that the contents of <i>lpss</i> should be used to set the Shell
 ///           settings, <b>FALSE</b> to indicate that the Shell settings should be retrieved to <i>lpss</i>.
 @DllImport("SHELL32")
-void SHGetSetSettings(SHELLSTATEA* lpss, uint dwMask, BOOL bSet);
+void SHGetSetSettings(SHELLSTATEA* lpss, SSF_MASK dwMask, BOOL bSet);
 
 ///Retrieves the current Shell option settings.
 ///Params:
@@ -12987,7 +12910,7 @@ HRESULT SHBindToObject(IShellFolder psf, ITEMIDLIST* pidl, IBindCtx pbc, const(G
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHELL32")
-HRESULT SHParseDisplayName(const(wchar)* pszName, IBindCtx pbc, ITEMIDLIST** ppidl, uint sfgaoIn, uint* psfgaoOut);
+HRESULT SHParseDisplayName(const(PWSTR) pszName, IBindCtx pbc, ITEMIDLIST** ppidl, uint sfgaoIn, uint* psfgaoOut);
 
 ///Checks to see if the path exists. This includes remounting mapped network drives, prompting for ejectable media to be
 ///reinserted, creating the paths, prompting for the media to be formatted, and providing the appropriate user
@@ -13006,7 +12929,7 @@ HRESULT SHParseDisplayName(const(wchar)* pszName, IBindCtx pbc, ITEMIDLIST** ppi
 ///    of S_OK does not mean that the medium is writable; it simply means that the path is available.
 ///    
 @DllImport("SHELL32")
-HRESULT SHPathPrepareForWriteA(HWND hwnd, IUnknown punkEnableModless, const(char)* pszPath, uint dwFlags);
+HRESULT SHPathPrepareForWriteA(HWND hwnd, IUnknown punkEnableModless, const(PSTR) pszPath, uint dwFlags);
 
 ///Checks to see if the path exists. This includes remounting mapped network drives, prompting for ejectable media to be
 ///reinserted, creating the paths, prompting for the media to be formatted, and providing the appropriate user
@@ -13025,7 +12948,7 @@ HRESULT SHPathPrepareForWriteA(HWND hwnd, IUnknown punkEnableModless, const(char
 ///    of S_OK does not mean that the medium is writable; it simply means that the path is available.
 ///    
 @DllImport("SHELL32")
-HRESULT SHPathPrepareForWriteW(HWND hwnd, IUnknown punkEnableModless, const(wchar)* pszPath, uint dwFlags);
+HRESULT SHPathPrepareForWriteW(HWND hwnd, IUnknown punkEnableModless, const(PWSTR) pszPath, uint dwFlags);
 
 ///<p class="CCE_Message">[<b>SHCreateFileExtractIcon</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions.] Creates a default IExtractIcon
@@ -13041,7 +12964,7 @@ HRESULT SHPathPrepareForWriteW(HWND hwnd, IUnknown punkEnableModless, const(wcha
 ///    ppv = Type: <b>void**</b> When this function returns, contains the interface pointer requested in <i>riid</i>. This is
 ///          typically IExtractIcon.
 @DllImport("SHELL32")
-HRESULT SHCreateFileExtractIconW(const(wchar)* pszFile, uint dwFileAttributes, const(GUID)* riid, void** ppv);
+HRESULT SHCreateFileExtractIconW(const(PWSTR) pszFile, uint dwFileAttributes, const(GUID)* riid, void** ppv);
 
 ///<p class="CCE_Message">[This function is available through Windows XP Service Pack 2 (SP2) and Windows Server 2003.
 ///It might be altered or unavailable in subsequent versions of Windows.] Sets limits on valid characters for an edit
@@ -13092,7 +13015,7 @@ int SHMapPIDLToSystemImageListIndex(IShellFolder pshf, ITEMIDLIST* pidl, int* pi
 ///    pclsid = Type: <b>CLSID*</b> A pointer to a CLSID value that, when this function returns successfully, receives the
 ///             converted string as a CLSID.
 @DllImport("SHELL32")
-HRESULT SHCLSIDFromString(const(wchar)* psz, GUID* pclsid);
+HRESULT SHCLSIDFromString(const(PWSTR) psz, GUID* pclsid);
 
 ///<p class="CCE_Message">[<b>PickIconDlg</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions.] Displays a dialog box that allows the
@@ -13108,7 +13031,7 @@ HRESULT SHCLSIDFromString(const(wchar)* psz, GUID* pclsid);
 ///    piIconIndex = Type: <b>int*</b> A pointer to an integer that on entry specifies the index of the initial selection and, when
 ///                  this function returns successfully, receives the index of the icon that was selected.
 @DllImport("SHELL32")
-int PickIconDlg(HWND hwnd, const(wchar)* pszIconPath, uint cchIconPath, int* piIconIndex);
+int PickIconDlg(HWND hwnd, PWSTR pszIconPath, uint cchIconPath, int* piIconIndex);
 
 ///Creates a unique name for a stream or storage object from a template.
 ///Params:
@@ -13126,7 +13049,7 @@ int PickIconDlg(HWND hwnd, const(wchar)* pszIconPath, uint cchIconPath, int* piI
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHELL32")
-HRESULT StgMakeUniqueName(IStorage pstgParent, const(wchar)* pszFileSpec, uint grfMode, const(GUID)* riid, 
+HRESULT StgMakeUniqueName(IStorage pstgParent, const(PWSTR) pszFileSpec, uint grfMode, const(GUID)* riid, 
                           void** ppv);
 
 ///Enables asynchronous register and deregister of a thread.
@@ -13134,7 +13057,7 @@ HRESULT StgMakeUniqueName(IStorage pstgParent, const(wchar)* pszFileSpec, uint g
 void SHChangeNotifyRegisterThread(SCNRT_STATUS status);
 
 @DllImport("SHELL32")
-void PathQualify(const(wchar)* psz);
+void PathQualify(PWSTR psz);
 
 ///<p class="CCE_Message">[<b>PathIsSlow</b> is available for use in the operating systems specified in the Requirements
 ///section. It may be altered or unavailable in subsequent versions.] Determines whether a file path is a high-latency
@@ -13147,7 +13070,7 @@ void PathQualify(const(wchar)* psz);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if the connection is high-latency; otherwise, <b>FALSE</b>.
 ///    
 @DllImport("SHELL32")
-BOOL PathIsSlowA(const(char)* pszFile, uint dwAttr);
+BOOL PathIsSlowA(const(PSTR) pszFile, uint dwAttr);
 
 ///<p class="CCE_Message">[<b>PathIsSlow</b> is available for use in the operating systems specified in the Requirements
 ///section. It may be altered or unavailable in subsequent versions.] Determines whether a file path is a high-latency
@@ -13160,7 +13083,7 @@ BOOL PathIsSlowA(const(char)* pszFile, uint dwAttr);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if the connection is high-latency; otherwise, <b>FALSE</b>.
 ///    
 @DllImport("SHELL32")
-BOOL PathIsSlowW(const(wchar)* pszFile, uint dwAttr);
+BOOL PathIsSlowW(const(PWSTR) pszFile, uint dwAttr);
 
 ///<p class="CCE_Message">[<b>SHCreatePropSheetExtArray</b> is available for use in the operating systems specified in
 ///the Requirements section. It may be altered or unavailable in subsequent versions.] Loads all the Shell property
@@ -13176,7 +13099,7 @@ BOOL PathIsSlowW(const(wchar)* pszFile, uint dwAttr);
 ///    SHAddFromPropSheetExtArray. You do not access this value directly.
 ///    
 @DllImport("SHELL32")
-HPSXA__* SHCreatePropSheetExtArray(HKEY hKey, const(wchar)* pszSubKey, uint max_iface);
+HPSXA__* SHCreatePropSheetExtArray(HKEY hKey, const(PWSTR) pszSubKey, uint max_iface);
 
 ///<p class="CCE_Message">[<b>SHOpenPropSheet</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions.] Creates a property sheet from a list
@@ -13196,8 +13119,8 @@ HPSXA__* SHCreatePropSheetExtArray(HKEY hKey, const(wchar)* pszSubKey, uint max_
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if the property sheet was successfully created; otherwise, <b>FALSE</b>.
 ///    
 @DllImport("SHELL32")
-BOOL SHOpenPropSheetW(const(wchar)* pszCaption, char* ahkeys, uint ckeys, const(GUID)* pclsidDefault, 
-                      IDataObject pdtobj, IShellBrowser psb, const(wchar)* pStartPage);
+BOOL SHOpenPropSheetW(const(PWSTR) pszCaption, HKEY** ahkeys, uint ckeys, const(GUID)* pclsidDefault, 
+                      IDataObject pdtobj, IShellBrowser psb, const(PWSTR) pStartPage);
 
 ///Displays a standard message box that can be used to notify a user that an application has been updated.
 ///Params:
@@ -13219,7 +13142,7 @@ BOOL SHOpenPropSheetW(const(wchar)* pszCaption, char* ahkeys, uint ckeys, const(
 ///    error occurred. </td> </tr> </table>
 ///    
 @DllImport("SHDOCVW")
-uint SoftwareUpdateMessageBox(HWND hWnd, const(wchar)* pszDistUnit, uint dwFlags, SOFTDISTINFO* psdi);
+uint SoftwareUpdateMessageBox(HWND hWnd, const(PWSTR) pszDistUnit, uint dwFlags, SOFTDISTINFO* psdi);
 
 ///Displays a merged property sheet for a set of files. Property values common to all the files are shown while those
 ///that differ display the string <b>(multiple values)</b>.
@@ -13254,10 +13177,10 @@ HRESULT SHMultiFileProperties(IDataObject pdtobj, uint dwFlags);
 HRESULT SHCreateQueryCancelAutoPlayMoniker(IMoniker* ppmoniker);
 
 @DllImport("SHDOCVW")
-BOOL ImportPrivacySettings(const(wchar)* pszFilename, int* pfParsePrivacyPreferences, int* pfParsePerSiteRules);
+BOOL ImportPrivacySettings(const(PWSTR) pszFilename, BOOL* pfParsePrivacyPreferences, BOOL* pfParsePerSiteRules);
 
 @DllImport("SHDOCVW")
-HRESULT DoPrivacyDlg(HWND hwndOwner, const(wchar)* pszUrl, IEnumPrivacyRecords pPrivacyEnum, BOOL fReportAllSites);
+HRESULT DoPrivacyDlg(HWND hwndOwner, const(PWSTR) pszUrl, IEnumPrivacyRecords pPrivacyEnum, BOOL fReportAllSites);
 
 ///Gets the preferred scale factor for a display device. <div class="alert"><b>Note</b> This function is not supported
 ///as of Windows 8.1. Use GetScaleFactorForMonitor instead.</div><div> </div>
@@ -13317,7 +13240,7 @@ HRESULT RevokeScaleChangeNotifications(DISPLAY_DEVICE_TYPE displayDevice, uint d
 ///    If this function succeeds, it returns <b>S_OK</b>. Otherwise, it returns an <b>HRESULT</b> error code.
 ///    
 @DllImport("api-ms-win-shcore-scaling-l1-1-1")
-HRESULT GetScaleFactorForMonitor(ptrdiff_t hMon, DEVICE_SCALE_FACTOR* pScale);
+HRESULT GetScaleFactorForMonitor(HMONITOR hMon, DEVICE_SCALE_FACTOR* pScale);
 
 ///Registers for an event that is triggered when the scale has possibly changed. This function replaces
 ///RegisterScaleChangeNotifications.
@@ -13358,7 +13281,7 @@ uint GetDpiForShellUIComponent(SHELL_UI_COMPONENT param0);
 ///    <b>NULL</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-byte* StrChrA(const(char)* pszStart, ushort wMatch);
+PSTR StrChrA(const(PSTR) pszStart, ushort wMatch);
 
 ///Searches a string for the first occurrence of a character that matches the specified character. The comparison is
 ///case-sensitive.
@@ -13370,7 +13293,7 @@ byte* StrChrA(const(char)* pszStart, ushort wMatch);
 ///    <b>NULL</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-ushort* StrChrW(const(wchar)* pszStart, ushort wMatch);
+PWSTR StrChrW(const(PWSTR) pszStart, ushort wMatch);
 
 ///Searches a string for the first occurrence of a character that matches the specified character. The comparison is not
 ///case-sensitive.
@@ -13382,7 +13305,7 @@ ushort* StrChrW(const(wchar)* pszStart, ushort wMatch);
 ///    <b>NULL</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-byte* StrChrIA(const(char)* pszStart, ushort wMatch);
+PSTR StrChrIA(const(PSTR) pszStart, ushort wMatch);
 
 ///Searches a string for the first occurrence of a character that matches the specified character. The comparison is not
 ///case-sensitive.
@@ -13394,7 +13317,7 @@ byte* StrChrIA(const(char)* pszStart, ushort wMatch);
 ///    <b>NULL</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-ushort* StrChrIW(const(wchar)* pszStart, ushort wMatch);
+PWSTR StrChrIW(const(PWSTR) pszStart, ushort wMatch);
 
 ///Searches a string for the first occurrence of a specified character. The comparison is case-sensitive.
 ///Params:
@@ -13406,7 +13329,7 @@ ushort* StrChrIW(const(wchar)* pszStart, ushort wMatch);
 ///    <b>NULL</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-ushort* StrChrNW(const(wchar)* pszStart, ushort wMatch, uint cchMax);
+PWSTR StrChrNW(const(PWSTR) pszStart, ushort wMatch, uint cchMax);
 
 ///Searches a string for the first occurrence of a specified character. The comparison is not case-sensitive.
 ///Params:
@@ -13418,7 +13341,7 @@ ushort* StrChrNW(const(wchar)* pszStart, ushort wMatch, uint cchMax);
 ///    <b>NULL</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-ushort* StrChrNIW(const(wchar)* pszStart, ushort wMatch, uint cchMax);
+PWSTR StrChrNIW(const(PWSTR) pszStart, ushort wMatch, uint cchMax);
 
 ///Compares a specified number of characters from the beginning of two strings to determine if they are the same. The
 ///comparison is case-sensitive. The <b>StrNCmp</b> macro differs from this function in name only.
@@ -13433,7 +13356,7 @@ ushort* StrChrNIW(const(wchar)* pszStart, ushort wMatch, uint cchMax);
 ///    <i>psz1</i> are less than those from the string pointed to by <i>psz2</i>.
 ///    
 @DllImport("SHLWAPI")
-int StrCmpNA(const(char)* psz1, const(char)* psz2, int nChar);
+int StrCmpNA(const(PSTR) psz1, const(PSTR) psz2, int nChar);
 
 ///Compares a specified number of characters from the beginning of two strings to determine if they are the same. The
 ///comparison is case-sensitive. The <b>StrNCmp</b> macro differs from this function in name only.
@@ -13448,7 +13371,7 @@ int StrCmpNA(const(char)* psz1, const(char)* psz2, int nChar);
 ///    <i>psz1</i> are less than those from the string pointed to by <i>psz2</i>.
 ///    
 @DllImport("SHLWAPI")
-int StrCmpNW(const(wchar)* psz1, const(wchar)* psz2, int nChar);
+int StrCmpNW(const(PWSTR) psz1, const(PWSTR) psz2, int nChar);
 
 ///Compares a specified number of characters from the beginning of two strings to determine if they are the same. The
 ///comparison is not case-sensitive. The <b>StrNCmpI</b> macro differs from this function in name only.
@@ -13463,7 +13386,7 @@ int StrCmpNW(const(wchar)* psz1, const(wchar)* psz2, int nChar);
 ///    <i>psz1</i> are less than those from the string pointed to by <i>psz2</i>.
 ///    
 @DllImport("SHLWAPI")
-int StrCmpNIA(const(char)* psz1, const(char)* psz2, int nChar);
+int StrCmpNIA(const(PSTR) psz1, const(PSTR) psz2, int nChar);
 
 ///Compares a specified number of characters from the beginning of two strings to determine if they are the same. The
 ///comparison is not case-sensitive. The <b>StrNCmpI</b> macro differs from this function in name only.
@@ -13478,7 +13401,7 @@ int StrCmpNIA(const(char)* psz1, const(char)* psz2, int nChar);
 ///    <i>psz1</i> are less than those from the string pointed to by <i>psz2</i>.
 ///    
 @DllImport("SHLWAPI")
-int StrCmpNIW(const(wchar)* psz1, const(wchar)* psz2, int nChar);
+int StrCmpNIW(const(PWSTR) psz1, const(PWSTR) psz2, int nChar);
 
 ///Searches a string for the first occurrence of any of a group of characters. The search method is case-sensitive, and
 ///the terminating <b>NULL</b> character is included within the search pattern match.
@@ -13490,7 +13413,7 @@ int StrCmpNIW(const(wchar)* psz1, const(wchar)* psz2, int nChar);
 ///    or the length of <i>pszStr</i> if no match is found.
 ///    
 @DllImport("SHLWAPI")
-int StrCSpnA(const(char)* pszStr, const(char)* pszSet);
+int StrCSpnA(const(PSTR) pszStr, const(PSTR) pszSet);
 
 ///Searches a string for the first occurrence of any of a group of characters. The search method is case-sensitive, and
 ///the terminating <b>NULL</b> character is included within the search pattern match.
@@ -13502,7 +13425,7 @@ int StrCSpnA(const(char)* pszStr, const(char)* pszSet);
 ///    or the length of <i>pszStr</i> if no match is found.
 ///    
 @DllImport("SHLWAPI")
-int StrCSpnW(const(wchar)* pszStr, const(wchar)* pszSet);
+int StrCSpnW(const(PWSTR) pszStr, const(PWSTR) pszSet);
 
 ///Searches a string for the first occurrence of any of a group of characters. The search method is not case-sensitive,
 ///and the terminating <b>NULL</b> character is included within the search pattern match.
@@ -13514,7 +13437,7 @@ int StrCSpnW(const(wchar)* pszStr, const(wchar)* pszSet);
 ///    or the length of <i>pszStr</i> if no match is found.
 ///    
 @DllImport("SHLWAPI")
-int StrCSpnIA(const(char)* pszStr, const(char)* pszSet);
+int StrCSpnIA(const(PSTR) pszStr, const(PSTR) pszSet);
 
 ///Searches a string for the first occurrence of any of a group of characters. The search method is not case-sensitive,
 ///and the terminating <b>NULL</b> character is included within the search pattern match.
@@ -13526,7 +13449,7 @@ int StrCSpnIA(const(char)* pszStr, const(char)* pszSet);
 ///    or the length of <i>pszStr</i> if no match is found.
 ///    
 @DllImport("SHLWAPI")
-int StrCSpnIW(const(wchar)* pszStr, const(wchar)* pszSet);
+int StrCSpnIW(const(PWSTR) pszStr, const(PWSTR) pszSet);
 
 ///Duplicates a string.
 ///Params:
@@ -13536,7 +13459,7 @@ int StrCSpnIW(const(wchar)* pszStr, const(wchar)* pszSet);
 ///    copied.
 ///    
 @DllImport("SHLWAPI")
-byte* StrDupA(const(char)* pszSrch);
+PSTR StrDupA(const(PSTR) pszSrch);
 
 ///Duplicates a string.
 ///Params:
@@ -13546,7 +13469,7 @@ byte* StrDupA(const(char)* pszSrch);
 ///    copied.
 ///    
 @DllImport("SHLWAPI")
-ushort* StrDupW(const(wchar)* pszSrch);
+PWSTR StrDupW(const(PWSTR) pszSrch);
 
 ///Converts a numeric value into a string that represents the number in bytes, kilobytes, megabytes, or gigabytes,
 ///depending on the size. Extends StrFormatByteSizeW by offering the option to round to the nearest displayed digit or
@@ -13563,7 +13486,7 @@ ushort* StrDupW(const(wchar)* pszSrch);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHLWAPI")
-HRESULT StrFormatByteSizeEx(ulong ull, int flags, const(wchar)* pszBuf, uint cchBuf);
+HRESULT StrFormatByteSizeEx(ulong ull, int flags, PWSTR pszBuf, uint cchBuf);
 
 ///Converts a numeric value into a string that represents the number expressed as a size value in bytes, kilobytes,
 ///megabytes, or gigabytes, depending on the size. Differs from StrFormatByteSizeW in one parameter type.
@@ -13575,7 +13498,7 @@ HRESULT StrFormatByteSizeEx(ulong ull, int flags, const(wchar)* pszBuf, uint cch
 ///    Type: <b>PSTR</b> Returns a pointer to the converted string, or <b>NULL</b> if the conversion fails.
 ///    
 @DllImport("SHLWAPI")
-byte* StrFormatByteSizeA(uint dw, const(char)* pszBuf, uint cchBuf);
+PSTR StrFormatByteSizeA(uint dw, PSTR pszBuf, uint cchBuf);
 
 ///Converts a numeric value into a string that represents the number expressed as a size value in bytes, kilobytes,
 ///megabytes, or gigabytes, depending on the size.
@@ -13588,7 +13511,7 @@ byte* StrFormatByteSizeA(uint dw, const(char)* pszBuf, uint cchBuf);
 ///    Type: <b>PSTR</b> Returns a pointer to the converted string, or <b>NULL</b> if the conversion fails.
 ///    
 @DllImport("SHLWAPI")
-byte* StrFormatByteSize64A(long qdw, const(char)* pszBuf, uint cchBuf);
+PSTR StrFormatByteSize64A(long qdw, PSTR pszBuf, uint cchBuf);
 
 ///Converts a numeric value into a string that represents the number expressed as a size value in bytes, kilobytes,
 ///megabytes, or gigabytes, depending on the size. Differs from StrFormatByteSizeA in one parameter type.
@@ -13601,7 +13524,7 @@ byte* StrFormatByteSize64A(long qdw, const(char)* pszBuf, uint cchBuf);
 ///    Type: <b>PWSTR</b> Returns a pointer to the converted string, or <b>NULL</b> if the conversion fails.
 ///    
 @DllImport("SHLWAPI")
-ushort* StrFormatByteSizeW(long qdw, const(wchar)* pszBuf, uint cchBuf);
+PWSTR StrFormatByteSizeW(long qdw, PWSTR pszBuf, uint cchBuf);
 
 ///Converts a numeric value into a string that represents the number expressed as a size value in kilobytes.
 ///Params:
@@ -13613,7 +13536,7 @@ ushort* StrFormatByteSizeW(long qdw, const(wchar)* pszBuf, uint cchBuf);
 ///    Type: <b>PTSTR</b> Returns a pointer to the converted string, or <b>NULL</b> if the conversion fails.
 ///    
 @DllImport("SHLWAPI")
-ushort* StrFormatKBSizeW(long qdw, const(wchar)* pszBuf, uint cchBuf);
+PWSTR StrFormatKBSizeW(long qdw, PWSTR pszBuf, uint cchBuf);
 
 ///Converts a numeric value into a string that represents the number expressed as a size value in kilobytes.
 ///Params:
@@ -13625,7 +13548,7 @@ ushort* StrFormatKBSizeW(long qdw, const(wchar)* pszBuf, uint cchBuf);
 ///    Type: <b>PTSTR</b> Returns a pointer to the converted string, or <b>NULL</b> if the conversion fails.
 ///    
 @DllImport("SHLWAPI")
-byte* StrFormatKBSizeA(long qdw, const(char)* pszBuf, uint cchBuf);
+PSTR StrFormatKBSizeA(long qdw, PSTR pszBuf, uint cchBuf);
 
 ///Converts a time interval, specified in milliseconds, to a string.
 ///Params:
@@ -13645,7 +13568,7 @@ byte* StrFormatKBSizeA(long qdw, const(char)* pszBuf, uint cchBuf);
 ///    character.
 ///    
 @DllImport("SHLWAPI")
-int StrFromTimeIntervalA(const(char)* pszOut, uint cchMax, uint dwTimeMS, int digits);
+int StrFromTimeIntervalA(PSTR pszOut, uint cchMax, uint dwTimeMS, int digits);
 
 ///Converts a time interval, specified in milliseconds, to a string.
 ///Params:
@@ -13665,7 +13588,7 @@ int StrFromTimeIntervalA(const(char)* pszOut, uint cchMax, uint dwTimeMS, int di
 ///    character.
 ///    
 @DllImport("SHLWAPI")
-int StrFromTimeIntervalW(const(wchar)* pszOut, uint cchMax, uint dwTimeMS, int digits);
+int StrFromTimeIntervalW(PWSTR pszOut, uint cchMax, uint dwTimeMS, int digits);
 
 ///Compares a specified number of characters from the beginning of two strings to determine if they are equal.
 ///Params:
@@ -13679,7 +13602,7 @@ int StrFromTimeIntervalW(const(wchar)* pszOut, uint cchMax, uint dwTimeMS, int d
 ///    <b>FALSE</b>.
 ///    
 @DllImport("SHLWAPI")
-BOOL StrIsIntlEqualA(BOOL fCaseSens, const(char)* pszString1, const(char)* pszString2, int nChar);
+BOOL StrIsIntlEqualA(BOOL fCaseSens, const(PSTR) pszString1, const(PSTR) pszString2, int nChar);
 
 ///Compares a specified number of characters from the beginning of two strings to determine if they are equal.
 ///Params:
@@ -13693,7 +13616,7 @@ BOOL StrIsIntlEqualA(BOOL fCaseSens, const(char)* pszString1, const(char)* pszSt
 ///    <b>FALSE</b>.
 ///    
 @DllImport("SHLWAPI")
-BOOL StrIsIntlEqualW(BOOL fCaseSens, const(wchar)* pszString1, const(wchar)* pszString2, int nChar);
+BOOL StrIsIntlEqualW(BOOL fCaseSens, const(PWSTR) pszString1, const(PWSTR) pszString2, int nChar);
 
 ///Appends a specified number of characters from the beginning of one string to the end of another. <div
 ///class="alert"><b>Note</b> Do not use this function or the <b>StrCatN</b> macro. See Remarks for alternative
@@ -13707,7 +13630,7 @@ BOOL StrIsIntlEqualW(BOOL fCaseSens, const(wchar)* pszString1, const(wchar)* psz
 ///    Type: <b>PTSTR</b> Returns a pointer to <i>psz1</i>, which holds the combined string.
 ///    
 @DllImport("SHLWAPI")
-byte* StrNCatA(const(char)* psz1, const(char)* psz2, int cchMax);
+PSTR StrNCatA(PSTR psz1, const(PSTR) psz2, int cchMax);
 
 ///Appends a specified number of characters from the beginning of one string to the end of another. <div
 ///class="alert"><b>Note</b> Do not use this function or the <b>StrCatN</b> macro. See Remarks for alternative
@@ -13721,7 +13644,7 @@ byte* StrNCatA(const(char)* psz1, const(char)* psz2, int cchMax);
 ///    Type: <b>PTSTR</b> Returns a pointer to <i>psz1</i>, which holds the combined string.
 ///    
 @DllImport("SHLWAPI")
-ushort* StrNCatW(const(wchar)* psz1, const(wchar)* psz2, int cchMax);
+PWSTR StrNCatW(PWSTR psz1, const(PWSTR) psz2, int cchMax);
 
 ///Searches a string for the first occurrence of a character contained in a specified buffer. This search does not
 ///include the terminating null character.
@@ -13734,7 +13657,7 @@ ushort* StrNCatW(const(wchar)* psz1, const(wchar)* psz2, int cchMax);
 ///    buffer at <i>pszSet</i>, or <b>NULL</b> if no match is found.
 ///    
 @DllImport("SHLWAPI")
-byte* StrPBrkA(const(char)* psz, const(char)* pszSet);
+PSTR StrPBrkA(const(PSTR) psz, const(PSTR) pszSet);
 
 ///Searches a string for the first occurrence of a character contained in a specified buffer. This search does not
 ///include the terminating null character.
@@ -13747,7 +13670,7 @@ byte* StrPBrkA(const(char)* psz, const(char)* pszSet);
 ///    buffer at <i>pszSet</i>, or <b>NULL</b> if no match is found.
 ///    
 @DllImport("SHLWAPI")
-ushort* StrPBrkW(const(wchar)* psz, const(wchar)* pszSet);
+PWSTR StrPBrkW(const(PWSTR) psz, const(PWSTR) pszSet);
 
 ///Searches a string for the last occurrence of a specified character. The comparison is case-sensitive.
 ///Params:
@@ -13761,7 +13684,7 @@ ushort* StrPBrkW(const(wchar)* psz, const(wchar)* pszSet);
 ///    <b>NULL</b> if not.
 ///    
 @DllImport("SHLWAPI")
-byte* StrRChrA(const(char)* pszStart, const(char)* pszEnd, ushort wMatch);
+PSTR StrRChrA(const(PSTR) pszStart, const(PSTR) pszEnd, ushort wMatch);
 
 ///Searches a string for the last occurrence of a specified character. The comparison is case-sensitive.
 ///Params:
@@ -13775,7 +13698,7 @@ byte* StrRChrA(const(char)* pszStart, const(char)* pszEnd, ushort wMatch);
 ///    <b>NULL</b> if not.
 ///    
 @DllImport("SHLWAPI")
-ushort* StrRChrW(const(wchar)* pszStart, const(wchar)* pszEnd, ushort wMatch);
+PWSTR StrRChrW(const(PWSTR) pszStart, const(PWSTR) pszEnd, ushort wMatch);
 
 ///Searches a string for the last occurrence of a specified character. The comparison is not case-sensitive.
 ///Params:
@@ -13789,7 +13712,7 @@ ushort* StrRChrW(const(wchar)* pszStart, const(wchar)* pszEnd, ushort wMatch);
 ///    <b>NULL</b> if not.
 ///    
 @DllImport("SHLWAPI")
-byte* StrRChrIA(const(char)* pszStart, const(char)* pszEnd, ushort wMatch);
+PSTR StrRChrIA(const(PSTR) pszStart, const(PSTR) pszEnd, ushort wMatch);
 
 ///Searches a string for the last occurrence of a specified character. The comparison is not case-sensitive.
 ///Params:
@@ -13803,7 +13726,7 @@ byte* StrRChrIA(const(char)* pszStart, const(char)* pszEnd, ushort wMatch);
 ///    <b>NULL</b> if not.
 ///    
 @DllImport("SHLWAPI")
-ushort* StrRChrIW(const(wchar)* pszStart, const(wchar)* pszEnd, ushort wMatch);
+PWSTR StrRChrIW(const(PWSTR) pszStart, const(PWSTR) pszEnd, ushort wMatch);
 
 ///Searches for the last occurrence of a specified substring within a string. The comparison is not case-sensitive.
 ///Params:
@@ -13817,7 +13740,7 @@ ushort* StrRChrIW(const(wchar)* pszStart, const(wchar)* pszEnd, ushort wMatch);
 ///    otherwise.
 ///    
 @DllImport("SHLWAPI")
-byte* StrRStrIA(const(char)* pszSource, const(char)* pszLast, const(char)* pszSrch);
+PSTR StrRStrIA(const(PSTR) pszSource, const(PSTR) pszLast, const(PSTR) pszSrch);
 
 ///Searches for the last occurrence of a specified substring within a string. The comparison is not case-sensitive.
 ///Params:
@@ -13831,7 +13754,7 @@ byte* StrRStrIA(const(char)* pszSource, const(char)* pszLast, const(char)* pszSr
 ///    otherwise.
 ///    
 @DllImport("SHLWAPI")
-ushort* StrRStrIW(const(wchar)* pszSource, const(wchar)* pszLast, const(wchar)* pszSrch);
+PWSTR StrRStrIW(const(PWSTR) pszSource, const(PWSTR) pszLast, const(PWSTR) pszSrch);
 
 ///Obtains the length of a substring within a string that consists entirely of characters contained in a specified
 ///buffer.
@@ -13843,7 +13766,7 @@ ushort* StrRStrIW(const(wchar)* pszSource, const(wchar)* pszLast, const(wchar)* 
 ///    Type: <b>int</b> Returns the length, in characters, of the matching string or zero if no match is found.
 ///    
 @DllImport("SHLWAPI")
-int StrSpnA(const(char)* psz, const(char)* pszSet);
+int StrSpnA(const(PSTR) psz, const(PSTR) pszSet);
 
 ///Obtains the length of a substring within a string that consists entirely of characters contained in a specified
 ///buffer.
@@ -13855,7 +13778,7 @@ int StrSpnA(const(char)* psz, const(char)* pszSet);
 ///    Type: <b>int</b> Returns the length, in characters, of the matching string or zero if no match is found.
 ///    
 @DllImport("SHLWAPI")
-int StrSpnW(const(wchar)* psz, const(wchar)* pszSet);
+int StrSpnW(const(PWSTR) psz, const(PWSTR) pszSet);
 
 ///Finds the first occurrence of a substring within a string. The comparison is case-sensitive.
 ///Params:
@@ -13866,7 +13789,7 @@ int StrSpnW(const(wchar)* psz, const(wchar)* pszSet);
 ///    <b>NULL</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-byte* StrStrA(const(char)* pszFirst, const(char)* pszSrch);
+PSTR StrStrA(const(PSTR) pszFirst, const(PSTR) pszSrch);
 
 ///Finds the first occurrence of a substring within a string. The comparison is case-sensitive.
 ///Params:
@@ -13877,7 +13800,7 @@ byte* StrStrA(const(char)* pszFirst, const(char)* pszSrch);
 ///    <b>NULL</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-ushort* StrStrW(const(wchar)* pszFirst, const(wchar)* pszSrch);
+PWSTR StrStrW(const(PWSTR) pszFirst, const(PWSTR) pszSrch);
 
 ///Finds the first occurrence of a substring within a string. The comparison is not case-sensitive.
 ///Params:
@@ -13888,7 +13811,7 @@ ushort* StrStrW(const(wchar)* pszFirst, const(wchar)* pszSrch);
 ///    <b>NULL</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-byte* StrStrIA(const(char)* pszFirst, const(char)* pszSrch);
+PSTR StrStrIA(const(PSTR) pszFirst, const(PSTR) pszSrch);
 
 ///Finds the first occurrence of a substring within a string. The comparison is not case-sensitive.
 ///Params:
@@ -13899,7 +13822,7 @@ byte* StrStrIA(const(char)* pszFirst, const(char)* pszSrch);
 ///    <b>NULL</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-ushort* StrStrIW(const(wchar)* pszFirst, const(wchar)* pszSrch);
+PWSTR StrStrIW(const(PWSTR) pszFirst, const(PWSTR) pszSrch);
 
 ///Finds the first occurrence of a substring within a string. The comparison is case-sensitive.
 ///Params:
@@ -13908,7 +13831,7 @@ ushort* StrStrIW(const(wchar)* pszFirst, const(wchar)* pszSrch);
 ///    cchMax = Type: <b>UINT</b> The maximum number of characters from the beginning of the searched string in which to search
 ///             for the substring.
 @DllImport("SHLWAPI")
-ushort* StrStrNW(const(wchar)* pszFirst, const(wchar)* pszSrch, uint cchMax);
+PWSTR StrStrNW(const(PWSTR) pszFirst, const(PWSTR) pszSrch, uint cchMax);
 
 ///Finds the first occurrence of a substring within a string. The comparison is case-insensitive.
 ///Params:
@@ -13917,7 +13840,7 @@ ushort* StrStrNW(const(wchar)* pszFirst, const(wchar)* pszSrch, uint cchMax);
 ///    cchMax = Type: <b>UINT</b> The maximum number of characters from the beginning of the searched string in which to search
 ///             for the substring.
 @DllImport("SHLWAPI")
-ushort* StrStrNIW(const(wchar)* pszFirst, const(wchar)* pszSrch, uint cchMax);
+PWSTR StrStrNIW(const(PWSTR) pszFirst, const(PWSTR) pszSrch, uint cchMax);
 
 ///Converts a string that represents a decimal value to an integer. The <b>StrToLong</b> macro is identical to this
 ///function.
@@ -13932,7 +13855,7 @@ ushort* StrStrNIW(const(wchar)* pszFirst, const(wchar)* pszSrch, uint cchMax);
 ///    returns the integer value 123.
 ///    
 @DllImport("SHLWAPI")
-int StrToIntA(const(char)* pszSrc);
+int StrToIntA(const(PSTR) pszSrc);
 
 ///Converts a string that represents a decimal value to an integer. The <b>StrToLong</b> macro is identical to this
 ///function.
@@ -13947,7 +13870,7 @@ int StrToIntA(const(char)* pszSrc);
 ///    returns the integer value 123.
 ///    
 @DllImport("SHLWAPI")
-int StrToIntW(const(wchar)* pszSrc);
+int StrToIntW(const(PWSTR) pszSrc);
 
 ///Converts a string representing a decimal or hexadecimal number to an integer.
 ///Params:
@@ -13963,7 +13886,7 @@ int StrToIntW(const(wchar)* pszSrc);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if the string is converted; otherwise <b>FALSE</b>.
 ///    
 @DllImport("SHLWAPI")
-BOOL StrToIntExA(const(char)* pszString, int dwFlags, int* piRet);
+BOOL StrToIntExA(const(PSTR) pszString, int dwFlags, int* piRet);
 
 ///Converts a string representing a decimal or hexadecimal number to an integer.
 ///Params:
@@ -13979,7 +13902,7 @@ BOOL StrToIntExA(const(char)* pszString, int dwFlags, int* piRet);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if the string is converted; otherwise <b>FALSE</b>.
 ///    
 @DllImport("SHLWAPI")
-BOOL StrToIntExW(const(wchar)* pszString, int dwFlags, int* piRet);
+BOOL StrToIntExW(const(PWSTR) pszString, int dwFlags, int* piRet);
 
 ///Converts a string representing a decimal or hexadecimal value to a 64-bit integer.
 ///Params:
@@ -13996,7 +13919,7 @@ BOOL StrToIntExW(const(wchar)* pszString, int dwFlags, int* piRet);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if the string is converted; otherwise <b>FALSE</b>.
 ///    
 @DllImport("SHLWAPI")
-BOOL StrToInt64ExA(const(char)* pszString, int dwFlags, long* pllRet);
+BOOL StrToInt64ExA(const(PSTR) pszString, int dwFlags, long* pllRet);
 
 ///Converts a string representing a decimal or hexadecimal value to a 64-bit integer.
 ///Params:
@@ -14013,7 +13936,7 @@ BOOL StrToInt64ExA(const(char)* pszString, int dwFlags, long* pllRet);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if the string is converted; otherwise <b>FALSE</b>.
 ///    
 @DllImport("SHLWAPI")
-BOOL StrToInt64ExW(const(wchar)* pszString, int dwFlags, long* pllRet);
+BOOL StrToInt64ExW(const(PWSTR) pszString, int dwFlags, long* pllRet);
 
 ///Removes specified leading and trailing characters from a string.
 ///Params:
@@ -14024,7 +13947,7 @@ BOOL StrToInt64ExW(const(wchar)* pszString, int dwFlags, long* pllRet);
 ///    Type: <b>BOOL</b> <b>TRUE</b> if any characters were removed; otherwise, <b>FALSE</b>.
 ///    
 @DllImport("SHLWAPI")
-BOOL StrTrimA(const(char)* psz, const(char)* pszTrimChars);
+BOOL StrTrimA(PSTR psz, const(PSTR) pszTrimChars);
 
 ///Removes specified leading and trailing characters from a string.
 ///Params:
@@ -14035,7 +13958,7 @@ BOOL StrTrimA(const(char)* psz, const(char)* pszTrimChars);
 ///    Type: <b>BOOL</b> <b>TRUE</b> if any characters were removed; otherwise, <b>FALSE</b>.
 ///    
 @DllImport("SHLWAPI")
-BOOL StrTrimW(const(wchar)* psz, const(wchar)* pszTrimChars);
+BOOL StrTrimW(PWSTR psz, const(PWSTR) pszTrimChars);
 
 ///Appends one string to another. <div class="alert"><b>Note</b> Do not use. See Remarks for alternative
 ///functions.</div><div> </div>
@@ -14048,21 +13971,21 @@ BOOL StrTrimW(const(wchar)* psz, const(wchar)* pszTrimChars);
 ///    Type: <b>PTSTR</b> Returns a pointer to <i>psz1</i>, which holds the combined strings.
 ///    
 @DllImport("SHLWAPI")
-ushort* StrCatW(const(wchar)* psz1, const(wchar)* psz2);
+PWSTR StrCatW(PWSTR psz1, const(PWSTR) psz2);
 
 ///Compares two strings to determine if they are the same. The comparison is case-sensitive.
 ///Params:
 ///    psz1 = Type: <b>PCTSTR</b> A pointer to the first null-terminated string to be compared.
 ///    psz2 = Type: <b>PCTSTR</b> A pointer to the second null-terminated string to be compared.
 @DllImport("SHLWAPI")
-int StrCmpW(const(wchar)* psz1, const(wchar)* psz2);
+int StrCmpW(const(PWSTR) psz1, const(PWSTR) psz2);
 
 ///Compares two strings to determine if they are the same. The comparison is not case-sensitive.
 ///Params:
 ///    psz1 = Type: <b>PCTSTR</b> A pointer to the first null-terminated string to be compared.
 ///    psz2 = Type: <b>PCTSTR</b> A pointer to the second null-terminated string to be compared.
 @DllImport("SHLWAPI")
-int StrCmpIW(const(wchar)* psz1, const(wchar)* psz2);
+int StrCmpIW(const(PWSTR) psz1, const(PWSTR) psz2);
 
 ///Copies one string to another. <div class="alert"><b>Note</b> Do not use. See Remarks for alternative
 ///functions.</div><div> </div>
@@ -14074,7 +13997,7 @@ int StrCmpIW(const(wchar)* psz1, const(wchar)* psz2);
 ///    Type: <b>PTSTR</b> Returns a pointer to <i>psz1</i>.
 ///    
 @DllImport("SHLWAPI")
-ushort* StrCpyW(const(wchar)* psz1, const(wchar)* psz2);
+PWSTR StrCpyW(PWSTR psz1, const(PWSTR) psz2);
 
 ///Copies a specified number of characters from the beginning of one string to another. <div class="alert"><b>Note</b>
 ///Do not use this function or the <b>StrNCpy</b> macro. See Remarks for alternative functions.</div><div> </div>
@@ -14088,7 +14011,7 @@ ushort* StrCpyW(const(wchar)* psz1, const(wchar)* psz2);
 ///    Type: <b>PTSTR</b> Returns a pointer to <i>pszDst</i>.
 ///    
 @DllImport("SHLWAPI")
-ushort* StrCpyNW(const(wchar)* pszDst, const(wchar)* pszSrc, int cchMax);
+PWSTR StrCpyNW(PWSTR pszDst, const(PWSTR) pszSrc, int cchMax);
 
 ///Copies and appends characters from one string to the end of another. <div class="alert"><b>Note</b> Do not use. See
 ///Remarks for alternative functions.</div><div> </div>
@@ -14103,7 +14026,7 @@ ushort* StrCpyNW(const(wchar)* pszDst, const(wchar)* pszSrc, int cchMax);
 ///    Type: <b>PTSTR</b> Returns a pointer to the destination string.
 ///    
 @DllImport("SHLWAPI")
-ushort* StrCatBuffW(const(wchar)* pszDest, const(wchar)* pszSrc, int cchDestBuffSize);
+PWSTR StrCatBuffW(PWSTR pszDest, const(PWSTR) pszSrc, int cchDestBuffSize);
 
 ///Copies and appends characters from one string to the end of another. <div class="alert"><b>Note</b> Do not use. See
 ///Remarks for alternative functions.</div><div> </div>
@@ -14118,7 +14041,7 @@ ushort* StrCatBuffW(const(wchar)* pszDest, const(wchar)* pszSrc, int cchDestBuff
 ///    Type: <b>PTSTR</b> Returns a pointer to the destination string.
 ///    
 @DllImport("SHLWAPI")
-byte* StrCatBuffA(const(char)* pszDest, const(char)* pszSrc, int cchDestBuffSize);
+PSTR StrCatBuffA(PSTR pszDest, const(PSTR) pszSrc, int cchDestBuffSize);
 
 ///Performs a comparison between two characters. The comparison is not case-sensitive.
 ///Params:
@@ -14154,7 +14077,7 @@ BOOL ChrCmpIW(ushort w1, ushort w2);
 ///    characters. A negative value is returned if an error occurs.
 ///    
 @DllImport("SHLWAPI")
-int wvnsprintfA(const(char)* pszDest, int cchDest, const(char)* pszFmt, byte* arglist);
+int wvnsprintfA(PSTR pszDest, int cchDest, const(PSTR) pszFmt, byte* arglist);
 
 ///Takes a list of arguments and returns the values of the arguments as a printf-style formatted string. <div
 ///class="alert"><b>Note</b> Do not use this function. See Remarks for alternative functions.</div><div> </div>
@@ -14170,7 +14093,7 @@ int wvnsprintfA(const(char)* pszDest, int cchDest, const(char)* pszFmt, byte* ar
 ///    characters. A negative value is returned if an error occurs.
 ///    
 @DllImport("SHLWAPI")
-int wvnsprintfW(const(wchar)* pszDest, int cchDest, const(wchar)* pszFmt, byte* arglist);
+int wvnsprintfW(PWSTR pszDest, int cchDest, const(PWSTR) pszFmt, byte* arglist);
 
 ///Takes a variable-length argument list and returns the values of the arguments as a printf-style formatted string.
 ///<div class="alert"><b>Note</b> Do not use this function. See Remarks for alternative functions.</div><div> </div>
@@ -14186,7 +14109,7 @@ int wvnsprintfW(const(wchar)* pszDest, int cchDest, const(wchar)* pszFmt, byte* 
 ///    characters. A negative value is returned if an error occurs.
 ///    
 @DllImport("SHLWAPI")
-int wnsprintfA(const(char)* pszDest, int cchDest, const(char)* pszFmt);
+int wnsprintfA(PSTR pszDest, int cchDest, const(PSTR) pszFmt);
 
 ///Takes a variable-length argument list and returns the values of the arguments as a printf-style formatted string.
 ///<div class="alert"><b>Note</b> Do not use this function. See Remarks for alternative functions.</div><div> </div>
@@ -14202,7 +14125,7 @@ int wnsprintfA(const(char)* pszDest, int cchDest, const(char)* pszFmt);
 ///    characters. A negative value is returned if an error occurs.
 ///    
 @DllImport("SHLWAPI")
-int wnsprintfW(const(wchar)* pszDest, int cchDest, const(wchar)* pszFmt);
+int wnsprintfW(PWSTR pszDest, int cchDest, const(PWSTR) pszFmt);
 
 ///Takes an STRRET structure returned by IShellFolder::GetDisplayNameOf and returns a pointer to an allocated string
 ///containing the display name.
@@ -14218,7 +14141,7 @@ int wnsprintfW(const(wchar)* pszDest, int cchDest, const(wchar)* pszFmt);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHLWAPI")
-HRESULT StrRetToStrA(STRRET* pstr, ITEMIDLIST* pidl, byte** ppsz);
+HRESULT StrRetToStrA(STRRET* pstr, ITEMIDLIST* pidl, PSTR* ppsz);
 
 ///Takes an STRRET structure returned by IShellFolder::GetDisplayNameOf and returns a pointer to an allocated string
 ///containing the display name.
@@ -14234,7 +14157,7 @@ HRESULT StrRetToStrA(STRRET* pstr, ITEMIDLIST* pidl, byte** ppsz);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHLWAPI")
-HRESULT StrRetToStrW(STRRET* pstr, ITEMIDLIST* pidl, ushort** ppsz);
+HRESULT StrRetToStrW(STRRET* pstr, ITEMIDLIST* pidl, PWSTR* ppsz);
 
 ///Converts an STRRET structure returned by IShellFolder::GetDisplayNameOf to a string, and places the result in a
 ///buffer.
@@ -14252,7 +14175,7 @@ HRESULT StrRetToStrW(STRRET* pstr, ITEMIDLIST* pidl, ushort** ppsz);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHLWAPI")
-HRESULT StrRetToBufA(STRRET* pstr, ITEMIDLIST* pidl, const(char)* pszBuf, uint cchBuf);
+HRESULT StrRetToBufA(STRRET* pstr, ITEMIDLIST* pidl, PSTR pszBuf, uint cchBuf);
 
 ///Converts an STRRET structure returned by IShellFolder::GetDisplayNameOf to a string, and places the result in a
 ///buffer.
@@ -14270,7 +14193,7 @@ HRESULT StrRetToBufA(STRRET* pstr, ITEMIDLIST* pidl, const(char)* pszBuf, uint c
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHLWAPI")
-HRESULT StrRetToBufW(STRRET* pstr, ITEMIDLIST* pidl, const(wchar)* pszBuf, uint cchBuf);
+HRESULT StrRetToBufW(STRRET* pstr, ITEMIDLIST* pidl, PWSTR pszBuf, uint cchBuf);
 
 ///Makes a copy of a string in newly allocated memory.
 ///Params:
@@ -14282,7 +14205,7 @@ HRESULT StrRetToBufW(STRRET* pstr, ITEMIDLIST* pidl, const(wchar)* pszBuf, uint 
 ///    Type: <b>HRESULT</b> Returns S_OK if successful, or a COM error value otherwise.
 ///    
 @DllImport("SHLWAPI")
-HRESULT SHStrDupA(const(char)* psz, ushort** ppwsz);
+HRESULT SHStrDupA(const(PSTR) psz, PWSTR* ppwsz);
 
 ///Makes a copy of a string in newly allocated memory.
 ///Params:
@@ -14294,7 +14217,7 @@ HRESULT SHStrDupA(const(char)* psz, ushort** ppwsz);
 ///    Type: <b>HRESULT</b> Returns S_OK if successful, or a COM error value otherwise.
 ///    
 @DllImport("SHLWAPI")
-HRESULT SHStrDupW(const(wchar)* psz, ushort** ppwsz);
+HRESULT SHStrDupW(const(PWSTR) psz, PWSTR* ppwsz);
 
 ///Compares two Unicode strings. Digits in the strings are considered as numerical content rather than text. This test
 ///is not case-sensitive.
@@ -14307,7 +14230,7 @@ HRESULT SHStrDupW(const(wchar)* psz, ushort** ppwsz);
 ///    to by <i>psz1</i> has a lesser value than that pointed to by <i>psz2</i>.</li> </ul>
 ///    
 @DllImport("SHLWAPI")
-int StrCmpLogicalW(const(wchar)* psz1, const(wchar)* psz2);
+int StrCmpLogicalW(const(PWSTR) psz1, const(PWSTR) psz2);
 
 ///Concatenates two Unicode strings. Used when repeated concatenations to the same buffer are required.
 ///Params:
@@ -14324,7 +14247,7 @@ int StrCmpLogicalW(const(wchar)* psz1, const(wchar)* psz2);
 ///    Type: <b>DWORD</b> Returns the offset of the null character after the last character added to <i>pszDst</i>.
 ///    
 @DllImport("SHLWAPI")
-uint StrCatChainW(const(wchar)* pszDst, uint cchDst, uint ichAt, const(wchar)* pszSrc);
+uint StrCatChainW(PWSTR pszDst, uint cchDst, uint ichAt, const(PWSTR) pszSrc);
 
 ///Accepts a STRRET structure returned by IShellFolder::GetDisplayNameOf that contains or points to a string, and
 ///returns that string as a BSTR.
@@ -14359,7 +14282,7 @@ HRESULT StrRetToBSTR(STRRET* pstr, ITEMIDLIST* pidl, BSTR* pbstr);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHLWAPI")
-HRESULT SHLoadIndirectString(const(wchar)* pszSource, const(wchar)* pszOutBuf, uint cchOutBuf, void** ppvReserved);
+HRESULT SHLoadIndirectString(const(PWSTR) pszSource, PWSTR pszOutBuf, uint cchOutBuf, void** ppvReserved);
 
 ///Determines whether a character represents a space.
 ///Params:
@@ -14389,7 +14312,7 @@ BOOL IsCharSpaceW(ushort wch);
 ///    string pointed to by <i>lpStr1</i> is alphabetically less than that pointed to by <i>lpStr2</i>.
 ///    
 @DllImport("SHLWAPI")
-int StrCmpCA(const(char)* pszStr1, const(char)* pszStr2);
+int StrCmpCA(const(PSTR) pszStr1, const(PSTR) pszStr2);
 
 ///Compares strings using C run-time (ASCII) collation rules. The comparison is case-sensitive.
 ///Params:
@@ -14401,7 +14324,7 @@ int StrCmpCA(const(char)* pszStr1, const(char)* pszStr2);
 ///    string pointed to by <i>lpStr1</i> is alphabetically less than that pointed to by <i>lpStr2</i>.
 ///    
 @DllImport("SHLWAPI")
-int StrCmpCW(const(wchar)* pszStr1, const(wchar)* pszStr2);
+int StrCmpCW(const(PWSTR) pszStr1, const(PWSTR) pszStr2);
 
 ///Compares two strings using C run-time (ASCII) collation rules. The comparison is not case-sensitive.
 ///Params:
@@ -14413,7 +14336,7 @@ int StrCmpCW(const(wchar)* pszStr1, const(wchar)* pszStr2);
 ///    string pointed to by <i>lpStr1</i> is alphabetically less than that pointed to by <i>lpStr2</i>
 ///    
 @DllImport("SHLWAPI")
-int StrCmpICA(const(char)* pszStr1, const(char)* pszStr2);
+int StrCmpICA(const(PSTR) pszStr1, const(PSTR) pszStr2);
 
 ///Compares two strings using C run-time (ASCII) collation rules. The comparison is not case-sensitive.
 ///Params:
@@ -14425,7 +14348,7 @@ int StrCmpICA(const(char)* pszStr1, const(char)* pszStr2);
 ///    string pointed to by <i>lpStr1</i> is alphabetically less than that pointed to by <i>lpStr2</i>
 ///    
 @DllImport("SHLWAPI")
-int StrCmpICW(const(wchar)* pszStr1, const(wchar)* pszStr2);
+int StrCmpICW(const(PWSTR) pszStr1, const(PWSTR) pszStr2);
 
 ///Compares a specified number of characters from the beginning of two strings using C run-time (ASCII) collation rules.
 ///The comparison is case-sensitive.
@@ -14440,7 +14363,7 @@ int StrCmpICW(const(wchar)* pszStr1, const(wchar)* pszStr2);
 ///    alphabetically less than the string taken from that pointed to by <i>pszStr2</i>.
 ///    
 @DllImport("SHLWAPI")
-int StrCmpNCA(const(char)* pszStr1, const(char)* pszStr2, int nChar);
+int StrCmpNCA(const(PSTR) pszStr1, const(PSTR) pszStr2, int nChar);
 
 ///Compares a specified number of characters from the beginning of two strings using C run-time (ASCII) collation rules.
 ///The comparison is case-sensitive.
@@ -14455,7 +14378,7 @@ int StrCmpNCA(const(char)* pszStr1, const(char)* pszStr2, int nChar);
 ///    alphabetically less than the string taken from that pointed to by <i>pszStr2</i>.
 ///    
 @DllImport("SHLWAPI")
-int StrCmpNCW(const(wchar)* pszStr1, const(wchar)* pszStr2, int nChar);
+int StrCmpNCW(const(PWSTR) pszStr1, const(PWSTR) pszStr2, int nChar);
 
 ///Compares a specified number of characters from the beginning of two strings using C run-time (ASCII) collation rules.
 ///The comparison is not case-sensitive.
@@ -14470,7 +14393,7 @@ int StrCmpNCW(const(wchar)* pszStr1, const(wchar)* pszStr2, int nChar);
 ///    alphabetically less than the string taken from that pointed to by <i>pszStr2</i>.
 ///    
 @DllImport("SHLWAPI")
-int StrCmpNICA(const(char)* pszStr1, const(char)* pszStr2, int nChar);
+int StrCmpNICA(const(PSTR) pszStr1, const(PSTR) pszStr2, int nChar);
 
 ///Compares a specified number of characters from the beginning of two strings using C run-time (ASCII) collation rules.
 ///The comparison is not case-sensitive.
@@ -14485,7 +14408,7 @@ int StrCmpNICA(const(char)* pszStr1, const(char)* pszStr2, int nChar);
 ///    alphabetically less than the string taken from that pointed to by <i>pszStr2</i>.
 ///    
 @DllImport("SHLWAPI")
-int StrCmpNICW(const(wchar)* pszStr1, const(wchar)* pszStr2, int nChar);
+int StrCmpNICW(const(PWSTR) pszStr1, const(PWSTR) pszStr2, int nChar);
 
 ///Compares a specified number of characters from the beginning of two localized strings.
 ///Params:
@@ -14499,7 +14422,7 @@ int StrCmpNICW(const(wchar)* pszStr1, const(wchar)* pszStr2, int nChar);
 ///    otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL IntlStrEqWorkerA(BOOL fCaseSens, const(char)* lpString1, const(char)* lpString2, int nChar);
+BOOL IntlStrEqWorkerA(BOOL fCaseSens, const(PSTR) lpString1, const(PSTR) lpString2, int nChar);
 
 ///Compares a specified number of characters from the beginning of two localized strings.
 ///Params:
@@ -14513,7 +14436,7 @@ BOOL IntlStrEqWorkerA(BOOL fCaseSens, const(char)* lpString1, const(char)* lpStr
 ///    otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL IntlStrEqWorkerW(BOOL fCaseSens, const(wchar)* lpString1, const(wchar)* lpString2, int nChar);
+BOOL IntlStrEqWorkerW(BOOL fCaseSens, const(PWSTR) lpString1, const(PWSTR) lpString2, int nChar);
 
 ///Adds a backslash to the end of a string to create the correct syntax for a path. If the source path already has a
 ///trailing backslash, no backslash will be added. <div class="alert"><b>Note</b> Misuse of this function can lead to a
@@ -14528,7 +14451,7 @@ BOOL IntlStrEqWorkerW(BOOL fCaseSens, const(wchar)* lpString1, const(wchar)* lpS
 ///    <b>NULL</b>.
 ///    
 @DllImport("SHLWAPI")
-byte* PathAddBackslashA(const(char)* pszPath);
+PSTR PathAddBackslashA(PSTR pszPath);
 
 ///Adds a backslash to the end of a string to create the correct syntax for a path. If the source path already has a
 ///trailing backslash, no backslash will be added. <div class="alert"><b>Note</b> Misuse of this function can lead to a
@@ -14543,7 +14466,7 @@ byte* PathAddBackslashA(const(char)* pszPath);
 ///    <b>NULL</b>.
 ///    
 @DllImport("SHLWAPI")
-ushort* PathAddBackslashW(const(wchar)* pszPath);
+PWSTR PathAddBackslashW(PWSTR pszPath);
 
 ///Adds a file name extension to a path string. <div class="alert"><b>Note</b> Misuse of this function can lead to a
 ///buffer overrun. We recommend the use of the safer PathCchAddExtension function in its place.</div><div> </div>
@@ -14557,7 +14480,7 @@ ushort* PathAddBackslashW(const(wchar)* pszPath);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if an extension was added, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathAddExtensionA(const(char)* pszPath, const(char)* pszExt);
+BOOL PathAddExtensionA(PSTR pszPath, const(PSTR) pszExt);
 
 ///Adds a file name extension to a path string. <div class="alert"><b>Note</b> Misuse of this function can lead to a
 ///buffer overrun. We recommend the use of the safer PathCchAddExtension function in its place.</div><div> </div>
@@ -14571,7 +14494,7 @@ BOOL PathAddExtensionA(const(char)* pszPath, const(char)* pszExt);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if an extension was added, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathAddExtensionW(const(wchar)* pszPath, const(wchar)* pszExt);
+BOOL PathAddExtensionW(PWSTR pszPath, const(PWSTR) pszExt);
 
 ///Appends one path to the end of another. <div class="alert"><b>Note</b> Misuse of this function can lead to a buffer
 ///overrun. We recommend the use of the safer PathCchAppend or PathCchAppendEx function in its place.</div><div> </div>
@@ -14585,7 +14508,7 @@ BOOL PathAddExtensionW(const(wchar)* pszPath, const(wchar)* pszExt);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathAppendA(const(char)* pszPath, const(char)* pszMore);
+BOOL PathAppendA(PSTR pszPath, const(PSTR) pszMore);
 
 ///Appends one path to the end of another. <div class="alert"><b>Note</b> Misuse of this function can lead to a buffer
 ///overrun. We recommend the use of the safer PathCchAppend or PathCchAppendEx function in its place.</div><div> </div>
@@ -14599,7 +14522,7 @@ BOOL PathAppendA(const(char)* pszPath, const(char)* pszMore);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathAppendW(const(wchar)* pszPath, const(wchar)* pszMore);
+BOOL PathAppendW(PWSTR pszPath, const(PWSTR) pszMore);
 
 ///Creates a root path from a given drive number.
 ///Params:
@@ -14612,7 +14535,7 @@ BOOL PathAppendW(const(wchar)* pszPath, const(wchar)* pszMore);
 ///    example, an invalid drive number), <i>szRoot</i> is returned unchanged.
 ///    
 @DllImport("SHLWAPI")
-byte* PathBuildRootA(const(char)* pszRoot, int iDrive);
+PSTR PathBuildRootA(PSTR pszRoot, int iDrive);
 
 ///Creates a root path from a given drive number.
 ///Params:
@@ -14625,7 +14548,7 @@ byte* PathBuildRootA(const(char)* pszRoot, int iDrive);
 ///    example, an invalid drive number), <i>szRoot</i> is returned unchanged.
 ///    
 @DllImport("SHLWAPI")
-ushort* PathBuildRootW(const(wchar)* pszRoot, int iDrive);
+PWSTR PathBuildRootW(PWSTR pszRoot, int iDrive);
 
 ///Simplifies a path by removing navigation elements such as "." and ".." to produce a direct, well-formed path. <div
 ///class="alert"><b>Note</b> Misuse of this function can lead to a buffer overrun. We recommend the use of the safer
@@ -14641,7 +14564,7 @@ ushort* PathBuildRootW(const(wchar)* pszRoot, int iDrive);
 ///    invalid. To get extended error information, call GetLastError.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathCanonicalizeA(const(char)* pszBuf, const(char)* pszPath);
+BOOL PathCanonicalizeA(PSTR pszBuf, const(PSTR) pszPath);
 
 ///Simplifies a path by removing navigation elements such as "." and ".." to produce a direct, well-formed path. <div
 ///class="alert"><b>Note</b> Misuse of this function can lead to a buffer overrun. We recommend the use of the safer
@@ -14657,7 +14580,7 @@ BOOL PathCanonicalizeA(const(char)* pszBuf, const(char)* pszPath);
 ///    invalid. To get extended error information, call GetLastError.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathCanonicalizeW(const(wchar)* pszBuf, const(wchar)* pszPath);
+BOOL PathCanonicalizeW(PWSTR pszBuf, const(PWSTR) pszPath);
 
 ///Concatenates two strings that represent properly formed paths into one path; also concatenates any relative path
 ///elements. <div class="alert"><b>Note</b> Misuse of this function can lead to a buffer overrun. We recommend the use
@@ -14676,7 +14599,7 @@ BOOL PathCanonicalizeW(const(wchar)* pszBuf, const(wchar)* pszPath);
 ///    return successfully, this value is <b>NULL</b>.
 ///    
 @DllImport("SHLWAPI")
-byte* PathCombineA(const(char)* pszDest, const(char)* pszDir, const(char)* pszFile);
+PSTR PathCombineA(PSTR pszDest, const(PSTR) pszDir, const(PSTR) pszFile);
 
 ///Concatenates two strings that represent properly formed paths into one path; also concatenates any relative path
 ///elements. <div class="alert"><b>Note</b> Misuse of this function can lead to a buffer overrun. We recommend the use
@@ -14695,7 +14618,7 @@ byte* PathCombineA(const(char)* pszDest, const(char)* pszDir, const(char)* pszFi
 ///    return successfully, this value is <b>NULL</b>.
 ///    
 @DllImport("SHLWAPI")
-ushort* PathCombineW(const(wchar)* pszDest, const(wchar)* pszDir, const(wchar)* pszFile);
+PWSTR PathCombineW(PWSTR pszDest, const(PWSTR) pszDir, const(PWSTR) pszFile);
 
 ///Truncates a file path to fit within a given pixel width by replacing path components with ellipses.
 ///Params:
@@ -14708,7 +14631,7 @@ ushort* PathCombineW(const(wchar)* pszDest, const(wchar)* pszDir, const(wchar)* 
 ///    <b>FALSE</b> on failure, or if the base portion of the path would not fit the specified width.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathCompactPathA(HDC hDC, const(char)* pszPath, uint dx);
+BOOL PathCompactPathA(HDC hDC, PSTR pszPath, uint dx);
 
 ///Truncates a file path to fit within a given pixel width by replacing path components with ellipses.
 ///Params:
@@ -14721,7 +14644,7 @@ BOOL PathCompactPathA(HDC hDC, const(char)* pszPath, uint dx);
 ///    <b>FALSE</b> on failure, or if the base portion of the path would not fit the specified width.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathCompactPathW(HDC hDC, const(wchar)* pszPath, uint dx);
+BOOL PathCompactPathW(HDC hDC, PWSTR pszPath, uint dx);
 
 ///Truncates a path to fit within a certain number of characters by replacing path components with ellipses.
 ///Params:
@@ -14736,7 +14659,7 @@ BOOL PathCompactPathW(HDC hDC, const(wchar)* pszPath, uint dx);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathCompactPathExA(const(char)* pszOut, const(char)* pszSrc, uint cchMax, uint dwFlags);
+BOOL PathCompactPathExA(PSTR pszOut, const(PSTR) pszSrc, uint cchMax, uint dwFlags);
 
 ///Truncates a path to fit within a certain number of characters by replacing path components with ellipses.
 ///Params:
@@ -14751,7 +14674,7 @@ BOOL PathCompactPathExA(const(char)* pszOut, const(char)* pszSrc, uint cchMax, u
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathCompactPathExW(const(wchar)* pszOut, const(wchar)* pszSrc, uint cchMax, uint dwFlags);
+BOOL PathCompactPathExW(PWSTR pszOut, const(PWSTR) pszSrc, uint cchMax, uint dwFlags);
 
 ///Compares two paths to determine if they share a common prefix. A prefix is one of these types: "C:\\", ".", "..",
 ///"..\\".
@@ -14765,7 +14688,7 @@ BOOL PathCompactPathExW(const(wchar)* pszOut, const(wchar)* pszSrc, uint cchMax,
 ///    <b>NULL</b>, then these characters are copied to the output buffer.
 ///    
 @DllImport("SHLWAPI")
-int PathCommonPrefixA(const(char)* pszFile1, const(char)* pszFile2, const(char)* achPath);
+int PathCommonPrefixA(const(PSTR) pszFile1, const(PSTR) pszFile2, PSTR achPath);
 
 ///Compares two paths to determine if they share a common prefix. A prefix is one of these types: "C:\\", ".", "..",
 ///"..\\".
@@ -14779,7 +14702,7 @@ int PathCommonPrefixA(const(char)* pszFile1, const(char)* pszFile2, const(char)*
 ///    <b>NULL</b>, then these characters are copied to the output buffer.
 ///    
 @DllImport("SHLWAPI")
-int PathCommonPrefixW(const(wchar)* pszFile1, const(wchar)* pszFile2, const(wchar)* achPath);
+int PathCommonPrefixW(const(PWSTR) pszFile1, const(PWSTR) pszFile2, PWSTR achPath);
 
 ///Determines whether a path to a file system object such as a file or folder is valid.
 ///Params:
@@ -14790,7 +14713,7 @@ int PathCommonPrefixW(const(wchar)* pszFile1, const(wchar)* pszFile2, const(wcha
 ///    information.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathFileExistsA(const(char)* pszPath);
+BOOL PathFileExistsA(const(PSTR) pszPath);
 
 ///Determines whether a path to a file system object such as a file or folder is valid.
 ///Params:
@@ -14801,7 +14724,7 @@ BOOL PathFileExistsA(const(char)* pszPath);
 ///    information. If the file does not exist, GetLastError will return ERROR_FILE_NOT_FOUND.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathFileExistsW(const(wchar)* pszPath);
+BOOL PathFileExistsW(const(PWSTR) pszPath);
 
 ///Searches a path for an extension.
 ///Params:
@@ -14812,7 +14735,7 @@ BOOL PathFileExistsW(const(wchar)* pszPath);
 ///    extension is found, or the address of the terminating null character otherwise.
 ///    
 @DllImport("SHLWAPI")
-byte* PathFindExtensionA(const(char)* pszPath);
+PSTR PathFindExtensionA(const(PSTR) pszPath);
 
 ///Searches a path for an extension.
 ///Params:
@@ -14823,7 +14746,7 @@ byte* PathFindExtensionA(const(char)* pszPath);
 ///    extension is found, or the address of the terminating null character otherwise.
 ///    
 @DllImport("SHLWAPI")
-ushort* PathFindExtensionW(const(wchar)* pszPath);
+PWSTR PathFindExtensionW(const(PWSTR) pszPath);
 
 ///Searches a path for a file name.
 ///Params:
@@ -14834,7 +14757,7 @@ ushort* PathFindExtensionW(const(wchar)* pszPath);
 ///    the path otherwise.
 ///    
 @DllImport("SHLWAPI")
-byte* PathFindFileNameA(const(char)* pszPath);
+PSTR PathFindFileNameA(const(PSTR) pszPath);
 
 ///Searches a path for a file name.
 ///Params:
@@ -14845,7 +14768,7 @@ byte* PathFindFileNameA(const(char)* pszPath);
 ///    the path otherwise.
 ///    
 @DllImport("SHLWAPI")
-ushort* PathFindFileNameW(const(wchar)* pszPath);
+PWSTR PathFindFileNameW(const(PWSTR) pszPath);
 
 ///Parses a path and returns the portion of that path that follows the first backslash.
 ///Params:
@@ -14860,7 +14783,7 @@ ushort* PathFindFileNameW(const(wchar)* pszPath);
 ///    <b>NULL</b>.
 ///    
 @DllImport("SHLWAPI")
-byte* PathFindNextComponentA(const(char)* pszPath);
+PSTR PathFindNextComponentA(const(PSTR) pszPath);
 
 ///Parses a path and returns the portion of that path that follows the first backslash.
 ///Params:
@@ -14875,7 +14798,7 @@ byte* PathFindNextComponentA(const(char)* pszPath);
 ///    <b>NULL</b>.
 ///    
 @DllImport("SHLWAPI")
-ushort* PathFindNextComponentW(const(wchar)* pszPath);
+PWSTR PathFindNextComponentW(const(PWSTR) pszPath);
 
 ///Searches for a file.
 ///Params:
@@ -14887,7 +14810,7 @@ ushort* PathFindNextComponentW(const(wchar)* pszPath);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathFindOnPathA(const(char)* pszPath, byte** ppszOtherDirs);
+BOOL PathFindOnPathA(PSTR pszPath, byte** ppszOtherDirs);
 
 ///Searches for a file.
 ///Params:
@@ -14899,7 +14822,7 @@ BOOL PathFindOnPathA(const(char)* pszPath, byte** ppszOtherDirs);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathFindOnPathW(const(wchar)* pszPath, ushort** ppszOtherDirs);
+BOOL PathFindOnPathW(PWSTR pszPath, ushort** ppszOtherDirs);
 
 ///Determines whether a given file name has one of a list of suffixes.
 ///Params:
@@ -14913,7 +14836,7 @@ BOOL PathFindOnPathW(const(wchar)* pszPath, ushort** ppszOtherDirs);
 ///    <i>pszPath</i> does not end with one of the specified suffixes.
 ///    
 @DllImport("SHLWAPI")
-byte* PathFindSuffixArrayA(const(char)* pszPath, char* apszSuffix, int iArraySize);
+PSTR PathFindSuffixArrayA(const(PSTR) pszPath, const(PSTR)* apszSuffix, int iArraySize);
 
 ///Determines whether a given file name has one of a list of suffixes.
 ///Params:
@@ -14927,7 +14850,7 @@ byte* PathFindSuffixArrayA(const(char)* pszPath, char* apszSuffix, int iArraySiz
 ///    <i>pszPath</i> does not end with one of the specified suffixes.
 ///    
 @DllImport("SHLWAPI")
-ushort* PathFindSuffixArrayW(const(wchar)* pszPath, char* apszSuffix, int iArraySize);
+PWSTR PathFindSuffixArrayW(const(PWSTR) pszPath, const(PWSTR)* apszSuffix, int iArraySize);
 
 ///Finds the command line arguments within a given path.
 ///Params:
@@ -14939,7 +14862,7 @@ ushort* PathFindSuffixArrayW(const(wchar)* pszPath, char* apszSuffix, int iArray
 ///    string. If the function is given a <b>NULL</b> argument it returns <b>NULL</b>.
 ///    
 @DllImport("SHLWAPI")
-byte* PathGetArgsA(const(char)* pszPath);
+PSTR PathGetArgsA(const(PSTR) pszPath);
 
 ///Finds the command line arguments within a given path.
 ///Params:
@@ -14951,7 +14874,7 @@ byte* PathGetArgsA(const(char)* pszPath);
 ///    string. If the function is given a <b>NULL</b> argument it returns <b>NULL</b>.
 ///    
 @DllImport("SHLWAPI")
-ushort* PathGetArgsW(const(wchar)* pszPath);
+PWSTR PathGetArgsW(const(PWSTR) pszPath);
 
 ///Determines whether a file name is in long format.
 ///Params:
@@ -14962,7 +14885,7 @@ ushort* PathGetArgsW(const(wchar)* pszPath);
 ///    format, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsLFNFileSpecA(const(char)* pszName);
+BOOL PathIsLFNFileSpecA(const(PSTR) pszName);
 
 ///Determines whether a file name is in long format.
 ///Params:
@@ -14973,7 +14896,7 @@ BOOL PathIsLFNFileSpecA(const(char)* pszName);
 ///    format, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsLFNFileSpecW(const(wchar)* pszName);
+BOOL PathIsLFNFileSpecW(const(PWSTR) pszName);
 
 ///Determines the type of character in relation to a path.
 ///Params:
@@ -15016,7 +14939,7 @@ uint PathGetCharTypeW(ushort ch);
 ///    otherwise.
 ///    
 @DllImport("SHLWAPI")
-int PathGetDriveNumberA(const(char)* pszPath);
+int PathGetDriveNumberA(const(PSTR) pszPath);
 
 ///Searches a path for a drive letter within the range of 'A' to 'Z' and returns the corresponding drive number.
 ///Params:
@@ -15027,7 +14950,7 @@ int PathGetDriveNumberA(const(char)* pszPath);
 ///    otherwise.
 ///    
 @DllImport("SHLWAPI")
-int PathGetDriveNumberW(const(wchar)* pszPath);
+int PathGetDriveNumberW(const(PWSTR) pszPath);
 
 ///Verifies that a path is a valid directory.
 ///Params:
@@ -15038,7 +14961,7 @@ int PathGetDriveNumberW(const(wchar)* pszPath);
 ///    <b>FALSE</b>.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsDirectoryA(const(char)* pszPath);
+BOOL PathIsDirectoryA(const(PSTR) pszPath);
 
 ///Verifies that a path is a valid directory.
 ///Params:
@@ -15049,7 +14972,7 @@ BOOL PathIsDirectoryA(const(char)* pszPath);
 ///    <b>FALSE</b>.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsDirectoryW(const(wchar)* pszPath);
+BOOL PathIsDirectoryW(const(PWSTR) pszPath);
 
 ///Determines whether a specified path is an empty directory.
 ///Params:
@@ -15060,7 +14983,7 @@ BOOL PathIsDirectoryW(const(wchar)* pszPath);
 ///    <i>pszPath</i> is not a directory, or if it contains at least one file other than "." or "..".
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsDirectoryEmptyA(const(char)* pszPath);
+BOOL PathIsDirectoryEmptyA(const(PSTR) pszPath);
 
 ///Determines whether a specified path is an empty directory.
 ///Params:
@@ -15071,7 +14994,7 @@ BOOL PathIsDirectoryEmptyA(const(char)* pszPath);
 ///    <i>pszPath</i> is not a directory, or if it contains at least one file other than "." or "..".
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsDirectoryEmptyW(const(wchar)* pszPath);
+BOOL PathIsDirectoryEmptyW(const(PWSTR) pszPath);
 
 ///Searches a path for any path-delimiting characters (for example, ':' or '\' ). If there are no path-delimiting
 ///characters present, the path is considered to be a File Spec path.
@@ -15083,7 +15006,7 @@ BOOL PathIsDirectoryEmptyW(const(wchar)* pszPath);
 ///    if there are path-delimiting characters.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsFileSpecA(const(char)* pszPath);
+BOOL PathIsFileSpecA(const(PSTR) pszPath);
 
 ///Searches a path for any path-delimiting characters (for example, ':' or '\' ). If there are no path-delimiting
 ///characters present, the path is considered to be a File Spec path.
@@ -15095,7 +15018,7 @@ BOOL PathIsFileSpecA(const(char)* pszPath);
 ///    if there are path-delimiting characters.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsFileSpecW(const(wchar)* pszPath);
+BOOL PathIsFileSpecW(const(PWSTR) pszPath);
 
 ///Searches a path to determine if it contains a valid prefix of the type passed by <i>pszPrefix</i>. A prefix is one of
 ///these types: "C:\\", ".", "..", "..\\".
@@ -15109,7 +15032,7 @@ BOOL PathIsFileSpecW(const(wchar)* pszPath);
 ///    otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsPrefixA(const(char)* pszPrefix, const(char)* pszPath);
+BOOL PathIsPrefixA(const(PSTR) pszPrefix, const(PSTR) pszPath);
 
 ///Searches a path to determine if it contains a valid prefix of the type passed by <i>pszPrefix</i>. A prefix is one of
 ///these types: "C:\\", ".", "..", "..\\".
@@ -15123,7 +15046,7 @@ BOOL PathIsPrefixA(const(char)* pszPrefix, const(char)* pszPath);
 ///    otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsPrefixW(const(wchar)* pszPrefix, const(wchar)* pszPath);
+BOOL PathIsPrefixW(const(PWSTR) pszPrefix, const(PWSTR) pszPath);
 
 ///Searches a path and determines if it is relative.
 ///Params:
@@ -15133,7 +15056,7 @@ BOOL PathIsPrefixW(const(wchar)* pszPrefix, const(wchar)* pszPath);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if the path is relative, or <b>FALSE</b> if it is absolute.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsRelativeA(const(char)* pszPath);
+BOOL PathIsRelativeA(const(PSTR) pszPath);
 
 ///Searches a path and determines if it is relative.
 ///Params:
@@ -15143,7 +15066,7 @@ BOOL PathIsRelativeA(const(char)* pszPath);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if the path is relative, or <b>FALSE</b> if it is absolute.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsRelativeW(const(wchar)* pszPath);
+BOOL PathIsRelativeW(const(PWSTR) pszPath);
 
 ///Determines whether a path string refers to the root of a volume.
 ///Params:
@@ -15153,7 +15076,7 @@ BOOL PathIsRelativeW(const(wchar)* pszPath);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if the specified path is a root, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsRootA(const(char)* pszPath);
+BOOL PathIsRootA(const(PSTR) pszPath);
 
 ///Determines whether a path string refers to the root of a volume.
 ///Params:
@@ -15163,7 +15086,7 @@ BOOL PathIsRootA(const(char)* pszPath);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if the specified path is a root, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsRootW(const(wchar)* pszPath);
+BOOL PathIsRootW(const(PWSTR) pszPath);
 
 ///Compares two paths to determine if they have a common root component.
 ///Params:
@@ -15176,7 +15099,7 @@ BOOL PathIsRootW(const(wchar)* pszPath);
 ///    <i>pszPath1</i> contains only the server and share, this function also returns <b>FALSE</b>.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsSameRootA(const(char)* pszPath1, const(char)* pszPath2);
+BOOL PathIsSameRootA(const(PSTR) pszPath1, const(PSTR) pszPath2);
 
 ///Compares two paths to determine if they have a common root component.
 ///Params:
@@ -15189,7 +15112,7 @@ BOOL PathIsSameRootA(const(char)* pszPath1, const(char)* pszPath2);
 ///    <i>pszPath1</i> contains only the server and share, this function also returns <b>FALSE</b>.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsSameRootW(const(wchar)* pszPath1, const(wchar)* pszPath2);
+BOOL PathIsSameRootW(const(PWSTR) pszPath1, const(PWSTR) pszPath2);
 
 ///Determines if a path string is a valid Universal Naming Convention (UNC) path, as opposed to a path based on a drive
 ///letter.
@@ -15200,7 +15123,7 @@ BOOL PathIsSameRootW(const(wchar)* pszPath1, const(wchar)* pszPath2);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if the string is a valid UNC path; otherwise, <b>FALSE</b>.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsUNCA(const(char)* pszPath);
+BOOL PathIsUNCA(const(PSTR) pszPath);
 
 ///Determines if a path string is a valid Universal Naming Convention (UNC) path, as opposed to a path based on a drive
 ///letter.
@@ -15211,7 +15134,7 @@ BOOL PathIsUNCA(const(char)* pszPath);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if the string is a valid UNC path; otherwise, <b>FALSE</b>.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsUNCW(const(wchar)* pszPath);
+BOOL PathIsUNCW(const(PWSTR) pszPath);
 
 ///Determines whether a path string represents a network resource.
 ///Params:
@@ -15220,7 +15143,7 @@ BOOL PathIsUNCW(const(wchar)* pszPath);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if the string represents a network resource, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsNetworkPathA(const(char)* pszPath);
+BOOL PathIsNetworkPathA(const(PSTR) pszPath);
 
 ///Determines whether a path string represents a network resource.
 ///Params:
@@ -15229,7 +15152,7 @@ BOOL PathIsNetworkPathA(const(char)* pszPath);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if the string represents a network resource, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsNetworkPathW(const(wchar)* pszPath);
+BOOL PathIsNetworkPathW(const(PWSTR) pszPath);
 
 ///Determines if a string is a valid Universal Naming Convention (UNC) for a server path only.
 ///Params:
@@ -15240,7 +15163,7 @@ BOOL PathIsNetworkPathW(const(wchar)* pszPath);
 ///    <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsUNCServerA(const(char)* pszPath);
+BOOL PathIsUNCServerA(const(PSTR) pszPath);
 
 ///Determines if a string is a valid Universal Naming Convention (UNC) for a server path only.
 ///Params:
@@ -15251,7 +15174,7 @@ BOOL PathIsUNCServerA(const(char)* pszPath);
 ///    <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsUNCServerW(const(wchar)* pszPath);
+BOOL PathIsUNCServerW(const(PWSTR) pszPath);
 
 ///Determines if a string is a valid Universal Naming Convention (UNC) share path,
 ///&#92;&#92;<i>server</i>&#92;<i>share</i>.
@@ -15263,7 +15186,7 @@ BOOL PathIsUNCServerW(const(wchar)* pszPath);
 ///    <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsUNCServerShareA(const(char)* pszPath);
+BOOL PathIsUNCServerShareA(const(PSTR) pszPath);
 
 ///Determines if a string is a valid Universal Naming Convention (UNC) share path,
 ///&#92;&#92;<i>server</i>&#92;<i>share</i>.
@@ -15275,7 +15198,7 @@ BOOL PathIsUNCServerShareA(const(char)* pszPath);
 ///    <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsUNCServerShareW(const(wchar)* pszPath);
+BOOL PathIsUNCServerShareW(const(PWSTR) pszPath);
 
 ///Determines if a file's registered content type matches the specified content type. This function obtains the content
 ///type for the specified file type and compares that string with the <i>pszContentType</i>. The comparison is not
@@ -15290,7 +15213,7 @@ BOOL PathIsUNCServerShareW(const(wchar)* pszPath);
 ///    otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsContentTypeA(const(char)* pszPath, const(char)* pszContentType);
+BOOL PathIsContentTypeA(const(PSTR) pszPath, const(PSTR) pszContentType);
 
 ///Determines if a file's registered content type matches the specified content type. This function obtains the content
 ///type for the specified file type and compares that string with the <i>pszContentType</i>. The comparison is not
@@ -15305,7 +15228,7 @@ BOOL PathIsContentTypeA(const(char)* pszPath, const(char)* pszContentType);
 ///    otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsContentTypeW(const(wchar)* pszPath, const(wchar)* pszContentType);
+BOOL PathIsContentTypeW(const(PWSTR) pszPath, const(PWSTR) pszContentType);
 
 ///Tests a given string to determine if it conforms to a valid URL format.
 ///Params:
@@ -15315,7 +15238,7 @@ BOOL PathIsContentTypeW(const(wchar)* pszPath, const(wchar)* pszContentType);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if <i>pszPath</i> has a valid URL format, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsURLA(const(char)* pszPath);
+BOOL PathIsURLA(const(PSTR) pszPath);
 
 ///Tests a given string to determine if it conforms to a valid URL format.
 ///Params:
@@ -15325,7 +15248,7 @@ BOOL PathIsURLA(const(char)* pszPath);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if <i>pszPath</i> has a valid URL format, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsURLW(const(wchar)* pszPath);
+BOOL PathIsURLW(const(PWSTR) pszPath);
 
 ///Converts an all-uppercase path to all lowercase characters to give the path a consistent appearance.
 ///Params:
@@ -15335,7 +15258,7 @@ BOOL PathIsURLW(const(wchar)* pszPath);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if the path has been converted, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathMakePrettyA(const(char)* pszPath);
+BOOL PathMakePrettyA(PSTR pszPath);
 
 ///Converts an all-uppercase path to all lowercase characters to give the path a consistent appearance.
 ///Params:
@@ -15345,7 +15268,7 @@ BOOL PathMakePrettyA(const(char)* pszPath);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if the path has been converted, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathMakePrettyW(const(wchar)* pszPath);
+BOOL PathMakePrettyW(PWSTR pszPath);
 
 ///Searches a string using a Microsoft MS-DOS wildcard match type.
 ///Params:
@@ -15356,7 +15279,7 @@ BOOL PathMakePrettyW(const(wchar)* pszPath);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if the string matches, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathMatchSpecA(const(char)* pszFile, const(char)* pszSpec);
+BOOL PathMatchSpecA(const(PSTR) pszFile, const(PSTR) pszSpec);
 
 ///Searches a string using a Microsoft MS-DOS wildcard match type.
 ///Params:
@@ -15367,7 +15290,7 @@ BOOL PathMatchSpecA(const(char)* pszFile, const(char)* pszSpec);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if the string matches, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathMatchSpecW(const(wchar)* pszFile, const(wchar)* pszSpec);
+BOOL PathMatchSpecW(const(PWSTR) pszFile, const(PWSTR) pszSpec);
 
 ///Matches a file name from a path against one or more file name patterns.
 ///Params:
@@ -15386,7 +15309,7 @@ BOOL PathMatchSpecW(const(wchar)* pszFile, const(wchar)* pszSpec);
 ///    <i>pszSpec</i> matched the file name found in the string pointed to by <i>pszFile</i>. </td> </tr> </table>
 ///    
 @DllImport("SHLWAPI")
-HRESULT PathMatchSpecExA(const(char)* pszFile, const(char)* pszSpec, uint dwFlags);
+HRESULT PathMatchSpecExA(const(PSTR) pszFile, const(PSTR) pszSpec, uint dwFlags);
 
 ///Matches a file name from a path against one or more file name patterns.
 ///Params:
@@ -15405,7 +15328,7 @@ HRESULT PathMatchSpecExA(const(char)* pszFile, const(char)* pszSpec, uint dwFlag
 ///    <i>pszSpec</i> matched the file name found in the string pointed to by <i>pszFile</i>. </td> </tr> </table>
 ///    
 @DllImport("SHLWAPI")
-HRESULT PathMatchSpecExW(const(wchar)* pszFile, const(wchar)* pszSpec, uint dwFlags);
+HRESULT PathMatchSpecExW(const(PWSTR) pszFile, const(PWSTR) pszSpec, uint dwFlags);
 
 ///Parses a file location string that contains a file location and icon index, and returns separate values.
 ///Params:
@@ -15416,7 +15339,7 @@ HRESULT PathMatchSpecExW(const(wchar)* pszFile, const(wchar)* pszSpec, uint dwFl
 ///    Type: <b>int</b> Returns the valid icon index value.
 ///    
 @DllImport("SHLWAPI")
-int PathParseIconLocationA(const(char)* pszIconFile);
+int PathParseIconLocationA(PSTR pszIconFile);
 
 ///Parses a file location string that contains a file location and icon index, and returns separate values.
 ///Params:
@@ -15427,7 +15350,7 @@ int PathParseIconLocationA(const(char)* pszIconFile);
 ///    Type: <b>int</b> Returns the valid icon index value.
 ///    
 @DllImport("SHLWAPI")
-int PathParseIconLocationW(const(wchar)* pszIconFile);
+int PathParseIconLocationW(PWSTR pszIconFile);
 
 ///Searches a path for spaces. If spaces are found, the entire path is enclosed in quotation marks.
 ///Params:
@@ -15437,7 +15360,7 @@ int PathParseIconLocationW(const(wchar)* pszIconFile);
 ///    Type: <b>BOOL</b> <b>TRUE</b> if spaces were found; otherwise, <b>FALSE</b>.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathQuoteSpacesA(const(char)* lpsz);
+BOOL PathQuoteSpacesA(PSTR lpsz);
 
 ///Searches a path for spaces. If spaces are found, the entire path is enclosed in quotation marks.
 ///Params:
@@ -15447,7 +15370,7 @@ BOOL PathQuoteSpacesA(const(char)* lpsz);
 ///    Type: <b>BOOL</b> <b>TRUE</b> if spaces were found; otherwise, <b>FALSE</b>.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathQuoteSpacesW(const(wchar)* lpsz);
+BOOL PathQuoteSpacesW(PWSTR lpsz);
 
 ///Creates a relative path from one file or folder to another.
 ///Params:
@@ -15465,8 +15388,7 @@ BOOL PathQuoteSpacesW(const(wchar)* lpsz);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathRelativePathToA(const(char)* pszPath, const(char)* pszFrom, uint dwAttrFrom, const(char)* pszTo, 
-                         uint dwAttrTo);
+BOOL PathRelativePathToA(PSTR pszPath, const(PSTR) pszFrom, uint dwAttrFrom, const(PSTR) pszTo, uint dwAttrTo);
 
 ///Creates a relative path from one file or folder to another.
 ///Params:
@@ -15484,22 +15406,21 @@ BOOL PathRelativePathToA(const(char)* pszPath, const(char)* pszFrom, uint dwAttr
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathRelativePathToW(const(wchar)* pszPath, const(wchar)* pszFrom, uint dwAttrFrom, const(wchar)* pszTo, 
-                         uint dwAttrTo);
+BOOL PathRelativePathToW(PWSTR pszPath, const(PWSTR) pszFrom, uint dwAttrFrom, const(PWSTR) pszTo, uint dwAttrTo);
 
 ///Removes any arguments from a given path.
 ///Params:
 ///    pszPath = Type: <b>LPTSTR</b> Pointer to a null-terminated string of length MAX_PATH that contains the path from which to
 ///              remove arguments.
 @DllImport("SHLWAPI")
-void PathRemoveArgsA(const(char)* pszPath);
+void PathRemoveArgsA(PSTR pszPath);
 
 ///Removes any arguments from a given path.
 ///Params:
 ///    pszPath = Type: <b>LPTSTR</b> Pointer to a null-terminated string of length MAX_PATH that contains the path from which to
 ///              remove arguments.
 @DllImport("SHLWAPI")
-void PathRemoveArgsW(const(wchar)* pszPath);
+void PathRemoveArgsW(PWSTR pszPath);
 
 ///Removes the trailing backslash from a given path. <div class="alert"><b>Note</b> This function is deprecated. We
 ///recommend the use of the PathCchRemoveBackslash or PathCchRemoveBackslashEx function in its place.</div><div> </div>
@@ -15512,7 +15433,7 @@ void PathRemoveArgsW(const(wchar)* pszPath);
 ///    did not include a trailing backslash, this value will point to the final character in the string.
 ///    
 @DllImport("SHLWAPI")
-byte* PathRemoveBackslashA(const(char)* pszPath);
+PSTR PathRemoveBackslashA(PSTR pszPath);
 
 ///Removes the trailing backslash from a given path. <div class="alert"><b>Note</b> This function is deprecated. We
 ///recommend the use of the PathCchRemoveBackslash or PathCchRemoveBackslashEx function in its place.</div><div> </div>
@@ -15525,35 +15446,35 @@ byte* PathRemoveBackslashA(const(char)* pszPath);
 ///    did not include a trailing backslash, this value will point to the final character in the string.
 ///    
 @DllImport("SHLWAPI")
-ushort* PathRemoveBackslashW(const(wchar)* pszPath);
+PWSTR PathRemoveBackslashW(PWSTR pszPath);
 
 ///Removes all leading and trailing spaces from a string.
 ///Params:
 ///    pszPath = Type: <b>LPTSTR</b> A pointer to a null-terminated string of length MAX_PATH from which to strip all leading and
 ///              trailing spaces.
 @DllImport("SHLWAPI")
-void PathRemoveBlanksA(const(char)* pszPath);
+void PathRemoveBlanksA(PSTR pszPath);
 
 ///Removes all leading and trailing spaces from a string.
 ///Params:
 ///    pszPath = Type: <b>LPTSTR</b> A pointer to a null-terminated string of length MAX_PATH from which to strip all leading and
 ///              trailing spaces.
 @DllImport("SHLWAPI")
-void PathRemoveBlanksW(const(wchar)* pszPath);
+void PathRemoveBlanksW(PWSTR pszPath);
 
 ///Removes the file name extension from a path, if one is present. <div class="alert"><b>Note</b> This function is
 ///deprecated. We recommend the use of the PathCchRemoveExtension in its place.</div><div> </div>
 ///Params:
 ///    pszPath = Type: <b>LPTSTR</b> A pointer to a null-terminated string of length MAX_PATH from which to remove the extension.
 @DllImport("SHLWAPI")
-void PathRemoveExtensionA(const(char)* pszPath);
+void PathRemoveExtensionA(PSTR pszPath);
 
 ///Removes the file name extension from a path, if one is present. <div class="alert"><b>Note</b> This function is
 ///deprecated. We recommend the use of the PathCchRemoveExtension in its place.</div><div> </div>
 ///Params:
 ///    pszPath = Type: <b>LPTSTR</b> A pointer to a null-terminated string of length MAX_PATH from which to remove the extension.
 @DllImport("SHLWAPI")
-void PathRemoveExtensionW(const(wchar)* pszPath);
+void PathRemoveExtensionW(PWSTR pszPath);
 
 ///Removes the trailing file name and backslash from a path, if they are present. <div class="alert"><b>Note</b> This
 ///function is deprecated. We recommend the use of the PathCchRemoveFileSpec function in its place.</div><div> </div>
@@ -15564,7 +15485,7 @@ void PathRemoveExtensionW(const(wchar)* pszPath);
 ///    Type: <b>BOOL</b> Returns nonzero if something was removed, or zero otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathRemoveFileSpecA(const(char)* pszPath);
+BOOL PathRemoveFileSpecA(PSTR pszPath);
 
 ///Removes the trailing file name and backslash from a path, if they are present. <div class="alert"><b>Note</b> This
 ///function is deprecated. We recommend the use of the PathCchRemoveFileSpec function in its place.</div><div> </div>
@@ -15575,7 +15496,7 @@ BOOL PathRemoveFileSpecA(const(char)* pszPath);
 ///    Type: <b>BOOL</b> Returns nonzero if something was removed, or zero otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathRemoveFileSpecW(const(wchar)* pszPath);
+BOOL PathRemoveFileSpecW(PWSTR pszPath);
 
 ///Replaces the extension of a file name with a new extension. If the file name does not contain an extension, the
 ///extension will be attached to the end of the string. <div class="alert"><b>Note</b> Misuse of this function can lead
@@ -15589,7 +15510,7 @@ BOOL PathRemoveFileSpecW(const(wchar)* pszPath);
 ///    characters.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathRenameExtensionA(const(char)* pszPath, const(char)* pszExt);
+BOOL PathRenameExtensionA(PSTR pszPath, const(PSTR) pszExt);
 
 ///Replaces the extension of a file name with a new extension. If the file name does not contain an extension, the
 ///extension will be attached to the end of the string. <div class="alert"><b>Note</b> Misuse of this function can lead
@@ -15603,7 +15524,7 @@ BOOL PathRenameExtensionA(const(char)* pszPath, const(char)* pszExt);
 ///    characters.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathRenameExtensionW(const(wchar)* pszPath, const(wchar)* pszExt);
+BOOL PathRenameExtensionW(PWSTR pszPath, const(PWSTR) pszExt);
 
 ///Determines if a given path is correctly formatted and fully qualified.
 ///Params:
@@ -15616,7 +15537,7 @@ BOOL PathRenameExtensionW(const(wchar)* pszPath, const(wchar)* pszExt);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if the path is qualified, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathSearchAndQualifyA(const(char)* pszPath, const(char)* pszBuf, uint cchBuf);
+BOOL PathSearchAndQualifyA(const(PSTR) pszPath, PSTR pszBuf, uint cchBuf);
 
 ///Determines if a given path is correctly formatted and fully qualified.
 ///Params:
@@ -15629,7 +15550,7 @@ BOOL PathSearchAndQualifyA(const(char)* pszPath, const(char)* pszBuf, uint cchBu
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if the path is qualified, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathSearchAndQualifyW(const(wchar)* pszPath, const(wchar)* pszBuf, uint cchBuf);
+BOOL PathSearchAndQualifyW(const(PWSTR) pszPath, PWSTR pszBuf, uint cchBuf);
 
 ///Sets the text of a child control in a window or dialog box, using PathCompactPath to ensure the path fits in the
 ///control.
@@ -15639,7 +15560,7 @@ BOOL PathSearchAndQualifyW(const(wchar)* pszPath, const(wchar)* pszBuf, uint cch
 ///    pszPath = Type: <b>LPCSTR</b> A pointer to a null-terminated string of maximum length MAX_PATH that contains the path to
 ///              set in the control.
 @DllImport("SHLWAPI")
-void PathSetDlgItemPathA(HWND hDlg, int id, const(char)* pszPath);
+void PathSetDlgItemPathA(HWND hDlg, int id, const(PSTR) pszPath);
 
 ///Sets the text of a child control in a window or dialog box, using PathCompactPath to ensure the path fits in the
 ///control.
@@ -15649,7 +15570,7 @@ void PathSetDlgItemPathA(HWND hDlg, int id, const(char)* pszPath);
 ///    pszPath = Type: <b>LPCSTR</b> A pointer to a null-terminated string of maximum length MAX_PATH that contains the path to
 ///              set in the control.
 @DllImport("SHLWAPI")
-void PathSetDlgItemPathW(HWND hDlg, int id, const(wchar)* pszPath);
+void PathSetDlgItemPathW(HWND hDlg, int id, const(PWSTR) pszPath);
 
 ///Retrieves a pointer to the first character in a path following the drive letter or Universal Naming Convention (UNC)
 ///server/share path elements.
@@ -15662,7 +15583,7 @@ void PathSetDlgItemPathW(HWND hDlg, int id, const(wchar)* pszPath);
 ///    will be <b>NULL</b>.
 ///    
 @DllImport("SHLWAPI")
-byte* PathSkipRootA(const(char)* pszPath);
+PSTR PathSkipRootA(const(PSTR) pszPath);
 
 ///Retrieves a pointer to the first character in a path following the drive letter or Universal Naming Convention (UNC)
 ///server/share path elements.
@@ -15675,21 +15596,21 @@ byte* PathSkipRootA(const(char)* pszPath);
 ///    will be <b>NULL</b>.
 ///    
 @DllImport("SHLWAPI")
-ushort* PathSkipRootW(const(wchar)* pszPath);
+PWSTR PathSkipRootW(const(PWSTR) pszPath);
 
 ///Removes the path portion of a fully qualified path and file.
 ///Params:
 ///    pszPath = Type: <b>LPTSTR</b> A pointer to a null-terminated string of length MAX_PATH that contains the path and file
 ///              name. When this function returns successfully, the string contains only the file name, with the path removed.
 @DllImport("SHLWAPI")
-void PathStripPathA(const(char)* pszPath);
+void PathStripPathA(PSTR pszPath);
 
 ///Removes the path portion of a fully qualified path and file.
 ///Params:
 ///    pszPath = Type: <b>LPTSTR</b> A pointer to a null-terminated string of length MAX_PATH that contains the path and file
 ///              name. When this function returns successfully, the string contains only the file name, with the path removed.
 @DllImport("SHLWAPI")
-void PathStripPathW(const(wchar)* pszPath);
+void PathStripPathW(PWSTR pszPath);
 
 ///Removes all file and directory elements in a path except for the root information. <div class="alert"><b>Note</b>
 ///Misuse of this function can lead to a buffer overrun. We recommend the use of the safer PathCchStripToRoot function
@@ -15702,7 +15623,7 @@ void PathStripPathW(const(wchar)* pszPath);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if a valid drive letter was found in the path, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathStripToRootA(const(char)* pszPath);
+BOOL PathStripToRootA(PSTR pszPath);
 
 ///Removes all file and directory elements in a path except for the root information. <div class="alert"><b>Note</b>
 ///Misuse of this function can lead to a buffer overrun. We recommend the use of the safer PathCchStripToRoot function
@@ -15715,7 +15636,7 @@ BOOL PathStripToRootA(const(char)* pszPath);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if a valid drive letter was found in the path, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathStripToRootW(const(wchar)* pszPath);
+BOOL PathStripToRootW(PWSTR pszPath);
 
 ///Removes quotes from the beginning and end of a path.
 ///Params:
@@ -15725,7 +15646,7 @@ BOOL PathStripToRootW(const(wchar)* pszPath);
 ///    No return value.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathUnquoteSpacesA(const(char)* lpsz);
+BOOL PathUnquoteSpacesA(PSTR lpsz);
 
 ///Removes quotes from the beginning and end of a path.
 ///Params:
@@ -15735,7 +15656,7 @@ BOOL PathUnquoteSpacesA(const(char)* lpsz);
 ///    No return value.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathUnquoteSpacesW(const(wchar)* lpsz);
+BOOL PathUnquoteSpacesW(PWSTR lpsz);
 
 ///Gives an existing folder the proper attributes to become a system folder.
 ///Params:
@@ -15745,7 +15666,7 @@ BOOL PathUnquoteSpacesW(const(wchar)* lpsz);
 ///    Type: <b>BOOL</b> Returns nonzero if successful, or zero otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathMakeSystemFolderA(const(char)* pszPath);
+BOOL PathMakeSystemFolderA(const(PSTR) pszPath);
 
 ///Gives an existing folder the proper attributes to become a system folder.
 ///Params:
@@ -15755,7 +15676,7 @@ BOOL PathMakeSystemFolderA(const(char)* pszPath);
 ///    Type: <b>BOOL</b> Returns nonzero if successful, or zero otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathMakeSystemFolderW(const(wchar)* pszPath);
+BOOL PathMakeSystemFolderW(const(PWSTR) pszPath);
 
 ///Removes the attributes from a folder that make it a system folder. This folder must actually exist in the file
 ///system.
@@ -15766,7 +15687,7 @@ BOOL PathMakeSystemFolderW(const(wchar)* pszPath);
 ///    Type: <b>BOOL</b> Returns nonzero if successful, or zero otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathUnmakeSystemFolderA(const(char)* pszPath);
+BOOL PathUnmakeSystemFolderA(const(PSTR) pszPath);
 
 ///Removes the attributes from a folder that make it a system folder. This folder must actually exist in the file
 ///system.
@@ -15777,7 +15698,7 @@ BOOL PathUnmakeSystemFolderA(const(char)* pszPath);
 ///    Type: <b>BOOL</b> Returns nonzero if successful, or zero otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathUnmakeSystemFolderW(const(wchar)* pszPath);
+BOOL PathUnmakeSystemFolderW(const(PWSTR) pszPath);
 
 ///Determines if an existing folder contains the attributes that make it a system folder. Alternately, this function
 ///indicates if certain attributes qualify a folder to be a system folder.
@@ -15796,7 +15717,7 @@ BOOL PathUnmakeSystemFolderW(const(wchar)* pszPath);
 ///    otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsSystemFolderA(const(char)* pszPath, uint dwAttrb);
+BOOL PathIsSystemFolderA(const(PSTR) pszPath, uint dwAttrb);
 
 ///Determines if an existing folder contains the attributes that make it a system folder. Alternately, this function
 ///indicates if certain attributes qualify a folder to be a system folder.
@@ -15815,21 +15736,21 @@ BOOL PathIsSystemFolderA(const(char)* pszPath, uint dwAttrb);
 ///    otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathIsSystemFolderW(const(wchar)* pszPath, uint dwAttrb);
+BOOL PathIsSystemFolderW(const(PWSTR) pszPath, uint dwAttrb);
 
 ///Removes the decoration from a path string.
 ///Params:
 ///    pszPath = Type: <b>LPTSTR</b> A null-terminated string of length MAX_PATH that contains the path. When the function
 ///              returns, <i>pszPath</i> points to the undecorated string.
 @DllImport("SHLWAPI")
-void PathUndecorateA(const(char)* pszPath);
+void PathUndecorateA(PSTR pszPath);
 
 ///Removes the decoration from a path string.
 ///Params:
 ///    pszPath = Type: <b>LPTSTR</b> A null-terminated string of length MAX_PATH that contains the path. When the function
 ///              returns, <i>pszPath</i> points to the undecorated string.
 @DllImport("SHLWAPI")
-void PathUndecorateW(const(wchar)* pszPath);
+void PathUndecorateW(PWSTR pszPath);
 
 ///Replaces certain folder names in a fully qualified path with their associated environment string.
 ///Params:
@@ -15843,7 +15764,7 @@ void PathUndecorateW(const(wchar)* pszPath);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if successful; otherwise, <b>FALSE</b>.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathUnExpandEnvStringsA(const(char)* pszPath, const(char)* pszBuf, uint cchBuf);
+BOOL PathUnExpandEnvStringsA(const(PSTR) pszPath, PSTR pszBuf, uint cchBuf);
 
 ///Replaces certain folder names in a fully qualified path with their associated environment string.
 ///Params:
@@ -15857,7 +15778,7 @@ BOOL PathUnExpandEnvStringsA(const(char)* pszPath, const(char)* pszBuf, uint cch
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if successful; otherwise, <b>FALSE</b>.
 ///    
 @DllImport("SHLWAPI")
-BOOL PathUnExpandEnvStringsW(const(wchar)* pszPath, const(wchar)* pszBuf, uint cchBuf);
+BOOL PathUnExpandEnvStringsW(const(PWSTR) pszPath, PWSTR pszBuf, uint cchBuf);
 
 ///Makes a case-sensitive comparison of two URL strings.
 ///Params:
@@ -15874,7 +15795,7 @@ BOOL PathUnExpandEnvStringsW(const(wchar)* pszPath, const(wchar)* pszBuf, uint c
 ///    <i>psz2</i>. Otherwise, it returns a positive integer.
 ///    
 @DllImport("SHLWAPI")
-int UrlCompareA(const(char)* psz1, const(char)* psz2, BOOL fIgnoreSlash);
+int UrlCompareA(const(PSTR) psz1, const(PSTR) psz2, BOOL fIgnoreSlash);
 
 ///Makes a case-sensitive comparison of two URL strings.
 ///Params:
@@ -15891,7 +15812,7 @@ int UrlCompareA(const(char)* psz1, const(char)* psz2, BOOL fIgnoreSlash);
 ///    <i>psz2</i>. Otherwise, it returns a positive integer.
 ///    
 @DllImport("SHLWAPI")
-int UrlCompareW(const(wchar)* psz1, const(wchar)* psz2, BOOL fIgnoreSlash);
+int UrlCompareW(const(PWSTR) psz1, const(PWSTR) psz2, BOOL fIgnoreSlash);
 
 ///When provided with a relative URL and its base, returns a URL in canonical form.
 ///Params:
@@ -15916,7 +15837,7 @@ int UrlCompareW(const(wchar)* psz1, const(wchar)* psz2, BOOL fIgnoreSlash);
 ///    the terminating <b>NULL</b> character. </td> </tr> </table>
 ///    
 @DllImport("SHLWAPI")
-HRESULT UrlCombineA(const(char)* pszBase, const(char)* pszRelative, const(char)* pszCombined, uint* pcchCombined, 
+HRESULT UrlCombineA(const(PSTR) pszBase, const(PSTR) pszRelative, PSTR pszCombined, uint* pcchCombined, 
                     uint dwFlags);
 
 ///When provided with a relative URL and its base, returns a URL in canonical form.
@@ -15942,8 +15863,8 @@ HRESULT UrlCombineA(const(char)* pszBase, const(char)* pszRelative, const(char)*
 ///    the terminating <b>NULL</b> character. </td> </tr> </table>
 ///    
 @DllImport("SHLWAPI")
-HRESULT UrlCombineW(const(wchar)* pszBase, const(wchar)* pszRelative, const(wchar)* pszCombined, 
-                    uint* pcchCombined, uint dwFlags);
+HRESULT UrlCombineW(const(PWSTR) pszBase, const(PWSTR) pszRelative, PWSTR pszCombined, uint* pcchCombined, 
+                    uint dwFlags);
 
 ///Converts a URL string into canonical form.
 ///Params:
@@ -15961,7 +15882,7 @@ HRESULT UrlCombineW(const(wchar)* pszBase, const(wchar)* pszRelative, const(wcha
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHLWAPI")
-HRESULT UrlCanonicalizeA(const(char)* pszUrl, const(char)* pszCanonicalized, uint* pcchCanonicalized, uint dwFlags);
+HRESULT UrlCanonicalizeA(const(PSTR) pszUrl, PSTR pszCanonicalized, uint* pcchCanonicalized, uint dwFlags);
 
 ///Converts a URL string into canonical form.
 ///Params:
@@ -15979,8 +15900,7 @@ HRESULT UrlCanonicalizeA(const(char)* pszUrl, const(char)* pszCanonicalized, uin
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHLWAPI")
-HRESULT UrlCanonicalizeW(const(wchar)* pszUrl, const(wchar)* pszCanonicalized, uint* pcchCanonicalized, 
-                         uint dwFlags);
+HRESULT UrlCanonicalizeW(const(PWSTR) pszUrl, PWSTR pszCanonicalized, uint* pcchCanonicalized, uint dwFlags);
 
 ///Returns whether a URL is opaque.
 ///Params:
@@ -15989,7 +15909,7 @@ HRESULT UrlCanonicalizeW(const(wchar)* pszUrl, const(wchar)* pszCanonicalized, u
 ///    Type: <b>BOOL</b> Returns a nonzero value if the URL is opaque, or zero otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL UrlIsOpaqueA(const(char)* pszURL);
+BOOL UrlIsOpaqueA(const(PSTR) pszURL);
 
 ///Returns whether a URL is opaque.
 ///Params:
@@ -15998,7 +15918,7 @@ BOOL UrlIsOpaqueA(const(char)* pszURL);
 ///    Type: <b>BOOL</b> Returns a nonzero value if the URL is opaque, or zero otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL UrlIsOpaqueW(const(wchar)* pszURL);
+BOOL UrlIsOpaqueW(const(PWSTR) pszURL);
 
 ///Returns whether a URL is a URL that browsers typically do not include in navigation history.
 ///Params:
@@ -16008,7 +15928,7 @@ BOOL UrlIsOpaqueW(const(wchar)* pszURL);
 ///    otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL UrlIsNoHistoryA(const(char)* pszURL);
+BOOL UrlIsNoHistoryA(const(PSTR) pszURL);
 
 ///Returns whether a URL is a URL that browsers typically do not include in navigation history.
 ///Params:
@@ -16018,7 +15938,7 @@ BOOL UrlIsNoHistoryA(const(char)* pszURL);
 ///    otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL UrlIsNoHistoryW(const(wchar)* pszURL);
+BOOL UrlIsNoHistoryW(const(PWSTR) pszURL);
 
 ///Tests whether a URL is a specified type.
 ///Params:
@@ -16031,7 +15951,7 @@ BOOL UrlIsNoHistoryW(const(wchar)* pszURL);
 ///    otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL UrlIsA(const(char)* pszUrl, URLIS UrlIs);
+BOOL UrlIsA(const(PSTR) pszUrl, URLIS UrlIs);
 
 ///Tests whether a URL is a specified type.
 ///Params:
@@ -16044,7 +15964,7 @@ BOOL UrlIsA(const(char)* pszUrl, URLIS UrlIs);
 ///    otherwise.
 ///    
 @DllImport("SHLWAPI")
-BOOL UrlIsW(const(wchar)* pszUrl, URLIS UrlIs);
+BOOL UrlIsW(const(PWSTR) pszUrl, URLIS UrlIs);
 
 ///Retrieves the location from a URL.
 ///Params:
@@ -16054,7 +15974,7 @@ BOOL UrlIsW(const(wchar)* pszUrl, URLIS UrlIs);
 ///    Type: <b>LPCTSTR</b> Returns a pointer to a null-terminated string with the location, or <b>NULL</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-byte* UrlGetLocationA(const(char)* pszURL);
+PSTR UrlGetLocationA(const(PSTR) pszURL);
 
 ///Retrieves the location from a URL.
 ///Params:
@@ -16064,7 +15984,7 @@ byte* UrlGetLocationA(const(char)* pszURL);
 ///    Type: <b>LPCTSTR</b> Returns a pointer to a null-terminated string with the location, or <b>NULL</b> otherwise.
 ///    
 @DllImport("SHLWAPI")
-ushort* UrlGetLocationW(const(wchar)* pszURL);
+PWSTR UrlGetLocationW(const(PWSTR) pszURL);
 
 ///Converts escape sequences back into ordinary characters.
 ///Params:
@@ -16088,7 +16008,7 @@ ushort* UrlGetLocationW(const(wchar)* pszURL);
 ///    standard error value.
 ///    
 @DllImport("SHLWAPI")
-HRESULT UrlUnescapeA(const(char)* pszUrl, const(char)* pszUnescaped, uint* pcchUnescaped, uint dwFlags);
+HRESULT UrlUnescapeA(PSTR pszUrl, PSTR pszUnescaped, uint* pcchUnescaped, uint dwFlags);
 
 ///Converts escape sequences back into ordinary characters.
 ///Params:
@@ -16112,7 +16032,7 @@ HRESULT UrlUnescapeA(const(char)* pszUrl, const(char)* pszUnescaped, uint* pcchU
 ///    standard error value.
 ///    
 @DllImport("SHLWAPI")
-HRESULT UrlUnescapeW(const(wchar)* pszUrl, const(wchar)* pszUnescaped, uint* pcchUnescaped, uint dwFlags);
+HRESULT UrlUnescapeW(PWSTR pszUrl, PWSTR pszUnescaped, uint* pcchUnescaped, uint dwFlags);
 
 ///Converts characters or surrogate pairs in a URL that might be altered during transport across the Internet ("unsafe"
 ///characters) into their corresponding escape sequences. Surrogate pairs are characters between U+10000 to U+10FFFF (in
@@ -16137,7 +16057,7 @@ HRESULT UrlUnescapeW(const(wchar)* pszUrl, const(wchar)* pszUnescaped, uint* pcc
 ///    Otherwise, a standard error value is returned.
 ///    
 @DllImport("SHLWAPI")
-HRESULT UrlEscapeA(const(char)* pszUrl, const(char)* pszEscaped, uint* pcchEscaped, uint dwFlags);
+HRESULT UrlEscapeA(const(PSTR) pszUrl, PSTR pszEscaped, uint* pcchEscaped, uint dwFlags);
 
 ///Converts characters or surrogate pairs in a URL that might be altered during transport across the Internet ("unsafe"
 ///characters) into their corresponding escape sequences. Surrogate pairs are characters between U+10000 to U+10FFFF (in
@@ -16162,7 +16082,7 @@ HRESULT UrlEscapeA(const(char)* pszUrl, const(char)* pszEscaped, uint* pcchEscap
 ///    Otherwise, a standard error value is returned.
 ///    
 @DllImport("SHLWAPI")
-HRESULT UrlEscapeW(const(wchar)* pszUrl, const(wchar)* pszEscaped, uint* pcchEscaped, uint dwFlags);
+HRESULT UrlEscapeW(const(PWSTR) pszUrl, PWSTR pszEscaped, uint* pcchEscaped, uint dwFlags);
 
 ///Converts a Microsoft MS-DOS path to a canonicalized URL.
 ///Params:
@@ -16177,7 +16097,7 @@ HRESULT UrlEscapeW(const(wchar)* pszUrl, const(wchar)* pszEscaped, uint* pcchEsc
 ///    not.
 ///    
 @DllImport("SHLWAPI")
-HRESULT UrlCreateFromPathA(const(char)* pszPath, const(char)* pszUrl, uint* pcchUrl, uint dwFlags);
+HRESULT UrlCreateFromPathA(const(PSTR) pszPath, PSTR pszUrl, uint* pcchUrl, uint dwFlags);
 
 ///Converts a Microsoft MS-DOS path to a canonicalized URL.
 ///Params:
@@ -16192,7 +16112,7 @@ HRESULT UrlCreateFromPathA(const(char)* pszPath, const(char)* pszUrl, uint* pcch
 ///    not.
 ///    
 @DllImport("SHLWAPI")
-HRESULT UrlCreateFromPathW(const(wchar)* pszPath, const(wchar)* pszUrl, uint* pcchUrl, uint dwFlags);
+HRESULT UrlCreateFromPathW(const(PWSTR) pszPath, PWSTR pszUrl, uint* pcchUrl, uint dwFlags);
 
 ///Converts a file URL to a Microsoft MS-DOS path.
 ///Params:
@@ -16207,7 +16127,7 @@ HRESULT UrlCreateFromPathW(const(wchar)* pszPath, const(wchar)* pszUrl, uint* pc
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHLWAPI")
-HRESULT PathCreateFromUrlA(const(char)* pszUrl, const(char)* pszPath, uint* pcchPath, uint dwFlags);
+HRESULT PathCreateFromUrlA(const(PSTR) pszUrl, PSTR pszPath, uint* pcchPath, uint dwFlags);
 
 ///Converts a file URL to a Microsoft MS-DOS path.
 ///Params:
@@ -16222,7 +16142,7 @@ HRESULT PathCreateFromUrlA(const(char)* pszUrl, const(char)* pszPath, uint* pcch
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHLWAPI")
-HRESULT PathCreateFromUrlW(const(wchar)* pszUrl, const(wchar)* pszPath, uint* pcchPath, uint dwFlags);
+HRESULT PathCreateFromUrlW(const(PWSTR) pszUrl, PWSTR pszPath, uint* pcchPath, uint dwFlags);
 
 ///Creates a path from a file URL.
 ///Params:
@@ -16231,7 +16151,7 @@ HRESULT PathCreateFromUrlW(const(wchar)* pszUrl, const(wchar)* pszPath, uint* pc
 ///              successfully, receives the file path.
 ///    dwFlags = Type: <b>DWORD</b> Reserved, must be 0.
 @DllImport("SHLWAPI")
-HRESULT PathCreateFromUrlAlloc(const(wchar)* pszIn, ushort** ppszOut, uint dwFlags);
+HRESULT PathCreateFromUrlAlloc(const(PWSTR) pszIn, PWSTR* ppszOut, uint dwFlags);
 
 ///Hashes a URL string.
 ///Params:
@@ -16245,7 +16165,7 @@ HRESULT PathCreateFromUrlAlloc(const(wchar)* pszIn, ushort** ppszOut, uint dwFla
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHLWAPI")
-HRESULT UrlHashA(const(char)* pszUrl, char* pbHash, uint cbHash);
+HRESULT UrlHashA(const(PSTR) pszUrl, ubyte* pbHash, uint cbHash);
 
 ///Hashes a URL string.
 ///Params:
@@ -16259,7 +16179,7 @@ HRESULT UrlHashA(const(char)* pszUrl, char* pbHash, uint cbHash);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHLWAPI")
-HRESULT UrlHashW(const(wchar)* pszUrl, char* pbHash, uint cbHash);
+HRESULT UrlHashW(const(PWSTR) pszUrl, ubyte* pbHash, uint cbHash);
 
 ///Accepts a URL string and returns a specified part of that URL.
 ///Params:
@@ -16281,7 +16201,7 @@ HRESULT UrlHashW(const(wchar)* pszUrl, char* pbHash, uint cbHash);
 ///    value is returned.
 ///    
 @DllImport("SHLWAPI")
-HRESULT UrlGetPartW(const(wchar)* pszIn, const(wchar)* pszOut, uint* pcchOut, uint dwPart, uint dwFlags);
+HRESULT UrlGetPartW(const(PWSTR) pszIn, PWSTR pszOut, uint* pcchOut, uint dwPart, uint dwFlags);
 
 ///Accepts a URL string and returns a specified part of that URL.
 ///Params:
@@ -16303,7 +16223,7 @@ HRESULT UrlGetPartW(const(wchar)* pszIn, const(wchar)* pszOut, uint* pcchOut, ui
 ///    value is returned.
 ///    
 @DllImport("SHLWAPI")
-HRESULT UrlGetPartA(const(char)* pszIn, const(char)* pszOut, uint* pcchOut, uint dwPart, uint dwFlags);
+HRESULT UrlGetPartA(const(PSTR) pszIn, PSTR pszOut, uint* pcchOut, uint dwPart, uint dwFlags);
 
 ///Determines a scheme for a specified URL string, and returns a string with an appropriate prefix.
 ///Params:
@@ -16327,7 +16247,7 @@ HRESULT UrlGetPartA(const(char)* pszIn, const(char)* pszOut, uint* pcchOut, uint
 ///    </table>
 ///    
 @DllImport("SHLWAPI")
-HRESULT UrlApplySchemeA(const(char)* pszIn, const(char)* pszOut, uint* pcchOut, uint dwFlags);
+HRESULT UrlApplySchemeA(const(PSTR) pszIn, PSTR pszOut, uint* pcchOut, uint dwFlags);
 
 ///Determines a scheme for a specified URL string, and returns a string with an appropriate prefix.
 ///Params:
@@ -16351,7 +16271,7 @@ HRESULT UrlApplySchemeA(const(char)* pszIn, const(char)* pszOut, uint* pcchOut, 
 ///    </table>
 ///    
 @DllImport("SHLWAPI")
-HRESULT UrlApplySchemeW(const(wchar)* pszIn, const(wchar)* pszOut, uint* pcchOut, uint dwFlags);
+HRESULT UrlApplySchemeW(const(PWSTR) pszIn, PWSTR pszOut, uint* pcchOut, uint dwFlags);
 
 ///Hashes an array of data.
 ///Params:
@@ -16360,7 +16280,7 @@ HRESULT UrlApplySchemeW(const(wchar)* pszIn, const(wchar)* pszOut, uint* pcchOut
 ///    pbHash = Type: <b>BYTE*</b> A pointer to a value that, when this function returns successfully, receives the hashed array.
 ///    cbHash = Type: <b>DWORD</b> The number of elements in <i>pbHash</i>. It should be no larger than 256.
 @DllImport("SHLWAPI")
-HRESULT HashData(char* pbData, uint cbData, char* pbHash, uint cbHash);
+HRESULT HashData(ubyte* pbData, uint cbData, ubyte* pbHash, uint cbHash);
 
 ///<p class="CCE_Message">[<b>UrlFixupW</b> is available for use in the operating systems specified in the Requirements
 ///section. It may be altered or unavailable in subsequent versions.] Attempts to correct a URL whose protocol
@@ -16383,7 +16303,7 @@ HRESULT HashData(char* pbData, uint cbData, char* pbHash, uint cbHash);
 ///    standard COM error code.
 ///    
 @DllImport("SHLWAPI")
-HRESULT UrlFixupW(const(wchar)* pcszUrl, const(wchar)* pszTranslatedUrl, uint cchMax);
+HRESULT UrlFixupW(const(PWSTR) pcszUrl, PWSTR pszTranslatedUrl, uint cchMax);
 
 ///Performs rudimentary parsing of a URL.
 ///Params:
@@ -16396,7 +16316,7 @@ HRESULT UrlFixupW(const(wchar)* pcszUrl, const(wchar)* pszTranslatedUrl, uint cc
 ///    <b>URL_E_INVALID_SYNTAX</b> (defined in Intshcut.h) if the string could not be parsed as a URL.
 ///    
 @DllImport("SHLWAPI")
-HRESULT ParseURLA(const(char)* pcszURL, PARSEDURLA* ppu);
+HRESULT ParseURLA(const(PSTR) pcszURL, PARSEDURLA* ppu);
 
 ///Performs rudimentary parsing of a URL.
 ///Params:
@@ -16409,7 +16329,7 @@ HRESULT ParseURLA(const(char)* pcszURL, PARSEDURLA* ppu);
 ///    <b>URL_E_INVALID_SYNTAX</b> (defined in Intshcut.h) if the string could not be parsed as a URL.
 ///    
 @DllImport("SHLWAPI")
-HRESULT ParseURLW(const(wchar)* pcszURL, PARSEDURLW* ppu);
+HRESULT ParseURLW(const(PWSTR) pcszURL, PARSEDURLW* ppu);
 
 ///Deletes an empty key.
 ///Params:
@@ -16422,7 +16342,7 @@ HRESULT ParseURLW(const(wchar)* pcszURL, PARSEDURLW* ppu);
 ///    generic description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHDeleteEmptyKeyA(HKEY hkey, const(char)* pszSubKey);
+LSTATUS SHDeleteEmptyKeyA(HKEY hkey, const(PSTR) pszSubKey);
 
 ///Deletes an empty key.
 ///Params:
@@ -16435,7 +16355,7 @@ LSTATUS SHDeleteEmptyKeyA(HKEY hkey, const(char)* pszSubKey);
 ///    generic description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHDeleteEmptyKeyW(HKEY hkey, const(wchar)* pszSubKey);
+LSTATUS SHDeleteEmptyKeyW(HKEY hkey, const(PWSTR) pszSubKey);
 
 ///Deletes a subkey and all its descendants. This function removes the key and all the key's values from the registry.
 ///Params:
@@ -16448,7 +16368,7 @@ LSTATUS SHDeleteEmptyKeyW(HKEY hkey, const(wchar)* pszSubKey);
 ///    generic description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHDeleteKeyA(HKEY hkey, const(char)* pszSubKey);
+LSTATUS SHDeleteKeyA(HKEY hkey, const(PSTR) pszSubKey);
 
 ///Deletes a subkey and all its descendants. This function removes the key and all the key's values from the registry.
 ///Params:
@@ -16461,7 +16381,7 @@ LSTATUS SHDeleteKeyA(HKEY hkey, const(char)* pszSubKey);
 ///    generic description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHDeleteKeyW(HKEY hkey, const(wchar)* pszSubKey);
+LSTATUS SHDeleteKeyW(HKEY hkey, const(PWSTR) pszSubKey);
 
 ///Duplicates a registry key's HKEY handle.
 ///Params:
@@ -16481,7 +16401,7 @@ HKEY SHRegDuplicateHKey(HKEY hkey);
 ///    description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHDeleteValueA(HKEY hkey, const(char)* pszSubKey, const(char)* pszValue);
+LSTATUS SHDeleteValueA(HKEY hkey, const(PSTR) pszSubKey, const(PSTR) pszValue);
 
 ///Deletes a named value from the specified registry key.
 ///Params:
@@ -16495,7 +16415,7 @@ LSTATUS SHDeleteValueA(HKEY hkey, const(char)* pszSubKey, const(char)* pszValue)
 ///    description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHDeleteValueW(HKEY hkey, const(wchar)* pszSubKey, const(wchar)* pszValue);
+LSTATUS SHDeleteValueW(HKEY hkey, const(PWSTR) pszSubKey, const(PWSTR) pszValue);
 
 ///Retrieves a registry value.
 ///Params:
@@ -16512,7 +16432,7 @@ LSTATUS SHDeleteValueW(HKEY hkey, const(wchar)* pszSubKey, const(wchar)* pszValu
 ///    description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHGetValueA(HKEY hkey, const(char)* pszSubKey, const(char)* pszValue, uint* pdwType, char* pvData, 
+LSTATUS SHGetValueA(HKEY hkey, const(PSTR) pszSubKey, const(PSTR) pszValue, uint* pdwType, void* pvData, 
                     uint* pcbData);
 
 ///Retrieves a registry value.
@@ -16530,7 +16450,7 @@ LSTATUS SHGetValueA(HKEY hkey, const(char)* pszSubKey, const(char)* pszValue, ui
 ///    description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHGetValueW(HKEY hkey, const(wchar)* pszSubKey, const(wchar)* pszValue, uint* pdwType, char* pvData, 
+LSTATUS SHGetValueW(HKEY hkey, const(PWSTR) pszSubKey, const(PWSTR) pszValue, uint* pdwType, void* pvData, 
                     uint* pcbData);
 
 ///Sets the value of a registry key.
@@ -16553,7 +16473,7 @@ LSTATUS SHGetValueW(HKEY hkey, const(wchar)* pszSubKey, const(wchar)* pszValue, 
 ///    of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHSetValueA(HKEY hkey, const(char)* pszSubKey, const(char)* pszValue, uint dwType, char* pvData, 
+LSTATUS SHSetValueA(HKEY hkey, const(PSTR) pszSubKey, const(PSTR) pszValue, uint dwType, const(void)* pvData, 
                     uint cbData);
 
 ///Sets the value of a registry key.
@@ -16576,7 +16496,7 @@ LSTATUS SHSetValueA(HKEY hkey, const(char)* pszSubKey, const(char)* pszValue, ui
 ///    of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHSetValueW(HKEY hkey, const(wchar)* pszSubKey, const(wchar)* pszValue, uint dwType, char* pvData, 
+LSTATUS SHSetValueW(HKEY hkey, const(PWSTR) pszSubKey, const(PWSTR) pszValue, uint dwType, const(void)* pvData, 
                     uint cbData);
 
 ///<p class="CCE_Message">[<b>SHRegGetValue</b> may be altered or unavailable in subsequent versions of the operating
@@ -16612,8 +16532,8 @@ LSTATUS SHSetValueW(HKEY hkey, const(wchar)* pszSubKey, const(wchar)* pszValue, 
 ///    generic description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHRegGetValueA(HKEY hkey, const(char)* pszSubKey, const(char)* pszValue, int srrfFlags, uint* pdwType, 
-                       char* pvData, uint* pcbData);
+LSTATUS SHRegGetValueA(HKEY hkey, const(PSTR) pszSubKey, const(PSTR) pszValue, int srrfFlags, uint* pdwType, 
+                       void* pvData, uint* pcbData);
 
 ///<p class="CCE_Message">[<b>SHRegGetValue</b> may be altered or unavailable in subsequent versions of the operating
 ///system or product. Use RegGetValue in its place.] Retrieves a registry value.
@@ -16648,8 +16568,8 @@ LSTATUS SHRegGetValueA(HKEY hkey, const(char)* pszSubKey, const(char)* pszValue,
 ///    generic description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHRegGetValueW(HKEY hkey, const(wchar)* pszSubKey, const(wchar)* pszValue, int srrfFlags, uint* pdwType, 
-                       char* pvData, uint* pcbData);
+LSTATUS SHRegGetValueW(HKEY hkey, const(PWSTR) pszSubKey, const(PWSTR) pszValue, int srrfFlags, uint* pdwType, 
+                       void* pvData, uint* pcbData);
 
 ///<p class="CCE_Message">[This function is no longer supported.] Obtains specified information from the registry. This
 ///function will check HKEY_CURRENT_USER for the requested information in the specified subkey. If the information does
@@ -16672,8 +16592,8 @@ LSTATUS SHRegGetValueW(HKEY hkey, const(wchar)* pszSubKey, const(wchar)* pszValu
 ///             then on exit it will contain the size required to hold the registry data.
 ///    pcbData = Type: <b>DWORD*</b> When this function returns, contains a pointer to the size of the data, in bytes.
 @DllImport("SHLWAPI")
-LSTATUS SHRegGetValueFromHKCUHKLM(const(wchar)* pwszKey, const(wchar)* pwszValue, int srrfFlags, uint* pdwType, 
-                                  char* pvData, uint* pcbData);
+LSTATUS SHRegGetValueFromHKCUHKLM(const(PWSTR) pwszKey, const(PWSTR) pwszValue, int srrfFlags, uint* pdwType, 
+                                  void* pvData, uint* pcbData);
 
 ///Opens a registry key and queries it for a specific value.
 ///Params:
@@ -16694,7 +16614,7 @@ LSTATUS SHRegGetValueFromHKCUHKLM(const(wchar)* pwszKey, const(wchar)* pwszValue
 ///    of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHQueryValueExA(HKEY hkey, const(char)* pszValue, uint* pdwReserved, uint* pdwType, char* pvData, 
+LSTATUS SHQueryValueExA(HKEY hkey, const(PSTR) pszValue, uint* pdwReserved, uint* pdwType, void* pvData, 
                         uint* pcbData);
 
 ///Opens a registry key and queries it for a specific value.
@@ -16716,7 +16636,7 @@ LSTATUS SHQueryValueExA(HKEY hkey, const(char)* pszValue, uint* pdwReserved, uin
 ///    of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHQueryValueExW(HKEY hkey, const(wchar)* pszValue, uint* pdwReserved, uint* pdwType, char* pvData, 
+LSTATUS SHQueryValueExW(HKEY hkey, const(PWSTR) pszValue, uint* pdwReserved, uint* pdwType, void* pvData, 
                         uint* pcbData);
 
 ///Enumerates the subkeys of the specified open registry key.
@@ -16734,7 +16654,7 @@ LSTATUS SHQueryValueExW(HKEY hkey, const(wchar)* pszValue, uint* pdwReserved, ui
 ///    description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHEnumKeyExA(HKEY hkey, uint dwIndex, const(char)* pszName, uint* pcchName);
+LSTATUS SHEnumKeyExA(HKEY hkey, uint dwIndex, PSTR pszName, uint* pcchName);
 
 ///Enumerates the subkeys of the specified open registry key.
 ///Params:
@@ -16751,7 +16671,7 @@ LSTATUS SHEnumKeyExA(HKEY hkey, uint dwIndex, const(char)* pszName, uint* pcchNa
 ///    description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHEnumKeyExW(HKEY hkey, uint dwIndex, const(wchar)* pszName, uint* pcchName);
+LSTATUS SHEnumKeyExW(HKEY hkey, uint dwIndex, PWSTR pszName, uint* pcchName);
 
 ///Enumerates the values of the specified open registry key.
 ///Params:
@@ -16775,8 +16695,8 @@ LSTATUS SHEnumKeyExW(HKEY hkey, uint dwIndex, const(wchar)* pszName, uint* pcchN
 ///    description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHEnumValueA(HKEY hkey, uint dwIndex, const(char)* pszValueName, uint* pcchValueName, uint* pdwType, 
-                     char* pvData, uint* pcbData);
+LSTATUS SHEnumValueA(HKEY hkey, uint dwIndex, PSTR pszValueName, uint* pcchValueName, uint* pdwType, void* pvData, 
+                     uint* pcbData);
 
 ///Enumerates the values of the specified open registry key.
 ///Params:
@@ -16800,8 +16720,8 @@ LSTATUS SHEnumValueA(HKEY hkey, uint dwIndex, const(char)* pszValueName, uint* p
 ///    description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHEnumValueW(HKEY hkey, uint dwIndex, const(wchar)* pszValueName, uint* pcchValueName, uint* pdwType, 
-                     char* pvData, uint* pcbData);
+LSTATUS SHEnumValueW(HKEY hkey, uint dwIndex, PWSTR pszValueName, uint* pcchValueName, uint* pdwType, void* pvData, 
+                     uint* pcbData);
 
 ///Retrieves information about a specified registry key.
 ///Params:
@@ -16852,7 +16772,7 @@ LSTATUS SHQueryInfoKeyW(HKEY hkey, uint* pcSubKeys, uint* pcchMaxSubKeyLen, uint
 ///    error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHCopyKeyA(HKEY hkeySrc, const(char)* pszSrcSubKey, HKEY hkeyDest, uint fReserved);
+LSTATUS SHCopyKeyA(HKEY hkeySrc, const(PSTR) pszSrcSubKey, HKEY hkeyDest, uint fReserved);
 
 ///Recursively copies the subkeys and values of the source subkey to the destination key. <b>SHCopyKey</b> does not copy
 ///the security attributes of the keys.
@@ -16867,7 +16787,7 @@ LSTATUS SHCopyKeyA(HKEY hkeySrc, const(char)* pszSrcSubKey, HKEY hkeyDest, uint 
 ///    error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHCopyKeyW(HKEY hkeySrc, const(wchar)* pszSrcSubKey, HKEY hkeyDest, uint fReserved);
+LSTATUS SHCopyKeyW(HKEY hkeySrc, const(PWSTR) pszSrcSubKey, HKEY hkeyDest, uint fReserved);
 
 ///Retrieves a file path from the registry, expanding environment variables as needed.
 ///Params:
@@ -16882,8 +16802,7 @@ LSTATUS SHCopyKeyW(HKEY hkeySrc, const(wchar)* pszSrcSubKey, HKEY hkeyDest, uint
 ///    Type: <b>LSTATUS</b> Returns <b>ERROR_SUCCESS</b> if successful, or a Windows error code otherwise.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHRegGetPathA(HKEY hKey, const(char)* pcszSubKey, const(char)* pcszValue, const(char)* pszPath, 
-                      uint dwFlags);
+LSTATUS SHRegGetPathA(HKEY hKey, const(PSTR) pcszSubKey, const(PSTR) pcszValue, PSTR pszPath, uint dwFlags);
 
 ///Retrieves a file path from the registry, expanding environment variables as needed.
 ///Params:
@@ -16898,8 +16817,7 @@ LSTATUS SHRegGetPathA(HKEY hKey, const(char)* pcszSubKey, const(char)* pcszValue
 ///    Type: <b>LSTATUS</b> Returns <b>ERROR_SUCCESS</b> if successful, or a Windows error code otherwise.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHRegGetPathW(HKEY hKey, const(wchar)* pcszSubKey, const(wchar)* pcszValue, const(wchar)* pszPath, 
-                      uint dwFlags);
+LSTATUS SHRegGetPathW(HKEY hKey, const(PWSTR) pcszSubKey, const(PWSTR) pcszValue, PWSTR pszPath, uint dwFlags);
 
 ///Takes a file path, replaces folder names with environment strings, and places the resulting string in the registry.
 ///Params:
@@ -16913,8 +16831,7 @@ LSTATUS SHRegGetPathW(HKEY hKey, const(wchar)* pcszSubKey, const(wchar)* pcszVal
 ///    Type: <b>LSTATUS</b> Returns ERROR_SUCCESS if successful, or a Windows error code otherwise.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHRegSetPathA(HKEY hKey, const(char)* pcszSubKey, const(char)* pcszValue, const(char)* pcszPath, 
-                      uint dwFlags);
+LSTATUS SHRegSetPathA(HKEY hKey, const(PSTR) pcszSubKey, const(PSTR) pcszValue, const(PSTR) pcszPath, uint dwFlags);
 
 ///Takes a file path, replaces folder names with environment strings, and places the resulting string in the registry.
 ///Params:
@@ -16928,7 +16845,7 @@ LSTATUS SHRegSetPathA(HKEY hKey, const(char)* pcszSubKey, const(char)* pcszValue
 ///    Type: <b>LSTATUS</b> Returns ERROR_SUCCESS if successful, or a Windows error code otherwise.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHRegSetPathW(HKEY hKey, const(wchar)* pcszSubKey, const(wchar)* pcszValue, const(wchar)* pcszPath, 
+LSTATUS SHRegSetPathW(HKEY hKey, const(PWSTR) pcszSubKey, const(PWSTR) pcszValue, const(PWSTR) pcszPath, 
                       uint dwFlags);
 
 ///Creates or opens a registry subkey in a user-specific subtree (HKEY_CURRENT_USER or HKEY_LOCAL_MACHINE).
@@ -16949,7 +16866,7 @@ LSTATUS SHRegSetPathW(HKEY hKey, const(wchar)* pcszSubKey, const(wchar)* pcszVal
 ///    description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHRegCreateUSKeyA(const(char)* pszPath, uint samDesired, ptrdiff_t hRelativeUSKey, ptrdiff_t* phNewUSKey, 
+LSTATUS SHRegCreateUSKeyA(const(PSTR) pszPath, uint samDesired, ptrdiff_t hRelativeUSKey, ptrdiff_t* phNewUSKey, 
                           uint dwFlags);
 
 ///Creates or opens a registry subkey in a user-specific subtree (HKEY_CURRENT_USER or HKEY_LOCAL_MACHINE).
@@ -16975,7 +16892,7 @@ LSTATUS SHRegCreateUSKeyA(const(char)* pszPath, uint samDesired, ptrdiff_t hRela
 ///    description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHRegCreateUSKeyW(const(wchar)* pwzPath, uint samDesired, ptrdiff_t hRelativeUSKey, ptrdiff_t* phNewUSKey, 
+LSTATUS SHRegCreateUSKeyW(const(PWSTR) pwzPath, uint samDesired, ptrdiff_t hRelativeUSKey, ptrdiff_t* phNewUSKey, 
                           uint dwFlags);
 
 ///Opens a registry subkey in a user-specific subtree (HKEY_CURRENT_USER or HKEY_LOCAL_MACHINE).
@@ -16994,7 +16911,7 @@ LSTATUS SHRegCreateUSKeyW(const(wchar)* pwzPath, uint samDesired, ptrdiff_t hRel
 ///    description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHRegOpenUSKeyA(const(char)* pszPath, uint samDesired, ptrdiff_t hRelativeUSKey, ptrdiff_t* phNewUSKey, 
+LSTATUS SHRegOpenUSKeyA(const(PSTR) pszPath, uint samDesired, ptrdiff_t hRelativeUSKey, ptrdiff_t* phNewUSKey, 
                         BOOL fIgnoreHKCU);
 
 ///Opens a registry subkey in a user-specific subtree (HKEY_CURRENT_USER or HKEY_LOCAL_MACHINE).
@@ -17013,7 +16930,7 @@ LSTATUS SHRegOpenUSKeyA(const(char)* pszPath, uint samDesired, ptrdiff_t hRelati
 ///    description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHRegOpenUSKeyW(const(wchar)* pwzPath, uint samDesired, ptrdiff_t hRelativeUSKey, ptrdiff_t* phNewUSKey, 
+LSTATUS SHRegOpenUSKeyW(const(PWSTR) pwzPath, uint samDesired, ptrdiff_t hRelativeUSKey, ptrdiff_t* phNewUSKey, 
                         BOOL fIgnoreHKCU);
 
 ///Retrieves the type and data for a specified name associated with an open registry subkey in a user-specific subtree
@@ -17042,8 +16959,8 @@ LSTATUS SHRegOpenUSKeyW(const(wchar)* pwzPath, uint samDesired, ptrdiff_t hRelat
 ///    description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHRegQueryUSValueA(ptrdiff_t hUSKey, const(char)* pszValue, uint* pdwType, char* pvData, uint* pcbData, 
-                           BOOL fIgnoreHKCU, char* pvDefaultData, uint dwDefaultDataSize);
+LSTATUS SHRegQueryUSValueA(ptrdiff_t hUSKey, const(PSTR) pszValue, uint* pdwType, void* pvData, uint* pcbData, 
+                           BOOL fIgnoreHKCU, void* pvDefaultData, uint dwDefaultDataSize);
 
 ///Retrieves the type and data for a specified name associated with an open registry subkey in a user-specific subtree
 ///(HKEY_CURRENT_USER or HKEY_LOCAL_MACHINE).
@@ -17071,8 +16988,8 @@ LSTATUS SHRegQueryUSValueA(ptrdiff_t hUSKey, const(char)* pszValue, uint* pdwTyp
 ///    description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHRegQueryUSValueW(ptrdiff_t hUSKey, const(wchar)* pszValue, uint* pdwType, char* pvData, uint* pcbData, 
-                           BOOL fIgnoreHKCU, char* pvDefaultData, uint dwDefaultDataSize);
+LSTATUS SHRegQueryUSValueW(ptrdiff_t hUSKey, const(PWSTR) pszValue, uint* pdwType, void* pvData, uint* pcbData, 
+                           BOOL fIgnoreHKCU, void* pvDefaultData, uint dwDefaultDataSize);
 
 ///Writes a value to a registry subkey in a user-specific subtree (HKEY_CURRENT_USER or HKEY_LOCAL_MACHINE).
 ///Params:
@@ -17100,7 +17017,7 @@ LSTATUS SHRegQueryUSValueW(ptrdiff_t hUSKey, const(wchar)* pszValue, uint* pdwTy
 ///    of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHRegWriteUSValueA(ptrdiff_t hUSKey, const(char)* pszValue, uint dwType, char* pvData, uint cbData, 
+LSTATUS SHRegWriteUSValueA(ptrdiff_t hUSKey, const(PSTR) pszValue, uint dwType, const(void)* pvData, uint cbData, 
                            uint dwFlags);
 
 ///Writes a value to a registry subkey in a user-specific subtree (HKEY_CURRENT_USER or HKEY_LOCAL_MACHINE).
@@ -17149,7 +17066,7 @@ LSTATUS SHRegWriteUSValueA(ptrdiff_t hUSKey, const(char)* pszValue, uint dwType,
 ///    of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHRegWriteUSValueW(ptrdiff_t hUSKey, const(wchar)* pwzValue, uint dwType, char* pvData, uint cbData, 
+LSTATUS SHRegWriteUSValueW(ptrdiff_t hUSKey, const(PWSTR) pwzValue, uint dwType, const(void)* pvData, uint cbData, 
                            uint dwFlags);
 
 ///Deletes a registry subkey value in a user-specific subtree (HKEY_CURRENT_USER or HKEY_LOCAL_MACHINE).
@@ -17166,7 +17083,7 @@ LSTATUS SHRegWriteUSValueW(ptrdiff_t hUSKey, const(wchar)* pwzValue, uint dwType
 ///    description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHRegDeleteUSValueA(ptrdiff_t hUSKey, const(char)* pszValue, SHREGDEL_FLAGS delRegFlags);
+LSTATUS SHRegDeleteUSValueA(ptrdiff_t hUSKey, const(PSTR) pszValue, SHREGDEL_FLAGS delRegFlags);
 
 ///Deletes a registry subkey value in a user-specific subtree (HKEY_CURRENT_USER or HKEY_LOCAL_MACHINE).
 ///Params:
@@ -17182,7 +17099,7 @@ LSTATUS SHRegDeleteUSValueA(ptrdiff_t hUSKey, const(char)* pszValue, SHREGDEL_FL
 ///    description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHRegDeleteUSValueW(ptrdiff_t hUSKey, const(wchar)* pwzValue, SHREGDEL_FLAGS delRegFlags);
+LSTATUS SHRegDeleteUSValueW(ptrdiff_t hUSKey, const(PWSTR) pwzValue, SHREGDEL_FLAGS delRegFlags);
 
 ///Deletes an empty registry subkey in a user-specific subtree (HKEY_CURRENT_USER or HKEY_LOCAL_MACHINE).
 ///Params:
@@ -17198,7 +17115,7 @@ LSTATUS SHRegDeleteUSValueW(ptrdiff_t hUSKey, const(wchar)* pwzValue, SHREGDEL_F
 ///    description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHRegDeleteEmptyUSKeyW(ptrdiff_t hUSKey, const(wchar)* pwzSubKey, SHREGDEL_FLAGS delRegFlags);
+LSTATUS SHRegDeleteEmptyUSKeyW(ptrdiff_t hUSKey, const(PWSTR) pwzSubKey, SHREGDEL_FLAGS delRegFlags);
 
 ///Deletes an empty registry subkey in a user-specific subtree (HKEY_CURRENT_USER or HKEY_LOCAL_MACHINE).
 ///Params:
@@ -17215,7 +17132,7 @@ LSTATUS SHRegDeleteEmptyUSKeyW(ptrdiff_t hUSKey, const(wchar)* pwzSubKey, SHREGD
 ///    description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHRegDeleteEmptyUSKeyA(ptrdiff_t hUSKey, const(char)* pszSubKey, SHREGDEL_FLAGS delRegFlags);
+LSTATUS SHRegDeleteEmptyUSKeyA(ptrdiff_t hUSKey, const(PSTR) pszSubKey, SHREGDEL_FLAGS delRegFlags);
 
 ///Enumerates the subkeys of a registry subkey in a user-specific subtree (HKEY_CURRENT_USER or HKEY_LOCAL_MACHINE).
 ///Params:
@@ -17235,8 +17152,7 @@ LSTATUS SHRegDeleteEmptyUSKeyA(ptrdiff_t hUSKey, const(char)* pszSubKey, SHREGDE
 ///    description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHRegEnumUSKeyA(ptrdiff_t hUSKey, uint dwIndex, const(char)* pszName, uint* pcchName, 
-                        SHREGENUM_FLAGS enumRegFlags);
+LSTATUS SHRegEnumUSKeyA(ptrdiff_t hUSKey, uint dwIndex, PSTR pszName, uint* pcchName, SHREGENUM_FLAGS enumRegFlags);
 
 ///Enumerates the subkeys of a registry subkey in a user-specific subtree (HKEY_CURRENT_USER or HKEY_LOCAL_MACHINE).
 ///Params:
@@ -17256,7 +17172,7 @@ LSTATUS SHRegEnumUSKeyA(ptrdiff_t hUSKey, uint dwIndex, const(char)* pszName, ui
 ///    description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHRegEnumUSKeyW(ptrdiff_t hUSKey, uint dwIndex, const(wchar)* pwzName, uint* pcchName, 
+LSTATUS SHRegEnumUSKeyW(ptrdiff_t hUSKey, uint dwIndex, PWSTR pwzName, uint* pcchName, 
                         SHREGENUM_FLAGS enumRegFlags);
 
 ///Enumerates the values of the specified registry subkey in a user-specific subtree (HKEY_CURRENT_USER or
@@ -17286,8 +17202,8 @@ LSTATUS SHRegEnumUSKeyW(ptrdiff_t hUSKey, uint dwIndex, const(wchar)* pwzName, u
 ///    textual description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHRegEnumUSValueA(ptrdiff_t hUSkey, uint dwIndex, const(char)* pszValueName, uint* pcchValueName, 
-                          uint* pdwType, char* pvData, uint* pcbData, SHREGENUM_FLAGS enumRegFlags);
+LSTATUS SHRegEnumUSValueA(ptrdiff_t hUSkey, uint dwIndex, PSTR pszValueName, uint* pcchValueName, uint* pdwType, 
+                          void* pvData, uint* pcbData, SHREGENUM_FLAGS enumRegFlags);
 
 ///Enumerates the values of the specified registry subkey in a user-specific subtree (HKEY_CURRENT_USER or
 ///HKEY_LOCAL_MACHINE).
@@ -17316,8 +17232,8 @@ LSTATUS SHRegEnumUSValueA(ptrdiff_t hUSkey, uint dwIndex, const(char)* pszValueN
 ///    textual description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHRegEnumUSValueW(ptrdiff_t hUSkey, uint dwIndex, const(wchar)* pszValueName, uint* pcchValueName, 
-                          uint* pdwType, char* pvData, uint* pcbData, SHREGENUM_FLAGS enumRegFlags);
+LSTATUS SHRegEnumUSValueW(ptrdiff_t hUSkey, uint dwIndex, PWSTR pszValueName, uint* pcchValueName, uint* pdwType, 
+                          void* pvData, uint* pcbData, SHREGENUM_FLAGS enumRegFlags);
 
 ///Retrieves information about a specified registry subkey in a user-specific subtree (HKEY_CURRENT_USER or
 ///HKEY_LOCAL_MACHINE).
@@ -17398,8 +17314,8 @@ LSTATUS SHRegCloseUSKey(ptrdiff_t hUSKey);
 ///    description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHRegGetUSValueA(const(char)* pszSubKey, const(char)* pszValue, uint* pdwType, char* pvData, uint* pcbData, 
-                         BOOL fIgnoreHKCU, char* pvDefaultData, uint dwDefaultDataSize);
+LSTATUS SHRegGetUSValueA(const(PSTR) pszSubKey, const(PSTR) pszValue, uint* pdwType, void* pvData, uint* pcbData, 
+                         BOOL fIgnoreHKCU, void* pvDefaultData, uint dwDefaultDataSize);
 
 ///Retrieves a value from a registry subkey in a user-specific subtree (HKEY_CURRENT_USER or HKEY_LOCAL_MACHINE).
 ///Params:
@@ -17425,8 +17341,8 @@ LSTATUS SHRegGetUSValueA(const(char)* pszSubKey, const(char)* pszValue, uint* pd
 ///    description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHRegGetUSValueW(const(wchar)* pszSubKey, const(wchar)* pszValue, uint* pdwType, char* pvData, 
-                         uint* pcbData, BOOL fIgnoreHKCU, char* pvDefaultData, uint dwDefaultDataSize);
+LSTATUS SHRegGetUSValueW(const(PWSTR) pszSubKey, const(PWSTR) pszValue, uint* pdwType, void* pvData, uint* pcbData, 
+                         BOOL fIgnoreHKCU, void* pvDefaultData, uint dwDefaultDataSize);
 
 ///Sets a registry subkey value in a user-specific subtree (HKEY_CURRENT_USER or HKEY_LOCAL_MACHINE).
 ///Params:
@@ -17445,8 +17361,8 @@ LSTATUS SHRegGetUSValueW(const(wchar)* pszSubKey, const(wchar)* pszValue, uint* 
 ///    description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHRegSetUSValueA(const(char)* pszSubKey, const(char)* pszValue, uint dwType, char* pvData, uint cbData, 
-                         uint dwFlags);
+LSTATUS SHRegSetUSValueA(const(PSTR) pszSubKey, const(PSTR) pszValue, uint dwType, const(void)* pvData, 
+                         uint cbData, uint dwFlags);
 
 ///Sets a registry subkey value in a user-specific subtree (HKEY_CURRENT_USER or HKEY_LOCAL_MACHINE).
 ///Params:
@@ -17470,8 +17386,8 @@ LSTATUS SHRegSetUSValueA(const(char)* pszSubKey, const(char)* pszValue, uint dwT
 ///    description of the error.
 ///    
 @DllImport("SHLWAPI")
-LSTATUS SHRegSetUSValueW(const(wchar)* pwzSubKey, const(wchar)* pwzValue, uint dwType, char* pvData, uint cbData, 
-                         uint dwFlags);
+LSTATUS SHRegSetUSValueW(const(PWSTR) pwzSubKey, const(PWSTR) pwzValue, uint dwType, const(void)* pvData, 
+                         uint cbData, uint dwFlags);
 
 ///Reads a numeric string value from the registry and converts it to an integer.
 ///Params:
@@ -17485,7 +17401,7 @@ LSTATUS SHRegSetUSValueW(const(wchar)* pwzSubKey, const(wchar)* pwzValue, uint d
 ///    <i>nDefault</i>.
 ///    
 @DllImport("SHLWAPI")
-int SHRegGetIntW(HKEY hk, const(wchar)* pwzKey, int iDefault);
+int SHRegGetIntW(HKEY hk, const(PWSTR) pwzKey, int iDefault);
 
 ///Retrieves a Boolean value from a registry subkey in a user-specific subtree (HKEY_CURRENT_USER or
 ///HKEY_LOCAL_MACHINE).
@@ -17501,7 +17417,7 @@ int SHRegGetIntW(HKEY hk, const(wchar)* pwzKey, int iDefault);
 ///    Type: <b>BOOL</b> Returns either the value from the registry, or <i>fDefault</i> if none is found.
 ///    
 @DllImport("SHLWAPI")
-BOOL SHRegGetBoolUSValueA(const(char)* pszSubKey, const(char)* pszValue, BOOL fIgnoreHKCU, BOOL fDefault);
+BOOL SHRegGetBoolUSValueA(const(PSTR) pszSubKey, const(PSTR) pszValue, BOOL fIgnoreHKCU, BOOL fDefault);
 
 ///Retrieves a Boolean value from a registry subkey in a user-specific subtree (HKEY_CURRENT_USER or
 ///HKEY_LOCAL_MACHINE).
@@ -17517,7 +17433,7 @@ BOOL SHRegGetBoolUSValueA(const(char)* pszSubKey, const(char)* pszValue, BOOL fI
 ///    Type: <b>BOOL</b> Returns either the value from the registry, or <i>fDefault</i> if none is found.
 ///    
 @DllImport("SHLWAPI")
-BOOL SHRegGetBoolUSValueW(const(wchar)* pszSubKey, const(wchar)* pszValue, BOOL fIgnoreHKCU, BOOL fDefault);
+BOOL SHRegGetBoolUSValueW(const(PWSTR) pszSubKey, const(PWSTR) pszValue, BOOL fIgnoreHKCU, BOOL fDefault);
 
 ///Returns a pointer to an IQueryAssociations object.
 ///Params:
@@ -17559,8 +17475,8 @@ HRESULT AssocCreate(GUID clsid, const(GUID)* riid, void** ppv);
 ///    is <b>NULL</b>. <i>pcchOut</i> contains the required buffer size.</td> </tr> </table>
 ///    
 @DllImport("SHLWAPI")
-HRESULT AssocQueryStringA(uint flags, ASSOCSTR str, const(char)* pszAssoc, const(char)* pszExtra, 
-                          const(char)* pszOut, uint* pcchOut);
+HRESULT AssocQueryStringA(uint flags, ASSOCSTR str, const(PSTR) pszAssoc, const(PSTR) pszExtra, PSTR pszOut, 
+                          uint* pcchOut);
 
 ///Searches for and retrieves a file or protocol association-related string from the registry.
 ///Params:
@@ -17587,8 +17503,8 @@ HRESULT AssocQueryStringA(uint flags, ASSOCSTR str, const(char)* pszAssoc, const
 ///    is <b>NULL</b>. <i>pcchOut</i> contains the required buffer size.</td> </tr> </table>
 ///    
 @DllImport("SHLWAPI")
-HRESULT AssocQueryStringW(uint flags, ASSOCSTR str, const(wchar)* pszAssoc, const(wchar)* pszExtra, 
-                          const(wchar)* pszOut, uint* pcchOut);
+HRESULT AssocQueryStringW(uint flags, ASSOCSTR str, const(PWSTR) pszAssoc, const(PWSTR) pszExtra, PWSTR pszOut, 
+                          uint* pcchOut);
 
 ///Searches for and retrieves a file association-related string from the registry starting from a specified key.
 ///Params:
@@ -17614,7 +17530,7 @@ HRESULT AssocQueryStringW(uint flags, ASSOCSTR str, const(wchar)* pszAssoc, cons
 ///    is <b>NULL</b>. <i>pcchOut</i> contains the required buffer size.</td> </tr> </table>
 ///    
 @DllImport("SHLWAPI")
-HRESULT AssocQueryStringByKeyA(uint flags, ASSOCSTR str, HKEY hkAssoc, const(char)* pszExtra, const(char)* pszOut, 
+HRESULT AssocQueryStringByKeyA(uint flags, ASSOCSTR str, HKEY hkAssoc, const(PSTR) pszExtra, PSTR pszOut, 
                                uint* pcchOut);
 
 ///Searches for and retrieves a file association-related string from the registry starting from a specified key.
@@ -17641,8 +17557,8 @@ HRESULT AssocQueryStringByKeyA(uint flags, ASSOCSTR str, HKEY hkAssoc, const(cha
 ///    is <b>NULL</b>. <i>pcchOut</i> contains the required buffer size.</td> </tr> </table>
 ///    
 @DllImport("SHLWAPI")
-HRESULT AssocQueryStringByKeyW(uint flags, ASSOCSTR str, HKEY hkAssoc, const(wchar)* pszExtra, 
-                               const(wchar)* pszOut, uint* pcchOut);
+HRESULT AssocQueryStringByKeyW(uint flags, ASSOCSTR str, HKEY hkAssoc, const(PWSTR) pszExtra, PWSTR pszOut, 
+                               uint* pcchOut);
 
 ///Searches for and retrieves a key related to a file or protocol association from the registry.
 ///Params:
@@ -17659,7 +17575,7 @@ HRESULT AssocQueryStringByKeyW(uint flags, ASSOCSTR str, HKEY hkAssoc, const(wch
 ///    Type: <b>HRESULT</b> Returns S_OK if successful, or a COM error value otherwise.
 ///    
 @DllImport("SHLWAPI")
-HRESULT AssocQueryKeyA(uint flags, ASSOCKEY key, const(char)* pszAssoc, const(char)* pszExtra, HKEY* phkeyOut);
+HRESULT AssocQueryKeyA(uint flags, ASSOCKEY key, const(PSTR) pszAssoc, const(PSTR) pszExtra, HKEY* phkeyOut);
 
 ///Searches for and retrieves a key related to a file or protocol association from the registry.
 ///Params:
@@ -17676,7 +17592,7 @@ HRESULT AssocQueryKeyA(uint flags, ASSOCKEY key, const(char)* pszAssoc, const(ch
 ///    Type: <b>HRESULT</b> Returns S_OK if successful, or a COM error value otherwise.
 ///    
 @DllImport("SHLWAPI")
-HRESULT AssocQueryKeyW(uint flags, ASSOCKEY key, const(wchar)* pszAssoc, const(wchar)* pszExtra, HKEY* phkeyOut);
+HRESULT AssocQueryKeyW(uint flags, ASSOCKEY key, const(PWSTR) pszAssoc, const(PWSTR) pszExtra, HKEY* phkeyOut);
 
 ///Determines whether a file type is considered a potential security risk.
 ///Params:
@@ -17686,7 +17602,7 @@ HRESULT AssocQueryKeyW(uint flags, ASSOCKEY key, const(wchar)* pszAssoc, const(w
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if the file type is considered dangerous; otherwise, <b>FALSE</b>.
 ///    
 @DllImport("SHLWAPI")
-BOOL AssocIsDangerous(const(wchar)* pszAssoc);
+BOOL AssocIsDangerous(const(PWSTR) pszAssoc);
 
 ///Retrieves a file's perceived type based on its extension.
 ///Params:
@@ -17703,7 +17619,7 @@ BOOL AssocIsDangerous(const(wchar)* pszAssoc);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHLWAPI")
-HRESULT AssocGetPerceivedType(const(wchar)* pszExt, PERCEIVED* ptype, uint* pflag, ushort** ppszType);
+HRESULT AssocGetPerceivedType(const(PWSTR) pszExt, PERCEIVED* ptype, uint* pflag, PWSTR* ppszType);
 
 ///Deprecated. Opens a registry value and supplies a stream that can be used to read from or write to the value. <div
 ///class="alert"><b>Note</b> This function has been replaced by SHOpenRegStream2. It is recommended that you use
@@ -17724,7 +17640,7 @@ HRESULT AssocGetPerceivedType(const(wchar)* pszExt, PERCEIVED* ptype, uint* pfla
 ///    situations and is the preferred function for that reason.</div> <div> </div>
 ///    
 @DllImport("SHLWAPI")
-IStream SHOpenRegStreamA(HKEY hkey, const(char)* pszSubkey, const(char)* pszValue, uint grfMode);
+IStream SHOpenRegStreamA(HKEY hkey, const(PSTR) pszSubkey, const(PSTR) pszValue, uint grfMode);
 
 ///Deprecated. Opens a registry value and supplies a stream that can be used to read from or write to the value. <div
 ///class="alert"><b>Note</b> This function has been replaced by SHOpenRegStream2. It is recommended that you use
@@ -17745,7 +17661,7 @@ IStream SHOpenRegStreamA(HKEY hkey, const(char)* pszSubkey, const(char)* pszValu
 ///    situations and is the preferred function for that reason.</div> <div> </div>
 ///    
 @DllImport("SHLWAPI")
-IStream SHOpenRegStreamW(HKEY hkey, const(wchar)* pszSubkey, const(wchar)* pszValue, uint grfMode);
+IStream SHOpenRegStreamW(HKEY hkey, const(PWSTR) pszSubkey, const(PWSTR) pszValue, uint grfMode);
 
 ///Opens a registry value and supplies a stream that can be used to read from or write to the value. This function
 ///supersedes SHOpenRegStream.
@@ -17763,7 +17679,7 @@ IStream SHOpenRegStreamW(HKEY hkey, const(wchar)* pszSubkey, const(wchar)* pszVa
 ///    inability to open the stream.
 ///    
 @DllImport("SHLWAPI")
-IStream SHOpenRegStream2A(HKEY hkey, const(char)* pszSubkey, const(char)* pszValue, uint grfMode);
+IStream SHOpenRegStream2A(HKEY hkey, const(PSTR) pszSubkey, const(PSTR) pszValue, uint grfMode);
 
 ///Opens a registry value and supplies a stream that can be used to read from or write to the value. This function
 ///supersedes SHOpenRegStream.
@@ -17781,7 +17697,7 @@ IStream SHOpenRegStream2A(HKEY hkey, const(char)* pszSubkey, const(char)* pszVal
 ///    inability to open the stream.
 ///    
 @DllImport("SHLWAPI")
-IStream SHOpenRegStream2W(HKEY hkey, const(wchar)* pszSubkey, const(wchar)* pszValue, uint grfMode);
+IStream SHOpenRegStream2W(HKEY hkey, const(PWSTR) pszSubkey, const(PWSTR) pszValue, uint grfMode);
 
 ///<p class="CCE_Message">[<b>SHCreateStreamOnFile</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions. Instead, use SHCreateStreamOnFileEx.]
@@ -17797,7 +17713,7 @@ IStream SHOpenRegStream2W(HKEY hkey, const(wchar)* pszSubkey, const(wchar)* pszV
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHLWAPI")
-HRESULT SHCreateStreamOnFileA(const(char)* pszFile, uint grfMode, IStream* ppstm);
+HRESULT SHCreateStreamOnFileA(const(PSTR) pszFile, uint grfMode, IStream* ppstm);
 
 ///<p class="CCE_Message">[<b>SHCreateStreamOnFile</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions. Instead, use SHCreateStreamOnFileEx.]
@@ -17813,7 +17729,7 @@ HRESULT SHCreateStreamOnFileA(const(char)* pszFile, uint grfMode, IStream* ppstm
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHLWAPI")
-HRESULT SHCreateStreamOnFileW(const(wchar)* pszFile, uint grfMode, IStream* ppstm);
+HRESULT SHCreateStreamOnFileW(const(PWSTR) pszFile, uint grfMode, IStream* ppstm);
 
 ///Opens or creates a file and retrieves a stream to read or write to that file.
 ///Params:
@@ -17832,7 +17748,7 @@ HRESULT SHCreateStreamOnFileW(const(wchar)* pszFile, uint grfMode, IStream* ppst
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHLWAPI")
-HRESULT SHCreateStreamOnFileEx(const(wchar)* pszFile, uint grfMode, uint dwAttributes, BOOL fCreate, 
+HRESULT SHCreateStreamOnFileEx(const(PWSTR) pszFile, uint grfMode, uint dwAttributes, BOOL fCreate, 
                                IStream pstmTemplate, IStream* ppstm);
 
 ///Creates a memory stream using a similar process to CreateStreamOnHGlobal.
@@ -17847,7 +17763,7 @@ HRESULT SHCreateStreamOnFileEx(const(wchar)* pszFile, uint grfMode, uint dwAttri
 ///    stream object could not be allocated.
 ///    
 @DllImport("SHLWAPI")
-IStream SHCreateMemStream(char* pInit, uint cbInit);
+IStream SHCreateMemStream(const(ubyte)* pInit, uint cbInit);
 
 ///Retrieves a string used with websites when specifying language preferences.
 ///Params:
@@ -17864,7 +17780,7 @@ IStream SHCreateMemStream(char* pInit, uint cbInit);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHLWAPI")
-HRESULT GetAcceptLanguagesA(const(char)* pszLanguages, uint* pcchLanguages);
+HRESULT GetAcceptLanguagesA(PSTR pszLanguages, uint* pcchLanguages);
 
 ///Retrieves a string used with websites when specifying language preferences.
 ///Params:
@@ -17881,7 +17797,7 @@ HRESULT GetAcceptLanguagesA(const(char)* pszLanguages, uint* pcchLanguages);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHLWAPI")
-HRESULT GetAcceptLanguagesW(const(wchar)* pszLanguages, uint* pcchLanguages);
+HRESULT GetAcceptLanguagesW(PWSTR pszLanguages, uint* pcchLanguages);
 
 ///Changes the value of a Component Object Model (COM) interface pointer and releases the previous interface.
 ///Params:
@@ -17966,7 +17882,7 @@ HRESULT IUnknown_QueryService(IUnknown punk, const(GUID)* guidService, const(GUI
 ///    <i>cb</i> bytes were read, the function returns <b>E_FAIL</b>.
 ///    
 @DllImport("SHLWAPI")
-HRESULT IStream_Read(IStream pstm, char* pv, uint cb);
+HRESULT IStream_Read(IStream pstm, void* pv, uint cb);
 
 ///Writes data of unknown format from a buffer to a specified stream.
 ///Params:
@@ -17975,7 +17891,7 @@ HRESULT IStream_Read(IStream pstm, char* pv, uint cb);
 ///         be at least <i>cb</i> bytes in size.
 ///    cb = Type: <b>ULONG</b> The number of bytes of data to write to the target stream.
 @DllImport("SHLWAPI")
-HRESULT IStream_Write(IStream pstm, char* pv, uint cb);
+HRESULT IStream_Write(IStream pstm, const(void)* pv, uint cb);
 
 ///Moves the seek position in a specified stream to the beginning of the stream.
 ///Params:
@@ -18039,14 +17955,14 @@ HRESULT IStream_WritePidl(IStream pstm, ITEMIDLIST* pidlWrite);
 ///    pstm = Type: <b>IStream*</b> A pointer to the stream from which to read.
 ///    ppsz = Type: <b>PWSTR*</b> A pointer to the null-terminated, Unicode string into which the stream is written.
 @DllImport("SHLWAPI")
-HRESULT IStream_ReadStr(IStream pstm, ushort** ppsz);
+HRESULT IStream_ReadStr(IStream pstm, PWSTR* ppsz);
 
 ///Reads from a string and writes into a stream.
 ///Params:
 ///    pstm = Type: <b>IStream*</b> A pointer to the stream in which to write.
 ///    psz = Type: <b>PCWSTR</b> A pointer to a null-terminated, Unicode string from which to read.
 @DllImport("SHLWAPI")
-HRESULT IStream_WriteStr(IStream pstm, const(wchar)* psz);
+HRESULT IStream_WriteStr(IStream pstm, const(PWSTR) psz);
 
 ///Copies a stream to another stream.
 ///Params:
@@ -18075,7 +17991,7 @@ HRESULT IStream_Copy(IStream pstmFrom, IStream pstmTo, uint cb);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHLWAPI")
-HRESULT SHGetViewStatePropertyBag(ITEMIDLIST* pidl, const(wchar)* pszBagName, uint dwFlags, const(GUID)* riid, 
+HRESULT SHGetViewStatePropertyBag(ITEMIDLIST* pidl, const(PWSTR) pszBagName, uint dwFlags, const(GUID)* riid, 
                                   void** ppv);
 
 ///<p class="CCE_Message">[<b>SHFormatDateTime</b> is available for use in the operating systems specified in the
@@ -18097,7 +18013,7 @@ HRESULT SHGetViewStatePropertyBag(ITEMIDLIST* pidl, const(wchar)* pszBagName, ui
 ///    failure, this value is 0.
 ///    
 @DllImport("SHLWAPI")
-int SHFormatDateTimeA(const(FILETIME)* pft, uint* pdwFlags, const(char)* pszBuf, uint cchBuf);
+int SHFormatDateTimeA(const(FILETIME)* pft, uint* pdwFlags, PSTR pszBuf, uint cchBuf);
 
 ///<p class="CCE_Message">[<b>SHFormatDateTime</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions.] Produces a string representation of a
@@ -18118,7 +18034,7 @@ int SHFormatDateTimeA(const(FILETIME)* pft, uint* pdwFlags, const(char)* pszBuf,
 ///    failure, this value is 0.
 ///    
 @DllImport("SHLWAPI")
-int SHFormatDateTimeW(const(FILETIME)* pft, uint* pdwFlags, const(wchar)* pszBuf, uint cchBuf);
+int SHFormatDateTimeW(const(FILETIME)* pft, uint* pdwFlags, PWSTR pszBuf, uint cchBuf);
 
 ///<p class="CCE_Message">[This function is available through Windows XP and Windows Server 2003. It might be altered or
 ///unavailable in subsequent versions of Windows.] Converts a string from the ANSI code page to the Unicode code page.
@@ -18135,7 +18051,7 @@ int SHFormatDateTimeW(const(FILETIME)* pft, uint* pdwFlags, const(wchar)* pszBuf
 ///    null character. Returns 0 if unsuccessful.
 ///    
 @DllImport("SHLWAPI")
-int SHAnsiToUnicode(const(char)* pszSrc, const(wchar)* pwszDst, int cwchBuf);
+int SHAnsiToUnicode(const(PSTR) pszSrc, PWSTR pwszDst, int cwchBuf);
 
 ///<p class="CCE_Message">[This function is available through Windows XP and Windows Server 2003. It might be altered or
 ///unavailable in subsequent versions of Windows.] Copies an ANSI string.
@@ -18151,7 +18067,7 @@ int SHAnsiToUnicode(const(char)* pszSrc, const(wchar)* pwszDst, int cwchBuf);
 ///    character. Returns 0 if unsuccessful.
 ///    
 @DllImport("SHLWAPI")
-int SHAnsiToAnsi(const(char)* pszSrc, const(char)* pszDst, int cchBuf);
+int SHAnsiToAnsi(const(PSTR) pszSrc, PSTR pszDst, int cchBuf);
 
 ///<p class="CCE_Message">[This function is available through Windows XP and Windows Server 2003. It might be altered or
 ///unavailable in subsequent versions of Windows.] Converts a string from the Unicode code page to the ANSI code page.
@@ -18167,7 +18083,7 @@ int SHAnsiToAnsi(const(char)* pszSrc, const(char)* pszDst, int cchBuf);
 ///    null character. Returns 0 if unsuccessful.
 ///    
 @DllImport("SHLWAPI")
-int SHUnicodeToAnsi(const(wchar)* pwszSrc, const(char)* pszDst, int cchBuf);
+int SHUnicodeToAnsi(const(PWSTR) pwszSrc, PSTR pszDst, int cchBuf);
 
 ///<p class="CCE_Message">[This function is available through Windows XP and Windows Server 2003. It might be altered or
 ///unavailable in subsequent versions of Windows.] Copies a Unicode string.
@@ -18183,7 +18099,7 @@ int SHUnicodeToAnsi(const(wchar)* pwszSrc, const(char)* pszDst, int cchBuf);
 ///    terminating null character. Returns 0 if unsuccessful.
 ///    
 @DllImport("SHLWAPI")
-int SHUnicodeToUnicode(const(wchar)* pwzSrc, const(wchar)* pwzDst, int cwchBuf);
+int SHUnicodeToUnicode(const(PWSTR) pwzSrc, PWSTR pwzDst, int cwchBuf);
 
 ///<p class="CCE_Message">[<b>SHMessageBoxCheck</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions.] Displays a message box that gives the
@@ -18213,8 +18129,8 @@ int SHUnicodeToUnicode(const(wchar)* pwzSrc, const(wchar)* pwzDst, int cwchBuf);
 ///    under certain low-memory conditions, the function might return <i>iDefault</i>.
 ///    
 @DllImport("SHLWAPI")
-int SHMessageBoxCheckA(HWND hwnd, const(char)* pszText, const(char)* pszCaption, uint uType, int iDefault, 
-                       const(char)* pszRegVal);
+int SHMessageBoxCheckA(HWND hwnd, const(PSTR) pszText, const(PSTR) pszCaption, uint uType, int iDefault, 
+                       const(PSTR) pszRegVal);
 
 ///<p class="CCE_Message">[<b>SHMessageBoxCheck</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions.] Displays a message box that gives the
@@ -18244,8 +18160,8 @@ int SHMessageBoxCheckA(HWND hwnd, const(char)* pszText, const(char)* pszCaption,
 ///    under certain low-memory conditions, the function might return <i>iDefault</i>.
 ///    
 @DllImport("SHLWAPI")
-int SHMessageBoxCheckW(HWND hwnd, const(wchar)* pszText, const(wchar)* pszCaption, uint uType, int iDefault, 
-                       const(wchar)* pszRegVal);
+int SHMessageBoxCheckW(HWND hwnd, const(PWSTR) pszText, const(PWSTR) pszCaption, uint uType, int iDefault, 
+                       const(PWSTR) pszRegVal);
 
 ///<p class="CCE_Message">[This function is available through Windows XP and Windows Server 2003. It might be altered or
 ///unavailable in subsequent versions of Windows.] Sends a message to all top-level windows in the system.
@@ -18279,7 +18195,7 @@ LRESULT SHSendMessageBroadcastW(uint uMsg, WPARAM wParam, LPARAM lParam);
 ///    Type: <b>TCHAR</b> Returns the mnemonic character, if one was found. Otherwise, returns 0.
 ///    
 @DllImport("SHLWAPI")
-byte SHStripMneumonicA(const(char)* pszMenu);
+byte SHStripMneumonicA(PSTR pszMenu);
 
 ///<p class="CCE_Message">[This function is available through Windows XP and Windows Server 2003. It might be altered or
 ///unavailable in subsequent versions of Windows.] Removes the mnemonic marker from a string.
@@ -18289,7 +18205,7 @@ byte SHStripMneumonicA(const(char)* pszMenu);
 ///    Type: <b>TCHAR</b> Returns the mnemonic character, if one was found. Otherwise, returns 0.
 ///    
 @DllImport("SHLWAPI")
-ushort SHStripMneumonicW(const(wchar)* pszMenu);
+ushort SHStripMneumonicW(PWSTR pszMenu);
 
 ///Checks for specified operating systems and operating system features.
 ///Params:
@@ -18398,7 +18314,7 @@ int SHGlobalCounterDecrement(const(SHGLOBALCOUNTER) id);
 ///    <i>dwDestinationProcessId</i>. Returns <b>NULL</b> if unsuccessful.
 ///    
 @DllImport("SHLWAPI")
-HANDLE SHAllocShared(char* pvData, uint dwSize, uint dwProcessId);
+HANDLE SHAllocShared(const(void)* pvData, uint dwSize, uint dwProcessId);
 
 ///<p class="CCE_Message">[<b>SHFreeShared</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions.] Frees shared memory, regardless of
@@ -18436,7 +18352,7 @@ void* SHLockShared(HANDLE hData, uint dwProcessId);
 ///    <b>FALSE</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("SHLWAPI")
-BOOL SHUnlockShared(char* pvData);
+BOOL SHUnlockShared(void* pvData);
 
 ///<p class="CCE_Message">[<b>WhichPlatform</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions.] Retrieves a value that indicates the
@@ -18500,7 +18416,7 @@ int GetMenuPosFromID(HMENU hmenu, uint id);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("SHLWAPI")
-HRESULT SHGetInverseCMAP(char* pbMap, uint cbMap);
+HRESULT SHGetInverseCMAP(ubyte* pbMap, uint cbMap);
 
 ///Instructs system edit controls to use AutoComplete to help complete URLs or file system paths.
 ///Params:
@@ -18672,12 +18588,12 @@ uint ColorAdjustLuma(uint clrRGB, int n, BOOL fScale);
 BOOL IsInternetESCEnabled();
 
 @DllImport("hlink")
-HRESULT HlinkCreateFromMoniker(IMoniker pimkTrgt, const(wchar)* pwzLocation, const(wchar)* pwzFriendlyName, 
+HRESULT HlinkCreateFromMoniker(IMoniker pimkTrgt, const(PWSTR) pwzLocation, const(PWSTR) pwzFriendlyName, 
                                IHlinkSite pihlsite, uint dwSiteData, IUnknown piunkOuter, const(GUID)* riid, 
                                void** ppvObj);
 
 @DllImport("hlink")
-HRESULT HlinkCreateFromString(const(wchar)* pwzTarget, const(wchar)* pwzLocation, const(wchar)* pwzFriendlyName, 
+HRESULT HlinkCreateFromString(const(PWSTR) pwzTarget, const(PWSTR) pwzLocation, const(PWSTR) pwzFriendlyName, 
                               IHlinkSite pihlsite, uint dwSiteData, IUnknown piunkOuter, const(GUID)* riid, 
                               void** ppvObj);
 
@@ -18695,7 +18611,7 @@ HRESULT HlinkClone(IHlink pihl, const(GUID)* riid, IHlinkSite pihlsiteForClone, 
 HRESULT HlinkCreateBrowseContext(IUnknown piunkOuter, const(GUID)* riid, void** ppvObj);
 
 @DllImport("hlink")
-HRESULT HlinkNavigateToStringReference(const(wchar)* pwzTarget, const(wchar)* pwzLocation, IHlinkSite pihlsite, 
+HRESULT HlinkNavigateToStringReference(const(PWSTR) pwzTarget, const(PWSTR) pwzLocation, IHlinkSite pihlsite, 
                                        uint dwSiteData, IHlinkFrame pihlframe, uint grfHLNF, IBindCtx pibc, 
                                        IBindStatusCallback pibsc, IHlinkBrowseContext pihlbc);
 
@@ -18705,11 +18621,11 @@ HRESULT HlinkNavigate(IHlink pihl, IHlinkFrame pihlframe, uint grfHLNF, IBindCtx
 
 @DllImport("hlink")
 HRESULT HlinkOnNavigate(IHlinkFrame pihlframe, IHlinkBrowseContext pihlbc, uint grfHLNF, IMoniker pimkTarget, 
-                        const(wchar)* pwzLocation, const(wchar)* pwzFriendlyName, uint* puHLID);
+                        const(PWSTR) pwzLocation, const(PWSTR) pwzFriendlyName, uint* puHLID);
 
 @DllImport("hlink")
 HRESULT HlinkUpdateStackItem(IHlinkFrame pihlframe, IHlinkBrowseContext pihlbc, uint uHLID, IMoniker pimkTrgt, 
-                             const(wchar)* pwzLocation, const(wchar)* pwzFriendlyName);
+                             const(PWSTR) pwzLocation, const(PWSTR) pwzFriendlyName);
 
 @DllImport("hlink")
 HRESULT HlinkOnRenameDocument(uint dwReserved, IHlinkBrowseContext pihlbc, IMoniker pimkOld, IMoniker pimkNew);
@@ -18719,17 +18635,16 @@ HRESULT HlinkResolveMonikerForData(IMoniker pimkReference, uint reserved, IBindC
                                    FORMATETC* rgFmtetc, IBindStatusCallback pibsc, IMoniker pimkBase);
 
 @DllImport("hlink")
-HRESULT HlinkResolveStringForData(const(wchar)* pwzReference, uint reserved, IBindCtx pibc, uint cFmtetc, 
+HRESULT HlinkResolveStringForData(const(PWSTR) pwzReference, uint reserved, IBindCtx pibc, uint cFmtetc, 
                                   FORMATETC* rgFmtetc, IBindStatusCallback pibsc, IMoniker pimkBase);
 
 @DllImport("hlink")
-HRESULT HlinkParseDisplayName(IBindCtx pibc, const(wchar)* pwzDisplayName, BOOL fNoForceAbs, uint* pcchEaten, 
+HRESULT HlinkParseDisplayName(IBindCtx pibc, const(PWSTR) pwzDisplayName, BOOL fNoForceAbs, uint* pcchEaten, 
                               IMoniker* ppimk);
 
 @DllImport("hlink")
-HRESULT HlinkCreateExtensionServices(const(wchar)* pwzAdditionalHeaders, HWND phwnd, const(wchar)* pszUsername, 
-                                     const(wchar)* pszPassword, IUnknown piunkOuter, const(GUID)* riid, 
-                                     void** ppvObj);
+HRESULT HlinkCreateExtensionServices(const(PWSTR) pwzAdditionalHeaders, HWND phwnd, const(PWSTR) pszUsername, 
+                                     const(PWSTR) pszPassword, IUnknown piunkOuter, const(GUID)* riid, void** ppvObj);
 
 @DllImport("hlink")
 HRESULT HlinkPreprocessMoniker(IBindCtx pibc, IMoniker pimkIn, IMoniker* ppimkOut);
@@ -18738,44 +18653,43 @@ HRESULT HlinkPreprocessMoniker(IBindCtx pibc, IMoniker pimkIn, IMoniker* ppimkOu
 HRESULT OleSaveToStreamEx(IUnknown piunk, IStream pistm, BOOL fClearDirty);
 
 @DllImport("hlink")
-HRESULT HlinkSetSpecialReference(uint uReference, const(wchar)* pwzReference);
+HRESULT HlinkSetSpecialReference(uint uReference, const(PWSTR) pwzReference);
 
 @DllImport("hlink")
-HRESULT HlinkGetSpecialReference(uint uReference, ushort** ppwzReference);
+HRESULT HlinkGetSpecialReference(uint uReference, PWSTR* ppwzReference);
 
 @DllImport("hlink")
-HRESULT HlinkCreateShortcut(uint grfHLSHORTCUTF, IHlink pihl, const(wchar)* pwzDir, const(wchar)* pwzFileName, 
-                            ushort** ppwzShortcutFile, uint dwReserved);
+HRESULT HlinkCreateShortcut(uint grfHLSHORTCUTF, IHlink pihl, const(PWSTR) pwzDir, const(PWSTR) pwzFileName, 
+                            PWSTR* ppwzShortcutFile, uint dwReserved);
 
 @DllImport("hlink")
-HRESULT HlinkCreateShortcutFromMoniker(uint grfHLSHORTCUTF, IMoniker pimkTarget, const(wchar)* pwzLocation, 
-                                       const(wchar)* pwzDir, const(wchar)* pwzFileName, ushort** ppwzShortcutFile, 
+HRESULT HlinkCreateShortcutFromMoniker(uint grfHLSHORTCUTF, IMoniker pimkTarget, const(PWSTR) pwzLocation, 
+                                       const(PWSTR) pwzDir, const(PWSTR) pwzFileName, PWSTR* ppwzShortcutFile, 
                                        uint dwReserved);
 
 @DllImport("hlink")
-HRESULT HlinkCreateShortcutFromString(uint grfHLSHORTCUTF, const(wchar)* pwzTarget, const(wchar)* pwzLocation, 
-                                      const(wchar)* pwzDir, const(wchar)* pwzFileName, ushort** ppwzShortcutFile, 
+HRESULT HlinkCreateShortcutFromString(uint grfHLSHORTCUTF, const(PWSTR) pwzTarget, const(PWSTR) pwzLocation, 
+                                      const(PWSTR) pwzDir, const(PWSTR) pwzFileName, PWSTR* ppwzShortcutFile, 
                                       uint dwReserved);
 
 @DllImport("hlink")
-HRESULT HlinkResolveShortcut(const(wchar)* pwzShortcutFileName, IHlinkSite pihlsite, uint dwSiteData, 
+HRESULT HlinkResolveShortcut(const(PWSTR) pwzShortcutFileName, IHlinkSite pihlsite, uint dwSiteData, 
                              IUnknown piunkOuter, const(GUID)* riid, void** ppvObj);
 
 @DllImport("hlink")
-HRESULT HlinkResolveShortcutToMoniker(const(wchar)* pwzShortcutFileName, IMoniker* ppimkTarget, 
-                                      ushort** ppwzLocation);
+HRESULT HlinkResolveShortcutToMoniker(const(PWSTR) pwzShortcutFileName, IMoniker* ppimkTarget, PWSTR* ppwzLocation);
 
 @DllImport("hlink")
-HRESULT HlinkResolveShortcutToString(const(wchar)* pwzShortcutFileName, ushort** ppwzTarget, ushort** ppwzLocation);
+HRESULT HlinkResolveShortcutToString(const(PWSTR) pwzShortcutFileName, PWSTR* ppwzTarget, PWSTR* ppwzLocation);
 
 @DllImport("hlink")
-HRESULT HlinkIsShortcut(const(wchar)* pwzFileName);
+HRESULT HlinkIsShortcut(const(PWSTR) pwzFileName);
 
 @DllImport("hlink")
-HRESULT HlinkGetValueFromParams(const(wchar)* pwzParams, const(wchar)* pwzName, ushort** ppwzValue);
+HRESULT HlinkGetValueFromParams(const(PWSTR) pwzParams, const(PWSTR) pwzName, PWSTR* ppwzValue);
 
 @DllImport("hlink")
-HRESULT HlinkTranslateURL(const(wchar)* pwzURL, uint grfFlags, ushort** ppwzTranslatedURL);
+HRESULT HlinkTranslateURL(const(PWSTR) pwzURL, uint grfFlags, PWSTR* ppwzTranslatedURL);
 
 ///Determines if a path string is a valid Universal Naming Convention (UNC) path, as opposed to a path based on a drive
 ///letter. This function differs from PathIsUNC in that it also allows you to extract the name of the server from the
@@ -18785,7 +18699,7 @@ HRESULT HlinkTranslateURL(const(wchar)* pwzURL, uint grfFlags, ushort** ppwzTran
 ///    ppszServer = A pointer to a string that, when this function returns successfully, receives the server portion of the UNC path.
 ///                 This value can be <b>NULL</b> if you don't need this information.
 @DllImport("api-ms-win-core-path-l1-1-0")
-BOOL PathIsUNCEx(const(wchar)* pszPath, ushort** ppszServer);
+BOOL PathIsUNCEx(const(PWSTR) pszPath, PWSTR* ppszServer);
 
 ///Determines whether a path string refers to the root of a volume. This function differs from PathIsRoot in that it
 ///accepts paths with "\\", "\\?\" and "\\?\UNC\" prefixes.
@@ -18795,7 +18709,7 @@ BOOL PathIsUNCEx(const(wchar)* pszPath, ushort** ppszServer);
 ///    Returns <b>TRUE</b> if the specified path is a root, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("api-ms-win-core-path-l1-1-0")
-BOOL PathCchIsRoot(const(wchar)* pszPath);
+BOOL PathCchIsRoot(const(PWSTR) pszPath);
 
 ///Adds a backslash to the end of a string to create the correct syntax for a path. If the source path already has a
 ///trailing backslash, no backslash will be added. This function differs from PathCchAddBackslash in that it can return
@@ -18816,7 +18730,7 @@ BOOL PathCchIsRoot(const(wchar)* pszPath);
 ///    in a backslash, or an error code otherwise.
 ///    
 @DllImport("api-ms-win-core-path-l1-1-0")
-HRESULT PathCchAddBackslashEx(const(wchar)* pszPath, size_t cchPath, ushort** ppszEnd, size_t* pcchRemaining);
+HRESULT PathCchAddBackslashEx(PWSTR pszPath, size_t cchPath, PWSTR* ppszEnd, size_t* pcchRemaining);
 
 ///Adds a backslash to the end of a string to create the correct syntax for a path. If the source path already has a
 ///trailing backslash, no backslash will be added. This function differs from <b>PathCchAddBackslash</b> in that you are
@@ -18832,7 +18746,7 @@ HRESULT PathCchAddBackslashEx(const(wchar)* pszPath, size_t cchPath, ushort** pp
 ///    in a backslash, or an error code otherwise.
 ///    
 @DllImport("api-ms-win-core-path-l1-1-0")
-HRESULT PathCchAddBackslash(const(wchar)* pszPath, size_t cchPath);
+HRESULT PathCchAddBackslash(PWSTR pszPath, size_t cchPath);
 
 ///Removes the trailing backslash from the end of a path string. This function differs from PathCchRemoveBackslash in
 ///that it can return a pointer to the new end of the string and report the number of unused characters remaining in the
@@ -18854,7 +18768,7 @@ HRESULT PathCchAddBackslash(const(wchar)* pszPath, size_t cchPath);
 ///    if no backslash was found, or an error code otherwise.
 ///    
 @DllImport("api-ms-win-core-path-l1-1-0")
-HRESULT PathCchRemoveBackslashEx(const(wchar)* pszPath, size_t cchPath, ushort** ppszEnd, size_t* pcchRemaining);
+HRESULT PathCchRemoveBackslashEx(PWSTR pszPath, size_t cchPath, PWSTR* ppszEnd, size_t* pcchRemaining);
 
 ///Removes the trailing backslash from the end of a path string. This function differs from PathRemoveBackslash in that
 ///it accepts paths with "\\", "\\?\" and "\\?\UNC\" prefixes. <div class="alert"><b>Note</b> This function, or
@@ -18869,7 +18783,7 @@ HRESULT PathCchRemoveBackslashEx(const(wchar)* pszPath, size_t cchPath, ushort**
 ///    if no backslash was found, or an error code otherwise.
 ///    
 @DllImport("api-ms-win-core-path-l1-1-0")
-HRESULT PathCchRemoveBackslash(const(wchar)* pszPath, size_t cchPath);
+HRESULT PathCchRemoveBackslash(PWSTR pszPath, size_t cchPath);
 
 ///Retrieves a pointer to the first character in a path following the drive letter or Universal Naming Convention (UNC)
 ///server/share path elements. This function differs from PathSkipRoot in that it accepts paths with "\\", "\\?\" and
@@ -18880,7 +18794,7 @@ HRESULT PathCchRemoveBackslash(const(wchar)* pszPath, size_t cchPath);
 ///                  following the drive letter or UNC server/share path elements. If the path consists of only a root, this value
 ///                  will point to the string's terminating null character.
 @DllImport("api-ms-win-core-path-l1-1-0")
-HRESULT PathCchSkipRoot(const(wchar)* pszPath, ushort** ppszRootEnd);
+HRESULT PathCchSkipRoot(const(PWSTR) pszPath, PWSTR* ppszRootEnd);
 
 ///Removes all file and directory elements in a path except for the root information. This function differs from
 ///PathStripToRoot in that it accepts paths with "\\", "\\?\" and "\\?\UNC\" prefixes. <div class="alert"><b>Note</b>
@@ -18894,7 +18808,7 @@ HRESULT PathCchSkipRoot(const(wchar)* pszPath, ushort** ppszRootEnd);
 ///    or an <b>HRESULT</b> failure code.
 ///    
 @DllImport("api-ms-win-core-path-l1-1-0")
-HRESULT PathCchStripToRoot(const(wchar)* pszPath, size_t cchPath);
+HRESULT PathCchStripToRoot(PWSTR pszPath, size_t cchPath);
 
 ///Removes the last element in a path string, whether that element is a file name or a directory name. The element's
 ///leading backslash is also removed. This function differs from PathRemoveFileSpec in that it accepts paths with "\\",
@@ -18911,7 +18825,7 @@ HRESULT PathCchStripToRoot(const(wchar)* pszPath, size_t cchPath);
 ///    or an error code otherwise.
 ///    
 @DllImport("api-ms-win-core-path-l1-1-0")
-HRESULT PathCchRemoveFileSpec(const(wchar)* pszPath, size_t cchPath);
+HRESULT PathCchRemoveFileSpec(PWSTR pszPath, size_t cchPath);
 
 ///Searches a path to find its file name extension, such as ".exe" or ".ini". This function does not search for a
 ///specific extension; it searches for the presence of any extension. This function differs from PathFindExtension in
@@ -18924,7 +18838,7 @@ HRESULT PathCchRemoveFileSpec(const(wchar)* pszPath, size_t cchPath);
 ///              the extension within <i>pszPath</i>. If no extension is found, it points to the string's terminating null
 ///              character.
 @DllImport("api-ms-win-core-path-l1-1-0")
-HRESULT PathCchFindExtension(const(wchar)* pszPath, size_t cchPath, ushort** ppszExt);
+HRESULT PathCchFindExtension(const(PWSTR) pszPath, size_t cchPath, PWSTR* ppszExt);
 
 ///Adds a file name extension to a path string. This function differs from PathAddExtension in that it accepts paths
 ///with "\\", "\\?\" and "\\?\UNC\" prefixes. <div class="alert"><b>Note</b> This function should be used in place of
@@ -18938,7 +18852,7 @@ HRESULT PathCchFindExtension(const(wchar)* pszPath, size_t cchPath, ushort** pps
 ///    pszExt = A pointer to the file name extension string. This string can be given either with or without a preceding period
 ///             (".ext" or "ext").
 @DllImport("api-ms-win-core-path-l1-1-0")
-HRESULT PathCchAddExtension(const(wchar)* pszPath, size_t cchPath, const(wchar)* pszExt);
+HRESULT PathCchAddExtension(PWSTR pszPath, size_t cchPath, const(PWSTR) pszExt);
 
 ///Replaces a file name's extension at the end of a path string with a new extension. If the path string does not end
 ///with an extension, the new extension is added. This function differs from PathRenameExtension in that it accepts
@@ -18951,7 +18865,7 @@ HRESULT PathCchAddExtension(const(wchar)* pszPath, size_t cchPath, const(wchar)*
 ///    pszExt = A pointer to the new extension string. The leading '.' character is optional. In the case of an empty string
 ///             (""), any existing extension in the path string is removed.
 @DllImport("api-ms-win-core-path-l1-1-0")
-HRESULT PathCchRenameExtension(const(wchar)* pszPath, size_t cchPath, const(wchar)* pszExt);
+HRESULT PathCchRenameExtension(PWSTR pszPath, size_t cchPath, const(PWSTR) pszExt);
 
 ///Removes the file name extension from a path, if one is present. This function differs from PathRemoveExtension in
 ///that it accepts paths with "\\", "\\?\" and "\\?\UNC\" prefixes. <div class="alert"><b>Note</b>This function, should
@@ -18961,7 +18875,7 @@ HRESULT PathCchRenameExtension(const(wchar)* pszPath, size_t cchPath, const(wcha
 ///              extension removed. If no extension was found, the string is unchanged.
 ///    cchPath = The size of the buffer pointed to by <i>pszPath</i>, in characters.
 @DllImport("api-ms-win-core-path-l1-1-0")
-HRESULT PathCchRemoveExtension(const(wchar)* pszPath, size_t cchPath);
+HRESULT PathCchRemoveExtension(PWSTR pszPath, size_t cchPath);
 
 ///Simplifies a path by removing navigation elements such as "." and ".." to produce a direct, well-formed path. This
 ///function differs from PathCchCanonicalize in that it allows for a longer final path to be constructed. This function
@@ -19020,7 +18934,7 @@ HRESULT PathCchRemoveExtension(const(wchar)* pszPath, size_t cchPath);
 ///    function could not allocate a buffer of the neccessary size. </td> </tr> </table>
 ///    
 @DllImport("api-ms-win-core-path-l1-1-0")
-HRESULT PathCchCanonicalizeEx(const(wchar)* pszPathOut, size_t cchPathOut, const(wchar)* pszPathIn, uint dwFlags);
+HRESULT PathCchCanonicalizeEx(PWSTR pszPathOut, size_t cchPathOut, const(PWSTR) pszPathIn, uint dwFlags);
 
 ///Converts a path string into a canonical form. This function differs from PathCchCanonicalizeEx in that you are
 ///restricted to a final path of length MAX_PATH. This function differs from PathAllocCanonicalize in that the caller
@@ -19044,7 +18958,7 @@ HRESULT PathCchCanonicalizeEx(const(wchar)* pszPathOut, size_t cchPathOut, const
 ///    not allocate a buffer of the neccessary size. </td> </tr> </table>
 ///    
 @DllImport("api-ms-win-core-path-l1-1-0")
-HRESULT PathCchCanonicalize(const(wchar)* pszPathOut, size_t cchPathOut, const(wchar)* pszPathIn);
+HRESULT PathCchCanonicalize(PWSTR pszPathOut, size_t cchPathOut, const(PWSTR) pszPathIn);
 
 ///Combines two path fragments into a single path. This function also canonicalizes any relative path elements, removing
 ///"." and ".." elements to simplify the final path. This function differs from PathCchCombine in that it allows for a
@@ -19106,8 +19020,8 @@ HRESULT PathCchCanonicalize(const(wchar)* pszPathOut, size_t cchPathOut, const(w
 ///    </tr> </table>
 ///    
 @DllImport("api-ms-win-core-path-l1-1-0")
-HRESULT PathCchCombineEx(const(wchar)* pszPathOut, size_t cchPathOut, const(wchar)* pszPathIn, 
-                         const(wchar)* pszMore, uint dwFlags);
+HRESULT PathCchCombineEx(PWSTR pszPathOut, size_t cchPathOut, const(PWSTR) pszPathIn, const(PWSTR) pszMore, 
+                         uint dwFlags);
 
 ///Combines two path fragments into a single path. This function also canonicalizes any relative path elements, removing
 ///"." and ".." elements to simplify the final path. This function differs from PathCchCombineEx in that you are
@@ -19138,7 +19052,7 @@ HRESULT PathCchCombineEx(const(wchar)* pszPathOut, size_t cchPathOut, const(wcha
 ///    </table>
 ///    
 @DllImport("api-ms-win-core-path-l1-1-0")
-HRESULT PathCchCombine(const(wchar)* pszPathOut, size_t cchPathOut, const(wchar)* pszPathIn, const(wchar)* pszMore);
+HRESULT PathCchCombine(PWSTR pszPathOut, size_t cchPathOut, const(PWSTR) pszPathIn, const(PWSTR) pszMore);
 
 ///Appends one path to the end of another. This function differs from PathCchAppend in that it allows for a longer final
 ///path to be constructed. This function differs from PathAppend in that it accepts paths with "\\", "\\?\" and
@@ -19191,7 +19105,7 @@ HRESULT PathCchCombine(const(wchar)* pszPathOut, size_t cchPathOut, const(wchar)
 ///    width="60%"> The function could not allocate a buffer of the neccessary size. </td> </tr> </table>
 ///    
 @DllImport("api-ms-win-core-path-l1-1-0")
-HRESULT PathCchAppendEx(const(wchar)* pszPath, size_t cchPath, const(wchar)* pszMore, uint dwFlags);
+HRESULT PathCchAppendEx(PWSTR pszPath, size_t cchPath, const(PWSTR) pszMore, uint dwFlags);
 
 ///Appends one path to the end of another. This function differs from PathCchAppendEx in that you are restricted to a
 ///final path of length MAX_PATH. This function differs from PathAppend in that it accepts paths with "\\", "\\?\" and
@@ -19214,7 +19128,7 @@ HRESULT PathCchAppendEx(const(wchar)* pszPath, size_t cchPath, const(wchar)* psz
 ///    width="60%"> The function could not allocate a buffer of the neccessary size. </td> </tr> </table>
 ///    
 @DllImport("api-ms-win-core-path-l1-1-0")
-HRESULT PathCchAppend(const(wchar)* pszPath, size_t cchPath, const(wchar)* pszMore);
+HRESULT PathCchAppend(PWSTR pszPath, size_t cchPath, const(PWSTR) pszMore);
 
 ///Removes the "\\?\" prefix, if present, from a file path.
 ///Params:
@@ -19222,7 +19136,7 @@ HRESULT PathCchAppend(const(wchar)* pszPath, size_t cchPath, const(wchar)* pszMo
 ///              prefix removed, if the prefix was present. If no prefix was present, the string will be unchanged.
 ///    cchPath = The size of the buffer pointed to by <i>pszPath</i>, in characters.
 @DllImport("api-ms-win-core-path-l1-1-0")
-HRESULT PathCchStripPrefix(const(wchar)* pszPath, size_t cchPath);
+HRESULT PathCchStripPrefix(PWSTR pszPath, size_t cchPath);
 
 ///Concatenates two path fragments into a single path. This function also canonicalizes any relative path elements,
 ///replacing path elements such as "." and "..". This function differs from PathCchCombine and PathCchCombineEx in that
@@ -19277,7 +19191,7 @@ HRESULT PathCchStripPrefix(const(wchar)* pszPath, size_t cchPath);
 ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("api-ms-win-core-path-l1-1-0")
-HRESULT PathAllocCombine(const(wchar)* pszPathIn, const(wchar)* pszMore, uint dwFlags, ushort** ppszPathOut);
+HRESULT PathAllocCombine(const(PWSTR) pszPathIn, const(PWSTR) pszMore, uint dwFlags, PWSTR* ppszPathOut);
 
 ///Converts a path string into a canonical form. This function differs from PathCchCanonicalize and
 ///PathCchCanonicalizeEx in that it returns the result on the heap. This means that the caller does not have to declare
@@ -19328,7 +19242,7 @@ HRESULT PathAllocCombine(const(wchar)* pszPathIn, const(wchar)* pszMore, uint dw
 ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("api-ms-win-core-path-l1-1-0")
-HRESULT PathAllocCanonicalize(const(wchar)* pszPathIn, uint dwFlags, ushort** ppszPathOut);
+HRESULT PathAllocCanonicalize(const(PWSTR) pszPathIn, uint dwFlags, PWSTR* ppszPathOut);
 
 ///Enables an app to register a callback function through which it can be notified that its library is going into or
 ///coming out of a suspended state. The app can use this information to perform any necessary operations, such as
@@ -19363,6 +19277,457 @@ uint RegisterAppConstrainedChangeNotification(PAPPCONSTRAIN_CHANGE_ROUTINE Routi
 
 @DllImport("api-ms-win-core-psm-appnotify-l1-1-1")
 void UnregisterAppConstrainedChangeNotification(_APPCONSTRAIN_REGISTRATION* Registration);
+
+///Installs or updates a window subclass callback.
+///Params:
+///    hWnd = Type: <b>HWND</b> The handle of the window being subclassed.
+///    pfnSubclass = Type: <b>SUBCLASSPROC</b> A pointer to a window procedure. This pointer and the subclass ID uniquely identify
+///                  this subclass callback. For the callback function prototype, see SUBCLASSPROC.
+///    uIdSubclass = Type: <b>UINT_PTR</b> The subclass ID. This ID together with the subclass procedure uniquely identify a subclass.
+///                  To remove a subclass, pass the subclass procedure and this value to the RemoveWindowSubclass function. This value
+///                  is passed to the subclass procedure in the uIdSubclass parameter.
+///    dwRefData = Type: <b>DWORD_PTR</b> <b>DWORD_PTR</b> to reference data. The meaning of this value is determined by the calling
+///                application. This value is passed to the subclass procedure in the dwRefData parameter. A different dwRefData is
+///                associated with each combination of window handle, subclass procedure and uIdSubclass.
+///Returns:
+///    Type: <b>BOOL</b> <b>TRUE</b> if the subclass callback was successfully installed; otherwise, <b>FALSE</b>.
+///    
+@DllImport("COMCTL32")
+BOOL SetWindowSubclass(HWND hWnd, SUBCLASSPROC pfnSubclass, size_t uIdSubclass, size_t dwRefData);
+
+///Retrieves the reference data for the specified window subclass callback.
+///Params:
+///    hWnd = Type: <b>HWND</b> The handle of the window being subclassed.
+///    pfnSubclass = Type: <b>SUBCLASSPROC</b> A pointer to a window procedure. This pointer and the subclass ID uniquely identify
+///                  this subclass callback.
+///    uIdSubclass = Type: <b>UINT_PTR</b> <b>UINT_PTR</b> subclass ID. This ID and the callback pointer uniquely identify this
+///                  subclass callback. Note: On 64-bit versions of Windows this is a 64-bit value.
+///    pdwRefData = Type: <b>DWORD_PTR*</b> A pointer to a <b>DWORD</b> which will return the reference data. Note: On 64-bit
+///                 versions of Windows, pointers are 64-bit values.
+///Returns:
+///    Type: <b>BOOL</b> <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>TRUE</b></dt> </dl> </td> <td width="60%"> The subclass callback was successfully installed. </td> </tr>
+///    <tr> <td width="40%"> <dl> <dt><b>FALSE</b></dt> </dl> </td> <td width="60%"> The subclass callback was not
+///    installed. </td> </tr> </table>
+///    
+@DllImport("COMCTL32")
+BOOL GetWindowSubclass(HWND hWnd, SUBCLASSPROC pfnSubclass, size_t uIdSubclass, size_t* pdwRefData);
+
+///Removes a subclass callback from a window.
+///Params:
+///    hWnd = Type: <b>HWND</b> The handle of the window being subclassed.
+///    pfnSubclass = Type: <b>SUBCLASSPROC</b> A pointer to a window procedure. This pointer and the subclass ID uniquely identify
+///                  this subclass callback. For the callback function prototype, see SUBCLASSPROC.
+///    uIdSubclass = Type: <b>UINT_PTR</b> The <b>UINT_PTR</b> subclass ID. This ID and the callback pointer uniquely identify this
+///                  subclass callback. Note: On 64-bit versions of Windows this is a 64-bit value.
+///Returns:
+///    Type: <b>BOOL</b> <b>TRUE</b> if the subclass callback was successfully removed; otherwise, <b>FALSE</b>.
+///    
+@DllImport("COMCTL32")
+BOOL RemoveWindowSubclass(HWND hWnd, SUBCLASSPROC pfnSubclass, size_t uIdSubclass);
+
+///Calls the next handler in a window's subclass chain. The last handler in the subclass chain calls the original window
+///procedure for the window.
+///Params:
+///    hWnd = Type: <b>HWND</b> A handle to the window being subclassed.
+///    uMsg = Type: <b>UINT</b> A value of type unsigned <b>int</b> that specifies a window message.
+///    wParam = Type: <b>WPARAM</b> Specifies additional message information. The contents of this parameter depend on the value
+///             of the window message.
+///    lParam = Type: <b>LPARAM</b> Specifies additional message information. The contents of this parameter depend on the value
+///             of the window message. Note: On 64-bit versions of Windows LPARAM is a 64-bit value.
+///Returns:
+///    Type: <b>LRESULT</b> The returned value is specific to the message sent. This value should be ignored.
+///    
+@DllImport("COMCTL32")
+LRESULT DefSubclassProc(HWND hWnd, uint uMsg, WPARAM wParam, LPARAM lParam);
+
+///Loads the specified user's profile. The profile can be a local user profile or a roaming user profile.
+///Params:
+///    hToken = Type: <b>HANDLE</b> Token for the user, which is returned by the LogonUser, CreateRestrictedToken,
+///             DuplicateToken, OpenProcessToken, or OpenThreadToken function. The token must have <b>TOKEN_QUERY</b>,
+///             <b>TOKEN_IMPERSONATE</b>, and <b>TOKEN_DUPLICATE</b> access. For more information, see Access Rights for
+///             Access-Token Objects.
+///    lpProfileInfo = Type: <b>LPPROFILEINFO</b> Pointer to a PROFILEINFO structure. <b>LoadUserProfile</b> fails and returns
+///                    <b>ERROR_INVALID_PARAMETER</b> if the <b>dwSize</b> member of the structure is not set to
+///                    <code>sizeof(PROFILEINFO)</code> or if the <b>lpUserName</b> member is <b>NULL</b>. For more information, see
+///                    Remarks.
+///Returns:
+///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
+///    GetLastError. The function fails and returns ERROR_INVALID_PARAMETER if the <b>dwSize</b> member of the structure
+///    at <i>lpProfileInfo</i> is not set to <code>sizeof(PROFILEINFO)</code> or if the <b>lpUserName</b> member is
+///    <b>NULL</b>.
+///    
+@DllImport("USERENV")
+BOOL LoadUserProfileA(HANDLE hToken, PROFILEINFOA* lpProfileInfo);
+
+///Loads the specified user's profile. The profile can be a local user profile or a roaming user profile.
+///Params:
+///    hToken = Type: <b>HANDLE</b> Token for the user, which is returned by the LogonUser, CreateRestrictedToken,
+///             DuplicateToken, OpenProcessToken, or OpenThreadToken function. The token must have <b>TOKEN_QUERY</b>,
+///             <b>TOKEN_IMPERSONATE</b>, and <b>TOKEN_DUPLICATE</b> access. For more information, see Access Rights for
+///             Access-Token Objects.
+///    lpProfileInfo = Type: <b>LPPROFILEINFO</b> Pointer to a PROFILEINFO structure. <b>LoadUserProfile</b> fails and returns
+///                    <b>ERROR_INVALID_PARAMETER</b> if the <b>dwSize</b> member of the structure is not set to
+///                    <code>sizeof(PROFILEINFO)</code> or if the <b>lpUserName</b> member is <b>NULL</b>. For more information, see
+///                    Remarks.
+///Returns:
+///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
+///    GetLastError. The function fails and returns ERROR_INVALID_PARAMETER if the <b>dwSize</b> member of the structure
+///    at <i>lpProfileInfo</i> is not set to <code>sizeof(PROFILEINFO)</code> or if the <b>lpUserName</b> member is
+///    <b>NULL</b>.
+///    
+@DllImport("USERENV")
+BOOL LoadUserProfileW(HANDLE hToken, PROFILEINFOW* lpProfileInfo);
+
+///Unloads a user's profile that was loaded by the LoadUserProfile function. The caller must have administrative
+///privileges on the computer. For more information, see the Remarks section of the <b>LoadUserProfile</b> function.
+///Params:
+///    hToken = Type: <b>HANDLE</b> Token for the user, returned from the LogonUser, CreateRestrictedToken, DuplicateToken,
+///             OpenProcessToken, or OpenThreadToken function. The token must have <b>TOKEN_IMPERSONATE</b> and
+///             <b>TOKEN_DUPLICATE</b> access. For more information, see Access Rights for Access-Token Objects.
+///    hProfile = Type: <b>HANDLE</b> Handle to the registry key. This value is the <b>hProfile</b> member of the PROFILEINFO
+///               structure. For more information see the Remarks section of LoadUserProfile and Registry Key Security and Access
+///               Rights.
+///Returns:
+///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
+///    GetLastError.
+///    
+@DllImport("USERENV")
+BOOL UnloadUserProfile(HANDLE hToken, HANDLE hProfile);
+
+///Retrieves the path to the root directory where user profiles are stored.
+///Params:
+///    lpProfileDir = Type: <b>LPTSTR</b> A pointer to a buffer that, when this function returns successfully, receives the path to the
+///                   profiles directory. Set this value to <b>NULL</b> to determine the required size of the buffer.
+///    lpcchSize = Type: <b>LPDWORD</b> Specifies the size of the <i>lpProfilesDir</i> buffer, in <b>TCHARs</b>. If the buffer
+///                specified by <i>lpProfilesDir</i> is not large enough or <i>lpProfilesDir</i> is <b>NULL</b>, the function fails
+///                and this parameter receives the necessary buffer size, including the terminating null character.
+///Returns:
+///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
+///    GetLastError.
+///    
+@DllImport("USERENV")
+BOOL GetProfilesDirectoryA(PSTR lpProfileDir, uint* lpcchSize);
+
+///Retrieves the path to the root directory where user profiles are stored.
+///Params:
+///    lpProfileDir = Type: <b>LPTSTR</b> A pointer to a buffer that, when this function returns successfully, receives the path to the
+///                   profiles directory. Set this value to <b>NULL</b> to determine the required size of the buffer.
+///    lpcchSize = Type: <b>LPDWORD</b> Specifies the size of the <i>lpProfilesDir</i> buffer, in <b>TCHARs</b>. If the buffer
+///                specified by <i>lpProfilesDir</i> is not large enough or <i>lpProfilesDir</i> is <b>NULL</b>, the function fails
+///                and this parameter receives the necessary buffer size, including the terminating null character.
+///Returns:
+///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
+///    GetLastError.
+///    
+@DllImport("USERENV")
+BOOL GetProfilesDirectoryW(PWSTR lpProfileDir, uint* lpcchSize);
+
+///Retrieves the type of profile loaded for the current user.
+///Params:
+///    dwFlags = Type: <b>DWORD*</b> Pointer to a variable that receives the profile type. If the function succeeds, it sets one
+///              or more of the following values:
+///Returns:
+///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
+///    GetLastError.
+///    
+@DllImport("USERENV")
+BOOL GetProfileType(uint* dwFlags);
+
+///Deletes the user profile and all user-related settings from the specified computer. The caller must have
+///administrative privileges to delete a user's profile.
+///Params:
+///    lpSidString = Type: <b>LPCTSTR</b> Pointer to a string that specifies the user SID.
+///    lpProfilePath = Type: <b>LPCTSTR</b> Pointer to a string that specifies the profile path. If this parameter is <b>NULL</b>, the
+///                    function obtains the path from the registry.
+///    lpComputerName = Type: <b>LPCTSTR</b> Pointer to a string that specifies the name of the computer from which the profile is to be
+///                     deleted. If this parameter is <b>NULL</b>, the local computer name is used. <div class="alert"><b>Note</b> As of
+///                     Windows Vista, this parameter must be <b>NULL</b>. If it is not, this function fails with the error code
+///                     ERROR_INVALID_PARAMETER.</div> <div> </div>
+///Returns:
+///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
+///    GetLastError.
+///    
+@DllImport("USERENV")
+BOOL DeleteProfileA(const(PSTR) lpSidString, const(PSTR) lpProfilePath, const(PSTR) lpComputerName);
+
+///Deletes the user profile and all user-related settings from the specified computer. The caller must have
+///administrative privileges to delete a user's profile.
+///Params:
+///    lpSidString = Type: <b>LPCTSTR</b> Pointer to a string that specifies the user SID.
+///    lpProfilePath = Type: <b>LPCTSTR</b> Pointer to a string that specifies the profile path. If this parameter is <b>NULL</b>, the
+///                    function obtains the path from the registry.
+///    lpComputerName = Type: <b>LPCTSTR</b> Pointer to a string that specifies the name of the computer from which the profile is to be
+///                     deleted. If this parameter is <b>NULL</b>, the local computer name is used. <div class="alert"><b>Note</b> As of
+///                     Windows Vista, this parameter must be <b>NULL</b>. If it is not, this function fails with the error code
+///                     ERROR_INVALID_PARAMETER.</div> <div> </div>
+///Returns:
+///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
+///    GetLastError.
+///    
+@DllImport("USERENV")
+BOOL DeleteProfileW(const(PWSTR) lpSidString, const(PWSTR) lpProfilePath, const(PWSTR) lpComputerName);
+
+///Creates a new user profile.
+///Params:
+///    pszUserSid = Type: <b>LPCWSTR</b> Pointer to the SID of the user as a string.
+///    pszUserName = Type: <b>LPCWSTR</b> The user name of the new user. This name is used as the base name for the profile directory.
+///    pszProfilePath = Type: <b>LPWSTR</b> When this function returns, contains a pointer to the full path of the profile.
+///    cchProfilePath = Type: <b>DWORD</b> Size of the buffer pointed to by <i>pszProfilePath</i>, in characters.
+///Returns:
+///    Type: <b>HRESULT</b> Returns S_OK if successful, or an error value otherwise, including the following: <table>
+///    <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>E_ACCESSDENIED</b></dt>
+///    </dl> </td> <td width="60%"> The caller does not have a sufficient permission level to create the profile. </td>
+///    </tr> <tr> <td width="40%"> <dl> <dt><b>HRESULT_FROM_WIN32(ERROR_ALREADY_EXISTS)</b></dt> </dl> </td> <td
+///    width="60%"> A profile already exists for the specified user. </td> </tr> </table>
+///    
+@DllImport("USERENV")
+HRESULT CreateProfile(const(PWSTR) pszUserSid, const(PWSTR) pszUserName, PWSTR pszProfilePath, uint cchProfilePath);
+
+///Retrieves the path to the root of the default user's profile.
+///Params:
+///    lpProfileDir = Type: <b>LPTSTR</b> A pointer to a buffer that, when this function returns successfully, receives the path to the
+///                   default user's profile directory. Set this value to <b>NULL</b> to determine the required size of the buffer.
+///    lpcchSize = Type: <b>LPDWORD</b> Specifies the size of the <i>lpProfileDir</i> buffer, in <b>TCHARs</b>. If the buffer
+///                specified by <i>lpProfileDir</i> is not large enough or <i>lpProfileDir</i> is <b>NULL</b>, the function fails
+///                and this parameter receives the necessary buffer size, including the terminating null character.
+///Returns:
+///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
+///    GetLastError.
+///    
+@DllImport("USERENV")
+BOOL GetDefaultUserProfileDirectoryA(PSTR lpProfileDir, uint* lpcchSize);
+
+///Retrieves the path to the root of the default user's profile.
+///Params:
+///    lpProfileDir = Type: <b>LPTSTR</b> A pointer to a buffer that, when this function returns successfully, receives the path to the
+///                   default user's profile directory. Set this value to <b>NULL</b> to determine the required size of the buffer.
+///    lpcchSize = Type: <b>LPDWORD</b> Specifies the size of the <i>lpProfileDir</i> buffer, in <b>TCHARs</b>. If the buffer
+///                specified by <i>lpProfileDir</i> is not large enough or <i>lpProfileDir</i> is <b>NULL</b>, the function fails
+///                and this parameter receives the necessary buffer size, including the terminating null character.
+///Returns:
+///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
+///    GetLastError.
+///    
+@DllImport("USERENV")
+BOOL GetDefaultUserProfileDirectoryW(PWSTR lpProfileDir, uint* lpcchSize);
+
+///Retrieves the path to the root of the directory that contains program data shared by all users.
+///Params:
+///    lpProfileDir = Type: <b>LPTSTR</b> A pointer to a buffer that, when this function returns successfully, receives the path. Set
+///                   this value to <b>NULL</b> to determine the required size of the buffer, including the terminating null character.
+///    lpcchSize = Type: <b>LPDWORD</b> A pointer to the size of the <i>lpProfileDir</i> buffer, in <b>TCHARs</b>. If the buffer
+///                specified by <i>lpProfileDir</i> is not large enough or <i>lpProfileDir</i> is <b>NULL</b>, the function fails
+///                and this parameter receives the necessary buffer size, including the terminating null character.
+///Returns:
+///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
+///    GetLastError.
+///    
+@DllImport("USERENV")
+BOOL GetAllUsersProfileDirectoryA(PSTR lpProfileDir, uint* lpcchSize);
+
+///Retrieves the path to the root of the directory that contains program data shared by all users.
+///Params:
+///    lpProfileDir = Type: <b>LPTSTR</b> A pointer to a buffer that, when this function returns successfully, receives the path. Set
+///                   this value to <b>NULL</b> to determine the required size of the buffer, including the terminating null character.
+///    lpcchSize = Type: <b>LPDWORD</b> A pointer to the size of the <i>lpProfileDir</i> buffer, in <b>TCHARs</b>. If the buffer
+///                specified by <i>lpProfileDir</i> is not large enough or <i>lpProfileDir</i> is <b>NULL</b>, the function fails
+///                and this parameter receives the necessary buffer size, including the terminating null character.
+///Returns:
+///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
+///    GetLastError.
+///    
+@DllImport("USERENV")
+BOOL GetAllUsersProfileDirectoryW(PWSTR lpProfileDir, uint* lpcchSize);
+
+///Retrieves the path to the root directory of the specified user's profile.
+///Params:
+///    hToken = Type: <b>HANDLE</b> A token for the user, which is returned by the LogonUser, CreateRestrictedToken,
+///             DuplicateToken, OpenProcessToken, or OpenThreadToken function. The token must have TOKEN_QUERY access. For more
+///             information, see Access Rights for Access-Token Objects.
+///    lpProfileDir = Type: <b>LPTSTR</b> A pointer to a buffer that, when this function returns successfully, receives the path to the
+///                   specified user's profile directory.
+///    lpcchSize = Type: <b>LPDWORD</b> Specifies the size of the <i>lpProfileDir</i> buffer, in <b>TCHARs</b>. If the buffer
+///                specified by <i>lpProfileDir</i> is not large enough or <i>lpProfileDir</i> is <b>NULL</b>, the function fails
+///                and this parameter receives the necessary buffer size, including the terminating null character.
+///Returns:
+///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
+///    GetLastError.
+///    
+@DllImport("USERENV")
+BOOL GetUserProfileDirectoryA(HANDLE hToken, PSTR lpProfileDir, uint* lpcchSize);
+
+///Retrieves the path to the root directory of the specified user's profile.
+///Params:
+///    hToken = Type: <b>HANDLE</b> A token for the user, which is returned by the LogonUser, CreateRestrictedToken,
+///             DuplicateToken, OpenProcessToken, or OpenThreadToken function. The token must have TOKEN_QUERY access. For more
+///             information, see Access Rights for Access-Token Objects.
+///    lpProfileDir = Type: <b>LPTSTR</b> A pointer to a buffer that, when this function returns successfully, receives the path to the
+///                   specified user's profile directory.
+///    lpcchSize = Type: <b>LPDWORD</b> Specifies the size of the <i>lpProfileDir</i> buffer, in <b>TCHARs</b>. If the buffer
+///                specified by <i>lpProfileDir</i> is not large enough or <i>lpProfileDir</i> is <b>NULL</b>, the function fails
+///                and this parameter receives the necessary buffer size, including the terminating null character.
+///Returns:
+///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
+///    GetLastError.
+///    
+@DllImport("USERENV")
+BOOL GetUserProfileDirectoryW(HANDLE hToken, PWSTR lpProfileDir, uint* lpcchSize);
+
+///Retrieves the environment variables for the specified user. This block can then be passed to the CreateProcessAsUser
+///function.
+///Params:
+///    lpEnvironment = Type: <b>LPVOID*</b> When this function returns, receives a pointer to the new environment block. The environment
+///                    block is an array of null-terminated Unicode strings. The list ends with two nulls (\0\0).
+///    hToken = Type: <b>HANDLE</b> Token for the user, returned from the LogonUser function. If this is a primary token, the
+///             token must have <b>TOKEN_QUERY</b> and <b>TOKEN_DUPLICATE</b> access. If the token is an impersonation token, it
+///             must have <b>TOKEN_QUERY</b> access. For more information, see Access Rights for Access-Token Objects. If this
+///             parameter is <b>NULL</b>, the returned environment block contains system variables only.
+///    bInherit = Type: <b>BOOL</b> Specifies whether to inherit from the current process' environment. If this value is
+///               <b>TRUE</b>, the process inherits the current process' environment. If this value is <b>FALSE</b>, the process
+///               does not inherit the current process' environment.
+///Returns:
+///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
+///    GetLastError.
+///    
+@DllImport("USERENV")
+BOOL CreateEnvironmentBlock(void** lpEnvironment, HANDLE hToken, BOOL bInherit);
+
+///Frees environment variables created by the CreateEnvironmentBlock function.
+///Params:
+///    lpEnvironment = Type: <b>LPVOID</b> Pointer to the environment block created by CreateEnvironmentBlock. The environment block is
+///                    an array of null-terminated Unicode strings. The list ends with two nulls (\0\0).
+///Returns:
+///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
+///    GetLastError.
+///    
+@DllImport("USERENV")
+BOOL DestroyEnvironmentBlock(void* lpEnvironment);
+
+///Expands the source string by using the environment block established for the specified user.
+///Params:
+///    hToken = Type: <b>HANDLE</b> Token for the user, returned from the LogonUser, CreateRestrictedToken, DuplicateToken,
+///             OpenProcessToken, or OpenThreadToken function. The token must have TOKEN_IMPERSONATE and TOKEN_QUERY access. In
+///             addition, as of Windows 7 the token must also have TOKEN_DUPLICATE access. For more information, see Access
+///             Rights for Access-Token Objects. If <i>hToken</i> is <b>NULL</b>, the environment block contains system variables
+///             only.
+///    lpSrc = Type: <b>LPCTSTR</b> Pointer to the null-terminated source string to be expanded.
+///    lpDest = Type: <b>LPTSTR</b> Pointer to a buffer that receives the expanded strings.
+///    dwSize = Type: <b>DWORD</b> Specifies the size of the <i>lpDest</i> buffer, in <b>TCHARs</b>.
+///Returns:
+///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
+///    GetLastError.
+///    
+@DllImport("USERENV")
+BOOL ExpandEnvironmentStringsForUserA(HANDLE hToken, const(PSTR) lpSrc, PSTR lpDest, uint dwSize);
+
+///Expands the source string by using the environment block established for the specified user.
+///Params:
+///    hToken = Type: <b>HANDLE</b> Token for the user, returned from the LogonUser, CreateRestrictedToken, DuplicateToken,
+///             OpenProcessToken, or OpenThreadToken function. The token must have TOKEN_IMPERSONATE and TOKEN_QUERY access. In
+///             addition, as of Windows 7 the token must also have TOKEN_DUPLICATE access. For more information, see Access
+///             Rights for Access-Token Objects. If <i>hToken</i> is <b>NULL</b>, the environment block contains system variables
+///             only.
+///    lpSrc = Type: <b>LPCTSTR</b> Pointer to the null-terminated source string to be expanded.
+///    lpDest = Type: <b>LPTSTR</b> Pointer to a buffer that receives the expanded strings.
+///    dwSize = Type: <b>DWORD</b> Specifies the size of the <i>lpDest</i> buffer, in <b>TCHARs</b>.
+///Returns:
+///    Type: <b>BOOL</b> <b>TRUE</b> if successful; otherwise, <b>FALSE</b>. To get extended error information, call
+///    GetLastError.
+///    
+@DllImport("USERENV")
+BOOL ExpandEnvironmentStringsForUserW(HANDLE hToken, const(PWSTR) lpSrc, PWSTR lpDest, uint dwSize);
+
+///Creates a per-user, per-app profile for Windows Store apps.
+///Params:
+///    pszAppContainerName = The name of the app container. To ensure uniqueness, it is recommended that this string contains the app name as
+///                          well as the publisher. This string can be up to 64 characters in length. Further, it must fit into the pattern
+///                          described by the regular expression "[-_. A-Za-z0-9]+".
+///    pszDisplayName = The display name. This string can be up to 512 characters in length.
+///    pszDescription = A description for the app container. This string can be up to 2048 characters in length.
+///    pCapabilities = The SIDs that define the requested capabilities.
+///    dwCapabilityCount = The number of SIDs in <i>pCapabilities</i>.
+///    ppSidAppContainerSid = The SID for the profile. This buffer must be freed using the FreeSid function.
+///Returns:
+///    If this function succeeds, it returns a standard HRESULT code, including the following: <table> <tr> <th>Return
+///    code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%">
+///    The data store was created successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_ACCESSDENIED</b></dt>
+///    </dl> </td> <td width="60%"> The caller does not have permission to create the profile. </td> </tr> <tr> <td
+///    width="40%"> <dl> <dt><b>HRESULT_FROM_WIN32(ERROR_ALREADY_EXISTS)</b></dt> </dl> </td> <td width="60%"> The
+///    application data store already exists. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl>
+///    </td> <td width="60%"> The container name is <b>NULL</b>, or the container name, the display name, or the
+///    description strings exceed their specified respective limits for length. </td> </tr> </table>
+///    
+@DllImport("USERENV")
+HRESULT CreateAppContainerProfile(const(PWSTR) pszAppContainerName, const(PWSTR) pszDisplayName, 
+                                  const(PWSTR) pszDescription, SID_AND_ATTRIBUTES* pCapabilities, 
+                                  uint dwCapabilityCount, void** ppSidAppContainerSid);
+
+///Deletes the specified per-user, per-app profile.<div class="alert"><b>Note</b> Deleting a non-existent profile
+///returns success.</div> <div> </div>
+///Params:
+///    pszAppContainerName = The name given to the profile in the call to the CreateAppContainerProfile function. This string is at most 64
+///                          characters in length, and fits into the pattern described by the regular expression "[-_. A-Za-z0-9]+".
+///Returns:
+///    If this function succeeds, it returns a standard HRESULT code, including the following: <table> <tr> <th>Return
+///    code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>HRESULT_FROM_WIN32(ERROR_NOT_SUPPORTED)</b></dt> </dl> </td> <td width="60%"> If the method is called from
+///    within an app container. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%">
+///    The profile was deleted successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl>
+///    </td> <td width="60%"> If the container name is <b>NULL</b>, or if it exceeds its specified limit for length.
+///    </td> </tr> </table>
+///    
+@DllImport("USERENV")
+HRESULT DeleteAppContainerProfile(const(PWSTR) pszAppContainerName);
+
+///Gets the location of the registry storage associated with an app container.
+///Params:
+///    desiredAccess = Type: <b>REGSAM</b> The desired registry access.
+///    phAppContainerKey = Type: <b>PHKEY</b> A pointer to an HKEY that, when this function returns successfully, receives the registry
+///                        storage location for the current profile.
+///Returns:
+///    Type: <b>HRESULT</b> This function returns an <b>HRESULT</b> code, including but not limited to the following:
+///    <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt>
+///    </dl> </td> <td width="60%"> The operation completed successfully. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The caller is not running as or impersonating a user
+///    who can access this profile. </td> </tr> </table>
+///    
+@DllImport("USERENV")
+HRESULT GetAppContainerRegistryLocation(uint desiredAccess, HKEY* phAppContainerKey);
+
+///Gets the path of the local app data folder for the specified app container.
+///Params:
+///    pszAppContainerSid = A pointer to the SID of the app container.
+///    ppszPath = The address of a pointer to a string that, when this function returns successfully, receives the path of the
+///               local folder. It is the responsibility of the caller to free this string when it is no longer needed by calling
+///               the CoTaskMemFree function.
+///Returns:
+///    This function returns an <b>HRESULT</b> code, including but not limited to the following: <table> <tr> <th>Return
+///    code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%">
+///    The operation completed successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl>
+///    </td> <td width="60%"> The <i>pszAppContainerSid</i> or <i>ppszPath</i> parameter is <b>NULL</b>. </td> </tr>
+///    </table>
+///    
+@DllImport("USERENV")
+HRESULT GetAppContainerFolderPath(const(PWSTR) pszAppContainerSid, PWSTR* ppszPath);
+
+///Gets the SID of the specified profile.
+///Params:
+///    pszAppContainerName = The name of the profile.
+///    ppsidAppContainerSid = The SID for the profile. This buffer must be freed using the FreeSid function.
+@DllImport("USERENV")
+HRESULT DeriveAppContainerSidFromAppContainerName(const(PWSTR) pszAppContainerName, void** ppsidAppContainerSid);
+
+///<p class="CCE_Message">[DeriveRestrictedAppContainerSidFromAppContainerSidAndRestrictedName is reserved for future
+///use.] DeriveRestrictedAppContainerSidFromAppContainerSidAndRestrictedName is reserved for future use.
+///Params:
+///    psidAppContainerSid = Reserved.
+///    pszRestrictedAppContainerName = Reserved.
+///    ppsidRestrictedAppContainerSid = Reserved.
+@DllImport("USERENV")
+HRESULT DeriveRestrictedAppContainerSidFromAppContainerSidAndRestrictedName(void* psidAppContainerSid, 
+                                                                            const(PWSTR) pszRestrictedAppContainerName, 
+                                                                            void** ppsidRestrictedAppContainerSid);
 
 
 // Interfaces
@@ -19710,184 +20075,7 @@ interface INotifyReplica : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns <b>S_OK</b> if successful, or <b>E_UNEXPECTED</b> otherwise.
     ///    
-    HRESULT YouAreAReplica(uint ulcOtherReplicas, char* rgpmkOtherReplicas);
-}
-
-///Exposes a method to initialize a handler, such as a property handler, thumbnail handler, or preview handler, with a
-///file path.
-@GUID("B7D14566-0509-4CCE-A71F-0A554233BD9B")
-interface IInitializeWithFile : IUnknown
-{
-    ///Initializes a handler with a file path.
-    ///Params:
-    ///    pszFilePath = Type: <b>LPCWSTR</b> A pointer to a buffer that contains the file path as a null-terminated Unicode string.
-    ///    grfMode = Type: <b>DWORD</b> One of the following STGM values that indicates the access mode for <i>pszFilePath</i>.
-    ///Returns:
-    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
-    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
-    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
-    ///    
-    HRESULT Initialize(const(wchar)* pszFilePath, uint grfMode);
-}
-
-///Exposes a method that initializes a handler, such as a property handler, thumbnail handler, or preview handler, with
-///a stream.
-@GUID("B824B49D-22AC-4161-AC8A-9916E8FA3F7F")
-interface IInitializeWithStream : IUnknown
-{
-    ///Initializes a handler with a stream.
-    ///Params:
-    ///    pstream = Type: <b>IStream*</b> A pointer to an IStream interface that represents the stream source.
-    ///    grfMode = Type: <b>DWORD</b> One of the following STGM values that indicates the access mode for <i>pstream</i>.
-    ///Returns:
-    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
-    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
-    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
-    ///    
-    HRESULT Initialize(IStream pstream, uint grfMode);
-}
-
-///Exposes methods that get and set named properties.
-@GUID("71604B0F-97B0-4764-8577-2F13E98A1422")
-interface INamedPropertyStore : IUnknown
-{
-    ///Gets the value of a named property from the named property store.
-    ///Params:
-    ///    pszName = Type: <b>LPCWSTR</b> A pointer to the property name, as a Unicode string, of the property in the named
-    ///              property store.
-    ///    ppropvar = Type: <b>PROPVARIANT*</b> When this method returns, contains a pointer to a PROPVARIANT structure that holds
-    ///               the property's value.
-    HRESULT GetNamedValue(const(wchar)* pszName, PROPVARIANT* ppropvar);
-    ///Sets the value of a named property.
-    ///Params:
-    ///    pszName = Type: <b>LPCWSTR</b> A pointer to the property name, as a Unicode string, in the named property store.
-    ///    propvar = Type: <b>const PROPVARIANT*</b> A pointer to a PROPVARIANT structure that contains the value to set for the
-    ///              property named in <i>pszName</i>.
-    HRESULT SetNamedValue(const(wchar)* pszName, const(PROPVARIANT)* propvar);
-    ///Gets the number of property names in the property store.
-    ///Params:
-    ///    pdwCount = Type: <b>DWORD*</b> When this method returns, contains a pointer to the count of names.
-    HRESULT GetNameCount(uint* pdwCount);
-    ///Gets the name of a property at a specified index in the property store.
-    ///Params:
-    ///    iProp = Type: <b>DWORD</b> The index of the property in the store.
-    ///    pbstrName = Type: <b>BSTR*</b> When this method returns, contains a pointer to the property's name. It is the calling
-    ///                application's responsibility to free this resource when it is no longer needed.
-    HRESULT GetNameAt(uint iProp, BSTR* pbstrName);
-}
-
-///Exposes methods for getting and setting the property key.
-@GUID("FC0CA0A7-C316-4FD2-9031-3E628E6D4F23")
-interface IObjectWithPropertyKey : IUnknown
-{
-    ///Sets the property key.
-    ///Params:
-    ///    key = Type: <b>REFPROPERTYKEY</b> The property key.
-    HRESULT SetPropertyKey(const(PROPERTYKEY)* key);
-    ///Gets the property key.
-    ///Params:
-    ///    pkey = Type: <b>PROPERTYKEY*</b> When this returns, contains the property key.
-    HRESULT GetPropertyKey(PROPERTYKEY* pkey);
-}
-
-///Exposes a method to create a specified IPropertyStore object in circumstances where property access is potentially
-///slow.
-@GUID("40D4577F-E237-4BDB-BD69-58F089431B6A")
-interface IDelayedPropertyStoreFactory : IPropertyStoreFactory
-{
-    ///Gets an IPropertyStore interface object, as specified.
-    ///Params:
-    ///    flags = Type: <b>GETPROPERTYSTOREFLAGS</b> The GPS_XXX flags that modify the store that is returned. See
-    ///            GETPROPERTYSTOREFLAGS.
-    ///    dwStoreId = Type: <b>DWORD</b> The property store ID. Valid values are.
-    ///    riid = Type: <b>REFIID</b> A reference to the desired IID.
-    ///    ppv = Type: <b>void**</b> The address of an IPropertyStore interface pointer.
-    HRESULT GetDelayedPropertyStore(GETPROPERTYSTOREFLAGS flags, uint dwStoreId, const(GUID)* riid, void** ppv);
-}
-
-///Exposes methods to persist serialized property storage data for later use and to restore persisted data to a new
-///property store instance.
-@GUID("E318AD57-0AA0-450F-ACA5-6FAB7103D917")
-interface IPersistSerializedPropStorage : IUnknown
-{
-    ///Toggles the property store object between the read-only and read/write state.
-    ///Params:
-    ///    flags = Type: <b>PERSIST_SPROPSTORE_FLAGS</b> The <i>flags</i> parameter takes one of the following values to set
-    ///            options for the behavior of the property storage:
-    ///Returns:
-    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
-    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
-    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
-    ///    
-    HRESULT SetFlags(int flags);
-    ///Initializes the property store instance from the specified serialized property storage data.
-    ///Params:
-    ///    psps = Type: <b>PCUSERIALIZEDPROPSTORAGE</b> A pointer to the serialized property store data that will be used to
-    ///           initialize the property store.
-    ///    cb = Type: <b>DWORD</b> The count of bytes contained in the serialized property storage data pointed to by
-    ///         <i>psps</i>.
-    ///Returns:
-    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
-    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
-    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
-    ///    
-    HRESULT SetPropertyStorage(char* psps, uint cb);
-    ///Gets the serialized property storage data from the property store instance.
-    ///Params:
-    ///    ppsps = Type: <b>SERIALIZEDPROPSTORAGE**</b> When this method returns, contains the address of a pointer to the
-    ///            serialized property storage data.
-    ///    pcb = Type: <b>DWORD*</b> When this method returns, contains the count of bytes contained in the serialized
-    ///          property storage data pointed to by <i>ppsps</i>.
-    ///Returns:
-    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
-    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
-    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
-    ///    
-    HRESULT GetPropertyStorage(SERIALIZEDPROPSTORAGE** ppsps, uint* pcb);
-}
-
-///Exposes methods to persist serialized property storage data for later use and to restore persisted data to a new
-///property store instance.
-@GUID("77EFFA68-4F98-4366-BA72-573B3D880571")
-interface IPersistSerializedPropStorage2 : IPersistSerializedPropStorage
-{
-    ///Gets the size of serialized property storage data from the property store instance.
-    ///Params:
-    ///    pcb = Type: <b>DWORD*</b> The count of bytes contained in the serialized property storage data.
-    HRESULT GetPropertyStorageSize(uint* pcb);
-    ///Gets the serialized property storage buffer from the property store instance.
-    ///Params:
-    ///    psps = Type: <b>SERIALIZEDPROPSTORAGE*</b> When this method returns successfully, contains the contents of the
-    ///           property storage buffer.
-    ///    cb = Type: <b>DWORD</b> The initial size, in bytes, of the buffer pointed to by <i>psps</i>
-    ///    pcbWritten = Type: <b>DWORD*</b> The count of bytes contained in the serialized property storage buffer pointed to by
-    ///                 <i>psps</i>.
-    ///Returns:
-    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
-    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
-    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
-    ///    
-    HRESULT GetPropertyStorageBuffer(char* psps, uint cb, uint* pcbWritten);
-}
-
-///Exposes a method that creates an object of a specified class.
-@GUID("75121952-E0D0-43E5-9380-1D80483ACF72")
-interface ICreateObject : IUnknown
-{
-    ///Creates a local object of a specified class and returns a pointer to a specified interface on the object.
-    ///Params:
-    ///    clsid = Type: <b>REFCLSID</b> A reference to a CLSID.
-    ///    pUnkOuter = Type: <b>IUnknown*</b> A pointer to the IUnknown interface that aggregates the object created by this
-    ///                function, or <b>NULL</b> if no aggregation is desired.
-    ///    riid = Type: <b>REFIID</b> A reference to the IID of the interface the created object should return.
-    ///    ppv = Type: <b>void**</b> When this method returns, contains the address of the pointer to the interface requested
-    ///          in <i>riid</i>.
-    ///Returns:
-    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
-    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
-    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
-    ///    
-    HRESULT CreateObject(const(GUID)* clsid, IUnknown pUnkOuter, const(GUID)* riid, void** ppv);
+    HRESULT YouAreAReplica(uint ulcOtherReplicas, IMoniker* rgpmkOtherReplicas);
 }
 
 ///Exposes methods that enable clients to access items in a collection of objects that support IUnknown.
@@ -19976,7 +20164,7 @@ interface IContextMenu : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetCommandString(size_t idCmd, uint uType, uint* pReserved, char* pszName, uint cchMax);
+    HRESULT GetCommandString(size_t idCmd, uint uType, uint* pReserved, byte* pszName, uint cchMax);
 }
 
 ///Exposes methods that either create or merge a shortcut (context) menu associated with a Shell object. Extends
@@ -20039,7 +20227,7 @@ interface IExecuteCommand : IUnknown
     ///Params:
     ///    pszParameters = Type: <b>LPCWSTR</b> Pointer to a string that contains parameter values. The format and contents of this
     ///                    string is determined by the verb that is to be invoked.
-    HRESULT SetParameters(const(wchar)* pszParameters);
+    HRESULT SetParameters(const(PWSTR) pszParameters);
     ///Sets the coordinates of a point used for display.
     ///Params:
     ///    pt = Type: <b>POINT</b> The screen coordinates at which the user right-clicked to invoke the shortcut menu from
@@ -20059,7 +20247,7 @@ interface IExecuteCommand : IUnknown
     ///Params:
     ///    pszDirectory = Type: <b>LPCWSTR</b> Pointer to a null-terminated string with the fully qualified path of the new working
     ///                   directory. If this value is <b>NULL</b>, the current working directory is used.
-    HRESULT SetDirectory(const(wchar)* pszDirectory);
+    HRESULT SetDirectory(const(PWSTR) pszDirectory);
     ///Invoke the verb on the selected items. Call this method after you have called the other methods of this
     ///interface.
     HRESULT Execute();
@@ -20261,7 +20449,7 @@ interface IEnumIDList : IUnknown
     ///    <i>pceltFetched</i> parameter specifies the actual number of items retrieved. Note that the value will be 0
     ///    if there are no more items to retrieve. Returns a COM-defined error value otherwise.
     ///    
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, ITEMIDLIST** rgelt, uint* pceltFetched);
     ///Skips the specified number of elements in the enumeration sequence.
     ///Params:
     ///    celt = Type: <b>ULONG</b> The number of item identifiers to skip.
@@ -20299,7 +20487,7 @@ interface IEnumFullIDList : IUnknown
     ///                   identifiers actually returned in <i>rgelt</i>. The count can be smaller than the value specified in the
     ///                   <i>celt</i> parameter. This parameter can be <b>NULL</b> on entry only if <i>celt</i> is 1, because in that
     ///                   case the method can only retrieve one (S_OK) or zero (S_FALSE) items.
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, ITEMIDLIST** rgelt, uint* pceltFetched);
     ///Skips a specified number of IDLIST_ABSOLUTE items.
     ///Params:
     ///    celt = Type: <b>ULONG</b> The number of items to skip.
@@ -20332,7 +20520,7 @@ interface IFileSyncMergeHandler : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT Merge(const(wchar)* localFilePath, const(wchar)* serverFilePath, MERGE_UPDATE_STATUS* updateStatus);
+    HRESULT Merge(const(PWSTR) localFilePath, const(PWSTR) serverFilePath, MERGE_UPDATE_STATUS* updateStatus);
     ///Displays a UI to resolve conflicts between the local copy and server copy of a file.
     ///Params:
     ///    localFilePath = Type: <b>LPCWSTR</b> The path of the file with the merge conflict.
@@ -20342,7 +20530,7 @@ interface IFileSyncMergeHandler : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT ShowResolveConflictUIAsync(const(wchar)* localFilePath, ptrdiff_t monitorToDisplayOn);
+    HRESULT ShowResolveConflictUIAsync(const(PWSTR) localFilePath, HMONITOR monitorToDisplayOn);
 }
 
 ///Exposes methods that get and set enumeration modes of a parsed item.
@@ -20432,8 +20620,8 @@ interface IShellFolder : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT ParseDisplayName(HWND hwnd, IBindCtx pbc, const(wchar)* pszDisplayName, uint* pchEaten, 
-                             ITEMIDLIST** ppidl, uint* pdwAttributes);
+    HRESULT ParseDisplayName(HWND hwnd, IBindCtx pbc, PWSTR pszDisplayName, uint* pchEaten, ITEMIDLIST** ppidl, 
+                             uint* pdwAttributes);
     ///Enables a client to determine the contents of a folder by creating an item identifier enumeration object and
     ///returning its IEnumIDList interface. The methods supported by that interface can then be used to enumerate the
     ///folder's contents.
@@ -20552,7 +20740,7 @@ interface IShellFolder : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetAttributesOf(uint cidl, char* apidl, uint* rgfInOut);
+    HRESULT GetAttributesOf(uint cidl, ITEMIDLIST** apidl, uint* rgfInOut);
     ///Gets an object that can be used to carry out actions on the specified file objects or folders.
     ///Params:
     ///    hwndOwner = Type: <b>HWND</b> A handle to the owner window that the client should specify if it displays a dialog box or
@@ -20572,7 +20760,8 @@ interface IShellFolder : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetUIObjectOf(HWND hwndOwner, uint cidl, char* apidl, const(GUID)* riid, uint* rgfReserved, void** ppv);
+    HRESULT GetUIObjectOf(HWND hwndOwner, uint cidl, ITEMIDLIST** apidl, const(GUID)* riid, uint* rgfReserved, 
+                          void** ppv);
     ///Retrieves the display name for the specified file object or subfolder.
     ///Params:
     ///    pidl = Type: <b>PCUITEMID_CHILD</b> PIDL that uniquely identifies the file object or subfolder relative to the
@@ -20606,7 +20795,7 @@ interface IShellFolder : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetNameOf(HWND hwnd, ITEMIDLIST* pidl, const(wchar)* pszName, uint uFlags, ITEMIDLIST** ppidlOut);
+    HRESULT SetNameOf(HWND hwnd, ITEMIDLIST* pidl, const(PWSTR) pszName, uint uFlags, ITEMIDLIST** ppidlOut);
 }
 
 ///A standard OLE enumerator used by a client to determine the available search objects for a folder.
@@ -20621,7 +20810,7 @@ interface IEnumExtraSearch : IUnknown
     ///    rgelt = Type: <b>EXTRASEARCH*</b> A pointer to an array of <i>pceltFetched</i> EXTRASEARCH structures containing
     ///            information on the enumerated objects.
     ///    pceltFetched = Type: <b>ULONG*</b> The number of objects actually enumerated. This may be less than <i>celt</i>.
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, EXTRASEARCH* rgelt, uint* pceltFetched);
     ///Skip a specified number of objects.
     ///Params:
     ///    celt = Type: <b>ULONG</b> The number of objects to skip.
@@ -20962,7 +21151,7 @@ interface IFolderView : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SelectAndPositionItems(uint cidl, char* apidl, char* apt, uint dwFlags);
+    HRESULT SelectAndPositionItems(uint cidl, ITEMIDLIST** apidl, POINT* apt, uint dwFlags);
 }
 
 ///Exposes methods that retrieve information about a folder's display options, select specified items in that folder,
@@ -20979,7 +21168,7 @@ interface IFolderView2 : IFolderView
     ///Params:
     ///    pkey = Type: <b>PROPERTYKEY*</b> A pointer to the PROPERTYKEY by which the view is grouped.
     ///    pfAscending = Type: <b>BOOL*</b> A pointer to a value of type <b>BOOL</b> that indicates sort order of the groups.
-    HRESULT GetGroupBy(PROPERTYKEY* pkey, int* pfAscending);
+    HRESULT GetGroupBy(PROPERTYKEY* pkey, BOOL* pfAscending);
     ///<p class="CCE_Message">[This method is still implemented, but should be considered deprecated as of Windows 7. It
     ///might not be implemented in future versions of Windows. It cannot be used with items in search results or library
     ///views, so consider using the item's existing properties or, if applicable, emitting properties from your
@@ -21021,7 +21210,7 @@ interface IFolderView2 : IFolderView
     ///Returns:
     ///    Type: <b>DEPRECATED_HRESULT</b> Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT SetTileViewProperties(ITEMIDLIST* pidl, const(wchar)* pszPropList);
+    HRESULT SetTileViewProperties(ITEMIDLIST* pidl, const(PWSTR) pszPropList);
     ///<p class="CCE_Message">[This method is still implemented, but should be considered deprecated as of Windows 7. It
     ///might not be implemented in future versions of Windows. It cannot be used with items in search results or library
     ///views, so consider using the item's existing properties or, if applicable, emitting properties from your
@@ -21033,12 +21222,12 @@ interface IFolderView2 : IFolderView
     ///Returns:
     ///    Type: <b>DEPRECATED_HRESULT</b> Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT SetExtendedTileViewProperties(ITEMIDLIST* pidl, const(wchar)* pszPropList);
+    HRESULT SetExtendedTileViewProperties(ITEMIDLIST* pidl, const(PWSTR) pszPropList);
     ///Sets the default text to be used when there are no items in the view.
     ///Params:
     ///    iType = Type: <b>FVTEXTTYPE</b> This value should be set to the following flag.
     ///    pwszText = Type: <b>LPCWSTR</b> A pointer to a Unicode string that contains the text to be used.
-    HRESULT SetText(FVTEXTTYPE iType, const(wchar)* pwszText);
+    HRESULT SetText(FVTEXTTYPE iType, const(PWSTR) pwszText);
     ///Sets and applies specified folder flags.
     ///Params:
     ///    dwMask = Type: <b>DWORD</b> The value of type <b>DWORD</b> that specifies the bitmask indicating which items in the
@@ -21068,13 +21257,13 @@ interface IFolderView2 : IFolderView
     ///    rgSortColumns = Type: <b>const SORTCOLUMN*</b> A pointer to a SORTCOLUMN structure. The size of this structure is determined
     ///                    by <i>cColumns</i>.
     ///    cColumns = Type: <b>int</b> The count of columns to sort by.
-    HRESULT SetSortColumns(char* rgSortColumns, int cColumns);
+    HRESULT SetSortColumns(const(SORTCOLUMN)* rgSortColumns, int cColumns);
     ///Gets the sort columns currently applied to the view.
     ///Params:
     ///    rgSortColumns = Type: <b>const SORTCOLUMN*</b> A pointer to a SORTCOLUMN structure. The size of this structure is determined
     ///                    by <i>cColumns</i>.
     ///    cColumns = Type: <b>int</b> The count of columns to sort by.
-    HRESULT GetSortColumns(char* rgSortColumns, int cColumns);
+    HRESULT GetSortColumns(SORTCOLUMN* rgSortColumns, int cColumns);
     ///Retrieves an object that represents a specified item.
     ///Params:
     ///    iItem = Type: <b>int</b> The zero-based index of the item to retrieve.
@@ -21122,7 +21311,7 @@ interface IFolderView2 : IFolderView
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT InvokeVerbOnSelection(const(char)* pszVerb);
+    HRESULT InvokeVerbOnSelection(const(PSTR) pszVerb);
     ///Sets and applies the view mode and image size.
     ///Params:
     ///    uViewMode = Type: <b>FOLDERVIEWMODE</b> The FOLDERVIEWMODE to be applied.
@@ -21181,7 +21370,7 @@ interface IFolderViewSettings : IUnknown
     ///    pkey = Type: <b>PROPERTYKEY*</b> A pointer to a PROPERTYKEY structure indicating the key by which content is
     ///           grouped.
     ///    pfGroupAscending = Type: <b>BOOL*</b> A pointer to a value indicating whether grouping order is ascending.
-    HRESULT GetGroupByProperty(PROPERTYKEY* pkey, int* pfGroupAscending);
+    HRESULT GetGroupByProperty(PROPERTYKEY* pkey, BOOL* pfGroupAscending);
     ///Gets a folder's logical view mode.
     ///Params:
     ///    plvm = Type: <b>FOLDERLOGICALVIEWMODE*</b> A pointer to a FOLDERLOGICALVIEWMODE value.
@@ -21200,7 +21389,7 @@ interface IFolderViewSettings : IUnknown
     ///    rgSortColumns = Type: <b>SORTCOLUMN*</b> A pointer to an array of SORTCOLUMN structures.
     ///    cColumnsIn = Type: <b>UINT</b> The source column count.
     ///    pcColumnsOut = Type: <b>UINT*</b> A pointer to the <i>rgSortColumns</i> array length.
-    HRESULT GetSortColumns(char* rgSortColumns, uint cColumnsIn, uint* pcColumnsOut);
+    HRESULT GetSortColumns(SORTCOLUMN* rgSortColumns, uint cColumnsIn, uint* pcColumnsOut);
     ///Gets group count for visible rows.
     ///Params:
     ///    pcVisibleRows = Type: <b>UINT*</b> A pointer to group count.
@@ -21228,8 +21417,8 @@ interface IInitializeNetworkFolder : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT Initialize(ITEMIDLIST* pidl, ITEMIDLIST* pidlTarget, uint uDisplayType, const(wchar)* pszResName, 
-                       const(wchar)* pszProvider);
+    HRESULT Initialize(ITEMIDLIST* pidl, ITEMIDLIST* pidlTarget, uint uDisplayType, const(PWSTR) pszResName, 
+                       const(PWSTR) pszProvider);
 }
 
 @GUID("CEB38218-C971-47BB-A703-F0BC99CCDB81")
@@ -21237,7 +21426,7 @@ interface INetworkFolderInternal : IUnknown
 {
     HRESULT GetResourceDisplayType(uint* displayType);
     HRESULT GetIDList(ITEMIDLIST** idList);
-    HRESULT GetProvider(uint itemIdCount, char* itemIds, uint providerMaxLength, const(wchar)* provider);
+    HRESULT GetProvider(uint itemIdCount, ITEMIDLIST** itemIds, uint providerMaxLength, PWSTR provider);
 }
 
 ///Exposes methods for applying color and font information to preview handlers.
@@ -21333,7 +21522,7 @@ interface ICommDlgBrowser2 : ICommDlgBrowser
     ///              menu text.
     ///    cchMax = Type: <b>int</b> The size of the <i>pszText</i> buffer, in characters. It should be at least the maximum
     ///             allowable path length (MAX_PATH) in size.
-    HRESULT GetDefaultMenuText(IShellView ppshv, const(wchar)* pszText, int cchMax);
+    HRESULT GetDefaultMenuText(IShellView ppshv, PWSTR pszText, int cchMax);
     ///Called when the view must determine if special customization needs to be made for the common dialog browser.
     ///Params:
     ///    pdwFlags = Type: <b>DWORD*</b> A pointer to a <b>DWORD</b> value that controls the behavior of the view when in common
@@ -21378,7 +21567,7 @@ interface IColumnManager : IUnknown
     ///    rgkeyOrder = Type: <b>PROPERTYKEY*</b> On success, contains a pointer to an array of PROPERTYKEY structures that represent
     ///                 the columns.
     ///    cColumns = Type: <b>UINT</b> The length of the <i>rgkeyOrder</i> array.
-    HRESULT GetColumns(CM_ENUM_FLAGS dwFlags, char* rgkeyOrder, uint cColumns);
+    HRESULT GetColumns(CM_ENUM_FLAGS dwFlags, PROPERTYKEY* rgkeyOrder, uint cColumns);
     ///Sets the collection of columns for the view to display.
     ///Params:
     ///    rgkeyOrder = Type: <b>const PROPERTYKEY*</b> A pointer to an array of PROPERTYKEY structures that specify the columns to
@@ -21390,7 +21579,7 @@ interface IColumnManager : IUnknown
     ///    Collection set. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>failure</b></dt> </dl> </td> <td width="60%">
     ///    Collection not set. </td> </tr> </table>
     ///    
-    HRESULT SetColumns(char* rgkeyOrder, uint cVisible);
+    HRESULT SetColumns(const(PROPERTYKEY)* rgkeyOrder, uint cVisible);
 }
 
 ///Exported by a host to allow clients to specify how to filter a Shell folder enumeration.
@@ -21549,7 +21738,7 @@ interface IShellBrowser : IOleWindow
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetStatusTextSB(const(wchar)* pszStatusText);
+    HRESULT SetStatusTextSB(const(PWSTR) pszStatusText);
     ///Tells Windows Explorer to enable or disable its modeless dialog boxes.
     ///Params:
     ///    fEnable = Type: <b>BOOL</b> Specifies whether the modeless dialog boxes are to be enabled or disabled. If this
@@ -21633,7 +21822,7 @@ interface IShellBrowser : IOleWindow
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns S_OK if successful, or a COM-defined error value otherwise.
     ///    
-    HRESULT SetToolbarItems(char* lpButtons, uint nButtons, uint uFlags);
+    HRESULT SetToolbarItems(TBBUTTON* lpButtons, uint nButtons, uint uFlags);
 }
 
 ///Exposes a general mechanism for objects to offer services to other objects on the same host.
@@ -21705,7 +21894,7 @@ interface IShellItem : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetDisplayName(SIGDN sigdnName, ushort** ppszName);
+    HRESULT GetDisplayName(SIGDN sigdnName, PWSTR* ppszName);
     ///Gets a requested set of attributes of the IShellItem object.
     ///Params:
     ///    sfgaoMask = Type: <b>SFGAOF</b> Specifies the attributes to retrieve. One or more of the SFGAO values. Use a bitwise OR
@@ -21785,8 +21974,8 @@ interface IShellItem2 : IShellItem
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetPropertyStoreForKeys(char* rgKeys, uint cKeys, GETPROPERTYSTOREFLAGS flags, const(GUID)* riid, 
-                                    void** ppv);
+    HRESULT GetPropertyStoreForKeys(const(PROPERTYKEY)* rgKeys, uint cKeys, GETPROPERTYSTOREFLAGS flags, 
+                                    const(GUID)* riid, void** ppv);
     ///Gets a property description list object given a reference to a property key.
     ///Params:
     ///    keyType = Type: <b>REFPROPERTYKEY</b> A reference to a PROPERTYKEY structure.
@@ -21821,7 +22010,7 @@ interface IShellItem2 : IShellItem
     ///Params:
     ///    key = Type: <b>REFPROPERTYKEY</b> A reference to a PROPERTYKEY structure.
     ///    ppsz = Type: <b>LPWSTR*</b> A pointer to a Unicode string value.
-    HRESULT GetString(const(PROPERTYKEY)* key, ushort** ppsz);
+    HRESULT GetString(const(PROPERTYKEY)* key, PWSTR* ppsz);
     ///Gets the UInt32 value of a specified property key.
     ///Params:
     ///    key = Type: <b>REFPROPERTYKEY</b> A reference to a PROPERTYKEY structure.
@@ -21836,7 +22025,7 @@ interface IShellItem2 : IShellItem
     ///Params:
     ///    key = Type: <b>REFPROPERTYKEY</b> A reference to a PROPERTYKEY structure.
     ///    pf = Type: <b>BOOL*</b> A pointer to a boolean value.
-    HRESULT GetBool(const(PROPERTYKEY)* key, int* pf);
+    HRESULT GetBool(const(PROPERTYKEY)* key, BOOL* pf);
 }
 
 ///Exposes a method to return either icons or thumbnails for Shell items. If no thumbnail or icon is available for the
@@ -21884,7 +22073,7 @@ interface IEnumShellItems : IUnknown
     ///    <td width="40%"> </td> <td width="60%"> Returns an error value if the function fails for any other reason.
     ///    </td> </tr> </table>
     ///    
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, IShellItem* rgelt, uint* pceltFetched);
     ///Skips a given number of IShellItem interfaces in the enumeration. Used when retrieving interfaces.
     ///Params:
     ///    celt = Type: <b>ULONG</b> The number of IShellItem interfaces to skip.
@@ -21943,7 +22132,7 @@ interface ITransferAdviseSink : IUnknown
     ///    psiDestParent = Type: <b>IShellItem*</b> A pointer to the destination parent folder IShellItem.
     ///    pszName = Type: <b>LPCWSTR</b> A pointer to a wide-string containing the desired name of the item at the destination.
     ///              If <b>NULL</b>, the name is the same as the Shell item pointed to by <i>psiSource</i>.
-    HRESULT ConfirmOverwrite(IShellItem psiSource, IShellItem psiDestParent, const(wchar)* pszName);
+    HRESULT ConfirmOverwrite(IShellItem psiSource, IShellItem psiDestParent, const(PWSTR) pszName);
     ///Displays a message to the user confirming that loss of encryption is acceptable for this operation.
     ///Params:
     ///    psiSource = Type: <b>IShellItem*</b> A pointer to an IShellItem of the file in which encryption information will be lost.
@@ -21958,14 +22147,13 @@ interface ITransferAdviseSink : IUnknown
     ///                contains a new name for the file. The name cannot exceed length <i>cchRename</i>. If this parameter is
     ///                <b>NULL</b>, no option to rename will be available.
     ///    cchRename = Type: <b>ULONG</b> The size of the <i>pszRename</i>buffer, in characters.
-    HRESULT FileFailure(IShellItem psi, const(wchar)* pszItem, HRESULT hrError, const(wchar)* pszRename, 
-                        uint cchRename);
+    HRESULT FileFailure(IShellItem psi, const(PWSTR) pszItem, HRESULT hrError, PWSTR pszRename, uint cchRename);
     ///Called when there is a failure that involves secondary streams and user interaction is needed.
     ///Params:
     ///    psi = Type: <b>IShellItem*</b> A pointer to the IShellItem that caused the failure.
     ///    pszStreamName = Type: <b>LPCWSTR</b> The name of the data that will be lost in the operation.
     ///    hrError = Type: <b>HRESULT</b> The error code that was generated. It must be handled by the copy engine.
-    HRESULT SubStreamFailure(IShellItem psi, const(wchar)* pszStreamName, HRESULT hrError);
+    HRESULT SubStreamFailure(IShellItem psi, const(PWSTR) pszStreamName, HRESULT hrError);
     ///Called when there is a failure that involves file properties and user interaction is needed.
     ///Params:
     ///    psi = Type: <b>IShellItem*</b> A pointer to the IShellItem that caused the failure.
@@ -22028,7 +22216,7 @@ interface ITransferSource : IUnknown
     ///            TRANSFER_SOURCE_FLAGS constants.
     ///    ppsiNew = Type: <b>IShellItem**</b> When this method returns successfully, contains an address of a pointer to the
     ///              IShellItem in its new location.
-    HRESULT MoveItem(IShellItem psi, IShellItem psiParentDst, const(wchar)* pszNameDst, uint flags, 
+    HRESULT MoveItem(IShellItem psi, IShellItem psiParentDst, const(PWSTR) pszNameDst, uint flags, 
                      IShellItem* ppsiNew);
     ///Recycle the item into the provided recycle location and return the item in its new location.
     ///Params:
@@ -22053,7 +22241,7 @@ interface ITransferSource : IUnknown
     ///            TRANSFER_SOURCE_FLAGS constants.
     ///    ppsiNewDest = Type: <b>IShellItem**</b> When this method returns, contains the address of a pointer to the IShellItem
     ///                  object.
-    HRESULT RenameItem(IShellItem psiSource, const(wchar)* pszNewName, uint flags, IShellItem* ppsiNewDest);
+    HRESULT RenameItem(IShellItem psiSource, const(PWSTR) pszNewName, uint flags, IShellItem* ppsiNewDest);
     ///Not implemented.
     ///Params:
     ///    psiSource = Type: <b>IShellItem*</b> A pointer to an IShellItem that represents the source item.
@@ -22063,7 +22251,7 @@ interface ITransferSource : IUnknown
     ///            TRANSFER_SOURCE_FLAGS constants.
     ///    ppsiNewDest = Type: <b>IShellItem**</b> When the method returns, contains the address of a pointer to the IShellItem of the
     ///                  link.
-    HRESULT LinkItem(IShellItem psiSource, IShellItem psiParentDest, const(wchar)* pszNewName, uint flags, 
+    HRESULT LinkItem(IShellItem psiSource, IShellItem psiParentDest, const(PWSTR) pszNewName, uint flags, 
                      IShellItem* ppsiNewDest);
     ///Apply a set of property changes to an item.
     ///Params:
@@ -22082,7 +22270,7 @@ interface ITransferSource : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetDefaultDestinationName(IShellItem psiSource, IShellItem psiParentDest, ushort** ppszDestinationName);
+    HRESULT GetDefaultDestinationName(IShellItem psiSource, IShellItem psiParentDest, PWSTR* ppszDestinationName);
     ///Notifies that a folder is the destination of a file operation.
     ///Params:
     ///    psiChildFolderDest = Type: <b>IShellItem*</b> A pointer to the IShellItem destination folder.
@@ -22112,7 +22300,7 @@ interface IEnumResources : IUnknown
     ///    celt = Type: <b>ULONG</b> The number of resources requested. Currently, must be 1.
     ///    psir = Type: <b>SHELL_ITEM_RESOURCE*</b> Receives a pointer to a SHELL_ITEM_RESOURCE structure.
     ///    pceltFetched = Type: <b>ULONG*</b> A pointer to the number of resources retrieved. Currently, not used.
-    HRESULT Next(uint celt, char* psir, uint* pceltFetched);
+    HRESULT Next(uint celt, SHELL_ITEM_RESOURCE* psir, uint* pceltFetched);
     ///Skips a specified number of resources.
     ///Params:
     ///    celt = Type: <b>ULONG</b> The number of resources to skip.
@@ -22153,7 +22341,7 @@ interface IShellItemResources : IUnknown
     ///Params:
     ///    pcsir = Type: <b>const SHELL_ITEM_RESOURCE*</b> A pointer to a SHELL_ITEM_RESOURCE resource.
     ///    ppszDescription = Type: <b>LPWSTR*</b> A pointer to a resource description as a Unicode string.
-    HRESULT GetResourceDescription(const(SHELL_ITEM_RESOURCE)* pcsir, ushort** ppszDescription);
+    HRESULT GetResourceDescription(const(SHELL_ITEM_RESOURCE)* pcsir, PWSTR* ppszDescription);
     ///Gets a resource enumerator object.
     ///Params:
     ///    ppenumr = Type: <b>IEnumResources**</b> The address of an IEnumResources interface pointer.
@@ -22235,7 +22423,7 @@ interface ITransferDestination : IUnknown
     ///    caller is implementing a move as a copy and delete operation, the caller should complete the move by deleting
     ///    the source item.</li> </ul>
     ///    
-    HRESULT CreateItem(const(wchar)* pszName, uint dwAttributes, ulong ullSize, uint flags, const(GUID)* riidItem, 
+    HRESULT CreateItem(const(PWSTR) pszName, uint dwAttributes, ulong ullSize, uint flags, const(GUID)* riidItem, 
                        void** ppvItem, const(GUID)* riidResources, void** ppvResources);
 }
 
@@ -22263,7 +22451,7 @@ interface IFileOperationProgressSink : IUnknown
     ///              for flag descriptions.
     ///    psiItem = Type: <b>IShellItem*</b> Pointer to an IShellItem that specifies the item to be renamed.
     ///    pszNewName = Type: <b>LPCWSTR</b> Pointer to the new display name of the item. This is a null-terminated, Unicode string.
-    HRESULT PreRenameItem(uint dwFlags, IShellItem psiItem, const(wchar)* pszNewName);
+    HRESULT PreRenameItem(uint dwFlags, IShellItem psiItem, const(PWSTR) pszNewName);
     ///Performs caller-implemented actions after the rename process for each item is complete.
     ///Params:
     ///    dwFlags = Type: <b>DWORD</b> bitwise value that contains flags that were used during the rename operation. Some values
@@ -22275,7 +22463,7 @@ interface IFileOperationProgressSink : IUnknown
     ///               RenameItem, which simply queues the rename operation. Instead, this is the result of the actual rename
     ///               operation.
     ///    psiNewlyCreated = Type: <b>IShellItem*</b> Pointer to an IShellItem that represents the item with its new name.
-    HRESULT PostRenameItem(uint dwFlags, IShellItem psiItem, const(wchar)* pszNewName, HRESULT hrRename, 
+    HRESULT PostRenameItem(uint dwFlags, IShellItem psiItem, const(PWSTR) pszNewName, HRESULT hrRename, 
                            IShellItem psiNewlyCreated);
     ///Performs caller-implemented actions before the move process for each item begins.
     ///Params:
@@ -22287,8 +22475,7 @@ interface IFileOperationProgressSink : IUnknown
     ///    pszNewName = Type: <b>LPCWSTR</b> Pointer to a new name for the item in its new location. This is a null-terminated
     ///                 Unicode string and can be <b>NULL</b>. If <b>NULL</b>, the name of the destination item is the same as the
     ///                 source.
-    HRESULT PreMoveItem(uint dwFlags, IShellItem psiItem, IShellItem psiDestinationFolder, 
-                        const(wchar)* pszNewName);
+    HRESULT PreMoveItem(uint dwFlags, IShellItem psiItem, IShellItem psiDestinationFolder, const(PWSTR) pszNewName);
     ///Performs caller-implemented actions after the move process for each item is complete.
     ///Params:
     ///    dwFlags = Type: <b>DWORD</b> bitwise value that contains flags that were used during the move operation. Some values
@@ -22303,7 +22490,7 @@ interface IFileOperationProgressSink : IUnknown
     ///             MoveItem, which simply queues the move operation. Instead, this is the result of the actual move.
     ///    psiNewlyCreated = Type: <b>IShellItem*</b> Pointer to an IShellItem that represents the moved item in its new location.
     HRESULT PostMoveItem(uint dwFlags, IShellItem psiItem, IShellItem psiDestinationFolder, 
-                         const(wchar)* pszNewName, HRESULT hrMove, IShellItem psiNewlyCreated);
+                         const(PWSTR) pszNewName, HRESULT hrMove, IShellItem psiNewlyCreated);
     ///Performs caller-implemented actions before the copy process for each item begins.
     ///Params:
     ///    dwFlags = Type: <b>DWORD</b> bitwise value that contains flags that control the operation. See TRANSFER_SOURCE_FLAGS
@@ -22314,8 +22501,7 @@ interface IFileOperationProgressSink : IUnknown
     ///    pszNewName = Type: <b>LPCWSTR</b> Pointer to a new name for the item after it has been copied. This is a null-terminated
     ///                 Unicode string and can be <b>NULL</b>. If <b>NULL</b>, the name of the destination item is the same as the
     ///                 source.
-    HRESULT PreCopyItem(uint dwFlags, IShellItem psiItem, IShellItem psiDestinationFolder, 
-                        const(wchar)* pszNewName);
+    HRESULT PreCopyItem(uint dwFlags, IShellItem psiItem, IShellItem psiDestinationFolder, const(PWSTR) pszNewName);
     ///Performs caller-implemented actions after the copy process for each item is complete.
     ///Params:
     ///    dwFlags = Type: <b>DWORD</b> bitwise value that contains flags that were used during the copy operation. Some values
@@ -22334,7 +22520,7 @@ interface IFileOperationProgressSink : IUnknown
     ///    all subsequent operations pending from the call to IFileOperation are canceled.
     ///    
     HRESULT PostCopyItem(uint dwFlags, IShellItem psiItem, IShellItem psiDestinationFolder, 
-                         const(wchar)* pszNewName, HRESULT hrCopy, IShellItem psiNewlyCreated);
+                         const(PWSTR) pszNewName, HRESULT hrCopy, IShellItem psiNewlyCreated);
     ///Performs caller-implemented actions before the delete process for each item begins.
     ///Params:
     ///    dwFlags = Type: <b>DWORD</b> bitwise value that contains flags that control the operation. See TRANSFER_SOURCE_FLAGS
@@ -22359,7 +22545,7 @@ interface IFileOperationProgressSink : IUnknown
     ///                           new item.
     ///    pszNewName = Type: <b>LPCWSTR</b> Pointer to the file name of the new item, for instance <b>Newfile.txt</b>. This is a
     ///                 null-terminated, Unicode string.
-    HRESULT PreNewItem(uint dwFlags, IShellItem psiDestinationFolder, const(wchar)* pszNewName);
+    HRESULT PreNewItem(uint dwFlags, IShellItem psiDestinationFolder, const(PWSTR) pszNewName);
     ///Performs caller-implemented actions after the new item is created.
     ///Params:
     ///    dwFlags = Type: <b>DWORD</b> bitwise value that contains flags that were used during the creation operation. Some
@@ -22380,8 +22566,8 @@ interface IFileOperationProgressSink : IUnknown
     ///    hrNew = Type: <b>HRESULT</b> The return value of the creation operation. Note that this is not the HRESULT returned
     ///            by NewItem, which simply queues the creation operation. Instead, this is the result of the actual creation.
     ///    psiNewItem = Type: <b>IShellItem*</b> Pointer to an IShellItem that represents the new item.
-    HRESULT PostNewItem(uint dwFlags, IShellItem psiDestinationFolder, const(wchar)* pszNewName, 
-                        const(wchar)* pszTemplateName, uint dwFileAttributes, HRESULT hrNew, IShellItem psiNewItem);
+    HRESULT PostNewItem(uint dwFlags, IShellItem psiDestinationFolder, const(PWSTR) pszNewName, 
+                        const(PWSTR) pszTemplateName, uint dwFileAttributes, HRESULT hrNew, IShellItem psiNewItem);
     ///Provides an estimate of the total amount of work currently done in relation to the total amount of work.
     ///Params:
     ///    iWorkTotal = Type: <b>UINT</b> An estimate of the amount of work to be completed.
@@ -22597,7 +22783,7 @@ interface ICategoryProvider : IUnknown
     ///    pszName = Type: <b>LPWSTR</b> When this method returns, contains a pointer to a string that receives the name of the
     ///              category.
     ///    cch = Type: <b>UINT</b> An integer that receives the number of characters in the string.
-    HRESULT GetCategoryName(const(GUID)* pguid, const(wchar)* pszName, uint cch);
+    HRESULT GetCategoryName(const(GUID)* pguid, PWSTR pszName, uint cch);
     ///Creates a category object.
     ///Params:
     ///    pguid = Type: <b>const GUID*</b> A pointer to the <b>GUID</b> for the category object.
@@ -22621,7 +22807,7 @@ interface ICategorizer : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetDescription(const(wchar)* pszDesc, uint cch);
+    HRESULT GetDescription(PWSTR pszDesc, uint cch);
     ///Gets a list of categories associated with a list of identifiers.
     ///Params:
     ///    cidl = Type: <b>UINT</b> The number of items in an item identifier list array.
@@ -22633,7 +22819,7 @@ interface ICategorizer : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetCategory(uint cidl, char* apidl, char* rgCategoryIds);
+    HRESULT GetCategory(uint cidl, ITEMIDLIST** apidl, uint* rgCategoryIds);
     ///Gets information about a category, such as the default display and the text to display in the UI.
     ///Params:
     ///    dwCategoryId = Type: <b>DWORD</b> A <b>DWORD</b> that specifies a category identifier.
@@ -22749,7 +22935,7 @@ interface IShellLinkA : IUnknown
     ///          returned.
     ///    fFlags = Type: <b>DWORD</b> Flags that specify the type of path information to retrieve. This parameter can be a
     ///             combination of the following values.
-    HRESULT GetPath(const(char)* pszFile, int cch, WIN32_FIND_DATAA* pfd, uint fFlags);
+    HRESULT GetPath(PSTR pszFile, int cch, WIN32_FIND_DATAA* pfd, uint fFlags);
     ///Gets the list of item identifiers for the target of a Shell link object.
     ///Params:
     ///    ppidl = Type: <b>PIDLIST_ABSOLUTE*</b> When this method returns, contains the address of a PIDL.
@@ -22773,7 +22959,7 @@ interface IShellLinkA : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetDescription(const(char)* pszName, int cch);
+    HRESULT GetDescription(PSTR pszName, int cch);
     ///Sets the description for a Shell link object. The description can be any application-defined string.
     ///Params:
     ///    pszName = Type: <b>LPCTSTR</b> A pointer to a buffer containing the new description string.
@@ -22782,14 +22968,14 @@ interface IShellLinkA : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetDescription(const(char)* pszName);
+    HRESULT SetDescription(const(PSTR) pszName);
     ///Gets the name of the working directory for a Shell link object.
     ///Params:
     ///    pszDir = Type: <b>LPTSTR</b> The address of a buffer that receives the name of the working directory.
     ///    cch = Type: <b>int</b> The maximum number of characters to copy to the buffer pointed to by the <i>pszDir</i>
     ///          parameter. The name of the working directory is truncated if it is longer than the maximum specified by this
     ///          parameter.
-    HRESULT GetWorkingDirectory(const(char)* pszDir, int cch);
+    HRESULT GetWorkingDirectory(PSTR pszDir, int cch);
     ///Sets the name of the working directory for a Shell link object.
     ///Params:
     ///    pszDir = Type: <b>LPCTSTR</b> The address of a buffer that contains the name of the new working directory.
@@ -22798,7 +22984,7 @@ interface IShellLinkA : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetWorkingDirectory(const(char)* pszDir);
+    HRESULT SetWorkingDirectory(const(PSTR) pszDir);
     ///Gets the command-line arguments associated with a Shell link object.
     ///Params:
     ///    pszArgs = Type: <b>LPTSTR</b> A pointer to the buffer that, when this method returns successfully, receives the
@@ -22812,7 +22998,7 @@ interface IShellLinkA : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetArguments(const(char)* pszArgs, int cch);
+    HRESULT GetArguments(PSTR pszArgs, int cch);
     ///Sets the command-line arguments for a Shell link object.
     ///Params:
     ///    pszArgs = Type: <b>LPCTSTR</b> A pointer to a buffer that contains the new command-line arguments. In the case of a
@@ -22824,7 +23010,7 @@ interface IShellLinkA : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetArguments(const(char)* pszArgs);
+    HRESULT SetArguments(const(PSTR) pszArgs);
     ///Gets the keyboard shortcut (hot key) for a Shell link object.
     ///Params:
     ///    pwHotkey = Type: <b>WORD*</b> The address of the keyboard shortcut. The virtual key code is in the low-order byte, and
@@ -22866,12 +23052,12 @@ interface IShellLinkA : IUnknown
     ///    cch = Type: <b>int</b> The maximum number of characters to copy to the buffer pointed to by the <i>pszIconPath</i>
     ///          parameter.
     ///    piIcon = Type: <b>int*</b> The address of a value that receives the index of the icon.
-    HRESULT GetIconLocation(const(char)* pszIconPath, int cch, int* piIcon);
+    HRESULT GetIconLocation(PSTR pszIconPath, int cch, int* piIcon);
     ///Sets the location (path and index) of the icon for a Shell link object.
     ///Params:
     ///    pszIconPath = Type: <b>LPCTSTR</b> The address of a buffer to contain the path of the file containing the icon.
     ///    iIcon = Type: <b>int</b> The index of the icon.
-    HRESULT SetIconLocation(const(char)* pszIconPath, int iIcon);
+    HRESULT SetIconLocation(const(PSTR) pszIconPath, int iIcon);
     ///Sets the relative path to the Shell link object.
     ///Params:
     ///    pszPathRel = Type: <b>LPCTSTR</b> The address of a buffer that contains the fully-qualified path of the shortcut file,
@@ -22882,7 +23068,7 @@ interface IShellLinkA : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetRelativePath(const(char)* pszPathRel, uint dwReserved);
+    HRESULT SetRelativePath(const(PSTR) pszPathRel, uint dwReserved);
     ///Attempts to find the target of a Shell link, even if it has been moved or renamed.
     ///Params:
     ///    hwnd = Type: <b>HWND</b> A handle to the window that the Shell will use as the parent for a dialog box. The Shell
@@ -22897,7 +23083,7 @@ interface IShellLinkA : IUnknown
     ///Sets the path and file name for the target of a Shell link object.
     ///Params:
     ///    pszFile = Type: <b>LPCTSTR</b> The address of a buffer that contains the new path.
-    HRESULT SetPath(const(char)* pszFile);
+    HRESULT SetPath(const(PSTR) pszFile);
 }
 
 ///Exposes methods that create, modify, and resolve Shell links.
@@ -22916,7 +23102,7 @@ interface IShellLinkW : IUnknown
     ///          returned.
     ///    fFlags = Type: <b>DWORD</b> Flags that specify the type of path information to retrieve. This parameter can be a
     ///             combination of the following values.
-    HRESULT GetPath(const(wchar)* pszFile, int cch, WIN32_FIND_DATAW* pfd, uint fFlags);
+    HRESULT GetPath(PWSTR pszFile, int cch, WIN32_FIND_DATAW* pfd, uint fFlags);
     ///Gets the list of item identifiers for the target of a Shell link object.
     ///Params:
     ///    ppidl = Type: <b>PIDLIST_ABSOLUTE*</b> When this method returns, contains the address of a PIDL.
@@ -22940,7 +23126,7 @@ interface IShellLinkW : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetDescription(const(wchar)* pszName, int cch);
+    HRESULT GetDescription(PWSTR pszName, int cch);
     ///Sets the description for a Shell link object. The description can be any application-defined string.
     ///Params:
     ///    pszName = Type: <b>LPCTSTR</b> A pointer to a buffer containing the new description string.
@@ -22949,14 +23135,14 @@ interface IShellLinkW : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetDescription(const(wchar)* pszName);
+    HRESULT SetDescription(const(PWSTR) pszName);
     ///Gets the name of the working directory for a Shell link object.
     ///Params:
     ///    pszDir = Type: <b>LPTSTR</b> The address of a buffer that receives the name of the working directory.
     ///    cch = Type: <b>int</b> The maximum number of characters to copy to the buffer pointed to by the <i>pszDir</i>
     ///          parameter. The name of the working directory is truncated if it is longer than the maximum specified by this
     ///          parameter.
-    HRESULT GetWorkingDirectory(const(wchar)* pszDir, int cch);
+    HRESULT GetWorkingDirectory(PWSTR pszDir, int cch);
     ///Sets the name of the working directory for a Shell link object.
     ///Params:
     ///    pszDir = Type: <b>LPCTSTR</b> The address of a buffer that contains the name of the new working directory.
@@ -22965,7 +23151,7 @@ interface IShellLinkW : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetWorkingDirectory(const(wchar)* pszDir);
+    HRESULT SetWorkingDirectory(const(PWSTR) pszDir);
     ///Gets the command-line arguments associated with a Shell link object.
     ///Params:
     ///    pszArgs = Type: <b>LPTSTR</b> A pointer to the buffer that, when this method returns successfully, receives the
@@ -22979,7 +23165,7 @@ interface IShellLinkW : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetArguments(const(wchar)* pszArgs, int cch);
+    HRESULT GetArguments(PWSTR pszArgs, int cch);
     ///Sets the command-line arguments for a Shell link object.
     ///Params:
     ///    pszArgs = Type: <b>LPCTSTR</b> A pointer to a buffer that contains the new command-line arguments. In the case of a
@@ -22991,7 +23177,7 @@ interface IShellLinkW : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetArguments(const(wchar)* pszArgs);
+    HRESULT SetArguments(const(PWSTR) pszArgs);
     ///Gets the keyboard shortcut (hot key) for a Shell link object.
     ///Params:
     ///    pwHotkey = Type: <b>WORD*</b> The address of the keyboard shortcut. The virtual key code is in the low-order byte, and
@@ -23033,12 +23219,12 @@ interface IShellLinkW : IUnknown
     ///    cch = Type: <b>int</b> The maximum number of characters to copy to the buffer pointed to by the <i>pszIconPath</i>
     ///          parameter.
     ///    piIcon = Type: <b>int*</b> The address of a value that receives the index of the icon.
-    HRESULT GetIconLocation(const(wchar)* pszIconPath, int cch, int* piIcon);
+    HRESULT GetIconLocation(PWSTR pszIconPath, int cch, int* piIcon);
     ///Sets the location (path and index) of the icon for a Shell link object.
     ///Params:
     ///    pszIconPath = Type: <b>LPCTSTR</b> The address of a buffer to contain the path of the file containing the icon.
     ///    iIcon = Type: <b>int</b> The index of the icon.
-    HRESULT SetIconLocation(const(wchar)* pszIconPath, int iIcon);
+    HRESULT SetIconLocation(const(PWSTR) pszIconPath, int iIcon);
     ///Sets the relative path to the Shell link object.
     ///Params:
     ///    pszPathRel = Type: <b>LPCTSTR</b> The address of a buffer that contains the fully-qualified path of the shortcut file,
@@ -23049,7 +23235,7 @@ interface IShellLinkW : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetRelativePath(const(wchar)* pszPathRel, uint dwReserved);
+    HRESULT SetRelativePath(const(PWSTR) pszPathRel, uint dwReserved);
     ///Attempts to find the target of a Shell link, even if it has been moved or renamed.
     ///Params:
     ///    hwnd = Type: <b>HWND</b> A handle to the window that the Shell will use as the parent for a dialog box. The Shell
@@ -23064,7 +23250,7 @@ interface IShellLinkW : IUnknown
     ///Sets the path and file name for the target of a Shell link object.
     ///Params:
     ///    pszFile = Type: <b>LPCTSTR</b> The address of a buffer that contains the new path.
-    HRESULT SetPath(const(wchar)* pszFile);
+    HRESULT SetPath(const(PWSTR) pszFile);
 }
 
 ///Exposes methods that allow an application to attach extra data blocks to a Shell link. These methods add, copy, or
@@ -23150,7 +23336,7 @@ interface IActionProgressDialog : IUnknown
     ///    flags = Type: <b>SPINITF</b> One of the following values.
     ///    pszTitle = Type: <b>LPCWSTR</b> The title of the progress dialog.
     ///    pszCancel = Type: <b>LPCWSTR</b> The string displayed when a user closes the dialog before completion.
-    HRESULT Initialize(uint flags, const(wchar)* pszTitle, const(wchar)* pszCancel);
+    HRESULT Initialize(uint flags, const(PWSTR) pszTitle, const(PWSTR) pszCancel);
     ///Stops a progress dialog.
     HRESULT Stop();
 }
@@ -23185,14 +23371,14 @@ interface IActionProgress : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> Return S_OK if successful, or an error value otherwise.
     ///    
-    HRESULT UpdateText(SPTEXT sptext, const(wchar)* pszText, BOOL fMayCompact);
+    HRESULT UpdateText(SPTEXT sptext, const(PWSTR) pszText, BOOL fMayCompact);
     ///Provides information about whether the action is being canceled.
     ///Params:
     ///    pfCancelled = Type: <b>BOOL*</b> A reference to a <b>BOOL</b> value that specifies whether the action is being canceled.
     ///Returns:
     ///    Type: <b>HRESULT</b> Return S_OK if successful, or an error value otherwise.
     ///    
-    HRESULT QueryCancel(int* pfCancelled);
+    HRESULT QueryCancel(BOOL* pfCancelled);
     ///Resets progress dialog after a cancellation has been completed.
     ///Returns:
     ///    Type: <b>HRESULT</b> Return S_OK if successful, or an error value otherwise.
@@ -23274,7 +23460,7 @@ interface IRemoteComputer : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns S_OK if successful, or standard OLE error values otherwise.
     ///    
-    HRESULT Initialize(const(wchar)* pszMachine, BOOL bEnumerating);
+    HRESULT Initialize(const(PWSTR) pszMachine, BOOL bEnumerating);
 }
 
 ///Exposes a method that provides a simple, standard mechanism for objects to query a client for permission to continue
@@ -23322,7 +23508,7 @@ interface IUserNotification : IUnknown
     ///              balloon.
     ///    dwInfoFlags = Type: <b>DWORD</b> One or more of the following values that indicate an icon to display in the notification
     ///                  balloon.
-    HRESULT SetBalloonInfo(const(wchar)* pszTitle, const(wchar)* pszText, uint dwInfoFlags);
+    HRESULT SetBalloonInfo(const(PWSTR) pszTitle, const(PWSTR) pszText, uint dwInfoFlags);
     ///Specifies the conditions for trying to display user information when the first attempt fails.
     ///Params:
     ///    dwShowTime = Type: <b>DWORD</b> The amount of time, in milliseconds, to display the user information.
@@ -23334,7 +23520,7 @@ interface IUserNotification : IUnknown
     ///    hIcon = Type: <b>HICON</b> A handle to the icon.
     ///    pszToolTip = Type: <b>LPCWSTR</b> A pointer to a string that contains the tooltip text to display for the specified icon.
     ///                 This value can be <b>NULL</b>, although it is not recommended.
-    HRESULT SetIconInfo(HICON hIcon, const(wchar)* pszToolTip);
+    HRESULT SetIconInfo(HICON hIcon, const(PWSTR) pszToolTip);
     ///Displays the notification.
     ///Params:
     ///    pqc = Type: <b>IQueryContinue*</b> An IQueryContinue interface pointer, used to determine whether the notification
@@ -23347,7 +23533,7 @@ interface IUserNotification : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT Show(IQueryContinue pqc, uint dwContinuePollInterval);
-    HRESULT PlaySoundA(const(wchar)* pszSoundName);
+    HRESULT PlaySoundA(const(PWSTR) pszSoundName);
 }
 
 ///Retrieves a list of valid and invalid characters or the maximum length of a name in the namespace. Use this interface
@@ -23367,12 +23553,12 @@ interface IItemNameLimits : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetValidCharacters(ushort** ppwszValidChars, ushort** ppwszInvalidChars);
+    HRESULT GetValidCharacters(PWSTR* ppwszValidChars, PWSTR* ppwszInvalidChars);
     ///Returns the maximum number of characters allowed for a particular name in the namespace under which it is called.
     ///Params:
     ///    pszName = Type: <b>LPCWSTR</b> A pointer to a string containing a name.
     ///    piMaxNameLen = Type: <b>int*</b> A pointer to the maximum number of characters which can be used in the name.
-    HRESULT GetMaxLength(const(wchar)* pszName, int* piMaxNameLen);
+    HRESULT GetMaxLength(const(PWSTR) pszName, int* piMaxNameLen);
 }
 
 ///Exposes methods that create and modify search folders. The Set methods are called first to set up the parameters of
@@ -23387,7 +23573,7 @@ interface ISearchFolderItemFactory : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns a success value if successful, or an error value otherwise.
     ///    
-    HRESULT SetDisplayName(const(wchar)* pszDisplayName);
+    HRESULT SetDisplayName(const(PWSTR) pszDisplayName);
     ///Sets a search folder type ID, as specified.
     ///Params:
     ///    ftid = Type: <b>FOLDERTYPEID</b> The FOLDERTYPEID, which is a <b>GUID</b> used to identify folder types within the
@@ -23408,13 +23594,13 @@ interface ISearchFolderItemFactory : IUnknown
     ///Params:
     ///    cVisibleColumns = Type: <b>UINT</b> The number of array elements.
     ///    rgKey = Type: <b>const PROPERTYKEY*</b> A pointer to an array of PROPERTYKEY structures.
-    HRESULT SetVisibleColumns(uint cVisibleColumns, char* rgKey);
+    HRESULT SetVisibleColumns(uint cVisibleColumns, const(PROPERTYKEY)* rgKey);
     ///Creates a list of sort column directions, as specified.
     ///Params:
     ///    cSortColumns = Type: <b>UINT</b> The number of sort columns.
     ///    rgSortColumns = Type: <b>SORTCOLUMN*</b> A pointer to an array of SORTCOLUMN structures containing sort direction. The
     ///                    default is <b>PKEY_ItemNameDisplay</b>.
-    HRESULT SetSortColumns(uint cSortColumns, char* rgSortColumns);
+    HRESULT SetSortColumns(uint cSortColumns, SORTCOLUMN* rgSortColumns);
     ///Sets a group column, as specified. If no group column is specified, no grouping occurs.
     ///Params:
     ///    keyGroup = Type: <b>REFPROPERTYKEY</b> A reference to a group column PROPERTYKEY.
@@ -23424,7 +23610,7 @@ interface ISearchFolderItemFactory : IUnknown
     ///Params:
     ///    cStackKeys = Type: <b>UINT</b> The number of stacks keys.
     ///    rgStackKeys = Type: <b>PROPERTYKEY*</b> A pointer to an array of PROPERTYKEY structures containing stack key information.
-    HRESULT SetStacks(uint cStackKeys, char* rgStackKeys);
+    HRESULT SetStacks(uint cStackKeys, PROPERTYKEY* rgStackKeys);
     ///Sets search scope, as specified.
     ///Params:
     ///    psiaScope = Type: <b>IShellItemArray*</b> A pointer to the list of locations to search. The search will include this
@@ -23484,8 +23670,8 @@ interface IExtractImage : IUnknown
     ///    width="60%"> <b>Windows XP and earlier:</b> If the <b>IEIFLAG_ASYNC</b> flag is set, this return value is
     ///    used to indicate to the Shell that the object is free-threaded. </td> </tr> </table>
     ///    
-    HRESULT GetLocation(const(wchar)* pszPathBuffer, uint cch, uint* pdwPriority, const(SIZE)* prgSize, 
-                        uint dwRecClrDepth, uint* pdwFlags);
+    HRESULT GetLocation(PWSTR pszPathBuffer, uint cch, uint* pdwPriority, const(SIZE)* prgSize, uint dwRecClrDepth, 
+                        uint* pdwFlags);
     ///Requests an image from an object, such as an item in a Shell folder.
     ///Params:
     ///    phBmpThumbnail = Type: <b>HBITMAP*</b> The buffer to hold the bitmapped image.
@@ -23791,7 +23977,7 @@ interface ITaskbarList3 : ITaskbarList2
     ///    that belongs to the process or does not specify a window that is associated with a taskbar button. This value
     ///    is also returned if <i>pButton</i> is less than 1 or greater than 7. </td> </tr> </table>
     ///    
-    HRESULT ThumbBarAddButtons(HWND hwnd, uint cButtons, char* pButton);
+    HRESULT ThumbBarAddButtons(HWND hwnd, uint cButtons, THUMBBUTTON* pButton);
     ///Shows, enables, disables, or hides buttons in a thumbnail toolbar as required by the window's current state. A
     ///thumbnail toolbar is a toolbar embedded in a thumbnail image of a window in a taskbar button flyout.
     ///Params:
@@ -23807,7 +23993,7 @@ interface ITaskbarList3 : ITaskbarList2
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT ThumbBarUpdateButtons(HWND hwnd, uint cButtons, char* pButton);
+    HRESULT ThumbBarUpdateButtons(HWND hwnd, uint cButtons, THUMBBUTTON* pButton);
     ///Specifies an image list that contains button images for a toolbar embedded in a thumbnail image of a window in a
     ///taskbar button flyout.
     ///Params:
@@ -23843,7 +24029,7 @@ interface ITaskbarList3 : ITaskbarList2
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetOverlayIcon(HWND hwnd, HICON hIcon, const(wchar)* pszDescription);
+    HRESULT SetOverlayIcon(HWND hwnd, HICON hIcon, const(PWSTR) pszDescription);
     ///Specifies or updates the text of the tooltip that is displayed when the mouse pointer rests on an individual
     ///preview thumbnail in a taskbar button flyout.
     ///Params:
@@ -23856,7 +24042,7 @@ interface ITaskbarList3 : ITaskbarList2
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetThumbnailTooltip(HWND hwnd, const(wchar)* pszTip);
+    HRESULT SetThumbnailTooltip(HWND hwnd, const(PWSTR) pszTip);
     ///Selects a portion of a window's client area to display as that window's thumbnail in the taskbar.
     ///Params:
     ///    hwnd = Type: <b>HWND</b> The handle to a window represented in the taskbar.
@@ -23983,7 +24169,7 @@ interface IExplorerBrowser : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetPropertyBag(const(wchar)* pszPropertyBag);
+    HRESULT SetPropertyBag(const(PWSTR) pszPropertyBag);
     ///Sets the default empty text.
     ///Params:
     ///    pszEmptyText = Type: <b>LPCWSTR</b> A pointer to a constant, null-terminated, Unicode string that contains the empty text.
@@ -23992,7 +24178,7 @@ interface IExplorerBrowser : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetEmptyText(const(wchar)* pszEmptyText);
+    HRESULT SetEmptyText(const(PWSTR) pszEmptyText);
     ///Sets the folder settings for the current view.
     ///Params:
     ///    pfs = Type: <b>const FOLDERSETTINGS*</b> A pointer to a FOLDERSETTINGS structure that contains the folder settings
@@ -24105,7 +24291,7 @@ interface IEnumObjects : IUnknown
     ///    rgelt = Type: <b>void**</b> When this method returns, contains the interface pointer requested in <i>riid</i>.
     ///    pceltFetched = Type: <b>ULONG*</b> Pointer to a <b>ULONG</b> value that, when this method returns, states the actual number
     ///                   of objects retrieved. This value can be <b>NULL</b>.
-    HRESULT Next(uint celt, const(GUID)* riid, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, const(GUID)* riid, void** rgelt, uint* pceltFetched);
     ///Skips a specified number of objects.
     ///Params:
     ///    celt = Type: <b>ULONG</b> The number of objects to skip.
@@ -24259,7 +24445,7 @@ interface IFileOperation : IUnknown
     ///Not implemented.
     ///Params:
     ///    pszMessage = Type: <b>LPCWSTR</b> Pointer to the window title. This is a null-terminated, Unicode string.
-    HRESULT SetProgressMessage(const(wchar)* pszMessage);
+    HRESULT SetProgressMessage(const(PWSTR) pszMessage);
     ///Specifies a dialog box used to display the progress of the operation.
     ///Params:
     ///    popd = Type: <b>IOperationsProgressDialog*</b> Pointer to an IOperationsProgressDialog object that represents the
@@ -24312,7 +24498,7 @@ interface IFileOperation : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT RenameItem(IShellItem psiItem, const(wchar)* pszNewName, IFileOperationProgressSink pfopsItem);
+    HRESULT RenameItem(IShellItem psiItem, const(PWSTR) pszNewName, IFileOperationProgressSink pfopsItem);
     ///Declares a set of items that are to be given a new display name. All items are given the same name.
     ///Params:
     ///    pUnkItems = Type: <b>IUnknown*</b> Pointer to the IUnknown of the IShellItemArray, IDataObject, or IEnumShellItems object
@@ -24324,7 +24510,7 @@ interface IFileOperation : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT RenameItems(IUnknown pUnkItems, const(wchar)* pszNewName);
+    HRESULT RenameItems(IUnknown pUnkItems, const(PWSTR) pszNewName);
     ///Declares a single item that is to be moved to a specified destination.
     ///Params:
     ///    psiItem = Type: <b>IShellItem*</b> Pointer to an IShellItem that specifies the source item.
@@ -24342,7 +24528,7 @@ interface IFileOperation : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT MoveItem(IShellItem psiItem, IShellItem psiDestinationFolder, const(wchar)* pszNewName, 
+    HRESULT MoveItem(IShellItem psiItem, IShellItem psiDestinationFolder, const(PWSTR) pszNewName, 
                      IFileOperationProgressSink pfopsItem);
     ///Declares a set of items that are to be moved to a specified destination.
     ///Params:
@@ -24374,7 +24560,7 @@ interface IFileOperation : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CopyItem(IShellItem psiItem, IShellItem psiDestinationFolder, const(wchar)* pszCopyName, 
+    HRESULT CopyItem(IShellItem psiItem, IShellItem psiDestinationFolder, const(PWSTR) pszCopyName, 
                      IFileOperationProgressSink pfopsItem);
     ///Declares a set of items that are to be copied to a specified destination.
     ///Params:
@@ -24437,8 +24623,8 @@ interface IFileOperation : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT NewItem(IShellItem psiDestinationFolder, uint dwFileAttributes, const(wchar)* pszName, 
-                    const(wchar)* pszTemplateName, IFileOperationProgressSink pfopsItem);
+    HRESULT NewItem(IShellItem psiDestinationFolder, uint dwFileAttributes, const(PWSTR) pszName, 
+                    const(PWSTR) pszTemplateName, IFileOperationProgressSink pfopsItem);
     ///Executes all selected operations.
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns S_OK if successful, or an error value otherwise. Note that if the operation was
@@ -24457,7 +24643,7 @@ interface IFileOperation : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetAnyOperationsAborted(int* pfAnyOperationsAborted);
+    HRESULT GetAnyOperationsAborted(BOOL* pfAnyOperationsAborted);
 }
 
 @GUID("CD8F23C1-8F61-4916-909D-55BDD0918753")
@@ -24517,7 +24703,7 @@ interface INamespaceWalkCB : IUnknown
     ///                the title to be used for the dialog box.
     ///    ppszCancel = Type: <b>LPWSTR*</b> When this method returns, contains a pointer to a null-terminated string that contains
     ///                 the text displayed on the button that cancels the namespace walk.
-    HRESULT InitializeProgressDialog(ushort** ppszTitle, ushort** ppszCancel);
+    HRESULT InitializeProgressDialog(PWSTR* ppszTitle, PWSTR* ppszCancel);
 }
 
 ///Extends INamespaceWalkCB with a method that is required in order to complete a namespace walk. This method removes
@@ -24565,7 +24751,7 @@ interface INamespaceWalk : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetIDArrayResult(uint* pcItems, char* prgpidl);
+    HRESULT GetIDArrayResult(uint* pcItems, ITEMIDLIST*** prgpidl);
 }
 
 ///Exposes methods that control band objects.
@@ -24602,7 +24788,7 @@ interface IBandSite : IUnknown
     ///    pszName = Type: <b>LPWSTR</b> Pointer to a buffer of <i>cchName</i> Unicode characters that, when this method returns
     ///              successfully, receives the name of the band object.
     ///    cchName = Type: <b>int</b> The size of the <i>pszName</i> buffer, in characters.
-    HRESULT QueryBand(uint dwBandID, IDeskBand* ppstb, uint* pdwState, const(wchar)* pszName, int cchName);
+    HRESULT QueryBand(uint dwBandID, IDeskBand* ppstb, uint* pdwState, PWSTR pszName, int cchName);
     ///Set the state of a band in the band site.
     ///Params:
     ///    dwBandID = Type: <b>DWORD</b> The ID of the band to set. If this parameter is -1, then set the state of all bands in the
@@ -24724,7 +24910,7 @@ interface IRegTreeItem : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetCheckState(int* pbCheck);
+    HRESULT GetCheckState(BOOL* pbCheck);
     ///Sets the state of a check box item in a tree-view control.
     ///Params:
     ///    bCheck = Type: <b>BOOL</b> A <b>BOOL</b> that sets the state of the check box.
@@ -24800,7 +24986,7 @@ interface IFileIsInUse : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetAppName(ushort** ppszName);
+    HRESULT GetAppName(PWSTR* ppszName);
     ///Gets a value that indicates how the file in use is being used.
     ///Params:
     ///    pfut = Type: <b>FILE_USAGE_TYPE*</b> Pointer to a value that, when this method returns successfully, receives one of
@@ -24923,7 +25109,7 @@ interface IFileDialog : IModalWindow
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The <i>rgFilterSpec</i> parameter is
     ///    <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT SetFileTypes(uint cFileTypes, char* rgFilterSpec);
+    HRESULT SetFileTypes(uint cFileTypes, const(COMDLG_FILTERSPEC)* rgFilterSpec);
     ///Sets the file type that appears as selected in the dialog.
     ///Params:
     ///    iFileType = Type: <b>UINT</b> The index of the file type in the file type array passed to IFileDialog::SetFileTypes in
@@ -25009,7 +25195,7 @@ interface IFileDialog : IModalWindow
     ///Sets the file name that appears in the <b>File name</b> edit box when that dialog box is opened.
     ///Params:
     ///    pszName = Type: <b>LPCWSTR</b> A pointer to the name of the file.
-    HRESULT SetFileName(const(wchar)* pszName);
+    HRESULT SetFileName(const(PWSTR) pszName);
     ///Retrieves the text currently entered in the dialog's <b>File name</b> edit box.
     ///Params:
     ///    pszName = Type: <b>WCHAR**</b> The address of a pointer to a buffer that, when this method returns successfully,
@@ -25019,19 +25205,19 @@ interface IFileDialog : IModalWindow
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetFileName(ushort** pszName);
+    HRESULT GetFileName(PWSTR* pszName);
     ///Sets the title of the dialog.
     ///Params:
     ///    pszTitle = Type: <b>LPCWSTR</b> A pointer to a buffer that contains the title text.
-    HRESULT SetTitle(const(wchar)* pszTitle);
+    HRESULT SetTitle(const(PWSTR) pszTitle);
     ///Sets the text of the <b>Open</b> or <b>Save</b> button.
     ///Params:
     ///    pszText = Type: <b>LPCWSTR</b> A pointer to a buffer that contains the button text.
-    HRESULT SetOkButtonLabel(const(wchar)* pszText);
+    HRESULT SetOkButtonLabel(const(PWSTR) pszText);
     ///Sets the text of the label next to the file name edit box.
     ///Params:
     ///    pszLabel = Type: <b>LPCWSTR</b> A pointer to a buffer that contains the label text.
-    HRESULT SetFileNameLabel(const(wchar)* pszLabel);
+    HRESULT SetFileNameLabel(const(PWSTR) pszLabel);
     ///Gets the choice that the user made in the dialog.
     ///Params:
     ///    ppsi = Type: <b>IShellItem**</b> The address of a pointer to an IShellItem that represents the user's choice.
@@ -25061,7 +25247,7 @@ interface IFileDialog : IModalWindow
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetDefaultExtension(const(wchar)* pszDefaultExtension);
+    HRESULT SetDefaultExtension(const(PWSTR) pszDefaultExtension);
     ///Closes the dialog.
     ///Params:
     ///    hr = Type: <b>HRESULT</b> The code that will be returned by Show to indicate that the dialog was closed before a
@@ -25212,7 +25398,7 @@ interface IFileDialogCustomize : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT AddMenu(uint dwIDCtl, const(wchar)* pszLabel);
+    HRESULT AddMenu(uint dwIDCtl, const(PWSTR) pszLabel);
     ///Adds a button to the dialog.
     ///Params:
     ///    dwIDCtl = Type: <b>DWORD</b> The ID of the button to add.
@@ -25222,7 +25408,7 @@ interface IFileDialogCustomize : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT AddPushButton(uint dwIDCtl, const(wchar)* pszLabel);
+    HRESULT AddPushButton(uint dwIDCtl, const(PWSTR) pszLabel);
     ///Adds a combo box to the dialog.
     ///Params:
     ///    dwIDCtl = Type: <b>DWORD</b> The ID of the combo box to add.
@@ -25252,7 +25438,7 @@ interface IFileDialogCustomize : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT AddCheckButton(uint dwIDCtl, const(wchar)* pszLabel, BOOL bChecked);
+    HRESULT AddCheckButton(uint dwIDCtl, const(PWSTR) pszLabel, BOOL bChecked);
     ///Adds an edit box control to the dialog.
     ///Params:
     ///    dwIDCtl = Type: <b>DWORD</b> The ID of the edit box to add.
@@ -25263,7 +25449,7 @@ interface IFileDialogCustomize : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT AddEditBox(uint dwIDCtl, const(wchar)* pszText);
+    HRESULT AddEditBox(uint dwIDCtl, const(PWSTR) pszText);
     ///Adds a separator to the dialog, allowing a visual separation of controls.
     ///Params:
     ///    dwIDCtl = Type: <b>DWORD</b> The control ID of the separator.
@@ -25282,7 +25468,7 @@ interface IFileDialogCustomize : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT AddText(uint dwIDCtl, const(wchar)* pszText);
+    HRESULT AddText(uint dwIDCtl, const(PWSTR) pszText);
     ///Sets the text associated with a control, such as button text or an edit box label.
     ///Params:
     ///    dwIDCtl = Type: <b>DWORD</b> The ID of the control whose text is to be changed.
@@ -25292,7 +25478,7 @@ interface IFileDialogCustomize : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetControlLabel(uint dwIDCtl, const(wchar)* pszLabel);
+    HRESULT SetControlLabel(uint dwIDCtl, const(PWSTR) pszLabel);
     ///Gets the current visibility and enabled states of a given control.
     ///Params:
     ///    dwIDCtl = Type: <b>DWORD</b> The ID of the control in question.
@@ -25325,13 +25511,13 @@ interface IFileDialogCustomize : IUnknown
     ///Params:
     ///    dwIDCtl = Type: <b>DWORD</b> The ID of the edit box.
     ///    pszText = Type: <b>LPCWSTR</b> A pointer to a buffer that contains the text as a null-terminated Unicode string.
-    HRESULT SetEditBoxText(uint dwIDCtl, const(wchar)* pszText);
+    HRESULT SetEditBoxText(uint dwIDCtl, const(PWSTR) pszText);
     ///Gets the current state of a check button (check box) in the dialog.
     ///Params:
     ///    dwIDCtl = Type: <b>DWORD</b> The ID of the check box.
     ///    pbChecked = Type: <b>BOOL*</b> The address of a <b>BOOL</b> value that indicates whether the box is checked. <b>TRUE</b>
     ///                means checked; <b>FALSE</b>, unchecked.
-    HRESULT GetCheckButtonState(uint dwIDCtl, int* pbChecked);
+    HRESULT GetCheckButtonState(uint dwIDCtl, BOOL* pbChecked);
     ///Sets the state of a check button (check box) in the dialog.
     ///Params:
     ///    dwIDCtl = Type: <b>DWORD</b> The ID of the check box.
@@ -25349,7 +25535,7 @@ interface IFileDialogCustomize : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT AddControlItem(uint dwIDCtl, uint dwIDItem, const(wchar)* pszLabel);
+    HRESULT AddControlItem(uint dwIDCtl, uint dwIDItem, const(PWSTR) pszLabel);
     ///Removes an item from a container control in the dialog.
     ///Params:
     ///    dwIDCtl = Type: <b>DWORD</b> The ID of the container control from which the item is to be removed.
@@ -25413,7 +25599,7 @@ interface IFileDialogCustomize : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT StartVisualGroup(uint dwIDCtl, const(wchar)* pszLabel);
+    HRESULT StartVisualGroup(uint dwIDCtl, const(PWSTR) pszLabel);
     ///Stops the addition of elements to a visual group in the dialog.
     ///Returns:
     ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
@@ -25440,7 +25626,7 @@ interface IFileDialogCustomize : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetControlItemText(uint dwIDCtl, uint dwIDItem, const(wchar)* pszLabel);
+    HRESULT SetControlItemText(uint dwIDCtl, uint dwIDItem, const(PWSTR) pszLabel);
 }
 
 ///Exposes methods that query and set default applications for specific file Association Type, and protocols at a
@@ -25466,8 +25652,8 @@ interface IApplicationAssociationRegistration : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT QueryCurrentDefault(const(wchar)* pszQuery, ASSOCIATIONTYPE atQueryType, ASSOCIATIONLEVEL alQueryLevel, 
-                                ushort** ppszAssociation);
+    HRESULT QueryCurrentDefault(const(PWSTR) pszQuery, ASSOCIATIONTYPE atQueryType, ASSOCIATIONLEVEL alQueryLevel, 
+                                PWSTR* ppszAssociation);
     ///Determines whether an application owns the registered default association for a given application level and type.
     ///Not intended for use in Windows 8.
     ///Params:
@@ -25486,8 +25672,8 @@ interface IApplicationAssociationRegistration : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT QueryAppIsDefault(const(wchar)* pszQuery, ASSOCIATIONTYPE atQueryType, ASSOCIATIONLEVEL alQueryLevel, 
-                              const(wchar)* pszAppRegistryName, int* pfDefault);
+    HRESULT QueryAppIsDefault(const(PWSTR) pszQuery, ASSOCIATIONTYPE atQueryType, ASSOCIATIONLEVEL alQueryLevel, 
+                              const(PWSTR) pszAppRegistryName, BOOL* pfDefault);
     ///Determines whether an application owns all of the registered default associations for a given application level.
     ///Not intended for use in Windows 8.
     ///Params:
@@ -25502,7 +25688,7 @@ interface IApplicationAssociationRegistration : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT QueryAppIsDefaultAll(ASSOCIATIONLEVEL alQueryLevel, const(wchar)* pszAppRegistryName, int* pfDefault);
+    HRESULT QueryAppIsDefaultAll(ASSOCIATIONLEVEL alQueryLevel, const(PWSTR) pszAppRegistryName, BOOL* pfDefault);
     ///Sets an application as the default for a given extension or protocol, provided that the application's publisher
     ///matches the current default's. For more information, see Default Programs. Not intended for use in Windows 8.
     ///Params:
@@ -25519,7 +25705,7 @@ interface IApplicationAssociationRegistration : IUnknown
     ///    publisher doesn't match the default's, this method returns <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">E_ACCESSDENIED</b>.
     ///    
-    HRESULT SetAppAsDefault(const(wchar)* pszAppRegistryName, const(wchar)* pszSet, ASSOCIATIONTYPE atSetType);
+    HRESULT SetAppAsDefault(const(PWSTR) pszAppRegistryName, const(PWSTR) pszSet, ASSOCIATIONTYPE atSetType);
     ///Sets an application as the default for all of the registered associations of any type for that application. Not
     ///intended for use in Windows 8.
     ///Params:
@@ -25530,7 +25716,7 @@ interface IApplicationAssociationRegistration : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetAppAsDefaultAll(const(wchar)* pszAppRegistryName);
+    HRESULT SetAppAsDefaultAll(const(PWSTR) pszAppRegistryName);
     ///Removes all per-user associations for the current user. This results in a reversion to machine defaults, if they
     ///exist. Not intended for use in Windows 8.
     ///Returns:
@@ -25594,8 +25780,8 @@ interface INewWindowManager : IUnknown
     ///              call to open the new window. This value can be 0 if no flags are needed.
     ///    dwUserActionTime = Type: <b>DWORD</b> The tick count when the last user action occurred. To find out how long ago the action
     ///                       occurred, call GetTickCount and compare the result with the value in this parameter.
-    HRESULT EvaluateNewWindow(const(wchar)* pszUrl, const(wchar)* pszName, const(wchar)* pszUrlContext, 
-                              const(wchar)* pszFeatures, BOOL fReplace, uint dwFlags, uint dwUserActionTime);
+    HRESULT EvaluateNewWindow(const(PWSTR) pszUrl, const(PWSTR) pszName, const(PWSTR) pszUrlContext, 
+                              const(PWSTR) pszFeatures, BOOL fReplace, uint dwFlags, uint dwUserActionTime);
 }
 
 ///Exposes methods that work with client applications to present a user environment that provides safe download and
@@ -25611,7 +25797,7 @@ interface IAttachmentExecute : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetClientTitle(const(wchar)* pszTitle);
+    HRESULT SetClientTitle(const(PWSTR) pszTitle);
     ///Specifies and stores the GUID for the client.
     ///Params:
     ///    guid = Type: <b>REFGUID</b> The GUID that represents the client.
@@ -25630,7 +25816,7 @@ interface IAttachmentExecute : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetLocalPath(const(wchar)* pszLocalPath);
+    HRESULT SetLocalPath(const(PWSTR) pszLocalPath);
     ///Specifies and stores the proposed name of the file.
     ///Params:
     ///    pszFileName = Type: <b>LPCWSTR</b> A pointer to a string that contains the file name.
@@ -25642,7 +25828,7 @@ interface IAttachmentExecute : IUnknown
     ///    </tr> <tr> <td width="40%"> <dl> <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> The file name
     ///    cannot be stored. </td> </tr> </table>
     ///    
-    HRESULT SetFileName(const(wchar)* pszFileName);
+    HRESULT SetFileName(const(PWSTR) pszFileName);
     ///Sets an alternate path or URL for the source of a file transfer.
     ///Params:
     ///    pszSource = Type: <b>LPCWSTR</b> A pointer to a string containing the path or URL to use as the source.
@@ -25651,7 +25837,7 @@ interface IAttachmentExecute : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetSource(const(wchar)* pszSource);
+    HRESULT SetSource(const(PWSTR) pszSource);
     ///Sets the security zone associated with the attachment file based on the referring file.
     ///Params:
     ///    pszReferrer = Type: <b>LPCWSTR</b> A pointer to a string containing the path of the referring file.
@@ -25660,7 +25846,7 @@ interface IAttachmentExecute : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetReferrer(const(wchar)* pszReferrer);
+    HRESULT SetReferrer(const(PWSTR) pszReferrer);
     ///Provides a Boolean test that can be used to make decisions based on the attachment's execution policy.
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following values. <table class="clsStd"> <tr> <th>Value</th>
@@ -25701,7 +25887,7 @@ interface IAttachmentExecute : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT Execute(HWND hwnd, const(wchar)* pszVerb, HANDLE* phProcess);
+    HRESULT Execute(HWND hwnd, const(PWSTR) pszVerb, HANDLE* phProcess);
     ///Presents the user with explanatory error UI if the save action fails.
     ///Params:
     ///    hwnd = Type: <b>HWND</b> The handle of the parent window.
@@ -25902,7 +26088,7 @@ interface IKnownFolder : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetPath(uint dwFlags, ushort** ppszPath);
+    HRESULT GetPath(uint dwFlags, PWSTR* ppszPath);
     ///Assigns a new path to a known folder.
     ///Params:
     ///    dwFlags = Type: <b>DWORD</b> Either zero or the following value:
@@ -25914,7 +26100,7 @@ interface IKnownFolder : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetPath(uint dwFlags, const(wchar)* pszPath);
+    HRESULT SetPath(uint dwFlags, const(PWSTR) pszPath);
     ///Gets the location of the Shell namespace folder in the IDList (ITEMIDLIST) form.
     ///Params:
     ///    dwFlags = Type: <b>DWORD</b> Flags that specify special retrieval options. This value can be 0; otherwise, one or more
@@ -26003,7 +26189,7 @@ interface IKnownFolderManager : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetFolderIds(char* ppKFId, uint* pCount);
+    HRESULT GetFolderIds(GUID** ppKFId, uint* pCount);
     ///Gets an object that represents a known folder identified by its KNOWNFOLDERID. The object allows you to query
     ///certain folder properties, get the current path of the folder, redirect the folder to another location, and get
     ///the path of the folder as an ITEMIDLIST.
@@ -26035,7 +26221,7 @@ interface IKnownFolderManager : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetFolderByName(const(wchar)* pszCanonicalName, IKnownFolder* ppkf);
+    HRESULT GetFolderByName(const(PWSTR) pszCanonicalName, IKnownFolder* ppkf);
     ///Adds a new known folder to the registry. Used particularly by independent software vendors (ISVs) that are adding
     ///one of their own folders to the known folder system.
     ///Params:
@@ -26076,7 +26262,7 @@ interface IKnownFolderManager : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT FindFolderFromPath(const(wchar)* pszPath, FFFP_MODE mode, IKnownFolder* ppkf);
+    HRESULT FindFolderFromPath(const(PWSTR) pszPath, FFFP_MODE mode, IKnownFolder* ppkf);
     ///Gets an object that represents a known folder based on an IDList. The object allows you to query certain folder
     ///properties, get the current path of the folder, redirect the folder to another location, and get the path of the
     ///folder as an ITEMIDLIST.
@@ -26113,8 +26299,8 @@ interface IKnownFolderManager : IUnknown
     ///    <b>KNOWNFOLDERID</b> values are present on all systems. Use IKnownFolderManager::GetFolderIds to retrieve the
     ///    set of <b>KNOWNFOLDERID</b> values for the current system. </td> </tr> </table>
     ///    
-    HRESULT Redirect(const(GUID)* rfid, HWND hwnd, uint flags, const(wchar)* pszTargetPath, uint cFolders, 
-                     char* pExclusion, ushort** ppszError);
+    HRESULT Redirect(const(GUID)* rfid, HWND hwnd, uint flags, const(PWSTR) pszTargetPath, uint cFolders, 
+                     const(GUID)* pExclusion, PWSTR* ppszError);
 }
 
 ///Exposes methods that set and retrieve information about a computer's default sharing settings for the <b>Users</b>
@@ -26306,8 +26492,8 @@ interface ICreateProcessInputs : IUnknown
     ///Returns:
     ///    <b> S_OK</b> if the method succeeds. Otherwise, an <b>HRESULT</b> error code.
     ///    
-    HRESULT SetTitle(const(wchar)* pszTitle);
-    HRESULT SetEnvironmentVariableA(const(wchar)* pszName, const(wchar)* pszValue);
+    HRESULT SetTitle(const(PWSTR) pszTitle);
+    HRESULT SetEnvironmentVariableA(const(PWSTR) pszName, const(PWSTR) pszValue);
 }
 
 ///Used by ShellExecuteEx and IContextMenu to allow the caller to alter some parameters of the process being created.
@@ -26502,7 +26688,7 @@ interface INameSpaceTreeControl : IUnknown
     ///Sets the desktop theme for the current window only.
     ///Params:
     ///    pszTheme = Type: <b>LPCWSTR</b> The name of the desktop theme to which the current window is being set.
-    HRESULT SetTheme(const(wchar)* pszTheme);
+    HRESULT SetTheme(const(PWSTR) pszTheme);
     ///Retrieves the next item in the tree according to which method is requested.
     ///Params:
     ///    psi = Type: <b>IShellItem*</b> The Shell item for which the next item is being retrieved. This value can be
@@ -26716,25 +26902,25 @@ interface IDefaultExtractIconInit : IUnknown
     ///    pszFile = Type: <b>LPCWSTR</b> A pointer to a buffer that contains the full icon path, including the file name and
     ///              extension, as a Unicode string. This pointer can be <b>NULL</b>.
     ///    iIcon = Type: <b>int</b> A Shell icon ID.
-    HRESULT SetNormalIcon(const(wchar)* pszFile, int iIcon);
+    HRESULT SetNormalIcon(const(PWSTR) pszFile, int iIcon);
     ///Sets the icon that allows containers to specify an "open" look.
     ///Params:
     ///    pszFile = Type: <b>LPCWSTR</b> A pointer to a buffer that contains the full icon path, including the file name and
     ///              extension, as a Unicode string. This pointer can be <b>NULL</b>.
     ///    iIcon = Type: <b>int</b> Shell icon ID.
-    HRESULT SetOpenIcon(const(wchar)* pszFile, int iIcon);
+    HRESULT SetOpenIcon(const(PWSTR) pszFile, int iIcon);
     ///Sets the icon for a shortcut to the object.
     ///Params:
     ///    pszFile = Type: <b>LPCWSTR</b> A pointer to a buffer that contains the full icon path, including the file name and
     ///              extension, as a Unicode string. This pointer can be <b>NULL</b>.
     ///    iIcon = Type: <b>int</b> Shell icon ID.
-    HRESULT SetShortcutIcon(const(wchar)* pszFile, int iIcon);
+    HRESULT SetShortcutIcon(const(PWSTR) pszFile, int iIcon);
     ///Sets the default icon.
     ///Params:
     ///    pszFile = Type: <b>LPCWSTR</b> A pointer to a buffer that contains the full icon path, including the file name and
     ///              extension, as a Unicode string. This pointer can be <b>NULL</b>.
     ///    iIcon = Type: <b>int</b> The Shell icon ID.
-    HRESULT SetDefaultIcon(const(wchar)* pszFile, int iIcon);
+    HRESULT SetDefaultIcon(const(PWSTR) pszFile, int iIcon);
 }
 
 ///Exposes methods that get the command appearance, enumerate subcommands, or invoke the command.
@@ -26746,7 +26932,7 @@ interface IExplorerCommand : IUnknown
     ///    psiItemArray = Type: <b>IShellItemArray*</b> A pointer to an IShellItemArray.
     ///    ppszName = Type: <b>LPWSTR*</b> Pointer to a buffer that, when this method returns successfully, receives the title
     ///               string.
-    HRESULT GetTitle(IShellItemArray psiItemArray, ushort** ppszName);
+    HRESULT GetTitle(IShellItemArray psiItemArray, PWSTR* ppszName);
     ///Gets an icon resource string of the icon associated with the specified Windows Explorer command item.
     ///Params:
     ///    psiItemArray = Type: <b>IShellItemArray*</b> A pointer to an IShellItemArray.
@@ -26757,13 +26943,13 @@ interface IExplorerCommand : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetIcon(IShellItemArray psiItemArray, ushort** ppszIcon);
+    HRESULT GetIcon(IShellItemArray psiItemArray, PWSTR* ppszIcon);
     ///Gets the tooltip string associated with a specified Windows Explorer command item.
     ///Params:
     ///    psiItemArray = Type: <b>IShellItemArray*</b> A pointer to an IShellItemArray.
     ///    ppszInfotip = Type: <b>LPWSTR*</b> Pointer to a buffer that, when this method returns successfully, receives the tooltip
     ///                  string.
-    HRESULT GetToolTip(IShellItemArray psiItemArray, ushort** ppszInfotip);
+    HRESULT GetToolTip(IShellItemArray psiItemArray, PWSTR* ppszInfotip);
     ///Gets the GUID of an Windows Explorer command.
     ///Params:
     ///    pguidCommandName = Type: <b>GUID*</b> A pointer to a value that, when this method returns successfully, receives the command's
@@ -26840,7 +27026,7 @@ interface IInitializeCommand : IUnknown
     ///    ppb = Type: <b>IPropertyBag*</b> Pointer to an IPropertyBag instance that can be used to read the properties
     ///          related to the command in the registry. For example, a command may registry a string property under its
     ///          <b>...</b>&
-    HRESULT Initialize(const(wchar)* pszCommandName, IPropertyBag ppb);
+    HRESULT Initialize(const(PWSTR) pszCommandName, IPropertyBag ppb);
 }
 
 ///Provided by an IExplorerCommandProvider. This interface contains the enumeration of commands to be put into the
@@ -26855,7 +27041,7 @@ interface IEnumExplorerCommand : IUnknown
     ///                 elements that, when this method returns, is an array of pointers to the retrieved elements.
     ///    pceltFetched = Type: <b>ULONG*</b> When this method returns, contains a pointer to the number of elements actually
     ///                   retrieved. This pointer can be <b>NULL</b> if this information is not needed.
-    HRESULT Next(uint celt, char* pUICommand, uint* pceltFetched);
+    HRESULT Next(uint celt, IExplorerCommand* pUICommand, uint* pceltFetched);
     ///Not currently implemented.
     ///Params:
     ///    celt = Type: <b>ULONG</b> Currently unused.
@@ -26908,7 +27094,7 @@ interface IOpenControlPanel : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT Open(const(wchar)* pszName, const(wchar)* pszPage, IUnknown punkSite);
+    HRESULT Open(const(PWSTR) pszName, const(PWSTR) pszPage, IUnknown punkSite);
     ///Gets the path of a specified Control Panel item.
     ///Params:
     ///    pszName = Type: <b>LPCWSTR</b> A pointer to the item's canonical name or its <b>GUID</b>. This value can be
@@ -26922,7 +27108,7 @@ interface IOpenControlPanel : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetPath(const(wchar)* pszName, const(wchar)* pszPath, uint cchPath);
+    HRESULT GetPath(const(PWSTR) pszName, PWSTR pszPath, uint cchPath);
     ///Gets the most recent Control Panel view: Classic view or Category view.
     ///Params:
     ///    pView = Type: <b>CPVIEW*</b> A pointer that receives the most recent view. Valid values are as follows:
@@ -27001,7 +27187,7 @@ interface ICustomDestinationList : IUnknown
     ///    <b>BeginList</b>. After a list-building operation is in progress, the AppUserModelID cannot be changed until
     ///    after CommitList or AbortList has been called. </td> </tr> </table>
     ///    
-    HRESULT SetAppID(const(wchar)* pszAppID);
+    HRESULT SetAppID(const(PWSTR) pszAppID);
     ///Initiates a building session for a custom Jump List.
     ///Params:
     ///    pcMinSlots = Type: <b>UINT*</b> A pointer that, when this method returns, points to the current user setting for the
@@ -27057,7 +27243,7 @@ interface ICustomDestinationList : IUnknown
     ///    add to the Jump List or from a problem in the registration, such as not providing the AppUserModelID when the
     ///    application is using an explicit AppUserModelID.
     ///    
-    HRESULT AppendCategory(const(wchar)* pszCategory, IObjectArray poa);
+    HRESULT AppendCategory(const(PWSTR) pszCategory, IObjectArray poa);
     ///Specifies that the <b>Frequent</b> or <b>Recent</b> category should be included in a custom Jump List.
     ///Params:
     ///    category = Type: <b>KNOWNDESTCATEGORY</b> One of the following values that indicate which known category to add to the
@@ -27115,7 +27301,7 @@ interface ICustomDestinationList : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT DeleteList(const(wchar)* pszAppID);
+    HRESULT DeleteList(const(PWSTR) pszAppID);
     ///Discontinues a Jump List building session initiated by ICustomDestinationList::BeginList without committing any
     ///changes.
     ///Returns:
@@ -27141,7 +27327,7 @@ interface IApplicationDestinations : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetAppID(const(wchar)* pszAppID);
+    HRESULT SetAppID(const(PWSTR) pszAppID);
     ///Removes a single destination from the <b>Recent</b> and <b>Frequent</b> categories in a Jump List.
     ///Params:
     ///    punk = Type: <b>IUnknown*</b> A pointer to the IShellItem or IShellLink that represents the destination to remove.
@@ -27175,7 +27361,7 @@ interface IApplicationDocumentLists : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetAppID(const(wchar)* pszAppID);
+    HRESULT SetAppID(const(PWSTR) pszAppID);
     ///Retrieves an object that represents the collection of destinations listed in the <b>Recent</b> or <b>Frequent</b>
     ///category in a Jump List.
     ///Params:
@@ -27211,7 +27397,7 @@ interface IObjectWithAppUserModelID : IUnknown
     ///    Custom implementations that require dynamic AppUserModelIDs should return S_OK if successful, or an error
     ///    value otherwise.
     ///    
-    HRESULT SetAppID(const(wchar)* pszAppID);
+    HRESULT SetAppID(const(PWSTR) pszAppID);
     ///Retrieves a file type handler's explicit Application User Model ID (AppUserModelID), if one has been declared.
     ///Params:
     ///    ppszAppID = Type: <b>LPWSTR*</b> When this method returns, contains the address of the AppUserModelID string assigned to
@@ -27221,7 +27407,7 @@ interface IObjectWithAppUserModelID : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetAppID(ushort** ppszAppID);
+    HRESULT GetAppID(PWSTR* ppszAppID);
 }
 
 ///Exposes methods that provide access to the ProgID associated with an object.
@@ -27236,7 +27422,7 @@ interface IObjectWithProgID : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetProgID(const(wchar)* pszProgID);
+    HRESULT SetProgID(const(PWSTR) pszProgID);
     ///Retrieves the ProgID associated with an object.
     ///Params:
     ///    ppszProgID = Type: <b>LPWSTR*</b> A pointer to a string that, when this method returns successfully, contains the ProgID.
@@ -27245,7 +27431,7 @@ interface IObjectWithProgID : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetProgID(ushort** ppszProgID);
+    HRESULT GetProgID(PWSTR* ppszProgID);
 }
 
 ///Provides a method to update the ITEMIDLIST of the child of an folder object.
@@ -27279,7 +27465,7 @@ interface IDesktopWallpaper : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetWallpaper(const(wchar)* monitorID, const(wchar)* wallpaper);
+    HRESULT SetWallpaper(const(PWSTR) monitorID, const(PWSTR) wallpaper);
     ///Gets the current desktop wallpaper.
     ///Params:
     ///    monitorID = The ID of the monitor. This value can be obtained through GetMonitorDevicePathAt. This value can be set to
@@ -27296,7 +27482,7 @@ interface IDesktopWallpaper : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetWallpaper(const(wchar)* monitorID, ushort** wallpaper);
+    HRESULT GetWallpaper(const(PWSTR) monitorID, PWSTR* wallpaper);
     ///Retrieves the unique ID of one of the system's monitors.
     ///Params:
     ///    monitorIndex = The number of the monitor. Call GetMonitorDevicePathCount to determine the total number of monitors.
@@ -27307,7 +27493,7 @@ interface IDesktopWallpaper : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> A <b>NULL</b> pointer was provided in
     ///    <i>monitorID</i>. </td> </tr> </table>
     ///    
-    HRESULT GetMonitorDevicePathAt(uint monitorIndex, ushort** monitorID);
+    HRESULT GetMonitorDevicePathAt(uint monitorIndex, PWSTR* monitorID);
     ///Retrieves the number of monitors that are associated with the system.
     ///Params:
     ///    count = A pointer to a value that, when this method returns successfully, receives the number of monitors.
@@ -27332,7 +27518,7 @@ interface IDesktopWallpaper : IUnknown
     ///    width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The ID supplied in
     ///    <i>monitorID</i> cannot be found. </td> </tr> </table>
     ///    
-    HRESULT GetMonitorRECT(const(wchar)* monitorID, RECT* displayRect);
+    HRESULT GetMonitorRECT(const(PWSTR) monitorID, RECT* displayRect);
     ///Sets the color that is visible on the desktop when no image is displayed or when the desktop background has been
     ///disabled. This color is also used as a border when the desktop wallpaper does not fill the entire screen.
     ///Params:
@@ -27431,7 +27617,7 @@ interface IDesktopWallpaper : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT AdvanceSlideshow(const(wchar)* monitorID, DESKTOP_SLIDESHOW_DIRECTION direction);
+    HRESULT AdvanceSlideshow(const(PWSTR) monitorID, DESKTOP_SLIDESHOW_DIRECTION direction);
     ///Gets the current status of the slideshow.
     ///Params:
     ///    state = A pointer to a DESKTOP_SLIDESHOW_STATE value that, when this method returns successfully, receives one or
@@ -27468,7 +27654,7 @@ interface IHomeGroup : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT IsMember(int* member);
+    HRESULT IsMember(BOOL* member);
     ///Displays a wizard that allows a user to create a Home Group, and then retrieves the sharing options that the user
     ///selected through the wizard.
     ///Params:
@@ -27530,7 +27716,7 @@ interface IOpenSearchSource : IUnknown
     ///    <li>INET_E_RESOURCE_NOT_FOUND (location was unavailable)</li> <li>INET_E_DOWNLOAD_FAILURE (server error)</li>
     ///    </ul>
     ///    
-    HRESULT GetResults(HWND hwnd, const(wchar)* pszQuery, uint dwStartIndex, uint dwCount, const(GUID)* riid, 
+    HRESULT GetResults(HWND hwnd, const(PWSTR) pszQuery, uint dwStartIndex, uint dwCount, const(GUID)* riid, 
                        void** ppv);
 }
 
@@ -27697,7 +27883,7 @@ interface IShellLibrary : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetIcon(ushort** ppszIcon);
+    HRESULT GetIcon(PWSTR* ppszIcon);
     ///Sets the default icon for the library.
     ///Params:
     ///    pszIcon = Type: <b>LPCWSTR</b> A null-terminated Unicode string that describes the location of the default icon. The
@@ -27712,7 +27898,7 @@ interface IShellLibrary : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetIcon(const(wchar)* pszIcon);
+    HRESULT SetIcon(const(PWSTR) pszIcon);
     ///Commits library updates to an existing Library Description file.
     ///Returns:
     ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
@@ -27735,7 +27921,7 @@ interface IShellLibrary : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT Save(IShellItem psiFolderToSaveIn, const(wchar)* pszLibraryName, LIBRARYSAVEFLAGS lsf, 
+    HRESULT Save(IShellItem psiFolderToSaveIn, const(PWSTR) pszLibraryName, LIBRARYSAVEFLAGS lsf, 
                  IShellItem* ppsiSavedTo);
     ///Saves the library to a new file in a specified known folder.
     ///Params:
@@ -27752,7 +27938,7 @@ interface IShellLibrary : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SaveInKnownFolder(const(GUID)* kfidToSaveIn, const(wchar)* pszLibraryName, LIBRARYSAVEFLAGS lsf, 
+    HRESULT SaveInKnownFolder(const(GUID)* kfidToSaveIn, const(PWSTR) pszLibraryName, LIBRARYSAVEFLAGS lsf, 
                               IShellItem* ppsiSavedTo);
 }
 
@@ -27782,7 +27968,7 @@ interface IDefaultFolderMenuInitialize : IUnknown
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT Initialize(HWND hwnd, IContextMenuCB pcmcb, ITEMIDLIST* pidlFolder, IShellFolder psf, uint cidl, 
-                       ITEMIDLIST** apidl, IUnknown punkAssociation, uint cKeys, const(ptrdiff_t)* aKeys);
+                       ITEMIDLIST** apidl, IUnknown punkAssociation, uint cKeys, const(HKEY)* aKeys);
     ///Sets shortcut menu restrictions for the
     ///[IDefaultFolderMenuInitialize](nn-shobjidl_core-idefaultfoldermenuinitialize.md) object.
     ///Params:
@@ -27837,7 +28023,7 @@ interface IApplicationActivationManager : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT ActivateApplication(const(wchar)* appUserModelId, const(wchar)* arguments, ACTIVATEOPTIONS options, 
+    HRESULT ActivateApplication(const(PWSTR) appUserModelId, const(PWSTR) arguments, ACTIVATEOPTIONS options, 
                                 uint* processId);
     ///Activates the specified Windows Store app for the file contract (Windows.File).
     ///Params:
@@ -27851,7 +28037,7 @@ interface IApplicationActivationManager : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT ActivateForFile(const(wchar)* appUserModelId, IShellItemArray itemArray, const(wchar)* verb, 
+    HRESULT ActivateForFile(const(PWSTR) appUserModelId, IShellItemArray itemArray, const(PWSTR) verb, 
                             uint* processId);
     ///Activates the specified Windows Store app for the protocol contract (Windows.Protocol).
     ///Params:
@@ -27865,7 +28051,7 @@ interface IApplicationActivationManager : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT ActivateForProtocol(const(wchar)* appUserModelId, IShellItemArray itemArray, uint* processId);
+    HRESULT ActivateForProtocol(const(PWSTR) appUserModelId, IShellItemArray itemArray, uint* processId);
 }
 
 ///Exposes methods that enable an application to interact with groups of windows that form virtual workspaces.
@@ -27880,7 +28066,7 @@ interface IVirtualDesktopManager : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT IsWindowOnCurrentVirtualDesktop(HWND topLevelWindow, int* onCurrentDesktop);
+    HRESULT IsWindowOnCurrentVirtualDesktop(HWND topLevelWindow, BOOL* onCurrentDesktop);
     ///Gets the identifier for the virtual desktop hosting the provided top-level window.
     ///Params:
     ///    topLevelWindow = The top level window for the virtual desktop you are interested in.
@@ -27935,7 +28121,7 @@ interface IAssocHandler : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetName(ushort** ppsz);
+    HRESULT GetName(PWSTR* ppsz);
     ///Retrieves the display name of an application.
     ///Params:
     ///    ppsz = Type: <b>LPWSTR*</b> When this method returns, contains the address of a pointer to a null-terminated,
@@ -27945,7 +28131,7 @@ interface IAssocHandler : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetUIName(ushort** ppsz);
+    HRESULT GetUIName(PWSTR* ppsz);
     ///Retrieves the location of the icon associated with the application.
     ///Params:
     ///    ppszPath = Type: <b>LPWSTR*</b> When this method returns, contains the address of a pointer to a null-terminated,
@@ -27957,7 +28143,7 @@ interface IAssocHandler : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetIconLocation(ushort** ppszPath, int* pIndex);
+    HRESULT GetIconLocation(PWSTR* ppszPath, int* pIndex);
     ///Indicates whether the application is registered as a recommended handler for the queried file type.
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns S_OK if the program is recommended; otherwise, S_FALSE.
@@ -27972,7 +28158,7 @@ interface IAssocHandler : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT MakeDefault(const(wchar)* pszDescription);
+    HRESULT MakeDefault(const(PWSTR) pszDescription);
     ///Directly invokes the associated handler.
     ///Params:
     ///    pdo = Type: <b>IDataObject*</b> A pointer to an IDataObject that represents the selected item on which to invoke
@@ -28011,7 +28197,7 @@ interface IEnumAssocHandlers : IUnknown
     ///    rgelt = Type: <b>IAssocHandler**</b> When this method returns, contains the address of an array of IAssocHandler
     ///            pointers. Each <b>IAssocHandler</b> represents a single handler.
     ///    pceltFetched = Type: <b>ULONG*</b> When this method returns, contains a pointer to the number of elements retrieved.
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, IAssocHandler* rgelt, uint* pceltFetched);
 }
 
 ///Provides methods that enable you to set or retrieve a DataPackage object's IDataObject interface, which the
@@ -28172,7 +28358,7 @@ interface IAppVisibilityEvents : IUnknown
     ///Returns:
     ///    The return value is ignored.
     ///    
-    HRESULT AppVisibilityOnMonitorChanged(ptrdiff_t hMonitor, MONITOR_APP_VISIBILITY previousMode, 
+    HRESULT AppVisibilityOnMonitorChanged(HMONITOR hMonitor, MONITOR_APP_VISIBILITY previousMode, 
                                           MONITOR_APP_VISIBILITY currentMode);
     ///Notifies a client that visibility of the Start screen has changed.
     ///Params:
@@ -28196,7 +28382,7 @@ interface IAppVisibility : IUnknown
     ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> <i>pMode</i> is <b>NULL</b>.
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetAppVisibilityOnMonitor(ptrdiff_t hMonitor, MONITOR_APP_VISIBILITY* pMode);
+    HRESULT GetAppVisibilityOnMonitor(HMONITOR hMonitor, MONITOR_APP_VISIBILITY* pMode);
     ///Gets a value that indicates whether the Start screen is displayed.
     ///Params:
     ///    pfVisible = <b>TRUE</b> if the Start screen is displayed; otherwise, <b>FALSE.</b>
@@ -28205,7 +28391,7 @@ interface IAppVisibility : IUnknown
     ///    <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> <i>pfVisible</i> is
     ///    <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT IsLauncherVisible(int* pfVisible);
+    HRESULT IsLauncherVisible(BOOL* pfVisible);
     ///Registers an advise sink object to receive notification of changes to the display.
     ///Params:
     ///    pCallback = The client's advise sink that receives outgoing calls from the connection point.
@@ -28239,7 +28425,7 @@ interface IPackageExecutionStateChangeNotification : IUnknown
     ///Returns:
     ///    Return <b>S_OK</b> when you implement the <b>OnStateChanged</b>method.
     ///    
-    HRESULT OnStateChanged(const(wchar)* pszPackageFullName, PACKAGE_EXECUTION_STATE pesNewState);
+    HRESULT OnStateChanged(const(PWSTR) pszPackageFullName, PACKAGE_EXECUTION_STATE pesNewState);
 }
 
 ///Enables debugger developers to control the life cycle of a Windows Store app, such as suspending or resuming.
@@ -28255,8 +28441,8 @@ interface IPackageDebugSettings : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT EnableDebugging(const(wchar)* packageFullName, const(wchar)* debuggerCommandLine, 
-                            const(wchar)* environment);
+    HRESULT EnableDebugging(const(PWSTR) packageFullName, const(PWSTR) debuggerCommandLine, 
+                            /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PWSTR environment);
     ///Disables debug mode for the processes of the specified package.
     ///Params:
     ///    packageFullName = The package full name.
@@ -28264,7 +28450,7 @@ interface IPackageDebugSettings : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT DisableDebugging(const(wchar)* packageFullName);
+    HRESULT DisableDebugging(const(PWSTR) packageFullName);
     ///Suspends the processes of the package if they are currently running.
     ///Params:
     ///    packageFullName = The package full name.
@@ -28274,7 +28460,7 @@ interface IPackageDebugSettings : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_ILLEGAL_STATECHANGE</b></dt> </dl> </td> <td width="60%"> The process is
     ///    not currently running. </td> </tr> </table>
     ///    
-    HRESULT Suspend(const(wchar)* packageFullName);
+    HRESULT Suspend(const(PWSTR) packageFullName);
     ///Resumes the processes of the package if they are currently suspended.
     ///Params:
     ///    packageFullName = The package full name.
@@ -28282,7 +28468,7 @@ interface IPackageDebugSettings : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT Resume(const(wchar)* packageFullName);
+    HRESULT Resume(const(PWSTR) packageFullName);
     ///Terminates all processes for the specified package.
     ///Params:
     ///    packageFullName = The package full name.
@@ -28290,7 +28476,7 @@ interface IPackageDebugSettings : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT TerminateAllProcesses(const(wchar)* packageFullName);
+    HRESULT TerminateAllProcesses(const(PWSTR) packageFullName);
     ///Sets the session identifier.
     ///Params:
     ///    sessionId = The session identifier.
@@ -28310,8 +28496,8 @@ interface IPackageDebugSettings : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT EnumerateBackgroundTasks(const(wchar)* packageFullName, uint* taskCount, GUID** taskIds, 
-                                     ushort*** taskNames);
+    HRESULT EnumerateBackgroundTasks(const(PWSTR) packageFullName, uint* taskCount, GUID** taskIds, 
+                                     PWSTR** taskNames);
     ///Activates the specified background task.
     ///Params:
     ///    taskId = The identifier of the background task to activate.
@@ -28328,7 +28514,7 @@ interface IPackageDebugSettings : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT StartServicing(const(wchar)* packageFullName);
+    HRESULT StartServicing(const(PWSTR) packageFullName);
     ///Completes the previous servicing operation that was started by a call to the StartServicing method.
     ///Params:
     ///    packageFullName = The package full name.
@@ -28336,7 +28522,7 @@ interface IPackageDebugSettings : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT StopServicing(const(wchar)* packageFullName);
+    HRESULT StopServicing(const(PWSTR) packageFullName);
     ///Causes background tasks for the specified package to activate in the specified user session.
     ///Params:
     ///    packageFullName = The package full name.
@@ -28345,7 +28531,7 @@ interface IPackageDebugSettings : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT StartSessionRedirection(const(wchar)* packageFullName, uint sessionId);
+    HRESULT StartSessionRedirection(const(PWSTR) packageFullName, uint sessionId);
     ///Stops redirection of background tasks for the specified package.
     ///Params:
     ///    packageFullName = The package full name.
@@ -28353,7 +28539,7 @@ interface IPackageDebugSettings : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT StopSessionRedirection(const(wchar)* packageFullName);
+    HRESULT StopSessionRedirection(const(PWSTR) packageFullName);
     ///Returns the current execution state of the specified package.
     ///Params:
     ///    packageFullName = Type: <b>LPCWSTR</b> The package full name.
@@ -28363,7 +28549,7 @@ interface IPackageDebugSettings : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetPackageExecutionState(const(wchar)* packageFullName, PACKAGE_EXECUTION_STATE* packageExecutionState);
+    HRESULT GetPackageExecutionState(const(PWSTR) packageFullName, PACKAGE_EXECUTION_STATE* packageExecutionState);
     ///Register for package state-change notifications.
     ///Params:
     ///    packageFullName = The package full name.
@@ -28375,7 +28561,7 @@ interface IPackageDebugSettings : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT RegisterForPackageStateChanges(const(wchar)* packageFullName, 
+    HRESULT RegisterForPackageStateChanges(const(PWSTR) packageFullName, 
                                            IPackageExecutionStateChangeNotification pPackageExecutionStateChangeNotification, 
                                            uint* pdwCookie);
     ///Stops receiving package state-change notifications associated with a previous call to
@@ -28393,8 +28579,8 @@ interface IPackageDebugSettings : IUnknown
 @GUID("6E3194BB-AB82-4D22-93F5-FABDA40E7B16")
 interface IPackageDebugSettings2 : IPackageDebugSettings
 {
-    HRESULT EnumerateApps(const(wchar)* packageFullName, uint* appCount, ushort*** appUserModelIds, 
-                          ushort*** appDisplayNames);
+    HRESULT EnumerateApps(const(PWSTR) packageFullName, uint* appCount, PWSTR** appUserModelIds, 
+                          PWSTR** appDisplayNames);
 }
 
 ///Exposes methods to manage dependencies in process suspension scenarios. This interface is no longer supported on
@@ -28545,7 +28731,7 @@ interface IApplicationDesignModeSettings : IUnknown
     ///    to set a proxy core window. </td> </tr> </table>
     ///    
     HRESULT IsApplicationViewStateSupported(APPLICATION_VIEW_STATE viewState, SIZE nativeDisplaySizePixels, 
-                                            DEVICE_SCALE_FACTOR scaleFactor, int* supported);
+                                            DEVICE_SCALE_FACTOR scaleFactor, BOOL* supported);
     ///Sends a spoofed edge gesture event to the proxy core window on the caller's thread. This gesture toggles the
     ///app's app bar, if the app supports one. The caller can specify the type of input that triggered the edge gesture.
     ///You must call IInitializeWithWindow::Initialize to set a proxy core window before calling this method.
@@ -28656,7 +28842,7 @@ interface ILaunchTargetMonitor : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetMonitor(ptrdiff_t* monitor);
+    HRESULT GetMonitor(HMONITOR* monitor);
 }
 
 ///Provides methods for retrieving information about the source application.
@@ -28712,7 +28898,7 @@ interface ILaunchSourceAppUserModelId : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetAppUserModelId(ushort** launchingApp);
+    HRESULT GetAppUserModelId(PWSTR* launchingApp);
 }
 
 ///Exposes a method through which a client can provide an owner window to a Windows Runtime object used in a desktop
@@ -28743,7 +28929,7 @@ interface IHandlerInfo : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetApplicationDisplayName(ushort** value);
+    HRESULT GetApplicationDisplayName(PWSTR* value);
     ///Retrieves the name of the publisher of the application that implemented the handler.
     ///Params:
     ///    value = Type: <b>LPWSTR*</b> A pointer to a string that, when this method returns successfully, receives the
@@ -28753,7 +28939,7 @@ interface IHandlerInfo : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetApplicationPublisher(ushort** value);
+    HRESULT GetApplicationPublisher(PWSTR* value);
     ///Retrieves the icon of the application that implemented the handler.
     ///Params:
     ///    value = Type: <b>LPWSTR*</b> A pointer to a string that, when this method returns successfully, receives the path of
@@ -28763,13 +28949,13 @@ interface IHandlerInfo : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetApplicationIconReference(ushort** value);
+    HRESULT GetApplicationIconReference(PWSTR* value);
 }
 
 @GUID("31CCA04C-04D3-4EA9-90DE-97B15E87A532")
 interface IHandlerInfo2 : IHandlerInfo
 {
-    HRESULT GetApplicationId(ushort** value);
+    HRESULT GetApplicationId(PWSTR* value);
 }
 
 ///Enables a client of Shell item activation (including callers of
@@ -28813,16 +28999,16 @@ interface IHandlerActivationHost : IUnknown
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code,
     ///    <b>HRESULT_FROM_WIN32(ERROR_CANCELLED)</b> inciates that the ShellExecute call should be canceled.
     ///    
-    HRESULT BeforeCreateProcess(const(wchar)* applicationPath, const(wchar)* commandLine, IHandlerInfo handlerInfo);
+    HRESULT BeforeCreateProcess(const(PWSTR) applicationPath, const(PWSTR) commandLine, IHandlerInfo handlerInfo);
 }
 
 @GUID("ABAD189D-9FA3-4278-B3CA-8CA448A88DCB")
 interface IAppActivationUIInfo : IUnknown
 {
-    HRESULT GetMonitor(ptrdiff_t* value);
+    HRESULT GetMonitor(HMONITOR* value);
     HRESULT GetInvokePoint(POINT* value);
     HRESULT GetShowCommand(int* value);
-    HRESULT GetShowUI(int* value);
+    HRESULT GetShowUI(BOOL* value);
     HRESULT GetKeyState(uint* value);
 }
 
@@ -28880,7 +29066,7 @@ interface IShellIconOverlayIdentifier : IUnknown
     ///    <td width="60%"> The icon overlay should not be displayed. </td> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> The operation failed. </td> </tr> </table>
     ///    
-    HRESULT IsMemberOf(const(wchar)* pwszPath, uint dwAttrib);
+    HRESULT IsMemberOf(const(PWSTR) pwszPath, uint dwAttrib);
     ///Provides the location of the icon overlay's bitmap.
     ///Params:
     ///    pwszIconFile = Type: <b>PWSTR</b> A null-terminated Unicode string that contains the fully qualified path of the file
@@ -28896,7 +29082,7 @@ interface IShellIconOverlayIdentifier : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetOverlayInfo(const(wchar)* pwszIconFile, int cchMax, int* pIndex, uint* pdwFlags);
+    HRESULT GetOverlayInfo(PWSTR pwszIconFile, int cchMax, int* pIndex, uint* pdwFlags);
     ///Specifies the priority of an icon overlay.
     ///Params:
     ///    pPriority = Type: <b>int*</b> The address of a value that indicates the priority of the overlay identifier. Possible
@@ -29016,7 +29202,7 @@ interface ISearchBoxInfo : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetText(ushort** ppsz);
+    HRESULT GetText(PWSTR* ppsz);
 }
 
 ///Exposes methods that set and get visual properties.
@@ -29064,7 +29250,7 @@ interface IVisualProperties : IUnknown
     ///    pszSubIdList = Type: <b>LPCWSTR</b> A pointer to a Unicode string that contains a semicolon-separated list of CLSID names
     ///                   for use in place of the actual list passed by the window's class. If this parameter is <b>NULL</b>, the ID
     ///                   list from the calling class is used.
-    HRESULT SetTheme(const(wchar)* pszSubAppName, const(wchar)* pszSubIdList);
+    HRESULT SetTheme(const(PWSTR) pszSubAppName, const(PWSTR) pszSubIdList);
 }
 
 ///Extends the capabilities of ICommDlgBrowser2, and used by the common file dialog boxes when they host a Shell
@@ -29081,7 +29267,7 @@ interface ICommDlgBrowser3 : ICommDlgBrowser2
     ///Params:
     ///    pszFileSpec = Type: <b>LPWSTR</b> Contains a pointer to the current filter path/file as a Unicode string.
     ///    cchFileSpec = Type: <b>int</b> Specifies the path/file length, in characters.
-    HRESULT GetCurrentFilter(const(wchar)* pszFileSpec, int cchFileSpec);
+    HRESULT GetCurrentFilter(PWSTR pszFileSpec, int cchFileSpec);
     ///Called after a specified preview is created in the IShellView interface.
     ///Params:
     ///    ppshv = Type: <b>IShellView*</b> A pointer to the IShellView interface of the hosted view.
@@ -29101,7 +29287,7 @@ interface IUserAccountChangeCallback : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT OnPictureChange(const(wchar)* pszUserName);
+    HRESULT OnPictureChange(const(PWSTR) pszUserName);
 }
 
 ///Exposes methods to manage input/outpout (I/O) to an asynchronous stream.
@@ -29123,7 +29309,7 @@ interface IStreamAsync : IStream
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT ReadAsync(char* pv, uint cb, uint* pcbRead, OVERLAPPED* lpOverlapped);
+    HRESULT ReadAsync(void* pv, uint cb, uint* pcbRead, OVERLAPPED* lpOverlapped);
     ///Writes information to a stream asynchronously. For example, the Shell implements this method on file items when
     ///transferring them asynchronously.
     ///Params:
@@ -29140,7 +29326,7 @@ interface IStreamAsync : IStream
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT WriteAsync(char* lpBuffer, uint cb, uint* pcbWritten, OVERLAPPED* lpOverlapped);
+    HRESULT WriteAsync(const(void)* lpBuffer, uint cb, uint* pcbWritten, OVERLAPPED* lpOverlapped);
     ///Retrieves the results of an overlapped operation.
     ///Params:
     ///    lpOverlapped = Type: <b>LPOVERLAPPED*</b> A pointer to the OVERLAPPED structure that was specified when the overlapped
@@ -29194,7 +29380,7 @@ interface IHWEventHandler : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT Initialize(const(wchar)* pszParams);
+    HRESULT Initialize(const(PWSTR) pszParams);
     ///Handles AutoPlay device events for which there is no content of the type the application is registered to handle.
     ///Params:
     ///    pszDeviceID = Type: <b>LPCWSTR</b> A pointer to a string buffer that contains the device ID.
@@ -29207,7 +29393,7 @@ interface IHWEventHandler : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT HandleEvent(const(wchar)* pszDeviceID, const(wchar)* pszAltDeviceID, const(wchar)* pszEventType);
+    HRESULT HandleEvent(const(PWSTR) pszDeviceID, const(PWSTR) pszAltDeviceID, const(PWSTR) pszEventType);
     ///Not implemented.
     ///Params:
     ///    pszDeviceID = This parameter is unused.
@@ -29215,8 +29401,8 @@ interface IHWEventHandler : IUnknown
     ///    pszEventType = This parameter is unused.
     ///    pszContentTypeHandler = This parameter is unused.
     ///    pdataobject = This parameter is unused.
-    HRESULT HandleEventWithContent(const(wchar)* pszDeviceID, const(wchar)* pszAltDeviceID, 
-                                   const(wchar)* pszEventType, const(wchar)* pszContentTypeHandler, 
+    HRESULT HandleEventWithContent(const(PWSTR) pszDeviceID, const(PWSTR) pszAltDeviceID, 
+                                   const(PWSTR) pszEventType, const(PWSTR) pszContentTypeHandler, 
                                    IDataObject pdataobject);
 }
 
@@ -29239,8 +29425,8 @@ interface IHWEventHandler2 : IHWEventHandler
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT HandleEventWithHWND(const(wchar)* pszDeviceID, const(wchar)* pszAltDeviceID, 
-                                const(wchar)* pszEventType, HWND hwndOwner);
+    HRESULT HandleEventWithHWND(const(PWSTR) pszDeviceID, const(PWSTR) pszAltDeviceID, const(PWSTR) pszEventType, 
+                                HWND hwndOwner);
 }
 
 ///Exposes a method that programmatically overrides AutoPlay or AutoRun. This allows you to customize the location and
@@ -29257,7 +29443,7 @@ interface IQueryCancelAutoPlay : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns S_OK to allow AutoRun or S_FALSE to cancel AutoRun.
     ///    
-    HRESULT AllowAutoPlay(const(wchar)* pszPath, uint dwContentType, const(wchar)* pszLabel, uint dwSerialNumber);
+    HRESULT AllowAutoPlay(const(PWSTR) pszPath, uint dwContentType, const(PWSTR) pszLabel, uint dwSerialNumber);
 }
 
 ///Called by AutoPlay. Exposes methods that get dynamic information regarding a registered handler prior to displaying
@@ -29276,7 +29462,7 @@ interface IDynamicHWHandler : IUnknown
     ///    Type: <b>HRESULT</b> Returns S_OK if this handler is to be displayed, S_FALSE if it is to be hidden, or an
     ///    error value otherwise.
     ///    
-    HRESULT GetDynamicInfo(const(wchar)* pszDeviceID, uint dwContentType, ushort** ppszAction);
+    HRESULT GetDynamicInfo(const(PWSTR) pszDeviceID, uint dwContentType, PWSTR* ppszAction);
 }
 
 ///Exposes a method for the handling of a mouse click or shortcut menu access in a notification balloon. Used with
@@ -29326,7 +29512,7 @@ interface IUserNotification2 : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetBalloonInfo(const(wchar)* pszTitle, const(wchar)* pszText, uint dwInfoFlags);
+    HRESULT SetBalloonInfo(const(PWSTR) pszTitle, const(PWSTR) pszText, uint dwInfoFlags);
     ///Specifies the conditions for trying to display user information when the first attempt fails.
     ///Params:
     ///    dwShowTime = Type: <b>DWORD</b> The amount of time, in milliseconds, to display the user information.
@@ -29348,7 +29534,7 @@ interface IUserNotification2 : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetIconInfo(HICON hIcon, const(wchar)* pszToolTip);
+    HRESULT SetIconInfo(HICON hIcon, const(PWSTR) pszToolTip);
     ///Displays the user information in a balloon-style tooltip.
     ///Params:
     ///    pqc = Type: <b>IQueryContinue*</b> An IQueryContinue interface pointer, used to determine whether the notification
@@ -29364,7 +29550,7 @@ interface IUserNotification2 : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT Show(IQueryContinue pqc, uint dwContinuePollInterval, IUserNotificationCallback pSink);
-    HRESULT PlaySoundA(const(wchar)* pszSoundName);
+    HRESULT PlaySoundA(const(PWSTR) pszSoundName);
 }
 
 ///Exposes methods to enable and query translucency effects in a deskband object. <div class="alert"><b>Important</b>
@@ -29378,7 +29564,7 @@ interface IDeskBand2 : IDeskBand
     ///7.</div><div> </div>
     ///Params:
     ///    pfCanRenderComposited = Type: <b>BOOL*</b> When this method returns, contains a <b>BOOL</b> indicating ability.
-    HRESULT CanRenderComposited(int* pfCanRenderComposited);
+    HRESULT CanRenderComposited(BOOL* pfCanRenderComposited);
     ///Sets the composition state. <div class="alert"><b>Important</b> You should use thumbnail toolbars in new
     ///development in place of desk bands, which are not supported as of Windows 7.</div><div> </div>
     ///Params:
@@ -29388,7 +29574,7 @@ interface IDeskBand2 : IDeskBand
     ///development in place of desk bands, which are not supported as of Windows 7.</div><div> </div>
     ///Params:
     ///    pfCompositionEnabled = Type: <b>BOOL*</b> When this method returns, contains a <b>BOOL</b> that indicates state.
-    HRESULT GetCompositionState(int* pfCompositionEnabled);
+    HRESULT GetCompositionState(BOOL* pfCompositionEnabled);
 }
 
 ///Exposes a method that unpins an application shortcut from the <b>Start</b> menu or the taskbar.
@@ -29426,7 +29612,7 @@ interface ICDBurn : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetRecorderDriveLetter(const(wchar)* pszDrive, uint cch);
+    HRESULT GetRecorderDriveLetter(PWSTR pszDrive, uint cch);
     ///Instructs data to be copied from the staging area to a writable CD.
     ///Params:
     ///    hwnd = Type: <b>HWND</b> The handle of the parent window of the UI.
@@ -29445,7 +29631,7 @@ interface ICDBurn : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT HasRecordableDrive(int* pfHasRecorder);
+    HRESULT HasRecordableDrive(BOOL* pfHasRecorder);
 }
 
 ///Exposes methods used by a wizard extension to navigate the borders between itself and the rest of the wizard.
@@ -29490,7 +29676,7 @@ interface IWizardExtension : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT AddPages(char* aPages, uint cPages, uint* pnPagesAdded);
+    HRESULT AddPages(HPROPSHEETPAGE* aPages, uint cPages, uint* pnPagesAdded);
     ///Gets a handle to the first page of the wizard extension.
     ///Params:
     ///    phpage = Type: <b>HPROPSHEETPAGE*</b> A pointer to a PROPSHEETPAGE handle representing the first page of any wizard
@@ -29521,12 +29707,12 @@ interface IWebWizardExtension : IWizardExtension
     ///Sets the URL of the initial server-provided HTML page in a hosted wizard.
     ///Params:
     ///    pszURL = Type: <b>LPCWSTR</b> The URL of the initial server-provided HTML page.
-    HRESULT SetInitialURL(const(wchar)* pszURL);
+    HRESULT SetInitialURL(const(PWSTR) pszURL);
     ///Specifies the URL of a page that displays when a user experiences an error while navigating through the wizard
     ///extension pages.
     ///Params:
     ///    pszErrorURL = Type: <b>LPCWSTR</b> The URL of the page to display.
-    HRESULT SetErrorURL(const(wchar)* pszErrorURL);
+    HRESULT SetErrorURL(const(PWSTR) pszErrorURL);
 }
 
 ///Exposes methods for working with the Online Print Wizard, the Web Publishing Wizard, and the Add Network Place
@@ -29555,7 +29741,7 @@ interface IPublishingWizard : IWizardExtension
     ///    width="60%"> The <i>pszServiceProvider</i> parameter is not one of the supported values or the
     ///    <i>dwOptions</i> parameter contains an unsupported combination of flags. </td> </tr> </table>
     ///    
-    HRESULT Initialize(IDataObject pdo, uint dwOptions, const(wchar)* pszServiceScope);
+    HRESULT Initialize(IDataObject pdo, uint dwOptions, const(PWSTR) pszServiceScope);
     ///Gets a transfer manifest for a file transfer operation performed by a publishing wizard, such as the Online Print
     ///Wizard or the Add Network Place Wizard. <div class="alert"><b>Note</b> This method is deprecated for Windows
     ///Vista, as it is not supported for Online Print Wizard or Add Network Place Wizard.</div><div> </div>
@@ -29573,7 +29759,7 @@ interface IPublishingWizard : IWizardExtension
     ///    width="40%"> <dl> <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> The transfer manifest has not yet
     ///    been created. </td> </tr> </table>
     ///    
-    HRESULT GetTransferManifest(int* phrFromTransfer, IXMLDOMDocument* pdocManifest);
+    HRESULT GetTransferManifest(HRESULT* phrFromTransfer, IXMLDOMDocument* pdocManifest);
 }
 
 ///Exposes a method that hosts an IFolderView object in a window.
@@ -29597,7 +29783,7 @@ interface IAccessibleObject : IUnknown
     ///of an object.
     ///Params:
     ///    pszName = Type: <b>LPCWSTR</b> A pointer to a null-terminated, Unicode string containing the name.
-    HRESULT SetAccessibleName(const(wchar)* pszName);
+    HRESULT SetAccessibleName(const(PWSTR) pszName);
 }
 
 ///Exposes methods that hold items from a data object. An <b>IResultsFolder</b> is a folder that can hold items from all
@@ -29652,7 +29838,7 @@ interface IAutoCompleteDropDown : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetDropDownStatus(uint* pdwFlags, ushort** ppwszString);
+    HRESULT GetDropDownStatus(uint* pdwFlags, PWSTR* ppwszString);
     ///Forces the autocomplete object to refresh its list of suggestions when the list is visible.
     ///Returns:
     ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
@@ -29822,7 +30008,7 @@ interface IFileDialog2 : IFileDialog
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetCancelButtonLabel(const(wchar)* pszLabel);
+    HRESULT SetCancelButtonLabel(const(PWSTR) pszLabel);
     ///Specifies a top-level location from which to begin browsing a namespace, for instance in the <b>Save</b> dialog's
     ///<b>Browse folder</b> option. Users cannot navigate above this location.
     ///Params:
@@ -29851,7 +30037,7 @@ interface IApplicationAssociationRegistrationUI : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT LaunchAdvancedAssociationUI(const(wchar)* pszAppRegistryName);
+    HRESULT LaunchAdvancedAssociationUI(const(PWSTR) pszAppRegistryName);
 }
 
 ///Not supported.
@@ -29861,7 +30047,7 @@ interface IShellRunDll : IUnknown
     ///Not supported.
     ///Params:
     ///    pszArgs = Type: <b>LPCWSTR</b>
-    HRESULT Run(const(wchar)* pszArgs);
+    HRESULT Run(const(PWSTR) pszArgs);
 }
 
 ///Exposes a method that checks for previous versions of server files or folders, stored for the purpose of reversion by
@@ -29885,7 +30071,7 @@ interface IPreviousVersionsInfo : IUnknown
     ///    <td width="60%"> <i>fOkToBeSlow</i> is <b>FALSE</b> and the result is not currently cached. </td> </tr>
     ///    </table>
     ///    
-    HRESULT AreSnapshotsAvailable(const(wchar)* pszPath, BOOL fOkToBeSlow, int* pfAvailable);
+    HRESULT AreSnapshotsAvailable(const(PWSTR) pszPath, BOOL fOkToBeSlow, BOOL* pfAvailable);
 }
 
 ///This interface is not supported. Do not use.
@@ -30058,7 +30244,7 @@ interface INameSpaceTreeControlEvents : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT OnGetToolTip(IShellItem psi, const(wchar)* pszTip, int cchTip);
+    HRESULT OnGetToolTip(IShellItem psi, PWSTR pszTip, int cchTip);
     ///Called before an IShellItem and all of its children are deleted.
     ///Params:
     ///    psi = Type: <b>IShellItem*</b> A pointer to the IShellItem that is to be deleted.
@@ -30383,16 +30569,16 @@ interface IDesktopGadget : IUnknown
     ///    </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> An error occurred
     ///    involving the path of the gadget folder pointed to by <i>gadgetPath</i>. </td> </tr> </table>
     ///    
-    HRESULT RunGadget(const(wchar)* gadgetPath);
+    HRESULT RunGadget(const(PWSTR) gadgetPath);
 }
 
 @GUID("5EFB46D7-47C0-4B68-ACDA-DED47C90EC91")
 interface IStorageProviderBanners : IUnknown
 {
-    HRESULT SetBanner(const(wchar)* providerIdentity, const(wchar)* subscriptionId, const(wchar)* contentId);
-    HRESULT ClearBanner(const(wchar)* providerIdentity, const(wchar)* subscriptionId);
-    HRESULT ClearAllBanners(const(wchar)* providerIdentity);
-    HRESULT GetBanner(const(wchar)* providerIdentity, const(wchar)* subscriptionId, ushort** contentId);
+    HRESULT SetBanner(const(PWSTR) providerIdentity, const(PWSTR) subscriptionId, const(PWSTR) contentId);
+    HRESULT ClearBanner(const(PWSTR) providerIdentity, const(PWSTR) subscriptionId);
+    HRESULT ClearAllBanners(const(PWSTR) providerIdentity);
+    HRESULT GetBanner(const(PWSTR) providerIdentity, const(PWSTR) subscriptionId, PWSTR* contentId);
 }
 
 @GUID("9BA05970-F6A8-11CF-A442-00A0C90A8F39")
@@ -30843,7 +31029,7 @@ interface IAutoComplete : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT Init(HWND hwndEdit, IUnknown punkACL, const(wchar)* pwszRegKeyPath, const(wchar)* pwszQuickComplete);
+    HRESULT Init(HWND hwndEdit, IUnknown punkACL, const(PWSTR) pwszRegKeyPath, const(PWSTR) pwszQuickComplete);
     ///Enables or disables autocompletion.
     ///Params:
     ///    fEnable = Type: <b>BOOL</b> A value that is set to <b>TRUE</b> to enable autocompletion, or <b>FALSE</b> to disable it.
@@ -30883,7 +31069,7 @@ interface IAutoComplete2 : IAutoComplete
 @GUID("8E74C210-CF9D-4EAF-A403-7356428F0A5A")
 interface IEnumACString : IEnumString
 {
-    HRESULT NextItem(const(wchar)* pszUrl, uint cchMax, uint* pulSortIndex);
+    HRESULT NextItem(PWSTR pszUrl, uint cchMax, uint* pulSortIndex);
     HRESULT SetEnumOptions(uint dwOptions);
     HRESULT GetEnumOptions(uint* pdwOptions);
 }
@@ -30912,7 +31098,7 @@ interface IDataObjectAsyncCapability : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetAsyncMode(int* pfIsOpAsync);
+    HRESULT GetAsyncMode(BOOL* pfIsOpAsync);
     ///Called by a drop target to indicate that asynchronous data extraction is starting.
     ///Params:
     ///    pbcReserved = Type: <b>IBindCtx*</b> Reserved. Set this value to <b>nullptr</b>.
@@ -30931,7 +31117,7 @@ interface IDataObjectAsyncCapability : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT InOperation(int* pfInAsyncOp);
+    HRESULT InOperation(BOOL* pfInAsyncOp);
     ///Notifies the data object that the asynchronous data extraction has ended.
     ///Params:
     ///    hResult = Type: <b>HRESULT</b> Indicates the outcome of the data extraction. Set this value to S_OK if successful, or a
@@ -30967,7 +31153,7 @@ interface IExtractIconA : IUnknown
     ///    use a default icon. If the <b>GIL_ASYNC</b> flag is set in <i>uFlags</i>, the method can return E_PENDING to
     ///    indicate that icon extraction will be time-consuming.
     ///    
-    HRESULT GetIconLocation(uint uFlags, const(char)* pszIconFile, uint cchMax, int* piIndex, uint* pwFlags);
+    HRESULT GetIconLocation(uint uFlags, PSTR pszIconFile, uint cchMax, int* piIndex, uint* pwFlags);
     ///Extracts an icon image from the specified location.
     ///Params:
     ///    pszFile = Type: <b>PCTSTR</b> A pointer to a null-terminated string that specifies the icon location.
@@ -30983,7 +31169,7 @@ interface IExtractIconA : IUnknown
     ///    Type: <b>HRESULT</b> Returns S_OK if the function extracted the icon, or S_FALSE if the calling application
     ///    should extract the icon.
     ///    
-    HRESULT Extract(const(char)* pszFile, uint nIconIndex, HICON* phiconLarge, HICON* phiconSmall, uint nIconSize);
+    HRESULT Extract(const(PSTR) pszFile, uint nIconIndex, HICON* phiconLarge, HICON* phiconSmall, uint nIconSize);
 }
 
 ///Exposes methods that allow a client to retrieve the icon that is associated with one of the objects in a folder.
@@ -31005,7 +31191,7 @@ interface IExtractIconW : IUnknown
     ///    use a default icon. If the <b>GIL_ASYNC</b> flag is set in <i>uFlags</i>, the method can return E_PENDING to
     ///    indicate that icon extraction will be time-consuming.
     ///    
-    HRESULT GetIconLocation(uint uFlags, const(wchar)* pszIconFile, uint cchMax, int* piIndex, uint* pwFlags);
+    HRESULT GetIconLocation(uint uFlags, PWSTR pszIconFile, uint cchMax, int* piIndex, uint* pwFlags);
     ///Extracts an icon image from the specified location.
     ///Params:
     ///    pszFile = Type: <b>PCTSTR</b> A pointer to a null-terminated string that specifies the icon location.
@@ -31021,7 +31207,7 @@ interface IExtractIconW : IUnknown
     ///    Type: <b>HRESULT</b> Returns S_OK if the function extracted the icon, or S_FALSE if the calling application
     ///    should extract the icon.
     ///    
-    HRESULT Extract(const(wchar)* pszFile, uint nIconIndex, HICON* phiconLarge, HICON* phiconSmall, uint nIconSize);
+    HRESULT Extract(const(PWSTR) pszFile, uint nIconIndex, HICON* phiconLarge, HICON* phiconSmall, uint nIconSize);
 }
 
 ///<p class="CCE_Message">[<b>IShellIconOverlayManager</b> is available for use in the operating systems specified in
@@ -31045,7 +31231,7 @@ interface IShellIconOverlayManager : IUnknown
     ///    appropriate index was found. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td
     ///    width="60%"> Failure for any reason. </td> </tr> </table>
     ///    
-    HRESULT GetFileOverlayInfo(const(wchar)* pwszPath, uint dwAttrib, int* pIndex, uint dwflags);
+    HRESULT GetFileOverlayInfo(const(PWSTR) pwszPath, uint dwAttrib, int* pIndex, uint dwflags);
     ///Gets the index of the icon overlay or the icon image for the specified file with the specified attributes from
     ///one of the reserved overlays.
     ///Params:
@@ -31062,7 +31248,7 @@ interface IShellIconOverlayManager : IUnknown
     ///    appropriate index was found. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td
     ///    width="60%"> Failure, for any reason. </td> </tr> </table>
     ///    
-    HRESULT GetReservedOverlayInfo(const(wchar)* pwszPath, uint dwAttrib, int* pIndex, uint dwflags, 
+    HRESULT GetReservedOverlayInfo(const(PWSTR) pwszPath, uint dwAttrib, int* pIndex, uint dwflags, 
                                    int iReservedID);
     ///Refreshes the overlay cache, the image list, or both.
     ///Params:
@@ -31156,7 +31342,7 @@ interface IURLSearchHook : IUnknown
     ///                    the browser is trying to determine the protocol. On exit, this buffer contains the modified URL address if
     ///                    the method was successful. See the return value for more information.
     ///    cchBufferSize = Type: <b>DWORD</b> The size, in characters, of the buffer at <i>pwszSearchURL</i>.
-    HRESULT Translate(const(wchar)* pwszSearchURL, uint cchBufferSize);
+    HRESULT Translate(PWSTR pwszSearchURL, uint cchBufferSize);
 }
 
 ///Exposes methods that channel customization information to the search hooks.
@@ -31190,8 +31376,7 @@ interface IURLSearchHook2 : IURLSearchHook
     ///                    the method was successful.
     ///    cchBufferSize = Type: <b>DWORD</b> The size, in characters, of the buffer at <i>lpwszSearchURL</i>.
     ///    pSearchContext = Type: <b>ISearchContext*</b> A pointer to an ISearchContext object. This parameter can be <b>NULL</b>.
-    HRESULT TranslateWithSearchContext(const(wchar)* pwszSearchURL, uint cchBufferSize, 
-                                       ISearchContext pSearchContext);
+    HRESULT TranslateWithSearchContext(PWSTR pwszSearchURL, uint cchBufferSize, ISearchContext pSearchContext);
 }
 
 ///Exposed by Shell folders to provide detailed information about the items in a folder. This is the same information
@@ -31258,7 +31443,7 @@ interface IACList : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT Expand(const(wchar)* pszExpand);
+    HRESULT Expand(const(PWSTR) pszExpand);
 }
 
 ///Extends the IACList interface to enable clients of an autocomplete object to retrieve and set option flags.
@@ -31303,7 +31488,8 @@ interface IProgressDialog : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT StartProgressDialog(HWND hwndParent, IUnknown punkEnableModless, uint dwFlags, void* pvResevered);
+    HRESULT StartProgressDialog(HWND hwndParent, IUnknown punkEnableModless, uint dwFlags, 
+                                const(void)* pvResevered);
     ///Stops the progress dialog box and removes it from the screen.
     ///Returns:
     ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
@@ -31319,7 +31505,7 @@ interface IProgressDialog : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetTitle(const(wchar)* pwzTitle);
+    HRESULT SetTitle(const(PWSTR) pwzTitle);
     ///<p class="CCE_Message">[This method is not supported in Windows Vista or later versions.] Specifies an
     ///Audio-Video Interleaved (AVI) clip that runs in the dialog box.
     ///Params:
@@ -31375,7 +31561,7 @@ interface IProgressDialog : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetLine(uint dwLineNum, const(wchar)* pwzString, BOOL fCompactPath, void* pvResevered);
+    HRESULT SetLine(uint dwLineNum, const(PWSTR) pwzString, BOOL fCompactPath, const(void)* pvResevered);
     ///Sets a message to be displayed if the user cancels the operation.
     ///Params:
     ///    pwzCancelMsg = Type: <b>PCWSTR</b> A pointer to a null-terminated Unicode string that contains the message to be displayed.
@@ -31385,7 +31571,7 @@ interface IProgressDialog : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetCancelMsg(const(wchar)* pwzCancelMsg, void* pvResevered);
+    HRESULT SetCancelMsg(const(PWSTR) pwzCancelMsg, const(void)* pvResevered);
     ///Resets the progress dialog box timer to zero.
     ///Params:
     ///    dwTimerAction = Type: <b>DWORD</b> Flags that indicate the action to be taken by the timer. One of the following values:
@@ -31395,7 +31581,7 @@ interface IProgressDialog : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT Timer(uint dwTimerAction, void* pvResevered);
+    HRESULT Timer(uint dwTimerAction, const(void)* pvResevered);
 }
 
 ///Exposes methods that manage the border space for one or more IDockingWindow objects. This interface is implemented by
@@ -31480,7 +31666,7 @@ interface IQueryInfo : IUnknown
     ///    Type: <b>HRESULT</b> Returns S_OK if the function succeeds. If no info tip text is available, <i>ppwszTip</i>
     ///    is set to <b>NULL</b>. Otherwise, returns a COM-defined error value.
     ///    
-    HRESULT GetInfoTip(uint dwFlags, ushort** ppwszTip);
+    HRESULT GetInfoTip(QITIPF_FLAGS dwFlags, PWSTR* ppwszTip);
     ///Gets the information flags for an item. This method is not currently used.
     ///Params:
     ///    pdwFlags = Type: <b>DWORD*</b> A pointer to a value that receives the flags for the item. If no flags are to be
@@ -31542,7 +31728,7 @@ interface IShellFolderViewCB : IUnknown
     ///           </tr> </table>
     ///    wParam = Type: <b>WPARAM</b> Additional information. See the individual notification pages for specific requirements.
     ///    lParam = Type: <b>LPARAM</b> Additional information. See the individual notification pages for specific requirements.
-    HRESULT MessageSFVCB(uint uMsg, WPARAM wParam, LPARAM lParam);
+    HRESULT MessageSFVCB(SFVM_MESSAGE_ID uMsg, WPARAM wParam, LPARAM lParam);
 }
 
 ///<p class="CCE_Message">[<b>IShellFolderView</b> is no longer available for use as of Windows 7. Instead, use
@@ -31781,7 +31967,7 @@ interface IShellFolderView : IUnknown
     ///items in the view.
     ///Params:
     ///    dwFlags = Type: <b>UINT</b> Determines which items in the view are selected, if any. One of the following values.
-    HRESULT Select(uint dwFlags);
+    HRESULT Select(SFVS_SELECT dwFlags);
     ///<p class="CCE_Message">[<b>QuerySupport</b> is available for use in the operating systems specified in the
     ///Requirements section. It may be altered or unavailable in subsequent versions.] This method is not implemented.
     ///Params:
@@ -31804,19 +31990,19 @@ interface INamedPropertyBag : IUnknown
     ///    pszPropName = Type: <b>PCWSTR</b> A pointer to a string that contains the name of the property to be read.
     ///    pVar = Type: <b>PROPVARIANT*</b> The address of a <b>VARIANT</b> that, when this method returns successfully,
     ///           receives the property value.
-    HRESULT ReadPropertyNPB(const(wchar)* pszBagname, const(wchar)* pszPropName, PROPVARIANT* pVar);
+    HRESULT ReadPropertyNPB(const(PWSTR) pszBagname, const(PWSTR) pszPropName, PROPVARIANT* pVar);
     ///Saves a property to the named property bag.
     ///Params:
     ///    pszBagname = Type: <b>PCWSTR</b> A pointer to a string that contains the name of the property bag.
     ///    pszPropName = Type: <b>PCWSTR</b> A pointer to a string that contains the name of the property to write.
     ///    pVar = Type: <b>PROPVARIANT*</b> A pointer to a <b>VARIANT</b> that holds the new property value.
-    HRESULT WritePropertyNPB(const(wchar)* pszBagname, const(wchar)* pszPropName, PROPVARIANT* pVar);
+    HRESULT WritePropertyNPB(const(PWSTR) pszBagname, const(PWSTR) pszPropName, PROPVARIANT* pVar);
     ///Removes a property from a named property bag.
     ///Params:
     ///    pszBagname = Type: <b>PCWSTR</b> A pointer to a string that contains the name of the property bag from which a property is
     ///                 to be removed.
     ///    pszPropName = Type: <b>PCWSTR</b> A pointer to a string that contains the name of the property to remove.
-    HRESULT RemovePropertyNPB(const(wchar)* pszBagname, const(wchar)* pszPropName);
+    HRESULT RemovePropertyNPB(const(PWSTR) pszBagname, const(PWSTR) pszPropName);
 }
 
 ///Exposes methods to create a new Internet shortcut.
@@ -31834,7 +32020,7 @@ interface INewShortcutHookA : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetReferent(const(char)* pcszReferent, HWND hwnd);
+    HRESULT SetReferent(const(PSTR) pcszReferent, HWND hwnd);
     ///Gets the referent of the shortcut object.
     ///Params:
     ///    pszReferent = Type: <b>PTSTR</b> A pointer to a string that receives the referent.
@@ -31844,26 +32030,26 @@ interface INewShortcutHookA : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetReferent(const(char)* pszReferent, int cchReferent);
+    HRESULT GetReferent(PSTR pszReferent, int cchReferent);
     ///Sets the folder name for the shortcut object.
     ///Params:
     ///    pcszFolder = TBD
-    HRESULT SetFolder(const(char)* pcszFolder);
+    HRESULT SetFolder(const(PSTR) pcszFolder);
     ///Gets the folder name for the shortcut object.
     ///Params:
     ///    pszFolder = Type: <b>PTSTR</b> The address of a character buffer that receives the folder name.
     ///    cchFolder = Type: <b>int</b> The size of the buffer at <i>pszFolder</i>, in characters.
-    HRESULT GetFolder(const(char)* pszFolder, int cchFolder);
+    HRESULT GetFolder(PSTR pszFolder, int cchFolder);
     ///Gets the file name of the shortcut object, without the extension.
     ///Params:
     ///    pszName = Type: <b>PTSTR</b> A pointer to a string that receives the name.
     ///    cchName = Type: <b>int</b> The size of the buffer at <i>pszName</i>, in characters.
-    HRESULT GetName(const(char)* pszName, int cchName);
+    HRESULT GetName(PSTR pszName, int cchName);
     ///Gets the file name extension for the shortcut object.
     ///Params:
     ///    pszExtension = Type: <b>PTSTR</b> Pointer to a string that receives the extension.
     ///    cchExtension = Type: <b>int</b> The size of the buffer at <i>pszExtension</i>, in characters.
-    HRESULT GetExtension(const(char)* pszExtension, int cchExtension);
+    HRESULT GetExtension(PSTR pszExtension, int cchExtension);
 }
 
 ///Exposes methods to create a new Internet shortcut.
@@ -31881,7 +32067,7 @@ interface INewShortcutHookW : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetReferent(const(wchar)* pcszReferent, HWND hwnd);
+    HRESULT SetReferent(const(PWSTR) pcszReferent, HWND hwnd);
     ///Gets the referent of the shortcut object.
     ///Params:
     ///    pszReferent = Type: <b>PTSTR</b> A pointer to a string that receives the referent.
@@ -31891,26 +32077,26 @@ interface INewShortcutHookW : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetReferent(const(wchar)* pszReferent, int cchReferent);
+    HRESULT GetReferent(PWSTR pszReferent, int cchReferent);
     ///Sets the folder name for the shortcut object.
     ///Params:
     ///    pcszFolder = TBD
-    HRESULT SetFolder(const(wchar)* pcszFolder);
+    HRESULT SetFolder(const(PWSTR) pcszFolder);
     ///Gets the folder name for the shortcut object.
     ///Params:
     ///    pszFolder = Type: <b>PTSTR</b> The address of a character buffer that receives the folder name.
     ///    cchFolder = Type: <b>int</b> The size of the buffer at <i>pszFolder</i>, in characters.
-    HRESULT GetFolder(const(wchar)* pszFolder, int cchFolder);
+    HRESULT GetFolder(PWSTR pszFolder, int cchFolder);
     ///Gets the file name of the shortcut object, without the extension.
     ///Params:
     ///    pszName = Type: <b>PTSTR</b> A pointer to a string that receives the name.
     ///    cchName = Type: <b>int</b> The size of the buffer at <i>pszName</i>, in characters.
-    HRESULT GetName(const(wchar)* pszName, int cchName);
+    HRESULT GetName(PWSTR pszName, int cchName);
     ///Gets the file name extension for the shortcut object.
     ///Params:
     ///    pszExtension = Type: <b>PTSTR</b> Pointer to a string that receives the extension.
     ///    cchExtension = Type: <b>int</b> The size of the buffer at <i>pszExtension</i>, in characters.
-    HRESULT GetExtension(const(wchar)* pszExtension, int cchExtension);
+    HRESULT GetExtension(PWSTR pszExtension, int cchExtension);
 }
 
 ///Exposes a method that creates a *copy hook handler*. A copy hook handler is a Shell extension that determines if a
@@ -31948,8 +32134,8 @@ interface ICopyHookA : IUnknown
     ///    example, a batch copy operation). | | **IDCANCEL** | Prevents the current operation and cancels any pending
     ///    operations. |
     ///    
-    uint CopyCallback(HWND hwnd, uint wFunc, uint wFlags, const(char)* pszSrcFile, uint dwSrcAttribs, 
-                      const(char)* pszDestFile, uint dwDestAttribs);
+    uint CopyCallback(HWND hwnd, uint wFunc, uint wFlags, const(PSTR) pszSrcFile, uint dwSrcAttribs, 
+                      const(PSTR) pszDestFile, uint dwDestAttribs);
 }
 
 ///Exposes a method that creates a *copy hook handler*. A copy hook handler is a Shell extension that determines if a
@@ -31987,8 +32173,8 @@ interface ICopyHookW : IUnknown
     ///    example, a batch copy operation). | | **IDCANCEL** | Prevents the current operation and cancels any pending
     ///    operations. |
     ///    
-    uint CopyCallback(HWND hwnd, uint wFunc, uint wFlags, const(wchar)* pszSrcFile, uint dwSrcAttribs, 
-                      const(wchar)* pszDestFile, uint dwDestAttribs);
+    uint CopyCallback(HWND hwnd, uint wFunc, uint wFlags, const(PWSTR) pszSrcFile, uint dwSrcAttribs, 
+                      const(PWSTR) pszDestFile, uint dwDestAttribs);
 }
 
 ///Exposes methods that enable a client to retrieve or set an object's current working directory.
@@ -32001,7 +32187,7 @@ interface ICurrentWorkingDirectory : IUnknown
     ///              working directory's fully qualified path as a null-terminated Unicode string.
     ///    cchSize = Type: <b>DWORD</b> The size of the buffer in Unicode characters, including the terminating <b>NULL</b>
     ///              character.
-    HRESULT GetDirectory(const(wchar)* pwzPath, uint cchSize);
+    HRESULT GetDirectory(PWSTR pwzPath, uint cchSize);
     ///Sets the current working directory.
     ///Params:
     ///    pwzPath = Type: <b>PCWSTR</b> A pointer to the fully qualified path of the new working directory, as a null-terminated
@@ -32011,7 +32197,7 @@ interface ICurrentWorkingDirectory : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetDirectory(const(wchar)* pwzPath);
+    HRESULT SetDirectory(const(PWSTR) pwzPath);
 }
 
 ///Exposes methods that support the addition of IDockingWindow objects to a frame. Implemented by the browser.
@@ -32030,7 +32216,7 @@ interface IDockingWindowFrame : IOleWindow
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT AddToolbar(IUnknown punkSrc, const(wchar)* pwszItem, uint dwAddFlags);
+    HRESULT AddToolbar(IUnknown punkSrc, const(PWSTR) pwszItem, uint dwAddFlags);
     ///Removes the specified IDockingWindow from the toolbar frame.
     ///Params:
     ///    punkSrc = Type: <b>IUnknown*</b> Pointer to the IDockingWindow object to be removed. The IDockingWindowFrame
@@ -32055,7 +32241,7 @@ interface IDockingWindowFrame : IOleWindow
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT FindToolbar(const(wchar)* pwszItem, const(GUID)* riid, void** ppv);
+    HRESULT FindToolbar(const(PWSTR) pwszItem, const(GUID)* riid, void** ppv);
 }
 
 ///Exposes a method that obtains a thumbnail representation of an HTML wallpaper. <div class="alert"><b>Note</b> This
@@ -32202,7 +32388,7 @@ interface IQueryAssociations : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT Init(uint flags, const(wchar)* pszAssoc, HKEY hkProgid, HWND hwnd);
+    HRESULT Init(uint flags, const(PWSTR) pszAssoc, HKEY hkProgid, HWND hwnd);
     ///Searches for and retrieves a file or protocol association-related string from the registry.
     ///Params:
     ///    flags = Type: <b>ASSOCF</b> A flag that can be used to control the search. It can be any combination of the following
@@ -32220,7 +32406,7 @@ interface IQueryAssociations : IUnknown
     ///              <i>pwszOut</i> is too small, the function returns E_POINTER and <i>pcchOut</i> points to the required size of
     ///              the buffer. If <i>pwszOut</i> is <b>NULL</b>, the function returns S_FALSE and <i>pcchOut</i> points to the
     ///              required size of the buffer.
-    HRESULT GetString(uint flags, ASSOCSTR str, const(wchar)* pszExtra, const(wchar)* pszOut, uint* pcchOut);
+    HRESULT GetString(uint flags, ASSOCSTR str, const(PWSTR) pszExtra, PWSTR pszOut, uint* pcchOut);
     ///Searches for and retrieves a file or protocol association-related key from the registry.
     ///Params:
     ///    flags = Type: <b>ASSOCF</b> The ASSOCF value that can be used to control the search.
@@ -32234,7 +32420,7 @@ interface IQueryAssociations : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetKey(uint flags, ASSOCKEY key, const(wchar)* pszExtra, HKEY* phkeyOut);
+    HRESULT GetKey(uint flags, ASSOCKEY key, const(PWSTR) pszExtra, HKEY* phkeyOut);
     ///Searches for and retrieves file or protocol association-related binary data from the registry.
     ///Params:
     ///    flags = Type: <b>ASSOCF</b> The ASSOCF value that can be used to control the search.
@@ -32251,7 +32437,7 @@ interface IQueryAssociations : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetData(uint flags, ASSOCDATA data, const(wchar)* pszExtra, char* pvOut, uint* pcbOut);
+    HRESULT GetData(uint flags, ASSOCDATA data, const(PWSTR) pszExtra, void* pvOut, uint* pcbOut);
     ///This method is not implemented.
     ///Params:
     ///    flags = TBD
@@ -32259,7 +32445,7 @@ interface IQueryAssociations : IUnknown
     ///    pszExtra = TBD
     ///    riid = TBD
     ///    ppvOut = TBD
-    HRESULT GetEnum(uint flags, ASSOCENUM assocenum, const(wchar)* pszExtra, const(GUID)* riid, void** ppvOut);
+    HRESULT GetEnum(uint flags, ASSOCENUM assocenum, const(PWSTR) pszExtra, const(GUID)* riid, void** ppvOut);
 }
 
 ///Exposes methods that provide general information about an application to the Add/Remove Programs Application. You
@@ -32470,7 +32656,7 @@ interface ICredentialProviderCredential : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetSelected(int* pbAutoLogon);
+    HRESULT SetSelected(BOOL* pbAutoLogon);
     ///Called when a credential loses selection.
     ///Returns:
     ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
@@ -32498,7 +32684,7 @@ interface ICredentialProviderCredential : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetStringValue(uint dwFieldID, ushort** ppsz);
+    HRESULT GetStringValue(uint dwFieldID, PWSTR* ppsz);
     ///Enables retrieval of bitmap data from a credential with a bitmap field.
     ///Params:
     ///    dwFieldID = Type: <b>DWORD</b> The identifier for the field.
@@ -32515,7 +32701,7 @@ interface ICredentialProviderCredential : IUnknown
     ///    pbChecked = Type: <b>BOOL*</b> Indicates the state of the checkbox. <b>TRUE</b> indicates the checkbox is checked,
     ///                otherwise <b>FALSE</b>.
     ///    ppszLabel = Type: <b>LPWSTR*</b> Points to the label on the checkbox.
-    HRESULT GetCheckboxValue(uint dwFieldID, int* pbChecked, ushort** ppszLabel);
+    HRESULT GetCheckboxValue(uint dwFieldID, BOOL* pbChecked, PWSTR* ppszLabel);
     ///Retrieves the identifier of a field that the submit button should be placed next to in the Logon UI. The
     ///Credential UI does not call this method.
     ///Params:
@@ -32546,7 +32732,7 @@ interface ICredentialProviderCredential : IUnknown
     ///    dwFieldID = Type: <b>DWORD</b> The identifier for the combo box to query.
     ///    dwItem = Type: <b>DWORD</b> The index of the desired item.
     ///    ppszItem = Type: <b>LPWSTR*</b> A pointer to the string value that receives the combo box label.
-    HRESULT GetComboBoxValueAt(uint dwFieldID, uint dwItem, ushort** ppszItem);
+    HRESULT GetComboBoxValueAt(uint dwFieldID, uint dwItem, PWSTR* ppszItem);
     ///Enables a Logon UI or Credential UI to update the text for a <b>CPFT_EDIT_TEXT</b> fields as the user types in
     ///them.
     ///Params:
@@ -32557,7 +32743,7 @@ interface ICredentialProviderCredential : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetStringValue(uint dwFieldID, const(wchar)* psz);
+    HRESULT SetStringValue(uint dwFieldID, const(PWSTR) psz);
     ///Enables a Logon UI and Credential UI to indicate that a checkbox value has changed.
     ///Params:
     ///    dwFieldID = Type: <b>DWORD</b> The identifier for the field to update.
@@ -32594,7 +32780,7 @@ interface ICredentialProviderCredential : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT GetSerialization(CREDENTIAL_PROVIDER_GET_SERIALIZATION_RESPONSE* pcpgsr, 
-                             CREDENTIAL_PROVIDER_CREDENTIAL_SERIALIZATION* pcpcs, ushort** ppszOptionalStatusText, 
+                             CREDENTIAL_PROVIDER_CREDENTIAL_SERIALIZATION* pcpcs, PWSTR* ppszOptionalStatusText, 
                              CREDENTIAL_PROVIDER_STATUS_ICON* pcpsiOptionalStatusIcon);
     ///Translates a received error status code into the appropriate user-readable message. The Credential UI does not
     ///call this method.
@@ -32610,7 +32796,7 @@ interface ICredentialProviderCredential : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT ReportResult(NTSTATUS ntsStatus, NTSTATUS ntsSubstatus, ushort** ppszOptionalStatusText, 
+    HRESULT ReportResult(NTSTATUS ntsStatus, NTSTATUS ntsSubstatus, PWSTR* ppszOptionalStatusText, 
                          CREDENTIAL_PROVIDER_STATUS_ICON* pcpsiOptionalStatusIcon);
 }
 
@@ -32629,7 +32815,7 @@ interface IQueryContinueWithStatus : IQueryContinue
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetStatusMessage(const(wchar)* psz);
+    HRESULT SetStatusMessage(const(PWSTR) psz);
 }
 
 ///Exposes methods for connecting and disconnecting <b>IConnectableCredentialProviderCredential</b> objects.
@@ -32687,7 +32873,7 @@ interface ICredentialProviderCredentialEvents : IUnknown
     ///           information.
     ///    dwFieldID = Type: <b>DWORD</b> The unique ID of the field for which the string is being set.
     ///    psz = Type: <b>LPCWSTR</b> A pointer to the new string for the field.
-    HRESULT SetFieldString(ICredentialProviderCredential pcpc, uint dwFieldID, const(wchar)* psz);
+    HRESULT SetFieldString(ICredentialProviderCredential pcpc, uint dwFieldID, const(PWSTR) psz);
     ///Communicates to the Logon UI or Credential UI that a checkbox field has changed and that the UI should be
     ///updated.
     ///Params:
@@ -32698,7 +32884,7 @@ interface ICredentialProviderCredentialEvents : IUnknown
     ///               <b>FALSE</b> indicates it should not.
     ///    pszLabel = Type: <b>LPCWSTR</b> The new string for the checkbox label.
     HRESULT SetFieldCheckbox(ICredentialProviderCredential pcpc, uint dwFieldID, BOOL bChecked, 
-                             const(wchar)* pszLabel);
+                             const(PWSTR) pszLabel);
     ///Communicates to the Logon UI or Credential UI that a tile image field has changed and that the UI should be
     ///updated.
     ///Params:
@@ -32730,7 +32916,7 @@ interface ICredentialProviderCredentialEvents : IUnknown
     ///           This value should be set to <b>this</b>. See ICredentialProviderCredentialEvents for more information.
     ///    dwFieldID = Type: <b>DWORD</b> The unique ID of the combo box.
     ///    pszItem = Type: <b>LPCWSTR</b> The string that will be appended to the combo box as a new option.
-    HRESULT AppendFieldComboBoxItem(ICredentialProviderCredential pcpc, uint dwFieldID, const(wchar)* pszItem);
+    HRESULT AppendFieldComboBoxItem(ICredentialProviderCredential pcpc, uint dwFieldID, const(PWSTR) pszItem);
     ///Enables credentials to set the field that the submit button appears adjacent to.
     ///Params:
     ///    pcpc = Type: <b>ICredentialProviderCredential*</b> The credential whose submit button location is being set. This
@@ -32835,7 +33021,7 @@ interface ICredentialProvider : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetCredentialCount(uint* pdwCount, uint* pdwDefault, int* pbAutoLogonWithDefault);
+    HRESULT GetCredentialCount(uint* pdwCount, uint* pdwDefault, BOOL* pbAutoLogonWithDefault);
     ///Gets a specific credential.
     ///Params:
     ///    dwIndex = Type: <b>DWORD</b> The zero-based index of the credential within the set of credentials enumerated for this
@@ -32890,7 +33076,7 @@ interface ICredentialProviderFilter : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> Always returns S_OK.
     ///    
-    HRESULT Filter(CREDENTIAL_PROVIDER_USAGE_SCENARIO cpus, uint dwFlags, char* rgclsidProviders, char* rgbAllow, 
+    HRESULT Filter(CREDENTIAL_PROVIDER_USAGE_SCENARIO cpus, uint dwFlags, GUID* rgclsidProviders, BOOL* rgbAllow, 
                    uint cProviders);
     ///Updates a credential from a remote session.
     ///Params:
@@ -32914,7 +33100,7 @@ interface ICredentialProviderCredential2 : ICredentialProviderCredential
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetUserSid(ushort** sid);
+    HRESULT GetUserSid(PWSTR* sid);
 }
 
 ///Provides a method that enables the credential provider framework to determine whether you've made a customization to
@@ -32978,7 +33164,7 @@ interface ICredentialProviderUser : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetSid(ushort** sid);
+    HRESULT GetSid(PWSTR* sid);
     ///Retrieves the ID of the account provider for this user.
     ///Params:
     ///    providerID = A pointer to a value that, when this method returns successfully, receives the GUID of the user's account
@@ -33005,7 +33191,7 @@ interface ICredentialProviderUser : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetStringValue(const(PROPERTYKEY)* key, ushort** stringValue);
+    HRESULT GetStringValue(const(PROPERTYKEY)* key, PWSTR* stringValue);
     ///Retrieves a specified property value set for the user.
     ///Params:
     ///    key = One of the following values that specify the property to retrieve. <table class="clsStd"> <tr>
@@ -33118,7 +33304,7 @@ interface ISyncMgrHandlerCollection : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT BindToHandler(const(wchar)* pszHandlerID, const(GUID)* riid, void** ppv);
+    HRESULT BindToHandler(const(PWSTR) pszHandlerID, const(GUID)* riid, void** ppv);
 }
 
 ///Exposes methods that make up the primary interface implemented by a sync handler. Sync Center creates one instance of
@@ -33137,7 +33323,7 @@ interface ISyncMgrHandler : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetName(ushort** ppszName);
+    HRESULT GetName(PWSTR* ppszName);
     ///Gets properties that describe the handler.
     ///Params:
     ///    ppHandlerInfo = Type: <b>ISyncMgrHandlerInfo**</b> When this method returns, contains the address of a pointer to an instance
@@ -33208,7 +33394,7 @@ interface ISyncMgrHandler : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT Synchronize(char* ppszItemIDs, uint cItems, HWND hwndOwner, ISyncMgrSessionCreator pSessionCreator, 
+    HRESULT Synchronize(PWSTR* ppszItemIDs, uint cItems, HWND hwndOwner, ISyncMgrSessionCreator pSessionCreator, 
                         IUnknown punk);
 }
 
@@ -33234,7 +33420,7 @@ interface ISyncMgrHandlerInfo : IUnknown
     ///    Type: <b>HRESULT</b> Returns S_OK if successful, or an error value otherwise. If the method fails,
     ///    <i>ppszTypeLabel</i> contains an empty string.
     ///    
-    HRESULT GetTypeLabel(ushort** ppszTypeLabel);
+    HRESULT GetTypeLabel(PWSTR* ppszTypeLabel);
     ///Gets a string that contains commentary regarding the handler.
     ///Params:
     ///    ppszComment = Type: <b>LPWSTR*</b> When this method returns, contains a pointer to a buffer containing the comment string.
@@ -33243,7 +33429,7 @@ interface ISyncMgrHandlerInfo : IUnknown
     ///    Type: <b>HRESULT</b> Returns S_OK if successful, or an error value otherwise. If the method fails,
     ///    <i>ppszComment</i> contains an empty string.
     ///    
-    HRESULT GetComment(ushort** ppszComment);
+    HRESULT GetComment(PWSTR* ppszComment);
     ///Gets the date and time when the handler was last synchronized.
     ///Params:
     ///    pftLastSync = Type: <b>FILETIME*</b> When this method returns, contains a pointer to a FILETIME structure containing the
@@ -33293,7 +33479,7 @@ interface ISyncMgrSyncItemContainer : IUnknown
     ///                of maximum length MAX_SYNCMGR_ID including the terminating <b>null</b> character.
     ///    ppItem = Type: <b>ISyncMgrSyncItem**</b> When this method returns, contains the address of a pointer to an
     ///             ISyncMgrSyncItem instance representing the sync item.
-    HRESULT GetSyncItem(const(wchar)* pszItemID, ISyncMgrSyncItem* ppItem);
+    HRESULT GetSyncItem(const(PWSTR) pszItemID, ISyncMgrSyncItem* ppItem);
     ///Gets an interface that enumerates the handler's sync items.
     ///Params:
     ///    ppenum = Type: <b>IEnumSyncMgrSyncItems**</b> When this method returns, contains the address of a pointer to an
@@ -33326,7 +33512,7 @@ interface ISyncMgrSyncItem : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetItemID(ushort** ppszItemID);
+    HRESULT GetItemID(PWSTR* ppszItemID);
     ///Gets the UI display name of the sync item.
     ///Params:
     ///    ppszName = Type: <b>LPWSTR*</b> When this method returns, contains a pointer to a buffer containing the item's display
@@ -33337,7 +33523,7 @@ interface ISyncMgrSyncItem : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetName(ushort** ppszName);
+    HRESULT GetName(PWSTR* ppszName);
     ///Gets the properties of a sync item.
     ///Params:
     ///    ppItemInfo = Type: <b>ISyncMgrSyncItemInfo*</b> When this method returns, contains the address of a pointer to an instance
@@ -33399,7 +33585,7 @@ interface ISyncMgrSyncItemInfo : IUnknown
     ///    Type: <b>HRESULT</b> Returns S_OK if successful, or an error value otherwise. If the method fails,
     ///    <i>ppszTypeLabel</i> contains an empty string.
     ///    
-    HRESULT GetTypeLabel(ushort** ppszTypeLabel);
+    HRESULT GetTypeLabel(PWSTR* ppszTypeLabel);
     ///Gets a string that contains commentary regarding the item.
     ///Params:
     ///    ppszComment = Type: <b>LPWSTR*</b> When this method returns, contains a pointer to a buffer containing the comment string.
@@ -33408,7 +33594,7 @@ interface ISyncMgrSyncItemInfo : IUnknown
     ///    Type: <b>HRESULT</b> Returns S_OK if successful, or an error value otherwise. If the method fails,
     ///    <i>ppszComment</i> contains an empty string.
     ///    
-    HRESULT GetComment(ushort** ppszComment);
+    HRESULT GetComment(PWSTR* ppszComment);
     ///Gets the date and time when the item was last synchronized.
     ///Params:
     ///    pftLastSync = Type: <b>FILETIME*</b> When this method returns, contains a pointer to a FILETIME structure containing the
@@ -33445,7 +33631,7 @@ interface IEnumSyncMgrSyncItems : IUnknown
     ///    celt = Type: <b>ULONG</b> This value must be 1.
     ///    rgelt = Type: <b>ISyncMgrSyncItem**</b> The address of an ISyncMgrSyncItem interface pointer.
     ///    pceltFetched = Type: <b>ULONG*</b> A pointer to the number of items fetched.
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, ISyncMgrSyncItem* rgelt, uint* pceltFetched);
     ///Skips forward in the enumeration the specified number of items.
     ///Params:
     ///    celt = Type: <b>ULONG</b> The number of items to skip.
@@ -33478,7 +33664,7 @@ interface ISyncMgrSessionCreator : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CreateSession(const(wchar)* pszHandlerID, char* ppszItemIDs, uint cItems, 
+    HRESULT CreateSession(const(PWSTR) pszHandlerID, PWSTR* ppszItemIDs, uint cItems, 
                           ISyncMgrSyncCallback* ppCallback);
 }
 
@@ -33506,17 +33692,17 @@ interface ISyncMgrSyncCallback : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT ReportProgress(const(wchar)* pszItemID, const(wchar)* pszProgressText, SYNCMGR_PROGRESS_STATUS nStatus, 
+    HRESULT ReportProgress(const(PWSTR) pszItemID, const(PWSTR) pszProgressText, SYNCMGR_PROGRESS_STATUS nStatus, 
                            uint uCurrentStep, uint uMaxStep, SYNCMGR_CANCEL_REQUEST* pnCancelRequest);
     ///Sets the content of an information field for the handler while that handler is performing a synchronization.
     ///Params:
     ///    pszProgressText = Type: <b>LPCWSTR</b> Pointer to a buffer containing the comment text.
     ///    pnCancelRequest = Type: <b>SYNCMGR_CANCEL_REQUEST*</b> A value from the SYNCMGR_CANCEL_REQUEST enumeration specifying the
     ///                      nature of a cancel request, if any.
-    HRESULT SetHandlerProgressText(const(wchar)* pszProgressText, SYNCMGR_CANCEL_REQUEST* pnCancelRequest);
-    HRESULT ReportEventA(const(wchar)* pszItemID, SYNCMGR_EVENT_LEVEL nLevel, SYNCMGR_EVENT_FLAGS nFlags, 
-                         const(wchar)* pszName, const(wchar)* pszDescription, const(wchar)* pszLinkText, 
-                         const(wchar)* pszLinkReference, const(wchar)* pszContext, GUID* pguidEventID);
+    HRESULT SetHandlerProgressText(const(PWSTR) pszProgressText, SYNCMGR_CANCEL_REQUEST* pnCancelRequest);
+    HRESULT ReportEventA(const(PWSTR) pszItemID, SYNCMGR_EVENT_LEVEL nLevel, SYNCMGR_EVENT_FLAGS nFlags, 
+                         const(PWSTR) pszName, const(PWSTR) pszDescription, const(PWSTR) pszLinkText, 
+                         const(PWSTR) pszLinkReference, const(PWSTR) pszContext, GUID* pguidEventID);
     ///Determines whether the synchronization has been canceled.
     ///Params:
     ///    pszItemID = Type: <b>LPCWSTR</b> A pointer to a buffer containing the ID of the item.
@@ -33530,7 +33716,7 @@ interface ISyncMgrSyncCallback : IUnknown
     ///    an empty string, the return value depends on whether a cancellation has been requested for the entire
     ///    handler.
     ///    
-    HRESULT CanContinue(const(wchar)* pszItemID);
+    HRESULT CanContinue(const(PWSTR) pszItemID);
     ///Retrieves an enumerator of the set of items that have a pending request to be synchronized. This is the set of
     ///items that will be synchronized after the current synchronization is finished.
     ///Params:
@@ -33552,7 +33738,7 @@ interface ISyncMgrSyncCallback : IUnknown
     ///    Type: <b>HRESULT</b> Returns S_OK if successful, or an error value otherwise. Returns E_INVALIDARG if
     ///    <i>pszItemID</i> is already part of the session.
     ///    
-    HRESULT AddItemToSession(const(wchar)* pszItemID);
+    HRESULT AddItemToSession(const(PWSTR) pszItemID);
     HRESULT AddIUnknownToSession(IUnknown punk);
     ///Proposes the addition of a new item to the set of items previously enumerated.
     ///Params:
@@ -33566,7 +33752,7 @@ interface ISyncMgrSyncCallback : IUnknown
     ///Params:
     ///    pszItemID = Type: <b>LPCWSTR*</b> A pointer to a buffer containing the unique ID of the item to confirm. This string is
     ///                of maximum length MAX_SYNCMGR_ID including the terminating <b>null</b> character.
-    HRESULT CommitItem(const(wchar)* pszItemID);
+    HRESULT CommitItem(const(PWSTR) pszItemID);
     ///Reports that a synchronization operation is being performed that was requested manually from outside the Sync
     ///Center UI.
     HRESULT ReportManualSync();
@@ -33614,7 +33800,7 @@ interface ISyncMgrScheduleWizardUIOperation : ISyncMgrUIOperation
     ///Initializes the sync schedule wizard.
     ///Params:
     ///    pszHandlerID = Type: <b>LPCWSTR</b> A pointer to a handler ID as a Unicode string.
-    HRESULT InitWizard(const(wchar)* pszHandlerID);
+    HRESULT InitWizard(const(PWSTR) pszHandlerID);
 }
 
 ///Exposes a method that applications calling ISyncMgrControl can use to get the result of a
@@ -33649,7 +33835,7 @@ interface ISyncMgrControl : IUnknown
     ///    pResult = Type: <b>ISyncMgrSyncResult*</b> A pointer to an instance of ISyncMgrSyncResult, whose Result method is
     ///              called when the synchronization ends, either through success, failure, or cancellation. The <b>Result</b>
     ///              method is called with the aggregated state of the handler synchronization. This parameter can be <b>NULL</b>.
-    HRESULT StartHandlerSync(const(wchar)* pszHandlerID, HWND hwndOwner, IUnknown punk, 
+    HRESULT StartHandlerSync(const(PWSTR) pszHandlerID, HWND hwndOwner, IUnknown punk, 
                              SYNCMGR_SYNC_CONTROL_FLAGS nSyncControlFlags, ISyncMgrSyncResult pResult);
     ///Initiates the synchronization of specified items managed by a particular handler.
     ///Params:
@@ -33674,7 +33860,7 @@ interface ISyncMgrControl : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT StartItemSync(const(wchar)* pszHandlerID, char* ppszItemIDs, uint cItems, HWND hwndOwner, 
+    HRESULT StartItemSync(const(PWSTR) pszHandlerID, PWSTR* ppszItemIDs, uint cItems, HWND hwndOwner, 
                           IUnknown punk, SYNCMGR_SYNC_CONTROL_FLAGS nSyncControlFlags, ISyncMgrSyncResult pResult);
     ///Synchronizes all items managed by all handlers.
     ///Params:
@@ -33690,7 +33876,7 @@ interface ISyncMgrControl : IUnknown
     ///Params:
     ///    pszHandlerID = Type: <b>LPCWSTR</b> A pointer to a buffer containing the unique ID of the handler. This string is of maximum
     ///                   length MAX_SYNCMGR_ID including the terminating <b>null</b> character.
-    HRESULT StopHandlerSync(const(wchar)* pszHandlerID);
+    HRESULT StopHandlerSync(const(PWSTR) pszHandlerID);
     ///Stops the synchronization of specified items managed by a particular handler.
     ///Params:
     ///    pszHandlerID = Type: <b>LPCWSTR</b> a pointer to a buffer containing the unique ID of the handler. This string is of maximum
@@ -33698,7 +33884,7 @@ interface ISyncMgrControl : IUnknown
     ///    ppszItemIDs = Type: <b>LPCWSTR*</b> The address of a pointer to a buffer containing an array of IDs of the items to stop
     ///                  synchronizing. Each ID is of maximum length MAX_SYNCMGR_ID including the terminating <b>null</b> character.
     ///    cItems = Type: <b>DWORD</b> The number of IDs in <i>ppszItemIDs</i>.
-    HRESULT StopItemSync(const(wchar)* pszHandlerID, char* ppszItemIDs, uint cItems);
+    HRESULT StopItemSync(const(PWSTR) pszHandlerID, PWSTR* ppszItemIDs, uint cItems);
     ///Stops the synchronization of all items managed by all handlers.
     HRESULT StopSyncAll();
     ///Instructs Sync Center to reenumerate the handler collection, or informs it that properties of a handler in the
@@ -33725,7 +33911,7 @@ interface ISyncMgrControl : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT UpdateHandler(const(wchar)* pszHandlerID, SYNCMGR_CONTROL_FLAGS nControlFlags);
+    HRESULT UpdateHandler(const(PWSTR) pszHandlerID, SYNCMGR_CONTROL_FLAGS nControlFlags);
     ///Informs Sync Center that properties of a sync item have changed.
     ///Params:
     ///    pszHandlerID = Type: <b>LPCWSTR</b> A pointer to a buffer containing the unique ID of the handler that manages the item.
@@ -33739,7 +33925,7 @@ interface ISyncMgrControl : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT UpdateItem(const(wchar)* pszHandlerID, const(wchar)* pszItemID, SYNCMGR_CONTROL_FLAGS nControlFlags);
+    HRESULT UpdateItem(const(PWSTR) pszHandlerID, const(PWSTR) pszItemID, SYNCMGR_CONTROL_FLAGS nControlFlags);
     ///Informs Sync Center that events have been added for a specific handler or item.
     ///Params:
     ///    pszHandlerID = Type: <b>LPCWSTR</b> A pointer to a buffer containing the unique ID of the handler that manages the item.
@@ -33754,8 +33940,8 @@ interface ISyncMgrControl : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT UpdateEvents(const(wchar)* pszHandlerID, const(wchar)* pszItemID, SYNCMGR_CONTROL_FLAGS nControlFlags);
-    HRESULT UpdateConflict(const(wchar)* pszHandlerID, const(wchar)* pszItemID, ISyncMgrConflict pConflict, 
+    HRESULT UpdateEvents(const(PWSTR) pszHandlerID, const(PWSTR) pszItemID, SYNCMGR_CONTROL_FLAGS nControlFlags);
+    HRESULT UpdateConflict(const(PWSTR) pszHandlerID, const(PWSTR) pszItemID, ISyncMgrConflict pConflict, 
                            SYNCMGR_UPDATE_REASON nReason);
     ///Informs Sync Center that conflicts have been added for a specific handler or item.
     ///Params:
@@ -33771,8 +33957,7 @@ interface ISyncMgrControl : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT UpdateConflicts(const(wchar)* pszHandlerID, const(wchar)* pszItemID, 
-                            SYNCMGR_CONTROL_FLAGS nControlFlags);
+    HRESULT UpdateConflicts(const(PWSTR) pszHandlerID, const(PWSTR) pszItemID, SYNCMGR_CONTROL_FLAGS nControlFlags);
     ///Activates or deactivates a handler.
     ///Params:
     ///    fActivate = Type: <b>BOOL</b> <b>TRUE</b> to activate; <b>FALSE</b> to deactivate.
@@ -33787,7 +33972,7 @@ interface ISyncMgrControl : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT ActivateHandler(BOOL fActivate, const(wchar)* pszHandlerID, HWND hwndOwner, 
+    HRESULT ActivateHandler(BOOL fActivate, const(PWSTR) pszHandlerID, HWND hwndOwner, 
                             SYNCMGR_CONTROL_FLAGS nControlFlags);
     ///Enables or disables a handler.
     ///Params:
@@ -33803,7 +33988,7 @@ interface ISyncMgrControl : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT EnableHandler(BOOL fEnable, const(wchar)* pszHandlerID, HWND hwndOwner, 
+    HRESULT EnableHandler(BOOL fEnable, const(PWSTR) pszHandlerID, HWND hwndOwner, 
                           SYNCMGR_CONTROL_FLAGS nControlFlags);
     ///Enables or disables a sync item managed by a specified handler.
     ///Params:
@@ -33821,7 +34006,7 @@ interface ISyncMgrControl : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT EnableItem(BOOL fEnable, const(wchar)* pszHandlerID, const(wchar)* pszItemID, HWND hwndOwner, 
+    HRESULT EnableItem(BOOL fEnable, const(PWSTR) pszHandlerID, const(PWSTR) pszItemID, HWND hwndOwner, 
                        SYNCMGR_CONTROL_FLAGS nControlFlags);
 }
 
@@ -33853,7 +34038,7 @@ interface ISyncMgrEventStore : IUnknown
     ///Params:
     ///    pguidEventIDs = Type: <b>GUID*</b> A pointer to event <b>GUID</b>.
     ///    cEvents = Type: <b>ULONG</b> The count of events to remove.
-    HRESULT RemoveEvent(char* pguidEventIDs, uint cEvents);
+    HRESULT RemoveEvent(GUID* pguidEventIDs, uint cEvents);
 }
 
 ///Exposes methods that retrieve data from an event store. An event store allows Sync Center to get an enumerator of all
@@ -33873,7 +34058,7 @@ interface ISyncMgrEvent : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetHandlerID(ushort** ppszHandlerID);
+    HRESULT GetHandlerID(PWSTR* ppszHandlerID);
     ///Gets the ID of the item for which the event was logged.
     ///Params:
     ///    ppszItemID = Type: <b>LPWSTR*</b> Contains a pointer to an item ID as a Unicode string.
@@ -33882,7 +34067,7 @@ interface ISyncMgrEvent : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetItemID(ushort** ppszItemID);
+    HRESULT GetItemID(PWSTR* ppszItemID);
     ///Gets the log level of the event.
     ///Params:
     ///    pnLevel = Type: <b>SYNCMGR_EVENT_LEVEL*</b> When this method returns, contains a pointer to a member of the
@@ -33907,12 +34092,12 @@ interface ISyncMgrEvent : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetName(ushort** ppszName);
+    HRESULT GetName(PWSTR* ppszName);
     ///Gets the event description.
     ///Params:
     ///    ppszDescription = Type: <b>LPWSTR*</b> When this method returns, contains the address of a pointer to a null-terminated Unicode
     ///                      buffer that contains the description.
-    HRESULT GetDescription(ushort** ppszDescription);
+    HRESULT GetDescription(PWSTR* ppszDescription);
     ///Gets the text for the hot link for the event. The hot link is a displayed property that the user can click to
     ///execute an action. This allows the handler to show an available action that the user can see at a glance in the
     ///folder. The link text is the text that is displayed to the user.
@@ -33923,7 +34108,7 @@ interface ISyncMgrEvent : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetLinkText(ushort** ppszLinkText);
+    HRESULT GetLinkText(PWSTR* ppszLinkText);
     ///Gets the reference for the hot link for the event. The hot link is a displayed property that the user can click
     ///to execute an action. This allows the handler to show an available action that the user can see at a glance in
     ///the folder.
@@ -33934,7 +34119,7 @@ interface ISyncMgrEvent : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetLinkReference(ushort** ppszLinkReference);
+    HRESULT GetLinkReference(PWSTR* ppszLinkReference);
     ///Gets a context object that can be used by a handler to display properties or execute a context menu action.
     ///Params:
     ///    ppszContext = Type: <b>LPWSTR*</b> When this method returns, contains a pointer to the context as a Unicode string.
@@ -33943,7 +34128,7 @@ interface ISyncMgrEvent : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetContext(ushort** ppszContext);
+    HRESULT GetContext(PWSTR* ppszContext);
 }
 
 ///Exposes sync event enumeration methods.
@@ -33955,7 +34140,7 @@ interface IEnumSyncMgrEvents : IUnknown
     ///    celt = Type: <b>ULONG</b> This value must be 1.
     ///    rgelt = Type: <b>ISyncMgrEvent**</b> The address of an ISyncMgrEvent interface pointer.
     ///    pceltFetched = Type: <b>ULONG*</b> A pointer to the number of events fetched.
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, ISyncMgrEvent* rgelt, uint* pceltFetched);
     ///Skips forward the specified number of events in the enumeration.
     ///Params:
     ///    celt = Type: <b>ULONG</b> The number of events to skip.
@@ -33982,7 +34167,7 @@ interface ISyncMgrConflictStore : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT EnumConflicts(const(wchar)* pszHandlerID, const(wchar)* pszItemID, IEnumSyncMgrConflict* ppEnum);
+    HRESULT EnumConflicts(const(PWSTR) pszHandlerID, const(PWSTR) pszItemID, IEnumSyncMgrConflict* ppEnum);
     ///Binds to a particular conflict specified by IID.
     ///Params:
     ///    pConflictIdInfo = Type: <b>const SYNCMGR_CONFLICT_ID_INFO*</b> A pointer to a SYNCMGR_CONFLICT_ID_INFO structure.
@@ -34003,13 +34188,13 @@ interface ISyncMgrConflictStore : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT RemoveConflicts(char* rgConflictIdInfo, uint cConflicts);
+    HRESULT RemoveConflicts(const(SYNCMGR_CONFLICT_ID_INFO)* rgConflictIdInfo, uint cConflicts);
     ///Gets the number of conflicts in the store.
     ///Params:
     ///    pszHandlerID = Type: <b>LPCWSTR</b> A pointer to a sync handler ID as a Unicode string.
     ///    pszItemID = Type: <b>LPCWSTR</b> A pointer to a sync item ID as a Unicode string.
     ///    pnConflicts = Type: <b>DWORD*</b> When this method returns, contains the conflict count.
-    HRESULT GetCount(const(wchar)* pszHandlerID, const(wchar)* pszItemID, uint* pnConflicts);
+    HRESULT GetCount(const(PWSTR) pszHandlerID, const(PWSTR) pszItemID, uint* pnConflicts);
 }
 
 ///Exposes conflict enumeration methods.
@@ -34021,7 +34206,7 @@ interface IEnumSyncMgrConflict : IUnknown
     ///    celt = Type: <b>ULONG</b> The value must be 1.
     ///    rgelt = Type: <b>ISyncMgrConflict**</b> The address of an ISyncMgrConflict interface pointer.
     ///    pceltFetched = Type: <b>ULONG*</b> A pointer to the number of conflicts fetched.
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, ISyncMgrConflict* rgelt, uint* pceltFetched);
     ///Skips forward the specified number of conflicts in the enumeration.
     ///Params:
     ///    celt = Type: <b>ULONG</b> The number of conflicts to skip.
@@ -34183,7 +34368,7 @@ interface ISyncMgrConflictResolveInfo : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetPresenterChoice(SYNCMGR_PRESENTER_CHOICE* pnPresenterChoice, int* pfApplyToAll);
+    HRESULT GetPresenterChoice(SYNCMGR_PRESENTER_CHOICE* pnPresenterChoice, BOOL* pfApplyToAll);
     ///Gets the number of items that the user wants to keep.
     ///Params:
     ///    pcChoices = Type: <b>UINT*</b> When this method returns, contains a pointer to the number of items that the user wants to
@@ -34494,7 +34679,7 @@ interface IShellImageDataFactory : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>ppshimg</i> parameter is <b>NULL</b>.
     ///    </td> </tr> </table>
     ///    
-    HRESULT CreateImageFromFile(const(wchar)* pszPath, IShellImageData* ppshimg);
+    HRESULT CreateImageFromFile(const(PWSTR) pszPath, IShellImageData* ppshimg);
     ///Creates an instance of the IShellImageData interface based on a given file stream.
     ///Params:
     ///    pStream = Type: <b>IStream*</b> A pointer to the image stream.
@@ -34522,7 +34707,7 @@ interface IShellImageDataFactory : IUnknown
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> The internal object cannot be instantiated. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetDataFormatFromPath(const(wchar)* pszPath, GUID* pDataFormat);
+    HRESULT GetDataFormatFromPath(const(PWSTR) pszPath, GUID* pDataFormat);
 }
 
 ///<p class="CCE_Message">[This interface will eventually be unsupported. It is recommended that Windows GDI+ APIs be
@@ -34690,7 +34875,7 @@ interface IShellImageData : IUnknown
     ///    wszName = Type: <b>LPWSTR</b> A pointer to a buffer containing the display name as a Unicode string. On exit, the
     ///              contents of the buffer are only valid when the method returns S_OK.
     ///    cch = Type: <b>UINT</b> The size, in characters, of the buffer pointed to by <i>wszName</i>.
-    HRESULT DisplayName(const(wchar)* wszName, uint cch);
+    HRESULT DisplayName(PWSTR wszName, uint cch);
     ///Gets the resolution, in dots per inch (dpi), of the image.
     ///Params:
     ///    puResolutionX = Type: <b>ULONG*</b> A pointer to the horizontal resolution.
@@ -34758,7 +34943,7 @@ interface IStorageProviderPropertyHandler : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT RetrieveProperties(char* propertiesToRetrieve, uint propertiesToRetrieveCount, 
+    HRESULT RetrieveProperties(const(PROPERTYKEY)* propertiesToRetrieve, uint propertiesToRetrieveCount, 
                                IPropertyStore* retrievedProperties);
     ///Saves properties associated with a file or folder.
     ///Params:
@@ -34782,7 +34967,7 @@ interface IStorageProviderHandler : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetPropertyHandlerFromPath(const(wchar)* path, IStorageProviderPropertyHandler* propertyHandler);
+    HRESULT GetPropertyHandlerFromPath(const(PWSTR) path, IStorageProviderPropertyHandler* propertyHandler);
     ///Gets an instance of IStorageProviderPropertyHandler associated with the provided URI.
     ///Params:
     ///    uri = The URI for the relevant file.
@@ -34791,7 +34976,7 @@ interface IStorageProviderHandler : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetPropertyHandlerFromUri(const(wchar)* uri, IStorageProviderPropertyHandler* propertyHandler);
+    HRESULT GetPropertyHandlerFromUri(const(PWSTR) uri, IStorageProviderPropertyHandler* propertyHandler);
     ///Gets an instance of IStorageProviderPropertyHandler associated with the provided file identifier.
     ///Params:
     ///    fileId = The identifier for the relevant file.
@@ -34800,7 +34985,7 @@ interface IStorageProviderHandler : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetPropertyHandlerFromFileId(const(wchar)* fileId, IStorageProviderPropertyHandler* propertyHandler);
+    HRESULT GetPropertyHandlerFromFileId(const(PWSTR) fileId, IStorageProviderPropertyHandler* propertyHandler);
 }
 
 ///Exposes methods that manage the synchronization process.
@@ -34850,7 +35035,7 @@ interface ISyncMgrSynchronizeCallback : IUnknown
     ///    <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The
     ///    operation completed successfully. </td> </tr> </table>
     ///    
-    HRESULT ShowErrorCompleted(HRESULT hr, uint cItems, char* pItemIDs);
+    HRESULT ShowErrorCompleted(HRESULT hr, uint cItems, const(GUID)* pItemIDs);
     ///Called by the registered application before and after any dialog boxes are displayed from within the
     ///PrepareForSync and Synchronize methods.
     ///Params:
@@ -34892,7 +35077,7 @@ interface ISyncMgrSynchronizeCallback : IUnknown
     ///    width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The error information is logged
     ///    successfully. </td> </tr> </table>
     ///    
-    HRESULT LogError(uint dwErrorLevel, const(wchar)* pszErrorText, const(SYNCMGRLOGERRORINFO)* pSyncLogError);
+    HRESULT LogError(uint dwErrorLevel, const(PWSTR) pszErrorText, const(SYNCMGRLOGERRORINFO)* pSyncLogError);
     ///Called by the registered application's handler to delete a previously logged ErrorInformation, warning, or error
     ///message in the error tab on the synchronization manager status dialog box.
     ///Params:
@@ -34916,7 +35101,7 @@ interface ISyncMgrSynchronizeCallback : IUnknown
     ///    <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The connection was successfully
     ///    established. </td> </tr> </table>
     ///    
-    HRESULT EstablishConnection(const(wchar)* pwszConnection, uint dwReserved);
+    HRESULT EstablishConnection(const(PWSTR) pwszConnection, uint dwReserved);
 }
 
 ///Exposes methods that enumerate through an array of SYNCMGRITEM structures. Each of these structures provides
@@ -34934,7 +35119,7 @@ interface ISyncMgrEnumItems : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> Return S_OK if the method succeeds.
     ///    
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, SYNCMGRITEM* rgelt, uint* pceltFetched);
     ///Instructs the enumerator to skip the next <i>celt</i> elements in the enumeration so that the next call to
     ///ISyncMgrEnumItems::Next does not return those elements.
     ///Params:
@@ -34976,7 +35161,7 @@ interface ISyncMgrSynchronize : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>S_FALSE</b></dt> </dl> </td> <td width="60%"> Application handler does not
     ///    process a synchronization event. </td> </tr> </table>
     ///    
-    HRESULT Initialize(uint dwReserved, uint dwSyncMgrFlags, uint cbCookie, char* lpCookie);
+    HRESULT Initialize(uint dwReserved, uint dwSyncMgrFlags, uint cbCookie, const(ubyte)* lpCookie);
     ///Obtains handler information.
     ///Params:
     ///    ppSyncMgrHandlerInfo = Type: <b>SYNCMGRHANDLERINFO**</b> A pointer to a SYNCMGRHANDLERINFO structure.
@@ -35054,7 +35239,7 @@ interface ISyncMgrSynchronize : IUnknown
     ///    width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> Preparation is successful. </td> </tr>
     ///    </table>
     ///    
-    HRESULT PrepareForSync(uint cbNumItems, char* pItemIDs, HWND hWndParent, uint dwReserved);
+    HRESULT PrepareForSync(uint cbNumItems, GUID* pItemIDs, HWND hWndParent, uint dwReserved);
     ///Called by the synchronization manager once for each selected group after the user has chosen the registered
     ///applications to be synchronized.
     ///Params:
@@ -35115,7 +35300,7 @@ interface ISyncMgrSynchronizeInvoke : IUnknown
     ///    updated. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> The
     ///    errors occur during a synchronization update. </td> </tr> </table>
     ///    
-    HRESULT UpdateItems(uint dwInvokeFlags, const(GUID)* clsid, uint cbCookie, char* pCookie);
+    HRESULT UpdateItems(uint dwInvokeFlags, const(GUID)* clsid, uint cbCookie, const(ubyte)* pCookie);
     ///Programmatically starts an update for all items.
     ///Returns:
     ///    Type: <b>HRESULT</b> This method can return one of these values. <table> <tr> <th>Return code</th>
@@ -35141,7 +35326,7 @@ interface ISyncMgrRegister : IUnknown
     ///    <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The handler was successfully
     ///    registered. </td> </tr> </table>
     ///    
-    HRESULT RegisterSyncMgrHandler(const(GUID)* clsidHandler, const(wchar)* pwszDescription, 
+    HRESULT RegisterSyncMgrHandler(const(GUID)* clsidHandler, const(PWSTR) pwszDescription, 
                                    uint dwSyncMgrRegisterFlags);
     ///Removes a handler's class identifier (CLSID) from the registration. A handler should call this when it no longer
     ///has any items to synchronize.
@@ -35187,7 +35372,7 @@ interface IThumbnailStreamCache : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetThumbnailStream(const(wchar)* path, ulong cacheId, ThumbnailStreamCacheOptions options, 
+    HRESULT GetThumbnailStream(const(PWSTR) path, ulong cacheId, ThumbnailStreamCacheOptions options, 
                                uint requestedThumbnailSize, SIZE* thumbnailSize, IStream* thumbnailStream);
     ///Sets the thumbnail stream. This method is for internal use only and can only be called by the photos application.
     ///Params:
@@ -35199,14 +35384,14 @@ interface IThumbnailStreamCache : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetThumbnailStream(const(wchar)* path, ulong cacheId, SIZE thumbnailSize, IStream thumbnailStream);
+    HRESULT SetThumbnailStream(const(PWSTR) path, ulong cacheId, SIZE thumbnailSize, IStream thumbnailStream);
 }
 
 @GUID("7EBFDD87-AD18-11D3-A4C5-00C04F72D6B8")
 interface ITravelLogEntry : IUnknown
 {
-    HRESULT GetTitle(ushort** ppszTitle);
-    HRESULT GetURL(ushort** ppszURL);
+    HRESULT GetTitle(PWSTR* ppszTitle);
+    HRESULT GetURL(PWSTR* ppszURL);
 }
 
 @GUID("241C033E-E659-43DA-AA4D-4086DBC4758D")
@@ -35214,13 +35399,13 @@ interface ITravelLogClient : IUnknown
 {
     HRESULT FindWindowByIndex(uint dwID, IUnknown* ppunk);
     HRESULT GetWindowData(IStream pStream, WINDOWDATA* pWinData);
-    HRESULT LoadHistoryPosition(const(wchar)* pszUrlLocation, uint dwPosition);
+    HRESULT LoadHistoryPosition(PWSTR pszUrlLocation, uint dwPosition);
 }
 
 @GUID("7EBFDD85-AD18-11D3-A4C5-00C04F72D6B8")
 interface IEnumTravelLogEntry : IUnknown
 {
-    HRESULT Next(uint cElt, char* rgElt, uint* pcEltFetched);
+    HRESULT Next(uint cElt, ITravelLogEntry* rgElt, uint* pcEltFetched);
     HRESULT Skip(uint cElt);
     HRESULT Reset();
     HRESULT Clone(IEnumTravelLogEntry* ppEnum);
@@ -35229,11 +35414,11 @@ interface IEnumTravelLogEntry : IUnknown
 @GUID("7EBFDD80-AD18-11D3-A4C5-00C04F72D6B8")
 interface ITravelLogStg : IUnknown
 {
-    HRESULT CreateEntry(const(wchar)* pszUrl, const(wchar)* pszTitle, ITravelLogEntry ptleRelativeTo, 
-                        BOOL fPrepend, ITravelLogEntry* pptle);
+    HRESULT CreateEntry(const(PWSTR) pszUrl, const(PWSTR) pszTitle, ITravelLogEntry ptleRelativeTo, BOOL fPrepend, 
+                        ITravelLogEntry* pptle);
     HRESULT TravelTo(ITravelLogEntry ptle);
     HRESULT EnumEntries(uint flags, IEnumTravelLogEntry* ppenum);
-    HRESULT FindEntries(uint flags, const(wchar)* pszUrl, IEnumTravelLogEntry* ppenum);
+    HRESULT FindEntries(uint flags, const(PWSTR) pszUrl, IEnumTravelLogEntry* ppenum);
     HRESULT GetCount(uint flags, uint* pcEntries);
     HRESULT RemoveEntry(ITravelLogEntry ptle);
     HRESULT GetRelativeEntry(int iOffset, ITravelLogEntry* ptle);
@@ -35244,18 +35429,18 @@ interface IHlink : IUnknown
 {
     HRESULT SetHlinkSite(IHlinkSite pihlSite, uint dwSiteData);
     HRESULT GetHlinkSite(IHlinkSite* ppihlSite, uint* pdwSiteData);
-    HRESULT SetMonikerReference(uint grfHLSETF, IMoniker pimkTarget, const(wchar)* pwzLocation);
-    HRESULT GetMonikerReference(uint dwWhichRef, IMoniker* ppimkTarget, ushort** ppwzLocation);
-    HRESULT SetStringReference(uint grfHLSETF, const(wchar)* pwzTarget, const(wchar)* pwzLocation);
-    HRESULT GetStringReference(uint dwWhichRef, ushort** ppwzTarget, ushort** ppwzLocation);
-    HRESULT SetFriendlyName(const(wchar)* pwzFriendlyName);
-    HRESULT GetFriendlyName(uint grfHLFNAMEF, ushort** ppwzFriendlyName);
-    HRESULT SetTargetFrameName(const(wchar)* pwzTargetFrameName);
-    HRESULT GetTargetFrameName(ushort** ppwzTargetFrameName);
+    HRESULT SetMonikerReference(uint grfHLSETF, IMoniker pimkTarget, const(PWSTR) pwzLocation);
+    HRESULT GetMonikerReference(uint dwWhichRef, IMoniker* ppimkTarget, PWSTR* ppwzLocation);
+    HRESULT SetStringReference(uint grfHLSETF, const(PWSTR) pwzTarget, const(PWSTR) pwzLocation);
+    HRESULT GetStringReference(uint dwWhichRef, PWSTR* ppwzTarget, PWSTR* ppwzLocation);
+    HRESULT SetFriendlyName(const(PWSTR) pwzFriendlyName);
+    HRESULT GetFriendlyName(uint grfHLFNAMEF, PWSTR* ppwzFriendlyName);
+    HRESULT SetTargetFrameName(const(PWSTR) pwzTargetFrameName);
+    HRESULT GetTargetFrameName(PWSTR* ppwzTargetFrameName);
     HRESULT GetMiscStatus(uint* pdwStatus);
     HRESULT Navigate(uint grfHLNF, IBindCtx pibc, IBindStatusCallback pibsc, IHlinkBrowseContext pihlbc);
-    HRESULT SetAdditionalParams(const(wchar)* pwzAdditionalParams);
-    HRESULT GetAdditionalParams(ushort** ppwzAdditionalParams);
+    HRESULT SetAdditionalParams(const(PWSTR) pwzAdditionalParams);
+    HRESULT GetAdditionalParams(PWSTR* ppwzAdditionalParams);
 }
 
 @GUID("79EAC9C2-BAF9-11CE-8C82-00AA004BA90B")
@@ -35264,7 +35449,7 @@ interface IHlinkSite : IUnknown
     HRESULT QueryService(uint dwSiteData, const(GUID)* guidService, const(GUID)* riid, IUnknown* ppiunk);
     HRESULT GetMoniker(uint dwSiteData, uint dwAssign, uint dwWhich, IMoniker* ppimk);
     HRESULT ReadyToNavigate(uint dwSiteData, uint dwReserved);
-    HRESULT OnNavigationComplete(uint dwSiteData, uint dwreserved, HRESULT hrError, const(wchar)* pwzError);
+    HRESULT OnNavigationComplete(uint dwSiteData, uint dwreserved, HRESULT hrError, const(PWSTR) pwzError);
 }
 
 @GUID("79EAC9C4-BAF9-11CE-8C82-00AA004BA90B")
@@ -35272,9 +35457,9 @@ interface IHlinkTarget : IUnknown
 {
     HRESULT SetBrowseContext(IHlinkBrowseContext pihlbc);
     HRESULT GetBrowseContext(IHlinkBrowseContext* ppihlbc);
-    HRESULT Navigate(uint grfHLNF, const(wchar)* pwzJumpLocation);
-    HRESULT GetMoniker(const(wchar)* pwzLocation, uint dwAssign, IMoniker* ppimkLocation);
-    HRESULT GetFriendlyName(const(wchar)* pwzLocation, ushort** ppwzFriendlyName);
+    HRESULT Navigate(uint grfHLNF, const(PWSTR) pwzJumpLocation);
+    HRESULT GetMoniker(const(PWSTR) pwzLocation, uint dwAssign, IMoniker* ppimkLocation);
+    HRESULT GetFriendlyName(const(PWSTR) pwzLocation, PWSTR* ppwzFriendlyName);
 }
 
 @GUID("79EAC9C5-BAF9-11CE-8C82-00AA004BA90B")
@@ -35283,9 +35468,9 @@ interface IHlinkFrame : IUnknown
     HRESULT SetBrowseContext(IHlinkBrowseContext pihlbc);
     HRESULT GetBrowseContext(IHlinkBrowseContext* ppihlbc);
     HRESULT Navigate(uint grfHLNF, IBindCtx pbc, IBindStatusCallback pibsc, IHlink pihlNavigate);
-    HRESULT OnNavigate(uint grfHLNF, IMoniker pimkTarget, const(wchar)* pwzLocation, const(wchar)* pwzFriendlyName, 
+    HRESULT OnNavigate(uint grfHLNF, IMoniker pimkTarget, const(PWSTR) pwzLocation, const(PWSTR) pwzFriendlyName, 
                        uint dwreserved);
-    HRESULT UpdateHlink(uint uHLID, IMoniker pimkTarget, const(wchar)* pwzLocation, const(wchar)* pwzFriendlyName);
+    HRESULT UpdateHlink(uint uHLID, IMoniker pimkTarget, const(PWSTR) pwzLocation, const(PWSTR) pwzFriendlyName);
 }
 
 @GUID("79EAC9C6-BAF9-11CE-8C82-00AA004BA90B")
@@ -35305,10 +35490,10 @@ interface IHlinkBrowseContext : IUnknown
     HRESULT Revoke(uint dwRegister);
     HRESULT SetBrowseWindowInfo(HLBWINFO* phlbwi);
     HRESULT GetBrowseWindowInfo(HLBWINFO* phlbwi);
-    HRESULT SetInitialHlink(IMoniker pimkTarget, const(wchar)* pwzLocation, const(wchar)* pwzFriendlyName);
-    HRESULT OnNavigateHlink(uint grfHLNF, IMoniker pimkTarget, const(wchar)* pwzLocation, 
-                            const(wchar)* pwzFriendlyName, uint* puHLID);
-    HRESULT UpdateHlink(uint uHLID, IMoniker pimkTarget, const(wchar)* pwzLocation, const(wchar)* pwzFriendlyName);
+    HRESULT SetInitialHlink(IMoniker pimkTarget, const(PWSTR) pwzLocation, const(PWSTR) pwzFriendlyName);
+    HRESULT OnNavigateHlink(uint grfHLNF, IMoniker pimkTarget, const(PWSTR) pwzLocation, 
+                            const(PWSTR) pwzFriendlyName, uint* puHLID);
+    HRESULT UpdateHlink(uint uHLID, IMoniker pimkTarget, const(PWSTR) pwzLocation, const(PWSTR) pwzFriendlyName);
     HRESULT EnumNavigationStack(uint dwReserved, uint grfHLFNAMEF, IEnumHLITEM* ppienumhlitem);
     HRESULT QueryHlink(uint grfHLQF, uint uHLID);
     HRESULT GetHlink(uint uHLID, IHlink* ppihl);
@@ -35320,8 +35505,8 @@ interface IHlinkBrowseContext : IUnknown
 @GUID("79EAC9CB-BAF9-11CE-8C82-00AA004BA90B")
 interface IExtensionServices : IUnknown
 {
-    HRESULT SetAdditionalHeaders(const(wchar)* pwzAdditionalHeaders);
-    HRESULT SetAuthenticateData(HWND phwnd, const(wchar)* pwzUsername, const(wchar)* pwzPassword);
+    HRESULT SetAdditionalHeaders(const(PWSTR) pwzAdditionalHeaders);
+    HRESULT SetAuthenticateData(HWND phwnd, const(PWSTR) pwzUsername, const(PWSTR) pwzPassword);
 }
 
 ///Deprecated. Exposes methods to identify, invoke, and update an individual item in the browser's travel history.
@@ -35412,7 +35597,7 @@ interface ITravelLog : IUnknown
     ///    idsTemplate = Type: <b>int</b> Not used.
     ///    pwzText = Type: <b>LPWSTR</b> A pointer to a buffer that receives the Unicode tooltip text string.
     ///    cchText = Type: <b>DWORD</b> The number of characters in the buffer pointed to by <i>pwzText</i>.
-    HRESULT GetToolTipText(IUnknown punk, int iOffset, int idsTemplate, const(wchar)* pwzText, uint cchText);
+    HRESULT GetToolTipText(IUnknown punk, int iOffset, int idsTemplate, PWSTR pwzText, uint cchText);
     ///Deprecated. Inserts entries into the specified menu.
     ///Params:
     ///    punk = Type: <b>IUnknown*</b> A pointer to an IUnknown representing the nearest browser or frame within which the
@@ -35440,7 +35625,7 @@ interface ITravelLog : IUnknown
 
 interface CIE4ConnectionPoint : IConnectionPoint
 {
-    HRESULT DoInvokeIE4(int* pf, void** ppv, int dispid, DISPPARAMS* pdispparams);
+    HRESULT DoInvokeIE4(BOOL* pf, void** ppv, int dispid, DISPPARAMS* pdispparams);
     HRESULT DoInvokePIDLIE4(int dispid, ITEMIDLIST* pidl, BOOL fCanCancel);
 }
 
@@ -35552,13 +35737,13 @@ interface IBrowserService : IUnknown
     ///    psv = Type: <b>IShellView*</b> A pointer to an IShellView that represents the browser's view. The view must be
     ///          either the browser's current view or the pending view.
     ///    pszName = Type: <b>LPCWSTR</b> A pointer to a buffer containing the browser window's title as a Unicode string.
-    HRESULT SetTitle(IShellView psv, const(wchar)* pszName);
+    HRESULT SetTitle(IShellView psv, const(PWSTR) pszName);
     ///Deprecated. Retrieves the title of a browser window.
     ///Params:
     ///    psv = Type: <b>IShellView*</b> A pointer to an IShellView that represents the browser's current view.
     ///    pszName = Type: <b>LPWSTR</b> A pointer to a buffer that receives the title.
     ///    cchName = Type: <b>DWORD</b> The size, in characters, of the buffer pointed to by <i>pszName</i>.
-    HRESULT GetTitle(IShellView psv, const(wchar)* pszName, uint cchName);
+    HRESULT GetTitle(IShellView psv, PWSTR pszName, uint cchName);
     ///Deprecated. Retrieves an IOleObject for the browser.
     ///Params:
     ///    ppobjv = Type: <b>IOleObject**</b> The address that receives a pointer to the retrieved IOleObject.
@@ -35579,20 +35764,20 @@ interface IBrowserService : IUnknown
     ///    id = Type: <b>UINT</b> The frame control to check. <div class="alert"><b>Note</b> These frame controls may not be
     ///         supported in future versions of Windows.</div> <div> </div>
     ///    pfShown = Type: <b>BOOL*</b> A value of type <b>BOOL</b> that indicates whether the specified frame control is visible.
-    HRESULT IsControlWindowShown(uint id, int* pfShown);
+    HRESULT IsControlWindowShown(uint id, BOOL* pfShown);
     ///Deprecated. Retrieves the URL that corresponds to a pointer to an item identifier list (PIDL).
     ///Params:
     ///    pidl = Type: <b>LPCITEMIDLIST</b> The PIDL for which to get the corresponding URL.
     ///    pwszName = Type: <b>LPWSTR</b> A pointer to a buffer of at least INTERNET_MAX_URL_LENGTH characters to receive the URL.
     ///    uFlags = Type: <b>UINT</b> One of the following values specifying the form of the retrieved URL.
-    HRESULT IEGetDisplayName(ITEMIDLIST* pidl, const(wchar)* pwszName, uint uFlags);
+    HRESULT IEGetDisplayName(ITEMIDLIST* pidl, PWSTR pwszName, uint uFlags);
     ///Deprecated. Parses a URL into a pointer to an item identifier list (PIDL).
     ///Params:
     ///    uiCP = Type: <b>UINT</b> A value of type <b>UINT</b> that indicates the code page (for example, CP_ACP, the system
     ///           default code page) to use in the parsing.
     ///    pwszPath = Type: <b>LPCWSTR</b> A pointer to a buffer containing the URL as a Unicode string.
     ///    ppidlOut = Type: <b>LPITEMIDLIST*</b> The PIDL created from the parsed URL.
-    HRESULT IEParseDisplayName(uint uiCP, const(wchar)* pwszPath, ITEMIDLIST** ppidlOut);
+    HRESULT IEParseDisplayName(uint uiCP, const(PWSTR) pwszPath, ITEMIDLIST** ppidlOut);
     ///Deprecated. Displays a URL that failed to be successfully parsed by IBrowserService::IEParseDisplayName.
     ///Params:
     ///    hres = Type: <b>HRESULT</b> An <b>HRESULT</b> returned by IBrowserService::IEParseDisplayName. If this parameter is
@@ -35604,7 +35789,7 @@ interface IBrowserService : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT DisplayParseError(HRESULT hres, const(wchar)* pwszPath);
+    HRESULT DisplayParseError(HRESULT hres, const(PWSTR) pwszPath);
     ///Deprecated. Navigates the browser to the location indicated by a pointer to an item identifier list (PIDL).
     ///Params:
     ///    pidl = Type: <b>LPCITEMIDLIST</b> The PIDL of the location.
@@ -35632,7 +35817,7 @@ interface IBrowserService : IUnknown
     ///    pidl = Type: <b>LPCITEMIDLIST</b> The PIDL to use in the update.
     ///    pfDidBrowse = Type: <b>BOOL*</b> Optional. A pointer to a value of type <b>BOOL</b> that indicates whether navigation
     ///                  occurred.
-    HRESULT NotifyRedirect(IShellView psv, ITEMIDLIST* pidl, int* pfDidBrowse);
+    HRESULT NotifyRedirect(IShellView psv, ITEMIDLIST* pidl, BOOL* pfDidBrowse);
     ///Deprecated. Instructs the browser to update the pointer to an item identifier list (PIDL) in the window list.
     ///This method is called after navigation.
     HRESULT UpdateWindowList();
@@ -36024,13 +36209,13 @@ interface IBrowserService2 : IBrowserService
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT _GetEffectiveClientArea(RECT* lprectBorder, ptrdiff_t hmon);
+    HRESULT _GetEffectiveClientArea(RECT* lprectBorder, HMONITOR hmon);
     ///Deprecated. Returns a stream used to load or save the view state.
     ///Params:
     ///    pidl = Type: <b>LPCITEMIDLIST</b> A PIDL that identifies the view.
     ///    grfMode = Type: <b>DWORD</b> Not used.
     ///    pwszName = Type: <b>LPCWSTR</b> A pointer to a buffer that contains the Unicode name of the window.
-    IStream v_GetViewStream(ITEMIDLIST* pidl, uint grfMode, const(wchar)* pwszName);
+    IStream v_GetViewStream(ITEMIDLIST* pidl, uint grfMode, const(PWSTR) pwszName);
     ///Deprecated. Calls the SendMessage function with a message received by the view, using the <b>_hwndView</b> member
     ///of the BASEBROWSERDATA structure as the <b>SendMessage</b> <i>hWnd</i> parameter.
     ///Params:
@@ -36153,7 +36338,7 @@ interface IBrowserService3 : IBrowserService2
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT IEParseDisplayNameEx(uint uiCP, const(wchar)* pwszPath, uint dwFlags, ITEMIDLIST** ppidlOut);
+    HRESULT IEParseDisplayNameEx(uint uiCP, const(PWSTR) pwszPath, uint dwFlags, ITEMIDLIST** ppidlOut);
 }
 
 ///Deprecated.
@@ -36234,16 +36419,16 @@ interface ITranscodeImage : IUnknown
 @GUID("FBF23B80-E3F0-101B-8488-00AA003E56F8")
 interface IUniformResourceLocatorA : IUnknown
 {
-    HRESULT SetURL(const(char)* pcszURL, uint dwInFlags);
-    HRESULT GetURL(byte** ppszURL);
+    HRESULT SetURL(const(PSTR) pcszURL, uint dwInFlags);
+    HRESULT GetURL(PSTR* ppszURL);
     HRESULT InvokeCommand(urlinvokecommandinfoA* purlici);
 }
 
 @GUID("CABB0DA0-DA57-11CF-9974-0020AFD79762")
 interface IUniformResourceLocatorW : IUnknown
 {
-    HRESULT SetURL(const(wchar)* pcszURL, uint dwInFlags);
-    HRESULT GetURL(ushort** ppszURL);
+    HRESULT SetURL(const(PWSTR) pcszURL, uint dwInFlags);
+    HRESULT GetURL(PWSTR* ppszURL);
     HRESULT InvokeCommand(urlinvokecommandinfoW* purlici);
 }
 
@@ -36277,7 +36462,7 @@ interface IEnumInputContext : IUnknown
 @GUID("B3458082-BD00-11D1-939B-0060B067B86E")
 interface IActiveIMMRegistrar : IUnknown
 {
-    HRESULT RegisterIME(const(GUID)* rclsid, ushort lgid, const(wchar)* pszIconFile, const(wchar)* pszDesc);
+    HRESULT RegisterIME(const(GUID)* rclsid, ushort lgid, const(PWSTR) pszIconFile, const(PWSTR) pszDesc);
     HRESULT UnregisterIME(const(GUID)* rclsid);
 }
 
@@ -36295,16 +36480,16 @@ interface IActiveIMMMessagePumpOwner : IUnknown
 interface IActiveIMMApp : IUnknown
 {
     HRESULT AssociateContext(HWND hWnd, HIMC__* hIME, HIMC__** phPrev);
-    HRESULT ConfigureIMEA(ptrdiff_t hKL, HWND hWnd, uint dwMode, REGISTERWORDA* pData);
-    HRESULT ConfigureIMEW(ptrdiff_t hKL, HWND hWnd, uint dwMode, REGISTERWORDW* pData);
+    HRESULT ConfigureIMEA(HKL hKL, HWND hWnd, uint dwMode, REGISTERWORDA* pData);
+    HRESULT ConfigureIMEW(HKL hKL, HWND hWnd, uint dwMode, REGISTERWORDW* pData);
     HRESULT CreateContext(HIMC__** phIMC);
     HRESULT DestroyContext(HIMC__* hIME);
-    HRESULT EnumRegisterWordA(ptrdiff_t hKL, const(char)* szReading, uint dwStyle, const(char)* szRegister, 
-                              void* pData, IEnumRegisterWordA* pEnum);
-    HRESULT EnumRegisterWordW(ptrdiff_t hKL, const(wchar)* szReading, uint dwStyle, const(wchar)* szRegister, 
-                              void* pData, IEnumRegisterWordW* pEnum);
-    HRESULT EscapeA(ptrdiff_t hKL, HIMC__* hIMC, uint uEscape, void* pData, LRESULT* plResult);
-    HRESULT EscapeW(ptrdiff_t hKL, HIMC__* hIMC, uint uEscape, void* pData, LRESULT* plResult);
+    HRESULT EnumRegisterWordA(HKL hKL, PSTR szReading, uint dwStyle, PSTR szRegister, void* pData, 
+                              IEnumRegisterWordA* pEnum);
+    HRESULT EnumRegisterWordW(HKL hKL, PWSTR szReading, uint dwStyle, PWSTR szRegister, void* pData, 
+                              IEnumRegisterWordW* pEnum);
+    HRESULT EscapeA(HKL hKL, HIMC__* hIMC, uint uEscape, void* pData, LRESULT* plResult);
+    HRESULT EscapeW(HKL hKL, HIMC__* hIMC, uint uEscape, void* pData, LRESULT* plResult);
     HRESULT GetCandidateListA(HIMC__* hIMC, uint dwIndex, uint uBufLen, CANDIDATELIST* pCandList, uint* puCopied);
     HRESULT GetCandidateListW(HIMC__* hIMC, uint dwIndex, uint uBufLen, CANDIDATELIST* pCandList, uint* puCopied);
     HRESULT GetCandidateListCountA(HIMC__* hIMC, uint* pdwListSize, uint* pdwBufLen);
@@ -36316,32 +36501,32 @@ interface IActiveIMMApp : IUnknown
     HRESULT GetCompositionStringW(HIMC__* hIMC, uint dwIndex, uint dwBufLen, int* plCopied, void* pBuf);
     HRESULT GetCompositionWindow(HIMC__* hIMC, COMPOSITIONFORM* pCompForm);
     HRESULT GetContext(HWND hWnd, HIMC__** phIMC);
-    HRESULT GetConversionListA(ptrdiff_t hKL, HIMC__* hIMC, const(char)* pSrc, uint uBufLen, uint uFlag, 
-                               CANDIDATELIST* pDst, uint* puCopied);
-    HRESULT GetConversionListW(ptrdiff_t hKL, HIMC__* hIMC, const(wchar)* pSrc, uint uBufLen, uint uFlag, 
-                               CANDIDATELIST* pDst, uint* puCopied);
+    HRESULT GetConversionListA(HKL hKL, HIMC__* hIMC, PSTR pSrc, uint uBufLen, uint uFlag, CANDIDATELIST* pDst, 
+                               uint* puCopied);
+    HRESULT GetConversionListW(HKL hKL, HIMC__* hIMC, PWSTR pSrc, uint uBufLen, uint uFlag, CANDIDATELIST* pDst, 
+                               uint* puCopied);
     HRESULT GetConversionStatus(HIMC__* hIMC, uint* pfdwConversion, uint* pfdwSentence);
     HRESULT GetDefaultIMEWnd(HWND hWnd, HWND* phDefWnd);
-    HRESULT GetDescriptionA(ptrdiff_t hKL, uint uBufLen, const(char)* szDescription, uint* puCopied);
-    HRESULT GetDescriptionW(ptrdiff_t hKL, uint uBufLen, const(wchar)* szDescription, uint* puCopied);
-    HRESULT GetGuideLineA(HIMC__* hIMC, uint dwIndex, uint dwBufLen, const(char)* pBuf, uint* pdwResult);
-    HRESULT GetGuideLineW(HIMC__* hIMC, uint dwIndex, uint dwBufLen, const(wchar)* pBuf, uint* pdwResult);
-    HRESULT GetIMEFileNameA(ptrdiff_t hKL, uint uBufLen, const(char)* szFileName, uint* puCopied);
-    HRESULT GetIMEFileNameW(ptrdiff_t hKL, uint uBufLen, const(wchar)* szFileName, uint* puCopied);
+    HRESULT GetDescriptionA(HKL hKL, uint uBufLen, PSTR szDescription, uint* puCopied);
+    HRESULT GetDescriptionW(HKL hKL, uint uBufLen, PWSTR szDescription, uint* puCopied);
+    HRESULT GetGuideLineA(HIMC__* hIMC, uint dwIndex, uint dwBufLen, PSTR pBuf, uint* pdwResult);
+    HRESULT GetGuideLineW(HIMC__* hIMC, uint dwIndex, uint dwBufLen, PWSTR pBuf, uint* pdwResult);
+    HRESULT GetIMEFileNameA(HKL hKL, uint uBufLen, PSTR szFileName, uint* puCopied);
+    HRESULT GetIMEFileNameW(HKL hKL, uint uBufLen, PWSTR szFileName, uint* puCopied);
     HRESULT GetOpenStatus(HIMC__* hIMC);
-    HRESULT GetProperty(ptrdiff_t hKL, uint fdwIndex, uint* pdwProperty);
-    HRESULT GetRegisterWordStyleA(ptrdiff_t hKL, uint nItem, STYLEBUFA* pStyleBuf, uint* puCopied);
-    HRESULT GetRegisterWordStyleW(ptrdiff_t hKL, uint nItem, STYLEBUFW* pStyleBuf, uint* puCopied);
+    HRESULT GetProperty(HKL hKL, uint fdwIndex, uint* pdwProperty);
+    HRESULT GetRegisterWordStyleA(HKL hKL, uint nItem, STYLEBUFA* pStyleBuf, uint* puCopied);
+    HRESULT GetRegisterWordStyleW(HKL hKL, uint nItem, STYLEBUFW* pStyleBuf, uint* puCopied);
     HRESULT GetStatusWindowPos(HIMC__* hIMC, POINT* pptPos);
     HRESULT GetVirtualKey(HWND hWnd, uint* puVirtualKey);
-    HRESULT InstallIMEA(const(char)* szIMEFileName, const(char)* szLayoutText, ptrdiff_t* phKL);
-    HRESULT InstallIMEW(const(wchar)* szIMEFileName, const(wchar)* szLayoutText, ptrdiff_t* phKL);
-    HRESULT IsIME(ptrdiff_t hKL);
+    HRESULT InstallIMEA(PSTR szIMEFileName, PSTR szLayoutText, HKL* phKL);
+    HRESULT InstallIMEW(PWSTR szIMEFileName, PWSTR szLayoutText, HKL* phKL);
+    HRESULT IsIME(HKL hKL);
     HRESULT IsUIMessageA(HWND hWndIME, uint msg, WPARAM wParam, LPARAM lParam);
     HRESULT IsUIMessageW(HWND hWndIME, uint msg, WPARAM wParam, LPARAM lParam);
     HRESULT NotifyIME(HIMC__* hIMC, uint dwAction, uint dwIndex, uint dwValue);
-    HRESULT RegisterWordA(ptrdiff_t hKL, const(char)* szReading, uint dwStyle, const(char)* szRegister);
-    HRESULT RegisterWordW(ptrdiff_t hKL, const(wchar)* szReading, uint dwStyle, const(wchar)* szRegister);
+    HRESULT RegisterWordA(HKL hKL, PSTR szReading, uint dwStyle, PSTR szRegister);
+    HRESULT RegisterWordW(HKL hKL, PWSTR szReading, uint dwStyle, PWSTR szRegister);
     HRESULT ReleaseContext(HWND hWnd, HIMC__* hIMC);
     HRESULT SetCandidateWindow(HIMC__* hIMC, CANDIDATEFORM* pCandidate);
     HRESULT SetCompositionFontA(HIMC__* hIMC, LOGFONTA* plf);
@@ -36355,14 +36540,14 @@ interface IActiveIMMApp : IUnknown
     HRESULT SetOpenStatus(HIMC__* hIMC, BOOL fOpen);
     HRESULT SetStatusWindowPos(HIMC__* hIMC, POINT* pptPos);
     HRESULT SimulateHotKey(HWND hWnd, uint dwHotKeyID);
-    HRESULT UnregisterWordA(ptrdiff_t hKL, const(char)* szReading, uint dwStyle, const(char)* szUnregister);
-    HRESULT UnregisterWordW(ptrdiff_t hKL, const(wchar)* szReading, uint dwStyle, const(wchar)* szUnregister);
+    HRESULT UnregisterWordA(HKL hKL, PSTR szReading, uint dwStyle, PSTR szUnregister);
+    HRESULT UnregisterWordW(HKL hKL, PWSTR szReading, uint dwStyle, PWSTR szUnregister);
     HRESULT Activate(BOOL fRestoreLayout);
     HRESULT Deactivate();
     HRESULT OnDefWindowProc(HWND hWnd, uint Msg, WPARAM wParam, LPARAM lParam, LRESULT* plResult);
     HRESULT FilterClientWindows(ushort* aaClassList, uint uSize);
-    HRESULT GetCodePageA(ptrdiff_t hKL, uint* uCodePage);
-    HRESULT GetLangId(ptrdiff_t hKL, ushort* plid);
+    HRESULT GetCodePageA(HKL hKL, uint* uCodePage);
+    HRESULT GetLangId(HKL hKL, ushort* plid);
     HRESULT AssociateContextEx(HWND hWnd, HIMC__* hIMC, uint dwFlags);
     HRESULT DisableIME(uint idThread);
     HRESULT GetImeMenuItemsA(HIMC__* hIMC, uint dwFlags, uint dwType, IMEMENUITEMINFOA* pImeParentMenu, 
@@ -36376,16 +36561,16 @@ interface IActiveIMMApp : IUnknown
 interface IActiveIMMIME : IUnknown
 {
     HRESULT AssociateContext(HWND hWnd, HIMC__* hIME, HIMC__** phPrev);
-    HRESULT ConfigureIMEA(ptrdiff_t hKL, HWND hWnd, uint dwMode, REGISTERWORDA* pData);
-    HRESULT ConfigureIMEW(ptrdiff_t hKL, HWND hWnd, uint dwMode, REGISTERWORDW* pData);
+    HRESULT ConfigureIMEA(HKL hKL, HWND hWnd, uint dwMode, REGISTERWORDA* pData);
+    HRESULT ConfigureIMEW(HKL hKL, HWND hWnd, uint dwMode, REGISTERWORDW* pData);
     HRESULT CreateContext(HIMC__** phIMC);
     HRESULT DestroyContext(HIMC__* hIME);
-    HRESULT EnumRegisterWordA(ptrdiff_t hKL, const(char)* szReading, uint dwStyle, const(char)* szRegister, 
-                              void* pData, IEnumRegisterWordA* pEnum);
-    HRESULT EnumRegisterWordW(ptrdiff_t hKL, const(wchar)* szReading, uint dwStyle, const(wchar)* szRegister, 
-                              void* pData, IEnumRegisterWordW* pEnum);
-    HRESULT EscapeA(ptrdiff_t hKL, HIMC__* hIMC, uint uEscape, void* pData, LRESULT* plResult);
-    HRESULT EscapeW(ptrdiff_t hKL, HIMC__* hIMC, uint uEscape, void* pData, LRESULT* plResult);
+    HRESULT EnumRegisterWordA(HKL hKL, PSTR szReading, uint dwStyle, PSTR szRegister, void* pData, 
+                              IEnumRegisterWordA* pEnum);
+    HRESULT EnumRegisterWordW(HKL hKL, PWSTR szReading, uint dwStyle, PWSTR szRegister, void* pData, 
+                              IEnumRegisterWordW* pEnum);
+    HRESULT EscapeA(HKL hKL, HIMC__* hIMC, uint uEscape, void* pData, LRESULT* plResult);
+    HRESULT EscapeW(HKL hKL, HIMC__* hIMC, uint uEscape, void* pData, LRESULT* plResult);
     HRESULT GetCandidateListA(HIMC__* hIMC, uint dwIndex, uint uBufLen, CANDIDATELIST* pCandList, uint* puCopied);
     HRESULT GetCandidateListW(HIMC__* hIMC, uint dwIndex, uint uBufLen, CANDIDATELIST* pCandList, uint* puCopied);
     HRESULT GetCandidateListCountA(HIMC__* hIMC, uint* pdwListSize, uint* pdwBufLen);
@@ -36397,32 +36582,32 @@ interface IActiveIMMIME : IUnknown
     HRESULT GetCompositionStringW(HIMC__* hIMC, uint dwIndex, uint dwBufLen, int* plCopied, void* pBuf);
     HRESULT GetCompositionWindow(HIMC__* hIMC, COMPOSITIONFORM* pCompForm);
     HRESULT GetContext(HWND hWnd, HIMC__** phIMC);
-    HRESULT GetConversionListA(ptrdiff_t hKL, HIMC__* hIMC, const(char)* pSrc, uint uBufLen, uint uFlag, 
-                               CANDIDATELIST* pDst, uint* puCopied);
-    HRESULT GetConversionListW(ptrdiff_t hKL, HIMC__* hIMC, const(wchar)* pSrc, uint uBufLen, uint uFlag, 
-                               CANDIDATELIST* pDst, uint* puCopied);
+    HRESULT GetConversionListA(HKL hKL, HIMC__* hIMC, PSTR pSrc, uint uBufLen, uint uFlag, CANDIDATELIST* pDst, 
+                               uint* puCopied);
+    HRESULT GetConversionListW(HKL hKL, HIMC__* hIMC, PWSTR pSrc, uint uBufLen, uint uFlag, CANDIDATELIST* pDst, 
+                               uint* puCopied);
     HRESULT GetConversionStatus(HIMC__* hIMC, uint* pfdwConversion, uint* pfdwSentence);
     HRESULT GetDefaultIMEWnd(HWND hWnd, HWND* phDefWnd);
-    HRESULT GetDescriptionA(ptrdiff_t hKL, uint uBufLen, const(char)* szDescription, uint* puCopied);
-    HRESULT GetDescriptionW(ptrdiff_t hKL, uint uBufLen, const(wchar)* szDescription, uint* puCopied);
-    HRESULT GetGuideLineA(HIMC__* hIMC, uint dwIndex, uint dwBufLen, const(char)* pBuf, uint* pdwResult);
-    HRESULT GetGuideLineW(HIMC__* hIMC, uint dwIndex, uint dwBufLen, const(wchar)* pBuf, uint* pdwResult);
-    HRESULT GetIMEFileNameA(ptrdiff_t hKL, uint uBufLen, const(char)* szFileName, uint* puCopied);
-    HRESULT GetIMEFileNameW(ptrdiff_t hKL, uint uBufLen, const(wchar)* szFileName, uint* puCopied);
+    HRESULT GetDescriptionA(HKL hKL, uint uBufLen, PSTR szDescription, uint* puCopied);
+    HRESULT GetDescriptionW(HKL hKL, uint uBufLen, PWSTR szDescription, uint* puCopied);
+    HRESULT GetGuideLineA(HIMC__* hIMC, uint dwIndex, uint dwBufLen, PSTR pBuf, uint* pdwResult);
+    HRESULT GetGuideLineW(HIMC__* hIMC, uint dwIndex, uint dwBufLen, PWSTR pBuf, uint* pdwResult);
+    HRESULT GetIMEFileNameA(HKL hKL, uint uBufLen, PSTR szFileName, uint* puCopied);
+    HRESULT GetIMEFileNameW(HKL hKL, uint uBufLen, PWSTR szFileName, uint* puCopied);
     HRESULT GetOpenStatus(HIMC__* hIMC);
-    HRESULT GetProperty(ptrdiff_t hKL, uint fdwIndex, uint* pdwProperty);
-    HRESULT GetRegisterWordStyleA(ptrdiff_t hKL, uint nItem, STYLEBUFA* pStyleBuf, uint* puCopied);
-    HRESULT GetRegisterWordStyleW(ptrdiff_t hKL, uint nItem, STYLEBUFW* pStyleBuf, uint* puCopied);
+    HRESULT GetProperty(HKL hKL, uint fdwIndex, uint* pdwProperty);
+    HRESULT GetRegisterWordStyleA(HKL hKL, uint nItem, STYLEBUFA* pStyleBuf, uint* puCopied);
+    HRESULT GetRegisterWordStyleW(HKL hKL, uint nItem, STYLEBUFW* pStyleBuf, uint* puCopied);
     HRESULT GetStatusWindowPos(HIMC__* hIMC, POINT* pptPos);
     HRESULT GetVirtualKey(HWND hWnd, uint* puVirtualKey);
-    HRESULT InstallIMEA(const(char)* szIMEFileName, const(char)* szLayoutText, ptrdiff_t* phKL);
-    HRESULT InstallIMEW(const(wchar)* szIMEFileName, const(wchar)* szLayoutText, ptrdiff_t* phKL);
-    HRESULT IsIME(ptrdiff_t hKL);
+    HRESULT InstallIMEA(PSTR szIMEFileName, PSTR szLayoutText, HKL* phKL);
+    HRESULT InstallIMEW(PWSTR szIMEFileName, PWSTR szLayoutText, HKL* phKL);
+    HRESULT IsIME(HKL hKL);
     HRESULT IsUIMessageA(HWND hWndIME, uint msg, WPARAM wParam, LPARAM lParam);
     HRESULT IsUIMessageW(HWND hWndIME, uint msg, WPARAM wParam, LPARAM lParam);
     HRESULT NotifyIME(HIMC__* hIMC, uint dwAction, uint dwIndex, uint dwValue);
-    HRESULT RegisterWordA(ptrdiff_t hKL, const(char)* szReading, uint dwStyle, const(char)* szRegister);
-    HRESULT RegisterWordW(ptrdiff_t hKL, const(wchar)* szReading, uint dwStyle, const(wchar)* szRegister);
+    HRESULT RegisterWordA(HKL hKL, PSTR szReading, uint dwStyle, PSTR szRegister);
+    HRESULT RegisterWordW(HKL hKL, PWSTR szReading, uint dwStyle, PWSTR szRegister);
     HRESULT ReleaseContext(HWND hWnd, HIMC__* hIMC);
     HRESULT SetCandidateWindow(HIMC__* hIMC, CANDIDATEFORM* pCandidate);
     HRESULT SetCompositionFontA(HIMC__* hIMC, LOGFONTA* plf);
@@ -36436,8 +36621,8 @@ interface IActiveIMMIME : IUnknown
     HRESULT SetOpenStatus(HIMC__* hIMC, BOOL fOpen);
     HRESULT SetStatusWindowPos(HIMC__* hIMC, POINT* pptPos);
     HRESULT SimulateHotKey(HWND hWnd, uint dwHotKeyID);
-    HRESULT UnregisterWordA(ptrdiff_t hKL, const(char)* szReading, uint dwStyle, const(char)* szUnregister);
-    HRESULT UnregisterWordW(ptrdiff_t hKL, const(wchar)* szReading, uint dwStyle, const(wchar)* szUnregister);
+    HRESULT UnregisterWordA(HKL hKL, PSTR szReading, uint dwStyle, PSTR szUnregister);
+    HRESULT UnregisterWordW(HKL hKL, PWSTR szReading, uint dwStyle, PWSTR szUnregister);
     HRESULT GenerateMessage(HIMC__* hIMC);
     HRESULT LockIMC(HIMC__* hIMC, __MIDL___MIDL_itf_dimm_0000_0000_0012** ppIMC);
     HRESULT UnlockIMC(HIMC__* hIMC);
@@ -36449,13 +36634,13 @@ interface IActiveIMMIME : IUnknown
     HRESULT ReSizeIMCC(HIMCC__* hIMCC, uint dwSize, HIMCC__** phIMCC);
     HRESULT GetIMCCSize(HIMCC__* hIMCC, uint* pdwSize);
     HRESULT GetIMCCLockCount(HIMCC__* hIMCC, uint* pdwLockCount);
-    HRESULT GetHotKey(uint dwHotKeyID, uint* puModifiers, uint* puVKey, ptrdiff_t* phKL);
-    HRESULT SetHotKey(uint dwHotKeyID, uint uModifiers, uint uVKey, ptrdiff_t hKL);
+    HRESULT GetHotKey(uint dwHotKeyID, uint* puModifiers, uint* puVKey, HKL* phKL);
+    HRESULT SetHotKey(uint dwHotKeyID, uint uModifiers, uint uVKey, HKL hKL);
     HRESULT CreateSoftKeyboard(uint uType, HWND hOwner, int x, int y, HWND* phSoftKbdWnd);
     HRESULT DestroySoftKeyboard(HWND hSoftKbdWnd);
     HRESULT ShowSoftKeyboard(HWND hSoftKbdWnd, int nCmdShow);
-    HRESULT GetCodePageA(ptrdiff_t hKL, uint* uCodePage);
-    HRESULT GetLangId(ptrdiff_t hKL, ushort* plid);
+    HRESULT GetCodePageA(HKL hKL, uint* uCodePage);
+    HRESULT GetLangId(HKL hKL, ushort* plid);
     HRESULT KeybdEvent(ushort lgidIME, ubyte bVk, ubyte bScan, uint dwFlags, uint dwExtraInfo);
     HRESULT LockModal();
     HRESULT UnlockModal();
@@ -36476,11 +36661,11 @@ interface IActiveIMMIME : IUnknown
 @GUID("6FE20962-D077-11D0-8FE7-00AA006BCC59")
 interface IActiveIME : IUnknown
 {
-    HRESULT Inquire(uint dwSystemInfoFlags, __MIDL___MIDL_itf_dimm_0000_0000_0014* pIMEInfo, 
-                    const(wchar)* szWndClass, uint* pdwPrivate);
-    HRESULT ConversionList(HIMC__* hIMC, const(wchar)* szSource, uint uFlag, uint uBufLen, CANDIDATELIST* pDest, 
+    HRESULT Inquire(uint dwSystemInfoFlags, __MIDL___MIDL_itf_dimm_0000_0000_0014* pIMEInfo, PWSTR szWndClass, 
+                    uint* pdwPrivate);
+    HRESULT ConversionList(HIMC__* hIMC, PWSTR szSource, uint uFlag, uint uBufLen, CANDIDATELIST* pDest, 
                            uint* puCopied);
-    HRESULT Configure(ptrdiff_t hKL, HWND hWnd, uint dwMode, REGISTERWORDW* pRegisterWord);
+    HRESULT Configure(HKL hKL, HWND hWnd, uint dwMode, REGISTERWORDW* pRegisterWord);
     HRESULT Destroy(uint uReserved);
     HRESULT Escape(HIMC__* hIMC, uint uEscape, void* pData, LRESULT* plResult);
     HRESULT SetActiveContext(HIMC__* hIMC, BOOL fFlag);
@@ -36491,10 +36676,10 @@ interface IActiveIME : IUnknown
                                  uint dwReadLen);
     HRESULT ToAsciiEx(uint uVirKey, uint uScanCode, ubyte* pbKeyState, uint fuState, HIMC__* hIMC, 
                       uint* pdwTransBuf, uint* puSize);
-    HRESULT RegisterWord(const(wchar)* szReading, uint dwStyle, const(wchar)* szString);
-    HRESULT UnregisterWord(const(wchar)* szReading, uint dwStyle, const(wchar)* szString);
+    HRESULT RegisterWord(PWSTR szReading, uint dwStyle, PWSTR szString);
+    HRESULT UnregisterWord(PWSTR szReading, uint dwStyle, PWSTR szString);
     HRESULT GetRegisterWordStyle(uint nItem, STYLEBUFW* pStyleBuf, uint* puBufSize);
-    HRESULT EnumRegisterWord(const(wchar)* szReading, uint dwStyle, const(wchar)* szRegister, void* pData, 
+    HRESULT EnumRegisterWord(PWSTR szReading, uint dwStyle, PWSTR szRegister, void* pData, 
                              IEnumRegisterWordW* ppEnum);
     HRESULT GetCodePageA(uint* uCodePage);
     HRESULT GetLangId(ushort* plid);
@@ -36641,6 +36826,183 @@ interface IShellWindows : IDispatch
     ///Params:
     ///    fAttach = Type: <b>VARIANT_BOOL</b> Not used.
     HRESULT ProcessAttachDetach(short fAttach);
+}
+
+///Exposes a method to initialize a handler, such as a property handler, thumbnail handler, or preview handler, with a
+///file path.
+@GUID("B7D14566-0509-4CCE-A71F-0A554233BD9B")
+interface IInitializeWithFile : IUnknown
+{
+    ///Initializes a handler with a file path.
+    ///Params:
+    ///    pszFilePath = Type: <b>LPCWSTR</b> A pointer to a buffer that contains the file path as a null-terminated Unicode string.
+    ///    grfMode = Type: <b>DWORD</b> One of the following STGM values that indicates the access mode for <i>pszFilePath</i>.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+    ///    
+    HRESULT Initialize(const(PWSTR) pszFilePath, uint grfMode);
+}
+
+///Exposes a method that initializes a handler, such as a property handler, thumbnail handler, or preview handler, with
+///a stream.
+@GUID("B824B49D-22AC-4161-AC8A-9916E8FA3F7F")
+interface IInitializeWithStream : IUnknown
+{
+    ///Initializes a handler with a stream.
+    ///Params:
+    ///    pstream = Type: <b>IStream*</b> A pointer to an IStream interface that represents the stream source.
+    ///    grfMode = Type: <b>DWORD</b> One of the following STGM values that indicates the access mode for <i>pstream</i>.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+    ///    
+    HRESULT Initialize(IStream pstream, uint grfMode);
+}
+
+///Exposes methods that get and set named properties.
+@GUID("71604B0F-97B0-4764-8577-2F13E98A1422")
+interface INamedPropertyStore : IUnknown
+{
+    ///Gets the value of a named property from the named property store.
+    ///Params:
+    ///    pszName = Type: <b>LPCWSTR</b> A pointer to the property name, as a Unicode string, of the property in the named
+    ///              property store.
+    ///    ppropvar = Type: <b>PROPVARIANT*</b> When this method returns, contains a pointer to a PROPVARIANT structure that holds
+    ///               the property's value.
+    HRESULT GetNamedValue(const(PWSTR) pszName, PROPVARIANT* ppropvar);
+    ///Sets the value of a named property.
+    ///Params:
+    ///    pszName = Type: <b>LPCWSTR</b> A pointer to the property name, as a Unicode string, in the named property store.
+    ///    propvar = Type: <b>const PROPVARIANT*</b> A pointer to a PROPVARIANT structure that contains the value to set for the
+    ///              property named in <i>pszName</i>.
+    HRESULT SetNamedValue(const(PWSTR) pszName, const(PROPVARIANT)* propvar);
+    ///Gets the number of property names in the property store.
+    ///Params:
+    ///    pdwCount = Type: <b>DWORD*</b> When this method returns, contains a pointer to the count of names.
+    HRESULT GetNameCount(uint* pdwCount);
+    ///Gets the name of a property at a specified index in the property store.
+    ///Params:
+    ///    iProp = Type: <b>DWORD</b> The index of the property in the store.
+    ///    pbstrName = Type: <b>BSTR*</b> When this method returns, contains a pointer to the property's name. It is the calling
+    ///                application's responsibility to free this resource when it is no longer needed.
+    HRESULT GetNameAt(uint iProp, BSTR* pbstrName);
+}
+
+///Exposes methods for getting and setting the property key.
+@GUID("FC0CA0A7-C316-4FD2-9031-3E628E6D4F23")
+interface IObjectWithPropertyKey : IUnknown
+{
+    ///Sets the property key.
+    ///Params:
+    ///    key = Type: <b>REFPROPERTYKEY</b> The property key.
+    HRESULT SetPropertyKey(const(PROPERTYKEY)* key);
+    ///Gets the property key.
+    ///Params:
+    ///    pkey = Type: <b>PROPERTYKEY*</b> When this returns, contains the property key.
+    HRESULT GetPropertyKey(PROPERTYKEY* pkey);
+}
+
+///Exposes a method to create a specified IPropertyStore object in circumstances where property access is potentially
+///slow.
+@GUID("40D4577F-E237-4BDB-BD69-58F089431B6A")
+interface IDelayedPropertyStoreFactory : IPropertyStoreFactory
+{
+    ///Gets an IPropertyStore interface object, as specified.
+    ///Params:
+    ///    flags = Type: <b>GETPROPERTYSTOREFLAGS</b> The GPS_XXX flags that modify the store that is returned. See
+    ///            GETPROPERTYSTOREFLAGS.
+    ///    dwStoreId = Type: <b>DWORD</b> The property store ID. Valid values are.
+    ///    riid = Type: <b>REFIID</b> A reference to the desired IID.
+    ///    ppv = Type: <b>void**</b> The address of an IPropertyStore interface pointer.
+    HRESULT GetDelayedPropertyStore(GETPROPERTYSTOREFLAGS flags, uint dwStoreId, const(GUID)* riid, void** ppv);
+}
+
+///Exposes methods to persist serialized property storage data for later use and to restore persisted data to a new
+///property store instance.
+@GUID("E318AD57-0AA0-450F-ACA5-6FAB7103D917")
+interface IPersistSerializedPropStorage : IUnknown
+{
+    ///Toggles the property store object between the read-only and read/write state.
+    ///Params:
+    ///    flags = Type: <b>PERSIST_SPROPSTORE_FLAGS</b> The <i>flags</i> parameter takes one of the following values to set
+    ///            options for the behavior of the property storage:
+    ///Returns:
+    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+    ///    
+    HRESULT SetFlags(int flags);
+    ///Initializes the property store instance from the specified serialized property storage data.
+    ///Params:
+    ///    psps = Type: <b>PCUSERIALIZEDPROPSTORAGE</b> A pointer to the serialized property store data that will be used to
+    ///           initialize the property store.
+    ///    cb = Type: <b>DWORD</b> The count of bytes contained in the serialized property storage data pointed to by
+    ///         <i>psps</i>.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+    ///    
+    HRESULT SetPropertyStorage(SERIALIZEDPROPSTORAGE* psps, uint cb);
+    ///Gets the serialized property storage data from the property store instance.
+    ///Params:
+    ///    ppsps = Type: <b>SERIALIZEDPROPSTORAGE**</b> When this method returns, contains the address of a pointer to the
+    ///            serialized property storage data.
+    ///    pcb = Type: <b>DWORD*</b> When this method returns, contains the count of bytes contained in the serialized
+    ///          property storage data pointed to by <i>ppsps</i>.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+    ///    
+    HRESULT GetPropertyStorage(SERIALIZEDPROPSTORAGE** ppsps, uint* pcb);
+}
+
+///Exposes methods to persist serialized property storage data for later use and to restore persisted data to a new
+///property store instance.
+@GUID("77EFFA68-4F98-4366-BA72-573B3D880571")
+interface IPersistSerializedPropStorage2 : IPersistSerializedPropStorage
+{
+    ///Gets the size of serialized property storage data from the property store instance.
+    ///Params:
+    ///    pcb = Type: <b>DWORD*</b> The count of bytes contained in the serialized property storage data.
+    HRESULT GetPropertyStorageSize(uint* pcb);
+    ///Gets the serialized property storage buffer from the property store instance.
+    ///Params:
+    ///    psps = Type: <b>SERIALIZEDPROPSTORAGE*</b> When this method returns successfully, contains the contents of the
+    ///           property storage buffer.
+    ///    cb = Type: <b>DWORD</b> The initial size, in bytes, of the buffer pointed to by <i>psps</i>
+    ///    pcbWritten = Type: <b>DWORD*</b> The count of bytes contained in the serialized property storage buffer pointed to by
+    ///                 <i>psps</i>.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+    ///    
+    HRESULT GetPropertyStorageBuffer(SERIALIZEDPROPSTORAGE* psps, uint cb, uint* pcbWritten);
+}
+
+///Exposes a method that creates an object of a specified class.
+@GUID("75121952-E0D0-43E5-9380-1D80483ACF72")
+interface ICreateObject : IUnknown
+{
+    ///Creates a local object of a specified class and returns a pointer to a specified interface on the object.
+    ///Params:
+    ///    clsid = Type: <b>REFCLSID</b> A reference to a CLSID.
+    ///    pUnkOuter = Type: <b>IUnknown*</b> A pointer to the IUnknown interface that aggregates the object created by this
+    ///                function, or <b>NULL</b> if no aggregation is desired.
+    ///    riid = Type: <b>REFIID</b> A reference to the IID of the interface the created object should return.
+    ///    ppv = Type: <b>void**</b> When this method returns, contains the address of the pointer to the interface requested
+    ///          in <i>riid</i>.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
+    ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+    ///    
+    HRESULT CreateObject(const(GUID)* clsid, IUnknown pUnkOuter, const(GUID)* riid, void** ppv);
 }
 
 

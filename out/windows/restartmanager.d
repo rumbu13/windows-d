@@ -3,10 +3,10 @@
 module windows.restartmanager;
 
 public import windows.core;
-public import windows.systemservices : BOOL;
+public import windows.systemservices : BOOL, PWSTR;
 public import windows.windowsprogramming : FILETIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -191,11 +191,11 @@ struct RM_FILTER_INFO
     RM_FILTER_TRIGGER FilterTrigger;
     ///The offset in bytes to the next structure.
     uint              cbNextOffset;
-    union
+union
     {
-        const(wchar)*     strFilename;
+        PWSTR             strFilename;
         RM_UNIQUE_PROCESS Process;
-        const(wchar)*     strServiceShortName;
+        PWSTR             strServiceShortName;
     }
 }
 
@@ -227,7 +227,7 @@ struct RM_FILTER_INFO
 ///    not complete because not enough memory was available. </td> </tr> </table>
 ///    
 @DllImport("rstrtmgr")
-uint RmStartSession(uint* pSessionHandle, uint dwSessionFlags, char* strSessionKey);
+uint RmStartSession(uint* pSessionHandle, uint dwSessionFlags, ushort* strSessionKey);
 
 ///Joins a secondary installer to an existing Restart Manager session. This function must be called with a session key
 ///that can only be obtained from the primary installer that started the session. A valid session key is required to use
@@ -255,7 +255,7 @@ uint RmStartSession(uint* pSessionHandle, uint dwSessionFlags, char* strSessionK
 ///    complete because not enough memory was available. </td> </tr> </table>
 ///    
 @DllImport("RstrtMgr")
-uint RmJoinSession(uint* pSessionHandle, char* strSessionKey);
+uint RmJoinSession(uint* pSessionHandle, const(ushort)* strSessionKey);
 
 ///Ends the Restart Manager session. This function should be called by the primary installer that has previously started
 ///the session by calling the RmStartSession function. The <b>RmEndSession</b> function can be called by a secondary
@@ -310,8 +310,8 @@ uint RmEndSession(uint dwSessionHandle);
 ///    width="60%"> No Restart Manager session exists for the handle supplied. </td> </tr> </table>
 ///    
 @DllImport("rstrtmgr")
-uint RmRegisterResources(uint dwSessionHandle, uint nFiles, char* rgsFileNames, uint nApplications, 
-                         char* rgApplications, uint nServices, char* rgsServiceNames);
+uint RmRegisterResources(uint dwSessionHandle, uint nFiles, PWSTR** rgsFileNames, uint nApplications, 
+                         RM_UNIQUE_PROCESS* rgApplications, uint nServices, PWSTR** rgsServiceNames);
 
 ///Gets a list of all applications and services that are currently using resources that have been registered with the
 ///Restart Manager session.
@@ -345,7 +345,7 @@ uint RmRegisterResources(uint dwSessionHandle, uint nFiles, char* rgsFileNames, 
 ///    width="60%"> No Restart Manager session exists for the handle supplied. </td> </tr> </table>
 ///    
 @DllImport("rstrtmgr")
-uint RmGetList(uint dwSessionHandle, uint* pnProcInfoNeeded, uint* pnProcInfo, char* rgAffectedApps, 
+uint RmGetList(uint dwSessionHandle, uint* pnProcInfoNeeded, uint* pnProcInfo, RM_PROCESS_INFO* rgAffectedApps, 
                uint* lpdwRebootReasons);
 
 ///Initiates the shutdown of applications. This function can only be called from the installer that started the Restart
@@ -476,8 +476,8 @@ uint RmCancelCurrentTask(uint dwSessionHandle);
 ///    available to primary installers. </td> </tr> </table>
 ///    
 @DllImport("RstrtMgr")
-uint RmAddFilter(uint dwSessionHandle, const(wchar)* strModuleName, RM_UNIQUE_PROCESS* pProcess, 
-                 const(wchar)* strServiceShortName, RM_FILTER_ACTION FilterAction);
+uint RmAddFilter(uint dwSessionHandle, const(PWSTR) strModuleName, RM_UNIQUE_PROCESS* pProcess, 
+                 const(PWSTR) strServiceShortName, RM_FILTER_ACTION FilterAction);
 
 ///Removes any modifications to shutdown or restart actions that have been applied using the RmAddFilter function. The
 ///primary installer can call the <b>RmRemoveFilter</b> function multiple times.
@@ -496,8 +496,8 @@ uint RmAddFilter(uint dwSessionHandle, const(wchar)* strModuleName, RM_UNIQUE_PR
 ///                          previously applied by the RmAddFilter function. This parameter must be <b>NULL</b> if the <i>strFilename</i> or
 ///                          <i>Application</i> parameter is non-<b>NULL</b>.
 @DllImport("RstrtMgr")
-uint RmRemoveFilter(uint dwSessionHandle, const(wchar)* strModuleName, RM_UNIQUE_PROCESS* pProcess, 
-                    const(wchar)* strServiceShortName);
+uint RmRemoveFilter(uint dwSessionHandle, const(PWSTR) strModuleName, RM_UNIQUE_PROCESS* pProcess, 
+                    const(PWSTR) strServiceShortName);
 
 ///Lists the modifications to shutdown and restart actions that have already been applied by the RmAddFilter function.
 ///The function returns a pointer to a buffer containing information about the modifications which have been applied.
@@ -521,6 +521,6 @@ uint RmRemoveFilter(uint dwSessionHandle, const(wchar)* strModuleName, RM_UNIQUE
 ///    installers. </td> </tr> </table>
 ///    
 @DllImport("RstrtMgr")
-uint RmGetFilterList(uint dwSessionHandle, char* pbFilterBuf, uint cbFilterBuf, uint* cbFilterBufNeeded);
+uint RmGetFilterList(uint dwSessionHandle, ubyte* pbFilterBuf, uint cbFilterBuf, uint* cbFilterBufNeeded);
 
 

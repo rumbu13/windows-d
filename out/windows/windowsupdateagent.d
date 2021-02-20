@@ -8,7 +8,7 @@ public import windows.com : HRESULT, IUnknown;
 public import windows.systemservices : DECIMAL;
 public import windows.windowsandmessaging : HWND;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums

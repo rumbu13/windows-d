@@ -6,10 +6,10 @@ public import windows.core;
 public import windows.automation : BSTR, IDispatch, VARIANT;
 public import windows.com : HRESULT, IUnknown;
 public import windows.security : SID, SID_AND_ATTRIBUTES;
-public import windows.systemservices : BOOL, HANDLE;
+public import windows.systemservices : BOOL, HANDLE, PWSTR;
 public import windows.windowsandmessaging : HWND;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -469,7 +469,7 @@ enum : int
 ///              NetworkIsolationRegisterForAppContainerChanges function.
 ///    pChange = Type: <b>const INET_FIREWALL_AC_CHANGE*</b> The app container change information.
 alias PAC_CHANGES_CALLBACK_FN = void function(void* context, const(INET_FIREWALL_AC_CHANGE)* pChange);
-alias PNETISO_EDP_ID_CALLBACK_FN = void function(void* context, const(ushort)* wszEnterpriseId, uint dwErr);
+alias PNETISO_EDP_ID_CALLBACK_FN = void function(void* context, const(PWSTR) wszEnterpriseId, uint dwErr);
 
 // Structs
 
@@ -482,9 +482,9 @@ struct NETCON_PROPERTIES
     ///Globally-unique identifier (GUID) for this connection.
     GUID             guidId;
     ///Name of the connection itself.
-    const(wchar)*    pszwName;
+    PWSTR            pszwName;
     ///Name of the device associated with the connection.
-    const(wchar)*    pszwDeviceName;
+    PWSTR            pszwDeviceName;
     ///Current status of the connection.
     NETCON_STATUS    Status;
     ///Media type associated with this connection.
@@ -509,8 +509,8 @@ struct INET_FIREWALL_AC_CAPABILITIES
 struct INET_FIREWALL_AC_BINARIES
 {
     ///The number of paths in the <b>binaries</b> member.
-    uint     count;
-    ushort** binaries;
+    uint   count;
+    PWSTR* binaries;
 }
 
 ///The INET_FIREWALL_AC_CHANGE structure contains information about a change made to an app container.
@@ -521,12 +521,12 @@ struct INET_FIREWALL_AC_CHANGE
     ///Type: <b>INET_FIREWALL_AC_CREATION_TYPE</b> The method by which the app container was created.
     INET_FIREWALL_AC_CREATION_TYPE createType;
     ///Type: <b>SID*</b> The package identifier of the app container
-    SID*          appContainerSid;
+    SID*  appContainerSid;
     ///Type: <b>SID*</b> The security identifier (SID) of the user to whom the app container belongs.
-    SID*          userSid;
+    SID*  userSid;
     ///Type: <b>LPWSTR</b> Friendly name of the app container.
-    const(wchar)* displayName;
-    union
+    PWSTR displayName;
+union
     {
         INET_FIREWALL_AC_CAPABILITIES capabilities;
         INET_FIREWALL_AC_BINARIES binaries;
@@ -538,23 +538,23 @@ struct INET_FIREWALL_AC_CHANGE
 struct INET_FIREWALL_APP_CONTAINER
 {
     ///Type: <b>SID*</b> The package identifier of the app container
-    SID*          appContainerSid;
+    SID*  appContainerSid;
     ///Type: <b>SID*</b> The security identifier (SID) of the user to whom the app container belongs.
-    SID*          userSid;
+    SID*  userSid;
     ///Type: <b>LPWSTR</b> The app container's globally unique name. Also referred to as the Package Family Name, for
     ///the app container of a Windows Store app.
-    const(wchar)* appContainerName;
+    PWSTR appContainerName;
     ///Type: <b>LPWSTR</b> Friendly name of the app container
-    const(wchar)* displayName;
+    PWSTR displayName;
     ///Type: <b>LPWSTR</b> A description of the app container (its use, the objective of the application that uses it,
     ///etc.)
-    const(wchar)* description;
+    PWSTR description;
     ///Type: <b>INET_FIREWALL_AC_CAPABILITIES</b> The capabilities of the app container.
     INET_FIREWALL_AC_CAPABILITIES capabilities;
     ///Type: <b>INET_FIREWALL_AC_BINARIES</b> Binary paths to the applications running in the app container.
     INET_FIREWALL_AC_BINARIES binaries;
-    const(wchar)* workingDirectory;
-    const(wchar)* packageFullName;
+    PWSTR workingDirectory;
+    PWSTR packageFullName;
 }
 
 // Functions
@@ -576,9 +576,9 @@ struct INET_FIREWALL_APP_CONTAINER
 ///    <b>HRESULT</b> value that indicates the error. For a list of common error codes, see Common HRESULT Values.
 ///    
 @DllImport("api-ms-win-net-isolation-l1-1-0")
-HRESULT NetworkIsolationSetupAppContainerBinaries(void* applicationContainerSid, const(wchar)* packageFullName, 
-                                                  const(wchar)* packageFolder, const(wchar)* displayName, 
-                                                  BOOL bBinariesFullyComputed, char* binaries, uint binariesCount);
+HRESULT NetworkIsolationSetupAppContainerBinaries(void* applicationContainerSid, const(PWSTR) packageFullName, 
+                                                  const(PWSTR) packageFolder, const(PWSTR) displayName, 
+                                                  BOOL bBinariesFullyComputed, PWSTR* binaries, uint binariesCount);
 
 ///The <b>NetworkIsolationRegisterForAppContainerChanges</b> function is used to register for the delivery of
 ///notifications regarding changes to an app container.
@@ -663,7 +663,7 @@ uint NetworkIsolationGetAppContainerConfig(uint* pdwNumPublicAppCs, SID_AND_ATTR
 ///    appContainerSids = Type: <b>PSID_AND_ATTRIBUTES</b> The security identifiers (SIDs) of app containers that are allowed to send
 ///                       loopback traffic. Used for debugging purposes.
 @DllImport("api-ms-win-net-isolation-l1-1-0")
-uint NetworkIsolationSetAppContainerConfig(uint dwNumPublicAppCs, char* appContainerSids);
+uint NetworkIsolationSetAppContainerConfig(uint dwNumPublicAppCs, SID_AND_ATTRIBUTES* appContainerSids);
 
 ///The <b>NetworkIsolationDiagnoseConnectFailureAndGetInfo</b> function gets information about a network isolation
 ///connection failure due to a missing capability. This function can be used to identify the capabilities required to
@@ -676,7 +676,7 @@ uint NetworkIsolationSetAppContainerConfig(uint dwNumPublicAppCs, char* appConta
 ///    Type: <b>DWORD</b> Returns ERROR_SUCCESS if successful, or an error value otherwise.
 ///    
 @DllImport("api-ms-win-net-isolation-l1-1-0")
-uint NetworkIsolationDiagnoseConnectFailureAndGetInfo(const(wchar)* wszServerName, NETISO_ERROR_TYPE* netIsoError);
+uint NetworkIsolationDiagnoseConnectFailureAndGetInfo(const(PWSTR) wszServerName, NETISO_ERROR_TYPE* netIsoError);
 
 
 // Interfaces
@@ -1229,7 +1229,7 @@ interface IStaticPortMapping : IDispatch
 @GUID("C08956A0-1CD3-11D1-B1C5-00805FC1270E")
 interface IEnumNetConnection : IUnknown
 {
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, INetConnection* rgelt, uint* pceltFetched);
     HRESULT Skip(uint celt);
     HRESULT Reset();
     HRESULT Clone(IEnumNetConnection* ppenum);
@@ -1317,7 +1317,7 @@ interface INetConnection : IUnknown
     ///    <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> The method failed for unknown reasons. </td> </tr>
     ///    </table>
     ///    
-    HRESULT Duplicate(const(wchar)* pszwDuplicateName, INetConnection* ppCon);
+    HRESULT Duplicate(const(PWSTR) pszwDuplicateName, INetConnection* ppCon);
     ///<p class="CCE_Message">[Internet Connection Firewall may be altered or unavailable in subsequent versions.
     ///Instead, use the Windows Firewall API.] The <b>GetProperties</b> method retrieves a structure that contains the
     ///properties for this network connection.
@@ -1381,7 +1381,7 @@ interface INetConnection : IUnknown
     ///    <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> The method failed for unknown reasons. </td> </tr>
     ///    </table>
     ///    
-    HRESULT Rename(const(wchar)* pszwNewName);
+    HRESULT Rename(const(PWSTR) pszwNewName);
 }
 
 @GUID("C08956A2-1CD3-11D1-B1C5-00805FC1270E")
@@ -1428,7 +1428,7 @@ interface IEnumNetSharingPortMapping : IUnknown
     ///    <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> The method failed for unknown reasons. </td> </tr>
     ///    </table>
     ///    
-    HRESULT Next(uint celt, char* rgVar, uint* pceltFetched);
+    HRESULT Next(uint celt, VARIANT* rgVar, uint* pceltFetched);
     ///<p class="CCE_Message">[Internet Connection Firewall may be altered or unavailable in subsequent versions.
     ///Instead, use the Windows Firewall API.] The <b>Skip</b> method skips the specified number of port mappings for
     ///this enumeration.
@@ -1785,7 +1785,7 @@ interface IEnumNetSharingEveryConnection : IUnknown
     ///    <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> The method failed for unknown reasons. </td> </tr>
     ///    </table>
     ///    
-    HRESULT Next(uint celt, char* rgVar, uint* pceltFetched);
+    HRESULT Next(uint celt, VARIANT* rgVar, uint* pceltFetched);
     ///<p class="CCE_Message">[Internet Connection Firewall may be altered or unavailable in subsequent versions.
     ///Instead, use the Windows Firewall API.] The <b>Skip</b> method skips the specified number of privately-shared
     ///connections for this enumeration.
@@ -1880,7 +1880,7 @@ interface IEnumNetSharingPublicConnection : IUnknown
     ///    <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> The method failed for unknown reasons. </td> </tr>
     ///    </table>
     ///    
-    HRESULT Next(uint celt, char* rgVar, uint* pceltFetched);
+    HRESULT Next(uint celt, VARIANT* rgVar, uint* pceltFetched);
     ///<p class="CCE_Message">[Internet Connection Firewall may be altered or unavailable in subsequent versions.
     ///Instead, use the Windows Firewall API.] The <b>Skip</b> method skips the specified number of publicly-shared
     ///connections for this enumeration.
@@ -1975,7 +1975,7 @@ interface IEnumNetSharingPrivateConnection : IUnknown
     ///    <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> The method failed for unknown reasons. </td> </tr>
     ///    </table> <div> </div>
     ///    
-    HRESULT Next(uint celt, char* rgVar, uint* pCeltFetched);
+    HRESULT Next(uint celt, VARIANT* rgVar, uint* pCeltFetched);
     ///<p class="CCE_Message">[Internet Connection Firewall may be altered or unavailable in subsequent versions.
     ///Instead, use the Windows Firewall API.] The <b>Skip</b> method skips the specified number of privately-shared
     ///connections for this enumeration.

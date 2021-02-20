@@ -4,12 +4,12 @@ module windows.extensibleauthenticationprotocol;
 
 public import windows.core;
 public import windows.com : HRESULT, IUnknown;
-public import windows.systemservices : BOOL, HANDLE;
+public import windows.systemservices : BOOL, HANDLE, PWSTR;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : IXMLDOMNode;
 public import windows.xmlhttpextendedrequest : IXMLDOMDocument2;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -1015,6 +1015,81 @@ enum : int
     EAP_AUTHENTICATOR_SEND_TIMEOUT_INTERACTIVE = 0x00000002,
 }
 
+// Constants
+
+
+enum : GUID
+{
+    GUID_EapHost_Default                 = GUID("00000000-0000-0000-0000-000000000000"),
+    GUID_EapHost_Cause_MethodDLLNotFound = GUID("9612fc67-6150-4209-a85e-a8d800000001"),
+}
+
+enum : GUID
+{
+    GUID_EapHost_Cause_CertStoreInaccessible        = GUID("9612fc67-6150-4209-a85e-a8d800000004"),
+    GUID_EapHost_Cause_Generic_AuthFailure          = GUID("9612fc67-6150-4209-a85e-a8d800000104"),
+    GUID_EapHost_Cause_IdentityUnknown              = GUID("9612fc67-6150-4209-a85e-a8d800000204"),
+    GUID_EapHost_Cause_SimNotValid                  = GUID("9612fc67-6150-4209-a85e-a8d800000304"),
+    GUID_EapHost_Cause_Server_CertExpired           = GUID("9612fc67-6150-4209-a85e-a8d800000005"),
+    GUID_EapHost_Cause_Server_CertInvalid           = GUID("9612fc67-6150-4209-a85e-a8d800000006"),
+    GUID_EapHost_Cause_Server_CertNotFound          = GUID("9612fc67-6150-4209-a85e-a8d800000007"),
+    GUID_EapHost_Cause_Server_CertRevoked           = GUID("9612fc67-6150-4209-a85e-a8d800000008"),
+    GUID_EapHost_Cause_Server_CertOtherError        = GUID("9612fc67-6150-4209-a85e-a8d800000108"),
+    GUID_EapHost_Cause_User_CertExpired             = GUID("9612fc67-6150-4209-a85e-a8d800000009"),
+    GUID_EapHost_Cause_User_CertInvalid             = GUID("9612fc67-6150-4209-a85e-a8d80000000a"),
+    GUID_EapHost_Cause_User_CertNotFound            = GUID("9612fc67-6150-4209-a85e-a8d80000000b"),
+    GUID_EapHost_Cause_User_CertOtherError          = GUID("9612fc67-6150-4209-a85e-a8d80000000c"),
+    GUID_EapHost_Cause_User_CertRejected            = GUID("9612fc67-6150-4209-a85e-a8d80000000d"),
+    GUID_EapHost_Cause_User_CertRevoked             = GUID("9612fc67-6150-4209-a85e-a8d80000000e"),
+    GUID_EapHost_Cause_User_Account_OtherProblem    = GUID("9612fc67-6150-4209-a85e-a8d80000010e"),
+    GUID_EapHost_Cause_User_CredsRejected           = GUID("9612fc67-6150-4209-a85e-a8d80000020e"),
+    GUID_EapHost_Cause_User_Root_CertExpired        = GUID("9612fc67-6150-4209-a85e-a8d80000000f"),
+    GUID_EapHost_Cause_User_Root_CertInvalid        = GUID("9612fc67-6150-4209-a85e-a8d800000010"),
+    GUID_EapHost_Cause_User_Root_CertNotFound       = GUID("9612fc67-6150-4209-a85e-a8d800000011"),
+    GUID_EapHost_Cause_Server_Root_CertNameRequired = GUID("9612fc67-6150-4209-a85e-a8d800000012"),
+    GUID_EapHost_Cause_Server_Root_CertNotFound     = GUID("9612fc67-6150-4209-a85e-a8d800000112"),
+    GUID_EapHost_Cause_ThirdPartyMethod_Host_Reset  = GUID("9612fc67-6150-4209-a85e-a8d800000212"),
+    GUID_EapHost_Cause_EapQecInaccessible           = GUID("9612fc67-6150-4209-a85e-a8d800000312"),
+}
+
+enum : GUID
+{
+    GUID_EapHost_Repair_User_AuthFailure     = GUID("9612fc67-6150-4209-a85e-a8d800000019"),
+    GUID_EapHost_Repair_User_GetNewCert      = GUID("9612fc67-6150-4209-a85e-a8d80000001a"),
+    GUID_EapHost_Repair_User_SelectValidCert = GUID("9612fc67-6150-4209-a85e-a8d80000001b"),
+    GUID_EapHost_Repair_Retry_Authentication = GUID("9612fc67-6150-4209-a85e-a8d80000011b"),
+}
+
+enum : GUID
+{
+    GUID_EapHost_Cause_XmlMalformed                  = GUID("9612fc67-6150-4209-a85e-a8d80000001d"),
+    GUID_EapHost_Cause_MethodDoesNotSupportOperation = GUID("9612fc67-6150-4209-a85e-a8d80000001e"),
+}
+
+enum : GUID
+{
+    GUID_EapHost_Repair_ContactAdmin_IdentityUnknown       = GUID("9612fc67-6150-4209-a85e-a8d800000020"),
+    GUID_EapHost_Repair_ContactAdmin_NegotiationFailed     = GUID("9612fc67-6150-4209-a85e-a8d800000021"),
+    GUID_EapHost_Repair_ContactAdmin_MethodNotFound        = GUID("9612fc67-6150-4209-a85e-a8d800000022"),
+    GUID_EapHost_Repair_RestartNap                         = GUID("9612fc67-6150-4209-a85e-a8d800000023"),
+    GUID_EapHost_Repair_ContactAdmin_CertStoreInaccessible = GUID("9612fc67-6150-4209-a85e-a8d800000024"),
+    GUID_EapHost_Repair_ContactAdmin_InvalidUserAccount    = GUID("9612fc67-6150-4209-a85e-a8d800000025"),
+    GUID_EapHost_Repair_ContactAdmin_RootCertInvalid       = GUID("9612fc67-6150-4209-a85e-a8d800000026"),
+    GUID_EapHost_Repair_ContactAdmin_RootCertNotFound      = GUID("9612fc67-6150-4209-a85e-a8d800000027"),
+    GUID_EapHost_Repair_ContactAdmin_RootExpired           = GUID("9612fc67-6150-4209-a85e-a8d800000028"),
+    GUID_EapHost_Repair_ContactAdmin_CertNameAbsent        = GUID("9612fc67-6150-4209-a85e-a8d800000029"),
+    GUID_EapHost_Repair_ContactAdmin_NoSmartCardReader     = GUID("9612fc67-6150-4209-a85e-a8d80000002a"),
+}
+
+enum : GUID
+{
+    GUID_EapHost_Repair_ContactAdmin_InvalidUserCert = GUID("9612fc67-6150-4209-a85e-a8d80000002c"),
+    GUID_EapHost_Repair_Method_Not_Support_Sso       = GUID("9612fc67-6150-4209-a85e-a8d80000002d"),
+    GUID_EapHost_Repair_No_ValidSim_Found            = GUID("9612fc67-6150-4209-a85e-a8d80000002e"),
+}
+
+enum GUID GUID_EapHost_Help_Troubleshooting = GUID("33307acf-0698-41ba-b014-ea0a2eb8d0a8");
+
 // Callbacks
 
 ///A callback prototype that notifies the supplicant that there is a change in the Statement of Health (SoH) and
@@ -1134,10 +1209,10 @@ struct PPP_EAP_INPUT
     ///domain\user or machine\user. If the authentication protocol is able to derive the user's identity from an
     ///additional source, for example a certificate, it should verify that the derived identity matches the value of
     ///<b>pwszIdentity</b>.
-    ushort*             pwszIdentity;
+    PWSTR               pwszIdentity;
     ///Pointer to a Unicode string that contains the user's account password. Available only if <b>fAuthenticator</b> is
     ///<b>FALSE</b>. This member may be <b>NULL</b>.
-    ushort*             pwszPassword;
+    PWSTR               pwszPassword;
     ///Specifies the identifier of the initial EAP packet sent by the DLL. This value is incremented by one for each
     ///subsequent request packet.
     ubyte               bInitialId;
@@ -1292,16 +1367,16 @@ struct PPP_EAP_INFO
 
 struct LEGACY_IDENTITY_UI_PARAMS
 {
-    uint          eapType;
-    uint          dwFlags;
-    uint          dwSizeofConnectionData;
-    ubyte*        pConnectionData;
-    uint          dwSizeofUserData;
-    ubyte*        pUserData;
-    uint          dwSizeofUserDataOut;
-    ubyte*        pUserDataOut;
-    const(wchar)* pwszIdentity;
-    uint          dwError;
+    uint   eapType;
+    uint   dwFlags;
+    uint   dwSizeofConnectionData;
+    ubyte* pConnectionData;
+    uint   dwSizeofUserData;
+    ubyte* pUserData;
+    uint   dwSizeofUserDataOut;
+    ubyte* pUserDataOut;
+    PWSTR  pwszIdentity;
+    uint   dwError;
 }
 
 struct LEGACY_INTERACTIVE_UI_PARAMS
@@ -1341,9 +1416,9 @@ struct EAP_METHOD_INFO
     ///EAP_METHOD_TYPE structure that identifies the EAP method.
     EAP_METHOD_TYPE  eaptype;
     ///Pointer to a zero-terminated Unicode string that contains the name of the EAP method's author.
-    const(wchar)*    pwszAuthorName;
+    PWSTR            pwszAuthorName;
     ///Pointer to a zero-terminated Unicode string that contains the display name of the EAP method.
-    const(wchar)*    pwszFriendlyName;
+    PWSTR            pwszFriendlyName;
     ///Set of flags that describe specific properties of the EAP method. For flag descriptions, see [EAP Method
     ///Properties](/windows/win32/eaphost/eap-method-properties).
     uint             eapProperties;
@@ -1357,9 +1432,9 @@ struct EAP_METHOD_INFO_EX
     ///An EAP_METHOD_TYPE structure that identifies the EAP method.
     EAP_METHOD_TYPE eaptype;
     ///Pointer to a zero-terminated Unicode string that contains the name of the EAP method's author.
-    const(wchar)*   pwszAuthorName;
+    PWSTR           pwszAuthorName;
     ///Pointer to a zero-terminated Unicode string that contains the display name of the EAP method.
-    const(wchar)*   pwszFriendlyName;
+    PWSTR           pwszFriendlyName;
     ///Set of flags that describe specific properties of the EAP methods. For flag descriptions, see [EAP Method
     ///Properties](/windows/win32/eaphost/eap-method-properties).
     uint            eapProperties;
@@ -1581,9 +1656,9 @@ struct EAP_ERROR
     ///width="60%"> The URL for the page with more information about troubleshooting. </td> </tr> </table>
     GUID            helpLinkGuid;
     ///A localized and readable string that describes the root cause of the error.
-    const(wchar)*   pRootCauseString;
+    PWSTR           pRootCauseString;
     ///A localized and readable string that describes the possible repair action.
-    const(wchar)*   pRepairString;
+    PWSTR           pRepairString;
 }
 
 ///The <b>EAP_ATTRIBUTE</b> structure contains an EAP attribute.
@@ -1611,7 +1686,7 @@ struct EAP_CONFIG_INPUT_FIELD_DATA
 {
     ///The size, in bytes, of the <b>EAP_CONFIG_INPUT_FIELD_DATA</b> structure. This field is used for versioning
     ///purposes.
-    uint          dwSize;
+    uint  dwSize;
     ///An EAP_CONFIG_INPUT_FIELD_TYPE enumeration value that specifies the type of the input field.
     EAP_CONFIG_INPUT_FIELD_TYPE Type;
     ///A set of flag values that describe properties of the EAP configuration input field. <table> <tr> <th>Value</th>
@@ -1641,13 +1716,13 @@ struct EAP_CONFIG_INPUT_FIELD_DATA
     ///id="EAP_UI_INPUT_FIELD_PROPS_READ_ONLY"></a><a id="eap_ui_input_field_props_read_only"></a><dl>
     ///<dt><b>EAP_UI_INPUT_FIELD_PROPS_READ_ONLY</b></dt> <dt>0x00000004</dt> </dl> </td> <td width="60%"> Windows Vista
     ///with SP1 or later: Indicates that the input field is read-only and cannot be edited. </td> </tr> </table>
-    uint          dwFlagProps;
+    uint  dwFlagProps;
     ///A pointer to a zero-terminated Unicode string that contains the label for the input field. The caller must free
     ///the inner pointers using the function EapHostPeerFreeMemory, starting at the innermost pointer. <table> <tr>
     ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="MAX_EAP_CONFIG_INPUT_FIELD_LENGTH"></a><a
     ///id="max_eap_config_input_field_length"></a><dl> <dt><b>MAX_EAP_CONFIG_INPUT_FIELD_LENGTH</b></dt> <dt>256</dt>
     ///</dl> </td> <td width="60%"> Specifies the maximum supported length of an input field. </td> </tr> </table>
-    const(wchar)* pwszLabel;
+    PWSTR pwszLabel;
     ///A pointer to a zero-terminated Unicode string that contains the data entered by the user into the input field.
     ///This value is initially empty. It is populated in a Single-Sign-On (SSO) scenario and returned to EAPHost with a
     ///call to EapHostPeerQueryUserBlobFromCredentialInputFields. The caller must free the inner pointers using the
@@ -1656,13 +1731,13 @@ struct EAP_CONFIG_INPUT_FIELD_DATA
     ///id="max_eap_config_input_field_value_length"></a><dl> <dt><b>MAX_EAP_CONFIG_INPUT_FIELD_VALUE_LENGTH</b></dt>
     ///<dt>1024</dt> </dl> </td> <td width="60%"> Specifies the maximum supported length of an input field. </td> </tr>
     ///</table>
-    const(wchar)* pwszData;
+    PWSTR pwszData;
     ///The minimum length, in bytes, allowed for data entered by the user into the EAP configuration dialog box input
     ///field.
-    uint          dwMinDataLength;
+    uint  dwMinDataLength;
     ///The maximum length, in bytes, allowed for data entered by the user into the EAP configuration dialog box input
     ///field.
-    uint          dwMaxDataLength;
+    uint  dwMaxDataLength;
 }
 
 ///The <b>EAP_CONFIG_INPUT_FIELD_ARRAY</b> structure contains a set of EAP_CONFIG_INPUT_FIELD_DATA structures that
@@ -1801,7 +1876,7 @@ struct EAPHOST_IDENTITY_UI_PARAMS
     ubyte*          pUserData;
     uint            dwSizeofUserDataOut;
     ubyte*          pUserDataOut;
-    const(wchar)*   pwszIdentity;
+    PWSTR           pwszIdentity;
     uint            dwError;
     EAP_ERROR*      pEapError;
 }
@@ -1822,11 +1897,11 @@ struct EapUsernamePasswordCredential
 {
     ///A NULL-terminated Unicode string that contains the username that needs authentication. The username uses the
     ///format user@domain or domain\user.
-    const(wchar)* username;
+    PWSTR username;
     ///A NULL-terminated Unicode string that contains the password to verify the user. The password is encrypted using
     ///the [CredProtect](../wincred/nf-wincred-credprotectw.md) function. The EAP method must use the
     ///[CredUnprotect](../wincred/nf-wincred-credunprotecta.md) function to retrieve the unencrypted password.
-    const(wchar)* password;
+    PWSTR password;
 }
 
 ///The <b>EapCertificateCredential</b> structure contains information about the certificate that the EAP method uses for
@@ -1834,10 +1909,10 @@ struct EapUsernamePasswordCredential
 struct EapCertificateCredential
 {
     ///SHA1 hash of the certificate.
-    ubyte[20]     certHash;
+    ubyte[20] certHash;
     ///If the certificate is present on the system and strong private key protection is turned on for this certificate,
     ///this field contains the password to access the certificate.
-    const(wchar)* password;
+    PWSTR     password;
 }
 
 ///The <b>EapSimCredential</b> structure contains information about the SIM that is used by the EAP method for
@@ -1845,7 +1920,7 @@ struct EapCertificateCredential
 struct EapSimCredential
 {
     ///A NULL-terminated Unicode string that contains the ICC-ID of the SIM.
-    const(wchar)* iccID;
+    PWSTR iccID;
 }
 
 union EapCredentialTypeData
@@ -2088,8 +2163,8 @@ uint EapHostPeerGetMethods(EAP_METHOD_INFO_ARRAY* pEapMethodInfoArray, EAP_ERROR
 ///                 EapHostPeerFreeErrorMemory.
 @DllImport("eappcfg")
 uint EapHostPeerGetMethodProperties(uint dwVersion, uint dwFlags, EAP_METHOD_TYPE eapMethodType, 
-                                    HANDLE hUserImpersonationToken, uint dwEapConnDataSize, char* pbEapConnData, 
-                                    uint dwUserDataSize, char* pbUserData, 
+                                    HANDLE hUserImpersonationToken, uint dwEapConnDataSize, 
+                                    const(ubyte)* pbEapConnData, uint dwUserDataSize, const(ubyte)* pbUserData, 
                                     EAP_METHOD_PROPERTY_ARRAY* pMethodPropertyArray, EAP_ERROR** ppEapError);
 
 ///Starts the configuration user interface of the specified EAP method. <b>EapHostPeerInvokeConfigUI</b> must be called
@@ -2111,7 +2186,7 @@ uint EapHostPeerGetMethodProperties(uint dwVersion, uint dwFlags, EAP_METHOD_TYP
 ///                 EapHostPeerFreeErrorMemory.
 @DllImport("eappcfg")
 uint EapHostPeerInvokeConfigUI(HWND hwndParent, uint dwFlags, EAP_METHOD_TYPE eapMethodType, uint dwSizeOfConfigIn, 
-                               char* pConfigIn, uint* pdwSizeOfConfigOut, ubyte** ppConfigOut, 
+                               const(ubyte)* pConfigIn, uint* pdwSizeOfConfigOut, ubyte** ppConfigOut, 
                                EAP_ERROR** ppEapError);
 
 ///Allows the user to determine what kind of credentials are required by the methods to perform authentication in a
@@ -2130,7 +2205,7 @@ uint EapHostPeerInvokeConfigUI(HWND hwndParent, uint dwFlags, EAP_METHOD_TYPE ea
 ///                 EapHostPeerFreeErrorMemory.
 @DllImport("eappcfg")
 uint EapHostPeerQueryCredentialInputFields(HANDLE hUserImpersonationToken, EAP_METHOD_TYPE eapMethodType, 
-                                           uint dwFlags, uint dwEapConnDataSize, char* pbEapConnData, 
+                                           uint dwFlags, uint dwEapConnDataSize, const(ubyte)* pbEapConnData, 
                                            EAP_CONFIG_INPUT_FIELD_ARRAY* pEapConfigInputFieldArray, 
                                            EAP_ERROR** ppEapError);
 
@@ -2158,9 +2233,9 @@ uint EapHostPeerQueryCredentialInputFields(HANDLE hUserImpersonationToken, EAP_M
 @DllImport("eappcfg")
 uint EapHostPeerQueryUserBlobFromCredentialInputFields(HANDLE hUserImpersonationToken, 
                                                        EAP_METHOD_TYPE eapMethodType, uint dwFlags, 
-                                                       uint dwEapConnDataSize, char* pbEapConnData, 
+                                                       uint dwEapConnDataSize, const(ubyte)* pbEapConnData, 
                                                        const(EAP_CONFIG_INPUT_FIELD_ARRAY)* pEapConfigInputFieldArray, 
-                                                       uint* pdwUserBlobSize, char* ppbUserBlob, 
+                                                       uint* pdwUserBlobSize, ubyte** ppbUserBlob, 
                                                        EAP_ERROR** ppEapError);
 
 ///This function is called by tunnel methods to invoke the identity UI of the inner methods. This function returns the
@@ -2185,9 +2260,9 @@ uint EapHostPeerQueryUserBlobFromCredentialInputFields(HANDLE hUserImpersonation
 ///    ppvReserved = Reserved for future use.
 @DllImport("eappcfg")
 uint EapHostPeerInvokeIdentityUI(uint dwVersion, EAP_METHOD_TYPE eapMethodType, uint dwFlags, HWND hwndParent, 
-                                 uint dwSizeofConnectionData, char* pConnectionData, uint dwSizeofUserData, 
-                                 char* pUserData, uint* pdwSizeOfUserDataOut, ubyte** ppUserDataOut, 
-                                 ushort** ppwszIdentity, EAP_ERROR** ppEapError, void** ppvReserved);
+                                 uint dwSizeofConnectionData, const(ubyte)* pConnectionData, uint dwSizeofUserData, 
+                                 const(ubyte)* pUserData, uint* pdwSizeOfUserDataOut, ubyte** ppUserDataOut, 
+                                 PWSTR* ppwszIdentity, EAP_ERROR** ppEapError, void** ppvReserved);
 
 ///Raises an interactive user interface used to get credentials from the user. For example, this function can be used to
 ///raise a UI that retrieves credentials from a smart card, and prompts the user to enter the corresponding PIN.
@@ -2209,7 +2284,7 @@ uint EapHostPeerInvokeIdentityUI(uint dwVersion, EAP_METHOD_TYPE eapMethodType, 
 ///                 of this function call. After consuming the error data, this memory must be freed by calling
 ///                 EapHostPeerFreeErrorMemory.
 @DllImport("eappcfg")
-uint EapHostPeerInvokeInteractiveUI(HWND hwndParent, uint dwSizeofUIContextData, char* pUIContextData, 
+uint EapHostPeerInvokeInteractiveUI(HWND hwndParent, uint dwSizeofUIContextData, const(ubyte)* pUIContextData, 
                                     uint* pdwSizeOfDataFromInteractiveUI, ubyte** ppDataFromInteractiveUI, 
                                     EAP_ERROR** ppEapError);
 
@@ -2234,8 +2309,9 @@ uint EapHostPeerInvokeInteractiveUI(HWND hwndParent, uint dwSizeofUIContextData,
 ///    ppvReserved = Reserved for future use. This parameter must be set to 0.
 @DllImport("eappcfg")
 uint EapHostPeerQueryInteractiveUIInputFields(uint dwVersion, uint dwFlags, uint dwSizeofUIContextData, 
-                                              char* pUIContextData, EAP_INTERACTIVE_UI_DATA* pEapInteractiveUIData, 
-                                              EAP_ERROR** ppEapError, void** ppvReserved);
+                                              const(ubyte)* pUIContextData, 
+                                              EAP_INTERACTIVE_UI_DATA* pEapInteractiveUIData, EAP_ERROR** ppEapError, 
+                                              void** ppvReserved);
 
 ///The <b>EapHostPeerQueryUIBlobFromInteractiveUIInputFields</b> function converts user information into a user BLOB
 ///that can be consumed by EAPHost run-time functions.
@@ -2265,7 +2341,7 @@ uint EapHostPeerQueryInteractiveUIInputFields(uint dwVersion, uint dwFlags, uint
 ///    ppvReserved = Reserved for future use. This parameter must be set to 0.
 @DllImport("eappcfg")
 uint EapHostPeerQueryUIBlobFromInteractiveUIInputFields(uint dwVersion, uint dwFlags, uint dwSizeofUIContextData, 
-                                                        char* pUIContextData, 
+                                                        const(ubyte)* pUIContextData, 
                                                         const(EAP_INTERACTIVE_UI_DATA)* pEapInteractiveUIData, 
                                                         uint* pdwSizeOfDataFromInteractiveUI, 
                                                         ubyte** ppDataFromInteractiveUI, EAP_ERROR** ppEapError, 
@@ -2311,7 +2387,7 @@ uint EapHostPeerConfigXml2Blob(uint dwFlags, IXMLDOMNode pConfigDoc, uint* pdwSi
 ///                 EapHostPeerFreeErrorMemory.
 @DllImport("eappcfg")
 uint EapHostPeerCredentialsXml2Blob(uint dwFlags, IXMLDOMNode pCredentialsDoc, uint dwSizeOfConfigIn, 
-                                    char* pConfigIn, uint* pdwSizeOfCredentialsOut, ubyte** ppCredentialsOut, 
+                                    ubyte* pConfigIn, uint* pdwSizeOfCredentialsOut, ubyte** ppCredentialsOut, 
                                     EAP_METHOD_TYPE* pEapMethodType, EAP_ERROR** ppEapError);
 
 ///Converts the configuration BLOB to XML. The configuration BLOB is returned when the supplicant called one of the
@@ -2329,8 +2405,8 @@ uint EapHostPeerCredentialsXml2Blob(uint dwFlags, IXMLDOMNode pCredentialsDoc, u
 ///                 of this function call. After consuming the error data, this memory must be freed by calling
 ///                 EapHostPeerFreeErrorMemory.
 @DllImport("eappcfg")
-uint EapHostPeerConfigBlob2Xml(uint dwFlags, EAP_METHOD_TYPE eapMethodType, uint dwSizeOfConfigIn, char* pConfigIn, 
-                               IXMLDOMDocument2* ppConfigDoc, EAP_ERROR** ppEapError);
+uint EapHostPeerConfigBlob2Xml(uint dwFlags, EAP_METHOD_TYPE eapMethodType, uint dwSizeOfConfigIn, 
+                               ubyte* pConfigIn, IXMLDOMDocument2* ppConfigDoc, EAP_ERROR** ppEapError);
 
 ///Frees memory returned by the configuration APIs. Do not use this function to free memory allocated to an EAP_ERROR
 ///structure. Use EapHostPeerFreeErrorMemory to free error memory.
@@ -2618,7 +2694,7 @@ uint EapHostPeerEndSession(uint sessionHandle, EAP_ERROR** ppEapError);
 @DllImport("eappprxy")
 uint EapHostPeerGetDataToUnplumbCredentials(GUID* pConnectionIdThatLastSavedCreds, 
                                             int* phCredentialImpersonationToken, uint sessionHandle, 
-                                            EAP_ERROR** ppEapError, int* fSaveToCredMan);
+                                            EAP_ERROR** ppEapError, BOOL* fSaveToCredMan);
 
 ///Clears the authentication session connection. After <b>EapHostPeerClearConnection</b> is called, all states
 ///associated with <i>pConnectionId</i> are deleted, and no re-authentication associated with this GUID will be
@@ -2673,13 +2749,13 @@ void EapHostPeerFreeEapError(EAP_ERROR* pEapError);
 ///    ppvReserved = Reserved for future use
 @DllImport("eappprxy")
 uint EapHostPeerGetIdentity(uint dwVersion, uint dwFlags, EAP_METHOD_TYPE eapMethodType, 
-                            uint dwSizeofConnectionData, char* pConnectionData, uint dwSizeofUserData, 
-                            char* pUserData, HANDLE hTokenImpersonateUser, int* pfInvokeUI, 
-                            uint* pdwSizeOfUserDataOut, ubyte** ppUserDataOut, ushort** ppwszIdentity, 
+                            uint dwSizeofConnectionData, const(ubyte)* pConnectionData, uint dwSizeofUserData, 
+                            const(ubyte)* pUserData, HANDLE hTokenImpersonateUser, BOOL* pfInvokeUI, 
+                            uint* pdwSizeOfUserDataOut, ubyte** ppUserDataOut, PWSTR* ppwszIdentity, 
                             EAP_ERROR** ppEapError, ubyte** ppvReserved);
 
 @DllImport("eappprxy")
-uint EapHostPeerGetEncryptedPassword(uint dwSizeofPassword, const(wchar)* szPassword, ushort** ppszEncPassword);
+uint EapHostPeerGetEncryptedPassword(uint dwSizeofPassword, PWSTR szPassword, PWSTR* ppszEncPassword);
 
 ///Releases the memory space used during run-time.
 ///Params:
@@ -2693,16 +2769,16 @@ void EapHostPeerFreeRuntimeMemory(ubyte* pData);
 @GUID("66A2DB16-D706-11D0-A37B-00C04FC9DA04")
 interface IRouterProtocolConfig : IUnknown
 {
-    HRESULT AddProtocol(ushort* pszMachineName, uint dwTransportId, uint dwProtocolId, HWND hWnd, uint dwFlags, 
-                        IUnknown pRouter, size_t uReserved1);
-    HRESULT RemoveProtocol(ushort* pszMachineName, uint dwTransportId, uint dwProtocolId, HWND hWnd, uint dwFlags, 
-                           IUnknown pRouter, size_t uReserved1);
+    HRESULT AddProtocol(const(PWSTR) pszMachineName, uint dwTransportId, uint dwProtocolId, HWND hWnd, 
+                        uint dwFlags, IUnknown pRouter, size_t uReserved1);
+    HRESULT RemoveProtocol(const(PWSTR) pszMachineName, uint dwTransportId, uint dwProtocolId, HWND hWnd, 
+                           uint dwFlags, IUnknown pRouter, size_t uReserved1);
 }
 
 @GUID("66A2DB17-D706-11D0-A37B-00C04FC9DA04")
 interface IAuthenticationProviderConfig : IUnknown
 {
-    HRESULT Initialize(ushort* pszMachineName, size_t* puConnectionParam);
+    HRESULT Initialize(const(PWSTR) pszMachineName, size_t* puConnectionParam);
     HRESULT Uninitialize(size_t uConnectionParam);
     HRESULT Configure(size_t uConnectionParam, HWND hWnd, uint dwFlags, size_t uReserved1, size_t uReserved2);
     HRESULT Activate(size_t uConnectionParam, size_t uReserved1, size_t uReserved2);
@@ -2712,7 +2788,7 @@ interface IAuthenticationProviderConfig : IUnknown
 @GUID("66A2DB18-D706-11D0-A37B-00C04FC9DA04")
 interface IAccountingProviderConfig : IUnknown
 {
-    HRESULT Initialize(ushort* pszMachineName, size_t* puConnectionParam);
+    HRESULT Initialize(const(PWSTR) pszMachineName, size_t* puConnectionParam);
     HRESULT Uninitialize(size_t uConnectionParam);
     HRESULT Configure(size_t uConnectionParam, HWND hWnd, uint dwFlags, size_t uReserved1, size_t uReserved2);
     HRESULT Activate(size_t uConnectionParam, size_t uReserved1, size_t uReserved2);
@@ -2740,7 +2816,7 @@ interface IEAPProviderConfig : IUnknown
     ///    The method failed because it was unable to allocate required memory. </td> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> An unexpected error occurred. </td> </tr> </table>
     ///    
-    HRESULT Initialize(ushort* pszMachineName, uint dwEapTypeId, size_t* puConnectionParam);
+    HRESULT Initialize(const(PWSTR) pszMachineName, uint dwEapTypeId, size_t* puConnectionParam);
     ///The system calls the <b>Uninitialize</b> method to shut down the specified EAP configuration session.
     ///Params:
     ///    dwEapTypeId = Specifies the EAP for which to shut down the configuration session.

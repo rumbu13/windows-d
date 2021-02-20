@@ -4,11 +4,11 @@ module windows.windowsaddressbook;
 
 public import windows.core;
 public import windows.com : HRESULT, IUnknown;
-public import windows.systemservices : BOOL, CY, LARGE_INTEGER;
+public import windows.systemservices : BOOL, CY, LARGE_INTEGER, PSTR, PWSTR;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : FILETIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -47,15 +47,15 @@ alias IWABOBJECT_GetLastError_METHOD = HRESULT function(HRESULT hResult, uint ul
 alias IWABOBJECT_AllocateBuffer_METHOD = HRESULT function(uint cbSize, void** lppBuffer);
 alias IWABOBJECT_AllocateMore_METHOD = HRESULT function(uint cbSize, void* lpObject, void** lppBuffer);
 alias IWABOBJECT_FreeBuffer_METHOD = HRESULT function(void* lpBuffer);
-alias IWABOBJECT_Backup_METHOD = HRESULT function(const(char)* lpFileName);
-alias IWABOBJECT_Import_METHOD = HRESULT function(const(char)* lpWIP);
+alias IWABOBJECT_Backup_METHOD = HRESULT function(PSTR lpFileName);
+alias IWABOBJECT_Import_METHOD = HRESULT function(PSTR lpWIP);
 alias IWABOBJECT_Find_METHOD = HRESULT function(IAddrBook lpIAB, HWND hWnd);
-alias IWABOBJECT_VCardDisplay_METHOD = HRESULT function(IAddrBook lpIAB, HWND hWnd, const(char)* lpszFileName);
-alias IWABOBJECT_LDAPUrl_METHOD = HRESULT function(IAddrBook lpIAB, HWND hWnd, uint ulFlags, const(char)* lpszURL, 
+alias IWABOBJECT_VCardDisplay_METHOD = HRESULT function(IAddrBook lpIAB, HWND hWnd, PSTR lpszFileName);
+alias IWABOBJECT_LDAPUrl_METHOD = HRESULT function(IAddrBook lpIAB, HWND hWnd, uint ulFlags, PSTR lpszURL, 
                                                    IMailUser* lppMailUser);
-alias IWABOBJECT_VCardCreate_METHOD = HRESULT function(IAddrBook lpIAB, uint ulFlags, const(char)* lpszVCard, 
+alias IWABOBJECT_VCardCreate_METHOD = HRESULT function(IAddrBook lpIAB, uint ulFlags, PSTR lpszVCard, 
                                                        IMailUser lpMailUser);
-alias IWABOBJECT_VCardRetrieve_METHOD = HRESULT function(IAddrBook lpIAB, uint ulFlags, const(char)* lpszVCard, 
+alias IWABOBJECT_VCardRetrieve_METHOD = HRESULT function(IAddrBook lpIAB, uint ulFlags, PSTR lpszVCard, 
                                                          IMailUser* lppMailUser);
 alias IWABOBJECT_GetMe_METHOD = HRESULT function(IAddrBook lpIAB, uint ulFlags, uint* lpdwAction, SBinary* lpsbEID, 
                                                  HWND hwnd);
@@ -163,14 +163,14 @@ struct SDoubleArray
 
 struct SWStringArray
 {
-    uint     cValues;
-    ushort** lppszW;
+    uint   cValues;
+    PWSTR* lppszW;
 }
 
 struct SLPSTRArray
 {
-    uint   cValues;
-    byte** lppszA;
+    uint  cValues;
+    PSTR* lppszA;
 }
 
 union _PV
@@ -184,9 +184,9 @@ union _PV
     CY                 cur;
     double             at;
     FILETIME           ft;
-    const(char)*       lpszA;
+    PSTR               lpszA;
     SBinary            bin;
-    const(wchar)*      lpszW;
+    PWSTR              lpszW;
     GUID*              lpguid;
     LARGE_INTEGER      li;
     SShortArray        MVi;
@@ -377,7 +377,7 @@ struct NOTIFICATION
 {
     uint ulEventType;
     uint ulAlignPad;
-    union info
+union info
     {
         ERROR_NOTIFICATION   err;
         NEWMAIL_NOTIFICATION newmail;
@@ -392,10 +392,10 @@ struct MAPINAMEID
 {
     GUID* lpguid;
     uint  ulKind;
-    union Kind
+union Kind
     {
-        int           lID;
-        const(wchar)* lpwstrName;
+        int   lID;
+        PWSTR lpwstrName;
     }
 }
 
@@ -507,7 +507,7 @@ struct SRestriction
     ///Type: <b>ULONG</b> Variable of type <b>ULONG</b> that specifies the restriction type. The possible values are as
     ///follows.
     uint rt;
-    union res
+union res
     {
         SComparePropsRestriction resCompareProps;
         SAndRestriction      resAnd;
@@ -696,32 +696,32 @@ struct _WABACTIONITEM
 struct WAB_PARAM
 {
     ///Type: <b>ULONG</b> Value of type <b>ULONG</b> that specifies the size of the <b>WAB_PARAM</b> structure in bytes.
-    uint         cbSize;
+    uint cbSize;
     ///Type: <b>HWND</b> Value of type <b>HWND</b> that specifies the window handle of the calling client application.
     ///Can be <b>NULL</b>.
-    HWND         hwnd;
+    HWND hwnd;
     ///Type: <b>LPTSTR</b> Value of type <b>LPTSTR</b> that specifies the WAB file name to open. If this parameter is
     ///<b>NULL</b>, the default Address Book file is opened.
-    const(char)* szFileName;
+    PSTR szFileName;
     ///Type: <b>ULONG</b> Value of type <b>ULONG</b> that specifies flags that control the behavior of WAB
     ///functionality. Available only on Internet Explorer 4.0 or later.
-    uint         ulFlags;
-    GUID         guidPSExt;
+    uint ulFlags;
+    GUID guidPSExt;
 }
 
 ///Do not use. Structure passed to Import that gives information about importing .wab files.
 struct WABIMPORTPARAM
 {
     ///Type: <b>ULONG</b> Value of type <b>ULONG</b> that specifies the size of the structure in bytes.
-    uint         cbSize;
+    uint      cbSize;
     ///Type: <b>IAddrBook*</b> Pointer to an IAddrBook interface that specifies the address book object to import to.
-    IAddrBook    lpAdrBook;
-    HWND         hWnd;
+    IAddrBook lpAdrBook;
+    HWND      hWnd;
     ///Type: <b>ULONG</b> Value of type <b>ULONG</b> that specifies flags affecting behavior.
-    uint         ulFlags;
+    uint      ulFlags;
     ///Type: <b>LPSTR</b> Value of type <b>LPSTR</b> that specifies the filename to import, or <b>NULL</b> to cause a
     ///FileOpen dialog box to open.
-    const(char)* lpszFileName;
+    PSTR      lpszFileName;
 }
 
 ///Do not use. Used by the Windows Address Book (WAB) to initialize user's IContextMenu Interface and IShellPropSheetExt
@@ -852,14 +852,14 @@ interface IMAPIStatus : IMAPIProp
     HRESULT ValidateState(size_t ulUIParam, uint ulFlags);
     HRESULT SettingsDialog(size_t ulUIParam, uint ulFlags);
     HRESULT ChangePassword(byte* lpOldPass, byte* lpNewPass, uint ulFlags);
-    HRESULT FlushQueues(size_t ulUIParam, uint cbTargetTransport, char* lpTargetTransport, uint ulFlags);
+    HRESULT FlushQueues(size_t ulUIParam, uint cbTargetTransport, ENTRYID* lpTargetTransport, uint ulFlags);
 }
 
 interface IMAPIContainer : IMAPIProp
 {
     HRESULT GetContentsTable(uint ulFlags, IMAPITable* lppTable);
     HRESULT GetHierarchyTable(uint ulFlags, IMAPITable* lppTable);
-    HRESULT OpenEntry(uint cbEntryID, char* lpEntryID, GUID* lpInterface, uint ulFlags, uint* lpulObjType, 
+    HRESULT OpenEntry(uint cbEntryID, ENTRYID* lpEntryID, GUID* lpInterface, uint ulFlags, uint* lpulObjType, 
                       IUnknown* lppUnk);
     HRESULT SetSearchCriteria(SRestriction* lpRestriction, SBinaryArray* lpContainerList, uint ulSearchFlags);
     HRESULT GetSearchCriteria(uint ulFlags, SRestriction** lppRestriction, SBinaryArray** lppContainerList, 
@@ -870,7 +870,7 @@ interface IMAPIContainer : IMAPIProp
 ///to perform name resolution and to create, copy, and delete recipients.
 interface IABContainer : IMAPIContainer
 {
-    HRESULT CreateEntry(uint cbEntryID, char* lpEntryID, uint ulCreateFlags, IMAPIProp* lppMAPIPropEntry);
+    HRESULT CreateEntry(uint cbEntryID, ENTRYID* lpEntryID, uint ulCreateFlags, IMAPIProp* lppMAPIPropEntry);
     HRESULT CopyEntries(SBinaryArray* lpEntries, size_t ulUIParam, IMAPIProgress lpProgress, uint ulFlags);
     HRESULT DeleteEntries(SBinaryArray* lpEntries, uint ulFlags);
     HRESULT ResolveNames(SPropTagArray* lpPropTagArray, uint ulFlags, ADRLIST* lpAdrList, _flaglist* lpFlagList);
@@ -885,7 +885,7 @@ interface IMailUser : IMAPIProp
 ///interface provides methods to create, copy, and delete distribution lists, in addition to performing name resolution.
 interface IDistList : IMAPIContainer
 {
-    HRESULT CreateEntry(uint cbEntryID, char* lpEntryID, uint ulCreateFlags, IMAPIProp* lppMAPIPropEntry);
+    HRESULT CreateEntry(uint cbEntryID, ENTRYID* lpEntryID, uint ulCreateFlags, IMAPIProp* lppMAPIPropEntry);
     HRESULT CopyEntries(SBinaryArray* lpEntries, size_t ulUIParam, IMAPIProgress lpProgress, uint ulFlags);
     HRESULT DeleteEntries(SBinaryArray* lpEntries, uint ulFlags);
     HRESULT ResolveNames(SPropTagArray* lpPropTagArray, uint ulFlags, ADRLIST* lpAdrList, _flaglist* lpFlagList);
@@ -899,12 +899,13 @@ interface IMAPIFolder : IMAPIContainer
     HRESULT DeleteMessages(SBinaryArray* lpMsgList, size_t ulUIParam, IMAPIProgress lpProgress, uint ulFlags);
     HRESULT CreateFolder(uint ulFolderType, byte* lpszFolderName, byte* lpszFolderComment, GUID* lpInterface, 
                          uint ulFlags, IMAPIFolder* lppFolder);
-    HRESULT CopyFolder(uint cbEntryID, char* lpEntryID, GUID* lpInterface, void* lpDestFolder, 
+    HRESULT CopyFolder(uint cbEntryID, ENTRYID* lpEntryID, GUID* lpInterface, void* lpDestFolder, 
                        byte* lpszNewFolderName, size_t ulUIParam, IMAPIProgress lpProgress, uint ulFlags);
-    HRESULT DeleteFolder(uint cbEntryID, char* lpEntryID, size_t ulUIParam, IMAPIProgress lpProgress, uint ulFlags);
+    HRESULT DeleteFolder(uint cbEntryID, ENTRYID* lpEntryID, size_t ulUIParam, IMAPIProgress lpProgress, 
+                         uint ulFlags);
     HRESULT SetReadFlags(SBinaryArray* lpMsgList, size_t ulUIParam, IMAPIProgress lpProgress, uint ulFlags);
-    HRESULT GetMessageStatus(uint cbEntryID, char* lpEntryID, uint ulFlags, uint* lpulMessageStatus);
-    HRESULT SetMessageStatus(uint cbEntryID, char* lpEntryID, uint ulNewStatus, uint ulNewStatusMask, 
+    HRESULT GetMessageStatus(uint cbEntryID, ENTRYID* lpEntryID, uint ulFlags, uint* lpulMessageStatus);
+    HRESULT SetMessageStatus(uint cbEntryID, ENTRYID* lpEntryID, uint ulNewStatus, uint ulNewStatusMask, 
                              uint* lpulOldStatus);
     HRESULT SaveContentsSort(SSortOrderSet* lpSortCriteria, uint ulFlags);
     HRESULT EmptyFolder(size_t ulUIParam, IMAPIProgress lpProgress, uint ulFlags);
@@ -912,22 +913,22 @@ interface IMAPIFolder : IMAPIContainer
 
 interface IMsgStore : IMAPIProp
 {
-    HRESULT Advise(uint cbEntryID, char* lpEntryID, uint ulEventMask, IMAPIAdviseSink lpAdviseSink, 
+    HRESULT Advise(uint cbEntryID, ENTRYID* lpEntryID, uint ulEventMask, IMAPIAdviseSink lpAdviseSink, 
                    uint* lpulConnection);
     HRESULT Unadvise(uint ulConnection);
-    HRESULT CompareEntryIDs(uint cbEntryID1, char* lpEntryID1, uint cbEntryID2, char* lpEntryID2, uint ulFlags, 
-                            uint* lpulResult);
-    HRESULT OpenEntry(uint cbEntryID, char* lpEntryID, GUID* lpInterface, uint ulFlags, uint* lpulObjType, 
+    HRESULT CompareEntryIDs(uint cbEntryID1, ENTRYID* lpEntryID1, uint cbEntryID2, ENTRYID* lpEntryID2, 
+                            uint ulFlags, uint* lpulResult);
+    HRESULT OpenEntry(uint cbEntryID, ENTRYID* lpEntryID, GUID* lpInterface, uint ulFlags, uint* lpulObjType, 
                       IUnknown* ppUnk);
-    HRESULT SetReceiveFolder(byte* lpszMessageClass, uint ulFlags, uint cbEntryID, char* lpEntryID);
+    HRESULT SetReceiveFolder(byte* lpszMessageClass, uint ulFlags, uint cbEntryID, ENTRYID* lpEntryID);
     HRESULT GetReceiveFolder(byte* lpszMessageClass, uint ulFlags, uint* lpcbEntryID, ENTRYID** lppEntryID, 
                              byte** lppszExplicitClass);
     HRESULT GetReceiveFolderTable(uint ulFlags, IMAPITable* lppTable);
     HRESULT StoreLogoff(uint* lpulFlags);
-    HRESULT AbortSubmit(uint cbEntryID, char* lpEntryID, uint ulFlags);
+    HRESULT AbortSubmit(uint cbEntryID, ENTRYID* lpEntryID, uint ulFlags);
     HRESULT GetOutgoingQueue(uint ulFlags, IMAPITable* lppTable);
     HRESULT SetLockState(IMessage lpMessage, uint ulLockState);
-    HRESULT FinishedMsg(uint ulFlags, uint cbEntryID, char* lpEntryID);
+    HRESULT FinishedMsg(uint ulFlags, uint cbEntryID, ENTRYID* lpEntryID);
     HRESULT NotifyNewMail(NOTIFICATION* lpNotification);
 }
 
@@ -958,7 +959,7 @@ interface IProviderAdmin : IUnknown
 {
     HRESULT GetLastError(HRESULT hResult, uint ulFlags, MAPIERROR** lppMAPIError);
     HRESULT GetProviderTable(uint ulFlags, IMAPITable* lppTable);
-    HRESULT CreateProvider(byte* lpszProvider, uint cValues, char* lpProps, size_t ulUIParam, uint ulFlags, 
+    HRESULT CreateProvider(byte* lpszProvider, uint cValues, SPropValue* lpProps, size_t ulUIParam, uint ulFlags, 
                            MAPIUID* lpUID);
     HRESULT DeleteProvider(MAPIUID* lpUID);
     HRESULT OpenProfileSection(MAPIUID* lpUID, GUID* lpInterface, uint ulFlags, IProfSect* lppProfSect);
@@ -1030,14 +1031,14 @@ interface IWABObject : IUnknown
     ///This method is not implemented.
     ///Params:
     ///    lpFileName = TBD
-    HRESULT Backup(const(char)* lpFileName);
+    HRESULT Backup(PSTR lpFileName);
     ///Imports a .wab file into the user's Address Book.
     ///Params:
     ///    lpWIP = Type: <b>LPSTR</b> Pointer to a WABIMPORTPARAM structure.
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns S_OK if successful, or an error value otherwise.
     ///    
-    HRESULT Import(const(char)* lpWIP);
+    HRESULT Import(PSTR lpWIP);
     ///Launches the Windows Address Book (WAB) Find dialog box.
     ///Params:
     ///    lpIAB = Type: <b>IAddrBook*</b> Pointer to an IAddrBook interface that specifies the address book to search.
@@ -1050,7 +1051,7 @@ interface IWABObject : IUnknown
     ///    hWnd = Type: <b>HWND</b> Value of type <b>HWND</b> that specifies the parent window handle for displayed dialog
     ///           boxes.
     ///    lpszFileName = Type: <b>LPSTR</b> Value of type <b>LPSTR</b> that specifies the full path of the vCard file to display.
-    HRESULT VCardDisplay(IAddrBook lpIAB, HWND hWnd, const(char)* lpszFileName);
+    HRESULT VCardDisplay(IAddrBook lpIAB, HWND hWnd, PSTR lpszFileName);
     ///Processes an Lightweight Directory Access Protocol (LDAP) URL and displays the results obtained from the URL. If
     ///the URL only contains a server name, the Windows Address Book (WAB) launches the Find window with the server name
     ///filled in. If the URL contains an LDAP query, the query is processed. If the query has a single result, the WAB
@@ -1070,7 +1071,7 @@ interface IWABObject : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT LDAPUrl(IAddrBook lpIAB, HWND hWnd, uint ulFlags, const(char)* lpszURL, IMailUser* lppMailUser);
+    HRESULT LDAPUrl(IAddrBook lpIAB, HWND hWnd, uint ulFlags, PSTR lpszURL, IMailUser* lppMailUser);
     ///Translates the properties of a given MailUser object into a vCard file.
     ///Params:
     ///    lpIAB = Type: <b>IAddrBook*</b> Pointer to an IAddrBookinterface that specifies the address book.
@@ -1084,7 +1085,7 @@ interface IWABObject : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT VCardCreate(IAddrBook lpIAB, uint ulFlags, const(char)* lpszVCard, IMailUser lpMailUser);
+    HRESULT VCardCreate(IAddrBook lpIAB, uint ulFlags, PSTR lpszVCard, IMailUser lpMailUser);
     ///Reads a vCard file and creates a MailUser object containing the vCard properties.
     ///Params:
     ///    lpIAB = Type: <b>IAddrBook*</b> Pointer to an IAddrBook interface that specifies the address book object.
@@ -1098,7 +1099,7 @@ interface IWABObject : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT VCardRetrieve(IAddrBook lpIAB, uint ulFlags, const(char)* lpszVCard, IMailUser* lppMailUser);
+    HRESULT VCardRetrieve(IAddrBook lpIAB, uint ulFlags, PSTR lpszVCard, IMailUser* lppMailUser);
     ///Retrieves the entry identifier of the object that has been designated as "ME."
     ///Params:
     ///    lpIAB = Type: <b>IAddrBook*</b> Pointer to an IAddrBook interface that specifies the address book object.
@@ -1139,13 +1140,13 @@ interface IWABOBJECT_
     HRESULT AllocateBuffer(uint cbSize, void** lppBuffer);
     HRESULT AllocateMore(uint cbSize, void* lpObject, void** lppBuffer);
     HRESULT FreeBuffer(void* lpBuffer);
-    HRESULT Backup(const(char)* lpFileName);
-    HRESULT Import(const(char)* lpWIP);
+    HRESULT Backup(PSTR lpFileName);
+    HRESULT Import(PSTR lpWIP);
     HRESULT Find(IAddrBook lpIAB, HWND hWnd);
-    HRESULT VCardDisplay(IAddrBook lpIAB, HWND hWnd, const(char)* lpszFileName);
-    HRESULT LDAPUrl(IAddrBook lpIAB, HWND hWnd, uint ulFlags, const(char)* lpszURL, IMailUser* lppMailUser);
-    HRESULT VCardCreate(IAddrBook lpIAB, uint ulFlags, const(char)* lpszVCard, IMailUser lpMailUser);
-    HRESULT VCardRetrieve(IAddrBook lpIAB, uint ulFlags, const(char)* lpszVCard, IMailUser* lppMailUser);
+    HRESULT VCardDisplay(IAddrBook lpIAB, HWND hWnd, PSTR lpszFileName);
+    HRESULT LDAPUrl(IAddrBook lpIAB, HWND hWnd, uint ulFlags, PSTR lpszURL, IMailUser* lppMailUser);
+    HRESULT VCardCreate(IAddrBook lpIAB, uint ulFlags, PSTR lpszVCard, IMailUser lpMailUser);
+    HRESULT VCardRetrieve(IAddrBook lpIAB, uint ulFlags, PSTR lpszVCard, IMailUser* lppMailUser);
     HRESULT GetMe(IAddrBook lpIAB, uint ulFlags, uint* lpdwAction, SBinary* lpsbEID, HWND hwnd);
     HRESULT SetMe(IAddrBook lpIAB, uint ulFlags, SBinary sbEID, HWND hwnd);
 }

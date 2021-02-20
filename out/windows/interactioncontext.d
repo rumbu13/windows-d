@@ -4,9 +4,10 @@ module windows.interactioncontext;
 
 public import windows.core;
 public import windows.com : HRESULT;
+public import windows.menusandresources : POINTER_INPUT_TYPE;
 public import windows.pointerinput : POINTER_INFO;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -342,16 +343,16 @@ struct INTERACTION_ARGUMENTS_CROSS_SLIDE
 struct INTERACTION_CONTEXT_OUTPUT
 {
     ///ID of the Interaction Context object.
-    INTERACTION_ID    interactionId;
+    INTERACTION_ID     interactionId;
     ///One of the constants from INTERACTION_FLAGS.
-    INTERACTION_FLAGS interactionFlags;
+    INTERACTION_FLAGS  interactionFlags;
     ///One of the constants from POINTER_INPUT_TYPE.
-    uint              inputType;
+    POINTER_INPUT_TYPE inputType;
     ///The x-coordinate of the input pointer, in HIMETRIC units.
-    float             x;
+    float              x;
     ///The y-coordinate of the input pointer, in HIMETRIC units.
-    float             y;
-    union arguments
+    float              y;
+union arguments
     {
         INTERACTION_ARGUMENTS_MANIPULATION manipulation;
         INTERACTION_ARGUMENTS_TAP tap;
@@ -361,14 +362,14 @@ struct INTERACTION_CONTEXT_OUTPUT
 
 struct INTERACTION_CONTEXT_OUTPUT2
 {
-    INTERACTION_ID    interactionId;
-    INTERACTION_FLAGS interactionFlags;
-    uint              inputType;
-    uint              contactCount;
-    uint              currentContactCount;
-    float             x;
-    float             y;
-    union arguments
+    INTERACTION_ID     interactionId;
+    INTERACTION_FLAGS  interactionFlags;
+    POINTER_INPUT_TYPE inputType;
+    uint               contactCount;
+    uint               currentContactCount;
+    float              x;
+    float              y;
+union arguments
     {
         INTERACTION_ARGUMENTS_MANIPULATION manipulation;
         INTERACTION_ARGUMENTS_TAP tap;
@@ -452,7 +453,8 @@ HRESULT RegisterOutputCallbackInteractionContext2(HINTERACTIONCONTEXT__* interac
 ///    
 @DllImport("NInput")
 HRESULT SetInteractionConfigurationInteractionContext(HINTERACTIONCONTEXT__* interactionContext, 
-                                                      uint configurationCount, char* configuration);
+                                                      uint configurationCount, 
+                                                      const(INTERACTION_CONTEXT_CONFIGURATION)* configuration);
 
 ///Gets interaction configuration state for the Interaction Context object.
 ///Params:
@@ -464,7 +466,8 @@ HRESULT SetInteractionConfigurationInteractionContext(HINTERACTIONCONTEXT__* int
 ///    
 @DllImport("NInput")
 HRESULT GetInteractionConfigurationInteractionContext(HINTERACTIONCONTEXT__* interactionContext, 
-                                                      uint configurationCount, char* configuration);
+                                                      uint configurationCount, 
+                                                      INTERACTION_CONTEXT_CONFIGURATION* configuration);
 
 ///Sets Interaction Context object properties.
 ///Params:
@@ -557,7 +560,7 @@ HRESULT GetInertiaParameterInteractionContext(HINTERACTIONCONTEXT__* interaction
 ///    
 @DllImport("NInput")
 HRESULT SetCrossSlideParametersInteractionContext(HINTERACTIONCONTEXT__* interactionContext, uint parameterCount, 
-                                                  char* crossSlideParameters);
+                                                  CROSS_SLIDE_PARAMETER* crossSlideParameters);
 
 ///Gets the cross-slide interaction behavior.
 ///Params:
@@ -672,7 +675,7 @@ HRESULT RemovePointerInteractionContext(HINTERACTIONCONTEXT__* interactionContex
 ///    
 @DllImport("NInput")
 HRESULT ProcessPointerFramesInteractionContext(HINTERACTIONCONTEXT__* interactionContext, uint entriesCount, 
-                                               uint pointerCount, char* pointerInfo);
+                                               uint pointerCount, const(POINTER_INFO)* pointerInfo);
 
 ///Adds the history for a single input pointer to the buffer of the Interaction Context object.
 ///Params:
@@ -684,7 +687,7 @@ HRESULT ProcessPointerFramesInteractionContext(HINTERACTIONCONTEXT__* interactio
 ///    
 @DllImport("NInput")
 HRESULT BufferPointerPacketsInteractionContext(HINTERACTIONCONTEXT__* interactionContext, uint entriesCount, 
-                                               char* pointerInfo);
+                                               const(POINTER_INFO)* pointerInfo);
 
 ///Process buffered packets at the end of a pointer input frame.
 ///Params:

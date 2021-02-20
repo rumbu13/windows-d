@@ -3,8 +3,9 @@
 module windows.passwordmanagement;
 
 public import windows.core;
+public import windows.systemservices : PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Structs
@@ -86,7 +87,7 @@ struct ENCRYPTED_LM_OWF_PASSWORD
 ///    parameter pairs. </td> </tr> </table>
 ///    
 @DllImport("ADVAPI32")
-uint MSChapSrvChangePassword(const(wchar)* ServerName, const(wchar)* UserName, ubyte LmOldPresent, 
+uint MSChapSrvChangePassword(PWSTR ServerName, PWSTR UserName, ubyte LmOldPresent, 
                              LM_OWF_PASSWORD* LmOldOwfPassword, LM_OWF_PASSWORD* LmNewOwfPassword, 
                              LM_OWF_PASSWORD* NtOldOwfPassword, LM_OWF_PASSWORD* NtNewOwfPassword);
 
@@ -137,7 +138,7 @@ uint MSChapSrvChangePassword(const(wchar)* ServerName, const(wchar)* UserName, u
 ///    </tr> </table>
 ///    
 @DllImport("ADVAPI32")
-uint MSChapSrvChangePassword2(const(wchar)* ServerName, const(wchar)* UserName, 
+uint MSChapSrvChangePassword2(PWSTR ServerName, PWSTR UserName, 
                               SAMPR_ENCRYPTED_USER_PASSWORD* NewPasswordEncryptedWithOldNt, 
                               ENCRYPTED_LM_OWF_PASSWORD* OldNtOwfPasswordEncryptedWithNewNt, ubyte LmPresent, 
                               SAMPR_ENCRYPTED_USER_PASSWORD* NewPasswordEncryptedWithOldLm, 

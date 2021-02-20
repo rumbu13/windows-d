@@ -6,11 +6,11 @@ public import windows.core;
 public import windows.com : HRESULT, IUnknown;
 public import windows.networkdrivers : SOCKET_ADDRESS_LIST;
 public import windows.security : SID;
-public import windows.systemservices : BOOL;
+public import windows.systemservices : BOOL, PWSTR;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : FILETIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -176,13 +176,13 @@ struct DIAG_SOCKADDR
 struct HELPER_ATTRIBUTE
 {
     ///Type: <b>[string] LPWSTR</b> A pointer to a null-terminated string that contains the name of the attribute.
-    const(wchar)*  pwszName;
+    PWSTR          pwszName;
     ///Type: <b>ATTRIBUTE_TYPE</b> The type of helper attribute.
     ATTRIBUTE_TYPE type;
-    union
+union
     {
         BOOL          Boolean;
-        byte          Char;
+        ubyte         Char;
         ubyte         Byte;
         short         Short;
         ushort        Word;
@@ -190,7 +190,7 @@ struct HELPER_ATTRIBUTE
         uint          DWord;
         long          Int64;
         ulong         UInt64;
-        const(wchar)* PWStr;
+        PWSTR         PWStr;
         GUID          Guid;
         LIFE_TIME     LifeTime;
         DIAG_SOCKADDR Address;
@@ -205,22 +205,22 @@ struct ShellCommandInfo
     ///Type: <b>[string] LPWSTR</b> A pointer to a null-terminated string that contains the action to be performed. The
     ///set of available verbs that specifies the action depends on the particular file or folder. Generally, the actions
     ///available from an object's shortcut menu are available verbs. For more information, see the Remarks section.
-    const(wchar)* pwszOperation;
+    PWSTR pwszOperation;
     ///Type: <b>[string] LPWSTR</b> A pointer to a null-terminated string that specifies the file or object on which to
     ///execute the specified verb. To specify a Shell namespace object, pass the fully qualified parse name. Note that
     ///not all verbs are supported on all objects. For example, not all document types support the "print" verb.
-    const(wchar)* pwszFile;
+    PWSTR pwszFile;
     ///Type: <b>[string] LPWSTR</b> A pointer to a null-terminated strings that specifies the parameters to be passed to
     ///the application, only if the <i>pwszFile</i> parameter specifies an executable file. The format of this string is
     ///determined by the verb that is to be invoked. If <i>pwszFile</i> specifies a document file, <i>pwszParameters</i>
     ///should be <b>NULL</b>.
-    const(wchar)* pwszParameters;
+    PWSTR pwszParameters;
     ///Type: <b>[string] LPWSTR</b> A pointer to a null-terminated string that specifies the default directory.
-    const(wchar)* pwszDirectory;
+    PWSTR pwszDirectory;
     ///Type: <b>ULONG</b> Flags that specify how an application is to be displayed when it is opened. If <i>pwszFile</i>
     ///specifies a document file, the flag is simply passed to the associated application. It is up to the application
     ///to decide how to handle it.
-    uint          nShowCmd;
+    uint  nShowCmd;
 }
 
 ///The <b>UiInfo</b> structure is used to display repair messages to the user.
@@ -229,12 +229,12 @@ struct UiInfo
     ///Type: <b>UI_INFO_TYPE</b> The type of user interface (UI) to use. This can be one of the values shown in the
     ///following members.
     UI_INFO_TYPE type;
-    union
+union
     {
-        const(wchar)*    pwzNull;
+        PWSTR            pwzNull;
         ShellCommandInfo ShellInfo;
-        const(wchar)*    pwzHelpUrl;
-        const(wchar)*    pwzDui;
+        PWSTR            pwzHelpUrl;
+        PWSTR            pwzDui;
     }
 }
 
@@ -242,15 +242,15 @@ struct UiInfo
 struct RepairInfo
 {
     ///A unique GUID for this repair.
-    GUID          guid;
+    GUID         guid;
     ///A pointer to a null-terminated string that contains the helper class name in a user-friendly way.
-    const(wchar)* pwszClassName;
+    PWSTR        pwszClassName;
     ///A pointer to a null-terminated string that describes the repair in a user friendly way.
-    const(wchar)* pwszDescription;
+    PWSTR        pwszDescription;
     ///One of the WELL_KNOWN_SID_TYPE if the repair requires certain user contexts or privileges.
-    uint          sidType;
+    uint         sidType;
     ///The number of seconds required to perform the repair.
-    int           cost;
+    int          cost;
     ///Additional information about the repair. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td
     ///width="40%"><a id="RF_WORKAROUND"></a><a id="rf_workaround"></a><dl> <dt><b>RF_WORKAROUND</b></dt> </dl> </td>
     ///<td width="60%"> Indicates that the repair is a workaround for the issue. For example, sometimes resetting a
@@ -285,14 +285,14 @@ struct RepairInfo
     ///id="rf_reserved_lni"></a><dl> <dt><b>RF_RESERVED_LNI</b></dt> </dl> </td> <td width="60%"> Reserved for system
     ///use. <div class="alert"><b>Note</b> Available only in Windows 7, Windows Server 2008 R2, and later.</div> <div>
     ///</div> </td> </tr> </table>
-    uint          flags;
+    uint         flags;
     ///Reserved for future use.
-    REPAIR_SCOPE  scope_;
+    REPAIR_SCOPE scope_;
     ///Reserved for future use.
-    REPAIR_RISK   risk;
+    REPAIR_RISK  risk;
     ///A UiInfo structure.
-    UiInfo        UiInfo90;
-    int           rootCauseIndex;
+    UiInfo       UiInfo90;
+    int          rootCauseIndex;
 }
 
 ///Contains detailed repair information that can be used to help resolve the root cause of an incident.
@@ -310,7 +310,7 @@ struct RepairInfoEx
 struct RootCauseInfo
 {
     ///Type: <b>LPWSTR</b> A string that describes the problem that caused the incident.
-    const(wchar)* pwszDescription;
+    PWSTR         pwszDescription;
     ///Type: <b>GUID</b> The GUID that corresponds to the problem identified.
     GUID          rootCauseID;
     ///Type: <b>DWORD</b> A numeric value that provides more information about the problem. <table> <tr> <th>Value</th>
@@ -340,10 +340,10 @@ struct RootCauseInfo
 struct HYPOTHESIS
 {
     ///Type: <b>[string] LPWSTR</b> A pointer to a null-terminated string that contains the name of the helper class.
-    const(wchar)*     pwszClassName;
+    PWSTR             pwszClassName;
     ///Type: <b>[string] LPWSTR</b> A pointer to a null-terminated string that contains a user-friendly description of
     ///the data being passed to the helper class..
-    const(wchar)*     pwszDescription;
+    PWSTR             pwszDescription;
     ///Type: <b>ULONG</b> The count of attributes in this hypothesis.
     uint              celt;
     ///Type: <b>[size_is(celt)]PHELPER_ATTRIBUTE[ ]</b> A pointer to an array of HELPER_ATTRIBUTE structures that
@@ -355,7 +355,7 @@ struct HYPOTHESIS
 struct HelperAttributeInfo
 {
     ///Type: <b>[string] LPWSTR</b> Pointer to a null-terminated string that contains the name of the helper attribute.
-    const(wchar)*  pwszName;
+    PWSTR          pwszName;
     ///Type: <b>ATTRIBUTE_TYPE</b> The type of helper attribute.
     ATTRIBUTE_TYPE type;
 }
@@ -402,7 +402,7 @@ struct HypothesisResult
 ///    <i>helperClassName</i> is <b>NULL</b>. </td> </tr> </table>
 ///    
 @DllImport("NDFAPI")
-HRESULT NdfCreateIncident(const(wchar)* helperClassName, uint celt, char* attributes, void** handle);
+HRESULT NdfCreateIncident(const(PWSTR) helperClassName, uint celt, HELPER_ATTRIBUTE* attributes, void** handle);
 
 ///The <b>NdfCreateWinSockIncident</b> function provides access to the Winsock Helper Class provided by Microsoft.
 ///Params:
@@ -422,7 +422,7 @@ HRESULT NdfCreateIncident(const(wchar)* helperClassName, uint celt, char* attrib
 ///    more parameters are invalid. </td> </tr> </table>
 ///    
 @DllImport("NDFAPI")
-HRESULT NdfCreateWinSockIncident(size_t sock, const(wchar)* host, ushort port, const(wchar)* appId, SID* userId, 
+HRESULT NdfCreateWinSockIncident(size_t sock, const(PWSTR) host, ushort port, const(PWSTR) appId, SID* userId, 
                                  void** handle);
 
 ///The <b>NdfCreateWebIncident</b> function diagnoses web connectivity problems concerning a specific URL.
@@ -430,7 +430,7 @@ HRESULT NdfCreateWinSockIncident(size_t sock, const(wchar)* host, ushort port, c
 ///    url = Type: <b>LPCWSTR</b> The URL with which there is a connectivity issue.
 ///    handle = Type: <b>NDFHANDLE*</b> Handle to the Network Diagnostics Framework incident.
 @DllImport("NDFAPI")
-HRESULT NdfCreateWebIncident(const(wchar)* url, void** handle);
+HRESULT NdfCreateWebIncident(const(PWSTR) url, void** handle);
 
 ///The <b>NdfCreateWebIncidentEx</b> function diagnoses web connectivity problems concerning a specific URL. This
 ///function allows for more control over the underlying diagnosis than the NdfCreateWebIncident function.
@@ -452,7 +452,7 @@ HRESULT NdfCreateWebIncident(const(wchar)* url, void** handle);
 ///    <td width="60%"> One or more parameters are invalid. </td> </tr> </table>
 ///    
 @DllImport("NDFAPI")
-HRESULT NdfCreateWebIncidentEx(const(wchar)* url, BOOL useWinHTTP, const(wchar)* moduleName, void** handle);
+HRESULT NdfCreateWebIncidentEx(const(PWSTR) url, BOOL useWinHTTP, PWSTR moduleName, void** handle);
 
 ///The <b>NdfCreateSharingIncident</b> function diagnoses network problems in accessing a specific network share.
 ///Params:
@@ -460,7 +460,7 @@ HRESULT NdfCreateWebIncidentEx(const(wchar)* url, BOOL useWinHTTP, const(wchar)*
 ///              which there is a connectivity issue.
 ///    handle = Type: <b>NDFHANDLE*</b> Handle to the Network Diagnostics Framework incident.
 @DllImport("NDFAPI")
-HRESULT NdfCreateSharingIncident(const(wchar)* UNCPath, void** handle);
+HRESULT NdfCreateSharingIncident(const(PWSTR) UNCPath, void** handle);
 
 ///The <b>NdfCreateDNSIncident</b> function diagnoses name resolution issues in resolving a specific host name.
 ///Params:
@@ -470,7 +470,7 @@ HRESULT NdfCreateSharingIncident(const(wchar)* UNCPath, void** handle);
 ///                header file. This parameter should be set to <b>DNS_TYPE_ZERO</b> for generic DNS resolution diagnosis.
 ///    handle = Type: <b>NDFHANDLE*</b> Handle to the Network Diagnostics Framework incident.
 @DllImport("NDFAPI")
-HRESULT NdfCreateDNSIncident(const(wchar)* hostname, ushort queryType, void** handle);
+HRESULT NdfCreateDNSIncident(const(PWSTR) hostname, ushort queryType, void** handle);
 
 ///The <b>NdfCreateConnectivityIncident</b> function diagnoses generic Internet connectivity problems.
 ///Params:
@@ -505,8 +505,8 @@ HRESULT NdfCreateNetConnectionIncident(void** handle, GUID id);
 ///    </dl> </td> <td width="60%"> One or more parameters has not been provided correctly. </td> </tr> </table>
 ///    
 @DllImport("NDFAPI")
-HRESULT NdfCreatePnrpIncident(const(wchar)* cloudname, const(wchar)* peername, BOOL diagnosePublish, 
-                              const(wchar)* appId, void** handle);
+HRESULT NdfCreatePnrpIncident(const(PWSTR) cloudname, const(PWSTR) peername, BOOL diagnosePublish, 
+                              const(PWSTR) appId, void** handle);
 
 ///The <b>NdfCreateGroupingIncident</b> function creates a session to diagnose peer-to-peer grouping functionality
 ///issues.
@@ -531,8 +531,8 @@ HRESULT NdfCreatePnrpIncident(const(wchar)* cloudname, const(wchar)* peername, B
 ///    </dl> </td> <td width="60%"> One or more parameters has not been provided correctly. </td> </tr> </table>
 ///    
 @DllImport("NDFAPI")
-HRESULT NdfCreateGroupingIncident(const(wchar)* CloudName, const(wchar)* GroupName, const(wchar)* Identity, 
-                                  const(wchar)* Invitation, SOCKET_ADDRESS_LIST* Addresses, const(wchar)* appId, 
+HRESULT NdfCreateGroupingIncident(const(PWSTR) CloudName, const(PWSTR) GroupName, const(PWSTR) Identity, 
+                                  const(PWSTR) Invitation, SOCKET_ADDRESS_LIST* Addresses, const(PWSTR) appId, 
                                   void** handle);
 
 ///The <b>NdfExecuteDiagnosis</b> function is used to diagnose the root cause of the incident that has occurred.
@@ -647,7 +647,7 @@ HRESULT NdfCancelIncident(void* Handle);
 ///    error.
 ///    
 @DllImport("NDFAPI")
-HRESULT NdfGetTraceFile(void* Handle, ushort** TraceFileLocation);
+HRESULT NdfGetTraceFile(void* Handle, PWSTR* TraceFileLocation);
 
 
 // Interfaces
@@ -674,7 +674,7 @@ interface INetDiagHelper : IUnknown
     ///    </dl> </td> <td width="60%"> The diagnosis or repair operation has been canceled. </td> </tr> </table> Helper
     ///    Class Extensions may return HRESULTS that are specific to the failures encountered in the function.
     ///    
-    HRESULT Initialize(uint celt, char* rgAttributes);
+    HRESULT Initialize(uint celt, HELPER_ATTRIBUTE* rgAttributes);
     ///The <b>GetDiagnosticsInfo</b> method enables the Helper Class Extension instance to provide an estimate of how
     ///long the diagnosis may take.
     ///Params:
@@ -708,7 +708,7 @@ interface INetDiagHelper : IUnknown
     ///    canceled. </td> </tr> </table> Helper Class Extensions may return HRESULTS that are specific to the failures
     ///    encountered in the function.
     ///    
-    HRESULT GetKeyAttributes(uint* pcelt, char* pprgAttributes);
+    HRESULT GetKeyAttributes(uint* pcelt, HELPER_ATTRIBUTE** pprgAttributes);
     ///The <b>LowHealth</b> method enables the Helper Class Extension to check whether the component being diagnosed is
     ///healthy.
     ///Params:
@@ -731,7 +731,7 @@ interface INetDiagHelper : IUnknown
     ///    </dl> </td> <td width="60%"> The diagnosis or repair operation has been canceled. </td> </tr> </table> Helper
     ///    Class Extensions may return HRESULTS that are specific to the failures encountered in the function.
     ///    
-    HRESULT LowHealth(const(wchar)* pwszInstanceDescription, ushort** ppwszDescription, int* pDeferredTime, 
+    HRESULT LowHealth(const(PWSTR) pwszInstanceDescription, PWSTR* ppwszDescription, int* pDeferredTime, 
                       DIAGNOSIS_STATUS* pStatus);
     ///The <b>HighUtilization</b> method enables the Helper Class Extension to check whether the corresponding component
     ///is highly utilized.
@@ -756,7 +756,7 @@ interface INetDiagHelper : IUnknown
     ///    canceled. </td> </tr> </table> Helper Class Extensions may return HRESULTS that are specific to the failures
     ///    encountered in the function.
     ///    
-    HRESULT HighUtilization(const(wchar)* pwszInstanceDescription, ushort** ppwszDescription, int* pDeferredTime, 
+    HRESULT HighUtilization(const(PWSTR) pwszInstanceDescription, PWSTR* ppwszDescription, int* pDeferredTime, 
                             DIAGNOSIS_STATUS* pStatus);
     ///The <b>GetLowerHypotheses</b> method asks the Helper Class Extension to generate hypotheses for possible causes
     ///of low health in the local components that depend on it.
@@ -776,7 +776,7 @@ interface INetDiagHelper : IUnknown
     ///    canceled. </td> </tr> </table> Helper Class Extensions may return HRESULTS that are specific to the failures
     ///    encountered in the function.
     ///    
-    HRESULT GetLowerHypotheses(uint* pcelt, char* pprgHypotheses);
+    HRESULT GetLowerHypotheses(uint* pcelt, HYPOTHESIS** pprgHypotheses);
     ///The <b>GetDownStreamHypotheses</b> method asks the Helper Class Extension to generate hypotheses for possible
     ///causes of low health in the downstream network components it depends on.
     ///Params:
@@ -795,7 +795,7 @@ interface INetDiagHelper : IUnknown
     ///    canceled. </td> </tr> </table> Helper Class Extensions may return HRESULTS that are specific to the failures
     ///    encountered in the function.
     ///    
-    HRESULT GetDownStreamHypotheses(uint* pcelt, char* pprgHypotheses);
+    HRESULT GetDownStreamHypotheses(uint* pcelt, HYPOTHESIS** pprgHypotheses);
     ///The <b>GetHigherHypotheses</b> method asks the Helper Class Extension to generate hypotheses for possible causes
     ///of high utilization in the local components that depend on it.
     ///Params:
@@ -814,7 +814,7 @@ interface INetDiagHelper : IUnknown
     ///    canceled. </td> </tr> </table> Helper Class Extensions may return HRESULTS that are specific to the failures
     ///    encountered in the function.
     ///    
-    HRESULT GetHigherHypotheses(uint* pcelt, char* pprgHypotheses);
+    HRESULT GetHigherHypotheses(uint* pcelt, HYPOTHESIS** pprgHypotheses);
     ///The <b>GetUpStreamHypotheses</b> method asks the Helper Class Extension to generate hypotheses for possible
     ///causes of high utilization in the upstream network components that depend on it.
     ///Params:
@@ -833,7 +833,7 @@ interface INetDiagHelper : IUnknown
     ///    canceled. </td> </tr> </table> Helper Class Extensions may return HRESULTS that are specific to the failures
     ///    encountered in the function.
     ///    
-    HRESULT GetUpStreamHypotheses(uint* pcelt, char* pprgHypotheses);
+    HRESULT GetUpStreamHypotheses(uint* pcelt, HYPOTHESIS** pprgHypotheses);
     ///The <b>Repair</b> method performs a repair specified by the input parameter.
     ///Params:
     ///    pInfo = A pointer to a RepairInfo structure.
@@ -894,7 +894,7 @@ interface INetDiagHelper : IUnknown
     ///    canceled. </td> </tr> </table> Helper Class Extensions may return HRESULTS that are specific to the failures
     ///    encountered in the function.
     ///    
-    HRESULT GetRepairInfo(PROBLEM_TYPE problem, uint* pcelt, char* ppInfo);
+    HRESULT GetRepairInfo(PROBLEM_TYPE problem, uint* pcelt, RepairInfo** ppInfo);
     ///The <b>GetLifeTime</b> method retrieves the lifetime of the Helper Class Extension instance.
     ///Params:
     ///    pLifeTime = A pointer to a LIFE_TIME structure.
@@ -966,7 +966,7 @@ interface INetDiagHelper : IUnknown
     ///    canceled. </td> </tr> </table> Helper Class Extensions may return HRESULTS that are specific to the failures
     ///    encountered in the function.
     ///    
-    HRESULT GetAttributes(uint* pcelt, char* pprgAttributes);
+    HRESULT GetAttributes(uint* pcelt, HELPER_ATTRIBUTE** pprgAttributes);
     ///The <b>Cancel</b> method cancels an ongoing diagnosis or repair.
     ///Returns:
     ///    <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt>
@@ -1032,7 +1032,7 @@ interface INetDiagHelperEx : IUnknown
     ///    operation succeeded. </td> </tr> </table> Any result other than S_OK will be interpreted as an error and will
     ///    cause the function results to be discarded.
     ///    
-    HRESULT ReconfirmLowHealth(uint celt, char* pResults, ushort** ppwszUpdatedDescription, 
+    HRESULT ReconfirmLowHealth(uint celt, HypothesisResult* pResults, PWSTR* ppwszUpdatedDescription, 
                                DIAGNOSIS_STATUS* pUpdatedStatus);
     ///The <b>SetUtilities</b> method is used by the Network Diagnostics Framework (NDF). This method is reserved for
     ///system use.
@@ -1070,13 +1070,14 @@ interface INetDiagHelperInfo : IUnknown
     ///    perform the diagnosis or repair operation. </td> </tr> </table> Helper Class Extensions may return HRESULTS
     ///    that are specific to the diagnoses or repairs.
     ///    
-    HRESULT GetAttributeInfo(uint* pcelt, char* pprgAttributeInfos);
+    HRESULT GetAttributeInfo(uint* pcelt, HelperAttributeInfo** pprgAttributeInfos);
 }
 
 @GUID("C0B35748-EBF5-11D8-BBE9-505054503030")
 interface INetDiagExtensibleHelper : IUnknown
 {
-    HRESULT ResolveAttributes(uint celt, char* rgKeyAttributes, uint* pcelt, char* prgMatchValues);
+    HRESULT ResolveAttributes(uint celt, HELPER_ATTRIBUTE* rgKeyAttributes, uint* pcelt, 
+                              HELPER_ATTRIBUTE** prgMatchValues);
 }
 
 

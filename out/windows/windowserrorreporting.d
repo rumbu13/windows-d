@@ -5,11 +5,11 @@ module windows.windowserrorreporting;
 public import windows.core;
 public import windows.com : HRESULT;
 public import windows.dbg : CONTEXT, EXCEPTION_POINTERS, EXCEPTION_RECORD;
-public import windows.systemservices : BOOL, HANDLE;
+public import windows.systemservices : BOOL, HANDLE, PSTR, PWSTR;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : FILETIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -154,7 +154,7 @@ enum EFaultRepRetVal : int
 ///    
 alias PFN_WER_RUNTIME_EXCEPTION_EVENT = HRESULT function(void* pContext, 
                                                          const(WER_RUNTIME_EXCEPTION_INFORMATION)* pExceptionInformation, 
-                                                         int* pbOwnershipClaimed, const(wchar)* pwszEventName, 
+                                                         BOOL* pbOwnershipClaimed, PWSTR pwszEventName, 
                                                          uint* pchSize, uint* pdwSignatureCount);
 ///WER can call this function multiple times to get the report parameters that uniquely describe the problem. The
 ///<b>PFN_WER_RUNTIME_EXCEPTION_EVENT_SIGNATURE</b> type defines a pointer to this callback function. You must use
@@ -175,9 +175,8 @@ alias PFN_WER_RUNTIME_EXCEPTION_EVENT = HRESULT function(void* pContext,
 ///    
 alias PFN_WER_RUNTIME_EXCEPTION_EVENT_SIGNATURE = HRESULT function(void* pContext, 
                                                                    const(WER_RUNTIME_EXCEPTION_INFORMATION)* pExceptionInformation, 
-                                                                   uint dwIndex, const(wchar)* pwszName, 
-                                                                   uint* pchName, const(wchar)* pwszValue, 
-                                                                   uint* pchValue);
+                                                                   uint dwIndex, PWSTR pwszName, uint* pchName, 
+                                                                   PWSTR pwszValue, uint* pchValue);
 ///WER calls this function to let you customize the debugger launch options and launch string. The
 ///<b>PFN_WER_RUNTIME_EXCEPTION_DEBUGGER_LAUNCH</b> type defines a pointer to this callback function. You must use
 ///"OutOfProcessExceptionEventDebuggerLaunchCallback" as the name of the callback function.
@@ -204,13 +203,12 @@ alias PFN_WER_RUNTIME_EXCEPTION_EVENT_SIGNATURE = HRESULT function(void* pContex
 ///    
 alias PFN_WER_RUNTIME_EXCEPTION_DEBUGGER_LAUNCH = HRESULT function(void* pContext, 
                                                                    const(WER_RUNTIME_EXCEPTION_INFORMATION)* pExceptionInformation, 
-                                                                   int* pbIsCustomDebugger, 
-                                                                   const(wchar)* pwszDebuggerLaunch, 
-                                                                   uint* pchDebuggerLaunch, 
-                                                                   int* pbIsDebuggerAutolaunch);
+                                                                   BOOL* pbIsCustomDebugger, 
+                                                                   PWSTR pwszDebuggerLaunch, uint* pchDebuggerLaunch, 
+                                                                   BOOL* pbIsDebuggerAutolaunch);
 alias pfn_REPORTFAULT = EFaultRepRetVal function(EXCEPTION_POINTERS* param0, uint param1);
-alias pfn_ADDEREXCLUDEDAPPLICATIONA = EFaultRepRetVal function(const(char)* param0);
-alias pfn_ADDEREXCLUDEDAPPLICATIONW = EFaultRepRetVal function(const(wchar)* param0);
+alias pfn_ADDEREXCLUDEDAPPLICATIONA = EFaultRepRetVal function(const(PSTR) param0);
+alias pfn_ADDEREXCLUDEDAPPLICATIONW = EFaultRepRetVal function(const(PWSTR) param0);
 
 // Structs
 
@@ -392,7 +390,7 @@ struct WER_RUNTIME_EXCEPTION_INFORMATION
     ///A CONTEXT structure that contains the context information.
     CONTEXT          context;
     ///A pointer to a constant, null-terminated string that contains the size of the exception information.
-    const(wchar)*    pwszReportId;
+    const(PWSTR)     pwszReportId;
     BOOL             bIsFatal;
     uint             dwReserved;
 }
@@ -437,7 +435,7 @@ struct WER_REPORT_METADATA_V2
     uint                 SizeOfFileNames;
     ///A pointer to hold the names of the files included in the report. It is in the format:
     ///FileName001\0FileName002\0\FileName003\0\0.
-    ushort*              FileNames;
+    PWSTR                FileNames;
 }
 
 struct WER_REPORT_METADATA_V3
@@ -452,7 +450,7 @@ struct WER_REPORT_METADATA_V3
     GUID                 ReportIntegratorId;
     uint                 NumberOfFiles;
     uint                 SizeOfFileNames;
-    ushort*              FileNames;
+    PWSTR                FileNames;
     ushort[128]          FriendlyEventName;
     ushort[128]          ApplicationName;
     ushort[260]          ApplicationPath;
@@ -502,7 +500,7 @@ struct WER_REPORT_METADATA_V1
 ///    This function returns <b>S_OK</b> on success or an error code on failure.
 ///    
 @DllImport("wer")
-HRESULT WerReportCreate(const(wchar)* pwzEventType, WER_REPORT_TYPE repType, 
+HRESULT WerReportCreate(const(PWSTR) pwzEventType, WER_REPORT_TYPE repType, 
                         WER_REPORT_INFORMATION* pReportInformation, ptrdiff_t* phReportHandle);
 
 ///Sets the parameters that uniquely identify an event for the specified report.
@@ -521,8 +519,7 @@ HRESULT WerReportCreate(const(wchar)* pwzEventType, WER_REPORT_TYPE repType,
 ///    exceeded its limit. </td> </tr> </table>
 ///    
 @DllImport("wer")
-HRESULT WerReportSetParameter(ptrdiff_t hReportHandle, uint dwparamID, const(wchar)* pwzName, 
-                              const(wchar)* pwzValue);
+HRESULT WerReportSetParameter(ptrdiff_t hReportHandle, uint dwparamID, const(PWSTR) pwzName, const(PWSTR) pwzValue);
 
 ///Adds a file to the specified report.
 ///Params:
@@ -560,7 +557,7 @@ HRESULT WerReportSetParameter(ptrdiff_t hReportHandle, uint dwparamID, const(wch
 ///    combination is not supported. </td> </tr> </table>
 ///    
 @DllImport("wer")
-HRESULT WerReportAddFile(ptrdiff_t hReportHandle, const(wchar)* pwzPath, WER_FILE_TYPE repFileType, 
+HRESULT WerReportAddFile(ptrdiff_t hReportHandle, const(PWSTR) pwzPath, WER_FILE_TYPE repFileType, 
                          uint dwFileFlags);
 
 ///Sets the user interface options for the specified report.
@@ -599,7 +596,7 @@ HRESULT WerReportAddFile(ptrdiff_t hReportHandle, const(wchar)* pwzPath, WER_FIL
 ///    This function returns <b>S_OK</b> on success or an error code on failure.
 ///    
 @DllImport("wer")
-HRESULT WerReportSetUIOption(ptrdiff_t hReportHandle, WER_REPORT_UI repUITypeID, const(wchar)* pwzValue);
+HRESULT WerReportSetUIOption(ptrdiff_t hReportHandle, WER_REPORT_UI repUITypeID, const(PWSTR) pwzValue);
 
 ///Submits the specified report.
 ///Params:
@@ -773,7 +770,7 @@ HRESULT WerReportCloseHandle(ptrdiff_t hReportHandle);
 ///    registered memory blocks and files exceeds the limit. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-HRESULT WerRegisterFile(const(wchar)* pwzFile, WER_REGISTER_FILE_TYPE regFileType, uint dwFlags);
+HRESULT WerRegisterFile(const(PWSTR) pwzFile, WER_REGISTER_FILE_TYPE regFileType, uint dwFlags);
 
 ///Removes a file from the list of files to be added to reports generated for the current process.
 ///Params:
@@ -787,7 +784,7 @@ HRESULT WerRegisterFile(const(wchar)* pwzFile, WER_REGISTER_FILE_TYPE regFileTyp
 ///    </table>
 ///    
 @DllImport("KERNEL32")
-HRESULT WerUnregisterFile(const(wchar)* pwzFilePath);
+HRESULT WerUnregisterFile(const(PWSTR) pwzFilePath);
 
 ///Registers a memory block to be collected when WER creates an error report.
 ///Params:
@@ -868,7 +865,7 @@ HRESULT WerUnregisterExcludedMemoryBlock(const(void)* address);
 ///    valid. For example, the process is in application recovery mode. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-HRESULT WerRegisterCustomMetadata(const(wchar)* key, const(wchar)* value);
+HRESULT WerRegisterCustomMetadata(const(PWSTR) key, const(PWSTR) value);
 
 ///Removes an item of app-specific metadata being collected during error reporting for the application.
 ///Params:
@@ -882,7 +879,7 @@ HRESULT WerRegisterCustomMetadata(const(wchar)* key, const(wchar)* value);
 ///    </dl> </td> <td width="60%"> WER could not find the metadata item to remove. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-HRESULT WerUnregisterCustomMetadata(const(wchar)* key);
+HRESULT WerUnregisterCustomMetadata(const(PWSTR) key);
 
 ///Registers a process to be included in the error report along with the main application process. Optionally specifies
 ///a thread within that registered process to get additional data from.
@@ -935,7 +932,7 @@ HRESULT WerUnregisterAdditionalProcess(uint processId);
 ///    is longer than 64 characters. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-HRESULT WerRegisterAppLocalDump(const(wchar)* localAppDataRelativePath);
+HRESULT WerRegisterAppLocalDump(const(PWSTR) localAppDataRelativePath);
 
 ///Cancels the registration that was made by calling the WerRegisterAppLocalDump function to specify that Windows Error
 ///Reporting (WER) should save a copy of the diagnostic memory dump that WER collects when one of the processes for the
@@ -1010,7 +1007,7 @@ HRESULT WerGetFlags(HANDLE hProcess, uint* pdwFlags);
 ///    list in the registry. See the Remarks section for additional information. </td> </tr> </table>
 ///    
 @DllImport("wer")
-HRESULT WerAddExcludedApplication(const(wchar)* pwzExeName, BOOL bAllUsers);
+HRESULT WerAddExcludedApplication(const(PWSTR) pwzExeName, BOOL bAllUsers);
 
 ///Removes the specified application from the list of applications that are to be excluded from error reporting.
 ///Params:
@@ -1026,7 +1023,7 @@ HRESULT WerAddExcludedApplication(const(wchar)* pwzExeName, BOOL bAllUsers);
 ///    in the registry. See the Remarks section for additional information. </td> </tr> </table>
 ///    
 @DllImport("wer")
-HRESULT WerRemoveExcludedApplication(const(wchar)* pwzExeName, BOOL bAllUsers);
+HRESULT WerRemoveExcludedApplication(const(PWSTR) pwzExeName, BOOL bAllUsers);
 
 ///Registers a custom runtime exception handler that is used to provide custom error reporting for crashes.
 ///Params:
@@ -1042,7 +1039,7 @@ HRESULT WerRemoveExcludedApplication(const(wchar)* pwzExeName, BOOL bAllUsers);
 ///    WER_MAX_REGISTERED_RUNTIME_EXCEPTION_MODULES handlers. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-HRESULT WerRegisterRuntimeExceptionModule(const(wchar)* pwszOutOfProcessCallbackDll, void* pContext);
+HRESULT WerRegisterRuntimeExceptionModule(const(PWSTR) pwszOutOfProcessCallbackDll, void* pContext);
 
 ///Removes the registration of your WER exception handler.
 ///Params:
@@ -1057,7 +1054,7 @@ HRESULT WerRegisterRuntimeExceptionModule(const(wchar)* pwszOutOfProcessCallback
 ///    exception handler. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-HRESULT WerUnregisterRuntimeExceptionModule(const(wchar)* pwszOutOfProcessCallbackDll, void* pContext);
+HRESULT WerUnregisterRuntimeExceptionModule(const(PWSTR) pwszOutOfProcessCallbackDll, void* pContext);
 
 ///Opens the collection of stored error reports.
 ///Params:
@@ -1090,7 +1087,7 @@ void WerStoreClose(void* hReportStore);
 ///    reports in the store. </td> </tr> </table>
 ///    
 @DllImport("wer")
-HRESULT WerStoreGetFirstReportKey(void* hReportStore, ushort** ppszReportKey);
+HRESULT WerStoreGetFirstReportKey(void* hReportStore, PWSTR* ppszReportKey);
 
 ///Gets a reference to the next report in the error report store.
 ///Params:
@@ -1104,7 +1101,7 @@ HRESULT WerStoreGetFirstReportKey(void* hReportStore, ushort** ppszReportKey);
 ///    error reports in the store. </td> </tr> </table>
 ///    
 @DllImport("wer")
-HRESULT WerStoreGetNextReportKey(void* hReportStore, ushort** ppszReportKey);
+HRESULT WerStoreGetNextReportKey(void* hReportStore, PWSTR* ppszReportKey);
 
 ///Retrieves metadata about a report in the store.
 ///Params:
@@ -1125,11 +1122,11 @@ HRESULT WerStoreGetNextReportKey(void* hReportStore, ushort** ppszReportKey);
 ///    the function again. </td> </tr> </table>
 ///    
 @DllImport("wer")
-HRESULT WerStoreQueryReportMetadataV2(void* hReportStore, const(wchar)* pszReportKey, 
+HRESULT WerStoreQueryReportMetadataV2(void* hReportStore, const(PWSTR) pszReportKey, 
                                       WER_REPORT_METADATA_V2* pReportMetadata);
 
 @DllImport("wer")
-HRESULT WerStoreQueryReportMetadataV3(void* hReportStore, const(wchar)* pszReportKey, 
+HRESULT WerStoreQueryReportMetadataV3(void* hReportStore, const(PWSTR) pszReportKey, 
                                       WER_REPORT_METADATA_V3* pReportMetadata);
 
 ///Frees up the memory used to store a report key string. This should be called after each successive call to
@@ -1138,7 +1135,7 @@ HRESULT WerStoreQueryReportMetadataV3(void* hReportStore, const(wchar)* pszRepor
 ///Params:
 ///    pwszStr = The string to be freed (value set to <b>NULL</b>).
 @DllImport("wer")
-void WerFreeString(const(wchar)* pwszStr);
+void WerFreeString(const(PWSTR) pwszStr);
 
 @DllImport("wer")
 HRESULT WerStorePurge();
@@ -1150,11 +1147,11 @@ HRESULT WerStoreGetReportCount(void* hReportStore, uint* pdwReportCount);
 HRESULT WerStoreGetSizeOnDisk(void* hReportStore, ulong* pqwSizeInBytes);
 
 @DllImport("wer")
-HRESULT WerStoreQueryReportMetadataV1(void* hReportStore, const(wchar)* pszReportKey, 
+HRESULT WerStoreQueryReportMetadataV1(void* hReportStore, const(PWSTR) pszReportKey, 
                                       WER_REPORT_METADATA_V1* pReportMetadata);
 
 @DllImport("wer")
-HRESULT WerStoreUploadReport(void* hReportStore, const(wchar)* pszReportKey, uint dwFlags, 
+HRESULT WerStoreUploadReport(void* hReportStore, const(PWSTR) pszReportKey, uint dwFlags, 
                              WER_SUBMIT_RESULT* pSubmitResult);
 
 ///Enables an application that performs its own exception handling to report faults to Microsoft. Although you can use
@@ -1195,7 +1192,7 @@ EFaultRepRetVal ReportFault(EXCEPTION_POINTERS* pep, uint dwOpt);
 ///    extended error information, see GetLastError.
 ///    
 @DllImport("faultrep")
-BOOL AddERExcludedApplicationA(const(char)* szApplication);
+BOOL AddERExcludedApplicationA(const(PSTR) szApplication);
 
 ///[The AddERExcludedApplication function is available for use in the operating systems specified in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. Instead, use the [WerAddExcludedApplication
@@ -1209,7 +1206,7 @@ BOOL AddERExcludedApplicationA(const(char)* szApplication);
 ///    extended error information, see GetLastError.
 ///    
 @DllImport("faultrep")
-BOOL AddERExcludedApplicationW(const(wchar)* wszApplication);
+BOOL AddERExcludedApplicationW(const(PWSTR) wszApplication);
 
 ///Initiates "no response" reporting on the specified window.
 ///Params:
@@ -1222,6 +1219,6 @@ BOOL AddERExcludedApplicationW(const(wchar)* wszApplication);
 ///    not necessarily mean that "no response" reporting has completed successfully, only that it was initiated.
 ///    
 @DllImport("faultrep")
-HRESULT WerReportHang(HWND hwndHungApp, const(wchar)* pwzHungApplicationName);
+HRESULT WerReportHang(HWND hwndHungApp, const(PWSTR) pwzHungApplicationName);
 
 

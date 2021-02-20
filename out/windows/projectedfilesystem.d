@@ -4,9 +4,9 @@ module windows.projectedfilesystem;
 
 public import windows.core;
 public import windows.com : HRESULT;
-public import windows.systemservices : LARGE_INTEGER;
+public import windows.systemservices : LARGE_INTEGER, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -329,7 +329,7 @@ alias PRJ_START_DIRECTORY_ENUMERATION_CB = HRESULT function(const(PRJ_CALLBACK_D
 ///    HRESULT error code if the provider fails the operation.
 ///    
 alias PRJ_GET_DIRECTORY_ENUMERATION_CB = HRESULT function(const(PRJ_CALLBACK_DATA)* callbackData, 
-                                                          const(GUID)* enumerationId, const(wchar)* searchExpression, 
+                                                          const(GUID)* enumerationId, const(PWSTR) searchExpression, 
                                                           PRJ_DIR_ENTRY_BUFFER_HANDLE__* dirEntryBufferHandle);
 ///Informs the provider that a directory enumeration is over.
 ///Params:
@@ -443,7 +443,7 @@ alias PRJ_QUERY_FILE_NAME_CB = HRESULT function(const(PRJ_CALLBACK_DATA)* callba
 ///    provider returns a failure code ProjFS will fail the corresponding operation with the provided error code.
 ///    
 alias PRJ_NOTIFICATION_CB = HRESULT function(const(PRJ_CALLBACK_DATA)* callbackData, ubyte isDirectory, 
-                                             PRJ_NOTIFICATION notification, const(wchar)* destinationFileName, 
+                                             PRJ_NOTIFICATION notification, const(PWSTR) destinationFileName, 
                                              PRJ_NOTIFICATION_PARAMETERS* operationParameters);
 ///Notifies the provider that an operation by an earlier invocation of a callback should be canceled.
 ///Params:
@@ -473,11 +473,11 @@ struct PRJ_EXTENDED_INFO
     ///Offset in bytes from the beginning of this structure to the next PRJ_EXTENDED_INFO structure. If this is the last
     ///structure in the buffer this value must be 0.
     uint              NextInfoOffset;
-    union
+union
     {
-        struct Symlink
+struct Symlink
         {
-            const(wchar)* TargetName;
+            const(PWSTR) TargetName;
         }
     }
 }
@@ -489,7 +489,7 @@ struct PRJ_NOTIFICATION_MAPPING
     ///A bit mask representing a set of notifications.
     PRJ_NOTIFY_TYPES NotificationBitMask;
     ///The directory that the notification mapping is paired to.
-    const(wchar)*    NotificationRoot;
+    const(PWSTR)     NotificationRoot;
 }
 
 ///Options to provide when starting a virtualization instance.
@@ -548,17 +548,17 @@ struct PRJ_PLACEHOLDER_INFO
     ///A structure that supplies basic information about the item: the size of the file in bytes (should be zero if the
     ///IsDirectory field is set to TRUE), the item’s timestamps, and its attributes.
     PRJ_FILE_BASIC_INFO FileBasicInfo;
-    struct EaInformation
+struct EaInformation
     {
         uint EaBufferSize;
         uint OffsetToFirstEa;
     }
-    struct SecurityInformation
+struct SecurityInformation
     {
         uint SecurityBufferSize;
         uint OffsetToSecurityDescriptor;
     }
-    struct StreamsInformation
+struct StreamsInformation
     {
         uint StreamsInfoBufferSize;
         uint OffsetToFirstStreamInfo;
@@ -574,7 +574,7 @@ struct PRJ_CALLBACK_DATA
 {
     ///Size in bytes of this structure. The provider must not attempt to access any field of this structure that is
     ///located beyond this value.
-    uint          Size;
+    uint         Size;
     ///Callback-specific flags.
     PRJ_CALLBACK_DATA_FLAGS Flags;
     ///Opaque handle to the virtualization instance that is sending the callback.
@@ -584,38 +584,38 @@ struct PRJ_CALLBACK_DATA
     ///HRESULT_FROM_WIN32(ERROR_IO_PENDING).</li> <li>When ProjFS sends a PRJ_CANCEL_COMMAND_CB callback. The commandId
     ///in the <i>PRJ_CANCEL_COMMAND_CB</i> call identifies an earlier invocation of a callback that the provider should
     ///cancel.</li> </ul>
-    int           CommandId;
+    int          CommandId;
     ///A value that uniquely identifies the file handle for the callback.
-    GUID          FileId;
+    GUID         FileId;
     ///A value that uniquely identifies an open data stream for the callback.
-    GUID          DataStreamId;
+    GUID         DataStreamId;
     ///The path to the target file. This is a null-terminated string of Unicode characters. This path is always
     ///specified relative to the virtualization root.
-    const(wchar)* FilePathName;
+    const(PWSTR) FilePathName;
     ///Version information if the target of the callback is a placeholder or partial file.
     PRJ_PLACEHOLDER_VERSION_INFO* VersionInfo;
     ///The process identifier for the process that triggered this callback. If this information is not available, this
     ///will be 0. Callbacks that supply this information include: PRJ_GET_PLACEHOLDER_INFO_CB, PRJ_GET_FILE_DATA_CB, and
     ///PRJ_NOTIFICATION_CB.
-    uint          TriggeringProcessId;
+    uint         TriggeringProcessId;
     ///A null-terminated Unicode string specifying the image file name corresponding to TriggeringProcessId. If
     ///TriggeringProcessId is 0 this will be NULL.
-    const(wchar)* TriggeringProcessImageFileName;
-    void*         InstanceContext;
+    const(PWSTR) TriggeringProcessImageFileName;
+    void*        InstanceContext;
 }
 
 ///Extra parameters for notifications.
 union PRJ_NOTIFICATION_PARAMETERS
 {
-    struct PostCreate
+struct PostCreate
     {
         PRJ_NOTIFY_TYPES NotificationMask;
     }
-    struct FileRenamed
+struct FileRenamed
     {
         PRJ_NOTIFY_TYPES NotificationMask;
     }
-    struct FileDeletedOnHandleClose
+struct FileDeletedOnHandleClose
     {
         ubyte IsFileModified;
     }
@@ -647,13 +647,13 @@ struct PRJ_COMPLETE_COMMAND_EXTENDED_PARAMETERS
 {
     ///The type of command.
     PRJ_COMPLETE_COMMAND_TYPE CommandType;
-    union
+union
     {
-        struct Notification
+struct Notification
         {
             PRJ_NOTIFY_TYPES NotificationMask;
         }
-        struct Enumeration
+struct Enumeration
         {
             PRJ_DIR_ENTRY_BUFFER_HANDLE__* DirEntryBufferHandle;
         }
@@ -678,7 +678,7 @@ struct PRJ_COMPLETE_COMMAND_EXTENDED_PARAMETERS
 ///    namespaceVirtualizationContext = On success returns an opaque handle to the ProjFS virtualization instance. The provider passes this value when
 ///                                     calling functions that require a PRJ_NAMESPACE_VIRTUALIZATION_CONTEXT as input.
 @DllImport("PROJECTEDFSLIB")
-HRESULT PrjStartVirtualizing(const(wchar)* virtualizationRootPath, const(PRJ_CALLBACKS)* callbacks, 
+HRESULT PrjStartVirtualizing(const(PWSTR) virtualizationRootPath, const(PRJ_CALLBACKS)* callbacks, 
                              const(void)* instanceContext, const(PRJ_STARTVIRTUALIZING_OPTIONS)* options, 
                              PRJ_NAMESPACE_VIRTUALIZATION_CONTEXT__** namespaceVirtualizationContext);
 
@@ -729,7 +729,7 @@ HRESULT PrjGetVirtualizationInstanceInfo(PRJ_NAMESPACE_VIRTUALIZATION_CONTEXT__*
 ///    point on it. HRESULT_FROM_WIN32(ERROR_DIRECTORY) typically means the targetPathName does not specify a directory.
 ///    
 @DllImport("PROJECTEDFSLIB")
-HRESULT PrjMarkDirectoryAsPlaceholder(const(wchar)* rootPathName, const(wchar)* targetPathName, 
+HRESULT PrjMarkDirectoryAsPlaceholder(const(PWSTR) rootPathName, const(PWSTR) targetPathName, 
                                       const(PRJ_PLACEHOLDER_VERSION_INFO)* versionInfo, 
                                       const(GUID)* virtualizationInstanceID);
 
@@ -753,7 +753,8 @@ HRESULT PrjMarkDirectoryAsPlaceholder(const(wchar)* rootPathName, const(wchar)* 
 ///    
 @DllImport("PROJECTEDFSLIB")
 HRESULT PrjWritePlaceholderInfo(PRJ_NAMESPACE_VIRTUALIZATION_CONTEXT__* namespaceVirtualizationContext, 
-                                const(wchar)* destinationFileName, char* placeholderInfo, uint placeholderInfoSize);
+                                const(PWSTR) destinationFileName, const(PRJ_PLACEHOLDER_INFO)* placeholderInfo, 
+                                uint placeholderInfoSize);
 
 ///Sends file or directory metadata to ProjFS and allows the caller to specify extended information.
 ///Params:
@@ -776,8 +777,8 @@ HRESULT PrjWritePlaceholderInfo(PRJ_NAMESPACE_VIRTUALIZATION_CONTEXT__* namespac
 ///    
 @DllImport("PROJECTEDFSLIB")
 HRESULT PrjWritePlaceholderInfo2(PRJ_NAMESPACE_VIRTUALIZATION_CONTEXT__* namespaceVirtualizationContext, 
-                                 const(wchar)* destinationFileName, char* placeholderInfo, uint placeholderInfoSize, 
-                                 const(PRJ_EXTENDED_INFO)* ExtendedInfo);
+                                 const(PWSTR) destinationFileName, const(PRJ_PLACEHOLDER_INFO)* placeholderInfo, 
+                                 uint placeholderInfoSize, const(PRJ_EXTENDED_INFO)* ExtendedInfo);
 
 ///Enables a provider to update an item that has been cached on the local file system.
 ///Params:
@@ -799,8 +800,9 @@ HRESULT PrjWritePlaceholderInfo2(PRJ_NAMESPACE_VIRTUALIZATION_CONTEXT__* namespa
 ///    
 @DllImport("PROJECTEDFSLIB")
 HRESULT PrjUpdateFileIfNeeded(PRJ_NAMESPACE_VIRTUALIZATION_CONTEXT__* namespaceVirtualizationContext, 
-                              const(wchar)* destinationFileName, char* placeholderInfo, uint placeholderInfoSize, 
-                              PRJ_UPDATE_TYPES updateFlags, PRJ_UPDATE_FAILURE_CAUSES* failureReason);
+                              const(PWSTR) destinationFileName, const(PRJ_PLACEHOLDER_INFO)* placeholderInfo, 
+                              uint placeholderInfoSize, PRJ_UPDATE_TYPES updateFlags, 
+                              PRJ_UPDATE_FAILURE_CAUSES* failureReason);
 
 ///Enables a provider to delete an item that has been cached on the local file system.
 ///Params:
@@ -816,7 +818,7 @@ HRESULT PrjUpdateFileIfNeeded(PRJ_NAMESPACE_VIRTUALIZATION_CONTEXT__* namespaceV
 ///    
 @DllImport("PROJECTEDFSLIB")
 HRESULT PrjDeleteFile(PRJ_NAMESPACE_VIRTUALIZATION_CONTEXT__* namespaceVirtualizationContext, 
-                      const(wchar)* destinationFileName, PRJ_UPDATE_TYPES updateFlags, 
+                      const(PWSTR) destinationFileName, PRJ_UPDATE_TYPES updateFlags, 
                       PRJ_UPDATE_FAILURE_CAUSES* failureReason);
 
 ///Provides the data requested in an invocation of the PRJ_GET_FILE_DATA_CB callback.
@@ -837,7 +839,7 @@ HRESULT PrjDeleteFile(PRJ_NAMESPACE_VIRTUALIZATION_CONTEXT__* namespaceVirtualiz
 ///    
 @DllImport("PROJECTEDFSLIB")
 HRESULT PrjWriteFileData(PRJ_NAMESPACE_VIRTUALIZATION_CONTEXT__* namespaceVirtualizationContext, 
-                         const(GUID)* dataStreamId, char* buffer, ulong byteOffset, uint length);
+                         const(GUID)* dataStreamId, void* buffer, ulong byteOffset, uint length);
 
 ///Gets the on-disk file state for a file or directory.
 ///Params:
@@ -849,7 +851,7 @@ HRESULT PrjWriteFileData(PRJ_NAMESPACE_VIRTUALIZATION_CONTEXT__* namespaceVirtua
 ///    destinationFileName does not exist.
 ///    
 @DllImport("PROJECTEDFSLIB")
-HRESULT PrjGetOnDiskFileState(const(wchar)* destinationFileName, PRJ_FILE_STATE* fileState);
+HRESULT PrjGetOnDiskFileState(const(PWSTR) destinationFileName, PRJ_FILE_STATE* fileState);
 
 ///Allocates a buffer that meets the memory alignment requirements of the virtualization instance's storage device.
 ///Params:
@@ -887,7 +889,7 @@ HRESULT PrjCompleteCommand(PRJ_NAMESPACE_VIRTUALIZATION_CONTEXT__* namespaceVirt
 ///    the new entry.
 ///    
 @DllImport("PROJECTEDFSLIB")
-HRESULT PrjFillDirEntryBuffer(const(wchar)* fileName, PRJ_FILE_BASIC_INFO* fileBasicInfo, 
+HRESULT PrjFillDirEntryBuffer(const(PWSTR) fileName, PRJ_FILE_BASIC_INFO* fileBasicInfo, 
                               PRJ_DIR_ENTRY_BUFFER_HANDLE__* dirEntryBufferHandle);
 
 ///Provides information for one file or directory to an enumeration and allows the caller to specify extended
@@ -902,7 +904,7 @@ HRESULT PrjFillDirEntryBuffer(const(wchar)* fileName, PRJ_FILE_BASIC_INFO* fileB
 ///    the new entry. E_INVALIDARG indicates that extendedInfo.InfoType is unrecognized.
 ///    
 @DllImport("PROJECTEDFSLIB")
-HRESULT PrjFillDirEntryBuffer2(PRJ_DIR_ENTRY_BUFFER_HANDLE__* dirEntryBufferHandle, const(wchar)* fileName, 
+HRESULT PrjFillDirEntryBuffer2(PRJ_DIR_ENTRY_BUFFER_HANDLE__* dirEntryBufferHandle, const(PWSTR) fileName, 
                                PRJ_FILE_BASIC_INFO* fileBasicInfo, PRJ_EXTENDED_INFO* extendedInfo);
 
 ///Determines whether a file name matches a search pattern.
@@ -915,7 +917,7 @@ HRESULT PrjFillDirEntryBuffer2(PRJ_DIR_ENTRY_BUFFER_HANDLE__* dirEntryBufferHand
 ///    True if fileNameToCheck matches pattern, False otherwise.
 ///    
 @DllImport("PROJECTEDFSLIB")
-ubyte PrjFileNameMatch(const(wchar)* fileNameToCheck, const(wchar)* pattern);
+ubyte PrjFileNameMatch(const(PWSTR) fileNameToCheck, const(PWSTR) pattern);
 
 ///Compares two file names and returns a value that indicates their relative collation order.
 ///Params:
@@ -926,12 +928,12 @@ ubyte PrjFileNameMatch(const(wchar)* fileNameToCheck, const(wchar)* pattern);
 ///    to fileName2</li> <li>&gt;0 indicates fileName1 is after fileName2 in collation order</li> </ul>
 ///    
 @DllImport("PROJECTEDFSLIB")
-int PrjFileNameCompare(const(wchar)* fileName1, const(wchar)* fileName2);
+int PrjFileNameCompare(const(PWSTR) fileName1, const(PWSTR) fileName2);
 
 ///Determines whether a name contains wildcard characters.
 ///Params:
 ///    fileName = A null-terminated Unicode string to check for wildcard characters.
 @DllImport("PROJECTEDFSLIB")
-ubyte PrjDoesNameContainWildCards(const(wchar)* fileName);
+ubyte PrjDoesNameContainWildCards(const(PWSTR) fileName);
 
 

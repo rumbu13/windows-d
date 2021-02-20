@@ -5,10 +5,10 @@ module windows.etw;
 public import windows.core;
 public import windows.automation : BSTR;
 public import windows.com : HRESULT, IUnknown;
-public import windows.systemservices : HANDLE, LARGE_INTEGER;
+public import windows.systemservices : HANDLE, LARGE_INTEGER, PSTR, PWSTR;
 public import windows.windowsprogramming : FILETIME, TIME_ZONE_INFORMATION;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -434,6 +434,11 @@ enum : int
     TDH_CONTEXT_MAXIMUM           = 0x00000005,
 }
 
+// Constants
+
+
+enum GUID CLSID_TraceRelogger = GUID("7b40792d-05ff-44c4-9058-f440c71f17d4");
+
 // Callbacks
 
 ///Consumers implement this function to receive statistics about each buffer of events that ETW delivers to an event
@@ -530,22 +535,26 @@ alias PENABLECALLBACK = void function(GUID* SourceId, uint IsEnabled, ubyte Leve
 // Structs
 
 
-alias TDH_HANDLE = ptrdiff_t;
+@RAIIFree!TdhCloseDecodingHandle
+struct TDH_HANDLE
+{
+    ptrdiff_t Value;
+}
 
 struct WNODE_HEADER
 {
     uint BufferSize;
     uint ProviderId;
-    union
+union
     {
         ulong HistoricalContext;
-        struct
+struct
         {
             uint Version;
             uint Linkage;
         }
     }
-    union
+union
     {
         uint          CountLost;
         HANDLE        KernelHandle;
@@ -568,7 +577,7 @@ struct WNODE_ALL_DATA
     uint         DataBlockOffset;
     uint         InstanceCount;
     uint         OffsetInstanceNameOffsets;
-    union
+union
     {
         uint FixedInstanceSize;
         OFFSETINSTANCEDATAANDLENGTH OffsetInstanceDataAndLength;
@@ -617,7 +626,7 @@ struct WNODE_EVENT_REFERENCE
     WNODE_HEADER WnodeHeader;
     GUID         TargetGuid;
     uint         TargetDataBlockSize;
-    union
+union
     {
         uint   TargetInstanceIndex;
         ushort TargetInstanceName;
@@ -635,7 +644,7 @@ struct WMIREGGUIDW
     GUID Guid;
     uint Flags;
     uint InstanceCount;
-    union
+union
     {
         uint   InstanceNameList;
         uint   BaseNameOffset;
@@ -661,19 +670,19 @@ struct EVENT_TRACE_HEADER
     ///event-specific data appended to the header. On input, the size must be less than the size of the event tracing
     ///session's buffer minus 72 (0x48). On output, do not use this number in calculations.
     ushort        Size;
-    union
+union
     {
         ushort FieldTypeFlags;
-        struct
+struct
         {
             ubyte HeaderType;
             ubyte MarkerFlags;
         }
     }
-    union
+union
     {
         uint Version;
-        struct Class
+struct Class
         {
             ubyte  Type;
             ubyte  Level;
@@ -690,20 +699,20 @@ struct EVENT_TRACE_HEADER
     ///which case the resolution depends on the value of the <b>Wnode.ClientContext</b> member of EVENT_TRACE_PROPERTIES
     ///at the time the controller created the session.
     LARGE_INTEGER TimeStamp;
-    union
+union
     {
         GUID  Guid;
         ulong GuidPtr;
     }
-    union
+union
     {
-        struct
+struct
         {
             uint KernelTime;
             uint UserTime;
         }
         ulong ProcessorTime;
-        struct
+struct
         {
             uint ClientContext;
             uint Flags;
@@ -720,19 +729,19 @@ struct EVENT_INSTANCE_HEADER
     ///structure, plus the size of any event-specific data appended to this structure. The size must be less than the
     ///size of the event tracing session's buffer minus 72 (0x48).
     ushort        Size;
-    union
+union
     {
         ushort FieldTypeFlags;
-        struct
+struct
         {
             ubyte HeaderType;
             ubyte MarkerFlags;
         }
     }
-    union
+union
     {
         uint Version;
-        struct Class
+struct Class
         {
             ubyte  Type;
             ubyte  Level;
@@ -753,15 +762,15 @@ struct EVENT_INSTANCE_HEADER
     uint          InstanceId;
     ///On output, contains the event trace instance identifier associated with <b>ParentRegHandle</b>.
     uint          ParentInstanceId;
-    union
+union
     {
-        struct
+struct
         {
             uint KernelTime;
             uint UserTime;
         }
         ulong ProcessorTime;
-        struct
+struct
         {
             uint EventId;
             uint Flags;
@@ -791,10 +800,10 @@ struct TRACE_LOGFILE_HEADER
 {
     ///Size of the event tracing session's buffers, in bytes.
     uint          BufferSize;
-    union
+union
     {
         uint Version;
-        struct VersionDetail
+struct VersionDetail
         {
             ubyte MajorVersion;
             ubyte MinorVersion;
@@ -818,10 +827,10 @@ struct TRACE_LOGFILE_HEADER
     uint          LogFileMode;
     ///Total number of buffers written by the event tracing session.
     uint          BuffersWritten;
-    union
+union
     {
         GUID LogInstanceGuid;
-        struct
+struct
         {
             uint StartBuffers;
             uint PointerSize;
@@ -831,10 +840,10 @@ struct TRACE_LOGFILE_HEADER
     }
     ///Do not use. The name of the event tracing session is the first null-terminated string following this structure in
     ///memory.
-    const(wchar)* LoggerName;
+    PWSTR         LoggerName;
     ///Do Not use. The name of the event tracing log file is the second null-terminated string following this structure
     ///in memory. The first string is the name of the session.
-    const(wchar)* LogFileName;
+    PWSTR         LogFileName;
     ///A TIME_ZONE_INFORMATION structure that contains the time zone for the <b>BootTime</b>, <b>EndTime</b> and
     ///<b>StartTime</b> members.
     TIME_ZONE_INFORMATION TimeZone;
@@ -854,10 +863,10 @@ struct TRACE_LOGFILE_HEADER
 struct TRACE_LOGFILE_HEADER32
 {
     uint          BufferSize;
-    union
+union
     {
         uint Version;
-        struct VersionDetail
+struct VersionDetail
         {
             ubyte MajorVersion;
             ubyte MinorVersion;
@@ -872,10 +881,10 @@ struct TRACE_LOGFILE_HEADER32
     uint          MaximumFileSize;
     uint          LogFileMode;
     uint          BuffersWritten;
-    union
+union
     {
         GUID LogInstanceGuid;
-        struct
+struct
         {
             uint StartBuffers;
             uint PointerSize;
@@ -896,10 +905,10 @@ struct TRACE_LOGFILE_HEADER32
 struct TRACE_LOGFILE_HEADER64
 {
     uint          BufferSize;
-    union
+union
     {
         uint Version;
-        struct VersionDetail
+struct VersionDetail
         {
             ubyte MajorVersion;
             ubyte MinorVersion;
@@ -914,10 +923,10 @@ struct TRACE_LOGFILE_HEADER64
     uint          MaximumFileSize;
     uint          LogFileMode;
     uint          BuffersWritten;
-    union
+union
     {
         GUID LogInstanceGuid;
-        struct
+struct
         {
             uint StartBuffers;
             uint PointerSize;
@@ -1093,7 +1102,7 @@ struct EVENT_TRACE_PROPERTIES
     ///PageFault_VirtualAlloc </li> </ul> This value is supported on Windows 7, Windows Server 2008 R2, and later. </td>
     ///</tr> </table>
     uint         EnableFlags;
-    union
+union
     {
         int AgeLimit;
         int FlushThreshold;
@@ -1290,7 +1299,7 @@ struct EVENT_TRACE_PROPERTIES_V2
     ///PageFault_VirtualAlloc </li> </ul> This value is supported on Windows 7, Windows Server 2008 R2, and later. </td>
     ///</tr> </table>
     uint         EnableFlags;
-    union
+union
     {
         int AgeLimit;
         int FlushThreshold;
@@ -1335,9 +1344,9 @@ struct EVENT_TRACE_PROPERTIES_V2
     ///file name to the offset but you do not copy the session name to the offset—the StartTrace function copies the
     ///name for you.
     uint         LoggerNameOffset;
-    union
+union
     {
-        struct
+struct
         {
             uint _bitfield36;
         }
@@ -1353,9 +1362,9 @@ struct EVENT_TRACE_PROPERTIES_V2
     ///specified by the <b>Type</b> member of the <b>EVENT_FILTER_DESCRIPTOR</b> structure. This is only applicable to
     ///Private Loggers. The only time this should not be null is when it is used for system wide Private Loggers.
     EVENT_FILTER_DESCRIPTOR* FilterDesc;
-    union
+union
     {
-        struct
+struct
         {
             uint _bitfield37;
         }
@@ -1396,9 +1405,9 @@ struct TRACE_GUID_PROPERTIES
 ///The <b>ETW_BUFFER_CONTEXT</b> structure provides context information about the event.
 struct ETW_BUFFER_CONTEXT
 {
-    union
+union
     {
-        struct
+struct
         {
             ubyte ProcessorNumber;
             ubyte Alignment;
@@ -1495,7 +1504,7 @@ struct EVENT_TRACE
     void*              MofData;
     ///Number of bytes to which <b>MofData</b> points.
     uint               MofLength;
-    union
+union
     {
         uint               ClientContext;
         ETW_BUFFER_CONTEXT BufferContext;
@@ -1516,7 +1525,7 @@ struct EVENT_TRACE_LOGFILEW
     ///set the <b>LogFileMode</b> member of EVENT_TRACE_PROPERTIES to <b>EVENT_TRACE_FILE_MODE_NEWFILE</b>, the log file
     ///name must include the sequential serial number used to create each new log file. The user consuming the events
     ///must have permissions to read the file.
-    const(wchar)*        LogFileName;
+    PWSTR                LogFileName;
     ///Name of the event tracing session. Specify a value for this member if you want to consume events in real time.
     ///This member must be <b>NULL</b> if <b>LogFileName</b> is specified. You can only consume events in real time if
     ///the controller set the <b>LogFileMode</b> member of EVENT_TRACE_PROPERTIES to <b>EVENT_TRACE_REAL_TIME_MODE</b>.
@@ -1524,12 +1533,12 @@ struct EVENT_TRACE_LOGFILEW
     ///LocalSystem, LocalService, NetworkService can consume events in real time. To grant a restricted user the ability
     ///to consume events in real time, add them to the Performance Log Users group or call EventAccessControl.
     ///<b>Windows XP and Windows 2000: </b>Anyone can consume real time events.
-    const(wchar)*        LoggerName;
+    PWSTR                LoggerName;
     ///On output, the current time, in 100-nanosecond intervals since midnight, January 1, 1601.
     long                 CurrentTime;
     ///On output, the number of buffers processed.
     uint                 BuffersRead;
-    union
+union
     {
         uint LogFileMode;
         uint ProcessTraceMode;
@@ -1548,7 +1557,7 @@ struct EVENT_TRACE_LOGFILEW
     uint                 Filled;
     ///Not used.
     uint                 EventsLost;
-    union
+union
     {
         PEVENT_CALLBACK EventCallback;
         PEVENT_RECORD_CALLBACK EventRecordCallback;
@@ -1576,7 +1585,7 @@ struct EVENT_TRACE_LOGFILEA
     ///set the <b>LogFileMode</b> member of EVENT_TRACE_PROPERTIES to <b>EVENT_TRACE_FILE_MODE_NEWFILE</b>, the log file
     ///name must include the sequential serial number used to create each new log file. The user consuming the events
     ///must have permissions to read the file.
-    const(char)*         LogFileName;
+    PSTR                 LogFileName;
     ///Name of the event tracing session. Specify a value for this member if you want to consume events in real time.
     ///This member must be <b>NULL</b> if <b>LogFileName</b> is specified. You can only consume events in real time if
     ///the controller set the <b>LogFileMode</b> member of EVENT_TRACE_PROPERTIES to <b>EVENT_TRACE_REAL_TIME_MODE</b>.
@@ -1584,12 +1593,12 @@ struct EVENT_TRACE_LOGFILEA
     ///LocalSystem, LocalService, NetworkService can consume events in real time. To grant a restricted user the ability
     ///to consume events in real time, add them to the Performance Log Users group or call EventAccessControl.
     ///<b>Windows XP and Windows 2000: </b>Anyone can consume real time events.
-    const(char)*         LoggerName;
+    PSTR                 LoggerName;
     ///On output, the current time, in 100-nanosecond intervals since midnight, January 1, 1601.
     long                 CurrentTime;
     ///On output, the number of buffers processed.
     uint                 BuffersRead;
-    union
+union
     {
         uint LogFileMode;
         uint ProcessTraceMode;
@@ -1608,7 +1617,7 @@ struct EVENT_TRACE_LOGFILEA
     uint                 Filled;
     ///Not used.
     uint                 EventsLost;
-    union
+union
     {
         PEVENT_CALLBACK EventCallback;
         PEVENT_RECORD_CALLBACK EventRecordCallback;
@@ -1779,10 +1788,10 @@ struct ETW_TRACE_PARTITION_INFORMATION
 
 struct ETW_TRACE_PARTITION_INFORMATION_V2
 {
-    long          QpcOffsetFromRoot;
-    uint          PartitionType;
-    const(wchar)* PartitionId;
-    const(wchar)* ParentId;
+    long  QpcOffsetFromRoot;
+    uint  PartitionType;
+    PWSTR PartitionId;
+    PWSTR ParentId;
 }
 
 ///The <b>EVENT_DATA_DESCRIPTOR </b> structure defines one of the data items of the event data.
@@ -1792,10 +1801,10 @@ struct EVENT_DATA_DESCRIPTOR
     ulong Ptr;
     ///The size, in bytes, of the data.
     uint  Size;
-    union
+union
     {
         uint Reserved;
-        struct
+struct
         {
             ubyte  Type;
             ubyte  Reserved1;
@@ -2075,7 +2084,7 @@ struct EVENT_HEADER_EXTENDED_DATA_ITEM
     ///scalar. The <b>EnableProperty</b>EVENT_ENABLE_PROPERTY_PROCESS_START_KEY needs to be passed in for the
     ///EnableTrace call for a given provider to enable this feature. </td> </tr> </table>
     ushort ExtType;
-    struct
+struct
     {
         ushort _bitfield38;
     }
@@ -2217,9 +2226,9 @@ struct EVENT_HEADER
     ///Defines the information about the event such as the event identifier and severity level. For details, see
     ///EVENT_DESCRIPTOR.
     EVENT_DESCRIPTOR EventDescriptor;
-    union
+union
     {
-        struct
+struct
         {
             uint KernelTime;
             uint UserTime;
@@ -2264,7 +2273,7 @@ struct EVENT_MAP_ENTRY
     ///Offset from the beginning of the EVENT_MAP_INFO structure to a null-terminated Unicode string that contains the
     ///string associated with the map value in <b>Value</b> or <b>InputOffset</b>.
     uint OutputOffset;
-    union
+union
     {
         uint Value;
         uint InputOffset;
@@ -2282,7 +2291,7 @@ struct EVENT_MAP_INFO
     MAP_FLAGS          Flag;
     ///Number of map entries in <b>MapEntryArray</b>.
     uint               EntryCount;
-    union
+union
     {
         MAP_VALUETYPE MapEntryValueType;
         uint          FormatStringOffset;
@@ -2301,41 +2310,41 @@ struct EVENT_PROPERTY_INFO
     ///offset is from the beginning of the TRACE_EVENT_INFO structure. If this is a filter property, the offset is from
     ///the beginning of the PROVIDER_FILTER_INFO structure.
     uint           NameOffset;
-    union
+union
     {
-        struct nonStructType
+struct nonStructType
         {
             ushort InType;
             ushort OutType;
             uint   MapNameOffset;
         }
-        struct structType
+struct structType
         {
             ushort StructStartIndex;
             ushort NumOfStructMembers;
             uint   padding;
         }
-        struct customSchemaType
+struct customSchemaType
         {
             ushort InType;
             ushort OutType;
             uint   CustomSchemaOffset;
         }
     }
-    union
+union
     {
         ushort count;
         ushort countPropertyIndex;
     }
-    union
+union
     {
         ushort length;
         ushort lengthPropertyIndex;
     }
-    union
+union
     {
         uint Reserved;
-        struct
+struct
         {
             uint _bitfield39;
         }
@@ -2387,12 +2396,12 @@ struct TRACE_EVENT_INFO
     uint             BinaryXMLOffset;
     ///Reserved.
     uint             BinaryXMLSize;
-    union
+union
     {
         uint EventNameOffset;
         uint ActivityIDNameOffset;
     }
-    union
+union
     {
         uint EventAttributesOffset;
         uint RelatedActivityIDNameOffset;
@@ -2402,10 +2411,10 @@ struct TRACE_EVENT_INFO
     ///The number of properties in the <b>EventPropertyInfoArray</b> array that are top-level properties. This number
     ///does not include members of structures. Top-level properties come before all member properties in the array.
     uint             TopLevelPropertyCount;
-    union
+union
     {
         TEMPLATE_FLAGS Flags;
-        struct
+struct
         {
             uint _bitfield40;
         }
@@ -2450,7 +2459,7 @@ struct PROPERTY_DATA_DESCRIPTOR
 struct PAYLOAD_FILTER_PREDICATE
 {
     ///The name of the field to filter in package manifest.
-    const(wchar)* FieldName;
+    PWSTR  FieldName;
     ///The payload operator to use for the comparison. This member can be one of the values for the
     ///<b>PAYLOAD_OPERATOR</b> enumeration defined in the <i>Tdh.h</i> header file. <table> <tr> <th>Value</th>
     ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="PAYLOADFIELD_EQ"></a><a id="payloadfield_eq"></a><dl>
@@ -2507,9 +2516,9 @@ struct PAYLOAD_FILTER_PREDICATE
     ///requires one value in the <b>Value</b> member. </td> </tr> <tr> <td width="40%"><a
     ///id="PAYLOADFIELD_INVALID"></a><a id="payloadfield_invalid"></a><dl> <dt><b>PAYLOADFIELD_INVALID</b></dt>
     ///<dt>32</dt> </dl> </td> <td width="60%"> A value of the payload operator that is not valid. </td> </tr> </table>
-    ushort        CompareOp;
+    ushort CompareOp;
     ///The string that contains one or values to compare depending on the <b>CompareOp</b> member.
-    const(wchar)* Value;
+    PWSTR  Value;
 }
 
 ///Defines a filter and its data.
@@ -2665,7 +2674,7 @@ struct TDH_CONTEXT
 ///    to Windows 10, version 1709, this is a fixed cap of 64 loggers for non-private loggers. </td> </tr> </table>
 ///    
 @DllImport("ADVAPI32")
-uint StartTraceW(ulong* TraceHandle, const(wchar)* InstanceName, EVENT_TRACE_PROPERTIES* Properties);
+uint StartTraceW(ulong* TraceHandle, const(PWSTR) InstanceName, EVENT_TRACE_PROPERTIES* Properties);
 
 ///The <b>StartTrace</b> function registers and starts an event tracing session.
 ///Params:
@@ -2726,7 +2735,7 @@ uint StartTraceW(ulong* TraceHandle, const(wchar)* InstanceName, EVENT_TRACE_PRO
 ///    to Windows 10, version 1709, this is a fixed cap of 64 loggers for non-private loggers. </td> </tr> </table>
 ///    
 @DllImport("ADVAPI32")
-uint StartTraceA(ulong* TraceHandle, const(char)* InstanceName, EVENT_TRACE_PROPERTIES* Properties);
+uint StartTraceA(ulong* TraceHandle, const(PSTR) InstanceName, EVENT_TRACE_PROPERTIES* Properties);
 
 ///The <b>StopTrace</b> function stops the specified event tracing session. The ControlTrace function supersedes this
 ///function.
@@ -2761,7 +2770,7 @@ uint StartTraceA(ulong* TraceHandle, const(char)* InstanceName, EVENT_TRACE_PROP
 ///    and Windows 2000: </b>Anyone can control a trace session. </td> </tr> </table>
 ///    
 @DllImport("ADVAPI32")
-uint StopTraceW(ulong TraceHandle, const(wchar)* InstanceName, EVENT_TRACE_PROPERTIES* Properties);
+uint StopTraceW(ulong TraceHandle, const(PWSTR) InstanceName, EVENT_TRACE_PROPERTIES* Properties);
 
 ///The <b>StopTrace</b> function stops the specified event tracing session. The ControlTrace function supersedes this
 ///function.
@@ -2796,7 +2805,7 @@ uint StopTraceW(ulong TraceHandle, const(wchar)* InstanceName, EVENT_TRACE_PROPE
 ///    and Windows 2000: </b>Anyone can control a trace session. </td> </tr> </table>
 ///    
 @DllImport("ADVAPI32")
-uint StopTraceA(ulong TraceHandle, const(char)* InstanceName, EVENT_TRACE_PROPERTIES* Properties);
+uint StopTraceA(ulong TraceHandle, const(PSTR) InstanceName, EVENT_TRACE_PROPERTIES* Properties);
 
 ///The <b>QueryTrace</b> function retrieves the property settings and session statistics for the specified event tracing
 ///session. The ControlTrace function supersedes this function.
@@ -2833,7 +2842,7 @@ uint StopTraceA(ulong TraceHandle, const(char)* InstanceName, EVENT_TRACE_PROPER
 ///    not running. </td> </tr> </table>
 ///    
 @DllImport("ADVAPI32")
-uint QueryTraceW(ulong TraceHandle, const(wchar)* InstanceName, EVENT_TRACE_PROPERTIES* Properties);
+uint QueryTraceW(ulong TraceHandle, const(PWSTR) InstanceName, EVENT_TRACE_PROPERTIES* Properties);
 
 ///The <b>QueryTrace</b> function retrieves the property settings and session statistics for the specified event tracing
 ///session. The ControlTrace function supersedes this function.
@@ -2870,7 +2879,7 @@ uint QueryTraceW(ulong TraceHandle, const(wchar)* InstanceName, EVENT_TRACE_PROP
 ///    not running. </td> </tr> </table>
 ///    
 @DllImport("ADVAPI32")
-uint QueryTraceA(ulong TraceHandle, const(char)* InstanceName, EVENT_TRACE_PROPERTIES* Properties);
+uint QueryTraceA(ulong TraceHandle, const(PSTR) InstanceName, EVENT_TRACE_PROPERTIES* Properties);
 
 ///The <b>UpdateTrace</b> function updates the property setting of the specified event tracing session. The ControlTrace
 ///function supersedes this function.
@@ -2902,7 +2911,7 @@ uint QueryTraceA(ulong TraceHandle, const(char)* InstanceName, EVENT_TRACE_PROPE
 ///    </table>
 ///    
 @DllImport("ADVAPI32")
-uint UpdateTraceW(ulong TraceHandle, const(wchar)* InstanceName, EVENT_TRACE_PROPERTIES* Properties);
+uint UpdateTraceW(ulong TraceHandle, const(PWSTR) InstanceName, EVENT_TRACE_PROPERTIES* Properties);
 
 ///The <b>UpdateTrace</b> function updates the property setting of the specified event tracing session. The ControlTrace
 ///function supersedes this function.
@@ -2934,7 +2943,7 @@ uint UpdateTraceW(ulong TraceHandle, const(wchar)* InstanceName, EVENT_TRACE_PRO
 ///    </table>
 ///    
 @DllImport("ADVAPI32")
-uint UpdateTraceA(ulong TraceHandle, const(char)* InstanceName, EVENT_TRACE_PROPERTIES* Properties);
+uint UpdateTraceA(ulong TraceHandle, const(PSTR) InstanceName, EVENT_TRACE_PROPERTIES* Properties);
 
 ///The <b>FlushTrace</b> function causes an event tracing session to immediately deliver buffered events for the
 ///specified session. (An event tracing session does not deliver events until an active buffer is full.) The
@@ -2968,7 +2977,7 @@ uint UpdateTraceA(ulong TraceHandle, const(char)* InstanceName, EVENT_TRACE_PROP
 ///    and Windows 2000: </b>Anyone can control a trace session. </td> </tr> </table>
 ///    
 @DllImport("ADVAPI32")
-uint FlushTraceW(ulong TraceHandle, const(wchar)* InstanceName, EVENT_TRACE_PROPERTIES* Properties);
+uint FlushTraceW(ulong TraceHandle, const(PWSTR) InstanceName, EVENT_TRACE_PROPERTIES* Properties);
 
 ///The <b>FlushTrace</b> function causes an event tracing session to immediately deliver buffered events for the
 ///specified session. (An event tracing session does not deliver events until an active buffer is full.) The
@@ -3002,7 +3011,7 @@ uint FlushTraceW(ulong TraceHandle, const(wchar)* InstanceName, EVENT_TRACE_PROP
 ///    and Windows 2000: </b>Anyone can control a trace session. </td> </tr> </table>
 ///    
 @DllImport("ADVAPI32")
-uint FlushTraceA(ulong TraceHandle, const(char)* InstanceName, EVENT_TRACE_PROPERTIES* Properties);
+uint FlushTraceA(ulong TraceHandle, const(PSTR) InstanceName, EVENT_TRACE_PROPERTIES* Properties);
 
 ///The <b>ControlTrace</b> function flushes, queries, updates, or stops the specified event tracing session.
 ///Params:
@@ -3085,7 +3094,7 @@ uint FlushTraceA(ulong TraceHandle, const(char)* InstanceName, EVENT_TRACE_PROPE
 ///    </tr> </table>
 ///    
 @DllImport("ADVAPI32")
-uint ControlTraceW(ulong TraceHandle, const(wchar)* InstanceName, EVENT_TRACE_PROPERTIES* Properties, 
+uint ControlTraceW(ulong TraceHandle, const(PWSTR) InstanceName, EVENT_TRACE_PROPERTIES* Properties, 
                    uint ControlCode);
 
 ///The <b>ControlTrace</b> function flushes, queries, updates, or stops the specified event tracing session.
@@ -3169,7 +3178,7 @@ uint ControlTraceW(ulong TraceHandle, const(wchar)* InstanceName, EVENT_TRACE_PR
 ///    </tr> </table>
 ///    
 @DllImport("ADVAPI32")
-uint ControlTraceA(ulong TraceHandle, const(char)* InstanceName, EVENT_TRACE_PROPERTIES* Properties, 
+uint ControlTraceA(ulong TraceHandle, const(PSTR) InstanceName, EVENT_TRACE_PROPERTIES* Properties, 
                    uint ControlCode);
 
 ///The <b>QueryAllTraces</b> function retrieves the properties and statistics for all event tracing sessions started on
@@ -3194,7 +3203,7 @@ uint ControlTraceA(ulong TraceHandle, const(char)* InstanceName, EVENT_TRACE_PRO
 ///    <i>PropertyArrayCount</i>. </td> </tr> </table>
 ///    
 @DllImport("ADVAPI32")
-uint QueryAllTracesW(char* PropertyArray, uint PropertyArrayCount, uint* LoggerCount);
+uint QueryAllTracesW(EVENT_TRACE_PROPERTIES** PropertyArray, uint PropertyArrayCount, uint* LoggerCount);
 
 ///The <b>QueryAllTraces</b> function retrieves the properties and statistics for all event tracing sessions started on
 ///the computer for which the caller has permissions to query.
@@ -3218,7 +3227,7 @@ uint QueryAllTracesW(char* PropertyArray, uint PropertyArrayCount, uint* LoggerC
 ///    <i>PropertyArrayCount</i>. </td> </tr> </table>
 ///    
 @DllImport("ADVAPI32")
-uint QueryAllTracesA(char* PropertyArray, uint PropertyArrayCount, uint* LoggerCount);
+uint QueryAllTracesA(EVENT_TRACE_PROPERTIES** PropertyArray, uint PropertyArrayCount, uint* LoggerCount);
 
 ///Enables or disables the specified classic event trace provider. On Windows Vista and later, call the EnableTraceEx
 ///function to enable or disable a provider.
@@ -3423,8 +3432,8 @@ uint EnableTraceEx2(ulong TraceHandle, GUID* ProviderId, uint ControlCode, ubyte
 ///    <i>ReturnLength</i>. </td> </tr> </table>
 ///    
 @DllImport("ADVAPI32")
-uint EnumerateTraceGuidsEx(TRACE_QUERY_INFO_CLASS TraceQueryInfoClass, char* InBuffer, uint InBufferSize, 
-                           char* OutBuffer, uint OutBufferSize, uint* ReturnLength);
+uint EnumerateTraceGuidsEx(TRACE_QUERY_INFO_CLASS TraceQueryInfoClass, void* InBuffer, uint InBufferSize, 
+                           void* OutBuffer, uint OutBufferSize, uint* ReturnLength);
 
 ///The <b>TraceSetInformation</b> function enables or disables event tracing session settings for the specified
 ///information class.
@@ -3451,7 +3460,7 @@ uint EnumerateTraceGuidsEx(TRACE_QUERY_INFO_CLASS TraceQueryInfoClass, char* InB
 ///    </table>
 ///    
 @DllImport("ADVAPI32")
-uint TraceSetInformation(ulong SessionHandle, TRACE_QUERY_INFO_CLASS InformationClass, char* TraceInformation, 
+uint TraceSetInformation(ulong SessionHandle, TRACE_QUERY_INFO_CLASS InformationClass, void* TraceInformation, 
                          uint InformationLength);
 
 ///The <b>TraceQueryInformation</b> function queries event tracing session settings for the specified information class.
@@ -3480,7 +3489,7 @@ uint TraceSetInformation(ulong SessionHandle, TRACE_QUERY_INFO_CLASS Information
 ///    </table>
 ///    
 @DllImport("ADVAPI32")
-uint TraceQueryInformation(ulong SessionHandle, TRACE_QUERY_INFO_CLASS InformationClass, char* TraceInformation, 
+uint TraceQueryInformation(ulong SessionHandle, TRACE_QUERY_INFO_CLASS InformationClass, void* TraceInformation, 
                            uint InformationLength, uint* ReturnLength);
 
 ///The <b>CreateTraceInstanceId</b> function creates a unique transaction identifier and maps it to a class GUID
@@ -3625,8 +3634,8 @@ uint TraceEventInstance(ulong TraceHandle, EVENT_INSTANCE_HEADER* EventTrace, EV
 ///    
 @DllImport("ADVAPI32")
 uint RegisterTraceGuidsW(WMIDPREQUEST RequestAddress, void* RequestContext, GUID* ControlGuid, uint GuidCount, 
-                         char* TraceGuidReg, const(wchar)* MofImagePath, const(wchar)* MofResourceName, 
-                         ulong* RegistrationHandle);
+                         TRACE_GUID_REGISTRATION* TraceGuidReg, const(PWSTR) MofImagePath, 
+                         const(PWSTR) MofResourceName, ulong* RegistrationHandle);
 
 ///The <b>RegisterTraceGuids</b> function registers an event trace provider and the event trace classes that it uses to
 ///generate events. This function also specifies the function the provider uses to enable and disable tracing.
@@ -3673,8 +3682,8 @@ uint RegisterTraceGuidsW(WMIDPREQUEST RequestAddress, void* RequestContext, GUID
 ///    
 @DllImport("ADVAPI32")
 uint RegisterTraceGuidsA(WMIDPREQUEST RequestAddress, void* RequestContext, GUID* ControlGuid, uint GuidCount, 
-                         char* TraceGuidReg, const(char)* MofImagePath, const(char)* MofResourceName, 
-                         ulong* RegistrationHandle);
+                         TRACE_GUID_REGISTRATION* TraceGuidReg, const(PSTR) MofImagePath, 
+                         const(PSTR) MofResourceName, ulong* RegistrationHandle);
 
 ///The <b>EnumerateTraceGuids</b> function retrieves information about registered event trace providers that are running
 ///on the computer. <div class="alert"><b>Note</b> This function has been superseded by
@@ -3695,7 +3704,7 @@ uint RegisterTraceGuidsA(WMIDPREQUEST RequestAddress, void* RequestContext, GUID
 ///    </td> </tr> </table>
 ///    
 @DllImport("ADVAPI32")
-uint EnumerateTraceGuids(char* GuidPropertiesArray, uint PropertyArrayCount, uint* GuidCount);
+uint EnumerateTraceGuids(TRACE_GUID_PROPERTIES** GuidPropertiesArray, uint PropertyArrayCount, uint* GuidCount);
 
 ///The <b>UnregisterTraceGuids</b> function unregisters an event trace provider and its event trace classes.
 ///Params:
@@ -3814,7 +3823,7 @@ ulong OpenTraceW(EVENT_TRACE_LOGFILEW* Logfile);
 ///    </table>
 ///    
 @DllImport("ADVAPI32")
-uint ProcessTrace(char* HandleArray, uint HandleCount, FILETIME* StartTime, FILETIME* EndTime);
+uint ProcessTrace(ulong* HandleArray, uint HandleCount, FILETIME* StartTime, FILETIME* EndTime);
 
 ///The <b>CloseTrace</b> function closes a trace.
 ///Params:
@@ -4060,7 +4069,7 @@ uint EventUnregister(ulong RegHandle);
 ///    FormatMessage to obtain the message string for the returned error. </td> </tr> </table>
 ///    
 @DllImport("ADVAPI32")
-uint EventSetInformation(ulong RegHandle, EVENT_INFO_CLASS InformationClass, char* EventInformation, 
+uint EventSetInformation(ulong RegHandle, EVENT_INFO_CLASS InformationClass, void* EventInformation, 
                          uint InformationLength);
 
 ///Determines if the event is enabled for any session.
@@ -4125,7 +4134,8 @@ ubyte EventProviderEnabled(ulong RegHandle, ubyte Level, ulong Keyword);
 ///    the playback file. Do not stop logging events based on this error code. </td> </tr> </table>
 ///    
 @DllImport("ADVAPI32")
-uint EventWrite(ulong RegHandle, EVENT_DESCRIPTOR* EventDescriptor, uint UserDataCount, char* UserData);
+uint EventWrite(ulong RegHandle, EVENT_DESCRIPTOR* EventDescriptor, uint UserDataCount, 
+                EVENT_DATA_DESCRIPTOR* UserData);
 
 ///Links events together when tracing events in an end-to-end scenario.
 ///Params:
@@ -4158,7 +4168,7 @@ uint EventWrite(ulong RegHandle, EVENT_DESCRIPTOR* EventDescriptor, uint UserDat
 ///    
 @DllImport("ADVAPI32")
 uint EventWriteTransfer(ulong RegHandle, EVENT_DESCRIPTOR* EventDescriptor, GUID* ActivityId, 
-                        GUID* RelatedActivityId, uint UserDataCount, char* UserData);
+                        GUID* RelatedActivityId, uint UserDataCount, EVENT_DATA_DESCRIPTOR* UserData);
 
 ///Use this function to write an event.
 ///Params:
@@ -4196,7 +4206,7 @@ uint EventWriteTransfer(ulong RegHandle, EVENT_DESCRIPTOR* EventDescriptor, GUID
 ///    
 @DllImport("ADVAPI32")
 uint EventWriteEx(ulong RegHandle, EVENT_DESCRIPTOR* EventDescriptor, ulong Filter, uint Flags, GUID* ActivityId, 
-                  GUID* RelatedActivityId, uint UserDataCount, char* UserData);
+                  GUID* RelatedActivityId, uint UserDataCount, EVENT_DATA_DESCRIPTOR* UserData);
 
 ///Writes an event that contains a string as its data.
 ///Params:
@@ -4225,7 +4235,7 @@ uint EventWriteEx(ulong RegHandle, EVENT_DESCRIPTOR* EventDescriptor, ulong Filt
 ///    </tr> </table>
 ///    
 @DllImport("ADVAPI32")
-uint EventWriteString(ulong RegHandle, ubyte Level, ulong Keyword, const(wchar)* String);
+uint EventWriteString(ulong RegHandle, ubyte Level, ulong Keyword, const(PWSTR) String);
 
 ///Creates, queries, and sets the current activity identifier used by the EventWriteTransfer function.
 ///Params:
@@ -4310,7 +4320,7 @@ uint EventAccessControl(GUID* Guid, uint Operation, void* Sid, uint Rights, ubyt
 ///    using the size returned in <i>BufferSize</i>. </td> </tr> </table>
 ///    
 @DllImport("ADVAPI32")
-uint EventAccessQuery(GUID* Guid, char* Buffer, uint* BufferSize);
+uint EventAccessQuery(GUID* Guid, void* Buffer, uint* BufferSize);
 
 ///Removes the permissions defined in the registry for the specified provider or session.
 ///Params:
@@ -4352,7 +4362,8 @@ uint EventAccessRemove(GUID* Guid);
 ///    
 @DllImport("tdh")
 uint TdhCreatePayloadFilter(GUID* ProviderGuid, EVENT_DESCRIPTOR* EventDescriptor, ubyte EventMatchANY, 
-                            uint PayloadPredicateCount, char* PayloadPredicates, void** PayloadFilter);
+                            uint PayloadPredicateCount, PAYLOAD_FILTER_PREDICATE* PayloadPredicates, 
+                            void** PayloadFilter);
 
 ///The <b>TdhDeletePayloadFilter</b> function frees the memory allocated for a single payload filter by the
 ///TdhCreatePayloadFilter function.
@@ -4394,7 +4405,7 @@ uint TdhDeletePayloadFilter(void** PayloadFilter);
 ///    Unable to allocate memory to create the aggregated payload filter. </td> </tr> </table>
 ///    
 @DllImport("tdh")
-uint TdhAggregatePayloadFilters(uint PayloadFilterCount, char* PayloadFilterPtrs, char* EventMatchALLFlags, 
+uint TdhAggregatePayloadFilters(uint PayloadFilterCount, void** PayloadFilterPtrs, ubyte* EventMatchALLFlags, 
                                 EVENT_FILTER_DESCRIPTOR* EventFilterDescriptor);
 
 ///The <b>TdhCleanupPayloadEventFilterDescriptor</b> function frees the aggregated structure of payload filters created
@@ -4439,8 +4450,8 @@ uint TdhCleanupPayloadEventFilterDescriptor(EVENT_FILTER_DESCRIPTOR* EventFilter
 ///    not available. </td> </tr> </table>
 ///    
 @DllImport("TDH")
-uint TdhGetEventInformation(EVENT_RECORD* Event, uint TdhContextCount, char* TdhContext, char* Buffer, 
-                            uint* BufferSize);
+uint TdhGetEventInformation(EVENT_RECORD* Event, uint TdhContextCount, TDH_CONTEXT* TdhContext, 
+                            TRACE_EVENT_INFO* Buffer, uint* BufferSize);
 
 ///Retrieves information about the event map contained in the event.
 ///Params:
@@ -4468,7 +4479,7 @@ uint TdhGetEventInformation(EVENT_RECORD* Event, uint TdhContextCount, char* Tdh
 ///    </dl> </td> <td width="60%"> The WMI service is not available. </td> </tr> </table>
 ///    
 @DllImport("TDH")
-uint TdhGetEventMapInformation(EVENT_RECORD* pEvent, const(wchar)* pMapName, char* pBuffer, uint* pBufferSize);
+uint TdhGetEventMapInformation(EVENT_RECORD* pEvent, PWSTR pMapName, EVENT_MAP_INFO* pBuffer, uint* pBufferSize);
 
 ///Retrieves the size of one or more property values in the event data.
 ///Params:
@@ -4501,8 +4512,8 @@ uint TdhGetEventMapInformation(EVENT_RECORD* pEvent, const(wchar)* pMapName, cha
 ///    not available. </td> </tr> </table>
 ///    
 @DllImport("TDH")
-uint TdhGetPropertySize(EVENT_RECORD* pEvent, uint TdhContextCount, char* pTdhContext, uint PropertyDataCount, 
-                        char* pPropertyData, uint* pPropertySize);
+uint TdhGetPropertySize(EVENT_RECORD* pEvent, uint TdhContextCount, TDH_CONTEXT* pTdhContext, 
+                        uint PropertyDataCount, PROPERTY_DATA_DESCRIPTOR* pPropertyData, uint* pPropertySize);
 
 ///Retrieves a property value from the event data.
 ///Params:
@@ -4534,8 +4545,8 @@ uint TdhGetPropertySize(EVENT_RECORD* pEvent, uint TdhContextCount, char* pTdhCo
 ///    width="60%"> The WMI service is not available. </td> </tr> </table>
 ///    
 @DllImport("TDH")
-uint TdhGetProperty(EVENT_RECORD* pEvent, uint TdhContextCount, char* pTdhContext, uint PropertyDataCount, 
-                    char* pPropertyData, uint BufferSize, char* pBuffer);
+uint TdhGetProperty(EVENT_RECORD* pEvent, uint TdhContextCount, TDH_CONTEXT* pTdhContext, uint PropertyDataCount, 
+                    PROPERTY_DATA_DESCRIPTOR* pPropertyData, uint BufferSize, ubyte* pBuffer);
 
 ///Retrieves a list of providers that have registered a MOF class or manifest file on the computer.
 ///Params:
@@ -4554,7 +4565,7 @@ uint TdhGetProperty(EVENT_RECORD* pEvent, uint TdhContextCount, char* pTdhContex
 ///    parameters is not valid. </td> </tr> </table>
 ///    
 @DllImport("TDH")
-uint TdhEnumerateProviders(char* pBuffer, uint* pBufferSize);
+uint TdhEnumerateProviders(PROVIDER_ENUMERATION_INFO* pBuffer, uint* pBufferSize);
 
 ///Retrieves information for the specified field from the event descriptions for those field values that match the given
 ///value.
@@ -4586,7 +4597,7 @@ uint TdhEnumerateProviders(char* pBuffer, uint* pBufferSize);
 ///    
 @DllImport("TDH")
 uint TdhQueryProviderFieldInformation(GUID* pGuid, ulong EventFieldValue, EVENT_FIELD_TYPE EventFieldType, 
-                                      char* pBuffer, uint* pBufferSize);
+                                      PROVIDER_FIELD_INFOARRAY* pBuffer, uint* pBufferSize);
 
 ///Retrieves the specified field metadata for a given provider.
 ///Params:
@@ -4613,8 +4624,8 @@ uint TdhQueryProviderFieldInformation(GUID* pGuid, ulong EventFieldValue, EVENT_
 ///    the binary based on the registered location. </td> </tr> </table>
 ///    
 @DllImport("TDH")
-uint TdhEnumerateProviderFieldInformation(GUID* pGuid, EVENT_FIELD_TYPE EventFieldType, char* pBuffer, 
-                                          uint* pBufferSize);
+uint TdhEnumerateProviderFieldInformation(GUID* pGuid, EVENT_FIELD_TYPE EventFieldType, 
+                                          PROVIDER_FIELD_INFOARRAY* pBuffer, uint* pBufferSize);
 
 ///The <b>TdhEnumerateProviderFilters</b> function enumerates the filters that the specified provider defined in the
 ///manifest.
@@ -4642,8 +4653,8 @@ uint TdhEnumerateProviderFieldInformation(GUID* pGuid, EVENT_FIELD_TYPE EventFie
 ///    the registry. TDH was unable to find the binary based on the registered location. </td> </tr> </table>
 ///    
 @DllImport("tdh")
-uint TdhEnumerateProviderFilters(GUID* Guid, uint TdhContextCount, char* TdhContext, uint* FilterCount, 
-                                 char* Buffer, uint* BufferSize);
+uint TdhEnumerateProviderFilters(GUID* Guid, uint TdhContextCount, TDH_CONTEXT* TdhContext, uint* FilterCount, 
+                                 PROVIDER_FILTER_INFO** Buffer, uint* BufferSize);
 
 ///Loads the manifest used to decode a log file.
 ///Params:
@@ -4659,10 +4670,10 @@ uint TdhEnumerateProviderFilters(GUID* Guid, uint TdhContextCount, char* TdhCont
 ///    </td> </tr> </table>
 ///    
 @DllImport("TDH")
-uint TdhLoadManifest(const(wchar)* Manifest);
+uint TdhLoadManifest(PWSTR Manifest);
 
 @DllImport("TDH")
-uint TdhLoadManifestFromMemory(char* pData, uint cbData);
+uint TdhLoadManifestFromMemory(const(void)* pData, uint cbData);
 
 ///Unloads the manifest that was loaded by the TdhLoadManifest function.
 ///Params:
@@ -4678,10 +4689,10 @@ uint TdhLoadManifestFromMemory(char* pData, uint cbData);
 ///    </td> </tr> </table>
 ///    
 @DllImport("TDH")
-uint TdhUnloadManifest(const(wchar)* Manifest);
+uint TdhUnloadManifest(PWSTR Manifest);
 
 @DllImport("TDH")
-uint TdhUnloadManifestFromMemory(char* pData, uint cbData);
+uint TdhUnloadManifestFromMemory(const(void)* pData, uint cbData);
 
 ///Formats a property value for display.
 ///Params:
@@ -4724,7 +4735,7 @@ uint TdhUnloadManifestFromMemory(char* pData, uint cbData);
 @DllImport("TDH")
 uint TdhFormatProperty(TRACE_EVENT_INFO* EventInfo, EVENT_MAP_INFO* MapInfo, uint PointerSize, 
                        ushort PropertyInType, ushort PropertyOutType, ushort PropertyLength, ushort UserDataLength, 
-                       char* UserData, uint* BufferSize, const(wchar)* Buffer, ushort* UserDataConsumed);
+                       ubyte* UserData, uint* BufferSize, PWSTR Buffer, ushort* UserDataConsumed);
 
 ///Opens a decoding handle.
 ///Params:
@@ -4794,8 +4805,8 @@ uint TdhGetDecodingParameter(TDH_HANDLE Handle, TDH_CONTEXT* TdhContext);
 ///    <i>PropertyName</i>, or <i>Buffer</i> parameter is <b>NULL</b>. </td> </tr> </table>
 ///    
 @DllImport("tdh")
-uint TdhGetWppProperty(TDH_HANDLE Handle, EVENT_RECORD* EventRecord, const(wchar)* PropertyName, uint* BufferSize, 
-                       char* Buffer);
+uint TdhGetWppProperty(TDH_HANDLE Handle, EVENT_RECORD* EventRecord, PWSTR PropertyName, uint* BufferSize, 
+                       ubyte* Buffer);
 
 ///Retrieves the formatted WPP message embedded into an EVENT_RECORD structure.
 ///Params:
@@ -4813,7 +4824,7 @@ uint TdhGetWppProperty(TDH_HANDLE Handle, EVENT_RECORD* EventRecord, const(wchar
 ///    of the parameters is not valid. </td> </tr> </table>
 ///    
 @DllImport("tdh")
-uint TdhGetWppMessage(TDH_HANDLE Handle, EVENT_RECORD* EventRecord, uint* BufferSize, char* Buffer);
+uint TdhGetWppMessage(TDH_HANDLE Handle, EVENT_RECORD* EventRecord, uint* BufferSize, ubyte* Buffer);
 
 ///Frees any resources associated with the input decoding handle.
 ///Params:
@@ -4839,7 +4850,7 @@ uint TdhCloseDecodingHandle(TDH_HANDLE Handle);
 ///    contain any eventing metadata resources. </td> </tr> </table>
 ///    
 @DllImport("tdh")
-uint TdhLoadManifestFromBinary(const(wchar)* BinaryPath);
+uint TdhLoadManifestFromBinary(PWSTR BinaryPath);
 
 ///The <b>TdhEnumerateManifestProviderEvents</b> function retrieves the list of events present in the provider manifest.
 ///Params:
@@ -4862,7 +4873,7 @@ uint TdhLoadManifestFromBinary(const(wchar)* BinaryPath);
 ///    </td> <td width="60%"> The schema information for supplied provider GUID was not found. </td> </tr> </table>
 ///    
 @DllImport("TDH")
-uint TdhEnumerateManifestProviderEvents(GUID* ProviderGuid, char* Buffer, uint* BufferSize);
+uint TdhEnumerateManifestProviderEvents(GUID* ProviderGuid, PROVIDER_EVENT_INFO* Buffer, uint* BufferSize);
 
 ///The <b>TdhGetManifestEventInformation</b> function retrieves metadata about an event in a manifest.
 ///Params:
@@ -4889,8 +4900,8 @@ uint TdhEnumerateManifestProviderEvents(GUID* ProviderGuid, char* Buffer, uint* 
 ///    was not found. </td> </tr> </table>
 ///    
 @DllImport("TDH")
-uint TdhGetManifestEventInformation(GUID* ProviderGuid, EVENT_DESCRIPTOR* EventDescriptor, char* Buffer, 
-                                    uint* BufferSize);
+uint TdhGetManifestEventInformation(GUID* ProviderGuid, EVENT_DESCRIPTOR* EventDescriptor, 
+                                    TRACE_EVENT_INFO* Buffer, uint* BufferSize);
 
 ///A tracing function for publishing events when an attempted security vulnerability exploit is detected in your
 ///user-mode application.
@@ -4913,7 +4924,7 @@ uint TdhGetManifestEventInformation(GUID* ProviderGuid, EVENT_DESCRIPTOR* EventD
 ///    file. Do not stop logging events based on this error code. </td> </tr> </table>
 ///    
 @DllImport("ADVAPI32")
-int CveEventWrite(const(wchar)* CveId, const(wchar)* AdditionalDetails);
+int CveEventWrite(const(PWSTR) CveId, const(PWSTR) AdditionalDetails);
 
 
 // Interfaces

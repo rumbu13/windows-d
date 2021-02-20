@@ -5,10 +5,11 @@ module windows.windowsbiometricframework;
 public import windows.core;
 public import windows.com : HRESULT;
 public import windows.displaydevices : POINT, RECT;
-public import windows.systemservices : BOOL, HANDLE, LARGE_INTEGER, OVERLAPPED;
+public import windows.systemservices : BOOL, HANDLE, LARGE_INTEGER, OVERLAPPED,
+                                       PWSTR;
 public import windows.windowsandmessaging : HWND;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -200,7 +201,7 @@ alias PWINBIO_EVENT_CALLBACK = void function(void* EventCallbackContext, HRESULT
 ///    SampleSize = Size, in bytes, of the sample data pointed to by the <i>Sample</i> parameter.
 ///    RejectDetail = Additional information about the failure, if any, to perform the operation. For more information, see Remarks.
 alias PWINBIO_CAPTURE_CALLBACK = void function(void* CaptureCallbackContext, HRESULT OperationStatus, uint UnitId, 
-                                               char* Sample, size_t SampleSize, uint RejectDetail);
+                                               WINBIO_BIR* Sample, size_t SampleSize, uint RejectDetail);
 ///Called by the Windows Biometric Framework when a sensor adapter is added to the processing pipeline of the biometric
 ///unit. The purpose of this function is to perform any initialization required for later biometric operations.
 ///Params:
@@ -479,7 +480,7 @@ alias PIBIO_SENSOR_PUSH_DATA_TO_ENGINE_FN = HRESULT function(WINBIO_PIPELINE* Pi
 ///    <div> </div> </td> </tr> </table>
 ///    
 alias PIBIO_SENSOR_CONTROL_UNIT_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, uint ControlCode, 
-                                                      char* SendBuffer, size_t SendBufferSize, char* ReceiveBuffer, 
+                                                      ubyte* SendBuffer, size_t SendBufferSize, ubyte* ReceiveBuffer, 
                                                       size_t ReceiveBufferSize, size_t* ReceiveDataSize, 
                                                       uint* OperationStatus);
 ///Called by the Windows Biometric Framework to perform a vendor-defined control operation that requires elevated
@@ -515,8 +516,8 @@ alias PIBIO_SENSOR_CONTROL_UNIT_FN = HRESULT function(WINBIO_PIPELINE* Pipeline,
 ///    <div> </div> </td> </tr> </table>
 ///    
 alias PIBIO_SENSOR_CONTROL_UNIT_PRIVILEGED_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, uint ControlCode, 
-                                                                 char* SendBuffer, size_t SendBufferSize, 
-                                                                 char* ReceiveBuffer, size_t ReceiveBufferSize, 
+                                                                 ubyte* SendBuffer, size_t SendBufferSize, 
+                                                                 ubyte* ReceiveBuffer, size_t ReceiveBufferSize, 
                                                                  size_t* ReceiveDataSize, uint* OperationStatus);
 ///Called by the Windows Biometric Framework when the system is ready to enter a low-power state or when the system has
 ///been awakened from a low-power state. The purpose of this function is to enable the adapter to respond to transitions
@@ -595,7 +596,8 @@ alias PIBIO_SENSOR_DEACTIVATE_FN = HRESULT function(WINBIO_PIPELINE* Pipeline);
 ///    </b></dt> </dl> </td> <td width="60%"> The <i>SensorInfoSize</i> value is less than the size needed to return the
 ///    sensor information. </td> </tr> </table>
 ///    
-alias PIBIO_SENSOR_QUERY_EXTENDED_INFO_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, char* SensorInfo, 
+alias PIBIO_SENSOR_QUERY_EXTENDED_INFO_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, 
+                                                             WINBIO_EXTENDED_SENSOR_INFO* SensorInfo, 
                                                              size_t SensorInfoSize);
 ///Called by the Windows Biometric Framework to determine the set of calibration formats supported by the Sensor
 ///Adapter.
@@ -617,7 +619,7 @@ alias PIBIO_SENSOR_QUERY_EXTENDED_INFO_FN = HRESULT function(WINBIO_PIPELINE* Pi
 ///    </td> <td width="60%"> Any other error code will cause the Windows Biometric Framework to log the error and abort
 ///    the configuration of the biometric unit. </td> </tr> </table>
 ///    
-alias PIBIO_SENSOR_QUERY_CALIBRATION_FORMATS_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, char* FormatArray, 
+alias PIBIO_SENSOR_QUERY_CALIBRATION_FORMATS_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, GUID* FormatArray, 
                                                                    size_t FormatArraySize, size_t* FormatCount);
 ///Called by the Windows Biometric Framework to notify the sensor adapter that a particular calibration data format has
 ///been selected by the engine adapter.
@@ -651,26 +653,28 @@ alias PIBIO_SENSOR_SET_CALIBRATION_FORMAT_FN = HRESULT function(WINBIO_PIPELINE*
 ///    </table>
 ///    
 alias PIBIO_SENSOR_ACCEPT_CALIBRATION_DATA_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, 
-                                                                 char* CalibrationBuffer, 
+                                                                 ubyte* CalibrationBuffer, 
                                                                  size_t CalibrationBufferSize);
-alias PIBIO_SENSOR_ASYNC_IMPORT_RAW_BUFFER_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, char* RawBufferAddress, 
-                                                                 size_t RawBufferSize, ubyte** ResultBufferAddress, 
+alias PIBIO_SENSOR_ASYNC_IMPORT_RAW_BUFFER_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, 
+                                                                 ubyte* RawBufferAddress, size_t RawBufferSize, 
+                                                                 ubyte** ResultBufferAddress, 
                                                                  size_t* ResultBufferSize);
 alias PIBIO_SENSOR_ASYNC_IMPORT_SECURE_BUFFER_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, 
                                                                     GUID SecureBufferIdentifier, 
-                                                                    char* MetadataBufferAddress, 
+                                                                    ubyte* MetadataBufferAddress, 
                                                                     size_t MetadataBufferSize, 
                                                                     ubyte** ResultBufferAddress, 
                                                                     size_t* ResultBufferSize);
 alias PIBIO_SENSOR_QUERY_PRIVATE_SENSOR_TYPE_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, 
-                                                                   char* TypeInfoBufferAddress, 
+                                                                   ubyte* TypeInfoBufferAddress, 
                                                                    size_t TypeInfoBufferSize, 
                                                                    size_t* TypeInfoDataSize);
 alias PIBIO_SENSOR_CONNECT_SECURE_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, 
                                                         const(WINBIO_SECURE_CONNECTION_PARAMS)* ConnectionParams, 
                                                         WINBIO_SECURE_CONNECTION_DATA** ConnectionData);
-alias PIBIO_SENSOR_START_CAPTURE_EX_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, ubyte Purpose, char* Nonce, 
-                                                          size_t NonceSize, ubyte Flags, OVERLAPPED** Overlapped);
+alias PIBIO_SENSOR_START_CAPTURE_EX_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, ubyte Purpose, 
+                                                          const(ubyte)* Nonce, size_t NonceSize, ubyte Flags, 
+                                                          OVERLAPPED** Overlapped);
 alias PIBIO_SENSOR_START_NOTIFY_WAKE_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, OVERLAPPED** Overlapped);
 alias PIBIO_SENSOR_FINISH_NOTIFY_WAKE_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, uint* Reason);
 alias PWINBIO_QUERY_SENSOR_INTERFACE_FN = HRESULT function(WINBIO_SENSOR_INTERFACE** SensorInterface);
@@ -763,7 +767,8 @@ alias PIBIO_ENGINE_QUERY_INDEX_VECTOR_SIZE_FN = HRESULT function(WINBIO_PIPELINE
 ///    engine adapter does not support template hash generation. </td> </tr> </table>
 ///    
 alias PIBIO_ENGINE_QUERY_HASH_ALGORITHMS_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, size_t* AlgorithmCount, 
-                                                               size_t* AlgorithmBufferSize, char* AlgorithmBuffer);
+                                                               size_t* AlgorithmBufferSize, 
+                                                               /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/ubyte** AlgorithmBuffer);
 ///Called by the Windows Biometric Framework to select a hash algorithm for use in subsequent operations.
 ///Params:
 ///    Pipeline = Pointer to a WINBIO_PIPELINE structure associated with the biometric unit performing the operation.
@@ -781,7 +786,7 @@ alias PIBIO_ENGINE_QUERY_HASH_ALGORITHMS_FN = HRESULT function(WINBIO_PIPELINE* 
 ///    specified by the <i>AlgorithmBuffer</i> parameter. </td> </tr> </table>
 ///    
 alias PIBIO_ENGINE_SET_HASH_ALGORITHM_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, size_t AlgorithmBufferSize, 
-                                                            char* AlgorithmBuffer);
+                                                            ubyte* AlgorithmBuffer);
 ///Called by the Windows Biometric Framework to retrieve the number of correct samples required by the engine adapter to
 ///construct an enrollment template.
 ///Params:
@@ -825,7 +830,7 @@ alias PIBIO_ENGINE_QUERY_SAMPLE_HINT_FN = HRESULT function(WINBIO_PIPELINE* Pipe
 ///    <dt><b>WINBIO_E_BAD_CAPTURE</b></dt> </dl> </td> <td width="60%"> The data could not be processed to create the
 ///    required feature set. The RejectDetail contains additional information about the failure. </td> </tr> </table>
 ///    
-alias PIBIO_ENGINE_ACCEPT_SAMPLE_DATA_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, char* SampleBuffer, 
+alias PIBIO_ENGINE_ACCEPT_SAMPLE_DATA_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, WINBIO_BIR* SampleBuffer, 
                                                             size_t SampleSize, ubyte Purpose, uint* RejectDetail);
 ///Called by the Windows Biometric Framework to retrieve a copy of the most recently processed feature set or template
 ///from the engine formatted as a standard WINBIO_BIR structure.
@@ -856,7 +861,7 @@ alias PIBIO_ENGINE_ACCEPT_SAMPLE_DATA_FN = HRESULT function(WINBIO_PIPELINE* Pip
 ///    </dl> </td> <td width="60%"> This method is not currently implemented. </td> </tr> </table>
 ///    
 alias PIBIO_ENGINE_EXPORT_ENGINE_DATA_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, ubyte Flags, 
-                                                            char* SampleBuffer, size_t* SampleSize);
+                                                            WINBIO_BIR** SampleBuffer, size_t* SampleSize);
 ///Called by the Windows Biometric Framework to compare the template in the current feature set with a specific template
 ///in the database. If the templates are equivalent, the engine adapter must set the Boolean value pointed to by the
 ///<i>Match</i> parameter to <b>TRUE</b>, return the matched template in the <i>PayloadBlob</i> parameter, and return a
@@ -897,8 +902,8 @@ alias PIBIO_ENGINE_EXPORT_ENGINE_DATA_FN = HRESULT function(WINBIO_PIPELINE* Pip
 ///    <i>SubFactor</i> parameters. </td> </tr> </table>
 ///    
 alias PIBIO_ENGINE_VERIFY_FEATURE_SET_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, WINBIO_IDENTITY* Identity, 
-                                                            ubyte SubFactor, ubyte* Match, char* PayloadBlob, 
-                                                            size_t* PayloadBlobSize, char* HashValue, 
+                                                            ubyte SubFactor, ubyte* Match, ubyte** PayloadBlob, 
+                                                            size_t* PayloadBlobSize, ubyte** HashValue, 
                                                             size_t* HashSize, uint* RejectDetail);
 ///Called by the Windows Biometric Framework to build a template from the current feature set and locate a matching
 ///template in the database. If a match can be found, the engine adapter must fill the <i>Identity</i>,
@@ -935,8 +940,8 @@ alias PIBIO_ENGINE_VERIFY_FEATURE_SET_FN = HRESULT function(WINBIO_PIPELINE* Pip
 ///    set in the pipeline does not correspond to any identity in the database. </td> </tr> </table>
 ///    
 alias PIBIO_ENGINE_IDENTIFY_FEATURE_SET_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, WINBIO_IDENTITY* Identity, 
-                                                              ubyte* SubFactor, char* PayloadBlob, 
-                                                              size_t* PayloadBlobSize, char* HashValue, 
+                                                              ubyte* SubFactor, ubyte** PayloadBlob, 
+                                                              size_t* PayloadBlobSize, ubyte** HashValue, 
                                                               size_t* HashSize, uint* RejectDetail);
 ///Called by the Windows Biometric Framework to initialize the enrollment object in the biometric unit pipeline.
 ///Params:
@@ -1005,7 +1010,7 @@ alias PIBIO_ENGINE_GET_ENROLLMENT_STATUS_FN = HRESULT function(WINBIO_PIPELINE* 
 ///    <dt><b>WINBIO_E_INVALID_DEVICE_STATE</b></dt> </dl> </td> <td width="60%"> The pipeline does not contain a
 ///    completed enrollment template. </td> </tr> </table>
 ///    
-alias PIBIO_ENGINE_GET_ENROLLMENT_HASH_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, char* HashValue, 
+alias PIBIO_ENGINE_GET_ENROLLMENT_HASH_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, ubyte** HashValue, 
                                                              size_t* HashSize);
 ///Called by the Windows Biometric Framework to determine whether a new template in the pipeline duplicates any template
 ///already saved in the database regardless of the identity associated with the templates.
@@ -1049,7 +1054,7 @@ alias PIBIO_ENGINE_CHECK_FOR_DUPLICATE_FN = HRESULT function(WINBIO_PIPELINE* Pi
 ///    attached to the pipeline. </td> </tr> </table>
 ///    
 alias PIBIO_ENGINE_COMMIT_ENROLLMENT_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, WINBIO_IDENTITY* Identity, 
-                                                           ubyte SubFactor, char* PayloadBlob, 
+                                                           ubyte SubFactor, ubyte* PayloadBlob, 
                                                            size_t PayloadBlobSize);
 ///Called by the Windows Biometric Framework to delete intermediate enrollment state information from the pipeline.
 ///Params:
@@ -1094,7 +1099,7 @@ alias PIBIO_ENGINE_DISCARD_ENROLLMENT_FN = HRESULT function(WINBIO_PIPELINE* Pip
 ///    <div> </div> </td> </tr> </table>
 ///    
 alias PIBIO_ENGINE_CONTROL_UNIT_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, uint ControlCode, 
-                                                      char* SendBuffer, size_t SendBufferSize, char* ReceiveBuffer, 
+                                                      ubyte* SendBuffer, size_t SendBufferSize, ubyte* ReceiveBuffer, 
                                                       size_t ReceiveBufferSize, size_t* ReceiveDataSize, 
                                                       uint* OperationStatus);
 ///Called by the Windows Biometric Framework to perform a vendor-defined control operation that requires elevated
@@ -1130,8 +1135,8 @@ alias PIBIO_ENGINE_CONTROL_UNIT_FN = HRESULT function(WINBIO_PIPELINE* Pipeline,
 ///    <div> </div> </td> </tr> </table>
 ///    
 alias PIBIO_ENGINE_CONTROL_UNIT_PRIVILEGED_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, uint ControlCode, 
-                                                                 char* SendBuffer, size_t SendBufferSize, 
-                                                                 char* ReceiveBuffer, size_t ReceiveBufferSize, 
+                                                                 ubyte* SendBuffer, size_t SendBufferSize, 
+                                                                 ubyte* ReceiveBuffer, size_t ReceiveBufferSize, 
                                                                  size_t* ReceiveDataSize, uint* OperationStatus);
 ///Called by the Windows Biometric Framework when the computer is ready to enter a low-power state or when the computer
 ///has been awakened from a low-power state. The purpose of this function is to enable the adapter to respond to
@@ -1208,7 +1213,8 @@ alias PIBIO_ENGINE_DEACTIVATE_FN = HRESULT function(WINBIO_PIPELINE* Pipeline);
 ///    </b></dt> </dl> </td> <td width="60%"> The <i>EngineInfoSize</i> value is less than the size needed to return the
 ///    engine information. </td> </tr> </table>
 ///    
-alias PIBIO_ENGINE_QUERY_EXTENDED_INFO_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, char* EngineInfo, 
+alias PIBIO_ENGINE_QUERY_EXTENDED_INFO_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, 
+                                                             WINBIO_EXTENDED_ENGINE_INFO* EngineInfo, 
                                                              size_t EngineInfoSize);
 ///Called by the Windows Biometric Framework to determine the identities of any people who are currently in camera
 ///frame.
@@ -1265,7 +1271,7 @@ alias PIBIO_ENGINE_SET_ENROLLMENT_PARAMETERS_FN = HRESULT function(WINBIO_PIPELI
 ///    The <i>EnrollmentStatusSize</i> parameter indicates that the output buffer is too small. </td> </tr> </table>
 ///    
 alias PIBIO_ENGINE_QUERY_EXTENDED_ENROLLMENT_STATUS_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, 
-                                                                          char* EnrollmentStatus, 
+                                                                          WINBIO_EXTENDED_ENROLLMENT_STATUS* EnrollmentStatus, 
                                                                           size_t EnrollmentStatusSize);
 ///Called by the Windows Biometric Framework to notify the Engine Adapter that it should discard any cached templates
 ///that it may be keeping in memory.
@@ -1305,7 +1311,7 @@ alias PIBIO_ENGINE_REFRESH_CACHE_FN = HRESULT function(WINBIO_PIPELINE* Pipeline
 ///    </b></dt> </dl> </td> <td width="60%"> Any other error code will cause the Biometric Service to log the error and
 ///    abort the configuration of the biometric unit. </td> </tr> </table>
 ///    
-alias PIBIO_ENGINE_SELECT_CALIBRATION_FORMAT_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, char* FormatArray, 
+alias PIBIO_ENGINE_SELECT_CALIBRATION_FORMAT_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, GUID* FormatArray, 
                                                                    size_t FormatCount, GUID* SelectedFormat, 
                                                                    size_t* MaxBufferSize);
 ///Called by the Windows Biometric Framework to get a set of post-capture calibration data from the engine adapter.
@@ -1334,7 +1340,7 @@ alias PIBIO_ENGINE_SELECT_CALIBRATION_FORMAT_FN = HRESULT function(WINBIO_PIPELI
 ///    
 alias PIBIO_ENGINE_QUERY_CALIBRATION_DATA_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, 
                                                                 ubyte* DiscardAndRepeatCapture, 
-                                                                char* CalibrationBuffer, 
+                                                                ubyte* CalibrationBuffer, 
                                                                 size_t* CalibrationBufferSize, size_t MaxBufferSize);
 ///Called by the Windows Biometric Framework to set the extended default and per-user antispoofing policies used by the
 ///engine adapter.
@@ -1349,7 +1355,8 @@ alias PIBIO_ENGINE_QUERY_CALIBRATION_DATA_FN = HRESULT function(WINBIO_PIPELINE*
 ///    <td width="40%"> <dl> <dt><b>E_some_error </b></dt> </dl> </td> <td width="60%"> Errors return by the method are
 ///    logged but ignored. </td> </tr> </table>
 ///    
-alias PIBIO_ENGINE_SET_ACCOUNT_POLICY_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, char* PolicyItemArray, 
+alias PIBIO_ENGINE_SET_ACCOUNT_POLICY_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, 
+                                                            WINBIO_ACCOUNT_POLICY* PolicyItemArray, 
                                                             size_t PolicyItemCount);
 ///<p class="CCE_Message">[Some information relates to pre-released product which may be substantially modified before
 ///it's commercially released. Microsoft makes no warranties, express or implied, with respect to the information
@@ -1368,8 +1375,8 @@ alias PIBIO_ENGINE_SET_ACCOUNT_POLICY_FN = HRESULT function(WINBIO_PIPELINE* Pip
 ///    returned, and the required size must be written to <i>ResultSize</i>. The framework will call the API again with
 ///    a larger buffer. If the sensor cannot create the key, <b>WINBIO_E_KEY_CREATION_FAILED</b> must be returned.
 ///    
-alias PIBIO_ENGINE_CREATE_KEY_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, char* Key, size_t KeySize, 
-                                                    char* KeyIdentifier, size_t KeyIdentifierSize, 
+alias PIBIO_ENGINE_CREATE_KEY_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, const(ubyte)* Key, size_t KeySize, 
+                                                    ubyte* KeyIdentifier, size_t KeyIdentifierSize, 
                                                     size_t* ResultSize);
 ///<p class="CCE_Message">[Some information relates to pre-released product which may be substantially modified before
 ///it's commercially released. Microsoft makes no warranties, express or implied, with respect to the information
@@ -1395,19 +1402,20 @@ alias PIBIO_ENGINE_CREATE_KEY_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, c
 ///    <b>WINBIO_E_INVALID_KEY_IDENTIFIER</b> must be returned in the case where the key cannot be used for whatever
 ///    reason. When <b>WINBIO_E_INVALID_KEY_IDENTIFIER </b>is returned, the sensor and TPM will be re-provisioned.
 ///    
-alias PIBIO_ENGINE_IDENTIFY_FEATURE_SET_SECURE_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, char* Nonce, 
-                                                                     size_t NonceSize, char* KeyIdentifier, 
+alias PIBIO_ENGINE_IDENTIFY_FEATURE_SET_SECURE_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, 
+                                                                     const(ubyte)* Nonce, size_t NonceSize, 
+                                                                     const(ubyte)* KeyIdentifier, 
                                                                      size_t KeyIdentifierSize, 
                                                                      WINBIO_IDENTITY* Identity, ubyte* SubFactor, 
                                                                      uint* RejectDetail, ubyte** Authorization, 
                                                                      size_t* AuthorizationSize);
 alias PIBIO_ENGINE_ACCEPT_PRIVATE_SENSOR_TYPE_INFO_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, 
-                                                                         char* TypeInfoBufferAddress, 
+                                                                         const(ubyte)* TypeInfoBufferAddress, 
                                                                          size_t TypeInfoBufferSize);
 alias PIBIO_ENGINE_CREATE_ENROLLMENT_AUTHENTICATED_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, ubyte** Nonce, 
                                                                          size_t* NonceSize);
-alias PIBIO_ENGINE_IDENTIFY_FEATURE_SET_AUTHENTICATED_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, char* Nonce, 
-                                                                            size_t NonceSize, 
+alias PIBIO_ENGINE_IDENTIFY_FEATURE_SET_AUTHENTICATED_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, 
+                                                                            const(ubyte)* Nonce, size_t NonceSize, 
                                                                             WINBIO_IDENTITY* Identity, 
                                                                             ubyte* SubFactor, uint* RejectDetail, 
                                                                             ubyte** Authentication, 
@@ -1477,8 +1485,8 @@ alias PIBIO_STORAGE_CLEAR_CONTEXT_FN = HRESULT function(WINBIO_PIPELINE* Pipelin
 ///    width="60%"> The <b>StorageContext</b> member of the pipeline object is <b>NULL</b>. </td> </tr> </table>
 ///    
 alias PIBIO_STORAGE_CREATE_DATABASE_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, GUID* DatabaseId, uint Factor, 
-                                                          GUID* Format, const(wchar)* FilePath, 
-                                                          const(wchar)* ConnectString, size_t IndexElementCount, 
+                                                          GUID* Format, const(PWSTR) FilePath, 
+                                                          const(PWSTR) ConnectString, size_t IndexElementCount, 
                                                           size_t InitialSize);
 ///Called by the Windows Biometric Framework to erase the database and mark it for deletion.
 ///Params:
@@ -1499,7 +1507,7 @@ alias PIBIO_STORAGE_CREATE_DATABASE_FN = HRESULT function(WINBIO_PIPELINE* Pipel
 ///    the pipeline object is <b>NULL</b>. </td> </tr> </table>
 ///    
 alias PIBIO_STORAGE_ERASE_DATABASE_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, GUID* DatabaseId, 
-                                                         const(wchar)* FilePath, const(wchar)* ConnectString);
+                                                         const(PWSTR) FilePath, const(PWSTR) ConnectString);
 ///Called by the Windows Biometric Framework to open a database.
 ///Params:
 ///    Pipeline = Pointer to the WINBIO_PIPELINE structure associated with the biometric unit performing the operation.
@@ -1522,7 +1530,7 @@ alias PIBIO_STORAGE_ERASE_DATABASE_FN = HRESULT function(WINBIO_PIPELINE* Pipeli
 ///    the pipeline object is <b>NULL</b>. </td> </tr> </table>
 ///    
 alias PIBIO_STORAGE_OPEN_DATABASE_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, GUID* DatabaseId, 
-                                                        const(wchar)* FilePath, const(wchar)* ConnectString);
+                                                        const(PWSTR) FilePath, const(PWSTR) ConnectString);
 ///Called by the Windows Biometric Framework to close the database associated with the pipeline and free all related
 ///resources.
 ///Params:
@@ -1665,7 +1673,7 @@ alias PIBIO_STORAGE_QUERY_BY_SUBJECT_FN = HRESULT function(WINBIO_PIPELINE* Pipe
 ///    the pipeline object is <b>NULL</b> or the <b>FileHandle</b> member is not valid. </td> </tr> </table>
 ///    
 alias PIBIO_STORAGE_QUERY_BY_CONTENT_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, ubyte SubFactor, 
-                                                           char* IndexVector, size_t IndexElementCount);
+                                                           uint* IndexVector, size_t IndexElementCount);
 ///Called by the Windows Biometric Framework or by the engine adapter to retrieve the number of template records in the
 ///pipeline result set.
 ///Params:
@@ -1762,9 +1770,9 @@ alias PIBIO_STORAGE_GET_CURRENT_RECORD_FN = HRESULT function(WINBIO_PIPELINE* Pi
 ///    <div> </div> </td> </tr> </table>
 ///    
 alias PIBIO_STORAGE_CONTROL_UNIT_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, uint ControlCode, 
-                                                       char* SendBuffer, size_t SendBufferSize, char* ReceiveBuffer, 
-                                                       size_t ReceiveBufferSize, size_t* ReceiveDataSize, 
-                                                       uint* OperationStatus);
+                                                       ubyte* SendBuffer, size_t SendBufferSize, 
+                                                       ubyte* ReceiveBuffer, size_t ReceiveBufferSize, 
+                                                       size_t* ReceiveDataSize, uint* OperationStatus);
 ///Called by the Windows Biometric Framework to perform a vendor-defined control operation that requires elevated
 ///privilege. Call the StorageAdapterControlUnit function to perform a vendor-defined control operation that does not
 ///require elevated privilege.
@@ -1798,8 +1806,8 @@ alias PIBIO_STORAGE_CONTROL_UNIT_FN = HRESULT function(WINBIO_PIPELINE* Pipeline
 ///    <div> </div> </td> </tr> </table>
 ///    
 alias PIBIO_STORAGE_CONTROL_UNIT_PRIVILEGED_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, uint ControlCode, 
-                                                                  char* SendBuffer, size_t SendBufferSize, 
-                                                                  char* ReceiveBuffer, size_t ReceiveBufferSize, 
+                                                                  ubyte* SendBuffer, size_t SendBufferSize, 
+                                                                  ubyte* ReceiveBuffer, size_t ReceiveBufferSize, 
                                                                   size_t* ReceiveDataSize, uint* OperationStatus);
 ///Called by the Windows Biometric Framework when the system is ready to enter a low-power state or when the system has
 ///been awakened from a low-power state. The purpose of this function is to enable the adapter to respond to transitions
@@ -1883,7 +1891,8 @@ alias PIBIO_STORAGE_DEACTIVATE_FN = HRESULT function(WINBIO_PIPELINE* Pipeline);
 ///    </b></dt> </dl> </td> <td width="60%"> The <i>StorageInfoSize</i> value is less than the size needed to return
 ///    the storage information. </td> </tr> </table>
 ///    
-alias PIBIO_STORAGE_QUERY_EXTENDED_INFO_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, char* StorageInfo, 
+alias PIBIO_STORAGE_QUERY_EXTENDED_INFO_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, 
+                                                              WINBIO_EXTENDED_STORAGE_INFO* StorageInfo, 
                                                               size_t StorageInfoSize);
 alias PIBIO_STORAGE_NOTIFY_DATABASE_CHANGE_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, ubyte RecordsAdded);
 alias PIBIO_STORAGE_RESERVED_1_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, WINBIO_IDENTITY* Identity, 
@@ -1894,17 +1903,18 @@ alias PIBIO_STORAGE_UPDATE_RECORD_BEGIN_FN = HRESULT function(WINBIO_PIPELINE* P
 alias PIBIO_STORAGE_UPDATE_RECORD_COMMIT_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, 
                                                                WINBIO_STORAGE_RECORD* RecordContents);
 alias PWINBIO_QUERY_STORAGE_INTERFACE_FN = HRESULT function(WINBIO_STORAGE_INTERFACE** StorageInterface);
-alias PIBIO_FRAMEWORK_SET_UNIT_STATUS_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, char* ExtendedStatus, 
+alias PIBIO_FRAMEWORK_SET_UNIT_STATUS_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, 
+                                                            WINBIO_EXTENDED_UNIT_STATUS* ExtendedStatus, 
                                                             size_t ExtendedStatusSize);
 alias PIBIO_FRAMEWORK_VSM_CACHE_CLEAR_FN = HRESULT function(WINBIO_PIPELINE* Pipeline);
 alias PIBIO_FRAMEWORK_VSM_CACHE_IMPORT_BEGIN_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, 
                                                                    size_t RequiredCapacity, size_t* MaxBufferSize);
-alias PIBIO_FRAMEWORK_VSM_CACHE_IMPORT_NEXT_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, char* BufferAddress, 
+alias PIBIO_FRAMEWORK_VSM_CACHE_IMPORT_NEXT_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, ubyte* BufferAddress, 
                                                                   size_t BufferSize);
 alias PIBIO_FRAMEWORK_VSM_CACHE_IMPORT_END_FN = HRESULT function(WINBIO_PIPELINE* Pipeline);
 alias PIBIO_FRAMEWORK_VSM_CACHE_EXPORT_BEGIN_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, 
                                                                    size_t* RequiredCapacity, size_t* MaxBufferSize);
-alias PIBIO_FRAMEWORK_VSM_CACHE_EXPORT_NEXT_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, char* BufferAddress, 
+alias PIBIO_FRAMEWORK_VSM_CACHE_EXPORT_NEXT_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, ubyte* BufferAddress, 
                                                                   size_t BufferSize, size_t* ReturnedDataSize);
 alias PIBIO_FRAMEWORK_VSM_CACHE_EXPORT_END_FN = HRESULT function(WINBIO_PIPELINE* Pipeline);
 alias PIBIO_FRAMEWORK_VSM_STORAGE_RESERVED_1_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, size_t Reserved1, 
@@ -1928,9 +1938,11 @@ alias PIBIO_FRAMEWORK_VSM_QUERY_AUTHORIZED_ENROLLMENTS_FN = HRESULT function(WIN
                                                                              WINBIO_IDENTITY* Identity, 
                                                                              size_t* SecureIdentityCount, 
                                                                              WINBIO_IDENTITY** SecureIdentities);
-alias PIBIO_FRAMEWORK_VSM_DECRYPT_SAMPLE_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, char* Authentication, 
-                                                               size_t AuthenticationSize, char* Iv, size_t IvSize, 
-                                                               char* EncryptedData, size_t EncryptedDataSize);
+alias PIBIO_FRAMEWORK_VSM_DECRYPT_SAMPLE_FN = HRESULT function(WINBIO_PIPELINE* Pipeline, 
+                                                               const(ubyte)* Authentication, 
+                                                               size_t AuthenticationSize, const(ubyte)* Iv, 
+                                                               size_t IvSize, ubyte* EncryptedData, 
+                                                               size_t EncryptedDataSize);
 
 // Structs
 
@@ -1944,12 +1956,12 @@ struct WINBIO_VERSION
 struct WINBIO_IDENTITY
 {
     uint Type;
-    union Value
+union Value
     {
         uint      Null;
         uint      Wildcard;
         GUID      TemplateGuid;
-        struct AccountSid
+struct AccountSid
         {
             uint      Size;
             ubyte[68] Data;
@@ -2006,7 +2018,7 @@ struct WINBIO_BIR_HEADER
     ubyte         Purpose;
     byte          DataQuality;
     LARGE_INTEGER CreationDate;
-    struct ValidityPeriod
+struct ValidityPeriod
     {
         LARGE_INTEGER BeginDate;
         LARGE_INTEGER EndDate;
@@ -2058,21 +2070,21 @@ struct WINBIO_SECURE_BUFFER_HEADER_V1
 struct WINBIO_EVENT
 {
     uint Type;
-    union Parameters
+union Parameters
     {
-        struct Unclaimed
+struct Unclaimed
         {
             uint UnitId;
             uint RejectDetail;
         }
-        struct UnclaimedIdentify
+struct UnclaimedIdentify
         {
             uint            UnitId;
             WINBIO_IDENTITY Identity;
             ubyte           SubFactor;
             uint            RejectDetail;
         }
-        struct Error
+struct Error
         {
             HRESULT ErrorCode;
         }
@@ -2081,17 +2093,17 @@ struct WINBIO_EVENT
 
 union WINBIO_PRESENCE_PROPERTIES
 {
-    struct FacialFeatures
+struct FacialFeatures
     {
         RECT BoundingBox;
         int  Distance;
-        struct OpaqueEngineData
+struct OpaqueEngineData
         {
             GUID     AdapterId;
             uint[77] Data;
         }
     }
-    struct Iris
+struct Iris
     {
         RECT  EyeBoundingBox_1;
         RECT  EyeBoundingBox_2;
@@ -2111,7 +2123,7 @@ struct WINBIO_PRESENCE
     ulong           TrackingId;
     ulong           Ticket;
     WINBIO_PRESENCE_PROPERTIES Properties;
-    struct Authorization
+struct Authorization
     {
         uint      Size;
         ubyte[32] Data;
@@ -2156,32 +2168,32 @@ struct WINBIO_EXTENDED_SENSOR_INFO
 {
     uint GenericSensorCapabilities;
     uint Factor;
-    union Specific
+union Specific
     {
         uint Null;
-        struct FacialFeatures
+struct FacialFeatures
         {
             RECT  FrameSize;
             POINT FrameOffset;
             uint  MandatoryOrientation;
-            struct HardwareInfo
+struct HardwareInfo
             {
                 ushort[260] ColorSensorId;
                 ushort[260] InfraredSensorId;
                 uint        InfraredSensorRotationAngle;
             }
         }
-        struct Fingerprint
+struct Fingerprint
         {
             uint Reserved;
         }
-        struct Iris
+struct Iris
         {
             RECT  FrameSize;
             POINT FrameOffset;
             uint  MandatoryOrientation;
         }
-        struct Voice
+struct Voice
         {
             uint Reserved;
         }
@@ -2192,21 +2204,21 @@ struct WINBIO_EXTENDED_ENGINE_INFO
 {
     uint GenericEngineCapabilities;
     uint Factor;
-    union Specific
+union Specific
     {
         uint Null;
-        struct FacialFeatures
+struct FacialFeatures
         {
             uint Capabilities;
-            struct EnrollmentRequirements
+struct EnrollmentRequirements
             {
                 uint Null;
             }
         }
-        struct Fingerprint
+struct Fingerprint
         {
             uint Capabilities;
-            struct EnrollmentRequirements
+struct EnrollmentRequirements
             {
                 uint GeneralSamples;
                 uint Center;
@@ -2216,18 +2228,18 @@ struct WINBIO_EXTENDED_ENGINE_INFO
                 uint RightEdge;
             }
         }
-        struct Iris
+struct Iris
         {
             uint Capabilities;
-            struct EnrollmentRequirements
+struct EnrollmentRequirements
             {
                 uint Null;
             }
         }
-        struct Voice
+struct Voice
         {
             uint Capabilities;
-            struct EnrollmentRequirements
+struct EnrollmentRequirements
             {
                 uint Null;
             }
@@ -2239,22 +2251,22 @@ struct WINBIO_EXTENDED_STORAGE_INFO
 {
     uint GenericStorageCapabilities;
     uint Factor;
-    union Specific
+union Specific
     {
         uint Null;
-        struct FacialFeatures
+struct FacialFeatures
         {
             uint Capabilities;
         }
-        struct Fingerprint
+struct Fingerprint
         {
             uint Capabilities;
         }
-        struct Iris
+struct Iris
         {
             uint Capabilities;
         }
-        struct Voice
+struct Voice
         {
             uint Capabilities;
         }
@@ -2268,20 +2280,20 @@ struct WINBIO_EXTENDED_ENROLLMENT_STATUS
     uint    PercentComplete;
     uint    Factor;
     ubyte   SubFactor;
-    union Specific
+union Specific
     {
         uint Null;
-        struct FacialFeatures
+struct FacialFeatures
         {
             RECT BoundingBox;
             int  Distance;
-            struct OpaqueEngineData
+struct OpaqueEngineData
             {
                 GUID     AdapterId;
                 uint[77] Data;
             }
         }
-        struct Fingerprint
+struct Fingerprint
         {
             uint GeneralSamples;
             uint Center;
@@ -2290,7 +2302,7 @@ struct WINBIO_EXTENDED_ENROLLMENT_STATUS
             uint LeftEdge;
             uint RightEdge;
         }
-        struct Iris
+struct Iris
         {
             RECT   EyeBoundingBox_1;
             RECT   EyeBoundingBox_2;
@@ -2299,7 +2311,7 @@ struct WINBIO_EXTENDED_ENROLLMENT_STATUS
             int    Distance;
             uint   GridPointCompletionPercent;
             ushort GridPointIndex;
-            struct Point3D
+struct Point3D
             {
                 double X;
                 double Y;
@@ -2307,7 +2319,7 @@ struct WINBIO_EXTENDED_ENROLLMENT_STATUS
             }
             BOOL   StopCaptureAndShowCriticalFeedback;
         }
-        struct Voice
+struct Voice
         {
             uint Reserved;
         }
@@ -2387,59 +2399,50 @@ struct WINBIO_ASYNC_RESULT
     ///biometric unit. Your application can use the data to help it determine what actions to perform upon receipt of
     ///the completion notice or to maintain additional information about the requested operation.
     void*   UserData;
-    union Parameters
+union Parameters
     {
-        struct Verify
+struct Verify
         {
             ubyte Match;
             uint  RejectDetail;
         }
-        struct Identify
+struct Identify
         {
             WINBIO_IDENTITY Identity;
             ubyte           SubFactor;
             uint            RejectDetail;
         }
-        struct EnrollBegin
+struct EnrollBegin
         {
             ubyte SubFactor;
         }
-        struct EnrollCapture
+struct EnrollCapture
         {
             uint RejectDetail;
         }
-        struct EnrollCommit
+struct EnrollCommit
         {
             WINBIO_IDENTITY Identity;
             ubyte           IsNewTemplate;
         }
-        struct EnumEnrollments
+struct EnumEnrollments
         {
             WINBIO_IDENTITY Identity;
             size_t          SubFactorCount;
             ubyte*          SubFactorArray;
         }
-        struct CaptureSample
+struct CaptureSample
         {
             WINBIO_BIR* Sample;
             size_t      SampleSize;
             uint        RejectDetail;
         }
-        struct DeleteTemplate
+struct DeleteTemplate
         {
             WINBIO_IDENTITY Identity;
             ubyte           SubFactor;
         }
-        struct GetProperty
-        {
-            uint            PropertyType;
-            uint            PropertyId;
-            WINBIO_IDENTITY Identity;
-            ubyte           SubFactor;
-            size_t          PropertyBufferSize;
-            void*           PropertyBuffer;
-        }
-        struct SetProperty
+struct GetProperty
         {
             uint            PropertyType;
             uint            PropertyId;
@@ -2448,11 +2451,20 @@ struct WINBIO_ASYNC_RESULT
             size_t          PropertyBufferSize;
             void*           PropertyBuffer;
         }
-        struct GetEvent
+struct SetProperty
+        {
+            uint            PropertyType;
+            uint            PropertyId;
+            WINBIO_IDENTITY Identity;
+            ubyte           SubFactor;
+            size_t          PropertyBufferSize;
+            void*           PropertyBuffer;
+        }
+struct GetEvent
         {
             WINBIO_EVENT Event;
         }
-        struct ControlUnit
+struct ControlUnit
         {
             uint   Component;
             uint   ControlCode;
@@ -2463,50 +2475,50 @@ struct WINBIO_ASYNC_RESULT
             size_t ReceiveBufferSize;
             size_t ReceiveDataSize;
         }
-        struct EnumServiceProviders
+struct EnumServiceProviders
         {
             size_t             BspCount;
             WINBIO_BSP_SCHEMA* BspSchemaArray;
         }
-        struct EnumBiometricUnits
+struct EnumBiometricUnits
         {
             size_t              UnitCount;
             WINBIO_UNIT_SCHEMA* UnitSchemaArray;
         }
-        struct EnumDatabases
+struct EnumDatabases
         {
             size_t StorageCount;
             WINBIO_STORAGE_SCHEMA* StorageSchemaArray;
         }
-        struct VerifyAndReleaseTicket
+struct VerifyAndReleaseTicket
         {
             ubyte Match;
             uint  RejectDetail;
             ulong Ticket;
         }
-        struct IdentifyAndReleaseTicket
+struct IdentifyAndReleaseTicket
         {
             WINBIO_IDENTITY Identity;
             ubyte           SubFactor;
             uint            RejectDetail;
             ulong           Ticket;
         }
-        struct EnrollSelect
+struct EnrollSelect
         {
             ulong SelectorValue;
         }
-        struct MonitorPresence
+struct MonitorPresence
         {
             uint             ChangeType;
             size_t           PresenceCount;
             WINBIO_PRESENCE* PresenceArray;
         }
-        struct GetProtectionPolicy
+struct GetProtectionPolicy
         {
             WINBIO_IDENTITY Identity;
             WINBIO_PROTECTION_POLICY Policy;
         }
-        struct NotifyUnitStatusChange
+struct NotifyUnitStatusChange
         {
             WINBIO_EXTENDED_UNIT_STATUS ExtendedStatus;
         }
@@ -3226,7 +3238,7 @@ HRESULT WinBioAsyncMonitorFrameworkChanges(uint FrameworkHandle, uint ChangeType
 ///    of the Windows Biometric Framework API. </td> </tr> </table>
 ///    
 @DllImport("winbio")
-HRESULT WinBioOpenSession(uint Factor, uint PoolType, uint Flags, char* UnitArray, size_t UnitCount, 
+HRESULT WinBioOpenSession(uint Factor, uint PoolType, uint Flags, uint* UnitArray, size_t UnitCount, 
                           GUID* DatabaseId, uint* SessionHandle);
 
 ///Asynchronously connects to a biometric service provider and one or more biometric units. Starting with Windows 10,
@@ -3342,7 +3354,7 @@ HRESULT WinBioOpenSession(uint Factor, uint PoolType, uint Flags, char* UnitArra
 ///    </tr> </table>
 ///    
 @DllImport("winbio")
-HRESULT WinBioAsyncOpenSession(uint Factor, uint PoolType, uint Flags, char* UnitArray, size_t UnitCount, 
+HRESULT WinBioAsyncOpenSession(uint Factor, uint PoolType, uint Flags, uint* UnitArray, size_t UnitCount, 
                                GUID* DatabaseId, WINBIO_ASYNC_NOTIFICATION_METHOD NotificationMethod, 
                                HWND TargetWindow, uint MessageCode, 
                                PWINBIO_ASYNC_COMPLETION_CALLBACK CallbackRoutine, void* UserData, 
@@ -4065,8 +4077,8 @@ HRESULT WinBioUnlockUnit(uint SessionHandle, uint UnitId);
 ///    <i>UnitId</i> parameter must be locked before any control operations can be performed. </td> </tr> </table>
 ///    
 @DllImport("winbio")
-HRESULT WinBioControlUnit(uint SessionHandle, uint UnitId, uint Component, uint ControlCode, char* SendBuffer, 
-                          size_t SendBufferSize, char* ReceiveBuffer, size_t ReceiveBufferSize, 
+HRESULT WinBioControlUnit(uint SessionHandle, uint UnitId, uint Component, uint ControlCode, ubyte* SendBuffer, 
+                          size_t SendBufferSize, ubyte* ReceiveBuffer, size_t ReceiveBufferSize, 
                           size_t* ReceiveDataSize, uint* OperationStatus);
 
 ///Allows the caller to perform privileged vendor-defined control operations on a biometric unit. Starting with Windows
@@ -4117,7 +4129,7 @@ HRESULT WinBioControlUnit(uint SessionHandle, uint UnitId, uint Component, uint 
 ///    
 @DllImport("winbio")
 HRESULT WinBioControlUnitPrivileged(uint SessionHandle, uint UnitId, uint Component, uint ControlCode, 
-                                    char* SendBuffer, size_t SendBufferSize, char* ReceiveBuffer, 
+                                    ubyte* SendBuffer, size_t SendBufferSize, ubyte* ReceiveBuffer, 
                                     size_t ReceiveBufferSize, size_t* ReceiveDataSize, uint* OperationStatus);
 
 ///Retrieves a session, unit, or template property. Starting with Windows 10, build 1607, this function is available to
@@ -4241,7 +4253,7 @@ HRESULT WinBioGetProperty(uint SessionHandle, uint PropertyType, uint PropertyId
 ///    
 @DllImport("winbio")
 HRESULT WinBioSetProperty(uint SessionHandle, uint PropertyType, uint PropertyId, uint UnitId, 
-                          WINBIO_IDENTITY* Identity, ubyte SubFactor, char* PropertyBuffer, 
+                          WINBIO_IDENTITY* Identity, ubyte SubFactor, void* PropertyBuffer, 
                           size_t PropertyBufferSize);
 
 ///Releases memory allocated for the client application by an earlier call to a Windows Biometric Framework API
@@ -4290,7 +4302,7 @@ HRESULT WinBioFree(void* Address);
 ///    prohibits use of the credential provider. </td> </tr> </table>
 ///    
 @DllImport("winbio")
-HRESULT WinBioSetCredential(WINBIO_CREDENTIAL_TYPE Type, char* Credential, size_t CredentialSize, 
+HRESULT WinBioSetCredential(WINBIO_CREDENTIAL_TYPE Type, ubyte* Credential, size_t CredentialSize, 
                             WINBIO_CREDENTIAL_FORMAT Format);
 
 ///Deletes a biometric logon credential for a specified user. Starting with Windows 10, build 1607, this function is

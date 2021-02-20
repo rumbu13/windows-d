@@ -4,17 +4,17 @@ module windows.multimedia;
 
 public import windows.core;
 public import windows.com : HRESULT, IPersistFile, IUnknown;
-public import windows.direct2d : PALETTEENTRY;
+public import windows.coreaudio : HTASK;
 public import windows.directshow : BITMAPINFOHEADER;
 public import windows.displaydevices : POINT, RECT;
-public import windows.gdi : BITMAPINFO, HDC, HICON, HPALETTE;
+public import windows.gdi : BITMAPINFO, HDC, HICON, HPALETTE, PALETTEENTRY;
 public import windows.hid : JOYREGHWVALUES;
 public import windows.systemservices : BOOL, FARPROC, HANDLE, HINSTANCE, LPTIMECALLBACK,
-                                       LRESULT;
+                                       LRESULT, PSTR, PWSTR;
 public import windows.windowsandmessaging : HWND, LPARAM, OPENFILENAMEA, OPENFILENAMEW,
                                             WPARAM;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Callbacks
@@ -73,7 +73,7 @@ alias DRIVERMSGPROC = uint function(uint param0, uint param1, size_t param2, siz
 ///    The return value depends on the message specified by <i>uMsg</i>. If the I/O procedure does not recognize a
 ///    message, it should return zero.
 ///    
-alias MMIOPROC = LRESULT function(const(char)* lpmmioinfo, uint uMsg, LPARAM lParam1, LPARAM lParam2);
+alias MMIOPROC = LRESULT function(PSTR lpmmioinfo, uint uMsg, LPARAM lParam1, LPARAM lParam2);
 alias LPMMIOPROC = LRESULT function();
 alias WAVECALLBACK = void function();
 alias LPWAVECALLBACK = void function();
@@ -361,7 +361,7 @@ alias CAPYIELDCALLBACK = LRESULT function(HWND hWnd);
 ///    hWnd = Handle to the capture window associated with the callback function.
 ///    nID = Message identification number.
 ///    lpsz = Pointer to a textual description of the returned status.
-alias CAPSTATUSCALLBACKW = LRESULT function(HWND hWnd, int nID, const(wchar)* lpsz);
+alias CAPSTATUSCALLBACKW = LRESULT function(HWND hWnd, int nID, const(PWSTR) lpsz);
 ///The <b>capErrorCallback</b> function is the error callback function used with video capture. The name
 ///<b>capErrorCallback</b> is a placeholder for the application-supplied function name. To set the callback, send the
 ///WM_CAP_SET_CALLBACK_ERROR message to the capture window or call the capSetCallbackOnError macro.
@@ -369,7 +369,7 @@ alias CAPSTATUSCALLBACKW = LRESULT function(HWND hWnd, int nID, const(wchar)* lp
 ///    hWnd = Handle to the capture window associated with the callback function.
 ///    nID = Error identification number.
 ///    lpsz = Pointer to a textual description of the returned error.
-alias CAPERRORCALLBACKW = LRESULT function(HWND hWnd, int nID, const(wchar)* lpsz);
+alias CAPERRORCALLBACKW = LRESULT function(HWND hWnd, int nID, const(PWSTR) lpsz);
 ///The <b>capStatusCallback</b> function is the status callback function used with video capture. The name
 ///<b>capStatusCallback</b> is a placeholder for the application-supplied function name. To set the callback, send the
 ///WM_CAP_SET_CALLBACK_STATUS message to the capture window or call the capSetCallbackOnStatus macro.
@@ -377,7 +377,7 @@ alias CAPERRORCALLBACKW = LRESULT function(HWND hWnd, int nID, const(wchar)* lps
 ///    hWnd = Handle to the capture window associated with the callback function.
 ///    nID = Message identification number.
 ///    lpsz = Pointer to a textual description of the returned status.
-alias CAPSTATUSCALLBACKA = LRESULT function(HWND hWnd, int nID, const(char)* lpsz);
+alias CAPSTATUSCALLBACKA = LRESULT function(HWND hWnd, int nID, const(PSTR) lpsz);
 ///The <b>capErrorCallback</b> function is the error callback function used with video capture. The name
 ///<b>capErrorCallback</b> is a placeholder for the application-supplied function name. To set the callback, send the
 ///WM_CAP_SET_CALLBACK_ERROR message to the capture window or call the capSetCallbackOnError macro.
@@ -385,7 +385,7 @@ alias CAPSTATUSCALLBACKA = LRESULT function(HWND hWnd, int nID, const(char)* lps
 ///    hWnd = Handle to the capture window associated with the callback function.
 ///    nID = Error identification number.
 ///    lpsz = Pointer to a textual description of the returned error.
-alias CAPERRORCALLBACKA = LRESULT function(HWND hWnd, int nID, const(char)* lpsz);
+alias CAPERRORCALLBACKA = LRESULT function(HWND hWnd, int nID, const(PSTR) lpsz);
 ///The <b>capVideoStreamCallback</b> function is the callback function used with streaming capture to optionally process
 ///a frame of captured video. The name <b>capVideoStreamCallback</b> is a placeholder for the application-supplied
 ///function name. To set this callback for streaming capture, send the WM_CAP_SET_CALLBACK_VIDEOSTREAM message to the
@@ -427,18 +427,58 @@ alias LPTASKCALLBACK = void function();
 // Structs
 
 
+struct HMIDI
+{
+    ptrdiff_t Value;
+}
+
+struct HMIDIIN
+{
+    ptrdiff_t Value;
+}
+
+struct HMIDIOUT
+{
+    ptrdiff_t Value;
+}
+
+struct HMIDISTRM
+{
+    ptrdiff_t Value;
+}
+
+struct HMIXER
+{
+    ptrdiff_t Value;
+}
+
+struct HMIXEROBJ
+{
+    ptrdiff_t Value;
+}
+
+struct HWAVEIN
+{
+    ptrdiff_t Value;
+}
+
+struct HWAVEOUT
+{
+    ptrdiff_t Value;
+}
+
 struct MMTIME
 {
 align (1):
     uint wType;
-    union u
+union u
     {
     align (1):
         uint ms;
         uint sample;
         uint cb;
         uint ticks;
-        struct smpte
+struct smpte
         {
             ubyte    hour;
             ubyte    min;
@@ -448,7 +488,7 @@ align (1):
             ubyte    dummy;
             ubyte[2] pad;
         }
-        struct midi
+struct midi
         {
         align (1):
             uint songptrpos;
@@ -465,10 +505,10 @@ align (1):
 struct DRVCONFIGINFOEX
 {
 align (1):
-    uint          dwDCISize;
-    const(wchar)* lpszDCISectionName;
-    const(wchar)* lpszDCIAliasName;
-    uint          dnDevNode;
+    uint         dwDCISize;
+    const(PWSTR) lpszDCISectionName;
+    const(PWSTR) lpszDCIAliasName;
+    uint         dnDevNode;
 }
 
 ///Contains the registry key and value names associated with the installable driver.
@@ -476,13 +516,13 @@ struct DRVCONFIGINFO
 {
 align (1):
     ///Size of the structure, in bytes.
-    uint          dwDCISize;
+    uint         dwDCISize;
     ///Address of a null-terminated, wide-character string specifying the name of the registry key associated with the
     ///driver.
-    const(wchar)* lpszDCISectionName;
+    const(PWSTR) lpszDCISectionName;
     ///Address of a null-terminated, wide-character string specifying the name of the registry value associated with the
     ///driver.
-    const(wchar)* lpszDCIAliasName;
+    const(PWSTR) lpszDCIAliasName;
 }
 
 struct HMMIO__
@@ -498,7 +538,7 @@ align (1):
     uint       fccIOProc;
     LPMMIOPROC pIOProc;
     uint       wErrorRet;
-    ptrdiff_t  htask;
+    HTASK      htask;
     int        cchBuffer;
     byte*      pchBuffer;
     byte*      pchNext;
@@ -533,36 +573,18 @@ align (1):
     uint dwFlags;
 }
 
-struct HWAVE__
-{
-align (1):
-    int unused;
-}
-
-struct HWAVEIN__
-{
-align (1):
-    int unused;
-}
-
-struct HWAVEOUT__
-{
-align (1):
-    int unused;
-}
-
 ///The <b>WAVEHDR</b> structure defines the header used to identify a waveform-audio buffer.
 struct WAVEHDR
 {
 align (1):
     ///Pointer to the waveform buffer.
-    const(char)* lpData;
+    PSTR     lpData;
     ///Length, in bytes, of the buffer.
-    uint         dwBufferLength;
+    uint     dwBufferLength;
     ///When the header is used in input, specifies how much data is in the buffer.
-    uint         dwBytesRecorded;
+    uint     dwBytesRecorded;
     ///User data.
-    size_t       dwUser;
+    size_t   dwUser;
     ///A bitwise <b>OR</b> of zero of more flags. The following flags are defined: <table> <tr> <th>Name</th>
     ///<th>Description</th> </tr> <tr> <td width="40%"><a id="WHDR_BEGINLOOP"></a><a id="whdr_beginloop"></a><dl>
     ///<dt><b>WHDR_BEGINLOOP</b></dt> </dl> </td> <td width="60%"> This buffer is the first buffer in a loop. This flag
@@ -576,13 +598,13 @@ align (1):
     ///width="40%"><a id="WHDR_PREPARED"></a><a id="whdr_prepared"></a><dl> <dt><b>WHDR_PREPARED</b></dt> </dl> </td>
     ///<td width="60%"> Set by Windows to indicate that the buffer has been prepared with the waveInPrepareHeader or
     ///waveOutPrepareHeader function. </td> </tr> </table>
-    uint         dwFlags;
+    uint     dwFlags;
     ///Number of times to play the loop. This member is used only with output buffers.
-    uint         dwLoops;
+    uint     dwLoops;
     ///Reserved.
-    WAVEHDR*     lpNext;
+    WAVEHDR* lpNext;
     ///Reserved.
-    size_t       reserved;
+    size_t   reserved;
 }
 
 ///The <b>WAVEOUTCAPS</b> structure describes the capabilities of a waveform-audio output device.
@@ -866,30 +888,6 @@ align (1):
     ushort cbSize;
 }
 
-struct HMIDI__
-{
-align (1):
-    int unused;
-}
-
-struct HMIDIIN__
-{
-align (1):
-    int unused;
-}
-
-struct HMIDIOUT__
-{
-align (1):
-    int unused;
-}
-
-struct HMIDISTRM__
-{
-align (1):
-    int unused;
-}
-
 ///The <b>MIDIOUTCAPS</b> structure describes the capabilities of a MIDI output device.
 struct MIDIOUTCAPSA
 {
@@ -1097,14 +1095,14 @@ struct MIDIHDR
 {
 align (1):
     ///Pointer to MIDI data.
-    const(char)* lpData;
+    PSTR      lpData;
     ///Size of the buffer.
-    uint         dwBufferLength;
+    uint      dwBufferLength;
     ///Actual amount of data in the buffer. This value should be less than or equal to the value given in the
     ///<b>dwBufferLength</b> member.
-    uint         dwBytesRecorded;
+    uint      dwBytesRecorded;
     ///Custom user data.
-    size_t       dwUser;
+    size_t    dwUser;
     ///Flags giving information about the buffer. <table> <tr> <th>Name</th> <th>Description</th> </tr> <tr> <td
     ///width="40%"><a id="MHDR_DONE"></a><a id="mhdr_done"></a><dl> <dt><b>MHDR_DONE</b></dt> </dl> </td> <td
     ///width="60%"> Set by the device driver to indicate that it is finished with the buffer and is returning it to the
@@ -1115,17 +1113,17 @@ align (1):
     ///</td> </tr> <tr> <td width="40%"><a id="MHDR_PREPARED"></a><a id="mhdr_prepared"></a><dl>
     ///<dt><b>MHDR_PREPARED</b></dt> </dl> </td> <td width="60%"> Set by Windows to indicate that the buffer has been
     ///prepared by using the midiInPrepareHeader or midiOutPrepareHeader function. </td> </tr> </table>
-    uint         dwFlags;
+    uint      dwFlags;
     ///Reserved; do not use.
-    MIDIHDR*     lpNext;
+    MIDIHDR*  lpNext;
     ///Reserved; do not use.
-    size_t       reserved;
+    size_t    reserved;
     ///Offset into the buffer when a callback is performed. (This callback is generated because the MEVT_F_CALLBACK flag
     ///is set in the <b>dwEvent</b> member of the MIDIEVENT structure.) This offset enables an application to determine
     ///which event caused the callback.
-    uint         dwOffset;
+    uint      dwOffset;
     ///Reserved; do not use.
-    size_t[8]    dwReserved;
+    size_t[8] dwReserved;
 }
 
 ///The MIDIEVENT structure describes a MIDI event in a stream buffer.
@@ -1281,18 +1279,6 @@ align (1):
     GUID       ManufacturerGuid;
     GUID       ProductGuid;
     GUID       NameGuid;
-}
-
-struct HMIXEROBJ__
-{
-align (1):
-    int unused;
-}
-
-struct HMIXER__
-{
-align (1):
-    int unused;
 }
 
 ///The <b>MIXERCAPS</b> structure describes the capabilities of a mixer device.
@@ -1530,7 +1516,7 @@ align (1):
     ///String that describes the audio mixer line specified in the <b>dwLineID</b> member. This description should be
     ///appropriate as a complete description for the line.
     byte[64] szName;
-    struct Target
+struct Target
     {
     align (1):
         uint     dwType;
@@ -1701,7 +1687,7 @@ align (1):
     ///String that describes the audio mixer line specified in the <b>dwLineID</b> member. This description should be
     ///appropriate as a complete description for the line.
     ushort[64] szName;
-    struct Target
+struct Target
     {
     align (1):
         uint       dwType;
@@ -1780,16 +1766,16 @@ align (1):
     ///String that describes the audio line control specified by <b>dwControlID</b>. This description should be
     ///appropriate to use as a complete description for the control.
     byte[64] szName;
-    union Bounds
+union Bounds
     {
     align (1):
-        struct
+struct
         {
         align (1):
             int lMinimum;
             int lMaximum;
         }
-        struct
+struct
         {
         align (1):
             uint dwMinimum;
@@ -1797,7 +1783,7 @@ align (1):
         }
         uint[6] dwReserved;
     }
-    union Metrics
+union Metrics
     {
     align (1):
         uint    cSteps;
@@ -1873,16 +1859,16 @@ align (1):
     ///String that describes the audio line control specified by <b>dwControlID</b>. This description should be
     ///appropriate to use as a complete description for the control.
     ushort[64] szName;
-    union Bounds
+union Bounds
     {
     align (1):
-        struct
+struct
         {
         align (1):
             int lMinimum;
             int lMaximum;
         }
-        struct
+struct
         {
         align (1):
             uint dwMinimum;
@@ -1890,7 +1876,7 @@ align (1):
         }
         uint[6] dwReserved;
     }
-    union Metrics
+union Metrics
     {
     align (1):
         uint    cSteps;
@@ -1914,7 +1900,7 @@ align (1):
     ///still returns this member in this case. The <b>dwControlID</b> and <b>dwControlType</b> members are not used when
     ///MIXER_GETLINECONTROLSF_ALL is specified.
     uint           dwLineID;
-    union
+union
     {
     align (1):
         uint dwControlID;
@@ -1955,7 +1941,7 @@ align (1):
     ///still returns this member in this case. The <b>dwControlID</b> and <b>dwControlType</b> members are not used when
     ///MIXER_GETLINECONTROLSF_ALL is specified.
     uint           dwLineID;
-    union
+union
     {
     align (1):
         uint dwControlID;
@@ -2006,7 +1992,7 @@ align (1):
     ///specifying 2 or 3 for a four-channel line is not valid. This member cannot be 0 for noncustom control types. This
     ///member cannot be 0 for noncustom control types.
     uint  cChannels;
-    union
+union
     {
     align (1):
         HWND hwndOwner;
@@ -2404,7 +2390,7 @@ align (1):
     ///WAVEFORMATEX structure that specifies the basic format. The <b>wFormatTag</b> member must be
     ///WAVE_FORMAT_EXTENSIBLE. The <b>cbSize</b> member must be at least 22.
     WAVEFORMATEX Format;
-    union Samples
+union Samples
     {
     align (1):
         ushort wValidBitsPerSample;
@@ -2768,13 +2754,13 @@ struct MCI_DGV_CAPTURE_PARMSA
 {
 align (1):
     ///The low-order word specifies a window handle used for the MCI_NOTIFY flag.
-    size_t       dwCallback;
+    size_t dwCallback;
     ///Pointer to a null-terminated string specifying the destination path and filename for the file that receives the
     ///captured data.
-    const(char)* lpstrFileName;
+    PSTR   lpstrFileName;
     ///Rectangle containing positioning information. RECT structures are handled differently in MCI than in other parts
     ///of Windows; in MCI, <b>rc.right</b> contains the width of the rectangle and <b>rc.bottom</b> contains its height.
-    RECT         rc;
+    RECT   rc;
 }
 
 ///The <b>MCI_DGV_CAPTURE_PARMS</b> structure contains parameters for the MCI_CAPTURE command for digital-video devices.
@@ -2782,13 +2768,13 @@ struct MCI_DGV_CAPTURE_PARMSW
 {
 align (1):
     ///The low-order word specifies a window handle used for the MCI_NOTIFY flag.
-    size_t        dwCallback;
+    size_t dwCallback;
     ///Pointer to a null-terminated string specifying the destination path and filename for the file that receives the
     ///captured data.
-    const(wchar)* lpstrFileName;
+    PWSTR  lpstrFileName;
     ///Rectangle containing positioning information. RECT structures are handled differently in MCI than in other parts
     ///of Windows; in MCI, <b>rc.right</b> contains the width of the rectangle and <b>rc.bottom</b> contains its height.
-    RECT          rc;
+    RECT   rc;
 }
 
 ///The <b>MCI_DGV_COPY_PARMS</b> structure contains parameters for the MCI_COPY command for digital-video devices.
@@ -2863,13 +2849,13 @@ struct MCI_DGV_INFO_PARMSA
 {
 align (1):
     ///The low-order word specifies a window handle used for the MCI_NOTIFY flag.
-    size_t       dwCallback;
+    size_t dwCallback;
     ///Pointer to buffer for return string.
-    const(char)* lpstrReturn;
+    PSTR   lpstrReturn;
     ///Size, in bytes, of return buffer.
-    uint         dwRetSize;
+    uint   dwRetSize;
     ///Constant describing information to return.
-    uint         dwItem;
+    uint   dwItem;
 }
 
 ///The <b>MCI_DGV_INFO_PARMS</b> structure contains parameters for the MCI_INFO command for digital-video devices.
@@ -2877,13 +2863,13 @@ struct MCI_DGV_INFO_PARMSW
 {
 align (1):
     ///The low-order word specifies a window handle used for the MCI_NOTIFY flag.
-    size_t        dwCallback;
+    size_t dwCallback;
     ///Pointer to buffer for return string.
-    const(wchar)* lpstrReturn;
+    PWSTR  lpstrReturn;
     ///Size, in bytes, of return buffer.
-    uint          dwRetSize;
+    uint   dwRetSize;
     ///Constant describing information to return.
-    uint          dwItem;
+    uint   dwItem;
 }
 
 ///The <b>MCI_DGV_LIST_PARMS</b> structure contains the information for the MCI_LIST command for digital-video devices.
@@ -2891,17 +2877,17 @@ struct MCI_DGV_LIST_PARMSA
 {
 align (1):
     ///The low-order word specifies a window handle used for the MCI_NOTIFY flag.
-    size_t       dwCallback;
+    size_t dwCallback;
     ///Buffer for return string.
-    const(char)* lpstrReturn;
+    PSTR   lpstrReturn;
     ///Length, in bytes, of buffer.
-    uint         dwLength;
+    uint   dwLength;
     ///Index of item in list.
-    uint         dwNumber;
+    uint   dwNumber;
     ///Type of list item.
-    uint         dwItem;
+    uint   dwItem;
     ///String containing algorithm name.
-    const(char)* lpstrAlgorithm;
+    PSTR   lpstrAlgorithm;
 }
 
 ///The <b>MCI_DGV_LIST_PARMS</b> structure contains the information for the MCI_LIST command for digital-video devices.
@@ -2909,17 +2895,17 @@ struct MCI_DGV_LIST_PARMSW
 {
 align (1):
     ///The low-order word specifies a window handle used for the MCI_NOTIFY flag.
-    size_t        dwCallback;
+    size_t dwCallback;
     ///Buffer for return string.
-    const(wchar)* lpstrReturn;
+    PWSTR  lpstrReturn;
     ///Length, in bytes, of buffer.
-    uint          dwLength;
+    uint   dwLength;
     ///Index of item in list.
-    uint          dwNumber;
+    uint   dwNumber;
     ///Type of list item.
-    uint          dwItem;
+    uint   dwItem;
     ///String containing algorithm name.
-    const(wchar)* lpstrAlgorithm;
+    PWSTR  lpstrAlgorithm;
 }
 
 ///The <b>MCI_DGV_MONITOR_PARMS</b> structure contains parameters for the MCI_MONITOR command.
@@ -2956,19 +2942,19 @@ struct MCI_DGV_OPEN_PARMSA
 {
 align (1):
     ///The low-order word specifies a window handle used for the MCI_NOTIFY flag.
-    size_t       dwCallback;
+    size_t dwCallback;
     ///Device ID returned to user.
-    uint         wDeviceID;
+    uint   wDeviceID;
     ///Name or constant ID of device type.
-    const(char)* lpstrDeviceType;
+    PSTR   lpstrDeviceType;
     ///Optional device alias.
-    const(char)* lpstrElementName;
+    PSTR   lpstrElementName;
     ///Optional device alias.
-    const(char)* lpstrAlias;
+    PSTR   lpstrAlias;
     ///Window style.
-    uint         dwStyle;
+    uint   dwStyle;
     ///Handle to parent window.
-    HWND         hWndParent;
+    HWND   hWndParent;
 }
 
 ///The <b>MCI_DGV_OPEN_PARMS</b> structure contains information for the MCI_OPEN command for digital-video devices.
@@ -2976,19 +2962,19 @@ struct MCI_DGV_OPEN_PARMSW
 {
 align (1):
     ///The low-order word specifies a window handle used for the MCI_NOTIFY flag.
-    size_t        dwCallback;
+    size_t dwCallback;
     ///Device ID returned to user.
-    uint          wDeviceID;
+    uint   wDeviceID;
     ///Name or constant ID of device type.
-    const(wchar)* lpstrDeviceType;
+    PWSTR  lpstrDeviceType;
     ///Optional device alias.
-    const(wchar)* lpstrElementName;
+    PWSTR  lpstrElementName;
     ///Optional device alias.
-    const(wchar)* lpstrAlias;
+    PWSTR  lpstrAlias;
     ///Window style.
-    uint          dwStyle;
+    uint   dwStyle;
     ///Handle to parent window.
-    HWND          hWndParent;
+    HWND   hWndParent;
 }
 
 ///The <b>MCI_DGV_PASTE_PARMS</b> structure contains parameters for the MCI_PASTE command for digital-video devices.
@@ -3013,7 +2999,7 @@ struct MCI_DGV_QUALITY_PARMSA
 {
 align (1):
     ///The low-order word specifies a window handle used for the MCI_NOTIFY flag.
-    size_t       dwCallback;
+    size_t dwCallback;
     ///One of the following constants indicating the type of algorithm: <table> <tr> <th>Name</th> <th>Description</th>
     ///</tr> <tr> <td width="40%"><a id="MCI_QUALITY_ITEM_AUDIO"></a><a id="mci_quality_item_audio"></a><dl>
     ///<dt><b>MCI_QUALITY_ITEM_AUDIO</b></dt> </dl> </td> <td width="60%"> Definitions are for an audio compression
@@ -3022,13 +3008,13 @@ align (1):
     ///Definitions are for a still video compression algorithm. </td> </tr> <tr> <td width="40%"><a
     ///id="MCI_QUALITY_ITEM_VIDEO"></a><a id="mci_quality_item_video"></a><dl> <dt><b>MCI_QUALITY_ITEM_VIDEO</b></dt>
     ///</dl> </td> <td width="60%"> Definitions are for a video compression algorithm. </td> </tr> </table>
-    uint         dwItem;
+    uint   dwItem;
     ///String naming description.
-    const(char)* lpstrName;
+    PSTR   lpstrName;
     ///String naming algorithm.
-    uint         lpstrAlgorithm;
+    uint   lpstrAlgorithm;
     ///Handle to a structure containing information describing the quality attributes.
-    uint         dwHandle;
+    uint   dwHandle;
 }
 
 ///The <b>MCI_DGV_QUALITY_PARMS</b> structure contains parameters for the MCI_QUALITY command for digital-video devices.
@@ -3036,7 +3022,7 @@ struct MCI_DGV_QUALITY_PARMSW
 {
 align (1):
     ///The low-order word specifies a window handle used for the MCI_NOTIFY flag.
-    size_t        dwCallback;
+    size_t dwCallback;
     ///One of the following constants indicating the type of algorithm: <table> <tr> <th>Name</th> <th>Description</th>
     ///</tr> <tr> <td width="40%"><a id="MCI_QUALITY_ITEM_AUDIO"></a><a id="mci_quality_item_audio"></a><dl>
     ///<dt><b>MCI_QUALITY_ITEM_AUDIO</b></dt> </dl> </td> <td width="60%"> Definitions are for an audio compression
@@ -3045,13 +3031,13 @@ align (1):
     ///Definitions are for a still video compression algorithm. </td> </tr> <tr> <td width="40%"><a
     ///id="MCI_QUALITY_ITEM_VIDEO"></a><a id="mci_quality_item_video"></a><dl> <dt><b>MCI_QUALITY_ITEM_VIDEO</b></dt>
     ///</dl> </td> <td width="60%"> Definitions are for a video compression algorithm. </td> </tr> </table>
-    uint          dwItem;
+    uint   dwItem;
     ///String naming description.
-    const(wchar)* lpstrName;
+    PWSTR  lpstrName;
     ///String naming algorithm.
-    uint          lpstrAlgorithm;
+    uint   lpstrAlgorithm;
     ///Handle to a structure containing information describing the quality attributes.
-    uint          dwHandle;
+    uint   dwHandle;
 }
 
 ///The <b>MCI_DGV_RECORD_PARMS</b> structure contains parameters for the MCI_RECORD command for digital-video devices.
@@ -3080,12 +3066,12 @@ struct MCI_DGV_RESERVE_PARMSA
 {
 align (1):
     ///The low-order word specifies a window handle used for the MCI_NOTIFY flag.
-    size_t       dwCallback;
+    size_t dwCallback;
     ///Pointer to a null-terminated string containing the location of a temporary file. The buffer contains only the
     ///drive and directory path of the file used to hold recorded data; the filename is specified by the device driver.
-    const(char)* lpstrPath;
+    PSTR   lpstrPath;
     ///Size of reserved disk space.
-    uint         dwSize;
+    uint   dwSize;
 }
 
 ///The <b>MCI_DGV_RESERVE_PARMS</b> structure contains information for the MCI_RESERVE command for digital-video
@@ -3094,12 +3080,12 @@ struct MCI_DGV_RESERVE_PARMSW
 {
 align (1):
     ///The low-order word specifies a window handle used for the MCI_NOTIFY flag.
-    size_t        dwCallback;
+    size_t dwCallback;
     ///Pointer to a null-terminated string containing the location of a temporary file. The buffer contains only the
     ///drive and directory path of the file used to hold recorded data; the filename is specified by the device driver.
-    const(wchar)* lpstrPath;
+    PWSTR  lpstrPath;
     ///Size of reserved disk space.
-    uint          dwSize;
+    uint   dwSize;
 }
 
 ///The <b>MCI_DGV_RESTORE_PARMS</b> structure contains information for the MCI_RESTORE command for digital-video
@@ -3108,13 +3094,13 @@ struct MCI_DGV_RESTORE_PARMSA
 {
 align (1):
     ///The low-order word specifies a window handle used for the MCI_NOTIFY flag.
-    size_t       dwCallback;
+    size_t dwCallback;
     ///Pointer to a null-terminated string containing the filename from which the frame buffer information will be
     ///restored.
-    const(char)* lpstrFileName;
+    PSTR   lpstrFileName;
     ///Rectangle containing positioning information. RECT structures are handled differently in MCI than in other parts
     ///of Windows; in MCI, <b>rc.right</b> contains the width of the rectangle and <b>rc.bottom</b> contains its height.
-    RECT         rc;
+    RECT   rc;
 }
 
 ///The <b>MCI_DGV_RESTORE_PARMS</b> structure contains information for the MCI_RESTORE command for digital-video
@@ -3123,13 +3109,13 @@ struct MCI_DGV_RESTORE_PARMSW
 {
 align (1):
     ///The low-order word specifies a window handle used for the MCI_NOTIFY flag.
-    size_t        dwCallback;
+    size_t dwCallback;
     ///Pointer to a null-terminated string containing the filename from which the frame buffer information will be
     ///restored.
-    const(wchar)* lpstrFileName;
+    PWSTR  lpstrFileName;
     ///Rectangle containing positioning information. RECT structures are handled differently in MCI than in other parts
     ///of Windows; in MCI, <b>rc.right</b> contains the width of the rectangle and <b>rc.bottom</b> contains its height.
-    RECT          rc;
+    RECT   rc;
 }
 
 ///The <b>MCI_DGV_SAVE_PARMS</b> structure contains information for the MCI_SAVE command for digital-video devices.
@@ -3137,12 +3123,12 @@ struct MCI_DGV_SAVE_PARMSA
 {
 align (1):
     ///The low-order word specifies a window handle used for the MCI_NOTIFY flag.
-    size_t       dwCallback;
+    size_t dwCallback;
     ///String for filename to save.
-    const(char)* lpstrFileName;
+    PSTR   lpstrFileName;
     ///Rectangle containing positioning information. RECT structures are handled differently in MCI than in other parts
     ///of Windows; in MCI, <b>rc.right</b> contains the width of the rectangle and <b>rc.bottom</b> contains its height.
-    RECT         rc;
+    RECT   rc;
 }
 
 ///The <b>MCI_DGV_SAVE_PARMS</b> structure contains information for the MCI_SAVE command for digital-video devices.
@@ -3150,12 +3136,12 @@ struct MCI_DGV_SAVE_PARMSW
 {
 align (1):
     ///The low-order word specifies a window handle used for the MCI_NOTIFY flag.
-    size_t        dwCallback;
+    size_t dwCallback;
     ///String for filename to save.
-    const(wchar)* lpstrFileName;
+    PWSTR  lpstrFileName;
     ///Rectangle containing positioning information. RECT structures are handled differently in MCI than in other parts
     ///of Windows; in MCI, <b>rc.right</b> contains the width of the rectangle and <b>rc.bottom</b> contains its height.
-    RECT          rc;
+    RECT   rc;
 }
 
 ///The <b>MCI_DGV_SET_PARMS</b> structure contains parameters for the MCI_SET command for digital-video devices.
@@ -3180,17 +3166,17 @@ struct MCI_DGV_SETAUDIO_PARMSA
 {
 align (1):
     ///The low-order word specifies a window handle used for the MCI_NOTIFY flag.
-    size_t       dwCallback;
+    size_t dwCallback;
     ///Constant indicating the target adjustment. For a list of possible values, see the MCI_SETAUDIO command.
-    uint         dwItem;
+    uint   dwItem;
     ///Adjustment level.
-    uint         dwValue;
+    uint   dwValue;
     ///Transmission length.
-    uint         dwOver;
+    uint   dwOver;
     ///Pointer to a null-terminated string containing the name of the audio-compression algorithm.
-    const(char)* lpstrAlgorithm;
+    PSTR   lpstrAlgorithm;
     ///Pointer to a null-terminated string containing a descriptor of the audio-compression algorithm.
-    const(char)* lpstrQuality;
+    PSTR   lpstrQuality;
 }
 
 ///The <b>MCI_DGV_SETAUDIO_PARMS</b> structure contains parameters for the MCI_SETAUDIO command for digital-video
@@ -3199,17 +3185,17 @@ struct MCI_DGV_SETAUDIO_PARMSW
 {
 align (1):
     ///The low-order word specifies a window handle used for the MCI_NOTIFY flag.
-    size_t        dwCallback;
+    size_t dwCallback;
     ///Constant indicating the target adjustment. For a list of possible values, see the MCI_SETAUDIO command.
-    uint          dwItem;
+    uint   dwItem;
     ///Adjustment level.
-    uint          dwValue;
+    uint   dwValue;
     ///Transmission length.
-    uint          dwOver;
+    uint   dwOver;
     ///Pointer to a null-terminated string containing the name of the audio-compression algorithm.
-    const(wchar)* lpstrAlgorithm;
+    PWSTR  lpstrAlgorithm;
     ///Pointer to a null-terminated string containing a descriptor of the audio-compression algorithm.
-    const(wchar)* lpstrQuality;
+    PWSTR  lpstrQuality;
 }
 
 ///The <b>MCI_DGV_SIGNAL_PARMS</b> structure contains parameters for the MCI_SIGNAL command for digital-video devices.
@@ -3232,19 +3218,19 @@ struct MCI_DGV_SETVIDEO_PARMSA
 {
 align (1):
     ///The low-order word specifies a window handle used for the MCI_NOTIFY flag.
-    size_t       dwCallback;
+    size_t dwCallback;
     ///Constant indicating the target adjustment.
-    uint         dwItem;
+    uint   dwItem;
     ///Adjustment level.
-    uint         dwValue;
+    uint   dwValue;
     ///Transmission length.
-    uint         dwOver;
+    uint   dwOver;
     ///Pointer to a null-terminated string containing the name of the video-compression algorithm.
-    const(char)* lpstrAlgorithm;
+    PSTR   lpstrAlgorithm;
     ///Pointer to a null-terminated string containing a descriptor of the video-compression algorithm.
-    const(char)* lpstrQuality;
+    PSTR   lpstrQuality;
     ///Index of input source.
-    uint         dwSourceNumber;
+    uint   dwSourceNumber;
 }
 
 ///The <b>MCI_DGV_SETVIDEO_PARMS</b> structure contains parameters for the MCI_SETVIDEO command for digital-video
@@ -3253,19 +3239,19 @@ struct MCI_DGV_SETVIDEO_PARMSW
 {
 align (1):
     ///The low-order word specifies a window handle used for the MCI_NOTIFY flag.
-    size_t        dwCallback;
+    size_t dwCallback;
     ///Constant indicating the target adjustment.
-    uint          dwItem;
+    uint   dwItem;
     ///Adjustment level.
-    uint          dwValue;
+    uint   dwValue;
     ///Transmission length.
-    uint          dwOver;
+    uint   dwOver;
     ///Pointer to a null-terminated string containing the name of the video-compression algorithm.
-    const(wchar)* lpstrAlgorithm;
+    PWSTR  lpstrAlgorithm;
     ///Pointer to a null-terminated string containing a descriptor of the video-compression algorithm.
-    const(wchar)* lpstrQuality;
+    PWSTR  lpstrQuality;
     ///Index of input source.
-    uint          dwSourceNumber;
+    uint   dwSourceNumber;
 }
 
 ///The <b>MCI_DGV_STATUS_PARMS</b> structure contains parameters for the MCI_STATUS command for digital-video devices.
@@ -3273,17 +3259,17 @@ struct MCI_DGV_STATUS_PARMSA
 {
 align (1):
     ///The low-order word specifies a window handle used for the MCI_NOTIFY flag.
-    size_t       dwCallback;
+    size_t dwCallback;
     ///Buffer for return information.
-    size_t       dwReturn;
+    size_t dwReturn;
     ///Identifies capability being queried.
-    uint         dwItem;
+    uint   dwItem;
     ///Length or number of tracks.
-    uint         dwTrack;
+    uint   dwTrack;
     ///Specifies the approximate amount of disk space that can be obtained by the MCI_RESERVE command.
-    const(char)* lpstrDrive;
+    PSTR   lpstrDrive;
     ///Specifies the approximate location of the nearest previous intraframe-encoded image.
-    uint         dwReference;
+    uint   dwReference;
 }
 
 ///The <b>MCI_DGV_STATUS_PARMS</b> structure contains parameters for the MCI_STATUS command for digital-video devices.
@@ -3291,17 +3277,17 @@ struct MCI_DGV_STATUS_PARMSW
 {
 align (1):
     ///The low-order word specifies a window handle used for the MCI_NOTIFY flag.
-    size_t        dwCallback;
+    size_t dwCallback;
     ///Buffer for return information.
-    size_t        dwReturn;
+    size_t dwReturn;
     ///Identifies capability being queried.
-    uint          dwItem;
+    uint   dwItem;
     ///Length or number of tracks.
-    uint          dwTrack;
+    uint   dwTrack;
     ///Specifies the approximate amount of disk space that can be obtained by the MCI_RESERVE command.
-    const(wchar)* lpstrDrive;
+    PWSTR  lpstrDrive;
     ///Specifies the approximate location of the nearest previous intraframe-encoded image.
-    uint          dwReference;
+    uint   dwReference;
 }
 
 ///The <b>MCI_DGV_STEP_PARMS</b> structure contains parameters for the MCI_STEP command for digital-video devices.
@@ -3332,13 +3318,13 @@ struct MCI_DGV_WINDOW_PARMSA
 {
 align (1):
     ///The low-order word specifies a window handle used for the MCI_NOTIFY flag.
-    size_t       dwCallback;
+    size_t dwCallback;
     ///Handle to the display window. If this member is MCI_DGV_WINDOW_HWND, the system uses a default window.
-    HWND         hWnd;
+    HWND   hWnd;
     ///Window-display command.
-    uint         nCmdShow;
+    uint   nCmdShow;
     ///Window caption.
-    const(char)* lpstrText;
+    PSTR   lpstrText;
 }
 
 ///The <b>MCI_DGV_WINDOW_PARMS</b> structure contains parameters for MCI_WINDOW command for digital-video devices.
@@ -3346,13 +3332,13 @@ struct MCI_DGV_WINDOW_PARMSW
 {
 align (1):
     ///The low-order word specifies a window handle used for the MCI_NOTIFY flag.
-    size_t        dwCallback;
+    size_t dwCallback;
     ///Handle to the display window. If this member is MCI_DGV_WINDOW_HWND, the system uses a default window.
-    HWND          hWnd;
+    HWND   hWnd;
     ///Window-display command.
-    uint          nCmdShow;
+    uint   nCmdShow;
     ///Window caption.
-    const(wchar)* lpstrText;
+    PWSTR  lpstrText;
 }
 
 struct HACMDRIVERID__
@@ -3477,15 +3463,15 @@ align (1):
     HWND          hwndOwner;
     WAVEFORMATEX* pwfx;
     uint          cbwfx;
-    const(char)*  pszTitle;
+    const(PSTR)   pszTitle;
     byte[48]      szFormatTag;
     byte[128]     szFormat;
-    const(char)*  pszName;
+    PSTR          pszName;
     uint          cchName;
     uint          fdwEnum;
     WAVEFORMATEX* pwfxEnum;
     HINSTANCE     hInstance;
-    const(char)*  pszTemplateName;
+    const(PSTR)   pszTemplateName;
     LPARAM        lCustData;
     ACMFORMATCHOOSEHOOKPROCA pfnHook;
 }
@@ -3498,15 +3484,15 @@ align (1):
     HWND          hwndOwner;
     WAVEFORMATEX* pwfx;
     uint          cbwfx;
-    const(wchar)* pszTitle;
+    const(PWSTR)  pszTitle;
     ushort[48]    szFormatTag;
     ushort[128]   szFormat;
-    const(wchar)* pszName;
+    PWSTR         pszName;
     uint          cchName;
     uint          fdwEnum;
     WAVEFORMATEX* pwfxEnum;
     HINSTANCE     hInstance;
-    const(wchar)* pszTemplateName;
+    const(PWSTR)  pszTemplateName;
     LPARAM        lCustData;
     ACMFORMATCHOOSEHOOKPROCW pfnHook;
 }
@@ -3562,42 +3548,42 @@ align (1):
 struct tACMFILTERCHOOSEA
 {
 align (1):
-    uint         cbStruct;
-    uint         fdwStyle;
-    HWND         hwndOwner;
-    WAVEFILTER*  pwfltr;
-    uint         cbwfltr;
-    const(char)* pszTitle;
-    byte[48]     szFilterTag;
-    byte[128]    szFilter;
-    const(char)* pszName;
-    uint         cchName;
-    uint         fdwEnum;
-    WAVEFILTER*  pwfltrEnum;
-    HINSTANCE    hInstance;
-    const(char)* pszTemplateName;
-    LPARAM       lCustData;
+    uint        cbStruct;
+    uint        fdwStyle;
+    HWND        hwndOwner;
+    WAVEFILTER* pwfltr;
+    uint        cbwfltr;
+    const(PSTR) pszTitle;
+    byte[48]    szFilterTag;
+    byte[128]   szFilter;
+    PSTR        pszName;
+    uint        cchName;
+    uint        fdwEnum;
+    WAVEFILTER* pwfltrEnum;
+    HINSTANCE   hInstance;
+    const(PSTR) pszTemplateName;
+    LPARAM      lCustData;
     ACMFILTERCHOOSEHOOKPROCA pfnHook;
 }
 
 struct tACMFILTERCHOOSEW
 {
 align (1):
-    uint          cbStruct;
-    uint          fdwStyle;
-    HWND          hwndOwner;
-    WAVEFILTER*   pwfltr;
-    uint          cbwfltr;
-    const(wchar)* pszTitle;
-    ushort[48]    szFilterTag;
-    ushort[128]   szFilter;
-    const(wchar)* pszName;
-    uint          cchName;
-    uint          fdwEnum;
-    WAVEFILTER*   pwfltrEnum;
-    HINSTANCE     hInstance;
-    const(wchar)* pszTemplateName;
-    LPARAM        lCustData;
+    uint         cbStruct;
+    uint         fdwStyle;
+    HWND         hwndOwner;
+    WAVEFILTER*  pwfltr;
+    uint         cbwfltr;
+    const(PWSTR) pszTitle;
+    ushort[48]   szFilterTag;
+    ushort[128]  szFilter;
+    PWSTR        pszName;
+    uint         cchName;
+    uint         fdwEnum;
+    WAVEFILTER*  pwfltrEnum;
+    HINSTANCE    hInstance;
+    const(PWSTR) pszTemplateName;
+    LPARAM       lCustData;
     ACMFILTERCHOOSEHOOKPROCW pfnHook;
 }
 
@@ -4640,7 +4626,7 @@ align (1):
     uint dwCmd;
 }
 
-struct waveopendesc_tag
+struct WAVEOPENDESC
 {
 align (1):
     ptrdiff_t   hWave;
@@ -4661,11 +4647,11 @@ align (1):
 struct tMIXEROPENDESC
 {
 align (1):
-    ptrdiff_t hmx;
-    void*     pReserved0;
-    size_t    dwCallback;
-    size_t    dwInstance;
-    size_t    dnDevNode;
+    HMIXER hmx;
+    void*  pReserved0;
+    size_t dwCallback;
+    size_t dwInstance;
+    size_t dnDevNode;
 }
 
 struct timerevent_tag
@@ -4736,10 +4722,10 @@ align (1):
 struct MCI_OPEN_DRIVER_PARMS
 {
 align (1):
-    uint          wDeviceID;
-    const(wchar)* lpstrParams;
-    uint          wCustomCommandTable;
-    uint          wType;
+    uint         wDeviceID;
+    const(PWSTR) lpstrParams;
+    uint         wCustomCommandTable;
+    uint         wType;
 }
 
 // Functions
@@ -4781,7 +4767,7 @@ LRESULT CloseDriver(ptrdiff_t hDriver, LPARAM lParam1, LPARAM lParam2);
 ///    Returns the handle of the installable driver instance if successful or <b>NULL</b> otherwise.
 ///    
 @DllImport("api-ms-win-mm-misc-l1-1-0")
-ptrdiff_t OpenDriver(const(wchar)* szDriverName, const(wchar)* szSectionName, LPARAM lParam2);
+ptrdiff_t OpenDriver(const(PWSTR) szDriverName, const(PWSTR) szSectionName, LPARAM lParam2);
 
 ///Sends the specified message to the installable driver.
 ///Params:
@@ -4875,21 +4861,10 @@ BOOL DriverCallback(size_t dwCallback, uint dwFlags, ptrdiff_t hDevice, uint dwM
 ///    Flags = Flags for playing the sound. The following values are defined.
 ///    FileHandle = Receives the handle to the sound.
 @DllImport("api-ms-win-mm-misc-l1-1-1")
-int sndOpenSound(const(wchar)* EventName, const(wchar)* AppName, int Flags, ptrdiff_t* FileHandle);
+int sndOpenSound(const(PWSTR) EventName, const(PWSTR) AppName, int Flags, HANDLE* FileHandle);
 
 @DllImport("api-ms-win-mm-misc-l1-1-0")
-uint mmDrvInstall(ptrdiff_t hDriver, const(wchar)* wszDrvEntry, DRIVERMSGPROC drvMessage, uint wFlags);
-
-///The <b>mmioStringToFOURCC</b> function converts a null-terminated string to a four-character code.
-///Params:
-///    sz = Pointer to a null-terminated string to convert to a four-character code.
-///    uFlags = Flags for the conversion. The following value is defined: <table> <tr> <th>Value </th> <th>Meaning </th> </tr>
-///             <tr> <td>MMIO_TOUPPER</td> <td>Converts all characters to uppercase.</td> </tr> </table>
-///Returns:
-///    Returns the four-character code created from the given string.
-///    
-@DllImport("api-ms-win-mm-misc-l1-1-0")
-uint mmioStringToFOURCCA(const(char)* sz, uint uFlags);
+uint mmDrvInstall(ptrdiff_t hDriver, const(PWSTR) wszDrvEntry, DRIVERMSGPROC drvMessage, uint wFlags);
 
 ///The <b>mmioStringToFOURCC</b> function converts a null-terminated string to a four-character code.
 ///Params:
@@ -4900,7 +4875,18 @@ uint mmioStringToFOURCCA(const(char)* sz, uint uFlags);
 ///    Returns the four-character code created from the given string.
 ///    
 @DllImport("api-ms-win-mm-misc-l1-1-0")
-uint mmioStringToFOURCCW(const(wchar)* sz, uint uFlags);
+uint mmioStringToFOURCCA(const(PSTR) sz, uint uFlags);
+
+///The <b>mmioStringToFOURCC</b> function converts a null-terminated string to a four-character code.
+///Params:
+///    sz = Pointer to a null-terminated string to convert to a four-character code.
+///    uFlags = Flags for the conversion. The following value is defined: <table> <tr> <th>Value </th> <th>Meaning </th> </tr>
+///             <tr> <td>MMIO_TOUPPER</td> <td>Converts all characters to uppercase.</td> </tr> </table>
+///Returns:
+///    Returns the four-character code created from the given string.
+///    
+@DllImport("api-ms-win-mm-misc-l1-1-0")
+uint mmioStringToFOURCCW(const(PWSTR) sz, uint uFlags);
 
 ///The <b>mmioInstallIOProc</b> function installs or removes a custom I/O procedure. This function also locates an
 ///installed I/O procedure, using its corresponding four-character code.
@@ -5010,7 +4996,7 @@ LPMMIOPROC mmioInstallIOProcW(uint fccIOProc, LPMMIOPROC pIOProc, uint dwFlags);
 ///              </tr> <tr> <td>MMIO_READWRITE</td> <td>Opens the file for reading and writing.</td> </tr> <tr>
 ///              <td>MMIO_WRITE</td> <td>Opens the file for writing only.</td> </tr> </table>
 @DllImport("api-ms-win-mm-misc-l1-1-0")
-HMMIO__* mmioOpenA(const(char)* pszFileName, MMIOINFO* pmmioinfo, uint fdwOpen);
+HMMIO__* mmioOpenA(PSTR pszFileName, MMIOINFO* pmmioinfo, uint fdwOpen);
 
 ///The <b>mmioOpen</b> function opens a file for unbuffered or buffered I/O; creates a file; deletes a file; or checks
 ///whether a file exists. The file can be a standard file, a memory file, or an element of a custom storage system. The
@@ -5078,7 +5064,7 @@ HMMIO__* mmioOpenA(const(char)* pszFileName, MMIOINFO* pmmioinfo, uint fdwOpen);
 ///              </tr> <tr> <td>MMIO_READWRITE</td> <td>Opens the file for reading and writing.</td> </tr> <tr>
 ///              <td>MMIO_WRITE</td> <td>Opens the file for writing only.</td> </tr> </table>
 @DllImport("api-ms-win-mm-misc-l1-1-0")
-HMMIO__* mmioOpenW(const(wchar)* pszFileName, MMIOINFO* pmmioinfo, uint fdwOpen);
+HMMIO__* mmioOpenW(PWSTR pszFileName, MMIOINFO* pmmioinfo, uint fdwOpen);
 
 ///The <b>mmioRename</b> function renames the specified file.
 ///Params:
@@ -5093,7 +5079,7 @@ HMMIO__* mmioOpenW(const(wchar)* pszFileName, MMIOINFO* pmmioinfo, uint fdwOpen)
 ///    the I/O procedure.
 ///    
 @DllImport("api-ms-win-mm-misc-l1-1-0")
-uint mmioRenameA(const(char)* pszFileName, const(char)* pszNewFileName, MMIOINFO* pmmioinfo, uint fdwRename);
+uint mmioRenameA(const(PSTR) pszFileName, const(PSTR) pszNewFileName, MMIOINFO* pmmioinfo, uint fdwRename);
 
 ///The <b>mmioRename</b> function renames the specified file.
 ///Params:
@@ -5108,7 +5094,7 @@ uint mmioRenameA(const(char)* pszFileName, const(char)* pszNewFileName, MMIOINFO
 ///    the I/O procedure.
 ///    
 @DllImport("api-ms-win-mm-misc-l1-1-0")
-uint mmioRenameW(const(wchar)* pszFileName, const(wchar)* pszNewFileName, MMIOINFO* pmmioinfo, uint fdwRename);
+uint mmioRenameW(const(PWSTR) pszFileName, const(PWSTR) pszNewFileName, MMIOINFO* pmmioinfo, uint fdwRename);
 
 ///The <b>mmioClose</b> function closes a file that was opened by using the mmioOpen function.
 ///Params:
@@ -5126,7 +5112,7 @@ uint mmioClose(HMMIO__* hmmio, uint fuClose);
 ///    pch = Pointer to a buffer to contain the data read from the file.
 ///    cch = Number of bytes to read from the file.
 @DllImport("api-ms-win-mm-misc-l1-1-0")
-int mmioRead(HMMIO__* hmmio, char* pch, int cch);
+int mmioRead(HMMIO__* hmmio, byte* pch, int cch);
 
 ///The <b>mmioWrite</b> function writes a specified number of bytes to a file opened by using the mmioOpen function.
 ///Params:
@@ -5137,7 +5123,7 @@ int mmioRead(HMMIO__* hmmio, char* pch, int cch);
 ///    Returns the number of bytes actually written. If there is an error writing to the file, the return value is -1.
 ///    
 @DllImport("api-ms-win-mm-misc-l1-1-0")
-int mmioWrite(HMMIO__* hmmio, char* pch, int cch);
+int mmioWrite(HMMIO__* hmmio, const(byte)* pch, int cch);
 
 ///The <b>mmioSeek</b> function changes the current file position in a file opened by using the mmioOpen function.
 ///Params:
@@ -5200,7 +5186,7 @@ uint mmioSetInfo(HMMIO__* hmmio, MMIOINFO* pmmioinfo, uint fuInfo);
 ///    due to a lack of available memory. </td> </tr> </table>
 ///    
 @DllImport("api-ms-win-mm-misc-l1-1-0")
-uint mmioSetBuffer(HMMIO__* hmmio, const(char)* pchBuffer, int cchBuffer, uint fuBuffer);
+uint mmioSetBuffer(HMMIO__* hmmio, PSTR pchBuffer, int cchBuffer, uint fuBuffer);
 
 ///The <b>mmioFlush</b> function writes the I/O buffer of a file to disk if the buffer has been written to.
 ///Params:
@@ -5315,16 +5301,16 @@ uint mmioAscend(HMMIO__* hmmio, MMCKINFO* pmmcki, uint fuAscend);
 uint mmioCreateChunk(HMMIO__* hmmio, MMCKINFO* pmmcki, uint fuCreate);
 
 @DllImport("WINMM")
-BOOL sndPlaySoundA(const(char)* pszSound, uint fuSound);
+BOOL sndPlaySoundA(const(PSTR) pszSound, uint fuSound);
 
 @DllImport("WINMM")
-BOOL sndPlaySoundW(const(wchar)* pszSound, uint fuSound);
+BOOL sndPlaySoundW(const(PWSTR) pszSound, uint fuSound);
 
 @DllImport("WINMM")
-BOOL PlaySoundA(const(char)* pszSound, ptrdiff_t hmod, uint fdwSound);
+BOOL PlaySoundA(const(PSTR) pszSound, ptrdiff_t hmod, uint fdwSound);
 
 @DllImport("WINMM")
-BOOL PlaySoundW(const(wchar)* pszSound, ptrdiff_t hmod, uint fdwSound);
+BOOL PlaySoundW(const(PWSTR) pszSound, ptrdiff_t hmod, uint fdwSound);
 
 ///The <b>waveOutGetNumDevs</b> function retrieves the number of waveform-audio output devices present in the system.
 ///Returns:
@@ -5360,7 +5346,7 @@ uint waveOutGetDevCapsW(size_t uDeviceID, WAVEOUTCAPSW* pwoc, uint cbwoc);
 ///    </dl> </td> <td width="60%"> Function isn't supported. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint waveOutGetVolume(ptrdiff_t hwo, uint* pdwVolume);
+uint waveOutGetVolume(HWAVEOUT hwo, uint* pdwVolume);
 
 ///The <b>waveOutSetVolume</b> function sets the volume level of the specified waveform-audio output device.
 ///Params:
@@ -5379,13 +5365,13 @@ uint waveOutGetVolume(ptrdiff_t hwo, uint* pdwVolume);
 ///    </dl> </td> <td width="60%"> Function is not supported. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint waveOutSetVolume(ptrdiff_t hwo, uint dwVolume);
+uint waveOutSetVolume(HWAVEOUT hwo, uint dwVolume);
 
 @DllImport("WINMM")
-uint waveOutGetErrorTextA(uint mmrError, const(char)* pszText, uint cchText);
+uint waveOutGetErrorTextA(uint mmrError, PSTR pszText, uint cchText);
 
 @DllImport("WINMM")
-uint waveOutGetErrorTextW(uint mmrError, const(wchar)* pszText, uint cchText);
+uint waveOutGetErrorTextW(uint mmrError, PWSTR pszText, uint cchText);
 
 ///The <b>waveOutOpen</b> function opens the given waveform-audio output device for playback.
 ///Params:
@@ -5435,7 +5421,7 @@ uint waveOutGetErrorTextW(uint mmrError, const(wchar)* pszText, uint cchText);
 ///    flag. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint waveOutOpen(ptrdiff_t* phwo, uint uDeviceID, WAVEFORMATEX* pwfx, size_t dwCallback, size_t dwInstance, 
+uint waveOutOpen(HWAVEOUT* phwo, uint uDeviceID, WAVEFORMATEX* pwfx, size_t dwCallback, size_t dwInstance, 
                  uint fdwOpen);
 
 ///The <b>waveOutClose</b> function closes the given waveform-audio output device.
@@ -5452,7 +5438,7 @@ uint waveOutOpen(ptrdiff_t* phwo, uint uDeviceID, WAVEFORMATEX* pwfx, size_t dwC
 ///    </dl> </td> <td width="60%"> There are still buffers in the queue. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint waveOutClose(ptrdiff_t hwo);
+uint waveOutClose(HWAVEOUT hwo);
 
 ///The <b>waveOutPrepareHeader</b> function prepares a waveform-audio data block for playback.
 ///Params:
@@ -5468,7 +5454,7 @@ uint waveOutClose(ptrdiff_t hwo);
 ///    Unable to allocate or lock memory. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint waveOutPrepareHeader(ptrdiff_t hwo, char* pwh, uint cbwh);
+uint waveOutPrepareHeader(HWAVEOUT hwo, WAVEHDR* pwh, uint cbwh);
 
 ///The <b>waveOutUnprepareHeader</b> function cleans up the preparation performed by the waveOutPrepareHeader function.
 ///This function must be called after the device driver is finished with a data block. You must call this function
@@ -5488,7 +5474,7 @@ uint waveOutPrepareHeader(ptrdiff_t hwo, char* pwh, uint cbwh);
 ///    </tr> </table>
 ///    
 @DllImport("WINMM")
-uint waveOutUnprepareHeader(ptrdiff_t hwo, char* pwh, uint cbwh);
+uint waveOutUnprepareHeader(HWAVEOUT hwo, WAVEHDR* pwh, uint cbwh);
 
 ///The <b>waveOutWrite</b> function sends a data block to the given waveform-audio output device.
 ///Params:
@@ -5506,7 +5492,7 @@ uint waveOutUnprepareHeader(ptrdiff_t hwo, char* pwh, uint cbwh);
 ///    </table>
 ///    
 @DllImport("WINMM")
-uint waveOutWrite(ptrdiff_t hwo, char* pwh, uint cbwh);
+uint waveOutWrite(HWAVEOUT hwo, WAVEHDR* pwh, uint cbwh);
 
 ///The <b>waveOutPause</b> function pauses playback on the given waveform-audio output device. The current position is
 ///saved. Use the waveOutRestart function to resume playback from the current position.
@@ -5522,7 +5508,7 @@ uint waveOutWrite(ptrdiff_t hwo, char* pwh, uint cbwh);
 ///    </dl> </td> <td width="60%"> Specified device is synchronous and does not support pausing. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint waveOutPause(ptrdiff_t hwo);
+uint waveOutPause(HWAVEOUT hwo);
 
 ///The <b>waveOutRestart</b> function resumes playback on a paused waveform-audio output device.
 ///Params:
@@ -5537,7 +5523,7 @@ uint waveOutPause(ptrdiff_t hwo);
 ///    </dl> </td> <td width="60%"> Specified device is synchronous and does not support pausing. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint waveOutRestart(ptrdiff_t hwo);
+uint waveOutRestart(HWAVEOUT hwo);
 
 ///The <b>waveOutReset</b> function stops playback on the given waveform-audio output device and resets the current
 ///position to zero. All pending playback buffers are marked as done (WHDR_DONE) and returned to the application.
@@ -5553,7 +5539,7 @@ uint waveOutRestart(ptrdiff_t hwo);
 ///    </dl> </td> <td width="60%"> Specified device is synchronous and does not support pausing. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint waveOutReset(ptrdiff_t hwo);
+uint waveOutReset(HWAVEOUT hwo);
 
 ///The <b>waveOutBreakLoop</b> function breaks a loop on the given waveform-audio output device and allows playback to
 ///continue with the next block in the driver list.
@@ -5568,7 +5554,7 @@ uint waveOutReset(ptrdiff_t hwo);
 ///    Unable to allocate or lock memory. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint waveOutBreakLoop(ptrdiff_t hwo);
+uint waveOutBreakLoop(HWAVEOUT hwo);
 
 ///The <b>waveOutGetPosition</b> function retrieves the current playback position of the given waveform-audio output
 ///device.
@@ -5585,7 +5571,7 @@ uint waveOutBreakLoop(ptrdiff_t hwo);
 ///    Unable to allocate or lock memory. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint waveOutGetPosition(ptrdiff_t hwo, char* pmmt, uint cbmmt);
+uint waveOutGetPosition(HWAVEOUT hwo, MMTIME* pmmt, uint cbmmt);
 
 ///The <b>waveOutGetPitch</b> function retrieves the current pitch setting for the specified waveform-audio output
 ///device.
@@ -5607,7 +5593,7 @@ uint waveOutGetPosition(ptrdiff_t hwo, char* pmmt, uint cbmmt);
 ///    </dl> </td> <td width="60%"> Function isn't supported. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint waveOutGetPitch(ptrdiff_t hwo, uint* pdwPitch);
+uint waveOutGetPitch(HWAVEOUT hwo, uint* pdwPitch);
 
 ///The <b>waveOutSetPitch</b> function sets the pitch for the specified waveform-audio output device.
 ///Params:
@@ -5628,7 +5614,7 @@ uint waveOutGetPitch(ptrdiff_t hwo, uint* pdwPitch);
 ///    </dl> </td> <td width="60%"> Function isn't supported. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint waveOutSetPitch(ptrdiff_t hwo, uint dwPitch);
+uint waveOutSetPitch(HWAVEOUT hwo, uint dwPitch);
 
 ///The <b>waveOutGetPlaybackRate</b> function retrieves the current playback rate for the specified waveform-audio
 ///output device.
@@ -5651,7 +5637,7 @@ uint waveOutSetPitch(ptrdiff_t hwo, uint dwPitch);
 ///    </dl> </td> <td width="60%"> Function isn't supported. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint waveOutGetPlaybackRate(ptrdiff_t hwo, uint* pdwRate);
+uint waveOutGetPlaybackRate(HWAVEOUT hwo, uint* pdwRate);
 
 ///The <b>waveOutSetPlaybackRate</b> function sets the playback rate for the specified waveform-audio output device.
 ///Params:
@@ -5672,7 +5658,7 @@ uint waveOutGetPlaybackRate(ptrdiff_t hwo, uint* pdwRate);
 ///    </dl> </td> <td width="60%"> Function isn't supported. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint waveOutSetPlaybackRate(ptrdiff_t hwo, uint dwRate);
+uint waveOutSetPlaybackRate(HWAVEOUT hwo, uint dwRate);
 
 ///The <b>waveOutGetID</b> function retrieves the device identifier for the given waveform-audio output device. This
 ///function is supported for backward compatibility. New applications can cast a handle of the device rather than
@@ -5689,7 +5675,7 @@ uint waveOutSetPlaybackRate(ptrdiff_t hwo, uint dwRate);
 ///    width="60%"> Unable to allocate or lock memory. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint waveOutGetID(ptrdiff_t hwo, uint* puDeviceID);
+uint waveOutGetID(HWAVEOUT hwo, uint* puDeviceID);
 
 ///The <b>waveOutMessage</b> function sends messages to the waveform-audio output device drivers.
 ///Params:
@@ -5703,7 +5689,7 @@ uint waveOutGetID(ptrdiff_t hwo, uint* puDeviceID);
 ///    Returns the value returned from the driver.
 ///    
 @DllImport("WINMM")
-uint waveOutMessage(ptrdiff_t hwo, uint uMsg, size_t dw1, size_t dw2);
+uint waveOutMessage(HWAVEOUT hwo, uint uMsg, size_t dw1, size_t dw2);
 
 ///The <b>waveInGetNumDevs</b> function returns the number of waveform-audio input devices present in the system.
 ///Returns:
@@ -5714,16 +5700,16 @@ uint waveOutMessage(ptrdiff_t hwo, uint uMsg, size_t dw1, size_t dw2);
 uint waveInGetNumDevs();
 
 @DllImport("WINMM")
-uint waveInGetDevCapsA(size_t uDeviceID, char* pwic, uint cbwic);
+uint waveInGetDevCapsA(size_t uDeviceID, WAVEINCAPSA* pwic, uint cbwic);
 
 @DllImport("WINMM")
-uint waveInGetDevCapsW(size_t uDeviceID, char* pwic, uint cbwic);
+uint waveInGetDevCapsW(size_t uDeviceID, WAVEINCAPSW* pwic, uint cbwic);
 
 @DllImport("WINMM")
-uint waveInGetErrorTextA(uint mmrError, const(char)* pszText, uint cchText);
+uint waveInGetErrorTextA(uint mmrError, PSTR pszText, uint cchText);
 
 @DllImport("WINMM")
-uint waveInGetErrorTextW(uint mmrError, const(wchar)* pszText, uint cchText);
+uint waveInGetErrorTextW(uint mmrError, PWSTR pszText, uint cchText);
 
 ///The <b>waveInOpen</b> function opens the given waveform-audio input device for recording.
 ///Params:
@@ -5767,7 +5753,7 @@ uint waveInGetErrorTextW(uint mmrError, const(wchar)* pszText, uint cchText);
 ///    unsupported waveform-audio format. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint waveInOpen(ptrdiff_t* phwi, uint uDeviceID, WAVEFORMATEX* pwfx, size_t dwCallback, size_t dwInstance, 
+uint waveInOpen(HWAVEIN* phwi, uint uDeviceID, WAVEFORMATEX* pwfx, size_t dwCallback, size_t dwInstance, 
                 uint fdwOpen);
 
 ///The <b>waveInClose</b> function closes the given waveform-audio input device.
@@ -5784,7 +5770,7 @@ uint waveInOpen(ptrdiff_t* phwi, uint uDeviceID, WAVEFORMATEX* pwfx, size_t dwCa
 ///    </dl> </td> <td width="60%"> There are still buffers in the queue. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint waveInClose(ptrdiff_t hwi);
+uint waveInClose(HWAVEIN hwi);
 
 ///The <b>waveInPrepareHeader</b> function prepares a buffer for waveform-audio input.
 ///Params:
@@ -5800,7 +5786,7 @@ uint waveInClose(ptrdiff_t hwi);
 ///    Unable to allocate or lock memory. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint waveInPrepareHeader(ptrdiff_t hwi, char* pwh, uint cbwh);
+uint waveInPrepareHeader(HWAVEIN hwi, WAVEHDR* pwh, uint cbwh);
 
 ///The <b>waveInUnprepareHeader</b> function cleans up the preparation performed by the waveInPrepareHeader function.
 ///This function must be called after the device driver fills a buffer and returns it to the application. You must call
@@ -5820,7 +5806,7 @@ uint waveInPrepareHeader(ptrdiff_t hwi, char* pwh, uint cbwh);
 ///    </table>
 ///    
 @DllImport("WINMM")
-uint waveInUnprepareHeader(ptrdiff_t hwi, char* pwh, uint cbwh);
+uint waveInUnprepareHeader(HWAVEIN hwi, WAVEHDR* pwh, uint cbwh);
 
 ///The <b>waveInAddBuffer</b> function sends an input buffer to the given waveform-audio input device. When the buffer
 ///is filled, the application is notified.
@@ -5839,7 +5825,7 @@ uint waveInUnprepareHeader(ptrdiff_t hwi, char* pwh, uint cbwh);
 ///    </table>
 ///    
 @DllImport("WINMM")
-uint waveInAddBuffer(ptrdiff_t hwi, char* pwh, uint cbwh);
+uint waveInAddBuffer(HWAVEIN hwi, WAVEHDR* pwh, uint cbwh);
 
 ///The <b>waveInStart</b> function starts input on the given waveform-audio input device.
 ///Params:
@@ -5853,7 +5839,7 @@ uint waveInAddBuffer(ptrdiff_t hwi, char* pwh, uint cbwh);
 ///    Unable to allocate or lock memory. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint waveInStart(ptrdiff_t hwi);
+uint waveInStart(HWAVEIN hwi);
 
 ///The <b>waveInStop</b> function stops waveform-audio input.
 ///Params:
@@ -5867,7 +5853,7 @@ uint waveInStart(ptrdiff_t hwi);
 ///    Unable to allocate or lock memory. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint waveInStop(ptrdiff_t hwi);
+uint waveInStop(HWAVEIN hwi);
 
 ///The <b>waveInReset</b> function stops input on the given waveform-audio input device and resets the current position
 ///to zero. All pending buffers are marked as done and returned to the application.
@@ -5882,7 +5868,7 @@ uint waveInStop(ptrdiff_t hwi);
 ///    Unable to allocate or lock memory. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint waveInReset(ptrdiff_t hwi);
+uint waveInReset(HWAVEIN hwi);
 
 ///<p class="CCE_Message">[<b>waveInGetPosition</b> is no longer supported for use as of Windows Vista. Instead, use
 ///IAudioClock::GetPosition.] The <b>waveInGetPosition</b> function retrieves the current input position of the given
@@ -5900,7 +5886,7 @@ uint waveInReset(ptrdiff_t hwi);
 ///    Unable to allocate or lock memory. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint waveInGetPosition(ptrdiff_t hwi, char* pmmt, uint cbmmt);
+uint waveInGetPosition(HWAVEIN hwi, MMTIME* pmmt, uint cbmmt);
 
 ///The <b>waveInGetID</b> function gets the device identifier for the given waveform-audio input device. This function
 ///is supported for backward compatibility. New applications can cast a handle of the device rather than retrieving the
@@ -5917,7 +5903,7 @@ uint waveInGetPosition(ptrdiff_t hwi, char* pmmt, uint cbmmt);
 ///    width="60%"> Unable to allocate or lock memory. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint waveInGetID(ptrdiff_t hwi, uint* puDeviceID);
+uint waveInGetID(HWAVEIN hwi, uint* puDeviceID);
 
 ///The <b>waveInMessage</b> function sends messages to the waveform-audio input device drivers.
 ///Params:
@@ -5931,7 +5917,7 @@ uint waveInGetID(ptrdiff_t hwi, uint* puDeviceID);
 ///    Returns the value returned from the driver.
 ///    
 @DllImport("WINMM")
-uint waveInMessage(ptrdiff_t hwi, uint uMsg, size_t dw1, size_t dw2);
+uint waveInMessage(HWAVEIN hwi, uint uMsg, size_t dw1, size_t dw2);
 
 ///The <b>midiOutGetNumDevs</b> function retrieves the number of MIDI output devices present in the system.
 ///Returns:
@@ -5969,7 +5955,7 @@ uint midiOutGetNumDevs();
 ///    </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiStreamOpen(ptrdiff_t* phms, char* puDeviceID, uint cMidi, size_t dwCallback, size_t dwInstance, 
+uint midiStreamOpen(HMIDISTRM* phms, uint* puDeviceID, uint cMidi, size_t dwCallback, size_t dwInstance, 
                     uint fdwOpen);
 
 ///The <b>midiStreamClose</b> function closes an open MIDI stream.
@@ -5982,7 +5968,7 @@ uint midiStreamOpen(ptrdiff_t* phms, char* puDeviceID, uint cMidi, size_t dwCall
 ///    </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiStreamClose(ptrdiff_t hms);
+uint midiStreamClose(HMIDISTRM hms);
 
 ///The <b>midiStreamProperty</b> function sets or retrieves properties of a MIDI data stream associated with a MIDI
 ///output device.
@@ -6007,7 +5993,7 @@ uint midiStreamClose(ptrdiff_t hms);
 ///    handle or flags parameter is invalid. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiStreamProperty(ptrdiff_t hms, char* lppropdata, uint dwProperty);
+uint midiStreamProperty(HMIDISTRM hms, ubyte* lppropdata, uint dwProperty);
 
 ///The <b>midiStreamPosition</b> function retrieves the current position in a MIDI stream.
 ///Params:
@@ -6023,7 +6009,7 @@ uint midiStreamProperty(ptrdiff_t hms, char* lppropdata, uint dwProperty);
 ///    structure is invalid. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiStreamPosition(ptrdiff_t hms, char* lpmmt, uint cbmmt);
+uint midiStreamPosition(HMIDISTRM hms, MMTIME* lpmmt, uint cbmmt);
 
 ///The <b>midiStreamOut</b> function plays or queues a stream (buffer) of MIDI data to a MIDI output device.
 ///Params:
@@ -6044,7 +6030,7 @@ uint midiStreamPosition(ptrdiff_t hms, char* lpmmt, uint cbmmt);
 ///    specified by <i>lpMidiHdr</i> is invalid. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiStreamOut(ptrdiff_t hms, char* pmh, uint cbmh);
+uint midiStreamOut(HMIDISTRM hms, MIDIHDR* pmh, uint cbmh);
 
 ///The <b>midiStreamPause</b> function pauses playback of a specified MIDI stream.
 ///Params:
@@ -6057,7 +6043,7 @@ uint midiStreamOut(ptrdiff_t hms, char* pmh, uint cbmh);
 ///    </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiStreamPause(ptrdiff_t hms);
+uint midiStreamPause(HMIDISTRM hms);
 
 ///The <b>midiStreamRestart</b> function restarts a paused MIDI stream.
 ///Params:
@@ -6070,7 +6056,7 @@ uint midiStreamPause(ptrdiff_t hms);
 ///    </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiStreamRestart(ptrdiff_t hms);
+uint midiStreamRestart(HMIDISTRM hms);
 
 ///The <b>midiStreamStop</b> function turns off all notes on all MIDI channels for the specified MIDI output device.
 ///Params:
@@ -6083,7 +6069,7 @@ uint midiStreamRestart(ptrdiff_t hms);
 ///    </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiStreamStop(ptrdiff_t hms);
+uint midiStreamStop(HMIDISTRM hms);
 
 ///The <b>midiConnect</b> function connects a MIDI input device to a MIDI thru or output device, or connects a MIDI thru
 ///device to a MIDI output device.
@@ -6100,7 +6086,7 @@ uint midiStreamStop(ptrdiff_t hms);
 ///    width="60%"> Specified device handle is invalid. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiConnect(ptrdiff_t hmi, ptrdiff_t hmo, void* pReserved);
+uint midiConnect(HMIDI hmi, HMIDIOUT hmo, void* pReserved);
 
 ///The <b>midiDisconnect</b> function disconnects a MIDI input device from a MIDI thru or output device, or disconnects
 ///a MIDI thru device from a MIDI output device.
@@ -6115,7 +6101,7 @@ uint midiConnect(ptrdiff_t hmi, ptrdiff_t hmo, void* pReserved);
 ///    </table>
 ///    
 @DllImport("WINMM")
-uint midiDisconnect(ptrdiff_t hmi, ptrdiff_t hmo, void* pReserved);
+uint midiDisconnect(HMIDI hmi, HMIDIOUT hmo, void* pReserved);
 
 ///The <b>midiOutGetDevCaps</b> function queries a specified MIDI output device to determine its capabilities.
 ///Params:
@@ -6138,7 +6124,7 @@ uint midiDisconnect(ptrdiff_t hmi, ptrdiff_t hmo, void* pReserved);
 ///    string description. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiOutGetDevCapsA(size_t uDeviceID, char* pmoc, uint cbmoc);
+uint midiOutGetDevCapsA(size_t uDeviceID, MIDIOUTCAPSA* pmoc, uint cbmoc);
 
 ///The <b>midiOutGetDevCaps</b> function queries a specified MIDI output device to determine its capabilities.
 ///Params:
@@ -6161,7 +6147,7 @@ uint midiOutGetDevCapsA(size_t uDeviceID, char* pmoc, uint cbmoc);
 ///    string description. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiOutGetDevCapsW(size_t uDeviceID, char* pmoc, uint cbmoc);
+uint midiOutGetDevCapsW(size_t uDeviceID, MIDIOUTCAPSW* pmoc, uint cbmoc);
 
 ///The <b>midiOutGetVolume</b> function retrieves the current volume setting of a MIDI output device.
 ///Params:
@@ -6183,7 +6169,7 @@ uint midiOutGetDevCapsW(size_t uDeviceID, char* pmoc, uint cbmoc);
 ///    </table>
 ///    
 @DllImport("WINMM")
-uint midiOutGetVolume(ptrdiff_t hmo, uint* pdwVolume);
+uint midiOutGetVolume(HMIDIOUT hmo, uint* pdwVolume);
 
 ///The <b>midiOutSetVolume</b> function sets the volume of a MIDI output device.
 ///Params:
@@ -6202,7 +6188,7 @@ uint midiOutGetVolume(ptrdiff_t hmo, uint* pdwVolume);
 ///    </td> <td width="60%"> The function is not supported. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiOutSetVolume(ptrdiff_t hmo, uint dwVolume);
+uint midiOutSetVolume(HMIDIOUT hmo, uint dwVolume);
 
 ///The <b>midiOutGetErrorText</b> function retrieves a textual description for an error identified by the specified
 ///error code.
@@ -6218,7 +6204,7 @@ uint midiOutSetVolume(ptrdiff_t hmo, uint dwVolume);
 ///    pointer or structure is invalid. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiOutGetErrorTextA(uint mmrError, const(char)* pszText, uint cchText);
+uint midiOutGetErrorTextA(uint mmrError, PSTR pszText, uint cchText);
 
 ///The <b>midiOutGetErrorText</b> function retrieves a textual description for an error identified by the specified
 ///error code.
@@ -6234,7 +6220,7 @@ uint midiOutGetErrorTextA(uint mmrError, const(char)* pszText, uint cchText);
 ///    pointer or structure is invalid. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiOutGetErrorTextW(uint mmrError, const(wchar)* pszText, uint cchText);
+uint midiOutGetErrorTextW(uint mmrError, PWSTR pszText, uint cchText);
 
 ///The <b>midiOutOpen</b> function opens a MIDI output device for playback.
 ///Params:
@@ -6265,7 +6251,7 @@ uint midiOutGetErrorTextW(uint mmrError, const(wchar)* pszText, uint cchText);
 ///    </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiOutOpen(ptrdiff_t* phmo, uint uDeviceID, size_t dwCallback, size_t dwInstance, uint fdwOpen);
+uint midiOutOpen(HMIDIOUT* phmo, uint uDeviceID, size_t dwCallback, size_t dwInstance, uint fdwOpen);
 
 ///The <b>midiOutClose</b> function closes the specified MIDI output device.
 ///Params:
@@ -6280,7 +6266,7 @@ uint midiOutOpen(ptrdiff_t* phmo, uint uDeviceID, size_t dwCallback, size_t dwIn
 ///    width="60%"> The system is unable to load mapper string description. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiOutClose(ptrdiff_t hmo);
+uint midiOutClose(HMIDIOUT hmo);
 
 ///The <b>midiOutPrepareHeader</b> function prepares a MIDI system-exclusive or stream buffer for output.
 ///Params:
@@ -6300,7 +6286,7 @@ uint midiOutClose(ptrdiff_t hmo);
 ///    </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiOutPrepareHeader(ptrdiff_t hmo, char* pmh, uint cbmh);
+uint midiOutPrepareHeader(HMIDIOUT hmo, MIDIHDR* pmh, uint cbmh);
 
 ///The <b>midiOutUnprepareHeader</b> function cleans up the preparation performed by the midiOutPrepareHeader function.
 ///Params:
@@ -6317,7 +6303,7 @@ uint midiOutPrepareHeader(ptrdiff_t hmo, char* pmh, uint cbmh);
 ///    </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiOutUnprepareHeader(ptrdiff_t hmo, char* pmh, uint cbmh);
+uint midiOutUnprepareHeader(HMIDIOUT hmo, MIDIHDR* pmh, uint cbmh);
 
 ///The <b>midiOutShortMsg</b> function sends a short MIDI message to the specified MIDI output device.
 ///Params:
@@ -6344,7 +6330,7 @@ uint midiOutUnprepareHeader(ptrdiff_t hmo, char* pmh, uint cbmh);
 ///    </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiOutShortMsg(ptrdiff_t hmo, uint dwMsg);
+uint midiOutShortMsg(HMIDIOUT hmo, uint dwMsg);
 
 ///The <b>midiOutLongMsg</b> function sends a system-exclusive MIDI message to the specified MIDI output device.
 ///Params:
@@ -6362,7 +6348,7 @@ uint midiOutShortMsg(ptrdiff_t hmo, uint dwMsg);
 ///    pointer or structure is invalid. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiOutLongMsg(ptrdiff_t hmo, char* pmh, uint cbmh);
+uint midiOutLongMsg(HMIDIOUT hmo, MIDIHDR* pmh, uint cbmh);
 
 ///The <b>midiOutReset</b> function turns off all notes on all MIDI channels for the specified MIDI output device.
 ///Params:
@@ -6374,7 +6360,7 @@ uint midiOutLongMsg(ptrdiff_t hmo, char* pmh, uint cbmh);
 ///    </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiOutReset(ptrdiff_t hmo);
+uint midiOutReset(HMIDIOUT hmo);
 
 ///The <b>midiOutCachePatches</b> function requests that an internal MIDI synthesizer device preload and cache a
 ///specified set of patches.
@@ -6404,7 +6390,7 @@ uint midiOutReset(ptrdiff_t hmo);
 ///    caching. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiOutCachePatches(ptrdiff_t hmo, uint uBank, char* pwpa, uint fuCache);
+uint midiOutCachePatches(HMIDIOUT hmo, uint uBank, ushort* pwpa, uint fuCache);
 
 ///The <b>midiOutCacheDrumPatches</b> function requests that an internal MIDI synthesizer device preload and cache a
 ///specified set of key-based percussion patches.
@@ -6435,7 +6421,7 @@ uint midiOutCachePatches(ptrdiff_t hmo, uint uBank, char* pwpa, uint fuCache);
 ///    caching. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiOutCacheDrumPatches(ptrdiff_t hmo, uint uPatch, char* pwkya, uint fuCache);
+uint midiOutCacheDrumPatches(HMIDIOUT hmo, uint uPatch, ushort* pwkya, uint fuCache);
 
 ///The <b>midiOutGetID</b> function retrieves the device identifier for the given MIDI output device. This function is
 ///supported for backward compatibility. New applications can cast a handle of the device rather than retrieving the
@@ -6452,7 +6438,7 @@ uint midiOutCacheDrumPatches(ptrdiff_t hmo, uint uPatch, char* pwkya, uint fuCac
 ///    width="60%"> Unable to allocate or lock memory. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiOutGetID(ptrdiff_t hmo, uint* puDeviceID);
+uint midiOutGetID(HMIDIOUT hmo, uint* puDeviceID);
 
 ///The <b>midiOutMessage</b> function sends a message to the MIDI device drivers. This function is used only for
 ///driver-specific messages that are not supported by the MIDI API.
@@ -6467,7 +6453,7 @@ uint midiOutGetID(ptrdiff_t hmo, uint* puDeviceID);
 ///    Returns the value returned by the audio device driver.
 ///    
 @DllImport("WINMM")
-uint midiOutMessage(ptrdiff_t hmo, uint uMsg, size_t dw1, size_t dw2);
+uint midiOutMessage(HMIDIOUT hmo, uint uMsg, size_t dw1, size_t dw2);
 
 ///The <b>midiInGetNumDevs</b> function retrieves the number of MIDI input devices in the system.
 ///Returns:
@@ -6496,7 +6482,7 @@ uint midiInGetNumDevs();
 ///    lock memory. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiInGetDevCapsA(size_t uDeviceID, char* pmic, uint cbmic);
+uint midiInGetDevCapsA(size_t uDeviceID, MIDIINCAPSA* pmic, uint cbmic);
 
 ///The <b>midiInGetDevCaps</b> function determines the capabilities of a specified MIDI input device.
 ///Params:
@@ -6517,7 +6503,7 @@ uint midiInGetDevCapsA(size_t uDeviceID, char* pmic, uint cbmic);
 ///    lock memory. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiInGetDevCapsW(size_t uDeviceID, char* pmic, uint cbmic);
+uint midiInGetDevCapsW(size_t uDeviceID, MIDIINCAPSW* pmic, uint cbmic);
 
 ///The <b>midiInGetErrorText</b> function retrieves a textual description for an error identified by the specified error
 ///code.
@@ -6534,7 +6520,7 @@ uint midiInGetDevCapsW(size_t uDeviceID, char* pmic, uint cbmic);
 ///    </td> <td width="60%"> The system is unable to allocate or lock memory. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiInGetErrorTextA(uint mmrError, const(char)* pszText, uint cchText);
+uint midiInGetErrorTextA(uint mmrError, PSTR pszText, uint cchText);
 
 ///The <b>midiInGetErrorText</b> function retrieves a textual description for an error identified by the specified error
 ///code.
@@ -6551,7 +6537,7 @@ uint midiInGetErrorTextA(uint mmrError, const(char)* pszText, uint cchText);
 ///    </td> <td width="60%"> The system is unable to allocate or lock memory. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiInGetErrorTextW(uint mmrError, const(wchar)* pszText, uint cchText);
+uint midiInGetErrorTextW(uint mmrError, PWSTR pszText, uint cchText);
 
 ///The <b>midiInOpen</b> function opens a specified MIDI input device.
 ///Params:
@@ -6585,7 +6571,7 @@ uint midiInGetErrorTextW(uint mmrError, const(wchar)* pszText, uint cchText);
 ///    </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiInOpen(ptrdiff_t* phmi, uint uDeviceID, size_t dwCallback, size_t dwInstance, uint fdwOpen);
+uint midiInOpen(HMIDIIN* phmi, uint uDeviceID, size_t dwCallback, size_t dwInstance, uint fdwOpen);
 
 ///The <b>midiInClose</b> function closes the specified MIDI input device.
 ///Params:
@@ -6600,7 +6586,7 @@ uint midiInOpen(ptrdiff_t* phmi, uint uDeviceID, size_t dwCallback, size_t dwIns
 ///    width="60%"> The system is unable to allocate or lock memory. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiInClose(ptrdiff_t hmi);
+uint midiInClose(HMIDIIN hmi);
 
 ///The <b>midiInPrepareHeader</b> function prepares a buffer for MIDI input.
 ///Params:
@@ -6618,7 +6604,7 @@ uint midiInClose(ptrdiff_t hmi);
 ///    width="60%"> The system is unable to allocate or lock memory. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiInPrepareHeader(ptrdiff_t hmi, char* pmh, uint cbmh);
+uint midiInPrepareHeader(HMIDIIN hmi, MIDIHDR* pmh, uint cbmh);
 
 ///The <b>midiInUnprepareHeader</b> function cleans up the preparation performed by the midiInPrepareHeader function.
 ///Params:
@@ -6635,7 +6621,7 @@ uint midiInPrepareHeader(ptrdiff_t hmi, char* pmh, uint cbmh);
 ///    </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiInUnprepareHeader(ptrdiff_t hmi, char* pmh, uint cbmh);
+uint midiInUnprepareHeader(HMIDIIN hmi, MIDIHDR* pmh, uint cbmh);
 
 ///The <b>midiInAddBuffer</b> function sends an input buffer to a specified opened MIDI input device. This function is
 ///used for system-exclusive messages.
@@ -6655,7 +6641,7 @@ uint midiInUnprepareHeader(ptrdiff_t hmi, char* pmh, uint cbmh);
 ///    </dl> </td> <td width="60%"> The system is unable to allocate or lock memory. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiInAddBuffer(ptrdiff_t hmi, char* pmh, uint cbmh);
+uint midiInAddBuffer(HMIDIIN hmi, MIDIHDR* pmh, uint cbmh);
 
 ///The <b>midiInStart</b> function starts MIDI input on the specified MIDI input device.
 ///Params:
@@ -6667,7 +6653,7 @@ uint midiInAddBuffer(ptrdiff_t hmi, char* pmh, uint cbmh);
 ///    </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiInStart(ptrdiff_t hmi);
+uint midiInStart(HMIDIIN hmi);
 
 ///The <b>midiInStop</b> function stops MIDI input on the specified MIDI input device.
 ///Params:
@@ -6679,7 +6665,7 @@ uint midiInStart(ptrdiff_t hmi);
 ///    </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiInStop(ptrdiff_t hmi);
+uint midiInStop(HMIDIIN hmi);
 
 ///The <b>midiInReset</b> function stops input on a given MIDI input device.
 ///Params:
@@ -6691,7 +6677,7 @@ uint midiInStop(ptrdiff_t hmi);
 ///    </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiInReset(ptrdiff_t hmi);
+uint midiInReset(HMIDIIN hmi);
 
 ///The <b>midiInGetID</b> function gets the device identifier for the given MIDI input device. This function is
 ///supported for backward compatibility. New applications can cast a handle of the device rather than retrieving the
@@ -6708,7 +6694,7 @@ uint midiInReset(ptrdiff_t hmi);
 ///    width="60%"> Unable to allocate or lock memory. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint midiInGetID(ptrdiff_t hmi, uint* puDeviceID);
+uint midiInGetID(HMIDIIN hmi, uint* puDeviceID);
 
 ///The <b>midiInMessage</b> function sends a message to the MIDI device driver.
 ///Params:
@@ -6722,7 +6708,7 @@ uint midiInGetID(ptrdiff_t hmi, uint* puDeviceID);
 ///    Returns the value returned by the audio device driver.
 ///    
 @DllImport("WINMM")
-uint midiInMessage(ptrdiff_t hmi, uint uMsg, size_t dw1, size_t dw2);
+uint midiInMessage(HMIDIIN hmi, uint uMsg, size_t dw1, size_t dw2);
 
 ///The <b>auxGetNumDevs</b> function retrieves the number of auxiliary output devices present in the system.
 ///Returns:
@@ -6746,7 +6732,7 @@ uint auxGetNumDevs();
 ///    </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint auxGetDevCapsA(size_t uDeviceID, char* pac, uint cbac);
+uint auxGetDevCapsA(size_t uDeviceID, AUXCAPSA* pac, uint cbac);
 
 ///The <b>auxGetDevCaps</b> function retrieves the capabilities of a given auxiliary output device.
 ///Params:
@@ -6763,7 +6749,7 @@ uint auxGetDevCapsA(size_t uDeviceID, char* pac, uint cbac);
 ///    </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint auxGetDevCapsW(size_t uDeviceID, char* pac, uint cbac);
+uint auxGetDevCapsW(size_t uDeviceID, AUXCAPSW* pac, uint cbac);
 
 ///The <b>auxSetVolume</b> function sets the volume of the specified auxiliary output device.
 ///Params:
@@ -6835,7 +6821,7 @@ uint mixerGetNumDevs();
 ///    </dl> </td> <td width="60%"> One or more parameters are invalid. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint mixerGetDevCapsA(size_t uMxId, char* pmxcaps, uint cbmxcaps);
+uint mixerGetDevCapsA(size_t uMxId, MIXERCAPSA* pmxcaps, uint cbmxcaps);
 
 ///The <b>mixerGetDevCaps</b> function queries a specified mixer device to determine its capabilities.
 ///Params:
@@ -6851,7 +6837,7 @@ uint mixerGetDevCapsA(size_t uMxId, char* pmxcaps, uint cbmxcaps);
 ///    </dl> </td> <td width="60%"> One or more parameters are invalid. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint mixerGetDevCapsW(size_t uMxId, char* pmxcaps, uint cbmxcaps);
+uint mixerGetDevCapsW(size_t uMxId, MIXERCAPSW* pmxcaps, uint cbmxcaps);
 
 ///The <b>mixerOpen</b> function opens a specified mixer device and ensures that the device will not be removed until
 ///the application closes the handle.
@@ -6918,7 +6904,7 @@ uint mixerOpen(ptrdiff_t* phmx, uint uMxId, size_t dwCallback, size_t dwInstance
 ///    </table>
 ///    
 @DllImport("WINMM")
-uint mixerClose(ptrdiff_t hmx);
+uint mixerClose(HMIXER hmx);
 
 ///The <b>mixerMessage</b> function sends a custom mixer driver message directly to a mixer driver.
 ///Params:
@@ -6939,7 +6925,7 @@ uint mixerClose(ptrdiff_t hmx);
 ///    width="60%"> The mixer device did not process the message. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint mixerMessage(ptrdiff_t hmx, uint uMsg, size_t dwParam1, size_t dwParam2);
+uint mixerMessage(HMIXER hmx, uint uMsg, size_t dwParam1, size_t dwParam2);
 
 ///The <b>mixerGetLineInfo</b> function retrieves information about a specific line of a mixer device.
 ///Params:
@@ -7012,7 +6998,7 @@ uint mixerMessage(ptrdiff_t hmx, uint uMsg, size_t dwParam1, size_t dwParam2);
 ///    specified by <i>hmxobj</i>. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint mixerGetLineInfoA(ptrdiff_t hmxobj, MIXERLINEA* pmxl, uint fdwInfo);
+uint mixerGetLineInfoA(HMIXEROBJ hmxobj, MIXERLINEA* pmxl, uint fdwInfo);
 
 ///The <b>mixerGetLineInfo</b> function retrieves information about a specific line of a mixer device.
 ///Params:
@@ -7085,7 +7071,7 @@ uint mixerGetLineInfoA(ptrdiff_t hmxobj, MIXERLINEA* pmxl, uint fdwInfo);
 ///    specified by <i>hmxobj</i>. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint mixerGetLineInfoW(ptrdiff_t hmxobj, MIXERLINEW* pmxl, uint fdwInfo);
+uint mixerGetLineInfoW(HMIXEROBJ hmxobj, MIXERLINEW* pmxl, uint fdwInfo);
 
 ///The <b>mixerGetID</b> function retrieves the device identifier for a mixer device associated with a specified device
 ///handle.
@@ -7129,7 +7115,7 @@ uint mixerGetLineInfoW(ptrdiff_t hmxobj, MIXERLINEW* pmxl, uint fdwInfo);
 ///    </table>
 ///    
 @DllImport("WINMM")
-uint mixerGetID(ptrdiff_t hmxobj, uint* puMxId, uint fdwId);
+uint mixerGetID(HMIXEROBJ hmxobj, uint* puMxId, uint fdwId);
 
 ///The <b>mixerGetLineControls</b> function retrieves one or more controls associated with an audio line.
 ///Params:
@@ -7197,7 +7183,7 @@ uint mixerGetID(ptrdiff_t hmxobj, uint* puMxId, uint fdwId);
 ///    available for the object specified by <i>hmxobj</i>. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint mixerGetLineControlsA(ptrdiff_t hmxobj, MIXERLINECONTROLSA* pmxlc, uint fdwControls);
+uint mixerGetLineControlsA(HMIXEROBJ hmxobj, MIXERLINECONTROLSA* pmxlc, uint fdwControls);
 
 ///The <b>mixerGetLineControls</b> function retrieves one or more controls associated with an audio line.
 ///Params:
@@ -7265,7 +7251,7 @@ uint mixerGetLineControlsA(ptrdiff_t hmxobj, MIXERLINECONTROLSA* pmxlc, uint fdw
 ///    available for the object specified by <i>hmxobj</i>. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint mixerGetLineControlsW(ptrdiff_t hmxobj, MIXERLINECONTROLSW* pmxlc, uint fdwControls);
+uint mixerGetLineControlsW(HMIXEROBJ hmxobj, MIXERLINECONTROLSW* pmxlc, uint fdwControls);
 
 ///The <b>mixerGetControlDetails</b> function retrieves details about a single control associated with an audio line.
 ///Params:
@@ -7314,7 +7300,7 @@ uint mixerGetLineControlsW(ptrdiff_t hmxobj, MIXERLINECONTROLSW* pmxlc, uint fdw
 ///    specified by <i>hmxobj</i>. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint mixerGetControlDetailsA(ptrdiff_t hmxobj, MIXERCONTROLDETAILS* pmxcd, uint fdwDetails);
+uint mixerGetControlDetailsA(HMIXEROBJ hmxobj, MIXERCONTROLDETAILS* pmxcd, uint fdwDetails);
 
 ///The <b>mixerGetControlDetails</b> function retrieves details about a single control associated with an audio line.
 ///Params:
@@ -7363,7 +7349,7 @@ uint mixerGetControlDetailsA(ptrdiff_t hmxobj, MIXERCONTROLDETAILS* pmxcd, uint 
 ///    specified by <i>hmxobj</i>. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint mixerGetControlDetailsW(ptrdiff_t hmxobj, MIXERCONTROLDETAILS* pmxcd, uint fdwDetails);
+uint mixerGetControlDetailsW(HMIXEROBJ hmxobj, MIXERCONTROLDETAILS* pmxcd, uint fdwDetails);
 
 ///The <b>mixerSetControlDetails</b> function sets properties of a single control associated with an audio line.
 ///Params:
@@ -7414,7 +7400,7 @@ uint mixerGetControlDetailsW(ptrdiff_t hmxobj, MIXERCONTROLDETAILS* pmxcd, uint 
 ///    specified by <i>hmxobj</i>. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint mixerSetControlDetails(ptrdiff_t hmxobj, MIXERCONTROLDETAILS* pmxcd, uint fdwDetails);
+uint mixerSetControlDetails(HMIXEROBJ hmxobj, MIXERCONTROLDETAILS* pmxcd, uint fdwDetails);
 
 ///The <b>timeGetSystemTime</b> function retrieves the system time, in milliseconds. The system time is the time elapsed
 ///since Windows was started. This function works very much like the timeGetTime function. See <b>timeGetTime</b> for
@@ -7426,7 +7412,7 @@ uint mixerSetControlDetails(ptrdiff_t hmxobj, MIXERCONTROLDETAILS* pmxcd, uint f
 ///    If successful, returns <b>TIMERR_NOERROR</b>. Otherwise, returns an error code.
 ///    
 @DllImport("WINMM")
-uint timeGetSystemTime(char* pmmt, uint cbmmt);
+uint timeGetSystemTime(MMTIME* pmmt, uint cbmmt);
 
 ///The <b>timeGetTime</b> function retrieves the system time, in milliseconds. The system time is the time elapsed since
 ///Windows was started.
@@ -7449,7 +7435,7 @@ uint timeGetTime();
 ///    <i>cbtc</i> parameter is invalid, or some other error occurred. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint timeGetDevCaps(char* ptc, uint cbtc);
+uint timeGetDevCaps(TIMECAPS* ptc, uint cbtc);
 
 ///The <b>timeBeginPeriod</b> function requests a minimum resolution for periodic timers.
 ///Params:
@@ -7501,7 +7487,7 @@ uint joyGetPosEx(uint uJoyID, JOYINFOEX* pji);
 uint joyGetNumDevs();
 
 @DllImport("WINMM")
-uint joyGetDevCapsA(size_t uJoyID, char* pjc, uint cbjc);
+uint joyGetDevCapsA(size_t uJoyID, JOYCAPSA* pjc, uint cbjc);
 
 ///The <b>joyGetDevCaps</b> function queries a joystick to determine its capabilities.
 ///Params:
@@ -7517,7 +7503,7 @@ uint joyGetDevCapsA(size_t uJoyID, char* pjc, uint cbjc);
 ///    </td> <td width="60%"> An invalid parameter was passed. </td> </tr> </table>
 ///    
 @DllImport("WINMM")
-uint joyGetDevCapsW(size_t uJoyID, char* pjc, uint cbjc);
+uint joyGetDevCapsW(size_t uJoyID, JOYCAPSW* pjc, uint cbjc);
 
 ///The <b>joyGetPos</b> function queries a joystick for its position and button status.
 ///Params:
@@ -8852,7 +8838,7 @@ BOOL ICInfo(uint fccType, uint fccHandler, ICINFO* lpicinfo);
 ///    Returns ICERR_OK if successful or an error otherwise.
 ///    
 @DllImport("MSVFW32")
-BOOL ICInstall(uint fccType, uint fccHandler, LPARAM lParam, const(char)* szDesc, uint wFlags);
+BOOL ICInstall(uint fccType, uint fccHandler, LPARAM lParam, PSTR szDesc, uint wFlags);
 
 ///The <b>ICRemove</b> function removes an installed compressor.
 ///Params:
@@ -8876,7 +8862,7 @@ BOOL ICRemove(uint fccType, uint fccHandler, uint wFlags);
 ///    Returns the number of bytes copied into the structure or zero if an error occurs.
 ///    
 @DllImport("MSVFW32")
-LRESULT ICGetInfo(HIC__* hic, char* picinfo, uint cb);
+LRESULT ICGetInfo(HIC__* hic, ICINFO* picinfo, uint cb);
 
 ///The <b>ICOpen</b> function opens a compressor or decompressor.
 ///Params:
@@ -8963,9 +8949,9 @@ LRESULT ICSendMessage(HIC__* hic, uint msg, size_t dw1, size_t dw2);
 ///    Returns <b>ICERR_OK</b> if successful or an error otherwise.
 ///    
 @DllImport("MSVFW32")
-uint ICCompress(HIC__* hic, uint dwFlags, BITMAPINFOHEADER* lpbiOutput, char* lpData, BITMAPINFOHEADER* lpbiInput, 
-                char* lpBits, uint* lpckid, uint* lpdwFlags, int lFrameNum, uint dwFrameSize, uint dwQuality, 
-                BITMAPINFOHEADER* lpbiPrev, char* lpPrev);
+uint ICCompress(HIC__* hic, uint dwFlags, BITMAPINFOHEADER* lpbiOutput, void* lpData, BITMAPINFOHEADER* lpbiInput, 
+                void* lpBits, uint* lpckid, uint* lpdwFlags, int lFrameNum, uint dwFrameSize, uint dwQuality, 
+                BITMAPINFOHEADER* lpbiPrev, void* lpPrev);
 
 ///The <b>ICDecompress</b> function decompresses a single video frame.
 ///Params:
@@ -8986,8 +8972,8 @@ uint ICCompress(HIC__* hic, uint dwFlags, BITMAPINFOHEADER* lpbiOutput, char* lp
 ///    Returns ICERR_OK if successful or an error otherwise.
 ///    
 @DllImport("MSVFW32")
-uint ICDecompress(HIC__* hic, uint dwFlags, BITMAPINFOHEADER* lpbiFormat, char* lpData, BITMAPINFOHEADER* lpbi, 
-                  char* lpBits);
+uint ICDecompress(HIC__* hic, uint dwFlags, BITMAPINFOHEADER* lpbiFormat, void* lpData, BITMAPINFOHEADER* lpbi, 
+                  void* lpBits);
 
 ///The <b>ICDrawBegin</b> function initializes the renderer and prepares the drawing destination for drawing.
 ///Params:
@@ -9045,7 +9031,7 @@ uint ICDrawBegin(HIC__* hic, uint dwFlags, HPALETTE hpal, HWND hwnd, HDC hdc, in
 ///    Returns<b> ICERR_OK</b> if successful or an error otherwise.
 ///    
 @DllImport("MSVFW32")
-uint ICDraw(HIC__* hic, uint dwFlags, void* lpFormat, char* lpData, uint cbData, int lTime);
+uint ICDraw(HIC__* hic, uint dwFlags, void* lpFormat, void* lpData, uint cbData, int lTime);
 
 ///The <b>ICLocate</b> function finds a compressor or decompressor that can handle images with the specified formats, or
 ///finds a driver that can decompress an image with a specified format directly to hardware.
@@ -9160,7 +9146,7 @@ HANDLE ICImageDecompress(HIC__* hic, uint uiFlags, BITMAPINFO* lpbiIn, void* lpB
 ///    presses CANCEL.
 ///    
 @DllImport("MSVFW32")
-BOOL ICCompressorChoose(HWND hwnd, uint uiFlags, void* pvIn, void* lpData, COMPVARS* pc, const(char)* lpszTitle);
+BOOL ICCompressorChoose(HWND hwnd, uint uiFlags, void* pvIn, void* lpData, COMPVARS* pc, PSTR lpszTitle);
 
 ///The <b>ICSeqCompressFrameStart</b> function initializes resources for compressing a sequence of frames using the
 ///ICSeqCompressFrame function.
@@ -9196,7 +9182,7 @@ void ICSeqCompressFrameEnd(COMPVARS* pc);
 ///    Returns the address of the compressed bits if successful or <b>NULL</b> otherwise.
 ///    
 @DllImport("MSVFW32")
-void* ICSeqCompressFrame(COMPVARS* pc, uint uiFlags, void* lpBits, int* pfKey, int* plSize);
+void* ICSeqCompressFrame(COMPVARS* pc, uint uiFlags, void* lpBits, BOOL* pfKey, int* plSize);
 
 ///The <b>ICCompressorFree</b> function frees the resources in the COMPVARS structure used by other VCM functions.
 ///Params:
@@ -9266,7 +9252,7 @@ BOOL DrawDibSetPalette(ptrdiff_t hdd, HPALETTE hpal);
 ///    Returns <b>TRUE</b> if successful or <b>FALSE</b> otherwise.
 ///    
 @DllImport("MSVFW32")
-BOOL DrawDibChangePalette(ptrdiff_t hdd, int iStart, int iLen, char* lppe);
+BOOL DrawDibChangePalette(ptrdiff_t hdd, int iStart, int iLen, PALETTEENTRY* lppe);
 
 ///The <b>DrawDibRealize</b> function realizes the palette of the DrawDib DC for use with the specified DC.
 ///Params:
@@ -9504,7 +9490,7 @@ uint AVIFileRelease(IAVIFile pfile);
 ///    </table>
 ///    
 @DllImport("AVIFIL32")
-HRESULT AVIFileOpenA(IAVIFile* ppfile, const(char)* szFile, uint uMode, GUID* lpHandler);
+HRESULT AVIFileOpenA(IAVIFile* ppfile, const(PSTR) szFile, uint uMode, GUID* lpHandler);
 
 ///The <b>AVIFileOpen</b> function opens an AVI file and returns the address of a file interface used to access it. The
 ///AVIFile library maintains a count of the number of times a file is opened, but not the number of times it was
@@ -9543,7 +9529,7 @@ HRESULT AVIFileOpenA(IAVIFile* ppfile, const(char)* szFile, uint uMode, GUID* lp
 ///    </table>
 ///    
 @DllImport("AVIFIL32")
-HRESULT AVIFileOpenW(IAVIFile* ppfile, const(wchar)* szFile, uint uMode, GUID* lpHandler);
+HRESULT AVIFileOpenW(IAVIFile* ppfile, const(PWSTR) szFile, uint uMode, GUID* lpHandler);
 
 ///The <b>AVIFileInfo</b> function obtains information about an AVI file.
 ///Params:
@@ -9555,7 +9541,7 @@ HRESULT AVIFileOpenW(IAVIFile* ppfile, const(wchar)* szFile, uint uMode, GUID* l
 ///    Returns zero if successful or an error otherwise.
 ///    
 @DllImport("AVIFIL32")
-HRESULT AVIFileInfoW(IAVIFile pfile, char* pfi, int lSize);
+HRESULT AVIFileInfoW(IAVIFile pfile, AVIFILEINFOW* pfi, int lSize);
 
 ///The <b>AVIFileInfo</b> function obtains information about an AVI file.
 ///Params:
@@ -9567,7 +9553,7 @@ HRESULT AVIFileInfoW(IAVIFile pfile, char* pfi, int lSize);
 ///    Returns zero if successful or an error otherwise.
 ///    
 @DllImport("AVIFIL32")
-HRESULT AVIFileInfoA(IAVIFile pfile, char* pfi, int lSize);
+HRESULT AVIFileInfoA(IAVIFile pfile, AVIFILEINFOA* pfi, int lSize);
 
 ///The <b>AVIFileGetStream</b> function returns the address of a stream interface that is associated with a specified
 ///AVI file.
@@ -9630,7 +9616,7 @@ HRESULT AVIFileCreateStreamA(IAVIFile pfile, IAVIStream* ppavi, AVISTREAMINFOA* 
 ///    code AVIERR_READONLY is returned.
 ///    
 @DllImport("AVIFIL32")
-HRESULT AVIFileWriteData(IAVIFile pfile, uint ckid, char* lpData, int cbData);
+HRESULT AVIFileWriteData(IAVIFile pfile, uint ckid, void* lpData, int cbData);
 
 ///The <b>AVIFileReadData</b> function reads optional header data that applies to the entire file, such as author or
 ///copyright information.
@@ -9645,7 +9631,7 @@ HRESULT AVIFileWriteData(IAVIFile pfile, uint ckid, char* lpData, int cbData);
 ///    requested chunk identifier does not exist.
 ///    
 @DllImport("AVIFIL32")
-HRESULT AVIFileReadData(IAVIFile pfile, uint ckid, char* lpData, int* lpcbData);
+HRESULT AVIFileReadData(IAVIFile pfile, uint ckid, void* lpData, int* lpcbData);
 
 ///The <b>AVIFileEndRecord</b> function marks the end of a record when writing an interleaved file that uses a 1:1
 ///interleave factor of video to audio data. (Each frame of video is interspersed with an equivalent amount of audio
@@ -9688,7 +9674,7 @@ uint AVIStreamRelease(IAVIStream pavi);
 ///    interface.
 ///    
 @DllImport("AVIFIL32")
-HRESULT AVIStreamInfoW(IAVIStream pavi, char* psi, int lSize);
+HRESULT AVIStreamInfoW(IAVIStream pavi, AVISTREAMINFOW* psi, int lSize);
 
 ///The <b>AVIStreamInfo</b> function obtains stream header information.
 ///Params:
@@ -9700,7 +9686,7 @@ HRESULT AVIStreamInfoW(IAVIStream pavi, char* psi, int lSize);
 ///    interface.
 ///    
 @DllImport("AVIFIL32")
-HRESULT AVIStreamInfoA(IAVIStream pavi, char* psi, int lSize);
+HRESULT AVIStreamInfoA(IAVIStream pavi, AVISTREAMINFOA* psi, int lSize);
 
 ///The <b>AVIStreamFindSample</b> function returns the position of a sample (key frame, nonempty frame, or a frame
 ///containing a format change) relative to the specified position. This function supersedes the obsolete
@@ -9739,7 +9725,7 @@ int AVIStreamFindSample(IAVIStream pavi, int lPos, int lFlags);
 ///    interface.
 ///    
 @DllImport("AVIFIL32")
-HRESULT AVIStreamReadFormat(IAVIStream pavi, int lPos, char* lpFormat, int* lpcbFormat);
+HRESULT AVIStreamReadFormat(IAVIStream pavi, int lPos, void* lpFormat, int* lpcbFormat);
 
 ///The <b>AVIStreamSetFormat</b> function sets the format of a stream at the specified position.
 ///Params:
@@ -9751,7 +9737,7 @@ HRESULT AVIStreamReadFormat(IAVIStream pavi, int lPos, char* lpFormat, int* lpcb
 ///    Returns zero if successful or an error otherwise.
 ///    
 @DllImport("AVIFIL32")
-HRESULT AVIStreamSetFormat(IAVIStream pavi, int lPos, char* lpFormat, int cbFormat);
+HRESULT AVIStreamSetFormat(IAVIStream pavi, int lPos, void* lpFormat, int cbFormat);
 
 ///The <b>AVIStreamReadData</b> function reads optional header data from a stream.
 ///Params:
@@ -9765,7 +9751,7 @@ HRESULT AVIStreamSetFormat(IAVIStream pavi, int lPos, char* lpFormat, int cbForm
 ///    find any data with the specified chunk identifier.
 ///    
 @DllImport("AVIFIL32")
-HRESULT AVIStreamReadData(IAVIStream pavi, uint fcc, char* lp, int* lpcb);
+HRESULT AVIStreamReadData(IAVIStream pavi, uint fcc, void* lp, int* lpcb);
 
 ///The <b>AVIStreamWriteData</b> function writes optional header information to the stream.
 ///Params:
@@ -9778,7 +9764,7 @@ HRESULT AVIStreamReadData(IAVIStream pavi, uint fcc, char* lp, int* lpcb);
 ///    without write access.
 ///    
 @DllImport("AVIFIL32")
-HRESULT AVIStreamWriteData(IAVIStream pavi, uint fcc, char* lp, int cb);
+HRESULT AVIStreamWriteData(IAVIStream pavi, uint fcc, void* lp, int cb);
 
 ///The <b>AVIStreamRead</b> function reads audio, video or other data from a stream according to the stream type.
 ///Params:
@@ -9801,7 +9787,7 @@ HRESULT AVIStreamWriteData(IAVIStream pavi, uint fcc, char* lp, int cb);
 ///    </dl> </td> <td width="60%"> A disk error occurred while reading the file. </td> </tr> </table>
 ///    
 @DllImport("AVIFIL32")
-HRESULT AVIStreamRead(IAVIStream pavi, int lStart, int lSamples, char* lpBuffer, int cbBuffer, int* plBytes, 
+HRESULT AVIStreamRead(IAVIStream pavi, int lStart, int lSamples, void* lpBuffer, int cbBuffer, int* plBytes, 
                       int* plSamples);
 
 ///The <b>AVIStreamWrite</b> function writes data to a stream.
@@ -9821,7 +9807,7 @@ HRESULT AVIStreamRead(IAVIStream pavi, int lStart, int lSamples, char* lpBuffer,
 ///    Returns zero if successful or an error otherwise.
 ///    
 @DllImport("AVIFIL32")
-HRESULT AVIStreamWrite(IAVIStream pavi, int lStart, int lSamples, char* lpBuffer, int cbBuffer, uint dwFlags, 
+HRESULT AVIStreamWrite(IAVIStream pavi, int lStart, int lSamples, void* lpBuffer, int cbBuffer, uint dwFlags, 
                        int* plSampWritten, int* plBytesWritten);
 
 ///The <b>AVIStreamStart</b> function returns the starting sample number for the stream.
@@ -9940,7 +9926,7 @@ HRESULT AVIStreamGetFrameClose(IGetFrame pg);
 ///    Returns zero if successful or an error otherwise.
 ///    
 @DllImport("AVIFIL32")
-HRESULT AVIStreamOpenFromFileA(IAVIStream* ppavi, const(char)* szFile, uint fccType, int lParam, uint mode, 
+HRESULT AVIStreamOpenFromFileA(IAVIStream* ppavi, const(PSTR) szFile, uint fccType, int lParam, uint mode, 
                                GUID* pclsidHandler);
 
 ///The <b>AVIStreamOpenFromFile</b> function opens a single stream from a file.
@@ -9963,7 +9949,7 @@ HRESULT AVIStreamOpenFromFileA(IAVIStream* ppavi, const(char)* szFile, uint fccT
 ///    Returns zero if successful or an error otherwise.
 ///    
 @DllImport("AVIFIL32")
-HRESULT AVIStreamOpenFromFileW(IAVIStream* ppavi, const(wchar)* szFile, uint fccType, int lParam, uint mode, 
+HRESULT AVIStreamOpenFromFileW(IAVIStream* ppavi, const(PWSTR) szFile, uint fccType, int lParam, uint mode, 
                                GUID* pclsidHandler);
 
 ///The <b>AVIStreamCreate</b> function creates a stream not associated with any file.
@@ -10018,7 +10004,7 @@ HRESULT AVIMakeCompressedStream(IAVIStream* ppsCompressed, IAVIStream ppsSource,
 ///    Returns AVIERR_OK if successful or an error otherwise.
 ///    
 @DllImport("AVIFIL32")
-HRESULT AVISaveA(const(char)* szFile, GUID* pclsidHandler, AVISAVECALLBACK lpfnCallback, int nStreams, 
+HRESULT AVISaveA(const(PSTR) szFile, GUID* pclsidHandler, AVISAVECALLBACK lpfnCallback, int nStreams, 
                  IAVIStream pfile, AVICOMPRESSOPTIONS* lpOptions);
 
 ///The <b>AVISaveV</b> function builds a file by combining data streams from other files or from memory.
@@ -10035,8 +10021,8 @@ HRESULT AVISaveA(const(char)* szFile, GUID* pclsidHandler, AVISAVECALLBACK lpfnC
 ///    Returns AVIERR_OK if successful or an error otherwise.
 ///    
 @DllImport("AVIFIL32")
-HRESULT AVISaveVA(const(char)* szFile, GUID* pclsidHandler, AVISAVECALLBACK lpfnCallback, int nStreams, 
-                  char* ppavi, char* plpOptions);
+HRESULT AVISaveVA(const(PSTR) szFile, GUID* pclsidHandler, AVISAVECALLBACK lpfnCallback, int nStreams, 
+                  IAVIStream* ppavi, AVICOMPRESSOPTIONS** plpOptions);
 
 ///The <b>AVISave</b> function builds a file by combining data streams from other files or from memory.
 ///Params:
@@ -10055,7 +10041,7 @@ HRESULT AVISaveVA(const(char)* szFile, GUID* pclsidHandler, AVISAVECALLBACK lpfn
 ///    Returns AVIERR_OK if successful or an error otherwise.
 ///    
 @DllImport("AVIFIL32")
-HRESULT AVISaveW(const(wchar)* szFile, GUID* pclsidHandler, AVISAVECALLBACK lpfnCallback, int nStreams, 
+HRESULT AVISaveW(const(PWSTR) szFile, GUID* pclsidHandler, AVISAVECALLBACK lpfnCallback, int nStreams, 
                  IAVIStream pfile, AVICOMPRESSOPTIONS* lpOptions);
 
 ///The <b>AVISaveV</b> function builds a file by combining data streams from other files or from memory.
@@ -10072,8 +10058,8 @@ HRESULT AVISaveW(const(wchar)* szFile, GUID* pclsidHandler, AVISAVECALLBACK lpfn
 ///    Returns AVIERR_OK if successful or an error otherwise.
 ///    
 @DllImport("AVIFIL32")
-HRESULT AVISaveVW(const(wchar)* szFile, GUID* pclsidHandler, AVISAVECALLBACK lpfnCallback, int nStreams, 
-                  char* ppavi, char* plpOptions);
+HRESULT AVISaveVW(const(PWSTR) szFile, GUID* pclsidHandler, AVISAVECALLBACK lpfnCallback, int nStreams, 
+                  IAVIStream* ppavi, AVICOMPRESSOPTIONS** plpOptions);
 
 ///The <b>AVISaveOptions</b> function retrieves the save options for a file and returns them in a buffer.
 ///Params:
@@ -10094,7 +10080,7 @@ HRESULT AVISaveVW(const(wchar)* szFile, GUID* pclsidHandler, AVISAVECALLBACK lpf
 ///    Returns <b>TRUE</b> if the user pressed OK, <b>FALSE</b> for CANCEL, or an error otherwise.
 ///    
 @DllImport("AVIFIL32")
-ptrdiff_t AVISaveOptions(HWND hwnd, uint uiFlags, int nStreams, char* ppavi, char* plpOptions);
+ptrdiff_t AVISaveOptions(HWND hwnd, uint uiFlags, int nStreams, IAVIStream* ppavi, AVICOMPRESSOPTIONS** plpOptions);
 
 ///The <b>AVISaveOptionsFree</b> function frees the resources allocated by the AVISaveOptions function.
 ///Params:
@@ -10105,7 +10091,7 @@ ptrdiff_t AVISaveOptions(HWND hwnd, uint uiFlags, int nStreams, char* ppavi, cha
 ///    Returns AVIERR_OK.
 ///    
 @DllImport("AVIFIL32")
-HRESULT AVISaveOptionsFree(int nStreams, char* plpOptions);
+HRESULT AVISaveOptionsFree(int nStreams, AVICOMPRESSOPTIONS** plpOptions);
 
 ///The <b>AVIBuildFilter</b> function builds a filter specification that is subsequently used by the GetOpenFileName or
 ///GetSaveFileName function.
@@ -10122,7 +10108,7 @@ HRESULT AVISaveOptionsFree(int nStreams, char* plpOptions);
 ///    enough memory to complete the read operation. </td> </tr> </table>
 ///    
 @DllImport("AVIFIL32")
-HRESULT AVIBuildFilterW(const(wchar)* lpszFilter, int cbFilter, BOOL fSaving);
+HRESULT AVIBuildFilterW(PWSTR lpszFilter, int cbFilter, BOOL fSaving);
 
 ///The <b>AVIBuildFilter</b> function builds a filter specification that is subsequently used by the GetOpenFileName or
 ///GetSaveFileName function.
@@ -10139,7 +10125,7 @@ HRESULT AVIBuildFilterW(const(wchar)* lpszFilter, int cbFilter, BOOL fSaving);
 ///    enough memory to complete the read operation. </td> </tr> </table>
 ///    
 @DllImport("AVIFIL32")
-HRESULT AVIBuildFilterA(const(char)* lpszFilter, int cbFilter, BOOL fSaving);
+HRESULT AVIBuildFilterA(PSTR lpszFilter, int cbFilter, BOOL fSaving);
 
 ///The <b>AVIMakeFileFromStreams</b> function constructs an AVIFile interface pointer from separate streams.
 ///Params:
@@ -10150,7 +10136,7 @@ HRESULT AVIBuildFilterA(const(char)* lpszFilter, int cbFilter, BOOL fSaving);
 ///    Returns zero if successful or an error otherwise.
 ///    
 @DllImport("AVIFIL32")
-HRESULT AVIMakeFileFromStreams(IAVIFile* ppfile, int nStreams, char* papStreams);
+HRESULT AVIMakeFileFromStreams(IAVIFile* ppfile, int nStreams, IAVIStream* papStreams);
 
 ///The <b>AVIMakeStreamFromClipboard</b> function creates an editable stream from stream data on the clipboard.
 ///Params:
@@ -10259,7 +10245,7 @@ HRESULT EditStreamClone(IAVIStream pavi, IAVIStream* ppResult);
 ///    Returns zero if successful or an error otherwise.
 ///    
 @DllImport("AVIFIL32")
-HRESULT EditStreamSetNameA(IAVIStream pavi, const(char)* lpszName);
+HRESULT EditStreamSetNameA(IAVIStream pavi, const(PSTR) lpszName);
 
 ///The <b>EditStreamSetName</b> function assigns a descriptive string to a stream.
 ///Params:
@@ -10269,7 +10255,7 @@ HRESULT EditStreamSetNameA(IAVIStream pavi, const(char)* lpszName);
 ///    Returns zero if successful or an error otherwise.
 ///    
 @DllImport("AVIFIL32")
-HRESULT EditStreamSetNameW(IAVIStream pavi, const(wchar)* lpszName);
+HRESULT EditStreamSetNameW(IAVIStream pavi, const(PWSTR) lpszName);
 
 ///The <b>EditStreamSetInfo</b> function changes characteristics of an editable stream.
 ///Params:
@@ -10280,7 +10266,7 @@ HRESULT EditStreamSetNameW(IAVIStream pavi, const(wchar)* lpszName);
 ///    Returns zero if successful or an error otherwise.
 ///    
 @DllImport("AVIFIL32")
-HRESULT EditStreamSetInfoW(IAVIStream pavi, char* lpInfo, int cbInfo);
+HRESULT EditStreamSetInfoW(IAVIStream pavi, AVISTREAMINFOW* lpInfo, int cbInfo);
 
 ///The <b>EditStreamSetInfo</b> function changes characteristics of an editable stream.
 ///Params:
@@ -10291,7 +10277,7 @@ HRESULT EditStreamSetInfoW(IAVIStream pavi, char* lpInfo, int cbInfo);
 ///    Returns zero if successful or an error otherwise.
 ///    
 @DllImport("AVIFIL32")
-HRESULT EditStreamSetInfoA(IAVIStream pavi, char* lpInfo, int cbInfo);
+HRESULT EditStreamSetInfoA(IAVIStream pavi, AVISTREAMINFOA* lpInfo, int cbInfo);
 
 ///The <b>MCIWndCreate</b> function registers the MCIWnd window class and creates an MCIWnd window for using MCI
 ///services. <b>MCIWndCreate</b> can also open an MCI device or file (such as an AVI file) and associate it with the
@@ -10333,7 +10319,7 @@ HRESULT EditStreamSetInfoA(IAVIStream pavi, char* lpInfo, int cbInfo);
 ///    Returns the handle to an MCI window if successful or zero otherwise.
 ///    
 @DllImport("MSVFW32")
-HWND MCIWndCreateA(HWND hwndParent, HINSTANCE hInstance, uint dwStyle, const(char)* szFile);
+HWND MCIWndCreateA(HWND hwndParent, HINSTANCE hInstance, uint dwStyle, const(PSTR) szFile);
 
 ///The <b>MCIWndCreate</b> function registers the MCIWnd window class and creates an MCIWnd window for using MCI
 ///services. <b>MCIWndCreate</b> can also open an MCI device or file (such as an AVI file) and associate it with the
@@ -10375,7 +10361,7 @@ HWND MCIWndCreateA(HWND hwndParent, HINSTANCE hInstance, uint dwStyle, const(cha
 ///    Returns the handle to an MCI window if successful or zero otherwise.
 ///    
 @DllImport("MSVFW32")
-HWND MCIWndCreateW(HWND hwndParent, HINSTANCE hInstance, uint dwStyle, const(wchar)* szFile);
+HWND MCIWndCreateW(HWND hwndParent, HINSTANCE hInstance, uint dwStyle, const(PWSTR) szFile);
 
 ///The <b>MCIWndRegisterClass</b> function registers the MCI window class MCIWND_WINDOW_CLASS.
 ///Returns:
@@ -10398,7 +10384,7 @@ BOOL MCIWndRegisterClass();
 ///    Returns a handle of the capture window if successful or <b>NULL</b> otherwise.
 ///    
 @DllImport("AVICAP32")
-HWND capCreateCaptureWindowA(const(char)* lpszWindowName, uint dwStyle, int x, int y, int nWidth, int nHeight, 
+HWND capCreateCaptureWindowA(const(PSTR) lpszWindowName, uint dwStyle, int x, int y, int nWidth, int nHeight, 
                              HWND hwndParent, int nID);
 
 ///The <b>capGetDriverDescription</b> function retrieves the version description of the capture driver.
@@ -10414,8 +10400,7 @@ HWND capCreateCaptureWindowA(const(char)* lpszWindowName, uint dwStyle, int x, i
 ///    Returns <b>TRUE</b> if successful or <b>FALSE</b> otherwise.
 ///    
 @DllImport("AVICAP32")
-BOOL capGetDriverDescriptionA(uint wDriverIndex, const(char)* lpszName, int cbName, const(char)* lpszVer, 
-                              int cbVer);
+BOOL capGetDriverDescriptionA(uint wDriverIndex, PSTR lpszName, int cbName, PSTR lpszVer, int cbVer);
 
 ///The <b>capCreateCaptureWindow</b> function creates a capture window.
 ///Params:
@@ -10431,7 +10416,7 @@ BOOL capGetDriverDescriptionA(uint wDriverIndex, const(char)* lpszName, int cbNa
 ///    Returns a handle of the capture window if successful or <b>NULL</b> otherwise.
 ///    
 @DllImport("AVICAP32")
-HWND capCreateCaptureWindowW(const(wchar)* lpszWindowName, uint dwStyle, int x, int y, int nWidth, int nHeight, 
+HWND capCreateCaptureWindowW(const(PWSTR) lpszWindowName, uint dwStyle, int x, int y, int nWidth, int nHeight, 
                              HWND hwndParent, int nID);
 
 ///The <b>capGetDriverDescription</b> function retrieves the version description of the capture driver.
@@ -10447,8 +10432,7 @@ HWND capCreateCaptureWindowW(const(wchar)* lpszWindowName, uint dwStyle, int x, 
 ///    Returns <b>TRUE</b> if successful or <b>FALSE</b> otherwise.
 ///    
 @DllImport("AVICAP32")
-BOOL capGetDriverDescriptionW(uint wDriverIndex, const(wchar)* lpszName, int cbName, const(wchar)* lpszVer, 
-                              int cbVer);
+BOOL capGetDriverDescriptionW(uint wDriverIndex, PWSTR lpszName, int cbName, PWSTR lpszVer, int cbVer);
 
 ///The <b>GetOpenFileNamePreview</b> function selects a file by using the Open dialog box. The dialog box also allows
 ///the user to preview the currently specified AVI file. This function augments the capability found in the
@@ -10554,7 +10538,7 @@ interface IAVIStream : IUnknown
     ///Returns:
     ///    Returns the HRESULT defined by OLE.
     ///    
-    HRESULT Info(char* psi, int lSize);
+    HRESULT Info(AVISTREAMINFOW* psi, int lSize);
     ///The <b>FindSample</b> method obtains the position in a stream of a key frame or a nonempty frame. Called when an
     ///application uses the AVIStreamFindSample function.
     ///Params:
@@ -10583,7 +10567,7 @@ interface IAVIStream : IUnknown
     ///Returns:
     ///    Returns the HRESULT defined by OLE.
     ///    
-    HRESULT ReadFormat(int lPos, char* lpFormat, int* lpcbFormat);
+    HRESULT ReadFormat(int lPos, void* lpFormat, int* lpcbFormat);
     ///The <b>SetFormat</b> method sets format information in a stream. Called when an application uses the
     ///AVIStreamSetFormat function.
     ///Params:
@@ -10593,7 +10577,7 @@ interface IAVIStream : IUnknown
     ///Returns:
     ///    Returns the HRESULT defined by OLE.
     ///    
-    HRESULT SetFormat(int lPos, char* lpFormat, int cbFormat);
+    HRESULT SetFormat(int lPos, void* lpFormat, int cbFormat);
     ///The <b>Read</b> method reads data from a stream and copies it to an application-defined buffer. If no buffer is
     ///supplied, it determines the buffer size needed to retrieve the next buffer of data. Called when an application
     ///uses the AVIStreamRead function.
@@ -10611,7 +10595,7 @@ interface IAVIStream : IUnknown
     ///    If successful, <b>Read</b> also returns either a buffer of data with the number of frames (samples) included
     ///    in the buffer or the required buffer size, in bytes.
     ///    
-    HRESULT Read(int lStart, int lSamples, char* lpBuffer, int cbBuffer, int* plBytes, int* plSamples);
+    HRESULT Read(int lStart, int lSamples, void* lpBuffer, int cbBuffer, int* plBytes, int* plSamples);
     ///The <b>Write</b> method writes data to a stream. Called when an application uses the AVIStreamWrite function.
     ///Params:
     ///    lStart = Starting sample or frame number to write.
@@ -10625,7 +10609,7 @@ interface IAVIStream : IUnknown
     ///Returns:
     ///    Returns the HRESULT defined by OLE.
     ///    
-    HRESULT Write(int lStart, int lSamples, char* lpBuffer, int cbBuffer, uint dwFlags, int* plSampWritten, 
+    HRESULT Write(int lStart, int lSamples, void* lpBuffer, int cbBuffer, uint dwFlags, int* plSampWritten, 
                   int* plBytesWritten);
     ///The <b>Delete</b> method deletes data from a stream.
     ///Params:
@@ -10645,7 +10629,7 @@ interface IAVIStream : IUnknown
     ///Returns:
     ///    Returns the HRESULT defined by OLE.
     ///    
-    HRESULT ReadData(uint fcc, char* lp, int* lpcb);
+    HRESULT ReadData(uint fcc, void* lp, int* lpcb);
     ///The <b>WriteData</b> method writes headers for a stream. Called when an application uses the AVIStreamWriteData
     ///function.
     ///Params:
@@ -10655,8 +10639,8 @@ interface IAVIStream : IUnknown
     ///Returns:
     ///    Returns the HRESULT defined by OLE.
     ///    
-    HRESULT WriteData(uint fcc, char* lp, int cb);
-    HRESULT SetInfo(char* lpInfo, int cbInfo);
+    HRESULT WriteData(uint fcc, void* lp, int cb);
+    HRESULT SetInfo(AVISTREAMINFOW* lpInfo, int cbInfo);
 }
 
 ///The <b>IAVIStreaming</b> interface supports preparing open data streams for playback in streaming operations. Uses
@@ -10733,7 +10717,7 @@ interface IAVIEditStream : IUnknown
     ///Returns:
     ///    Returns the HRESULT defined by OLE.
     ///    
-    HRESULT SetInfo(char* lpInfo, int cbInfo);
+    HRESULT SetInfo(AVISTREAMINFOW* lpInfo, int cbInfo);
 }
 
 interface IAVIPersistFile : IPersistFile
@@ -10754,7 +10738,7 @@ interface IAVIFile : IUnknown
     ///Returns:
     ///    Returns the HRESULT defined by OLE.
     ///    
-    HRESULT Info(char* pfi, int lSize);
+    HRESULT Info(AVIFILEINFOW* pfi, int lSize);
     ///The <b>GetStream</b> method opens a stream by accessing it in a file. Called when an application uses the
     ///AVIFileGetStream function.
     ///Params:
@@ -10782,7 +10766,7 @@ interface IAVIFile : IUnknown
     ///Returns:
     ///    Returns the HRESULT defined by OLE.
     ///    
-    HRESULT WriteData(uint ckid, char* lpData, int cbData);
+    HRESULT WriteData(uint ckid, void* lpData, int cbData);
     ///The <b>ReadData</b> method reads file headers. Called when an application uses the AVIFileReadData function.
     ///Params:
     ///    ckid = A chunk identfier.
@@ -10791,7 +10775,7 @@ interface IAVIFile : IUnknown
     ///Returns:
     ///    Returns the HRESULT defined by OLE.
     ///    
-    HRESULT ReadData(uint ckid, char* lpData, int* lpcbData);
+    HRESULT ReadData(uint ckid, void* lpData, int* lpcbData);
     ///The <b>EndRecord</b> method writes the "REC" chunk in a tightly interleaved AVI file (having a one-to-one
     ///interleave factor of audio to video). Called when an application uses the AVIFileEndRecord function.
     ///Returns:

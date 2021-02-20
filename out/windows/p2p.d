@@ -6,12 +6,12 @@ public import windows.core;
 public import windows.com : HRESULT;
 public import windows.networkdrivers : SOCKADDR_IN6_LH, SOCKADDR_STORAGE_LH, SOCKET_ADDRESS_LIST;
 public import windows.security : CERT_CONTEXT, CERT_PUBLIC_KEY_INFO;
-public import windows.systemservices : BOOL, HANDLE, OVERLAPPED;
+public import windows.systemservices : BOOL, HANDLE, OVERLAPPED, PWSTR;
 public import windows.winsock : BLOB, SOCKADDR, SOCKET_ADDRESS;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : FILETIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -685,7 +685,7 @@ struct PNRPINFO_V1
     ///Specifies the size of this structure.
     uint           dwSize;
     ///Points to the Unicode string that contains the identity.
-    const(wchar)*  lpwszIdentity;
+    PWSTR          lpwszIdentity;
     ///Specifies the requested number of resolutions.
     uint           nMaxResolve;
     ///Specifies the time, in seconds, to wait for a response.
@@ -712,7 +712,7 @@ struct PNRPINFO_V2
     ///Specifies the size of this structure.
     uint           dwSize;
     ///Points to the Unicode string that contains the identity.
-    const(wchar)*  lpwszIdentity;
+    PWSTR          lpwszIdentity;
     ///Specifies the requested number of resolutions.
     uint           nMaxResolve;
     ///Specifies the time, in seconds, to wait for a response.
@@ -732,10 +732,10 @@ struct PNRPINFO_V2
     ///Specifies the state of the registered ID. This value is reserved and must be set to zero (0).
     PNRP_REGISTERED_ID_STATE enNameState;
     PNRP_EXTENDED_PAYLOAD_TYPE enExtendedPayloadType;
-    union
+union
     {
-        BLOB          blobPayload;
-        const(wchar)* pwszPayload;
+        BLOB  blobPayload;
+        PWSTR pwszPayload;
     }
 }
 
@@ -779,28 +779,28 @@ struct PEER_DATA
 struct PEER_RECORD
 {
     ///Specifies the size of a structure. Set the value to sizeof(<b>PEER_RECORD</b>).
-    uint          dwSize;
+    uint      dwSize;
     ///Specifies the type of record. The type is a <b>GUID</b> that an application must specify. The <b>GUID</b>
     ///represents a unique record type, for example, a chat record.
-    GUID          type;
+    GUID      type;
     ///Specifies the unique ID of a record. The Peer Infrastructure supplies this ID. This parameter is ignored in calls
     ///to PeerGroupAddRecord. An application cannot modify this member.
-    GUID          id;
+    GUID      id;
     ///Specifies the version of a record that the Peer Infrastructure supplies when an application calls
     ///PeerGraphAddRecord or PeerGraphUpdateRecord. An application cannot modify this member.
-    uint          dwVersion;
+    uint      dwVersion;
     ///Specifies the flags that indicate special processing, which must be applied to a record. The following table
     ///identifies the valid values. <table> <tr> <th>Value</th> <th>Description</th> </tr> <tr>
     ///<td><b>PEER_RECORD_FLAG_AUTOREFRESH</b></td> <td>Indicates that a record is automatically refreshed when it is
     ///ready to expire. </td> </tr> <tr> <td><b>PEER_RECORD_FLAG_DELETED</b></td> <td>Indicates that a record is marked
     ///as deleted. </td> </tr> </table> <div class="alert"><b>Note</b> An application cannot set these flags.</div>
     ///<div> </div>
-    uint          dwFlags;
+    uint      dwFlags;
     ///Pointer to the unique ID of a record creator. This member is set to <b>NULL</b> for calls to PeerGraphAddRecord
     ///and PeerGraphUpdateRecord. An application cannot set this member.
-    const(wchar)* pwzCreatorId;
+    PWSTR     pwzCreatorId;
     ///Specifies the unique ID of the last person who changes a record. An application cannot set this member.
-    const(wchar)* pwzModifiedById;
+    PWSTR     pwzModifiedById;
     ///Pointer to the set of attribute name and value pairs that are associated with a record. This member points to an
     ///XML string. Record attributes are specified as an XML string, and they must be consistent with the Peer
     ///Infrastructure record attribute schema. For a complete explanation of the XML schema, see Record Attribute
@@ -808,26 +808,26 @@ struct PEER_RECORD
     ///identifies the reserved attribute names:<ul> <li><b>peerlastmodifiedby</b></li> <li><b>peercreatorid</b></li>
     ///<li><b>peerlastmodificationtime</b></li> <li><b>peerrecordid</b></li> <li><b>peerrecordtype</b></li>
     ///<li><b>peercreationtime</b></li> <li><b>peerlastmodificationtime</b></li> </ul>
-    const(wchar)* pwzAttributes;
+    PWSTR     pwzAttributes;
     ///Specifies the Coordinated Universal Time (UTC) that a record is created. The Peer Infrastructure supplies this
     ///value, and the value is set to zero (0) in calls to PeerGroupAddRecord. An application cannot set this member.
-    FILETIME      ftCreation;
+    FILETIME  ftCreation;
     ///The UTC time that a record expires. This member is required. It can be updated to a time value greater than the
     ///originally specified time value, but it cannot be less than the originally specified value. <div
     ///class="alert"><b>Note</b> If <b>dwFlags</b> is set to <b>PEER_RECORD_FLAG_AUTOREFRESH</b>, do not set the value
     ///of <b>ftExpiration</b> to less than four (4) minutes. If this member is set to less than four (4) minutes,
     ///undefined behavior can occur.</div> <div> </div>
-    FILETIME      ftExpiration;
+    FILETIME  ftExpiration;
     ///The UTC time that a record is modified. The Peer Infrastructure supplies this value. Set this member to
     ///<b>NULL</b> when calling PeerGraphAddRecord, PeerGraphUpdateRecord, PeerGroupAddRecord, and
     ///PeerGroupUpdateRecord. An application cannot set this member.
-    FILETIME      ftLastModified;
+    FILETIME  ftLastModified;
     ///Specifies the security data contained in a PEER_DATA structure. The Graphing API uses this member, and provides
     ///the security provider with a place to store security data, for example, a signature. The Grouping API cannot
     ///modify this member.
-    PEER_DATA     securityData;
+    PEER_DATA securityData;
     ///Specifies the actual data that this record contains.
-    PEER_DATA     data;
+    PEER_DATA data;
 }
 
 ///The <b>PEER_ADDRESS</b> structure specifies the information about the IP address.
@@ -844,17 +844,17 @@ struct PEER_ADDRESS
 struct PEER_CONNECTION_INFO
 {
     ///Specifies the size a structure.
-    uint          dwSize;
+    uint         dwSize;
     ///Specifies the type of connection to a remote node. Valid values are specified by PEER_CONNECTION_FLAGS.
-    uint          dwFlags;
+    uint         dwFlags;
     ///Specifies the unique ID of a connection.
-    ulong         ullConnectionId;
+    ulong        ullConnectionId;
     ///Specifies the unique ID of a node.
-    ulong         ullNodeId;
+    ulong        ullNodeId;
     ///Points to a string that identifies the node on the other end of a connection.
-    const(wchar)* pwzPeerId;
+    PWSTR        pwzPeerId;
     ///Specifies the address of a remote node. The address is contained in a PEER_ADDRESS structure.
-    PEER_ADDRESS  address;
+    PEER_ADDRESS address;
 }
 
 ///The [PEER_GROUP_EVENT_DATA](/windows/win32/api/p2p/ns-p2p-peer_group_event_data-r1) structure points to the
@@ -950,41 +950,41 @@ struct PEER_GRAPH_PROPERTIES
     ///Specifies the size, in bytes, of this data structure. The <b>dwSize</b> member must be set to the size of
     ///<b>PEER_GRAPH_PROPERTIES</b> before calling PeerGraphCreate. This member is required. There is not a default
     ///value.
-    uint          dwSize;
+    uint  dwSize;
     ///Flags that control the behavior of a peer in a graph. The default is does not have flags set. The valid value is
     ///identified in the following table. <table> <tr> <th>Value</th> <th>Description</th> </tr> <tr>
     ///<td><b>PEER_GRAPH_PROPERTY_DEFER_EXPIRATION</b></td> <td>Specifies when to expire a graph record. When a graph is
     ///not connected and this flag is set, expiration does not occur until the graph connects to at least one other
     ///member. </td> </tr> </table>
-    uint          dwFlags;
+    uint  dwFlags;
     ///Specifies the scope in which the peer graph ID is published. The default value is global. Valid values are
     ///identified in the following table. <table> <tr> <th>Value</th> <th>Description</th> </tr> <tr>
     ///<td><b>PEER_GRAPH_SCOPE_GLOBAL</b></td> <td>Scope includes the Internet.</td> </tr> <tr>
     ///<td><b>PEER_GRAPH_SCOPE_LINK_LOCAL</b></td> <td>Scope is restricted to a local subnet.</td> </tr> <tr>
     ///<td><b>PEER_GRAPH_SCOPE_SITE_LOCAL</b></td> <td>Scope is restricted to a site, for example, a corporation
     ///intranet.</td> </tr> </table>
-    uint          dwScope;
+    uint  dwScope;
     ///Specifies the value that indicates the largest record that can be added to a peer graph. A valid value is zero
     ///(0), which indicates that the default maximum record size is used (60 megabytes), and any value between 1024
     ///bytes and 60 megabytes.
-    uint          dwMaxRecordSize;
+    uint  dwMaxRecordSize;
     ///Specifies the unique identifier for a peer graph. This ID must be unique for the computer/user pair. This member
     ///is required and has no default value. If the string value is greater than 256 characters (including the null
     ///terminator), an error is returned.
-    const(wchar)* pwzGraphId;
+    PWSTR pwzGraphId;
     ///Specifies the unique identifier for the creator of a peer graph. This member is required and has no default
     ///value. If the string value is greater than 256 characters (including the null terminator), an error is returned.
-    const(wchar)* pwzCreatorId;
+    PWSTR pwzCreatorId;
     ///Specifies the friendly name of a peer graph. This member is optional and can be <b>NULL</b>. The default value is
     ///<b>NULL</b>. The maximum length of this string is 256 characters, including the null terminator.
-    const(wchar)* pwzFriendlyName;
+    PWSTR pwzFriendlyName;
     ///Specifies the comment used to describe a peer graph. This member is optional and can be <b>NULL</b>. The default
     ///value is <b>NULL</b>. The maximum length of this string is 512 characters, including the null terminator.
-    const(wchar)* pwzComment;
+    PWSTR pwzComment;
     ///Specifies the number of seconds before a presence record expires. The default value is 300 seconds (5 minutes).
     ///Do not set the value of <b>ulPresenceLifetime</b> to less than 300 seconds. If this member is set less than the
     ///300 (5 minutes) default value, then undefined behavior can occur.
-    uint          ulPresenceLifetime;
+    uint  ulPresenceLifetime;
     ///Specifies how many presence records the Peer Infrastructure keeps in a peer graph at one time. A node that has
     ///its presence published can be enumerated by all other nodes with PeerGraphEnumNodes. Specify how presence records
     ///for users are published by specifying one of the values identified in the following table. <table> <tr>
@@ -992,7 +992,7 @@ struct PEER_GRAPH_PROPERTIES
     ///all users.</td> </tr> <tr> <td>0</td> <td>Presence records are not automatically published.</td> </tr> <tr>
     ///<td>1-N</td> <td>Up to N number of presence records are published at one time. The presence records that are
     ///published are randomly chosen by the Peer Graphing Infrastructure. </td> </tr> </table>
-    uint          cPresenceMax;
+    uint  cPresenceMax;
 }
 
 ///The <b>PEER_NODE_INFO</b> structure contains information that is specific to a particular node in a peer graph.
@@ -1006,7 +1006,7 @@ struct PEER_NODE_INFO
     ulong         ullNodeId;
     ///Specifies the ID of this peer. This value is set for the application by the Peer Graphing Infrastructure. when
     ///the application creates or opens a peer graph.
-    const(wchar)* pwzPeerId;
+    PWSTR         pwzPeerId;
     ///Specifies the number of addresses in <b>pAddresses</b>. This member is required and has no default value.
     uint          cAddresses;
     ///Points to an array of PEER_ADDRESS structures that indicate which addresses and ports this instance is listening
@@ -1014,7 +1014,7 @@ struct PEER_NODE_INFO
     PEER_ADDRESS* pAddresses;
     ///Points to a string that contains the attributes that describe this particular node. This string is a free-form
     ///text string that is specific to the application. This parameter is optional; the default value is <b>NULL</b>.
-    const(wchar)* pwzAttributes;
+    PWSTR         pwzAttributes;
 }
 
 ///The <b>PEER_EVENT_NODE_CHANGE_DATA</b> structure contains a pointer to the data if a
@@ -1022,7 +1022,7 @@ struct PEER_NODE_INFO
 struct PEER_EVENT_NODE_CHANGE_DATA
 {
     ///Specifies the size of the structure. Should set to the size of PEER_EVENT_NODE_CHANGE_DATA.
-    uint          dwSize;
+    uint  dwSize;
     ///Specifies the new state of the node. Valid values are the following. <table> <tr> <th>Value</th> <th>Meaning</th>
     ///</tr> <tr> <td width="40%"><a id="PEER_NODE_CHANGE_CONNECTED"></a><a id="peer_node_change_connected"></a><dl>
     ///<dt><b>PEER_NODE_CHANGE_CONNECTED</b></dt> </dl> </td> <td width="60%"> The node is present in the graph. </td>
@@ -1034,9 +1034,9 @@ struct PEER_EVENT_NODE_CHANGE_DATA
     ///the attributes have changed. </td> </tr> </table>
     PEER_NODE_CHANGE_TYPE changeType;
     ///Specifies the unique ID of the node that has changed.
-    ulong         ullNodeId;
+    ulong ullNodeId;
     ///Specifies the peer ID of the node that has changed.
-    const(wchar)* pwzPeerId;
+    PWSTR pwzPeerId;
 }
 
 ///The <b>PEER_GRAPH_EVENT_REGISTRATION</b> structure is used during registration for peer event notification. During
@@ -1058,7 +1058,7 @@ struct PEER_GRAPH_EVENT_DATA
     ///The type of peer event this data corresponds to. Must be one of the PEER_GRAPH_EVENT_TYPE values. The members
     ///that remain are given values based on the peer event type that has occurred. Not all members contain data.
     PEER_GRAPH_EVENT_TYPE eventType;
-    union
+union
     {
         PEER_GRAPH_STATUS_FLAGS dwStatus;
         PEER_EVENT_INCOMING_DATA incomingData;
@@ -1076,24 +1076,24 @@ struct PEER_SECURITY_INTERFACE
 {
     ///Specifies the size of the structure. Set the value to sizeof(<b>PEER_SECURITY_INTERFACE</b>). This member is
     ///required and has no default value.
-    uint          dwSize;
+    uint   dwSize;
     ///Specifies the full path and file name of a .DLL that implements the SSP interface. See the SSPI documentation for
     ///further information on the SSP interface.
-    const(wchar)* pwzSspFilename;
+    PWSTR  pwzSspFilename;
     ///Specifies the ID of the security module in the SSP to use.
-    const(wchar)* pwzPackageName;
+    PWSTR  pwzPackageName;
     ///Specifies the byte count of the <b>pbSecurityInfo</b> member. This member is not required if
     ///<b>pbSecurityInfo</b> is <b>NULL</b>. However, if <b>pbSecurityInfo</b> is not <b>NULL</b>, this member must have
     ///a value.
-    uint          cbSecurityInfo;
+    uint   cbSecurityInfo;
     ///Pointer to a buffer that contains the information used to create or open a peer graph. This member is optional
     ///and can be <b>NULL</b>. The security data blob pointed to by <b>pbSecurityInfo</b> is copied and then passed to
     ///the SSPI function call of AcquireCredentialsHandle.
-    ubyte*        pbSecurityInfo;
+    ubyte* pbSecurityInfo;
     ///Pointer to the security context. This security context is then passed as the first parameter to
     ///PFNPEER_VALIDATE_RECORD, PFNPEER_FREE_SECURITY_DATA, and PFNPEER_SECURE_RECORD. This member is optional and can
     ///be <b>NULL</b>.
-    void*         pvContext;
+    void*  pvContext;
     ///Pointer to a callback function that is called when a record requires validation. This member is optional and can
     ///be <b>NULL</b>. If <b>pfnSecureRecord</b> is <b>NULL</b>, this member must also be <b>NULL</b>.
     PFNPEER_VALIDATE_RECORD pfnValidateRecord;
@@ -1110,27 +1110,27 @@ struct PEER_SECURITY_INTERFACE
 struct PEER_CREDENTIAL_INFO
 {
     ///Specifies the size of this structure, in bytes.
-    uint          dwSize;
+    uint     dwSize;
     ///Reserved. This field must be set to 0.
-    uint          dwFlags;
+    uint     dwFlags;
     ///Pointer to a Unicode string that specifies the friendly (display) name of the issuer.
-    const(wchar)* pwzFriendlyName;
+    PWSTR    pwzFriendlyName;
     ///Pointer to a <b>CERT_PUBLIC_KEY_INFO</b> structure that contains the peer group member's public key and the
     ///encryption type it uses.
     CERT_PUBLIC_KEY_INFO* pPublicKey;
     ///Pointer to a Unicode string that specifies the membership issuer's PNRP name.
-    const(wchar)* pwzIssuerPeerName;
+    PWSTR    pwzIssuerPeerName;
     ///Pointer to a Unicode string that specifies the friendly (display) name of the issuer.
-    const(wchar)* pwzIssuerFriendlyName;
+    PWSTR    pwzIssuerFriendlyName;
     ///Specifies the FILETIME structure that contains the time when the recipient's membership in the peer group becomes
     ///valid. When issuing new credentials this value must be greater than the ValidityStart value for the member's
     ///current credentials.
-    FILETIME      ftValidityStart;
+    FILETIME ftValidityStart;
     ///Specifies the FILETIME structure that contains the time when the recipient's membership in the peer group becomes
     ///invalid.
-    FILETIME      ftValidityEnd;
+    FILETIME ftValidityEnd;
     ///Specifies the number of role GUIDs present in <b>pRoles</b>.
-    uint          cRoles;
+    uint     cRoles;
     ///Pointer to a list of GUIDs that specifies the combined set of available roles. The available roles are as
     ///follows. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="PEER_GROUP_ROLE_ADMIN"></a><a id="peer_group_role_admin"></a><dl> <dt><b>PEER_GROUP_ROLE_ADMIN</b></dt> </dl>
@@ -1138,7 +1138,7 @@ struct PEER_CREDENTIAL_INFO
     ///administrators, as well as behave as a member of the peer group. </td> </tr> <tr> <td width="40%"><a
     ///id="PEER_GROUP_ROLE_MEMBER"></a><a id="peer_group_role_member"></a><dl> <dt><b>PEER_GROUP_ROLE_MEMBER</b></dt>
     ///</dl> </td> <td width="60%"> The role can add records to the peer group database. </td> </tr> </table>
-    GUID*         pRoles;
+    GUID*    pRoles;
 }
 
 ///The <b>PEER_MEMBER</b> structure contains information that describes a member of a peer group.
@@ -1152,10 +1152,10 @@ struct PEER_MEMBER
     ///</tr> </table>
     uint          dwFlags;
     ///Pointer to a Unicode string that specifies the peer name of the member.
-    const(wchar)* pwzIdentity;
+    PWSTR         pwzIdentity;
     ///Pointer to a unicode string that specifies the attributes of the member. The format of this string is defined by
     ///the application.
-    const(wchar)* pwzAttributes;
+    PWSTR         pwzAttributes;
     ///Unsigned 64-bit integer that contains the node ID. The same peer can have several node IDs, each identifying a
     ///different node that participates in a different peer group.
     ulong         ullNodeId;
@@ -1173,11 +1173,11 @@ struct PEER_MEMBER
 struct PEER_INVITATION_INFO
 {
     ///Specifies the size of this structure, in bytes.
-    uint          dwSize;
+    uint     dwSize;
     ///Must be set to 0x00000000.
-    uint          dwFlags;
+    uint     dwFlags;
     ///Pointer to a Unicode string that specifies the PNRP cloud name.
-    const(wchar)* pwzCloudName;
+    PWSTR    pwzCloudName;
     ///Specifies the scope under which the peer group was registered. <table> <tr> <th>Value</th> <th>Meaning</th> </tr>
     ///<tr> <td width="40%"><a id="PNRP_GLOBAL_SCOPE"></a><a id="pnrp_global_scope"></a><dl>
     ///<dt><b>PNRP_GLOBAL_SCOPE</b></dt> </dl> </td> <td width="60%"> Global scope, including the Internet. </td> </tr>
@@ -1185,32 +1185,32 @@ struct PEER_INVITATION_INFO
     ///<dt><b>PNRP_LOCAL_SCOPE</b></dt> </dl> </td> <td width="60%"> Local scope. </td> </tr> <tr> <td width="40%"><a
     ///id="PNRP_LINK_LOCAL_SCOPE"></a><a id="pnrp_link_local_scope"></a><dl> <dt><b>PNRP_LINK_LOCAL_SCOPE</b></dt> </dl>
     ///</td> <td width="60%"> Link-local scope. </td> </tr> </table>
-    uint          dwScope;
+    uint     dwScope;
     ///Specifies a set of flags that describe PNRP cloud features. <table> <tr> <th>Value</th> <th>Meaning</th> </tr>
     ///<tr> <td width="40%"><a id="PNRP_CLOUD_NO_FLAGS"></a><a id="pnrp_cloud_no_flags"></a><dl>
     ///<dt><b>PNRP_CLOUD_NO_FLAGS</b></dt> <dt>0</dt> </dl> </td> <td width="60%"> No flags are set. </td> </tr> <tr>
     ///<td width="40%"><a id="PNRP_CLOUD_NAME_LOCAL"></a><a id="pnrp_cloud_name_local"></a><dl>
     ///<dt><b>PNRP_CLOUD_NAME_LOCAL</b></dt> <dt>1</dt> </dl> </td> <td width="60%"> The cloud name is not available on
     ///other computers; it is locally defined. </td> </tr> </table>
-    uint          dwCloudFlags;
+    uint     dwCloudFlags;
     ///Pointer to a Unicode string that specifies the peer name of the peer group.
-    const(wchar)* pwzGroupPeerName;
+    PWSTR    pwzGroupPeerName;
     ///Pointer to a Unicode string that specifies the PNRP name of the peer issuing the invitation.
-    const(wchar)* pwzIssuerPeerName;
+    PWSTR    pwzIssuerPeerName;
     ///Pointer to a Unicode string that specifies the PNRP name of the peer that receives the invitation.
-    const(wchar)* pwzSubjectPeerName;
+    PWSTR    pwzSubjectPeerName;
     ///Pointer to a Unicode string that specifies the friendly (display) name of the peer group.
-    const(wchar)* pwzGroupFriendlyName;
+    PWSTR    pwzGroupFriendlyName;
     ///Pointer to a Unicode string that specifies the friendly (display) name of the peer issuing the invitation.
-    const(wchar)* pwzIssuerFriendlyName;
+    PWSTR    pwzIssuerFriendlyName;
     ///Pointer to a Unicode string that specifies the friendly (display) name of the peer that receives the invitation.
-    const(wchar)* pwzSubjectFriendlyName;
+    PWSTR    pwzSubjectFriendlyName;
     ///Specifies a UTC <b>FILETIME</b> value that indicates when the invitation becomes valid.
-    FILETIME      ftValidityStart;
+    FILETIME ftValidityStart;
     ///Specifies a UTC <b>FILETIME</b> value that indicates when the invitation becomes invalid.
-    FILETIME      ftValidityEnd;
+    FILETIME ftValidityEnd;
     ///Specifies the number of role GUIDs present in <b>pRoles</b>.
-    uint          cRoles;
+    uint     cRoles;
     ///Pointer to a list of GUIDs that specifies the combined set of available roles. The available roles are as
     ///follows. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="PEER_GROUP_ROLE_ADMIN"></a><a id="peer_group_role_admin"></a><dl> <dt><b>PEER_GROUP_ROLE_ADMIN</b></dt> </dl>
@@ -1218,12 +1218,12 @@ struct PEER_INVITATION_INFO
     ///and update records, and renew the GMC of other administrators. </td> </tr> <tr> <td width="40%"><a
     ///id="PEER_GROUP_ROLE_MEMBER"></a><a id="peer_group_role_member"></a><dl> <dt><b>PEER_GROUP_ROLE_MEMBER</b></dt>
     ///</dl> </td> <td width="60%"> The role can publish records to the peer group database. </td> </tr> </table>
-    GUID*         pRoles;
+    GUID*    pRoles;
     ///Unsigned integer value that contains the number of string values listed in <b>ppwzClassifiers</b>. This field is
     ///reserved for future use.
-    uint          cClassifiers;
+    uint     cClassifiers;
     ///List of pointers to Unicode strings. This field is reserved for future use.
-    ushort**      ppwzClassifiers;
+    PWSTR*   ppwzClassifiers;
     ///Pointer to a <b>CERT_PUBLIC_KEY_INFO</b> structure that contains the recipient's returned public key and the
     ///encryption algorithm type it uses.
     CERT_PUBLIC_KEY_INFO* pSubjectPublicKey;
@@ -1236,45 +1236,45 @@ struct PEER_INVITATION_INFO
 struct PEER_GROUP_PROPERTIES
 {
     ///Size of the structure, in bytes.
-    uint          dwSize;
+    uint  dwSize;
     ///PEER_GROUP_PROPERTY_FLAGS flags that describe the behavior of a peer group. The default value is zero (0), which
     ///indicates that flags are not set.
-    uint          dwFlags;
+    uint  dwFlags;
     ///Specifies the name of the Peer Name Resolution Protocol (PNRP) cloud that a peer group participates in. The
     ///default value is "global", if this member is <b>NULL</b>.
-    const(wchar)* pwzCloud;
+    PWSTR pwzCloud;
     ///Specifies the classifier used to identify the authority of a peer group peer name for registration or resolution
     ///within a PNRP cloud. The maximum size of this field is 149 Unicode characters. This member can be <b>NULL</b>.
-    const(wchar)* pwzClassifier;
+    PWSTR pwzClassifier;
     ///Specifies the name of a peer group that is registered with the PNRP service. The maximum size of this field is
     ///137 Unicode characters.
-    const(wchar)* pwzGroupPeerName;
+    PWSTR pwzGroupPeerName;
     ///Specifies the peer name associated with the Peer group creator. The maximum size of this field is 137 Unicode
     ///characters. If this structure member is <b>NULL</b>, the implementation uses the identity obtained from
     ///PeerIdentityGetDefault.
-    const(wchar)* pwzCreatorPeerName;
+    PWSTR pwzCreatorPeerName;
     ///Specifies the friendly (display) name of a peer group. The maximum size of this field is 255 characters.
-    const(wchar)* pwzFriendlyName;
+    PWSTR pwzFriendlyName;
     ///Contains a comment used to describe a peer group. The maximum size of this field is 255 characters.
-    const(wchar)* pwzComment;
+    PWSTR pwzComment;
     ///Specifies the lifetime, in seconds, of peer group member data (PEER_MEMBER). The minimum value for this field is
     ///8 hours, and the maximum is 10 years. The default value is 2,419,200 seconds, or 28 days. If this value is set to
     ///zero (0), member data has the maximum allowable lifetime, which is the time remaining in the lifetime of the
     ///administrator who issues the credentials for a member.
-    uint          ulMemberDataLifetime;
+    uint  ulMemberDataLifetime;
     ///Specifies the lifetime, in seconds, of presence information published to a peer group. The default value is 300
     ///seconds. Do not set the value of <b>ulPresenceLifetime</b> to less than 300 seconds. If this member is set to
     ///less than the 300–second default value, then undefined behavior can occur.
-    uint          ulPresenceLifetime;
+    uint  ulPresenceLifetime;
     ///<b>Windows Vista or later.</b> Logical OR of PEER_GROUP_AUTHENTICATION_SCHEME enumeration values that indicate
     ///the types of authentication supported by the peer group.
-    uint          dwAuthenticationSchemes;
+    uint  dwAuthenticationSchemes;
     ///<b>Windows Vista or later.</b> Pointer to a Unicode string that contains the password used to authenticate peers
     ///attempting to join the peer group.
-    const(wchar)* pwzGroupPassword;
+    PWSTR pwzGroupPassword;
     ///<b>Windows Vista or later.</b> GUID value that indicates the peer group role for which the password is required
     ///for authentication.
-    GUID          groupPasswordRole;
+    GUID  groupPasswordRole;
 }
 
 ///The <b>PEER_EVENT_MEMBER_CHANGE_DATA</b> structure contains data that describes a change in the status of a peer
@@ -1282,12 +1282,12 @@ struct PEER_GROUP_PROPERTIES
 struct PEER_EVENT_MEMBER_CHANGE_DATA
 {
     ///Contains the size of this structure, in bytes.
-    uint          dwSize;
+    uint  dwSize;
     ///<b>PEER_MEMBER_CHANGE_TYPE</b> enumeration value that specifies the change event that occurred, such as a member
     ///joining or leaving.
     PEER_MEMBER_CHANGE_TYPE changeType;
     ///Pointer to a Unicode string that contains the peer name of the peer group member.
-    const(wchar)* pwzIdentity;
+    PWSTR pwzIdentity;
 }
 
 ///The <b>PEER_GROUP_EVENT_REGISTRATION</b> structure defines the particular peer group event a member can register for.
@@ -1310,7 +1310,7 @@ struct PEER_GROUP_EVENT_DATA
     ///event dictates the subsequent structure chosen from the union; for example, if this value is set to
     ///PEER_GROUP_EVENT_INCOMING_DATA, the populated union member is <b>incomingData</b>.
     PEER_GROUP_EVENT_TYPE eventType;
-    union
+union
     {
         PEER_GROUP_STATUS dwStatus;
         PEER_EVENT_INCOMING_DATA incomingData;
@@ -1325,11 +1325,11 @@ struct PEER_GROUP_EVENT_DATA
 struct PEER_NAME_PAIR
 {
     ///Specifies the size, in bytes, of this structure.
-    uint          dwSize;
+    uint  dwSize;
     ///Specifies the peer name of the peer identity or peer group.
-    const(wchar)* pwzPeerName;
+    PWSTR pwzPeerName;
     ///Specifies the friendly name of the peer identity or peer group.
-    const(wchar)* pwzFriendlyName;
+    PWSTR pwzFriendlyName;
 }
 
 ///The <b>PEER_APPLICATION</b> structure contains data describing a locally installed software application or component
@@ -1337,13 +1337,13 @@ struct PEER_NAME_PAIR
 struct PEER_APPLICATION
 {
     ///The GUID value under which the application is registered with the local computer.
-    GUID          id;
+    GUID      id;
     ///PEER_DATA structure that contains the application information in a member byte buffer. This information is
     ///available to anyone who can query for the local peer's member information. This data is limited to 16K.
-    PEER_DATA     data;
+    PEER_DATA data;
     ///Pointer to a zero-terminated Unicode string that contains an optional description of the local application. This
     ///description is limited to 255 unicode characters.
-    const(wchar)* pwzDescription;
+    PWSTR     pwzDescription;
 }
 
 ///The <b>PEER_OBJECT</b> structure contains application-specific run-time information that can be shared with trusted
@@ -1363,38 +1363,38 @@ struct PEER_CONTACT
 {
     ///Zero-terminated Unicode string that contains the peer name of the contact. This is the unique identifier for a
     ///contact. There can only be a single contact associated with any given peername.
-    const(wchar)* pwzPeerName;
+    PWSTR     pwzPeerName;
     ///Zero-terminated Unicode string that contains the nickname of the contact and can be modified at any time. This is
     ///used when the peer collaboration scope is set to People Near Me. It is advertised in People Near Me and seen by
     ///recipients of sent invitations. This member is limited to 255 unicode characters.
-    const(wchar)* pwzNickName;
+    PWSTR     pwzNickName;
     ///Zero-terminated Unicode string that contains the display name of the contact. This corresponds to the display
     ///name seen for the contact in a peer's contacts folder. This member is limited to 255 unicode characters.
-    const(wchar)* pwzDisplayName;
+    PWSTR     pwzDisplayName;
     ///Zero-terminated Unicode string that contains the email address of the contact.
-    const(wchar)* pwzEmailAddress;
+    PWSTR     pwzEmailAddress;
     ///If true, the contact is watched by the peer; if false, it is not.
-    BOOL          fWatch;
+    BOOL      fWatch;
     ///PEER_WATCH_PERMISSION enumeration value that specifies the watch permissions for this contact.
     PEER_WATCH_PERMISSION WatcherPermissions;
     ///PEER_DATA structure that contains the security credentials for the contact in an opaque byte buffer.
-    PEER_DATA     credentials;
+    PEER_DATA credentials;
 }
 
 ///The <b>PEER_ENDPOINT</b> structure contains the address and friendly name of a peer endpoint.
 struct PEER_ENDPOINT
 {
     ///PEER_ADDRESS structure that contains the IPv6 network address of the endpoint.
-    PEER_ADDRESS  address;
+    PEER_ADDRESS address;
     ///Zero-terminated Unicode string that contains the specific displayable name of the endpoint.
-    const(wchar)* pwzEndpointName;
+    PWSTR        pwzEndpointName;
 }
 
 ///The <b>PEER_PEOPLE_NEAR_ME</b> structure contains information about a peer in the same logical or virtual subnet.
 struct PEER_PEOPLE_NEAR_ME
 {
     ///Zero-terminated Unicode string that contains the nickname of the contact.
-    const(wchar)* pwzNickName;
+    PWSTR         pwzNickName;
     ///PEER_ENDPOINT structure that contains the IPv6 network address of the peer whose endpoint shares the same subnet.
     PEER_ENDPOINT endpoint;
     ///GUID value that contains the unique ID value for this peer. Since this value uniquely identifies a peer endpoint,
@@ -1408,14 +1408,14 @@ struct PEER_INVITATION
 {
     ///GUID value that uniquely identifies the registered software or software component for the peer collaboration
     ///activity.
-    GUID          applicationId;
+    GUID      applicationId;
     ///PEER_DATA structure that contains opaque data describing possible additional application-specific settings (for
     ///example, an address and port on which the activity will occur, or a specific video codec to use). This data is
     ///limited to 16K.
-    PEER_DATA     applicationData;
+    PEER_DATA applicationData;
     ///Zero-terminated Unicode string that contains a specific request message to the invitation recipient. The message
     ///is limited to 255 unicode characters.
-    const(wchar)* pwzMessage;
+    PWSTR     pwzMessage;
 }
 
 ///The <b>PEER_INVITATION_RESPONSE</b> structure contains a response to an invitation to join a peer collaboration
@@ -1427,10 +1427,10 @@ struct PEER_INVITATION_RESPONSE
     PEER_INVITATION_RESPONSE_TYPE action;
     ///Reserved. This member must be set to <b>NULL</b>, and is set exclusively by the Peer Collaboration
     ///infrastructure.
-    const(wchar)* pwzMessage;
+    PWSTR   pwzMessage;
     ///Any extended information that is part of the response. This can include an error code corresponding to the
     ///failure on the recipient of the invitation.
-    HRESULT       hrExtendedInfo;
+    HRESULT hrExtendedInfo;
 }
 
 ///The <b>PEER_APP_LAUNCH_INFO</b> structure contains the peer application application launch information provided by a
@@ -1456,11 +1456,11 @@ struct PEER_APPLICATION_REGISTRATION_INFO
     PEER_APPLICATION application;
     ///Zero-terminated Unicode string that contains the local path to the executable peer application. Note that this
     ///data is for local use only and that this structure is never transmitted remotely.
-    const(wchar)*    pwzApplicationToLaunch;
+    PWSTR            pwzApplicationToLaunch;
     ///Zero-terminated Unicode string that contains command-line arguments that must be supplied to the application when
     ///the application is launched. This data is for local use only. The PEER_APPLICATION_REGISTRATION_INFO structure is
     ///never transmitted remotely.
-    const(wchar)*    pwzApplicationArguments;
+    PWSTR            pwzApplicationArguments;
     ///PEER_PUBLICATION_SCOPE enumeration value that specifies the publication scope for this application registration
     ///information. The only valid value for this member is PEER_PUBLICATION_SCOPE_INTERNET.
     uint             dwPublicationScope;
@@ -1474,7 +1474,7 @@ struct PEER_PRESENCE_INFO
     PEER_PRESENCE_STATUS status;
     ///Zero-terminated Unicode string that contains a user- or application-defined message that expands upon the current
     ///status value. This string is limited to 255 characters.
-    const(wchar)*        pwzDescriptiveText;
+    PWSTR                pwzDescriptiveText;
 }
 
 ///The <b>PEER_COLLAB_EVENT_REGISTRATION</b> structure contains the data used by a peer to register for specific peer
@@ -1599,7 +1599,7 @@ struct PEER_COLLAB_EVENT_DATA
     ///PEER_COLLAB_EVENT_TYPE enumeration value that contains the type of the event whose corresponding data structure
     ///appears in the subsequent union arm.
     PEER_COLLAB_EVENT_TYPE eventType;
-    union
+union
     {
         PEER_EVENT_WATCHLIST_CHANGED_DATA watchListChangedData;
         PEER_EVENT_PRESENCE_CHANGED_DATA presenceChangedData;
@@ -1615,15 +1615,15 @@ struct PEER_COLLAB_EVENT_DATA
 struct PEER_PNRP_ENDPOINT_INFO
 {
     ///The peer name associated with this peer endpoint.
-    const(wchar)* pwzPeerName;
+    PWSTR      pwzPeerName;
     ///The number of SOCKADDR structures in <b>pAddresses</b>.
-    uint          cAddresses;
+    uint       cAddresses;
     ///Pointer to an array of pointers to SOCKADDR structures that contain the IP addresses for the peer endpoint's
     ///network interface.
-    SOCKADDR**    ppAddresses;
+    SOCKADDR** ppAddresses;
     ///Pointer to a zero-terminated Unicode string that contains a comment for this peer endpoint.
-    const(wchar)* pwzComment;
-    PEER_DATA     payload;
+    PWSTR      pwzComment;
+    PEER_DATA  payload;
 }
 
 ///The <b>PEER_PNRP_CLOUD_INFO</b> structure contains information about a Peer Name Resolution Protocol (PNRP) cloud.
@@ -1631,7 +1631,7 @@ struct PEER_PNRP_CLOUD_INFO
 {
     ///Pointer to a zero-terminated Unicode string that contains the name of the PNRP cloud. The maximum size of this
     ///name is 256 characters.
-    const(wchar)* pwzCloudName;
+    PWSTR      pwzCloudName;
     ///Constant value that specifies the network scope of the PNRP cloud. <table> <tr> <th>Value</th> <th>Meaning</th>
     ///</tr> <tr> <td width="40%"><a id="PNRP_SCOPE_ANY"></a><a id="pnrp_scope_any"></a><dl>
     ///<dt><b>PNRP_SCOPE_ANY</b></dt> <dt>0</dt> </dl> </td> <td width="60%"> All IP addresses are allowed to register
@@ -1644,8 +1644,8 @@ struct PEER_PNRP_CLOUD_INFO
     ///id="PNRP_LINK_LOCAL_SCOPE"></a><a id="pnrp_link_local_scope"></a><dl> <dt><b>PNRP_LINK_LOCAL_SCOPE</b></dt>
     ///<dt>3</dt> </dl> </td> <td width="60%"> The scope is link-local; only IP addresses defined for the local area
     ///network are allowed to register with the PNRP cloud. </td> </tr> </table>
-    PNRP_SCOPE    dwScope;
-    uint          dwScopeId;
+    PNRP_SCOPE dwScope;
+    uint       dwScopeId;
 }
 
 ///The <b>PEER_PNRP_REGISTRATION_INFO</b> structure contains the information provided by a peer identity when it
@@ -1655,20 +1655,20 @@ struct PEER_PNRP_REGISTRATION_INFO
     ///Pointer to a Unicode string that contains the name of the PNRP cloud for which this peer identity is requesting
     ///registration. If <b>NULL</b>, the registration will be made in all clouds. It is possible to use the special
     ///value PEER_PNRP_ALL_LINK_CLOUDS to register in all link local clouds.
-    const(wchar)* pwzCloudName;
+    PWSTR      pwzCloudName;
     ///Pointer to a Unicode string that contains the name of the peer identity requesting registration.
-    const(wchar)* pwzPublishingIdentity;
+    PWSTR      pwzPublishingIdentity;
     ///The number of SOCKADDR structures in <b>ppAddresses</b>. It is possible to use the special value
     ///PEER_PNRP_AUTO_ADDRESSES to have the infrastructure automatically choose addresses.
-    uint          cAddresses;
+    uint       cAddresses;
     ///Pointer to an array of pointers to SOCKADDR structures that contain the IP addresses bound to the network
     ///interface of the peer identity requesting registration.
-    SOCKADDR**    ppAddresses;
+    SOCKADDR** ppAddresses;
     ///The network interface port assigned to the address that the peer is publishing.
-    ushort        wPort;
+    ushort     wPort;
     ///Pointer to a zero-terminated Unicode string that contains a comment for this peer endpoint.
-    const(wchar)* pwzComment;
-    PEER_DATA     payload;
+    PWSTR      pwzComment;
+    PEER_DATA  payload;
 }
 
 ///The <b>DRT_DATA</b> structure contains a data blob. This structure is used by several DRT functions.
@@ -1787,7 +1787,7 @@ struct DRT_SETTINGS
     uint              ulMaxRoutingAddresses;
     ///This string forms the basis of the name of the DRT instance. The name of the instance can be used to locate the
     ///Windows performance counters associated with it.
-    const(wchar)*     pwzDrtInstancePrefix;
+    PWSTR             pwzDrtInstancePrefix;
     ///Handle to a transport created by the transport creation API. This is used to open a DRT with a transport
     ///specified by the <b>DRT_SETTINGS</b> structure. Currently only IPv6 UDP is supported via
     ///DrtCreateIpv6UdpTransport.
@@ -1879,23 +1879,23 @@ struct DRT_EVENT_DATA
     ///Pointer to the context data passed to the API that generated the event. For example, if data is passed into the
     ///<i>pvContext</i> parameter of DrtOpen, that data is returned through this field.
     void*          pvContext;
-    union
+union
     {
-        struct leafsetKeyChange
+struct leafsetKeyChange
         {
             DRT_LEAFSET_KEY_CHANGE_TYPE change;
             DRT_DATA localKey;
             DRT_DATA remoteKey;
         }
-        struct registrationStateChange
+struct registrationStateChange
         {
             DRT_REGISTRATION_STATE state;
             DRT_DATA localKey;
         }
-        struct statusChange
+struct statusChange
         {
             DRT_STATUS status;
-            struct bootstrapAddresses
+struct bootstrapAddresses
             {
                 uint                 cntAddress;
                 SOCKADDR_STORAGE_LH* pAddresses;
@@ -2098,7 +2098,7 @@ HRESULT PeerGraphEndEnumeration(void* hPeerEnum);
 ///    initialized with a call to PeerGraphStartup before using this function. </td> </tr> </table>
 ///    
 @DllImport("P2PGRAPH")
-HRESULT PeerGraphCreate(PEER_GRAPH_PROPERTIES* pGraphProperties, const(wchar)* pwzDatabaseName, 
+HRESULT PeerGraphCreate(PEER_GRAPH_PROPERTIES* pGraphProperties, const(PWSTR) pwzDatabaseName, 
                         PEER_SECURITY_INTERFACE* pSecurityInterface, void** phGraph);
 
 ///The <b>PeerGraphOpen</b> function opens a peer graph that is created previously by either the local node or a remote
@@ -2137,9 +2137,9 @@ HRESULT PeerGraphCreate(PEER_GRAPH_PROPERTIES* pGraphProperties, const(wchar)* p
 ///    </table>
 ///    
 @DllImport("P2PGRAPH")
-HRESULT PeerGraphOpen(const(wchar)* pwzGraphId, const(wchar)* pwzPeerId, const(wchar)* pwzDatabaseName, 
+HRESULT PeerGraphOpen(const(PWSTR) pwzGraphId, const(PWSTR) pwzPeerId, const(PWSTR) pwzDatabaseName, 
                       PEER_SECURITY_INTERFACE* pSecurityInterface, uint cRecordTypeSyncPrecedence, 
-                      char* pRecordTypeSyncPrecedence, void** phGraph);
+                      const(GUID)* pRecordTypeSyncPrecedence, void** phGraph);
 
 ///The <b>PeerGraphListen</b> function indicates that a peer graph should start listening for incoming connections.
 ///Params:
@@ -2196,7 +2196,7 @@ HRESULT PeerGraphListen(void* hGraph, uint dwScope, uint dwScopeId, ushort wPort
 ///    </table>
 ///    
 @DllImport("P2PGRAPH")
-HRESULT PeerGraphConnect(void* hGraph, const(wchar)* pwzPeerId, PEER_ADDRESS* pAddress, ulong* pullConnectionId);
+HRESULT PeerGraphConnect(void* hGraph, const(PWSTR) pwzPeerId, PEER_ADDRESS* pAddress, ulong* pullConnectionId);
 
 ///The <b>PeerGraphClose</b> function invalidates the peer graph handle returned by a call to either PeerGraphCreate or
 ///PeerGraphOpen, and closes all network connections for the specified peer graph.
@@ -2231,7 +2231,7 @@ HRESULT PeerGraphClose(void* hGraph);
 ///    graph must be initialized with a call to PeerGraphStartup before using this function. </td> </tr> </table>
 ///    
 @DllImport("P2PGRAPH")
-HRESULT PeerGraphDelete(const(wchar)* pwzGraphId, const(wchar)* pwzPeerId, const(wchar)* pwzDatabaseName);
+HRESULT PeerGraphDelete(const(PWSTR) pwzGraphId, const(PWSTR) pwzPeerId, const(PWSTR) pwzDatabaseName);
 
 ///The <b>PeerGraphGetStatus</b> function returns the current status of the peer graph.
 ///Params:
@@ -2312,8 +2312,8 @@ HRESULT PeerGraphSetProperties(void* hGraph, PEER_GRAPH_PROPERTIES* pGraphProper
 ///    call to PeerGraphStartup before using this function. </td> </tr> </table>
 ///    
 @DllImport("P2PGRAPH")
-HRESULT PeerGraphRegisterEvent(void* hGraph, HANDLE hEvent, uint cEventRegistrations, char* pEventRegistrations, 
-                               void** phPeerEvent);
+HRESULT PeerGraphRegisterEvent(void* hGraph, HANDLE hEvent, uint cEventRegistrations, 
+                               PEER_GRAPH_EVENT_REGISTRATION* pEventRegistrations, void** phPeerEvent);
 
 ///The <b>PeerGraphUnregisterEvent</b> function requests that the application no longer be notified of changes
 ///associated with a peer graph and record type.
@@ -2464,7 +2464,7 @@ HRESULT PeerGraphDeleteRecord(void* hGraph, const(GUID)* pRecordId, BOOL fLocal)
 ///    PeerGraphStartup before using this function. </td> </tr> </table>
 ///    
 @DllImport("P2PGRAPH")
-HRESULT PeerGraphEnumRecords(void* hGraph, const(GUID)* pRecordType, const(wchar)* pwzPeerId, void** phPeerEnum);
+HRESULT PeerGraphEnumRecords(void* hGraph, const(GUID)* pRecordType, const(PWSTR) pwzPeerId, void** phPeerEnum);
 
 ///The <b>PeerGraphSearchRecords</b> function searches the peer graph for specific records.
 ///Params:
@@ -2485,7 +2485,7 @@ HRESULT PeerGraphEnumRecords(void* hGraph, const(GUID)* pRecordType, const(wchar
 ///    call to PeerGraphStartup before using this function. </td> </tr> </table>
 ///    
 @DllImport("P2PGRAPH")
-HRESULT PeerGraphSearchRecords(void* hGraph, const(wchar)* pwzCriteria, void** phPeerEnum);
+HRESULT PeerGraphSearchRecords(void* hGraph, const(PWSTR) pwzCriteria, void** phPeerEnum);
 
 ///The <b>PeerGraphExportDatabase</b> function exports a peer graph database into a file that you can move to a
 ///different computer. By using PeerGraphImportDatabase, a peer graph database can be imported to a different computer.
@@ -2504,7 +2504,7 @@ HRESULT PeerGraphSearchRecords(void* hGraph, const(wchar)* pwzCriteria, void** p
 ///    initialized with a call to PeerGraphStartup before using this function. </td> </tr> </table>
 ///    
 @DllImport("P2PGRAPH")
-HRESULT PeerGraphExportDatabase(void* hGraph, const(wchar)* pwzFilePath);
+HRESULT PeerGraphExportDatabase(void* hGraph, const(PWSTR) pwzFilePath);
 
 ///The <b>PeerGraphImportDatabase</b> function imports a file that contains the information from a peer graph database.
 ///This function can only be called if the application has not yet called the PeerGraphListen or PeerGraphConnect
@@ -2525,7 +2525,7 @@ HRESULT PeerGraphExportDatabase(void* hGraph, const(wchar)* pwzFilePath);
 ///    PeerGraphStartup before using this function. </td> </tr> </table>
 ///    
 @DllImport("P2PGRAPH")
-HRESULT PeerGraphImportDatabase(void* hGraph, const(wchar)* pwzFilePath);
+HRESULT PeerGraphImportDatabase(void* hGraph, const(PWSTR) pwzFilePath);
 
 ///The <b>PeerGraphValidateDeferredRecords</b> function indicates to the Peer Graphing Infrastructure that it is time to
 ///resubmit any deferred records for the security module to validate.
@@ -2545,7 +2545,7 @@ HRESULT PeerGraphImportDatabase(void* hGraph, const(wchar)* pwzFilePath);
 ///    call to PeerGraphStartup before using this function. </td> </tr> </table>
 ///    
 @DllImport("P2PGRAPH")
-HRESULT PeerGraphValidateDeferredRecords(void* hGraph, uint cRecordIds, char* pRecordIds);
+HRESULT PeerGraphValidateDeferredRecords(void* hGraph, uint cRecordIds, const(GUID)* pRecordIds);
 
 ///The <b>PeerGraphOpenDirectConnection</b> function allows an application to establish a direct connection with a node
 ///in a peer graph. The connection can only be made if the node to which the application is connecting has subscribed to
@@ -2565,7 +2565,7 @@ HRESULT PeerGraphValidateDeferredRecords(void* hGraph, uint cRecordIds, char* pR
 ///    initialized with a call to PeerGraphStartup—before using this function. </td> </tr> </table>
 ///    
 @DllImport("P2PGRAPH")
-HRESULT PeerGraphOpenDirectConnection(void* hGraph, const(wchar)* pwzPeerId, PEER_ADDRESS* pAddress, 
+HRESULT PeerGraphOpenDirectConnection(void* hGraph, const(PWSTR) pwzPeerId, PEER_ADDRESS* pAddress, 
                                       ulong* pullConnectionId);
 
 ///The <b>PeerGraphSendData</b> function sends data to a neighbor node or a directly connected node.
@@ -2586,7 +2586,7 @@ HRESULT PeerGraphOpenDirectConnection(void* hGraph, const(wchar)* pwzPeerId, PEE
 ///    PeerGraphStartup before using this function. </td> </tr> </table>
 ///    
 @DllImport("P2PGRAPH")
-HRESULT PeerGraphSendData(void* hGraph, ulong ullConnectionId, const(GUID)* pType, uint cbData, char* pvData);
+HRESULT PeerGraphSendData(void* hGraph, ulong ullConnectionId, const(GUID)* pType, uint cbData, void* pvData);
 
 ///The <b>PeerGraphCloseDirectConnection</b> function closes a specified direct connection.
 ///Params:
@@ -2650,7 +2650,7 @@ HRESULT PeerGraphEnumConnections(void* hGraph, uint dwFlags, void** phPeerEnum);
 ///    enumerated. </td> </tr> </table>
 ///    
 @DllImport("P2PGRAPH")
-HRESULT PeerGraphEnumNodes(void* hGraph, const(wchar)* pwzPeerId, void** phPeerEnum);
+HRESULT PeerGraphEnumNodes(void* hGraph, const(PWSTR) pwzPeerId, void** phPeerEnum);
 
 ///The <b>PeerGraphSetPresence</b> function explicitly turns on or off the publication of presence records for a
 ///specific node. This function can override the presence settings in the peer graph properties. Calling this function
@@ -2715,7 +2715,7 @@ HRESULT PeerGraphGetNodeInfo(void* hGraph, ulong ullNodeId, PEER_NODE_INFO** ppN
 ///    call to PeerGraphStartup before using this function. </td> </tr> </table>
 ///    
 @DllImport("P2PGRAPH")
-HRESULT PeerGraphSetNodeAttributes(void* hGraph, const(wchar)* pwzAttributes);
+HRESULT PeerGraphSetNodeAttributes(void* hGraph, const(PWSTR) pwzAttributes);
 
 ///The <b>PeerGraphPeerTimeToUniversalTime</b> function converts the peer graph-maintained reference time value to a
 ///localized time value appropriate for display on the peer's computer.
@@ -2763,7 +2763,7 @@ HRESULT PeerGraphUniversalTimeToPeerTime(void* hGraph, FILETIME* pftUniversalTim
 ///    There are no return values.
 ///    
 @DllImport("P2P")
-void PeerFreeData(void* pvData);
+void PeerFreeData(const(void)* pvData);
 
 ///The <b>PeerGetItemCount</b> function returns a count of the items in a peer enumeration.
 ///Params:
@@ -2904,7 +2904,7 @@ HRESULT PeerGroupCreate(PEER_GROUP_PROPERTIES* pProperties, void** phGroup);
 ///    Microsoft RSA Base Provider. These errors are prefixed with CRYPT_* and defined in Winerror.h.
 ///    
 @DllImport("P2P")
-HRESULT PeerGroupOpen(const(wchar)* pwzIdentity, const(wchar)* pwzGroupPeerName, const(wchar)* pwzCloud, 
+HRESULT PeerGroupOpen(const(PWSTR) pwzIdentity, const(PWSTR) pwzGroupPeerName, const(PWSTR) pwzCloud, 
                       void** phGroup);
 
 ///The <b>PeerGroupJoin</b> function prepares a peer with an invitation to join an existing peer group prior to calling
@@ -2946,8 +2946,7 @@ HRESULT PeerGroupOpen(const(wchar)* pwzIdentity, const(wchar)* pwzGroupPeerName,
 ///    CRYPT_* and defined in Winerror.h.
 ///    
 @DllImport("P2P")
-HRESULT PeerGroupJoin(const(wchar)* pwzIdentity, const(wchar)* pwzInvitation, const(wchar)* pwzCloud, 
-                      void** phGroup);
+HRESULT PeerGroupJoin(const(PWSTR) pwzIdentity, const(PWSTR) pwzInvitation, const(PWSTR) pwzCloud, void** phGroup);
 
 ///The <b>PeerGroupPasswordJoin</b> function prepares a peer with an invitation and the correct password to join a
 ///password-protected peer group prior to calling PeerGroupConnect or PeerGroupConnectByAddress.
@@ -2987,8 +2986,8 @@ HRESULT PeerGroupJoin(const(wchar)* pwzIdentity, const(wchar)* pwzInvitation, co
 ///    the Microsoft RSA Base Provider. These errors are prefixed with CRYPT_* and defined in Winerror.h.
 ///    
 @DllImport("P2P")
-HRESULT PeerGroupPasswordJoin(const(wchar)* pwzIdentity, const(wchar)* pwzInvitation, const(wchar)* pwzPassword, 
-                              const(wchar)* pwzCloud, void** phGroup);
+HRESULT PeerGroupPasswordJoin(const(PWSTR) pwzIdentity, const(PWSTR) pwzInvitation, const(PWSTR) pwzPassword, 
+                              const(PWSTR) pwzCloud, void** phGroup);
 
 ///The <b>PeerGroupConnect</b> function initiates a PNRP search for a peer group and attempts to connect to it. After
 ///this function is called successfully, a peer can communicate with other members of the peer group.
@@ -3021,7 +3020,7 @@ HRESULT PeerGroupConnect(void* hGroup);
 ///    in Winerror.h.
 ///    
 @DllImport("P2P")
-HRESULT PeerGroupConnectByAddress(void* hGroup, uint cAddresses, char* pAddresses);
+HRESULT PeerGroupConnectByAddress(void* hGroup, uint cAddresses, PEER_ADDRESS* pAddresses);
 
 ///The <b>PeerGroupClose</b> function invalidates the peer group handle obtained by a previous call to the
 ///PeerGroupCreate, PeerGroupJoin, or PeerGroupOpen function.
@@ -3061,7 +3060,7 @@ HRESULT PeerGroupClose(void* hGroup);
 ///    CRYPT_* and defined in Winerror.h.
 ///    
 @DllImport("P2P")
-HRESULT PeerGroupDelete(const(wchar)* pwzIdentity, const(wchar)* pwzGroupPeerName);
+HRESULT PeerGroupDelete(const(PWSTR) pwzIdentity, const(PWSTR) pwzGroupPeerName);
 
 ///The <b>PeerGroupCreateInvitation</b> function returns an XML string that can be used by the specified peer to join a
 ///group.
@@ -3107,8 +3106,8 @@ HRESULT PeerGroupDelete(const(wchar)* pwzIdentity, const(wchar)* pwzGroupPeerNam
 ///    RSA Base Provider. These errors are prefixed with CRYPT_* and defined in Winerror.h.
 ///    
 @DllImport("P2P")
-HRESULT PeerGroupCreateInvitation(void* hGroup, const(wchar)* pwzIdentityInfo, FILETIME* pftExpiration, 
-                                  uint cRoles, char* pRoles, ushort** ppwzInvitation);
+HRESULT PeerGroupCreateInvitation(void* hGroup, const(PWSTR) pwzIdentityInfo, FILETIME* pftExpiration, uint cRoles, 
+                                  const(GUID)* pRoles, PWSTR* ppwzInvitation);
 
 ///The <b>PeerGroupCreatePasswordInvitation</b> function returns an XML string that can be used by the specified peer to
 ///join a group with a matching password.
@@ -3125,7 +3124,7 @@ HRESULT PeerGroupCreateInvitation(void* hGroup, const(wchar)* pwzIdentityInfo, F
 ///                     <li><b>dwAuthenticationSchemes</b>. This field must have the <b>PEER_GROUP_PASSWORD_AUTHENTICATION</b> flag
 ///                     (0x00000001) set on it.</li> </ul>
 @DllImport("P2P")
-HRESULT PeerGroupCreatePasswordInvitation(void* hGroup, ushort** ppwzInvitation);
+HRESULT PeerGroupCreatePasswordInvitation(void* hGroup, PWSTR* ppwzInvitation);
 
 ///The <b>PeerGroupParseInvitation</b> function returns a PEER_INVITATION_INFO structure with the details of a specific
 ///invitation.
@@ -3146,7 +3145,7 @@ HRESULT PeerGroupCreatePasswordInvitation(void* hGroup, ushort** ppwzInvitation)
 ///    from the Microsoft RSA Base Provider. These errors are prefixed with CRYPT_* and defined in Winerror.h.
 ///    
 @DllImport("P2P")
-HRESULT PeerGroupParseInvitation(const(wchar)* pwzInvitation, PEER_INVITATION_INFO** ppInvitationInfo);
+HRESULT PeerGroupParseInvitation(const(PWSTR) pwzInvitation, PEER_INVITATION_INFO** ppInvitationInfo);
 
 ///The <b>PeerGroupGetStatus</b> function retrieves the current status of a group.
 ///Params:
@@ -3243,7 +3242,7 @@ HRESULT PeerGroupSetProperties(void* hGroup, PEER_GROUP_PROPERTIES* pProperties)
 ///    returned from the Microsoft RSA Base Provider. These errors are prefixed with CRYPT_* and defined in Winerror.h.
 ///    
 @DllImport("P2P")
-HRESULT PeerGroupEnumMembers(void* hGroup, uint dwFlags, const(wchar)* pwzIdentity, void** phPeerEnum);
+HRESULT PeerGroupEnumMembers(void* hGroup, uint dwFlags, const(PWSTR) pwzIdentity, void** phPeerEnum);
 
 ///The <b>PeerGroupOpenDirectConnection</b> function establishes a direct connection with another peer in a peer group.
 ///Params:
@@ -3269,7 +3268,7 @@ HRESULT PeerGroupEnumMembers(void* hGroup, uint dwFlags, const(wchar)* pwzIdenti
 ///    Base Provider. These errors are prefixed with CRYPT_* and defined in Winerror.h.
 ///    
 @DllImport("P2P")
-HRESULT PeerGroupOpenDirectConnection(void* hGroup, const(wchar)* pwzIdentity, PEER_ADDRESS* pAddress, 
+HRESULT PeerGroupOpenDirectConnection(void* hGroup, const(PWSTR) pwzIdentity, PEER_ADDRESS* pAddress, 
                                       ulong* pullConnectionId);
 
 ///The <b>PeerGroupCloseDirectConnection</b> function closes a specific direct connection between two peers.
@@ -3331,7 +3330,7 @@ HRESULT PeerGroupEnumConnections(void* hGroup, uint dwFlags, void** phPeerEnum);
 ///    Winerror.h.
 ///    
 @DllImport("P2P")
-HRESULT PeerGroupSendData(void* hGroup, ulong ullConnectionId, const(GUID)* pType, uint cbData, char* pvData);
+HRESULT PeerGroupSendData(void* hGroup, ulong ullConnectionId, const(GUID)* pType, uint cbData, void* pvData);
 
 ///The <b>PeerGroupRegisterEvent</b> function registers a peer for specific peer group events.
 ///Params:
@@ -3357,8 +3356,8 @@ HRESULT PeerGroupSendData(void* hGroup, ulong ullConnectionId, const(GUID)* pTyp
 ///    in Winerror.h.
 ///    
 @DllImport("P2P")
-HRESULT PeerGroupRegisterEvent(void* hGroup, HANDLE hEvent, uint cEventRegistration, char* pEventRegistrations, 
-                               void** phPeerEvent);
+HRESULT PeerGroupRegisterEvent(void* hGroup, HANDLE hEvent, uint cEventRegistration, 
+                               PEER_GROUP_EVENT_REGISTRATION* pEventRegistrations, void** phPeerEvent);
 
 ///The <b>PeerGroupUnregisterEvent</b> function unregisters a peer from notification of peer events associated with the
 ///supplied event handle.
@@ -3546,7 +3545,7 @@ HRESULT PeerGroupEnumRecords(void* hGroup, const(GUID)* pRecordType, void** phPe
 ///    are prefixed with CRYPT_* and defined in Winerror.h.
 ///    
 @DllImport("P2P")
-HRESULT PeerGroupSearchRecords(void* hGroup, const(wchar)* pwzCriteria, void** phPeerEnum);
+HRESULT PeerGroupSearchRecords(void* hGroup, const(PWSTR) pwzCriteria, void** phPeerEnum);
 
 ///The <b>PeerGroupExportDatabase</b> function exports a peer group database to a specific file, which can be
 ///transported to another computer and imported with the PeerGroupImportDatabase function.
@@ -3567,7 +3566,7 @@ HRESULT PeerGroupSearchRecords(void* hGroup, const(wchar)* pwzCriteria, void** p
 ///    Winerror.h.
 ///    
 @DllImport("P2P")
-HRESULT PeerGroupExportDatabase(void* hGroup, const(wchar)* pwzFilePath);
+HRESULT PeerGroupExportDatabase(void* hGroup, const(PWSTR) pwzFilePath);
 
 ///The <b>PeerGroupImportDatabase</b> function imports a peer group database from a local file.
 ///Params:
@@ -3589,7 +3588,7 @@ HRESULT PeerGroupExportDatabase(void* hGroup, const(wchar)* pwzFilePath);
 ///    are prefixed with CRYPT_* and defined in Winerror.h.
 ///    
 @DllImport("P2P")
-HRESULT PeerGroupImportDatabase(void* hGroup, const(wchar)* pwzFilePath);
+HRESULT PeerGroupImportDatabase(void* hGroup, const(PWSTR) pwzFilePath);
 
 ///The <b>PeerGroupIssueCredentials</b> function issues credentials, including a GMC, to a specific identity, and
 ///optionally returns an invitation XML string the invited peer can use to join a peer group.
@@ -3627,8 +3626,8 @@ HRESULT PeerGroupImportDatabase(void* hGroup, const(wchar)* pwzFilePath);
 ///    prefixed with CRYPT_* and defined in Winerror.h.
 ///    
 @DllImport("P2P")
-HRESULT PeerGroupIssueCredentials(void* hGroup, const(wchar)* pwzSubjectIdentity, 
-                                  PEER_CREDENTIAL_INFO* pCredentialInfo, uint dwFlags, ushort** ppwzInvitation);
+HRESULT PeerGroupIssueCredentials(void* hGroup, const(PWSTR) pwzSubjectIdentity, 
+                                  PEER_CREDENTIAL_INFO* pCredentialInfo, uint dwFlags, PWSTR* ppwzInvitation);
 
 ///The <b>PeerGroupExportConfig</b> function exports the group configuration for a peer as an XML string that contains
 ///the identity, group name, and the GMC for the identity.
@@ -3651,7 +3650,7 @@ HRESULT PeerGroupIssueCredentials(void* hGroup, const(wchar)* pwzSubjectIdentity
 ///    Base Cryptographic Provider. These errors are prefixed with CRYPT_* and defined in Winerror.h.
 ///    
 @DllImport("P2P")
-HRESULT PeerGroupExportConfig(void* hGroup, const(wchar)* pwzPassword, ushort** ppwzXML);
+HRESULT PeerGroupExportConfig(void* hGroup, const(PWSTR) pwzPassword, PWSTR* ppwzXML);
 
 ///The <b>PeerGroupImportConfig</b> function imports a peer group configuration for an identity based on the specific
 ///settings in a supplied XML configuration string.
@@ -3676,8 +3675,8 @@ HRESULT PeerGroupExportConfig(void* hGroup, const(wchar)* pwzPassword, ushort** 
 ///    are prefixed with CRYPT_* and defined in Winerror.h.
 ///    
 @DllImport("P2P")
-HRESULT PeerGroupImportConfig(const(wchar)* pwzXML, const(wchar)* pwzPassword, BOOL fOverwrite, 
-                              ushort** ppwzIdentity, ushort** ppwzGroup);
+HRESULT PeerGroupImportConfig(const(PWSTR) pwzXML, const(PWSTR) pwzPassword, BOOL fOverwrite, PWSTR* ppwzIdentity, 
+                              PWSTR* ppwzGroup);
 
 ///The <b>PeerGroupPeerTimeToUniversalTime</b> function converts the peer group-maintained reference time value to a
 ///localized time value appropriate for display on a peer computer.
@@ -3761,8 +3760,8 @@ HRESULT PeerGroupResumePasswordAuthentication(void* hGroup, void* hPeerEventHand
 ///    because there are too many peer identities. </td> </tr> </table>
 ///    
 @DllImport("P2P")
-HRESULT PeerIdentityCreate(const(wchar)* pwzClassifier, const(wchar)* pwzFriendlyName, size_t hCryptProv, 
-                           ushort** ppwzIdentity);
+HRESULT PeerIdentityCreate(const(PWSTR) pwzClassifier, const(PWSTR) pwzFriendlyName, size_t hCryptProv, 
+                           PWSTR* ppwzIdentity);
 
 ///The <b>PeerIdentityGetFriendlyName</b> function returns the friendly name of the peer identity.
 ///Params:
@@ -3782,7 +3781,7 @@ HRESULT PeerIdentityCreate(const(wchar)* pwzClassifier, const(wchar)* pwzFriendl
 ///    </table>
 ///    
 @DllImport("P2P")
-HRESULT PeerIdentityGetFriendlyName(const(wchar)* pwzIdentity, ushort** ppwzFriendlyName);
+HRESULT PeerIdentityGetFriendlyName(const(PWSTR) pwzIdentity, PWSTR* ppwzFriendlyName);
 
 ///The <b>PeerIdentitySetFriendlyName</b> function modifies the friendly name for a specified peer identity. The
 ///friendly name is the human-readable name.
@@ -3802,7 +3801,7 @@ HRESULT PeerIdentityGetFriendlyName(const(wchar)* pwzIdentity, ushort** ppwzFrie
 ///    </dl> </td> <td width="60%"> A peer identity that matches a specified name cannot be found. </td> </tr> </table>
 ///    
 @DllImport("P2P")
-HRESULT PeerIdentitySetFriendlyName(const(wchar)* pwzIdentity, const(wchar)* pwzFriendlyName);
+HRESULT PeerIdentitySetFriendlyName(const(PWSTR) pwzIdentity, const(PWSTR) pwzFriendlyName);
 
 ///The <b>PeerIdentityGetCryptKey</b> function retrieves a handle to a cryptographic service provider (CSP).
 ///Params:
@@ -3821,14 +3820,14 @@ HRESULT PeerIdentitySetFriendlyName(const(wchar)* pwzIdentity, const(wchar)* pwz
 ///    </dl> </td> <td width="60%"> An identity that matches the specified name cannot be found. </td> </tr> </table>
 ///    
 @DllImport("P2P")
-HRESULT PeerIdentityGetCryptKey(const(wchar)* pwzIdentity, size_t* phCryptProv);
+HRESULT PeerIdentityGetCryptKey(const(PWSTR) pwzIdentity, size_t* phCryptProv);
 
 ///The <b>PeerIdentityDelete</b> function permanently deletes a peer identity. This includes removing all certificates,
 ///private keys, and all group information associated with a specified peer identity.
 ///Params:
 ///    pwzIdentity = Specifies a peer identity to delete.
 @DllImport("P2P")
-HRESULT PeerIdentityDelete(const(wchar)* pwzIdentity);
+HRESULT PeerIdentityDelete(const(PWSTR) pwzIdentity);
 
 ///The <b>PeerEnumIdentities</b> function creates and returns a peer enumeration handle used to enumerate all the peer
 ///identities that belong to a specific user.
@@ -3862,7 +3861,7 @@ HRESULT PeerEnumIdentities(void** phPeerEnum);
 ///    </td> <td width="60%"> The specified peer identity cannot be found. </td> </tr> </table>
 ///    
 @DllImport("P2P")
-HRESULT PeerEnumGroups(const(wchar)* pwzIdentity, void** phPeerEnum);
+HRESULT PeerEnumGroups(const(PWSTR) pwzIdentity, void** phPeerEnum);
 
 ///The <b>PeerCreatePeerName</b> function creates a new name based on the existing name of the specified peer identity
 ///and classifier. However, a new identity is not created by a call to <b>PeerCreatePeerName</b>.
@@ -3884,7 +3883,7 @@ HRESULT PeerEnumGroups(const(wchar)* pwzIdentity, void** phPeerEnum);
 ///    perform the specified operation. </td> </tr> </table>
 ///    
 @DllImport("P2P")
-HRESULT PeerCreatePeerName(const(wchar)* pwzIdentity, const(wchar)* pwzClassifier, ushort** ppwzPeerName);
+HRESULT PeerCreatePeerName(const(PWSTR) pwzIdentity, const(PWSTR) pwzClassifier, PWSTR* ppwzPeerName);
 
 ///The <b>PeerIdentityGetXML</b> function returns a description of the peer identity, which can then be passed to third
 ///parties and used to invite a peer identity into a peer group. This information is returned as an XML fragment.
@@ -3902,7 +3901,7 @@ HRESULT PeerCreatePeerName(const(wchar)* pwzIdentity, const(wchar)* pwzClassifie
 ///    perform the specified operation. </td> </tr> </table>
 ///    
 @DllImport("P2P")
-HRESULT PeerIdentityGetXML(const(wchar)* pwzIdentity, ushort** ppwzIdentityXML);
+HRESULT PeerIdentityGetXML(const(PWSTR) pwzIdentity, PWSTR* ppwzIdentityXML);
 
 ///The <b>PeerIdentityExport</b> function allows a user to export one peer identity. The user can then transfer the peer
 ///identity to a different computer.
@@ -3924,7 +3923,7 @@ HRESULT PeerIdentityGetXML(const(wchar)* pwzIdentity, ushort** ppwzIdentityXML);
 ///    </dl> </td> <td width="60%"> The specified peer identity does not exist. </td> </tr> </table>
 ///    
 @DllImport("P2P")
-HRESULT PeerIdentityExport(const(wchar)* pwzIdentity, const(wchar)* pwzPassword, ushort** ppwzExportXML);
+HRESULT PeerIdentityExport(const(PWSTR) pwzIdentity, const(PWSTR) pwzPassword, PWSTR* ppwzExportXML);
 
 ///The <b>PeerIdentityImport</b> function imports one peer identity. If the peer identity exists on a computer,
 ///<b>PEER_E_ALREADY_EXISTS</b> is returned.
@@ -3948,13 +3947,13 @@ HRESULT PeerIdentityExport(const(wchar)* pwzIdentity, const(wchar)* pwzPassword,
 ///    the ACL has been reset manually. </td> </tr> </table>
 ///    
 @DllImport("P2P")
-HRESULT PeerIdentityImport(const(wchar)* pwzImportXML, const(wchar)* pwzPassword, ushort** ppwzIdentity);
+HRESULT PeerIdentityImport(const(PWSTR) pwzImportXML, const(PWSTR) pwzPassword, PWSTR* ppwzIdentity);
 
 ///The <b>PeerIdentityGetDefault</b> function retrieves the default peer name set for the current user.
 ///Params:
 ///    ppwzPeerName = Pointer to the address of a zero-terminated Unicode string that contains the default name of the current user.
 @DllImport("P2P")
-HRESULT PeerIdentityGetDefault(ushort** ppwzPeerName);
+HRESULT PeerIdentityGetDefault(PWSTR* ppwzPeerName);
 
 ///The <b>PeerCollabStartup</b> function initializes the Peer Collaboration infrastructure.
 ///Params:
@@ -4405,7 +4404,7 @@ HRESULT PeerCollabDeleteEndpointData(PEER_ENDPOINT* pcEndpoint);
 ///    does not exist. Try calling PeerCollabRefreshEndpointData before making another attempt. </td> </tr> </table>
 ///    
 @DllImport("P2P")
-HRESULT PeerCollabQueryContactData(PEER_ENDPOINT* pcEndpoint, ushort** ppwzContactData);
+HRESULT PeerCollabQueryContactData(PEER_ENDPOINT* pcEndpoint, PWSTR* ppwzContactData);
 
 ///The <b>PeerCollabSubscribeEndpointData</b> function creates a subscription to an available endpoint.
 ///Params:
@@ -4470,7 +4469,7 @@ HRESULT PeerCollabSetPresenceInfo(PEER_PRESENCE_INFO* pcPresenceInfo);
 ///    user to be signed in. </td> </tr> </table>
 ///    
 @DllImport("P2P")
-HRESULT PeerCollabGetEndpointName(ushort** ppwzEndpointName);
+HRESULT PeerCollabGetEndpointName(PWSTR* ppwzEndpointName);
 
 ///The <b>PeerCollabSetEndpointName</b> function sets the name of the current endpoint used by the peer application.
 ///Params:
@@ -4485,7 +4484,7 @@ HRESULT PeerCollabGetEndpointName(ushort** ppwzEndpointName);
 ///    the user to be signed in. </td> </tr> </table>
 ///    
 @DllImport("P2P")
-HRESULT PeerCollabSetEndpointName(const(wchar)* pwzEndpointName);
+HRESULT PeerCollabSetEndpointName(const(PWSTR) pwzEndpointName);
 
 ///The <b>PeerCollabSetObject</b> function creates or updates a peer data object used in a peer collaboration network.
 ///Params:
@@ -4540,8 +4539,8 @@ HRESULT PeerCollabDeleteObject(const(GUID)* pObjectId);
 ///    initialized. Calling the relevant initialization function is required. </td> </tr> </table>
 ///    
 @DllImport("P2P")
-HRESULT PeerCollabRegisterEvent(HANDLE hEvent, uint cEventRegistration, char* pEventRegistrations, 
-                                void** phPeerEvent);
+HRESULT PeerCollabRegisterEvent(HANDLE hEvent, uint cEventRegistration, 
+                                PEER_COLLAB_EVENT_REGISTRATION* pEventRegistrations, void** phPeerEvent);
 
 ///The <b>PeerCollabGetEventData</b> function obtains the data associated with a peer collaboration event raised on the
 ///peer.
@@ -4612,7 +4611,7 @@ HRESULT PeerCollabEnumPeopleNearMe(void** phPeerEnum);
 ///    </table>
 ///    
 @DllImport("P2P")
-HRESULT PeerCollabAddContact(const(wchar)* pwzContactData, PEER_CONTACT** ppContact);
+HRESULT PeerCollabAddContact(const(PWSTR) pwzContactData, PEER_CONTACT** ppContact);
 
 ///The <b>PeerCollabDeleteContact</b> function deletes a contact from the local contact store associated with the
 ///caller.
@@ -4627,7 +4626,7 @@ HRESULT PeerCollabAddContact(const(wchar)* pwzContactData, PEER_CONTACT** ppCont
 ///    </table>
 ///    
 @DllImport("P2P")
-HRESULT PeerCollabDeleteContact(const(wchar)* pwzPeerName);
+HRESULT PeerCollabDeleteContact(const(PWSTR) pwzPeerName);
 
 ///The <b>PeerCollabGetContact</b> function obtains the information for a peer contact given the peer name of the
 ///contact.
@@ -4647,7 +4646,7 @@ HRESULT PeerCollabDeleteContact(const(wchar)* pwzPeerName);
 ///    infrastructure is not initialized. Calling the relevant initialization function is required. </td> </tr> </table>
 ///    
 @DllImport("P2P")
-HRESULT PeerCollabGetContact(const(wchar)* pwzPeerName, PEER_CONTACT** ppContact);
+HRESULT PeerCollabGetContact(const(PWSTR) pwzPeerName, PEER_CONTACT** ppContact);
 
 ///The <b>PeerCollabUpdateContact</b> function updates the information associated with a peer contact specified in the
 ///local contact store of the caller.
@@ -4698,7 +4697,7 @@ HRESULT PeerCollabEnumContacts(void** phPeerEnum);
 ///    invalid. </td> </tr> </table>
 ///    
 @DllImport("P2P")
-HRESULT PeerCollabExportContact(const(wchar)* pwzPeerName, ushort** ppwzContactData);
+HRESULT PeerCollabExportContact(const(PWSTR) pwzPeerName, PWSTR* ppwzContactData);
 
 ///The <b>PeerCollabParseContact</b> function parses a Unicode string buffer containing contact XML data into a
 ///PEER_CONTACT data structure.
@@ -4716,7 +4715,7 @@ HRESULT PeerCollabExportContact(const(wchar)* pwzPeerName, ushort** ppwzContactD
 ///    infrastructure is not initialized. Calling the relevant initialization function is required. </td> </tr> </table>
 ///    
 @DllImport("P2P")
-HRESULT PeerCollabParseContact(const(wchar)* pwzContactData, PEER_CONTACT** ppContact);
+HRESULT PeerCollabParseContact(const(PWSTR) pwzContactData, PEER_CONTACT** ppContact);
 
 ///The <b>PeerNameToPeerHostName</b> function encodes the supplied peer name as a format that can be used with a
 ///subsequent call to the getaddrinfo Windows Sockets function.
@@ -4732,7 +4731,7 @@ HRESULT PeerCollabParseContact(const(wchar)* pwzContactData, PEER_CONTACT** ppCo
 ///    perform the specified operation. </td> </tr> </table>
 ///    
 @DllImport("P2P")
-HRESULT PeerNameToPeerHostName(const(wchar)* pwzPeerName, ushort** ppwzHostName);
+HRESULT PeerNameToPeerHostName(const(PWSTR) pwzPeerName, PWSTR* ppwzHostName);
 
 ///The <b>PeerHostNameToPeerName</b> function decodes a host name returned by PeerNameToPeerHostName into the peer name
 ///string it represents.
@@ -4748,7 +4747,7 @@ HRESULT PeerNameToPeerHostName(const(wchar)* pwzPeerName, ushort** ppwzHostName)
 ///    perform the specified operation. </td> </tr> </table>
 ///    
 @DllImport("P2P")
-HRESULT PeerHostNameToPeerName(const(wchar)* pwzHostName, ushort** ppwzPeerName);
+HRESULT PeerHostNameToPeerName(const(PWSTR) pwzHostName, PWSTR* ppwzPeerName);
 
 ///The <b>PeerPnrpStartup</b> function starts the Peer Name Resolution Protocol (PNRP) service for the calling peer.
 ///Params:
@@ -4802,7 +4801,7 @@ HRESULT PeerPnrpShutdown();
 ///    Codes.
 ///    
 @DllImport("P2P")
-HRESULT PeerPnrpRegister(const(wchar)* pcwzPeerName, PEER_PNRP_REGISTRATION_INFO* pRegistrationInfo, 
+HRESULT PeerPnrpRegister(const(PWSTR) pcwzPeerName, PEER_PNRP_REGISTRATION_INFO* pRegistrationInfo, 
                          void** phRegistration);
 
 ///The <b>PeerPnrpUpdateRegistration</b> function updates the PNRP registration information for a name.
@@ -4851,7 +4850,7 @@ HRESULT PeerPnrpUnregister(void* hRegistration);
 ///    perform the specified operation. </td> </tr> </table>
 ///    
 @DllImport("P2P")
-HRESULT PeerPnrpResolve(const(wchar)* pcwzPeerName, const(wchar)* pcwzCloudName, uint* pcEndpoints, 
+HRESULT PeerPnrpResolve(const(PWSTR) pcwzPeerName, const(PWSTR) pcwzCloudName, uint* pcEndpoints, 
                         PEER_PNRP_ENDPOINT_INFO** ppEndpoints);
 
 ///The <b>PeerPnrpStartResolve</b> function starts an asynchronous peer name resolution operation.
@@ -4876,7 +4875,7 @@ HRESULT PeerPnrpResolve(const(wchar)* pcwzPeerName, const(wchar)* pcwzCloudName,
 ///    perform the specified operation. </td> </tr> </table>
 ///    
 @DllImport("P2P")
-HRESULT PeerPnrpStartResolve(const(wchar)* pcwzPeerName, const(wchar)* pcwzCloudName, uint cMaxEndpoints, 
+HRESULT PeerPnrpStartResolve(const(PWSTR) pcwzPeerName, const(PWSTR) pcwzCloudName, uint cMaxEndpoints, 
                              HANDLE hEvent, void** phResolve);
 
 ///The <b>PeerPnrpCloudInfo</b> function retrieves information on the Peer Name Resolution Protocol (PNRP) clouds in
@@ -4953,8 +4952,8 @@ HRESULT PeerPnrpEndResolve(void* hResolve);
 ///    or PeerIdentityGetCryptKey.</div> <div> </div>
 ///    
 @DllImport("drtprov")
-HRESULT DrtCreatePnrpBootstrapResolver(BOOL fPublish, const(wchar)* pwzPeerName, const(wchar)* pwzCloudName, 
-                                       const(wchar)* pwzPublishingIdentity, DRT_BOOTSTRAP_PROVIDER** ppResolver);
+HRESULT DrtCreatePnrpBootstrapResolver(BOOL fPublish, const(PWSTR) pwzPeerName, const(PWSTR) pwzCloudName, 
+                                       const(PWSTR) pwzPublishingIdentity, DRT_BOOTSTRAP_PROVIDER** ppResolver);
 
 ///The <b>DrtDeletePnrpBootstrapResolver</b> function deletes a bootstrap resolver based on the Peer Name Resolution
 ///Protocol (PNRP).
@@ -4978,7 +4977,7 @@ void DrtDeletePnrpBootstrapResolver(DRT_BOOTSTRAP_PROVIDER* pResolver);
 ///    StringCbPrintfW.</div> <div> </div>
 ///    
 @DllImport("drtprov")
-HRESULT DrtCreateDnsBootstrapResolver(ushort port, const(wchar)* pwszAddress, DRT_BOOTSTRAP_PROVIDER** ppModule);
+HRESULT DrtCreateDnsBootstrapResolver(ushort port, const(PWSTR) pwszAddress, DRT_BOOTSTRAP_PROVIDER** ppModule);
 
 ///The <b>DrtDeleteDnsBootstrapResolver</b> function deletes a DNS Bootstrap Provider instance.
 ///Params:
@@ -5195,7 +5194,7 @@ HRESULT DrtGetEventDataSize(void* hDrt, uint* pulEventDataLen);
 ///    width="60%"> No more event data available. </td> </tr> </table>
 ///    
 @DllImport("drt")
-HRESULT DrtGetEventData(void* hDrt, uint ulEventDataLen, char* pEventData);
+HRESULT DrtGetEventData(void* hDrt, uint ulEventDataLen, DRT_EVENT_DATA* pEventData);
 
 ///The <b>DrtRegisterKey</b> function registers a key in the DRT.
 ///Params:
@@ -5360,7 +5359,7 @@ HRESULT DrtGetSearchResultSize(void* hSearchContext, uint* pulSearchResultSize);
 ///    </dl> </td> <td width="60%"> The search is currently in progress. </td> </tr> </table>
 ///    
 @DllImport("drt")
-HRESULT DrtGetSearchResult(void* hSearchContext, uint ulSearchResultSize, char* pSearchResult);
+HRESULT DrtGetSearchResult(void* hSearchContext, uint ulSearchResultSize, DRT_SEARCH_RESULT* pSearchResult);
 
 ///The <b>DrtGetSearchPathSize</b> function returns the size of the search path, which represents the number of nodes
 ///utilized in the search operation.
@@ -5382,7 +5381,7 @@ HRESULT DrtGetSearchPathSize(void* hSearchContext, uint* pulSearchPathSize);
 ///    This function returns S_OK on success.
 ///    
 @DllImport("drt")
-HRESULT DrtGetSearchPath(void* hSearchContext, uint ulSearchPathSize, char* pSearchPath);
+HRESULT DrtGetSearchPath(void* hSearchContext, uint ulSearchPathSize, DRT_ADDRESS_LIST* pSearchPath);
 
 ///The <b>DrtEndSearch</b> function cancels a search for a key in a DRT. This API can be called at any point after a
 ///search is issued.
@@ -5412,7 +5411,7 @@ HRESULT DrtEndSearch(void* hSearchContext);
 ///    insufficient in size. </td> </tr> </table>
 ///    
 @DllImport("drt")
-HRESULT DrtGetInstanceName(void* hDrt, uint ulcbInstanceNameSize, const(wchar)* pwzDrtInstanceName);
+HRESULT DrtGetInstanceName(void* hDrt, uint ulcbInstanceNameSize, PWSTR pwzDrtInstanceName);
 
 ///The <b>DrtGetInstanceNameSize</b> function returns the size of the Distributed Routing Table instance name.
 ///Params:
@@ -5539,7 +5538,7 @@ uint PeerDistUnregisterForStatusChangeNotification(ptrdiff_t hPeerDist);
 ///    </tr> </table>
 ///    
 @DllImport("PeerDist")
-uint PeerDistServerPublishStream(ptrdiff_t hPeerDist, uint cbContentIdentifier, char* pContentIdentifier, 
+uint PeerDistServerPublishStream(ptrdiff_t hPeerDist, uint cbContentIdentifier, ubyte* pContentIdentifier, 
                                  ulong cbContentLength, PEERDIST_PUBLICATION_OPTIONS* pPublishOptions, 
                                  HANDLE hCompletionPort, size_t ulCompletionKey, ptrdiff_t* phStream);
 
@@ -5565,7 +5564,7 @@ uint PeerDistServerPublishStream(ptrdiff_t hPeerDist, uint cbContentIdentifier, 
 ///    </tr> </table>
 ///    
 @DllImport("PeerDist")
-uint PeerDistServerPublishAddToStream(ptrdiff_t hPeerDist, ptrdiff_t hStream, uint cbNumberOfBytes, char* pBuffer, 
+uint PeerDistServerPublishAddToStream(ptrdiff_t hPeerDist, ptrdiff_t hStream, uint cbNumberOfBytes, ubyte* pBuffer, 
                                       OVERLAPPED* lpOverlapped);
 
 ///The <b>PeerDistServerPublishCompleteStream</b> function completes the process of adding data to the stream.
@@ -5618,7 +5617,7 @@ uint PeerDistServerCloseStreamHandle(ptrdiff_t hPeerDist, ptrdiff_t hStream);
 ///    width="60%"> The service is unavailable. </td> </tr> </table>
 ///    
 @DllImport("PeerDist")
-uint PeerDistServerUnpublish(ptrdiff_t hPeerDist, uint cbContentIdentifier, char* pContentIdentifier);
+uint PeerDistServerUnpublish(ptrdiff_t hPeerDist, uint cbContentIdentifier, ubyte* pContentIdentifier);
 
 ///The <b>PeerDistServerOpenContentInformation</b> function opens a <b>PEERDIST_CONTENTINFO_HANDLE</b>. The client uses
 ///the handle to retrieve content information.
@@ -5647,7 +5646,7 @@ uint PeerDistServerUnpublish(ptrdiff_t hPeerDist, uint cbContentIdentifier, char
 ///    </tr> </table>
 ///    
 @DllImport("PeerDist")
-uint PeerDistServerOpenContentInformation(ptrdiff_t hPeerDist, uint cbContentIdentifier, char* pContentIdentifier, 
+uint PeerDistServerOpenContentInformation(ptrdiff_t hPeerDist, uint cbContentIdentifier, ubyte* pContentIdentifier, 
                                           ulong ullContentOffset, ulong cbContentLength, HANDLE hCompletionPort, 
                                           size_t ulCompletionKey, ptrdiff_t* phContentInfo);
 
@@ -5675,7 +5674,7 @@ uint PeerDistServerOpenContentInformation(ptrdiff_t hPeerDist, uint cbContentIde
 ///    
 @DllImport("PeerDist")
 uint PeerDistServerRetrieveContentInformation(ptrdiff_t hPeerDist, ptrdiff_t hContentInfo, uint cbMaxNumberOfBytes, 
-                                              char* pBuffer, OVERLAPPED* lpOverlapped);
+                                              ubyte* pBuffer, OVERLAPPED* lpOverlapped);
 
 ///The <b>PeerDistServerCloseContentInformation</b> function closes the handle opened by
 ///PeerDistServerOpenContentInformation.
@@ -5713,7 +5712,7 @@ uint PeerDistServerCloseContentInformation(ptrdiff_t hPeerDist, ptrdiff_t hConte
 ///    width="60%"> The service is unavailable. </td> </tr> </table>
 ///    
 @DllImport("PeerDist")
-uint PeerDistServerCancelAsyncOperation(ptrdiff_t hPeerDist, uint cbContentIdentifier, char* pContentIdentifier, 
+uint PeerDistServerCancelAsyncOperation(ptrdiff_t hPeerDist, uint cbContentIdentifier, ubyte* pContentIdentifier, 
                                         OVERLAPPED* pOverlapped);
 
 ///The <b>PeerDistClientOpenContent</b> function opens and returns a PEERDIST_CONTENT_HANDLE. The client uses the
@@ -5777,7 +5776,7 @@ uint PeerDistClientCloseContent(ptrdiff_t hPeerDist, ptrdiff_t hContentHandle);
 ///    
 @DllImport("PeerDist")
 uint PeerDistClientAddContentInformation(ptrdiff_t hPeerDist, ptrdiff_t hContentHandle, uint cbNumberOfBytes, 
-                                         char* pBuffer, OVERLAPPED* lpOverlapped);
+                                         ubyte* pBuffer, OVERLAPPED* lpOverlapped);
 
 ///The <b>PeerDistClientCompleteContentInformation</b> function completes the process of adding the content information.
 ///Params:
@@ -5822,7 +5821,7 @@ uint PeerDistClientCompleteContentInformation(ptrdiff_t hPeerDist, ptrdiff_t hCo
 ///    width="60%"> The service is unavailable. </td> </tr> </table>
 ///    
 @DllImport("PeerDist")
-uint PeerDistClientAddData(ptrdiff_t hPeerDist, ptrdiff_t hContentHandle, uint cbNumberOfBytes, char* pBuffer, 
+uint PeerDistClientAddData(ptrdiff_t hPeerDist, ptrdiff_t hContentHandle, uint cbNumberOfBytes, ubyte* pBuffer, 
                            OVERLAPPED* lpOverlapped);
 
 ///The <b>PeerDistClientBlockRead</b> function reads content data blocks.
@@ -5857,8 +5856,8 @@ uint PeerDistClientAddData(ptrdiff_t hPeerDist, ptrdiff_t hContentHandle, uint c
 ///    width="60%"> The service is unavailable. </td> </tr> </table>
 ///    
 @DllImport("PeerDist")
-uint PeerDistClientBlockRead(ptrdiff_t hPeerDist, ptrdiff_t hContentHandle, uint cbMaxNumberOfBytes, char* pBuffer, 
-                             uint dwTimeoutInMilliseconds, OVERLAPPED* lpOverlapped);
+uint PeerDistClientBlockRead(ptrdiff_t hPeerDist, ptrdiff_t hContentHandle, uint cbMaxNumberOfBytes, 
+                             ubyte* pBuffer, uint dwTimeoutInMilliseconds, OVERLAPPED* lpOverlapped);
 
 ///The <b>PeerDistClientStreamRead</b> reads a sequence of bytes from content stream.
 ///Params:
@@ -5892,7 +5891,7 @@ uint PeerDistClientBlockRead(ptrdiff_t hPeerDist, ptrdiff_t hContentHandle, uint
 ///    
 @DllImport("PeerDist")
 uint PeerDistClientStreamRead(ptrdiff_t hPeerDist, ptrdiff_t hContentHandle, uint cbMaxNumberOfBytes, 
-                              char* pBuffer, uint dwTimeoutInMilliseconds, OVERLAPPED* lpOverlapped);
+                              ubyte* pBuffer, uint dwTimeoutInMilliseconds, OVERLAPPED* lpOverlapped);
 
 ///The [PEERDIST_CONTENT_TAG](./ns-peerdist-peerdist_content_tag.md).
 ///Params:
@@ -6006,7 +6005,7 @@ BOOL PeerDistGetOverlappedResult(OVERLAPPED* lpOverlapped, uint* lpNumberOfBytes
 ///    
 @DllImport("PeerDist")
 uint PeerDistServerOpenContentInformationEx(ptrdiff_t hPeerDist, uint cbContentIdentifier, 
-                                            char* pContentIdentifier, ulong ullContentOffset, ulong cbContentLength, 
+                                            ubyte* pContentIdentifier, ulong ullContentOffset, ulong cbContentLength, 
                                             PEERDIST_RETRIEVAL_OPTIONS* pRetrievalOptions, HANDLE hCompletionPort, 
                                             size_t ulCompletionKey, ptrdiff_t* phContentInfo);
 
@@ -6025,6 +6024,6 @@ uint PeerDistServerOpenContentInformationEx(ptrdiff_t hPeerDist, uint cbContentI
 @DllImport("PeerDist")
 uint PeerDistClientGetInformationByHandle(ptrdiff_t hPeerDist, ptrdiff_t hContentHandle, 
                                           PEERDIST_CLIENT_INFO_BY_HANDLE_CLASS PeerDistClientInfoClass, 
-                                          uint dwBufferSize, char* lpInformation);
+                                          uint dwBufferSize, void* lpInformation);
 
 

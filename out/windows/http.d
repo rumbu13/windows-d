@@ -4,13 +4,13 @@ module windows.http;
 
 public import windows.core;
 public import windows.networkdrivers : SOCKADDR_STORAGE_LH;
-public import windows.systemservices : BOOL, HANDLE, OVERLAPPED, SECURITY_ATTRIBUTES,
-                                       ULARGE_INTEGER;
+public import windows.systemservices : BOOL, HANDLE, OVERLAPPED, PSTR, PWSTR,
+                                       SECURITY_ATTRIBUTES, ULARGE_INTEGER;
 public import windows.wininet : INTERNET_SCHEME;
 public import windows.winsock : SOCKADDR;
 public import windows.windowsprogramming : FILETIME, SYSTEMTIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -1043,15 +1043,15 @@ struct HTTP_LISTEN_ENDPOINT_INFO
 struct HTTP_SERVER_AUTHENTICATION_DIGEST_PARAMS
 {
     ///The length, in bytes, of the <b>DomainName</b> member.
-    ushort        DomainNameLength;
+    ushort DomainNameLength;
     ///The domain name used for Digest authentication. If <b>NULL</b>, the client assumes the protection space consists
     ///of all the URIs under the responding server.
-    const(wchar)* DomainName;
+    PWSTR  DomainName;
     ///The length, in bytes, of the <b>Realm</b> member.
-    ushort        RealmLength;
+    ushort RealmLength;
     ///The realm used for Digest authentication. The realm allows the server to be partitioned into a set of protection
     ///spaces, each with its own set of authentication schemes from the authentication database.
-    const(wchar)* Realm;
+    PWSTR  Realm;
 }
 
 ///The <b>HTTP_SERVER_AUTHENTICATION_BASIC_PARAMS</b> structure contains the information for Basic authentication on a
@@ -1059,10 +1059,10 @@ struct HTTP_SERVER_AUTHENTICATION_DIGEST_PARAMS
 struct HTTP_SERVER_AUTHENTICATION_BASIC_PARAMS
 {
     ///The length, in bytes, of the <b>Realm</b> member.
-    ushort        RealmLength;
+    ushort RealmLength;
     ///The realm used for Basic authentication. The realm allows the server to be partitioned into a set of protection
     ///spaces, each with its own set of authentication schemes from the authentication database.
-    const(wchar)* Realm;
+    PWSTR  Realm;
 }
 
 ///The <b>HTTP_SERVER_AUTHENTICATION_INFO</b> structure is used to enable server-side authentication on a URL group or
@@ -1134,8 +1134,8 @@ struct HTTP_SERVICE_BINDING_A
     ///<b>HttpServiceBindingTypeA</b>.
     HTTP_SERVICE_BINDING_BASE Base;
     ///A pointer to a buffer that represents the SPN.
-    const(char)* Buffer;
-    uint         BufferSize;
+    PSTR Buffer;
+    uint BufferSize;
 }
 
 ///The <b>HTTP_SERVICE_BINDING_W</b> structure provides Service Principle Name (SPN) in Unicode.
@@ -1145,8 +1145,8 @@ struct HTTP_SERVICE_BINDING_W
     ///<b>HttpServiceBindingTypeW</b>.
     HTTP_SERVICE_BINDING_BASE Base;
     ///A pointer to a buffer that represents the SPN.
-    const(wchar)* Buffer;
-    uint          BufferSize;
+    PWSTR Buffer;
+    uint  BufferSize;
 }
 
 ///The <b>HTTP_CHANNEL_BIND_INFO</b> structure is used to set or query channel bind authentication.
@@ -1234,7 +1234,7 @@ struct HTTP_LOGGING_INFO
     uint                LoggingFlags;
     ///The optional software name string used in W3C type logging. This name is not used for other types of logging. If
     ///this parameter is <b>NULL</b>, the HTTP Server API logs a default string.
-    const(wchar)*       SoftwareName;
+    const(PWSTR)        SoftwareName;
     ///The length, in bytes, of the software name. The length cannot be greater than <b>MAX_PATH</b>. If the
     ///<b>SoftwareName</b> member is <b>NULL</b>, this length must be zero.
     ushort              SoftwareNameLength;
@@ -1242,7 +1242,7 @@ struct HTTP_LOGGING_INFO
     ushort              DirectoryNameLength;
     ///The logging directory under which the log files are created. The directory string must be a fully qualified path
     ///including the drive letter. Applications can use a UNC path to a remote machine to enable UNC logging.
-    const(wchar)*       DirectoryName;
+    const(PWSTR)        DirectoryName;
     ///A member of the HTTP_LOGGING_TYPE enumeration specifying one of the following log file formats. <table> <tr>
     ///<th>Format</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="HttpLoggingTypeW3C"></a><a
     ///id="httploggingtypew3c"></a><a id="HTTPLOGGINGTYPEW3C"></a><dl> <dt><b>HttpLoggingTypeW3C</b></dt> </dl> </td>
@@ -1346,10 +1346,10 @@ struct HTTP_KNOWN_HEADER
     ///Size, in bytes, of the 8-bit string pointed to by the <b>pRawValue</b> member, not counting a terminating null
     ///character, if present. If <b>RawValueLength</b> is zero, then the value of the <b>pRawValue</b> element is
     ///meaningless.
-    ushort       RawValueLength;
+    ushort      RawValueLength;
     ///Pointer to the text of this HTTP header. Use <b>RawValueLength</b> to determine where this text ends rather than
     ///relying on the string to have a terminating null. The format of the header text is specified in RFC 2616.
-    const(char)* pRawValue;
+    const(PSTR) pRawValue;
 }
 
 ///The <b>HTTP_UNKNOWN_HEADER</b> structure contains the name and value for a header in an HTTP request or response
@@ -1357,15 +1357,15 @@ struct HTTP_KNOWN_HEADER
 struct HTTP_UNKNOWN_HEADER
 {
     ///The size, in bytes, of the data pointed to by the <b>pName</b> member not counting a terminating null.
-    ushort       NameLength;
+    ushort      NameLength;
     ///The size, in bytes, of the data pointed to by the <b>pRawValue</b> member, in bytes.
-    ushort       RawValueLength;
+    ushort      RawValueLength;
     ///A pointer to a string of octets that specifies the header name. Use <b>NameLength</b> to determine the end of the
     ///string, rather than relying on a terminating <b>null</b>.
-    const(char)* pName;
+    const(PSTR) pName;
     ///A pointer to a string of octets that specifies the values for this header. Use <b>RawValueLength</b> to determine
     ///the end of the string, rather than relying on a terminating <b>null</b>.
-    const(char)* pRawValue;
+    const(PSTR) pRawValue;
 }
 
 ///The <b>HTTP_LOG_DATA</b> structure contains a value that specifies the type of the log data.
@@ -1405,29 +1405,29 @@ struct HTTP_LOG_FIELDS_DATA
     ///The size, in bytes, of the referrer member.
     ushort        ReferrerLength;
     ///The name of the user.
-    const(wchar)* UserName;
+    PWSTR         UserName;
     ///The URI stem.
-    const(wchar)* UriStem;
+    PWSTR         UriStem;
     ///The IP address of the client.
-    const(char)*  ClientIp;
+    PSTR          ClientIp;
     ///The name of the server.
-    const(char)*  ServerName;
+    PSTR          ServerName;
     ///The name of the service.
-    const(char)*  ServiceName;
+    PSTR          ServiceName;
     ///The IP address of the server.
-    const(char)*  ServerIp;
+    PSTR          ServerIp;
     ///The HTTP method.
-    const(char)*  Method;
+    PSTR          Method;
     ///The URI query.
-    const(char)*  UriQuery;
+    PSTR          UriQuery;
     ///The host information from the request.
-    const(char)*  Host;
+    PSTR          Host;
     ///The user agent name.
-    const(char)*  UserAgent;
+    PSTR          UserAgent;
     ///The cookie provided by the application.
-    const(char)*  Cookie;
+    PSTR          Cookie;
     ///The referrer.
-    const(char)*  Referrer;
+    PSTR          Referrer;
     ///The port for the server.
     ushort        ServerPort;
     ///The protocol status.
@@ -1446,27 +1446,27 @@ struct HTTP_DATA_CHUNK
 {
     ///Type of data store. This member can be one of the values from the <b>HTTP_DATA_CHUNK_TYPE</b> enumeration.
     HTTP_DATA_CHUNK_TYPE DataChunkType;
-    union
+union
     {
-        struct FromMemory
+struct FromMemory
         {
             void* pBuffer;
             uint  BufferLength;
         }
-        struct FromFileHandle
+struct FromFileHandle
         {
             HTTP_BYTE_RANGE ByteRange;
             HANDLE          FileHandle;
         }
-        struct FromFragmentCache
+struct FromFragmentCache
         {
-            ushort        FragmentNameLength;
-            const(wchar)* pFragmentName;
+            ushort       FragmentNameLength;
+            const(PWSTR) pFragmentName;
         }
-        struct FromFragmentCacheEx
+struct FromFragmentCacheEx
         {
             HTTP_BYTE_RANGE ByteRange;
-            const(wchar)*   pFragmentName;
+            const(PWSTR)    pFragmentName;
         }
     }
 }
@@ -1546,23 +1546,23 @@ struct HTTP_TRANSPORT_ADDRESS
 struct HTTP_COOKED_URL
 {
     ///Size, in bytes, of the data pointed to by the <b>pFullUrl</b> member, not including a terminating null character.
-    ushort        FullUrlLength;
+    ushort       FullUrlLength;
     ///Size, in bytes, of the data pointed to by the <b>pHost</b> member.
-    ushort        HostLength;
+    ushort       HostLength;
     ///Size, in bytes, of the data pointed to by the <b>pAbsPath</b> member.
-    ushort        AbsPathLength;
+    ushort       AbsPathLength;
     ///Size, in bytes, of the data pointed to by the <b>pQueryString</b> member.
-    ushort        QueryStringLength;
+    ushort       QueryStringLength;
     ///Pointer to the scheme element at the beginning of the URL (must be either "http://..." or "https://...").
-    const(wchar)* pFullUrl;
+    const(PWSTR) pFullUrl;
     ///Pointer to the first character in the host element, immediately following the double slashes at the end of the
     ///scheme element.
-    const(wchar)* pHost;
+    const(PWSTR) pHost;
     ///Pointer to the third forward slash ("/") in the string. In a UrlPrefix string, this is the slash immediately
     ///preceding the relativeUri element.
-    const(wchar)* pAbsPath;
+    const(PWSTR) pAbsPath;
     ///Pointer to the first question mark (?) in the string, or <b>NULL</b> if there is none.
-    const(wchar)* pQueryString;
+    const(PWSTR) pQueryString;
 }
 
 ///The <b>HTTP_SSL_CLIENT_CERT_INFO</b> structure contains data about a Secure Sockets Layer (SSL) client certificate
@@ -1592,25 +1592,25 @@ struct HTTP_SSL_CLIENT_CERT_INFO
 struct HTTP_SSL_INFO
 {
     ///The size, in bytes, of the public key used to sign the server certificate.
-    ushort       ServerCertKeySize;
+    ushort      ServerCertKeySize;
     ///The size, in bytes, of the cipher key used to encrypt the current session.
-    ushort       ConnectionKeySize;
+    ushort      ConnectionKeySize;
     ///The size, in bytes, of the string pointed to by the <b>pServerCertIssuer</b> member not including the terminating
     ///null character.
-    uint         ServerCertIssuerSize;
+    uint        ServerCertIssuerSize;
     ///The size, in bytes, of the string pointed to by the <b>pServerCertSubject</b> member not including the
     ///terminating null character.
-    uint         ServerCertSubjectSize;
+    uint        ServerCertSubjectSize;
     ///A pointer to a null-terminated string of octets that specifies the name of the entity that issued the
     ///certificate.
-    const(char)* pServerCertIssuer;
+    const(PSTR) pServerCertIssuer;
     ///A pointer to a null-terminated string of octets that specifies the name of the entity to which the certificate
     ///belongs.
-    const(char)* pServerCertSubject;
+    const(PSTR) pServerCertSubject;
     ///A pointer to an HTTP_SSL_CLIENT_CERT_INFO structure that specifies the client certificate.
     HTTP_SSL_CLIENT_CERT_INFO* pClientCertInfo;
     ///If non-zero, indicates that the client certificate is already present locally.
-    uint         SslClientCertNegotiated;
+    uint        SslClientCertNegotiated;
 }
 
 struct HTTP_SSL_PROTOCOL_INFO
@@ -1692,9 +1692,9 @@ struct HTTP_REQUEST_AUTH_INFO
     ///The length, in bytes, of the <b>pMutualAuthData</b> member.
     uint             MutualAuthDataLength;
     ///The Base64 encoded mutual authentication data used in the WWW-Authenticate header.
-    const(char)*     pMutualAuthData;
+    PSTR             pMutualAuthData;
     ushort           PackageNameLength;
-    const(wchar)*    pPackageName;
+    PWSTR            pPackageName;
 }
 
 ///Uses the HTTP_REQUEST structure to return data associated with a specific request. Do not use <b>HTTP_REQUEST_V1</b>
@@ -1739,11 +1739,11 @@ struct HTTP_REQUEST_V1
     ushort               RawUrlLength;
     ///If the <b>Verb</b> member is equal to <b>HttpVerbUnknown</b>, <b>pUnknownVerb</b>, points to a null-terminated
     ///string of octets that contains the HTTP verb for this request; otherwise, the application ignores this parameter.
-    const(char)*         pUnknownVerb;
+    const(PSTR)          pUnknownVerb;
     ///A pointer to a string of octets that contains the original, unprocessed URL targeted by this request. Use this
     ///unprocessed URL only for tracking or statistical purposes; the <b>CookedUrl</b> member contains the canonical
     ///form of the URL for general use.
-    const(char)*         pRawUrl;
+    const(PSTR)          pRawUrl;
     ///An HTTP_COOKED_URL structure that contains a parsed canonical wide-character version of the URL targeted by this
     ///request. This is the version of the URL HTTP Listeners should act upon, rather than the raw URL.
     HTTP_COOKED_URL      CookedUrl;
@@ -1800,7 +1800,7 @@ struct HTTP_RESPONSE_V1
     ushort           ReasonLength;
     ///A pointer to a human-readable, null-terminated string of printable characters that characterizes the result of
     ///the HTTP request (for example, "OK" or "Not Found").
-    const(char)*     pReason;
+    const(PSTR)      pReason;
     ///An HTTP_RESPONSE_HEADERS structure that contains the headers used in this response.
     HTTP_RESPONSE_HEADERS Headers;
     ///A number of entity-body data blocks specified in the <b>pEntityChunks</b> array. This number cannot exceed 100.
@@ -1918,7 +1918,7 @@ struct HTTP_SERVICE_CONFIG_SSL_SNI_KEY
     ///<b>ss_family</b> set to <b>AF_INET</b> and <b>sin_addr</b> filled with zeros. <b>Port</b> can be any valid port.
     SOCKADDR_STORAGE_LH IpPort;
     ///A pointer to a null-terminated Unicode UTF-16 string that represents the hostname.
-    const(wchar)*       Host;
+    PWSTR               Host;
 }
 
 ///Serves as the key by which identifies the SSL certificate record that specifies that Http.sys should consult the
@@ -1937,15 +1937,15 @@ struct HTTP_SERVICE_CONFIG_SSL_CCS_KEY
 struct HTTP_SERVICE_CONFIG_SSL_PARAM
 {
     ///The size, in bytes, of the SSL hash.
-    uint          SslHashLength;
+    uint  SslHashLength;
     ///A pointer to the SSL certificate hash.
-    void*         pSslHash;
+    void* pSslHash;
     ///A unique identifier of the application setting this record.
-    GUID          AppId;
+    GUID  AppId;
     ///A pointer to a wide-character string that contains the name of the store from which the server certificate is to
     ///be read. If set to <b>NULL</b>, "MY" is assumed as the default name. The specified certificate store name must be
     ///present in the Local System store location.
-    const(wchar)* pSslCertStoreName;
+    PWSTR pSslCertStoreName;
     ///Determines how client certificates are checked. This member can be one of the following values. <table> <tr>
     ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="0"></a><dl> <dt><b>0</b></dt> </dl> </td> <td
     ///width="60%"> Enables the client certificate revocation check. </td> </tr> <tr> <td width="40%"><a id="1"></a><dl>
@@ -1955,19 +1955,19 @@ struct HTTP_SERVICE_CONFIG_SSL_PARAM
     ///</td> <td width="60%"> The <b>DefaultRevocationFreshnessTime</b> setting is enabled. </td> </tr> <tr> <td
     ///width="40%"><a id="0x10000"></a><a id="0X10000"></a><dl> <dt><b>0x10000</b></dt> </dl> </td> <td width="60%"> No
     ///usage check is to be performed. </td> </tr> </table>
-    uint          DefaultCertCheckMode;
+    uint  DefaultCertCheckMode;
     ///The number of seconds after which to check for an updated certificate revocation list (CRL). If this value is
     ///zero, the new CRL is updated only when the previous one expires.
-    uint          DefaultRevocationFreshnessTime;
+    uint  DefaultRevocationFreshnessTime;
     ///The timeout interval, in milliseconds, for an attempt to retrieve a certificate revocation list from the remote
     ///URL.
-    uint          DefaultRevocationUrlRetrievalTimeout;
+    uint  DefaultRevocationUrlRetrievalTimeout;
     ///A pointer to an SSL control identifier, which enables an application to restrict the group of certificate issuers
     ///to be trusted. This group must be a subset of the certificate issuers trusted by the machine on which the
     ///application is running.
-    const(wchar)* pDefaultSslCtlIdentifier;
+    PWSTR pDefaultSslCtlIdentifier;
     ///The name of the store where the control identifier pointed to by <b>pDefaultSslCtlIdentifier</b> is stored.
-    const(wchar)* pDefaultSslCtlStoreName;
+    PWSTR pDefaultSslCtlStoreName;
     ///A combination of zero or more of the following flag values can be combined with OR as appropriate. <table> <tr>
     ///<th>Flags</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="HTTP_SERVICE_CONFIG_SSL_FLAG_NEGOTIATE_CLIENT_CERT"></a><a
@@ -1983,7 +1983,7 @@ struct HTTP_SERVICE_CONFIG_SSL_PARAM
     ///stored in Active Directory. If this flag is set and the mapping is successful, the <b>Token</b> member of the
     ///HTTP_SSL_CLIENT_CERT_INFO structure is a handle to an access token. Release this token explicitly by closing the
     ///handle when the <b>HTTP_SSL_CLIENT_CERT_INFO</b> structure is no longer required. </td> </tr> </table>
-    uint          DefaultFlags;
+    uint  DefaultFlags;
 }
 
 struct HTTP2_WINDOW_SIZE_PARAM
@@ -2009,7 +2009,7 @@ struct HTTP_SERVICE_CONFIG_SSL_PARAM_EX
 {
     HTTP_SSL_SERVICE_CONFIG_EX_PARAM_TYPE ParamType;
     ulong Flags;
-    union
+union
     {
         HTTP2_WINDOW_SIZE_PARAM Http2WindowSizeParam;
         HTTP2_SETTINGS_LIMITS_PARAM Http2SettingsLimitsParam;
@@ -2209,7 +2209,7 @@ struct HTTP_SERVICE_CONFIG_URLACL_KEY
 {
     ///A pointer to the UrlPrefix string that defines the portion of the URL namespace to which this reservation
     ///pertains.
-    const(wchar)* pUrlPrefix;
+    PWSTR pUrlPrefix;
 }
 
 ///The <b>HTTP_SERVICE_CONFIG_URLACL_PARAM</b> structure is used to specify the permissions associated with a particular
@@ -2218,7 +2218,7 @@ struct HTTP_SERVICE_CONFIG_URLACL_PARAM
 {
     ///A pointer to a Security Descriptor Definition Language (SDDL) string that contains the permissions associated
     ///with this URL namespace reservation record.
-    const(wchar)* pStringSecurityDescriptor;
+    PWSTR pStringSecurityDescriptor;
 }
 
 ///The <b>HTTP_SERVICE_CONFIG_URLACL_SET</b> structure is used to add a new record to the URL reservation store or
@@ -2308,7 +2308,7 @@ struct URL_COMPONENTS
     ///this structure properly.
     uint            dwStructSize;
     ///Pointer to a string value that contains the scheme name.
-    const(wchar)*   lpszScheme;
+    PWSTR           lpszScheme;
     ///Length of the scheme name, in characters.
     uint            dwSchemeLength;
     ///Internet protocol scheme. This member can be one of the following values. <table> <tr> <th>Value</th>
@@ -2320,25 +2320,25 @@ struct URL_COMPONENTS
     ///transaction semantics. </td> </tr> </table>
     INTERNET_SCHEME nScheme;
     ///Pointer to a string value that contains the host name.
-    const(wchar)*   lpszHostName;
+    PWSTR           lpszHostName;
     ///Length of the host name, in characters.
     uint            dwHostNameLength;
     ///Port number.
     ushort          nPort;
     ///Pointer to a string that contains the user name.
-    const(wchar)*   lpszUserName;
+    PWSTR           lpszUserName;
     ///Length of the user name, in characters.
     uint            dwUserNameLength;
     ///Pointer to a string that contains the password.
-    const(wchar)*   lpszPassword;
+    PWSTR           lpszPassword;
     ///Length of the password, in characters.
     uint            dwPasswordLength;
     ///Pointer to a string that contains the URL path.
-    const(wchar)*   lpszUrlPath;
+    PWSTR           lpszUrlPath;
     ///Length of the URL path, in characters.
     uint            dwUrlPathLength;
     ///Pointer to a string value that contains the extra information, for example, ?something or
-    const(wchar)*   lpszExtraInfo;
+    PWSTR           lpszExtraInfo;
     ///Unsigned long integer value that contains the length of the extra information, in characters.
     uint            dwExtraInfoLength;
 }
@@ -2355,11 +2355,11 @@ struct WINHTTP_PROXY_INFO
     ///information. </td> </tr> <tr> <td width="40%"><a id="WINHTTP_ACCESS_TYPE_NAMED_PROXY"></a><a
     ///id="winhttp_access_type_named_proxy"></a><dl> <dt><b>WINHTTP_ACCESS_TYPE_NAMED_PROXY</b></dt> </dl> </td> <td
     ///width="60%"> Internet accessed using a proxy. </td> </tr> </table>
-    uint          dwAccessType;
+    uint  dwAccessType;
     ///Pointer to a string value that contains the proxy server list.
-    const(wchar)* lpszProxy;
+    PWSTR lpszProxy;
     ///Pointer to a string value that contains the proxy bypass list.
-    const(wchar)* lpszProxyBypass;
+    PWSTR lpszProxyBypass;
 }
 
 ///The <b>WINHTTP_AUTOPROXY_OPTIONS</b> structure is used to indicate to the WinHttpGetProxyForURL function whether to
@@ -2411,7 +2411,7 @@ struct WINHTTP_AUTOPROXY_OPTIONS
     ///id="winhttp_autoproxy_sort_results_"></a><dl> <dt><b>WINHTTP_AUTOPROXY_SORT_RESULTS </b></dt> </dl> </td> <td
     ///width="60%"> Orders the proxy results based on a heuristic placing the fastest proxies first. </td> </tr>
     ///</table>
-    uint          dwFlags;
+    uint         dwFlags;
     ///If <b>dwFlags</b> includes the WINHTTP_AUTOPROXY_AUTO_DETECT flag, then <b>dwAutoDetectFlags</b> specifies what
     ///protocols are to be used to locate the PAC file. If both the DHCP and DNS auto detect flags are specified, then
     ///DHCP is used first; if no PAC URL is discovered using DHCP, then DNS is used. If <b>dwFlags</b> does not include
@@ -2422,21 +2422,21 @@ struct WINHTTP_AUTOPROXY_OPTIONS
     ///id="WINHTTP_AUTO_DETECT_TYPE_DNS_A"></a><a id="winhttp_auto_detect_type_dns_a"></a><dl>
     ///<dt><b>WINHTTP_AUTO_DETECT_TYPE_DNS_A</b></dt> </dl> </td> <td width="60%"> Use DNS to attempt to locate the
     ///proxy auto-configuration file at a well-known location on the domain of the local computer. </td> </tr> </table>
-    uint          dwAutoDetectFlags;
+    uint         dwAutoDetectFlags;
     ///If <b>dwFlags</b> includes the WINHTTP_AUTOPROXY_CONFIG_URL flag, the <b>lpszAutoConfigUrl</b> must point to a
     ///<b>null</b>-terminated Unicode string that contains the URL of the proxy auto-configuration (PAC) file. If
     ///<b>dwFlags</b> does not include the WINHTTP_AUTOPROXY_CONFIG_URL flag, then <b>lpszAutoConfigUrl</b> must be
     ///<b>NULL</b>.
-    const(wchar)* lpszAutoConfigUrl;
+    const(PWSTR) lpszAutoConfigUrl;
     ///Reserved for future use; must be <b>NULL</b>.
-    void*         lpvReserved;
+    void*        lpvReserved;
     ///Reserved for future use; must be zero.
-    uint          dwReserved;
+    uint         dwReserved;
     ///Specifies whether the client's domain credentials should be automatically sent in response to an NTLM or
     ///Negotiate Authentication challenge when WinHTTP requests the PAC file. If this flag is TRUE, credentials should
     ///automatically be sent in response to an authentication challenge. If this flag is FALSE and authentication is
     ///required to download the PAC file, the WinHttpGetProxyForUrl function fails.
-    BOOL          fAutoLogonIfChallenged;
+    BOOL         fAutoLogonIfChallenged;
 }
 
 ///The <b>WINHTTP_PROXY_RESULT_ENTRY</b> structure contains a result entry from a call to WinHttpGetProxyResult.
@@ -2452,7 +2452,7 @@ struct WINHTTP_PROXY_RESULT_ENTRY
     ///An INTERNET_SCHEME value that specifies the scheme of the proxy.
     INTERNET_SCHEME ProxyScheme;
     ///A string that contains the hostname of the proxy.
-    const(wchar)*   pwszProxy;
+    PWSTR           pwszProxy;
     ///An INTERNET_PORT value that specifies the port of the proxy.
     ushort          ProxyPort;
 }
@@ -2482,21 +2482,21 @@ struct _WinHttpProxyNetworkKey
 
 struct WINHTTP_PROXY_SETTINGS
 {
-    uint          dwStructSize;
-    uint          dwFlags;
-    uint          dwCurrentSettingsVersion;
-    const(wchar)* pwszConnectionName;
-    const(wchar)* pwszProxy;
-    const(wchar)* pwszProxyBypass;
-    const(wchar)* pwszAutoconfigUrl;
-    const(wchar)* pwszAutoconfigSecondaryUrl;
-    uint          dwAutoDiscoveryFlags;
-    const(wchar)* pwszLastKnownGoodAutoConfigUrl;
-    uint          dwAutoconfigReloadDelayMins;
-    FILETIME      ftLastKnownDetectTime;
-    uint          dwDetectedInterfaceIpCount;
-    uint*         pdwDetectedInterfaceIp;
-    uint          cNetworkKeys;
+    uint     dwStructSize;
+    uint     dwFlags;
+    uint     dwCurrentSettingsVersion;
+    PWSTR    pwszConnectionName;
+    PWSTR    pwszProxy;
+    PWSTR    pwszProxyBypass;
+    PWSTR    pwszAutoconfigUrl;
+    PWSTR    pwszAutoconfigSecondaryUrl;
+    uint     dwAutoDiscoveryFlags;
+    PWSTR    pwszLastKnownGoodAutoConfigUrl;
+    uint     dwAutoconfigReloadDelayMins;
+    FILETIME ftLastKnownDetectTime;
+    uint     dwDetectedInterfaceIpCount;
+    uint*    pdwDetectedInterfaceIp;
+    uint     cNetworkKeys;
     _WinHttpProxyNetworkKey* pNetworkKeys;
 }
 
@@ -2505,25 +2505,25 @@ struct WINHTTP_PROXY_SETTINGS
 struct WINHTTP_CERTIFICATE_INFO
 {
     ///A FILETIME structure that contains the date the certificate expires.
-    FILETIME      ftExpiry;
+    FILETIME ftExpiry;
     ///A FILETIME structure that contains the date the certificate becomes valid.
-    FILETIME      ftStart;
+    FILETIME ftStart;
     ///A pointer to a buffer that contains the name of the organization, site, and server for which the certificate was
     ///issued.
-    const(wchar)* lpszSubjectInfo;
+    PWSTR    lpszSubjectInfo;
     ///A pointer to a buffer that contains the name of the organization, site, and server that issued the certificate.
-    const(wchar)* lpszIssuerInfo;
+    PWSTR    lpszIssuerInfo;
     ///A pointer to a buffer that contains the name of the protocol used to provide the secure connection. This member
     ///is not current used.
-    const(wchar)* lpszProtocolName;
+    PWSTR    lpszProtocolName;
     ///A pointer to a buffer that contains the name of the algorithm used to sign the certificate. This member is not
     ///current used.
-    const(wchar)* lpszSignatureAlgName;
+    PWSTR    lpszSignatureAlgName;
     ///A pointer to a buffer that contains the name of the algorithm used to perform encryption over the secure channel
     ///(SSL/TLS) connection. This member is not current used.
-    const(wchar)* lpszEncryptionAlgName;
+    PWSTR    lpszEncryptionAlgName;
     ///The size, in bytes, of the key.
-    uint          dwKeySize;
+    uint     dwKeySize;
 }
 
 ///The <b>WINHTTP_CONNECTION_INFO</b> structure contains the source and destination IP address of the request that
@@ -2578,15 +2578,15 @@ align (4):
 
 struct WINHTTP_EXTENDED_HEADER
 {
-    union
+union
     {
-        const(wchar)* pwszName;
-        const(char)*  pszName;
+        const(PWSTR) pwszName;
+        const(PSTR)  pszName;
     }
-    union
+union
     {
-        const(wchar)* pwszValue;
-        const(char)*  pszValue;
+        const(PWSTR) pwszValue;
+        const(PSTR)  pszValue;
     }
 }
 
@@ -2596,11 +2596,11 @@ struct WINHTTP_EXTENDED_HEADER
 struct WINHTTP_CREDS
 {
     ///Pointer to a buffer that contains username.
-    const(char)* lpszUserName;
+    PSTR lpszUserName;
     ///Pointer to a buffer that contains password.
-    const(char)* lpszPassword;
+    PSTR lpszPassword;
     ///Pointer to a buffer that contains realm.
-    const(char)* lpszRealm;
+    PSTR lpszRealm;
     ///A flag that contains the authentication scheme, as one of the following values. <table> <tr> <th>Value</th>
     ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="WINHTTP_AUTH_SCHEME_BASIC"></a><a
     ///id="winhttp_auth_scheme_basic"></a><dl> <dt><b>WINHTTP_AUTH_SCHEME_BASIC</b></dt> </dl> </td> <td width="60%">
@@ -2611,22 +2611,22 @@ struct WINHTTP_CREDS
     ///Use digest authentication. </td> </tr> <tr> <td width="40%"><a id="WINHTTP_AUTH_SCHEME_NEGOTIATE"></a><a
     ///id="winhttp_auth_scheme_negotiate"></a><dl> <dt><b>WINHTTP_AUTH_SCHEME_NEGOTIATE</b></dt> </dl> </td> <td
     ///width="60%"> Select between NTLM and Kerberos authentication. </td> </tr> </table>
-    uint         dwAuthScheme;
+    uint dwAuthScheme;
     ///Pointer to a buffer that contains hostname.
-    const(char)* lpszHostName;
+    PSTR lpszHostName;
     ///The server connection port.
-    uint         dwPort;
+    uint dwPort;
 }
 
 ///The <b>WINHTTP_CREDS_EX</b> structure contains user credential information used for server and proxy authentication.
 struct WINHTTP_CREDS_EX
 {
     ///Pointer to a buffer that contains username.
-    const(char)* lpszUserName;
+    PSTR lpszUserName;
     ///Pointer to a buffer that contains password.
-    const(char)* lpszPassword;
+    PSTR lpszPassword;
     ///Pointer to a buffer that contains realm.
-    const(char)* lpszRealm;
+    PSTR lpszRealm;
     ///A flag that contains the authentication scheme, as one of the following values. <table> <tr> <th>Value</th>
     ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="WINHTTP_AUTH_SCHEME_BASIC"></a><a
     ///id="winhttp_auth_scheme_basic"></a><dl> <dt><b>WINHTTP_AUTH_SCHEME_BASIC</b></dt> </dl> </td> <td width="60%">
@@ -2637,13 +2637,13 @@ struct WINHTTP_CREDS_EX
     ///Use digest authentication. </td> </tr> <tr> <td width="40%"><a id="WINHTTP_AUTH_SCHEME_NEGOTIATE"></a><a
     ///id="winhttp_auth_scheme_negotiate"></a><dl> <dt><b>WINHTTP_AUTH_SCHEME_NEGOTIATE</b></dt> </dl> </td> <td
     ///width="60%"> Select between NTLM and Kerberos authentication. </td> </tr> </table>
-    uint         dwAuthScheme;
+    uint dwAuthScheme;
     ///Pointer to a buffer that contains hostname.
-    const(char)* lpszHostName;
+    PSTR lpszHostName;
     ///The server connection port.
-    uint         dwPort;
+    uint dwPort;
     ///Pointer to a buffer that contains target URL.
-    const(char)* lpszUrl;
+    PSTR lpszUrl;
 }
 
 ///The <b>WINHTTP_CURRENT_USER_IE_PROXY_CONFIG</b> structure contains the Internet Explorer proxy configuration
@@ -2652,15 +2652,15 @@ struct WINHTTP_CURRENT_USER_IE_PROXY_CONFIG
 {
     ///If TRUE, indicates that the Internet Explorer proxy configuration for the current user specifies "automatically
     ///detect settings".
-    BOOL          fAutoDetect;
+    BOOL  fAutoDetect;
     ///Pointer to a null-terminated Unicode string that contains the auto-configuration URL if the Internet Explorer
     ///proxy configuration for the current user specifies "Use automatic proxy configuration".
-    const(wchar)* lpszAutoConfigUrl;
+    PWSTR lpszAutoConfigUrl;
     ///Pointer to a null-terminated Unicode string that contains the proxy URL if the Internet Explorer proxy
     ///configuration for the current user specifies "use a proxy server".
-    const(wchar)* lpszProxy;
+    PWSTR lpszProxy;
     ///Pointer to a null-terminated Unicode string that contains the optional proxy by-pass server list.
-    const(wchar)* lpszProxyBypass;
+    PWSTR lpszProxyBypass;
 }
 
 ///The <b>WINHTTP_WEB_SOCKET_ASYNC_RESULT</b> includes the result status of a WebSocket operation.
@@ -2743,7 +2743,7 @@ uint HttpTerminate(uint Flags, void* pReserved);
 ///    </td> <td width="60%"> A system error code defined in WinError.h. </td> </tr> </table>
 ///    
 @DllImport("HTTPAPI")
-uint HttpCreateHttpHandle(ptrdiff_t* RequestQueueHandle, uint Reserved);
+uint HttpCreateHttpHandle(HANDLE* RequestQueueHandle, uint Reserved);
 
 ///The <b>HttpCreateRequestQueue</b> function creates a new request queue or opens an existing request queue. This
 ///function replaces the HTTP version 1.0 HttpCreateHttpHandle function.
@@ -2790,8 +2790,8 @@ uint HttpCreateHttpHandle(ptrdiff_t* RequestQueueHandle, uint Reserved);
 ///    </td> </tr> </table>
 ///    
 @DllImport("HTTPAPI")
-uint HttpCreateRequestQueue(HTTPAPI_VERSION Version, const(wchar)* Name, SECURITY_ATTRIBUTES* SecurityAttributes, 
-                            uint Flags, ptrdiff_t* RequestQueueHandle);
+uint HttpCreateRequestQueue(HTTPAPI_VERSION Version, const(PWSTR) Name, SECURITY_ATTRIBUTES* SecurityAttributes, 
+                            uint Flags, HANDLE* RequestQueueHandle);
 
 ///The <b>HttpCloseRequestQueue</b> function closes the handle to the specified request queue created by
 ///HttpCreateRequestQueue. The application must close the request queue when it is no longer required.
@@ -2846,7 +2846,7 @@ uint HttpCloseRequestQueue(HANDLE RequestQueueHandle);
 ///    
 @DllImport("HTTPAPI")
 uint HttpSetRequestQueueProperty(HANDLE RequestQueueHandle, HTTP_SERVER_PROPERTY Property, 
-                                 char* PropertyInformation, uint PropertyInformationLength, uint Reserved1, 
+                                 void* PropertyInformation, uint PropertyInformationLength, uint Reserved1, 
                                  void* Reserved2);
 
 ///The <b>HttpQueryRequestQueueProperty</b> function queries a property of the request queue identified by the specified
@@ -2892,7 +2892,7 @@ uint HttpSetRequestQueueProperty(HANDLE RequestQueueHandle, HTTP_SERVER_PROPERTY
 ///    
 @DllImport("HTTPAPI")
 uint HttpQueryRequestQueueProperty(HANDLE RequestQueueHandle, HTTP_SERVER_PROPERTY Property, 
-                                   char* PropertyInformation, uint PropertyInformationLength, uint Reserved1, 
+                                   void* PropertyInformation, uint PropertyInformationLength, uint Reserved1, 
                                    uint* ReturnLength, void* Reserved2);
 
 ///The <b>HttpShutdownRequestQueue</b> function stops queuing requests for the specified request queue process.
@@ -2967,8 +2967,8 @@ uint HttpShutdownRequestQueue(HANDLE RequestQueueHandle);
 ///    
 @DllImport("HTTPAPI")
 uint HttpReceiveClientCertificate(HANDLE RequestQueueHandle, ulong ConnectionId, uint Flags, 
-                                  char* SslClientCertInfo, uint SslClientCertInfoSize, uint* BytesReceived, 
-                                  OVERLAPPED* Overlapped);
+                                  HTTP_SSL_CLIENT_CERT_INFO* SslClientCertInfo, uint SslClientCertInfoSize, 
+                                  uint* BytesReceived, OVERLAPPED* Overlapped);
 
 ///The <b>HttpCreateServerSession</b> function creates a server session for the specified version.
 ///Params:
@@ -3049,7 +3049,7 @@ uint HttpCloseServerSession(ulong ServerSessionId);
 ///    
 @DllImport("HTTPAPI")
 uint HttpQueryServerSessionProperty(ulong ServerSessionId, HTTP_SERVER_PROPERTY Property, 
-                                    char* PropertyInformation, uint PropertyInformationLength, uint* ReturnLength);
+                                    void* PropertyInformation, uint PropertyInformationLength, uint* ReturnLength);
 
 ///The <b>HttpSetServerSessionProperty</b> function sets a new server session property or modifies an existing property
 ///on the specified server session.
@@ -3101,7 +3101,7 @@ uint HttpQueryServerSessionProperty(ulong ServerSessionId, HTTP_SERVER_PROPERTY 
 ///    properties. Only the application that created the server session can set the properties. </td> </tr> </table>
 ///    
 @DllImport("HTTPAPI")
-uint HttpSetServerSessionProperty(ulong ServerSessionId, HTTP_SERVER_PROPERTY Property, char* PropertyInformation, 
+uint HttpSetServerSessionProperty(ulong ServerSessionId, HTTP_SERVER_PROPERTY Property, void* PropertyInformation, 
                                   uint PropertyInformationLength);
 
 ///The <b>HttpAddUrl</b> function registers a given URL so that requests that match it are routed to a specified HTTP
@@ -3130,7 +3130,7 @@ uint HttpSetServerSessionProperty(ulong ServerSessionId, HTTP_SERVER_PROPERTY Pr
 ///    error code defined in WinError.h. </td> </tr> </table>
 ///    
 @DllImport("HTTPAPI")
-uint HttpAddUrl(HANDLE RequestQueueHandle, const(wchar)* FullyQualifiedUrl, void* Reserved);
+uint HttpAddUrl(HANDLE RequestQueueHandle, const(PWSTR) FullyQualifiedUrl, void* Reserved);
 
 ///The <b>HttpRemoveUrl</b> function causes the system to stop routing requests that match a specified UrlPrefix string
 ///to a specified request queue. Starting with HTTP Server API Version 2.0, applications should call
@@ -3155,7 +3155,7 @@ uint HttpAddUrl(HANDLE RequestQueueHandle, const(wchar)* FullyQualifiedUrl, void
 ///    </td> </tr> </table>
 ///    
 @DllImport("HTTPAPI")
-uint HttpRemoveUrl(HANDLE RequestQueueHandle, const(wchar)* FullyQualifiedUrl);
+uint HttpRemoveUrl(HANDLE RequestQueueHandle, const(PWSTR) FullyQualifiedUrl);
 
 ///The <b>HttpCreateUrlGroup</b> function creates a URL Group under the specified server session.
 ///Params:
@@ -3208,7 +3208,7 @@ uint HttpCloseUrlGroup(ulong UrlGroupId);
 ///    width="60%"> The specified URL conflicts with an existing registration. </td> </tr> </table>
 ///    
 @DllImport("HTTPAPI")
-uint HttpAddUrlToUrlGroup(ulong UrlGroupId, const(wchar)* pFullyQualifiedUrl, ulong UrlContext, uint Reserved);
+uint HttpAddUrlToUrlGroup(ulong UrlGroupId, const(PWSTR) pFullyQualifiedUrl, ulong UrlContext, uint Reserved);
 
 ///The <b>HttpRemoveUrlFromUrlGroup</b> function removes the specified URL from the group identified by the URL Group
 ///ID. This function removes one, or all, of the URLs from the group. This function replaces the HTTP version 1.0
@@ -3236,7 +3236,7 @@ uint HttpAddUrlToUrlGroup(ulong UrlGroupId, const(wchar)* pFullyQualifiedUrl, ul
 ///    URL Group. </td> </tr> </table>
 ///    
 @DllImport("HTTPAPI")
-uint HttpRemoveUrlFromUrlGroup(ulong UrlGroupId, const(wchar)* pFullyQualifiedUrl, uint Flags);
+uint HttpRemoveUrlFromUrlGroup(ulong UrlGroupId, const(PWSTR) pFullyQualifiedUrl, uint Flags);
 
 ///The <b>HttpSetUrlGroupProperty</b> function sets a new property or modifies an existing property on the specified URL
 ///Group.
@@ -3292,7 +3292,7 @@ uint HttpRemoveUrlFromUrlGroup(ulong UrlGroupId, const(wchar)* pFullyQualifiedUr
 ///    the application that created the URL Group can set the properties. </td> </tr> </table>
 ///    
 @DllImport("HTTPAPI")
-uint HttpSetUrlGroupProperty(ulong UrlGroupId, HTTP_SERVER_PROPERTY Property, char* PropertyInformation, 
+uint HttpSetUrlGroupProperty(ulong UrlGroupId, HTTP_SERVER_PROPERTY Property, void* PropertyInformation, 
                              uint PropertyInformationLength);
 
 ///The <b>HttpQueryUrlGroupProperty</b> function queries a property on the specified URL Group.
@@ -3343,7 +3343,7 @@ uint HttpSetUrlGroupProperty(ulong UrlGroupId, HTTP_SERVER_PROPERTY Property, ch
 ///    </tr> </table>
 ///    
 @DllImport("HTTPAPI")
-uint HttpQueryUrlGroupProperty(ulong UrlGroupId, HTTP_SERVER_PROPERTY Property, char* PropertyInformation, 
+uint HttpQueryUrlGroupProperty(ulong UrlGroupId, HTTP_SERVER_PROPERTY Property, void* PropertyInformation, 
                                uint PropertyInformationLength, uint* ReturnLength);
 
 ///The <b>HttpPrepareUrl</b> function parses, analyzes, and normalizes a non-normalized Unicode or punycode URL so it is
@@ -3355,7 +3355,7 @@ uint HttpQueryUrlGroupProperty(ulong UrlGroupId, HTTP_SERVER_PROPERTY Property, 
 ///    PreparedUrl = On successful output, a pointer to a string that represents the normalized URL. <div class="alert"><b>Note</b>
 ///                  Free <i>PreparedUrl</i> using HeapFree.</div> <div> </div>
 @DllImport("HTTPAPI")
-uint HttpPrepareUrl(void* Reserved, uint Flags, const(wchar)* Url, ushort** PreparedUrl);
+uint HttpPrepareUrl(void* Reserved, uint Flags, const(PWSTR) Url, PWSTR* PreparedUrl);
 
 ///The <b>HttpReceiveHttpRequest</b> function retrieves the next available HTTP request from the specified request queue
 ///either synchronously or asynchronously.
@@ -3412,7 +3412,7 @@ uint HttpPrepareUrl(void* Reserved, uint Flags, const(wchar)* Url, ushort** Prep
 ///    </td> <td width="60%"> A system error code defined in WinError.h. </td> </tr> </table>
 ///    
 @DllImport("HTTPAPI")
-uint HttpReceiveHttpRequest(HANDLE RequestQueueHandle, ulong RequestId, uint Flags, char* RequestBuffer, 
+uint HttpReceiveHttpRequest(HANDLE RequestQueueHandle, ulong RequestId, uint Flags, HTTP_REQUEST_V2* RequestBuffer, 
                             uint RequestBufferLength, uint* BytesReturned, OVERLAPPED* Overlapped);
 
 ///The <b>HttpReceiveRequestEntityBody</b> function receives additional entity body data for a specified HTTP request.
@@ -3456,7 +3456,7 @@ uint HttpReceiveHttpRequest(HANDLE RequestQueueHandle, ulong RequestId, uint Fla
 ///    </table>
 ///    
 @DllImport("HTTPAPI")
-uint HttpReceiveRequestEntityBody(HANDLE RequestQueueHandle, ulong RequestId, uint Flags, char* EntityBuffer, 
+uint HttpReceiveRequestEntityBody(HANDLE RequestQueueHandle, ulong RequestId, uint Flags, void* EntityBuffer, 
                                   uint EntityBufferLength, uint* BytesReturned, OVERLAPPED* Overlapped);
 
 ///The <b>HttpSendHttpResponse</b> function sends an HTTP response to the specified HTTP request.
@@ -3617,7 +3617,7 @@ uint HttpSendHttpResponse(HANDLE RequestQueueHandle, ulong RequestId, uint Flags
 ///    
 @DllImport("HTTPAPI")
 uint HttpSendResponseEntityBody(HANDLE RequestQueueHandle, ulong RequestId, uint Flags, ushort EntityChunkCount, 
-                                char* EntityChunks, uint* BytesSent, void* Reserved1, uint Reserved2, 
+                                HTTP_DATA_CHUNK* EntityChunks, uint* BytesSent, void* Reserved1, uint Reserved2, 
                                 OVERLAPPED* Overlapped, HTTP_LOG_DATA* LogData);
 
 ///Declares a resource-to-subresource relationship to use for an HTTP server push. HTTP.sys then performs an HTTP 2.0
@@ -3642,8 +3642,8 @@ uint HttpSendResponseEntityBody(HANDLE RequestQueueHandle, ulong RequestId, uint
 ///    defined in WinError.h.
 ///    
 @DllImport("HTTPAPI")
-uint HttpDeclarePush(HANDLE RequestQueueHandle, ulong RequestId, HTTP_VERB Verb, const(wchar)* Path, 
-                     const(char)* Query, HTTP_REQUEST_HEADERS* Headers);
+uint HttpDeclarePush(HANDLE RequestQueueHandle, ulong RequestId, HTTP_VERB Verb, const(PWSTR) Path, 
+                     const(PSTR) Query, HTTP_REQUEST_HEADERS* Headers);
 
 ///The <b>HttpWaitForDisconnect</b> function notifies the application when the connection to an HTTP client is broken
 ///for any reason.
@@ -3744,7 +3744,7 @@ uint HttpWaitForDemandStart(HANDLE RequestQueueHandle, OVERLAPPED* Overlapped);
 ///    </table>
 ///    
 @DllImport("HTTPAPI")
-uint HttpFlushResponseCache(HANDLE RequestQueueHandle, const(wchar)* UrlPrefix, uint Flags, OVERLAPPED* Overlapped);
+uint HttpFlushResponseCache(HANDLE RequestQueueHandle, const(PWSTR) UrlPrefix, uint Flags, OVERLAPPED* Overlapped);
 
 ///The <b>HttpAddFragmentToCache</b> function caches a data fragment with a specified name by which it can be retrieved,
 ///or updates data cached under a specified name. Such cached data fragments can be used repeatedly to construct dynamic
@@ -3777,7 +3777,7 @@ uint HttpFlushResponseCache(HANDLE RequestQueueHandle, const(wchar)* UrlPrefix, 
 ///    </td> </tr> </table>
 ///    
 @DllImport("HTTPAPI")
-uint HttpAddFragmentToCache(HANDLE RequestQueueHandle, const(wchar)* UrlPrefix, HTTP_DATA_CHUNK* DataChunk, 
+uint HttpAddFragmentToCache(HANDLE RequestQueueHandle, const(PWSTR) UrlPrefix, HTTP_DATA_CHUNK* DataChunk, 
                             HTTP_CACHE_POLICY* CachePolicy, OVERLAPPED* Overlapped);
 
 ///The <b>HttpReadFragmentFromCache</b> function retrieves a response fragment having a specified name from the HTTP
@@ -3817,8 +3817,8 @@ uint HttpAddFragmentToCache(HANDLE RequestQueueHandle, const(wchar)* UrlPrefix, 
 ///    width="60%"> A system error code defined in WinError.h. </td> </tr> </table>
 ///    
 @DllImport("HTTPAPI")
-uint HttpReadFragmentFromCache(HANDLE RequestQueueHandle, const(wchar)* UrlPrefix, HTTP_BYTE_RANGE* ByteRange, 
-                               char* Buffer, uint BufferLength, uint* BytesRead, OVERLAPPED* Overlapped);
+uint HttpReadFragmentFromCache(HANDLE RequestQueueHandle, const(PWSTR) UrlPrefix, HTTP_BYTE_RANGE* ByteRange, 
+                               void* Buffer, uint BufferLength, uint* BytesRead, OVERLAPPED* Overlapped);
 
 ///The <b>HttpSetServiceConfiguration</b> function creates and sets a configuration record for the HTTP Server API
 ///configuration store. The call fails if the specified record already exists. To change a given configuration record,
@@ -3891,7 +3891,7 @@ uint HttpReadFragmentFromCache(HANDLE RequestQueueHandle, const(wchar)* UrlPrefi
 ///    </td> </tr> </table>
 ///    
 @DllImport("HTTPAPI")
-uint HttpSetServiceConfiguration(HANDLE ServiceHandle, HTTP_SERVICE_CONFIG_ID ConfigId, char* pConfigInformation, 
+uint HttpSetServiceConfiguration(HANDLE ServiceHandle, HTTP_SERVICE_CONFIG_ID ConfigId, void* pConfigInformation, 
                                  uint ConfigInformationLength, OVERLAPPED* pOverlapped);
 
 ///Updates atomically a service configuration parameter that specifies a Transport Layer Security (TLS) certificate in a
@@ -3943,7 +3943,7 @@ uint HttpSetServiceConfiguration(HANDLE ServiceHandle, HTTP_SERVICE_CONFIG_ID Co
 ///    </td> </tr> </table>
 ///    
 @DllImport("HTTPAPI")
-uint HttpUpdateServiceConfiguration(HANDLE Handle, HTTP_SERVICE_CONFIG_ID ConfigId, char* ConfigInfo, 
+uint HttpUpdateServiceConfiguration(HANDLE Handle, HTTP_SERVICE_CONFIG_ID ConfigId, void* ConfigInfo, 
                                     uint ConfigInfoLength, OVERLAPPED* Overlapped);
 
 ///The <b>HttpDeleteServiceConfiguration</b> function deletes specified data, such as IP addresses or SSL Certificates,
@@ -4009,7 +4009,7 @@ uint HttpUpdateServiceConfiguration(HANDLE Handle, HTTP_SERVICE_CONFIG_ID Config
 ///    
 @DllImport("HTTPAPI")
 uint HttpDeleteServiceConfiguration(HANDLE ServiceHandle, HTTP_SERVICE_CONFIG_ID ConfigId, 
-                                    char* pConfigInformation, uint ConfigInformationLength, OVERLAPPED* pOverlapped);
+                                    void* pConfigInformation, uint ConfigInformationLength, OVERLAPPED* pOverlapped);
 
 ///The <b>HttpQueryServiceConfiguration</b> function retrieves one or more HTTP Server API configuration records.
 ///Params:
@@ -4103,8 +4103,8 @@ uint HttpDeleteServiceConfiguration(HANDLE ServiceHandle, HTTP_SERVICE_CONFIG_ID
 ///    system error code defined in WinError.h. </td> </tr> </table>
 ///    
 @DllImport("HTTPAPI")
-uint HttpQueryServiceConfiguration(HANDLE ServiceHandle, HTTP_SERVICE_CONFIG_ID ConfigId, char* pInput, 
-                                   uint InputLength, char* pOutput, uint OutputLength, uint* pReturnLength, 
+uint HttpQueryServiceConfiguration(HANDLE ServiceHandle, HTTP_SERVICE_CONFIG_ID ConfigId, void* pInput, 
+                                   uint InputLength, void* pOutput, uint OutputLength, uint* pReturnLength, 
                                    OVERLAPPED* pOverlapped);
 
 @DllImport("HTTPAPI")
@@ -4198,7 +4198,7 @@ WINHTTP_STATUS_CALLBACK WinHttpSetStatusCallback(void* hInternet, WINHTTP_STATUS
 ///    has occurred. </td> </tr> </table>
 ///    
 @DllImport("WINHTTP")
-BOOL WinHttpTimeFromSystemTime(const(SYSTEMTIME)* pst, const(wchar)* pwszTime);
+BOOL WinHttpTimeFromSystemTime(const(SYSTEMTIME)* pst, PWSTR pwszTime);
 
 ///The <b>WinHttpTimeToSystemTime</b> function takes an HTTP time/date string and converts it to a SYSTEMTIME structure.
 ///Params:
@@ -4212,7 +4212,7 @@ BOOL WinHttpTimeFromSystemTime(const(SYSTEMTIME)* pst, const(wchar)* pwszTime);
 ///    occurred. </td> </tr> </table>
 ///    
 @DllImport("WINHTTP")
-BOOL WinHttpTimeToSystemTime(const(wchar)* pwszTime, SYSTEMTIME* pst);
+BOOL WinHttpTimeToSystemTime(const(PWSTR) pwszTime, SYSTEMTIME* pst);
 
 ///The <b>WinHttpCrackUrl</b> function separates a URL into its component parts such as host name and path.
 ///Params:
@@ -4249,7 +4249,7 @@ BOOL WinHttpTimeToSystemTime(const(wchar)* pwszTime, SYSTEMTIME* pst);
 ///    the requested operation. (Windows error code) </td> </tr> </table>
 ///    
 @DllImport("WINHTTP")
-BOOL WinHttpCrackUrl(const(wchar)* pwszUrl, uint dwUrlLength, uint dwFlags, URL_COMPONENTS* lpUrlComponents);
+BOOL WinHttpCrackUrl(const(PWSTR) pwszUrl, uint dwUrlLength, uint dwFlags, URL_COMPONENTS* lpUrlComponents);
 
 ///The <b>WinHttpCreateUrl</b> function creates a URL from component parts such as the host name and path.
 ///Params:
@@ -4278,7 +4278,7 @@ BOOL WinHttpCrackUrl(const(wchar)* pwszUrl, uint dwUrlLength, uint dwFlags, URL_
 ///    the requested operation. (Windows error code) </td> </tr> </table>
 ///    
 @DllImport("WINHTTP")
-BOOL WinHttpCreateUrl(URL_COMPONENTS* lpUrlComponents, uint dwFlags, const(wchar)* pwszUrl, uint* pdwUrlLength);
+BOOL WinHttpCreateUrl(URL_COMPONENTS* lpUrlComponents, uint dwFlags, PWSTR pwszUrl, uint* pdwUrlLength);
 
 ///The <b>WinHttpCheckPlatform</b> function determines whether the current platform is supported by this version of
 ///Microsoft Windows HTTP Services (WinHTTP).
@@ -4363,8 +4363,8 @@ BOOL WinHttpSetDefaultProxyConfiguration(WINHTTP_PROXY_INFO* pProxyInfo);
 ///    the requested operation. (Windows error code) </td> </tr> </table>
 ///    
 @DllImport("WINHTTP")
-void* WinHttpOpen(const(wchar)* pszAgentW, uint dwAccessType, const(wchar)* pszProxyW, 
-                  const(wchar)* pszProxyBypassW, uint dwFlags);
+void* WinHttpOpen(const(PWSTR) pszAgentW, uint dwAccessType, const(PWSTR) pszProxyW, const(PWSTR) pszProxyBypassW, 
+                  uint dwFlags);
 
 ///The **WinHttpCloseHandle** function closes a single **HINTERNET** handle (see [HINTERNET Handles in
 ///WinHTTP](/windows/win32/winhttp/hinternet-handles-in-winhttp)).
@@ -4422,7 +4422,7 @@ BOOL WinHttpCloseHandle(void* hInternet);
 ///    </tr> </table>
 ///    
 @DllImport("WINHTTP")
-void* WinHttpConnect(void* hSession, const(wchar)* pswzServerName, ushort nServerPort, uint dwReserved);
+void* WinHttpConnect(void* hSession, const(PWSTR) pswzServerName, ushort nServerPort, uint dwReserved);
 
 ///The <b>WinHttpReadData</b> function reads data from a handle opened by the WinHttpOpenRequest function.
 ///Params:
@@ -4459,7 +4459,7 @@ void* WinHttpConnect(void* hSession, const(wchar)* pswzServerName, ushort nServe
 ///    </tr> </table>
 ///    
 @DllImport("WINHTTP")
-BOOL WinHttpReadData(void* hRequest, char* lpBuffer, uint dwNumberOfBytesToRead, uint* lpdwNumberOfBytesRead);
+BOOL WinHttpReadData(void* hRequest, void* lpBuffer, uint dwNumberOfBytesToRead, uint* lpdwNumberOfBytesRead);
 
 ///The <b>WinHttpWriteData</b> function writes request data to an HTTP server.
 ///Params:
@@ -4491,7 +4491,8 @@ BOOL WinHttpReadData(void* hRequest, char* lpBuffer, uint dwNumberOfBytesToRead,
 ///    the requested operation. (Windows error code) </td> </tr> </table>
 ///    
 @DllImport("WINHTTP")
-BOOL WinHttpWriteData(void* hRequest, char* lpBuffer, uint dwNumberOfBytesToWrite, uint* lpdwNumberOfBytesWritten);
+BOOL WinHttpWriteData(void* hRequest, const(void)* lpBuffer, uint dwNumberOfBytesToWrite, 
+                      uint* lpdwNumberOfBytesWritten);
 
 ///The <b>WinHttpQueryDataAvailable</b> function returns the amount of data, in bytes, available to be read with
 ///WinHttpReadData.
@@ -4552,7 +4553,7 @@ BOOL WinHttpQueryDataAvailable(void* hRequest, uint* lpdwNumberOfBytesAvailable)
 ///    the requested operation. (Windows error code) </td> </tr> </table>
 ///    
 @DllImport("WINHTTP")
-BOOL WinHttpQueryOption(void* hInternet, uint dwOption, char* lpBuffer, uint* lpdwBufferLength);
+BOOL WinHttpQueryOption(void* hInternet, uint dwOption, void* lpBuffer, uint* lpdwBufferLength);
 
 ///The <b>WinHttpSetOption</b> function sets an Internet option.
 ///Params:
@@ -4584,7 +4585,7 @@ BOOL WinHttpQueryOption(void* hInternet, uint dwOption, char* lpBuffer, uint* lp
 ///    was available to complete the requested operation. (Windows error code) </td> </tr> </table>
 ///    
 @DllImport("WINHTTP")
-BOOL WinHttpSetOption(void* hInternet, uint dwOption, char* lpBuffer, uint dwBufferLength);
+BOOL WinHttpSetOption(void* hInternet, uint dwOption, void* lpBuffer, uint dwBufferLength);
 
 ///The <b>WinHttpSetTimeouts</b> function sets time-outs involved with HTTP transactions.
 ///Params:
@@ -4680,9 +4681,8 @@ BOOL WinHttpSetTimeouts(void* hInternet, int nResolveTimeout, int nConnectTimeou
 ///    the requested operation. (Windows error code) </td> </tr> </table>
 ///    
 @DllImport("WINHTTP")
-void* WinHttpOpenRequest(void* hConnect, const(wchar)* pwszVerb, const(wchar)* pwszObjectName, 
-                         const(wchar)* pwszVersion, const(wchar)* pwszReferrer, ushort** ppwszAcceptTypes, 
-                         uint dwFlags);
+void* WinHttpOpenRequest(void* hConnect, const(PWSTR) pwszVerb, const(PWSTR) pwszObjectName, 
+                         const(PWSTR) pwszVersion, const(PWSTR) pwszReferrer, PWSTR* ppwszAcceptTypes, uint dwFlags);
 
 ///The <b>WinHttpAddRequestHeaders</b> function adds one or more HTTP request headers to the HTTP request handle.
 ///Params:
@@ -4724,11 +4724,11 @@ void* WinHttpOpenRequest(void* hConnect, const(wchar)* pwszVerb, const(wchar)* p
 ///    memory was available to complete the requested operation. </td> </tr> </table>
 ///    
 @DllImport("WINHTTP")
-BOOL WinHttpAddRequestHeaders(void* hRequest, const(wchar)* lpszHeaders, uint dwHeadersLength, uint dwModifiers);
+BOOL WinHttpAddRequestHeaders(void* hRequest, const(PWSTR) lpszHeaders, uint dwHeadersLength, uint dwModifiers);
 
 @DllImport("WINHTTP")
 uint WinHttpAddRequestHeadersEx(void* hRequest, uint dwModifiers, ulong ullFlags, ulong ullExtra, uint cHeaders, 
-                                char* pHeaders);
+                                WINHTTP_EXTENDED_HEADER* pHeaders);
 
 ///The <b>WinHttpSendRequest</b> function sends the specified request to the HTTP server.
 ///Params:
@@ -4806,7 +4806,7 @@ uint WinHttpAddRequestHeadersEx(void* hRequest, uint dwModifiers, ulong ullFlags
 ///    supported. </td> </tr> </table>
 ///    
 @DllImport("WINHTTP")
-BOOL WinHttpSendRequest(void* hRequest, const(wchar)* lpszHeaders, uint dwHeadersLength, char* lpOptional, 
+BOOL WinHttpSendRequest(void* hRequest, const(PWSTR) lpszHeaders, uint dwHeadersLength, void* lpOptional, 
                         uint dwOptionalLength, uint dwTotalLength, size_t dwContext);
 
 ///The <b>WinHttpSetCredentials</b> function passes the required authorization credentials to the server.
@@ -4848,8 +4848,8 @@ BOOL WinHttpSendRequest(void* hRequest, const(wchar)* lpszHeaders, uint dwHeader
 ///    memory was available to complete the requested operation (Windows error code). </td> </tr> </table>
 ///    
 @DllImport("WINHTTP")
-BOOL WinHttpSetCredentials(void* hRequest, uint AuthTargets, uint AuthScheme, const(wchar)* pwszUserName, 
-                           const(wchar)* pwszPassword, void* pAuthParams);
+BOOL WinHttpSetCredentials(void* hRequest, uint AuthTargets, uint AuthScheme, const(PWSTR) pwszUserName, 
+                           const(PWSTR) pwszPassword, void* pAuthParams);
 
 ///The <b>WinHttpQueryAuthSchemes</b> function returns the authorization schemes that are supported by the server.
 ///Params:
@@ -5002,7 +5002,7 @@ BOOL WinHttpReceiveResponse(void* hRequest, void* lpReserved);
 ///    the requested operation. (Windows error code) </td> </tr> </table>
 ///    
 @DllImport("WINHTTP")
-BOOL WinHttpQueryHeaders(void* hRequest, uint dwInfoLevel, const(wchar)* pwszName, char* lpBuffer, 
+BOOL WinHttpQueryHeaders(void* hRequest, uint dwInfoLevel, const(PWSTR) pwszName, void* lpBuffer, 
                          uint* lpdwBufferLength, uint* lpdwIndex);
 
 ///The <b>WinHttpDetectAutoProxyConfigUrl</b> function finds the URL for the Proxy Auto-Configuration (PAC) file. This
@@ -5030,7 +5030,7 @@ BOOL WinHttpQueryHeaders(void* hRequest, uint dwInfoLevel, const(wchar)* pwszNam
 ///    </tr> </table>
 ///    
 @DllImport("WINHTTP")
-BOOL WinHttpDetectAutoProxyConfigUrl(uint dwAutoDetectFlags, ushort** ppwstrAutoConfigUrl);
+BOOL WinHttpDetectAutoProxyConfigUrl(uint dwAutoDetectFlags, PWSTR* ppwstrAutoConfigUrl);
 
 ///The <b>WinHttpGetProxyForUrl</b> function retrieves the proxy data for the specified URL.
 ///Params:
@@ -5067,7 +5067,7 @@ BOOL WinHttpDetectAutoProxyConfigUrl(uint dwAutoDetectFlags, ushort** ppwstrAuto
 ///    the requested operation. (Windows error code) </td> </tr> </table>
 ///    
 @DllImport("WINHTTP")
-BOOL WinHttpGetProxyForUrl(void* hSession, const(wchar)* lpcwszUrl, WINHTTP_AUTOPROXY_OPTIONS* pAutoProxyOptions, 
+BOOL WinHttpGetProxyForUrl(void* hSession, const(PWSTR) lpcwszUrl, WINHTTP_AUTOPROXY_OPTIONS* pAutoProxyOptions, 
                            WINHTTP_PROXY_INFO* pProxyInfo);
 
 ///The <b>WinHttpCreateProxyResolver</b> function creates a handle for use by WinHttpGetProxyForUrlEx.
@@ -5107,13 +5107,12 @@ uint WinHttpCreateProxyResolver(void* hSession, void** phResolver);
 ///    the requested operation. (Windows error code) </td> </tr> </table>
 ///    
 @DllImport("WINHTTP")
-uint WinHttpGetProxyForUrlEx(void* hResolver, const(wchar)* pcwszUrl, WINHTTP_AUTOPROXY_OPTIONS* pAutoProxyOptions, 
+uint WinHttpGetProxyForUrlEx(void* hResolver, const(PWSTR) pcwszUrl, WINHTTP_AUTOPROXY_OPTIONS* pAutoProxyOptions, 
                              size_t pContext);
 
 @DllImport("WINHTTP")
-uint WinHttpGetProxyForUrlEx2(void* hResolver, const(wchar)* pcwszUrl, 
-                              WINHTTP_AUTOPROXY_OPTIONS* pAutoProxyOptions, uint cbInterfaceSelectionContext, 
-                              char* pInterfaceSelectionContext, size_t pContext);
+uint WinHttpGetProxyForUrlEx2(void* hResolver, const(PWSTR) pcwszUrl, WINHTTP_AUTOPROXY_OPTIONS* pAutoProxyOptions, 
+                              uint cbInterfaceSelectionContext, ubyte* pInterfaceSelectionContext, size_t pContext);
 
 ///The <b>WinHttpGetProxyResult</b> function retrieves the results of a call to WinHttpGetProxyForUrlEx.
 ///Params:
@@ -5196,9 +5195,9 @@ BOOL WinHttpGetIEProxyConfigForCurrentUser(WINHTTP_CURRENT_USER_IE_PROXY_CONFIG*
 uint WinHttpWriteProxySettings(void* hSession, BOOL fForceUpdate, WINHTTP_PROXY_SETTINGS* pWinHttpProxySettings);
 
 @DllImport("WINHTTP")
-uint WinHttpReadProxySettings(void* hSession, const(wchar)* pcwszConnectionName, BOOL fFallBackToDefaultSettings, 
+uint WinHttpReadProxySettings(void* hSession, const(PWSTR) pcwszConnectionName, BOOL fFallBackToDefaultSettings, 
                               BOOL fSetAutoDiscoverForDefaultSettings, uint* pdwSettingsVersion, 
-                              int* pfDefaultSettingsAreReturned, WINHTTP_PROXY_SETTINGS* pWinHttpProxySettings);
+                              BOOL* pfDefaultSettingsAreReturned, WINHTTP_PROXY_SETTINGS* pWinHttpProxySettings);
 
 @DllImport("WINHTTP")
 void WinHttpFreeProxySettings(WINHTTP_PROXY_SETTINGS* pWinHttpProxySettings);
@@ -5236,7 +5235,7 @@ void* WinHttpWebSocketCompleteUpgrade(void* hRequest, size_t pContext);
 ///    </td> </tr> </table>
 ///    
 @DllImport("WINHTTP")
-uint WinHttpWebSocketSend(void* hWebSocket, WINHTTP_WEB_SOCKET_BUFFER_TYPE eBufferType, char* pvBuffer, 
+uint WinHttpWebSocketSend(void* hWebSocket, WINHTTP_WEB_SOCKET_BUFFER_TYPE eBufferType, void* pvBuffer, 
                           uint dwBufferLength);
 
 ///The <b>WinHttpWebSocketReceive</b> function receives data from a WebSocket connection.
@@ -5250,7 +5249,7 @@ uint WinHttpWebSocketSend(void* hWebSocket, WINHTTP_WEB_SOCKET_BUFFER_TYPE eBuff
 ///    peBufferType = Type: <b>WINHTTP_WEB_SOCKET_BUFFER_TYPE*</b> The type of a returned buffer. This is only set if
 ///                   <b>WinHttpWebSocketReceive</b> returns <b>NO_ERROR</b> and the handle was opened in synchronous mode.
 @DllImport("WINHTTP")
-uint WinHttpWebSocketReceive(void* hWebSocket, char* pvBuffer, uint dwBufferLength, uint* pdwBytesRead, 
+uint WinHttpWebSocketReceive(void* hWebSocket, void* pvBuffer, uint dwBufferLength, uint* pdwBytesRead, 
                              WINHTTP_WEB_SOCKET_BUFFER_TYPE* peBufferType);
 
 ///The <b>WinHttpWebSocketShutdown</b> function sends a close frame to a WebSocket server to close the send channel, but
@@ -5270,7 +5269,7 @@ uint WinHttpWebSocketReceive(void* hWebSocket, char* pvBuffer, uint dwBufferLeng
 ///    </tr> </table>
 ///    
 @DllImport("WINHTTP")
-uint WinHttpWebSocketShutdown(void* hWebSocket, ushort usStatus, char* pvReason, uint dwReasonLength);
+uint WinHttpWebSocketShutdown(void* hWebSocket, ushort usStatus, void* pvReason, uint dwReasonLength);
 
 ///The <b>WinHttpWebSocketClose</b> function closes a WebSocket connection.
 ///Params:
@@ -5290,7 +5289,7 @@ uint WinHttpWebSocketShutdown(void* hWebSocket, ushort usStatus, char* pvReason,
 ///    width="60%"> Invalid data was received from the server. </td> </tr> </table>
 ///    
 @DllImport("WINHTTP")
-uint WinHttpWebSocketClose(void* hWebSocket, ushort usStatus, char* pvReason, uint dwReasonLength);
+uint WinHttpWebSocketClose(void* hWebSocket, ushort usStatus, void* pvReason, uint dwReasonLength);
 
 ///The <b>WinHttpWebSocketQueryCloseStatus</b> function retrieves the close status sent by a server.
 ///Params:
@@ -5311,7 +5310,7 @@ uint WinHttpWebSocketClose(void* hWebSocket, ushort usStatus, char* pvReason, ui
 ///    width="60%"> A parameter is invalid. </td> </tr> </table>
 ///    
 @DllImport("WINHTTP")
-uint WinHttpWebSocketQueryCloseStatus(void* hWebSocket, ushort* pusStatus, char* pvReason, uint dwReasonLength, 
+uint WinHttpWebSocketQueryCloseStatus(void* hWebSocket, ushort* pusStatus, void* pvReason, uint dwReasonLength, 
                                       uint* pdwReasonLengthConsumed);
 
 

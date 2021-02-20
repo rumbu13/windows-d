@@ -5,10 +5,11 @@ module windows.parentalcontrols;
 public import windows.core;
 public import windows.automation : BSTR;
 public import windows.com : HRESULT, IUnknown;
+public import windows.systemservices : BOOL, PWSTR;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : SYSTEMTIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -682,6 +683,11 @@ enum : int
     WPCFLAG_WPC_HIDDEN  = 0x00000001,
 }
 
+// Constants
+
+
+enum GUID WPCPROV = GUID("01090065-b467-4503-9b28-533766761087");
+
 // Interfaces
 
 @GUID("355DFFAA-3B9F-435C-B428-5D44290BC5F2")
@@ -784,7 +790,7 @@ interface IWPCSettings : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> The method failed. </td> </tr>
     ///    </table>
     ///    
-    HRESULT IsLoggingRequired(int* pfRequired);
+    HRESULT IsLoggingRequired(BOOL* pfRequired);
     ///Retrieves the time at which the configuration settings were last updated.
     ///Params:
     ///    pTime = A pointer to a SYSTEMTIME structure that receives the time at which the settings were last updated.
@@ -868,7 +874,7 @@ interface IWPCWebSettings : IWPCSettings
     ///Returns:
     ///    If the method succeeds, the return value is S_OK. Otherwise, it is E_FAIL.
     ///    
-    HRESULT RequestURLOverride(HWND hWnd, const(wchar)* pcszURL, uint cURLs, char* ppcszSubURLs, int* pfChanged);
+    HRESULT RequestURLOverride(HWND hWnd, const(PWSTR) pcszURL, uint cURLs, PWSTR* ppcszSubURLs, BOOL* pfChanged);
 }
 
 ///The **IWindowsParentalControlsCore** interface is used to retrieve pointers for general and web restriction settings
@@ -907,7 +913,7 @@ interface IWindowsParentalControlsCore : IUnknown
     ///    operation. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> The
     ///    method failed. </td> </tr> </table>
     ///    
-    HRESULT GetUserSettings(const(wchar)* pcszSID, IWPCSettings* ppSettings);
+    HRESULT GetUserSettings(const(PWSTR) pcszSID, IWPCSettings* ppSettings);
     ///Retrieves a pointer to an interface for web restrictions settings for the specified user.
     ///Params:
     ///    pcszSID = The SID string of the user. If this parameter is <b>NULL</b>, retrieve settings for the current user.
@@ -922,7 +928,7 @@ interface IWindowsParentalControlsCore : IUnknown
     ///    operation. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> The
     ///    method failed. </td> </tr> </table>
     ///    
-    HRESULT GetWebSettings(const(wchar)* pcszSID, IWPCWebSettings* ppSettings);
+    HRESULT GetWebSettings(const(PWSTR) pcszSID, IWPCWebSettings* ppSettings);
     ///Retrieves the name and identifier of the currently active Web Content Filter.
     ///Params:
     ///    pguidID = The GUID of the currently active Web Content Filter.
@@ -935,7 +941,7 @@ interface IWindowsParentalControlsCore : IUnknown
     ///    <td width="60%"> There is insufficient memory to complete the operation. </td> </tr> <tr> <td width="40%">
     ///    <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> The method failed. </td> </tr> </table>
     ///    
-    HRESULT GetWebFilterInfo(GUID* pguidID, ushort** ppszName);
+    HRESULT GetWebFilterInfo(GUID* pguidID, PWSTR* ppszName);
 }
 
 ///Enables access to all settings interfaces of the Minimum Compliance API.
@@ -956,7 +962,7 @@ interface IWindowsParentalControls : IWindowsParentalControlsCore
     ///    operation. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> The
     ///    method failed. </td> </tr> </table>
     ///    
-    HRESULT GetGamesSettings(const(wchar)* pcszSID, IWPCGamesSettings* ppSettings);
+    HRESULT GetGamesSettings(const(PWSTR) pcszSID, IWPCGamesSettings* ppSettings);
 }
 
 ///Exposes methods that allow third-party providers to query the currently enabled provider.

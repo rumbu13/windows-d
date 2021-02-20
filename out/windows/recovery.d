@@ -4,10 +4,10 @@ module windows.recovery;
 
 public import windows.core;
 public import windows.com : HRESULT;
-public import windows.systemservices : BOOL, HANDLE;
+public import windows.systemservices : BOOL, HANDLE, PWSTR;
 public import windows.windowsprogramming : APPLICATION_RECOVERY_CALLBACK;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Functions
@@ -70,7 +70,7 @@ HRESULT UnregisterApplicationRecoveryCallback();
 ///    width="60%"> The specified command line is too long. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-HRESULT RegisterApplicationRestart(const(wchar)* pwzCommandline, uint dwFlags);
+HRESULT RegisterApplicationRestart(const(PWSTR) pwzCommandline, uint dwFlags);
 
 ///Removes the active instance of an application from the restart list.
 ///Returns:
@@ -124,8 +124,7 @@ HRESULT GetApplicationRecoveryCallback(HANDLE hProcess, APPLICATION_RECOVERY_CAL
 ///    buffer size in <i>pcchSize</i>. Use the required size to reallocate the buffer. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-HRESULT GetApplicationRestartSettings(HANDLE hProcess, const(wchar)* pwzCommandline, uint* pcchSize, 
-                                      uint* pdwFlags);
+HRESULT GetApplicationRestartSettings(HANDLE hProcess, PWSTR pwzCommandline, uint* pcchSize, uint* pdwFlags);
 
 ///Indicates that the calling application is continuing to recover data.
 ///Params:
@@ -138,7 +137,7 @@ HRESULT GetApplicationRestartSettings(HANDLE hProcess, const(wchar)* pwzCommandl
 ///    <i>pbCancelled</i> cannot be <b>NULL</b>. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-HRESULT ApplicationRecoveryInProgress(int* pbCancelled);
+HRESULT ApplicationRecoveryInProgress(BOOL* pbCancelled);
 
 ///Indicates that the calling application has completed its data recovery.
 ///Params:

@@ -12,7 +12,7 @@ public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : SYSTEMTIME;
 public import windows.windowspropertiessystem : PROPERTYKEY;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -436,7 +436,7 @@ interface ILocation : IUnknown
     ///    width="60%"> The location platform is disabled. An administrator turned the location platform off. The dialog
     ///    box was not shown. </td> </tr> </table>
     ///    
-    HRESULT RequestPermissions(HWND hParent, char* pReportTypes, uint count, BOOL fModal);
+    HRESULT RequestPermissions(HWND hParent, GUID* pReportTypes, uint count, BOOL fModal);
 }
 
 ///<p class="CCE_Message">[The Win32 Location API is available for use in the operating systems specified in the

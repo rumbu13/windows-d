@@ -1623,7 +1623,6 @@
   <File path="out\windows\toolhelp.d" />
   <File path="out\windows\touchinput.d" />
   <File path="out\windows\tpmbaseservices.d" />
-  <File path="out\windows\ual.d" />
   <File path="out\windows\uianimation.d" />
   <File path="out\windows\upnp.d" />
   <File path="out\windows\usbdrivers.d" />
@@ -1675,7 +1674,6 @@
   <File path="out\windows\wmi.d" />
   <File path="out\windows\wpfbitmapeffects.d" />
   <File path="out\windows\xamldiagnostics.d" />
-  <File path="out\windows\xamldiganostics.d" />
   <File path="out\windows\xaudio2.d" />
   <File path="out\windows\xblidp.d" />
   <File path="out\windows\xinput.d" />

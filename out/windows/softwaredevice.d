@@ -5,9 +5,9 @@ module windows.softwaredevice;
 public import windows.core;
 public import windows.com : HRESULT;
 public import windows.security : SECURITY_DESCRIPTOR;
-public import windows.systemservices : BOOL, DEVPROPERTY;
+public import windows.systemservices : BOOL, DEVPROPERTY, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -41,7 +41,7 @@ enum : int
 ///    pContext = The context that was optionally supplied by the client app to SwDeviceCreate.
 ///    pszDeviceInstanceId = The device instance ID that PnP assigned to the device.
 alias SW_DEVICE_CREATE_CALLBACK = void function(HSWDEVICE__* hSwDevice, HRESULT CreateResult, void* pContext, 
-                                                const(wchar)* pszDeviceInstanceId);
+                                                const(PWSTR) pszDeviceInstanceId);
 
 // Structs
 
@@ -50,27 +50,27 @@ alias SW_DEVICE_CREATE_CALLBACK = void function(HSWDEVICE__* hSwDevice, HRESULT 
 struct SW_DEVICE_CREATE_INFO
 {
     ///The size in bytes of this structure. Use it as a version field. Initialize it to sizeof(SW_DEVICE_CREATE_INFO).
-    uint          cbSize;
+    uint         cbSize;
     ///A string that represents the instance ID portion of the device instance ID. This value is used for
     ///IRP_MN_QUERY_ID <b>BusQueryInstanceID</b>. Because all software devices are considered "UniqueId" devices, this
     ///string must be a unique name for all devices on this software device enumerator. For more info, see Instance IDs.
-    const(wchar)* pszInstanceId;
+    const(PWSTR) pszInstanceId;
     ///A list of strings for the hardware IDs for the software device. This value is used for IRP_MN_QUERY_ID
     ///<b>BusQueryHardwareIDs</b>. If a client expects a driver or device metadata to bind to the device, the client
     ///specifies hardware IDs.
-    const(wchar)* pszzHardwareIds;
+    /*FIELD ATTR: NullNullTerminated : CustomAttributeSig([], [])*/const(PWSTR) pszzHardwareIds;
     ///A list of strings for the compatible IDs for the software device. This value is used for IRP_MN_QUERY_ID
     ///<b>BusQueryCompatibleIDs</b>. If a client expects a class driver to load, the client specifies compatible IDs
     ///that match the class driver. If a driver isn't needed, we recommend to specify a compatible ID to classify the
     ///type of software device. In addition to the compatible IDs specified in this member, SWD\Generic and possibly
     ///SWD\GenericRaw will always be added as the least specific compatible IDs.
-    const(wchar)* pszzCompatibleIds;
+    /*FIELD ATTR: NullNullTerminated : CustomAttributeSig([], [])*/const(PWSTR) pszzCompatibleIds;
     ///A value that is used to control the base container ID for the software device. This value will be used for
     ///IRP_MN_QUERY_ID <b>BusQueryContainerIDs</b>. For typical situations, we recommend to set this member to
     ///<b>NULL</b> and use the <b>SWDeviceCapabilitiesRemovable</b> flag to control whether the device inherits the
     ///parent's container ID or if PnP assigns a new random container ID. If the client needs to explicitly control the
     ///container ID, specify a <b>GUID</b> in the variable that this member points to.
-    const(GUID)*  pContainerId;
+    const(GUID)* pContainerId;
     ///A combination of <b>SW_DEVICE_CAPABILITIES</b> values that are combined by using a bitwise OR operation. The
     ///resulting value specifies capabilities of the software device. The capability that you can specify when you
     ///create a software device are a subset of the capabilities that a bus driver can specify by using the
@@ -104,17 +104,17 @@ struct SW_DEVICE_CREATE_INFO
     ///equivalent to a bus driver not setting the <b>RawDeviceOK</b> member of the <b>DEVICE_CAPABILTIES</b> structure
     ///for a PDO. When this bit is specified, the driver owns creating interfaces for the device, and you can't call
     ///SwDeviceInterfaceRegister for the device. </td> </tr> </table>
-    uint          CapabilityFlags;
+    uint         CapabilityFlags;
     ///A string that contains the text that is displayed for the device name in the UI. This value is used for
     ///IRP_MN_QUERY_DEVICE_TEXT <b>DeviceTextDescription</b>. <div class="alert"><b>Note</b> <p class="note">When an INF
     ///is matched against the device, the name from the INF overrides this name unless steps are taken to preserve this
     ///name. <p class="note">We recommend that this string be a reference to a localizable resource. For the syntax of
     ///referencing resources, see DEVPROP_TYPE_STRING_INDIRECT. </div> <div> </div>
-    const(wchar)* pszDeviceDescription;
+    const(PWSTR) pszDeviceDescription;
     ///A string that contains the text that is displayed for the device location in the UI. This value is used for
     ///IRP_MN_QUERY_DEVICE_TEXT <b>DeviceTextLocationInformation</b>. <div class="alert"><b>Note</b> Specifying a
     ///location is uncommon.</div> <div> </div>
-    const(wchar)* pszDeviceLocation;
+    const(PWSTR) pszDeviceLocation;
     ///A pointer to a SECURITY_DESCRIPTOR structure that contains the security information associated with the software
     ///device. If this member is <b>NULL</b>, the I/O Manager assigns the default security descriptor to the device. If
     ///a custom security descriptor is needed, specify a self-relative security descriptor.
@@ -156,9 +156,10 @@ struct HSWDEVICE__
 ///    function to determine if the device was successfully enumerated.
 ///    
 @DllImport("api-ms-win-devices-swdevice-l1-1-0")
-HRESULT SwDeviceCreate(const(wchar)* pszEnumeratorName, const(wchar)* pszParentDeviceInstance, 
-                       const(SW_DEVICE_CREATE_INFO)* pCreateInfo, uint cPropertyCount, char* pProperties, 
-                       SW_DEVICE_CREATE_CALLBACK pCallback, void* pContext, HSWDEVICE__** phSwDevice);
+HRESULT SwDeviceCreate(const(PWSTR) pszEnumeratorName, const(PWSTR) pszParentDeviceInstance, 
+                       const(SW_DEVICE_CREATE_INFO)* pCreateInfo, uint cPropertyCount, 
+                       const(DEVPROPERTY)* pProperties, SW_DEVICE_CREATE_CALLBACK pCallback, void* pContext, 
+                       HSWDEVICE__** phSwDevice);
 
 ///Closes the software device handle. When the handle is closed, PnP will initiate the process of removing the device.
 ///Params:
@@ -211,7 +212,7 @@ HRESULT SwDeviceGetLifetime(HSWDEVICE__* hSwDevice, SW_DEVICE_LIFETIME* pLifetim
 ///    value.
 ///    
 @DllImport("api-ms-win-devices-swdevice-l1-1-0")
-HRESULT SwDevicePropertySet(HSWDEVICE__* hSwDevice, uint cPropertyCount, char* pProperties);
+HRESULT SwDevicePropertySet(HSWDEVICE__* hSwDevice, uint cPropertyCount, const(DEVPROPERTY)* pProperties);
 
 ///Registers a device interface for a software device and optionally sets properties on that interface.
 ///Params:
@@ -234,8 +235,8 @@ HRESULT SwDevicePropertySet(HSWDEVICE__* hSwDevice, uint cPropertyCount, char* p
 ///    
 @DllImport("api-ms-win-devices-swdevice-l1-1-0")
 HRESULT SwDeviceInterfaceRegister(HSWDEVICE__* hSwDevice, const(GUID)* pInterfaceClassGuid, 
-                                  const(wchar)* pszReferenceString, uint cPropertyCount, char* pProperties, 
-                                  BOOL fEnabled, ushort** ppszDeviceInterfaceId);
+                                  const(PWSTR) pszReferenceString, uint cPropertyCount, 
+                                  const(DEVPROPERTY)* pProperties, BOOL fEnabled, PWSTR* ppszDeviceInterfaceId);
 
 ///Frees memory that other Software Device API functions allocated.
 ///Params:
@@ -254,7 +255,7 @@ void SwMemFree(void* pMem);
 ///    an appropriate error value.
 ///    
 @DllImport("api-ms-win-devices-swdevice-l1-1-0")
-HRESULT SwDeviceInterfaceSetState(HSWDEVICE__* hSwDevice, const(wchar)* pszDeviceInterfaceId, BOOL fEnabled);
+HRESULT SwDeviceInterfaceSetState(HSWDEVICE__* hSwDevice, const(PWSTR) pszDeviceInterfaceId, BOOL fEnabled);
 
 ///Sets properties on a software device interface.
 ///Params:
@@ -267,7 +268,7 @@ HRESULT SwDeviceInterfaceSetState(HSWDEVICE__* hSwDevice, const(wchar)* pszDevic
 ///    otherwise, an appropriate error value.
 ///    
 @DllImport("api-ms-win-devices-swdevice-l1-1-0")
-HRESULT SwDeviceInterfacePropertySet(HSWDEVICE__* hSwDevice, const(wchar)* pszDeviceInterfaceId, 
-                                     uint cPropertyCount, char* pProperties);
+HRESULT SwDeviceInterfacePropertySet(HSWDEVICE__* hSwDevice, const(PWSTR) pszDeviceInterfaceId, 
+                                     uint cPropertyCount, const(DEVPROPERTY)* pProperties);
 
 

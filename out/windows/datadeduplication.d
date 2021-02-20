@@ -6,7 +6,7 @@ public import windows.core;
 public import windows.automation : BSTR;
 public import windows.com : HRESULT, IUnknown;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -74,7 +74,7 @@ interface IDedupReadFileCallback : IUnknown
     ///    This method can return standard <b>HRESULT</b> values, such as <b>S_OK</b>. It can also return converted
     ///    system error codes using the HRESULT_FROM_WIN32 macro. Possible return values include the following.
     ///    
-    HRESULT ReadBackupFile(BSTR FileFullPath, long FileOffset, uint SizeToRead, char* FileBuffer, 
+    HRESULT ReadBackupFile(BSTR FileFullPath, long FileOffset, uint SizeToRead, ubyte* FileBuffer, 
                            uint* ReturnedSize, uint Flags);
     ///This method provides the application with the ability to influence the order of the pending reads that are
     ///required to retrieve the target file. Given a list of container files that hold data for the restore target file,
@@ -92,8 +92,8 @@ interface IDedupReadFileCallback : IUnknown
     ///    This method can return standard <b>HRESULT</b> values, such as <b>S_OK</b>. It can also return converted
     ///    system error codes using the HRESULT_FROM_WIN32 macro. Possible return values include the following.
     ///    
-    HRESULT OrderContainersRestore(uint NumberOfContainers, char* ContainerPaths, uint* ReadPlanEntries, 
-                                   char* ReadPlan);
+    HRESULT OrderContainersRestore(uint NumberOfContainers, BSTR* ContainerPaths, uint* ReadPlanEntries, 
+                                   DEDUP_CONTAINER_EXTENT** ReadPlan);
     ///Provides the application with a preview of the sequence of reads that are pending for a given container file
     ///extent.
     ///Params:
@@ -104,7 +104,7 @@ interface IDedupReadFileCallback : IUnknown
     ///    This method can return standard <b>HRESULT</b> values, such as <b>S_OK</b>. It can also return converted
     ///    system error codes using the HRESULT_FROM_WIN32 macro. Possible return values include the following.
     ///    
-    HRESULT PreviewContainerRead(BSTR FileFullPath, uint NumberOfReads, char* ReadOffsets);
+    HRESULT PreviewContainerRead(BSTR FileFullPath, uint NumberOfReads, DDP_FILE_EXTENT* ReadOffsets);
 }
 
 ///Provides a method for restoring a file from a backup store containing copies of Data Deduplication reparse points,
@@ -140,8 +140,8 @@ interface IDedupBackupSupport : IUnknown
     ///    following. If no file was restored successfully, the result is the first file error encountered. This will be
     ///    one of the "DDP_E_<i>XXX</i>" error codes above.
     ///    
-    HRESULT RestoreFiles(uint NumberOfFiles, char* FileFullPaths, IDedupReadFileCallback Store, uint Flags, 
-                         char* FileResults);
+    HRESULT RestoreFiles(uint NumberOfFiles, BSTR* FileFullPaths, IDedupReadFileCallback Store, uint Flags, 
+                         HRESULT* FileResults);
 }
 
 

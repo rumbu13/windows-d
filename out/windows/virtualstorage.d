@@ -3,9 +3,9 @@
 module windows.virtualstorage;
 
 public import windows.core;
-public import windows.systemservices : BOOL, HANDLE, OVERLAPPED;
+public import windows.systemservices : BOOL, HANDLE, OVERLAPPED, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -596,19 +596,19 @@ struct OPEN_VIRTUAL_DISK_PARAMETERS
     ///id="open_virtual_disk_version_2"></a><dl> <dt><b>OPEN_VIRTUAL_DISK_VERSION_2</b></dt> <dt>2</dt> </dl> </td> <td
     ///width="60%"> Use the <b>Version2</b> member of this structure. </td> </tr> </table>
     OPEN_VIRTUAL_DISK_VERSION Version;
-    union
+union
     {
-        struct Version1
+struct Version1
         {
             uint RWDepth;
         }
-        struct Version2
+struct Version2
         {
             BOOL GetInfoOnly;
             BOOL ReadOnly;
             GUID ResiliencyGuid;
         }
-        struct Version3
+struct Version3
         {
             BOOL GetInfoOnly;
             BOOL ReadOnly;
@@ -630,61 +630,61 @@ struct CREATE_VIRTUAL_DISK_PARAMETERS
     ///<dt><b>CREATE_VIRTUAL_DISK_VERSION_2</b></dt> <dt>2</dt> </dl> </td> <td width="60%"> Use the <b>Version2</b>
     ///member of this structure. </td> </tr> </table>
     CREATE_VIRTUAL_DISK_VERSION Version;
-    union
+union
     {
-        struct Version1
+struct Version1
         {
-            GUID          UniqueId;
-            ulong         MaximumSize;
-            uint          BlockSizeInBytes;
-            uint          SectorSizeInBytes;
-            const(wchar)* ParentPath;
-            const(wchar)* SourcePath;
+            GUID         UniqueId;
+            ulong        MaximumSize;
+            uint         BlockSizeInBytes;
+            uint         SectorSizeInBytes;
+            const(PWSTR) ParentPath;
+            const(PWSTR) SourcePath;
         }
-        struct Version2
+struct Version2
         {
             GUID                 UniqueId;
             ulong                MaximumSize;
             uint                 BlockSizeInBytes;
             uint                 SectorSizeInBytes;
             uint                 PhysicalSectorSizeInBytes;
-            const(wchar)*        ParentPath;
-            const(wchar)*        SourcePath;
+            const(PWSTR)         ParentPath;
+            const(PWSTR)         SourcePath;
             OPEN_VIRTUAL_DISK_FLAG OpenFlags;
             VIRTUAL_STORAGE_TYPE ParentVirtualStorageType;
             VIRTUAL_STORAGE_TYPE SourceVirtualStorageType;
             GUID                 ResiliencyGuid;
         }
-        struct Version3
+struct Version3
         {
             GUID                 UniqueId;
             ulong                MaximumSize;
             uint                 BlockSizeInBytes;
             uint                 SectorSizeInBytes;
             uint                 PhysicalSectorSizeInBytes;
-            const(wchar)*        ParentPath;
-            const(wchar)*        SourcePath;
+            const(PWSTR)         ParentPath;
+            const(PWSTR)         SourcePath;
             OPEN_VIRTUAL_DISK_FLAG OpenFlags;
             VIRTUAL_STORAGE_TYPE ParentVirtualStorageType;
             VIRTUAL_STORAGE_TYPE SourceVirtualStorageType;
             GUID                 ResiliencyGuid;
-            const(wchar)*        SourceLimitPath;
+            const(PWSTR)         SourceLimitPath;
             VIRTUAL_STORAGE_TYPE BackingStorageType;
         }
-        struct Version4
+struct Version4
         {
             GUID                 UniqueId;
             ulong                MaximumSize;
             uint                 BlockSizeInBytes;
             uint                 SectorSizeInBytes;
             uint                 PhysicalSectorSizeInBytes;
-            const(wchar)*        ParentPath;
-            const(wchar)*        SourcePath;
+            const(PWSTR)         ParentPath;
+            const(PWSTR)         SourcePath;
             OPEN_VIRTUAL_DISK_FLAG OpenFlags;
             VIRTUAL_STORAGE_TYPE ParentVirtualStorageType;
             VIRTUAL_STORAGE_TYPE SourceVirtualStorageType;
             GUID                 ResiliencyGuid;
-            const(wchar)*        SourceLimitPath;
+            const(PWSTR)         SourceLimitPath;
             VIRTUAL_STORAGE_TYPE BackingStorageType;
             GUID                 PmemAddressAbstractionType;
             ulong                DataAlignment;
@@ -698,13 +698,13 @@ struct ATTACH_VIRTUAL_DISK_PARAMETERS
     ///A ATTACH_VIRTUAL_DISK_VERSION enumeration that specifies the version of the <b>ATTACH_VIRTUAL_DISK_PARAMETERS</b>
     ///structure being passed to or from the VHD functions.
     ATTACH_VIRTUAL_DISK_VERSION Version;
-    union
+union
     {
-        struct Version1
+struct Version1
         {
             uint Reserved;
         }
-        struct Version2
+struct Version2
         {
             ulong RestrictedOffset;
             ulong RestrictedLength;
@@ -738,15 +738,15 @@ struct STORAGE_DEPENDENCY_INFO_TYPE_2
     ///\\.\PhysicalDrive<i>N</i>. If the device is a virtual CD or DVD drive (ISO) then this will be in the form
     ///\\.\CDRom<i>N</i>. In either case <i>N</i> is an integer that represents a unique identifier for the caller's
     ///host system.
-    const(wchar)*        DependencyDeviceName;
+    PWSTR                DependencyDeviceName;
     ///The host disk volume name in the form \\?\Volume{<i>GUID</i>}\ where <i>GUID</i> is the <b>GUID</b> that
     ///identifies the volume.
-    const(wchar)*        HostVolumeName;
+    PWSTR                HostVolumeName;
     ///The name of the dependent volume, if any, in the form \\?\Volume{<i>GUID</i>}\ where <i>GUID</i> is the
     ///<b>GUID</b> that identifies the volume.
-    const(wchar)*        DependentVolumeName;
+    PWSTR                DependentVolumeName;
     ///The relative path to the dependent volume.
-    const(wchar)*        DependentVolumeRelativePath;
+    PWSTR                DependentVolumeRelativePath;
 }
 
 ///Contains virtual hard disk (VHD) storage dependency information.
@@ -757,7 +757,7 @@ struct STORAGE_DEPENDENCY_INFO
     STORAGE_DEPENDENCY_INFO_VERSION Version;
     ///Number of entries returned in the following unioned members.
     uint NumberEntries;
-    union
+union
     {
         STORAGE_DEPENDENCY_INFO_TYPE_1 Version1Entries;
         STORAGE_DEPENDENCY_INFO_TYPE_2 Version2Entries;
@@ -771,9 +771,9 @@ struct GET_VIRTUAL_DISK_INFO
     ///<b>GET_VIRTUAL_DISK_INFO</b> structure being passed to or from the virtual disk functions. This determines what
     ///parts of this structure will be used.
     GET_VIRTUAL_DISK_INFO_VERSION Version;
-    union
+union
     {
-        struct Size
+struct Size
         {
             ulong VirtualSize;
             ulong PhysicalSize;
@@ -781,7 +781,7 @@ struct GET_VIRTUAL_DISK_INFO
             uint  SectorSize;
         }
         GUID                 Identifier;
-        struct ParentLocation
+struct ParentLocation
         {
             BOOL      ParentResolved;
             ushort[1] ParentLocationBuffer;
@@ -792,7 +792,7 @@ struct GET_VIRTUAL_DISK_INFO
         uint                 ProviderSubtype;
         BOOL                 Is4kAligned;
         BOOL                 IsLoaded;
-        struct PhysicalDisk
+struct PhysicalDisk
         {
             uint LogicalSectorSize;
             uint PhysicalSectorSize;
@@ -802,7 +802,7 @@ struct GET_VIRTUAL_DISK_INFO
         ulong                SmallestSafeVirtualSize;
         uint                 FragmentationPercentage;
         GUID                 VirtualDiskId;
-        struct ChangeTrackingState
+struct ChangeTrackingState
         {
             BOOL      Enabled;
             BOOL      NewerChanges;
@@ -818,22 +818,22 @@ struct SET_VIRTUAL_DISK_INFO
     ///A SET_VIRTUAL_DISK_INFO_VERSION enumeration that specifies the version of the <b>SET_VIRTUAL_DISK_INFO</b>
     ///structure being passed to or from the VHD functions. This determines the type of information set.
     SET_VIRTUAL_DISK_INFO_VERSION Version;
-    union
+union
     {
-        const(wchar)* ParentFilePath;
-        GUID          UniqueIdentifier;
-        struct ParentPathWithDepthInfo
+        const(PWSTR) ParentFilePath;
+        GUID         UniqueIdentifier;
+struct ParentPathWithDepthInfo
         {
-            uint          ChildDepth;
-            const(wchar)* ParentFilePath;
+            uint         ChildDepth;
+            const(PWSTR) ParentFilePath;
         }
-        uint          VhdPhysicalSectorSize;
-        GUID          VirtualDiskId;
-        BOOL          ChangeTrackingEnabled;
-        struct ParentLocator
+        uint         VhdPhysicalSectorSize;
+        GUID         VirtualDiskId;
+        BOOL         ChangeTrackingEnabled;
+struct ParentLocator
         {
-            GUID          LinkageId;
-            const(wchar)* ParentFilePath;
+            GUID         LinkageId;
+            const(PWSTR) ParentFilePath;
         }
     }
 }
@@ -859,9 +859,9 @@ struct COMPACT_VIRTUAL_DISK_PARAMETERS
     ///A COMPACT_VIRTUAL_DISK_VERSION enumeration that specifies the version of the
     ///<b>COMPACT_VIRTUAL_DISK_PARAMETERS</b> structure being passed to or from the VHD functions.
     COMPACT_VIRTUAL_DISK_VERSION Version;
-    union
+union
     {
-        struct Version1
+struct Version1
         {
             uint Reserved;
         }
@@ -874,13 +874,13 @@ struct MERGE_VIRTUAL_DISK_PARAMETERS
     ///A MERGE_VIRTUAL_DISK_VERSION enumeration that specifies the version of the <b>MERGE_VIRTUAL_DISK_PARAMETERS</b>
     ///structure being passed to or from the VHD functions.
     MERGE_VIRTUAL_DISK_VERSION Version;
-    union
+union
     {
-        struct Version1
+struct Version1
         {
             uint MergeDepth;
         }
-        struct Version2
+struct Version2
         {
             uint MergeSourceDepth;
             uint MergeTargetDepth;
@@ -894,9 +894,9 @@ struct EXPAND_VIRTUAL_DISK_PARAMETERS
     ///An EXPAND_VIRTUAL_DISK_VERSION enumeration value that specifies the version of the
     ///<b>EXPAND_VIRTUAL_DISK_PARAMETERS</b> structure being passed to or from the virtual disk functions.
     EXPAND_VIRTUAL_DISK_VERSION Version;
-    union
+union
     {
-        struct Version1
+struct Version1
         {
             ulong NewSize;
         }
@@ -908,9 +908,9 @@ struct RESIZE_VIRTUAL_DISK_PARAMETERS
 {
     ///Discriminant for the union containing a value enumerated from the RESIZE_VIRTUAL_DISK_VERSION enumeration.
     RESIZE_VIRTUAL_DISK_VERSION Version;
-    union
+union
     {
-        struct Version1
+struct Version1
         {
             ulong NewSize;
         }
@@ -922,11 +922,11 @@ struct MIRROR_VIRTUAL_DISK_PARAMETERS
 {
     ///Indicates the version of this structure to use. Set this to <b>MIRROR_VIRTUAL_DISK_VERSION_1</b> (1).
     MIRROR_VIRTUAL_DISK_VERSION Version;
-    union
+union
     {
-        struct Version1
+struct Version1
         {
-            const(wchar)* MirrorVirtualDiskPath;
+            const(PWSTR) MirrorVirtualDiskPath;
         }
     }
 }
@@ -950,9 +950,9 @@ struct TAKE_SNAPSHOT_VHDSET_PARAMETERS
 {
     ///A value from the TAKE_SNAPSHOT_VHDSET_VERSION enumeration that is the discriminant for the union.
     TAKE_SNAPSHOT_VHDSET_VERSION Version;
-    union
+union
     {
-        struct Version1
+struct Version1
         {
             GUID SnapshotId;
         }
@@ -966,9 +966,9 @@ struct DELETE_SNAPSHOT_VHDSET_PARAMETERS
 {
     ///A value from the DELETE_SNAPSHOT_VHDSET_VERSION enumeration that is the discriminant for the union.
     DELETE_SNAPSHOT_VHDSET_VERSION Version;
-    union
+union
     {
-        struct Version1
+struct Version1
         {
             GUID SnapshotId;
         }
@@ -982,15 +982,15 @@ struct MODIFY_VHDSET_PARAMETERS
 {
     ///A value from the MODIFY_VHDSET_VERSION enumeration that determines that is the discriminant for the union.
     MODIFY_VHDSET_VERSION Version;
-    union
+union
     {
-        struct SnapshotPath
+struct SnapshotPath
         {
-            GUID          SnapshotId;
-            const(wchar)* SnapshotFilePath;
+            GUID         SnapshotId;
+            const(PWSTR) SnapshotFilePath;
         }
-        GUID          SnapshotId;
-        const(wchar)* DefaultFilePath;
+        GUID         SnapshotId;
+        const(PWSTR) DefaultFilePath;
     }
 }
 
@@ -1000,9 +1000,9 @@ struct APPLY_SNAPSHOT_VHDSET_PARAMETERS
     ///An APPLY_SNAPSHOT_VHDSET_VERSION enumeration that specifies the version of the
     ///<b>APPLY_SNAPSHOT_VHDSET_PARAMETERS</b> structure being passed to or from the VHD functions.
     APPLY_SNAPSHOT_VHDSET_VERSION Version;
-    union
+union
     {
-        struct Version1
+struct Version1
         {
             GUID SnapshotId;
             GUID LeafSnapshotId;
@@ -1016,9 +1016,9 @@ struct RAW_SCSI_VIRTUAL_DISK_PARAMETERS
     ///A RAW_SCSI_VIRTUAL_DISK_VERSION enumeration that specifies the version of the
     ///<b>RAW_SCSI_VIRTUAL_DISK_PARAMETERS</b> structure being passed to or from the VHD functions.
     RAW_SCSI_VIRTUAL_DISK_VERSION Version;
-    union
+union
     {
-        struct Version1
+struct Version1
         {
             BOOL   RSVDHandle;
             ubyte  DataIn;
@@ -1039,9 +1039,9 @@ struct RAW_SCSI_VIRTUAL_DISK_RESPONSE
     ///A [RAW_SCSI_VIRTUAL_DISK_PARAMETERS](./ns-virtdisk-raw_scsi_virtual_disk_parameters.md) structure being passed to
     ///or from the VHD functions.
     RAW_SCSI_VIRTUAL_DISK_VERSION Version;
-    union
+union
     {
-        struct Version1
+struct Version1
         {
             ubyte ScsiStatus;
             ubyte SenseInfoLength;
@@ -1053,11 +1053,11 @@ struct RAW_SCSI_VIRTUAL_DISK_RESPONSE
 struct FORK_VIRTUAL_DISK_PARAMETERS
 {
     FORK_VIRTUAL_DISK_VERSION Version;
-    union
+union
     {
-        struct Version1
+struct Version1
         {
-            const(wchar)* ForkedVirtualDiskPath;
+            const(PWSTR) ForkedVirtualDiskPath;
         }
     }
 }
@@ -1078,9 +1078,9 @@ struct FORK_VIRTUAL_DISK_PARAMETERS
 ///    value of the <i>Handle</i> parameter is undefined. For more information, see System Error Codes.
 ///    
 @DllImport("VirtDisk")
-uint OpenVirtualDisk(VIRTUAL_STORAGE_TYPE* VirtualStorageType, const(wchar)* Path, 
+uint OpenVirtualDisk(VIRTUAL_STORAGE_TYPE* VirtualStorageType, const(PWSTR) Path, 
                      VIRTUAL_DISK_ACCESS_MASK VirtualDiskAccessMask, OPEN_VIRTUAL_DISK_FLAG Flags, 
-                     OPEN_VIRTUAL_DISK_PARAMETERS* Parameters, ptrdiff_t* Handle);
+                     OPEN_VIRTUAL_DISK_PARAMETERS* Parameters, HANDLE* Handle);
 
 ///Creates a virtual hard disk (VHD) image file, either using default parameters or using an existing virtual disk or
 ///physical disk.
@@ -1103,10 +1103,10 @@ uint OpenVirtualDisk(VIRTUAL_STORAGE_TYPE* VirtualStorageType, const(wchar)* Pat
 ///    value of the <i>Handle</i> parameter is undefined. For more information, see System Error Codes.
 ///    
 @DllImport("VirtDisk")
-uint CreateVirtualDisk(VIRTUAL_STORAGE_TYPE* VirtualStorageType, const(wchar)* Path, 
+uint CreateVirtualDisk(VIRTUAL_STORAGE_TYPE* VirtualStorageType, const(PWSTR) Path, 
                        VIRTUAL_DISK_ACCESS_MASK VirtualDiskAccessMask, void* SecurityDescriptor, 
                        CREATE_VIRTUAL_DISK_FLAG Flags, uint ProviderSpecificFlags, 
-                       CREATE_VIRTUAL_DISK_PARAMETERS* Parameters, OVERLAPPED* Overlapped, ptrdiff_t* Handle);
+                       CREATE_VIRTUAL_DISK_PARAMETERS* Parameters, OVERLAPPED* Overlapped, HANDLE* Handle);
 
 ///Attaches a virtual hard disk (VHD) or CD or DVD image file (ISO) by locating an appropriate VHD provider to
 ///accomplish the attachment.
@@ -1162,10 +1162,10 @@ uint DetachVirtualDisk(HANDLE VirtualDiskHandle, DETACH_VIRTUAL_DISK_FLAG Flags,
 ///    information, see System Error Codes.
 ///    
 @DllImport("VirtDisk")
-uint GetVirtualDiskPhysicalPath(HANDLE VirtualDiskHandle, uint* DiskPathSizeInBytes, const(wchar)* DiskPath);
+uint GetVirtualDiskPhysicalPath(HANDLE VirtualDiskHandle, uint* DiskPathSizeInBytes, PWSTR DiskPath);
 
 @DllImport("VirtDisk")
-uint GetAllAttachedVirtualDiskPhysicalPaths(uint* PathsBufferSizeInBytes, const(wchar)* PathsBuffer);
+uint GetAllAttachedVirtualDiskPhysicalPaths(uint* PathsBufferSizeInBytes, PWSTR PathsBuffer);
 
 ///Returns the relationships between virtual hard disks (VHDs) or CD or DVD image file (ISO) or the volumes contained
 ///within those disks and their parent disk or volume.
@@ -1207,8 +1207,8 @@ uint GetStorageDependencyInformation(HANDLE ObjectHandle, GET_STORAGE_DEPENDENCY
 ///    Codes.
 ///    
 @DllImport("VirtDisk")
-uint GetVirtualDiskInformation(HANDLE VirtualDiskHandle, uint* VirtualDiskInfoSize, char* VirtualDiskInfo, 
-                               uint* SizeUsed);
+uint GetVirtualDiskInformation(HANDLE VirtualDiskHandle, uint* VirtualDiskInfoSize, 
+                               GET_VIRTUAL_DISK_INFO* VirtualDiskInfo, uint* SizeUsed);
 
 ///Sets information about a virtual hard disk (VHD).
 ///Params:
@@ -1237,7 +1237,7 @@ uint SetVirtualDiskInformation(HANDLE VirtualDiskHandle, SET_VIRTUAL_DISK_INFO* 
 ///    function fails, the return value is an error code. For more information, see System Error Codes.
 ///    
 @DllImport("VirtDisk")
-uint EnumerateVirtualDiskMetadata(HANDLE VirtualDiskHandle, uint* NumberOfItems, char* Items);
+uint EnumerateVirtualDiskMetadata(HANDLE VirtualDiskHandle, uint* NumberOfItems, GUID* Items);
 
 ///Retrieves the specified metadata from the virtual disk.
 ///Params:
@@ -1254,7 +1254,7 @@ uint EnumerateVirtualDiskMetadata(HANDLE VirtualDiskHandle, uint* NumberOfItems,
 ///    function fails, the return value is an error code. For more information, see System Error Codes.
 ///    
 @DllImport("VirtDisk")
-uint GetVirtualDiskMetadata(HANDLE VirtualDiskHandle, const(GUID)* Item, uint* MetaDataSize, char* MetaData);
+uint GetVirtualDiskMetadata(HANDLE VirtualDiskHandle, const(GUID)* Item, uint* MetaDataSize, void* MetaData);
 
 ///Sets a metadata item for a virtual disk.
 ///Params:
@@ -1268,7 +1268,7 @@ uint GetVirtualDiskMetadata(HANDLE VirtualDiskHandle, const(GUID)* Item, uint* M
 ///    the return value is an error code. For more information, see System Error Codes.
 ///    
 @DllImport("VirtDisk")
-uint SetVirtualDiskMetadata(HANDLE VirtualDiskHandle, const(GUID)* Item, uint MetaDataSize, char* MetaData);
+uint SetVirtualDiskMetadata(HANDLE VirtualDiskHandle, const(GUID)* Item, uint MetaDataSize, const(void)* MetaData);
 
 ///Deletes metadata from a virtual disk.
 ///Params:
@@ -1402,7 +1402,7 @@ uint BreakMirrorVirtualDisk(HANDLE VirtualDiskHandle);
 ///    the return value is an error code. For more information, see System Error Codes.
 ///    
 @DllImport("VirtDisk")
-uint AddVirtualDiskParent(HANDLE VirtualDiskHandle, const(wchar)* ParentPath);
+uint AddVirtualDiskParent(HANDLE VirtualDiskHandle, const(PWSTR) ParentPath);
 
 ///Retrieves information about changes to the specified areas of a virtual hard disk (VHD) that are tracked by resilient
 ///change tracking (RCT).
@@ -1434,9 +1434,9 @@ uint AddVirtualDiskParent(HANDLE VirtualDiskHandle, const(wchar)* ParentPath);
 ///    code. For more information, see System Error Codes.
 ///    
 @DllImport("VirtDisk")
-uint QueryChangesVirtualDisk(HANDLE VirtualDiskHandle, const(wchar)* ChangeTrackingId, ulong ByteOffset, 
-                             ulong ByteLength, QUERY_CHANGES_VIRTUAL_DISK_FLAG Flags, char* Ranges, uint* RangeCount, 
-                             ulong* ProcessedLength);
+uint QueryChangesVirtualDisk(HANDLE VirtualDiskHandle, const(PWSTR) ChangeTrackingId, ulong ByteOffset, 
+                             ulong ByteLength, QUERY_CHANGES_VIRTUAL_DISK_FLAG Flags, 
+                             QUERY_CHANGES_VIRTUAL_DISK_RANGE* Ranges, uint* RangeCount, ulong* ProcessedLength);
 
 ///<p class="CCE_Message">[Some information relates to pre-released product which may be substantially modified before
 ///it's commercially released. Microsoft makes no warranties, express or implied, with respect to the information

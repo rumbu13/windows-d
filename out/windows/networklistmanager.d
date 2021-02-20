@@ -5,10 +5,10 @@ module windows.networklistmanager;
 public import windows.core;
 public import windows.automation : BSTR, IDispatch, IEnumVARIANT;
 public import windows.com : HRESULT, IUnknown;
-public import windows.systemservices : HANDLE;
+public import windows.systemservices : HANDLE, PWSTR;
 public import windows.windowsprogramming : FILETIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -216,9 +216,9 @@ struct NLM_SIMULATED_PROFILE_INFO
 struct NET_INTERFACE_CONTEXT
 {
     ///The interface index.
-    uint          InterfaceIndex;
+    uint  InterfaceIndex;
     ///The configuration name.
-    const(wchar)* ConfigurationName;
+    PWSTR ConfigurationName;
 }
 
 ///The table of NET_INTERFACE_CONTEXT structures.
@@ -240,7 +240,7 @@ struct NET_INTERFACE_CONTEXT_TABLE
 ///    destinationHostName = An PWSTR describing the target host name for a network communication.
 ///    interfaceIndex = The interface index of the network adapter to be used for communicating with the target host.
 @DllImport("OnDemandConnRouteHelper")
-HRESULT OnDemandGetRoutingHint(const(wchar)* destinationHostName, uint* interfaceIndex);
+HRESULT OnDemandGetRoutingHint(const(PWSTR) destinationHostName, uint* interfaceIndex);
 
 ///The <b>OnDemandRegisterNotification</b> function allows an application to register to be notified when the Route
 ///Requests cache is modified. For example, this allows the system to recycle cached connections when a Route Request is
@@ -296,8 +296,8 @@ HRESULT OnDemandUnRegisterNotification(HANDLE registrationHandle);
 ///    function. </td> </tr> </table>
 ///    
 @DllImport("OnDemandConnRouteHelper")
-HRESULT GetInterfaceContextTableForHostName(const(wchar)* HostName, const(wchar)* ProxyName, uint Flags, 
-                                            char* ConnectionProfileFilterRawData, 
+HRESULT GetInterfaceContextTableForHostName(const(PWSTR) HostName, const(PWSTR) ProxyName, uint Flags, 
+                                            ubyte* ConnectionProfileFilterRawData, 
                                             uint ConnectionProfileFilterRawDataSize, 
                                             NET_INTERFACE_CONTEXT_TABLE** InterfaceContextTable);
 
@@ -578,7 +578,7 @@ interface IEnumNetworks : IDispatch
     ///    perform the operation. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td
     ///    width="60%"> The <i>ppElements</i> parameter is not a valid pointer. </td> </tr> </table>
     ///    
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, INetwork* rgelt, uint* pceltFetched);
     ///The <b>Skip</b> method skips over the next specified number of elements in the enumeration sequence.
     ///Params:
     ///    celt = Number of elements to skip in the enumeration.
@@ -728,7 +728,7 @@ interface IEnumNetworkConnections : IDispatch
     ///    operation. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The
     ///    <i>ppElements</i> parameter is not a valid pointer. </td> </tr> </table>
     ///    
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, INetworkConnection* rgelt, uint* pceltFetched);
     ///The <b>Skip</b> method skips over the next specified number of elements in the enumeration sequence.
     ///Params:
     ///    celt = Number of elements to skip over in the enumeration.
@@ -863,7 +863,7 @@ interface INetworkCostManager : IUnknown
     ///    </td> <td width="60%"> This method was called after registering for INetworkCostManagerEvents by calling
     ///    IConnectionPoint::Advise. See Remark for more information. </td> </tr> </table>
     ///    
-    HRESULT SetDestinationAddresses(uint length, char* pDestIPAddrList, short bAppend);
+    HRESULT SetDestinationAddresses(uint length, NLM_SOCKADDR* pDestIPAddrList, short bAppend);
 }
 
 ///Use this interface to notify an application of machine-wide cost and data plan related events.

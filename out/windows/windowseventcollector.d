@@ -3,9 +3,9 @@
 module windows.windowseventcollector;
 
 public import windows.core;
-public import windows.systemservices : BOOL;
+public import windows.systemservices : BOOL, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -294,17 +294,17 @@ enum : int
 ///The <b>EC_VARIANT</b> structure contains event collector data (subscription data) or property values.
 struct EC_VARIANT
 {
-    union
+union
     {
-        BOOL          BooleanVal;
-        uint          UInt32Val;
-        ulong         DateTimeVal;
-        const(wchar)* StringVal;
-        ubyte*        BinaryVal;
-        int*          BooleanArr;
-        int*          Int32Arr;
-        ushort**      StringArr;
-        ptrdiff_t     PropertyHandleVal;
+        BOOL         BooleanVal;
+        uint         UInt32Val;
+        ulong        DateTimeVal;
+        const(PWSTR) StringVal;
+        ubyte*       BinaryVal;
+        BOOL*        BooleanArr;
+        int*         Int32Arr;
+        PWSTR*       StringArr;
+        ptrdiff_t    PropertyHandleVal;
     }
     ///The number of elements (not length) in bytes. Used for arrays and binary or string types.
     uint Count;
@@ -337,7 +337,7 @@ ptrdiff_t EcOpenSubscriptionEnum(uint Flags);
 ///    
 @DllImport("WecApi")
 BOOL EcEnumNextSubscription(ptrdiff_t SubscriptionEnum, uint SubscriptionNameBufferSize, 
-                            const(wchar)* SubscriptionNameBuffer, uint* SubscriptionNameBufferUsed);
+                            PWSTR SubscriptionNameBuffer, uint* SubscriptionNameBufferUsed);
 
 ///The <b>EcOpenSubscription</b> function is used to open an existing subscription or create a new subscription
 ///according to the flag value specified.
@@ -354,7 +354,7 @@ BOOL EcEnumNextSubscription(ptrdiff_t SubscriptionEnum, uint SubscriptionNameBuf
 ///    otherwise, in which case use the GetLastError function to obtain the error code.
 ///    
 @DllImport("WecApi")
-ptrdiff_t EcOpenSubscription(const(wchar)* SubscriptionName, uint AccessMask, uint Flags);
+ptrdiff_t EcOpenSubscription(const(PWSTR) SubscriptionName, uint AccessMask, uint Flags);
 
 ///The <b>EcSetSubscriptionProperty</b> function sets new values or updates existing values of a subscription. New
 ///values set through this method will not be active unless they are saved by the EcSaveSubscription method.
@@ -416,7 +416,7 @@ BOOL EcSaveSubscription(ptrdiff_t Subscription, uint Flags);
 ///    This function returns BOOL.
 ///    
 @DllImport("WecApi")
-BOOL EcDeleteSubscription(const(wchar)* SubscriptionName, uint Flags);
+BOOL EcDeleteSubscription(const(PWSTR) SubscriptionName, uint Flags);
 
 ///The <b>EcGetObjectArraySize</b> function retrieves the size (the number of indexes) of the array of property values
 ///for the event sources of a subscription.
@@ -522,9 +522,9 @@ BOOL EcRemoveObjectArrayElement(ptrdiff_t ObjectArray, uint ArrayIndex);
 ///    This function returns BOOL.
 ///    
 @DllImport("WecApi")
-BOOL EcGetSubscriptionRunTimeStatus(const(wchar)* SubscriptionName, 
+BOOL EcGetSubscriptionRunTimeStatus(const(PWSTR) SubscriptionName, 
                                     EC_SUBSCRIPTION_RUNTIME_STATUS_INFO_ID StatusInfoId, 
-                                    const(wchar)* EventSourceName, uint Flags, uint StatusValueBufferSize, 
+                                    const(PWSTR) EventSourceName, uint Flags, uint StatusValueBufferSize, 
                                     EC_VARIANT* StatusValueBuffer, uint* StatusValueBufferUsed);
 
 ///The <b>EcRetrySubscription</b> function is used to retry connecting to the event source of a subscription that is not
@@ -539,7 +539,7 @@ BOOL EcGetSubscriptionRunTimeStatus(const(wchar)* SubscriptionName,
 ///    This function returns BOOL.
 ///    
 @DllImport("WecApi")
-BOOL EcRetrySubscription(const(wchar)* SubscriptionName, const(wchar)* EventSourceName, uint Flags);
+BOOL EcRetrySubscription(const(PWSTR) SubscriptionName, const(PWSTR) EventSourceName, uint Flags);
 
 ///The <b>EcClose</b> function closes a handle received from other Event Collector functions. Any handle returned by an
 ///event collector management API call must be closed using this call when the user is finished with the handle. The

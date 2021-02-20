@@ -20,7 +20,7 @@ public import windows.networkdrivers : NET_IF_ACCESS_TYPE, NET_IF_ADMIN_STATUS,
 public import windows.systemservices : BOOL, LARGE_INTEGER;
 public import windows.winsock : SCOPE_ID, in6_addr;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -381,7 +381,7 @@ struct MIB_IF_ROW2
     ///width="60%"> The maximum possible value for the <b>NET_IF_DIRECTION_TYPE</b> enumeration type. This is not a
     ///legal value for <i>DirectionType</i> member. </td> </tr> </table>
     NET_IF_DIRECTION_TYPE DirectionType;
-    struct InterfaceAndOperStatusFlags
+struct InterfaceAndOperStatusFlags
     {
         ubyte _bitfield70;
     }
@@ -1039,7 +1039,7 @@ struct MIB_IPPATH_ROW
     ///Type: <b>ULONG</b> The estimated mean deviation for the round-trip time (RTT), in milliseconds, to the
     ///destination IP address for this IP path entry.
     uint          RttDeviation;
-    union
+union
     {
         uint LastReachable;
         uint LastUnreachable;
@@ -1124,15 +1124,15 @@ struct MIB_IPNET_ROW2
     ///<b>NL_NEIGHBOR_STATE</b> enumeration type. This is not a legal value for the <b>State</b> member. </td> </tr>
     ///</table>
     NL_NEIGHBOR_STATE State;
-    union
+union
     {
-        struct
+struct
         {
             ubyte _bitfield71;
         }
         ubyte Flags;
     }
-    union ReachabilityTime
+union ReachabilityTime
     {
         uint LastReachable;
         uint LastUnreachable;
@@ -1373,12 +1373,12 @@ struct MIB_IPFORWARDROW
     uint dwForwardNextHop;
     ///Type: <b>DWORD</b> The index of the local interface through which the next hop of this route should be reached.
     uint dwForwardIfIndex;
-    union
+union
     {
         uint               dwForwardType;
         MIB_IPFORWARD_TYPE ForwardType;
     }
-    union
+union
     {
         uint              dwForwardProto;
         NL_ROUTE_PROTOCOL ForwardProto;
@@ -1437,7 +1437,7 @@ struct MIB_IPNETROW_LH
     ubyte[8] bPhysAddr;
     ///Type: <b>DWORD</b> The IPv4 address.
     uint     dwAddr;
-    union
+union
     {
         uint           dwType;
         MIB_IPNET_TYPE Type;
@@ -1484,7 +1484,7 @@ struct MIB_IPNETTABLE
 ///The <b>MIB_IPSTATS</b> structure stores information about the IP protocol running on a particular computer.
 struct MIB_IPSTATS_LH
 {
-    union
+union
     {
         uint dwForwarding;
         MIB_IPSTATS_FORWARDING Forwarding;
@@ -1981,7 +1981,7 @@ struct MIB_IPMCAST_IF_TABLE
 ///The <b>MIB_TCPROW</b> structure contains information that descibes an IPv4 TCP connection.
 struct MIB_TCPROW_LH
 {
-    union
+union
     {
         uint          dwState;
         MIB_TCP_STATE State;
@@ -2598,7 +2598,7 @@ struct MIB_TCP6TABLE_OWNER_MODULE
 ///The <b>MIB_TCPSTATS</b> structure contains statistics for the TCP protocol running on the local computer.
 struct MIB_TCPSTATS_LH
 {
-    union
+union
     {
         uint              dwRtoAlgorithm;
         TCP_RTO_ALGORITHM RtoAlgorithm;
@@ -2790,9 +2790,9 @@ struct MIB_UDPROW_OWNER_MODULE
     ///Type: <b>LARGE_INTEGER</b> A FILETIME structure that indicates when the call to the bind function for the UDP
     ///endpoint occurred.
     LARGE_INTEGER liCreateTimestamp;
-    union
+union
     {
-        struct
+struct
         {
             int _bitfield72;
         }
@@ -2887,9 +2887,9 @@ struct MIB_UDP6ROW_OWNER_MODULE
     ///Type: <b>LARGE_INTEGER</b> A FILETIME structure that indicates when the context bind operation that created this
     ///endpoint occurred.
     LARGE_INTEGER liCreateTimestamp;
-    union
+union
     {
-        struct
+struct
         {
             int _bitfield73;
         }
@@ -3084,7 +3084,7 @@ struct MIB_OPAQUE_INFO
 {
     ///The type of information returned.
     uint dwId;
-    union
+union
     {
         ulong    ullAlign;
         ubyte[1] rgbyData;

@@ -3,9 +3,9 @@
 module windows.xinput;
 
 public import windows.core;
-public import windows.systemservices : BOOL;
+public import windows.systemservices : BOOL, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Structs
@@ -197,8 +197,8 @@ void XInputEnable(BOOL enable);
 ///    <b>ERROR_DEVICE_NOT_CONNECTED</b>. If the function fails, it will return a valid Win32 error code.
 ///    
 @DllImport("XINPUTUAP")
-uint XInputGetAudioDeviceIds(uint dwUserIndex, const(wchar)* pRenderDeviceId, uint* pRenderCount, 
-                             const(wchar)* pCaptureDeviceId, uint* pCaptureCount);
+uint XInputGetAudioDeviceIds(uint dwUserIndex, PWSTR pRenderDeviceId, uint* pRenderCount, PWSTR pCaptureDeviceId, 
+                             uint* pCaptureCount);
 
 ///Retrieves the battery type and charge status of a wireless controller.
 ///Params:

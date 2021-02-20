@@ -9,10 +9,10 @@ public import windows.controls : NMHDR;
 public import windows.displaydevices : POINT, RECT;
 public import windows.search : IStemmer;
 public import windows.structuredstorage : IStream;
-public import windows.systemservices : BOOL, HINSTANCE;
+public import windows.systemservices : BOOL, HINSTANCE, PSTR, PWSTR;
 public import windows.windowsandmessaging : HWND;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -115,10 +115,10 @@ alias PFNCOLHEAPFREE = int function(void* param0);
 struct HHN_NOTIFY
 {
     ///Standard <b>WM_NOTIFY</b> header.
-    NMHDR        hdr;
+    NMHDR       hdr;
     ///A multi-byte, zero-terminated string that specifies the topic navigated to, or the name of the help window being
     ///created.
-    const(char)* pszUrl;
+    const(PSTR) pszUrl;
 }
 
 ///Use this structure to specify or modify the attributes of a pop-up window.
@@ -182,25 +182,25 @@ struct HH_AKLINK
 
 struct HH_ENUM_IT
 {
-    int          cbStruct;
-    int          iType;
-    const(char)* pszCatName;
-    const(char)* pszITName;
-    const(char)* pszITDescription;
+    int         cbStruct;
+    int         iType;
+    const(PSTR) pszCatName;
+    const(PSTR) pszITName;
+    const(PSTR) pszITDescription;
 }
 
 struct HH_ENUM_CAT
 {
-    int          cbStruct;
-    const(char)* pszCatName;
-    const(char)* pszCatDescription;
+    int         cbStruct;
+    const(PSTR) pszCatName;
+    const(PSTR) pszCatDescription;
 }
 
 struct HH_SET_INFOTYPE
 {
-    int          cbStruct;
-    const(char)* pszCatName;
-    const(char)* pszInfoTypeName;
+    int         cbStruct;
+    const(PSTR) pszCatName;
+    const(PSTR) pszInfoTypeName;
 }
 
 ///Use this structure for full-text search.
@@ -316,13 +316,13 @@ struct HH_WINTYPE
 struct HHNTRACK
 {
     ///Standard <b>WM_NOTIFY</b> header.
-    NMHDR        hdr;
+    NMHDR       hdr;
     ///A multi-byte, zero-terminated string that specifies the current topic (before the action is taken).
-    const(char)* pszCurUrl;
+    const(PSTR) pszCurUrl;
     ///Specifies the action the user is about to take. This is an HHACT_ constant.
-    int          idAction;
+    int         idAction;
     ///A pointer to the current HH_WINTYPE structure.
-    HH_WINTYPE*  phhWinType;
+    HH_WINTYPE* phhWinType;
 }
 
 struct HH_GLOBAL_PROPERTY
@@ -336,11 +336,11 @@ struct CProperty
     uint dwPropID;
     uint cbData;
     uint dwType;
-    union
+union
     {
-        const(wchar)* lpszwData;
-        void*         lpvData;
-        uint          dwValue;
+        PWSTR lpszwData;
+        void* lpvData;
+        uint  dwValue;
     }
     BOOL fPersist;
 }
@@ -379,7 +379,7 @@ interface IITPropList : IPersistStreamInit
 {
     HRESULT Set(uint PropID, uint dwData, uint dwOperation);
     HRESULT Set(uint PropID, void* lpvData, uint cbData, uint dwOperation);
-    HRESULT Set(uint PropID, const(wchar)* lpszwString, uint dwOperation);
+    HRESULT Set(uint PropID, const(PWSTR) lpszwString, uint dwOperation);
     HRESULT Add(CProperty* Prop);
     ///Returns the property object associated with the given property ID.
     ///Params:
@@ -480,7 +480,7 @@ interface IITDatabase : IUnknown
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>STG_E*</b></dt> </dl> </td> <td width="60%"> IStorage interface
     ///    errors that can occur as storage is opened. </td> </tr> </table>
     ///    
-    HRESULT Open(const(wchar)* lpszHost, const(wchar)* lpszMoniker, uint dwFlags);
+    HRESULT Open(const(PWSTR) lpszHost, const(PWSTR) lpszMoniker, uint dwFlags);
     ///Closes a database.
     ///Returns:
     ///    This method can return one of these values. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
@@ -503,8 +503,7 @@ interface IITDatabase : IUnknown
     ///    
     HRESULT CreateObject(const(GUID)* rclsid, uint* pdwObjInstance);
     HRESULT GetObjectA(uint dwObjInstance, const(GUID)* riid, void** ppvObj);
-    HRESULT GetObjectPersistence(const(wchar)* lpwszObject, uint dwObjInstance, void** ppvPersistence, 
-                                 BOOL fStream);
+    HRESULT GetObjectPersistence(const(PWSTR) lpwszObject, uint dwObjInstance, void** ppvPersistence, BOOL fStream);
 }
 
 ///Use this interface to perform word wheel keyword lookups. The <b>Lookup</b> method offers several ways of performing
@@ -530,7 +529,7 @@ interface IITWordWheel : IUnknown
     ///    width="40%"> <dl> <dt><b>STG_E*</b></dt> </dl> </td> <td width="60%"> IStorage interface errors that can
     ///    occur as storage is opened. </td> </tr> </table>
     ///    
-    HRESULT Open(IITDatabase lpITDB, const(wchar)* lpszMoniker, uint dwFlags);
+    HRESULT Open(IITDatabase lpITDB, const(PWSTR) lpszMoniker, uint dwFlags);
     ///Closes a word wheel.
     ///Returns:
     ///    This method can return one of these values. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
@@ -553,7 +552,7 @@ interface IITWordWheel : IUnknown
     HRESULT Count(int* pcEntries);
     HRESULT Lookup(int lEntry, void* lpvKeyBuf, uint cbKeyBuf);
     HRESULT Lookup(int lEntry, IITResultSet lpITResult, int cEntries);
-    HRESULT Lookup(void* lpcvPrefix, BOOL fExactMatch, int* plEntry);
+    HRESULT Lookup(const(void)* lpcvPrefix, BOOL fExactMatch, int* plEntry);
     HRESULT SetGroup(IITGroup* piitGroup);
     HRESULT GetGroup(IITGroup** ppiitGroup);
     HRESULT GetDataCount(int lEntry, uint* pdwCount);
@@ -563,8 +562,8 @@ interface IITWordWheel : IUnknown
 
 interface IStemSink : IUnknown
 {
-    HRESULT PutAltWord(const(wchar)* pwcInBuf, uint cwc);
-    HRESULT PutWord(const(wchar)* pwcInBuf, uint cwc);
+    HRESULT PutAltWord(const(PWSTR) pwcInBuf, uint cwc);
+    HRESULT PutWord(const(PWSTR) pwcInBuf, uint cwc);
 }
 
 ///Use this interface to provide configuration information that controls stemming.
@@ -598,12 +597,12 @@ interface IITResultSet : IUnknown
     HRESULT SetKeyProp(uint PropID);
     HRESULT Add(void* lpvHdr);
     HRESULT Add(uint PropID, void* lpvDefaultData, uint cbData, PRIORITY Priority);
-    HRESULT Add(uint PropID, const(wchar)* lpszwDefault, PRIORITY Priority);
+    HRESULT Add(uint PropID, const(PWSTR) lpszwDefault, PRIORITY Priority);
     HRESULT Add(uint PropID, uint dwDefaultData, PRIORITY Priority);
     HRESULT Append(void* lpvHdr, void* lpvData);
     HRESULT Set(int lRowIndex, void* lpvHdr, void* lpvData);
     HRESULT Set(int lRowIndex, int lColumnIndex, size_t dwData);
-    HRESULT Set(int lRowIndex, int lColumnIndex, const(wchar)* lpwStr);
+    HRESULT Set(int lRowIndex, int lColumnIndex, const(PWSTR) lpwStr);
     HRESULT Set(int lRowIndex, int lColumnIndex, void* lpvData, uint cbData);
     HRESULT Copy(IITResultSet pRSCopy);
     HRESULT AppendRows(IITResultSet pResSrc, int lRowSrcFirst, int cSrcRows, int* lRowFirstDest);

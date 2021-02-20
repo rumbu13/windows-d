@@ -100,21 +100,31 @@ enum : int
 
 ```
 
-## Design choices
+## Design
 
-- Strongly typed handles. In the metadata, most of the ```HANDLE``` types are strongly typed as a ```struct``` with a single member, forcing the use of that struct as a parameter for various functions. For backward compatibility reasons, these structs are unfolded and converted to plain ```ptrdiff_t``` values. This is needed beacause corresponding constants are integers, you cannot assign or compare these constants to structs.
+### Strongly typed handles
+
+In the metadata, most of the ```HANDLE``` types are strongly typed as a ```struct``` with a single member, forcing the use of that struct as a parameter for various functions. Also, these structs are decorated with a special attribute called ```RAIIFree``` that you can use to auto-dispose the handle.
 ```
-//Original metadata
-struct HBITMAP
-{
-    ptrdiff_t Value;
-}
-
-//D code
-alias HBITMAP = ptrdiff_t;
+@RAIIFree!DeleteObject
+struct HBITMAP { ... }
+```
+You will usually write the following code:
+```
+HBITMAP bitmap = CreateBitmap(128, 128, 1, 32, null);
+//use bitmap
+DeleteObject(bitmap)
+```
+Now you can take advantage of this attribute, by calling ```autofree```.
+```
+auto bitmap = CreateBitmap(128, 128, 1, 32, null).autoFree;
+//use bitmap
+//no need to call DeleteObject, it is called automatically when ```bitmap``` will go out of scope
 ```
 
-- GUID decorating. Interfaces and several structs are decorated with GUID attributes. The old ```IID_``` constants from Windows headers are missing, therefore the generator will create them based on the name of each decorated item. The template doing this mapping (```GUIDOF```) can be found in the file ```core.d```. Conventionally, every COM interface has an associated ```IID_``` guid, any other type having an associated ```CLSID_``` guid.
+### GUID decorating.
+
+Interfaces and several structs are decorated with GUID attributes. The old ```IID_``` constants from Windows headers are missing, therefore the generator will create them based on the name of each decorated item. The template doing this mapping (```GUIDOF```) can be found in the file ```core.d```. Conventionally, every COM interface has an associated ```IID_``` guid, any other type having an associated ```CLSID_``` guid.
 ```
 @GUID("8BA5FB08-5195-40E2-AC58-0D989C3A0102")
 interface ID3DBlob : IUnknown
@@ -130,19 +140,30 @@ const GUID IID_ID3DBlob = GUIDOF!ID3DBlob;
 const GUID CLSID_CTraceRelogger = GUIDOF!CTraceRelogger;
 ```
 
-- Library decorating. All functions are decorated with a ```@DllImport``` attribute stating the corresponding library file where the function can be found. This can be useful later for generating .lib files or for loading function using dynamic bindings.
+### Library decorating
+
+All functions are decorated with a ```@DllImport``` attribute stating the corresponding library file where the function can be found. This can be useful later for generating .lib files or for loading function using dynamic bindings.
 ```
 @DllImport("d3d12")
 HRESULT D3D12EnableExperimentalFeatures(uint NumFeatures, char* pIIDs, char* pConfigurationStructs, 
                                         char* pConfigurationStructSizes);
 ```
 
-- Identifier renaming. Every type, method or field identifier is renamed by adding an underscore at the end if there is a conflict with any of existing D keywords.
+### Renaming
+
+Every type, method or field identifier is renamed by adding an underscore at the end if there is a conflict with any of existing D keywords.
 ```
 HRESULT GetVersion(ulong* version_);
 ```
 
-- Not all attributes found in the metadata have a direct translation in D language. ```Obsolete``` is translated in a corresponding ```deprecated``` attribute. ```Guid``` keeps the same semantics as explained above. ```NativeTypedef``` is used to decide where ```struct``` unfolding is necessary for strongly typed handles. ```UnmanagedFunctionPointer``` is used to decide what calling convention is used for callback functions.  ```Const``` attribute is translated as a ```const``` qualifier for all fields or all parameters. The following attributes are ignored: ```RAIIIFree```, ```ComOutPtr```.
+### Other attributes
+
+Not all attributes found in the metadata have a direct translation in D language. 
+- ```Obsolete``` is translated in a corresponding ```deprecated``` attribute. ```Guid``` keeps the same semantics as explained above. 
+- ```NativeTypedef``` is used to decide where ```struct``` is in facta a strong typed handles.
+- ```UnmanagedFunctionPointer``` is used to decide what calling convention is used for callback functions.  
+- ```Const``` attribute is translated as a ```const``` qualifier for all fields or all parameters. 
+The following attributes are ignored: ```NativeArrayInfo```, ```ComOutPtr```, ```RetVal```, ```NullNullTerminated```, ```NotNullTerminated```. Any suggestion about how to take advantage of them is appreciated. 
 ```
 enum : int
 {

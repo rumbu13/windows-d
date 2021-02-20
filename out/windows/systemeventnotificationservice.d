@@ -5,9 +5,9 @@ module windows.systemeventnotificationservice;
 public import windows.core;
 public import windows.automation : BSTR, IDispatch;
 public import windows.com : HRESULT;
-public import windows.systemservices : BOOL;
+public import windows.systemservices : BOOL, PSTR, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Structs
@@ -69,7 +69,7 @@ struct SENS_QOCINFO
 ///    </dl> </td> <td width="60%"> This function is not available on Windows Vista. </td> </tr> </table>
 ///    
 @DllImport("SensApi")
-BOOL IsDestinationReachableA(const(char)* lpszDestination, QOCINFO* lpQOCInfo);
+BOOL IsDestinationReachableA(const(PSTR) lpszDestination, QOCINFO* lpQOCInfo);
 
 ///The <b>IsDestinationReachable</b> function determines whether or not a specified destination can be reached, and
 ///provides Quality of Connection (QOC) information for a destination. <b>Windows Vista and later, Windows Server 2008
@@ -87,7 +87,7 @@ BOOL IsDestinationReachableA(const(char)* lpszDestination, QOCINFO* lpQOCInfo);
 ///    </dl> </td> <td width="60%"> This function is not available on Windows Vista. </td> </tr> </table>
 ///    
 @DllImport("SensApi")
-BOOL IsDestinationReachableW(const(wchar)* lpszDestination, QOCINFO* lpQOCInfo);
+BOOL IsDestinationReachableW(const(PWSTR) lpszDestination, QOCINFO* lpQOCInfo);
 
 ///The <b>IsNetworkAlive</b> function determines whether or not a local system is connected to a network, and identifies
 ///the type of network connection, for example, a LAN, WAN, or both.

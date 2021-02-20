@@ -5,33 +5,12 @@ module windows.upnp;
 public import windows.core;
 public import windows.automation : BSTR, IDispatch, VARIANT;
 public import windows.com : HRESULT, IUnknown;
-public import windows.systemservices : BOOL;
+public import windows.systemservices : BOOL, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Interfaces
-
-@GUID("4C1FC63A-695C-47E8-A339-1A194BE3D0B8")
-struct UIAnimationManager;
-
-@GUID("D25D8842-8884-4A4A-B321-091314379BDD")
-struct UIAnimationManager2;
-
-@GUID("1D6322AD-AA85-4EF5-A828-86D71067D145")
-struct UIAnimationTransitionLibrary;
-
-@GUID("812F944A-C5C8-4CD9-B0A6-B3DA802F228D")
-struct UIAnimationTransitionLibrary2;
-
-@GUID("8A9B1CDD-FCD7-419C-8B44-42FD17DB1887")
-struct UIAnimationTransitionFactory;
-
-@GUID("84302F97-7F7B-4040-B190-72AC9D18E420")
-struct UIAnimationTransitionFactory2;
-
-@GUID("BFCD4A0C-06B6-4384-B768-0DAA792C380E")
-struct UIAnimationTimer;
 
 @GUID("E2085F28-FEB7-404A-B8E7-E659BDEAAA02")
 struct UPnPDeviceFinder;
@@ -594,7 +573,7 @@ interface IUPnPServiceCallback : IUnknown
     ///Returns:
     ///    The application should return S_OK.
     ///    
-    HRESULT StateVariableChanged(IUPnPService pus, const(wchar)* pcwszStateVarName, VARIANT vaValue);
+    HRESULT StateVariableChanged(IUPnPService pus, const(PWSTR) pcwszStateVarName, VARIANT vaValue);
     ///The <b>ServiceInstanceDied</b> method is invoked when a service is no longer sending events.
     ///Params:
     ///    pus = Reference to an IUPnPService object that specifies the service about which the UPnP framework is sending the
@@ -1122,7 +1101,7 @@ interface IUPnPEventSink : IUnknown
     ///    defined in WinError.h. If <i>cChanges</i> is zero or <i>rgdispidChanges</i> is <b>NULL</b>, E_INVALIDARG is
     ///    returned.
     ///    
-    HRESULT OnStateChanged(uint cChanges, char* rgdispidChanges);
+    HRESULT OnStateChanged(uint cChanges, int* rgdispidChanges);
     ///The <b>OnStateChangedSafe</b> method sends an event to the device host with the list of DISPIDs that have
     ///changed. The device host must query the service object to obtain the new value for each state variable that has
     ///changed. The <b>OnStateChangedSafe</b> method can only be used by Visual Basic developers and those using
@@ -1469,23 +1448,16 @@ interface IUPnPRemoteEndpointInfo : IUnknown
 
 // GUIDs
 
-const GUID CLSID_UIAnimationManager            = GUIDOF!UIAnimationManager;
-const GUID CLSID_UIAnimationManager2           = GUIDOF!UIAnimationManager2;
-const GUID CLSID_UIAnimationTimer              = GUIDOF!UIAnimationTimer;
-const GUID CLSID_UIAnimationTransitionFactory  = GUIDOF!UIAnimationTransitionFactory;
-const GUID CLSID_UIAnimationTransitionFactory2 = GUIDOF!UIAnimationTransitionFactory2;
-const GUID CLSID_UIAnimationTransitionLibrary  = GUIDOF!UIAnimationTransitionLibrary;
-const GUID CLSID_UIAnimationTransitionLibrary2 = GUIDOF!UIAnimationTransitionLibrary2;
-const GUID CLSID_UPnPDescriptionDocument       = GUIDOF!UPnPDescriptionDocument;
-const GUID CLSID_UPnPDescriptionDocumentEx     = GUIDOF!UPnPDescriptionDocumentEx;
-const GUID CLSID_UPnPDevice                    = GUIDOF!UPnPDevice;
-const GUID CLSID_UPnPDeviceFinder              = GUIDOF!UPnPDeviceFinder;
-const GUID CLSID_UPnPDeviceFinderEx            = GUIDOF!UPnPDeviceFinderEx;
-const GUID CLSID_UPnPDevices                   = GUIDOF!UPnPDevices;
-const GUID CLSID_UPnPRegistrar                 = GUIDOF!UPnPRegistrar;
-const GUID CLSID_UPnPRemoteEndpointInfo        = GUIDOF!UPnPRemoteEndpointInfo;
-const GUID CLSID_UPnPService                   = GUIDOF!UPnPService;
-const GUID CLSID_UPnPServices                  = GUIDOF!UPnPServices;
+const GUID CLSID_UPnPDescriptionDocument   = GUIDOF!UPnPDescriptionDocument;
+const GUID CLSID_UPnPDescriptionDocumentEx = GUIDOF!UPnPDescriptionDocumentEx;
+const GUID CLSID_UPnPDevice                = GUIDOF!UPnPDevice;
+const GUID CLSID_UPnPDeviceFinder          = GUIDOF!UPnPDeviceFinder;
+const GUID CLSID_UPnPDeviceFinderEx        = GUIDOF!UPnPDeviceFinderEx;
+const GUID CLSID_UPnPDevices               = GUIDOF!UPnPDevices;
+const GUID CLSID_UPnPRegistrar             = GUIDOF!UPnPRegistrar;
+const GUID CLSID_UPnPRemoteEndpointInfo    = GUIDOF!UPnPRemoteEndpointInfo;
+const GUID CLSID_UPnPService               = GUIDOF!UPnPService;
+const GUID CLSID_UPnPServices              = GUIDOF!UPnPServices;
 
 const GUID IID_IUPnPAddressFamilyControl                 = GUIDOF!IUPnPAddressFamilyControl;
 const GUID IID_IUPnPAsyncResult                          = GUIDOF!IUPnPAsyncResult;

@@ -6,7 +6,7 @@ public import windows.core;
 public import windows.automation : BSTR, IDispatch;
 public import windows.com : HRESULT, IUnknown;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums

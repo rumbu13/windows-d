@@ -7,9 +7,9 @@ public import windows.com : HRESULT;
 public import windows.filesystem : FILE_BASIC_INFO, FILE_INFO_BY_HANDLE_CLASS,
                                    WIN32_FIND_DATAA;
 public import windows.systemservices : CORRELATION_VECTOR, HANDLE, LARGE_INTEGER, NTSTATUS,
-                                       OVERLAPPED;
+                                       OVERLAPPED, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -717,12 +717,12 @@ struct CF_PLACEHOLDER_CREATE_INFO
     ///of the provider is c:\SyncRoot and a placeholder named "pl.txt" is being created in a child directory of the sync
     ///root such as c:\SyncRoot\ChildDir, then BaseDirectoryPath = c:\SyncRoot\ChildDir and RelativeFileName = pl.txt is
     ///expected. It is an error to specify BaseDirectoryPath = c:\SyncRoot and RelativeFileName = ChildDir\pl.txt.
-    const(wchar)*  RelativeFileName;
+    const(PWSTR)   RelativeFileName;
     ///File system metadata to be created with the placeholder.
     CF_FS_METADATA FsMetadata;
     ///A user mode buffer containing file information supplied by the sync provider. This is required for files (not for
     ///directories).
-    void*          FileIdentity;
+    const(void)*   FileIdentity;
     ///Length, in bytes, of the <b>FileIdentity</b>.
     uint           FileIdentityLength;
     ///Flags for specifying placeholder creation behavior.
@@ -736,20 +736,20 @@ struct CF_PLACEHOLDER_CREATE_INFO
 struct CF_PROCESS_INFO
 {
     ///The size of the structure.
-    uint          StructSize;
+    uint         StructSize;
     ///The 32 bit ID of the user process.
-    uint          ProcessId;
+    uint         ProcessId;
     ///The absolute path of the main executable file including the volume name in the format of NT file path. If the
     ///platform failed to retrieve the image path, “UNKNOWN” will be returned.
-    const(wchar)* ImagePath;
+    const(PWSTR) ImagePath;
     ///Used for modern applications. The app package name.
-    const(wchar)* PackageName;
+    const(PWSTR) PackageName;
     ///Used for modern applications. The application ID.
-    const(wchar)* ApplicationId;
+    const(PWSTR) ApplicationId;
     ///<b>Note</b> This member was added in Windows 10, version 1803. Used to start the process. If the platform failed
     ///to retrieve the command line, “UNKNOWN” will be returned.
-    const(wchar)* CommandLine;
-    uint          SessionId;
+    const(PWSTR) CommandLine;
+    uint         SessionId;
 }
 
 ///Returns information for the cloud files platform. This is intended for sync providers running on multiple versions of
@@ -820,21 +820,21 @@ struct CF_SYNC_POLICIES
 struct CF_SYNC_REGISTRATION
 {
     ///The size of the structure.
-    uint          StructSize;
+    uint         StructSize;
     ///The name of the sync provider. This is a user friendly string with a maximum length of 255 characters.
-    const(wchar)* ProviderName;
+    const(PWSTR) ProviderName;
     ///The version of the sync provider. This is a user friendly string with a maximum length of 255 characters.
-    const(wchar)* ProviderVersion;
+    const(PWSTR) ProviderVersion;
     ///The sync root identity used by the provider. This member is optional with a maximum size of 64 KB.
-    void*         SyncRootIdentity;
+    const(void)* SyncRootIdentity;
     ///The length of the <b>SyncRootIdentity</b>. This member is optional and is only used if a <b>SyncRootIdentity</b>
     ///is provided.
-    uint          SyncRootIdentityLength;
+    uint         SyncRootIdentityLength;
     ///An optional file identity. This member has a maximum size of 4 KB.
-    void*         FileIdentity;
+    const(void)* FileIdentity;
     ///The length of the file identity.
-    uint          FileIdentityLength;
-    GUID          ProviderId;
+    uint         FileIdentityLength;
+    GUID         ProviderId;
 }
 
 ///Contains common callback information.
@@ -848,16 +848,16 @@ struct CF_CALLBACK_INFO
     void*               CallbackContext;
     ///GUID name of the volume on which the placeholder file/directory to be serviced resides. It is in the form:
     ///“\\?\Volume{GUID}”.
-    const(wchar)*       VolumeGuidName;
+    const(PWSTR)        VolumeGuidName;
     ///DOS drive letter of the volume in the form of “X:” where X is the drive letter.
-    const(wchar)*       VolumeDosName;
+    const(PWSTR)        VolumeDosName;
     ///The serial number of the volume.
     uint                VolumeSerialNumber;
     ///A 64 bit file system maintained volume-wide unique ID of the sync root under which the placeholder file/directory
     ///to be serviced resides.
     LARGE_INTEGER       SyncRootFileId;
     ///Points to the opaque blob provided by the sync provider at the sync root registration time.
-    void*               SyncRootIdentity;
+    const(void)*        SyncRootIdentity;
     ///The length, in bytes, of the <b>SyncRootIdentity</b>.
     uint                SyncRootIdentityLength;
     ///A 64 bit file system maintained, volume-wide unique ID of the placeholder file/directory to be serviced.
@@ -866,13 +866,13 @@ struct CF_CALLBACK_INFO
     ///directory.
     LARGE_INTEGER       FileSize;
     ///Points to the opaque blob that the sync provider provides at the placeholder creation/conversion/update time.
-    void*               FileIdentity;
+    const(void)*        FileIdentity;
     ///The length, in bytes, of <b>FileIdentity</b>.
     uint                FileIdentityLength;
     ///The absolute path of the placeholder file/directory to be serviced on the volume identified by
     ///VolumeGuidName/VolumeDosName. It starts from the root directory of the volume. See the Remarks section for more
     ///details.
-    const(wchar)*       NormalizedPath;
+    const(PWSTR)        NormalizedPath;
     ///An opaque handle to the placeholder file/directory to be serviced. The sync provider must pass it back to the
     ///CfExecute call in order to perform the desired operation on the file/directory.
     LARGE_INTEGER       TransferKey;
@@ -891,21 +891,21 @@ struct CF_CALLBACK_INFO
 struct CF_CALLBACK_PARAMETERS
 {
     uint ParamSize;
-    union
+union
     {
-        struct Cancel
+struct Cancel
         {
             CF_CALLBACK_CANCEL_FLAGS Flags;
-            union
+union
             {
-                struct FetchData
+struct FetchData
                 {
                     LARGE_INTEGER FileOffset;
                     LARGE_INTEGER Length;
                 }
             }
         }
-        struct FetchData
+struct FetchData
         {
             CF_CALLBACK_FETCH_DATA_FLAGS Flags;
             LARGE_INTEGER RequiredFileOffset;
@@ -915,52 +915,52 @@ struct CF_CALLBACK_PARAMETERS
             LARGE_INTEGER LastDehydrationTime;
             CF_CALLBACK_DEHYDRATION_REASON LastDehydrationReason;
         }
-        struct ValidateData
+struct ValidateData
         {
             CF_CALLBACK_VALIDATE_DATA_FLAGS Flags;
             LARGE_INTEGER RequiredFileOffset;
             LARGE_INTEGER RequiredLength;
         }
-        struct FetchPlaceholders
+struct FetchPlaceholders
         {
             CF_CALLBACK_FETCH_PLACEHOLDERS_FLAGS Flags;
-            const(wchar)* Pattern;
+            const(PWSTR) Pattern;
         }
-        struct OpenCompletion
+struct OpenCompletion
         {
             CF_CALLBACK_OPEN_COMPLETION_FLAGS Flags;
         }
-        struct CloseCompletion
+struct CloseCompletion
         {
             CF_CALLBACK_CLOSE_COMPLETION_FLAGS Flags;
         }
-        struct Dehydrate
+struct Dehydrate
         {
             CF_CALLBACK_DEHYDRATE_FLAGS Flags;
             CF_CALLBACK_DEHYDRATION_REASON Reason;
         }
-        struct DehydrateCompletion
+struct DehydrateCompletion
         {
             CF_CALLBACK_DEHYDRATE_COMPLETION_FLAGS Flags;
             CF_CALLBACK_DEHYDRATION_REASON Reason;
         }
-        struct Delete
+struct Delete
         {
             CF_CALLBACK_DELETE_FLAGS Flags;
         }
-        struct DeleteCompletion
+struct DeleteCompletion
         {
             CF_CALLBACK_DELETE_COMPLETION_FLAGS Flags;
         }
-        struct Rename
+struct Rename
         {
             CF_CALLBACK_RENAME_FLAGS Flags;
-            const(wchar)* TargetPath;
+            const(PWSTR) TargetPath;
         }
-        struct RenameCompletion
+struct RenameCompletion
         {
             CF_CALLBACK_RENAME_COMPLETION_FLAGS Flags;
-            const(wchar)* SourcePath;
+            const(PWSTR) SourcePath;
         }
     }
 }
@@ -1022,17 +1022,17 @@ struct CF_OPERATION_INFO
 struct CF_OPERATION_PARAMETERS
 {
     uint ParamSize;
-    union
+union
     {
-        struct TransferData
+struct TransferData
         {
             CF_OPERATION_TRANSFER_DATA_FLAGS Flags;
             NTSTATUS      CompletionStatus;
-            void*         Buffer;
+            const(void)*  Buffer;
             LARGE_INTEGER Offset;
             LARGE_INTEGER Length;
         }
-        struct RetrieveData
+struct RetrieveData
         {
             CF_OPERATION_RETRIEVE_DATA_FLAGS Flags;
             void*         Buffer;
@@ -1040,21 +1040,21 @@ struct CF_OPERATION_PARAMETERS
             LARGE_INTEGER Length;
             LARGE_INTEGER ReturnedLength;
         }
-        struct AckData
+struct AckData
         {
             CF_OPERATION_ACK_DATA_FLAGS Flags;
             NTSTATUS      CompletionStatus;
             LARGE_INTEGER Offset;
             LARGE_INTEGER Length;
         }
-        struct RestartHydration
+struct RestartHydration
         {
             CF_OPERATION_RESTART_HYDRATION_FLAGS Flags;
             const(CF_FS_METADATA)* FsMetadata;
-            void* FileIdentity;
-            uint  FileIdentityLength;
+            const(void)* FileIdentity;
+            uint         FileIdentityLength;
         }
-        struct TransferPlaceholders
+struct TransferPlaceholders
         {
             CF_OPERATION_TRANSFER_PLACEHOLDERS_FLAGS Flags;
             NTSTATUS      CompletionStatus;
@@ -1063,19 +1063,19 @@ struct CF_OPERATION_PARAMETERS
             uint          PlaceholderCount;
             uint          EntriesProcessed;
         }
-        struct AckDehydrate
+struct AckDehydrate
         {
             CF_OPERATION_ACK_DEHYDRATE_FLAGS Flags;
-            NTSTATUS CompletionStatus;
-            void*    FileIdentity;
-            uint     FileIdentityLength;
+            NTSTATUS     CompletionStatus;
+            const(void)* FileIdentity;
+            uint         FileIdentityLength;
         }
-        struct AckRename
+struct AckRename
         {
             CF_OPERATION_ACK_RENAME_FLAGS Flags;
             NTSTATUS CompletionStatus;
         }
-        struct AckDelete
+struct AckDelete
         {
             CF_OPERATION_ACK_DELETE_FLAGS Flags;
             NTSTATUS CompletionStatus;
@@ -1192,7 +1192,7 @@ HRESULT CfGetPlatformInfo(CF_PLATFORM_INFO* PlatformVersion);
 ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("cldapi")
-HRESULT CfRegisterSyncRoot(const(wchar)* SyncRootPath, const(CF_SYNC_REGISTRATION)* Registration, 
+HRESULT CfRegisterSyncRoot(const(PWSTR) SyncRootPath, const(CF_SYNC_REGISTRATION)* Registration, 
                            const(CF_SYNC_POLICIES)* Policies, CF_REGISTER_FLAGS RegisterFlags);
 
 ///Unregisters a previously registered sync root.
@@ -1203,7 +1203,7 @@ HRESULT CfRegisterSyncRoot(const(wchar)* SyncRootPath, const(CF_SYNC_REGISTRATIO
 ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("cldapi")
-HRESULT CfUnregisterSyncRoot(const(wchar)* SyncRootPath);
+HRESULT CfUnregisterSyncRoot(const(PWSTR) SyncRootPath);
 
 ///Initiates bi-directional communication between a sync provider and the sync filter API.
 ///Params:
@@ -1217,8 +1217,9 @@ HRESULT CfUnregisterSyncRoot(const(wchar)* SyncRootPath);
 ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("cldapi")
-HRESULT CfConnectSyncRoot(const(wchar)* SyncRootPath, const(CF_CALLBACK_REGISTRATION)* CallbackTable, 
-                          void* CallbackContext, CF_CONNECT_FLAGS ConnectFlags, CF_CONNECTION_KEY__* ConnectionKey);
+HRESULT CfConnectSyncRoot(const(PWSTR) SyncRootPath, const(CF_CALLBACK_REGISTRATION)* CallbackTable, 
+                          const(void)* CallbackContext, CF_CONNECT_FLAGS ConnectFlags, 
+                          CF_CONNECTION_KEY__* ConnectionKey);
 
 ///Disconnects a communication channel created by CfConnectSyncRoot.
 ///Params:
@@ -1285,7 +1286,7 @@ HRESULT CfQuerySyncProviderStatus(CF_CONNECTION_KEY__ ConnectionKey, CF_SYNC_PRO
 ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("cldapi")
-HRESULT CfReportSyncStatus(const(wchar)* SyncRootPath, CF_SYNC_STATUS* SyncStatus);
+HRESULT CfReportSyncStatus(const(PWSTR) SyncRootPath, CF_SYNC_STATUS* SyncStatus);
 
 ///Creates one or more new placeholder files or directories under a sync root tree.
 ///Params:
@@ -1303,8 +1304,8 @@ HRESULT CfReportSyncStatus(const(wchar)* SyncRootPath, CF_SYNC_STATUS* SyncStatu
 ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("cldapi")
-HRESULT CfCreatePlaceholders(const(wchar)* BaseDirectoryPath, char* PlaceholderArray, uint PlaceholderCount, 
-                             CF_CREATE_FLAGS CreateFlags, uint* EntriesProcessed);
+HRESULT CfCreatePlaceholders(const(PWSTR) BaseDirectoryPath, CF_PLACEHOLDER_CREATE_INFO* PlaceholderArray, 
+                             uint PlaceholderCount, CF_CREATE_FLAGS CreateFlags, uint* EntriesProcessed);
 
 ///Opens an asynchronous opaque handle to a file or directory (for both normal and placeholder files) and sets up a
 ///proper oplock on it based on the open flags.
@@ -1318,7 +1319,7 @@ HRESULT CfCreatePlaceholders(const(wchar)* BaseDirectoryPath, char* PlaceholderA
 ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("cldapi")
-HRESULT CfOpenFileWithOplock(const(wchar)* FilePath, CF_OPEN_FILE_FLAGS Flags, ptrdiff_t* ProtectedHandle);
+HRESULT CfOpenFileWithOplock(const(PWSTR) FilePath, CF_OPEN_FILE_FLAGS Flags, HANDLE* ProtectedHandle);
 
 ///Allows the caller to reference a protected handle to a Win32 handle which can be used with non-CfApi Win32 APIs.
 ///Params:
@@ -1369,7 +1370,7 @@ void CfCloseHandle(HANDLE FileHandle);
 ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("cldapi")
-HRESULT CfConvertToPlaceholder(HANDLE FileHandle, char* FileIdentity, uint FileIdentityLength, 
+HRESULT CfConvertToPlaceholder(HANDLE FileHandle, const(void)* FileIdentity, uint FileIdentityLength, 
                                CF_CONVERT_FLAGS ConvertFlags, long* ConvertUsn, OVERLAPPED* Overlapped);
 
 ///Updates characteristics of the placeholder file or directory.
@@ -1396,9 +1397,10 @@ HRESULT CfConvertToPlaceholder(HANDLE FileHandle, char* FileIdentity, uint FileI
 ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("cldapi")
-HRESULT CfUpdatePlaceholder(HANDLE FileHandle, const(CF_FS_METADATA)* FsMetadata, char* FileIdentity, 
-                            uint FileIdentityLength, char* DehydrateRangeArray, uint DehydrateRangeCount, 
-                            CF_UPDATE_FLAGS UpdateFlags, long* UpdateUsn, OVERLAPPED* Overlapped);
+HRESULT CfUpdatePlaceholder(HANDLE FileHandle, const(CF_FS_METADATA)* FsMetadata, const(void)* FileIdentity, 
+                            uint FileIdentityLength, const(CF_FILE_RANGE)* DehydrateRangeArray, 
+                            uint DehydrateRangeCount, CF_UPDATE_FLAGS UpdateFlags, long* UpdateUsn, 
+                            OVERLAPPED* Overlapped);
 
 ///Reverts a placeholder back to a regular file, stripping away all special characteristics such as the reparse tag, the
 ///file identity, etc.
@@ -1502,7 +1504,8 @@ CF_PLACEHOLDER_STATE CfGetPlaceholderStateFromAttributeTag(uint FileAttributes, 
 ///    Can include CF_PLACEHOLDER_STATE; The placeholder state.
 ///    
 @DllImport("cldapi")
-CF_PLACEHOLDER_STATE CfGetPlaceholderStateFromFileInfo(void* InfoBuffer, FILE_INFO_BY_HANDLE_CLASS InfoClass);
+CF_PLACEHOLDER_STATE CfGetPlaceholderStateFromFileInfo(const(void)* InfoBuffer, 
+                                                       FILE_INFO_BY_HANDLE_CLASS InfoClass);
 
 ///Gets a set of placeholder states based on the WIN32_FIND_DATA structure.
 ///Params:
@@ -1521,7 +1524,7 @@ CF_PLACEHOLDER_STATE CfGetPlaceholderStateFromFindData(const(WIN32_FIND_DATAA)* 
 ///    InfoBufferLength = The length of the <i>InfoBuffer</i>, in bytes.
 ///    ReturnedLength = The number of bytes returned in the <i>InfoBuffer</i>.
 @DllImport("cldapi")
-HRESULT CfGetPlaceholderInfo(HANDLE FileHandle, CF_PLACEHOLDER_INFO_CLASS InfoClass, char* InfoBuffer, 
+HRESULT CfGetPlaceholderInfo(HANDLE FileHandle, CF_PLACEHOLDER_INFO_CLASS InfoClass, void* InfoBuffer, 
                              uint InfoBufferLength, uint* ReturnedLength);
 
 ///Gets various sync root information given a file under the sync root.
@@ -1533,7 +1536,7 @@ HRESULT CfGetPlaceholderInfo(HANDLE FileHandle, CF_PLACEHOLDER_INFO_CLASS InfoCl
 ///    ReturnedLength = Length, in bytes, of the returned sync root information. Refer to CfRegisterSyncRoot for details about the sync
 ///                     root information.
 @DllImport("cldapi")
-HRESULT CfGetSyncRootInfoByPath(const(wchar)* FilePath, CF_SYNC_ROOT_INFO_CLASS InfoClass, void* InfoBuffer, 
+HRESULT CfGetSyncRootInfoByPath(const(PWSTR) FilePath, CF_SYNC_ROOT_INFO_CLASS InfoClass, void* InfoBuffer, 
                                 uint InfoBufferLength, uint* ReturnedLength);
 
 ///Gets various characteristics of the sync root containing a given file specified by a file handle.
@@ -1566,7 +1569,7 @@ HRESULT CfGetSyncRootInfoByHandle(HANDLE FileHandle, CF_SYNC_ROOT_INFO_CLASS Inf
 ///    
 @DllImport("cldapi")
 HRESULT CfGetPlaceholderRangeInfo(HANDLE FileHandle, CF_PLACEHOLDER_RANGE_INFO_CLASS InfoClass, 
-                                  LARGE_INTEGER StartingOffset, LARGE_INTEGER Length, char* InfoBuffer, 
+                                  LARGE_INTEGER StartingOffset, LARGE_INTEGER Length, void* InfoBuffer, 
                                   uint InfoBufferLength, uint* ReturnedLength);
 
 ///Allows a sync provider to report progress out-of-band.

@@ -8,52 +8,15 @@ public import windows.automation : BSTR, IDispatch, IPropertyBag, SAFEARRAY,
 public import windows.com : HRESULT, IUnknown;
 public import windows.displaydevices : RECT;
 public import windows.multimedia : WAVEFORMATEX;
-public import windows.systemservices : BOOL, HANDLE, LARGE_INTEGER;
+public import windows.systemservices : BOOL, HANDLE, LARGE_INTEGER, PSTR, PWSTR;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : FILETIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
 
-
-///Defines the buffer validation flags for the APO_CONNECTION_PROPERTY structure associated with each APO connection.
-alias APO_BUFFER_FLAGS = int;
-enum : int
-{
-    ///There is no valid data in the connection buffer. The buffer pointer is valid and the buffer is capable of holding
-    ///the amount of valid audio data specified in the APO_CONNECTION_PROPERTY structure. While processing audio data,
-    ///the audio engine marks every connection as BUFFER_INVALID before calling
-    ///IAudioOutputEndpoint::GetOutputDataPointer or IAudioInputEndpointRT::GetInputDataPointer.
-    BUFFER_INVALID = 0x00000000,
-    ///The connection buffer contains valid data. This is the operational state of the connection buffer. The APO sets
-    ///this flag after it starts writing valid data into the buffer. Capture endpoints should set this flag in the
-    ///GetInputDataPointer method upon successful completion of the call.
-    BUFFER_VALID   = 0x00000001,
-    ///The connection buffer must be treated as if it contains silence. If the endpoint receives an input connection
-    ///buffer that is identified as BUFFER_SILENT, then the endpoint can assume the data represents silence. When
-    ///capturing, the endpoint can also set this flag, if necessary for a capture buffer.
-    BUFFER_SILENT  = 0x00000002,
-}
-
-///Defines constants for the AE_CURRENT_POSITION structure. These constants describe the degree of validity of the
-///current position.
-alias AE_POSITION_FLAGS = int;
-enum : int
-{
-    ///The position is not valid and must not be used.
-    POSITION_INVALID       = 0x00000000,
-    ///The position is valid; however, there has been a disruption such as a glitch or state transition. This current
-    ///position is not correlated with the previous position. The start of a stream should not reflect a discontinuity.
-    POSITION_DISCONTINUOUS = 0x00000001,
-    ///The position is valid. The previous packet and the current packet are both synchronized with the timeline.
-    POSITION_CONTINUOUS    = 0x00000002,
-    ///The quality performance counter (QPC) timer value associated with this position is not accurate. This flag is set
-    ///when a position error is encountered and the implementation is unable to compute an accurate QPC value that
-    ///correlates with the position.
-    POSITION_QPC_ERROR     = 0x00000004,
-}
 
 ///Specifies the type of authentication used to connect to Remote Desktop Gateway (RD Gateway).
 enum AAAuthSchemes : int
@@ -909,6 +872,57 @@ enum : int
     KeyCombinationScroll = 0x00000005,
 }
 
+///Defines the buffer validation flags for the APO_CONNECTION_PROPERTY structure associated with each APO connection.
+alias APO_BUFFER_FLAGS = int;
+enum : int
+{
+    ///There is no valid data in the connection buffer. The buffer pointer is valid and the buffer is capable of holding
+    ///the amount of valid audio data specified in the APO_CONNECTION_PROPERTY structure. While processing audio data,
+    ///the audio engine marks every connection as BUFFER_INVALID before calling
+    ///IAudioOutputEndpoint::GetOutputDataPointer or IAudioInputEndpointRT::GetInputDataPointer.
+    BUFFER_INVALID = 0x00000000,
+    ///The connection buffer contains valid data. This is the operational state of the connection buffer. The APO sets
+    ///this flag after it starts writing valid data into the buffer. Capture endpoints should set this flag in the
+    ///GetInputDataPointer method upon successful completion of the call.
+    BUFFER_VALID   = 0x00000001,
+    ///The connection buffer must be treated as if it contains silence. If the endpoint receives an input connection
+    ///buffer that is identified as BUFFER_SILENT, then the endpoint can assume the data represents silence. When
+    ///capturing, the endpoint can also set this flag, if necessary for a capture buffer.
+    BUFFER_SILENT  = 0x00000002,
+}
+
+///Defines constants for the AE_CURRENT_POSITION structure. These constants describe the degree of validity of the
+///current position.
+alias AE_POSITION_FLAGS = int;
+enum : int
+{
+    ///The position is not valid and must not be used.
+    POSITION_INVALID       = 0x00000000,
+    ///The position is valid; however, there has been a disruption such as a glitch or state transition. This current
+    ///position is not correlated with the previous position. The start of a stream should not reflect a discontinuity.
+    POSITION_DISCONTINUOUS = 0x00000001,
+    ///The position is valid. The previous packet and the current packet are both synchronized with the timeline.
+    POSITION_CONTINUOUS    = 0x00000002,
+    ///The quality performance counter (QPC) timer value associated with this position is not accurate. This flag is set
+    ///when a position error is encountered and the implementation is unable to compute an accurate QPC value that
+    ///correlates with the position.
+    POSITION_QPC_ERROR     = 0x00000004,
+}
+
+// Constants
+
+
+enum GUID RDCLIENT_BITMAP_RENDER_SERVICE = GUID("e4cc08cb-942e-4b19-8504-bd5a89a747f5");
+enum GUID WTS_QUERY_LOGON_SCREEN_SIZE = GUID("8b8e0fe7-0804-4a0e-b279-8660b1df0049");
+enum GUID WTS_QUERY_MF_FORMAT_SUPPORT = GUID("41869ad0-6332-4dc8-95d5-db749e2f1d94");
+enum GUID PROPERTY_DYNAMIC_TIME_ZONE_INFORMATION = GUID("0cdfd28e-d0b9-4c1f-a5eb-6d1f6c6535b9");
+
+enum : GUID
+{
+    CONNECTION_PROPERTY_IDLE_TIME_WARNING     = GUID("693f7ff5-0c4e-4d17-b8e0-1f70325e5d58"),
+    CONNECTION_PROPERTY_CURSOR_BLINK_DISABLED = GUID("4b150580-fea4-4d3c-9de4-7433a66618f7"),
+}
+
 // Callbacks
 
 ///An application-defined callback function that Remote Desktop Services calls to notify the client DLL of virtual
@@ -987,7 +1001,7 @@ alias PVIRTUALCHANNELINIT = uint function();
 ///    If the function succeeds, the return value is CHANNEL_RC_OK. If an error occurs, the function returns one of the
 ///    following values.
 ///    
-alias VIRTUALCHANNELOPEN = uint function(void* pInitHandle, uint* pOpenHandle, const(char)* pChannelName, 
+alias VIRTUALCHANNELOPEN = uint function(void* pInitHandle, uint* pOpenHandle, PSTR pChannelName, 
                                          PCHANNEL_OPEN_EVENT_FN pChannelOpenEventProc);
 alias PVIRTUALCHANNELOPEN = uint function();
 ///Closes the client end of a virtual channel. Remote Desktop Services provides a pointer to a
@@ -1036,44 +1050,6 @@ alias PVIRTUALCHANNELENTRY = BOOL function();
 // Structs
 
 
-alias HwtsVirtualChannelHandle = ptrdiff_t;
-
-///Contains the dynamically changing connection properties.
-struct APO_CONNECTION_PROPERTY
-{
-    ///A pointer to the connection buffer. Endpoints use this buffer to read and write audio data.
-    size_t           pBuffer;
-    ///The number of valid frames in the connection buffer. An APO uses the valid frame count to determine the amount of
-    ///data to read and process in the input buffer. An APO sets the valid frame count after writing data into its
-    ///output connection.
-    uint             u32ValidFrameCount;
-    ///The connection flags for this buffer. This indicates the validity status of the APOs. For more information about
-    ///these flags, see APO_BUFFER_FLAGS.
-    APO_BUFFER_FLAGS u32BufferFlags;
-    ///A tag that identifies a valid <b>APO_CONNECTION_PROPERTY</b> structure. A valid structure is marked as
-    ///<b>APO_CONNECTION_PROPERTY_SIGNATURE</b>.
-    uint             u32Signature;
-}
-
-///Reports the current frame position from the device to the clients.
-struct AE_CURRENT_POSITION
-{
-    ///The device position, in frames.
-    ulong             u64DevicePosition;
-    ///The stream position, in frames, used to determine the starting point for audio capture and the render device
-    ///position relative to the stream.
-    ulong             u64StreamPosition;
-    ///The amount of padding, in frames, between the current position and the stream fill point.
-    ulong             u64PaddingFrames;
-    ///A translated quality performance counter (QPC) timer value taken at the time that the <b>u64DevicePosition</b>
-    ///member was checked.
-    long              hnsQPCPosition;
-    ///The calculated data rate at the point at the time the position was set.
-    float             f32FramesPerSecond;
-    ///A value of the AE_POSITION_FLAGS enumeration that indicates the validity of the position information.
-    AE_POSITION_FLAGS Flag;
-}
-
 ///Provides information about the session change notification. A service receives this structure in its HandlerEx
 ///function in response to a session change event.
 struct WTSSESSION_NOTIFICATION
@@ -1082,6 +1058,12 @@ struct WTSSESSION_NOTIFICATION
     uint cbSize;
     ///Session identifier that triggered the session change event.
     uint dwSessionId;
+}
+
+@RAIIFree!WTSVirtualChannelClose
+struct HwtsVirtualChannelHandle
+{
+    ptrdiff_t Value;
 }
 
 ///This structure contains information about a connection event.
@@ -1115,24 +1097,24 @@ struct AAAccountingData
 struct WTS_SERVER_INFOW
 {
     ///Name of the server.
-    const(wchar)* pServerName;
+    PWSTR pServerName;
 }
 
 ///Contains information about a specific Remote Desktop Services server.
 struct WTS_SERVER_INFOA
 {
     ///Name of the server.
-    const(char)* pServerName;
+    PSTR pServerName;
 }
 
 ///Contains information about a client session on a Remote Desktop Session Host (RD Session Host) server.
 struct WTS_SESSION_INFOW
 {
     ///Session identifier of the session.
-    uint          SessionId;
+    uint  SessionId;
     ///Pointer to a null-terminated string that contains the WinStation name of this session. The WinStation name is a
     ///name that Windows associates with the session, for example, "services", "console", or "RDP-Tcp
-    const(wchar)* pWinStationName;
+    PWSTR pWinStationName;
     ///A value from the WTS_CONNECTSTATE_CLASS enumeration type that indicates the session's current connection state.
     WTS_CONNECTSTATE_CLASS State;
 }
@@ -1141,10 +1123,10 @@ struct WTS_SESSION_INFOW
 struct WTS_SESSION_INFOA
 {
     ///Session identifier of the session.
-    uint         SessionId;
+    uint SessionId;
     ///Pointer to a null-terminated string that contains the WinStation name of this session. The WinStation name is a
     ///name that Windows associates with the session, for example, "services", "console", or "RDP-Tcp
-    const(char)* pWinStationName;
+    PSTR pWinStationName;
     ///A value from the WTS_CONNECTSTATE_CLASS enumeration type that indicates the session's current connection state.
     WTS_CONNECTSTATE_CLASS State;
 }
@@ -1155,29 +1137,29 @@ struct WTS_SESSION_INFO_1W
 {
     ///An identifier that uniquely identifies the session within the list of sessions returned by the
     ///WTSEnumerateSessionsEx function. For more information, see Remarks.
-    uint          ExecEnvId;
+    uint  ExecEnvId;
     ///A value of the WTS_CONNECTSTATE_CLASS enumeration type that specifies the connection state of a Remote Desktop
     ///Services session.
     WTS_CONNECTSTATE_CLASS State;
     ///A session identifier assigned by the RD Session Host server, RD Virtualization Host server, or virtual machine.
-    uint          SessionId;
+    uint  SessionId;
     ///A pointer to a null-terminated string that contains the name of this session. For example, "services", "console",
     ///or "RDP-Tcp
-    const(wchar)* pSessionName;
+    PWSTR pSessionName;
     ///A pointer to a null-terminated string that contains the name of the computer that the session is running on. If
     ///the session is running directly on an RD Session Host server or RD Virtualization Host server, the string
     ///contains <b>NULL</b>. If the session is running on a virtual machine, the string contains the name of the virtual
     ///machine.
-    const(wchar)* pHostName;
+    PWSTR pHostName;
     ///A pointer to a null-terminated string that contains the name of the user who is logged on to the session. If no
     ///user is logged on to the session, the string contains <b>NULL</b>.
-    const(wchar)* pUserName;
+    PWSTR pUserName;
     ///A pointer to a null-terminated string that contains the domain name of the user who is logged on to the session.
     ///If no user is logged on to the session, the string contains <b>NULL</b>.
-    const(wchar)* pDomainName;
+    PWSTR pDomainName;
     ///A pointer to a null-terminated string that contains the name of the farm that the virtual machine is joined to.
     ///If the session is not running on a virtual machine that is joined to a farm, the string contains <b>NULL</b>.
-    const(wchar)* pFarmName;
+    PWSTR pFarmName;
 }
 
 ///Contains extended information about a client session on a Remote Desktop Session Host (RD Session Host) server or
@@ -1186,57 +1168,57 @@ struct WTS_SESSION_INFO_1A
 {
     ///An identifier that uniquely identifies the session within the list of sessions returned by the
     ///WTSEnumerateSessionsEx function. For more information, see Remarks.
-    uint         ExecEnvId;
+    uint ExecEnvId;
     ///A value of the WTS_CONNECTSTATE_CLASS enumeration type that specifies the connection state of a Remote Desktop
     ///Services session.
     WTS_CONNECTSTATE_CLASS State;
     ///A session identifier assigned by the RD Session Host server, RD Virtualization Host server, or virtual machine.
-    uint         SessionId;
+    uint SessionId;
     ///A pointer to a null-terminated string that contains the name of this session. For example, "services", "console",
     ///or "RDP-Tcp
-    const(char)* pSessionName;
+    PSTR pSessionName;
     ///A pointer to a null-terminated string that contains the name of the computer that the session is running on. If
     ///the session is running directly on an RD Session Host server or RD Virtualization Host server, the string
     ///contains <b>NULL</b>. If the session is running on a virtual machine, the string contains the name of the virtual
     ///machine.
-    const(char)* pHostName;
+    PSTR pHostName;
     ///A pointer to a null-terminated string that contains the name of the user who is logged on to the session. If no
     ///user is logged on to the session, the string contains <b>NULL</b>.
-    const(char)* pUserName;
+    PSTR pUserName;
     ///A pointer to a null-terminated string that contains the domain name of the user who is logged on to the session.
     ///If no user is logged on to the session, the string contains <b>NULL</b>.
-    const(char)* pDomainName;
+    PSTR pDomainName;
     ///A pointer to a null-terminated string that contains the name of the farm that the virtual machine is joined to.
     ///If the session is not running on a virtual machine that is joined to a farm, the string contains <b>NULL</b>.
-    const(char)* pFarmName;
+    PSTR pFarmName;
 }
 
 ///Contains information about a process running on a Remote Desktop Session Host (RD Session Host) server.
 struct WTS_PROCESS_INFOW
 {
     ///Remote Desktop Services session identifier for the session associated with the process.
-    uint          SessionId;
+    uint  SessionId;
     ///Process identifier that uniquely identifies the process on the RD Session Host server.
-    uint          ProcessId;
+    uint  ProcessId;
     ///Pointer to a null-terminated string containing the name of the executable file associated with the process.
-    const(wchar)* pProcessName;
+    PWSTR pProcessName;
     ///Pointer to the user Security Identifiers in the process's primary access token. For more information about SIDs
     ///and access tokens, see Access Control.
-    void*         pUserSid;
+    void* pUserSid;
 }
 
 ///Contains information about a process running on a Remote Desktop Session Host (RD Session Host) server.
 struct WTS_PROCESS_INFOA
 {
     ///Remote Desktop Services session identifier for the session associated with the process.
-    uint         SessionId;
+    uint  SessionId;
     ///Process identifier that uniquely identifies the process on the RD Session Host server.
-    uint         ProcessId;
+    uint  ProcessId;
     ///Pointer to a null-terminated string containing the name of the executable file associated with the process.
-    const(char)* pProcessName;
+    PSTR  pProcessName;
     ///Pointer to the user Security Identifiers in the process's primary access token. For more information about SIDs
     ///and access tokens, see Access Control.
-    void*        pUserSid;
+    void* pUserSid;
 }
 
 ///Contains information about a Remote Desktop Services session. This structure is returned by the
@@ -1791,7 +1773,7 @@ struct WTS_PROCESS_INFO_EXW
     ///The process identifier that uniquely identifies the process on the RD Session Host server.
     uint          ProcessId;
     ///A pointer to a null-terminated string that contains the name of the executable file associated with the process.
-    const(wchar)* pProcessName;
+    PWSTR         pProcessName;
     ///A pointer to the user security identifiers (SIDs) in the primary access token of the process. For more
     ///information about SIDs and access tokens, see Access Control and Security Identifiers.
     void*         pUserSid;
@@ -1822,7 +1804,7 @@ struct WTS_PROCESS_INFO_EXA
     ///The process identifier that uniquely identifies the process on the RD Session Host server.
     uint          ProcessId;
     ///A pointer to a null-terminated string that contains the name of the executable file associated with the process.
-    const(char)*  pProcessName;
+    PSTR          pProcessName;
     ///A pointer to the user security identifiers (SIDs) in the primary access token of the process. For more
     ///information about SIDs and access tokens, see Access Control and Security Identifiers.
     void*         pUserSid;
@@ -2143,8 +2125,8 @@ struct VM_NOTIFY_ENTRY
 
 struct VM_PATCH_INFO
 {
-    uint     dwNumEntries;
-    ushort** pVmNames;
+    uint   dwNumEntries;
+    PWSTR* pVmNames;
 }
 
 struct VM_NOTIFY_INFO
@@ -2162,7 +2144,7 @@ struct pluginResource
     ushort[256] name;
     ///The contents of the resource file. The plug-in should allocate memory for this member by calling the
     ///CoTaskMemAlloc function.
-    ushort*     resourceFileContents;
+    PWSTR       resourceFileContents;
     ///The file name extension of the resource file. If this member is set to ".rdp", RD Web Access opens the file by
     ///using the ActiveX control.
     ushort[256] fileExtension;
@@ -2208,7 +2190,7 @@ struct pluginResource2
     pluginResource2FileAssociation* fileAssocList;
     ///A string representation of a security descriptor used to specify the domain users and groups that have access to
     ///the resource. For more information about security descriptor strings, see Security Descriptor String Format.
-    ushort*        securityDescriptor;
+    PWSTR          securityDescriptor;
     ///The number of strings in the <b>folderList</b> array.
     uint           pceFolderListSize;
     ///An array of pointers to null-terminated strings that contain the names of the folders that the resource should be
@@ -2317,15 +2299,15 @@ struct WTS_SOCKADDR
 {
     ///An integer index into the following structure members.
     ushort sin_family;
-    union u
+union u
     {
-        struct ipv4
+struct ipv4
         {
             ushort   sin_port;
             uint     in_addr;
             ubyte[8] sin_zero;
         }
-        struct ipv6
+struct ipv6
         {
             ushort    sin6_port;
             uint      sin6_flowinfo;
@@ -2743,15 +2725,15 @@ struct WTS_PROPERTY_VALUE
     ///An integer that specifies which member of the union contains the property value information. This can be one of
     ///the following values.
     ushort Type;
-    union u
+union u
     {
         uint ulVal;
-        struct strVal
+struct strVal
         {
-            uint    size;
-            ushort* pstrVal;
+            uint  size;
+            PWSTR pstrVal;
         }
-        struct bVal
+struct bVal
         {
             uint  size;
             byte* pbVal;
@@ -3102,32 +3084,43 @@ struct WRDS_SETTINGS
     WRDS_SETTING       WRdsSetting;
 }
 
+///Contains the dynamically changing connection properties.
+struct APO_CONNECTION_PROPERTY
+{
+    ///A pointer to the connection buffer. Endpoints use this buffer to read and write audio data.
+    size_t           pBuffer;
+    ///The number of valid frames in the connection buffer. An APO uses the valid frame count to determine the amount of
+    ///data to read and process in the input buffer. An APO sets the valid frame count after writing data into its
+    ///output connection.
+    uint             u32ValidFrameCount;
+    ///The connection flags for this buffer. This indicates the validity status of the APOs. For more information about
+    ///these flags, see APO_BUFFER_FLAGS.
+    APO_BUFFER_FLAGS u32BufferFlags;
+    ///A tag that identifies a valid <b>APO_CONNECTION_PROPERTY</b> structure. A valid structure is marked as
+    ///<b>APO_CONNECTION_PROPERTY_SIGNATURE</b>.
+    uint             u32Signature;
+}
+
+///Reports the current frame position from the device to the clients.
+struct AE_CURRENT_POSITION
+{
+    ///The device position, in frames.
+    ulong             u64DevicePosition;
+    ///The stream position, in frames, used to determine the starting point for audio capture and the render device
+    ///position relative to the stream.
+    ulong             u64StreamPosition;
+    ///The amount of padding, in frames, between the current position and the stream fill point.
+    ulong             u64PaddingFrames;
+    ///A translated quality performance counter (QPC) timer value taken at the time that the <b>u64DevicePosition</b>
+    ///member was checked.
+    long              hnsQPCPosition;
+    ///The calculated data rate at the point at the time the position was set.
+    float             f32FramesPerSecond;
+    ///A value of the AE_POSITION_FLAGS enumeration that indicates the validity of the position information.
+    AE_POSITION_FLAGS Flag;
+}
+
 // Functions
-
-///Retrieves the Remote Desktop Services session associated with a specified process.
-///Params:
-///    dwProcessId = Specifies a process identifier. Use the GetCurrentProcessId function to retrieve the process identifier for the
-///                  current process.
-///    pSessionId = Pointer to a variable that receives the identifier of the Remote Desktop Services session under which the
-///                 specified process is running. To retrieve the identifier of the session currently attached to the console, use
-///                 the WTSGetActiveConsoleSessionId function.
-///Returns:
-///    If the function succeeds, the return value is a nonzero value. If the function fails, the return value is zero.
-///    To get extended error information, call GetLastError.
-///    
-@DllImport("KERNEL32")
-BOOL ProcessIdToSessionId(uint dwProcessId, uint* pSessionId);
-
-///Retrieves the session identifier of the console session. The console session is the session that is currently
-///attached to the physical console. Note that it is not necessary that Remote Desktop Services be running for this
-///function to succeed.
-///Returns:
-///    The session identifier of the session that is attached to the physical console. If there is no session attached
-///    to the physical console, (for example, if the physical console session is in the process of being attached or
-///    detached), this function returns 0xFFFFFFFF.
-///    
-@DllImport("KERNEL32")
-uint WTSGetActiveConsoleSessionId();
 
 ///Stops a remote control session.
 ///Params:
@@ -3152,7 +3145,7 @@ BOOL WTSStopRemoteControlSession(uint LogonId);
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSStartRemoteControlSessionW(const(wchar)* pTargetServerName, uint TargetLogonId, ubyte HotkeyVk, 
+BOOL WTSStartRemoteControlSessionW(PWSTR pTargetServerName, uint TargetLogonId, ubyte HotkeyVk, 
                                    ushort HotkeyModifiers);
 
 ///Starts the remote control of another Remote Desktop Services session. You must call this function from a remote
@@ -3172,7 +3165,7 @@ BOOL WTSStartRemoteControlSessionW(const(wchar)* pTargetServerName, uint TargetL
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSStartRemoteControlSessionA(const(char)* pTargetServerName, uint TargetLogonId, ubyte HotkeyVk, 
+BOOL WTSStartRemoteControlSessionA(PSTR pTargetServerName, uint TargetLogonId, ubyte HotkeyVk, 
                                    ushort HotkeyModifiers);
 
 ///Connects a Remote Desktop Services session to an existing session on the local computer.
@@ -3193,7 +3186,7 @@ BOOL WTSStartRemoteControlSessionA(const(char)* pTargetServerName, uint TargetLo
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSConnectSessionA(uint LogonId, uint TargetLogonId, const(char)* pPassword, BOOL bWait);
+BOOL WTSConnectSessionA(uint LogonId, uint TargetLogonId, PSTR pPassword, BOOL bWait);
 
 ///Connects a Remote Desktop Services session to an existing session on the local computer.
 ///Params:
@@ -3213,7 +3206,7 @@ BOOL WTSConnectSessionA(uint LogonId, uint TargetLogonId, const(char)* pPassword
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSConnectSessionW(uint LogonId, uint TargetLogonId, const(wchar)* pPassword, BOOL bWait);
+BOOL WTSConnectSessionW(uint LogonId, uint TargetLogonId, PWSTR pPassword, BOOL bWait);
 
 ///Returns a list of all Remote Desktop Session Host (RD Session Host) servers within the specified domain.
 ///Params:
@@ -3230,7 +3223,7 @@ BOOL WTSConnectSessionW(uint LogonId, uint TargetLogonId, const(wchar)* pPasswor
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSEnumerateServersW(const(wchar)* pDomainName, uint Reserved, uint Version, WTS_SERVER_INFOW** ppServerInfo, 
+BOOL WTSEnumerateServersW(PWSTR pDomainName, uint Reserved, uint Version, WTS_SERVER_INFOW** ppServerInfo, 
                           uint* pCount);
 
 ///Returns a list of all Remote Desktop Session Host (RD Session Host) servers within the specified domain.
@@ -3248,7 +3241,7 @@ BOOL WTSEnumerateServersW(const(wchar)* pDomainName, uint Reserved, uint Version
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSEnumerateServersA(const(char)* pDomainName, uint Reserved, uint Version, WTS_SERVER_INFOA** ppServerInfo, 
+BOOL WTSEnumerateServersA(PSTR pDomainName, uint Reserved, uint Version, WTS_SERVER_INFOA** ppServerInfo, 
                           uint* pCount);
 
 ///Opens a handle to the specified Remote Desktop Session Host (RD Session Host) server.
@@ -3259,7 +3252,7 @@ BOOL WTSEnumerateServersA(const(char)* pDomainName, uint Reserved, uint Version,
 ///    a handle that is not valid. You can test the validity of the handle by using it in another function call.
 ///    
 @DllImport("WTSAPI32")
-HANDLE WTSOpenServerW(const(wchar)* pServerName);
+HANDLE WTSOpenServerW(PWSTR pServerName);
 
 ///Opens a handle to the specified Remote Desktop Session Host (RD Session Host) server.
 ///Params:
@@ -3269,7 +3262,7 @@ HANDLE WTSOpenServerW(const(wchar)* pServerName);
 ///    a handle that is not valid. You can test the validity of the handle by using it in another function call.
 ///    
 @DllImport("WTSAPI32")
-HANDLE WTSOpenServerA(const(char)* pServerName);
+HANDLE WTSOpenServerA(PSTR pServerName);
 
 ///Opens a handle to the specified Remote Desktop Session Host (RD Session Host) server or Remote Desktop Virtualization
 ///Host (RD Virtualization Host) server.
@@ -3280,7 +3273,7 @@ HANDLE WTSOpenServerA(const(char)* pServerName);
 ///    an invalid handle. You can test the validity of the handle by using it in another function call.
 ///    
 @DllImport("WTSAPI32")
-HANDLE WTSOpenServerExW(const(wchar)* pServerName);
+HANDLE WTSOpenServerExW(PWSTR pServerName);
 
 ///Opens a handle to the specified Remote Desktop Session Host (RD Session Host) server or Remote Desktop Virtualization
 ///Host (RD Virtualization Host) server.
@@ -3291,7 +3284,7 @@ HANDLE WTSOpenServerExW(const(wchar)* pServerName);
 ///    an invalid handle. You can test the validity of the handle by using it in another function call.
 ///    
 @DllImport("WTSAPI32")
-HANDLE WTSOpenServerExA(const(char)* pServerName);
+HANDLE WTSOpenServerExA(PSTR pServerName);
 
 ///Closes an open handle to a Remote Desktop Session Host (RD Session Host) server.
 ///Params:
@@ -3468,7 +3461,7 @@ BOOL WTSTerminateProcess(HANDLE hServer, uint ProcessId, uint ExitCode);
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSQuerySessionInformationW(HANDLE hServer, uint SessionId, WTS_INFO_CLASS WTSInfoClass, ushort** ppBuffer, 
+BOOL WTSQuerySessionInformationW(HANDLE hServer, uint SessionId, WTS_INFO_CLASS WTSInfoClass, PWSTR* ppBuffer, 
                                  uint* pBytesReturned);
 
 ///Retrieves session information for the specified session on the specified Remote Desktop Session Host (RD Session
@@ -3496,7 +3489,7 @@ BOOL WTSQuerySessionInformationW(HANDLE hServer, uint SessionId, WTS_INFO_CLASS 
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSQuerySessionInformationA(HANDLE hServer, uint SessionId, WTS_INFO_CLASS WTSInfoClass, byte** ppBuffer, 
+BOOL WTSQuerySessionInformationA(HANDLE hServer, uint SessionId, WTS_INFO_CLASS WTSInfoClass, PSTR* ppBuffer, 
                                  uint* pBytesReturned);
 
 ///Retrieves configuration information for the specified user on the specified domain controller or Remote Desktop
@@ -3520,8 +3513,8 @@ BOOL WTSQuerySessionInformationA(HANDLE hServer, uint SessionId, WTS_INFO_CLASS 
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSQueryUserConfigW(const(wchar)* pServerName, const(wchar)* pUserName, WTS_CONFIG_CLASS WTSConfigClass, 
-                         ushort** ppBuffer, uint* pBytesReturned);
+BOOL WTSQueryUserConfigW(PWSTR pServerName, PWSTR pUserName, WTS_CONFIG_CLASS WTSConfigClass, PWSTR* ppBuffer, 
+                         uint* pBytesReturned);
 
 ///Retrieves configuration information for the specified user on the specified domain controller or Remote Desktop
 ///Session Host (RD Session Host) server.
@@ -3544,8 +3537,8 @@ BOOL WTSQueryUserConfigW(const(wchar)* pServerName, const(wchar)* pUserName, WTS
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSQueryUserConfigA(const(char)* pServerName, const(char)* pUserName, WTS_CONFIG_CLASS WTSConfigClass, 
-                         byte** ppBuffer, uint* pBytesReturned);
+BOOL WTSQueryUserConfigA(PSTR pServerName, PSTR pUserName, WTS_CONFIG_CLASS WTSConfigClass, PSTR* ppBuffer, 
+                         uint* pBytesReturned);
 
 ///Modifies configuration information for the specified user on the specified domain controller or Remote Desktop
 ///Session Host (RD Session Host) server.
@@ -3563,8 +3556,8 @@ BOOL WTSQueryUserConfigA(const(char)* pServerName, const(char)* pUserName, WTS_C
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSSetUserConfigW(const(wchar)* pServerName, const(wchar)* pUserName, WTS_CONFIG_CLASS WTSConfigClass, 
-                       const(wchar)* pBuffer, uint DataLength);
+BOOL WTSSetUserConfigW(PWSTR pServerName, PWSTR pUserName, WTS_CONFIG_CLASS WTSConfigClass, PWSTR pBuffer, 
+                       uint DataLength);
 
 ///Modifies configuration information for the specified user on the specified domain controller or Remote Desktop
 ///Session Host (RD Session Host) server.
@@ -3582,8 +3575,8 @@ BOOL WTSSetUserConfigW(const(wchar)* pServerName, const(wchar)* pUserName, WTS_C
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSSetUserConfigA(const(char)* pServerName, const(char)* pUserName, WTS_CONFIG_CLASS WTSConfigClass, 
-                       const(char)* pBuffer, uint DataLength);
+BOOL WTSSetUserConfigA(PSTR pServerName, PSTR pUserName, WTS_CONFIG_CLASS WTSConfigClass, PSTR pBuffer, 
+                       uint DataLength);
 
 ///Displays a message box on the client desktop of a specified Remote Desktop Services session.
 ///Params:
@@ -3615,9 +3608,8 @@ BOOL WTSSetUserConfigA(const(char)* pServerName, const(char)* pUserName, WTS_CON
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSSendMessageW(HANDLE hServer, uint SessionId, const(wchar)* pTitle, uint TitleLength, 
-                     const(wchar)* pMessage, uint MessageLength, uint Style, uint Timeout, uint* pResponse, 
-                     BOOL bWait);
+BOOL WTSSendMessageW(HANDLE hServer, uint SessionId, PWSTR pTitle, uint TitleLength, PWSTR pMessage, 
+                     uint MessageLength, uint Style, uint Timeout, uint* pResponse, BOOL bWait);
 
 ///Displays a message box on the client desktop of a specified Remote Desktop Services session.
 ///Params:
@@ -3649,7 +3641,7 @@ BOOL WTSSendMessageW(HANDLE hServer, uint SessionId, const(wchar)* pTitle, uint 
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSSendMessageA(HANDLE hServer, uint SessionId, const(char)* pTitle, uint TitleLength, const(char)* pMessage, 
+BOOL WTSSendMessageA(HANDLE hServer, uint SessionId, PSTR pTitle, uint TitleLength, PSTR pMessage, 
                      uint MessageLength, uint Style, uint Timeout, uint* pResponse, BOOL bWait);
 
 ///Disconnects the logged-on user from the specified Remote Desktop Services session without closing the session. If the
@@ -3746,7 +3738,7 @@ BOOL WTSWaitSystemEvent(HANDLE hServer, uint EventMask, uint* pEventFlags);
 ///    the return value is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("WTSAPI32")
-HwtsVirtualChannelHandle WTSVirtualChannelOpen(HANDLE hServer, uint SessionId, const(char)* pVirtualName);
+HwtsVirtualChannelHandle WTSVirtualChannelOpen(HANDLE hServer, uint SessionId, PSTR pVirtualName);
 
 ///Creates a virtual channel in a manner similar to WTSVirtualChannelOpen. This API supports both static virtual channel
 ///(SVC) and dynamic virtual channel (DVC) creation. If the <i>flags</i> parameter is zero, it behaves the same as
@@ -3770,7 +3762,7 @@ HwtsVirtualChannelHandle WTSVirtualChannelOpen(HANDLE hServer, uint SessionId, c
 ///    <b>NULL</b> on error with GetLastError set.
 ///    
 @DllImport("WTSAPI32")
-HwtsVirtualChannelHandle WTSVirtualChannelOpenEx(uint SessionId, const(char)* pVirtualName, uint flags);
+HwtsVirtualChannelHandle WTSVirtualChannelOpenEx(uint SessionId, PSTR pVirtualName, uint flags);
 
 ///Closes an open virtual channel handle.
 ///Params:
@@ -3808,8 +3800,7 @@ BOOL WTSVirtualChannelClose(HANDLE hChannelHandle);
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSVirtualChannelRead(HANDLE hChannelHandle, uint TimeOut, const(char)* Buffer, uint BufferSize, 
-                           uint* pBytesRead);
+BOOL WTSVirtualChannelRead(HANDLE hChannelHandle, uint TimeOut, PSTR Buffer, uint BufferSize, uint* pBytesRead);
 
 ///Writes data to the server end of a virtual channel.
 ///Params:
@@ -3822,7 +3813,7 @@ BOOL WTSVirtualChannelRead(HANDLE hChannelHandle, uint TimeOut, const(char)* Buf
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSVirtualChannelWrite(HANDLE hChannelHandle, const(char)* Buffer, uint Length, uint* pBytesWritten);
+BOOL WTSVirtualChannelWrite(HANDLE hChannelHandle, PSTR Buffer, uint Length, uint* pBytesWritten);
 
 ///Deletes all queued input data sent from the client to the server on a specified virtual channel.<div
 ///class="alert"><b>Note</b> This function currently is not used by Remote Desktop Services.</div> <div> </div>
@@ -3933,7 +3924,7 @@ BOOL WTSUnRegisterSessionNotificationEx(HANDLE hServer, HWND hWnd);
 ///    call GetLastError. Among other errors, <b>GetLastError</b> can return one of the following errors.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSQueryUserToken(uint SessionId, ptrdiff_t* phToken);
+BOOL WTSQueryUserToken(uint SessionId, HANDLE* phToken);
 
 ///Frees memory that contains WTS_PROCESS_INFO_EX or WTS_SESSION_INFO_1 structures allocated by a Remote Desktop
 ///Services function.
@@ -3986,7 +3977,7 @@ BOOL WTSFreeMemoryExA(WTS_TYPE_CLASS WTSTypeClass, void* pMemory, uint NumberOfE
 ///    To get extended error information, call the GetLastError function.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSEnumerateProcessesExW(HANDLE hServer, uint* pLevel, uint SessionId, ushort** ppProcessInfo, uint* pCount);
+BOOL WTSEnumerateProcessesExW(HANDLE hServer, uint* pLevel, uint SessionId, PWSTR* ppProcessInfo, uint* pCount);
 
 ///Retrieves information about the active processes on the specified Remote Desktop Session Host (RD Session Host)
 ///server or Remote Desktop Virtualization Host (RD Virtualization Host) server.
@@ -4011,7 +4002,7 @@ BOOL WTSEnumerateProcessesExW(HANDLE hServer, uint* pLevel, uint SessionId, usho
 ///    To get extended error information, call the GetLastError function.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSEnumerateProcessesExA(HANDLE hServer, uint* pLevel, uint SessionId, byte** ppProcessInfo, uint* pCount);
+BOOL WTSEnumerateProcessesExA(HANDLE hServer, uint* pLevel, uint SessionId, PSTR* ppProcessInfo, uint* pCount);
 
 ///Enumerates all the Remote Desktop Services listeners on a Remote Desktop Session Host (RD Session Host) server.
 ///Params:
@@ -4028,7 +4019,7 @@ BOOL WTSEnumerateProcessesExA(HANDLE hServer, uint* pLevel, uint SessionId, byte
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSEnumerateListenersW(HANDLE hServer, void* pReserved, uint Reserved, char* pListeners, uint* pCount);
+BOOL WTSEnumerateListenersW(HANDLE hServer, void* pReserved, uint Reserved, ushort** pListeners, uint* pCount);
 
 ///Enumerates all the Remote Desktop Services listeners on a Remote Desktop Session Host (RD Session Host) server.
 ///Params:
@@ -4045,7 +4036,7 @@ BOOL WTSEnumerateListenersW(HANDLE hServer, void* pReserved, uint Reserved, char
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSEnumerateListenersA(HANDLE hServer, void* pReserved, uint Reserved, char* pListeners, uint* pCount);
+BOOL WTSEnumerateListenersA(HANDLE hServer, void* pReserved, uint Reserved, byte** pListeners, uint* pCount);
 
 ///Retrieves configuration information for a Remote Desktop Services listener.
 ///Params:
@@ -4059,7 +4050,7 @@ BOOL WTSEnumerateListenersA(HANDLE hServer, void* pReserved, uint Reserved, char
 ///    To get extended error information, call the GetLastError function.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSQueryListenerConfigW(HANDLE hServer, void* pReserved, uint Reserved, const(wchar)* pListenerName, 
+BOOL WTSQueryListenerConfigW(HANDLE hServer, void* pReserved, uint Reserved, PWSTR pListenerName, 
                              WTSLISTENERCONFIGW* pBuffer);
 
 ///Retrieves configuration information for a Remote Desktop Services listener.
@@ -4074,7 +4065,7 @@ BOOL WTSQueryListenerConfigW(HANDLE hServer, void* pReserved, uint Reserved, con
 ///    To get extended error information, call the GetLastError function.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSQueryListenerConfigA(HANDLE hServer, void* pReserved, uint Reserved, const(char)* pListenerName, 
+BOOL WTSQueryListenerConfigA(HANDLE hServer, void* pReserved, uint Reserved, PSTR pListenerName, 
                              WTSLISTENERCONFIGA* pBuffer);
 
 ///Creates a new Remote Desktop Services listener or configures an existing listener.
@@ -4090,7 +4081,7 @@ BOOL WTSQueryListenerConfigA(HANDLE hServer, void* pReserved, uint Reserved, con
 ///    To get extended error information, call the GetLastError function.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSCreateListenerW(HANDLE hServer, void* pReserved, uint Reserved, const(wchar)* pListenerName, 
+BOOL WTSCreateListenerW(HANDLE hServer, void* pReserved, uint Reserved, PWSTR pListenerName, 
                         WTSLISTENERCONFIGW* pBuffer, uint flag);
 
 ///Creates a new Remote Desktop Services listener or configures an existing listener.
@@ -4106,7 +4097,7 @@ BOOL WTSCreateListenerW(HANDLE hServer, void* pReserved, uint Reserved, const(wc
 ///    To get extended error information, call the GetLastError function.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSCreateListenerA(HANDLE hServer, void* pReserved, uint Reserved, const(char)* pListenerName, 
+BOOL WTSCreateListenerA(HANDLE hServer, void* pReserved, uint Reserved, PSTR pListenerName, 
                         WTSLISTENERCONFIGA* pBuffer, uint flag);
 
 ///Configures the security descriptor of a Remote Desktop Services listener.
@@ -4127,7 +4118,7 @@ BOOL WTSCreateListenerA(HANDLE hServer, void* pReserved, uint Reserved, const(ch
 ///    To get extended error information, call the GetLastError function.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSSetListenerSecurityW(HANDLE hServer, void* pReserved, uint Reserved, const(wchar)* pListenerName, 
+BOOL WTSSetListenerSecurityW(HANDLE hServer, void* pReserved, uint Reserved, PWSTR pListenerName, 
                              uint SecurityInformation, void* pSecurityDescriptor);
 
 ///Configures the security descriptor of a Remote Desktop Services listener.
@@ -4148,7 +4139,7 @@ BOOL WTSSetListenerSecurityW(HANDLE hServer, void* pReserved, uint Reserved, con
 ///    To get extended error information, call the GetLastError function.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSSetListenerSecurityA(HANDLE hServer, void* pReserved, uint Reserved, const(char)* pListenerName, 
+BOOL WTSSetListenerSecurityA(HANDLE hServer, void* pReserved, uint Reserved, PSTR pListenerName, 
                              uint SecurityInformation, void* pSecurityDescriptor);
 
 ///Retrieves the security descriptor of a Remote Desktop Services listener.
@@ -4175,7 +4166,7 @@ BOOL WTSSetListenerSecurityA(HANDLE hServer, void* pReserved, uint Reserved, con
 ///    To get extended error information, call the GetLastError function.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSGetListenerSecurityW(HANDLE hServer, void* pReserved, uint Reserved, const(wchar)* pListenerName, 
+BOOL WTSGetListenerSecurityW(HANDLE hServer, void* pReserved, uint Reserved, PWSTR pListenerName, 
                              uint SecurityInformation, void* pSecurityDescriptor, uint nLength, 
                              uint* lpnLengthNeeded);
 
@@ -4203,7 +4194,7 @@ BOOL WTSGetListenerSecurityW(HANDLE hServer, void* pReserved, uint Reserved, con
 ///    To get extended error information, call the GetLastError function.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSGetListenerSecurityA(HANDLE hServer, void* pReserved, uint Reserved, const(char)* pListenerName, 
+BOOL WTSGetListenerSecurityA(HANDLE hServer, void* pReserved, uint Reserved, PSTR pListenerName, 
                              uint SecurityInformation, void* pSecurityDescriptor, uint nLength, 
                              uint* lpnLengthNeeded);
 
@@ -4225,7 +4216,7 @@ BOOL WTSEnableChildSessions(BOOL bEnable);
 ///    Returns nonzero if the function succeeds or zero otherwise.
 ///    
 @DllImport("WTSAPI32")
-BOOL WTSIsChildSessionsEnabled(int* pbEnabled);
+BOOL WTSIsChildSessionsEnabled(BOOL* pbEnabled);
 
 ///Retrieves the child session identifier, if present.
 ///Params:
@@ -4252,7 +4243,32 @@ BOOL WTSGetChildSessionId(uint* pSessionId);
 ///                <i>renderHintType</i> parameter.
 @DllImport("WTSAPI32")
 HRESULT WTSSetRenderHint(ulong* pRenderHintID, HWND hwndOwner, uint renderHintType, uint cbHintDataLength, 
-                         char* pHintData);
+                         ubyte* pHintData);
+
+///Retrieves the Remote Desktop Services session associated with a specified process.
+///Params:
+///    dwProcessId = Specifies a process identifier. Use the GetCurrentProcessId function to retrieve the process identifier for the
+///                  current process.
+///    pSessionId = Pointer to a variable that receives the identifier of the Remote Desktop Services session under which the
+///                 specified process is running. To retrieve the identifier of the session currently attached to the console, use
+///                 the WTSGetActiveConsoleSessionId function.
+///Returns:
+///    If the function succeeds, the return value is a nonzero value. If the function fails, the return value is zero.
+///    To get extended error information, call GetLastError.
+///    
+@DllImport("KERNEL32")
+BOOL ProcessIdToSessionId(uint dwProcessId, uint* pSessionId);
+
+///Retrieves the session identifier of the console session. The console session is the session that is currently
+///attached to the physical console. Note that it is not necessary that Remote Desktop Services be running for this
+///function to succeed.
+///Returns:
+///    The session identifier of the session that is attached to the physical console. If there is no session attached
+///    to the physical console, (for example, if the physical console session is in the process of being attached or
+///    detached), this function returns 0xFFFFFFFF.
+///    
+@DllImport("KERNEL32")
+uint WTSGetActiveConsoleSessionId();
 
 
 // Interfaces
@@ -4265,236 +4281,6 @@ struct ADsTSUserEx;
 
 @GUID("4F1DFCA6-3AAD-48E1-8406-4BC21A501D7C")
 struct Workspace;
-
-///Provides information to the audio engine about an audio endpoint. This interface is implemented by an audio endpoint.
-@GUID("30A99515-1527-4451-AF9F-00C5F0234DAF")
-interface IAudioEndpoint : IUnknown
-{
-    ///The <b>GetFrameFormat</b> method retrieves the format of the audio endpoint.
-    ///Params:
-    ///    ppFormat = Receives a pointer to a <b>WAVEFORMATEX</b> structure that contains the format information for the device
-    ///               that the audio endpoint represents. The implementation must allocate memory for the structure by using
-    ///               <b>CoTaskMemAlloc</b>. The caller must free the buffer by using <b>CoTaskMemFree</b>. For information about
-    ///               CoTaskMemAlloc and CoTaskMemFree, see the Windows SDK documentation.
-    ///Returns:
-    ///    If the method succeeds, it returns <b>S_OK</b>.
-    ///    
-    HRESULT GetFrameFormat(WAVEFORMATEX** ppFormat);
-    ///The <b>GetFramesPerPacket</b> method gets the maximum number of frames per packet that the audio endpoint can
-    ///support, based on the endpoint's period and the sample rate.
-    ///Params:
-    ///    pFramesPerPacket = Receives the maximum number of frames per packet that the endpoint can support.
-    ///Returns:
-    ///    If the method succeeds, it returns <b>S_OK</b>.
-    ///    
-    HRESULT GetFramesPerPacket(uint* pFramesPerPacket);
-    ///The <b>GetLatency</b> method gets the latency of the audio endpoint.
-    ///Params:
-    ///    pLatency = A pointer to an <b>HNSTIME</b> variable that receives the latency that is added to the stream by the audio
-    ///               endpoint.
-    ///Returns:
-    ///    If the method succeeds, it returns <b>S_OK</b>.
-    ///    
-    HRESULT GetLatency(long* pLatency);
-    ///The <b>SetStreamFlags</b> method sets the stream configuration flags on the audio endpoint.
-    ///Params:
-    ///    streamFlags = A bitwise <b>OR</b> of one or more of the AUDCLNT_STREAMFLAGS_XXX constants.
-    ///Returns:
-    ///    If the method succeeds, it returns <b>S_OK</b>.
-    ///    
-    HRESULT SetStreamFlags(uint streamFlags);
-    ///The <b>SetEventHandle</b> method sets the handle for the event that the endpoint uses to signal that it has
-    ///completed processing of a buffer.
-    ///Params:
-    ///    eventHandle = The event handle used to invoke a buffer completion callback.
-    ///Returns:
-    ///    If the method succeeds, it returns <b>S_OK</b>. If it fails, possible return codes include, but are not
-    ///    limited to, the following.
-    ///    
-    HRESULT SetEventHandle(HANDLE eventHandle);
-}
-
-///Gets the difference between the current read and write positions in the endpoint buffer. The <b>IAudioEndpointRT</b>
-///interface is used by the audio engine. <b>IAudioEndpointRT</b> methods can be called from a real-time processing
-///thread. The implementation of the methods of this interface must not block, access paged memory, or call any blocking
-///system routines.
-@GUID("DFD2005F-A6E5-4D39-A265-939ADA9FBB4D")
-interface IAudioEndpointRT : IUnknown
-{
-    ///The <b>GetCurrentPadding</b> method gets the amount, in 100-nanosecond units, of data that is queued up in the
-    ///endpoint.
-    ///Params:
-    ///    pPadding = Receives the number of frames available in the endpoint buffer.
-    ///    pAeCurrentPosition = Receives information about the position of the current frame in the endpoint buffer in an AE_CURRENT_POSITION
-    ///                         structure specified by the caller.
-    void    GetCurrentPadding(long* pPadding, AE_CURRENT_POSITION* pAeCurrentPosition);
-    ///The <b>ProcessingComplete</b> method notifies the endpoint that a processing pass has been completed.
-    void    ProcessingComplete();
-    ///The <b>SetPinInactive</b> method notifies the endpoint that it must change the state of the underlying stream
-    ///resources to an inactive state.
-    ///Returns:
-    ///    If the method succeeds, it returns <b>S_OK</b>.
-    ///    
-    HRESULT SetPinInactive();
-    ///The <b>SetPinActive</b> method notifies the endpoint that it must change the state of the underlying streaming
-    ///resources to an active state.
-    ///Returns:
-    ///    If the method succeeds, it returns <b>S_OK</b>.
-    ///    
-    HRESULT SetPinActive();
-}
-
-///Gets the input buffer for each processing pass.The <b>IAudioInputEndpointRT</b> interface is used by the audio
-///engine.
-@GUID("8026AB61-92B2-43C1-A1DF-5C37EBD08D82")
-interface IAudioInputEndpointRT : IUnknown
-{
-    ///The <b>GetInputDataPointer</b> method gets a pointer to the buffer from which data will be read by the audio
-    ///engine.
-    ///Params:
-    ///    pConnectionProperty = A pointer to an APO_CONNECTION_PROPERTYstructure. The caller sets the member values as follows: <ul>
-    ///                          <li><b>pBuffer</b> is set to <b>NULL</b>.</li> <li><b>u32ValidFrameCount</b> contains the number of frames
-    ///                          that need to be in the retrieved data pointer. The endpoint object must not cache this information. The audio
-    ///                          engine can change this number depending on its processing needs.</li> <li><b>u32BufferFlags</b> is set to
-    ///                          <b>BUFFER_INVALID</b>.</li> </ul> If this call completes successfully, the endpoint must set the member
-    ///                          values as follows: <ul> <li><b>pBuffer</b> points to valid memory where the data has been read. This could
-    ///                          include silence depending on the flags that were set in the <b>u32BufferFlags</b> member.</li>
-    ///                          <li><b>u32ValidFrameCount</b> is unchanged.</li> <li><b>u32BufferFlags</b> is set to <b>BUFFER_VALID</b> if
-    ///                          the data pointer contains valid data or to <b>BUFFER_SILENT</b> if the data pointer contains only silent
-    ///                          data. The data in the buffer does not actually need to be silence, but the buffer specified in <b>pBuffer</b>
-    ///                          must be capable of holding all the frames of silence contained in <b>u32ValidFrameCount</b> to match the
-    ///                          required frame count.</li> </ul>
-    ///    pAeTimeStamp = A pointer to an AE_CURRENT_POSITION structure that contains the time stamp of the data that is captured in
-    ///                   the buffer. This parameter is optional.
-    void GetInputDataPointer(APO_CONNECTION_PROPERTY* pConnectionProperty, AE_CURRENT_POSITION* pAeTimeStamp);
-    ///The <b>ReleaseInputDataPointer</b> method releases the acquired data pointer.
-    ///Params:
-    ///    u32FrameCount = The number of frames that have been consumed by the audio engine. This count might not be the same as the
-    ///                    value returned by the IAudioInputEndpointRT::GetInputDataPointer method in the
-    ///                    <i>pConnectionProperty</i>-&gt;<b>u32ValidFrameCount</b> member.
-    ///    pDataPointer = The pointer to the buffer retrieved by the GetInputDataPointer method received in the
-    ///                   <i>pConnectionProperty</i>-&gt;<b>pBuffer</b> member.
-    void ReleaseInputDataPointer(uint u32FrameCount, size_t pDataPointer);
-    ///The <b>PulseEndpoint</b> method is reserved.
-    void PulseEndpoint();
-}
-
-///Gets the output buffer for each processing pass. The <b>IAudioOutputEndpointRT</b> interface is used by the audio
-///engine.
-@GUID("8FA906E4-C31C-4E31-932E-19A66385E9AA")
-interface IAudioOutputEndpointRT : IUnknown
-{
-    ///The <b>GetOutputDataPointer</b> method returns a pointer to the output buffer in which data will be written by
-    ///the audio engine.
-    ///Params:
-    ///    u32FrameCount = The number of frames in the output buffer pointed to by the data pointer that is returned by this method. The
-    ///                    endpoint must not cache this information because this can be changed by the audio engine depending on its
-    ///                    processing requirements. For more information, see Remarks.
-    ///    pAeTimeStamp = A pointer to an AE_CURRENT_POSITION structure that specifies the time stamp of the data that is rendered.
-    ///                   This parameter is optional.
-    ///Returns:
-    ///    A pointer to the buffer to which data will be written.
-    ///    
-    size_t GetOutputDataPointer(uint u32FrameCount, AE_CURRENT_POSITION* pAeTimeStamp);
-    ///The <b>ReleaseOutputDataPointer</b> method releases the pointer to the output buffer.
-    ///Params:
-    ///    pConnectionProperty = A pointer to an APO_CONNECTION_PROPERTYstructure. The values in the structure must not be changed. The caller
-    ///                          sets the members as follows: <ul> <li><b>pBuffer</b> is set to the pointer to the output data buffer returned
-    ///                          by the IAudioOutputEndpointRT::GetOutputDataPointer method.</li> <li><b>u32ValidFrameCount</b> is set to the
-    ///                          actual number of frames that have been generated by the audio engine. The value might not be the same as the
-    ///                          frame count passed in the <i>u32FrameCount</i> parameter of the GetOutputDataPointer method.</li>
-    ///                          <li><b>u32BufferFlags</b> is set to <b>BUFFER_VALID</b> if the output buffer pointed to by the <b>pBuffer</b>
-    ///                          member contains valid data. <b>u32BufferFlags</b> is set to <b>BUFFER_SILENT</b> if the output buffer
-    ///                          contains only silent data. The data in the buffer does not actually need to be silence, but the buffer
-    ///                          specified in the <b>pBuffer</b> member must be capable of holding all the frames of silence contained in the
-    ///                          <b>u32ValidFrameCount</b> member. Therefore, if <b>BUFFER_SILENT</b> is specified, the endpoint should write
-    ///                          silence in the output buffer.</li> </ul>
-    void   ReleaseOutputDataPointer(const(APO_CONNECTION_PROPERTY)* pConnectionProperty);
-    ///The <b>PulseEndpoint</b> method is reserved. This method is called by the audio engine at the end of a processing
-    ///pass. The event handle is set by calling the IAudioEndpoint::SetEventHandle method.
-    void   PulseEndpoint();
-}
-
-///Initializes a device endpoint object and gets the capabilities of the device that it represents. A <i>device
-///endpoint</i> abstracts an audio device. The device can be a rendering device such as a speaker or a capture device
-///such as a microphone. A device endpoint must implement the <b>IAudioDeviceEndpoint</b> interface. To a get a
-///reference to the <b>IAudioDeviceEndpoint</b> interface of the device, the audio engine calls <b>QueryInterface</b> on
-///the audio endpoint (IAudioInputEndpointRT or IAudioOutputEndpointRT) for the device.
-@GUID("D4952F5A-A0B2-4CC4-8B82-9358488DD8AC")
-interface IAudioDeviceEndpoint : IUnknown
-{
-    ///The <b>SetBuffer</b> method initializes the endpoint and creates a buffer based on the format of the endpoint
-    ///into which the audio data is streamed.
-    ///Params:
-    ///    MaxPeriod = The processing time, in 100-nanosecond units, of the audio endpoint.
-    ///    u32LatencyCoefficient = The latency coefficient for the audio device. This value is used to calculate the latency. Latency =
-    ///                            <i>u32LatencyCoefficient</i> * <i>MaxPeriod</i>. <div class="alert"><b>Note</b> The device that the endpoint
-    ///                            represents has a minimum latency value. If the value of this parameter is less than the minimum latency of
-    ///                            the device or is zero, the endpoint object applies the minimum latency. The audio engine can obtain the
-    ///                            actual latency of the endpoint by calling the IAudioEndpoint::GetLatency method.</div> <div> </div>
-    ///Returns:
-    ///    If the method succeeds, it returns <b>S_OK</b>. If it fails, possible return codes include, but are not
-    ///    limited to, the following.
-    ///    
-    HRESULT SetBuffer(long MaxPeriod, uint u32LatencyCoefficient);
-    ///The <b>GetRTCaps</b> method queries whether the audio device is real-time (RT)-capable. This method is not used
-    ///in Remote Desktop Services implementations of IAudioDeviceEndpoint.
-    ///Params:
-    ///    pbIsRTCapable = Receives <b>TRUE</b> if the audio device is RT-capable, or <b>FALSE</b> otherwise. Remote Desktop Services
-    ///                    implementations should always return <b>FALSE</b>.
-    ///Returns:
-    ///    If the method succeeds, it returns <b>S_OK</b>.
-    ///    
-    HRESULT GetRTCaps(int* pbIsRTCapable);
-    ///The <b>GetEventDrivenCapable</b> method indicates whether the device endpoint is event driven. The device
-    ///endpoint controls the period of the audio engine by setting events that signal buffer availability.
-    ///Params:
-    ///    pbisEventCapable = A value of <b>TRUE</b> indicates that the device endpoint is event driven. A value of <b>FALSE</b> indicates
-    ///                       that it is not event driven. If the endpoint device is event driven, the audio engine can receive events from
-    ///                       an audio device endpoint.
-    ///Returns:
-    ///    If the method succeeds, it returns <b>S_OK</b>.
-    ///    
-    HRESULT GetEventDrivenCapable(int* pbisEventCapable);
-    ///The <b>WriteExclusiveModeParametersToSharedMemory</b> method creates and writes the exclusive-mode parameters to
-    ///shared memory.
-    ///Params:
-    ///    hTargetProcess = The handle of the process for which the handles will be duplicated.
-    ///    hnsPeriod = The periodicity, in 100-nanosecond units, of the device. This value must fall within the range of the minimum
-    ///                and maximum periodicity of the device represented by the endpoint.
-    ///    hnsBufferDuration = The buffer duration, in 100-nanosecond units, requested by the client.
-    ///    u32LatencyCoefficient = The latency coefficient of the audio endpoint. A client can obtain the actual latency of the endpoint by
-    ///                            calling the IAudioEndpoint::GetLatency method.
-    ///    pu32SharedMemorySize = Receives the size of the memory area shared by the service and the process.
-    ///    phSharedMemory = Receives a handle to the memory area shared by the service and the process.
-    ///Returns:
-    ///    If the method succeeds, it returns <b>S_OK</b>.
-    ///    
-    HRESULT WriteExclusiveModeParametersToSharedMemory(size_t hTargetProcess, long hnsPeriod, 
-                                                       long hnsBufferDuration, uint u32LatencyCoefficient, 
-                                                       uint* pu32SharedMemorySize, size_t* phSharedMemory);
-}
-
-///Controls the stream state of an endpoint.
-@GUID("C684B72A-6DF4-4774-BDF9-76B77509B653")
-interface IAudioEndpointControl : IUnknown
-{
-    ///The <b>Start</b> method starts the endpoint stream.
-    ///Returns:
-    ///    If the method succeeds, it returns <b>S_OK</b>.
-    ///    
-    HRESULT Start();
-    ///The <b>Reset</b> method resets the endpoint stream.
-    ///Returns:
-    ///    If the method succeeds, it returns <b>S_OK</b>.
-    ///    
-    HRESULT Reset();
-    ///The <b>Stop</b> method stops the endpoint stream.
-    ///Returns:
-    ///    If the method succeeds, it returns <b>S_OK</b>.
-    ///    
-    HRESULT Stop();
-}
 
 ///The property methods of the <b>IADsTSUserEx</b> interface can be used to examine and configure Remote Desktop
 ///Services user properties. Properties include logon, TerminalServicesHomeDirectory, remote control, session, and
@@ -4637,11 +4423,11 @@ interface ITSGAuthorizeConnectionSink : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT OnConnectionAuthorized(HRESULT hrIn, GUID mainSessionId, uint cbSoHResponse, char* pbSoHResponse, 
+    HRESULT OnConnectionAuthorized(HRESULT hrIn, GUID mainSessionId, uint cbSoHResponse, ubyte* pbSoHResponse, 
                                    uint idleTimeout, uint sessionTimeout, 
                                    __MIDL___MIDL_itf_tsgpolicyengine_0000_0000_0004 sessionTimeoutAction, 
                                    __MIDL___MIDL_itf_tsgpolicyengine_0000_0000_0006 trustClass, 
-                                   char* policyAttributes);
+                                   uint* policyAttributes);
 }
 
 ///Exposes methods that notify Remote Desktop Gateway (RD Gateway) about the result of an attempt to authorize a
@@ -4666,8 +4452,8 @@ interface ITSGAuthorizeResourceSink : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT OnChannelAuthorized(HRESULT hrIn, GUID mainSessionId, int subSessionId, char* allowedResourceNames, 
-                                uint numAllowedResourceNames, char* failedResourceNames, uint numFailedResourceNames);
+    HRESULT OnChannelAuthorized(HRESULT hrIn, GUID mainSessionId, int subSessionId, BSTR* allowedResourceNames, 
+                                uint numAllowedResourceNames, BSTR* failedResourceNames, uint numFailedResourceNames);
 }
 
 ///Exposes methods that authorize connections and resources. Implement this interface when you want to override the
@@ -4701,7 +4487,7 @@ interface ITSGPolicyEngine : IUnknown
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT AuthorizeConnection(GUID mainSessionId, BSTR username, AAAuthSchemes authType, BSTR clientMachineIP, 
-                                BSTR clientMachineName, char* sohData, uint numSOHBytes, char* cookieData, 
+                                BSTR clientMachineName, ubyte* sohData, uint numSOHBytes, ubyte* cookieData, 
                                 uint numCookieBytes, size_t userToken, ITSGAuthorizeConnectionSink pSink);
     ///Determines which resources the specified connection is authorized to connect to. Remote Desktop Gateway (RD
     ///Gateway) calls this method after a user has been successfully authenticated. The authorization plug-in should
@@ -4727,9 +4513,9 @@ interface ITSGPolicyEngine : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT AuthorizeResource(GUID mainSessionId, int subSessionId, BSTR username, char* resourceNames, 
-                              uint numResources, char* alternateResourceNames, uint numAlternateResourceName, 
-                              uint portNumber, BSTR operation, char* cookie, uint numBytesInCookie, 
+    HRESULT AuthorizeResource(GUID mainSessionId, int subSessionId, BSTR username, BSTR* resourceNames, 
+                              uint numResources, BSTR* alternateResourceNames, uint numAlternateResourceName, 
+                              uint portNumber, BSTR operation, ubyte* cookie, uint numBytesInCookie, 
                               ITSGAuthorizeResourceSink pSink);
     ///This method is reserved. It should always return <b>S_OK</b>.
     ///Returns:
@@ -4744,7 +4530,7 @@ interface ITSGPolicyEngine : IUnknown
     ///    If the method succeeds, it returns <b>S_OK</b>. Otherwise, it returns an <b>HRESULT</b> error code. If an
     ///    error code is returned, RD Gateway assumes that an SoH is not required.
     ///    
-    HRESULT IsQuarantineEnabled(int* quarantineEnabled);
+    HRESULT IsQuarantineEnabled(BOOL* quarantineEnabled);
 }
 
 ///Exposes methods that provide information about the creation or closing of sessions for a connection. Implement this
@@ -4894,7 +4680,7 @@ interface IWTSSBPlugin : IUnknown
     ///    Returns <b>S_OK</b> if successful.
     ///    
     HRESULT WTSSBX_SessionChangeNotification(WTSSBX_NOTIFICATION_TYPE NotificationType, int MachineId, 
-                                             uint NumOfSessions, char* SessionInfo);
+                                             uint NumOfSessions, WTSSBX_SESSION_INFO* SessionInfo);
     ///<p class="CCE_Message">[The IWTSSBPlugin interface is not supported after Windows Server 2008 R2. Starting with
     ///Windows Server 2012 please use the ITsSbPlugin interface.] Returns the ID of the server to which Terminal
     ///Services Session Broker (TS Session Broker) should direct the incoming connection. The redirection logic of the
@@ -4911,8 +4697,8 @@ interface IWTSSBPlugin : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful.
     ///    
-    HRESULT WTSSBX_GetMostSuitableServer(ushort* UserName, ushort* DomainName, ushort* ApplicationType, 
-                                         ushort* FarmName, int* pMachineId);
+    HRESULT WTSSBX_GetMostSuitableServer(PWSTR UserName, PWSTR DomainName, PWSTR ApplicationType, PWSTR FarmName, 
+                                         int* pMachineId);
     ///<p class="CCE_Message">[The IWTSSBPlugin interface is not supported after Windows Server 2008 R2. Starting with
     ///Windows Server 2012 please use the ITsSbPlugin interface.] Notifies the plug-in that it is about to be destroyed
     ///by Terminal Services Session Broker (TS Session Broker).
@@ -4936,7 +4722,7 @@ interface IWTSSBPlugin : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful.
     ///    
-    HRESULT WTSSBX_GetUserExternalSession(ushort* UserName, ushort* DomainName, ushort* ApplicationType, 
+    HRESULT WTSSBX_GetUserExternalSession(PWSTR UserName, PWSTR DomainName, PWSTR ApplicationType, 
                                           WTSSBX_IP_ADDRESS* RedirectorInternalIP, uint* pSessionId, 
                                           WTSSBX_MACHINE_CONNECT_INFO* pMachineConnectInfo);
 }
@@ -5483,9 +5269,9 @@ interface ITsSbTarget : IUnknown
     ///Retrieves or specifies the NetBIOS name of the target. This property is read/write.
     HRESULT put_TargetNetbios(BSTR Val);
     ///Retrieves or specifies the external IP addresses of the target. This property is read/write.
-    HRESULT get_IpAddresses(char* SOCKADDR, uint* numAddresses);
+    HRESULT get_IpAddresses(TSSD_ConnectionPoint* SOCKADDR, uint* numAddresses);
     ///Retrieves or specifies the external IP addresses of the target. This property is read/write.
-    HRESULT put_IpAddresses(char* SOCKADDR, uint numAddresses);
+    HRESULT put_IpAddresses(TSSD_ConnectionPoint* SOCKADDR, uint numAddresses);
     ///Retrieves or specifies the target state. This property is read/write.
     HRESULT get_TargetState(TARGET_STATE* pState);
     ///Retrieves or specifies the target state. This property is read/write.
@@ -5676,7 +5462,7 @@ interface ITsSbTaskPlugin : ITsSbPlugin
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetTaskQueue(BSTR pszHostName, uint SbTaskInfoSize, char* pITsSbTaskInfo);
+    HRESULT SetTaskQueue(BSTR pszHostName, uint SbTaskInfoSize, ITsSbTaskInfo* pITsSbTaskInfo);
 }
 
 ///Can be used to define custom properties as appropriate.
@@ -5913,7 +5699,7 @@ interface ITsSbClientConnection : IUnknown
     ///Retrieves an object that contains properties associated with the client connection. This property is read-only.
     HRESULT get_ClientConnectionPropertySet(ITsSbClientConnectionPropertySet* ppPropertySet);
     ///Whether this is the first assignment. This property is read-only.
-    HRESULT get_IsFirstAssignment(int* ppVal);
+    HRESULT get_IsFirstAssignment(BOOL* ppVal);
     ///Rd Farm Type. This property is read-only.
     HRESULT get_RdFarmType(RD_FARM_TYPE* pRdFarmType);
     ///User SID as a string. This property is read-only.
@@ -6158,7 +5944,7 @@ interface ITsSbResourcePluginStore : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT EnumerateEnvironments(uint* pdwCount, char* pVal);
+    HRESULT EnumerateEnvironments(uint* pdwCount, ITsSbEnvironment** pVal);
     ///Saves a target.
     ///Params:
     ///    pTarget = Pointer to the ITsSbTarget object to save.
@@ -6236,7 +6022,7 @@ interface ITsSbResourcePluginStore : IUnknown
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT EnumerateTargets(BSTR FarmName, BSTR EnvName, TS_SB_SORT_BY sortByFieldId, BSTR sortyByPropName, 
-                             uint* pdwCount, char* pVal);
+                             uint* pdwCount, ITsSbTarget** pVal);
     ///Enumerates a specified set of sessions.
     ///Params:
     ///    targetName = The name of the target.
@@ -6252,7 +6038,7 @@ interface ITsSbResourcePluginStore : IUnknown
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT EnumerateSessions(BSTR targetName, BSTR userName, BSTR userDomain, BSTR poolName, BSTR initialProgram, 
-                              TSSESSION_STATE* pSessionState, uint* pdwCount, char* ppVal);
+                              TSSESSION_STATE* pSessionState, uint* pdwCount, ITsSbSession** ppVal);
     ///Retrieves a property of a farm.
     ///Params:
     ///    farmName = The name of the farm.
@@ -6438,7 +6224,7 @@ interface ITsSbGlobalStore : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT EnumerateTargets(BSTR ProviderName, BSTR FarmName, BSTR EnvName, uint* pdwCount, char* pVal);
+    HRESULT EnumerateTargets(BSTR ProviderName, BSTR FarmName, BSTR EnvName, uint* pdwCount, ITsSbTarget** pVal);
     ///Returns an array that contains the environments present on the specified provider.
     ///Params:
     ///    ProviderName = The name of the provider.
@@ -6449,7 +6235,7 @@ interface ITsSbGlobalStore : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT EnumerateEnvironmentsByProvider(BSTR ProviderName, uint* pdwCount, char* ppVal);
+    HRESULT EnumerateEnvironmentsByProvider(BSTR ProviderName, uint* pdwCount, ITsSbEnvironment** ppVal);
     ///Returns an array that contains sessions on the specified provider.
     ///Params:
     ///    ProviderName = The name of the provider.
@@ -6466,7 +6252,8 @@ interface ITsSbGlobalStore : IUnknown
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT EnumerateSessions(BSTR ProviderName, BSTR targetName, BSTR userName, BSTR userDomain, BSTR poolName, 
-                              BSTR initialProgram, TSSESSION_STATE* pSessionState, uint* pdwCount, char* ppVal);
+                              BSTR initialProgram, TSSESSION_STATE* pSessionState, uint* pdwCount, 
+                              ITsSbSession** ppVal);
     ///Retrieves a property of a farm.
     ///Params:
     ///    farmName = The name of the farm.
@@ -6636,7 +6423,7 @@ interface ItsPubPlugin : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetResourceList(const(wchar)* userID, int* pceAppListSize, pluginResource** resourceList);
+    HRESULT GetResourceList(const(PWSTR) userID, int* pceAppListSize, pluginResource** resourceList);
     ///This method is reserved and should always return <b>E_NOTIMPL</b>.
     ///Params:
     ///    alias = This parameter is reserved.
@@ -6645,7 +6432,7 @@ interface ItsPubPlugin : IUnknown
     ///Returns:
     ///    This method must always return <b>E_NOTIMPL</b>.
     ///    
-    HRESULT GetResource(const(wchar)* alias_, int flags, pluginResource* resource);
+    HRESULT GetResource(const(PWSTR) alias_, int flags, pluginResource* resource);
     ///Returns the time that the cache was last updated. The RemoteApp and Desktop Connection Management service calls
     ///this method to determine whether the data in the Remote Desktop Web Access (RD Web Access) cache should be
     ///refreshed.
@@ -6676,8 +6463,8 @@ interface ItsPubPlugin : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT ResolveResource(uint* resourceType, char* resourceLocation, char* endPointName, ushort* userID, 
-                            ushort* alias_);
+    HRESULT ResolveResource(uint* resourceType, ushort* resourceLocation, ushort* endPointName, PWSTR userID, 
+                            PWSTR alias_);
 }
 
 ///Specifies methods that provide information about resources available to users of RemoteApp and Desktop Connections.
@@ -6702,7 +6489,7 @@ interface ItsPubPlugin2 : ItsPubPlugin
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetResource2List(const(wchar)* userID, int* pceAppListSize, pluginResource2** resourceList);
+    HRESULT GetResource2List(const(PWSTR) userID, int* pceAppListSize, pluginResource2** resourceList);
     ///This method is reserved and should always return <b>E_NOTIMPL</b>.
     ///Params:
     ///    alias = This parameter is reserved.
@@ -6711,7 +6498,7 @@ interface ItsPubPlugin2 : ItsPubPlugin
     ///Returns:
     ///    This method must always return <b>E_NOTIMPL</b>.
     ///    
-    HRESULT GetResource2(const(wchar)* alias_, int flags, pluginResource2* resource);
+    HRESULT GetResource2(const(PWSTR) alias_, int flags, pluginResource2* resource);
     ///Called to resolve a mapping between the specified user and a virtual machine in a personal virtual desktop
     ///collection.
     ///Params:
@@ -6728,9 +6515,9 @@ interface ItsPubPlugin2 : ItsPubPlugin
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT ResolvePersonalDesktop(const(ushort)* userId, const(ushort)* poolId, 
+    HRESULT ResolvePersonalDesktop(const(PWSTR) userId, const(PWSTR) poolId, 
                                    TSPUB_PLUGIN_PD_RESOLUTION_TYPE ePdResolutionType, 
-                                   TSPUB_PLUGIN_PD_ASSIGNMENT_TYPE* pPdAssignmentType, char* endPointName);
+                                   TSPUB_PLUGIN_PD_ASSIGNMENT_TYPE* pPdAssignmentType, ushort* endPointName);
     ///Called to delete a mapping between the specified user and a virtual machine in a personal virtual desktop
     ///collection.
     ///Params:
@@ -6741,8 +6528,7 @@ interface ItsPubPlugin2 : ItsPubPlugin
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT DeletePersonalDesktopAssignment(const(ushort)* userId, const(ushort)* poolId, 
-                                            const(ushort)* endpointName);
+    HRESULT DeletePersonalDesktopAssignment(const(PWSTR) userId, const(PWSTR) poolId, const(PWSTR) endpointName);
 }
 
 ///Exposes methods that allow a plug-in to manage third-party file name extensions in RemoteApp and Desktop Connection
@@ -6896,7 +6682,7 @@ interface IWTSListenerCallback : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT OnNewChannelConnection(IWTSVirtualChannel pChannel, BSTR data, int* pbAccept, 
+    HRESULT OnNewChannelConnection(IWTSVirtualChannel pChannel, BSTR data, BOOL* pbAccept, 
                                    IWTSVirtualChannelCallback* ppCallback);
 }
 
@@ -6917,7 +6703,7 @@ interface IWTSVirtualChannelCallback : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> on success. Results in no action if the call fails.
     ///    
-    HRESULT OnDataReceived(uint cbSize, char* pBuffer);
+    HRESULT OnDataReceived(uint cbSize, ubyte* pBuffer);
     ///Notifies the user that the channel has been closed. There are three ways for the channel to be closed: <ul>
     ///<li>The user has called the IWTSVirtualChannel::Close method.</li> <li>The Remote Desktop Connection (RDC) client
     ///has disconnected from the Remote Desktop Session Host (RD Session Host) server.</li> <li>The server has called
@@ -6948,7 +6734,7 @@ interface IWTSVirtualChannelManager : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> on success.
     ///    
-    HRESULT CreateListener(const(byte)* pszChannelName, uint uFlags, IWTSListenerCallback pListenerCallback, 
+    HRESULT CreateListener(const(ubyte)* pszChannelName, uint uFlags, IWTSListenerCallback pListenerCallback, 
                            IWTSListener* ppListener);
 }
 
@@ -6969,7 +6755,7 @@ interface IWTSVirtualChannel : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful.
     ///    
-    HRESULT Write(uint cbSize, char* pBuffer, IUnknown pReserved);
+    HRESULT Write(uint cbSize, ubyte* pBuffer, IUnknown pReserved);
     ///Closes the channel. If the channel has not already been closed, the <b>Close()</b> method will call the
     ///IWTSVirtualChannelCallback::OnClose() method into the associated virtual channel callback interface. After a
     ///channel is closed, any Write() call on it will fail.
@@ -7015,7 +6801,7 @@ interface IWTSBitmapRenderer : IUnknown
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT Render(GUID imageFormat, uint dwWidth, uint dwHeight, int cbStride, uint cbImageBuffer, 
-                   char* pImageBuffer);
+                   ubyte* pImageBuffer);
     ///Retrieves statistics for the RemoteFX media redirection bitmap renderer.
     ///Params:
     ///    pStatistics = Type: <b>BITMAP_RENDERER_STATISTICS*</b> The address of a BITMAP_RENDERER_STATISTICS structure that receives
@@ -7199,7 +6985,7 @@ interface IWRdsGraphicsChannelManager : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CreateChannel(const(byte)* pszChannelName, WRdsGraphicsChannelType channelType, 
+    HRESULT CreateChannel(const(ubyte)* pszChannelName, WRdsGraphicsChannelType channelType, 
                           IWRdsGraphicsChannel* ppVirtualChannel);
 }
 
@@ -7223,7 +7009,7 @@ interface IWTSProtocolManager : IUnknown
     ///    When you are implementing this method, return <b>S_OK</b> if the function succeeds. If it fails, return an
     ///    <b>HRESULT</b> value that indicates the error. For a list of common error codes, see Common HRESULT Values.
     ///    
-    HRESULT CreateListener(ushort* wszListenerName, IWTSProtocolListener* pProtocolListener);
+    HRESULT CreateListener(PWSTR wszListenerName, IWTSProtocolListener* pProtocolListener);
     ///<p class="CCE_Message">[<b>IWTSProtocolManager::NotifyServiceStateChange</b> is no longer available for use as of
     ///Windows Server 2012. Instead, use IWRdsProtocolManager::NotifyServiceStateChange.] Notifies the protocol provider
     ///that the state of the Remote Desktop Services service is changing.
@@ -7424,7 +7210,7 @@ interface IWTSProtocolConnection : IUnknown
     ///    UserToken = A pointer to the user token handle.
     ///    pDomainName = A pointer to a string that contains the domain name for the user.
     ///    pUserName = A pointer to a string that contains the user name.
-    HRESULT IsUserAllowedToLogon(uint SessionId, size_t UserToken, ushort* pDomainName, ushort* pUserName);
+    HRESULT IsUserAllowedToLogon(uint SessionId, size_t UserToken, PWSTR pDomainName, PWSTR pUserName);
     ///<p class="CCE_Message">[<b>IWTSProtocolConnection::SessionArbitrationEnumeration</b> is no longer available for
     ///use as of Windows Server 2012. Instead, use IWRdsProtocolConnection::SessionArbitrationEnumeration.] Retrieves a
     ///collection of session IDs for reconnection.
@@ -7435,7 +7221,7 @@ interface IWTSProtocolConnection : IUnknown
     ///    pdwSessionIdentifierCount = A pointer to an integer that specifies the number of disconnected session IDs referenced by the
     ///                                <i>pSessionIdArray</i> parameter.
     HRESULT SessionArbitrationEnumeration(size_t hUserToken, BOOL bSingleSessionPerUserEnabled, 
-                                          char* pSessionIdArray, uint* pdwSessionIdentifierCount);
+                                          uint* pSessionIdArray, uint* pdwSessionIdentifierCount);
     ///<p class="CCE_Message">[<b>IWTSProtocolConnection::LogonNotify</b> is no longer available for use as of Windows
     ///Server 2012. Instead, use IWRdsProtocolConnection::LogonNotify.] Specifies that the user has logged on to the
     ///session.
@@ -7444,7 +7230,7 @@ interface IWTSProtocolConnection : IUnknown
     ///    wszUserName = A pointer to a string that contains the user name.
     ///    wszDomainName = A pointer to a string that contains the domain name for the user.
     ///    SessionId = A pointer to a WTS_SESSION_ID structure that contains the session ID associated with the user.
-    HRESULT LogonNotify(size_t hClientToken, ushort* wszUserName, ushort* wszDomainName, WTS_SESSION_ID* SessionId);
+    HRESULT LogonNotify(size_t hClientToken, PWSTR wszUserName, PWSTR wszDomainName, WTS_SESSION_ID* SessionId);
     ///<p class="CCE_Message">[<b>IWTSProtocolConnection::GetUserData</b> is no longer available for use as of Windows
     ///Server 2012. Instead, use IWRdsProtocolSettings::MergeSettings.] Sends merged policy settings to the protocol and
     ///requests user policy settings from the protocol.
@@ -7506,8 +7292,8 @@ interface IWTSProtocolConnection : IUnknown
     ///                      argument.
     ///    pPropertyEntriesIn = One or more WTS_PROPERTY_VALUE structures that can be used to help find the requested property information.
     ///    pPropertyEntriesOut = One or more WTS_PROPERTY_VALUE structures that contain the requested property information.
-    HRESULT QueryProperty(GUID QueryType, uint ulNumEntriesIn, uint ulNumEntriesOut, char* pPropertyEntriesIn, 
-                          char* pPropertyEntriesOut);
+    HRESULT QueryProperty(GUID QueryType, uint ulNumEntriesIn, uint ulNumEntriesOut, 
+                          WTS_PROPERTY_VALUE* pPropertyEntriesIn, WTS_PROPERTY_VALUE* pPropertyEntriesOut);
     ///<p class="CCE_Message">[<b>IWTSProtocolConnection::GetShadowConnection</b> is no longer available for use as of
     ///Windows Server 2012. Instead, use IWRdsProtocolConnection::GetShadowConnection.] Retrieves a
     ///IWTSProtocolShadowConnection object from the protocol. The method must add a reference to the object before
@@ -7605,7 +7391,7 @@ interface IWTSProtocolShadowConnection : IUnknown
     ///    When you are implementing this method, return <b>S_OK</b> if the function succeeds. If it fails, return an
     ///    <b>HRESULT</b> value that indicates the error. For a list of common error codes, see Common HRESULT Values.
     ///    
-    HRESULT Start(ushort* pTargetServerName, uint TargetSessionId, ubyte HotKeyVk, ushort HotkeyModifiers, 
+    HRESULT Start(PWSTR pTargetServerName, uint TargetSessionId, ubyte HotKeyVk, ushort HotkeyModifiers, 
                   IWTSProtocolShadowCallback pShadowCallback);
     ///<p class="CCE_Message">[<b>IWTSProtocolShadowConnection::Stop</b> is no longer available for use as of Windows
     ///Server 2012. Instead, use IWRdsProtocolShadowConnection::Stop.] Notifies the protocol that shadowing has stopped.
@@ -7632,8 +7418,8 @@ interface IWTSProtocolShadowConnection : IUnknown
     ///    When you are implementing this method, return <b>S_OK</b> if the function succeeds. If it fails, return an
     ///    <b>HRESULT</b> value that indicates the error. For a list of common error codes, see Common HRESULT Values.
     ///    
-    HRESULT DoTarget(char* pParam1, uint Param1Size, char* pParam2, uint Param2Size, char* pParam3, 
-                     uint Param3Size, char* pParam4, uint Param4Size, ushort* pClientName);
+    HRESULT DoTarget(ubyte* pParam1, uint Param1Size, ubyte* pParam2, uint Param2Size, ubyte* pParam3, 
+                     uint Param3Size, ubyte* pParam4, uint Param4Size, PWSTR pClientName);
 }
 
 ///<p class="CCE_Message">[<b>IWTSProtocolShadowCallback</b> is no longer available for use as of Windows Server 2012.
@@ -7674,9 +7460,9 @@ interface IWTSProtocolShadowCallback : IUnknown
     ///    <b>HRESULT</b> value that indicates the error. Possible values include, but are not limited to, those in the
     ///    following list. For a list of common error codes, see Common HRESULT Values.
     ///    
-    HRESULT InvokeTargetShadow(ushort* pTargetServerName, uint TargetSessionId, char* pParam1, uint Param1Size, 
-                               char* pParam2, uint Param2Size, char* pParam3, uint Param3Size, char* pParam4, 
-                               uint Param4Size, ushort* pClientName);
+    HRESULT InvokeTargetShadow(PWSTR pTargetServerName, uint TargetSessionId, ubyte* pParam1, uint Param1Size, 
+                               ubyte* pParam2, uint Param2Size, ubyte* pParam3, uint Param3Size, ubyte* pParam4, 
+                               uint Param4Size, PWSTR pClientName);
 }
 
 ///<p class="CCE_Message">[<b>IWTSProtocolLicenseConnection</b> is no longer available for use as of Windows Server
@@ -7711,7 +7497,7 @@ interface IWTSProtocolLicenseConnection : IUnknown
     ///    <b>HRESULT</b> value that indicates the error. For a list of common error codes, see Common HRESULT Values.
     ///    The remote connection manager logs any errors that you return.
     ///    
-    HRESULT SendClientLicense(char* pClientLicense, uint cbClientLicense);
+    HRESULT SendClientLicense(ubyte* pClientLicense, uint cbClientLicense);
     ///<p class="CCE_Message">[<b>IWTSProtocolLicenseConnection::RequestClientLicense</b> is no longer available for use
     ///as of Windows Server 2012. Instead, use IWRdsProtocolLicenseConnection::RequestClientLicense.] Requests a license
     ///from the client.
@@ -7725,7 +7511,7 @@ interface IWTSProtocolLicenseConnection : IUnknown
     ///    When you are implementing this method, return <b>S_OK</b> if the function succeeds. If it fails, return an
     ///    <b>HRESULT</b> value that indicates the error. For a list of common error codes, see Common HRESULT Values.
     ///    
-    HRESULT RequestClientLicense(char* Reserve1, uint Reserve2, char* ppClientLicense, uint* pcbClientLicense);
+    HRESULT RequestClientLicense(ubyte* Reserve1, uint Reserve2, ubyte* ppClientLicense, uint* pcbClientLicense);
     ///<p class="CCE_Message">[<b>IWTSProtocolLicenseConnection::ProtocolComplete</b> is no longer available for use as
     ///of Windows Server 2012. Instead, use IWRdsProtocolLicenseConnection::ProtocolComplete.] Notifies the protocol
     ///whether the licensing process completed successfully.
@@ -7765,7 +7551,7 @@ interface IWTSProtocolLogonErrorRedirector : IUnknown
     ///    When you are implementing this method, return <b>S_OK</b> if the function succeeds. If it fails, return an
     ///    <b>HRESULT</b> value that indicates the error. For a list of common error codes, see Common HRESULT Values.
     ///    
-    HRESULT RedirectStatus(const(wchar)* pszMessage, WTS_LOGON_ERROR_REDIRECTOR_RESPONSE* pResponse);
+    HRESULT RedirectStatus(const(PWSTR) pszMessage, WTS_LOGON_ERROR_REDIRECTOR_RESPONSE* pResponse);
     ///<p class="CCE_Message">[<b>IWTSProtocolLogonErrorRedirector::RedirectMessage</b> is no longer available for use
     ///as of Windows Server 2012. Instead, use IWRdsProtocolLogonErrorRedirector::RedirectMessage.] Queries the protocol
     ///regarding how to redirect the logon message.
@@ -7779,7 +7565,7 @@ interface IWTSProtocolLogonErrorRedirector : IUnknown
     ///    When you are implementing this method, return <b>S_OK</b> if the function succeeds. If it fails, return an
     ///    <b>HRESULT</b> value that indicates the error. For a list of common error codes, see Common HRESULT Values.
     ///    
-    HRESULT RedirectMessage(const(wchar)* pszCaption, const(wchar)* pszMessage, uint uType, 
+    HRESULT RedirectMessage(const(PWSTR) pszCaption, const(PWSTR) pszMessage, uint uType, 
                             WTS_LOGON_ERROR_REDIRECTOR_RESPONSE* pResponse);
     ///<p class="CCE_Message">[<b>IWTSProtocolLogonErrorRedirector::RedirectLogonError</b> is no longer available for
     ///use as of Windows Server 2012. Instead, use IWRdsProtocolLogonErrorRedirector::RedirectLogonError.] Queries the
@@ -7798,7 +7584,7 @@ interface IWTSProtocolLogonErrorRedirector : IUnknown
     ///    When you are implementing this method, return <b>S_OK</b> if the function succeeds. If it fails, return an
     ///    <b>HRESULT</b> value that indicates the error. For a list of common error codes, see Common HRESULT Values.
     ///    
-    HRESULT RedirectLogonError(int ntsStatus, int ntsSubstatus, const(wchar)* pszCaption, const(wchar)* pszMessage, 
+    HRESULT RedirectLogonError(int ntsStatus, int ntsSubstatus, const(PWSTR) pszCaption, const(PWSTR) pszMessage, 
                                uint uType, WTS_LOGON_ERROR_REDIRECTOR_RESPONSE* pResponse);
 }
 
@@ -7816,7 +7602,7 @@ interface IWRdsRemoteFXGraphicsConnection : IUnknown
     ///    When you are implementing this method, return <b>S_OK</b> if the function succeeds. If it fails, return an
     ///    <b>HRESULT</b> value that indicates the error. For a list of common error codes, see Common HRESULT Values.
     ///    
-    HRESULT EnableRemoteFXGraphics(int* pEnableRemoteFXGraphics);
+    HRESULT EnableRemoteFXGraphics(BOOL* pEnableRemoteFXGraphics);
     ///<p class="CCE_Message">[The GetVirtualChannelTransport method is deprecated and should not be used. ] Retrieves
     ///the virtual channel transport object.
     ///Params:
@@ -7887,7 +7673,7 @@ interface IWRdsProtocolManager : IUnknown
     ///    When you are implementing this method, return <b>S_OK</b> if the function succeeds. If it fails, return an
     ///    <b>HRESULT</b> value that indicates the error. For a list of common error codes, see Common HRESULT Values.
     ///    
-    HRESULT CreateListener(ushort* wszListenerName, IWRdsProtocolListener* pProtocolListener);
+    HRESULT CreateListener(PWSTR wszListenerName, IWRdsProtocolListener* pProtocolListener);
     ///Notifies the protocol provider that the state of the Remote Desktop Services service is changing.
     ///Params:
     ///    pTSServiceStateChange = A pointer to a WRDS_SERVICE_STATE structure that specifies whether the service is starting, stopping, or
@@ -8132,7 +7918,7 @@ interface IWRdsProtocolConnection : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT IsUserAllowedToLogon(uint SessionId, size_t UserToken, ushort* pDomainName, ushort* pUserName);
+    HRESULT IsUserAllowedToLogon(uint SessionId, size_t UserToken, PWSTR pDomainName, PWSTR pUserName);
     ///Called after arbitration to allow the protocol to specify the sessions to be reconnected. The protocol extension
     ///should return <b>E_NOTIMPL</b> to use the default session arbitration.
     ///Params:
@@ -8148,7 +7934,7 @@ interface IWRdsProtocolConnection : IUnknown
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT SessionArbitrationEnumeration(size_t hUserToken, BOOL bSingleSessionPerUserEnabled, 
-                                          char* pSessionIdArray, uint* pdwSessionIdentifierCount);
+                                          uint* pSessionIdArray, uint* pdwSessionIdentifierCount);
     ///Called when the user has logged on to the session.
     ///Params:
     ///    hClientToken = A handle that represents the user token.
@@ -8160,7 +7946,7 @@ interface IWRdsProtocolConnection : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT LogonNotify(size_t hClientToken, ushort* wszUserName, ushort* wszDomainName, WTS_SESSION_ID* SessionId, 
+    HRESULT LogonNotify(size_t hClientToken, PWSTR wszUserName, PWSTR wszDomainName, WTS_SESSION_ID* SessionId, 
                         WRDS_CONNECTION_SETTINGS* pWRdsConnectionSettings);
     ///Notifies the protocol that the session is about to be disconnected.
     ///Params:
@@ -8232,8 +8018,8 @@ interface IWRdsProtocolConnection : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT QueryProperty(GUID QueryType, uint ulNumEntriesIn, uint ulNumEntriesOut, char* pPropertyEntriesIn, 
-                          char* pPropertyEntriesOut);
+    HRESULT QueryProperty(GUID QueryType, uint ulNumEntriesIn, uint ulNumEntriesOut, 
+                          WTS_PROPERTY_VALUE* pPropertyEntriesIn, WTS_PROPERTY_VALUE* pPropertyEntriesOut);
     ///Retrieves a reference to the shadow connection object from the protocol.
     ///Params:
     ///    ppShadowConnection = The address of IWRdsProtocolShadowConnection interface pointer that receives the reference to the shadow
@@ -8326,7 +8112,7 @@ interface IWRdsProtocolShadowConnection : IUnknown
     ///    When you are implementing this method, return <b>S_OK</b> if the function succeeds. If it fails, return an
     ///    <b>HRESULT</b> value that indicates the error. For a list of common error codes, see Common HRESULT Values.
     ///    
-    HRESULT Start(ushort* pTargetServerName, uint TargetSessionId, ubyte HotKeyVk, ushort HotkeyModifiers, 
+    HRESULT Start(PWSTR pTargetServerName, uint TargetSessionId, ubyte HotKeyVk, ushort HotkeyModifiers, 
                   IWRdsProtocolShadowCallback pShadowCallback);
     ///Notifies the protocol that shadowing has stopped.
     ///Returns:
@@ -8350,8 +8136,8 @@ interface IWRdsProtocolShadowConnection : IUnknown
     ///    When you are implementing this method, return <b>S_OK</b> if the function succeeds. If it fails, return an
     ///    <b>HRESULT</b> value that indicates the error. For a list of common error codes, see Common HRESULT Values.
     ///    
-    HRESULT DoTarget(char* pParam1, uint Param1Size, char* pParam2, uint Param2Size, char* pParam3, 
-                     uint Param3Size, char* pParam4, uint Param4Size, ushort* pClientName);
+    HRESULT DoTarget(ubyte* pParam1, uint Param1Size, ubyte* pParam2, uint Param2Size, ubyte* pParam3, 
+                     uint Param3Size, ubyte* pParam4, uint Param4Size, PWSTR pClientName);
 }
 
 ///Exposes methods called by the protocol to notify the Remote Desktop Services service to start or stop the target side
@@ -8387,9 +8173,9 @@ interface IWRdsProtocolShadowCallback : IUnknown
     ///    <b>HRESULT</b> value that indicates the error. Possible values include, but are not limited to, those in the
     ///    following list. For a list of common error codes, see Common HRESULT Values.
     ///    
-    HRESULT InvokeTargetShadow(ushort* pTargetServerName, uint TargetSessionId, char* pParam1, uint Param1Size, 
-                               char* pParam2, uint Param2Size, char* pParam3, uint Param3Size, char* pParam4, 
-                               uint Param4Size, ushort* pClientName);
+    HRESULT InvokeTargetShadow(PWSTR pTargetServerName, uint TargetSessionId, ubyte* pParam1, uint Param1Size, 
+                               ubyte* pParam2, uint Param2Size, ubyte* pParam3, uint Param3Size, ubyte* pParam4, 
+                               uint Param4Size, PWSTR pClientName);
 }
 
 ///Exposes methods used by the Remote Desktop Services service to perform the licensing handshake during a connection
@@ -8419,7 +8205,7 @@ interface IWRdsProtocolLicenseConnection : IUnknown
     ///    <b>HRESULT</b> value that indicates the error. For a list of common error codes, see Common HRESULT Values.
     ///    The remote connection manager logs any errors that you return.
     ///    
-    HRESULT SendClientLicense(char* pClientLicense, uint cbClientLicense);
+    HRESULT SendClientLicense(ubyte* pClientLicense, uint cbClientLicense);
     ///Requests a license from the client.
     ///Params:
     ///    Reserve1 = A pointer to a byte array that contains additional data that can be acted upon by the client.
@@ -8431,7 +8217,7 @@ interface IWRdsProtocolLicenseConnection : IUnknown
     ///    When you are implementing this method, return <b>S_OK</b> if the function succeeds. If it fails, return an
     ///    <b>HRESULT</b> value that indicates the error. For a list of common error codes, see Common HRESULT Values.
     ///    
-    HRESULT RequestClientLicense(char* Reserve1, uint Reserve2, char* ppClientLicense, uint* pcbClientLicense);
+    HRESULT RequestClientLicense(ubyte* Reserve1, uint Reserve2, ubyte* ppClientLicense, uint* pcbClientLicense);
     ///Notifies the protocol whether the licensing process completed successfully.
     ///Params:
     ///    ulComplete = An integer that specifies whether the licensing process ended successfully. A value of 1 means success. All
@@ -8462,7 +8248,7 @@ interface IWRdsProtocolLogonErrorRedirector : IUnknown
     ///    When you are implementing this method, return <b>S_OK</b> if the function succeeds. If it fails, return an
     ///    <b>HRESULT</b> value that indicates the error. For a list of common error codes, see Common HRESULT Values.
     ///    
-    HRESULT RedirectStatus(const(wchar)* pszMessage, WTS_LOGON_ERROR_REDIRECTOR_RESPONSE* pResponse);
+    HRESULT RedirectStatus(const(PWSTR) pszMessage, WTS_LOGON_ERROR_REDIRECTOR_RESPONSE* pResponse);
     ///Queries the protocol regarding how to redirect the logon message.
     ///Params:
     ///    pszCaption = A pointer to a string that contains the message box caption.
@@ -8474,7 +8260,7 @@ interface IWRdsProtocolLogonErrorRedirector : IUnknown
     ///    When you are implementing this method, return <b>S_OK</b> if the function succeeds. If it fails, return an
     ///    <b>HRESULT</b> value that indicates the error. For a list of common error codes, see Common HRESULT Values.
     ///    
-    HRESULT RedirectMessage(const(wchar)* pszCaption, const(wchar)* pszMessage, uint uType, 
+    HRESULT RedirectMessage(const(PWSTR) pszCaption, const(PWSTR) pszMessage, uint uType, 
                             WTS_LOGON_ERROR_REDIRECTOR_RESPONSE* pResponse);
     ///Queries the protocol for the action to take in response to a logon error. The RedirectStatus method is called by
     ///the Remote Desktop Services service to query the protocol for the action to take in response to a logon error.
@@ -8491,7 +8277,7 @@ interface IWRdsProtocolLogonErrorRedirector : IUnknown
     ///    When you are implementing this method, return <b>S_OK</b> if the function succeeds. If it fails, return an
     ///    <b>HRESULT</b> value that indicates the error. For a list of common error codes, see Common HRESULT Values.
     ///    
-    HRESULT RedirectLogonError(int ntsStatus, int ntsSubstatus, const(wchar)* pszCaption, const(wchar)* pszMessage, 
+    HRESULT RedirectLogonError(int ntsStatus, int ntsSubstatus, const(PWSTR) pszCaption, const(PWSTR) pszMessage, 
                                uint uType, WTS_LOGON_ERROR_REDIRECTOR_RESPONSE* pResponse);
 }
 
@@ -8506,7 +8292,7 @@ interface IWRdsWddmIddProps : IUnknown
     ///Returns:
     ///    S_OK or error code
     ///    
-    HRESULT GetHardwareId(char* pDisplayDriverHardwareId, uint Count);
+    HRESULT GetHardwareId(PWSTR pDisplayDriverHardwareId, uint Count);
     ///<p class="CCE_Message">[Some information relates to pre-released product which may be substantially modified
     ///before it's commercially released. Microsoft makes no warranties, express or implied, with respect to the
     ///information provided here.] Termsrv uses this method to return a handle of the loaded WDDM ID driver to the
@@ -8738,6 +8524,236 @@ interface IRemoteDesktopClient : IDispatch
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT detachEvent(BSTR eventName, IDispatch callback);
+}
+
+///Provides information to the audio engine about an audio endpoint. This interface is implemented by an audio endpoint.
+@GUID("30A99515-1527-4451-AF9F-00C5F0234DAF")
+interface IAudioEndpoint : IUnknown
+{
+    ///The <b>GetFrameFormat</b> method retrieves the format of the audio endpoint.
+    ///Params:
+    ///    ppFormat = Receives a pointer to a <b>WAVEFORMATEX</b> structure that contains the format information for the device
+    ///               that the audio endpoint represents. The implementation must allocate memory for the structure by using
+    ///               <b>CoTaskMemAlloc</b>. The caller must free the buffer by using <b>CoTaskMemFree</b>. For information about
+    ///               CoTaskMemAlloc and CoTaskMemFree, see the Windows SDK documentation.
+    ///Returns:
+    ///    If the method succeeds, it returns <b>S_OK</b>.
+    ///    
+    HRESULT GetFrameFormat(WAVEFORMATEX** ppFormat);
+    ///The <b>GetFramesPerPacket</b> method gets the maximum number of frames per packet that the audio endpoint can
+    ///support, based on the endpoint's period and the sample rate.
+    ///Params:
+    ///    pFramesPerPacket = Receives the maximum number of frames per packet that the endpoint can support.
+    ///Returns:
+    ///    If the method succeeds, it returns <b>S_OK</b>.
+    ///    
+    HRESULT GetFramesPerPacket(uint* pFramesPerPacket);
+    ///The <b>GetLatency</b> method gets the latency of the audio endpoint.
+    ///Params:
+    ///    pLatency = A pointer to an <b>HNSTIME</b> variable that receives the latency that is added to the stream by the audio
+    ///               endpoint.
+    ///Returns:
+    ///    If the method succeeds, it returns <b>S_OK</b>.
+    ///    
+    HRESULT GetLatency(long* pLatency);
+    ///The <b>SetStreamFlags</b> method sets the stream configuration flags on the audio endpoint.
+    ///Params:
+    ///    streamFlags = A bitwise <b>OR</b> of one or more of the AUDCLNT_STREAMFLAGS_XXX constants.
+    ///Returns:
+    ///    If the method succeeds, it returns <b>S_OK</b>.
+    ///    
+    HRESULT SetStreamFlags(uint streamFlags);
+    ///The <b>SetEventHandle</b> method sets the handle for the event that the endpoint uses to signal that it has
+    ///completed processing of a buffer.
+    ///Params:
+    ///    eventHandle = The event handle used to invoke a buffer completion callback.
+    ///Returns:
+    ///    If the method succeeds, it returns <b>S_OK</b>. If it fails, possible return codes include, but are not
+    ///    limited to, the following.
+    ///    
+    HRESULT SetEventHandle(HANDLE eventHandle);
+}
+
+///Gets the difference between the current read and write positions in the endpoint buffer. The <b>IAudioEndpointRT</b>
+///interface is used by the audio engine. <b>IAudioEndpointRT</b> methods can be called from a real-time processing
+///thread. The implementation of the methods of this interface must not block, access paged memory, or call any blocking
+///system routines.
+@GUID("DFD2005F-A6E5-4D39-A265-939ADA9FBB4D")
+interface IAudioEndpointRT : IUnknown
+{
+    ///The <b>GetCurrentPadding</b> method gets the amount, in 100-nanosecond units, of data that is queued up in the
+    ///endpoint.
+    ///Params:
+    ///    pPadding = Receives the number of frames available in the endpoint buffer.
+    ///    pAeCurrentPosition = Receives information about the position of the current frame in the endpoint buffer in an AE_CURRENT_POSITION
+    ///                         structure specified by the caller.
+    void    GetCurrentPadding(long* pPadding, AE_CURRENT_POSITION* pAeCurrentPosition);
+    ///The <b>ProcessingComplete</b> method notifies the endpoint that a processing pass has been completed.
+    void    ProcessingComplete();
+    ///The <b>SetPinInactive</b> method notifies the endpoint that it must change the state of the underlying stream
+    ///resources to an inactive state.
+    ///Returns:
+    ///    If the method succeeds, it returns <b>S_OK</b>.
+    ///    
+    HRESULT SetPinInactive();
+    ///The <b>SetPinActive</b> method notifies the endpoint that it must change the state of the underlying streaming
+    ///resources to an active state.
+    ///Returns:
+    ///    If the method succeeds, it returns <b>S_OK</b>.
+    ///    
+    HRESULT SetPinActive();
+}
+
+///Gets the input buffer for each processing pass.The <b>IAudioInputEndpointRT</b> interface is used by the audio
+///engine.
+@GUID("8026AB61-92B2-43C1-A1DF-5C37EBD08D82")
+interface IAudioInputEndpointRT : IUnknown
+{
+    ///The <b>GetInputDataPointer</b> method gets a pointer to the buffer from which data will be read by the audio
+    ///engine.
+    ///Params:
+    ///    pConnectionProperty = A pointer to an APO_CONNECTION_PROPERTYstructure. The caller sets the member values as follows: <ul>
+    ///                          <li><b>pBuffer</b> is set to <b>NULL</b>.</li> <li><b>u32ValidFrameCount</b> contains the number of frames
+    ///                          that need to be in the retrieved data pointer. The endpoint object must not cache this information. The audio
+    ///                          engine can change this number depending on its processing needs.</li> <li><b>u32BufferFlags</b> is set to
+    ///                          <b>BUFFER_INVALID</b>.</li> </ul> If this call completes successfully, the endpoint must set the member
+    ///                          values as follows: <ul> <li><b>pBuffer</b> points to valid memory where the data has been read. This could
+    ///                          include silence depending on the flags that were set in the <b>u32BufferFlags</b> member.</li>
+    ///                          <li><b>u32ValidFrameCount</b> is unchanged.</li> <li><b>u32BufferFlags</b> is set to <b>BUFFER_VALID</b> if
+    ///                          the data pointer contains valid data or to <b>BUFFER_SILENT</b> if the data pointer contains only silent
+    ///                          data. The data in the buffer does not actually need to be silence, but the buffer specified in <b>pBuffer</b>
+    ///                          must be capable of holding all the frames of silence contained in <b>u32ValidFrameCount</b> to match the
+    ///                          required frame count.</li> </ul>
+    ///    pAeTimeStamp = A pointer to an AE_CURRENT_POSITION structure that contains the time stamp of the data that is captured in
+    ///                   the buffer. This parameter is optional.
+    void GetInputDataPointer(APO_CONNECTION_PROPERTY* pConnectionProperty, AE_CURRENT_POSITION* pAeTimeStamp);
+    ///The <b>ReleaseInputDataPointer</b> method releases the acquired data pointer.
+    ///Params:
+    ///    u32FrameCount = The number of frames that have been consumed by the audio engine. This count might not be the same as the
+    ///                    value returned by the IAudioInputEndpointRT::GetInputDataPointer method in the
+    ///                    <i>pConnectionProperty</i>-&gt;<b>u32ValidFrameCount</b> member.
+    ///    pDataPointer = The pointer to the buffer retrieved by the GetInputDataPointer method received in the
+    ///                   <i>pConnectionProperty</i>-&gt;<b>pBuffer</b> member.
+    void ReleaseInputDataPointer(uint u32FrameCount, size_t pDataPointer);
+    ///The <b>PulseEndpoint</b> method is reserved.
+    void PulseEndpoint();
+}
+
+///Gets the output buffer for each processing pass. The <b>IAudioOutputEndpointRT</b> interface is used by the audio
+///engine.
+@GUID("8FA906E4-C31C-4E31-932E-19A66385E9AA")
+interface IAudioOutputEndpointRT : IUnknown
+{
+    ///The <b>GetOutputDataPointer</b> method returns a pointer to the output buffer in which data will be written by
+    ///the audio engine.
+    ///Params:
+    ///    u32FrameCount = The number of frames in the output buffer pointed to by the data pointer that is returned by this method. The
+    ///                    endpoint must not cache this information because this can be changed by the audio engine depending on its
+    ///                    processing requirements. For more information, see Remarks.
+    ///    pAeTimeStamp = A pointer to an AE_CURRENT_POSITION structure that specifies the time stamp of the data that is rendered.
+    ///                   This parameter is optional.
+    ///Returns:
+    ///    A pointer to the buffer to which data will be written.
+    ///    
+    size_t GetOutputDataPointer(uint u32FrameCount, AE_CURRENT_POSITION* pAeTimeStamp);
+    ///The <b>ReleaseOutputDataPointer</b> method releases the pointer to the output buffer.
+    ///Params:
+    ///    pConnectionProperty = A pointer to an APO_CONNECTION_PROPERTYstructure. The values in the structure must not be changed. The caller
+    ///                          sets the members as follows: <ul> <li><b>pBuffer</b> is set to the pointer to the output data buffer returned
+    ///                          by the IAudioOutputEndpointRT::GetOutputDataPointer method.</li> <li><b>u32ValidFrameCount</b> is set to the
+    ///                          actual number of frames that have been generated by the audio engine. The value might not be the same as the
+    ///                          frame count passed in the <i>u32FrameCount</i> parameter of the GetOutputDataPointer method.</li>
+    ///                          <li><b>u32BufferFlags</b> is set to <b>BUFFER_VALID</b> if the output buffer pointed to by the <b>pBuffer</b>
+    ///                          member contains valid data. <b>u32BufferFlags</b> is set to <b>BUFFER_SILENT</b> if the output buffer
+    ///                          contains only silent data. The data in the buffer does not actually need to be silence, but the buffer
+    ///                          specified in the <b>pBuffer</b> member must be capable of holding all the frames of silence contained in the
+    ///                          <b>u32ValidFrameCount</b> member. Therefore, if <b>BUFFER_SILENT</b> is specified, the endpoint should write
+    ///                          silence in the output buffer.</li> </ul>
+    void   ReleaseOutputDataPointer(const(APO_CONNECTION_PROPERTY)* pConnectionProperty);
+    ///The <b>PulseEndpoint</b> method is reserved. This method is called by the audio engine at the end of a processing
+    ///pass. The event handle is set by calling the IAudioEndpoint::SetEventHandle method.
+    void   PulseEndpoint();
+}
+
+///Initializes a device endpoint object and gets the capabilities of the device that it represents. A <i>device
+///endpoint</i> abstracts an audio device. The device can be a rendering device such as a speaker or a capture device
+///such as a microphone. A device endpoint must implement the <b>IAudioDeviceEndpoint</b> interface. To a get a
+///reference to the <b>IAudioDeviceEndpoint</b> interface of the device, the audio engine calls <b>QueryInterface</b> on
+///the audio endpoint (IAudioInputEndpointRT or IAudioOutputEndpointRT) for the device.
+@GUID("D4952F5A-A0B2-4CC4-8B82-9358488DD8AC")
+interface IAudioDeviceEndpoint : IUnknown
+{
+    ///The <b>SetBuffer</b> method initializes the endpoint and creates a buffer based on the format of the endpoint
+    ///into which the audio data is streamed.
+    ///Params:
+    ///    MaxPeriod = The processing time, in 100-nanosecond units, of the audio endpoint.
+    ///    u32LatencyCoefficient = The latency coefficient for the audio device. This value is used to calculate the latency. Latency =
+    ///                            <i>u32LatencyCoefficient</i> * <i>MaxPeriod</i>. <div class="alert"><b>Note</b> The device that the endpoint
+    ///                            represents has a minimum latency value. If the value of this parameter is less than the minimum latency of
+    ///                            the device or is zero, the endpoint object applies the minimum latency. The audio engine can obtain the
+    ///                            actual latency of the endpoint by calling the IAudioEndpoint::GetLatency method.</div> <div> </div>
+    ///Returns:
+    ///    If the method succeeds, it returns <b>S_OK</b>. If it fails, possible return codes include, but are not
+    ///    limited to, the following.
+    ///    
+    HRESULT SetBuffer(long MaxPeriod, uint u32LatencyCoefficient);
+    ///The <b>GetRTCaps</b> method queries whether the audio device is real-time (RT)-capable. This method is not used
+    ///in Remote Desktop Services implementations of IAudioDeviceEndpoint.
+    ///Params:
+    ///    pbIsRTCapable = Receives <b>TRUE</b> if the audio device is RT-capable, or <b>FALSE</b> otherwise. Remote Desktop Services
+    ///                    implementations should always return <b>FALSE</b>.
+    ///Returns:
+    ///    If the method succeeds, it returns <b>S_OK</b>.
+    ///    
+    HRESULT GetRTCaps(BOOL* pbIsRTCapable);
+    ///The <b>GetEventDrivenCapable</b> method indicates whether the device endpoint is event driven. The device
+    ///endpoint controls the period of the audio engine by setting events that signal buffer availability.
+    ///Params:
+    ///    pbisEventCapable = A value of <b>TRUE</b> indicates that the device endpoint is event driven. A value of <b>FALSE</b> indicates
+    ///                       that it is not event driven. If the endpoint device is event driven, the audio engine can receive events from
+    ///                       an audio device endpoint.
+    ///Returns:
+    ///    If the method succeeds, it returns <b>S_OK</b>.
+    ///    
+    HRESULT GetEventDrivenCapable(BOOL* pbisEventCapable);
+    ///The <b>WriteExclusiveModeParametersToSharedMemory</b> method creates and writes the exclusive-mode parameters to
+    ///shared memory.
+    ///Params:
+    ///    hTargetProcess = The handle of the process for which the handles will be duplicated.
+    ///    hnsPeriod = The periodicity, in 100-nanosecond units, of the device. This value must fall within the range of the minimum
+    ///                and maximum periodicity of the device represented by the endpoint.
+    ///    hnsBufferDuration = The buffer duration, in 100-nanosecond units, requested by the client.
+    ///    u32LatencyCoefficient = The latency coefficient of the audio endpoint. A client can obtain the actual latency of the endpoint by
+    ///                            calling the IAudioEndpoint::GetLatency method.
+    ///    pu32SharedMemorySize = Receives the size of the memory area shared by the service and the process.
+    ///    phSharedMemory = Receives a handle to the memory area shared by the service and the process.
+    ///Returns:
+    ///    If the method succeeds, it returns <b>S_OK</b>.
+    ///    
+    HRESULT WriteExclusiveModeParametersToSharedMemory(size_t hTargetProcess, long hnsPeriod, 
+                                                       long hnsBufferDuration, uint u32LatencyCoefficient, 
+                                                       uint* pu32SharedMemorySize, size_t* phSharedMemory);
+}
+
+///Controls the stream state of an endpoint.
+@GUID("C684B72A-6DF4-4774-BDF9-76B77509B653")
+interface IAudioEndpointControl : IUnknown
+{
+    ///The <b>Start</b> method starts the endpoint stream.
+    ///Returns:
+    ///    If the method succeeds, it returns <b>S_OK</b>.
+    ///    
+    HRESULT Start();
+    ///The <b>Reset</b> method resets the endpoint stream.
+    ///Returns:
+    ///    If the method succeeds, it returns <b>S_OK</b>.
+    ///    
+    HRESULT Reset();
+    ///The <b>Stop</b> method stops the endpoint stream.
+    ///Returns:
+    ///    If the method succeeds, it returns <b>S_OK</b>.
+    ///    
+    HRESULT Stop();
 }
 
 

@@ -4,8 +4,9 @@ module windows.tpmbaseservices;
 
 public import windows.core;
 public import windows.com : HRESULT;
+public import windows.systemservices : BOOL, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Structs
@@ -27,9 +28,9 @@ struct TBS_CONTEXT_PARAMS2
 {
     ///The version of the TBS context implementation. This must be set to TPM_VERSION_20.
     uint version_;
-    union
+union
     {
-        struct
+struct
         {
             uint _bitfield174;
         }
@@ -141,8 +142,8 @@ uint Tbsip_Context_Close(void* hContext);
 ///                command returns. If the supplied buffer is too small, this parameter, on output, is set to the required size, in
 ///                bytes, for the result.
 @DllImport("tbs")
-uint Tbsip_Submit_Command(void* hContext, uint Locality, uint Priority, char* pabCommand, uint cbCommand, 
-                          char* pabResult, uint* pcbResult);
+uint Tbsip_Submit_Command(void* hContext, uint Locality, uint Priority, ubyte* pabCommand, uint cbCommand, 
+                          ubyte* pabResult, uint* pcbResult);
 
 ///Cancels all outstanding commands for the specified context.
 ///Params:
@@ -193,7 +194,8 @@ uint Tbsip_Cancel_Commands(void* hContext);
 ///    width="60%"> A specified output pointer is not valid. </td> </tr> </table>
 ///    
 @DllImport("tbs")
-uint Tbsi_Physical_Presence_Command(void* hContext, char* pabInput, uint cbInput, char* pabOutput, uint* pcbOutput);
+uint Tbsi_Physical_Presence_Command(void* hContext, ubyte* pabInput, uint cbInput, ubyte* pabOutput, 
+                                    uint* pcbOutput);
 
 ///Retrieves the most recent Windows Boot Configuration Log (WBCL), also referred to as a TCG log.
 ///Params:
@@ -228,7 +230,7 @@ uint Tbsi_Physical_Presence_Command(void* hContext, char* pabInput, uint cbInput
 ///    Windows Server 2008: </b>This return value is not available. </td> </tr> </table>
 ///    
 @DllImport("tbs")
-uint Tbsi_Get_TCG_Log(void* hContext, char* pOutputBuf, uint* pOutputBufLen);
+uint Tbsi_Get_TCG_Log(void* hContext, ubyte* pOutputBuf, uint* pOutputBufLen);
 
 ///Obtains the version of the TPM on the computer.
 ///Params:
@@ -236,7 +238,7 @@ uint Tbsi_Get_TCG_Log(void* hContext, char* pOutputBuf, uint* pOutputBufLen);
 ///    Info = A pointer to a TPM_DEVICE_INFO structure is returned containing the version information about the TPM. The
 ///           location must be large enough to hold four 32-bit values.
 @DllImport("tbs")
-uint Tbsi_GetDeviceInfo(uint Size, char* Info);
+uint Tbsi_GetDeviceInfo(uint Size, void* Info);
 
 ///Retrieves the owner authorization of the TPM if the information is available in the local registry.
 ///Params:
@@ -271,7 +273,7 @@ uint Tbsi_GetDeviceInfo(uint Size, char* Info);
 ///    width="60%"> The requested TPM ownerAuth value does not match the TPM version. </td> </tr> </table>
 ///    
 @DllImport("tbs")
-uint Tbsi_Get_OwnerAuth(void* hContext, uint ownerauthType, char* pOutputBuf, uint* pOutputBufLen);
+uint Tbsi_Get_OwnerAuth(void* hContext, uint ownerauthType, ubyte* pOutputBuf, uint* pOutputBufLen);
 
 ///Invalidates the PCRs if the ELAM driver detects a policy-violation (a rootkit, for example).
 ///Returns:
@@ -288,10 +290,10 @@ uint Tbsi_Get_OwnerAuth(void* hContext, uint ownerauthType, char* pOutputBuf, ui
 uint Tbsi_Revoke_Attestation();
 
 @DllImport("DSOUND")
-HRESULT GetDeviceID(char* pbWindowsAIK, uint cbWindowsAIK, uint* pcbResult, int* pfProtectedByTPM);
+HRESULT GetDeviceID(ubyte* pbWindowsAIK, uint cbWindowsAIK, uint* pcbResult, BOOL* pfProtectedByTPM);
 
 @DllImport("tbs")
-HRESULT GetDeviceIDString(const(wchar)* pszWindowsAIK, uint cchWindowsAIK, uint* pcchResult, int* pfProtectedByTPM);
+HRESULT GetDeviceIDString(PWSTR pszWindowsAIK, uint cchWindowsAIK, uint* pcchResult, BOOL* pfProtectedByTPM);
 
 @DllImport("tbs")
 uint Tbsi_Create_Windows_Key(uint keyHandle);
@@ -337,6 +339,6 @@ uint Tbsi_Create_Windows_Key(uint keyHandle);
 ///    <td width="60%"> The Trusted Platform Module (TPM) Security Device is deactivated. </td> </tr> </table>
 ///    
 @DllImport("tbs")
-uint Tbsi_Get_TCG_Log_Ex(uint logType, char* pbOutput, uint* pcbOutput);
+uint Tbsi_Get_TCG_Log_Ex(uint logType, ubyte* pbOutput, uint* pcbOutput);
 
 

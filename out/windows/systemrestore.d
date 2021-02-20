@@ -6,7 +6,7 @@ public import windows.core;
 public import windows.systemservices : BOOL;
 public import windows.windowsprogramming : FILETIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Structs

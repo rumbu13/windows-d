@@ -4,9 +4,15 @@ module windows.deviceaccess;
 
 public import windows.core;
 public import windows.com : HRESULT, IUnknown;
+public import windows.systemservices : PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
+
+// Constants
+
+
+enum GUID CLSID_DeviceIoControl = GUID("12d3e372-874b-457d-9fdf-73977778686c");
 
 // Functions
 
@@ -22,7 +28,7 @@ extern(Windows):
 ///                    Access Rights Constants, Creating and Opening Files, and ACCESS_MASK.
 ///    createAsync = Asynchronous interface to control binding for this instance. For more information, see ICreateDeviceAccessAsync.
 @DllImport("deviceaccess")
-HRESULT CreateDeviceAccessInstance(const(wchar)* deviceInterfacePath, uint desiredAccess, 
+HRESULT CreateDeviceAccessInstance(const(PWSTR) deviceInterfacePath, uint desiredAccess, 
                                    ICreateDeviceAccessAsync* createAsync);
 
 
@@ -53,7 +59,7 @@ interface IDeviceIoControl : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT DeviceIoControlSync(uint ioControlCode, char* inputBuffer, uint inputBufferSize, char* outputBuffer, 
+    HRESULT DeviceIoControlSync(uint ioControlCode, ubyte* inputBuffer, uint inputBufferSize, ubyte* outputBuffer, 
                                 uint outputBufferSize, uint* bytesReturned);
     ///The <b>DeviceIoControlAsync</b> method sends an asynchronous device input/output (I/O) control request to the
     ///device interface that the call to the CreateDeviceAccessInstance function specified.
@@ -71,7 +77,7 @@ interface IDeviceIoControl : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT DeviceIoControlAsync(uint ioControlCode, char* inputBuffer, uint inputBufferSize, char* outputBuffer, 
+    HRESULT DeviceIoControlAsync(uint ioControlCode, ubyte* inputBuffer, uint inputBufferSize, ubyte* outputBuffer, 
                                  uint outputBufferSize, IDeviceRequestCompletionCallback requestCompletionCallback, 
                                  size_t* cancelContext);
     ///The <b>CancelOperation</b> method attempts to cancel a previously issued call by using the DeviceIoControlAsync

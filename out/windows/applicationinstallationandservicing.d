@@ -8,12 +8,12 @@ public import windows.com : HRESULT, IUnknown;
 public import windows.deviceanddriverinstallation : SP_DEVINFO_DATA, SetupFileLogInfo;
 public import windows.security : CERT_CONTEXT;
 public import windows.structuredstorage : IStream;
-public import windows.systemservices : BOOL, HANDLE, HINSTANCE, LARGE_INTEGER,
-                                       ULARGE_INTEGER;
+public import windows.systemservices : BOOL, HANDLE, HINSTANCE, LARGE_INTEGER, PSTR,
+                                       PWSTR, ULARGE_INTEGER;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : ACTCTX_SECTION_KEYED_DATA_ASSEMBLY_METADATA, FILETIME, HKEY;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -631,8 +631,8 @@ enum : int
 ///    </tr> <tr> <td width="40%"> <dl> <dt><b><b>FALSE</b></b></dt> <dt>0</dt> </dl> </td> <td width="60%"> Validation
 ///    was canceled. The callback function return <b>FALSE</b> to stop validation. </td> </tr> </table>
 ///    
-alias LPDISPLAYVAL = BOOL function(void* pContext, RESULTTYPES uiType, const(wchar)* szwVal, 
-                                   const(wchar)* szwDescription, const(wchar)* szwLocation);
+alias LPDISPLAYVAL = BOOL function(void* pContext, RESULTTYPES uiType, const(PWSTR) szwVal, 
+                                   const(PWSTR) szwDescription, const(PWSTR) szwLocation);
 ///The <b>LPEVALCOMCALLBACK</b> specification defines a callback function prototype. The IValidate::SetStatus method
 ///enables an authoring tool to receive information about the progress of validation through the registered callback
 ///function.
@@ -672,7 +672,7 @@ alias LPDISPLAYVAL = BOOL function(void* pContext, RESULTTYPES uiType, const(wch
 ///    </tr> <tr> <td width="40%"> <dl> <dt><b><b>FALSE</b></b></dt> <dt>0</dt> </dl> </td> <td width="60%"> Validation
 ///    was canceled. The callback function return <b>FALSE</b> to stop validation. </td> </tr> </table>
 ///    
-alias LPEVALCOMCALLBACK = BOOL function(STATUSTYPES iStatus, const(wchar)* szData, void* pContext);
+alias LPEVALCOMCALLBACK = BOOL function(STATUSTYPES iStatus, const(PWSTR) szData, void* pContext);
 ///The <b>INSTALLUI_HANDLER</b> function prototype defines a callback function that the installer calls for progress
 ///notification and error messages. For more information on the usage of this function prototype, a sample code snippet
 ///is available in Handling Progress Messages Using MsiSetExternalUI.
@@ -761,7 +761,7 @@ alias LPEVALCOMCALLBACK = BOOL function(STATUSTYPES iStatus, const(wchar)* szDat
 ///    The following return values map to the buttons specified by the message box style: IDOK<div> </div>IDCANCEL<div>
 ///    </div>IDABORT<div> </div>IDRETRY<div> </div>IDIGNORE<div> </div>IDYES<div> </div>IDNO
 ///    
-alias INSTALLUI_HANDLERA = int function(void* pvContext, uint iMessageType, const(char)* szMessage);
+alias INSTALLUI_HANDLERA = int function(void* pvContext, uint iMessageType, const(PSTR) szMessage);
 ///The <b>INSTALLUI_HANDLER</b> function prototype defines a callback function that the installer calls for progress
 ///notification and error messages. For more information on the usage of this function prototype, a sample code snippet
 ///is available in Handling Progress Messages Using MsiSetExternalUI.
@@ -850,7 +850,7 @@ alias INSTALLUI_HANDLERA = int function(void* pvContext, uint iMessageType, cons
 ///    The following return values map to the buttons specified by the message box style: IDOK<div> </div>IDCANCEL<div>
 ///    </div>IDABORT<div> </div>IDRETRY<div> </div>IDIGNORE<div> </div>IDYES<div> </div>IDNO
 ///    
-alias INSTALLUI_HANDLERW = int function(void* pvContext, uint iMessageType, const(wchar)* szMessage);
+alias INSTALLUI_HANDLERW = int function(void* pvContext, uint iMessageType, const(PWSTR) szMessage);
 ///The <b>INSTALLUI_HANDLER_RECORD</b> function prototype defines a callback function that the installer calls for
 ///progress notification and error messages. Call the <b>MsiSetExternalUIRecord</b> function to enable a record-base
 ///external user-interface (UI) handler. <b>Windows Installer 3.0 and Windows Installer 2.0: </b>Not supported.
@@ -941,7 +941,7 @@ alias INSTALLUI_HANDLERW = int function(void* pvContext, uint iMessageType, cons
 ///    The following return values map to the buttons specified by the message box style: IDOK<div> </div>IDCANCEL<div>
 ///    </div>IDABORT<div> </div>IDRETRY<div> </div>IDIGNORE<div> </div>IDYES<div> </div>IDNO
 ///    
-alias INSTALLUI_HANDLER_RECORD = int function(void* pvContext, uint iMessageType, uint hRecord);
+alias INSTALLUI_HANDLER_RECORD = int function(void* pvContext, uint iMessageType, MSIHANDLE hRecord);
 alias PINSTALLUI_HANDLER_RECORD = int function();
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -973,6 +973,12 @@ alias PSP_FILE_CALLBACK_W = uint function(void* Context, uint Notification, size
 // Structs
 
 
+@RAIIFree!MsiCloseHandle
+struct MSIHANDLE
+{
+    uint Value;
+}
+
 ///The <b>ACTIVATION_CONTEXT_QUERY_INDEX</b> structure is used by QueryActCtxW function.
 struct ACTIVATION_CONTEXT_QUERY_INDEX
 {
@@ -986,17 +992,17 @@ struct ACTIVATION_CONTEXT_QUERY_INDEX
 struct ASSEMBLY_FILE_DETAILED_INFORMATION
 {
     ///This value is always 0.
-    uint          ulFlags;
+    uint         ulFlags;
     ///Length in bytes of the file name pointed to by <b>lpFileName</b>. The count does not include the terminating null
     ///character.
-    uint          ulFilenameLength;
+    uint         ulFilenameLength;
     ///Length in bytes of the path string pointed to by <b>lpFilePath</b> The count does not include the terminating
     ///null character.
-    uint          ulPathLength;
+    uint         ulPathLength;
     ///Null-terminated string that specifies the name of the file.
-    const(wchar)* lpFileName;
+    const(PWSTR) lpFileName;
     ///Null-terminated string that specifies the path to the file named in <b>lpFileName</b>.
-    const(wchar)* lpFilePath;
+    const(PWSTR) lpFilePath;
 }
 
 ///The <b>ACTIVATION_CONTEXT_ASSEMBLY_DETAILED_INFORMATION</b> structure is used by the QueryActCtxW function.
@@ -1031,15 +1037,15 @@ struct ACTIVATION_CONTEXT_ASSEMBLY_DETAILED_INFORMATION
     ///Length of the assembly directory name in bytes.
     uint          ulAssemblyDirectoryNameLength;
     ///Pointer to a null-terminated string that contains a textually-encoded format of the assembly's identity.
-    const(wchar)* lpAssemblyEncodedAssemblyIdentity;
+    const(PWSTR)  lpAssemblyEncodedAssemblyIdentity;
     ///Pointer to a null-terminated string that indicates the original path to this assembly's manifest.
-    const(wchar)* lpAssemblyManifestPath;
+    const(PWSTR)  lpAssemblyManifestPath;
     ///Pointer to a null-terminated string that indicates the path of whatever policy assembly was used to determine
     ///that this version of the assembly should be loaded. If this member is null, no policy was used to decide to load
     ///this version.
-    const(wchar)* lpAssemblyPolicyPath;
+    const(PWSTR)  lpAssemblyPolicyPath;
     ///Pointer to a null-terminated string that indicates the folder from which this assembly was loaded.
-    const(wchar)* lpAssemblyDirectoryName;
+    const(PWSTR)  lpAssemblyDirectoryName;
     uint          ulFileCount;
 }
 
@@ -1080,38 +1086,190 @@ struct ACTIVATION_CONTEXT_COMPATIBILITY_INFORMATION
 struct ACTIVATION_CONTEXT_DETAILED_INFORMATION
 {
     ///This value is always 0.
-    uint          dwFlags;
+    uint         dwFlags;
     ///This value specifies the format of the returned information. On WindowsÂ XP and WindowsÂ Server 2003 this
     ///member is always 1.
-    uint          ulFormatVersion;
+    uint         ulFormatVersion;
     ///Number of assemblies in the activation context.
-    uint          ulAssemblyCount;
+    uint         ulAssemblyCount;
     ///Specifies the kind of path from which this assembly's manifest was loaded. This member is always one of the
     ///following constants:
-    uint          ulRootManifestPathType;
+    uint         ulRootManifestPathType;
     ///Number of characters in the manifest path.
-    uint          ulRootManifestPathChars;
+    uint         ulRootManifestPathChars;
     ///Specifies the kind of path from which this assembly's application configuration manifest was loaded. This member
     ///is always one of the following constants:
-    uint          ulRootConfigurationPathType;
+    uint         ulRootConfigurationPathType;
     ///Number of characters in any application configuration file path.
-    uint          ulRootConfigurationPathChars;
+    uint         ulRootConfigurationPathChars;
     ///Specifies the kind of path from which this application manifest was loaded. This member is always one of the
     ///following constants:
-    uint          ulAppDirPathType;
+    uint         ulAppDirPathType;
     ///Number of characters in the application directory.
-    uint          ulAppDirPathChars;
+    uint         ulAppDirPathChars;
     ///Path of the application manifest.
-    const(wchar)* lpRootManifestPath;
+    const(PWSTR) lpRootManifestPath;
     ///Path of the configuration file.
-    const(wchar)* lpRootConfigurationPath;
+    const(PWSTR) lpRootConfigurationPath;
     ///Path of the application directory.
-    const(wchar)* lpAppDirPath;
+    const(PWSTR) lpAppDirPath;
+}
+
+///The <b>ACTCTX</b> structure is used by the CreateActCtx function to create the activation context.
+struct ACTCTXA
+{
+    ///The size, in bytes, of this structure. This is used to determine the version of this structure.
+    uint        cbSize;
+    ///Flags that indicate how the values included in this structure are to be used. Set any undefined bits in
+    ///<b>dwFlags</b> to 0. If any undefined bits are not set to 0, the call to CreateActCtx that creates the activation
+    ///context fails and returns an invalid parameter error code. <table> <tr> <th>Bit flag</th> <th>Meaning</th> </tr>
+    ///<tr> <td width="40%"><a id="ACTCTX_FLAG_PROCESSOR_ARCHITECTURE_VALID"></a><a
+    ///id="actctx_flag_processor_architecture_valid"></a><dl> <dt><b>ACTCTX_FLAG_PROCESSOR_ARCHITECTURE_VALID</b></dt>
+    ///<dt>1</dt> </dl> </td> <td width="60%"> 0x001 </td> </tr> <tr> <td width="40%"><a
+    ///id="ACTCTX_FLAG_LANGID_VALID"></a><a id="actctx_flag_langid_valid"></a><dl>
+    ///<dt><b>ACTCTX_FLAG_LANGID_VALID</b></dt> <dt>2</dt> </dl> </td> <td width="60%"> 0x002 </td> </tr> <tr> <td
+    ///width="40%"><a id="ACTCTX_FLAG_ASSEMBLY_DIRECTORY_VALID"></a><a
+    ///id="actctx_flag_assembly_directory_valid"></a><dl> <dt><b>ACTCTX_FLAG_ASSEMBLY_DIRECTORY_VALID</b></dt>
+    ///<dt>4</dt> </dl> </td> <td width="60%"> 0x004 </td> </tr> <tr> <td width="40%"><a
+    ///id="ACTCTX_FLAG_RESOURCE_NAME_VALID"></a><a id="actctx_flag_resource_name_valid"></a><dl>
+    ///<dt><b>ACTCTX_FLAG_RESOURCE_NAME_VALID</b></dt> <dt>8</dt> </dl> </td> <td width="60%"> 0x008 </td> </tr> <tr>
+    ///<td width="40%"><a id="ACTCTX_FLAG_SET_PROCESS_DEFAULT"></a><a id="actctx_flag_set_process_default"></a><dl>
+    ///<dt><b>ACTCTX_FLAG_SET_PROCESS_DEFAULT</b></dt> <dt>16</dt> </dl> </td> <td width="60%"> 0x010 </td> </tr> <tr>
+    ///<td width="40%"><a id="ACTCTX_FLAG_APPLICATION_NAME_VALID"></a><a
+    ///id="actctx_flag_application_name_valid"></a><dl> <dt><b>ACTCTX_FLAG_APPLICATION_NAME_VALID</b></dt> <dt>32</dt>
+    ///</dl> </td> <td width="60%"> 0x020 </td> </tr> <tr> <td width="40%"><a id="ACTCTX_FLAG_HMODULE_VALID"></a><a
+    ///id="actctx_flag_hmodule_valid"></a><dl> <dt><b>ACTCTX_FLAG_HMODULE_VALID</b></dt> <dt>128</dt> </dl> </td> <td
+    ///width="60%"> 0x080 </td> </tr> </table>
+    uint        dwFlags;
+    ///Null-terminated string specifying the path of the manifest file or PE image to be used to create the activation
+    ///context. If this path refers to an EXE or DLL file, the <b>lpResourceName</b> member is required.
+    const(PSTR) lpSource;
+    ///Identifies the type of processor used. Specifies the system's processor architecture. This value can be one of
+    ///the following values:
+    ushort      wProcessorArchitecture;
+    ///Specifies the language manifest that should be used. The default is the current user's current UI language. If
+    ///the requested language cannot be found, an approximation is searched for using the following order: <ul> <li>The
+    ///current user's specific language. For example, for US English (1033).</li> <li>The current user's primary
+    ///language. For example, for English (9).</li> <li>The current system's specific language.</li> <li>The current
+    ///system's primary language.</li> <li>A nonspecific worldwide language. Language neutral (0).</li> </ul>
+    ushort      wLangId;
+    ///The base directory in which to perform private assembly probing if assemblies in the activation context are not
+    ///present in the system-wide store.
+    const(PSTR) lpAssemblyDirectory;
+    ///Pointer to a null-terminated string that contains the resource name to be loaded from the PE specified in
+    ///<b>hModule</b> or <b>lpSource</b>. If the resource name is an integer, set this member using MAKEINTRESOURCE.
+    ///This member is required if <b>lpSource</b> refers to an EXE or DLL.
+    const(PSTR) lpResourceName;
+    ///The name of the current application. If the value of this member is set to null, the name of the executable that
+    ///launched the current process is used.
+    const(PSTR) lpApplicationName;
+    ///Use this member rather than <b>lpSource</b> if you have already loaded a DLL and wish to use it to create
+    ///activation contexts rather than using a path in <b>lpSource</b>. See <b>lpResourceName</b> for the rules of
+    ///looking up resources in this module.
+    ptrdiff_t   hModule;
+}
+
+///The <b>ACTCTX</b> structure is used by the CreateActCtx function to create the activation context.
+struct ACTCTXW
+{
+    ///The size, in bytes, of this structure. This is used to determine the version of this structure.
+    uint         cbSize;
+    ///Flags that indicate how the values included in this structure are to be used. Set any undefined bits in
+    ///<b>dwFlags</b> to 0. If any undefined bits are not set to 0, the call to CreateActCtx that creates the activation
+    ///context fails and returns an invalid parameter error code. <table> <tr> <th>Bit flag</th> <th>Meaning</th> </tr>
+    ///<tr> <td width="40%"><a id="ACTCTX_FLAG_PROCESSOR_ARCHITECTURE_VALID"></a><a
+    ///id="actctx_flag_processor_architecture_valid"></a><dl> <dt><b>ACTCTX_FLAG_PROCESSOR_ARCHITECTURE_VALID</b></dt>
+    ///<dt>1</dt> </dl> </td> <td width="60%"> 0x001 </td> </tr> <tr> <td width="40%"><a
+    ///id="ACTCTX_FLAG_LANGID_VALID"></a><a id="actctx_flag_langid_valid"></a><dl>
+    ///<dt><b>ACTCTX_FLAG_LANGID_VALID</b></dt> <dt>2</dt> </dl> </td> <td width="60%"> 0x002 </td> </tr> <tr> <td
+    ///width="40%"><a id="ACTCTX_FLAG_ASSEMBLY_DIRECTORY_VALID"></a><a
+    ///id="actctx_flag_assembly_directory_valid"></a><dl> <dt><b>ACTCTX_FLAG_ASSEMBLY_DIRECTORY_VALID</b></dt>
+    ///<dt>4</dt> </dl> </td> <td width="60%"> 0x004 </td> </tr> <tr> <td width="40%"><a
+    ///id="ACTCTX_FLAG_RESOURCE_NAME_VALID"></a><a id="actctx_flag_resource_name_valid"></a><dl>
+    ///<dt><b>ACTCTX_FLAG_RESOURCE_NAME_VALID</b></dt> <dt>8</dt> </dl> </td> <td width="60%"> 0x008 </td> </tr> <tr>
+    ///<td width="40%"><a id="ACTCTX_FLAG_SET_PROCESS_DEFAULT"></a><a id="actctx_flag_set_process_default"></a><dl>
+    ///<dt><b>ACTCTX_FLAG_SET_PROCESS_DEFAULT</b></dt> <dt>16</dt> </dl> </td> <td width="60%"> 0x010 </td> </tr> <tr>
+    ///<td width="40%"><a id="ACTCTX_FLAG_APPLICATION_NAME_VALID"></a><a
+    ///id="actctx_flag_application_name_valid"></a><dl> <dt><b>ACTCTX_FLAG_APPLICATION_NAME_VALID</b></dt> <dt>32</dt>
+    ///</dl> </td> <td width="60%"> 0x020 </td> </tr> <tr> <td width="40%"><a id="ACTCTX_FLAG_HMODULE_VALID"></a><a
+    ///id="actctx_flag_hmodule_valid"></a><dl> <dt><b>ACTCTX_FLAG_HMODULE_VALID</b></dt> <dt>128</dt> </dl> </td> <td
+    ///width="60%"> 0x080 </td> </tr> </table>
+    uint         dwFlags;
+    ///Null-terminated string specifying the path of the manifest file or PE image to be used to create the activation
+    ///context. If this path refers to an EXE or DLL file, the <b>lpResourceName</b> member is required.
+    const(PWSTR) lpSource;
+    ///Identifies the type of processor used. Specifies the system's processor architecture. This value can be one of
+    ///the following values:
+    ushort       wProcessorArchitecture;
+    ///Specifies the language manifest that should be used. The default is the current user's current UI language. If
+    ///the requested language cannot be found, an approximation is searched for using the following order: <ul> <li>The
+    ///current user's specific language. For example, for US English (1033).</li> <li>The current user's primary
+    ///language. For example, for English (9).</li> <li>The current system's specific language.</li> <li>The current
+    ///system's primary language.</li> <li>A nonspecific worldwide language. Language neutral (0).</li> </ul>
+    ushort       wLangId;
+    ///The base directory in which to perform private assembly probing if assemblies in the activation context are not
+    ///present in the system-wide store.
+    const(PWSTR) lpAssemblyDirectory;
+    ///Pointer to a null-terminated string that contains the resource name to be loaded from the PE specified in
+    ///<b>hModule</b> or <b>lpSource</b>. If the resource name is an integer, set this member using MAKEINTRESOURCE.
+    ///This member is required if <b>lpSource</b> refers to an EXE or DLL.
+    const(PWSTR) lpResourceName;
+    ///The name of the current application. If the value of this member is set to null, the name of the executable that
+    ///launched the current process is used.
+    const(PWSTR) lpApplicationName;
+    ///Use this member rather than <b>lpSource</b> if you have already loaded a DLL and wish to use it to create
+    ///activation contexts rather than using a path in <b>lpSource</b>. See <b>lpResourceName</b> for the rules of
+    ///looking up resources in this module.
+    ptrdiff_t    hModule;
+}
+
+///The <b>ACTCTX_SECTION_KEYED_DATA</b> structure is used by the FindActCtxSectionString and FindActCtxSectionGuid
+///functions to return the activation context information along with either the GUID or 32-bit integer-tagged activation
+///context section.
+struct ACTCTX_SECTION_KEYED_DATA
+{
+    ///The size, in bytes, of the activation context keyed data structure.
+    uint   cbSize;
+    ///Number that indicates the format of the data in the section where the key was found. Clients should verify that
+    ///the data format version is as expected rather than trying to interpret the values of unfamiliar data formats.
+    ///This number is only changed when major non-backward-compatible changes to the section data formats need to be
+    ///made. The current format version is 1.
+    uint   ulDataFormatVersion;
+    ///Pointer to the redirection data found associated with the section identifier and key.
+    void*  lpData;
+    ///Number of bytes in the structure referred to by <b>lpData</b>. Note that the data structures grow over time; do
+    ///not access members in the instance data that extend beyond <b>ulLength</b>.
+    uint   ulLength;
+    ///Returned pointer to a section-specific data structure which is global to the activation context section where the
+    ///key was found. Its interpretation depends on the section identifier requested.
+    void*  lpSectionGlobalData;
+    ///Number of bytes in the section global data block referred to by <b>lpSectionGlobalData</b>. Note that the data
+    ///structures grow over time and you may receive an old format activation context data block; do not access members
+    ///in the section global data that extend beyond <b>ulSectionGlobalDataLength</b>.
+    uint   ulSectionGlobalDataLength;
+    ///Pointer to the base of the section where the key was found. Some instance data contains offsets relative to the
+    ///section base address, in which case this pointer value is used.
+    void*  lpSectionBase;
+    ///Number of bytes for the entire section starting at <b>lpSectionBase</b>. May be used to verify that offset/length
+    ///pairs, which are specified as relative to the section base are wholly contained in the section.
+    uint   ulSectionTotalLength;
+    ///Handle to the activation context where the key was found. First, the active activation context for the thread is
+    ///searched, followed by the process-default activation context and then the system-compatible-default-activation
+    ///context. This member indicates which activation context contained the section and key requested. This is only
+    ///returned if the FIND_ACTCTX_SECTION_KEY_RETURN_HACTCTX flag is passed. Note that when this is returned, the
+    ///caller must call ReleaseActCtx() on the activation context handle returned to release system resources when all
+    ///other references to the activation context have been released.
+    HANDLE hActCtx;
+    ///Cardinal number of the assembly in the activation context that provided the redirection information found. This
+    ///value can be presented to QueryActCtxW for more information about the contributing assembly.
+    uint   ulAssemblyRosterIndex;
+    uint   ulFlags;
+    ACTCTX_SECTION_KEYED_DATA_ASSEMBLY_METADATA AssemblyMetadata;
 }
 
 struct PMSIHANDLE
 {
-    uint m_h;
+    MSIHANDLE m_h;
 }
 
 ///The <b>MSIPATCHSEQUENCEINFO</b> structure is used by the MsiDeterminePatchSequence and MsiDetermineApplicablePatches
@@ -1119,7 +1277,7 @@ struct PMSIHANDLE
 struct MSIPATCHSEQUENCEINFOA
 {
     ///Pointer to the path of a patch file, an XML blob, or an XML file.
-    const(char)*     szPatchData;
+    const(PSTR)      szPatchData;
     ///Qualifies <b>szPatchData</b> as a patch file, an XML blob, or an XML file. <table> <tr> <th>Value</th>
     ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="MSIPATCH_DATATYPE_PATCHFILE"></a><a
     ///id="msipatch_datatype_patchfile"></a><dl> <dt><b>MSIPATCH_DATATYPE_PATCHFILE</b></dt> <dt>0</dt> </dl> </td> <td
@@ -1143,7 +1301,7 @@ struct MSIPATCHSEQUENCEINFOA
 struct MSIPATCHSEQUENCEINFOW
 {
     ///Pointer to the path of a patch file, an XML blob, or an XML file.
-    const(wchar)*    szPatchData;
+    const(PWSTR)     szPatchData;
     ///Qualifies <b>szPatchData</b> as a patch file, an XML blob, or an XML file. <table> <tr> <th>Value</th>
     ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="MSIPATCH_DATATYPE_PATCHFILE"></a><a
     ///id="msipatch_datatype_patchfile"></a><dl> <dt><b>MSIPATCH_DATATYPE_PATCHFILE</b></dt> <dt>0</dt> </dl> </td> <td
@@ -1190,7 +1348,7 @@ struct ASSEMBLY_INFO
     ///The size of the files that comprise the assembly in kilobytes (KB).
     ULARGE_INTEGER uliAssemblySizeInKB;
     ///A pointer to a null-terminated string that contains the path to the manifest file.
-    const(wchar)*  pszCurrentAssemblyPathBuf;
+    PWSTR          pszCurrentAssemblyPathBuf;
     uint           cchBuf;
 }
 
@@ -1200,9 +1358,9 @@ struct ASSEMBLY_INFO
 struct FUSION_INSTALL_REFERENCE
 {
     ///The size of the structure in bytes.
-    uint          cbSize;
+    uint         cbSize;
     ///Reserved, this member must be zero.
-    uint          dwFlags;
+    uint         dwFlags;
     ///The application that uses the side-by-side assembly. This parameter can have one of the following values: <table>
     ///<tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="FUSION_REFCOUNT_MSI_GUID"></a><a
     ///id="fusion_refcount_msi_guid"></a><dl> <dt><b>FUSION_REFCOUNT_MSI_GUID</b></dt> </dl> </td> <td width="60%"> The
@@ -1223,169 +1381,17 @@ struct FUSION_INSTALL_REFERENCE
     ///the existence of opaque references. </td> </tr> <tr> <td width="40%"><a
     ///id="FUSION_REFCOUNT_OSINSTALL_GUID"></a><a id="fusion_refcount_osinstall_guid"></a><dl>
     ///<dt><b>FUSION_REFCOUNT_OSINSTALL_GUID</b></dt> </dl> </td> <td width="60%"> Reserved </td> </tr> </table>
-    GUID          guidScheme;
+    GUID         guidScheme;
     ///A pointer to a string value that identifies the application that references assembly. The meaning of this
     ///identifier depends on the <b>guidScheme</b> parameter.
-    const(wchar)* szIdentifier;
-    const(wchar)* szNonCannonicalData;
+    const(PWSTR) szIdentifier;
+    const(PWSTR) szNonCannonicalData;
 }
 
 struct PROTECTED_FILE_DATA
 {
     ushort[260] FileName;
     uint        FileNumber;
-}
-
-///The <b>ACTCTX</b> structure is used by the CreateActCtx function to create the activation context.
-struct ACTCTXA
-{
-    ///The size, in bytes, of this structure. This is used to determine the version of this structure.
-    uint         cbSize;
-    ///Flags that indicate how the values included in this structure are to be used. Set any undefined bits in
-    ///<b>dwFlags</b> to 0. If any undefined bits are not set to 0, the call to CreateActCtx that creates the activation
-    ///context fails and returns an invalid parameter error code. <table> <tr> <th>Bit flag</th> <th>Meaning</th> </tr>
-    ///<tr> <td width="40%"><a id="ACTCTX_FLAG_PROCESSOR_ARCHITECTURE_VALID"></a><a
-    ///id="actctx_flag_processor_architecture_valid"></a><dl> <dt><b>ACTCTX_FLAG_PROCESSOR_ARCHITECTURE_VALID</b></dt>
-    ///<dt>1</dt> </dl> </td> <td width="60%"> 0x001 </td> </tr> <tr> <td width="40%"><a
-    ///id="ACTCTX_FLAG_LANGID_VALID"></a><a id="actctx_flag_langid_valid"></a><dl>
-    ///<dt><b>ACTCTX_FLAG_LANGID_VALID</b></dt> <dt>2</dt> </dl> </td> <td width="60%"> 0x002 </td> </tr> <tr> <td
-    ///width="40%"><a id="ACTCTX_FLAG_ASSEMBLY_DIRECTORY_VALID"></a><a
-    ///id="actctx_flag_assembly_directory_valid"></a><dl> <dt><b>ACTCTX_FLAG_ASSEMBLY_DIRECTORY_VALID</b></dt>
-    ///<dt>4</dt> </dl> </td> <td width="60%"> 0x004 </td> </tr> <tr> <td width="40%"><a
-    ///id="ACTCTX_FLAG_RESOURCE_NAME_VALID"></a><a id="actctx_flag_resource_name_valid"></a><dl>
-    ///<dt><b>ACTCTX_FLAG_RESOURCE_NAME_VALID</b></dt> <dt>8</dt> </dl> </td> <td width="60%"> 0x008 </td> </tr> <tr>
-    ///<td width="40%"><a id="ACTCTX_FLAG_SET_PROCESS_DEFAULT"></a><a id="actctx_flag_set_process_default"></a><dl>
-    ///<dt><b>ACTCTX_FLAG_SET_PROCESS_DEFAULT</b></dt> <dt>16</dt> </dl> </td> <td width="60%"> 0x010 </td> </tr> <tr>
-    ///<td width="40%"><a id="ACTCTX_FLAG_APPLICATION_NAME_VALID"></a><a
-    ///id="actctx_flag_application_name_valid"></a><dl> <dt><b>ACTCTX_FLAG_APPLICATION_NAME_VALID</b></dt> <dt>32</dt>
-    ///</dl> </td> <td width="60%"> 0x020 </td> </tr> <tr> <td width="40%"><a id="ACTCTX_FLAG_HMODULE_VALID"></a><a
-    ///id="actctx_flag_hmodule_valid"></a><dl> <dt><b>ACTCTX_FLAG_HMODULE_VALID</b></dt> <dt>128</dt> </dl> </td> <td
-    ///width="60%"> 0x080 </td> </tr> </table>
-    uint         dwFlags;
-    ///Null-terminated string specifying the path of the manifest file or PE image to be used to create the activation
-    ///context. If this path refers to an EXE or DLL file, the <b>lpResourceName</b> member is required.
-    const(char)* lpSource;
-    ///Identifies the type of processor used. Specifies the system's processor architecture. This value can be one of
-    ///the following values:
-    ushort       wProcessorArchitecture;
-    ///Specifies the language manifest that should be used. The default is the current user's current UI language. If
-    ///the requested language cannot be found, an approximation is searched for using the following order: <ul> <li>The
-    ///current user's specific language. For example, for US English (1033).</li> <li>The current user's primary
-    ///language. For example, for English (9).</li> <li>The current system's specific language.</li> <li>The current
-    ///system's primary language.</li> <li>A nonspecific worldwide language. Language neutral (0).</li> </ul>
-    ushort       wLangId;
-    ///The base directory in which to perform private assembly probing if assemblies in the activation context are not
-    ///present in the system-wide store.
-    const(char)* lpAssemblyDirectory;
-    ///Pointer to a null-terminated string that contains the resource name to be loaded from the PE specified in
-    ///<b>hModule</b> or <b>lpSource</b>. If the resource name is an integer, set this member using MAKEINTRESOURCE.
-    ///This member is required if <b>lpSource</b> refers to an EXE or DLL.
-    const(char)* lpResourceName;
-    ///The name of the current application. If the value of this member is set to null, the name of the executable that
-    ///launched the current process is used.
-    const(char)* lpApplicationName;
-    ///Use this member rather than <b>lpSource</b> if you have already loaded a DLL and wish to use it to create
-    ///activation contexts rather than using a path in <b>lpSource</b>. See <b>lpResourceName</b> for the rules of
-    ///looking up resources in this module.
-    ptrdiff_t    hModule;
-}
-
-///The <b>ACTCTX</b> structure is used by the CreateActCtx function to create the activation context.
-struct ACTCTXW
-{
-    ///The size, in bytes, of this structure. This is used to determine the version of this structure.
-    uint          cbSize;
-    ///Flags that indicate how the values included in this structure are to be used. Set any undefined bits in
-    ///<b>dwFlags</b> to 0. If any undefined bits are not set to 0, the call to CreateActCtx that creates the activation
-    ///context fails and returns an invalid parameter error code. <table> <tr> <th>Bit flag</th> <th>Meaning</th> </tr>
-    ///<tr> <td width="40%"><a id="ACTCTX_FLAG_PROCESSOR_ARCHITECTURE_VALID"></a><a
-    ///id="actctx_flag_processor_architecture_valid"></a><dl> <dt><b>ACTCTX_FLAG_PROCESSOR_ARCHITECTURE_VALID</b></dt>
-    ///<dt>1</dt> </dl> </td> <td width="60%"> 0x001 </td> </tr> <tr> <td width="40%"><a
-    ///id="ACTCTX_FLAG_LANGID_VALID"></a><a id="actctx_flag_langid_valid"></a><dl>
-    ///<dt><b>ACTCTX_FLAG_LANGID_VALID</b></dt> <dt>2</dt> </dl> </td> <td width="60%"> 0x002 </td> </tr> <tr> <td
-    ///width="40%"><a id="ACTCTX_FLAG_ASSEMBLY_DIRECTORY_VALID"></a><a
-    ///id="actctx_flag_assembly_directory_valid"></a><dl> <dt><b>ACTCTX_FLAG_ASSEMBLY_DIRECTORY_VALID</b></dt>
-    ///<dt>4</dt> </dl> </td> <td width="60%"> 0x004 </td> </tr> <tr> <td width="40%"><a
-    ///id="ACTCTX_FLAG_RESOURCE_NAME_VALID"></a><a id="actctx_flag_resource_name_valid"></a><dl>
-    ///<dt><b>ACTCTX_FLAG_RESOURCE_NAME_VALID</b></dt> <dt>8</dt> </dl> </td> <td width="60%"> 0x008 </td> </tr> <tr>
-    ///<td width="40%"><a id="ACTCTX_FLAG_SET_PROCESS_DEFAULT"></a><a id="actctx_flag_set_process_default"></a><dl>
-    ///<dt><b>ACTCTX_FLAG_SET_PROCESS_DEFAULT</b></dt> <dt>16</dt> </dl> </td> <td width="60%"> 0x010 </td> </tr> <tr>
-    ///<td width="40%"><a id="ACTCTX_FLAG_APPLICATION_NAME_VALID"></a><a
-    ///id="actctx_flag_application_name_valid"></a><dl> <dt><b>ACTCTX_FLAG_APPLICATION_NAME_VALID</b></dt> <dt>32</dt>
-    ///</dl> </td> <td width="60%"> 0x020 </td> </tr> <tr> <td width="40%"><a id="ACTCTX_FLAG_HMODULE_VALID"></a><a
-    ///id="actctx_flag_hmodule_valid"></a><dl> <dt><b>ACTCTX_FLAG_HMODULE_VALID</b></dt> <dt>128</dt> </dl> </td> <td
-    ///width="60%"> 0x080 </td> </tr> </table>
-    uint          dwFlags;
-    ///Null-terminated string specifying the path of the manifest file or PE image to be used to create the activation
-    ///context. If this path refers to an EXE or DLL file, the <b>lpResourceName</b> member is required.
-    const(wchar)* lpSource;
-    ///Identifies the type of processor used. Specifies the system's processor architecture. This value can be one of
-    ///the following values:
-    ushort        wProcessorArchitecture;
-    ///Specifies the language manifest that should be used. The default is the current user's current UI language. If
-    ///the requested language cannot be found, an approximation is searched for using the following order: <ul> <li>The
-    ///current user's specific language. For example, for US English (1033).</li> <li>The current user's primary
-    ///language. For example, for English (9).</li> <li>The current system's specific language.</li> <li>The current
-    ///system's primary language.</li> <li>A nonspecific worldwide language. Language neutral (0).</li> </ul>
-    ushort        wLangId;
-    ///The base directory in which to perform private assembly probing if assemblies in the activation context are not
-    ///present in the system-wide store.
-    const(wchar)* lpAssemblyDirectory;
-    ///Pointer to a null-terminated string that contains the resource name to be loaded from the PE specified in
-    ///<b>hModule</b> or <b>lpSource</b>. If the resource name is an integer, set this member using MAKEINTRESOURCE.
-    ///This member is required if <b>lpSource</b> refers to an EXE or DLL.
-    const(wchar)* lpResourceName;
-    ///The name of the current application. If the value of this member is set to null, the name of the executable that
-    ///launched the current process is used.
-    const(wchar)* lpApplicationName;
-    ///Use this member rather than <b>lpSource</b> if you have already loaded a DLL and wish to use it to create
-    ///activation contexts rather than using a path in <b>lpSource</b>. See <b>lpResourceName</b> for the rules of
-    ///looking up resources in this module.
-    ptrdiff_t     hModule;
-}
-
-///The <b>ACTCTX_SECTION_KEYED_DATA</b> structure is used by the FindActCtxSectionString and FindActCtxSectionGuid
-///functions to return the activation context information along with either the GUID or 32-bit integer-tagged activation
-///context section.
-struct ACTCTX_SECTION_KEYED_DATA
-{
-    ///The size, in bytes, of the activation context keyed data structure.
-    uint   cbSize;
-    ///Number that indicates the format of the data in the section where the key was found. Clients should verify that
-    ///the data format version is as expected rather than trying to interpret the values of unfamiliar data formats.
-    ///This number is only changed when major non-backward-compatible changes to the section data formats need to be
-    ///made. The current format version is 1.
-    uint   ulDataFormatVersion;
-    ///Pointer to the redirection data found associated with the section identifier and key.
-    void*  lpData;
-    ///Number of bytes in the structure referred to by <b>lpData</b>. Note that the data structures grow over time; do
-    ///not access members in the instance data that extend beyond <b>ulLength</b>.
-    uint   ulLength;
-    ///Returned pointer to a section-specific data structure which is global to the activation context section where the
-    ///key was found. Its interpretation depends on the section identifier requested.
-    void*  lpSectionGlobalData;
-    ///Number of bytes in the section global data block referred to by <b>lpSectionGlobalData</b>. Note that the data
-    ///structures grow over time and you may receive an old format activation context data block; do not access members
-    ///in the section global data that extend beyond <b>ulSectionGlobalDataLength</b>.
-    uint   ulSectionGlobalDataLength;
-    ///Pointer to the base of the section where the key was found. Some instance data contains offsets relative to the
-    ///section base address, in which case this pointer value is used.
-    void*  lpSectionBase;
-    ///Number of bytes for the entire section starting at <b>lpSectionBase</b>. May be used to verify that offset/length
-    ///pairs, which are specified as relative to the section base are wholly contained in the section.
-    uint   ulSectionTotalLength;
-    ///Handle to the activation context where the key was found. First, the active activation context for the thread is
-    ///searched, followed by the process-default activation context and then the system-compatible-default-activation
-    ///context. This member indicates which activation context contained the section and key requested. This is only
-    ///returned if the FIND_ACTCTX_SECTION_KEY_RETURN_HACTCTX flag is passed. Note that when this is returned, the
-    ///caller must call ReleaseActCtx() on the activation context handle returned to release system resources when all
-    ///other references to the activation context have been released.
-    HANDLE hActCtx;
-    ///Cardinal number of the assembly in the activation context that provided the redirection information found. This
-    ///value can be presented to QueryActCtxW for more information about the contributing assembly.
-    uint   ulAssemblyRosterIndex;
-    uint   ulFlags;
-    ACTCTX_SECTION_KEYED_DATA_ASSEMBLY_METADATA AssemblyMetadata;
 }
 
 ///The <b>INFCONTEXT</b> structure stores context information that functions such as SetupGetLineText use to navigate
@@ -1452,7 +1458,7 @@ align (1):
     ///Processor architecture. This must be PROCESSOR_ARCHITECTURE_INTEL, PROCESSOR_ARCHITECTURE_ALPHA,
     ///PROCESSOR_ARCHITECTURE_IA64, PROCESSOR_ARCHITECTURE_ALPHA64.
     ushort ProcessorArchitecture;
-    union
+union
     {
     align (1):
         ushort Reserved;
@@ -1532,12 +1538,12 @@ struct FILEPATHS_A
 {
 align (1):
     ///Path to the target file.
-    const(char)* Target;
+    const(PSTR) Target;
     ///Path to the source file. This member is not used when the <b>FILEPATHS</b> structure is used with a file delete
     ///operation.
-    const(char)* Source;
+    const(PSTR) Source;
     ///If an error occurs, this member is the system error code. If no error has occurred, it is NO_ERROR.
-    uint         Win32Error;
+    uint        Win32Error;
     ///Additional information that depends on the notification sent with the <b>FILEPATHS</b> structure. For
     ///SPFILENOTIFY_COPYERROR notifications, <b>Flags</b> specifies dialog box behavior and can be one of the following
     ///values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SP_COPY_NOBROWSE"></a><a
@@ -1553,7 +1559,7 @@ align (1):
     ///delayed. </td> </tr> <tr> <td width="40%"><a id="FILEOP_DELETE"></a><a id="fileop_delete"></a><dl>
     ///<dt><b>FILEOP_DELETE</b></dt> </dl> </td> <td width="60%"> A file delete operation was delayed. </td> </tr>
     ///</table>
-    uint         Flags;
+    uint        Flags;
 }
 
 ///The <b>FILEPATHS</b> structure stores source and target path information. The setup functions send the
@@ -1563,12 +1569,12 @@ struct FILEPATHS_W
 {
 align (1):
     ///Path to the target file.
-    const(wchar)* Target;
+    const(PWSTR) Target;
     ///Path to the source file. This member is not used when the <b>FILEPATHS</b> structure is used with a file delete
     ///operation.
-    const(wchar)* Source;
+    const(PWSTR) Source;
     ///If an error occurs, this member is the system error code. If no error has occurred, it is NO_ERROR.
-    uint          Win32Error;
+    uint         Win32Error;
     ///Additional information that depends on the notification sent with the <b>FILEPATHS</b> structure. For
     ///SPFILENOTIFY_COPYERROR notifications, <b>Flags</b> specifies dialog box behavior and can be one of the following
     ///values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SP_COPY_NOBROWSE"></a><a
@@ -1584,7 +1590,7 @@ align (1):
     ///delayed. </td> </tr> <tr> <td width="40%"><a id="FILEOP_DELETE"></a><a id="fileop_delete"></a><dl>
     ///<dt><b>FILEOP_DELETE</b></dt> </dl> </td> <td width="60%"> A file delete operation was delayed. </td> </tr>
     ///</table>
-    uint          Flags;
+    uint         Flags;
 }
 
 ///The <b>FILEPATHS_SINGNERINFO</b> structure stores source and target path information, and also file signature
@@ -1594,10 +1600,47 @@ struct FILEPATHS_SIGNERINFO_A
 {
 align (1):
     ///Path to the target file.
-    const(char)* Target;
+    const(PSTR) Target;
     ///Path to the source file. This member is not used when the FILEPATHS structure is used with a file delete
     ///operation.
-    const(char)* Source;
+    const(PSTR) Source;
+    ///If an error occurs, this member is the system error code. If no error has occurred, it is NO_ERROR.
+    uint        Win32Error;
+    ///Additional information that depends on the notification sent with the <b>FILEPATHS_SIGNERINFO</b> structure. For
+    ///SPFILENOTIFY_COPYERROR notifications, <b>Flags</b> specifies dialog box behavior and can be one of the following
+    ///values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SP_COPY_NOBROWSE"></a><a
+    ///id="sp_copy_nobrowse"></a><dl> <dt><b>SP_COPY_NOBROWSE</b></dt> </dl> </td> <td width="60%"> Do not offer the
+    ///user the option to browse. </td> </tr> <tr> <td width="40%"><a id="SP_COPY_NOSKIP"></a><a
+    ///id="sp_copy_noskip"></a><dl> <dt><b>SP_COPY_NOSKIP</b></dt> </dl> </td> <td width="60%"> Do not offer the user
+    ///the option to skip the file. </td> </tr> <tr> <td width="40%"><a id="SP_COPY_WARNIFSKIP"></a><a
+    ///id="sp_copy_warnifskip"></a><dl> <dt><b>SP_COPY_WARNIFSKIP</b></dt> </dl> </td> <td width="60%"> Inform the user
+    ///that skipping the file may affect the installation. </td> </tr> </table> For SPFILENOTIFY_FILEOPDELAYED
+    ///notifications, <b>Flags</b> specifies the type of file operation delayed and can be one of the following values.
+    ///<table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="FILEOP_COPY"></a><a
+    ///id="fileop_copy"></a><dl> <dt><b>FILEOP_COPY</b></dt> </dl> </td> <td width="60%"> A file copy operation was
+    ///delayed. </td> </tr> <tr> <td width="40%"><a id="FILEOP_DELETE"></a><a id="fileop_delete"></a><dl>
+    ///<dt><b>FILEOP_DELETE</b></dt> </dl> </td> <td width="60%"> A file delete operation was delayed. </td> </tr>
+    ///</table>
+    uint        Flags;
+    ///Digital signer of the file.
+    const(PSTR) DigitalSigner;
+    ///Version of the file.
+    const(PSTR) Version;
+    ///Catalog file.
+    const(PSTR) CatalogFile;
+}
+
+///The <b>FILEPATHS_SINGNERINFO</b> structure stores source and target path information, and also file signature
+///information. The setup functions send <b>FILEPATHS_SIGNERINFO</b> as a parameter in several of the notifications sent
+///to callback routines. For more information, see Notifications.
+struct FILEPATHS_SIGNERINFO_W
+{
+align (1):
+    ///Path to the target file.
+    const(PWSTR) Target;
+    ///Path to the source file. This member is not used when the FILEPATHS structure is used with a file delete
+    ///operation.
+    const(PWSTR) Source;
     ///If an error occurs, this member is the system error code. If no error has occurred, it is NO_ERROR.
     uint         Win32Error;
     ///Additional information that depends on the notification sent with the <b>FILEPATHS_SIGNERINFO</b> structure. For
@@ -1617,48 +1660,11 @@ align (1):
     ///</table>
     uint         Flags;
     ///Digital signer of the file.
-    const(char)* DigitalSigner;
+    const(PWSTR) DigitalSigner;
     ///Version of the file.
-    const(char)* Version;
+    const(PWSTR) Version;
     ///Catalog file.
-    const(char)* CatalogFile;
-}
-
-///The <b>FILEPATHS_SINGNERINFO</b> structure stores source and target path information, and also file signature
-///information. The setup functions send <b>FILEPATHS_SIGNERINFO</b> as a parameter in several of the notifications sent
-///to callback routines. For more information, see Notifications.
-struct FILEPATHS_SIGNERINFO_W
-{
-align (1):
-    ///Path to the target file.
-    const(wchar)* Target;
-    ///Path to the source file. This member is not used when the FILEPATHS structure is used with a file delete
-    ///operation.
-    const(wchar)* Source;
-    ///If an error occurs, this member is the system error code. If no error has occurred, it is NO_ERROR.
-    uint          Win32Error;
-    ///Additional information that depends on the notification sent with the <b>FILEPATHS_SIGNERINFO</b> structure. For
-    ///SPFILENOTIFY_COPYERROR notifications, <b>Flags</b> specifies dialog box behavior and can be one of the following
-    ///values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SP_COPY_NOBROWSE"></a><a
-    ///id="sp_copy_nobrowse"></a><dl> <dt><b>SP_COPY_NOBROWSE</b></dt> </dl> </td> <td width="60%"> Do not offer the
-    ///user the option to browse. </td> </tr> <tr> <td width="40%"><a id="SP_COPY_NOSKIP"></a><a
-    ///id="sp_copy_noskip"></a><dl> <dt><b>SP_COPY_NOSKIP</b></dt> </dl> </td> <td width="60%"> Do not offer the user
-    ///the option to skip the file. </td> </tr> <tr> <td width="40%"><a id="SP_COPY_WARNIFSKIP"></a><a
-    ///id="sp_copy_warnifskip"></a><dl> <dt><b>SP_COPY_WARNIFSKIP</b></dt> </dl> </td> <td width="60%"> Inform the user
-    ///that skipping the file may affect the installation. </td> </tr> </table> For SPFILENOTIFY_FILEOPDELAYED
-    ///notifications, <b>Flags</b> specifies the type of file operation delayed and can be one of the following values.
-    ///<table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="FILEOP_COPY"></a><a
-    ///id="fileop_copy"></a><dl> <dt><b>FILEOP_COPY</b></dt> </dl> </td> <td width="60%"> A file copy operation was
-    ///delayed. </td> </tr> <tr> <td width="40%"><a id="FILEOP_DELETE"></a><a id="fileop_delete"></a><dl>
-    ///<dt><b>FILEOP_DELETE</b></dt> </dl> </td> <td width="60%"> A file delete operation was delayed. </td> </tr>
-    ///</table>
-    uint          Flags;
-    ///Digital signer of the file.
-    const(wchar)* DigitalSigner;
-    ///Version of the file.
-    const(wchar)* Version;
-    ///Catalog file.
-    const(wchar)* CatalogFile;
+    const(PWSTR) CatalogFile;
 }
 
 ///The <b>SOURCE_MEDIA</b> structure is used with the SPFILENOTIFY_NEEDMEDIA notification to pass source media
@@ -1667,18 +1673,18 @@ struct SOURCE_MEDIA_A
 {
 align (1):
     ///This member is not currently used.
-    const(char)* Reserved;
+    const(PSTR) Reserved;
     ///Optional tag file that can be used to identify the source media.
-    const(char)* Tagfile;
+    const(PSTR) Tagfile;
     ///Human-readable description of the source media.
-    const(char)* Description;
+    const(PSTR) Description;
     ///Path to the source that needs the new media.
-    const(char)* SourcePath;
+    const(PSTR) SourcePath;
     ///Source file to be retrieved from the new media.
-    const(char)* SourceFile;
+    const(PSTR) SourceFile;
     ///Copy style information that modifies how errors are handled. This member can be one or more of the following
     ///values.
-    uint         Flags;
+    uint        Flags;
 }
 
 ///The <b>SOURCE_MEDIA</b> structure is used with the SPFILENOTIFY_NEEDMEDIA notification to pass source media
@@ -1687,18 +1693,18 @@ struct SOURCE_MEDIA_W
 {
 align (1):
     ///This member is not currently used.
-    const(wchar)* Reserved;
+    const(PWSTR) Reserved;
     ///Optional tag file that can be used to identify the source media.
-    const(wchar)* Tagfile;
+    const(PWSTR) Tagfile;
     ///Human-readable description of the source media.
-    const(wchar)* Description;
+    const(PWSTR) Description;
     ///Path to the source that needs the new media.
-    const(wchar)* SourcePath;
+    const(PWSTR) SourcePath;
     ///Source file to be retrieved from the new media.
-    const(wchar)* SourceFile;
+    const(PWSTR) SourceFile;
     ///Copy style information that modifies how errors are handled. This member can be one or more of the following
     ///values.
-    uint          Flags;
+    uint         Flags;
 }
 
 ///The <b>CABINET_INFO</b> structure stores information about a cabinet file. The SetupIterateCabinet function specifies
@@ -1708,16 +1714,16 @@ struct CABINET_INFO_A
 {
 align (1):
     ///Path to the cabinet file.
-    const(char)* CabinetPath;
+    const(PSTR) CabinetPath;
     ///Name of the cabinet file.
-    const(char)* CabinetFile;
+    const(PSTR) CabinetFile;
     ///Name of the source media that contains the cabinet file.
-    const(char)* DiskName;
+    const(PSTR) DiskName;
     ///Identifier of the current set. This number is generated by the software that builds the cabinet.
-    ushort       SetId;
+    ushort      SetId;
     ///Number of the cabinet. This number is generated by the software that builds the cabinet and is generally a zero-
     ///or 1-based index indicating the ordinal of the position of the cabinet within a set.
-    ushort       CabinetNumber;
+    ushort      CabinetNumber;
 }
 
 ///The <b>CABINET_INFO</b> structure stores information about a cabinet file. The SetupIterateCabinet function specifies
@@ -1727,16 +1733,16 @@ struct CABINET_INFO_W
 {
 align (1):
     ///Path to the cabinet file.
-    const(wchar)* CabinetPath;
+    const(PWSTR) CabinetPath;
     ///Name of the cabinet file.
-    const(wchar)* CabinetFile;
+    const(PWSTR) CabinetFile;
     ///Name of the source media that contains the cabinet file.
-    const(wchar)* DiskName;
+    const(PWSTR) DiskName;
     ///Identifier of the current set. This number is generated by the software that builds the cabinet.
-    ushort        SetId;
+    ushort       SetId;
     ///Number of the cabinet. This number is generated by the software that builds the cabinet and is generally a zero-
     ///or 1-based index indicating the ordinal of the position of the cabinet within a set.
-    ushort        CabinetNumber;
+    ushort       CabinetNumber;
 }
 
 ///The <b>FILE_IN_CABINET_INFO</b> structure provides information about a file found in the cabinet. The
@@ -1746,7 +1752,29 @@ struct FILE_IN_CABINET_INFO_A
 {
 align (1):
     ///File name as it exists within the cabinet file.
-    const(char)* NameInCabinet;
+    const(PSTR) NameInCabinet;
+    ///Uncompressed size of the file in the cabinet, in bytes.
+    uint        FileSize;
+    ///If an error occurs, this member is the system error code. If no error has occurred, it is NO_ERROR.
+    uint        Win32Error;
+    ///Date that the file was last saved.
+    ushort      DosDate;
+    ///MS-DOS time stamp of the file in the cabinet.
+    ushort      DosTime;
+    ///Attributes of the file in the cabinet.
+    ushort      DosAttribs;
+    ///Target path and file name.
+    byte[260]   FullTargetName;
+}
+
+///The <b>FILE_IN_CABINET_INFO</b> structure provides information about a file found in the cabinet. The
+///SetupIterateCabinet function sends this structure as one of the parameters when it sends a SPFILENOTIFY_FILEINCABINET
+///notification to the cabinet callback routine.
+struct FILE_IN_CABINET_INFO_W
+{
+align (1):
+    ///File name as it exists within the cabinet file.
+    const(PWSTR) NameInCabinet;
     ///Uncompressed size of the file in the cabinet, in bytes.
     uint         FileSize;
     ///If an error occurs, this member is the system error code. If no error has occurred, it is NO_ERROR.
@@ -1758,29 +1786,7 @@ align (1):
     ///Attributes of the file in the cabinet.
     ushort       DosAttribs;
     ///Target path and file name.
-    byte[260]    FullTargetName;
-}
-
-///The <b>FILE_IN_CABINET_INFO</b> structure provides information about a file found in the cabinet. The
-///SetupIterateCabinet function sends this structure as one of the parameters when it sends a SPFILENOTIFY_FILEINCABINET
-///notification to the cabinet callback routine.
-struct FILE_IN_CABINET_INFO_W
-{
-align (1):
-    ///File name as it exists within the cabinet file.
-    const(wchar)* NameInCabinet;
-    ///Uncompressed size of the file in the cabinet, in bytes.
-    uint          FileSize;
-    ///If an error occurs, this member is the system error code. If no error has occurred, it is NO_ERROR.
-    uint          Win32Error;
-    ///Date that the file was last saved.
-    ushort        DosDate;
-    ///MS-DOS time stamp of the file in the cabinet.
-    ushort        DosTime;
-    ///Attributes of the file in the cabinet.
-    ushort        DosAttribs;
-    ///Target path and file name.
-    ushort[260]   FullTargetName;
+    ushort[260]  FullTargetName;
 }
 
 ///The <b>SP_REGISTER_CONTROL_STATUS</b> structure contains information about a file being registered or unregistered
@@ -1790,9 +1796,46 @@ align (1):
 struct SP_REGISTER_CONTROL_STATUSA
 {
 align (1):
+    uint        cbSize;
+    ///Fully qualified path of the file being registered or unregistered.
+    const(PSTR) FileName;
+    ///For an SPFILENOTIFY_STARTREGISTRATION notification, this member is not used and should be set to NO_ERROR. For a
+    ///SPFILENOTIFY_ENDREGISTRATION notification, set to a system error code.
+    uint        Win32Error;
+    ///For a SPFILENOTIFY_STARTREGISTRATION notification, this member is not used and should be set to SPREG_SUCCESS.
+    ///For a SPFILENOTIFY_ENDREGISTRATION notification, set to one of the following failure codes that indicate the
+    ///result of registration. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
+    ///id="SPREG_SUCCESS"></a><a id="spreg_success"></a><dl> <dt><b>SPREG_SUCCESS</b></dt> </dl> </td> <td width="60%">
+    ///The file was successfully registered or unregistered. <b>WinError</b> not used. </td> </tr> <tr> <td
+    ///width="40%"><a id="SPREG_LOADLIBRARY"></a><a id="spreg_loadlibrary"></a><dl> <dt><b>SPREG_LOADLIBRARY</b></dt>
+    ///</dl> </td> <td width="60%"> <b>LoadLibrary</b> failed for the file. <b>WinError</b> contains an extended error
+    ///code from the component. </td> </tr> <tr> <td width="40%"><a id="SPREG_GETPROCADDR"></a><a
+    ///id="spreg_getprocaddr"></a><dl> <dt><b>SPREG_GETPROCADDR</b></dt> </dl> </td> <td width="60%">
+    ///<b>GetProcAddress</b> failed for the file. <b>WinError</b> contains an extended error code from the component.
+    ///</td> </tr> <tr> <td width="40%"><a id="SPREG_REGSVR"></a><a id="spreg_regsvr"></a><dl>
+    ///<dt><b>SPREG_REGSVR</b></dt> </dl> </td> <td width="60%"> <b>DLLRegisterServer</b> entry point returned failure.
+    ///<b>WinError</b> contains an extended error code from the component. </td> </tr> <tr> <td width="40%"><a
+    ///id="SPREG_DLLINSTALL"></a><a id="spreg_dllinstall"></a><dl> <dt><b>SPREG_DLLINSTALL</b></dt> </dl> </td> <td
+    ///width="60%"> <b>DLLInstall</b> entry point returned failure. <b>WinError</b> contains an extended error code from
+    ///the component. </td> </tr> <tr> <td width="40%"><a id="SPREG_TIMEOUT"></a><a id="spreg_timeout"></a><dl>
+    ///<dt><b>SPREG_TIMEOUT</b></dt> </dl> </td> <td width="60%"> The file registration or unregistration exceeded the
+    ///specified timeout. <b>WinError</b> is set to ERROR_TIMEOUT. </td> </tr> <tr> <td width="40%"><a
+    ///id="SPREG_UNKNOWN"></a><a id="spreg_unknown"></a><dl> <dt><b>SPREG_UNKNOWN</b></dt> </dl> </td> <td width="60%">
+    ///File registration or unregistration failed for an unknown reason. <b>WinError</b> indicates an extended error
+    ///code from the component. </td> </tr> </table>
+    uint        FailureCode;
+}
+
+///The <b>SP_REGISTER_CONTROL_STATUS</b> structure contains information about a file being registered or unregistered
+///using the <b>RegisterDlls </b>INF directive to self-register DLLs on Windows 2000. When SetupInstallFromInfSection
+///sends a SPFILENOTIFY_STARTREGISTRATION or SPFILENOTIFY_ENDREGISTRATION notification to the callback routine, the
+///caller must provide a pointer to a <b>SP_REGISTER_CONTROL_STATUS</b> structure in the <i>MsgHandler</i> parameter.
+struct SP_REGISTER_CONTROL_STATUSW
+{
+align (1):
     uint         cbSize;
     ///Fully qualified path of the file being registered or unregistered.
-    const(char)* FileName;
+    const(PWSTR) FileName;
     ///For an SPFILENOTIFY_STARTREGISTRATION notification, this member is not used and should be set to NO_ERROR. For a
     ///SPFILENOTIFY_ENDREGISTRATION notification, set to a system error code.
     uint         Win32Error;
@@ -1820,45 +1863,96 @@ align (1):
     uint         FailureCode;
 }
 
-///The <b>SP_REGISTER_CONTROL_STATUS</b> structure contains information about a file being registered or unregistered
-///using the <b>RegisterDlls </b>INF directive to self-register DLLs on Windows 2000. When SetupInstallFromInfSection
-///sends a SPFILENOTIFY_STARTREGISTRATION or SPFILENOTIFY_ENDREGISTRATION notification to the callback routine, the
-///caller must provide a pointer to a <b>SP_REGISTER_CONTROL_STATUS</b> structure in the <i>MsgHandler</i> parameter.
-struct SP_REGISTER_CONTROL_STATUSW
+///The <b>SP_FILE_COPY_PARAMS</b> structure describes a single file copy operation.
+struct SP_FILE_COPY_PARAMS_A
 {
 align (1):
-    uint          cbSize;
-    ///Fully qualified path of the file being registered or unregistered.
-    const(wchar)* FileName;
-    ///For an SPFILENOTIFY_STARTREGISTRATION notification, this member is not used and should be set to NO_ERROR. For a
-    ///SPFILENOTIFY_ENDREGISTRATION notification, set to a system error code.
-    uint          Win32Error;
-    ///For a SPFILENOTIFY_STARTREGISTRATION notification, this member is not used and should be set to SPREG_SUCCESS.
-    ///For a SPFILENOTIFY_ENDREGISTRATION notification, set to one of the following failure codes that indicate the
-    ///result of registration. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
-    ///id="SPREG_SUCCESS"></a><a id="spreg_success"></a><dl> <dt><b>SPREG_SUCCESS</b></dt> </dl> </td> <td width="60%">
-    ///The file was successfully registered or unregistered. <b>WinError</b> not used. </td> </tr> <tr> <td
-    ///width="40%"><a id="SPREG_LOADLIBRARY"></a><a id="spreg_loadlibrary"></a><dl> <dt><b>SPREG_LOADLIBRARY</b></dt>
-    ///</dl> </td> <td width="60%"> <b>LoadLibrary</b> failed for the file. <b>WinError</b> contains an extended error
-    ///code from the component. </td> </tr> <tr> <td width="40%"><a id="SPREG_GETPROCADDR"></a><a
-    ///id="spreg_getprocaddr"></a><dl> <dt><b>SPREG_GETPROCADDR</b></dt> </dl> </td> <td width="60%">
-    ///<b>GetProcAddress</b> failed for the file. <b>WinError</b> contains an extended error code from the component.
-    ///</td> </tr> <tr> <td width="40%"><a id="SPREG_REGSVR"></a><a id="spreg_regsvr"></a><dl>
-    ///<dt><b>SPREG_REGSVR</b></dt> </dl> </td> <td width="60%"> <b>DLLRegisterServer</b> entry point returned failure.
-    ///<b>WinError</b> contains an extended error code from the component. </td> </tr> <tr> <td width="40%"><a
-    ///id="SPREG_DLLINSTALL"></a><a id="spreg_dllinstall"></a><dl> <dt><b>SPREG_DLLINSTALL</b></dt> </dl> </td> <td
-    ///width="60%"> <b>DLLInstall</b> entry point returned failure. <b>WinError</b> contains an extended error code from
-    ///the component. </td> </tr> <tr> <td width="40%"><a id="SPREG_TIMEOUT"></a><a id="spreg_timeout"></a><dl>
-    ///<dt><b>SPREG_TIMEOUT</b></dt> </dl> </td> <td width="60%"> The file registration or unregistration exceeded the
-    ///specified timeout. <b>WinError</b> is set to ERROR_TIMEOUT. </td> </tr> <tr> <td width="40%"><a
-    ///id="SPREG_UNKNOWN"></a><a id="spreg_unknown"></a><dl> <dt><b>SPREG_UNKNOWN</b></dt> </dl> </td> <td width="60%">
-    ///File registration or unregistration failed for an unknown reason. <b>WinError</b> indicates an extended error
-    ///code from the component. </td> </tr> </table>
-    uint          FailureCode;
+    ///Size of the structure, in bytes. Set to the value: <code>sizeof(SP_FILE_COPY_PARAMS)</code>.
+    uint        cbSize;
+    ///Handle to a setup file queue, as returned by SetupOpenFileQueue.
+    void*       QueueHandle;
+    ///Optional pointer to the root of the source for this copy, such as A:\.
+    const(PSTR) SourceRootPath;
+    ///Optional pointer to the path relative to <b>SourceRootPath</b> where the file can be found.
+    const(PSTR) SourcePath;
+    ///File name part of the file to be copied.
+    const(PSTR) SourceFilename;
+    ///Optional pointer to a description of the source media to be used during disk prompts.
+    const(PSTR) SourceDescription;
+    ///Optional pointer to a tag file whose presence at <b>SourceRootPath</b> indicates the presence of the source
+    ///media. If not specified, the file itself will be used as the tag file if required.
+    const(PSTR) SourceTagfile;
+    ///Directory where the file is to be copied.
+    const(PSTR) TargetDirectory;
+    ///Optional pointer to the name of the target file. If not specified, the target file will have the same name as the
+    ///source file.
+    const(PSTR) TargetFilename;
+    ///Flags that control the behavior of the file copy operation. These flags may be a combination of the following
+    ///values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
+    ///id="SP_COPY_DELETESOURCE"></a><a id="sp_copy_deletesource"></a><dl> <dt><b>SP_COPY_DELETESOURCE</b></dt> </dl>
+    ///</td> <td width="60%"> Delete the source file upon successful copy. The caller is not notified if the deletion
+    ///fails. </td> </tr> <tr> <td width="40%"><a id="SP_COPY_REPLACEONLY"></a><a id="sp_copy_replaceonly"></a><dl>
+    ///<dt><b>SP_COPY_REPLACEONLY</b></dt> </dl> </td> <td width="60%"> Copy the file only if doing so would overwrite a
+    ///file at the destination path. The caller is not notified. </td> </tr> <tr> <td width="40%"><a
+    ///id="SP_COPY_NEWER_OR_SAME"></a><a id="sp_copy_newer_or_same"></a><dl> <dt><b>SP_COPY_NEWER_OR_SAME</b></dt> </dl>
+    ///</td> <td width="60%"> Examine each file being copied to see if its version resources indicate that it is either
+    ///the same version or not newer than an existing copy on the target. The file version information used during
+    ///version checks is that specified in the <b>dwFileVersionMS</b> and <b>dwFileVersionLS</b> members of a
+    ///VS_FIXEDFILEINFO structure, as filled in by the version functions. If one of the files does not have version
+    ///resources, or if they have identical version information, the source file is considered newer. If the source file
+    ///is not equal in version or newer, and <i>CopyMsgHandler</i> is specified, the caller is notified and may cancel
+    ///the copy. If <i>CopyMsgHandler</i> is not specified, the file is not copied. </td> </tr> <tr> <td width="40%"><a
+    ///id="SP_COPY_NEWER_ONLY"></a><a id="sp_copy_newer_only"></a><dl> <dt><b>SP_COPY_NEWER_ONLY</b></dt> </dl> </td>
+    ///<td width="60%"> Examine each file being copied to see if its version resources indicate that it is not newer
+    ///than an existing copy on the target. If the source file is newer but not equal in version to the existing target,
+    ///the file is copied. </td> </tr> <tr> <td width="40%"><a id="SP_COPY_NOOVERWRITE"></a><a
+    ///id="sp_copy_nooverwrite"></a><dl> <dt><b>SP_COPY_NOOVERWRITE</b></dt> </dl> </td> <td width="60%"> Check whether
+    ///the target file exists, and if so, notify the caller who may veto the copy. If <i>CopyMsgHandler</i> is not
+    ///specified, the file is not overwritten. </td> </tr> <tr> <td width="40%"><a id="SP_COPY_NODECOMP"></a><a
+    ///id="sp_copy_nodecomp"></a><dl> <dt><b>SP_COPY_NODECOMP</b></dt> </dl> </td> <td width="60%"> Do not decompress
+    ///the file. When this flag is set, the target file is not given the uncompressed form of the source name (if
+    ///appropriate). For example, copying f:\x86\cmd.ex_ to \\install\temp results in a target file of
+    ///\\install\temp\cmd.ex_. If the SP_COPY_NODECOMP flag was not specified, the file would be decompressed and the
+    ///target would be called \\install\temp\cmd.exe. The file name part of <i>DestinationName</i>, if specified, is
+    ///stripped and replaced with the file name of the source file. When SP_COPY_NODECOMP is specified, no language or
+    ///version information can be checked. </td> </tr> <tr> <td width="40%"><a id="SP_COPY_LANGUAGEAWARE"></a><a
+    ///id="sp_copy_languageaware"></a><dl> <dt><b>SP_COPY_LANGUAGEAWARE</b></dt> </dl> </td> <td width="60%"> Examine
+    ///each file being copied to see if its language differs from the language of any existing file already on the
+    ///target. If so, and <i>CopyMsgHandler</i> is specified, the caller is notified and may cancel the copy. If
+    ///<i>CopyMsgHandler</i> is not specified, the file is not copied. </td> </tr> <tr> <td width="40%"><a
+    ///id="SP_COPY_SOURCE_ABSOLUTE"></a><a id="sp_copy_source_absolute"></a><dl> <dt><b>SP_COPY_SOURCE_ABSOLUTE</b></dt>
+    ///</dl> </td> <td width="60%"> <i>SourceFile</i> is a full source path. Do not look it up in the SourceDisksNames
+    ///section of the INF file. </td> </tr> <tr> <td width="40%"><a id="SP_COPY_SOURCEPATH_ABSOLUTE"></a><a
+    ///id="sp_copy_sourcepath_absolute"></a><dl> <dt><b>SP_COPY_SOURCEPATH_ABSOLUTE</b></dt> </dl> </td> <td
+    ///width="60%"> <i>SourcePathRoot</i> is the full path part of the source file. Ignore the relative source specified
+    ///in the SourceDisksNames section of the INF file for the source media where the file is located. This flag is
+    ///ignored if SP_COPY_SOURCE_ABSOLUTE is specified. </td> </tr> <tr> <td width="40%"><a
+    ///id="SP_COPY_FORCE_IN_USE"></a><a id="sp_copy_force_in_use"></a><dl> <dt><b>SP_COPY_FORCE_IN_USE</b></dt> </dl>
+    ///</td> <td width="60%"> If the target exists, behave as if it is in-use and queue the file for copying on the next
+    ///system reboot. </td> </tr> <tr> <td width="40%"><a id="SP_COPY_IN_USE_NEEDS_REBOOT"></a><a
+    ///id="sp_copy_in_use_needs_reboot"></a><dl> <dt><b>SP_COPY_IN_USE_NEEDS_REBOOT</b></dt> </dl> </td> <td
+    ///width="60%"> If the file was in-use during the copy operation, alert the user that the system needs to be
+    ///rebooted. </td> </tr> <tr> <td width="40%"><a id="SP_COPY_NOSKIP"></a><a id="sp_copy_noskip"></a><dl>
+    ///<dt><b>SP_COPY_NOSKIP</b></dt> </dl> </td> <td width="60%"> Do not give the user the option to skip a file. </td>
+    ///</tr> <tr> <td width="40%"><a id="SP_COPY_FORCE_NOOVERWRITE"></a><a id="sp_copy_force_nooverwrite"></a><dl>
+    ///<dt><b>SP_COPY_FORCE_NOOVERWRITE</b></dt> </dl> </td> <td width="60%"> Check whether the target file exists, and
+    ///if so, the file is not overwritten. The caller is not notified. </td> </tr> <tr> <td width="40%"><a
+    ///id="SP_COPY_FORCE_NEWER"></a><a id="sp_copy_force_newer"></a><dl> <dt><b>SP_COPY_FORCE_NEWER</b></dt> </dl> </td>
+    ///<td width="60%"> Examine each file being copied to see if its version resources (or time stamps for non-image
+    ///files) indicate that it is not newer than an existing copy on the target. If the file being copied is not newer,
+    ///the file is not copied. The caller is not notified. </td> </tr> <tr> <td width="40%"><a
+    ///id="SP_COPY_WARNIFSKIP"></a><a id="sp_copy_warnifskip"></a><dl> <dt><b>SP_COPY_WARNIFSKIP</b></dt> </dl> </td>
+    ///<td width="60%"> If the user tries to skip a file, warn them that skipping a file may affect the installation.
+    ///(Used for system-critical files.) </td> </tr> </table>
+    uint        CopyStyle;
+    ///Handle to the INF to use to obtain source information.
+    void*       LayoutInf;
+    ///An optional Security Descriptor String specifying the ACL to apply to the file.
+    const(PSTR) SecurityDescriptor;
 }
 
 ///The <b>SP_FILE_COPY_PARAMS</b> structure describes a single file copy operation.
-struct SP_FILE_COPY_PARAMS_A
+struct SP_FILE_COPY_PARAMS_W
 {
 align (1):
     ///Size of the structure, in bytes. Set to the value: <code>sizeof(SP_FILE_COPY_PARAMS)</code>.
@@ -1866,21 +1960,21 @@ align (1):
     ///Handle to a setup file queue, as returned by SetupOpenFileQueue.
     void*        QueueHandle;
     ///Optional pointer to the root of the source for this copy, such as A:\.
-    const(char)* SourceRootPath;
+    const(PWSTR) SourceRootPath;
     ///Optional pointer to the path relative to <b>SourceRootPath</b> where the file can be found.
-    const(char)* SourcePath;
+    const(PWSTR) SourcePath;
     ///File name part of the file to be copied.
-    const(char)* SourceFilename;
+    const(PWSTR) SourceFilename;
     ///Optional pointer to a description of the source media to be used during disk prompts.
-    const(char)* SourceDescription;
+    const(PWSTR) SourceDescription;
     ///Optional pointer to a tag file whose presence at <b>SourceRootPath</b> indicates the presence of the source
     ///media. If not specified, the file itself will be used as the tag file if required.
-    const(char)* SourceTagfile;
+    const(PWSTR) SourceTagfile;
     ///Directory where the file is to be copied.
-    const(char)* TargetDirectory;
+    const(PWSTR) TargetDirectory;
     ///Optional pointer to the name of the target file. If not specified, the target file will have the same name as the
     ///source file.
-    const(char)* TargetFilename;
+    const(PWSTR) TargetFilename;
     ///Flags that control the behavior of the file copy operation. These flags may be a combination of the following
     ///values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="SP_COPY_DELETESOURCE"></a><a id="sp_copy_deletesource"></a><dl> <dt><b>SP_COPY_DELETESOURCE</b></dt> </dl>
@@ -1942,95 +2036,7 @@ align (1):
     ///Handle to the INF to use to obtain source information.
     void*        LayoutInf;
     ///An optional Security Descriptor String specifying the ACL to apply to the file.
-    const(char)* SecurityDescriptor;
-}
-
-///The <b>SP_FILE_COPY_PARAMS</b> structure describes a single file copy operation.
-struct SP_FILE_COPY_PARAMS_W
-{
-align (1):
-    ///Size of the structure, in bytes. Set to the value: <code>sizeof(SP_FILE_COPY_PARAMS)</code>.
-    uint          cbSize;
-    ///Handle to a setup file queue, as returned by SetupOpenFileQueue.
-    void*         QueueHandle;
-    ///Optional pointer to the root of the source for this copy, such as A:\.
-    const(wchar)* SourceRootPath;
-    ///Optional pointer to the path relative to <b>SourceRootPath</b> where the file can be found.
-    const(wchar)* SourcePath;
-    ///File name part of the file to be copied.
-    const(wchar)* SourceFilename;
-    ///Optional pointer to a description of the source media to be used during disk prompts.
-    const(wchar)* SourceDescription;
-    ///Optional pointer to a tag file whose presence at <b>SourceRootPath</b> indicates the presence of the source
-    ///media. If not specified, the file itself will be used as the tag file if required.
-    const(wchar)* SourceTagfile;
-    ///Directory where the file is to be copied.
-    const(wchar)* TargetDirectory;
-    ///Optional pointer to the name of the target file. If not specified, the target file will have the same name as the
-    ///source file.
-    const(wchar)* TargetFilename;
-    ///Flags that control the behavior of the file copy operation. These flags may be a combination of the following
-    ///values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
-    ///id="SP_COPY_DELETESOURCE"></a><a id="sp_copy_deletesource"></a><dl> <dt><b>SP_COPY_DELETESOURCE</b></dt> </dl>
-    ///</td> <td width="60%"> Delete the source file upon successful copy. The caller is not notified if the deletion
-    ///fails. </td> </tr> <tr> <td width="40%"><a id="SP_COPY_REPLACEONLY"></a><a id="sp_copy_replaceonly"></a><dl>
-    ///<dt><b>SP_COPY_REPLACEONLY</b></dt> </dl> </td> <td width="60%"> Copy the file only if doing so would overwrite a
-    ///file at the destination path. The caller is not notified. </td> </tr> <tr> <td width="40%"><a
-    ///id="SP_COPY_NEWER_OR_SAME"></a><a id="sp_copy_newer_or_same"></a><dl> <dt><b>SP_COPY_NEWER_OR_SAME</b></dt> </dl>
-    ///</td> <td width="60%"> Examine each file being copied to see if its version resources indicate that it is either
-    ///the same version or not newer than an existing copy on the target. The file version information used during
-    ///version checks is that specified in the <b>dwFileVersionMS</b> and <b>dwFileVersionLS</b> members of a
-    ///VS_FIXEDFILEINFO structure, as filled in by the version functions. If one of the files does not have version
-    ///resources, or if they have identical version information, the source file is considered newer. If the source file
-    ///is not equal in version or newer, and <i>CopyMsgHandler</i> is specified, the caller is notified and may cancel
-    ///the copy. If <i>CopyMsgHandler</i> is not specified, the file is not copied. </td> </tr> <tr> <td width="40%"><a
-    ///id="SP_COPY_NEWER_ONLY"></a><a id="sp_copy_newer_only"></a><dl> <dt><b>SP_COPY_NEWER_ONLY</b></dt> </dl> </td>
-    ///<td width="60%"> Examine each file being copied to see if its version resources indicate that it is not newer
-    ///than an existing copy on the target. If the source file is newer but not equal in version to the existing target,
-    ///the file is copied. </td> </tr> <tr> <td width="40%"><a id="SP_COPY_NOOVERWRITE"></a><a
-    ///id="sp_copy_nooverwrite"></a><dl> <dt><b>SP_COPY_NOOVERWRITE</b></dt> </dl> </td> <td width="60%"> Check whether
-    ///the target file exists, and if so, notify the caller who may veto the copy. If <i>CopyMsgHandler</i> is not
-    ///specified, the file is not overwritten. </td> </tr> <tr> <td width="40%"><a id="SP_COPY_NODECOMP"></a><a
-    ///id="sp_copy_nodecomp"></a><dl> <dt><b>SP_COPY_NODECOMP</b></dt> </dl> </td> <td width="60%"> Do not decompress
-    ///the file. When this flag is set, the target file is not given the uncompressed form of the source name (if
-    ///appropriate). For example, copying f:\x86\cmd.ex_ to \\install\temp results in a target file of
-    ///\\install\temp\cmd.ex_. If the SP_COPY_NODECOMP flag was not specified, the file would be decompressed and the
-    ///target would be called \\install\temp\cmd.exe. The file name part of <i>DestinationName</i>, if specified, is
-    ///stripped and replaced with the file name of the source file. When SP_COPY_NODECOMP is specified, no language or
-    ///version information can be checked. </td> </tr> <tr> <td width="40%"><a id="SP_COPY_LANGUAGEAWARE"></a><a
-    ///id="sp_copy_languageaware"></a><dl> <dt><b>SP_COPY_LANGUAGEAWARE</b></dt> </dl> </td> <td width="60%"> Examine
-    ///each file being copied to see if its language differs from the language of any existing file already on the
-    ///target. If so, and <i>CopyMsgHandler</i> is specified, the caller is notified and may cancel the copy. If
-    ///<i>CopyMsgHandler</i> is not specified, the file is not copied. </td> </tr> <tr> <td width="40%"><a
-    ///id="SP_COPY_SOURCE_ABSOLUTE"></a><a id="sp_copy_source_absolute"></a><dl> <dt><b>SP_COPY_SOURCE_ABSOLUTE</b></dt>
-    ///</dl> </td> <td width="60%"> <i>SourceFile</i> is a full source path. Do not look it up in the SourceDisksNames
-    ///section of the INF file. </td> </tr> <tr> <td width="40%"><a id="SP_COPY_SOURCEPATH_ABSOLUTE"></a><a
-    ///id="sp_copy_sourcepath_absolute"></a><dl> <dt><b>SP_COPY_SOURCEPATH_ABSOLUTE</b></dt> </dl> </td> <td
-    ///width="60%"> <i>SourcePathRoot</i> is the full path part of the source file. Ignore the relative source specified
-    ///in the SourceDisksNames section of the INF file for the source media where the file is located. This flag is
-    ///ignored if SP_COPY_SOURCE_ABSOLUTE is specified. </td> </tr> <tr> <td width="40%"><a
-    ///id="SP_COPY_FORCE_IN_USE"></a><a id="sp_copy_force_in_use"></a><dl> <dt><b>SP_COPY_FORCE_IN_USE</b></dt> </dl>
-    ///</td> <td width="60%"> If the target exists, behave as if it is in-use and queue the file for copying on the next
-    ///system reboot. </td> </tr> <tr> <td width="40%"><a id="SP_COPY_IN_USE_NEEDS_REBOOT"></a><a
-    ///id="sp_copy_in_use_needs_reboot"></a><dl> <dt><b>SP_COPY_IN_USE_NEEDS_REBOOT</b></dt> </dl> </td> <td
-    ///width="60%"> If the file was in-use during the copy operation, alert the user that the system needs to be
-    ///rebooted. </td> </tr> <tr> <td width="40%"><a id="SP_COPY_NOSKIP"></a><a id="sp_copy_noskip"></a><dl>
-    ///<dt><b>SP_COPY_NOSKIP</b></dt> </dl> </td> <td width="60%"> Do not give the user the option to skip a file. </td>
-    ///</tr> <tr> <td width="40%"><a id="SP_COPY_FORCE_NOOVERWRITE"></a><a id="sp_copy_force_nooverwrite"></a><dl>
-    ///<dt><b>SP_COPY_FORCE_NOOVERWRITE</b></dt> </dl> </td> <td width="60%"> Check whether the target file exists, and
-    ///if so, the file is not overwritten. The caller is not notified. </td> </tr> <tr> <td width="40%"><a
-    ///id="SP_COPY_FORCE_NEWER"></a><a id="sp_copy_force_newer"></a><dl> <dt><b>SP_COPY_FORCE_NEWER</b></dt> </dl> </td>
-    ///<td width="60%"> Examine each file being copied to see if its version resources (or time stamps for non-image
-    ///files) indicate that it is not newer than an existing copy on the target. If the file being copied is not newer,
-    ///the file is not copied. The caller is not notified. </td> </tr> <tr> <td width="40%"><a
-    ///id="SP_COPY_WARNIFSKIP"></a><a id="sp_copy_warnifskip"></a><dl> <dt><b>SP_COPY_WARNIFSKIP</b></dt> </dl> </td>
-    ///<td width="60%"> If the user tries to skip a file, warn them that skipping a file may affect the installation.
-    ///(Used for system-critical files.) </td> </tr> </table>
-    uint          CopyStyle;
-    ///Handle to the INF to use to obtain source information.
-    void*         LayoutInf;
-    ///An optional Security Descriptor String specifying the ACL to apply to the file.
-    const(wchar)* SecurityDescriptor;
+    const(PWSTR) SecurityDescriptor;
 }
 
 ///The <b>SP_INF_SIGNER_INFO</b> structure stores information about an INF file's digital signature.
@@ -2093,6 +2099,305 @@ align (1):
 
 // Functions
 
+///The <b>CreateActCtx</b> function creates an activation context.
+///Params:
+///    pActCtx = Pointer to an ACTCTX structure that contains information about the activation context to be created.
+///Returns:
+///    If the function succeeds, it returns a handle to the returned activation context. Otherwise, it returns
+///    INVALID_HANDLE_VALUE. This function sets errors that can be retrieved by calling GetLastError. For an example,
+///    see Retrieving the Last-Error Code. For a complete list of error codes, see System Error Codes.
+///    
+@DllImport("KERNEL32")
+HANDLE CreateActCtxA(ACTCTXA* pActCtx);
+
+///The <b>CreateActCtx</b> function creates an activation context.
+///Params:
+///    pActCtx = Pointer to an ACTCTX structure that contains information about the activation context to be created.
+///Returns:
+///    If the function succeeds, it returns a handle to the returned activation context. Otherwise, it returns
+///    INVALID_HANDLE_VALUE. This function sets errors that can be retrieved by calling GetLastError. For an example,
+///    see Retrieving the Last-Error Code. For a complete list of error codes, see System Error Codes.
+///    
+@DllImport("KERNEL32")
+HANDLE CreateActCtxW(ACTCTXW* pActCtx);
+
+///The <b>AddRefActCtx</b> function increments the reference count of the specified activation context.
+///Params:
+///    hActCtx = Handle to an ACTCTX structure that contains information on the activation context for which the reference count
+///              is to be incremented.
+@DllImport("KERNEL32")
+void AddRefActCtx(HANDLE hActCtx);
+
+///The <b>ReleaseActCtx</b> function decrements the reference count of the specified activation context.
+///Params:
+///    hActCtx = Handle to the ACTCTX structure that contains information on the activation context for which the reference count
+///              is to be decremented.
+///Returns:
+///    This function does not return a value. On successful completion, the activation context reference count is
+///    decremented. The recipient of the reference-counted object must decrement the reference count when the object is
+///    no longer required.
+///    
+@DllImport("KERNEL32")
+void ReleaseActCtx(HANDLE hActCtx);
+
+///The <b>ZombifyActCtx</b> function deactivates the specified activation context, but does not deallocate it.
+///Params:
+///    hActCtx = Handle to the activation context that is to be deactivated.
+///Returns:
+///    If the function succeeds, it returns <b>TRUE</b>. If a <b>null</b> handle is passed in the <i>hActCtx</i>
+///    parameter, NULL_INVALID_PARAMETER will be returned. Otherwise, it returns <b>FALSE</b>. This function sets errors
+///    that can be retrieved by calling GetLastError. For an example, see Retrieving the Last-Error Code. For a complete
+///    list of error codes, see System Error Codes.
+///    
+@DllImport("KERNEL32")
+BOOL ZombifyActCtx(HANDLE hActCtx);
+
+///The <b>ActivateActCtx</b> function activates the specified activation context. It does this by pushing the specified
+///activation context to the top of the activation stack. The specified activation context is thus associated with the
+///current thread and any appropriate side-by-side API functions.
+///Params:
+///    hActCtx = Handle to an ACTCTX structure that contains information on the activation context that is to be made active.
+///    lpCookie = Pointer to a <b>ULONG_PTR</b> that functions as a cookie, uniquely identifying a specific, activated activation
+///               context.
+///Returns:
+///    If the function succeeds, it returns <b>TRUE</b>. Otherwise, it returns <b>FALSE</b>. This function sets errors
+///    that can be retrieved by calling GetLastError. For an example, see Retrieving the Last-Error Code. For a complete
+///    list of error codes, see System Error Codes.
+///    
+@DllImport("KERNEL32")
+BOOL ActivateActCtx(HANDLE hActCtx, size_t* lpCookie);
+
+///The <b>DeactivateActCtx</b> function deactivates the activation context corresponding to the specified cookie.
+///Params:
+///    dwFlags = Flags that indicate how the deactivation is to occur. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td
+///              width="40%"><a id="0"></a><dl> <dt><b>0</b></dt> </dl> </td> <td width="60%"> If this value is set and the cookie
+///              specified in the <i>ulCookie</i> parameter is in the top frame of the activation stack, the activation context is
+///              popped from the stack and thereby deactivated. If this value is set and the cookie specified in the
+///              <i>ulCookie</i> parameter is not in the top frame of the activation stack, this function searches down the stack
+///              for the cookie. If the cookie is found, a STATUS_SXS_EARLY_DEACTIVATION exception is thrown. If the cookie is not
+///              found, a STATUS_SXS_INVALID_DEACTIVATION exception is thrown. This value should be specified in most cases. </td>
+///              </tr> <tr> <td width="40%"><a id="DEACTIVATE_ACTCTX_FLAG_FORCE_EARLY_DEACTIVATION"></a><a
+///              id="deactivate_actctx_flag_force_early_deactivation"></a><dl>
+///              <dt><b>DEACTIVATE_ACTCTX_FLAG_FORCE_EARLY_DEACTIVATION</b></dt> </dl> </td> <td width="60%"> If this value is set
+///              and the cookie specified in the <i>ulCookie</i> parameter is in the top frame of the activation stack, the
+///              function returns an ERROR_INVALID_PARAMETER error code. Call GetLastError to obtain this code. If this value is
+///              set and the cookie is not on the activation stack, a STATUS_SXS_INVALID_DEACTIVATION exception will be thrown. If
+///              this value is set and the cookie is in a lower frame of the activation stack, all of the frames down to and
+///              including the frame the cookie is in is popped from the stack. </td> </tr> </table>
+///    ulCookie = The ULONG_PTR that was passed into the call to ActivateActCtx. This value is used as a cookie to identify a
+///               specific activated activation context.
+///Returns:
+///    If the function succeeds, it returns <b>TRUE</b>. Otherwise, it returns <b>FALSE</b>. This function sets errors
+///    that can be retrieved by calling GetLastError. For an example, see Retrieving the Last-Error Code. For a complete
+///    list of error codes, see System Error Codes.
+///    
+@DllImport("KERNEL32")
+BOOL DeactivateActCtx(uint dwFlags, size_t ulCookie);
+
+///The <b>GetCurrentActCtx</b> function returns the handle to the active activation context of the calling thread.
+///Params:
+///    lphActCtx = Pointer to the returned ACTCTX structure that contains information on the active activation context.
+///Returns:
+///    If the function succeeds, it returns <b>TRUE</b>. Otherwise, it returns <b>FALSE</b>. This function sets errors
+///    that can be retrieved by calling GetLastError. For an example, see Retrieving the Last-Error Code. For a complete
+///    list of error codes, see System Error Codes.
+///    
+@DllImport("KERNEL32")
+BOOL GetCurrentActCtx(HANDLE* lphActCtx);
+
+///The <b>FindActCtxSectionString</b> function retrieves information on a specific string in the current activation
+///context and returns a ACTCTX_SECTION_KEYED_DATA structure.
+///Params:
+///    dwFlags = Flags that determine how this function is to operate. Only the following flag is currently defined. <table> <tr>
+///              <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="FIND_ACTCTX_SECTION_KEY_RETURN_HACTCTX"></a><a
+///              id="find_actctx_section_key_return_hactctx"></a><dl> <dt><b>FIND_ACTCTX_SECTION_KEY_RETURN_HACTCTX</b></dt> </dl>
+///              </td> <td width="60%"> This function returns the activation context handle where the redirection data was found
+///              in the <b>hActCtx</b> member of the ACTCTX_SECTION_KEYED_DATA structure. The caller must use ReleaseActCtx to
+///              release this activation context. </td> </tr> </table>
+///    lpExtensionGuid = Reserved; must be null.
+///    ulSectionId = Identifier of the string section of the activation context in which to search for the specific string. The
+///                  following are valid string section identifiers: <ul> <li>ACTIVATION_CONTEXT_SECTION_ASSEMBLY_INFORMATION</li>
+///                  <li>ACTIVATION_CONTEXT_SECTION_DLL_REDIRECTION</li> <li>ACTIVATION_CONTEXT_SECTION_WINDOW_CLASS_REDIRECTION</li>
+///                  <li>ACTIVATION_CONTEXT_SECTION_COM_PROGID_REDIRECTION</li> </ul>
+///    lpStringToFind = Pointer to a null-terminated string to be used as the search criteria.
+///    ReturnedData = Pointer to an ACTCTX_SECTION_KEYED_DATA structure to be filled out with the requested string information.
+///Returns:
+///    If the function succeeds, it returns <b>TRUE</b>. Otherwise, it returns <b>FALSE</b>. This function sets errors
+///    that can be retrieved by calling GetLastError. For an example, see Retrieving the Last-Error Code. For a complete
+///    list of error codes, see System Error Codes.
+///    
+@DllImport("KERNEL32")
+BOOL FindActCtxSectionStringA(uint dwFlags, const(GUID)* lpExtensionGuid, uint ulSectionId, 
+                              const(PSTR) lpStringToFind, ACTCTX_SECTION_KEYED_DATA* ReturnedData);
+
+///The <b>FindActCtxSectionString</b> function retrieves information on a specific string in the current activation
+///context and returns a ACTCTX_SECTION_KEYED_DATA structure.
+///Params:
+///    dwFlags = Flags that determine how this function is to operate. Only the following flag is currently defined. <table> <tr>
+///              <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="FIND_ACTCTX_SECTION_KEY_RETURN_HACTCTX"></a><a
+///              id="find_actctx_section_key_return_hactctx"></a><dl> <dt><b>FIND_ACTCTX_SECTION_KEY_RETURN_HACTCTX</b></dt> </dl>
+///              </td> <td width="60%"> This function returns the activation context handle where the redirection data was found
+///              in the <b>hActCtx</b> member of the ACTCTX_SECTION_KEYED_DATA structure. The caller must use ReleaseActCtx to
+///              release this activation context. </td> </tr> </table>
+///    lpExtensionGuid = Reserved; must be null.
+///    ulSectionId = Identifier of the string section of the activation context in which to search for the specific string. The
+///                  following are valid string section identifiers: <ul> <li>ACTIVATION_CONTEXT_SECTION_ASSEMBLY_INFORMATION</li>
+///                  <li>ACTIVATION_CONTEXT_SECTION_DLL_REDIRECTION</li> <li>ACTIVATION_CONTEXT_SECTION_WINDOW_CLASS_REDIRECTION</li>
+///                  <li>ACTIVATION_CONTEXT_SECTION_COM_PROGID_REDIRECTION</li> </ul>
+///    lpStringToFind = Pointer to a null-terminated string to be used as the search criteria.
+///    ReturnedData = Pointer to an ACTCTX_SECTION_KEYED_DATA structure to be filled out with the requested string information.
+///Returns:
+///    If the function succeeds, it returns <b>TRUE</b>. Otherwise, it returns <b>FALSE</b>. This function sets errors
+///    that can be retrieved by calling GetLastError. For an example, see Retrieving the Last-Error Code. For a complete
+///    list of error codes, see System Error Codes.
+///    
+@DllImport("KERNEL32")
+BOOL FindActCtxSectionStringW(uint dwFlags, const(GUID)* lpExtensionGuid, uint ulSectionId, 
+                              const(PWSTR) lpStringToFind, ACTCTX_SECTION_KEYED_DATA* ReturnedData);
+
+///The <b>FindActCtxSectionGuid</b> function retrieves information on a specific GUID in the current activation context
+///and returns a ACTCTX_SECTION_KEYED_DATA structure.
+///Params:
+///    dwFlags = Flags that determine how this function is to operate. Only the following flag is currently defined. <table> <tr>
+///              <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="FIND_ACTCTX_SECTION_KEY_RETURN_HACTCTX"></a><a
+///              id="find_actctx_section_key_return_hactctx"></a><dl> <dt><b>FIND_ACTCTX_SECTION_KEY_RETURN_HACTCTX</b></dt> </dl>
+///              </td> <td width="60%"> This function returns the activation context handle where the redirection data was found
+///              in the <b>hActCtx</b> member of the ACTCTX_SECTION_KEYED_DATA structure. The caller must use ReleaseActCtx to
+///              release this activation context. </td> </tr> </table>
+///    lpExtensionGuid = Reserved; must be null.
+///    ulSectionId = Identifier of the section of the activation context in which to search for the specified GUID. The following are
+///                  valid GUID section identifiers: <ul> <li>ACTIVATION_CONTEXT_SECTION_COM_SERVER_REDIRECTION</li>
+///                  <li>ACTIVATION_CONTEXT_SECTION_COM_INTERFACE_REDIRECTION</li>
+///                  <li>ACTIVATION_CONTEXT_SECTION_COM_TYPE_LIBRARY_REDIRECTION</li> </ul> The following is a valid GUID section
+///                  identifier beginning with Windows Server 2003 and Windows XP with SP1: <ul>
+///                  <li>ACTIVATION_CONTEXT_SECTION_CLR_SURROGATES</li> </ul>
+///    lpGuidToFind = Pointer to a GUID to be used as the search criteria.
+///    ReturnedData = Pointer to an ACTCTX_SECTION_KEYED_DATA structure to be filled out with the requested GUID information.
+///Returns:
+///    If the function succeeds, it returns <b>TRUE</b>. Otherwise, it returns <b>FALSE</b>. This function sets errors
+///    that can be retrieved by calling GetLastError. For an example, see Retrieving the Last-Error Code. For a complete
+///    list of error codes, see System Error Codes.
+///    
+@DllImport("KERNEL32")
+BOOL FindActCtxSectionGuid(uint dwFlags, const(GUID)* lpExtensionGuid, uint ulSectionId, const(GUID)* lpGuidToFind, 
+                           ACTCTX_SECTION_KEYED_DATA* ReturnedData);
+
+///The <b>QueryActCtxW</b> function queries the activation context.
+///Params:
+///    dwFlags = This parameter should be set to one of the following flag bits. <table> <tr> <th>Flag</th> <th>Meaning</th> </tr>
+///              <tr> <td width="40%"><a id="QUERY_ACTCTX_FLAG_USE_ACTIVE_ACTCTX"></a><a
+///              id="query_actctx_flag_use_active_actctx"></a><dl> <dt><b>QUERY_ACTCTX_FLAG_USE_ACTIVE_ACTCTX</b></dt> </dl> </td>
+///              <td width="60%"> <b>QueryActCtxW</b> queries the activation context active on the thread instead of the context
+///              specified by <i>hActCtx</i>. This is usually the last activation context passed to ActivateActCtx. If
+///              <b>ActivateActCtx</b> has not been called, the active activation context can be the activation context used by
+///              the executable of the current process. In other cases, the operating system determines the active activation
+///              context. For example, when the callback function to a new thread is called, the active activation context may be
+///              the context that was active when you created the thread by calling CreateThread. </td> </tr> <tr> <td
+///              width="40%"><a id="QUERY_ACTCTX_FLAG_ACTCTX_IS_HMODULE"></a><a id="query_actctx_flag_actctx_is_hmodule"></a><dl>
+///              <dt><b>QUERY_ACTCTX_FLAG_ACTCTX_IS_HMODULE</b></dt> </dl> </td> <td width="60%"> <b>QueryActCtxW</b> interprets
+///              <i>hActCtx</i> as an <b>HMODULE</b> data type and queries an activation context that is associated with a DLL or
+///              EXE. When a DLL or EXE is loaded, the loader checks for a manifest stored in a resource. If the loader finds an
+///              RT_MANIFEST resource with a resource identifier set to ISOLATIONAWARE_MANIFEST_ RESOURCE_ID, the loader
+///              associates the resulting activation context with the DLL or EXE. This is the activation context that
+///              <b>QueryActCtxW</b> queries when the QUERY_ACTCTX_FLAG_ACTCTX_IS_HMODULE flag has been set. </td> </tr> <tr> <td
+///              width="40%"><a id="QUERY_ACTCTX_FLAG_ACTCTX_IS_ADDRESS"></a><a id="query_actctx_flag_actctx_is_address"></a><dl>
+///              <dt><b>QUERY_ACTCTX_FLAG_ACTCTX_IS_ADDRESS</b></dt> </dl> </td> <td width="60%"> <b>QueryActCtxW</b> interprets
+///              <i>hActCtx</i> as an address within a DLL or EXE and queries an activation context that has been associated with
+///              the DLL or EXE. This can be any address within the DLL or EXE. For example, the address of any function within a
+///              DLL or EXE or the address of any static data, such as a constant string. When a DLL or EXE is loaded, the loader
+///              checks for a manifest stored in a resource in the same way as QUERY_ACTCTX_FLAG_ACTCTX_IS_HMODULE. </td> </tr>
+///              </table>
+///    hActCtx = Handle to the activation context that is being queried.
+///    pvSubInstance = Index of the assembly, or assembly and file combination, in the activation context. The meaning of the
+///                    <i>pvSubInstance</i> depends on the option specified by the value of the <i>ulInfoClass</i> parameter. This
+///                    parameter may be null. <table> <tr> <th>ulInfoClass Option</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
+///                    id="AssemblyDetailedInformationInActivationContext"></a><a
+///                    id="assemblydetailedinformationinactivationcontext"></a><a
+///                    id="ASSEMBLYDETAILEDINFORMATIONINACTIVATIONCONTEXT"></a><dl>
+///                    <dt><b>AssemblyDetailedInformationInActivationContext</b></dt> </dl> </td> <td width="60%"> Pointer to a
+///                    <b>DWORD</b> that specifies the index of the assembly within the activation context. This is the activation
+///                    context that <b>QueryActCtxW</b> queries. </td> </tr> <tr> <td width="40%"><a
+///                    id="FileInformationInAssemblyOfAssemblyInActivationContext"></a><a
+///                    id="fileinformationinassemblyofassemblyinactivationcontext"></a><a
+///                    id="FILEINFORMATIONINASSEMBLYOFASSEMBLYINACTIVATIONCONTEXT"></a><dl>
+///                    <dt><b>FileInformationInAssemblyOfAssemblyInActivationContext</b></dt> </dl> </td> <td width="60%"> Pointer to an
+///                    ACTIVATION_CONTEXT_QUERY_INDEX structure. If <b>QueryActCtxW</b> is called with this option and the function
+///                    succeeds, the returned buffer contains information for a file in the assembly. This information is in the form of
+///                    the ASSEMBLY_FILE_DETAILED_INFORMATION structure. </td> </tr> </table>
+///    ulInfoClass = This parameter can have only the values shown in the following table. <table> <tr> <th>Option</th>
+///                  <th>Meaning</th> </tr> <tr> <td width="40%"><a id="ActivationContextBasicInformation"></a><a
+///                  id="activationcontextbasicinformation"></a><a id="ACTIVATIONCONTEXTBASICINFORMATION"></a><dl>
+///                  <dt><b>ActivationContextBasicInformation</b></dt> <dt>1</dt> </dl> </td> <td width="60%"> Not available. </td>
+///                  </tr> <tr> <td width="40%"><a id="ActivationContextDetailedInformation"></a><a
+///                  id="activationcontextdetailedinformation"></a><a id="ACTIVATIONCONTEXTDETAILEDINFORMATION"></a><dl>
+///                  <dt><b>ActivationContextDetailedInformation</b></dt> <dt>2</dt> </dl> </td> <td width="60%"> If
+///                  <b>QueryActCtxW</b> is called with this option and the function succeeds, the returned buffer contains detailed
+///                  information about the activation context. This information is in the form of the
+///                  ACTIVATION_CONTEXT_DETAILED_INFORMATION structure. </td> </tr> <tr> <td width="40%"><a
+///                  id="AssemblyDetailedInformationInActivationContext"></a><a
+///                  id="assemblydetailedinformationinactivationcontext"></a><a
+///                  id="ASSEMBLYDETAILEDINFORMATIONINACTIVATIONCONTEXT"></a><dl>
+///                  <dt><b>AssemblyDetailedInformationInActivationContext</b></dt> <dt>3</dt> </dl> </td> <td width="60%"> If
+///                  <b>QueryActCtxW</b> is called with this option and the function succeeds, the buffer contains information about
+///                  the assembly that has the index specified in <i>pvSubInstance</i>. This information is in the form of the
+///                  ACTIVATION_CONTEXT_ASSEMBLY_DETAILED_INFORMATION structure. </td> </tr> <tr> <td width="40%"><a
+///                  id="FileInformationInAssemblyOfAssemblyInActivationContext"></a><a
+///                  id="fileinformationinassemblyofassemblyinactivationcontext"></a><a
+///                  id="FILEINFORMATIONINASSEMBLYOFASSEMBLYINACTIVATIONCONTEXT"></a><dl>
+///                  <dt><b>FileInformationInAssemblyOfAssemblyInActivationContext</b></dt> <dt>4</dt> </dl> </td> <td width="60%">
+///                  Information about a file in one of the assemblies in Activation Context. The <i>pvSubInstance</i> parameter must
+///                  point to an ACTIVATION_CONTEXT_QUERY_INDEX structure. If <b>QueryActCtxW</b> is called with this option and the
+///                  function succeeds, the returned buffer contains information for a file in the assembly. This information is in
+///                  the form of the ASSEMBLY_FILE_DETAILED_INFORMATION structure. </td> </tr> <tr> <td width="40%"><a
+///                  id="RunlevelInformationInActivationContext"></a><a id="runlevelinformationinactivationcontext"></a><a
+///                  id="RUNLEVELINFORMATIONINACTIVATIONCONTEXT"></a><dl> <dt><b>RunlevelInformationInActivationContext</b></dt>
+///                  <dt>5</dt> </dl> </td> <td width="60%"> If <b>QueryActCtxW</b> is called with this option and the function
+///                  succeeds, the buffer contains information about requested run level of the activation context. This information
+///                  is in the form of the ACTIVATION_CONTEXT_RUN_LEVEL_INFORMATION structure. <b>Windows Server 2003 and Windows XP:
+///                  </b>This value is not available. </td> </tr> <tr> <td width="40%"><a
+///                  id="CompatibilityInformationInActivationContext"></a><a id="compatibilityinformationinactivationcontext"></a><a
+///                  id="COMPATIBILITYINFORMATIONINACTIVATIONCONTEXT"></a><dl>
+///                  <dt><b>CompatibilityInformationInActivationContext</b></dt> <dt>6</dt> </dl> </td> <td width="60%"> If
+///                  <b>QueryActCtxW</b> is called with this option and the function succeeds, the buffer contains information about
+///                  requested compatibility context. This information is in the form of the
+///                  ACTIVATION_CONTEXT_COMPATIBILITY_INFORMATION structure. <b>Windows Server 2008 and earlier, and Windows Vista and
+///                  earlier: </b>This value is not available. This option is available beginning with Windows Server 2008 R2 and
+///                  Windows 7. </td> </tr> </table>
+///    pvBuffer = Pointer to a buffer that holds the returned information. This parameter is optional. If <i>pvBuffer</i> is
+///               <b>null</b>, then <i>cbBuffer</i> must be zero. If the size of the buffer pointed to by <i>pvBuffer</i> is too
+///               small, <b>QueryActCtxW</b> returns ERROR_INSUFFICIENT_BUFFER and no data is written into the buffer. See the
+///               Remarks section for the method you can use to determine the required size of the buffer.
+///    cbBuffer = Size of the buffer in bytes pointed to by <i>pvBuffer</i>. This parameter is optional.
+///    pcbWrittenOrRequired = Number of bytes written or required. The parameter <i>pcbWrittenOrRequired</i> can only be <b>NULL</b> when
+///                           <i>pvBuffer</i> is <b>NULL</b>. If <i>pcbWrittenOrRequired</i> is non-<b>NULL</b>, it is filled with the number
+///                           of bytes required to store the returned buffer.
+///Returns:
+///    If the function succeeds, it returns <b>TRUE</b>. Otherwise, it returns <b>FALSE</b>. This function sets errors
+///    that can be retrieved by calling GetLastError. For an example, see Retrieving the Last-Error Code. For a complete
+///    list of error codes, see System Error Codes.
+///    
+@DllImport("KERNEL32")
+BOOL QueryActCtxW(uint dwFlags, HANDLE hActCtx, void* pvSubInstance, uint ulInfoClass, void* pvBuffer, 
+                  size_t cbBuffer, size_t* pcbWrittenOrRequired);
+
+///The <b>QueryActCtxSettingsW</b> function specifies the activation context, and the namespace and name of the
+///attribute that is to be queried.
+///Params:
+///    dwFlags = This value must be 0.
+///    hActCtx = A handle to the activation context that is being queried.
+///    settingsNameSpace = A pointer to a string that contains the value <b>"http://schemas.microsoft.com/SMI/2005/WindowsSettings"</b> or
+///                        <b>NULL</b>. These values are equivalent. <b>Windows 8 and Windows Server 2012: </b>A pointer to a string that
+///                        contains the value <b>"http://schemas.microsoft.com/SMI/2011/WindowsSettings"</b> is also a valid parameter. A
+///                        <b>NULL</b> is still equivalent to the previous value.
+///    settingName = The name of the attribute to be queried.
+///    pvBuffer = A pointer to the buffer that receives the query result.
+///    dwBuffer = The size of the buffer in characters that receives the query result.
+///    pdwWrittenOrRequired = A pointer to a value which is the number of characters written to the buffer specified by <i>pvBuffer</i> or that
+///                           is required to hold the query result.
+@DllImport("KERNEL32")
+BOOL QueryActCtxSettingsW(uint dwFlags, HANDLE hActCtx, const(PWSTR) settingsNameSpace, const(PWSTR) settingName, 
+                          PWSTR pvBuffer, size_t dwBuffer, size_t* pdwWrittenOrRequired);
+
 ///The <b>MsiCloseHandle</b> function closes an open installation handle.
 ///Params:
 ///    hAny = Specifies any open installation handle.
@@ -2103,7 +2408,7 @@ align (1):
 ///    succeeded. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("msi")
-uint MsiCloseHandle(uint hAny);
+uint MsiCloseHandle(MSIHANDLE hAny);
 
 ///The <b>MsiCloseAllHandles</b> function closes all open installation handles allocated by the current thread. This is
 ///a diagnostic function and should not be used for cleanup.
@@ -2424,7 +2729,7 @@ uint MsiSetExternalUIRecord(INSTALLUI_HANDLER_RECORD puiHandler, uint dwMessageF
 ///    succeeded. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiEnableLogA(uint dwLogMode, const(char)* szLogFile, uint dwLogAttributes);
+uint MsiEnableLogA(uint dwLogMode, const(PSTR) szLogFile, uint dwLogAttributes);
 
 ///The <b>MsiEnableLog</b> function sets the log mode for all subsequent installations that are initiated in the calling
 ///process.
@@ -2487,7 +2792,7 @@ uint MsiEnableLogA(uint dwLogMode, const(char)* szLogFile, uint dwLogAttributes)
 ///    succeeded. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiEnableLogW(uint dwLogMode, const(wchar)* szLogFile, uint dwLogAttributes);
+uint MsiEnableLogW(uint dwLogMode, const(PWSTR) szLogFile, uint dwLogAttributes);
 
 ///The <b>MsiQueryProductState</b> function returns the installed state for a product.
 ///Params:
@@ -2503,7 +2808,7 @@ uint MsiEnableLogW(uint dwLogMode, const(wchar)* szLogFile, uint dwLogAttributes
 ///    width="60%"> The product is neither advertised or installed. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("msi")
-INSTALLSTATE MsiQueryProductStateA(const(char)* szProduct);
+INSTALLSTATE MsiQueryProductStateA(const(PSTR) szProduct);
 
 ///The <b>MsiQueryProductState</b> function returns the installed state for a product.
 ///Params:
@@ -2519,7 +2824,7 @@ INSTALLSTATE MsiQueryProductStateA(const(char)* szProduct);
 ///    width="60%"> The product is neither advertised or installed. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("msi")
-INSTALLSTATE MsiQueryProductStateW(const(wchar)* szProduct);
+INSTALLSTATE MsiQueryProductStateW(const(PWSTR) szProduct);
 
 ///The <b>MsiGetProductInfo</b> function returns product information for published and installed products.
 ///Params:
@@ -2613,8 +2918,7 @@ INSTALLSTATE MsiQueryProductStateW(const(wchar)* szProduct);
 ///    <div> </div> </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiGetProductInfoA(const(char)* szProduct, const(char)* szAttribute, const(char)* lpValueBuf, 
-                        uint* pcchValueBuf);
+uint MsiGetProductInfoA(const(PSTR) szProduct, const(PSTR) szAttribute, PSTR lpValueBuf, uint* pcchValueBuf);
 
 ///The <b>MsiGetProductInfo</b> function returns product information for published and installed products.
 ///Params:
@@ -2708,8 +3012,7 @@ uint MsiGetProductInfoA(const(char)* szProduct, const(char)* szAttribute, const(
 ///    <div> </div> </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiGetProductInfoW(const(wchar)* szProduct, const(wchar)* szAttribute, const(wchar)* lpValueBuf, 
-                        uint* pcchValueBuf);
+uint MsiGetProductInfoW(const(PWSTR) szProduct, const(PWSTR) szAttribute, PWSTR lpValueBuf, uint* pcchValueBuf);
 
 ///The <b>MsiGetProductInfoEx</b> function returns product information for advertised and installed products. This
 ///function can retrieve information about an instance of a product that is installed under a user account other than
@@ -2843,8 +3146,8 @@ uint MsiGetProductInfoW(const(wchar)* szProduct, const(wchar)* szAttribute, cons
 ///    </td> <td width="60%"> An unexpected internal failure. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiGetProductInfoExA(const(char)* szProductCode, const(char)* szUserSid, MSIINSTALLCONTEXT dwContext, 
-                          const(char)* szProperty, const(char)* szValue, uint* pcchValue);
+uint MsiGetProductInfoExA(const(PSTR) szProductCode, const(PSTR) szUserSid, MSIINSTALLCONTEXT dwContext, 
+                          const(PSTR) szProperty, PSTR szValue, uint* pcchValue);
 
 ///The <b>MsiGetProductInfoEx</b> function returns product information for advertised and installed products. This
 ///function can retrieve information about an instance of a product that is installed under a user account other than
@@ -2978,8 +3281,8 @@ uint MsiGetProductInfoExA(const(char)* szProductCode, const(char)* szUserSid, MS
 ///    </td> <td width="60%"> An unexpected internal failure. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiGetProductInfoExW(const(wchar)* szProductCode, const(wchar)* szUserSid, MSIINSTALLCONTEXT dwContext, 
-                          const(wchar)* szProperty, const(wchar)* szValue, uint* pcchValue);
+uint MsiGetProductInfoExW(const(PWSTR) szProductCode, const(PWSTR) szUserSid, MSIINSTALLCONTEXT dwContext, 
+                          const(PWSTR) szProperty, PWSTR szValue, uint* pcchValue);
 
 ///The <b>MsiInstallProduct</b> function installs or uninstalls a product.
 ///Params:
@@ -2999,7 +3302,7 @@ uint MsiGetProductInfoExW(const(wchar)* szProductCode, const(wchar)* szUserSid, 
 ///    relates to initialization occurred. </td> </tr> </table> For more information, see Displayed Error Messages.
 ///    
 @DllImport("msi")
-uint MsiInstallProductA(const(char)* szPackagePath, const(char)* szCommandLine);
+uint MsiInstallProductA(const(PSTR) szPackagePath, const(PSTR) szCommandLine);
 
 ///The <b>MsiInstallProduct</b> function installs or uninstalls a product.
 ///Params:
@@ -3019,7 +3322,7 @@ uint MsiInstallProductA(const(char)* szPackagePath, const(char)* szCommandLine);
 ///    relates to initialization occurred. </td> </tr> </table> For more information, see Displayed Error Messages.
 ///    
 @DllImport("msi")
-uint MsiInstallProductW(const(wchar)* szPackagePath, const(wchar)* szCommandLine);
+uint MsiInstallProductW(const(PWSTR) szPackagePath, const(PWSTR) szCommandLine);
 
 ///The <b>MsiConfigureProduct</b> function installs or uninstalls a product.
 ///Params:
@@ -3059,7 +3362,7 @@ uint MsiInstallProductW(const(wchar)* szPackagePath, const(wchar)* szCommandLine
 ///    </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiConfigureProductA(const(char)* szProduct, int iInstallLevel, INSTALLSTATE eInstallState);
+uint MsiConfigureProductA(const(PSTR) szProduct, int iInstallLevel, INSTALLSTATE eInstallState);
 
 ///The <b>MsiConfigureProduct</b> function installs or uninstalls a product.
 ///Params:
@@ -3099,7 +3402,7 @@ uint MsiConfigureProductA(const(char)* szProduct, int iInstallLevel, INSTALLSTAT
 ///    </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiConfigureProductW(const(wchar)* szProduct, int iInstallLevel, INSTALLSTATE eInstallState);
+uint MsiConfigureProductW(const(PWSTR) szProduct, int iInstallLevel, INSTALLSTATE eInstallState);
 
 ///The <b>MsiConfigureProductEx</b> function installs or uninstalls a product. A product command line can also be
 ///specified.
@@ -3143,8 +3446,8 @@ uint MsiConfigureProductW(const(wchar)* szProduct, int iInstallLevel, INSTALLSTA
 ///    </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiConfigureProductExA(const(char)* szProduct, int iInstallLevel, INSTALLSTATE eInstallState, 
-                            const(char)* szCommandLine);
+uint MsiConfigureProductExA(const(PSTR) szProduct, int iInstallLevel, INSTALLSTATE eInstallState, 
+                            const(PSTR) szCommandLine);
 
 ///The <b>MsiConfigureProductEx</b> function installs or uninstalls a product. A product command line can also be
 ///specified.
@@ -3188,8 +3491,8 @@ uint MsiConfigureProductExA(const(char)* szProduct, int iInstallLevel, INSTALLST
 ///    </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiConfigureProductExW(const(wchar)* szProduct, int iInstallLevel, INSTALLSTATE eInstallState, 
-                            const(wchar)* szCommandLine);
+uint MsiConfigureProductExW(const(PWSTR) szProduct, int iInstallLevel, INSTALLSTATE eInstallState, 
+                            const(PWSTR) szCommandLine);
 
 ///The <b>MsiReinstallProduct</b> function reinstalls products.
 ///Params:
@@ -3241,7 +3544,7 @@ uint MsiConfigureProductExW(const(wchar)* szProduct, int iInstallLevel, INSTALLS
 ///    not identify a known product. </td> </tr> </table> For more information, see Displayed Error Messages.
 ///    
 @DllImport("msi")
-uint MsiReinstallProductA(const(char)* szProduct, uint szReinstallMode);
+uint MsiReinstallProductA(const(PSTR) szProduct, uint szReinstallMode);
 
 ///The <b>MsiReinstallProduct</b> function reinstalls products.
 ///Params:
@@ -3293,7 +3596,7 @@ uint MsiReinstallProductA(const(char)* szProduct, uint szReinstallMode);
 ///    not identify a known product. </td> </tr> </table> For more information, see Displayed Error Messages.
 ///    
 @DllImport("msi")
-uint MsiReinstallProductW(const(wchar)* szProduct, uint szReinstallMode);
+uint MsiReinstallProductW(const(PWSTR) szProduct, uint szReinstallMode);
 
 ///The <b>MsiAdvertiseProductEx</b> function generates an advertise script or advertises a product to the computer. This
 ///function enables Windows Installer to write to a script the registry and shortcut information used to assign or
@@ -3347,7 +3650,7 @@ uint MsiReinstallProductW(const(wchar)* szProduct, uint szReinstallMode);
 ///    local computer is supported on all platforms. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiAdvertiseProductExA(const(char)* szPackagePath, const(char)* szScriptfilePath, const(char)* szTransforms, 
+uint MsiAdvertiseProductExA(const(PSTR) szPackagePath, const(PSTR) szScriptfilePath, const(PSTR) szTransforms, 
                             ushort lgidLanguage, uint dwPlatform, uint dwOptions);
 
 ///The <b>MsiAdvertiseProductEx</b> function generates an advertise script or advertises a product to the computer. This
@@ -3402,8 +3705,8 @@ uint MsiAdvertiseProductExA(const(char)* szPackagePath, const(char)* szScriptfil
 ///    local computer is supported on all platforms. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiAdvertiseProductExW(const(wchar)* szPackagePath, const(wchar)* szScriptfilePath, 
-                            const(wchar)* szTransforms, ushort lgidLanguage, uint dwPlatform, uint dwOptions);
+uint MsiAdvertiseProductExW(const(PWSTR) szPackagePath, const(PWSTR) szScriptfilePath, const(PWSTR) szTransforms, 
+                            ushort lgidLanguage, uint dwPlatform, uint dwOptions);
 
 ///The <b>MsiAdvertiseProduct</b> function generates an advertise script or advertises a product to the computer. The
 ///<b>MsiAdvertiseProduct</b> function enables the installer to write to a script the registry and shortcut information
@@ -3435,7 +3738,7 @@ uint MsiAdvertiseProductExW(const(wchar)* szPackagePath, const(wchar)* szScriptf
 ///    </table>
 ///    
 @DllImport("msi")
-uint MsiAdvertiseProductA(const(char)* szPackagePath, const(char)* szScriptfilePath, const(char)* szTransforms, 
+uint MsiAdvertiseProductA(const(PSTR) szPackagePath, const(PSTR) szScriptfilePath, const(PSTR) szTransforms, 
                           ushort lgidLanguage);
 
 ///The <b>MsiAdvertiseProduct</b> function generates an advertise script or advertises a product to the computer. The
@@ -3468,7 +3771,7 @@ uint MsiAdvertiseProductA(const(char)* szPackagePath, const(char)* szScriptfileP
 ///    </table>
 ///    
 @DllImport("msi")
-uint MsiAdvertiseProductW(const(wchar)* szPackagePath, const(wchar)* szScriptfilePath, const(wchar)* szTransforms, 
+uint MsiAdvertiseProductW(const(PWSTR) szPackagePath, const(PWSTR) szScriptfilePath, const(PWSTR) szTransforms, 
                           ushort lgidLanguage);
 
 ///The <b>MsiProcessAdvertiseScript</b> function processes an advertise script file into the specified locations.
@@ -3494,8 +3797,8 @@ uint MsiAdvertiseProductW(const(wchar)* szPackagePath, const(wchar)* szScriptfil
 ///    available for this platform. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("msi")
-uint MsiProcessAdvertiseScriptA(const(char)* szScriptFile, const(char)* szIconFolder, HKEY hRegData, 
-                                BOOL fShortcuts, BOOL fRemoveItems);
+uint MsiProcessAdvertiseScriptA(const(PSTR) szScriptFile, const(PSTR) szIconFolder, HKEY hRegData, BOOL fShortcuts, 
+                                BOOL fRemoveItems);
 
 ///The <b>MsiProcessAdvertiseScript</b> function processes an advertise script file into the specified locations.
 ///Params:
@@ -3520,7 +3823,7 @@ uint MsiProcessAdvertiseScriptA(const(char)* szScriptFile, const(char)* szIconFo
 ///    available for this platform. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("msi")
-uint MsiProcessAdvertiseScriptW(const(wchar)* szScriptFile, const(wchar)* szIconFolder, HKEY hRegData, 
+uint MsiProcessAdvertiseScriptW(const(PWSTR) szScriptFile, const(PWSTR) szIconFolder, HKEY hRegData, 
                                 BOOL fShortcuts, BOOL fRemoveItems);
 
 ///The <b>MsiAdvertiseScript</b> function copies an advertised script file into the specified locations.
@@ -3579,7 +3882,7 @@ uint MsiProcessAdvertiseScriptW(const(wchar)* szScriptFile, const(wchar)* szIcon
 ///    available on Windows 2000 and Windows XP. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("msi")
-uint MsiAdvertiseScriptA(const(char)* szScriptFile, uint dwFlags, HKEY* phRegData, BOOL fRemoveItems);
+uint MsiAdvertiseScriptA(const(PSTR) szScriptFile, uint dwFlags, HKEY* phRegData, BOOL fRemoveItems);
 
 ///The <b>MsiAdvertiseScript</b> function copies an advertised script file into the specified locations.
 ///Params:
@@ -3637,7 +3940,7 @@ uint MsiAdvertiseScriptA(const(char)* szScriptFile, uint dwFlags, HKEY* phRegDat
 ///    available on Windows 2000 and Windows XP. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("msi")
-uint MsiAdvertiseScriptW(const(wchar)* szScriptFile, uint dwFlags, HKEY* phRegData, BOOL fRemoveItems);
+uint MsiAdvertiseScriptW(const(PWSTR) szScriptFile, uint dwFlags, HKEY* phRegData, BOOL fRemoveItems);
 
 ///The <b>MsiGetProductInfoFromScript</b> function returns product information for a Windows Installer script file.
 ///Params:
@@ -3670,9 +3973,9 @@ uint MsiAdvertiseScriptW(const(wchar)* szScriptFile, uint dwFlags, HKEY* phRegDa
 ///    is only available on Windows 2000 and Windows XP. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiGetProductInfoFromScriptA(const(char)* szScriptFile, const(char)* lpProductBuf39, ushort* plgidLanguage, 
-                                  uint* pdwVersion, const(char)* lpNameBuf, uint* pcchNameBuf, 
-                                  const(char)* lpPackageBuf, uint* pcchPackageBuf);
+uint MsiGetProductInfoFromScriptA(const(PSTR) szScriptFile, PSTR lpProductBuf39, ushort* plgidLanguage, 
+                                  uint* pdwVersion, PSTR lpNameBuf, uint* pcchNameBuf, PSTR lpPackageBuf, 
+                                  uint* pcchPackageBuf);
 
 ///The <b>MsiGetProductInfoFromScript</b> function returns product information for a Windows Installer script file.
 ///Params:
@@ -3705,9 +4008,9 @@ uint MsiGetProductInfoFromScriptA(const(char)* szScriptFile, const(char)* lpProd
 ///    is only available on Windows 2000 and Windows XP. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiGetProductInfoFromScriptW(const(wchar)* szScriptFile, const(wchar)* lpProductBuf39, ushort* plgidLanguage, 
-                                  uint* pdwVersion, const(wchar)* lpNameBuf, uint* pcchNameBuf, 
-                                  const(wchar)* lpPackageBuf, uint* pcchPackageBuf);
+uint MsiGetProductInfoFromScriptW(const(PWSTR) szScriptFile, PWSTR lpProductBuf39, ushort* plgidLanguage, 
+                                  uint* pdwVersion, PWSTR lpNameBuf, uint* pcchNameBuf, PWSTR lpPackageBuf, 
+                                  uint* pcchPackageBuf);
 
 ///The <b>MsiGetProductCode</b> function returns the product code of an application by using the component code of an
 ///installed or advertised component of the application. During initialization, an application must determine under
@@ -3728,7 +4031,7 @@ uint MsiGetProductInfoFromScriptW(const(wchar)* szScriptFile, const(wchar)* lpPr
 ///    component is unknown. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("msi")
-uint MsiGetProductCodeA(const(char)* szComponent, const(char)* lpBuf39);
+uint MsiGetProductCodeA(const(PSTR) szComponent, PSTR lpBuf39);
 
 ///The <b>MsiGetProductCode</b> function returns the product code of an application by using the component code of an
 ///installed or advertised component of the application. During initialization, an application must determine under
@@ -3749,7 +4052,7 @@ uint MsiGetProductCodeA(const(char)* szComponent, const(char)* lpBuf39);
 ///    component is unknown. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("msi")
-uint MsiGetProductCodeW(const(wchar)* szComponent, const(wchar)* lpBuf39);
+uint MsiGetProductCodeW(const(PWSTR) szComponent, PWSTR lpBuf39);
 
 ///The <b>MsiGetUserInfo</b> function returns the registered user information for an installed product.
 ///Params:
@@ -3777,9 +4080,8 @@ uint MsiGetProductCodeW(const(wchar)* szComponent, const(wchar)* lpBuf39);
 ///    </div>
 ///    
 @DllImport("msi")
-USERINFOSTATE MsiGetUserInfoA(const(char)* szProduct, const(char)* lpUserNameBuf, uint* pcchUserNameBuf, 
-                              const(char)* lpOrgNameBuf, uint* pcchOrgNameBuf, const(char)* lpSerialBuf, 
-                              uint* pcchSerialBuf);
+USERINFOSTATE MsiGetUserInfoA(const(PSTR) szProduct, PSTR lpUserNameBuf, uint* pcchUserNameBuf, PSTR lpOrgNameBuf, 
+                              uint* pcchOrgNameBuf, PSTR lpSerialBuf, uint* pcchSerialBuf);
 
 ///The <b>MsiGetUserInfo</b> function returns the registered user information for an installed product.
 ///Params:
@@ -3807,9 +4109,8 @@ USERINFOSTATE MsiGetUserInfoA(const(char)* szProduct, const(char)* lpUserNameBuf
 ///    </div>
 ///    
 @DllImport("msi")
-USERINFOSTATE MsiGetUserInfoW(const(wchar)* szProduct, const(wchar)* lpUserNameBuf, uint* pcchUserNameBuf, 
-                              const(wchar)* lpOrgNameBuf, uint* pcchOrgNameBuf, const(wchar)* lpSerialBuf, 
-                              uint* pcchSerialBuf);
+USERINFOSTATE MsiGetUserInfoW(const(PWSTR) szProduct, PWSTR lpUserNameBuf, uint* pcchUserNameBuf, 
+                              PWSTR lpOrgNameBuf, uint* pcchOrgNameBuf, PWSTR lpSerialBuf, uint* pcchSerialBuf);
 
 ///The <b>MsiCollectUserInfo</b> function obtains and stores the user information and product ID from an installation
 ///wizard.
@@ -3825,7 +4126,7 @@ USERINFOSTATE MsiGetUserInfoW(const(wchar)* szProduct, const(wchar)* lpUserNameB
 ///    <div> </div>
 ///    
 @DllImport("msi")
-uint MsiCollectUserInfoA(const(char)* szProduct);
+uint MsiCollectUserInfoA(const(PSTR) szProduct);
 
 ///The <b>MsiCollectUserInfo</b> function obtains and stores the user information and product ID from an installation
 ///wizard.
@@ -3841,7 +4142,7 @@ uint MsiCollectUserInfoA(const(char)* szProduct);
 ///    <div> </div>
 ///    
 @DllImport("msi")
-uint MsiCollectUserInfoW(const(wchar)* szProduct);
+uint MsiCollectUserInfoW(const(PWSTR) szProduct);
 
 ///For each product listed by the patch package as eligible to receive the patch, the <b>MsiApplyPatch</b> function
 ///invokes an installation and sets the PATCH property to the path of the patch package.
@@ -3882,8 +4183,8 @@ uint MsiCollectUserInfoW(const(wchar)* szProduct);
 ///    </td> <td width="60%"> An initialization error occurred. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiApplyPatchA(const(char)* szPatchPackage, const(char)* szInstallPackage, INSTALLTYPE eInstallType, 
-                    const(char)* szCommandLine);
+uint MsiApplyPatchA(const(PSTR) szPatchPackage, const(PSTR) szInstallPackage, INSTALLTYPE eInstallType, 
+                    const(PSTR) szCommandLine);
 
 ///For each product listed by the patch package as eligible to receive the patch, the <b>MsiApplyPatch</b> function
 ///invokes an installation and sets the PATCH property to the path of the patch package.
@@ -3924,8 +4225,8 @@ uint MsiApplyPatchA(const(char)* szPatchPackage, const(char)* szInstallPackage, 
 ///    </td> <td width="60%"> An initialization error occurred. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiApplyPatchW(const(wchar)* szPatchPackage, const(wchar)* szInstallPackage, INSTALLTYPE eInstallType, 
-                    const(wchar)* szCommandLine);
+uint MsiApplyPatchW(const(PWSTR) szPatchPackage, const(PWSTR) szInstallPackage, INSTALLTYPE eInstallType, 
+                    const(PWSTR) szCommandLine);
 
 ///The <b>MsiGetPatchInfo</b> function returns information about a patch.
 ///Params:
@@ -3952,7 +4253,7 @@ uint MsiApplyPatchW(const(wchar)* szPatchPackage, const(wchar)* szInstallPackage
 ///    </table> <div> </div>
 ///    
 @DllImport("msi")
-uint MsiGetPatchInfoA(const(char)* szPatch, const(char)* szAttribute, const(char)* lpValueBuf, uint* pcchValueBuf);
+uint MsiGetPatchInfoA(const(PSTR) szPatch, const(PSTR) szAttribute, PSTR lpValueBuf, uint* pcchValueBuf);
 
 ///The <b>MsiGetPatchInfo</b> function returns information about a patch.
 ///Params:
@@ -3979,8 +4280,7 @@ uint MsiGetPatchInfoA(const(char)* szPatch, const(char)* szAttribute, const(char
 ///    </table> <div> </div>
 ///    
 @DllImport("msi")
-uint MsiGetPatchInfoW(const(wchar)* szPatch, const(wchar)* szAttribute, const(wchar)* lpValueBuf, 
-                      uint* pcchValueBuf);
+uint MsiGetPatchInfoW(const(PWSTR) szPatch, const(PWSTR) szAttribute, PWSTR lpValueBuf, uint* pcchValueBuf);
 
 ///The <b>MsiEnumPatches</b> function enumerates all of the patches that have been applied to a product. The function
 ///returns the patch code GUID for each patch that has been applied to the product and returns a list of transforms from
@@ -4010,8 +4310,8 @@ uint MsiGetPatchInfoW(const(wchar)* szPatch, const(wchar)* szAttribute, const(wc
 ///    requested data. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiEnumPatchesA(const(char)* szProduct, uint iPatchIndex, const(char)* lpPatchBuf, 
-                     const(char)* lpTransformsBuf, uint* pcchTransformsBuf);
+uint MsiEnumPatchesA(const(PSTR) szProduct, uint iPatchIndex, PSTR lpPatchBuf, PSTR lpTransformsBuf, 
+                     uint* pcchTransformsBuf);
 
 ///The <b>MsiEnumPatches</b> function enumerates all of the patches that have been applied to a product. The function
 ///returns the patch code GUID for each patch that has been applied to the product and returns a list of transforms from
@@ -4041,8 +4341,8 @@ uint MsiEnumPatchesA(const(char)* szProduct, uint iPatchIndex, const(char)* lpPa
 ///    requested data. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiEnumPatchesW(const(wchar)* szProduct, uint iPatchIndex, const(wchar)* lpPatchBuf, 
-                     const(wchar)* lpTransformsBuf, uint* pcchTransformsBuf);
+uint MsiEnumPatchesW(const(PWSTR) szProduct, uint iPatchIndex, PWSTR lpPatchBuf, PWSTR lpTransformsBuf, 
+                     uint* pcchTransformsBuf);
 
 ///The <b>MsiRemovePatches</b> function removes one or more patches from a single product. To remove a patch from
 ///multiple products, <b>MsiRemovePatches</b> must be called for each product.
@@ -4078,8 +4378,8 @@ uint MsiEnumPatchesW(const(wchar)* szProduct, uint iPatchIndex, const(wchar)* lp
 ///    policy. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiRemovePatchesA(const(char)* szPatchList, const(char)* szProductCode, INSTALLTYPE eUninstallType, 
-                       const(char)* szPropertyList);
+uint MsiRemovePatchesA(const(PSTR) szPatchList, const(PSTR) szProductCode, INSTALLTYPE eUninstallType, 
+                       const(PSTR) szPropertyList);
 
 ///The <b>MsiRemovePatches</b> function removes one or more patches from a single product. To remove a patch from
 ///multiple products, <b>MsiRemovePatches</b> must be called for each product.
@@ -4115,8 +4415,8 @@ uint MsiRemovePatchesA(const(char)* szPatchList, const(char)* szProductCode, INS
 ///    policy. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiRemovePatchesW(const(wchar)* szPatchList, const(wchar)* szProductCode, INSTALLTYPE eUninstallType, 
-                       const(wchar)* szPropertyList);
+uint MsiRemovePatchesW(const(PWSTR) szPatchList, const(PWSTR) szProductCode, INSTALLTYPE eUninstallType, 
+                       const(PWSTR) szPropertyList);
 
 ///The <b>MsiExtractPatchXMLData</b> function extracts information from a patch that can be used to determine if the
 ///patch applies to a target system. The function returns an XML string that can be provided to
@@ -4153,7 +4453,7 @@ uint MsiRemovePatchesW(const(wchar)* szPatchList, const(wchar)* szProductCode, I
 ///    is not installed. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiExtractPatchXMLDataA(const(char)* szPatchPath, uint dwReserved, const(char)* szXMLData, uint* pcchXMLData);
+uint MsiExtractPatchXMLDataA(const(PSTR) szPatchPath, uint dwReserved, PSTR szXMLData, uint* pcchXMLData);
 
 ///The <b>MsiExtractPatchXMLData</b> function extracts information from a patch that can be used to determine if the
 ///patch applies to a target system. The function returns an XML string that can be provided to
@@ -4190,8 +4490,7 @@ uint MsiExtractPatchXMLDataA(const(char)* szPatchPath, uint dwReserved, const(ch
 ///    is not installed. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiExtractPatchXMLDataW(const(wchar)* szPatchPath, uint dwReserved, const(wchar)* szXMLData, 
-                             uint* pcchXMLData);
+uint MsiExtractPatchXMLDataW(const(PWSTR) szPatchPath, uint dwReserved, PWSTR szXMLData, uint* pcchXMLData);
 
 ///The <b>MsiGetPatchInfoEx</b> function queries for information about the application of a patch to a specified
 ///instance of a product.
@@ -4281,8 +4580,8 @@ uint MsiExtractPatchXMLDataW(const(wchar)* szPatchPath, uint dwReserved, const(w
 ///    unrecognized. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiGetPatchInfoExA(const(char)* szPatchCode, const(char)* szProductCode, const(char)* szUserSid, 
-                        MSIINSTALLCONTEXT dwContext, const(char)* szProperty, const(char)* lpValue, uint* pcchValue);
+uint MsiGetPatchInfoExA(const(PSTR) szPatchCode, const(PSTR) szProductCode, const(PSTR) szUserSid, 
+                        MSIINSTALLCONTEXT dwContext, const(PSTR) szProperty, PSTR lpValue, uint* pcchValue);
 
 ///The <b>MsiGetPatchInfoEx</b> function queries for information about the application of a patch to a specified
 ///instance of a product.
@@ -4372,9 +4671,8 @@ uint MsiGetPatchInfoExA(const(char)* szPatchCode, const(char)* szProductCode, co
 ///    unrecognized. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiGetPatchInfoExW(const(wchar)* szPatchCode, const(wchar)* szProductCode, const(wchar)* szUserSid, 
-                        MSIINSTALLCONTEXT dwContext, const(wchar)* szProperty, const(wchar)* lpValue, 
-                        uint* pcchValue);
+uint MsiGetPatchInfoExW(const(PWSTR) szPatchCode, const(PWSTR) szProductCode, const(PWSTR) szUserSid, 
+                        MSIINSTALLCONTEXT dwContext, const(PWSTR) szProperty, PWSTR lpValue, uint* pcchValue);
 
 ///The <b>MsiApplyMultiplePatches</b> function applies one or more patches to products eligible to receive the patches.
 ///The <b>MsiApplyMultiplePatches</b> function sets the PATCH property with a list of patches delimited by semicolons
@@ -4414,8 +4712,7 @@ uint MsiGetPatchInfoExW(const(wchar)* szPatchCode, const(wchar)* szProductCode, 
 ///    width="60%"> Implies possible partial completion or that one or more transactions failed. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiApplyMultiplePatchesA(const(char)* szPatchPackages, const(char)* szProductCode, 
-                              const(char)* szPropertiesList);
+uint MsiApplyMultiplePatchesA(const(PSTR) szPatchPackages, const(PSTR) szProductCode, const(PSTR) szPropertiesList);
 
 ///The <b>MsiApplyMultiplePatches</b> function applies one or more patches to products eligible to receive the patches.
 ///The <b>MsiApplyMultiplePatches</b> function sets the PATCH property with a list of patches delimited by semicolons
@@ -4455,8 +4752,8 @@ uint MsiApplyMultiplePatchesA(const(char)* szPatchPackages, const(char)* szProdu
 ///    width="60%"> Implies possible partial completion or that one or more transactions failed. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiApplyMultiplePatchesW(const(wchar)* szPatchPackages, const(wchar)* szProductCode, 
-                              const(wchar)* szPropertiesList);
+uint MsiApplyMultiplePatchesW(const(PWSTR) szPatchPackages, const(PWSTR) szProductCode, 
+                              const(PWSTR) szPropertiesList);
 
 ///The <b>MsiDeterminePatchSequence</b> function takes a set of patch files, XML files, and XML blobs and determines the
 ///best sequence of application for the patches to a specified installed product. This function accounts for patches
@@ -4512,8 +4809,8 @@ uint MsiApplyMultiplePatchesW(const(wchar)* szPatchPackages, const(wchar)* szPro
 ///    unknown. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiDeterminePatchSequenceA(const(char)* szProductCode, const(char)* szUserSid, MSIINSTALLCONTEXT dwContext, 
-                                uint cPatchInfo, char* pPatchInfo);
+uint MsiDeterminePatchSequenceA(const(PSTR) szProductCode, const(PSTR) szUserSid, MSIINSTALLCONTEXT dwContext, 
+                                uint cPatchInfo, MSIPATCHSEQUENCEINFOA* pPatchInfo);
 
 ///The <b>MsiDeterminePatchSequence</b> function takes a set of patch files, XML files, and XML blobs and determines the
 ///best sequence of application for the patches to a specified installed product. This function accounts for patches
@@ -4569,8 +4866,8 @@ uint MsiDeterminePatchSequenceA(const(char)* szProductCode, const(char)* szUserS
 ///    unknown. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiDeterminePatchSequenceW(const(wchar)* szProductCode, const(wchar)* szUserSid, MSIINSTALLCONTEXT dwContext, 
-                                uint cPatchInfo, char* pPatchInfo);
+uint MsiDeterminePatchSequenceW(const(PWSTR) szProductCode, const(PWSTR) szUserSid, MSIINSTALLCONTEXT dwContext, 
+                                uint cPatchInfo, MSIPATCHSEQUENCEINFOW* pPatchInfo);
 
 ///The <b>MsiDetermineApplicablePatches</b> function takes a set of patch files, XML files, and XML blobs and determines
 ///which patches apply to a specified Windows Installer package and in what sequence. The function can account for
@@ -4599,7 +4896,8 @@ uint MsiDeterminePatchSequenceW(const(wchar)* szProductCode, const(wchar)* szUse
 ///    function was called from a custom action or if MSXML 3.0 is not installed. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiDetermineApplicablePatchesA(const(char)* szProductPackagePath, uint cPatchInfo, char* pPatchInfo);
+uint MsiDetermineApplicablePatchesA(const(PSTR) szProductPackagePath, uint cPatchInfo, 
+                                    MSIPATCHSEQUENCEINFOA* pPatchInfo);
 
 ///The <b>MsiDetermineApplicablePatches</b> function takes a set of patch files, XML files, and XML blobs and determines
 ///which patches apply to a specified Windows Installer package and in what sequence. The function can account for
@@ -4628,7 +4926,8 @@ uint MsiDetermineApplicablePatchesA(const(char)* szProductPackagePath, uint cPat
 ///    function was called from a custom action or if MSXML 3.0 is not installed. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiDetermineApplicablePatchesW(const(wchar)* szProductPackagePath, uint cPatchInfo, char* pPatchInfo);
+uint MsiDetermineApplicablePatchesW(const(PWSTR) szProductPackagePath, uint cPatchInfo, 
+                                    MSIPATCHSEQUENCEINFOW* pPatchInfo);
 
 ///The <b>MsiEnumPatchesEx</b> function enumerates all patches in a specific context or across all contexts. Patches
 ///already applied to products are enumerated. Patches that have been registered but not yet applied to products are
@@ -4725,10 +5024,9 @@ uint MsiDetermineApplicablePatchesW(const(wchar)* szProductPackagePath, uint cPa
 ///    </table>
 ///    
 @DllImport("msi")
-uint MsiEnumPatchesExA(const(char)* szProductCode, const(char)* szUserSid, uint dwContext, uint dwFilter, 
-                       uint dwIndex, char* szPatchCode, char* szTargetProductCode, 
-                       MSIINSTALLCONTEXT* pdwTargetProductContext, const(char)* szTargetUserSid, 
-                       uint* pcchTargetUserSid);
+uint MsiEnumPatchesExA(const(PSTR) szProductCode, const(PSTR) szUserSid, uint dwContext, uint dwFilter, 
+                       uint dwIndex, byte* szPatchCode, byte* szTargetProductCode, 
+                       MSIINSTALLCONTEXT* pdwTargetProductContext, PSTR szTargetUserSid, uint* pcchTargetUserSid);
 
 ///The <b>MsiEnumPatchesEx</b> function enumerates all patches in a specific context or across all contexts. Patches
 ///already applied to products are enumerated. Patches that have been registered but not yet applied to products are
@@ -4825,10 +5123,9 @@ uint MsiEnumPatchesExA(const(char)* szProductCode, const(char)* szUserSid, uint 
 ///    </table>
 ///    
 @DllImport("msi")
-uint MsiEnumPatchesExW(const(wchar)* szProductCode, const(wchar)* szUserSid, uint dwContext, uint dwFilter, 
-                       uint dwIndex, char* szPatchCode, char* szTargetProductCode, 
-                       MSIINSTALLCONTEXT* pdwTargetProductContext, const(wchar)* szTargetUserSid, 
-                       uint* pcchTargetUserSid);
+uint MsiEnumPatchesExW(const(PWSTR) szProductCode, const(PWSTR) szUserSid, uint dwContext, uint dwFilter, 
+                       uint dwIndex, ushort* szPatchCode, ushort* szTargetProductCode, 
+                       MSIINSTALLCONTEXT* pdwTargetProductContext, PWSTR szTargetUserSid, uint* pcchTargetUserSid);
 
 ///The <b>MsiQueryFeatureState</b> function returns the installed state for a product feature.
 ///Params:
@@ -4846,7 +5143,7 @@ uint MsiEnumPatchesExW(const(wchar)* szProductCode, const(wchar)* szUserSid, uin
 ///    width="60%"> The product code or feature ID is unknown. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("msi")
-INSTALLSTATE MsiQueryFeatureStateA(const(char)* szProduct, const(char)* szFeature);
+INSTALLSTATE MsiQueryFeatureStateA(const(PSTR) szProduct, const(PSTR) szFeature);
 
 ///The <b>MsiQueryFeatureState</b> function returns the installed state for a product feature.
 ///Params:
@@ -4864,7 +5161,7 @@ INSTALLSTATE MsiQueryFeatureStateA(const(char)* szProduct, const(char)* szFeatur
 ///    width="60%"> The product code or feature ID is unknown. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("msi")
-INSTALLSTATE MsiQueryFeatureStateW(const(wchar)* szProduct, const(wchar)* szFeature);
+INSTALLSTATE MsiQueryFeatureStateW(const(PWSTR) szProduct, const(PWSTR) szFeature);
 
 ///The <b>MsiQueryFeatureStateEx</b> function returns the installed state for a product feature. This function can be
 ///used to query any feature of an instance of a product installed under the machine account or any context under the
@@ -4919,8 +5216,8 @@ INSTALLSTATE MsiQueryFeatureStateW(const(wchar)* szProduct, const(wchar)* szFeat
 ///    Messages.
 ///    
 @DllImport("msi")
-uint MsiQueryFeatureStateExA(const(char)* szProductCode, const(char)* szUserSid, MSIINSTALLCONTEXT dwContext, 
-                             const(char)* szFeature, INSTALLSTATE* pdwState);
+uint MsiQueryFeatureStateExA(const(PSTR) szProductCode, const(PSTR) szUserSid, MSIINSTALLCONTEXT dwContext, 
+                             const(PSTR) szFeature, INSTALLSTATE* pdwState);
 
 ///The <b>MsiQueryFeatureStateEx</b> function returns the installed state for a product feature. This function can be
 ///used to query any feature of an instance of a product installed under the machine account or any context under the
@@ -4975,8 +5272,8 @@ uint MsiQueryFeatureStateExA(const(char)* szProductCode, const(char)* szUserSid,
 ///    Messages.
 ///    
 @DllImport("msi")
-uint MsiQueryFeatureStateExW(const(wchar)* szProductCode, const(wchar)* szUserSid, MSIINSTALLCONTEXT dwContext, 
-                             const(wchar)* szFeature, INSTALLSTATE* pdwState);
+uint MsiQueryFeatureStateExW(const(PWSTR) szProductCode, const(PWSTR) szUserSid, MSIINSTALLCONTEXT dwContext, 
+                             const(PWSTR) szFeature, INSTALLSTATE* pdwState);
 
 ///The <b>MsiUseFeature</b> function increments the usage count for a particular feature and indicates the installation
 ///state for that feature. This function should be used to indicate an application's intent to use a feature.
@@ -4996,7 +5293,7 @@ uint MsiQueryFeatureStateExW(const(wchar)* szProductCode, const(wchar)* szUserSi
 ///    </dl> </td> <td width="60%"> The feature is not published. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("msi")
-INSTALLSTATE MsiUseFeatureA(const(char)* szProduct, const(char)* szFeature);
+INSTALLSTATE MsiUseFeatureA(const(PSTR) szProduct, const(PSTR) szFeature);
 
 ///The <b>MsiUseFeature</b> function increments the usage count for a particular feature and indicates the installation
 ///state for that feature. This function should be used to indicate an application's intent to use a feature.
@@ -5016,7 +5313,7 @@ INSTALLSTATE MsiUseFeatureA(const(char)* szProduct, const(char)* szFeature);
 ///    </dl> </td> <td width="60%"> The feature is not published. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("msi")
-INSTALLSTATE MsiUseFeatureW(const(wchar)* szProduct, const(wchar)* szFeature);
+INSTALLSTATE MsiUseFeatureW(const(PWSTR) szProduct, const(PWSTR) szFeature);
 
 ///The <b>MsiUseFeatureEx</b> function increments the usage count for a particular feature and indicates the
 ///installation state for that feature. This function should be used to indicate an application's intent to use a
@@ -5040,7 +5337,7 @@ INSTALLSTATE MsiUseFeatureW(const(wchar)* szProduct, const(wchar)* szFeature);
 ///    </td> </tr> </table>
 ///    
 @DllImport("msi")
-INSTALLSTATE MsiUseFeatureExA(const(char)* szProduct, const(char)* szFeature, uint dwInstallMode, uint dwReserved);
+INSTALLSTATE MsiUseFeatureExA(const(PSTR) szProduct, const(PSTR) szFeature, uint dwInstallMode, uint dwReserved);
 
 ///The <b>MsiUseFeatureEx</b> function increments the usage count for a particular feature and indicates the
 ///installation state for that feature. This function should be used to indicate an application's intent to use a
@@ -5064,8 +5361,7 @@ INSTALLSTATE MsiUseFeatureExA(const(char)* szProduct, const(char)* szFeature, ui
 ///    </td> </tr> </table>
 ///    
 @DllImport("msi")
-INSTALLSTATE MsiUseFeatureExW(const(wchar)* szProduct, const(wchar)* szFeature, uint dwInstallMode, 
-                              uint dwReserved);
+INSTALLSTATE MsiUseFeatureExW(const(PWSTR) szProduct, const(PWSTR) szFeature, uint dwInstallMode, uint dwReserved);
 
 ///The <b>MsiGetFeatureUsage</b> function returns the usage metrics for a product feature.
 ///Params:
@@ -5087,7 +5383,7 @@ INSTALLSTATE MsiUseFeatureExW(const(wchar)* szProduct, const(wchar)* szFeature, 
 ///    successfully. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiGetFeatureUsageA(const(char)* szProduct, const(char)* szFeature, uint* pdwUseCount, ushort* pwDateUsed);
+uint MsiGetFeatureUsageA(const(PSTR) szProduct, const(PSTR) szFeature, uint* pdwUseCount, ushort* pwDateUsed);
 
 ///The <b>MsiGetFeatureUsage</b> function returns the usage metrics for a product feature.
 ///Params:
@@ -5109,7 +5405,7 @@ uint MsiGetFeatureUsageA(const(char)* szProduct, const(char)* szFeature, uint* p
 ///    successfully. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiGetFeatureUsageW(const(wchar)* szProduct, const(wchar)* szFeature, uint* pdwUseCount, ushort* pwDateUsed);
+uint MsiGetFeatureUsageW(const(PWSTR) szProduct, const(PWSTR) szFeature, uint* pdwUseCount, ushort* pwDateUsed);
 
 ///The <b>MsiConfigureFeature</b> function configures the installed state for a product feature.
 ///Params:
@@ -5137,7 +5433,7 @@ uint MsiGetFeatureUsageW(const(wchar)* szProduct, const(wchar)* szFeature, uint*
 ///    occurred. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiConfigureFeatureA(const(char)* szProduct, const(char)* szFeature, INSTALLSTATE eInstallState);
+uint MsiConfigureFeatureA(const(PSTR) szProduct, const(PSTR) szFeature, INSTALLSTATE eInstallState);
 
 ///The <b>MsiConfigureFeature</b> function configures the installed state for a product feature.
 ///Params:
@@ -5165,7 +5461,7 @@ uint MsiConfigureFeatureA(const(char)* szProduct, const(char)* szFeature, INSTAL
 ///    occurred. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiConfigureFeatureW(const(wchar)* szProduct, const(wchar)* szFeature, INSTALLSTATE eInstallState);
+uint MsiConfigureFeatureW(const(PWSTR) szProduct, const(PWSTR) szFeature, INSTALLSTATE eInstallState);
 
 ///The <b>MsiReinstallFeature</b> function reinstalls features.
 ///Params:
@@ -5222,7 +5518,7 @@ uint MsiConfigureFeatureW(const(wchar)* szProduct, const(wchar)* szFeature, INST
 ///    information, see Displayed Error Messages.
 ///    
 @DllImport("msi")
-uint MsiReinstallFeatureA(const(char)* szProduct, const(char)* szFeature, uint dwReinstallMode);
+uint MsiReinstallFeatureA(const(PSTR) szProduct, const(PSTR) szFeature, uint dwReinstallMode);
 
 ///The <b>MsiReinstallFeature</b> function reinstalls features.
 ///Params:
@@ -5279,7 +5575,7 @@ uint MsiReinstallFeatureA(const(char)* szProduct, const(char)* szFeature, uint d
 ///    information, see Displayed Error Messages.
 ///    
 @DllImport("msi")
-uint MsiReinstallFeatureW(const(wchar)* szProduct, const(wchar)* szFeature, uint dwReinstallMode);
+uint MsiReinstallFeatureW(const(PWSTR) szProduct, const(PWSTR) szFeature, uint dwReinstallMode);
 
 ///The <b>MsiProvideComponent</b> function returns the full component path, performing any necessary installation. This
 ///function prompts for source if necessary and increments the usage count for the feature.
@@ -5335,8 +5631,8 @@ uint MsiReinstallFeatureW(const(wchar)* szProduct, const(wchar)* szFeature, uint
 ///    Unable to detect a source. </td> </tr> </table> For more information, see Displayed Error Messages.
 ///    
 @DllImport("msi")
-uint MsiProvideComponentA(const(char)* szProduct, const(char)* szFeature, const(char)* szComponent, 
-                          uint dwInstallMode, const(char)* lpPathBuf, uint* pcchPathBuf);
+uint MsiProvideComponentA(const(PSTR) szProduct, const(PSTR) szFeature, const(PSTR) szComponent, 
+                          uint dwInstallMode, PSTR lpPathBuf, uint* pcchPathBuf);
 
 ///The <b>MsiProvideComponent</b> function returns the full component path, performing any necessary installation. This
 ///function prompts for source if necessary and increments the usage count for the feature.
@@ -5392,8 +5688,8 @@ uint MsiProvideComponentA(const(char)* szProduct, const(char)* szFeature, const(
 ///    Unable to detect a source. </td> </tr> </table> For more information, see Displayed Error Messages.
 ///    
 @DllImport("msi")
-uint MsiProvideComponentW(const(wchar)* szProduct, const(wchar)* szFeature, const(wchar)* szComponent, 
-                          uint dwInstallMode, const(wchar)* lpPathBuf, uint* pcchPathBuf);
+uint MsiProvideComponentW(const(PWSTR) szProduct, const(PWSTR) szFeature, const(PWSTR) szComponent, 
+                          uint dwInstallMode, PWSTR lpPathBuf, uint* pcchPathBuf);
 
 ///The <b>MsiProvideQualifiedComponent</b> function returns the full component path for a qualified component and
 ///performs any necessary installation. This function prompts for source if necessary, and increments the usage count
@@ -5443,8 +5739,8 @@ uint MsiProvideComponentW(const(wchar)* szProduct, const(wchar)* szFeature, cons
 ///    width="60%"> An error relating to initialization occurred. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiProvideQualifiedComponentA(const(char)* szCategory, const(char)* szQualifier, uint dwInstallMode, 
-                                   const(char)* lpPathBuf, uint* pcchPathBuf);
+uint MsiProvideQualifiedComponentA(const(PSTR) szCategory, const(PSTR) szQualifier, uint dwInstallMode, 
+                                   PSTR lpPathBuf, uint* pcchPathBuf);
 
 ///The <b>MsiProvideQualifiedComponent</b> function returns the full component path for a qualified component and
 ///performs any necessary installation. This function prompts for source if necessary, and increments the usage count
@@ -5494,8 +5790,8 @@ uint MsiProvideQualifiedComponentA(const(char)* szCategory, const(char)* szQuali
 ///    width="60%"> An error relating to initialization occurred. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiProvideQualifiedComponentW(const(wchar)* szCategory, const(wchar)* szQualifier, uint dwInstallMode, 
-                                   const(wchar)* lpPathBuf, uint* pcchPathBuf);
+uint MsiProvideQualifiedComponentW(const(PWSTR) szCategory, const(PWSTR) szQualifier, uint dwInstallMode, 
+                                   PWSTR lpPathBuf, uint* pcchPathBuf);
 
 ///The <b>MsiProvideQualifiedComponentEx</b> function returns the full component path for a qualified component that is
 ///published by a product and performs any necessary installation. This function prompts for source if necessary and
@@ -5551,8 +5847,8 @@ uint MsiProvideQualifiedComponentW(const(wchar)* szCategory, const(wchar)* szQua
 ///    </td> <td width="60%"> An error relating to initialization occurred. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiProvideQualifiedComponentExA(const(char)* szCategory, const(char)* szQualifier, uint dwInstallMode, 
-                                     const(char)* szProduct, uint dwUnused1, uint dwUnused2, const(char)* lpPathBuf, 
+uint MsiProvideQualifiedComponentExA(const(PSTR) szCategory, const(PSTR) szQualifier, uint dwInstallMode, 
+                                     const(PSTR) szProduct, uint dwUnused1, uint dwUnused2, PSTR lpPathBuf, 
                                      uint* pcchPathBuf);
 
 ///The <b>MsiProvideQualifiedComponentEx</b> function returns the full component path for a qualified component that is
@@ -5609,9 +5905,9 @@ uint MsiProvideQualifiedComponentExA(const(char)* szCategory, const(char)* szQua
 ///    </td> <td width="60%"> An error relating to initialization occurred. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiProvideQualifiedComponentExW(const(wchar)* szCategory, const(wchar)* szQualifier, uint dwInstallMode, 
-                                     const(wchar)* szProduct, uint dwUnused1, uint dwUnused2, 
-                                     const(wchar)* lpPathBuf, uint* pcchPathBuf);
+uint MsiProvideQualifiedComponentExW(const(PWSTR) szCategory, const(PWSTR) szQualifier, uint dwInstallMode, 
+                                     const(PWSTR) szProduct, uint dwUnused1, uint dwUnused2, PWSTR lpPathBuf, 
+                                     uint* pcchPathBuf);
 
 ///The <b>MsiGetComponentPath</b> function returns the full path to an installed component. If the key path for the
 ///component is a registry key then the registry key is returned.
@@ -5640,8 +5936,7 @@ uint MsiProvideQualifiedComponentExW(const(wchar)* szCategory, const(wchar)* szQ
 ///    </dl> </td> <td width="60%"> The product code or component ID is unknown. </td> </tr> </table>
 ///    
 @DllImport("msi")
-INSTALLSTATE MsiGetComponentPathA(const(char)* szProduct, const(char)* szComponent, const(char)* lpPathBuf, 
-                                  uint* pcchBuf);
+INSTALLSTATE MsiGetComponentPathA(const(PSTR) szProduct, const(PSTR) szComponent, PSTR lpPathBuf, uint* pcchBuf);
 
 ///The <b>MsiGetComponentPath</b> function returns the full path to an installed component. If the key path for the
 ///component is a registry key then the registry key is returned.
@@ -5670,8 +5965,7 @@ INSTALLSTATE MsiGetComponentPathA(const(char)* szProduct, const(char)* szCompone
 ///    </dl> </td> <td width="60%"> The product code or component ID is unknown. </td> </tr> </table>
 ///    
 @DllImport("msi")
-INSTALLSTATE MsiGetComponentPathW(const(wchar)* szProduct, const(wchar)* szComponent, const(wchar)* lpPathBuf, 
-                                  uint* pcchBuf);
+INSTALLSTATE MsiGetComponentPathW(const(PWSTR) szProduct, const(PWSTR) szComponent, PWSTR lpPathBuf, uint* pcchBuf);
 
 ///The <b>MsiGetComponentPathEx</b> function returns the full path to an installed component. If the key path for the
 ///component is a registry key then the function returns the registry key. This function extends the existing
@@ -5733,9 +6027,8 @@ INSTALLSTATE MsiGetComponentPathW(const(wchar)* szProduct, const(wchar)* szCompo
 ///    component is corrupt or partially missing in some way and requires repair. </td> </tr> </table>
 ///    
 @DllImport("msi")
-INSTALLSTATE MsiGetComponentPathExA(const(char)* szProductCode, const(char)* szComponentCode, 
-                                    const(char)* szUserSid, MSIINSTALLCONTEXT dwContext, 
-                                    const(char)* lpOutPathBuffer, uint* pcchOutPathBuffer);
+INSTALLSTATE MsiGetComponentPathExA(const(PSTR) szProductCode, const(PSTR) szComponentCode, const(PSTR) szUserSid, 
+                                    MSIINSTALLCONTEXT dwContext, PSTR lpOutPathBuffer, uint* pcchOutPathBuffer);
 
 ///The <b>MsiGetComponentPathEx</b> function returns the full path to an installed component. If the key path for the
 ///component is a registry key then the function returns the registry key. This function extends the existing
@@ -5797,9 +6090,9 @@ INSTALLSTATE MsiGetComponentPathExA(const(char)* szProductCode, const(char)* szC
 ///    component is corrupt or partially missing in some way and requires repair. </td> </tr> </table>
 ///    
 @DllImport("msi")
-INSTALLSTATE MsiGetComponentPathExW(const(wchar)* szProductCode, const(wchar)* szComponentCode, 
-                                    const(wchar)* szUserSid, MSIINSTALLCONTEXT dwContext, 
-                                    const(wchar)* lpOutPathBuffer, uint* pcchOutPathBuffer);
+INSTALLSTATE MsiGetComponentPathExW(const(PWSTR) szProductCode, const(PWSTR) szComponentCode, 
+                                    const(PWSTR) szUserSid, MSIINSTALLCONTEXT dwContext, PWSTR lpOutPathBuffer, 
+                                    uint* pcchOutPathBuffer);
 
 ///The <b>MsiProvideAssembly</b> function returns the full path to a Windows Installer component that contains an
 ///assembly. The function prompts for a source and performs any necessary installation. <b>MsiProvideAssembly</b>
@@ -5874,8 +6167,8 @@ INSTALLSTATE MsiGetComponentPathExW(const(wchar)* szProductCode, const(wchar)* s
 ///    </table> For more information, see Displayed Error Messages.
 ///    
 @DllImport("msi")
-uint MsiProvideAssemblyA(const(char)* szAssemblyName, const(char)* szAppContext, uint dwInstallMode, 
-                         uint dwAssemblyInfo, const(char)* lpPathBuf, uint* pcchPathBuf);
+uint MsiProvideAssemblyA(const(PSTR) szAssemblyName, const(PSTR) szAppContext, uint dwInstallMode, 
+                         uint dwAssemblyInfo, PSTR lpPathBuf, uint* pcchPathBuf);
 
 ///The <b>MsiProvideAssembly</b> function returns the full path to a Windows Installer component that contains an
 ///assembly. The function prompts for a source and performs any necessary installation. <b>MsiProvideAssembly</b>
@@ -5950,8 +6243,8 @@ uint MsiProvideAssemblyA(const(char)* szAssemblyName, const(char)* szAppContext,
 ///    </table> For more information, see Displayed Error Messages.
 ///    
 @DllImport("msi")
-uint MsiProvideAssemblyW(const(wchar)* szAssemblyName, const(wchar)* szAppContext, uint dwInstallMode, 
-                         uint dwAssemblyInfo, const(wchar)* lpPathBuf, uint* pcchPathBuf);
+uint MsiProvideAssemblyW(const(PWSTR) szAssemblyName, const(PWSTR) szAppContext, uint dwInstallMode, 
+                         uint dwAssemblyInfo, PWSTR lpPathBuf, uint* pcchPathBuf);
 
 ///The <b>MsiQueryComponentState</b> function returns the installed state for a component. This function can query for a
 ///component of an instance of a product that is installed under user accounts other than the current user provided the
@@ -6005,8 +6298,8 @@ uint MsiProvideAssemblyW(const(wchar)* szAssemblyName, const(wchar)* szAppContex
 ///    Messages.
 ///    
 @DllImport("msi")
-uint MsiQueryComponentStateA(const(char)* szProductCode, const(char)* szUserSid, MSIINSTALLCONTEXT dwContext, 
-                             const(char)* szComponentCode, INSTALLSTATE* pdwState);
+uint MsiQueryComponentStateA(const(PSTR) szProductCode, const(PSTR) szUserSid, MSIINSTALLCONTEXT dwContext, 
+                             const(PSTR) szComponentCode, INSTALLSTATE* pdwState);
 
 ///The <b>MsiQueryComponentState</b> function returns the installed state for a component. This function can query for a
 ///component of an instance of a product that is installed under user accounts other than the current user provided the
@@ -6060,8 +6353,8 @@ uint MsiQueryComponentStateA(const(char)* szProductCode, const(char)* szUserSid,
 ///    Messages.
 ///    
 @DllImport("msi")
-uint MsiQueryComponentStateW(const(wchar)* szProductCode, const(wchar)* szUserSid, MSIINSTALLCONTEXT dwContext, 
-                             const(wchar)* szComponentCode, INSTALLSTATE* pdwState);
+uint MsiQueryComponentStateW(const(PWSTR) szProductCode, const(PWSTR) szUserSid, MSIINSTALLCONTEXT dwContext, 
+                             const(PWSTR) szComponentCode, INSTALLSTATE* pdwState);
 
 ///The <b>MsiEnumProducts</b> function enumerates through all the products currently advertised or installed. Products
 ///that are installed in both the per-user and per-machine installation context and advertisements are enumerated.
@@ -6082,7 +6375,7 @@ uint MsiQueryComponentStateW(const(wchar)* szProductCode, const(wchar)* szUserSi
 ///    <dt><b>ERROR_SUCCESS</b></dt> </dl> </td> <td width="60%"> A value was enumerated. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiEnumProductsA(uint iProductIndex, const(char)* lpProductBuf);
+uint MsiEnumProductsA(uint iProductIndex, PSTR lpProductBuf);
 
 ///The <b>MsiEnumProducts</b> function enumerates through all the products currently advertised or installed. Products
 ///that are installed in both the per-user and per-machine installation context and advertisements are enumerated.
@@ -6103,7 +6396,7 @@ uint MsiEnumProductsA(uint iProductIndex, const(char)* lpProductBuf);
 ///    <dt><b>ERROR_SUCCESS</b></dt> </dl> </td> <td width="60%"> A value was enumerated. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiEnumProductsW(uint iProductIndex, const(wchar)* lpProductBuf);
+uint MsiEnumProductsW(uint iProductIndex, PWSTR lpProductBuf);
 
 ///The <b>MsiEnumProductsEx</b> function enumerates through one or all the instances of products that are currently
 ///advertised or installed in the specified contexts. This function supersedes MsiEnumProducts.
@@ -6177,8 +6470,8 @@ uint MsiEnumProductsW(uint iProductIndex, const(wchar)* lpProductBuf);
 ///    </td> <td width="60%"> An unexpected internal failure. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiEnumProductsExA(const(char)* szProductCode, const(char)* szUserSid, uint dwContext, uint dwIndex, 
-                        char* szInstalledProductCode, MSIINSTALLCONTEXT* pdwInstalledContext, const(char)* szSid, 
+uint MsiEnumProductsExA(const(PSTR) szProductCode, const(PSTR) szUserSid, uint dwContext, uint dwIndex, 
+                        byte* szInstalledProductCode, MSIINSTALLCONTEXT* pdwInstalledContext, PSTR szSid, 
                         uint* pcchSid);
 
 ///The <b>MsiEnumProductsEx</b> function enumerates through one or all the instances of products that are currently
@@ -6253,8 +6546,8 @@ uint MsiEnumProductsExA(const(char)* szProductCode, const(char)* szUserSid, uint
 ///    </td> <td width="60%"> An unexpected internal failure. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiEnumProductsExW(const(wchar)* szProductCode, const(wchar)* szUserSid, uint dwContext, uint dwIndex, 
-                        char* szInstalledProductCode, MSIINSTALLCONTEXT* pdwInstalledContext, const(wchar)* szSid, 
+uint MsiEnumProductsExW(const(PWSTR) szProductCode, const(PWSTR) szUserSid, uint dwContext, uint dwIndex, 
+                        ushort* szInstalledProductCode, MSIINSTALLCONTEXT* pdwInstalledContext, PWSTR szSid, 
                         uint* pcchSid);
 
 ///The <b>MsiEnumRelatedProducts</b> function enumerates products with a specified upgrade code. This function lists the
@@ -6276,8 +6569,7 @@ uint MsiEnumProductsExW(const(wchar)* szProductCode, const(wchar)* szUserSid, ui
 ///    <dt><b>ERROR_SUCCESS</b></dt> </dl> </td> <td width="60%"> A value was enumerated. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiEnumRelatedProductsA(const(char)* lpUpgradeCode, uint dwReserved, uint iProductIndex, 
-                             const(char)* lpProductBuf);
+uint MsiEnumRelatedProductsA(const(PSTR) lpUpgradeCode, uint dwReserved, uint iProductIndex, PSTR lpProductBuf);
 
 ///The <b>MsiEnumRelatedProducts</b> function enumerates products with a specified upgrade code. This function lists the
 ///currently installed and advertised products that have the specified UpgradeCode property in their Property table.
@@ -6298,8 +6590,7 @@ uint MsiEnumRelatedProductsA(const(char)* lpUpgradeCode, uint dwReserved, uint i
 ///    <dt><b>ERROR_SUCCESS</b></dt> </dl> </td> <td width="60%"> A value was enumerated. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiEnumRelatedProductsW(const(wchar)* lpUpgradeCode, uint dwReserved, uint iProductIndex, 
-                             const(wchar)* lpProductBuf);
+uint MsiEnumRelatedProductsW(const(PWSTR) lpUpgradeCode, uint dwReserved, uint iProductIndex, PWSTR lpProductBuf);
 
 ///The <b>MsiEnumFeatures</b> function enumerates the published features for a given product. This function retrieves
 ///one feature ID each time it is called.
@@ -6326,8 +6617,7 @@ uint MsiEnumRelatedProductsW(const(wchar)* lpUpgradeCode, uint dwReserved, uint 
 ///    width="60%"> The specified product is unknown. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("msi")
-uint MsiEnumFeaturesA(const(char)* szProduct, uint iFeatureIndex, const(char)* lpFeatureBuf, 
-                      const(char)* lpParentBuf);
+uint MsiEnumFeaturesA(const(PSTR) szProduct, uint iFeatureIndex, PSTR lpFeatureBuf, PSTR lpParentBuf);
 
 ///The <b>MsiEnumFeatures</b> function enumerates the published features for a given product. This function retrieves
 ///one feature ID each time it is called.
@@ -6354,8 +6644,7 @@ uint MsiEnumFeaturesA(const(char)* szProduct, uint iFeatureIndex, const(char)* l
 ///    width="60%"> The specified product is unknown. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("msi")
-uint MsiEnumFeaturesW(const(wchar)* szProduct, uint iFeatureIndex, const(wchar)* lpFeatureBuf, 
-                      const(wchar)* lpParentBuf);
+uint MsiEnumFeaturesW(const(PWSTR) szProduct, uint iFeatureIndex, PWSTR lpFeatureBuf, PWSTR lpParentBuf);
 
 ///The <b>MsiEnumComponents</b> function enumerates the installed components for all products. This function retrieves
 ///one component code each time it is called.
@@ -6377,7 +6666,7 @@ uint MsiEnumFeaturesW(const(wchar)* szProduct, uint iFeatureIndex, const(wchar)*
 ///    </div>
 ///    
 @DllImport("msi")
-uint MsiEnumComponentsA(uint iComponentIndex, const(char)* lpComponentBuf);
+uint MsiEnumComponentsA(uint iComponentIndex, PSTR lpComponentBuf);
 
 ///The <b>MsiEnumComponents</b> function enumerates the installed components for all products. This function retrieves
 ///one component code each time it is called.
@@ -6399,7 +6688,7 @@ uint MsiEnumComponentsA(uint iComponentIndex, const(char)* lpComponentBuf);
 ///    </div>
 ///    
 @DllImport("msi")
-uint MsiEnumComponentsW(uint iComponentIndex, const(wchar)* lpComponentBuf);
+uint MsiEnumComponentsW(uint iComponentIndex, PWSTR lpComponentBuf);
 
 ///The <b>MsiEnumComponentsEx</b> function enumerates installed components. The function retrieves the component code
 ///for one component each time it is called. The component code is the string GUID unique to the component, version, and
@@ -6487,8 +6776,8 @@ uint MsiEnumComponentsW(uint iComponentIndex, const(wchar)* lpComponentBuf);
 ///    The function failed. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiEnumComponentsExA(const(char)* szUserSid, uint dwContext, uint dwIndex, char* szInstalledComponentCode, 
-                          MSIINSTALLCONTEXT* pdwInstalledContext, const(char)* szSid, uint* pcchSid);
+uint MsiEnumComponentsExA(const(PSTR) szUserSid, uint dwContext, uint dwIndex, byte* szInstalledComponentCode, 
+                          MSIINSTALLCONTEXT* pdwInstalledContext, PSTR szSid, uint* pcchSid);
 
 ///The <b>MsiEnumComponentsEx</b> function enumerates installed components. The function retrieves the component code
 ///for one component each time it is called. The component code is the string GUID unique to the component, version, and
@@ -6576,8 +6865,8 @@ uint MsiEnumComponentsExA(const(char)* szUserSid, uint dwContext, uint dwIndex, 
 ///    The function failed. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiEnumComponentsExW(const(wchar)* szUserSid, uint dwContext, uint dwIndex, char* szInstalledComponentCode, 
-                          MSIINSTALLCONTEXT* pdwInstalledContext, const(wchar)* szSid, uint* pcchSid);
+uint MsiEnumComponentsExW(const(PWSTR) szUserSid, uint dwContext, uint dwIndex, ushort* szInstalledComponentCode, 
+                          MSIINSTALLCONTEXT* pdwInstalledContext, PWSTR szSid, uint* pcchSid);
 
 ///The <b>MsiEnumClients</b> function enumerates the clients for a given installed component. The function retrieves one
 ///product code each time it is called.
@@ -6601,7 +6890,7 @@ uint MsiEnumComponentsExW(const(wchar)* szUserSid, uint dwContext, uint dwIndex,
 ///    unknown. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiEnumClientsA(const(char)* szComponent, uint iProductIndex, const(char)* lpProductBuf);
+uint MsiEnumClientsA(const(PSTR) szComponent, uint iProductIndex, PSTR lpProductBuf);
 
 ///The <b>MsiEnumClients</b> function enumerates the clients for a given installed component. The function retrieves one
 ///product code each time it is called.
@@ -6625,7 +6914,7 @@ uint MsiEnumClientsA(const(char)* szComponent, uint iProductIndex, const(char)* 
 ///    unknown. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiEnumClientsW(const(wchar)* szComponent, uint iProductIndex, const(wchar)* lpProductBuf);
+uint MsiEnumClientsW(const(PWSTR) szComponent, uint iProductIndex, PWSTR lpProductBuf);
 
 ///The <b>MsiEnumClientsEx</b> function enumerates the installed applications that use a specified component. The
 ///function retrieves a product code for an application each time it is called. <b>Windows Installer 4.5 or earlier:
@@ -6714,8 +7003,8 @@ uint MsiEnumClientsW(const(wchar)* szComponent, uint iProductIndex, const(wchar)
 ///    The function failed. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiEnumClientsExA(const(char)* szComponent, const(char)* szUserSid, uint dwContext, uint dwProductIndex, 
-                       char* szProductBuf, MSIINSTALLCONTEXT* pdwInstalledContext, const(char)* szSid, uint* pcchSid);
+uint MsiEnumClientsExA(const(PSTR) szComponent, const(PSTR) szUserSid, uint dwContext, uint dwProductIndex, 
+                       byte* szProductBuf, MSIINSTALLCONTEXT* pdwInstalledContext, PSTR szSid, uint* pcchSid);
 
 ///The <b>MsiEnumClientsEx</b> function enumerates the installed applications that use a specified component. The
 ///function retrieves a product code for an application each time it is called. <b>Windows Installer 4.5 or earlier:
@@ -6804,9 +7093,8 @@ uint MsiEnumClientsExA(const(char)* szComponent, const(char)* szUserSid, uint dw
 ///    The function failed. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiEnumClientsExW(const(wchar)* szComponent, const(wchar)* szUserSid, uint dwContext, uint dwProductIndex, 
-                       char* szProductBuf, MSIINSTALLCONTEXT* pdwInstalledContext, const(wchar)* szSid, 
-                       uint* pcchSid);
+uint MsiEnumClientsExW(const(PWSTR) szComponent, const(PWSTR) szUserSid, uint dwContext, uint dwProductIndex, 
+                       ushort* szProductBuf, MSIINSTALLCONTEXT* pdwInstalledContext, PWSTR szSid, uint* pcchSid);
 
 ///The <b>MsiEnumComponentQualifiers</b> function enumerates the advertised qualifiers for the given component. This
 ///function retrieves one qualifier each time it is called.
@@ -6839,9 +7127,8 @@ uint MsiEnumClientsExW(const(wchar)* szComponent, const(wchar)* szUserSid, uint 
 ///    component is unknown. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiEnumComponentQualifiersA(const(char)* szComponent, uint iIndex, const(char)* lpQualifierBuf, 
-                                 uint* pcchQualifierBuf, const(char)* lpApplicationDataBuf, 
-                                 uint* pcchApplicationDataBuf);
+uint MsiEnumComponentQualifiersA(const(PSTR) szComponent, uint iIndex, PSTR lpQualifierBuf, uint* pcchQualifierBuf, 
+                                 PSTR lpApplicationDataBuf, uint* pcchApplicationDataBuf);
 
 ///The <b>MsiEnumComponentQualifiers</b> function enumerates the advertised qualifiers for the given component. This
 ///function retrieves one qualifier each time it is called.
@@ -6874,9 +7161,8 @@ uint MsiEnumComponentQualifiersA(const(char)* szComponent, uint iIndex, const(ch
 ///    component is unknown. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiEnumComponentQualifiersW(const(wchar)* szComponent, uint iIndex, const(wchar)* lpQualifierBuf, 
-                                 uint* pcchQualifierBuf, const(wchar)* lpApplicationDataBuf, 
-                                 uint* pcchApplicationDataBuf);
+uint MsiEnumComponentQualifiersW(const(PWSTR) szComponent, uint iIndex, PWSTR lpQualifierBuf, 
+                                 uint* pcchQualifierBuf, PWSTR lpApplicationDataBuf, uint* pcchApplicationDataBuf);
 
 ///The <b>MsiOpenProduct</b> function opens a product for use with the functions that access the product database. The
 ///MsiCloseHandle function must be called with the handle when the handle is no longer needed. <div
@@ -6897,7 +7183,7 @@ uint MsiEnumComponentQualifiersW(const(wchar)* szComponent, uint iIndex, const(w
 ///    </dl> </td> <td width="60%"> The product code was unrecognized. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("msi")
-uint MsiOpenProductA(const(char)* szProduct, uint* hProduct);
+uint MsiOpenProductA(const(PSTR) szProduct, uint* hProduct);
 
 ///The <b>MsiOpenProduct</b> function opens a product for use with the functions that access the product database. The
 ///MsiCloseHandle function must be called with the handle when the handle is no longer needed. <div
@@ -6918,7 +7204,7 @@ uint MsiOpenProductA(const(char)* szProduct, uint* hProduct);
 ///    </dl> </td> <td width="60%"> The product code was unrecognized. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("msi")
-uint MsiOpenProductW(const(wchar)* szProduct, uint* hProduct);
+uint MsiOpenProductW(const(PWSTR) szProduct, uint* hProduct);
 
 ///The <b>MsiOpenPackage</b> function opens a package to use with the functions that access the product database. The
 ///MsiCloseHandle function must be called with the handle when the handle is not needed. <div class="alert"><b>Note</b>
@@ -6940,7 +7226,7 @@ uint MsiOpenProductW(const(wchar)* szProduct, uint* hProduct);
 ///    For more information, see System Error Codes.
 ///    
 @DllImport("msi")
-uint MsiOpenPackageA(const(char)* szPackagePath, uint* hProduct);
+uint MsiOpenPackageA(const(PSTR) szPackagePath, uint* hProduct);
 
 ///The <b>MsiOpenPackage</b> function opens a package to use with the functions that access the product database. The
 ///MsiCloseHandle function must be called with the handle when the handle is not needed. <div class="alert"><b>Note</b>
@@ -6962,7 +7248,7 @@ uint MsiOpenPackageA(const(char)* szPackagePath, uint* hProduct);
 ///    For more information, see System Error Codes.
 ///    
 @DllImport("msi")
-uint MsiOpenPackageW(const(wchar)* szPackagePath, uint* hProduct);
+uint MsiOpenPackageW(const(PWSTR) szPackagePath, uint* hProduct);
 
 ///The <b>MsiOpenPackageEx</b> function opens a package to use with functions that access the product database. The
 ///MsiCloseHandle function must be called with the handle when the handle is no longer needed.<div
@@ -6989,7 +7275,7 @@ uint MsiOpenPackageW(const(wchar)* szPackagePath, uint* hProduct);
 ///    For more information, see System Error Codes.
 ///    
 @DllImport("msi")
-uint MsiOpenPackageExA(const(char)* szPackagePath, uint dwOptions, uint* hProduct);
+uint MsiOpenPackageExA(const(PSTR) szPackagePath, uint dwOptions, uint* hProduct);
 
 ///The <b>MsiOpenPackageEx</b> function opens a package to use with functions that access the product database. The
 ///MsiCloseHandle function must be called with the handle when the handle is no longer needed.<div
@@ -7016,7 +7302,7 @@ uint MsiOpenPackageExA(const(char)* szPackagePath, uint dwOptions, uint* hProduc
 ///    For more information, see System Error Codes.
 ///    
 @DllImport("msi")
-uint MsiOpenPackageExW(const(wchar)* szPackagePath, uint dwOptions, uint* hProduct);
+uint MsiOpenPackageExW(const(PWSTR) szPackagePath, uint dwOptions, uint* hProduct);
 
 ///The <b>MsiGetPatchFileList</b> function is provided a list of .msp files, delimited by semicolons, and retrieves the
 ///list of files that can be updated by the patches.
@@ -7039,7 +7325,7 @@ uint MsiOpenPackageExW(const(wchar)* szPackagePath, uint dwOptions, uint* hProdu
 ///    <dl> <dt><b>ERROR_FUNCTION_FAILED</b></dt> </dl> </td> <td width="60%"> The function failed. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiGetPatchFileListA(const(char)* szProductCode, const(char)* szPatchPackages, uint* pcFiles, 
+uint MsiGetPatchFileListA(const(PSTR) szProductCode, const(PSTR) szPatchPackages, uint* pcFiles, 
                           uint** pphFileRecords);
 
 ///The <b>MsiGetPatchFileList</b> function is provided a list of .msp files, delimited by semicolons, and retrieves the
@@ -7063,7 +7349,7 @@ uint MsiGetPatchFileListA(const(char)* szProductCode, const(char)* szPatchPackag
 ///    <dl> <dt><b>ERROR_FUNCTION_FAILED</b></dt> </dl> </td> <td width="60%"> The function failed. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiGetPatchFileListW(const(wchar)* szProductCode, const(wchar)* szPatchPackages, uint* pcFiles, 
+uint MsiGetPatchFileListW(const(PWSTR) szProductCode, const(PWSTR) szPatchPackages, uint* pcFiles, 
                           uint** pphFileRecords);
 
 ///The <b>MsiGetProductProperty</b> function retrieves product properties. These properties are in the product database.
@@ -7086,7 +7372,7 @@ uint MsiGetPatchFileListW(const(wchar)* szProductCode, const(wchar)* szPatchPack
 ///    </dl> </td> <td width="60%"> The function completed successfully. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("msi")
-uint MsiGetProductPropertyA(uint hProduct, const(char)* szProperty, const(char)* lpValueBuf, uint* pcchValueBuf);
+uint MsiGetProductPropertyA(MSIHANDLE hProduct, const(PSTR) szProperty, PSTR lpValueBuf, uint* pcchValueBuf);
 
 ///The <b>MsiGetProductProperty</b> function retrieves product properties. These properties are in the product database.
 ///Params:
@@ -7108,7 +7394,7 @@ uint MsiGetProductPropertyA(uint hProduct, const(char)* szProperty, const(char)*
 ///    </dl> </td> <td width="60%"> The function completed successfully. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("msi")
-uint MsiGetProductPropertyW(uint hProduct, const(wchar)* szProperty, const(wchar)* lpValueBuf, uint* pcchValueBuf);
+uint MsiGetProductPropertyW(MSIHANDLE hProduct, const(PWSTR) szProperty, PWSTR lpValueBuf, uint* pcchValueBuf);
 
 ///The <b>MsiVerifyPackage</b> function verifies that the given file is an installation package.
 ///Params:
@@ -7123,7 +7409,7 @@ uint MsiGetProductPropertyW(uint hProduct, const(wchar)* szProperty, const(wchar
 ///    </div>
 ///    
 @DllImport("msi")
-uint MsiVerifyPackageA(const(char)* szPackagePath);
+uint MsiVerifyPackageA(const(PSTR) szPackagePath);
 
 ///The <b>MsiVerifyPackage</b> function verifies that the given file is an installation package.
 ///Params:
@@ -7138,7 +7424,7 @@ uint MsiVerifyPackageA(const(char)* szPackagePath);
 ///    </div>
 ///    
 @DllImport("msi")
-uint MsiVerifyPackageW(const(wchar)* szPackagePath);
+uint MsiVerifyPackageW(const(PWSTR) szPackagePath);
 
 ///The <b>MsiGetFeatureInfo</b> function returns descriptive information for a feature.
 ///Params:
@@ -7166,8 +7452,8 @@ uint MsiVerifyPackageW(const(wchar)* szPackagePath);
 ///    known. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiGetFeatureInfoA(uint hProduct, const(char)* szFeature, uint* lpAttributes, const(char)* lpTitleBuf, 
-                        uint* pcchTitleBuf, const(char)* lpHelpBuf, uint* pcchHelpBuf);
+uint MsiGetFeatureInfoA(MSIHANDLE hProduct, const(PSTR) szFeature, uint* lpAttributes, PSTR lpTitleBuf, 
+                        uint* pcchTitleBuf, PSTR lpHelpBuf, uint* pcchHelpBuf);
 
 ///The <b>MsiGetFeatureInfo</b> function returns descriptive information for a feature.
 ///Params:
@@ -7195,8 +7481,8 @@ uint MsiGetFeatureInfoA(uint hProduct, const(char)* szFeature, uint* lpAttribute
 ///    known. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiGetFeatureInfoW(uint hProduct, const(wchar)* szFeature, uint* lpAttributes, const(wchar)* lpTitleBuf, 
-                        uint* pcchTitleBuf, const(wchar)* lpHelpBuf, uint* pcchHelpBuf);
+uint MsiGetFeatureInfoW(MSIHANDLE hProduct, const(PWSTR) szFeature, uint* lpAttributes, PWSTR lpTitleBuf, 
+                        uint* pcchTitleBuf, PWSTR lpHelpBuf, uint* pcchHelpBuf);
 
 ///The <b>MsiInstallMissingComponent</b> function installs files that are unexpectedly missing.
 ///Params:
@@ -7225,7 +7511,7 @@ uint MsiGetFeatureInfoW(uint hProduct, const(wchar)* szFeature, uint* lpAttribut
 ///    unrecognized. </td> </tr> </table> For more information about error messages, see Displayed Error Messages
 ///    
 @DllImport("msi")
-uint MsiInstallMissingComponentA(const(char)* szProduct, const(char)* szComponent, INSTALLSTATE eInstallState);
+uint MsiInstallMissingComponentA(const(PSTR) szProduct, const(PSTR) szComponent, INSTALLSTATE eInstallState);
 
 ///The <b>MsiInstallMissingComponent</b> function installs files that are unexpectedly missing.
 ///Params:
@@ -7254,7 +7540,7 @@ uint MsiInstallMissingComponentA(const(char)* szProduct, const(char)* szComponen
 ///    unrecognized. </td> </tr> </table> For more information about error messages, see Displayed Error Messages
 ///    
 @DllImport("msi")
-uint MsiInstallMissingComponentW(const(wchar)* szProduct, const(wchar)* szComponent, INSTALLSTATE eInstallState);
+uint MsiInstallMissingComponentW(const(PWSTR) szProduct, const(PWSTR) szComponent, INSTALLSTATE eInstallState);
 
 ///The <b>MsiInstallMissingFile</b> function installs files that are unexpectedly missing.
 ///Params:
@@ -7275,7 +7561,7 @@ uint MsiInstallMissingComponentW(const(wchar)* szProduct, const(wchar)* szCompon
 ///    </table> For more information about error messages, see Displayed Error Messages.
 ///    
 @DllImport("msi")
-uint MsiInstallMissingFileA(const(char)* szProduct, const(char)* szFile);
+uint MsiInstallMissingFileA(const(PSTR) szProduct, const(PSTR) szFile);
 
 ///The <b>MsiInstallMissingFile</b> function installs files that are unexpectedly missing.
 ///Params:
@@ -7296,7 +7582,7 @@ uint MsiInstallMissingFileA(const(char)* szProduct, const(char)* szFile);
 ///    </table> For more information about error messages, see Displayed Error Messages.
 ///    
 @DllImport("msi")
-uint MsiInstallMissingFileW(const(wchar)* szProduct, const(wchar)* szFile);
+uint MsiInstallMissingFileW(const(PWSTR) szProduct, const(PWSTR) szFile);
 
 ///The <b>MsiLocateComponent</b> function returns the full path to an installed component without a product code. This
 ///function attempts to determine the product using MsiGetProductCode, but is not guaranteed to find the correct product
@@ -7325,7 +7611,7 @@ uint MsiInstallMissingFileW(const(wchar)* szProduct, const(wchar)* szFile);
 ///    </dl> </td> <td width="60%"> The product code or component ID is unknown. See Remarks. </td> </tr> </table>
 ///    
 @DllImport("msi")
-INSTALLSTATE MsiLocateComponentA(const(char)* szComponent, const(char)* lpPathBuf, uint* pcchBuf);
+INSTALLSTATE MsiLocateComponentA(const(PSTR) szComponent, PSTR lpPathBuf, uint* pcchBuf);
 
 ///The <b>MsiLocateComponent</b> function returns the full path to an installed component without a product code. This
 ///function attempts to determine the product using MsiGetProductCode, but is not guaranteed to find the correct product
@@ -7354,7 +7640,7 @@ INSTALLSTATE MsiLocateComponentA(const(char)* szComponent, const(char)* lpPathBu
 ///    </dl> </td> <td width="60%"> The product code or component ID is unknown. See Remarks. </td> </tr> </table>
 ///    
 @DllImport("msi")
-INSTALLSTATE MsiLocateComponentW(const(wchar)* szComponent, const(wchar)* lpPathBuf, uint* pcchBuf);
+INSTALLSTATE MsiLocateComponentW(const(PWSTR) szComponent, PWSTR lpPathBuf, uint* pcchBuf);
 
 ///The <b>MsiSourceListClearAll</b> function removes all network sources from the source list of a patch or product in a
 ///specified context. For more information, see Source Resiliency.
@@ -7379,7 +7665,7 @@ INSTALLSTATE MsiLocateComponentW(const(wchar)* szComponent, const(wchar)* lpPath
 ///    unknown. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiSourceListClearAllA(const(char)* szProduct, const(char)* szUserName, uint dwReserved);
+uint MsiSourceListClearAllA(const(PSTR) szProduct, const(PSTR) szUserName, uint dwReserved);
 
 ///The <b>MsiSourceListClearAll</b> function removes all network sources from the source list of a patch or product in a
 ///specified context. For more information, see Source Resiliency.
@@ -7404,7 +7690,7 @@ uint MsiSourceListClearAllA(const(char)* szProduct, const(char)* szUserName, uin
 ///    unknown. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiSourceListClearAllW(const(wchar)* szProduct, const(wchar)* szUserName, uint dwReserved);
+uint MsiSourceListClearAllW(const(PWSTR) szProduct, const(PWSTR) szUserName, uint dwReserved);
 
 ///The <b>MsiSourceListAddSource</b> function adds to the list of valid network sources that contain the specified type
 ///of sources for a product or patch in a specified user context. The number of sources in the SOURCELIST property is
@@ -7431,8 +7717,7 @@ uint MsiSourceListClearAllW(const(wchar)* szProduct, const(wchar)* szUserName, u
 ///    width="60%"> The specified product is unknown. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiSourceListAddSourceA(const(char)* szProduct, const(char)* szUserName, uint dwReserved, 
-                             const(char)* szSource);
+uint MsiSourceListAddSourceA(const(PSTR) szProduct, const(PSTR) szUserName, uint dwReserved, const(PSTR) szSource);
 
 ///The <b>MsiSourceListAddSource</b> function adds to the list of valid network sources that contain the specified type
 ///of sources for a product or patch in a specified user context. The number of sources in the SOURCELIST property is
@@ -7459,8 +7744,8 @@ uint MsiSourceListAddSourceA(const(char)* szProduct, const(char)* szUserName, ui
 ///    width="60%"> The specified product is unknown. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiSourceListAddSourceW(const(wchar)* szProduct, const(wchar)* szUserName, uint dwReserved, 
-                             const(wchar)* szSource);
+uint MsiSourceListAddSourceW(const(PWSTR) szProduct, const(PWSTR) szUserName, uint dwReserved, 
+                             const(PWSTR) szSource);
 
 ///The <b>MsiSourceListForceResolution</b> function forces the installer to search the source list for a valid product
 ///source the next time a source is required. For example, when the installer performs an installation or
@@ -7486,7 +7771,7 @@ uint MsiSourceListAddSourceW(const(wchar)* szProduct, const(wchar)* szUserName, 
 ///    width="60%"> The specified product is unknown. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiSourceListForceResolutionA(const(char)* szProduct, const(char)* szUserName, uint dwReserved);
+uint MsiSourceListForceResolutionA(const(PSTR) szProduct, const(PSTR) szUserName, uint dwReserved);
 
 ///The <b>MsiSourceListForceResolution</b> function forces the installer to search the source list for a valid product
 ///source the next time a source is required. For example, when the installer performs an installation or
@@ -7512,7 +7797,7 @@ uint MsiSourceListForceResolutionA(const(char)* szProduct, const(char)* szUserNa
 ///    width="60%"> The specified product is unknown. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiSourceListForceResolutionW(const(wchar)* szProduct, const(wchar)* szUserName, uint dwReserved);
+uint MsiSourceListForceResolutionW(const(PWSTR) szProduct, const(PWSTR) szUserName, uint dwReserved);
 
 ///The <b>MsiSourceListAddSourceEx</b> function adds or reorders the set of sources of a patch or product in a specified
 ///context. It can also create a source list for a patch that does not exist in the specified context.
@@ -7584,8 +7869,8 @@ uint MsiSourceListForceResolutionW(const(wchar)* szProduct, const(wchar)* szUser
 ///    failure. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiSourceListAddSourceExA(const(char)* szProductCodeOrPatchCode, const(char)* szUserSid, 
-                               MSIINSTALLCONTEXT dwContext, uint dwOptions, const(char)* szSource, uint dwIndex);
+uint MsiSourceListAddSourceExA(const(PSTR) szProductCodeOrPatchCode, const(PSTR) szUserSid, 
+                               MSIINSTALLCONTEXT dwContext, uint dwOptions, const(PSTR) szSource, uint dwIndex);
 
 ///The <b>MsiSourceListAddSourceEx</b> function adds or reorders the set of sources of a patch or product in a specified
 ///context. It can also create a source list for a patch that does not exist in the specified context.
@@ -7657,8 +7942,8 @@ uint MsiSourceListAddSourceExA(const(char)* szProductCodeOrPatchCode, const(char
 ///    failure. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiSourceListAddSourceExW(const(wchar)* szProductCodeOrPatchCode, const(wchar)* szUserSid, 
-                               MSIINSTALLCONTEXT dwContext, uint dwOptions, const(wchar)* szSource, uint dwIndex);
+uint MsiSourceListAddSourceExW(const(PWSTR) szProductCodeOrPatchCode, const(PWSTR) szUserSid, 
+                               MSIINSTALLCONTEXT dwContext, uint dwOptions, const(PWSTR) szSource, uint dwIndex);
 
 ///The <b>MsiSourceListAddMediaDisk</b> function adds or updates a disk of the media source of a registered product or
 ///patch. If the disk specified already exists, it is updated with the new values. If the disk specified does not exist,
@@ -7723,9 +8008,9 @@ uint MsiSourceListAddSourceExW(const(wchar)* szProductCodeOrPatchCode, const(wch
 ///    failure. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiSourceListAddMediaDiskA(const(char)* szProductCodeOrPatchCode, const(char)* szUserSid, 
+uint MsiSourceListAddMediaDiskA(const(PSTR) szProductCodeOrPatchCode, const(PSTR) szUserSid, 
                                 MSIINSTALLCONTEXT dwContext, uint dwOptions, uint dwDiskId, 
-                                const(char)* szVolumeLabel, const(char)* szDiskPrompt);
+                                const(PSTR) szVolumeLabel, const(PSTR) szDiskPrompt);
 
 ///The <b>MsiSourceListAddMediaDisk</b> function adds or updates a disk of the media source of a registered product or
 ///patch. If the disk specified already exists, it is updated with the new values. If the disk specified does not exist,
@@ -7790,9 +8075,9 @@ uint MsiSourceListAddMediaDiskA(const(char)* szProductCodeOrPatchCode, const(cha
 ///    failure. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiSourceListAddMediaDiskW(const(wchar)* szProductCodeOrPatchCode, const(wchar)* szUserSid, 
+uint MsiSourceListAddMediaDiskW(const(PWSTR) szProductCodeOrPatchCode, const(PWSTR) szUserSid, 
                                 MSIINSTALLCONTEXT dwContext, uint dwOptions, uint dwDiskId, 
-                                const(wchar)* szVolumeLabel, const(wchar)* szDiskPrompt);
+                                const(PWSTR) szVolumeLabel, const(PWSTR) szDiskPrompt);
 
 ///The <b>MsiSourceListClearSource</b> function removes an existing source for a product or patch in a specified
 ///context. The patch registration is also removed if the sole source of the patch gets removed and if the patch is not
@@ -7859,8 +8144,8 @@ uint MsiSourceListAddMediaDiskW(const(wchar)* szProductCodeOrPatchCode, const(wc
 ///    </table>
 ///    
 @DllImport("msi")
-uint MsiSourceListClearSourceA(const(char)* szProductCodeOrPatchCode, const(char)* szUserSid, 
-                               MSIINSTALLCONTEXT dwContext, uint dwOptions, const(char)* szSource);
+uint MsiSourceListClearSourceA(const(PSTR) szProductCodeOrPatchCode, const(PSTR) szUserSid, 
+                               MSIINSTALLCONTEXT dwContext, uint dwOptions, const(PSTR) szSource);
 
 ///The <b>MsiSourceListClearSource</b> function removes an existing source for a product or patch in a specified
 ///context. The patch registration is also removed if the sole source of the patch gets removed and if the patch is not
@@ -7927,8 +8212,8 @@ uint MsiSourceListClearSourceA(const(char)* szProductCodeOrPatchCode, const(char
 ///    </table>
 ///    
 @DllImport("msi")
-uint MsiSourceListClearSourceW(const(wchar)* szProductCodeOrPatchCode, const(wchar)* szUserSid, 
-                               MSIINSTALLCONTEXT dwContext, uint dwOptions, const(wchar)* szSource);
+uint MsiSourceListClearSourceW(const(PWSTR) szProductCodeOrPatchCode, const(PWSTR) szUserSid, 
+                               MSIINSTALLCONTEXT dwContext, uint dwOptions, const(PWSTR) szSource);
 
 ///The <b>MsiSourceListClearMediaDisk</b> function provides the ability to remove an existing registered disk under the
 ///media source for a product or patch in a specific context.
@@ -7983,7 +8268,7 @@ uint MsiSourceListClearSourceW(const(wchar)* szProductCodeOrPatchCode, const(wch
 ///    Unexpected internal failure. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiSourceListClearMediaDiskA(const(char)* szProductCodeOrPatchCode, const(char)* szUserSid, 
+uint MsiSourceListClearMediaDiskA(const(PSTR) szProductCodeOrPatchCode, const(PSTR) szUserSid, 
                                   MSIINSTALLCONTEXT dwContext, uint dwOptions, uint dwDiskId);
 
 ///The <b>MsiSourceListClearMediaDisk</b> function provides the ability to remove an existing registered disk under the
@@ -8039,7 +8324,7 @@ uint MsiSourceListClearMediaDiskA(const(char)* szProductCodeOrPatchCode, const(c
 ///    Unexpected internal failure. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiSourceListClearMediaDiskW(const(wchar)* szProductCodeOrPatchCode, const(wchar)* szUserSid, 
+uint MsiSourceListClearMediaDiskW(const(PWSTR) szProductCodeOrPatchCode, const(PWSTR) szUserSid, 
                                   MSIINSTALLCONTEXT dwContext, uint dwOptions, uint dwDiskId);
 
 ///The <b>MsiSourceListClearAllEx</b> function removes all the existing sources of a given source type for the specified
@@ -8095,7 +8380,7 @@ uint MsiSourceListClearMediaDiskW(const(wchar)* szProductCodeOrPatchCode, const(
 ///    width="60%"> Unexpected internal failure. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiSourceListClearAllExA(const(char)* szProductCodeOrPatchCode, const(char)* szUserSid, 
+uint MsiSourceListClearAllExA(const(PSTR) szProductCodeOrPatchCode, const(PSTR) szUserSid, 
                               MSIINSTALLCONTEXT dwContext, uint dwOptions);
 
 ///The <b>MsiSourceListClearAllEx</b> function removes all the existing sources of a given source type for the specified
@@ -8151,7 +8436,7 @@ uint MsiSourceListClearAllExA(const(char)* szProductCodeOrPatchCode, const(char)
 ///    width="60%"> Unexpected internal failure. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiSourceListClearAllExW(const(wchar)* szProductCodeOrPatchCode, const(wchar)* szUserSid, 
+uint MsiSourceListClearAllExW(const(PWSTR) szProductCodeOrPatchCode, const(PWSTR) szUserSid, 
                               MSIINSTALLCONTEXT dwContext, uint dwOptions);
 
 ///The <b>MsiSourceListForceResolutionEx</b> function removes the registration of the property called "LastUsedSource".
@@ -8202,7 +8487,7 @@ uint MsiSourceListClearAllExW(const(wchar)* szProductCodeOrPatchCode, const(wcha
 ///    </table>
 ///    
 @DllImport("msi")
-uint MsiSourceListForceResolutionExA(const(char)* szProductCodeOrPatchCode, const(char)* szUserSid, 
+uint MsiSourceListForceResolutionExA(const(PSTR) szProductCodeOrPatchCode, const(PSTR) szUserSid, 
                                      MSIINSTALLCONTEXT dwContext, uint dwOptions);
 
 ///The <b>MsiSourceListForceResolutionEx</b> function removes the registration of the property called "LastUsedSource".
@@ -8253,7 +8538,7 @@ uint MsiSourceListForceResolutionExA(const(char)* szProductCodeOrPatchCode, cons
 ///    </table>
 ///    
 @DllImport("msi")
-uint MsiSourceListForceResolutionExW(const(wchar)* szProductCodeOrPatchCode, const(wchar)* szUserSid, 
+uint MsiSourceListForceResolutionExW(const(PWSTR) szProductCodeOrPatchCode, const(PWSTR) szUserSid, 
                                      MSIINSTALLCONTEXT dwContext, uint dwOptions);
 
 ///The <b>MsiSourceListSetInfo</b> function sets information about the source list for a product or patch in a specific
@@ -8335,9 +8620,8 @@ uint MsiSourceListForceResolutionExW(const(wchar)* szProductCodeOrPatchCode, con
 ///    width="60%"> Unexpected internal failure. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiSourceListSetInfoA(const(char)* szProductCodeOrPatchCode, const(char)* szUserSid, 
-                           MSIINSTALLCONTEXT dwContext, uint dwOptions, const(char)* szProperty, 
-                           const(char)* szValue);
+uint MsiSourceListSetInfoA(const(PSTR) szProductCodeOrPatchCode, const(PSTR) szUserSid, 
+                           MSIINSTALLCONTEXT dwContext, uint dwOptions, const(PSTR) szProperty, const(PSTR) szValue);
 
 ///The <b>MsiSourceListSetInfo</b> function sets information about the source list for a product or patch in a specific
 ///context.
@@ -8418,9 +8702,9 @@ uint MsiSourceListSetInfoA(const(char)* szProductCodeOrPatchCode, const(char)* s
 ///    width="60%"> Unexpected internal failure. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiSourceListSetInfoW(const(wchar)* szProductCodeOrPatchCode, const(wchar)* szUserSid, 
-                           MSIINSTALLCONTEXT dwContext, uint dwOptions, const(wchar)* szProperty, 
-                           const(wchar)* szValue);
+uint MsiSourceListSetInfoW(const(PWSTR) szProductCodeOrPatchCode, const(PWSTR) szUserSid, 
+                           MSIINSTALLCONTEXT dwContext, uint dwOptions, const(PWSTR) szProperty, 
+                           const(PWSTR) szValue);
 
 ///The <b>MsiSourceListGetInfo</b> function retrieves information about the source list for a product or patch in a
 ///specific context.
@@ -8506,9 +8790,9 @@ uint MsiSourceListSetInfoW(const(wchar)* szProductCodeOrPatchCode, const(wchar)*
 ///    </table>
 ///    
 @DllImport("msi")
-uint MsiSourceListGetInfoA(const(char)* szProductCodeOrPatchCode, const(char)* szUserSid, 
-                           MSIINSTALLCONTEXT dwContext, uint dwOptions, const(char)* szProperty, 
-                           const(char)* szValue, uint* pcchValue);
+uint MsiSourceListGetInfoA(const(PSTR) szProductCodeOrPatchCode, const(PSTR) szUserSid, 
+                           MSIINSTALLCONTEXT dwContext, uint dwOptions, const(PSTR) szProperty, PSTR szValue, 
+                           uint* pcchValue);
 
 ///The <b>MsiSourceListGetInfo</b> function retrieves information about the source list for a product or patch in a
 ///specific context.
@@ -8594,9 +8878,9 @@ uint MsiSourceListGetInfoA(const(char)* szProductCodeOrPatchCode, const(char)* s
 ///    </table>
 ///    
 @DllImport("msi")
-uint MsiSourceListGetInfoW(const(wchar)* szProductCodeOrPatchCode, const(wchar)* szUserSid, 
-                           MSIINSTALLCONTEXT dwContext, uint dwOptions, const(wchar)* szProperty, 
-                           const(wchar)* szValue, uint* pcchValue);
+uint MsiSourceListGetInfoW(const(PWSTR) szProductCodeOrPatchCode, const(PWSTR) szUserSid, 
+                           MSIINSTALLCONTEXT dwContext, uint dwOptions, const(PWSTR) szProperty, PWSTR szValue, 
+                           uint* pcchValue);
 
 ///The <b>MsiSourceListEnumSources</b> function enumerates the sources in the source list of a specified patch or
 ///product.
@@ -8674,8 +8958,8 @@ uint MsiSourceListGetInfoW(const(wchar)* szProductCodeOrPatchCode, const(wchar)*
 ///    </table>
 ///    
 @DllImport("msi")
-uint MsiSourceListEnumSourcesA(const(char)* szProductCodeOrPatchCode, const(char)* szUserSid, 
-                               MSIINSTALLCONTEXT dwContext, uint dwOptions, uint dwIndex, const(char)* szSource, 
+uint MsiSourceListEnumSourcesA(const(PSTR) szProductCodeOrPatchCode, const(PSTR) szUserSid, 
+                               MSIINSTALLCONTEXT dwContext, uint dwOptions, uint dwIndex, PSTR szSource, 
                                uint* pcchSource);
 
 ///The <b>MsiSourceListEnumSources</b> function enumerates the sources in the source list of a specified patch or
@@ -8754,8 +9038,8 @@ uint MsiSourceListEnumSourcesA(const(char)* szProductCodeOrPatchCode, const(char
 ///    </table>
 ///    
 @DllImport("msi")
-uint MsiSourceListEnumSourcesW(const(wchar)* szProductCodeOrPatchCode, const(wchar)* szUserSid, 
-                               MSIINSTALLCONTEXT dwContext, uint dwOptions, uint dwIndex, const(wchar)* szSource, 
+uint MsiSourceListEnumSourcesW(const(PWSTR) szProductCodeOrPatchCode, const(PWSTR) szUserSid, 
+                               MSIINSTALLCONTEXT dwContext, uint dwOptions, uint dwIndex, PWSTR szSource, 
                                uint* pcchSource);
 
 ///The <b>MsiSourceListEnumMediaDisks</b> function enumerates the list of disks registered for the media source for a
@@ -8841,10 +9125,9 @@ uint MsiSourceListEnumSourcesW(const(wchar)* szProductCodeOrPatchCode, const(wch
 ///    </table>
 ///    
 @DllImport("msi")
-uint MsiSourceListEnumMediaDisksA(const(char)* szProductCodeOrPatchCode, const(char)* szUserSid, 
+uint MsiSourceListEnumMediaDisksA(const(PSTR) szProductCodeOrPatchCode, const(PSTR) szUserSid, 
                                   MSIINSTALLCONTEXT dwContext, uint dwOptions, uint dwIndex, uint* pdwDiskId, 
-                                  const(char)* szVolumeLabel, uint* pcchVolumeLabel, const(char)* szDiskPrompt, 
-                                  uint* pcchDiskPrompt);
+                                  PSTR szVolumeLabel, uint* pcchVolumeLabel, PSTR szDiskPrompt, uint* pcchDiskPrompt);
 
 ///The <b>MsiSourceListEnumMediaDisks</b> function enumerates the list of disks registered for the media source for a
 ///patch or product.
@@ -8929,9 +9212,9 @@ uint MsiSourceListEnumMediaDisksA(const(char)* szProductCodeOrPatchCode, const(c
 ///    </table>
 ///    
 @DllImport("msi")
-uint MsiSourceListEnumMediaDisksW(const(wchar)* szProductCodeOrPatchCode, const(wchar)* szUserSid, 
+uint MsiSourceListEnumMediaDisksW(const(PWSTR) szProductCodeOrPatchCode, const(PWSTR) szUserSid, 
                                   MSIINSTALLCONTEXT dwContext, uint dwOptions, uint dwIndex, uint* pdwDiskId, 
-                                  const(wchar)* szVolumeLabel, uint* pcchVolumeLabel, const(wchar)* szDiskPrompt, 
+                                  PWSTR szVolumeLabel, uint* pcchVolumeLabel, PWSTR szDiskPrompt, 
                                   uint* pcchDiskPrompt);
 
 ///The <b>MsiGetFileVersion</b> returns the version string and language string in the format that the installer expects
@@ -8959,8 +9242,8 @@ uint MsiSourceListEnumMediaDisksW(const(wchar)* szProductCodeOrPatchCode, const(
 ///    </table>
 ///    
 @DllImport("msi")
-uint MsiGetFileVersionA(const(char)* szFilePath, const(char)* lpVersionBuf, uint* pcchVersionBuf, 
-                        const(char)* lpLangBuf, uint* pcchLangBuf);
+uint MsiGetFileVersionA(const(PSTR) szFilePath, PSTR lpVersionBuf, uint* pcchVersionBuf, PSTR lpLangBuf, 
+                        uint* pcchLangBuf);
 
 ///The <b>MsiGetFileVersion</b> returns the version string and language string in the format that the installer expects
 ///to find them in the database. If you want only version information, set <i>lpLangBuf</i> and <i>pcchLangBuf</i> to 0
@@ -8987,8 +9270,8 @@ uint MsiGetFileVersionA(const(char)* szFilePath, const(char)* lpVersionBuf, uint
 ///    </table>
 ///    
 @DllImport("msi")
-uint MsiGetFileVersionW(const(wchar)* szFilePath, const(wchar)* lpVersionBuf, uint* pcchVersionBuf, 
-                        const(wchar)* lpLangBuf, uint* pcchLangBuf);
+uint MsiGetFileVersionW(const(PWSTR) szFilePath, PWSTR lpVersionBuf, uint* pcchVersionBuf, PWSTR lpLangBuf, 
+                        uint* pcchLangBuf);
 
 ///The <b>MsiGetFileHash</b> function takes the path to a file and returns a 128-bit hash of that file. Authoring tools
 ///may use <b>MsiGetFileHash</b> to obtain the file hash needed to populate the MsiFileHash table. Windows Installer
@@ -9007,7 +9290,7 @@ uint MsiGetFileVersionW(const(wchar)* szFilePath, const(wchar)* lpVersionBuf, ui
 ///    width="60%"> Unexpected error has occurred. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("msi")
-uint MsiGetFileHashA(const(char)* szFilePath, uint dwOptions, MSIFILEHASHINFO* pHash);
+uint MsiGetFileHashA(const(PSTR) szFilePath, uint dwOptions, MSIFILEHASHINFO* pHash);
 
 ///The <b>MsiGetFileHash</b> function takes the path to a file and returns a 128-bit hash of that file. Authoring tools
 ///may use <b>MsiGetFileHash</b> to obtain the file hash needed to populate the MsiFileHash table. Windows Installer
@@ -9026,7 +9309,7 @@ uint MsiGetFileHashA(const(char)* szFilePath, uint dwOptions, MSIFILEHASHINFO* p
 ///    width="60%"> Unexpected error has occurred. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("msi")
-uint MsiGetFileHashW(const(wchar)* szFilePath, uint dwOptions, MSIFILEHASHINFO* pHash);
+uint MsiGetFileHashW(const(PWSTR) szFilePath, uint dwOptions, MSIFILEHASHINFO* pHash);
 
 ///The <b>MsiGetFileSignatureInformation</b> function takes the path to a file that has been digitally signed and
 ///returns the file's signer certificate and hash. <b>MsiGetFileSignatureInformation</b> may be called to obtain the
@@ -9077,8 +9360,8 @@ uint MsiGetFileHashW(const(wchar)* szFilePath, uint dwOptions, MSIFILEHASHINFO* 
 ///    equivalent <b>HRESULT</b> data type by <b>HRESULT_FROM_WIN32</b>.
 ///    
 @DllImport("msi")
-HRESULT MsiGetFileSignatureInformationA(const(char)* szSignedObjectPath, uint dwFlags, 
-                                        CERT_CONTEXT** ppcCertContext, char* pbHashData, uint* pcbHashData);
+HRESULT MsiGetFileSignatureInformationA(const(PSTR) szSignedObjectPath, uint dwFlags, 
+                                        CERT_CONTEXT** ppcCertContext, ubyte* pbHashData, uint* pcbHashData);
 
 ///The <b>MsiGetFileSignatureInformation</b> function takes the path to a file that has been digitally signed and
 ///returns the file's signer certificate and hash. <b>MsiGetFileSignatureInformation</b> may be called to obtain the
@@ -9129,8 +9412,8 @@ HRESULT MsiGetFileSignatureInformationA(const(char)* szSignedObjectPath, uint dw
 ///    equivalent <b>HRESULT</b> data type by <b>HRESULT_FROM_WIN32</b>.
 ///    
 @DllImport("msi")
-HRESULT MsiGetFileSignatureInformationW(const(wchar)* szSignedObjectPath, uint dwFlags, 
-                                        CERT_CONTEXT** ppcCertContext, char* pbHashData, uint* pcbHashData);
+HRESULT MsiGetFileSignatureInformationW(const(PWSTR) szSignedObjectPath, uint dwFlags, 
+                                        CERT_CONTEXT** ppcCertContext, ubyte* pbHashData, uint* pcbHashData);
 
 ///The <b>MsiGetShortcutTarget</b> function examines a shortcut and returns its product, feature name, and component if
 ///available.
@@ -9147,8 +9430,7 @@ HRESULT MsiGetFileSignatureInformationW(const(wchar)* szSignedObjectPath, uint d
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiGetShortcutTargetA(const(char)* szShortcutPath, const(char)* szProductCode, const(char)* szFeatureId, 
-                           const(char)* szComponentCode);
+uint MsiGetShortcutTargetA(const(PSTR) szShortcutPath, PSTR szProductCode, PSTR szFeatureId, PSTR szComponentCode);
 
 ///The <b>MsiGetShortcutTarget</b> function examines a shortcut and returns its product, feature name, and component if
 ///available.
@@ -9165,8 +9447,8 @@ uint MsiGetShortcutTargetA(const(char)* szShortcutPath, const(char)* szProductCo
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiGetShortcutTargetW(const(wchar)* szShortcutPath, const(wchar)* szProductCode, const(wchar)* szFeatureId, 
-                           const(wchar)* szComponentCode);
+uint MsiGetShortcutTargetW(const(PWSTR) szShortcutPath, PWSTR szProductCode, PWSTR szFeatureId, 
+                           PWSTR szComponentCode);
 
 ///The <b>MsiIsProductElevated</b> function returns whether or not the product is managed. Only applications that
 ///require elevated privileges for installation and being installed through advertisement are considered managed, which
@@ -9192,7 +9474,7 @@ uint MsiGetShortcutTargetW(const(wchar)* szShortcutPath, const(wchar)* szProduct
 ///    specific platform. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiIsProductElevatedA(const(char)* szProduct, int* pfElevated);
+uint MsiIsProductElevatedA(const(PSTR) szProduct, BOOL* pfElevated);
 
 ///The <b>MsiIsProductElevated</b> function returns whether or not the product is managed. Only applications that
 ///require elevated privileges for installation and being installed through advertisement are considered managed, which
@@ -9218,7 +9500,7 @@ uint MsiIsProductElevatedA(const(char)* szProduct, int* pfElevated);
 ///    specific platform. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiIsProductElevatedW(const(wchar)* szProduct, int* pfElevated);
+uint MsiIsProductElevatedW(const(PWSTR) szProduct, BOOL* pfElevated);
 
 ///The <b>MsiNotifySidChange</b> function notifies and updates the Windows Installer internal information with changes
 ///to user SIDs.
@@ -9235,7 +9517,7 @@ uint MsiIsProductElevatedW(const(wchar)* szProduct, int* pfElevated);
 ///    width="60%"> Internal failure during execution. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiNotifySidChangeA(const(char)* pOldSid, const(char)* pNewSid);
+uint MsiNotifySidChangeA(const(PSTR) pOldSid, const(PSTR) pNewSid);
 
 ///The <b>MsiNotifySidChange</b> function notifies and updates the Windows Installer internal information with changes
 ///to user SIDs.
@@ -9252,7 +9534,7 @@ uint MsiNotifySidChangeA(const(char)* pOldSid, const(char)* pNewSid);
 ///    width="60%"> Internal failure during execution. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiNotifySidChangeW(const(wchar)* pOldSid, const(wchar)* pNewSid);
+uint MsiNotifySidChangeW(const(PWSTR) pOldSid, const(PWSTR) pNewSid);
 
 ///The <b>MsiBeginTransaction</b> function starts transaction processing of a multiple-package installation and returns
 ///an identifier for the transaction. The MsiEndTransaction function ends the transaction. <b>Windows Installer 4.0 and
@@ -9282,7 +9564,7 @@ uint MsiNotifySidChangeW(const(wchar)* pOldSid, const(wchar)* pNewSid);
 ///    </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiBeginTransactionA(const(char)* szName, uint dwTransactionAttributes, uint* phTransactionHandle, 
+uint MsiBeginTransactionA(const(PSTR) szName, uint dwTransactionAttributes, uint* phTransactionHandle, 
                           HANDLE* phChangeOfOwnerEvent);
 
 ///The <b>MsiBeginTransaction</b> function starts transaction processing of a multiple-package installation and returns
@@ -9313,7 +9595,7 @@ uint MsiBeginTransactionA(const(char)* szName, uint dwTransactionAttributes, uin
 ///    </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiBeginTransactionW(const(wchar)* szName, uint dwTransactionAttributes, uint* phTransactionHandle, 
+uint MsiBeginTransactionW(const(PWSTR) szName, uint dwTransactionAttributes, uint* phTransactionHandle, 
                           HANDLE* phChangeOfOwnerEvent);
 
 ///The <b>MsiEndTransaction</b> function can commit or roll back all the installations belonging to the transaction
@@ -9374,7 +9656,7 @@ uint MsiEndTransaction(uint dwTransactionState);
 ///    </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiJoinTransaction(uint hTransactionHandle, uint dwTransactionAttributes, HANDLE* phChangeOfOwnerEvent);
+uint MsiJoinTransaction(MSIHANDLE hTransactionHandle, uint dwTransactionAttributes, HANDLE* phChangeOfOwnerEvent);
 
 ///The <b>MsiDatabaseOpenView</b> function prepares a database query and creates a view object. This function returns a
 ///handle that should be closed using MsiCloseHandle.
@@ -9387,7 +9669,7 @@ uint MsiJoinTransaction(uint hTransactionHandle, uint dwTransactionAttributes, H
 ///    The <b>MsiDatabaseOpenView</b> function returns one of the following values:
 ///    
 @DllImport("msi")
-uint MsiDatabaseOpenViewA(uint hDatabase, const(char)* szQuery, uint* phView);
+uint MsiDatabaseOpenViewA(MSIHANDLE hDatabase, const(PSTR) szQuery, uint* phView);
 
 ///The <b>MsiDatabaseOpenView</b> function prepares a database query and creates a view object. This function returns a
 ///handle that should be closed using MsiCloseHandle.
@@ -9400,7 +9682,7 @@ uint MsiDatabaseOpenViewA(uint hDatabase, const(char)* szQuery, uint* phView);
 ///    The <b>MsiDatabaseOpenView</b> function returns one of the following values:
 ///    
 @DllImport("msi")
-uint MsiDatabaseOpenViewW(uint hDatabase, const(wchar)* szQuery, uint* phView);
+uint MsiDatabaseOpenViewW(MSIHANDLE hDatabase, const(PWSTR) szQuery, uint* phView);
 
 ///The <b>MsiViewGetError</b> function returns the error that occurred in the MsiViewModify function.
 ///Params:
@@ -9471,7 +9753,7 @@ uint MsiDatabaseOpenViewW(uint hDatabase, const(wchar)* szQuery, uint* phView);
 ///    situations, this function can raise a STATUS_NO_MEMORY exception.
 ///    
 @DllImport("msi")
-MSIDBERROR MsiViewGetErrorA(uint hView, const(char)* szColumnNameBuffer, uint* pcchBuf);
+MSIDBERROR MsiViewGetErrorA(MSIHANDLE hView, PSTR szColumnNameBuffer, uint* pcchBuf);
 
 ///The <b>MsiViewGetError</b> function returns the error that occurred in the MsiViewModify function.
 ///Params:
@@ -9542,7 +9824,7 @@ MSIDBERROR MsiViewGetErrorA(uint hView, const(char)* szColumnNameBuffer, uint* p
 ///    situations, this function can raise a STATUS_NO_MEMORY exception.
 ///    
 @DllImport("msi")
-MSIDBERROR MsiViewGetErrorW(uint hView, const(wchar)* szColumnNameBuffer, uint* pcchBuf);
+MSIDBERROR MsiViewGetErrorW(MSIHANDLE hView, PWSTR szColumnNameBuffer, uint* pcchBuf);
 
 ///The <b>MsiViewExecute</b> function executes a SQL view query and supplies any required parameters. The query uses the
 ///question mark token to represent parameters as described in SQL Syntax. The values of these parameters are passed in
@@ -9555,7 +9837,7 @@ MSIDBERROR MsiViewGetErrorW(uint hView, const(wchar)* szColumnNameBuffer, uint* 
 ///    Note that in low memory situations, this function can raise a STATUS_NO_MEMORY exception.
 ///    
 @DllImport("msi")
-uint MsiViewExecute(uint hView, uint hRecord);
+uint MsiViewExecute(MSIHANDLE hView, MSIHANDLE hRecord);
 
 ///The <b>MsiViewFetch</b> function fetches the next sequential record from the view. This function returns a handle
 ///that should be closed using MsiCloseHandle.
@@ -9566,7 +9848,7 @@ uint MsiViewExecute(uint hView, uint hRecord);
 ///    Note that in low memory situations, this function can raise a STATUS_NO_MEMORY exception.
 ///    
 @DllImport("msi")
-uint MsiViewFetch(uint hView, uint* phRecord);
+uint MsiViewFetch(MSIHANDLE hView, uint* phRecord);
 
 ///The <b>MsiViewModify</b> function updates a fetched record.
 ///Params:
@@ -9632,7 +9914,7 @@ uint MsiViewFetch(uint hView, uint* phRecord);
 ///    can raise a STATUS_NO_MEMORY exception.
 ///    
 @DllImport("msi")
-uint MsiViewModify(uint hView, MSIMODIFY eModifyMode, uint hRecord);
+uint MsiViewModify(MSIHANDLE hView, MSIMODIFY eModifyMode, MSIHANDLE hRecord);
 
 ///The <b>MsiViewGetColumnInfo</b> function returns a record containing column names or definitions. This function
 ///returns a handle that should be closed using MsiCloseHandle.
@@ -9648,7 +9930,7 @@ uint MsiViewModify(uint hView, MSIMODIFY eModifyMode, uint hRecord);
 ///    Note that in low memory situations, this function can raise a STATUS_NO_MEMORY exception.
 ///    
 @DllImport("msi")
-uint MsiViewGetColumnInfo(uint hView, MSICOLINFO eColumnInfo, uint* phRecord);
+uint MsiViewGetColumnInfo(MSIHANDLE hView, MSICOLINFO eColumnInfo, uint* phRecord);
 
 ///The <b>MsiViewClose</b> function releases the result set for an executed view.
 ///Params:
@@ -9657,7 +9939,7 @@ uint MsiViewGetColumnInfo(uint hView, MSICOLINFO eColumnInfo, uint* phRecord);
 ///    Note that in low memory situations, this function can raise a STATUS_NO_MEMORY exception.
 ///    
 @DllImport("msi")
-uint MsiViewClose(uint hView);
+uint MsiViewClose(MSIHANDLE hView);
 
 ///The <b>MsiDatabaseGetPrimaryKeys</b> function returns a record containing the names of all the primary key columns
 ///for a specified table. This function returns a handle that should be closed using MsiCloseHandle.
@@ -9669,7 +9951,7 @@ uint MsiViewClose(uint hView);
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiDatabaseGetPrimaryKeysA(uint hDatabase, const(char)* szTableName, uint* phRecord);
+uint MsiDatabaseGetPrimaryKeysA(MSIHANDLE hDatabase, const(PSTR) szTableName, uint* phRecord);
 
 ///The <b>MsiDatabaseGetPrimaryKeys</b> function returns a record containing the names of all the primary key columns
 ///for a specified table. This function returns a handle that should be closed using MsiCloseHandle.
@@ -9681,7 +9963,7 @@ uint MsiDatabaseGetPrimaryKeysA(uint hDatabase, const(char)* szTableName, uint* 
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiDatabaseGetPrimaryKeysW(uint hDatabase, const(wchar)* szTableName, uint* phRecord);
+uint MsiDatabaseGetPrimaryKeysW(MSIHANDLE hDatabase, const(PWSTR) szTableName, uint* phRecord);
 
 ///The <b>MsiDatabaseIsTablePersistent</b> function returns an enumeration that describes the state of a specific table.
 ///Params:
@@ -9691,7 +9973,7 @@ uint MsiDatabaseGetPrimaryKeysW(uint hDatabase, const(wchar)* szTableName, uint*
 ///    This function returns MSICONDITION.
 ///    
 @DllImport("msi")
-MSICONDITION MsiDatabaseIsTablePersistentA(uint hDatabase, const(char)* szTableName);
+MSICONDITION MsiDatabaseIsTablePersistentA(MSIHANDLE hDatabase, const(PSTR) szTableName);
 
 ///The <b>MsiDatabaseIsTablePersistent</b> function returns an enumeration that describes the state of a specific table.
 ///Params:
@@ -9701,7 +9983,7 @@ MSICONDITION MsiDatabaseIsTablePersistentA(uint hDatabase, const(char)* szTableN
 ///    This function returns MSICONDITION.
 ///    
 @DllImport("msi")
-MSICONDITION MsiDatabaseIsTablePersistentW(uint hDatabase, const(wchar)* szTableName);
+MSICONDITION MsiDatabaseIsTablePersistentW(MSIHANDLE hDatabase, const(PWSTR) szTableName);
 
 ///The <b>MsiGetSummaryInformation</b> function obtains a handle to the _SummaryInformation stream for an installer
 ///database. This function returns a handle that should be closed using MsiCloseHandle.
@@ -9714,7 +9996,7 @@ MSICONDITION MsiDatabaseIsTablePersistentW(uint hDatabase, const(wchar)* szTable
 ///    The <b>MsiGetSummaryInformation</b> function returns the following values:
 ///    
 @DllImport("msi")
-uint MsiGetSummaryInformationA(uint hDatabase, const(char)* szDatabasePath, uint uiUpdateCount, 
+uint MsiGetSummaryInformationA(MSIHANDLE hDatabase, const(PSTR) szDatabasePath, uint uiUpdateCount, 
                                uint* phSummaryInfo);
 
 ///The <b>MsiGetSummaryInformation</b> function obtains a handle to the _SummaryInformation stream for an installer
@@ -9728,7 +10010,7 @@ uint MsiGetSummaryInformationA(uint hDatabase, const(char)* szDatabasePath, uint
 ///    The <b>MsiGetSummaryInformation</b> function returns the following values:
 ///    
 @DllImport("msi")
-uint MsiGetSummaryInformationW(uint hDatabase, const(wchar)* szDatabasePath, uint uiUpdateCount, 
+uint MsiGetSummaryInformationW(MSIHANDLE hDatabase, const(PWSTR) szDatabasePath, uint uiUpdateCount, 
                                uint* phSummaryInfo);
 
 ///The <b>MsiSummaryInfoGetPropertyCount</b> function returns the number of existing properties in the summary
@@ -9740,7 +10022,7 @@ uint MsiGetSummaryInformationW(uint hDatabase, const(wchar)* szDatabasePath, uin
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiSummaryInfoGetPropertyCount(uint hSummaryInfo, uint* puiPropertyCount);
+uint MsiSummaryInfoGetPropertyCount(MSIHANDLE hSummaryInfo, uint* puiPropertyCount);
 
 ///The <b>MsiSummaryInfoSetProperty</b> function sets a single summary information property. <div
 ///class="alert"><b>Note</b> The meaning of the property value depends on whether the summary information stream is for
@@ -9761,8 +10043,8 @@ uint MsiSummaryInfoGetPropertyCount(uint hSummaryInfo, uint* puiPropertyCount);
 ///    The <b>MsiSummaryInfoSetProperty</b> function returns the following values:
 ///    
 @DllImport("msi")
-uint MsiSummaryInfoSetPropertyA(uint hSummaryInfo, uint uiProperty, uint uiDataType, int iValue, 
-                                FILETIME* pftValue, const(char)* szValue);
+uint MsiSummaryInfoSetPropertyA(MSIHANDLE hSummaryInfo, uint uiProperty, uint uiDataType, int iValue, 
+                                FILETIME* pftValue, const(PSTR) szValue);
 
 ///The <b>MsiSummaryInfoSetProperty</b> function sets a single summary information property. <div
 ///class="alert"><b>Note</b> The meaning of the property value depends on whether the summary information stream is for
@@ -9783,8 +10065,8 @@ uint MsiSummaryInfoSetPropertyA(uint hSummaryInfo, uint uiProperty, uint uiDataT
 ///    The <b>MsiSummaryInfoSetProperty</b> function returns the following values:
 ///    
 @DllImport("msi")
-uint MsiSummaryInfoSetPropertyW(uint hSummaryInfo, uint uiProperty, uint uiDataType, int iValue, 
-                                FILETIME* pftValue, const(wchar)* szValue);
+uint MsiSummaryInfoSetPropertyW(MSIHANDLE hSummaryInfo, uint uiProperty, uint uiDataType, int iValue, 
+                                FILETIME* pftValue, const(PWSTR) szValue);
 
 ///The <b>MsiSummaryInfoGetProperty</b> function gets a single property from the summary information stream. <div
 ///class="alert"><b>Note</b> The meaning of the property value depends on whether the summary information stream is for
@@ -9815,8 +10097,8 @@ uint MsiSummaryInfoSetPropertyW(uint hSummaryInfo, uint uiProperty, uint uiDataT
 ///    The <b>MsiSummaryInfoGetProperty</b> function returns one of the following values:
 ///    
 @DllImport("msi")
-uint MsiSummaryInfoGetPropertyA(uint hSummaryInfo, uint uiProperty, uint* puiDataType, int* piValue, 
-                                FILETIME* pftValue, const(char)* szValueBuf, uint* pcchValueBuf);
+uint MsiSummaryInfoGetPropertyA(MSIHANDLE hSummaryInfo, uint uiProperty, uint* puiDataType, int* piValue, 
+                                FILETIME* pftValue, PSTR szValueBuf, uint* pcchValueBuf);
 
 ///The <b>MsiSummaryInfoGetProperty</b> function gets a single property from the summary information stream. <div
 ///class="alert"><b>Note</b> The meaning of the property value depends on whether the summary information stream is for
@@ -9847,8 +10129,8 @@ uint MsiSummaryInfoGetPropertyA(uint hSummaryInfo, uint uiProperty, uint* puiDat
 ///    The <b>MsiSummaryInfoGetProperty</b> function returns one of the following values:
 ///    
 @DllImport("msi")
-uint MsiSummaryInfoGetPropertyW(uint hSummaryInfo, uint uiProperty, uint* puiDataType, int* piValue, 
-                                FILETIME* pftValue, const(wchar)* szValueBuf, uint* pcchValueBuf);
+uint MsiSummaryInfoGetPropertyW(MSIHANDLE hSummaryInfo, uint uiProperty, uint* puiDataType, int* piValue, 
+                                FILETIME* pftValue, PWSTR szValueBuf, uint* pcchValueBuf);
 
 ///The <b>MsiSummaryInfoPersist</b> function writes changed summary information back to the summary information stream.
 ///Params:
@@ -9857,7 +10139,7 @@ uint MsiSummaryInfoGetPropertyW(uint hSummaryInfo, uint uiProperty, uint* puiDat
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiSummaryInfoPersist(uint hSummaryInfo);
+uint MsiSummaryInfoPersist(MSIHANDLE hSummaryInfo);
 
 ///The <b>MsiOpenDatabase</b> function opens a database file for data access. This function returns a handle that should
 ///be closed using MsiCloseHandle.
@@ -9883,7 +10165,7 @@ uint MsiSummaryInfoPersist(uint hSummaryInfo);
 ///    The <b>MsiOpenDatabase</b> function returns the following values:
 ///    
 @DllImport("msi")
-uint MsiOpenDatabaseA(const(char)* szDatabasePath, const(char)* szPersist, uint* phDatabase);
+uint MsiOpenDatabaseA(const(PSTR) szDatabasePath, const(PSTR) szPersist, uint* phDatabase);
 
 ///The <b>MsiOpenDatabase</b> function opens a database file for data access. This function returns a handle that should
 ///be closed using MsiCloseHandle.
@@ -9909,7 +10191,7 @@ uint MsiOpenDatabaseA(const(char)* szDatabasePath, const(char)* szPersist, uint*
 ///    The <b>MsiOpenDatabase</b> function returns the following values:
 ///    
 @DllImport("msi")
-uint MsiOpenDatabaseW(const(wchar)* szDatabasePath, const(wchar)* szPersist, uint* phDatabase);
+uint MsiOpenDatabaseW(const(PWSTR) szDatabasePath, const(PWSTR) szPersist, uint* phDatabase);
 
 ///The <b>MsiDatabaseImport</b> function imports an installer text archive file into an open database table.
 ///Params:
@@ -9920,7 +10202,7 @@ uint MsiOpenDatabaseW(const(wchar)* szDatabasePath, const(wchar)* szPersist, uin
 ///    The <b>MsiDatabaseImport</b> function returns one of the following values:
 ///    
 @DllImport("msi")
-uint MsiDatabaseImportA(uint hDatabase, const(char)* szFolderPath, const(char)* szFileName);
+uint MsiDatabaseImportA(MSIHANDLE hDatabase, const(PSTR) szFolderPath, const(PSTR) szFileName);
 
 ///The <b>MsiDatabaseImport</b> function imports an installer text archive file into an open database table.
 ///Params:
@@ -9931,7 +10213,7 @@ uint MsiDatabaseImportA(uint hDatabase, const(char)* szFolderPath, const(char)* 
 ///    The <b>MsiDatabaseImport</b> function returns one of the following values:
 ///    
 @DllImport("msi")
-uint MsiDatabaseImportW(uint hDatabase, const(wchar)* szFolderPath, const(wchar)* szFileName);
+uint MsiDatabaseImportW(MSIHANDLE hDatabase, const(PWSTR) szFolderPath, const(PWSTR) szFileName);
 
 ///The <b>MsiDatabaseExport</b> function exports a Microsoft Installer table from an open database to a Text Archive
 ///File.
@@ -9951,8 +10233,8 @@ uint MsiDatabaseImportW(uint hDatabase, const(wchar)* szFolderPath, const(wchar)
 ///    <dt><b>ERROR_SUCCESS</b></dt> </dl> </td> <td width="60%"> The function succeeds. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiDatabaseExportA(uint hDatabase, const(char)* szTableName, const(char)* szFolderPath, 
-                        const(char)* szFileName);
+uint MsiDatabaseExportA(MSIHANDLE hDatabase, const(PSTR) szTableName, const(PSTR) szFolderPath, 
+                        const(PSTR) szFileName);
 
 ///The <b>MsiDatabaseExport</b> function exports a Microsoft Installer table from an open database to a Text Archive
 ///File.
@@ -9972,8 +10254,8 @@ uint MsiDatabaseExportA(uint hDatabase, const(char)* szTableName, const(char)* s
 ///    <dt><b>ERROR_SUCCESS</b></dt> </dl> </td> <td width="60%"> The function succeeds. </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiDatabaseExportW(uint hDatabase, const(wchar)* szTableName, const(wchar)* szFolderPath, 
-                        const(wchar)* szFileName);
+uint MsiDatabaseExportW(MSIHANDLE hDatabase, const(PWSTR) szTableName, const(PWSTR) szFolderPath, 
+                        const(PWSTR) szFileName);
 
 ///The <b>MsiDatabaseMerge</b> function merges two databases together, which allows duplicate rows.
 ///Params:
@@ -9992,7 +10274,7 @@ uint MsiDatabaseExportW(uint hDatabase, const(wchar)* szTableName, const(wchar)*
 ///    </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiDatabaseMergeA(uint hDatabase, uint hDatabaseMerge, const(char)* szTableName);
+uint MsiDatabaseMergeA(MSIHANDLE hDatabase, MSIHANDLE hDatabaseMerge, const(PSTR) szTableName);
 
 ///The <b>MsiDatabaseMerge</b> function merges two databases together, which allows duplicate rows.
 ///Params:
@@ -10011,7 +10293,7 @@ uint MsiDatabaseMergeA(uint hDatabase, uint hDatabaseMerge, const(char)* szTable
 ///    </td> </tr> </table>
 ///    
 @DllImport("msi")
-uint MsiDatabaseMergeW(uint hDatabase, uint hDatabaseMerge, const(wchar)* szTableName);
+uint MsiDatabaseMergeW(MSIHANDLE hDatabase, MSIHANDLE hDatabaseMerge, const(PWSTR) szTableName);
 
 ///The <b>MsiDatabaseGenerateTransform</b> function generates a transform file of differences between two databases. A
 ///transform is a way of recording changes to a database without altering the original database. You can also use
@@ -10029,7 +10311,7 @@ uint MsiDatabaseMergeW(uint hDatabase, uint hDatabaseMerge, const(wchar)* szTabl
 ///    The <b>MsiDatabaseGenerateTransform</b> function returns one of the following values:
 ///    
 @DllImport("msi")
-uint MsiDatabaseGenerateTransformA(uint hDatabase, uint hDatabaseReference, const(char)* szTransformFile, 
+uint MsiDatabaseGenerateTransformA(MSIHANDLE hDatabase, MSIHANDLE hDatabaseReference, const(PSTR) szTransformFile, 
                                    int iReserved1, int iReserved2);
 
 ///The <b>MsiDatabaseGenerateTransform</b> function generates a transform file of differences between two databases. A
@@ -10048,7 +10330,7 @@ uint MsiDatabaseGenerateTransformA(uint hDatabase, uint hDatabaseReference, cons
 ///    The <b>MsiDatabaseGenerateTransform</b> function returns one of the following values:
 ///    
 @DllImport("msi")
-uint MsiDatabaseGenerateTransformW(uint hDatabase, uint hDatabaseReference, const(wchar)* szTransformFile, 
+uint MsiDatabaseGenerateTransformW(MSIHANDLE hDatabase, MSIHANDLE hDatabaseReference, const(PWSTR) szTransformFile, 
                                    int iReserved1, int iReserved2);
 
 ///The <b>MsiDatabaseApplyTransform</b> function applies a transform to a database.
@@ -10079,7 +10361,7 @@ uint MsiDatabaseGenerateTransformW(uint hDatabase, uint hDatabaseReference, cons
 ///    The <b>MsiDatabaseApplyTransform</b> function returns one of the following values:
 ///    
 @DllImport("msi")
-uint MsiDatabaseApplyTransformA(uint hDatabase, const(char)* szTransformFile, int iErrorConditions);
+uint MsiDatabaseApplyTransformA(MSIHANDLE hDatabase, const(PSTR) szTransformFile, int iErrorConditions);
 
 ///The <b>MsiDatabaseApplyTransform</b> function applies a transform to a database.
 ///Params:
@@ -10109,7 +10391,7 @@ uint MsiDatabaseApplyTransformA(uint hDatabase, const(char)* szTransformFile, in
 ///    The <b>MsiDatabaseApplyTransform</b> function returns one of the following values:
 ///    
 @DllImport("msi")
-uint MsiDatabaseApplyTransformW(uint hDatabase, const(wchar)* szTransformFile, int iErrorConditions);
+uint MsiDatabaseApplyTransformW(MSIHANDLE hDatabase, const(PWSTR) szTransformFile, int iErrorConditions);
 
 ///The <b>MsiCreateTransformSummaryInfo</b> function creates summary information of an existing transform to include
 ///validation and error conditions. Execution of this function sets the error record, which is accessible by using
@@ -10182,7 +10464,7 @@ uint MsiDatabaseApplyTransformW(uint hDatabase, const(wchar)* szTransformFile, i
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiCreateTransformSummaryInfoA(uint hDatabase, uint hDatabaseReference, const(char)* szTransformFile, 
+uint MsiCreateTransformSummaryInfoA(MSIHANDLE hDatabase, MSIHANDLE hDatabaseReference, const(PSTR) szTransformFile, 
                                     int iErrorConditions, int iValidation);
 
 ///The <b>MsiCreateTransformSummaryInfo</b> function creates summary information of an existing transform to include
@@ -10256,8 +10538,8 @@ uint MsiCreateTransformSummaryInfoA(uint hDatabase, uint hDatabaseReference, con
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiCreateTransformSummaryInfoW(uint hDatabase, uint hDatabaseReference, const(wchar)* szTransformFile, 
-                                    int iErrorConditions, int iValidation);
+uint MsiCreateTransformSummaryInfoW(MSIHANDLE hDatabase, MSIHANDLE hDatabaseReference, 
+                                    const(PWSTR) szTransformFile, int iErrorConditions, int iValidation);
 
 ///The <b>MsiDatabaseCommit</b> function commits changes to a database.
 ///Params:
@@ -10266,7 +10548,7 @@ uint MsiCreateTransformSummaryInfoW(uint hDatabase, uint hDatabaseReference, con
 ///    The <b>MsiDatabaseCommit</b> function returns one of the following values:
 ///    
 @DllImport("msi")
-uint MsiDatabaseCommit(uint hDatabase);
+uint MsiDatabaseCommit(MSIHANDLE hDatabase);
 
 ///The <b>MsiGetDatabaseState</b> function returns the state of the database.
 ///Params:
@@ -10275,7 +10557,7 @@ uint MsiDatabaseCommit(uint hDatabase);
 ///    This function returns MSIDBSTATE.
 ///    
 @DllImport("msi")
-MSIDBSTATE MsiGetDatabaseState(uint hDatabase);
+MSIDBSTATE MsiGetDatabaseState(MSIHANDLE hDatabase);
 
 ///The <b>MsiCreateRecord</b> function creates a new record object with the specified number of fields. This function
 ///returns a handle that should be closed using MsiCloseHandle.
@@ -10287,7 +10569,7 @@ MSIDBSTATE MsiGetDatabaseState(uint hDatabase);
 ///    value is null.
 ///    
 @DllImport("msi")
-uint MsiCreateRecord(uint cParams);
+MSIHANDLE MsiCreateRecord(uint cParams);
 
 ///The <b>MsiRecordIsNull</b> function reports a null record field.
 ///Params:
@@ -10297,7 +10579,7 @@ uint MsiCreateRecord(uint cParams);
 ///    This function returns BOOL.
 ///    
 @DllImport("msi")
-BOOL MsiRecordIsNull(uint hRecord, uint iField);
+BOOL MsiRecordIsNull(MSIHANDLE hRecord, uint iField);
 
 ///The <b>MsiRecordDataSize</b> function returns the length of a record field. The count does not include the
 ///terminating null character.
@@ -10311,7 +10593,7 @@ BOOL MsiRecordIsNull(uint hRecord, uint iField);
 ///    including the null character). If the data is in stream format, the function returns the byte count.
 ///    
 @DllImport("msi")
-uint MsiRecordDataSize(uint hRecord, uint iField);
+uint MsiRecordDataSize(MSIHANDLE hRecord, uint iField);
 
 ///The <b>MsiRecordSetInteger</b> function sets a record field to an integer field.
 ///Params:
@@ -10322,7 +10604,7 @@ uint MsiRecordDataSize(uint hRecord, uint iField);
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiRecordSetInteger(uint hRecord, uint iField, int iValue);
+uint MsiRecordSetInteger(MSIHANDLE hRecord, uint iField, int iValue);
 
 ///The <b>MsiRecordSetString</b> function copies a string into the designated field.
 ///Params:
@@ -10333,7 +10615,7 @@ uint MsiRecordSetInteger(uint hRecord, uint iField, int iValue);
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiRecordSetStringA(uint hRecord, uint iField, const(char)* szValue);
+uint MsiRecordSetStringA(MSIHANDLE hRecord, uint iField, const(PSTR) szValue);
 
 ///The <b>MsiRecordSetString</b> function copies a string into the designated field.
 ///Params:
@@ -10344,7 +10626,7 @@ uint MsiRecordSetStringA(uint hRecord, uint iField, const(char)* szValue);
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiRecordSetStringW(uint hRecord, uint iField, const(wchar)* szValue);
+uint MsiRecordSetStringW(MSIHANDLE hRecord, uint iField, const(PWSTR) szValue);
 
 ///The <b>MsiRecordGetInteger</b> function returns the integer value from a record field.
 ///Params:
@@ -10354,7 +10636,7 @@ uint MsiRecordSetStringW(uint hRecord, uint iField, const(wchar)* szValue);
 ///    If the function succeeds, the return value is the integer value of the field.
 ///    
 @DllImport("msi")
-int MsiRecordGetInteger(uint hRecord, uint iField);
+int MsiRecordGetInteger(MSIHANDLE hRecord, uint iField);
 
 ///The <b>MsiRecordGetString</b> function returns the string value of a record field.
 ///Params:
@@ -10375,7 +10657,7 @@ int MsiRecordGetInteger(uint hRecord, uint iField);
 ///    The <b>MsiRecordGetString</b> function returns one of the following values:
 ///    
 @DllImport("msi")
-uint MsiRecordGetStringA(uint hRecord, uint iField, const(char)* szValueBuf, uint* pcchValueBuf);
+uint MsiRecordGetStringA(MSIHANDLE hRecord, uint iField, PSTR szValueBuf, uint* pcchValueBuf);
 
 ///The <b>MsiRecordGetString</b> function returns the string value of a record field.
 ///Params:
@@ -10396,7 +10678,7 @@ uint MsiRecordGetStringA(uint hRecord, uint iField, const(char)* szValueBuf, uin
 ///    The <b>MsiRecordGetString</b> function returns one of the following values:
 ///    
 @DllImport("msi")
-uint MsiRecordGetStringW(uint hRecord, uint iField, const(wchar)* szValueBuf, uint* pcchValueBuf);
+uint MsiRecordGetStringW(MSIHANDLE hRecord, uint iField, PWSTR szValueBuf, uint* pcchValueBuf);
 
 ///The <b>MsiRecordGetFieldCount</b> function returns the number of fields in a record.
 ///Params:
@@ -10405,7 +10687,7 @@ uint MsiRecordGetStringW(uint hRecord, uint iField, const(wchar)* szValueBuf, ui
 ///    If the function succeeds, the return value is the number of fields in the record.
 ///    
 @DllImport("msi")
-uint MsiRecordGetFieldCount(uint hRecord);
+uint MsiRecordGetFieldCount(MSIHANDLE hRecord);
 
 ///The <b>MsiRecordSetStream</b> function sets a record stream field from a file. Stream data cannot be inserted into
 ///temporary fields.
@@ -10417,7 +10699,7 @@ uint MsiRecordGetFieldCount(uint hRecord);
 ///    The <b>MsiRecordSetStream</b> function returns the following values:
 ///    
 @DllImport("msi")
-uint MsiRecordSetStreamA(uint hRecord, uint iField, const(char)* szFilePath);
+uint MsiRecordSetStreamA(MSIHANDLE hRecord, uint iField, const(PSTR) szFilePath);
 
 ///The <b>MsiRecordSetStream</b> function sets a record stream field from a file. Stream data cannot be inserted into
 ///temporary fields.
@@ -10429,7 +10711,7 @@ uint MsiRecordSetStreamA(uint hRecord, uint iField, const(char)* szFilePath);
 ///    The <b>MsiRecordSetStream</b> function returns the following values:
 ///    
 @DllImport("msi")
-uint MsiRecordSetStreamW(uint hRecord, uint iField, const(wchar)* szFilePath);
+uint MsiRecordSetStreamW(MSIHANDLE hRecord, uint iField, const(PWSTR) szFilePath);
 
 ///The <b>MsiRecordReadStream</b> function reads bytes from a record stream field into a buffer.
 ///Params:
@@ -10443,7 +10725,7 @@ uint MsiRecordSetStreamW(uint hRecord, uint iField, const(wchar)* szFilePath);
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiRecordReadStream(uint hRecord, uint iField, char* szDataBuf, uint* pcbDataBuf);
+uint MsiRecordReadStream(MSIHANDLE hRecord, uint iField, byte* szDataBuf, uint* pcbDataBuf);
 
 ///The <b>MsiRecordClearData</b> function sets all fields in a record to null.
 ///Params:
@@ -10452,7 +10734,7 @@ uint MsiRecordReadStream(uint hRecord, uint iField, char* szDataBuf, uint* pcbDa
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiRecordClearData(uint hRecord);
+uint MsiRecordClearData(MSIHANDLE hRecord);
 
 ///The <b>MsiGetActiveDatabase</b> function returns the active database for the installation. This function returns a
 ///read-only handle that should be closed using MsiCloseHandle.
@@ -10464,7 +10746,7 @@ uint MsiRecordClearData(uint hRecord);
 ///    function fails, the function returns zero, 0.
 ///    
 @DllImport("msi")
-uint MsiGetActiveDatabase(uint hInstall);
+MSIHANDLE MsiGetActiveDatabase(MSIHANDLE hInstall);
 
 ///The <b>MsiSetProperty</b> function sets the value for an installation property.
 ///Params:
@@ -10476,7 +10758,7 @@ uint MsiGetActiveDatabase(uint hInstall);
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiSetPropertyA(uint hInstall, const(char)* szName, const(char)* szValue);
+uint MsiSetPropertyA(MSIHANDLE hInstall, const(PSTR) szName, const(PSTR) szValue);
 
 ///The <b>MsiSetProperty</b> function sets the value for an installation property.
 ///Params:
@@ -10488,7 +10770,7 @@ uint MsiSetPropertyA(uint hInstall, const(char)* szName, const(char)* szValue);
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiSetPropertyW(uint hInstall, const(wchar)* szName, const(wchar)* szValue);
+uint MsiSetPropertyW(MSIHANDLE hInstall, const(PWSTR) szName, const(PWSTR) szValue);
 
 ///The <b>MsiGetProperty</b> function gets the value for an installer property.
 ///Params:
@@ -10510,7 +10792,7 @@ uint MsiSetPropertyW(uint hInstall, const(wchar)* szName, const(wchar)* szValue)
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiGetPropertyA(uint hInstall, const(char)* szName, const(char)* szValueBuf, uint* pcchValueBuf);
+uint MsiGetPropertyA(MSIHANDLE hInstall, const(PSTR) szName, PSTR szValueBuf, uint* pcchValueBuf);
 
 ///The <b>MsiGetProperty</b> function gets the value for an installer property.
 ///Params:
@@ -10532,7 +10814,7 @@ uint MsiGetPropertyA(uint hInstall, const(char)* szName, const(char)* szValueBuf
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiGetPropertyW(uint hInstall, const(wchar)* szName, const(wchar)* szValueBuf, uint* pcchValueBuf);
+uint MsiGetPropertyW(MSIHANDLE hInstall, const(PWSTR) szName, PWSTR szValueBuf, uint* pcchValueBuf);
 
 ///The <b>MsiGetLanguage</b> function returns the numeric language of the installation that is currently running.
 ///Params:
@@ -10543,7 +10825,7 @@ uint MsiGetPropertyW(uint hInstall, const(wchar)* szName, const(wchar)* szValueB
 ///    return value can be the following value.
 ///    
 @DllImport("msi")
-ushort MsiGetLanguage(uint hInstall);
+ushort MsiGetLanguage(MSIHANDLE hInstall);
 
 ///The <b>MsiGetMode</b> function is used to determine whether the installer is currently running in a specified mode,
 ///as listed in the table. The function returns a Boolean value of <b>TRUE</b> or <b>FALSE</b>, indicating whether the
@@ -10599,7 +10881,7 @@ ushort MsiGetLanguage(uint hInstall);
 ///    specific property passed into the function is currently not set.
 ///    
 @DllImport("msi")
-BOOL MsiGetMode(uint hInstall, MSIRUNMODE eRunMode);
+BOOL MsiGetMode(MSIHANDLE hInstall, MSIRUNMODE eRunMode);
 
 ///The <b>MsiSetMode</b> function sets an internal engine Boolean state.
 ///Params:
@@ -10617,7 +10899,7 @@ BOOL MsiGetMode(uint hInstall, MSIRUNMODE eRunMode);
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiSetMode(uint hInstall, MSIRUNMODE eRunMode, BOOL fState);
+uint MsiSetMode(MSIHANDLE hInstall, MSIRUNMODE eRunMode, BOOL fState);
 
 ///The <b>MsiFormatRecord</b> function formats record field data and properties using a format string.
 ///Params:
@@ -10640,7 +10922,7 @@ uint MsiSetMode(uint hInstall, MSIRUNMODE eRunMode, BOOL fState);
 ///    The <b>MsiFormatRecord</b> function returns one of the following values:
 ///    
 @DllImport("msi")
-uint MsiFormatRecordA(uint hInstall, uint hRecord, const(char)* szResultBuf, uint* pcchResultBuf);
+uint MsiFormatRecordA(MSIHANDLE hInstall, MSIHANDLE hRecord, PSTR szResultBuf, uint* pcchResultBuf);
 
 ///The <b>MsiFormatRecord</b> function formats record field data and properties using a format string.
 ///Params:
@@ -10663,7 +10945,7 @@ uint MsiFormatRecordA(uint hInstall, uint hRecord, const(char)* szResultBuf, uin
 ///    The <b>MsiFormatRecord</b> function returns one of the following values:
 ///    
 @DllImport("msi")
-uint MsiFormatRecordW(uint hInstall, uint hRecord, const(wchar)* szResultBuf, uint* pcchResultBuf);
+uint MsiFormatRecordW(MSIHANDLE hInstall, MSIHANDLE hRecord, PWSTR szResultBuf, uint* pcchResultBuf);
 
 ///The <b>MsiDoAction</b> function executes a built-in action, custom action, or user-interface wizard action.
 ///Params:
@@ -10674,7 +10956,7 @@ uint MsiFormatRecordW(uint hInstall, uint hRecord, const(wchar)* szResultBuf, ui
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiDoActionA(uint hInstall, const(char)* szAction);
+uint MsiDoActionA(MSIHANDLE hInstall, const(PSTR) szAction);
 
 ///The <b>MsiDoAction</b> function executes a built-in action, custom action, or user-interface wizard action.
 ///Params:
@@ -10685,7 +10967,7 @@ uint MsiDoActionA(uint hInstall, const(char)* szAction);
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiDoActionW(uint hInstall, const(wchar)* szAction);
+uint MsiDoActionW(MSIHANDLE hInstall, const(PWSTR) szAction);
 
 ///The <b>MsiSequence</b> function executes another action sequence, as described in the specified table.
 ///Params:
@@ -10697,7 +10979,7 @@ uint MsiDoActionW(uint hInstall, const(wchar)* szAction);
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiSequenceA(uint hInstall, const(char)* szTable, int iSequenceMode);
+uint MsiSequenceA(MSIHANDLE hInstall, const(PSTR) szTable, int iSequenceMode);
 
 ///The <b>MsiSequence</b> function executes another action sequence, as described in the specified table.
 ///Params:
@@ -10709,7 +10991,7 @@ uint MsiSequenceA(uint hInstall, const(char)* szTable, int iSequenceMode);
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiSequenceW(uint hInstall, const(wchar)* szTable, int iSequenceMode);
+uint MsiSequenceW(MSIHANDLE hInstall, const(PWSTR) szTable, int iSequenceMode);
 
 ///The <b>MsiProcessMessage</b> function sends an error record to the installer for processing.
 ///Params:
@@ -10758,7 +11040,7 @@ uint MsiSequenceW(uint hInstall, const(wchar)* szTable, int iSequenceMode);
 ///    This function returns int.
 ///    
 @DllImport("msi")
-int MsiProcessMessage(uint hInstall, INSTALLMESSAGE eMessageType, uint hRecord);
+int MsiProcessMessage(MSIHANDLE hInstall, INSTALLMESSAGE eMessageType, MSIHANDLE hRecord);
 
 ///The <b>MsiEvaluateCondition</b> function evaluates a conditional expression containing property names and values.
 ///Params:
@@ -10770,7 +11052,7 @@ int MsiProcessMessage(uint hInstall, INSTALLMESSAGE eMessageType, uint hRecord);
 ///    This function returns MSICONDITION.
 ///    
 @DllImport("msi")
-MSICONDITION MsiEvaluateConditionA(uint hInstall, const(char)* szCondition);
+MSICONDITION MsiEvaluateConditionA(MSIHANDLE hInstall, const(PSTR) szCondition);
 
 ///The <b>MsiEvaluateCondition</b> function evaluates a conditional expression containing property names and values.
 ///Params:
@@ -10782,7 +11064,7 @@ MSICONDITION MsiEvaluateConditionA(uint hInstall, const(char)* szCondition);
 ///    This function returns MSICONDITION.
 ///    
 @DllImport("msi")
-MSICONDITION MsiEvaluateConditionW(uint hInstall, const(wchar)* szCondition);
+MSICONDITION MsiEvaluateConditionW(MSIHANDLE hInstall, const(PWSTR) szCondition);
 
 ///The <b>MsiGetFeatureState</b> function gets the requested state of a feature.
 ///Params:
@@ -10822,7 +11104,8 @@ MSICONDITION MsiEvaluateConditionW(uint hInstall, const(wchar)* szCondition);
 ///    The <b>MsiGetFeatureState</b> function returns the following values:
 ///    
 @DllImport("msi")
-uint MsiGetFeatureStateA(uint hInstall, const(char)* szFeature, INSTALLSTATE* piInstalled, INSTALLSTATE* piAction);
+uint MsiGetFeatureStateA(MSIHANDLE hInstall, const(PSTR) szFeature, INSTALLSTATE* piInstalled, 
+                         INSTALLSTATE* piAction);
 
 ///The <b>MsiGetFeatureState</b> function gets the requested state of a feature.
 ///Params:
@@ -10862,7 +11145,8 @@ uint MsiGetFeatureStateA(uint hInstall, const(char)* szFeature, INSTALLSTATE* pi
 ///    The <b>MsiGetFeatureState</b> function returns the following values:
 ///    
 @DllImport("msi")
-uint MsiGetFeatureStateW(uint hInstall, const(wchar)* szFeature, INSTALLSTATE* piInstalled, INSTALLSTATE* piAction);
+uint MsiGetFeatureStateW(MSIHANDLE hInstall, const(PWSTR) szFeature, INSTALLSTATE* piInstalled, 
+                         INSTALLSTATE* piAction);
 
 ///The <b>MsiSetFeatureState</b> function sets a feature to a specified state.
 ///Params:
@@ -10883,7 +11167,7 @@ uint MsiGetFeatureStateW(uint hInstall, const(wchar)* szFeature, INSTALLSTATE* p
 ///    The <b>MsiSetFeatureState</b> function returns the following values:
 ///    
 @DllImport("msi")
-uint MsiSetFeatureStateA(uint hInstall, const(char)* szFeature, INSTALLSTATE iState);
+uint MsiSetFeatureStateA(MSIHANDLE hInstall, const(PSTR) szFeature, INSTALLSTATE iState);
 
 ///The <b>MsiSetFeatureState</b> function sets a feature to a specified state.
 ///Params:
@@ -10904,7 +11188,7 @@ uint MsiSetFeatureStateA(uint hInstall, const(char)* szFeature, INSTALLSTATE iSt
 ///    The <b>MsiSetFeatureState</b> function returns the following values:
 ///    
 @DllImport("msi")
-uint MsiSetFeatureStateW(uint hInstall, const(wchar)* szFeature, INSTALLSTATE iState);
+uint MsiSetFeatureStateW(MSIHANDLE hInstall, const(PWSTR) szFeature, INSTALLSTATE iState);
 
 ///The <b>MsiSetFeatureAttributes</b> function can modify the default attributes of a feature at runtime. Note that the
 ///default attributes of features are authored in the Attributes column of the Feature table.
@@ -10942,7 +11226,7 @@ uint MsiSetFeatureStateW(uint hInstall, const(wchar)* szFeature, INSTALLSTATE iS
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiSetFeatureAttributesA(uint hInstall, const(char)* szFeature, uint dwAttributes);
+uint MsiSetFeatureAttributesA(MSIHANDLE hInstall, const(PSTR) szFeature, uint dwAttributes);
 
 ///The <b>MsiSetFeatureAttributes</b> function can modify the default attributes of a feature at runtime. Note that the
 ///default attributes of features are authored in the Attributes column of the Feature table.
@@ -10980,7 +11264,7 @@ uint MsiSetFeatureAttributesA(uint hInstall, const(char)* szFeature, uint dwAttr
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiSetFeatureAttributesW(uint hInstall, const(wchar)* szFeature, uint dwAttributes);
+uint MsiSetFeatureAttributesW(MSIHANDLE hInstall, const(PWSTR) szFeature, uint dwAttributes);
 
 ///The <b>MsiGetComponentState</b> function obtains the state of a component.
 ///Params:
@@ -11008,7 +11292,7 @@ uint MsiSetFeatureAttributesW(uint hInstall, const(wchar)* szFeature, uint dwAtt
 ///    The <b>MsiGetComponentState</b> function returns the following values:
 ///    
 @DllImport("msi")
-uint MsiGetComponentStateA(uint hInstall, const(char)* szComponent, INSTALLSTATE* piInstalled, 
+uint MsiGetComponentStateA(MSIHANDLE hInstall, const(PSTR) szComponent, INSTALLSTATE* piInstalled, 
                            INSTALLSTATE* piAction);
 
 ///The <b>MsiGetComponentState</b> function obtains the state of a component.
@@ -11037,7 +11321,7 @@ uint MsiGetComponentStateA(uint hInstall, const(char)* szComponent, INSTALLSTATE
 ///    The <b>MsiGetComponentState</b> function returns the following values:
 ///    
 @DllImport("msi")
-uint MsiGetComponentStateW(uint hInstall, const(wchar)* szComponent, INSTALLSTATE* piInstalled, 
+uint MsiGetComponentStateW(MSIHANDLE hInstall, const(PWSTR) szComponent, INSTALLSTATE* piInstalled, 
                            INSTALLSTATE* piAction);
 
 ///The <b>MsiSetComponentState</b> function sets a component to the requested state.
@@ -11057,7 +11341,7 @@ uint MsiGetComponentStateW(uint hInstall, const(wchar)* szComponent, INSTALLSTAT
 ///    The <b>MsiSetComponentState</b> function returns the following values:
 ///    
 @DllImport("msi")
-uint MsiSetComponentStateA(uint hInstall, const(char)* szComponent, INSTALLSTATE iState);
+uint MsiSetComponentStateA(MSIHANDLE hInstall, const(PSTR) szComponent, INSTALLSTATE iState);
 
 ///The <b>MsiSetComponentState</b> function sets a component to the requested state.
 ///Params:
@@ -11076,7 +11360,7 @@ uint MsiSetComponentStateA(uint hInstall, const(char)* szComponent, INSTALLSTATE
 ///    The <b>MsiSetComponentState</b> function returns the following values:
 ///    
 @DllImport("msi")
-uint MsiSetComponentStateW(uint hInstall, const(wchar)* szComponent, INSTALLSTATE iState);
+uint MsiSetComponentStateW(MSIHANDLE hInstall, const(PWSTR) szComponent, INSTALLSTATE iState);
 
 ///The <b>MsiGetFeatureCost</b> function returns the disk space required by a feature and its selected children and
 ///parent features.
@@ -11111,7 +11395,7 @@ uint MsiSetComponentStateW(uint hInstall, const(wchar)* szComponent, INSTALLSTAT
 ///    The <b>MsiGetFeatureCost</b> function returns the following values:
 ///    
 @DllImport("msi")
-uint MsiGetFeatureCostA(uint hInstall, const(char)* szFeature, MSICOSTTREE iCostTree, INSTALLSTATE iState, 
+uint MsiGetFeatureCostA(MSIHANDLE hInstall, const(PSTR) szFeature, MSICOSTTREE iCostTree, INSTALLSTATE iState, 
                         int* piCost);
 
 ///The <b>MsiGetFeatureCost</b> function returns the disk space required by a feature and its selected children and
@@ -11147,7 +11431,7 @@ uint MsiGetFeatureCostA(uint hInstall, const(char)* szFeature, MSICOSTTREE iCost
 ///    The <b>MsiGetFeatureCost</b> function returns the following values:
 ///    
 @DllImport("msi")
-uint MsiGetFeatureCostW(uint hInstall, const(wchar)* szFeature, MSICOSTTREE iCostTree, INSTALLSTATE iState, 
+uint MsiGetFeatureCostW(MSIHANDLE hInstall, const(PWSTR) szFeature, MSICOSTTREE iCostTree, INSTALLSTATE iState, 
                         int* piCost);
 
 ///The <b>MsiEnumComponentCosts</b> function enumerates the disk-space per drive required to install a component. This
@@ -11193,8 +11477,8 @@ uint MsiGetFeatureCostW(uint hInstall, const(wchar)* szFeature, MSICOSTTREE iCos
 ///    </td> </tr> </table> <div> </div>
 ///    
 @DllImport("msi")
-uint MsiEnumComponentCostsA(uint hInstall, const(char)* szComponent, uint dwIndex, INSTALLSTATE iState, 
-                            const(char)* szDriveBuf, uint* pcchDriveBuf, int* piCost, int* piTempCost);
+uint MsiEnumComponentCostsA(MSIHANDLE hInstall, const(PSTR) szComponent, uint dwIndex, INSTALLSTATE iState, 
+                            PSTR szDriveBuf, uint* pcchDriveBuf, int* piCost, int* piTempCost);
 
 ///The <b>MsiEnumComponentCosts</b> function enumerates the disk-space per drive required to install a component. This
 ///information is needed to display the disk-space cost required for all drives in the user interface. The returned
@@ -11239,8 +11523,8 @@ uint MsiEnumComponentCostsA(uint hInstall, const(char)* szComponent, uint dwInde
 ///    </td> </tr> </table> <div> </div>
 ///    
 @DllImport("msi")
-uint MsiEnumComponentCostsW(uint hInstall, const(wchar)* szComponent, uint dwIndex, INSTALLSTATE iState, 
-                            const(wchar)* szDriveBuf, uint* pcchDriveBuf, int* piCost, int* piTempCost);
+uint MsiEnumComponentCostsW(MSIHANDLE hInstall, const(PWSTR) szComponent, uint dwIndex, INSTALLSTATE iState, 
+                            PWSTR szDriveBuf, uint* pcchDriveBuf, int* piCost, int* piTempCost);
 
 ///The <b>MsiSetInstallLevel</b> function sets the installation level for a full product installation.
 ///Params:
@@ -11251,7 +11535,7 @@ uint MsiEnumComponentCostsW(uint hInstall, const(wchar)* szComponent, uint dwInd
 ///    The <b>MsiSetInstallLevel</b> function returns one of the following values:
 ///    
 @DllImport("msi")
-uint MsiSetInstallLevel(uint hInstall, int iInstallLevel);
+uint MsiSetInstallLevel(MSIHANDLE hInstall, int iInstallLevel);
 
 ///The <b>MsiGetFeatureValidStates</b> function returns a valid installation state.
 ///Params:
@@ -11273,7 +11557,7 @@ uint MsiSetInstallLevel(uint hInstall, int iInstallLevel);
 ///    The <b>MsiGetFeatureValidStates</b> function returns the following values:
 ///    
 @DllImport("msi")
-uint MsiGetFeatureValidStatesA(uint hInstall, const(char)* szFeature, uint* lpInstallStates);
+uint MsiGetFeatureValidStatesA(MSIHANDLE hInstall, const(PSTR) szFeature, uint* lpInstallStates);
 
 ///The <b>MsiGetFeatureValidStates</b> function returns a valid installation state.
 ///Params:
@@ -11295,7 +11579,7 @@ uint MsiGetFeatureValidStatesA(uint hInstall, const(char)* szFeature, uint* lpIn
 ///    The <b>MsiGetFeatureValidStates</b> function returns the following values:
 ///    
 @DllImport("msi")
-uint MsiGetFeatureValidStatesW(uint hInstall, const(wchar)* szFeature, uint* lpInstallStates);
+uint MsiGetFeatureValidStatesW(MSIHANDLE hInstall, const(PWSTR) szFeature, uint* lpInstallStates);
 
 ///The <b>MsiGetSourcePath</b> function returns the full source path for a folder in the Directory table.
 ///Params:
@@ -11318,7 +11602,7 @@ uint MsiGetFeatureValidStatesW(uint hInstall, const(wchar)* szFeature, uint* lpI
 ///    The <b>MsiGetSourcePath</b> function returns the following values:
 ///    
 @DllImport("msi")
-uint MsiGetSourcePathA(uint hInstall, const(char)* szFolder, const(char)* szPathBuf, uint* pcchPathBuf);
+uint MsiGetSourcePathA(MSIHANDLE hInstall, const(PSTR) szFolder, PSTR szPathBuf, uint* pcchPathBuf);
 
 ///The <b>MsiGetSourcePath</b> function returns the full source path for a folder in the Directory table.
 ///Params:
@@ -11341,7 +11625,7 @@ uint MsiGetSourcePathA(uint hInstall, const(char)* szFolder, const(char)* szPath
 ///    The <b>MsiGetSourcePath</b> function returns the following values:
 ///    
 @DllImport("msi")
-uint MsiGetSourcePathW(uint hInstall, const(wchar)* szFolder, const(wchar)* szPathBuf, uint* pcchPathBuf);
+uint MsiGetSourcePathW(MSIHANDLE hInstall, const(PWSTR) szFolder, PWSTR szPathBuf, uint* pcchPathBuf);
 
 ///The <b>MsiGetTargetPath</b> function returns the full target path for a folder in the Directory table.
 ///Params:
@@ -11364,7 +11648,7 @@ uint MsiGetSourcePathW(uint hInstall, const(wchar)* szFolder, const(wchar)* szPa
 ///    The <b>MsiGetTargetPath</b> function returns the following values:
 ///    
 @DllImport("msi")
-uint MsiGetTargetPathA(uint hInstall, const(char)* szFolder, const(char)* szPathBuf, uint* pcchPathBuf);
+uint MsiGetTargetPathA(MSIHANDLE hInstall, const(PSTR) szFolder, PSTR szPathBuf, uint* pcchPathBuf);
 
 ///The <b>MsiGetTargetPath</b> function returns the full target path for a folder in the Directory table.
 ///Params:
@@ -11387,7 +11671,7 @@ uint MsiGetTargetPathA(uint hInstall, const(char)* szFolder, const(char)* szPath
 ///    The <b>MsiGetTargetPath</b> function returns the following values:
 ///    
 @DllImport("msi")
-uint MsiGetTargetPathW(uint hInstall, const(wchar)* szFolder, const(wchar)* szPathBuf, uint* pcchPathBuf);
+uint MsiGetTargetPathW(MSIHANDLE hInstall, const(PWSTR) szFolder, PWSTR szPathBuf, uint* pcchPathBuf);
 
 ///The <b>MsiSetTargetPath</b> function sets the full target path for a folder in the Directory table.
 ///Params:
@@ -11399,7 +11683,7 @@ uint MsiGetTargetPathW(uint hInstall, const(wchar)* szFolder, const(wchar)* szPa
 ///    The <b>MsiSetTargetPath</b> function returns the following values:
 ///    
 @DllImport("msi")
-uint MsiSetTargetPathA(uint hInstall, const(char)* szFolder, const(char)* szFolderPath);
+uint MsiSetTargetPathA(MSIHANDLE hInstall, const(PSTR) szFolder, const(PSTR) szFolderPath);
 
 ///The <b>MsiSetTargetPath</b> function sets the full target path for a folder in the Directory table.
 ///Params:
@@ -11411,7 +11695,7 @@ uint MsiSetTargetPathA(uint hInstall, const(char)* szFolder, const(char)* szFold
 ///    The <b>MsiSetTargetPath</b> function returns the following values:
 ///    
 @DllImport("msi")
-uint MsiSetTargetPathW(uint hInstall, const(wchar)* szFolder, const(wchar)* szFolderPath);
+uint MsiSetTargetPathW(MSIHANDLE hInstall, const(PWSTR) szFolder, const(PWSTR) szFolderPath);
 
 ///The <b>MsiVerifyDiskSpace</b> function checks to see if sufficient disk space is present for the current
 ///installation.
@@ -11422,7 +11706,7 @@ uint MsiSetTargetPathW(uint hInstall, const(wchar)* szFolder, const(wchar)* szFo
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiVerifyDiskSpace(uint hInstall);
+uint MsiVerifyDiskSpace(MSIHANDLE hInstall);
 
 ///The <b>MsiEnableUIPreview</b> function enables preview mode of the user interface to facilitate authoring of
 ///user-interface dialog boxes. This function returns a handle that should be closed using MsiCloseHandle.
@@ -11433,7 +11717,7 @@ uint MsiVerifyDiskSpace(uint hInstall);
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiEnableUIPreview(uint hDatabase, uint* phPreview);
+uint MsiEnableUIPreview(MSIHANDLE hDatabase, uint* phPreview);
 
 ///The <b>MsiPreviewDialog</b> function displays a dialog box as modeless and inactive.
 ///Params:
@@ -11443,7 +11727,7 @@ uint MsiEnableUIPreview(uint hDatabase, uint* phPreview);
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiPreviewDialogA(uint hPreview, const(char)* szDialogName);
+uint MsiPreviewDialogA(MSIHANDLE hPreview, const(PSTR) szDialogName);
 
 ///The <b>MsiPreviewDialog</b> function displays a dialog box as modeless and inactive.
 ///Params:
@@ -11453,7 +11737,7 @@ uint MsiPreviewDialogA(uint hPreview, const(char)* szDialogName);
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiPreviewDialogW(uint hPreview, const(wchar)* szDialogName);
+uint MsiPreviewDialogW(MSIHANDLE hPreview, const(PWSTR) szDialogName);
 
 ///The <b>MsiPreviewBillboard</b> function displays a billboard with the host control in the displayed dialog box.
 ///Params:
@@ -11464,7 +11748,7 @@ uint MsiPreviewDialogW(uint hPreview, const(wchar)* szDialogName);
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiPreviewBillboardA(uint hPreview, const(char)* szControlName, const(char)* szBillboard);
+uint MsiPreviewBillboardA(MSIHANDLE hPreview, const(PSTR) szControlName, const(PSTR) szBillboard);
 
 ///The <b>MsiPreviewBillboard</b> function displays a billboard with the host control in the displayed dialog box.
 ///Params:
@@ -11475,7 +11759,7 @@ uint MsiPreviewBillboardA(uint hPreview, const(char)* szControlName, const(char)
 ///    This function returns UINT.
 ///    
 @DllImport("msi")
-uint MsiPreviewBillboardW(uint hPreview, const(wchar)* szControlName, const(wchar)* szBillboard);
+uint MsiPreviewBillboardW(MSIHANDLE hPreview, const(PWSTR) szControlName, const(PWSTR) szBillboard);
 
 ///The <b>MsiGetLastErrorRecord</b> function returns the error record that was last returned for the calling process.
 ///This function returns a handle that should be closed using MsiCloseHandle.
@@ -11484,7 +11768,7 @@ uint MsiPreviewBillboardW(uint hPreview, const(wchar)* szControlName, const(wcha
 ///    <b>MSIHANDLE</b>.
 ///    
 @DllImport("msi")
-uint MsiGetLastErrorRecord();
+MSIHANDLE MsiGetLastErrorRecord();
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems specified in the Requirements
 ///section. Support for this function was removed in Windows Vista and Windows Server 2008. Use the supported functions
@@ -11513,7 +11797,7 @@ BOOL SfcGetNextProtectedFile(HANDLE RpcHandle, PROTECTED_FILE_DATA* ProtFileData
 ///    zero.
 ///    
 @DllImport("sfc")
-BOOL SfcIsFileProtected(HANDLE RpcHandle, const(wchar)* ProtFileName);
+BOOL SfcIsFileProtected(HANDLE RpcHandle, const(PWSTR) ProtFileName);
 
 ///Determines whether the specified registry key is protected. Applications should avoid replacing protected registry
 ///keys.
@@ -11538,309 +11822,10 @@ BOOL SfcIsFileProtected(HANDLE RpcHandle, const(wchar)* ProtFileName);
 ///    zero.
 ///    
 @DllImport("sfc")
-BOOL SfcIsKeyProtected(HKEY KeyHandle, const(wchar)* SubKeyName, uint KeySam);
+BOOL SfcIsKeyProtected(HKEY KeyHandle, const(PWSTR) SubKeyName, uint KeySam);
 
 @DllImport("sfc")
-BOOL SfpVerifyFile(const(char)* pszFileName, const(char)* pszError, uint dwErrSize);
-
-///The <b>CreateActCtx</b> function creates an activation context.
-///Params:
-///    pActCtx = Pointer to an ACTCTX structure that contains information about the activation context to be created.
-///Returns:
-///    If the function succeeds, it returns a handle to the returned activation context. Otherwise, it returns
-///    INVALID_HANDLE_VALUE. This function sets errors that can be retrieved by calling GetLastError. For an example,
-///    see Retrieving the Last-Error Code. For a complete list of error codes, see System Error Codes.
-///    
-@DllImport("KERNEL32")
-HANDLE CreateActCtxA(ACTCTXA* pActCtx);
-
-///The <b>CreateActCtx</b> function creates an activation context.
-///Params:
-///    pActCtx = Pointer to an ACTCTX structure that contains information about the activation context to be created.
-///Returns:
-///    If the function succeeds, it returns a handle to the returned activation context. Otherwise, it returns
-///    INVALID_HANDLE_VALUE. This function sets errors that can be retrieved by calling GetLastError. For an example,
-///    see Retrieving the Last-Error Code. For a complete list of error codes, see System Error Codes.
-///    
-@DllImport("KERNEL32")
-HANDLE CreateActCtxW(ACTCTXW* pActCtx);
-
-///The <b>AddRefActCtx</b> function increments the reference count of the specified activation context.
-///Params:
-///    hActCtx = Handle to an ACTCTX structure that contains information on the activation context for which the reference count
-///              is to be incremented.
-@DllImport("KERNEL32")
-void AddRefActCtx(HANDLE hActCtx);
-
-///The <b>ReleaseActCtx</b> function decrements the reference count of the specified activation context.
-///Params:
-///    hActCtx = Handle to the ACTCTX structure that contains information on the activation context for which the reference count
-///              is to be decremented.
-///Returns:
-///    This function does not return a value. On successful completion, the activation context reference count is
-///    decremented. The recipient of the reference-counted object must decrement the reference count when the object is
-///    no longer required.
-///    
-@DllImport("KERNEL32")
-void ReleaseActCtx(HANDLE hActCtx);
-
-///The <b>ZombifyActCtx</b> function deactivates the specified activation context, but does not deallocate it.
-///Params:
-///    hActCtx = Handle to the activation context that is to be deactivated.
-///Returns:
-///    If the function succeeds, it returns <b>TRUE</b>. If a <b>null</b> handle is passed in the <i>hActCtx</i>
-///    parameter, NULL_INVALID_PARAMETER will be returned. Otherwise, it returns <b>FALSE</b>. This function sets errors
-///    that can be retrieved by calling GetLastError. For an example, see Retrieving the Last-Error Code. For a complete
-///    list of error codes, see System Error Codes.
-///    
-@DllImport("KERNEL32")
-BOOL ZombifyActCtx(HANDLE hActCtx);
-
-///The <b>ActivateActCtx</b> function activates the specified activation context. It does this by pushing the specified
-///activation context to the top of the activation stack. The specified activation context is thus associated with the
-///current thread and any appropriate side-by-side API functions.
-///Params:
-///    hActCtx = Handle to an ACTCTX structure that contains information on the activation context that is to be made active.
-///    lpCookie = Pointer to a <b>ULONG_PTR</b> that functions as a cookie, uniquely identifying a specific, activated activation
-///               context.
-///Returns:
-///    If the function succeeds, it returns <b>TRUE</b>. Otherwise, it returns <b>FALSE</b>. This function sets errors
-///    that can be retrieved by calling GetLastError. For an example, see Retrieving the Last-Error Code. For a complete
-///    list of error codes, see System Error Codes.
-///    
-@DllImport("KERNEL32")
-BOOL ActivateActCtx(HANDLE hActCtx, size_t* lpCookie);
-
-///The <b>DeactivateActCtx</b> function deactivates the activation context corresponding to the specified cookie.
-///Params:
-///    dwFlags = Flags that indicate how the deactivation is to occur. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td
-///              width="40%"><a id="0"></a><dl> <dt><b>0</b></dt> </dl> </td> <td width="60%"> If this value is set and the cookie
-///              specified in the <i>ulCookie</i> parameter is in the top frame of the activation stack, the activation context is
-///              popped from the stack and thereby deactivated. If this value is set and the cookie specified in the
-///              <i>ulCookie</i> parameter is not in the top frame of the activation stack, this function searches down the stack
-///              for the cookie. If the cookie is found, a STATUS_SXS_EARLY_DEACTIVATION exception is thrown. If the cookie is not
-///              found, a STATUS_SXS_INVALID_DEACTIVATION exception is thrown. This value should be specified in most cases. </td>
-///              </tr> <tr> <td width="40%"><a id="DEACTIVATE_ACTCTX_FLAG_FORCE_EARLY_DEACTIVATION"></a><a
-///              id="deactivate_actctx_flag_force_early_deactivation"></a><dl>
-///              <dt><b>DEACTIVATE_ACTCTX_FLAG_FORCE_EARLY_DEACTIVATION</b></dt> </dl> </td> <td width="60%"> If this value is set
-///              and the cookie specified in the <i>ulCookie</i> parameter is in the top frame of the activation stack, the
-///              function returns an ERROR_INVALID_PARAMETER error code. Call GetLastError to obtain this code. If this value is
-///              set and the cookie is not on the activation stack, a STATUS_SXS_INVALID_DEACTIVATION exception will be thrown. If
-///              this value is set and the cookie is in a lower frame of the activation stack, all of the frames down to and
-///              including the frame the cookie is in is popped from the stack. </td> </tr> </table>
-///    ulCookie = The ULONG_PTR that was passed into the call to ActivateActCtx. This value is used as a cookie to identify a
-///               specific activated activation context.
-///Returns:
-///    If the function succeeds, it returns <b>TRUE</b>. Otherwise, it returns <b>FALSE</b>. This function sets errors
-///    that can be retrieved by calling GetLastError. For an example, see Retrieving the Last-Error Code. For a complete
-///    list of error codes, see System Error Codes.
-///    
-@DllImport("KERNEL32")
-BOOL DeactivateActCtx(uint dwFlags, size_t ulCookie);
-
-///The <b>GetCurrentActCtx</b> function returns the handle to the active activation context of the calling thread.
-///Params:
-///    lphActCtx = Pointer to the returned ACTCTX structure that contains information on the active activation context.
-///Returns:
-///    If the function succeeds, it returns <b>TRUE</b>. Otherwise, it returns <b>FALSE</b>. This function sets errors
-///    that can be retrieved by calling GetLastError. For an example, see Retrieving the Last-Error Code. For a complete
-///    list of error codes, see System Error Codes.
-///    
-@DllImport("KERNEL32")
-BOOL GetCurrentActCtx(HANDLE* lphActCtx);
-
-///The <b>FindActCtxSectionString</b> function retrieves information on a specific string in the current activation
-///context and returns a ACTCTX_SECTION_KEYED_DATA structure.
-///Params:
-///    dwFlags = Flags that determine how this function is to operate. Only the following flag is currently defined. <table> <tr>
-///              <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="FIND_ACTCTX_SECTION_KEY_RETURN_HACTCTX"></a><a
-///              id="find_actctx_section_key_return_hactctx"></a><dl> <dt><b>FIND_ACTCTX_SECTION_KEY_RETURN_HACTCTX</b></dt> </dl>
-///              </td> <td width="60%"> This function returns the activation context handle where the redirection data was found
-///              in the <b>hActCtx</b> member of the ACTCTX_SECTION_KEYED_DATA structure. The caller must use ReleaseActCtx to
-///              release this activation context. </td> </tr> </table>
-///    lpExtensionGuid = Reserved; must be null.
-///    ulSectionId = Identifier of the string section of the activation context in which to search for the specific string. The
-///                  following are valid string section identifiers: <ul> <li>ACTIVATION_CONTEXT_SECTION_ASSEMBLY_INFORMATION</li>
-///                  <li>ACTIVATION_CONTEXT_SECTION_DLL_REDIRECTION</li> <li>ACTIVATION_CONTEXT_SECTION_WINDOW_CLASS_REDIRECTION</li>
-///                  <li>ACTIVATION_CONTEXT_SECTION_COM_PROGID_REDIRECTION</li> </ul>
-///    lpStringToFind = Pointer to a null-terminated string to be used as the search criteria.
-///    ReturnedData = Pointer to an ACTCTX_SECTION_KEYED_DATA structure to be filled out with the requested string information.
-///Returns:
-///    If the function succeeds, it returns <b>TRUE</b>. Otherwise, it returns <b>FALSE</b>. This function sets errors
-///    that can be retrieved by calling GetLastError. For an example, see Retrieving the Last-Error Code. For a complete
-///    list of error codes, see System Error Codes.
-///    
-@DllImport("KERNEL32")
-BOOL FindActCtxSectionStringA(uint dwFlags, const(GUID)* lpExtensionGuid, uint ulSectionId, 
-                              const(char)* lpStringToFind, ACTCTX_SECTION_KEYED_DATA* ReturnedData);
-
-///The <b>FindActCtxSectionString</b> function retrieves information on a specific string in the current activation
-///context and returns a ACTCTX_SECTION_KEYED_DATA structure.
-///Params:
-///    dwFlags = Flags that determine how this function is to operate. Only the following flag is currently defined. <table> <tr>
-///              <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="FIND_ACTCTX_SECTION_KEY_RETURN_HACTCTX"></a><a
-///              id="find_actctx_section_key_return_hactctx"></a><dl> <dt><b>FIND_ACTCTX_SECTION_KEY_RETURN_HACTCTX</b></dt> </dl>
-///              </td> <td width="60%"> This function returns the activation context handle where the redirection data was found
-///              in the <b>hActCtx</b> member of the ACTCTX_SECTION_KEYED_DATA structure. The caller must use ReleaseActCtx to
-///              release this activation context. </td> </tr> </table>
-///    lpExtensionGuid = Reserved; must be null.
-///    ulSectionId = Identifier of the string section of the activation context in which to search for the specific string. The
-///                  following are valid string section identifiers: <ul> <li>ACTIVATION_CONTEXT_SECTION_ASSEMBLY_INFORMATION</li>
-///                  <li>ACTIVATION_CONTEXT_SECTION_DLL_REDIRECTION</li> <li>ACTIVATION_CONTEXT_SECTION_WINDOW_CLASS_REDIRECTION</li>
-///                  <li>ACTIVATION_CONTEXT_SECTION_COM_PROGID_REDIRECTION</li> </ul>
-///    lpStringToFind = Pointer to a null-terminated string to be used as the search criteria.
-///    ReturnedData = Pointer to an ACTCTX_SECTION_KEYED_DATA structure to be filled out with the requested string information.
-///Returns:
-///    If the function succeeds, it returns <b>TRUE</b>. Otherwise, it returns <b>FALSE</b>. This function sets errors
-///    that can be retrieved by calling GetLastError. For an example, see Retrieving the Last-Error Code. For a complete
-///    list of error codes, see System Error Codes.
-///    
-@DllImport("KERNEL32")
-BOOL FindActCtxSectionStringW(uint dwFlags, const(GUID)* lpExtensionGuid, uint ulSectionId, 
-                              const(wchar)* lpStringToFind, ACTCTX_SECTION_KEYED_DATA* ReturnedData);
-
-///The <b>FindActCtxSectionGuid</b> function retrieves information on a specific GUID in the current activation context
-///and returns a ACTCTX_SECTION_KEYED_DATA structure.
-///Params:
-///    dwFlags = Flags that determine how this function is to operate. Only the following flag is currently defined. <table> <tr>
-///              <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="FIND_ACTCTX_SECTION_KEY_RETURN_HACTCTX"></a><a
-///              id="find_actctx_section_key_return_hactctx"></a><dl> <dt><b>FIND_ACTCTX_SECTION_KEY_RETURN_HACTCTX</b></dt> </dl>
-///              </td> <td width="60%"> This function returns the activation context handle where the redirection data was found
-///              in the <b>hActCtx</b> member of the ACTCTX_SECTION_KEYED_DATA structure. The caller must use ReleaseActCtx to
-///              release this activation context. </td> </tr> </table>
-///    lpExtensionGuid = Reserved; must be null.
-///    ulSectionId = Identifier of the section of the activation context in which to search for the specified GUID. The following are
-///                  valid GUID section identifiers: <ul> <li>ACTIVATION_CONTEXT_SECTION_COM_SERVER_REDIRECTION</li>
-///                  <li>ACTIVATION_CONTEXT_SECTION_COM_INTERFACE_REDIRECTION</li>
-///                  <li>ACTIVATION_CONTEXT_SECTION_COM_TYPE_LIBRARY_REDIRECTION</li> </ul> The following is a valid GUID section
-///                  identifier beginning with Windows Server 2003 and Windows XP with SP1: <ul>
-///                  <li>ACTIVATION_CONTEXT_SECTION_CLR_SURROGATES</li> </ul>
-///    lpGuidToFind = Pointer to a GUID to be used as the search criteria.
-///    ReturnedData = Pointer to an ACTCTX_SECTION_KEYED_DATA structure to be filled out with the requested GUID information.
-///Returns:
-///    If the function succeeds, it returns <b>TRUE</b>. Otherwise, it returns <b>FALSE</b>. This function sets errors
-///    that can be retrieved by calling GetLastError. For an example, see Retrieving the Last-Error Code. For a complete
-///    list of error codes, see System Error Codes.
-///    
-@DllImport("KERNEL32")
-BOOL FindActCtxSectionGuid(uint dwFlags, const(GUID)* lpExtensionGuid, uint ulSectionId, const(GUID)* lpGuidToFind, 
-                           ACTCTX_SECTION_KEYED_DATA* ReturnedData);
-
-///The <b>QueryActCtxW</b> function queries the activation context.
-///Params:
-///    dwFlags = This parameter should be set to one of the following flag bits. <table> <tr> <th>Flag</th> <th>Meaning</th> </tr>
-///              <tr> <td width="40%"><a id="QUERY_ACTCTX_FLAG_USE_ACTIVE_ACTCTX"></a><a
-///              id="query_actctx_flag_use_active_actctx"></a><dl> <dt><b>QUERY_ACTCTX_FLAG_USE_ACTIVE_ACTCTX</b></dt> </dl> </td>
-///              <td width="60%"> <b>QueryActCtxW</b> queries the activation context active on the thread instead of the context
-///              specified by <i>hActCtx</i>. This is usually the last activation context passed to ActivateActCtx. If
-///              <b>ActivateActCtx</b> has not been called, the active activation context can be the activation context used by
-///              the executable of the current process. In other cases, the operating system determines the active activation
-///              context. For example, when the callback function to a new thread is called, the active activation context may be
-///              the context that was active when you created the thread by calling CreateThread. </td> </tr> <tr> <td
-///              width="40%"><a id="QUERY_ACTCTX_FLAG_ACTCTX_IS_HMODULE"></a><a id="query_actctx_flag_actctx_is_hmodule"></a><dl>
-///              <dt><b>QUERY_ACTCTX_FLAG_ACTCTX_IS_HMODULE</b></dt> </dl> </td> <td width="60%"> <b>QueryActCtxW</b> interprets
-///              <i>hActCtx</i> as an <b>HMODULE</b> data type and queries an activation context that is associated with a DLL or
-///              EXE. When a DLL or EXE is loaded, the loader checks for a manifest stored in a resource. If the loader finds an
-///              RT_MANIFEST resource with a resource identifier set to ISOLATIONAWARE_MANIFEST_ RESOURCE_ID, the loader
-///              associates the resulting activation context with the DLL or EXE. This is the activation context that
-///              <b>QueryActCtxW</b> queries when the QUERY_ACTCTX_FLAG_ACTCTX_IS_HMODULE flag has been set. </td> </tr> <tr> <td
-///              width="40%"><a id="QUERY_ACTCTX_FLAG_ACTCTX_IS_ADDRESS"></a><a id="query_actctx_flag_actctx_is_address"></a><dl>
-///              <dt><b>QUERY_ACTCTX_FLAG_ACTCTX_IS_ADDRESS</b></dt> </dl> </td> <td width="60%"> <b>QueryActCtxW</b> interprets
-///              <i>hActCtx</i> as an address within a DLL or EXE and queries an activation context that has been associated with
-///              the DLL or EXE. This can be any address within the DLL or EXE. For example, the address of any function within a
-///              DLL or EXE or the address of any static data, such as a constant string. When a DLL or EXE is loaded, the loader
-///              checks for a manifest stored in a resource in the same way as QUERY_ACTCTX_FLAG_ACTCTX_IS_HMODULE. </td> </tr>
-///              </table>
-///    hActCtx = Handle to the activation context that is being queried.
-///    pvSubInstance = Index of the assembly, or assembly and file combination, in the activation context. The meaning of the
-///                    <i>pvSubInstance</i> depends on the option specified by the value of the <i>ulInfoClass</i> parameter. This
-///                    parameter may be null. <table> <tr> <th>ulInfoClass Option</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
-///                    id="AssemblyDetailedInformationInActivationContext"></a><a
-///                    id="assemblydetailedinformationinactivationcontext"></a><a
-///                    id="ASSEMBLYDETAILEDINFORMATIONINACTIVATIONCONTEXT"></a><dl>
-///                    <dt><b>AssemblyDetailedInformationInActivationContext</b></dt> </dl> </td> <td width="60%"> Pointer to a
-///                    <b>DWORD</b> that specifies the index of the assembly within the activation context. This is the activation
-///                    context that <b>QueryActCtxW</b> queries. </td> </tr> <tr> <td width="40%"><a
-///                    id="FileInformationInAssemblyOfAssemblyInActivationContext"></a><a
-///                    id="fileinformationinassemblyofassemblyinactivationcontext"></a><a
-///                    id="FILEINFORMATIONINASSEMBLYOFASSEMBLYINACTIVATIONCONTEXT"></a><dl>
-///                    <dt><b>FileInformationInAssemblyOfAssemblyInActivationContext</b></dt> </dl> </td> <td width="60%"> Pointer to an
-///                    ACTIVATION_CONTEXT_QUERY_INDEX structure. If <b>QueryActCtxW</b> is called with this option and the function
-///                    succeeds, the returned buffer contains information for a file in the assembly. This information is in the form of
-///                    the ASSEMBLY_FILE_DETAILED_INFORMATION structure. </td> </tr> </table>
-///    ulInfoClass = This parameter can have only the values shown in the following table. <table> <tr> <th>Option</th>
-///                  <th>Meaning</th> </tr> <tr> <td width="40%"><a id="ActivationContextBasicInformation"></a><a
-///                  id="activationcontextbasicinformation"></a><a id="ACTIVATIONCONTEXTBASICINFORMATION"></a><dl>
-///                  <dt><b>ActivationContextBasicInformation</b></dt> <dt>1</dt> </dl> </td> <td width="60%"> Not available. </td>
-///                  </tr> <tr> <td width="40%"><a id="ActivationContextDetailedInformation"></a><a
-///                  id="activationcontextdetailedinformation"></a><a id="ACTIVATIONCONTEXTDETAILEDINFORMATION"></a><dl>
-///                  <dt><b>ActivationContextDetailedInformation</b></dt> <dt>2</dt> </dl> </td> <td width="60%"> If
-///                  <b>QueryActCtxW</b> is called with this option and the function succeeds, the returned buffer contains detailed
-///                  information about the activation context. This information is in the form of the
-///                  ACTIVATION_CONTEXT_DETAILED_INFORMATION structure. </td> </tr> <tr> <td width="40%"><a
-///                  id="AssemblyDetailedInformationInActivationContext"></a><a
-///                  id="assemblydetailedinformationinactivationcontext"></a><a
-///                  id="ASSEMBLYDETAILEDINFORMATIONINACTIVATIONCONTEXT"></a><dl>
-///                  <dt><b>AssemblyDetailedInformationInActivationContext</b></dt> <dt>3</dt> </dl> </td> <td width="60%"> If
-///                  <b>QueryActCtxW</b> is called with this option and the function succeeds, the buffer contains information about
-///                  the assembly that has the index specified in <i>pvSubInstance</i>. This information is in the form of the
-///                  ACTIVATION_CONTEXT_ASSEMBLY_DETAILED_INFORMATION structure. </td> </tr> <tr> <td width="40%"><a
-///                  id="FileInformationInAssemblyOfAssemblyInActivationContext"></a><a
-///                  id="fileinformationinassemblyofassemblyinactivationcontext"></a><a
-///                  id="FILEINFORMATIONINASSEMBLYOFASSEMBLYINACTIVATIONCONTEXT"></a><dl>
-///                  <dt><b>FileInformationInAssemblyOfAssemblyInActivationContext</b></dt> <dt>4</dt> </dl> </td> <td width="60%">
-///                  Information about a file in one of the assemblies in Activation Context. The <i>pvSubInstance</i> parameter must
-///                  point to an ACTIVATION_CONTEXT_QUERY_INDEX structure. If <b>QueryActCtxW</b> is called with this option and the
-///                  function succeeds, the returned buffer contains information for a file in the assembly. This information is in
-///                  the form of the ASSEMBLY_FILE_DETAILED_INFORMATION structure. </td> </tr> <tr> <td width="40%"><a
-///                  id="RunlevelInformationInActivationContext"></a><a id="runlevelinformationinactivationcontext"></a><a
-///                  id="RUNLEVELINFORMATIONINACTIVATIONCONTEXT"></a><dl> <dt><b>RunlevelInformationInActivationContext</b></dt>
-///                  <dt>5</dt> </dl> </td> <td width="60%"> If <b>QueryActCtxW</b> is called with this option and the function
-///                  succeeds, the buffer contains information about requested run level of the activation context. This information
-///                  is in the form of the ACTIVATION_CONTEXT_RUN_LEVEL_INFORMATION structure. <b>Windows Server 2003 and Windows XP:
-///                  </b>This value is not available. </td> </tr> <tr> <td width="40%"><a
-///                  id="CompatibilityInformationInActivationContext"></a><a id="compatibilityinformationinactivationcontext"></a><a
-///                  id="COMPATIBILITYINFORMATIONINACTIVATIONCONTEXT"></a><dl>
-///                  <dt><b>CompatibilityInformationInActivationContext</b></dt> <dt>6</dt> </dl> </td> <td width="60%"> If
-///                  <b>QueryActCtxW</b> is called with this option and the function succeeds, the buffer contains information about
-///                  requested compatibility context. This information is in the form of the
-///                  ACTIVATION_CONTEXT_COMPATIBILITY_INFORMATION structure. <b>Windows Server 2008 and earlier, and Windows Vista and
-///                  earlier: </b>This value is not available. This option is available beginning with Windows Server 2008 R2 and
-///                  Windows 7. </td> </tr> </table>
-///    pvBuffer = Pointer to a buffer that holds the returned information. This parameter is optional. If <i>pvBuffer</i> is
-///               <b>null</b>, then <i>cbBuffer</i> must be zero. If the size of the buffer pointed to by <i>pvBuffer</i> is too
-///               small, <b>QueryActCtxW</b> returns ERROR_INSUFFICIENT_BUFFER and no data is written into the buffer. See the
-///               Remarks section for the method you can use to determine the required size of the buffer.
-///    cbBuffer = Size of the buffer in bytes pointed to by <i>pvBuffer</i>. This parameter is optional.
-///    pcbWrittenOrRequired = Number of bytes written or required. The parameter <i>pcbWrittenOrRequired</i> can only be <b>NULL</b> when
-///                           <i>pvBuffer</i> is <b>NULL</b>. If <i>pcbWrittenOrRequired</i> is non-<b>NULL</b>, it is filled with the number
-///                           of bytes required to store the returned buffer.
-///Returns:
-///    If the function succeeds, it returns <b>TRUE</b>. Otherwise, it returns <b>FALSE</b>. This function sets errors
-///    that can be retrieved by calling GetLastError. For an example, see Retrieving the Last-Error Code. For a complete
-///    list of error codes, see System Error Codes.
-///    
-@DllImport("KERNEL32")
-BOOL QueryActCtxW(uint dwFlags, HANDLE hActCtx, void* pvSubInstance, uint ulInfoClass, char* pvBuffer, 
-                  size_t cbBuffer, size_t* pcbWrittenOrRequired);
-
-///The <b>QueryActCtxSettingsW</b> function specifies the activation context, and the namespace and name of the
-///attribute that is to be queried.
-///Params:
-///    dwFlags = This value must be 0.
-///    hActCtx = A handle to the activation context that is being queried.
-///    settingsNameSpace = A pointer to a string that contains the value <b>"http://schemas.microsoft.com/SMI/2005/WindowsSettings"</b> or
-///                        <b>NULL</b>. These values are equivalent. <b>Windows 8 and Windows Server 2012: </b>A pointer to a string that
-///                        contains the value <b>"http://schemas.microsoft.com/SMI/2011/WindowsSettings"</b> is also a valid parameter. A
-///                        <b>NULL</b> is still equivalent to the previous value.
-///    settingName = The name of the attribute to be queried.
-///    pvBuffer = A pointer to the buffer that receives the query result.
-///    dwBuffer = The size of the buffer in characters that receives the query result.
-///    pdwWrittenOrRequired = A pointer to a value which is the number of characters written to the buffer specified by <i>pvBuffer</i> or that
-///                           is required to hold the query result.
-@DllImport("KERNEL32")
-BOOL QueryActCtxSettingsW(uint dwFlags, HANDLE hActCtx, const(wchar)* settingsNameSpace, const(wchar)* settingName, 
-                          const(wchar)* pvBuffer, size_t dwBuffer, size_t* pdwWrittenOrRequired);
+BOOL SfpVerifyFile(const(PSTR) pszFileName, PSTR pszError, uint dwErrSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -11864,8 +11849,8 @@ BOOL QueryActCtxSettingsW(uint dwFlags, HANDLE hActCtx, const(wchar)* settingsNa
 ///    returns <b>FALSE</b> and a subsequent call to GetLastError returns ERROR_FILE_NOT_FOUND.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupGetInfInformationA(void* InfSpec, uint SearchControl, char* ReturnBuffer, uint ReturnBufferSize, 
-                             uint* RequiredSize);
+BOOL SetupGetInfInformationA(const(void)* InfSpec, uint SearchControl, SP_INF_INFORMATION* ReturnBuffer, 
+                             uint ReturnBufferSize, uint* RequiredSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -11889,8 +11874,8 @@ BOOL SetupGetInfInformationA(void* InfSpec, uint SearchControl, char* ReturnBuff
 ///    returns <b>FALSE</b> and a subsequent call to GetLastError returns ERROR_FILE_NOT_FOUND.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupGetInfInformationW(void* InfSpec, uint SearchControl, char* ReturnBuffer, uint ReturnBufferSize, 
-                             uint* RequiredSize);
+BOOL SetupGetInfInformationW(const(void)* InfSpec, uint SearchControl, SP_INF_INFORMATION* ReturnBuffer, 
+                             uint ReturnBufferSize, uint* RequiredSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -11918,7 +11903,7 @@ BOOL SetupGetInfInformationW(void* InfSpec, uint SearchControl, char* ReturnBuff
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupQueryInfFileInformationA(SP_INF_INFORMATION* InfInformation, uint InfIndex, const(char)* ReturnBuffer, 
+BOOL SetupQueryInfFileInformationA(SP_INF_INFORMATION* InfInformation, uint InfIndex, PSTR ReturnBuffer, 
                                    uint ReturnBufferSize, uint* RequiredSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
@@ -11947,7 +11932,7 @@ BOOL SetupQueryInfFileInformationA(SP_INF_INFORMATION* InfInformation, uint InfI
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupQueryInfFileInformationW(SP_INF_INFORMATION* InfInformation, uint InfIndex, const(wchar)* ReturnBuffer, 
+BOOL SetupQueryInfFileInformationW(SP_INF_INFORMATION* InfInformation, uint InfIndex, PWSTR ReturnBuffer, 
                                    uint ReturnBufferSize, uint* RequiredSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
@@ -12027,8 +12012,8 @@ BOOL SetupQueryInfOriginalFileInformationW(SP_INF_INFORMATION* InfInformation, u
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupQueryInfVersionInformationA(SP_INF_INFORMATION* InfInformation, uint InfIndex, const(char)* Key, 
-                                      const(char)* ReturnBuffer, uint ReturnBufferSize, uint* RequiredSize);
+BOOL SetupQueryInfVersionInformationA(SP_INF_INFORMATION* InfInformation, uint InfIndex, const(PSTR) Key, 
+                                      PSTR ReturnBuffer, uint ReturnBufferSize, uint* RequiredSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -12061,8 +12046,8 @@ BOOL SetupQueryInfVersionInformationA(SP_INF_INFORMATION* InfInformation, uint I
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupQueryInfVersionInformationW(SP_INF_INFORMATION* InfInformation, uint InfIndex, const(wchar)* Key, 
-                                      const(wchar)* ReturnBuffer, uint ReturnBufferSize, uint* RequiredSize);
+BOOL SetupQueryInfVersionInformationW(SP_INF_INFORMATION* InfInformation, uint InfIndex, const(PWSTR) Key, 
+                                      PWSTR ReturnBuffer, uint ReturnBufferSize, uint* RequiredSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -12090,8 +12075,8 @@ BOOL SetupQueryInfVersionInformationW(SP_INF_INFORMATION* InfInformation, uint I
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupGetInfFileListA(const(char)* DirectoryPath, uint InfStyle, const(char)* ReturnBuffer, 
-                          uint ReturnBufferSize, uint* RequiredSize);
+BOOL SetupGetInfFileListA(const(PSTR) DirectoryPath, uint InfStyle, PSTR ReturnBuffer, uint ReturnBufferSize, 
+                          uint* RequiredSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -12119,8 +12104,8 @@ BOOL SetupGetInfFileListA(const(char)* DirectoryPath, uint InfStyle, const(char)
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupGetInfFileListW(const(wchar)* DirectoryPath, uint InfStyle, const(wchar)* ReturnBuffer, 
-                          uint ReturnBufferSize, uint* RequiredSize);
+BOOL SetupGetInfFileListW(const(PWSTR) DirectoryPath, uint InfStyle, PWSTR ReturnBuffer, uint ReturnBufferSize, 
+                          uint* RequiredSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -12144,7 +12129,7 @@ BOOL SetupGetInfFileListW(const(wchar)* DirectoryPath, uint InfStyle, const(wcha
 ///    INVALID_HANDLE_VALUE. Extended error information can be retrieved by a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-void* SetupOpenInfFileW(const(wchar)* FileName, const(wchar)* InfClass, uint InfStyle, uint* ErrorLine);
+void* SetupOpenInfFileW(const(PWSTR) FileName, const(PWSTR) InfClass, uint InfStyle, uint* ErrorLine);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -12168,7 +12153,7 @@ void* SetupOpenInfFileW(const(wchar)* FileName, const(wchar)* InfClass, uint Inf
 ///    INVALID_HANDLE_VALUE. Extended error information can be retrieved by a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-void* SetupOpenInfFileA(const(char)* FileName, const(char)* InfClass, uint InfStyle, uint* ErrorLine);
+void* SetupOpenInfFileA(const(PSTR) FileName, const(PSTR) InfClass, uint InfStyle, uint* ErrorLine);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -12206,7 +12191,7 @@ void* SetupOpenMasterInf();
 ///    LayoutFile value in the <b>Version</b> section of the existing INF File, GetLastError returns ERROR_INVALID_DATA.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupOpenAppendInfFileW(const(wchar)* FileName, void* InfHandle, uint* ErrorLine);
+BOOL SetupOpenAppendInfFileW(const(PWSTR) FileName, void* InfHandle, uint* ErrorLine);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -12231,7 +12216,7 @@ BOOL SetupOpenAppendInfFileW(const(wchar)* FileName, void* InfHandle, uint* Erro
 ///    LayoutFile value in the <b>Version</b> section of the existing INF File, GetLastError returns ERROR_INVALID_DATA.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupOpenAppendInfFileA(const(char)* FileName, void* InfHandle, uint* ErrorLine);
+BOOL SetupOpenAppendInfFileA(const(PSTR) FileName, void* InfHandle, uint* ErrorLine);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -12265,7 +12250,7 @@ void SetupCloseInfFile(void* InfHandle);
 ///    GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupFindFirstLineA(void* InfHandle, const(char)* Section, const(char)* Key, INFCONTEXT* Context);
+BOOL SetupFindFirstLineA(void* InfHandle, const(PSTR) Section, const(PSTR) Key, INFCONTEXT* Context);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -12286,7 +12271,7 @@ BOOL SetupFindFirstLineA(void* InfHandle, const(char)* Section, const(char)* Key
 ///    GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupFindFirstLineW(void* InfHandle, const(wchar)* Section, const(wchar)* Key, INFCONTEXT* Context);
+BOOL SetupFindFirstLineW(void* InfHandle, const(PWSTR) Section, const(PWSTR) Key, INFCONTEXT* Context);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -12321,7 +12306,7 @@ BOOL SetupFindNextLine(INFCONTEXT* ContextIn, INFCONTEXT* ContextOut);
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupFindNextMatchLineA(INFCONTEXT* ContextIn, const(char)* Key, INFCONTEXT* ContextOut);
+BOOL SetupFindNextMatchLineA(INFCONTEXT* ContextIn, const(PSTR) Key, INFCONTEXT* ContextOut);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -12340,7 +12325,7 @@ BOOL SetupFindNextMatchLineA(INFCONTEXT* ContextIn, const(char)* Key, INFCONTEXT
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupFindNextMatchLineW(INFCONTEXT* ContextIn, const(wchar)* Key, INFCONTEXT* ContextOut);
+BOOL SetupFindNextMatchLineW(INFCONTEXT* ContextIn, const(PWSTR) Key, INFCONTEXT* ContextOut);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -12358,7 +12343,7 @@ BOOL SetupFindNextMatchLineW(INFCONTEXT* ContextIn, const(wchar)* Key, INFCONTEX
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupGetLineByIndexA(void* InfHandle, const(char)* Section, uint Index, INFCONTEXT* Context);
+BOOL SetupGetLineByIndexA(void* InfHandle, const(PSTR) Section, uint Index, INFCONTEXT* Context);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -12376,7 +12361,7 @@ BOOL SetupGetLineByIndexA(void* InfHandle, const(char)* Section, uint Index, INF
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupGetLineByIndexW(void* InfHandle, const(wchar)* Section, uint Index, INFCONTEXT* Context);
+BOOL SetupGetLineByIndexW(void* InfHandle, const(PWSTR) Section, uint Index, INFCONTEXT* Context);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -12393,7 +12378,7 @@ BOOL SetupGetLineByIndexW(void* InfHandle, const(wchar)* Section, uint Index, IN
 ///    information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-int SetupGetLineCountA(void* InfHandle, const(char)* Section);
+int SetupGetLineCountA(void* InfHandle, const(PSTR) Section);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -12410,7 +12395,7 @@ int SetupGetLineCountA(void* InfHandle, const(char)* Section);
 ///    information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-int SetupGetLineCountW(void* InfHandle, const(wchar)* Section);
+int SetupGetLineCountW(void* InfHandle, const(PWSTR) Section);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -12447,8 +12432,8 @@ int SetupGetLineCountW(void* InfHandle, const(wchar)* Section);
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupGetLineTextA(INFCONTEXT* Context, void* InfHandle, const(char)* Section, const(char)* Key, 
-                       const(char)* ReturnBuffer, uint ReturnBufferSize, uint* RequiredSize);
+BOOL SetupGetLineTextA(INFCONTEXT* Context, void* InfHandle, const(PSTR) Section, const(PSTR) Key, 
+                       PSTR ReturnBuffer, uint ReturnBufferSize, uint* RequiredSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -12485,8 +12470,8 @@ BOOL SetupGetLineTextA(INFCONTEXT* Context, void* InfHandle, const(char)* Sectio
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupGetLineTextW(INFCONTEXT* Context, void* InfHandle, const(wchar)* Section, const(wchar)* Key, 
-                       const(wchar)* ReturnBuffer, uint ReturnBufferSize, uint* RequiredSize);
+BOOL SetupGetLineTextW(INFCONTEXT* Context, void* InfHandle, const(PWSTR) Section, const(PWSTR) Key, 
+                       PWSTR ReturnBuffer, uint ReturnBufferSize, uint* RequiredSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -12525,7 +12510,7 @@ uint SetupGetFieldCount(INFCONTEXT* Context);
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupGetStringFieldA(INFCONTEXT* Context, uint FieldIndex, const(char)* ReturnBuffer, uint ReturnBufferSize, 
+BOOL SetupGetStringFieldA(INFCONTEXT* Context, uint FieldIndex, PSTR ReturnBuffer, uint ReturnBufferSize, 
                           uint* RequiredSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
@@ -12551,7 +12536,7 @@ BOOL SetupGetStringFieldA(INFCONTEXT* Context, uint FieldIndex, const(char)* Ret
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupGetStringFieldW(INFCONTEXT* Context, uint FieldIndex, const(wchar)* ReturnBuffer, uint ReturnBufferSize, 
+BOOL SetupGetStringFieldW(INFCONTEXT* Context, uint FieldIndex, PWSTR ReturnBuffer, uint ReturnBufferSize, 
                           uint* RequiredSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
@@ -12598,7 +12583,7 @@ BOOL SetupGetIntField(INFCONTEXT* Context, uint FieldIndex, int* IntegerValue);
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupGetMultiSzFieldA(INFCONTEXT* Context, uint FieldIndex, const(char)* ReturnBuffer, uint ReturnBufferSize, 
+BOOL SetupGetMultiSzFieldA(INFCONTEXT* Context, uint FieldIndex, PSTR ReturnBuffer, uint ReturnBufferSize, 
                            uint* RequiredSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
@@ -12625,7 +12610,7 @@ BOOL SetupGetMultiSzFieldA(INFCONTEXT* Context, uint FieldIndex, const(char)* Re
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupGetMultiSzFieldW(INFCONTEXT* Context, uint FieldIndex, const(wchar)* ReturnBuffer, uint ReturnBufferSize, 
+BOOL SetupGetMultiSzFieldW(INFCONTEXT* Context, uint FieldIndex, PWSTR ReturnBuffer, uint ReturnBufferSize, 
                            uint* RequiredSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
@@ -12654,7 +12639,7 @@ BOOL SetupGetMultiSzFieldW(INFCONTEXT* Context, uint FieldIndex, const(wchar)* R
 ///    <b>SetupGetBinaryField</b> retrieves is not a valid hexadecimal number in the range 0-FF.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupGetBinaryField(INFCONTEXT* Context, uint FieldIndex, char* ReturnBuffer, uint ReturnBufferSize, 
+BOOL SetupGetBinaryField(INFCONTEXT* Context, uint FieldIndex, ubyte* ReturnBuffer, uint ReturnBufferSize, 
                          uint* RequiredSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
@@ -12689,7 +12674,7 @@ BOOL SetupGetBinaryField(INFCONTEXT* Context, uint FieldIndex, char* ReturnBuffe
 ///    of the following values. To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-uint SetupGetFileCompressionInfoA(const(char)* SourceFileName, byte** ActualSourceFileName, uint* SourceFileSize, 
+uint SetupGetFileCompressionInfoA(const(PSTR) SourceFileName, PSTR* ActualSourceFileName, uint* SourceFileSize, 
                                   uint* TargetFileSize, uint* CompressionType);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
@@ -12724,8 +12709,8 @@ uint SetupGetFileCompressionInfoA(const(char)* SourceFileName, byte** ActualSour
 ///    of the following values. To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-uint SetupGetFileCompressionInfoW(const(wchar)* SourceFileName, ushort** ActualSourceFileName, 
-                                  uint* SourceFileSize, uint* TargetFileSize, uint* CompressionType);
+uint SetupGetFileCompressionInfoW(const(PWSTR) SourceFileName, PWSTR* ActualSourceFileName, uint* SourceFileSize, 
+                                  uint* TargetFileSize, uint* CompressionType);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -12768,7 +12753,7 @@ uint SetupGetFileCompressionInfoW(const(wchar)* SourceFileName, ushort** ActualS
 ///    information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupGetFileCompressionInfoExA(const(char)* SourceFileName, const(char)* ActualSourceFileNameBuffer, 
+BOOL SetupGetFileCompressionInfoExA(const(PSTR) SourceFileName, PSTR ActualSourceFileNameBuffer, 
                                     uint ActualSourceFileNameBufferLen, uint* RequiredBufferLen, 
                                     uint* SourceFileSize, uint* TargetFileSize, uint* CompressionType);
 
@@ -12813,7 +12798,7 @@ BOOL SetupGetFileCompressionInfoExA(const(char)* SourceFileName, const(char)* Ac
 ///    information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupGetFileCompressionInfoExW(const(wchar)* SourceFileName, const(wchar)* ActualSourceFileNameBuffer, 
+BOOL SetupGetFileCompressionInfoExW(const(PWSTR) SourceFileName, PWSTR ActualSourceFileNameBuffer, 
                                     uint ActualSourceFileNameBufferLen, uint* RequiredBufferLen, 
                                     uint* SourceFileSize, uint* TargetFileSize, uint* CompressionType);
 
@@ -12842,7 +12827,7 @@ BOOL SetupGetFileCompressionInfoExW(const(wchar)* SourceFileName, const(wchar)* 
 ///    operation. To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-uint SetupDecompressOrCopyFileA(const(char)* SourceFileName, const(char)* TargetFileName, uint* CompressionType);
+uint SetupDecompressOrCopyFileA(const(PSTR) SourceFileName, const(PSTR) TargetFileName, uint* CompressionType);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -12869,7 +12854,7 @@ uint SetupDecompressOrCopyFileA(const(char)* SourceFileName, const(char)* Target
 ///    operation. To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-uint SetupDecompressOrCopyFileW(const(wchar)* SourceFileName, const(wchar)* TargetFileName, uint* CompressionType);
+uint SetupDecompressOrCopyFileW(const(PWSTR) SourceFileName, const(PWSTR) TargetFileName, uint* CompressionType);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -12906,8 +12891,8 @@ uint SetupDecompressOrCopyFileW(const(wchar)* SourceFileName, const(wchar)* Targ
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupGetSourceFileLocationA(void* InfHandle, INFCONTEXT* InfContext, const(char)* FileName, uint* SourceId, 
-                                 const(char)* ReturnBuffer, uint ReturnBufferSize, uint* RequiredSize);
+BOOL SetupGetSourceFileLocationA(void* InfHandle, INFCONTEXT* InfContext, const(PSTR) FileName, uint* SourceId, 
+                                 PSTR ReturnBuffer, uint ReturnBufferSize, uint* RequiredSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -12944,8 +12929,8 @@ BOOL SetupGetSourceFileLocationA(void* InfHandle, INFCONTEXT* InfContext, const(
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupGetSourceFileLocationW(void* InfHandle, INFCONTEXT* InfContext, const(wchar)* FileName, uint* SourceId, 
-                                 const(wchar)* ReturnBuffer, uint ReturnBufferSize, uint* RequiredSize);
+BOOL SetupGetSourceFileLocationW(void* InfHandle, INFCONTEXT* InfContext, const(PWSTR) FileName, uint* SourceId, 
+                                 PWSTR ReturnBuffer, uint ReturnBufferSize, uint* RequiredSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -12972,7 +12957,7 @@ BOOL SetupGetSourceFileLocationW(void* InfHandle, INFCONTEXT* InfContext, const(
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupGetSourceFileSizeA(void* InfHandle, INFCONTEXT* InfContext, const(char)* FileName, const(char)* Section, 
+BOOL SetupGetSourceFileSizeA(void* InfHandle, INFCONTEXT* InfContext, const(PSTR) FileName, const(PSTR) Section, 
                              uint* FileSize, uint RoundingFactor);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
@@ -13000,8 +12985,8 @@ BOOL SetupGetSourceFileSizeA(void* InfHandle, INFCONTEXT* InfContext, const(char
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupGetSourceFileSizeW(void* InfHandle, INFCONTEXT* InfContext, const(wchar)* FileName, 
-                             const(wchar)* Section, uint* FileSize, uint RoundingFactor);
+BOOL SetupGetSourceFileSizeW(void* InfHandle, INFCONTEXT* InfContext, const(PWSTR) FileName, const(PWSTR) Section, 
+                             uint* FileSize, uint RoundingFactor);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -13033,7 +13018,7 @@ BOOL SetupGetSourceFileSizeW(void* InfHandle, INFCONTEXT* InfContext, const(wcha
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupGetTargetPathA(void* InfHandle, INFCONTEXT* InfContext, const(char)* Section, const(char)* ReturnBuffer, 
+BOOL SetupGetTargetPathA(void* InfHandle, INFCONTEXT* InfContext, const(PSTR) Section, PSTR ReturnBuffer, 
                          uint ReturnBufferSize, uint* RequiredSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
@@ -13066,8 +13051,8 @@ BOOL SetupGetTargetPathA(void* InfHandle, INFCONTEXT* InfContext, const(char)* S
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupGetTargetPathW(void* InfHandle, INFCONTEXT* InfContext, const(wchar)* Section, 
-                         const(wchar)* ReturnBuffer, uint ReturnBufferSize, uint* RequiredSize);
+BOOL SetupGetTargetPathW(void* InfHandle, INFCONTEXT* InfContext, const(PWSTR) Section, PWSTR ReturnBuffer, 
+                         uint ReturnBufferSize, uint* RequiredSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -13083,7 +13068,7 @@ BOOL SetupGetTargetPathW(void* InfHandle, INFCONTEXT* InfContext, const(wchar)* 
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupSetSourceListA(uint Flags, char* SourceList, uint SourceCount);
+BOOL SetupSetSourceListA(uint Flags, PSTR* SourceList, uint SourceCount);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -13099,7 +13084,7 @@ BOOL SetupSetSourceListA(uint Flags, char* SourceList, uint SourceCount);
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupSetSourceListW(uint Flags, char* SourceList, uint SourceCount);
+BOOL SetupSetSourceListW(uint Flags, PWSTR* SourceList, uint SourceCount);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -13128,7 +13113,7 @@ BOOL SetupCancelTemporarySourceList();
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupAddToSourceListA(uint Flags, const(char)* Source);
+BOOL SetupAddToSourceListA(uint Flags, const(PSTR) Source);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -13145,7 +13130,7 @@ BOOL SetupAddToSourceListA(uint Flags, const(char)* Source);
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupAddToSourceListW(uint Flags, const(wchar)* Source);
+BOOL SetupAddToSourceListW(uint Flags, const(PWSTR) Source);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -13161,7 +13146,7 @@ BOOL SetupAddToSourceListW(uint Flags, const(wchar)* Source);
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupRemoveFromSourceListA(uint Flags, const(char)* Source);
+BOOL SetupRemoveFromSourceListA(uint Flags, const(PSTR) Source);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -13177,7 +13162,7 @@ BOOL SetupRemoveFromSourceListA(uint Flags, const(char)* Source);
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupRemoveFromSourceListW(uint Flags, const(wchar)* Source);
+BOOL SetupRemoveFromSourceListW(uint Flags, const(PWSTR) Source);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -13195,7 +13180,7 @@ BOOL SetupRemoveFromSourceListW(uint Flags, const(wchar)* Source);
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupQuerySourceListA(uint Flags, byte*** List, uint* Count);
+BOOL SetupQuerySourceListA(uint Flags, PSTR** List, uint* Count);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -13213,7 +13198,7 @@ BOOL SetupQuerySourceListA(uint Flags, byte*** List, uint* Count);
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupQuerySourceListW(uint Flags, ushort*** List, uint* Count);
+BOOL SetupQuerySourceListW(uint Flags, PWSTR** List, uint* Count);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -13229,7 +13214,7 @@ BOOL SetupQuerySourceListW(uint Flags, ushort*** List, uint* Count);
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupFreeSourceListA(char* List, uint Count);
+BOOL SetupFreeSourceListA(PSTR** List, uint Count);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -13245,7 +13230,7 @@ BOOL SetupFreeSourceListA(char* List, uint Count);
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupFreeSourceListW(char* List, uint Count);
+BOOL SetupFreeSourceListW(PWSTR** List, uint Count);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -13288,9 +13273,9 @@ BOOL SetupFreeSourceListW(char* List, uint Count);
 ///    The function returns one of the following values. To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-uint SetupPromptForDiskA(HWND hwndParent, const(char)* DialogTitle, const(char)* DiskName, 
-                         const(char)* PathToSource, const(char)* FileSought, const(char)* TagFile, 
-                         uint DiskPromptStyle, const(char)* PathBuffer, uint PathBufferSize, uint* PathRequiredSize);
+uint SetupPromptForDiskA(HWND hwndParent, const(PSTR) DialogTitle, const(PSTR) DiskName, const(PSTR) PathToSource, 
+                         const(PSTR) FileSought, const(PSTR) TagFile, uint DiskPromptStyle, PSTR PathBuffer, 
+                         uint PathBufferSize, uint* PathRequiredSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -13333,9 +13318,9 @@ uint SetupPromptForDiskA(HWND hwndParent, const(char)* DialogTitle, const(char)*
 ///    The function returns one of the following values. To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-uint SetupPromptForDiskW(HWND hwndParent, const(wchar)* DialogTitle, const(wchar)* DiskName, 
-                         const(wchar)* PathToSource, const(wchar)* FileSought, const(wchar)* TagFile, 
-                         uint DiskPromptStyle, const(wchar)* PathBuffer, uint PathBufferSize, uint* PathRequiredSize);
+uint SetupPromptForDiskW(HWND hwndParent, const(PWSTR) DialogTitle, const(PWSTR) DiskName, 
+                         const(PWSTR) PathToSource, const(PWSTR) FileSought, const(PWSTR) TagFile, 
+                         uint DiskPromptStyle, PWSTR PathBuffer, uint PathBufferSize, uint* PathRequiredSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -13376,9 +13361,9 @@ uint SetupPromptForDiskW(HWND hwndParent, const(wchar)* DialogTitle, const(wchar
 ///    The function returns one of the following values. To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-uint SetupCopyErrorA(HWND hwndParent, const(char)* DialogTitle, const(char)* DiskName, const(char)* PathToSource, 
-                     const(char)* SourceFile, const(char)* TargetPathFile, uint Win32ErrorCode, uint Style, 
-                     const(char)* PathBuffer, uint PathBufferSize, uint* PathRequiredSize);
+uint SetupCopyErrorA(HWND hwndParent, const(PSTR) DialogTitle, const(PSTR) DiskName, const(PSTR) PathToSource, 
+                     const(PSTR) SourceFile, const(PSTR) TargetPathFile, uint Win32ErrorCode, uint Style, 
+                     PSTR PathBuffer, uint PathBufferSize, uint* PathRequiredSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -13419,10 +13404,9 @@ uint SetupCopyErrorA(HWND hwndParent, const(char)* DialogTitle, const(char)* Dis
 ///    The function returns one of the following values. To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-uint SetupCopyErrorW(HWND hwndParent, const(wchar)* DialogTitle, const(wchar)* DiskName, 
-                     const(wchar)* PathToSource, const(wchar)* SourceFile, const(wchar)* TargetPathFile, 
-                     uint Win32ErrorCode, uint Style, const(wchar)* PathBuffer, uint PathBufferSize, 
-                     uint* PathRequiredSize);
+uint SetupCopyErrorW(HWND hwndParent, const(PWSTR) DialogTitle, const(PWSTR) DiskName, const(PWSTR) PathToSource, 
+                     const(PWSTR) SourceFile, const(PWSTR) TargetPathFile, uint Win32ErrorCode, uint Style, 
+                     PWSTR PathBuffer, uint PathBufferSize, uint* PathRequiredSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -13443,7 +13427,7 @@ uint SetupCopyErrorW(HWND hwndParent, const(wchar)* DialogTitle, const(wchar)* D
 ///    This function returns one of the following values. To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-uint SetupRenameErrorA(HWND hwndParent, const(char)* DialogTitle, const(char)* SourceFile, const(char)* TargetFile, 
+uint SetupRenameErrorA(HWND hwndParent, const(PSTR) DialogTitle, const(PSTR) SourceFile, const(PSTR) TargetFile, 
                        uint Win32ErrorCode, uint Style);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
@@ -13465,8 +13449,8 @@ uint SetupRenameErrorA(HWND hwndParent, const(char)* DialogTitle, const(char)* S
 ///    This function returns one of the following values. To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-uint SetupRenameErrorW(HWND hwndParent, const(wchar)* DialogTitle, const(wchar)* SourceFile, 
-                       const(wchar)* TargetFile, uint Win32ErrorCode, uint Style);
+uint SetupRenameErrorW(HWND hwndParent, const(PWSTR) DialogTitle, const(PWSTR) SourceFile, const(PWSTR) TargetFile, 
+                       uint Win32ErrorCode, uint Style);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -13486,8 +13470,7 @@ uint SetupRenameErrorW(HWND hwndParent, const(wchar)* DialogTitle, const(wchar)*
 ///    This function returns one of the following values. To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-uint SetupDeleteErrorA(HWND hwndParent, const(char)* DialogTitle, const(char)* File, uint Win32ErrorCode, 
-                       uint Style);
+uint SetupDeleteErrorA(HWND hwndParent, const(PSTR) DialogTitle, const(PSTR) File, uint Win32ErrorCode, uint Style);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -13507,7 +13490,7 @@ uint SetupDeleteErrorA(HWND hwndParent, const(char)* DialogTitle, const(char)* F
 ///    This function returns one of the following values. To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-uint SetupDeleteErrorW(HWND hwndParent, const(wchar)* DialogTitle, const(wchar)* File, uint Win32ErrorCode, 
+uint SetupDeleteErrorW(HWND hwndParent, const(PWSTR) DialogTitle, const(PWSTR) File, uint Win32ErrorCode, 
                        uint Style);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
@@ -13529,7 +13512,7 @@ uint SetupDeleteErrorW(HWND hwndParent, const(wchar)* DialogTitle, const(wchar)*
 ///    This function returns one of the following values. To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-uint SetupBackupErrorA(HWND hwndParent, const(char)* DialogTitle, const(char)* SourceFile, const(char)* TargetFile, 
+uint SetupBackupErrorA(HWND hwndParent, const(PSTR) DialogTitle, const(PSTR) SourceFile, const(PSTR) TargetFile, 
                        uint Win32ErrorCode, uint Style);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
@@ -13551,8 +13534,8 @@ uint SetupBackupErrorA(HWND hwndParent, const(char)* DialogTitle, const(char)* S
 ///    This function returns one of the following values. To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-uint SetupBackupErrorW(HWND hwndParent, const(wchar)* DialogTitle, const(wchar)* SourceFile, 
-                       const(wchar)* TargetFile, uint Win32ErrorCode, uint Style);
+uint SetupBackupErrorW(HWND hwndParent, const(PWSTR) DialogTitle, const(PWSTR) SourceFile, const(PWSTR) TargetFile, 
+                       uint Win32ErrorCode, uint Style);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -13573,7 +13556,7 @@ uint SetupBackupErrorW(HWND hwndParent, const(wchar)* DialogTitle, const(wchar)*
 ///    (zero). To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupSetDirectoryIdA(void* InfHandle, uint Id, const(char)* Directory);
+BOOL SetupSetDirectoryIdA(void* InfHandle, uint Id, const(PSTR) Directory);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -13594,7 +13577,7 @@ BOOL SetupSetDirectoryIdA(void* InfHandle, uint Id, const(char)* Directory);
 ///    (zero). To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupSetDirectoryIdW(void* InfHandle, uint Id, const(wchar)* Directory);
+BOOL SetupSetDirectoryIdW(void* InfHandle, uint Id, const(PWSTR) Directory);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -13619,7 +13602,7 @@ BOOL SetupSetDirectoryIdW(void* InfHandle, uint Id, const(wchar)* Directory);
 ///    (zero). To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupSetDirectoryIdExA(void* InfHandle, uint Id, const(char)* Directory, uint Flags, uint Reserved1, 
+BOOL SetupSetDirectoryIdExA(void* InfHandle, uint Id, const(PSTR) Directory, uint Flags, uint Reserved1, 
                             void* Reserved2);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
@@ -13645,7 +13628,7 @@ BOOL SetupSetDirectoryIdExA(void* InfHandle, uint Id, const(char)* Directory, ui
 ///    (zero). To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupSetDirectoryIdExW(void* InfHandle, uint Id, const(wchar)* Directory, uint Flags, uint Reserved1, 
+BOOL SetupSetDirectoryIdExW(void* InfHandle, uint Id, const(PWSTR) Directory, uint Flags, uint Reserved1, 
                             void* Reserved2);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
@@ -13674,7 +13657,7 @@ BOOL SetupSetDirectoryIdExW(void* InfHandle, uint Id, const(wchar)* Directory, u
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupGetSourceInfoA(void* InfHandle, uint SourceId, uint InfoDesired, const(char)* ReturnBuffer, 
+BOOL SetupGetSourceInfoA(void* InfHandle, uint SourceId, uint InfoDesired, PSTR ReturnBuffer, 
                          uint ReturnBufferSize, uint* RequiredSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
@@ -13703,7 +13686,7 @@ BOOL SetupGetSourceInfoA(void* InfHandle, uint SourceId, uint InfoDesired, const
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupGetSourceInfoW(void* InfHandle, uint SourceId, uint InfoDesired, const(wchar)* ReturnBuffer, 
+BOOL SetupGetSourceInfoW(void* InfHandle, uint SourceId, uint InfoDesired, PWSTR ReturnBuffer, 
                          uint ReturnBufferSize, uint* RequiredSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
@@ -13765,9 +13748,9 @@ BOOL SetupGetSourceInfoW(void* InfHandle, uint SourceId, uint InfoDesired, const
 ///    the file callback function returned <b>FALSE</b>.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupInstallFileA(void* InfHandle, INFCONTEXT* InfContext, const(char)* SourceFile, 
-                       const(char)* SourcePathRoot, const(char)* DestinationName, uint CopyStyle, 
-                       PSP_FILE_CALLBACK_A CopyMsgHandler, void* Context);
+BOOL SetupInstallFileA(void* InfHandle, INFCONTEXT* InfContext, const(PSTR) SourceFile, const(PSTR) SourcePathRoot, 
+                       const(PSTR) DestinationName, uint CopyStyle, PSP_FILE_CALLBACK_A CopyMsgHandler, 
+                       void* Context);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -13828,8 +13811,8 @@ BOOL SetupInstallFileA(void* InfHandle, INFCONTEXT* InfContext, const(char)* Sou
 ///    the file callback function returned <b>FALSE</b>.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupInstallFileW(void* InfHandle, INFCONTEXT* InfContext, const(wchar)* SourceFile, 
-                       const(wchar)* SourcePathRoot, const(wchar)* DestinationName, uint CopyStyle, 
+BOOL SetupInstallFileW(void* InfHandle, INFCONTEXT* InfContext, const(PWSTR) SourceFile, 
+                       const(PWSTR) SourcePathRoot, const(PWSTR) DestinationName, uint CopyStyle, 
                        PSP_FILE_CALLBACK_W CopyMsgHandler, void* Context);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
@@ -13925,9 +13908,9 @@ BOOL SetupInstallFileW(void* InfHandle, INFCONTEXT* InfContext, const(wchar)* So
 ///    the file callback function returned <b>FALSE</b>.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupInstallFileExA(void* InfHandle, INFCONTEXT* InfContext, const(char)* SourceFile, 
-                         const(char)* SourcePathRoot, const(char)* DestinationName, uint CopyStyle, 
-                         PSP_FILE_CALLBACK_A CopyMsgHandler, void* Context, int* FileWasInUse);
+BOOL SetupInstallFileExA(void* InfHandle, INFCONTEXT* InfContext, const(PSTR) SourceFile, 
+                         const(PSTR) SourcePathRoot, const(PSTR) DestinationName, uint CopyStyle, 
+                         PSP_FILE_CALLBACK_A CopyMsgHandler, void* Context, BOOL* FileWasInUse);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -14022,9 +14005,9 @@ BOOL SetupInstallFileExA(void* InfHandle, INFCONTEXT* InfContext, const(char)* S
 ///    the file callback function returned <b>FALSE</b>.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupInstallFileExW(void* InfHandle, INFCONTEXT* InfContext, const(wchar)* SourceFile, 
-                         const(wchar)* SourcePathRoot, const(wchar)* DestinationName, uint CopyStyle, 
-                         PSP_FILE_CALLBACK_W CopyMsgHandler, void* Context, int* FileWasInUse);
+BOOL SetupInstallFileExW(void* InfHandle, INFCONTEXT* InfContext, const(PWSTR) SourceFile, 
+                         const(PWSTR) SourcePathRoot, const(PWSTR) DestinationName, uint CopyStyle, 
+                         PSP_FILE_CALLBACK_W CopyMsgHandler, void* Context, BOOL* FileWasInUse);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -14068,7 +14051,7 @@ BOOL SetupCloseFileQueue(void* QueueHandle);
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupSetFileQueueAlternatePlatformA(void* QueueHandle, SP_ALTPLATFORM_INFO_V2* AlternatePlatformInfo, 
-                                         const(char)* AlternateDefaultCatalogFile);
+                                         const(PSTR) AlternateDefaultCatalogFile);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -14089,7 +14072,7 @@ BOOL SetupSetFileQueueAlternatePlatformA(void* QueueHandle, SP_ALTPLATFORM_INFO_
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupSetFileQueueAlternatePlatformW(void* QueueHandle, SP_ALTPLATFORM_INFO_V2* AlternatePlatformInfo, 
-                                         const(wchar)* AlternateDefaultCatalogFile);
+                                         const(PWSTR) AlternateDefaultCatalogFile);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -14107,7 +14090,7 @@ BOOL SetupSetFileQueueAlternatePlatformW(void* QueueHandle, SP_ALTPLATFORM_INFO_
 ///    <b>SetupSetPlatformPathOverride</b> was unable to store the <i>Override</i> string.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupSetPlatformPathOverrideA(const(char)* Override);
+BOOL SetupSetPlatformPathOverrideA(const(PSTR) Override);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -14125,7 +14108,7 @@ BOOL SetupSetPlatformPathOverrideA(const(char)* Override);
 ///    <b>SetupSetPlatformPathOverride</b> was unable to store the <i>Override</i> string.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupSetPlatformPathOverrideW(const(wchar)* Override);
+BOOL SetupSetPlatformPathOverrideW(const(PWSTR) Override);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -14152,9 +14135,9 @@ BOOL SetupSetPlatformPathOverrideW(const(wchar)* Override);
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupQueueCopyA(void* QueueHandle, const(char)* SourceRootPath, const(char)* SourcePath, 
-                     const(char)* SourceFilename, const(char)* SourceDescription, const(char)* SourceTagfile, 
-                     const(char)* TargetDirectory, const(char)* TargetFilename, uint CopyStyle);
+BOOL SetupQueueCopyA(void* QueueHandle, const(PSTR) SourceRootPath, const(PSTR) SourcePath, 
+                     const(PSTR) SourceFilename, const(PSTR) SourceDescription, const(PSTR) SourceTagfile, 
+                     const(PSTR) TargetDirectory, const(PSTR) TargetFilename, uint CopyStyle);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -14181,9 +14164,9 @@ BOOL SetupQueueCopyA(void* QueueHandle, const(char)* SourceRootPath, const(char)
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupQueueCopyW(void* QueueHandle, const(wchar)* SourceRootPath, const(wchar)* SourcePath, 
-                     const(wchar)* SourceFilename, const(wchar)* SourceDescription, const(wchar)* SourceTagfile, 
-                     const(wchar)* TargetDirectory, const(wchar)* TargetFilename, uint CopyStyle);
+BOOL SetupQueueCopyW(void* QueueHandle, const(PWSTR) SourceRootPath, const(PWSTR) SourcePath, 
+                     const(PWSTR) SourceFilename, const(PWSTR) SourceDescription, const(PWSTR) SourceTagfile, 
+                     const(PWSTR) TargetDirectory, const(PWSTR) TargetFilename, uint CopyStyle);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -14233,8 +14216,8 @@ BOOL SetupQueueCopyIndirectW(SP_FILE_COPY_PARAMS_W* CopyParams);
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupQueueDefaultCopyA(void* QueueHandle, void* InfHandle, const(char)* SourceRootPath, 
-                            const(char)* SourceFilename, const(char)* TargetFilename, uint CopyStyle);
+BOOL SetupQueueDefaultCopyA(void* QueueHandle, void* InfHandle, const(PSTR) SourceRootPath, 
+                            const(PSTR) SourceFilename, const(PSTR) TargetFilename, uint CopyStyle);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -14256,8 +14239,8 @@ BOOL SetupQueueDefaultCopyA(void* QueueHandle, void* InfHandle, const(char)* Sou
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupQueueDefaultCopyW(void* QueueHandle, void* InfHandle, const(wchar)* SourceRootPath, 
-                            const(wchar)* SourceFilename, const(wchar)* TargetFilename, uint CopyStyle);
+BOOL SetupQueueDefaultCopyW(void* QueueHandle, void* InfHandle, const(PWSTR) SourceRootPath, 
+                            const(PWSTR) SourceFilename, const(PWSTR) TargetFilename, uint CopyStyle);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -14283,8 +14266,8 @@ BOOL SetupQueueDefaultCopyW(void* QueueHandle, void* InfHandle, const(wchar)* So
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupQueueCopySectionA(void* QueueHandle, const(char)* SourceRootPath, void* InfHandle, void* ListInfHandle, 
-                            const(char)* Section, uint CopyStyle);
+BOOL SetupQueueCopySectionA(void* QueueHandle, const(PSTR) SourceRootPath, void* InfHandle, void* ListInfHandle, 
+                            const(PSTR) Section, uint CopyStyle);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -14310,8 +14293,8 @@ BOOL SetupQueueCopySectionA(void* QueueHandle, const(char)* SourceRootPath, void
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupQueueCopySectionW(void* QueueHandle, const(wchar)* SourceRootPath, void* InfHandle, void* ListInfHandle, 
-                            const(wchar)* Section, uint CopyStyle);
+BOOL SetupQueueCopySectionW(void* QueueHandle, const(PWSTR) SourceRootPath, void* InfHandle, void* ListInfHandle, 
+                            const(PWSTR) Section, uint CopyStyle);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -14331,7 +14314,7 @@ BOOL SetupQueueCopySectionW(void* QueueHandle, const(wchar)* SourceRootPath, voi
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupQueueDeleteA(void* QueueHandle, const(char)* PathPart1, const(char)* PathPart2);
+BOOL SetupQueueDeleteA(void* QueueHandle, const(PSTR) PathPart1, const(PSTR) PathPart2);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -14351,7 +14334,7 @@ BOOL SetupQueueDeleteA(void* QueueHandle, const(char)* PathPart1, const(char)* P
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupQueueDeleteW(void* QueueHandle, const(wchar)* PathPart1, const(wchar)* PathPart2);
+BOOL SetupQueueDeleteW(void* QueueHandle, const(PWSTR) PathPart1, const(PWSTR) PathPart2);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -14371,7 +14354,7 @@ BOOL SetupQueueDeleteW(void* QueueHandle, const(wchar)* PathPart1, const(wchar)*
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupQueueDeleteSectionA(void* QueueHandle, void* InfHandle, void* ListInfHandle, const(char)* Section);
+BOOL SetupQueueDeleteSectionA(void* QueueHandle, void* InfHandle, void* ListInfHandle, const(PSTR) Section);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -14391,7 +14374,7 @@ BOOL SetupQueueDeleteSectionA(void* QueueHandle, void* InfHandle, void* ListInfH
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupQueueDeleteSectionW(void* QueueHandle, void* InfHandle, void* ListInfHandle, const(wchar)* Section);
+BOOL SetupQueueDeleteSectionW(void* QueueHandle, void* InfHandle, void* ListInfHandle, const(PWSTR) Section);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -14413,8 +14396,8 @@ BOOL SetupQueueDeleteSectionW(void* QueueHandle, void* InfHandle, void* ListInfH
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupQueueRenameA(void* QueueHandle, const(char)* SourcePath, const(char)* SourceFilename, 
-                       const(char)* TargetPath, const(char)* TargetFilename);
+BOOL SetupQueueRenameA(void* QueueHandle, const(PSTR) SourcePath, const(PSTR) SourceFilename, 
+                       const(PSTR) TargetPath, const(PSTR) TargetFilename);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -14436,8 +14419,8 @@ BOOL SetupQueueRenameA(void* QueueHandle, const(char)* SourcePath, const(char)* 
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupQueueRenameW(void* QueueHandle, const(wchar)* SourcePath, const(wchar)* SourceFilename, 
-                       const(wchar)* TargetPath, const(wchar)* TargetFilename);
+BOOL SetupQueueRenameW(void* QueueHandle, const(PWSTR) SourcePath, const(PWSTR) SourceFilename, 
+                       const(PWSTR) TargetPath, const(PWSTR) TargetFilename);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -14457,7 +14440,7 @@ BOOL SetupQueueRenameW(void* QueueHandle, const(wchar)* SourcePath, const(wchar)
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupQueueRenameSectionA(void* QueueHandle, void* InfHandle, void* ListInfHandle, const(char)* Section);
+BOOL SetupQueueRenameSectionA(void* QueueHandle, void* InfHandle, void* ListInfHandle, const(PSTR) Section);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -14477,7 +14460,7 @@ BOOL SetupQueueRenameSectionA(void* QueueHandle, void* InfHandle, void* ListInfH
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupQueueRenameSectionW(void* QueueHandle, void* InfHandle, void* ListInfHandle, const(wchar)* Section);
+BOOL SetupQueueRenameSectionW(void* QueueHandle, void* InfHandle, void* ListInfHandle, const(PWSTR) Section);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -14824,9 +14807,9 @@ BOOL SetupSetFileQueueFlags(void* FileQueue, uint FlagMask, uint Flags);
 ///    This function returns WINSETUPAPI BOOL.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupCopyOEMInfA(const(char)* SourceInfFileName, const(char)* OEMSourceMediaLocation, uint OEMSourceMediaType, 
-                      uint CopyStyle, const(char)* DestinationInfFileName, uint DestinationInfFileNameSize, 
-                      uint* RequiredSize, byte** DestinationInfFileNameComponent);
+BOOL SetupCopyOEMInfA(const(PSTR) SourceInfFileName, const(PSTR) OEMSourceMediaLocation, uint OEMSourceMediaType, 
+                      uint CopyStyle, PSTR DestinationInfFileName, uint DestinationInfFileNameSize, 
+                      uint* RequiredSize, PSTR* DestinationInfFileNameComponent);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -14891,9 +14874,9 @@ BOOL SetupCopyOEMInfA(const(char)* SourceInfFileName, const(char)* OEMSourceMedi
 ///    This function returns WINSETUPAPI BOOL.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupCopyOEMInfW(const(wchar)* SourceInfFileName, const(wchar)* OEMSourceMediaLocation, 
-                      uint OEMSourceMediaType, uint CopyStyle, const(wchar)* DestinationInfFileName, 
-                      uint DestinationInfFileNameSize, uint* RequiredSize, ushort** DestinationInfFileNameComponent);
+BOOL SetupCopyOEMInfW(const(PWSTR) SourceInfFileName, const(PWSTR) OEMSourceMediaLocation, uint OEMSourceMediaType, 
+                      uint CopyStyle, PWSTR DestinationInfFileName, uint DestinationInfFileNameSize, 
+                      uint* RequiredSize, PWSTR* DestinationInfFileNameComponent);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -14918,7 +14901,7 @@ BOOL SetupCopyOEMInfW(const(wchar)* SourceInfFileName, const(wchar)* OEMSourceMe
 ///    This function returns WINSETUPAPI BOOL.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupUninstallOEMInfA(const(char)* InfFileName, uint Flags, void* Reserved);
+BOOL SetupUninstallOEMInfA(const(PSTR) InfFileName, uint Flags, void* Reserved);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -14943,7 +14926,7 @@ BOOL SetupUninstallOEMInfA(const(char)* InfFileName, uint Flags, void* Reserved)
 ///    This function returns WINSETUPAPI BOOL.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupUninstallOEMInfW(const(wchar)* InfFileName, uint Flags, void* Reserved);
+BOOL SetupUninstallOEMInfW(const(PWSTR) InfFileName, uint Flags, void* Reserved);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -15066,7 +15049,7 @@ BOOL SetupDestroyDiskSpaceList(void* DiskSpace);
 ///    supplied buffer was too small.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupQueryDrivesInDiskSpaceListA(void* DiskSpace, const(char)* ReturnBuffer, uint ReturnBufferSize, 
+BOOL SetupQueryDrivesInDiskSpaceListA(void* DiskSpace, PSTR ReturnBuffer, uint ReturnBufferSize, 
                                       uint* RequiredSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
@@ -15092,7 +15075,7 @@ BOOL SetupQueryDrivesInDiskSpaceListA(void* DiskSpace, const(char)* ReturnBuffer
 ///    supplied buffer was too small.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupQueryDrivesInDiskSpaceListW(void* DiskSpace, const(wchar)* ReturnBuffer, uint ReturnBufferSize, 
+BOOL SetupQueryDrivesInDiskSpaceListW(void* DiskSpace, PWSTR ReturnBuffer, uint ReturnBufferSize, 
                                       uint* RequiredSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
@@ -15129,7 +15112,7 @@ BOOL SetupQueryDrivesInDiskSpaceListW(void* DiskSpace, const(wchar)* ReturnBuffe
 ///    width="60%"> The specified <i>DriveSpec</i> string is invalid. </td> </tr> </table>
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupQuerySpaceRequiredOnDriveA(void* DiskSpace, const(char)* DriveSpec, long* SpaceRequired, void* Reserved1, 
+BOOL SetupQuerySpaceRequiredOnDriveA(void* DiskSpace, const(PSTR) DriveSpec, long* SpaceRequired, void* Reserved1, 
                                      uint Reserved2);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
@@ -15166,8 +15149,8 @@ BOOL SetupQuerySpaceRequiredOnDriveA(void* DiskSpace, const(char)* DriveSpec, lo
 ///    width="60%"> The specified <i>DriveSpec</i> string is invalid. </td> </tr> </table>
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupQuerySpaceRequiredOnDriveW(void* DiskSpace, const(wchar)* DriveSpec, long* SpaceRequired, 
-                                     void* Reserved1, uint Reserved2);
+BOOL SetupQuerySpaceRequiredOnDriveW(void* DiskSpace, const(PWSTR) DriveSpec, long* SpaceRequired, void* Reserved1, 
+                                     uint Reserved2);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -15187,7 +15170,7 @@ BOOL SetupQuerySpaceRequiredOnDriveW(void* DiskSpace, const(wchar)* DriveSpec, l
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupAdjustDiskSpaceListA(void* DiskSpace, const(char)* DriveRoot, long Amount, void* Reserved1, 
+BOOL SetupAdjustDiskSpaceListA(void* DiskSpace, const(PSTR) DriveRoot, long Amount, void* Reserved1, 
                                uint Reserved2);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
@@ -15208,7 +15191,7 @@ BOOL SetupAdjustDiskSpaceListA(void* DiskSpace, const(char)* DriveRoot, long Amo
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupAdjustDiskSpaceListW(void* DiskSpace, const(wchar)* DriveRoot, long Amount, void* Reserved1, 
+BOOL SetupAdjustDiskSpaceListW(void* DiskSpace, const(PWSTR) DriveRoot, long Amount, void* Reserved1, 
                                uint Reserved2);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
@@ -15237,7 +15220,7 @@ BOOL SetupAdjustDiskSpaceListW(void* DiskSpace, const(wchar)* DriveRoot, long Am
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupAddToDiskSpaceListA(void* DiskSpace, const(char)* TargetFilespec, long FileSize, uint Operation, 
+BOOL SetupAddToDiskSpaceListA(void* DiskSpace, const(PSTR) TargetFilespec, long FileSize, uint Operation, 
                               void* Reserved1, uint Reserved2);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
@@ -15266,7 +15249,7 @@ BOOL SetupAddToDiskSpaceListA(void* DiskSpace, const(char)* TargetFilespec, long
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupAddToDiskSpaceListW(void* DiskSpace, const(wchar)* TargetFilespec, long FileSize, uint Operation, 
+BOOL SetupAddToDiskSpaceListW(void* DiskSpace, const(PWSTR) TargetFilespec, long FileSize, uint Operation, 
                               void* Reserved1, uint Reserved2);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
@@ -15296,7 +15279,7 @@ BOOL SetupAddToDiskSpaceListW(void* DiskSpace, const(wchar)* TargetFilespec, lon
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupAddSectionToDiskSpaceListA(void* DiskSpace, void* InfHandle, void* ListInfHandle, 
-                                     const(char)* SectionName, uint Operation, void* Reserved1, uint Reserved2);
+                                     const(PSTR) SectionName, uint Operation, void* Reserved1, uint Reserved2);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -15325,7 +15308,7 @@ BOOL SetupAddSectionToDiskSpaceListA(void* DiskSpace, void* InfHandle, void* Lis
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupAddSectionToDiskSpaceListW(void* DiskSpace, void* InfHandle, void* ListInfHandle, 
-                                     const(wchar)* SectionName, uint Operation, void* Reserved1, uint Reserved2);
+                                     const(PWSTR) SectionName, uint Operation, void* Reserved1, uint Reserved2);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -15348,7 +15331,7 @@ BOOL SetupAddSectionToDiskSpaceListW(void* DiskSpace, void* InfHandle, void* Lis
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupAddInstallSectionToDiskSpaceListA(void* DiskSpace, void* InfHandle, void* LayoutInfHandle, 
-                                            const(char)* SectionName, void* Reserved1, uint Reserved2);
+                                            const(PSTR) SectionName, void* Reserved1, uint Reserved2);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -15371,7 +15354,7 @@ BOOL SetupAddInstallSectionToDiskSpaceListA(void* DiskSpace, void* InfHandle, vo
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupAddInstallSectionToDiskSpaceListW(void* DiskSpace, void* InfHandle, void* LayoutInfHandle, 
-                                            const(wchar)* SectionName, void* Reserved1, uint Reserved2);
+                                            const(PWSTR) SectionName, void* Reserved1, uint Reserved2);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -15396,7 +15379,7 @@ BOOL SetupAddInstallSectionToDiskSpaceListW(void* DiskSpace, void* InfHandle, vo
 ///    reason, it returns zero and GetLastError returns extended error information.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupRemoveFromDiskSpaceListA(void* DiskSpace, const(char)* TargetFilespec, uint Operation, void* Reserved1, 
+BOOL SetupRemoveFromDiskSpaceListA(void* DiskSpace, const(PSTR) TargetFilespec, uint Operation, void* Reserved1, 
                                    uint Reserved2);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
@@ -15422,7 +15405,7 @@ BOOL SetupRemoveFromDiskSpaceListA(void* DiskSpace, const(char)* TargetFilespec,
 ///    reason, it returns zero and GetLastError returns extended error information.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupRemoveFromDiskSpaceListW(void* DiskSpace, const(wchar)* TargetFilespec, uint Operation, void* Reserved1, 
+BOOL SetupRemoveFromDiskSpaceListW(void* DiskSpace, const(PWSTR) TargetFilespec, uint Operation, void* Reserved1, 
                                    uint Reserved2);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
@@ -15451,7 +15434,7 @@ BOOL SetupRemoveFromDiskSpaceListW(void* DiskSpace, const(wchar)* TargetFilespec
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupRemoveSectionFromDiskSpaceListA(void* DiskSpace, void* InfHandle, void* ListInfHandle, 
-                                          const(char)* SectionName, uint Operation, void* Reserved1, uint Reserved2);
+                                          const(PSTR) SectionName, uint Operation, void* Reserved1, uint Reserved2);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -15479,7 +15462,7 @@ BOOL SetupRemoveSectionFromDiskSpaceListA(void* DiskSpace, void* InfHandle, void
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupRemoveSectionFromDiskSpaceListW(void* DiskSpace, void* InfHandle, void* ListInfHandle, 
-                                          const(wchar)* SectionName, uint Operation, void* Reserved1, uint Reserved2);
+                                          const(PWSTR) SectionName, uint Operation, void* Reserved1, uint Reserved2);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -15502,7 +15485,7 @@ BOOL SetupRemoveSectionFromDiskSpaceListW(void* DiskSpace, void* InfHandle, void
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupRemoveInstallSectionFromDiskSpaceListA(void* DiskSpace, void* InfHandle, void* LayoutInfHandle, 
-                                                 const(char)* SectionName, void* Reserved1, uint Reserved2);
+                                                 const(PSTR) SectionName, void* Reserved1, uint Reserved2);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -15525,7 +15508,7 @@ BOOL SetupRemoveInstallSectionFromDiskSpaceListA(void* DiskSpace, void* InfHandl
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupRemoveInstallSectionFromDiskSpaceListW(void* DiskSpace, void* InfHandle, void* LayoutInfHandle, 
-                                                 const(wchar)* SectionName, void* Reserved1, uint Reserved2);
+                                                 const(PWSTR) SectionName, void* Reserved1, uint Reserved2);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -15545,7 +15528,7 @@ BOOL SetupRemoveInstallSectionFromDiskSpaceListW(void* DiskSpace, void* InfHandl
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupIterateCabinetA(const(char)* CabinetFile, uint Reserved, PSP_FILE_CALLBACK_A MsgHandler, void* Context);
+BOOL SetupIterateCabinetA(const(PSTR) CabinetFile, uint Reserved, PSP_FILE_CALLBACK_A MsgHandler, void* Context);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -15565,7 +15548,7 @@ BOOL SetupIterateCabinetA(const(char)* CabinetFile, uint Reserved, PSP_FILE_CALL
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupIterateCabinetW(const(wchar)* CabinetFile, uint Reserved, PSP_FILE_CALLBACK_W MsgHandler, void* Context);
+BOOL SetupIterateCabinetW(const(PWSTR) CabinetFile, uint Reserved, PSP_FILE_CALLBACK_W MsgHandler, void* Context);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -15810,8 +15793,8 @@ uint SetupDefaultQueueCallbackW(void* Context, uint Notification, size_t Param1,
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupInstallFromInfSectionA(HWND Owner, void* InfHandle, const(char)* SectionName, uint Flags, 
-                                 HKEY RelativeKeyRoot, const(char)* SourceRootPath, uint CopyFlags, 
+BOOL SetupInstallFromInfSectionA(HWND Owner, void* InfHandle, const(PSTR) SectionName, uint Flags, 
+                                 HKEY RelativeKeyRoot, const(PSTR) SourceRootPath, uint CopyFlags, 
                                  PSP_FILE_CALLBACK_A MsgHandler, void* Context, void* DeviceInfoSet, 
                                  SP_DEVINFO_DATA* DeviceInfoData);
 
@@ -15858,8 +15841,8 @@ BOOL SetupInstallFromInfSectionA(HWND Owner, void* InfHandle, const(char)* Secti
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupInstallFromInfSectionW(HWND Owner, void* InfHandle, const(wchar)* SectionName, uint Flags, 
-                                 HKEY RelativeKeyRoot, const(wchar)* SourceRootPath, uint CopyFlags, 
+BOOL SetupInstallFromInfSectionW(HWND Owner, void* InfHandle, const(PWSTR) SectionName, uint Flags, 
+                                 HKEY RelativeKeyRoot, const(PWSTR) SourceRootPath, uint CopyFlags, 
                                  PSP_FILE_CALLBACK_W MsgHandler, void* Context, void* DeviceInfoSet, 
                                  SP_DEVINFO_DATA* DeviceInfoData);
 
@@ -15888,7 +15871,7 @@ BOOL SetupInstallFromInfSectionW(HWND Owner, void* InfHandle, const(wchar)* Sect
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupInstallFilesFromInfSectionA(void* InfHandle, void* LayoutInfHandle, void* FileQueue, 
-                                      const(char)* SectionName, const(char)* SourceRootPath, uint CopyFlags);
+                                      const(PSTR) SectionName, const(PSTR) SourceRootPath, uint CopyFlags);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -15915,7 +15898,7 @@ BOOL SetupInstallFilesFromInfSectionA(void* InfHandle, void* LayoutInfHandle, vo
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupInstallFilesFromInfSectionW(void* InfHandle, void* LayoutInfHandle, void* FileQueue, 
-                                      const(wchar)* SectionName, const(wchar)* SourceRootPath, uint CopyFlags);
+                                      const(PWSTR) SectionName, const(PWSTR) SourceRootPath, uint CopyFlags);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -15975,7 +15958,7 @@ BOOL SetupInstallFilesFromInfSectionW(void* InfHandle, void* LayoutInfHandle, vo
 ///    (zero). To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupInstallServicesFromInfSectionA(void* InfHandle, const(char)* SectionName, uint Flags);
+BOOL SetupInstallServicesFromInfSectionA(void* InfHandle, const(PSTR) SectionName, uint Flags);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -16035,7 +16018,7 @@ BOOL SetupInstallServicesFromInfSectionA(void* InfHandle, const(char)* SectionNa
 ///    (zero). To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupInstallServicesFromInfSectionW(void* InfHandle, const(wchar)* SectionName, uint Flags);
+BOOL SetupInstallServicesFromInfSectionW(void* InfHandle, const(PWSTR) SectionName, uint Flags);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -16103,7 +16086,7 @@ BOOL SetupInstallServicesFromInfSectionW(void* InfHandle, const(wchar)* SectionN
 ///    (zero). To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupInstallServicesFromInfSectionExA(void* InfHandle, const(char)* SectionName, uint Flags, 
+BOOL SetupInstallServicesFromInfSectionExA(void* InfHandle, const(PSTR) SectionName, uint Flags, 
                                            void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, void* Reserved1, 
                                            void* Reserved2);
 
@@ -16173,7 +16156,7 @@ BOOL SetupInstallServicesFromInfSectionExA(void* InfHandle, const(char)* Section
 ///    (zero). To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupInstallServicesFromInfSectionExW(void* InfHandle, const(wchar)* SectionName, uint Flags, 
+BOOL SetupInstallServicesFromInfSectionExW(void* InfHandle, const(PWSTR) SectionName, uint Flags, 
                                            void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, void* Reserved1, 
                                            void* Reserved2);
 
@@ -16192,7 +16175,7 @@ BOOL SetupInstallServicesFromInfSectionExW(void* InfHandle, const(wchar)* Sectio
 ///    CommandLine = Pointer to buffer containing the command line. You should use a null-terminated string.
 ///    ShowCommand = Reserved and should be zero.
 @DllImport("SETUPAPI")
-void InstallHinfSectionA(HWND Window, HINSTANCE ModuleHandle, const(char)* CommandLine, int ShowCommand);
+void InstallHinfSectionA(HWND Window, HINSTANCE ModuleHandle, const(PSTR) CommandLine, int ShowCommand);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -16209,7 +16192,7 @@ void InstallHinfSectionA(HWND Window, HINSTANCE ModuleHandle, const(char)* Comma
 ///    CommandLine = Pointer to buffer containing the command line. You should use a null-terminated string.
 ///    ShowCommand = Reserved and should be zero.
 @DllImport("SETUPAPI")
-void InstallHinfSectionW(HWND Window, HINSTANCE ModuleHandle, const(wchar)* CommandLine, int ShowCommand);
+void InstallHinfSectionW(HWND Window, HINSTANCE ModuleHandle, const(PWSTR) CommandLine, int ShowCommand);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -16228,7 +16211,7 @@ void InstallHinfSectionW(HWND Window, HINSTANCE ModuleHandle, const(wchar)* Comm
 ///    INVALID_HANDLE_VALUE and the logged error can be retrieved by a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-void* SetupInitializeFileLogA(const(char)* LogFileName, uint Flags);
+void* SetupInitializeFileLogA(const(PSTR) LogFileName, uint Flags);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -16247,7 +16230,7 @@ void* SetupInitializeFileLogA(const(char)* LogFileName, uint Flags);
 ///    INVALID_HANDLE_VALUE and the logged error can be retrieved by a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-void* SetupInitializeFileLogW(const(wchar)* LogFileName, uint Flags);
+void* SetupInitializeFileLogW(const(PWSTR) LogFileName, uint Flags);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -16296,9 +16279,9 @@ BOOL SetupTerminateFileLog(void* FileLogHandle);
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupLogFileA(void* FileLogHandle, const(char)* LogSectionName, const(char)* SourceFilename, 
-                   const(char)* TargetFilename, uint Checksum, const(char)* DiskTagfile, 
-                   const(char)* DiskDescription, const(char)* OtherInfo, uint Flags);
+BOOL SetupLogFileA(void* FileLogHandle, const(PSTR) LogSectionName, const(PSTR) SourceFilename, 
+                   const(PSTR) TargetFilename, uint Checksum, const(PSTR) DiskTagfile, const(PSTR) DiskDescription, 
+                   const(PSTR) OtherInfo, uint Flags);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -16333,9 +16316,9 @@ BOOL SetupLogFileA(void* FileLogHandle, const(char)* LogSectionName, const(char)
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupLogFileW(void* FileLogHandle, const(wchar)* LogSectionName, const(wchar)* SourceFilename, 
-                   const(wchar)* TargetFilename, uint Checksum, const(wchar)* DiskTagfile, 
-                   const(wchar)* DiskDescription, const(wchar)* OtherInfo, uint Flags);
+BOOL SetupLogFileW(void* FileLogHandle, const(PWSTR) LogSectionName, const(PWSTR) SourceFilename, 
+                   const(PWSTR) TargetFilename, uint Checksum, const(PWSTR) DiskTagfile, 
+                   const(PWSTR) DiskDescription, const(PWSTR) OtherInfo, uint Flags);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -16355,7 +16338,7 @@ BOOL SetupLogFileW(void* FileLogHandle, const(wchar)* LogSectionName, const(wcha
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupRemoveFileLogEntryA(void* FileLogHandle, const(char)* LogSectionName, const(char)* TargetFilename);
+BOOL SetupRemoveFileLogEntryA(void* FileLogHandle, const(PSTR) LogSectionName, const(PSTR) TargetFilename);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -16375,7 +16358,7 @@ BOOL SetupRemoveFileLogEntryA(void* FileLogHandle, const(char)* LogSectionName, 
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupRemoveFileLogEntryW(void* FileLogHandle, const(wchar)* LogSectionName, const(wchar)* TargetFilename);
+BOOL SetupRemoveFileLogEntryW(void* FileLogHandle, const(PWSTR) LogSectionName, const(PWSTR) TargetFilename);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -16421,9 +16404,8 @@ BOOL SetupRemoveFileLogEntryW(void* FileLogHandle, const(wchar)* LogSectionName,
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupQueryFileLogA(void* FileLogHandle, const(char)* LogSectionName, const(char)* TargetFilename, 
-                        SetupFileLogInfo DesiredInfo, const(char)* DataOut, uint ReturnBufferSize, 
-                        uint* RequiredSize);
+BOOL SetupQueryFileLogA(void* FileLogHandle, const(PSTR) LogSectionName, const(PSTR) TargetFilename, 
+                        SetupFileLogInfo DesiredInfo, PSTR DataOut, uint ReturnBufferSize, uint* RequiredSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -16469,9 +16451,8 @@ BOOL SetupQueryFileLogA(void* FileLogHandle, const(char)* LogSectionName, const(
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupQueryFileLogW(void* FileLogHandle, const(wchar)* LogSectionName, const(wchar)* TargetFilename, 
-                        SetupFileLogInfo DesiredInfo, const(wchar)* DataOut, uint ReturnBufferSize, 
-                        uint* RequiredSize);
+BOOL SetupQueryFileLogW(void* FileLogHandle, const(PWSTR) LogSectionName, const(PWSTR) TargetFilename, 
+                        SetupFileLogInfo DesiredInfo, PWSTR DataOut, uint ReturnBufferSize, uint* RequiredSize);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -16505,7 +16486,7 @@ BOOL SetupOpenLog(BOOL Erase);
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupLogErrorA(const(char)* MessageString, uint Severity);
+BOOL SetupLogErrorA(const(PSTR) MessageString, uint Severity);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -16526,7 +16507,7 @@ BOOL SetupLogErrorA(const(char)* MessageString, uint Severity);
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupLogErrorW(const(wchar)* MessageString, uint Severity);
+BOOL SetupLogErrorW(const(PWSTR) MessageString, uint Severity);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -16561,7 +16542,7 @@ void SetupCloseLog();
 ///    INVALID_HANDLE_VALUE. To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-void* SetupDiGetClassDevsA(const(GUID)* ClassGuid, const(char)* Enumerator, HWND hwndParent, uint Flags);
+void* SetupDiGetClassDevsA(const(GUID)* ClassGuid, const(PSTR) Enumerator, HWND hwndParent, uint Flags);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -16587,7 +16568,7 @@ void* SetupDiGetClassDevsA(const(GUID)* ClassGuid, const(char)* Enumerator, HWND
 ///    sections names in the INF file.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupEnumInfSectionsA(void* InfHandle, uint Index, const(char)* Buffer, uint Size, uint* SizeNeeded);
+BOOL SetupEnumInfSectionsA(void* InfHandle, uint Index, PSTR Buffer, uint Size, uint* SizeNeeded);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -16613,7 +16594,7 @@ BOOL SetupEnumInfSectionsA(void* InfHandle, uint Index, const(char)* Buffer, uin
 ///    sections names in the INF file.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupEnumInfSectionsW(void* InfHandle, uint Index, const(wchar)* Buffer, uint Size, uint* SizeNeeded);
+BOOL SetupEnumInfSectionsW(void* InfHandle, uint Index, PWSTR Buffer, uint Size, uint* SizeNeeded);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -16631,7 +16612,7 @@ BOOL SetupEnumInfSectionsW(void* InfHandle, uint Index, const(wchar)* Buffer, ui
 ///    This function returns WINSETUPAPI BOOL.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupVerifyInfFileA(const(char)* InfName, SP_ALTPLATFORM_INFO_V2* AltPlatformInfo, 
+BOOL SetupVerifyInfFileA(const(PSTR) InfName, SP_ALTPLATFORM_INFO_V2* AltPlatformInfo, 
                          SP_INF_SIGNER_INFO_V2_A* InfSignerInfo);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
@@ -16650,7 +16631,7 @@ BOOL SetupVerifyInfFileA(const(char)* InfName, SP_ALTPLATFORM_INFO_V2* AltPlatfo
 ///    This function returns WINSETUPAPI BOOL.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupVerifyInfFileW(const(wchar)* InfName, SP_ALTPLATFORM_INFO_V2* AltPlatformInfo, 
+BOOL SetupVerifyInfFileW(const(PWSTR) InfName, SP_ALTPLATFORM_INFO_V2* AltPlatformInfo, 
                          SP_INF_SIGNER_INFO_V2_W* InfSignerInfo);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
@@ -16673,7 +16654,7 @@ BOOL SetupVerifyInfFileW(const(wchar)* InfName, SP_ALTPLATFORM_INFO_V2* AltPlatf
 ///    This function returns WINSETUPAPI BOOL.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupConfigureWmiFromInfSectionA(void* InfHandle, const(char)* SectionName, uint Flags);
+BOOL SetupConfigureWmiFromInfSectionA(void* InfHandle, const(PSTR) SectionName, uint Flags);
 
 ///<p class="CCE_Message">[This function is available for use in the operating systems indicated in the Requirements
 ///section. It may be altered or unavailable in subsequent versions. SetupAPI should no longer be used for installing
@@ -16695,7 +16676,7 @@ BOOL SetupConfigureWmiFromInfSectionA(void* InfHandle, const(char)* SectionName,
 ///    This function returns WINSETUPAPI BOOL.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupConfigureWmiFromInfSectionW(void* InfHandle, const(wchar)* SectionName, uint Flags);
+BOOL SetupConfigureWmiFromInfSectionW(void* InfHandle, const(PWSTR) SectionName, uint Flags);
 
 
 // Interfaces
@@ -16718,7 +16699,7 @@ interface IValidate : IUnknown
     ///    </table> This method can also return one or more of the errors returned by the MsiOpenDatabase function. The
     ///    error is converted to <b>HRESULTS</b> using the <b>HRESULT_FROM_WIN32</b> function.
     ///    
-    HRESULT OpenDatabase(ushort* szDatabase);
+    HRESULT OpenDatabase(const(PWSTR) szDatabase);
     ///The <b>OpenCUB</b> method opens an Internal Consistency Evaluator (ICE) file that is to be used for validation.
     ///Params:
     ///    szCUBFile = The fully qualified path to the Internal Consistency Evaluator (ICE) file to be used for validation.
@@ -16730,7 +16711,7 @@ interface IValidate : IUnknown
     ///    </td> <td width="60%"> Failed to allocate memory. </td> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> The method failed. </td> </tr> </table>
     ///    
-    HRESULT OpenCUB(ushort* szCUBFile);
+    HRESULT OpenCUB(const(PWSTR) szCUBFile);
     ///The <b>CloseDatabase</b> method closes the currently open Windows Installer package or merge module. Windows
     ///Installer packages or merge modules can be opened by using the OpenDatabase method.
     ///Returns:
@@ -16790,7 +16771,7 @@ interface IValidate : IUnknown
     ///    </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> The method failed. </td>
     ///    </tr> </table>
     ///    
-    HRESULT Validate(const(wchar)* wzICEs);
+    HRESULT Validate(const(PWSTR) wzICEs);
 }
 
 @GUID("0ADDA826-2C26-11D2-AD65-00A0C9AF11A6")
@@ -17059,7 +17040,7 @@ interface IMsmMerge : IDispatch
     ///    database. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The
     ///    function succeeded. </td> </tr> </table>
     ///    
-    HRESULT OpenDatabase(const(ushort)* Path);
+    HRESULT OpenDatabase(const(BSTR) Path);
     ///The <b>OpenModule</b> method opens a Windows Installer merge module in read-only mode. A module must be opened
     ///before it can be merged with an installation database. For more information, see the OpenModule method of the
     ///Merge object. <b>IMsmMerge2::OpenModule</b> Mergemod.dll version 2.0 and later.<div>
@@ -17082,7 +17063,7 @@ interface IMsmMerge : IDispatch
     ///    first. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The function
     ///    succeeded. </td> </tr> </table>
     ///    
-    HRESULT OpenModule(const(ushort)* Path, const(short) Language);
+    HRESULT OpenModule(const(BSTR) Path, const(short) Language);
     ///The <b>CloseDatabase</b> method closes the currently open Windows Installer database. For more information, see
     ///the CloseDatabase method of the Merge object. <b>IMsmMerge2::CloseDatabase</b> Mergemod.dll version 2.0 or
     ///later.<div> </div><b>IMsmMerge::CloseDatabase</b> All Mergemod.dll versions.
@@ -17125,7 +17106,7 @@ interface IMsmMerge : IDispatch
     ///    </dl> </td> <td width="60%"> The file could not be opened or created. </td> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The function succeeded. </td> </tr> </table>
     ///    
-    HRESULT OpenLog(const(ushort)* Path);
+    HRESULT OpenLog(const(BSTR) Path);
     ///The <b>CloseLog</b> function method closes the current log. For more information, see the CloseLog method of the
     ///Merge object. <b>IMsmMerge2::CloseLog</b> Mergemod.dll version 2.0 or later. <div>
     ///</div><b>IMsmMerge::CloseLog</b> All Mergemod.dll versions.
@@ -17150,7 +17131,7 @@ interface IMsmMerge : IDispatch
     ///    width="60%"> No log file is open. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td
     ///    width="60%"> The function succeeded. </td> </tr> </table>
     ///    
-    HRESULT Log(const(ushort)* Message);
+    HRESULT Log(const(BSTR) Message);
     ///The <b>get_Errors</b> method retrieves the Errors property of the Merge object. This retrieves the current
     ///collection of errors. <b>IMsmMerge2::get_Errors</b> Mergemod.dll version 2.0 or later.<div>
     ///</div><b>IMsmMerge::get_Errors</b> All Mergemod.dll versions.
@@ -17201,7 +17182,7 @@ interface IMsmMerge : IDispatch
     ///    memory and could not complete the operation. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt>
     ///    </dl> </td> <td width="60%"> The function succeeded. </td> </tr> </table>
     ///    
-    HRESULT Merge(const(ushort)* Feature, const(ushort)* RedirectDir);
+    HRESULT Merge(const(BSTR) Feature, const(BSTR) RedirectDir);
     ///The <b>Connect</b> method connects a module that has been, or will be, merged into the database to an additional
     ///feature. For more information, see the Connect method of the Merge object. <b>IMsmMerge2::Connect</b>
     ///Mergemod.dll version 2.0 or later.<div> </div><b>IMsmMerge::Connect</b> All Mergemod.dll versions.
@@ -17214,7 +17195,7 @@ interface IMsmMerge : IDispatch
     ///    failed. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The function
     ///    succeeded. </td> </tr> </table>
     ///    
-    HRESULT Connect(const(ushort)* Feature);
+    HRESULT Connect(const(BSTR) Feature);
     ///The <b>ExtractCAB</b> method extracts the embedded .cab file from a module and saves it as the specified file.
     ///The installer creates this file if it does not already exist and overwrites the file if it does exist. For more
     ///information, see the ExtractCAB method of the Merge object. <b>IMsmMerge2::ExtractCAB</b> Mergemod.dll version
@@ -17232,7 +17213,7 @@ interface IMsmMerge : IDispatch
     ///    width="60%"> No embedded .cab file was found. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt>
     ///    </dl> </td> <td width="60%"> The function succeeded. </td> </tr> </table>
     ///    
-    HRESULT ExtractCAB(const(ushort)* FileName);
+    HRESULT ExtractCAB(const(BSTR) FileName);
     ///The <b>ExtractFiles</b> method extracts the embedded .cab file from a module and then writes those files to the
     ///destination directory. For more information, see the [ExtractFiles]() method of the Merge object.
     ///<b>IMsmMerge2::ExtractFiles</b> Mergemod.dll version 2.0 or later.<div> </div><b>IMsmMerge::ExtractFiles</b> All
@@ -17251,7 +17232,7 @@ interface IMsmMerge : IDispatch
     ///    width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The function succeeded. </td> </tr>
     ///    </table>
     ///    
-    HRESULT ExtractFiles(const(ushort)* Path);
+    HRESULT ExtractFiles(const(BSTR) Path);
 }
 
 ///The <b>IMsmGetFiles</b> interface enables the client to retrieve the files needed in a particular language of the
@@ -17335,8 +17316,8 @@ interface IAssemblyName : IUnknown
     ///    <td width="40%"> <dl> <dt>S_FALSE</dt> </dl> </td> <td width="60%"> The method did not succeed. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetDisplayName(const(wchar)* szDisplayName, uint* pccDisplayName, uint dwDisplayFlags);
-    HRESULT Reserved(const(GUID)* refIID, IUnknown pUnkReserved1, IUnknown pUnkReserved2, ushort* szReserved, 
+    HRESULT GetDisplayName(PWSTR szDisplayName, uint* pccDisplayName, uint dwDisplayFlags);
+    HRESULT Reserved(const(GUID)* refIID, IUnknown pUnkReserved1, IUnknown pUnkReserved2, const(PWSTR) szReserved, 
                      long llReserved, void* pvReserved, uint cbReserved, void** ppReserved);
     ///The <b>GetName</b> method returns the name portion of the assembly name.
     ///Params:
@@ -17350,7 +17331,7 @@ interface IAssemblyName : IUnknown
     ///    <td width="40%"> <dl> <dt>S_FALSE</dt> </dl> </td> <td width="60%"> The method did not succeed. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetName(uint* lpcwBuffer, const(wchar)* pwzName);
+    HRESULT GetName(uint* lpcwBuffer, PWSTR pwzName);
     HRESULT GetVersion(uint* pdwVersionHi, uint* pdwVersionLow);
     ///The <b>IsEqual</b> method compares the current assembly name to another assembly name.
     ///Params:
@@ -17406,7 +17387,7 @@ interface IAssemblyCacheItem : IUnknown
     ///    <td width="40%"> <dl> <dt>S_FALSE</dt> </dl> </td> <td width="60%"> The method did not succeed. </td> </tr>
     ///    </table>
     ///    
-    HRESULT CreateStream(uint dwFlags, const(wchar)* pszStreamName, uint dwFormat, uint dwFormatFlags, 
+    HRESULT CreateStream(uint dwFlags, const(PWSTR) pszStreamName, uint dwFormat, uint dwFormatFlags, 
                          IStream* ppIStream, ULARGE_INTEGER* puliMaxSize);
     ///The <b>Commit</b> method copies information into the side-by-side store. When this method returns, the assembly
     ///is visible in the side-by-side store.
@@ -17495,7 +17476,7 @@ interface IAssemblyCache : IUnknown
     ///    not removed from the side-by-side store for the reason described by the value returned by
     ///    <i>pulDisposition</i>. </td> </tr> </table>
     ///    
-    HRESULT UninstallAssembly(uint dwFlags, const(wchar)* pszAssemblyName, FUSION_INSTALL_REFERENCE* pRefData, 
+    HRESULT UninstallAssembly(uint dwFlags, const(PWSTR) pszAssemblyName, FUSION_INSTALL_REFERENCE* pRefData, 
                               uint* pulDisposition);
     ///The <b>QueryAssemblyInfo</b> method queries the side-by-side assembly store for assembly information and
     ///validates the files in the side-by-side assembly store against the assembly manifest.
@@ -17517,7 +17498,7 @@ interface IAssemblyCache : IUnknown
     ///    <td width="40%"> <dl> <dt>S_FALSE</dt> </dl> </td> <td width="60%"> The method did not succeed. </td> </tr>
     ///    </table>
     ///    
-    HRESULT QueryAssemblyInfo(uint dwFlags, const(wchar)* pszAssemblyName, ASSEMBLY_INFO* pAsmInfo);
+    HRESULT QueryAssemblyInfo(uint dwFlags, const(PWSTR) pszAssemblyName, ASSEMBLY_INFO* pAsmInfo);
     ///The <b>CreateAssemblyCacheItem</b> method creates an item in the assembly cache that corresponds to the
     ///side-by-side assembly being installed.
     ///Params:
@@ -17536,7 +17517,7 @@ interface IAssemblyCache : IUnknown
     ///    assembly must be provided by <i>pszAssemblyName</i>. </td> </tr> </table>
     ///    
     HRESULT CreateAssemblyCacheItem(uint dwFlags, void* pvReserved, IAssemblyCacheItem* ppAsmItem, 
-                                    const(wchar)* pszAssemblyName);
+                                    const(PWSTR) pszAssemblyName);
     HRESULT Reserved(IUnknown* ppUnk);
     ///The <b>InstallAssembly</b> method adds an application reference to an assembly to the side-by-side store and
     ///copies the files of the assembly to the side-by-side store. The files of the assembly being installed must be
@@ -17564,7 +17545,7 @@ interface IAssemblyCache : IUnknown
     ///    <td width="40%"> <dl> <dt>S_FALSE</dt> </dl> </td> <td width="60%"> The method did not succeed. </td> </tr>
     ///    </table>
     ///    
-    HRESULT InstallAssembly(uint dwFlags, const(wchar)* pszManifestFilePath, FUSION_INSTALL_REFERENCE* pRefData);
+    HRESULT InstallAssembly(uint dwFlags, const(PWSTR) pszManifestFilePath, FUSION_INSTALL_REFERENCE* pRefData);
 }
 
 

@@ -3,9 +3,9 @@
 module windows.dhcp;
 
 public import windows.core;
-public import windows.systemservices : BOOL;
+public import windows.systemservices : BOOL, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -528,8 +528,7 @@ alias LPDHCP_DELETE_CLIENT = uint function(uint IpAddress, ubyte* HwAddress, uin
 ///Returns:
 ///    Return values are defined by the application providing the callback.
 ///    
-alias LPDHCP_ENTRY_POINT_FUNC = uint function(const(wchar)* ChainDlls, uint CalloutVersion, 
-                                              DHCP_CALLOUT_TABLE* CalloutTbl);
+alias LPDHCP_ENTRY_POINT_FUNC = uint function(PWSTR ChainDlls, uint CalloutVersion, DHCP_CALLOUT_TABLE* CalloutTbl);
 
 // Structs
 
@@ -774,11 +773,11 @@ struct DHCP_BINARY_DATA
 struct DHCP_HOST_INFO
 {
     ///DHCP_IP_ADDRESS value that contains the IP address of the DHCP server.
-    uint          IpAddress;
+    uint  IpAddress;
     ///Unicode string that contains the NetBIOS name of the DHCP server.
-    const(wchar)* NetBiosName;
+    PWSTR NetBiosName;
     ///Unicode string that contains the network name of the DHCP server.
-    const(wchar)* HostName;
+    PWSTR HostName;
 }
 
 ///The <b>DWORD_DWORD</b> structure defines a 64-bit integer value.
@@ -798,9 +797,9 @@ struct DHCP_SUBNET_INFO
     ///DHCP_IP_MASK value that specifies the subnet IP mask.
     uint              SubnetMask;
     ///Unicode string that specifies the network name of the subnet.
-    const(wchar)*     SubnetName;
+    PWSTR             SubnetName;
     ///Unicode string that contains an optional comment particular to this subnet.
-    const(wchar)*     SubnetComment;
+    PWSTR             SubnetComment;
     ///DHCP_HOST_INFO structure that contains information about the DHCP server servicing this subnet.
     DHCP_HOST_INFO    PrimaryHost;
     ///DHCP_SUBNET_STATE enumeration value indicating the current state of the subnet (enabled/disabled).
@@ -815,9 +814,9 @@ struct DHCP_SUBNET_INFO_VQ
     ///DHCP_IP_MASK value that specifies the subnet IP mask.
     uint              SubnetMask;
     ///Pointer to a Unicode string that specifies the network name of the subnet.
-    const(wchar)*     SubnetName;
+    PWSTR             SubnetName;
     ///Pointer to a Unicode string that contains an optional comment particular to this subnet.
-    const(wchar)*     SubnetComment;
+    PWSTR             SubnetComment;
     ///DHCP_HOST_INFO structure that contains information about the DHCP server servicing this subnet.
     DHCP_HOST_INFO    PrimaryHost;
     ///DHCP_SUBNET_STATE enumeration value indicating the current state of the subnet (enabled/disabled).
@@ -866,7 +865,7 @@ struct DHCP_SUBNET_ELEMENT_DATA
 {
     ///DHCP_SUBNET_ELEMENT_TYPE enumeration value describing the type of element in the subsequent field.
     DHCP_SUBNET_ELEMENT_TYPE ElementType;
-    union Element
+union Element
     {
         DHCP_IP_RANGE*       IpRange;
         DHCP_HOST_INFO*      SecondaryHost;
@@ -923,7 +922,7 @@ struct DHCP_FILTER_ADD_INFO
     ///DHCP_ADDR_PATTERN structure that contains the address/pattern-related information of the link-layer filter.
     DHCP_ADDR_PATTERN AddrPatt;
     ///Pointer to a Unicode string that contains a text comment for the filter.
-    const(wchar)*     Comment;
+    PWSTR             Comment;
     ///DHCP_FILTER_LIST_TYPE enumeration value that specifies the list type to which the filter is to be added.
     DHCP_FILTER_LIST_TYPE ListType;
 }
@@ -943,7 +942,7 @@ struct DHCP_FILTER_RECORD
     ///DHCP_ADDR_PATTERN structure that contains the address/pattern related information of the link-layer filter.
     DHCP_ADDR_PATTERN AddrPatt;
     ///Pointer to a null-terminated Unicode string which contains the comment associated with the address/pattern.
-    const(wchar)*     Comment;
+    PWSTR             Comment;
 }
 
 ///The <b>DHCP_FILTER_ENUM_INFO</b> structure contains information regarding the number of link-layer filter records.
@@ -963,17 +962,17 @@ struct DHCP_OPTION_DATA_ELEMENT
     ///A DHCP_OPTION_DATA_TYPE enumeration value that indicates the type of data that is present in the subsequent
     ///field, <b>Element</b>.
     DHCP_OPTION_DATA_TYPE OptionType;
-    union Element
+union Element
     {
         ubyte            ByteOption;
         ushort           WordOption;
         uint             DWordOption;
         DWORD_DWORD      DWordDWordOption;
         uint             IpAddressOption;
-        const(wchar)*    StringDataOption;
+        PWSTR            StringDataOption;
         DHCP_BINARY_DATA BinaryDataOption;
         DHCP_BINARY_DATA EncapsulatedDataOption;
-        const(wchar)*    Ipv6AddressDataOption;
+        PWSTR            Ipv6AddressDataOption;
     }
 }
 
@@ -998,9 +997,9 @@ struct DHCP_OPTION
     ///DHCP_OPTION_ID value that specifies a unique ID number (also called a "code") for this option.
     uint             OptionID;
     ///Unicode string that contains the name of this option.
-    const(wchar)*    OptionName;
+    PWSTR            OptionName;
     ///Unicode string that contains a comment about this option.
-    const(wchar)*    OptionComment;
+    PWSTR            OptionComment;
     ///DHCP_OPTION_DATA structure that contains the data associated with this option.
     DHCP_OPTION_DATA DefaultValue;
     ///DHCP_OPTION_TYPE enumeration value that indicates whether this option is a single unary item or an element in an
@@ -1051,13 +1050,13 @@ struct DHCP_OPTION_SCOPE_INFO
     ///DHCP_OPTION_SCOPE_TYPE enumeration value that defines the scope type of the associated DHCP options, and
     ///indicates which of the following fields in the union will be populated.
     DHCP_OPTION_SCOPE_TYPE ScopeType;
-    union ScopeInfo
+union ScopeInfo
     {
         void*               DefaultScopeInfo;
         void*               GlobalScopeInfo;
         uint                SubnetScopeInfo;
         DHCP_RESERVED_SCOPE ReservedScopeInfo;
-        const(wchar)*       MScopeInfo;
+        PWSTR               MScopeInfo;
     }
 }
 
@@ -1073,7 +1072,7 @@ struct DHCP_OPTION_SCOPE_INFO6
     ///DHCP_OPTION_SCOPE_TYPE6 enumeration value that indicates the type of the DHCP option. This value is used as the
     ///selector for the union arms listed in the following fields.
     DHCP_OPTION_SCOPE_TYPE6 ScopeType;
-    union ScopeInfo
+union ScopeInfo
     {
         void*                DefaultScopeInfo;
         DHCP_IPV6_ADDRESS    SubnetScopeInfo;
@@ -1105,9 +1104,9 @@ struct DHCP_CLIENT_INFO
     ///DHCP_CLIENT_UID structure containing the MAC address of the client's network interface device.
     DHCP_BINARY_DATA ClientHardwareAddress;
     ///Unicode string that specifies the network name of the DHCP client. This member is optional.
-    const(wchar)*    ClientName;
+    PWSTR            ClientName;
     ///Unicode string that contains a comment associated with the DHCP client. This member is optional.
-    const(wchar)*    ClientComment;
+    PWSTR            ClientComment;
     ///DATE_TIME structure that contains the date and time the DHCP client lease will expire, in UTC time.
     DATE_TIME        ClientLeaseExpires;
     ///DHCP_HOST_INFO structure that contains information on the DHCP server that assigned the IP address to the client.
@@ -1134,9 +1133,9 @@ struct DHCP_CLIENT_INFO_VQ
     ///GUID value that contains the hardware address (MAC address) of the DHCPv4 client.
     DHCP_BINARY_DATA ClientHardwareAddress;
     ///Ppointer to a null-terminated Unicode string that represents the DHCPv4 client's machine name.
-    const(wchar)*    ClientName;
+    PWSTR            ClientName;
     ///Pointer to a null-terminated Unicode string that represents the description given to the DHCPv4 client.
-    const(wchar)*    ClientComment;
+    PWSTR            ClientComment;
     ///DATE_TIME structure that contains the lease expiry time for the DHCPv4 client. This is UTC time represented in
     ///the FILETIME format.
     DATE_TIME        ClientLeaseExpires;
@@ -1202,9 +1201,9 @@ struct DHCP_CLIENT_FILTER_STATUS_INFO
     ///GUID value that contains the hardware address (MAC address) of the DHCPv4 client.
     DHCP_BINARY_DATA ClientHardwareAddress;
     ///Ppointer to a null-terminated Unicode string that represents the DHCPv4 client's machine name.
-    const(wchar)*    ClientName;
+    PWSTR            ClientName;
     ///Pointer to a null-terminated Unicode string that represents the description given to the DHCPv4 client.
-    const(wchar)*    ClientComment;
+    PWSTR            ClientComment;
     ///DATE_TIME structure that contains the lease expiry time for the DHCPv4 client. This is UTC time represented in
     ///the FILETIME format.
     DATE_TIME        ClientLeaseExpires;
@@ -1272,9 +1271,9 @@ struct DHCP_CLIENT_INFO_PB
     ///DHCP_CLIENT_UID structure that contains the hardware address (MAC address) of the DHCPv4 client.
     DHCP_BINARY_DATA ClientHardwareAddress;
     ///Pointer to a null-terminated Unicode string that represents the DHCPv4 client machine name.
-    const(wchar)*    ClientName;
+    PWSTR            ClientName;
     ///Pointer to a null-terminated Unicode string that represents the description of the DHCPv4 client.
-    const(wchar)*    ClientComment;
+    PWSTR            ClientComment;
     ///DATE_TIME structure that contains the lease expiry time for the DHCPv4 client. This is UTC time represented in
     ///the FILETIME format.
     DATE_TIME        ClientLeaseExpires;
@@ -1337,7 +1336,7 @@ struct DHCP_CLIENT_INFO_PB
     uint             FilterStatus;
     ///Pointer to a null-terminated Unicode string that represents the DHCP server policy name that resulted in the IPv4
     ///address assignment to the DHCPv4 client in the lease.
-    const(wchar)*    PolicyName;
+    PWSTR            PolicyName;
 }
 
 ///The <b>DHCP_CLIENT_INFO_PB_ARRAY</b> structure defines an array of DHCPv4 client information elements.
@@ -1356,11 +1355,11 @@ struct DHCP_SEARCH_INFO
     ///DHCP_SEARCH_INFO_TYPE enumeration value that specifies the data included in the subsequent member of this
     ///structure.
     DHCP_SEARCH_INFO_TYPE SearchType;
-    union SearchInfo
+union SearchInfo
     {
         uint             ClientIpAddress;
         DHCP_BINARY_DATA ClientHardwareAddress;
-        const(wchar)*    ClientName;
+        PWSTR            ClientName;
     }
 }
 
@@ -1372,12 +1371,12 @@ struct DHCP_PROPERTY
 {
     DHCP_PROPERTY_ID   ID;
     DHCP_PROPERTY_TYPE Type;
-    union Value
+union Value
     {
         ubyte            ByteValue;
         ushort           WordValue;
         uint             DWordValue;
-        const(wchar)*    StringValue;
+        PWSTR            StringValue;
         DHCP_BINARY_DATA BinaryValue;
     }
 }
@@ -1393,8 +1392,8 @@ struct DHCP_CLIENT_INFO_EX
     uint                 ClientIpAddress;
     uint                 SubnetMask;
     DHCP_BINARY_DATA     ClientHardwareAddress;
-    const(wchar)*        ClientName;
-    const(wchar)*        ClientComment;
+    PWSTR                ClientName;
+    PWSTR                ClientComment;
     DATE_TIME            ClientLeaseExpires;
     DHCP_HOST_INFO       OwnerHost;
     ubyte                bClientType;
@@ -1403,7 +1402,7 @@ struct DHCP_CLIENT_INFO_EX
     DATE_TIME            ProbationEnds;
     BOOL                 QuarantineCapable;
     uint                 FilterStatus;
-    const(wchar)*        PolicyName;
+    PWSTR                PolicyName;
     DHCP_PROPERTY_ARRAY* Properties;
 }
 
@@ -1560,28 +1559,28 @@ struct DHCP_SERVER_CONFIG_INFO
     ///used for DHCP API RPC calls. </td> </tr> <tr> <td width="40%"><a id="DHCP_SERVER_USE_RPC_OVER_LPC"></a><a
     ///id="dhcp_server_use_rpc_over_lpc"></a><dl> <dt><b>DHCP_SERVER_USE_RPC_OVER_LPC</b></dt> <dt>0x00000004</dt> </dl>
     ///</td> <td width="60%"> Local Procedure Call (LPC) can be used for local DHCP API RPC calls. </td> </tr> </table>
-    uint          APIProtocolSupport;
+    uint  APIProtocolSupport;
     ///Unicode string that specifies the file name of the client lease JET database.
-    const(wchar)* DatabaseName;
+    PWSTR DatabaseName;
     ///Unicode string that specifies the absolute path to <b>DatabaseName</b>.
-    const(wchar)* DatabasePath;
+    PWSTR DatabasePath;
     ///Unicode string that specifies the absolute path and file name of the backup client lease JET database.
-    const(wchar)* BackupPath;
+    PWSTR BackupPath;
     ///Specifies the interval, in minutes, between backups of the client lease database.
-    uint          BackupInterval;
+    uint  BackupInterval;
     ///Specifies a bit flag that indicates whether or not database actions should be logged. <table> <tr> <th>Value</th>
     ///<th>Meaning</th> </tr> <tr> <td width="40%"> <dl> <dt>0x00000001</dt> </dl> </td> <td width="60%"> All database
     ///operations will be logged. </td> </tr> </table>
-    uint          DatabaseLoggingFlag;
+    uint  DatabaseLoggingFlag;
     ///Specifies a bit flag that indicates whether or not a database restore operation should be performed. <table> <tr>
     ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"> <dl> <dt>0x00000001</dt> </dl> </td> <td width="60%">
     ///The client lease database should be restored from the path and file specified in <b>BackupPath</b>. </td> </tr>
     ///</table>
-    uint          RestoreFlag;
+    uint  RestoreFlag;
     ///Specifies the interval, in minutes, between cleanup operations performed on the client lease database.
-    uint          DatabaseCleanupInterval;
+    uint  DatabaseCleanupInterval;
     ///Reserved. This field should be set to 0x00000000.
-    uint          DebugFlag;
+    uint  DebugFlag;
 }
 
 ///The <b>DHCP_SCAN_ITEM</b> structure defines a desynchronized client lease address stored on a DHCPv4 server, and the
@@ -1611,25 +1610,25 @@ struct DHCP_SCAN_LIST
 struct DHCP_CLASS_INFO
 {
     ///Unicode string that contains the name of the class.
-    const(wchar)* ClassName;
+    PWSTR  ClassName;
     ///Unicode string that contains a comment associated with the class.
-    const(wchar)* ClassComment;
+    PWSTR  ClassComment;
     ///Specifies the size of <b>ClassData</b>, in bytes. When passing this structure into DhcpGetClassInfo, this value
     ///should be set to the size of the initialized buffer.
-    uint          ClassDataLength;
+    uint   ClassDataLength;
     ///Specifies whether or not this option class is a vendor-defined option class. If <b>TRUE</b>, it is a vendor
     ///class; if not, it is not a vendor class. Vendor-defined option classes can be used by DHCP clients that are
     ///configured to optionally identify themselves by their vendor type to the DHCP server when obtaining a lease.
-    BOOL          IsVendor;
+    BOOL   IsVendor;
     ///Specifies a bit flag that indicates whether or not the options are vendor-specific. If it is not, this parameter
     ///should be 0. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="DHCP_FLAGS_OPTION_IS_VENDOR"></a><a id="dhcp_flags_option_is_vendor"></a><dl>
     ///<dt><b>DHCP_FLAGS_OPTION_IS_VENDOR</b></dt> </dl> </td> <td width="60%"> This flag should be set if the option is
     ///provided by a vendor. </td> </tr> </table>
-    uint          Flags;
+    uint   Flags;
     ///Pointer to a byte buffer that contains specific data for the class. When passing this structure into
     ///DhcpGetClassInfo, this buffer should be initialized to the anticipated size of the data to be returned.
-    ubyte*        ClassData;
+    ubyte* ClassData;
 }
 
 ///The <b>DHCP_CLASS_INFO_ARRAY</b> structure defines an array of elements that contain DHCP class information.
@@ -1645,20 +1644,20 @@ struct DHCP_CLASS_INFO_ARRAY
 struct DHCP_CLASS_INFO_V6
 {
     ///A pointer to a null-terminated Unicode string that contains the class name.
-    const(wchar)* ClassName;
+    PWSTR  ClassName;
     ///A pointer to a null-terminated Unicode string that contains the comment for the class.
-    const(wchar)* ClassComment;
+    PWSTR  ClassComment;
     ///The length of data as pointed to by <b>ClassData</b>.
-    uint          ClassDataLength;
+    uint   ClassDataLength;
     ///If <b>TRUE</b>, this information applies to a vendor class; if <b>FALSE</b>, it applies to a user class.
-    BOOL          IsVendor;
+    BOOL   IsVendor;
     ///The vendor class identifier. It is default (0x00000000) for user class.
-    uint          EnterpriseNumber;
+    uint   EnterpriseNumber;
     ///This field MUST be set to zero (0x00000000) when sending and ignored on receipt.
-    uint          Flags;
+    uint   Flags;
     ///Pointer to a BYTE blob that contains an array of bytes of length specified by <b>ClassDataLength</b>. This
     ///contains opaque data regarding a user class or a vendor class.
-    ubyte*        ClassData;
+    ubyte* ClassData;
 }
 
 ///The <b>DHCP_CLASS_INFO_ARRAY_V6</b> structure contains a list of information regarding a user class or a vendor
@@ -1677,9 +1676,9 @@ struct DHCP_CLASS_INFO_ARRAY_V6
 struct DHCP_SERVER_SPECIFIC_STRINGS
 {
     ///Pointer to a Unicode string that specifies the default vendor class name for the DHCP server.
-    const(wchar)* DefaultVendorClassName;
+    PWSTR DefaultVendorClassName;
     ///Pointer to a Unicode string that specifies the default user class name for the DHCP server.
-    const(wchar)* DefaultUserClassName;
+    PWSTR DefaultUserClassName;
 }
 
 ///The <b>DHCP_IP_RESERVATION_V4</b> structure defines a client IP reservation. This structure extends an IP reservation
@@ -1712,9 +1711,9 @@ struct DHCP_IP_RESERVATION_INFO
     ///reservation.
     DHCP_BINARY_DATA ReservedForClient;
     ///Pointer to a null-terminated Unicode string that represents the DHCPv4 reserved client machine name.
-    const(wchar)*    ReservedClientName;
+    PWSTR            ReservedClientName;
     ///Pointer to a null-terminated Unicode string that represents the description of the DHCPv4 reserved client.
-    const(wchar)*    ReservedClientDesc;
+    PWSTR            ReservedClientDesc;
     ///Value that specifies the DHCPv4 reserved client type. The possible values are below: <table> <tr> <th>Value</th>
     ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="CLIENT_TYPE_DHCP"></a><a id="client_type_dhcp"></a><dl>
     ///<dt><b>CLIENT_TYPE_DHCP</b></dt> <dt>1</dt> </dl> </td> <td width="60%"> The DHCPv4 client supports the DHCP
@@ -1745,7 +1744,7 @@ struct DHCP_SUBNET_ELEMENT_DATA_V4
 {
     ///DHCP_SUBNET_ELEMENT_TYPE enumeration value describing the type of element in the subsequent field.
     DHCP_SUBNET_ELEMENT_TYPE ElementType;
-    union Element
+union Element
     {
         DHCP_IP_RANGE*   IpRange;
         DHCP_HOST_INFO*  SecondaryHost;
@@ -1781,9 +1780,9 @@ struct DHCP_CLIENT_INFO_V4
     ///DHCP_CLIENT_UID structure containing the MAC address of the client's network interface device.
     DHCP_BINARY_DATA ClientHardwareAddress;
     ///Unicode string that specifies the network name of the DHCP client. This member is optional.
-    const(wchar)*    ClientName;
+    PWSTR            ClientName;
     ///Unicode string that contains a comment associated with the DHCP client. This member is optional.
-    const(wchar)*    ClientComment;
+    PWSTR            ClientComment;
     ///DATE_TIME structure that contains the date and time the DHCP client lease will expire, in UTC time.
     DATE_TIME        ClientLeaseExpires;
     ///DHCP_HOST_INFO structure that contains information on the DHCP server that assigned the IP address to the client.
@@ -1826,38 +1825,38 @@ struct DHCP_SERVER_CONFIG_INFO_V4
     ///used for DHCP API RPC calls. </td> </tr> <tr> <td width="40%"><a id="DHCP_SERVER_USE_RPC_OVER_LPC"></a><a
     ///id="dhcp_server_use_rpc_over_lpc"></a><dl> <dt><b>DHCP_SERVER_USE_RPC_OVER_LPC</b></dt> <dt>0x00000004</dt> </dl>
     ///</td> <td width="60%"> Local Procedure Call (LPC) can be used for local DHCP API RPC calls. </td> </tr> </table>
-    uint          APIProtocolSupport;
+    uint  APIProtocolSupport;
     ///Unicode string that specifies the file name of the client lease JET database.
-    const(wchar)* DatabaseName;
+    PWSTR DatabaseName;
     ///Unicode string that specifies the absolute path to <b>DatabaseName</b>.
-    const(wchar)* DatabasePath;
+    PWSTR DatabasePath;
     ///Unicode string that specifies the absolute path and file name of the backup client lease JET database.
-    const(wchar)* BackupPath;
+    PWSTR BackupPath;
     ///Specifies the interval, in minutes, between backups of the client lease database.
-    uint          BackupInterval;
+    uint  BackupInterval;
     ///Specifies a bit flag that indicates whether or not database actions should be logged. <table> <tr> <th>Value</th>
     ///<th>Meaning</th> </tr> <tr> <td width="40%"> <dl> <dt>0x00000001</dt> </dl> </td> <td width="60%"> All database
     ///operations will be logged. </td> </tr> </table>
-    uint          DatabaseLoggingFlag;
+    uint  DatabaseLoggingFlag;
     ///Specifies a bit flag that indicates whether or not a database restore operation should be performed. <table> <tr>
     ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"> <dl> <dt>0x00000001</dt> </dl> </td> <td width="60%">
     ///The client lease database should be restored from the path and file specified in <b>BackupPath</b>. </td> </tr>
     ///</table>
-    uint          RestoreFlag;
+    uint  RestoreFlag;
     ///Specifies the interval, in minutes, between cleanup operations performed on the client lease database.
-    uint          DatabaseCleanupInterval;
+    uint  DatabaseCleanupInterval;
     ///Reserved. This field should be set to 0x00000000.
-    uint          DebugFlag;
+    uint  DebugFlag;
     ///Specifies a value equal to or greater than 0 or less than 6 that indicates the number of times to ping an
     ///unresponsive client before determining unavailability.
-    uint          dwPingRetries;
+    uint  dwPingRetries;
     ///Specifies the size of <b>wszBootTableString</b>, in bytes.
-    uint          cbBootTableString;
+    uint  cbBootTableString;
     ///Unicode string that contains the boot table string for the DHCP server. ?? More information needed. ??
-    ushort*       wszBootTableString;
+    PWSTR wszBootTableString;
     ///Specifies whether or not to enable audit logging on the DHCP server. A value of <b>TRUE</b> indicates that an
     ///audit log is generated; <b>FALSE</b> indicates that audit logging is not performed.
-    BOOL          fAuditLog;
+    BOOL  fAuditLog;
 }
 
 ///The <b>DHCP_SERVER_CONFIG_INFO_VQ</b> structure defines settings for the DHCP server.
@@ -1877,28 +1876,28 @@ struct DHCP_SERVER_CONFIG_INFO_VQ
     ///id="DHCP_SERVER_USE_RPC_OVER_ALL"></a><a id="dhcp_server_use_rpc_over_all"></a><dl>
     ///<dt><b>DHCP_SERVER_USE_RPC_OVER_ALL</b></dt> <dt>0x00000007</dt> </dl> </td> <td width="60%"> The DHCP server
     ///supports all of the preceding protocols. </td> </tr> </table>
-    uint          APIProtocolSupport;
+    uint  APIProtocolSupport;
     ///Pointer to a null-terminated Unicode string that represents the DHCP server database name that is used by the
     ///DHCP server for persistent storage.
-    const(wchar)* DatabaseName;
+    PWSTR DatabaseName;
     ///Pointer to a null-terminated Unicode string that contains the absolute path, where the DHCP server database is
     ///stored.
-    const(wchar)* DatabasePath;
+    PWSTR DatabasePath;
     ///Pointer to a null-terminated Unicode string that contains the absolute path for backup storage that is used by
     ///the DHCP server for backup.
-    const(wchar)* BackupPath;
+    PWSTR BackupPath;
     ///Integer value that specifies the interval in minutes between backups of the DHCP server database.
-    uint          BackupInterval;
+    uint  BackupInterval;
     ///Integer value that indicates the transaction logging mode of the DHCP server. The value 1 indicates that the
     ///transaction log is enabled for the DHCP server, and 0 indicates that the transaction log is disabled for the DHCP
     ///server.
-    uint          DatabaseLoggingFlag;
+    uint  DatabaseLoggingFlag;
     ///Integer value used as a BOOL flag. If this setting is <b>TRUE</b> (1), the DHCP service loads the DHCP database
     ///from the backup database on DHCP service startup. The default value of this flag is <b>FALSE</b> (0).
-    uint          RestoreFlag;
+    uint  RestoreFlag;
     ///Integer value that specifies the maximum time interval that DOOMED IPv4 DHCP client records are allowed to
     ///persist within the DHCP server database.
-    uint          DatabaseCleanupInterval;
+    uint  DatabaseCleanupInterval;
     ///Integer flag value that specifies the level of logging done by the DHCP server. The following table defines the
     ///set values that can be used. Specifying '0xFFFFFFFF' enables all types of logging. LOW WORD bitmask (0x0000FFFF)
     ///for low-frequency debug output. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
@@ -1968,24 +1967,24 @@ struct DHCP_SERVER_CONFIG_INFO_VQ
     ///width="40%"><a id="DEBUG_LOG_IN_FILE"></a><a id="debug_log_in_file"></a><dl> <dt><b>DEBUG_LOG_IN_FILE</b></dt>
     ///<dt>0x80000000</dt> </dl> </td> <td width="60%"> Enable the logging of debug output in a file. </td> </tr>
     ///</table>
-    uint          DebugFlag;
+    uint  DebugFlag;
     ///Integer value that specifies the number of retries that the DHCP server can make to verify whether a particular
     ///address is already in use by any client by issuing a ping before issuing any address to the DHCP client (valid
     ///range: 0–5, inclusive).
-    uint          dwPingRetries;
+    uint  dwPingRetries;
     ///Integer value that contains the size of the BOOT TABLE given to the DHCP client.
-    uint          cbBootTableString;
+    uint  cbBootTableString;
     ///Pointer to a null-terminated Unicode string that contains the absolute path of the BOOTP TABLE given to the BOOTP
     ///client.
-    ushort*       wszBootTableString;
+    PWSTR wszBootTableString;
     ///If <b>TRUE</b>, an audit log will be written by the DHCP server; if <b>FALSE</b>, it will not.
-    BOOL          fAuditLog;
+    BOOL  fAuditLog;
     ///If <b>TRUE</b>, Quarantine is turned ON on the DHCP server; if <b>FALSE</b>, it is turned OFF.
-    BOOL          QuarantineOn;
+    BOOL  QuarantineOn;
     ///Integer value that determines the default policy for a DHCP NAP server when an NPS server is not reachable.
     ///Choices include Quarantine/unrestricted/Drop Request.
-    uint          QuarDefFail;
-    BOOL          QuarRuntimeStatus;
+    uint  QuarDefFail;
+    BOOL  QuarRuntimeStatus;
 }
 
 ///The <b>DHCP_SERVER_CONFIG_INFO_V6</b> structure contains the settings for the DHCPv6 server.
@@ -2015,15 +2014,15 @@ struct DHCP_SUPER_SCOPE_TABLE_ENTRY
 {
     ///DHCP_IP_ADDRESS value that specifies the IP address of the gateway for the subnet. This address is used to
     ///uniquely identify a subnet served by the DHCP server.
-    uint          SubnetAddress;
+    uint  SubnetAddress;
     ///Specifies the index value assigned to this subnet entry, and its enumerated position within the super scope
     ///table.
-    uint          SuperScopeNumber;
+    uint  SuperScopeNumber;
     ///Specifies the index value of the next subnet entry in the superscope table. If this value is ---, this table
     ///entry is the last one in the super scope.
-    uint          NextInSuperScope;
+    uint  NextInSuperScope;
     ///Unicode string that contains the name assigned to this subnet entry within the superscope.
-    const(wchar)* SuperScopeName;
+    PWSTR SuperScopeName;
 }
 
 ///The <b>DHCP_SUPER_SCOPE_TABLE</b> structure defines the superscope of a DHCP server.
@@ -2049,9 +2048,9 @@ struct DHCP_CLIENT_INFO_V5
     ///DHCP_CLIENT_UID structure containing the MAC address of the client's network interface device.
     DHCP_BINARY_DATA ClientHardwareAddress;
     ///Pointer to a Unicode string that specifies the network name of the DHCP client. This member is optional.
-    const(wchar)*    ClientName;
+    PWSTR            ClientName;
     ///Pointer to a Unicode string that contains a comment associated with the DHCP client. This member is optional.
-    const(wchar)*    ClientComment;
+    PWSTR            ClientComment;
     ///DATE_TIME structure that contains the date and time the DHCP client lease will expire, in UTC time.
     DATE_TIME        ClientLeaseExpires;
     ///DHCP_HOST_INFO structure that contains information on the DHCP server that assigned the IP address to the client.
@@ -2104,11 +2103,11 @@ struct DHCP_ALL_OPTIONS
     DHCP_OPTION_ARRAY* NonVendorOptions;
     ///Specifies the number of vendor options listed in <b>VendorOptions</b>.
     uint               NumVendorOptions;
-    struct
+struct
     {
-        DHCP_OPTION   Option;
-        const(wchar)* VendorName;
-        const(wchar)* ClassName;
+        DHCP_OPTION Option;
+        PWSTR       VendorName;
+        PWSTR       ClassName;
     }
 }
 
@@ -2120,11 +2119,11 @@ struct DHCP_ALL_OPTION_VALUES
     uint Flags;
     ///Specifies the number of elements in <b>Options</b>.
     uint NumElements;
-    struct
+struct
     {
-        const(wchar)* ClassName;
-        const(wchar)* VendorName;
-        BOOL          IsVendor;
+        PWSTR ClassName;
+        PWSTR VendorName;
+        BOOL  IsVendor;
         DHCP_OPTION_VALUE_ARRAY* OptionsArray;
     }
 }
@@ -2136,11 +2135,11 @@ struct DHCP_ALL_OPTION_VALUES_PB
     uint Flags;
     ///Integer that specifies the number of elements in <b>Options</b>.
     uint NumElements;
-    struct
+struct
     {
-        const(wchar)* PolicyName;
-        const(wchar)* VendorName;
-        BOOL          IsVendor;
+        PWSTR PolicyName;
+        PWSTR VendorName;
+        BOOL  IsVendor;
         DHCP_OPTION_VALUE_ARRAY* OptionsArray;
     }
 }
@@ -2149,18 +2148,18 @@ struct DHCP_ALL_OPTION_VALUES_PB
 struct DHCPDS_SERVER
 {
     ///Reserved. This value should be set to 0.
-    uint          Version;
+    uint  Version;
     ///Unicode string that contains the unique name of the DHCP server.
-    const(wchar)* ServerName;
+    PWSTR ServerName;
     ///Specifies the IP address of the DHCP server as an unsigned 32-bit integer.
-    uint          ServerAddress;
+    uint  ServerAddress;
     ///Specifies a set of bit flags that describe active directory settings for the DHCP server.
-    uint          Flags;
+    uint  Flags;
     ///Reserved. This value should be set to 0.
-    uint          State;
+    uint  State;
     ///Unicode string that contains the active directory path to the DHCP server.
-    const(wchar)* DsLocation;
-    uint          DsLocType;
+    PWSTR DsLocation;
+    uint  DsLocType;
 }
 
 ///The <b>DHCPDS_SERVERS</b> structure defines a list of DHCP servers in the context of directory services.
@@ -2196,7 +2195,7 @@ struct DHCP_ATTRIB
     ///<dt><b>DHCP_ATTRIB_ULONG_RESTORE_STATUS</b></dt> <dt>0x06</dt> </dl> </td> <td width="60%"> The DHCP server can
     ///restore status with the provided attribute value. </td> </tr> </table>
     uint DhcpAttribType;
-    union
+union
     {
         BOOL DhcpAttribBool;
         uint DhcpAttribUlong;
@@ -2231,7 +2230,7 @@ struct DHCP_SUBNET_ELEMENT_DATA_V5
 {
     ///DHCP_SUBNET_ELEMENT_TYPE enumeration value describing the type of element in the subsequent field.
     DHCP_SUBNET_ELEMENT_TYPE ElementType;
-    union Element
+union Element
     {
         DHCP_BOOTP_IP_RANGE* IpRange;
         DHCP_HOST_INFO*      SecondaryHost;
@@ -2283,20 +2282,20 @@ struct DHCP_BIND_ELEMENT
     ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="DHCP_ENDPOINT_FLAG_CANT_MODIFY"></a><a
     ///id="dhcp_endpoint_flag_cant_modify"></a><dl> <dt><b>DHCP_ENDPOINT_FLAG_CANT_MODIFY</b></dt> <dt>0x01</dt> </dl>
     ///</td> <td width="60%"> The binding specified in this structure cannot be modified. </td> </tr> </table>
-    uint          Flags;
+    uint   Flags;
     ///Specifies whether or not this binding is set on the DHCP server. If <b>TRUE</b>, the binding is set; if
     ///<b>FALSE</b>, it is not.
-    BOOL          fBoundToDHCPServer;
+    BOOL   fBoundToDHCPServer;
     ///DHCP_IP_ADDRESS value that specifies the IP address assigned to the ethernet adapter of the DHCP server.
-    uint          AdapterPrimaryAddress;
+    uint   AdapterPrimaryAddress;
     ///DHCP_IP_ADDRESS value that specifies the subnet IP mask used by this ethernet adapter.
-    uint          AdapterSubnetAddress;
+    uint   AdapterSubnetAddress;
     ///Unicode string that specifies the name assigned to this network interface device.
-    const(wchar)* IfDescription;
+    PWSTR  IfDescription;
     ///Specifies the size of the network interface device ID, in bytes.
-    uint          IfIdSize;
+    uint   IfIdSize;
     ///Specifies the network interface device ID.
-    ubyte*        IfId;
+    ubyte* IfId;
 }
 
 ///The <b>DHCP_BIND_ELEMENT_ARRAY</b> structure defines an array of network binding elements used by a DHCP server.
@@ -2326,7 +2325,7 @@ struct DHCPV6_BIND_ELEMENT
     ///DHCPv6 packets.
     DHCP_IPV6_ADDRESS AdapterSubnetAddress;
     ///Pointer to a null-terminated Unicode string that specifies the name assigned to this interface.
-    const(wchar)*     IfDescription;
+    PWSTR             IfDescription;
     ///Integer that specifies the IPv6 interface index of the current interface.
     uint              IpV6IfIndex;
     ///Integer that specifies the size of the interface GUID stored in <b>IfId</b>.
@@ -2361,9 +2360,9 @@ struct DHCP_HOST_INFO_V6
     ///DHCP_IPV6_ADDRESS structure that contains the IPv6 address of the DHCPv6 server.
     DHCP_IPV6_ADDRESS IpAddress;
     ///Pointer to a Unicode string that contains the NetBIOS name of the DHCPv6 server.
-    const(wchar)*     NetBiosName;
+    PWSTR             NetBiosName;
     ///Pointer to a Unicode string that contains the network name of the DHCPv6 server.
-    const(wchar)*     HostName;
+    PWSTR             HostName;
 }
 
 ///The <b>DHCP_SUBNET_INFO_V6</b> structure contains information about an IPv6 subnet.
@@ -2376,9 +2375,9 @@ struct DHCP_SUBNET_INFO_V6
     ///<b>USHORT</b> value that specifies the preference for the IPv6 prefix.
     ushort            Preference;
     ///Pointer to a null-terminated Unicode string that contains the name of the IPv6 prefix.
-    const(wchar)*     SubnetName;
+    PWSTR             SubnetName;
     ///Pointer to a null-terminated Unicode string that contains an optional comment for the IPv6 prefix.
-    const(wchar)*     SubnetComment;
+    PWSTR             SubnetComment;
     ///An enumeration of the DHCP_SUBNET_STATE that indicates the current state of the IPv6 prefix.
     uint              State;
     ///A <b>DWORD</b> value that serves as the unique identifier for the IPv6 prefix. This value is generated by the
@@ -2449,7 +2448,7 @@ struct DHCP_SUBNET_ELEMENT_DATA_V6
     ///Defines the set of possible prefix element types. This value is used to determine which of the values are chosen
     ///from the subsequent union element.
     DHCP_SUBNET_ELEMENT_TYPE_V6 ElementType;
-    union Element
+union Element
     {
         DHCP_IP_RANGE_V6* IpRange;
         DHCP_IP_RESERVATION_V6* ReservedIp;
@@ -2488,9 +2487,9 @@ struct DHCP_CLIENT_INFO_V6
     ///This is of type <b>DWORD</b>, specifying the interface identifier of the DHCPv6 client interface.
     uint              IAID;
     ///A pointer to a null-terminated Unicode string containing the name of the DHCPv6 client.
-    const(wchar)*     ClientName;
+    PWSTR             ClientName;
     ///A pointer to a null-terminated Unicode string containing a comment relating to the DHCPv6 client.
-    const(wchar)*     ClientComment;
+    PWSTR             ClientComment;
     ///This is of type DATE_TIME (section 2.2.1.2.11), containing the valid lifetime of the DHCPv6 IPv6 client lease.
     DATE_TIME         ClientValidLeaseExpires;
     ///This is of type DATE_TIME, containing the preferred lifetime of the DHCPv6 client lease.
@@ -2526,11 +2525,11 @@ struct DHCP_SEARCH_INFO_V6
 {
     ///Enumeration value that selects the type of the value on which the DHCPv6 database will be searched.
     DHCP_SEARCH_INFO_TYPE_V6 SearchType;
-    union SearchInfo
+union SearchInfo
     {
         DHCP_IPV6_ADDRESS ClientIpAddress;
         DHCP_BINARY_DATA  ClientDUID;
-        const(wchar)*     ClientName;
+        PWSTR             ClientName;
     }
 }
 
@@ -2547,7 +2546,7 @@ struct DHCP_POL_COND
     ///DHCP_OPTION_ID value that specifies the unique sub-option identifier.
     uint                SubOptionID;
     ///A pointer to a null-terminated Unicode string that represents the vendor name.
-    const(wchar)*       VendorName;
+    PWSTR               VendorName;
     ///DHCP_POL_COMPARATOR enumeration that specifies the comparison operator for the condition.
     DHCP_POL_COMPARATOR Operator;
     ///Pointer to an array of bytes that contains the value to be used for the comparison.
@@ -2597,7 +2596,7 @@ struct DHCP_IP_RANGE_ARRAY
 struct DHCP_POLICY
 {
     ///Pointer to a null-terminated Unicode string that represents the DHCP server policy name.
-    const(wchar)*        PolicyName;
+    PWSTR                PolicyName;
     ///<b>TRUE</b> if the DHCP server policy is global. Otherwise, it is <b>FALSE</b>.
     BOOL                 IsGlobalPolicy;
     ///DHCP_IP_ADDRESS structure that specifies the IPv4 subnet ID for a scope level policy.
@@ -2612,7 +2611,7 @@ struct DHCP_POLICY
     ///Pointer to a DHCP_IP_RANGE_ARRAY that specifies the DHCP server IPv4 range associated with the policy.
     DHCP_IP_RANGE_ARRAY* Ranges;
     ///A pointer to a null-terminated Unicode string that contains the description of the DHCP server policy.
-    const(wchar)*        Description;
+    PWSTR                Description;
     ///<b>TRUE</b> if the policy is enabled. Otherwise, it is <b>FALSE</b>.
     BOOL                 Enabled;
 }
@@ -2628,14 +2627,14 @@ struct DHCP_POLICY_ARRAY
 
 struct DHCP_POLICY_EX
 {
-    const(wchar)*        PolicyName;
+    PWSTR                PolicyName;
     BOOL                 IsGlobalPolicy;
     uint                 Subnet;
     uint                 ProcessingOrder;
     DHCP_POL_COND_ARRAY* Conditions;
     DHCP_POL_EXPR_ARRAY* Expressions;
     DHCP_IP_RANGE_ARRAY* Ranges;
-    const(wchar)*        Description;
+    PWSTR                Description;
     BOOL                 Enabled;
     DHCP_PROPERTY_ARRAY* Properties;
 }
@@ -2706,11 +2705,11 @@ struct DHCP_FAILOVER_RELATIONSHIP
     ///<b>PARTNER-DOWN</b> state. The timer begins when the server enters the <b>COMMUNICATION-INT</b> state.
     uint                 SafePeriod;
     ///Pointer to a null-terminated Unicode string that represents the unique failover relationship name.
-    const(wchar)*        RelationshipName;
+    PWSTR                RelationshipName;
     ///Pointer to a null-terminated Unicode string that represents the primary server hostname.
-    const(wchar)*        PrimaryServerName;
+    PWSTR                PrimaryServerName;
     ///Pointer to a null-terminated Unicode string that represents the secondary server hostname.
-    const(wchar)*        SecondaryServerName;
+    PWSTR                SecondaryServerName;
     ///A pointer to an LPDHCP_IP_ARRAY structure that contains the list of IPv4 subnet addresses that are part of the
     ///failover relationship and define its scope.
     DHCP_IP_ARRAY*       pScopes;
@@ -2718,7 +2717,7 @@ struct DHCP_FAILOVER_RELATIONSHIP
     ubyte                Percentage;
     ///A pointer to a null-terminated Unicode string that represents the shared secret key associated with the failover
     ///relationship.
-    const(wchar)*        SharedSecret;
+    PWSTR                SharedSecret;
 }
 
 ///The <b>DHCP_FAILOVER_RELATIONSHIP_ARRAY</b> structure defines an array of DHCPv4 failover relationships between
@@ -2742,9 +2741,9 @@ struct DHCPV4_FAILOVER_CLIENT_INFO
     ///DHCP_CLIENT_UID structure that contains the hardware address (MAC address) of the DHCPv4 client.
     DHCP_BINARY_DATA ClientHardwareAddress;
     ///Pointer to a null-terminated Unicode string that represents the DHCPv4 client machine name.
-    const(wchar)*    ClientName;
+    PWSTR            ClientName;
     ///Pointer to a null-terminated Unicode string that represents the description of the DHCPv4 client.
-    const(wchar)*    ClientComment;
+    PWSTR            ClientComment;
     ///DATE_TIME structure that contains the lease expiry time for the DHCPv4 client. This is UTC time represented in
     ///the FILETIME format.
     DATE_TIME        ClientLeaseExpires;
@@ -2833,7 +2832,7 @@ struct DHCPV4_FAILOVER_CLIENT_INFO
     uint             BndMsgStatus;
     ///Pointer to a null-terminated Unicode string that represents the DHCP server policy name that resulted in the IPv4
     ///address assignment to the DHCPv4 client in the lease.
-    const(wchar)*    PolicyName;
+    PWSTR            PolicyName;
     ///Reserved. Do not use.
     ubyte            Flags;
 }
@@ -2853,8 +2852,8 @@ struct DHCPV4_FAILOVER_CLIENT_INFO_EX
     uint             ClientIpAddress;
     uint             SubnetMask;
     DHCP_BINARY_DATA ClientHardwareAddress;
-    const(wchar)*    ClientName;
-    const(wchar)*    ClientComment;
+    PWSTR            ClientName;
+    PWSTR            ClientComment;
     DATE_TIME        ClientLeaseExpires;
     DHCP_HOST_INFO   OwnerHost;
     ubyte            bClientType;
@@ -2869,7 +2868,7 @@ struct DHCPV4_FAILOVER_CLIENT_INFO_EX
     uint             CltLastTransTime;
     uint             LastBndUpdTime;
     uint             BndMsgStatus;
-    const(wchar)*    PolicyName;
+    PWSTR            PolicyName;
     ubyte            Flags;
     uint             AddressStateEx;
 }
@@ -2934,8 +2933,8 @@ void Dhcpv6CApiCleanup();
 ///            required to complete the operation. If the function is successful, this parameter contains the number of bytes
 ///            used.
 @DllImport("dhcpcsvc6")
-uint Dhcpv6RequestParams(BOOL forceNewInform, void* reserved, const(wchar)* adapterName, 
-                         DHCPV6CAPI_CLASSID* classId, DHCPV6CAPI_PARAMS_ARRAY recdParams, ubyte* buffer, uint* pSize);
+uint Dhcpv6RequestParams(BOOL forceNewInform, void* reserved, PWSTR adapterName, DHCPV6CAPI_CLASSID* classId, 
+                         DHCPV6CAPI_PARAMS_ARRAY recdParams, ubyte* buffer, uint* pSize);
 
 ///The <b>Dhcpv6RequestPrefix</b> function requests a specific prefix.
 ///Params:
@@ -2961,7 +2960,7 @@ uint Dhcpv6RequestParams(BOOL forceNewInform, void* reserved, const(wchar)* adap
 ///                    function to renew its acquired prefixes. A value of 0xFFFFFFFF indicates that the application does not need to
 ///                    renew its lease.
 @DllImport("dhcpcsvc6")
-uint Dhcpv6RequestPrefix(const(wchar)* adapterName, DHCPV6CAPI_CLASSID* pclassId, 
+uint Dhcpv6RequestPrefix(PWSTR adapterName, DHCPV6CAPI_CLASSID* pclassId, 
                          DHCPV6PrefixLeaseInformation* prefixleaseInfo, uint* pdwTimeToWait);
 
 ///The <b>Dhcpv6RenewPrefix</b> function renews a prefix previously acquired with the Dhcpv6RequestPrefix function.
@@ -2979,7 +2978,7 @@ uint Dhcpv6RequestPrefix(const(wchar)* adapterName, DHCPV6CAPI_CLASSID* pclassId
 ///    bValidatePrefix = Specifies to the DHCPv6 client whether or not to send a REBIND in order to validate the prefix bindings.
 ///                      <b>TRUE</b> indicates that a REBIND is required. <b>FALSE</b> indicates RENEW is required.
 @DllImport("dhcpcsvc6")
-uint Dhcpv6RenewPrefix(const(wchar)* adapterName, DHCPV6CAPI_CLASSID* pclassId, 
+uint Dhcpv6RenewPrefix(PWSTR adapterName, DHCPV6CAPI_CLASSID* pclassId, 
                        DHCPV6PrefixLeaseInformation* prefixleaseInfo, uint* pdwTimeToWait, uint bValidatePrefix);
 
 ///The Dhcpv6ReleasePrefix function releases a prefix previously acquired with the <b>Dhcpv6RequestPrefix</b> function.
@@ -3000,8 +2999,7 @@ uint Dhcpv6RenewPrefix(const(wchar)* adapterName, DHCPV6CAPI_CLASSID* pclassId,
 ///    format. It should be in this format: {00000000-0000-0000-0000-000000000000}. </td> </tr> </table>
 ///    
 @DllImport("dhcpcsvc6")
-uint Dhcpv6ReleasePrefix(const(wchar)* adapterName, DHCPV6CAPI_CLASSID* classId, 
-                         DHCPV6PrefixLeaseInformation* leaseInfo);
+uint Dhcpv6ReleasePrefix(PWSTR adapterName, DHCPV6CAPI_CLASSID* classId, DHCPV6PrefixLeaseInformation* leaseInfo);
 
 ///The <b>DhcpCApiInitialize</b> function must be the first function call made by users of DHCP; it prepares the system
 ///for all other DHCP function calls. Other DHCP functions should only be called if the <b>DhcpCApiInitialize</b>
@@ -3060,9 +3058,9 @@ void DhcpCApiCleanup();
 ///    </td> <td width="60%"> Returned if the AdapterName parameter is over 256 characters long. </td> </tr> </table>
 ///    
 @DllImport("dhcpcsvc")
-uint DhcpRequestParams(uint Flags, void* Reserved, const(wchar)* AdapterName, DHCPCAPI_CLASSID* ClassId, 
-                       DHCPCAPI_PARAMS_ARRAY SendParams, DHCPCAPI_PARAMS_ARRAY RecdParams, char* Buffer, uint* pSize, 
-                       const(wchar)* RequestIdStr);
+uint DhcpRequestParams(uint Flags, void* Reserved, PWSTR AdapterName, DHCPCAPI_CLASSID* ClassId, 
+                       DHCPCAPI_PARAMS_ARRAY SendParams, DHCPCAPI_PARAMS_ARRAY RecdParams, ubyte* Buffer, 
+                       uint* pSize, PWSTR RequestIdStr);
 
 ///The <b>DhcpUndoRequestParams</b> function removes persistent requests previously made with a <b>DhcpRequestParams</b>
 ///function call.
@@ -3080,7 +3078,7 @@ uint DhcpRequestParams(uint Flags, void* Reserved, const(wchar)* AdapterName, DH
 ///    Returns ERROR_SUCCESS upon successful completion. Otherwise, returns a Windows error code.
 ///    
 @DllImport("dhcpcsvc")
-uint DhcpUndoRequestParams(uint Flags, void* Reserved, const(wchar)* AdapterName, const(wchar)* RequestIdStr);
+uint DhcpUndoRequestParams(uint Flags, void* Reserved, PWSTR AdapterName, PWSTR RequestIdStr);
 
 ///The <b>DhcpRegisterParamChange</b> function enables clients to register for notification of changes in DHCP
 ///configuration parameters.
@@ -3104,7 +3102,7 @@ uint DhcpUndoRequestParams(uint Flags, void* Reserved, const(wchar)* AdapterName
 ///    </td> <td width="60%"> Returned if the AdapterName parameter is over 256 characters long. </td> </tr> </table>
 ///    
 @DllImport("dhcpcsvc")
-uint DhcpRegisterParamChange(uint Flags, void* Reserved, const(wchar)* AdapterName, DHCPCAPI_CLASSID* ClassId, 
+uint DhcpRegisterParamChange(uint Flags, void* Reserved, PWSTR AdapterName, DHCPCAPI_CLASSID* ClassId, 
                              DHCPCAPI_PARAMS_ARRAY Params, void* Handle);
 
 ///The <b>DhcpDeRegisterParamChange</b> function releases resources associated with previously registered event
@@ -3128,7 +3126,7 @@ uint DhcpDeRegisterParamChange(uint Flags, void* Reserved, void* Event);
 uint DhcpRemoveDNSRegistrations();
 
 @DllImport("dhcpcsvc")
-uint DhcpGetOriginalSubnetMask(const(wchar)* sAdapterName, uint* dwSubnetMask);
+uint DhcpGetOriginalSubnetMask(const(PWSTR) sAdapterName, uint* dwSubnetMask);
 
 ///The <b>DhcpAddFilterV4</b> function adds a link-layer address or address pattern to the allow/deny lists.
 ///Params:
@@ -3148,7 +3146,7 @@ uint DhcpGetOriginalSubnetMask(const(wchar)* sAdapterName, uint* dwSubnetMask);
 ///    </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpAddFilterV4(const(wchar)* ServerIpAddress, DHCP_FILTER_ADD_INFO* AddFilterInfo, BOOL ForceFlag);
+uint DhcpAddFilterV4(const(PWSTR) ServerIpAddress, DHCP_FILTER_ADD_INFO* AddFilterInfo, BOOL ForceFlag);
 
 ///The <b>DhcpDeleteFilterV4</b> function deletes a link-layer address or address pattern from a DHCP server's
 ///allow/deny lists.
@@ -3169,7 +3167,7 @@ uint DhcpAddFilterV4(const(wchar)* ServerIpAddress, DHCP_FILTER_ADD_INFO* AddFil
 ///    <i>DeleteFilterInfo</i> is invalid. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpDeleteFilterV4(const(wchar)* ServerIpAddress, DHCP_ADDR_PATTERN* DeleteFilterInfo);
+uint DhcpDeleteFilterV4(const(PWSTR) ServerIpAddress, DHCP_ADDR_PATTERN* DeleteFilterInfo);
 
 ///The <b>DhcpSetFilterV4</b> function enables or disables the allow and deny lists on a DHCP server.
 ///Params:
@@ -3186,7 +3184,7 @@ uint DhcpDeleteFilterV4(const(wchar)* ServerIpAddress, DHCP_ADDR_PATTERN* Delete
 ///    width="60%"> One of the parameters provides an invalid value. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpSetFilterV4(const(wchar)* ServerIpAddress, DHCP_FILTER_GLOBAL_INFO* GlobalFilterInfo);
+uint DhcpSetFilterV4(const(PWSTR) ServerIpAddress, DHCP_FILTER_GLOBAL_INFO* GlobalFilterInfo);
 
 ///The <b>DhcpGetFilterV4</b> function retrieves the enable/disable settings for the DHCPv4 server's allow/deny lists.
 ///Params:
@@ -3202,7 +3200,7 @@ uint DhcpSetFilterV4(const(wchar)* ServerIpAddress, DHCP_FILTER_GLOBAL_INFO* Glo
 ///    server's database. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpGetFilterV4(const(wchar)* ServerIpAddress, DHCP_FILTER_GLOBAL_INFO* GlobalFilterInfo);
+uint DhcpGetFilterV4(const(PWSTR) ServerIpAddress, DHCP_FILTER_GLOBAL_INFO* GlobalFilterInfo);
 
 ///The <b>DhcpEnumFilterV4</b> function enumerates all of the filter records from the DHCP server's allow or deny list.
 ///Params:
@@ -3233,7 +3231,7 @@ uint DhcpGetFilterV4(const(wchar)* ServerIpAddress, DHCP_FILTER_GLOBAL_INFO* Glo
 ///    </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpEnumFilterV4(const(wchar)* ServerIpAddress, DHCP_ADDR_PATTERN* ResumeHandle, uint PreferredMaximum, 
+uint DhcpEnumFilterV4(const(PWSTR) ServerIpAddress, DHCP_ADDR_PATTERN* ResumeHandle, uint PreferredMaximum, 
                       DHCP_FILTER_LIST_TYPE ListType, DHCP_FILTER_ENUM_INFO** EnumFilterInfo, uint* ElementsRead, 
                       uint* ElementsTotal);
 
@@ -3248,7 +3246,7 @@ uint DhcpEnumFilterV4(const(wchar)* ServerIpAddress, DHCP_ADDR_PATTERN* ResumeHa
 ///    Management API Error Codes.
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpCreateSubnet(const(wchar)* ServerIpAddress, uint SubnetAddress, const(DHCP_SUBNET_INFO)* SubnetInfo);
+uint DhcpCreateSubnet(const(PWSTR) ServerIpAddress, uint SubnetAddress, const(DHCP_SUBNET_INFO)* SubnetInfo);
 
 ///The <b>DhcpSetSubnetInfo</b> function sets information about a subnet defined on the DHCP server.
 ///Params:
@@ -3261,7 +3259,7 @@ uint DhcpCreateSubnet(const(wchar)* ServerIpAddress, uint SubnetAddress, const(D
 ///    Management API Error Codes.
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpSetSubnetInfo(const(wchar)* ServerIpAddress, uint SubnetAddress, const(DHCP_SUBNET_INFO)* SubnetInfo);
+uint DhcpSetSubnetInfo(const(PWSTR) ServerIpAddress, uint SubnetAddress, const(DHCP_SUBNET_INFO)* SubnetInfo);
 
 ///The <b>DhcpGetSubnetInfo</b> function returns information on a specific subnet.
 ///Params:
@@ -3275,7 +3273,7 @@ uint DhcpSetSubnetInfo(const(wchar)* ServerIpAddress, uint SubnetAddress, const(
 ///    Management API Error Codes.
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpGetSubnetInfo(const(wchar)* ServerIpAddress, uint SubnetAddress, DHCP_SUBNET_INFO** SubnetInfo);
+uint DhcpGetSubnetInfo(const(PWSTR) ServerIpAddress, uint SubnetAddress, DHCP_SUBNET_INFO** SubnetInfo);
 
 ///The <b>DhcpEnumSubnets</b> function returns an enumerated list of subnets defined on the DHCP server.
 ///Params:
@@ -3298,7 +3296,7 @@ uint DhcpGetSubnetInfo(const(wchar)* ServerIpAddress, uint SubnetAddress, DHCP_S
 ///    of the DHCP Server Management API Error Codes.
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpEnumSubnets(const(wchar)* ServerIpAddress, uint* ResumeHandle, uint PreferredMaximum, 
+uint DhcpEnumSubnets(const(PWSTR) ServerIpAddress, uint* ResumeHandle, uint PreferredMaximum, 
                      DHCP_IP_ARRAY** EnumInfo, uint* ElementsRead, uint* ElementsTotal);
 
 ///The <b>DhcpAddSubnetElement</b> function adds an element describing a feature or aspect of the subnet to the subnet
@@ -3330,7 +3328,7 @@ uint DhcpEnumSubnets(const(wchar)* ServerIpAddress, uint* ResumeHandle, uint Pre
 ///    address is not available. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpAddSubnetElement(const(wchar)* ServerIpAddress, uint SubnetAddress, 
+uint DhcpAddSubnetElement(const(PWSTR) ServerIpAddress, uint SubnetAddress, 
                           const(DHCP_SUBNET_ELEMENT_DATA)* AddElementInfo);
 
 ///The <b>DhcpEnumSubnetElements</b> function returns an enumerated list of elements for a specific DHCP subnet.
@@ -3365,7 +3363,7 @@ uint DhcpAddSubnetElement(const(wchar)* ServerIpAddress, uint SubnetAddress,
 ///    The specified IPv4 subnet does not exist on the DHCP server. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpEnumSubnetElements(const(wchar)* ServerIpAddress, uint SubnetAddress, 
+uint DhcpEnumSubnetElements(const(PWSTR) ServerIpAddress, uint SubnetAddress, 
                             DHCP_SUBNET_ELEMENT_TYPE EnumElementType, uint* ResumeHandle, uint PreferredMaximum, 
                             DHCP_SUBNET_ELEMENT_INFO_ARRAY** EnumElementInfo, uint* ElementsRead, 
                             uint* ElementsTotal);
@@ -3396,7 +3394,7 @@ uint DhcpEnumSubnetElements(const(wchar)* ServerIpAddress, uint SubnetAddress,
 ///    width="60%"> At least one multicast IPv4 address has been leased out to a MADCAP client. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpRemoveSubnetElement(const(wchar)* ServerIpAddress, uint SubnetAddress, 
+uint DhcpRemoveSubnetElement(const(PWSTR) ServerIpAddress, uint SubnetAddress, 
                              const(DHCP_SUBNET_ELEMENT_DATA)* RemoveElementInfo, DHCP_FORCE_FLAG ForceFlag);
 
 ///The <b>DhcpDeleteSubnet</b> function deletes a subnet from the DHCP server.
@@ -3410,7 +3408,7 @@ uint DhcpRemoveSubnetElement(const(wchar)* ServerIpAddress, uint SubnetAddress,
 ///    Management API Error Codes.
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpDeleteSubnet(const(wchar)* ServerIpAddress, uint SubnetAddress, DHCP_FORCE_FLAG ForceFlag);
+uint DhcpDeleteSubnet(const(PWSTR) ServerIpAddress, uint SubnetAddress, DHCP_FORCE_FLAG ForceFlag);
 
 ///The <b>DhcpCreateOption</b> function creates an option definition for the default user and vendor class at the
 ///default option level.
@@ -3429,7 +3427,7 @@ uint DhcpDeleteSubnet(const(wchar)* ServerIpAddress, uint SubnetAddress, DHCP_FO
 ///    width="60%"> The specified option definition already exists in the DHCP server database. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpCreateOption(const(wchar)* ServerIpAddress, uint OptionID, const(DHCP_OPTION)* OptionInfo);
+uint DhcpCreateOption(const(PWSTR) ServerIpAddress, uint OptionID, const(DHCP_OPTION)* OptionInfo);
 
 ///The <b>DhcpSetOptionInfo</b> function modifies the option definition of the specified option for the default user
 ///class and vendor class at the default option level.
@@ -3446,7 +3444,7 @@ uint DhcpCreateOption(const(wchar)* ServerIpAddress, uint OptionID, const(DHCP_O
 ///    </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpSetOptionInfo(const(wchar)* ServerIpAddress, uint OptionID, const(DHCP_OPTION)* OptionInfo);
+uint DhcpSetOptionInfo(const(PWSTR) ServerIpAddress, uint OptionID, const(DHCP_OPTION)* OptionInfo);
 
 ///The <b>DhcpGetOptionInfo</b> function returns information on a specific DHCP option for the default user and vendor
 ///class.
@@ -3465,7 +3463,7 @@ uint DhcpSetOptionInfo(const(wchar)* ServerIpAddress, uint OptionID, const(DHCP_
 ///    </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpGetOptionInfo(const(wchar)* ServerIpAddress, uint OptionID, DHCP_OPTION** OptionInfo);
+uint DhcpGetOptionInfo(const(PWSTR) ServerIpAddress, uint OptionID, DHCP_OPTION** OptionInfo);
 
 ///The <b>DhcpEnumOptions</b> function returns an enumerated set of options stored on the DHCPv4 server.
 ///Params:
@@ -3493,7 +3491,7 @@ uint DhcpGetOptionInfo(const(wchar)* ServerIpAddress, uint OptionID, DHCP_OPTION
 ///    </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpEnumOptions(const(wchar)* ServerIpAddress, uint* ResumeHandle, uint PreferredMaximum, 
+uint DhcpEnumOptions(const(PWSTR) ServerIpAddress, uint* ResumeHandle, uint PreferredMaximum, 
                      DHCP_OPTION_ARRAY** Options, uint* OptionsRead, uint* OptionsTotal);
 
 ///The <b>DhcpRemoveOption</b> function removes the definition of a specific option for the default user class and
@@ -3511,7 +3509,7 @@ uint DhcpEnumOptions(const(wchar)* ServerIpAddress, uint* ResumeHandle, uint Pre
 ///    </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpRemoveOption(const(wchar)* ServerIpAddress, uint OptionID);
+uint DhcpRemoveOption(const(PWSTR) ServerIpAddress, uint OptionID);
 
 ///The <b>DhcpSetOptionValue</b> function sets information for a specific option value on the DHCP server.
 ///Params:
@@ -3535,7 +3533,7 @@ uint DhcpRemoveOption(const(wchar)* ServerIpAddress, uint OptionID);
 ///    </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpSetOptionValue(const(wchar)* ServerIpAddress, uint OptionID, const(DHCP_OPTION_SCOPE_INFO)* ScopeInfo, 
+uint DhcpSetOptionValue(const(PWSTR) ServerIpAddress, uint OptionID, const(DHCP_OPTION_SCOPE_INFO)* ScopeInfo, 
                         const(DHCP_OPTION_DATA)* OptionValue);
 
 ///The <b>DhcpSetOptionValues</b> function sets option codes and their associated data values for a specific scope
@@ -3560,7 +3558,7 @@ uint DhcpSetOptionValue(const(wchar)* ServerIpAddress, uint OptionID, const(DHCP
 ///    </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpSetOptionValues(const(wchar)* ServerIpAddress, const(DHCP_OPTION_SCOPE_INFO)* ScopeInfo, 
+uint DhcpSetOptionValues(const(PWSTR) ServerIpAddress, const(DHCP_OPTION_SCOPE_INFO)* ScopeInfo, 
                          const(DHCP_OPTION_VALUE_ARRAY)* OptionValues);
 
 ///The <b>DhcpGetOptionValue</b> function retrieves a DHCP option value (the option code and associated data) for a
@@ -3576,7 +3574,7 @@ uint DhcpSetOptionValues(const(wchar)* ServerIpAddress, const(DHCP_OPTION_SCOPE_
 ///    Management API Error Codes.
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpGetOptionValue(const(wchar)* ServerIpAddress, uint OptionID, const(DHCP_OPTION_SCOPE_INFO)* ScopeInfo, 
+uint DhcpGetOptionValue(const(PWSTR) ServerIpAddress, uint OptionID, const(DHCP_OPTION_SCOPE_INFO)* ScopeInfo, 
                         DHCP_OPTION_VALUE** OptionValue);
 
 ///The <b>DhcpEnumOptionValues</b> function returns an enumerated list of option values (just the option data and the
@@ -3613,7 +3611,7 @@ uint DhcpGetOptionValue(const(wchar)* ServerIpAddress, uint OptionID, const(DHCP
 ///    IPv4 reserved client. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpEnumOptionValues(const(wchar)* ServerIpAddress, const(DHCP_OPTION_SCOPE_INFO)* ScopeInfo, 
+uint DhcpEnumOptionValues(const(PWSTR) ServerIpAddress, const(DHCP_OPTION_SCOPE_INFO)* ScopeInfo, 
                           uint* ResumeHandle, uint PreferredMaximum, DHCP_OPTION_VALUE_ARRAY** OptionValues, 
                           uint* OptionsRead, uint* OptionsTotal);
 
@@ -3637,7 +3635,7 @@ uint DhcpEnumOptionValues(const(wchar)* ServerIpAddress, const(DHCP_OPTION_SCOPE
 ///    reserved client. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpRemoveOptionValue(const(wchar)* ServerIpAddress, uint OptionID, const(DHCP_OPTION_SCOPE_INFO)* ScopeInfo);
+uint DhcpRemoveOptionValue(const(PWSTR) ServerIpAddress, uint OptionID, const(DHCP_OPTION_SCOPE_INFO)* ScopeInfo);
 
 ///The <b>DhcpCreateClientInfoVQ</b> function creates the provided DHCP client lease record in the DHCP server database.
 ///Params:
@@ -3655,7 +3653,7 @@ uint DhcpRemoveOptionValue(const(wchar)* ServerIpAddress, uint OptionID, const(D
 ///    <td width="60%"> The provided DHCP client record already exists in the DHCP server database. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpCreateClientInfoVQ(const(wchar)* ServerIpAddress, const(DHCP_CLIENT_INFO_VQ)* ClientInfo);
+uint DhcpCreateClientInfoVQ(const(PWSTR) ServerIpAddress, const(DHCP_CLIENT_INFO_VQ)* ClientInfo);
 
 ///The <b>DhcpSetClientInfoVQ</b> function sets or modifies an existing DHCP client lease record in the DHCP server
 ///record database.
@@ -3664,7 +3662,7 @@ uint DhcpCreateClientInfoVQ(const(wchar)* ServerIpAddress, const(DHCP_CLIENT_INF
 ///    ClientInfo = Pointer to a DHCP_CLIENT_INFO_VQ structure that contains the DHCP client lease record to add to or modify in the
 ///                 DHCP server database.
 @DllImport("DHCPSAPI")
-uint DhcpSetClientInfoVQ(const(wchar)* ServerIpAddress, const(DHCP_CLIENT_INFO_VQ)* ClientInfo);
+uint DhcpSetClientInfoVQ(const(PWSTR) ServerIpAddress, const(DHCP_CLIENT_INFO_VQ)* ClientInfo);
 
 ///The <b>DhcpGetClientInfoVQ</b> function retrieves DHCP client lease record information from the DHCP server database.
 ///Params:
@@ -3681,7 +3679,7 @@ uint DhcpSetClientInfoVQ(const(wchar)* ServerIpAddress, const(DHCP_CLIENT_INFO_V
 ///    server's database. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpGetClientInfoVQ(const(wchar)* ServerIpAddress, const(DHCP_SEARCH_INFO)* SearchInfo, 
+uint DhcpGetClientInfoVQ(const(PWSTR) ServerIpAddress, const(DHCP_SEARCH_INFO)* SearchInfo, 
                          DHCP_CLIENT_INFO_VQ** ClientInfo);
 
 ///The <b>DhcpEnumSubnetClientsVQ</b> function retrieves all DHCP clients serviced from the specified IPv4 subnet.
@@ -3712,7 +3710,7 @@ uint DhcpGetClientInfoVQ(const(wchar)* ServerIpAddress, const(DHCP_SEARCH_INFO)*
 ///    Please call this function again with the returned resume handle to obtain more of them. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpEnumSubnetClientsVQ(const(wchar)* ServerIpAddress, uint SubnetAddress, uint* ResumeHandle, 
+uint DhcpEnumSubnetClientsVQ(const(PWSTR) ServerIpAddress, uint SubnetAddress, uint* ResumeHandle, 
                              uint PreferredMaximum, DHCP_CLIENT_INFO_ARRAY_VQ** ClientInfo, uint* ClientsRead, 
                              uint* ClientsTotal);
 
@@ -3745,7 +3743,7 @@ uint DhcpEnumSubnetClientsVQ(const(wchar)* ServerIpAddress, uint SubnetAddress, 
 ///    Please call this function again with the returned resume handle to obtain more of them. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpEnumSubnetClientsFilterStatusInfo(const(wchar)* ServerIpAddress, uint SubnetAddress, uint* ResumeHandle, 
+uint DhcpEnumSubnetClientsFilterStatusInfo(const(PWSTR) ServerIpAddress, uint SubnetAddress, uint* ResumeHandle, 
                                            uint PreferredMaximum, DHCP_CLIENT_FILTER_STATUS_INFO_ARRAY** ClientInfo, 
                                            uint* ClientsRead, uint* ClientsTotal);
 
@@ -3759,7 +3757,7 @@ uint DhcpEnumSubnetClientsFilterStatusInfo(const(wchar)* ServerIpAddress, uint S
 ///    Management API Error Codes.
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpCreateClientInfo(const(wchar)* ServerIpAddress, const(DHCP_CLIENT_INFO)* ClientInfo);
+uint DhcpCreateClientInfo(const(PWSTR) ServerIpAddress, const(DHCP_CLIENT_INFO)* ClientInfo);
 
 ///The <b>DhcpSetClientInfo</b> function sets information on a client whose IP address lease is administrated by the
 ///DHCP server.
@@ -3772,7 +3770,7 @@ uint DhcpCreateClientInfo(const(wchar)* ServerIpAddress, const(DHCP_CLIENT_INFO)
 ///    Management API Error Codes.
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpSetClientInfo(const(wchar)* ServerIpAddress, const(DHCP_CLIENT_INFO)* ClientInfo);
+uint DhcpSetClientInfo(const(PWSTR) ServerIpAddress, const(DHCP_CLIENT_INFO)* ClientInfo);
 
 ///The <b>DhcpGetClientInfo</b> function returns information about a specific DHCP client.
 ///Params:
@@ -3787,7 +3785,7 @@ uint DhcpSetClientInfo(const(wchar)* ServerIpAddress, const(DHCP_CLIENT_INFO)* C
 ///    Management API Error Codes.
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpGetClientInfo(const(wchar)* ServerIpAddress, const(DHCP_SEARCH_INFO)* SearchInfo, 
+uint DhcpGetClientInfo(const(PWSTR) ServerIpAddress, const(DHCP_SEARCH_INFO)* SearchInfo, 
                        DHCP_CLIENT_INFO** ClientInfo);
 
 ///The <b>DhcpDeleteClientInfo</b> function deletes a client information record from the DHCP server.
@@ -3802,7 +3800,7 @@ uint DhcpGetClientInfo(const(wchar)* ServerIpAddress, const(DHCP_SEARCH_INFO)* S
 ///    Management API Error Codes.
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpDeleteClientInfo(const(wchar)* ServerIpAddress, const(DHCP_SEARCH_INFO)* ClientInfo);
+uint DhcpDeleteClientInfo(const(PWSTR) ServerIpAddress, const(DHCP_SEARCH_INFO)* ClientInfo);
 
 ///The <b>DhcpEnumSubnetClients</b> function returns an enumerated list of clients with served IP addresses in the
 ///specified subnet.
@@ -3830,7 +3828,7 @@ uint DhcpDeleteClientInfo(const(wchar)* ServerIpAddress, const(DHCP_SEARCH_INFO)
 ///    Error Codes.
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpEnumSubnetClients(const(wchar)* ServerIpAddress, uint SubnetAddress, uint* ResumeHandle, 
+uint DhcpEnumSubnetClients(const(PWSTR) ServerIpAddress, uint SubnetAddress, uint* ResumeHandle, 
                            uint PreferredMaximum, DHCP_CLIENT_INFO_ARRAY** ClientInfo, uint* ClientsRead, 
                            uint* ClientsTotal);
 
@@ -3850,11 +3848,11 @@ uint DhcpEnumSubnetClients(const(wchar)* ServerIpAddress, uint SubnetAddress, ui
 ///    not supported. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpGetClientOptions(const(wchar)* ServerIpAddress, uint ClientIpAddress, uint ClientSubnetMask, 
+uint DhcpGetClientOptions(const(PWSTR) ServerIpAddress, uint ClientIpAddress, uint ClientSubnetMask, 
                           DHCP_OPTION_LIST** ClientOptions);
 
 @DllImport("DHCPSAPI")
-uint DhcpGetMibInfo(const(wchar)* ServerIpAddress, DHCP_MIB_INFO** MibInfo);
+uint DhcpGetMibInfo(const(PWSTR) ServerIpAddress, DHCP_MIB_INFO** MibInfo);
 
 ///The <b>DhcpServerSetConfig</b> function configures a DHCPv4 server with specific settings, including information on
 ///the JET database used to store subnet and client lease information, and the supported protocols.
@@ -3894,7 +3892,7 @@ uint DhcpGetMibInfo(const(wchar)* ServerIpAddress, DHCP_MIB_INFO** MibInfo);
 ///    Management API Error Codes.
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpServerSetConfig(const(wchar)* ServerIpAddress, uint FieldsToSet, DHCP_SERVER_CONFIG_INFO* ConfigInfo);
+uint DhcpServerSetConfig(const(PWSTR) ServerIpAddress, uint FieldsToSet, DHCP_SERVER_CONFIG_INFO* ConfigInfo);
 
 ///The <b>DhcpServerGetConfig</b> function returns the specific configuration settings of a DHCP server. Configuration
 ///information includes information on the JET database used to store subnet and client lease information, and the
@@ -3909,7 +3907,7 @@ uint DhcpServerSetConfig(const(wchar)* ServerIpAddress, uint FieldsToSet, DHCP_S
 ///    Management API Error Codes.
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpServerGetConfig(const(wchar)* ServerIpAddress, DHCP_SERVER_CONFIG_INFO** ConfigInfo);
+uint DhcpServerGetConfig(const(PWSTR) ServerIpAddress, DHCP_SERVER_CONFIG_INFO** ConfigInfo);
 
 ///The <b>DhcpScanDatabase</b> function enumerates the leased DHCPv4 client IPv4 addresses that are not synchronized
 ///between the in-memory cache and the server database.
@@ -3931,7 +3929,7 @@ uint DhcpServerGetConfig(const(wchar)* ServerIpAddress, DHCP_SERVER_CONFIG_INFO*
 ///    </td> <td width="60%"> The specified subnet is not defined on the DHCPv4 server. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpScanDatabase(const(wchar)* ServerIpAddress, uint SubnetAddress, uint FixFlag, DHCP_SCAN_LIST** ScanList);
+uint DhcpScanDatabase(const(PWSTR) ServerIpAddress, uint SubnetAddress, uint FixFlag, DHCP_SCAN_LIST** ScanList);
 
 ///The <b>DhcpRpcFreeMemory</b> function frees a block of buffer space returned as a parameter.
 ///Params:
@@ -3948,7 +3946,7 @@ void DhcpRpcFreeMemory(void* BufferPointer);
 ///    MajorVersion = Specifies the major version number of the DHCP server.
 ///    MinorVersion = Specifies the minor version number of the DHCP server.
 @DllImport("DHCPSAPI")
-uint DhcpGetVersion(const(wchar)* ServerIpAddress, uint* MajorVersion, uint* MinorVersion);
+uint DhcpGetVersion(PWSTR ServerIpAddress, uint* MajorVersion, uint* MinorVersion);
 
 ///The <b>DhcpAddSubnetElementV4</b> function adds an element describing a feature or aspect of the subnet to the subnet
 ///entry in the DHCP database. This function extends DhcpAddSubnetElement by incorporating subnet elements that consider
@@ -3983,7 +3981,7 @@ uint DhcpGetVersion(const(wchar)* ServerIpAddress, uint* MajorVersion, uint* Min
 ///    address is not available. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpAddSubnetElementV4(const(wchar)* ServerIpAddress, uint SubnetAddress, 
+uint DhcpAddSubnetElementV4(const(PWSTR) ServerIpAddress, uint SubnetAddress, 
                             const(DHCP_SUBNET_ELEMENT_DATA_V4)* AddElementInfo);
 
 ///The <b>DhcpEnumSubnetElementsV4</b> function returns an enumerated list of elements for a specific DHCP subnet. This
@@ -4020,7 +4018,7 @@ uint DhcpAddSubnetElementV4(const(wchar)* ServerIpAddress, uint SubnetAddress,
 ///    The specified IPv4 subnet does not exist on the DHCP server. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpEnumSubnetElementsV4(const(wchar)* ServerIpAddress, uint SubnetAddress, 
+uint DhcpEnumSubnetElementsV4(const(PWSTR) ServerIpAddress, uint SubnetAddress, 
                               DHCP_SUBNET_ELEMENT_TYPE EnumElementType, uint* ResumeHandle, uint PreferredMaximum, 
                               DHCP_SUBNET_ELEMENT_INFO_ARRAY_V4** EnumElementInfo, uint* ElementsRead, 
                               uint* ElementsTotal);
@@ -4051,7 +4049,7 @@ uint DhcpEnumSubnetElementsV4(const(wchar)* ServerIpAddress, uint SubnetAddress,
 ///    width="60%"> At least one multicast IPv4 address has been leased out to a MADCAP client. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpRemoveSubnetElementV4(const(wchar)* ServerIpAddress, uint SubnetAddress, 
+uint DhcpRemoveSubnetElementV4(const(PWSTR) ServerIpAddress, uint SubnetAddress, 
                                const(DHCP_SUBNET_ELEMENT_DATA_V4)* RemoveElementInfo, DHCP_FORCE_FLAG ForceFlag);
 
 ///The <b>DhcpCreateClientInfoV4</b> function creates a client information record on the DHCP server, extending the
@@ -4067,7 +4065,7 @@ uint DhcpRemoveSubnetElementV4(const(wchar)* ServerIpAddress, uint SubnetAddress
 ///    not a member of the "DHCP Administrators" security group. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpCreateClientInfoV4(const(wchar)* ServerIpAddress, const(DHCP_CLIENT_INFO_V4)* ClientInfo);
+uint DhcpCreateClientInfoV4(const(PWSTR) ServerIpAddress, const(DHCP_CLIENT_INFO_V4)* ClientInfo);
 
 ///The <b>DhcpSetClientInfoV4</b> function sets information on a client whose IP address lease is administrated by the
 ///DHCP server. This function extends the functionality provided by DhcpSetClientInfo by allowing the caller to specify
@@ -4085,7 +4083,7 @@ uint DhcpCreateClientInfoV4(const(wchar)* ServerIpAddress, const(DHCP_CLIENT_INF
 ///    server's database. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpSetClientInfoV4(const(wchar)* ServerIpAddress, const(DHCP_CLIENT_INFO_V4)* ClientInfo);
+uint DhcpSetClientInfoV4(const(PWSTR) ServerIpAddress, const(DHCP_CLIENT_INFO_V4)* ClientInfo);
 
 ///The <b>DhcpGetClientInfoV4</b> function returns information on a specific DHCP client. This function extends
 ///DhcpGetClientInfo by returning a DHCP_CLIENT_INFO_V4 structure that contains client type information.
@@ -4105,7 +4103,7 @@ uint DhcpSetClientInfoV4(const(wchar)* ServerIpAddress, const(DHCP_CLIENT_INFO_V
 ///    server's database. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpGetClientInfoV4(const(wchar)* ServerIpAddress, const(DHCP_SEARCH_INFO)* SearchInfo, 
+uint DhcpGetClientInfoV4(const(PWSTR) ServerIpAddress, const(DHCP_SEARCH_INFO)* SearchInfo, 
                          DHCP_CLIENT_INFO_V4** ClientInfo);
 
 ///The <b>DhcpEnumSubnetClientsV4</b> function returns an enumerated list of client lease records with served IP
@@ -4140,7 +4138,7 @@ uint DhcpGetClientInfoV4(const(wchar)* ServerIpAddress, const(DHCP_SEARCH_INFO)*
 ///    The specified IPv4 subnet does not exist on the DHCP server. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpEnumSubnetClientsV4(const(wchar)* ServerIpAddress, uint SubnetAddress, uint* ResumeHandle, 
+uint DhcpEnumSubnetClientsV4(const(PWSTR) ServerIpAddress, uint SubnetAddress, uint* ResumeHandle, 
                              uint PreferredMaximum, DHCP_CLIENT_INFO_ARRAY_V4** ClientInfo, uint* ClientsRead, 
                              uint* ClientsTotal);
 
@@ -4194,7 +4192,7 @@ uint DhcpEnumSubnetClientsV4(const(wchar)* ServerIpAddress, uint SubnetAddress, 
 ///    width="60%"> One of the parameters provides an invalid value. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpServerSetConfigV4(const(wchar)* ServerIpAddress, uint FieldsToSet, DHCP_SERVER_CONFIG_INFO_V4* ConfigInfo);
+uint DhcpServerSetConfigV4(const(PWSTR) ServerIpAddress, uint FieldsToSet, DHCP_SERVER_CONFIG_INFO_V4* ConfigInfo);
 
 ///The <b>DhcpServerGetConfigV4</b> function returns the specific configuration settings of a DHCP server. This function
 ///extends the functionality of DhcpServerGetConfig by adding configuration parameters for the number of ping retries a
@@ -4216,7 +4214,7 @@ uint DhcpServerSetConfigV4(const(wchar)* ServerIpAddress, uint FieldsToSet, DHCP
 ///    width="60%"> One of the parameters provides an invalid value. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpServerGetConfigV4(const(wchar)* ServerIpAddress, DHCP_SERVER_CONFIG_INFO_V4** ConfigInfo);
+uint DhcpServerGetConfigV4(const(PWSTR) ServerIpAddress, DHCP_SERVER_CONFIG_INFO_V4** ConfigInfo);
 
 ///The <b>DhcpSetSuperScopeV4</b> function sets a subnet as the superscope on a DHCP server.
 ///Params:
@@ -4236,8 +4234,8 @@ uint DhcpServerGetConfigV4(const(wchar)* ServerIpAddress, DHCP_SERVER_CONFIG_INF
 ///    width="60%"> One of the parameters provides an invalid value. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpSetSuperScopeV4(const(wchar)* ServerIpAddress, const(uint) SubnetAddress, const(ushort)* SuperScopeName, 
-                         const(int) ChangeExisting);
+uint DhcpSetSuperScopeV4(const(PWSTR) ServerIpAddress, const(uint) SubnetAddress, const(PWSTR) SuperScopeName, 
+                         const(BOOL) ChangeExisting);
 
 ///The <b>DhcpDeleteSuperScopeV4</b> function deletes a superscope from the DHCP server.
 ///Params:
@@ -4253,7 +4251,7 @@ uint DhcpSetSuperScopeV4(const(wchar)* ServerIpAddress, const(uint) SubnetAddres
 ///    </td> <td width="60%"> The specified IPv4 subnet does not exist on the DHCP server. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpDeleteSuperScopeV4(const(wchar)* ServerIpAddress, const(ushort)* SuperScopeName);
+uint DhcpDeleteSuperScopeV4(const(PWSTR) ServerIpAddress, const(PWSTR) SuperScopeName);
 
 ///The <b>DhcpGetSuperScopeInfoV4</b> function returns information on the superscope of a DHCP server.
 ///Params:
@@ -4268,7 +4266,7 @@ uint DhcpDeleteSuperScopeV4(const(wchar)* ServerIpAddress, const(ushort)* SuperS
 ///    not a member of the "DHCP Administrators" security group. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpGetSuperScopeInfoV4(const(wchar)* ServerIpAddress, DHCP_SUPER_SCOPE_TABLE** SuperScopeTable);
+uint DhcpGetSuperScopeInfoV4(const(PWSTR) ServerIpAddress, DHCP_SUPER_SCOPE_TABLE** SuperScopeTable);
 
 ///The <b>DhcpEnumSubnetClientsV5</b> function returns an enumerated list of clients with served IP addresses in the
 ///specified subnet. This function extends the features provided in the DhcpEnumSubnetClients function by returning a
@@ -4302,7 +4300,7 @@ uint DhcpGetSuperScopeInfoV4(const(wchar)* ServerIpAddress, DHCP_SUPER_SCOPE_TAB
 ///    </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpEnumSubnetClientsV5(const(wchar)* ServerIpAddress, uint SubnetAddress, uint* ResumeHandle, 
+uint DhcpEnumSubnetClientsV5(const(PWSTR) ServerIpAddress, uint SubnetAddress, uint* ResumeHandle, 
                              uint PreferredMaximum, DHCP_CLIENT_INFO_ARRAY_V5** ClientInfo, uint* ClientsRead, 
                              uint* ClientsTotal);
 
@@ -4335,8 +4333,8 @@ uint DhcpEnumSubnetClientsV5(const(wchar)* ServerIpAddress, uint SubnetAddress, 
 ///    name is unknown or incorrectly formed. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpCreateOptionV5(const(wchar)* ServerIpAddress, uint Flags, uint OptionId, const(wchar)* ClassName, 
-                        const(wchar)* VendorName, DHCP_OPTION* OptionInfo);
+uint DhcpCreateOptionV5(PWSTR ServerIpAddress, uint Flags, uint OptionId, PWSTR ClassName, PWSTR VendorName, 
+                        DHCP_OPTION* OptionInfo);
 
 ///The <b>DhcpSetOptionInfoV5</b> function sets information for a specific DHCP option.
 ///Params:
@@ -4362,8 +4360,8 @@ uint DhcpCreateOptionV5(const(wchar)* ServerIpAddress, uint Flags, uint OptionId
 ///    </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpSetOptionInfoV5(const(wchar)* ServerIpAddress, uint Flags, uint OptionID, const(wchar)* ClassName, 
-                         const(wchar)* VendorName, DHCP_OPTION* OptionInfo);
+uint DhcpSetOptionInfoV5(PWSTR ServerIpAddress, uint Flags, uint OptionID, PWSTR ClassName, PWSTR VendorName, 
+                         DHCP_OPTION* OptionInfo);
 
 ///The <b>DhcpGetOptionInfoV5</b> function returns information on a specific DHCP option.
 ///Params:
@@ -4396,8 +4394,8 @@ uint DhcpSetOptionInfoV5(const(wchar)* ServerIpAddress, uint Flags, uint OptionI
 ///    reserved client. o </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpGetOptionInfoV5(const(wchar)* ServerIpAddress, uint Flags, uint OptionID, const(wchar)* ClassName, 
-                         const(wchar)* VendorName, DHCP_OPTION** OptionInfo);
+uint DhcpGetOptionInfoV5(PWSTR ServerIpAddress, uint Flags, uint OptionID, PWSTR ClassName, PWSTR VendorName, 
+                         DHCP_OPTION** OptionInfo);
 
 ///The <b>DhcpEnumOptionsV5</b> function returns an enumerated list of DHCP options for a given user or vendor class.
 ///Params:
@@ -4432,9 +4430,8 @@ uint DhcpGetOptionInfoV5(const(wchar)* ServerIpAddress, uint Flags, uint OptionI
 ///    either incorrect or unknown. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpEnumOptionsV5(const(wchar)* ServerIpAddress, uint Flags, const(wchar)* ClassName, 
-                       const(wchar)* VendorName, uint* ResumeHandle, uint PreferredMaximum, 
-                       DHCP_OPTION_ARRAY** Options, uint* OptionsRead, uint* OptionsTotal);
+uint DhcpEnumOptionsV5(PWSTR ServerIpAddress, uint Flags, PWSTR ClassName, PWSTR VendorName, uint* ResumeHandle, 
+                       uint PreferredMaximum, DHCP_OPTION_ARRAY** Options, uint* OptionsRead, uint* OptionsTotal);
 
 ///The <b>DhcpRemoveOptionV5</b> function removes the definition of a specific option for a specific user class and
 ///vendor class at the default option level on the DHCP server. This extends the functionality in DhcpRemoveOption with
@@ -4464,8 +4461,7 @@ uint DhcpEnumOptionsV5(const(wchar)* ServerIpAddress, uint Flags, const(wchar)* 
 ///    class name is either unknown or incorrect. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpRemoveOptionV5(const(wchar)* ServerIpAddress, uint Flags, uint OptionID, const(wchar)* ClassName, 
-                        const(wchar)* VendorName);
+uint DhcpRemoveOptionV5(PWSTR ServerIpAddress, uint Flags, uint OptionID, PWSTR ClassName, PWSTR VendorName);
 
 ///The <b>DhcpSetOptionValueV5</b> function sets information for a specific option value on the DHCP server. This
 ///function extends the functionality provided by DhcpSetOptionValue by allowing the caller to specify a class and/or
@@ -4492,8 +4488,8 @@ uint DhcpRemoveOptionV5(const(wchar)* ServerIpAddress, uint Flags, uint OptionID
 ///    Management API Error Codes.
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpSetOptionValueV5(const(wchar)* ServerIpAddress, uint Flags, uint OptionId, const(wchar)* ClassName, 
-                          const(wchar)* VendorName, DHCP_OPTION_SCOPE_INFO* ScopeInfo, DHCP_OPTION_DATA* OptionValue);
+uint DhcpSetOptionValueV5(PWSTR ServerIpAddress, uint Flags, uint OptionId, PWSTR ClassName, PWSTR VendorName, 
+                          DHCP_OPTION_SCOPE_INFO* ScopeInfo, DHCP_OPTION_DATA* OptionValue);
 
 ///The <b>DhcpSetOptionValuesV5</b> function sets option codes and their associated data values for a specific scope
 ///defined on the DHCP server. This function extends the functionality provided by DhcpSetOptionValues by allowing the
@@ -4522,9 +4518,8 @@ uint DhcpSetOptionValueV5(const(wchar)* ServerIpAddress, uint Flags, uint Option
 ///    </td> <td width="60%"> The specified class name cannot be found in the DHCP server database. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpSetOptionValuesV5(const(wchar)* ServerIpAddress, uint Flags, const(wchar)* ClassName, 
-                           const(wchar)* VendorName, DHCP_OPTION_SCOPE_INFO* ScopeInfo, 
-                           DHCP_OPTION_VALUE_ARRAY* OptionValues);
+uint DhcpSetOptionValuesV5(PWSTR ServerIpAddress, uint Flags, PWSTR ClassName, PWSTR VendorName, 
+                           DHCP_OPTION_SCOPE_INFO* ScopeInfo, DHCP_OPTION_VALUE_ARRAY* OptionValues);
 
 ///The <b>DhcpGetOptionValueV5</b> function retrieves a DHCP option value (the option code and associated data) for a
 ///particular scope. This function extends the functionality provided by DhcpGetOptionValue by allowing the caller to
@@ -4559,9 +4554,8 @@ uint DhcpSetOptionValuesV5(const(wchar)* ServerIpAddress, uint Flags, const(wcha
 ///    reserved client. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpGetOptionValueV5(const(wchar)* ServerIpAddress, uint Flags, uint OptionID, const(wchar)* ClassName, 
-                          const(wchar)* VendorName, DHCP_OPTION_SCOPE_INFO* ScopeInfo, 
-                          DHCP_OPTION_VALUE** OptionValue);
+uint DhcpGetOptionValueV5(PWSTR ServerIpAddress, uint Flags, uint OptionID, PWSTR ClassName, PWSTR VendorName, 
+                          DHCP_OPTION_SCOPE_INFO* ScopeInfo, DHCP_OPTION_VALUE** OptionValue);
 
 ///The <b>DhcpGetOptionValueV6</b> function retrieves the option value for a specific option defined on the DHCPv6
 ///server for a specific user or vendor class.
@@ -4597,9 +4591,8 @@ uint DhcpGetOptionValueV5(const(wchar)* ServerIpAddress, uint Flags, uint Option
 ///    defined on the DHCPv6 server. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpGetOptionValueV6(const(wchar)* ServerIpAddress, uint Flags, uint OptionID, const(wchar)* ClassName, 
-                          const(wchar)* VendorName, DHCP_OPTION_SCOPE_INFO6* ScopeInfo, 
-                          DHCP_OPTION_VALUE** OptionValue);
+uint DhcpGetOptionValueV6(PWSTR ServerIpAddress, uint Flags, uint OptionID, PWSTR ClassName, PWSTR VendorName, 
+                          DHCP_OPTION_SCOPE_INFO6* ScopeInfo, DHCP_OPTION_VALUE** OptionValue);
 
 ///The <b>DhcpEnumOptionValuesV5</b> function returns an enumerated list of option values (just the option data and the
 ///associated ID number) for a specific scope within a given user or vendor class.
@@ -4642,10 +4635,9 @@ uint DhcpGetOptionValueV6(const(wchar)* ServerIpAddress, uint Flags, uint Option
 ///    client is not a reserved client. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpEnumOptionValuesV5(const(wchar)* ServerIpAddress, uint Flags, const(wchar)* ClassName, 
-                            const(wchar)* VendorName, DHCP_OPTION_SCOPE_INFO* ScopeInfo, uint* ResumeHandle, 
-                            uint PreferredMaximum, DHCP_OPTION_VALUE_ARRAY** OptionValues, uint* OptionsRead, 
-                            uint* OptionsTotal);
+uint DhcpEnumOptionValuesV5(PWSTR ServerIpAddress, uint Flags, PWSTR ClassName, PWSTR VendorName, 
+                            DHCP_OPTION_SCOPE_INFO* ScopeInfo, uint* ResumeHandle, uint PreferredMaximum, 
+                            DHCP_OPTION_VALUE_ARRAY** OptionValues, uint* OptionsRead, uint* OptionsTotal);
 
 ///The <b>DhcpRemoveOptionValueV5</b> function removes an option value from a scope defined on the DHCP server.
 ///Params:
@@ -4666,8 +4658,8 @@ uint DhcpEnumOptionValuesV5(const(wchar)* ServerIpAddress, uint Flags, const(wch
 ///    Management API Error Codes.
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpRemoveOptionValueV5(const(wchar)* ServerIpAddress, uint Flags, uint OptionID, const(wchar)* ClassName, 
-                             const(wchar)* VendorName, DHCP_OPTION_SCOPE_INFO* ScopeInfo);
+uint DhcpRemoveOptionValueV5(PWSTR ServerIpAddress, uint Flags, uint OptionID, PWSTR ClassName, PWSTR VendorName, 
+                             DHCP_OPTION_SCOPE_INFO* ScopeInfo);
 
 ///The <b>DhcpCreateClass</b> function creates a custom option class.
 ///Params:
@@ -4685,7 +4677,7 @@ uint DhcpRemoveOptionValueV5(const(wchar)* ServerIpAddress, uint Flags, uint Opt
 ///    is already in use.. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpCreateClass(const(wchar)* ServerIpAddress, uint ReservedMustBeZero, DHCP_CLASS_INFO* ClassInfo);
+uint DhcpCreateClass(PWSTR ServerIpAddress, uint ReservedMustBeZero, DHCP_CLASS_INFO* ClassInfo);
 
 ///The <b>DhcpModifyClass</b> function modifies a DHCP class defined on the server.
 ///Params:
@@ -4707,7 +4699,7 @@ uint DhcpCreateClass(const(wchar)* ServerIpAddress, uint ReservedMustBeZero, DHC
 ///    </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpModifyClass(const(wchar)* ServerIpAddress, uint ReservedMustBeZero, DHCP_CLASS_INFO* ClassInfo);
+uint DhcpModifyClass(PWSTR ServerIpAddress, uint ReservedMustBeZero, DHCP_CLASS_INFO* ClassInfo);
 
 ///The <b>DhcpDeleteClass</b> function deletes a DHCP class from the DHCP server.
 ///Params:
@@ -4727,7 +4719,7 @@ uint DhcpModifyClass(const(wchar)* ServerIpAddress, uint ReservedMustBeZero, DHC
 ///    cannot be deleted. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpDeleteClass(const(wchar)* ServerIpAddress, uint ReservedMustBeZero, const(wchar)* ClassName);
+uint DhcpDeleteClass(PWSTR ServerIpAddress, uint ReservedMustBeZero, PWSTR ClassName);
 
 ///The <b>DhcpGetClassInfo</b> function returns the user or vendor class information configured on a specific DHCP
 ///server.
@@ -4751,7 +4743,7 @@ uint DhcpDeleteClass(const(wchar)* ServerIpAddress, uint ReservedMustBeZero, con
 ///    be found that matches the provided information. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpGetClassInfo(const(wchar)* ServerIpAddress, uint ReservedMustBeZero, DHCP_CLASS_INFO* PartialClassInfo, 
+uint DhcpGetClassInfo(PWSTR ServerIpAddress, uint ReservedMustBeZero, DHCP_CLASS_INFO* PartialClassInfo, 
                       DHCP_CLASS_INFO** FilledClassInfo);
 
 ///The <b>DhcpEnumClasses</b> function enumerates the user or vendor classes configured for the DHCP server.
@@ -4778,8 +4770,8 @@ uint DhcpGetClassInfo(const(wchar)* ServerIpAddress, uint ReservedMustBeZero, DH
 ///    server's database. </td> </tr> </table>
 ///    
 @DllImport("dhcpcsvc")
-uint DhcpEnumClasses(const(wchar)* ServerIpAddress, uint ReservedMustBeZero, uint* ResumeHandle, 
-                     uint PreferredMaximum, DHCP_CLASS_INFO_ARRAY** ClassInfoArray, uint* nRead, uint* nTotal);
+uint DhcpEnumClasses(PWSTR ServerIpAddress, uint ReservedMustBeZero, uint* ResumeHandle, uint PreferredMaximum, 
+                     DHCP_CLASS_INFO_ARRAY** ClassInfoArray, uint* nRead, uint* nTotal);
 
 ///The <b>DhcpGetAllOptions</b> function returns an array that contains all options defined on the DHCP server.
 ///Params:
@@ -4799,7 +4791,7 @@ uint DhcpEnumClasses(const(wchar)* ServerIpAddress, uint ReservedMustBeZero, uin
 ///    server database. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpGetAllOptions(const(wchar)* ServerIpAddress, uint Flags, DHCP_ALL_OPTIONS** OptionStruct);
+uint DhcpGetAllOptions(PWSTR ServerIpAddress, uint Flags, DHCP_ALL_OPTIONS** OptionStruct);
 
 ///The <b>DhcpGetAllOptionsV6</b> function returns an array that contains all options defined on the DHCP server.
 ///Params:
@@ -4813,7 +4805,7 @@ uint DhcpGetAllOptions(const(wchar)* ServerIpAddress, uint Flags, DHCP_ALL_OPTIO
 ///                   options available on the server, this value will be null. <div class="alert"><b>Note</b> <p class="note">The
 ///                   memory for this parameter must be free using DhcpRpcFreeMemory. </div> <div> </div>
 @DllImport("DHCPSAPI")
-uint DhcpGetAllOptionsV6(const(wchar)* ServerIpAddress, uint Flags, DHCP_ALL_OPTIONS** OptionStruct);
+uint DhcpGetAllOptionsV6(PWSTR ServerIpAddress, uint Flags, DHCP_ALL_OPTIONS** OptionStruct);
 
 ///The <b>DhcpGetAllOptionValues</b> function returns an array that contains all option values defined for a specific
 ///scope on the DHCP server.
@@ -4840,7 +4832,7 @@ uint DhcpGetAllOptionsV6(const(wchar)* ServerIpAddress, uint Flags, DHCP_ALL_OPT
 ///    </dl> </td> <td width="60%"> The specified DHCP client is not a reserved client. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpGetAllOptionValues(const(wchar)* ServerIpAddress, uint Flags, DHCP_OPTION_SCOPE_INFO* ScopeInfo, 
+uint DhcpGetAllOptionValues(PWSTR ServerIpAddress, uint Flags, DHCP_OPTION_SCOPE_INFO* ScopeInfo, 
                             DHCP_ALL_OPTION_VALUES** Values);
 
 ///The <b>DhcpGetAllOptionValuesV6</b> function returns an array that contains all option values defined for a specific
@@ -4858,7 +4850,7 @@ uint DhcpGetAllOptionValues(const(wchar)* ServerIpAddress, uint Flags, DHCP_OPTI
 ///             <i>ScopeInfo</i>. <div class="alert"><b>Note</b> <p class="note">The memory for this parameter must be free using
 ///             DhcpRpcFreeMemory. </div> <div> </div>
 @DllImport("DHCPSAPI")
-uint DhcpGetAllOptionValuesV6(const(wchar)* ServerIpAddress, uint Flags, DHCP_OPTION_SCOPE_INFO6* ScopeInfo, 
+uint DhcpGetAllOptionValuesV6(PWSTR ServerIpAddress, uint Flags, DHCP_OPTION_SCOPE_INFO6* ScopeInfo, 
                               DHCP_ALL_OPTION_VALUES** Values);
 
 ///The <b>DhcpEnumServers</b> function returns an enumerated list of DHCP servers found in the directory service.
@@ -4926,8 +4918,7 @@ uint DhcpDeleteServer(uint Flags, void* IdInfo, DHCPDS_SERVER* NewServer, void* 
 ///    Management API Error Codes.
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpGetServerBindingInfo(const(wchar)* ServerIpAddress, uint Flags, 
-                              DHCP_BIND_ELEMENT_ARRAY** BindElementsInfo);
+uint DhcpGetServerBindingInfo(const(PWSTR) ServerIpAddress, uint Flags, DHCP_BIND_ELEMENT_ARRAY** BindElementsInfo);
 
 ///The <b>DhcpSetServerBindingInfo</b> function sets endpoint bindings for the DHCP server.
 ///Params:
@@ -4942,7 +4933,7 @@ uint DhcpGetServerBindingInfo(const(wchar)* ServerIpAddress, uint Flags,
 ///    Management API Error Codes.
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpSetServerBindingInfo(const(wchar)* ServerIpAddress, uint Flags, DHCP_BIND_ELEMENT_ARRAY* BindElementInfo);
+uint DhcpSetServerBindingInfo(const(PWSTR) ServerIpAddress, uint Flags, DHCP_BIND_ELEMENT_ARRAY* BindElementInfo);
 
 ///The <b>DhcpAddSubnetElementV5</b> function adds an element describing a feature or aspect of the subnet to the subnet
 ///entry in the DHCP database. <b>Windows 2000 and earlier: </b>This function is not available.
@@ -4956,7 +4947,7 @@ uint DhcpSetServerBindingInfo(const(wchar)* ServerIpAddress, uint Flags, DHCP_BI
 ///    Management API Error Codes.
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpAddSubnetElementV5(const(wchar)* ServerIpAddress, uint SubnetAddress, 
+uint DhcpAddSubnetElementV5(const(PWSTR) ServerIpAddress, uint SubnetAddress, 
                             const(DHCP_SUBNET_ELEMENT_DATA_V5)* AddElementInfo);
 
 ///The <b>DhcpEnumSubnetElementsV5</b> function returns an enumerated list of elements for a specific DHCP subnet.
@@ -4990,7 +4981,7 @@ uint DhcpAddSubnetElementV5(const(wchar)* ServerIpAddress, uint SubnetAddress,
 ///    no more elements left to enumerate. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpEnumSubnetElementsV5(const(wchar)* ServerIpAddress, uint SubnetAddress, 
+uint DhcpEnumSubnetElementsV5(const(PWSTR) ServerIpAddress, uint SubnetAddress, 
                               DHCP_SUBNET_ELEMENT_TYPE EnumElementType, uint* ResumeHandle, uint PreferredMaximum, 
                               DHCP_SUBNET_ELEMENT_INFO_ARRAY_V5** EnumElementInfo, uint* ElementsRead, 
                               uint* ElementsTotal);
@@ -5008,7 +4999,7 @@ uint DhcpEnumSubnetElementsV5(const(wchar)* ServerIpAddress, uint SubnetAddress,
 ///    Management API Error Codes.
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpRemoveSubnetElementV5(const(wchar)* ServerIpAddress, uint SubnetAddress, 
+uint DhcpRemoveSubnetElementV5(const(PWSTR) ServerIpAddress, uint SubnetAddress, 
                                const(DHCP_SUBNET_ELEMENT_DATA_V5)* RemoveElementInfo, DHCP_FORCE_FLAG ForceFlag);
 
 ///The <b>DhcpV4EnumSubnetReservations</b> function enumerates the reservations for a specific DHCP IPv4 subnet.
@@ -5040,7 +5031,7 @@ uint DhcpRemoveSubnetElementV5(const(wchar)* ServerIpAddress, uint SubnetAddress
 ///    IPv4 subnet does not exist on the DHCPv4 server. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV4EnumSubnetReservations(const(wchar)* ServerIpAddress, uint SubnetAddress, uint* ResumeHandle, 
+uint DhcpV4EnumSubnetReservations(const(PWSTR) ServerIpAddress, uint SubnetAddress, uint* ResumeHandle, 
                                   uint PreferredMaximum, DHCP_RESERVATION_INFO_ARRAY** EnumElementInfo, 
                                   uint* ElementsRead, uint* ElementsTotal);
 
@@ -5061,8 +5052,8 @@ uint DhcpV4EnumSubnetReservations(const(wchar)* ServerIpAddress, uint SubnetAddr
 ///    OptionInfo = DHCP_OPTION structure that contains information describing the new DHCP option, including the name, an optional
 ///                 comment, and any related data items.
 @DllImport("DHCPSAPI")
-uint DhcpCreateOptionV6(const(wchar)* ServerIpAddress, uint Flags, uint OptionId, const(wchar)* ClassName, 
-                        const(wchar)* VendorName, DHCP_OPTION* OptionInfo);
+uint DhcpCreateOptionV6(PWSTR ServerIpAddress, uint Flags, uint OptionId, PWSTR ClassName, PWSTR VendorName, 
+                        DHCP_OPTION* OptionInfo);
 
 ///The <b>DhcpRemoveOptionV6</b> function removes an option defined on the DHCP server..
 ///Params:
@@ -5077,8 +5068,7 @@ uint DhcpCreateOptionV6(const(wchar)* ServerIpAddress, uint Flags, uint OptionId
 ///    VendorName = Unicode string that specifies the vendor of the option. This parameter is optional, and should be <b>NULL</b>
 ///                 when <i>Flags</i> is not set to DHCP_FLAGS_OPTION_IS_VENDOR.
 @DllImport("DHCPSAPI")
-uint DhcpRemoveOptionV6(const(wchar)* ServerIpAddress, uint Flags, uint OptionID, const(wchar)* ClassName, 
-                        const(wchar)* VendorName);
+uint DhcpRemoveOptionV6(PWSTR ServerIpAddress, uint Flags, uint OptionID, PWSTR ClassName, PWSTR VendorName);
 
 ///The <b>DhcpEnumOptionsV6</b> function returns an enumerated list of DHCP options for a given class and/or vendor.
 ///Params:
@@ -5102,9 +5092,8 @@ uint DhcpRemoveOptionV6(const(wchar)* ServerIpAddress, uint Flags, uint OptionID
 ///    OptionsRead = Pointer to a DWORD value that specifies the number of options returned in <i>Options</i>.
 ///    OptionsTotal = Pointer to a DWORD value that specifies the total number of options stored on the DHCP server.
 @DllImport("DHCPSAPI")
-uint DhcpEnumOptionsV6(const(wchar)* ServerIpAddress, uint Flags, const(wchar)* ClassName, 
-                       const(wchar)* VendorName, uint* ResumeHandle, uint PreferredMaximum, 
-                       DHCP_OPTION_ARRAY** Options, uint* OptionsRead, uint* OptionsTotal);
+uint DhcpEnumOptionsV6(PWSTR ServerIpAddress, uint Flags, PWSTR ClassName, PWSTR VendorName, uint* ResumeHandle, 
+                       uint PreferredMaximum, DHCP_OPTION_ARRAY** Options, uint* OptionsRead, uint* OptionsTotal);
 
 ///The <b>DhcpRemoveOptionValueV6</b> function removes an option value from a scope defined on the DHCP server.
 ///Params:
@@ -5121,8 +5110,8 @@ uint DhcpEnumOptionsV6(const(wchar)* ServerIpAddress, uint Flags, const(wchar)* 
 ///    ScopeInfo = DHCP_OPTION_SCOPE_INFO6 structure that contains information describing the specific scope to remove the option
 ///                value from.
 @DllImport("DHCPSAPI")
-uint DhcpRemoveOptionValueV6(const(wchar)* ServerIpAddress, uint Flags, uint OptionID, const(wchar)* ClassName, 
-                             const(wchar)* VendorName, DHCP_OPTION_SCOPE_INFO6* ScopeInfo);
+uint DhcpRemoveOptionValueV6(PWSTR ServerIpAddress, uint Flags, uint OptionID, PWSTR ClassName, PWSTR VendorName, 
+                             DHCP_OPTION_SCOPE_INFO6* ScopeInfo);
 
 ///The <b>DhcpGetOptionInfoV6</b> function returns information on a specific DHCP option.
 ///Params:
@@ -5140,8 +5129,8 @@ uint DhcpRemoveOptionValueV6(const(wchar)* ServerIpAddress, uint Flags, uint Opt
 ///                 <i>OptionID</i>. <div class="alert"><b>Note</b> <p class="note">The memory for this parameter must be free using
 ///                 DhcpRpcFreeMemory. </div> <div> </div>
 @DllImport("DHCPSAPI")
-uint DhcpGetOptionInfoV6(const(wchar)* ServerIpAddress, uint Flags, uint OptionID, const(wchar)* ClassName, 
-                         const(wchar)* VendorName, DHCP_OPTION** OptionInfo);
+uint DhcpGetOptionInfoV6(PWSTR ServerIpAddress, uint Flags, uint OptionID, PWSTR ClassName, PWSTR VendorName, 
+                         DHCP_OPTION** OptionInfo);
 
 ///The <b>DhcpSetOptionInfoV6</b> function sets information for a specific DHCP option.
 ///Params:
@@ -5157,8 +5146,8 @@ uint DhcpGetOptionInfoV6(const(wchar)* ServerIpAddress, uint Flags, uint OptionI
 ///                 when <i>Flags</i> is not set to DHCP_FLAGS_OPTION_IS_VENDOR.
 ///    OptionInfo = Pointer to a DHCP_OPTION structure that contains the information on the option specified by <i>OptionID</i>.
 @DllImport("DHCPSAPI")
-uint DhcpSetOptionInfoV6(const(wchar)* ServerIpAddress, uint Flags, uint OptionID, const(wchar)* ClassName, 
-                         const(wchar)* VendorName, DHCP_OPTION* OptionInfo);
+uint DhcpSetOptionInfoV6(PWSTR ServerIpAddress, uint Flags, uint OptionID, PWSTR ClassName, PWSTR VendorName, 
+                         DHCP_OPTION* OptionInfo);
 
 ///The <b>DhcpSetOptionValueV6</b> function sets information for a specific option value on the DHCP server.
 ///Params:
@@ -5179,9 +5168,8 @@ uint DhcpSetOptionInfoV6(const(wchar)* ServerIpAddress, uint Flags, uint OptionI
 ///    OptionValue = Pointer to a DHCP_OPTION_DATA structure that contains the data value corresponding to the DHCP option code
 ///                  specified by <i>OptionID</i>.
 @DllImport("DHCPSAPI")
-uint DhcpSetOptionValueV6(const(wchar)* ServerIpAddress, uint Flags, uint OptionId, const(wchar)* ClassName, 
-                          const(wchar)* VendorName, DHCP_OPTION_SCOPE_INFO6* ScopeInfo, 
-                          DHCP_OPTION_DATA* OptionValue);
+uint DhcpSetOptionValueV6(PWSTR ServerIpAddress, uint Flags, uint OptionId, PWSTR ClassName, PWSTR VendorName, 
+                          DHCP_OPTION_SCOPE_INFO6* ScopeInfo, DHCP_OPTION_DATA* OptionValue);
 
 ///The <b>DhcpGetSubnetInfoVQ</b> function retrieves the information about a specific IPv4 subnet defined on the DHCP
 ///server.
@@ -5204,7 +5192,7 @@ uint DhcpSetOptionValueV6(const(wchar)* ServerIpAddress, uint Flags, uint Option
 ///    invalid value. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpGetSubnetInfoVQ(const(wchar)* ServerIpAddress, uint SubnetAddress, DHCP_SUBNET_INFO_VQ** SubnetInfo);
+uint DhcpGetSubnetInfoVQ(const(PWSTR) ServerIpAddress, uint SubnetAddress, DHCP_SUBNET_INFO_VQ** SubnetInfo);
 
 ///The <b>DhcpCreateSubnetVQ</b> function creates a new IPv4 subnet and its associated NAP state information on the DHCP
 ///server.
@@ -5225,7 +5213,7 @@ uint DhcpGetSubnetInfoVQ(const(wchar)* ServerIpAddress, uint SubnetAddress, DHCP
 ///    are inconsistent with the subnet address and mask of an existing scope. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpCreateSubnetVQ(const(wchar)* ServerIpAddress, uint SubnetAddress, const(DHCP_SUBNET_INFO_VQ)* SubnetInfo);
+uint DhcpCreateSubnetVQ(const(PWSTR) ServerIpAddress, uint SubnetAddress, const(DHCP_SUBNET_INFO_VQ)* SubnetInfo);
 
 ///The <b>DhcpSetSubnetInfoVQ</b> function sets information about a subnet defined on the DHCP server.
 ///Params:
@@ -5243,7 +5231,7 @@ uint DhcpCreateSubnetVQ(const(wchar)* ServerIpAddress, uint SubnetAddress, const
 ///    </td> <td width="60%"> The specified IPv4 subnet is not defined on the DHCP server. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpSetSubnetInfoVQ(const(wchar)* ServerIpAddress, uint SubnetAddress, const(DHCP_SUBNET_INFO_VQ)* SubnetInfo);
+uint DhcpSetSubnetInfoVQ(const(PWSTR) ServerIpAddress, uint SubnetAddress, const(DHCP_SUBNET_INFO_VQ)* SubnetInfo);
 
 ///The <b>DhcpEnumOptionValuesV6</b> function returns an enumerated list of option values (the option data and the
 ///associated ID number) for a specific scope within a given class.
@@ -5271,10 +5259,9 @@ uint DhcpSetSubnetInfoVQ(const(wchar)* ServerIpAddress, uint SubnetAddress, cons
 ///    OptionsTotal = Pointer to a DWORD value that specifies the total number of option values for this scope stored on the DHCP
 ///                   server.
 @DllImport("DHCPSAPI")
-uint DhcpEnumOptionValuesV6(const(wchar)* ServerIpAddress, uint Flags, const(wchar)* ClassName, 
-                            const(wchar)* VendorName, DHCP_OPTION_SCOPE_INFO6* ScopeInfo, uint* ResumeHandle, 
-                            uint PreferredMaximum, DHCP_OPTION_VALUE_ARRAY** OptionValues, uint* OptionsRead, 
-                            uint* OptionsTotal);
+uint DhcpEnumOptionValuesV6(const(PWSTR) ServerIpAddress, uint Flags, PWSTR ClassName, PWSTR VendorName, 
+                            DHCP_OPTION_SCOPE_INFO6* ScopeInfo, uint* ResumeHandle, uint PreferredMaximum, 
+                            DHCP_OPTION_VALUE_ARRAY** OptionValues, uint* OptionsRead, uint* OptionsTotal);
 
 ///The <b>DhcpDsInit</b> function initializes memory within the directory service for a new DHCP server process.
 ///Returns:
@@ -5335,8 +5322,7 @@ uint DhcpGetThreadOptions(uint* pFlags, void* Reserved);
 ///    Management API Error Codes.
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpServerQueryAttribute(const(wchar)* ServerIpAddr, uint dwReserved, uint DhcpAttribId, 
-                              DHCP_ATTRIB** pDhcpAttrib);
+uint DhcpServerQueryAttribute(PWSTR ServerIpAddr, uint dwReserved, uint DhcpAttribId, DHCP_ATTRIB** pDhcpAttrib);
 
 ///The <b>DhcpServerQueryAttributes</b> function returns an array of attributes set on the DHCP server.
 ///Params:
@@ -5352,7 +5338,7 @@ uint DhcpServerQueryAttribute(const(wchar)* ServerIpAddr, uint dwReserved, uint 
 ///    Management API Error Codes.
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpServerQueryAttributes(const(wchar)* ServerIpAddr, uint dwReserved, uint dwAttribCount, uint* pDhcpAttribs, 
+uint DhcpServerQueryAttributes(PWSTR ServerIpAddr, uint dwReserved, uint dwAttribCount, uint* pDhcpAttribs, 
                                DHCP_ATTRIB_ARRAY** pDhcpAttribArr);
 
 ///The <b>DhcpServerRedoAuthorization</b> function attempts to determine whether the DHCP server is authorized and
@@ -5365,7 +5351,7 @@ uint DhcpServerQueryAttributes(const(wchar)* ServerIpAddr, uint dwReserved, uint
 ///    Management API Error Codes.
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpServerRedoAuthorization(const(wchar)* ServerIpAddr, uint dwReserved);
+uint DhcpServerRedoAuthorization(PWSTR ServerIpAddr, uint dwReserved);
 
 ///The <b>DhcpAuditLogSetParams</b> function sets the parameters for audit log generation on a DHCP server.
 ///Params:
@@ -5385,8 +5371,8 @@ uint DhcpServerRedoAuthorization(const(wchar)* ServerIpAddr, uint dwReserved);
 ///    not a member of the "DHCP Administrators" security group. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpAuditLogSetParams(const(wchar)* ServerIpAddress, uint Flags, const(wchar)* AuditLogDir, 
-                           uint DiskCheckInterval, uint MaxLogFilesSize, uint MinSpaceOnDisk);
+uint DhcpAuditLogSetParams(PWSTR ServerIpAddress, uint Flags, PWSTR AuditLogDir, uint DiskCheckInterval, 
+                           uint MaxLogFilesSize, uint MinSpaceOnDisk);
 
 ///The <b>DhcpAuditLogGetParams</b> function returns the audit log configuration settings from the DHCP server.
 ///Params:
@@ -5408,8 +5394,8 @@ uint DhcpAuditLogSetParams(const(wchar)* ServerIpAddress, uint Flags, const(wcha
 ///    server's database. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpAuditLogGetParams(const(wchar)* ServerIpAddress, uint Flags, ushort** AuditLogDir, 
-                           uint* DiskCheckInterval, uint* MaxLogFilesSize, uint* MinSpaceOnDisk);
+uint DhcpAuditLogGetParams(PWSTR ServerIpAddress, uint Flags, PWSTR* AuditLogDir, uint* DiskCheckInterval, 
+                           uint* MaxLogFilesSize, uint* MinSpaceOnDisk);
 
 ///The <b>DhcpServerQueryDnsRegCredentials</b> function retrieves the current Domain Name System (DNS) credentials used
 ///by the DHCP server for client dynamic DNS registration.
@@ -5428,12 +5414,11 @@ uint DhcpAuditLogGetParams(const(wchar)* ServerIpAddress, uint Flags, ushort** A
 ///    Management API Error Codes.
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpServerQueryDnsRegCredentials(const(wchar)* ServerIpAddress, uint UnameSize, const(wchar)* Uname, 
-                                      uint DomainSize, const(wchar)* Domain);
+uint DhcpServerQueryDnsRegCredentials(PWSTR ServerIpAddress, uint UnameSize, PWSTR Uname, uint DomainSize, 
+                                      PWSTR Domain);
 
 @DllImport("DHCPSAPI")
-uint DhcpServerSetDnsRegCredentials(const(wchar)* ServerIpAddress, const(wchar)* Uname, const(wchar)* Domain, 
-                                    const(wchar)* Passwd);
+uint DhcpServerSetDnsRegCredentials(PWSTR ServerIpAddress, PWSTR Uname, PWSTR Domain, PWSTR Passwd);
 
 ///The <b>DhcpServerSetDnsRegCredentialsV5</b> function sets the credentials used by the DHCP server to create Domain
 ///Name System (DNS) registrations for the DHCP client lease record.
@@ -5448,8 +5433,7 @@ uint DhcpServerSetDnsRegCredentials(const(wchar)* ServerIpAddress, const(wchar)*
 ///    Management API Error Codes.
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpServerSetDnsRegCredentialsV5(const(wchar)* ServerIpAddress, const(wchar)* Uname, const(wchar)* Domain, 
-                                      const(wchar)* Passwd);
+uint DhcpServerSetDnsRegCredentialsV5(PWSTR ServerIpAddress, PWSTR Uname, PWSTR Domain, PWSTR Passwd);
 
 ///The <b>DhcpServerBackupDatabase</b> function backs up the DHCP server database configuration, settings, and DHCP
 ///client lease record to a specified file location.
@@ -5465,7 +5449,7 @@ uint DhcpServerSetDnsRegCredentialsV5(const(wchar)* ServerIpAddress, const(wchar
 ///    server's database. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpServerBackupDatabase(const(wchar)* ServerIpAddress, const(wchar)* Path);
+uint DhcpServerBackupDatabase(PWSTR ServerIpAddress, PWSTR Path);
 
 ///The <b>DhcpServerRestoreDatabase</b> function restores the settings, configuration, and records for a client lease
 ///database from a specific backup location (path).
@@ -5483,7 +5467,7 @@ uint DhcpServerBackupDatabase(const(wchar)* ServerIpAddress, const(wchar)* Path)
 ///    server's database. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpServerRestoreDatabase(const(wchar)* ServerIpAddress, const(wchar)* Path);
+uint DhcpServerRestoreDatabase(PWSTR ServerIpAddress, PWSTR Path);
 
 ///The <b>DhcpServerSetConfigVQ</b> function sets or updates DHCP server settings.
 ///Params:
@@ -5497,7 +5481,7 @@ uint DhcpServerRestoreDatabase(const(wchar)* ServerIpAddress, const(wchar)* Path
 ///    not a member of the "DHCP Administrators" security group. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpServerSetConfigVQ(const(wchar)* ServerIpAddress, uint FieldsToSet, DHCP_SERVER_CONFIG_INFO_VQ* ConfigInfo);
+uint DhcpServerSetConfigVQ(const(PWSTR) ServerIpAddress, uint FieldsToSet, DHCP_SERVER_CONFIG_INFO_VQ* ConfigInfo);
 
 ///The <b>DhcpServerGetConfigVQ</b> function retrieves the current DHCP server configuration settings.
 ///Params:
@@ -5511,7 +5495,7 @@ uint DhcpServerSetConfigVQ(const(wchar)* ServerIpAddress, uint FieldsToSet, DHCP
 ///    not a member of the "DHCP Administrators" security group. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpServerGetConfigVQ(const(wchar)* ServerIpAddress, DHCP_SERVER_CONFIG_INFO_VQ** ConfigInfo);
+uint DhcpServerGetConfigVQ(const(PWSTR) ServerIpAddress, DHCP_SERVER_CONFIG_INFO_VQ** ConfigInfo);
 
 ///The <b>DhcpGetServerSpecificStrings</b> function retrieves the names of the default vendor class and user class.
 ///Params:
@@ -5526,7 +5510,7 @@ uint DhcpServerGetConfigVQ(const(wchar)* ServerIpAddress, DHCP_SERVER_CONFIG_INF
 ///    server database. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpGetServerSpecificStrings(const(wchar)* ServerIpAddress, 
+uint DhcpGetServerSpecificStrings(const(PWSTR) ServerIpAddress, 
                                   DHCP_SERVER_SPECIFIC_STRINGS** ServerSpecificStrings);
 
 @DllImport("DHCPSAPI")
@@ -5539,8 +5523,7 @@ void DhcpServerAuditlogParamsFree(DHCP_SERVER_CONFIG_INFO_VQ* ConfigInfo);
 ///    SubnetInfo = DHCP_SUBNET_INFO_V6 structure that contains specific settings for the subnet, including the subnet mask and IP
 ///                 address of the subnet gateway.
 @DllImport("DHCPSAPI")
-uint DhcpCreateSubnetV6(const(wchar)* ServerIpAddress, DHCP_IPV6_ADDRESS SubnetAddress, 
-                        DHCP_SUBNET_INFO_V6* SubnetInfo);
+uint DhcpCreateSubnetV6(PWSTR ServerIpAddress, DHCP_IPV6_ADDRESS SubnetAddress, DHCP_SUBNET_INFO_V6* SubnetInfo);
 
 ///The <b>DhcpDeleteSubnetV6</b> function deletes a subnet from the DHCP server.
 ///Params:
@@ -5549,7 +5532,7 @@ uint DhcpCreateSubnetV6(const(wchar)* ServerIpAddress, DHCP_IPV6_ADDRESS SubnetA
 ///    ForceFlag = DHCP_FORCE_FLAG enumeration value that indicates the type of delete operation to perform (full force or no
 ///                force).
 @DllImport("DHCPSAPI")
-uint DhcpDeleteSubnetV6(const(wchar)* ServerIpAddress, DHCP_IPV6_ADDRESS SubnetAddress, DHCP_FORCE_FLAG ForceFlag);
+uint DhcpDeleteSubnetV6(PWSTR ServerIpAddress, DHCP_IPV6_ADDRESS SubnetAddress, DHCP_FORCE_FLAG ForceFlag);
 
 ///The <b>DhcpEnumSubnetsV6</b> function returns an enumerated list of subnets defined on the DHCP server.
 ///Params:
@@ -5566,7 +5549,7 @@ uint DhcpDeleteSubnetV6(const(wchar)* ServerIpAddress, DHCP_IPV6_ADDRESS SubnetA
 ///    ElementsTotal = Pointer to a <b>DWORD</b> value that specifies the number of subnets defined on the DHCP server that have not yet
 ///                    been enumerated.
 @DllImport("DHCPSAPI")
-uint DhcpEnumSubnetsV6(const(wchar)* ServerIpAddress, uint* ResumeHandle, uint PreferredMaximum, 
+uint DhcpEnumSubnetsV6(const(PWSTR) ServerIpAddress, uint* ResumeHandle, uint PreferredMaximum, 
                        DHCPV6_IP_ARRAY** EnumInfo, uint* ElementsRead, uint* ElementsTotal);
 
 ///The <b>DhcpAddSubnetElementV6</b> function adds an element describing a feature or aspect of the subnet to the subnet
@@ -5577,7 +5560,7 @@ uint DhcpEnumSubnetsV6(const(wchar)* ServerIpAddress, uint* ResumeHandle, uint P
 ///    AddElementInfo = Pointer to a DHCP_SUBNET_ELEMENT_DATA_V6 structure that contains the element data to add to the subnet. The V5
 ///                     structure adds support for BOOTP clients.
 @DllImport("DHCPSAPI")
-uint DhcpAddSubnetElementV6(const(wchar)* ServerIpAddress, DHCP_IPV6_ADDRESS SubnetAddress, 
+uint DhcpAddSubnetElementV6(PWSTR ServerIpAddress, DHCP_IPV6_ADDRESS SubnetAddress, 
                             DHCP_SUBNET_ELEMENT_DATA_V6* AddElementInfo);
 
 ///The <b>DhcpRemoveSubnetElementV6</b> function removes an element from a subnet defined on the DHCP server.
@@ -5589,7 +5572,7 @@ uint DhcpAddSubnetElementV6(const(wchar)* ServerIpAddress, DHCP_IPV6_ADDRESS Sub
 ///    ForceFlag = DHCP_FORCE_FLAG enumeration value that indicates whether or not the clients affected by the removal of the subnet
 ///                element should also be deleted.
 @DllImport("DHCPSAPI")
-uint DhcpRemoveSubnetElementV6(const(wchar)* ServerIpAddress, DHCP_IPV6_ADDRESS SubnetAddress, 
+uint DhcpRemoveSubnetElementV6(PWSTR ServerIpAddress, DHCP_IPV6_ADDRESS SubnetAddress, 
                                DHCP_SUBNET_ELEMENT_DATA_V6* RemoveElementInfo, DHCP_FORCE_FLAG ForceFlag);
 
 ///The <b>DhcpEnumSubnetElementsV6</b> function returns an enumerated list of elements for a specific DHCP subnet.
@@ -5609,7 +5592,7 @@ uint DhcpRemoveSubnetElementV6(const(wchar)* ServerIpAddress, DHCP_IPV6_ADDRESS 
 ///    ElementsRead = Pointer to a DWORD value that specifies the number of subnet elements returned in <i>EnumElementInfo</i>.
 ///    ElementsTotal = Pointer to a DWORD value that specifies the total number of elements for the specified subnet.
 @DllImport("DHCPSAPI")
-uint DhcpEnumSubnetElementsV6(const(wchar)* ServerIpAddress, DHCP_IPV6_ADDRESS SubnetAddress, 
+uint DhcpEnumSubnetElementsV6(PWSTR ServerIpAddress, DHCP_IPV6_ADDRESS SubnetAddress, 
                               DHCP_SUBNET_ELEMENT_TYPE_V6 EnumElementType, uint* ResumeHandle, uint PreferredMaximum, 
                               DHCP_SUBNET_ELEMENT_INFO_ARRAY_V6** EnumElementInfo, uint* ElementsRead, 
                               uint* ElementsTotal);
@@ -5622,8 +5605,7 @@ uint DhcpEnumSubnetElementsV6(const(wchar)* ServerIpAddress, DHCP_IPV6_ADDRESS S
 ///                 <i>SubnetAddress</i>. <div class="alert"><b>Note</b> <p class="note">The memory for this parameter must be free
 ///                 using DhcpRpcFreeMemory. </div> <div> </div>
 @DllImport("DHCPSAPI")
-uint DhcpGetSubnetInfoV6(const(wchar)* ServerIpAddress, DHCP_IPV6_ADDRESS SubnetAddress, 
-                         DHCP_SUBNET_INFO_V6** SubnetInfo);
+uint DhcpGetSubnetInfoV6(PWSTR ServerIpAddress, DHCP_IPV6_ADDRESS SubnetAddress, DHCP_SUBNET_INFO_V6** SubnetInfo);
 
 ///The <b>DhcpEnumSubnetClientsV6</b> function returns an enumerated list of clients with served IP addresses in the
 ///specified subnet.
@@ -5643,7 +5625,7 @@ uint DhcpGetSubnetInfoV6(const(wchar)* ServerIpAddress, DHCP_IPV6_ADDRESS Subnet
 ///    ClientsTotal = Pointer to a DWORD value that specifies the total number of clients for the specified subnet stored on the DHCP
 ///                   server.
 @DllImport("DHCPSAPI")
-uint DhcpEnumSubnetClientsV6(const(wchar)* ServerIpAddress, DHCP_IPV6_ADDRESS SubnetAddress, 
+uint DhcpEnumSubnetClientsV6(const(PWSTR) ServerIpAddress, DHCP_IPV6_ADDRESS SubnetAddress, 
                              DHCP_IPV6_ADDRESS* ResumeHandle, uint PreferredMaximum, 
                              DHCP_CLIENT_INFO_ARRAY_V6** ClientInfo, uint* ClientsRead, uint* ClientsTotal);
 
@@ -5664,7 +5646,7 @@ uint DhcpEnumSubnetClientsV6(const(wchar)* ServerIpAddress, DHCP_IPV6_ADDRESS Su
 ///    server's database. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpServerGetConfigV6(const(wchar)* ServerIpAddress, DHCP_OPTION_SCOPE_INFO6* ScopeInfo, 
+uint DhcpServerGetConfigV6(const(PWSTR) ServerIpAddress, DHCP_OPTION_SCOPE_INFO6* ScopeInfo, 
                            DHCP_SERVER_CONFIG_INFO_V6** ConfigInfo);
 
 ///The <b>DhcpServerSetConfigV6</b> function sets the DHCPv6 server configuration data at the scope or server level.
@@ -5706,7 +5688,7 @@ uint DhcpServerGetConfigV6(const(wchar)* ServerIpAddress, DHCP_OPTION_SCOPE_INFO
 ///    server's database. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpServerSetConfigV6(const(wchar)* ServerIpAddress, DHCP_OPTION_SCOPE_INFO6* ScopeInfo, uint FieldsToSet, 
+uint DhcpServerSetConfigV6(const(PWSTR) ServerIpAddress, DHCP_OPTION_SCOPE_INFO6* ScopeInfo, uint FieldsToSet, 
                            DHCP_SERVER_CONFIG_INFO_V6* ConfigInfo);
 
 ///The <b>DhcpSetSubnetInfoV6</b> function sets or updates the information for an IPv6 subnet defined on the DHCPv6
@@ -5727,7 +5709,7 @@ uint DhcpServerSetConfigV6(const(wchar)* ServerIpAddress, DHCP_OPTION_SCOPE_INFO
 ///    </td> <td width="60%"> The specified subnet is not defined on the DHCP server. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpSetSubnetInfoV6(const(wchar)* ServerIpAddress, DHCP_IPV6_ADDRESS SubnetAddress, 
+uint DhcpSetSubnetInfoV6(const(PWSTR) ServerIpAddress, DHCP_IPV6_ADDRESS SubnetAddress, 
                          DHCP_SUBNET_INFO_V6* SubnetInfo);
 
 ///The <b>DhcpGetMibInfoV6</b> function retrieves the IPv6 counter values of the DHCP server.
@@ -5746,7 +5728,7 @@ uint DhcpSetSubnetInfoV6(const(wchar)* ServerIpAddress, DHCP_IPV6_ADDRESS Subnet
 ///    width="60%"> One of the parameters provides an invalid value. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpGetMibInfoV6(const(wchar)* ServerIpAddress, DHCP_MIB_INFO_V6** MibInfo);
+uint DhcpGetMibInfoV6(const(PWSTR) ServerIpAddress, DHCP_MIB_INFO_V6** MibInfo);
 
 ///The <b>DhcpGetServerBindingInfoV6</b> function retrieves an array of IPv6 interface binding information specific to
 ///the DHCPv6 server.
@@ -5764,7 +5746,7 @@ uint DhcpGetMibInfoV6(const(wchar)* ServerIpAddress, DHCP_MIB_INFO_V6** MibInfo)
 ///    server's database. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpGetServerBindingInfoV6(const(wchar)* ServerIpAddress, uint Flags, 
+uint DhcpGetServerBindingInfoV6(const(PWSTR) ServerIpAddress, uint Flags, 
                                 DHCPV6_BIND_ELEMENT_ARRAY** BindElementsInfo);
 
 ///The <b>DhcpSetServerBindingInfoV6</b> function sets or modifies the IPv6 interface bindings for the DHCPv6 server.
@@ -5786,7 +5768,7 @@ uint DhcpGetServerBindingInfoV6(const(wchar)* ServerIpAddress, uint Flags,
 ///    </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpSetServerBindingInfoV6(const(wchar)* ServerIpAddress, uint Flags, 
+uint DhcpSetServerBindingInfoV6(const(PWSTR) ServerIpAddress, uint Flags, 
                                 DHCPV6_BIND_ELEMENT_ARRAY* BindElementInfo);
 
 ///The <b>DhcpSetClientInfoV6</b> function sets or modifies the reserved DHCPv6 client lease record in the DHCPv6 server
@@ -5803,7 +5785,7 @@ uint DhcpSetServerBindingInfoV6(const(wchar)* ServerIpAddress, uint Flags,
 ///    server's database. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpSetClientInfoV6(const(wchar)* ServerIpAddress, const(DHCP_CLIENT_INFO_V6)* ClientInfo);
+uint DhcpSetClientInfoV6(const(PWSTR) ServerIpAddress, const(DHCP_CLIENT_INFO_V6)* ClientInfo);
 
 ///The <b>DhcpGetClientInfoV6</b> function retrieves IPv6 address lease information for a specific IPv6 client
 ///reservation from the DHCPv6 server.
@@ -5816,7 +5798,7 @@ uint DhcpSetClientInfoV6(const(wchar)* ServerIpAddress, const(DHCP_CLIENT_INFO_V
 ///                 matched the parameters supplied in <i>SearchInfo</i>. <div class="alert"><b>Note</b> <p class="note">The memory
 ///                 for this parameter must be free using DhcpRpcFreeMemory. </div> <div> </div>
 @DllImport("DHCPSAPI")
-uint DhcpGetClientInfoV6(const(wchar)* ServerIpAddress, const(DHCP_SEARCH_INFO_V6)* SearchInfo, 
+uint DhcpGetClientInfoV6(const(PWSTR) ServerIpAddress, const(DHCP_SEARCH_INFO_V6)* SearchInfo, 
                          DHCP_CLIENT_INFO_V6** ClientInfo);
 
 ///The <b>DhcpDeleteClientInfoV6</b> function deletes the specified DHCPv6 client address release record from the DHCPv6
@@ -5838,7 +5820,7 @@ uint DhcpGetClientInfoV6(const(wchar)* ServerIpAddress, const(DHCP_SEARCH_INFO_V
 ///    </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpDeleteClientInfoV6(const(wchar)* ServerIpAddress, const(DHCP_SEARCH_INFO_V6)* ClientInfo);
+uint DhcpDeleteClientInfoV6(const(PWSTR) ServerIpAddress, const(DHCP_SEARCH_INFO_V6)* ClientInfo);
 
 ///The <b>DhcpCreateClassV6</b> function creates a custom DHCPv6 option class.
 ///Params:
@@ -5856,7 +5838,7 @@ uint DhcpDeleteClientInfoV6(const(wchar)* ServerIpAddress, const(DHCP_SEARCH_INF
 ///    is already in use. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpCreateClassV6(const(wchar)* ServerIpAddress, uint ReservedMustBeZero, DHCP_CLASS_INFO_V6* ClassInfo);
+uint DhcpCreateClassV6(PWSTR ServerIpAddress, uint ReservedMustBeZero, DHCP_CLASS_INFO_V6* ClassInfo);
 
 ///The <b>DhcpModifyClassV6</b> function modifies a DHCPv6 user or vendor class defined on the server.
 ///Params:
@@ -5864,7 +5846,7 @@ uint DhcpCreateClassV6(const(wchar)* ServerIpAddress, uint ReservedMustBeZero, D
 ///    ReservedMustBeZero = Reserved. This value must be set to 0.
 ///    ClassInfo = Pointer to a DHCP_CLASS_INFO_V6 structure that contains the new information for the class.
 @DllImport("DHCPSAPI")
-uint DhcpModifyClassV6(const(wchar)* ServerIpAddress, uint ReservedMustBeZero, DHCP_CLASS_INFO_V6* ClassInfo);
+uint DhcpModifyClassV6(PWSTR ServerIpAddress, uint ReservedMustBeZero, DHCP_CLASS_INFO_V6* ClassInfo);
 
 ///The <b>DhcpDeleteClassV6</b> function deletes a DHCP class from the DHCPv6 server.
 ///Params:
@@ -5884,7 +5866,7 @@ uint DhcpModifyClassV6(const(wchar)* ServerIpAddress, uint ReservedMustBeZero, D
 ///    cannot be deleted. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpDeleteClassV6(const(wchar)* ServerIpAddress, uint ReservedMustBeZero, const(wchar)* ClassName);
+uint DhcpDeleteClassV6(PWSTR ServerIpAddress, uint ReservedMustBeZero, PWSTR ClassName);
 
 ///The <b>DhcpEnumClassesV6</b> function enumerates the user or vendor classes configured for the DHCPv6 server.
 ///Params:
@@ -5910,8 +5892,8 @@ uint DhcpDeleteClassV6(const(wchar)* ServerIpAddress, uint ReservedMustBeZero, c
 ///    server's database. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpEnumClassesV6(const(wchar)* ServerIpAddress, uint ReservedMustBeZero, uint* ResumeHandle, 
-                       uint PreferredMaximum, DHCP_CLASS_INFO_ARRAY_V6** ClassInfoArray, uint* nRead, uint* nTotal);
+uint DhcpEnumClassesV6(PWSTR ServerIpAddress, uint ReservedMustBeZero, uint* ResumeHandle, uint PreferredMaximum, 
+                       DHCP_CLASS_INFO_ARRAY_V6** ClassInfoArray, uint* nRead, uint* nTotal);
 
 ///The <b>DhcpSetSubnetDelayOffer</b> function sets the delay period for DHCP OFFER messages after a DISCOVER message is
 ///received, for a specific DHCP scope.
@@ -5933,7 +5915,7 @@ uint DhcpEnumClassesV6(const(wchar)* ServerIpAddress, uint ReservedMustBeZero, u
 ///    provides an invalid value. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpSetSubnetDelayOffer(const(wchar)* ServerIpAddress, uint SubnetAddress, ushort TimeDelayInMilliseconds);
+uint DhcpSetSubnetDelayOffer(PWSTR ServerIpAddress, uint SubnetAddress, ushort TimeDelayInMilliseconds);
 
 ///The <b>DhcpGetSubnetDelayOffer</b> function obtains the delay period for DHCP OFFER messages after a DISCOVER message
 ///is received.
@@ -5953,7 +5935,7 @@ uint DhcpSetSubnetDelayOffer(const(wchar)* ServerIpAddress, uint SubnetAddress, 
 ///    width="60%"> One of the parameters provides an invalid value. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpGetSubnetDelayOffer(const(wchar)* ServerIpAddress, uint SubnetAddress, ushort* TimeDelayInMilliseconds);
+uint DhcpGetSubnetDelayOffer(PWSTR ServerIpAddress, uint SubnetAddress, ushort* TimeDelayInMilliseconds);
 
 ///The <b>DhcpGetMibInfoV5</b> function obtains a MIB data structure that contains current statistics about the
 ///specified DHCP server.
@@ -5974,10 +5956,10 @@ uint DhcpGetSubnetDelayOffer(const(wchar)* ServerIpAddress, uint SubnetAddress, 
 ///    width="60%"> One of the parameters provides an invalid value. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpGetMibInfoV5(const(wchar)* ServerIpAddress, DHCP_MIB_INFO_V5** MibInfo);
+uint DhcpGetMibInfoV5(const(PWSTR) ServerIpAddress, DHCP_MIB_INFO_V5** MibInfo);
 
 @DllImport("DHCPSAPI")
-uint DhcpAddSecurityGroup(const(wchar)* pServer);
+uint DhcpAddSecurityGroup(PWSTR pServer);
 
 ///The <b>DhcpV4GetOptionValue</b> function retrieves a DHCP option value (the option code and associated data) for a
 ///particular scope. This function extends the functionality provided by DhcpGetOptionValueV5 by allowing the caller to
@@ -6013,9 +5995,8 @@ uint DhcpAddSecurityGroup(const(wchar)* pServer);
 ///    not exist on the DHCP server database. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV4GetOptionValue(const(wchar)* ServerIpAddress, uint Flags, uint OptionID, const(wchar)* PolicyName, 
-                          const(wchar)* VendorName, DHCP_OPTION_SCOPE_INFO* ScopeInfo, 
-                          DHCP_OPTION_VALUE** OptionValue);
+uint DhcpV4GetOptionValue(PWSTR ServerIpAddress, uint Flags, uint OptionID, PWSTR PolicyName, PWSTR VendorName, 
+                          DHCP_OPTION_SCOPE_INFO* ScopeInfo, DHCP_OPTION_VALUE** OptionValue);
 
 ///The <b>DhcpV4SetOptionValue</b> function sets information for a specific option value on the DHCP server. This
 ///function extends the functionality provided by DhcpSetOptionValueV5 by allowing the caller to specify a policy for
@@ -6051,8 +6032,8 @@ uint DhcpV4GetOptionValue(const(wchar)* ServerIpAddress, uint Flags, uint Option
 ///    not exist on the DHCP server database. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV4SetOptionValue(const(wchar)* ServerIpAddress, uint Flags, uint OptionId, const(wchar)* PolicyName, 
-                          const(wchar)* VendorName, DHCP_OPTION_SCOPE_INFO* ScopeInfo, DHCP_OPTION_DATA* OptionValue);
+uint DhcpV4SetOptionValue(PWSTR ServerIpAddress, uint Flags, uint OptionId, PWSTR PolicyName, PWSTR VendorName, 
+                          DHCP_OPTION_SCOPE_INFO* ScopeInfo, DHCP_OPTION_DATA* OptionValue);
 
 ///The <b>DhcpV4SetOptionValues</b> function sets option codes and their associated data values for a specific scope
 ///defined on the DHCP server. This function extends the functionality provided by DhcpSetOptionValuesV5 by allowing the
@@ -6084,9 +6065,8 @@ uint DhcpV4SetOptionValue(const(wchar)* ServerIpAddress, uint Flags, uint Option
 ///    reserved client. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV4SetOptionValues(const(wchar)* ServerIpAddress, uint Flags, const(wchar)* PolicyName, 
-                           const(wchar)* VendorName, DHCP_OPTION_SCOPE_INFO* ScopeInfo, 
-                           DHCP_OPTION_VALUE_ARRAY* OptionValues);
+uint DhcpV4SetOptionValues(PWSTR ServerIpAddress, uint Flags, PWSTR PolicyName, PWSTR VendorName, 
+                           DHCP_OPTION_SCOPE_INFO* ScopeInfo, DHCP_OPTION_VALUE_ARRAY* OptionValues);
 
 ///The <b>DhcpV4RemoveOptionValue</b> function removes an option value from a scope defined on the DHCP server. This
 ///function extends the functionality provided by DhcpRemoveOptionValueV5 by allowing the caller to specify a policy for
@@ -6122,8 +6102,8 @@ uint DhcpV4SetOptionValues(const(wchar)* ServerIpAddress, uint Flags, const(wcha
 ///    exist. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV4RemoveOptionValue(const(wchar)* ServerIpAddress, uint Flags, uint OptionID, const(wchar)* PolicyName, 
-                             const(wchar)* VendorName, DHCP_OPTION_SCOPE_INFO* ScopeInfo);
+uint DhcpV4RemoveOptionValue(PWSTR ServerIpAddress, uint Flags, uint OptionID, PWSTR PolicyName, PWSTR VendorName, 
+                             DHCP_OPTION_SCOPE_INFO* ScopeInfo);
 
 ///The <b>DhcpV4GetAllOptionValues</b> function retrieves an array of DHCP option values (the option code and associated
 ///data) for a particular scope.
@@ -6147,7 +6127,7 @@ uint DhcpV4RemoveOptionValue(const(wchar)* ServerIpAddress, uint Flags, uint Opt
 ///    the parameters were invalid. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV4GetAllOptionValues(const(wchar)* ServerIpAddress, uint Flags, DHCP_OPTION_SCOPE_INFO* ScopeInfo, 
+uint DhcpV4GetAllOptionValues(PWSTR ServerIpAddress, uint Flags, DHCP_OPTION_SCOPE_INFO* ScopeInfo, 
                               DHCP_ALL_OPTION_VALUES_PB** Values);
 
 ///The <b>DhcpV4FailoverCreateRelationship</b> function creates a new DHCPv4 failover relationship between two servers.
@@ -6171,7 +6151,7 @@ uint DhcpV4GetAllOptionValues(const(wchar)* ServerIpAddress, uint Flags, DHCP_OP
 ///    failover relationship configured on the DHCP server has exceeded. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV4FailoverCreateRelationship(const(wchar)* ServerIpAddress, DHCP_FAILOVER_RELATIONSHIP* pRelationship);
+uint DhcpV4FailoverCreateRelationship(PWSTR ServerIpAddress, DHCP_FAILOVER_RELATIONSHIP* pRelationship);
 
 ///The <b>DhcpV4FailoverSetRelationship</b> function sets or modifies the parameters of a DHCPv4 server failover
 ///relationship.
@@ -6204,8 +6184,7 @@ uint DhcpV4FailoverCreateRelationship(const(wchar)* ServerIpAddress, DHCP_FAILOV
 ///    doesn’t exist. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV4FailoverSetRelationship(const(wchar)* ServerIpAddress, uint Flags, 
-                                   DHCP_FAILOVER_RELATIONSHIP* pRelationship);
+uint DhcpV4FailoverSetRelationship(PWSTR ServerIpAddress, uint Flags, DHCP_FAILOVER_RELATIONSHIP* pRelationship);
 
 ///The <b>DhcpV4FailoverDeleteRelationship</b> function deletes a DHCPv4 failover relationship between two servers.
 ///Params:
@@ -6220,7 +6199,7 @@ uint DhcpV4FailoverSetRelationship(const(wchar)* ServerIpAddress, uint Flags,
 ///    doesn't exist. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV4FailoverDeleteRelationship(const(wchar)* ServerIpAddress, const(wchar)* pRelationshipName);
+uint DhcpV4FailoverDeleteRelationship(PWSTR ServerIpAddress, PWSTR pRelationshipName);
 
 ///The <b>DhcpV4FailoverGetRelationship</b> function retrieves relationship details for a specific relationship name.
 ///Params:
@@ -6238,7 +6217,7 @@ uint DhcpV4FailoverDeleteRelationship(const(wchar)* ServerIpAddress, const(wchar
 ///    does not exist. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV4FailoverGetRelationship(const(wchar)* ServerIpAddress, const(wchar)* pRelationshipName, 
+uint DhcpV4FailoverGetRelationship(PWSTR ServerIpAddress, PWSTR pRelationshipName, 
                                    DHCP_FAILOVER_RELATIONSHIP** pRelationship);
 
 ///The <b>DhcpV4FailoverEnumRelationship</b> function enumerates all failover relationships present on the server.
@@ -6268,7 +6247,7 @@ uint DhcpV4FailoverGetRelationship(const(wchar)* ServerIpAddress, const(wchar)* 
 ///    no more elements left to enumerate. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV4FailoverEnumRelationship(const(wchar)* ServerIpAddress, uint* ResumeHandle, uint PreferredMaximum, 
+uint DhcpV4FailoverEnumRelationship(PWSTR ServerIpAddress, uint* ResumeHandle, uint PreferredMaximum, 
                                     DHCP_FAILOVER_RELATIONSHIP_ARRAY** pRelationship, uint* RelationshipRead, 
                                     uint* RelationshipTotal);
 
@@ -6291,7 +6270,7 @@ uint DhcpV4FailoverEnumRelationship(const(wchar)* ServerIpAddress, uint* ResumeH
 ///    can be added to a failover relationship at one time. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV4FailoverAddScopeToRelationship(const(wchar)* ServerIpAddress, DHCP_FAILOVER_RELATIONSHIP* pRelationship);
+uint DhcpV4FailoverAddScopeToRelationship(PWSTR ServerIpAddress, DHCP_FAILOVER_RELATIONSHIP* pRelationship);
 
 ///The <b>DhcpV4FailoverDeleteScopeFromRelationship</b> function deletes a DHCPv4 scope from the specified failover
 ///relationship.
@@ -6310,8 +6289,7 @@ uint DhcpV4FailoverAddScopeToRelationship(const(wchar)* ServerIpAddress, DHCP_FA
 ///    </dl> </td> <td width="60%"> IPv4 subnet is not part of the failover relationship. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV4FailoverDeleteScopeFromRelationship(const(wchar)* ServerIpAddress, 
-                                               DHCP_FAILOVER_RELATIONSHIP* pRelationship);
+uint DhcpV4FailoverDeleteScopeFromRelationship(PWSTR ServerIpAddress, DHCP_FAILOVER_RELATIONSHIP* pRelationship);
 
 ///The <b>DhcpV4FailoverGetScopeRelationship</b> function retrieves the failover relationship that is configured on a
 ///specified DHCPv4 scope.
@@ -6331,7 +6309,7 @@ uint DhcpV4FailoverDeleteScopeFromRelationship(const(wchar)* ServerIpAddress,
 ///    the failover relationship. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV4FailoverGetScopeRelationship(const(wchar)* ServerIpAddress, uint ScopeId, 
+uint DhcpV4FailoverGetScopeRelationship(PWSTR ServerIpAddress, uint ScopeId, 
                                         DHCP_FAILOVER_RELATIONSHIP** pRelationship);
 
 ///The <b>DhcpV4FailoverGetScopeStatistics</b> function retrieves the address usage statistics of a specific scope that
@@ -6349,8 +6327,7 @@ uint DhcpV4FailoverGetScopeRelationship(const(wchar)* ServerIpAddress, uint Scop
 ///    the parameters were invalid. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV4FailoverGetScopeStatistics(const(wchar)* ServerIpAddress, uint ScopeId, 
-                                      DHCP_FAILOVER_STATISTICS** pStats);
+uint DhcpV4FailoverGetScopeStatistics(PWSTR ServerIpAddress, uint ScopeId, DHCP_FAILOVER_STATISTICS** pStats);
 
 ///The <b>DhcpV4FailoverGetClientInfo</b> function retrieves the DHCPv4 client lease information.
 ///Params:
@@ -6363,7 +6340,7 @@ uint DhcpV4FailoverGetScopeStatistics(const(wchar)* ServerIpAddress, uint ScopeI
 ///                 class="alert"><b>Note</b> <p class="note">The memory for this parameter must be free using DhcpRpcFreeMemory.
 ///                 </div> <div> </div>
 @DllImport("DHCPSAPI")
-uint DhcpV4FailoverGetClientInfo(const(wchar)* ServerIpAddress, const(DHCP_SEARCH_INFO)* SearchInfo, 
+uint DhcpV4FailoverGetClientInfo(PWSTR ServerIpAddress, const(DHCP_SEARCH_INFO)* SearchInfo, 
                                  DHCPV4_FAILOVER_CLIENT_INFO** ClientInfo);
 
 ///The <b>DhcpV4FailoverGetSystemTime</b> function returns the current time on the DHCP server.
@@ -6373,7 +6350,7 @@ uint DhcpV4FailoverGetClientInfo(const(wchar)* ServerIpAddress, const(DHCP_SEARC
 ///            Coordinated Universal Time (UTC), on the DHCP server.
 ///    pMaxAllowedDeltaTime = The maximum allowed delta time.
 @DllImport("DHCPSAPI")
-uint DhcpV4FailoverGetSystemTime(const(wchar)* ServerIpAddress, uint* pTime, uint* pMaxAllowedDeltaTime);
+uint DhcpV4FailoverGetSystemTime(PWSTR ServerIpAddress, uint* pTime, uint* pMaxAllowedDeltaTime);
 
 ///The <b>DhcpV4FailoverGetAddressStatus</b> function returns the status of a IPv4 address.
 ///Params:
@@ -6386,7 +6363,7 @@ uint DhcpV4FailoverGetSystemTime(const(wchar)* ServerIpAddress, uint* pTime, uin
 ///              <dt>2</dt> </dl> </td> <td width="60%"> The IPv4 address is part of an exclusion range. </td> </tr> <tr> <td
 ///              width="40%"> <dl> <dt>3</dt> </dl> </td> <td width="60%"> The IPv4 address is a reservation. </td> </tr> </table>
 @DllImport("DHCPSAPI")
-uint DhcpV4FailoverGetAddressStatus(const(wchar)* ServerIpAddress, uint SubnetAddress, uint* pStatus);
+uint DhcpV4FailoverGetAddressStatus(PWSTR ServerIpAddress, uint SubnetAddress, uint* pStatus);
 
 ///The <b>DhcpV4FailoverTriggerAddrAllocation</b> function redistributes the free addresses between the primary server
 ///and the secondary server that are part of a failover relationship.
@@ -6395,7 +6372,7 @@ uint DhcpV4FailoverGetAddressStatus(const(wchar)* ServerIpAddress, uint SubnetAd
 ///    pFailRelName = Pointer to a null-terminated Unicode string that represents the name of the failover relationship for which free
 ///                   addresses are to be redistributed.
 @DllImport("DHCPSAPI")
-uint DhcpV4FailoverTriggerAddrAllocation(const(wchar)* ServerIpAddress, const(wchar)* pFailRelName);
+uint DhcpV4FailoverTriggerAddrAllocation(PWSTR ServerIpAddress, PWSTR pFailRelName);
 
 ///The <b>DhcpHlprCreateV4Policy</b> function allocates and initializes a DHCP server policy structure.
 ///Params:
@@ -6417,13 +6394,12 @@ uint DhcpV4FailoverTriggerAddrAllocation(const(wchar)* ServerIpAddress, const(wc
 ///    </td> <td width="60%"> Not enough memory available. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpHlprCreateV4Policy(const(wchar)* PolicyName, BOOL fGlobalPolicy, uint Subnet, uint ProcessingOrder, 
-                            DHCP_POL_LOGIC_OPER RootOperator, const(wchar)* Description, BOOL Enabled, 
-                            DHCP_POLICY** Policy);
+uint DhcpHlprCreateV4Policy(PWSTR PolicyName, BOOL fGlobalPolicy, uint Subnet, uint ProcessingOrder, 
+                            DHCP_POL_LOGIC_OPER RootOperator, PWSTR Description, BOOL Enabled, DHCP_POLICY** Policy);
 
 @DllImport("DHCPSAPI")
-uint DhcpHlprCreateV4PolicyEx(const(wchar)* PolicyName, BOOL fGlobalPolicy, uint Subnet, uint ProcessingOrder, 
-                              DHCP_POL_LOGIC_OPER RootOperator, const(wchar)* Description, BOOL Enabled, 
+uint DhcpHlprCreateV4PolicyEx(PWSTR PolicyName, BOOL fGlobalPolicy, uint Subnet, uint ProcessingOrder, 
+                              DHCP_POL_LOGIC_OPER RootOperator, PWSTR Description, BOOL Enabled, 
                               DHCP_POLICY_EX** Policy);
 
 ///The <b>DhcpHlprAddV4PolicyExpr</b> function allocates, initializes, and adds a DHCP server policy expression to a
@@ -6471,8 +6447,8 @@ uint DhcpHlprAddV4PolicyExpr(DHCP_POLICY* Policy, uint ParentExpr, DHCP_POL_LOGI
 ///    
 @DllImport("DHCPSAPI")
 uint DhcpHlprAddV4PolicyCondition(DHCP_POLICY* Policy, uint ParentExpr, DHCP_POL_ATTR_TYPE Type, uint OptionID, 
-                                  uint SubOptionID, const(wchar)* VendorName, DHCP_POL_COMPARATOR Operator, 
-                                  char* Value, uint ValueLength, uint* ConditionIndex);
+                                  uint SubOptionID, PWSTR VendorName, DHCP_POL_COMPARATOR Operator, ubyte* Value, 
+                                  uint ValueLength, uint* ConditionIndex);
 
 ///The <b>DhcpHlprAddV4PolicyRange</b> function adds a DHCP IPv4 range to a DHCP server policy.
 ///Params:
@@ -6574,8 +6550,7 @@ BOOL DhcpHlprIsV4PolicySingleUC(DHCP_POLICY* Policy);
 ///    </dl> </td> <td width="60%"> The specified IPv4 subnet does not exist. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV4QueryPolicyEnforcement(const(wchar)* ServerIpAddress, BOOL fGlobalPolicy, uint SubnetAddress, 
-                                  int* Enabled);
+uint DhcpV4QueryPolicyEnforcement(PWSTR ServerIpAddress, BOOL fGlobalPolicy, uint SubnetAddress, BOOL* Enabled);
 
 ///The <b>DhcpV4SetPolicyEnforcement</b> function sets the policy enforcement state of the server or the specified IPv4
 ///subnet on the DHCP Server.
@@ -6593,7 +6568,7 @@ uint DhcpV4QueryPolicyEnforcement(const(wchar)* ServerIpAddress, BOOL fGlobalPol
 ///    </dl> </td> <td width="60%"> The specified IPv4 subnet does not exist. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV4SetPolicyEnforcement(const(wchar)* ServerIpAddress, BOOL fGlobalPolicy, uint SubnetAddress, BOOL Enable);
+uint DhcpV4SetPolicyEnforcement(PWSTR ServerIpAddress, BOOL fGlobalPolicy, uint SubnetAddress, BOOL Enable);
 
 ///The <b>DhcpHlprIsV4PolicyWellFormed</b> function verifies that a DHCP server policy structure is well formed.
 ///Params:
@@ -6650,7 +6625,7 @@ uint DhcpHlprIsV4PolicyValid(DHCP_POLICY* pPolicy);
 ///    parameters were invalid. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV4CreatePolicy(const(wchar)* ServerIpAddress, DHCP_POLICY* pPolicy);
+uint DhcpV4CreatePolicy(PWSTR ServerIpAddress, DHCP_POLICY* pPolicy);
 
 ///The <b>DhcpV4GetPolicy</b> function retrieves a policy from the DHCP Server.
 ///Params:
@@ -6669,8 +6644,8 @@ uint DhcpV4CreatePolicy(const(wchar)* ServerIpAddress, DHCP_POLICY* pPolicy);
 ///    </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV4GetPolicy(const(wchar)* ServerIpAddress, BOOL fGlobalPolicy, uint SubnetAddress, 
-                     const(wchar)* PolicyName, DHCP_POLICY** Policy);
+uint DhcpV4GetPolicy(PWSTR ServerIpAddress, BOOL fGlobalPolicy, uint SubnetAddress, PWSTR PolicyName, 
+                     DHCP_POLICY** Policy);
 
 ///The <b>DhcpV4SetPolicy</b> function updates one or more parameters of an existing policy.
 ///Params:
@@ -6701,8 +6676,8 @@ uint DhcpV4GetPolicy(const(wchar)* ServerIpAddress, BOOL fGlobalPolicy, uint Sub
 ///    </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV4SetPolicy(const(wchar)* ServerIpAddress, uint FieldsModified, BOOL fGlobalPolicy, uint SubnetAddress, 
-                     const(wchar)* PolicyName, DHCP_POLICY* Policy);
+uint DhcpV4SetPolicy(PWSTR ServerIpAddress, uint FieldsModified, BOOL fGlobalPolicy, uint SubnetAddress, 
+                     PWSTR PolicyName, DHCP_POLICY* Policy);
 
 ///The <b>DhcpV4DeletePolicy</b> function deletes an existing policy from the DHCP Server.
 ///Params:
@@ -6720,8 +6695,7 @@ uint DhcpV4SetPolicy(const(wchar)* ServerIpAddress, uint FieldsModified, BOOL fG
 ///    </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV4DeletePolicy(const(wchar)* ServerIpAddress, BOOL fGlobalPolicy, uint SubnetAddress, 
-                        const(wchar)* PolicyName);
+uint DhcpV4DeletePolicy(PWSTR ServerIpAddress, BOOL fGlobalPolicy, uint SubnetAddress, PWSTR PolicyName);
 
 ///The <b>DhcpV4EnumPolicies</b> function enumerates the policies configured on the DHCP Server.
 ///Params:
@@ -6749,9 +6723,8 @@ uint DhcpV4DeletePolicy(const(wchar)* ServerIpAddress, BOOL fGlobalPolicy, uint 
 ///    <td width="60%"> There are no more elements left to enumerate. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV4EnumPolicies(const(wchar)* ServerIpAddress, uint* ResumeHandle, uint PreferredMaximum, 
-                        BOOL fGlobalPolicy, uint SubnetAddress, DHCP_POLICY_ARRAY** EnumInfo, uint* ElementsRead, 
-                        uint* ElementsTotal);
+uint DhcpV4EnumPolicies(PWSTR ServerIpAddress, uint* ResumeHandle, uint PreferredMaximum, BOOL fGlobalPolicy, 
+                        uint SubnetAddress, DHCP_POLICY_ARRAY** EnumInfo, uint* ElementsRead, uint* ElementsTotal);
 
 ///The <b>DhcpV4AddPolicyRange</b> function adds an IP address range to a policy.
 ///Params:
@@ -6772,8 +6745,7 @@ uint DhcpV4EnumPolicies(const(wchar)* ServerIpAddress, uint* ResumeHandle, uint 
 ///    range is not valid. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV4AddPolicyRange(const(wchar)* ServerIpAddress, uint SubnetAddress, const(wchar)* PolicyName, 
-                          DHCP_IP_RANGE* Range);
+uint DhcpV4AddPolicyRange(PWSTR ServerIpAddress, uint SubnetAddress, PWSTR PolicyName, DHCP_IP_RANGE* Range);
 
 ///The <b>DhcpV4RemovePolicyRange</b> function removes the specified IP address range from the list of IP address ranges
 ///of the policy.
@@ -6793,8 +6765,7 @@ uint DhcpV4AddPolicyRange(const(wchar)* ServerIpAddress, uint SubnetAddress, con
 ///    The specified policy range is not contained within the IP address range of the scope. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV4RemovePolicyRange(const(wchar)* ServerIpAddress, uint SubnetAddress, const(wchar)* PolicyName, 
-                             DHCP_IP_RANGE* Range);
+uint DhcpV4RemovePolicyRange(PWSTR ServerIpAddress, uint SubnetAddress, PWSTR PolicyName, DHCP_IP_RANGE* Range);
 
 ///The <b>DhcpV6SetStatelessStoreParams</b> function sets the DHCPv6 stateless client inventory configuration settings
 ///at the server or scope level.
@@ -6816,9 +6787,8 @@ uint DhcpV4RemovePolicyRange(const(wchar)* ServerIpAddress, uint SubnetAddress, 
 ///    </dl> </td> <td width="60%"> IPv6 subnet does not exist on the DHCPv6 server. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV6SetStatelessStoreParams(const(wchar)* ServerIpAddress, BOOL fServerLevel, 
-                                   DHCP_IPV6_ADDRESS SubnetAddress, uint FieldModified, 
-                                   DHCPV6_STATELESS_PARAMS* Params);
+uint DhcpV6SetStatelessStoreParams(PWSTR ServerIpAddress, BOOL fServerLevel, DHCP_IPV6_ADDRESS SubnetAddress, 
+                                   uint FieldModified, DHCPV6_STATELESS_PARAMS* Params);
 
 ///The <b>DhcpV6GetStatelessStoreParams</b> function retrieves the current DHCPv6 stateless client inventory
 ///configuration settings at the server or scope level.
@@ -6838,8 +6808,8 @@ uint DhcpV6SetStatelessStoreParams(const(wchar)* ServerIpAddress, BOOL fServerLe
 ///    </dl> </td> <td width="60%"> IPv6 subnet does not exist on the DHCPv6 server. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV6GetStatelessStoreParams(const(wchar)* ServerIpAddress, BOOL fServerLevel, 
-                                   DHCP_IPV6_ADDRESS SubnetAddress, DHCPV6_STATELESS_PARAMS** Params);
+uint DhcpV6GetStatelessStoreParams(PWSTR ServerIpAddress, BOOL fServerLevel, DHCP_IPV6_ADDRESS SubnetAddress, 
+                                   DHCPV6_STATELESS_PARAMS** Params);
 
 ///The <b>DhcpV6GetStatelessStatistics</b> function retrieves the stateless server IPv6 subnet statistics.
 ///Params:
@@ -6850,7 +6820,7 @@ uint DhcpV6GetStatelessStoreParams(const(wchar)* ServerIpAddress, BOOL fServerLe
 ///    Management API Error Codes.
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV6GetStatelessStatistics(const(wchar)* ServerIpAddress, DHCPV6_STATELESS_STATS** StatelessStats);
+uint DhcpV6GetStatelessStatistics(PWSTR ServerIpAddress, DHCPV6_STATELESS_STATS** StatelessStats);
 
 ///The <b>DhcpV4CreateClientInfo</b> function creates a DHCPv4 client lease record in the DHCP server database.
 ///Params:
@@ -6871,7 +6841,7 @@ uint DhcpV6GetStatelessStatistics(const(wchar)* ServerIpAddress, DHCPV6_STATELES
 ///    </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV4CreateClientInfo(const(wchar)* ServerIpAddress, const(DHCP_CLIENT_INFO_PB)* ClientInfo);
+uint DhcpV4CreateClientInfo(const(PWSTR) ServerIpAddress, const(DHCP_CLIENT_INFO_PB)* ClientInfo);
 
 ///The <b>DhcpV4EnumSubnetClients</b> function enumerates all DHCP client records serviced from the specified IPv4
 ///subnet.
@@ -6903,7 +6873,7 @@ uint DhcpV4CreateClientInfo(const(wchar)* ServerIpAddress, const(DHCP_CLIENT_INF
 ///    width="60%"> There are no client lease records on the DHCP server. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV4EnumSubnetClients(const(wchar)* ServerIpAddress, uint SubnetAddress, uint* ResumeHandle, 
+uint DhcpV4EnumSubnetClients(const(PWSTR) ServerIpAddress, uint SubnetAddress, uint* ResumeHandle, 
                              uint PreferredMaximum, DHCP_CLIENT_INFO_PB_ARRAY** ClientInfo, uint* ClientsRead, 
                              uint* ClientsTotal);
 
@@ -6925,7 +6895,7 @@ uint DhcpV4EnumSubnetClients(const(wchar)* ServerIpAddress, uint SubnetAddress, 
 ///    </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV4GetClientInfo(const(wchar)* ServerIpAddress, const(DHCP_SEARCH_INFO)* SearchInfo, 
+uint DhcpV4GetClientInfo(const(PWSTR) ServerIpAddress, const(DHCP_SEARCH_INFO)* SearchInfo, 
                          DHCP_CLIENT_INFO_PB** ClientInfo);
 
 ///The <b>DhcpV6CreateClientInfo</b> function creates a DHCPv6 client lease record in the DHCP server database.
@@ -6947,7 +6917,7 @@ uint DhcpV4GetClientInfo(const(wchar)* ServerIpAddress, const(DHCP_SEARCH_INFO)*
 ///    provided DHCP client record already exists in the DHCP server database. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV6CreateClientInfo(const(wchar)* ServerIpAddress, const(DHCP_CLIENT_INFO_V6)* ClientInfo);
+uint DhcpV6CreateClientInfo(const(PWSTR) ServerIpAddress, const(DHCP_CLIENT_INFO_V6)* ClientInfo);
 
 ///The <b>DhcpV4GetFreeIPAddress</b> function retrieves the list of available IPv4 addresses that can be leased to
 ///clients.
@@ -6975,8 +6945,8 @@ uint DhcpV6CreateClientInfo(const(wchar)* ServerIpAddress, const(DHCP_CLIENT_INF
 ///    reached the end of the selected range while finding the free IP address. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV4GetFreeIPAddress(const(wchar)* ServerIpAddress, uint ScopeId, uint StartIP, uint EndIP, 
-                            uint NumFreeAddrReq, DHCP_IP_ARRAY** IPAddrList);
+uint DhcpV4GetFreeIPAddress(PWSTR ServerIpAddress, uint ScopeId, uint StartIP, uint EndIP, uint NumFreeAddrReq, 
+                            DHCP_IP_ARRAY** IPAddrList);
 
 ///The <b>DhcpV6GetFreeIPAddress</b> function retrieves the list of available IPv6 addresses that can be leased to
 ///clients.
@@ -7004,35 +6974,35 @@ uint DhcpV4GetFreeIPAddress(const(wchar)* ServerIpAddress, uint ScopeId, uint St
 ///    has reached the end of the selected range while finding the free IP address. </td> </tr> </table>
 ///    
 @DllImport("DHCPSAPI")
-uint DhcpV6GetFreeIPAddress(const(wchar)* ServerIpAddress, DHCP_IPV6_ADDRESS ScopeId, DHCP_IPV6_ADDRESS StartIP, 
+uint DhcpV6GetFreeIPAddress(PWSTR ServerIpAddress, DHCP_IPV6_ADDRESS ScopeId, DHCP_IPV6_ADDRESS StartIP, 
                             DHCP_IPV6_ADDRESS EndIP, uint NumFreeAddrReq, DHCPV6_IP_ARRAY** IPAddrList);
 
 @DllImport("DHCPSAPI")
-uint DhcpV4CreateClientInfoEx(const(wchar)* ServerIpAddress, const(DHCP_CLIENT_INFO_EX)* ClientInfo);
+uint DhcpV4CreateClientInfoEx(const(PWSTR) ServerIpAddress, const(DHCP_CLIENT_INFO_EX)* ClientInfo);
 
 @DllImport("DHCPSAPI")
-uint DhcpV4EnumSubnetClientsEx(const(wchar)* ServerIpAddress, uint SubnetAddress, uint* ResumeHandle, 
+uint DhcpV4EnumSubnetClientsEx(const(PWSTR) ServerIpAddress, uint SubnetAddress, uint* ResumeHandle, 
                                uint PreferredMaximum, DHCP_CLIENT_INFO_EX_ARRAY** ClientInfo, uint* ClientsRead, 
                                uint* ClientsTotal);
 
 @DllImport("DHCPSAPI")
-uint DhcpV4GetClientInfoEx(const(wchar)* ServerIpAddress, const(DHCP_SEARCH_INFO)* SearchInfo, 
+uint DhcpV4GetClientInfoEx(const(PWSTR) ServerIpAddress, const(DHCP_SEARCH_INFO)* SearchInfo, 
                            DHCP_CLIENT_INFO_EX** ClientInfo);
 
 @DllImport("DHCPSAPI")
-uint DhcpV4CreatePolicyEx(const(wchar)* ServerIpAddress, DHCP_POLICY_EX* PolicyEx);
+uint DhcpV4CreatePolicyEx(PWSTR ServerIpAddress, DHCP_POLICY_EX* PolicyEx);
 
 @DllImport("DHCPSAPI")
-uint DhcpV4GetPolicyEx(const(wchar)* ServerIpAddress, BOOL GlobalPolicy, uint SubnetAddress, 
-                       const(wchar)* PolicyName, DHCP_POLICY_EX** Policy);
+uint DhcpV4GetPolicyEx(PWSTR ServerIpAddress, BOOL GlobalPolicy, uint SubnetAddress, PWSTR PolicyName, 
+                       DHCP_POLICY_EX** Policy);
 
 @DllImport("DHCPSAPI")
-uint DhcpV4SetPolicyEx(const(wchar)* ServerIpAddress, uint FieldsModified, BOOL GlobalPolicy, uint SubnetAddress, 
-                       const(wchar)* PolicyName, DHCP_POLICY_EX* Policy);
+uint DhcpV4SetPolicyEx(PWSTR ServerIpAddress, uint FieldsModified, BOOL GlobalPolicy, uint SubnetAddress, 
+                       PWSTR PolicyName, DHCP_POLICY_EX* Policy);
 
 @DllImport("DHCPSAPI")
-uint DhcpV4EnumPoliciesEx(const(wchar)* ServerIpAddress, uint* ResumeHandle, uint PreferredMaximum, 
-                          BOOL GlobalPolicy, uint SubnetAddress, DHCP_POLICY_EX_ARRAY** EnumInfo, uint* ElementsRead, 
+uint DhcpV4EnumPoliciesEx(PWSTR ServerIpAddress, uint* ResumeHandle, uint PreferredMaximum, BOOL GlobalPolicy, 
+                          uint SubnetAddress, DHCP_POLICY_EX_ARRAY** EnumInfo, uint* ElementsRead, 
                           uint* ElementsTotal);
 
 

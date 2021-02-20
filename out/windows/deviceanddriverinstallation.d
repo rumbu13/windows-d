@@ -9,15 +9,87 @@ public import windows.controls : HIMAGELIST, HPROPSHEETPAGE, PROPSHEETHEADERA_V2
                                  PROPSHEETHEADERW_V2;
 public import windows.displaydevices : RECT;
 public import windows.gdi : HDC, HICON;
-public import windows.systemservices : BOOL, DEVPROPKEY, HANDLE, LARGE_INTEGER;
+public import windows.htmlhelp : PRIORITY;
+public import windows.systemservices : BOOL, DEVPROPKEY, HANDLE, LARGE_INTEGER, PSTR,
+                                       PWSTR;
 public import windows.windowsandmessaging : HWND, LPARAM;
 public import windows.windowsprogramming : FILETIME, HKEY;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
 
+
+alias CONFIGRET = uint;
+enum : uint
+{
+    CR_SUCCESS                  = 0x00000000,
+    CR_DEFAULT                  = 0x00000001,
+    CR_OUT_OF_MEMORY            = 0x00000002,
+    CR_INVALID_POINTER          = 0x00000003,
+    CR_INVALID_FLAG             = 0x00000004,
+    CR_INVALID_DEVNODE          = 0x00000005,
+    CR_INVALID_DEVINST          = 0x00000005,
+    CR_INVALID_RES_DES          = 0x00000006,
+    CR_INVALID_LOG_CONF         = 0x00000007,
+    CR_INVALID_ARBITRATOR       = 0x00000008,
+    CR_INVALID_NODELIST         = 0x00000009,
+    CR_DEVNODE_HAS_REQS         = 0x0000000a,
+    CR_DEVINST_HAS_REQS         = 0x0000000a,
+    CR_INVALID_RESOURCEID       = 0x0000000b,
+    CR_DLVXD_NOT_FOUND          = 0x0000000c,
+    CR_NO_SUCH_DEVNODE          = 0x0000000d,
+    CR_NO_SUCH_DEVINST          = 0x0000000d,
+    CR_NO_MORE_LOG_CONF         = 0x0000000e,
+    CR_NO_MORE_RES_DES          = 0x0000000f,
+    CR_ALREADY_SUCH_DEVNODE     = 0x00000010,
+    CR_ALREADY_SUCH_DEVINST     = 0x00000010,
+    CR_INVALID_RANGE_LIST       = 0x00000011,
+    CR_INVALID_RANGE            = 0x00000012,
+    CR_FAILURE                  = 0x00000013,
+    CR_NO_SUCH_LOGICAL_DEV      = 0x00000014,
+    CR_CREATE_BLOCKED           = 0x00000015,
+    CR_NOT_SYSTEM_VM            = 0x00000016,
+    CR_REMOVE_VETOED            = 0x00000017,
+    CR_APM_VETOED               = 0x00000018,
+    CR_INVALID_LOAD_TYPE        = 0x00000019,
+    CR_BUFFER_SMALL             = 0x0000001a,
+    CR_NO_ARBITRATOR            = 0x0000001b,
+    CR_NO_REGISTRY_HANDLE       = 0x0000001c,
+    CR_REGISTRY_ERROR           = 0x0000001d,
+    CR_INVALID_DEVICE_ID        = 0x0000001e,
+    CR_INVALID_DATA             = 0x0000001f,
+    CR_INVALID_API              = 0x00000020,
+    CR_DEVLOADER_NOT_READY      = 0x00000021,
+    CR_NEED_RESTART             = 0x00000022,
+    CR_NO_MORE_HW_PROFILES      = 0x00000023,
+    CR_DEVICE_NOT_THERE         = 0x00000024,
+    CR_NO_SUCH_VALUE            = 0x00000025,
+    CR_WRONG_TYPE               = 0x00000026,
+    CR_INVALID_PRIORITY         = 0x00000027,
+    CR_NOT_DISABLEABLE          = 0x00000028,
+    CR_FREE_RESOURCES           = 0x00000029,
+    CR_QUERY_VETOED             = 0x0000002a,
+    CR_CANT_SHARE_IRQ           = 0x0000002b,
+    CR_NO_DEPENDENT             = 0x0000002c,
+    CR_SAME_RESOURCES           = 0x0000002d,
+    CR_NO_SUCH_REGISTRY_KEY     = 0x0000002e,
+    CR_INVALID_MACHINENAME      = 0x0000002f,
+    CR_REMOTE_COMM_FAILURE      = 0x00000030,
+    CR_MACHINE_UNAVAILABLE      = 0x00000031,
+    CR_NO_CM_SERVICES           = 0x00000032,
+    CR_ACCESS_DENIED            = 0x00000033,
+    CR_CALL_NOT_IMPLEMENTED     = 0x00000034,
+    CR_INVALID_PROPERTY         = 0x00000035,
+    CR_DEVICE_INTERFACE_ACTIVE  = 0x00000036,
+    CR_NO_SUCH_DEVICE_INTERFACE = 0x00000037,
+    CR_INVALID_REFERENCE_STRING = 0x00000038,
+    CR_INVALID_CONFLICT_LIST    = 0x00000039,
+    CR_INVALID_INDEX            = 0x0000003a,
+    CR_INVALID_STRUCTURE_SIZE   = 0x0000003b,
+    NUM_CR_RESULTS              = 0x0000003c,
+}
 
 enum SetupFileLogInfo : int
 {
@@ -138,7 +210,7 @@ alias PDETECT_PROGRESS_NOTIFY = BOOL function(void* ProgressNotifyParam, uint De
 alias PSP_DETSIG_CMPPROC = uint function(void* DeviceInfoSet, SP_DEVINFO_DATA* NewDeviceData, 
                                          SP_DEVINFO_DATA* ExistingDeviceData, void* CompareContext);
 alias PCM_NOTIFY_CALLBACK = uint function(HCMNOTIFICATION__* hNotify, void* Context, CM_NOTIFY_ACTION Action, 
-                                          char* EventData, uint EventDataSize);
+                                          CM_NOTIFY_EVENT_DATA* EventData, uint EventDataSize);
 
 // Structs
 
@@ -151,7 +223,7 @@ align (1):
     uint   MajorVersion;
     uint   MinorVersion;
     ushort ProcessorArchitecture;
-    union
+union
     {
     align (1):
         ushort Reserved;
@@ -1382,17 +1454,17 @@ struct CM_NOTIFY_FILTER
     CM_NOTIFY_FILTER_TYPE FilterType;
     ///Set to 0.
     uint Reserved;
-    union u
+union u
     {
-        struct DeviceInterface
+struct DeviceInterface
         {
             GUID ClassGuid;
         }
-        struct DeviceHandle
+struct DeviceHandle
         {
             HANDLE hTarget;
         }
-        struct DeviceInstance
+struct DeviceInstance
         {
             ushort[200] InstanceId;
         }
@@ -1407,21 +1479,21 @@ struct CM_NOTIFY_EVENT_DATA
     CM_NOTIFY_FILTER_TYPE FilterType;
     ///Reserved. Must be 0.
     uint Reserved;
-    union u
+union u
     {
-        struct DeviceInterface
+struct DeviceInterface
         {
             GUID      ClassGuid;
             ushort[1] SymbolicLink;
         }
-        struct DeviceHandle
+struct DeviceHandle
         {
             GUID     EventGuid;
             int      NameOffset;
             uint     DataSize;
             ubyte[1] Data;
         }
-        struct DeviceInstance
+struct DeviceInstance
         {
             ushort[1] InstanceId;
         }
@@ -1455,8 +1527,8 @@ struct CM_NOTIFY_EVENT_DATA
 ///    ERROR_INSUFFICIENT_BUFFER.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupGetInfDriverStoreLocationA(const(char)* FileName, SP_ALTPLATFORM_INFO_V2* AlternatePlatformInfo, 
-                                     const(char)* LocaleName, const(char)* ReturnBuffer, uint ReturnBufferSize, 
+BOOL SetupGetInfDriverStoreLocationA(const(PSTR) FileName, SP_ALTPLATFORM_INFO_V2* AlternatePlatformInfo, 
+                                     const(PSTR) LocaleName, PSTR ReturnBuffer, uint ReturnBufferSize, 
                                      uint* RequiredSize);
 
 ///The <b>SetupGetInfDriverStoreLocation</b> function retrieves the fully qualified file name (directory path and file
@@ -1484,8 +1556,8 @@ BOOL SetupGetInfDriverStoreLocationA(const(char)* FileName, SP_ALTPLATFORM_INFO_
 ///    ERROR_INSUFFICIENT_BUFFER.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupGetInfDriverStoreLocationW(const(wchar)* FileName, SP_ALTPLATFORM_INFO_V2* AlternatePlatformInfo, 
-                                     const(wchar)* LocaleName, const(wchar)* ReturnBuffer, uint ReturnBufferSize, 
+BOOL SetupGetInfDriverStoreLocationW(const(PWSTR) FileName, SP_ALTPLATFORM_INFO_V2* AlternatePlatformInfo, 
+                                     const(PWSTR) LocaleName, PWSTR ReturnBuffer, uint ReturnBufferSize, 
                                      uint* RequiredSize);
 
 ///The <b>SetupGetInfPublishedName</b> function retrieves the fully qualified file name (directory path and file name)
@@ -1511,7 +1583,7 @@ BOOL SetupGetInfDriverStoreLocationW(const(wchar)* FileName, SP_ALTPLATFORM_INFO
 ///    ERROR_INSUFFICIENT_BUFFER.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupGetInfPublishedNameA(const(char)* DriverStoreLocation, const(char)* ReturnBuffer, uint ReturnBufferSize, 
+BOOL SetupGetInfPublishedNameA(const(PSTR) DriverStoreLocation, PSTR ReturnBuffer, uint ReturnBufferSize, 
                                uint* RequiredSize);
 
 ///The <b>SetupGetInfPublishedName</b> function retrieves the fully qualified file name (directory path and file name)
@@ -1537,8 +1609,8 @@ BOOL SetupGetInfPublishedNameA(const(char)* DriverStoreLocation, const(char)* Re
 ///    ERROR_INSUFFICIENT_BUFFER.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupGetInfPublishedNameW(const(wchar)* DriverStoreLocation, const(wchar)* ReturnBuffer, 
-                               uint ReturnBufferSize, uint* RequiredSize);
+BOOL SetupGetInfPublishedNameW(const(PWSTR) DriverStoreLocation, PWSTR ReturnBuffer, uint ReturnBufferSize, 
+                               uint* RequiredSize);
 
 ///The <b>SetupGetThreadLogToken</b> function retrieves the log token for the thread from which this function was
 ///called.
@@ -1582,7 +1654,7 @@ void SetupSetThreadLogToken(ulong LogToken);
 ///    None
 ///    
 @DllImport("SETUPAPI")
-void SetupWriteTextLog(ulong LogToken, uint Category, uint Flags, const(char)* MessageStr);
+void SetupWriteTextLog(ulong LogToken, uint Category, uint Flags, const(PSTR) MessageStr);
 
 ///The <b>SetupWriteTextLogError</b> function writes information about a SetupAPI-specific error or a Win32 system error
 ///to a SetupAPI text log.
@@ -1607,7 +1679,7 @@ void SetupWriteTextLog(ulong LogToken, uint Category, uint Flags, const(char)* M
 ///    None
 ///    
 @DllImport("SETUPAPI")
-void SetupWriteTextLogError(ulong LogToken, uint Category, uint LogFlags, uint Error, const(char)* MessageStr);
+void SetupWriteTextLogError(ulong LogToken, uint Category, uint LogFlags, uint Error, const(PSTR) MessageStr);
 
 ///The <b>SetupWriteTextLogInfLine</b> function writes a log entry in a SetupAPI text log that contains the text of a
 ///specified INF file line.
@@ -1638,10 +1710,10 @@ BOOL SetupGetBackupInformationA(void* QueueHandle, SP_BACKUP_QUEUE_PARAMS_V2_A* 
 BOOL SetupGetBackupInformationW(void* QueueHandle, SP_BACKUP_QUEUE_PARAMS_V2_W* BackupParams);
 
 @DllImport("SETUPAPI")
-BOOL SetupPrepareQueueForRestoreA(void* QueueHandle, const(char)* BackupPath, uint RestoreFlags);
+BOOL SetupPrepareQueueForRestoreA(void* QueueHandle, const(PSTR) BackupPath, uint RestoreFlags);
 
 @DllImport("SETUPAPI")
-BOOL SetupPrepareQueueForRestoreW(void* QueueHandle, const(wchar)* BackupPath, uint RestoreFlags);
+BOOL SetupPrepareQueueForRestoreW(void* QueueHandle, const(PWSTR) BackupPath, uint RestoreFlags);
 
 ///The <b>SetupSetNonInteractiveMode</b> function sets a non-interactive SetupAPI flag that determines whether SetupAPI
 ///can interact with a user in the caller's context.
@@ -1700,7 +1772,7 @@ void* SetupDiCreateDeviceInfoList(const(GUID)* ClassGuid, HWND hwndParent);
 ///    INVALID_HANDLE_VALUE. To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-void* SetupDiCreateDeviceInfoListExA(const(GUID)* ClassGuid, HWND hwndParent, const(char)* MachineName, 
+void* SetupDiCreateDeviceInfoListExA(const(GUID)* ClassGuid, HWND hwndParent, const(PSTR) MachineName, 
                                      void* Reserved);
 
 ///The <b>SetupDiCreateDeviceInfoList</b> function creates an empty device information set on a remote or a local
@@ -1721,7 +1793,7 @@ void* SetupDiCreateDeviceInfoListExA(const(GUID)* ClassGuid, HWND hwndParent, co
 ///    INVALID_HANDLE_VALUE. To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-void* SetupDiCreateDeviceInfoListExW(const(GUID)* ClassGuid, HWND hwndParent, const(wchar)* MachineName, 
+void* SetupDiCreateDeviceInfoListExW(const(GUID)* ClassGuid, HWND hwndParent, const(PWSTR) MachineName, 
                                      void* Reserved);
 
 ///The <b>SetupDiGetDeviceInfoListClass</b> function retrieves the GUID for the device setup class associated with a
@@ -1787,8 +1859,8 @@ BOOL SetupDiGetDeviceInfoListDetailW(void* DeviceInfoSet, SP_DEVINFO_LIST_DETAIL
 ///    be retrieved by making a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiCreateDeviceInfoA(void* DeviceInfoSet, const(char)* DeviceName, const(GUID)* ClassGuid, 
-                              const(char)* DeviceDescription, HWND hwndParent, uint CreationFlags, 
+BOOL SetupDiCreateDeviceInfoA(void* DeviceInfoSet, const(PSTR) DeviceName, const(GUID)* ClassGuid, 
+                              const(PSTR) DeviceDescription, HWND hwndParent, uint CreationFlags, 
                               SP_DEVINFO_DATA* DeviceInfoData);
 
 ///The <b>SetupDiCreateDeviceInfo</b> function creates a new device information element and adds it as a new member to
@@ -1816,8 +1888,8 @@ BOOL SetupDiCreateDeviceInfoA(void* DeviceInfoSet, const(char)* DeviceName, cons
 ///    be retrieved by making a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiCreateDeviceInfoW(void* DeviceInfoSet, const(wchar)* DeviceName, const(GUID)* ClassGuid, 
-                              const(wchar)* DeviceDescription, HWND hwndParent, uint CreationFlags, 
+BOOL SetupDiCreateDeviceInfoW(void* DeviceInfoSet, const(PWSTR) DeviceName, const(GUID)* ClassGuid, 
+                              const(PWSTR) DeviceDescription, HWND hwndParent, uint CreationFlags, 
                               SP_DEVINFO_DATA* DeviceInfoData);
 
 ///The <b>SetupDiOpenDeviceInfo</b> function adds a device information element for a device instance to a device
@@ -1841,7 +1913,7 @@ BOOL SetupDiCreateDeviceInfoW(void* DeviceInfoSet, const(wchar)* DeviceName, con
 ///    <b>FALSE</b> and the logged error can be retrieved with a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiOpenDeviceInfoA(void* DeviceInfoSet, const(char)* DeviceInstanceId, HWND hwndParent, uint OpenFlags, 
+BOOL SetupDiOpenDeviceInfoA(void* DeviceInfoSet, const(PSTR) DeviceInstanceId, HWND hwndParent, uint OpenFlags, 
                             SP_DEVINFO_DATA* DeviceInfoData);
 
 ///The <b>SetupDiOpenDeviceInfo</b> function adds a device information element for a device instance to a device
@@ -1865,7 +1937,7 @@ BOOL SetupDiOpenDeviceInfoA(void* DeviceInfoSet, const(char)* DeviceInstanceId, 
 ///    <b>FALSE</b> and the logged error can be retrieved with a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiOpenDeviceInfoW(void* DeviceInfoSet, const(wchar)* DeviceInstanceId, HWND hwndParent, uint OpenFlags, 
+BOOL SetupDiOpenDeviceInfoW(void* DeviceInfoSet, const(PWSTR) DeviceInstanceId, HWND hwndParent, uint OpenFlags, 
                             SP_DEVINFO_DATA* DeviceInfoData);
 
 ///The <b>SetupDiGetDeviceInstanceId</b> function retrieves the device instance ID that is associated with a device
@@ -1883,8 +1955,8 @@ BOOL SetupDiOpenDeviceInfoW(void* DeviceInfoSet, const(wchar)* DeviceInstanceId,
 ///    be retrieved by making a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiGetDeviceInstanceIdA(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, 
-                                 const(char)* DeviceInstanceId, uint DeviceInstanceIdSize, uint* RequiredSize);
+BOOL SetupDiGetDeviceInstanceIdA(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, PSTR DeviceInstanceId, 
+                                 uint DeviceInstanceIdSize, uint* RequiredSize);
 
 ///The <b>SetupDiGetDeviceInstanceId</b> function retrieves the device instance ID that is associated with a device
 ///information element.
@@ -1901,8 +1973,8 @@ BOOL SetupDiGetDeviceInstanceIdA(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInf
 ///    be retrieved by making a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiGetDeviceInstanceIdW(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, 
-                                 const(wchar)* DeviceInstanceId, uint DeviceInstanceIdSize, uint* RequiredSize);
+BOOL SetupDiGetDeviceInstanceIdW(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, PWSTR DeviceInstanceId, 
+                                 uint DeviceInstanceIdSize, uint* RequiredSize);
 
 ///The <b>SetupDiDeleteDeviceInfo</b> function deletes a device information element from a device information set. This
 ///function does not delete the actual device.
@@ -1993,7 +2065,7 @@ BOOL SetupDiEnumDeviceInterfaces(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInf
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupDiCreateDeviceInterfaceA(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, 
-                                   const(GUID)* InterfaceClassGuid, const(char)* ReferenceString, uint CreationFlags, 
+                                   const(GUID)* InterfaceClassGuid, const(PSTR) ReferenceString, uint CreationFlags, 
                                    SP_DEVICE_INTERFACE_DATA* DeviceInterfaceData);
 
 ///The <b>SetupDiCreateDeviceInterface</b> function registers a device interface on a local system or a remote system.
@@ -2017,8 +2089,8 @@ BOOL SetupDiCreateDeviceInterfaceA(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceI
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupDiCreateDeviceInterfaceW(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, 
-                                   const(GUID)* InterfaceClassGuid, const(wchar)* ReferenceString, 
-                                   uint CreationFlags, SP_DEVICE_INTERFACE_DATA* DeviceInterfaceData);
+                                   const(GUID)* InterfaceClassGuid, const(PWSTR) ReferenceString, uint CreationFlags, 
+                                   SP_DEVICE_INTERFACE_DATA* DeviceInterfaceData);
 
 ///The <b>SetupDiOpenDeviceInterface</b> function retrieves information about a device interface and adds the interface
 ///to the specified device information set for a local system or a remote system.
@@ -2039,7 +2111,7 @@ BOOL SetupDiCreateDeviceInterfaceW(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceI
 ///    GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiOpenDeviceInterfaceA(void* DeviceInfoSet, const(char)* DevicePath, uint OpenFlags, 
+BOOL SetupDiOpenDeviceInterfaceA(void* DeviceInfoSet, const(PSTR) DevicePath, uint OpenFlags, 
                                  SP_DEVICE_INTERFACE_DATA* DeviceInterfaceData);
 
 ///The <b>SetupDiOpenDeviceInterface</b> function retrieves information about a device interface and adds the interface
@@ -2061,7 +2133,7 @@ BOOL SetupDiOpenDeviceInterfaceA(void* DeviceInfoSet, const(char)* DevicePath, u
 ///    GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiOpenDeviceInterfaceW(void* DeviceInfoSet, const(wchar)* DevicePath, uint OpenFlags, 
+BOOL SetupDiOpenDeviceInterfaceW(void* DeviceInfoSet, const(PWSTR) DevicePath, uint OpenFlags, 
                                  SP_DEVICE_INTERFACE_DATA* DeviceInterfaceData);
 
 ///The <b>SetupDiGetDeviceInterfaceAlias</b> function returns an alias of a specified device interface.
@@ -2150,8 +2222,9 @@ BOOL SetupDiRemoveDeviceInterface(void* DeviceInfoSet, SP_DEVICE_INTERFACE_DATA*
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupDiGetDeviceInterfaceDetailA(void* DeviceInfoSet, SP_DEVICE_INTERFACE_DATA* DeviceInterfaceData, 
-                                      char* DeviceInterfaceDetailData, uint DeviceInterfaceDetailDataSize, 
-                                      uint* RequiredSize, SP_DEVINFO_DATA* DeviceInfoData);
+                                      SP_DEVICE_INTERFACE_DETAIL_DATA_A* DeviceInterfaceDetailData, 
+                                      uint DeviceInterfaceDetailDataSize, uint* RequiredSize, 
+                                      SP_DEVINFO_DATA* DeviceInfoData);
 
 ///The <b>SetupDiGetDeviceInterfaceDetail</b> function returns details about a device interface.
 ///Params:
@@ -2182,8 +2255,9 @@ BOOL SetupDiGetDeviceInterfaceDetailA(void* DeviceInfoSet, SP_DEVICE_INTERFACE_D
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupDiGetDeviceInterfaceDetailW(void* DeviceInfoSet, SP_DEVICE_INTERFACE_DATA* DeviceInterfaceData, 
-                                      char* DeviceInterfaceDetailData, uint DeviceInterfaceDetailDataSize, 
-                                      uint* RequiredSize, SP_DEVINFO_DATA* DeviceInfoData);
+                                      SP_DEVICE_INTERFACE_DETAIL_DATA_W* DeviceInterfaceDetailData, 
+                                      uint DeviceInterfaceDetailDataSize, uint* RequiredSize, 
+                                      SP_DEVINFO_DATA* DeviceInfoData);
 
 ///The <b>SetupDiInstallDeviceInterfaces</b> function is the default handler for the DIF_INSTALLINTERFACES installation
 ///request.
@@ -2462,8 +2536,9 @@ BOOL SetupDiSetSelectedDriverW(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoD
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupDiGetDriverInfoDetailA(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, 
-                                 SP_DRVINFO_DATA_V2_A* DriverInfoData, char* DriverInfoDetailData, 
-                                 uint DriverInfoDetailDataSize, uint* RequiredSize);
+                                 SP_DRVINFO_DATA_V2_A* DriverInfoData, 
+                                 SP_DRVINFO_DETAIL_DATA_A* DriverInfoDetailData, uint DriverInfoDetailDataSize, 
+                                 uint* RequiredSize);
 
 ///The <b>SetupDiGetDriverInfoDetail</b> function retrieves driver information detail for a device information set or a
 ///particular device information element in the device information set.
@@ -2496,8 +2571,9 @@ BOOL SetupDiGetDriverInfoDetailA(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInf
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupDiGetDriverInfoDetailW(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, 
-                                 SP_DRVINFO_DATA_V2_W* DriverInfoData, char* DriverInfoDetailData, 
-                                 uint DriverInfoDetailDataSize, uint* RequiredSize);
+                                 SP_DRVINFO_DATA_V2_W* DriverInfoData, 
+                                 SP_DRVINFO_DETAIL_DATA_W* DriverInfoDetailData, uint DriverInfoDetailDataSize, 
+                                 uint* RequiredSize);
 
 ///The <b>SetupDiDestroyDriverInfoList</b> function deletes a driver list.
 ///Params:
@@ -2538,7 +2614,7 @@ BOOL SetupDiDestroyDriverInfoList(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceIn
 ///    INVALID_HANDLE_VALUE. To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-void* SetupDiGetClassDevsW(const(GUID)* ClassGuid, const(wchar)* Enumerator, HWND hwndParent, uint Flags);
+void* SetupDiGetClassDevsW(const(GUID)* ClassGuid, const(PWSTR) Enumerator, HWND hwndParent, uint Flags);
 
 ///The <b>SetupDiGetClassDevsEx</b> function returns a handle to a device information set that contains requested device
 ///information elements for a local or a remote computer.
@@ -2571,8 +2647,8 @@ void* SetupDiGetClassDevsW(const(GUID)* ClassGuid, const(wchar)* Enumerator, HWN
 ///    INVALID_HANDLE_VALUE. To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-void* SetupDiGetClassDevsExA(const(GUID)* ClassGuid, const(char)* Enumerator, HWND hwndParent, uint Flags, 
-                             void* DeviceInfoSet, const(char)* MachineName, void* Reserved);
+void* SetupDiGetClassDevsExA(const(GUID)* ClassGuid, const(PSTR) Enumerator, HWND hwndParent, uint Flags, 
+                             void* DeviceInfoSet, const(PSTR) MachineName, void* Reserved);
 
 ///The <b>SetupDiGetClassDevsEx</b> function returns a handle to a device information set that contains requested device
 ///information elements for a local or a remote computer.
@@ -2605,8 +2681,8 @@ void* SetupDiGetClassDevsExA(const(GUID)* ClassGuid, const(char)* Enumerator, HW
 ///    INVALID_HANDLE_VALUE. To get extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-void* SetupDiGetClassDevsExW(const(GUID)* ClassGuid, const(wchar)* Enumerator, HWND hwndParent, uint Flags, 
-                             void* DeviceInfoSet, const(wchar)* MachineName, void* Reserved);
+void* SetupDiGetClassDevsExW(const(GUID)* ClassGuid, const(PWSTR) Enumerator, HWND hwndParent, uint Flags, 
+                             void* DeviceInfoSet, const(PWSTR) MachineName, void* Reserved);
 
 ///The <b>SetupDiGetINFClass</b> function returns the class of a specified device INF file.
 ///Params:
@@ -2630,7 +2706,7 @@ void* SetupDiGetClassDevsExW(const(GUID)* ClassGuid, const(wchar)* Enumerator, H
 ///    be retrieved with a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiGetINFClassA(const(char)* InfName, GUID* ClassGuid, const(char)* ClassName, uint ClassNameSize, 
+BOOL SetupDiGetINFClassA(const(PSTR) InfName, GUID* ClassGuid, PSTR ClassName, uint ClassNameSize, 
                          uint* RequiredSize);
 
 ///The <b>SetupDiGetINFClass</b> function returns the class of a specified device INF file.
@@ -2655,7 +2731,7 @@ BOOL SetupDiGetINFClassA(const(char)* InfName, GUID* ClassGuid, const(char)* Cla
 ///    be retrieved with a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiGetINFClassW(const(wchar)* InfName, GUID* ClassGuid, const(wchar)* ClassName, uint ClassNameSize, 
+BOOL SetupDiGetINFClassW(const(PWSTR) InfName, GUID* ClassGuid, PWSTR ClassName, uint ClassNameSize, 
                          uint* RequiredSize);
 
 ///The <b>SetupDiBuildClassInfoList</b> function returns a list of setup class GUIDs that identify the classes that are
@@ -2676,7 +2752,7 @@ BOOL SetupDiGetINFClassW(const(wchar)* InfName, GUID* ClassGuid, const(wchar)* C
 ///    be retrieved by making a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiBuildClassInfoList(uint Flags, char* ClassGuidList, uint ClassGuidListSize, uint* RequiredSize);
+BOOL SetupDiBuildClassInfoList(uint Flags, GUID* ClassGuidList, uint ClassGuidListSize, uint* RequiredSize);
 
 ///The <b>SetupDiBuildClassInfoListEx</b> function returns a list of setup class GUIDs that includes every class
 ///installed on the local system or a remote system.
@@ -2697,8 +2773,8 @@ BOOL SetupDiBuildClassInfoList(uint Flags, char* ClassGuidList, uint ClassGuidLi
 ///    be retrieved by making a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiBuildClassInfoListExA(uint Flags, char* ClassGuidList, uint ClassGuidListSize, uint* RequiredSize, 
-                                  const(char)* MachineName, void* Reserved);
+BOOL SetupDiBuildClassInfoListExA(uint Flags, GUID* ClassGuidList, uint ClassGuidListSize, uint* RequiredSize, 
+                                  const(PSTR) MachineName, void* Reserved);
 
 ///The <b>SetupDiBuildClassInfoListEx</b> function returns a list of setup class GUIDs that includes every class
 ///installed on the local system or a remote system.
@@ -2719,8 +2795,8 @@ BOOL SetupDiBuildClassInfoListExA(uint Flags, char* ClassGuidList, uint ClassGui
 ///    be retrieved by making a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiBuildClassInfoListExW(uint Flags, char* ClassGuidList, uint ClassGuidListSize, uint* RequiredSize, 
-                                  const(wchar)* MachineName, void* Reserved);
+BOOL SetupDiBuildClassInfoListExW(uint Flags, GUID* ClassGuidList, uint ClassGuidListSize, uint* RequiredSize, 
+                                  const(PWSTR) MachineName, void* Reserved);
 
 ///The <b>SetupDiGetClassDescription</b> function retrieves the class description associated with the specified setup
 ///class GUID.
@@ -2736,7 +2812,7 @@ BOOL SetupDiBuildClassInfoListExW(uint Flags, char* ClassGuidList, uint ClassGui
 ///    be retrieved with a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiGetClassDescriptionA(const(GUID)* ClassGuid, const(char)* ClassDescription, uint ClassDescriptionSize, 
+BOOL SetupDiGetClassDescriptionA(const(GUID)* ClassGuid, PSTR ClassDescription, uint ClassDescriptionSize, 
                                  uint* RequiredSize);
 
 ///The <b>SetupDiGetClassDescription</b> function retrieves the class description associated with the specified setup
@@ -2753,7 +2829,7 @@ BOOL SetupDiGetClassDescriptionA(const(GUID)* ClassGuid, const(char)* ClassDescr
 ///    be retrieved with a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiGetClassDescriptionW(const(GUID)* ClassGuid, const(wchar)* ClassDescription, uint ClassDescriptionSize, 
+BOOL SetupDiGetClassDescriptionW(const(GUID)* ClassGuid, PWSTR ClassDescription, uint ClassDescriptionSize, 
                                  uint* RequiredSize);
 
 ///The <b>SetupDiGetClassDescriptionEx</b> function retrieves the description of a setup class installed on a local or
@@ -2775,9 +2851,8 @@ BOOL SetupDiGetClassDescriptionW(const(GUID)* ClassGuid, const(wchar)* ClassDesc
 ///    be retrieved with a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiGetClassDescriptionExA(const(GUID)* ClassGuid, const(char)* ClassDescription, 
-                                   uint ClassDescriptionSize, uint* RequiredSize, const(char)* MachineName, 
-                                   void* Reserved);
+BOOL SetupDiGetClassDescriptionExA(const(GUID)* ClassGuid, PSTR ClassDescription, uint ClassDescriptionSize, 
+                                   uint* RequiredSize, const(PSTR) MachineName, void* Reserved);
 
 ///The <b>SetupDiGetClassDescriptionEx</b> function retrieves the description of a setup class installed on a local or
 ///remote computer.
@@ -2798,9 +2873,8 @@ BOOL SetupDiGetClassDescriptionExA(const(GUID)* ClassGuid, const(char)* ClassDes
 ///    be retrieved with a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiGetClassDescriptionExW(const(GUID)* ClassGuid, const(wchar)* ClassDescription, 
-                                   uint ClassDescriptionSize, uint* RequiredSize, const(wchar)* MachineName, 
-                                   void* Reserved);
+BOOL SetupDiGetClassDescriptionExW(const(GUID)* ClassGuid, PWSTR ClassDescription, uint ClassDescriptionSize, 
+                                   uint* RequiredSize, const(PWSTR) MachineName, void* Reserved);
 
 ///The <b>SetupDiCallClassInstaller</b> function calls the appropriate class installer, and any registered
 ///co-installers, with the specified installation request (DIF code).
@@ -2970,7 +3044,7 @@ BOOL SetupDiChangeState(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData);
 ///    be retrieved with a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiInstallClassA(HWND hwndParent, const(char)* InfFileName, uint Flags, void* FileQueue);
+BOOL SetupDiInstallClassA(HWND hwndParent, const(PSTR) InfFileName, uint Flags, void* FileQueue);
 
 ///The <b>SetupDiInstallClass</b> function installs the <b>ClassInstall32</b> section of the specified INF file.
 ///Params:
@@ -2986,7 +3060,7 @@ BOOL SetupDiInstallClassA(HWND hwndParent, const(char)* InfFileName, uint Flags,
 ///    be retrieved with a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiInstallClassW(HWND hwndParent, const(wchar)* InfFileName, uint Flags, void* FileQueue);
+BOOL SetupDiInstallClassW(HWND hwndParent, const(PWSTR) InfFileName, uint Flags, void* FileQueue);
 
 ///The <b>SetupDiInstallClassEx</b> function installs a class installer or an interface class.
 ///Params:
@@ -3011,7 +3085,7 @@ BOOL SetupDiInstallClassW(HWND hwndParent, const(wchar)* InfFileName, uint Flags
 ///    logged error can be retrieved with a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiInstallClassExA(HWND hwndParent, const(char)* InfFileName, uint Flags, void* FileQueue, 
+BOOL SetupDiInstallClassExA(HWND hwndParent, const(PSTR) InfFileName, uint Flags, void* FileQueue, 
                             const(GUID)* InterfaceClassGuid, void* Reserved1, void* Reserved2);
 
 ///The <b>SetupDiInstallClassEx</b> function installs a class installer or an interface class.
@@ -3037,7 +3111,7 @@ BOOL SetupDiInstallClassExA(HWND hwndParent, const(char)* InfFileName, uint Flag
 ///    logged error can be retrieved with a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiInstallClassExW(HWND hwndParent, const(wchar)* InfFileName, uint Flags, void* FileQueue, 
+BOOL SetupDiInstallClassExW(HWND hwndParent, const(PWSTR) InfFileName, uint Flags, void* FileQueue, 
                             const(GUID)* InterfaceClassGuid, void* Reserved1, void* Reserved2);
 
 ///The <b>SetupDiOpenClassRegKey</b> function opens the setup class registry key or a specific class's subkey.
@@ -3073,7 +3147,7 @@ HKEY SetupDiOpenClassRegKey(const(GUID)* ClassGuid, uint samDesired);
 ///    information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-HKEY SetupDiOpenClassRegKeyExA(const(GUID)* ClassGuid, uint samDesired, uint Flags, const(char)* MachineName, 
+HKEY SetupDiOpenClassRegKeyExA(const(GUID)* ClassGuid, uint samDesired, uint Flags, const(PSTR) MachineName, 
                                void* Reserved);
 
 ///The <b>SetupDiOpenClassRegKeyEx</b> function opens the device setup class registry key, the device interface class
@@ -3094,7 +3168,7 @@ HKEY SetupDiOpenClassRegKeyExA(const(GUID)* ClassGuid, uint samDesired, uint Fla
 ///    information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-HKEY SetupDiOpenClassRegKeyExW(const(GUID)* ClassGuid, uint samDesired, uint Flags, const(wchar)* MachineName, 
+HKEY SetupDiOpenClassRegKeyExW(const(GUID)* ClassGuid, uint samDesired, uint Flags, const(PWSTR) MachineName, 
                                void* Reserved);
 
 ///The <b>SetupDiCreateDeviceInterfaceRegKey</b> function creates a registry key for storing information about a device
@@ -3120,8 +3194,7 @@ HKEY SetupDiOpenClassRegKeyExW(const(GUID)* ClassGuid, uint samDesired, uint Fla
 ///    
 @DllImport("SETUPAPI")
 HKEY SetupDiCreateDeviceInterfaceRegKeyA(void* DeviceInfoSet, SP_DEVICE_INTERFACE_DATA* DeviceInterfaceData, 
-                                         uint Reserved, uint samDesired, void* InfHandle, 
-                                         const(char)* InfSectionName);
+                                         uint Reserved, uint samDesired, void* InfHandle, const(PSTR) InfSectionName);
 
 ///The <b>SetupDiCreateDeviceInterfaceRegKey</b> function creates a registry key for storing information about a device
 ///interface and returns a handle to the key.
@@ -3147,7 +3220,7 @@ HKEY SetupDiCreateDeviceInterfaceRegKeyA(void* DeviceInfoSet, SP_DEVICE_INTERFAC
 @DllImport("SETUPAPI")
 HKEY SetupDiCreateDeviceInterfaceRegKeyW(void* DeviceInfoSet, SP_DEVICE_INTERFACE_DATA* DeviceInterfaceData, 
                                          uint Reserved, uint samDesired, void* InfHandle, 
-                                         const(wchar)* InfSectionName);
+                                         const(PWSTR) InfSectionName);
 
 ///The <b>SetupDiOpenDeviceInterfaceRegKey</b> function opens the registry subkey that is used by applications and
 ///drivers to store information that is specific to a device interface.
@@ -3207,7 +3280,7 @@ BOOL SetupDiDeleteDeviceInterfaceRegKey(void* DeviceInfoSet, SP_DEVICE_INTERFACE
 ///    
 @DllImport("SETUPAPI")
 HKEY SetupDiCreateDevRegKeyA(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, uint Scope, uint HwProfile, 
-                             uint KeyType, void* InfHandle, const(char)* InfSectionName);
+                             uint KeyType, void* InfHandle, const(PSTR) InfSectionName);
 
 ///The <b>SetupDiCreateDevRegKey</b> function creates a registry key for device-specific configuration information and
 ///returns a handle to the key.
@@ -3234,7 +3307,7 @@ HKEY SetupDiCreateDevRegKeyA(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoDat
 ///    
 @DllImport("SETUPAPI")
 HKEY SetupDiCreateDevRegKeyW(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, uint Scope, uint HwProfile, 
-                             uint KeyType, void* InfHandle, const(wchar)* InfSectionName);
+                             uint KeyType, void* InfHandle, const(PWSTR) InfSectionName);
 
 ///The <b>SetupDiOpenDevRegKey</b> function opens a registry key for device-specific configuration information.
 ///Params:
@@ -3294,7 +3367,7 @@ BOOL SetupDiDeleteDevRegKey(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData
 ///    be retrieved by making a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiGetHwProfileList(char* HwProfileList, uint HwProfileListSize, uint* RequiredSize, 
+BOOL SetupDiGetHwProfileList(uint* HwProfileList, uint HwProfileListSize, uint* RequiredSize, 
                              uint* CurrentlyActiveIndex);
 
 ///The <b>SetupDiGetHwProfileListEx</b> function retrieves a list of all currently defined hardware profile IDs on a
@@ -3318,8 +3391,8 @@ BOOL SetupDiGetHwProfileList(char* HwProfileList, uint HwProfileListSize, uint* 
 ///    ERROR_INSUFFICIENT_BUFFER.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiGetHwProfileListExA(char* HwProfileList, uint HwProfileListSize, uint* RequiredSize, 
-                                uint* CurrentlyActiveIndex, const(char)* MachineName, void* Reserved);
+BOOL SetupDiGetHwProfileListExA(uint* HwProfileList, uint HwProfileListSize, uint* RequiredSize, 
+                                uint* CurrentlyActiveIndex, const(PSTR) MachineName, void* Reserved);
 
 ///The <b>SetupDiGetHwProfileListEx</b> function retrieves a list of all currently defined hardware profile IDs on a
 ///local or remote computer.
@@ -3342,8 +3415,8 @@ BOOL SetupDiGetHwProfileListExA(char* HwProfileList, uint HwProfileListSize, uin
 ///    ERROR_INSUFFICIENT_BUFFER.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiGetHwProfileListExW(char* HwProfileList, uint HwProfileListSize, uint* RequiredSize, 
-                                uint* CurrentlyActiveIndex, const(wchar)* MachineName, void* Reserved);
+BOOL SetupDiGetHwProfileListExW(uint* HwProfileList, uint HwProfileListSize, uint* RequiredSize, 
+                                uint* CurrentlyActiveIndex, const(PWSTR) MachineName, void* Reserved);
 
 ///The <b>SetupDiGetDevicePropertyKeys</b> function retrieves an array of the device property keys that represent the
 ///device properties that are set for a device instance.
@@ -3381,8 +3454,9 @@ BOOL SetupDiGetHwProfileListExW(char* HwProfileList, uint HwProfileListSize, uin
 ///    system memory available to complete the operation. </td> </tr> </table>
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiGetDevicePropertyKeys(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, char* PropertyKeyArray, 
-                                  uint PropertyKeyCount, uint* RequiredPropertyKeyCount, uint Flags);
+BOOL SetupDiGetDevicePropertyKeys(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, 
+                                  DEVPROPKEY* PropertyKeyArray, uint PropertyKeyCount, 
+                                  uint* RequiredPropertyKeyCount, uint Flags);
 
 ///The <b>SetupDiGetDeviceProperty</b> function retrieves a device instance property.
 ///Params:
@@ -3431,7 +3505,7 @@ BOOL SetupDiGetDevicePropertyKeys(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceIn
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupDiGetDevicePropertyW(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, 
-                               const(DEVPROPKEY)* PropertyKey, uint* PropertyType, char* PropertyBuffer, 
+                               const(DEVPROPKEY)* PropertyKey, uint* PropertyType, ubyte* PropertyBuffer, 
                                uint PropertyBufferSize, uint* RequiredSize, uint Flags);
 
 ///The <b>SetupDiSetDeviceProperty</b> function sets a device instance property.
@@ -3477,7 +3551,7 @@ BOOL SetupDiGetDevicePropertyW(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoD
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupDiSetDevicePropertyW(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, 
-                               const(DEVPROPKEY)* PropertyKey, uint PropertyType, char* PropertyBuffer, 
+                               const(DEVPROPKEY)* PropertyKey, uint PropertyType, const(ubyte)* PropertyBuffer, 
                                uint PropertyBufferSize, uint Flags);
 
 ///The <b>SetupDiGetDeviceInterfacePropertyKeys</b> function retrieves an array of device property keys that represent
@@ -3518,7 +3592,7 @@ BOOL SetupDiSetDevicePropertyW(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoD
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupDiGetDeviceInterfacePropertyKeys(void* DeviceInfoSet, SP_DEVICE_INTERFACE_DATA* DeviceInterfaceData, 
-                                           char* PropertyKeyArray, uint PropertyKeyCount, 
+                                           DEVPROPKEY* PropertyKeyArray, uint PropertyKeyCount, 
                                            uint* RequiredPropertyKeyCount, uint Flags);
 
 ///The <b>SetupDiGetDeviceInterfaceProperty</b> function retrieves a device property that is set for a device interface.
@@ -3571,7 +3645,7 @@ BOOL SetupDiGetDeviceInterfacePropertyKeys(void* DeviceInfoSet, SP_DEVICE_INTERF
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupDiGetDeviceInterfacePropertyW(void* DeviceInfoSet, SP_DEVICE_INTERFACE_DATA* DeviceInterfaceData, 
-                                        const(DEVPROPKEY)* PropertyKey, uint* PropertyType, char* PropertyBuffer, 
+                                        const(DEVPROPKEY)* PropertyKey, uint* PropertyType, ubyte* PropertyBuffer, 
                                         uint PropertyBufferSize, uint* RequiredSize, uint Flags);
 
 ///The <b>SetupDiSetDeviceInterfaceProperty</b> function sets a device property of a device interface.
@@ -3620,8 +3694,8 @@ BOOL SetupDiGetDeviceInterfacePropertyW(void* DeviceInfoSet, SP_DEVICE_INTERFACE
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupDiSetDeviceInterfacePropertyW(void* DeviceInfoSet, SP_DEVICE_INTERFACE_DATA* DeviceInterfaceData, 
-                                        const(DEVPROPKEY)* PropertyKey, uint PropertyType, char* PropertyBuffer, 
-                                        uint PropertyBufferSize, uint Flags);
+                                        const(DEVPROPKEY)* PropertyKey, uint PropertyType, 
+                                        const(ubyte)* PropertyBuffer, uint PropertyBufferSize, uint Flags);
 
 ///The <b>SetupDiGetClassPropertyKeys</b> function retrieves an array of the device property keys that represent the
 ///device properties that are set for a device setup class or a device interface class.
@@ -3666,7 +3740,7 @@ BOOL SetupDiSetDeviceInterfacePropertyW(void* DeviceInfoSet, SP_DEVICE_INTERFACE
 ///    Administrator privileges. </td> </tr> </table>
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiGetClassPropertyKeys(const(GUID)* ClassGuid, char* PropertyKeyArray, uint PropertyKeyCount, 
+BOOL SetupDiGetClassPropertyKeys(const(GUID)* ClassGuid, DEVPROPKEY* PropertyKeyArray, uint PropertyKeyCount, 
                                  uint* RequiredPropertyKeyCount, uint Flags);
 
 ///The <b>SetupDiGetClassPropertyKeysEx</b> function retrieves an array of the device property keys that represent the
@@ -3718,8 +3792,8 @@ BOOL SetupDiGetClassPropertyKeys(const(GUID)* ClassGuid, char* PropertyKeyArray,
 ///    Administrator privileges. </td> </tr> </table>
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiGetClassPropertyKeysExW(const(GUID)* ClassGuid, char* PropertyKeyArray, uint PropertyKeyCount, 
-                                    uint* RequiredPropertyKeyCount, uint Flags, const(wchar)* MachineName, 
+BOOL SetupDiGetClassPropertyKeysExW(const(GUID)* ClassGuid, DEVPROPKEY* PropertyKeyArray, uint PropertyKeyCount, 
+                                    uint* RequiredPropertyKeyCount, uint Flags, const(PWSTR) MachineName, 
                                     void* Reserved);
 
 ///The <b>SetupDiGetClassProperty</b> function retrieves a device property that is set for a device setup class or a
@@ -3773,7 +3847,7 @@ BOOL SetupDiGetClassPropertyKeysExW(const(GUID)* ClassGuid, char* PropertyKeyArr
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupDiGetClassPropertyW(const(GUID)* ClassGuid, const(DEVPROPKEY)* PropertyKey, uint* PropertyType, 
-                              char* PropertyBuffer, uint PropertyBufferSize, uint* RequiredSize, uint Flags);
+                              ubyte* PropertyBuffer, uint PropertyBufferSize, uint* RequiredSize, uint Flags);
 
 ///The <b>SetupDiGetClassPropertyEx</b> function retrieves a class property for a device setup class or a device
 ///interface class on a local or remote computer.
@@ -3833,8 +3907,8 @@ BOOL SetupDiGetClassPropertyW(const(GUID)* ClassGuid, const(DEVPROPKEY)* Propert
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupDiGetClassPropertyExW(const(GUID)* ClassGuid, const(DEVPROPKEY)* PropertyKey, uint* PropertyType, 
-                                char* PropertyBuffer, uint PropertyBufferSize, uint* RequiredSize, uint Flags, 
-                                const(wchar)* MachineName, void* Reserved);
+                                ubyte* PropertyBuffer, uint PropertyBufferSize, uint* RequiredSize, uint Flags, 
+                                const(PWSTR) MachineName, void* Reserved);
 
 ///The <b>SetupDiSetClassProperty</b> function sets a class property for a device setup class or a device interface
 ///class.
@@ -3881,7 +3955,7 @@ BOOL SetupDiGetClassPropertyExW(const(GUID)* ClassGuid, const(DEVPROPKEY)* Prope
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupDiSetClassPropertyW(const(GUID)* ClassGuid, const(DEVPROPKEY)* PropertyKey, uint PropertyType, 
-                              char* PropertyBuffer, uint PropertyBufferSize, uint Flags);
+                              const(ubyte)* PropertyBuffer, uint PropertyBufferSize, uint Flags);
 
 ///The <b>SetupDiSetClassPropertyEx</b> function sets a device property for a device setup class or a device interface
 ///class on a local or remote computer.
@@ -3935,8 +4009,8 @@ BOOL SetupDiSetClassPropertyW(const(GUID)* ClassGuid, const(DEVPROPKEY)* Propert
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupDiSetClassPropertyExW(const(GUID)* ClassGuid, const(DEVPROPKEY)* PropertyKey, uint PropertyType, 
-                                char* PropertyBuffer, uint PropertyBufferSize, uint Flags, const(wchar)* MachineName, 
-                                void* Reserved);
+                                const(ubyte)* PropertyBuffer, uint PropertyBufferSize, uint Flags, 
+                                const(PWSTR) MachineName, void* Reserved);
 
 ///The <b>SetupDiGetDeviceRegistryProperty</b> function retrieves a specified Plug and Play device property.
 ///Params:
@@ -3961,7 +4035,7 @@ BOOL SetupDiSetClassPropertyExW(const(GUID)* ClassGuid, const(DEVPROPKEY)* Prope
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupDiGetDeviceRegistryPropertyA(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, uint Property, 
-                                       uint* PropertyRegDataType, char* PropertyBuffer, uint PropertyBufferSize, 
+                                       uint* PropertyRegDataType, ubyte* PropertyBuffer, uint PropertyBufferSize, 
                                        uint* RequiredSize);
 
 ///The <b>SetupDiGetDeviceRegistryProperty</b> function retrieves a specified Plug and Play device property.
@@ -3987,7 +4061,7 @@ BOOL SetupDiGetDeviceRegistryPropertyA(void* DeviceInfoSet, SP_DEVINFO_DATA* Dev
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupDiGetDeviceRegistryPropertyW(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, uint Property, 
-                                       uint* PropertyRegDataType, char* PropertyBuffer, uint PropertyBufferSize, 
+                                       uint* PropertyRegDataType, ubyte* PropertyBuffer, uint PropertyBufferSize, 
                                        uint* RequiredSize);
 
 ///The <b>SetupDiGetClassRegistryProperty</b> function retrieves a property for a specified device setup class from the
@@ -4013,8 +4087,8 @@ BOOL SetupDiGetDeviceRegistryPropertyW(void* DeviceInfoSet, SP_DEVINFO_DATA* Dev
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupDiGetClassRegistryPropertyA(const(GUID)* ClassGuid, uint Property, uint* PropertyRegDataType, 
-                                      char* PropertyBuffer, uint PropertyBufferSize, uint* RequiredSize, 
-                                      const(char)* MachineName, void* Reserved);
+                                      ubyte* PropertyBuffer, uint PropertyBufferSize, uint* RequiredSize, 
+                                      const(PSTR) MachineName, void* Reserved);
 
 ///The <b>SetupDiGetClassRegistryProperty</b> function retrieves a property for a specified device setup class from the
 ///registry.
@@ -4039,8 +4113,8 @@ BOOL SetupDiGetClassRegistryPropertyA(const(GUID)* ClassGuid, uint Property, uin
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupDiGetClassRegistryPropertyW(const(GUID)* ClassGuid, uint Property, uint* PropertyRegDataType, 
-                                      char* PropertyBuffer, uint PropertyBufferSize, uint* RequiredSize, 
-                                      const(wchar)* MachineName, void* Reserved);
+                                      ubyte* PropertyBuffer, uint PropertyBufferSize, uint* RequiredSize, 
+                                      const(PWSTR) MachineName, void* Reserved);
 
 ///The <b>SetupDiSetDeviceRegistryProperty</b> function sets a Plug and Play device property for a device.
 ///Params:
@@ -4071,7 +4145,7 @@ BOOL SetupDiGetClassRegistryPropertyW(const(GUID)* ClassGuid, uint Property, uin
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupDiSetDeviceRegistryPropertyA(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, uint Property, 
-                                       char* PropertyBuffer, uint PropertyBufferSize);
+                                       const(ubyte)* PropertyBuffer, uint PropertyBufferSize);
 
 ///The <b>SetupDiSetDeviceRegistryProperty</b> function sets a Plug and Play device property for a device.
 ///Params:
@@ -4102,7 +4176,7 @@ BOOL SetupDiSetDeviceRegistryPropertyA(void* DeviceInfoSet, SP_DEVINFO_DATA* Dev
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupDiSetDeviceRegistryPropertyW(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, uint Property, 
-                                       char* PropertyBuffer, uint PropertyBufferSize);
+                                       const(ubyte)* PropertyBuffer, uint PropertyBufferSize);
 
 ///The <b>SetupDiSetClassRegistryProperty</b> function sets a specified device class property in the registry.
 ///Params:
@@ -4119,8 +4193,8 @@ BOOL SetupDiSetDeviceRegistryPropertyW(void* DeviceInfoSet, SP_DEVINFO_DATA* Dev
 ///    be retrieved with a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiSetClassRegistryPropertyA(const(GUID)* ClassGuid, uint Property, char* PropertyBuffer, 
-                                      uint PropertyBufferSize, const(char)* MachineName, void* Reserved);
+BOOL SetupDiSetClassRegistryPropertyA(const(GUID)* ClassGuid, uint Property, const(ubyte)* PropertyBuffer, 
+                                      uint PropertyBufferSize, const(PSTR) MachineName, void* Reserved);
 
 ///The <b>SetupDiSetClassRegistryProperty</b> function sets a specified device class property in the registry.
 ///Params:
@@ -4137,8 +4211,8 @@ BOOL SetupDiSetClassRegistryPropertyA(const(GUID)* ClassGuid, uint Property, cha
 ///    be retrieved with a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiSetClassRegistryPropertyW(const(GUID)* ClassGuid, uint Property, char* PropertyBuffer, 
-                                      uint PropertyBufferSize, const(wchar)* MachineName, void* Reserved);
+BOOL SetupDiSetClassRegistryPropertyW(const(GUID)* ClassGuid, uint Property, const(ubyte)* PropertyBuffer, 
+                                      uint PropertyBufferSize, const(PWSTR) MachineName, void* Reserved);
 
 ///The <b>SetupDiGetDeviceInstallParams</b> function retrieves device installation parameters for a device information
 ///set or a particular device information element.
@@ -4205,8 +4279,9 @@ BOOL SetupDiGetDeviceInstallParamsW(void* DeviceInfoSet, SP_DEVINFO_DATA* Device
 ///    be retrieved with a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiGetClassInstallParamsA(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, char* ClassInstallParams, 
-                                   uint ClassInstallParamsSize, uint* RequiredSize);
+BOOL SetupDiGetClassInstallParamsA(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, 
+                                   SP_CLASSINSTALL_HEADER* ClassInstallParams, uint ClassInstallParamsSize, 
+                                   uint* RequiredSize);
 
 ///The <b>SetupDiGetClassInstallParams</b> function retrieves class installation parameters for a device information set
 ///or a particular device information element.
@@ -4233,8 +4308,9 @@ BOOL SetupDiGetClassInstallParamsA(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceI
 ///    be retrieved with a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiGetClassInstallParamsW(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, char* ClassInstallParams, 
-                                   uint ClassInstallParamsSize, uint* RequiredSize);
+BOOL SetupDiGetClassInstallParamsW(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, 
+                                   SP_CLASSINSTALL_HEADER* ClassInstallParams, uint ClassInstallParamsSize, 
+                                   uint* RequiredSize);
 
 ///The <b>SetupDiSetDeviceInstallParams</b> function sets device installation parameters for a device information set or
 ///a particular device information element.
@@ -4298,8 +4374,8 @@ BOOL SetupDiSetDeviceInstallParamsW(void* DeviceInfoSet, SP_DEVINFO_DATA* Device
 ///    be retrieved with a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiSetClassInstallParamsA(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, char* ClassInstallParams, 
-                                   uint ClassInstallParamsSize);
+BOOL SetupDiSetClassInstallParamsA(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, 
+                                   SP_CLASSINSTALL_HEADER* ClassInstallParams, uint ClassInstallParamsSize);
 
 ///The <b>SetupDiSetClassInstallParams</b> function sets or clears class install parameters for a device information set
 ///or a particular device information element.
@@ -4323,8 +4399,8 @@ BOOL SetupDiSetClassInstallParamsA(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceI
 ///    be retrieved with a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiSetClassInstallParamsW(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, char* ClassInstallParams, 
-                                   uint ClassInstallParamsSize);
+BOOL SetupDiSetClassInstallParamsW(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, 
+                                   SP_CLASSINSTALL_HEADER* ClassInstallParams, uint ClassInstallParamsSize);
 
 ///The <b>SetupDiGetDriverInstallParams</b> function retrieves driver installation parameters for a device information
 ///set or a particular device information element.
@@ -4522,7 +4598,7 @@ BOOL SetupDiGetClassImageList(SP_CLASSIMAGELIST_DATA* ClassImageListData);
 ///    be retrieved by a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiGetClassImageListExA(SP_CLASSIMAGELIST_DATA* ClassImageListData, const(char)* MachineName, 
+BOOL SetupDiGetClassImageListExA(SP_CLASSIMAGELIST_DATA* ClassImageListData, const(PSTR) MachineName, 
                                  void* Reserved);
 
 ///The <b>SetupDiGetClassImageListEx</b> function builds an image list of bitmaps for every class installed on a local
@@ -4540,7 +4616,7 @@ BOOL SetupDiGetClassImageListExA(SP_CLASSIMAGELIST_DATA* ClassImageListData, con
 ///    be retrieved by a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiGetClassImageListExW(SP_CLASSIMAGELIST_DATA* ClassImageListData, const(wchar)* MachineName, 
+BOOL SetupDiGetClassImageListExW(SP_CLASSIMAGELIST_DATA* ClassImageListData, const(PWSTR) MachineName, 
                                  void* Reserved);
 
 ///The <b>SetupDiGetClassImageIndex</b> function retrieves the index within the class image list of a specified class.
@@ -4685,8 +4761,7 @@ BOOL SetupDiSelectOEMDrv(HWND hwndParent, void* DeviceInfoSet, SP_DEVINFO_DATA* 
 ///    be retrieved with a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiClassNameFromGuidA(const(GUID)* ClassGuid, const(char)* ClassName, uint ClassNameSize, 
-                               uint* RequiredSize);
+BOOL SetupDiClassNameFromGuidA(const(GUID)* ClassGuid, PSTR ClassName, uint ClassNameSize, uint* RequiredSize);
 
 ///The <b>SetupDiClassNameFromGuid</b> function retrieves the class name associated with a class GUID.
 ///Params:
@@ -4703,8 +4778,7 @@ BOOL SetupDiClassNameFromGuidA(const(GUID)* ClassGuid, const(char)* ClassName, u
 ///    be retrieved with a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiClassNameFromGuidW(const(GUID)* ClassGuid, const(wchar)* ClassName, uint ClassNameSize, 
-                               uint* RequiredSize);
+BOOL SetupDiClassNameFromGuidW(const(GUID)* ClassGuid, PWSTR ClassName, uint ClassNameSize, uint* RequiredSize);
 
 ///The <b>SetupDiClassNameFromGuidEx</b> function retrieves the class name associated with a class GUID. The class can
 ///be installed on a local or remote computer.
@@ -4723,8 +4797,8 @@ BOOL SetupDiClassNameFromGuidW(const(GUID)* ClassGuid, const(wchar)* ClassName, 
 ///    be retrieved with a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiClassNameFromGuidExA(const(GUID)* ClassGuid, const(char)* ClassName, uint ClassNameSize, 
-                                 uint* RequiredSize, const(char)* MachineName, void* Reserved);
+BOOL SetupDiClassNameFromGuidExA(const(GUID)* ClassGuid, PSTR ClassName, uint ClassNameSize, uint* RequiredSize, 
+                                 const(PSTR) MachineName, void* Reserved);
 
 ///The <b>SetupDiClassNameFromGuidEx</b> function retrieves the class name associated with a class GUID. The class can
 ///be installed on a local or remote computer.
@@ -4743,8 +4817,8 @@ BOOL SetupDiClassNameFromGuidExA(const(GUID)* ClassGuid, const(char)* ClassName,
 ///    be retrieved with a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiClassNameFromGuidExW(const(GUID)* ClassGuid, const(wchar)* ClassName, uint ClassNameSize, 
-                                 uint* RequiredSize, const(wchar)* MachineName, void* Reserved);
+BOOL SetupDiClassNameFromGuidExW(const(GUID)* ClassGuid, PWSTR ClassName, uint ClassNameSize, uint* RequiredSize, 
+                                 const(PWSTR) MachineName, void* Reserved);
 
 ///The <b>SetupDiClassGuidsFromName</b> function retrieves the GUID(s) associated with the specified class name. This
 ///list is built based on the classes currently installed on the system.
@@ -4760,7 +4834,7 @@ BOOL SetupDiClassNameFromGuidExW(const(GUID)* ClassGuid, const(wchar)* ClassName
 ///    be retrieved by making a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiClassGuidsFromNameA(const(char)* ClassName, char* ClassGuidList, uint ClassGuidListSize, 
+BOOL SetupDiClassGuidsFromNameA(const(PSTR) ClassName, GUID* ClassGuidList, uint ClassGuidListSize, 
                                 uint* RequiredSize);
 
 ///The <b>SetupDiClassGuidsFromName</b> function retrieves the GUID(s) associated with the specified class name. This
@@ -4777,7 +4851,7 @@ BOOL SetupDiClassGuidsFromNameA(const(char)* ClassName, char* ClassGuidList, uin
 ///    be retrieved by making a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiClassGuidsFromNameW(const(wchar)* ClassName, char* ClassGuidList, uint ClassGuidListSize, 
+BOOL SetupDiClassGuidsFromNameW(const(PWSTR) ClassName, GUID* ClassGuidList, uint ClassGuidListSize, 
                                 uint* RequiredSize);
 
 ///The <b>SetupDiClassGuidsFromNameEx</b> function retrieves the GUIDs associated with the specified class name. This
@@ -4798,8 +4872,8 @@ BOOL SetupDiClassGuidsFromNameW(const(wchar)* ClassName, char* ClassGuidList, ui
 ///    be retrieved by making a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiClassGuidsFromNameExA(const(char)* ClassName, char* ClassGuidList, uint ClassGuidListSize, 
-                                  uint* RequiredSize, const(char)* MachineName, void* Reserved);
+BOOL SetupDiClassGuidsFromNameExA(const(PSTR) ClassName, GUID* ClassGuidList, uint ClassGuidListSize, 
+                                  uint* RequiredSize, const(PSTR) MachineName, void* Reserved);
 
 ///The <b>SetupDiClassGuidsFromNameEx</b> function retrieves the GUIDs associated with the specified class name. This
 ///resulting list contains the classes currently installed on a local or remote computer.
@@ -4819,8 +4893,8 @@ BOOL SetupDiClassGuidsFromNameExA(const(char)* ClassName, char* ClassGuidList, u
 ///    be retrieved by making a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiClassGuidsFromNameExW(const(wchar)* ClassName, char* ClassGuidList, uint ClassGuidListSize, 
-                                  uint* RequiredSize, const(wchar)* MachineName, void* Reserved);
+BOOL SetupDiClassGuidsFromNameExW(const(PWSTR) ClassName, GUID* ClassGuidList, uint ClassGuidListSize, 
+                                  uint* RequiredSize, const(PWSTR) MachineName, void* Reserved);
 
 ///The <b>SetupDiGetHwProfileFriendlyName</b> function retrieves the friendly name associated with a hardware profile
 ///ID.
@@ -4836,8 +4910,7 @@ BOOL SetupDiClassGuidsFromNameExW(const(wchar)* ClassName, char* ClassGuidList, 
 ///    be retrieved by making a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiGetHwProfileFriendlyNameA(uint HwProfile, const(char)* FriendlyName, uint FriendlyNameSize, 
-                                      uint* RequiredSize);
+BOOL SetupDiGetHwProfileFriendlyNameA(uint HwProfile, PSTR FriendlyName, uint FriendlyNameSize, uint* RequiredSize);
 
 ///The <b>SetupDiGetHwProfileFriendlyName</b> function retrieves the friendly name associated with a hardware profile
 ///ID.
@@ -4853,7 +4926,7 @@ BOOL SetupDiGetHwProfileFriendlyNameA(uint HwProfile, const(char)* FriendlyName,
 ///    be retrieved by making a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiGetHwProfileFriendlyNameW(uint HwProfile, const(wchar)* FriendlyName, uint FriendlyNameSize, 
+BOOL SetupDiGetHwProfileFriendlyNameW(uint HwProfile, PWSTR FriendlyName, uint FriendlyNameSize, 
                                       uint* RequiredSize);
 
 ///The <b>SetupDiGetHwProfileFriendlyNameEx</b> function retrieves the friendly name associated with a hardware profile
@@ -4874,8 +4947,8 @@ BOOL SetupDiGetHwProfileFriendlyNameW(uint HwProfile, const(wchar)* FriendlyName
 ///    be retrieved by making a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiGetHwProfileFriendlyNameExA(uint HwProfile, const(char)* FriendlyName, uint FriendlyNameSize, 
-                                        uint* RequiredSize, const(char)* MachineName, void* Reserved);
+BOOL SetupDiGetHwProfileFriendlyNameExA(uint HwProfile, PSTR FriendlyName, uint FriendlyNameSize, 
+                                        uint* RequiredSize, const(PSTR) MachineName, void* Reserved);
 
 ///The <b>SetupDiGetHwProfileFriendlyNameEx</b> function retrieves the friendly name associated with a hardware profile
 ///ID on a local or remote computer.
@@ -4895,8 +4968,8 @@ BOOL SetupDiGetHwProfileFriendlyNameExA(uint HwProfile, const(char)* FriendlyNam
 ///    be retrieved by making a call to GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiGetHwProfileFriendlyNameExW(uint HwProfile, const(wchar)* FriendlyName, uint FriendlyNameSize, 
-                                        uint* RequiredSize, const(wchar)* MachineName, void* Reserved);
+BOOL SetupDiGetHwProfileFriendlyNameExW(uint HwProfile, PWSTR FriendlyName, uint FriendlyNameSize, 
+                                        uint* RequiredSize, const(PWSTR) MachineName, void* Reserved);
 
 @DllImport("SETUPAPI")
 HPROPSHEETPAGE SetupDiGetWizardPage(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, 
@@ -4959,7 +5032,7 @@ BOOL SetupDiSetSelectedDevice(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoDa
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupDiGetActualModelsSectionA(INFCONTEXT* Context, SP_ALTPLATFORM_INFO_V2* AlternatePlatformInfo, 
-                                    const(char)* InfSectionWithExt, uint InfSectionWithExtSize, uint* RequiredSize, 
+                                    PSTR InfSectionWithExt, uint InfSectionWithExtSize, uint* RequiredSize, 
                                     void* Reserved);
 
 ///The <b>SetupDiGetActualModelsSection</b> function retrieves the appropriate decorated INF Models section to use when
@@ -4990,7 +5063,7 @@ BOOL SetupDiGetActualModelsSectionA(INFCONTEXT* Context, SP_ALTPLATFORM_INFO_V2*
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupDiGetActualModelsSectionW(INFCONTEXT* Context, SP_ALTPLATFORM_INFO_V2* AlternatePlatformInfo, 
-                                    const(wchar)* InfSectionWithExt, uint InfSectionWithExtSize, uint* RequiredSize, 
+                                    PWSTR InfSectionWithExt, uint InfSectionWithExtSize, uint* RequiredSize, 
                                     void* Reserved);
 
 ///The <b>SetupDiGetActualSectionToInstall</b> function retrieves the appropriate INF DDInstall section to use when
@@ -5016,9 +5089,8 @@ BOOL SetupDiGetActualModelsSectionW(INFCONTEXT* Context, SP_ALTPLATFORM_INFO_V2*
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiGetActualSectionToInstallA(void* InfHandle, const(char)* InfSectionName, 
-                                       const(char)* InfSectionWithExt, uint InfSectionWithExtSize, 
-                                       uint* RequiredSize, byte** Extension);
+BOOL SetupDiGetActualSectionToInstallA(void* InfHandle, const(PSTR) InfSectionName, PSTR InfSectionWithExt, 
+                                       uint InfSectionWithExtSize, uint* RequiredSize, PSTR* Extension);
 
 ///The <b>SetupDiGetActualSectionToInstall</b> function retrieves the appropriate INF DDInstall section to use when
 ///installing a device from a device INF file on a local computer.
@@ -5043,9 +5115,8 @@ BOOL SetupDiGetActualSectionToInstallA(void* InfHandle, const(char)* InfSectionN
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiGetActualSectionToInstallW(void* InfHandle, const(wchar)* InfSectionName, 
-                                       const(wchar)* InfSectionWithExt, uint InfSectionWithExtSize, 
-                                       uint* RequiredSize, ushort** Extension);
+BOOL SetupDiGetActualSectionToInstallW(void* InfHandle, const(PWSTR) InfSectionName, PWSTR InfSectionWithExt, 
+                                       uint InfSectionWithExtSize, uint* RequiredSize, PWSTR* Extension);
 
 ///The <b>SetupDiGetActualSectionToInstallEx</b> function retrieves the name of the INF DDInstall section that installs
 ///a device for a specified operating system and processor architecture.
@@ -5074,10 +5145,10 @@ BOOL SetupDiGetActualSectionToInstallW(void* InfHandle, const(wchar)* InfSection
 ///    information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiGetActualSectionToInstallExA(void* InfHandle, const(char)* InfSectionName, 
-                                         SP_ALTPLATFORM_INFO_V2* AlternatePlatformInfo, 
-                                         const(char)* InfSectionWithExt, uint InfSectionWithExtSize, 
-                                         uint* RequiredSize, byte** Extension, void* Reserved);
+BOOL SetupDiGetActualSectionToInstallExA(void* InfHandle, const(PSTR) InfSectionName, 
+                                         SP_ALTPLATFORM_INFO_V2* AlternatePlatformInfo, PSTR InfSectionWithExt, 
+                                         uint InfSectionWithExtSize, uint* RequiredSize, PSTR* Extension, 
+                                         void* Reserved);
 
 ///The <b>SetupDiGetActualSectionToInstallEx</b> function retrieves the name of the INF DDInstall section that installs
 ///a device for a specified operating system and processor architecture.
@@ -5106,10 +5177,10 @@ BOOL SetupDiGetActualSectionToInstallExA(void* InfHandle, const(char)* InfSectio
 ///    information, call GetLastError.
 ///    
 @DllImport("SETUPAPI")
-BOOL SetupDiGetActualSectionToInstallExW(void* InfHandle, const(wchar)* InfSectionName, 
-                                         SP_ALTPLATFORM_INFO_V2* AlternatePlatformInfo, 
-                                         const(wchar)* InfSectionWithExt, uint InfSectionWithExtSize, 
-                                         uint* RequiredSize, ushort** Extension, void* Reserved);
+BOOL SetupDiGetActualSectionToInstallExW(void* InfHandle, const(PWSTR) InfSectionName, 
+                                         SP_ALTPLATFORM_INFO_V2* AlternatePlatformInfo, PWSTR InfSectionWithExt, 
+                                         uint InfSectionWithExtSize, uint* RequiredSize, PWSTR* Extension, 
+                                         void* Reserved);
 
 ///The <b>SetupDiGetCustomDeviceProperty</b> function retrieves a specified custom device property from the registry.
 ///Params:
@@ -5136,8 +5207,8 @@ BOOL SetupDiGetActualSectionToInstallExW(void* InfHandle, const(wchar)* InfSecti
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupDiGetCustomDevicePropertyA(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, 
-                                     const(char)* CustomPropertyName, uint Flags, uint* PropertyRegDataType, 
-                                     char* PropertyBuffer, uint PropertyBufferSize, uint* RequiredSize);
+                                     const(PSTR) CustomPropertyName, uint Flags, uint* PropertyRegDataType, 
+                                     ubyte* PropertyBuffer, uint PropertyBufferSize, uint* RequiredSize);
 
 ///The <b>SetupDiGetCustomDeviceProperty</b> function retrieves a specified custom device property from the registry.
 ///Params:
@@ -5164,8 +5235,8 @@ BOOL SetupDiGetCustomDevicePropertyA(void* DeviceInfoSet, SP_DEVINFO_DATA* Devic
 ///    
 @DllImport("SETUPAPI")
 BOOL SetupDiGetCustomDevicePropertyW(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, 
-                                     const(wchar)* CustomPropertyName, uint Flags, uint* PropertyRegDataType, 
-                                     char* PropertyBuffer, uint PropertyBufferSize, uint* RequiredSize);
+                                     const(PWSTR) CustomPropertyName, uint Flags, uint* PropertyRegDataType, 
+                                     ubyte* PropertyBuffer, uint PropertyBufferSize, uint* RequiredSize);
 
 ///The <b>CM_Add_Empty_Log_Conf</b> function creates an empty logical configuration, for a specified configuration type
 ///and a specified device instance, on the local machine.
@@ -5211,7 +5282,7 @@ BOOL SetupDiGetCustomDevicePropertyW(void* DeviceInfoSet, SP_DEVINFO_DATA* Devic
 ///    systems.</div> <div> </div>
 ///    
 @DllImport("SETUPAPI")
-uint CM_Add_Empty_Log_Conf(size_t* plcLogConf, uint dnDevInst, uint Priority, uint ulFlags);
+CONFIGRET CM_Add_Empty_Log_Conf(size_t* plcLogConf, uint dnDevInst, PRIORITY Priority, uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Add_Empty_Log_Conf instead.] The <b>CM_Add_Empty_Log_Conf_Ex</b> function creates an empty logical
@@ -5236,10 +5307,11 @@ uint CM_Add_Empty_Log_Conf(size_t* plcLogConf, uint dnDevInst, uint Priority, ui
 ///    systems.</div> <div> </div>
 ///    
 @DllImport("SETUPAPI")
-uint CM_Add_Empty_Log_Conf_Ex(size_t* plcLogConf, uint dnDevInst, uint Priority, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Add_Empty_Log_Conf_Ex(size_t* plcLogConf, uint dnDevInst, PRIORITY Priority, uint ulFlags, 
+                                   ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Add_IDA(uint dnDevInst, const(char)* pszID, uint ulFlags);
+CONFIGRET CM_Add_IDA(uint dnDevInst, PSTR pszID, uint ulFlags);
 
 ///The <b>CM_Add_ID</b> function appends a specified device ID (if not already present) to a device instance's hardware
 ///ID list or compatible ID list.
@@ -5256,10 +5328,10 @@ uint CM_Add_IDA(uint dnDevInst, const(char)* pszID, uint ulFlags);
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Add_IDW(uint dnDevInst, const(wchar)* pszID, uint ulFlags);
+CONFIGRET CM_Add_IDW(uint dnDevInst, PWSTR pszID, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Add_ID_ExA(uint dnDevInst, const(char)* pszID, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Add_ID_ExA(uint dnDevInst, PSTR pszID, uint ulFlags, ptrdiff_t hMachine);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Add_ID instead.] The <b>CM_Add_ID_Ex</b> function appends a device ID (if not already present) to a device
@@ -5280,10 +5352,10 @@ uint CM_Add_ID_ExA(uint dnDevInst, const(char)* pszID, uint ulFlags, ptrdiff_t h
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Add_ID_ExW(uint dnDevInst, const(wchar)* pszID, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Add_ID_ExW(uint dnDevInst, PWSTR pszID, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Add_Range(ulong ullStartValue, ulong ullEndValue, size_t rlh, uint ulFlags);
+CONFIGRET CM_Add_Range(ulong ullStartValue, ulong ullEndValue, size_t rlh, uint ulFlags);
 
 ///The <b>CM_Add_Res_Des</b> function adds a resource descriptor to a logical configuration.
 ///Params:
@@ -5318,8 +5390,8 @@ uint CM_Add_Range(ulong ullStartValue, ulong ullEndValue, size_t rlh, uint ulFla
 ///    the hardware resource APIs. For example: An AMD64 application for AMD64 systems.</div> <div> </div>
 ///    
 @DllImport("SETUPAPI")
-uint CM_Add_Res_Des(size_t* prdResDes, size_t lcLogConf, uint ResourceID, char* ResourceData, uint ResourceLen, 
-                    uint ulFlags);
+CONFIGRET CM_Add_Res_Des(size_t* prdResDes, size_t lcLogConf, uint ResourceID, void* ResourceData, 
+                         uint ResourceLen, uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Add_Res_Des instead.] The <b>CM_Add_Res_Des_Ex</b> function adds a resource descriptor to a logical
@@ -5360,11 +5432,11 @@ uint CM_Add_Res_Des(size_t* prdResDes, size_t lcLogConf, uint ResourceID, char* 
 ///    </div>
 ///    
 @DllImport("SETUPAPI")
-uint CM_Add_Res_Des_Ex(size_t* prdResDes, size_t lcLogConf, uint ResourceID, char* ResourceData, uint ResourceLen, 
-                       uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Add_Res_Des_Ex(size_t* prdResDes, size_t lcLogConf, uint ResourceID, void* ResourceData, 
+                            uint ResourceLen, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Connect_MachineA(const(char)* UNCServerName, ptrdiff_t* phMachine);
+CONFIGRET CM_Connect_MachineA(const(PSTR) UNCServerName, ptrdiff_t* phMachine);
 
 ///<p class="CCE_Message">[Beginning in Windows 8 and Windows Server 2012 functionality to access remote machines has
 ///been removed. You cannot access remote machines when running on these versions of Windows.] The
@@ -5380,22 +5452,23 @@ uint CM_Connect_MachineA(const(char)* UNCServerName, ptrdiff_t* phMachine);
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Connect_MachineW(const(wchar)* UNCServerName, ptrdiff_t* phMachine);
+CONFIGRET CM_Connect_MachineW(const(PWSTR) UNCServerName, ptrdiff_t* phMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Create_DevNodeA(uint* pdnDevInst, byte* pDeviceID, uint dnParent, uint ulFlags);
+CONFIGRET CM_Create_DevNodeA(uint* pdnDevInst, byte* pDeviceID, uint dnParent, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Create_DevNodeW(uint* pdnDevInst, ushort* pDeviceID, uint dnParent, uint ulFlags);
+CONFIGRET CM_Create_DevNodeW(uint* pdnDevInst, ushort* pDeviceID, uint dnParent, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Create_DevNode_ExA(uint* pdnDevInst, byte* pDeviceID, uint dnParent, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Create_DevNode_ExA(uint* pdnDevInst, byte* pDeviceID, uint dnParent, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Create_DevNode_ExW(uint* pdnDevInst, ushort* pDeviceID, uint dnParent, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Create_DevNode_ExW(uint* pdnDevInst, ushort* pDeviceID, uint dnParent, uint ulFlags, 
+                                ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Create_Range_List(size_t* prlh, uint ulFlags);
+CONFIGRET CM_Create_Range_List(size_t* prlh, uint ulFlags);
 
 ///The <b>CM_Delete_Class_Key</b> function removes the specified installed device class from the system.
 ///Params:
@@ -5406,10 +5479,10 @@ uint CM_Create_Range_List(size_t* prlh, uint ulFlags);
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Delete_Class_Key(GUID* ClassGuid, uint ulFlags);
+CONFIGRET CM_Delete_Class_Key(GUID* ClassGuid, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Delete_Class_Key_Ex(GUID* ClassGuid, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Delete_Class_Key_Ex(GUID* ClassGuid, uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Delete_DevNode_Key</b> function deletes the specified user-accessible registry keys that are associated
 ///with a device.
@@ -5425,21 +5498,21 @@ uint CM_Delete_Class_Key_Ex(GUID* ClassGuid, uint ulFlags, ptrdiff_t hMachine);
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Delete_DevNode_Key(uint dnDevNode, uint ulHardwareProfile, uint ulFlags);
+CONFIGRET CM_Delete_DevNode_Key(uint dnDevNode, uint ulHardwareProfile, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Delete_DevNode_Key_Ex(uint dnDevNode, uint ulHardwareProfile, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Delete_DevNode_Key_Ex(uint dnDevNode, uint ulHardwareProfile, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Delete_Range(ulong ullStartValue, ulong ullEndValue, size_t rlh, uint ulFlags);
+CONFIGRET CM_Delete_Range(ulong ullStartValue, ulong ullEndValue, size_t rlh, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Detect_Resource_Conflict(uint dnDevInst, uint ResourceID, char* ResourceData, uint ResourceLen, 
-                                 int* pbConflictDetected, uint ulFlags);
+CONFIGRET CM_Detect_Resource_Conflict(uint dnDevInst, uint ResourceID, void* ResourceData, uint ResourceLen, 
+                                      BOOL* pbConflictDetected, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Detect_Resource_Conflict_Ex(uint dnDevInst, uint ResourceID, char* ResourceData, uint ResourceLen, 
-                                    int* pbConflictDetected, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Detect_Resource_Conflict_Ex(uint dnDevInst, uint ResourceID, void* ResourceData, uint ResourceLen, 
+                                         BOOL* pbConflictDetected, uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Disable_DevNode</b> function disables a device.
 ///Params:
@@ -5450,10 +5523,10 @@ uint CM_Detect_Resource_Conflict_Ex(uint dnDevInst, uint ResourceID, char* Resou
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Disable_DevNode(uint dnDevInst, uint ulFlags);
+CONFIGRET CM_Disable_DevNode(uint dnDevInst, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Disable_DevNode_Ex(uint dnDevInst, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Disable_DevNode_Ex(uint dnDevInst, uint ulFlags, ptrdiff_t hMachine);
 
 ///<p class="CCE_Message">[Beginning in Windows 8 and Windows Server 2012 functionality to access remote machines has
 ///been removed. You cannot access remote machines when running on these versions of Windows.] The
@@ -5467,10 +5540,10 @@ uint CM_Disable_DevNode_Ex(uint dnDevInst, uint ulFlags, ptrdiff_t hMachine);
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Disconnect_Machine(ptrdiff_t hMachine);
+CONFIGRET CM_Disconnect_Machine(ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Dup_Range_List(size_t rlhOld, size_t rlhNew, uint ulFlags);
+CONFIGRET CM_Dup_Range_List(size_t rlhOld, size_t rlhNew, uint ulFlags);
 
 ///The <b>CM_Enable_DevNode</b> function enables a device.
 ///Params:
@@ -5481,10 +5554,10 @@ uint CM_Dup_Range_List(size_t rlhOld, size_t rlhNew, uint ulFlags);
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Enable_DevNode(uint dnDevInst, uint ulFlags);
+CONFIGRET CM_Enable_DevNode(uint dnDevInst, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Enable_DevNode_Ex(uint dnDevInst, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Enable_DevNode_Ex(uint dnDevInst, uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Enumerate_Classes</b> function, when called repeatedly, enumerates the local machine's installed device
 ///classes by supplying each class's GUID.
@@ -5499,7 +5572,7 @@ uint CM_Enable_DevNode_Ex(uint dnDevInst, uint ulFlags, ptrdiff_t hMachine);
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Enumerate_Classes(uint ulClassIndex, GUID* ClassGuid, uint ulFlags);
+CONFIGRET CM_Enumerate_Classes(uint ulClassIndex, GUID* ClassGuid, uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Enumerate_Classes instead.] The <b>CM_Enumerate_Classes_Ex</b> function, when called repeatedly, enumerates a
@@ -5518,10 +5591,10 @@ uint CM_Enumerate_Classes(uint ulClassIndex, GUID* ClassGuid, uint ulFlags);
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Enumerate_Classes_Ex(uint ulClassIndex, GUID* ClassGuid, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Enumerate_Classes_Ex(uint ulClassIndex, GUID* ClassGuid, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Enumerate_EnumeratorsA(uint ulEnumIndex, const(char)* Buffer, uint* pulLength, uint ulFlags);
+CONFIGRET CM_Enumerate_EnumeratorsA(uint ulEnumIndex, PSTR Buffer, uint* pulLength, uint ulFlags);
 
 ///The <b>CM_Enumerate_Enumerators</b> function enumerates the local machine's device enumerators by supplying each
 ///enumerator's name.
@@ -5540,11 +5613,11 @@ uint CM_Enumerate_EnumeratorsA(uint ulEnumIndex, const(char)* Buffer, uint* pulL
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Enumerate_EnumeratorsW(uint ulEnumIndex, const(wchar)* Buffer, uint* pulLength, uint ulFlags);
+CONFIGRET CM_Enumerate_EnumeratorsW(uint ulEnumIndex, PWSTR Buffer, uint* pulLength, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Enumerate_Enumerators_ExA(uint ulEnumIndex, const(char)* Buffer, uint* pulLength, uint ulFlags, 
-                                  ptrdiff_t hMachine);
+CONFIGRET CM_Enumerate_Enumerators_ExA(uint ulEnumIndex, PSTR Buffer, uint* pulLength, uint ulFlags, 
+                                       ptrdiff_t hMachine);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Enumerate_Enumerators instead.] The <b>CM_Enumerate_Enumerators_Ex</b> function enumerates a local or a remote
@@ -5567,15 +5640,15 @@ uint CM_Enumerate_Enumerators_ExA(uint ulEnumIndex, const(char)* Buffer, uint* p
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Enumerate_Enumerators_ExW(uint ulEnumIndex, const(wchar)* Buffer, uint* pulLength, uint ulFlags, 
-                                  ptrdiff_t hMachine);
+CONFIGRET CM_Enumerate_Enumerators_ExW(uint ulEnumIndex, PWSTR Buffer, uint* pulLength, uint ulFlags, 
+                                       ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Find_Range(ulong* pullStart, ulong ullStart, uint ulLength, ulong ullAlignment, ulong ullEnd, size_t rlh, 
-                   uint ulFlags);
+CONFIGRET CM_Find_Range(ulong* pullStart, ulong ullStart, uint ulLength, ulong ullAlignment, ulong ullEnd, 
+                        size_t rlh, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_First_Range(size_t rlh, ulong* pullStart, ulong* pullEnd, size_t* preElement, uint ulFlags);
+CONFIGRET CM_First_Range(size_t rlh, ulong* pullStart, ulong* pullEnd, size_t* preElement, uint ulFlags);
 
 ///The <b>CM_Free_Log_Conf</b> function removes a logical configuration and all associated resource descriptors from the
 ///local machine.
@@ -5593,7 +5666,7 @@ uint CM_First_Range(size_t rlh, ulong* pullStart, ulong* pullEnd, size_t* preEle
 ///    </div>
 ///    
 @DllImport("SETUPAPI")
-uint CM_Free_Log_Conf(size_t lcLogConfToBeFreed, uint ulFlags);
+CONFIGRET CM_Free_Log_Conf(size_t lcLogConfToBeFreed, uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Free_Log_Conf instead.] The <b>CM_Free_Log_Conf_Ex</b> function removes a logical configuration and all
@@ -5615,7 +5688,7 @@ uint CM_Free_Log_Conf(size_t lcLogConfToBeFreed, uint ulFlags);
 ///    </div>
 ///    
 @DllImport("SETUPAPI")
-uint CM_Free_Log_Conf_Ex(size_t lcLogConfToBeFreed, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Free_Log_Conf_Ex(size_t lcLogConfToBeFreed, uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Free_Log_Conf_Handle</b> function invalidates a logical configuration handle and frees its associated
 ///memory allocation.
@@ -5628,10 +5701,10 @@ uint CM_Free_Log_Conf_Ex(size_t lcLogConfToBeFreed, uint ulFlags, ptrdiff_t hMac
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Free_Log_Conf_Handle(size_t lcLogConf);
+CONFIGRET CM_Free_Log_Conf_Handle(size_t lcLogConf);
 
 @DllImport("SETUPAPI")
-uint CM_Free_Range_List(size_t rlh, uint ulFlags);
+CONFIGRET CM_Free_Range_List(size_t rlh, uint ulFlags);
 
 ///The <b>CM_Free_Res_Des</b> function removes a resource descriptor from a logical configuration on the local machine.
 ///Params:
@@ -5650,7 +5723,7 @@ uint CM_Free_Range_List(size_t rlh, uint ulFlags);
 ///    </div>
 ///    
 @DllImport("SETUPAPI")
-uint CM_Free_Res_Des(size_t* prdResDes, size_t rdResDes, uint ulFlags);
+CONFIGRET CM_Free_Res_Des(size_t* prdResDes, size_t rdResDes, uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Free_Res_Des instead.] The <b>CM_Free_Res_Des_Ex</b> function removes a resource descriptor from a logical
@@ -5674,7 +5747,7 @@ uint CM_Free_Res_Des(size_t* prdResDes, size_t rdResDes, uint ulFlags);
 ///    </div>
 ///    
 @DllImport("SETUPAPI")
-uint CM_Free_Res_Des_Ex(size_t* prdResDes, size_t rdResDes, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Free_Res_Des_Ex(size_t* prdResDes, size_t rdResDes, uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Free_Res_Des_Handle</b> function invalidates a resource description handle and frees its associated memory
 ///allocation.
@@ -5687,7 +5760,7 @@ uint CM_Free_Res_Des_Ex(size_t* prdResDes, size_t rdResDes, uint ulFlags, ptrdif
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Free_Res_Des_Handle(size_t rdResDes);
+CONFIGRET CM_Free_Res_Des_Handle(size_t rdResDes);
 
 ///The <b>CM_Get_Child</b> function is used to retrieve a device instance handle to the first child node of a specified
 ///device node (devnode) in the local machine's device tree.
@@ -5701,7 +5774,7 @@ uint CM_Free_Res_Des_Handle(size_t rdResDes);
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Child(uint* pdnDevInst, uint dnDevInst, uint ulFlags);
+CONFIGRET CM_Get_Child(uint* pdnDevInst, uint dnDevInst, uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Get_Child instead.] The <b>CM_Get_Child_Ex</b> function is used to retrieve a device instance handle to the
@@ -5719,34 +5792,33 @@ uint CM_Get_Child(uint* pdnDevInst, uint dnDevInst, uint ulFlags);
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Child_Ex(uint* pdnDevInst, uint dnDevInst, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Get_Child_Ex(uint* pdnDevInst, uint dnDevInst, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Get_Class_NameA(GUID* ClassGuid, const(char)* Buffer, uint* pulLength, uint ulFlags);
+CONFIGRET CM_Get_Class_NameA(GUID* ClassGuid, PSTR Buffer, uint* pulLength, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Get_Class_NameW(GUID* ClassGuid, const(wchar)* Buffer, uint* pulLength, uint ulFlags);
+CONFIGRET CM_Get_Class_NameW(GUID* ClassGuid, PWSTR Buffer, uint* pulLength, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Get_Class_Name_ExA(GUID* ClassGuid, const(char)* Buffer, uint* pulLength, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Get_Class_Name_ExA(GUID* ClassGuid, PSTR Buffer, uint* pulLength, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Get_Class_Name_ExW(GUID* ClassGuid, const(wchar)* Buffer, uint* pulLength, uint ulFlags, 
-                           ptrdiff_t hMachine);
+CONFIGRET CM_Get_Class_Name_ExW(GUID* ClassGuid, PWSTR Buffer, uint* pulLength, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Get_Class_Key_NameA(GUID* ClassGuid, const(char)* pszKeyName, uint* pulLength, uint ulFlags);
+CONFIGRET CM_Get_Class_Key_NameA(GUID* ClassGuid, PSTR pszKeyName, uint* pulLength, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Get_Class_Key_NameW(GUID* ClassGuid, const(wchar)* pszKeyName, uint* pulLength, uint ulFlags);
+CONFIGRET CM_Get_Class_Key_NameW(GUID* ClassGuid, PWSTR pszKeyName, uint* pulLength, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Get_Class_Key_Name_ExA(GUID* ClassGuid, const(char)* pszKeyName, uint* pulLength, uint ulFlags, 
-                               ptrdiff_t hMachine);
+CONFIGRET CM_Get_Class_Key_Name_ExA(GUID* ClassGuid, PSTR pszKeyName, uint* pulLength, uint ulFlags, 
+                                    ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Get_Class_Key_Name_ExW(GUID* ClassGuid, const(wchar)* pszKeyName, uint* pulLength, uint ulFlags, 
-                               ptrdiff_t hMachine);
+CONFIGRET CM_Get_Class_Key_Name_ExW(GUID* ClassGuid, PWSTR pszKeyName, uint* pulLength, uint ulFlags, 
+                                    ptrdiff_t hMachine);
 
 ///The <b>CM_Get_Depth</b> function is used to obtain the depth of a specified device node (devnode) within the local
 ///machine's device tree.
@@ -5760,7 +5832,7 @@ uint CM_Get_Class_Key_Name_ExW(GUID* ClassGuid, const(wchar)* pszKeyName, uint* 
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Depth(uint* pulDepth, uint dnDevInst, uint ulFlags);
+CONFIGRET CM_Get_Depth(uint* pulDepth, uint dnDevInst, uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Get_Depth instead.] The <b>CM_Get_Depth_Ex</b> function is used to obtain the depth of a specified device node
@@ -5778,10 +5850,10 @@ uint CM_Get_Depth(uint* pulDepth, uint dnDevInst, uint ulFlags);
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Depth_Ex(uint* pulDepth, uint dnDevInst, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Get_Depth_Ex(uint* pulDepth, uint dnDevInst, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Get_Device_IDA(uint dnDevInst, const(char)* Buffer, uint BufferLen, uint ulFlags);
+CONFIGRET CM_Get_Device_IDA(uint dnDevInst, PSTR Buffer, uint BufferLen, uint ulFlags);
 
 ///The <b>CM_Get_Device_ID</b> function retrieves the device instance ID for a specified device instance on the local
 ///machine.
@@ -5797,10 +5869,10 @@ uint CM_Get_Device_IDA(uint dnDevInst, const(char)* Buffer, uint BufferLen, uint
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Device_IDW(uint dnDevInst, const(wchar)* Buffer, uint BufferLen, uint ulFlags);
+CONFIGRET CM_Get_Device_IDW(uint dnDevInst, PWSTR Buffer, uint BufferLen, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Get_Device_ID_ExA(uint dnDevInst, const(char)* Buffer, uint BufferLen, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Get_Device_ID_ExA(uint dnDevInst, PSTR Buffer, uint BufferLen, uint ulFlags, ptrdiff_t hMachine);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Get_Device_ID instead.] The <b>CM_Get_Device_ID_Ex</b> function retrieves the device instance ID for a
@@ -5820,7 +5892,7 @@ uint CM_Get_Device_ID_ExA(uint dnDevInst, const(char)* Buffer, uint BufferLen, u
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Device_ID_ExW(uint dnDevInst, const(wchar)* Buffer, uint BufferLen, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Get_Device_ID_ExW(uint dnDevInst, PWSTR Buffer, uint BufferLen, uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Get_Device_ID_List</b> function retrieves a list of device instance IDs for the local computer's device
 ///instances.
@@ -5837,7 +5909,9 @@ uint CM_Get_Device_ID_ExW(uint dnDevInst, const(wchar)* Buffer, uint BufferLen, 
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Device_ID_ListA(const(char)* pszFilter, const(char)* Buffer, uint BufferLen, uint ulFlags);
+CONFIGRET CM_Get_Device_ID_ListA(const(PSTR) pszFilter, 
+                                 /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PSTR Buffer, 
+                                 uint BufferLen, uint ulFlags);
 
 ///The <b>CM_Get_Device_ID_List</b> function retrieves a list of device instance IDs for the local computer's device
 ///instances.
@@ -5854,11 +5928,14 @@ uint CM_Get_Device_ID_ListA(const(char)* pszFilter, const(char)* Buffer, uint Bu
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Device_ID_ListW(const(wchar)* pszFilter, const(wchar)* Buffer, uint BufferLen, uint ulFlags);
+CONFIGRET CM_Get_Device_ID_ListW(const(PWSTR) pszFilter, 
+                                 /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PWSTR Buffer, 
+                                 uint BufferLen, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Get_Device_ID_List_ExA(const(char)* pszFilter, const(char)* Buffer, uint BufferLen, uint ulFlags, 
-                               ptrdiff_t hMachine);
+CONFIGRET CM_Get_Device_ID_List_ExA(const(PSTR) pszFilter, 
+                                    /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PSTR Buffer, 
+                                    uint BufferLen, uint ulFlags, ptrdiff_t hMachine);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Get_Device_ID_List instead.] The <b>CM_Get_Device_ID_List_Ex</b> function retrieves a list of device instance
@@ -5881,8 +5958,9 @@ uint CM_Get_Device_ID_List_ExA(const(char)* pszFilter, const(char)* Buffer, uint
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Device_ID_List_ExW(const(wchar)* pszFilter, const(wchar)* Buffer, uint BufferLen, uint ulFlags, 
-                               ptrdiff_t hMachine);
+CONFIGRET CM_Get_Device_ID_List_ExW(const(PWSTR) pszFilter, 
+                                    /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PWSTR Buffer, 
+                                    uint BufferLen, uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Get_Device_ID_List_Size</b> function retrieves the buffer size required to hold a list of device instance
 ///IDs for the local machine's device instances.
@@ -5898,7 +5976,7 @@ uint CM_Get_Device_ID_List_ExW(const(wchar)* pszFilter, const(wchar)* Buffer, ui
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Device_ID_List_SizeA(uint* pulLen, const(char)* pszFilter, uint ulFlags);
+CONFIGRET CM_Get_Device_ID_List_SizeA(uint* pulLen, const(PSTR) pszFilter, uint ulFlags);
 
 ///The <b>CM_Get_Device_ID_List_Size</b> function retrieves the buffer size required to hold a list of device instance
 ///IDs for the local machine's device instances.
@@ -5914,10 +5992,10 @@ uint CM_Get_Device_ID_List_SizeA(uint* pulLen, const(char)* pszFilter, uint ulFl
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Device_ID_List_SizeW(uint* pulLen, const(wchar)* pszFilter, uint ulFlags);
+CONFIGRET CM_Get_Device_ID_List_SizeW(uint* pulLen, const(PWSTR) pszFilter, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Get_Device_ID_List_Size_ExA(uint* pulLen, const(char)* pszFilter, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Get_Device_ID_List_Size_ExA(uint* pulLen, const(PSTR) pszFilter, uint ulFlags, ptrdiff_t hMachine);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Get_Device_ID_List_Size instead.] The <b>CM_Get_Device_ID_List_Size_Ex</b> function retrieves the buffer size
@@ -5937,7 +6015,7 @@ uint CM_Get_Device_ID_List_Size_ExA(uint* pulLen, const(char)* pszFilter, uint u
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Device_ID_List_Size_ExW(uint* pulLen, const(wchar)* pszFilter, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Get_Device_ID_List_Size_ExW(uint* pulLen, const(PWSTR) pszFilter, uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Get_Device_ID_Size</b> function retrieves the buffer size required to hold a device instance ID for a
 ///device instance on the local machine.
@@ -5950,7 +6028,7 @@ uint CM_Get_Device_ID_List_Size_ExW(uint* pulLen, const(wchar)* pszFilter, uint 
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Device_ID_Size(uint* pulLen, uint dnDevInst, uint ulFlags);
+CONFIGRET CM_Get_Device_ID_Size(uint* pulLen, uint dnDevInst, uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Get_Device_ID_Size instead.] The <b>CM_Get_Device_ID_Size_Ex</b> function retrieves the buffer size required
@@ -5967,7 +6045,7 @@ uint CM_Get_Device_ID_Size(uint* pulLen, uint dnDevInst, uint ulFlags);
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Device_ID_Size_Ex(uint* pulLen, uint dnDevInst, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Get_Device_ID_Size_Ex(uint* pulLen, uint dnDevInst, uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Get_DevNode_Property</b> function retrieves a device instance property.
 ///Params:
@@ -5990,8 +6068,8 @@ uint CM_Get_Device_ID_Size_Ex(uint* pulLen, uint dnDevInst, uint ulFlags, ptrdif
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("api-ms-win-devices-config-l1-1-1")
-uint CM_Get_DevNode_PropertyW(uint dnDevInst, const(DEVPROPKEY)* PropertyKey, uint* PropertyType, 
-                              char* PropertyBuffer, uint* PropertyBufferSize, uint ulFlags);
+CONFIGRET CM_Get_DevNode_PropertyW(uint dnDevInst, const(DEVPROPKEY)* PropertyKey, uint* PropertyType, 
+                                   ubyte* PropertyBuffer, uint* PropertyBufferSize, uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Get_DevNode_Property instead.] The <b>CM_Get_DevNode_Property_ExW</b> function retrieves a device instance
@@ -6019,8 +6097,9 @@ uint CM_Get_DevNode_PropertyW(uint dnDevInst, const(DEVPROPKEY)* PropertyKey, ui
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("CFGMGR32")
-uint CM_Get_DevNode_Property_ExW(uint dnDevInst, const(DEVPROPKEY)* PropertyKey, uint* PropertyType, 
-                                 char* PropertyBuffer, uint* PropertyBufferSize, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Get_DevNode_Property_ExW(uint dnDevInst, const(DEVPROPKEY)* PropertyKey, uint* PropertyType, 
+                                      ubyte* PropertyBuffer, uint* PropertyBufferSize, uint ulFlags, 
+                                      ptrdiff_t hMachine);
 
 ///The <b>CM_Get_DevNode_Property_Keys</b> function retrieves an array of the device property keys that represent the
 ///device properties that are set for a device instance.
@@ -6038,7 +6117,8 @@ uint CM_Get_DevNode_Property_ExW(uint dnDevInst, const(DEVPROPKEY)* PropertyKey,
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("api-ms-win-devices-config-l1-1-1")
-uint CM_Get_DevNode_Property_Keys(uint dnDevInst, char* PropertyKeyArray, uint* PropertyKeyCount, uint ulFlags);
+CONFIGRET CM_Get_DevNode_Property_Keys(uint dnDevInst, DEVPROPKEY* PropertyKeyArray, uint* PropertyKeyCount, 
+                                       uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Get_DevNode_Property_Keys instead.] The <b>CM_Get_DevNode_Property_Keys_Ex</b> function retrieves an array of
@@ -6060,12 +6140,12 @@ uint CM_Get_DevNode_Property_Keys(uint dnDevInst, char* PropertyKeyArray, uint* 
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("CFGMGR32")
-uint CM_Get_DevNode_Property_Keys_Ex(uint dnDevInst, char* PropertyKeyArray, uint* PropertyKeyCount, uint ulFlags, 
-                                     ptrdiff_t hMachine);
+CONFIGRET CM_Get_DevNode_Property_Keys_Ex(uint dnDevInst, DEVPROPKEY* PropertyKeyArray, uint* PropertyKeyCount, 
+                                          uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Get_DevNode_Registry_PropertyA(uint dnDevInst, uint ulProperty, uint* pulRegDataType, char* Buffer, 
-                                       uint* pulLength, uint ulFlags);
+CONFIGRET CM_Get_DevNode_Registry_PropertyA(uint dnDevInst, uint ulProperty, uint* pulRegDataType, void* Buffer, 
+                                            uint* pulLength, uint ulFlags);
 
 ///The <b>CM_Get_DevNode_Registry_Property</b> function retrieves a specified device property from the registry.
 ///Params:
@@ -6087,32 +6167,34 @@ uint CM_Get_DevNode_Registry_PropertyA(uint dnDevInst, uint ulProperty, uint* pu
 ///    codes that are defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_DevNode_Registry_PropertyW(uint dnDevInst, uint ulProperty, uint* pulRegDataType, char* Buffer, 
-                                       uint* pulLength, uint ulFlags);
+CONFIGRET CM_Get_DevNode_Registry_PropertyW(uint dnDevInst, uint ulProperty, uint* pulRegDataType, void* Buffer, 
+                                            uint* pulLength, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Get_DevNode_Registry_Property_ExA(uint dnDevInst, uint ulProperty, uint* pulRegDataType, char* Buffer, 
-                                          uint* pulLength, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Get_DevNode_Registry_Property_ExA(uint dnDevInst, uint ulProperty, uint* pulRegDataType, void* Buffer, 
+                                               uint* pulLength, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Get_DevNode_Registry_Property_ExW(uint dnDevInst, uint ulProperty, uint* pulRegDataType, char* Buffer, 
-                                          uint* pulLength, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Get_DevNode_Registry_Property_ExW(uint dnDevInst, uint ulProperty, uint* pulRegDataType, void* Buffer, 
+                                               uint* pulLength, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Get_DevNode_Custom_PropertyA(uint dnDevInst, const(char)* pszCustomPropertyName, uint* pulRegDataType, 
-                                     char* Buffer, uint* pulLength, uint ulFlags);
+CONFIGRET CM_Get_DevNode_Custom_PropertyA(uint dnDevInst, const(PSTR) pszCustomPropertyName, uint* pulRegDataType, 
+                                          void* Buffer, uint* pulLength, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Get_DevNode_Custom_PropertyW(uint dnDevInst, const(wchar)* pszCustomPropertyName, uint* pulRegDataType, 
-                                     char* Buffer, uint* pulLength, uint ulFlags);
+CONFIGRET CM_Get_DevNode_Custom_PropertyW(uint dnDevInst, const(PWSTR) pszCustomPropertyName, uint* pulRegDataType, 
+                                          void* Buffer, uint* pulLength, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Get_DevNode_Custom_Property_ExA(uint dnDevInst, const(char)* pszCustomPropertyName, uint* pulRegDataType, 
-                                        char* Buffer, uint* pulLength, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Get_DevNode_Custom_Property_ExA(uint dnDevInst, const(PSTR) pszCustomPropertyName, 
+                                             uint* pulRegDataType, void* Buffer, uint* pulLength, uint ulFlags, 
+                                             ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Get_DevNode_Custom_Property_ExW(uint dnDevInst, const(wchar)* pszCustomPropertyName, uint* pulRegDataType, 
-                                        char* Buffer, uint* pulLength, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Get_DevNode_Custom_Property_ExW(uint dnDevInst, const(PWSTR) pszCustomPropertyName, 
+                                             uint* pulRegDataType, void* Buffer, uint* pulLength, uint ulFlags, 
+                                             ptrdiff_t hMachine);
 
 ///The <b>CM_Get_DevNode_Status</b> function obtains the status of a device instance from its device node (devnode) in
 ///the local machine's device tree.
@@ -6128,7 +6210,7 @@ uint CM_Get_DevNode_Custom_Property_ExW(uint dnDevInst, const(wchar)* pszCustomP
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_DevNode_Status(uint* pulStatus, uint* pulProblemNumber, uint dnDevInst, uint ulFlags);
+CONFIGRET CM_Get_DevNode_Status(uint* pulStatus, uint* pulProblemNumber, uint dnDevInst, uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Get_DevNode_Status instead.] The <b>CM_Get_DevNode_Status_Ex</b> function obtains the status of a device
@@ -6148,8 +6230,8 @@ uint CM_Get_DevNode_Status(uint* pulStatus, uint* pulProblemNumber, uint dnDevIn
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_DevNode_Status_Ex(uint* pulStatus, uint* pulProblemNumber, uint dnDevInst, uint ulFlags, 
-                              ptrdiff_t hMachine);
+CONFIGRET CM_Get_DevNode_Status_Ex(uint* pulStatus, uint* pulProblemNumber, uint dnDevInst, uint ulFlags, 
+                                   ptrdiff_t hMachine);
 
 ///The <b>CM_Get_First_Log_Conf</b> function obtains the first logical configuration, of a specified configuration type,
 ///associated with a specified device instance on the local machine.
@@ -6174,7 +6256,7 @@ uint CM_Get_DevNode_Status_Ex(uint* pulStatus, uint* pulProblemNumber, uint dnDe
 ///    systems.</div> <div> </div>
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_First_Log_Conf(size_t* plcLogConf, uint dnDevInst, uint ulFlags);
+CONFIGRET CM_Get_First_Log_Conf(size_t* plcLogConf, uint dnDevInst, uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Get_First_Log_Conf instead.] The <b>CM_Get_First_Log_Conf_Ex</b> function obtains the first logical
@@ -6197,46 +6279,27 @@ uint CM_Get_First_Log_Conf(size_t* plcLogConf, uint dnDevInst, uint ulFlags);
 ///    systems.</div> <div> </div>
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_First_Log_Conf_Ex(size_t* plcLogConf, uint dnDevInst, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Get_First_Log_Conf_Ex(size_t* plcLogConf, uint dnDevInst, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Get_Global_State(uint* pulState, uint ulFlags);
+CONFIGRET CM_Get_Global_State(uint* pulState, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Get_Global_State_Ex(uint* pulState, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Get_Global_State_Ex(uint* pulState, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Get_Hardware_Profile_InfoA(uint ulIndex, HWProfileInfo_sA* pHWProfileInfo, uint ulFlags);
+CONFIGRET CM_Get_Hardware_Profile_InfoA(uint ulIndex, HWProfileInfo_sA* pHWProfileInfo, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Get_Hardware_Profile_Info_ExA(uint ulIndex, HWProfileInfo_sA* pHWProfileInfo, uint ulFlags, 
-                                      ptrdiff_t hMachine);
+CONFIGRET CM_Get_Hardware_Profile_Info_ExA(uint ulIndex, HWProfileInfo_sA* pHWProfileInfo, uint ulFlags, 
+                                           ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Get_Hardware_Profile_InfoW(uint ulIndex, HWProfileInfo_sW* pHWProfileInfo, uint ulFlags);
+CONFIGRET CM_Get_Hardware_Profile_InfoW(uint ulIndex, HWProfileInfo_sW* pHWProfileInfo, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Get_Hardware_Profile_Info_ExW(uint ulIndex, HWProfileInfo_sW* pHWProfileInfo, uint ulFlags, 
-                                      ptrdiff_t hMachine);
-
-///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated and
-///should not be used.] The <b>CM_Get_HW_Prof_Flags</b> function retrieves the hardware profile-specific configuration
-///flags for a device instance on a local machine.
-///Params:
-///    pDeviceID = Pointer to a NULL-terminated string that contains the device instance ID of the device for which to retrieve
-///                hardware profile-specific configuration flags.
-///    ulHardwareProfile = A variable of ULONG type that specifies the identifier of the hardware profile for which to retrieve
-///                        configuration flags. If this parameter is zero, this function retrieves the configuration flags for the current
-///                        hardware profile.
-///    pulValue = Pointer to a caller-supplied variable of ULONG type that receives zero or a bitwise OR of the following
-///               configuration flags that are defined in <i>Regstr.h</i>:
-///    ulFlags = Reserved for internal use. Must be set to zero.
-///Returns:
-///    If the operation succeeds, <b>CM_Get_HW_Prof_Flags</b> returns CR_SUCCESS. Otherwise, the function returns one of
-///    the CR_<i>Xxx</i> error codes that are defined in <i>Cfgmgr32.h</i>.
-///    
-@DllImport("SETUPAPI")
-uint CM_Get_HW_Prof_FlagsA(byte* pDeviceID, uint ulHardwareProfile, uint* pulValue, uint ulFlags);
+CONFIGRET CM_Get_Hardware_Profile_Info_ExW(uint ulIndex, HWProfileInfo_sW* pHWProfileInfo, uint ulFlags, 
+                                           ptrdiff_t hMachine);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated and
 ///should not be used.] The <b>CM_Get_HW_Prof_Flags</b> function retrieves the hardware profile-specific configuration
@@ -6255,7 +6318,26 @@ uint CM_Get_HW_Prof_FlagsA(byte* pDeviceID, uint ulHardwareProfile, uint* pulVal
 ///    the CR_<i>Xxx</i> error codes that are defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_HW_Prof_FlagsW(ushort* pDeviceID, uint ulHardwareProfile, uint* pulValue, uint ulFlags);
+CONFIGRET CM_Get_HW_Prof_FlagsA(byte* pDeviceID, uint ulHardwareProfile, uint* pulValue, uint ulFlags);
+
+///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated and
+///should not be used.] The <b>CM_Get_HW_Prof_Flags</b> function retrieves the hardware profile-specific configuration
+///flags for a device instance on a local machine.
+///Params:
+///    pDeviceID = Pointer to a NULL-terminated string that contains the device instance ID of the device for which to retrieve
+///                hardware profile-specific configuration flags.
+///    ulHardwareProfile = A variable of ULONG type that specifies the identifier of the hardware profile for which to retrieve
+///                        configuration flags. If this parameter is zero, this function retrieves the configuration flags for the current
+///                        hardware profile.
+///    pulValue = Pointer to a caller-supplied variable of ULONG type that receives zero or a bitwise OR of the following
+///               configuration flags that are defined in <i>Regstr.h</i>:
+///    ulFlags = Reserved for internal use. Must be set to zero.
+///Returns:
+///    If the operation succeeds, <b>CM_Get_HW_Prof_Flags</b> returns CR_SUCCESS. Otherwise, the function returns one of
+///    the CR_<i>Xxx</i> error codes that are defined in <i>Cfgmgr32.h</i>.
+///    
+@DllImport("SETUPAPI")
+CONFIGRET CM_Get_HW_Prof_FlagsW(ushort* pDeviceID, uint ulHardwareProfile, uint* pulValue, uint ulFlags);
 
 ///<p class="CCE_Message">[This function has been deprecated and should not be used.] The <b>CM_Get_HW_Prof_Flags_Ex</b>
 ///function retrieves the hardware profile-specific configuration flags for a device instance on a remote machine or a
@@ -6278,8 +6360,8 @@ uint CM_Get_HW_Prof_FlagsW(ushort* pDeviceID, uint ulHardwareProfile, uint* pulV
 ///    the CR_-prefixed error codes that are defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_HW_Prof_Flags_ExA(byte* pDeviceID, uint ulHardwareProfile, uint* pulValue, uint ulFlags, 
-                              ptrdiff_t hMachine);
+CONFIGRET CM_Get_HW_Prof_Flags_ExA(byte* pDeviceID, uint ulHardwareProfile, uint* pulValue, uint ulFlags, 
+                                   ptrdiff_t hMachine);
 
 ///<p class="CCE_Message">[This function has been deprecated and should not be used.] The <b>CM_Get_HW_Prof_Flags_Ex</b>
 ///function retrieves the hardware profile-specific configuration flags for a device instance on a remote machine or a
@@ -6302,12 +6384,12 @@ uint CM_Get_HW_Prof_Flags_ExA(byte* pDeviceID, uint ulHardwareProfile, uint* pul
 ///    the CR_-prefixed error codes that are defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_HW_Prof_Flags_ExW(ushort* pDeviceID, uint ulHardwareProfile, uint* pulValue, uint ulFlags, 
-                              ptrdiff_t hMachine);
+CONFIGRET CM_Get_HW_Prof_Flags_ExW(ushort* pDeviceID, uint ulHardwareProfile, uint* pulValue, uint ulFlags, 
+                                   ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Get_Device_Interface_AliasA(const(char)* pszDeviceInterface, GUID* AliasInterfaceGuid, 
-                                    const(char)* pszAliasDeviceInterface, uint* pulLength, uint ulFlags);
+CONFIGRET CM_Get_Device_Interface_AliasA(const(PSTR) pszDeviceInterface, GUID* AliasInterfaceGuid, 
+                                         PSTR pszAliasDeviceInterface, uint* pulLength, uint ulFlags);
 
 ///The <b>CM_Get_Device_Interface_Alias</b> function returns the alias of the specified device interface instance, if
 ///the alias exists.
@@ -6331,42 +6413,18 @@ uint CM_Get_Device_Interface_AliasA(const(char)* pszDeviceInterface, GUID* Alias
 ///    The buffer passed is too small. </td> </tr> </table>
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Device_Interface_AliasW(const(wchar)* pszDeviceInterface, GUID* AliasInterfaceGuid, 
-                                    const(wchar)* pszAliasDeviceInterface, uint* pulLength, uint ulFlags);
+CONFIGRET CM_Get_Device_Interface_AliasW(const(PWSTR) pszDeviceInterface, GUID* AliasInterfaceGuid, 
+                                         PWSTR pszAliasDeviceInterface, uint* pulLength, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Get_Device_Interface_Alias_ExA(const(char)* pszDeviceInterface, GUID* AliasInterfaceGuid, 
-                                       const(char)* pszAliasDeviceInterface, uint* pulLength, uint ulFlags, 
-                                       ptrdiff_t hMachine);
+CONFIGRET CM_Get_Device_Interface_Alias_ExA(const(PSTR) pszDeviceInterface, GUID* AliasInterfaceGuid, 
+                                            PSTR pszAliasDeviceInterface, uint* pulLength, uint ulFlags, 
+                                            ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Get_Device_Interface_Alias_ExW(const(wchar)* pszDeviceInterface, GUID* AliasInterfaceGuid, 
-                                       const(wchar)* pszAliasDeviceInterface, uint* pulLength, uint ulFlags, 
-                                       ptrdiff_t hMachine);
-
-///The <b>CM_Get_Device_Interface_List</b> function retrieves a list of device interface instances that belong to a
-///specified device interface class.
-///Params:
-///    InterfaceClassGuid = Supplies a GUID that identifies a device interface class.
-///    pDeviceID = Caller-supplied pointer to a NULL-terminated string that represents a device instance ID. If specified, the
-///                function retrieves device interfaces that are supported by the device for the specified class. If this value is
-///                <b>NULL</b>, or if it points to a zero-length string, the function retrieves all interfaces that belong to the
-///                specified class.
-///    Buffer = Caller-supplied pointer to a buffer that receives multiple, NULL-terminated Unicode strings, each representing
-///             the symbolic link name of an interface instance.
-///    BufferLen = Caller-supplied value that specifies the length, in characters, of the buffer pointed to by <i>Buffer</i>. Call
-///                CM_Get_Device_Interface_List_Size to determine the required buffer size.
-///    ulFlags = Contains one of the following caller-supplied flags:
-///Returns:
-///    If the operation succeeds, the function returns CR_SUCCESS. Otherwise, it returns one of the error codes with the
-///    CR_ prefix as defined in <i>Cfgmgr32.h</i>. The following table includes some of the more common error codes that
-///    this function might return. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%">
-///    <dl> <dt><b>CR_BUFFER_SMALL</b></dt> </dl> </td> <td width="60%"> The <i>Buffer</i> buffer is too small to hold
-///    the requested list of device interfaces. </td> </tr> </table>
-///    
-@DllImport("SETUPAPI")
-uint CM_Get_Device_Interface_ListA(GUID* InterfaceClassGuid, byte* pDeviceID, const(char)* Buffer, uint BufferLen, 
-                                   uint ulFlags);
+CONFIGRET CM_Get_Device_Interface_Alias_ExW(const(PWSTR) pszDeviceInterface, GUID* AliasInterfaceGuid, 
+                                            PWSTR pszAliasDeviceInterface, uint* pulLength, uint ulFlags, 
+                                            ptrdiff_t hMachine);
 
 ///The <b>CM_Get_Device_Interface_List</b> function retrieves a list of device interface instances that belong to a
 ///specified device interface class.
@@ -6389,16 +6447,44 @@ uint CM_Get_Device_Interface_ListA(GUID* InterfaceClassGuid, byte* pDeviceID, co
 ///    the requested list of device interfaces. </td> </tr> </table>
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Device_Interface_ListW(GUID* InterfaceClassGuid, ushort* pDeviceID, const(wchar)* Buffer, 
-                                   uint BufferLen, uint ulFlags);
+CONFIGRET CM_Get_Device_Interface_ListA(GUID* InterfaceClassGuid, byte* pDeviceID, 
+                                        /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PSTR Buffer, 
+                                        uint BufferLen, uint ulFlags);
+
+///The <b>CM_Get_Device_Interface_List</b> function retrieves a list of device interface instances that belong to a
+///specified device interface class.
+///Params:
+///    InterfaceClassGuid = Supplies a GUID that identifies a device interface class.
+///    pDeviceID = Caller-supplied pointer to a NULL-terminated string that represents a device instance ID. If specified, the
+///                function retrieves device interfaces that are supported by the device for the specified class. If this value is
+///                <b>NULL</b>, or if it points to a zero-length string, the function retrieves all interfaces that belong to the
+///                specified class.
+///    Buffer = Caller-supplied pointer to a buffer that receives multiple, NULL-terminated Unicode strings, each representing
+///             the symbolic link name of an interface instance.
+///    BufferLen = Caller-supplied value that specifies the length, in characters, of the buffer pointed to by <i>Buffer</i>. Call
+///                CM_Get_Device_Interface_List_Size to determine the required buffer size.
+///    ulFlags = Contains one of the following caller-supplied flags:
+///Returns:
+///    If the operation succeeds, the function returns CR_SUCCESS. Otherwise, it returns one of the error codes with the
+///    CR_ prefix as defined in <i>Cfgmgr32.h</i>. The following table includes some of the more common error codes that
+///    this function might return. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%">
+///    <dl> <dt><b>CR_BUFFER_SMALL</b></dt> </dl> </td> <td width="60%"> The <i>Buffer</i> buffer is too small to hold
+///    the requested list of device interfaces. </td> </tr> </table>
+///    
+@DllImport("SETUPAPI")
+CONFIGRET CM_Get_Device_Interface_ListW(GUID* InterfaceClassGuid, ushort* pDeviceID, 
+                                        /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PWSTR Buffer, 
+                                        uint BufferLen, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Get_Device_Interface_List_ExA(GUID* InterfaceClassGuid, byte* pDeviceID, const(char)* Buffer, 
-                                      uint BufferLen, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Get_Device_Interface_List_ExA(GUID* InterfaceClassGuid, byte* pDeviceID, 
+                                           /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PSTR Buffer, 
+                                           uint BufferLen, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Get_Device_Interface_List_ExW(GUID* InterfaceClassGuid, ushort* pDeviceID, const(wchar)* Buffer, 
-                                      uint BufferLen, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Get_Device_Interface_List_ExW(GUID* InterfaceClassGuid, ushort* pDeviceID, 
+                                           /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PWSTR Buffer, 
+                                           uint BufferLen, uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Get_Device_Interface_List_Size</b> function retrieves the buffer size that must be passed to the
 ///CM_Get_Device_Interface_List function.
@@ -6425,7 +6511,7 @@ uint CM_Get_Device_Interface_List_ExW(GUID* InterfaceClassGuid, ushort* pDeviceI
 ///    with the <b>CR_</b> prefix as defined in Cfgmgr32.h.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Device_Interface_List_SizeA(uint* pulLen, GUID* InterfaceClassGuid, byte* pDeviceID, uint ulFlags);
+CONFIGRET CM_Get_Device_Interface_List_SizeA(uint* pulLen, GUID* InterfaceClassGuid, byte* pDeviceID, uint ulFlags);
 
 ///The <b>CM_Get_Device_Interface_List_Size</b> function retrieves the buffer size that must be passed to the
 ///CM_Get_Device_Interface_List function.
@@ -6452,15 +6538,16 @@ uint CM_Get_Device_Interface_List_SizeA(uint* pulLen, GUID* InterfaceClassGuid, 
 ///    with the <b>CR_</b> prefix as defined in Cfgmgr32.h.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Device_Interface_List_SizeW(uint* pulLen, GUID* InterfaceClassGuid, ushort* pDeviceID, uint ulFlags);
+CONFIGRET CM_Get_Device_Interface_List_SizeW(uint* pulLen, GUID* InterfaceClassGuid, ushort* pDeviceID, 
+                                             uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Get_Device_Interface_List_Size_ExA(uint* pulLen, GUID* InterfaceClassGuid, byte* pDeviceID, uint ulFlags, 
-                                           ptrdiff_t hMachine);
+CONFIGRET CM_Get_Device_Interface_List_Size_ExA(uint* pulLen, GUID* InterfaceClassGuid, byte* pDeviceID, 
+                                                uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Get_Device_Interface_List_Size_ExW(uint* pulLen, GUID* InterfaceClassGuid, ushort* pDeviceID, uint ulFlags, 
-                                           ptrdiff_t hMachine);
+CONFIGRET CM_Get_Device_Interface_List_Size_ExW(uint* pulLen, GUID* InterfaceClassGuid, ushort* pDeviceID, 
+                                                uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Get_Device_Interface_Property</b> function retrieves a device property that is set for a device interface.
 ///Params:
@@ -6483,9 +6570,9 @@ uint CM_Get_Device_Interface_List_Size_ExW(uint* pulLen, GUID* InterfaceClassGui
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("api-ms-win-devices-config-l1-1-1")
-uint CM_Get_Device_Interface_PropertyW(const(wchar)* pszDeviceInterface, const(DEVPROPKEY)* PropertyKey, 
-                                       uint* PropertyType, char* PropertyBuffer, uint* PropertyBufferSize, 
-                                       uint ulFlags);
+CONFIGRET CM_Get_Device_Interface_PropertyW(const(PWSTR) pszDeviceInterface, const(DEVPROPKEY)* PropertyKey, 
+                                            uint* PropertyType, ubyte* PropertyBuffer, uint* PropertyBufferSize, 
+                                            uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Get_Device_Interface_Property instead.] The <b>CM_Get_Device_Interface_Property_ExW</b> function retrieves a
@@ -6513,9 +6600,9 @@ uint CM_Get_Device_Interface_PropertyW(const(wchar)* pszDeviceInterface, const(D
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("CFGMGR32")
-uint CM_Get_Device_Interface_Property_ExW(const(wchar)* pszDeviceInterface, const(DEVPROPKEY)* PropertyKey, 
-                                          uint* PropertyType, char* PropertyBuffer, uint* PropertyBufferSize, 
-                                          uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Get_Device_Interface_Property_ExW(const(PWSTR) pszDeviceInterface, const(DEVPROPKEY)* PropertyKey, 
+                                               uint* PropertyType, ubyte* PropertyBuffer, uint* PropertyBufferSize, 
+                                               uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Get_Device_Interface_Property_Keys</b> function retrieves an array of device property keys that represent
 ///the device properties that are set for a device interface.
@@ -6533,8 +6620,8 @@ uint CM_Get_Device_Interface_Property_ExW(const(wchar)* pszDeviceInterface, cons
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("api-ms-win-devices-config-l1-1-1")
-uint CM_Get_Device_Interface_Property_KeysW(const(wchar)* pszDeviceInterface, char* PropertyKeyArray, 
-                                            uint* PropertyKeyCount, uint ulFlags);
+CONFIGRET CM_Get_Device_Interface_Property_KeysW(const(PWSTR) pszDeviceInterface, DEVPROPKEY* PropertyKeyArray, 
+                                                 uint* PropertyKeyCount, uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Get_Device_Interface_Property_Keys instead.] The <b>CM_Get_Device_Interface_Property_Keys_ExW</b> function
@@ -6556,8 +6643,8 @@ uint CM_Get_Device_Interface_Property_KeysW(const(wchar)* pszDeviceInterface, ch
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("CFGMGR32")
-uint CM_Get_Device_Interface_Property_Keys_ExW(const(wchar)* pszDeviceInterface, char* PropertyKeyArray, 
-                                               uint* PropertyKeyCount, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Get_Device_Interface_Property_Keys_ExW(const(PWSTR) pszDeviceInterface, DEVPROPKEY* PropertyKeyArray, 
+                                                    uint* PropertyKeyCount, uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Get_Log_Conf_Priority</b> function obtains the configuration priority of a specified logical configuration
 ///on the local machine.
@@ -6577,7 +6664,7 @@ uint CM_Get_Device_Interface_Property_Keys_ExW(const(wchar)* pszDeviceInterface,
 ///    systems.</div> <div> </div>
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Log_Conf_Priority(size_t lcLogConf, uint* pPriority, uint ulFlags);
+CONFIGRET CM_Get_Log_Conf_Priority(size_t lcLogConf, uint* pPriority, uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Get_Log_Conf_Priority instead.] The <b>CM_Get_Log_Conf_Priority_Ex</b> function obtains the configuration
@@ -6601,7 +6688,7 @@ uint CM_Get_Log_Conf_Priority(size_t lcLogConf, uint* pPriority, uint ulFlags);
 ///    systems.</div> <div> </div>
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Log_Conf_Priority_Ex(size_t lcLogConf, uint* pPriority, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Get_Log_Conf_Priority_Ex(size_t lcLogConf, uint* pPriority, uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Get_Next_Log_Conf</b> function obtains the next logical configuration associated with a specific device
 ///instance on the local machine.
@@ -6620,7 +6707,7 @@ uint CM_Get_Log_Conf_Priority_Ex(size_t lcLogConf, uint* pPriority, uint ulFlags
 ///    </div>
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Next_Log_Conf(size_t* plcLogConf, size_t lcLogConf, uint ulFlags);
+CONFIGRET CM_Get_Next_Log_Conf(size_t* plcLogConf, size_t lcLogConf, uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Get_Next_Log_Conf instead.] The <b>CM_Get_Next_Log_Conf_Ex</b> function obtains the next logical configuration
@@ -6643,7 +6730,7 @@ uint CM_Get_Next_Log_Conf(size_t* plcLogConf, size_t lcLogConf, uint ulFlags);
 ///    systems.</div> <div> </div>
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Next_Log_Conf_Ex(size_t* plcLogConf, size_t lcLogConf, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Get_Next_Log_Conf_Ex(size_t* plcLogConf, size_t lcLogConf, uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Get_Parent</b> function obtains a device instance handle to the parent node of a specified device node
 ///(devnode) in the local machine's device tree.
@@ -6657,7 +6744,7 @@ uint CM_Get_Next_Log_Conf_Ex(size_t* plcLogConf, size_t lcLogConf, uint ulFlags,
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Parent(uint* pdnDevInst, uint dnDevInst, uint ulFlags);
+CONFIGRET CM_Get_Parent(uint* pdnDevInst, uint dnDevInst, uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Get_Parent instead.] The <b>CM_Get_Parent_Ex</b> function obtains a device instance handle to the parent node
@@ -6675,7 +6762,7 @@ uint CM_Get_Parent(uint* pdnDevInst, uint dnDevInst, uint ulFlags);
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Parent_Ex(uint* pdnDevInst, uint dnDevInst, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Get_Parent_Ex(uint* pdnDevInst, uint dnDevInst, uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Get_Res_Des_Data</b> function retrieves the information stored in a resource descriptor on the local
 ///machine.
@@ -6694,7 +6781,7 @@ uint CM_Get_Parent_Ex(uint* pdnDevInst, uint dnDevInst, uint ulFlags, ptrdiff_t 
 ///    </div>
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Res_Des_Data(size_t rdResDes, char* Buffer, uint BufferLen, uint ulFlags);
+CONFIGRET CM_Get_Res_Des_Data(size_t rdResDes, void* Buffer, uint BufferLen, uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Get_Res_Des_Data instead.] The <b>CM_Get_Res_Des_Data_Ex</b> function retrieves the information stored in a
@@ -6717,7 +6804,7 @@ uint CM_Get_Res_Des_Data(size_t rdResDes, char* Buffer, uint BufferLen, uint ulF
 ///    systems.</div> <div> </div>
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Res_Des_Data_Ex(size_t rdResDes, char* Buffer, uint BufferLen, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Get_Res_Des_Data_Ex(size_t rdResDes, void* Buffer, uint BufferLen, uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Get_Res_Des_Data_Size</b> function obtains the buffer size required to hold the information contained in a
 ///specified resource descriptor on the local machine.
@@ -6734,7 +6821,7 @@ uint CM_Get_Res_Des_Data_Ex(size_t rdResDes, char* Buffer, uint BufferLen, uint 
 ///    systems.</div> <div> </div>
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Res_Des_Data_Size(uint* pulSize, size_t rdResDes, uint ulFlags);
+CONFIGRET CM_Get_Res_Des_Data_Size(uint* pulSize, size_t rdResDes, uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Get_Res_Des_Data_Size instead.] The <b>CM_Get_Res_Des_Data_Size_Ex</b> function obtains the buffer size
@@ -6755,7 +6842,7 @@ uint CM_Get_Res_Des_Data_Size(uint* pulSize, size_t rdResDes, uint ulFlags);
 ///    systems.</div> <div> </div>
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Res_Des_Data_Size_Ex(uint* pulSize, size_t rdResDes, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Get_Res_Des_Data_Size_Ex(uint* pulSize, size_t rdResDes, uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Get_Sibling</b> function obtains a device instance handle to the next sibling node of a specified device
 ///node (devnode) in the local machine's device tree.
@@ -6769,7 +6856,7 @@ uint CM_Get_Res_Des_Data_Size_Ex(uint* pulSize, size_t rdResDes, uint ulFlags, p
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Sibling(uint* pdnDevInst, uint dnDevInst, uint ulFlags);
+CONFIGRET CM_Get_Sibling(uint* pdnDevInst, uint dnDevInst, uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Get_Sibling instead.] The <b>CM_Get_Sibling_Ex</b> function obtains a device instance handle to the next
@@ -6787,7 +6874,7 @@ uint CM_Get_Sibling(uint* pdnDevInst, uint dnDevInst, uint ulFlags);
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Sibling_Ex(uint* pdnDevInst, uint dnDevInst, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Get_Sibling_Ex(uint* pdnDevInst, uint dnDevInst, uint ulFlags, ptrdiff_t hMachine);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated and
 ///should not be used.] The <b>CM_Get_Version</b> function returns version 4.0 of the Plug and Play (PnP) Configuration
@@ -6853,27 +6940,10 @@ BOOL CM_Is_Version_Available(ushort wVersion);
 BOOL CM_Is_Version_Available_Ex(ushort wVersion, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Intersect_Range_List(size_t rlhOld1, size_t rlhOld2, size_t rlhNew, uint ulFlags);
+CONFIGRET CM_Intersect_Range_List(size_t rlhOld1, size_t rlhOld2, size_t rlhNew, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Invert_Range_List(size_t rlhOld, size_t rlhNew, ulong ullMaxValue, uint ulFlags);
-
-///The <b>CM_Locate_DevNode</b> function obtains a device instance handle to the device node that is associated with a
-///specified device instance ID on the local machine.
-///Params:
-///    pdnDevInst = A pointer to a device instance handle that <b>CM_Locate_DevNode</b> retrieves. The retrieved handle is bound to
-///                 the local machine.
-///    pDeviceID = A pointer to a NULL-terminated string representing a device instance ID. If this value is <b>NULL</b>, or if it
-///                points to a zero-length string, the function retrieves a device instance handle to the device at the root of the
-///                device tree.
-///    ulFlags = A variable of ULONG type that supplies one of the following flag values that apply if the caller supplies a
-///              device instance identifier:
-///Returns:
-///    If the operation succeeds, <b>CM_Locate_DevNode</b> returns CR_SUCCESS. Otherwise, the function returns one of
-///    the CR_<i>Xxx</i> error codes that are defined in <i>Cfgmgr32.h</i>.
-///    
-@DllImport("SETUPAPI")
-uint CM_Locate_DevNodeA(uint* pdnDevInst, byte* pDeviceID, uint ulFlags);
+CONFIGRET CM_Invert_Range_List(size_t rlhOld, size_t rlhNew, ulong ullMaxValue, uint ulFlags);
 
 ///The <b>CM_Locate_DevNode</b> function obtains a device instance handle to the device node that is associated with a
 ///specified device instance ID on the local machine.
@@ -6890,10 +6960,27 @@ uint CM_Locate_DevNodeA(uint* pdnDevInst, byte* pDeviceID, uint ulFlags);
 ///    the CR_<i>Xxx</i> error codes that are defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Locate_DevNodeW(uint* pdnDevInst, ushort* pDeviceID, uint ulFlags);
+CONFIGRET CM_Locate_DevNodeA(uint* pdnDevInst, byte* pDeviceID, uint ulFlags);
+
+///The <b>CM_Locate_DevNode</b> function obtains a device instance handle to the device node that is associated with a
+///specified device instance ID on the local machine.
+///Params:
+///    pdnDevInst = A pointer to a device instance handle that <b>CM_Locate_DevNode</b> retrieves. The retrieved handle is bound to
+///                 the local machine.
+///    pDeviceID = A pointer to a NULL-terminated string representing a device instance ID. If this value is <b>NULL</b>, or if it
+///                points to a zero-length string, the function retrieves a device instance handle to the device at the root of the
+///                device tree.
+///    ulFlags = A variable of ULONG type that supplies one of the following flag values that apply if the caller supplies a
+///              device instance identifier:
+///Returns:
+///    If the operation succeeds, <b>CM_Locate_DevNode</b> returns CR_SUCCESS. Otherwise, the function returns one of
+///    the CR_<i>Xxx</i> error codes that are defined in <i>Cfgmgr32.h</i>.
+///    
+@DllImport("SETUPAPI")
+CONFIGRET CM_Locate_DevNodeW(uint* pdnDevInst, ushort* pDeviceID, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Locate_DevNode_ExA(uint* pdnDevInst, byte* pDeviceID, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Locate_DevNode_ExA(uint* pdnDevInst, byte* pDeviceID, uint ulFlags, ptrdiff_t hMachine);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Locate_DevNode instead.] The <b>CM_Locate_DevNode_Ex</b> function obtains a device instance handle to the
@@ -6917,10 +7004,10 @@ uint CM_Locate_DevNode_ExA(uint* pdnDevInst, byte* pDeviceID, uint ulFlags, ptrd
 ///    the CR_-prefixed error codes that are defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Locate_DevNode_ExW(uint* pdnDevInst, ushort* pDeviceID, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Locate_DevNode_ExW(uint* pdnDevInst, ushort* pDeviceID, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Merge_Range_List(size_t rlhOld1, size_t rlhOld2, size_t rlhNew, uint ulFlags);
+CONFIGRET CM_Merge_Range_List(size_t rlhOld1, size_t rlhOld2, size_t rlhNew, uint ulFlags);
 
 ///The <b>CM_Modify_Res_Des</b> function modifies a specified resource descriptor on the local machine.
 ///Params:
@@ -6943,8 +7030,8 @@ uint CM_Merge_Range_List(size_t rlhOld1, size_t rlhOld2, size_t rlhNew, uint ulF
 ///    </div>
 ///    
 @DllImport("SETUPAPI")
-uint CM_Modify_Res_Des(size_t* prdResDes, size_t rdResDes, uint ResourceID, char* ResourceData, uint ResourceLen, 
-                       uint ulFlags);
+CONFIGRET CM_Modify_Res_Des(size_t* prdResDes, size_t rdResDes, uint ResourceID, void* ResourceData, 
+                            uint ResourceLen, uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Modify_Res_Des instead.] The <b>CM_Modify_Res_Des_Ex</b> function modifies a specified resource descriptor on
@@ -6972,17 +7059,17 @@ uint CM_Modify_Res_Des(size_t* prdResDes, size_t rdResDes, uint ResourceID, char
 ///    </div>
 ///    
 @DllImport("SETUPAPI")
-uint CM_Modify_Res_Des_Ex(size_t* prdResDes, size_t rdResDes, uint ResourceID, char* ResourceData, 
-                          uint ResourceLen, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Modify_Res_Des_Ex(size_t* prdResDes, size_t rdResDes, uint ResourceID, void* ResourceData, 
+                               uint ResourceLen, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Move_DevNode(uint dnFromDevInst, uint dnToDevInst, uint ulFlags);
+CONFIGRET CM_Move_DevNode(uint dnFromDevInst, uint dnToDevInst, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Move_DevNode_Ex(uint dnFromDevInst, uint dnToDevInst, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Move_DevNode_Ex(uint dnFromDevInst, uint dnToDevInst, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Next_Range(size_t* preElement, ulong* pullStart, ulong* pullEnd, uint ulFlags);
+CONFIGRET CM_Next_Range(size_t* preElement, ulong* pullStart, ulong* pullEnd, uint ulFlags);
 
 ///The <b>CM_Get_Next_Res_Des</b> function obtains a handle to the next resource descriptor, of a specified resource
 ///type, for a logical configuration on the local machine.
@@ -7004,7 +7091,8 @@ uint CM_Next_Range(size_t* preElement, ulong* pullStart, ulong* pullEnd, uint ul
 ///    </div>
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Next_Res_Des(size_t* prdResDes, size_t rdResDes, uint ForResource, uint* pResourceID, uint ulFlags);
+CONFIGRET CM_Get_Next_Res_Des(size_t* prdResDes, size_t rdResDes, uint ForResource, uint* pResourceID, 
+                              uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Get_Next_Res_Des instead.] The <b>CM_Get_Next_Res_Des_Ex</b> function obtains a handle to the next resource
@@ -7030,12 +7118,12 @@ uint CM_Get_Next_Res_Des(size_t* prdResDes, size_t rdResDes, uint ForResource, u
 ///    systems.</div> <div> </div>
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Next_Res_Des_Ex(size_t* prdResDes, size_t rdResDes, uint ForResource, uint* pResourceID, uint ulFlags, 
-                            ptrdiff_t hMachine);
+CONFIGRET CM_Get_Next_Res_Des_Ex(size_t* prdResDes, size_t rdResDes, uint ForResource, uint* pResourceID, 
+                                 uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Open_Class_KeyA(GUID* ClassGuid, const(char)* pszClassName, uint samDesired, uint Disposition, 
-                        HKEY* phkClass, uint ulFlags);
+CONFIGRET CM_Open_Class_KeyA(GUID* ClassGuid, const(PSTR) pszClassName, uint samDesired, uint Disposition, 
+                             HKEY* phkClass, uint ulFlags);
 
 ///The <b>CM_Open_Class_Key</b> function opens the device setup class registry key, the device interface class registry
 ///key, or a specific subkey of a class.
@@ -7052,16 +7140,16 @@ uint CM_Open_Class_KeyA(GUID* ClassGuid, const(char)* pszClassName, uint samDesi
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Open_Class_KeyW(GUID* ClassGuid, const(wchar)* pszClassName, uint samDesired, uint Disposition, 
-                        HKEY* phkClass, uint ulFlags);
+CONFIGRET CM_Open_Class_KeyW(GUID* ClassGuid, const(PWSTR) pszClassName, uint samDesired, uint Disposition, 
+                             HKEY* phkClass, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Open_Class_Key_ExA(GUID* ClassGuid, const(char)* pszClassName, uint samDesired, uint Disposition, 
-                           HKEY* phkClass, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Open_Class_Key_ExA(GUID* ClassGuid, const(PSTR) pszClassName, uint samDesired, uint Disposition, 
+                                HKEY* phkClass, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Open_Class_Key_ExW(GUID* ClassGuid, const(wchar)* pszClassName, uint samDesired, uint Disposition, 
-                           HKEY* phkClass, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Open_Class_Key_ExW(GUID* ClassGuid, const(PWSTR) pszClassName, uint samDesired, uint Disposition, 
+                                HKEY* phkClass, uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Open_DevNode_Key</b> function opens a registry key for device-specific configuration information.
 ///Params:
@@ -7078,28 +7166,12 @@ uint CM_Open_Class_Key_ExW(GUID* ClassGuid, const(wchar)* pszClassName, uint sam
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Open_DevNode_Key(uint dnDevNode, uint samDesired, uint ulHardwareProfile, uint Disposition, 
-                         HKEY* phkDevice, uint ulFlags);
+CONFIGRET CM_Open_DevNode_Key(uint dnDevNode, uint samDesired, uint ulHardwareProfile, uint Disposition, 
+                              HKEY* phkDevice, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Open_DevNode_Key_Ex(uint dnDevNode, uint samDesired, uint ulHardwareProfile, uint Disposition, 
-                            HKEY* phkDevice, uint ulFlags, ptrdiff_t hMachine);
-
-///The <b>CM_Open_Device_Interface_Key</b> function opens the registry subkey that is used by applications and drivers
-///to store information that is specific to a device interface.
-///Params:
-///    pszDeviceInterface = Pointer to a string that identifies the device interface instance to open the registry subkey for.
-///    samDesired = The requested registry security access to the registry subkey.
-///    Disposition = Specifies how the registry key is to be opened. May be one of the following values:
-///    phkDeviceInterface = Pointer to an HKEY that will receive the opened key upon success.
-///    ulFlags = Reserved. Must be set to zero.
-///Returns:
-///    If the operation succeeds, the function returns CR_SUCCESS. Otherwise, it returns one of the CR_-prefixed error
-///    codes defined in <i>Cfgmgr32.h</i>.
-///    
-@DllImport("SETUPAPI")
-uint CM_Open_Device_Interface_KeyA(const(char)* pszDeviceInterface, uint samDesired, uint Disposition, 
-                                   HKEY* phkDeviceInterface, uint ulFlags);
+CONFIGRET CM_Open_DevNode_Key_Ex(uint dnDevNode, uint samDesired, uint ulHardwareProfile, uint Disposition, 
+                                 HKEY* phkDevice, uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Open_Device_Interface_Key</b> function opens the registry subkey that is used by applications and drivers
 ///to store information that is specific to a device interface.
@@ -7114,8 +7186,24 @@ uint CM_Open_Device_Interface_KeyA(const(char)* pszDeviceInterface, uint samDesi
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Open_Device_Interface_KeyW(const(wchar)* pszDeviceInterface, uint samDesired, uint Disposition, 
-                                   HKEY* phkDeviceInterface, uint ulFlags);
+CONFIGRET CM_Open_Device_Interface_KeyA(const(PSTR) pszDeviceInterface, uint samDesired, uint Disposition, 
+                                        HKEY* phkDeviceInterface, uint ulFlags);
+
+///The <b>CM_Open_Device_Interface_Key</b> function opens the registry subkey that is used by applications and drivers
+///to store information that is specific to a device interface.
+///Params:
+///    pszDeviceInterface = Pointer to a string that identifies the device interface instance to open the registry subkey for.
+///    samDesired = The requested registry security access to the registry subkey.
+///    Disposition = Specifies how the registry key is to be opened. May be one of the following values:
+///    phkDeviceInterface = Pointer to an HKEY that will receive the opened key upon success.
+///    ulFlags = Reserved. Must be set to zero.
+///Returns:
+///    If the operation succeeds, the function returns CR_SUCCESS. Otherwise, it returns one of the CR_-prefixed error
+///    codes defined in <i>Cfgmgr32.h</i>.
+///    
+@DllImport("SETUPAPI")
+CONFIGRET CM_Open_Device_Interface_KeyW(const(PWSTR) pszDeviceInterface, uint samDesired, uint Disposition, 
+                                        HKEY* phkDeviceInterface, uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Open_Device_Interface_Key instead.] The <b>CM_Open_Device_Interface_Key_ExA</b> function opens the registry
@@ -7134,8 +7222,8 @@ uint CM_Open_Device_Interface_KeyW(const(wchar)* pszDeviceInterface, uint samDes
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Open_Device_Interface_Key_ExA(const(char)* pszDeviceInterface, uint samDesired, uint Disposition, 
-                                      HKEY* phkDeviceInterface, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Open_Device_Interface_Key_ExA(const(PSTR) pszDeviceInterface, uint samDesired, uint Disposition, 
+                                           HKEY* phkDeviceInterface, uint ulFlags, ptrdiff_t hMachine);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Open_Device_Interface_Key instead.] The <b>CM_Open_Device_Interface_Key_ExW</b> function opens the registry
@@ -7154,11 +7242,11 @@ uint CM_Open_Device_Interface_Key_ExA(const(char)* pszDeviceInterface, uint samD
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Open_Device_Interface_Key_ExW(const(wchar)* pszDeviceInterface, uint samDesired, uint Disposition, 
-                                      HKEY* phkDeviceInterface, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Open_Device_Interface_Key_ExW(const(PWSTR) pszDeviceInterface, uint samDesired, uint Disposition, 
+                                           HKEY* phkDeviceInterface, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Delete_Device_Interface_KeyA(const(char)* pszDeviceInterface, uint ulFlags);
+CONFIGRET CM_Delete_Device_Interface_KeyA(const(PSTR) pszDeviceInterface, uint ulFlags);
 
 ///The <b>CM_Delete_Device_Interface_Key</b> function deletes the registry subkey that is used by applications and
 ///drivers to store interface-specific information.
@@ -7170,7 +7258,7 @@ uint CM_Delete_Device_Interface_KeyA(const(char)* pszDeviceInterface, uint ulFla
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Delete_Device_Interface_KeyW(const(wchar)* pszDeviceInterface, uint ulFlags);
+CONFIGRET CM_Delete_Device_Interface_KeyW(const(PWSTR) pszDeviceInterface, uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Delete_Device_Interface_Key instead.] The <b>CM_Delete_Device_Interface_Key_ExA</b> function deletes the
@@ -7186,7 +7274,7 @@ uint CM_Delete_Device_Interface_KeyW(const(wchar)* pszDeviceInterface, uint ulFl
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Delete_Device_Interface_Key_ExA(const(char)* pszDeviceInterface, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Delete_Device_Interface_Key_ExA(const(PSTR) pszDeviceInterface, uint ulFlags, ptrdiff_t hMachine);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Delete_Device_Interface_Key instead.] The <b>CM_Delete_Device_Interface_Key_ExW</b> function deletes the
@@ -7202,31 +7290,31 @@ uint CM_Delete_Device_Interface_Key_ExA(const(char)* pszDeviceInterface, uint ul
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Delete_Device_Interface_Key_ExW(const(wchar)* pszDeviceInterface, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Delete_Device_Interface_Key_ExW(const(PWSTR) pszDeviceInterface, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Query_Arbitrator_Free_Data(char* pData, uint DataLen, uint dnDevInst, uint ResourceID, uint ulFlags);
+CONFIGRET CM_Query_Arbitrator_Free_Data(void* pData, uint DataLen, uint dnDevInst, uint ResourceID, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Query_Arbitrator_Free_Data_Ex(char* pData, uint DataLen, uint dnDevInst, uint ResourceID, uint ulFlags, 
-                                      ptrdiff_t hMachine);
+CONFIGRET CM_Query_Arbitrator_Free_Data_Ex(void* pData, uint DataLen, uint dnDevInst, uint ResourceID, 
+                                           uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Query_Arbitrator_Free_Size(uint* pulSize, uint dnDevInst, uint ResourceID, uint ulFlags);
+CONFIGRET CM_Query_Arbitrator_Free_Size(uint* pulSize, uint dnDevInst, uint ResourceID, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Query_Arbitrator_Free_Size_Ex(uint* pulSize, uint dnDevInst, uint ResourceID, uint ulFlags, 
-                                      ptrdiff_t hMachine);
+CONFIGRET CM_Query_Arbitrator_Free_Size_Ex(uint* pulSize, uint dnDevInst, uint ResourceID, uint ulFlags, 
+                                           ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Query_Remove_SubTree(uint dnAncestor, uint ulFlags);
+CONFIGRET CM_Query_Remove_SubTree(uint dnAncestor, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Query_Remove_SubTree_Ex(uint dnAncestor, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Query_Remove_SubTree_Ex(uint dnAncestor, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Query_And_Remove_SubTreeA(uint dnAncestor, PNP_VETO_TYPE* pVetoType, const(char)* pszVetoName, 
-                                  uint ulNameLength, uint ulFlags);
+CONFIGRET CM_Query_And_Remove_SubTreeA(uint dnAncestor, PNP_VETO_TYPE* pVetoType, PSTR pszVetoName, 
+                                       uint ulNameLength, uint ulFlags);
 
 ///The <b>CM_Query_And_Remove_SubTree</b> function checks whether a device instance and its children can be removed and,
 ///if so, it removes them.
@@ -7248,12 +7336,12 @@ uint CM_Query_And_Remove_SubTreeA(uint dnAncestor, PNP_VETO_TYPE* pVetoType, con
 ///    error codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Query_And_Remove_SubTreeW(uint dnAncestor, PNP_VETO_TYPE* pVetoType, const(wchar)* pszVetoName, 
-                                  uint ulNameLength, uint ulFlags);
+CONFIGRET CM_Query_And_Remove_SubTreeW(uint dnAncestor, PNP_VETO_TYPE* pVetoType, PWSTR pszVetoName, 
+                                       uint ulNameLength, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Query_And_Remove_SubTree_ExA(uint dnAncestor, PNP_VETO_TYPE* pVetoType, const(char)* pszVetoName, 
-                                     uint ulNameLength, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Query_And_Remove_SubTree_ExA(uint dnAncestor, PNP_VETO_TYPE* pVetoType, PSTR pszVetoName, 
+                                          uint ulNameLength, uint ulFlags, ptrdiff_t hMachine);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Query_And_Remove_SubTree instead.] The <b>CM_Query_And_Remove_SubTree_Ex</b> function checks whether a device
@@ -7279,16 +7367,16 @@ uint CM_Query_And_Remove_SubTree_ExA(uint dnAncestor, PNP_VETO_TYPE* pVetoType, 
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Query_And_Remove_SubTree_ExW(uint dnAncestor, PNP_VETO_TYPE* pVetoType, const(wchar)* pszVetoName, 
-                                     uint ulNameLength, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Query_And_Remove_SubTree_ExW(uint dnAncestor, PNP_VETO_TYPE* pVetoType, PWSTR pszVetoName, 
+                                          uint ulNameLength, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Request_Device_EjectA(uint dnDevInst, PNP_VETO_TYPE* pVetoType, const(char)* pszVetoName, 
-                              uint ulNameLength, uint ulFlags);
+CONFIGRET CM_Request_Device_EjectA(uint dnDevInst, PNP_VETO_TYPE* pVetoType, PSTR pszVetoName, uint ulNameLength, 
+                                   uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Request_Device_Eject_ExA(uint dnDevInst, PNP_VETO_TYPE* pVetoType, const(char)* pszVetoName, 
-                                 uint ulNameLength, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Request_Device_Eject_ExA(uint dnDevInst, PNP_VETO_TYPE* pVetoType, PSTR pszVetoName, 
+                                      uint ulNameLength, uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Request_Device_Eject</b> function prepares a local device instance for safe removal, if the device is
 ///removable. If the device can be physically ejected, it will be.
@@ -7307,8 +7395,8 @@ uint CM_Request_Device_Eject_ExA(uint dnDevInst, PNP_VETO_TYPE* pVetoType, const
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Request_Device_EjectW(uint dnDevInst, PNP_VETO_TYPE* pVetoType, const(wchar)* pszVetoName, 
-                              uint ulNameLength, uint ulFlags);
+CONFIGRET CM_Request_Device_EjectW(uint dnDevInst, PNP_VETO_TYPE* pVetoType, PWSTR pszVetoName, uint ulNameLength, 
+                                   uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Request_Device_Eject instead.] The <b>CM_Request_Device_Eject_Ex</b> function prepares a local or a remote
@@ -7331,8 +7419,8 @@ uint CM_Request_Device_EjectW(uint dnDevInst, PNP_VETO_TYPE* pVetoType, const(wc
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Request_Device_Eject_ExW(uint dnDevInst, PNP_VETO_TYPE* pVetoType, const(wchar)* pszVetoName, 
-                                 uint ulNameLength, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Request_Device_Eject_ExW(uint dnDevInst, PNP_VETO_TYPE* pVetoType, PWSTR pszVetoName, 
+                                      uint ulNameLength, uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Reenumerate_DevNode</b> function enumerates the devices identified by a specified device node and all of
 ///its children.
@@ -7345,7 +7433,7 @@ uint CM_Request_Device_Eject_ExW(uint dnDevInst, PNP_VETO_TYPE* pVetoType, const
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Reenumerate_DevNode(uint dnDevInst, uint ulFlags);
+CONFIGRET CM_Reenumerate_DevNode(uint dnDevInst, uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Reenumerate_DevNode instead.] The <b>CM_Reenumerate_DevNode_Ex</b> function enumerates the devices identified
@@ -7362,25 +7450,25 @@ uint CM_Reenumerate_DevNode(uint dnDevInst, uint ulFlags);
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Reenumerate_DevNode_Ex(uint dnDevInst, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Reenumerate_DevNode_Ex(uint dnDevInst, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Register_Device_InterfaceA(uint dnDevInst, GUID* InterfaceClassGuid, const(char)* pszReference, 
-                                   const(char)* pszDeviceInterface, uint* pulLength, uint ulFlags);
+CONFIGRET CM_Register_Device_InterfaceA(uint dnDevInst, GUID* InterfaceClassGuid, const(PSTR) pszReference, 
+                                        PSTR pszDeviceInterface, uint* pulLength, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Register_Device_InterfaceW(uint dnDevInst, GUID* InterfaceClassGuid, const(wchar)* pszReference, 
-                                   const(wchar)* pszDeviceInterface, uint* pulLength, uint ulFlags);
+CONFIGRET CM_Register_Device_InterfaceW(uint dnDevInst, GUID* InterfaceClassGuid, const(PWSTR) pszReference, 
+                                        PWSTR pszDeviceInterface, uint* pulLength, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Register_Device_Interface_ExA(uint dnDevInst, GUID* InterfaceClassGuid, const(char)* pszReference, 
-                                      const(char)* pszDeviceInterface, uint* pulLength, uint ulFlags, 
-                                      ptrdiff_t hMachine);
+CONFIGRET CM_Register_Device_Interface_ExA(uint dnDevInst, GUID* InterfaceClassGuid, const(PSTR) pszReference, 
+                                           PSTR pszDeviceInterface, uint* pulLength, uint ulFlags, 
+                                           ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Register_Device_Interface_ExW(uint dnDevInst, GUID* InterfaceClassGuid, const(wchar)* pszReference, 
-                                      const(wchar)* pszDeviceInterface, uint* pulLength, uint ulFlags, 
-                                      ptrdiff_t hMachine);
+CONFIGRET CM_Register_Device_Interface_ExW(uint dnDevInst, GUID* InterfaceClassGuid, const(PWSTR) pszReference, 
+                                           PWSTR pszDeviceInterface, uint* pulLength, uint ulFlags, 
+                                           ptrdiff_t hMachine);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Set_DevNode_Problem instead.] The <b>CM_Set_DevNode_Problem_Ex</b> function sets a problem code for a device
@@ -7398,7 +7486,7 @@ uint CM_Register_Device_Interface_ExW(uint dnDevInst, GUID* InterfaceClassGuid, 
 ///    CR_-prefixed error codes that are defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Set_DevNode_Problem_Ex(uint dnDevInst, uint ulProblem, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Set_DevNode_Problem_Ex(uint dnDevInst, uint ulProblem, uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Set_DevNode_Problem</b> function sets a problem code for a device that is installed in a local machine.
 ///Params:
@@ -7411,31 +7499,31 @@ uint CM_Set_DevNode_Problem_Ex(uint dnDevInst, uint ulProblem, uint ulFlags, ptr
 ///    CR_-prefixed error codes that are defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Set_DevNode_Problem(uint dnDevInst, uint ulProblem, uint ulFlags);
+CONFIGRET CM_Set_DevNode_Problem(uint dnDevInst, uint ulProblem, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Unregister_Device_InterfaceA(const(char)* pszDeviceInterface, uint ulFlags);
+CONFIGRET CM_Unregister_Device_InterfaceA(const(PSTR) pszDeviceInterface, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Unregister_Device_InterfaceW(const(wchar)* pszDeviceInterface, uint ulFlags);
+CONFIGRET CM_Unregister_Device_InterfaceW(const(PWSTR) pszDeviceInterface, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Unregister_Device_Interface_ExA(const(char)* pszDeviceInterface, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Unregister_Device_Interface_ExA(const(PSTR) pszDeviceInterface, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Unregister_Device_Interface_ExW(const(wchar)* pszDeviceInterface, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Unregister_Device_Interface_ExW(const(PWSTR) pszDeviceInterface, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Register_Device_Driver(uint dnDevInst, uint ulFlags);
+CONFIGRET CM_Register_Device_Driver(uint dnDevInst, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Register_Device_Driver_Ex(uint dnDevInst, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Register_Device_Driver_Ex(uint dnDevInst, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Remove_SubTree(uint dnAncestor, uint ulFlags);
+CONFIGRET CM_Remove_SubTree(uint dnAncestor, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Remove_SubTree_Ex(uint dnAncestor, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Remove_SubTree_Ex(uint dnAncestor, uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Set_DevNode_Property</b> function sets a device instance property.
 ///Params:
@@ -7453,8 +7541,8 @@ uint CM_Remove_SubTree_Ex(uint dnAncestor, uint ulFlags, ptrdiff_t hMachine);
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("api-ms-win-devices-config-l1-1-1")
-uint CM_Set_DevNode_PropertyW(uint dnDevInst, const(DEVPROPKEY)* PropertyKey, uint PropertyType, 
-                              char* PropertyBuffer, uint PropertyBufferSize, uint ulFlags);
+CONFIGRET CM_Set_DevNode_PropertyW(uint dnDevInst, const(DEVPROPKEY)* PropertyKey, uint PropertyType, 
+                                   const(ubyte)* PropertyBuffer, uint PropertyBufferSize, uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Set_DevNode_Property instead.] The <b>CM_Set_DevNode_Property_ExW</b> function sets a device instance
@@ -7477,11 +7565,13 @@ uint CM_Set_DevNode_PropertyW(uint dnDevInst, const(DEVPROPKEY)* PropertyKey, ui
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("CFGMGR32")
-uint CM_Set_DevNode_Property_ExW(uint dnDevInst, const(DEVPROPKEY)* PropertyKey, uint PropertyType, 
-                                 char* PropertyBuffer, uint PropertyBufferSize, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Set_DevNode_Property_ExW(uint dnDevInst, const(DEVPROPKEY)* PropertyKey, uint PropertyType, 
+                                      const(ubyte)* PropertyBuffer, uint PropertyBufferSize, uint ulFlags, 
+                                      ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Set_DevNode_Registry_PropertyA(uint dnDevInst, uint ulProperty, char* Buffer, uint ulLength, uint ulFlags);
+CONFIGRET CM_Set_DevNode_Registry_PropertyA(uint dnDevInst, uint ulProperty, void* Buffer, uint ulLength, 
+                                            uint ulFlags);
 
 ///The <b>CM_Set_DevNode_Registry_Property</b> function sets a specified device property in the registry.
 ///Params:
@@ -7497,15 +7587,16 @@ uint CM_Set_DevNode_Registry_PropertyA(uint dnDevInst, uint ulProperty, char* Bu
 ///    codes that are defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Set_DevNode_Registry_PropertyW(uint dnDevInst, uint ulProperty, char* Buffer, uint ulLength, uint ulFlags);
+CONFIGRET CM_Set_DevNode_Registry_PropertyW(uint dnDevInst, uint ulProperty, void* Buffer, uint ulLength, 
+                                            uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Set_DevNode_Registry_Property_ExA(uint dnDevInst, uint ulProperty, char* Buffer, uint ulLength, 
-                                          uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Set_DevNode_Registry_Property_ExA(uint dnDevInst, uint ulProperty, void* Buffer, uint ulLength, 
+                                               uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Set_DevNode_Registry_Property_ExW(uint dnDevInst, uint ulProperty, char* Buffer, uint ulLength, 
-                                          uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Set_DevNode_Registry_Property_ExW(uint dnDevInst, uint ulProperty, void* Buffer, uint ulLength, 
+                                               uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Set_Device_Interface_Property</b> function sets a device property of a device interface.
 ///Params:
@@ -7523,9 +7614,9 @@ uint CM_Set_DevNode_Registry_Property_ExW(uint dnDevInst, uint ulProperty, char*
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("api-ms-win-devices-config-l1-1-1")
-uint CM_Set_Device_Interface_PropertyW(const(wchar)* pszDeviceInterface, const(DEVPROPKEY)* PropertyKey, 
-                                       uint PropertyType, char* PropertyBuffer, uint PropertyBufferSize, 
-                                       uint ulFlags);
+CONFIGRET CM_Set_Device_Interface_PropertyW(const(PWSTR) pszDeviceInterface, const(DEVPROPKEY)* PropertyKey, 
+                                            uint PropertyType, const(ubyte)* PropertyBuffer, uint PropertyBufferSize, 
+                                            uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Set_Device_Interface_Property instead.] The <b>CM_Set_Device_Interface_Property_ExW</b> function sets a device
@@ -7548,9 +7639,9 @@ uint CM_Set_Device_Interface_PropertyW(const(wchar)* pszDeviceInterface, const(D
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("CFGMGR32")
-uint CM_Set_Device_Interface_Property_ExW(const(wchar)* pszDeviceInterface, const(DEVPROPKEY)* PropertyKey, 
-                                          uint PropertyType, char* PropertyBuffer, uint PropertyBufferSize, 
-                                          uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Set_Device_Interface_Property_ExW(const(PWSTR) pszDeviceInterface, const(DEVPROPKEY)* PropertyKey, 
+                                               uint PropertyType, const(ubyte)* PropertyBuffer, 
+                                               uint PropertyBufferSize, uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Is_Dock_Station_Present</b> function identifies whether a docking station is present in a local machine.
 ///Params:
@@ -7562,7 +7653,7 @@ uint CM_Set_Device_Interface_Property_ExW(const(wchar)* pszDeviceInterface, cons
 ///    CR_-prefixed error codes that are defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Is_Dock_Station_Present(int* pbPresent);
+CONFIGRET CM_Is_Dock_Station_Present(BOOL* pbPresent);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Is_Dock_Station_Present instead.] The <b>CM_Is_Dock_Station_Present_Ex</b> function identifies whether a
@@ -7579,7 +7670,7 @@ uint CM_Is_Dock_Station_Present(int* pbPresent);
 ///    CR_-prefixed error codes that are defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Is_Dock_Station_Present_Ex(int* pbPresent, ptrdiff_t hMachine);
+CONFIGRET CM_Is_Dock_Station_Present_Ex(BOOL* pbPresent, ptrdiff_t hMachine);
 
 ///The <b>CM_Request_Eject_PC</b> function requests that a portable PC, which is inserted in a local docking station, be
 ///ejected.
@@ -7588,7 +7679,7 @@ uint CM_Is_Dock_Station_Present_Ex(int* pbPresent, ptrdiff_t hMachine);
 ///    CR_-prefixed error codes that are defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Request_Eject_PC();
+CONFIGRET CM_Request_Eject_PC();
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Request_Eject_PC instead.] The <b>CM_Request_Eject_PC_Ex</b> function requests that a portable PC, which is
@@ -7602,19 +7693,20 @@ uint CM_Request_Eject_PC();
 ///    CR_-prefixed error codes that are defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Request_Eject_PC_Ex(ptrdiff_t hMachine);
+CONFIGRET CM_Request_Eject_PC_Ex(ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Set_HW_Prof_FlagsA(byte* pDeviceID, uint ulConfig, uint ulValue, uint ulFlags);
+CONFIGRET CM_Set_HW_Prof_FlagsA(byte* pDeviceID, uint ulConfig, uint ulValue, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Set_HW_Prof_FlagsW(ushort* pDeviceID, uint ulConfig, uint ulValue, uint ulFlags);
+CONFIGRET CM_Set_HW_Prof_FlagsW(ushort* pDeviceID, uint ulConfig, uint ulValue, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Set_HW_Prof_Flags_ExA(byte* pDeviceID, uint ulConfig, uint ulValue, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Set_HW_Prof_Flags_ExA(byte* pDeviceID, uint ulConfig, uint ulValue, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Set_HW_Prof_Flags_ExW(ushort* pDeviceID, uint ulConfig, uint ulValue, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Set_HW_Prof_Flags_ExW(ushort* pDeviceID, uint ulConfig, uint ulValue, uint ulFlags, 
+                                   ptrdiff_t hMachine);
 
 ///The <b>CM_Setup_DevNode</b> function restarts a device instance that is not running because there is a problem with
 ///the device configuration.
@@ -7626,13 +7718,13 @@ uint CM_Set_HW_Prof_Flags_ExW(ushort* pDeviceID, uint ulConfig, uint ulValue, ui
 ///    "CR_" prefix that are defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Setup_DevNode(uint dnDevInst, uint ulFlags);
+CONFIGRET CM_Setup_DevNode(uint dnDevInst, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Setup_DevNode_Ex(uint dnDevInst, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Setup_DevNode_Ex(uint dnDevInst, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Test_Range_Available(ulong ullStartValue, ulong ullEndValue, size_t rlh, uint ulFlags);
+CONFIGRET CM_Test_Range_Available(ulong ullStartValue, ulong ullEndValue, size_t rlh, uint ulFlags);
 
 ///The <b>CM_Uninstall_DevNode</b> function removes all persistent state associated with a device instance.
 ///Params:
@@ -7643,22 +7735,22 @@ uint CM_Test_Range_Available(ulong ullStartValue, ulong ullEndValue, size_t rlh,
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Uninstall_DevNode(uint dnDevInst, uint ulFlags);
+CONFIGRET CM_Uninstall_DevNode(uint dnDevInst, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Uninstall_DevNode_Ex(uint dnDevInst, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Uninstall_DevNode_Ex(uint dnDevInst, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Run_Detection(uint ulFlags);
+CONFIGRET CM_Run_Detection(uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Run_Detection_Ex(uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Run_Detection_Ex(uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Set_HW_Prof(uint ulHardwareProfile, uint ulFlags);
+CONFIGRET CM_Set_HW_Prof(uint ulHardwareProfile, uint ulFlags);
 
 @DllImport("SETUPAPI")
-uint CM_Set_HW_Prof_Ex(uint ulHardwareProfile, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Set_HW_Prof_Ex(uint ulHardwareProfile, uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Query_Resource_Conflict_List</b> function identifies device instances having resource requirements that
 ///conflict with a specified device instance's resource description.
@@ -7681,8 +7773,8 @@ uint CM_Set_HW_Prof_Ex(uint ulHardwareProfile, uint ulFlags, ptrdiff_t hMachine)
 ///    systems.</div> <div> </div>
 ///    
 @DllImport("SETUPAPI")
-uint CM_Query_Resource_Conflict_List(size_t* pclConflictList, uint dnDevInst, uint ResourceID, char* ResourceData, 
-                                     uint ResourceLen, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Query_Resource_Conflict_List(size_t* pclConflictList, uint dnDevInst, uint ResourceID, 
+                                          void* ResourceData, uint ResourceLen, uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Free_Resource_Conflict_Handle</b> function invalidates a handle to a resource conflict list, and frees the
 ///handle's associated memory allocation.
@@ -7694,7 +7786,7 @@ uint CM_Query_Resource_Conflict_List(size_t* pclConflictList, uint dnDevInst, ui
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Free_Resource_Conflict_Handle(size_t clConflictList);
+CONFIGRET CM_Free_Resource_Conflict_Handle(size_t clConflictList);
 
 ///The <b>CM_Get_Resource_Conflict_Count</b> function obtains the number of conflicts contained in a specified resource
 ///conflict list.
@@ -7706,10 +7798,11 @@ uint CM_Free_Resource_Conflict_Handle(size_t clConflictList);
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Resource_Conflict_Count(size_t clConflictList, uint* pulCount);
+CONFIGRET CM_Get_Resource_Conflict_Count(size_t clConflictList, uint* pulCount);
 
 @DllImport("SETUPAPI")
-uint CM_Get_Resource_Conflict_DetailsA(size_t clConflictList, uint ulIndex, CONFLICT_DETAILS_A* pConflictDetails);
+CONFIGRET CM_Get_Resource_Conflict_DetailsA(size_t clConflictList, uint ulIndex, 
+                                            CONFLICT_DETAILS_A* pConflictDetails);
 
 ///The <b>CM_Get_Resource_Conflict_Details</b> function obtains the details about one of the resource conflicts in a
 ///conflict list.
@@ -7724,7 +7817,8 @@ uint CM_Get_Resource_Conflict_DetailsA(size_t clConflictList, uint ulIndex, CONF
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Resource_Conflict_DetailsW(size_t clConflictList, uint ulIndex, CONFLICT_DETAILS_W* pConflictDetails);
+CONFIGRET CM_Get_Resource_Conflict_DetailsW(size_t clConflictList, uint ulIndex, 
+                                            CONFLICT_DETAILS_W* pConflictDetails);
 
 ///The <b>CM_Get_Class_Property</b> function retrieves a device property that is set for a device interface class or
 ///device setup class.
@@ -7749,8 +7843,8 @@ uint CM_Get_Resource_Conflict_DetailsW(size_t clConflictList, uint ulIndex, CONF
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("api-ms-win-devices-config-l1-1-1")
-uint CM_Get_Class_PropertyW(GUID* ClassGUID, const(DEVPROPKEY)* PropertyKey, uint* PropertyType, 
-                            char* PropertyBuffer, uint* PropertyBufferSize, uint ulFlags);
+CONFIGRET CM_Get_Class_PropertyW(GUID* ClassGUID, const(DEVPROPKEY)* PropertyKey, uint* PropertyType, 
+                                 ubyte* PropertyBuffer, uint* PropertyBufferSize, uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Get_Class_Property instead.] The <b>CM_Get_Class_Property_ExW</b> function retrieves a device property that is
@@ -7779,8 +7873,9 @@ uint CM_Get_Class_PropertyW(GUID* ClassGUID, const(DEVPROPKEY)* PropertyKey, uin
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("CFGMGR32")
-uint CM_Get_Class_Property_ExW(GUID* ClassGUID, const(DEVPROPKEY)* PropertyKey, uint* PropertyType, 
-                               char* PropertyBuffer, uint* PropertyBufferSize, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Get_Class_Property_ExW(GUID* ClassGUID, const(DEVPROPKEY)* PropertyKey, uint* PropertyType, 
+                                    ubyte* PropertyBuffer, uint* PropertyBufferSize, uint ulFlags, 
+                                    ptrdiff_t hMachine);
 
 ///The <b>CM_Get_Class_Property_Keys</b> function retrieves an array of the device property keys that represent the
 ///device properties that are set for a device interface class or device setup class.
@@ -7799,7 +7894,8 @@ uint CM_Get_Class_Property_ExW(GUID* ClassGUID, const(DEVPROPKEY)* PropertyKey, 
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("api-ms-win-devices-config-l1-1-1")
-uint CM_Get_Class_Property_Keys(GUID* ClassGUID, char* PropertyKeyArray, uint* PropertyKeyCount, uint ulFlags);
+CONFIGRET CM_Get_Class_Property_Keys(GUID* ClassGUID, DEVPROPKEY* PropertyKeyArray, uint* PropertyKeyCount, 
+                                     uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Get_Class_Property_Keys instead.] The <b>CM_Get_Class_Property_Keys_Ex</b> function retrieves an array of the
@@ -7823,8 +7919,8 @@ uint CM_Get_Class_Property_Keys(GUID* ClassGUID, char* PropertyKeyArray, uint* P
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("CFGMGR32")
-uint CM_Get_Class_Property_Keys_Ex(GUID* ClassGUID, char* PropertyKeyArray, uint* PropertyKeyCount, uint ulFlags, 
-                                   ptrdiff_t hMachine);
+CONFIGRET CM_Get_Class_Property_Keys_Ex(GUID* ClassGUID, DEVPROPKEY* PropertyKeyArray, uint* PropertyKeyCount, 
+                                        uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Set_Class_Property</b> function sets a class property for a device setup class or a device interface class.
 ///Params:
@@ -7843,8 +7939,8 @@ uint CM_Get_Class_Property_Keys_Ex(GUID* ClassGUID, char* PropertyKeyArray, uint
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("api-ms-win-devices-config-l1-1-1")
-uint CM_Set_Class_PropertyW(GUID* ClassGUID, const(DEVPROPKEY)* PropertyKey, uint PropertyType, 
-                            char* PropertyBuffer, uint PropertyBufferSize, uint ulFlags);
+CONFIGRET CM_Set_Class_PropertyW(GUID* ClassGUID, const(DEVPROPKEY)* PropertyKey, uint PropertyType, 
+                                 const(ubyte)* PropertyBuffer, uint PropertyBufferSize, uint ulFlags);
 
 ///<p class="CCE_Message">[Beginning with Windows 8 and Windows Server 2012, this function has been deprecated. Please
 ///use CM_Set_Class_Property instead.] The <b>CM_Set_Class_Property_ExW</b> function sets a class property for a device
@@ -7868,12 +7964,13 @@ uint CM_Set_Class_PropertyW(GUID* ClassGUID, const(DEVPROPKEY)* PropertyKey, uin
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("CFGMGR32")
-uint CM_Set_Class_Property_ExW(GUID* ClassGUID, const(DEVPROPKEY)* PropertyKey, uint PropertyType, 
-                               char* PropertyBuffer, uint PropertyBufferSize, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Set_Class_Property_ExW(GUID* ClassGUID, const(DEVPROPKEY)* PropertyKey, uint PropertyType, 
+                                    const(ubyte)* PropertyBuffer, uint PropertyBufferSize, uint ulFlags, 
+                                    ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Get_Class_Registry_PropertyA(GUID* ClassGuid, uint ulProperty, uint* pulRegDataType, char* Buffer, 
-                                     uint* pulLength, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Get_Class_Registry_PropertyA(GUID* ClassGuid, uint ulProperty, uint* pulRegDataType, void* Buffer, 
+                                          uint* pulLength, uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Get_Class_Registry_Property</b> function retrieves a device setup class property.
 ///Params:
@@ -7897,12 +7994,12 @@ uint CM_Get_Class_Registry_PropertyA(GUID* ClassGuid, uint ulProperty, uint* pul
 ///    returns one of the other CR_<i>Xxx</i> status codes that are defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Get_Class_Registry_PropertyW(GUID* ClassGuid, uint ulProperty, uint* pulRegDataType, char* Buffer, 
-                                     uint* pulLength, uint ulFlags, ptrdiff_t hMachine);
+CONFIGRET CM_Get_Class_Registry_PropertyW(GUID* ClassGuid, uint ulProperty, uint* pulRegDataType, void* Buffer, 
+                                          uint* pulLength, uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
-uint CM_Set_Class_Registry_PropertyA(GUID* ClassGuid, uint ulProperty, char* Buffer, uint ulLength, uint ulFlags, 
-                                     ptrdiff_t hMachine);
+CONFIGRET CM_Set_Class_Registry_PropertyA(GUID* ClassGuid, uint ulProperty, void* Buffer, uint ulLength, 
+                                          uint ulFlags, ptrdiff_t hMachine);
 
 ///The <b>CM_Set_Class_Registry_Property</b> function sets or deletes a property of a device setup class.
 ///Params:
@@ -7921,8 +8018,8 @@ uint CM_Set_Class_Registry_PropertyA(GUID* ClassGuid, uint ulProperty, char* Buf
 ///    returns one of the other CR_<i>Xxx</i> status codes that are defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("SETUPAPI")
-uint CM_Set_Class_Registry_PropertyW(GUID* ClassGuid, uint ulProperty, char* Buffer, uint ulLength, uint ulFlags, 
-                                     ptrdiff_t hMachine);
+CONFIGRET CM_Set_Class_Registry_PropertyW(GUID* ClassGuid, uint ulProperty, void* Buffer, uint ulLength, 
+                                          uint ulFlags, ptrdiff_t hMachine);
 
 @DllImport("SETUPAPI")
 uint CMP_WaitNoPendingInstallEvents(uint dwTimeout);
@@ -7945,8 +8042,8 @@ uint CMP_WaitNoPendingInstallEvents(uint dwTimeout);
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("api-ms-win-devices-config-l1-1-1")
-uint CM_Register_Notification(CM_NOTIFY_FILTER* pFilter, void* pContext, PCM_NOTIFY_CALLBACK pCallback, 
-                              HCMNOTIFICATION__** pNotifyContext);
+CONFIGRET CM_Register_Notification(CM_NOTIFY_FILTER* pFilter, void* pContext, PCM_NOTIFY_CALLBACK pCallback, 
+                                   HCMNOTIFICATION__** pNotifyContext);
 
 ///Use UnregisterDeviceNotification instead of <b>CM_Unregister_Notification</b> if your code targets Windows 7 or
 ///earlier versions of Windows. The <b>CM_Unregister_Notification</b> function closes the specified HCMNOTIFICATION
@@ -7958,7 +8055,7 @@ uint CM_Register_Notification(CM_NOTIFY_FILTER* pFilter, void* pContext, PCM_NOT
 ///    codes defined in <i>Cfgmgr32.h</i>.
 ///    
 @DllImport("api-ms-win-devices-config-l1-1-1")
-uint CM_Unregister_Notification(HCMNOTIFICATION__* NotifyContext);
+CONFIGRET CM_Unregister_Notification(HCMNOTIFICATION__* NotifyContext);
 
 ///Converts a specified <b>CONFIGRET</b> code to its equivalent system error code.
 ///Params:
@@ -7966,7 +8063,7 @@ uint CM_Unregister_Notification(HCMNOTIFICATION__* NotifyContext);
 ///    DefaultErr = A default system error code to be returned when no system error code is mapped to the specified <b>CONFIGRET</b>
 ///                 code.
 @DllImport("api-ms-win-devices-config-l1-1-1")
-uint CM_MapCrToWin32Err(uint CmReturnCode, uint DefaultErr);
+uint CM_MapCrToWin32Err(CONFIGRET CmReturnCode, uint DefaultErr);
 
 ///Given an INF file and a hardware ID, the <b>UpdateDriverForPlugAndPlayDevices</b> function installs updated drivers
 ///for devices that match the hardware ID.
@@ -8003,8 +8100,8 @@ uint CM_MapCrToWin32Err(uint CmReturnCode, uint DefaultErr);
 ///    </table>
 ///    
 @DllImport("newdev")
-BOOL UpdateDriverForPlugAndPlayDevicesA(HWND hwndParent, const(char)* HardwareId, const(char)* FullInfPath, 
-                                        uint InstallFlags, int* bRebootRequired);
+BOOL UpdateDriverForPlugAndPlayDevicesA(HWND hwndParent, const(PSTR) HardwareId, const(PSTR) FullInfPath, 
+                                        uint InstallFlags, BOOL* bRebootRequired);
 
 ///Given an INF file and a hardware ID, the <b>UpdateDriverForPlugAndPlayDevices</b> function installs updated drivers
 ///for devices that match the hardware ID.
@@ -8041,8 +8138,8 @@ BOOL UpdateDriverForPlugAndPlayDevicesA(HWND hwndParent, const(char)* HardwareId
 ///    </table>
 ///    
 @DllImport("newdev")
-BOOL UpdateDriverForPlugAndPlayDevicesW(HWND hwndParent, const(wchar)* HardwareId, const(wchar)* FullInfPath, 
-                                        uint InstallFlags, int* bRebootRequired);
+BOOL UpdateDriverForPlugAndPlayDevicesW(HWND hwndParent, const(PWSTR) HardwareId, const(PWSTR) FullInfPath, 
+                                        uint InstallFlags, BOOL* bRebootRequired);
 
 ///The <b>DiInstallDevice</b> function installs a specified driver that is preinstalled in the driver store on a
 ///specified device that is present in the system.
@@ -8081,7 +8178,7 @@ BOOL UpdateDriverForPlugAndPlayDevicesW(HWND hwndParent, const(wchar)* HardwareI
 ///    
 @DllImport("newdev")
 BOOL DiInstallDevice(HWND hwndParent, void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, 
-                     SP_DRVINFO_DATA_V2_A* DriverInfoData, uint Flags, int* NeedReboot);
+                     SP_DRVINFO_DATA_V2_A* DriverInfoData, uint Flags, BOOL* NeedReboot);
 
 ///The <b>DiInstallDriver</b> function preinstalls a driver in the driver store and then installs the driver on devices
 ///present in the system that the driver supports.
@@ -8124,7 +8221,7 @@ BOOL DiInstallDevice(HWND hwndParent, void* DeviceInfoSet, SP_DEVINFO_DATA* Devi
 ///    </table>
 ///    
 @DllImport("newdev")
-BOOL DiInstallDriverW(HWND hwndParent, const(wchar)* InfPath, uint Flags, int* NeedReboot);
+BOOL DiInstallDriverW(HWND hwndParent, const(PWSTR) InfPath, uint Flags, BOOL* NeedReboot);
 
 ///The <b>DiInstallDriver</b> function preinstalls a driver in the driver store and then installs the driver on devices
 ///present in the system that the driver supports.
@@ -8167,7 +8264,7 @@ BOOL DiInstallDriverW(HWND hwndParent, const(wchar)* InfPath, uint Flags, int* N
 ///    </table>
 ///    
 @DllImport("newdev")
-BOOL DiInstallDriverA(HWND hwndParent, const(char)* InfPath, uint Flags, int* NeedReboot);
+BOOL DiInstallDriverA(HWND hwndParent, const(PSTR) InfPath, uint Flags, BOOL* NeedReboot);
 
 ///The <b>DiUninstallDevice</b> function uninstalls a device and removes its device node (devnode) from the system. This
 ///differs from using SetupDiCallClassInstaller with the DIF_REMOVE code because it attempts to uninstall the device
@@ -8207,7 +8304,7 @@ BOOL DiInstallDriverA(HWND hwndParent, const(char)* InfPath, uint Flags, int* Ne
 ///    
 @DllImport("newdev")
 BOOL DiUninstallDevice(HWND hwndParent, void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, uint Flags, 
-                       int* NeedReboot);
+                       BOOL* NeedReboot);
 
 ///The <b>DiUninstallDriver</b> function removes a driver from any devices it is installed on by installing those
 ///devices with another matching driver, if available, or the null driver if no other matching driver is available. Then
@@ -8250,10 +8347,10 @@ BOOL DiUninstallDevice(HWND hwndParent, void* DeviceInfoSet, SP_DEVINFO_DATA* De
 ///    see Installing Devices on 64-Bit Systems. </td> </tr> </table>
 ///    
 @DllImport("newdev")
-BOOL DiUninstallDriverW(HWND hwndParent, const(wchar)* InfPath, uint Flags, int* NeedReboot);
+BOOL DiUninstallDriverW(HWND hwndParent, const(PWSTR) InfPath, uint Flags, BOOL* NeedReboot);
 
 @DllImport("newdev")
-BOOL DiUninstallDriverA(HWND hwndParent, const(char)* InfPath, uint Flags, int* NeedReboot);
+BOOL DiUninstallDriverA(HWND hwndParent, const(PSTR) InfPath, uint Flags, BOOL* NeedReboot);
 
 ///The <b>DiShowUpdateDevice</b> function displays the Hardware Update wizard for a specified device.
 ///Params:
@@ -8288,7 +8385,7 @@ BOOL DiUninstallDriverA(HWND hwndParent, const(char)* InfPath, uint Flags, int* 
 ///    
 @DllImport("newdev")
 BOOL DiShowUpdateDevice(HWND hwndParent, void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, uint Flags, 
-                        int* NeedReboot);
+                        BOOL* NeedReboot);
 
 ///The <b>DiRollbackDriver</b> function rolls back the driver that is installed on a specified device.
 ///Params:
@@ -8327,9 +8424,9 @@ BOOL DiShowUpdateDevice(HWND hwndParent, void* DeviceInfoSet, SP_DEVINFO_DATA* D
 ///    
 @DllImport("newdev")
 BOOL DiRollbackDriver(void* DeviceInfoSet, SP_DEVINFO_DATA* DeviceInfoData, HWND hwndParent, uint Flags, 
-                      int* NeedReboot);
+                      BOOL* NeedReboot);
 
 @DllImport("newdev")
-BOOL DiShowUpdateDriver(HWND hwndParent, const(wchar)* FilePath, uint Flags, int* NeedReboot);
+BOOL DiShowUpdateDriver(HWND hwndParent, const(PWSTR) FilePath, uint Flags, BOOL* NeedReboot);
 
 

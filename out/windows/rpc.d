@@ -7,11 +7,12 @@ public import windows.com : HRESULT, IRpcChannelBuffer, IRpcStubBuffer, IUnknown
 public import windows.kernel : LUID;
 public import windows.security : CERT_CONTEXT, SEC_WINNT_AUTH_IDENTITY_A,
                                  SEC_WINNT_AUTH_IDENTITY_W;
-public import windows.systemservices : BOOL, HANDLE, LARGE_INTEGER, OVERLAPPED;
+public import windows.systemservices : BOOL, HANDLE, LARGE_INTEGER, OVERLAPPED, PSTR,
+                                       PWSTR;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : FILETIME, SYSTEMTIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -988,7 +989,7 @@ struct RPC_SECURITY_QOS_V2_W
     ///This value can be used only when the protocol sequence is ncacn_http. Any other protocol sequence returns
     ///RPC_S_INVALID_ARG. </td> </tr> </table>
     uint AdditionalSecurityInfoType;
-    union u
+union u
     {
         RPC_HTTP_TRANSPORT_CREDENTIALS_W* HttpCredentials;
     }
@@ -1081,7 +1082,7 @@ struct RPC_SECURITY_QOS_V2_A
     ///This value can be used only when the protocol sequence is ncacn_http. Any other protocol sequence returns
     ///RPC_S_INVALID_ARG. </td> </tr> </table>
     uint AdditionalSecurityInfoType;
-    union u
+union u
     {
         RPC_HTTP_TRANSPORT_CREDENTIALS_A* HttpCredentials;
     }
@@ -1174,7 +1175,7 @@ struct RPC_SECURITY_QOS_V3_W
     ///This value can be used only when the protocol sequence is ncacn_http. Any other protocol sequence returns
     ///RPC_S_INVALID_ARG. </td> </tr> </table>
     uint  AdditionalSecurityInfoType;
-    union u
+union u
     {
         RPC_HTTP_TRANSPORT_CREDENTIALS_W* HttpCredentials;
     }
@@ -1275,7 +1276,7 @@ struct RPC_SECURITY_QOS_V3_A
     ///This value can be used only when the protocol sequence is ncacn_http. Any other protocol sequence returns
     ///RPC_S_INVALID_ARG. </td> </tr> </table>
     uint  AdditionalSecurityInfoType;
-    union u
+union u
     {
         RPC_HTTP_TRANSPORT_CREDENTIALS_A* HttpCredentials;
     }
@@ -1374,7 +1375,7 @@ struct RPC_SECURITY_QOS_V4_W
     ///<b>u</b> union points to a RPC_HTTP_TRANSPORT_CREDENTIALS structure. This value can be used only when the
     ///protocol sequence is ncacn_http. Any other protocol sequence returns RPC_S_INVALID_ARG. </td> </tr> </table>
     uint  AdditionalSecurityInfoType;
-    union u
+union u
     {
         RPC_HTTP_TRANSPORT_CREDENTIALS_W* HttpCredentials;
     }
@@ -1475,7 +1476,7 @@ struct RPC_SECURITY_QOS_V4_A
     ///<b>u</b> union points to a RPC_HTTP_TRANSPORT_CREDENTIALS structure. This value can be used only when the
     ///protocol sequence is ncacn_http. Any other protocol sequence returns RPC_S_INVALID_ARG. </td> </tr> </table>
     uint  AdditionalSecurityInfoType;
-    union u
+union u
     {
         RPC_HTTP_TRANSPORT_CREDENTIALS_A* HttpCredentials;
     }
@@ -1576,7 +1577,7 @@ struct RPC_SECURITY_QOS_V5_W
     ///<b>u</b> union points to a RPC_HTTP_TRANSPORT_CREDENTIALS structure. This value can be used only when the
     ///protocol sequence is ncacn_http. Any other protocol sequence returns RPC_S_INVALID_ARG. </td> </tr> </table>
     uint  AdditionalSecurityInfoType;
-    union u
+union u
     {
         RPC_HTTP_TRANSPORT_CREDENTIALS_W* HttpCredentials;
     }
@@ -1679,7 +1680,7 @@ struct RPC_SECURITY_QOS_V5_A
     ///<b>u</b> union points to a RPC_HTTP_TRANSPORT_CREDENTIALS structure. This value can be used only when the
     ///protocol sequence is ncacn_http. Any other protocol sequence returns RPC_S_INVALID_ARG. </td> </tr> </table>
     uint  AdditionalSecurityInfoType;
-    union u
+union u
     {
         RPC_HTTP_TRANSPORT_CREDENTIALS_A* HttpCredentials;
     }
@@ -1718,7 +1719,7 @@ struct RPC_BINDING_HANDLE_TEMPLATE_V1_W
     ///Pointer to a string representation of the endpoint to bind to. If a dynamic endpoint is used, set this member to
     ///<b>NULL</b>. After the endpoint is resolved, use RpcBindingToStringBinding to obtain it.
     ushort* StringEndpoint;
-    union u1
+union u1
     {
         ushort* Reserved;
     }
@@ -1748,7 +1749,7 @@ struct RPC_BINDING_HANDLE_TEMPLATE_V1_A
     ///Pointer to a string representation of the endpoint to bind to. If a dynamic endpoint is used, set this member to
     ///<b>NULL</b>. After the endpoint is resolved, use RpcBindingToStringBinding to obtain it.
     ubyte* StringEndpoint;
-    union u1
+union u1
     {
         ubyte* Reserved;
     }
@@ -2122,19 +2123,19 @@ struct I_RpcProxyCallbackInterface
 ///calls (APC), Windows messaging, and Windows event notification.
 union RPC_ASYNC_NOTIFICATION_INFO
 {
-    struct APC
+struct APC
     {
         PFN_RPCNOTIFICATION_ROUTINE NotificationRoutine;
         HANDLE hThread;
     }
-    struct IOC
+struct IOC
     {
         HANDLE      hIOPort;
         uint        dwNumberOfBytesTransferred;
         size_t      dwCompletionKey;
         OVERLAPPED* lpOverlapped;
     }
-    struct IntPtr
+struct IntPtr
     {
         HWND hWnd;
         uint Msg;
@@ -2226,14 +2227,14 @@ struct RPC_EE_INFO_PARAM
     ///or specified by applications.</li> <li><b>eeptNone</b> indicates the parameter contained either a Unicode or ANSI
     ///string, but was truncated due to lack of memory or network fragment length limitations.</li> </ul>
     ExtendedErrorParamTypes ParameterType;
-    union u
+union u
     {
-        const(char)*  AnsiString;
-        const(wchar)* UnicodeString;
-        int           LVal;
-        short         SVal;
-        ulong         PVal;
-        BinaryParam   BVal;
+        PSTR        AnsiString;
+        PWSTR       UnicodeString;
+        int         LVal;
+        short       SVal;
+        ulong       PVal;
+        BinaryParam BVal;
     }
 }
 
@@ -2243,10 +2244,10 @@ struct RPC_EXTENDED_ERROR_INFO
     ///Version of the structure. Must be RPC_EEINFO_VERSION.
     uint                 Version;
     ///Non-qualified DNS name, expressed in Unicode.
-    const(wchar)*        ComputerName;
+    PWSTR                ComputerName;
     ///Process identifier for the offending error event.
     uint                 ProcessID;
-    union u
+union u
     {
         SYSTEMTIME SystemTime;
         FILETIME   FileTime;
@@ -2864,19 +2865,19 @@ struct MIDL_STUB_DESC
     ///Memory-free function to be used by the stub. Set to midl_user_free for nonobject interface and NdrOleFree for
     ///object interface.
     ptrdiff_t           pfnFree;
-    union IMPLICIT_HANDLE_INFO
+union IMPLICIT_HANDLE_INFO
     {
         void** pAutoHandle;
         void** pPrimitiveHandle;
         __GENERIC_BINDING_INFO* pGenericBindingInfo;
     }
     ///Array of context handle rundown functions.
-    const(ptrdiff_t)*   apfnNdrRundownRoutines;
+    const(NDR_RUNDOWN)* apfnNdrRundownRoutines;
     ///Array of function pointers to bind and unbind function pairs for the implicit generic handle.
     const(GENERIC_BINDING_ROUTINE_PAIR)* aGenericBindingRoutinePairs;
     ///Array of function pointers to expression evaluator functions used to evaluate MIDL complex conformance and
     ///varying descriptions. For example, size_is(param1 + param2).
-    const(ptrdiff_t)*   apfnExprEval;
+    const(EXPR_EVAL)*   apfnExprEval;
     ///Array of an array of function pointers for user-defined transmit_as and represent_as types.
     const(XMIT_ROUTINE_QUINTUPLE)* aXmitQuintuple;
     ///Pointer to the type format description.
@@ -2895,7 +2896,7 @@ struct MIDL_STUB_DESC
     ///Array of an array of function pointers for user-defined user_marshal and wire_marshal types.
     const(USER_MARSHAL_ROUTINE_QUADRUPLE)* aUserMarshalQuadruple;
     ///Array of notification function pointers for methods with the notify or notify_flag attribute specified.
-    const(ptrdiff_t)*   NotifyRoutineTable;
+    const(NDR_NOTIFY_ROUTINE)* NotifyRoutineTable;
     ///Flag describing the attributes of the stub <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td
     ///width="40%"><a id="RPCFLG_HAS_MULTI_SYNTAXES"></a><a id="rpcflg_has_multi_syntaxes"></a><dl>
     ///<dt><b>RPCFLG_HAS_MULTI_SYNTAXES</b></dt> </dl> </td> <td width="60%"> Set if the stub supports multiple transfer
@@ -2937,14 +2938,14 @@ struct MIDL_INTERFACE_METHOD_PROPERTIES
 
 struct _MIDL_SERVER_INFO_
 {
-    MIDL_STUB_DESC*   pStubDesc;
-    const(ptrdiff_t)* DispatchTable;
-    ubyte*            ProcString;
-    const(ushort)*    FmtStringOffset;
-    const(ptrdiff_t)* ThunkTable;
+    MIDL_STUB_DESC*    pStubDesc;
+    const(SERVER_ROUTINE)* DispatchTable;
+    ubyte*             ProcString;
+    const(ushort)*     FmtStringOffset;
+    const(STUB_THUNK)* ThunkTable;
     RPC_SYNTAX_IDENTIFIER* pTransferSyntax;
-    size_t            nCount;
-    MIDL_SYNTAX_INFO* pSyntaxInfo;
+    size_t             nCount;
+    MIDL_SYNTAX_INFO*  pSyntaxInfo;
 }
 
 struct MIDL_STUBLESS_PROXY_INFO
@@ -3029,7 +3030,7 @@ struct NDR_USER_MARSHAL_INFO
 {
     ///The information level of the returned data. Currently only a value of 1 is defined.
     uint InformationLevel;
-    union
+union
     {
         NDR_USER_MARSHAL_INFO_LEVEL1 Level1;
     }
@@ -3043,39 +3044,6 @@ struct MIDL_TYPE_PICKLING_INFO
 }
 
 // Functions
-
-///<p class="CCE_Message">[IUnknown_QueryInterface_Proxy is not supported and may be altered or unavailable in the
-///future.] The <b>IUnknown_QueryInterface_Proxy</b> function implements the QueryInterface method for all interface
-///proxies.
-///Params:
-///    This = Pointer to the proxy object.
-///    riid = IID of the interface to be queried.
-///    ppvObject = Address to a pointer whose interface is queried or null when an interface is not supported.
-///Returns:
-///    Returns S_OK on success.
-///    
-@DllImport("RPCRT4")
-HRESULT IUnknown_QueryInterface_Proxy(IUnknown This, const(GUID)* riid, void** ppvObject);
-
-///<p class="CCE_Message">[IUnknown_AddRef_Proxy is not supported and may be altered or unavailable in the future.] The
-///<b>IUnknown_AddRef_Proxy</b> function implements the AddRef method for all interface proxies.
-///Params:
-///    This = Pointer to the proxy object.
-///Returns:
-///    Returns an integer from 1 to <i>n</i>, indicating the value of the new reference count.
-///    
-@DllImport("RPCRT4")
-uint IUnknown_AddRef_Proxy(IUnknown This);
-
-///<p class="CCE_Message">[IUnknown_Release_Proxy is not supported and may be altered or unavailable in the future.] The
-///IUnknown_Release_Proxy function implements the Release method for all interface proxies.
-///Params:
-///    This = Pointer to the proxy object.
-///Returns:
-///    Returns an integer from 1 to <i>n</i>, indicating the value of the new reference count.
-///    
-@DllImport("RPCRT4")
-uint IUnknown_Release_Proxy(IUnknown This);
 
 ///The <b>RpcBindingCopy</b> function copies binding information and creates a new binding handle.
 ///Params:
@@ -5730,7 +5698,7 @@ int RpcEpUnregister(void* IfSpec, RPC_BINDING_VECTOR* BindingVector, UUID_VECTOR
 ///    list of valid error codes, see RPC Return Values.</div> <div> </div>
 ///    
 @DllImport("RPCRT4")
-int DceErrorInqTextA(int RpcStatus, char* ErrorText);
+int DceErrorInqTextA(int RpcStatus, ubyte* ErrorText);
 
 ///The <b>DceErrorInqText</b> function returns the message text for a status code.
 ///Params:
@@ -5745,7 +5713,7 @@ int DceErrorInqTextA(int RpcStatus, char* ErrorText);
 ///    list of valid error codes, see RPC Return Values.</div> <div> </div>
 ///    
 @DllImport("RPCRT4")
-int DceErrorInqTextW(int RpcStatus, char* ErrorText);
+int DceErrorInqTextW(int RpcStatus, ushort* ErrorText);
 
 ///The <b>RpcMgmtEpEltInqBegin</b> function creates an inquiry context for viewing the elements in an endpoint map.
 ///Params:
@@ -5918,9 +5886,10 @@ int RpcExceptionFilter(uint ExceptionCode);
 ///    valid error codes, see RPC Return Values.</div> <div> </div>
 ///    
 @DllImport("RPCRT4")
-int RpcServerInterfaceGroupCreateW(char* Interfaces, uint NumIfs, char* Endpoints, uint NumEndpoints, 
-                                   uint IdlePeriod, RPC_INTERFACE_GROUP_IDLE_CALLBACK_FN IdleCallbackFn, 
-                                   void* IdleCallbackContext, void** IfGroup);
+int RpcServerInterfaceGroupCreateW(RPC_INTERFACE_TEMPLATEW* Interfaces, uint NumIfs, 
+                                   RPC_ENDPOINT_TEMPLATEW* Endpoints, uint NumEndpoints, uint IdlePeriod, 
+                                   RPC_INTERFACE_GROUP_IDLE_CALLBACK_FN IdleCallbackFn, void* IdleCallbackContext, 
+                                   void** IfGroup);
 
 ///The <b>RpcServerInterfaceGroupCreate</b> function creates an RPC server interface group for the server application.
 ///This interface group fully specifies the interfaces, endpoints, and idle properties of an RPC server application.
@@ -5946,9 +5915,10 @@ int RpcServerInterfaceGroupCreateW(char* Interfaces, uint NumIfs, char* Endpoint
 ///    valid error codes, see RPC Return Values.</div> <div> </div>
 ///    
 @DllImport("RPCRT4")
-int RpcServerInterfaceGroupCreateA(char* Interfaces, uint NumIfs, char* Endpoints, uint NumEndpoints, 
-                                   uint IdlePeriod, RPC_INTERFACE_GROUP_IDLE_CALLBACK_FN IdleCallbackFn, 
-                                   void* IdleCallbackContext, void** IfGroup);
+int RpcServerInterfaceGroupCreateA(RPC_INTERFACE_TEMPLATEA* Interfaces, uint NumIfs, 
+                                   RPC_ENDPOINT_TEMPLATEA* Endpoints, uint NumEndpoints, uint IdlePeriod, 
+                                   RPC_INTERFACE_GROUP_IDLE_CALLBACK_FN IdleCallbackFn, void* IdleCallbackContext, 
+                                   void** IfGroup);
 
 ///The <b>RpcServerInterfaceGroupClose</b> function is used to free an interface group.
 ///Params:
@@ -7835,7 +7805,7 @@ int RpcAsyncRegisterInfo(RPC_ASYNC_STATE* pAsync);
 ///    error codes, see RPC Return Values.</div> <div> </div>
 ///    
 @DllImport("RPCRT4")
-int RpcAsyncInitializeHandle(char* pAsync, uint Size);
+int RpcAsyncInitializeHandle(RPC_ASYNC_STATE* pAsync, uint Size);
 
 ///The client calls the <b>RpcAsyncGetCallStatus</b> function to determine the current status of an asynchronous remote
 ///call.
@@ -7994,7 +7964,7 @@ int RpcErrorSaveErrorInfo(RPC_ERROR_ENUM_HANDLE* EnumHandle, void** ErrorBlob, s
 ///    </div>
 ///    
 @DllImport("RPCRT4")
-int RpcErrorLoadErrorInfo(char* ErrorBlob, size_t BlobSize, RPC_ERROR_ENUM_HANDLE* EnumHandle);
+int RpcErrorLoadErrorInfo(void* ErrorBlob, size_t BlobSize, RPC_ERROR_ENUM_HANDLE* EnumHandle);
 
 ///The <b>RpcErrorAddRecord</b> function adds extended error information to a chain of extended error information
 ///records.
@@ -8494,10 +8464,10 @@ NDR_SCONTEXT_1* NdrServerContextUnmarshall(MIDL_STUB_MESSAGE* pStubMsg);
 ///               internal use only; do not modify.
 ///    pFormat = Pointer to a <b>FORMAT_STRING</b> structure that contains the format of the new context handle.
 @DllImport("RPCRT4")
-NDR_SCONTEXT_1* NdrContextHandleInitialize(MIDL_STUB_MESSAGE* pStubMsg, char* pFormat);
+NDR_SCONTEXT_1* NdrContextHandleInitialize(MIDL_STUB_MESSAGE* pStubMsg, ubyte* pFormat);
 
 @DllImport("RPCRT4")
-NDR_SCONTEXT_1* NdrServerContextNewUnmarshall(MIDL_STUB_MESSAGE* pStubMsg, char* pFormat);
+NDR_SCONTEXT_1* NdrServerContextNewUnmarshall(MIDL_STUB_MESSAGE* pStubMsg, ubyte* pFormat);
 
 ///The <b>NdrPointerBufferSize</b> function computes the needed buffer size, in bytes, for a top-level pointer to
 ///anything.
@@ -9259,7 +9229,7 @@ int MesIncrementalHandleReset(void* Handle, void* UserState, MIDL_ES_ALLOC Alloc
 ///    </div>
 ///    
 @DllImport("RPCRT4")
-int MesEncodeFixedBufferHandleCreate(char* pBuffer, uint BufferSize, uint* pEncodedSize, void** pHandle);
+int MesEncodeFixedBufferHandleCreate(byte* pBuffer, uint BufferSize, uint* pEncodedSize, void** pHandle);
 
 ///The <b>MesEncodeDynBufferHandleCreate</b> function creates an encoding handle and then initializes it for a dynamic
 ///buffer style of serialization.
@@ -9295,7 +9265,7 @@ int MesEncodeDynBufferHandleCreate(byte** pBuffer, uint* pEncodedSize, void** pH
 ///    Values.</div> <div> </div>
 ///    
 @DllImport("RPCRT4")
-int MesDecodeBufferHandleCreate(char* Buffer, uint BufferSize, void** pHandle);
+int MesDecodeBufferHandleCreate(byte* Buffer, uint BufferSize, void** pHandle);
 
 ///The <b>MesBufferHandleReset</b> function re-initializes the handle for buffer serialization.
 ///Params:
@@ -9319,7 +9289,7 @@ int MesDecodeBufferHandleCreate(char* Buffer, uint BufferSize, void** pHandle);
 ///    <div class="alert"><b>Note</b> For a list of valid error codes, see RPC Return Values.</div> <div> </div>
 ///    
 @DllImport("RPCRT4")
-int MesBufferHandleReset(void* Handle, uint HandleStyle, MIDL_ES_CODE Operation, char* pBuffer, uint BufferSize, 
+int MesBufferHandleReset(void* Handle, uint HandleStyle, MIDL_ES_CODE Operation, byte** pBuffer, uint BufferSize, 
                          uint* pEncodedSize);
 
 ///The <b>MesHandleFree</b> function frees the memory allocated by the serialization handle.
@@ -9466,5 +9436,38 @@ int RpcCertGeneratePrincipalNameW(CERT_CONTEXT* Context, uint Flags, ushort** pB
 ///    
 @DllImport("RPCRT4")
 int RpcCertGeneratePrincipalNameA(CERT_CONTEXT* Context, uint Flags, ubyte** pBuffer);
+
+///<p class="CCE_Message">[IUnknown_QueryInterface_Proxy is not supported and may be altered or unavailable in the
+///future.] The <b>IUnknown_QueryInterface_Proxy</b> function implements the QueryInterface method for all interface
+///proxies.
+///Params:
+///    This = Pointer to the proxy object.
+///    riid = IID of the interface to be queried.
+///    ppvObject = Address to a pointer whose interface is queried or null when an interface is not supported.
+///Returns:
+///    Returns S_OK on success.
+///    
+@DllImport("RPCRT4")
+HRESULT IUnknown_QueryInterface_Proxy(IUnknown This, const(GUID)* riid, void** ppvObject);
+
+///<p class="CCE_Message">[IUnknown_AddRef_Proxy is not supported and may be altered or unavailable in the future.] The
+///<b>IUnknown_AddRef_Proxy</b> function implements the AddRef method for all interface proxies.
+///Params:
+///    This = Pointer to the proxy object.
+///Returns:
+///    Returns an integer from 1 to <i>n</i>, indicating the value of the new reference count.
+///    
+@DllImport("RPCRT4")
+uint IUnknown_AddRef_Proxy(IUnknown This);
+
+///<p class="CCE_Message">[IUnknown_Release_Proxy is not supported and may be altered or unavailable in the future.] The
+///IUnknown_Release_Proxy function implements the Release method for all interface proxies.
+///Params:
+///    This = Pointer to the proxy object.
+///Returns:
+///    Returns an integer from 1 to <i>n</i>, indicating the value of the new reference count.
+///    
+@DllImport("RPCRT4")
+uint IUnknown_Release_Proxy(IUnknown This);
 
 

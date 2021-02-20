@@ -7,28 +7,11 @@ public import windows.automation : BSTR;
 public import windows.com : HRESULT, IUnknown;
 public import windows.windowsimagingcomponent : IWICBitmapSource;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Structs
 
-
-///Represents a 3x3 matrix.
-struct MilMatrix3x2D
-{
-align (1):
-    ///Type: <b>DOUBLE</b> The value of the first row and first column of the matrix.
-    double S_11;
-    ///Type: <b>DOUBLE</b> The value of the first row and first second of the matrix.
-    double S_12;
-    ///Type: <b>DOUBLE</b> The value of the second row and first column of the matrix.
-    double S_21;
-    ///Type: <b>DOUBLE</b> The value of the second row and second column of the matrix.
-    double S_22;
-    ///Type: <b>DOUBLE</b>
-    double DX;
-    double DY;
-}
 
 ///Describes the width, height, and location of a rectangle.
 struct MilRectD
@@ -84,6 +67,23 @@ struct MILMatrixF
     ///Type: <b>DOUBLE</b> The value of the forth row and thrid column of the matrix.
     double _43;
     double _44;
+}
+
+///Represents a 3x3 matrix.
+struct MilMatrix3x2D
+{
+align (1):
+    ///Type: <b>DOUBLE</b> The value of the first row and first column of the matrix.
+    double S_11;
+    ///Type: <b>DOUBLE</b> The value of the first row and first second of the matrix.
+    double S_12;
+    ///Type: <b>DOUBLE</b> The value of the second row and first column of the matrix.
+    double S_21;
+    ///Type: <b>DOUBLE</b> The value of the second row and second column of the matrix.
+    double S_22;
+    ///Type: <b>DOUBLE</b>
+    double DX;
+    double DY;
 }
 
 // Interfaces

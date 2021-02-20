@@ -5,10 +5,10 @@ module windows.windowssync;
 public import windows.core;
 public import windows.audio : IPropertyStore;
 public import windows.com : HRESULT, IUnknown;
-public import windows.systemservices : BOOL, HANDLE;
+public import windows.systemservices : BOOL, HANDLE, PWSTR;
 public import windows.windowsandmessaging : HWND;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -429,7 +429,7 @@ interface IFeedClockVector : IClockVector
     ///    </td> <td width="60%"> The method succeeded. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt>
     ///    </dl> </td> <td width="60%"> Invalid pointer. </td> </tr> </table>
     ///    
-    HRESULT IsNoConflictsSpecified(int* pfIsNoConflictsSpecified);
+    HRESULT IsNoConflictsSpecified(BOOL* pfIsNoConflictsSpecified);
 }
 
 ///Enumerates the clock vector elements that are stored in a clock vector.
@@ -1572,7 +1572,7 @@ interface IRecoverableErrorData : IUnknown
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"></td> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>Provider-determined error codes.</b></dt> </dl> </td> <td width="60%"></td> </tr> </table>
     ///    
-    HRESULT Initialize(const(wchar)* pcszItemDisplayName, const(wchar)* pcszErrorDescription);
+    HRESULT Initialize(const(PWSTR) pcszItemDisplayName, const(PWSTR) pcszErrorDescription);
     ///Gets the display name of the item that caused the error.
     ///Params:
     ///    pszItemDisplayName = Returns the display name of the item that caused the error.
@@ -1589,7 +1589,7 @@ interface IRecoverableErrorData : IUnknown
     ///    </tr> <tr> <td width="40%"> <dl> <dt><b>Provider-determined error codes.</b></dt> </dl> </td> <td
     ///    width="60%"></td> </tr> </table>
     ///    
-    HRESULT GetItemDisplayName(const(wchar)* pszItemDisplayName, uint* pcchItemDisplayName);
+    HRESULT GetItemDisplayName(PWSTR pszItemDisplayName, uint* pcchItemDisplayName);
     ///Gets the description of the error.
     ///Params:
     ///    pszErrorDescription = Returns the description of the error.
@@ -1606,7 +1606,7 @@ interface IRecoverableErrorData : IUnknown
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>Provider-determined error codes.</b></dt> </dl> </td> <td
     ///    width="60%"></td> </tr> </table>
     ///    
-    HRESULT GetErrorDescription(const(wchar)* pszErrorDescription, uint* pcchErrorDescription);
+    HRESULT GetErrorDescription(PWSTR pszErrorDescription, uint* pcchErrorDescription);
 }
 
 ///Represents a recoverable error that occurred when an item was loaded or when an item was saved.
@@ -1654,7 +1654,7 @@ interface IRecoverableError : IUnknown
     ///    </td> <td width="60%"> The method succeeded. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt>
     ///    </dl> </td> <td width="60%"> Invalid pointer. </td> </tr> </table>
     ///    
-    HRESULT GetRecoverableErrorDataForChange(int* phrError, IRecoverableErrorData* ppErrorData);
+    HRESULT GetRecoverableErrorDataForChange(HRESULT* phrError, IRecoverableErrorData* ppErrorData);
     ///Gets additional data about the recoverable error for a specified change unit.
     ///Params:
     ///    pChangeUnit = The change unit that is associated with the error.
@@ -1667,7 +1667,7 @@ interface IRecoverableError : IUnknown
     ///    </td> <td width="60%"> The method succeeded. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt>
     ///    </dl> </td> <td width="60%"> Invalid pointer. </td> </tr> </table>
     ///    
-    HRESULT GetRecoverableErrorDataForChangeUnit(ISyncChangeUnit pChangeUnit, int* phrError, 
+    HRESULT GetRecoverableErrorDataForChangeUnit(ISyncChangeUnit pChangeUnit, HRESULT* phrError, 
                                                  IRecoverableErrorData* ppErrorData);
 }
 
@@ -1923,7 +1923,7 @@ interface ISyncSessionState : IUnknown
     ///    </td> <td width="60%"> The method succeeded. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt>
     ///    </dl> </td> <td width="60%"> Invalid pointer. </td> </tr> </table>
     ///    
-    HRESULT IsCanceled(int* pfIsCanceled);
+    HRESULT IsCanceled(BOOL* pfIsCanceled);
     ///Retrieves stored data for a serialized change applier.
     ///Params:
     ///    pbChangeApplierInfo = Returns the serialized change applier data.
@@ -2058,7 +2058,7 @@ interface ISyncSessionState2 : ISyncSessionState
     ///    </td> <td width="60%"> The method succeeded. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER
     ///    </b></dt> </dl> </td> <td width="60%"> Invalid pointer. </td> </tr> </table>
     ///    
-    HRESULT GetSessionErrorStatus(int* phrSessionError);
+    HRESULT GetSessionErrorStatus(HRESULT* phrSessionError);
 }
 
 ///Represents information about a filter that is used to control the data that is included in an <b>ISyncChangeBatch</b>
@@ -2280,7 +2280,7 @@ interface ISyncChangeBatchBase : IUnknown
     ///    </td> <td width="60%"> The method succeeded. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER
     ///    </b></dt> </dl> </td> <td width="60%"> <i>pfLastBatch</i> is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetIsLastBatch(int* pfLastBatch);
+    HRESULT GetIsLastBatch(BOOL* pfLastBatch);
     ///Gets the work estimate for the batch.
     ///Params:
     ///    pdwWorkForBatch = Returns the work estimate for the batch. The default value is 0.
@@ -2685,7 +2685,7 @@ interface ISyncChangeBatchAdvanced : IUnknown
     ///    <dt><b>SYNC_E_BATCH_NEEDS_KNOWLEDGE</b></dt> </dl> </td> <td width="60%"> The change batch contains no
     ///    changes and no knowledge. </td> </tr> </table>
     ///    
-    HRESULT GetBatchLevelKnowledgeShouldBeApplied(int* pfBatchKnowledgeShouldBeApplied);
+    HRESULT GetBatchLevelKnowledgeShouldBeApplied(BOOL* pfBatchKnowledgeShouldBeApplied);
 }
 
 @GUID("225F4A33-F5EE-4CC7-B039-67A262B4B2AC")
@@ -3153,7 +3153,7 @@ interface ISyncChangeWithFilterKeyMap : IUnknown
 {
     HRESULT GetFilterCount(uint* pdwFilterCount);
     HRESULT GetFilterChange(uint dwFilterKey, SYNC_FILTER_CHANGE* pFilterChange);
-    HRESULT GetAllChangeUnitsPresentFlag(int* pfAllChangeUnitsPresent);
+    HRESULT GetAllChangeUnitsPresentFlag(BOOL* pfAllChangeUnitsPresent);
     HRESULT GetFilterForgottenKnowledge(uint dwFilterKey, ISyncKnowledge* ppIFilterForgottenKnowledge);
     HRESULT GetFilteredReplicaLearnedKnowledge(ISyncKnowledge pDestinationKnowledge, IEnumItemIds pNewMoveins, 
                                                ISyncKnowledge* ppLearnedKnowledge);
@@ -3785,7 +3785,7 @@ interface IEnumSyncProviderConfigUIInfos : IUnknown
     ///    <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> There was not enough memory
     ///    available to return the next <b>ISyncProviderConfigUIInfo</b> object. </td> </tr> </table>
     ///    
-    HRESULT Next(uint cFactories, char* ppSyncProviderConfigUIInfo, uint* pcFetched);
+    HRESULT Next(uint cFactories, ISyncProviderConfigUIInfo* ppSyncProviderConfigUIInfo, uint* pcFetched);
     ///Skips the specified number of <b>ISyncProviderConfigUIInfo</b> objects.
     ///Params:
     ///    cFactories = The number of <b>ISyncProviderConfigUIInfo</b> objects to skip.
@@ -3837,7 +3837,7 @@ interface IEnumSyncProviderInfos : IUnknown
     ///    <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> There was not enough memory
     ///    available to return the next <b>ISyncProviderInfo</b> object. </td> </tr> </table>
     ///    
-    HRESULT Next(uint cInstances, char* ppSyncProviderInfo, uint* pcFetched);
+    HRESULT Next(uint cInstances, ISyncProviderInfo* ppSyncProviderInfo, uint* pcFetched);
     ///Skips the specified number of <b>ISyncProviderInfo</b> objects.
     ///Params:
     ///    cInstances = The number of <b>ISyncProviderInfo</b> objects to skip.

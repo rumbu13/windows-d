@@ -9,10 +9,10 @@ public import windows.iphelper : NET_LUID_LH;
 public import windows.networkdrivers : L2_NOTIFICATION_DATA, NET_IF_DIRECTION_TYPE,
                                        NET_IF_MEDIA_CONNECT_STATE,
                                        NET_IF_MEDIA_DUPLEX_STATE, NET_IF_OPER_STATUS;
-public import windows.systemservices : BOOL, HANDLE, LARGE_INTEGER;
+public import windows.systemservices : BOOL, HANDLE, LARGE_INTEGER, PWSTR;
 public import windows.windowsandmessaging : HWND;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -2017,7 +2017,7 @@ struct NDIS_802_11_TEST
 {
     uint Length;
     uint Type;
-    union
+union
     {
         NDIS_802_11_AUTHENTICATION_EVENT AuthenticationEvent;
         int RssiTrigger;
@@ -2260,7 +2260,7 @@ struct NDIS_LINK_SPEED
 struct NDIS_GUID
 {
     GUID Guid;
-    union
+union
     {
         uint Oid;
         int  Status;
@@ -2344,7 +2344,7 @@ struct NDIS_OFFLOAD_PARAMETERS
 
 struct NDIS_TCP_LARGE_SEND_OFFLOAD_V1
 {
-    struct IPv4
+struct IPv4
     {
         uint Encapsulation;
         uint MaxOffLoadSize;
@@ -2355,22 +2355,22 @@ struct NDIS_TCP_LARGE_SEND_OFFLOAD_V1
 
 struct NDIS_TCP_IP_CHECKSUM_OFFLOAD
 {
-    struct IPv4Transmit
+struct IPv4Transmit
     {
         uint Encapsulation;
         uint _bitfield76;
     }
-    struct IPv4Receive
+struct IPv4Receive
     {
         uint Encapsulation;
         uint _bitfield77;
     }
-    struct IPv6Transmit
+struct IPv6Transmit
     {
         uint Encapsulation;
         uint _bitfield78;
     }
-    struct IPv6Receive
+struct IPv6Receive
     {
         uint Encapsulation;
         uint _bitfield79;
@@ -2379,7 +2379,7 @@ struct NDIS_TCP_IP_CHECKSUM_OFFLOAD
 
 struct NDIS_IPSEC_OFFLOAD_V1
 {
-    struct Supported
+struct Supported
     {
         uint Encapsulation;
         uint AhEspCombined;
@@ -2387,11 +2387,11 @@ struct NDIS_IPSEC_OFFLOAD_V1
         uint IPv4Options;
         uint Flags;
     }
-    struct IPv4AH
+struct IPv4AH
     {
         uint _bitfield80;
     }
-    struct IPv4ESP
+struct IPv4ESP
     {
         uint _bitfield81;
     }
@@ -2399,13 +2399,13 @@ struct NDIS_IPSEC_OFFLOAD_V1
 
 struct NDIS_TCP_LARGE_SEND_OFFLOAD_V2
 {
-    struct IPv4
+struct IPv4
     {
         uint Encapsulation;
         uint MaxOffLoadSize;
         uint MinSegmentCount;
     }
-    struct IPv6
+struct IPv6
     {
         uint Encapsulation;
         uint MaxOffLoadSize;
@@ -2426,7 +2426,7 @@ struct NDIS_OFFLOAD
 
 struct NDIS_WMI_TCP_LARGE_SEND_OFFLOAD_V1
 {
-    struct IPv4
+struct IPv4
     {
         uint Encapsulation;
         uint MaxOffLoadSize;
@@ -2438,7 +2438,7 @@ struct NDIS_WMI_TCP_LARGE_SEND_OFFLOAD_V1
 
 struct NDIS_WMI_TCP_IP_CHECKSUM_OFFLOAD
 {
-    struct IPv4Transmit
+struct IPv4Transmit
     {
         uint Encapsulation;
         uint IpOptionsSupported;
@@ -2447,7 +2447,7 @@ struct NDIS_WMI_TCP_IP_CHECKSUM_OFFLOAD
         uint UdpChecksum;
         uint IpChecksum;
     }
-    struct IPv4Receive
+struct IPv4Receive
     {
         uint Encapsulation;
         uint IpOptionsSupported;
@@ -2456,7 +2456,7 @@ struct NDIS_WMI_TCP_IP_CHECKSUM_OFFLOAD
         uint UdpChecksum;
         uint IpChecksum;
     }
-    struct IPv6Transmit
+struct IPv6Transmit
     {
         uint Encapsulation;
         uint IpExtensionHeadersSupported;
@@ -2464,7 +2464,7 @@ struct NDIS_WMI_TCP_IP_CHECKSUM_OFFLOAD
         uint TcpChecksum;
         uint UdpChecksum;
     }
-    struct IPv6Receive
+struct IPv6Receive
     {
         uint Encapsulation;
         uint IpExtensionHeadersSupported;
@@ -2476,7 +2476,7 @@ struct NDIS_WMI_TCP_IP_CHECKSUM_OFFLOAD
 
 struct NDIS_WMI_IPSEC_OFFLOAD_V1
 {
-    struct Supported
+struct Supported
     {
         uint Encapsulation;
         uint AhEspCombined;
@@ -2484,7 +2484,7 @@ struct NDIS_WMI_IPSEC_OFFLOAD_V1
         uint IPv4Options;
         uint Flags;
     }
-    struct IPv4AH
+struct IPv4AH
     {
         uint Md5;
         uint Sha_1;
@@ -2493,7 +2493,7 @@ struct NDIS_WMI_IPSEC_OFFLOAD_V1
         uint Send;
         uint Receive;
     }
-    struct IPv4ESP
+struct IPv4ESP
     {
         uint Des;
         uint Reserved;
@@ -2508,13 +2508,13 @@ struct NDIS_WMI_IPSEC_OFFLOAD_V1
 
 struct NDIS_WMI_TCP_LARGE_SEND_OFFLOAD_V2
 {
-    struct IPv4
+struct IPv4
     {
         uint Encapsulation;
         uint MaxOffLoadSize;
         uint MinSegmentCount;
     }
-    struct IPv6
+struct IPv6
     {
         uint Encapsulation;
         uint MaxOffLoadSize;
@@ -3114,7 +3114,7 @@ struct DOT11_RECV_SENSITIVITY
 
 struct DOT11_RECV_SENSITIVITY_LIST
 {
-    union
+union
     {
         DOT11_PHY_TYPE dot11PhyType;
         uint           uPhyId;
@@ -3199,7 +3199,7 @@ struct DOT11_BYTE_ARRAY
 union DOT11_BSS_ENTRY_PHY_SPECIFIC_INFO
 {
     uint uChCenterFrequency;
-    struct FHSS
+struct FHSS
     {
         uint uHopPattern;
         uint uHopSet;
@@ -3556,7 +3556,7 @@ struct DOT11_PHY_ATTRIBUTES
     uint               uMPDUMaxLength;
     DOT11_TEMP_TYPE    TempType;
     DOT11_DIVERSITY_SUPPORT DiversitySupport;
-    union PhySpecificAttributes
+union PhySpecificAttributes
     {
         DOT11_HRDSSS_PHY_ATTRIBUTES HRDSSSAttributes;
         DOT11_OFDM_PHY_ATTRIBUTES OFDMAttributes;
@@ -3884,7 +3884,7 @@ struct DOT11_PHY_FREQUENCY_ADOPTED_PARAMETERS
 {
     NDIS_OBJECT_HEADER Header;
     uint               ulPhyId;
-    union
+union
     {
         uint ulChannel;
         uint ulFrequency;
@@ -4703,7 +4703,7 @@ struct WLAN_RAW_DATA_LIST
     ///<b>dwNumberOfItems</b> may be restricted by the type of data that is stored in the <b>WLAN_RAW_DATA_LIST</b>
     ///structure.
     uint dwNumberOfItems;
-    struct
+struct
     {
         uint dwDataOffset;
         uint dwDataSize;
@@ -5140,7 +5140,7 @@ struct WLAN_CONNECTION_PARAMETERS
     ///A WLAN_CONNECTION_MODE value that specifies the mode of connection. <b>Windows XP with SP3 and Wireless LAN API
     ///for Windows XP with SP2: </b>Only the <b>wlan_connection_mode_profile</b> value is supported.
     WLAN_CONNECTION_MODE wlanConnectionMode;
-    const(wchar)*        strProfile;
+    const(PWSTR)         strProfile;
     ///Pointer to a DOT11_SSID structure that specifies the SSID of the network to connect to. This parameter is
     ///optional. When set to <b>NULL</b>, all SSIDs in the profile will be tried. This parameter must not be <b>NULL</b>
     ///if WLAN_CONNECTION_MODE is set to <b>wlan_connection_mode_discovery_secure</b> or
@@ -5187,7 +5187,7 @@ struct WLAN_CONNECTION_PARAMETERS
 struct WLAN_CONNECTION_PARAMETERS_V2
 {
     WLAN_CONNECTION_MODE wlanConnectionMode;
-    const(wchar)*        strProfile;
+    const(PWSTR)         strProfile;
     DOT11_SSID*          pDot11Ssid;
     ubyte*               pDot11Hessid;
     DOT11_BSSID_LIST*    pDesiredBssidList;
@@ -6052,7 +6052,7 @@ struct ONEX_USER_INFO
 ///    issued by the server. </td> </tr> </table>
 ///    
 @DllImport("wlanapi")
-uint WlanOpenHandle(uint dwClientVersion, void* pReserved, uint* pdwNegotiatedVersion, ptrdiff_t* phClientHandle);
+uint WlanOpenHandle(uint dwClientVersion, void* pReserved, uint* pdwNegotiatedVersion, HANDLE* phClientHandle);
 
 ///The <b>WlanCloseHandle</b> function closes a connection to the server.
 ///Params:
@@ -6155,8 +6155,8 @@ uint WlanEnumInterfaces(HANDLE hClientHandle, void* pReserved, WLAN_INTERFACE_IN
 ///    width="60%"> Various error codes. </td> </tr> </table>
 ///    
 @DllImport("wlanapi")
-uint WlanSetAutoConfigParameter(HANDLE hClientHandle, WLAN_AUTOCONF_OPCODE OpCode, uint dwDataSize, char* pData, 
-                                void* pReserved);
+uint WlanSetAutoConfigParameter(HANDLE hClientHandle, WLAN_AUTOCONF_OPCODE OpCode, uint dwDataSize, 
+                                const(void)* pData, void* pReserved);
 
 ///The <b>WlanQueryAutoConfigParameter</b> function queries for the parameters of the auto configuration service.
 ///Params:
@@ -6285,7 +6285,7 @@ uint WlanGetInterfaceCapability(HANDLE hClientHandle, const(GUID)* pInterfaceGui
 ///    
 @DllImport("wlanapi")
 uint WlanSetInterface(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, WLAN_INTF_OPCODE OpCode, uint dwDataSize, 
-                      char* pData, void* pReserved);
+                      const(void)* pData, void* pReserved);
 
 ///The <b>WlanQueryInterface</b> function queries various parameters of a specified interface.
 ///Params:
@@ -6360,7 +6360,7 @@ uint WlanQueryInterface(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, WLAN_
 ///    
 @DllImport("wlanapi")
 uint WlanIhvControl(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, WLAN_IHV_CONTROL_TYPE Type, 
-                    uint dwInBufferSize, char* pInBuffer, uint dwOutBufferSize, char* pOutBuffer, 
+                    uint dwInBufferSize, void* pInBuffer, uint dwOutBufferSize, void* pOutBuffer, 
                     uint* pdwBytesReturned);
 
 ///The <b>WlanScan</b> function requests a scan for available networks on the indicated interface.
@@ -6703,8 +6703,8 @@ uint WlanRegisterNotification(HANDLE hClientHandle, uint dwNotifSource, BOOL bIg
 ///    error. </td> </tr> </table>
 ///    
 @DllImport("wlanapi")
-uint WlanGetProfile(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(wchar)* strProfileName, 
-                    void* pReserved, ushort** pstrProfileXml, uint* pdwFlags, uint* pdwGrantedAccess);
+uint WlanGetProfile(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(PWSTR) strProfileName, 
+                    void* pReserved, PWSTR* pstrProfileXml, uint* pdwFlags, uint* pdwGrantedAccess);
 
 ///The <b>WlanSetProfileEapUserData</b> function sets the Extensible Authentication Protocol (EAP) user credentials as
 ///specified by raw EAP data. The user credentials apply to a profile on an interface.
@@ -6755,9 +6755,9 @@ uint WlanGetProfile(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(wch
 ///    <dt><b>RPC_STATUS</b></dt> </dl> </td> <td width="60%"> Various error codes. </td> </tr> </table>
 ///    
 @DllImport("wlanapi")
-uint WlanSetProfileEapUserData(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(wchar)* strProfileName, 
-                               EAP_METHOD_TYPE eapType, uint dwFlags, uint dwEapUserDataSize, char* pbEapUserData, 
-                               void* pReserved);
+uint WlanSetProfileEapUserData(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(PWSTR) strProfileName, 
+                               EAP_METHOD_TYPE eapType, uint dwFlags, uint dwEapUserDataSize, 
+                               const(ubyte)* pbEapUserData, void* pReserved);
 
 ///The <b>WlanSetProfileEapXmlUserData</b> function sets the Extensible Authentication Protocol (EAP) user credentials
 ///as specified by an XML string. The user credentials apply to a profile on an adapter. These credentials can only be
@@ -6803,8 +6803,8 @@ uint WlanSetProfileEapUserData(HANDLE hClientHandle, const(GUID)* pInterfaceGuid
 ///    <dt><b>RPC_STATUS</b></dt> </dl> </td> <td width="60%"> Various error codes. </td> </tr> </table>
 ///    
 @DllImport("wlanapi")
-uint WlanSetProfileEapXmlUserData(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(wchar)* strProfileName, 
-                                  uint dwFlags, const(wchar)* strEapXmlUserData, void* pReserved);
+uint WlanSetProfileEapXmlUserData(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(PWSTR) strProfileName, 
+                                  uint dwFlags, const(PWSTR) strEapXmlUserData, void* pReserved);
 
 ///The <b>WlanSetProfile</b> function sets the content of a specific profile.
 ///Params:
@@ -6871,8 +6871,8 @@ uint WlanSetProfileEapXmlUserData(HANDLE hClientHandle, const(GUID)* pInterfaceG
 ///    </table>
 ///    
 @DllImport("wlanapi")
-uint WlanSetProfile(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, uint dwFlags, const(wchar)* strProfileXml, 
-                    const(wchar)* strAllUserProfileSecurity, BOOL bOverwrite, void* pReserved, uint* pdwReasonCode);
+uint WlanSetProfile(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, uint dwFlags, const(PWSTR) strProfileXml, 
+                    const(PWSTR) strAllUserProfileSecurity, BOOL bOverwrite, void* pReserved, uint* pdwReasonCode);
 
 ///The <b>WlanDeleteProfile</b> function deletes a wireless profile for a wireless interface on the local computer.
 ///Params:
@@ -6899,7 +6899,7 @@ uint WlanSetProfile(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, uint dwFl
 ///    width="60%"> Various error codes. </td> </tr> </table>
 ///    
 @DllImport("wlanapi")
-uint WlanDeleteProfile(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(wchar)* strProfileName, 
+uint WlanDeleteProfile(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(PWSTR) strProfileName, 
                        void* pReserved);
 
 ///The <b>WlanRenameProfile</b> function renames the specified profile.
@@ -6926,8 +6926,8 @@ uint WlanDeleteProfile(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(
 ///    <dt><b>RPC_STATUS</b></dt> </dl> </td> <td width="60%"> Various error codes. </td> </tr> </table>
 ///    
 @DllImport("wlanapi")
-uint WlanRenameProfile(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(wchar)* strOldProfileName, 
-                       const(wchar)* strNewProfileName, void* pReserved);
+uint WlanRenameProfile(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(PWSTR) strOldProfileName, 
+                       const(PWSTR) strNewProfileName, void* pReserved);
 
 ///The <b>WlanGetProfileList</b> function retrieves the list of profiles in preference order.
 ///Params:
@@ -6984,7 +6984,7 @@ uint WlanGetProfileList(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, void*
 ///    <dt><b>RPC_STATUS</b></dt> </dl> </td> <td width="60%"> Various error codes. </td> </tr> </table>
 ///    
 @DllImport("wlanapi")
-uint WlanSetProfileList(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, uint dwItems, char* strProfileNames, 
+uint WlanSetProfileList(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, uint dwItems, PWSTR* strProfileNames, 
                         void* pReserved);
 
 ///The <b>WlanSetProfilePosition</b> function sets the position of a single, specified profile in the preference list.
@@ -7016,7 +7016,7 @@ uint WlanSetProfileList(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, uint 
 ///    <dl> <dt><b>RPC_STATUS</b></dt> </dl> </td> <td width="60%"> Various error codes. </td> </tr> </table>
 ///    
 @DllImport("wlanapi")
-uint WlanSetProfilePosition(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(wchar)* strProfileName, 
+uint WlanSetProfilePosition(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(PWSTR) strProfileName, 
                             uint dwPosition, void* pReserved);
 
 ///The <b>WlanSetProfileCustomUserData</b> function sets the custom user data associated with a profile.
@@ -7043,8 +7043,8 @@ uint WlanSetProfilePosition(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, c
 ///    </table>
 ///    
 @DllImport("wlanapi")
-uint WlanSetProfileCustomUserData(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(wchar)* strProfileName, 
-                                  uint dwDataSize, char* pData, void* pReserved);
+uint WlanSetProfileCustomUserData(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(PWSTR) strProfileName, 
+                                  uint dwDataSize, const(ubyte)* pData, void* pReserved);
 
 ///The <b>WlanGetProfileCustomUserData</b> function gets the custom user data associated with a wireless profile.
 ///Params:
@@ -7074,7 +7074,7 @@ uint WlanSetProfileCustomUserData(HANDLE hClientHandle, const(GUID)* pInterfaceG
 ///    </table>
 ///    
 @DllImport("wlanapi")
-uint WlanGetProfileCustomUserData(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(wchar)* strProfileName, 
+uint WlanGetProfileCustomUserData(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(PWSTR) strProfileName, 
                                   void* pReserved, uint* pdwDataSize, ubyte** ppData);
 
 ///The <b>WlanSetFilterList</b> function sets the permit/deny list.
@@ -7163,7 +7163,7 @@ uint WlanGetFilterList(HANDLE hClientHandle, WLAN_FILTER_LIST_TYPE wlanFilterLis
 ///    width="60%"> Various error codes. </td> </tr> </table>
 ///    
 @DllImport("wlanapi")
-uint WlanSetPsdIEDataList(HANDLE hClientHandle, const(wchar)* strFormat, const(WLAN_RAW_DATA_LIST)* pPsdIEDataList, 
+uint WlanSetPsdIEDataList(HANDLE hClientHandle, const(PWSTR) strFormat, const(WLAN_RAW_DATA_LIST)* pPsdIEDataList, 
                           void* pReserved);
 
 ///The <b>WlanSaveTemporaryProfile</b> function saves a temporary profile to the profile store.
@@ -7210,9 +7210,8 @@ uint WlanSetPsdIEDataList(HANDLE hClientHandle, const(wchar)* strFormat, const(W
 ///    </table>
 ///    
 @DllImport("wlanapi")
-uint WlanSaveTemporaryProfile(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(wchar)* strProfileName, 
-                              const(wchar)* strAllUserProfileSecurity, uint dwFlags, BOOL bOverWrite, 
-                              void* pReserved);
+uint WlanSaveTemporaryProfile(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, const(PWSTR) strProfileName, 
+                              const(PWSTR) strAllUserProfileSecurity, uint dwFlags, BOOL bOverWrite, void* pReserved);
 
 ///Allows an original equipment manufacturer (OEM) or independent hardware vendor (IHV) component to communicate with a
 ///device service on a particular wireless LAN interface.
@@ -7238,8 +7237,8 @@ uint WlanSaveTemporaryProfile(HANDLE hClientHandle, const(GUID)* pInterfaceGuid,
 ///    
 @DllImport("wlanapi")
 uint WlanDeviceServiceCommand(HANDLE hClientHandle, const(GUID)* pInterfaceGuid, GUID* pDeviceServiceGuid, 
-                              uint dwOpCode, uint dwInBufferSize, char* pInBuffer, uint dwOutBufferSize, 
-                              char* pOutBuffer, uint* pdwBytesReturned);
+                              uint dwOpCode, uint dwInBufferSize, void* pInBuffer, uint dwOutBufferSize, 
+                              void* pOutBuffer, uint* pdwBytesReturned);
 
 ///Retrieves a list of the supported device services on a given wireless LAN interface.
 ///Params:
@@ -7307,8 +7306,8 @@ uint WlanRegisterDeviceServiceNotification(HANDLE hClientHandle,
 ///    width="60%"> Various error codes. </td> </tr> </table>
 ///    
 @DllImport("wlanapi")
-uint WlanExtractPsdIEDataList(HANDLE hClientHandle, uint dwIeDataSize, char* pRawIeData, const(wchar)* strFormat, 
-                              void* pReserved, WLAN_RAW_DATA_LIST** ppPsdIEDataList);
+uint WlanExtractPsdIEDataList(HANDLE hClientHandle, uint dwIeDataSize, const(ubyte)* pRawIeData, 
+                              const(PWSTR) strFormat, void* pReserved, WLAN_RAW_DATA_LIST** ppPsdIEDataList);
 
 ///The <b>WlanReasonCodeToString</b> function retrieves a string that describes a specified reason code.
 ///Params:
@@ -7329,7 +7328,7 @@ uint WlanExtractPsdIEDataList(HANDLE hClientHandle, uint dwIeDataSize, char* pRa
 ///    codes. Use FormatMessage to obtain the message string for the returned error. </td> </tr> </table>
 ///    
 @DllImport("wlanapi")
-uint WlanReasonCodeToString(uint dwReasonCode, uint dwBufferSize, const(wchar)* pStringBuffer, void* pReserved);
+uint WlanReasonCodeToString(uint dwReasonCode, uint dwBufferSize, PWSTR pStringBuffer, void* pReserved);
 
 ///The <b>WlanAllocateMemory</b> function allocates memory. Any memory passed to other Native Wifi functions must be
 ///allocated with this function.
@@ -7372,7 +7371,7 @@ void WlanFreeMemory(void* pMemory);
 ///    
 @DllImport("wlanapi")
 uint WlanSetSecuritySettings(HANDLE hClientHandle, WLAN_SECURABLE_OBJECT SecurableObject, 
-                             const(wchar)* strModifiedSDDL);
+                             const(PWSTR) strModifiedSDDL);
 
 ///The <b>WlanGetSecuritySettings</b> function gets the security settings associated with a configurable object.
 ///Params:
@@ -7413,7 +7412,7 @@ uint WlanSetSecuritySettings(HANDLE hClientHandle, WLAN_SECURABLE_OBJECT Securab
 ///    
 @DllImport("wlanapi")
 uint WlanGetSecuritySettings(HANDLE hClientHandle, WLAN_SECURABLE_OBJECT SecurableObject, 
-                             WLAN_OPCODE_VALUE_TYPE* pValueType, ushort** pstrCurrentSDDL, uint* pdwGrantedAccess);
+                             WLAN_OPCODE_VALUE_TYPE* pValueType, PWSTR* pstrCurrentSDDL, uint* pdwGrantedAccess);
 
 ///Displays the wireless profile user interface (UI). This UI is used to view and edit advanced settings of a wireless
 ///network profile.
@@ -7439,7 +7438,7 @@ uint WlanGetSecuritySettings(HANDLE hClientHandle, WLAN_SECURABLE_OBJECT Securab
 ///    <dl> <dt><b>RPC_STATUS</b></dt> </dl> </td> <td width="60%"> Various error codes. </td> </tr> </table>
 ///    
 @DllImport("wlanapi")
-uint WlanUIEditProfile(uint dwClientVersion, const(wchar)* wstrProfileName, GUID* pInterfaceGuid, HWND hWnd, 
+uint WlanUIEditProfile(uint dwClientVersion, const(PWSTR) wstrProfileName, GUID* pInterfaceGuid, HWND hWnd, 
                        WL_DISPLAY_PAGES wlStartPage, void* pReserved, uint* pWlanReasonCode);
 
 ///The <b>WlanHostedNetworkStartUsing</b> function starts the wireless Hosted Network.
@@ -7635,7 +7634,7 @@ uint WlanHostedNetworkQueryProperty(HANDLE hClientHandle, WLAN_HOSTED_NETWORK_OP
 ///    
 @DllImport("wlanapi")
 uint WlanHostedNetworkSetProperty(HANDLE hClientHandle, WLAN_HOSTED_NETWORK_OPCODE OpCode, uint dwDataSize, 
-                                  char* pvData, WLAN_HOSTED_NETWORK_REASON* pFailReason, void* pvReserved);
+                                  void* pvData, WLAN_HOSTED_NETWORK_REASON* pFailReason, void* pvReserved);
 
 ///The <b>WlanHostedNetworkInitSettings</b> function configures and persists to storage the network connection settings
 ///(SSID and maximum number of peers, for example) on the wireless Hosted Network if these settings are not already
@@ -7755,8 +7754,9 @@ uint WlanHostedNetworkQueryStatus(HANDLE hClientHandle, WLAN_HOSTED_NETWORK_STAT
 ///    </table>
 ///    
 @DllImport("wlanapi")
-uint WlanHostedNetworkSetSecondaryKey(HANDLE hClientHandle, uint dwKeyLength, char* pucKeyData, BOOL bIsPassPhrase, 
-                                      BOOL bPersistent, WLAN_HOSTED_NETWORK_REASON* pFailReason, void* pvReserved);
+uint WlanHostedNetworkSetSecondaryKey(HANDLE hClientHandle, uint dwKeyLength, ubyte* pucKeyData, 
+                                      BOOL bIsPassPhrase, BOOL bPersistent, WLAN_HOSTED_NETWORK_REASON* pFailReason, 
+                                      void* pvReserved);
 
 ///The <b>WlanHostedNetworkQuerySecondaryKey</b> function queries the secondary security key that is configured to be
 ///used by the wireless Hosted Network.
@@ -7799,7 +7799,7 @@ uint WlanHostedNetworkSetSecondaryKey(HANDLE hClientHandle, uint dwKeyLength, ch
 ///    
 @DllImport("wlanapi")
 uint WlanHostedNetworkQuerySecondaryKey(HANDLE hClientHandle, uint* pdwKeyLength, ubyte** ppucKeyData, 
-                                        int* pbIsPassPhrase, int* pbPersistent, 
+                                        BOOL* pbIsPassPhrase, BOOL* pbPersistent, 
                                         WLAN_HOSTED_NETWORK_REASON* pFailReason, void* pvReserved);
 
 ///The <b>WlanRegisterVirtualStationNotification</b> function is used to register and unregister notifications on a
@@ -7853,7 +7853,7 @@ uint WlanRegisterVirtualStationNotification(HANDLE hClientHandle, BOOL bRegister
 ///    <dt><b>RPC_STATUS</b></dt> </dl> </td> <td width="60%"> Various error codes. </td> </tr> </table>
 ///    
 @DllImport("wlanapi")
-uint WFDOpenHandle(uint dwClientVersion, uint* pdwNegotiatedVersion, ptrdiff_t* phClientHandle);
+uint WFDOpenHandle(uint dwClientVersion, uint* pdwNegotiatedVersion, HANDLE* phClientHandle);
 
 ///The <b>WFDCloseHandle</b> function closes a handle to the Wi-Fi Direct service.
 ///Params:
@@ -7902,7 +7902,7 @@ uint WFDCloseHandle(HANDLE hClientHandle);
 ///    
 @DllImport("wlanapi")
 uint WFDStartOpenSession(HANDLE hClientHandle, ubyte** pDeviceAddress, void* pvContext, 
-                         WFD_OPEN_SESSION_COMPLETE_CALLBACK pfnCallback, ptrdiff_t* phSessionHandle);
+                         WFD_OPEN_SESSION_COMPLETE_CALLBACK pfnCallback, HANDLE* phSessionHandle);
 
 ///The <b>WFDCancelOpenSession</b> function indicates that the application wants to cancel a pending WFDStartOpenSession
 ///function that has not completed.
@@ -8055,7 +8055,7 @@ interface IDot11AdHocManager : IUnknown
     ///    <dt><b>HRESULT_FROM_WIN32(ERROR_CURRENT_DOMAIN_NOT_ALLOWED)</b></dt> </dl> </td> <td width="60%"> Group
     ///    policy or administrative settings prohibit the creation of the network. </td> </tr> </table>
     ///    
-    HRESULT CreateNetwork(const(wchar)* Name, const(wchar)* Password, int GeographicalId, 
+    HRESULT CreateNetwork(const(PWSTR) Name, const(PWSTR) Password, int GeographicalId, 
                           IDot11AdHocInterface pInterface, IDot11AdHocSecuritySettings pSecurity, GUID* pContextGuid, 
                           IDot11AdHocNetwork* pIAdHoc);
     ///Initializes a created network and optionally commits the network's profile to the profile store. The network must
@@ -8290,7 +8290,7 @@ interface IDot11AdHocNetwork : IUnknown
     ///    to perform this operation. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td
     ///    width="60%"> A pointer passed as a parameter is not valid. </td> </tr> </table>
     ///    
-    HRESULT GetSSID(ushort** ppszwSSID);
+    HRESULT GetSSID(PWSTR* ppszwSSID);
     ///Returns a boolean value that specifies whether there is a saved profile associated with the network.
     ///Params:
     ///    pf11d = Specifies whether the network has a profile. This value is set to <b>TRUE</b> if the network has a profile
@@ -8320,7 +8320,7 @@ interface IDot11AdHocNetwork : IUnknown
     ///    to perform this operation. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td
     ///    width="60%"> A pointer passed as a parameter is not valid. </td> </tr> </table>
     ///    
-    HRESULT GetProfileName(ushort** ppszwProfileName);
+    HRESULT GetProfileName(PWSTR* ppszwProfileName);
     ///Deletes any profile associated with the network.
     ///Returns:
     ///    Possible return values include, but are not limited to, the following. <table> <tr> <th>Return code</th>
@@ -8444,7 +8444,7 @@ interface IDot11AdHocNetwork : IUnknown
     ///    <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> A pointer passed as a parameter is not valid. </td>
     ///    </tr> </table>
     ///    
-    HRESULT Connect(const(wchar)* Passphrase, int GeographicalId, ubyte fSaveProfile, 
+    HRESULT Connect(const(PWSTR) Passphrase, int GeographicalId, ubyte fSaveProfile, 
                     ubyte fMakeSavedProfileUserSpecific);
     ///Disconnects from an ad hoc network.
     ///Returns:
@@ -8523,7 +8523,7 @@ interface IDot11AdHocInterface : IUnknown
     ///    to perform this operation. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td
     ///    width="60%"> A pointer passed as a parameter is not valid. </td> </tr> </table>
     ///    
-    HRESULT GetFriendlyName(ushort** ppszName);
+    HRESULT GetFriendlyName(PWSTR* ppszName);
     ///Specifies whether the NIC is 802.11d compliant.
     ///Params:
     ///    pf11d = A pointer to a boolean that specifies 802.11d compliance. The boolean value is set to <b>TRUE</b> if the NIC

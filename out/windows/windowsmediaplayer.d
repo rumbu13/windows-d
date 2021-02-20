@@ -9,12 +9,12 @@ public import windows.displaydevices : RECT, SIZE;
 public import windows.gdi : HDC;
 public import windows.mediafoundation : IMFActivate;
 public import windows.structuredstorage : IStream;
-public import windows.systemservices : BOOL, LRESULT;
+public import windows.systemservices : BOOL, LRESULT, PWSTR;
 public import windows.winsock : BLOB;
 public import windows.windowsandmessaging : HWND, LPARAM, MSG, WPARAM;
 public import windows.windowsprogramming : SYSTEMTIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -550,11 +550,19 @@ enum WMPSubscriptionDownloadState : int
 // Constants
 
 
-enum : float
+enum : GUID
 {
-    kfltTimedLevelMaximumFrequency = 0x1.5888p+14,
-    kfltTimedLevelMinimumFrequency = 0x1.4p+4,
+    CLSID_WMPSkinManager          = GUID("b2a7fd52-301f-4348-b93a-638c6de49229"),
+    CLSID_WMPMediaPluginRegistrar = GUID("5569e7f5-424b-4b93-89ca-79d17924689a"),
 }
+
+enum : GUID
+{
+    WMP_PLUGINTYPE_DSP_OUTOFPROC = GUID("ef29b174-c347-44cc-9a4f-2399118ff38c"),
+    WMP_PLUGINTYPE_RENDERING     = GUID("a8554541-115d-406a-a4c7-51111c330183"),
+}
+
+enum float kfltTimedLevelMinimumFrequency = 0x1.4p+4;
 
 enum : const(wchar)*
 {
@@ -4754,9 +4762,9 @@ interface IWMPNodeRealEstate : IUnknown
     HRESULT SetRects(const(RECT)* pSrc, const(RECT)* pDest, const(RECT)* pClip);
     HRESULT GetRects(RECT* pSrc, RECT* pDest, RECT* pClip);
     HRESULT SetWindowless(BOOL fWindowless);
-    HRESULT GetWindowless(int* pfWindowless);
+    HRESULT GetWindowless(BOOL* pfWindowless);
     HRESULT SetFullScreen(BOOL fFullScreen);
-    HRESULT GetFullScreen(int* pfFullScreen);
+    HRESULT GetFullScreen(BOOL* pfFullScreen);
 }
 
 @GUID("1491087D-2C6B-44C8-B019-B3C929D2ADA9")
@@ -4776,13 +4784,13 @@ interface IWMPNodeWindowed : IUnknown
 @GUID("A300415A-54AA-4081-ADBF-3B13610D8958")
 interface IWMPNodeWindowedHost : IUnknown
 {
-    HRESULT OnWindowMessageFromRenderer(uint uMsg, WPARAM wparam, LPARAM lparam, LRESULT* plRet, int* pfHandled);
+    HRESULT OnWindowMessageFromRenderer(uint uMsg, WPARAM wparam, LPARAM lparam, LRESULT* plRet, BOOL* pfHandled);
 }
 
 @GUID("3A0DAA30-908D-4789-BA87-AED879B5C49B")
 interface IWMPWindowMessageSink : IUnknown
 {
-    HRESULT OnWindowMessage(uint uMsg, WPARAM wparam, LPARAM lparam, LRESULT* plRet, int* pfHandled);
+    HRESULT OnWindowMessage(uint uMsg, WPARAM wparam, LPARAM lparam, LRESULT* plRet, BOOL* pfHandled);
 }
 
 @GUID("9B9199AD-780C-4EDA-B816-261EBA5D1575")
@@ -4869,7 +4877,7 @@ interface IWMPRenderConfig : IUnknown
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT get_inProcOnly(int* pfInProc);
+    HRESULT get_inProcOnly(BOOL* pfInProc);
 }
 
 ///The <b>IWMPServices</b> interface is implemented by Windows Media Player. It provides methods to retrieve the current
@@ -4915,9 +4923,9 @@ interface IWMPMediaPluginRegistrar : IUnknown
     ///Returns:
     ///    The function returns an <b>HRESULT</b>.
     ///    
-    HRESULT WMPRegisterPlayerPlugin(const(wchar)* pwszFriendlyName, const(wchar)* pwszDescription, 
-                                    const(wchar)* pwszUninstallString, uint dwPriority, GUID guidPluginType, 
-                                    GUID clsid, uint cMediaTypes, void* pMediaTypes);
+    HRESULT WMPRegisterPlayerPlugin(PWSTR pwszFriendlyName, PWSTR pwszDescription, PWSTR pwszUninstallString, 
+                                    uint dwPriority, GUID guidPluginType, GUID clsid, uint cMediaTypes, 
+                                    void* pMediaTypes);
     ///The <b>IWMPMediaPluginRegistrar::WMPUnRegisterPlayerPlugin</b> function removes information from the registry
     ///about a Windows Media Player plug-in.
     ///Params:
@@ -4998,7 +5006,7 @@ interface IWMPPluginEnable : IUnknown
     ///Returns:
     ///    The method returns an <b>HRESULT</b>.
     ///    
-    HRESULT GetEnable(int* pfEnable);
+    HRESULT GetEnable(BOOL* pfEnable);
 }
 
 ///The <b>IWMPGraphCreation</b> interface provides methods that Windows Media Player calls to enable you to manage the
@@ -5128,14 +5136,14 @@ interface IWMPUserEventSink : IUnknown
 interface IXFeedsManager : IUnknown
 {
     HRESULT RootFolder(const(GUID)* riid, void** ppv);
-    HRESULT IsSubscribed(const(wchar)* pszUrl, int* pbSubscribed);
-    HRESULT ExistsFeed(const(wchar)* pszPath, int* pbFeedExists);
-    HRESULT GetFeed(const(wchar)* pszPath, const(GUID)* riid, void** ppv);
-    HRESULT GetFeedByUrl(const(wchar)* pszUrl, const(GUID)* riid, void** ppv);
-    HRESULT ExistsFolder(const(wchar)* pszPath, int* pbFolderExists);
-    HRESULT GetFolder(const(wchar)* pszPath, const(GUID)* riid, void** ppv);
-    HRESULT DeleteFeed(const(wchar)* pszPath);
-    HRESULT DeleteFolder(const(wchar)* pszPath);
+    HRESULT IsSubscribed(const(PWSTR) pszUrl, BOOL* pbSubscribed);
+    HRESULT ExistsFeed(const(PWSTR) pszPath, BOOL* pbFeedExists);
+    HRESULT GetFeed(const(PWSTR) pszPath, const(GUID)* riid, void** ppv);
+    HRESULT GetFeedByUrl(const(PWSTR) pszUrl, const(GUID)* riid, void** ppv);
+    HRESULT ExistsFolder(const(PWSTR) pszPath, BOOL* pbFolderExists);
+    HRESULT GetFolder(const(PWSTR) pszPath, const(GUID)* riid, void** ppv);
+    HRESULT DeleteFeed(const(PWSTR) pszPath);
+    HRESULT DeleteFolder(const(PWSTR) pszPath);
     HRESULT BackgroundSync(FEEDS_BACKGROUNDSYNC_ACTION fbsa);
     HRESULT BackgroundSyncStatus(FEEDS_BACKGROUNDSYNC_STATUS* pfbss);
     HRESULT DefaultInterval(uint* puiInterval);
@@ -5157,19 +5165,19 @@ interface IXFeedFolder : IUnknown
 {
     HRESULT Feeds(IXFeedsEnum* ppfe);
     HRESULT Subfolders(IXFeedsEnum* ppfe);
-    HRESULT CreateFeed(const(wchar)* pszName, const(wchar)* pszUrl, const(GUID)* riid, void** ppv);
-    HRESULT CreateSubfolder(const(wchar)* pszName, const(GUID)* riid, void** ppv);
-    HRESULT ExistsFeed(const(wchar)* pszName, int* pbFeedExists);
-    HRESULT ExistsSubfolder(const(wchar)* pszName, int* pbSubfolderExists);
-    HRESULT GetFeed(const(wchar)* pszName, const(GUID)* riid, void** ppv);
-    HRESULT GetSubfolder(const(wchar)* pszName, const(GUID)* riid, void** ppv);
+    HRESULT CreateFeed(const(PWSTR) pszName, const(PWSTR) pszUrl, const(GUID)* riid, void** ppv);
+    HRESULT CreateSubfolder(const(PWSTR) pszName, const(GUID)* riid, void** ppv);
+    HRESULT ExistsFeed(const(PWSTR) pszName, BOOL* pbFeedExists);
+    HRESULT ExistsSubfolder(const(PWSTR) pszName, BOOL* pbSubfolderExists);
+    HRESULT GetFeed(const(PWSTR) pszName, const(GUID)* riid, void** ppv);
+    HRESULT GetSubfolder(const(PWSTR) pszName, const(GUID)* riid, void** ppv);
     HRESULT Delete();
-    HRESULT Name(ushort** ppszName);
-    HRESULT Rename(const(wchar)* pszName);
-    HRESULT Path(ushort** ppszPath);
-    HRESULT Move(const(wchar)* pszPath);
+    HRESULT Name(PWSTR* ppszName);
+    HRESULT Rename(const(PWSTR) pszName);
+    HRESULT Path(PWSTR* ppszPath);
+    HRESULT Move(const(PWSTR) pszPath);
     HRESULT Parent(const(GUID)* riid, void** ppv);
-    HRESULT IsRoot(int* pbIsRootFeedFolder);
+    HRESULT IsRoot(BOOL* pbIsRootFeedFolder);
     HRESULT GetWatcher(FEEDS_EVENTS_SCOPE scope_, FEEDS_EVENTS_MASK mask, const(GUID)* riid, void** ppv);
     HRESULT TotalUnreadItemCount(uint* puiTotalUnreadItemCount);
     HRESULT TotalItemCount(uint* puiTotalItemCount);
@@ -5179,21 +5187,21 @@ interface IXFeedFolder : IUnknown
 interface IXFeedFolderEvents : IUnknown
 {
     HRESULT Error();
-    HRESULT FolderAdded(const(wchar)* pszPath);
-    HRESULT FolderDeleted(const(wchar)* pszPath);
-    HRESULT FolderRenamed(const(wchar)* pszPath, const(wchar)* pszOldPath);
-    HRESULT FolderMovedFrom(const(wchar)* pszPath, const(wchar)* pszOldPath);
-    HRESULT FolderMovedTo(const(wchar)* pszPath, const(wchar)* pszOldPath);
-    HRESULT FolderItemCountChanged(const(wchar)* pszPath, int feicfFlags);
-    HRESULT FeedAdded(const(wchar)* pszPath);
-    HRESULT FeedDeleted(const(wchar)* pszPath);
-    HRESULT FeedRenamed(const(wchar)* pszPath, const(wchar)* pszOldPath);
-    HRESULT FeedUrlChanged(const(wchar)* pszPath);
-    HRESULT FeedMovedFrom(const(wchar)* pszPath, const(wchar)* pszOldPath);
-    HRESULT FeedMovedTo(const(wchar)* pszPath, const(wchar)* pszOldPath);
-    HRESULT FeedDownloading(const(wchar)* pszPath);
-    HRESULT FeedDownloadCompleted(const(wchar)* pszPath, FEEDS_DOWNLOAD_ERROR fde);
-    HRESULT FeedItemCountChanged(const(wchar)* pszPath, int feicfFlags);
+    HRESULT FolderAdded(const(PWSTR) pszPath);
+    HRESULT FolderDeleted(const(PWSTR) pszPath);
+    HRESULT FolderRenamed(const(PWSTR) pszPath, const(PWSTR) pszOldPath);
+    HRESULT FolderMovedFrom(const(PWSTR) pszPath, const(PWSTR) pszOldPath);
+    HRESULT FolderMovedTo(const(PWSTR) pszPath, const(PWSTR) pszOldPath);
+    HRESULT FolderItemCountChanged(const(PWSTR) pszPath, int feicfFlags);
+    HRESULT FeedAdded(const(PWSTR) pszPath);
+    HRESULT FeedDeleted(const(PWSTR) pszPath);
+    HRESULT FeedRenamed(const(PWSTR) pszPath, const(PWSTR) pszOldPath);
+    HRESULT FeedUrlChanged(const(PWSTR) pszPath);
+    HRESULT FeedMovedFrom(const(PWSTR) pszPath, const(PWSTR) pszOldPath);
+    HRESULT FeedMovedTo(const(PWSTR) pszPath, const(PWSTR) pszOldPath);
+    HRESULT FeedDownloading(const(PWSTR) pszPath);
+    HRESULT FeedDownloadCompleted(const(PWSTR) pszPath, FEEDS_DOWNLOAD_ERROR fde);
+    HRESULT FeedItemCountChanged(const(PWSTR) pszPath, int feicfFlags);
 }
 
 @GUID("A44179A4-E0F6-403B-AF8D-D080F425A451")
@@ -5201,13 +5209,13 @@ interface IXFeed : IUnknown
 {
     HRESULT Xml(uint uiItemCount, FEEDS_XML_SORT_PROPERTY sortProperty, FEEDS_XML_SORT_ORDER sortOrder, 
                 FEEDS_XML_FILTER_FLAGS filterFlags, FEEDS_XML_INCLUDE_FLAGS includeFlags, IStream* pps);
-    HRESULT Name(ushort** ppszName);
-    HRESULT Rename(const(wchar)* pszName);
-    HRESULT Url(ushort** ppszUrl);
-    HRESULT SetUrl(const(wchar)* pszUrl);
+    HRESULT Name(PWSTR* ppszName);
+    HRESULT Rename(const(PWSTR) pszName);
+    HRESULT Url(PWSTR* ppszUrl);
+    HRESULT SetUrl(const(PWSTR) pszUrl);
     HRESULT LocalId(GUID* pguid);
-    HRESULT Path(ushort** ppszPath);
-    HRESULT Move(const(wchar)* pszPath);
+    HRESULT Path(PWSTR* ppszPath);
+    HRESULT Move(const(PWSTR) pszPath);
     HRESULT Parent(const(GUID)* riid, void** ppv);
     HRESULT LastWriteTime(SYSTEMTIME* pstLastWriteTime);
     HRESULT Delete();
@@ -5219,28 +5227,28 @@ interface IXFeed : IUnknown
     HRESULT Interval(uint* puiInterval);
     HRESULT SetInterval(uint uiInterval);
     HRESULT LastDownloadTime(SYSTEMTIME* pstLastDownloadTime);
-    HRESULT LocalEnclosurePath(ushort** ppszPath);
+    HRESULT LocalEnclosurePath(PWSTR* ppszPath);
     HRESULT Items(IXFeedsEnum* ppfe);
     HRESULT GetItem(uint uiId, const(GUID)* riid, void** ppv);
     HRESULT MarkAllItemsRead();
     HRESULT MaxItemCount(uint* puiMaxItemCount);
     HRESULT SetMaxItemCount(uint uiMaxItemCount);
-    HRESULT DownloadEnclosuresAutomatically(int* pbDownloadEnclosuresAutomatically);
+    HRESULT DownloadEnclosuresAutomatically(BOOL* pbDownloadEnclosuresAutomatically);
     HRESULT SetDownloadEnclosuresAutomatically(BOOL bDownloadEnclosuresAutomatically);
     HRESULT DownloadStatus(FEEDS_DOWNLOAD_STATUS* pfds);
     HRESULT LastDownloadError(FEEDS_DOWNLOAD_ERROR* pfde);
-    HRESULT Merge(IStream pStream, const(wchar)* pszUrl);
-    HRESULT DownloadUrl(ushort** ppszUrl);
-    HRESULT Title(ushort** ppszTitle);
-    HRESULT Description(ushort** ppszDescription);
-    HRESULT Link(ushort** ppszHomePage);
-    HRESULT Image(ushort** ppszImageUrl);
+    HRESULT Merge(IStream pStream, const(PWSTR) pszUrl);
+    HRESULT DownloadUrl(PWSTR* ppszUrl);
+    HRESULT Title(PWSTR* ppszTitle);
+    HRESULT Description(PWSTR* ppszDescription);
+    HRESULT Link(PWSTR* ppszHomePage);
+    HRESULT Image(PWSTR* ppszImageUrl);
     HRESULT LastBuildDate(SYSTEMTIME* pstLastBuildDate);
     HRESULT PubDate(SYSTEMTIME* pstPubDate);
     HRESULT Ttl(uint* puiTtl);
-    HRESULT Language(ushort** ppszLanguage);
-    HRESULT Copyright(ushort** ppszCopyright);
-    HRESULT IsList(int* pbIsList);
+    HRESULT Language(PWSTR* ppszLanguage);
+    HRESULT Copyright(PWSTR* ppszCopyright);
+    HRESULT IsList(BOOL* pbIsList);
     HRESULT GetWatcher(FEEDS_EVENTS_SCOPE scope_, FEEDS_EVENTS_MASK mask, const(GUID)* riid, void** ppv);
     HRESULT UnreadItemCount(uint* puiUnreadItemCount);
     HRESULT ItemCount(uint* puiItemCount);
@@ -5251,9 +5259,9 @@ interface IXFeed2 : IXFeed
 {
     HRESULT GetItemByEffectiveId(uint uiEffectiveId, const(GUID)* riid, void** ppv);
     HRESULT LastItemDownloadTime(SYSTEMTIME* pstLastItemDownloadTime);
-    HRESULT Username(ushort** ppszUsername);
-    HRESULT Password(ushort** ppszPassword);
-    HRESULT SetCredentials(const(wchar)* pszUsername, const(wchar)* pszPassword);
+    HRESULT Username(PWSTR* ppszUsername);
+    HRESULT Password(PWSTR* ppszPassword);
+    HRESULT SetCredentials(const(PWSTR) pszUsername, const(PWSTR) pszPassword);
     HRESULT ClearCredentials();
 }
 
@@ -5261,33 +5269,33 @@ interface IXFeed2 : IXFeed
 interface IXFeedEvents : IUnknown
 {
     HRESULT Error();
-    HRESULT FeedDeleted(const(wchar)* pszPath);
-    HRESULT FeedRenamed(const(wchar)* pszPath, const(wchar)* pszOldPath);
-    HRESULT FeedUrlChanged(const(wchar)* pszPath);
-    HRESULT FeedMoved(const(wchar)* pszPath, const(wchar)* pszOldPath);
-    HRESULT FeedDownloading(const(wchar)* pszPath);
-    HRESULT FeedDownloadCompleted(const(wchar)* pszPath, FEEDS_DOWNLOAD_ERROR fde);
-    HRESULT FeedItemCountChanged(const(wchar)* pszPath, int feicfFlags);
+    HRESULT FeedDeleted(const(PWSTR) pszPath);
+    HRESULT FeedRenamed(const(PWSTR) pszPath, const(PWSTR) pszOldPath);
+    HRESULT FeedUrlChanged(const(PWSTR) pszPath);
+    HRESULT FeedMoved(const(PWSTR) pszPath, const(PWSTR) pszOldPath);
+    HRESULT FeedDownloading(const(PWSTR) pszPath);
+    HRESULT FeedDownloadCompleted(const(PWSTR) pszPath, FEEDS_DOWNLOAD_ERROR fde);
+    HRESULT FeedItemCountChanged(const(PWSTR) pszPath, int feicfFlags);
 }
 
 @GUID("E757B2F5-E73E-434E-A1BF-2BD7C3E60FCB")
 interface IXFeedItem : IUnknown
 {
     HRESULT Xml(FEEDS_XML_INCLUDE_FLAGS fxif, IStream* pps);
-    HRESULT Title(ushort** ppszTitle);
-    HRESULT Link(ushort** ppszUrl);
-    HRESULT Guid(ushort** ppszGuid);
-    HRESULT Description(ushort** ppszDescription);
+    HRESULT Title(PWSTR* ppszTitle);
+    HRESULT Link(PWSTR* ppszUrl);
+    HRESULT Guid(PWSTR* ppszGuid);
+    HRESULT Description(PWSTR* ppszDescription);
     HRESULT PubDate(SYSTEMTIME* pstPubDate);
-    HRESULT Comments(ushort** ppszUrl);
-    HRESULT Author(ushort** ppszAuthor);
+    HRESULT Comments(PWSTR* ppszUrl);
+    HRESULT Author(PWSTR* ppszAuthor);
     HRESULT Enclosure(const(GUID)* riid, void** ppv);
-    HRESULT IsRead(int* pbIsRead);
+    HRESULT IsRead(BOOL* pbIsRead);
     HRESULT SetIsRead(BOOL bIsRead);
     HRESULT LocalId(uint* puiId);
     HRESULT Parent(const(GUID)* riid, void** ppv);
     HRESULT Delete();
-    HRESULT DownloadUrl(ushort** ppszUrl);
+    HRESULT DownloadUrl(PWSTR* ppszUrl);
     HRESULT LastDownloadTime(SYSTEMTIME* pstLastDownloadTime);
     HRESULT Modified(SYSTEMTIME* pstModifiedTime);
 }
@@ -5301,20 +5309,20 @@ interface IXFeedItem2 : IXFeedItem
 @GUID("BFBFB953-644F-4792-B69C-DFACA4CBF89A")
 interface IXFeedEnclosure : IUnknown
 {
-    HRESULT Url(ushort** ppszUrl);
-    HRESULT Type(ushort** ppszMimeType);
+    HRESULT Url(PWSTR* ppszUrl);
+    HRESULT Type(PWSTR* ppszMimeType);
     HRESULT Length(uint* puiLength);
     HRESULT AsyncDownload();
     HRESULT CancelAsyncDownload();
     HRESULT DownloadStatus(FEEDS_DOWNLOAD_STATUS* pfds);
     HRESULT LastDownloadError(FEEDS_DOWNLOAD_ERROR* pfde);
-    HRESULT LocalPath(ushort** ppszPath);
+    HRESULT LocalPath(PWSTR* ppszPath);
     HRESULT Parent(const(GUID)* riid, void** ppv);
-    HRESULT DownloadUrl(ushort** ppszUrl);
-    HRESULT DownloadMimeType(ushort** ppszMimeType);
+    HRESULT DownloadUrl(PWSTR* ppszUrl);
+    HRESULT DownloadMimeType(PWSTR* ppszMimeType);
     HRESULT RemoveFile();
-    HRESULT SetFile(const(wchar)* pszDownloadUrl, const(wchar)* pszDownloadFilePath, 
-                    const(wchar)* pszDownloadMimeType, const(wchar)* pszEnclosureFilename);
+    HRESULT SetFile(const(PWSTR) pszDownloadUrl, const(PWSTR) pszDownloadFilePath, 
+                    const(PWSTR) pszDownloadMimeType, const(PWSTR) pszEnclosureFilename);
 }
 
 @GUID("A74029CC-1F1A-4906-88F0-810638D86591")
@@ -5373,21 +5381,21 @@ interface IFeedFolder : IDispatch
 interface IFeedFolderEvents : IDispatch
 {
     HRESULT Error();
-    HRESULT FolderAdded(const(ushort)* path);
-    HRESULT FolderDeleted(const(ushort)* path);
-    HRESULT FolderRenamed(const(ushort)* path, const(ushort)* oldPath);
-    HRESULT FolderMovedFrom(const(ushort)* path, const(ushort)* oldPath);
-    HRESULT FolderMovedTo(const(ushort)* path, const(ushort)* oldPath);
-    HRESULT FolderItemCountChanged(const(ushort)* path, int itemCountType);
-    HRESULT FeedAdded(const(ushort)* path);
-    HRESULT FeedDeleted(const(ushort)* path);
-    HRESULT FeedRenamed(const(ushort)* path, const(ushort)* oldPath);
-    HRESULT FeedUrlChanged(const(ushort)* path);
-    HRESULT FeedMovedFrom(const(ushort)* path, const(ushort)* oldPath);
-    HRESULT FeedMovedTo(const(ushort)* path, const(ushort)* oldPath);
-    HRESULT FeedDownloading(const(ushort)* path);
-    HRESULT FeedDownloadCompleted(const(ushort)* path, FEEDS_DOWNLOAD_ERROR error);
-    HRESULT FeedItemCountChanged(const(ushort)* path, int itemCountType);
+    HRESULT FolderAdded(const(BSTR) path);
+    HRESULT FolderDeleted(const(BSTR) path);
+    HRESULT FolderRenamed(const(BSTR) path, const(BSTR) oldPath);
+    HRESULT FolderMovedFrom(const(BSTR) path, const(BSTR) oldPath);
+    HRESULT FolderMovedTo(const(BSTR) path, const(BSTR) oldPath);
+    HRESULT FolderItemCountChanged(const(BSTR) path, int itemCountType);
+    HRESULT FeedAdded(const(BSTR) path);
+    HRESULT FeedDeleted(const(BSTR) path);
+    HRESULT FeedRenamed(const(BSTR) path, const(BSTR) oldPath);
+    HRESULT FeedUrlChanged(const(BSTR) path);
+    HRESULT FeedMovedFrom(const(BSTR) path, const(BSTR) oldPath);
+    HRESULT FeedMovedTo(const(BSTR) path, const(BSTR) oldPath);
+    HRESULT FeedDownloading(const(BSTR) path);
+    HRESULT FeedDownloadCompleted(const(BSTR) path, FEEDS_DOWNLOAD_ERROR error);
+    HRESULT FeedItemCountChanged(const(BSTR) path, int itemCountType);
 }
 
 @GUID("F7F915D8-2EDE-42BC-98E7-A5D05063A757")
@@ -5455,13 +5463,13 @@ interface IFeed2 : IFeed
 interface IFeedEvents : IDispatch
 {
     HRESULT Error();
-    HRESULT FeedDeleted(const(ushort)* path);
-    HRESULT FeedRenamed(const(ushort)* path, const(ushort)* oldPath);
-    HRESULT FeedUrlChanged(const(ushort)* path);
-    HRESULT FeedMoved(const(ushort)* path, const(ushort)* oldPath);
-    HRESULT FeedDownloading(const(ushort)* path);
-    HRESULT FeedDownloadCompleted(const(ushort)* path, FEEDS_DOWNLOAD_ERROR error);
-    HRESULT FeedItemCountChanged(const(ushort)* path, int itemCountType);
+    HRESULT FeedDeleted(const(BSTR) path);
+    HRESULT FeedRenamed(const(BSTR) path, const(BSTR) oldPath);
+    HRESULT FeedUrlChanged(const(BSTR) path);
+    HRESULT FeedMoved(const(BSTR) path, const(BSTR) oldPath);
+    HRESULT FeedDownloading(const(BSTR) path);
+    HRESULT FeedDownloadCompleted(const(BSTR) path, FEEDS_DOWNLOAD_ERROR error);
+    HRESULT FeedItemCountChanged(const(BSTR) path, int itemCountType);
 }
 
 @GUID("0A1E6CAD-0A47-4DA2-A13D-5BAAA5C8BD4F")
@@ -5743,7 +5751,7 @@ interface IWMPPluginUI : IUnknown
     ///Returns:
     ///    This method returns an <b>HRESULT</b>.
     ///    
-    HRESULT GetProperty(const(wchar)* pwszName, VARIANT* pvarProperty);
+    HRESULT GetProperty(const(PWSTR) pwszName, VARIANT* pvarProperty);
     ///The <b>SetProperty</b> method is called by Windows Media Player to set name/value property pairs for the plug-in.
     ///Params:
     ///    pwszName = Pointer to a <b>WCHAR</b><b>NULL</b>-terminated string constant containing the name of the property. Contains
@@ -5760,7 +5768,7 @@ interface IWMPPluginUI : IUnknown
     ///Returns:
     ///    This method returns an <b>HRESULT</b>.
     ///    
-    HRESULT SetProperty(const(wchar)* pwszName, const(VARIANT)* pvarProperty);
+    HRESULT SetProperty(const(PWSTR) pwszName, const(VARIANT)* pvarProperty);
     HRESULT TranslateAcceleratorA(MSG* lpmsg);
 }
 
@@ -6005,7 +6013,7 @@ interface IWMPContentPartnerCallback : IUnknown
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT AddListContents(uint dwListCookie, uint cItems, char* prgItems);
+    HRESULT AddListContents(uint dwListCookie, uint cItems, uint* prgItems);
     ///<div class="alert"><b>Note</b> This section describes functionality designed for use by online stores. Use of
     ///this functionality outside the context of an online store is not supported.</div> <div> </div> The
     ///<b>ListContentsComplete</b> method notifies Windows Media Player that the content partner plug-in is finished
@@ -6047,7 +6055,7 @@ interface IWMPContentPartnerCallback : IUnknown
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT GetContentIDsInLibrary(uint* pcContentIDs, char* pprgIDs);
+    HRESULT GetContentIDsInLibrary(uint* pcContentIDs, uint** pprgIDs);
     ///<div class="alert"><b>Note</b> This section describes functionality designed for use by online stores. Use of
     ///this functionality outside the context of an online store is not supported.</div> <div> </div> The
     ///<b>RefreshLicenseComplete</b> method notifies Windows Media Player that the online store has finished processing
@@ -6175,7 +6183,7 @@ interface IWMPContentPartner : IUnknown
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
     HRESULT GetCommands(BSTR location, VARIANT* pLocationContext, BSTR itemLocation, uint cItemIDs, 
-                        char* prgItemIDs, uint* pcItemIDs, char* pprgItems);
+                        uint* prgItemIDs, uint* pcItemIDs, WMPContextMenuInfo** pprgItems);
     ///<div class="alert"><b>Note</b> This section describes functionality designed for use by online stores. Use of
     ///this functionality outside the context of an online store is not supported.</div> <div> </div> The
     ///<b>InvokeCommand</b> method invokes a context menu command.
@@ -6198,7 +6206,7 @@ interface IWMPContentPartner : IUnknown
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
     HRESULT InvokeCommand(uint dwCommandID, BSTR location, VARIANT* pLocationContext, BSTR itemLocation, 
-                          uint cItemIDs, char* rgItemIDs);
+                          uint cItemIDs, uint* rgItemIDs);
     ///<div class="alert"><b>Note</b> This section describes functionality designed for use by online stores. Use of
     ///this functionality outside the context of an online store is not supported.</div> <div> </div> The
     ///<b>CanBuySilent</b> method calculates the total price of a purchase and determines whether the purchase can
@@ -6483,7 +6491,7 @@ interface IWMPSubscriptionService : IUnknown
     ///Returns:
     ///    The method returns an <b>HRESULT</b>.
     ///    
-    HRESULT allowPlay(HWND hwnd, IWMPMedia pMedia, int* pfAllowPlay);
+    HRESULT allowPlay(HWND hwnd, IWMPMedia pMedia, BOOL* pfAllowPlay);
     ///<div class="alert"><b>Note</b> This section describes functionality designed for use by online stores. Use of
     ///this functionality outside the context of an online store is not supported.</div> <div> </div> The
     ///<b>allowCDBurn</b> method is implemented by the online store's plug-in to manage permission for Windows Media
@@ -6496,7 +6504,7 @@ interface IWMPSubscriptionService : IUnknown
     ///Returns:
     ///    The method returns an <b>HRESULT</b>.
     ///    
-    HRESULT allowCDBurn(HWND hwnd, IWMPPlaylist pPlaylist, int* pfAllowBurn);
+    HRESULT allowCDBurn(HWND hwnd, IWMPPlaylist pPlaylist, BOOL* pfAllowBurn);
     ///<div class="alert"><b>Note</b> This section describes functionality designed for use by online stores. Use of
     ///this functionality outside the context of an online store is not supported.</div> <div> </div> The
     ///<b>allowPDATransfer</b> method is implemented by the online store's plug-in to manage permission for Windows
@@ -6508,7 +6516,7 @@ interface IWMPSubscriptionService : IUnknown
     ///Returns:
     ///    The method returns an <b>HRESULT</b>.
     ///    
-    HRESULT allowPDATransfer(HWND hwnd, IWMPPlaylist pPlaylist, int* pfAllowTransfer);
+    HRESULT allowPDATransfer(HWND hwnd, IWMPPlaylist pPlaylist, BOOL* pfAllowTransfer);
     ///<div class="alert"><b>Note</b> This section describes functionality designed for use by online stores. Use of
     ///this functionality outside the context of an online store is not supported.</div> <div> </div> The
     ///<b>startBackgroundProcessing</b> method is implemented by the online store to initiate background processing

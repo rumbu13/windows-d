@@ -7,27 +7,28 @@ public import windows.com : HRESULT, IConnectionPointContainer, IUnknown;
 public import windows.security : SID;
 public import windows.systemservices : BOOL, DETECTION_TYPE, DISK_CACHE_RETENTION_PRIORITY,
                                        FILE_SEGMENT_ELEMENT, FILE_STORAGE_TIER_CLASS,
-                                       HANDLE, LARGE_INTEGER, OVERLAPPED,
-                                       SECURITY_ATTRIBUTES, SHRINK_VOLUME_REQUEST_TYPES,
-                                       STORAGE_BUS_TYPE, ULARGE_INTEGER;
+                                       HANDLE, LARGE_INTEGER, OVERLAPPED, PSTR,
+                                       PWSTR, SECURITY_ATTRIBUTES,
+                                       SHRINK_VOLUME_REQUEST_TYPES, STORAGE_BUS_TYPE,
+                                       ULARGE_INTEGER;
 public import windows.windowsprogramming : FILETIME, SYSTEMTIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
 
 
-alias FIND_FIRST_EX_FLAGS = int;
-enum : int
+alias FIND_FIRST_EX_FLAGS = uint;
+enum : uint
 {
     FIND_FIRST_EX_CASE_SENSITIVE       = 0x00000001,
     FIND_FIRST_EX_LARGE_FETCH          = 0x00000002,
     FIND_FIRST_EX_ON_DISK_ENTRIES_ONLY = 0x00000004,
 }
 
-alias FILE_NOTIFY_CHANGE = int;
-enum : int
+alias FILE_NOTIFY_CHANGE = uint;
+enum : uint
 {
     FILE_NOTIFY_CHANGE_FILE_NAME   = 0x00000001,
     FILE_NOTIFY_CHANGE_DIR_NAME    = 0x00000002,
@@ -39,8 +40,8 @@ enum : int
     FILE_NOTIFY_CHANGE_SECURITY    = 0x00000100,
 }
 
-alias DEFINE_DOS_DEVICE_FLAGS = int;
-enum : int
+alias DEFINE_DOS_DEVICE_FLAGS = uint;
+enum : uint
 {
     DDD_RAW_TARGET_PATH       = 0x00000001,
     DDD_REMOVE_DEFINITION     = 0x00000002,
@@ -49,8 +50,8 @@ enum : int
     DDD_LUID_BROADCAST_DRIVE  = 0x00000010,
 }
 
-alias FILE_CREATE_FLAGS = int;
-enum : int
+alias FILE_CREATE_FLAGS = uint;
+enum : uint
 {
     CREATE_NEW        = 0x00000001,
     CREATE_ALWAYS     = 0x00000002,
@@ -59,8 +60,8 @@ enum : int
     TRUNCATE_EXISTING = 0x00000005,
 }
 
-alias FILE_SHARE_FLAGS = int;
-enum : int
+alias FILE_SHARE_FLAGS = uint;
+enum : uint
 {
     FILE_SHARE_NONE   = 0x00000000,
     FILE_SHARE_DELETE = 0x00000004,
@@ -68,8 +69,8 @@ enum : int
     FILE_SHARE_WRITE  = 0x00000002,
 }
 
-alias FILE_FLAGS_AND_ATTRIBUTES = int;
-enum : int
+alias FILE_FLAGS_AND_ATTRIBUTES = uint;
+enum : uint
 {
     FILE_ATTRIBUTE_READONLY              = 0x00000001,
     FILE_ATTRIBUTE_HIDDEN                = 0x00000002,
@@ -95,8 +96,8 @@ enum : int
     FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS = 0x00400000,
 }
 
-alias FILE_ACCESS_FLAGS = int;
-enum : int
+alias FILE_ACCESS_FLAGS = uint;
+enum : uint
 {
     FILE_READ_DATA            = 0x00000001,
     FILE_LIST_DIRECTORY       = 0x00000001,
@@ -124,18 +125,6 @@ enum : int
     FILE_GENERIC_READ         = 0x00120089,
     FILE_GENERIC_WRITE        = 0x00120116,
     FILE_GENERIC_EXECUTE      = 0x001200a0,
-}
-
-///Defines the outcomes (results) that KTM can assign to a transaction.
-alias TRANSACTION_OUTCOME = int;
-enum : int
-{
-    ///The transaction has not yet been committed or rolled back.
-    TransactionOutcomeUndetermined = 0x00000001,
-    ///The transaction has been committed.
-    TransactionOutcomeCommitted    = 0x00000002,
-    ///The transaction has been rolled back.
-    TransactionOutcomeAborted      = 0x00000003,
 }
 
 ///Defines values that are used with the FindFirstFileEx function to specify the information level of the returned data.
@@ -1214,6 +1203,18 @@ enum : int
     QUIC    = 0x00000000,
 }
 
+///Defines the outcomes (results) that KTM can assign to a transaction.
+alias TRANSACTION_OUTCOME = int;
+enum : int
+{
+    ///The transaction has not yet been committed or rolled back.
+    TransactionOutcomeUndetermined = 0x00000001,
+    ///The transaction has been committed.
+    TransactionOutcomeCommitted    = 0x00000002,
+    ///The transaction has been rolled back.
+    TransactionOutcomeAborted      = 0x00000003,
+}
+
 ///Indicates the type of message passed in the COPYFILE2_MESSAGE structure to the CopyFile2ProgressRoutine callback
 ///function.
 alias COPYFILE2_MESSAGE_TYPE = int;
@@ -1451,7 +1452,7 @@ alias WofEnumEntryProc = BOOL function(const(void)* EntryInfo, void* UserData);
 ///                       <td>WIM_EXTERNAL_FILE_INFO</td> </tr> <tr> <td>WOF_PROVIDER_FILE</td> <td>WOF_FILE_COMPRESSION_INFO</td> </tr>
 ///                       </table>
 ///    UserData = Optional user defined data.
-alias WofEnumFilesProc = BOOL function(const(wchar)* FilePath, void* ExternalFileInfo, void* UserData);
+alias WofEnumFilesProc = BOOL function(const(PWSTR) FilePath, void* ExternalFileInfo, void* UserData);
 ///An application-defined callback function used with ReadEncryptedFileRaw. The system calls <b>ExportCallback</b> one
 ///or more times, each time with a block of the encrypted file's data, until it has received all of the file data.
 ///<b>ExportCallback</b> writes the encrypted file's data to another storage media, usually for purposes of backing up
@@ -1469,7 +1470,7 @@ alias WofEnumFilesProc = BOOL function(const(wchar)* FilePath, void* ExternalFil
 ///    return value to a nonzero error code defined in WinError.h. For example, if this function fails because an API
 ///    that it calls fails, you can set the return value to the value returned by GetLastError for the failed API.
 ///    
-alias PFE_EXPORT_FUNC = uint function(char* pbData, void* pvCallbackContext, uint ulLength);
+alias PFE_EXPORT_FUNC = uint function(ubyte* pbData, void* pvCallbackContext, uint ulLength);
 ///An application-defined callback function used with WriteEncryptedFileRaw. The system calls <b>ImportCallback</b> one
 ///or more times, each time to retrieve a portion of a backup file's data. <b>ImportCallback</b> reads the data from a
 ///backup file sequentially and restores the data, and the system continues calling it until it has read all of the
@@ -1492,7 +1493,7 @@ alias PFE_EXPORT_FUNC = uint function(char* pbData, void* pvCallbackContext, uin
 ///    fails because an API that it calls fails, you can set the return value to the value returned by GetLastError for
 ///    the failed API.
 ///    
-alias PFE_IMPORT_FUNC = uint function(char* pbData, void* pvCallbackContext, uint* ulLength);
+alias PFE_IMPORT_FUNC = uint function(ubyte* pbData, void* pvCallbackContext, uint* ulLength);
 ///An application-defined callback function used with the CopyFileEx, MoveFileTransacted, and MoveFileWithProgress
 ///functions. It is called when a portion of a copy or move operation is completed. The <b>LPPROGRESS_ROUTINE</b> type
 ///defines a pointer to this callback function. <b>CopyProgressRoutine</b> is a placeholder for the application-defined
@@ -1563,124 +1564,6 @@ alias PCOPYFILE2_PROGRESS_ROUTINE = COPYFILE2_MESSAGE_ACTION function(const(COPY
 
 // Structs
 
-
-alias FindChangeNotifcationHandle = ptrdiff_t;
-
-alias FindFileHandle = ptrdiff_t;
-
-alias FindFileNameHandle = ptrdiff_t;
-
-alias FindStreamHandle = ptrdiff_t;
-
-alias FindVolumeHandle = ptrdiff_t;
-
-alias FindVolumeMointPointHandle = ptrdiff_t;
-
-///Defines a 128-bit file identifier.
-struct FILE_ID_128
-{
-    ///A byte array containing the 128 bit identifier.
-    ubyte[16] Identifier;
-}
-
-///Describes the changes found by the ReadDirectoryChangesW function.
-struct FILE_NOTIFY_INFORMATION
-{
-    ///The number of bytes that must be skipped to get to the next record. A value of zero indicates that this is the
-    ///last record.
-    uint      NextEntryOffset;
-    ///The type of change that has occurred. This member can be one of the following values. <table> <tr> <th>Value</th>
-    ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="FILE_ACTION_ADDED"></a><a id="file_action_added"></a><dl>
-    ///<dt><b>FILE_ACTION_ADDED</b></dt> <dt>0x00000001</dt> </dl> </td> <td width="60%"> The file was added to the
-    ///directory. </td> </tr> <tr> <td width="40%"><a id="FILE_ACTION_REMOVED"></a><a id="file_action_removed"></a><dl>
-    ///<dt><b>FILE_ACTION_REMOVED</b></dt> <dt>0x00000002</dt> </dl> </td> <td width="60%"> The file was removed from
-    ///the directory. </td> </tr> <tr> <td width="40%"><a id="FILE_ACTION_MODIFIED"></a><a
-    ///id="file_action_modified"></a><dl> <dt><b>FILE_ACTION_MODIFIED</b></dt> <dt>0x00000003</dt> </dl> </td> <td
-    ///width="60%"> The file was modified. This can be a change in the time stamp or attributes. </td> </tr> <tr> <td
-    ///width="40%"><a id="FILE_ACTION_RENAMED_OLD_NAME"></a><a id="file_action_renamed_old_name"></a><dl>
-    ///<dt><b>FILE_ACTION_RENAMED_OLD_NAME</b></dt> <dt>0x00000004</dt> </dl> </td> <td width="60%"> The file was
-    ///renamed and this is the old name. </td> </tr> <tr> <td width="40%"><a id="FILE_ACTION_RENAMED_NEW_NAME"></a><a
-    ///id="file_action_renamed_new_name"></a><dl> <dt><b>FILE_ACTION_RENAMED_NEW_NAME</b></dt> <dt>0x00000005</dt> </dl>
-    ///</td> <td width="60%"> The file was renamed and this is the new name. </td> </tr> </table>
-    uint      Action;
-    ///The size of the file name portion of the record, in bytes. Note that this value does not include the terminating
-    ///null character.
-    uint      FileNameLength;
-    ///A variable-length field that contains the file name relative to the directory handle. The file name is in the
-    ///Unicode character format and is not null-terminated. If there is both a short and long name for the file, the
-    ///function will return one of these names, but it is unspecified which one.
-    ushort[1] FileName;
-}
-
-///Describes the changes found by the ReadDirectoryChangesExW function.
-struct FILE_NOTIFY_EXTENDED_INFORMATION
-{
-    ///The number of bytes that must be skipped to get to the next record. A value of zero indicates that this is the
-    ///last record.
-    uint          NextEntryOffset;
-    ///The type of change that has occurred. This member can be one of the following values. <table> <tr> <th>Value</th>
-    ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="FILE_ACTION_ADDED"></a><a id="file_action_added"></a><dl>
-    ///<dt><b>FILE_ACTION_ADDED</b></dt> <dt>0x00000001</dt> </dl> </td> <td width="60%"> The file was added to the
-    ///directory. </td> </tr> <tr> <td width="40%"><a id="FILE_ACTION_REMOVED"></a><a id="file_action_removed"></a><dl>
-    ///<dt><b>FILE_ACTION_REMOVED</b></dt> <dt>0x00000002</dt> </dl> </td> <td width="60%"> The file was removed from
-    ///the directory. </td> </tr> <tr> <td width="40%"><a id="FILE_ACTION_MODIFIED"></a><a
-    ///id="file_action_modified"></a><dl> <dt><b>FILE_ACTION_MODIFIED</b></dt> <dt>0x00000003</dt> </dl> </td> <td
-    ///width="60%"> The file was modified. This can be a change in the time stamp or attributes. </td> </tr> <tr> <td
-    ///width="40%"><a id="FILE_ACTION_RENAMED_OLD_NAME"></a><a id="file_action_renamed_old_name"></a><dl>
-    ///<dt><b>FILE_ACTION_RENAMED_OLD_NAME</b></dt> <dt>0x00000004</dt> </dl> </td> <td width="60%"> The file was
-    ///renamed and this is the old name. </td> </tr> <tr> <td width="40%"><a id="FILE_ACTION_RENAMED_NEW_NAME"></a><a
-    ///id="file_action_renamed_new_name"></a><dl> <dt><b>FILE_ACTION_RENAMED_NEW_NAME</b></dt> <dt>0x00000005</dt> </dl>
-    ///</td> <td width="60%"> The file was renamed and this is the new name. </td> </tr> </table>
-    uint          Action;
-    ///The date and time that the directory or file was created and added to the file system.
-    LARGE_INTEGER CreationTime;
-    ///The date and time that the content of the directory or file was last modified in the file system.
-    LARGE_INTEGER LastModificationTime;
-    ///The date and time that the metadata or content of the directory or file was last changed in the file system.
-    LARGE_INTEGER LastChangeTime;
-    ///The date and time the directory or file was last accessed in the file system.
-    LARGE_INTEGER LastAccessTime;
-    ///The allocated size of the file, in bytes.
-    LARGE_INTEGER AllocatedLength;
-    ///The new size of the directory or file in bytes, or the old size if the size is unchanged.
-    LARGE_INTEGER FileSize;
-    ///The attributes of the directory or file.
-    uint          FileAttributes;
-    ///The identifier tag of a reparse point for the directory or file.
-    uint          ReparsePointTag;
-    ///The identifier of the directory or file.
-    LARGE_INTEGER FileId;
-    ///The identifier of the parent directory for the file.
-    LARGE_INTEGER ParentFileId;
-    ///The size of the file name portion of the record, in bytes. This value does not include a terminating null
-    ///character.
-    uint          FileNameLength;
-    ///A variable-length field that contains the file name relative to the directory handle. The file name is in the
-    ///Unicode character format and is not null-terminated. If there is both a short and long name for the file, the
-    ///function will return one of these names, but it is unspecified which one.
-    ushort[1]     FileName;
-}
-
-///Contains information about a reparse point. It is used by the FSCTL_GET_REPARSE_POINT control code.
-struct REPARSE_GUID_DATA_BUFFER
-{
-    ///The reparse point tag. This member identifies the structure of the user-defined reparse data. For more
-    ///information, see Reparse Point Tags.
-    uint   ReparseTag;
-    ///The size of the reparse data in the <b>DataBuffer</b> member, in bytes. This value may vary with different tags
-    ///and may vary between two uses of the same tag.
-    ushort ReparseDataLength;
-    ///Reserved; do not use.
-    ushort Reserved;
-    ///A <b>GUID</b> that uniquely identifies the reparse point. When setting a reparse point, the application must
-    ///provide a non-NULL <b>GUID</b> in the <b>ReparseGuid</b> member. When retrieving a reparse point from the file
-    ///system, <b>ReparseGuid</b> is the <b>GUID</b> assigned when the reparse point was set.
-    GUID   ReparseGuid;
-    struct GenericReparseBuffer
-    {
-        ubyte[1] DataBuffer;
-    }
-}
 
 ///Contains the information returned by a call to the GetQueuedCompletionStatusEx function.
 struct OVERLAPPED_ENTRY
@@ -2252,11 +2135,11 @@ struct STORAGE_TEMPERATURE_THRESHOLD
 ///Storage specification version.
 union STORAGE_SPEC_VERSION
 {
-    struct
+struct
     {
-        union MinorVersion
+union MinorVersion
         {
-            struct
+struct
             {
                 ubyte SubMinor;
                 ubyte Minor;
@@ -2841,7 +2724,7 @@ struct CREATE_DISK
 {
     ///The format of a partition. For more information, see PARTITION_STYLE.
     PARTITION_STYLE PartitionStyle;
-    union
+union
     {
         CREATE_DISK_MBR Mbr;
         CREATE_DISK_GPT Gpt;
@@ -2871,7 +2754,7 @@ struct PARTITION_INFORMATION_EX
     ///<b>TRUE</b>.
     ubyte           RewritePartition;
     ubyte           IsServicePartition;
-    union
+union
     {
         PARTITION_INFORMATION_MBR Mbr;
         PARTITION_INFORMATION_GPT Gpt;
@@ -2913,7 +2796,7 @@ struct DRIVE_LAYOUT_INFORMATION_EX
     ///structure of the **Mbr** member of the [**PARTITION_INFORMATION_EX**](ns-winioctl-partition_information_ex.md)
     ///structure of the **PartitionEntry** member of this structure.
     uint PartitionCount;
-    union
+union
     {
         DRIVE_LAYOUT_INFORMATION_MBR Mbr;
         DRIVE_LAYOUT_INFORMATION_GPT Gpt;
@@ -2970,9 +2853,9 @@ struct DISK_DETECTION_INFO
     ///partition. | | **DetectInt13** | 1 | The disk has a standard Int13 partition. | | **DetectNone** | 0 | The disk
     ///does not have an Int13 or an extended Int13 partition. |
     DETECTION_TYPE DetectionType;
-    union
+union
     {
-        struct
+struct
         {
             DISK_INT13_INFO    Int13;
             DISK_EX_INT13_INFO ExInt13;
@@ -2987,14 +2870,14 @@ struct DISK_PARTITION_INFO
     uint            SizeOfPartitionInfo;
     ///The format of a partition. For more information, see [PARTITION_STYLE](ne-winioctl-partition_style.md).
     PARTITION_STYLE PartitionStyle;
-    union
+union
     {
-        struct Mbr
+struct Mbr
         {
             uint Signature;
             uint CheckSum;
         }
-        struct Gpt
+struct Gpt
         {
             GUID DiskId;
         }
@@ -3044,15 +2927,15 @@ struct DISK_CACHE_INFORMATION
     ///If this member is <b>TRUE</b>, the union is a <b>ScalarPrefetch</b> structure. Otherwise, the union is a
     ///<b>BlockPrefetch</b> structure.
     ubyte  PrefetchScalar;
-    union
+union
     {
-        struct ScalarPrefetch
+struct ScalarPrefetch
         {
             ushort Minimum;
             ushort Maximum;
             ushort MaximumBlocks;
         }
-        struct BlockPrefetch
+struct BlockPrefetch
         {
             ushort Minimum;
             ushort Maximum;
@@ -3240,7 +3123,7 @@ struct RETRIEVAL_POINTERS_BUFFER
     ///as the file system driver may round down to the first VCN of the extent in which the requested starting VCN is
     ///found.
     LARGE_INTEGER StartingVcn;
-    struct
+struct
     {
         LARGE_INTEGER NextVcn;
         LARGE_INTEGER Lcn;
@@ -4309,7 +4192,7 @@ struct DELETE_USN_JOURNAL_DATA
 ///journal record with data about changes. It is used by the FSCTL_MARK_HANDLE control code.
 struct MARK_HANDLE_INFO
 {
-    union
+union
     {
         uint UsnSourceInfo;
         uint CopyNumber;
@@ -4497,7 +4380,7 @@ struct NTFS_STATISTICS
     uint   MftWrites;
     ///The number of bytes written to the MFT.
     uint   MftWriteBytes;
-    struct MftWritesUserLevel
+struct MftWritesUserLevel
     {
         ushort Write;
         ushort Create;
@@ -4514,7 +4397,7 @@ struct NTFS_STATISTICS
     uint   Mft2Writes;
     ///The number of bytes written to the MFT mirror.
     uint   Mft2WriteBytes;
-    struct Mft2WritesUserLevel
+struct Mft2WritesUserLevel
     {
         ushort Write;
         ushort Create;
@@ -4549,7 +4432,7 @@ struct NTFS_STATISTICS
     ushort BitmapWritesLazyWriter;
     ///Reserved.
     ushort BitmapWritesUserRequest;
-    struct BitmapWritesUserLevel
+struct BitmapWritesUserLevel
     {
         ushort Write;
         ushort Create;
@@ -4569,7 +4452,7 @@ struct NTFS_STATISTICS
     ushort MftBitmapWritesLazyWriter;
     ///Reserved.
     ushort MftBitmapWritesUserRequest;
-    struct MftBitmapWritesUserLevel
+struct MftBitmapWritesUserLevel
     {
         ushort Write;
         ushort Create;
@@ -4592,7 +4475,7 @@ struct NTFS_STATISTICS
     uint   LogFileWrites;
     ///The number of bytes written to the log file.
     uint   LogFileWriteBytes;
-    struct Allocate
+struct Allocate
     {
         uint Calls;
         uint Clusters;
@@ -4680,7 +4563,7 @@ struct NTFS_STATISTICS_EX
     ulong MftWrites;
     ///The number of bytes written to the MFT.
     ulong MftWriteBytes;
-    struct MftWritesUserLevel
+struct MftWritesUserLevel
     {
         uint Write;
         uint Create;
@@ -4697,7 +4580,7 @@ struct NTFS_STATISTICS_EX
     ulong Mft2Writes;
     ///The number of bytes written to the MFT mirror.
     ulong Mft2WriteBytes;
-    struct Mft2WritesUserLevel
+struct Mft2WritesUserLevel
     {
         uint Write;
         uint Create;
@@ -4732,7 +4615,7 @@ struct NTFS_STATISTICS_EX
     uint  BitmapWritesLazyWriter;
     ///Reserved.
     uint  BitmapWritesUserRequest;
-    struct BitmapWritesUserLevel
+struct BitmapWritesUserLevel
     {
         uint Write;
         uint Create;
@@ -4753,7 +4636,7 @@ struct NTFS_STATISTICS_EX
     uint  MftBitmapWritesLazyWriter;
     ///Reserved.
     uint  MftBitmapWritesUserRequest;
-    struct MftBitmapWritesUserLevel
+struct MftBitmapWritesUserLevel
     {
         uint Write;
         uint Create;
@@ -4776,7 +4659,7 @@ struct NTFS_STATISTICS_EX
     ulong LogFileWrites;
     ///The number of bytes written to the log file.
     ulong LogFileWriteBytes;
-    struct Allocate
+struct Allocate
     {
         uint  Calls;
         uint  RunsReturned;
@@ -4819,9 +4702,9 @@ struct FILE_OBJECTID_BUFFER
 {
     ///The identifier that uniquely identifies the file or directory within the volume on which it resides.
     ubyte[16] ObjectId;
-    union
+union
     {
-        struct
+struct
         {
             ubyte[16] BirthVolumeId;
             ubyte[16] BirthObjectId;
@@ -5187,7 +5070,7 @@ struct TXFS_QUERY_RM_INFORMATION
 ///information about the miniversion that is created.
 struct TXFS_GET_METADATA_INFO_OUT
 {
-    struct TxfFileId
+struct TxfFileId
     {
         long LowPart;
         long HighPart;
@@ -5290,7 +5173,7 @@ struct TXFS_LIST_TRANSACTIONS
 ///NTFS (TxF) specific structure. This information should only be used when calling TXFS_WRITE_BACKUP_INFORMATION.
 struct TXFS_READ_BACKUP_INFORMATION_OUT
 {
-    union
+union
     {
         uint     BufferLength;
         ubyte[1] Buffer;
@@ -5400,7 +5283,7 @@ struct BOOT_AREA_INFO
 {
     ///Number of elements in the <b>BootSectors</b> array.
     uint BootSectorCount;
-    struct
+struct
     {
         LARGE_INTEGER Offset;
     }
@@ -6324,7 +6207,7 @@ struct ENCRYPTION_CERTIFICATE_HASH
     EFS_HASH_BLOB* pHash;
     ///User-displayable information for the certificate. This is usually the user's common name and universal principal
     ///name (UPN).
-    const(wchar)*  lpDisplayInformation;
+    PWSTR          lpDisplayInformation;
 }
 
 ///Contains a list of certificate hashes.
@@ -6355,9 +6238,9 @@ struct ENCRYPTED_FILE_METADATA_SIGNATURE
 
 struct ENCRYPTION_PROTECTOR
 {
-    uint          cbTotalLength;
-    SID*          pUserSid;
-    const(wchar)* lpProtectorDescriptor;
+    uint  cbTotalLength;
+    SID*  pUserSid;
+    PWSTR lpProtectorDescriptor;
 }
 
 struct ENCRYPTION_PROTECTOR_LIST
@@ -7623,7 +7506,7 @@ struct NTMS_OBJECTINFORMATIONA
     ///of device and system control objects can be changed using the SetNtmsObjectInformation function. (Writable for
     ///all objects)
     byte[127]  szDescription;
-    union Info
+union Info
     {
         NTMS_DRIVEINFORMATIONA Drive;
         NTMS_DRIVETYPEINFORMATIONA DriveType;
@@ -7730,7 +7613,7 @@ struct NTMS_OBJECTINFORMATIONW
     ///of device and system control objects can be changed using the SetNtmsObjectInformation function. (Writable for
     ///all objects)
     ushort[127] szDescription;
-    union Info
+union Info
     {
         NTMS_DRIVEINFORMATIONW Drive;
         NTMS_DRIVETYPEINFORMATIONW DriveType;
@@ -7909,7 +7792,7 @@ struct NTMS_I1_OBJECTINFORMATIONA
     uint       dwOperationalState;
     byte[64]   szName;
     byte[127]  szDescription;
-    union Info
+union Info
     {
         NTMS_DRIVEINFORMATIONA Drive;
         NTMS_DRIVETYPEINFORMATIONA DriveType;
@@ -7940,7 +7823,7 @@ struct NTMS_I1_OBJECTINFORMATIONW
     uint        dwOperationalState;
     ushort[64]  szName;
     ushort[127] szDescription;
-    union Info
+union Info
     {
         NTMS_DRIVEINFORMATIONW Drive;
         NTMS_DRIVETYPEINFORMATIONW DriveType;
@@ -8243,48 +8126,48 @@ struct CLFS_MGMT_POLICY
     uint PolicyFlags;
     ///Specifies the members used for a specific policy. Valid values are specified by CLFS_MGMT_POLICY_TYPE.
     CLFS_MGMT_POLICY_TYPE PolicyType;
-    union PolicyParameters
+union PolicyParameters
     {
-        struct MaximumSize
+struct MaximumSize
         {
             uint Containers;
         }
-        struct MinimumSize
+struct MinimumSize
         {
             uint Containers;
         }
-        struct NewContainerSize
+struct NewContainerSize
         {
             uint SizeInBytes;
         }
-        struct GrowthRate
+struct GrowthRate
         {
             uint AbsoluteGrowthInContainers;
             uint RelativeGrowthPercentage;
         }
-        struct LogTail
+struct LogTail
         {
             uint MinimumAvailablePercentage;
             uint MinimumAvailableContainers;
         }
-        struct AutoShrink
+struct AutoShrink
         {
             uint Percentage;
         }
-        struct AutoGrow
+struct AutoGrow
         {
             uint Enabled;
         }
-        struct NewContainerPrefix
+struct NewContainerPrefix
         {
             ushort    PrefixLengthInBytes;
             ushort[1] PrefixString;
         }
-        struct NewContainerSuffix
+struct NewContainerSuffix
         {
             ulong NextContainerSuffix;
         }
-        struct NewContainerExtension
+struct NewContainerExtension
         {
             ushort    ExtensionLengthInBytes;
             ushort[1] ExtensionString;
@@ -8366,7 +8249,7 @@ struct WIM_ENTRY_INFO
     ///Specifies the GUID which is stored in the WIM file’s header.
     GUID          WimGuid;
     ///Specifies a full path to the WIM file.
-    const(wchar)* WimPath;
+    const(PWSTR)  WimPath;
     ///Specifies the index within the WIM which is described by this data source.
     uint          WimIndex;
     uint          Flags;
@@ -8413,7 +8296,7 @@ struct WOF_FILE_COMPRESSION_INFO_V1
 ///identifier within the context of the Resource Manager.
 struct TXF_ID
 {
-    struct
+struct
     {
     align (4):
         long LowPart;
@@ -8646,7 +8529,7 @@ struct VOLUME_SHRINK_INFO
 struct SHARE_INFO_0
 {
     ///Pointer to a Unicode string specifying the share name of a resource.
-    const(wchar)* shi0_netname;
+    PWSTR shi0_netname;
 }
 
 ///Contains information about the shared resource, including the name and type of the resource, and a comment associated
@@ -8655,7 +8538,7 @@ struct SHARE_INFO_1
 {
     ///Pointer to a Unicode string specifying the share name of a resource. Calls to the NetShareSetInfo function ignore
     ///this member.
-    const(wchar)* shi1_netname;
+    PWSTR shi1_netname;
     ///A combination of values that specify the type of the shared resource. Calls to the <b>NetShareSetInfo</b>
     ///function ignore this member. One of the following values may be specified. You can isolate these values by using
     ///the <b>STYPE_MASK</b> value. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
@@ -8672,9 +8555,9 @@ struct SHARE_INFO_1
     ///For more information, see Network Share Functions. </td> </tr> <tr> <td width="40%"><a
     ///id="STYPE_TEMPORARY"></a><a id="stype_temporary"></a><dl> <dt><b>STYPE_TEMPORARY</b></dt> </dl> </td> <td
     ///width="60%"> A temporary share. </td> </tr> </table>
-    uint          shi1_type;
+    uint  shi1_type;
     ///Pointer to a Unicode string specifying an optional comment about the shared resource.
-    const(wchar)* shi1_remark;
+    PWSTR shi1_remark;
 }
 
 ///Contains information about the shared resource, including name of the resource, type and permissions, and the number
@@ -8684,7 +8567,7 @@ struct SHARE_INFO_2
 {
     ///Pointer to a Unicode string specifying the share name of a resource. Calls to the NetShareSetInfo function ignore
     ///this member.
-    const(wchar)* shi2_netname;
+    PWSTR shi2_netname;
     ///A combination of values that specify the type of the shared resource. Calls to the <b>NetShareSetInfo</b>
     ///function ignore this member. One of the following values may be specified. You can isolate these values by using
     ///the <b>STYPE_MASK</b> value. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
@@ -8701,9 +8584,9 @@ struct SHARE_INFO_2
     ///For more information, see Network Share Functions. </td> </tr> <tr> <td width="40%"><a
     ///id="STYPE_TEMPORARY"></a><a id="stype_temporary"></a><dl> <dt><b>STYPE_TEMPORARY</b></dt> </dl> </td> <td
     ///width="60%"> A temporary share. </td> </tr> </table>
-    uint          shi2_type;
+    uint  shi2_type;
     ///Pointer to a Unicode string that contains an optional comment about the shared resource.
-    const(wchar)* shi2_remark;
+    PWSTR shi2_remark;
     ///Specifies a DWORD value that indicates the shared resource's permissions for servers running with share-level
     ///security. A server running user-level security ignores this member. This member can be one or more of the
     ///following values. Calls to the NetShareSetInfo function ignore this member. Note that Windows does not support
@@ -8725,22 +8608,22 @@ struct SHARE_INFO_2
     ///resource for a user or application. </td> </tr> <tr> <td width="40%"><a id="ACCESS_ALL"></a><a
     ///id="access_all"></a><dl> <dt><b>ACCESS_ALL</b></dt> </dl> </td> <td width="60%"> Permission to read, write,
     ///create, execute, and delete resources, and to modify their attributes and permissions. </td> </tr> </table>
-    uint          shi2_permissions;
+    uint  shi2_permissions;
     ///Specifies a DWORD value that indicates the maximum number of concurrent connections that the shared resource can
     ///accommodate. The number of connections is unlimited if the value specified in this member is –1.
-    uint          shi2_max_uses;
+    uint  shi2_max_uses;
     ///Specifies a DWORD value that indicates the number of current connections to the resource. Calls to the
     ///NetShareSetInfo function ignore this member.
-    uint          shi2_current_uses;
+    uint  shi2_current_uses;
     ///Pointer to a Unicode string specifying the local path for the shared resource. For disks, <b>shi2_path</b> is the
     ///path being shared. For print queues, <b>shi2_path</b> is the name of the print queue being shared. Calls to the
     ///<b>NetShareSetInfo</b> function ignore this member.
-    const(wchar)* shi2_path;
+    PWSTR shi2_path;
     ///Pointer to a Unicode string that specifies the share's password when the server is running with share-level
     ///security. If the server is running with user-level security, this member is ignored. The <b>shi2_passwd</b>
     ///member can be no longer than SHPWLEN+1 bytes (including a terminating null character). Calls to the
     ///<b>NetShareSetInfo</b> function ignore this member. Note that Windows does not support share-level security.
-    const(wchar)* shi2_passwd;
+    PWSTR shi2_passwd;
 }
 
 ///Contains information about the shared resource including the name and type of the resource, and a comment associated
@@ -8748,7 +8631,7 @@ struct SHARE_INFO_2
 struct SHARE_INFO_501
 {
     ///Pointer to a Unicode string specifying the name of a shared resource.
-    const(wchar)* shi501_netname;
+    PWSTR shi501_netname;
     ///A combination of values that specify the type of share. One of the following values may be specified. You can
     ///isolate these values by using the <b>STYPE_MASK</b> value. <table> <tr> <th>Value</th> <th>Meaning</th> </tr>
     ///<tr> <td width="40%"><a id="STYPE_DISKTREE"></a><a id="stype_disktree"></a><dl> <dt><b>STYPE_DISKTREE</b></dt>
@@ -8764,11 +8647,11 @@ struct SHARE_INFO_501
     ///administrative shares such as C$, D$, E$, and so forth. For more information, see Network Share Functions. </td>
     ///</tr> <tr> <td width="40%"><a id="STYPE_TEMPORARY"></a><a id="stype_temporary"></a><dl>
     ///<dt><b>STYPE_TEMPORARY</b></dt> </dl> </td> <td width="60%"> A temporary share. </td> </tr> </table>
-    uint          shi501_type;
+    uint  shi501_type;
     ///Pointer to a Unicode string specifying an optional comment about the shared resource.
-    const(wchar)* shi501_remark;
+    PWSTR shi501_remark;
     ///Reserved; must be zero.
-    uint          shi501_flags;
+    uint  shi501_flags;
 }
 
 ///Contains information about the shared resource, including name of the resource, type and permissions, number of
@@ -8777,7 +8660,7 @@ struct SHARE_INFO_502
 {
     ///Pointer to a Unicode string specifying the name of a shared resource. Calls to the NetShareSetInfo function
     ///ignore this member.
-    const(wchar)* shi502_netname;
+    PWSTR shi502_netname;
     ///A combination of values that specify the type of share. Calls to the <b>NetShareSetInfo</b> function ignore this
     ///member. One of the following values may be specified. You can isolate these values by using the <b>STYPE_MASK</b>
     ///value. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="STYPE_DISKTREE"></a><a
@@ -8793,9 +8676,9 @@ struct SHARE_INFO_502
     ///also refer to administrative shares such as C$, D$, E$, and so forth. For more information, see the network share
     ///functions. </td> </tr> <tr> <td width="40%"><a id="STYPE_TEMPORARY"></a><a id="stype_temporary"></a><dl>
     ///<dt><b>STYPE_TEMPORARY</b></dt> </dl> </td> <td width="60%"> A temporary share. </td> </tr> </table>
-    uint          shi502_type;
+    uint  shi502_type;
     ///Pointer to a Unicode string specifying an optional comment about the shared resource.
-    const(wchar)* shi502_remark;
+    PWSTR shi502_remark;
     ///Specifies a DWORD value that indicates the shared resource's permissions for servers running with share-level
     ///security. This member is ignored on a server running user-level security. This member can be any of the following
     ///values. Calls to the NetShareSetInfo function ignore this member. Note that Windows does not support share-level
@@ -8818,26 +8701,26 @@ struct SHARE_INFO_502
     ///resource for a user or application. </td> </tr> <tr> <td width="40%"><a id="ACCESS_ALL"></a><a
     ///id="access_all"></a><dl> <dt><b>ACCESS_ALL</b></dt> </dl> </td> <td width="60%"> Permission to read, write,
     ///create, execute, and delete resources, and to modify their attributes and permissions. </td> </tr> </table>
-    uint          shi502_permissions;
+    uint  shi502_permissions;
     ///Specifies a DWORD value that indicates the maximum number of concurrent connections that the shared resource can
     ///accommodate. The number of connections is unlimited if the value specified in this member is –1.
-    uint          shi502_max_uses;
+    uint  shi502_max_uses;
     ///Specifies a DWORD value that indicates the number of current connections to the resource. Calls to the
     ///NetShareSetInfo function ignore this member.
-    uint          shi502_current_uses;
+    uint  shi502_current_uses;
     ///Pointer to a Unicode string that contains the local path for the shared resource. For disks, this member is the
     ///path being shared. For print queues, this member is the name of the print queue being shared. Calls to the
     ///<b>NetShareSetInfo</b> function ignore this member.
-    const(wchar)* shi502_path;
+    PWSTR shi502_path;
     ///Pointer to a Unicode string that specifies the share's password (when the server is running with share-level
     ///security). If the server is running with user-level security, this member is ignored. Note that Windows does not
     ///support share-level security. This member can be no longer than SHPWLEN+1 bytes (including a terminating null
     ///character). Calls to the <b>NetShareSetInfo</b> function ignore this member.
-    const(wchar)* shi502_passwd;
+    PWSTR shi502_passwd;
     ///Reserved; must be zero. Calls to the NetShareSetInfo function ignore this member.
-    uint          shi502_reserved;
+    uint  shi502_reserved;
     ///Specifies the SECURITY_DESCRIPTOR associated with this share.
-    void*         shi502_security_descriptor;
+    void* shi502_security_descriptor;
 }
 
 ///Contains information about the shared resource. It is identical to the SHARE_INFO_502 structure, except that it also
@@ -8846,7 +8729,7 @@ struct SHARE_INFO_503
 {
     ///A pointer to a Unicode string specifying the name of a shared resource. Calls to the NetShareSetInfo function
     ///ignore this member.
-    const(wchar)* shi503_netname;
+    PWSTR shi503_netname;
     ///A combination of values that specify the type of share. Calls to the NetShareSetInfo function ignore this member.
     ///One of the following values may be specified. You can isolate these values by using the <b>STYPE_MASK</b> value.
     ///<table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="STYPE_DISKTREE"></a><a
@@ -8864,9 +8747,9 @@ struct SHARE_INFO_503
     ///information, see the network share functions. </td> </tr> <tr> <td width="40%"><a id="STYPE_TEMPORARY"></a><a
     ///id="stype_temporary"></a><dl> <dt><b>STYPE_TEMPORARY</b></dt> <dt>0x40000000</dt> </dl> </td> <td width="60%"> A
     ///temporary share. </td> </tr> </table>
-    uint          shi503_type;
+    uint  shi503_type;
     ///A pointer to a Unicode string specifying an optional comment about the shared resource.
-    const(wchar)* shi503_remark;
+    PWSTR shi503_remark;
     ///Specifies a DWORD value that indicates the shared resource's permissions for servers running with share-level
     ///security. Note that Windows does not support share-level security. This member is ignored on a server running
     ///user-level security. For more information about controlling access to securable objects, see Access Control,
@@ -8891,36 +8774,36 @@ struct SHARE_INFO_503
     ///id="ACCESS_ALL"></a><a id="access_all"></a><dl> <dt><b>ACCESS_ALL</b></dt> <dt>0x00008000</dt> </dl> </td> <td
     ///width="60%"> Permission to read, write, create, execute, and delete resources, and to modify their attributes and
     ///permissions. </td> </tr> </table>
-    uint          shi503_permissions;
+    uint  shi503_permissions;
     ///Specifies a DWORD value that indicates the maximum number of concurrent connections that the shared resource can
     ///accommodate. The number of connections is unlimited if the value specified in this member is –1.
-    uint          shi503_max_uses;
+    uint  shi503_max_uses;
     ///Specifies a DWORD value that indicates the number of current connections to the resource. Calls to the
     ///NetShareSetInfo function ignore this member.
-    uint          shi503_current_uses;
+    uint  shi503_current_uses;
     ///A pointer to a Unicode string that contains the local path for the shared resource. For disks, this member is the
     ///path being shared. For print queues, this member is the name of the print queue being shared. Calls to the
     ///NetShareSetInfo function ignore this member.
-    const(wchar)* shi503_path;
+    PWSTR shi503_path;
     ///A pointer to a Unicode string that specifies the share's password (when the server is running with share-level
     ///security). If the server is running with user-level security, this member is ignored. Note that Windows does not
     ///support share-level security. This member can be no longer than SHPWLEN+1 bytes (including a terminating null
     ///character). Calls to the NetShareSetInfo function ignore this member.
-    const(wchar)* shi503_passwd;
+    PWSTR shi503_passwd;
     ///A pointer to a string that specifies the DNS or NetBIOS name of the remote server on which the shared resource
     ///resides. A value of "*" indicates no configured server name.
-    const(wchar)* shi503_servername;
+    PWSTR shi503_servername;
     ///Reserved; must be zero. Calls to the NetShareSetInfo function ignore this member.
-    uint          shi503_reserved;
+    uint  shi503_reserved;
     ///Specifies the SECURITY_DESCRIPTOR associated with this share.
-    void*         shi503_security_descriptor;
+    void* shi503_security_descriptor;
 }
 
 ///Contains a comment associated with the shared resource.
 struct SHARE_INFO_1004
 {
     ///Pointer to a Unicode string that contains an optional comment about the shared resource.
-    const(wchar)* shi1004_remark;
+    PWSTR shi1004_remark;
 }
 
 ///Contains information about the shared resource.
@@ -9011,10 +8894,10 @@ struct SHARE_INFO_1503
 
 struct SERVER_ALIAS_INFO_0
 {
-    const(wchar)* srvai0_alias;
-    const(wchar)* srvai0_target;
-    ubyte         srvai0_default;
-    uint          srvai0_reserved;
+    PWSTR srvai0_alias;
+    PWSTR srvai0_target;
+    ubyte srvai0_default;
+    uint  srvai0_reserved;
 }
 
 ///Contains the name of the computer that established the session.
@@ -9022,7 +8905,7 @@ struct SESSION_INFO_0
 {
     ///Pointer to a Unicode string that contains the name of the computer that established the session. This string
     ///cannot contain a backslash (\\).
-    const(wchar)* sesi0_cname;
+    PWSTR sesi0_cname;
 }
 
 ///Contains information about the session, including name of the computer; name of the user; and open files, pipes, and
@@ -9031,15 +8914,15 @@ struct SESSION_INFO_1
 {
     ///Pointer to a Unicode string specifying the name of the computer that established the session. This string cannot
     ///contain a backslash (\\).
-    const(wchar)* sesi1_cname;
+    PWSTR sesi1_cname;
     ///Pointer to a Unicode string specifying the name of the user who established the session.
-    const(wchar)* sesi1_username;
+    PWSTR sesi1_username;
     ///Specifies a DWORD value that contains the number of files, devices, and pipes opened during the session.
-    uint          sesi1_num_opens;
+    uint  sesi1_num_opens;
     ///Specifies a DWORD value that contains the number of seconds the session has been active.
-    uint          sesi1_time;
+    uint  sesi1_time;
     ///Specifies a DWORD value that contains the number of seconds the session has been idle.
-    uint          sesi1_idle_time;
+    uint  sesi1_idle_time;
     ///Specifies a DWORD value that describes how the user established the session. This member can be one of the
     ///following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="SESS_GUEST"></a><a id="sess_guest"></a><dl> <dt><b>SESS_GUEST</b></dt> </dl> </td> <td width="60%"> The user
@@ -9047,7 +8930,7 @@ struct SESSION_INFO_1
     ///width="40%"><a id="SESS_NOENCRYPTION"></a><a id="sess_noencryption"></a><dl> <dt><b>SESS_NOENCRYPTION</b></dt>
     ///</dl> </td> <td width="60%"> The user specified by the <b>sesi1_username</b> member established the session
     ///without using password encryption. </td> </tr> </table>
-    uint          sesi1_user_flags;
+    uint  sesi1_user_flags;
 }
 
 ///Contains information about the session, including name of the computer; name of the user; open files, pipes, and
@@ -9056,15 +8939,15 @@ struct SESSION_INFO_2
 {
     ///Pointer to a Unicode string specifying the name of the computer that established the session. This string cannot
     ///contain a backslash (\\).
-    const(wchar)* sesi2_cname;
+    PWSTR sesi2_cname;
     ///Pointer to a Unicode string specifying the name of the user who established the session.
-    const(wchar)* sesi2_username;
+    PWSTR sesi2_username;
     ///Specifies a DWORD value that contains the number of files, devices, and pipes opened during the session.
-    uint          sesi2_num_opens;
+    uint  sesi2_num_opens;
     ///Specifies a DWORD value that contains the number of seconds the session has been active.
-    uint          sesi2_time;
+    uint  sesi2_time;
     ///Specifies a DWORD value that contains the number of seconds the session has been idle.
-    uint          sesi2_idle_time;
+    uint  sesi2_idle_time;
     ///Specifies a DWORD value that describes how the user established the session. This member can be one of the
     ///following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="SESS_GUEST"></a><a id="sess_guest"></a><dl> <dt><b>SESS_GUEST</b></dt> </dl> </td> <td width="60%"> The user
@@ -9072,7 +8955,7 @@ struct SESSION_INFO_2
     ///width="40%"><a id="SESS_NOENCRYPTION"></a><a id="sess_noencryption"></a><dl> <dt><b>SESS_NOENCRYPTION</b></dt>
     ///</dl> </td> <td width="60%"> The user specified by the <b>sesi2_username</b> member established the session
     ///without using password encryption. </td> </tr> </table>
-    uint          sesi2_user_flags;
+    uint  sesi2_user_flags;
     ///Pointer to a Unicode string that specifies the type of client that established the session. Following are the
     ///defined types for LAN Manager servers. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="DOS_LM_1.0"></a><a id="dos_lm_1.0"></a><dl> <dt><b>DOS LM 1.0</b></dt> </dl> </td> <td width="60%"> LAN
@@ -9083,7 +8966,7 @@ struct SESSION_INFO_2
     ///id="OS_2_LM_2.0"></a><a id="os_2_lm_2.0"></a><dl> <dt><b>OS/2 LM 2.0</b></dt> </dl> </td> <td width="60%"> LAN
     ///Manager for MS-OS/2 2.0 clients </td> </tr> </table> Sessions from LAN Manager servers running UNIX also will
     ///appear as LAN Manager 2.0.
-    const(wchar)* sesi2_cltype_name;
+    PWSTR sesi2_cltype_name;
 }
 
 ///Contains information about the session, including name of the computer; name of the user; and active and idle times
@@ -9092,13 +8975,13 @@ struct SESSION_INFO_10
 {
     ///Pointer to a Unicode string specifying the name of the computer that established the session. This string cannot
     ///contain a backslash (\\).
-    const(wchar)* sesi10_cname;
+    PWSTR sesi10_cname;
     ///Pointer to a Unicode string specifying the name of the user who established the session.
-    const(wchar)* sesi10_username;
+    PWSTR sesi10_username;
     ///Specifies the number of seconds the session has been active.
-    uint          sesi10_time;
+    uint  sesi10_time;
     ///Specifies the number of seconds the session has been idle.
-    uint          sesi10_idle_time;
+    uint  sesi10_idle_time;
 }
 
 ///Contains information about the session, including name of the computer; name of the user; open files, pipes, and
@@ -9107,15 +8990,15 @@ struct SESSION_INFO_502
 {
     ///Pointer to a Unicode string specifying the name of the computer that established the session. This string cannot
     ///contain a backslash (\\).
-    const(wchar)* sesi502_cname;
+    PWSTR sesi502_cname;
     ///Pointer to a Unicode string specifying the name of the user who established the session.
-    const(wchar)* sesi502_username;
+    PWSTR sesi502_username;
     ///Specifies the number of files, devices, and pipes opened during the session.
-    uint          sesi502_num_opens;
+    uint  sesi502_num_opens;
     ///Specifies the number of seconds the session has been active.
-    uint          sesi502_time;
+    uint  sesi502_time;
     ///Specifies the number of seconds the session has been idle.
-    uint          sesi502_idle_time;
+    uint  sesi502_idle_time;
     ///Specifies a value that describes how the user established the session. This member can be one of the following
     ///values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SESS_GUEST"></a><a
     ///id="sess_guest"></a><dl> <dt><b>SESS_GUEST</b></dt> </dl> </td> <td width="60%"> The user specified by the
@@ -9123,7 +9006,7 @@ struct SESSION_INFO_502
     ///id="SESS_NOENCRYPTION"></a><a id="sess_noencryption"></a><dl> <dt><b>SESS_NOENCRYPTION</b></dt> </dl> </td> <td
     ///width="60%"> The user specified by the <b>sesi502_username</b> member established the session without using
     ///password encryption. </td> </tr> </table>
-    uint          sesi502_user_flags;
+    uint  sesi502_user_flags;
     ///Pointer to a Unicode string that specifies the type of client that established the session. Following are the
     ///defined types for LAN Manager servers. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="DOS_LM_1.0"></a><a id="dos_lm_1.0"></a><dl> <dt><b>DOS LM 1.0</b></dt> </dl> </td> <td width="60%"> LAN
@@ -9134,9 +9017,9 @@ struct SESSION_INFO_502
     ///width="40%"><a id="OS_2_LM_2.0"></a><a id="os_2_lm_2.0"></a><dl> <dt><b>OS/2 LM 2.0</b></dt> </dl> </td> <td
     ///width="60%"> LAN Manager for MS-OS/2 2.0 clients. </td> </tr> </table> Sessions from LAN Manager servers running
     ///UNIX also will appear as LAN Manager 2.0.
-    const(wchar)* sesi502_cltype_name;
+    PWSTR sesi502_cltype_name;
     ///Specifies the name of the transport that the client is using to communicate with the server.
-    const(wchar)* sesi502_transport;
+    PWSTR sesi502_transport;
 }
 
 ///Contains the identification number of a connection.
@@ -9151,7 +9034,7 @@ struct CONNECTION_INFO_0
 struct CONNECTION_INFO_1
 {
     ///Specifies a connection identification number.
-    uint          coni1_id;
+    uint  coni1_id;
     ///A combination of values that specify the type of connection made from the local device name to the shared
     ///resource. One of the following values may be specified. You can isolate these values by using the
     ///<b>STYPE_MASK</b> value. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
@@ -9168,25 +9051,25 @@ struct CONNECTION_INFO_1
     ///For more information, see Network Share Functions. </td> </tr> <tr> <td width="40%"><a
     ///id="STYPE_TEMPORARY"></a><a id="stype_temporary"></a><dl> <dt><b>STYPE_TEMPORARY</b></dt> </dl> </td> <td
     ///width="60%"> A temporary share. </td> </tr> </table>
-    uint          coni1_type;
+    uint  coni1_type;
     ///Specifies the number of files currently open as a result of the connection.
-    uint          coni1_num_opens;
+    uint  coni1_num_opens;
     ///Specifies the number of users on the connection.
-    uint          coni1_num_users;
+    uint  coni1_num_users;
     ///Specifies the number of seconds that the connection has been established.
-    uint          coni1_time;
+    uint  coni1_time;
     ///Pointer to a string. If the server sharing the resource is running with user-level security, the
     ///<b>coni1_username</b> member describes which user made the connection. If the server is running with share-level
     ///security, <b>coni1_username</b> describes which computer (computername) made the connection. Note that Windows
     ///does not support share-level security. This string is Unicode if <b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are
     ///defined.
-    const(wchar)* coni1_username;
+    PWSTR coni1_username;
     ///Pointer to a string that specifies either the share name of the server's shared resource or the computername of
     ///the client. The value of this member depends on which name was specified as the <i>qualifier</i> parameter to the
     ///NetConnectionEnum function. The name not specified in the <i>qualifier</i> parameter to <b>NetConnectionEnum</b>
     ///is automatically supplied to <b>coni1_netname</b>. This string is Unicode if <b>_WIN32_WINNT</b> or
     ///<b>FORCE_UNICODE</b> are defined.
-    const(wchar)* coni1_netname;
+    PWSTR coni1_netname;
 }
 
 ///Contains the identification number for a file, device, or pipe.
@@ -9200,7 +9083,7 @@ struct FILE_INFO_2
 struct FILE_INFO_3
 {
     ///Specifies a DWORD value that contains the identification number assigned to the resource when it is opened.
-    uint          fi3_id;
+    uint  fi3_id;
     ///Specifies a DWORD value that contains the access permissions associated with the opening application. This member
     ///can be one or more of the following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td
     ///width="40%"><a id="PERM_FILE_READ"></a><a id="perm_file_read"></a><dl> <dt><b>PERM_FILE_READ</b></dt> </dl> </td>
@@ -9210,30 +9093,30 @@ struct FILE_INFO_3
     ///id="PERM_FILE_CREATE"></a><a id="perm_file_create"></a><dl> <dt><b>PERM_FILE_CREATE</b></dt> </dl> </td> <td
     ///width="60%"> Permission to create a resource; data can be written when creating the resource. </td> </tr>
     ///</table>
-    uint          fi3_permissions;
+    uint  fi3_permissions;
     ///Specifies a DWORD value that contains the number of file locks on the file, device, or pipe.
-    uint          fi3_num_locks;
+    uint  fi3_num_locks;
     ///Pointer to a string that specifies the path of the opened resource. This string is Unicode if <b>_WIN32_WINNT</b>
     ///or <b>FORCE_UNICODE</b> are defined.
-    const(wchar)* fi3_pathname;
+    PWSTR fi3_pathname;
     ///Pointer to a string that specifies which user (on servers that have user-level security) or which computer (on
     ///servers that have share-level security) opened the resource. Note that Windows does not support share-level
     ///security. This string is Unicode if <b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are defined.
-    const(wchar)* fi3_username;
+    PWSTR fi3_username;
 }
 
 struct SERVER_CERTIFICATE_INFO_0
 {
-    const(wchar)* srvci0_name;
-    const(wchar)* srvci0_subject;
-    const(wchar)* srvci0_issuer;
-    const(wchar)* srvci0_thumbprint;
-    const(wchar)* srvci0_friendlyname;
-    const(wchar)* srvci0_notbefore;
-    const(wchar)* srvci0_notafter;
-    const(wchar)* srvci0_storelocation;
-    const(wchar)* srvci0_storename;
-    uint          srvci0_type;
+    PWSTR srvci0_name;
+    PWSTR srvci0_subject;
+    PWSTR srvci0_issuer;
+    PWSTR srvci0_thumbprint;
+    PWSTR srvci0_friendlyname;
+    PWSTR srvci0_notbefore;
+    PWSTR srvci0_notafter;
+    PWSTR srvci0_storelocation;
+    PWSTR srvci0_storename;
+    uint  srvci0_type;
 }
 
 ///Contains statistical information about the specified workstation.
@@ -9368,6 +9251,148 @@ struct STAT_SERVER_0
     uint sts0_bigbufneed;
 }
 
+@RAIIFree!FindCloseChangeNotification
+struct FindChangeNotifcationHandle
+{
+    ptrdiff_t Value;
+}
+
+@RAIIFree!FindClose
+struct FindFileHandle
+{
+    ptrdiff_t Value;
+}
+
+@RAIIFree!FindClose
+struct FindFileNameHandle
+{
+    ptrdiff_t Value;
+}
+
+@RAIIFree!FindClose
+struct FindStreamHandle
+{
+    ptrdiff_t Value;
+}
+
+@RAIIFree!FindVolumeClose
+struct FindVolumeHandle
+{
+    ptrdiff_t Value;
+}
+
+@RAIIFree!FindVolumeMountPointClose
+struct FindVolumeMointPointHandle
+{
+    ptrdiff_t Value;
+}
+
+///Defines a 128-bit file identifier.
+struct FILE_ID_128
+{
+    ///A byte array containing the 128 bit identifier.
+    ubyte[16] Identifier;
+}
+
+///Describes the changes found by the ReadDirectoryChangesW function.
+struct FILE_NOTIFY_INFORMATION
+{
+    ///The number of bytes that must be skipped to get to the next record. A value of zero indicates that this is the
+    ///last record.
+    uint      NextEntryOffset;
+    ///The type of change that has occurred. This member can be one of the following values. <table> <tr> <th>Value</th>
+    ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="FILE_ACTION_ADDED"></a><a id="file_action_added"></a><dl>
+    ///<dt><b>FILE_ACTION_ADDED</b></dt> <dt>0x00000001</dt> </dl> </td> <td width="60%"> The file was added to the
+    ///directory. </td> </tr> <tr> <td width="40%"><a id="FILE_ACTION_REMOVED"></a><a id="file_action_removed"></a><dl>
+    ///<dt><b>FILE_ACTION_REMOVED</b></dt> <dt>0x00000002</dt> </dl> </td> <td width="60%"> The file was removed from
+    ///the directory. </td> </tr> <tr> <td width="40%"><a id="FILE_ACTION_MODIFIED"></a><a
+    ///id="file_action_modified"></a><dl> <dt><b>FILE_ACTION_MODIFIED</b></dt> <dt>0x00000003</dt> </dl> </td> <td
+    ///width="60%"> The file was modified. This can be a change in the time stamp or attributes. </td> </tr> <tr> <td
+    ///width="40%"><a id="FILE_ACTION_RENAMED_OLD_NAME"></a><a id="file_action_renamed_old_name"></a><dl>
+    ///<dt><b>FILE_ACTION_RENAMED_OLD_NAME</b></dt> <dt>0x00000004</dt> </dl> </td> <td width="60%"> The file was
+    ///renamed and this is the old name. </td> </tr> <tr> <td width="40%"><a id="FILE_ACTION_RENAMED_NEW_NAME"></a><a
+    ///id="file_action_renamed_new_name"></a><dl> <dt><b>FILE_ACTION_RENAMED_NEW_NAME</b></dt> <dt>0x00000005</dt> </dl>
+    ///</td> <td width="60%"> The file was renamed and this is the new name. </td> </tr> </table>
+    uint      Action;
+    ///The size of the file name portion of the record, in bytes. Note that this value does not include the terminating
+    ///null character.
+    uint      FileNameLength;
+    ///A variable-length field that contains the file name relative to the directory handle. The file name is in the
+    ///Unicode character format and is not null-terminated. If there is both a short and long name for the file, the
+    ///function will return one of these names, but it is unspecified which one.
+    ushort[1] FileName;
+}
+
+///Describes the changes found by the ReadDirectoryChangesExW function.
+struct FILE_NOTIFY_EXTENDED_INFORMATION
+{
+    ///The number of bytes that must be skipped to get to the next record. A value of zero indicates that this is the
+    ///last record.
+    uint          NextEntryOffset;
+    ///The type of change that has occurred. This member can be one of the following values. <table> <tr> <th>Value</th>
+    ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="FILE_ACTION_ADDED"></a><a id="file_action_added"></a><dl>
+    ///<dt><b>FILE_ACTION_ADDED</b></dt> <dt>0x00000001</dt> </dl> </td> <td width="60%"> The file was added to the
+    ///directory. </td> </tr> <tr> <td width="40%"><a id="FILE_ACTION_REMOVED"></a><a id="file_action_removed"></a><dl>
+    ///<dt><b>FILE_ACTION_REMOVED</b></dt> <dt>0x00000002</dt> </dl> </td> <td width="60%"> The file was removed from
+    ///the directory. </td> </tr> <tr> <td width="40%"><a id="FILE_ACTION_MODIFIED"></a><a
+    ///id="file_action_modified"></a><dl> <dt><b>FILE_ACTION_MODIFIED</b></dt> <dt>0x00000003</dt> </dl> </td> <td
+    ///width="60%"> The file was modified. This can be a change in the time stamp or attributes. </td> </tr> <tr> <td
+    ///width="40%"><a id="FILE_ACTION_RENAMED_OLD_NAME"></a><a id="file_action_renamed_old_name"></a><dl>
+    ///<dt><b>FILE_ACTION_RENAMED_OLD_NAME</b></dt> <dt>0x00000004</dt> </dl> </td> <td width="60%"> The file was
+    ///renamed and this is the old name. </td> </tr> <tr> <td width="40%"><a id="FILE_ACTION_RENAMED_NEW_NAME"></a><a
+    ///id="file_action_renamed_new_name"></a><dl> <dt><b>FILE_ACTION_RENAMED_NEW_NAME</b></dt> <dt>0x00000005</dt> </dl>
+    ///</td> <td width="60%"> The file was renamed and this is the new name. </td> </tr> </table>
+    uint          Action;
+    ///The date and time that the directory or file was created and added to the file system.
+    LARGE_INTEGER CreationTime;
+    ///The date and time that the content of the directory or file was last modified in the file system.
+    LARGE_INTEGER LastModificationTime;
+    ///The date and time that the metadata or content of the directory or file was last changed in the file system.
+    LARGE_INTEGER LastChangeTime;
+    ///The date and time the directory or file was last accessed in the file system.
+    LARGE_INTEGER LastAccessTime;
+    ///The allocated size of the file, in bytes.
+    LARGE_INTEGER AllocatedLength;
+    ///The new size of the directory or file in bytes, or the old size if the size is unchanged.
+    LARGE_INTEGER FileSize;
+    ///The attributes of the directory or file.
+    uint          FileAttributes;
+    ///The identifier tag of a reparse point for the directory or file.
+    uint          ReparsePointTag;
+    ///The identifier of the directory or file.
+    LARGE_INTEGER FileId;
+    ///The identifier of the parent directory for the file.
+    LARGE_INTEGER ParentFileId;
+    ///The size of the file name portion of the record, in bytes. This value does not include a terminating null
+    ///character.
+    uint          FileNameLength;
+    ///A variable-length field that contains the file name relative to the directory handle. The file name is in the
+    ///Unicode character format and is not null-terminated. If there is both a short and long name for the file, the
+    ///function will return one of these names, but it is unspecified which one.
+    ushort[1]     FileName;
+}
+
+///Contains information about a reparse point. It is used by the FSCTL_GET_REPARSE_POINT control code.
+struct REPARSE_GUID_DATA_BUFFER
+{
+    ///The reparse point tag. This member identifies the structure of the user-defined reparse data. For more
+    ///information, see Reparse Point Tags.
+    uint   ReparseTag;
+    ///The size of the reparse data in the <b>DataBuffer</b> member, in bytes. This value may vary with different tags
+    ///and may vary between two uses of the same tag.
+    ushort ReparseDataLength;
+    ///Reserved; do not use.
+    ushort Reserved;
+    ///A <b>GUID</b> that uniquely identifies the reparse point. When setting a reparse point, the application must
+    ///provide a non-NULL <b>GUID</b> in the <b>ReparseGuid</b> member. When retrieving a reparse point from the file
+    ///system, <b>ReparseGuid</b> is the <b>GUID</b> assigned when the reparse point was set.
+    GUID   ReparseGuid;
+struct GenericReparseBuffer
+    {
+        ubyte[1] DataBuffer;
+    }
+}
+
 ///Contains information about a file that the OpenFile function opened or attempted to open.
 struct OFSTRUCT
 {
@@ -9416,9 +9441,9 @@ struct COPYFILE2_MESSAGE
     ///</table>
     COPYFILE2_MESSAGE_TYPE Type;
     uint dwPadding;
-    union Info
+union Info
     {
-        struct ChunkStarted
+struct ChunkStarted
         {
             uint           dwStreamNumber;
             uint           dwReserved;
@@ -9429,7 +9454,7 @@ struct COPYFILE2_MESSAGE
             ULARGE_INTEGER uliStreamSize;
             ULARGE_INTEGER uliTotalFileSize;
         }
-        struct ChunkFinished
+struct ChunkFinished
         {
             uint           dwStreamNumber;
             uint           dwFlags;
@@ -9442,7 +9467,7 @@ struct COPYFILE2_MESSAGE
             ULARGE_INTEGER uliTotalFileSize;
             ULARGE_INTEGER uliTotalBytesTransferred;
         }
-        struct StreamStarted
+struct StreamStarted
         {
             uint           dwStreamNumber;
             uint           dwReserved;
@@ -9451,7 +9476,7 @@ struct COPYFILE2_MESSAGE
             ULARGE_INTEGER uliStreamSize;
             ULARGE_INTEGER uliTotalFileSize;
         }
-        struct StreamFinished
+struct StreamFinished
         {
             uint           dwStreamNumber;
             uint           dwReserved;
@@ -9462,11 +9487,11 @@ struct COPYFILE2_MESSAGE
             ULARGE_INTEGER uliTotalFileSize;
             ULARGE_INTEGER uliTotalBytesTransferred;
         }
-        struct PollContinue
+struct PollContinue
         {
             uint dwReserved;
         }
-        struct Error
+struct Error
         {
             COPYFILE2_COPY_PHASE CopyPhase;
             uint                 dwStreamNumber;
@@ -9525,7 +9550,7 @@ struct COPYFILE2_EXTENDED_PARAMETERS
     ///file will be fully copied. </td> </tr> </table>
     uint  dwCopyFlags;
     ///If this flag is set to <b>TRUE</b> during the copy operation then the copy operation is canceled.
-    int*  pfCancel;
+    BOOL* pfCancel;
     ///The optional address of a callback function of type <b>PCOPYFILE2_PROGRESS_ROUTINE</b> that is called each time
     ///another portion of the file has been copied. This parameter can be <b>NULL</b>. For more information on the
     ///progress callback function, see the CopyFile2ProgressRoutine callback function.
@@ -9579,7 +9604,7 @@ struct FILE_NAME_INFO
 ///Contains the name to which the file should be renamed. Use only when calling SetFileInformationByHandle.
 struct FILE_RENAME_INFO
 {
-    union
+union
     {
         ubyte ReplaceIfExists;
         uint  Flags;
@@ -9943,19 +9968,19 @@ struct FILE_REMOTE_PROTOCOL_INFO
     ///member is 2 or higher. <b>Windows 7 and Windows Server 2008 R2: </b>This flag is not supported before Windows 8
     ///and Windows Server 2012. </td> </tr> </table>
     uint   Flags;
-    struct GenericReserved
+struct GenericReserved
     {
         uint[8] Reserved;
     }
-    union ProtocolSpecific
+union ProtocolSpecific
     {
-        struct Smb2
+struct Smb2
         {
-            struct Server
+struct Server
             {
                 uint Capabilities;
             }
-            struct Share
+struct Share
             {
                 uint Capabilities;
                 uint CachingFlags;
@@ -9981,7 +10006,7 @@ struct FILE_ID_DESCRIPTOR
     ///2003, Windows Vista, Windows Server 2008, Windows 7 and Windows Server 2008 R2: </b>This value is not supported
     ///before Windows 8 and Windows Server 2012. </td> </tr> </table>
     FILE_ID_TYPE Type;
-    union
+union
     {
         LARGE_INTEGER FileId;
         GUID          ObjectId;
@@ -10017,7 +10042,7 @@ struct FILE_ID_DESCRIPTOR
 ///    exist; this function will only create the final directory in the path. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-BOOL CreateDirectoryA(const(char)* lpPathName, SECURITY_ATTRIBUTES* lpSecurityAttributes);
+BOOL CreateDirectoryA(const(PSTR) lpPathName, SECURITY_ATTRIBUTES* lpSecurityAttributes);
 
 ///Creates a new directory. If the underlying file system supports security on files and directories, the function
 ///applies a specified security descriptor to the new directory. To specify a template directory, use the
@@ -10045,7 +10070,7 @@ BOOL CreateDirectoryA(const(char)* lpPathName, SECURITY_ATTRIBUTES* lpSecurityAt
 ///    exist; this function will only create the final directory in the path. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-BOOL CreateDirectoryW(const(wchar)* lpPathName, SECURITY_ATTRIBUTES* lpSecurityAttributes);
+BOOL CreateDirectoryW(const(PWSTR) lpPathName, SECURITY_ATTRIBUTES* lpSecurityAttributes);
 
 ///Creates or opens a file or I/O device. The most commonly used I/O devices are as follows: file, file stream,
 ///directory, physical disk, volume, console buffer, tape drive, communications resource, mailslot, and pipe. The
@@ -10183,7 +10208,7 @@ BOOL CreateDirectoryW(const(wchar)* lpPathName, SECURITY_ATTRIBUTES* lpSecurityA
 ///    call GetLastError.
 ///    
 @DllImport("KERNEL32")
-HANDLE CreateFileA(const(char)* lpFileName, FILE_ACCESS_FLAGS dwDesiredAccess, FILE_SHARE_FLAGS dwShareMode, 
+HANDLE CreateFileA(const(PSTR) lpFileName, FILE_ACCESS_FLAGS dwDesiredAccess, FILE_SHARE_FLAGS dwShareMode, 
                    SECURITY_ATTRIBUTES* lpSecurityAttributes, FILE_CREATE_FLAGS dwCreationDisposition, 
                    FILE_FLAGS_AND_ATTRIBUTES dwFlagsAndAttributes, HANDLE hTemplateFile);
 
@@ -10323,7 +10348,7 @@ HANDLE CreateFileA(const(char)* lpFileName, FILE_ACCESS_FLAGS dwDesiredAccess, F
 ///    call GetLastError.
 ///    
 @DllImport("KERNEL32")
-HANDLE CreateFileW(const(wchar)* lpFileName, FILE_ACCESS_FLAGS dwDesiredAccess, FILE_SHARE_FLAGS dwShareMode, 
+HANDLE CreateFileW(const(PWSTR) lpFileName, FILE_ACCESS_FLAGS dwDesiredAccess, FILE_SHARE_FLAGS dwShareMode, 
                    SECURITY_ATTRIBUTES* lpSecurityAttributes, FILE_CREATE_FLAGS dwCreationDisposition, 
                    FILE_FLAGS_AND_ATTRIBUTES dwFlagsAndAttributes, HANDLE hTemplateFile);
 
@@ -10361,7 +10386,7 @@ HANDLE CreateFileW(const(wchar)* lpFileName, FILE_ACCESS_FLAGS dwDesiredAccess, 
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL DefineDosDeviceW(DEFINE_DOS_DEVICE_FLAGS dwFlags, const(wchar)* lpDeviceName, const(wchar)* lpTargetPath);
+BOOL DefineDosDeviceW(DEFINE_DOS_DEVICE_FLAGS dwFlags, const(PWSTR) lpDeviceName, const(PWSTR) lpTargetPath);
 
 ///Deletes an existing file. To perform this operation as a transacted operation, use the DeleteFileTransacted function.
 ///Params:
@@ -10376,7 +10401,7 @@ BOOL DefineDosDeviceW(DEFINE_DOS_DEVICE_FLAGS dwFlags, const(wchar)* lpDeviceNam
 ///    get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL DeleteFileA(const(char)* lpFileName);
+BOOL DeleteFileA(const(PSTR) lpFileName);
 
 ///Deletes an existing file. To perform this operation as a transacted operation, use the DeleteFileTransacted function.
 ///Params:
@@ -10391,7 +10416,7 @@ BOOL DeleteFileA(const(char)* lpFileName);
 ///    get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL DeleteFileW(const(wchar)* lpFileName);
+BOOL DeleteFileW(const(PWSTR) lpFileName);
 
 ///Deletes a drive letter or mounted folder.
 ///Params:
@@ -10402,7 +10427,7 @@ BOOL DeleteFileW(const(wchar)* lpFileName);
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL DeleteVolumeMountPointW(const(wchar)* lpszVolumeMountPoint);
+BOOL DeleteVolumeMountPointW(const(PWSTR) lpszVolumeMountPoint);
 
 ///Closes a file search handle opened by the FindFirstFile, FindFirstFileEx, FindFirstFileNameW,
 ///FindFirstFileNameTransactedW, FindFirstFileTransacted, FindFirstStreamTransactedW, or FindFirstStreamW functions.
@@ -10469,7 +10494,7 @@ BOOL FindCloseChangeNotification(FindChangeNotifcationHandle hChangeHandle);
 ///    fails, the return value is <b>INVALID_HANDLE_VALUE</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-FindChangeNotifcationHandle FindFirstChangeNotificationA(const(char)* lpPathName, BOOL bWatchSubtree, 
+FindChangeNotifcationHandle FindFirstChangeNotificationA(const(PSTR) lpPathName, BOOL bWatchSubtree, 
                                                          FILE_NOTIFY_CHANGE dwNotifyFilter);
 
 ///Creates a change notification handle and sets up initial change notification filter conditions. A wait on a
@@ -10516,7 +10541,7 @@ FindChangeNotifcationHandle FindFirstChangeNotificationA(const(char)* lpPathName
 ///    fails, the return value is <b>INVALID_HANDLE_VALUE</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-FindChangeNotifcationHandle FindFirstChangeNotificationW(const(wchar)* lpPathName, BOOL bWatchSubtree, 
+FindChangeNotifcationHandle FindFirstChangeNotificationW(const(PWSTR) lpPathName, BOOL bWatchSubtree, 
                                                          uint dwNotifyFilter);
 
 ///Searches a directory for a file or subdirectory with a name that matches a specific name (or partial name if
@@ -10543,7 +10568,7 @@ FindChangeNotifcationHandle FindFirstChangeNotificationW(const(wchar)* lpPathNam
 ///    be found, the GetLastError function returns <b>ERROR_FILE_NOT_FOUND</b>.
 ///    
 @DllImport("KERNEL32")
-FindFileHandle FindFirstFileA(const(char)* lpFileName, WIN32_FIND_DATAA* lpFindFileData);
+FindFileHandle FindFirstFileA(const(PSTR) lpFileName, WIN32_FIND_DATAA* lpFindFileData);
 
 ///Searches a directory for a file or subdirectory with a name that matches a specific name (or partial name if
 ///wildcards are used). To specify additional attributes to use in a search, use the FindFirstFileEx function. To
@@ -10569,7 +10594,7 @@ FindFileHandle FindFirstFileA(const(char)* lpFileName, WIN32_FIND_DATAA* lpFindF
 ///    be found, the GetLastError function returns <b>ERROR_FILE_NOT_FOUND</b>.
 ///    
 @DllImport("KERNEL32")
-FindFileHandle FindFirstFileW(const(wchar)* lpFileName, WIN32_FIND_DATAW* lpFindFileData);
+FindFileHandle FindFirstFileW(const(PWSTR) lpFileName, WIN32_FIND_DATAW* lpFindFileData);
 
 ///Searches a directory for a file or subdirectory with a name and attributes that match those specified. For the most
 ///basic version of this function, see FindFirstFile. To perform this operation as a transacted operation, use the
@@ -10613,7 +10638,7 @@ FindFileHandle FindFirstFileW(const(wchar)* lpFileName, WIN32_FIND_DATAW* lpFind
 ///    extended error information, call the GetLastError function.
 ///    
 @DllImport("KERNEL32")
-FindFileHandle FindFirstFileExA(const(char)* lpFileName, FINDEX_INFO_LEVELS fInfoLevelId, char* lpFindFileData, 
+FindFileHandle FindFirstFileExA(const(PSTR) lpFileName, FINDEX_INFO_LEVELS fInfoLevelId, void* lpFindFileData, 
                                 FINDEX_SEARCH_OPS fSearchOp, void* lpSearchFilter, 
                                 FIND_FIRST_EX_FLAGS dwAdditionalFlags);
 
@@ -10659,7 +10684,7 @@ FindFileHandle FindFirstFileExA(const(char)* lpFileName, FINDEX_INFO_LEVELS fInf
 ///    extended error information, call the GetLastError function.
 ///    
 @DllImport("KERNEL32")
-FindFileHandle FindFirstFileExW(const(wchar)* lpFileName, FINDEX_INFO_LEVELS fInfoLevelId, char* lpFindFileData, 
+FindFileHandle FindFirstFileExW(const(PWSTR) lpFileName, FINDEX_INFO_LEVELS fInfoLevelId, void* lpFindFileData, 
                                 FINDEX_SEARCH_OPS fSearchOp, void* lpSearchFilter, 
                                 FIND_FIRST_EX_FLAGS dwAdditionalFlags);
 
@@ -10675,7 +10700,7 @@ FindFileHandle FindFirstFileExW(const(wchar)* lpFileName, FINDEX_INFO_LEVELS fIn
 ///    <b>INVALID_HANDLE_VALUE</b> error code. To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-FindVolumeHandle FindFirstVolumeW(const(wchar)* lpszVolumeName, uint cchBufferLength);
+FindVolumeHandle FindFirstVolumeW(PWSTR lpszVolumeName, uint cchBufferLength);
 
 ///Requests that the operating system signal a change notification handle the next time it detects an appropriate
 ///change.
@@ -10731,7 +10756,7 @@ BOOL FindNextFileW(HANDLE hFindFile, WIN32_FIND_DATAW* lpFindFileData);
 ///    FindVolumeClose function.
 ///    
 @DllImport("KERNEL32")
-BOOL FindNextVolumeW(FindVolumeHandle hFindVolume, const(wchar)* lpszVolumeName, uint cchBufferLength);
+BOOL FindNextVolumeW(FindVolumeHandle hFindVolume, PWSTR lpszVolumeName, uint cchBufferLength);
 
 ///Closes the specified volume search handle. The FindFirstVolume and FindNextVolume functions use this search handle to
 ///locate volumes.
@@ -10779,7 +10804,7 @@ BOOL FlushFileBuffers(HANDLE hFile);
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL GetDiskFreeSpaceA(const(char)* lpRootPathName, uint* lpSectorsPerCluster, uint* lpBytesPerSector, 
+BOOL GetDiskFreeSpaceA(const(PSTR) lpRootPathName, uint* lpSectorsPerCluster, uint* lpBytesPerSector, 
                        uint* lpNumberOfFreeClusters, uint* lpTotalNumberOfClusters);
 
 ///Retrieves information about the specified disk, including the amount of free space on the disk.
@@ -10801,7 +10826,7 @@ BOOL GetDiskFreeSpaceA(const(char)* lpRootPathName, uint* lpSectorsPerCluster, u
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL GetDiskFreeSpaceW(const(wchar)* lpRootPathName, uint* lpSectorsPerCluster, uint* lpBytesPerSector, 
+BOOL GetDiskFreeSpaceW(const(PWSTR) lpRootPathName, uint* lpSectorsPerCluster, uint* lpBytesPerSector, 
                        uint* lpNumberOfFreeClusters, uint* lpTotalNumberOfClusters);
 
 ///Retrieves information about the amount of space that is available on a disk volume, which is the total amount of
@@ -10826,7 +10851,7 @@ BOOL GetDiskFreeSpaceW(const(wchar)* lpRootPathName, uint* lpSectorsPerCluster, 
 ///    get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL GetDiskFreeSpaceExA(const(char)* lpDirectoryName, ULARGE_INTEGER* lpFreeBytesAvailableToCaller, 
+BOOL GetDiskFreeSpaceExA(const(PSTR) lpDirectoryName, ULARGE_INTEGER* lpFreeBytesAvailableToCaller, 
                          ULARGE_INTEGER* lpTotalNumberOfBytes, ULARGE_INTEGER* lpTotalNumberOfFreeBytes);
 
 ///Retrieves information about the amount of space that is available on a disk volume, which is the total amount of
@@ -10851,38 +10876,14 @@ BOOL GetDiskFreeSpaceExA(const(char)* lpDirectoryName, ULARGE_INTEGER* lpFreeByt
 ///    get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL GetDiskFreeSpaceExW(const(wchar)* lpDirectoryName, ULARGE_INTEGER* lpFreeBytesAvailableToCaller, 
+BOOL GetDiskFreeSpaceExW(const(PWSTR) lpDirectoryName, ULARGE_INTEGER* lpFreeBytesAvailableToCaller, 
                          ULARGE_INTEGER* lpTotalNumberOfBytes, ULARGE_INTEGER* lpTotalNumberOfFreeBytes);
 
 @DllImport("KERNEL32")
-HRESULT GetDiskSpaceInformationA(const(char)* rootPath, DISK_SPACE_INFORMATION* diskSpaceInfo);
+HRESULT GetDiskSpaceInformationA(const(PSTR) rootPath, DISK_SPACE_INFORMATION* diskSpaceInfo);
 
 @DllImport("KERNEL32")
-HRESULT GetDiskSpaceInformationW(const(wchar)* rootPath, DISK_SPACE_INFORMATION* diskSpaceInfo);
-
-///Determines whether a disk drive is a removable, fixed, CD-ROM, RAM disk, or network drive. To determine whether a
-///drive is a USB-type drive, call SetupDiGetDeviceRegistryProperty and specify the <b>SPDRP_REMOVAL_POLICY</b>
-///property.
-///Params:
-///    lpRootPathName = The root directory for the drive. A trailing backslash is required. If this parameter is <b>NULL</b>, the
-///                     function uses the root of the current directory.
-///Returns:
-///    The return value specifies the type of drive, which can be one of the following values. <table> <tr> <th>Return
-///    code/value</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>DRIVE_UNKNOWN</b></dt> <dt>0</dt>
-///    </dl> </td> <td width="60%"> The drive type cannot be determined. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>DRIVE_NO_ROOT_DIR</b></dt> <dt>1</dt> </dl> </td> <td width="60%"> The root path is invalid; for example,
-///    there is no volume mounted at the specified path. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>DRIVE_REMOVABLE</b></dt> <dt>2</dt> </dl> </td> <td width="60%"> The drive has removable media; for
-///    example, a floppy drive, thumb drive, or flash card reader. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>DRIVE_FIXED</b></dt> <dt>3</dt> </dl> </td> <td width="60%"> The drive has fixed media; for example, a
-///    hard disk drive or flash drive. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>DRIVE_REMOTE</b></dt> <dt>4</dt>
-///    </dl> </td> <td width="60%"> The drive is a remote (network) drive. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>DRIVE_CDROM</b></dt> <dt>5</dt> </dl> </td> <td width="60%"> The drive is a CD-ROM drive. </td> </tr> <tr>
-///    <td width="40%"> <dl> <dt><b>DRIVE_RAMDISK</b></dt> <dt>6</dt> </dl> </td> <td width="60%"> The drive is a RAM
-///    disk. </td> </tr> </table>
-///    
-@DllImport("KERNEL32")
-uint GetDriveTypeA(const(char)* lpRootPathName);
+HRESULT GetDiskSpaceInformationW(const(PWSTR) rootPath, DISK_SPACE_INFORMATION* diskSpaceInfo);
 
 ///Determines whether a disk drive is a removable, fixed, CD-ROM, RAM disk, or network drive. To determine whether a
 ///drive is a USB-type drive, call SetupDiGetDeviceRegistryProperty and specify the <b>SPDRP_REMOVAL_POLICY</b>
@@ -10906,7 +10907,31 @@ uint GetDriveTypeA(const(char)* lpRootPathName);
 ///    disk. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-uint GetDriveTypeW(const(wchar)* lpRootPathName);
+uint GetDriveTypeA(const(PSTR) lpRootPathName);
+
+///Determines whether a disk drive is a removable, fixed, CD-ROM, RAM disk, or network drive. To determine whether a
+///drive is a USB-type drive, call SetupDiGetDeviceRegistryProperty and specify the <b>SPDRP_REMOVAL_POLICY</b>
+///property.
+///Params:
+///    lpRootPathName = The root directory for the drive. A trailing backslash is required. If this parameter is <b>NULL</b>, the
+///                     function uses the root of the current directory.
+///Returns:
+///    The return value specifies the type of drive, which can be one of the following values. <table> <tr> <th>Return
+///    code/value</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>DRIVE_UNKNOWN</b></dt> <dt>0</dt>
+///    </dl> </td> <td width="60%"> The drive type cannot be determined. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>DRIVE_NO_ROOT_DIR</b></dt> <dt>1</dt> </dl> </td> <td width="60%"> The root path is invalid; for example,
+///    there is no volume mounted at the specified path. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>DRIVE_REMOVABLE</b></dt> <dt>2</dt> </dl> </td> <td width="60%"> The drive has removable media; for
+///    example, a floppy drive, thumb drive, or flash card reader. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>DRIVE_FIXED</b></dt> <dt>3</dt> </dl> </td> <td width="60%"> The drive has fixed media; for example, a
+///    hard disk drive or flash drive. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>DRIVE_REMOTE</b></dt> <dt>4</dt>
+///    </dl> </td> <td width="60%"> The drive is a remote (network) drive. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>DRIVE_CDROM</b></dt> <dt>5</dt> </dl> </td> <td width="60%"> The drive is a CD-ROM drive. </td> </tr> <tr>
+///    <td width="40%"> <dl> <dt><b>DRIVE_RAMDISK</b></dt> <dt>6</dt> </dl> </td> <td width="60%"> The drive is a RAM
+///    disk. </td> </tr> </table>
+///    
+@DllImport("KERNEL32")
+uint GetDriveTypeW(const(PWSTR) lpRootPathName);
 
 ///Retrieves file system attributes for a specified file or directory. To get more attribute information, use the
 ///GetFileAttributesEx function. To perform this operation as a transacted operation, use the
@@ -10925,7 +10950,7 @@ uint GetDriveTypeW(const(wchar)* lpRootPathName);
 ///    is <b>INVALID_FILE_ATTRIBUTES</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-uint GetFileAttributesA(const(char)* lpFileName);
+uint GetFileAttributesA(const(PSTR) lpFileName);
 
 ///Retrieves file system attributes for a specified file or directory. To get more attribute information, use the
 ///GetFileAttributesEx function. To perform this operation as a transacted operation, use the
@@ -10944,7 +10969,7 @@ uint GetFileAttributesA(const(char)* lpFileName);
 ///    is <b>INVALID_FILE_ATTRIBUTES</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-uint GetFileAttributesW(const(wchar)* lpFileName);
+uint GetFileAttributesW(const(PWSTR) lpFileName);
 
 ///Retrieves attributes for a specified file or directory. To perform this operation as a transacted operation, use the
 ///GetFileAttributesTransacted function.
@@ -10968,7 +10993,7 @@ uint GetFileAttributesW(const(wchar)* lpFileName);
 ///    (0). To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL GetFileAttributesExA(const(char)* lpFileName, GET_FILEEX_INFO_LEVELS fInfoLevelId, char* lpFileInformation);
+BOOL GetFileAttributesExA(const(PSTR) lpFileName, GET_FILEEX_INFO_LEVELS fInfoLevelId, void* lpFileInformation);
 
 ///Retrieves attributes for a specified file or directory. To perform this operation as a transacted operation, use the
 ///GetFileAttributesTransacted function.
@@ -10992,7 +11017,7 @@ BOOL GetFileAttributesExA(const(char)* lpFileName, GET_FILEEX_INFO_LEVELS fInfoL
 ///    (0). To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL GetFileAttributesExW(const(wchar)* lpFileName, GET_FILEEX_INFO_LEVELS fInfoLevelId, char* lpFileInformation);
+BOOL GetFileAttributesExW(const(PWSTR) lpFileName, GET_FILEEX_INFO_LEVELS fInfoLevelId, void* lpFileInformation);
 
 ///Retrieves file information for the specified file. For a more advanced version of this function, see
 ///GetFileInformationByHandleEx. To set file information using a file handle, see SetFileInformationByHandle.
@@ -11100,7 +11125,7 @@ uint GetFileType(HANDLE hFile);
 ///    width="60%"> Invalid flags were specified for <i>dwFlags</i>. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-uint GetFinalPathNameByHandleA(HANDLE hFile, const(char)* lpszFilePath, uint cchFilePath, uint dwFlags);
+uint GetFinalPathNameByHandleA(HANDLE hFile, PSTR lpszFilePath, uint cchFilePath, uint dwFlags);
 
 ///Retrieves the final path for the specified file. For more information about file and path names, see Naming a File.
 ///Params:
@@ -11142,7 +11167,7 @@ uint GetFinalPathNameByHandleA(HANDLE hFile, const(char)* lpszFilePath, uint cch
 ///    width="60%"> Invalid flags were specified for <i>dwFlags</i>. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-uint GetFinalPathNameByHandleW(HANDLE hFile, const(wchar)* lpszFilePath, uint cchFilePath, uint dwFlags);
+uint GetFinalPathNameByHandleW(HANDLE hFile, PWSTR lpszFilePath, uint cchFilePath, uint dwFlags);
 
 ///Retrieves the full path and file name of the specified file. To perform this operation as a transacted operation, use
 ///the GetFullPathNameTransacted function. For more information about file and path names, see File Names, Paths, and
@@ -11169,7 +11194,7 @@ uint GetFinalPathNameByHandleW(HANDLE hFile, const(wchar)* lpszFilePath, uint cc
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-uint GetFullPathNameW(const(wchar)* lpFileName, uint nBufferLength, const(wchar)* lpBuffer, ushort** lpFilePart);
+uint GetFullPathNameW(const(PWSTR) lpFileName, uint nBufferLength, PWSTR lpBuffer, PWSTR* lpFilePart);
 
 ///Retrieves the full path and file name of the specified file. To perform this operation as a transacted operation, use
 ///the GetFullPathNameTransacted function. For more information about file and path names, see File Names, Paths, and
@@ -11196,7 +11221,7 @@ uint GetFullPathNameW(const(wchar)* lpFileName, uint nBufferLength, const(wchar)
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-uint GetFullPathNameA(const(char)* lpFileName, uint nBufferLength, const(char)* lpBuffer, byte** lpFilePart);
+uint GetFullPathNameA(const(PSTR) lpFileName, uint nBufferLength, PSTR lpBuffer, PSTR* lpFilePart);
 
 ///Retrieves a bitmask representing the currently available disk drives.
 ///Returns:
@@ -11221,7 +11246,7 @@ uint GetLogicalDrives();
 ///    return value is zero. To get extended error information, use the GetLastError function.
 ///    
 @DllImport("KERNEL32")
-uint GetLogicalDriveStringsW(uint nBufferLength, const(wchar)* lpBuffer);
+uint GetLogicalDriveStringsW(uint nBufferLength, PWSTR lpBuffer);
 
 ///Converts the specified path to its long form. To perform this operation as a transacted operation, use the
 ///GetLongPathNameTransacted function. For more information about file and path names, see Naming Files, Paths, and
@@ -11245,7 +11270,7 @@ uint GetLogicalDriveStringsW(uint nBufferLength, const(wchar)* lpBuffer);
 ///    exist, the return value is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-uint GetLongPathNameA(const(char)* lpszShortPath, const(char)* lpszLongPath, uint cchBuffer);
+uint GetLongPathNameA(const(PSTR) lpszShortPath, PSTR lpszLongPath, uint cchBuffer);
 
 ///Converts the specified path to its long form. To perform this operation as a transacted operation, use the
 ///GetLongPathNameTransacted function. For more information about file and path names, see Naming Files, Paths, and
@@ -11270,7 +11295,7 @@ uint GetLongPathNameA(const(char)* lpszShortPath, const(char)* lpszLongPath, uin
 ///    exist, the return value is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-uint GetLongPathNameW(const(wchar)* lpszShortPath, const(wchar)* lpszLongPath, uint cchBuffer);
+uint GetLongPathNameW(const(PWSTR) lpszShortPath, PWSTR lpszLongPath, uint cchBuffer);
 
 ///Retrieves the short path form of the specified path. For more information about file and path names, see Naming
 ///Files, Paths, and Namespaces.
@@ -11291,7 +11316,7 @@ uint GetLongPathNameW(const(wchar)* lpszShortPath, const(wchar)* lpszLongPath, u
 ///    zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-uint GetShortPathNameW(const(wchar)* lpszLongPath, const(wchar)* lpszShortPath, uint cchBuffer);
+uint GetShortPathNameW(const(PWSTR) lpszLongPath, PWSTR lpszShortPath, uint cchBuffer);
 
 ///Creates a name for a temporary file. If a unique file name is generated, an empty file is created and the handle to
 ///it is released; otherwise, only a file name is generated.
@@ -11317,8 +11342,7 @@ uint GetShortPathNameW(const(wchar)* lpszLongPath, const(wchar)* lpszShortPath, 
 ///    <i>lpPathName</i> parameter is more than <b>MAX_PATH</b>–14 characters. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-uint GetTempFileNameW(const(wchar)* lpPathName, const(wchar)* lpPrefixString, uint uUnique, 
-                      const(wchar)* lpTempFileName);
+uint GetTempFileNameW(const(PWSTR) lpPathName, const(PWSTR) lpPrefixString, uint uUnique, PWSTR lpTempFileName);
 
 ///Retrieves information about the file system and volume associated with the specified file. To retrieve the current
 ///compression state of a file or directory, use FSCTL_GET_COMPRESSION.
@@ -11409,10 +11433,9 @@ uint GetTempFileNameW(const(wchar)* lpPathName, const(wchar)* lpPrefixString, ui
 ///    is retrieved, the return value is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL GetVolumeInformationByHandleW(HANDLE hFile, const(wchar)* lpVolumeNameBuffer, uint nVolumeNameSize, 
+BOOL GetVolumeInformationByHandleW(HANDLE hFile, PWSTR lpVolumeNameBuffer, uint nVolumeNameSize, 
                                    uint* lpVolumeSerialNumber, uint* lpMaximumComponentLength, 
-                                   uint* lpFileSystemFlags, const(wchar)* lpFileSystemNameBuffer, 
-                                   uint nFileSystemNameSize);
+                                   uint* lpFileSystemFlags, PWSTR lpFileSystemNameBuffer, uint nFileSystemNameSize);
 
 ///Retrieves information about the file system and volume associated with the specified root directory. To specify a
 ///handle when retrieving this information, use the GetVolumeInformationByHandleW function. To retrieve the current
@@ -11513,9 +11536,9 @@ BOOL GetVolumeInformationByHandleW(HANDLE hFile, const(wchar)* lpVolumeNameBuffe
 ///    is retrieved, the return value is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL GetVolumeInformationW(const(wchar)* lpRootPathName, const(wchar)* lpVolumeNameBuffer, uint nVolumeNameSize, 
+BOOL GetVolumeInformationW(const(PWSTR) lpRootPathName, PWSTR lpVolumeNameBuffer, uint nVolumeNameSize, 
                            uint* lpVolumeSerialNumber, uint* lpMaximumComponentLength, uint* lpFileSystemFlags, 
-                           const(wchar)* lpFileSystemNameBuffer, uint nFileSystemNameSize);
+                           PWSTR lpFileSystemNameBuffer, uint nFileSystemNameSize);
 
 ///Retrieves the volume mount point where the specified path is mounted.
 ///Params:
@@ -11531,7 +11554,7 @@ BOOL GetVolumeInformationW(const(wchar)* lpRootPathName, const(wchar)* lpVolumeN
 ///    [GetLastError](/windows/desktop/api/errhandlingapi/nf-errhandlingapi-getlasterror).
 ///    
 @DllImport("KERNEL32")
-BOOL GetVolumePathNameW(const(wchar)* lpszFileName, const(wchar)* lpszVolumePathName, uint cchBufferLength);
+BOOL GetVolumePathNameW(const(PWSTR) lpszFileName, PWSTR lpszVolumePathName, uint cchBufferLength);
 
 ///Locks the specified file for exclusive access by the calling process. To specify additional options, for example
 ///creating a shared lock or for block-on-fail operation, use the LockFileEx function.
@@ -11603,7 +11626,7 @@ BOOL LockFileEx(HANDLE hFile, uint dwFlags, uint dwReserved, uint nNumberOfBytes
 ///    <b>ERROR_INSUFFICIENT_BUFFER</b>.
 ///    
 @DllImport("KERNEL32")
-uint QueryDosDeviceW(const(wchar)* lpDeviceName, const(wchar)* lpTargetPath, uint ucchMax);
+uint QueryDosDeviceW(const(PWSTR) lpDeviceName, PWSTR lpTargetPath, uint ucchMax);
 
 ///Reads data from the specified file or input/output (I/O) device. Reads occur at the position specified by the file
 ///pointer if supported by the device. This function is designed for both synchronous and asynchronous operations. For a
@@ -11639,7 +11662,7 @@ uint QueryDosDeviceW(const(wchar)* lpDeviceName, const(wchar)* lpTargetPath, uin
 ///    <div> </div>
 ///    
 @DllImport("KERNEL32")
-BOOL ReadFile(HANDLE hFile, char* lpBuffer, uint nNumberOfBytesToRead, uint* lpNumberOfBytesRead, 
+BOOL ReadFile(HANDLE hFile, void* lpBuffer, uint nNumberOfBytesToRead, uint* lpNumberOfBytesRead, 
               OVERLAPPED* lpOverlapped);
 
 ///Reads data from the specified file or input/output (I/O) device. It reports its completion status asynchronously,
@@ -11680,7 +11703,7 @@ BOOL ReadFile(HANDLE hFile, char* lpBuffer, uint nNumberOfBytesToRead, uint* lpN
 ///    GetOverlappedResult for that operation returns <b>FALSE</b> and GetLastError returns <b>ERROR_HANDLE_EOF</b>.
 ///    
 @DllImport("KERNEL32")
-BOOL ReadFileEx(HANDLE hFile, char* lpBuffer, uint nNumberOfBytesToRead, OVERLAPPED* lpOverlapped, 
+BOOL ReadFileEx(HANDLE hFile, void* lpBuffer, uint nNumberOfBytesToRead, OVERLAPPED* lpOverlapped, 
                 LPOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine);
 
 ///Reads data from a file and stores it in an array of buffers. The function starts reading data from the file at a
@@ -11738,7 +11761,7 @@ BOOL ReadFileScatter(HANDLE hFile, FILE_SEGMENT_ELEMENT* aSegmentArray, uint nNu
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL RemoveDirectoryA(const(char)* lpPathName);
+BOOL RemoveDirectoryA(const(PSTR) lpPathName);
 
 ///Deletes an existing empty directory. To perform this operation as a transacted operation, use the
 ///RemoveDirectoryTransacted function.
@@ -11755,7 +11778,7 @@ BOOL RemoveDirectoryA(const(char)* lpPathName);
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL RemoveDirectoryW(const(wchar)* lpPathName);
+BOOL RemoveDirectoryW(const(PWSTR) lpPathName);
 
 ///Sets the physical file size for the specified file to the current position of the file pointer. The physical file
 ///size is also referred to as the end of the file. The <b>SetEndOfFile</b> function can be used to truncate or extend a
@@ -11818,7 +11841,7 @@ BOOL SetEndOfFile(HANDLE hFile);
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL SetFileAttributesA(const(char)* lpFileName, FILE_FLAGS_AND_ATTRIBUTES dwFileAttributes);
+BOOL SetFileAttributesA(const(PSTR) lpFileName, FILE_FLAGS_AND_ATTRIBUTES dwFileAttributes);
 
 ///Sets the attributes for a file or directory. To perform this operation as a transacted operation, use the
 ///SetFileAttributesTransacted function.
@@ -11868,7 +11891,7 @@ BOOL SetFileAttributesA(const(char)* lpFileName, FILE_FLAGS_AND_ATTRIBUTES dwFil
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL SetFileAttributesW(const(wchar)* lpFileName, FILE_FLAGS_AND_ATTRIBUTES dwFileAttributes);
+BOOL SetFileAttributesW(const(PWSTR) lpFileName, FILE_FLAGS_AND_ATTRIBUTES dwFileAttributes);
 
 ///Sets the file information for the specified file. To retrieve file information using a file handle, see
 ///GetFileInformationByHandle or GetFileInformationByHandleEx.
@@ -11887,7 +11910,7 @@ BOOL SetFileAttributesW(const(wchar)* lpFileName, FILE_FLAGS_AND_ATTRIBUTES dwFi
 ///    
 @DllImport("KERNEL32")
 BOOL SetFileInformationByHandle(HANDLE hFile, FILE_INFO_BY_HANDLE_CLASS FileInformationClass, 
-                                char* lpFileInformation, uint dwBufferSize);
+                                void* lpFileInformation, uint dwBufferSize);
 
 ///Moves the file pointer of the specified file. This function stores the file pointer in two <b>LONG</b> values. To
 ///work with file pointers that are larger than a single <b>LONG</b> value, it is easier to use the SetFilePointerEx
@@ -12050,7 +12073,7 @@ BOOL UnlockFileEx(HANDLE hFile, uint dwReserved, uint nNumberOfBytesToUnlockLow,
 ///    <div> </div>
 ///    
 @DllImport("KERNEL32")
-BOOL WriteFile(HANDLE hFile, char* lpBuffer, uint nNumberOfBytesToWrite, uint* lpNumberOfBytesWritten, 
+BOOL WriteFile(HANDLE hFile, const(void)* lpBuffer, uint nNumberOfBytesToWrite, uint* lpNumberOfBytesWritten, 
                OVERLAPPED* lpOverlapped);
 
 ///Writes data to the specified file or input/output (I/O) device. It reports its completion status asynchronously,
@@ -12097,7 +12120,7 @@ BOOL WriteFile(HANDLE hFile, char* lpBuffer, uint nNumberOfBytesToWrite, uint* l
 ///    operations, see About Synchronization.
 ///    
 @DllImport("KERNEL32")
-BOOL WriteFileEx(HANDLE hFile, char* lpBuffer, uint nNumberOfBytesToWrite, OVERLAPPED* lpOverlapped, 
+BOOL WriteFileEx(HANDLE hFile, const(void)* lpBuffer, uint nNumberOfBytesToWrite, OVERLAPPED* lpOverlapped, 
                  LPOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine);
 
 ///Retrieves data from an array of buffers and writes the data to a file. The function starts writing data to the file
@@ -12158,7 +12181,7 @@ BOOL WriteFileGather(HANDLE hFile, FILE_SEGMENT_ELEMENT* aSegmentArray, uint nNu
 ///    maximum possible return value is <b>MAX_PATH</b>+1 (261).
 ///    
 @DllImport("KERNEL32")
-uint GetTempPathW(uint nBufferLength, const(wchar)* lpBuffer);
+uint GetTempPathW(uint nBufferLength, PWSTR lpBuffer);
 
 ///Retrieves a volume <b>GUID</b> path for the volume that is associated with the specified volume mount point ( drive
 ///letter, volume <b>GUID</b> path, or mounted folder).
@@ -12175,7 +12198,7 @@ uint GetTempPathW(uint nBufferLength, const(wchar)* lpBuffer);
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL GetVolumeNameForVolumeMountPointW(const(wchar)* lpszVolumeMountPoint, const(wchar)* lpszVolumeName, 
+BOOL GetVolumeNameForVolumeMountPointW(const(PWSTR) lpszVolumeMountPoint, PWSTR lpszVolumeName, 
                                        uint cchBufferLength);
 
 ///Retrieves a list of drive letters and mounted folder paths for the specified volume.
@@ -12195,7 +12218,8 @@ BOOL GetVolumeNameForVolumeMountPointW(const(wchar)* lpszVolumeMountPoint, const
 ///    size.
 ///    
 @DllImport("KERNEL32")
-BOOL GetVolumePathNamesForVolumeNameW(const(wchar)* lpszVolumeName, const(wchar)* lpszVolumePathNames, 
+BOOL GetVolumePathNamesForVolumeNameW(const(PWSTR) lpszVolumeName, 
+                                      /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PWSTR lpszVolumePathNames, 
                                       uint cchBufferLength, uint* lpcchReturnLength);
 
 ///Creates or opens a file or I/O device. The most commonly used I/O devices are as follows: file, file stream,
@@ -12285,7 +12309,7 @@ BOOL GetVolumePathNamesForVolumeNameW(const(wchar)* lpszVolumeName, const(wchar)
 ///    call GetLastError.
 ///    
 @DllImport("KERNEL32")
-HANDLE CreateFile2(const(wchar)* lpFileName, FILE_ACCESS_FLAGS dwDesiredAccess, FILE_SHARE_FLAGS dwShareMode, 
+HANDLE CreateFile2(const(PWSTR) lpFileName, FILE_ACCESS_FLAGS dwDesiredAccess, FILE_SHARE_FLAGS dwShareMode, 
                    FILE_CREATE_FLAGS dwCreationDisposition, CREATEFILE2_EXTENDED_PARAMETERS* pCreateExParams);
 
 ///Associates a virtual address range with the specified file handle. This indicates that the kernel should optimize any
@@ -12330,7 +12354,7 @@ BOOL SetFileIoOverlappedRange(HANDLE FileHandle, ubyte* OverlappedRangeStart, ui
 ///    <b>NO_ERROR</b>) or failed (value is other than <b>NO_ERROR</b>).
 ///    
 @DllImport("KERNEL32")
-uint GetCompressedFileSizeA(const(char)* lpFileName, uint* lpFileSizeHigh);
+uint GetCompressedFileSizeA(const(PSTR) lpFileName, uint* lpFileSizeHigh);
 
 ///Retrieves the actual number of bytes of disk storage used to store a specified file. If the file is located on a
 ///volume that supports compression and the file is compressed, the value obtained is the compressed size of the
@@ -12360,7 +12384,7 @@ uint GetCompressedFileSizeA(const(char)* lpFileName, uint* lpFileSizeHigh);
 ///    <b>NO_ERROR</b>) or failed (value is other than <b>NO_ERROR</b>).
 ///    
 @DllImport("KERNEL32")
-uint GetCompressedFileSizeW(const(wchar)* lpFileName, uint* lpFileSizeHigh);
+uint GetCompressedFileSizeW(const(PWSTR) lpFileName, uint* lpFileSizeHigh);
 
 ///Enumerates the first stream with a ::$DATA stream type in the specified file or directory. To perform this operation
 ///as a transacted operation, use the FindFirstStreamTransactedW function.
@@ -12382,7 +12406,7 @@ uint GetCompressedFileSizeW(const(wchar)* lpFileName, uint* lpFileSizeHigh);
 ///    returns <b>ERROR_INVALID_PARAMETER</b> (87).
 ///    
 @DllImport("KERNEL32")
-FindStreamHandle FindFirstStreamW(const(wchar)* lpFileName, STREAM_INFO_LEVELS InfoLevel, char* lpFindStreamData, 
+FindStreamHandle FindFirstStreamW(const(PWSTR) lpFileName, STREAM_INFO_LEVELS InfoLevel, void* lpFindStreamData, 
                                   uint dwFlags);
 
 ///Continues a stream search started by a previous call to the FindFirstStreamW function.
@@ -12395,7 +12419,7 @@ FindStreamHandle FindFirstStreamW(const(wchar)* lpFileName, STREAM_INFO_LEVELS I
 ///    <b>ERROR_HANDLE_EOF</b> (38).
 ///    
 @DllImport("KERNEL32")
-BOOL FindNextStreamW(FindStreamHandle hFindStream, char* lpFindStreamData);
+BOOL FindNextStreamW(FindStreamHandle hFindStream, void* lpFindStreamData);
 
 ///Determines whether the file I/O functions are using the ANSI or OEM character set code page. This function is useful
 ///for 8-bit console input and output operations.
@@ -12419,7 +12443,7 @@ BOOL AreFileApisANSI();
 ///    maximum possible return value is <b>MAX_PATH</b>+1 (261).
 ///    
 @DllImport("KERNEL32")
-uint GetTempPathA(uint nBufferLength, const(char)* lpBuffer);
+uint GetTempPathA(uint nBufferLength, PSTR lpBuffer);
 
 ///Creates an enumeration of all the hard links to the specified file. The <b>FindFirstFileNameW</b> function returns a
 ///handle to the enumeration that can be used on subsequent calls to the FindNextFileNameW function. To perform this
@@ -12439,8 +12463,7 @@ uint GetTempPathA(uint nBufferLength, const(char)* lpBuffer);
 ///    <b>INVALID_HANDLE_VALUE</b> (0xffffffff). To get extended error information, call the GetLastError function.
 ///    
 @DllImport("KERNEL32")
-FindFileNameHandle FindFirstFileNameW(const(wchar)* lpFileName, uint dwFlags, uint* StringLength, 
-                                      const(wchar)* LinkName);
+FindFileNameHandle FindFirstFileNameW(const(PWSTR) lpFileName, uint dwFlags, uint* StringLength, PWSTR LinkName);
 
 ///Continues enumerating the hard links to a file using the handle returned by a successful call to the
 ///FindFirstFileNameW function.
@@ -12456,7 +12479,7 @@ FindFileNameHandle FindFirstFileNameW(const(wchar)* lpFileName, uint dwFlags, ui
 ///    returns <b>ERROR_HANDLE_EOF</b>.
 ///    
 @DllImport("KERNEL32")
-BOOL FindNextFileNameW(FindFileNameHandle hFindStream, uint* StringLength, const(wchar)* LinkName);
+BOOL FindNextFileNameW(FindFileNameHandle hFindStream, uint* StringLength, PWSTR LinkName);
 
 ///Retrieves information about the file system and volume associated with the specified root directory. To specify a
 ///handle when retrieving this information, use the GetVolumeInformationByHandleW function. To retrieve the current
@@ -12557,9 +12580,9 @@ BOOL FindNextFileNameW(FindFileNameHandle hFindStream, uint* StringLength, const
 ///    is retrieved, the return value is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL GetVolumeInformationA(const(char)* lpRootPathName, const(char)* lpVolumeNameBuffer, uint nVolumeNameSize, 
+BOOL GetVolumeInformationA(const(PSTR) lpRootPathName, PSTR lpVolumeNameBuffer, uint nVolumeNameSize, 
                            uint* lpVolumeSerialNumber, uint* lpMaximumComponentLength, uint* lpFileSystemFlags, 
-                           const(char)* lpFileSystemNameBuffer, uint nFileSystemNameSize);
+                           PSTR lpFileSystemNameBuffer, uint nFileSystemNameSize);
 
 ///Creates a name for a temporary file. If a unique file name is generated, an empty file is created and the handle to
 ///it is released; otherwise, only a file name is generated.
@@ -12585,8 +12608,7 @@ BOOL GetVolumeInformationA(const(char)* lpRootPathName, const(char)* lpVolumeNam
 ///    <i>lpPathName</i> parameter is more than <b>MAX_PATH</b>–14 characters. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-uint GetTempFileNameA(const(char)* lpPathName, const(char)* lpPrefixString, uint uUnique, 
-                      const(char)* lpTempFileName);
+uint GetTempFileNameA(const(PSTR) lpPathName, const(PSTR) lpPrefixString, uint uUnique, PSTR lpTempFileName);
 
 ///Causes the file I/O functions for the process to use the OEM character set code page. This function is useful for
 ///8-bit console input and output operations.
@@ -12599,43 +12621,43 @@ void SetFileApisToOEM();
 void SetFileApisToANSI();
 
 @DllImport("api-ms-win-core-file-fromapp-l1-1-0")
-BOOL CopyFileFromAppW(const(wchar)* lpExistingFileName, const(wchar)* lpNewFileName, BOOL bFailIfExists);
+BOOL CopyFileFromAppW(const(PWSTR) lpExistingFileName, const(PWSTR) lpNewFileName, BOOL bFailIfExists);
 
 @DllImport("api-ms-win-core-file-fromapp-l1-1-0")
-BOOL CreateDirectoryFromAppW(const(wchar)* lpPathName, SECURITY_ATTRIBUTES* lpSecurityAttributes);
+BOOL CreateDirectoryFromAppW(const(PWSTR) lpPathName, SECURITY_ATTRIBUTES* lpSecurityAttributes);
 
 @DllImport("api-ms-win-core-file-fromapp-l1-1-0")
-HANDLE CreateFileFromAppW(const(wchar)* lpFileName, uint dwDesiredAccess, uint dwShareMode, 
+HANDLE CreateFileFromAppW(const(PWSTR) lpFileName, uint dwDesiredAccess, uint dwShareMode, 
                           SECURITY_ATTRIBUTES* lpSecurityAttributes, uint dwCreationDisposition, 
                           uint dwFlagsAndAttributes, HANDLE hTemplateFile);
 
 @DllImport("api-ms-win-core-file-fromapp-l1-1-0")
-HANDLE CreateFile2FromAppW(const(wchar)* lpFileName, uint dwDesiredAccess, uint dwShareMode, 
+HANDLE CreateFile2FromAppW(const(PWSTR) lpFileName, uint dwDesiredAccess, uint dwShareMode, 
                            uint dwCreationDisposition, CREATEFILE2_EXTENDED_PARAMETERS* pCreateExParams);
 
 @DllImport("api-ms-win-core-file-fromapp-l1-1-0")
-BOOL DeleteFileFromAppW(const(wchar)* lpFileName);
+BOOL DeleteFileFromAppW(const(PWSTR) lpFileName);
 
 @DllImport("api-ms-win-core-file-fromapp-l1-1-0")
-HANDLE FindFirstFileExFromAppW(const(wchar)* lpFileName, FINDEX_INFO_LEVELS fInfoLevelId, char* lpFindFileData, 
+HANDLE FindFirstFileExFromAppW(const(PWSTR) lpFileName, FINDEX_INFO_LEVELS fInfoLevelId, void* lpFindFileData, 
                                FINDEX_SEARCH_OPS fSearchOp, void* lpSearchFilter, uint dwAdditionalFlags);
 
 @DllImport("api-ms-win-core-file-fromapp-l1-1-0")
-BOOL GetFileAttributesExFromAppW(const(wchar)* lpFileName, GET_FILEEX_INFO_LEVELS fInfoLevelId, 
-                                 char* lpFileInformation);
+BOOL GetFileAttributesExFromAppW(const(PWSTR) lpFileName, GET_FILEEX_INFO_LEVELS fInfoLevelId, 
+                                 void* lpFileInformation);
 
 @DllImport("api-ms-win-core-file-fromapp-l1-1-0")
-BOOL MoveFileFromAppW(const(wchar)* lpExistingFileName, const(wchar)* lpNewFileName);
+BOOL MoveFileFromAppW(const(PWSTR) lpExistingFileName, const(PWSTR) lpNewFileName);
 
 @DllImport("api-ms-win-core-file-fromapp-l1-1-0")
-BOOL RemoveDirectoryFromAppW(const(wchar)* lpPathName);
+BOOL RemoveDirectoryFromAppW(const(PWSTR) lpPathName);
 
 @DllImport("api-ms-win-core-file-fromapp-l1-1-0")
-BOOL ReplaceFileFromAppW(const(wchar)* lpReplacedFileName, const(wchar)* lpReplacementFileName, 
-                         const(wchar)* lpBackupFileName, uint dwReplaceFlags, void* lpExclude, void* lpReserved);
+BOOL ReplaceFileFromAppW(const(PWSTR) lpReplacedFileName, const(PWSTR) lpReplacementFileName, 
+                         const(PWSTR) lpBackupFileName, uint dwReplaceFlags, void* lpExclude, void* lpReserved);
 
 @DllImport("api-ms-win-core-file-fromapp-l1-1-0")
-BOOL SetFileAttributesFromAppW(const(wchar)* lpFileName, uint dwFileAttributes);
+BOOL SetFileAttributesFromAppW(const(PWSTR) lpFileName, uint dwFileAttributes);
 
 ///Creates an input/output (I/O) completion port and associates it with a specified file handle, or creates an I/O
 ///completion port that is not yet associated with a file handle, allowing association at a later time. Associating an
@@ -12731,7 +12753,7 @@ BOOL GetQueuedCompletionStatus(HANDLE CompletionPort, uint* lpNumberOfBytesTrans
 ///    call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL GetQueuedCompletionStatusEx(HANDLE CompletionPort, char* lpCompletionPortEntries, uint ulCount, 
+BOOL GetQueuedCompletionStatusEx(HANDLE CompletionPort, OVERLAPPED_ENTRY* lpCompletionPortEntries, uint ulCount, 
                                  uint* ulNumEntriesRemoved, uint dwMilliseconds, BOOL fAlertable);
 
 ///Posts an I/O completion packet to an I/O completion port.
@@ -12901,7 +12923,7 @@ int LZInit(int hfSource);
 ///    does not affect a thread's last-error code.</div> <div> </div>
 ///    
 @DllImport("KERNEL32")
-int GetExpandedNameA(const(char)* lpszSource, const(char)* lpszBuffer);
+int GetExpandedNameA(PSTR lpszSource, PSTR lpszBuffer);
 
 ///Retrieves the original name of a compressed file, if the file was compressed by the Lempel-Ziv algorithm.
 ///Params:
@@ -12914,7 +12936,7 @@ int GetExpandedNameA(const(char)* lpszSource, const(char)* lpszBuffer);
 ///    does not affect a thread's last-error code.</div> <div> </div>
 ///    
 @DllImport("KERNEL32")
-int GetExpandedNameW(const(wchar)* lpszSource, const(wchar)* lpszBuffer);
+int GetExpandedNameW(PWSTR lpszSource, PWSTR lpszBuffer);
 
 ///Creates, opens, reopens, or deletes the specified file.
 ///Params:
@@ -12976,7 +12998,7 @@ int GetExpandedNameW(const(wchar)* lpszSource, const(wchar)* lpszBuffer);
 ///    </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-int LZOpenFileA(const(char)* lpFileName, OFSTRUCT* lpReOpenBuf, ushort wStyle);
+int LZOpenFileA(PSTR lpFileName, OFSTRUCT* lpReOpenBuf, ushort wStyle);
 
 ///Creates, opens, reopens, or deletes the specified file.
 ///Params:
@@ -13038,7 +13060,7 @@ int LZOpenFileA(const(char)* lpFileName, OFSTRUCT* lpReOpenBuf, ushort wStyle);
 ///    </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-int LZOpenFileW(const(wchar)* lpFileName, OFSTRUCT* lpReOpenBuf, ushort wStyle);
+int LZOpenFileW(PWSTR lpFileName, OFSTRUCT* lpReOpenBuf, ushort wStyle);
 
 ///Moves a file pointer the specified number of bytes from a starting position.
 ///Params:
@@ -13091,7 +13113,7 @@ int LZSeek(int hFile, int lOffset, int iOrigin);
 ///    information for this function; do not call GetLastError.
 ///    
 @DllImport("KERNEL32")
-int LZRead(int hFile, char* lpBuffer, int cbRead);
+int LZRead(int hFile, byte* lpBuffer, int cbRead);
 
 ///Closes a file that was opened by using the LZOpenFile function.
 ///Params:
@@ -13108,7 +13130,7 @@ void LZClose(int hFile);
 ///    system error code. For a complete list of error codes, see System Error Codes or the header file WinError.h.
 ///    
 @DllImport("ADVAPI32")
-uint QueryUsersOnEncryptedFile(const(wchar)* lpFileName, ENCRYPTION_CERTIFICATE_HASH_LIST** pUsers);
+uint QueryUsersOnEncryptedFile(const(PWSTR) lpFileName, ENCRYPTION_CERTIFICATE_HASH_LIST** pUsers);
 
 ///Retrieves a list of recovery agents for the specified file.
 ///Params:
@@ -13119,7 +13141,7 @@ uint QueryUsersOnEncryptedFile(const(wchar)* lpFileName, ENCRYPTION_CERTIFICATE_
 ///    system error code. For a complete list of error codes, see System Error Codes or the header file WinError.h.
 ///    
 @DllImport("ADVAPI32")
-uint QueryRecoveryAgentsOnEncryptedFile(const(wchar)* lpFileName, 
+uint QueryRecoveryAgentsOnEncryptedFile(const(PWSTR) lpFileName, 
                                         ENCRYPTION_CERTIFICATE_HASH_LIST** pRecoveryAgents);
 
 ///Removes specified certificate hashes from a specified file.
@@ -13132,7 +13154,7 @@ uint QueryRecoveryAgentsOnEncryptedFile(const(wchar)* lpFileName,
 ///    system error code. For a complete list of error codes, see System Error Codes or the header file WinError.h.
 ///    
 @DllImport("ADVAPI32")
-uint RemoveUsersFromEncryptedFile(const(wchar)* lpFileName, ENCRYPTION_CERTIFICATE_HASH_LIST* pHashes);
+uint RemoveUsersFromEncryptedFile(const(PWSTR) lpFileName, ENCRYPTION_CERTIFICATE_HASH_LIST* pHashes);
 
 ///Adds user keys to the specified encrypted file.
 ///Params:
@@ -13144,7 +13166,7 @@ uint RemoveUsersFromEncryptedFile(const(wchar)* lpFileName, ENCRYPTION_CERTIFICA
 ///    system error code. For a complete list of error codes, see System Error Codes or the header file WinError.h.
 ///    
 @DllImport("ADVAPI32")
-uint AddUsersToEncryptedFile(const(wchar)* lpFileName, ENCRYPTION_CERTIFICATE_LIST* pEncryptionCertificates);
+uint AddUsersToEncryptedFile(const(PWSTR) lpFileName, ENCRYPTION_CERTIFICATE_LIST* pEncryptionCertificates);
 
 ///Sets the user's current key to the specified certificate.
 ///Params:
@@ -13178,7 +13200,7 @@ void FreeEncryptionCertificateHashList(ENCRYPTION_CERTIFICATE_HASH_LIST* pUsers)
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("ADVAPI32")
-BOOL EncryptionDisable(const(wchar)* DirPath, BOOL Disable);
+BOOL EncryptionDisable(const(PWSTR) DirPath, BOOL Disable);
 
 ///Copies the EFS metadata from one file or directory to another.
 ///Params:
@@ -13209,14 +13231,14 @@ BOOL EncryptionDisable(const(wchar)* DirPath, BOOL Disable);
 ///    system error code. For a complete list of error codes, see System Error Codes or the header file WinError.h.
 ///    
 @DllImport("ADVAPI32")
-uint DuplicateEncryptionInfoFile(const(wchar)* SrcFileName, const(wchar)* DstFileName, uint dwCreationDistribution, 
+uint DuplicateEncryptionInfoFile(const(PWSTR) SrcFileName, const(PWSTR) DstFileName, uint dwCreationDistribution, 
                                  uint dwAttributes, const(SECURITY_ATTRIBUTES)* lpSecurityAttributes);
 
 @DllImport("ADVAPI32")
-uint GetEncryptedFileMetadata(const(wchar)* lpFileName, uint* pcbMetadata, ubyte** ppbMetadata);
+uint GetEncryptedFileMetadata(const(PWSTR) lpFileName, uint* pcbMetadata, ubyte** ppbMetadata);
 
 @DllImport("ADVAPI32")
-uint SetEncryptedFileMetadata(const(wchar)* lpFileName, ubyte* pbOldMetadata, ubyte* pbNewMetadata, 
+uint SetEncryptedFileMetadata(const(PWSTR) lpFileName, ubyte* pbOldMetadata, ubyte* pbNewMetadata, 
                               ENCRYPTION_CERTIFICATE_HASH* pOwnerHash, uint dwOperation, 
                               ENCRYPTION_CERTIFICATE_HASH_LIST* pCertificatesAdded);
 
@@ -13345,7 +13367,7 @@ CLS_LSN LsnIncrement(CLS_LSN* plsn);
 ///    the possible error codes:
 ///    
 @DllImport("clfsw32")
-HANDLE CreateLogFile(const(wchar)* pszLogFileName, uint fDesiredAccess, uint dwShareMode, 
+HANDLE CreateLogFile(const(PWSTR) pszLogFileName, uint fDesiredAccess, uint dwShareMode, 
                      SECURITY_ATTRIBUTES* psaLogFile, uint fCreateDisposition, uint fFlagsAndAttributes);
 
 ///Marks the specified log for deletion. The log is actually deleted when all handles, marshaling areas, and read
@@ -13378,7 +13400,7 @@ BOOL DeleteLogByHandle(HANDLE hLog);
 ///    get extended error information, call GetLastError. The following list identifies the possible error codes:
 ///    
 @DllImport("clfsw32")
-BOOL DeleteLogFile(const(wchar)* pszLogFileName, void* pvReserved);
+BOOL DeleteLogFile(const(PWSTR) pszLogFileName, void* pvReserved);
 
 ///Adds a container to the physical log that is associated with the log handle—if the calling process has write access
 ///to the .blf file and the ability to create files in the target directory of the container. This function is different
@@ -13405,7 +13427,7 @@ BOOL DeleteLogFile(const(wchar)* pszLogFileName, void* pvReserved);
 ///    extended error information, call GetLastError. The following list identifies the possible error codes:
 ///    
 @DllImport("clfsw32")
-BOOL AddLogContainer(HANDLE hLog, ulong* pcbContainer, const(wchar)* pwszContainerPath, void* pReserved);
+BOOL AddLogContainer(HANDLE hLog, ulong* pcbContainer, PWSTR pwszContainerPath, void* pReserved);
 
 ///Adds multiple log containers to the physical log that is associated with the log handle—if the calling process has
 ///access to the log handle. Adding containers allows a client to increase the size of a log.
@@ -13433,7 +13455,7 @@ BOOL AddLogContainer(HANDLE hLog, ulong* pcbContainer, const(wchar)* pwszContain
 ///    codes:
 ///    
 @DllImport("clfsw32")
-BOOL AddLogContainerSet(HANDLE hLog, ushort cContainer, ulong* pcbContainer, char* rgwszContainerPath, 
+BOOL AddLogContainerSet(HANDLE hLog, ushort cContainer, ulong* pcbContainer, PWSTR* rgwszContainerPath, 
                         void* pReserved);
 
 ///Removes one container from a log that is associated with a dedicated or multiplexed log handle. A client must have
@@ -13453,7 +13475,7 @@ BOOL AddLogContainerSet(HANDLE hLog, ushort cContainer, ulong* pcbContainer, cha
 ///    extended error information, call GetLastError. The following list identifies the possible error codes:
 ///    
 @DllImport("clfsw32")
-BOOL RemoveLogContainer(HANDLE hLog, const(wchar)* pwszContainerPath, BOOL fForce, void* pReserved);
+BOOL RemoveLogContainer(HANDLE hLog, PWSTR pwszContainerPath, BOOL fForce, void* pReserved);
 
 ///Removes multiple containers from a log that is associated with a dedicated or multiplexed log handle. A client must
 ///have administrative privileges on the log handle to remove a container. The RemoveLogContainer function is a special
@@ -13476,7 +13498,7 @@ BOOL RemoveLogContainer(HANDLE hLog, const(wchar)* pwszContainerPath, BOOL fForc
 ///    extended error information, call GetLastError. The following list identifies the possible error codes:
 ///    
 @DllImport("clfsw32")
-BOOL RemoveLogContainerSet(HANDLE hLog, ushort cContainer, char* rgwszContainerPath, BOOL fForce, void* pReserved);
+BOOL RemoveLogContainerSet(HANDLE hLog, ushort cContainer, PWSTR* rgwszContainerPath, BOOL fForce, void* pReserved);
 
 ///Sets the last archived log sequence number (LSN) or <i>archive tail</i> of an archivable log.
 ///Params:
@@ -14086,7 +14108,7 @@ BOOL TerminateReadLog(void* pvCursorContext);
 ///    extended error information, call GetLastError. The following list identifies the possible error codes:
 ///    
 @DllImport("clfsw32")
-BOOL PrepareLogArchive(HANDLE hLog, const(wchar)* pszBaseLogFileName, uint cLen, const(CLS_LSN)* plsnLow, 
+BOOL PrepareLogArchive(HANDLE hLog, PWSTR pszBaseLogFileName, uint cLen, const(CLS_LSN)* plsnLow, 
                        const(CLS_LSN)* plsnHigh, uint* pcActualLength, ulong* poffBaseLogFileData, 
                        ulong* pcbBaseLogFileLength, CLS_LSN* plsnBase, CLS_LSN* plsnLast, 
                        CLS_LSN* plsnCurrentArchiveTail, void** ppvArchiveContext);
@@ -14161,7 +14183,7 @@ BOOL TerminateLogArchive(void* pvArchiveContext);
 ///    extended error information, call GetLastError. The following list identifies the possible error codes:
 ///    
 @DllImport("clfsw32")
-BOOL ValidateLog(const(wchar)* pszLogFileName, SECURITY_ATTRIBUTES* psaLogFile, CLS_INFORMATION* pinfoBuffer, 
+BOOL ValidateLog(const(PWSTR) pszLogFileName, SECURITY_ATTRIBUTES* psaLogFile, CLS_INFORMATION* pinfoBuffer, 
                  uint* pcbBuffer);
 
 ///Retrieves the full path name of the specified container. This function is used mainly to obtain the full path name of
@@ -14182,7 +14204,7 @@ BOOL ValidateLog(const(wchar)* pszLogFileName, SECURITY_ATTRIBUTES* psaLogFile, 
 ///    get extended error information, call GetLastError. The following list identifies the possible error codes:
 ///    
 @DllImport("clfsw32")
-BOOL GetLogContainerName(HANDLE hLog, uint cidLogicalContainer, const(wchar)* pwstrContainerName, 
+BOOL GetLogContainerName(HANDLE hLog, uint cidLogicalContainer, const(PWSTR) pwstrContainerName, 
                          uint cLenContainerName, uint* pcActualLenContainerName);
 
 ///Retrieves log I/O statistics for a dedicated or multiplexed log that is associated with the specified handle. This
@@ -14359,7 +14381,7 @@ BOOL RegisterForLogWriteNotification(HANDLE hLog, uint cbThreshold, BOOL fEnable
 ///    Algorithm = Points to a ULONG value. If the function returns TRUE, indicating compression is desired, this value will contain
 ///                the algorithm that should be used for this volume.
 @DllImport("WOFUTIL")
-BOOL WofShouldCompressBinaries(const(wchar)* Volume, uint* Algorithm);
+BOOL WofShouldCompressBinaries(const(PWSTR) Volume, uint* Algorithm);
 
 ///Used to query the version of the driver used to support a particular provider.
 ///Params:
@@ -14428,7 +14450,7 @@ HRESULT WofSetFileDataLocation(HANDLE FileHandle, uint Provider, void* ExternalF
 ///    buffer size in <i>BufferLength</i>.
 ///    
 @DllImport("WOFUTIL")
-HRESULT WofIsExternalFile(const(wchar)* FilePath, int* IsExternalFile, uint* Provider, void* ExternalFileInfo, 
+HRESULT WofIsExternalFile(const(PWSTR) FilePath, BOOL* IsExternalFile, uint* Provider, void* ExternalFileInfo, 
                           uint* BufferLength);
 
 ///Enumerates all the data sources from a specified provider for a specified volume.
@@ -14444,7 +14466,7 @@ HRESULT WofIsExternalFile(const(wchar)* FilePath, int* IsExternalFile, uint* Pro
 ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("WOFUTIL")
-HRESULT WofEnumEntries(const(wchar)* VolumeName, uint Provider, WofEnumEntryProc EnumProc, void* UserData);
+HRESULT WofEnumEntries(const(PWSTR) VolumeName, uint Provider, WofEnumEntryProc EnumProc, void* UserData);
 
 ///Adds a single WIM data source to a volume such that files can be created on the volume which are stored within the
 ///WIM.
@@ -14460,7 +14482,7 @@ HRESULT WofEnumEntries(const(wchar)* VolumeName, uint Provider, WofEnumEntryProc
 ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("WOFUTIL")
-HRESULT WofWimAddEntry(const(wchar)* VolumeName, const(wchar)* WimPath, uint WimType, uint WimIndex, 
+HRESULT WofWimAddEntry(const(PWSTR) VolumeName, const(PWSTR) WimPath, uint WimType, uint WimIndex, 
                        LARGE_INTEGER* DataSourceId);
 
 ///Enumerates all of the files which are being backed by a specified WIM data source on a specified volume.
@@ -14470,7 +14492,7 @@ HRESULT WofWimAddEntry(const(wchar)* VolumeName, const(wchar)* WimPath, uint Wim
 ///    EnumProc = The callback function for file provided by the WIM entry.
 ///    UserData = Optional user defined data passed to <i>EnumProc</i>.
 @DllImport("WOFUTIL")
-HRESULT WofWimEnumFiles(const(wchar)* VolumeName, LARGE_INTEGER DataSourceId, WofEnumFilesProc EnumProc, 
+HRESULT WofWimEnumFiles(const(PWSTR) VolumeName, LARGE_INTEGER DataSourceId, WofEnumFilesProc EnumProc, 
                         void* UserData);
 
 ///Temporarily removes a WIM data source from backing files on a volume until the volume is remounted or the data source
@@ -14483,7 +14505,7 @@ HRESULT WofWimEnumFiles(const(wchar)* VolumeName, LARGE_INTEGER DataSourceId, Wo
 ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("WOFUTIL")
-HRESULT WofWimSuspendEntry(const(wchar)* VolumeName, LARGE_INTEGER DataSourceId);
+HRESULT WofWimSuspendEntry(const(PWSTR) VolumeName, LARGE_INTEGER DataSourceId);
 
 ///Removes a single WIM data source from backing files on a volume.
 ///Params:
@@ -14494,7 +14516,7 @@ HRESULT WofWimSuspendEntry(const(wchar)* VolumeName, LARGE_INTEGER DataSourceId)
 ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("WOFUTIL")
-HRESULT WofWimRemoveEntry(const(wchar)* VolumeName, LARGE_INTEGER DataSourceId);
+HRESULT WofWimRemoveEntry(const(PWSTR) VolumeName, LARGE_INTEGER DataSourceId);
 
 ///Updates a WIM entry to point to a different WIM file location.
 ///Params:
@@ -14502,7 +14524,7 @@ HRESULT WofWimRemoveEntry(const(wchar)* VolumeName, LARGE_INTEGER DataSourceId);
 ///    DataSourceId = Identifies the WIM entry.
 ///    NewWimPath = The new location of the WIM file.
 @DllImport("WOFUTIL")
-HRESULT WofWimUpdateEntry(const(wchar)* VolumeName, LARGE_INTEGER DataSourceId, const(wchar)* NewWimPath);
+HRESULT WofWimUpdateEntry(const(PWSTR) VolumeName, LARGE_INTEGER DataSourceId, const(PWSTR) NewWimPath);
 
 ///Enumerates all of the files which are compressed with a specified compression algorithm on a specified volume.
 ///Params:
@@ -14517,7 +14539,7 @@ HRESULT WofWimUpdateEntry(const(wchar)* VolumeName, LARGE_INTEGER DataSourceId, 
 ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("WOFUTIL")
-HRESULT WofFileEnumFiles(const(wchar)* VolumeName, uint Algorithm, WofEnumFilesProc EnumProc, void* UserData);
+HRESULT WofFileEnumFiles(const(PWSTR) VolumeName, uint Algorithm, WofEnumFilesProc EnumProc, void* UserData);
 
 ///<p class="CCE_Message">[Microsoft strongly recommends developers utilize alternative means to achieve your
 ///application’s needs. Many scenarios that TxF was developed for can be achieved through simpler and more readily
@@ -14535,7 +14557,7 @@ HRESULT WofFileEnumFiles(const(wchar)* VolumeName, uint Algorithm, WofEnumFilesP
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("txfw32")
-BOOL TxfLogCreateFileReadContext(const(wchar)* LogPath, CLS_LSN BeginningLsn, CLS_LSN EndingLsn, TXF_ID* TxfFileId, 
+BOOL TxfLogCreateFileReadContext(const(PWSTR) LogPath, CLS_LSN BeginningLsn, CLS_LSN EndingLsn, TXF_ID* TxfFileId, 
                                  void** TxfLogContext);
 
 ///<p class="CCE_Message">[Microsoft strongly recommends developers utilize alternative means to achieve your
@@ -14557,7 +14579,7 @@ BOOL TxfLogCreateFileReadContext(const(wchar)* LogPath, CLS_LSN BeginningLsn, CL
 ///    Returns S_OK on success.
 ///    
 @DllImport("txfw32")
-BOOL TxfLogCreateRangeReadContext(const(wchar)* LogPath, CLS_LSN BeginningLsn, CLS_LSN EndingLsn, 
+BOOL TxfLogCreateRangeReadContext(const(PWSTR) LogPath, CLS_LSN BeginningLsn, CLS_LSN EndingLsn, 
                                   LARGE_INTEGER* BeginningVirtualClock, LARGE_INTEGER* EndingVirtualClock, 
                                   uint RecordTypeMask, void** TxfLogContext);
 
@@ -14600,14 +14622,14 @@ BOOL TxfLogDestroyReadContext(void* TxfLogContext);
 ///    being processed is unrecognized. </td> </tr> </table>
 ///    
 @DllImport("txfw32")
-BOOL TxfLogReadRecords(void* TxfLogContext, uint BufferLength, char* Buffer, uint* BytesUsed, uint* RecordCount);
+BOOL TxfLogReadRecords(void* TxfLogContext, uint BufferLength, void* Buffer, uint* BytesUsed, uint* RecordCount);
 
 @DllImport("txfw32")
 BOOL TxfReadMetadataInfo(HANDLE FileHandle, TXF_ID* TxfFileId, CLS_LSN* LastLsn, uint* TransactionState, 
                          GUID* LockingTransaction);
 
 @DllImport("txfw32")
-BOOL TxfLogRecordGetFileName(char* RecordBuffer, uint RecordBufferLengthInBytes, const(wchar)* NameBuffer, 
+BOOL TxfLogRecordGetFileName(void* RecordBuffer, uint RecordBufferLengthInBytes, PWSTR NameBuffer, 
                              uint* NameBufferLengthInBytes, TXF_ID* TxfId);
 
 @DllImport("txfw32")
@@ -14662,7 +14684,7 @@ void TxfGetThreadMiniVersionForCreate(ushort* MiniVersion);
 ///    
 @DllImport("ktmw32")
 HANDLE CreateTransaction(SECURITY_ATTRIBUTES* lpTransactionAttributes, GUID* UOW, uint CreateOptions, 
-                         uint IsolationLevel, uint IsolationFlags, uint Timeout, const(wchar)* Description);
+                         uint IsolationLevel, uint IsolationFlags, uint Timeout, PWSTR Description);
 
 ///Opens an existing transaction.
 ///Params:
@@ -14757,7 +14779,7 @@ BOOL GetTransactionId(HANDLE TransactionHandle, GUID* TransactionId);
 ///    
 @DllImport("ktmw32")
 BOOL GetTransactionInformation(HANDLE TransactionHandle, uint* Outcome, uint* IsolationLevel, uint* IsolationFlags, 
-                               uint* Timeout, uint BufferLength, const(wchar)* Description);
+                               uint* Timeout, uint BufferLength, PWSTR Description);
 
 ///Sets the transaction information for the specified transaction.
 ///Params:
@@ -14774,7 +14796,7 @@ BOOL GetTransactionInformation(HANDLE TransactionHandle, uint* Outcome, uint* Is
 ///    
 @DllImport("ktmw32")
 BOOL SetTransactionInformation(HANDLE TransactionHandle, uint IsolationLevel, uint IsolationFlags, uint Timeout, 
-                               const(wchar)* Description);
+                               PWSTR Description);
 
 ///Creates a new transaction manager (TM) object and returns a handle with the specified access.
 ///Params:
@@ -14793,7 +14815,7 @@ BOOL SetTransactionInformation(HANDLE TransactionHandle, uint IsolationLevel, ui
 ///    following list identifies the possible error codes:
 ///    
 @DllImport("ktmw32")
-HANDLE CreateTransactionManager(SECURITY_ATTRIBUTES* lpTransactionAttributes, const(wchar)* LogFileName, 
+HANDLE CreateTransactionManager(SECURITY_ATTRIBUTES* lpTransactionAttributes, PWSTR LogFileName, 
                                 uint CreateOptions, uint CommitStrength);
 
 ///Opens an existing transaction manager.
@@ -14807,7 +14829,7 @@ HANDLE CreateTransactionManager(SECURITY_ATTRIBUTES* lpTransactionAttributes, co
 ///    following list identifies the possible error codes:
 ///    
 @DllImport("ktmw32")
-HANDLE OpenTransactionManager(const(wchar)* LogFileName, uint DesiredAccess, uint OpenOptions);
+HANDLE OpenTransactionManager(PWSTR LogFileName, uint DesiredAccess, uint OpenOptions);
 
 ///Opens an existing transaction manager.
 ///Params:
@@ -14833,7 +14855,7 @@ HANDLE OpenTransactionManagerById(GUID* TransactionManagerId, uint DesiredAccess
 ///    codes:
 ///    
 @DllImport("ktmw32")
-BOOL RenameTransactionManager(const(wchar)* LogFileName, GUID* ExistingTransactionManagerGuid);
+BOOL RenameTransactionManager(PWSTR LogFileName, GUID* ExistingTransactionManagerGuid);
 
 ///Recovers information only to the specified virtual clock value.
 ///Params:
@@ -14900,7 +14922,7 @@ BOOL GetTransactionManagerId(HANDLE TransactionManagerHandle, GUID* TransactionM
 ///    
 @DllImport("ktmw32")
 HANDLE CreateResourceManager(SECURITY_ATTRIBUTES* lpResourceManagerAttributes, GUID* ResourceManagerId, 
-                             uint CreateOptions, HANDLE TmHandle, const(wchar)* Description);
+                             uint CreateOptions, HANDLE TmHandle, PWSTR Description);
 
 ///Opens an existing resource manager (RM).
 ///Params:
@@ -15249,7 +15271,7 @@ BOOL SinglePhaseReject(HANDLE EnlistmentHandle, LARGE_INTEGER* TmVirtualClock);
 ///    or directory does not exist. </td> </tr> </table>
 ///    
 @DllImport("srvcli")
-uint NetShareAdd(const(wchar)* servername, uint level, char* buf, uint* parm_err);
+uint NetShareAdd(PWSTR servername, uint level, ubyte* buf, uint* parm_err);
 
 ///Retrieves information about each shared resource on a server. You can also use the WNetEnumResource function to
 ///retrieve resource information. However, <b>WNetEnumResource</b> does not enumerate hidden shares or users connected
@@ -15295,11 +15317,11 @@ uint NetShareAdd(const(wchar)* servername, uint level, char* buf, uint* parm_err
 ///    system error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("srvcli")
-uint NetShareEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, 
+uint NetShareEnum(PWSTR servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, 
                   uint* totalentries, uint* resume_handle);
 
 @DllImport("srvcli")
-uint NetShareEnumSticky(const(wchar)* servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, 
+uint NetShareEnumSticky(PWSTR servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, 
                         uint* totalentries, uint* resume_handle);
 
 ///Retrieves information about a particular shared resource on a server.
@@ -15344,7 +15366,7 @@ uint NetShareEnumSticky(const(wchar)* servername, uint level, ubyte** bufptr, ui
 ///    </dl> </td> <td width="60%"> The share name does not exist. </td> </tr> </table>
 ///    
 @DllImport("srvcli")
-uint NetShareGetInfo(const(wchar)* servername, const(wchar)* netname, uint level, ubyte** bufptr);
+uint NetShareGetInfo(PWSTR servername, PWSTR netname, uint level, ubyte** bufptr);
 
 ///Sets the parameters of a shared resource.
 ///Params:
@@ -15391,7 +15413,7 @@ uint NetShareGetInfo(const(wchar)* servername, const(wchar)* netname, uint level
 ///    </table>
 ///    
 @DllImport("srvcli")
-uint NetShareSetInfo(const(wchar)* servername, const(wchar)* netname, uint level, char* buf, uint* parm_err);
+uint NetShareSetInfo(PWSTR servername, PWSTR netname, uint level, ubyte* buf, uint* parm_err);
 
 ///Deletes a share name from a server's list of shared resources, disconnecting all connections to the shared resource.
 ///The extended function NetShareDelEx allows the caller to specify a SHARE_INFO_0, SHARE_INFO_1, SHARE_INFO_2,
@@ -15414,10 +15436,10 @@ uint NetShareSetInfo(const(wchar)* servername, const(wchar)* netname, uint level
 ///    does not exist. </td> </tr> </table>
 ///    
 @DllImport("srvcli")
-uint NetShareDel(const(wchar)* servername, const(wchar)* netname, uint reserved);
+uint NetShareDel(PWSTR servername, PWSTR netname, uint reserved);
 
 @DllImport("srvcli")
-uint NetShareDelSticky(const(wchar)* servername, const(wchar)* netname, uint reserved);
+uint NetShareDelSticky(PWSTR servername, PWSTR netname, uint reserved);
 
 ///Checks whether or not a server is sharing a device.
 ///Params:
@@ -15447,7 +15469,7 @@ uint NetShareDelSticky(const(wchar)* servername, const(wchar)* netname, uint res
 ///    width="60%"> The device is not shared. </td> </tr> </table>
 ///    
 @DllImport("srvcli")
-uint NetShareCheck(const(wchar)* servername, const(wchar)* device, uint* type);
+uint NetShareCheck(PWSTR servername, PWSTR device, uint* type);
 
 ///Deletes a share name from a server's list of shared resources, which disconnects all connections to that share. This
 ///function, which is an extended version of the NetShareDel function, allows the caller to specify a SHARE_INFO_0,
@@ -15477,16 +15499,16 @@ uint NetShareCheck(const(wchar)* servername, const(wchar)* device, uint* type);
 ///    </table>
 ///    
 @DllImport("srvcli")
-uint NetShareDelEx(const(wchar)* servername, uint level, char* buf);
+uint NetShareDelEx(PWSTR servername, uint level, ubyte* buf);
 
 @DllImport("srvcli")
-uint NetServerAliasAdd(const(wchar)* servername, uint level, char* buf);
+uint NetServerAliasAdd(PWSTR servername, uint level, ubyte* buf);
 
 @DllImport("srvcli")
-uint NetServerAliasDel(const(wchar)* servername, uint level, char* buf);
+uint NetServerAliasDel(PWSTR servername, uint level, ubyte* buf);
 
 @DllImport("srvcli")
-uint NetServerAliasEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, 
+uint NetServerAliasEnum(PWSTR servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, 
                         uint* totalentries, uint* resumehandle);
 
 ///Provides information about sessions established on a server.
@@ -15543,8 +15565,8 @@ uint NetServerAliasEnum(const(wchar)* servername, uint level, ubyte** bufptr, ui
 ///    be found. </td> </tr> </table>
 ///    
 @DllImport("srvcli")
-uint NetSessionEnum(const(wchar)* servername, const(wchar)* UncClientName, const(wchar)* username, uint level, 
-                    ubyte** bufptr, uint prefmaxlen, uint* entriesread, uint* totalentries, uint* resume_handle);
+uint NetSessionEnum(PWSTR servername, PWSTR UncClientName, PWSTR username, uint level, ubyte** bufptr, 
+                    uint prefmaxlen, uint* entriesread, uint* totalentries, uint* resume_handle);
 
 ///Ends a network session between a server and a workstation.
 ///Params:
@@ -15567,7 +15589,7 @@ uint NetSessionEnum(const(wchar)* servername, const(wchar)* UncClientName, const
 ///    does not exist with that computer name. </td> </tr> </table>
 ///    
 @DllImport("srvcli")
-uint NetSessionDel(const(wchar)* servername, const(wchar)* UncClientName, const(wchar)* username);
+uint NetSessionDel(PWSTR servername, PWSTR UncClientName, PWSTR username);
 
 ///Retrieves information about a session established between a particular server and workstation.
 ///Params:
@@ -15606,8 +15628,7 @@ uint NetSessionDel(const(wchar)* servername, const(wchar)* UncClientName, const(
 ///    </td> <td width="60%"> The user name could not be found. </td> </tr> </table>
 ///    
 @DllImport("srvcli")
-uint NetSessionGetInfo(const(wchar)* servername, const(wchar)* UncClientName, const(wchar)* username, uint level, 
-                       ubyte** bufptr);
+uint NetSessionGetInfo(PWSTR servername, PWSTR UncClientName, PWSTR username, uint level, ubyte** bufptr);
 
 ///Lists all connections made to a shared resource on the server or all connections established from a particular
 ///computer. If there is more than one user using this connection, then it is possible to get more than one structure
@@ -15647,8 +15668,8 @@ uint NetSessionGetInfo(const(wchar)* servername, const(wchar)* UncClientName, co
 ///    system error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("srvcli")
-uint NetConnectionEnum(const(wchar)* servername, const(wchar)* qualifier, uint level, ubyte** bufptr, 
-                       uint prefmaxlen, uint* entriesread, uint* totalentries, uint* resume_handle);
+uint NetConnectionEnum(PWSTR servername, PWSTR qualifier, uint level, ubyte** bufptr, uint prefmaxlen, 
+                       uint* entriesread, uint* totalentries, uint* resume_handle);
 
 ///Forces a resource to close. This function can be used when an error prevents closure by any other means. You should
 ///use <b>NetFileClose</b> with caution because it does not write data cached on the client system to the file before
@@ -15666,7 +15687,7 @@ uint NetConnectionEnum(const(wchar)* servername, const(wchar)* qualifier, uint l
 ///    </td> <td width="60%"> The file was not found. </td> </tr> </table>
 ///    
 @DllImport("srvcli")
-uint NetFileClose(const(wchar)* servername, uint fileid);
+uint NetFileClose(PWSTR servername, uint fileid);
 
 ///Returns information about some or all open files on a server, depending on the parameters specified.
 ///Params:
@@ -15723,8 +15744,8 @@ uint NetFileClose(const(wchar)* servername, uint fileid);
 ///    buffer is too small. </td> </tr> </table>
 ///    
 @DllImport("srvcli")
-uint NetFileEnum(const(wchar)* servername, const(wchar)* basepath, const(wchar)* username, uint level, 
-                 ubyte** bufptr, uint prefmaxlen, uint* entriesread, uint* totalentries, size_t* resume_handle);
+uint NetFileEnum(PWSTR servername, PWSTR basepath, PWSTR username, uint level, ubyte** bufptr, uint prefmaxlen, 
+                 uint* entriesread, uint* totalentries, size_t* resume_handle);
 
 ///Retrieves information about a particular opening of a server resource.
 ///Params:
@@ -15756,7 +15777,7 @@ uint NetFileEnum(const(wchar)* servername, const(wchar)* basepath, const(wchar)*
 ///    </table>
 ///    
 @DllImport("srvcli")
-uint NetFileGetInfo(const(wchar)* servername, uint fileid, uint level, ubyte** bufptr);
+uint NetFileGetInfo(PWSTR servername, uint fileid, uint level, ubyte** bufptr);
 
 ///Retrieves operating statistics for a service. Currently, only the workstation and server services are supported.
 ///Params:
@@ -15801,8 +15822,8 @@ uint NetStatisticsGet(byte* ServerName, byte* Service, uint Level, uint Options,
 ///    character. If the function fails, the return value is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-uint SearchPathW(const(wchar)* lpPath, const(wchar)* lpFileName, const(wchar)* lpExtension, uint nBufferLength, 
-                 const(wchar)* lpBuffer, ushort** lpFilePart);
+uint SearchPathW(const(PWSTR) lpPath, const(PWSTR) lpFileName, const(PWSTR) lpExtension, uint nBufferLength, 
+                 PWSTR lpBuffer, PWSTR* lpFilePart);
 
 ///Searches for a specified file in a specified path.
 ///Params:
@@ -15826,8 +15847,8 @@ uint SearchPathW(const(wchar)* lpPath, const(wchar)* lpFileName, const(wchar)* l
 ///    character. If the function fails, the return value is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-uint SearchPathA(const(char)* lpPath, const(char)* lpFileName, const(char)* lpExtension, uint nBufferLength, 
-                 const(char)* lpBuffer, byte** lpFilePart);
+uint SearchPathA(const(PSTR) lpPath, const(PSTR) lpFileName, const(PSTR) lpExtension, uint nBufferLength, 
+                 PSTR lpBuffer, PSTR* lpFilePart);
 
 ///Determines whether a file is an executable (.exe) file, and if so, which subsystem runs the executable file.
 ///Params:
@@ -15858,7 +15879,7 @@ uint SearchPathA(const(char)* lpPath, const(char)* lpFileName, const(char)* lpEx
 ///    last error code is <b>ERROR_BAD_EXE_FORMAT</b>.
 ///    
 @DllImport("KERNEL32")
-BOOL GetBinaryTypeA(const(char)* lpApplicationName, uint* lpBinaryType);
+BOOL GetBinaryTypeA(const(PSTR) lpApplicationName, uint* lpBinaryType);
 
 ///Determines whether a file is an executable (.exe) file, and if so, which subsystem runs the executable file.
 ///Params:
@@ -15889,7 +15910,7 @@ BOOL GetBinaryTypeA(const(char)* lpApplicationName, uint* lpBinaryType);
 ///    last error code is <b>ERROR_BAD_EXE_FORMAT</b>.
 ///    
 @DllImport("KERNEL32")
-BOOL GetBinaryTypeW(const(wchar)* lpApplicationName, uint* lpBinaryType);
+BOOL GetBinaryTypeW(const(PWSTR) lpApplicationName, uint* lpBinaryType);
 
 ///Retrieves the short path form of the specified path. For more information about file and path names, see Naming
 ///Files, Paths, and Namespaces.
@@ -15910,7 +15931,7 @@ BOOL GetBinaryTypeW(const(wchar)* lpApplicationName, uint* lpBinaryType);
 ///    zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-uint GetShortPathNameA(const(char)* lpszLongPath, const(char)* lpszShortPath, uint cchBuffer);
+uint GetShortPathNameA(const(PSTR) lpszLongPath, PSTR lpszShortPath, uint cchBuffer);
 
 ///<p class="CCE_Message">[Microsoft strongly recommends developers utilize alternative means to achieve your
 ///application’s needs. Many scenarios that TxF was developed for can be achieved through simpler and more readily
@@ -15936,8 +15957,7 @@ uint GetShortPathNameA(const(char)* lpszLongPath, const(char)* lpszShortPath, ui
 ///    exist, the return value is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-uint GetLongPathNameTransactedA(const(char)* lpszShortPath, const(char)* lpszLongPath, uint cchBuffer, 
-                                HANDLE hTransaction);
+uint GetLongPathNameTransactedA(const(PSTR) lpszShortPath, PSTR lpszLongPath, uint cchBuffer, HANDLE hTransaction);
 
 ///<p class="CCE_Message">[Microsoft strongly recommends developers utilize alternative means to achieve your
 ///application’s needs. Many scenarios that TxF was developed for can be achieved through simpler and more readily
@@ -15963,7 +15983,7 @@ uint GetLongPathNameTransactedA(const(char)* lpszShortPath, const(char)* lpszLon
 ///    exist, the return value is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-uint GetLongPathNameTransactedW(const(wchar)* lpszShortPath, const(wchar)* lpszLongPath, uint cchBuffer, 
+uint GetLongPathNameTransactedW(const(PWSTR) lpszShortPath, PWSTR lpszLongPath, uint cchBuffer, 
                                 HANDLE hTransaction);
 
 ///Sets the notification modes for a file handle, allowing you to specify how completion notifications work for the
@@ -16012,7 +16032,7 @@ BOOL SetFileCompletionNotificationModes(HANDLE FileHandle, ubyte Flags);
 ///    invalid. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-BOOL SetFileShortNameA(HANDLE hFile, const(char)* lpShortName);
+BOOL SetFileShortNameA(HANDLE hFile, const(PSTR) lpShortName);
 
 ///Sets the short name for the specified file. The file must be on an NTFS file system volume.
 ///Params:
@@ -16033,7 +16053,7 @@ BOOL SetFileShortNameA(HANDLE hFile, const(char)* lpShortName);
 ///    invalid. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-BOOL SetFileShortNameW(HANDLE hFile, const(wchar)* lpShortName);
+BOOL SetFileShortNameW(HANDLE hFile, const(PWSTR) lpShortName);
 
 ///Encrypts a file or directory. All data streams in a file are encrypted. All new files created in an encrypted
 ///directory are encrypted.
@@ -16046,7 +16066,7 @@ BOOL SetFileShortNameW(HANDLE hFile, const(wchar)* lpShortName);
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("ADVAPI32")
-BOOL EncryptFileA(const(char)* lpFileName);
+BOOL EncryptFileA(const(PSTR) lpFileName);
 
 ///Encrypts a file or directory. All data streams in a file are encrypted. All new files created in an encrypted
 ///directory are encrypted.
@@ -16059,7 +16079,7 @@ BOOL EncryptFileA(const(char)* lpFileName);
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("ADVAPI32")
-BOOL EncryptFileW(const(wchar)* lpFileName);
+BOOL EncryptFileW(const(PWSTR) lpFileName);
 
 ///Decrypts an encrypted file or directory.
 ///Params:
@@ -16072,7 +16092,7 @@ BOOL EncryptFileW(const(wchar)* lpFileName);
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("ADVAPI32")
-BOOL DecryptFileA(const(char)* lpFileName, uint dwReserved);
+BOOL DecryptFileA(const(PSTR) lpFileName, uint dwReserved);
 
 ///Decrypts an encrypted file or directory.
 ///Params:
@@ -16085,7 +16105,7 @@ BOOL DecryptFileA(const(char)* lpFileName, uint dwReserved);
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("ADVAPI32")
-BOOL DecryptFileW(const(wchar)* lpFileName, uint dwReserved);
+BOOL DecryptFileW(const(PWSTR) lpFileName, uint dwReserved);
 
 ///Retrieves the encryption status of the specified file.
 ///Params:
@@ -16117,7 +16137,7 @@ BOOL DecryptFileW(const(wchar)* lpFileName, uint dwReserved);
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("ADVAPI32")
-BOOL FileEncryptionStatusA(const(char)* lpFileName, uint* lpStatus);
+BOOL FileEncryptionStatusA(const(PSTR) lpFileName, uint* lpStatus);
 
 ///Retrieves the encryption status of the specified file.
 ///Params:
@@ -16149,7 +16169,7 @@ BOOL FileEncryptionStatusA(const(char)* lpFileName, uint* lpStatus);
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("ADVAPI32")
-BOOL FileEncryptionStatusW(const(wchar)* lpFileName, uint* lpStatus);
+BOOL FileEncryptionStatusW(const(PWSTR) lpFileName, uint* lpStatus);
 
 ///Opens an encrypted file in order to backup (export) or restore (import) the file. This is one of a group of Encrypted
 ///File System (EFS) functions that is intended to implement backup and restore functionality, while maintaining files
@@ -16174,7 +16194,7 @@ BOOL FileEncryptionStatusW(const(wchar)* lpFileName, uint* lpStatus);
 ///    text description of the error.
 ///    
 @DllImport("ADVAPI32")
-uint OpenEncryptedFileRawA(const(char)* lpFileName, uint ulFlags, void** pvContext);
+uint OpenEncryptedFileRawA(const(PSTR) lpFileName, uint ulFlags, void** pvContext);
 
 ///Opens an encrypted file in order to backup (export) or restore (import) the file. This is one of a group of Encrypted
 ///File System (EFS) functions that is intended to implement backup and restore functionality, while maintaining files
@@ -16199,7 +16219,7 @@ uint OpenEncryptedFileRawA(const(char)* lpFileName, uint ulFlags, void** pvConte
 ///    text description of the error.
 ///    
 @DllImport("ADVAPI32")
-uint OpenEncryptedFileRawW(const(wchar)* lpFileName, uint ulFlags, void** pvContext);
+uint OpenEncryptedFileRawW(const(PWSTR) lpFileName, uint ulFlags, void** pvContext);
 
 ///Backs up (export) encrypted files. This is one of a group of Encrypted File System (EFS) functions that is intended
 ///to implement backup and restore functionality, while maintaining files in their encrypted state.
@@ -16314,7 +16334,7 @@ void CloseEncryptedFileRaw(void* pvContext);
 ///    <b>HFILE_ERROR</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-int OpenFile(const(char)* lpFileName, OFSTRUCT* lpReOpenBuff, uint uStyle);
+int OpenFile(const(PSTR) lpFileName, OFSTRUCT* lpReOpenBuff, uint uStyle);
 
 ///Fills a buffer with strings that specify valid drives in the system.
 ///Params:
@@ -16330,7 +16350,7 @@ int OpenFile(const(char)* lpFileName, OFSTRUCT* lpReOpenBuff, uint uStyle);
 ///    return value is zero. To get extended error information, use the GetLastError function.
 ///    
 @DllImport("KERNEL32")
-uint GetLogicalDriveStringsA(uint nBufferLength, const(char)* lpBuffer);
+uint GetLogicalDriveStringsA(uint nBufferLength, PSTR lpBuffer);
 
 ///Enables or disables file system redirection for the calling thread. This function may not work reliably when there
 ///are nested calls. Therefore, this function has been replaced by the Wow64DisableWow64FsRedirection and
@@ -16409,7 +16429,7 @@ BOOL SetSearchPathMode(uint Flags);
 ///    path, use the SHCreateDirectoryEx function. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-BOOL CreateDirectoryExA(const(char)* lpTemplateDirectory, const(char)* lpNewDirectory, 
+BOOL CreateDirectoryExA(const(PSTR) lpTemplateDirectory, const(PSTR) lpNewDirectory, 
                         SECURITY_ATTRIBUTES* lpSecurityAttributes);
 
 ///Creates a new directory with the attributes of a specified template directory. If the underlying file system supports
@@ -16447,7 +16467,7 @@ BOOL CreateDirectoryExA(const(char)* lpTemplateDirectory, const(char)* lpNewDire
 ///    path, use the SHCreateDirectoryEx function. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-BOOL CreateDirectoryExW(const(wchar)* lpTemplateDirectory, const(wchar)* lpNewDirectory, 
+BOOL CreateDirectoryExW(const(PWSTR) lpTemplateDirectory, const(PWSTR) lpNewDirectory, 
                         SECURITY_ATTRIBUTES* lpSecurityAttributes);
 
 ///<p class="CCE_Message">[Microsoft strongly recommends developers utilize alternative means to achieve your
@@ -16484,7 +16504,7 @@ BOOL CreateDirectoryExW(const(wchar)* lpTemplateDirectory, const(wchar)* lpNewDi
 ///    exist. This function only creates the final directory in the path. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-BOOL CreateDirectoryTransactedA(const(char)* lpTemplateDirectory, const(char)* lpNewDirectory, 
+BOOL CreateDirectoryTransactedA(const(PSTR) lpTemplateDirectory, const(PSTR) lpNewDirectory, 
                                 SECURITY_ATTRIBUTES* lpSecurityAttributes, HANDLE hTransaction);
 
 ///<p class="CCE_Message">[Microsoft strongly recommends developers utilize alternative means to achieve your
@@ -16521,7 +16541,7 @@ BOOL CreateDirectoryTransactedA(const(char)* lpTemplateDirectory, const(char)* l
 ///    exist. This function only creates the final directory in the path. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-BOOL CreateDirectoryTransactedW(const(wchar)* lpTemplateDirectory, const(wchar)* lpNewDirectory, 
+BOOL CreateDirectoryTransactedW(const(PWSTR) lpTemplateDirectory, const(PWSTR) lpNewDirectory, 
                                 SECURITY_ATTRIBUTES* lpSecurityAttributes, HANDLE hTransaction);
 
 ///<p class="CCE_Message">[Microsoft strongly recommends developers utilize alternative means to achieve your
@@ -16541,7 +16561,7 @@ BOOL CreateDirectoryTransactedW(const(wchar)* lpTemplateDirectory, const(wchar)*
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL RemoveDirectoryTransactedA(const(char)* lpPathName, HANDLE hTransaction);
+BOOL RemoveDirectoryTransactedA(const(PSTR) lpPathName, HANDLE hTransaction);
 
 ///<p class="CCE_Message">[Microsoft strongly recommends developers utilize alternative means to achieve your
 ///application’s needs. Many scenarios that TxF was developed for can be achieved through simpler and more readily
@@ -16560,7 +16580,7 @@ BOOL RemoveDirectoryTransactedA(const(char)* lpPathName, HANDLE hTransaction);
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL RemoveDirectoryTransactedW(const(wchar)* lpPathName, HANDLE hTransaction);
+BOOL RemoveDirectoryTransactedW(const(PWSTR) lpPathName, HANDLE hTransaction);
 
 ///<p class="CCE_Message">[Microsoft strongly recommends developers utilize alternative means to achieve your
 ///application’s needs. Many scenarios that TxF was developed for can be achieved through simpler and more readily
@@ -16586,8 +16606,8 @@ BOOL RemoveDirectoryTransactedW(const(wchar)* lpPathName, HANDLE hTransaction);
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-uint GetFullPathNameTransactedA(const(char)* lpFileName, uint nBufferLength, const(char)* lpBuffer, 
-                                byte** lpFilePart, HANDLE hTransaction);
+uint GetFullPathNameTransactedA(const(PSTR) lpFileName, uint nBufferLength, PSTR lpBuffer, PSTR* lpFilePart, 
+                                HANDLE hTransaction);
 
 ///<p class="CCE_Message">[Microsoft strongly recommends developers utilize alternative means to achieve your
 ///application’s needs. Many scenarios that TxF was developed for can be achieved through simpler and more readily
@@ -16613,8 +16633,8 @@ uint GetFullPathNameTransactedA(const(char)* lpFileName, uint nBufferLength, con
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-uint GetFullPathNameTransactedW(const(wchar)* lpFileName, uint nBufferLength, const(wchar)* lpBuffer, 
-                                ushort** lpFilePart, HANDLE hTransaction);
+uint GetFullPathNameTransactedW(const(PWSTR) lpFileName, uint nBufferLength, PWSTR lpBuffer, PWSTR* lpFilePart, 
+                                HANDLE hTransaction);
 
 ///Defines, redefines, or deletes MS-DOS device names.
 ///Params:
@@ -16650,7 +16670,7 @@ uint GetFullPathNameTransactedW(const(wchar)* lpFileName, uint nBufferLength, co
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL DefineDosDeviceA(uint dwFlags, const(char)* lpDeviceName, const(char)* lpTargetPath);
+BOOL DefineDosDeviceA(uint dwFlags, const(PSTR) lpDeviceName, const(PSTR) lpTargetPath);
 
 ///Retrieves information about MS-DOS device names. The function can obtain the current mapping for a particular MS-DOS
 ///device name. The function can also obtain a list of all existing MS-DOS device names. MS-DOS device names are stored
@@ -16679,7 +16699,7 @@ BOOL DefineDosDeviceA(uint dwFlags, const(char)* lpDeviceName, const(char)* lpTa
 ///    <b>ERROR_INSUFFICIENT_BUFFER</b>.
 ///    
 @DllImport("KERNEL32")
-uint QueryDosDeviceA(const(char)* lpDeviceName, const(char)* lpTargetPath, uint ucchMax);
+uint QueryDosDeviceA(const(PSTR) lpDeviceName, PSTR lpTargetPath, uint ucchMax);
 
 ///<p class="CCE_Message">[Microsoft strongly recommends developers utilize alternative means to achieve your
 ///application’s needs. Many scenarios that TxF was developed for can be achieved through simpler and more readily
@@ -16929,7 +16949,7 @@ uint QueryDosDeviceA(const(char)* lpDeviceName, const(char)* lpTargetPath, uint 
 ///    call GetLastError.
 ///    
 @DllImport("KERNEL32")
-HANDLE CreateFileTransactedA(const(char)* lpFileName, uint dwDesiredAccess, uint dwShareMode, 
+HANDLE CreateFileTransactedA(const(PSTR) lpFileName, uint dwDesiredAccess, uint dwShareMode, 
                              SECURITY_ATTRIBUTES* lpSecurityAttributes, uint dwCreationDisposition, 
                              uint dwFlagsAndAttributes, HANDLE hTemplateFile, HANDLE hTransaction, 
                              ushort* pusMiniVersion, void* lpExtendedParameter);
@@ -17182,7 +17202,7 @@ HANDLE CreateFileTransactedA(const(char)* lpFileName, uint dwDesiredAccess, uint
 ///    call GetLastError.
 ///    
 @DllImport("KERNEL32")
-HANDLE CreateFileTransactedW(const(wchar)* lpFileName, uint dwDesiredAccess, uint dwShareMode, 
+HANDLE CreateFileTransactedW(const(PWSTR) lpFileName, uint dwDesiredAccess, uint dwShareMode, 
                              SECURITY_ATTRIBUTES* lpSecurityAttributes, uint dwCreationDisposition, 
                              uint dwFlagsAndAttributes, HANDLE hTemplateFile, HANDLE hTransaction, 
                              ushort* pusMiniVersion, void* lpExtendedParameter);
@@ -17329,7 +17349,7 @@ HANDLE ReOpenFile(HANDLE hOriginalFile, uint dwDesiredAccess, uint dwShareMode, 
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL SetFileAttributesTransactedA(const(char)* lpFileName, uint dwFileAttributes, HANDLE hTransaction);
+BOOL SetFileAttributesTransactedA(const(PSTR) lpFileName, uint dwFileAttributes, HANDLE hTransaction);
 
 ///<p class="CCE_Message">[Microsoft strongly recommends developers utilize alternative means to achieve your
 ///application’s needs. Many scenarios that TxF was developed for can be achieved through simpler and more readily
@@ -17352,7 +17372,7 @@ BOOL SetFileAttributesTransactedA(const(char)* lpFileName, uint dwFileAttributes
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL SetFileAttributesTransactedW(const(wchar)* lpFileName, uint dwFileAttributes, HANDLE hTransaction);
+BOOL SetFileAttributesTransactedW(const(PWSTR) lpFileName, uint dwFileAttributes, HANDLE hTransaction);
 
 ///<p class="CCE_Message">[Microsoft strongly recommends developers utilize alternative means to achieve your
 ///application’s needs. Many scenarios that TxF was developed for can be achieved through simpler and more readily
@@ -17379,8 +17399,8 @@ BOOL SetFileAttributesTransactedW(const(wchar)* lpFileName, uint dwFileAttribute
 ///    get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL GetFileAttributesTransactedA(const(char)* lpFileName, GET_FILEEX_INFO_LEVELS fInfoLevelId, 
-                                  char* lpFileInformation, HANDLE hTransaction);
+BOOL GetFileAttributesTransactedA(const(PSTR) lpFileName, GET_FILEEX_INFO_LEVELS fInfoLevelId, 
+                                  void* lpFileInformation, HANDLE hTransaction);
 
 ///<p class="CCE_Message">[Microsoft strongly recommends developers utilize alternative means to achieve your
 ///application’s needs. Many scenarios that TxF was developed for can be achieved through simpler and more readily
@@ -17407,8 +17427,8 @@ BOOL GetFileAttributesTransactedA(const(char)* lpFileName, GET_FILEEX_INFO_LEVEL
 ///    get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL GetFileAttributesTransactedW(const(wchar)* lpFileName, GET_FILEEX_INFO_LEVELS fInfoLevelId, 
-                                  char* lpFileInformation, HANDLE hTransaction);
+BOOL GetFileAttributesTransactedW(const(PWSTR) lpFileName, GET_FILEEX_INFO_LEVELS fInfoLevelId, 
+                                  void* lpFileInformation, HANDLE hTransaction);
 
 ///<p class="CCE_Message">[Microsoft strongly recommends developers utilize alternative means to achieve your
 ///application’s needs. Many scenarios that TxF was developed for can be achieved through simpler and more readily
@@ -17438,7 +17458,7 @@ BOOL GetFileAttributesTransactedW(const(wchar)* lpFileName, GET_FILEEX_INFO_LEVE
 ///    <b>NO_ERROR</b>) or failed (value is other than <b>NO_ERROR</b>).
 ///    
 @DllImport("KERNEL32")
-uint GetCompressedFileSizeTransactedA(const(char)* lpFileName, uint* lpFileSizeHigh, HANDLE hTransaction);
+uint GetCompressedFileSizeTransactedA(const(PSTR) lpFileName, uint* lpFileSizeHigh, HANDLE hTransaction);
 
 ///<p class="CCE_Message">[Microsoft strongly recommends developers utilize alternative means to achieve your
 ///application’s needs. Many scenarios that TxF was developed for can be achieved through simpler and more readily
@@ -17468,7 +17488,7 @@ uint GetCompressedFileSizeTransactedA(const(char)* lpFileName, uint* lpFileSizeH
 ///    <b>NO_ERROR</b>) or failed (value is other than <b>NO_ERROR</b>).
 ///    
 @DllImport("KERNEL32")
-uint GetCompressedFileSizeTransactedW(const(wchar)* lpFileName, uint* lpFileSizeHigh, HANDLE hTransaction);
+uint GetCompressedFileSizeTransactedW(const(PWSTR) lpFileName, uint* lpFileSizeHigh, HANDLE hTransaction);
 
 ///<p class="CCE_Message">[Microsoft strongly recommends developers utilize alternative means to achieve your
 ///application’s needs. Many scenarios that TxF was developed for can be achieved through simpler and more readily
@@ -17486,7 +17506,7 @@ uint GetCompressedFileSizeTransactedW(const(wchar)* lpFileName, uint* lpFileSize
 ///    get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL DeleteFileTransactedA(const(char)* lpFileName, HANDLE hTransaction);
+BOOL DeleteFileTransactedA(const(PSTR) lpFileName, HANDLE hTransaction);
 
 ///<p class="CCE_Message">[Microsoft strongly recommends developers utilize alternative means to achieve your
 ///application’s needs. Many scenarios that TxF was developed for can be achieved through simpler and more readily
@@ -17504,7 +17524,7 @@ BOOL DeleteFileTransactedA(const(char)* lpFileName, HANDLE hTransaction);
 ///    get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL DeleteFileTransactedW(const(wchar)* lpFileName, HANDLE hTransaction);
+BOOL DeleteFileTransactedW(const(PWSTR) lpFileName, HANDLE hTransaction);
 
 ///Determines whether the specified name can be used to create a file on a FAT file system.
 ///Params:
@@ -17522,8 +17542,8 @@ BOOL DeleteFileTransactedW(const(wchar)* lpFileName, HANDLE hTransaction);
 ///    get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL CheckNameLegalDOS8Dot3A(const(char)* lpName, const(char)* lpOemName, uint OemNameSize, 
-                             int* pbNameContainsSpaces, int* pbNameLegal);
+BOOL CheckNameLegalDOS8Dot3A(const(PSTR) lpName, PSTR lpOemName, uint OemNameSize, BOOL* pbNameContainsSpaces, 
+                             BOOL* pbNameLegal);
 
 ///Determines whether the specified name can be used to create a file on a FAT file system.
 ///Params:
@@ -17541,8 +17561,8 @@ BOOL CheckNameLegalDOS8Dot3A(const(char)* lpName, const(char)* lpOemName, uint O
 ///    get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL CheckNameLegalDOS8Dot3W(const(wchar)* lpName, const(char)* lpOemName, uint OemNameSize, 
-                             int* pbNameContainsSpaces, int* pbNameLegal);
+BOOL CheckNameLegalDOS8Dot3W(const(PWSTR) lpName, PSTR lpOemName, uint OemNameSize, BOOL* pbNameContainsSpaces, 
+                             BOOL* pbNameLegal);
 
 ///<p class="CCE_Message">[Microsoft strongly recommends developers utilize alternative means to achieve your
 ///application’s needs. Many scenarios that TxF was developed for can be achieved through simpler and more readily
@@ -17579,8 +17599,8 @@ BOOL CheckNameLegalDOS8Dot3W(const(wchar)* lpName, const(char)* lpOemName, uint 
 ///    extended error information, call the GetLastError function.
 ///    
 @DllImport("KERNEL32")
-FindFileHandle FindFirstFileTransactedA(const(char)* lpFileName, FINDEX_INFO_LEVELS fInfoLevelId, 
-                                        char* lpFindFileData, FINDEX_SEARCH_OPS fSearchOp, void* lpSearchFilter, 
+FindFileHandle FindFirstFileTransactedA(const(PSTR) lpFileName, FINDEX_INFO_LEVELS fInfoLevelId, 
+                                        void* lpFindFileData, FINDEX_SEARCH_OPS fSearchOp, void* lpSearchFilter, 
                                         uint dwAdditionalFlags, HANDLE hTransaction);
 
 ///<p class="CCE_Message">[Microsoft strongly recommends developers utilize alternative means to achieve your
@@ -17618,8 +17638,8 @@ FindFileHandle FindFirstFileTransactedA(const(char)* lpFileName, FINDEX_INFO_LEV
 ///    extended error information, call the GetLastError function.
 ///    
 @DllImport("KERNEL32")
-FindFileHandle FindFirstFileTransactedW(const(wchar)* lpFileName, FINDEX_INFO_LEVELS fInfoLevelId, 
-                                        char* lpFindFileData, FINDEX_SEARCH_OPS fSearchOp, void* lpSearchFilter, 
+FindFileHandle FindFirstFileTransactedW(const(PWSTR) lpFileName, FINDEX_INFO_LEVELS fInfoLevelId, 
+                                        void* lpFindFileData, FINDEX_SEARCH_OPS fSearchOp, void* lpSearchFilter, 
                                         uint dwAdditionalFlags, HANDLE hTransaction);
 
 ///Copies an existing file to a new file. The CopyFileEx function provides two additional capabilities.
@@ -17648,7 +17668,7 @@ FindFileHandle FindFirstFileTransactedW(const(wchar)* lpFileName, FINDEX_INFO_LE
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL CopyFileA(const(char)* lpExistingFileName, const(char)* lpNewFileName, BOOL bFailIfExists);
+BOOL CopyFileA(const(PSTR) lpExistingFileName, const(PSTR) lpNewFileName, BOOL bFailIfExists);
 
 ///Copies an existing file to a new file. The CopyFileEx function provides two additional capabilities.
 ///<b>CopyFileEx</b> can call a specified callback function each time a portion of the copy operation is completed, and
@@ -17676,7 +17696,7 @@ BOOL CopyFileA(const(char)* lpExistingFileName, const(char)* lpNewFileName, BOOL
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL CopyFileW(const(wchar)* lpExistingFileName, const(wchar)* lpNewFileName, BOOL bFailIfExists);
+BOOL CopyFileW(const(PWSTR) lpExistingFileName, const(PWSTR) lpNewFileName, BOOL bFailIfExists);
 
 ///Copies an existing file to a new file, notifying the application of its progress through a callback function. To
 ///perform this operation as a transacted operation, use the CopyFileTransacted function.
@@ -17734,7 +17754,7 @@ BOOL CopyFileW(const(wchar)* lpExistingFileName, const(wchar)* lpNewFileName, BO
 ///    destination file is left intact.
 ///    
 @DllImport("KERNEL32")
-BOOL CopyFileExA(const(char)* lpExistingFileName, const(char)* lpNewFileName, LPPROGRESS_ROUTINE lpProgressRoutine, 
+BOOL CopyFileExA(const(PSTR) lpExistingFileName, const(PSTR) lpNewFileName, LPPROGRESS_ROUTINE lpProgressRoutine, 
                  void* lpData, int* pbCancel, uint dwCopyFlags);
 
 ///Copies an existing file to a new file, notifying the application of its progress through a callback function. To
@@ -17793,8 +17813,8 @@ BOOL CopyFileExA(const(char)* lpExistingFileName, const(char)* lpNewFileName, LP
 ///    destination file is left intact.
 ///    
 @DllImport("KERNEL32")
-BOOL CopyFileExW(const(wchar)* lpExistingFileName, const(wchar)* lpNewFileName, 
-                 LPPROGRESS_ROUTINE lpProgressRoutine, void* lpData, int* pbCancel, uint dwCopyFlags);
+BOOL CopyFileExW(const(PWSTR) lpExistingFileName, const(PWSTR) lpNewFileName, LPPROGRESS_ROUTINE lpProgressRoutine, 
+                 void* lpData, int* pbCancel, uint dwCopyFlags);
 
 ///<p class="CCE_Message">[Microsoft strongly recommends developers utilize alternative means to achieve your
 ///application’s needs. Many scenarios that TxF was developed for can be achieved through simpler and more readily
@@ -17847,7 +17867,7 @@ BOOL CopyFileExW(const(wchar)* lpExistingFileName, const(wchar)* lpNewFileName,
 ///    <b>ERROR_TRANSACTION_NOT_ACTIVE</b> or <b>ERROR_INVALID_TRANSACTION</b>.
 ///    
 @DllImport("KERNEL32")
-BOOL CopyFileTransactedA(const(char)* lpExistingFileName, const(char)* lpNewFileName, 
+BOOL CopyFileTransactedA(const(PSTR) lpExistingFileName, const(PSTR) lpNewFileName, 
                          LPPROGRESS_ROUTINE lpProgressRoutine, void* lpData, int* pbCancel, uint dwCopyFlags, 
                          HANDLE hTransaction);
 
@@ -17902,7 +17922,7 @@ BOOL CopyFileTransactedA(const(char)* lpExistingFileName, const(char)* lpNewFile
 ///    <b>ERROR_TRANSACTION_NOT_ACTIVE</b> or <b>ERROR_INVALID_TRANSACTION</b>.
 ///    
 @DllImport("KERNEL32")
-BOOL CopyFileTransactedW(const(wchar)* lpExistingFileName, const(wchar)* lpNewFileName, 
+BOOL CopyFileTransactedW(const(PWSTR) lpExistingFileName, const(PWSTR) lpNewFileName, 
                          LPPROGRESS_ROUTINE lpProgressRoutine, void* lpData, int* pbCancel, uint dwCopyFlags, 
                          HANDLE hTransaction);
 
@@ -17937,7 +17957,7 @@ BOOL CopyFileTransactedW(const(wchar)* lpExistingFileName, const(wchar)* lpNewFi
 ///    existed. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-HRESULT CopyFile2(const(wchar)* pwszExistingFileName, const(wchar)* pwszNewFileName, 
+HRESULT CopyFile2(const(PWSTR) pwszExistingFileName, const(PWSTR) pwszNewFileName, 
                   COPYFILE2_EXTENDED_PARAMETERS* pExtendedParameters);
 
 ///Moves an existing file or a directory, including its children. To specify how to move the file, use the MoveFileEx or
@@ -17962,7 +17982,7 @@ HRESULT CopyFile2(const(wchar)* pwszExistingFileName, const(wchar)* pwszNewFileN
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL MoveFileA(const(char)* lpExistingFileName, const(char)* lpNewFileName);
+BOOL MoveFileA(const(PSTR) lpExistingFileName, const(PSTR) lpNewFileName);
 
 ///Moves an existing file or a directory, including its children. To specify how to move the file, use the MoveFileEx or
 ///MoveFileWithProgress function. To perform this operation as a transacted operation, use the MoveFileTransacted
@@ -17986,7 +18006,7 @@ BOOL MoveFileA(const(char)* lpExistingFileName, const(char)* lpNewFileName);
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL MoveFileW(const(wchar)* lpExistingFileName, const(wchar)* lpNewFileName);
+BOOL MoveFileW(const(PWSTR) lpExistingFileName, const(PWSTR) lpNewFileName);
 
 ///Moves an existing file or directory, including its children, with various move options. The MoveFileWithProgress
 ///function is equivalent to the <b>MoveFileEx</b> function, except that <b>MoveFileWithProgress</b> allows you to
@@ -18048,7 +18068,7 @@ BOOL MoveFileW(const(wchar)* lpExistingFileName, const(wchar)* lpNewFileName);
 ///    get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL MoveFileExA(const(char)* lpExistingFileName, const(char)* lpNewFileName, uint dwFlags);
+BOOL MoveFileExA(const(PSTR) lpExistingFileName, const(PSTR) lpNewFileName, uint dwFlags);
 
 ///Moves an existing file or directory, including its children, with various move options. The MoveFileWithProgress
 ///function is equivalent to the <b>MoveFileEx</b> function, except that <b>MoveFileWithProgress</b> allows you to
@@ -18110,7 +18130,7 @@ BOOL MoveFileExA(const(char)* lpExistingFileName, const(char)* lpNewFileName, ui
 ///    get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL MoveFileExW(const(wchar)* lpExistingFileName, const(wchar)* lpNewFileName, uint dwFlags);
+BOOL MoveFileExW(const(PWSTR) lpExistingFileName, const(PWSTR) lpNewFileName, uint dwFlags);
 
 ///Moves a file or directory, including its children. You can provide a callback function that receives progress
 ///notifications. To perform this operation as a transacted operation, use the MoveFileTransacted function.
@@ -18179,7 +18199,7 @@ BOOL MoveFileExW(const(wchar)* lpExistingFileName, const(wchar)* lpNewFileName, 
 ///    <b>ERROR_REQUEST_ABORTED</b>. The existing file is left intact.
 ///    
 @DllImport("KERNEL32")
-BOOL MoveFileWithProgressA(const(char)* lpExistingFileName, const(char)* lpNewFileName, 
+BOOL MoveFileWithProgressA(const(PSTR) lpExistingFileName, const(PSTR) lpNewFileName, 
                            LPPROGRESS_ROUTINE lpProgressRoutine, void* lpData, uint dwFlags);
 
 ///Moves a file or directory, including its children. You can provide a callback function that receives progress
@@ -18249,7 +18269,7 @@ BOOL MoveFileWithProgressA(const(char)* lpExistingFileName, const(char)* lpNewFi
 ///    <b>ERROR_REQUEST_ABORTED</b>. The existing file is left intact.
 ///    
 @DllImport("KERNEL32")
-BOOL MoveFileWithProgressW(const(wchar)* lpExistingFileName, const(wchar)* lpNewFileName, 
+BOOL MoveFileWithProgressW(const(PWSTR) lpExistingFileName, const(PWSTR) lpNewFileName, 
                            LPPROGRESS_ROUTINE lpProgressRoutine, void* lpData, uint dwFlags);
 
 ///<p class="CCE_Message">[Microsoft strongly recommends developers utilize alternative means to achieve your
@@ -18309,7 +18329,7 @@ BOOL MoveFileWithProgressW(const(wchar)* lpExistingFileName, const(wchar)* lpNew
 ///    The existing file is left intact.
 ///    
 @DllImport("KERNEL32")
-BOOL MoveFileTransactedA(const(char)* lpExistingFileName, const(char)* lpNewFileName, 
+BOOL MoveFileTransactedA(const(PSTR) lpExistingFileName, const(PSTR) lpNewFileName, 
                          LPPROGRESS_ROUTINE lpProgressRoutine, void* lpData, uint dwFlags, HANDLE hTransaction);
 
 ///<p class="CCE_Message">[Microsoft strongly recommends developers utilize alternative means to achieve your
@@ -18369,7 +18389,7 @@ BOOL MoveFileTransactedA(const(char)* lpExistingFileName, const(char)* lpNewFile
 ///    The existing file is left intact.
 ///    
 @DllImport("KERNEL32")
-BOOL MoveFileTransactedW(const(wchar)* lpExistingFileName, const(wchar)* lpNewFileName, 
+BOOL MoveFileTransactedW(const(PWSTR) lpExistingFileName, const(PWSTR) lpNewFileName, 
                          LPPROGRESS_ROUTINE lpProgressRoutine, void* lpData, uint dwFlags, HANDLE hTransaction);
 
 ///Replaces one file with another file, with the option of creating a backup copy of the original file. The replacement
@@ -18439,8 +18459,8 @@ BOOL MoveFileTransactedW(const(wchar)* lpExistingFileName, const(wchar)* lpNewFi
 ///    streams of the replaced file.
 ///    
 @DllImport("KERNEL32")
-BOOL ReplaceFileA(const(char)* lpReplacedFileName, const(char)* lpReplacementFileName, 
-                  const(char)* lpBackupFileName, uint dwReplaceFlags, void* lpExclude, void* lpReserved);
+BOOL ReplaceFileA(const(PSTR) lpReplacedFileName, const(PSTR) lpReplacementFileName, const(PSTR) lpBackupFileName, 
+                  uint dwReplaceFlags, void* lpExclude, void* lpReserved);
 
 ///Replaces one file with another file, with the option of creating a backup copy of the original file. The replacement
 ///file assumes the name of the replaced file and its identity.
@@ -18509,8 +18529,8 @@ BOOL ReplaceFileA(const(char)* lpReplacedFileName, const(char)* lpReplacementFil
 ///    streams of the replaced file.
 ///    
 @DllImport("KERNEL32")
-BOOL ReplaceFileW(const(wchar)* lpReplacedFileName, const(wchar)* lpReplacementFileName, 
-                  const(wchar)* lpBackupFileName, uint dwReplaceFlags, void* lpExclude, void* lpReserved);
+BOOL ReplaceFileW(const(PWSTR) lpReplacedFileName, const(PWSTR) lpReplacementFileName, 
+                  const(PWSTR) lpBackupFileName, uint dwReplaceFlags, void* lpExclude, void* lpReserved);
 
 ///Establishes a hard link between an existing file and a new file. This function is only supported on the NTFS file
 ///system, and only for files, not directories. To perform this operation as a transacted operation, use the
@@ -18544,7 +18564,7 @@ BOOL ReplaceFileW(const(wchar)* lpReplacedFileName, const(wchar)* lpReplacementF
 ///    returns ERROR_PATH_NOT_FOUND.
 ///    
 @DllImport("KERNEL32")
-BOOL CreateHardLinkA(const(char)* lpFileName, const(char)* lpExistingFileName, 
+BOOL CreateHardLinkA(const(PSTR) lpFileName, const(PSTR) lpExistingFileName, 
                      SECURITY_ATTRIBUTES* lpSecurityAttributes);
 
 ///Establishes a hard link between an existing file and a new file. This function is only supported on the NTFS file
@@ -18579,7 +18599,7 @@ BOOL CreateHardLinkA(const(char)* lpFileName, const(char)* lpExistingFileName,
 ///    returns ERROR_PATH_NOT_FOUND.
 ///    
 @DllImport("KERNEL32")
-BOOL CreateHardLinkW(const(wchar)* lpFileName, const(wchar)* lpExistingFileName, 
+BOOL CreateHardLinkW(const(PWSTR) lpFileName, const(PWSTR) lpExistingFileName, 
                      SECURITY_ATTRIBUTES* lpSecurityAttributes);
 
 ///<p class="CCE_Message">[Microsoft strongly recommends developers utilize alternative means to achieve your
@@ -18601,7 +18621,7 @@ BOOL CreateHardLinkW(const(wchar)* lpFileName, const(wchar)* lpExistingFileName,
 ///    <b>ERROR_TRANSACTIONS_UNSUPPORTED_REMOTE</b>.
 ///    
 @DllImport("KERNEL32")
-BOOL CreateHardLinkTransactedA(const(char)* lpFileName, const(char)* lpExistingFileName, 
+BOOL CreateHardLinkTransactedA(const(PSTR) lpFileName, const(PSTR) lpExistingFileName, 
                                SECURITY_ATTRIBUTES* lpSecurityAttributes, HANDLE hTransaction);
 
 ///<p class="CCE_Message">[Microsoft strongly recommends developers utilize alternative means to achieve your
@@ -18623,7 +18643,7 @@ BOOL CreateHardLinkTransactedA(const(char)* lpFileName, const(char)* lpExistingF
 ///    <b>ERROR_TRANSACTIONS_UNSUPPORTED_REMOTE</b>.
 ///    
 @DllImport("KERNEL32")
-BOOL CreateHardLinkTransactedW(const(wchar)* lpFileName, const(wchar)* lpExistingFileName, 
+BOOL CreateHardLinkTransactedW(const(PWSTR) lpFileName, const(PWSTR) lpExistingFileName, 
                                SECURITY_ATTRIBUTES* lpSecurityAttributes, HANDLE hTransaction);
 
 ///<p class="CCE_Message">[Microsoft strongly recommends developers utilize alternative means to achieve your
@@ -18649,8 +18669,8 @@ BOOL CreateHardLinkTransactedW(const(wchar)* lpFileName, const(wchar)* lpExistin
 ///    error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-FindStreamHandle FindFirstStreamTransactedW(const(wchar)* lpFileName, STREAM_INFO_LEVELS InfoLevel, 
-                                            char* lpFindStreamData, uint dwFlags, HANDLE hTransaction);
+FindStreamHandle FindFirstStreamTransactedW(const(PWSTR) lpFileName, STREAM_INFO_LEVELS InfoLevel, 
+                                            void* lpFindStreamData, uint dwFlags, HANDLE hTransaction);
 
 ///<p class="CCE_Message">[Microsoft strongly recommends developers utilize alternative means to achieve your
 ///application’s needs. Many scenarios that TxF was developed for can be achieved through simpler and more readily
@@ -18673,8 +18693,8 @@ FindStreamHandle FindFirstStreamTransactedW(const(wchar)* lpFileName, STREAM_INF
 ///    <b>INVALID_HANDLE_VALUE</b> (0xffffffff). To get extended error information, call the GetLastError function.
 ///    
 @DllImport("KERNEL32")
-FindFileNameHandle FindFirstFileNameTransactedW(const(wchar)* lpFileName, uint dwFlags, uint* StringLength, 
-                                                const(wchar)* LinkName, HANDLE hTransaction);
+FindFileNameHandle FindFirstFileNameTransactedW(const(PWSTR) lpFileName, uint dwFlags, uint* StringLength, 
+                                                PWSTR LinkName, HANDLE hTransaction);
 
 ///Sets the label of a file system volume.
 ///Params:
@@ -18688,7 +18708,7 @@ FindFileNameHandle FindFirstFileNameTransactedW(const(wchar)* lpFileName, uint d
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL SetVolumeLabelA(const(char)* lpRootPathName, const(char)* lpVolumeName);
+BOOL SetVolumeLabelA(const(PSTR) lpRootPathName, const(PSTR) lpVolumeName);
 
 ///Sets the label of a file system volume.
 ///Params:
@@ -18702,7 +18722,7 @@ BOOL SetVolumeLabelA(const(char)* lpRootPathName, const(char)* lpVolumeName);
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL SetVolumeLabelW(const(wchar)* lpRootPathName, const(wchar)* lpVolumeName);
+BOOL SetVolumeLabelW(const(PWSTR) lpRootPathName, const(PWSTR) lpVolumeName);
 
 ///Requests that bandwidth for the specified file stream be reserved. The reservation is specified as a number of bytes
 ///in a period of milliseconds for I/O requests on the specified file handle.
@@ -18819,7 +18839,7 @@ BOOL GetFileBandwidthReservation(HANDLE hFile, uint* lpPeriodMilliseconds, uint*
 ///    or the target file system does not support this operation, the function fails with <b>ERROR_INVALID_FUNCTION</b>.
 ///    
 @DllImport("KERNEL32")
-BOOL ReadDirectoryChangesW(HANDLE hDirectory, char* lpBuffer, uint nBufferLength, BOOL bWatchSubtree, 
+BOOL ReadDirectoryChangesW(HANDLE hDirectory, void* lpBuffer, uint nBufferLength, BOOL bWatchSubtree, 
                            uint dwNotifyFilter, uint* lpBytesReturned, OVERLAPPED* lpOverlapped, 
                            LPOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine);
 
@@ -18894,7 +18914,7 @@ BOOL ReadDirectoryChangesW(HANDLE hDirectory, char* lpBuffer, uint nBufferLength
 ///    or the target file system does not support this operation, the function fails with <b>ERROR_INVALID_FUNCTION</b>.
 ///    
 @DllImport("KERNEL32")
-BOOL ReadDirectoryChangesExW(HANDLE hDirectory, char* lpBuffer, uint nBufferLength, BOOL bWatchSubtree, 
+BOOL ReadDirectoryChangesExW(HANDLE hDirectory, void* lpBuffer, uint nBufferLength, BOOL bWatchSubtree, 
                              uint dwNotifyFilter, uint* lpBytesReturned, OVERLAPPED* lpOverlapped, 
                              LPOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine, 
                              READ_DIRECTORY_NOTIFY_INFORMATION_CLASS ReadDirectoryNotifyInformationClass);
@@ -18911,7 +18931,7 @@ BOOL ReadDirectoryChangesExW(HANDLE hDirectory, char* lpBuffer, uint nBufferLeng
 ///    <b>INVALID_HANDLE_VALUE</b> error code. To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-FindVolumeHandle FindFirstVolumeA(const(char)* lpszVolumeName, uint cchBufferLength);
+FindVolumeHandle FindFirstVolumeA(PSTR lpszVolumeName, uint cchBufferLength);
 
 ///Continues a volume search started by a call to the FindFirstVolume function. <b>FindNextVolume</b> finds one volume
 ///per call.
@@ -18926,7 +18946,7 @@ FindVolumeHandle FindFirstVolumeA(const(char)* lpszVolumeName, uint cchBufferLen
 ///    FindVolumeClose function.
 ///    
 @DllImport("KERNEL32")
-BOOL FindNextVolumeA(FindVolumeHandle hFindVolume, const(char)* lpszVolumeName, uint cchBufferLength);
+BOOL FindNextVolumeA(FindVolumeHandle hFindVolume, PSTR lpszVolumeName, uint cchBufferLength);
 
 ///Retrieves the name of a mounted folder on the specified volume. <b>FindFirstVolumeMountPoint</b> is used to begin
 ///scanning the mounted folders on a volume.
@@ -18941,8 +18961,8 @@ BOOL FindNextVolumeA(FindVolumeHandle hFindVolume, const(char)* lpszVolumeName, 
 ///    call GetLastError.
 ///    
 @DllImport("KERNEL32")
-FindVolumeMointPointHandle FindFirstVolumeMountPointA(const(char)* lpszRootPathName, 
-                                                      const(char)* lpszVolumeMountPoint, uint cchBufferLength);
+FindVolumeMointPointHandle FindFirstVolumeMountPointA(const(PSTR) lpszRootPathName, PSTR lpszVolumeMountPoint, 
+                                                      uint cchBufferLength);
 
 ///Retrieves the name of a mounted folder on the specified volume. <b>FindFirstVolumeMountPoint</b> is used to begin
 ///scanning the mounted folders on a volume.
@@ -18957,8 +18977,8 @@ FindVolumeMointPointHandle FindFirstVolumeMountPointA(const(char)* lpszRootPathN
 ///    call GetLastError.
 ///    
 @DllImport("KERNEL32")
-FindVolumeMointPointHandle FindFirstVolumeMountPointW(const(wchar)* lpszRootPathName, 
-                                                      const(wchar)* lpszVolumeMountPoint, uint cchBufferLength);
+FindVolumeMointPointHandle FindFirstVolumeMountPointW(const(PWSTR) lpszRootPathName, PWSTR lpszVolumeMountPoint, 
+                                                      uint cchBufferLength);
 
 ///Continues a mounted folder search started by a call to the FindFirstVolumeMountPoint function.
 ///<b>FindNextVolumeMountPoint</b> finds one mounted folder per call.
@@ -18973,7 +18993,7 @@ FindVolumeMointPointHandle FindFirstVolumeMountPointW(const(wchar)* lpszRootPath
 ///    FindVolumeMountPointClose function.
 ///    
 @DllImport("KERNEL32")
-BOOL FindNextVolumeMountPointA(FindVolumeMointPointHandle hFindVolumeMountPoint, const(char)* lpszVolumeMountPoint, 
+BOOL FindNextVolumeMountPointA(FindVolumeMointPointHandle hFindVolumeMountPoint, PSTR lpszVolumeMountPoint, 
                                uint cchBufferLength);
 
 ///Continues a mounted folder search started by a call to the FindFirstVolumeMountPoint function.
@@ -18989,8 +19009,8 @@ BOOL FindNextVolumeMountPointA(FindVolumeMointPointHandle hFindVolumeMountPoint,
 ///    FindVolumeMountPointClose function.
 ///    
 @DllImport("KERNEL32")
-BOOL FindNextVolumeMountPointW(FindVolumeMointPointHandle hFindVolumeMountPoint, 
-                               const(wchar)* lpszVolumeMountPoint, uint cchBufferLength);
+BOOL FindNextVolumeMountPointW(FindVolumeMointPointHandle hFindVolumeMountPoint, PWSTR lpszVolumeMountPoint, 
+                               uint cchBufferLength);
 
 ///Closes the specified mounted folder search handle. The FindFirstVolumeMountPoint and
 ///FindNextVolumeMountPointfunctions use this search handle to locate mounted folders on a specified volume.
@@ -19017,7 +19037,7 @@ BOOL FindVolumeMountPointClose(FindVolumeMointPointHandle hFindVolumeMountPoint)
 ///    mounted folder, GetLastError returns <b>ERROR_DIR_NOT_EMPTY</b>, even if the directory is empty.
 ///    
 @DllImport("KERNEL32")
-BOOL SetVolumeMountPointA(const(char)* lpszVolumeMountPoint, const(char)* lpszVolumeName);
+BOOL SetVolumeMountPointA(const(PSTR) lpszVolumeMountPoint, const(PSTR) lpszVolumeName);
 
 ///Associates a volume with a drive letter or a directory on another volume.
 ///Params:
@@ -19032,7 +19052,7 @@ BOOL SetVolumeMountPointA(const(char)* lpszVolumeMountPoint, const(char)* lpszVo
 ///    mounted folder, GetLastError returns <b>ERROR_DIR_NOT_EMPTY</b>, even if the directory is empty.
 ///    
 @DllImport("KERNEL32")
-BOOL SetVolumeMountPointW(const(wchar)* lpszVolumeMountPoint, const(wchar)* lpszVolumeName);
+BOOL SetVolumeMountPointW(const(PWSTR) lpszVolumeMountPoint, const(PWSTR) lpszVolumeName);
 
 ///Deletes a drive letter or mounted folder.
 ///Params:
@@ -19043,7 +19063,7 @@ BOOL SetVolumeMountPointW(const(wchar)* lpszVolumeMountPoint, const(wchar)* lpsz
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL DeleteVolumeMountPointA(const(char)* lpszVolumeMountPoint);
+BOOL DeleteVolumeMountPointA(const(PSTR) lpszVolumeMountPoint);
 
 ///Retrieves a volume <b>GUID</b> path for the volume that is associated with the specified volume mount point ( drive
 ///letter, volume <b>GUID</b> path, or mounted folder).
@@ -19060,8 +19080,7 @@ BOOL DeleteVolumeMountPointA(const(char)* lpszVolumeMountPoint);
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL GetVolumeNameForVolumeMountPointA(const(char)* lpszVolumeMountPoint, const(char)* lpszVolumeName, 
-                                       uint cchBufferLength);
+BOOL GetVolumeNameForVolumeMountPointA(const(PSTR) lpszVolumeMountPoint, PSTR lpszVolumeName, uint cchBufferLength);
 
 ///Retrieves the volume mount point where the specified path is mounted.
 ///Params:
@@ -19076,7 +19095,7 @@ BOOL GetVolumeNameForVolumeMountPointA(const(char)* lpszVolumeMountPoint, const(
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL GetVolumePathNameA(const(char)* lpszFileName, const(char)* lpszVolumePathName, uint cchBufferLength);
+BOOL GetVolumePathNameA(const(PSTR) lpszFileName, PSTR lpszVolumePathName, uint cchBufferLength);
 
 ///Retrieves a list of drive letters and mounted folder paths for the specified volume.
 ///Params:
@@ -19095,7 +19114,8 @@ BOOL GetVolumePathNameA(const(char)* lpszFileName, const(char)* lpszVolumePathNa
 ///    size.
 ///    
 @DllImport("KERNEL32")
-BOOL GetVolumePathNamesForVolumeNameA(const(char)* lpszVolumeName, const(char)* lpszVolumePathNames, 
+BOOL GetVolumePathNamesForVolumeNameA(const(PSTR) lpszVolumeName, 
+                                      /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PSTR lpszVolumePathNames, 
                                       uint cchBufferLength, uint* lpcchReturnLength);
 
 ///Retrieves file information for the specified file. For a more basic version of this function for desktop apps, see
@@ -19115,7 +19135,7 @@ BOOL GetVolumePathNamesForVolumeNameA(const(char)* lpszVolumeName, const(char)* 
 ///    
 @DllImport("KERNEL32")
 BOOL GetFileInformationByHandleEx(HANDLE hFile, FILE_INFO_BY_HANDLE_CLASS FileInformationClass, 
-                                  char* lpFileInformation, uint dwBufferSize);
+                                  void* lpFileInformation, uint dwBufferSize);
 
 ///Opens the file that matches the specified identifier.
 ///Params:
@@ -19254,7 +19274,7 @@ HANDLE OpenFileById(HANDLE hVolumeHint, FILE_ID_DESCRIPTOR* lpFileId, uint dwDes
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-ubyte CreateSymbolicLinkA(const(char)* lpSymlinkFileName, const(char)* lpTargetFileName, uint dwFlags);
+ubyte CreateSymbolicLinkA(const(PSTR) lpSymlinkFileName, const(PSTR) lpTargetFileName, uint dwFlags);
 
 ///Creates a symbolic link. To perform this operation as a transacted operation, use the CreateSymbolicLinkTransacted
 ///function.
@@ -19289,7 +19309,7 @@ ubyte CreateSymbolicLinkA(const(char)* lpSymlinkFileName, const(char)* lpTargetF
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-ubyte CreateSymbolicLinkW(const(wchar)* lpSymlinkFileName, const(wchar)* lpTargetFileName, uint dwFlags);
+ubyte CreateSymbolicLinkW(const(PWSTR) lpSymlinkFileName, const(PWSTR) lpTargetFileName, uint dwFlags);
 
 ///<p class="CCE_Message">[Microsoft strongly recommends developers utilize alternative means to achieve your
 ///application’s needs. Many scenarios that TxF was developed for can be achieved through simpler and more readily
@@ -19311,7 +19331,7 @@ ubyte CreateSymbolicLinkW(const(wchar)* lpSymlinkFileName, const(wchar)* lpTarge
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-ubyte CreateSymbolicLinkTransactedA(const(char)* lpSymlinkFileName, const(char)* lpTargetFileName, uint dwFlags, 
+ubyte CreateSymbolicLinkTransactedA(const(PSTR) lpSymlinkFileName, const(PSTR) lpTargetFileName, uint dwFlags, 
                                     HANDLE hTransaction);
 
 ///<p class="CCE_Message">[Microsoft strongly recommends developers utilize alternative means to achieve your
@@ -19334,7 +19354,7 @@ ubyte CreateSymbolicLinkTransactedA(const(char)* lpSymlinkFileName, const(char)*
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-ubyte CreateSymbolicLinkTransactedW(const(wchar)* lpSymlinkFileName, const(wchar)* lpTargetFileName, uint dwFlags, 
+ubyte CreateSymbolicLinkTransactedW(const(PWSTR) lpSymlinkFileName, const(PWSTR) lpTargetFileName, uint dwFlags, 
                                     HANDLE hTransaction);
 
 
@@ -19375,8 +19395,8 @@ interface IDiskQuotaUser : IUnknown
     ///    width="40%"> <dl> <dt><b>ERROR_LOCK_FAILED</b></dt> </dl> </td> <td width="60%"> Failure to obtain an
     ///    exclusive lock. </td> </tr> </table>
     ///    
-    HRESULT GetName(const(wchar)* pszAccountContainer, uint cchAccountContainer, const(wchar)* pszLogonName, 
-                    uint cchLogonName, const(wchar)* pszDisplayName, uint cchDisplayName);
+    HRESULT GetName(PWSTR pszAccountContainer, uint cchAccountContainer, PWSTR pszLogonName, uint cchLogonName, 
+                    PWSTR pszDisplayName, uint cchDisplayName);
     ///Retrieves the length of the user's security identifier (SID), in bytes. Use the return value to determine the
     ///size of the destination buffer you pass to IDiskQuotaUser::GetSid.
     ///Params:
@@ -19443,7 +19463,7 @@ interface IDiskQuotaUser : IUnknown
     ///    unexpected file system error occurred. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_UNEXPECTED</b></dt>
     ///    </dl> </td> <td width="60%"> An unexpected exception occurred. </td> </tr> </table>
     ///    
-    HRESULT GetQuotaThresholdText(const(wchar)* pszText, uint cchText);
+    HRESULT GetQuotaThresholdText(PWSTR pszText, uint cchText);
     ///Retrieves the user's quota limit value on the volume. The limit is set as the maximum amount of disk space
     ///available to the volume user.
     ///Params:
@@ -19481,7 +19501,7 @@ interface IDiskQuotaUser : IUnknown
     ///    <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> An unexpected exception occurred. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetQuotaLimitText(const(wchar)* pszText, uint cchText);
+    HRESULT GetQuotaLimitText(PWSTR pszText, uint cchText);
     ///Retrieves the user's quota used value on the volume. This is the amount of information stored on the volume by
     ///the user. This is the amount of uncompressed information. Therefore, the use of NTFS file system compression does
     ///not affect this value.
@@ -19519,7 +19539,7 @@ interface IDiskQuotaUser : IUnknown
     ///    <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> An unexpected exception occurred. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetQuotaUsedText(const(wchar)* pszText, uint cchText);
+    HRESULT GetQuotaUsedText(PWSTR pszText, uint cchText);
     ///Retrieves the values for the user's warning threshold, hard quota limit, and quota used.
     ///Params:
     ///    pbQuotaInfo = A pointer to the [DISKQUOTA_USER_INFORMATION](./ns-dskquota-diskquota_user_information.md) structure to
@@ -19747,7 +19767,7 @@ interface IDiskQuotaControl : IConnectionPointContainer
     ///    <dt><b>ERROR_PATH_NOT_FOUND</b></dt> </dl> </td> <td width="60%"> The requested file path is not found. </td>
     ///    </tr> </table>
     ///    
-    HRESULT Initialize(const(wchar)* pszPath, BOOL bReadWrite);
+    HRESULT Initialize(const(PWSTR) pszPath, BOOL bReadWrite);
     ///Sets the state of the quota system.
     ///Params:
     ///    dwState = State to be applied to the volume. Use the following macros to set the proper bits. <table> <tr>
@@ -19897,7 +19917,7 @@ interface IDiskQuotaControl : IConnectionPointContainer
     ///    occurred. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> An
     ///    unexpected exception occurred. </td> </tr> </table>
     ///    
-    HRESULT GetDefaultQuotaThresholdText(const(wchar)* pszText, uint cchText);
+    HRESULT GetDefaultQuotaThresholdText(PWSTR pszText, uint cchText);
     ///Modifies the default quota limit. This limit is applied automatically to new users of the volume.
     ///Params:
     ///    llLimit = The default quota limit, in bytes. If this value is -1, the user has an unlimited quota.
@@ -19950,7 +19970,7 @@ interface IDiskQuotaControl : IConnectionPointContainer
     ///    occurred. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> An
     ///    unexpected exception occurred. </td> </tr> </table>
     ///    
-    HRESULT GetDefaultQuotaLimitText(const(wchar)* pszText, uint cchText);
+    HRESULT GetDefaultQuotaLimitText(PWSTR pszText, uint cchText);
     ///Adds a new quota entry on the volume for the specified user. The user is identified by security identifier (SID).
     ///Params:
     ///    pUserSid = The user's SID.
@@ -20025,7 +20045,7 @@ interface IDiskQuotaControl : IConnectionPointContainer
     ///    <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> An unexpected exception occurred. </td> </tr>
     ///    </table>
     ///    
-    HRESULT AddUserName(const(wchar)* pszLogonName, uint fNameResolution, IDiskQuotaUser* ppUser);
+    HRESULT AddUserName(const(PWSTR) pszLogonName, uint fNameResolution, IDiskQuotaUser* ppUser);
     ///Removes a user entry from the volume quota information file, if the user's charged quota amount is zero (0)
     ///bytes.
     ///Params:
@@ -20105,7 +20125,7 @@ interface IDiskQuotaControl : IConnectionPointContainer
     ///    <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> An unexpected exception occurred. </td> </tr>
     ///    </table>
     ///    
-    HRESULT FindUserName(const(wchar)* pszLogonName, IDiskQuotaUser* ppUser);
+    HRESULT FindUserName(const(PWSTR) pszLogonName, IDiskQuotaUser* ppUser);
     ///Creates an enumerator object for enumerating quota users on the volume. The newly created object implements the
     ///IEnumDiskQuotaUsers interface.
     ///Params:

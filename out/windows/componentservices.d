@@ -1,16 +1,16 @@
 // Written in the D programming language.
 
-module out.windows.componentservices;
+module windows.componentservices;
 
 public import windows.core;
 public import windows.automation : BSTR, IDispatch, SAFEARRAY, VARIANT;
 public import windows.com : APTTYPE, EOC_ChangeType, HRESULT, IClassFactory,
                             IMoniker, IUnknown;
-public import windows.systemservices : BOOL, HANDLE;
+public import windows.systemservices : BOOL, HANDLE, PSTR, PWSTR;
 public import windows.winsock : BLOB;
 public import windows.windowsprogramming : FILETIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -860,8 +860,8 @@ struct XACTSTATS
 
 struct XACTOPT
 {
-    uint     ulTimeout;
-    byte[40] szDescription;
+    uint      ulTimeout;
+    ubyte[40] szDescription;
 }
 
 struct xid_t
@@ -899,21 +899,21 @@ struct _ProxyConfigParams
 struct COMSVCSEVENTINFO
 {
     ///The size of this structure, in bytes.
-    uint    cbSize;
+    uint  cbSize;
     ///The process ID of the server application from which the event originated.
-    uint    dwPid;
+    uint  dwPid;
     ///The coordinated universal time of the event, as seconds elapsed since midnight, January 1, 1970.
-    long    lTime;
+    long  lTime;
     ///The microseconds added to <b>lTime</b> for time to microsecond resolution.
-    int     lMicroTime;
+    int   lMicroTime;
     ///The value of the high-resolution performance counter when the event originated.
-    long    perfCount;
+    long  perfCount;
     ///The applications globally unique identifier (GUID) for the first component instantiated in <b>dwPid</b>. If you
     ///are subscribing to an administration interface or event and the event is not generated from a COM+ application,
     ///this member is set to zero.
-    GUID    guidApp;
+    GUID  guidApp;
     ///The fully qualified name of the computer where the event originated.
-    ushort* sMachineName;
+    PWSTR sMachineName;
 }
 
 struct RECYCLE_INFO
@@ -968,8 +968,8 @@ struct CCLSIDData2
     GUID            m_clsid;
     GUID            m_appid;
     GUID            m_partid;
-    ushort*         m_pwszAppName;
-    ushort*         m_pwszCtxName;
+    PWSTR           m_pwszAppName;
+    PWSTR           m_pwszCtxName;
     COMPLUS_APPTYPE m_eAppType;
     uint            m_cReferences;
     uint            m_cBound;
@@ -1003,7 +1003,7 @@ struct ApplicationProcessSummary
     ///the caller (for more information, see CoTaskMemFree). This member is not returned by default. To return this
     ///member, specify the GATD_INCLUDE_PROCESS_EXE_NAME flag when you call a method that returns an
     ///<b>ApplicationProcessSummary</b> structure.
-    const(wchar)*   ProcessExeName;
+    PWSTR           ProcessExeName;
     ///Indicates whether the process is a COM+ server application running as a Windows service.
     BOOL            IsService;
     ///Indicates whether the process is a COM+ server application instance that is paused.
@@ -1102,7 +1102,7 @@ struct ApplicationSummary
     ///allocated by the method called and freed by the caller (for more information, see CoTaskMemFree). This member is
     ///not returned by default. To return this member, specify the GATD_INCLUDE_APPLICATION_NAME flag when you call a
     ///method that returns an ApplicationProcessSummary structure.
-    const(wchar)*   ApplicationName;
+    PWSTR           ApplicationName;
     ///The number of distinct components from this COM+ application instantiated in the hosting process.
     uint            NumTrackedComponents;
     ///The number of component instances from this COM+ application in the hosting process.
@@ -1114,25 +1114,25 @@ struct ApplicationSummary
 struct ComponentSummary
 {
     ///The application instance GUID that uniquely identifies the process that hosts the component.
-    GUID          ApplicationInstanceId;
+    GUID  ApplicationInstanceId;
     ///The partition ID of the component.
-    GUID          PartitionId;
+    GUID  PartitionId;
     ///The application ID of the component. The special value {84ac4168-6fe5-4308-a2ed-03688a023c7a} indicates that this
     ///is an SWC context.
-    GUID          ApplicationId;
+    GUID  ApplicationId;
     ///The CLSID of the component.
-    GUID          Clsid;
+    GUID  Clsid;
     ///The name of the component. Usually, this is the component's ProgID (or the string representation of the
     ///component's CLSID if the component does not have a ProgID). For SWC contexts, this is the context name property
     ///configured for the context. Space for this string is allocated by the method called and freed by the caller (for
     ///more information, see CoTaskMemFree). This member is not returned by default. To return this member, specify the
     ///GATD_INCLUDE_CLASS_NAME flag when you call a method that returns a <b>ComponentSummary</b> structure.
-    const(wchar)* ClassName;
+    PWSTR ClassName;
     ///The name of the COM+ application, or the application name property configured for an SWC context. Space for this
     ///string is allocated by the method called and freed by the caller (for more information, see CoTaskMemFree). This
     ///member is not returned by default. To return this member, specify the GATD_INCLUDE_APPLICATION_NAME flag when you
     ///call a method that returns a <b>ComponentSummary</b> structure.
-    const(wchar)* ApplicationName;
+    PWSTR ApplicationName;
 }
 
 ///Represents statistical information about a COM+ component hosted in a particular process.
@@ -2431,7 +2431,7 @@ interface ITransactionOutcomeEvents : IUnknown
 interface ITmNodeName : IUnknown
 {
     HRESULT GetNodeNameSize(uint* pcbNodeNameSize);
-    HRESULT GetNodeName(uint cbNodeNameBufferSize, const(wchar)* pNodeNameBuffer);
+    HRESULT GetNodeName(uint cbNodeNameBufferSize, PWSTR pNodeNameBuffer);
 }
 
 @GUID("79427A2B-F895-40E0-BE79-B57DC82ED231")
@@ -2483,7 +2483,7 @@ interface ITransactionLastEnlistmentAsync : IUnknown
 interface ITransactionExportFactory : IUnknown
 {
     HRESULT GetRemoteClassId(GUID* pclsid);
-    HRESULT Create(uint cbWhereabouts, char* rgbWhereabouts, ITransactionExport* ppExport);
+    HRESULT Create(uint cbWhereabouts, ubyte* rgbWhereabouts, ITransactionExport* ppExport);
 }
 
 @GUID("0141FDA4-8FC0-11CE-BD18-204C4F4F5020")
@@ -2504,22 +2504,22 @@ interface ITransactionExport : IUnknown
 @GUID("E1CF9B5A-8745-11CE-A9BA-00AA006C3706")
 interface ITransactionImport : IUnknown
 {
-    HRESULT Import(uint cbTransactionCookie, char* rgbTransactionCookie, GUID* piid, void** ppvTransaction);
+    HRESULT Import(uint cbTransactionCookie, ubyte* rgbTransactionCookie, GUID* piid, void** ppvTransaction);
 }
 
 @GUID("17CF72D0-BAC5-11D1-B1BF-00C04FC2F3EF")
 interface ITipTransaction : IUnknown
 {
-    HRESULT Push(byte* i_pszRemoteTmUrl, byte** o_ppszRemoteTxUrl);
-    HRESULT GetTransactionUrl(byte** o_ppszLocalTxUrl);
+    HRESULT Push(ubyte* i_pszRemoteTmUrl, PSTR* o_ppszRemoteTxUrl);
+    HRESULT GetTransactionUrl(PSTR* o_ppszLocalTxUrl);
 }
 
 @GUID("17CF72D1-BAC5-11D1-B1BF-00C04FC2F3EF")
 interface ITipHelper : IUnknown
 {
-    HRESULT Pull(byte* i_pszTxUrl, ITransaction* o_ppITransaction);
-    HRESULT PullAsync(byte* i_pszTxUrl, ITipPullSink i_pTipPullSink, ITransaction* o_ppITransaction);
-    HRESULT GetLocalTmUrl(byte** o_ppszLocalTmUrl);
+    HRESULT Pull(ubyte* i_pszTxUrl, ITransaction* o_ppITransaction);
+    HRESULT PullAsync(ubyte* i_pszTxUrl, ITipPullSink i_pTipPullSink, ITransaction* o_ppITransaction);
+    HRESULT GetLocalTmUrl(ubyte** o_ppszLocalTmUrl);
 }
 
 @GUID("17CF72D2-BAC5-11D1-B1BF-00C04FC2F3EF")
@@ -2531,17 +2531,17 @@ interface ITipPullSink : IUnknown
 @GUID("9797C15D-A428-4291-87B6-0995031A678D")
 interface IDtcNetworkAccessConfig : IUnknown
 {
-    HRESULT GetAnyNetworkAccess(int* pbAnyNetworkAccess);
+    HRESULT GetAnyNetworkAccess(BOOL* pbAnyNetworkAccess);
     HRESULT SetAnyNetworkAccess(BOOL bAnyNetworkAccess);
-    HRESULT GetNetworkAdministrationAccess(int* pbNetworkAdministrationAccess);
+    HRESULT GetNetworkAdministrationAccess(BOOL* pbNetworkAdministrationAccess);
     HRESULT SetNetworkAdministrationAccess(BOOL bNetworkAdministrationAccess);
-    HRESULT GetNetworkTransactionAccess(int* pbNetworkTransactionAccess);
+    HRESULT GetNetworkTransactionAccess(BOOL* pbNetworkTransactionAccess);
     HRESULT SetNetworkTransactionAccess(BOOL bNetworkTransactionAccess);
-    HRESULT GetNetworkClientAccess(int* pbNetworkClientAccess);
+    HRESULT GetNetworkClientAccess(BOOL* pbNetworkClientAccess);
     HRESULT SetNetworkClientAccess(BOOL bNetworkClientAccess);
-    HRESULT GetNetworkTIPAccess(int* pbNetworkTIPAccess);
+    HRESULT GetNetworkTIPAccess(BOOL* pbNetworkTIPAccess);
     HRESULT SetNetworkTIPAccess(BOOL bNetworkTIPAccess);
-    HRESULT GetXAAccess(int* pbXAAccess);
+    HRESULT GetXAAccess(BOOL* pbXAAccess);
     HRESULT SetXAAccess(BOOL bXAAccess);
     HRESULT RestartDtcService();
 }
@@ -2549,8 +2549,8 @@ interface IDtcNetworkAccessConfig : IUnknown
 @GUID("A7AA013B-EB7D-4F42-B41C-B2DEC09AE034")
 interface IDtcNetworkAccessConfig2 : IDtcNetworkAccessConfig
 {
-    HRESULT GetNetworkInboundAccess(int* pbInbound);
-    HRESULT GetNetworkOutboundAccess(int* pbOutbound);
+    HRESULT GetNetworkInboundAccess(BOOL* pbInbound);
+    HRESULT GetNetworkOutboundAccess(BOOL* pbOutbound);
     HRESULT SetNetworkInboundAccess(BOOL bInbound);
     HRESULT SetNetworkOutboundAccess(BOOL bOutbound);
     HRESULT GetAuthenticationLevel(AUTHENTICATION_LEVEL* pAuthLevel);
@@ -2560,7 +2560,7 @@ interface IDtcNetworkAccessConfig2 : IDtcNetworkAccessConfig
 @GUID("76E4B4F3-2CA5-466B-89D5-FD218EE75B49")
 interface IDtcNetworkAccessConfig3 : IDtcNetworkAccessConfig2
 {
-    HRESULT GetLUAccess(int* pbLUAccess);
+    HRESULT GetLUAccess(BOOL* pbLUAccess);
     HRESULT SetLUAccess(BOOL bLUAccess);
 }
 
@@ -2597,7 +2597,7 @@ interface IResourceManager : IUnknown
 {
     HRESULT Enlist(ITransaction pTransaction, ITransactionResourceAsync pRes, BOID* pUOW, int* pisoLevel, 
                    ITransactionEnlistmentAsync* ppEnlist);
-    HRESULT Reenlist(char* pPrepInfo, uint cbPrepInfo, uint lTimeout, XACTSTAT* pXactStat);
+    HRESULT Reenlist(ubyte* pPrepInfo, uint cbPrepInfo, uint lTimeout, XACTSTAT* pXactStat);
     HRESULT ReenlistmentComplete();
     HRESULT GetDistributedTransactionManager(const(GUID)* iid, void** ppvObject);
 }
@@ -2605,7 +2605,7 @@ interface IResourceManager : IUnknown
 @GUID("4D964AD4-5B33-11D3-8A91-00C04F79EB6D")
 interface ILastResourceManager : IUnknown
 {
-    HRESULT TransactionCommitted(char* pPrepInfo, uint cbPrepInfo);
+    HRESULT TransactionCommitted(ubyte* pPrepInfo, uint cbPrepInfo);
     HRESULT RecoveryDone();
 }
 
@@ -2620,7 +2620,7 @@ interface IResourceManager2 : IResourceManager
 @GUID("6F6DE620-B5DF-4F3E-9CFA-C8AEBD05172B")
 interface IResourceManagerRejoinable : IResourceManager2
 {
-    HRESULT Rejoin(char* pPrepInfo, uint cbPrepInfo, uint lTimeout, XACTSTAT* pXactStat);
+    HRESULT Rejoin(ubyte* pPrepInfo, uint cbPrepInfo, uint lTimeout, XACTSTAT* pXactStat);
 }
 
 @GUID("C8A6E3A1-9A8C-11CF-A308-00A0C905416E")
@@ -2668,7 +2668,7 @@ interface IPrepareInfo : IUnknown
 interface IPrepareInfo2 : IUnknown
 {
     HRESULT GetPrepareInfoSize(uint* pcbPrepInfo);
-    HRESULT GetPrepareInfo(uint cbPrepareInfo, char* pPrepInfo);
+    HRESULT GetPrepareInfo(uint cbPrepareInfo, ubyte* pPrepInfo);
 }
 
 @GUID("C23CC370-87EF-11CE-8081-0080C758527E")
@@ -2725,8 +2725,8 @@ interface ITransactionTransmitter : IUnknown
 {
     HRESULT Set(ITransaction pTransaction);
     HRESULT GetPropagationTokenSize(uint* pcbToken);
-    HRESULT MarshalPropagationToken(uint cbToken, char* rgbToken, uint* pcbUsed);
-    HRESULT UnmarshalReturnToken(uint cbReturnToken, char* rgbReturnToken);
+    HRESULT MarshalPropagationToken(uint cbToken, ubyte* rgbToken, uint* pcbUsed);
+    HRESULT UnmarshalReturnToken(uint cbReturnToken, ubyte* rgbReturnToken);
     HRESULT Reset();
 }
 
@@ -2739,9 +2739,9 @@ interface ITransactionTransmitterFactory : IUnknown
 @GUID("59313E03-B36C-11CF-A539-00AA006887C3")
 interface ITransactionReceiver : IUnknown
 {
-    HRESULT UnmarshalPropagationToken(uint cbToken, char* rgbToken, ITransaction* ppTransaction);
+    HRESULT UnmarshalPropagationToken(uint cbToken, ubyte* rgbToken, ITransaction* ppTransaction);
     HRESULT GetReturnTokenSize(uint* pcbReturnToken);
-    HRESULT MarshalReturnToken(uint cbReturnToken, char* rgbReturnToken, uint* pcbUsed);
+    HRESULT MarshalReturnToken(uint cbReturnToken, ubyte* rgbReturnToken, uint* pcbUsed);
     HRESULT Reset();
 }
 
@@ -2754,8 +2754,8 @@ interface ITransactionReceiverFactory : IUnknown
 @GUID("4131E760-1AEA-11D0-944B-00A0C905416E")
 interface IDtcLuConfigure : IUnknown
 {
-    HRESULT Add(char* pucLuPair, uint cbLuPair);
-    HRESULT Delete(char* pucLuPair, uint cbLuPair);
+    HRESULT Add(ubyte* pucLuPair, uint cbLuPair);
+    HRESULT Delete(ubyte* pucLuPair, uint cbLuPair);
 }
 
 @GUID("AC2B8AD2-D6F0-11D0-B386-00A0C9083365")
@@ -2766,7 +2766,7 @@ interface IDtcLuRecovery : IUnknown
 @GUID("4131E762-1AEA-11D0-944B-00A0C905416E")
 interface IDtcLuRecoveryFactory : IUnknown
 {
-    HRESULT Create(char* pucLuPair, uint cbLuPair, IDtcLuRecovery* ppRecovery);
+    HRESULT Create(ubyte* pucLuPair, uint cbLuPair, IDtcLuRecovery* ppRecovery);
 }
 
 @GUID("4131E765-1AEA-11D0-944B-00A0C905416E")
@@ -2778,7 +2778,7 @@ interface IDtcLuRecoveryInitiatedByDtcTransWork : IUnknown
     HRESULT HandleTheirXlnResponse(_DtcLu_Xln Xln, ubyte* pRemoteLogName, uint cbRemoteLogName, uint dwProtocol, 
                                    _DtcLu_Xln_Confirmation* pConfirmation);
     HRESULT HandleErrorFromOurXln(_DtcLu_Xln_Error Error);
-    HRESULT CheckForCompareStates(int* fCompareStates);
+    HRESULT CheckForCompareStates(BOOL* fCompareStates);
     HRESULT GetOurTransIdSize(uint* pcbOurTransId);
     HRESULT GetOurCompareStates(ubyte* pOurTransId, _DtcLu_CompareState* pCompareState);
     HRESULT HandleTheirCompareStatesResponse(_DtcLu_CompareState CompareState, 
@@ -3881,7 +3881,8 @@ interface IComResourceEvents : IUnknown
     ///Returns:
     ///    The user verifies the return values from this method.
     ///    
-    HRESULT OnResourceCreate(COMSVCSEVENTINFO* pInfo, ulong ObjectID, ushort* pszType, ulong resId, BOOL enlisted);
+    HRESULT OnResourceCreate(COMSVCSEVENTINFO* pInfo, ulong ObjectID, const(PWSTR) pszType, ulong resId, 
+                             BOOL enlisted);
     ///Generated when an existing resource is allocated.
     ///Params:
     ///    pInfo = A pointer to a COMSVCSEVENTINFO structure.
@@ -3894,7 +3895,7 @@ interface IComResourceEvents : IUnknown
     ///Returns:
     ///    The user verifies the return values from this method.
     ///    
-    HRESULT OnResourceAllocate(COMSVCSEVENTINFO* pInfo, ulong ObjectID, ushort* pszType, ulong resId, 
+    HRESULT OnResourceAllocate(COMSVCSEVENTINFO* pInfo, ulong ObjectID, const(PWSTR) pszType, ulong resId, 
                                BOOL enlisted, uint NumRated, uint Rating);
     ///Generated when an object is finished with a resource.
     ///Params:
@@ -3905,7 +3906,7 @@ interface IComResourceEvents : IUnknown
     ///Returns:
     ///    The user verifies the return values from this method.
     ///    
-    HRESULT OnResourceRecycle(COMSVCSEVENTINFO* pInfo, ulong ObjectID, ushort* pszType, ulong resId);
+    HRESULT OnResourceRecycle(COMSVCSEVENTINFO* pInfo, ulong ObjectID, const(PWSTR) pszType, ulong resId);
     ///Generated when a resource is destroyed.
     ///Params:
     ///    pInfo = A pointer to a COMSVCSEVENTINFO structure.
@@ -3916,7 +3917,8 @@ interface IComResourceEvents : IUnknown
     ///Returns:
     ///    The user verifies the return values from this method.
     ///    
-    HRESULT OnResourceDestroy(COMSVCSEVENTINFO* pInfo, ulong ObjectID, HRESULT hr, ushort* pszType, ulong resId);
+    HRESULT OnResourceDestroy(COMSVCSEVENTINFO* pInfo, ulong ObjectID, HRESULT hr, const(PWSTR) pszType, 
+                              ulong resId);
     ///Generated when a resource is tracked.
     ///Params:
     ///    pInfo = A pointer to a COMSVCSEVENTINFO structure.
@@ -3927,7 +3929,8 @@ interface IComResourceEvents : IUnknown
     ///Returns:
     ///    The user verifies the return values from this method.
     ///    
-    HRESULT OnResourceTrack(COMSVCSEVENTINFO* pInfo, ulong ObjectID, ushort* pszType, ulong resId, BOOL enlisted);
+    HRESULT OnResourceTrack(COMSVCSEVENTINFO* pInfo, ulong ObjectID, const(PWSTR) pszType, ulong resId, 
+                            BOOL enlisted);
 }
 
 ///Notifies the subscriber if the authentication of a method call succeeded or failed. The events are published to the
@@ -3953,8 +3956,8 @@ interface IComSecurityEvents : IUnknown
     ///    The user verifies the return values from this method.
     ///    
     HRESULT OnAuthenticate(COMSVCSEVENTINFO* pInfo, const(GUID)* guidActivity, ulong ObjectID, 
-                           const(GUID)* guidIID, uint iMeth, uint cbByteOrig, char* pSidOriginalUser, uint cbByteCur, 
-                           char* pSidCurrentUser, BOOL bCurrentUserInpersonatingInProc);
+                           const(GUID)* guidIID, uint iMeth, uint cbByteOrig, ubyte* pSidOriginalUser, 
+                           uint cbByteCur, ubyte* pSidCurrentUser, BOOL bCurrentUserInpersonatingInProc);
     ///Generated when a method call level authentication fails.
     ///Params:
     ///    pInfo = A pointer to a COMSVCSEVENTINFO structure.
@@ -3971,8 +3974,8 @@ interface IComSecurityEvents : IUnknown
     ///    The user verifies the return values from this method.
     ///    
     HRESULT OnAuthenticateFail(COMSVCSEVENTINFO* pInfo, const(GUID)* guidActivity, ulong ObjectID, 
-                               const(GUID)* guidIID, uint iMeth, uint cbByteOrig, char* pSidOriginalUser, 
-                               uint cbByteCur, char* pSidCurrentUser, BOOL bCurrentUserInpersonatingInProc);
+                               const(GUID)* guidIID, uint iMeth, uint cbByteOrig, ubyte* pSidOriginalUser, 
+                               uint cbByteCur, ubyte* pSidCurrentUser, BOOL bCurrentUserInpersonatingInProc);
 }
 
 ///Notifies the subscriber when a new object is added to the pool. The subscriber is also notified when a transactional
@@ -4113,7 +4116,7 @@ interface IComObjectConstructionEvents : IUnknown
     ///Returns:
     ///    The user verifies the return values from this method.
     ///    
-    HRESULT OnObjectConstruct(COMSVCSEVENTINFO* pInfo, const(GUID)* guidObject, ushort* sConstructString, 
+    HRESULT OnObjectConstruct(COMSVCSEVENTINFO* pInfo, const(GUID)* guidObject, const(PWSTR) sConstructString, 
                               ulong oid);
 }
 
@@ -4209,8 +4212,8 @@ interface IComIdentityEvents : IUnknown
     ///Returns:
     ///    The user verifies the return values from this method.
     ///    
-    HRESULT OnIISRequestInfo(COMSVCSEVENTINFO* pInfo, ulong ObjId, ushort* pszClientIP, ushort* pszServerIP, 
-                             ushort* pszURL);
+    HRESULT OnIISRequestInfo(COMSVCSEVENTINFO* pInfo, ulong ObjId, const(PWSTR) pszClientIP, 
+                             const(PWSTR) pszServerIP, const(PWSTR) pszURL);
 }
 
 ///Notifies the subscriber if a queued message is created, de-queued, or moved to a retry or dead letter queue. The
@@ -4230,7 +4233,7 @@ interface IComQCEvents : IUnknown
     ///Returns:
     ///    The user verifies the return values from this method.
     ///    
-    HRESULT OnQCRecord(COMSVCSEVENTINFO* pInfo, ulong objid, char* szQueue, const(GUID)* guidMsgId, 
+    HRESULT OnQCRecord(COMSVCSEVENTINFO* pInfo, ulong objid, ushort* szQueue, const(GUID)* guidMsgId, 
                        const(GUID)* guidWorkFlowId, HRESULT msmqhr);
     ///Generated when a queued components queue is opened. This method is used to generate the <i>QueueID</i> parameter.
     ///Params:
@@ -4241,7 +4244,7 @@ interface IComQCEvents : IUnknown
     ///Returns:
     ///    The user verifies the return values from this method.
     ///    
-    HRESULT OnQCQueueOpen(COMSVCSEVENTINFO* pInfo, char* szQueue, ulong QueueID, HRESULT hr);
+    HRESULT OnQCQueueOpen(COMSVCSEVENTINFO* pInfo, ushort* szQueue, ulong QueueID, HRESULT hr);
     ///Generated when a message is successfully de-queued even though the queued components service might find something
     ///wrong with the contents.
     ///Params:
@@ -4313,7 +4316,7 @@ interface IComExceptionEvents : IUnknown
     ///Returns:
     ///    The user verifies the return values from this method.
     ///    
-    HRESULT OnExceptionUser(COMSVCSEVENTINFO* pInfo, uint code, ulong address, ushort* pszStackTrace);
+    HRESULT OnExceptionUser(COMSVCSEVENTINFO* pInfo, uint code, ulong address, const(PWSTR) pszStackTrace);
 }
 
 @GUID("683130B4-2E50-11D2-98A5-00C04F8EE1C4")
@@ -4366,7 +4369,7 @@ interface IComCRMEvents : IUnknown
     ///    The user verifies the return values from this method.
     ///    
     HRESULT OnCRMBegin(COMSVCSEVENTINFO* pInfo, GUID guidClerkCLSID, GUID guidActivity, GUID guidTx, 
-                       char* szProgIdCompensator, char* szDescription);
+                       ushort* szProgIdCompensator, ushort* szDescription);
     ///Generated when CRM clerk receives a prepare notification to pass on to the CRM compensator.
     ///Params:
     ///    pInfo = A pointer to a COMSVCSEVENTINFO structure.
@@ -4574,7 +4577,7 @@ interface IComTrackingInfoObject : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetValue(ushort* szPropertyName, VARIANT* pvarOut);
+    HRESULT GetValue(PWSTR szPropertyName, VARIANT* pvarOut);
 }
 
 ///Retrieves the total number of properties associated with a tracking information object and their names.
@@ -4597,7 +4600,7 @@ interface IComTrackingInfoProperties : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetPropName(uint ulIndex, ushort** ppszPropName);
+    HRESULT GetPropName(uint ulIndex, PWSTR* ppszPropName);
 }
 
 ///Notifies the subscriber if a COM+ server application is loaded, shut down, or paused. The subscriber is also notified
@@ -4821,7 +4824,7 @@ interface IComObjectConstruction2Events : IUnknown
     ///Returns:
     ///    The user verifies the return values from this method.
     ///    
-    HRESULT OnObjectConstruct2(COMSVCSEVENTINFO* pInfo, const(GUID)* guidObject, ushort* sConstructString, 
+    HRESULT OnObjectConstruct2(COMSVCSEVENTINFO* pInfo, const(GUID)* guidObject, const(PWSTR) sConstructString, 
                                ulong oid, const(GUID)* guidPartition);
 }
 
@@ -5078,7 +5081,7 @@ interface IGetAppTrackerData : IUnknown
     ///    filter criteria. </td> </tr> </table>
     ///    
     HRESULT GetApplicationProcesses(const(GUID)* PartitionId, const(GUID)* ApplicationId, uint Flags, 
-                                    uint* NumApplicationProcesses, char* ApplicationProcesses);
+                                    uint* NumApplicationProcesses, ApplicationProcessSummary** ApplicationProcesses);
     ///Retrieves detailed information about a single process hosting COM+ applications.
     ///Params:
     ///    ApplicationInstanceId = The application instance GUID that uniquely identifies the tracked process to select, or GUID_NULL if the
@@ -5105,7 +5108,8 @@ interface IGetAppTrackerData : IUnknown
     HRESULT GetApplicationProcessDetails(const(GUID)* ApplicationInstanceId, uint ProcessId, uint Flags, 
                                          ApplicationProcessSummary* Summary, 
                                          ApplicationProcessStatistics* Statistics, 
-                                         ApplicationProcessRecycleInfo* RecycleInfo, int* AnyComponentsHangMonitored);
+                                         ApplicationProcessRecycleInfo* RecycleInfo, 
+                                         BOOL* AnyComponentsHangMonitored);
     ///Retrieves summary information for all COM+ applications hosted in a single process, or for a specified subset of
     ///these applications.
     ///Params:
@@ -5131,7 +5135,7 @@ interface IGetAppTrackerData : IUnknown
     ///    </tr> </table>
     ///    
     HRESULT GetApplicationsInProcess(const(GUID)* ApplicationInstanceId, uint ProcessId, const(GUID)* PartitionId, 
-                                     uint Flags, uint* NumApplicationsInProcess, char* Applications);
+                                     uint Flags, uint* NumApplicationsInProcess, ApplicationSummary** Applications);
     ///Retrieves summary information for all COM+ components hosted in a single process, or for a specified subset of
     ///these components.
     ///Params:
@@ -5159,7 +5163,7 @@ interface IGetAppTrackerData : IUnknown
     ///    
     HRESULT GetComponentsInProcess(const(GUID)* ApplicationInstanceId, uint ProcessId, const(GUID)* PartitionId, 
                                    const(GUID)* ApplicationId, uint Flags, uint* NumComponentsInProcess, 
-                                   char* Components);
+                                   ComponentSummary** Components);
     ///Retrieves detailed information about a single COM+ component hosted in a process.
     ///Params:
     ///    ApplicationInstanceId = The application instance GUID that uniquely identifies the tracked process to select, or GUID_NULL if the
@@ -5217,7 +5221,7 @@ interface IDispenserManager : IUnknown
     ///Returns:
     ///    If the method succeeds, the return value is S_OK. Otherwise, it is E_FAIL.
     ///    
-    HRESULT RegisterDispenser(IDispenserDriver __MIDL__IDispenserManager0000, ushort* szDispenserName, 
+    HRESULT RegisterDispenser(IDispenserDriver __MIDL__IDispenserManager0000, const(PWSTR) szDispenserName, 
                               IHolder* __MIDL__IDispenserManager0001);
     ///Determines the current context.
     ///Params:
@@ -5301,7 +5305,7 @@ interface IHolder : IUnknown
     ///    width="60%"> <i>ResId</i> is not a valid resource handle. </td> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>E_FAIL </b></dt> </dl> </td> <td width="60%"> The method failed. </td> </tr> </table>
     ///    
-    HRESULT UntrackResource(const(size_t) __MIDL__IHolder0005, const(int) __MIDL__IHolder0006);
+    HRESULT UntrackResource(const(size_t) __MIDL__IHolder0005, const(BOOL) __MIDL__IHolder0006);
     ///Stops tracking a resource (string version).
     ///Params:
     ///    __MIDL__IHolder0007 = The handle of the resource to stop tracking.
@@ -5314,7 +5318,7 @@ interface IHolder : IUnknown
     ///    width="60%"> <i>SResId</i> is not a valid resource handle. </td> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>E_FAIL </b></dt> </dl> </td> <td width="60%"> The method failed. </td> </tr> </table>
     ///    
-    HRESULT UntrackResourceS(ushort* __MIDL__IHolder0007, const(int) __MIDL__IHolder0008);
+    HRESULT UntrackResourceS(ushort* __MIDL__IHolder0007, const(BOOL) __MIDL__IHolder0008);
     ///Closes the Holder.
     ///Returns:
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
@@ -5368,7 +5372,7 @@ interface IDispenserDriver : IUnknown
     ///Returns:
     ///    If the method succeeds, the return value is S_OK. Otherwise, it is E_FAIL.
     ///    
-    HRESULT RateResource(const(size_t) ResTypId, const(size_t) ResId, const(int) fRequiresTransactionEnlistment, 
+    HRESULT RateResource(const(size_t) ResTypId, const(size_t) ResId, const(BOOL) fRequiresTransactionEnlistment, 
                          uint* pRating);
     ///Enlists a resource in a transaction.
     ///Params:
@@ -5478,13 +5482,13 @@ interface ITransactionProxy : IUnknown
     ///Returns:
     ///    This method can return the standard return values E_INVALIDARG, E_OUTOFMEMORY, E_UNEXPECTED, and S_OK.
     ///    
-    HRESULT IsReusable(int* pfIsReusable);
+    HRESULT IsReusable(BOOL* pfIsReusable);
 }
 
 @GUID("A7549A29-A7C4-42E1-8DC1-7E3D748DC24A")
 interface IContextSecurityPerimeter : IUnknown
 {
-    HRESULT GetPerimeterFlag(int* pFlag);
+    HRESULT GetPerimeterFlag(BOOL* pFlag);
     HRESULT SetPerimeterFlag(BOOL fFlag);
 }
 
@@ -5598,7 +5602,7 @@ interface IObjectContext : IUnknown
     ///    using this pointer. An <b>IObjectContext</b> pointer is not valid outside the context of the object that
     ///    originally obtained it. </td> </tr> </table>
     ///    
-    HRESULT IsCallerInRole(BSTR bstrRole, int* pfIsInRole);
+    HRESULT IsCallerInRole(BSTR bstrRole, BOOL* pfIsInRole);
 }
 
 ///Defines context-specific initialization and cleanup procedures for your COM+ objects, and specifies whether the
@@ -6084,7 +6088,7 @@ interface ITransactionStatus : IUnknown
     ///Returns:
     ///    This method can return the standard return values E_INVALIDARG, E_OUTOFMEMORY, E_FAIL, and S_OK.
     ///    
-    HRESULT GetTransactionStatus(int* pHrStatus);
+    HRESULT GetTransactionStatus(HRESULT* pHrStatus);
 }
 
 ///Retrieves properties describing the Transaction Internet Protocol (TIP) transaction context.
@@ -6271,7 +6275,7 @@ interface ICOMLBArguments : IUnknown
     ///    This method can return the standard return values E_INVALIDARG, E_OUTOFMEMORY, E_UNEXPECTED, E_FAIL, and
     ///    S_OK.
     ///    
-    HRESULT GetMachineName(uint cchSvr, char* szServerName);
+    HRESULT GetMachineName(uint cchSvr, ushort* szServerName);
     ///Sets the computer name for the load balancing server.
     ///Params:
     ///    cchSvr = The object's machine name.
@@ -6280,7 +6284,7 @@ interface ICOMLBArguments : IUnknown
     ///    This method can return the standard return values E_INVALIDARG, E_OUTOFMEMORY, E_UNEXPECTED, E_FAIL, and
     ///    S_OK.
     ///    
-    HRESULT SetMachineName(uint cchSvr, char* szServerName);
+    HRESULT SetMachineName(uint cchSvr, ushort* szServerName);
 }
 
 ///Is the means by which the CRM Worker and CRM Compensator write records to the log and make them durable.
@@ -6329,7 +6333,7 @@ interface ICrmLogControl : IUnknown
     ///    width="60%"> The CRM Compensator does not support at least one of the required interfaces (ICrmCompensator or
     ///    ICrmCompensatorVariants). </td> </tr> </table>
     ///    
-    HRESULT RegisterCompensator(const(wchar)* lpcwstrProgIdCompensator, const(wchar)* lpcwstrDescription, 
+    HRESULT RegisterCompensator(const(PWSTR) lpcwstrProgIdCompensator, const(PWSTR) lpcwstrDescription, 
                                 int lCrmRegFlags);
     ///The CRM Worker and CRM Compensator use this method to write structured log records to the log.
     ///Params:
@@ -6399,7 +6403,7 @@ interface ICrmLogControl : IUnknown
     ///    (CRM Worker). </td> </tr> <tr> <td width="40%"> <dl> <dt><b>XACT_E_ABORTED</b></dt> </dl> </td> <td
     ///    width="60%"> The transaction has aborted, most likely because of a transaction time-out. </td> </tr> </table>
     ///    
-    HRESULT WriteLogRecord(char* rgBlob, uint cBlob);
+    HRESULT WriteLogRecord(BLOB* rgBlob, uint cBlob);
 }
 
 ///Delivers structured log records to the CRM Compensator when using Microsoft Visual Basic.
@@ -6523,7 +6527,7 @@ interface ICrmCompensator : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT PrepareRecord(CrmLogRecordRead crmLogRec, int* pfForget);
+    HRESULT PrepareRecord(CrmLogRecordRead crmLogRec, BOOL* pfForget);
     ///Notifies the CRM Compensator that it has had all the log records available during the prepare phase. The CRM
     ///Compensator votes on the transaction outcome by using the return parameter of this method.
     ///Params:
@@ -6532,7 +6536,7 @@ interface ICrmCompensator : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT EndPrepare(int* pfOkToPrepare);
+    HRESULT EndPrepare(BOOL* pfOkToPrepare);
     ///Notifies the CRM Compensator of the commit phase of the transaction completion and that records are about to be
     ///delivered.
     ///Params:
@@ -6550,7 +6554,7 @@ interface ICrmCompensator : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CommitRecord(CrmLogRecordRead crmLogRec, int* pfForget);
+    HRESULT CommitRecord(CrmLogRecordRead crmLogRec, BOOL* pfForget);
     ///Notifies the CRM Compensator that it has delivered all the log records available during the commit phase. All log
     ///records for this transaction can be discarded from the log after this method has completed.
     ///Returns:
@@ -6575,7 +6579,7 @@ interface ICrmCompensator : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT AbortRecord(CrmLogRecordRead crmLogRec, int* pfForget);
+    HRESULT AbortRecord(CrmLogRecordRead crmLogRec, BOOL* pfForget);
     ///Notifies the CRM Compensator that it has received all the log records available during the abort phase. All log
     ///records for this transaction can be discarded from the log after this method has completed.
     ///Returns:
@@ -6879,14 +6883,14 @@ interface IServiceSxsConfig : IUnknown
     ///Returns:
     ///    This method can return the standard return values E_INVALIDARG, E_OUTOFMEMORY, E_FAIL, and S_OK.
     ///    
-    HRESULT SxsName(const(wchar)* szSxsName);
+    HRESULT SxsName(const(PWSTR) szSxsName);
     ///Sets the directory for the side-by-side assembly for the enclosed work.
     ///Params:
     ///    szSxsDirectory = The name of the directory for the side-by-side assembly that is to be used for the enclosed work.
     ///Returns:
     ///    This method can return the standard return values E_INVALIDARG, E_OUTOFMEMORY, E_FAIL, and S_OK.
     ///    
-    HRESULT SxsDirectory(const(wchar)* szSxsDirectory);
+    HRESULT SxsDirectory(const(PWSTR) szSxsDirectory);
 }
 
 ///Used to check the configuration of the current side-by-side assembly.
@@ -6906,7 +6910,7 @@ interface ICheckSxsConfig : IUnknown
     ///    configuration. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> The
     ///    current side-by-side assembly does not have the specified configuration. </td> </tr> </table>
     ///    
-    HRESULT IsSameSxsConfig(const(wchar)* wszSxsName, const(wchar)* wszSxsDirectory, const(wchar)* wszSxsAppName);
+    HRESULT IsSameSxsConfig(const(PWSTR) wszSxsName, const(PWSTR) wszSxsDirectory, const(PWSTR) wszSxsAppName);
 }
 
 ///Determines whether to construct a new context based on the current context or to create a new context based solely on
@@ -6977,14 +6981,14 @@ interface IServiceTransactionConfigBase : IUnknown
     ///Returns:
     ///    This method can return the standard return values E_INVALIDARG, E_OUTOFMEMORY, E_FAIL, and S_OK.
     ///    
-    HRESULT BringYourOwnTransaction(const(wchar)* szTipURL);
+    HRESULT BringYourOwnTransaction(const(PWSTR) szTipURL);
     ///Sets the name that is used when transaction statistics are displayed.
     ///Params:
     ///    szTxDesc = The description of the transaction.
     ///Returns:
     ///    This method can return the standard return values E_INVALIDARG, E_OUTOFMEMORY, E_FAIL, and S_OK.
     ///    
-    HRESULT NewTransactionDescription(const(wchar)* szTxDesc);
+    HRESULT NewTransactionDescription(const(PWSTR) szTxDesc);
 }
 
 ///Configures the transaction services for the work that is done when calling either CoCreateActivity or
@@ -7043,8 +7047,8 @@ interface IServiceTrackerConfig : IUnknown
     ///Returns:
     ///    This method can return the standard return values E_INVALIDARG, E_OUTOFMEMORY, E_FAIL, and S_OK.
     ///    
-    HRESULT TrackerConfig(CSC_TrackerConfig trackerConfig, const(wchar)* szTrackerAppName, 
-                          const(wchar)* szTrackerCtxName);
+    HRESULT TrackerConfig(CSC_TrackerConfig trackerConfig, const(PWSTR) szTrackerAppName, 
+                          const(PWSTR) szTrackerCtxName);
 }
 
 ///Configures how partitions are used for the work that is done when calling either CoCreateActivity or
@@ -7251,9 +7255,9 @@ interface IComStaThreadPoolKnobs2 : IComStaThreadPoolKnobs
 {
     HRESULT GetMaxCPULoad(uint* pdwLoad);
     HRESULT SetMaxCPULoad(int pdwLoad);
-    HRESULT GetCPUMetricEnabled(int* pbMetricEnabled);
+    HRESULT GetCPUMetricEnabled(BOOL* pbMetricEnabled);
     HRESULT SetCPUMetricEnabled(BOOL bMetricEnabled);
-    HRESULT GetCreateThreadsAggressively(int* pbMetricEnabled);
+    HRESULT GetCreateThreadsAggressively(BOOL* pbMetricEnabled);
     HRESULT SetCreateThreadsAggressively(BOOL bMetricEnabled);
     HRESULT GetMaxCSR(uint* pdwCSR);
     HRESULT SetMaxCSR(int dwCSR);
@@ -7349,7 +7353,7 @@ interface IServicePoolConfig : IUnknown
     ///    This method can return the standard return values E_INVALIDARG, E_OUTOFMEMORY, E_UNEXPECTED, E_FAIL, and
     ///    S_OK.
     ///    
-    HRESULT get_TransactionAffinity(int* pfTxAffinity);
+    HRESULT get_TransactionAffinity(BOOL* pfTxAffinity);
     ///Sets a class factory for the pooled objects.
     ///Params:
     ///    pFactory = An IClassFactory interface pointer.
@@ -7908,11 +7912,11 @@ interface IEventClass2 : IEventClass
     ///The CLSID of the object implementing IMultiInterfacePublisherFilter. This property is read/write.
     HRESULT put_MultiInterfacePublisherFilterCLSID(BSTR bstrPubFilCLSID);
     ///Indicates whether the event class can be activated in-process. This property is read/write.
-    HRESULT get_AllowInprocActivation(int* pfAllowInprocActivation);
+    HRESULT get_AllowInprocActivation(BOOL* pfAllowInprocActivation);
     ///Indicates whether the event class can be activated in-process. This property is read/write.
     HRESULT put_AllowInprocActivation(BOOL fAllowInprocActivation);
     ///Indicates whether events of this class can be fired in parallel. This property is read/write.
-    HRESULT get_FireInParallel(int* pfFireInParallel);
+    HRESULT get_FireInParallel(BOOL* pfFireInParallel);
     ///Indicates whether events of this class can be fired in parallel. This property is read/write.
     HRESULT put_FireInParallel(BOOL fFireInParallel);
 }
@@ -7954,7 +7958,7 @@ interface IEventSubscription : IDispatch
     HRESULT put_SubscriberInterface(IUnknown pSubscriberInterface);
     ///Indicates whether the subscription receives the event only if the owner of the subscription is logged on to the
     ///same computer as the publisher. This property is read/write.
-    HRESULT get_PerUser(int* pfPerUser);
+    HRESULT get_PerUser(BOOL* pfPerUser);
     ///Indicates whether the subscription receives the event only if the owner of the subscription is logged on to the
     ///same computer as the publisher. This property is read/write.
     HRESULT put_PerUser(BOOL fPerUser);
@@ -7963,7 +7967,7 @@ interface IEventSubscription : IDispatch
     ///The security ID of the subscription's creator. This property is read/write.
     HRESULT put_OwnerSID(BSTR bstrOwnerSID);
     ///Indicates whether the subscription is enabled. This property is read/write.
-    HRESULT get_Enabled(int* pfEnabled);
+    HRESULT get_Enabled(BOOL* pfEnabled);
     ///Indicates whether the subscription is enabled. This property is read/write.
     HRESULT put_Enabled(BOOL fEnabled);
     ///A displayable text description of the subscription. This property is read/write.
@@ -8260,7 +8264,7 @@ interface IEnumEventObject : IUnknown
     ///    requested were obtained. The number of elements obtained was written to <i>pcRetElem</i>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT Next(uint cReqElem, char* ppInterface, uint* cRetElem);
+    HRESULT Next(uint cReqElem, IUnknown* ppInterface, uint* cRetElem);
     ///Resets the enumeration sequence to the beginning.
     ///Returns:
     ///    This method can return the following values. <table> <tr> <th>Return code</th> <th>Description</th> </tr>
@@ -8332,7 +8336,7 @@ interface IEventControl : IDispatch
     ///    
     HRESULT SetPublisherFilter(BSTR methodName, IPublisherFilter pPublisherFilter);
     ///Indicates whether subscribers can be activated in the publisher's process. This property is read/write.
-    HRESULT get_AllowInprocActivation(int* pfAllowInprocActivation);
+    HRESULT get_AllowInprocActivation(BOOL* pfAllowInprocActivation);
     ///Indicates whether subscribers can be activated in the publisher's process. This property is read/write.
     HRESULT put_AllowInprocActivation(BOOL fAllowInprocActivation);
     ///Retrieves the collection of subscriptions associated with an event method.
@@ -8429,11 +8433,11 @@ interface IMultiInterfaceEventControl : IUnknown
     ///    
     HRESULT SetDefaultQuery(const(GUID)* eventIID, BSTR bstrMethodName, BSTR bstrCriteria, int* errorIndex);
     ///Indicates whether subscribers can be activated in the publisher's process. This property is read/write.
-    HRESULT get_AllowInprocActivation(int* pfAllowInprocActivation);
+    HRESULT get_AllowInprocActivation(BOOL* pfAllowInprocActivation);
     ///Indicates whether subscribers can be activated in the publisher's process. This property is read/write.
     HRESULT put_AllowInprocActivation(BOOL fAllowInprocActivation);
     ///Indicates whether events can be delivered to two or more subscribers in parallel. This property is read/write.
-    HRESULT get_FireInParallel(int* pfFireInParallel);
+    HRESULT get_FireInParallel(BOOL* pfFireInParallel);
     ///Indicates whether events can be delivered to two or more subscribers in parallel. This property is read/write.
     HRESULT put_FireInParallel(BOOL fFireInParallel);
 }

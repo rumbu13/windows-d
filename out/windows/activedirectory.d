@@ -10,12 +10,13 @@ public import windows.com : HRESULT, IDataObject, IPersist, IUnknown;
 public import windows.controls : LPFNADDPROPSHEETPAGE;
 public import windows.gdi : HICON;
 public import windows.security : LSA_FOREST_TRUST_INFORMATION;
-public import windows.systemservices : BOOL, HANDLE, HINSTANCE, LARGE_INTEGER;
+public import windows.systemservices : BOOL, HANDLE, HINSTANCE, LARGE_INTEGER, PSTR,
+                                       PWSTR;
 public import windows.winsock : SOCKET_ADDRESS;
 public import windows.windowsandmessaging : DLGPROC, HWND, LPARAM, WPARAM;
 public import windows.windowsprogramming : FILETIME, HKEY, SYSTEMTIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -1288,6 +1289,11 @@ enum : int
     DsRoleOperationNeedReboot = 0x00000002,
 }
 
+// Constants
+
+
+enum GUID CLSID_DsObjectPicker = GUID("17d6ccd8-3b7b-11d2-b9e0-00c04fd8dbf7");
+
 // Callbacks
 
 ///The <b>CQAddFormsProc</b> callback function is called by a query form extension to add a form to the query dialog
@@ -1350,8 +1356,8 @@ alias LPCQPAGEPROC = HRESULT function(CQPAGE* pPage, HWND hwnd, uint uMsg, WPARA
 ///    Returns <b>S_OK</b> to continue the enumeration or any failure code, such as <b>E_FAIL</b>, to terminate the
 ///    enumeration.
 ///    
-alias LPDSENUMATTRIBUTES = HRESULT function(LPARAM lParam, const(wchar)* pszAttributeName, 
-                                            const(wchar)* pszDisplayName, uint dwFlags);
+alias LPDSENUMATTRIBUTES = HRESULT function(LPARAM lParam, const(PWSTR) pszAttributeName, 
+                                            const(PWSTR) pszDisplayName, uint dwFlags);
 ///The <b>BFFCallBack</b> function is an application-defined callback function that receives event notifications from
 ///the Active Directory Domain Services container browser dialog box. A pointer to this function is supplied to the
 ///container browser dialog box in the <b>pfnCallback</b> member of the DSBROWSEINFO structure when the
@@ -1375,16 +1381,16 @@ alias BFFCALLBACK = int function(HWND hwnd, uint uMsg, LPARAM lParam, LPARAM lpD
 struct CQFORM
 {
     ///Contains the size, in bytes, of the structure.
-    uint          cbStruct;
+    uint         cbStruct;
     ///Contains a set of flags that modify the behavior of the query form. This can be zero or a combination of one or
     ///more of the following values.
-    uint          dwFlags;
+    uint         dwFlags;
     ///Contains the class identifier used to identify the query form.
-    GUID          clsid;
+    GUID         clsid;
     ///Contains the handle of the icon to be displayed with the query form.
-    HICON         hIcon;
+    HICON        hIcon;
     ///Pointer to a null-terminated Unicode string that contains the title of the query form.
-    const(wchar)* pszTitle;
+    const(PWSTR) pszTitle;
 }
 
 ///The <b>CQPAGE</b> structure is used to define a query page added to a form in the query dialog box with the
@@ -1438,7 +1444,7 @@ struct OPENQUERYWINDOW
     ///obtained from this interface. If <b>dwFlags</b> contains <b>OQWF_SAVEQUERY</b>, the query data is saved to this
     ///interface.
     IPersistQuery pPersistQuery;
-    union
+union
     {
         void*        pFormParameters;
         IPropertyBag ppbFormParameters;
@@ -1479,7 +1485,7 @@ struct ADS_CASEIGNORE_LIST
     ///Pointer to the next <b>ADS_CASEIGNORE_LIST</b> in the list of case-insensitive strings.
     ADS_CASEIGNORE_LIST* Next;
     ///The null-terminated Unicode string value of the current entry of the list.
-    const(wchar)*        String;
+    PWSTR                String;
 }
 
 ///The <b>ADS_OCTET_LIST</b> structure is an ADSI representation of an ordered sequence of single-byte strings.
@@ -1498,11 +1504,11 @@ struct ADS_OCTET_LIST
 struct ADS_PATH
 {
     ///Type of file in the file system.
-    uint          Type;
+    uint  Type;
     ///The null-terminated Unicode string that contains the name of an existing volume in the file system.
-    const(wchar)* VolumeName;
+    PWSTR VolumeName;
     ///The null-terminated Unicode string that contains the path of a directory in the file system.
-    const(wchar)* Path;
+    PWSTR Path;
 }
 
 ///The <b>ADS_POSTALADDRESS</b> structure is an ADSI representation of the <b>Postal Address</b> attribute.
@@ -1526,30 +1532,30 @@ struct ADS_BACKLINK
 {
     ///Identifier of the remote server that requires an external reference to the object specified by <b>ObjectName</b>.
     ///See below.
-    uint          RemoteID;
+    uint  RemoteID;
     ///The null-terminated Unicode string that specifies the name of an object to which the <b>Back Link</b> attribute
     ///is attached.
-    const(wchar)* ObjectName;
+    PWSTR ObjectName;
 }
 
 ///The <b>ADS_TYPEDNAME</b> structure represents an ADSI representation of <b>Typed Name</b> attribute syntax.
 struct ADS_TYPEDNAME
 {
     ///The null-terminated Unicode string that contains an object name.
-    const(wchar)* ObjectName;
+    PWSTR ObjectName;
     ///The priority associated with the object.
-    uint          Level;
+    uint  Level;
     ///The frequency of reference of the object.
-    uint          Interval;
+    uint  Interval;
 }
 
 ///The <b>ADS_HOLD</b> structure is an ADSI representation of the <b>Hold</b> attribute syntax.
 struct ADS_HOLD
 {
     ///The null-terminated Unicode string that contains the name of an object put on hold.
-    const(wchar)* ObjectName;
+    PWSTR ObjectName;
     ///Number of charges that a server places against the user on hold while it verifies the user account balance.
-    uint          Amount;
+    uint  Amount;
 }
 
 ///The <b>ADS_NETADDRESS</b> structure is an ADSI representation of the <b>Net Address</b> attribute syntax.
@@ -1567,7 +1573,7 @@ struct ADS_NETADDRESS
 struct ADS_REPLICAPOINTER
 {
     ///The null-terminated Unicode string that contains the name of the name server that holds the replica.
-    const(wchar)*   ServerName;
+    PWSTR           ServerName;
     ///Type of replica: master, secondary, or read-only.
     uint            ReplicaType;
     ///Replica identification number.
@@ -1583,20 +1589,20 @@ struct ADS_REPLICAPOINTER
 struct ADS_FAXNUMBER
 {
     ///The null-terminated Unicode string value that contains the telephone number of the facsimile (fax) machine.
-    const(wchar)* TelephoneNumber;
+    PWSTR  TelephoneNumber;
     ///The number of data bits.
-    uint          NumberOfBits;
+    uint   NumberOfBits;
     ///Optional parameters for the fax machine.
-    ubyte*        Parameters;
+    ubyte* Parameters;
 }
 
 ///The <b>ADS_EMAIL</b> structure is an ADSI representation of the <b>EMail Address</b> attribute syntax.
 struct ADS_EMAIL
 {
     ///The null-terminated Unicode string that contains the user address.
-    const(wchar)* Address;
+    PWSTR Address;
     ///Type of the email message.
-    uint          Type;
+    uint  Type;
 }
 
 ///The <b>ADS_DN_WITH_BINARY</b> structure is used with the ADSVALUE structure to contain a distinguished name attribute
@@ -1604,12 +1610,12 @@ struct ADS_EMAIL
 struct ADS_DN_WITH_BINARY
 {
     ///Contains the length, in bytes, of the binary data in <b>lpBinaryValue</b>.
-    uint          dwLength;
+    uint   dwLength;
     ///Pointer to an array of bytes that contains the binary data for the attribute. The <b>dwLength</b> member contains
     ///the number of bytes in this array.
-    ubyte*        lpBinaryValue;
+    ubyte* lpBinaryValue;
     ///Pointer to a null-terminated Unicode string that contains the distinguished name.
-    const(wchar)* pszDNString;
+    PWSTR  pszDNString;
 }
 
 ///The <b>ADS_DN_WITH_STRING</b> structure is used with the ADSVALUE structure to contain a distinguished name attribute
@@ -1617,9 +1623,9 @@ struct ADS_DN_WITH_BINARY
 struct ADS_DN_WITH_STRING
 {
     ///Pointer to a null-terminated Unicode string that contains the string value of the attribute.
-    const(wchar)* pszStringValue;
+    PWSTR pszStringValue;
     ///Pointer to a null-terminated Unicode string that contains the distinguished name.
-    const(wchar)* pszDNString;
+    PWSTR pszDNString;
 }
 
 ///The <b>ADSVALUE</b> structure contains a value specified as an ADSI data type. These data types can be ADSI Simple
@@ -1630,7 +1636,7 @@ struct ADSVALUE
     ///Data type used to interpret the union member of the structure. Values of this member are taken from the
     ///ADSTYPEENUM enumeration.
     ADSTYPEENUM dwType;
-    union
+union
     {
         ushort*              DNString;
         ushort*              CaseExactString;
@@ -1668,16 +1674,16 @@ struct ADSVALUE
 struct ADS_ATTR_INFO
 {
     ///The null-terminated Unicode string that contains the attribute name.
-    const(wchar)* pszAttrName;
+    PWSTR       pszAttrName;
     ///Contains one of the ADSI Attribute Modification Types values that determines the type of operation to be
     ///performed on the attribute value.
-    uint          dwControlCode;
+    uint        dwControlCode;
     ///A value from the ADSTYPEENUM enumeration that indicates the data type of the attribute.
-    ADSTYPEENUM   dwADsType;
+    ADSTYPEENUM dwADsType;
     ///Pointer to an array of ADSVALUE structures that contain values for the attribute.
-    ADSVALUE*     pADsValues;
+    ADSVALUE*   pADsValues;
     ///Size of the <b>pADsValues</b> array.
-    uint          dwNumValues;
+    uint        dwNumValues;
 }
 
 ///The <b>ADS_OBJECT_INFO</b> structure specifies the data, including the identity and location, of a directory service
@@ -1685,15 +1691,15 @@ struct ADS_ATTR_INFO
 struct ADS_OBJECT_INFO
 {
     ///The null-terminated Unicode string that contains the relative distinguished name of the directory service object.
-    const(wchar)* pszRDN;
+    PWSTR pszRDN;
     ///The null-terminated Unicode string that contains the distinguished name of the directory service object.
-    const(wchar)* pszObjectDN;
+    PWSTR pszObjectDN;
     ///The null-terminated Unicode string that contains the distinguished name of the parent object.
-    const(wchar)* pszParentDN;
+    PWSTR pszParentDN;
     ///The null-terminated Unicode string that contains the distinguished name of the schema class of the object.
-    const(wchar)* pszSchemaDN;
+    PWSTR pszSchemaDN;
     ///The null-terminated Unicode string that contains the name of the class of which this object is an instance.
-    const(wchar)* pszClassName;
+    PWSTR pszClassName;
 }
 
 ///The <b>ADS_SEARCHPREF_INFO</b> structure specifies the query preferences.
@@ -1714,16 +1720,16 @@ struct ads_search_column
 {
     ///A null-terminated Unicode string that contains the name of the attribute whose values are contained in the
     ///current search column.
-    const(wchar)* pszAttrName;
+    PWSTR       pszAttrName;
     ///Value from the ADSTYPEENUM enumeration that indicates how the attribute values are interpreted.
-    ADSTYPEENUM   dwADsType;
+    ADSTYPEENUM dwADsType;
     ///Array of ADSVALUE structures that contain values of the attribute in the current search column for the current
     ///row.
-    ADSVALUE*     pADsValues;
+    ADSVALUE*   pADsValues;
     ///Size of the <b>pADsValues</b> array.
-    uint          dwNumValues;
+    uint        dwNumValues;
     ///Reserved for internal use by providers.
-    HANDLE        hReserved;
+    HANDLE      hReserved;
 }
 
 ///The <b>ADS_ATTR_DEF</b> structure is used only as a part of <b>IDirectorySchemaMgmt</b>, which is an obsolete
@@ -1732,15 +1738,15 @@ struct ads_search_column
 struct ADS_ATTR_DEF
 {
     ///The null-terminated Unicode string that contains the name of the attribute.
-    const(wchar)* pszAttrName;
+    PWSTR       pszAttrName;
     ///Data type of the attribute as defined by ADSTYPEENUM.
-    ADSTYPEENUM   dwADsType;
+    ADSTYPEENUM dwADsType;
     ///Minimum legal range for this attribute.
-    uint          dwMinRange;
+    uint        dwMinRange;
     ///Maximum legal range for this attribute.
-    uint          dwMaxRange;
+    uint        dwMaxRange;
     ///Whether or not this attribute takes more than one value.
-    BOOL          fMultiValued;
+    BOOL        fMultiValued;
 }
 
 ///The <b>ADS_CLASS_DEF</b> structure is used only as a part of <b>IDirectorySchemaMgmt</b>, which is an obsolete
@@ -1749,37 +1755,37 @@ struct ADS_ATTR_DEF
 struct ADS_CLASS_DEF
 {
     ///The null-terminated Unicode string that specifies the class name.
-    const(wchar)* pszClassName;
+    PWSTR   pszClassName;
     ///The number of mandatory class attributes.
-    uint          dwMandatoryAttrs;
+    uint    dwMandatoryAttrs;
     ///Pointer to an array of null-terminated Unicode strings that contain the names of the mandatory attributes.
-    ushort**      ppszMandatoryAttrs;
+    PWSTR*  ppszMandatoryAttrs;
     ///Number of optional attributes of the class.
-    uint          optionalAttrs;
+    uint    optionalAttrs;
     ///Pointer to an array of null-terminated Unicode strings that contain the names of the optional attributes.
-    ushort***     ppszOptionalAttrs;
+    PWSTR** ppszOptionalAttrs;
     ///Number of naming attributes.
-    uint          dwNamingAttrs;
+    uint    dwNamingAttrs;
     ///Pointer to an array of null-terminated Unicode strings that contain the names of the naming attributes.
-    ushort***     ppszNamingAttrs;
+    PWSTR** ppszNamingAttrs;
     ///Number of super classes of an object of this class.
-    uint          dwSuperClasses;
+    uint    dwSuperClasses;
     ///Pointer to an array of null-terminated Unicode strings that contain the names of the super classes.
-    ushort***     ppszSuperClasses;
+    PWSTR** ppszSuperClasses;
     ///Flags that indicate the object of the class is a container when it is <b>TRUE</b> and not a container when
     ///<b>FALSE</b>.
-    BOOL          fIsContainer;
+    BOOL    fIsContainer;
 }
 
 ///The <b>ADS_SORTKEY</b> structure specifies how to sort a query.
 struct ADS_SORTKEY
 {
     ///The null-terminated Unicode string that contains the attribute type.
-    const(wchar)* pszAttrType;
+    PWSTR pszAttrType;
     ///Reserved.
-    const(wchar)* pszReserved;
+    PWSTR pszReserved;
     ///Reverse the order of the sorted results.
-    ubyte         fReverseorder;
+    ubyte fReverseorder;
 }
 
 ///The <b>ADS_VLV</b> structure contains metadata used to conduct virtual list view (VLV) searches. This structure
@@ -1788,33 +1794,33 @@ struct ADS_SORTKEY
 struct ADS_VLV
 {
     ///Indicates the number of entries, before the target entry, that the client requests from the server.
-    uint          dwBeforeCount;
+    uint   dwBeforeCount;
     ///Indicates the number of entries, after the target entry, that the client requests from the server.
-    uint          dwAfterCount;
+    uint   dwAfterCount;
     ///On input, indicates the target entry's requested offset within the list. If the client specifies an offset which
     ///equals the client's assumed content count, then the target is the last entry in the list. On output, indicates
     ///the server's best estimate as to the actual offset of the returned target entry's position in the list.
-    uint          dwOffset;
+    uint   dwOffset;
     ///The input value represents the client's estimated value for the content count. The output value is the server's
     ///estimate of the content count. If the client sends a content count of zero, this means that the server must use
     ///its estimate of the content count in place of the client's.
-    uint          dwContentCount;
+    uint   dwContentCount;
     ///Optional. Null-terminated Unicode string that indicates the desired target entry requested by the client. If this
     ///parameter contains a non-<b>NULL</b> value, the server ignores the value specified in <b>dwOffset</b> and search
     ///for the first target entry whose value for the primary sort key is greater than or equal to the specified string,
     ///based on the sort order of the list.
-    const(wchar)* pszTarget;
+    PWSTR  pszTarget;
     ///Optional. Parameter that indicates the length of the context identifier. On input, if passing a context
     ///identifier in <b>lpContextID</b>, this must be set to the size of the identifier in bytes. Otherwise, it must be
     ///set equal to zero. On output, if <b>lpContextID</b> contains a non-<b>NULL</b> value, this indicates the length,
     ///in bytes, of the context ID returned by the server.
-    uint          dwContextIDLength;
+    uint   dwContextIDLength;
     ///Optional. Indicates the server-generated context identifier. This parameter may be sent to clients. If a client
     ///receives this parameter, it should return it unchanged in a subsequent request which relates to the same list.
     ///This interaction may enhance the performance and effectiveness of the servers. If not passing a context
     ///identifier to the server, this member must be set to <b>NULL</b> value. On output, if this member contains a
     ///non-<b>NULL</b> value, this points to the context ID returned by the server.
-    ubyte*        lpContextID;
+    ubyte* lpContextID;
 }
 
 ///The <b>DSOBJECT</b> structure contains directory object data. An array of this structure is provided in the
@@ -1907,31 +1913,31 @@ struct DSPROPERTYPAGEINFO
 struct DOMAINDESC
 {
     ///Pointer to a Unicode string that contains the domain name.
-    const(wchar)* pszName;
+    PWSTR       pszName;
     ///Pointer to a Unicode string that contains the path of the domain. Reserved.
-    const(wchar)* pszPath;
+    PWSTR       pszPath;
     ///Pointer to a Unicode string that contains the fully qualified name of the domain in the form "DC=myDom,
     ///DC=Fabrikam, DC=com". This member is blank if the <b>DBDTF_RETURNFQDN</b> flag is not set in the <i>dwFlags</i>
     ///parameter in IDsBrowseDomainTree::GetDomains.
-    const(wchar)* pszNCName;
+    PWSTR       pszNCName;
     ///Pointer to a Unicode string that contains the name of the parent domain. This member is <b>NULL</b> if the domain
     ///has no parent.
-    const(wchar)* pszTrustParent;
+    PWSTR       pszTrustParent;
     ///Pointer to a Unicode string that contains the object class name of the domain.
-    const(wchar)* pszObjectClass;
+    PWSTR       pszObjectClass;
     ///Contains a set of flags that specify the attributes of the trust. For more information, and a list of possible
     ///values, see the <i>Flags</i> parameter of DsEnumerateDomainTrusts.
-    uint          ulFlags;
+    uint        ulFlags;
     ///Contains a nonzero value if the domain is a down-level domain or zero otherwise.
-    BOOL          fDownLevel;
+    BOOL        fDownLevel;
     ///Contains a pointer to a <b>DOMAINDESC</b> structure that represents the first child of the domain. Obtain
     ///subsequent children by accessing the <b>pdNextSibling</b> member of the child structure. This member is
     ///<b>NULL</b> if the domain has no children.
-    DOMAINDESC*   pdChildList;
+    DOMAINDESC* pdChildList;
     ///Contains a pointer to a <b>DOMAINDESC</b> structure that represents the next sibling of the domain. Obtain
     ///subsequent siblings by accessing the <b>pdNextSibling</b> member of the sibling structure. This member is
     ///<b>NULL</b> if the domain has no siblings.
-    DOMAINDESC*   pdNextSibling;
+    DOMAINDESC* pdNextSibling;
 }
 
 ///The <b>DOMAINTREE</b> structure contains data about a node in a domain tree obtained with the
@@ -1975,50 +1981,50 @@ struct DSBROWSEINFOW
 {
     ///Contains the size, in bytes, of the <b>DSBROWSEINFO</b> structure. This is used by the DsBrowseForContainer
     ///function for versioning purposes.
-    uint          cbStruct;
+    uint         cbStruct;
     ///Handle of the window used as the parent of the container browser dialog box.
-    HWND          hwndOwner;
+    HWND         hwndOwner;
     ///Pointer to a null-terminated string that contains the caption of the dialog box. If this member is <b>NULL</b>, a
     ///default caption is used.
-    const(wchar)* pszCaption;
+    const(PWSTR) pszCaption;
     ///Pointer to a null-terminated string that contains additional text to be displayed in the dialog box above the
     ///tree control. If this member is <b>NULL</b>, no additional text is displayed.
-    const(wchar)* pszTitle;
+    const(PWSTR) pszTitle;
     ///Pointer to a null-terminated Unicode string that contains the ADsPath of the container placed at the root of the
     ///dialog box. The user cannot navigate above this level using the dialog box.
-    const(wchar)* pszRoot;
+    const(PWSTR) pszRoot;
     ///Pointer to a null-terminated Unicode string that receives the ADsPath of the container selected in the dialog.
     ///This string will always be null-terminated even if <b>cchPath</b> is not large enough to hold the entire path. If
     ///<b>dwFlags</b> contains the <b>DSBI_EXPANDONOPEN</b> flag, this member contains the ADsPath of the container that
     ///should be initially selected in the dialog box.
-    const(wchar)* pszPath;
+    PWSTR        pszPath;
     ///Contains the size, in <b>WCHAR</b> characters, of the <b>pszPath</b> buffer.
-    uint          cchPath;
+    uint         cchPath;
     ///Contains a set of flags that define the behavior of the dialog box. This can be zero or a combination of one or
     ///more of the following values.
-    uint          dwFlags;
+    uint         dwFlags;
     ///Pointer to an application-defined BFFCallBack callback function that receives notifications from the container
     ///browser dialog box. Set this member to <b>NULL</b> if it is not used.
-    BFFCALLBACK   pfnCallback;
+    BFFCALLBACK  pfnCallback;
     ///Contains an application-defined 32-bit value passed as the <i>lpData</i> parameter in all calls to
     ///<b>pfnCallback</b>. This member is ignored if <b>pfnCallback</b> is <b>NULL</b>.
-    LPARAM        lParam;
+    LPARAM       lParam;
     ///Contains one of the ADS_FORMAT_ENUM values that specifies the format that the ADSI path returned in
     ///<b>pszPath</b> will accept.
-    uint          dwReturnFormat;
+    uint         dwReturnFormat;
     ///Pointer to a Unicode string that contains the user name used for the credentials. This member is ignored if
     ///<b>dwFlags</b> does not have the <b>DSBI_HASCREDENTIALS</b> flag set. If this member is <b>NULL</b>, the
     ///currently logged on user name is used.
-    const(wchar)* pUserName;
+    const(PWSTR) pUserName;
     ///Pointer to a Unicode string that contains the password used for the credentials. This member is ignored if
     ///<b>dwFlags</b> does not have the <b>DSBI_HASCREDENTIALS</b> flag set. If this member is <b>NULL</b>, the password
     ///of the currently logged on user is used.
-    const(wchar)* pPassword;
+    const(PWSTR) pPassword;
     ///Pointer to a Unicode string buffer that receives the class string of the selected. This member is ignored if
     ///<b>dwFlags</b> does not have the <b>DSBI_RETURNOBJECTCLASS</b> flag set.
-    const(wchar)* pszObjectClass;
+    PWSTR        pszObjectClass;
     ///Contains the size, in <b>WCHAR</b> characters, of the <b>pszObjectClass</b> buffer.
-    uint          cchObjectClass;
+    uint         cchObjectClass;
 }
 
 ///The <b>DSBROWSEINFO</b> structure is used with the DsBrowseForContainer function to supply and return data about the
@@ -2027,50 +2033,50 @@ struct DSBROWSEINFOA
 {
     ///Contains the size, in bytes, of the <b>DSBROWSEINFO</b> structure. This is used by the DsBrowseForContainer
     ///function for versioning purposes.
-    uint          cbStruct;
+    uint         cbStruct;
     ///Handle of the window used as the parent of the container browser dialog box.
-    HWND          hwndOwner;
+    HWND         hwndOwner;
     ///Pointer to a null-terminated string that contains the caption of the dialog box. If this member is <b>NULL</b>, a
     ///default caption is used.
-    const(char)*  pszCaption;
+    const(PSTR)  pszCaption;
     ///Pointer to a null-terminated string that contains additional text to be displayed in the dialog box above the
     ///tree control. If this member is <b>NULL</b>, no additional text is displayed.
-    const(char)*  pszTitle;
+    const(PSTR)  pszTitle;
     ///Pointer to a null-terminated Unicode string that contains the ADsPath of the container placed at the root of the
     ///dialog box. The user cannot navigate above this level using the dialog box.
-    const(wchar)* pszRoot;
+    const(PWSTR) pszRoot;
     ///Pointer to a null-terminated Unicode string that receives the ADsPath of the container selected in the dialog.
     ///This string will always be null-terminated even if <b>cchPath</b> is not large enough to hold the entire path. If
     ///<b>dwFlags</b> contains the <b>DSBI_EXPANDONOPEN</b> flag, this member contains the ADsPath of the container that
     ///should be initially selected in the dialog box.
-    const(wchar)* pszPath;
+    PWSTR        pszPath;
     ///Contains the size, in <b>WCHAR</b> characters, of the <b>pszPath</b> buffer.
-    uint          cchPath;
+    uint         cchPath;
     ///Contains a set of flags that define the behavior of the dialog box. This can be zero or a combination of one or
     ///more of the following values.
-    uint          dwFlags;
+    uint         dwFlags;
     ///Pointer to an application-defined BFFCallBack callback function that receives notifications from the container
     ///browser dialog box. Set this member to <b>NULL</b> if it is not used.
-    BFFCALLBACK   pfnCallback;
+    BFFCALLBACK  pfnCallback;
     ///Contains an application-defined 32-bit value passed as the <i>lpData</i> parameter in all calls to
     ///<b>pfnCallback</b>. This member is ignored if <b>pfnCallback</b> is <b>NULL</b>.
-    LPARAM        lParam;
+    LPARAM       lParam;
     ///Contains one of the ADS_FORMAT_ENUM values that specifies the format that the ADSI path returned in
     ///<b>pszPath</b> will accept.
-    uint          dwReturnFormat;
+    uint         dwReturnFormat;
     ///Pointer to a Unicode string that contains the user name used for the credentials. This member is ignored if
     ///<b>dwFlags</b> does not have the <b>DSBI_HASCREDENTIALS</b> flag set. If this member is <b>NULL</b>, the
     ///currently logged on user name is used.
-    const(wchar)* pUserName;
+    const(PWSTR) pUserName;
     ///Pointer to a Unicode string that contains the password used for the credentials. This member is ignored if
     ///<b>dwFlags</b> does not have the <b>DSBI_HASCREDENTIALS</b> flag set. If this member is <b>NULL</b>, the password
     ///of the currently logged on user is used.
-    const(wchar)* pPassword;
+    const(PWSTR) pPassword;
     ///Pointer to a Unicode string buffer that receives the class string of the selected. This member is ignored if
     ///<b>dwFlags</b> does not have the <b>DSBI_RETURNOBJECTCLASS</b> flag set.
-    const(wchar)* pszObjectClass;
+    PWSTR        pszObjectClass;
     ///Contains the size, in <b>WCHAR</b> characters, of the <b>pszObjectClass</b> buffer.
-    uint          cchObjectClass;
+    uint         cchObjectClass;
 }
 
 ///The <b>DSBITEM</b> structure contains data about an item in the Active Directory container browser dialog box. This
@@ -2079,36 +2085,36 @@ struct DSBROWSEINFOA
 struct DSBITEMW
 {
     ///Contains the size, in bytes, of the structure.
-    uint          cbStruct;
+    uint         cbStruct;
     ///Pointer to a null-terminated Unicode string that contains the ADsPath of the item.
-    const(wchar)* pszADsPath;
+    const(PWSTR) pszADsPath;
     ///Pointer to a null-terminated Unicode string that contains the object class name of the item.
-    const(wchar)* pszClass;
+    const(PWSTR) pszClass;
     ///Contains a set of flags that indicate which members of the structure contain valid data. This can be zero or a
     ///combination of one or more of the following values.
-    uint          dwMask;
+    uint         dwMask;
     ///Contains a set of flags that indicate the state of the item. This can be zero or a combination of one or more of
     ///the following values.
-    uint          dwState;
+    uint         dwState;
     ///Contains a set of flags that indicate which flags in the <b>dwState</b> member contain valid data. This can be
     ///zero or a combination of one or more of the following values. For example, if <b>dwStateMask</b> has the
     ///<b>DSBS_HIDDEN</b> flag set and <b>dwState</b> does not have the <b>DSBS_HIDDEN</b> flag set, then the item is
     ///visible. If <b>dwStateMask</b> does not have the <b>DSBS_HIDDEN</b> flag set, then the <b>DSBS_HIDDEN</b> flag in
     ///<b>dwState</b> must be ignored.
-    uint          dwStateMask;
+    uint         dwStateMask;
     ///Pointer to a null-terminated string that contains the display name of the item. The display name of an item can
     ///be changed by copying the new display name into this member, setting the <b>DSBF_DISPLAYNAME</b> flag in the
     ///<b>dwMask</b> member, and returning a nonzero value from BFFCallBack.
-    ushort[64]    szDisplayName;
+    ushort[64]   szDisplayName;
     ///Pointer to a null-terminated string that contains the name of an .exe, .dll, or .ico file that contains the icon
     ///to display for the item. This can be any file type that can be passed to the ExtractIcon function. The index for
     ///this icon is specified in <b>iIconResID</b>. To modify the icon displayed for the item, copy the icon source file
     ///name into this member, set <b>iIconResID</b> to the zero-based index of the icon, set the
     ///<b>DSBF_ICONLOCATION</b> flag in the <b>dwMask</b> member, and return a nonzero value from BFFCallBack.
-    ushort[260]   szIconLocation;
+    ushort[260]  szIconLocation;
     ///Contains the zero-based index of the icon to display for the item. <div class="alert"><b>Note</b> This is not the
     ///resource identifier of the icon.</div> <div> </div>
-    int           iIconResID;
+    int          iIconResID;
 }
 
 ///The <b>DSBITEM</b> structure contains data about an item in the Active Directory container browser dialog box. This
@@ -2117,36 +2123,36 @@ struct DSBITEMW
 struct DSBITEMA
 {
     ///Contains the size, in bytes, of the structure.
-    uint          cbStruct;
+    uint         cbStruct;
     ///Pointer to a null-terminated Unicode string that contains the ADsPath of the item.
-    const(wchar)* pszADsPath;
+    const(PWSTR) pszADsPath;
     ///Pointer to a null-terminated Unicode string that contains the object class name of the item.
-    const(wchar)* pszClass;
+    const(PWSTR) pszClass;
     ///Contains a set of flags that indicate which members of the structure contain valid data. This can be zero or a
     ///combination of one or more of the following values.
-    uint          dwMask;
+    uint         dwMask;
     ///Contains a set of flags that indicate the state of the item. This can be zero or a combination of one or more of
     ///the following values.
-    uint          dwState;
+    uint         dwState;
     ///Contains a set of flags that indicate which flags in the <b>dwState</b> member contain valid data. This can be
     ///zero or a combination of one or more of the following values. For example, if <b>dwStateMask</b> has the
     ///<b>DSBS_HIDDEN</b> flag set and <b>dwState</b> does not have the <b>DSBS_HIDDEN</b> flag set, then the item is
     ///visible. If <b>dwStateMask</b> does not have the <b>DSBS_HIDDEN</b> flag set, then the <b>DSBS_HIDDEN</b> flag in
     ///<b>dwState</b> must be ignored.
-    uint          dwStateMask;
+    uint         dwStateMask;
     ///Pointer to a null-terminated string that contains the display name of the item. The display name of an item can
     ///be changed by copying the new display name into this member, setting the <b>DSBF_DISPLAYNAME</b> flag in the
     ///<b>dwMask</b> member, and returning a nonzero value from BFFCallBack.
-    byte[64]      szDisplayName;
+    byte[64]     szDisplayName;
     ///Pointer to a null-terminated string that contains the name of an .exe, .dll, or .ico file that contains the icon
     ///to display for the item. This can be any file type that can be passed to the ExtractIcon function. The index for
     ///this icon is specified in <b>iIconResID</b>. To modify the icon displayed for the item, copy the icon source file
     ///name into this member, set <b>iIconResID</b> to the zero-based index of the icon, set the
     ///<b>DSBF_ICONLOCATION</b> flag in the <b>dwMask</b> member, and return a nonzero value from BFFCallBack.
-    byte[260]     szIconLocation;
+    byte[260]    szIconLocation;
     ///Contains the zero-based index of the icon to display for the item. <div class="alert"><b>Note</b> This is not the
     ///resource identifier of the icon.</div> <div> </div>
-    int           iIconResID;
+    int          iIconResID;
 }
 
 ///The <b>DSOP_UPLEVEL_FILTER_FLAGS</b> structure contains flags that indicate the filters to use for an up-level scope.
@@ -2208,9 +2214,9 @@ struct DSOP_SCOPE_INIT_INFO
     ///controller in a multimaster domain. For example, an administrative application might make changes on a domain
     ///controller in a multimaster domain, and then open the object picker dialog box before the changes have been
     ///replicated on the other domain controllers.
-    const(wchar)*     pwzDcName;
+    const(PWSTR)      pwzDcName;
     ///Reserved; must be <b>NULL</b>.
-    const(wchar)*     pwzADsPath;
+    const(PWSTR)      pwzADsPath;
     ///Contains an <b>HRESULT</b> value that indicates the status of the specific scope. If the
     ///IDsObjectPicker::Initialize method successfully creates the scope, or scopes, specified by this structure,
     ///<b>hr</b> contains <b>S_OK</b>. Otherwise, <b>hr</b> contains an error code. If IDsObjectPicker::Initialize
@@ -2224,25 +2230,25 @@ struct DSOP_SCOPE_INIT_INFO
 struct DSOP_INIT_INFO
 {
     ///Contains the size, in bytes, of the structure.
-    uint          cbSize;
+    uint         cbSize;
     ///Pointer to a null-terminated Unicode string that contains the name of the target computer. The dialog box
     ///operates as if it is running on the target computer, using the target computer to determine the joined domain and
     ///enterprise. If this value is <b>NULL</b>, the target computer is the local computer.
-    const(wchar)* pwzTargetComputer;
+    const(PWSTR) pwzTargetComputer;
     ///Specifies the number of elements in the <b>aDsScopeInfos</b> array.
-    uint          cDsScopeInfos;
+    uint         cDsScopeInfos;
     ///Pointer to an array of DSOP_SCOPE_INIT_INFO structures that describe the scopes from which the user can select
     ///objects. This member cannot be <b>NULL</b> and the array must contain at least one element because the object
     ///picker cannot operate without at least one scope.
     DSOP_SCOPE_INIT_INFO* aDsScopeInfos;
     ///Flags that determine the object picker options. This member can be zero or a combination of one or more of the
     ///following flags.
-    uint          flOptions;
+    uint         flOptions;
     ///Contains the number of elements in the <b>apwzAttributeNames</b> array. This member can be zero.
-    uint          cAttributesToFetch;
+    uint         cAttributesToFetch;
     ///Pointer to an array of null-terminated Unicode strings that contain the names of the attributes to retrieve for
     ///each selected object. If <b>cAttributesToFetch</b> is zero, this member is ignored.
-    ushort**      apwzAttributeNames;
+    PWSTR*       apwzAttributeNames;
 }
 
 ///The <b>DS_SELECTION</b> structure contains data about an object the user selected from an object picker dialog box.
@@ -2250,16 +2256,16 @@ struct DSOP_INIT_INFO
 struct DS_SELECTION
 {
     ///Pointer to a null-terminated Unicode string that contains the object's relative distinguished name (RDN).
-    const(wchar)* pwzName;
+    PWSTR    pwzName;
     ///Pointer to a null-terminated Unicode string that contains the object's ADsPath. The format of this string depends
     ///on the flags specified in the <b>flScope</b> member of the DSOP_SCOPE_INIT_INFO structure for the scope from
     ///which this object was selected.
-    const(wchar)* pwzADsPath;
+    PWSTR    pwzADsPath;
     ///Pointer to a null-terminated Unicode string that contains the value of the object's objectClass attribute.
-    const(wchar)* pwzClass;
+    PWSTR    pwzClass;
     ///Pointer to a null-terminated Unicode string that contains the object's userPrincipalName attribute value. If the
     ///object does not have a userPrincipalName value, <b>pwzUPN</b> points to an empty string (L"").
-    const(wchar)* pwzUPN;
+    PWSTR    pwzUPN;
     ///Pointer to an array of VARIANT structures. Each <b>VARIANT</b> contains the value of an attribute of the selected
     ///object. The attributes retrieved are determined by the attribute names specified in the <b>apwzAttributeNames</b>
     ///member of the DSOP_INIT_INFO structure passed to the IDsObjectPicker::Initialize method. The order of attributes
@@ -2267,11 +2273,11 @@ struct DS_SELECTION
     ///<b>apwzAttributeNames</b> array. The object picker dialog box may not be able to retrieve the requested
     ///attributes. If the attribute cannot be retrieved, the <b>vt</b> member of the VARIANT structure contains
     ///<b>VT_EMPTY</b>.
-    VARIANT*      pvarFetchedAttributes;
+    VARIANT* pvarFetchedAttributes;
     ///Contains one, or more, of the <b>DSOP_SCOPE_TYPE_*</b> that indicate the type of scope from which this object was
     ///selected. For more information, and a list of <b>DSOP_SCOPE_TYPE_*</b> flags, see the <b>flType</b> member of the
     ///DSOP_SCOPE_INIT_INFO structure.
-    uint          flScopeType;
+    uint     flScopeType;
 }
 
 ///The <b>DS_SELECTION_LIST</b> structure contains data about the objects the user selected from an object picker dialog
@@ -2294,25 +2300,25 @@ struct DS_SELECTION_LIST
 struct DSQUERYINITPARAMS
 {
     ///Contains the size, in bytes, of this structure.
-    uint          cbStruct;
+    uint  cbStruct;
     ///Contains a set of flags that define the query behavior. This can be zero or a combination of one or more of the
     ///following values.
-    uint          dwFlags;
+    uint  dwFlags;
     ///Pointer to a null-terminated Unicode string that contains the ADsPath of the default scope for the search. Set
     ///this member to <b>NULL</b> if no default search scope is specified.
-    const(wchar)* pDefaultScope;
+    PWSTR pDefaultScope;
     ///Pointer to a null-terminated Unicode string that contains the default file system path where searches will be
     ///saved. This member is ignored if the <b>dwFlags</b> member does not contain <b>DSQPF_SAVELOCATION</b>.
-    const(wchar)* pDefaultSaveLocation;
+    PWSTR pDefaultSaveLocation;
     ///Pointer to a null-terminated Unicode string that contains the user name in the valid domain notation, for
     ///example, "fabrikam\jeffsmith".
-    const(wchar)* pUserName;
+    PWSTR pUserName;
     ///Pointer to a null-terminated Unicode string that contains the password of the user specified by the
     ///<b>pUserName</b> member.
-    const(wchar)* pPassword;
+    PWSTR pPassword;
     ///Pointer to a null-terminated Unicode string that contains the name of the server from which the list of trusted
     ///domains is read. The list is used to populate the <b>In:</b> drop-down list in the dialog box.
-    const(wchar)* pServer;
+    PWSTR pServer;
 }
 
 ///The <b>DSCOLUMN</b> structure represents a column in the directory services query dialog box. An array of this
@@ -2376,14 +2382,14 @@ struct DSQUERYCLASSLIST
 struct DSA_NEWOBJ_DISPINFO
 {
     ///Contains the size, in bytes, of the structure. This member is used for versioning purposes.
-    uint          dwSize;
+    uint  dwSize;
     ///Contains the handle of the class icon for the object created.
-    HICON         hObjClassIcon;
+    HICON hObjClassIcon;
     ///Pointer to a null-terminated Unicode string that contains the title of the wizard.
-    const(wchar)* lpszWizTitle;
+    PWSTR lpszWizTitle;
     ///Pointer to a null-terminated Unicode string that contains the display name, or canonical name, of the container
     ///the object is created in.
-    const(wchar)* lpszContDisplayName;
+    PWSTR lpszContDisplayName;
 }
 
 ///The <b>ADSPROPINITPARAMS</b> structure is used with the ADsPropGetInitInfo function to obtain object data that a
@@ -2401,7 +2407,7 @@ struct ADSPROPINITPARAMS
     ///to. Do not release this interface.
     IDirectoryObject pDsObj;
     ///Pointer to a null-terminated Unicode string that contains the common name of the directory object.
-    const(wchar)*    pwzCN;
+    PWSTR            pwzCN;
     ///Pointer to an ADS_ATTR_INFO structure that contains attribute data for the directory object.
     ADS_ATTR_INFO*   pWritableAttrs;
 }
@@ -2411,24 +2417,24 @@ struct ADSPROPINITPARAMS
 struct ADSPROPERROR
 {
     ///Contains the window handle of the property page that generated the error.
-    HWND          hwndPage;
+    HWND    hwndPage;
     ///Pointer to a NULL-terminated Unicode string that contains the title of the property page that generated the
     ///error.
-    const(wchar)* pszPageTitle;
+    PWSTR   pszPageTitle;
     ///Pointer to a NULL-terminated Unicode string that contains the ADsPath of the directory object that the error
     ///occurred on.
-    const(wchar)* pszObjPath;
+    PWSTR   pszObjPath;
     ///Pointer to a NULL-terminated Unicode string that contains the class name of the directory object that the error
     ///occurred on.
-    const(wchar)* pszObjClass;
+    PWSTR   pszObjClass;
     ///Contains an <b>HRESULT</b> value that specifies the code of the error that occurred. If <i>hr</i> is not equal to
     ///<b>S_OK</b>, then <i>pszError</i> is ignored. If <i>hr</i>is equal to <b>S_OK</b>, then <i>pszError</i> contains
     ///an error message.
-    HRESULT       hr;
+    HRESULT hr;
     ///Pointer to a NULL-terminated Unicode string that contains the error message to be displayed in the error dialog
     ///box. This member is ignored if <i>hr</i> is not equal to <b>S_OK</b>. In this case, the error dialog box will
     ///display a system-defined message for the error specified by <i>hr</i>.
-    const(wchar)* pszError;
+    PWSTR   pszError;
 }
 
 ///The <b>SCHEDULE_HEADER</b> structure is used to contain the replication schedule data for a replication source. The
@@ -2464,12 +2470,12 @@ struct SCHEDULE
 struct DS_NAME_RESULT_ITEMA
 {
     ///Contains one of the DS_NAME_ERROR values that indicates the status of this name conversion.
-    uint         status;
+    uint status;
     ///Pointer to a null-terminated string that specifies the DNS domain in which the object resides. This member will
     ///contain valid data if <b>status</b> contains DS_NAME_NO_ERROR or <b>DS_NAME_ERROR_DOMAIN_ONLY</b>.
-    const(char)* pDomain;
+    PSTR pDomain;
     ///Pointer to a null-terminated string that specifies the newly formatted object name.
-    const(char)* pName;
+    PSTR pName;
 }
 
 ///The <b>DS_NAME_RESULT</b> structure is used with the DsCrackNames function to contain the names converted by the
@@ -2488,12 +2494,12 @@ struct DS_NAME_RESULTA
 struct DS_NAME_RESULT_ITEMW
 {
     ///Contains one of the DS_NAME_ERROR values that indicates the status of this name conversion.
-    uint          status;
+    uint  status;
     ///Pointer to a null-terminated string that specifies the DNS domain in which the object resides. This member will
     ///contain valid data if <b>status</b> contains DS_NAME_NO_ERROR or <b>DS_NAME_ERROR_DOMAIN_ONLY</b>.
-    const(wchar)* pDomain;
+    PWSTR pDomain;
     ///Pointer to a null-terminated string that specifies the newly formatted object name.
-    const(wchar)* pName;
+    PWSTR pName;
 }
 
 ///The <b>DS_NAME_RESULT</b> structure is used with the DsCrackNames function to contain the names converted by the
@@ -2512,12 +2518,12 @@ struct DS_NAME_RESULTW
 struct DS_REPSYNCALL_SYNCA
 {
     ///Pointer to a null-terminated string that specifies the DNS GUID of the source server.
-    const(char)* pszSrcId;
+    PSTR  pszSrcId;
     ///Pointer to a null-terminated string that specifies the DNS GUID of the destination server.
-    const(char)* pszDstId;
-    const(char)* pszNC;
-    GUID*        pguidSrc;
-    GUID*        pguidDst;
+    PSTR  pszDstId;
+    PSTR  pszNC;
+    GUID* pguidSrc;
+    GUID* pguidDst;
 }
 
 ///The <b>DS_REPSYNCALL_SYNC</b> structure identifies a single replication operation performed between a source, and
@@ -2525,12 +2531,12 @@ struct DS_REPSYNCALL_SYNCA
 struct DS_REPSYNCALL_SYNCW
 {
     ///Pointer to a null-terminated string that specifies the DNS GUID of the source server.
-    const(wchar)* pszSrcId;
+    PWSTR pszSrcId;
     ///Pointer to a null-terminated string that specifies the DNS GUID of the destination server.
-    const(wchar)* pszDstId;
-    const(wchar)* pszNC;
-    GUID*         pguidSrc;
-    GUID*         pguidDst;
+    PWSTR pszDstId;
+    PWSTR pszNC;
+    GUID* pguidSrc;
+    GUID* pguidDst;
 }
 
 ///The <b>DS_REPSYNCALL_ERRINFO</b> structure is used with the DS_REPSYNCALL_UPDATE structure to contain errors
@@ -2541,7 +2547,7 @@ struct DS_REPSYNCALL_ERRINFOA
     ///Alternatively, this member can contain the distinguished name of the server if
     ///<b>DS_REPSYNCALL_ID_SERVERS_BY_DN</b> is specified in the <i>ulFlags</i> parameter of the DsReplicaSyncAll
     ///function.
-    const(char)*        pszSvrId;
+    PSTR                pszSvrId;
     ///Contains one of the DS_REPSYNCALL_ERROR values that indicates where in the replication process the error
     ///occurred.
     DS_REPSYNCALL_ERROR error;
@@ -2551,7 +2557,7 @@ struct DS_REPSYNCALL_ERRINFOA
     ///Pointer to a null-terminated string that specifies the DNS GUID of the source server. Alternatively, this member
     ///can contain the distinguished name of the source server if <b>DS_REPSYNCALL_ID_SERVERS_BY_DN</b> is specified in
     ///the <i>ulFlags</i> parameter of the DsReplicaSyncAll function.
-    const(char)*        pszSrcId;
+    PSTR                pszSrcId;
 }
 
 ///The <b>DS_REPSYNCALL_ERRINFO</b> structure is used with the DS_REPSYNCALL_UPDATE structure to contain errors
@@ -2562,7 +2568,7 @@ struct DS_REPSYNCALL_ERRINFOW
     ///Alternatively, this member can contain the distinguished name of the server if
     ///<b>DS_REPSYNCALL_ID_SERVERS_BY_DN</b> is specified in the <i>ulFlags</i> parameter of the DsReplicaSyncAll
     ///function.
-    const(wchar)*       pszSvrId;
+    PWSTR               pszSvrId;
     ///Contains one of the DS_REPSYNCALL_ERROR values that indicates where in the replication process the error
     ///occurred.
     DS_REPSYNCALL_ERROR error;
@@ -2572,7 +2578,7 @@ struct DS_REPSYNCALL_ERRINFOW
     ///Pointer to a null-terminated string that specifies the DNS GUID of the source server. Alternatively, this member
     ///can contain the distinguished name of the source server if <b>DS_REPSYNCALL_ID_SERVERS_BY_DN</b> is specified in
     ///the <i>ulFlags</i> parameter of the DsReplicaSyncAll function.
-    const(wchar)*       pszSrcId;
+    PWSTR               pszSrcId;
 }
 
 ///The <b>DS_REPSYNCALL_UPDATE</b> structure contains status data about the replication performed by the
@@ -2626,12 +2632,12 @@ struct DS_SITE_COST_INFO
 struct DS_SCHEMA_GUID_MAPA
 {
     ///GUID structure that specifies the object GUID.
-    GUID         guid;
+    GUID guid;
     ///Indicates the type of GUID mapped by DsMapSchemaGuids.
-    uint         guidType;
+    uint guidType;
     ///Pointer to a null-terminated string value that specifies the display name associated with the GUID. This value
     ///may be <b>NULL</b> if DsMapSchemaGuids was unable to map the GUID to a display name.
-    const(char)* pName;
+    PSTR pName;
 }
 
 ///The <b>DS_SCHEMA_GUID_MAP</b> structure contains the results of a call to DsMapSchemaGuids. If DsMapSchemaGuids
@@ -2640,12 +2646,12 @@ struct DS_SCHEMA_GUID_MAPA
 struct DS_SCHEMA_GUID_MAPW
 {
     ///GUID structure that specifies the object GUID.
-    GUID          guid;
+    GUID  guid;
     ///Indicates the type of GUID mapped by DsMapSchemaGuids.
-    uint          guidType;
+    uint  guidType;
     ///Pointer to a null-terminated string value that specifies the display name associated with the GUID. This value
     ///may be <b>NULL</b> if DsMapSchemaGuids was unable to map the GUID to a display name.
-    const(wchar)* pName;
+    PWSTR pName;
 }
 
 ///The <b>DS_DOMAIN_CONTROLLER_INFO_1</b> structure contains data about a domain controller. This structure is returned
@@ -2653,22 +2659,22 @@ struct DS_SCHEMA_GUID_MAPW
 struct DS_DOMAIN_CONTROLLER_INFO_1A
 {
     ///Pointer to a null-terminated string that specifies the NetBIOS name of the domain controller.
-    const(char)* NetbiosName;
+    PSTR NetbiosName;
     ///Pointer to a null-terminated string that specifies the DNS host name of the domain controller.
-    const(char)* DnsHostName;
+    PSTR DnsHostName;
     ///Pointer to a null-terminated string that specifies the site to which the domain controller belongs.
-    const(char)* SiteName;
+    PSTR SiteName;
     ///Pointer to a null-terminated string that specifies the name of the computer object on the domain controller.
-    const(char)* ComputerObjectName;
+    PSTR ComputerObjectName;
     ///Pointer to a null-terminated string that specifies the name of the server object on the domain controller.
-    const(char)* ServerObjectName;
+    PSTR ServerObjectName;
     ///A Boolean value that indicates whether or not this domain controller is the primary domain controller. If this
     ///value is <b>TRUE</b>, the domain controller is the primary domain controller; otherwise, the domain controller is
     ///not the primary domain controller.
-    BOOL         fIsPdc;
+    BOOL fIsPdc;
     ///A Boolean value that indicates whether or not the domain controller is enabled. If this value is <b>TRUE</b>, the
     ///domain controller is enabled; otherwise, it is not enabled.
-    BOOL         fDsEnabled;
+    BOOL fDsEnabled;
 }
 
 ///The <b>DS_DOMAIN_CONTROLLER_INFO_1</b> structure contains data about a domain controller. This structure is returned
@@ -2676,22 +2682,22 @@ struct DS_DOMAIN_CONTROLLER_INFO_1A
 struct DS_DOMAIN_CONTROLLER_INFO_1W
 {
     ///Pointer to a null-terminated string that specifies the NetBIOS name of the domain controller.
-    const(wchar)* NetbiosName;
+    PWSTR NetbiosName;
     ///Pointer to a null-terminated string that specifies the DNS host name of the domain controller.
-    const(wchar)* DnsHostName;
+    PWSTR DnsHostName;
     ///Pointer to a null-terminated string that specifies the site to which the domain controller belongs.
-    const(wchar)* SiteName;
+    PWSTR SiteName;
     ///Pointer to a null-terminated string that specifies the name of the computer object on the domain controller.
-    const(wchar)* ComputerObjectName;
+    PWSTR ComputerObjectName;
     ///Pointer to a null-terminated string that specifies the name of the server object on the domain controller.
-    const(wchar)* ServerObjectName;
+    PWSTR ServerObjectName;
     ///A Boolean value that indicates whether or not this domain controller is the primary domain controller. If this
     ///value is <b>TRUE</b>, the domain controller is the primary domain controller; otherwise, the domain controller is
     ///not the primary domain controller.
-    BOOL          fIsPdc;
+    BOOL  fIsPdc;
     ///A Boolean value that indicates whether or not the domain controller is enabled. If this value is <b>TRUE</b>, the
     ///domain controller is enabled; otherwise, it is not enabled.
-    BOOL          fDsEnabled;
+    BOOL  fDsEnabled;
 }
 
 ///The <b>DS_DOMAIN_CONTROLLER_INFO_2</b> structure contains data about a domain controller. This structure is returned
@@ -2699,37 +2705,37 @@ struct DS_DOMAIN_CONTROLLER_INFO_1W
 struct DS_DOMAIN_CONTROLLER_INFO_2A
 {
     ///Pointer to a null-terminated string that specifies the NetBIOS name of the domain controller.
-    const(char)* NetbiosName;
+    PSTR NetbiosName;
     ///Pointer to a null-terminated string that specifies the DNS host name of the domain controller.
-    const(char)* DnsHostName;
+    PSTR DnsHostName;
     ///Pointer to a null-terminated string that specifies the site to which the domain controller belongs.
-    const(char)* SiteName;
+    PSTR SiteName;
     ///Pointer to a null-terminated string that specifies the name of the site object on the domain controller.
-    const(char)* SiteObjectName;
+    PSTR SiteObjectName;
     ///Pointer to a null-terminated string that specifies the name of the computer object on the domain controller.
-    const(char)* ComputerObjectName;
+    PSTR ComputerObjectName;
     ///Pointer to a null-terminated string that specifies the name of the server object on the domain controller.
-    const(char)* ServerObjectName;
+    PSTR ServerObjectName;
     ///Pointer to a null-terminated string that specifies the name of the NTDS DSA object on the domain controller.
-    const(char)* NtdsDsaObjectName;
+    PSTR NtdsDsaObjectName;
     ///A Boolean value that indicates whether or not this domain controller is the primary domain controller. If this
     ///value is <b>TRUE</b>, the domain controller is the primary domain controller; otherwise, the domain controller is
     ///not the primary domain controller.
-    BOOL         fIsPdc;
+    BOOL fIsPdc;
     ///A Boolean value that indicates whether or not the domain controller is enabled. If this value is <b>TRUE</b>, the
     ///domain controller is enabled; otherwise, it is not enabled.
-    BOOL         fDsEnabled;
+    BOOL fDsEnabled;
     ///A Boolean value that indicates whether or not the domain controller is global catalog server. If this value is
     ///<b>TRUE</b>, the domain controller is a global catalog server; otherwise, it is not a global catalog server.
-    BOOL         fIsGc;
+    BOOL fIsGc;
     ///Contains the <b>GUID</b> for the site object on the domain controller.
-    GUID         SiteObjectGuid;
+    GUID SiteObjectGuid;
     ///Contains the <b>GUID</b> for the computer object on the domain controller.
-    GUID         ComputerObjectGuid;
+    GUID ComputerObjectGuid;
     ///Contains the <b>GUID</b> for the server object on the domain controller.
-    GUID         ServerObjectGuid;
+    GUID ServerObjectGuid;
     ///Contains the <b>GUID</b> for the NTDS DSA object on the domain controller.
-    GUID         NtdsDsaObjectGuid;
+    GUID NtdsDsaObjectGuid;
 }
 
 ///The <b>DS_DOMAIN_CONTROLLER_INFO_2</b> structure contains data about a domain controller. This structure is returned
@@ -2737,37 +2743,37 @@ struct DS_DOMAIN_CONTROLLER_INFO_2A
 struct DS_DOMAIN_CONTROLLER_INFO_2W
 {
     ///Pointer to a null-terminated string that specifies the NetBIOS name of the domain controller.
-    const(wchar)* NetbiosName;
+    PWSTR NetbiosName;
     ///Pointer to a null-terminated string that specifies the DNS host name of the domain controller.
-    const(wchar)* DnsHostName;
+    PWSTR DnsHostName;
     ///Pointer to a null-terminated string that specifies the site to which the domain controller belongs.
-    const(wchar)* SiteName;
+    PWSTR SiteName;
     ///Pointer to a null-terminated string that specifies the name of the site object on the domain controller.
-    const(wchar)* SiteObjectName;
+    PWSTR SiteObjectName;
     ///Pointer to a null-terminated string that specifies the name of the computer object on the domain controller.
-    const(wchar)* ComputerObjectName;
+    PWSTR ComputerObjectName;
     ///Pointer to a null-terminated string that specifies the name of the server object on the domain controller.
-    const(wchar)* ServerObjectName;
+    PWSTR ServerObjectName;
     ///Pointer to a null-terminated string that specifies the name of the NTDS DSA object on the domain controller.
-    const(wchar)* NtdsDsaObjectName;
+    PWSTR NtdsDsaObjectName;
     ///A Boolean value that indicates whether or not this domain controller is the primary domain controller. If this
     ///value is <b>TRUE</b>, the domain controller is the primary domain controller; otherwise, the domain controller is
     ///not the primary domain controller.
-    BOOL          fIsPdc;
+    BOOL  fIsPdc;
     ///A Boolean value that indicates whether or not the domain controller is enabled. If this value is <b>TRUE</b>, the
     ///domain controller is enabled; otherwise, it is not enabled.
-    BOOL          fDsEnabled;
+    BOOL  fDsEnabled;
     ///A Boolean value that indicates whether or not the domain controller is global catalog server. If this value is
     ///<b>TRUE</b>, the domain controller is a global catalog server; otherwise, it is not a global catalog server.
-    BOOL          fIsGc;
+    BOOL  fIsGc;
     ///Contains the <b>GUID</b> for the site object on the domain controller.
-    GUID          SiteObjectGuid;
+    GUID  SiteObjectGuid;
     ///Contains the <b>GUID</b> for the computer object on the domain controller.
-    GUID          ComputerObjectGuid;
+    GUID  ComputerObjectGuid;
     ///Contains the <b>GUID</b> for the server object on the domain controller.
-    GUID          ServerObjectGuid;
+    GUID  ServerObjectGuid;
     ///Contains the <b>GUID</b> for the NTDS DSA object on the domain controller.
-    GUID          NtdsDsaObjectGuid;
+    GUID  NtdsDsaObjectGuid;
 }
 
 ///The <b>DS_DOMAIN_CONTROLLER_INFO_3</b> structure contains data about a domain controller. This structure is returned
@@ -2775,41 +2781,41 @@ struct DS_DOMAIN_CONTROLLER_INFO_2W
 struct DS_DOMAIN_CONTROLLER_INFO_3A
 {
     ///Pointer to a null-terminated string that specifies the NetBIOS name of the domain controller.
-    const(char)* NetbiosName;
+    PSTR NetbiosName;
     ///Pointer to a null-terminated string that specifies the DNS host name of the domain controller.
-    const(char)* DnsHostName;
+    PSTR DnsHostName;
     ///Pointer to a null-terminated string that specifies the site to which the domain controller belongs.
-    const(char)* SiteName;
+    PSTR SiteName;
     ///Pointer to a null-terminated string that specifies the name of the site object on the domain controller.
-    const(char)* SiteObjectName;
+    PSTR SiteObjectName;
     ///Pointer to a null-terminated string that specifies the name of the computer object on the domain controller.
-    const(char)* ComputerObjectName;
+    PSTR ComputerObjectName;
     ///Pointer to a null-terminated string that specifies the name of the server object on the domain controller.
-    const(char)* ServerObjectName;
+    PSTR ServerObjectName;
     ///Pointer to a null-terminated string that specifies the name of the NTDS DSA object on the domain controller.
-    const(char)* NtdsDsaObjectName;
+    PSTR NtdsDsaObjectName;
     ///A Boolean value that indicates whether or not this domain controller is the primary domain controller. If this
     ///value is <b>TRUE</b>, the domain controller is the primary domain controller; otherwise, the domain controller is
     ///not the primary domain controller.
-    BOOL         fIsPdc;
+    BOOL fIsPdc;
     ///A Boolean value that indicates whether or not the domain controller is enabled. If this value is <b>TRUE</b>, the
     ///domain controller is enabled; otherwise, it is not enabled.
-    BOOL         fDsEnabled;
+    BOOL fDsEnabled;
     ///A Boolean value that indicates whether or not the domain controller is global catalog server. If this value is
     ///<b>TRUE</b>, the domain controller is a global catalog server; otherwise, it is not a global catalog server.
-    BOOL         fIsGc;
+    BOOL fIsGc;
     ///A Boolean value that indicates if the domain controller is a read-only domain controller. If this value is
     ///<b>TRUE</b>, the domain controller is a read-only domain controller; otherwise, it is not a read-only domain
     ///controller.
-    BOOL         fIsRodc;
+    BOOL fIsRodc;
     ///Contains the <b>GUID</b> for the site object on the domain controller.
-    GUID         SiteObjectGuid;
+    GUID SiteObjectGuid;
     ///Contains the <b>GUID</b> for the computer object on the domain controller.
-    GUID         ComputerObjectGuid;
+    GUID ComputerObjectGuid;
     ///Contains the <b>GUID</b> for the server object on the domain controller.
-    GUID         ServerObjectGuid;
+    GUID ServerObjectGuid;
     ///Contains the <b>GUID</b> for the NTDS DSA object on the domain controller.
-    GUID         NtdsDsaObjectGuid;
+    GUID NtdsDsaObjectGuid;
 }
 
 ///The <b>DS_DOMAIN_CONTROLLER_INFO_3</b> structure contains data about a domain controller. This structure is returned
@@ -2817,41 +2823,41 @@ struct DS_DOMAIN_CONTROLLER_INFO_3A
 struct DS_DOMAIN_CONTROLLER_INFO_3W
 {
     ///Pointer to a null-terminated string that specifies the NetBIOS name of the domain controller.
-    const(wchar)* NetbiosName;
+    PWSTR NetbiosName;
     ///Pointer to a null-terminated string that specifies the DNS host name of the domain controller.
-    const(wchar)* DnsHostName;
+    PWSTR DnsHostName;
     ///Pointer to a null-terminated string that specifies the site to which the domain controller belongs.
-    const(wchar)* SiteName;
+    PWSTR SiteName;
     ///Pointer to a null-terminated string that specifies the name of the site object on the domain controller.
-    const(wchar)* SiteObjectName;
+    PWSTR SiteObjectName;
     ///Pointer to a null-terminated string that specifies the name of the computer object on the domain controller.
-    const(wchar)* ComputerObjectName;
+    PWSTR ComputerObjectName;
     ///Pointer to a null-terminated string that specifies the name of the server object on the domain controller.
-    const(wchar)* ServerObjectName;
+    PWSTR ServerObjectName;
     ///Pointer to a null-terminated string that specifies the name of the NTDS DSA object on the domain controller.
-    const(wchar)* NtdsDsaObjectName;
+    PWSTR NtdsDsaObjectName;
     ///A Boolean value that indicates whether or not this domain controller is the primary domain controller. If this
     ///value is <b>TRUE</b>, the domain controller is the primary domain controller; otherwise, the domain controller is
     ///not the primary domain controller.
-    BOOL          fIsPdc;
+    BOOL  fIsPdc;
     ///A Boolean value that indicates whether or not the domain controller is enabled. If this value is <b>TRUE</b>, the
     ///domain controller is enabled; otherwise, it is not enabled.
-    BOOL          fDsEnabled;
+    BOOL  fDsEnabled;
     ///A Boolean value that indicates whether or not the domain controller is global catalog server. If this value is
     ///<b>TRUE</b>, the domain controller is a global catalog server; otherwise, it is not a global catalog server.
-    BOOL          fIsGc;
+    BOOL  fIsGc;
     ///A Boolean value that indicates if the domain controller is a read-only domain controller. If this value is
     ///<b>TRUE</b>, the domain controller is a read-only domain controller; otherwise, it is not a read-only domain
     ///controller.
-    BOOL          fIsRodc;
+    BOOL  fIsRodc;
     ///Contains the <b>GUID</b> for the site object on the domain controller.
-    GUID          SiteObjectGuid;
+    GUID  SiteObjectGuid;
     ///Contains the <b>GUID</b> for the computer object on the domain controller.
-    GUID          ComputerObjectGuid;
+    GUID  ComputerObjectGuid;
     ///Contains the <b>GUID</b> for the server object on the domain controller.
-    GUID          ServerObjectGuid;
+    GUID  ServerObjectGuid;
     ///Contains the <b>GUID</b> for the NTDS DSA object on the domain controller.
-    GUID          NtdsDsaObjectGuid;
+    GUID  NtdsDsaObjectGuid;
 }
 
 ///The <b>DS_REPL_NEIGHBOR</b> structure contains inbound replication state data for a particular naming context and
@@ -2861,50 +2867,50 @@ struct DS_REPL_NEIGHBORW
     ///Pointer to a null-terminated string that contains the naming context to which this replication state data
     ///pertains. Each naming context is replicated independently and has different associated neighbor data, even if the
     ///naming contexts are replicated from the same source server.
-    const(wchar)* pszNamingContext;
+    PWSTR    pszNamingContext;
     ///Pointer to a null-terminated string that contains the distinguished name of the directory service agent
     ///corresponding to the source server to which this replication state data pertains. Each source server has
     ///different associated neighbor data.
-    const(wchar)* pszSourceDsaDN;
+    PWSTR    pszSourceDsaDN;
     ///Pointer to a null-terminated string that contains the transport-specific network address of the source server.
     ///That is, a directory name service name for RPC/IP replication, or an SMTP address for an SMTP replication.
-    const(wchar)* pszSourceDsaAddress;
+    PWSTR    pszSourceDsaAddress;
     ///Pointer to a null-terminated string that contains the distinguished name of the <b>interSiteTransport</b> object
     ///that corresponds to the transport over which replication is performed. This member contains <b>NULL</b> for
     ///RPC/IP replication.
-    const(wchar)* pszAsyncIntersiteTransportDN;
+    PWSTR    pszAsyncIntersiteTransportDN;
     ///Contains a set of flags that specify attributes and options for the replication data. This can be zero or a
     ///combination of one or more of the following flags.
-    uint          dwReplicaFlags;
+    uint     dwReplicaFlags;
     ///Reserved for future use.
-    uint          dwReserved;
+    uint     dwReserved;
     ///Contains the <b>objectGuid</b> of the naming context corresponding to <b>pszNamingContext</b>.
-    GUID          uuidNamingContextObjGuid;
+    GUID     uuidNamingContextObjGuid;
     ///Contains the <b>objectGuid</b> of the <b>nTDSDSA</b> object corresponding to <b>pszSourceDsaDN</b>.
-    GUID          uuidSourceDsaObjGuid;
+    GUID     uuidSourceDsaObjGuid;
     ///Contains the invocation identifier used by the source server as of the last replication attempt.
-    GUID          uuidSourceDsaInvocationID;
+    GUID     uuidSourceDsaInvocationID;
     ///Contains the <b>objectGuid</b> of the inter-site transport object corresponding to
     ///<b>pszAsyncIntersiteTransportDN</b>.
-    GUID          uuidAsyncIntersiteTransportObjGuid;
+    GUID     uuidAsyncIntersiteTransportObjGuid;
     ///Contains the update sequence number of the last object update received.
-    long          usnLastObjChangeSynced;
+    long     usnLastObjChangeSynced;
     ///Contains the <b>usnLastObjChangeSynced</b> value at the end of the last complete, successful replication cycle,
     ///or 0 if none. Attributes at the source last updated at a update sequence number less than or equal to this value
     ///have already been received and applied by the destination.
-    long          usnAttributeFilter;
+    long     usnAttributeFilter;
     ///Contains a FILETIME structure that contains the date and time the last successful replication cycle was completed
     ///from this source. All members of this structure are zero if the replication cycle has never been completed.
-    FILETIME      ftimeLastSyncSuccess;
+    FILETIME ftimeLastSyncSuccess;
     ///Contains a FILETIME structure that contains the date and time of the last replication attempt from this source.
     ///All members of this structure are zero if the replication has never been attempted.
-    FILETIME      ftimeLastSyncAttempt;
+    FILETIME ftimeLastSyncAttempt;
     ///Contains an error code associated with the last replication attempt from this source. Contains
     ///<b>ERROR_SUCCESS</b> if the last attempt succeeded.
-    uint          dwLastSyncResult;
+    uint     dwLastSyncResult;
     ///Contains the number of failed replication attempts from this source since the last successful replication attempt
     ///- or since the source was added as a neighbor, if no previous attempt was successful.
-    uint          cNumConsecutiveSyncFailures;
+    uint     cNumConsecutiveSyncFailures;
 }
 
 ///The <b>DS_REPL_NEIGHBORW_BLOB</b> structure contains inbound replication state data for a particular naming context
@@ -3010,17 +3016,17 @@ struct DS_REPL_CURSOR_2
 struct DS_REPL_CURSOR_3W
 {
     ///Contains the invocation identifier of the originating server to which the <b>usnAttributeFilter</b> corresponds.
-    GUID          uuidSourceDsaInvocationID;
+    GUID     uuidSourceDsaInvocationID;
     ///Contains the maximum update sequence number to which the destination server can indicate that it has recorded all
     ///changes originated by the given server at update sequence numbers less than, or equal to, this update sequence
     ///number. This is used to filter changes at replication source servers that the destination server has already
     ///applied.
-    long          usnAttributeFilter;
+    long     usnAttributeFilter;
     ///Contains a FILETIME structure that contains the date and time of the last successful synchronization operation.
-    FILETIME      ftimeLastSyncSuccess;
+    FILETIME ftimeLastSyncSuccess;
     ///Pointer to a null-terminated string that contains the distinguished name of the directory service agent that
     ///corresponds to the source server to which this replication state data applies.
-    const(wchar)* pszSourceDsaDN;
+    PWSTR    pszSourceDsaDN;
 }
 
 ///The <b>DS_REPL_CURSOR_BLOB</b> structure contains inbound replication state data with respect to all replicas of a
@@ -3087,23 +3093,23 @@ struct DS_REPL_ATTR_META_DATA
 {
     ///Pointer to a null-terminated Unicode string that contains the LDAP display name of the attribute corresponding to
     ///this metadata.
-    const(wchar)* pszAttributeName;
+    PWSTR    pszAttributeName;
     ///Contains the version of this attribute. Each originating modification of the attribute increases this value by
     ///one. Replication of a modification does not affect the version.
-    uint          dwVersion;
+    uint     dwVersion;
     ///Contains the time at which the last originating change was made to this attribute. Replication of the change does
     ///not affect this value.
-    FILETIME      ftimeLastOriginatingChange;
+    FILETIME ftimeLastOriginatingChange;
     ///Contains the invocation identification of the server on which the last change was made to this attribute.
     ///Replication of the change does not affect this value.
-    GUID          uuidLastOriginatingDsaInvocationID;
+    GUID     uuidLastOriginatingDsaInvocationID;
     ///Contains the update sequence number (USN) on the originating server at which the last change to this attribute
     ///was made. Replication of the change does not affect this value.
-    long          usnOriginatingChange;
+    long     usnOriginatingChange;
     ///Contains the USN on the destination server (the server from which the DsReplicaGetInfo function retrieved the
     ///metadata) at which the last change to this attribute was applied. This value typically is different on all
     ///servers.
-    long          usnLocalChange;
+    long     usnLocalChange;
 }
 
 ///The <b>DS_REPL_ATTR_META_DATA_2</b> structure is used with the DsReplicaGetInfo and DsReplicaGetInfo2 functions to
@@ -3112,26 +3118,26 @@ struct DS_REPL_ATTR_META_DATA_2
 {
     ///Pointer to a null-terminated Unicode string that contains the LDAP display name of the attribute that corresponds
     ///to this metadata.
-    const(wchar)* pszAttributeName;
+    PWSTR    pszAttributeName;
     ///Contains the version of this attribute. Each originating modification of the attribute increases this value by
     ///one. Replication of a modification does not affect the version.
-    uint          dwVersion;
+    uint     dwVersion;
     ///Contains the time at which the last originating change was made to this attribute. Replication of the change does
     ///not affect this value.
-    FILETIME      ftimeLastOriginatingChange;
+    FILETIME ftimeLastOriginatingChange;
     ///Contains the invocation identification of the server on which the last change was made to this attribute.
     ///Replication of the change does not affect this value.
-    GUID          uuidLastOriginatingDsaInvocationID;
+    GUID     uuidLastOriginatingDsaInvocationID;
     ///Contains the update sequence number (USN) on the originating server at which the last change to this attribute
     ///was made. Replication of the change does not affect this value.
-    long          usnOriginatingChange;
+    long     usnOriginatingChange;
     ///Contains the USN on the destination server (the server from which the DsReplicaGetInfo function retrieved the
     ///metadata) at which the last change to this attribute was applied. This value typically is different on all
     ///servers.
-    long          usnLocalChange;
+    long     usnLocalChange;
     ///Pointer to a null-terminated Unicode string that contains the distinguished name of the directory system agent
     ///server that originated the last replication.
-    const(wchar)* pszLastOriginatingDsaDN;
+    PWSTR    pszLastOriginatingDsaDN;
 }
 
 ///The <b>DS_REPL_ATTR_META_DATA_BLOB</b> structure is used to contain replication state data for an object attribute.
@@ -3198,17 +3204,17 @@ struct DS_REPL_KCC_DSA_FAILUREW
 {
     ///Pointer to a null-terminated string that contains the distinguished name of the directory system agent object in
     ///the directory that corresponds to the source server.
-    const(wchar)* pszDsaDN;
+    PWSTR    pszDsaDN;
     ///Contains the <b>objectGuid</b> of the directory system agent object represented by the <b>pszDsaDN</b> member.
-    GUID          uuidDsaObjGuid;
+    GUID     uuidDsaObjGuid;
     ///Contains a FILETIME structure which the contents of depends on the value passed for the <i>InfoType</i> parameter
     ///when DsReplicaGetInfo or DsReplicaGetInfo2 function was called.
-    FILETIME      ftimeFirstFailure;
+    FILETIME ftimeFirstFailure;
     ///Contains the number of consecutive failures since the last successful replication.
-    uint          cNumFailures;
+    uint     cNumFailures;
     ///Contains the error code associated with the most recent failure, or <b>ERROR_SUCCESS</b> if the specific error is
     ///unavailable.
-    uint          dwLastResult;
+    uint     dwLastResult;
 }
 
 ///The <b>DS_REPL_KCC_DSA_FAILUREW_BLOB</b> structure contains replication state data with respect to a specific inbound
@@ -3267,15 +3273,15 @@ struct DS_REPL_OPW
     uint            ulOptions;
     ///Pointer to a null-terminated string that contains the distinguished name of the naming context associated with
     ///this operation. For example, the naming context to be synchronized for <b>DS_REPL_OP_TYPE_SYNC</b>.
-    const(wchar)*   pszNamingContext;
+    PWSTR           pszNamingContext;
     ///Pointer to a null-terminated string that contains the distinguished name of the directory system agent object
     ///associated with the remote server corresponding to this operation. For example, the server from which to request
     ///changes for <b>DS_REPL_OP_TYPE_SYNC</b>. This can be <b>NULL</b>.
-    const(wchar)*   pszDsaDN;
+    PWSTR           pszDsaDN;
     ///Pointer to a null-terminated string that contains the transport-specific network address of the remote server
     ///associated with this operation. For example, the DNS or SMTP address of the server from which to request changes
     ///for <b>DS_REPL_OP_TYPE_SYNC</b>. This can be <b>NULL</b>.
-    const(wchar)*   pszDsaAddress;
+    PWSTR           pszDsaAddress;
     ///Contains the <b>objectGuid</b> of the naming context identified by <b>pszNamingContext</b>.
     GUID            uuidNamingContextObjGuid;
     ///Contains the <b>objectGuid</b> of the directory system agent object identified by <b>pszDsaDN</b>.
@@ -3345,33 +3351,33 @@ struct DS_REPL_VALUE_META_DATA
 {
     ///Pointer to a null-terminated Unicode string that contains the LDAP display name of the attribute corresponding to
     ///this metadata.
-    const(wchar)* pszAttributeName;
+    PWSTR    pszAttributeName;
     ///Pointer to a null-terminated Unicode string that contains the distinguished name of the object that this
     ///attribute belongs to.
-    const(wchar)* pszObjectDn;
+    PWSTR    pszObjectDn;
     ///Contains the number of bytes in the <b>pbData</b> array.
-    uint          cbData;
-    ubyte*        pbData;
+    uint     cbData;
+    ubyte*   pbData;
     ///Contains a FILETIME structure that contains the time this attribute was deleted.
-    FILETIME      ftimeDeleted;
+    FILETIME ftimeDeleted;
     ///Contains a FILETIME structure that contains the time this attribute was created.
-    FILETIME      ftimeCreated;
+    FILETIME ftimeCreated;
     ///Contains the version of this attribute. Each originating modification of the attribute increases this value by
     ///one. Replication of a modification does not affect the version.
-    uint          dwVersion;
+    uint     dwVersion;
     ///Contains a FILETIME structure that contains the time at which the last originating change was made to this
     ///attribute. Replication of the change does not affect this value.
-    FILETIME      ftimeLastOriginatingChange;
+    FILETIME ftimeLastOriginatingChange;
     ///Contains the invocation identifier of the server on which the last change was made to this attribute. Replication
     ///of the change does not affect this value.
-    GUID          uuidLastOriginatingDsaInvocationID;
+    GUID     uuidLastOriginatingDsaInvocationID;
     ///Contains the update sequence number (USN) on the originating server at which the last change to this attribute
     ///was made. Replication of the change does not affect this value.
-    long          usnOriginatingChange;
+    long     usnOriginatingChange;
     ///Contains the USN on the destination server, that is the server from which the DsReplicaGetInfo2 function
     ///retrieved the metadata, at which the last change to this attribute was applied. This value is typically different
     ///on all servers.
-    long          usnLocalChange;
+    long     usnLocalChange;
 }
 
 ///The <b>DS_REPL_VALUE_META_DATA_2</b> structure is used with the DS_REPL_ATTR_VALUE_META_DATA_2 structure to contain
@@ -3380,36 +3386,36 @@ struct DS_REPL_VALUE_META_DATA_2
 {
     ///Pointer to a null-terminated Unicode string that contains the LDAP display name of the attribute that corresponds
     ///to this metadata.
-    const(wchar)* pszAttributeName;
+    PWSTR    pszAttributeName;
     ///Pointer to a null-terminated Unicode string that contains the distinguished name of the object that this
     ///attribute belongs to.
-    const(wchar)* pszObjectDn;
+    PWSTR    pszObjectDn;
     ///Contains the number of bytes in the <b>pbData</b> array.
-    uint          cbData;
-    ubyte*        pbData;
+    uint     cbData;
+    ubyte*   pbData;
     ///Contains a FILETIME structure that contains the time this attribute was deleted.
-    FILETIME      ftimeDeleted;
+    FILETIME ftimeDeleted;
     ///Contains a FILETIME structure that contains the time this attribute was created.
-    FILETIME      ftimeCreated;
+    FILETIME ftimeCreated;
     ///Contains the version of this attribute. Each originating modification of the attribute increases this value by
     ///one. Replication of a modification does not affect the version.
-    uint          dwVersion;
+    uint     dwVersion;
     ///Contains a FILETIME structure that contains the time at which the last originating change was made to this
     ///attribute. Replication of the change does not affect this value.
-    FILETIME      ftimeLastOriginatingChange;
+    FILETIME ftimeLastOriginatingChange;
     ///Contains the invocation identifier of the server on which the last change was made to this attribute. Replication
     ///of the change does not affect this value.
-    GUID          uuidLastOriginatingDsaInvocationID;
+    GUID     uuidLastOriginatingDsaInvocationID;
     ///Contains the update sequence number (USN) on the originating server at which the last change to this attribute
     ///was made. Replication of the change does not affect this value.
-    long          usnOriginatingChange;
+    long     usnOriginatingChange;
     ///Contains the USN on the destination server, that is, the server from which the DsReplicaGetInfo2 function
     ///retrieved the metadata, at which the last change to this attribute was applied. This value is typically different
     ///on all servers.
-    long          usnLocalChange;
+    long     usnLocalChange;
     ///Pointer to a null-terminated Unicode string that contains the distinguished name of the directory system agent
     ///server that originated the last replication.
-    const(wchar)* pszLastOriginatingDsaDN;
+    PWSTR    pszLastOriginatingDsaDN;
 }
 
 ///Contains attribute replication meta data for the DS_REPL_ATTR_VALUE_META_DATA_EXT structure.
@@ -3417,41 +3423,41 @@ struct DS_REPL_VALUE_META_DATA_EXT
 {
     ///Pointer to a null-terminated Unicode string that contains the LDAP display name of the attribute corresponding to
     ///this metadata.
-    const(wchar)* pszAttributeName;
+    PWSTR    pszAttributeName;
     ///Pointer to a null-terminated Unicode string that contains the distinguished name of the object that this
     ///attribute belongs to.
-    const(wchar)* pszObjectDn;
+    PWSTR    pszObjectDn;
     ///Contains the number of bytes in the <b>pbData</b> array.
-    uint          cbData;
-    ubyte*        pbData;
+    uint     cbData;
+    ubyte*   pbData;
     ///Contains a FILETIME structure that contains the time this attribute was deleted.
-    FILETIME      ftimeDeleted;
+    FILETIME ftimeDeleted;
     ///Contains a FILETIME structure that contains the time this attribute was created.
-    FILETIME      ftimeCreated;
+    FILETIME ftimeCreated;
     ///Contains the version of this attribute. Each originating modification of the attribute increases this value by
     ///one. Replication of a modification does not affect the version.
-    uint          dwVersion;
+    uint     dwVersion;
     ///Contains a FILETIME structure that contains the time at which the last originating change was made to this
     ///attribute. Replication of the change does not affect this value.
-    FILETIME      ftimeLastOriginatingChange;
+    FILETIME ftimeLastOriginatingChange;
     ///Contains the invocation identifier of the server on which the last change was made to this attribute. Replication
     ///of the change does not affect this value.
-    GUID          uuidLastOriginatingDsaInvocationID;
+    GUID     uuidLastOriginatingDsaInvocationID;
     ///Contains the update sequence number (USN) on the originating server at which the last change to this attribute
     ///was made. Replication of the change does not affect this value.
-    long          usnOriginatingChange;
+    long     usnOriginatingChange;
     ///Contains the USN on the destination server, that is the server from which the DsReplicaGetInfo2 function
     ///retrieved the metadata, at which the last change to this attribute was applied. This value is typically different
     ///on all servers.
-    long          usnLocalChange;
+    long     usnLocalChange;
     ///Pointer to a null-terminated Unicode string that contains the distinguished name of the directory system agent
     ///server that originated the last replication.
-    const(wchar)* pszLastOriginatingDsaDN;
+    PWSTR    pszLastOriginatingDsaDN;
     ///TBD
-    uint          dwUserIdentifier;
+    uint     dwUserIdentifier;
     ///TBD
-    uint          dwPriorLinkState;
-    uint          dwCurrentLinkState;
+    uint     dwPriorLinkState;
+    uint     dwCurrentLinkState;
 }
 
 ///The <b>DS_REPL_VALUE_META_DATA_BLOB</b> structure is used to contain attribute value replication metadata. This
@@ -3617,13 +3623,13 @@ struct DSROLE_PRIMARY_DOMAIN_INFO_BASIC
     ///following values.
     uint                Flags;
     ///Pointer to a null-terminated Unicode string that contains the NetBIOS domain name.
-    const(wchar)*       DomainNameFlat;
+    PWSTR               DomainNameFlat;
     ///Pointer to a null-terminated Unicode string that contains the DNS domain name. This member is optional and may be
     ///<b>NULL</b>.
-    const(wchar)*       DomainNameDns;
+    PWSTR               DomainNameDns;
     ///Pointer to a null-terminated Unicode string that contains the forest name. This member is optional and may be
     ///<b>NULL</b>.
-    const(wchar)*       DomainForestName;
+    PWSTR               DomainForestName;
     ///Contains the domain identifier. This member is valid only if the <b>Flags</b> member contains the
     ///<b>DSROLE_PRIMARY_DOMAIN_GUID_PRESENT</b> flag.
     GUID                DomainGuid;
@@ -3657,84 +3663,84 @@ struct DOMAIN_CONTROLLER_INFOA
     ///returned, if available. If the DNS-style name is not available, the flat-style name (for example, "\\phoenix") is
     ///returned. This example would apply if the domain is a Windows NT 4.0 domain or if the domain does not support the
     ///IP family of protocols.
-    const(char)* DomainControllerName;
+    PSTR DomainControllerName;
     ///Pointer to a null-terminated string that specifies the address of the discovered domain controller. The address
     ///is prefixed with "\\". This string is one of the types defined by the <b>DomainControllerAddressType</b> member.
-    const(char)* DomainControllerAddress;
+    PSTR DomainControllerAddress;
     ///Indicates the type of string that is contained in the <b>DomainControllerAddress</b> member. This can be one of
     ///the following values.
-    uint         DomainControllerAddressType;
+    uint DomainControllerAddressType;
     ///The <b>GUID</b> of the domain. This member is zero if the domain controller does not have a Domain GUID; for
     ///example, the domain controller is not a Windows 2000 domain controller.
-    GUID         DomainGuid;
+    GUID DomainGuid;
     ///Pointer to a null-terminated string that specifies the name of the domain. The DNS-style name, for example,
     ///"fabrikam.com", is returned if available. Otherwise, the flat-style name, for example, "fabrikam", is returned.
     ///This name may be different than the requested domain name if the domain has been renamed.
-    const(char)* DomainName;
+    PSTR DomainName;
     ///Pointer to a null-terminated string that specifies the name of the domain at the root of the DS tree. The
     ///DNS-style name, for example, "fabrikam.com", is returned if available. Otherwise, the flat-style name, for
     ///example, "fabrikam" is returned.
-    const(char)* DnsForestName;
+    PSTR DnsForestName;
     ///Contains a set of flags that describe the domain controller. This can be zero or a combination of one or more of
     ///the following values.
-    uint         Flags;
+    uint Flags;
     ///Pointer to a null-terminated string that specifies the name of the site where the domain controller is located.
     ///This member may be <b>NULL</b> if the domain controller is not in a site; for example, the domain controller is a
     ///Windows NT 4.0 domain controller.
-    const(char)* DcSiteName;
+    PSTR DcSiteName;
     ///Pointer to a null-terminated string that specifies the name of the site that the computer belongs to. The
     ///computer is specified in the <i>ComputerName</i> parameter passed to DsGetDcName. This member may be <b>NULL</b>
     ///if the site that contains the computer cannot be found; for example, if the DS administrator has not associated
     ///the subnet that the computer is in with a valid site.
-    const(char)* ClientSiteName;
+    PSTR ClientSiteName;
 }
 
 ///The <b>DOMAIN_CONTROLLER_INFO</b> structure is used with the DsGetDcName function to receive data about a domain
 ///controller.
 struct DOMAIN_CONTROLLER_INFOW
 {
-    const(wchar)* DomainControllerName;
-    const(wchar)* DomainControllerAddress;
+    PWSTR DomainControllerName;
+    PWSTR DomainControllerAddress;
     ///Indicates the type of string that is contained in the <b>DomainControllerAddress</b> member. This can be one of
     ///the following values.
-    uint          DomainControllerAddressType;
+    uint  DomainControllerAddressType;
     ///The <b>GUID</b> of the domain. This member is zero if the domain controller does not have a Domain GUID; for
     ///example, the domain controller is not a Windows 2000 domain controller.
-    GUID          DomainGuid;
-    const(wchar)* DomainName;
-    const(wchar)* DnsForestName;
+    GUID  DomainGuid;
+    PWSTR DomainName;
+    PWSTR DnsForestName;
     ///Contains a set of flags that describe the domain controller. This can be zero or a combination of one or more of
     ///the following values.
-    uint          Flags;
-    const(wchar)* DcSiteName;
-    const(wchar)* ClientSiteName;
+    uint  Flags;
+    PWSTR DcSiteName;
+    PWSTR ClientSiteName;
 }
 
 ///The <b>DS_DOMAIN_TRUSTS</b> structure is used with the DsEnumerateDomainTrusts function to contain trust data for a
 ///domain.
 struct DS_DOMAIN_TRUSTSW
 {
-    const(wchar)* NetbiosDomainName;
-    const(wchar)* DnsDomainName;
+    PWSTR NetbiosDomainName;
+    PWSTR DnsDomainName;
     ///Contains a set of flags that specify more data about the domain trust. This can be zero or a combination of one
     ///or more of the following values.
-    uint          Flags;
+    uint  Flags;
     ///Contains the index in the <i>Domains</i> array returned by the DsEnumerateDomainTrusts function that corresponds
     ///to the parent domain of the domain represented by this structure. This member is only valid if the all of the
     ///following conditions are met: <ul> <li>The <b>DS_DOMAIN_IN_FOREST</b> flag was specified in the <i>Flags</i>
     ///parameter of the DsEnumerateDomainTrusts function.</li> <li>The <b>Flags</b> member of this structure does not
     ///contain the <b>DS_DOMAIN_TREE_ROOT</b> flag.</li> </ul>
-    uint          ParentIndex;
+    uint  ParentIndex;
     ///Contains a value that indicates the type of trust represented by this structure. Possible values for this member
     ///are documented in the <b>TrustType</b> member of the TRUSTED_DOMAIN_INFORMATION_EX structure.
-    uint          TrustType;
+    uint  TrustType;
     ///Contains a value that indicates the attributes of the trust represented by this structure. Possible values for
     ///this member are documented in the <b>TrustAttribute</b> member of the TRUSTED_DOMAIN_INFORMATION_EX structure.
-    uint          TrustAttributes;
+    uint  TrustAttributes;
     ///Contains the security identifier of the domain represented by this structure.
-    void*         DomainSid;
+    void* DomainSid;
     ///Contains the GUID of the domain represented by this structure.
-    GUID          DomainGuid;
+    GUID  DomainGuid;
 }
 
 ///The <b>DS_DOMAIN_TRUSTS</b> structure is used with the DsEnumerateDomainTrusts function to contain trust data for a
@@ -3742,31 +3748,35 @@ struct DS_DOMAIN_TRUSTSW
 struct DS_DOMAIN_TRUSTSA
 {
     ///Pointer to a null-terminated string that contains the NetBIOS name of the domain.
-    const(char)* NetbiosDomainName;
+    PSTR  NetbiosDomainName;
     ///Pointer to a null-terminated string that contains the DNS name of the domain. This member may be <b>NULL</b>.
-    const(char)* DnsDomainName;
+    PSTR  DnsDomainName;
     ///Contains a set of flags that specify more data about the domain trust. This can be zero or a combination of one
     ///or more of the following values.
-    uint         Flags;
+    uint  Flags;
     ///Contains the index in the <i>Domains</i> array returned by the DsEnumerateDomainTrusts function that corresponds
     ///to the parent domain of the domain represented by this structure. This member is only valid if the all of the
     ///following conditions are met: <ul> <li>The <b>DS_DOMAIN_IN_FOREST</b> flag was specified in the <i>Flags</i>
     ///parameter of the DsEnumerateDomainTrusts function.</li> <li>The <b>Flags</b> member of this structure does not
     ///contain the <b>DS_DOMAIN_TREE_ROOT</b> flag.</li> </ul>
-    uint         ParentIndex;
+    uint  ParentIndex;
     ///Contains a value that indicates the type of trust represented by this structure. Possible values for this member
     ///are documented in the <b>TrustType</b> member of the TRUSTED_DOMAIN_INFORMATION_EX structure.
-    uint         TrustType;
+    uint  TrustType;
     ///Contains a value that indicates the attributes of the trust represented by this structure. Possible values for
     ///this member are documented in the <b>TrustAttribute</b> member of the TRUSTED_DOMAIN_INFORMATION_EX structure.
-    uint         TrustAttributes;
+    uint  TrustAttributes;
     ///Contains the security identifier of the domain represented by this structure.
-    void*        DomainSid;
+    void* DomainSid;
     ///Contains the GUID of the domain represented by this structure.
-    GUID         DomainGuid;
+    GUID  DomainGuid;
 }
 
-alias GetDcContextHandle = ptrdiff_t;
+@RAIIFree!DsGetDcCloseW
+struct GetDcContextHandle
+{
+    ptrdiff_t Value;
+}
 
 // Functions
 
@@ -3782,7 +3792,7 @@ alias GetDcContextHandle = ptrdiff_t;
 ///    For more information about other return values, see ADSI Error Codes.
 ///    
 @DllImport("ACTIVEDS")
-HRESULT ADsGetObject(const(wchar)* lpszPathName, const(GUID)* riid, void** ppObject);
+HRESULT ADsGetObject(const(PWSTR) lpszPathName, const(GUID)* riid, void** ppObject);
 
 ///The <b>ADsBuildEnumerator</b> function creates an enumerator object for the specified ADSI container object.
 ///Params:
@@ -3831,7 +3841,7 @@ HRESULT ADsEnumerateNext(IEnumVARIANT pEnumVariant, uint cElements, VARIANT* pva
 ///    information about other return values, see ADSI Error Codes.
 ///    
 @DllImport("ACTIVEDS")
-HRESULT ADsBuildVarArrayStr(char* lppPathNames, uint dwPathNames, VARIANT* pVar);
+HRESULT ADsBuildVarArrayStr(PWSTR* lppPathNames, uint dwPathNames, VARIANT* pVar);
 
 ///The <b>ADsBuildVarArrayInt</b> function builds a variant array of integers from an array of <b>DWORD</b> values.
 ///Params:
@@ -3866,7 +3876,7 @@ HRESULT ADsBuildVarArrayInt(uint* lpdwObjectTypes, uint dwObjectTypes, VARIANT* 
 ///    more information, see ADSI Error Codes.
 ///    
 @DllImport("ACTIVEDS")
-HRESULT ADsOpenObject(const(wchar)* lpszPathName, const(wchar)* lpszUserName, const(wchar)* lpszPassword, 
+HRESULT ADsOpenObject(const(PWSTR) lpszPathName, const(PWSTR) lpszUserName, const(PWSTR) lpszPassword, 
                       uint dwReserved, const(GUID)* riid, void** ppObject);
 
 ///The <b>ADsGetLastError</b> function retrieves the calling thread's last-error code value.
@@ -3885,8 +3895,7 @@ HRESULT ADsOpenObject(const(wchar)* lpszPathName, const(wchar)* lpszUserName, co
 ///    Type: <b>HRESULT</b> This method supports standard return values, as well as the following.
 ///    
 @DllImport("ACTIVEDS")
-HRESULT ADsGetLastError(uint* lpError, const(wchar)* lpErrorBuf, uint dwErrorBufLen, const(wchar)* lpNameBuf, 
-                        uint dwNameBufLen);
+HRESULT ADsGetLastError(uint* lpError, PWSTR lpErrorBuf, uint dwErrorBufLen, PWSTR lpNameBuf, uint dwNameBufLen);
 
 ///The <b>ADsSetLastError</b> sets the last-error code value for the calling thread. Directory service providers can use
 ///this function to set extended errors. The function saves the error data in a per-thread data structure.
@@ -3897,7 +3906,7 @@ HRESULT ADsGetLastError(uint* lpError, const(wchar)* lpErrorBuf, uint dwErrorBuf
 ///    pszError = Type: <b>LPWSTR</b> The null-terminated Unicode string that describes the network-specific error.
 ///    pszProvider = Type: <b>LPWSTR</b> The null-terminated Unicode string that names the ADSI provider that raised the error.
 @DllImport("ACTIVEDS")
-void ADsSetLastError(uint dwErr, const(wchar)* pszError, const(wchar)* pszProvider);
+void ADsSetLastError(uint dwErr, const(PWSTR) pszError, const(PWSTR) pszProvider);
 
 ///The <b>AllocADsMem</b> function allocates a block of memory of the specified size.
 ///Params:
@@ -3947,7 +3956,7 @@ void* ReallocADsMem(void* pOldMem, uint cbOld, uint cbNew);
 ///    Codes.
 ///    
 @DllImport("ACTIVEDS")
-ushort* AllocADsStr(const(wchar)* pStr);
+PWSTR AllocADsStr(const(PWSTR) pStr);
 
 ///The <b>FreeADsStr</b> function frees the memory of a string allocated by AllocADsStr or ReallocADsStr.
 ///Params:
@@ -3957,7 +3966,7 @@ ushort* AllocADsStr(const(wchar)* pStr);
 ///    Type: <b>BOOL</b> The function returns <b>TRUE</b> if the memory is freed. Otherwise, it returns <b>FALSE</b>.
 ///    
 @DllImport("ACTIVEDS")
-BOOL FreeADsStr(const(wchar)* pStr);
+BOOL FreeADsStr(PWSTR pStr);
 
 ///The <b>ReallocADsStr</b> function creates a copy of a Unicode string.
 ///Params:
@@ -3971,7 +3980,7 @@ BOOL FreeADsStr(const(wchar)* pStr);
 ///    Type: <b>BOOL</b> The function returns <b>TRUE</b> if successful, otherwise <b>FALSE</b> is returned.
 ///    
 @DllImport("ACTIVEDS")
-BOOL ReallocADsStr(ushort** ppStr, const(wchar)* pStr);
+BOOL ReallocADsStr(PWSTR* ppStr, PWSTR pStr);
 
 ///The <b>ADsEncodeBinaryData</b> function converts a binary large object (BLOB) to the Unicode format suitable to be
 ///embedded in a search filter.
@@ -3983,10 +3992,10 @@ BOOL ReallocADsStr(ushort** ppStr, const(wchar)* pStr);
 ///    Type: <b>HRESULT</b> This method supports the standard return values, as well as the following.
 ///    
 @DllImport("ACTIVEDS")
-HRESULT ADsEncodeBinaryData(ubyte* pbSrcData, uint dwSrcLen, ushort** ppszDestData);
+HRESULT ADsEncodeBinaryData(ubyte* pbSrcData, uint dwSrcLen, PWSTR* ppszDestData);
 
 @DllImport("ACTIVEDS")
-HRESULT ADsDecodeBinaryData(const(wchar)* szSrcData, ubyte** ppbDestData, uint* pdwDestLen);
+HRESULT ADsDecodeBinaryData(const(PWSTR) szSrcData, ubyte** ppbDestData, uint* pdwDestLen);
 
 @DllImport("ACTIVEDS")
 HRESULT PropVariantToAdsType(VARIANT* pVariant, uint dwNumVariant, ADSVALUE** ppAdsValues, uint* pdwNumValues);
@@ -4017,8 +4026,8 @@ void AdsFreeAdsValues(ADSVALUE* pAdsValues, uint dwNumValues);
 ///    fails, an ADSI error code is returned. For more information, see ADSI Error Codes.
 ///    
 @DllImport("ACTIVEDS")
-HRESULT BinarySDToSecurityDescriptor(void* pSecurityDescriptor, VARIANT* pVarsec, const(wchar)* pszServerName, 
-                                     const(wchar)* userName, const(wchar)* passWord, uint dwFlags);
+HRESULT BinarySDToSecurityDescriptor(void* pSecurityDescriptor, VARIANT* pVarsec, const(PWSTR) pszServerName, 
+                                     const(PWSTR) userName, const(PWSTR) passWord, uint dwFlags);
 
 ///The <b>SecurityDescriptorToBinarySD</b> function converts an IADsSecurityDescriptor object to the binary security
 ///descriptor format.
@@ -4042,7 +4051,7 @@ HRESULT BinarySDToSecurityDescriptor(void* pSecurityDescriptor, VARIANT* pVarsec
 ///    
 @DllImport("ACTIVEDS")
 HRESULT SecurityDescriptorToBinarySD(VARIANT vVarSecDes, void** ppSecurityDescriptor, uint* pdwSDLength, 
-                                     const(wchar)* pszServerName, const(wchar)* userName, const(wchar)* passWord, 
+                                     const(PWSTR) pszServerName, const(PWSTR) userName, const(PWSTR) passWord, 
                                      uint dwFlags);
 
 ///The <b>DsBrowseForContainer</b> function displays a dialog box used to browse for container objects in Active
@@ -4083,7 +4092,7 @@ int DsBrowseForContainerA(DSBROWSEINFOA* pInfo);
 ///    no longer required by passing this handle to DestroyIcon.
 ///    
 @DllImport("dsuiext")
-HICON DsGetIcon(uint dwFlags, const(wchar)* pszObjectClass, int cxImage, int cyImage);
+HICON DsGetIcon(uint dwFlags, const(PWSTR) pszObjectClass, int cxImage, int cyImage);
 
 ///The <b>DsGetFriendlyClassName</b> function retrieves the localized name for an object class. This function is
 ///obsolete. New applications should use the IDsDisplaySpecifier::GetFriendlyClassName method to perform this function.
@@ -4098,7 +4107,7 @@ HICON DsGetIcon(uint dwFlags, const(wchar)* pszObjectClass, int cxImage, int cyI
 ///    Returns a standard <b>HRESULT</b> value, including the following.
 ///    
 @DllImport("dsuiext")
-HRESULT DsGetFriendlyClassName(const(wchar)* pszObjectClass, const(wchar)* pszBuffer, uint cchBuffer);
+HRESULT DsGetFriendlyClassName(const(PWSTR) pszObjectClass, PWSTR pszBuffer, uint cchBuffer);
 
 ///The <b>ADsPropCreateNotifyObj</b> function is used to create, or obtain, a notification object for use by an Active
 ///Directory Domain Services property sheet extension.
@@ -4112,7 +4121,7 @@ HRESULT DsGetFriendlyClassName(const(wchar)* pszObjectClass, const(wchar)* pszBu
 ///    Returns <b>S_OK</b> if successful, or an OLE-defined error value otherwise.
 ///    
 @DllImport("dsprop")
-HRESULT ADsPropCreateNotifyObj(IDataObject pAppThdDataObj, const(wchar)* pwzADsObjName, HWND* phNotifyObj);
+HRESULT ADsPropCreateNotifyObj(IDataObject pAppThdDataObj, PWSTR pwzADsObjName, HWND* phNotifyObj);
 
 ///The <b>ADsPropGetInitInfo</b> function is used to obtain directory object data that an Active Directory Domain
 ///Services property sheet extension applies to.
@@ -4158,7 +4167,7 @@ BOOL ADsPropSetHwnd(HWND hNotifyObj, HWND hPage);
 ///    <i>pWritableAttrs</i> is <b>NULL</b>.
 ///    
 @DllImport("dsprop")
-BOOL ADsPropCheckIfWritable(const(ushort)* pwzAttr, const(ADS_ATTR_INFO)* pWritableAttrs);
+BOOL ADsPropCheckIfWritable(const(PWSTR) pwzAttr, const(ADS_ATTR_INFO)* pWritableAttrs);
 
 ///The <b>ADsPropSendErrorMessage</b> function adds an error message to a list of error messages displayed by calling
 ///the ADsPropShowErrorDialog function.
@@ -4213,8 +4222,8 @@ BOOL ADsPropShowErrorDialog(HWND hNotifyObj, HWND hPage);
 ///    can be one of the following error codes.
 ///    
 @DllImport("DSPARSE")
-uint DsMakeSpnW(const(wchar)* ServiceClass, const(wchar)* ServiceName, const(wchar)* InstanceName, 
-                ushort InstancePort, const(wchar)* Referrer, uint* pcSpnLength, const(wchar)* pszSpn);
+uint DsMakeSpnW(const(PWSTR) ServiceClass, const(PWSTR) ServiceName, const(PWSTR) InstanceName, 
+                ushort InstancePort, const(PWSTR) Referrer, uint* pcSpnLength, PWSTR pszSpn);
 
 ///The <b>DsMakeSpn</b> function constructs a service principal name (SPN) that identifies a service instance. A client
 ///application uses this function to compose an SPN, which it uses to authenticate the service instance. For example,
@@ -4247,8 +4256,8 @@ uint DsMakeSpnW(const(wchar)* ServiceClass, const(wchar)* ServiceName, const(wch
 ///    can be one of the following error codes.
 ///    
 @DllImport("DSPARSE")
-uint DsMakeSpnA(const(char)* ServiceClass, const(char)* ServiceName, const(char)* InstanceName, 
-                ushort InstancePort, const(char)* Referrer, uint* pcSpnLength, const(char)* pszSpn);
+uint DsMakeSpnA(const(PSTR) ServiceClass, const(PSTR) ServiceName, const(PSTR) InstanceName, ushort InstancePort, 
+                const(PSTR) Referrer, uint* pcSpnLength, PSTR pszSpn);
 
 ///The <b>DsCrackSpn</b> function parses a service principal name (SPN) into its component strings.
 ///Params:
@@ -4291,8 +4300,8 @@ uint DsMakeSpnA(const(char)* ServiceClass, const(char)* ServiceName, const(char)
 ///    Returns a Win32 error code, including the following.
 ///    
 @DllImport("DSPARSE")
-uint DsCrackSpnA(const(char)* pszSpn, uint* pcServiceClass, const(char)* ServiceClass, uint* pcServiceName, 
-                 const(char)* ServiceName, uint* pcInstanceName, const(char)* InstanceName, ushort* pInstancePort);
+uint DsCrackSpnA(const(PSTR) pszSpn, uint* pcServiceClass, PSTR ServiceClass, uint* pcServiceName, 
+                 PSTR ServiceName, uint* pcInstanceName, PSTR InstanceName, ushort* pInstancePort);
 
 ///The <b>DsCrackSpn</b> function parses a service principal name (SPN) into its component strings.
 ///Params:
@@ -4335,8 +4344,8 @@ uint DsCrackSpnA(const(char)* pszSpn, uint* pcServiceClass, const(char)* Service
 ///    Returns a Win32 error code, including the following.
 ///    
 @DllImport("DSPARSE")
-uint DsCrackSpnW(const(wchar)* pszSpn, uint* pcServiceClass, const(wchar)* ServiceClass, uint* pcServiceName, 
-                 const(wchar)* ServiceName, uint* pcInstanceName, const(wchar)* InstanceName, ushort* pInstancePort);
+uint DsCrackSpnW(const(PWSTR) pszSpn, uint* pcServiceClass, PWSTR ServiceClass, uint* pcServiceName, 
+                 PWSTR ServiceName, uint* pcInstanceName, PWSTR InstanceName, ushort* pInstancePort);
 
 ///The <b>DsQuoteRdnValue</b> function converts an RDN into a quoted RDN value, if the RDN value contains characters
 ///that require quotes. The quoted RDN can then be submitted as part of a distinguished name (DN) to the directory
@@ -4352,8 +4361,8 @@ uint DsCrackSpnW(const(wchar)* pszSpn, uint* pcServiceClass, const(wchar)* Servi
 ///    The following list contains the possible values returned for the <b>DsQuoteRdnValue</b> function.
 ///    
 @DllImport("DSPARSE")
-uint DsQuoteRdnValueW(uint cUnquotedRdnValueLength, const(wchar)* psUnquotedRdnValue, uint* pcQuotedRdnValueLength, 
-                      const(wchar)* psQuotedRdnValue);
+uint DsQuoteRdnValueW(uint cUnquotedRdnValueLength, const(PWSTR) psUnquotedRdnValue, uint* pcQuotedRdnValueLength, 
+                      PWSTR psQuotedRdnValue);
 
 ///The <b>DsQuoteRdnValue</b> function converts an RDN into a quoted RDN value, if the RDN value contains characters
 ///that require quotes. The quoted RDN can then be submitted as part of a distinguished name (DN) to the directory
@@ -4369,8 +4378,8 @@ uint DsQuoteRdnValueW(uint cUnquotedRdnValueLength, const(wchar)* psUnquotedRdnV
 ///    The following list contains the possible values returned for the <b>DsQuoteRdnValue</b> function.
 ///    
 @DllImport("DSPARSE")
-uint DsQuoteRdnValueA(uint cUnquotedRdnValueLength, const(char)* psUnquotedRdnValue, uint* pcQuotedRdnValueLength, 
-                      const(char)* psQuotedRdnValue);
+uint DsQuoteRdnValueA(uint cUnquotedRdnValueLength, const(PSTR) psUnquotedRdnValue, uint* pcQuotedRdnValueLength, 
+                      PSTR psQuotedRdnValue);
 
 ///The <b>DsUnquoteRdnValue</b> function is a client call that converts a quoted RDN value back to an unquoted RDN
 ///value. Because the RDN was originally put into quotes because it contained characters that could be misinterpreted
@@ -4386,8 +4395,8 @@ uint DsQuoteRdnValueA(uint cUnquotedRdnValueLength, const(char)* psUnquotedRdnVa
 ///    The following list contains the possible values that are returned for the <b>DsUnquoteRdnValue</b> function.
 ///    
 @DllImport("DSPARSE")
-uint DsUnquoteRdnValueW(uint cQuotedRdnValueLength, const(wchar)* psQuotedRdnValue, uint* pcUnquotedRdnValueLength, 
-                        const(wchar)* psUnquotedRdnValue);
+uint DsUnquoteRdnValueW(uint cQuotedRdnValueLength, const(PWSTR) psQuotedRdnValue, uint* pcUnquotedRdnValueLength, 
+                        PWSTR psUnquotedRdnValue);
 
 ///The <b>DsUnquoteRdnValue</b> function is a client call that converts a quoted RDN value back to an unquoted RDN
 ///value. Because the RDN was originally put into quotes because it contained characters that could be misinterpreted
@@ -4403,8 +4412,8 @@ uint DsUnquoteRdnValueW(uint cQuotedRdnValueLength, const(wchar)* psQuotedRdnVal
 ///    The following list contains the possible values that are returned for the <b>DsUnquoteRdnValue</b> function.
 ///    
 @DllImport("DSPARSE")
-uint DsUnquoteRdnValueA(uint cQuotedRdnValueLength, const(char)* psQuotedRdnValue, uint* pcUnquotedRdnValueLength, 
-                        const(char)* psUnquotedRdnValue);
+uint DsUnquoteRdnValueA(uint cQuotedRdnValueLength, const(PSTR) psQuotedRdnValue, uint* pcUnquotedRdnValueLength, 
+                        PSTR psUnquotedRdnValue);
 
 ///The <b>DsGetRdnW</b> function retrieves the key and value of the first relative distinguished name and a pointer to
 ///the next relative distinguished name from a distinguished name string.
@@ -4434,7 +4443,7 @@ uint DsUnquoteRdnValueA(uint cQuotedRdnValueLength, const(char)* psQuotedRdnValu
 ///    following values.
 ///    
 @DllImport("DSPARSE")
-uint DsGetRdnW(char* ppDN, uint* pcDN, ushort** ppKey, uint* pcKey, ushort** ppVal, uint* pcVal);
+uint DsGetRdnW(PWSTR* ppDN, uint* pcDN, PWSTR* ppKey, uint* pcKey, PWSTR* ppVal, uint* pcVal);
 
 ///The <b>DsCrackUnquotedMangledRdn</b> function unmangles (unencodes) a given relative distinguished name and returns
 ///both the decoded GUID and the mangling type used.
@@ -4452,7 +4461,7 @@ uint DsGetRdnW(char* ppDN, uint* pcDN, ushort** ppKey, uint* pcKey, ushort** ppV
 ///    this function returns <b>FALSE</b>, neither <i>pGuid</i> or <i>peDsMangleFor</i> receive any data.
 ///    
 @DllImport("DSPARSE")
-BOOL DsCrackUnquotedMangledRdnW(const(wchar)* pszRDN, uint cchRDN, GUID* pGuid, DS_MANGLE_FOR* peDsMangleFor);
+BOOL DsCrackUnquotedMangledRdnW(const(PWSTR) pszRDN, uint cchRDN, GUID* pGuid, DS_MANGLE_FOR* peDsMangleFor);
 
 ///The <b>DsCrackUnquotedMangledRdn</b> function unmangles (unencodes) a given relative distinguished name and returns
 ///both the decoded GUID and the mangling type used.
@@ -4470,7 +4479,7 @@ BOOL DsCrackUnquotedMangledRdnW(const(wchar)* pszRDN, uint cchRDN, GUID* pGuid, 
 ///    this function returns <b>FALSE</b>, neither <i>pGuid</i> or <i>peDsMangleFor</i> receive any data.
 ///    
 @DllImport("DSPARSE")
-BOOL DsCrackUnquotedMangledRdnA(const(char)* pszRDN, uint cchRDN, GUID* pGuid, DS_MANGLE_FOR* peDsMangleFor);
+BOOL DsCrackUnquotedMangledRdnA(const(PSTR) pszRDN, uint cchRDN, GUID* pGuid, DS_MANGLE_FOR* peDsMangleFor);
 
 ///The <b>DsIsMangledRdnValue</b> function determines if a given relative distinguished name value is a mangled name of
 ///the given type.
@@ -4485,7 +4494,7 @@ BOOL DsCrackUnquotedMangledRdnA(const(char)* pszRDN, uint cchRDN, GUID* pGuid, D
 ///    specified.
 ///    
 @DllImport("DSPARSE")
-BOOL DsIsMangledRdnValueW(const(wchar)* pszRdn, uint cRdn, DS_MANGLE_FOR eDsMangleForDesired);
+BOOL DsIsMangledRdnValueW(const(PWSTR) pszRdn, uint cRdn, DS_MANGLE_FOR eDsMangleForDesired);
 
 ///The <b>DsIsMangledRdnValue</b> function determines if a given relative distinguished name value is a mangled name of
 ///the given type.
@@ -4500,7 +4509,7 @@ BOOL DsIsMangledRdnValueW(const(wchar)* pszRdn, uint cRdn, DS_MANGLE_FOR eDsMang
 ///    specified.
 ///    
 @DllImport("DSPARSE")
-BOOL DsIsMangledRdnValueA(const(char)* pszRdn, uint cRdn, DS_MANGLE_FOR eDsMangleForDesired);
+BOOL DsIsMangledRdnValueA(const(PSTR) pszRdn, uint cRdn, DS_MANGLE_FOR eDsMangleForDesired);
 
 ///The <b>DsIsMangledDn</b> function determines if the first relative distinguished name (RDN) in a distinguished name
 ///(DN) is a mangled name of a given type.
@@ -4513,7 +4522,7 @@ BOOL DsIsMangledRdnValueA(const(char)* pszRdn, uint cRdn, DS_MANGLE_FOR eDsMangl
 ///    by <i>eDsMangleFor</i> or <b>FALSE</b> otherwise.
 ///    
 @DllImport("DSPARSE")
-BOOL DsIsMangledDnA(const(char)* pszDn, DS_MANGLE_FOR eDsMangleFor);
+BOOL DsIsMangledDnA(const(PSTR) pszDn, DS_MANGLE_FOR eDsMangleFor);
 
 ///The <b>DsIsMangledDn</b> function determines if the first relative distinguished name (RDN) in a distinguished name
 ///(DN) is a mangled name of a given type.
@@ -4526,27 +4535,25 @@ BOOL DsIsMangledDnA(const(char)* pszDn, DS_MANGLE_FOR eDsMangleFor);
 ///    by <i>eDsMangleFor</i> or <b>FALSE</b> otherwise.
 ///    
 @DllImport("DSPARSE")
-BOOL DsIsMangledDnW(const(wchar)* pszDn, DS_MANGLE_FOR eDsMangleFor);
+BOOL DsIsMangledDnW(const(PWSTR) pszDn, DS_MANGLE_FOR eDsMangleFor);
 
 @DllImport("DSPARSE")
-uint DsCrackSpn2A(const(char)* pszSpn, uint cSpn, uint* pcServiceClass, const(char)* ServiceClass, 
-                  uint* pcServiceName, const(char)* ServiceName, uint* pcInstanceName, const(char)* InstanceName, 
-                  ushort* pInstancePort);
+uint DsCrackSpn2A(const(PSTR) pszSpn, uint cSpn, uint* pcServiceClass, PSTR ServiceClass, uint* pcServiceName, 
+                  PSTR ServiceName, uint* pcInstanceName, PSTR InstanceName, ushort* pInstancePort);
 
 @DllImport("DSPARSE")
-uint DsCrackSpn2W(const(wchar)* pszSpn, uint cSpn, uint* pcServiceClass, const(wchar)* ServiceClass, 
-                  uint* pcServiceName, const(wchar)* ServiceName, uint* pcInstanceName, const(wchar)* InstanceName, 
-                  ushort* pInstancePort);
+uint DsCrackSpn2W(const(PWSTR) pszSpn, uint cSpn, uint* pcServiceClass, PWSTR ServiceClass, uint* pcServiceName, 
+                  PWSTR ServiceName, uint* pcInstanceName, PWSTR InstanceName, ushort* pInstancePort);
 
 @DllImport("DSPARSE")
-uint DsCrackSpn3W(const(wchar)* pszSpn, uint cSpn, uint* pcHostName, const(wchar)* HostName, uint* pcInstanceName, 
-                  const(wchar)* InstanceName, ushort* pPortNumber, uint* pcDomainName, const(wchar)* DomainName, 
-                  uint* pcRealmName, const(wchar)* RealmName);
+uint DsCrackSpn3W(const(PWSTR) pszSpn, uint cSpn, uint* pcHostName, PWSTR HostName, uint* pcInstanceName, 
+                  PWSTR InstanceName, ushort* pPortNumber, uint* pcDomainName, PWSTR DomainName, uint* pcRealmName, 
+                  PWSTR RealmName);
 
 @DllImport("DSPARSE")
-uint DsCrackSpn4W(const(wchar)* pszSpn, uint cSpn, uint* pcHostName, const(wchar)* HostName, uint* pcInstanceName, 
-                  const(wchar)* InstanceName, uint* pcPortName, const(wchar)* PortName, uint* pcDomainName, 
-                  const(wchar)* DomainName, uint* pcRealmName, const(wchar)* RealmName);
+uint DsCrackSpn4W(const(PWSTR) pszSpn, uint cSpn, uint* pcHostName, PWSTR HostName, uint* pcInstanceName, 
+                  PWSTR InstanceName, uint* pcPortName, PWSTR PortName, uint* pcDomainName, PWSTR DomainName, 
+                  uint* pcRealmName, PWSTR RealmName);
 
 ///The <b>DsBind</b> function binds to a domain controller.<b>DsBind</b> uses the default process credentials to bind to
 ///the domain controller. To specify alternate credentials, use the DsBindWithCred function.
@@ -4565,7 +4572,7 @@ uint DsCrackSpn4W(const(wchar)* pszSpn, uint cSpn, uint* pcHostName, const(wchar
 ///    common error codes.
 ///    
 @DllImport("NTDSAPI")
-uint DsBindW(const(wchar)* DomainControllerName, const(wchar)* DnsDomainName, HANDLE* phDS);
+uint DsBindW(const(PWSTR) DomainControllerName, const(PWSTR) DnsDomainName, HANDLE* phDS);
 
 ///The <b>DsBind</b> function binds to a domain controller.<b>DsBind</b> uses the default process credentials to bind to
 ///the domain controller. To specify alternate credentials, use the DsBindWithCred function.
@@ -4584,7 +4591,7 @@ uint DsBindW(const(wchar)* DomainControllerName, const(wchar)* DnsDomainName, HA
 ///    common error codes.
 ///    
 @DllImport("NTDSAPI")
-uint DsBindA(const(char)* DomainControllerName, const(char)* DnsDomainName, HANDLE* phDS);
+uint DsBindA(const(PSTR) DomainControllerName, const(PSTR) DnsDomainName, HANDLE* phDS);
 
 ///The <b>DsBindWithCred</b> function binds to a domain controller using the specified credentials.
 ///Params:
@@ -4604,7 +4611,7 @@ uint DsBindA(const(char)* DomainControllerName, const(char)* DnsDomainName, HAND
 ///    common error codes.
 ///    
 @DllImport("NTDSAPI")
-uint DsBindWithCredW(const(wchar)* DomainControllerName, const(wchar)* DnsDomainName, void* AuthIdentity, 
+uint DsBindWithCredW(const(PWSTR) DomainControllerName, const(PWSTR) DnsDomainName, void* AuthIdentity, 
                      HANDLE* phDS);
 
 ///The <b>DsBindWithCred</b> function binds to a domain controller using the specified credentials.
@@ -4625,8 +4632,7 @@ uint DsBindWithCredW(const(wchar)* DomainControllerName, const(wchar)* DnsDomain
 ///    common error codes.
 ///    
 @DllImport("NTDSAPI")
-uint DsBindWithCredA(const(char)* DomainControllerName, const(char)* DnsDomainName, void* AuthIdentity, 
-                     HANDLE* phDS);
+uint DsBindWithCredA(const(PSTR) DomainControllerName, const(PSTR) DnsDomainName, void* AuthIdentity, HANDLE* phDS);
 
 ///The <b>DsBindWithSpn</b> function binds to a domain controller using the specified credentials and a specific service
 ///principal name (SPN) for mutual authentication. This function is provided for where complete control is required for
@@ -4652,8 +4658,8 @@ uint DsBindWithCredA(const(char)* DomainControllerName, const(char)* DnsDomainNa
 ///    common error codes.
 ///    
 @DllImport("NTDSAPI")
-uint DsBindWithSpnW(const(wchar)* DomainControllerName, const(wchar)* DnsDomainName, void* AuthIdentity, 
-                    const(wchar)* ServicePrincipalName, HANDLE* phDS);
+uint DsBindWithSpnW(const(PWSTR) DomainControllerName, const(PWSTR) DnsDomainName, void* AuthIdentity, 
+                    const(PWSTR) ServicePrincipalName, HANDLE* phDS);
 
 ///The <b>DsBindWithSpn</b> function binds to a domain controller using the specified credentials and a specific service
 ///principal name (SPN) for mutual authentication. This function is provided for where complete control is required for
@@ -4679,8 +4685,8 @@ uint DsBindWithSpnW(const(wchar)* DomainControllerName, const(wchar)* DnsDomainN
 ///    common error codes.
 ///    
 @DllImport("NTDSAPI")
-uint DsBindWithSpnA(const(char)* DomainControllerName, const(char)* DnsDomainName, void* AuthIdentity, 
-                    const(char)* ServicePrincipalName, HANDLE* phDS);
+uint DsBindWithSpnA(const(PSTR) DomainControllerName, const(PSTR) DnsDomainName, void* AuthIdentity, 
+                    const(PSTR) ServicePrincipalName, HANDLE* phDS);
 
 ///The <b>DsBindWithSpnEx</b> function binds to a domain controller using the specified credentials and a specific
 ///service principal name (SPN) for mutual authentication. This function is similar to the DsBindWithSpn function except
@@ -4709,8 +4715,8 @@ uint DsBindWithSpnA(const(char)* DomainControllerName, const(char)* DnsDomainNam
 ///    common error codes.
 ///    
 @DllImport("NTDSAPI")
-uint DsBindWithSpnExW(const(wchar)* DomainControllerName, const(wchar)* DnsDomainName, void* AuthIdentity, 
-                      const(wchar)* ServicePrincipalName, uint BindFlags, HANDLE* phDS);
+uint DsBindWithSpnExW(const(PWSTR) DomainControllerName, const(PWSTR) DnsDomainName, void* AuthIdentity, 
+                      const(PWSTR) ServicePrincipalName, uint BindFlags, HANDLE* phDS);
 
 ///The <b>DsBindWithSpnEx</b> function binds to a domain controller using the specified credentials and a specific
 ///service principal name (SPN) for mutual authentication. This function is similar to the DsBindWithSpn function except
@@ -4739,8 +4745,8 @@ uint DsBindWithSpnExW(const(wchar)* DomainControllerName, const(wchar)* DnsDomai
 ///    common error codes.
 ///    
 @DllImport("NTDSAPI")
-uint DsBindWithSpnExA(const(char)* DomainControllerName, const(char)* DnsDomainName, void* AuthIdentity, 
-                      const(char)* ServicePrincipalName, uint BindFlags, HANDLE* phDS);
+uint DsBindWithSpnExA(const(PSTR) DomainControllerName, const(PSTR) DnsDomainName, void* AuthIdentity, 
+                      const(PSTR) ServicePrincipalName, uint BindFlags, HANDLE* phDS);
 
 ///The <b>DsBindByInstance</b> function explicitly binds to any AD LDS or Active Directory instance.
 ///Params:
@@ -4771,8 +4777,8 @@ uint DsBindWithSpnExA(const(char)* DomainControllerName, const(char)* DnsDomainN
 ///    listed in the following list.
 ///    
 @DllImport("NTDSAPI")
-uint DsBindByInstanceW(const(wchar)* ServerName, const(wchar)* Annotation, GUID* InstanceGuid, 
-                       const(wchar)* DnsDomainName, void* AuthIdentity, const(wchar)* ServicePrincipalName, 
+uint DsBindByInstanceW(const(PWSTR) ServerName, const(PWSTR) Annotation, GUID* InstanceGuid, 
+                       const(PWSTR) DnsDomainName, void* AuthIdentity, const(PWSTR) ServicePrincipalName, 
                        uint BindFlags, HANDLE* phDS);
 
 ///The <b>DsBindByInstance</b> function explicitly binds to any AD LDS or Active Directory instance.
@@ -4804,8 +4810,8 @@ uint DsBindByInstanceW(const(wchar)* ServerName, const(wchar)* Annotation, GUID*
 ///    listed in the following list.
 ///    
 @DllImport("NTDSAPI")
-uint DsBindByInstanceA(const(char)* ServerName, const(char)* Annotation, GUID* InstanceGuid, 
-                       const(char)* DnsDomainName, void* AuthIdentity, const(char)* ServicePrincipalName, 
+uint DsBindByInstanceA(const(PSTR) ServerName, const(PSTR) Annotation, GUID* InstanceGuid, 
+                       const(PSTR) DnsDomainName, void* AuthIdentity, const(PSTR) ServicePrincipalName, 
                        uint BindFlags, HANDLE* phDS);
 
 ///The <b>DsBindToISTG</b> function binds to the computer that holds the Inter-Site Topology Generator (ISTG) role in
@@ -4819,7 +4825,7 @@ uint DsBindByInstanceA(const(char)* ServerName, const(char)* Annotation, GUID* I
 ///    error codes.
 ///    
 @DllImport("NTDSAPI")
-uint DsBindToISTGW(const(wchar)* SiteName, HANDLE* phDS);
+uint DsBindToISTGW(const(PWSTR) SiteName, HANDLE* phDS);
 
 ///The <b>DsBindToISTG</b> function binds to the computer that holds the Inter-Site Topology Generator (ISTG) role in
 ///the domain of the local computer.
@@ -4832,7 +4838,7 @@ uint DsBindToISTGW(const(wchar)* SiteName, HANDLE* phDS);
 ///    error codes.
 ///    
 @DllImport("NTDSAPI")
-uint DsBindToISTGA(const(char)* SiteName, HANDLE* phDS);
+uint DsBindToISTGA(const(PSTR) SiteName, HANDLE* phDS);
 
 ///The <b>DsBindingSetTimeout</b> function sets the timeout value that is honored by all RPC calls that use the
 ///specified binding handle. RPC calls that required more time than the timeout value are canceled.
@@ -4881,7 +4887,7 @@ uint DsUnBindA(HANDLE* phDS);
 ///    Returns a Windows error code, including the following.
 ///    
 @DllImport("NTDSAPI")
-uint DsMakePasswordCredentialsW(const(wchar)* User, const(wchar)* Domain, const(wchar)* Password, 
+uint DsMakePasswordCredentialsW(const(PWSTR) User, const(PWSTR) Domain, const(PWSTR) Password, 
                                 void** pAuthIdentity);
 
 ///The <b>DsMakePasswordCredentials</b> function constructs a credential handle suitable for use with the DsBindWithCred
@@ -4897,8 +4903,7 @@ uint DsMakePasswordCredentialsW(const(wchar)* User, const(wchar)* Domain, const(
 ///    Returns a Windows error code, including the following.
 ///    
 @DllImport("NTDSAPI")
-uint DsMakePasswordCredentialsA(const(char)* User, const(char)* Domain, const(char)* Password, 
-                                void** pAuthIdentity);
+uint DsMakePasswordCredentialsA(const(PSTR) User, const(PSTR) Domain, const(PSTR) Password, void** pAuthIdentity);
 
 ///The <b>DsFreePasswordCredentials</b> function frees memory allocated for a credentials structure by the
 ///DsMakePasswordCredentials function.
@@ -4935,7 +4940,7 @@ void DsFreePasswordCredentials(void* AuthIdentity);
 ///    
 @DllImport("NTDSAPI")
 uint DsCrackNamesW(HANDLE hDS, DS_NAME_FLAGS flags, DS_NAME_FORMAT formatOffered, DS_NAME_FORMAT formatDesired, 
-                   uint cNames, char* rpNames, DS_NAME_RESULTW** ppResult);
+                   uint cNames, const(PWSTR)* rpNames, DS_NAME_RESULTW** ppResult);
 
 ///The <b>DsCrackNames</b> function converts an array of directory service object names from one format to another. Name
 ///conversion enables client applications to map between the multiple names used to identify various directory service
@@ -4962,7 +4967,7 @@ uint DsCrackNamesW(HANDLE hDS, DS_NAME_FLAGS flags, DS_NAME_FORMAT formatOffered
 ///    
 @DllImport("NTDSAPI")
 uint DsCrackNamesA(HANDLE hDS, DS_NAME_FLAGS flags, DS_NAME_FORMAT formatOffered, DS_NAME_FORMAT formatDesired, 
-                   uint cNames, char* rpNames, DS_NAME_RESULTA** ppResult);
+                   uint cNames, const(PSTR)* rpNames, DS_NAME_RESULTA** ppResult);
 
 ///The <b>DsFreeNameResult</b> function frees the memory held by a DS_NAME_RESULT structure. Use this function to free
 ///the memory allocated by the DsCrackNames function.
@@ -5009,9 +5014,9 @@ void DsFreeNameResultA(DS_NAME_RESULTA* pResult);
 ///    return value can be one of the following error codes.
 ///    
 @DllImport("NTDSAPI")
-uint DsGetSpnA(DS_SPN_NAME_TYPE ServiceType, const(char)* ServiceClass, const(char)* ServiceName, 
-               ushort InstancePort, ushort cInstanceNames, char* pInstanceNames, char* pInstancePorts, uint* pcSpn, 
-               byte*** prpszSpn);
+uint DsGetSpnA(DS_SPN_NAME_TYPE ServiceType, const(PSTR) ServiceClass, const(PSTR) ServiceName, 
+               ushort InstancePort, ushort cInstanceNames, PSTR* pInstanceNames, const(ushort)* pInstancePorts, 
+               uint* pcSpn, PSTR** prpszSpn);
 
 ///The <b>DsGetSpn</b> function constructs an array of one or more service principal names (SPNs). Each name in the
 ///array identifies an instance of a service. These SPNs may be registered with the directory service (DS) using the
@@ -5044,23 +5049,23 @@ uint DsGetSpnA(DS_SPN_NAME_TYPE ServiceType, const(char)* ServiceClass, const(ch
 ///    return value can be one of the following error codes.
 ///    
 @DllImport("NTDSAPI")
-uint DsGetSpnW(DS_SPN_NAME_TYPE ServiceType, const(wchar)* ServiceClass, const(wchar)* ServiceName, 
-               ushort InstancePort, ushort cInstanceNames, char* pInstanceNames, char* pInstancePorts, uint* pcSpn, 
-               ushort*** prpszSpn);
+uint DsGetSpnW(DS_SPN_NAME_TYPE ServiceType, const(PWSTR) ServiceClass, const(PWSTR) ServiceName, 
+               ushort InstancePort, ushort cInstanceNames, PWSTR* pInstanceNames, const(ushort)* pInstancePorts, 
+               uint* pcSpn, PWSTR** prpszSpn);
 
 ///The <b>DsFreeSpnArray</b> function frees an array returned from the DsGetSpn function.
 ///Params:
 ///    cSpn = Specifies the number of elements contained in <i>rpszSpn</i>.
 ///    rpszSpn = Pointer to an array returned from DsGetSpn.
 @DllImport("NTDSAPI")
-void DsFreeSpnArrayA(uint cSpn, char* rpszSpn);
+void DsFreeSpnArrayA(uint cSpn, PSTR* rpszSpn);
 
 ///The <b>DsFreeSpnArray</b> function frees an array returned from the DsGetSpn function.
 ///Params:
 ///    cSpn = Specifies the number of elements contained in <i>rpszSpn</i>.
 ///    rpszSpn = Pointer to an array returned from DsGetSpn.
 @DllImport("NTDSAPI")
-void DsFreeSpnArrayW(uint cSpn, char* rpszSpn);
+void DsFreeSpnArrayW(uint cSpn, PWSTR* rpszSpn);
 
 ///The <b>DsWriteAccountSpn</b> function writes an array of service principal names (SPNs) to the
 ///<b>servicePrincipalName</b> attribute of a specified user or computer account object in Active Directory Domain
@@ -5082,7 +5087,7 @@ void DsFreeSpnArrayW(uint cSpn, char* rpszSpn);
 ///    Returns <b>ERROR_SUCCESS</b> if successful or a Win32, RPC or directory service error if unsuccessful.
 ///    
 @DllImport("NTDSAPI")
-uint DsWriteAccountSpnA(HANDLE hDS, DS_SPN_WRITE_OP Operation, const(char)* pszAccount, uint cSpn, char* rpszSpn);
+uint DsWriteAccountSpnA(HANDLE hDS, DS_SPN_WRITE_OP Operation, const(PSTR) pszAccount, uint cSpn, PSTR* rpszSpn);
 
 ///The <b>DsWriteAccountSpn</b> function writes an array of service principal names (SPNs) to the
 ///<b>servicePrincipalName</b> attribute of a specified user or computer account object in Active Directory Domain
@@ -5104,7 +5109,7 @@ uint DsWriteAccountSpnA(HANDLE hDS, DS_SPN_WRITE_OP Operation, const(char)* pszA
 ///    Returns <b>ERROR_SUCCESS</b> if successful or a Win32, RPC or directory service error if unsuccessful.
 ///    
 @DllImport("NTDSAPI")
-uint DsWriteAccountSpnW(HANDLE hDS, DS_SPN_WRITE_OP Operation, const(wchar)* pszAccount, uint cSpn, char* rpszSpn);
+uint DsWriteAccountSpnW(HANDLE hDS, DS_SPN_WRITE_OP Operation, const(PWSTR) pszAccount, uint cSpn, PWSTR* rpszSpn);
 
 ///The <b>DsClientMakeSpnForTargetServer</b> function constructs a service principal name (SPN) that identifies a
 ///specific server to use for authentication.
@@ -5124,8 +5129,8 @@ uint DsWriteAccountSpnW(HANDLE hDS, DS_SPN_WRITE_OP Operation, const(wchar)* psz
 ///    This function returns standard Windows error codes.
 ///    
 @DllImport("NTDSAPI")
-uint DsClientMakeSpnForTargetServerW(const(wchar)* ServiceClass, const(wchar)* ServiceName, uint* pcSpnLength, 
-                                     const(wchar)* pszSpn);
+uint DsClientMakeSpnForTargetServerW(const(PWSTR) ServiceClass, const(PWSTR) ServiceName, uint* pcSpnLength, 
+                                     PWSTR pszSpn);
 
 ///The <b>DsClientMakeSpnForTargetServer</b> function constructs a service principal name (SPN) that identifies a
 ///specific server to use for authentication.
@@ -5145,8 +5150,8 @@ uint DsClientMakeSpnForTargetServerW(const(wchar)* ServiceClass, const(wchar)* S
 ///    This function returns standard Windows error codes.
 ///    
 @DllImport("NTDSAPI")
-uint DsClientMakeSpnForTargetServerA(const(char)* ServiceClass, const(char)* ServiceName, uint* pcSpnLength, 
-                                     const(char)* pszSpn);
+uint DsClientMakeSpnForTargetServerA(const(PSTR) ServiceClass, const(PSTR) ServiceName, uint* pcSpnLength, 
+                                     PSTR pszSpn);
 
 ///The <b>DsServerRegisterSpn</b> function composes two SPNs for a host-based service. The names are based on the DNS
 ///and NetBIOS names of the local computer. The function modifies the <b>servicePrincipalName</b> attribute of either a
@@ -5169,7 +5174,7 @@ uint DsClientMakeSpnForTargetServerA(const(char)* ServiceClass, const(char)* Ser
 ///    performed permissively, so that adding a value that already exists does not return an error.
 ///    
 @DllImport("NTDSAPI")
-uint DsServerRegisterSpnA(DS_SPN_WRITE_OP Operation, const(char)* ServiceClass, const(char)* UserObjectDN);
+uint DsServerRegisterSpnA(DS_SPN_WRITE_OP Operation, const(PSTR) ServiceClass, const(PSTR) UserObjectDN);
 
 ///The <b>DsServerRegisterSpn</b> function composes two SPNs for a host-based service. The names are based on the DNS
 ///and NetBIOS names of the local computer. The function modifies the <b>servicePrincipalName</b> attribute of either a
@@ -5192,7 +5197,7 @@ uint DsServerRegisterSpnA(DS_SPN_WRITE_OP Operation, const(char)* ServiceClass, 
 ///    performed permissively, so that adding a value that already exists does not return an error.
 ///    
 @DllImport("NTDSAPI")
-uint DsServerRegisterSpnW(DS_SPN_WRITE_OP Operation, const(wchar)* ServiceClass, const(wchar)* UserObjectDN);
+uint DsServerRegisterSpnW(DS_SPN_WRITE_OP Operation, const(PWSTR) ServiceClass, const(PWSTR) UserObjectDN);
 
 ///The <b>DsReplicaSync</b> function synchronizes a destination naming context (NC) with one of its sources.
 ///Params:
@@ -5205,7 +5210,7 @@ uint DsServerRegisterSpnW(DS_SPN_WRITE_OP Operation, const(wchar)* ServiceClass,
 ///    fails, the return value is one of the standard Win32 API errors.
 ///    
 @DllImport("NTDSAPI")
-uint DsReplicaSyncA(HANDLE hDS, const(char)* NameContext, const(GUID)* pUuidDsaSrc, uint Options);
+uint DsReplicaSyncA(HANDLE hDS, const(PSTR) NameContext, const(GUID)* pUuidDsaSrc, uint Options);
 
 ///The <b>DsReplicaSync</b> function synchronizes a destination naming context (NC) with one of its sources.
 ///Params:
@@ -5218,7 +5223,7 @@ uint DsReplicaSyncA(HANDLE hDS, const(char)* NameContext, const(GUID)* pUuidDsaS
 ///    fails, the return value is one of the standard Win32 API errors.
 ///    
 @DllImport("NTDSAPI")
-uint DsReplicaSyncW(HANDLE hDS, const(wchar)* NameContext, const(GUID)* pUuidDsaSrc, uint Options);
+uint DsReplicaSyncW(HANDLE hDS, const(PWSTR) NameContext, const(GUID)* pUuidDsaSrc, uint Options);
 
 ///The <b>DsReplicaAdd</b> function adds a replication source reference to a destination naming context.
 ///Params:
@@ -5245,8 +5250,8 @@ uint DsReplicaSyncW(HANDLE hDS, const(wchar)* NameContext, const(GUID)* pUuidDsa
 ///    be one of the following.
 ///    
 @DllImport("NTDSAPI")
-uint DsReplicaAddA(HANDLE hDS, const(char)* NameContext, const(char)* SourceDsaDn, const(char)* TransportDn, 
-                   const(char)* SourceDsaAddress, const(SCHEDULE)* pSchedule, uint Options);
+uint DsReplicaAddA(HANDLE hDS, const(PSTR) NameContext, const(PSTR) SourceDsaDn, const(PSTR) TransportDn, 
+                   const(PSTR) SourceDsaAddress, const(SCHEDULE)* pSchedule, uint Options);
 
 ///The <b>DsReplicaAdd</b> function adds a replication source reference to a destination naming context.
 ///Params:
@@ -5273,8 +5278,8 @@ uint DsReplicaAddA(HANDLE hDS, const(char)* NameContext, const(char)* SourceDsaD
 ///    be one of the following.
 ///    
 @DllImport("NTDSAPI")
-uint DsReplicaAddW(HANDLE hDS, const(wchar)* NameContext, const(wchar)* SourceDsaDn, const(wchar)* TransportDn, 
-                   const(wchar)* SourceDsaAddress, const(SCHEDULE)* pSchedule, uint Options);
+uint DsReplicaAddW(HANDLE hDS, const(PWSTR) NameContext, const(PWSTR) SourceDsaDn, const(PWSTR) TransportDn, 
+                   const(PWSTR) SourceDsaAddress, const(SCHEDULE)* pSchedule, uint Options);
 
 ///The <b>DsReplicaDel</b> function removes a replication source reference from a destination naming context (NC).
 ///Params:
@@ -5292,7 +5297,7 @@ uint DsReplicaAddW(HANDLE hDS, const(wchar)* NameContext, const(wchar)* SourceDs
 ///    standard Win32 API error or <b>ERROR_INVALID_PARAMETER</b> if a parameter is invalid.
 ///    
 @DllImport("NTDSAPI")
-uint DsReplicaDelA(HANDLE hDS, const(char)* NameContext, const(char)* DsaSrc, uint Options);
+uint DsReplicaDelA(HANDLE hDS, const(PSTR) NameContext, const(PSTR) DsaSrc, uint Options);
 
 ///The <b>DsReplicaDel</b> function removes a replication source reference from a destination naming context (NC).
 ///Params:
@@ -5310,7 +5315,7 @@ uint DsReplicaDelA(HANDLE hDS, const(char)* NameContext, const(char)* DsaSrc, ui
 ///    standard Win32 API error or <b>ERROR_INVALID_PARAMETER</b> if a parameter is invalid.
 ///    
 @DllImport("NTDSAPI")
-uint DsReplicaDelW(HANDLE hDS, const(wchar)* NameContext, const(wchar)* DsaSrc, uint Options);
+uint DsReplicaDelW(HANDLE hDS, const(PWSTR) NameContext, const(PWSTR) DsaSrc, uint Options);
 
 ///The <b>DsReplicaModify</b> function modifies an existing replication source reference for a destination naming
 ///context.
@@ -5336,37 +5341,37 @@ uint DsReplicaDelW(HANDLE hDS, const(wchar)* NameContext, const(wchar)* DsaSrc, 
 ///    be one of the following.
 ///    
 @DllImport("NTDSAPI")
-uint DsReplicaModifyA(HANDLE hDS, const(char)* NameContext, const(GUID)* pUuidSourceDsa, const(char)* TransportDn, 
-                      const(char)* SourceDsaAddress, const(SCHEDULE)* pSchedule, uint ReplicaFlags, 
+uint DsReplicaModifyA(HANDLE hDS, const(PSTR) NameContext, const(GUID)* pUuidSourceDsa, const(PSTR) TransportDn, 
+                      const(PSTR) SourceDsaAddress, const(SCHEDULE)* pSchedule, uint ReplicaFlags, uint ModifyFields, 
+                      uint Options);
+
+///The <b>DsReplicaModify</b> function modifies an existing replication source reference for a destination naming
+///context.
+///Params:
+///    hDS = Contains a directory service handle obtained from either the DSBind or DSBindWithCred function.
+///    NameContext = Pointer to a constant null-terminated string that specifies the distinguished name (DN) of the destination naming
+///                  context (NC).
+///    pUuidSourceDsa = Pointer to the UUID of the source directory system agent (DSA). This parameter may be null if <i>ModifyFields</i>
+///                     does not include <b>DS_REPMOD_UPDATE_ADDRESS</b> and <i>SourceDsaAddress</i> is not <b>NULL</b>.
+///    TransportDn = Reserved for future use. Any value other than <b>NULL</b> results in <b>ERROR_NOT_SUPPORTED</b> being returned.
+///    SourceDsaAddress = Pointer to a constant null-terminated Unicode string that specifies the transport-specific address of the source
+///                       DSA. This parameter is ignored if <i>pUuidSourceDsa</i> is not <b>NULL</b> and <i>ModifyFields</i> does not
+///                       include <b>DS_REPMOD_UPDATE_ADDRESS</b>.
+///    pSchedule = Pointer to a SCHEDULE structure that contains the replication schedule data for the replication source. This
+///                parameter is optional and can be <b>NULL</b> if not used. This parameter is required if <i>ModifyFields</i>
+///                contains the <b>DS_REPMOD_UPDATE_SCHEDULE</b> flag.
+///    ReplicaFlags = This parameter is used to control replication behavior and can take the following values.
+///    ModifyFields = Specifies what fields should be modified. At least one field must be specified in <i>ModifyFields</i>. This
+///                   parameter can be a combination of the following values.
+///    Options = Passes additional data used to process the request. This parameter can be a combination of the following values.
+///Returns:
+///    If the function succeeds, the return value is <b>ERROR_SUCCESS</b>. If the function fails, the return value can
+///    be one of the following.
+///    
+@DllImport("NTDSAPI")
+uint DsReplicaModifyW(HANDLE hDS, const(PWSTR) NameContext, const(GUID)* pUuidSourceDsa, const(PWSTR) TransportDn, 
+                      const(PWSTR) SourceDsaAddress, const(SCHEDULE)* pSchedule, uint ReplicaFlags, 
                       uint ModifyFields, uint Options);
-
-///The <b>DsReplicaModify</b> function modifies an existing replication source reference for a destination naming
-///context.
-///Params:
-///    hDS = Contains a directory service handle obtained from either the DSBind or DSBindWithCred function.
-///    NameContext = Pointer to a constant null-terminated string that specifies the distinguished name (DN) of the destination naming
-///                  context (NC).
-///    pUuidSourceDsa = Pointer to the UUID of the source directory system agent (DSA). This parameter may be null if <i>ModifyFields</i>
-///                     does not include <b>DS_REPMOD_UPDATE_ADDRESS</b> and <i>SourceDsaAddress</i> is not <b>NULL</b>.
-///    TransportDn = Reserved for future use. Any value other than <b>NULL</b> results in <b>ERROR_NOT_SUPPORTED</b> being returned.
-///    SourceDsaAddress = Pointer to a constant null-terminated Unicode string that specifies the transport-specific address of the source
-///                       DSA. This parameter is ignored if <i>pUuidSourceDsa</i> is not <b>NULL</b> and <i>ModifyFields</i> does not
-///                       include <b>DS_REPMOD_UPDATE_ADDRESS</b>.
-///    pSchedule = Pointer to a SCHEDULE structure that contains the replication schedule data for the replication source. This
-///                parameter is optional and can be <b>NULL</b> if not used. This parameter is required if <i>ModifyFields</i>
-///                contains the <b>DS_REPMOD_UPDATE_SCHEDULE</b> flag.
-///    ReplicaFlags = This parameter is used to control replication behavior and can take the following values.
-///    ModifyFields = Specifies what fields should be modified. At least one field must be specified in <i>ModifyFields</i>. This
-///                   parameter can be a combination of the following values.
-///    Options = Passes additional data used to process the request. This parameter can be a combination of the following values.
-///Returns:
-///    If the function succeeds, the return value is <b>ERROR_SUCCESS</b>. If the function fails, the return value can
-///    be one of the following.
-///    
-@DllImport("NTDSAPI")
-uint DsReplicaModifyW(HANDLE hDS, const(wchar)* NameContext, const(GUID)* pUuidSourceDsa, 
-                      const(wchar)* TransportDn, const(wchar)* SourceDsaAddress, const(SCHEDULE)* pSchedule, 
-                      uint ReplicaFlags, uint ModifyFields, uint Options);
 
 ///The <b>DsReplicaUpdateRefs</b> function adds or removes a replication reference for a destination from a source
 ///naming context.
@@ -5383,7 +5388,7 @@ uint DsReplicaModifyW(HANDLE hDS, const(wchar)* NameContext, const(GUID)* pUuidS
 ///    the following.
 ///    
 @DllImport("NTDSAPI")
-uint DsReplicaUpdateRefsA(HANDLE hDS, const(char)* NameContext, const(char)* DsaDest, const(GUID)* pUuidDsaDest, 
+uint DsReplicaUpdateRefsA(HANDLE hDS, const(PSTR) NameContext, const(PSTR) DsaDest, const(GUID)* pUuidDsaDest, 
                           uint Options);
 
 ///The <b>DsReplicaUpdateRefs</b> function adds or removes a replication reference for a destination from a source
@@ -5401,7 +5406,7 @@ uint DsReplicaUpdateRefsA(HANDLE hDS, const(char)* NameContext, const(char)* Dsa
 ///    the following.
 ///    
 @DllImport("NTDSAPI")
-uint DsReplicaUpdateRefsW(HANDLE hDS, const(wchar)* NameContext, const(wchar)* DsaDest, const(GUID)* pUuidDsaDest, 
+uint DsReplicaUpdateRefsW(HANDLE hDS, const(PWSTR) NameContext, const(PWSTR) DsaDest, const(GUID)* pUuidDsaDest, 
                           uint Options);
 
 ///The <b>DsReplicaSyncAll</b> function synchronizes a server with all other servers, using transitive replication, as
@@ -5428,7 +5433,7 @@ uint DsReplicaUpdateRefsW(HANDLE hDS, const(wchar)* NameContext, const(wchar)* D
 ///    follows.
 ///    
 @DllImport("NTDSAPI")
-uint DsReplicaSyncAllA(HANDLE hDS, const(char)* pszNameContext, uint ulFlags, BOOL*********** pFnCallBack, 
+uint DsReplicaSyncAllA(HANDLE hDS, const(PSTR) pszNameContext, uint ulFlags, BOOL*********** pFnCallBack, 
                        void* pCallbackData, DS_REPSYNCALL_ERRINFOA*** pErrors);
 
 ///The <b>DsReplicaSyncAll</b> function synchronizes a server with all other servers, using transitive replication, as
@@ -5455,7 +5460,7 @@ uint DsReplicaSyncAllA(HANDLE hDS, const(char)* pszNameContext, uint ulFlags, BO
 ///    follows.
 ///    
 @DllImport("NTDSAPI")
-uint DsReplicaSyncAllW(HANDLE hDS, const(wchar)* pszNameContext, uint ulFlags, BOOL*********** pFnCallBack, 
+uint DsReplicaSyncAllW(HANDLE hDS, const(PWSTR) pszNameContext, uint ulFlags, BOOL*********** pFnCallBack, 
                        void* pCallbackData, DS_REPSYNCALL_ERRINFOW*** pErrors);
 
 ///The <b>DsRemoveDsServer</b> function removes all traces of a directory service agent (DSA) from the global area of
@@ -5477,8 +5482,7 @@ uint DsReplicaSyncAllW(HANDLE hDS, const(wchar)* pszNameContext, uint ulFlags, B
 ///    include the following.
 ///    
 @DllImport("NTDSAPI")
-uint DsRemoveDsServerW(HANDLE hDs, const(wchar)* ServerDN, const(wchar)* DomainDN, int* fLastDcInDomain, 
-                       BOOL fCommit);
+uint DsRemoveDsServerW(HANDLE hDs, PWSTR ServerDN, PWSTR DomainDN, BOOL* fLastDcInDomain, BOOL fCommit);
 
 ///The <b>DsRemoveDsServer</b> function removes all traces of a directory service agent (DSA) from the global area of
 ///the directory service.
@@ -5499,8 +5503,7 @@ uint DsRemoveDsServerW(HANDLE hDs, const(wchar)* ServerDN, const(wchar)* DomainD
 ///    include the following.
 ///    
 @DllImport("NTDSAPI")
-uint DsRemoveDsServerA(HANDLE hDs, const(char)* ServerDN, const(char)* DomainDN, int* fLastDcInDomain, 
-                       BOOL fCommit);
+uint DsRemoveDsServerA(HANDLE hDs, PSTR ServerDN, PSTR DomainDN, BOOL* fLastDcInDomain, BOOL fCommit);
 
 ///The <b>DsRemoveDsDomain</b> function removes all traces of a domain naming context from the global area of the
 ///directory service.
@@ -5513,7 +5516,7 @@ uint DsRemoveDsServerA(HANDLE hDs, const(char)* ServerDN, const(char)* DomainDN,
 ///    include the following.
 ///    
 @DllImport("NTDSAPI")
-uint DsRemoveDsDomainW(HANDLE hDs, const(wchar)* DomainDN);
+uint DsRemoveDsDomainW(HANDLE hDs, PWSTR DomainDN);
 
 ///The <b>DsRemoveDsDomain</b> function removes all traces of a domain naming context from the global area of the
 ///directory service.
@@ -5526,7 +5529,7 @@ uint DsRemoveDsDomainW(HANDLE hDs, const(wchar)* DomainDN);
 ///    include the following.
 ///    
 @DllImport("NTDSAPI")
-uint DsRemoveDsDomainA(HANDLE hDs, const(char)* DomainDN);
+uint DsRemoveDsDomainA(HANDLE hDs, PSTR DomainDN);
 
 ///The <b>DsListSites</b> function lists all the sites in the enterprise forest.
 ///Params:
@@ -5566,7 +5569,7 @@ uint DsListSitesW(HANDLE hDs, DS_NAME_RESULTW** ppSites);
 ///    value can be one of the following error codes.
 ///    
 @DllImport("NTDSAPI")
-uint DsListServersInSiteA(HANDLE hDs, const(char)* site, DS_NAME_RESULTA** ppServers);
+uint DsListServersInSiteA(HANDLE hDs, const(PSTR) site, DS_NAME_RESULTA** ppServers);
 
 ///The <b>DsListServersInSite</b> function lists all the servers in a site.
 ///Params:
@@ -5580,7 +5583,7 @@ uint DsListServersInSiteA(HANDLE hDs, const(char)* site, DS_NAME_RESULTA** ppSer
 ///    value can be one of the following error codes.
 ///    
 @DllImport("NTDSAPI")
-uint DsListServersInSiteW(HANDLE hDs, const(wchar)* site, DS_NAME_RESULTW** ppServers);
+uint DsListServersInSiteW(HANDLE hDs, const(PWSTR) site, DS_NAME_RESULTW** ppServers);
 
 ///The <b>DsListDomainsInSite</b> function lists all the domains in a site.
 ///Params:
@@ -5594,7 +5597,7 @@ uint DsListServersInSiteW(HANDLE hDs, const(wchar)* site, DS_NAME_RESULTW** ppSe
 ///    value can be one of the following error codes.
 ///    
 @DllImport("NTDSAPI")
-uint DsListDomainsInSiteA(HANDLE hDs, const(char)* site, DS_NAME_RESULTA** ppDomains);
+uint DsListDomainsInSiteA(HANDLE hDs, const(PSTR) site, DS_NAME_RESULTA** ppDomains);
 
 ///The <b>DsListDomainsInSite</b> function lists all the domains in a site.
 ///Params:
@@ -5608,7 +5611,7 @@ uint DsListDomainsInSiteA(HANDLE hDs, const(char)* site, DS_NAME_RESULTA** ppDom
 ///    value can be one of the following error codes.
 ///    
 @DllImport("NTDSAPI")
-uint DsListDomainsInSiteW(HANDLE hDs, const(wchar)* site, DS_NAME_RESULTW** ppDomains);
+uint DsListDomainsInSiteW(HANDLE hDs, const(PWSTR) site, DS_NAME_RESULTW** ppDomains);
 
 ///The <b>DsListServersForDomainInSite</b> function lists all the servers in a domain in a site.
 ///Params:
@@ -5624,7 +5627,7 @@ uint DsListDomainsInSiteW(HANDLE hDs, const(wchar)* site, DS_NAME_RESULTW** ppDo
 ///    value can be one of the following error codes.
 ///    
 @DllImport("NTDSAPI")
-uint DsListServersForDomainInSiteA(HANDLE hDs, const(char)* domain, const(char)* site, DS_NAME_RESULTA** ppServers);
+uint DsListServersForDomainInSiteA(HANDLE hDs, const(PSTR) domain, const(PSTR) site, DS_NAME_RESULTA** ppServers);
 
 ///The <b>DsListServersForDomainInSite</b> function lists all the servers in a domain in a site.
 ///Params:
@@ -5640,8 +5643,7 @@ uint DsListServersForDomainInSiteA(HANDLE hDs, const(char)* domain, const(char)*
 ///    value can be one of the following error codes.
 ///    
 @DllImport("NTDSAPI")
-uint DsListServersForDomainInSiteW(HANDLE hDs, const(wchar)* domain, const(wchar)* site, 
-                                   DS_NAME_RESULTW** ppServers);
+uint DsListServersForDomainInSiteW(HANDLE hDs, const(PWSTR) domain, const(PWSTR) site, DS_NAME_RESULTW** ppServers);
 
 ///The <b>DsListInfoForServer</b> function lists miscellaneous data for a server.
 ///Params:
@@ -5657,7 +5659,7 @@ uint DsListServersForDomainInSiteW(HANDLE hDs, const(wchar)* domain, const(wchar
 ///    can be one of the following error codes.
 ///    
 @DllImport("NTDSAPI")
-uint DsListInfoForServerA(HANDLE hDs, const(char)* server, DS_NAME_RESULTA** ppInfo);
+uint DsListInfoForServerA(HANDLE hDs, const(PSTR) server, DS_NAME_RESULTA** ppInfo);
 
 ///The <b>DsListInfoForServer</b> function lists miscellaneous data for a server.
 ///Params:
@@ -5673,7 +5675,7 @@ uint DsListInfoForServerA(HANDLE hDs, const(char)* server, DS_NAME_RESULTA** ppI
 ///    can be one of the following error codes.
 ///    
 @DllImport("NTDSAPI")
-uint DsListInfoForServerW(HANDLE hDs, const(wchar)* server, DS_NAME_RESULTW** ppInfo);
+uint DsListInfoForServerW(HANDLE hDs, const(PWSTR) server, DS_NAME_RESULTW** ppInfo);
 
 ///The <b>DsListRoles</b> function lists roles recognized by the server.
 ///Params:
@@ -5723,7 +5725,7 @@ uint DsListRolesW(HANDLE hDs, DS_NAME_RESULTW** ppRoles);
 ///    values listed in the following list.
 ///    
 @DllImport("NTDSAPI")
-uint DsQuerySitesByCostW(HANDLE hDS, const(wchar)* pwszFromSite, char* rgwszToSites, uint cToSites, uint dwFlags, 
+uint DsQuerySitesByCostW(HANDLE hDS, PWSTR pwszFromSite, PWSTR* rgwszToSites, uint cToSites, uint dwFlags, 
                          DS_SITE_COST_INFO** prgSiteInfo);
 
 ///The <b>DsQuerySitesByCost</b> function gets the communication cost between one site and one or more other sites.
@@ -5744,7 +5746,7 @@ uint DsQuerySitesByCostW(HANDLE hDS, const(wchar)* pwszFromSite, char* rgwszToSi
 ///    values listed in the following list.
 ///    
 @DllImport("NTDSAPI")
-uint DsQuerySitesByCostA(HANDLE hDS, const(char)* pszFromSite, char* rgszToSites, uint cToSites, uint dwFlags, 
+uint DsQuerySitesByCostA(HANDLE hDS, PSTR pszFromSite, PSTR* rgszToSites, uint cToSites, uint dwFlags, 
                          DS_SITE_COST_INFO** prgSiteInfo);
 
 ///The <b>DsQuerySitesFree</b> function frees the memory allocated by the DsQuerySitesByCost function.
@@ -5764,7 +5766,7 @@ void DsQuerySitesFree(DS_SITE_COST_INFO* rgSiteInfo);
 ///    Returns a standard error code that includes the following values.
 ///    
 @DllImport("NTDSAPI")
-uint DsMapSchemaGuidsA(HANDLE hDs, uint cGuids, char* rGuids, DS_SCHEMA_GUID_MAPA** ppGuidMap);
+uint DsMapSchemaGuidsA(HANDLE hDs, uint cGuids, GUID* rGuids, DS_SCHEMA_GUID_MAPA** ppGuidMap);
 
 ///The <b>DsFreeSchemaGuidMap</b> function frees memory that the DsMapSchemaGuids function has allocated for a
 ///DS_SCHEMA_GUID_MAP structure.
@@ -5787,7 +5789,7 @@ void DsFreeSchemaGuidMapA(DS_SCHEMA_GUID_MAPA* pGuidMap);
 ///    Returns a standard error code that includes the following values.
 ///    
 @DllImport("NTDSAPI")
-uint DsMapSchemaGuidsW(HANDLE hDs, uint cGuids, char* rGuids, DS_SCHEMA_GUID_MAPW** ppGuidMap);
+uint DsMapSchemaGuidsW(HANDLE hDs, uint cGuids, GUID* rGuids, DS_SCHEMA_GUID_MAPW** ppGuidMap);
 
 ///The <b>DsFreeSchemaGuidMap</b> function frees memory that the DsMapSchemaGuids function has allocated for a
 ///DS_SCHEMA_GUID_MAP structure.
@@ -5816,7 +5818,7 @@ void DsFreeSchemaGuidMapW(DS_SCHEMA_GUID_MAPW* pGuidMap);
 ///    the following error codes.
 ///    
 @DllImport("NTDSAPI")
-uint DsGetDomainControllerInfoA(HANDLE hDs, const(char)* DomainName, uint InfoLevel, uint* pcOut, void** ppInfo);
+uint DsGetDomainControllerInfoA(HANDLE hDs, const(PSTR) DomainName, uint InfoLevel, uint* pcOut, void** ppInfo);
 
 ///The <b>DsGetDomainControllerInfo</b> function retrieves data about the domain controllers in a domain.
 ///Params:
@@ -5835,7 +5837,7 @@ uint DsGetDomainControllerInfoA(HANDLE hDs, const(char)* DomainName, uint InfoLe
 ///    the following error codes.
 ///    
 @DllImport("NTDSAPI")
-uint DsGetDomainControllerInfoW(HANDLE hDs, const(wchar)* DomainName, uint InfoLevel, uint* pcOut, void** ppInfo);
+uint DsGetDomainControllerInfoW(HANDLE hDs, const(PWSTR) DomainName, uint InfoLevel, uint* pcOut, void** ppInfo);
 
 ///The <b>DsFreeDomainControllerInfo</b> function frees memory that is allocated by DsGetDomainControllerInfo for data
 ///about the domain controllers in a domain.
@@ -5848,7 +5850,7 @@ uint DsGetDomainControllerInfoW(HANDLE hDs, const(wchar)* DomainName, uint InfoL
 ///    This function does not return a value.
 ///    
 @DllImport("NTDSAPI")
-void DsFreeDomainControllerInfoA(uint InfoLevel, uint cInfo, char* pInfo);
+void DsFreeDomainControllerInfoA(uint InfoLevel, uint cInfo, void* pInfo);
 
 ///The <b>DsFreeDomainControllerInfo</b> function frees memory that is allocated by DsGetDomainControllerInfo for data
 ///about the domain controllers in a domain.
@@ -5861,7 +5863,7 @@ void DsFreeDomainControllerInfoA(uint InfoLevel, uint cInfo, char* pInfo);
 ///    This function does not return a value.
 ///    
 @DllImport("NTDSAPI")
-void DsFreeDomainControllerInfoW(uint InfoLevel, uint cInfo, char* pInfo);
+void DsFreeDomainControllerInfoW(uint InfoLevel, uint cInfo, void* pInfo);
 
 ///The <b>DsReplicaConsistencyCheck</b> function invokes the Knowledge Consistency Checker (KCC) to verify the
 ///replication topology. The KCC dynamically adjusts the data replication topology of your network when domain
@@ -5891,7 +5893,7 @@ uint DsReplicaConsistencyCheck(HANDLE hDS, DS_KCC_TASKID TaskID, uint dwFlags);
 ///    following.
 ///    
 @DllImport("NTDSAPI")
-uint DsReplicaVerifyObjectsW(HANDLE hDS, const(wchar)* NameContext, const(GUID)* pUuidDsaSrc, uint ulOptions);
+uint DsReplicaVerifyObjectsW(HANDLE hDS, const(PWSTR) NameContext, const(GUID)* pUuidDsaSrc, uint ulOptions);
 
 ///The <b>DsReplicaVerifyObjects</b> function verifies all objects for a naming context with a source.
 ///Params:
@@ -5904,7 +5906,7 @@ uint DsReplicaVerifyObjectsW(HANDLE hDS, const(wchar)* NameContext, const(GUID)*
 ///    following.
 ///    
 @DllImport("NTDSAPI")
-uint DsReplicaVerifyObjectsA(HANDLE hDS, const(char)* NameContext, const(GUID)* pUuidDsaSrc, uint ulOptions);
+uint DsReplicaVerifyObjectsA(HANDLE hDS, const(PSTR) NameContext, const(GUID)* pUuidDsaSrc, uint ulOptions);
 
 ///The <b>DsReplicaGetInfo</b> function retrieves replication state data from the directory service.
 ///Params:
@@ -5930,7 +5932,7 @@ uint DsReplicaVerifyObjectsA(HANDLE hDS, const(char)* NameContext, const(GUID)* 
 ///    codes.
 ///    
 @DllImport("NTDSAPI")
-uint DsReplicaGetInfoW(HANDLE hDS, DS_REPL_INFO_TYPE InfoType, const(wchar)* pszObject, 
+uint DsReplicaGetInfoW(HANDLE hDS, DS_REPL_INFO_TYPE InfoType, const(PWSTR) pszObject, 
                        GUID* puuidForSourceDsaObjGuid, void** ppInfo);
 
 ///The <b>DsReplicaGetInfo2</b> function retrieves replication state data from the directory service. This function
@@ -5967,8 +5969,8 @@ uint DsReplicaGetInfoW(HANDLE hDS, DS_REPL_INFO_TYPE InfoType, const(wchar)* psz
 ///    codes.
 ///    
 @DllImport("NTDSAPI")
-uint DsReplicaGetInfo2W(HANDLE hDS, DS_REPL_INFO_TYPE InfoType, const(wchar)* pszObject, 
-                        GUID* puuidForSourceDsaObjGuid, const(wchar)* pszAttributeName, const(wchar)* pszValue, 
+uint DsReplicaGetInfo2W(HANDLE hDS, DS_REPL_INFO_TYPE InfoType, const(PWSTR) pszObject, 
+                        GUID* puuidForSourceDsaObjGuid, const(PWSTR) pszAttributeName, const(PWSTR) pszValue, 
                         uint dwFlags, uint dwEnumerationContext, void** ppInfo);
 
 ///The <b>DsReplicaFreeInfo</b> function frees the replication state data structure allocated by the DsReplicaGetInfo or
@@ -6019,9 +6021,9 @@ void DsReplicaFreeInfo(DS_REPL_INFO_TYPE InfoType, void* pInfo);
 ///    Returns a Win32 error codes including the following.
 ///    
 @DllImport("NTDSAPI")
-uint DsAddSidHistoryW(HANDLE hDS, uint Flags, const(wchar)* SrcDomain, const(wchar)* SrcPrincipal, 
-                      const(wchar)* SrcDomainController, void* SrcDomainCreds, const(wchar)* DstDomain, 
-                      const(wchar)* DstPrincipal);
+uint DsAddSidHistoryW(HANDLE hDS, uint Flags, const(PWSTR) SrcDomain, const(PWSTR) SrcPrincipal, 
+                      const(PWSTR) SrcDomainController, void* SrcDomainCreds, const(PWSTR) DstDomain, 
+                      const(PWSTR) DstPrincipal);
 
 ///The <b>DsAddSidHistory</b> function retrieves the primary account security identifier (SID) of a security principal
 ///from one domain and adds it to the <b>sIDHistory</b> attribute of a security principal in another domain in a
@@ -6061,9 +6063,9 @@ uint DsAddSidHistoryW(HANDLE hDS, uint Flags, const(wchar)* SrcDomain, const(wch
 ///    Returns a Win32 error codes including the following.
 ///    
 @DllImport("NTDSAPI")
-uint DsAddSidHistoryA(HANDLE hDS, uint Flags, const(char)* SrcDomain, const(char)* SrcPrincipal, 
-                      const(char)* SrcDomainController, void* SrcDomainCreds, const(char)* DstDomain, 
-                      const(char)* DstPrincipal);
+uint DsAddSidHistoryA(HANDLE hDS, uint Flags, const(PSTR) SrcDomain, const(PSTR) SrcPrincipal, 
+                      const(PSTR) SrcDomainController, void* SrcDomainCreds, const(PSTR) DstDomain, 
+                      const(PSTR) DstPrincipal);
 
 ///The <b>DsInheritSecurityIdentity</b> function appends the <b>objectSid</b> and <b>sidHistory</b> attributes of
 ///<i>SrcPrincipal</i> to the <b>sidHistory</b> of <i>DstPrincipal</i> and then deletes <i>SrcPrincipal</i>, all in a
@@ -6081,7 +6083,7 @@ uint DsAddSidHistoryA(HANDLE hDS, uint Flags, const(char)* SrcDomain, const(char
 ///    Returns a system or RPC error code including the following.
 ///    
 @DllImport("NTDSAPI")
-uint DsInheritSecurityIdentityW(HANDLE hDS, uint Flags, const(wchar)* SrcPrincipal, const(wchar)* DstPrincipal);
+uint DsInheritSecurityIdentityW(HANDLE hDS, uint Flags, const(PWSTR) SrcPrincipal, const(PWSTR) DstPrincipal);
 
 ///The <b>DsInheritSecurityIdentity</b> function appends the <b>objectSid</b> and <b>sidHistory</b> attributes of
 ///<i>SrcPrincipal</i> to the <b>sidHistory</b> of <i>DstPrincipal</i> and then deletes <i>SrcPrincipal</i>, all in a
@@ -6099,7 +6101,7 @@ uint DsInheritSecurityIdentityW(HANDLE hDS, uint Flags, const(wchar)* SrcPrincip
 ///    Returns a system or RPC error code including the following.
 ///    
 @DllImport("NTDSAPI")
-uint DsInheritSecurityIdentityA(HANDLE hDS, uint Flags, const(char)* SrcPrincipal, const(char)* DstPrincipal);
+uint DsInheritSecurityIdentityA(HANDLE hDS, uint Flags, const(PSTR) SrcPrincipal, const(PSTR) DstPrincipal);
 
 ///The <b>DsRoleGetPrimaryDomainInformation</b> function retrieves state data for the computer. This data includes the
 ///state of the directory service installation and domain data.
@@ -6116,7 +6118,7 @@ uint DsInheritSecurityIdentityA(HANDLE hDS, uint Flags, const(char)* SrcPrincipa
 ///    can be one of the following values.
 ///    
 @DllImport("DSROLE")
-uint DsRoleGetPrimaryDomainInformation(const(wchar)* lpServer, DSROLE_PRIMARY_DOMAIN_INFO_LEVEL InfoLevel, 
+uint DsRoleGetPrimaryDomainInformation(const(PWSTR) lpServer, DSROLE_PRIMARY_DOMAIN_INFO_LEVEL InfoLevel, 
                                        ubyte** Buffer);
 
 ///The <b>DsRoleFreeMemory</b> function frees memory allocated by the DsRoleGetPrimaryDomainInformation function.
@@ -6160,7 +6162,7 @@ void DsRoleFreeMemory(void* Buffer);
 ///    the return value can be one of the following error codes.
 ///    
 @DllImport("logoncli")
-uint DsGetDcNameA(const(char)* ComputerName, const(char)* DomainName, GUID* DomainGuid, const(char)* SiteName, 
+uint DsGetDcNameA(const(PSTR) ComputerName, const(PSTR) DomainName, GUID* DomainGuid, const(PSTR) SiteName, 
                   uint Flags, DOMAIN_CONTROLLER_INFOA** DomainControllerInfo);
 
 ///The <b>DsGetDcName</b> function returns the name of a domain controller in a specified domain. This function accepts
@@ -6198,7 +6200,7 @@ uint DsGetDcNameA(const(char)* ComputerName, const(char)* DomainName, GUID* Doma
 ///    the return value can be one of the following error codes.
 ///    
 @DllImport("logoncli")
-uint DsGetDcNameW(const(wchar)* ComputerName, const(wchar)* DomainName, GUID* DomainGuid, const(wchar)* SiteName, 
+uint DsGetDcNameW(const(PWSTR) ComputerName, const(PWSTR) DomainName, GUID* DomainGuid, const(PWSTR) SiteName, 
                   uint Flags, DOMAIN_CONTROLLER_INFOW** DomainControllerInfo);
 
 ///The <b>DsGetSiteName</b> function returns the name of the site where a computer resides. For a domain controller
@@ -6214,7 +6216,7 @@ uint DsGetDcNameW(const(wchar)* ComputerName, const(wchar)* DomainName, GUID* Do
 ///    return value can be one of the following error codes.
 ///    
 @DllImport("logoncli")
-uint DsGetSiteNameA(const(char)* ComputerName, byte** SiteName);
+uint DsGetSiteNameA(const(PSTR) ComputerName, PSTR* SiteName);
 
 ///The <b>DsGetSiteName</b> function returns the name of the site where a computer resides. For a domain controller
 ///(DC), the name of the site is the location of the configured DC. For a member workstation or member server, the name
@@ -6229,7 +6231,7 @@ uint DsGetSiteNameA(const(char)* ComputerName, byte** SiteName);
 ///    return value can be one of the following error codes.
 ///    
 @DllImport("logoncli")
-uint DsGetSiteNameW(const(wchar)* ComputerName, ushort** SiteName);
+uint DsGetSiteNameW(const(PWSTR) ComputerName, PWSTR* SiteName);
 
 ///The <b>DsValidateSubnetName</b> function validates a subnet name in the form xxx.xxx.xxx.xxx/YY. The Xxx.xxx.xxx.xxx
 ///portion must be a valid IP address. Yy must be the number of leftmost significant bits included in the mask. All bits
@@ -6241,7 +6243,7 @@ uint DsGetSiteNameW(const(wchar)* ComputerName, ushort** SiteName);
 ///    return value is the following error code.
 ///    
 @DllImport("logoncli")
-uint DsValidateSubnetNameW(const(wchar)* SubnetName);
+uint DsValidateSubnetNameW(const(PWSTR) SubnetName);
 
 ///The <b>DsValidateSubnetName</b> function validates a subnet name in the form xxx.xxx.xxx.xxx/YY. The Xxx.xxx.xxx.xxx
 ///portion must be a valid IP address. Yy must be the number of leftmost significant bits included in the mask. All bits
@@ -6253,7 +6255,7 @@ uint DsValidateSubnetNameW(const(wchar)* SubnetName);
 ///    return value is the following error code.
 ///    
 @DllImport("logoncli")
-uint DsValidateSubnetNameA(const(char)* SubnetName);
+uint DsValidateSubnetNameA(const(PSTR) SubnetName);
 
 ///The <b>DsAddressToSiteNames</b> function obtains the site names corresponding to the specified addresses.
 ///Params:
@@ -6272,7 +6274,8 @@ uint DsValidateSubnetNameA(const(char)* SubnetName);
 ///    codes.
 ///    
 @DllImport("logoncli")
-uint DsAddressToSiteNamesW(const(wchar)* ComputerName, uint EntryCount, char* SocketAddresses, ushort*** SiteNames);
+uint DsAddressToSiteNamesW(const(PWSTR) ComputerName, uint EntryCount, SOCKET_ADDRESS* SocketAddresses, 
+                           PWSTR** SiteNames);
 
 ///The <b>DsAddressToSiteNames</b> function obtains the site names corresponding to the specified addresses.
 ///Params:
@@ -6291,7 +6294,8 @@ uint DsAddressToSiteNamesW(const(wchar)* ComputerName, uint EntryCount, char* So
 ///    codes.
 ///    
 @DllImport("logoncli")
-uint DsAddressToSiteNamesA(const(char)* ComputerName, uint EntryCount, char* SocketAddresses, byte*** SiteNames);
+uint DsAddressToSiteNamesA(const(PSTR) ComputerName, uint EntryCount, SOCKET_ADDRESS* SocketAddresses, 
+                           PSTR** SiteNames);
 
 ///The <b>DsAddressToSiteNamesEx</b> function obtains the site and subnet names corresponding to the addresses
 ///specified.
@@ -6316,8 +6320,8 @@ uint DsAddressToSiteNamesA(const(char)* ComputerName, uint EntryCount, char* Soc
 ///    Returns <b>NO_ERROR</b> if successful or a Win32 or RPC error otherwise. The following are possible error codes.
 ///    
 @DllImport("logoncli")
-uint DsAddressToSiteNamesExW(const(wchar)* ComputerName, uint EntryCount, char* SocketAddresses, 
-                             ushort*** SiteNames, ushort*** SubnetNames);
+uint DsAddressToSiteNamesExW(const(PWSTR) ComputerName, uint EntryCount, SOCKET_ADDRESS* SocketAddresses, 
+                             PWSTR** SiteNames, PWSTR** SubnetNames);
 
 ///The <b>DsAddressToSiteNamesEx</b> function obtains the site and subnet names corresponding to the addresses
 ///specified.
@@ -6342,8 +6346,8 @@ uint DsAddressToSiteNamesExW(const(wchar)* ComputerName, uint EntryCount, char* 
 ///    Returns <b>NO_ERROR</b> if successful or a Win32 or RPC error otherwise. The following are possible error codes.
 ///    
 @DllImport("logoncli")
-uint DsAddressToSiteNamesExA(const(char)* ComputerName, uint EntryCount, char* SocketAddresses, byte*** SiteNames, 
-                             byte*** SubnetNames);
+uint DsAddressToSiteNamesExA(const(PSTR) ComputerName, uint EntryCount, SOCKET_ADDRESS* SocketAddresses, 
+                             PSTR** SiteNames, PSTR** SubnetNames);
 
 ///The <b>DsEnumerateDomainTrusts</b> function obtains domain trust data for a specified domain.
 ///Params:
@@ -6365,7 +6369,7 @@ uint DsAddressToSiteNamesExA(const(char)* ComputerName, uint EntryCount, char* S
 ///    listed in the following list.
 ///    
 @DllImport("logoncli")
-uint DsEnumerateDomainTrustsW(const(wchar)* ServerName, uint Flags, DS_DOMAIN_TRUSTSW** Domains, uint* DomainCount);
+uint DsEnumerateDomainTrustsW(PWSTR ServerName, uint Flags, DS_DOMAIN_TRUSTSW** Domains, uint* DomainCount);
 
 ///The <b>DsEnumerateDomainTrusts</b> function obtains domain trust data for a specified domain.
 ///Params:
@@ -6387,7 +6391,7 @@ uint DsEnumerateDomainTrustsW(const(wchar)* ServerName, uint Flags, DS_DOMAIN_TR
 ///    listed in the following list.
 ///    
 @DllImport("logoncli")
-uint DsEnumerateDomainTrustsA(const(char)* ServerName, uint Flags, DS_DOMAIN_TRUSTSA** Domains, uint* DomainCount);
+uint DsEnumerateDomainTrustsA(PSTR ServerName, uint Flags, DS_DOMAIN_TRUSTSA** Domains, uint* DomainCount);
 
 ///The <b>DsGetForestTrustInformationW</b> function obtains forest trust data for a specified domain.
 ///Params:
@@ -6407,7 +6411,7 @@ uint DsEnumerateDomainTrustsA(const(char)* ServerName, uint Flags, DS_DOMAIN_TRU
 ///    following.
 ///    
 @DllImport("logoncli")
-uint DsGetForestTrustInformationW(const(wchar)* ServerName, const(wchar)* TrustedDomainName, uint Flags, 
+uint DsGetForestTrustInformationW(const(PWSTR) ServerName, const(PWSTR) TrustedDomainName, uint Flags, 
                                   LSA_FOREST_TRUST_INFORMATION** ForestTrustInfo);
 
 ///The <b>DsMergeForestTrustInformationW</b> function merges the changes from a new forest trust data structure with an
@@ -6424,7 +6428,7 @@ uint DsGetForestTrustInformationW(const(wchar)* ServerName, const(wchar)* Truste
 ///    Returns <b>NO_ERROR</b> if successful or a Windows error code otherwise.
 ///    
 @DllImport("logoncli")
-uint DsMergeForestTrustInformationW(const(wchar)* DomainName, LSA_FOREST_TRUST_INFORMATION* NewForestTrustInfo, 
+uint DsMergeForestTrustInformationW(const(PWSTR) DomainName, LSA_FOREST_TRUST_INFORMATION* NewForestTrustInfo, 
                                     LSA_FOREST_TRUST_INFORMATION* OldForestTrustInfo, 
                                     LSA_FOREST_TRUST_INFORMATION** MergedForestTrustInfo);
 
@@ -6438,7 +6442,7 @@ uint DsMergeForestTrustInformationW(const(wchar)* DomainName, LSA_FOREST_TRUST_I
 ///    This function returns DSGETDCAPI DWORD.
 ///    
 @DllImport("logoncli")
-uint DsGetDcSiteCoverageW(const(wchar)* ServerName, uint* EntryCount, ushort*** SiteNames);
+uint DsGetDcSiteCoverageW(const(PWSTR) ServerName, uint* EntryCount, PWSTR** SiteNames);
 
 ///The <b>DsGetDcSiteCoverage</b> function returns the site names of all sites covered by a domain controller.
 ///Params:
@@ -6450,7 +6454,7 @@ uint DsGetDcSiteCoverageW(const(wchar)* ServerName, uint* EntryCount, ushort*** 
 ///    This function returns DSGETDCAPI DWORD.
 ///    
 @DllImport("logoncli")
-uint DsGetDcSiteCoverageA(const(char)* ServerName, uint* EntryCount, byte*** SiteNames);
+uint DsGetDcSiteCoverageA(const(PSTR) ServerName, uint* EntryCount, PSTR** SiteNames);
 
 ///The <b>DsDeregisterDnsHostRecords</b> function deletes DNS entries, except for type A records registered by a domain
 ///controller. Only an administrator, account operator, or server operator may call this function.
@@ -6469,8 +6473,8 @@ uint DsGetDcSiteCoverageA(const(char)* ServerName, uint* EntryCount, byte*** Sit
 ///    This function returns DSGETDCAPI DWORD.
 ///    
 @DllImport("logoncli")
-uint DsDeregisterDnsHostRecordsW(const(wchar)* ServerName, const(wchar)* DnsDomainName, GUID* DomainGuid, 
-                                 GUID* DsaGuid, const(wchar)* DnsHostName);
+uint DsDeregisterDnsHostRecordsW(PWSTR ServerName, PWSTR DnsDomainName, GUID* DomainGuid, GUID* DsaGuid, 
+                                 PWSTR DnsHostName);
 
 ///The <b>DsDeregisterDnsHostRecords</b> function deletes DNS entries, except for type A records registered by a domain
 ///controller. Only an administrator, account operator, or server operator may call this function.
@@ -6489,8 +6493,8 @@ uint DsDeregisterDnsHostRecordsW(const(wchar)* ServerName, const(wchar)* DnsDoma
 ///    This function returns DSGETDCAPI DWORD.
 ///    
 @DllImport("logoncli")
-uint DsDeregisterDnsHostRecordsA(const(char)* ServerName, const(char)* DnsDomainName, GUID* DomainGuid, 
-                                 GUID* DsaGuid, const(char)* DnsHostName);
+uint DsDeregisterDnsHostRecordsA(PSTR ServerName, PSTR DnsDomainName, GUID* DomainGuid, GUID* DsaGuid, 
+                                 PSTR DnsHostName);
 
 ///The <b>DsGetDcOpen</b> function opens a new domain controller enumeration operation.
 ///Params:
@@ -6517,8 +6521,8 @@ uint DsDeregisterDnsHostRecordsA(const(char)* ServerName, const(char)* DnsDomain
 ///    following.
 ///    
 @DllImport("logoncli")
-uint DsGetDcOpenW(const(wchar)* DnsName, uint OptionFlags, const(wchar)* SiteName, GUID* DomainGuid, 
-                  const(wchar)* DnsForestName, uint DcFlags, GetDcContextHandle* RetGetDcContext);
+uint DsGetDcOpenW(const(PWSTR) DnsName, uint OptionFlags, const(PWSTR) SiteName, GUID* DomainGuid, 
+                  const(PWSTR) DnsForestName, uint DcFlags, GetDcContextHandle* RetGetDcContext);
 
 ///The <b>DsGetDcOpen</b> function opens a new domain controller enumeration operation.
 ///Params:
@@ -6545,8 +6549,8 @@ uint DsGetDcOpenW(const(wchar)* DnsName, uint OptionFlags, const(wchar)* SiteNam
 ///    following.
 ///    
 @DllImport("logoncli")
-uint DsGetDcOpenA(const(char)* DnsName, uint OptionFlags, const(char)* SiteName, GUID* DomainGuid, 
-                  const(char)* DnsForestName, uint DcFlags, GetDcContextHandle* RetGetDcContext);
+uint DsGetDcOpenA(const(PSTR) DnsName, uint OptionFlags, const(PSTR) SiteName, GUID* DomainGuid, 
+                  const(PSTR) DnsForestName, uint DcFlags, GetDcContextHandle* RetGetDcContext);
 
 ///The <b>DsGetDcNext</b> function retrieves the next domain controller in a domain controller enumeration operation.
 ///Params:
@@ -6567,7 +6571,7 @@ uint DsGetDcOpenA(const(char)* DnsName, uint OptionFlags, const(char)* SiteName,
 ///    
 @DllImport("logoncli")
 uint DsGetDcNextW(HANDLE GetDcContextHandle, uint* SockAddressCount, SOCKET_ADDRESS** SockAddresses, 
-                  ushort** DnsHostName);
+                  PWSTR* DnsHostName);
 
 ///The <b>DsGetDcNext</b> function retrieves the next domain controller in a domain controller enumeration operation.
 ///Params:
@@ -6588,7 +6592,7 @@ uint DsGetDcNextW(HANDLE GetDcContextHandle, uint* SockAddressCount, SOCKET_ADDR
 ///    
 @DllImport("logoncli")
 uint DsGetDcNextA(HANDLE GetDcContextHandle, uint* SockAddressCount, SOCKET_ADDRESS** SockAddresses, 
-                  byte** DnsHostName);
+                  PSTR* DnsHostName);
 
 ///The <b>DsGetDcClose</b> function closes a domain controller enumeration operation.
 ///Params:
@@ -6597,7 +6601,7 @@ uint DsGetDcNextA(HANDLE GetDcContextHandle, uint* SockAddressCount, SOCKET_ADDR
 ///    This function does not return a value.
 ///    
 @DllImport("logoncli")
-void DsGetDcCloseW(HANDLE GetDcContextHandle);
+void DsGetDcCloseW(GetDcContextHandle GetDcContextHandle);
 
 
 // Interfaces
@@ -6732,7 +6736,7 @@ interface IPersistQuery : IPersist
     ///    Returns <b>S_OK</b> if successful or a standard <b>HRESULT</b> value otherwise. Possible error codes include
     ///    the following.
     ///    
-    HRESULT WriteString(const(wchar)* pSection, const(wchar)* pValueName, const(wchar)* pValue);
+    HRESULT WriteString(const(PWSTR) pSection, const(PWSTR) pValueName, const(PWSTR) pValue);
     ///The <b>IPersistQuery::ReadString</b> method reads a string from the query store.
     ///Params:
     ///    pSection = Pointer to a null-terminated Unicode string that represents the section name that the string should be read
@@ -6745,7 +6749,7 @@ interface IPersistQuery : IPersist
     ///    Returns <b>S_OK</b> if successful or a standard <b>HRESULT</b> value otherwise. Possible error codes include
     ///    the following.
     ///    
-    HRESULT ReadString(const(wchar)* pSection, const(wchar)* pValueName, const(wchar)* pBuffer, int cchBuffer);
+    HRESULT ReadString(const(PWSTR) pSection, const(PWSTR) pValueName, PWSTR pBuffer, int cchBuffer);
     ///The <b>IPersistQuery::WriteInt</b> method writes an integer value to the query store.
     ///Params:
     ///    pSection = Pointer to a null-terminated Unicode string that represents the section name that the integer should be
@@ -6756,7 +6760,7 @@ interface IPersistQuery : IPersist
     ///    Returns <b>S_OK</b> if successful or a standard <b>HRESULT</b> value otherwise. Possible error codes include
     ///    the following.
     ///    
-    HRESULT WriteInt(const(wchar)* pSection, const(wchar)* pValueName, int value);
+    HRESULT WriteInt(const(PWSTR) pSection, const(PWSTR) pValueName, int value);
     ///The <b>IPersistQuery::ReadInt</b> method reads an integer value from the query store.
     ///Params:
     ///    pSection = A pointer to a null-terminated Unicode string that represents the section name that the integer should be
@@ -6767,7 +6771,7 @@ interface IPersistQuery : IPersist
     ///    Returns <b>S_OK</b> if successful or a standard <b>HRESULT</b> value otherwise. Possible error codes include
     ///    the following.
     ///    
-    HRESULT ReadInt(const(wchar)* pSection, const(wchar)* pValueName, int* pValue);
+    HRESULT ReadInt(const(PWSTR) pSection, const(PWSTR) pValueName, int* pValue);
     ///The <b>IPersistQuery::WriteStruct</b> method writes a structure to the query store.
     ///Params:
     ///    pSection = Pointer to a null-terminated Unicode string that represents the section name that the structure should be
@@ -6780,7 +6784,7 @@ interface IPersistQuery : IPersist
     ///    Returns <b>S_OK</b> if successful or a standard <b>HRESULT</b> value otherwise. Possible error codes include
     ///    the following.
     ///    
-    HRESULT WriteStruct(const(wchar)* pSection, const(wchar)* pValueName, void* pStruct, uint cbStruct);
+    HRESULT WriteStruct(const(PWSTR) pSection, const(PWSTR) pValueName, void* pStruct, uint cbStruct);
     ///The <b>IPersistQuery::ReadStruct</b> method reads a structure from the query store.
     ///Params:
     ///    pSection = Pointer to a null-terminated Unicode string that represents the section name that the structure should be
@@ -6793,7 +6797,7 @@ interface IPersistQuery : IPersist
     ///    Returns <b>S_OK</b> if successful or a standard <b>HRESULT</b> value otherwise. Possible error codes include
     ///    the following.
     ///    
-    HRESULT ReadStruct(const(wchar)* pSection, const(wchar)* pValueName, void* pStruct, uint cbStruct);
+    HRESULT ReadStruct(const(PWSTR) pSection, const(PWSTR) pValueName, void* pStruct, uint cbStruct);
     ///The <b>IPersistQuery::Clear</b> method empties the contents of the query store.
     ///Returns:
     ///    Returns <b>S_OK</b> if successful or a standard <b>HRESULT</b> value otherwise.
@@ -8223,7 +8227,7 @@ interface IDirectoryObject : IUnknown
     ///    This method returns the standard values, as well as the following: For more information and other return
     ///    values, see ADSI Error Codes.
     ///    
-    HRESULT GetObjectAttributes(ushort** pAttributeNames, uint dwNumberAttributes, 
+    HRESULT GetObjectAttributes(PWSTR* pAttributeNames, uint dwNumberAttributes, 
                                 ADS_ATTR_INFO** ppAttributeEntries, uint* pdwNumAttributesReturned);
     ///The <b>IDirectoryObject::SetObjectAttributes</b> method modifies data in one or more specified object attributes
     ///defined in the ADS_ATTR_INFO structure.
@@ -8251,7 +8255,7 @@ interface IDirectoryObject : IUnknown
     ///    This method returns the standard return values, including S_OK for a successful operation. For more
     ///    information and other return values, see ADSI Error Codes.
     ///    
-    HRESULT CreateDSObject(const(wchar)* pszRDNName, ADS_ATTR_INFO* pAttributeEntries, uint dwNumAttributes, 
+    HRESULT CreateDSObject(PWSTR pszRDNName, ADS_ATTR_INFO* pAttributeEntries, uint dwNumAttributes, 
                            IDispatch* ppObject);
     ///The <b>IDirectoryObject::DeleteDSObject</b> method deletes a leaf object in a directory tree.
     ///Params:
@@ -8260,7 +8264,7 @@ interface IDirectoryObject : IUnknown
     ///    This method returns the standard return values, including S_OK for a successful operation. For more
     ///    information and other return values, see ADSI Error Codes.
     ///    
-    HRESULT DeleteDSObject(const(wchar)* pszRDNName);
+    HRESULT DeleteDSObject(PWSTR pszRDNName);
 }
 
 ///The <b>IDirectorySearch</b> interface is a pure COM interface that provides a low overhead method that non-Automation
@@ -8297,7 +8301,7 @@ interface IDirectorySearch : IUnknown
     ///    This method returns the standard return values, as well as the following: For more information and other
     ///    return values, see ADSI Error Codes.
     ///    
-    HRESULT ExecuteSearch(const(wchar)* pszSearchFilter, ushort** pAttributeNames, uint dwNumberAttributes, 
+    HRESULT ExecuteSearch(PWSTR pszSearchFilter, PWSTR* pAttributeNames, uint dwNumberAttributes, 
                           ptrdiff_t* phSearchResult);
     ///The <b>IDirectorySearch::AbandonSearch</b> method abandons a search initiated by an earlier call to the
     ///ExecuteSearch method.
@@ -8346,7 +8350,7 @@ interface IDirectorySearch : IUnknown
     ///    This method returns the standard return values, as well as the following: For other return values, see ADSI
     ///    Error Codes.
     ///    
-    HRESULT GetNextColumnName(ptrdiff_t hSearchHandle, ushort** ppszColumnName);
+    HRESULT GetNextColumnName(ptrdiff_t hSearchHandle, PWSTR* ppszColumnName);
     ///The <b>IDirectorySearch::GetColumn</b> method gets data from a named column of the search result.
     ///Params:
     ///    hSearchResult = Provides a handle to the search context.
@@ -8357,7 +8361,7 @@ interface IDirectorySearch : IUnknown
     ///    This method returns the standard return values, as well as the following. For other return values, see ADSI
     ///    Error Codes.
     ///    
-    HRESULT GetColumn(ptrdiff_t hSearchResult, const(wchar)* szColumnName, ads_search_column* pSearchColumn);
+    HRESULT GetColumn(ptrdiff_t hSearchResult, PWSTR szColumnName, ads_search_column* pSearchColumn);
     ///The <b>IDirectorySearch::FreeColumn</b> method releases memory that the IDirectorySearch::GetColumn method
     ///allocated for data for the column.
     ///Params:
@@ -8382,16 +8386,16 @@ interface IDirectorySearch : IUnknown
 @GUID("75DB3B9C-A4D8-11D0-A79C-00C04FD8D5A8")
 interface IDirectorySchemaMgmt : IUnknown
 {
-    HRESULT EnumAttributes(ushort** ppszAttrNames, uint dwNumAttributes, ADS_ATTR_DEF** ppAttrDefinition, 
+    HRESULT EnumAttributes(PWSTR* ppszAttrNames, uint dwNumAttributes, ADS_ATTR_DEF** ppAttrDefinition, 
                            uint* pdwNumAttributes);
-    HRESULT CreateAttributeDefinition(const(wchar)* pszAttributeName, ADS_ATTR_DEF* pAttributeDefinition);
-    HRESULT WriteAttributeDefinition(const(wchar)* pszAttributeName, ADS_ATTR_DEF* pAttributeDefinition);
-    HRESULT DeleteAttributeDefinition(const(wchar)* pszAttributeName);
-    HRESULT EnumClasses(ushort** ppszClassNames, uint dwNumClasses, ADS_CLASS_DEF** ppClassDefinition, 
+    HRESULT CreateAttributeDefinition(PWSTR pszAttributeName, ADS_ATTR_DEF* pAttributeDefinition);
+    HRESULT WriteAttributeDefinition(PWSTR pszAttributeName, ADS_ATTR_DEF* pAttributeDefinition);
+    HRESULT DeleteAttributeDefinition(PWSTR pszAttributeName);
+    HRESULT EnumClasses(PWSTR* ppszClassNames, uint dwNumClasses, ADS_CLASS_DEF** ppClassDefinition, 
                         uint* pdwNumClasses);
-    HRESULT WriteClassDefinition(const(wchar)* pszClassName, ADS_CLASS_DEF* pClassDefinition);
-    HRESULT CreateClassDefinition(const(wchar)* pszClassName, ADS_CLASS_DEF* pClassDefinition);
-    HRESULT DeleteClassDefinition(const(wchar)* pszClassName);
+    HRESULT WriteClassDefinition(PWSTR pszClassName, ADS_CLASS_DEF* pClassDefinition);
+    HRESULT CreateClassDefinition(PWSTR pszClassName, ADS_CLASS_DEF* pClassDefinition);
+    HRESULT DeleteClassDefinition(PWSTR pszClassName);
 }
 
 @GUID("1346CE8C-9039-11D0-8528-00C04FD8D503")
@@ -9097,7 +9101,7 @@ interface IDsBrowseDomainTree : IUnknown
     ///Returns:
     ///    Returns a standard <b>HRESULT</b> value including the following.
     ///    
-    HRESULT BrowseTo(HWND hwndParent, ushort** ppszTargetPath, uint dwFlags);
+    HRESULT BrowseTo(HWND hwndParent, PWSTR* ppszTargetPath, uint dwFlags);
     ///The <b>IDsBrowseDomainTree::GetDomains</b> method retrieves the trust domains of the current computer. The
     ///current computer is set using the IDsBrowseDomainTree::SetComputer method.
     ///Params:
@@ -9131,7 +9135,7 @@ interface IDsBrowseDomainTree : IUnknown
     ///Returns:
     ///    Returns a standard <b>HRESULT</b> value including the following.
     ///    
-    HRESULT SetComputer(const(wchar)* pszComputerName, const(wchar)* pszUserName, const(wchar)* pszPassword);
+    HRESULT SetComputer(const(PWSTR) pszComputerName, const(PWSTR) pszUserName, const(PWSTR) pszPassword);
 }
 
 ///The <b>IDsDisplaySpecifier</b> interface provides access to Active Directory Domain Service objects of the
@@ -9163,7 +9167,7 @@ interface IDsDisplaySpecifier : IUnknown
     ///Returns:
     ///    Returns a standard <b>HRESULT</b> value including the following.
     ///    
-    HRESULT SetServer(const(wchar)* pszServer, const(wchar)* pszUserName, const(wchar)* pszPassword, uint dwFlags);
+    HRESULT SetServer(const(PWSTR) pszServer, const(PWSTR) pszUserName, const(PWSTR) pszPassword, uint dwFlags);
     ///The <b>IDsDisplaySpecifier::SetLanguageID</b> method changes the locale used by the IDsDisplaySpecifier object to
     ///a specified language.
     ///Params:
@@ -9184,7 +9188,7 @@ interface IDsDisplaySpecifier : IUnknown
     ///Returns:
     ///    Returns a standard <b>HRESULT</b> value including the following.
     ///    
-    HRESULT GetDisplaySpecifier(const(wchar)* pszObjectClass, const(GUID)* riid, void** ppv);
+    HRESULT GetDisplaySpecifier(const(PWSTR) pszObjectClass, const(GUID)* riid, void** ppv);
     ///The <b>IDsDisplaySpecifier::GetIconLocation</b> method obtains the icon location for a given object class. The
     ///icon location includes the filename and resource identifier.
     ///Params:
@@ -9202,8 +9206,7 @@ interface IDsDisplaySpecifier : IUnknown
     ///Returns:
     ///    Returns a standard <b>HRESULT</b> value including the following.
     ///    
-    HRESULT GetIconLocation(const(wchar)* pszObjectClass, uint dwFlags, const(wchar)* pszBuffer, int cchBuffer, 
-                            int* presid);
+    HRESULT GetIconLocation(const(PWSTR) pszObjectClass, uint dwFlags, PWSTR pszBuffer, int cchBuffer, int* presid);
     ///The <b>IDsDisplaySpecifier::GetIcon</b> method obtains the icon for a given object class.
     ///Params:
     ///    pszObjectClass = Pointer to a null-terminated Unicode string that contains the name of the object class to obtain the icon
@@ -9218,7 +9221,7 @@ interface IDsDisplaySpecifier : IUnknown
     ///    Returns a handle to the icon, if successful, or <b>NULL</b> otherwise. The caller must destroy this icon when
     ///    it is no longer required by passing this handle to DestroyIcon.
     ///    
-    HICON   GetIcon(const(wchar)* pszObjectClass, uint dwFlags, int cxIcon, int cyIcon);
+    HICON   GetIcon(const(PWSTR) pszObjectClass, uint dwFlags, int cxIcon, int cyIcon);
     ///The <b>IDsDisplaySpecifier::GetFriendlyClassName</b> method retrieves the localized name for an object class.
     ///Params:
     ///    pszObjectClass = Pointer to a null-terminated Unicode string that contains the name of the object class to obtain the name of.
@@ -9230,7 +9233,7 @@ interface IDsDisplaySpecifier : IUnknown
     ///Returns:
     ///    Returns a standard <b>HRESULT</b> value, including the following.
     ///    
-    HRESULT GetFriendlyClassName(const(wchar)* pszObjectClass, const(wchar)* pszBuffer, int cchBuffer);
+    HRESULT GetFriendlyClassName(const(PWSTR) pszObjectClass, PWSTR pszBuffer, int cchBuffer);
     ///The <b>IDsDisplaySpecifier::GetFriendlyAttributeName</b> method retrieves from the localized name of an attribute
     ///of a given object class.
     ///Params:
@@ -9245,8 +9248,8 @@ interface IDsDisplaySpecifier : IUnknown
     ///Returns:
     ///    Returns a standard <b>HRESULT</b> value, including the following.
     ///    
-    HRESULT GetFriendlyAttributeName(const(wchar)* pszObjectClass, const(wchar)* pszAttributeName, 
-                                     const(wchar)* pszBuffer, uint cchBuffer);
+    HRESULT GetFriendlyAttributeName(const(PWSTR) pszObjectClass, const(PWSTR) pszAttributeName, PWSTR pszBuffer, 
+                                     uint cchBuffer);
     ///The <b>IDsDisplaySpecifier::IsClassContainer</b> method determines if a given object class is a container.
     ///Params:
     ///    pszObjectClass = Pointer to a null-terminated Unicode string that contains the name of the object class to determine if it is
@@ -9257,7 +9260,7 @@ interface IDsDisplaySpecifier : IUnknown
     ///Returns:
     ///    Returns <b>TRUE</b> if the specified class is a container. Otherwise it returns <b>FALSE</b>.
     ///    
-    BOOL    IsClassContainer(const(wchar)* pszObjectClass, const(wchar)* pszADsPath, uint dwFlags);
+    BOOL    IsClassContainer(const(PWSTR) pszObjectClass, const(PWSTR) pszADsPath, uint dwFlags);
     ///The <b>IDsDisplaySpecifier::GetClassCreationInfo</b> method retrieves data about the class creation wizard
     ///objects for a given object class.
     ///Params:
@@ -9268,7 +9271,7 @@ interface IDsDisplaySpecifier : IUnknown
     ///Returns:
     ///    Returns a standard <b>HRESULT</b> value including the following.
     ///    
-    HRESULT GetClassCreationInfo(const(wchar)* pszObjectClass, DSCLASSCREATIONINFO** ppdscci);
+    HRESULT GetClassCreationInfo(const(PWSTR) pszObjectClass, DSCLASSCREATIONINFO** ppdscci);
     ///The <b>IDsDisplaySpecifier::EnumClassAttributes</b> method enumerates the attributes for a given object class.
     ///The enumeration provides both the LDAP and localized names of each attribute.
     ///Params:
@@ -9281,14 +9284,14 @@ interface IDsDisplaySpecifier : IUnknown
     ///Returns:
     ///    Returns a standard <b>HRESULT</b> value including the following.
     ///    
-    HRESULT EnumClassAttributes(const(wchar)* pszObjectClass, LPDSENUMATTRIBUTES pcbEnum, LPARAM lParam);
+    HRESULT EnumClassAttributes(const(PWSTR) pszObjectClass, LPDSENUMATTRIBUTES pcbEnum, LPARAM lParam);
     ///The <b>IDsDisplaySpecifier::GetAttributeADsType</b> method retrieves the attribute type for a given attribute.
     ///Params:
     ///    pszAttributeName = Pointer to a null-terminated Unicode string that contains the name of the attribute to obtain the type for.
     ///Returns:
     ///    Returns one of the ADSTYPEENUM values that indicate the type of the attribute.
     ///    
-    ADSTYPEENUM GetAttributeADsType(const(wchar)* pszAttributeName);
+    ADSTYPEENUM GetAttributeADsType(const(PWSTR) pszAttributeName);
 }
 
 ///The <b>IDsObjectPicker</b> interface is used by an application to initialize and display an object picker dialog box.
@@ -9333,7 +9336,7 @@ interface IDsObjectPickerCredentials : IDsObjectPicker
     ///Returns:
     ///    S_OK indicates success.
     ///    
-    HRESULT SetCredentials(const(wchar)* szUserName, const(wchar)* szPassword);
+    HRESULT SetCredentials(const(PWSTR) szUserName, const(PWSTR) szPassword);
 }
 
 ///The <b>IDsAdminCreateObj</b> interface is implemented by the system and used by an application or component to
@@ -9358,7 +9361,7 @@ interface IDsAdminCreateObj : IUnknown
     ///Returns:
     ///    If the method succeeds, <b>S_OK</b> is returned. If the method fails, an OLE-defined error code is returned.
     ///    
-    HRESULT Initialize(IADsContainer pADsContainerObj, IADs pADsCopySource, const(wchar)* lpszClassName);
+    HRESULT Initialize(IADsContainer pADsContainerObj, IADs pADsCopySource, const(PWSTR) lpszClassName);
     ///The <b>IDsAdminCreateObj::CreateModal</b> method displays the object creation wizard and returns the newly
     ///created object. The IDsAdminCreateObj::Initialize method must be called before
     ///<b>IDsAdminCreateObj::CreateModal</b> can be called.
@@ -9416,7 +9419,7 @@ interface IDsAdminNewObjPrimarySite : IUnknown
     ///    If the method succeeds, <b>S_OK</b> is returned. If the method fails, an OLE-defined error code is returned.
     ///    This method fails if the calling extension is not a primary object creation extension.
     ///    
-    HRESULT CreateNew(const(wchar)* pszName);
+    HRESULT CreateNew(const(PWSTR) pszName);
     ///The <b>IDsAdminNewObjPrimarySite::Commit</b> method causes a single-page primary object creation extension's
     ///IDsAdminNewObjExt::WriteData method to be called and writes the temporary object to persistent memory.
     ///Returns:
@@ -9452,7 +9455,7 @@ interface IDsAdminNewObjExt : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful or an OLE-defined error code otherwise.
     ///    
-    HRESULT Initialize(IADsContainer pADsContainerObj, IADs pADsCopySource, const(wchar)* lpszClassName, 
+    HRESULT Initialize(IADsContainer pADsContainerObj, IADs pADsCopySource, const(PWSTR) lpszClassName, 
                        IDsAdminNewObj pDsAdminNewObj, DSA_NEWOBJ_DISPINFO* pDispInfo);
     ///The <b>IDsAdminNewObjExt::AddPages</b> method is called to enable the object creation wizard extension to add the
     ///desired pages to the wizard.

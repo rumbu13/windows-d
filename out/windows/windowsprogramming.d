@@ -8,7 +8,6 @@ public import windows.com : HRESULT, IBindCtx, IMalloc, IUnknown, OLECMDEXECOPT,
                             OLECMDF, OLECMDID, QUERYCONTEXT;
 public import windows.coreaudio : DDVIDEOPORTCONNECT;
 public import windows.dbg : CONTEXT, DEBUG_EVENT, EXCEPTION_RECORD, LDT_ENTRY;
-public import windows.direct2d : PALETTEENTRY;
 public import windows.directdraw : DDBLTFX, DDCOLORCONTROL, DDGAMMARAMP, DDOVERLAYFX,
                                    DDPIXELFORMAT, DDSCAPS, DDSCAPS2, DDSCAPSEX,
                                    DDSURFACEDESC, DDSURFACEDESC2;
@@ -18,22 +17,23 @@ public import windows.displaydevices : DDCORECAPS, DDHAL_DESTROYDDLOCALDATA,
                                        DDVIDEOPORTBANDWIDTH, DDVIDEOPORTCAPS,
                                        DDVIDEOPORTDESC, DDVIDEOPORTINFO,
                                        HEAPALIGNMENT, RECT, RECTL, VMEMHEAP;
-public import windows.gdi : HDC, HPALETTE, RGNDATA;
+public import windows.gdi : HDC, HPALETTE, PALETTEENTRY, RGNDATA;
 public import windows.kernel : LIST_ENTRY;
 public import windows.rpc : MIDL_STUB_MESSAGE;
 public import windows.security : GENERIC_MAPPING, PRIVILEGE_SET, UNICODE_STRING;
 public import windows.systemservices : BOOL, CUSTOM_SYSTEM_EVENT_TRIGGER_CONFIG,
-                                       DEVPROPCOMPKEY, DEVPROPERTY, DEVPROPKEY,
-                                       DEVPROPSTORE, FLOATING_SAVE_AREA, HANDLE,
-                                       HINSTANCE, JOB_SET_ARRAY, LARGE_INTEGER,
+                                       CloseEventLog, DEVPROPCOMPKEY, DEVPROPERTY,
+                                       DEVPROPKEY, DEVPROPSTORE, DeregisterEventSource,
+                                       FLOATING_SAVE_AREA, HANDLE, HINSTANCE,
+                                       HeapDestroy, JOB_SET_ARRAY, LARGE_INTEGER,
                                        LPTHREAD_START_ROUTINE, LRESULT, LSTATUS,
                                        NTSTATUS, PEB, PROCESS_DYNAMIC_EH_CONTINUATION_TARGET,
-                                       SECURITY_ATTRIBUTES, STARTUPINFOA,
-                                       SYSTEM_CPU_SET_INFORMATION, WAITORTIMERCALLBACK,
-                                       uCLSSPEC;
+                                       PSTR, PWSTR, SECURITY_ATTRIBUTES,
+                                       STARTUPINFOA, SYSTEM_CPU_SET_INFORMATION,
+                                       WAITORTIMERCALLBACK, uCLSSPEC;
 public import windows.windowsandmessaging : HWND, LPARAM, WPARAM;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -110,43 +110,16 @@ enum : uint
     VER_PRODUCT_TYPE     = 0x00000080,
 }
 
-enum ProcessAccessRights : uint
-{
-    Terminate               = 0x00000001,
-    CreateThread            = 0x00000002,
-    SetSessionid            = 0x00000004,
-    VmOperation             = 0x00000008,
-    VmRead                  = 0x00000010,
-    VmWrite                 = 0x00000020,
-    DupHandle               = 0x00000040,
-    CreateProcess           = 0x00000080,
-    SetQuota                = 0x00000100,
-    SetInformation          = 0x00000200,
-    QueryInformation        = 0x00000400,
-    SuspendResume           = 0x00000800,
-    QueryLimitedInformation = 0x00001000,
-    SetLimitedInformation   = 0x00002000,
-    AllAccess               = 0x001fffff,
-    Delete                  = 0x00010000,
-    ReadControl             = 0x00020000,
-    WriteDac                = 0x00040000,
-    WriteOwner              = 0x00080000,
-    Synchronize             = 0x00100000,
-    StandardRightsRequired  = 0x000f0000,
-}
-
-///Specifies a firmware type.
-alias FIRMWARE_TYPE = int;
+alias FORMAT_MESSAGE_OPTIONS = int;
 enum : int
 {
-    ///The firmware type is unknown.
-    FirmwareTypeUnknown = 0x00000000,
-    ///The computer booted in legacy BIOS mode.
-    FirmwareTypeBios    = 0x00000001,
-    ///The computer booted in UEFI mode.
-    FirmwareTypeUefi    = 0x00000002,
-    ///Not implemented.
-    FirmwareTypeMax     = 0x00000003,
+    FORMAT_MESSAGE_ALLOCATE_BUFFER = 0x00000100,
+    FORMAT_MESSAGE_IGNORE_INSERTS  = 0x00000200,
+    FORMAT_MESSAGE_FROM_STRING     = 0x00000400,
+    FORMAT_MESSAGE_FROM_HMODULE    = 0x00000800,
+    FORMAT_MESSAGE_FROM_SYSTEM     = 0x00001000,
+    FORMAT_MESSAGE_ARGUMENT_ARRAY  = 0x00002000,
+    FORMAT_MESSAGE_MAX_WIDTH_MASK  = 0x000000ff,
 }
 
 ///Indicates a high, medium, or low impact of a device running an out-of-date OS. This enumeration is generally used by
@@ -222,36 +195,18 @@ enum UpdateAssessmentStatus : int
     UpdateAssessmentStatus_NotLatestTargetedVersion = 0x0000000b,
 }
 
-///Specifies a format for a directory service object name.
-alias EXTENDED_NAME_FORMAT = int;
+///Specifies a firmware type.
+alias FIRMWARE_TYPE = int;
 enum : int
 {
-    ///An unknown name type.
-    NameUnknown          = 0x00000000,
-    ///The fully qualified distinguished name (for example, CN=Jeff Smith,OU=Users,DC=Engineering,DC=Microsoft,DC=Com).
-    NameFullyQualifiedDN = 0x00000001,
-    ///A legacy account name (for example, Engineering\JSmith). The domain-only version includes trailing backslashes
-    ///(\\).
-    NameSamCompatible    = 0x00000002,
-    ///A "friendly" display name (for example, Jeff Smith). The display name is not necessarily the defining relative
-    ///distinguished name (RDN).
-    NameDisplay          = 0x00000003,
-    ///A GUID string that the IIDFromString function returns (for example, {4fa050f0-f561-11cf-bdd9-00aa003a77b6}).
-    NameUniqueId         = 0x00000006,
-    ///The complete canonical name (for example, engineering.microsoft.com/software/someone). The domain-only version
-    ///includes a trailing forward slash (/).
-    NameCanonical        = 0x00000007,
-    ///The user principal name (for example, someone@example.com).
-    NameUserPrincipal    = 0x00000008,
-    ///The same as NameCanonical except that the rightmost forward slash (/) is replaced with a new line character (\n),
-    ///even in a domain-only case (for example, engineering.microsoft.com/software\nJSmith).
-    NameCanonicalEx      = 0x00000009,
-    ///The generalized service principal name (for example, www/www.microsoft.com@microsoft.com).
-    NameServicePrincipal = 0x0000000a,
-    ///The DNS domain name followed by a backward-slash and the SAM user name.
-    NameDnsDomain        = 0x0000000c,
-    NameGivenName        = 0x0000000d,
-    NameSurname          = 0x0000000e,
+    ///The firmware type is unknown.
+    FirmwareTypeUnknown = 0x00000000,
+    ///The computer booted in legacy BIOS mode.
+    FirmwareTypeBios    = 0x00000001,
+    ///The computer booted in UEFI mode.
+    FirmwareTypeUefi    = 0x00000002,
+    ///Not implemented.
+    FirmwareTypeMax     = 0x00000003,
 }
 
 alias THREAD_INFORMATION_CLASS = int;
@@ -1241,15 +1196,57 @@ enum : int
     PFFT_SPOOF  = 0x00000003,
 }
 
+///Specifies a format for a directory service object name.
+alias EXTENDED_NAME_FORMAT = int;
+enum : int
+{
+    ///An unknown name type.
+    NameUnknown          = 0x00000000,
+    ///The fully qualified distinguished name (for example, CN=Jeff Smith,OU=Users,DC=Engineering,DC=Microsoft,DC=Com).
+    NameFullyQualifiedDN = 0x00000001,
+    ///A legacy account name (for example, Engineering\JSmith). The domain-only version includes trailing backslashes
+    ///(\\).
+    NameSamCompatible    = 0x00000002,
+    ///A "friendly" display name (for example, Jeff Smith). The display name is not necessarily the defining relative
+    ///distinguished name (RDN).
+    NameDisplay          = 0x00000003,
+    ///A GUID string that the IIDFromString function returns (for example, {4fa050f0-f561-11cf-bdd9-00aa003a77b6}).
+    NameUniqueId         = 0x00000006,
+    ///The complete canonical name (for example, engineering.microsoft.com/software/someone). The domain-only version
+    ///includes a trailing forward slash (/).
+    NameCanonical        = 0x00000007,
+    ///The user principal name (for example, someone@example.com).
+    NameUserPrincipal    = 0x00000008,
+    ///The same as NameCanonical except that the rightmost forward slash (/) is replaced with a new line character (\n),
+    ///even in a domain-only case (for example, engineering.microsoft.com/software\nJSmith).
+    NameCanonicalEx      = 0x00000009,
+    ///The generalized service principal name (for example, www/www.microsoft.com@microsoft.com).
+    NameServicePrincipal = 0x0000000a,
+    ///The DNS domain name followed by a backward-slash and the SAM user name.
+    NameDnsDomain        = 0x0000000c,
+    NameGivenName        = 0x0000000d,
+    NameSurname          = 0x0000000e,
+}
+
+// Constants
+
+
+enum : GUID
+{
+    _IID_IXmlReader   = GUID("7279fc81-709d-4095-b63d-69fe4b0d9030"),
+    _IID_IXmlWriter   = GUID("7279fc88-709d-4095-b63d-69fe4b0d9030"),
+    _IID_IXmlResolver = GUID("7279fc82-709d-4095-b63d-69fe4b0d9030"),
+}
+
 // Callbacks
 
 alias LPFIBER_START_ROUTINE = void function();
 alias PFIBER_CALLOUT_ROUTINE = void* function(void* lpParameter);
 alias PUMS_SCHEDULER_ENTRY_POINT = void function();
-alias PGET_SYSTEM_WOW64_DIRECTORY_A = uint function(const(char)* lpBuffer, uint uSize);
-alias PGET_SYSTEM_WOW64_DIRECTORY_W = uint function(const(wchar)* lpBuffer, uint uSize);
+alias PGET_SYSTEM_WOW64_DIRECTORY_A = uint function(PSTR lpBuffer, uint uSize);
+alias PGET_SYSTEM_WOW64_DIRECTORY_W = uint function(PWSTR lpBuffer, uint uSize);
 alias PQUERYACTCTXW_FUNC = BOOL function(uint dwFlags, HANDLE hActCtx, void* pvSubInstance, uint ulInfoClass, 
-                                         char* pvBuffer, size_t cbBuffer, size_t* pcbWrittenOrRequired);
+                                         void* pvBuffer, size_t cbBuffer, size_t* pcbWrittenOrRequired);
 alias APPLICATION_RECOVERY_CALLBACK = uint function(void* pvParameter);
 alias QUERYHANDLER = uint function(void* keycontext, val_context* val_list, uint num_vals, void* outputbuffer, 
                                    uint* total_outlen, uint input_blen);
@@ -1298,23 +1295,23 @@ alias AVRF_HANDLEOPERATION_ENUMERATE_CALLBACK = uint function(AVRF_HANDLE_OPERAT
                                                               void* EnumerationContext, uint* EnumerationLevel);
 alias PFNFCIALLOC = void* function(uint cb);
 alias PFNFCIFREE = void function(void* memory);
-alias PFNFCIOPEN = ptrdiff_t function(const(char)* pszFile, int oflag, int pmode, int* err, void* pv);
+alias PFNFCIOPEN = ptrdiff_t function(PSTR pszFile, int oflag, int pmode, int* err, void* pv);
 alias PFNFCIREAD = uint function(ptrdiff_t hf, void* memory, uint cb, int* err, void* pv);
 alias PFNFCIWRITE = uint function(ptrdiff_t hf, void* memory, uint cb, int* err, void* pv);
 alias PFNFCICLOSE = int function(ptrdiff_t hf, int* err, void* pv);
 alias PFNFCISEEK = int function(ptrdiff_t hf, int dist, int seektype, int* err, void* pv);
-alias PFNFCIDELETE = int function(const(char)* pszFile, int* err, void* pv);
+alias PFNFCIDELETE = int function(PSTR pszFile, int* err, void* pv);
 alias PFNFCIGETNEXTCABINET = BOOL function(CCAB* pccab, uint cbPrevCab, void* pv);
-alias PFNFCIFILEPLACED = int function(CCAB* pccab, const(char)* pszFile, int cbFile, BOOL fContinuation, void* pv);
-alias PFNFCIGETOPENINFO = ptrdiff_t function(const(char)* pszName, ushort* pdate, ushort* ptime, ushort* pattribs, 
+alias PFNFCIFILEPLACED = int function(CCAB* pccab, PSTR pszFile, int cbFile, BOOL fContinuation, void* pv);
+alias PFNFCIGETOPENINFO = ptrdiff_t function(PSTR pszName, ushort* pdate, ushort* ptime, ushort* pattribs, 
                                              int* err, void* pv);
 alias PFNFCISTATUS = int function(uint typeStatus, uint cb1, uint cb2, void* pv);
-alias PFNFCIGETTEMPFILE = BOOL function(char* pszTempName, int cbTempName, void* pv);
+alias PFNFCIGETTEMPFILE = BOOL function(byte* pszTempName, int cbTempName, void* pv);
 alias PFNALLOC = void* function(uint cb);
 alias PFNFREE = void function(void* pv);
-alias PFNOPEN = ptrdiff_t function(const(char)* pszFile, int oflag, int pmode);
-alias PFNREAD = uint function(ptrdiff_t hf, char* pv, uint cb);
-alias PFNWRITE = uint function(ptrdiff_t hf, char* pv, uint cb);
+alias PFNOPEN = ptrdiff_t function(PSTR pszFile, int oflag, int pmode);
+alias PFNREAD = uint function(ptrdiff_t hf, void* pv, uint cb);
+alias PFNWRITE = uint function(ptrdiff_t hf, void* pv, uint cb);
 alias PFNCLOSE = int function(ptrdiff_t hf);
 alias PFNSEEK = int function(ptrdiff_t hf, int dist, int seektype);
 alias PFNFDIDECRYPT = int function(FDIDECRYPT* pfdid);
@@ -1355,8 +1352,8 @@ alias VDMKILLWOWPROC = BOOL function();
 alias VDMDETECTWOWPROC = BOOL function();
 alias VDMBREAKTHREADPROC = BOOL function(HANDLE param0);
 alias VDMGETSELECTORMODULEPROC = BOOL function(HANDLE param0, HANDLE param1, ushort param2, uint* param3, 
-                                               const(char)* param4, uint param5, const(char)* param6, uint param7);
-alias VDMGETMODULESELECTORPROC = BOOL function(HANDLE param0, HANDLE param1, uint param2, const(char)* param3, 
+                                               PSTR param4, uint param5, PSTR param6, uint param7);
+alias VDMGETMODULESELECTORPROC = BOOL function(HANDLE param0, HANDLE param1, uint param2, PSTR param3, 
                                                ushort* param4);
 alias VDMMODULEFIRSTPROC = BOOL function(HANDLE param0, HANDLE param1, MODULEENTRY* param2, DEBUGEVENTPROC param3, 
                                          void* param4);
@@ -1370,15 +1367,15 @@ alias VDMENUMPROCESSWOWPROC = int function(PROCESSENUMPROC param0, LPARAM param1
 alias VDMENUMTASKWOWPROC = int function(uint param0, TASKENUMPROC param1, LPARAM param2);
 alias VDMENUMTASKWOWEXPROC = int function(uint param0, TASKENUMPROCEX param1, LPARAM param2);
 alias VDMTERMINATETASKINWOWPROC = BOOL function(uint param0, ushort param1);
-alias VDMSTARTTASKINWOWPROC = BOOL function(uint param0, const(char)* param1, ushort param2);
+alias VDMSTARTTASKINWOWPROC = BOOL function(uint param0, PSTR param1, ushort param2);
 alias VDMGETDBGFLAGSPROC = uint function(HANDLE param0);
 alias VDMSETDBGFLAGSPROC = BOOL function(HANDLE param0, uint param1);
-alias VDMISMODULELOADEDPROC = BOOL function(const(char)* param0);
+alias VDMISMODULELOADEDPROC = BOOL function(PSTR param0);
 alias VDMGETSEGMENTINFOPROC = BOOL function(ushort param0, uint param1, BOOL param2, VDM_SEGINFO param3);
-alias VDMGETSYMBOLPROC = BOOL function(const(char)* param0, ushort param1, uint param2, BOOL param3, BOOL param4, 
-                                       const(char)* param5, uint* param6);
-alias VDMGETADDREXPRESSIONPROC = BOOL function(const(char)* param0, const(char)* param1, ushort* param2, 
-                                               uint* param3, ushort* param4);
+alias VDMGETSYMBOLPROC = BOOL function(PSTR param0, ushort param1, uint param2, BOOL param3, BOOL param4, 
+                                       PSTR param5, uint* param6);
+alias VDMGETADDREXPRESSIONPROC = BOOL function(PSTR param0, PSTR param1, ushort* param2, uint* param3, 
+                                               ushort* param4);
 alias FEATURE_STATE_CHANGE_CALLBACK = void function(void* context);
 alias PFEATURE_STATE_CHANGE_CALLBACK = void function();
 alias ENUM_CALLBACK = void function(DCISURFACEINFO* lpSurfaceInfo, void* lpContext);
@@ -1455,8 +1452,8 @@ alias LPDDHAL_SETINFO = BOOL function(DDHALINFO* lpDDHalInfo, BOOL reset);
 alias LPDDHAL_VIDMEMALLOC = size_t function(DDRAWI_DIRECTDRAW_GBL* lpDD, int heap, uint dwWidth, uint dwHeight);
 alias LPDDHAL_VIDMEMFREE = void function(DDRAWI_DIRECTDRAW_GBL* lpDD, int heap, size_t fpMem);
 alias PFNCHECKCONNECTIONWIZARD = uint function(uint param0, uint* param1);
-alias PFNSETSHELLNEXT = uint function(const(char)* param0);
-alias REGINSTALLA = HRESULT function(ptrdiff_t hm, const(char)* pszSection, STRTABLEA* pstTable);
+alias PFNSETSHELLNEXT = uint function(PSTR param0);
+alias REGINSTALLA = HRESULT function(ptrdiff_t hm, const(PSTR) pszSection, STRTABLEA* pstTable);
 alias PFN_IO_COMPLETION = void function(FIO_CONTEXT* pContext, FH_OVERLAPPED* lpo, uint cb, 
                                         uint dwCompletionStatus);
 ///A callback function that is used to create items in the cache. It is called by the CacheCreateFile function.
@@ -1468,7 +1465,7 @@ alias PFN_IO_COMPLETION = void function(FIO_CONTEXT* pContext, FH_OVERLAPPED* lp
 ///Returns:
 ///    Returns a handle to the file created in the cache.
 ///    
-alias FCACHE_CREATE_CALLBACK = HANDLE function(const(char)* lpstrName, void* lpvData, uint* cbFileSize, 
+alias FCACHE_CREATE_CALLBACK = HANDLE function(PSTR lpstrName, void* lpvData, uint* cbFileSize, 
                                                uint* cbFileSizeHigh);
 ///A callback function that is used to create items in the cache. It is called by CacheRichCreateFile.
 ///Params:
@@ -1485,9 +1482,9 @@ alias FCACHE_CREATE_CALLBACK = HANDLE function(const(char)* lpstrName, void* lpv
 ///Returns:
 ///    Returns a handle to the file that was created in the cache.
 ///    
-alias FCACHE_RICHCREATE_CALLBACK = HANDLE function(const(char)* lpstrName, void* lpvData, uint* cbFileSize, 
-                                                   uint* cbFileSizeHigh, int* pfDidWeScanIt, int* pfIsStuffed, 
-                                                   int* pfStoredWithDots, int* pfStoredWithTerminatingDot);
+alias FCACHE_RICHCREATE_CALLBACK = HANDLE function(PSTR lpstrName, void* lpvData, uint* cbFileSize, 
+                                                   uint* cbFileSizeHigh, BOOL* pfDidWeScanIt, BOOL* pfIsStuffed, 
+                                                   BOOL* pfStoredWithDots, BOOL* pfStoredWithTerminatingDot);
 alias CACHE_KEY_COMPARE = int function(uint cbKey1, ubyte* lpbKey1, uint cbKey2, ubyte* lpbKey2);
 alias CACHE_KEY_HASH = uint function(ubyte* lpbKey, uint cbKey);
 ///A callback that is provided to the cache to help examine items within the cache.
@@ -1506,131 +1503,134 @@ alias CACHE_ACCESS_CHECK = BOOL function(void* pSecurityDescriptor, HANDLE hClie
                                          GENERIC_MAPPING* GenericMapping, PRIVILEGE_SET* PrivilegeSet, 
                                          uint* PrivilegeSetLength, uint* GrantedAccess, int* AccessStatus);
 alias PWLDP_SETDYNAMICCODETRUST_API = HRESULT function(HANDLE hFileHandle);
-alias PWLDP_ISDYNAMICCODEPOLICYENABLED_API = HRESULT function(int* pbEnabled);
-alias PWLDP_QUERYDYNAMICODETRUST_API = HRESULT function(HANDLE fileHandle, char* baseImage, uint imageSize);
+alias PWLDP_ISDYNAMICCODEPOLICYENABLED_API = HRESULT function(BOOL* pbEnabled);
+alias PWLDP_QUERYDYNAMICODETRUST_API = HRESULT function(HANDLE fileHandle, void* baseImage, uint imageSize);
 alias PWLDP_QUERYWINDOWSLOCKDOWNMODE_API = HRESULT function(WLDP_WINDOWS_LOCKDOWN_MODE* lockdownMode);
 alias PWLDP_QUERYWINDOWSLOCKDOWNRESTRICTION_API = HRESULT function(WLDP_WINDOWS_LOCKDOWN_RESTRICTION* LockdownRestriction);
 alias PWLDP_SETWINDOWSLOCKDOWNRESTRICTION_API = HRESULT function(WLDP_WINDOWS_LOCKDOWN_RESTRICTION LockdownRestriction);
-alias PWLDP_WLDPISAPPAPPROVEDBYPOLICY_API = HRESULT function(const(wchar)* PackageFamilyName, ulong PackageVersion);
+alias PWLDP_WLDPISAPPAPPROVEDBYPOLICY_API = HRESULT function(const(PWSTR) PackageFamilyName, ulong PackageVersion);
 alias PDEV_QUERY_RESULT_CALLBACK = void function(HDEVQUERY__* hDevQuery, void* pContext, 
                                                  const(DEV_QUERY_RESULT_ACTION_DATA)* pActionData);
 
 // Structs
 
 
-///The <b>NETLOGON_INFO_1</b> structure defines a level-1 control query response from a domain controller.
-struct NETLOGON_INFO_1
+///Specifies a date and time, using individual members for the month, day, year, weekday, hour, minute, second, and
+///millisecond. The time is either in coordinated universal time (UTC) or local time, depending on the function that is
+///being called.
+struct SYSTEMTIME
 {
-    ///An integer value that contains one or more of the following control query responses from the DC. <table> <tr>
-    ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="NETLOGON_REPLICATION_NEEDED"></a><a
-    ///id="netlogon_replication_needed"></a><dl> <dt><b>NETLOGON_REPLICATION_NEEDED</b></dt> <dt>0x00000001</dt> </dl>
-    ///</td> <td width="60%"> Not supported. </td> </tr> <tr> <td width="40%"><a
-    ///id="NETLOGON_REPLICATION_IN_PROGRESS"></a><a id="netlogon_replication_in_progress"></a><dl>
-    ///<dt><b>NETLOGON_REPLICATION_IN_PROGRESS</b></dt> <dt>0x00000002</dt> </dl> </td> <td width="60%"> Not supported.
-    ///</td> </tr> <tr> <td width="40%"><a id="NETLOGON_FULL_SYNC_REPLICATION"></a><a
-    ///id="netlogon_full_sync_replication"></a><dl> <dt><b>NETLOGON_FULL_SYNC_REPLICATION</b></dt> <dt>0x00000004</dt>
-    ///</dl> </td> <td width="60%"> Not supported. </td> </tr> <tr> <td width="40%"><a id="NETLOGON_REDO_NEEDED"></a><a
-    ///id="netlogon_redo_needed"></a><dl> <dt><b>NETLOGON_REDO_NEEDED</b></dt> <dt>0x00000008</dt> </dl> </td> <td
-    ///width="60%"> Not supported. </td> </tr> <tr> <td width="40%"><a id="NETLOGON_HAS_IP"></a><a
-    ///id="netlogon_has_ip"></a><dl> <dt><b>NETLOGON_HAS_IP</b></dt> <dt>0x00000010</dt> </dl> </td> <td width="60%">
-    ///Trusted domain DC has an IP address. </td> </tr> <tr> <td width="40%"><a id="NETLOGON_HAS_TIMESERV"></a><a
-    ///id="netlogon_has_timeserv"></a><dl> <dt><b>NETLOGON_HAS_TIMESERV</b></dt> <dt>0x00000020</dt> </dl> </td> <td
-    ///width="60%"> Trusted domain DC runs the Windows Time Service. </td> </tr> <tr> <td width="40%"><a
-    ///id="NETLOGON_DNS_UPDATE_FAILURE"></a><a id="netlogon_dns_update_failure"></a><dl>
-    ///<dt><b>NETLOGON_DNS_UPDATE_FAILURE</b></dt> <dt>0x00000040</dt> </dl> </td> <td width="60%"> Last update to the
-    ///DNS records on the DC failed. </td> </tr> </table>
-    uint netlog1_flags;
-    ///An enumerated integer value that contains a status code defined in Lmerr.h, with a value greater than 2100. This
-    ///value applies only to backup domain controllers, and shows the status of the secure channel connection to the PDC
-    ///in their domain.
-    uint netlog1_pdc_connection_status;
+    ///The year. The valid values for this member are 1601 through 30827.
+    ushort wYear;
+    ///The month. This member can be one of the following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr>
+    ///<tr> <td width="40%"> <dl> <dt>1</dt> </dl> </td> <td width="60%"> January </td> </tr> <tr> <td width="40%"> <dl>
+    ///<dt>2</dt> </dl> </td> <td width="60%"> February </td> </tr> <tr> <td width="40%"> <dl> <dt>3</dt> </dl> </td>
+    ///<td width="60%"> March </td> </tr> <tr> <td width="40%"> <dl> <dt>4</dt> </dl> </td> <td width="60%"> April </td>
+    ///</tr> <tr> <td width="40%"> <dl> <dt>5</dt> </dl> </td> <td width="60%"> May </td> </tr> <tr> <td width="40%">
+    ///<dl> <dt>6</dt> </dl> </td> <td width="60%"> June </td> </tr> <tr> <td width="40%"> <dl> <dt>7</dt> </dl> </td>
+    ///<td width="60%"> July </td> </tr> <tr> <td width="40%"> <dl> <dt>8</dt> </dl> </td> <td width="60%"> August </td>
+    ///</tr> <tr> <td width="40%"> <dl> <dt>9</dt> </dl> </td> <td width="60%"> September </td> </tr> <tr> <td
+    ///width="40%"> <dl> <dt>10</dt> </dl> </td> <td width="60%"> October </td> </tr> <tr> <td width="40%"> <dl>
+    ///<dt>11</dt> </dl> </td> <td width="60%"> November </td> </tr> <tr> <td width="40%"> <dl> <dt>12</dt> </dl> </td>
+    ///<td width="60%"> December </td> </tr> </table>
+    ushort wMonth;
+    ///The day of the week. This member can be one of the following values. <table> <tr> <th>Value</th> <th>Meaning</th>
+    ///</tr> <tr> <td width="40%"> <dl> <dt>0</dt> </dl> </td> <td width="60%"> Sunday </td> </tr> <tr> <td width="40%">
+    ///<dl> <dt>1</dt> </dl> </td> <td width="60%"> Monday </td> </tr> <tr> <td width="40%"> <dl> <dt>2</dt> </dl> </td>
+    ///<td width="60%"> Tuesday </td> </tr> <tr> <td width="40%"> <dl> <dt>3</dt> </dl> </td> <td width="60%"> Wednesday
+    ///</td> </tr> <tr> <td width="40%"> <dl> <dt>4</dt> </dl> </td> <td width="60%"> Thursday </td> </tr> <tr> <td
+    ///width="40%"> <dl> <dt>5</dt> </dl> </td> <td width="60%"> Friday </td> </tr> <tr> <td width="40%"> <dl>
+    ///<dt>6</dt> </dl> </td> <td width="60%"> Saturday </td> </tr> </table>
+    ushort wDayOfWeek;
+    ///The day of the month. The valid values for this member are 1 through 31.
+    ushort wDay;
+    ///The hour. The valid values for this member are 0 through 23.
+    ushort wHour;
+    ///The minute. The valid values for this member are 0 through 59.
+    ushort wMinute;
+    ///The second. The valid values for this member are 0 through 59.
+    ushort wSecond;
+    ///The millisecond. The valid values for this member are 0 through 999.
+    ushort wMilliseconds;
 }
 
-///The <b>NETLOGON_INFO_2</b> structure defines a level-2 control query response from a domain controller.
-struct NETLOGON_INFO_2
+///UpdateAssessment contains information that assesses how up-to-date an installed OS is.
+struct UpdateAssessment
 {
-    ///An integer value that contains one or more of the following control query responses from the DC. <table> <tr>
-    ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="NETLOGON_REPLICATION_NEEDED"></a><a
-    ///id="netlogon_replication_needed"></a><dl> <dt><b>NETLOGON_REPLICATION_NEEDED</b></dt> <dt>0x00000001</dt> </dl>
-    ///</td> <td width="60%"> Not supported. </td> </tr> <tr> <td width="40%"><a
-    ///id="NETLOGON_REPLICATION_IN_PROGRESS"></a><a id="netlogon_replication_in_progress"></a><dl>
-    ///<dt><b>NETLOGON_REPLICATION_IN_PROGRESS</b></dt> <dt>0x00000002</dt> </dl> </td> <td width="60%"> Not supported.
-    ///</td> </tr> <tr> <td width="40%"><a id="NETLOGON_FULL_SYNC_REPLICATION"></a><a
-    ///id="netlogon_full_sync_replication"></a><dl> <dt><b>NETLOGON_FULL_SYNC_REPLICATION</b></dt> <dt>0x00000004</dt>
-    ///</dl> </td> <td width="60%"> Not supported. </td> </tr> <tr> <td width="40%"><a id="NETLOGON_REDO_NEEDED"></a><a
-    ///id="netlogon_redo_needed"></a><dl> <dt><b>NETLOGON_REDO_NEEDED</b></dt> <dt>0x00000008</dt> </dl> </td> <td
-    ///width="60%"> Not supported. </td> </tr> <tr> <td width="40%"><a id="NETLOGON_HAS_IP"></a><a
-    ///id="netlogon_has_ip"></a><dl> <dt><b>NETLOGON_HAS_IP</b></dt> <dt>0x00000010</dt> </dl> </td> <td width="60%">
-    ///Trusted domain DC has an IP address. </td> </tr> <tr> <td width="40%"><a id="NETLOGON_HAS_TIMESERV"></a><a
-    ///id="netlogon_has_timeserv"></a><dl> <dt><b>NETLOGON_HAS_TIMESERV</b></dt> <dt>0x00000020</dt> </dl> </td> <td
-    ///width="60%"> Trusted domain DC runs the Windows Time Service. </td> </tr> <tr> <td width="40%"><a
-    ///id="NETLOGON_DNS_UPDATE_FAILURE"></a><a id="netlogon_dns_update_failure"></a><dl>
-    ///<dt><b>NETLOGON_DNS_UPDATE_FAILURE</b></dt> <dt>0x00000040</dt> </dl> </td> <td width="60%"> Last update to the
-    ///DNS records on the DC failed. </td> </tr> <tr> <td width="40%"><a id="NETLOGON_VERIFY_STATUS_RETURNED"></a><a
-    ///id="netlogon_verify_status_returned"></a><dl> <dt><b>NETLOGON_VERIFY_STATUS_RETURNED</b></dt> <dt>0x00000080</dt>
-    ///</dl> </td> <td width="60%"> Trust verification status was returned in the <b>netlog2_pdc_connection_status</b>
-    ///member. </td> </tr> </table>
-    uint          netlog2_flags;
-    ///An enumerated integer value that contains a status code defined in Lmerr.h, with a value greater than 2100. If
-    ///<b>NETLOGON_VERIFY_STATUS_RETURNED</b> is set in <b>netlog2_flags</b>, this value represents the trust
-    ///verification status of all domain members collectively.
-    uint          netlog2_pdc_connection_status;
-    const(wchar)* netlog2_trusted_dc_name;
-    ///An enumerated integer value that contains a status code defined in Lmerr.h, with a value greater than 2100. This
-    ///code shows the status of the secure channel to the specified trusted DC.
-    uint          netlog2_tc_connection_status;
+    ///An UpdateAssessmentStatus enumeration detailing how up-to-date the device is, and for what reason.
+    UpdateAssessmentStatus status;
+    ///An UpdateImpactLevel enumeration detailing whether there is any impact on the device if it has an out-of-date OS.
+    UpdateImpactLevel impact;
+    ///Describes how much time has elapsed since the device has not installed an applicable update. <b>daysOutOfDate</b>
+    ///is calculated by the current time minus the time since the next applicable update has been released, minus any
+    ///deferral period. Thus, if an applicable update exists but hasn’t been applied due to deferral, this is
+    ///accounted for in the calculation. <b>daysOutOfDate</b> is used to calculate the update impact level.
+    uint              daysOutOfDate;
 }
 
-///The <b>NETLOGON_INFO_3</b> structure defines a level-3 control query response from a domain controller.
-struct NETLOGON_INFO_3
+///The <b>OSUpdateAssessment</b> structure defines how up-to-date the OS on a targeted device is. This structure is used
+///primarily as a return value by GetOSUpdateAssessment, in order to retrieve an OS assessment in a single structure.
+struct OSUpdateAssessment
 {
-    ///An integer value that contains one or more of the following control query responses from the DC. <table> <tr>
-    ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="NETLOGON_REPLICATION_NEEDED"></a><a
-    ///id="netlogon_replication_needed"></a><dl> <dt><b>NETLOGON_REPLICATION_NEEDED</b></dt> <dt>0x00000001</dt> </dl>
-    ///</td> <td width="60%"> Not supported. </td> </tr> <tr> <td width="40%"><a
-    ///id="NETLOGON_REPLICATION_IN_PROGRESS"></a><a id="netlogon_replication_in_progress"></a><dl>
-    ///<dt><b>NETLOGON_REPLICATION_IN_PROGRESS</b></dt> <dt>0x00000002</dt> </dl> </td> <td width="60%"> Not supported.
-    ///</td> </tr> <tr> <td width="40%"><a id="NETLOGON_FULL_SYNC_REPLICATION"></a><a
-    ///id="netlogon_full_sync_replication"></a><dl> <dt><b>NETLOGON_FULL_SYNC_REPLICATION</b></dt> <dt>0x00000004</dt>
-    ///</dl> </td> <td width="60%"> Not supported. </td> </tr> <tr> <td width="40%"><a id="NETLOGON_REDO_NEEDED"></a><a
-    ///id="netlogon_redo_needed"></a><dl> <dt><b>NETLOGON_REDO_NEEDED</b></dt> <dt>0x00000008</dt> </dl> </td> <td
-    ///width="60%"> Not supported. </td> </tr> <tr> <td width="40%"><a id="NETLOGON_HAS_IP"></a><a
-    ///id="netlogon_has_ip"></a><dl> <dt><b>NETLOGON_HAS_IP</b></dt> <dt>0x00000010</dt> </dl> </td> <td width="60%">
-    ///Trusted domain DC has an IP address. </td> </tr> <tr> <td width="40%"><a id="NETLOGON_HAS_TIMESERV"></a><a
-    ///id="netlogon_has_timeserv"></a><dl> <dt><b>NETLOGON_HAS_TIMESERV</b></dt> <dt>0x00000020</dt> </dl> </td> <td
-    ///width="60%"> Trusted domain DC runs the Windows Time Service. </td> </tr> <tr> <td width="40%"><a
-    ///id="NETLOGON_DNS_UPDATE_FAILURE"></a><a id="netlogon_dns_update_failure"></a><dl>
-    ///<dt><b>NETLOGON_DNS_UPDATE_FAILURE</b></dt> <dt>0x00000040</dt> </dl> </td> <td width="60%"> Last update to the
-    ///DNS records on the DC failed. </td> </tr> </table>
-    uint netlog3_flags;
-    ///The number of logon attempts made for the domain.
-    uint netlog3_logon_attempts;
-    ///Reserved value.
-    uint netlog3_reserved1;
-    ///Reserved value.
-    uint netlog3_reserved2;
-    ///Reserved value.
-    uint netlog3_reserved3;
-    ///Reserved value.
-    uint netlog3_reserved4;
-    ///Reserved value.
-    uint netlog3_reserved5;
+    ///<b>true</b> if the OS on the device is no longer supported by Microsoft and will no longer receive servicing
+    ///updates; otherwise, <b>false</b>.
+    BOOL             isEndOfSupport;
+    ///An UpdateAssessment structure containing an assessment against the latest update Microsoft has released.
+    UpdateAssessment assessmentForCurrent;
+    ///An UpdateAssessment structure containing an assessment against the latest applicable quality update for the
+    ///device.
+    UpdateAssessment assessmentForUpToDate;
+    ///An UpdateAssessmentStatus enumeration that details whether the device is on the latest applicable security
+    ///update.
+    UpdateAssessmentStatus securityStatus;
+    ///Timestamp when the assessment was done.
+    FILETIME         assessmentTime;
+    ///Timestamp when the release information was updated.
+    FILETIME         releaseInfoTime;
+    ///The latest OS build that Microsoft has released. This value is used to determine whether a device is current.
+    PWSTR            currentOSBuild;
+    ///The published timestamp of the release date for current OS build.
+    FILETIME         currentOSReleaseTime;
+    ///The latest applicable OS build in the device's servicing train. This value is used to determine whether a device
+    ///is up-to-date.
+    PWSTR            upToDateOSBuild;
+    FILETIME         upToDateOSReleaseTime;
 }
 
-///The <b>NETLOGON_INFO_4</b> structure defines a level-4 control query response from a domain controller.
-struct NETLOGON_INFO_4
+///Used with the RtlUnicodeStringToOemString function.
+struct STRING
 {
-    const(wchar)* netlog4_trusted_dc_name;
-    const(wchar)* netlog4_trusted_domain_name;
+    ///The length of the buffer.
+    ushort Length;
+    ///The maximum length of the buffer.
+    ushort MaximumLength;
+    ///The address of the buffer.
+    PSTR   Buffer;
 }
 
-alias EventLogHandle = ptrdiff_t;
+@RAIIFree!CloseEventLog
+struct EventLogHandle
+{
+    ptrdiff_t Value;
+}
 
-alias EventSourceHandle = ptrdiff_t;
+@RAIIFree!DeregisterEventSource
+struct EventSourceHandle
+{
+    ptrdiff_t Value;
+}
 
-alias HeapHandle = ptrdiff_t;
+@RAIIFree!HeapDestroy
+struct HeapHandle
+{
+    ptrdiff_t Value;
+}
 
-alias HKEY = ptrdiff_t;
+@RAIIFree!RegCloseKey
+struct HKEY
+{
+    ptrdiff_t Value;
+}
 
 ///Contains operating system version information. The information includes major and minor version numbers, a build
 ///number, a platform identifier, and descriptive text about the operating system. This structure is used with the
@@ -1857,99 +1857,6 @@ struct FILETIME
     uint dwHighDateTime;
 }
 
-///Used with the RtlUnicodeStringToOemString function.
-struct STRING
-{
-    ///The length of the buffer.
-    ushort       Length;
-    ///The maximum length of the buffer.
-    ushort       MaximumLength;
-    ///The address of the buffer.
-    const(char)* Buffer;
-}
-
-///Specifies a date and time, using individual members for the month, day, year, weekday, hour, minute, second, and
-///millisecond. The time is either in coordinated universal time (UTC) or local time, depending on the function that is
-///being called.
-struct SYSTEMTIME
-{
-    ///The year. The valid values for this member are 1601 through 30827.
-    ushort wYear;
-    ///The month. This member can be one of the following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr>
-    ///<tr> <td width="40%"> <dl> <dt>1</dt> </dl> </td> <td width="60%"> January </td> </tr> <tr> <td width="40%"> <dl>
-    ///<dt>2</dt> </dl> </td> <td width="60%"> February </td> </tr> <tr> <td width="40%"> <dl> <dt>3</dt> </dl> </td>
-    ///<td width="60%"> March </td> </tr> <tr> <td width="40%"> <dl> <dt>4</dt> </dl> </td> <td width="60%"> April </td>
-    ///</tr> <tr> <td width="40%"> <dl> <dt>5</dt> </dl> </td> <td width="60%"> May </td> </tr> <tr> <td width="40%">
-    ///<dl> <dt>6</dt> </dl> </td> <td width="60%"> June </td> </tr> <tr> <td width="40%"> <dl> <dt>7</dt> </dl> </td>
-    ///<td width="60%"> July </td> </tr> <tr> <td width="40%"> <dl> <dt>8</dt> </dl> </td> <td width="60%"> August </td>
-    ///</tr> <tr> <td width="40%"> <dl> <dt>9</dt> </dl> </td> <td width="60%"> September </td> </tr> <tr> <td
-    ///width="40%"> <dl> <dt>10</dt> </dl> </td> <td width="60%"> October </td> </tr> <tr> <td width="40%"> <dl>
-    ///<dt>11</dt> </dl> </td> <td width="60%"> November </td> </tr> <tr> <td width="40%"> <dl> <dt>12</dt> </dl> </td>
-    ///<td width="60%"> December </td> </tr> </table>
-    ushort wMonth;
-    ///The day of the week. This member can be one of the following values. <table> <tr> <th>Value</th> <th>Meaning</th>
-    ///</tr> <tr> <td width="40%"> <dl> <dt>0</dt> </dl> </td> <td width="60%"> Sunday </td> </tr> <tr> <td width="40%">
-    ///<dl> <dt>1</dt> </dl> </td> <td width="60%"> Monday </td> </tr> <tr> <td width="40%"> <dl> <dt>2</dt> </dl> </td>
-    ///<td width="60%"> Tuesday </td> </tr> <tr> <td width="40%"> <dl> <dt>3</dt> </dl> </td> <td width="60%"> Wednesday
-    ///</td> </tr> <tr> <td width="40%"> <dl> <dt>4</dt> </dl> </td> <td width="60%"> Thursday </td> </tr> <tr> <td
-    ///width="40%"> <dl> <dt>5</dt> </dl> </td> <td width="60%"> Friday </td> </tr> <tr> <td width="40%"> <dl>
-    ///<dt>6</dt> </dl> </td> <td width="60%"> Saturday </td> </tr> </table>
-    ushort wDayOfWeek;
-    ///The day of the month. The valid values for this member are 1 through 31.
-    ushort wDay;
-    ///The hour. The valid values for this member are 0 through 23.
-    ushort wHour;
-    ///The minute. The valid values for this member are 0 through 59.
-    ushort wMinute;
-    ///The second. The valid values for this member are 0 through 59.
-    ushort wSecond;
-    ///The millisecond. The valid values for this member are 0 through 999.
-    ushort wMilliseconds;
-}
-
-///UpdateAssessment contains information that assesses how up-to-date an installed OS is.
-struct UpdateAssessment
-{
-    ///An UpdateAssessmentStatus enumeration detailing how up-to-date the device is, and for what reason.
-    UpdateAssessmentStatus status;
-    ///An UpdateImpactLevel enumeration detailing whether there is any impact on the device if it has an out-of-date OS.
-    UpdateImpactLevel impact;
-    ///Describes how much time has elapsed since the device has not installed an applicable update. <b>daysOutOfDate</b>
-    ///is calculated by the current time minus the time since the next applicable update has been released, minus any
-    ///deferral period. Thus, if an applicable update exists but hasn’t been applied due to deferral, this is
-    ///accounted for in the calculation. <b>daysOutOfDate</b> is used to calculate the update impact level.
-    uint              daysOutOfDate;
-}
-
-///The <b>OSUpdateAssessment</b> structure defines how up-to-date the OS on a targeted device is. This structure is used
-///primarily as a return value by GetOSUpdateAssessment, in order to retrieve an OS assessment in a single structure.
-struct OSUpdateAssessment
-{
-    ///<b>true</b> if the OS on the device is no longer supported by Microsoft and will no longer receive servicing
-    ///updates; otherwise, <b>false</b>.
-    BOOL             isEndOfSupport;
-    ///An UpdateAssessment structure containing an assessment against the latest update Microsoft has released.
-    UpdateAssessment assessmentForCurrent;
-    ///An UpdateAssessment structure containing an assessment against the latest applicable quality update for the
-    ///device.
-    UpdateAssessment assessmentForUpToDate;
-    ///An UpdateAssessmentStatus enumeration that details whether the device is on the latest applicable security
-    ///update.
-    UpdateAssessmentStatus securityStatus;
-    ///Timestamp when the assessment was done.
-    FILETIME         assessmentTime;
-    ///Timestamp when the release information was updated.
-    FILETIME         releaseInfoTime;
-    ///The latest OS build that Microsoft has released. This value is used to determine whether a device is current.
-    const(wchar)*    currentOSBuild;
-    ///The published timestamp of the release date for current OS build.
-    FILETIME         currentOSReleaseTime;
-    ///The latest applicable OS build in the device's servicing train. This value is used to determine whether a device
-    ///is up-to-date.
-    const(wchar)*    upToDateOSBuild;
-    FILETIME         upToDateOSReleaseTime;
-}
-
 struct _PROC_THREAD_ATTRIBUTE_LIST
 {
 }
@@ -1958,10 +1865,10 @@ struct _PROC_THREAD_ATTRIBUTE_LIST
 ///number of processors in the system, the page size, and other such information.
 struct SYSTEM_INFO
 {
-    union
+union
     {
         uint dwOemId;
-        struct
+struct
         {
             ushort wProcessorArchitecture;
             ushort wReserved;
@@ -2239,18 +2146,18 @@ struct val_context
 
 struct pvalueA
 {
-    const(char)* pv_valuename;
-    int          pv_valuelen;
-    void*        pv_value_context;
-    uint         pv_type;
+    PSTR  pv_valuename;
+    int   pv_valuelen;
+    void* pv_value_context;
+    uint  pv_type;
 }
 
 struct pvalueW
 {
-    const(wchar)* pv_valuename;
-    int           pv_valuelen;
-    void*         pv_value_context;
-    uint          pv_type;
+    PWSTR pv_valuename;
+    int   pv_valuelen;
+    void* pv_value_context;
+    uint  pv_type;
 }
 
 struct provider_info
@@ -2267,28 +2174,28 @@ struct provider_info
 struct VALENTA
 {
     ///The name of the value to be retrieved. Be sure to set this member before calling RegQueryMultipleValues.
-    const(char)* ve_valuename;
+    PSTR   ve_valuename;
     ///The size of the data pointed to by <b>ve_valueptr</b>, in bytes.
-    uint         ve_valuelen;
+    uint   ve_valuelen;
     ///A pointer to the data for the value entry. This is a pointer to the value's data returned in the
     ///<b>lpValueBuf</b> buffer filled in by RegQueryMultipleValues.
-    size_t       ve_valueptr;
+    size_t ve_valueptr;
     ///The type of data pointed to by <b>ve_valueptr</b>. For a list of the possible types, see Registry Value Types.
-    uint         ve_type;
+    uint   ve_type;
 }
 
 ///Contains information about a registry value. The RegQueryMultipleValues function uses this structure.
 struct VALENTW
 {
     ///The name of the value to be retrieved. Be sure to set this member before calling RegQueryMultipleValues.
-    const(wchar)* ve_valuename;
+    PWSTR  ve_valuename;
     ///The size of the data pointed to by <b>ve_valueptr</b>, in bytes.
-    uint          ve_valuelen;
+    uint   ve_valuelen;
     ///A pointer to the data for the value entry. This is a pointer to the value's data returned in the
     ///<b>lpValueBuf</b> buffer filled in by RegQueryMultipleValues.
-    size_t        ve_valueptr;
+    size_t ve_valueptr;
     ///The type of data pointed to by <b>ve_valueptr</b>. For a list of the possible types, see Registry Value Types.
-    uint          ve_type;
+    uint   ve_type;
 }
 
 struct XML_ERROR
@@ -2319,7 +2226,7 @@ struct LDR_DATA_TABLE_ENTRY
     UNICODE_STRING FullDllName;
     ubyte[8]       Reserved4;
     void[3]*       Reserved5;
-    union
+union
     {
         uint  CheckSum;
         void* Reserved6;
@@ -2389,7 +2296,7 @@ struct OBJECT_ATTRIBUTES
 
 struct IO_STATUS_BLOCK
 {
-    union
+union
     {
         NTSTATUS Status;
         void*    Pointer;
@@ -2711,22 +2618,22 @@ struct FDIDECRYPT
 {
     FDIDECRYPTTYPE fdidt;
     void*          pvUser;
-    union
+union
     {
-        struct cabinet
+struct cabinet
         {
             void*  pHeaderReserve;
             ushort cbHeaderReserve;
             ushort setID;
             int    iCabinet;
         }
-        struct folder
+struct folder
         {
             void*  pFolderReserve;
             ushort cbFolderReserve;
             ushort iFolder;
         }
-        struct decrypt
+struct decrypt
         {
             void*  pDataReserve;
             ushort cbDataReserve;
@@ -2901,32 +2808,32 @@ struct GLOBALENTRY
 struct FEATURE_ERROR
 {
     ///Infrastructure use only.
-    HRESULT      hr;
+    HRESULT     hr;
     ///Infrastructure use only.
-    ushort       lineNumber;
+    ushort      lineNumber;
     ///Infrastructure use only.
-    const(char)* file;
+    const(PSTR) file;
     ///Infrastructure use only.
-    const(char)* process;
+    const(PSTR) process;
     ///Infrastructure use only.
-    const(char)* module_;
+    const(PSTR) module_;
     ///Infrastructure use only.
-    uint         callerReturnAddressOffset;
+    uint        callerReturnAddressOffset;
     ///Infrastructure use only.
-    const(char)* callerModule;
+    const(PSTR) callerModule;
     ///Infrastructure use only.
-    const(char)* message;
+    const(PSTR) message;
     ///Infrastructure use only.
-    ushort       originLineNumber;
+    ushort      originLineNumber;
     ///Infrastructure use only.
-    const(char)* originFile;
+    const(PSTR) originFile;
     ///Infrastructure use only.
-    const(char)* originModule;
+    const(PSTR) originModule;
     ///Infrastructure use only.
-    uint         originCallerReturnAddressOffset;
+    uint        originCallerReturnAddressOffset;
     ///Infrastructure use only.
-    const(char)* originCallerModule;
-    const(char)* originName;
+    const(PSTR) originCallerModule;
+    const(PSTR) originName;
 }
 
 struct FEATURE_STATE_CHANGE_SUBSCRIPTION__
@@ -3140,14 +3047,14 @@ struct VIDMEM
 {
     uint    dwFlags;
     size_t  fpStart;
-    union
+union
     {
         size_t fpEnd;
         uint   dwWidth;
     }
     DDSCAPS ddsCaps;
     DDSCAPS ddsCapsAlt;
-    union
+union
     {
         VMEMHEAP* lpHeap;
         uint      dwHeight;
@@ -3335,7 +3242,7 @@ struct DDMORESURFACECAPS
 {
     uint      dwSize;
     DDSCAPSEX ddsCapsMore;
-    struct ddsExtendedHeapRestrictions
+struct ddsExtendedHeapRestrictions
     {
         DDSCAPSEX ddsCapsEx;
         DDSCAPSEX ddsCapsExAlt;
@@ -3367,7 +3274,7 @@ struct DDRAWI_DDRAWPALETTE_GBL
     DDRAWI_DIRECTDRAW_LCL* lpDD_lcl;
     uint          dwProcessId;
     PALETTEENTRY* lpColorTable;
-    union
+union
     {
         size_t   dwReserved1;
         HPALETTE hHELGDIPalette;
@@ -3461,24 +3368,24 @@ struct DDRAWI_DDRAWSURFACE_GBL
 {
     uint          dwRefCnt;
     uint          dwGlobalFlags;
-    union
+union
     {
         ACCESSRECTLIST* lpRectList;
         uint            dwBlockSizeY;
         int             lSlicePitch;
     }
-    union
+union
     {
         VMEMHEAP* lpVidMemHeap;
         uint      dwBlockSizeX;
     }
-    union
+union
     {
         DDRAWI_DIRECTDRAW_GBL* lpDD;
         void* lpDDHandle;
     }
     size_t        fpVidMem;
-    union
+union
     {
         int  lPitch;
         uint dwLinearSize;
@@ -3493,7 +3400,7 @@ struct DDRAWI_DDRAWSURFACE_GBL
 struct DDRAWI_DDRAWSURFACE_GBL_MORE
 {
     uint            dwSize;
-    union
+union
     {
         uint   dwPhysicalPageTable;
         size_t fpPhysicalVidMem;
@@ -3563,12 +3470,12 @@ struct DDRAWI_DDRAWSURFACE_LCL
     uint        dwProcessId;
     uint        dwFlags;
     DDSCAPS     ddsCaps;
-    union
+union
     {
         DDRAWI_DDRAWPALETTE_INT* lpDDPalette;
         DDRAWI_DDRAWPALETTE_INT* lp16DDPalette;
     }
-    union
+union
     {
         DDRAWI_DDRAWCLIPPER_LCL* lpDDClipper;
         DDRAWI_DDRAWCLIPPER_INT* lp16DDClipper;
@@ -4288,7 +4195,7 @@ struct DDHAL_CREATESURFACEEXDATA
 struct DDHAL_GETDRIVERSTATEDATA
 {
     uint    dwFlags;
-    union
+union
     {
         size_t dwhContext;
     }
@@ -4476,18 +4383,18 @@ struct _D3DHAL_GLOBALDRIVERDATA
 struct STRENTRYA
 {
     ///The name of the string to substitute.
-    const(char)* pszName;
+    PSTR pszName;
     ///The replacement string.
-    const(char)* pszValue;
+    PSTR pszValue;
 }
 
 ///Represents a registry string replacement.
 struct STRENTRYW
 {
     ///The name of the string to substitute.
-    const(wchar)* pszName;
+    PWSTR pszName;
     ///The replacement string.
-    const(wchar)* pszValue;
+    PWSTR pszValue;
 }
 
 ///Represents a table of registry string replacements.
@@ -4510,20 +4417,20 @@ struct STRTABLEW
 
 struct _CabInfoA
 {
-    const(char)* pszCab;
-    const(char)* pszInf;
-    const(char)* pszSection;
-    byte[260]    szSrcPath;
-    uint         dwFlags;
+    PSTR      pszCab;
+    PSTR      pszInf;
+    PSTR      pszSection;
+    byte[260] szSrcPath;
+    uint      dwFlags;
 }
 
 struct _CabInfoW
 {
-    const(wchar)* pszCab;
-    const(wchar)* pszInf;
-    const(wchar)* pszSection;
-    ushort[260]   szSrcPath;
-    uint          dwFlags;
+    PWSTR       pszCab;
+    PWSTR       pszInf;
+    PWSTR       pszSection;
+    ushort[260] szSrcPath;
+    uint        dwFlags;
 }
 
 struct PERUSERSECTIONA
@@ -4633,29 +4540,29 @@ struct IMEPROW
 struct JAVA_TRUST
 {
     ///The size of this structure, in bytes.
-    uint          cbSize;
+    uint         cbSize;
     ///Reserved.
-    uint          flag;
+    uint         flag;
     ///Indicates whether all ActiveX permissions were requested.
-    BOOL          fAllActiveXPermissions;
+    BOOL         fAllActiveXPermissions;
     ///Indicates whether all Java permissions were requested.
-    BOOL          fAllPermissions;
+    BOOL         fAllPermissions;
     ///The encoding type. This member can be <b>X509_ASN_ENCODING</b> or <b>PKCS_7_ASN_ENCODING</b>.
-    uint          dwEncodingType;
+    uint         dwEncodingType;
     ///The encoded permission blob.
-    ubyte*        pbJavaPermissions;
+    ubyte*       pbJavaPermissions;
     ///The size of the <b>pbJavaPermissions</b> buffer, in bytes.
-    uint          cbJavaPermissions;
+    uint         cbJavaPermissions;
     ///The encoded signer.
-    ubyte*        pbSigner;
+    ubyte*       pbSigner;
     ///The size of the <b>pbSigner</b> buffer, in bytes.
-    uint          cbSigner;
+    uint         cbSigner;
     ///The zone index.
-    const(wchar)* pwszZone;
+    const(PWSTR) pwszZone;
     ///Reserved.
-    GUID          guidZone;
+    GUID         guidZone;
     ///The authenticode policy return code.
-    HRESULT       hVerify;
+    HRESULT      hVerify;
 }
 
 struct IsolatedAppLauncherTelemetryParameters
@@ -4801,7 +4708,7 @@ struct TDI_TL_IO_CONTROL_ENDPOINT
 {
     TDI_TL_IO_CONTROL_TYPE Type;
     uint  Level;
-    union
+union
     {
         uint IoControlCode;
         uint OptionName;
@@ -4814,10 +4721,10 @@ struct TDI_TL_IO_CONTROL_ENDPOINT
 
 struct WLDP_HOST_INFORMATION
 {
-    uint          dwRevision;
-    WLDP_HOST_ID  dwHostId;
-    const(wchar)* szSource;
-    HANDLE        hSource;
+    uint         dwRevision;
+    WLDP_HOST_ID dwHostId;
+    const(PWSTR) szSource;
+    HANDLE       hSource;
 }
 
 struct DEVPROP_FILTER_EXPRESSION
@@ -4829,7 +4736,7 @@ struct DEVPROP_FILTER_EXPRESSION
 struct DEV_OBJECT
 {
     DEV_OBJECT_TYPE     ObjectType;
-    const(wchar)*       pszObjectId;
+    const(PWSTR)        pszObjectId;
     uint                cPropertyCount;
     const(DEVPROPERTY)* pProperties;
 }
@@ -4837,7 +4744,7 @@ struct DEV_OBJECT
 struct DEV_QUERY_RESULT_ACTION_DATA
 {
     DEV_QUERY_RESULT_ACTION Action;
-    union Data
+union Data
     {
         DEV_QUERY_STATE State;
         DEV_OBJECT      DeviceObject;
@@ -4920,286 +4827,113 @@ struct _pfLogFrame
     ubyte[1]      bPacketData;
 }
 
+///The <b>NETLOGON_INFO_1</b> structure defines a level-1 control query response from a domain controller.
+struct NETLOGON_INFO_1
+{
+    ///An integer value that contains one or more of the following control query responses from the DC. <table> <tr>
+    ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="NETLOGON_REPLICATION_NEEDED"></a><a
+    ///id="netlogon_replication_needed"></a><dl> <dt><b>NETLOGON_REPLICATION_NEEDED</b></dt> <dt>0x00000001</dt> </dl>
+    ///</td> <td width="60%"> Not supported. </td> </tr> <tr> <td width="40%"><a
+    ///id="NETLOGON_REPLICATION_IN_PROGRESS"></a><a id="netlogon_replication_in_progress"></a><dl>
+    ///<dt><b>NETLOGON_REPLICATION_IN_PROGRESS</b></dt> <dt>0x00000002</dt> </dl> </td> <td width="60%"> Not supported.
+    ///</td> </tr> <tr> <td width="40%"><a id="NETLOGON_FULL_SYNC_REPLICATION"></a><a
+    ///id="netlogon_full_sync_replication"></a><dl> <dt><b>NETLOGON_FULL_SYNC_REPLICATION</b></dt> <dt>0x00000004</dt>
+    ///</dl> </td> <td width="60%"> Not supported. </td> </tr> <tr> <td width="40%"><a id="NETLOGON_REDO_NEEDED"></a><a
+    ///id="netlogon_redo_needed"></a><dl> <dt><b>NETLOGON_REDO_NEEDED</b></dt> <dt>0x00000008</dt> </dl> </td> <td
+    ///width="60%"> Not supported. </td> </tr> <tr> <td width="40%"><a id="NETLOGON_HAS_IP"></a><a
+    ///id="netlogon_has_ip"></a><dl> <dt><b>NETLOGON_HAS_IP</b></dt> <dt>0x00000010</dt> </dl> </td> <td width="60%">
+    ///Trusted domain DC has an IP address. </td> </tr> <tr> <td width="40%"><a id="NETLOGON_HAS_TIMESERV"></a><a
+    ///id="netlogon_has_timeserv"></a><dl> <dt><b>NETLOGON_HAS_TIMESERV</b></dt> <dt>0x00000020</dt> </dl> </td> <td
+    ///width="60%"> Trusted domain DC runs the Windows Time Service. </td> </tr> <tr> <td width="40%"><a
+    ///id="NETLOGON_DNS_UPDATE_FAILURE"></a><a id="netlogon_dns_update_failure"></a><dl>
+    ///<dt><b>NETLOGON_DNS_UPDATE_FAILURE</b></dt> <dt>0x00000040</dt> </dl> </td> <td width="60%"> Last update to the
+    ///DNS records on the DC failed. </td> </tr> </table>
+    uint netlog1_flags;
+    ///An enumerated integer value that contains a status code defined in Lmerr.h, with a value greater than 2100. This
+    ///value applies only to backup domain controllers, and shows the status of the secure channel connection to the PDC
+    ///in their domain.
+    uint netlog1_pdc_connection_status;
+}
+
+///The <b>NETLOGON_INFO_2</b> structure defines a level-2 control query response from a domain controller.
+struct NETLOGON_INFO_2
+{
+    ///An integer value that contains one or more of the following control query responses from the DC. <table> <tr>
+    ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="NETLOGON_REPLICATION_NEEDED"></a><a
+    ///id="netlogon_replication_needed"></a><dl> <dt><b>NETLOGON_REPLICATION_NEEDED</b></dt> <dt>0x00000001</dt> </dl>
+    ///</td> <td width="60%"> Not supported. </td> </tr> <tr> <td width="40%"><a
+    ///id="NETLOGON_REPLICATION_IN_PROGRESS"></a><a id="netlogon_replication_in_progress"></a><dl>
+    ///<dt><b>NETLOGON_REPLICATION_IN_PROGRESS</b></dt> <dt>0x00000002</dt> </dl> </td> <td width="60%"> Not supported.
+    ///</td> </tr> <tr> <td width="40%"><a id="NETLOGON_FULL_SYNC_REPLICATION"></a><a
+    ///id="netlogon_full_sync_replication"></a><dl> <dt><b>NETLOGON_FULL_SYNC_REPLICATION</b></dt> <dt>0x00000004</dt>
+    ///</dl> </td> <td width="60%"> Not supported. </td> </tr> <tr> <td width="40%"><a id="NETLOGON_REDO_NEEDED"></a><a
+    ///id="netlogon_redo_needed"></a><dl> <dt><b>NETLOGON_REDO_NEEDED</b></dt> <dt>0x00000008</dt> </dl> </td> <td
+    ///width="60%"> Not supported. </td> </tr> <tr> <td width="40%"><a id="NETLOGON_HAS_IP"></a><a
+    ///id="netlogon_has_ip"></a><dl> <dt><b>NETLOGON_HAS_IP</b></dt> <dt>0x00000010</dt> </dl> </td> <td width="60%">
+    ///Trusted domain DC has an IP address. </td> </tr> <tr> <td width="40%"><a id="NETLOGON_HAS_TIMESERV"></a><a
+    ///id="netlogon_has_timeserv"></a><dl> <dt><b>NETLOGON_HAS_TIMESERV</b></dt> <dt>0x00000020</dt> </dl> </td> <td
+    ///width="60%"> Trusted domain DC runs the Windows Time Service. </td> </tr> <tr> <td width="40%"><a
+    ///id="NETLOGON_DNS_UPDATE_FAILURE"></a><a id="netlogon_dns_update_failure"></a><dl>
+    ///<dt><b>NETLOGON_DNS_UPDATE_FAILURE</b></dt> <dt>0x00000040</dt> </dl> </td> <td width="60%"> Last update to the
+    ///DNS records on the DC failed. </td> </tr> <tr> <td width="40%"><a id="NETLOGON_VERIFY_STATUS_RETURNED"></a><a
+    ///id="netlogon_verify_status_returned"></a><dl> <dt><b>NETLOGON_VERIFY_STATUS_RETURNED</b></dt> <dt>0x00000080</dt>
+    ///</dl> </td> <td width="60%"> Trust verification status was returned in the <b>netlog2_pdc_connection_status</b>
+    ///member. </td> </tr> </table>
+    uint  netlog2_flags;
+    ///An enumerated integer value that contains a status code defined in Lmerr.h, with a value greater than 2100. If
+    ///<b>NETLOGON_VERIFY_STATUS_RETURNED</b> is set in <b>netlog2_flags</b>, this value represents the trust
+    ///verification status of all domain members collectively.
+    uint  netlog2_pdc_connection_status;
+    PWSTR netlog2_trusted_dc_name;
+    ///An enumerated integer value that contains a status code defined in Lmerr.h, with a value greater than 2100. This
+    ///code shows the status of the secure channel to the specified trusted DC.
+    uint  netlog2_tc_connection_status;
+}
+
+///The <b>NETLOGON_INFO_3</b> structure defines a level-3 control query response from a domain controller.
+struct NETLOGON_INFO_3
+{
+    ///An integer value that contains one or more of the following control query responses from the DC. <table> <tr>
+    ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="NETLOGON_REPLICATION_NEEDED"></a><a
+    ///id="netlogon_replication_needed"></a><dl> <dt><b>NETLOGON_REPLICATION_NEEDED</b></dt> <dt>0x00000001</dt> </dl>
+    ///</td> <td width="60%"> Not supported. </td> </tr> <tr> <td width="40%"><a
+    ///id="NETLOGON_REPLICATION_IN_PROGRESS"></a><a id="netlogon_replication_in_progress"></a><dl>
+    ///<dt><b>NETLOGON_REPLICATION_IN_PROGRESS</b></dt> <dt>0x00000002</dt> </dl> </td> <td width="60%"> Not supported.
+    ///</td> </tr> <tr> <td width="40%"><a id="NETLOGON_FULL_SYNC_REPLICATION"></a><a
+    ///id="netlogon_full_sync_replication"></a><dl> <dt><b>NETLOGON_FULL_SYNC_REPLICATION</b></dt> <dt>0x00000004</dt>
+    ///</dl> </td> <td width="60%"> Not supported. </td> </tr> <tr> <td width="40%"><a id="NETLOGON_REDO_NEEDED"></a><a
+    ///id="netlogon_redo_needed"></a><dl> <dt><b>NETLOGON_REDO_NEEDED</b></dt> <dt>0x00000008</dt> </dl> </td> <td
+    ///width="60%"> Not supported. </td> </tr> <tr> <td width="40%"><a id="NETLOGON_HAS_IP"></a><a
+    ///id="netlogon_has_ip"></a><dl> <dt><b>NETLOGON_HAS_IP</b></dt> <dt>0x00000010</dt> </dl> </td> <td width="60%">
+    ///Trusted domain DC has an IP address. </td> </tr> <tr> <td width="40%"><a id="NETLOGON_HAS_TIMESERV"></a><a
+    ///id="netlogon_has_timeserv"></a><dl> <dt><b>NETLOGON_HAS_TIMESERV</b></dt> <dt>0x00000020</dt> </dl> </td> <td
+    ///width="60%"> Trusted domain DC runs the Windows Time Service. </td> </tr> <tr> <td width="40%"><a
+    ///id="NETLOGON_DNS_UPDATE_FAILURE"></a><a id="netlogon_dns_update_failure"></a><dl>
+    ///<dt><b>NETLOGON_DNS_UPDATE_FAILURE</b></dt> <dt>0x00000040</dt> </dl> </td> <td width="60%"> Last update to the
+    ///DNS records on the DC failed. </td> </tr> </table>
+    uint netlog3_flags;
+    ///The number of logon attempts made for the domain.
+    uint netlog3_logon_attempts;
+    ///Reserved value.
+    uint netlog3_reserved1;
+    ///Reserved value.
+    uint netlog3_reserved2;
+    ///Reserved value.
+    uint netlog3_reserved3;
+    ///Reserved value.
+    uint netlog3_reserved4;
+    ///Reserved value.
+    uint netlog3_reserved5;
+}
+
+///The <b>NETLOGON_INFO_4</b> structure defines a level-4 control query response from a domain controller.
+struct NETLOGON_INFO_4
+{
+    PWSTR netlog4_trusted_dc_name;
+    PWSTR netlog4_trusted_domain_name;
+}
+
 // Functions
-
-///The <b>I_NetLogonControl2</b> function controls various aspects of the Netlogon service.
-///Params:
-///    ServerName = The name of the remote server.
-///    FunctionCode = The operation to be performed. This value can be one of the following. <table> <tr> <th>Value</th>
-///                   <th>Meaning</th> </tr> <tr> <td width="40%"><a id="NETLOGON_CONTROL_QUERY"></a><a
-///                   id="netlogon_control_query"></a><dl> <dt><b>NETLOGON_CONTROL_QUERY</b></dt> <dt>1</dt> </dl> </td> <td
-///                   width="60%"> No operation. Returns only the requested information. </td> </tr> <tr> <td width="40%"><a
-///                   id="NETLOGON_CONTROL_REPLICATE"></a><a id="netlogon_control_replicate"></a><dl>
-///                   <dt><b>NETLOGON_CONTROL_REPLICATE</b></dt> <dt>2</dt> </dl> </td> <td width="60%"> Forces the security account
-///                   manager (SAM) database on a backup domain controller (BDC) to be brought in sync with the copy on the primary
-///                   domain controller (PDC). This operation does not imply a full synchronize. The Netlogon service replicates any
-///                   outstanding differences if possible. </td> </tr> <tr> <td width="40%"><a id="NETLOGON_CONTROL_SYNCHRONIZE"></a><a
-///                   id="netlogon_control_synchronize"></a><dl> <dt><b>NETLOGON_CONTROL_SYNCHRONIZE</b></dt> <dt>3</dt> </dl> </td>
-///                   <td width="60%"> Forces a BDC to get a new copy of the SAM database from the PDC. This operation performs a full
-///                   synchronize. </td> </tr> <tr> <td width="40%"><a id="NETLOGON_CONTROL_PDC_REPLICATE"></a><a
-///                   id="netlogon_control_pdc_replicate"></a><dl> <dt><b>NETLOGON_CONTROL_PDC_REPLICATE</b></dt> <dt>4</dt> </dl>
-///                   </td> <td width="60%"> Forces a PDC to ask for each BDC to replicate now. </td> </tr> <tr> <td width="40%"><a
-///                   id="NETLOGON_CONTROL_REDISCOVER"></a><a id="netlogon_control_rediscover"></a><dl>
-///                   <dt><b>NETLOGON_CONTROL_REDISCOVER</b></dt> <dt>5</dt> </dl> </td> <td width="60%"> Forces a domain controller
-///                   (DC) to rediscover the specified trusted domain DC. </td> </tr> <tr> <td width="40%"><a
-///                   id="NETLOGON_CONTROL_TC_QUERY"></a><a id="netlogon_control_tc_query"></a><dl>
-///                   <dt><b>NETLOGON_CONTROL_TC_QUERY</b></dt> <dt>6</dt> </dl> </td> <td width="60%"> Queries the secure channel,
-///                   requesting a status update about its last usage. </td> </tr> <tr> <td width="40%"><a
-///                   id="NETLOGON_CONTROL_TC_VERIFY"></a><a id="netlogon_control_tc_verify"></a><dl>
-///                   <dt><b>NETLOGON_CONTROL_TC_VERIFY</b></dt> <dt>10</dt> </dl> </td> <td width="60%"> Verifies the current status
-///                   of the specified trusted domain secure channel. If the status indicates success, the domain controller is pinged.
-///                   If the status or the ping indicates failure, a new trusted domain controller is rediscovered. </td> </tr> <tr>
-///                   <td width="40%"><a id="NETLOGON_CONTROL_CHANGE_PASSWORD"></a><a id="netlogon_control_change_password"></a><dl>
-///                   <dt><b>NETLOGON_CONTROL_CHANGE_PASSWORD</b></dt> <dt>9</dt> </dl> </td> <td width="60%"> Forces a password change
-///                   on a secure channel to a trusted domain. </td> </tr> <tr> <td width="40%"><a
-///                   id="NETLOGON_CONTROL_FORCE_DNS_REG"></a><a id="netlogon_control_force_dns_reg"></a><dl>
-///                   <dt><b>NETLOGON_CONTROL_FORCE_DNS_REG</b></dt> <dt>11</dt> </dl> </td> <td width="60%"> Forces the domain
-///                   controller to re-register all of its DNS records. The <i>QueryLevel</i> parameter must be set to 1. </td> </tr>
-///                   <tr> <td width="40%"><a id="NETLOGON_CONTROL_QUERY_DNS_REG"></a><a id="netlogon_control_query_dns_reg"></a><dl>
-///                   <dt><b>NETLOGON_CONTROL_QUERY_DNS_REG</b></dt> <dt>12</dt> </dl> </td> <td width="60%"> Issues a query requesting
-///                   the status of DNS updates performed by the Netlogon service. If any DNS registration or deregistration errors
-///                   occurred on the last update, the result is negative. The <i>QueryLevel</i> parameter must be set to 1. </td>
-///                   </tr> </table>
-///    QueryLevel = Indicates what information should be returned from the Netlogon service. This value can be any of the following
-///                 structures.
-///    Data = Carries input data that depends on the value specified in the <i>FunctionCode</i> parameter. The
-///           NETLOGON_CONTROL_REDISCOVER and NETLOGON_CONTROL_TC_QUERY function codes specify the trusted domain name (the
-///           data type is <b>LPWSTR *</b>).
-///    Buffer = Returns a pointer to a buffer that contains the requested information in the structure passed in the
-///             <i>QueryLevel</i> parameter. The buffer must be freed using NetApiBufferFree.
-///Returns:
-///    The method returns 0x00000000 (<b>NERR_Success</b>) on success; otherwise, it returns a nonzero error code
-///    defined in Lmerr.h or Winerror.h. NET_API_STATUS error codes begin with the value 0x00000834. For more
-///    information about network management error codes, see Network_Management_Error_Codes. The following table
-///    describes possible return values. <table> <tr> <th>Return code/value</th> <th>Description</th> </tr> <tr> <td
-///    width="40%"> <dl> <dt><b><b>NERR_Success</b></b></dt> <dt>0x00000000</dt> </dl> </td> <td width="60%"> The method
-///    call completed without errors. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_ACCESS_DENIED</b></dt>
-///    <dt>0x00000005</dt> </dl> </td> <td width="60%"> Access validation on the caller returns false. Access is denied.
-///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_NOT_ENOUGH_MEMORY</b></dt> <dt>0x00000008</dt> </dl> </td>
-///    <td width="60%"> Not enough storage is available to process this command. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>ERROR_NOT_SUPPORTED</b></dt> <dt>0x00000032</dt> </dl> </td> <td width="60%"> A function code is not valid
-///    on the specified server. For example, NETLOGON_CONTROL_REPLICATE might have been passed to a primary domain
-///    controller (PDC). </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_INVALID_PARAMETER</b></dt>
-///    <dt>0x00000057</dt> </dl> </td> <td width="60%"> A parameter is incorrect. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>ERROR_INVALID_LEVEL</b></dt> <dt>0x0000007C</dt> </dl> </td> <td width="60%"> The query call level is not
-///    correct. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_SERVICE_NOT_ACTIVE</b></dt>
-///    <dt>0x000004261210121</dt> </dl> </td> <td width="60%"> The service has not been started. </td> </tr> <tr> <td
-///    width="40%"> <dl> <dt><b> ERROR_INVALID_COMPUTERNAME</b></dt> <dt> 0x000004BA</dt> </dl> </td> <td width="60%">
-///    The format of the specified computer name is invalid. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>ERROR_NO_LOGON_SERVERS</b></dt> <dt>0x0000051F</dt> </dl> </td> <td width="60%"> There are currently no
-///    logon servers available to service the logon request. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>ERROR_INVALID_DOMAIN_ROLE</b></dt> <dt>0x0000054A</dt> </dl> </td> <td width="60%"> Password change for an
-///    interdomain trust account was attempted on a backup domain controller (BDC). This operation is only allowed for
-///    the PDC of the domain. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_NO_SUCH_DOMAIN</b></dt>
-///    <dt>0x0000054B</dt> </dl> </td> <td width="60%"> The specified domain either does not exist or could not be
-///    contacted. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>NERR_UserNotFound</b></dt> <dt>0x000008AD</dt> </dl>
-///    </td> <td width="60%"> The user name could not be found. </td> </tr> </table>
-///    
-@DllImport("NETAPI32")
-uint I_NetLogonControl2(const(wchar)* ServerName, uint FunctionCode, uint QueryLevel, char* Data, ubyte** Buffer);
-
-///Raises an exception.
-///Params:
-///    ExceptionRecord = Address of an EXCEPTION_RECORD structure that describes the exception, and the parameters of the exception, that
-///                      is raised. Raising a software exception captures the machine state of the current thread in a context record. The
-///                      <b>ExceptionAddress</b> member of the exception record is set to the caller's return address.
-///Returns:
-///    This function does not return a value.
-///    
-@DllImport("KERNEL32")
-void RtlRaiseException(EXCEPTION_RECORD* ExceptionRecord);
-
-///Installs performance counter strings, as defined in an input .ini file, into the system registry. <div
-///class="alert"><b>Note</b> Microsoft recommends that developers use LoadPerfCounterTextStrings instead of
-///<b>InstallPerfDll</b>. <b>LoadPerfCounterTextStrings</b> calls <b>InstallPerfDll</b> internally. </div><div> </div>
-///Params:
-///    szComputerName = The name of the system. This should be <b>NULL</b> because this function cannot be used to install remotely.
-///    lpIniFile = The name of the initialization file that contains definitions to add to the registry.
-///    dwFlags = This parameter can be <b>LOADPERF_FLAGS_DISPLAY_USER_MSGS</b> (<code>(ULONG_PTR) 8</code>).
-///Returns:
-///    If the function is successful, it returns <b>TRUE</b> and posts additional information in an application event
-///    log. Otherwise, it returns an error code that represents the condition that caused the failure.
-///    
-@DllImport("loadperf")
-uint InstallPerfDllW(const(wchar)* szComputerName, const(wchar)* lpIniFile, size_t dwFlags);
-
-///Installs performance counter strings, as defined in an input .ini file, into the system registry. <div
-///class="alert"><b>Note</b> Microsoft recommends that developers use LoadPerfCounterTextStrings instead of
-///<b>InstallPerfDll</b>. <b>LoadPerfCounterTextStrings</b> calls <b>InstallPerfDll</b> internally. </div><div> </div>
-///Params:
-///    szComputerName = The name of the system. This should be <b>NULL</b> because this function cannot be used to install remotely.
-///    lpIniFile = The name of the initialization file that contains definitions to add to the registry.
-///    dwFlags = This parameter can be <b>LOADPERF_FLAGS_DISPLAY_USER_MSGS</b> (<code>(ULONG_PTR) 8</code>).
-///Returns:
-///    If the function is successful, it returns <b>TRUE</b> and posts additional information in an application event
-///    log. Otherwise, it returns an error code that represents the condition that caused the failure.
-///    
-@DllImport("loadperf")
-uint InstallPerfDllA(const(char)* szComputerName, const(char)* lpIniFile, size_t dwFlags);
-
-///Disables the window ghosting feature for the calling GUI process. Window ghosting is a Windows Manager feature that
-///lets the user minimize, move, or close the main window of an application that is not responding.
-@DllImport("USER32")
-void DisableProcessWindowsGhosting();
-
-///Compares two file times.
-///Params:
-///    lpFileTime1 = A pointer to a FILETIME structure that specifies the first file time.
-///    lpFileTime2 = A pointer to a FILETIME structure that specifies the second file time.
-///Returns:
-///    The return value is one of the following values. <table> <tr> <th>Return value</th> <th>Description</th> </tr>
-///    <tr> <td width="40%"> <dl> <dt>-1</dt> </dl> </td> <td width="60%"> First file time is earlier than second file
-///    time. </td> </tr> <tr> <td width="40%"> <dl> <dt>0</dt> </dl> </td> <td width="60%"> First file time is equal to
-///    second file time. </td> </tr> <tr> <td width="40%"> <dl> <dt>1</dt> </dl> </td> <td width="60%"> First file time
-///    is later than second file time. </td> </tr> </table>
-///    
-@DllImport("KERNEL32")
-int CompareFileTime(const(FILETIME)* lpFileTime1, const(FILETIME)* lpFileTime2);
-
-///Converts a file time to a local file time.
-///Params:
-///    lpFileTime = A pointer to a FILETIME structure containing the UTC-based file time to be converted into a local file time.
-///    lpLocalFileTime = A pointer to a FILETIME structure to receive the converted local file time. This parameter cannot be the same as
-///                      the <i>lpFileTime</i> parameter.
-///Returns:
-///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get
-///    extended error information, call GetLastError.
-///    
-@DllImport("KERNEL32")
-BOOL FileTimeToLocalFileTime(const(FILETIME)* lpFileTime, FILETIME* lpLocalFileTime);
-
-///Retrieves the date and time that a file or directory was created, last accessed, and last modified.
-///Params:
-///    hFile = A handle to the file or directory for which dates and times are to be retrieved. The handle must have been
-///            created using the CreateFile function with the <b>GENERIC_READ</b> access right. For more information, see File
-///            Security and Access Rights.
-///    lpCreationTime = A pointer to a FILETIME structure to receive the date and time the file or directory was created. This parameter
-///                     can be <b>NULL</b> if the application does not require this information.
-///    lpLastAccessTime = A pointer to a FILETIME structure to receive the date and time the file or directory was last accessed. The last
-///                       access time includes the last time the file or directory was written to, read from, or, in the case of executable
-///                       files, run. This parameter can be <b>NULL</b> if the application does not require this information.
-///    lpLastWriteTime = A pointer to a FILETIME structure to receive the date and time the file or directory was last written to,
-///                      truncated, or overwritten (for example, with WriteFile or SetEndOfFile). This date and time is not updated when
-///                      file attributes or security descriptors are changed. This parameter can be <b>NULL</b> if the application does
-///                      not require this information.
-///Returns:
-///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get
-///    extended error information, call GetLastError.
-///    
-@DllImport("KERNEL32")
-BOOL GetFileTime(HANDLE hFile, FILETIME* lpCreationTime, FILETIME* lpLastAccessTime, FILETIME* lpLastWriteTime);
-
-///Converts a local file time to a file time based on the Coordinated Universal Time (UTC).
-///Params:
-///    lpLocalFileTime = A pointer to a FILETIME structure that specifies the local file time to be converted into a UTC-based file time.
-///    lpFileTime = A pointer to a FILETIME structure to receive the converted UTC-based file time. This parameter cannot be the same
-///                 as the <i>lpLocalFileTime</i> parameter.
-///Returns:
-///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get
-///    extended error information, use the GetLastError function.
-///    
-@DllImport("KERNEL32")
-BOOL LocalFileTimeToFileTime(const(FILETIME)* lpLocalFileTime, FILETIME* lpFileTime);
-
-///Sets the date and time that the specified file or directory was created, last accessed, or last modified.
-///Params:
-///    hFile = A handle to the file or directory. The handle must have been created using the CreateFile function with the
-///            <b>FILE_WRITE_ATTRIBUTES</b> access right. For more information, see File Security and Access Rights.
-///    lpCreationTime = A pointer to a FILETIME structure that contains the new creation date and time for the file or directory. If the
-///                     application does not need to change this information, set this parameter either to <b>NULL</b> or to a pointer to
-///                     a <b>FILETIME</b> structure that has both the <b>dwLowDateTime</b> and <b>dwHighDateTime</b> members set to 0.
-///    lpLastAccessTime = A pointer to a FILETIME structure that contains the new last access date and time for the file or directory. The
-///                       last access time includes the last time the file or directory was written to, read from, or (in the case of
-///                       executable files) run. If the application does not need to change this information, set this parameter either to
-///                       <b>NULL</b> or to a pointer to a <b>FILETIME</b> structure that has both the <b>dwLowDateTime</b> and
-///                       <b>dwHighDateTime</b> members set to 0. To prevent file operations using the given handle from modifying the last
-///                       access time, call <b>SetFileTime</b> immediately after opening the file handle and pass a FILETIME structure that
-///                       has both the <b>dwLowDateTime</b> and <b>dwHighDateTime</b> members set to 0xFFFFFFFF.
-///    lpLastWriteTime = A pointer to a FILETIME structure that contains the new last modified date and time for the file or directory. If
-///                      the application does not need to change this information, set this parameter either to <b>NULL</b> or to a
-///                      pointer to a <b>FILETIME</b> structure that has both the <b>dwLowDateTime</b> and <b>dwHighDateTime</b> members
-///                      set to 0. To prevent file operations using the given handle from modifying the last access time, call
-///                      <b>SetFileTime</b> immediately after opening the file handle and pass a FILETIME structure that has both the
-///                      <b>dwLowDateTime</b> and <b>dwHighDateTime</b> members set to 0xFFFFFFFF.
-///Returns:
-///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get
-///    extended error information, call GetLastError.
-///    
-@DllImport("KERNEL32")
-BOOL SetFileTime(HANDLE hFile, const(FILETIME)* lpCreationTime, const(FILETIME)* lpLastAccessTime, 
-                 const(FILETIME)* lpLastWriteTime);
-
-///Retrieves the path of the system directory used by WOW64. This directory is not present on 32-bit Windows.
-///Params:
-///    lpBuffer = A pointer to the buffer to receive the path. This path does not end with a backslash.
-///    uSize = The maximum size of the buffer, in <b>TCHARs</b>.
-///Returns:
-///    If the function succeeds, the return value is the length, in <b>TCHARs</b>, of the string copied to the buffer,
-///    not including the terminating null character. If the length is greater than the size of the buffer, the return
-///    value is the size of the buffer required to hold the path. If the function fails, the return value is zero. To
-///    get extended error information, call GetLastError. On 32-bit Windows, the function always fails, and the extended
-///    error is set to ERROR_CALL_NOT_IMPLEMENTED.
-///    
-@DllImport("KERNEL32")
-uint GetSystemWow64DirectoryA(const(char)* lpBuffer, uint uSize);
-
-///Retrieves the path of the system directory used by WOW64. This directory is not present on 32-bit Windows.
-///Params:
-///    lpBuffer = A pointer to the buffer to receive the path. This path does not end with a backslash.
-///    uSize = The maximum size of the buffer, in <b>TCHARs</b>.
-///Returns:
-///    If the function succeeds, the return value is the length, in <b>TCHARs</b>, of the string copied to the buffer,
-///    not including the terminating null character. If the length is greater than the size of the buffer, the return
-///    value is the size of the buffer required to hold the path. If the function fails, the return value is zero. To
-///    get extended error information, call GetLastError. On 32-bit Windows, the function always fails, and the extended
-///    error is set to ERROR_CALL_NOT_IMPLEMENTED.
-///    
-@DllImport("KERNEL32")
-uint GetSystemWow64DirectoryW(const(wchar)* lpBuffer, uint uSize);
-
-///Retrieves the path of the system directory used by WOW64, using the specified image file machine type. This directory
-///is not present on 32-bit Windows.
-///Params:
-///    lpBuffer = A pointer to the buffer to receive the path. This path does not end with a backslash.
-///    uSize = The maximum size of the buffer, in <b>TCHARs</b>.
-///    ImageFileMachineType = An IMAGE_FILE_MACHINE_* value that specifies the machine to test.
-///Returns:
-///    If the function succeeds, the return value is the length, in <b>TCHARs</b>, of the string copied to the buffer,
-///    not including the terminating null character. If the length is greater than the size of the buffer, the return
-///    value is the size of the buffer required to hold the path. If the function fails, the return value is zero. To
-///    get extended error information, call GetLastError.
-///    
-@DllImport("api-ms-win-core-wow64-l1-1-1")
-uint GetSystemWow64Directory2A(const(char)* lpBuffer, uint uSize, ushort ImageFileMachineType);
-
-///Retrieves the path of the system directory used by WOW64, using the specified image file machine type. This directory
-///is not present on 32-bit Windows.
-///Params:
-///    lpBuffer = A pointer to the buffer to receive the path. This path does not end with a backslash.
-///    uSize = The maximum size of the buffer, in <b>TCHARs</b>.
-///    ImageFileMachineType = An IMAGE_FILE_MACHINE_* value that specifies the machine to test.
-///Returns:
-///    If the function succeeds, the return value is the length, in <b>TCHARs</b>, of the string copied to the buffer,
-///    not including the terminating null character. If the length is greater than the size of the buffer, the return
-///    value is the size of the buffer required to hold the path. If the function fails, the return value is zero. To
-///    get extended error information, call GetLastError.
-///    
-@DllImport("api-ms-win-core-wow64-l1-1-1")
-uint GetSystemWow64Directory2W(const(wchar)* lpBuffer, uint uSize, ushort ImageFileMachineType);
-
-///<p class="CCE_Message">[Some information relates to pre-released product which may be substantially modified before
-///it's commercially released. Microsoft makes no warranties, express or implied, with respect to the information
-///provided here.] Determines which architectures are supported (under WOW64) on the given machine architecture.
-///Params:
-///    WowGuestMachine = An IMAGE_FILE_MACHINE_* value that specifies the machine to test.
-///    MachineIsSupported = On success, returns a pointer to a boolean: <b>true</b> if the machine supports WOW64, or <b>false</b> if it does
-///                         not.
-///Returns:
-///    On success, returns <b>S_OK</b>; otherwise, returns an error. To get extended error information, call
-///    GetLastError.
-///    
-@DllImport("KERNEL32")
-HRESULT IsWow64GuestMachineSupported(ushort WowGuestMachine, int* MachineIsSupported);
 
 ///The <b>NdrSimpleStructMarshall</b> function marshals the simple structure into a network buffer.
 ///Params:
@@ -5375,135 +5109,200 @@ void NdrConformantArrayBufferSize(MIDL_STUB_MESSAGE* pStubMsg, ubyte* pMemory, u
 @DllImport("RPCRT4")
 void NdrComplexArrayBufferSize(MIDL_STUB_MESSAGE* pStubMsg, ubyte* pMemory, ubyte* pFormat);
 
-///Retrieves the name of the user or other security principal associated with the calling thread. You can specify the
-///format of the returned name. If the thread is impersonating a client, <b>GetUserNameEx</b> returns the name of the
-///client.
+///Compares two file times.
 ///Params:
-///    NameFormat = The format of the name. This parameter is a value from the EXTENDED_NAME_FORMAT enumeration type. It cannot be
-///                 <b>NameUnknown</b>. If the user account is not in a domain, only <b>NameSamCompatible</b> is supported.
-///    lpNameBuffer = A pointer to a buffer that receives the name in the specified format. The buffer must include space for the
-///                   terminating null character.
-///    nSize = On input, this variable specifies the size of the <i>lpNameBuffer</i> buffer, in <b>TCHARs</b>. If the function
-///            is successful, the variable receives the number of <b>TCHARs</b> copied to the buffer, not including the
-///            terminating null character. If <i>lpNameBuffer</i> is too small, the function fails and GetLastError returns
-///            ERROR_MORE_DATA. This parameter receives the required buffer size, in Unicode characters (whether or not Unicode
-///            is being used), including the terminating null character.
+///    lpFileTime1 = A pointer to a FILETIME structure that specifies the first file time.
+///    lpFileTime2 = A pointer to a FILETIME structure that specifies the second file time.
 ///Returns:
-///    If the function succeeds, the return value is a nonzero value. If the function fails, the return value is zero.
-///    To get extended error information, call GetLastError. Possible values include the following. <table> <tr>
-///    <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_MORE_DATA</b></dt> </dl>
-///    </td> <td width="60%"> The <i>lpNameBuffer</i> buffer is too small. The <i>lpnSize</i> parameter contains the
-///    number of bytes required to receive the name. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>ERROR_NO_SUCH_DOMAIN</b></dt> </dl> </td> <td width="60%"> The domain controller is not available to
-///    perform the lookup </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_NONE_MAPPED</b></dt> </dl> </td> <td
-///    width="60%"> The user name is not available in the specified format. </td> </tr> </table>
+///    The return value is one of the following values. <table> <tr> <th>Return value</th> <th>Description</th> </tr>
+///    <tr> <td width="40%"> <dl> <dt>-1</dt> </dl> </td> <td width="60%"> First file time is earlier than second file
+///    time. </td> </tr> <tr> <td width="40%"> <dl> <dt>0</dt> </dl> </td> <td width="60%"> First file time is equal to
+///    second file time. </td> </tr> <tr> <td width="40%"> <dl> <dt>1</dt> </dl> </td> <td width="60%"> First file time
+///    is later than second file time. </td> </tr> </table>
 ///    
-@DllImport("SspiCli")
-ubyte GetUserNameExA(EXTENDED_NAME_FORMAT NameFormat, const(char)* lpNameBuffer, uint* nSize);
+@DllImport("KERNEL32")
+int CompareFileTime(const(FILETIME)* lpFileTime1, const(FILETIME)* lpFileTime2);
 
-///Retrieves the name of the user or other security principal associated with the calling thread. You can specify the
-///format of the returned name. If the thread is impersonating a client, <b>GetUserNameEx</b> returns the name of the
-///client.
+///Converts a file time to a local file time.
 ///Params:
-///    NameFormat = The format of the name. This parameter is a value from the EXTENDED_NAME_FORMAT enumeration type. It cannot be
-///                 <b>NameUnknown</b>. If the user account is not in a domain, only <b>NameSamCompatible</b> is supported.
-///    lpNameBuffer = A pointer to a buffer that receives the name in the specified format. The buffer must include space for the
-///                   terminating null character.
-///    nSize = On input, this variable specifies the size of the <i>lpNameBuffer</i> buffer, in <b>TCHARs</b>. If the function
-///            is successful, the variable receives the number of <b>TCHARs</b> copied to the buffer, not including the
-///            terminating null character. If <i>lpNameBuffer</i> is too small, the function fails and GetLastError returns
-///            ERROR_MORE_DATA. This parameter receives the required buffer size, in Unicode characters (whether or not Unicode
-///            is being used), including the terminating null character.
+///    lpFileTime = A pointer to a FILETIME structure containing the UTC-based file time to be converted into a local file time.
+///    lpLocalFileTime = A pointer to a FILETIME structure to receive the converted local file time. This parameter cannot be the same as
+///                      the <i>lpFileTime</i> parameter.
 ///Returns:
-///    If the function succeeds, the return value is a nonzero value. If the function fails, the return value is zero.
-///    To get extended error information, call GetLastError. Possible values include the following. <table> <tr>
-///    <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_MORE_DATA</b></dt> </dl>
-///    </td> <td width="60%"> The <i>lpNameBuffer</i> buffer is too small. The <i>lpnSize</i> parameter contains the
-///    number of bytes required to receive the name. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>ERROR_NO_SUCH_DOMAIN</b></dt> </dl> </td> <td width="60%"> The domain controller is not available to
-///    perform the lookup </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_NONE_MAPPED</b></dt> </dl> </td> <td
-///    width="60%"> The user name is not available in the specified format. </td> </tr> </table>
+///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get
+///    extended error information, call GetLastError.
 ///    
-@DllImport("SspiCli")
-ubyte GetUserNameExW(EXTENDED_NAME_FORMAT NameFormat, const(wchar)* lpNameBuffer, uint* nSize);
+@DllImport("KERNEL32")
+BOOL FileTimeToLocalFileTime(const(FILETIME)* lpFileTime, FILETIME* lpLocalFileTime);
 
-///Retrieves the local computer's name in a specified format.
+///Retrieves the date and time that a file or directory was created, last accessed, and last modified.
 ///Params:
-///    NameFormat = The format for the name. This parameter is a value from the EXTENDED_NAME_FORMAT enumeration type. It cannot be
-///                 NameUnknown.
-///    lpNameBuffer = A pointer to a buffer that receives the name in the specified format. If this parameter is <b>NULL</b>, either
-///                   the function succeeds and the <i>lpnSize</i> parameter receives the required size, or the function fails with
-///                   ERROR_INSUFFICIENT_BUFFER and <i>lpnSize</i> receives the required size. The behavior depends on the value of
-///                   <i>NameFormat</i> and the version of the operating system.
-///    nSize = On input, specifies the size of the <i>lpNameBuffer</i> buffer, in <b>TCHARs</b>. On success, receives the size
-///            of the name copied to the buffer. If the <i>lpNameBuffer</i> buffer is too small to hold the name, the function
-///            fails and <i>lpnSize</i> receives the required buffer size.
+///    hFile = A handle to the file or directory for which dates and times are to be retrieved. The handle must have been
+///            created using the CreateFile function with the <b>GENERIC_READ</b> access right. For more information, see File
+///            Security and Access Rights.
+///    lpCreationTime = A pointer to a FILETIME structure to receive the date and time the file or directory was created. This parameter
+///                     can be <b>NULL</b> if the application does not require this information.
+///    lpLastAccessTime = A pointer to a FILETIME structure to receive the date and time the file or directory was last accessed. The last
+///                       access time includes the last time the file or directory was written to, read from, or, in the case of executable
+///                       files, run. This parameter can be <b>NULL</b> if the application does not require this information.
+///    lpLastWriteTime = A pointer to a FILETIME structure to receive the date and time the file or directory was last written to,
+///                      truncated, or overwritten (for example, with WriteFile or SetEndOfFile). This date and time is not updated when
+///                      file attributes or security descriptors are changed. This parameter can be <b>NULL</b> if the application does
+///                      not require this information.
 ///Returns:
-///    If the function succeeds, the return value is a nonzero value. If the function fails, the return value is zero.
-///    To get extended error information, call GetLastError.
+///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get
+///    extended error information, call GetLastError.
 ///    
-@DllImport("SECUR32")
-ubyte GetComputerObjectNameA(EXTENDED_NAME_FORMAT NameFormat, const(char)* lpNameBuffer, uint* nSize);
+@DllImport("KERNEL32")
+BOOL GetFileTime(HANDLE hFile, FILETIME* lpCreationTime, FILETIME* lpLastAccessTime, FILETIME* lpLastWriteTime);
 
-///Retrieves the local computer's name in a specified format.
+///Converts a local file time to a file time based on the Coordinated Universal Time (UTC).
 ///Params:
-///    NameFormat = The format for the name. This parameter is a value from the EXTENDED_NAME_FORMAT enumeration type. It cannot be
-///                 NameUnknown.
-///    lpNameBuffer = A pointer to a buffer that receives the name in the specified format. If this parameter is <b>NULL</b>, either
-///                   the function succeeds and the <i>lpnSize</i> parameter receives the required size, or the function fails with
-///                   ERROR_INSUFFICIENT_BUFFER and <i>lpnSize</i> receives the required size. The behavior depends on the value of
-///                   <i>NameFormat</i> and the version of the operating system.
-///    nSize = On input, specifies the size of the <i>lpNameBuffer</i> buffer, in <b>TCHARs</b>. On success, receives the size
-///            of the name copied to the buffer. If the <i>lpNameBuffer</i> buffer is too small to hold the name, the function
-///            fails and <i>lpnSize</i> receives the required buffer size.
+///    lpLocalFileTime = A pointer to a FILETIME structure that specifies the local file time to be converted into a UTC-based file time.
+///    lpFileTime = A pointer to a FILETIME structure to receive the converted UTC-based file time. This parameter cannot be the same
+///                 as the <i>lpLocalFileTime</i> parameter.
 ///Returns:
-///    If the function succeeds, the return value is a nonzero value. If the function fails, the return value is zero.
-///    To get extended error information, call GetLastError.
+///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get
+///    extended error information, use the GetLastError function.
 ///    
-@DllImport("SECUR32")
-ubyte GetComputerObjectNameW(EXTENDED_NAME_FORMAT NameFormat, const(wchar)* lpNameBuffer, uint* nSize);
+@DllImport("KERNEL32")
+BOOL LocalFileTimeToFileTime(const(FILETIME)* lpLocalFileTime, FILETIME* lpFileTime);
 
-///Converts a directory service object name from one format to another.
+///Sets the date and time that the specified file or directory was created, last accessed, or last modified.
 ///Params:
-///    lpAccountName = The name to be translated.
-///    AccountNameFormat = The format of the name to be translated. This parameter is a value from the EXTENDED_NAME_FORMAT enumeration
-///                        type.
-///    DesiredNameFormat = The format of the converted name. This parameter is a value from the EXTENDED_NAME_FORMAT enumeration type. It
-///                        cannot be NameUnknown.
-///    lpTranslatedName = A pointer to a buffer that receives the converted name.
-///    nSize = On input, the variable indicates the size of the <i>lpTranslatedName</i> buffer, in <b>TCHARs</b>. On output, the
-///            variable returns the size of the returned string, in <b>TCHARs</b>, including the terminating <b>null</b>
-///            character. If <i>lpTranslated</i> is <b>NULL</b> and <i>nSize</i> is 0, the function succeeds and <i>nSize</i>
-///            receives the required buffer size. If the <i>lpTranslatedName</i> buffer is too small to hold the converted name,
-///            the function fails and <i>nSize</i> receives the required buffer size.
+///    hFile = A handle to the file or directory. The handle must have been created using the CreateFile function with the
+///            <b>FILE_WRITE_ATTRIBUTES</b> access right. For more information, see File Security and Access Rights.
+///    lpCreationTime = A pointer to a FILETIME structure that contains the new creation date and time for the file or directory. If the
+///                     application does not need to change this information, set this parameter either to <b>NULL</b> or to a pointer to
+///                     a <b>FILETIME</b> structure that has both the <b>dwLowDateTime</b> and <b>dwHighDateTime</b> members set to 0.
+///    lpLastAccessTime = A pointer to a FILETIME structure that contains the new last access date and time for the file or directory. The
+///                       last access time includes the last time the file or directory was written to, read from, or (in the case of
+///                       executable files) run. If the application does not need to change this information, set this parameter either to
+///                       <b>NULL</b> or to a pointer to a <b>FILETIME</b> structure that has both the <b>dwLowDateTime</b> and
+///                       <b>dwHighDateTime</b> members set to 0. To prevent file operations using the given handle from modifying the last
+///                       access time, call <b>SetFileTime</b> immediately after opening the file handle and pass a FILETIME structure that
+///                       has both the <b>dwLowDateTime</b> and <b>dwHighDateTime</b> members set to 0xFFFFFFFF.
+///    lpLastWriteTime = A pointer to a FILETIME structure that contains the new last modified date and time for the file or directory. If
+///                      the application does not need to change this information, set this parameter either to <b>NULL</b> or to a
+///                      pointer to a <b>FILETIME</b> structure that has both the <b>dwLowDateTime</b> and <b>dwHighDateTime</b> members
+///                      set to 0. To prevent file operations using the given handle from modifying the last access time, call
+///                      <b>SetFileTime</b> immediately after opening the file handle and pass a FILETIME structure that has both the
+///                      <b>dwLowDateTime</b> and <b>dwHighDateTime</b> members set to 0xFFFFFFFF.
 ///Returns:
-///    If the function succeeds, the return value is a nonzero value. If the function fails, the return value is zero.
-///    To get extended error information, call GetLastError.
+///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get
+///    extended error information, call GetLastError.
 ///    
-@DllImport("SECUR32")
-ubyte TranslateNameA(const(char)* lpAccountName, EXTENDED_NAME_FORMAT AccountNameFormat, 
-                     EXTENDED_NAME_FORMAT DesiredNameFormat, const(char)* lpTranslatedName, uint* nSize);
+@DllImport("KERNEL32")
+BOOL SetFileTime(HANDLE hFile, const(FILETIME)* lpCreationTime, const(FILETIME)* lpLastAccessTime, 
+                 const(FILETIME)* lpLastWriteTime);
 
-///Converts a directory service object name from one format to another.
+///Retrieves the path of the system directory used by WOW64. This directory is not present on 32-bit Windows.
 ///Params:
-///    lpAccountName = The name to be translated.
-///    AccountNameFormat = The format of the name to be translated. This parameter is a value from the EXTENDED_NAME_FORMAT enumeration
-///                        type.
-///    DesiredNameFormat = The format of the converted name. This parameter is a value from the EXTENDED_NAME_FORMAT enumeration type. It
-///                        cannot be NameUnknown.
-///    lpTranslatedName = A pointer to a buffer that receives the converted name.
-///    nSize = On input, the variable indicates the size of the <i>lpTranslatedName</i> buffer, in <b>TCHARs</b>. On output, the
-///            variable returns the size of the returned string, in <b>TCHARs</b>, including the terminating <b>null</b>
-///            character. If <i>lpTranslated</i> is <b>NULL</b> and <i>nSize</i> is 0, the function succeeds and <i>nSize</i>
-///            receives the required buffer size. If the <i>lpTranslatedName</i> buffer is too small to hold the converted name,
-///            the function fails and <i>nSize</i> receives the required buffer size.
+///    lpBuffer = A pointer to the buffer to receive the path. This path does not end with a backslash.
+///    uSize = The maximum size of the buffer, in <b>TCHARs</b>.
 ///Returns:
-///    If the function succeeds, the return value is a nonzero value. If the function fails, the return value is zero.
-///    To get extended error information, call GetLastError.
+///    If the function succeeds, the return value is the length, in <b>TCHARs</b>, of the string copied to the buffer,
+///    not including the terminating null character. If the length is greater than the size of the buffer, the return
+///    value is the size of the buffer required to hold the path. If the function fails, the return value is zero. To
+///    get extended error information, call GetLastError. On 32-bit Windows, the function always fails, and the extended
+///    error is set to ERROR_CALL_NOT_IMPLEMENTED.
 ///    
-@DllImport("SECUR32")
-ubyte TranslateNameW(const(wchar)* lpAccountName, EXTENDED_NAME_FORMAT AccountNameFormat, 
-                     EXTENDED_NAME_FORMAT DesiredNameFormat, const(wchar)* lpTranslatedName, uint* nSize);
+@DllImport("KERNEL32")
+uint GetSystemWow64DirectoryA(PSTR lpBuffer, uint uSize);
+
+///Retrieves the path of the system directory used by WOW64. This directory is not present on 32-bit Windows.
+///Params:
+///    lpBuffer = A pointer to the buffer to receive the path. This path does not end with a backslash.
+///    uSize = The maximum size of the buffer, in <b>TCHARs</b>.
+///Returns:
+///    If the function succeeds, the return value is the length, in <b>TCHARs</b>, of the string copied to the buffer,
+///    not including the terminating null character. If the length is greater than the size of the buffer, the return
+///    value is the size of the buffer required to hold the path. If the function fails, the return value is zero. To
+///    get extended error information, call GetLastError. On 32-bit Windows, the function always fails, and the extended
+///    error is set to ERROR_CALL_NOT_IMPLEMENTED.
+///    
+@DllImport("KERNEL32")
+uint GetSystemWow64DirectoryW(PWSTR lpBuffer, uint uSize);
+
+///Retrieves the path of the system directory used by WOW64, using the specified image file machine type. This directory
+///is not present on 32-bit Windows.
+///Params:
+///    lpBuffer = A pointer to the buffer to receive the path. This path does not end with a backslash.
+///    uSize = The maximum size of the buffer, in <b>TCHARs</b>.
+///    ImageFileMachineType = An IMAGE_FILE_MACHINE_* value that specifies the machine to test.
+///Returns:
+///    If the function succeeds, the return value is the length, in <b>TCHARs</b>, of the string copied to the buffer,
+///    not including the terminating null character. If the length is greater than the size of the buffer, the return
+///    value is the size of the buffer required to hold the path. If the function fails, the return value is zero. To
+///    get extended error information, call GetLastError.
+///    
+@DllImport("api-ms-win-core-wow64-l1-1-1")
+uint GetSystemWow64Directory2A(PSTR lpBuffer, uint uSize, ushort ImageFileMachineType);
+
+///Retrieves the path of the system directory used by WOW64, using the specified image file machine type. This directory
+///is not present on 32-bit Windows.
+///Params:
+///    lpBuffer = A pointer to the buffer to receive the path. This path does not end with a backslash.
+///    uSize = The maximum size of the buffer, in <b>TCHARs</b>.
+///    ImageFileMachineType = An IMAGE_FILE_MACHINE_* value that specifies the machine to test.
+///Returns:
+///    If the function succeeds, the return value is the length, in <b>TCHARs</b>, of the string copied to the buffer,
+///    not including the terminating null character. If the length is greater than the size of the buffer, the return
+///    value is the size of the buffer required to hold the path. If the function fails, the return value is zero. To
+///    get extended error information, call GetLastError.
+///    
+@DllImport("api-ms-win-core-wow64-l1-1-1")
+uint GetSystemWow64Directory2W(PWSTR lpBuffer, uint uSize, ushort ImageFileMachineType);
+
+///<p class="CCE_Message">[Some information relates to pre-released product which may be substantially modified before
+///it's commercially released. Microsoft makes no warranties, express or implied, with respect to the information
+///provided here.] Determines which architectures are supported (under WOW64) on the given machine architecture.
+///Params:
+///    WowGuestMachine = An IMAGE_FILE_MACHINE_* value that specifies the machine to test.
+///    MachineIsSupported = On success, returns a pointer to a boolean: <b>true</b> if the machine supports WOW64, or <b>false</b> if it does
+///                         not.
+///Returns:
+///    On success, returns <b>S_OK</b>; otherwise, returns an error. To get extended error information, call
+///    GetLastError.
+///    
+@DllImport("KERNEL32")
+HRESULT IsWow64GuestMachineSupported(ushort WowGuestMachine, BOOL* MachineIsSupported);
+
+///Disables the window ghosting feature for the calling GUI process. Window ghosting is a Windows Manager feature that
+///lets the user minimize, move, or close the main window of an application that is not responding.
+@DllImport("USER32")
+void DisableProcessWindowsGhosting();
+
+///<p class="CCE_Message">[This function is not supported and may be altered or unavailable in the future.] Installs the
+///requested COM server application.
+///Params:
+///    pbc = Reserved for future use; this value must be <b>NULL</b>.
+///    dwFlags = Reserved for future use; this value must be 0.
+///    pClassSpec = A pointer to a <b>uCLSSPEC</b> union. The <b>tyspec</b> member must be set to TYSPEC_CLSID and the <b>clsid</b>
+///                 member must be set to the CLSID to be installed. For more information, see TYSPEC.
+///    pQuery = A pointer to a QUERYCONTEXT structure. The <b>dwContext</b> field must be set to the desired CLSCTX value. For
+///             more information, see <b>QUERYCONTEXT</b>.
+///    pszCodeBase = Reserved for future use; this value must be <b>NULL</b>.
+///Returns:
+///    This function supports the standard return value E_INVALIDARG, as well as the following. <table> <tr>
+///    <th>Term</th> <th>Description</th> </tr> <tr> <td width="40%"> <a id="S_OK"></a><a id="s_ok"></a>S_OK </td> <td
+///    width="60%"> Indicates success. </td> </tr> <tr> <td width="40%"> <a id="CS_E_PACKAGE_NOTFOUND"></a><a
+///    id="cs_e_package_notfound"></a>CS_E_PACKAGE_NOTFOUND </td> <td width="60%"> The <b>tyspec</b> field of
+///    <i>pClassSpec</i> was not set to TYSPEC_CLSID. </td> </tr> </table>
+///    
+@DllImport("ole32")
+HRESULT CoInstall(IBindCtx pbc, uint dwFlags, uCLSSPEC* pClassSpec, QUERYCONTEXT* pQuery, PWSTR pszCodeBase);
+
+///Raises an exception.
+///Params:
+///    ExceptionRecord = Address of an EXCEPTION_RECORD structure that describes the exception, and the parameters of the exception, that
+///                      is raised. Raising a software exception captures the machine state of the current thread in a context record. The
+///                      <b>ExceptionAddress</b> member of the exception record is set to the caller's return address.
+///Returns:
+///    This function does not return a value.
+///    
+@DllImport("KERNEL32")
+void RtlRaiseException(EXCEPTION_RECORD* ExceptionRecord);
 
 ///The **IsApiSetImplemented** function tests if a specified *API set* is present on the computer.
 ///Params:
@@ -5513,7 +5312,7 @@ ubyte TranslateNameW(const(wchar)* lpAccountName, EXTENDED_NAME_FORMAT AccountNa
 ///    API set have valid implementations on the current platform. Otherwise, this function returns **FALSE**.
 ///    
 @DllImport("api-ms-win-core-apiquery-l2-1-0")
-BOOL IsApiSetImplemented(const(char)* Contract);
+BOOL IsApiSetImplemented(const(PSTR) Contract);
 
 ///Sets the environment strings of the calling process (both the system and the user environment variables) for the
 ///current process.
@@ -5524,7 +5323,7 @@ BOOL IsApiSetImplemented(const(char)* Contract);
 ///    Returns S_OK on success.
 ///    
 @DllImport("KERNEL32")
-BOOL SetEnvironmentStringsW(const(wchar)* NewEnvironment);
+BOOL SetEnvironmentStringsW(/*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PWSTR NewEnvironment);
 
 @DllImport("KERNEL32")
 HANDLE GetStdHandle(STD_HANDLE_TYPE nStdHandle);
@@ -5541,7 +5340,7 @@ BOOL SetStdHandle(STD_HANDLE_TYPE nStdHandle, HANDLE hHandle);
 ///    Returns S_OK on success.
 ///    
 @DllImport("KERNEL32")
-BOOL SetStdHandleEx(STD_HANDLE_TYPE nStdHandle, HANDLE hHandle, ptrdiff_t* phPrevValue);
+BOOL SetStdHandleEx(STD_HANDLE_TYPE nStdHandle, HANDLE hHandle, HANDLE* phPrevValue);
 
 ///Expands environment-variable strings and replaces them with the values defined for the current user. To specify the
 ///environment block for a particular user or the system, use the ExpandEnvironmentStringsForUser function.
@@ -5564,7 +5363,7 @@ BOOL SetStdHandleEx(STD_HANDLE_TYPE nStdHandle, HANDLE hHandle, ptrdiff_t* phPre
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-uint ExpandEnvironmentStringsA(const(char)* lpSrc, const(char)* lpDst, uint nSize);
+uint ExpandEnvironmentStringsA(const(PSTR) lpSrc, PSTR lpDst, uint nSize);
 
 ///Expands environment-variable strings and replaces them with the values defined for the current user. To specify the
 ///environment block for a particular user or the system, use the ExpandEnvironmentStringsForUser function.
@@ -5587,19 +5386,19 @@ uint ExpandEnvironmentStringsA(const(char)* lpSrc, const(char)* lpDst, uint nSiz
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-uint ExpandEnvironmentStringsW(const(wchar)* lpSrc, const(wchar)* lpDst, uint nSize);
+uint ExpandEnvironmentStringsW(const(PWSTR) lpSrc, PWSTR lpDst, uint nSize);
 
 @DllImport("KERNEL32")
-BOOL SetCurrentDirectoryA(const(char)* lpPathName);
+BOOL SetCurrentDirectoryA(const(PSTR) lpPathName);
 
 @DllImport("KERNEL32")
-BOOL SetCurrentDirectoryW(const(wchar)* lpPathName);
+BOOL SetCurrentDirectoryW(const(PWSTR) lpPathName);
 
 @DllImport("KERNEL32")
-uint GetCurrentDirectoryA(uint nBufferLength, const(char)* lpBuffer);
+uint GetCurrentDirectoryA(uint nBufferLength, PSTR lpBuffer);
 
 @DllImport("KERNEL32")
-uint GetCurrentDirectoryW(uint nBufferLength, const(wchar)* lpBuffer);
+uint GetCurrentDirectoryW(uint nBufferLength, PWSTR lpBuffer);
 
 ///Closes an open object handle.
 ///Params:
@@ -5651,7 +5450,7 @@ BOOL CloseHandle(HANDLE hObject);
 ///    
 @DllImport("KERNEL32")
 BOOL DuplicateHandle(HANDLE hSourceProcessHandle, HANDLE hSourceHandle, HANDLE hTargetProcessHandle, 
-                     ptrdiff_t* lpTargetHandle, uint dwDesiredAccess, BOOL bInheritHandle, 
+                     HANDLE* lpTargetHandle, uint dwDesiredAccess, BOOL bInheritHandle, 
                      DUPLICATE_HANDLE_OPTIONS dwOptions);
 
 ///Compares two object handles to determine if they refer to the same underlying kernel object.
@@ -5750,7 +5549,8 @@ BOOL QueryPerformanceFrequency(LARGE_INTEGER* lpFrequency);
 ///    continuation target specified via <i>Targets</i> to determine if it was successfully processed.
 ///    
 @DllImport("KERNEL32")
-BOOL SetProcessDynamicEHContinuationTargets(HANDLE Process, ushort NumberOfTargets, char* Targets);
+BOOL SetProcessDynamicEHContinuationTargets(HANDLE Process, ushort NumberOfTargets, 
+                                            PROCESS_DYNAMIC_EH_CONTINUATION_TARGET* Targets);
 
 ///Determines whether the specified processor feature is supported by the current computer.
 ///Params:
@@ -5862,20 +5662,20 @@ BOOL IsProcessorFeaturePresent(uint ProcessorFeature);
 BOOL GetSystemTimes(FILETIME* lpIdleTime, FILETIME* lpKernelTime, FILETIME* lpUserTime);
 
 @DllImport("KERNEL32")
-BOOL GetSystemCpuSetInformation(char* Information, uint BufferLength, uint* ReturnedLength, HANDLE Process, 
-                                uint Flags);
+BOOL GetSystemCpuSetInformation(SYSTEM_CPU_SET_INFORMATION* Information, uint BufferLength, uint* ReturnedLength, 
+                                HANDLE Process, uint Flags);
 
 @DllImport("KERNEL32")
-BOOL GetProcessDefaultCpuSets(HANDLE Process, char* CpuSetIds, uint CpuSetIdCount, uint* RequiredIdCount);
+BOOL GetProcessDefaultCpuSets(HANDLE Process, uint* CpuSetIds, uint CpuSetIdCount, uint* RequiredIdCount);
 
 @DllImport("KERNEL32")
-BOOL SetProcessDefaultCpuSets(HANDLE Process, char* CpuSetIds, uint CpuSetIdCount);
+BOOL SetProcessDefaultCpuSets(HANDLE Process, const(uint)* CpuSetIds, uint CpuSetIdCount);
 
 @DllImport("KERNEL32")
-BOOL GetThreadSelectedCpuSets(HANDLE Thread, char* CpuSetIds, uint CpuSetIdCount, uint* RequiredIdCount);
+BOOL GetThreadSelectedCpuSets(HANDLE Thread, uint* CpuSetIds, uint CpuSetIdCount, uint* RequiredIdCount);
 
 @DllImport("KERNEL32")
-BOOL SetThreadSelectedCpuSets(HANDLE Thread, char* CpuSetIds, uint CpuSetIdCount);
+BOOL SetThreadSelectedCpuSets(HANDLE Thread, const(uint)* CpuSetIds, uint CpuSetIdCount);
 
 ///Retrieves information about the current system. To retrieve accurate information for an application running on WOW64,
 ///call the GetNativeSystemInfo function.
@@ -5927,7 +5727,7 @@ void GetLocalTime(SYSTEMTIME* lpSystemTime);
 BOOL IsUserCetAvailableInEnvironment(uint UserCetEnvironment);
 
 @DllImport("KERNEL32")
-BOOL GetSystemLeapSecondInformation(int* Enabled, uint* Flags);
+BOOL GetSystemLeapSecondInformation(BOOL* Enabled, uint* Flags);
 
 ///<p class="CCE_Message"><b>GetVersion</b> may be altered or unavailable for releases after Windows 8.1. Instead, use
 ///the Version Helper functions. For Windows 10 apps, please see [Targeting your applications for
@@ -6003,7 +5803,7 @@ ulong GetTickCount64();
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL GetSystemTimeAdjustment(uint* lpTimeAdjustment, uint* lpTimeIncrement, int* lpTimeAdjustmentDisabled);
+BOOL GetSystemTimeAdjustment(uint* lpTimeAdjustment, uint* lpTimeIncrement, BOOL* lpTimeAdjustmentDisabled);
 
 ///Determines whether the system is applying periodic, programmed time adjustments to its time-of-day clock, and obtains
 ///the value and period of any such adjustments.
@@ -6020,7 +5820,8 @@ BOOL GetSystemTimeAdjustment(uint* lpTimeAdjustment, uint* lpTimeIncrement, int*
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("api-ms-win-core-sysinfo-l1-2-4")
-BOOL GetSystemTimeAdjustmentPrecise(ulong* lpTimeAdjustment, ulong* lpTimeIncrement, int* lpTimeAdjustmentDisabled);
+BOOL GetSystemTimeAdjustmentPrecise(ulong* lpTimeAdjustment, ulong* lpTimeIncrement, 
+                                    BOOL* lpTimeAdjustmentDisabled);
 
 ///Retrieves the path of the system directory. The system directory contains system files such as dynamic-link libraries
 ///and drivers. This function is provided primarily for compatibility. Applications should store code in the Program
@@ -6038,7 +5839,7 @@ BOOL GetSystemTimeAdjustmentPrecise(ulong* lpTimeAdjustment, ulong* lpTimeIncrem
 ///    function fails, the return value is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-uint GetSystemDirectoryA(const(char)* lpBuffer, uint uSize);
+uint GetSystemDirectoryA(PSTR lpBuffer, uint uSize);
 
 ///Retrieves the path of the system directory. The system directory contains system files such as dynamic-link libraries
 ///and drivers. This function is provided primarily for compatibility. Applications should store code in the Program
@@ -6056,7 +5857,7 @@ uint GetSystemDirectoryA(const(char)* lpBuffer, uint uSize);
 ///    function fails, the return value is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-uint GetSystemDirectoryW(const(wchar)* lpBuffer, uint uSize);
+uint GetSystemDirectoryW(PWSTR lpBuffer, uint uSize);
 
 ///Retrieves the path of the Windows directory. This function is provided primarily for compatibility with legacy
 ///applications. New applications should store code in the Program Files folder and persistent data in the Application
@@ -6075,7 +5876,7 @@ uint GetSystemDirectoryW(const(wchar)* lpBuffer, uint uSize);
 ///    get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-uint GetWindowsDirectoryA(const(char)* lpBuffer, uint uSize);
+uint GetWindowsDirectoryA(PSTR lpBuffer, uint uSize);
 
 ///Retrieves the path of the Windows directory. This function is provided primarily for compatibility with legacy
 ///applications. New applications should store code in the Program Files folder and persistent data in the Application
@@ -6094,7 +5895,7 @@ uint GetWindowsDirectoryA(const(char)* lpBuffer, uint uSize);
 ///    get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-uint GetWindowsDirectoryW(const(wchar)* lpBuffer, uint uSize);
+uint GetWindowsDirectoryW(PWSTR lpBuffer, uint uSize);
 
 ///Retrieves the path of the shared Windows directory on a multi-user system. This function is provided primarily for
 ///compatibility. Applications should store code in the Program Files folder and persistent data in the Application Data
@@ -6112,7 +5913,7 @@ uint GetWindowsDirectoryW(const(wchar)* lpBuffer, uint uSize);
 ///    get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-uint GetSystemWindowsDirectoryA(const(char)* lpBuffer, uint uSize);
+uint GetSystemWindowsDirectoryA(PSTR lpBuffer, uint uSize);
 
 ///Retrieves the path of the shared Windows directory on a multi-user system. This function is provided primarily for
 ///compatibility. Applications should store code in the Program Files folder and persistent data in the Application Data
@@ -6130,7 +5931,7 @@ uint GetSystemWindowsDirectoryA(const(char)* lpBuffer, uint uSize);
 ///    get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-uint GetSystemWindowsDirectoryW(const(wchar)* lpBuffer, uint uSize);
+uint GetSystemWindowsDirectoryW(PWSTR lpBuffer, uint uSize);
 
 ///Retrieves a NetBIOS or DNS name associated with the local computer. The names are established at system startup, when
 ///the system reads them from the registry.
@@ -6190,7 +5991,7 @@ uint GetSystemWindowsDirectoryW(const(wchar)* lpBuffer, uint uSize);
 ///    of bytes required to receive the name. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-BOOL GetComputerNameExA(COMPUTER_NAME_FORMAT NameType, const(char)* lpBuffer, uint* nSize);
+BOOL GetComputerNameExA(COMPUTER_NAME_FORMAT NameType, PSTR lpBuffer, uint* nSize);
 
 ///Retrieves a NetBIOS or DNS name associated with the local computer. The names are established at system startup, when
 ///the system reads them from the registry.
@@ -6250,7 +6051,7 @@ BOOL GetComputerNameExA(COMPUTER_NAME_FORMAT NameType, const(char)* lpBuffer, ui
 ///    of bytes required to receive the name. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-BOOL GetComputerNameExW(COMPUTER_NAME_FORMAT NameType, const(wchar)* lpBuffer, uint* nSize);
+BOOL GetComputerNameExW(COMPUTER_NAME_FORMAT NameType, PWSTR lpBuffer, uint* nSize);
 
 ///Sets a new NetBIOS or DNS name for the local computer. Name changes made by <b>SetComputerNameEx</b> do not take
 ///effect until the user restarts the computer.
@@ -6279,7 +6080,7 @@ BOOL GetComputerNameExW(COMPUTER_NAME_FORMAT NameType, const(wchar)* lpBuffer, u
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL SetComputerNameExW(COMPUTER_NAME_FORMAT NameType, const(wchar)* lpBuffer);
+BOOL SetComputerNameExW(COMPUTER_NAME_FORMAT NameType, const(PWSTR) lpBuffer);
 
 ///Sets the current system time and date. The system time is expressed in Coordinated Universal Time (UTC).
 ///Params:
@@ -6682,7 +6483,7 @@ BOOL GetOsSafeBootMode(uint* Flags);
 ///    GetLastError.
 ///    
 @DllImport("KERNEL32")
-uint EnumSystemFirmwareTables(uint FirmwareTableProviderSignature, char* pFirmwareTableEnumBuffer, uint BufferSize);
+uint EnumSystemFirmwareTables(uint FirmwareTableProviderSignature, void* pFirmwareTableEnumBuffer, uint BufferSize);
 
 ///Retrieves the specified firmware table from the firmware table provider.
 ///Params:
@@ -6706,14 +6507,14 @@ uint EnumSystemFirmwareTables(uint FirmwareTableProviderSignature, char* pFirmwa
 ///    GetLastError.
 ///    
 @DllImport("KERNEL32")
-uint GetSystemFirmwareTable(uint FirmwareTableProviderSignature, uint FirmwareTableID, char* pFirmwareTableBuffer, 
+uint GetSystemFirmwareTable(uint FirmwareTableProviderSignature, uint FirmwareTableID, void* pFirmwareTableBuffer, 
                             uint BufferSize);
 
 @DllImport("KERNEL32")
-BOOL DnsHostnameToComputerNameExW(const(wchar)* Hostname, const(wchar)* ComputerName, uint* nSize);
+BOOL DnsHostnameToComputerNameExW(const(PWSTR) Hostname, PWSTR ComputerName, uint* nSize);
 
 @DllImport("KERNEL32")
-BOOL SetComputerNameEx2W(COMPUTER_NAME_FORMAT NameType, uint Flags, const(wchar)* lpBuffer);
+BOOL SetComputerNameEx2W(COMPUTER_NAME_FORMAT NameType, uint Flags, const(PWSTR) lpBuffer);
 
 ///Enables or disables periodic time adjustments to the system's time-of-day clock. When enabled, such time adjustments
 ///can be used to synchronize the time of day with some other source of time information.
@@ -6756,7 +6557,7 @@ BOOL SetSystemTimeAdjustment(uint dwTimeAdjustment, BOOL bTimeAdjustmentDisabled
 BOOL SetSystemTimeAdjustmentPrecise(ulong dwTimeAdjustment, BOOL bTimeAdjustmentDisabled);
 
 @DllImport("api-ms-win-core-sysinfo-l1-2-3")
-BOOL GetOsManufacturingMode(int* pbEnabled);
+BOOL GetOsManufacturingMode(BOOL* pbEnabled);
 
 ///<p class="CCE_Message">[Some information relates to pre-released product which may be substantially modified before
 ///it's commercially released. Microsoft makes no warranties, express or implied, with respect to the information
@@ -6782,7 +6583,7 @@ HRESULT GetIntegratedDisplaySize(double* sizeInInches);
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL SetComputerNameA(const(char)* lpComputerName);
+BOOL SetComputerNameA(const(PSTR) lpComputerName);
 
 ///Sets a new NetBIOS name for the local computer. The name is stored in the registry and the name change takes effect
 ///the next time the user restarts the computer. If the local computer is a node in a cluster, <b>SetComputerName</b>
@@ -6797,7 +6598,7 @@ BOOL SetComputerNameA(const(char)* lpComputerName);
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL SetComputerNameW(const(wchar)* lpComputerName);
+BOOL SetComputerNameW(const(PWSTR) lpComputerName);
 
 ///Sets a new NetBIOS or DNS name for the local computer. Name changes made by <b>SetComputerNameEx</b> do not take
 ///effect until the user restarts the computer.
@@ -6826,7 +6627,7 @@ BOOL SetComputerNameW(const(wchar)* lpComputerName);
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL SetComputerNameExA(COMPUTER_NAME_FORMAT NameType, const(char)* lpBuffer);
+BOOL SetComputerNameExA(COMPUTER_NAME_FORMAT NameType, const(PSTR) lpBuffer);
 
 ///Gets the current interrupt-time count, in a more precise form than QueryInterruptTime does.
 ///Params:
@@ -6917,7 +6718,7 @@ size_t LocalShrink(ptrdiff_t hMem, uint cbNewSize);
 size_t LocalCompact(uint uMinFree);
 
 @DllImport("KERNEL32")
-BOOL SetEnvironmentStringsA(const(char)* NewEnvironment);
+BOOL SetEnvironmentStringsA(/*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/PSTR NewEnvironment);
 
 ///Changes the number of file handles available to a process. For DOS-based Win32, the default maximum number of file
 ///handles available to a process is 20. For Windows Win32 systems, this API has no effect.
@@ -7011,7 +6812,7 @@ BOOL DosDateTimeToFileTime(ushort wFatDate, ushort wFatTime, FILETIME* lpFileTim
 ///                 one of the following values: OF_SHARE_COMPAT, OF_SHARE_DENY_NONE, OF_SHARE_DENY_READ, OF_SHARE_DENY_WRITE,
 ///                 OF_SHARE_EXCLUSIVE
 @DllImport("KERNEL32")
-int _lopen(const(char)* lpPathName, int iReadWrite);
+int _lopen(const(PSTR) lpPathName, int iReadWrite);
 
 ///<p class="CCE_Message">[This function is provided for compatibility with 16-bit versions of Windows. New applications
 ///should use the <b>CreateFile</b> function.] Creates or opens the specified file. This documentation is included only
@@ -7029,7 +6830,7 @@ int _lopen(const(char)* lpPathName, int iReadWrite);
 ///    extended error information, use the GetLastError function.
 ///    
 @DllImport("KERNEL32")
-int _lcreat(const(char)* lpPathName, int iAttribute);
+int _lcreat(const(PSTR) lpPathName, int iAttribute);
 
 ///The _lread function reads data from the specified file. This function is provided for compatibility with 16-bit
 ///versions of Windows. Win32-based applications should use the ReadFile function.
@@ -7038,7 +6839,7 @@ int _lcreat(const(char)* lpPathName, int iAttribute);
 ///    lpBuffer = Pointer to a buffer that contains the data read from the file.
 ///    uBytes = Specifies the number of bytes to be read from the file.
 @DllImport("KERNEL32")
-uint _lread(int hFile, char* lpBuffer, uint uBytes);
+uint _lread(int hFile, void* lpBuffer, uint uBytes);
 
 ///<p class="CCE_Message">[This function is provided for compatibility with 16-bit versions of Windows. New applications
 ///should use the <b>WriteFile</b> function.] Writes data to the specified file.
@@ -7051,13 +6852,13 @@ uint _lread(int hFile, char* lpBuffer, uint uBytes);
 ///    value is HFILE_ERROR. To get extended error information, use the GetLastError function.
 ///    
 @DllImport("KERNEL32")
-uint _lwrite(int hFile, const(char)* lpBuffer, uint uBytes);
+uint _lwrite(int hFile, const(PSTR) lpBuffer, uint uBytes);
 
 @DllImport("KERNEL32")
-int _hread(int hFile, char* lpBuffer, int lBytes);
+int _hread(int hFile, void* lpBuffer, int lBytes);
 
 @DllImport("KERNEL32")
-int _hwrite(int hFile, const(char)* lpBuffer, int lBytes);
+int _hwrite(int hFile, const(PSTR) lpBuffer, int lBytes);
 
 ///The _lclose function closes the specified file so that it is no longer available for reading or writing. This
 ///function is provided for compatibility with 16-bit versions of Windows. Win32-based applications should use the
@@ -7086,19 +6887,19 @@ int _lclose(int hFile);
 int _llseek(int hFile, int lOffset, int iOrigin);
 
 @DllImport("KERNEL32")
-HANDLE OpenMutexA(uint dwDesiredAccess, BOOL bInheritHandle, const(char)* lpName);
+HANDLE OpenMutexA(uint dwDesiredAccess, BOOL bInheritHandle, const(PSTR) lpName);
 
 @DllImport("KERNEL32")
-HANDLE OpenSemaphoreA(uint dwDesiredAccess, BOOL bInheritHandle, const(char)* lpName);
+HANDLE OpenSemaphoreA(uint dwDesiredAccess, BOOL bInheritHandle, const(PSTR) lpName);
 
 @DllImport("KERNEL32")
-HANDLE CreateWaitableTimerA(SECURITY_ATTRIBUTES* lpTimerAttributes, BOOL bManualReset, const(char)* lpTimerName);
+HANDLE CreateWaitableTimerA(SECURITY_ATTRIBUTES* lpTimerAttributes, BOOL bManualReset, const(PSTR) lpTimerName);
 
 @DllImport("KERNEL32")
-HANDLE OpenWaitableTimerA(uint dwDesiredAccess, BOOL bInheritHandle, const(char)* lpTimerName);
+HANDLE OpenWaitableTimerA(uint dwDesiredAccess, BOOL bInheritHandle, const(PSTR) lpTimerName);
 
 @DllImport("KERNEL32")
-HANDLE CreateWaitableTimerExA(SECURITY_ATTRIBUTES* lpTimerAttributes, const(char)* lpTimerName, uint dwFlags, 
+HANDLE CreateWaitableTimerExA(SECURITY_ATTRIBUTES* lpTimerAttributes, const(PSTR) lpTimerName, uint dwFlags, 
                               uint dwDesiredAccess);
 
 @DllImport("KERNEL32")
@@ -7117,7 +6918,7 @@ void GetStartupInfoA(STARTUPINFOA* lpStartupInfo);
 ///    codes include ERROR_INVALID_FUNCTION.
 ///    
 @DllImport("KERNEL32")
-uint GetFirmwareEnvironmentVariableA(const(char)* lpName, const(char)* lpGuid, char* pBuffer, uint nSize);
+uint GetFirmwareEnvironmentVariableA(const(PSTR) lpName, const(PSTR) lpGuid, void* pBuffer, uint nSize);
 
 ///Retrieves the value of the specified firmware environment variable.
 ///Params:
@@ -7132,7 +6933,7 @@ uint GetFirmwareEnvironmentVariableA(const(char)* lpName, const(char)* lpGuid, c
 ///    codes include ERROR_INVALID_FUNCTION.
 ///    
 @DllImport("KERNEL32")
-uint GetFirmwareEnvironmentVariableW(const(wchar)* lpName, const(wchar)* lpGuid, char* pBuffer, uint nSize);
+uint GetFirmwareEnvironmentVariableW(const(PWSTR) lpName, const(PWSTR) lpGuid, void* pBuffer, uint nSize);
 
 ///Retrieves the value of the specified firmware environment variable and its attributes.
 ///Params:
@@ -7150,7 +6951,7 @@ uint GetFirmwareEnvironmentVariableW(const(wchar)* lpName, const(wchar)* lpGuid,
 ///    codes include ERROR_INVALID_FUNCTION.
 ///    
 @DllImport("KERNEL32")
-uint GetFirmwareEnvironmentVariableExA(const(char)* lpName, const(char)* lpGuid, char* pBuffer, uint nSize, 
+uint GetFirmwareEnvironmentVariableExA(const(PSTR) lpName, const(PSTR) lpGuid, void* pBuffer, uint nSize, 
                                        uint* pdwAttribubutes);
 
 ///Retrieves the value of the specified firmware environment variable and its attributes.
@@ -7169,7 +6970,7 @@ uint GetFirmwareEnvironmentVariableExA(const(char)* lpName, const(char)* lpGuid,
 ///    codes include ERROR_INVALID_FUNCTION.
 ///    
 @DllImport("KERNEL32")
-uint GetFirmwareEnvironmentVariableExW(const(wchar)* lpName, const(wchar)* lpGuid, char* pBuffer, uint nSize, 
+uint GetFirmwareEnvironmentVariableExW(const(PWSTR) lpName, const(PWSTR) lpGuid, void* pBuffer, uint nSize, 
                                        uint* pdwAttribubutes);
 
 ///Sets the value of the specified firmware environment variable.
@@ -7186,7 +6987,7 @@ uint GetFirmwareEnvironmentVariableExW(const(wchar)* lpName, const(wchar)* lpGui
 ///    To get extended error information, call GetLastError. Possible error codes include ERROR_INVALID_FUNCTION.
 ///    
 @DllImport("KERNEL32")
-BOOL SetFirmwareEnvironmentVariableA(const(char)* lpName, const(char)* lpGuid, char* pValue, uint nSize);
+BOOL SetFirmwareEnvironmentVariableA(const(PSTR) lpName, const(PSTR) lpGuid, void* pValue, uint nSize);
 
 ///Sets the value of the specified firmware environment variable.
 ///Params:
@@ -7202,7 +7003,7 @@ BOOL SetFirmwareEnvironmentVariableA(const(char)* lpName, const(char)* lpGuid, c
 ///    To get extended error information, call GetLastError. Possible error codes include ERROR_INVALID_FUNCTION.
 ///    
 @DllImport("KERNEL32")
-BOOL SetFirmwareEnvironmentVariableW(const(wchar)* lpName, const(wchar)* lpGuid, char* pValue, uint nSize);
+BOOL SetFirmwareEnvironmentVariableW(const(PWSTR) lpName, const(PWSTR) lpGuid, void* pValue, uint nSize);
 
 ///Sets the value of the specified firmware environment variable as the attributes that indicate how this variable is
 ///stored and maintained.
@@ -7252,7 +7053,7 @@ BOOL SetFirmwareEnvironmentVariableW(const(wchar)* lpName, const(wchar)* lpGuid,
 ///    To get extended error information, call GetLastError. Possible error codes include ERROR_INVALID_FUNCTION.
 ///    
 @DllImport("KERNEL32")
-BOOL SetFirmwareEnvironmentVariableExA(const(char)* lpName, const(char)* lpGuid, char* pValue, uint nSize, 
+BOOL SetFirmwareEnvironmentVariableExA(const(PSTR) lpName, const(PSTR) lpGuid, void* pValue, uint nSize, 
                                        uint dwAttributes);
 
 ///Sets the value of the specified firmware environment variable and the attributes that indicate how this variable is
@@ -7303,7 +7104,7 @@ BOOL SetFirmwareEnvironmentVariableExA(const(char)* lpName, const(char)* lpGuid,
 ///    To get extended error information, call GetLastError. Possible error codes include ERROR_INVALID_FUNCTION.
 ///    
 @DllImport("KERNEL32")
-BOOL SetFirmwareEnvironmentVariableExW(const(wchar)* lpName, const(wchar)* lpGuid, char* pValue, uint nSize, 
+BOOL SetFirmwareEnvironmentVariableExW(const(PWSTR) lpName, const(PWSTR) lpGuid, void* pValue, uint nSize, 
                                        uint dwAttributes);
 
 ///Retrieves the firmware type of the local computer.
@@ -7323,7 +7124,7 @@ BOOL GetFirmwareType(FIRMWARE_TYPE* FirmwareType);
 ///    TRUE if the OS was a native VHD boot; otherwise, FALSE. Call GetLastError to get extended error information.
 ///    
 @DllImport("KERNEL32")
-BOOL IsNativeVhdBoot(int* NativeVhdBoot);
+BOOL IsNativeVhdBoot(BOOL* NativeVhdBoot);
 
 ///Retrieves an integer from a key in the specified section of the Win.ini file. <div class="alert"><b>Note</b> This
 ///function is provided only for compatibility with 16-bit Windows-based applications. Applications should store
@@ -7339,7 +7140,7 @@ BOOL IsNativeVhdBoot(int* NativeVhdBoot);
 ///    value is zero.
 ///    
 @DllImport("KERNEL32")
-uint GetProfileIntA(const(char)* lpAppName, const(char)* lpKeyName, int nDefault);
+uint GetProfileIntA(const(PSTR) lpAppName, const(PSTR) lpKeyName, int nDefault);
 
 ///Retrieves an integer from a key in the specified section of the Win.ini file. <div class="alert"><b>Note</b> This
 ///function is provided only for compatibility with 16-bit Windows-based applications. Applications should store
@@ -7355,7 +7156,7 @@ uint GetProfileIntA(const(char)* lpAppName, const(char)* lpKeyName, int nDefault
 ///    value is zero.
 ///    
 @DllImport("KERNEL32")
-uint GetProfileIntW(const(wchar)* lpAppName, const(wchar)* lpKeyName, int nDefault);
+uint GetProfileIntW(const(PWSTR) lpAppName, const(PWSTR) lpKeyName, int nDefault);
 
 ///Retrieves the string associated with a key in the specified section of the Win.ini file. <div
 ///class="alert"><b>Note</b> This function is provided only for compatibility with 16-bit Windows-based applications,
@@ -7382,8 +7183,8 @@ uint GetProfileIntW(const(wchar)* lpAppName, const(wchar)* lpKeyName, int nDefau
 ///    followed by two <b>null</b> characters. In this case, the return value is equal to <i>nSize</i> minus two.
 ///    
 @DllImport("KERNEL32")
-uint GetProfileStringA(const(char)* lpAppName, const(char)* lpKeyName, const(char)* lpDefault, 
-                       const(char)* lpReturnedString, uint nSize);
+uint GetProfileStringA(const(PSTR) lpAppName, const(PSTR) lpKeyName, const(PSTR) lpDefault, PSTR lpReturnedString, 
+                       uint nSize);
 
 ///Retrieves the string associated with a key in the specified section of the Win.ini file. <div
 ///class="alert"><b>Note</b> This function is provided only for compatibility with 16-bit Windows-based applications,
@@ -7410,8 +7211,8 @@ uint GetProfileStringA(const(char)* lpAppName, const(char)* lpKeyName, const(cha
 ///    followed by two <b>null</b> characters. In this case, the return value is equal to <i>nSize</i> minus two.
 ///    
 @DllImport("KERNEL32")
-uint GetProfileStringW(const(wchar)* lpAppName, const(wchar)* lpKeyName, const(wchar)* lpDefault, 
-                       const(wchar)* lpReturnedString, uint nSize);
+uint GetProfileStringW(const(PWSTR) lpAppName, const(PWSTR) lpKeyName, const(PWSTR) lpDefault, 
+                       PWSTR lpReturnedString, uint nSize);
 
 ///Copies a string into the specified section of the Win.ini file. If Win.ini uses Unicode characters, the function
 ///writes Unicode characters to the file. Otherwise, the function writes ANSI characters. <div class="alert"><b>Note</b>
@@ -7430,7 +7231,7 @@ uint GetProfileStringW(const(wchar)* lpAppName, const(wchar)* lpKeyName, const(w
 ///    information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL WriteProfileStringA(const(char)* lpAppName, const(char)* lpKeyName, const(char)* lpString);
+BOOL WriteProfileStringA(const(PSTR) lpAppName, const(PSTR) lpKeyName, const(PSTR) lpString);
 
 ///Copies a string into the specified section of the Win.ini file. If Win.ini uses Unicode characters, the function
 ///writes Unicode characters to the file. Otherwise, the function writes ANSI characters. <div class="alert"><b>Note</b>
@@ -7449,7 +7250,7 @@ BOOL WriteProfileStringA(const(char)* lpAppName, const(char)* lpKeyName, const(c
 ///    information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL WriteProfileStringW(const(wchar)* lpAppName, const(wchar)* lpKeyName, const(wchar)* lpString);
+BOOL WriteProfileStringW(const(PWSTR) lpAppName, const(PWSTR) lpKeyName, const(PWSTR) lpString);
 
 ///Retrieves all the keys and values for the specified section of the Win.ini file. <div class="alert"><b>Note</b> This
 ///function is provided only for compatibility with 16-bit Windows-based applications. Applications should store
@@ -7466,7 +7267,7 @@ BOOL WriteProfileStringW(const(wchar)* lpAppName, const(wchar)* lpKeyName, const
 ///    section, the return value is equal to the size specified by <i>nSize</i> minus two.
 ///    
 @DllImport("KERNEL32")
-uint GetProfileSectionA(const(char)* lpAppName, const(char)* lpReturnedString, uint nSize);
+uint GetProfileSectionA(const(PSTR) lpAppName, PSTR lpReturnedString, uint nSize);
 
 ///Retrieves all the keys and values for the specified section of the Win.ini file. <div class="alert"><b>Note</b> This
 ///function is provided only for compatibility with 16-bit Windows-based applications. Applications should store
@@ -7483,7 +7284,7 @@ uint GetProfileSectionA(const(char)* lpAppName, const(char)* lpReturnedString, u
 ///    section, the return value is equal to the size specified by <i>nSize</i> minus two.
 ///    
 @DllImport("KERNEL32")
-uint GetProfileSectionW(const(wchar)* lpAppName, const(wchar)* lpReturnedString, uint nSize);
+uint GetProfileSectionW(const(PWSTR) lpAppName, PWSTR lpReturnedString, uint nSize);
 
 ///Replaces the contents of the specified section in the Win.ini file with specified keys and values. If Win.ini uses
 ///Unicode characters, the function writes Unicode characters to the file. Otherwise, the function writes ANSI
@@ -7499,7 +7300,7 @@ uint GetProfileSectionW(const(wchar)* lpAppName, const(wchar)* lpReturnedString,
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL WriteProfileSectionA(const(char)* lpAppName, const(char)* lpString);
+BOOL WriteProfileSectionA(const(PSTR) lpAppName, const(PSTR) lpString);
 
 ///Replaces the contents of the specified section in the Win.ini file with specified keys and values. If Win.ini uses
 ///Unicode characters, the function writes Unicode characters to the file. Otherwise, the function writes ANSI
@@ -7515,7 +7316,7 @@ BOOL WriteProfileSectionA(const(char)* lpAppName, const(char)* lpString);
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL WriteProfileSectionW(const(wchar)* lpAppName, const(wchar)* lpString);
+BOOL WriteProfileSectionW(const(PWSTR) lpAppName, const(PWSTR) lpString);
 
 ///Retrieves an integer associated with a key in the specified section of an initialization file. <div
 ///class="alert"><b>Note</b> This function is provided only for compatibility with 16-bit Windows-based applications.
@@ -7532,7 +7333,7 @@ BOOL WriteProfileSectionW(const(wchar)* lpAppName, const(wchar)* lpString);
 ///    initialization file. If the key is not found, the return value is the specified default value.
 ///    
 @DllImport("KERNEL32")
-uint GetPrivateProfileIntA(const(char)* lpAppName, const(char)* lpKeyName, int nDefault, const(char)* lpFileName);
+uint GetPrivateProfileIntA(const(PSTR) lpAppName, const(PSTR) lpKeyName, int nDefault, const(PSTR) lpFileName);
 
 ///Retrieves an integer associated with a key in the specified section of an initialization file. <div
 ///class="alert"><b>Note</b> This function is provided only for compatibility with 16-bit Windows-based applications.
@@ -7549,8 +7350,7 @@ uint GetPrivateProfileIntA(const(char)* lpAppName, const(char)* lpKeyName, int n
 ///    initialization file. If the key is not found, the return value is the specified default value.
 ///    
 @DllImport("KERNEL32")
-uint GetPrivateProfileIntW(const(wchar)* lpAppName, const(wchar)* lpKeyName, int nDefault, 
-                           const(wchar)* lpFileName);
+uint GetPrivateProfileIntW(const(PWSTR) lpAppName, const(PWSTR) lpKeyName, int nDefault, const(PWSTR) lpFileName);
 
 ///Retrieves a string from the specified section in an initialization file. <div class="alert"><b>Note</b> This function
 ///is provided only for compatibility with 16-bit Windows-based applications. Applications should store initialization
@@ -7582,8 +7382,8 @@ uint GetPrivateProfileIntW(const(wchar)* lpAppName, const(wchar)* lpKeyName, int
 ///    call GetLastError.
 ///    
 @DllImport("KERNEL32")
-uint GetPrivateProfileStringA(const(char)* lpAppName, const(char)* lpKeyName, const(char)* lpDefault, 
-                              const(char)* lpReturnedString, uint nSize, const(char)* lpFileName);
+uint GetPrivateProfileStringA(const(PSTR) lpAppName, const(PSTR) lpKeyName, const(PSTR) lpDefault, 
+                              PSTR lpReturnedString, uint nSize, const(PSTR) lpFileName);
 
 ///Retrieves a string from the specified section in an initialization file. <div class="alert"><b>Note</b> This function
 ///is provided only for compatibility with 16-bit Windows-based applications. Applications should store initialization
@@ -7615,8 +7415,8 @@ uint GetPrivateProfileStringA(const(char)* lpAppName, const(char)* lpKeyName, co
 ///    call GetLastError.
 ///    
 @DllImport("KERNEL32")
-uint GetPrivateProfileStringW(const(wchar)* lpAppName, const(wchar)* lpKeyName, const(wchar)* lpDefault, 
-                              const(wchar)* lpReturnedString, uint nSize, const(wchar)* lpFileName);
+uint GetPrivateProfileStringW(const(PWSTR) lpAppName, const(PWSTR) lpKeyName, const(PWSTR) lpDefault, 
+                              PWSTR lpReturnedString, uint nSize, const(PWSTR) lpFileName);
 
 ///Copies a string into the specified section of an initialization file. <div class="alert"><b>Note</b> This function is
 ///provided only for compatibility with 16-bit versions of Windows. Applications should store initialization information
@@ -7637,8 +7437,8 @@ uint GetPrivateProfileStringW(const(wchar)* lpAppName, const(wchar)* lpKeyName, 
 ///    value is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL WritePrivateProfileStringA(const(char)* lpAppName, const(char)* lpKeyName, const(char)* lpString, 
-                                const(char)* lpFileName);
+BOOL WritePrivateProfileStringA(const(PSTR) lpAppName, const(PSTR) lpKeyName, const(PSTR) lpString, 
+                                const(PSTR) lpFileName);
 
 ///Copies a string into the specified section of an initialization file. <div class="alert"><b>Note</b> This function is
 ///provided only for compatibility with 16-bit versions of Windows. Applications should store initialization information
@@ -7659,8 +7459,8 @@ BOOL WritePrivateProfileStringA(const(char)* lpAppName, const(char)* lpKeyName, 
 ///    value is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL WritePrivateProfileStringW(const(wchar)* lpAppName, const(wchar)* lpKeyName, const(wchar)* lpString, 
-                                const(wchar)* lpFileName);
+BOOL WritePrivateProfileStringW(const(PWSTR) lpAppName, const(PWSTR) lpKeyName, const(PWSTR) lpString, 
+                                const(PWSTR) lpFileName);
 
 ///Retrieves all the keys and values for the specified section of an initialization file. <div class="alert"><b>Note</b>
 ///This function is provided only for compatibility with 16-bit applications written for Windows. Applications should
@@ -7679,8 +7479,7 @@ BOOL WritePrivateProfileStringW(const(wchar)* lpAppName, const(wchar)* lpKeyName
 ///    named section, the return value is equal to <i>nSize</i> minus two.
 ///    
 @DllImport("KERNEL32")
-uint GetPrivateProfileSectionA(const(char)* lpAppName, const(char)* lpReturnedString, uint nSize, 
-                               const(char)* lpFileName);
+uint GetPrivateProfileSectionA(const(PSTR) lpAppName, PSTR lpReturnedString, uint nSize, const(PSTR) lpFileName);
 
 ///Retrieves all the keys and values for the specified section of an initialization file. <div class="alert"><b>Note</b>
 ///This function is provided only for compatibility with 16-bit applications written for Windows. Applications should
@@ -7699,8 +7498,7 @@ uint GetPrivateProfileSectionA(const(char)* lpAppName, const(char)* lpReturnedSt
 ///    named section, the return value is equal to <i>nSize</i> minus two.
 ///    
 @DllImport("KERNEL32")
-uint GetPrivateProfileSectionW(const(wchar)* lpAppName, const(wchar)* lpReturnedString, uint nSize, 
-                               const(wchar)* lpFileName);
+uint GetPrivateProfileSectionW(const(PWSTR) lpAppName, PWSTR lpReturnedString, uint nSize, const(PWSTR) lpFileName);
 
 ///Replaces the keys and values for the specified section in an initialization file. <div class="alert"><b>Note</b> This
 ///function is provided only for compatibility with 16-bit versions of Windows. Applications should store initialization
@@ -7720,7 +7518,7 @@ uint GetPrivateProfileSectionW(const(wchar)* lpAppName, const(wchar)* lpReturned
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL WritePrivateProfileSectionA(const(char)* lpAppName, const(char)* lpString, const(char)* lpFileName);
+BOOL WritePrivateProfileSectionA(const(PSTR) lpAppName, const(PSTR) lpString, const(PSTR) lpFileName);
 
 ///Replaces the keys and values for the specified section in an initialization file. <div class="alert"><b>Note</b> This
 ///function is provided only for compatibility with 16-bit versions of Windows. Applications should store initialization
@@ -7740,7 +7538,7 @@ BOOL WritePrivateProfileSectionA(const(char)* lpAppName, const(char)* lpString, 
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL WritePrivateProfileSectionW(const(wchar)* lpAppName, const(wchar)* lpString, const(wchar)* lpFileName);
+BOOL WritePrivateProfileSectionW(const(PWSTR) lpAppName, const(PWSTR) lpString, const(PWSTR) lpFileName);
 
 ///Retrieves the names of all sections in an initialization file. <div class="alert"><b>Note</b> This function is
 ///provided only for compatibility with 16-bit Windows-based applications. Applications should store initialization
@@ -7758,7 +7556,7 @@ BOOL WritePrivateProfileSectionW(const(wchar)* lpAppName, const(wchar)* lpString
 ///    specified initialization file, the return value is equal to the size specified by <i>nSize</i> minus two.
 ///    
 @DllImport("KERNEL32")
-uint GetPrivateProfileSectionNamesA(const(char)* lpszReturnBuffer, uint nSize, const(char)* lpFileName);
+uint GetPrivateProfileSectionNamesA(PSTR lpszReturnBuffer, uint nSize, const(PSTR) lpFileName);
 
 ///Retrieves the names of all sections in an initialization file. <div class="alert"><b>Note</b> This function is
 ///provided only for compatibility with 16-bit Windows-based applications. Applications should store initialization
@@ -7776,7 +7574,7 @@ uint GetPrivateProfileSectionNamesA(const(char)* lpszReturnBuffer, uint nSize, c
 ///    specified initialization file, the return value is equal to the size specified by <i>nSize</i> minus two.
 ///    
 @DllImport("KERNEL32")
-uint GetPrivateProfileSectionNamesW(const(wchar)* lpszReturnBuffer, uint nSize, const(wchar)* lpFileName);
+uint GetPrivateProfileSectionNamesW(PWSTR lpszReturnBuffer, uint nSize, const(PWSTR) lpFileName);
 
 ///Retrieves the data associated with a key in the specified section of an initialization file. As it retrieves the
 ///data, the function calculates a checksum and compares it with the checksum calculated by the
@@ -7794,8 +7592,8 @@ uint GetPrivateProfileSectionNamesW(const(wchar)* lpszReturnBuffer, uint nSize, 
 ///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero.
 ///    
 @DllImport("KERNEL32")
-BOOL GetPrivateProfileStructA(const(char)* lpszSection, const(char)* lpszKey, char* lpStruct, uint uSizeStruct, 
-                              const(char)* szFile);
+BOOL GetPrivateProfileStructA(const(PSTR) lpszSection, const(PSTR) lpszKey, void* lpStruct, uint uSizeStruct, 
+                              const(PSTR) szFile);
 
 ///Retrieves the data associated with a key in the specified section of an initialization file. As it retrieves the
 ///data, the function calculates a checksum and compares it with the checksum calculated by the
@@ -7813,8 +7611,8 @@ BOOL GetPrivateProfileStructA(const(char)* lpszSection, const(char)* lpszKey, ch
 ///    If the function succeeds, the return value is nonzero. If the function fails, the return value is zero.
 ///    
 @DllImport("KERNEL32")
-BOOL GetPrivateProfileStructW(const(wchar)* lpszSection, const(wchar)* lpszKey, char* lpStruct, uint uSizeStruct, 
-                              const(wchar)* szFile);
+BOOL GetPrivateProfileStructW(const(PWSTR) lpszSection, const(PWSTR) lpszKey, void* lpStruct, uint uSizeStruct, 
+                              const(PWSTR) szFile);
 
 ///Copies data into a key in the specified section of an initialization file. As it copies the data, the function
 ///calculates a checksum and appends it to the end of the data. The GetPrivateProfileStruct function uses the checksum
@@ -7838,8 +7636,8 @@ BOOL GetPrivateProfileStructW(const(wchar)* lpszSection, const(wchar)* lpszKey, 
 ///    value is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL WritePrivateProfileStructA(const(char)* lpszSection, const(char)* lpszKey, char* lpStruct, uint uSizeStruct, 
-                                const(char)* szFile);
+BOOL WritePrivateProfileStructA(const(PSTR) lpszSection, const(PSTR) lpszKey, void* lpStruct, uint uSizeStruct, 
+                                const(PSTR) szFile);
 
 ///Copies data into a key in the specified section of an initialization file. As it copies the data, the function
 ///calculates a checksum and appends it to the end of the data. The GetPrivateProfileStruct function uses the checksum
@@ -7863,8 +7661,8 @@ BOOL WritePrivateProfileStructA(const(char)* lpszSection, const(char)* lpszKey, 
 ///    value is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL WritePrivateProfileStructW(const(wchar)* lpszSection, const(wchar)* lpszKey, char* lpStruct, uint uSizeStruct, 
-                                const(wchar)* szFile);
+BOOL WritePrivateProfileStructW(const(PWSTR) lpszSection, const(PWSTR) lpszKey, void* lpStruct, uint uSizeStruct, 
+                                const(PWSTR) szFile);
 
 @DllImport("KERNEL32")
 BOOL IsBadHugeReadPtr(const(void)* lp, size_t ucb);
@@ -7889,7 +7687,7 @@ BOOL IsBadHugeWritePtr(void* lp, size_t ucb);
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL GetComputerNameA(const(char)* lpBuffer, uint* nSize);
+BOOL GetComputerNameA(PSTR lpBuffer, uint* nSize);
 
 ///Retrieves the NetBIOS name of the local computer. This name is established at system startup, when the system reads
 ///it from the registry. <b>GetComputerName</b> retrieves only the NetBIOS name of the local computer. To retrieve the
@@ -7908,7 +7706,7 @@ BOOL GetComputerNameA(const(char)* lpBuffer, uint* nSize);
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL GetComputerNameW(const(wchar)* lpBuffer, uint* nSize);
+BOOL GetComputerNameW(PWSTR lpBuffer, uint* nSize);
 
 ///Converts a DNS-style host name to a NetBIOS-style computer name.
 ///Params:
@@ -7928,7 +7726,7 @@ BOOL GetComputerNameW(const(wchar)* lpBuffer, uint* nSize);
 ///    number of bytes required to receive the name. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-BOOL DnsHostnameToComputerNameA(const(char)* Hostname, const(char)* ComputerName, uint* nSize);
+BOOL DnsHostnameToComputerNameA(const(PSTR) Hostname, PSTR ComputerName, uint* nSize);
 
 ///Converts a DNS-style host name to a NetBIOS-style computer name.
 ///Params:
@@ -7948,7 +7746,7 @@ BOOL DnsHostnameToComputerNameA(const(char)* Hostname, const(char)* ComputerName
 ///    number of bytes required to receive the name. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-BOOL DnsHostnameToComputerNameW(const(wchar)* Hostname, const(wchar)* ComputerName, uint* nSize);
+BOOL DnsHostnameToComputerNameW(const(PWSTR) Hostname, PWSTR ComputerName, uint* nSize);
 
 ///Retrieves the name of the user associated with the current thread. Use the GetUserNameEx function to retrieve the
 ///user name in a specified format. Additional information is provided by the IADsADSystemInfo interface.
@@ -7967,7 +7765,7 @@ BOOL DnsHostnameToComputerNameW(const(wchar)* Hostname, const(wchar)* ComputerNa
 ///    GetLastError.
 ///    
 @DllImport("ADVAPI32")
-BOOL GetUserNameA(const(char)* lpBuffer, uint* pcbBuffer);
+BOOL GetUserNameA(PSTR lpBuffer, uint* pcbBuffer);
 
 ///Retrieves the name of the user associated with the current thread. Use the GetUserNameEx function to retrieve the
 ///user name in a specified format. Additional information is provided by the IADsADSystemInfo interface.
@@ -7986,7 +7784,7 @@ BOOL GetUserNameA(const(char)* lpBuffer, uint* pcbBuffer);
 ///    GetLastError.
 ///    
 @DllImport("ADVAPI32")
-BOOL GetUserNameW(const(wchar)* lpBuffer, uint* pcbBuffer);
+BOOL GetUserNameW(PWSTR lpBuffer, uint* pcbBuffer);
 
 @DllImport("ADVAPI32")
 BOOL IsTokenUntrusted(HANDLE TokenHandle);
@@ -8306,10 +8104,10 @@ BOOL LocalSystemTimeToLocalFileTime(const(TIME_ZONE_INFORMATION)* timeZoneInform
                                     const(SYSTEMTIME)* localSystemTime, FILETIME* localFileTime);
 
 @DllImport("KERNEL32")
-BOOL CreateJobSet(uint NumJob, char* UserJobSet, uint Flags);
+BOOL CreateJobSet(uint NumJob, JOB_SET_ARRAY* UserJobSet, uint Flags);
 
 @DllImport("KERNEL32")
-BOOL ReplacePartitionUnit(const(wchar)* TargetPartition, const(wchar)* SparePartition, uint Flags);
+BOOL ReplacePartitionUnit(PWSTR TargetPartition, PWSTR SparePartition, uint Flags);
 
 ///Initializes a CONTEXT structure inside a buffer with the necessary size and alignment, with the option to specify an
 ///XSTATE compaction mask.
@@ -8336,7 +8134,7 @@ BOOL ReplacePartitionUnit(const(wchar)* TargetPartition, const(wchar)* SparePart
 ///    GetLastError.
 ///    
 @DllImport("KERNEL32")
-BOOL InitializeContext2(char* Buffer, uint ContextFlags, CONTEXT** Context, uint* ContextLength, 
+BOOL InitializeContext2(void* Buffer, uint ContextFlags, CONTEXT** Context, uint* ContextLength, 
                         ulong XStateCompactionMask);
 
 @DllImport("api-ms-win-core-backgroundtask-l1-1-0")
@@ -8438,7 +8236,7 @@ LSTATUS RegDisablePredefinedCacheEx();
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegConnectRegistryA(const(char)* lpMachineName, HKEY hKey, HKEY* phkResult);
+LSTATUS RegConnectRegistryA(const(PSTR) lpMachineName, HKEY hKey, HKEY* phkResult);
 
 ///Establishes a connection to a predefined registry key on another computer.
 ///Params:
@@ -8452,41 +8250,13 @@ LSTATUS RegConnectRegistryA(const(char)* lpMachineName, HKEY hKey, HKEY* phkResu
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegConnectRegistryW(const(wchar)* lpMachineName, HKEY hKey, HKEY* phkResult);
+LSTATUS RegConnectRegistryW(const(PWSTR) lpMachineName, HKEY hKey, HKEY* phkResult);
 
 @DllImport("ADVAPI32")
-LSTATUS RegConnectRegistryExA(const(char)* lpMachineName, HKEY hKey, uint Flags, HKEY* phkResult);
+LSTATUS RegConnectRegistryExA(const(PSTR) lpMachineName, HKEY hKey, uint Flags, HKEY* phkResult);
 
 @DllImport("ADVAPI32")
-LSTATUS RegConnectRegistryExW(const(wchar)* lpMachineName, HKEY hKey, uint Flags, HKEY* phkResult);
-
-///Creates the specified registry key. If the key already exists in the registry, the function opens it. <div
-///class="alert"><b>Note</b> This function is provided only for compatibility with 16-bit versions of Windows.
-///Applications should use the RegCreateKeyEx function. However, applications that back up or restore system state
-///including system files and registry hives should use the Volume Shadow Copy Service instead of the registry
-///functions.</div><div> </div>
-///Params:
-///    hKey = A handle to an open registry key. The calling process must have KEY_CREATE_SUB_KEY access to the key. For more
-///           information, see Registry Key Security and Access Rights. Access for key creation is checked against the security
-///           descriptor of the registry key, not the access mask specified when the handle was obtained. Therefore, even if
-///           <i>hKey</i> was opened with a <i>samDesired</i> of KEY_READ, it can be used in operations that create keys if
-///           allowed by its security descriptor. This handle is returned by the RegCreateKeyEx or RegOpenKeyEx function, or it
-///           can be one of the following predefined keys:<dl> <dd><b>HKEY_CLASSES_ROOT</b></dd>
-///           <dd><b>HKEY_CURRENT_CONFIG</b></dd> <dd><b>HKEY_CURRENT_USER</b></dd> <dd><b>HKEY_LOCAL_MACHINE</b></dd>
-///           <dd><b>HKEY_USERS</b></dd> </dl>
-///    lpSubKey = The name of a key that this function opens or creates. This key must be a subkey of the key identified by the
-///               <i>hKey</i> parameter. For more information on key names, see Structure of the Registry. If <i>hKey</i> is one of
-///               the predefined keys, <i>lpSubKey</i> may be <b>NULL</b>. In that case, <i>phkResult</i> receives the same
-///               <i>hKey</i> handle passed in to the function.
-///    phkResult = A pointer to a variable that receives a handle to the opened or created key. If the key is not one of the
-///                predefined registry keys, call the RegCloseKey function after you have finished using the handle.
-///Returns:
-///    If the function succeeds, the return value is ERROR_SUCCESS. If the function fails, the return value is a nonzero
-///    error code defined in Winerror.h. You can use the FormatMessage function with the FORMAT_MESSAGE_FROM_SYSTEM flag
-///    to get a generic description of the error.
-///    
-@DllImport("ADVAPI32")
-LSTATUS RegCreateKeyA(HKEY hKey, const(char)* lpSubKey, HKEY* phkResult);
+LSTATUS RegConnectRegistryExW(const(PWSTR) lpMachineName, HKEY hKey, uint Flags, HKEY* phkResult);
 
 ///Creates the specified registry key. If the key already exists in the registry, the function opens it. <div
 ///class="alert"><b>Note</b> This function is provided only for compatibility with 16-bit versions of Windows.
@@ -8514,7 +8284,35 @@ LSTATUS RegCreateKeyA(HKEY hKey, const(char)* lpSubKey, HKEY* phkResult);
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegCreateKeyW(HKEY hKey, const(wchar)* lpSubKey, HKEY* phkResult);
+LSTATUS RegCreateKeyA(HKEY hKey, const(PSTR) lpSubKey, HKEY* phkResult);
+
+///Creates the specified registry key. If the key already exists in the registry, the function opens it. <div
+///class="alert"><b>Note</b> This function is provided only for compatibility with 16-bit versions of Windows.
+///Applications should use the RegCreateKeyEx function. However, applications that back up or restore system state
+///including system files and registry hives should use the Volume Shadow Copy Service instead of the registry
+///functions.</div><div> </div>
+///Params:
+///    hKey = A handle to an open registry key. The calling process must have KEY_CREATE_SUB_KEY access to the key. For more
+///           information, see Registry Key Security and Access Rights. Access for key creation is checked against the security
+///           descriptor of the registry key, not the access mask specified when the handle was obtained. Therefore, even if
+///           <i>hKey</i> was opened with a <i>samDesired</i> of KEY_READ, it can be used in operations that create keys if
+///           allowed by its security descriptor. This handle is returned by the RegCreateKeyEx or RegOpenKeyEx function, or it
+///           can be one of the following predefined keys:<dl> <dd><b>HKEY_CLASSES_ROOT</b></dd>
+///           <dd><b>HKEY_CURRENT_CONFIG</b></dd> <dd><b>HKEY_CURRENT_USER</b></dd> <dd><b>HKEY_LOCAL_MACHINE</b></dd>
+///           <dd><b>HKEY_USERS</b></dd> </dl>
+///    lpSubKey = The name of a key that this function opens or creates. This key must be a subkey of the key identified by the
+///               <i>hKey</i> parameter. For more information on key names, see Structure of the Registry. If <i>hKey</i> is one of
+///               the predefined keys, <i>lpSubKey</i> may be <b>NULL</b>. In that case, <i>phkResult</i> receives the same
+///               <i>hKey</i> handle passed in to the function.
+///    phkResult = A pointer to a variable that receives a handle to the opened or created key. If the key is not one of the
+///                predefined registry keys, call the RegCloseKey function after you have finished using the handle.
+///Returns:
+///    If the function succeeds, the return value is ERROR_SUCCESS. If the function fails, the return value is a nonzero
+///    error code defined in Winerror.h. You can use the FormatMessage function with the FORMAT_MESSAGE_FROM_SYSTEM flag
+///    to get a generic description of the error.
+///    
+@DllImport("ADVAPI32")
+LSTATUS RegCreateKeyW(HKEY hKey, const(PWSTR) lpSubKey, HKEY* phkResult);
 
 ///Creates the specified registry key. If the key already exists, the function opens it. Note that key names are not
 ///case sensitive. To perform transacted registry operations on a key, call the RegCreateKeyTransacted function.
@@ -8582,7 +8380,7 @@ LSTATUS RegCreateKeyW(HKEY hKey, const(wchar)* lpSubKey, HKEY* phkResult);
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegCreateKeyExA(HKEY hKey, const(char)* lpSubKey, uint Reserved, const(char)* lpClass, uint dwOptions, 
+LSTATUS RegCreateKeyExA(HKEY hKey, const(PSTR) lpSubKey, uint Reserved, PSTR lpClass, uint dwOptions, 
                         uint samDesired, const(SECURITY_ATTRIBUTES)* lpSecurityAttributes, HKEY* phkResult, 
                         uint* lpdwDisposition);
 
@@ -8652,7 +8450,7 @@ LSTATUS RegCreateKeyExA(HKEY hKey, const(char)* lpSubKey, uint Reserved, const(c
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegCreateKeyExW(HKEY hKey, const(wchar)* lpSubKey, uint Reserved, const(wchar)* lpClass, uint dwOptions, 
+LSTATUS RegCreateKeyExW(HKEY hKey, const(PWSTR) lpSubKey, uint Reserved, PWSTR lpClass, uint dwOptions, 
                         uint samDesired, const(SECURITY_ATTRIBUTES)* lpSecurityAttributes, HKEY* phkResult, 
                         uint* lpdwDisposition);
 
@@ -8716,10 +8514,9 @@ LSTATUS RegCreateKeyExW(HKEY hKey, const(wchar)* lpSubKey, uint Reserved, const(
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegCreateKeyTransactedA(HKEY hKey, const(char)* lpSubKey, uint Reserved, const(char)* lpClass, 
-                                uint dwOptions, uint samDesired, const(SECURITY_ATTRIBUTES)* lpSecurityAttributes, 
-                                HKEY* phkResult, uint* lpdwDisposition, HANDLE hTransaction, 
-                                void* pExtendedParemeter);
+LSTATUS RegCreateKeyTransactedA(HKEY hKey, const(PSTR) lpSubKey, uint Reserved, PSTR lpClass, uint dwOptions, 
+                                uint samDesired, const(SECURITY_ATTRIBUTES)* lpSecurityAttributes, HKEY* phkResult, 
+                                uint* lpdwDisposition, HANDLE hTransaction, void* pExtendedParemeter);
 
 ///Creates the specified registry key and associates it with a transaction. If the key already exists, the function
 ///opens it. Note that key names are not case sensitive. Applications that back up or restore system state including
@@ -8781,10 +8578,9 @@ LSTATUS RegCreateKeyTransactedA(HKEY hKey, const(char)* lpSubKey, uint Reserved,
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegCreateKeyTransactedW(HKEY hKey, const(wchar)* lpSubKey, uint Reserved, const(wchar)* lpClass, 
-                                uint dwOptions, uint samDesired, const(SECURITY_ATTRIBUTES)* lpSecurityAttributes, 
-                                HKEY* phkResult, uint* lpdwDisposition, HANDLE hTransaction, 
-                                void* pExtendedParemeter);
+LSTATUS RegCreateKeyTransactedW(HKEY hKey, const(PWSTR) lpSubKey, uint Reserved, PWSTR lpClass, uint dwOptions, 
+                                uint samDesired, const(SECURITY_ATTRIBUTES)* lpSecurityAttributes, HKEY* phkResult, 
+                                uint* lpdwDisposition, HANDLE hTransaction, void* pExtendedParemeter);
 
 ///Deletes a subkey and its values. Note that key names are not case sensitive. <b>64-bit Windows: </b>On WOW64, 32-bit
 ///applications view a registry tree that is separate from the registry tree that 64-bit applications view. To enable an
@@ -8804,7 +8600,7 @@ LSTATUS RegCreateKeyTransactedW(HKEY hKey, const(wchar)* lpSubKey, uint Reserved
 ///    function with the FORMAT_MESSAGE_FROM_SYSTEM flag.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegDeleteKeyA(HKEY hKey, const(char)* lpSubKey);
+LSTATUS RegDeleteKeyA(HKEY hKey, const(PSTR) lpSubKey);
 
 ///Deletes a subkey and its values. Note that key names are not case sensitive. <b>64-bit Windows: </b>On WOW64, 32-bit
 ///applications view a registry tree that is separate from the registry tree that 64-bit applications view. To enable an
@@ -8824,7 +8620,7 @@ LSTATUS RegDeleteKeyA(HKEY hKey, const(char)* lpSubKey);
 ///    function with the FORMAT_MESSAGE_FROM_SYSTEM flag.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegDeleteKeyW(HKEY hKey, const(wchar)* lpSubKey);
+LSTATUS RegDeleteKeyW(HKEY hKey, const(PWSTR) lpSubKey);
 
 ///Deletes a subkey and its values from the specified platform-specific view of the registry. Note that key names are
 ///not case sensitive. To delete a subkey as a transacted operation, call the RegDeleteKeyTransacted function.
@@ -8850,7 +8646,7 @@ LSTATUS RegDeleteKeyW(HKEY hKey, const(wchar)* lpSubKey);
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegDeleteKeyExA(HKEY hKey, const(char)* lpSubKey, uint samDesired, uint Reserved);
+LSTATUS RegDeleteKeyExA(HKEY hKey, const(PSTR) lpSubKey, uint samDesired, uint Reserved);
 
 ///Deletes a subkey and its values from the specified platform-specific view of the registry. Note that key names are
 ///not case sensitive. To delete a subkey as a transacted operation, call the RegDeleteKeyTransacted function.
@@ -8876,7 +8672,7 @@ LSTATUS RegDeleteKeyExA(HKEY hKey, const(char)* lpSubKey, uint samDesired, uint 
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegDeleteKeyExW(HKEY hKey, const(wchar)* lpSubKey, uint samDesired, uint Reserved);
+LSTATUS RegDeleteKeyExW(HKEY hKey, const(PWSTR) lpSubKey, uint samDesired, uint Reserved);
 
 ///Deletes a subkey and its values from the specified platform-specific view of the registry as a transacted operation.
 ///Note that key names are not case sensitive.
@@ -8904,7 +8700,7 @@ LSTATUS RegDeleteKeyExW(HKEY hKey, const(wchar)* lpSubKey, uint samDesired, uint
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegDeleteKeyTransactedA(HKEY hKey, const(char)* lpSubKey, uint samDesired, uint Reserved, 
+LSTATUS RegDeleteKeyTransactedA(HKEY hKey, const(PSTR) lpSubKey, uint samDesired, uint Reserved, 
                                 HANDLE hTransaction, void* pExtendedParameter);
 
 ///Deletes a subkey and its values from the specified platform-specific view of the registry as a transacted operation.
@@ -8933,7 +8729,7 @@ LSTATUS RegDeleteKeyTransactedA(HKEY hKey, const(char)* lpSubKey, uint samDesire
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegDeleteKeyTransactedW(HKEY hKey, const(wchar)* lpSubKey, uint samDesired, uint Reserved, 
+LSTATUS RegDeleteKeyTransactedW(HKEY hKey, const(PWSTR) lpSubKey, uint samDesired, uint Reserved, 
                                 HANDLE hTransaction, void* pExtendedParameter);
 
 ///Disables registry reflection for the specified key. Disabling reflection for a key does not affect reflection of any
@@ -8978,7 +8774,7 @@ int RegEnableReflectionKey(HKEY hBase);
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-int RegQueryReflectionKey(HKEY hBase, int* bIsReflectionDisabled);
+int RegQueryReflectionKey(HKEY hBase, BOOL* bIsReflectionDisabled);
 
 ///Removes a named value from the specified registry key. Note that value names are not case sensitive.
 ///Params:
@@ -8995,7 +8791,7 @@ int RegQueryReflectionKey(HKEY hBase, int* bIsReflectionDisabled);
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegDeleteValueA(HKEY hKey, const(char)* lpValueName);
+LSTATUS RegDeleteValueA(HKEY hKey, const(PSTR) lpValueName);
 
 ///Removes a named value from the specified registry key. Note that value names are not case sensitive.
 ///Params:
@@ -9012,7 +8808,7 @@ LSTATUS RegDeleteValueA(HKEY hKey, const(char)* lpValueName);
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegDeleteValueW(HKEY hKey, const(wchar)* lpValueName);
+LSTATUS RegDeleteValueW(HKEY hKey, const(PWSTR) lpValueName);
 
 ///Enumerates the subkeys of the specified open registry key. The function retrieves the name of one subkey each time it
 ///is called. <div class="alert"><b>Note</b> This function is provided only for compatibility with 16-bit versions of
@@ -9038,7 +8834,7 @@ LSTATUS RegDeleteValueW(HKEY hKey, const(wchar)* lpValueName);
 ///    <i>lpName</i> buffer is too small to receive the name of the key, the function returns ERROR_MORE_DATA.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegEnumKeyA(HKEY hKey, uint dwIndex, const(char)* lpName, uint cchName);
+LSTATUS RegEnumKeyA(HKEY hKey, uint dwIndex, PSTR lpName, uint cchName);
 
 ///Enumerates the subkeys of the specified open registry key. The function retrieves the name of one subkey each time it
 ///is called. <div class="alert"><b>Note</b> This function is provided only for compatibility with 16-bit versions of
@@ -9064,7 +8860,7 @@ LSTATUS RegEnumKeyA(HKEY hKey, uint dwIndex, const(char)* lpName, uint cchName);
 ///    <i>lpName</i> buffer is too small to receive the name of the key, the function returns ERROR_MORE_DATA.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegEnumKeyW(HKEY hKey, uint dwIndex, const(wchar)* lpName, uint cchName);
+LSTATUS RegEnumKeyW(HKEY hKey, uint dwIndex, PWSTR lpName, uint cchName);
 
 ///Enumerates the subkeys of the specified open registry key. The function retrieves information about one subkey each
 ///time it is called.
@@ -9101,8 +8897,8 @@ LSTATUS RegEnumKeyW(HKEY hKey, uint dwIndex, const(wchar)* lpName, uint cchName)
 ///    <i>lpName</i> buffer is too small to receive the name of the key, the function returns ERROR_MORE_DATA.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegEnumKeyExA(HKEY hKey, uint dwIndex, const(char)* lpName, uint* lpcchName, uint* lpReserved, 
-                      const(char)* lpClass, uint* lpcchClass, FILETIME* lpftLastWriteTime);
+LSTATUS RegEnumKeyExA(HKEY hKey, uint dwIndex, PSTR lpName, uint* lpcchName, uint* lpReserved, PSTR lpClass, 
+                      uint* lpcchClass, FILETIME* lpftLastWriteTime);
 
 ///Enumerates the subkeys of the specified open registry key. The function retrieves information about one subkey each
 ///time it is called.
@@ -9139,8 +8935,8 @@ LSTATUS RegEnumKeyExA(HKEY hKey, uint dwIndex, const(char)* lpName, uint* lpcchN
 ///    <i>lpName</i> buffer is too small to receive the name of the key, the function returns ERROR_MORE_DATA.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegEnumKeyExW(HKEY hKey, uint dwIndex, const(wchar)* lpName, uint* lpcchName, uint* lpReserved, 
-                      const(wchar)* lpClass, uint* lpcchClass, FILETIME* lpftLastWriteTime);
+LSTATUS RegEnumKeyExW(HKEY hKey, uint dwIndex, PWSTR lpName, uint* lpcchName, uint* lpReserved, PWSTR lpClass, 
+                      uint* lpcchClass, FILETIME* lpftLastWriteTime);
 
 ///Enumerates the values for the specified open registry key. The function copies one indexed value name and data block
 ///for the key each time it is called.
@@ -9187,8 +8983,8 @@ LSTATUS RegEnumKeyExW(HKEY hKey, uint dwIndex, const(wchar)* lpName, uint* lpcch
 ///    ERROR_MORE_DATA.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegEnumValueA(HKEY hKey, uint dwIndex, const(char)* lpValueName, uint* lpcchValueName, uint* lpReserved, 
-                      uint* lpType, char* lpData, uint* lpcbData);
+LSTATUS RegEnumValueA(HKEY hKey, uint dwIndex, PSTR lpValueName, uint* lpcchValueName, uint* lpReserved, 
+                      uint* lpType, ubyte* lpData, uint* lpcbData);
 
 ///Enumerates the values for the specified open registry key. The function copies one indexed value name and data block
 ///for the key each time it is called.
@@ -9231,8 +9027,8 @@ LSTATUS RegEnumValueA(HKEY hKey, uint dwIndex, const(char)* lpValueName, uint* l
 ///    buffer is too small to receive the value, the function returns ERROR_MORE_DATA.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegEnumValueW(HKEY hKey, uint dwIndex, const(wchar)* lpValueName, uint* lpcchValueName, uint* lpReserved, 
-                      uint* lpType, char* lpData, uint* lpcbData);
+LSTATUS RegEnumValueW(HKEY hKey, uint dwIndex, PWSTR lpValueName, uint* lpcchValueName, uint* lpReserved, 
+                      uint* lpType, ubyte* lpData, uint* lpcbData);
 
 ///Writes all the attributes of the specified open registry key into the registry.
 ///Params:
@@ -9269,7 +9065,7 @@ LSTATUS RegFlushKey(HKEY hKey);
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegLoadKeyA(HKEY hKey, const(char)* lpSubKey, const(char)* lpFile);
+LSTATUS RegLoadKeyA(HKEY hKey, const(PSTR) lpSubKey, const(PSTR) lpFile);
 
 ///Creates a subkey under <b>HKEY_USERS</b> or <b>HKEY_LOCAL_MACHINE</b> and loads the data from the specified registry
 ///hive into that subkey. Applications that back up or restore system state including system files and registry hives
@@ -9290,7 +9086,7 @@ LSTATUS RegLoadKeyA(HKEY hKey, const(char)* lpSubKey, const(char)* lpFile);
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegLoadKeyW(HKEY hKey, const(wchar)* lpSubKey, const(wchar)* lpFile);
+LSTATUS RegLoadKeyW(HKEY hKey, const(PWSTR) lpSubKey, const(PWSTR) lpFile);
 
 ///Notifies the caller about changes to the attributes or contents of a specified registry key.
 ///Params:
@@ -9350,7 +9146,7 @@ LSTATUS RegNotifyChangeKeyValue(HKEY hKey, BOOL bWatchSubtree, uint dwNotifyFilt
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegOpenKeyA(HKEY hKey, const(char)* lpSubKey, HKEY* phkResult);
+LSTATUS RegOpenKeyA(HKEY hKey, const(PSTR) lpSubKey, HKEY* phkResult);
 
 ///Opens the specified registry key. <div class="alert"><b>Note</b> This function is provided only for compatibility
 ///with 16-bit versions of Windows. Applications should use the RegOpenKeyEx function.</div><div> </div>
@@ -9369,7 +9165,7 @@ LSTATUS RegOpenKeyA(HKEY hKey, const(char)* lpSubKey, HKEY* phkResult);
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegOpenKeyW(HKEY hKey, const(wchar)* lpSubKey, HKEY* phkResult);
+LSTATUS RegOpenKeyW(HKEY hKey, const(PWSTR) lpSubKey, HKEY* phkResult);
 
 ///Opens the specified registry key. Note that key names are not case sensitive. To perform transacted registry
 ///operations on a key, call the RegOpenKeyTransacted function.
@@ -9398,7 +9194,7 @@ LSTATUS RegOpenKeyW(HKEY hKey, const(wchar)* lpSubKey, HKEY* phkResult);
 ///    kernel32.dll.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegOpenKeyExA(HKEY hKey, const(char)* lpSubKey, uint ulOptions, uint samDesired, HKEY* phkResult);
+LSTATUS RegOpenKeyExA(HKEY hKey, const(PSTR) lpSubKey, uint ulOptions, uint samDesired, HKEY* phkResult);
 
 ///Opens the specified registry key. Note that key names are not case sensitive. To perform transacted registry
 ///operations on a key, call the RegOpenKeyTransacted function.
@@ -9426,7 +9222,7 @@ LSTATUS RegOpenKeyExA(HKEY hKey, const(char)* lpSubKey, uint ulOptions, uint sam
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegOpenKeyExW(HKEY hKey, const(wchar)* lpSubKey, uint ulOptions, uint samDesired, HKEY* phkResult);
+LSTATUS RegOpenKeyExW(HKEY hKey, const(PWSTR) lpSubKey, uint ulOptions, uint samDesired, HKEY* phkResult);
 
 ///Opens the specified registry key and associates it with a transaction. Note that key names are not case sensitive.
 ///Params:
@@ -9452,7 +9248,7 @@ LSTATUS RegOpenKeyExW(HKEY hKey, const(wchar)* lpSubKey, uint ulOptions, uint sa
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegOpenKeyTransactedA(HKEY hKey, const(char)* lpSubKey, uint ulOptions, uint samDesired, HKEY* phkResult, 
+LSTATUS RegOpenKeyTransactedA(HKEY hKey, const(PSTR) lpSubKey, uint ulOptions, uint samDesired, HKEY* phkResult, 
                               HANDLE hTransaction, void* pExtendedParemeter);
 
 ///Opens the specified registry key and associates it with a transaction. Note that key names are not case sensitive.
@@ -9479,7 +9275,7 @@ LSTATUS RegOpenKeyTransactedA(HKEY hKey, const(char)* lpSubKey, uint ulOptions, 
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegOpenKeyTransactedW(HKEY hKey, const(wchar)* lpSubKey, uint ulOptions, uint samDesired, HKEY* phkResult, 
+LSTATUS RegOpenKeyTransactedW(HKEY hKey, const(PWSTR) lpSubKey, uint ulOptions, uint samDesired, HKEY* phkResult, 
                               HANDLE hTransaction, void* pExtendedParemeter);
 
 ///Retrieves information about the specified registry key.
@@ -9523,7 +9319,7 @@ LSTATUS RegOpenKeyTransactedW(HKEY hKey, const(wchar)* lpSubKey, uint ulOptions,
 ///    ERROR_MORE_DATA.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegQueryInfoKeyA(HKEY hKey, const(char)* lpClass, uint* lpcchClass, uint* lpReserved, uint* lpcSubKeys, 
+LSTATUS RegQueryInfoKeyA(HKEY hKey, PSTR lpClass, uint* lpcchClass, uint* lpReserved, uint* lpcSubKeys, 
                          uint* lpcbMaxSubKeyLen, uint* lpcbMaxClassLen, uint* lpcValues, uint* lpcbMaxValueNameLen, 
                          uint* lpcbMaxValueLen, uint* lpcbSecurityDescriptor, FILETIME* lpftLastWriteTime);
 
@@ -9568,7 +9364,7 @@ LSTATUS RegQueryInfoKeyA(HKEY hKey, const(char)* lpClass, uint* lpcchClass, uint
 ///    ERROR_MORE_DATA.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegQueryInfoKeyW(HKEY hKey, const(wchar)* lpClass, uint* lpcchClass, uint* lpReserved, uint* lpcSubKeys, 
+LSTATUS RegQueryInfoKeyW(HKEY hKey, PWSTR lpClass, uint* lpcchClass, uint* lpReserved, uint* lpcSubKeys, 
                          uint* lpcbMaxSubKeyLen, uint* lpcbMaxClassLen, uint* lpcValues, uint* lpcbMaxValueNameLen, 
                          uint* lpcbMaxValueLen, uint* lpcbSecurityDescriptor, FILETIME* lpftLastWriteTime);
 
@@ -9600,7 +9396,7 @@ LSTATUS RegQueryInfoKeyW(HKEY hKey, const(wchar)* lpClass, uint* lpcchClass, uin
 ///    error code. If the <i>lpValue</i> buffer is too small to receive the value, the function returns ERROR_MORE_DATA.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegQueryValueA(HKEY hKey, const(char)* lpSubKey, const(char)* lpData, int* lpcbData);
+LSTATUS RegQueryValueA(HKEY hKey, const(PSTR) lpSubKey, PSTR lpData, int* lpcbData);
 
 ///Retrieves the data associated with the default or unnamed value of a specified registry key. The data must be a
 ///<b>null</b>-terminated string. <div class="alert"><b>Note</b> This function is provided only for compatibility with
@@ -9630,7 +9426,7 @@ LSTATUS RegQueryValueA(HKEY hKey, const(char)* lpSubKey, const(char)* lpData, in
 ///    error code. If the <i>lpValue</i> buffer is too small to receive the value, the function returns ERROR_MORE_DATA.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegQueryValueW(HKEY hKey, const(wchar)* lpSubKey, const(wchar)* lpData, int* lpcbData);
+LSTATUS RegQueryValueW(HKEY hKey, const(PWSTR) lpSubKey, PWSTR lpData, int* lpcbData);
 
 ///Retrieves the type and data for a list of value names associated with an open registry key.
 ///Params:
@@ -9664,8 +9460,7 @@ LSTATUS RegQueryValueW(HKEY hKey, const(wchar)* lpSubKey, const(wchar)* lpData, 
 ///    </table>
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegQueryMultipleValuesA(HKEY hKey, char* val_list, uint num_vals, const(char)* lpValueBuf, 
-                                uint* ldwTotsize);
+LSTATUS RegQueryMultipleValuesA(HKEY hKey, VALENTA* val_list, uint num_vals, PSTR lpValueBuf, uint* ldwTotsize);
 
 ///Retrieves the type and data for a list of value names associated with an open registry key.
 ///Params:
@@ -9699,8 +9494,7 @@ LSTATUS RegQueryMultipleValuesA(HKEY hKey, char* val_list, uint num_vals, const(
 ///    </table>
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegQueryMultipleValuesW(HKEY hKey, char* val_list, uint num_vals, const(wchar)* lpValueBuf, 
-                                uint* ldwTotsize);
+LSTATUS RegQueryMultipleValuesW(HKEY hKey, VALENTW* val_list, uint num_vals, PWSTR lpValueBuf, uint* ldwTotsize);
 
 ///Retrieves the type and data for the specified value name associated with an open registry key. To ensure that any
 ///string values (REG_SZ, REG_MULTI_SZ, and REG_EXPAND_SZ) returned are <b>null</b>-terminated, use the RegGetValue
@@ -9747,7 +9541,7 @@ LSTATUS RegQueryMultipleValuesW(HKEY hKey, char* val_list, uint num_vals, const(
 ///    If the <i>lpValueName</i> registry value does not exist, the function returns ERROR_FILE_NOT_FOUND.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegQueryValueExA(HKEY hKey, const(char)* lpValueName, uint* lpReserved, uint* lpType, char* lpData, 
+LSTATUS RegQueryValueExA(HKEY hKey, const(PSTR) lpValueName, uint* lpReserved, uint* lpType, ubyte* lpData, 
                          uint* lpcbData);
 
 ///Retrieves the type and data for the specified value name associated with an open registry key. To ensure that any
@@ -9795,7 +9589,7 @@ LSTATUS RegQueryValueExA(HKEY hKey, const(char)* lpValueName, uint* lpReserved, 
 ///    If the <i>lpValueName</i> registry value does not exist, the function returns ERROR_FILE_NOT_FOUND.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegQueryValueExW(HKEY hKey, const(wchar)* lpValueName, uint* lpReserved, uint* lpType, char* lpData, 
+LSTATUS RegQueryValueExW(HKEY hKey, const(PWSTR) lpValueName, uint* lpReserved, uint* lpType, ubyte* lpData, 
                          uint* lpcbData);
 
 ///Replaces the file backing a registry key and all its subkeys with another file, so that when the system is next
@@ -9820,7 +9614,7 @@ LSTATUS RegQueryValueExW(HKEY hKey, const(wchar)* lpValueName, uint* lpReserved,
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegReplaceKeyA(HKEY hKey, const(char)* lpSubKey, const(char)* lpNewFile, const(char)* lpOldFile);
+LSTATUS RegReplaceKeyA(HKEY hKey, const(PSTR) lpSubKey, const(PSTR) lpNewFile, const(PSTR) lpOldFile);
 
 ///Replaces the file backing a registry key and all its subkeys with another file, so that when the system is next
 ///started, the key and subkeys will have the values stored in the new file. Applications that back up or restore system
@@ -9844,7 +9638,7 @@ LSTATUS RegReplaceKeyA(HKEY hKey, const(char)* lpSubKey, const(char)* lpNewFile,
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegReplaceKeyW(HKEY hKey, const(wchar)* lpSubKey, const(wchar)* lpNewFile, const(wchar)* lpOldFile);
+LSTATUS RegReplaceKeyW(HKEY hKey, const(PWSTR) lpSubKey, const(PWSTR) lpNewFile, const(PWSTR) lpOldFile);
 
 ///Reads the registry information in a specified file and copies it over the specified key. This registry information
 ///may be in the form of a key and multiple levels of subkeys. Applications that back up or restore system state
@@ -9872,7 +9666,7 @@ LSTATUS RegReplaceKeyW(HKEY hKey, const(wchar)* lpSubKey, const(wchar)* lpNewFil
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegRestoreKeyA(HKEY hKey, const(char)* lpFile, uint dwFlags);
+LSTATUS RegRestoreKeyA(HKEY hKey, const(PSTR) lpFile, uint dwFlags);
 
 ///Reads the registry information in a specified file and copies it over the specified key. This registry information
 ///may be in the form of a key and multiple levels of subkeys. Applications that back up or restore system state
@@ -9900,34 +9694,10 @@ LSTATUS RegRestoreKeyA(HKEY hKey, const(char)* lpFile, uint dwFlags);
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegRestoreKeyW(HKEY hKey, const(wchar)* lpFile, uint dwFlags);
+LSTATUS RegRestoreKeyW(HKEY hKey, const(PWSTR) lpFile, uint dwFlags);
 
 @DllImport("ADVAPI32")
-LSTATUS RegRenameKey(HKEY hKey, const(wchar)* lpSubKeyName, const(wchar)* lpNewKeyName);
-
-///Saves the specified key and all of its subkeys and values to a new file, in the standard format. To specify the
-///format for the saved key or hive, use the RegSaveKeyEx function. Applications that back up or restore system state
-///including system files and registry hives should use the Volume Shadow Copy Service instead of the registry
-///functions.
-///Params:
-///    hKey = A handle to an open registry key. This handle is returned by the RegCreateKeyEx or RegOpenKeyEx function, or it
-///           can be one of the following predefined keys: <dl> <dd><b>HKEY_CLASSES_ROOT</b></dd>
-///           <dd><b>HKEY_CURRENT_USER</b></dd> </dl>
-///    lpFile = The name of the file in which the specified key and subkeys are to be saved. If the file already exists, the
-///             function fails. If the string does not include a path, the file is created in the current directory of the
-///             calling process for a local key, or in the %systemroot%\system32 directory for a remote key. The new file has the
-///             archive attribute.
-///    lpSecurityAttributes = A pointer to a SECURITY_ATTRIBUTES structure that specifies a security descriptor for the new file. If
-///                           <i>lpSecurityAttributes</i> is <b>NULL</b>, the file gets a default security descriptor. The ACLs in a default
-///                           security descriptor for a file are inherited from its parent directory.
-///Returns:
-///    If the function succeeds, the return value is ERROR_SUCCESS. If the function fails, the return value is a nonzero
-///    error code defined in Winerror.h. You can use the FormatMessage function with the FORMAT_MESSAGE_FROM_SYSTEM flag
-///    to get a generic description of the error. If the file already exists, the function fails with the
-///    ERROR_ALREADY_EXISTS error.
-///    
-@DllImport("ADVAPI32")
-LSTATUS RegSaveKeyA(HKEY hKey, const(char)* lpFile, const(SECURITY_ATTRIBUTES)* lpSecurityAttributes);
+LSTATUS RegRenameKey(HKEY hKey, const(PWSTR) lpSubKeyName, const(PWSTR) lpNewKeyName);
 
 ///Saves the specified key and all of its subkeys and values to a new file, in the standard format. To specify the
 ///format for the saved key or hive, use the RegSaveKeyEx function. Applications that back up or restore system state
@@ -9951,7 +9721,31 @@ LSTATUS RegSaveKeyA(HKEY hKey, const(char)* lpFile, const(SECURITY_ATTRIBUTES)* 
 ///    ERROR_ALREADY_EXISTS error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegSaveKeyW(HKEY hKey, const(wchar)* lpFile, const(SECURITY_ATTRIBUTES)* lpSecurityAttributes);
+LSTATUS RegSaveKeyA(HKEY hKey, const(PSTR) lpFile, const(SECURITY_ATTRIBUTES)* lpSecurityAttributes);
+
+///Saves the specified key and all of its subkeys and values to a new file, in the standard format. To specify the
+///format for the saved key or hive, use the RegSaveKeyEx function. Applications that back up or restore system state
+///including system files and registry hives should use the Volume Shadow Copy Service instead of the registry
+///functions.
+///Params:
+///    hKey = A handle to an open registry key. This handle is returned by the RegCreateKeyEx or RegOpenKeyEx function, or it
+///           can be one of the following predefined keys: <dl> <dd><b>HKEY_CLASSES_ROOT</b></dd>
+///           <dd><b>HKEY_CURRENT_USER</b></dd> </dl>
+///    lpFile = The name of the file in which the specified key and subkeys are to be saved. If the file already exists, the
+///             function fails. If the string does not include a path, the file is created in the current directory of the
+///             calling process for a local key, or in the %systemroot%\system32 directory for a remote key. The new file has the
+///             archive attribute.
+///    lpSecurityAttributes = A pointer to a SECURITY_ATTRIBUTES structure that specifies a security descriptor for the new file. If
+///                           <i>lpSecurityAttributes</i> is <b>NULL</b>, the file gets a default security descriptor. The ACLs in a default
+///                           security descriptor for a file are inherited from its parent directory.
+///Returns:
+///    If the function succeeds, the return value is ERROR_SUCCESS. If the function fails, the return value is a nonzero
+///    error code defined in Winerror.h. You can use the FormatMessage function with the FORMAT_MESSAGE_FROM_SYSTEM flag
+///    to get a generic description of the error. If the file already exists, the function fails with the
+///    ERROR_ALREADY_EXISTS error.
+///    
+@DllImport("ADVAPI32")
+LSTATUS RegSaveKeyW(HKEY hKey, const(PWSTR) lpFile, const(SECURITY_ATTRIBUTES)* lpSecurityAttributes);
 
 ///Sets the data for the default or unnamed value of a specified registry key. The data must be a text string. <div
 ///class="alert"><b>Note</b> This function is provided only for compatibility with 16-bit versions of Windows.
@@ -9977,7 +9771,7 @@ LSTATUS RegSaveKeyW(HKEY hKey, const(wchar)* lpFile, const(SECURITY_ATTRIBUTES)*
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegSetValueA(HKEY hKey, const(char)* lpSubKey, uint dwType, const(char)* lpData, uint cbData);
+LSTATUS RegSetValueA(HKEY hKey, const(PSTR) lpSubKey, uint dwType, const(PSTR) lpData, uint cbData);
 
 ///Sets the data for the default or unnamed value of a specified registry key. The data must be a text string. <div
 ///class="alert"><b>Note</b> This function is provided only for compatibility with 16-bit versions of Windows.
@@ -10003,7 +9797,7 @@ LSTATUS RegSetValueA(HKEY hKey, const(char)* lpSubKey, uint dwType, const(char)*
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegSetValueW(HKEY hKey, const(wchar)* lpSubKey, uint dwType, const(wchar)* lpData, uint cbData);
+LSTATUS RegSetValueW(HKEY hKey, const(PWSTR) lpSubKey, uint dwType, const(PWSTR) lpData, uint cbData);
 
 ///Sets the data and type of a specified value under a registry key.
 ///Params:
@@ -10034,7 +9828,8 @@ LSTATUS RegSetValueW(HKEY hKey, const(wchar)* lpSubKey, uint dwType, const(wchar
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegSetValueExA(HKEY hKey, const(char)* lpValueName, uint Reserved, uint dwType, char* lpData, uint cbData);
+LSTATUS RegSetValueExA(HKEY hKey, const(PSTR) lpValueName, uint Reserved, uint dwType, const(ubyte)* lpData, 
+                       uint cbData);
 
 ///Sets the data and type of a specified value under a registry key.
 ///Params:
@@ -10065,7 +9860,8 @@ LSTATUS RegSetValueExA(HKEY hKey, const(char)* lpValueName, uint Reserved, uint 
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegSetValueExW(HKEY hKey, const(wchar)* lpValueName, uint Reserved, uint dwType, char* lpData, uint cbData);
+LSTATUS RegSetValueExW(HKEY hKey, const(PWSTR) lpValueName, uint Reserved, uint dwType, const(ubyte)* lpData, 
+                       uint cbData);
 
 ///Unloads the specified registry key and its subkeys from the registry. Applications that back up or restore system
 ///state including system files and registry hives should use the Volume Shadow Copy Service instead of the registry
@@ -10083,7 +9879,7 @@ LSTATUS RegSetValueExW(HKEY hKey, const(wchar)* lpValueName, uint Reserved, uint
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegUnLoadKeyA(HKEY hKey, const(char)* lpSubKey);
+LSTATUS RegUnLoadKeyA(HKEY hKey, const(PSTR) lpSubKey);
 
 ///Unloads the specified registry key and its subkeys from the registry. Applications that back up or restore system
 ///state including system files and registry hives should use the Volume Shadow Copy Service instead of the registry
@@ -10100,7 +9896,7 @@ LSTATUS RegUnLoadKeyA(HKEY hKey, const(char)* lpSubKey);
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegUnLoadKeyW(HKEY hKey, const(wchar)* lpSubKey);
+LSTATUS RegUnLoadKeyW(HKEY hKey, const(PWSTR) lpSubKey);
 
 ///Removes the specified value from the specified registry key and subkey.
 ///Params:
@@ -10117,7 +9913,7 @@ LSTATUS RegUnLoadKeyW(HKEY hKey, const(wchar)* lpSubKey);
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegDeleteKeyValueA(HKEY hKey, const(char)* lpSubKey, const(char)* lpValueName);
+LSTATUS RegDeleteKeyValueA(HKEY hKey, const(PSTR) lpSubKey, const(PSTR) lpValueName);
 
 ///Removes the specified value from the specified registry key and subkey.
 ///Params:
@@ -10134,7 +9930,7 @@ LSTATUS RegDeleteKeyValueA(HKEY hKey, const(char)* lpSubKey, const(char)* lpValu
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegDeleteKeyValueW(HKEY hKey, const(wchar)* lpSubKey, const(wchar)* lpValueName);
+LSTATUS RegDeleteKeyValueW(HKEY hKey, const(PWSTR) lpSubKey, const(PWSTR) lpValueName);
 
 ///Sets the data for the specified value in the specified registry key and subkey.
 ///Params:
@@ -10159,7 +9955,7 @@ LSTATUS RegDeleteKeyValueW(HKEY hKey, const(wchar)* lpSubKey, const(wchar)* lpVa
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegSetKeyValueA(HKEY hKey, const(char)* lpSubKey, const(char)* lpValueName, uint dwType, char* lpData, 
+LSTATUS RegSetKeyValueA(HKEY hKey, const(PSTR) lpSubKey, const(PSTR) lpValueName, uint dwType, const(void)* lpData, 
                         uint cbData);
 
 ///Sets the data for the specified value in the specified registry key and subkey.
@@ -10185,8 +9981,8 @@ LSTATUS RegSetKeyValueA(HKEY hKey, const(char)* lpSubKey, const(char)* lpValueNa
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegSetKeyValueW(HKEY hKey, const(wchar)* lpSubKey, const(wchar)* lpValueName, uint dwType, char* lpData, 
-                        uint cbData);
+LSTATUS RegSetKeyValueW(HKEY hKey, const(PWSTR) lpSubKey, const(PWSTR) lpValueName, uint dwType, 
+                        const(void)* lpData, uint cbData);
 
 ///Deletes the subkeys and values of the specified key recursively.
 ///Params:
@@ -10203,7 +9999,7 @@ LSTATUS RegSetKeyValueW(HKEY hKey, const(wchar)* lpSubKey, const(wchar)* lpValue
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegDeleteTreeA(HKEY hKey, const(char)* lpSubKey);
+LSTATUS RegDeleteTreeA(HKEY hKey, const(PSTR) lpSubKey);
 
 ///Deletes the subkeys and values of the specified key recursively.
 ///Params:
@@ -10220,7 +10016,7 @@ LSTATUS RegDeleteTreeA(HKEY hKey, const(char)* lpSubKey);
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegDeleteTreeW(HKEY hKey, const(wchar)* lpSubKey);
+LSTATUS RegDeleteTreeW(HKEY hKey, const(PWSTR) lpSubKey);
 
 ///Copies the specified registry key, along with its values and subkeys, to the specified destination key.
 ///Params:
@@ -10237,7 +10033,7 @@ LSTATUS RegDeleteTreeW(HKEY hKey, const(wchar)* lpSubKey);
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegCopyTreeA(HKEY hKeySrc, const(char)* lpSubKey, HKEY hKeyDest);
+LSTATUS RegCopyTreeA(HKEY hKeySrc, const(PSTR) lpSubKey, HKEY hKeyDest);
 
 ///Retrieves the type and data for the specified registry value.
 ///Params:
@@ -10323,8 +10119,8 @@ LSTATUS RegCopyTreeA(HKEY hKeySrc, const(char)* lpSubKey, HKEY hKeyDest);
 ///    the function returns ERROR_INVALID_PARAMETER.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegGetValueA(HKEY hkey, const(char)* lpSubKey, const(char)* lpValue, uint dwFlags, uint* pdwType, 
-                     char* pvData, uint* pcbData);
+LSTATUS RegGetValueA(HKEY hkey, const(PSTR) lpSubKey, const(PSTR) lpValue, uint dwFlags, uint* pdwType, 
+                     /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/void* pvData, uint* pcbData);
 
 ///Retrieves the type and data for the specified registry value.
 ///Params:
@@ -10410,8 +10206,8 @@ LSTATUS RegGetValueA(HKEY hkey, const(char)* lpSubKey, const(char)* lpValue, uin
 ///    the function returns ERROR_INVALID_PARAMETER.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegGetValueW(HKEY hkey, const(wchar)* lpSubKey, const(wchar)* lpValue, uint dwFlags, uint* pdwType, 
-                     char* pvData, uint* pcbData);
+LSTATUS RegGetValueW(HKEY hkey, const(PWSTR) lpSubKey, const(PWSTR) lpValue, uint dwFlags, uint* pdwType, 
+                     /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/void* pvData, uint* pcbData);
 
 ///Copies the specified registry key, along with its values and subkeys, to the specified destination key.
 ///Params:
@@ -10428,7 +10224,7 @@ LSTATUS RegGetValueW(HKEY hkey, const(wchar)* lpSubKey, const(wchar)* lpValue, u
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegCopyTreeW(HKEY hKeySrc, const(wchar)* lpSubKey, HKEY hKeyDest);
+LSTATUS RegCopyTreeW(HKEY hKeySrc, const(PWSTR) lpSubKey, HKEY hKeyDest);
 
 ///Loads the specified string from the specified key and subkey.
 ///Params:
@@ -10456,8 +10252,8 @@ LSTATUS RegCopyTreeW(HKEY hKeySrc, const(wchar)* lpSubKey, HKEY hKeyDest);
 ///    ERROR_MORE_DATA. The ANSI version of this function returns ERROR_CALL_NOT_IMPLEMENTED.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegLoadMUIStringA(HKEY hKey, const(char)* pszValue, const(char)* pszOutBuf, uint cbOutBuf, uint* pcbData, 
-                          uint Flags, const(char)* pszDirectory);
+LSTATUS RegLoadMUIStringA(HKEY hKey, const(PSTR) pszValue, PSTR pszOutBuf, uint cbOutBuf, uint* pcbData, 
+                          uint Flags, const(PSTR) pszDirectory);
 
 ///Loads the specified string from the specified key and subkey.
 ///Params:
@@ -10485,8 +10281,8 @@ LSTATUS RegLoadMUIStringA(HKEY hKey, const(char)* pszValue, const(char)* pszOutB
 ///    ERROR_MORE_DATA. The ANSI version of this function returns ERROR_CALL_NOT_IMPLEMENTED.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegLoadMUIStringW(HKEY hKey, const(wchar)* pszValue, const(wchar)* pszOutBuf, uint cbOutBuf, uint* pcbData, 
-                          uint Flags, const(wchar)* pszDirectory);
+LSTATUS RegLoadMUIStringW(HKEY hKey, const(PWSTR) pszValue, PWSTR pszOutBuf, uint cbOutBuf, uint* pcbData, 
+                          uint Flags, const(PWSTR) pszDirectory);
 
 ///Loads the specified registry hive as an application hive.
 ///Params:
@@ -10506,7 +10302,7 @@ LSTATUS RegLoadMUIStringW(HKEY hKey, const(wchar)* pszValue, const(wchar)* pszOu
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegLoadAppKeyA(const(char)* lpFile, HKEY* phkResult, uint samDesired, uint dwOptions, uint Reserved);
+LSTATUS RegLoadAppKeyA(const(PSTR) lpFile, HKEY* phkResult, uint samDesired, uint dwOptions, uint Reserved);
 
 ///Loads the specified registry hive as an application hive.
 ///Params:
@@ -10526,7 +10322,7 @@ LSTATUS RegLoadAppKeyA(const(char)* lpFile, HKEY* phkResult, uint samDesired, ui
 ///    to get a generic description of the error.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegLoadAppKeyW(const(wchar)* lpFile, HKEY* phkResult, uint samDesired, uint dwOptions, uint Reserved);
+LSTATUS RegLoadAppKeyW(const(PWSTR) lpFile, HKEY* phkResult, uint samDesired, uint dwOptions, uint Reserved);
 
 @DllImport("ADVAPI32")
 uint CheckForHiberboot(ubyte* pHiberboot, ubyte bClearFlag);
@@ -10564,7 +10360,7 @@ uint CheckForHiberboot(ubyte* pHiberboot, ubyte bClearFlag);
 ///    this function returns ERROR_INVALID_PARAMETER.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegSaveKeyExA(HKEY hKey, const(char)* lpFile, const(SECURITY_ATTRIBUTES)* lpSecurityAttributes, uint Flags);
+LSTATUS RegSaveKeyExA(HKEY hKey, const(PSTR) lpFile, const(SECURITY_ATTRIBUTES)* lpSecurityAttributes, uint Flags);
 
 ///Saves the specified key and all of its subkeys and values to a registry file, in the specified format. Applications
 ///that back up or restore system state including system files and registry hives should use the Volume Shadow Copy
@@ -10599,8 +10395,7 @@ LSTATUS RegSaveKeyExA(HKEY hKey, const(char)* lpFile, const(SECURITY_ATTRIBUTES)
 ///    this function returns ERROR_INVALID_PARAMETER.
 ///    
 @DllImport("ADVAPI32")
-LSTATUS RegSaveKeyExW(HKEY hKey, const(wchar)* lpFile, const(SECURITY_ATTRIBUTES)* lpSecurityAttributes, 
-                      uint Flags);
+LSTATUS RegSaveKeyExW(HKEY hKey, const(PWSTR) lpFile, const(SECURITY_ATTRIBUTES)* lpSecurityAttributes, uint Flags);
 
 ///Deprecated. Closes the specified handle. <b>NtClose</b> is superseded by CloseHandle.
 ///Params:
@@ -10826,7 +10621,7 @@ NTSTATUS NtClose(HANDLE Handle);
 ///    macros.
 ///    
 @DllImport("ntdll")
-NTSTATUS NtCreateFile(ptrdiff_t* FileHandle, uint DesiredAccess, OBJECT_ATTRIBUTES* ObjectAttributes, 
+NTSTATUS NtCreateFile(HANDLE* FileHandle, uint DesiredAccess, OBJECT_ATTRIBUTES* ObjectAttributes, 
                       IO_STATUS_BLOCK* IoStatusBlock, LARGE_INTEGER* AllocationSize, uint FileAttributes, 
                       uint ShareAccess, uint CreateDisposition, uint CreateOptions, void* EaBuffer, uint EaLength);
 
@@ -10850,7 +10645,7 @@ NTSTATUS NtCreateFile(ptrdiff_t* FileHandle, uint DesiredAccess, OBJECT_ATTRIBUT
 ///    <i>IoStatusBlock</i>.
 ///    
 @DllImport("ntdll")
-NTSTATUS NtOpenFile(ptrdiff_t* FileHandle, uint DesiredAccess, OBJECT_ATTRIBUTES* ObjectAttributes, 
+NTSTATUS NtOpenFile(HANDLE* FileHandle, uint DesiredAccess, OBJECT_ATTRIBUTES* ObjectAttributes, 
                     IO_STATUS_BLOCK* IoStatusBlock, uint ShareAccess, uint OpenOptions);
 
 ///<p class="CCE_Message">[This function may be changed or removed from Windows without further notice. ] Changes the
@@ -10910,10 +10705,10 @@ NTSTATUS NtRenameKey(HANDLE KeyHandle, UNICODE_STRING* NewName);
 ///    the WDK documentation.
 ///    
 @DllImport("ntdll")
-NTSTATUS NtNotifyChangeMultipleKeys(HANDLE MasterKeyHandle, uint Count, char* SubordinateObjects, HANDLE Event, 
-                                    PIO_APC_ROUTINE ApcRoutine, void* ApcContext, IO_STATUS_BLOCK* IoStatusBlock, 
-                                    uint CompletionFilter, ubyte WatchTree, char* Buffer, uint BufferSize, 
-                                    ubyte Asynchronous);
+NTSTATUS NtNotifyChangeMultipleKeys(HANDLE MasterKeyHandle, uint Count, OBJECT_ATTRIBUTES* SubordinateObjects, 
+                                    HANDLE Event, PIO_APC_ROUTINE ApcRoutine, void* ApcContext, 
+                                    IO_STATUS_BLOCK* IoStatusBlock, uint CompletionFilter, ubyte WatchTree, 
+                                    void* Buffer, uint BufferSize, ubyte Asynchronous);
 
 ///<p class="CCE_Message">[This function may be changed or removed from Windows without further notice.] Retrieves
 ///values for the specified multiple-value key.
@@ -10935,8 +10730,8 @@ NTSTATUS NtNotifyChangeMultipleKeys(HANDLE MasterKeyHandle, uint Count, char* Su
 ///    Ntstatus.h header file available in the WDK, and are described in the WDK documentation.
 ///    
 @DllImport("ntdll")
-NTSTATUS NtQueryMultipleValueKey(HANDLE KeyHandle, char* ValueEntries, uint EntryCount, char* ValueBuffer, 
-                                 uint* BufferLength, uint* RequiredBufferLength);
+NTSTATUS NtQueryMultipleValueKey(HANDLE KeyHandle, KEY_VALUE_ENTRY* ValueEntries, uint EntryCount, 
+                                 void* ValueBuffer, uint* BufferLength, uint* RequiredBufferLength);
 
 ///<p class="CCE_Message">[This function may be changed or removed from Windows without further notice.] Sets
 ///information for the specified registry key.
@@ -10954,7 +10749,7 @@ NTSTATUS NtQueryMultipleValueKey(HANDLE KeyHandle, char* ValueEntries, uint Entr
 ///    
 @DllImport("ntdll")
 NTSTATUS NtSetInformationKey(HANDLE KeyHandle, KEY_SET_INFORMATION_CLASS KeySetInformationClass, 
-                             char* KeySetInformation, uint KeySetInformationLength);
+                             void* KeySetInformation, uint KeySetInformationLength);
 
 ///Deprecated. Builds descriptors for the supplied buffer(s) and passes the untyped data to the device driver associated
 ///with the file handle. <b>NtDeviceIoControlFile</b> is superseded by DeviceIoControl.
@@ -11050,7 +10845,7 @@ ubyte RtlIsNameLegalDOS8Dot3(UNICODE_STRING* Name, STRING* OemName, ubyte* NameC
 ///    Ntstatus.h header file available in the WDK, and are described in the WDK documentation.
 ///    
 @DllImport("ntdll")
-NTSTATUS NtQueryObject(HANDLE Handle, OBJECT_INFORMATION_CLASS ObjectInformationClass, char* ObjectInformation, 
+NTSTATUS NtQueryObject(HANDLE Handle, OBJECT_INFORMATION_CLASS ObjectInformationClass, void* ObjectInformation, 
                        uint ObjectInformationLength, uint* ReturnLength);
 
 ///<p class="CCE_Message">[<b>NtQuerySystemInformation</b> may be altered or unavailable in future versions of Windows.
@@ -11154,7 +10949,7 @@ NTSTATUS RtlInitAnsiStringEx(STRING* DestinationString, byte* SourceString);
 ///    DestinationString = The buffer for a counted Unicode string to be initialized. The length is initialized to zero if the
 ///                        <i>SourceString</i> is not specified.
 @DllImport("ntdll")
-void RtlInitUnicodeString(UNICODE_STRING* DestinationString, const(wchar)* SourceString);
+void RtlInitUnicodeString(UNICODE_STRING* DestinationString, const(PWSTR) SourceString);
 
 ///Converts the specified ANSI source string into a Unicode string.
 ///Params:
@@ -11221,8 +11016,7 @@ NTSTATUS RtlUnicodeStringToOemString(STRING* DestinationString, UNICODE_STRING* 
 ///    are defined in NTSTATUS.H, which is distributed with the Windows DDK. </td> </tr> </table>
 ///    
 @DllImport("ntdll")
-NTSTATUS RtlUnicodeToMultiByteSize(uint* BytesInMultiByteString, const(wchar)* UnicodeString, 
-                                   uint BytesInUnicodeString);
+NTSTATUS RtlUnicodeToMultiByteSize(uint* BytesInMultiByteString, PWSTR UnicodeString, uint BytesInUnicodeString);
 
 ///Converts a character string to an integer.
 ///Params:
@@ -11304,9 +11098,8 @@ void* FCICreate(ERF* perf, PFNFCIFILEPLACED pfnfcifp, PFNFCIALLOC pfna, PFNFCIFR
 ///    in the ERF structure used to create the FCI context.
 ///    
 @DllImport("Cabinet")
-BOOL FCIAddFile(void* hfci, const(char)* pszSourceFile, const(char)* pszFileName, BOOL fExecute, 
-                PFNFCIGETNEXTCABINET pfnfcignc, PFNFCISTATUS pfnfcis, PFNFCIGETOPENINFO pfnfcigoi, 
-                ushort typeCompress);
+BOOL FCIAddFile(void* hfci, PSTR pszSourceFile, PSTR pszFileName, BOOL fExecute, PFNFCIGETNEXTCABINET pfnfcignc, 
+                PFNFCISTATUS pfnfcis, PFNFCIGETOPENINFO pfnfcigoi, ushort typeCompress);
 
 ///The <b>FCIFlushCabinet</b> function completes the current cabinet.
 ///Params:
@@ -11412,8 +11205,8 @@ BOOL FDIIsCabinet(void* hfdi, ptrdiff_t hf, FDICABINETINFO* pfdici);
 ///    in the ERF structure used to create the FDI context.
 ///    
 @DllImport("Cabinet")
-BOOL FDICopy(void* hfdi, const(char)* pszCabinet, const(char)* pszCabPath, int flags, PFNFDINOTIFY pfnfdin, 
-             PFNFDIDECRYPT pfnfdid, void* pvUser);
+BOOL FDICopy(void* hfdi, PSTR pszCabinet, PSTR pszCabPath, int flags, PFNFDINOTIFY pfnfdin, PFNFDIDECRYPT pfnfdid, 
+             void* pvUser);
 
 ///The <b>FDIDestroy</b> function deletes an open FDI context.
 ///Params:
@@ -11435,7 +11228,7 @@ BOOL FDIDestroy(void* hfdi);
 ///    in the ERF structure used to create the FDI context.
 ///    
 @DllImport("Cabinet")
-BOOL FDITruncateCabinet(void* hfdi, const(char)* pszCabinetName, ushort iFolderToDelete);
+BOOL FDITruncateCabinet(void* hfdi, PSTR pszCabinetName, ushort iFolderToDelete);
 
 ///This function is intended for infrastructure use only. Do not use this function.
 ///Params:
@@ -11450,7 +11243,7 @@ FEATURE_ENABLED_STATE GetFeatureEnabledState(uint featureId, FEATURE_CHANGE_TIME
 ///    kind = Infrastructure use only.
 ///    addend = Infrastructure use only.
 @DllImport("api-ms-win-core-featurestaging-l1-1-0")
-void RecordFeatureUsage(uint featureId, uint kind, uint addend, const(char)* originName);
+void RecordFeatureUsage(uint featureId, uint kind, uint addend, const(PSTR) originName);
 
 ///This function is intended for infrastructure use only. Do not use this function.
 ///Params:
@@ -11477,7 +11270,7 @@ void UnsubscribeFeatureStateChangeNotification(FEATURE_STATE_CHANGE_SUBSCRIPTION
 ///    payloadId = Infrastructure use only.
 ///    hasNotification = Infrastructure use only.
 @DllImport("api-ms-win-core-featurestaging-l1-1-1")
-uint GetFeatureVariant(uint featureId, FEATURE_CHANGE_TIME changeTime, uint* payloadId, int* hasNotification);
+uint GetFeatureVariant(uint featureId, FEATURE_CHANGE_TIME changeTime, uint* payloadId, BOOL* hasNotification);
 
 ///Opens a communication channel to the File History Service. > [!NOTE] > **FhServiceOpenPipe** is deprecated and may be
 ///altered or unavailable in future releases.
@@ -11686,12 +11479,12 @@ int DCISetDestination(DCIOFFSCREEN* pdci, RECT* dst, RECT* src);
 uint GdiEntry13();
 
 @DllImport("ADVPACK")
-HRESULT RunSetupCommandA(HWND hWnd, const(char)* szCmdName, const(char)* szInfSection, const(char)* szDir, 
-                         const(char)* lpszTitle, HANDLE* phEXE, uint dwFlags, void* pvReserved);
+HRESULT RunSetupCommandA(HWND hWnd, const(PSTR) szCmdName, const(PSTR) szInfSection, const(PSTR) szDir, 
+                         const(PSTR) lpszTitle, HANDLE* phEXE, uint dwFlags, void* pvReserved);
 
 @DllImport("ADVPACK")
-HRESULT RunSetupCommandW(HWND hWnd, const(wchar)* szCmdName, const(wchar)* szInfSection, const(wchar)* szDir, 
-                         const(wchar)* lpszTitle, HANDLE* phEXE, uint dwFlags, void* pvReserved);
+HRESULT RunSetupCommandW(HWND hWnd, const(PWSTR) szCmdName, const(PWSTR) szInfSection, const(PWSTR) szDir, 
+                         const(PWSTR) lpszTitle, HANDLE* phEXE, uint dwFlags, void* pvReserved);
 
 @DllImport("ADVPACK")
 uint NeedRebootInit();
@@ -11700,20 +11493,20 @@ uint NeedRebootInit();
 BOOL NeedReboot(uint dwRebootCheck);
 
 @DllImport("ADVPACK")
-HRESULT RebootCheckOnInstallA(HWND hwnd, const(char)* pszINF, const(char)* pszSec, uint dwReserved);
+HRESULT RebootCheckOnInstallA(HWND hwnd, const(PSTR) pszINF, const(PSTR) pszSec, uint dwReserved);
 
 @DllImport("ADVPACK")
-HRESULT RebootCheckOnInstallW(HWND hwnd, const(wchar)* pszINF, const(wchar)* pszSec, uint dwReserved);
+HRESULT RebootCheckOnInstallW(HWND hwnd, const(PWSTR) pszINF, const(PWSTR) pszSec, uint dwReserved);
 
 @DllImport("ADVPACK")
-HRESULT TranslateInfStringA(const(char)* pszInfFilename, const(char)* pszInstallSection, 
-                            const(char)* pszTranslateSection, const(char)* pszTranslateKey, const(char)* pszBuffer, 
+HRESULT TranslateInfStringA(const(PSTR) pszInfFilename, const(PSTR) pszInstallSection, 
+                            const(PSTR) pszTranslateSection, const(PSTR) pszTranslateKey, PSTR pszBuffer, 
                             uint cchBuffer, uint* pdwRequiredSize, void* pvReserved);
 
 @DllImport("ADVPACK")
-HRESULT TranslateInfStringW(const(wchar)* pszInfFilename, const(wchar)* pszInstallSection, 
-                            const(wchar)* pszTranslateSection, const(wchar)* pszTranslateKey, 
-                            const(wchar)* pszBuffer, uint cchBuffer, uint* pdwRequiredSize, void* pvReserved);
+HRESULT TranslateInfStringW(const(PWSTR) pszInfFilename, const(PWSTR) pszInstallSection, 
+                            const(PWSTR) pszTranslateSection, const(PWSTR) pszTranslateKey, PWSTR pszBuffer, 
+                            uint cchBuffer, uint* pdwRequiredSize, void* pvReserved);
 
 ///Updates the string registry values in the provided table.
 ///Params:
@@ -11724,7 +11517,7 @@ HRESULT TranslateInfStringW(const(wchar)* pszInfFilename, const(wchar)* pszInsta
 ///    Returns S_OK on success. Returns E_FAIL on failure.
 ///    
 @DllImport("ADVPACK")
-HRESULT RegInstallA(ptrdiff_t hmod, const(char)* pszSection, const(STRTABLEA)* pstTable);
+HRESULT RegInstallA(ptrdiff_t hmod, const(PSTR) pszSection, const(STRTABLEA)* pstTable);
 
 ///Updates the string registry values in the provided table.
 ///Params:
@@ -11735,10 +11528,10 @@ HRESULT RegInstallA(ptrdiff_t hmod, const(char)* pszSection, const(STRTABLEA)* p
 ///    Returns S_OK on success. Returns E_FAIL on failure.
 ///    
 @DllImport("ADVPACK")
-HRESULT RegInstallW(ptrdiff_t hmod, const(wchar)* pszSection, const(STRTABLEW)* pstTable);
+HRESULT RegInstallW(ptrdiff_t hmod, const(PWSTR) pszSection, const(STRTABLEW)* pstTable);
 
 @DllImport("ADVPACK")
-HRESULT LaunchINFSectionExW(HWND hwnd, HINSTANCE hInstance, const(wchar)* pszParms, int nShow);
+HRESULT LaunchINFSectionExW(HWND hwnd, HINSTANCE hInstance, PWSTR pszParms, int nShow);
 
 @DllImport("ADVPACK")
 HRESULT ExecuteCabA(HWND hwnd, _CabInfoA* pCab, void* pReserved);
@@ -11747,128 +11540,127 @@ HRESULT ExecuteCabA(HWND hwnd, _CabInfoA* pCab, void* pReserved);
 HRESULT ExecuteCabW(HWND hwnd, _CabInfoW* pCab, void* pReserved);
 
 @DllImport("ADVPACK")
-HRESULT AdvInstallFileA(HWND hwnd, const(char)* lpszSourceDir, const(char)* lpszSourceFile, 
-                        const(char)* lpszDestDir, const(char)* lpszDestFile, uint dwFlags, uint dwReserved);
+HRESULT AdvInstallFileA(HWND hwnd, const(PSTR) lpszSourceDir, const(PSTR) lpszSourceFile, const(PSTR) lpszDestDir, 
+                        const(PSTR) lpszDestFile, uint dwFlags, uint dwReserved);
 
 @DllImport("ADVPACK")
-HRESULT AdvInstallFileW(HWND hwnd, const(wchar)* lpszSourceDir, const(wchar)* lpszSourceFile, 
-                        const(wchar)* lpszDestDir, const(wchar)* lpszDestFile, uint dwFlags, uint dwReserved);
+HRESULT AdvInstallFileW(HWND hwnd, const(PWSTR) lpszSourceDir, const(PWSTR) lpszSourceFile, 
+                        const(PWSTR) lpszDestDir, const(PWSTR) lpszDestFile, uint dwFlags, uint dwReserved);
 
 @DllImport("ADVPACK")
-HRESULT RegSaveRestoreA(HWND hWnd, const(char)* pszTitleString, HKEY hkBckupKey, const(char)* pcszRootKey, 
-                        const(char)* pcszSubKey, const(char)* pcszValueName, uint dwFlags);
+HRESULT RegSaveRestoreA(HWND hWnd, const(PSTR) pszTitleString, HKEY hkBckupKey, const(PSTR) pcszRootKey, 
+                        const(PSTR) pcszSubKey, const(PSTR) pcszValueName, uint dwFlags);
 
 @DllImport("ADVPACK")
-HRESULT RegSaveRestoreW(HWND hWnd, const(wchar)* pszTitleString, HKEY hkBckupKey, const(wchar)* pcszRootKey, 
-                        const(wchar)* pcszSubKey, const(wchar)* pcszValueName, uint dwFlags);
+HRESULT RegSaveRestoreW(HWND hWnd, const(PWSTR) pszTitleString, HKEY hkBckupKey, const(PWSTR) pcszRootKey, 
+                        const(PWSTR) pcszSubKey, const(PWSTR) pcszValueName, uint dwFlags);
 
 @DllImport("ADVPACK")
-HRESULT RegSaveRestoreOnINFA(HWND hWnd, const(char)* pszTitle, const(char)* pszINF, const(char)* pszSection, 
+HRESULT RegSaveRestoreOnINFA(HWND hWnd, const(PSTR) pszTitle, const(PSTR) pszINF, const(PSTR) pszSection, 
                              HKEY hHKLMBackKey, HKEY hHKCUBackKey, uint dwFlags);
 
 @DllImport("ADVPACK")
-HRESULT RegSaveRestoreOnINFW(HWND hWnd, const(wchar)* pszTitle, const(wchar)* pszINF, const(wchar)* pszSection, 
+HRESULT RegSaveRestoreOnINFW(HWND hWnd, const(PWSTR) pszTitle, const(PWSTR) pszINF, const(PWSTR) pszSection, 
                              HKEY hHKLMBackKey, HKEY hHKCUBackKey, uint dwFlags);
 
 @DllImport("ADVPACK")
-HRESULT RegRestoreAllA(HWND hWnd, const(char)* pszTitleString, HKEY hkBckupKey);
+HRESULT RegRestoreAllA(HWND hWnd, const(PSTR) pszTitleString, HKEY hkBckupKey);
 
 @DllImport("ADVPACK")
-HRESULT RegRestoreAllW(HWND hWnd, const(wchar)* pszTitleString, HKEY hkBckupKey);
+HRESULT RegRestoreAllW(HWND hWnd, const(PWSTR) pszTitleString, HKEY hkBckupKey);
 
 @DllImport("ADVPACK")
-HRESULT FileSaveRestoreW(HWND hDlg, const(wchar)* lpFileList, const(wchar)* lpDir, const(wchar)* lpBaseName, 
-                         uint dwFlags);
+HRESULT FileSaveRestoreW(HWND hDlg, PWSTR lpFileList, const(PWSTR) lpDir, const(PWSTR) lpBaseName, uint dwFlags);
 
 @DllImport("ADVPACK")
-HRESULT FileSaveRestoreOnINFA(HWND hWnd, const(char)* pszTitle, const(char)* pszINF, const(char)* pszSection, 
-                              const(char)* pszBackupDir, const(char)* pszBaseBackupFile, uint dwFlags);
+HRESULT FileSaveRestoreOnINFA(HWND hWnd, const(PSTR) pszTitle, const(PSTR) pszINF, const(PSTR) pszSection, 
+                              const(PSTR) pszBackupDir, const(PSTR) pszBaseBackupFile, uint dwFlags);
 
 @DllImport("ADVPACK")
-HRESULT FileSaveRestoreOnINFW(HWND hWnd, const(wchar)* pszTitle, const(wchar)* pszINF, const(wchar)* pszSection, 
-                              const(wchar)* pszBackupDir, const(wchar)* pszBaseBackupFile, uint dwFlags);
+HRESULT FileSaveRestoreOnINFW(HWND hWnd, const(PWSTR) pszTitle, const(PWSTR) pszINF, const(PWSTR) pszSection, 
+                              const(PWSTR) pszBackupDir, const(PWSTR) pszBaseBackupFile, uint dwFlags);
 
 @DllImport("ADVPACK")
-HRESULT AddDelBackupEntryA(const(char)* lpcszFileList, const(char)* lpcszBackupDir, const(char)* lpcszBaseName, 
+HRESULT AddDelBackupEntryA(const(PSTR) lpcszFileList, const(PSTR) lpcszBackupDir, const(PSTR) lpcszBaseName, 
                            uint dwFlags);
 
 @DllImport("ADVPACK")
-HRESULT AddDelBackupEntryW(const(wchar)* lpcszFileList, const(wchar)* lpcszBackupDir, const(wchar)* lpcszBaseName, 
+HRESULT AddDelBackupEntryW(const(PWSTR) lpcszFileList, const(PWSTR) lpcszBackupDir, const(PWSTR) lpcszBaseName, 
                            uint dwFlags);
 
 @DllImport("ADVPACK")
-HRESULT FileSaveMarkNotExistA(const(char)* lpFileList, const(char)* lpDir, const(char)* lpBaseName);
+HRESULT FileSaveMarkNotExistA(const(PSTR) lpFileList, const(PSTR) lpDir, const(PSTR) lpBaseName);
 
 @DllImport("ADVPACK")
-HRESULT FileSaveMarkNotExistW(const(wchar)* lpFileList, const(wchar)* lpDir, const(wchar)* lpBaseName);
+HRESULT FileSaveMarkNotExistW(const(PWSTR) lpFileList, const(PWSTR) lpDir, const(PWSTR) lpBaseName);
 
 @DllImport("ADVPACK")
-HRESULT GetVersionFromFileA(const(char)* lpszFilename, uint* pdwMSVer, uint* pdwLSVer, BOOL bVersion);
+HRESULT GetVersionFromFileA(const(PSTR) lpszFilename, uint* pdwMSVer, uint* pdwLSVer, BOOL bVersion);
 
 @DllImport("ADVPACK")
-HRESULT GetVersionFromFileW(const(wchar)* lpszFilename, uint* pdwMSVer, uint* pdwLSVer, BOOL bVersion);
+HRESULT GetVersionFromFileW(const(PWSTR) lpszFilename, uint* pdwMSVer, uint* pdwLSVer, BOOL bVersion);
 
 @DllImport("ADVPACK")
-HRESULT GetVersionFromFileExA(const(char)* lpszFilename, uint* pdwMSVer, uint* pdwLSVer, BOOL bVersion);
+HRESULT GetVersionFromFileExA(const(PSTR) lpszFilename, uint* pdwMSVer, uint* pdwLSVer, BOOL bVersion);
 
 @DllImport("ADVPACK")
-HRESULT GetVersionFromFileExW(const(wchar)* lpszFilename, uint* pdwMSVer, uint* pdwLSVer, BOOL bVersion);
+HRESULT GetVersionFromFileExW(const(PWSTR) lpszFilename, uint* pdwMSVer, uint* pdwLSVer, BOOL bVersion);
 
 @DllImport("ADVPACK")
 BOOL IsNTAdmin(uint dwReserved, uint* lpdwReserved);
 
 @DllImport("ADVPACK")
-HRESULT DelNodeA(const(char)* pszFileOrDirName, uint dwFlags);
+HRESULT DelNodeA(const(PSTR) pszFileOrDirName, uint dwFlags);
 
 @DllImport("ADVPACK")
-HRESULT DelNodeW(const(wchar)* pszFileOrDirName, uint dwFlags);
+HRESULT DelNodeW(const(PWSTR) pszFileOrDirName, uint dwFlags);
 
 @DllImport("ADVPACK")
-HRESULT DelNodeRunDLL32W(HWND hwnd, HINSTANCE hInstance, const(wchar)* pszParms, int nShow);
+HRESULT DelNodeRunDLL32W(HWND hwnd, HINSTANCE hInstance, PWSTR pszParms, int nShow);
 
 @DllImport("ADVPACK")
-HRESULT OpenINFEngineA(const(char)* pszInfFilename, const(char)* pszInstallSection, uint dwFlags, void** phInf, 
+HRESULT OpenINFEngineA(const(PSTR) pszInfFilename, const(PSTR) pszInstallSection, uint dwFlags, void** phInf, 
                        void* pvReserved);
 
 @DllImport("ADVPACK")
-HRESULT OpenINFEngineW(const(wchar)* pszInfFilename, const(wchar)* pszInstallSection, uint dwFlags, void** phInf, 
+HRESULT OpenINFEngineW(const(PWSTR) pszInfFilename, const(PWSTR) pszInstallSection, uint dwFlags, void** phInf, 
                        void* pvReserved);
 
 @DllImport("ADVPACK")
-HRESULT TranslateInfStringExA(void* hInf, const(char)* pszInfFilename, const(char)* pszTranslateSection, 
-                              const(char)* pszTranslateKey, const(char)* pszBuffer, uint dwBufferSize, 
-                              uint* pdwRequiredSize, void* pvReserved);
+HRESULT TranslateInfStringExA(void* hInf, const(PSTR) pszInfFilename, const(PSTR) pszTranslateSection, 
+                              const(PSTR) pszTranslateKey, PSTR pszBuffer, uint dwBufferSize, uint* pdwRequiredSize, 
+                              void* pvReserved);
 
 @DllImport("ADVPACK")
-HRESULT TranslateInfStringExW(void* hInf, const(wchar)* pszInfFilename, const(wchar)* pszTranslateSection, 
-                              const(wchar)* pszTranslateKey, const(wchar)* pszBuffer, uint dwBufferSize, 
+HRESULT TranslateInfStringExW(void* hInf, const(PWSTR) pszInfFilename, const(PWSTR) pszTranslateSection, 
+                              const(PWSTR) pszTranslateKey, PWSTR pszBuffer, uint dwBufferSize, 
                               uint* pdwRequiredSize, void* pvReserved);
 
 @DllImport("ADVPACK")
 HRESULT CloseINFEngine(void* hInf);
 
 @DllImport("ADVPACK")
-HRESULT ExtractFilesA(const(char)* pszCabName, const(char)* pszExpandDir, uint dwFlags, const(char)* pszFileList, 
+HRESULT ExtractFilesA(const(PSTR) pszCabName, const(PSTR) pszExpandDir, uint dwFlags, const(PSTR) pszFileList, 
                       void* lpReserved, uint dwReserved);
 
 @DllImport("ADVPACK")
-HRESULT ExtractFilesW(const(wchar)* pszCabName, const(wchar)* pszExpandDir, uint dwFlags, 
-                      const(wchar)* pszFileList, void* lpReserved, uint dwReserved);
+HRESULT ExtractFilesW(const(PWSTR) pszCabName, const(PWSTR) pszExpandDir, uint dwFlags, const(PWSTR) pszFileList, 
+                      void* lpReserved, uint dwReserved);
 
 @DllImport("ADVPACK")
-int LaunchINFSectionW(HWND hwndOwner, HINSTANCE hInstance, const(wchar)* pszParams, int nShow);
+int LaunchINFSectionW(HWND hwndOwner, HINSTANCE hInstance, PWSTR pszParams, int nShow);
 
 @DllImport("ADVPACK")
-HRESULT UserInstStubWrapperA(HWND hwnd, HINSTANCE hInstance, const(char)* pszParms, int nShow);
+HRESULT UserInstStubWrapperA(HWND hwnd, HINSTANCE hInstance, const(PSTR) pszParms, int nShow);
 
 @DllImport("ADVPACK")
-HRESULT UserInstStubWrapperW(HWND hwnd, HINSTANCE hInstance, const(wchar)* pszParms, int nShow);
+HRESULT UserInstStubWrapperW(HWND hwnd, HINSTANCE hInstance, const(PWSTR) pszParms, int nShow);
 
 @DllImport("ADVPACK")
-HRESULT UserUnInstStubWrapperA(HWND hwnd, HINSTANCE hInstance, const(char)* pszParms, int nShow);
+HRESULT UserUnInstStubWrapperA(HWND hwnd, HINSTANCE hInstance, const(PSTR) pszParms, int nShow);
 
 @DllImport("ADVPACK")
-HRESULT UserUnInstStubWrapperW(HWND hwnd, HINSTANCE hInstance, const(wchar)* pszParms, int nShow);
+HRESULT UserUnInstStubWrapperW(HWND hwnd, HINSTANCE hInstance, const(PWSTR) pszParms, int nShow);
 
 @DllImport("ADVPACK")
 HRESULT SetPerUserSecValuesA(PERUSERSECTIONA* pPerUser);
@@ -11965,10 +11757,10 @@ BOOL WINNLSEnableIME(HWND param0, BOOL param1);
 BOOL WINNLSGetEnableStatus(HWND param0);
 
 @DllImport("api-ms-win-security-isolatedcontainer-l1-1-1")
-HRESULT IsProcessInWDAGContainer(void* Reserved, int* isProcessInWDAGContainer);
+HRESULT IsProcessInWDAGContainer(void* Reserved, BOOL* isProcessInWDAGContainer);
 
 @DllImport("api-ms-win-security-isolatedcontainer-l1-1-0")
-HRESULT IsProcessInIsolatedContainer(int* isProcessInIsolatedContainer);
+HRESULT IsProcessInIsolatedContainer(BOOL* isProcessInIsolatedContainer);
 
 ///Registers a callback function to be run when Windows Security Center (WSC) detects a change that could affect the
 ///health of one of the security providers.
@@ -11984,7 +11776,7 @@ HRESULT IsProcessInIsolatedContainer(int* isProcessInIsolatedContainer);
 ///    Returns S_OK if the function succeeds, otherwise returns an error code.
 ///    
 @DllImport("WSCAPI")
-HRESULT WscRegisterForChanges(void* Reserved, ptrdiff_t* phCallbackRegistration, 
+HRESULT WscRegisterForChanges(void* Reserved, HANDLE* phCallbackRegistration, 
                               LPTHREAD_START_ROUTINE lpCallbackAddress, void* pContext);
 
 ///Cancels a callback registration that was made by a call to the WscRegisterForChanges function.
@@ -12020,7 +11812,7 @@ HRESULT WscGetSecurityProviderHealth(uint Providers, WSC_SECURITY_PROVIDER_HEALT
 HRESULT WscQueryAntiMalwareUri();
 
 @DllImport("WSCAPI")
-HRESULT WscGetAntiMalwareUri(ushort** ppszUri);
+HRESULT WscGetAntiMalwareUri(PWSTR* ppszUri);
 
 ///<p class="CCE_Message">[This function is available for use in the Windows Server 2003 and Windows XP operating
 ///systems. It may be altered or unavailable in the future.] Enables applications to detect bad extension objects and
@@ -12040,17 +11832,17 @@ BOOL ApphelpCheckShellObject(const(GUID)* ObjectCLSID, BOOL bShimIfNecessary, ul
 HRESULT WldpGetLockdownPolicy(WLDP_HOST_INFORMATION* hostInformation, uint* lockdownState, uint lockdownFlags);
 
 @DllImport("Wldp")
-HRESULT WldpIsClassInApprovedList(const(GUID)* classID, WLDP_HOST_INFORMATION* hostInformation, int* isApproved, 
+HRESULT WldpIsClassInApprovedList(const(GUID)* classID, WLDP_HOST_INFORMATION* hostInformation, BOOL* isApproved, 
                                   uint optionalFlags);
 
 @DllImport("Wldp")
 HRESULT WldpSetDynamicCodeTrust(HANDLE fileHandle);
 
 @DllImport("Wldp")
-HRESULT WldpIsDynamicCodePolicyEnabled(int* isEnabled);
+HRESULT WldpIsDynamicCodePolicyEnabled(BOOL* isEnabled);
 
 @DllImport("Wldp")
-HRESULT WldpQueryDynamicCodeTrust(HANDLE fileHandle, char* baseImage, uint imageSize);
+HRESULT WldpQueryDynamicCodeTrust(HANDLE fileHandle, void* baseImage, uint imageSize);
 
 ///Checks whether the user has opted in for SQM data collection as part of the Customer Experience Improvement Program
 ///(CEIP).
@@ -12065,12 +11857,11 @@ HRESULT CreateXmlReader(const(GUID)* riid, void** ppvObject, IMalloc pMalloc);
 
 @DllImport("XmlLite")
 HRESULT CreateXmlReaderInputWithEncodingCodePage(IUnknown pInputStream, IMalloc pMalloc, uint nEncodingCodePage, 
-                                                 BOOL fEncodingHint, const(wchar)* pwszBaseUri, IUnknown* ppInput);
+                                                 BOOL fEncodingHint, const(PWSTR) pwszBaseUri, IUnknown* ppInput);
 
 @DllImport("XmlLite")
-HRESULT CreateXmlReaderInputWithEncodingName(IUnknown pInputStream, IMalloc pMalloc, 
-                                             const(wchar)* pwszEncodingName, BOOL fEncodingHint, 
-                                             const(wchar)* pwszBaseUri, IUnknown* ppInput);
+HRESULT CreateXmlReaderInputWithEncodingName(IUnknown pInputStream, IMalloc pMalloc, const(PWSTR) pwszEncodingName, 
+                                             BOOL fEncodingHint, const(PWSTR) pwszBaseUri, IUnknown* ppInput);
 
 @DllImport("XmlLite")
 HRESULT CreateXmlWriter(const(GUID)* riid, void** ppvObject, IMalloc pMalloc);
@@ -12081,78 +11872,86 @@ HRESULT CreateXmlWriterOutputWithEncodingCodePage(IUnknown pOutputStream, IMallo
 
 @DllImport("XmlLite")
 HRESULT CreateXmlWriterOutputWithEncodingName(IUnknown pOutputStream, IMalloc pMalloc, 
-                                              const(wchar)* pwszEncodingName, IUnknown* ppOutput);
+                                              const(PWSTR) pwszEncodingName, IUnknown* ppOutput);
 
 @DllImport("api-ms-win-devices-query-l1-1-0")
 HRESULT DevCreateObjectQuery(DEV_OBJECT_TYPE ObjectType, uint QueryFlags, uint cRequestedProperties, 
-                             char* pRequestedProperties, uint cFilterExpressionCount, char* pFilter, 
-                             PDEV_QUERY_RESULT_CALLBACK pCallback, void* pContext, HDEVQUERY__** phDevQuery);
+                             const(DEVPROPCOMPKEY)* pRequestedProperties, uint cFilterExpressionCount, 
+                             const(DEVPROP_FILTER_EXPRESSION)* pFilter, PDEV_QUERY_RESULT_CALLBACK pCallback, 
+                             void* pContext, HDEVQUERY__** phDevQuery);
 
 @DllImport("api-ms-win-devices-query-l1-1-1")
 HRESULT DevCreateObjectQueryEx(DEV_OBJECT_TYPE ObjectType, uint QueryFlags, uint cRequestedProperties, 
-                               char* pRequestedProperties, uint cFilterExpressionCount, char* pFilter, 
-                               uint cExtendedParameterCount, char* pExtendedParameters, 
-                               PDEV_QUERY_RESULT_CALLBACK pCallback, void* pContext, HDEVQUERY__** phDevQuery);
+                               const(DEVPROPCOMPKEY)* pRequestedProperties, uint cFilterExpressionCount, 
+                               const(DEVPROP_FILTER_EXPRESSION)* pFilter, uint cExtendedParameterCount, 
+                               const(DEV_QUERY_PARAMETER)* pExtendedParameters, PDEV_QUERY_RESULT_CALLBACK pCallback, 
+                               void* pContext, HDEVQUERY__** phDevQuery);
 
 @DllImport("api-ms-win-devices-query-l1-1-0")
-HRESULT DevCreateObjectQueryFromId(DEV_OBJECT_TYPE ObjectType, const(wchar)* pszObjectId, uint QueryFlags, 
-                                   uint cRequestedProperties, char* pRequestedProperties, 
-                                   uint cFilterExpressionCount, char* pFilter, PDEV_QUERY_RESULT_CALLBACK pCallback, 
-                                   void* pContext, HDEVQUERY__** phDevQuery);
+HRESULT DevCreateObjectQueryFromId(DEV_OBJECT_TYPE ObjectType, const(PWSTR) pszObjectId, uint QueryFlags, 
+                                   uint cRequestedProperties, const(DEVPROPCOMPKEY)* pRequestedProperties, 
+                                   uint cFilterExpressionCount, const(DEVPROP_FILTER_EXPRESSION)* pFilter, 
+                                   PDEV_QUERY_RESULT_CALLBACK pCallback, void* pContext, HDEVQUERY__** phDevQuery);
 
 @DllImport("api-ms-win-devices-query-l1-1-1")
-HRESULT DevCreateObjectQueryFromIdEx(DEV_OBJECT_TYPE ObjectType, const(wchar)* pszObjectId, uint QueryFlags, 
-                                     uint cRequestedProperties, char* pRequestedProperties, 
-                                     uint cFilterExpressionCount, char* pFilter, uint cExtendedParameterCount, 
-                                     char* pExtendedParameters, PDEV_QUERY_RESULT_CALLBACK pCallback, void* pContext, 
-                                     HDEVQUERY__** phDevQuery);
+HRESULT DevCreateObjectQueryFromIdEx(DEV_OBJECT_TYPE ObjectType, const(PWSTR) pszObjectId, uint QueryFlags, 
+                                     uint cRequestedProperties, const(DEVPROPCOMPKEY)* pRequestedProperties, 
+                                     uint cFilterExpressionCount, const(DEVPROP_FILTER_EXPRESSION)* pFilter, 
+                                     uint cExtendedParameterCount, const(DEV_QUERY_PARAMETER)* pExtendedParameters, 
+                                     PDEV_QUERY_RESULT_CALLBACK pCallback, void* pContext, HDEVQUERY__** phDevQuery);
 
 @DllImport("api-ms-win-devices-query-l1-1-0")
-HRESULT DevCreateObjectQueryFromIds(DEV_OBJECT_TYPE ObjectType, const(wchar)* pszzObjectIds, uint QueryFlags, 
-                                    uint cRequestedProperties, char* pRequestedProperties, 
-                                    uint cFilterExpressionCount, char* pFilter, PDEV_QUERY_RESULT_CALLBACK pCallback, 
+HRESULT DevCreateObjectQueryFromIds(DEV_OBJECT_TYPE ObjectType, 
+                                    /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/const(PWSTR) pszzObjectIds, 
+                                    uint QueryFlags, uint cRequestedProperties, 
+                                    const(DEVPROPCOMPKEY)* pRequestedProperties, uint cFilterExpressionCount, 
+                                    const(DEVPROP_FILTER_EXPRESSION)* pFilter, PDEV_QUERY_RESULT_CALLBACK pCallback, 
                                     void* pContext, HDEVQUERY__** phDevQuery);
 
 @DllImport("api-ms-win-devices-query-l1-1-1")
-HRESULT DevCreateObjectQueryFromIdsEx(DEV_OBJECT_TYPE ObjectType, const(wchar)* pszzObjectIds, uint QueryFlags, 
-                                      uint cRequestedProperties, char* pRequestedProperties, 
-                                      uint cFilterExpressionCount, char* pFilter, uint cExtendedParameterCount, 
-                                      char* pExtendedParameters, PDEV_QUERY_RESULT_CALLBACK pCallback, 
-                                      void* pContext, HDEVQUERY__** phDevQuery);
+HRESULT DevCreateObjectQueryFromIdsEx(DEV_OBJECT_TYPE ObjectType, 
+                                      /*PARAM ATTR: NullNullTerminated : CustomAttributeSig([], [])*/const(PWSTR) pszzObjectIds, 
+                                      uint QueryFlags, uint cRequestedProperties, 
+                                      const(DEVPROPCOMPKEY)* pRequestedProperties, uint cFilterExpressionCount, 
+                                      const(DEVPROP_FILTER_EXPRESSION)* pFilter, uint cExtendedParameterCount, 
+                                      const(DEV_QUERY_PARAMETER)* pExtendedParameters, 
+                                      PDEV_QUERY_RESULT_CALLBACK pCallback, void* pContext, HDEVQUERY__** phDevQuery);
 
 @DllImport("api-ms-win-devices-query-l1-1-0")
 void DevCloseObjectQuery(HDEVQUERY__* hDevQuery);
 
 @DllImport("api-ms-win-devices-query-l1-1-0")
 HRESULT DevGetObjects(DEV_OBJECT_TYPE ObjectType, uint QueryFlags, uint cRequestedProperties, 
-                      char* pRequestedProperties, uint cFilterExpressionCount, char* pFilter, uint* pcObjectCount, 
-                      const(DEV_OBJECT)** ppObjects);
+                      const(DEVPROPCOMPKEY)* pRequestedProperties, uint cFilterExpressionCount, 
+                      const(DEVPROP_FILTER_EXPRESSION)* pFilter, uint* pcObjectCount, const(DEV_OBJECT)** ppObjects);
 
 @DllImport("api-ms-win-devices-query-l1-1-1")
 HRESULT DevGetObjectsEx(DEV_OBJECT_TYPE ObjectType, uint QueryFlags, uint cRequestedProperties, 
-                        char* pRequestedProperties, uint cFilterExpressionCount, char* pFilter, 
-                        uint cExtendedParameterCount, char* pExtendedParameters, uint* pcObjectCount, 
+                        const(DEVPROPCOMPKEY)* pRequestedProperties, uint cFilterExpressionCount, 
+                        const(DEVPROP_FILTER_EXPRESSION)* pFilter, uint cExtendedParameterCount, 
+                        const(DEV_QUERY_PARAMETER)* pExtendedParameters, uint* pcObjectCount, 
                         const(DEV_OBJECT)** ppObjects);
 
 @DllImport("api-ms-win-devices-query-l1-1-0")
-void DevFreeObjects(uint cObjectCount, char* pObjects);
+void DevFreeObjects(uint cObjectCount, const(DEV_OBJECT)* pObjects);
 
 @DllImport("api-ms-win-devices-query-l1-1-0")
-HRESULT DevGetObjectProperties(DEV_OBJECT_TYPE ObjectType, const(wchar)* pszObjectId, uint QueryFlags, 
-                               uint cRequestedProperties, char* pRequestedProperties, uint* pcPropertyCount, 
-                               const(DEVPROPERTY)** ppProperties);
+HRESULT DevGetObjectProperties(DEV_OBJECT_TYPE ObjectType, const(PWSTR) pszObjectId, uint QueryFlags, 
+                               uint cRequestedProperties, const(DEVPROPCOMPKEY)* pRequestedProperties, 
+                               uint* pcPropertyCount, const(DEVPROPERTY)** ppProperties);
 
 @DllImport("api-ms-win-devices-query-l1-1-1")
-HRESULT DevGetObjectPropertiesEx(DEV_OBJECT_TYPE ObjectType, const(wchar)* pszObjectId, uint QueryFlags, 
-                                 uint cRequestedProperties, char* pRequestedProperties, uint cExtendedParameterCount, 
-                                 char* pExtendedParameters, uint* pcPropertyCount, const(DEVPROPERTY)** ppProperties);
+HRESULT DevGetObjectPropertiesEx(DEV_OBJECT_TYPE ObjectType, const(PWSTR) pszObjectId, uint QueryFlags, 
+                                 uint cRequestedProperties, const(DEVPROPCOMPKEY)* pRequestedProperties, 
+                                 uint cExtendedParameterCount, const(DEV_QUERY_PARAMETER)* pExtendedParameters, 
+                                 uint* pcPropertyCount, const(DEVPROPERTY)** ppProperties);
 
 @DllImport("api-ms-win-devices-query-l1-1-0")
-void DevFreeObjectProperties(uint cPropertyCount, char* pProperties);
+void DevFreeObjectProperties(uint cPropertyCount, const(DEVPROPERTY)* pProperties);
 
 @DllImport("api-ms-win-devices-query-l1-1-0")
-DEVPROPERTY* DevFindProperty(const(DEVPROPKEY)* pKey, DEVPROPSTORE Store, const(wchar)* pszLocaleName, 
-                             uint cProperties, char* pProperties);
+DEVPROPERTY* DevFindProperty(const(DEVPROPKEY)* pKey, DEVPROPSTORE Store, const(PWSTR) pszLocaleName, 
+                             uint cProperties, const(DEVPROPERTY)* pProperties);
 
 @DllImport("IPHLPAPI")
 uint PfCreateInterface(uint dwName, _PfForwardAction inAction, _PfForwardAction outAction, BOOL bUseLog, 
@@ -12209,30 +12008,243 @@ uint PfTestPacket(void* pInInterface, void* pOutInterface, uint cBytes, ubyte* p
                   _PfForwardAction* ppAction);
 
 @DllImport("api-ms-win-core-state-helpers-l1-1-0")
-LSTATUS GetRegistryValueWithFallbackW(HKEY hkeyPrimary, const(wchar)* pwszPrimarySubKey, HKEY hkeyFallback, 
-                                      const(wchar)* pwszFallbackSubKey, const(wchar)* pwszValue, uint dwFlags, 
-                                      uint* pdwType, char* pvData, uint cbDataIn, uint* pcbDataOut);
+LSTATUS GetRegistryValueWithFallbackW(HKEY hkeyPrimary, const(PWSTR) pwszPrimarySubKey, HKEY hkeyFallback, 
+                                      const(PWSTR) pwszFallbackSubKey, const(PWSTR) pwszValue, uint dwFlags, 
+                                      uint* pdwType, void* pvData, uint cbDataIn, uint* pcbDataOut);
 
-///<p class="CCE_Message">[This function is not supported and may be altered or unavailable in the future.] Installs the
-///requested COM server application.
+///Retrieves the name of the user or other security principal associated with the calling thread. You can specify the
+///format of the returned name. If the thread is impersonating a client, <b>GetUserNameEx</b> returns the name of the
+///client.
 ///Params:
-///    pbc = Reserved for future use; this value must be <b>NULL</b>.
-///    dwFlags = Reserved for future use; this value must be 0.
-///    pClassSpec = A pointer to a <b>uCLSSPEC</b> union. The <b>tyspec</b> member must be set to TYSPEC_CLSID and the <b>clsid</b>
-///                 member must be set to the CLSID to be installed. For more information, see TYSPEC.
-///    pQuery = A pointer to a QUERYCONTEXT structure. The <b>dwContext</b> field must be set to the desired CLSCTX value. For
-///             more information, see <b>QUERYCONTEXT</b>.
-///    pszCodeBase = Reserved for future use; this value must be <b>NULL</b>.
+///    NameFormat = The format of the name. This parameter is a value from the EXTENDED_NAME_FORMAT enumeration type. It cannot be
+///                 <b>NameUnknown</b>. If the user account is not in a domain, only <b>NameSamCompatible</b> is supported.
+///    lpNameBuffer = A pointer to a buffer that receives the name in the specified format. The buffer must include space for the
+///                   terminating null character.
+///    nSize = On input, this variable specifies the size of the <i>lpNameBuffer</i> buffer, in <b>TCHARs</b>. If the function
+///            is successful, the variable receives the number of <b>TCHARs</b> copied to the buffer, not including the
+///            terminating null character. If <i>lpNameBuffer</i> is too small, the function fails and GetLastError returns
+///            ERROR_MORE_DATA. This parameter receives the required buffer size, in Unicode characters (whether or not Unicode
+///            is being used), including the terminating null character.
 ///Returns:
-///    This function supports the standard return value E_INVALIDARG, as well as the following. <table> <tr>
-///    <th>Term</th> <th>Description</th> </tr> <tr> <td width="40%"> <a id="S_OK"></a><a id="s_ok"></a>S_OK </td> <td
-///    width="60%"> Indicates success. </td> </tr> <tr> <td width="40%"> <a id="CS_E_PACKAGE_NOTFOUND"></a><a
-///    id="cs_e_package_notfound"></a>CS_E_PACKAGE_NOTFOUND </td> <td width="60%"> The <b>tyspec</b> field of
-///    <i>pClassSpec</i> was not set to TYSPEC_CLSID. </td> </tr> </table>
+///    If the function succeeds, the return value is a nonzero value. If the function fails, the return value is zero.
+///    To get extended error information, call GetLastError. Possible values include the following. <table> <tr>
+///    <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_MORE_DATA</b></dt> </dl>
+///    </td> <td width="60%"> The <i>lpNameBuffer</i> buffer is too small. The <i>lpnSize</i> parameter contains the
+///    number of bytes required to receive the name. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>ERROR_NO_SUCH_DOMAIN</b></dt> </dl> </td> <td width="60%"> The domain controller is not available to
+///    perform the lookup </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_NONE_MAPPED</b></dt> </dl> </td> <td
+///    width="60%"> The user name is not available in the specified format. </td> </tr> </table>
 ///    
-@DllImport("ole32")
-HRESULT CoInstall(IBindCtx pbc, uint dwFlags, uCLSSPEC* pClassSpec, QUERYCONTEXT* pQuery, 
-                  const(wchar)* pszCodeBase);
+@DllImport("SspiCli")
+ubyte GetUserNameExA(EXTENDED_NAME_FORMAT NameFormat, PSTR lpNameBuffer, uint* nSize);
+
+///Retrieves the name of the user or other security principal associated with the calling thread. You can specify the
+///format of the returned name. If the thread is impersonating a client, <b>GetUserNameEx</b> returns the name of the
+///client.
+///Params:
+///    NameFormat = The format of the name. This parameter is a value from the EXTENDED_NAME_FORMAT enumeration type. It cannot be
+///                 <b>NameUnknown</b>. If the user account is not in a domain, only <b>NameSamCompatible</b> is supported.
+///    lpNameBuffer = A pointer to a buffer that receives the name in the specified format. The buffer must include space for the
+///                   terminating null character.
+///    nSize = On input, this variable specifies the size of the <i>lpNameBuffer</i> buffer, in <b>TCHARs</b>. If the function
+///            is successful, the variable receives the number of <b>TCHARs</b> copied to the buffer, not including the
+///            terminating null character. If <i>lpNameBuffer</i> is too small, the function fails and GetLastError returns
+///            ERROR_MORE_DATA. This parameter receives the required buffer size, in Unicode characters (whether or not Unicode
+///            is being used), including the terminating null character.
+///Returns:
+///    If the function succeeds, the return value is a nonzero value. If the function fails, the return value is zero.
+///    To get extended error information, call GetLastError. Possible values include the following. <table> <tr>
+///    <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_MORE_DATA</b></dt> </dl>
+///    </td> <td width="60%"> The <i>lpNameBuffer</i> buffer is too small. The <i>lpnSize</i> parameter contains the
+///    number of bytes required to receive the name. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>ERROR_NO_SUCH_DOMAIN</b></dt> </dl> </td> <td width="60%"> The domain controller is not available to
+///    perform the lookup </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_NONE_MAPPED</b></dt> </dl> </td> <td
+///    width="60%"> The user name is not available in the specified format. </td> </tr> </table>
+///    
+@DllImport("SspiCli")
+ubyte GetUserNameExW(EXTENDED_NAME_FORMAT NameFormat, PWSTR lpNameBuffer, uint* nSize);
+
+///Retrieves the local computer's name in a specified format.
+///Params:
+///    NameFormat = The format for the name. This parameter is a value from the EXTENDED_NAME_FORMAT enumeration type. It cannot be
+///                 NameUnknown.
+///    lpNameBuffer = A pointer to a buffer that receives the name in the specified format. If this parameter is <b>NULL</b>, either
+///                   the function succeeds and the <i>lpnSize</i> parameter receives the required size, or the function fails with
+///                   ERROR_INSUFFICIENT_BUFFER and <i>lpnSize</i> receives the required size. The behavior depends on the value of
+///                   <i>NameFormat</i> and the version of the operating system.
+///    nSize = On input, specifies the size of the <i>lpNameBuffer</i> buffer, in <b>TCHARs</b>. On success, receives the size
+///            of the name copied to the buffer. If the <i>lpNameBuffer</i> buffer is too small to hold the name, the function
+///            fails and <i>lpnSize</i> receives the required buffer size.
+///Returns:
+///    If the function succeeds, the return value is a nonzero value. If the function fails, the return value is zero.
+///    To get extended error information, call GetLastError.
+///    
+@DllImport("SECUR32")
+ubyte GetComputerObjectNameA(EXTENDED_NAME_FORMAT NameFormat, PSTR lpNameBuffer, uint* nSize);
+
+///Retrieves the local computer's name in a specified format.
+///Params:
+///    NameFormat = The format for the name. This parameter is a value from the EXTENDED_NAME_FORMAT enumeration type. It cannot be
+///                 NameUnknown.
+///    lpNameBuffer = A pointer to a buffer that receives the name in the specified format. If this parameter is <b>NULL</b>, either
+///                   the function succeeds and the <i>lpnSize</i> parameter receives the required size, or the function fails with
+///                   ERROR_INSUFFICIENT_BUFFER and <i>lpnSize</i> receives the required size. The behavior depends on the value of
+///                   <i>NameFormat</i> and the version of the operating system.
+///    nSize = On input, specifies the size of the <i>lpNameBuffer</i> buffer, in <b>TCHARs</b>. On success, receives the size
+///            of the name copied to the buffer. If the <i>lpNameBuffer</i> buffer is too small to hold the name, the function
+///            fails and <i>lpnSize</i> receives the required buffer size.
+///Returns:
+///    If the function succeeds, the return value is a nonzero value. If the function fails, the return value is zero.
+///    To get extended error information, call GetLastError.
+///    
+@DllImport("SECUR32")
+ubyte GetComputerObjectNameW(EXTENDED_NAME_FORMAT NameFormat, PWSTR lpNameBuffer, uint* nSize);
+
+///Converts a directory service object name from one format to another.
+///Params:
+///    lpAccountName = The name to be translated.
+///    AccountNameFormat = The format of the name to be translated. This parameter is a value from the EXTENDED_NAME_FORMAT enumeration
+///                        type.
+///    DesiredNameFormat = The format of the converted name. This parameter is a value from the EXTENDED_NAME_FORMAT enumeration type. It
+///                        cannot be NameUnknown.
+///    lpTranslatedName = A pointer to a buffer that receives the converted name.
+///    nSize = On input, the variable indicates the size of the <i>lpTranslatedName</i> buffer, in <b>TCHARs</b>. On output, the
+///            variable returns the size of the returned string, in <b>TCHARs</b>, including the terminating <b>null</b>
+///            character. If <i>lpTranslated</i> is <b>NULL</b> and <i>nSize</i> is 0, the function succeeds and <i>nSize</i>
+///            receives the required buffer size. If the <i>lpTranslatedName</i> buffer is too small to hold the converted name,
+///            the function fails and <i>nSize</i> receives the required buffer size.
+///Returns:
+///    If the function succeeds, the return value is a nonzero value. If the function fails, the return value is zero.
+///    To get extended error information, call GetLastError.
+///    
+@DllImport("SECUR32")
+ubyte TranslateNameA(const(PSTR) lpAccountName, EXTENDED_NAME_FORMAT AccountNameFormat, 
+                     EXTENDED_NAME_FORMAT DesiredNameFormat, PSTR lpTranslatedName, uint* nSize);
+
+///Converts a directory service object name from one format to another.
+///Params:
+///    lpAccountName = The name to be translated.
+///    AccountNameFormat = The format of the name to be translated. This parameter is a value from the EXTENDED_NAME_FORMAT enumeration
+///                        type.
+///    DesiredNameFormat = The format of the converted name. This parameter is a value from the EXTENDED_NAME_FORMAT enumeration type. It
+///                        cannot be NameUnknown.
+///    lpTranslatedName = A pointer to a buffer that receives the converted name.
+///    nSize = On input, the variable indicates the size of the <i>lpTranslatedName</i> buffer, in <b>TCHARs</b>. On output, the
+///            variable returns the size of the returned string, in <b>TCHARs</b>, including the terminating <b>null</b>
+///            character. If <i>lpTranslated</i> is <b>NULL</b> and <i>nSize</i> is 0, the function succeeds and <i>nSize</i>
+///            receives the required buffer size. If the <i>lpTranslatedName</i> buffer is too small to hold the converted name,
+///            the function fails and <i>nSize</i> receives the required buffer size.
+///Returns:
+///    If the function succeeds, the return value is a nonzero value. If the function fails, the return value is zero.
+///    To get extended error information, call GetLastError.
+///    
+@DllImport("SECUR32")
+ubyte TranslateNameW(const(PWSTR) lpAccountName, EXTENDED_NAME_FORMAT AccountNameFormat, 
+                     EXTENDED_NAME_FORMAT DesiredNameFormat, PWSTR lpTranslatedName, uint* nSize);
+
+///Installs performance counter strings, as defined in an input .ini file, into the system registry. <div
+///class="alert"><b>Note</b> Microsoft recommends that developers use LoadPerfCounterTextStrings instead of
+///<b>InstallPerfDll</b>. <b>LoadPerfCounterTextStrings</b> calls <b>InstallPerfDll</b> internally. </div><div> </div>
+///Params:
+///    szComputerName = The name of the system. This should be <b>NULL</b> because this function cannot be used to install remotely.
+///    lpIniFile = The name of the initialization file that contains definitions to add to the registry.
+///    dwFlags = This parameter can be <b>LOADPERF_FLAGS_DISPLAY_USER_MSGS</b> (<code>(ULONG_PTR) 8</code>).
+///Returns:
+///    If the function is successful, it returns <b>TRUE</b> and posts additional information in an application event
+///    log. Otherwise, it returns an error code that represents the condition that caused the failure.
+///    
+@DllImport("loadperf")
+uint InstallPerfDllW(const(PWSTR) szComputerName, const(PWSTR) lpIniFile, size_t dwFlags);
+
+///Installs performance counter strings, as defined in an input .ini file, into the system registry. <div
+///class="alert"><b>Note</b> Microsoft recommends that developers use LoadPerfCounterTextStrings instead of
+///<b>InstallPerfDll</b>. <b>LoadPerfCounterTextStrings</b> calls <b>InstallPerfDll</b> internally. </div><div> </div>
+///Params:
+///    szComputerName = The name of the system. This should be <b>NULL</b> because this function cannot be used to install remotely.
+///    lpIniFile = The name of the initialization file that contains definitions to add to the registry.
+///    dwFlags = This parameter can be <b>LOADPERF_FLAGS_DISPLAY_USER_MSGS</b> (<code>(ULONG_PTR) 8</code>).
+///Returns:
+///    If the function is successful, it returns <b>TRUE</b> and posts additional information in an application event
+///    log. Otherwise, it returns an error code that represents the condition that caused the failure.
+///    
+@DllImport("loadperf")
+uint InstallPerfDllA(const(PSTR) szComputerName, const(PSTR) lpIniFile, size_t dwFlags);
+
+///The <b>I_NetLogonControl2</b> function controls various aspects of the Netlogon service.
+///Params:
+///    ServerName = The name of the remote server.
+///    FunctionCode = The operation to be performed. This value can be one of the following. <table> <tr> <th>Value</th>
+///                   <th>Meaning</th> </tr> <tr> <td width="40%"><a id="NETLOGON_CONTROL_QUERY"></a><a
+///                   id="netlogon_control_query"></a><dl> <dt><b>NETLOGON_CONTROL_QUERY</b></dt> <dt>1</dt> </dl> </td> <td
+///                   width="60%"> No operation. Returns only the requested information. </td> </tr> <tr> <td width="40%"><a
+///                   id="NETLOGON_CONTROL_REPLICATE"></a><a id="netlogon_control_replicate"></a><dl>
+///                   <dt><b>NETLOGON_CONTROL_REPLICATE</b></dt> <dt>2</dt> </dl> </td> <td width="60%"> Forces the security account
+///                   manager (SAM) database on a backup domain controller (BDC) to be brought in sync with the copy on the primary
+///                   domain controller (PDC). This operation does not imply a full synchronize. The Netlogon service replicates any
+///                   outstanding differences if possible. </td> </tr> <tr> <td width="40%"><a id="NETLOGON_CONTROL_SYNCHRONIZE"></a><a
+///                   id="netlogon_control_synchronize"></a><dl> <dt><b>NETLOGON_CONTROL_SYNCHRONIZE</b></dt> <dt>3</dt> </dl> </td>
+///                   <td width="60%"> Forces a BDC to get a new copy of the SAM database from the PDC. This operation performs a full
+///                   synchronize. </td> </tr> <tr> <td width="40%"><a id="NETLOGON_CONTROL_PDC_REPLICATE"></a><a
+///                   id="netlogon_control_pdc_replicate"></a><dl> <dt><b>NETLOGON_CONTROL_PDC_REPLICATE</b></dt> <dt>4</dt> </dl>
+///                   </td> <td width="60%"> Forces a PDC to ask for each BDC to replicate now. </td> </tr> <tr> <td width="40%"><a
+///                   id="NETLOGON_CONTROL_REDISCOVER"></a><a id="netlogon_control_rediscover"></a><dl>
+///                   <dt><b>NETLOGON_CONTROL_REDISCOVER</b></dt> <dt>5</dt> </dl> </td> <td width="60%"> Forces a domain controller
+///                   (DC) to rediscover the specified trusted domain DC. </td> </tr> <tr> <td width="40%"><a
+///                   id="NETLOGON_CONTROL_TC_QUERY"></a><a id="netlogon_control_tc_query"></a><dl>
+///                   <dt><b>NETLOGON_CONTROL_TC_QUERY</b></dt> <dt>6</dt> </dl> </td> <td width="60%"> Queries the secure channel,
+///                   requesting a status update about its last usage. </td> </tr> <tr> <td width="40%"><a
+///                   id="NETLOGON_CONTROL_TC_VERIFY"></a><a id="netlogon_control_tc_verify"></a><dl>
+///                   <dt><b>NETLOGON_CONTROL_TC_VERIFY</b></dt> <dt>10</dt> </dl> </td> <td width="60%"> Verifies the current status
+///                   of the specified trusted domain secure channel. If the status indicates success, the domain controller is pinged.
+///                   If the status or the ping indicates failure, a new trusted domain controller is rediscovered. </td> </tr> <tr>
+///                   <td width="40%"><a id="NETLOGON_CONTROL_CHANGE_PASSWORD"></a><a id="netlogon_control_change_password"></a><dl>
+///                   <dt><b>NETLOGON_CONTROL_CHANGE_PASSWORD</b></dt> <dt>9</dt> </dl> </td> <td width="60%"> Forces a password change
+///                   on a secure channel to a trusted domain. </td> </tr> <tr> <td width="40%"><a
+///                   id="NETLOGON_CONTROL_FORCE_DNS_REG"></a><a id="netlogon_control_force_dns_reg"></a><dl>
+///                   <dt><b>NETLOGON_CONTROL_FORCE_DNS_REG</b></dt> <dt>11</dt> </dl> </td> <td width="60%"> Forces the domain
+///                   controller to re-register all of its DNS records. The <i>QueryLevel</i> parameter must be set to 1. </td> </tr>
+///                   <tr> <td width="40%"><a id="NETLOGON_CONTROL_QUERY_DNS_REG"></a><a id="netlogon_control_query_dns_reg"></a><dl>
+///                   <dt><b>NETLOGON_CONTROL_QUERY_DNS_REG</b></dt> <dt>12</dt> </dl> </td> <td width="60%"> Issues a query requesting
+///                   the status of DNS updates performed by the Netlogon service. If any DNS registration or deregistration errors
+///                   occurred on the last update, the result is negative. The <i>QueryLevel</i> parameter must be set to 1. </td>
+///                   </tr> </table>
+///    QueryLevel = Indicates what information should be returned from the Netlogon service. This value can be any of the following
+///                 structures.
+///    Data = Carries input data that depends on the value specified in the <i>FunctionCode</i> parameter. The
+///           NETLOGON_CONTROL_REDISCOVER and NETLOGON_CONTROL_TC_QUERY function codes specify the trusted domain name (the
+///           data type is <b>LPWSTR *</b>).
+///    Buffer = Returns a pointer to a buffer that contains the requested information in the structure passed in the
+///             <i>QueryLevel</i> parameter. The buffer must be freed using NetApiBufferFree.
+///Returns:
+///    The method returns 0x00000000 (<b>NERR_Success</b>) on success; otherwise, it returns a nonzero error code
+///    defined in Lmerr.h or Winerror.h. NET_API_STATUS error codes begin with the value 0x00000834. For more
+///    information about network management error codes, see Network_Management_Error_Codes. The following table
+///    describes possible return values. <table> <tr> <th>Return code/value</th> <th>Description</th> </tr> <tr> <td
+///    width="40%"> <dl> <dt><b><b>NERR_Success</b></b></dt> <dt>0x00000000</dt> </dl> </td> <td width="60%"> The method
+///    call completed without errors. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_ACCESS_DENIED</b></dt>
+///    <dt>0x00000005</dt> </dl> </td> <td width="60%"> Access validation on the caller returns false. Access is denied.
+///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_NOT_ENOUGH_MEMORY</b></dt> <dt>0x00000008</dt> </dl> </td>
+///    <td width="60%"> Not enough storage is available to process this command. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>ERROR_NOT_SUPPORTED</b></dt> <dt>0x00000032</dt> </dl> </td> <td width="60%"> A function code is not valid
+///    on the specified server. For example, NETLOGON_CONTROL_REPLICATE might have been passed to a primary domain
+///    controller (PDC). </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_INVALID_PARAMETER</b></dt>
+///    <dt>0x00000057</dt> </dl> </td> <td width="60%"> A parameter is incorrect. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>ERROR_INVALID_LEVEL</b></dt> <dt>0x0000007C</dt> </dl> </td> <td width="60%"> The query call level is not
+///    correct. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_SERVICE_NOT_ACTIVE</b></dt>
+///    <dt>0x000004261210121</dt> </dl> </td> <td width="60%"> The service has not been started. </td> </tr> <tr> <td
+///    width="40%"> <dl> <dt><b> ERROR_INVALID_COMPUTERNAME</b></dt> <dt> 0x000004BA</dt> </dl> </td> <td width="60%">
+///    The format of the specified computer name is invalid. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>ERROR_NO_LOGON_SERVERS</b></dt> <dt>0x0000051F</dt> </dl> </td> <td width="60%"> There are currently no
+///    logon servers available to service the logon request. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>ERROR_INVALID_DOMAIN_ROLE</b></dt> <dt>0x0000054A</dt> </dl> </td> <td width="60%"> Password change for an
+///    interdomain trust account was attempted on a backup domain controller (BDC). This operation is only allowed for
+///    the PDC of the domain. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_NO_SUCH_DOMAIN</b></dt>
+///    <dt>0x0000054B</dt> </dl> </td> <td width="60%"> The specified domain either does not exist or could not be
+///    contacted. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>NERR_UserNotFound</b></dt> <dt>0x000008AD</dt> </dl>
+///    </td> <td width="60%"> The user name could not be found. </td> </tr> </table>
+///    
+@DllImport("NETAPI32")
+uint I_NetLogonControl2(const(PWSTR) ServerName, uint FunctionCode, uint QueryLevel, ubyte* Data, ubyte** Buffer);
 
 
 // Interfaces
@@ -12563,7 +12575,7 @@ interface IXMLDSOControl : IDispatch
 {
     HRESULT get_XMLDocument(IXMLDOMDocument* ppDoc);
     HRESULT put_XMLDocument(IXMLDOMDocument ppDoc);
-    HRESULT get_JavaDSOCompatible(int* fJavaDSOCompatible);
+    HRESULT get_JavaDSOCompatible(BOOL* fJavaDSOCompatible);
     HRESULT put_JavaDSOCompatible(BOOL fJavaDSOCompatible);
     HRESULT get_readyState(int* state);
 }
@@ -12694,11 +12706,11 @@ interface ICameraUIControlEventCallback : IUnknown
     ///Occurs when an item is captured.
     ///Params:
     ///    pszPath = The path to the captured item.
-    void OnItemCaptured(const(wchar)* pszPath);
+    void OnItemCaptured(const(PWSTR) pszPath);
     ///Occurs when an item is deleted.
     ///Params:
     ///    pszPath = The path to the deleted item.
-    void OnItemDeleted(const(wchar)* pszPath);
+    void OnItemDeleted(const(PWSTR) pszPath);
     ///Occurs when the camera UI control is closed.
     void OnClosed();
 }
@@ -12740,7 +12752,7 @@ interface ICameraUIControl : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT Suspend(int* pbDeferralRequired);
+    HRESULT Suspend(BOOL* pbDeferralRequired);
     ///Simulates resume of the user interface control.
     ///Returns:
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
@@ -12778,7 +12790,7 @@ interface ICameraUIControl : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT RemoveCapturedItem(const(wchar)* pszPath);
+    HRESULT RemoveCapturedItem(const(PWSTR) pszPath);
 }
 
 ///Allows the Windows Store to install a Windows product that the user purchased, to perform either an upgrade to the
@@ -12795,7 +12807,7 @@ interface IEditionUpgradeHelper : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CanUpgrade(int* isAllowed);
+    HRESULT CanUpgrade(BOOL* isAllowed);
     ///Upgrades the installed edition of the operating system to the edition that the user purchased in the Windows
     ///Store, or gets a genuine copy of the operating system.
     ///Params:
@@ -12807,7 +12819,7 @@ interface IEditionUpgradeHelper : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT UpdateOperatingSystem(const(wchar)* contentId);
+    HRESULT UpdateOperatingSystem(const(PWSTR) contentId);
     ///Displays the user interface through which the user can provide a product key to upgrade or get a genuine copy of
     ///the operating system.
     ///Returns:
@@ -12823,7 +12835,7 @@ interface IEditionUpgradeHelper : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetOsProductContentId(ushort** contentId);
+    HRESULT GetOsProductContentId(PWSTR* contentId);
     ///Retrieves whether the currently installed operating system is activated.
     ///Params:
     ///    isGenuine = TRUE is the currently installed operating system is activated; otherwise, FALSE.
@@ -12831,13 +12843,13 @@ interface IEditionUpgradeHelper : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetGenuineLocalStatus(int* isGenuine);
+    HRESULT GetGenuineLocalStatus(BOOL* isGenuine);
 }
 
 @GUID("F342D19E-CC22-4648-BB5D-03CCF75B47C5")
 interface IWindowsLockModeHelper : IUnknown
 {
-    HRESULT GetSMode(int* isSmode);
+    HRESULT GetSMode(BOOL* isSmode);
 }
 
 @GUID("FF19CBCF-9455-4937-B872-6B7929A460AF")
@@ -13544,17 +13556,17 @@ interface IScriptErrorList : IDispatch
 {
     HRESULT advanceError();
     HRESULT retreatError();
-    HRESULT canAdvanceError(int* pfCanAdvance);
-    HRESULT canRetreatError(int* pfCanRetreat);
+    HRESULT canAdvanceError(BOOL* pfCanAdvance);
+    HRESULT canRetreatError(BOOL* pfCanRetreat);
     HRESULT getErrorLine(int* plLine);
     HRESULT getErrorChar(int* plChar);
     HRESULT getErrorCode(int* plCode);
     HRESULT getErrorMsg(BSTR* pstr);
     HRESULT getErrorUrl(BSTR* pstr);
-    HRESULT getAlwaysShowLockState(int* pfAlwaysShowLocked);
-    HRESULT getDetailsPaneOpen(int* pfDetailsPaneOpen);
+    HRESULT getAlwaysShowLockState(BOOL* pfAlwaysShowLocked);
+    HRESULT getDetailsPaneOpen(BOOL* pfDetailsPaneOpen);
     HRESULT setDetailsPaneOpen(BOOL fDetailsPaneOpen);
-    HRESULT getPerErrorDisplay(int* pfPerErrorDisplay);
+    HRESULT getPerErrorDisplay(BOOL* pfPerErrorDisplay);
     HRESULT setPerErrorDisplay(BOOL fPerErrorDisplay);
 }
 
@@ -13563,7 +13575,7 @@ interface IScriptErrorList : IDispatch
 @GUID("F686878F-7B42-4CC4-96FB-F4F3B6E3D24D")
 interface IIsolatedAppLauncher : IUnknown
 {
-    HRESULT Launch(const(wchar)* appUserModelId, const(wchar)* arguments, 
+    HRESULT Launch(const(PWSTR) appUserModelId, const(PWSTR) arguments, 
                    const(IsolatedAppLauncherTelemetryParameters)* telemetryParameters);
 }
 
@@ -13612,7 +13624,7 @@ interface IWscProduct : IDispatch
     ///    
     HRESULT get_ProductStateTimestamp(BSTR* pVal);
     HRESULT get_ProductGuid(BSTR* pVal);
-    HRESULT get_ProductIsDefault(int* pVal);
+    HRESULT get_ProductIsDefault(BOOL* pVal);
 }
 
 @GUID("F896CA54-FE09-4403-86D4-23CB488D81D8")
@@ -13686,15 +13698,15 @@ interface IXmlReader : IUnknown
     HRESULT GetNodeType(XmlNodeType* pNodeType);
     HRESULT MoveToFirstAttribute();
     HRESULT MoveToNextAttribute();
-    HRESULT MoveToAttributeByName(const(wchar)* pwszLocalName, const(wchar)* pwszNamespaceUri);
+    HRESULT MoveToAttributeByName(const(PWSTR) pwszLocalName, const(PWSTR) pwszNamespaceUri);
     HRESULT MoveToElement();
-    HRESULT GetQualifiedName(ushort** ppwszQualifiedName, uint* pcwchQualifiedName);
-    HRESULT GetNamespaceUri(ushort** ppwszNamespaceUri, uint* pcwchNamespaceUri);
-    HRESULT GetLocalName(ushort** ppwszLocalName, uint* pcwchLocalName);
-    HRESULT GetPrefix(ushort** ppwszPrefix, uint* pcwchPrefix);
-    HRESULT GetValue(ushort** ppwszValue, uint* pcwchValue);
-    HRESULT ReadValueChunk(char* pwchBuffer, uint cwchChunkSize, uint* pcwchRead);
-    HRESULT GetBaseUri(ushort** ppwszBaseUri, uint* pcwchBaseUri);
+    HRESULT GetQualifiedName(PWSTR* ppwszQualifiedName, uint* pcwchQualifiedName);
+    HRESULT GetNamespaceUri(PWSTR* ppwszNamespaceUri, uint* pcwchNamespaceUri);
+    HRESULT GetLocalName(PWSTR* ppwszLocalName, uint* pcwchLocalName);
+    HRESULT GetPrefix(PWSTR* ppwszPrefix, uint* pcwchPrefix);
+    HRESULT GetValue(PWSTR* ppwszValue, uint* pcwchValue);
+    HRESULT ReadValueChunk(PWSTR pwchBuffer, uint cwchChunkSize, uint* pcwchRead);
+    HRESULT GetBaseUri(PWSTR* ppwszBaseUri, uint* pcwchBaseUri);
     BOOL    IsDefault();
     BOOL    IsEmptyElement();
     HRESULT GetLineNumber(uint* pnLineNumber);
@@ -13707,8 +13719,8 @@ interface IXmlReader : IUnknown
 @GUID("7279FC82-709D-4095-B63D-69FE4B0D9030")
 interface IXmlResolver : IUnknown
 {
-    HRESULT ResolveUri(const(wchar)* pwszBaseUri, const(wchar)* pwszPublicIdentifier, 
-                       const(wchar)* pwszSystemIdentifier, IUnknown* ppResolvedInput);
+    HRESULT ResolveUri(const(PWSTR) pwszBaseUri, const(PWSTR) pwszPublicIdentifier, 
+                       const(PWSTR) pwszSystemIdentifier, IUnknown* ppResolvedInput);
 }
 
 @GUID("7279FC88-709D-4095-B63D-69FE4B0D9030")
@@ -13718,34 +13730,33 @@ interface IXmlWriter : IUnknown
     HRESULT GetProperty(uint nProperty, ptrdiff_t* ppValue);
     HRESULT SetProperty(uint nProperty, ptrdiff_t pValue);
     HRESULT WriteAttributes(IXmlReader pReader, BOOL fWriteDefaultAttributes);
-    HRESULT WriteAttributeString(const(wchar)* pwszPrefix, const(wchar)* pwszLocalName, 
-                                 const(wchar)* pwszNamespaceUri, const(wchar)* pwszValue);
-    HRESULT WriteCData(const(wchar)* pwszText);
+    HRESULT WriteAttributeString(const(PWSTR) pwszPrefix, const(PWSTR) pwszLocalName, 
+                                 const(PWSTR) pwszNamespaceUri, const(PWSTR) pwszValue);
+    HRESULT WriteCData(const(PWSTR) pwszText);
     HRESULT WriteCharEntity(ushort wch);
-    HRESULT WriteChars(const(wchar)* pwch, uint cwch);
-    HRESULT WriteComment(const(wchar)* pwszComment);
-    HRESULT WriteDocType(const(wchar)* pwszName, const(wchar)* pwszPublicId, const(wchar)* pwszSystemId, 
-                         const(wchar)* pwszSubset);
-    HRESULT WriteElementString(const(wchar)* pwszPrefix, const(wchar)* pwszLocalName, 
-                               const(wchar)* pwszNamespaceUri, const(wchar)* pwszValue);
+    HRESULT WriteChars(const(PWSTR) pwch, uint cwch);
+    HRESULT WriteComment(const(PWSTR) pwszComment);
+    HRESULT WriteDocType(const(PWSTR) pwszName, const(PWSTR) pwszPublicId, const(PWSTR) pwszSystemId, 
+                         const(PWSTR) pwszSubset);
+    HRESULT WriteElementString(const(PWSTR) pwszPrefix, const(PWSTR) pwszLocalName, const(PWSTR) pwszNamespaceUri, 
+                               const(PWSTR) pwszValue);
     HRESULT WriteEndDocument();
     HRESULT WriteEndElement();
-    HRESULT WriteEntityRef(const(wchar)* pwszName);
+    HRESULT WriteEntityRef(const(PWSTR) pwszName);
     HRESULT WriteFullEndElement();
-    HRESULT WriteName(const(wchar)* pwszName);
-    HRESULT WriteNmToken(const(wchar)* pwszNmToken);
+    HRESULT WriteName(const(PWSTR) pwszName);
+    HRESULT WriteNmToken(const(PWSTR) pwszNmToken);
     HRESULT WriteNode(IXmlReader pReader, BOOL fWriteDefaultAttributes);
     HRESULT WriteNodeShallow(IXmlReader pReader, BOOL fWriteDefaultAttributes);
-    HRESULT WriteProcessingInstruction(const(wchar)* pwszName, const(wchar)* pwszText);
-    HRESULT WriteQualifiedName(const(wchar)* pwszLocalName, const(wchar)* pwszNamespaceUri);
-    HRESULT WriteRaw(const(wchar)* pwszData);
-    HRESULT WriteRawChars(const(wchar)* pwch, uint cwch);
+    HRESULT WriteProcessingInstruction(const(PWSTR) pwszName, const(PWSTR) pwszText);
+    HRESULT WriteQualifiedName(const(PWSTR) pwszLocalName, const(PWSTR) pwszNamespaceUri);
+    HRESULT WriteRaw(const(PWSTR) pwszData);
+    HRESULT WriteRawChars(const(PWSTR) pwch, uint cwch);
     HRESULT WriteStartDocument(XmlStandalone standalone);
-    HRESULT WriteStartElement(const(wchar)* pwszPrefix, const(wchar)* pwszLocalName, 
-                              const(wchar)* pwszNamespaceUri);
-    HRESULT WriteString(const(wchar)* pwszText);
+    HRESULT WriteStartElement(const(PWSTR) pwszPrefix, const(PWSTR) pwszLocalName, const(PWSTR) pwszNamespaceUri);
+    HRESULT WriteString(const(PWSTR) pwszText);
     HRESULT WriteSurrogateCharEntity(ushort wchLow, ushort wchHigh);
-    HRESULT WriteWhitespace(const(wchar)* pwszWhitespace);
+    HRESULT WriteWhitespace(const(PWSTR) pwszWhitespace);
     HRESULT Flush();
 }
 
@@ -13756,30 +13767,30 @@ interface IXmlWriterLite : IUnknown
     HRESULT GetProperty(uint nProperty, ptrdiff_t* ppValue);
     HRESULT SetProperty(uint nProperty, ptrdiff_t pValue);
     HRESULT WriteAttributes(IXmlReader pReader, BOOL fWriteDefaultAttributes);
-    HRESULT WriteAttributeString(const(wchar)* pwszQName, uint cwszQName, const(wchar)* pwszValue, uint cwszValue);
-    HRESULT WriteCData(const(wchar)* pwszText);
+    HRESULT WriteAttributeString(const(PWSTR) pwszQName, uint cwszQName, const(PWSTR) pwszValue, uint cwszValue);
+    HRESULT WriteCData(const(PWSTR) pwszText);
     HRESULT WriteCharEntity(ushort wch);
-    HRESULT WriteChars(const(wchar)* pwch, uint cwch);
-    HRESULT WriteComment(const(wchar)* pwszComment);
-    HRESULT WriteDocType(const(wchar)* pwszName, const(wchar)* pwszPublicId, const(wchar)* pwszSystemId, 
-                         const(wchar)* pwszSubset);
-    HRESULT WriteElementString(const(wchar)* pwszQName, uint cwszQName, const(wchar)* pwszValue);
+    HRESULT WriteChars(const(PWSTR) pwch, uint cwch);
+    HRESULT WriteComment(const(PWSTR) pwszComment);
+    HRESULT WriteDocType(const(PWSTR) pwszName, const(PWSTR) pwszPublicId, const(PWSTR) pwszSystemId, 
+                         const(PWSTR) pwszSubset);
+    HRESULT WriteElementString(const(PWSTR) pwszQName, uint cwszQName, const(PWSTR) pwszValue);
     HRESULT WriteEndDocument();
-    HRESULT WriteEndElement(const(wchar)* pwszQName, uint cwszQName);
-    HRESULT WriteEntityRef(const(wchar)* pwszName);
-    HRESULT WriteFullEndElement(const(wchar)* pwszQName, uint cwszQName);
-    HRESULT WriteName(const(wchar)* pwszName);
-    HRESULT WriteNmToken(const(wchar)* pwszNmToken);
+    HRESULT WriteEndElement(const(PWSTR) pwszQName, uint cwszQName);
+    HRESULT WriteEntityRef(const(PWSTR) pwszName);
+    HRESULT WriteFullEndElement(const(PWSTR) pwszQName, uint cwszQName);
+    HRESULT WriteName(const(PWSTR) pwszName);
+    HRESULT WriteNmToken(const(PWSTR) pwszNmToken);
     HRESULT WriteNode(IXmlReader pReader, BOOL fWriteDefaultAttributes);
     HRESULT WriteNodeShallow(IXmlReader pReader, BOOL fWriteDefaultAttributes);
-    HRESULT WriteProcessingInstruction(const(wchar)* pwszName, const(wchar)* pwszText);
-    HRESULT WriteRaw(const(wchar)* pwszData);
-    HRESULT WriteRawChars(const(wchar)* pwch, uint cwch);
+    HRESULT WriteProcessingInstruction(const(PWSTR) pwszName, const(PWSTR) pwszText);
+    HRESULT WriteRaw(const(PWSTR) pwszData);
+    HRESULT WriteRawChars(const(PWSTR) pwch, uint cwch);
     HRESULT WriteStartDocument(XmlStandalone standalone);
-    HRESULT WriteStartElement(const(wchar)* pwszQName, uint cwszQName);
-    HRESULT WriteString(const(wchar)* pwszText);
+    HRESULT WriteStartElement(const(PWSTR) pwszQName, uint cwszQName);
+    HRESULT WriteString(const(PWSTR) pwszText);
     HRESULT WriteSurrogateCharEntity(ushort wchLow, ushort wchHigh);
-    HRESULT WriteWhitespace(const(wchar)* pwszWhitespace);
+    HRESULT WriteWhitespace(const(PWSTR) pwszWhitespace);
     HRESULT Flush();
 }
 

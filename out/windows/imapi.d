@@ -7,7 +7,7 @@ public import windows.automation : BSTR, IDispatch, IEnumVARIANT, SAFEARRAY;
 public import windows.com : HRESULT, IUnknown;
 public import windows.structuredstorage : IPropertyStorage, IStorage, IStream;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -585,59 +585,59 @@ enum : int
 // Constants
 
 
-enum int IMAPI_S_PROPERTIESIGNORED = 0x00040200;
+enum HRESULT IMAPI_S_PROPERTIESIGNORED = HRESULT(0x00040200);
 
-enum : int
+enum : HRESULT
 {
-    IMAPI_E_NOTOPENED      = 0x8004020b,
-    IMAPI_E_NOTINITIALIZED = 0x8004020c,
+    IMAPI_E_NOTOPENED      = HRESULT(0x8004020b),
+    IMAPI_E_NOTINITIALIZED = HRESULT(0x8004020c),
 }
 
-enum : int
+enum : HRESULT
 {
-    IMAPI_E_GENERIC            = 0x8004020e,
-    IMAPI_E_MEDIUM_NOTPRESENT  = 0x8004020f,
-    IMAPI_E_MEDIUM_INVALIDTYPE = 0x80040210,
+    IMAPI_E_GENERIC            = HRESULT(0x8004020e),
+    IMAPI_E_MEDIUM_NOTPRESENT  = HRESULT(0x8004020f),
+    IMAPI_E_MEDIUM_INVALIDTYPE = HRESULT(0x80040210),
 }
 
-enum : int
+enum : HRESULT
 {
-    IMAPI_E_DEVICE_NOTACCESSIBLE = 0x80040212,
-    IMAPI_E_DEVICE_NOTPRESENT    = 0x80040213,
-    IMAPI_E_DEVICE_INVALIDTYPE   = 0x80040214,
+    IMAPI_E_DEVICE_NOTACCESSIBLE = HRESULT(0x80040212),
+    IMAPI_E_DEVICE_NOTPRESENT    = HRESULT(0x80040213),
+    IMAPI_E_DEVICE_INVALIDTYPE   = HRESULT(0x80040214),
 }
 
-enum int IMAPI_E_INITIALIZE_ENDWRITE = 0x80040216;
+enum HRESULT IMAPI_E_INITIALIZE_ENDWRITE = HRESULT(0x80040216);
 
-enum : int
+enum : HRESULT
 {
-    IMAPI_E_FILEACCESS    = 0x80040218,
-    IMAPI_E_DISCINFO      = 0x80040219,
-    IMAPI_E_TRACKNOTOPEN  = 0x8004021a,
-    IMAPI_E_TRACKOPEN     = 0x8004021b,
-    IMAPI_E_DISCFULL      = 0x8004021c,
-    IMAPI_E_BADJOLIETNAME = 0x8004021d,
+    IMAPI_E_FILEACCESS    = HRESULT(0x80040218),
+    IMAPI_E_DISCINFO      = HRESULT(0x80040219),
+    IMAPI_E_TRACKNOTOPEN  = HRESULT(0x8004021a),
+    IMAPI_E_TRACKOPEN     = HRESULT(0x8004021b),
+    IMAPI_E_DISCFULL      = HRESULT(0x8004021c),
+    IMAPI_E_BADJOLIETNAME = HRESULT(0x8004021d),
 }
 
-enum : int
+enum : HRESULT
 {
-    IMAPI_E_NOACTIVEFORMAT   = 0x8004021f,
-    IMAPI_E_NOACTIVERECORDER = 0x80040220,
+    IMAPI_E_NOACTIVEFORMAT   = HRESULT(0x8004021f),
+    IMAPI_E_NOACTIVERECORDER = HRESULT(0x80040220),
 }
 
-enum : int
+enum : HRESULT
 {
-    IMAPI_E_ALREADYOPEN         = 0x80040222,
-    IMAPI_E_WRONGDISC           = 0x80040223,
-    IMAPI_E_FILEEXISTS          = 0x80040224,
-    IMAPI_E_STASHINUSE          = 0x80040225,
-    IMAPI_E_DEVICE_STILL_IN_USE = 0x80040226,
+    IMAPI_E_ALREADYOPEN         = HRESULT(0x80040222),
+    IMAPI_E_WRONGDISC           = HRESULT(0x80040223),
+    IMAPI_E_FILEEXISTS          = HRESULT(0x80040224),
+    IMAPI_E_STASHINUSE          = HRESULT(0x80040225),
+    IMAPI_E_DEVICE_STILL_IN_USE = HRESULT(0x80040226),
 }
 
-enum int IMAPI_E_COMPRESSEDSTASH = 0x80040228;
-enum int IMAPI_E_NOTENOUGHDISKFORSTASH = 0x8004022a;
-enum int IMAPI_E_CANNOT_WRITE_TO_MEDIA = 0x8004022c;
-enum int IMAPI_E_BOOTIMAGE_AND_NONBLANK_DISC = 0x8004022e;
+enum HRESULT IMAPI_E_COMPRESSEDSTASH = HRESULT(0x80040228);
+enum HRESULT IMAPI_E_NOTENOUGHDISKFORSTASH = HRESULT(0x8004022a);
+enum HRESULT IMAPI_E_CANNOT_WRITE_TO_MEDIA = HRESULT(0x8004022c);
+enum HRESULT IMAPI_E_BOOTIMAGE_AND_NONBLANK_DISC = HRESULT(0x8004022e);
 
 // Interfaces
 
@@ -901,7 +901,7 @@ interface IDiscRecorder2Ex : IUnknown
     ///    during the last operation has been exclusively locked, causing this operation to failed. Value: 0xC0AA0210
     ///    </td> </tr> </table>
     ///    
-    HRESULT SendCommandNoData(char* Cdb, uint CdbSize, char* SenseBuffer, uint Timeout);
+    HRESULT SendCommandNoData(ubyte* Cdb, uint CdbSize, ubyte* SenseBuffer, uint Timeout);
     ///Sends a MMC command and its associated data buffer to the recording device.
     ///Params:
     ///    Cdb = Command packet to send to the device.
@@ -968,7 +968,7 @@ interface IDiscRecorder2Ex : IUnknown
     ///    during the last operation has been exclusively locked, causing this operation to failed. Value: 0xC0AA0210
     ///    </td> </tr> </table>
     ///    
-    HRESULT SendCommandSendDataToDevice(char* Cdb, uint CdbSize, char* SenseBuffer, uint Timeout, char* Buffer, 
+    HRESULT SendCommandSendDataToDevice(ubyte* Cdb, uint CdbSize, ubyte* SenseBuffer, uint Timeout, ubyte* Buffer, 
                                         uint BufferSize);
     ///Sends a MMC command to the recording device requesting data from the device.
     ///Params:
@@ -1038,7 +1038,7 @@ interface IDiscRecorder2Ex : IUnknown
     ///    during the last operation has been exclusively locked, causing this operation to failed. Value: 0xC0AA0210
     ///    </td> </tr> </table>
     ///    
-    HRESULT SendCommandGetDataFromDevice(char* Cdb, uint CdbSize, char* SenseBuffer, uint Timeout, char* Buffer, 
+    HRESULT SendCommandGetDataFromDevice(ubyte* Cdb, uint CdbSize, ubyte* SenseBuffer, uint Timeout, ubyte* Buffer, 
                                          uint BufferSize, uint* BufferFetched);
     ///Reads a DVD structure from the media.
     ///Params:
@@ -1111,7 +1111,7 @@ interface IDiscRecorder2Ex : IUnknown
     ///    device having entered an inconsistent state, or the timeout value for the command may need to be increased.
     ///    Value: 0xC0AA020E </td> </tr> </table>
     ///    
-    HRESULT ReadDvdStructure(uint format, uint address, uint layer, uint agid, char* data, uint* count);
+    HRESULT ReadDvdStructure(uint format, uint address, uint layer, uint agid, ubyte** data, uint* count);
     ///Sends a DVD structure to the media.
     ///Params:
     ///    format = Format field of the command packet. Acceptable values range from zero to 0xFF.
@@ -1174,7 +1174,7 @@ interface IDiscRecorder2Ex : IUnknown
     ///    during the last operation has been exclusively locked, causing this operation to failed. Value: 0xC0AA0210
     ///    </td> </tr> </table>
     ///    
-    HRESULT SendDvdStructure(uint format, char* data, uint count);
+    HRESULT SendDvdStructure(uint format, ubyte* data, uint count);
     ///Retrieves the adapter descriptor for the device.
     ///Params:
     ///    data = Data buffer that contains the descriptor of the storage adapter. For details of the contents of the data
@@ -1189,7 +1189,7 @@ interface IDiscRecorder2Ex : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> Unspecified failure. Value:
     ///    0x80004005 </td> </tr> </table>
     ///    
-    HRESULT GetAdapterDescriptor(char* data, uint* byteSize);
+    HRESULT GetAdapterDescriptor(ubyte** data, uint* byteSize);
     ///Retrieves the device descriptor for the device.
     ///Params:
     ///    data = Data buffer that contains the descriptor of the storage device. For details of the contents of the data
@@ -1205,7 +1205,7 @@ interface IDiscRecorder2Ex : IUnknown
     ///    0x80004005 </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%">
     ///    Failed to allocate the required memory. Value: 0x8007000E </td> </tr> </table>
     ///    
-    HRESULT GetDeviceDescriptor(char* data, uint* byteSize);
+    HRESULT GetDeviceDescriptor(ubyte** data, uint* byteSize);
     ///Retrieves the disc information from the media.
     ///Params:
     ///    discInformation = Data buffer that contains disc information from the media. For details of the contents of the data buffer,
@@ -1261,7 +1261,7 @@ interface IDiscRecorder2Ex : IUnknown
     ///    during the last operation has been exclusively locked, causing this operation to failed. Value: 0xC0AA0210
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetDiscInformation(char* discInformation, uint* byteSize);
+    HRESULT GetDiscInformation(ubyte** discInformation, uint* byteSize);
     ///Retrieves the track information from the media.
     ///Params:
     ///    address = Address field. The <i>addressType</i> parameter provides additional context for this parameter.
@@ -1327,7 +1327,7 @@ interface IDiscRecorder2Ex : IUnknown
     ///    during the last operation has been exclusively locked, causing this operation to failed. Value: 0xC0AA0210
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetTrackInformation(uint address, IMAPI_READ_TRACK_ADDRESS_TYPE addressType, char* trackInformation, 
+    HRESULT GetTrackInformation(uint address, IMAPI_READ_TRACK_ADDRESS_TYPE addressType, ubyte** trackInformation, 
                                 uint* byteSize);
     ///Retrieves the specified feature page from the device.
     ///Params:
@@ -1395,7 +1395,7 @@ interface IDiscRecorder2Ex : IUnknown
     ///    during the last operation has been exclusively locked, causing this operation to failed. Value: 0xC0AA0210
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetFeaturePage(IMAPI_FEATURE_PAGE_TYPE requestedFeature, ubyte currentFeatureOnly, char* featureData, 
+    HRESULT GetFeaturePage(IMAPI_FEATURE_PAGE_TYPE requestedFeature, ubyte currentFeatureOnly, ubyte** featureData, 
                            uint* byteSize);
     ///Retrieves the specified mode page from the device.
     ///Params:
@@ -1461,7 +1461,7 @@ interface IDiscRecorder2Ex : IUnknown
     ///    </td> </tr> </table>
     ///    
     HRESULT GetModePage(IMAPI_MODE_PAGE_TYPE requestedModePage, IMAPI_MODE_PAGE_REQUEST_TYPE requestType, 
-                        char* modePageData, uint* byteSize);
+                        ubyte** modePageData, uint* byteSize);
     ///Sets the mode page data for the device.
     ///Params:
     ///    requestType = Type of mode page data to send. For possible values, see the IMAPI_MODE_PAGE_REQUEST_TYPE enumeration type.
@@ -1526,7 +1526,7 @@ interface IDiscRecorder2Ex : IUnknown
     ///    during the last operation has been exclusively locked, causing this operation to failed. Value: 0xC0AA0210
     ///    </td> </tr> </table>
     ///    
-    HRESULT SetModePage(IMAPI_MODE_PAGE_REQUEST_TYPE requestType, char* data, uint byteSize);
+    HRESULT SetModePage(IMAPI_MODE_PAGE_REQUEST_TYPE requestType, ubyte* data, uint byteSize);
     ///Retrieves the list of supported feature pages or the current feature pages of the device.
     ///Params:
     ///    currentFeatureOnly = Set to True to retrieve only current feature pages. Otherwise, False to retrieve all feature pages that the
@@ -1592,7 +1592,8 @@ interface IDiscRecorder2Ex : IUnknown
     ///    during the last operation has been exclusively locked, causing this operation to failed. Value: 0xC0AA0210
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetSupportedFeaturePages(ubyte currentFeatureOnly, char* featureData, uint* byteSize);
+    HRESULT GetSupportedFeaturePages(ubyte currentFeatureOnly, IMAPI_FEATURE_PAGE_TYPE** featureData, 
+                                     uint* byteSize);
     ///Retrieves the supported profiles or the current profiles of the device.
     ///Params:
     ///    currentOnly = Set to True to retrieve the current profiles. Otherwise, False to return all supported profiles of the
@@ -1656,7 +1657,7 @@ interface IDiscRecorder2Ex : IUnknown
     ///    during the last operation has been exclusively locked, causing this operation to failed. Value: 0xC0AA0210
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetSupportedProfiles(ubyte currentOnly, char* profileTypes, uint* validProfiles);
+    HRESULT GetSupportedProfiles(ubyte currentOnly, IMAPI_PROFILE_TYPE** profileTypes, uint* validProfiles);
     ///Retrieves the supported mode pages for the device.
     ///Params:
     ///    requestType = Type of mode page data to retrieve, for example, the current settings or the settings that are write enabled.
@@ -1718,7 +1719,8 @@ interface IDiscRecorder2Ex : IUnknown
     ///    width="60%"> The device reported that the requested mode page (and type) is not present. Value: 0xC0AA0201
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetSupportedModePages(IMAPI_MODE_PAGE_REQUEST_TYPE requestType, char* modePageTypes, uint* validPages);
+    HRESULT GetSupportedModePages(IMAPI_MODE_PAGE_REQUEST_TYPE requestType, IMAPI_MODE_PAGE_TYPE** modePageTypes, 
+                                  uint* validPages);
     ///Retrieves the byte alignment mask for the device.
     ///Params:
     ///    value = Byte alignment mask that you use to determine if the buffer is aligned to the correct byte boundary for the
@@ -6727,7 +6729,7 @@ interface IStreamPseudoRandomBased : IStream
     ///    <dt><b>E_NOTIMPL</b></dt> </dl> </td> <td width="60%"> Not implemented. Value: 0x80004001 </td> </tr>
     ///    </table>
     ///    
-    HRESULT put_ExtendedSeed(char* values, uint eCount);
+    HRESULT put_ExtendedSeed(uint* values, uint eCount);
     ///Retrieves an array of seed values used by the random number generator.
     ///Params:
     ///    values = Array of seed values used by the random number generator.
@@ -6739,7 +6741,7 @@ interface IStreamPseudoRandomBased : IStream
     ///    <dt><b>E_NOTIMPL</b></dt> </dl> </td> <td width="60%"> Not implemented. Value: 0x80004001 </td> </tr>
     ///    </table>
     ///    
-    HRESULT get_ExtendedSeed(char* values, uint* eCount);
+    HRESULT get_ExtendedSeed(uint** values, uint* eCount);
 }
 
 ///Use this interface to combine several data streams into a single stream. To create an instance of this interface,
@@ -6775,7 +6777,7 @@ interface IStreamConcatenate : IStream
     ///    required memory. Value: 0x8007000E </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl>
     ///    </td> <td width="60%"> This stream has already been initialized. Value: 0x80070057 </td> </tr> </table>
     ///    
-    HRESULT Initialize2(char* streams, uint streamCount);
+    HRESULT Initialize2(IStream* streams, uint streamCount);
     ///Appends a stream to this stream.
     ///Params:
     ///    stream = An <b>IStream</b> interface of the stream to append to this stream.
@@ -6798,7 +6800,7 @@ interface IStreamConcatenate : IStream
     ///    <dt><b>E_NOTIMPL</b></dt> </dl> </td> <td width="60%"> Not implemented. Value: 0x80004001 </td> </tr>
     ///    </table>
     ///    
-    HRESULT Append2(char* streams, uint streamCount);
+    HRESULT Append2(IStream* streams, uint streamCount);
 }
 
 ///Use this interface to combine several data streams into a single stream by alternately interspersing portions of
@@ -6825,7 +6827,7 @@ interface IStreamInterleave : IStream
     ///    required memory. Value: 0x8007000E </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl>
     ///    </td> <td width="60%"> One or more arguments are not valid. Value: 0x80070057 </td> </tr> </table>
     ///    
-    HRESULT Initialize(char* streams, char* interleaveSizes, uint streamCount);
+    HRESULT Initialize(IStream* streams, uint* interleaveSizes, uint streamCount);
 }
 
 ///Use this interface to create a RAW CD image for use in writing to CD media in Disc-at-Once (DAO) mode. Images created
@@ -9129,7 +9131,7 @@ interface IIsoImageManager : IDispatch
 @GUID("85AC9776-CA88-4CF2-894E-09598C078A41")
 interface IDiscRecorder : IUnknown
 {
-    HRESULT Init(char* pbyUniqueID, uint nulIDSize, uint nulDriveNumber);
+    HRESULT Init(ubyte* pbyUniqueID, uint nulIDSize, uint nulDriveNumber);
     ///Retrieves the GUID of the physical disc recorder currently associated with the recorder object.
     ///Params:
     ///    pbyUniqueID = Pointer to a GUID buffer to be filled in with this recorder's current GUID information. To query the required
@@ -9141,7 +9143,7 @@ interface IDiscRecorder : IUnknown
     ///    following error codes are commonly returned on operation failure, but do not represent the only possible
     ///    error values:
     ///    
-    HRESULT GetRecorderGUID(char* pbyUniqueID, uint ulBufferSize, uint* pulReturnSizeRequired);
+    HRESULT GetRecorderGUID(ubyte* pbyUniqueID, uint ulBufferSize, uint* pulReturnSizeRequired);
     ///Determines whether the disc recorder is a CD-R or CD-RW type device. This does not indicate the type of media
     ///that is currently inserted in the device.
     ///Params:
@@ -9303,7 +9305,7 @@ interface IDiscRecorder : IUnknown
 @GUID("9B1921E1-54AC-11D3-9144-00104BA11C5E")
 interface IEnumDiscRecorders : IUnknown
 {
-    HRESULT Next(uint cRecorders, char* ppRecorder, uint* pcFetched);
+    HRESULT Next(uint cRecorders, IDiscRecorder* ppRecorder, uint* pcFetched);
     HRESULT Skip(uint cRecorders);
     HRESULT Reset();
     HRESULT Clone(IEnumDiscRecorders* ppEnum);
@@ -9312,7 +9314,7 @@ interface IEnumDiscRecorders : IUnknown
 @GUID("DDF445E1-54BA-11D3-9144-00104BA11C5E")
 interface IEnumDiscMasterFormats : IUnknown
 {
-    HRESULT Next(uint cFormats, char* lpiidFormatID, uint* pcFetched);
+    HRESULT Next(uint cFormats, GUID* lpiidFormatID, uint* pcFetched);
     HRESULT Skip(uint cFormats);
     HRESULT Reset();
     HRESULT Clone(IEnumDiscMasterFormats* ppEnum);
@@ -9395,7 +9397,7 @@ interface IRedbookDiscMaster : IUnknown
     ///    following error codes are commonly returned on operation failure, but do not represent the only possible
     ///    error values:
     ///    
-    HRESULT AddAudioTrackBlocks(char* pby, int cb);
+    HRESULT AddAudioTrackBlocks(ubyte* pby, int cb);
     ///Closes a currently open audio track. All audio tracks must be closed before the IDiscMaster::RecordDisc method
     ///can be called.
     ///Returns:

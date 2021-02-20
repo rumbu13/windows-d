@@ -13,9 +13,9 @@ public import windows.direct3d11 : D3D_CBUFFER_TYPE, D3D_NAME, D3D_PRIMITIVE,
 public import windows.displaydevices : RECT;
 public import windows.dxgi : DXGI_FORMAT, DXGI_SAMPLE_DESC, DXGI_SWAP_CHAIN_DESC,
                              IDXGIAdapter, IDXGISwapChain;
-public import windows.systemservices : BOOL, HANDLE;
+public import windows.systemservices : BOOL, HANDLE, PSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -1456,47 +1456,47 @@ alias PFN_D3D10_CREATE_DEVICE_AND_SWAP_CHAIN1 = HRESULT function(IDXGIAdapter pa
 struct D3D10_INPUT_ELEMENT_DESC
 {
     ///Type: <b>LPCSTR</b> The HLSL semantic associated with this element in a shader input-signature.
-    const(char)* SemanticName;
+    const(PSTR) SemanticName;
     ///Type: <b>UINT</b> The semantic index for the element. A semantic index modifies a semantic, with an integer index
     ///number. A semantic index is only needed in a case where there is more than one element with the same semantic.
     ///For example, a 4x4 matrix would have four components each with the semantic name <b>matrix</b>, however each of
     ///the four component would have different semantic indices (0, 1, 2, and 3).
-    uint         SemanticIndex;
+    uint        SemanticIndex;
     ///Type: <b>DXGI_FORMAT</b> The data type of the element data. See DXGI_FORMAT.
-    DXGI_FORMAT  Format;
+    DXGI_FORMAT Format;
     ///Type: <b>UINT</b> An integer value that identifies the input-assembler (see input slot). Valid values are between
     ///0 and 15, defined in D3D10.h.
-    uint         InputSlot;
+    uint        InputSlot;
     ///Type: <b>UINT</b> Optional. Offset (in bytes) between each element. Use D3D10_APPEND_ALIGNED_ELEMENT for
     ///convenience to define the current element directly after the previous one, including any packing if necessary.
-    uint         AlignedByteOffset;
+    uint        AlignedByteOffset;
     ///Type: <b>D3D10_INPUT_CLASSIFICATION</b> Identifies the input data class for a single input slot (see
     ///D3D10_INPUT_CLASSIFICATION).
     D3D10_INPUT_CLASSIFICATION InputSlotClass;
     ///Type: <b>UINT</b> The number of instances to draw before stepping one unit forward in a vertex buffer filled with
     ///instance data. Can be any unsigned integer value (0 means do not step) when the slot class is
     ///D3D10_INPUT_PER_INSTANCE_DATA; must be 0 when the slot class is D3D10_INPUT_PER_VERTEX_DATA.
-    uint         InstanceDataStepRate;
+    uint        InstanceDataStepRate;
 }
 
 ///Description of a vertex element in a vertex buffer in an output slot.
 struct D3D10_SO_DECLARATION_ENTRY
 {
     ///Type: <b>LPCSTR</b> Type of output element. Possible values: "POSITION", "NORMAL", or "TEXCOORD0".
-    const(char)* SemanticName;
+    const(PSTR) SemanticName;
     ///Type: <b>UINT</b> Output element's zero-based index. Should be used if, for example, you have more than one
     ///texture coordinate stored in each vertex.
-    uint         SemanticIndex;
+    uint        SemanticIndex;
     ///Type: <b>BYTE</b> Which component of the entry to begin writing out to. Valid values are 0 ~ 3. For example, if
     ///you only wish to output to the y and z components of a position, then StartComponent should be 1 and
     ///ComponentCount should be 2.
-    ubyte        StartComponent;
+    ubyte       StartComponent;
     ///Type: <b>BYTE</b> The number of components of the entry to write out to. Valid values are 1 ~ 4. For example, if
     ///you only wish to output to the y and z components of a position, then StartComponent should be 1 and
     ///ComponentCount should be 2.
-    ubyte        ComponentCount;
+    ubyte       ComponentCount;
     ///Type: <b>BYTE</b> The output slot that contains the vertex buffer that contains this output entry.
-    ubyte        OutputSlot;
+    ubyte       OutputSlot;
 }
 
 ///Defines the dimensions of a viewport.
@@ -1818,12 +1818,12 @@ struct D3D10_MAPPED_TEXTURE3D
 ///Specifies the elements in a buffer resource to use in a shader-resource view.
 struct D3D10_BUFFER_SRV
 {
-    union
+union
     {
         uint FirstElement;
         uint ElementOffset;
     }
-    union
+union
     {
         uint NumElements;
         uint ElementWidth;
@@ -1923,7 +1923,7 @@ struct D3D10_SHADER_RESOURCE_VIEW_DESC
     ///as the resource type of the underlying resource. This parameter also determines which _SRV to use in the union
     ///below.
     D3D_SRV_DIMENSION ViewDimension;
-    union
+union
     {
         D3D10_BUFFER_SRV  Buffer;
         D3D10_TEX1D_SRV   Texture1D;
@@ -1940,12 +1940,12 @@ struct D3D10_SHADER_RESOURCE_VIEW_DESC
 ///Specifies the elements from a buffer resource to use in a render-target view.
 struct D3D10_BUFFER_RTV
 {
-    union
+union
     {
         uint FirstElement;
         uint ElementOffset;
     }
-    union
+union
     {
         uint NumElements;
         uint ElementWidth;
@@ -2025,7 +2025,7 @@ struct D3D10_RENDER_TARGET_VIEW_DESC
     ///Type: <b>D3D10_RTV_DIMENSION</b> The resource type (see D3D10_RTV_DIMENSION), which specifies how the
     ///render-target resource will be accessed.
     D3D10_RTV_DIMENSION ViewDimension;
-    union
+union
     {
         D3D10_BUFFER_RTV  Buffer;
         D3D10_TEX1D_RTV   Texture1D;
@@ -2098,7 +2098,7 @@ struct D3D10_DEPTH_STENCIL_VIEW_DESC
     ///Type: <b>D3D10_DSV_DIMENSION</b> Type of resource (see D3D10_DSV_DIMENSION). Specifies how a depth-stencil
     ///resource will be accessed; the value is stored in the union in this structure.
     D3D10_DSV_DIMENSION ViewDimension;
-    union
+union
     {
         D3D10_TEX1D_DSV   Texture1D;
         D3D10_TEX1D_ARRAY_DSV Texture1DArray;
@@ -2241,7 +2241,7 @@ struct D3D10_MESSAGE
     ///Type: <b>D3D10_MESSAGE_ID</b> The ID of the message. See D3D10_MESSAGE_ID.
     D3D10_MESSAGE_ID ID;
     ///Type: <b>const char*</b> The message string.
-    const(byte)*     pDescription;
+    const(ubyte)*    pDescription;
     ///Type: <b>SIZE_T</b> The length of pDescription in bytes.
     size_t           DescriptionByteLength;
 }
@@ -2281,68 +2281,68 @@ struct D3D10_INFO_QUEUE_FILTER
 struct D3D10_SHADER_DESC
 {
     ///Type: <b>UINT</b> Shader version.
-    uint         Version;
+    uint        Version;
     ///Type: <b>LPCSTR</b> The name of the originator of the shader.
-    const(char)* Creator;
+    const(PSTR) Creator;
     ///Type: <b>UINT</b> Shader compilation/parse flags.
-    uint         Flags;
+    uint        Flags;
     ///Type: <b>UINT</b> The number of shader-constant buffers.
-    uint         ConstantBuffers;
+    uint        ConstantBuffers;
     ///Type: <b>UINT</b> The number of resource (textures and buffers) bound to a shader.
-    uint         BoundResources;
+    uint        BoundResources;
     ///Type: <b>UINT</b> The number of parameters in the input signature.
-    uint         InputParameters;
+    uint        InputParameters;
     ///Type: <b>UINT</b> The number of parameters in the output signature.
-    uint         OutputParameters;
+    uint        OutputParameters;
     ///Type: <b>UINT</b> The number of intermediate-language instructions in the compiled shader.
-    uint         InstructionCount;
+    uint        InstructionCount;
     ///Type: <b>UINT</b> The number of temporary registers in the compiled shader.
-    uint         TempRegisterCount;
+    uint        TempRegisterCount;
     ///Type: <b>UINT</b> Number of temporary arrays used.
-    uint         TempArrayCount;
+    uint        TempArrayCount;
     ///Type: <b>UINT</b> Number of constant defines.
-    uint         DefCount;
+    uint        DefCount;
     ///Type: <b>UINT</b> Number of declarations (input + output).
-    uint         DclCount;
+    uint        DclCount;
     ///Type: <b>UINT</b> Number of non-categorized texture instructions.
-    uint         TextureNormalInstructions;
+    uint        TextureNormalInstructions;
     ///Type: <b>UINT</b> Number of texture load instructions
-    uint         TextureLoadInstructions;
+    uint        TextureLoadInstructions;
     ///Type: <b>UINT</b> Number of texture comparison instructions
-    uint         TextureCompInstructions;
+    uint        TextureCompInstructions;
     ///Type: <b>UINT</b> Number of texture bias instructions
-    uint         TextureBiasInstructions;
+    uint        TextureBiasInstructions;
     ///Type: <b>UINT</b> Number of texture gradient instructions.
-    uint         TextureGradientInstructions;
+    uint        TextureGradientInstructions;
     ///Type: <b>UINT</b> Number of floating point arithmetic instructions used.
-    uint         FloatInstructionCount;
+    uint        FloatInstructionCount;
     ///Type: <b>UINT</b> Number of signed integer arithmetic instructions used.
-    uint         IntInstructionCount;
+    uint        IntInstructionCount;
     ///Type: <b>UINT</b> Number of unsigned integer arithmetic instructions used.
-    uint         UintInstructionCount;
+    uint        UintInstructionCount;
     ///Type: <b>UINT</b> Number of static flow control instructions used.
-    uint         StaticFlowControlCount;
+    uint        StaticFlowControlCount;
     ///Type: <b>UINT</b> Number of dynamic flow control instructions used.
-    uint         DynamicFlowControlCount;
+    uint        DynamicFlowControlCount;
     ///Type: <b>UINT</b> Number of macro instructions used.
-    uint         MacroInstructionCount;
+    uint        MacroInstructionCount;
     ///Type: <b>UINT</b> Number of array instructions used.
-    uint         ArrayInstructionCount;
+    uint        ArrayInstructionCount;
     ///Type: <b>UINT</b> Number of cut instructions used.
-    uint         CutInstructionCount;
+    uint        CutInstructionCount;
     ///Type: <b>UINT</b> Number of emit instructions used.
-    uint         EmitInstructionCount;
+    uint        EmitInstructionCount;
     ///Type: <b>D3D10_PRIMITIVE_TOPOLOGY</b> Geometry shader output topology.
     D3D_PRIMITIVE_TOPOLOGY GSOutputTopology;
     ///Type: <b>UINT</b> Geometry shader maximum output vertex count.
-    uint         GSMaxOutputVertexCount;
+    uint        GSMaxOutputVertexCount;
 }
 
 ///Describes a shader constant-buffer.
 struct D3D10_SHADER_BUFFER_DESC
 {
     ///Type: <b>LPCSTR</b> The name of the buffer.
-    const(char)*     Name;
+    const(PSTR)      Name;
     ///Type: <b>D3D10_CBUFFER_TYPE</b> The intended use of the constant data. See D3D10_CBUFFER_TYPE.
     D3D_CBUFFER_TYPE Type;
     ///Type: <b>UINT</b> The number of unique variables.
@@ -2357,15 +2357,15 @@ struct D3D10_SHADER_BUFFER_DESC
 struct D3D10_SHADER_VARIABLE_DESC
 {
     ///Type: <b>LPCSTR</b> The variable name.
-    const(char)* Name;
+    const(PSTR) Name;
     ///Type: <b>UINT</b> Offset from the start of the parent structure, to the beginning of the variable.
-    uint         StartOffset;
+    uint        StartOffset;
     ///Type: <b>UINT</b> Size of the variable (in bytes).
-    uint         Size;
+    uint        Size;
     ///Type: <b>UINT</b> Flags, which identify shader-variable properties (see D3D10_SHADER_VARIABLE_FLAGS).
-    uint         uFlags;
+    uint        uFlags;
     ///Type: <b>LPVOID</b> The default value for initializing the variable.
-    void*        DefaultValue;
+    void*       DefaultValue;
 }
 
 ///Describes a shader-variable type.
@@ -2392,7 +2392,7 @@ struct D3D10_SHADER_TYPE_DESC
 struct D3D10_SHADER_INPUT_BIND_DESC
 {
     ///Type: <b>LPCSTR</b> Name of the shader resource.
-    const(char)*      Name;
+    const(PSTR)       Name;
     ///Type: <b>D3D10_SHADER_INPUT_TYPE</b> Identifies the type of data in the resource. See D3D10_SHADER_INPUT_TYPE.
     D3D_SHADER_INPUT_TYPE Type;
     ///Type: <b>UINT</b> Starting bind point.
@@ -2415,24 +2415,24 @@ struct D3D10_SIGNATURE_PARAMETER_DESC
 {
     ///Type: <b>LPCSTR</b> A per-parameter string that identifies how the data will be used. See Semantics (DirectX
     ///HLSL).
-    const(char)* SemanticName;
+    const(PSTR) SemanticName;
     ///Type: <b>UINT</b> Semantic index that modifies the semantic. Used to differentiate different parameters that use
     ///the same semantic.
-    uint         SemanticIndex;
+    uint        SemanticIndex;
     ///Type: <b>UINT</b> The register that will contain this variable's data.
-    uint         Register;
+    uint        Register;
     ///Type: <b>D3D10_NAME</b> A predefined string that determines the functionality of certain pipeline stages. See
     ///D3D10_NAME.
-    D3D_NAME     SystemValueType;
+    D3D_NAME    SystemValueType;
     ///Type: <b>D3D10_REGISTER_COMPONENT_TYPE</b> The per-component-data type that is stored in a register. See
     ///D3D10_REGISTER_COMPONENT_TYPE. Each register can store up to four-components of data.
     D3D_REGISTER_COMPONENT_TYPE ComponentType;
     ///Type: <b>BYTE</b> Mask which indicates which components of a register are used.
-    ubyte        Mask;
+    ubyte       Mask;
     ///Type: <b>BYTE</b> Mask which indicates whether a given component is never written (if the signature is an output
     ///signature) or always read (if the signature is an input signature). The mask is a combination of
     ///D3D10_REGISTER_COMPONENT_TYPE values.
-    ubyte        ReadWriteMask;
+    ubyte       ReadWriteMask;
 }
 
 ///Indicates the device state.
@@ -2502,43 +2502,43 @@ struct D3D10_STATE_BLOCK_MASK
 struct D3D10_EFFECT_TYPE_DESC
 {
     ///Type: <b>LPCSTR</b> A string that contains the variable name.
-    const(char)* TypeName;
+    const(PSTR) TypeName;
     ///Type: <b>D3D10_SHADER_VARIABLE_CLASS</b> The variable class (see D3D10_SHADER_VARIABLE_CLASS).
     D3D_SHADER_VARIABLE_CLASS Class;
     ///Type: <b>D3D10_SHADER_VARIABLE_TYPE</b> The variable type (see D3D10_SHADER_VARIABLE_TYPE).
     D3D_SHADER_VARIABLE_TYPE Type;
     ///Type: <b>UINT</b> The number of elements if the variable is an array; otherwise 0.
-    uint         Elements;
+    uint        Elements;
     ///Type: <b>UINT</b> The number of members if the variable is a structure; otherwise 0.
-    uint         Members;
+    uint        Members;
     ///Type: <b>UINT</b> The number of rows if the variable is a matrix; otherwise 0.
-    uint         Rows;
+    uint        Rows;
     ///Type: <b>UINT</b> The number of columns if the variable is a matrix; otherwise 0.
-    uint         Columns;
+    uint        Columns;
     ///Type: <b>UINT</b> The number of bytes that the variable consumes when it is packed tightly by the compiler.
-    uint         PackedSize;
+    uint        PackedSize;
     ///Type: <b>UINT</b> The number of bytes that the variable consumes before it is packed by the compiler.
-    uint         UnpackedSize;
+    uint        UnpackedSize;
     ///Type: <b>UINT</b> The number of bytes between elements.
-    uint         Stride;
+    uint        Stride;
 }
 
 ///Describes an effect variable.
 struct D3D10_EFFECT_VARIABLE_DESC
 {
     ///Type: <b>LPCSTR</b> A string that contains the variable name.
-    const(char)* Name;
+    const(PSTR) Name;
     ///Type: <b>LPCSTR</b> The semantic attached to the variable; otherwise <b>NULL</b>.
-    const(char)* Semantic;
+    const(PSTR) Semantic;
     ///Type: <b>UINT</b> Optional flags for effect variables.
-    uint         Flags;
+    uint        Flags;
     ///Type: <b>UINT</b> The number of annotations; otherwise 0.
-    uint         Annotations;
+    uint        Annotations;
     ///Type: <b>UINT</b> The offset between the beginning of the constant buffer and this variable; otherwise 0.
-    uint         BufferOffset;
+    uint        BufferOffset;
     ///Type: <b>UINT</b> The register that this variable is bound to. To bind a variable explicitly use the
     ///D3D10_EFFECT_VARIABLE_EXPLICIT_BIND_POINT flag.
-    uint         ExplicitBindPoint;
+    uint        ExplicitBindPoint;
 }
 
 ///Describes an effect shader.
@@ -2554,7 +2554,7 @@ struct D3D10_EFFECT_SHADER_DESC
     ///Type: <b>UINT</b> The length of pBytecode.
     uint          BytecodeLength;
     ///Type: <b>LPCSTR</b> A string that constains a declaration of the stream output from a geometry shader.
-    const(char)*  SODecl;
+    const(PSTR)   SODecl;
     ///Type: <b>UINT</b> The number of entries in the input signature.
     uint          NumInputSignatureEntries;
     ///Type: <b>UINT</b> The number of entries in the output signature.
@@ -2565,21 +2565,21 @@ struct D3D10_EFFECT_SHADER_DESC
 struct D3D10_PASS_DESC
 {
     ///Type: <b>LPCSTR</b> A string that contains the name of the pass; otherwise <b>NULL</b>.
-    const(char)* Name;
+    const(PSTR) Name;
     ///Type: <b>UINT</b> The number of annotations.
-    uint         Annotations;
+    uint        Annotations;
     ///Type: <b>BYTE*</b> A pointer to the input signature or the vertex shader; otherwise <b>NULL</b>.
-    ubyte*       pIAInputSignature;
+    ubyte*      pIAInputSignature;
     ///Type: <b>SIZE_T</b> The size of the input signature (in bytes).
-    size_t       IAInputSignatureSize;
+    size_t      IAInputSignatureSize;
     ///Type: <b>UINT</b> The stencil-reference value used in the depth-stencil state (see Configuring Depth-Stencil
     ///Functionality (Direct3D 10)).
-    uint         StencilRef;
+    uint        StencilRef;
     ///Type: <b>UINT</b> The sample mask for the blend state (see Configuring Blending Functionality (Direct3D 10)).
-    uint         SampleMask;
+    uint        SampleMask;
     ///Type: <b>FLOAT</b> The per-component blend factors (RGBA) for the blend state (see Configuring Blending
     ///Functionality (Direct3D 10)).
-    float[4]     BlendFactor;
+    float[4]    BlendFactor;
 }
 
 ///Describes an effect variable that contains a shader.
@@ -2598,11 +2598,11 @@ struct D3D10_PASS_SHADER_DESC
 struct D3D10_TECHNIQUE_DESC
 {
     ///Type: <b>LPCSTR</b> A string that contains the technique name; otherwise <b>NULL</b>.
-    const(char)* Name;
+    const(PSTR) Name;
     ///Type: <b>UINT</b> The number of passes in the technique.
-    uint         Passes;
+    uint        Passes;
     ///Type: <b>UINT</b> The number of annotations.
-    uint         Annotations;
+    uint        Annotations;
 }
 
 ///Describes an effect.
@@ -2684,7 +2684,7 @@ struct D3D10_SHADER_RESOURCE_VIEW_DESC1
     ///same as the resource type of the underlying resource. This parameter also determines which _SRV to use in the
     ///union below.
     D3D_SRV_DIMENSION ViewDimension;
-    union
+union
     {
         D3D10_BUFFER_SRV  Buffer;
         D3D10_TEX1D_SRV   Texture1D;
@@ -3006,9 +3006,9 @@ HRESULT D3D10CreateBlob(size_t NumBytes, ID3DBlob* ppBuffer);
 ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
 ///    
 @DllImport("d3d10")
-HRESULT D3D10CompileShader(const(char)* pSrcData, size_t SrcDataSize, const(char)* pFileName, 
-                           const(D3D_SHADER_MACRO)* pDefines, ID3DInclude pInclude, const(char)* pFunctionName, 
-                           const(char)* pProfile, uint Flags, ID3DBlob* ppShader, ID3DBlob* ppErrorMsgs);
+HRESULT D3D10CompileShader(const(PSTR) pSrcData, size_t SrcDataSize, const(PSTR) pFileName, 
+                           const(D3D_SHADER_MACRO)* pDefines, ID3DInclude pInclude, const(PSTR) pFunctionName, 
+                           const(PSTR) pProfile, uint Flags, ID3DBlob* ppShader, ID3DBlob* ppErrorMsgs);
 
 ///This function -- which disassembles a compiled shader into a text string that contains assembly instructions and
 ///register assignments -- has been deprecated. Instead, use D3DDisassemble.
@@ -3023,8 +3023,8 @@ HRESULT D3D10CompileShader(const(char)* pSrcData, size_t SrcDataSize, const(char
 ///    Type: <b>HRESULT</b> Return value
 ///    
 @DllImport("d3d10")
-HRESULT D3D10DisassembleShader(char* pShader, size_t BytecodeLength, BOOL EnableColorCode, const(char)* pComments, 
-                               ID3DBlob* ppDisassembly);
+HRESULT D3D10DisassembleShader(const(void)* pShader, size_t BytecodeLength, BOOL EnableColorCode, 
+                               const(PSTR) pComments, ID3DBlob* ppDisassembly);
 
 ///Get the pixel shader profile best suited to a given device.
 ///Params:
@@ -3033,7 +3033,7 @@ HRESULT D3D10DisassembleShader(char* pShader, size_t BytecodeLength, BOOL Enable
 ///    Type: <b>LPCSTR</b> The shader profile.
 ///    
 @DllImport("d3d10")
-byte* D3D10GetPixelShaderProfile(ID3D10Device pDevice);
+PSTR D3D10GetPixelShaderProfile(ID3D10Device pDevice);
 
 ///Get the vertex shader profile best suited to a given device.
 ///Params:
@@ -3042,7 +3042,7 @@ byte* D3D10GetPixelShaderProfile(ID3D10Device pDevice);
 ///    Type: <b>LPCSTR</b> The shader profile.
 ///    
 @DllImport("d3d10")
-byte* D3D10GetVertexShaderProfile(ID3D10Device pDevice);
+PSTR D3D10GetVertexShaderProfile(ID3D10Device pDevice);
 
 ///Get the geometry shader profile best suited to a given device.
 ///Params:
@@ -3051,7 +3051,7 @@ byte* D3D10GetVertexShaderProfile(ID3D10Device pDevice);
 ///    Type: <b>LPCSTR</b> The shader profile.
 ///    
 @DllImport("d3d10")
-byte* D3D10GetGeometryShaderProfile(ID3D10Device pDevice);
+PSTR D3D10GetGeometryShaderProfile(ID3D10Device pDevice);
 
 ///This function -- which creates a shader-reflection object for retrieving information about a compiled shader -- has
 ///been deprecated. Instead, use D3DReflect.
@@ -3063,7 +3063,8 @@ byte* D3D10GetGeometryShaderProfile(ID3D10Device pDevice);
 ///    Type: <b>HRESULT</b> Return value.
 ///    
 @DllImport("d3d10")
-HRESULT D3D10ReflectShader(char* pShaderBytecode, size_t BytecodeLength, ID3D10ShaderReflection* ppReflector);
+HRESULT D3D10ReflectShader(const(void)* pShaderBytecode, size_t BytecodeLength, 
+                           ID3D10ShaderReflection* ppReflector);
 
 ///Generate a shader-text string that contains the shader tokens that would be found in a compiled shader.
 ///Params:
@@ -3084,7 +3085,7 @@ HRESULT D3D10ReflectShader(char* pShaderBytecode, size_t BytecodeLength, ID3D10S
 ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
 ///    
 @DllImport("d3d10")
-HRESULT D3D10PreprocessShader(const(char)* pSrcData, size_t SrcDataSize, const(char)* pFileName, 
+HRESULT D3D10PreprocessShader(const(PSTR) pSrcData, size_t SrcDataSize, const(PSTR) pFileName, 
                               const(D3D_SHADER_MACRO)* pDefines, ID3DInclude pInclude, ID3DBlob* ppShaderText, 
                               ID3DBlob* ppErrorMsgs);
 
@@ -3098,7 +3099,7 @@ HRESULT D3D10PreprocessShader(const(char)* pSrcData, size_t SrcDataSize, const(c
 ///    Type: <b>HRESULT</b> This method returns one of the following Direct3D 10 Return Codes.
 ///    
 @DllImport("d3d10")
-HRESULT D3D10GetInputSignatureBlob(char* pShaderBytecode, size_t BytecodeLength, ID3DBlob* ppSignatureBlob);
+HRESULT D3D10GetInputSignatureBlob(const(void)* pShaderBytecode, size_t BytecodeLength, ID3DBlob* ppSignatureBlob);
 
 ///Get a buffer that contains shader-output signatures.
 ///Params:
@@ -3110,7 +3111,7 @@ HRESULT D3D10GetInputSignatureBlob(char* pShaderBytecode, size_t BytecodeLength,
 ///    Type: <b>HRESULT</b> This method returns one of the following Direct3D 10 Return Codes.
 ///    
 @DllImport("d3d10")
-HRESULT D3D10GetOutputSignatureBlob(char* pShaderBytecode, size_t BytecodeLength, ID3DBlob* ppSignatureBlob);
+HRESULT D3D10GetOutputSignatureBlob(const(void)* pShaderBytecode, size_t BytecodeLength, ID3DBlob* ppSignatureBlob);
 
 ///Get a buffer that contains shader signatures.
 ///Params:
@@ -3122,7 +3123,7 @@ HRESULT D3D10GetOutputSignatureBlob(char* pShaderBytecode, size_t BytecodeLength
 ///    Type: <b>HRESULT</b> This method returns one of the following Direct3D 10 Return Codes.
 ///    
 @DllImport("d3d10")
-HRESULT D3D10GetInputAndOutputSignatureBlob(char* pShaderBytecode, size_t BytecodeLength, 
+HRESULT D3D10GetInputAndOutputSignatureBlob(const(void)* pShaderBytecode, size_t BytecodeLength, 
                                             ID3DBlob* ppSignatureBlob);
 
 ///Get shader debug info. Debug info is generated by D3D10CompileShader and is embedded in the body of the shader.
@@ -3136,7 +3137,7 @@ HRESULT D3D10GetInputAndOutputSignatureBlob(char* pShaderBytecode, size_t Byteco
 ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
 ///    
 @DllImport("d3d10")
-HRESULT D3D10GetShaderDebugInfo(char* pShaderBytecode, size_t BytecodeLength, ID3DBlob* ppDebugInfo);
+HRESULT D3D10GetShaderDebugInfo(const(void)* pShaderBytecode, size_t BytecodeLength, ID3DBlob* ppDebugInfo);
 
 ///Combine two state-block masks with a bitwise OR.
 ///Params:
@@ -3266,7 +3267,7 @@ HRESULT D3D10CreateStateBlock(ID3D10Device pDevice, D3D10_STATE_BLOCK_MASK* pSta
 ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
 ///    
 @DllImport("d3d10")
-HRESULT D3D10CompileEffectFromMemory(char* pData, size_t DataLength, const(char)* pSrcFileName, 
+HRESULT D3D10CompileEffectFromMemory(void* pData, size_t DataLength, const(PSTR) pSrcFileName, 
                                      const(D3D_SHADER_MACRO)* pDefines, ID3DInclude pInclude, uint HLSLFlags, 
                                      uint FXFlags, ID3DBlob* ppCompiledEffect, ID3DBlob* ppErrors);
 
@@ -3283,7 +3284,7 @@ HRESULT D3D10CompileEffectFromMemory(char* pData, size_t DataLength, const(char)
 ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
 ///    
 @DllImport("d3d10")
-HRESULT D3D10CreateEffectFromMemory(char* pData, size_t DataLength, uint FXFlags, ID3D10Device pDevice, 
+HRESULT D3D10CreateEffectFromMemory(void* pData, size_t DataLength, uint FXFlags, ID3D10Device pDevice, 
                                     ID3D10EffectPool pEffectPool, ID3D10Effect* ppEffect);
 
 ///Create an effect pool (or shared memory location), to enable sharing variables between effects.
@@ -3297,7 +3298,7 @@ HRESULT D3D10CreateEffectFromMemory(char* pData, size_t DataLength, uint FXFlags
 ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
 ///    
 @DllImport("d3d10")
-HRESULT D3D10CreateEffectPoolFromMemory(char* pData, size_t DataLength, uint FXFlags, ID3D10Device pDevice, 
+HRESULT D3D10CreateEffectPoolFromMemory(void* pData, size_t DataLength, uint FXFlags, ID3D10Device pDevice, 
                                         ID3D10EffectPool* ppEffectPool);
 
 ///This function -- which disassembles a compiled effect into a text string that contains assembly instructions and
@@ -3379,7 +3380,7 @@ interface ID3D10DeviceChild : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT GetPrivateData(const(GUID)* guid, uint* pDataSize, char* pData);
+    HRESULT GetPrivateData(const(GUID)* guid, uint* pDataSize, void* pData);
     ///Set application-defined data to a device child and associate that data with an application-defined guid.
     ///Params:
     ///    guid = Type: <b>REFGUID</b> Guid associated with the data.
@@ -3389,7 +3390,7 @@ interface ID3D10DeviceChild : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT SetPrivateData(const(GUID)* guid, uint DataSize, char* pData);
+    HRESULT SetPrivateData(const(GUID)* guid, uint DataSize, const(void)* pData);
     ///Associate an IUnknown-derived interface with this device child and associate that interface with an
     ///application-defined guid.
     ///Params:
@@ -3670,7 +3671,7 @@ interface ID3D10Asynchronous : ID3D10DeviceChild
     ///    Type: <b>HRESULT</b> If this function succeeds, it returns S_OK. Otherwise, possible return values are the
     ///    following: <ul> <li>S_FALSE</li> <li>DXGI_ERROR_DEVICE_REMOVED</li> <li>DXGI_ERROR_INVALID_CALL</li> </ul>
     ///    
-    HRESULT GetData(char* pData, uint DataSize, uint GetDataFlags);
+    HRESULT GetData(void* pData, uint DataSize, uint GetDataFlags);
     ///Get the size of the data (in bytes) that is output when calling ID3D10Asynchronous::GetData.
     ///Returns:
     ///    Type: <b>UINT</b> Size of the data (in bytes) that is output when calling GetData.
@@ -3715,14 +3716,14 @@ interface ID3D10Device : IUnknown
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin setting constant buffers to.
     ///    NumBuffers = Type: <b>UINT</b> Number of buffers to set.
     ///    ppConstantBuffers = Type: <b>ID3D10Buffer*</b> Array of constant buffers (see ID3D10Buffer) being given to the device.
-    void    VSSetConstantBuffers(uint StartSlot, uint NumBuffers, char* ppConstantBuffers);
+    void    VSSetConstantBuffers(uint StartSlot, uint NumBuffers, ID3D10Buffer* ppConstantBuffers);
     ///Bind an array of shader resources to the pixel shader stage.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin setting shader resources to.
     ///    NumViews = Type: <b>UINT</b> Number of shader resources to set. Up to a maximum of 128 slots are available for shader
     ///               resources.
     ///    ppShaderResourceViews = Type: <b>ID3D10ShaderResourceView*</b> Array of shader resource view interfaces to set to the device.
-    void    PSSetShaderResources(uint StartSlot, uint NumViews, char* ppShaderResourceViews);
+    void    PSSetShaderResources(uint StartSlot, uint NumViews, ID3D10ShaderResourceView* ppShaderResourceViews);
     ///Sets a pixel shader to the device.
     ///Params:
     ///    pPixelShader = Type: <b>ID3D10PixelShader*</b> Pointer to a pixel shader (see ID3D10PixelShader). Passing in <b>NULL</b>
@@ -3735,7 +3736,7 @@ interface ID3D10Device : IUnknown
     ///                  available.
     ///    ppSamplers = Type: <b>ID3D10SamplerState*</b> Pointer to an array of sampler-state interfaces (see ID3D10SamplerState).
     ///                 See Remarks.
-    void    PSSetSamplers(uint StartSlot, uint NumSamplers, char* ppSamplers);
+    void    PSSetSamplers(uint StartSlot, uint NumSamplers, ID3D10SamplerState* ppSamplers);
     ///Set a vertex shader to the device.
     ///Params:
     ///    pVertexShader = Type: <b>ID3D10VertexShader*</b> Pointer to a vertex shader (see ID3D10VertexShader). Passing in <b>NULL</b>
@@ -3760,7 +3761,7 @@ interface ID3D10Device : IUnknown
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin setting constant buffers to.
     ///    NumBuffers = Type: <b>UINT</b> Number of buffers to set.
     ///    ppConstantBuffers = Type: <b>ID3D10Buffer*</b> Array of constant buffers (see ID3D10Buffer) being given to the device.
-    void    PSSetConstantBuffers(uint StartSlot, uint NumBuffers, char* ppConstantBuffers);
+    void    PSSetConstantBuffers(uint StartSlot, uint NumBuffers, ID3D10Buffer* ppConstantBuffers);
     ///Bind an input-layout object to the input-assembler stage.
     ///Params:
     ///    pInputLayout = Type: <b>ID3D10InputLayout*</b> A pointer to the input-layout object (see ID3D10InputLayout), which describes
@@ -3783,8 +3784,8 @@ interface ID3D10Device : IUnknown
     ///    pOffsets = Type: <b>const UINT*</b> Pointer to an array of offset values; one offset value for each buffer in the
     ///               vertex-buffer array. Each offset is the number of bytes between the first element of a vertex buffer and the
     ///               first element that will be used.
-    void    IASetVertexBuffers(uint StartSlot, uint NumBuffers, char* ppVertexBuffers, char* pStrides, 
-                               char* pOffsets);
+    void    IASetVertexBuffers(uint StartSlot, uint NumBuffers, ID3D10Buffer* ppVertexBuffers, 
+                               const(uint)* pStrides, const(uint)* pOffsets);
     ///Bind an index buffer to the input-assembler stage.
     ///Params:
     ///    pIndexBuffer = Type: <b>ID3D10Buffer*</b> A pointer to a buffer (see ID3D10Buffer) that contains indices. The index buffer
@@ -3816,7 +3817,7 @@ interface ID3D10Device : IUnknown
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin setting constant buffers to.
     ///    NumBuffers = Type: <b>UINT</b> Number of buffers to set.
     ///    ppConstantBuffers = Type: <b>ID3D10Buffer*</b> Array of constant buffers (see ID3D10Buffer) being given to the device.
-    void    GSSetConstantBuffers(uint StartSlot, uint NumBuffers, char* ppConstantBuffers);
+    void    GSSetConstantBuffers(uint StartSlot, uint NumBuffers, ID3D10Buffer* ppConstantBuffers);
     ///Set a geometry shader to the device.
     ///Params:
     ///    pShader = Type: <b>ID3D10GeometryShader*</b> Pointer to a geometry shader (see ID3D10GeometryShader). Passing in
@@ -3834,7 +3835,7 @@ interface ID3D10Device : IUnknown
     ///    NumViews = Type: <b>UINT</b> Number of shader resources to set. Up to a maximum of 128 slots are available for shader
     ///               resources.
     ///    ppShaderResourceViews = Type: <b>ID3D10ShaderResourceView*</b> Array of shader resource view interfaces to set to the device.
-    void    VSSetShaderResources(uint StartSlot, uint NumViews, char* ppShaderResourceViews);
+    void    VSSetShaderResources(uint StartSlot, uint NumViews, ID3D10ShaderResourceView* ppShaderResourceViews);
     ///Set an array of sampler states to the vertex shader pipeline stage.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin setting samplers to.
@@ -3842,7 +3843,7 @@ interface ID3D10Device : IUnknown
     ///                  available.
     ///    ppSamplers = Type: <b>ID3D10SamplerState*</b> Pointer to an array of sampler-state interfaces (see ID3D10SamplerState).
     ///                 See Remarks.
-    void    VSSetSamplers(uint StartSlot, uint NumSamplers, char* ppSamplers);
+    void    VSSetSamplers(uint StartSlot, uint NumSamplers, ID3D10SamplerState* ppSamplers);
     ///Set a rendering predicate.
     ///Params:
     ///    pPredicate = Type: <b>ID3D10Predicate*</b> Pointer to a predicate (see ID3D10Predicate). A <b>NULL</b> value indicates
@@ -3857,7 +3858,7 @@ interface ID3D10Device : IUnknown
     ///    NumViews = Type: <b>UINT</b> Number of shader resources to set. Up to a maximum of 128 slots are available for shader
     ///               resources.
     ///    ppShaderResourceViews = Type: <b>ID3D10ShaderResourceView*</b> Array of shader resource view interfaces to set to the device.
-    void    GSSetShaderResources(uint StartSlot, uint NumViews, char* ppShaderResourceViews);
+    void    GSSetShaderResources(uint StartSlot, uint NumViews, ID3D10ShaderResourceView* ppShaderResourceViews);
     ///Set an array of sampler states to the geometry shader pipeline stage.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin setting samplers to.
@@ -3865,7 +3866,7 @@ interface ID3D10Device : IUnknown
     ///                  available.
     ///    ppSamplers = Type: <b>ID3D10SamplerState*</b> Pointer to an array of sampler-state interfaces (see ID3D10SamplerState).
     ///                 See Remarks.
-    void    GSSetSamplers(uint StartSlot, uint NumSamplers, char* ppSamplers);
+    void    GSSetSamplers(uint StartSlot, uint NumSamplers, ID3D10SamplerState* ppSamplers);
     ///Bind one or more render targets and the depth-stencil buffer to the output-merger stage.
     ///Params:
     ///    NumViews = Type: <b>UINT</b> Number of render targets to bind.
@@ -3873,7 +3874,8 @@ interface ID3D10Device : IUnknown
     ///                          bind to the device. If this parameter is <b>NULL</b>, no render targets are bound. See Remarks.
     ///    pDepthStencilView = Type: <b>ID3D10DepthStencilView*</b> Pointer to a depth-stencil view (see ID3D10DepthStencilView) to bind to
     ///                        the device. If this parameter is <b>NULL</b>, the depth-stencil state is not bound.
-    void    OMSetRenderTargets(uint NumViews, char* ppRenderTargetViews, ID3D10DepthStencilView pDepthStencilView);
+    void    OMSetRenderTargets(uint NumViews, ID3D10RenderTargetView* ppRenderTargetViews, 
+                               ID3D10DepthStencilView pDepthStencilView);
     ///Set the blend state of the output-merger stage.
     ///Params:
     ///    pBlendState = Type: <b>ID3D10BlendState*</b> Pointer to a blend-state interface (see ID3D10BlendState). Passing in
@@ -3901,7 +3903,7 @@ interface ID3D10Device : IUnknown
     ///                  must have been created with the D3D10_BIND_STREAM_OUTPUT flag.
     ///    pOffsets = Type: <b>const UINT*</b> Array of offsets to the output buffers from <i>ppSOTargets</i>, one offset for each
     ///               buffer. The offset values must be in bytes.
-    void    SOSetTargets(uint NumBuffers, char* ppSOTargets, char* pOffsets);
+    void    SOSetTargets(uint NumBuffers, ID3D10Buffer* ppSOTargets, const(uint)* pOffsets);
     ///Draw geometry of an unknown size that was created by the geometry shader stage. See remarks.
     void    DrawAuto();
     ///Set the rasterizer state for the rasterizer stage of the pipeline.
@@ -3915,12 +3917,12 @@ interface ID3D10Device : IUnknown
     ///    pViewports = Type: <b>const D3D10_VIEWPORT*</b> An array of viewports (see D3D10_VIEWPORT) to bind to the device. Each
     ///                 viewport must have its extents within the allowed ranges: D3D10_VIEWPORT_BOUNDS_MIN,
     ///                 D3D10_VIEWPORT_BOUNDS_MAX, D3D10_MIN_DEPTH, and D3D10_MAX_DEPTH.
-    void    RSSetViewports(uint NumViewports, char* pViewports);
+    void    RSSetViewports(uint NumViewports, const(D3D10_VIEWPORT)* pViewports);
     ///Bind an array of scissor rectangles to the rasterizer stage.
     ///Params:
     ///    NumRects = Type: <b>UINT</b> Number of scissor rectangles to bind.
     ///    pRects = Type: <b>const D3D10_RECT*</b> An array of scissor rectangles (see D3D10_RECT).
-    void    RSSetScissorRects(uint NumRects, char* pRects);
+    void    RSSetScissorRects(uint NumRects, const(RECT)* pRects);
     ///Copy a region from a source resource to a destination resource.
     ///Params:
     ///    pDstResource = Type: <b>ID3D10Resource*</b> A pointer to the destination resource (see ID3D10Resource).
@@ -3999,7 +4001,7 @@ interface ID3D10Device : IUnknown
     ///    NumBuffers = Type: <b>UINT</b> Number of buffers to retrieve.
     ///    ppConstantBuffers = Type: <b>ID3D10Buffer**</b> Array of constant buffer interface pointers (see ID3D10Buffer) to be returned by
     ///                        the method.
-    void    VSGetConstantBuffers(uint StartSlot, uint NumBuffers, char* ppConstantBuffers);
+    void    VSGetConstantBuffers(uint StartSlot, uint NumBuffers, ID3D10Buffer* ppConstantBuffers);
     ///Get the pixel shader resources.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin getting shader resources from.
@@ -4007,7 +4009,7 @@ interface ID3D10Device : IUnknown
     ///               for shader resources.
     ///    ppShaderResourceViews = Type: <b>ID3D10ShaderResourceView**</b> Array of shader resource view interfaces to be returned by the
     ///                            device.
-    void    PSGetShaderResources(uint StartSlot, uint NumViews, char* ppShaderResourceViews);
+    void    PSGetShaderResources(uint StartSlot, uint NumViews, ID3D10ShaderResourceView* ppShaderResourceViews);
     ///Get the pixel shader currently set on the device.
     ///Params:
     ///    ppPixelShader = Type: <b>ID3D10PixelShader**</b> Address of a pointer to a pixel shader (see ID3D10PixelShader) to be
@@ -4020,7 +4022,7 @@ interface ID3D10Device : IUnknown
     ///                  slots available.
     ///    ppSamplers = Type: <b>ID3D10SamplerState**</b> Arry of sampler-state interface pointers (see ID3D10SamplerState) to be
     ///                 returned by the device.
-    void    PSGetSamplers(uint StartSlot, uint NumSamplers, char* ppSamplers);
+    void    PSGetSamplers(uint StartSlot, uint NumSamplers, ID3D10SamplerState* ppSamplers);
     ///Get the vertex shader currently set on the device.
     ///Params:
     ///    ppVertexShader = Type: <b>ID3D10VertexShader**</b> Address of a pointer to a vertex shader (see ID3D10VertexShader) to be
@@ -4032,7 +4034,7 @@ interface ID3D10Device : IUnknown
     ///    NumBuffers = Type: <b>UINT</b> Number of buffers to retrieve.
     ///    ppConstantBuffers = Type: <b>ID3D10Buffer**</b> Array of constant buffer interface pointers (see ID3D10Buffer) to be returned by
     ///                        the method.
-    void    PSGetConstantBuffers(uint StartSlot, uint NumBuffers, char* ppConstantBuffers);
+    void    PSGetConstantBuffers(uint StartSlot, uint NumBuffers, ID3D10Buffer* ppConstantBuffers);
     ///Get a pointer to the input-layout object that is bound to the input-assembler stage.
     ///Params:
     ///    ppInputLayout = Type: <b>ID3D10InputLayout**</b> A pointer to the input-layout object (see ID3D10InputLayout), which
@@ -4055,8 +4057,8 @@ interface ID3D10Device : IUnknown
     ///    pOffsets = Type: <b>UINT*</b> Pointer to an array of offset values returned by the method; one offset value for each
     ///               buffer in the vertex-buffer array. Each offset is the number of bytes between the first element of a vertex
     ///               buffer and the first element that will be used.
-    void    IAGetVertexBuffers(uint StartSlot, uint NumBuffers, char* ppVertexBuffers, char* pStrides, 
-                               char* pOffsets);
+    void    IAGetVertexBuffers(uint StartSlot, uint NumBuffers, ID3D10Buffer* ppVertexBuffers, uint* pStrides, 
+                               uint* pOffsets);
     ///Get a pointer to the index buffer that is bound to the input-assembler stage.
     ///Params:
     ///    pIndexBuffer = Type: <b>ID3D10Buffer**</b> A pointer to an index buffer returned by the method (see ID3D10Buffer).
@@ -4071,7 +4073,7 @@ interface ID3D10Device : IUnknown
     ///    NumBuffers = Type: <b>UINT</b> Number of buffers to retrieve.
     ///    ppConstantBuffers = Type: <b>ID3D10Buffer**</b> Array of constant buffer interface pointers (see ID3D10Buffer) to be returned by
     ///                        the method.
-    void    GSGetConstantBuffers(uint StartSlot, uint NumBuffers, char* ppConstantBuffers);
+    void    GSGetConstantBuffers(uint StartSlot, uint NumBuffers, ID3D10Buffer* ppConstantBuffers);
     ///Get the geometry shader currently set on the device.
     ///Params:
     ///    ppGeometryShader = Type: <b>ID3D10GeometryShader**</b> Address of a pointer to a geometry shader (see ID3D10GeometryShader) to
@@ -4089,7 +4091,7 @@ interface ID3D10Device : IUnknown
     ///               for shader resources.
     ///    ppShaderResourceViews = Type: <b>ID3D10ShaderResourceView**</b> Array of shader resource view interfaces to be returned by the
     ///                            device.
-    void    VSGetShaderResources(uint StartSlot, uint NumViews, char* ppShaderResourceViews);
+    void    VSGetShaderResources(uint StartSlot, uint NumViews, ID3D10ShaderResourceView* ppShaderResourceViews);
     ///Get an array of sampler states from the vertex shader pipeline stage.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin getting samplers from.
@@ -4097,14 +4099,14 @@ interface ID3D10Device : IUnknown
     ///                  slots available.
     ///    ppSamplers = Type: <b>ID3D10SamplerState**</b> Arry of sampler-state interface pointers (see ID3D10SamplerState) to be
     ///                 returned by the device.
-    void    VSGetSamplers(uint StartSlot, uint NumSamplers, char* ppSamplers);
+    void    VSGetSamplers(uint StartSlot, uint NumSamplers, ID3D10SamplerState* ppSamplers);
     ///Get the rendering predicate state.
     ///Params:
     ///    ppPredicate = Type: <b>ID3D10Predicate**</b> Address of a pointer to a predicate (see ID3D10Predicate). Value stored here
     ///                  will be <b>NULL</b> upon device creation.
     ///    pPredicateValue = Type: <b>BOOL*</b> Address of a boolean to fill with the predicate comparison value. <b>FALSE</b> upon device
     ///                      creation.
-    void    GetPredication(ID3D10Predicate* ppPredicate, int* pPredicateValue);
+    void    GetPredication(ID3D10Predicate* ppPredicate, BOOL* pPredicateValue);
     ///Get the geometry shader resources.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin getting shader resources from.
@@ -4112,7 +4114,7 @@ interface ID3D10Device : IUnknown
     ///               for shader resources.
     ///    ppShaderResourceViews = Type: <b>ID3D10ShaderResourceView**</b> Array of shader resource view interfaces to be returned by the
     ///                            device.
-    void    GSGetShaderResources(uint StartSlot, uint NumViews, char* ppShaderResourceViews);
+    void    GSGetShaderResources(uint StartSlot, uint NumViews, ID3D10ShaderResourceView* ppShaderResourceViews);
     ///Get an array of sampler states from the geometry shader pipeline stage.
     ///Params:
     ///    StartSlot = Type: <b>UINT</b> Index into the device's zero-based array to begin getting samplers from.
@@ -4120,7 +4122,7 @@ interface ID3D10Device : IUnknown
     ///                  slots available.
     ///    ppSamplers = Type: <b>ID3D10SamplerState**</b> Arry of sampler-state pointers (see ID3D10SamplerState) to be returned by
     ///                 the device.
-    void    GSGetSamplers(uint StartSlot, uint NumSamplers, char* ppSamplers);
+    void    GSGetSamplers(uint StartSlot, uint NumSamplers, ID3D10SamplerState* ppSamplers);
     ///Get pointers to the render targets and the depth-stencil buffer that are available to the output-merger stage.
     ///Params:
     ///    NumViews = Type: <b>UINT</b> Number of render targets to retrieve.
@@ -4130,7 +4132,7 @@ interface ID3D10Device : IUnknown
     ///    ppDepthStencilView = Type: <b>ID3D10DepthStencilView**</b> Pointer to a depth-stencil view (see ID3D10DepthStencilView) to be
     ///                         filled with the depth-stencil information from the device. Specify <b>NULL</b> for this parameter when
     ///                         retrieval of the depth-stencil view is not needed.
-    void    OMGetRenderTargets(uint NumViews, char* ppRenderTargetViews, 
+    void    OMGetRenderTargets(uint NumViews, ID3D10RenderTargetView* ppRenderTargetViews, 
                                ID3D10DepthStencilView* ppDepthStencilView);
     ///Get the blend state of the output-merger stage.
     ///Params:
@@ -4150,7 +4152,7 @@ interface ID3D10Device : IUnknown
     ///    ppSOTargets = Type: <b>ID3D10Buffer**</b> An array of output buffers (see ID3D10Buffer) to be retrieved from the device.
     ///    pOffsets = Type: <b>UINT*</b> Array of offsets to the output buffers from <i>ppSOTargets</i>, one offset for each
     ///               buffer. The offset values are in bytes.
-    void    SOGetTargets(uint NumBuffers, char* ppSOTargets, char* pOffsets);
+    void    SOGetTargets(uint NumBuffers, ID3D10Buffer* ppSOTargets, uint* pOffsets);
     ///Get the rasterizer state from the rasterizer stage of the pipeline.
     ///Params:
     ///    ppRasterizerState = Type: <b>ID3D10RasterizerState**</b> Address of a pointer to a rasterizer-state interface (see
@@ -4163,14 +4165,14 @@ interface ID3D10Device : IUnknown
     ///    pViewports = Type: <b>D3D10_VIEWPORT*</b> An array of viewports (see D3D10_VIEWPORT) to be filled with information from
     ///                 the device. If NumViewports is greater than the actual number of viewports currently bound, then unused
     ///                 members of the array will contain 0.
-    void    RSGetViewports(uint* NumViewports, char* pViewports);
+    void    RSGetViewports(uint* NumViewports, D3D10_VIEWPORT* pViewports);
     ///Get the array of scissor rectangles bound to the rasterizer stage.
     ///Params:
     ///    NumRects = Type: <b>UINT*</b> Number of scissor rectangles to get. If pRects is <b>NULL</b>, this will be filled with
     ///               the number of scissor rectangles currently bound.
     ///    pRects = Type: <b>D3D10_RECT*</b> An array of scissor rectangles (see D3D10_RECT). If NumRects is greater than the
     ///             number of scissor rects currently bound, then unused members of the array will contain 0.
-    void    RSGetScissorRects(uint* NumRects, char* pRects);
+    void    RSGetScissorRects(uint* NumRects, RECT* pRects);
     ///Get the reason why the device was removed.
     ///Returns:
     ///    Type: <b>HRESULT</b> Possible return values include: <ul> <li>DXGI_ERROR_DEVICE_HUNG</li>
@@ -4203,7 +4205,7 @@ interface ID3D10Device : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT GetPrivateData(const(GUID)* guid, uint* pDataSize, char* pData);
+    HRESULT GetPrivateData(const(GUID)* guid, uint* pDataSize, void* pData);
     ///Set data to a device and associate that data with a guid.
     ///Params:
     ///    guid = Type: <b>REFGUID</b> Guid associated with the data.
@@ -4213,7 +4215,7 @@ interface ID3D10Device : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT SetPrivateData(const(GUID)* guid, uint DataSize, char* pData);
+    HRESULT SetPrivateData(const(GUID)* guid, uint DataSize, const(void)* pData);
     ///Associate an IUnknown-derived interface with this device and associate that interface with an application-defined
     ///guid.
     ///Params:
@@ -4260,7 +4262,8 @@ interface ID3D10Device : IUnknown
     ///    Type: <b>HRESULT</b> If the method succeeds, the return code is S_OK. See Direct3D 10 Return Codes for
     ///    failing error codes.
     ///    
-    HRESULT CreateTexture1D(const(D3D10_TEXTURE1D_DESC)* pDesc, char* pInitialData, ID3D10Texture1D* ppTexture1D);
+    HRESULT CreateTexture1D(const(D3D10_TEXTURE1D_DESC)* pDesc, const(D3D10_SUBRESOURCE_DATA)* pInitialData, 
+                            ID3D10Texture1D* ppTexture1D);
     ///Create an array of 2D textures (see Texture2D).
     ///Params:
     ///    pDesc = Type: <b>const D3D10_TEXTURE2D_DESC*</b> Pointer to a 2D texture description (see D3D10_TEXTURE2D_DESC). To
@@ -4279,7 +4282,8 @@ interface ID3D10Device : IUnknown
     ///    Type: <b>HRESULT</b> If the method succeeds, the return code is S_OK. See Direct3D 10 Return Codes for
     ///    failing error codes.
     ///    
-    HRESULT CreateTexture2D(const(D3D10_TEXTURE2D_DESC)* pDesc, char* pInitialData, ID3D10Texture2D* ppTexture2D);
+    HRESULT CreateTexture2D(const(D3D10_TEXTURE2D_DESC)* pDesc, const(D3D10_SUBRESOURCE_DATA)* pInitialData, 
+                            ID3D10Texture2D* ppTexture2D);
     ///Create a single 3D texture (see Texture3D).
     ///Params:
     ///    pDesc = Type: <b>const D3D10_TEXTURE3D_DESC*</b> Pointer to a 3D texture description (see D3D10_TEXTURE3D_DESC). To
@@ -4298,7 +4302,8 @@ interface ID3D10Device : IUnknown
     ///    Type: <b>HRESULT</b> If the method succeeds, the return code is S_OK. See Direct3D 10 Return Codes for
     ///    failing error codes.
     ///    
-    HRESULT CreateTexture3D(const(D3D10_TEXTURE3D_DESC)* pDesc, char* pInitialData, ID3D10Texture3D* ppTexture3D);
+    HRESULT CreateTexture3D(const(D3D10_TEXTURE3D_DESC)* pDesc, const(D3D10_SUBRESOURCE_DATA)* pInitialData, 
+                            ID3D10Texture3D* ppTexture3D);
     ///Create a shader-resource view for accessing data in a resource.
     ///Params:
     ///    pResource = Type: <b>ID3D10Resource*</b> Pointer to the resource that will serve as input to a shader. This resource must
@@ -4360,8 +4365,9 @@ interface ID3D10Device : IUnknown
     ///    Type: <b>HRESULT</b> If the method succeeds, the return code is S_OK. See Direct3D 10 Return Codes for
     ///    failing error codes.
     ///    
-    HRESULT CreateInputLayout(char* pInputElementDescs, uint NumElements, char* pShaderBytecodeWithInputSignature, 
-                              size_t BytecodeLength, ID3D10InputLayout* ppInputLayout);
+    HRESULT CreateInputLayout(const(D3D10_INPUT_ELEMENT_DESC)* pInputElementDescs, uint NumElements, 
+                              const(void)* pShaderBytecodeWithInputSignature, size_t BytecodeLength, 
+                              ID3D10InputLayout* ppInputLayout);
     ///Create a vertex-shader object from a compiled shader.
     ///Params:
     ///    pShaderBytecode = Type: <b>const void*</b> A pointer to the compiled shader. To get this pointer see Getting a Pointer to a
@@ -4373,7 +4379,8 @@ interface ID3D10Device : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT CreateVertexShader(char* pShaderBytecode, size_t BytecodeLength, ID3D10VertexShader* ppVertexShader);
+    HRESULT CreateVertexShader(const(void)* pShaderBytecode, size_t BytecodeLength, 
+                               ID3D10VertexShader* ppVertexShader);
     ///Create a geometry shader.
     ///Params:
     ///    pShaderBytecode = Type: <b>const void*</b> A pointer to the compiled shader. To get this pointer see Getting a Pointer to a
@@ -4385,7 +4392,7 @@ interface ID3D10Device : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT CreateGeometryShader(char* pShaderBytecode, size_t BytecodeLength, 
+    HRESULT CreateGeometryShader(const(void)* pShaderBytecode, size_t BytecodeLength, 
                                  ID3D10GeometryShader* ppGeometryShader);
     ///Creates a geometry shader that can write to streaming output buffers.
     ///Params:
@@ -4408,9 +4415,9 @@ interface ID3D10Device : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the Direct3D 10 Return Codes.
     ///    
-    HRESULT CreateGeometryShaderWithStreamOutput(char* pShaderBytecode, size_t BytecodeLength, 
-                                                 char* pSODeclaration, uint NumEntries, uint OutputStreamStride, 
-                                                 ID3D10GeometryShader* ppGeometryShader);
+    HRESULT CreateGeometryShaderWithStreamOutput(const(void)* pShaderBytecode, size_t BytecodeLength, 
+                                                 const(D3D10_SO_DECLARATION_ENTRY)* pSODeclaration, uint NumEntries, 
+                                                 uint OutputStreamStride, ID3D10GeometryShader* ppGeometryShader);
     ///Create a pixel shader.
     ///Params:
     ///    pShaderBytecode = Type: <b>const void*</b> A pointer to the compiled shader. To get this pointer see Getting a Pointer to a
@@ -4422,7 +4429,8 @@ interface ID3D10Device : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT CreatePixelShader(char* pShaderBytecode, size_t BytecodeLength, ID3D10PixelShader* ppPixelShader);
+    HRESULT CreatePixelShader(const(void)* pShaderBytecode, size_t BytecodeLength, 
+                              ID3D10PixelShader* ppPixelShader);
     ///Create a blend-state object that encapsules blend state for the output-merger stage.
     ///Params:
     ///    pBlendStateDesc = Type: <b>const D3D10_BLEND_DESC*</b> Pointer to a blend-state description (see D3D10_BLEND_DESC).
@@ -4538,8 +4546,8 @@ interface ID3D10Device : IUnknown
     ///    Type: <b>HRESULT</b> This method returns one of the following Direct3D 10 Return Codes.
     ///    
     HRESULT CheckCounter(const(D3D10_COUNTER_DESC)* pDesc, D3D10_COUNTER_TYPE* pType, uint* pActiveCounters, 
-                         const(char)* szName, uint* pNameLength, const(char)* szUnits, uint* pUnitsLength, 
-                         const(char)* szDescription, uint* pDescriptionLength);
+                         PSTR szName, uint* pNameLength, PSTR szUnits, uint* pUnitsLength, PSTR szDescription, 
+                         uint* pDescriptionLength);
     ///Get the flags used during the call to create the device with D3D10CreateDevice.
     ///Returns:
     ///    Type: <b>UINT</b> A bitfield containing the flags used to create the device. See D3D10_CREATE_DEVICE_FLAG.
@@ -4677,7 +4685,7 @@ interface ID3D10InfoQueue : IUnknown
     HRESULT SetMessageCountLimit(ulong MessageCountLimit);
     ///Clear all messages from the message queue.
     void    ClearStoredMessages();
-    HRESULT GetMessageA(ulong MessageIndex, char* pMessage, size_t* pMessageByteLength);
+    HRESULT GetMessageA(ulong MessageIndex, D3D10_MESSAGE* pMessage, size_t* pMessageByteLength);
     ///Get the number of messages that were allowed to pass through a storage filter.
     ///Returns:
     ///    Type: <b>UINT64</b> Number of messages allowed by a storage filter.
@@ -4723,7 +4731,7 @@ interface ID3D10InfoQueue : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT GetStorageFilter(char* pFilter, size_t* pFilterByteLength);
+    HRESULT GetStorageFilter(D3D10_INFO_QUEUE_FILTER* pFilter, size_t* pFilterByteLength);
     ///Remove a storage filter from the top of the storage-filter stack.
     void    ClearStorageFilter();
     ///Push an empty storage filter onto the storage-filter stack.
@@ -4765,7 +4773,7 @@ interface ID3D10InfoQueue : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT GetRetrievalFilter(char* pFilter, size_t* pFilterByteLength);
+    HRESULT GetRetrievalFilter(D3D10_INFO_QUEUE_FILTER* pFilter, size_t* pFilterByteLength);
     ///Remove a retrieval filter from the top of the retrieval-filter stack.
     void    ClearRetrievalFilter();
     ///Push an empty retrieval filter onto the retrieval-filter stack.
@@ -4803,7 +4811,7 @@ interface ID3D10InfoQueue : IUnknown
     ///    Type: <b>HRESULT</b> This method returns one of the following Direct3D 10 Return Codes.
     ///    
     HRESULT AddMessage(D3D10_MESSAGE_CATEGORY Category, D3D10_MESSAGE_SEVERITY Severity, D3D10_MESSAGE_ID ID, 
-                       const(char)* pDescription);
+                       const(PSTR) pDescription);
     ///Add a user-defined message to the message queue and send that message to debug output.
     ///Params:
     ///    Severity = Type: <b>D3D10_MESSAGE_SEVERITY</b> Severity of a message (see D3D10_MESSAGE_SEVERITY).
@@ -4811,7 +4819,7 @@ interface ID3D10InfoQueue : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT AddApplicationMessage(D3D10_MESSAGE_SEVERITY Severity, const(char)* pDescription);
+    HRESULT AddApplicationMessage(D3D10_MESSAGE_SEVERITY Severity, const(PSTR) pDescription);
     ///Set a message category to break on when a message with that category passes through the storage filter.
     ///Params:
     ///    Category = Type: <b>D3D10_MESSAGE_CATEGORY</b> Message category to break on (see D3D10_MESSAGE_CATEGORY).
@@ -4895,7 +4903,7 @@ interface ID3D10ShaderReflectionType
     ///Returns:
     ///    Type: <b>ID3D10ShaderReflectionType*</b> A pointer to a ID3D10ShaderReflectionType Interface.
     ///    
-    ID3D10ShaderReflectionType GetMemberTypeByName(const(char)* Name);
+    ID3D10ShaderReflectionType GetMemberTypeByName(const(PSTR) Name);
     ///Retrieves a shader-reflection-variable name given the index to that member of the struct type.
     ///Params:
     ///    Index = Type: **[UINT](/windows/desktop/winprog/windows-data-types)** A zero-based index to a member of the struct
@@ -4904,7 +4912,7 @@ interface ID3D10ShaderReflectionType
     ///    Type: **[LPCSTR](/windows/desktop/winprog/windows-data-types)** The member name in the form of a stringified
     ///    value of the [D3D_SHADER_VARIABLE_TYPE](../d3dcommon/ne-d3dcommon-d3d_shader_variable_type.md) enumeration.
     ///    
-    byte*   GetMemberTypeName(uint Index);
+    PSTR    GetMemberTypeName(uint Index);
 }
 
 ///This shader-reflection interface provides access to a variable.
@@ -4953,7 +4961,7 @@ interface ID3D10ShaderReflectionConstantBuffer
     ///    Type: <b>ID3D10ShaderReflectionVariable*</b> A pointer to a shader-reflection variable interface (see
     ///    ID3D10ShaderReflectionVariable Interface).
     ///    
-    ID3D10ShaderReflectionVariable GetVariableByName(const(char)* Name);
+    ID3D10ShaderReflectionVariable GetVariableByName(const(PSTR) Name);
 }
 
 ///A shader-reflection interface accesses shader information.
@@ -4982,7 +4990,7 @@ interface ID3D10ShaderReflection : IUnknown
     ///    Type: <b>ID3D10ShaderReflectionConstantBuffer*</b> A pointer to a constant buffer (see
     ///    ID3D10ShaderReflectionConstantBuffer Interface).
     ///    
-    ID3D10ShaderReflectionConstantBuffer GetConstantBufferByName(const(char)* Name);
+    ID3D10ShaderReflectionConstantBuffer GetConstantBufferByName(const(PSTR) Name);
     ///Get a description of the resources bound to a shader.
     ///Params:
     ///    ResourceIndex = Type: <b>UINT</b> A zero-based resource index.
@@ -5080,28 +5088,28 @@ interface ID3D10EffectType
     ///Returns:
     ///    Type: <b>ID3D10EffectType*</b> A pointer to an ID3D10EffectType Interface.
     ///    
-    ID3D10EffectType GetMemberTypeByName(const(char)* Name);
+    ID3D10EffectType GetMemberTypeByName(const(PSTR) Name);
     ///Get a member type by semantic.
     ///Params:
     ///    Semantic = Type: <b>LPCSTR</b> A semantic.
     ///Returns:
     ///    Type: <b>ID3D10EffectType*</b> A pointer to an ID3D10EffectType Interface.
     ///    
-    ID3D10EffectType GetMemberTypeBySemantic(const(char)* Semantic);
+    ID3D10EffectType GetMemberTypeBySemantic(const(PSTR) Semantic);
     ///Get the name of a member.
     ///Params:
     ///    Index = Type: <b>UINT</b> A zero-based index.
     ///Returns:
     ///    Type: <b>LPCSTR</b> The name of the member.
     ///    
-    byte*   GetMemberName(uint Index);
+    PSTR    GetMemberName(uint Index);
     ///Get the semantic attached to a member.
     ///Params:
     ///    Index = Type: <b>UINT</b> A zero-based index.
     ///Returns:
     ///    Type: <b>LPCSTR</b> A string that contains the semantic.
     ///    
-    byte*   GetMemberSemantic(uint Index);
+    PSTR    GetMemberSemantic(uint Index);
 }
 
 ///The <b>ID3D10EffectVariable</b> interface is the base class for all effect variables. The lifetime of an
@@ -5175,7 +5183,7 @@ interface ID3D10EffectVariable
     ///    annotation is not found the <b>ID3D10EffectVariable Interface</b> returned will be empty. The
     ///    ID3D10EffectVariable::IsValid method should be called to determine whether the annotation was found.
     ///    
-    ID3D10EffectVariable GetAnnotationByName(const(char)* Name);
+    ID3D10EffectVariable GetAnnotationByName(const(PSTR) Name);
     ///Get a structure member by index.
     ///Params:
     ///    Index = Type: <b>UINT</b> A zero-based index.
@@ -5189,14 +5197,14 @@ interface ID3D10EffectVariable
     ///Returns:
     ///    Type: <b>ID3D10EffectVariable*</b> A pointer to an ID3D10EffectVariable Interface.
     ///    
-    ID3D10EffectVariable GetMemberByName(const(char)* Name);
+    ID3D10EffectVariable GetMemberByName(const(PSTR) Name);
     ///Get a structure member by semantic.
     ///Params:
     ///    Semantic = Type: <b>LPCSTR</b> The semantic.
     ///Returns:
     ///    Type: <b>ID3D10EffectVariable*</b> A pointer to an ID3D10EffectVariable Interface.
     ///    
-    ID3D10EffectVariable GetMemberBySemantic(const(char)* Semantic);
+    ID3D10EffectVariable GetMemberBySemantic(const(PSTR) Semantic);
     ///Get an array element.
     ///Params:
     ///    Index = Type: <b>UINT</b> A zero-based index; otherwise 0.
@@ -5287,7 +5295,7 @@ interface ID3D10EffectVariable
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT SetRawValue(char* pData, uint Offset, uint ByteCount);
+    HRESULT SetRawValue(void* pData, uint Offset, uint ByteCount);
     ///Get data.
     ///Params:
     ///    pData = Type: <b>void*</b> A pointer to the variable.
@@ -5296,7 +5304,7 @@ interface ID3D10EffectVariable
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT GetRawValue(char* pData, uint Offset, uint ByteCount);
+    HRESULT GetRawValue(void* pData, uint Offset, uint ByteCount);
 }
 
 ///An effect-scalar-variable interface accesses scalar values.
@@ -5324,7 +5332,7 @@ interface ID3D10EffectScalarVariable : ID3D10EffectVariable
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT SetFloatArray(char* pData, uint Offset, uint Count);
+    HRESULT SetFloatArray(float* pData, uint Offset, uint Count);
     ///Get an array of floating-point variables.
     ///Params:
     ///    pData = Type: <b>float*</b> A pointer to the start of the data to set.
@@ -5333,7 +5341,7 @@ interface ID3D10EffectScalarVariable : ID3D10EffectVariable
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT GetFloatArray(char* pData, uint Offset, uint Count);
+    HRESULT GetFloatArray(float* pData, uint Offset, uint Count);
     ///Set an integer variable.
     ///Params:
     ///    Value = Type: <b>int</b> A pointer to the variable.
@@ -5356,7 +5364,7 @@ interface ID3D10EffectScalarVariable : ID3D10EffectVariable
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT SetIntArray(char* pData, uint Offset, uint Count);
+    HRESULT SetIntArray(int* pData, uint Offset, uint Count);
     ///Get an array of integer variables.
     ///Params:
     ///    pData = Type: <b>int*</b> A pointer to the start of the data to set.
@@ -5365,7 +5373,7 @@ interface ID3D10EffectScalarVariable : ID3D10EffectVariable
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT GetIntArray(char* pData, uint Offset, uint Count);
+    HRESULT GetIntArray(int* pData, uint Offset, uint Count);
     ///Set a boolean variable.
     ///Params:
     ///    Value = Type: <b>BOOL</b> A pointer to the variable.
@@ -5379,7 +5387,7 @@ interface ID3D10EffectScalarVariable : ID3D10EffectVariable
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT GetBool(int* pValue);
+    HRESULT GetBool(BOOL* pValue);
     ///Set an array of boolean variables.
     ///Params:
     ///    pData = Type: <b>BOOL*</b> A pointer to the start of the data to set.
@@ -5388,7 +5396,7 @@ interface ID3D10EffectScalarVariable : ID3D10EffectVariable
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT SetBoolArray(char* pData, uint Offset, uint Count);
+    HRESULT SetBoolArray(BOOL* pData, uint Offset, uint Count);
     ///Get an array of boolean variables.
     ///Params:
     ///    pData = Type: <b>BOOL*</b> A pointer to the start of the data to set.
@@ -5397,7 +5405,7 @@ interface ID3D10EffectScalarVariable : ID3D10EffectVariable
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT GetBoolArray(char* pData, uint Offset, uint Count);
+    HRESULT GetBoolArray(BOOL* pData, uint Offset, uint Count);
 }
 
 ///A vector-variable interface accesses a four-component vector.
@@ -5409,7 +5417,7 @@ interface ID3D10EffectVectorVariable : ID3D10EffectVariable
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT SetBoolVector(int* pData);
+    HRESULT SetBoolVector(BOOL* pData);
     ///Set a four-component vector that contains integer data.
     ///Params:
     ///    pData = Type: <b>int*</b> A pointer to the first component.
@@ -5430,7 +5438,7 @@ interface ID3D10EffectVectorVariable : ID3D10EffectVariable
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT GetBoolVector(int* pData);
+    HRESULT GetBoolVector(BOOL* pData);
     ///Get a four-component vector that contains integer data.
     ///Params:
     ///    pData = Type: <b>int*</b> A pointer to the first component.
@@ -5453,7 +5461,7 @@ interface ID3D10EffectVectorVariable : ID3D10EffectVariable
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT SetBoolVectorArray(int* pData, uint Offset, uint Count);
+    HRESULT SetBoolVectorArray(BOOL* pData, uint Offset, uint Count);
     ///Set an array of four-component vectors that contain integer data.
     ///Params:
     ///    pData = Type: <b>int*</b> A pointer to the start of the data to set.
@@ -5480,7 +5488,7 @@ interface ID3D10EffectVectorVariable : ID3D10EffectVariable
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT GetBoolVectorArray(int* pData, uint Offset, uint Count);
+    HRESULT GetBoolVectorArray(BOOL* pData, uint Offset, uint Count);
     ///Get an array of four-component vectors that contain integer data.
     ///Params:
     ///    pData = Type: <b>int*</b> A pointer to the start of the data to set.
@@ -5582,7 +5590,7 @@ interface ID3D10EffectStringVariable : ID3D10EffectVariable
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT GetString(byte** ppString);
+    HRESULT GetString(PSTR* ppString);
     ///Get an array of strings.
     ///Params:
     ///    ppStrings = Type: <b>LPCSTR*</b> A pointer to the first string in the array.
@@ -5592,7 +5600,7 @@ interface ID3D10EffectStringVariable : ID3D10EffectVariable
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT GetStringArray(char* ppStrings, uint Offset, uint Count);
+    HRESULT GetStringArray(PSTR* ppStrings, uint Offset, uint Count);
 }
 
 ///A shader-resource interface accesses a shader resource.
@@ -5623,7 +5631,7 @@ interface ID3D10EffectShaderResourceVariable : ID3D10EffectVariable
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT SetResourceArray(char* ppResources, uint Offset, uint Count);
+    HRESULT SetResourceArray(ID3D10ShaderResourceView* ppResources, uint Offset, uint Count);
     ///Get an array of shader resources.
     ///Params:
     ///    ppResources = Type: <b>ID3D10ShaderResourceView**</b> The address of an array of shader-resource-view interfaces. See
@@ -5633,7 +5641,7 @@ interface ID3D10EffectShaderResourceVariable : ID3D10EffectVariable
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT GetResourceArray(char* ppResources, uint Offset, uint Count);
+    HRESULT GetResourceArray(ID3D10ShaderResourceView* ppResources, uint Offset, uint Count);
 }
 
 ///A render-target-view interface accesses a render target.
@@ -5664,7 +5672,7 @@ interface ID3D10EffectRenderTargetViewVariable : ID3D10EffectVariable
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT SetRenderTargetArray(char* ppResources, uint Offset, uint Count);
+    HRESULT SetRenderTargetArray(ID3D10RenderTargetView* ppResources, uint Offset, uint Count);
     ///Get an array of render-targets.
     ///Params:
     ///    ppResources = Type: <b>ID3D10RenderTargetView**</b> A pointer to an array of render-target-view interfaces. See
@@ -5674,7 +5682,7 @@ interface ID3D10EffectRenderTargetViewVariable : ID3D10EffectVariable
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT GetRenderTargetArray(char* ppResources, uint Offset, uint Count);
+    HRESULT GetRenderTargetArray(ID3D10RenderTargetView* ppResources, uint Offset, uint Count);
 }
 
 ///A depth-stencil-view-variable interface accesses a depth-stencil view.
@@ -5705,7 +5713,7 @@ interface ID3D10EffectDepthStencilViewVariable : ID3D10EffectVariable
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT SetDepthStencilArray(char* ppResources, uint Offset, uint Count);
+    HRESULT SetDepthStencilArray(ID3D10DepthStencilView* ppResources, uint Offset, uint Count);
     ///Get an array of depth-stencil-view resources.
     ///Params:
     ///    ppResources = Type: <b>ID3D10DepthStencilView**</b> A pointer to an array of depth-stencil-view interfaces. See
@@ -5715,7 +5723,7 @@ interface ID3D10EffectDepthStencilViewVariable : ID3D10EffectVariable
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT GetDepthStencilArray(char* ppResources, uint Offset, uint Count);
+    HRESULT GetDepthStencilArray(ID3D10DepthStencilView* ppResources, uint Offset, uint Count);
 }
 
 ///A constant-buffer interface accesses constant buffers or texture buffers.
@@ -5972,7 +5980,7 @@ interface ID3D10EffectPass
     ///Returns:
     ///    Type: <b>ID3D10EffectVariable*</b> A pointer to an ID3D10EffectVariable Interface.
     ///    
-    ID3D10EffectVariable GetAnnotationByName(const(char)* Name);
+    ID3D10EffectVariable GetAnnotationByName(const(PSTR) Name);
     ///Set the state contained in a pass to the device.
     ///Params:
     ///    Flags = Type: <b>UINT</b> Unused.
@@ -6030,7 +6038,7 @@ interface ID3D10EffectTechnique
     ///Returns:
     ///    Type: <b>ID3D10EffectVariable*</b> A pointer to an ID3D10EffectVariable Interface.
     ///    
-    ID3D10EffectVariable GetAnnotationByName(const(char)* Name);
+    ID3D10EffectVariable GetAnnotationByName(const(PSTR) Name);
     ///Get a pass by index.
     ///Params:
     ///    Index = Type: <b>UINT</b> A zero-based index.
@@ -6044,7 +6052,7 @@ interface ID3D10EffectTechnique
     ///Returns:
     ///    Type: <b>ID3D10EffectPass*</b> A pointer to an ID3D10EffectPass Interface.
     ///    
-    ID3D10EffectPass GetPassByName(const(char)* Name);
+    ID3D10EffectPass GetPassByName(const(PSTR) Name);
     ///Compute a state-block mask to allow/prevent state changes.
     ///Params:
     ///    pStateBlockMask = Type: <b>D3D10_STATE_BLOCK_MASK*</b> A pointer to a state-block mask (see D3D10_STATE_BLOCK_MASK).
@@ -6097,7 +6105,7 @@ interface ID3D10Effect : IUnknown
     ///    Type: <b>ID3D10EffectConstantBuffer*</b> A pointer to the constant buffer indicated by the Name. See
     ///    ID3D10EffectConstantBuffer.
     ///    
-    ID3D10EffectConstantBuffer GetConstantBufferByName(const(char)* Name);
+    ID3D10EffectConstantBuffer GetConstantBufferByName(const(PSTR) Name);
     ///Get a variable by index.
     ///Params:
     ///    Index = Type: <b>UINT</b> A zero-based index.
@@ -6111,7 +6119,7 @@ interface ID3D10Effect : IUnknown
     ///Returns:
     ///    Type: <b>ID3D10EffectVariable*</b> A pointer to an ID3D10EffectVariable Interface.
     ///    
-    ID3D10EffectVariable GetVariableByName(const(char)* Name);
+    ID3D10EffectVariable GetVariableByName(const(PSTR) Name);
     ///Get a variable by semantic.
     ///Params:
     ///    Semantic = Type: <b>LPCSTR</b> The semantic name.
@@ -6119,7 +6127,7 @@ interface ID3D10Effect : IUnknown
     ///    Type: <b>ID3D10EffectVariable*</b> A pointer to the effect variable indicated by the Semantic. See
     ///    ID3D10EffectVariable Interface.
     ///    
-    ID3D10EffectVariable GetVariableBySemantic(const(char)* Semantic);
+    ID3D10EffectVariable GetVariableBySemantic(const(PSTR) Semantic);
     ///Get a technique by index.
     ///Params:
     ///    Index = Type: <b>UINT</b> A zero-based index.
@@ -6134,7 +6142,7 @@ interface ID3D10Effect : IUnknown
     ///    Type: <b>ID3D10EffectTechnique*</b> A pointer to an ID3D10EffectTechnique Interface, or <b>NULL</b> if the
     ///    technique is not found.
     ///    
-    ID3D10EffectTechnique GetTechniqueByName(const(char)* Name);
+    ID3D10EffectTechnique GetTechniqueByName(const(PSTR) Name);
     ///Minimize the amount of memory required for an effect.
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
@@ -6220,7 +6228,7 @@ interface ID3D10ShaderReflection1 : IUnknown
 {
     HRESULT GetDesc(D3D10_SHADER_DESC* pDesc);
     ID3D10ShaderReflectionConstantBuffer GetConstantBufferByIndex(uint Index);
-    ID3D10ShaderReflectionConstantBuffer GetConstantBufferByName(const(char)* Name);
+    ID3D10ShaderReflectionConstantBuffer GetConstantBufferByName(const(PSTR) Name);
     HRESULT GetResourceBindingDesc(uint ResourceIndex, D3D10_SHADER_INPUT_BIND_DESC* pDesc);
     HRESULT GetInputParameterDesc(uint ParameterIndex, D3D10_SIGNATURE_PARAMETER_DESC* pDesc);
     HRESULT GetOutputParameterDesc(uint ParameterIndex, D3D10_SIGNATURE_PARAMETER_DESC* pDesc);
@@ -6230,7 +6238,7 @@ interface ID3D10ShaderReflection1 : IUnknown
     ///Returns:
     ///    Type: <b>ID3D10ShaderReflectionVariable*</b> Returns a ID3D10ShaderReflectionVariable Interface interface.
     ///    
-    ID3D10ShaderReflectionVariable GetVariableByName(const(char)* Name);
+    ID3D10ShaderReflectionVariable GetVariableByName(const(PSTR) Name);
     ///Gets a resource binding description by name.
     ///Params:
     ///    Name = Type: <b>LPCSTR*</b> A pointer to a string containing the variable name.
@@ -6239,7 +6247,7 @@ interface ID3D10ShaderReflection1 : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT GetResourceBindingDescByName(const(char)* Name, D3D10_SHADER_INPUT_BIND_DESC* pDesc);
+    HRESULT GetResourceBindingDescByName(const(PSTR) Name, D3D10_SHADER_INPUT_BIND_DESC* pDesc);
     ///Gets the number of Mov instructions.
     ///Params:
     ///    pCount = Type: <b>UINT*</b> A pointer to the number of Mov instructions.
@@ -6283,7 +6291,7 @@ interface ID3D10ShaderReflection1 : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT IsLevel9Shader(int* pbLevel9Shader);
+    HRESULT IsLevel9Shader(BOOL* pbLevel9Shader);
     ///Indicates whether a pixel shader is intended to run a pixel frequency or sample frequency.
     ///Params:
     ///    pbSampleFrequency = Type: <b>BOOL*</b> A pointer to a BOOL variable that will be set to true if the shader is intended to run at
@@ -6291,7 +6299,7 @@ interface ID3D10ShaderReflection1 : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns one of the following Direct3D 10 Return Codes.
     ///    
-    HRESULT IsSampleFrequencyShader(int* pbSampleFrequency);
+    HRESULT IsSampleFrequencyShader(BOOL* pbSampleFrequency);
 }
 
 

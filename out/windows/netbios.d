@@ -5,7 +5,7 @@ module windows.netbios;
 public import windows.core;
 public import windows.systemservices : HANDLE;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Structs

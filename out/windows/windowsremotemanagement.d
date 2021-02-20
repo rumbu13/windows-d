@@ -5,9 +5,9 @@ module windows.windowsremotemanagement;
 public import windows.core;
 public import windows.automation : BSTR, IDispatch, VARIANT;
 public import windows.com : HRESULT, IUnknown;
-public import windows.systemservices : BOOL, HANDLE;
+public import windows.systemservices : BOOL, HANDLE, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -257,8 +257,8 @@ alias WSMAN_PLUGIN_RELEASE_COMMAND_CONTEXT = void function(void* shellContext, v
 ///                parameter is set to <b>NULL</b>.
 ///    pluginContext = The context for the specific application initialization. This context is passed through to all other WinRM
 ///                    plug-in calls that are associated with this <i>applicationIdentifier</i>.
-alias WSMAN_PLUGIN_STARTUP = uint function(uint flags, const(wchar)* applicationIdentification, 
-                                           const(wchar)* extraInfo, void** pluginContext);
+alias WSMAN_PLUGIN_STARTUP = uint function(uint flags, const(PWSTR) applicationIdentification, 
+                                           const(PWSTR) extraInfo, void** pluginContext);
 ///Defines the shutdown callback for the plug-in. This function is called after all operations have been canceled and
 ///before the Windows Remote Management plug-in DLL is unloaded. All WinRM plug-ins must implement this callback
 ///function. The DLL entry point name must be <b>WSManPluginShutdown</b>.
@@ -300,7 +300,7 @@ alias WSMAN_PLUGIN_SHELL = void function(void* pluginContext, WSMAN_PLUGIN_REQUE
 ///    arguments = A pointer to a WSMAN_COMMAND_ARG_SET structure that specifies the command-line arguments to be passed to the
 ///                command.
 alias WSMAN_PLUGIN_COMMAND = void function(WSMAN_PLUGIN_REQUEST* requestDetails, uint flags, void* shellContext, 
-                                           const(wchar)* commandLine, WSMAN_COMMAND_ARG_SET* arguments);
+                                           const(PWSTR) commandLine, WSMAN_COMMAND_ARG_SET* arguments);
 ///Defines the send callback for a plug-in. This function is called for each object that is received from a client. Each
 ///object received causes the callback to be called once. After the data is processed, the Windows Remote Management
 ///(WinRM) plug-in calls WSManPluginOperationComplete to acknowledge receipt and to allow the next object to be
@@ -315,7 +315,7 @@ alias WSMAN_PLUGIN_COMMAND = void function(WSMAN_PLUGIN_REQUEST* requestDetails,
 ///                     operation; otherwise, this parameter is <b>NULL</b>.
 ///    stream = Specifies the stream that is associated with the inbound object.
 alias WSMAN_PLUGIN_SEND = void function(WSMAN_PLUGIN_REQUEST* requestDetails, uint flags, void* shellContext, 
-                                        void* commandContext, const(wchar)* stream, WSMAN_DATA* inboundData);
+                                        void* commandContext, const(PWSTR) stream, WSMAN_DATA* inboundData);
 ///Defines the receive callback for a plug-in. This function is called when an inbound request to receive data is
 ///received. The DLL entry point name must be <b>WSManPluginReceive</b>.
 ///Params:
@@ -340,7 +340,7 @@ alias WSMAN_PLUGIN_RECEIVE = void function(WSMAN_PLUGIN_REQUEST* requestDetails,
 ///                     operation; otherwise, this parameter is <b>NULL</b>.
 ///    code = Specifies the signal that is received from the client. The following codes are common.
 alias WSMAN_PLUGIN_SIGNAL = void function(WSMAN_PLUGIN_REQUEST* requestDetails, uint flags, void* shellContext, 
-                                          void* commandContext, const(wchar)* code);
+                                          void* commandContext, const(PWSTR) code);
 ///Defines the connect callback for a plug-in. The DLL entry point name must be <b>WSManPluginConnect</b>.
 ///Params:
 ///    requestDetails = A pointer to a WSMAN_PLUGIN_REQUEST structure that specifies the resource URI, options, locale, shutdown flag,
@@ -375,8 +375,8 @@ alias WSMAN_PLUGIN_AUTHORIZE_USER = void function(void* pluginContext, WSMAN_SEN
 ///    action = Specifies the action of the request received. This parameter can be one of the following values:
 ///    resourceUri = Specifies the resource URI of the inbound operation.
 alias WSMAN_PLUGIN_AUTHORIZE_OPERATION = void function(void* pluginContext, WSMAN_SENDER_DETAILS* senderDetails, 
-                                                       uint flags, uint operation, const(wchar)* action, 
-                                                       const(wchar)* resourceUri);
+                                                       uint flags, uint operation, const(PWSTR) action, 
+                                                       const(PWSTR) resourceUri);
 ///Retrieves quota information for the user after a connection has been authorized. This method will be called only if
 ///the configuration specifies that quotas are enabled within the authorization plug-in. The DLL entry point name for
 ///this method must be <b>WSManPluginAuthzQueryQuota</b>.
@@ -407,8 +407,8 @@ alias WSMAN_PLUGIN_AUTHORIZE_RELEASE_CONTEXT = void function(void* userAuthoriza
 struct WSMAN_DATA_TEXT
 {
     ///Specifies the number of UNICODE characters stored in the buffer.
-    uint          bufferLength;
-    const(wchar)* buffer;
+    uint         bufferLength;
+    const(PWSTR) buffer;
 }
 
 ///A WSMAN_DATA structure component that holds binary data for use with various Windows Remote Management functions.
@@ -424,7 +424,7 @@ struct WSMAN_DATA
 {
     ///Specifies the type of data currently stored in the union.
     WSManDataType type;
-    union
+union
     {
         WSMAN_DATA_TEXT   text;
         WSMAN_DATA_BINARY binaryData;
@@ -438,27 +438,27 @@ struct WSMAN_ERROR
 {
     ///Specifies an error code. This error can be a general error code that is defined in winerror.h or a WinRM-specific
     ///error code.
-    uint          code;
+    uint         code;
     ///Specifies extended error information that relates to a failed call. This field contains the fault detail text if
     ///it is present in the fault. If there is no fault detail, this field contains the fault reason text. This field
     ///can be set to <b>NULL</b>.
-    const(wchar)* errorDetail;
+    const(PWSTR) errorDetail;
     ///Specifies the language for the error description. This field can be set to <b>NULL</b>. For more information
     ///about the language format, see the RFC 3066 specification from the Internet Engineering Task Force at
     ///http://www.ietf.org/rfc/rfc3066.txt.
-    const(wchar)* language;
+    const(PWSTR) language;
     ///Specifies the name of the computer. This field can be set to <b>NULL</b>.
-    const(wchar)* machineName;
-    const(wchar)* pluginName;
+    const(PWSTR) machineName;
+    const(PWSTR) pluginName;
 }
 
 ///Defines the credentials used for authentication.
 struct WSMAN_USERNAME_PASSWORD_CREDS
 {
     ///Defines the user name for a local or domain account. It cannot be <b>NULL</b>.
-    const(wchar)* username;
+    const(PWSTR) username;
     ///Defines the password for a local or domain account. It cannot be <b>NULL</b>.
-    const(wchar)* password;
+    const(PWSTR) password;
 }
 
 ///Defines the authentication method and the credentials used for server or proxy authentication.
@@ -468,10 +468,10 @@ struct WSMAN_AUTHENTICATION_CREDENTIALS
     ///choose between Kerberos and Negotiate. If it is not set to zero, this member must be one of the values of the
     ///WSManAuthenticationFlags enumeration.
     uint authenticationMechanism;
-    union
+union
     {
         WSMAN_USERNAME_PASSWORD_CREDS userAccount;
-        const(wchar)* certificateThumbprint;
+        const(PWSTR) certificateThumbprint;
     }
 }
 
@@ -480,10 +480,10 @@ struct WSMAN_AUTHENTICATION_CREDENTIALS
 struct WSMAN_OPTION
 {
     ///Specifies the name of the option.
-    const(wchar)* name;
+    const(PWSTR) name;
     ///Specifies the value of the option.
-    const(wchar)* value;
-    BOOL          mustComply;
+    const(PWSTR) value;
+    BOOL         mustComply;
 }
 
 ///Represents a set of options. Additionally, this structure defines a flag that specifies whether all options must be
@@ -502,15 +502,15 @@ struct WSMAN_OPTION_SETEX
     uint          optionsCount;
     WSMAN_OPTION* options;
     BOOL          optionsMustUnderstand;
-    ushort**      optionTypes;
+    PWSTR*        optionTypes;
 }
 
 ///Represents a key and value pair within a selector set and is used to identify a particular resource.
 struct WSMAN_KEY
 {
     ///Specifies the key name.
-    const(wchar)* key;
-    const(wchar)* value;
+    const(PWSTR) key;
+    const(PWSTR) value;
 }
 
 ///Defines a set of keys that represent the identity of a resource.
@@ -526,8 +526,8 @@ struct WSMAN_SELECTOR_SET
 struct WSMAN_FRAGMENT
 {
     ///Reserved for future use. This parameter must be <b>NULL</b>.
-    const(wchar)* path;
-    const(wchar)* dialect;
+    const(PWSTR) path;
+    const(PWSTR) dialect;
 }
 
 ///<p class="CCE_Message">[<b>WSMAN_FILTER</b> is reserved for future use.] Defines the filtering that is used for an
@@ -535,8 +535,8 @@ struct WSMAN_FRAGMENT
 struct WSMAN_FILTER
 {
     ///Reserved for future use. This parameter must be <b>NULL</b>.
-    const(wchar)* filter;
-    const(wchar)* dialect;
+    const(PWSTR) filter;
+    const(PWSTR) dialect;
 }
 
 ///Represents a specific resource endpoint for which the plug-in must perform the request.
@@ -563,8 +563,8 @@ struct WSMAN_OPERATION_INFOEX
     WSMAN_SELECTOR_SET selectorSet;
     WSMAN_OPTION_SETEX optionSet;
     uint               version_;
-    const(wchar)*      uiLocale;
-    const(wchar)*      dataLocale;
+    const(PWSTR)       uiLocale;
+    const(PWSTR)       dataLocale;
 }
 
 struct WSMAN_API
@@ -600,8 +600,8 @@ struct WSMAN_COMMAND
 struct WSMAN_STREAM_ID_SET
 {
     ///Defines the number of stream IDs in <b>streamIDs</b>.
-    uint     streamIDsCount;
-    ushort** streamIDs;
+    uint   streamIDsCount;
+    PWSTR* streamIDs;
 }
 
 ///Defines an individual environment variable by using a name and value pair. This structure is used by the
@@ -610,8 +610,8 @@ struct WSMAN_STREAM_ID_SET
 struct WSMAN_ENVIRONMENT_VARIABLE
 {
     ///Defines the environment variable name. This parameter cannot be <b>NULL</b>.
-    const(wchar)* name;
-    const(wchar)* value;
+    const(PWSTR) name;
+    const(PWSTR) value;
 }
 
 ///Defines an array of environment variables.
@@ -652,7 +652,7 @@ struct WSMAN_SHELL_STARTUP_INFO_V10
     ///Specifies the starting directory for a shell. It is used with any execution command. If this member is a
     ///<b>NULL</b> value, a default directory will be used by the remote machine when executing the command. An empty
     ///value is treated by the underlying protocol as an omitted value.
-    const(wchar)*        workingDirectory;
+    const(PWSTR)         workingDirectory;
     ///A pointer to a WSMAN_ENVIRONMENT_VARIABLE_SET structure that specifies an array of variable name and value pairs,
     ///which describe the starting environment for the shell. The content of these elements is shell specific and can be
     ///defined in terms of other environment variables. If a <b>NULL</b> value is passed, the default environment is
@@ -672,7 +672,7 @@ struct WSMAN_SHELL_STARTUP_INFO_V11
     WSMAN_SHELL_STARTUP_INFO_V10 __AnonymousBase_wsman_L665_C48;
     ///Specifies an optional friendly name to be associated with the shell. This parameter is only functional when the
     ///client passes the flag <b>WSMAN_FLAG_REQUESTED_API_VERSION_1_1</b> to WSManInitialize.
-    const(wchar)* name;
+    const(PWSTR) name;
 }
 
 ///Specifies the maximum duration, in milliseconds, the shell will stay open after the client has disconnected.
@@ -688,14 +688,14 @@ struct WSMAN_SHELL_DISCONNECT_INFO
 struct WSMAN_RECEIVE_DATA_RESULT
 {
     ///Represents the <b>streamId</b> for which <b>streamData</b> is defined.
-    const(wchar)* streamId;
+    const(PWSTR) streamId;
     ///Represents the data associated with <b>streamId</b>. The data can be stream text, binary content, or XML. For
     ///more information about the possible data, see WSMAN_DATA.
-    WSMAN_DATA    streamData;
+    WSMAN_DATA   streamData;
     ///Specifies the status of the command. If this member is set to <b>WSMAN_COMMAND_STATE_DONE</b>, the command should
     ///be immediately closed.
-    const(wchar)* commandState;
-    uint          exitCode;
+    const(PWSTR) commandState;
+    uint         exitCode;
 }
 
 struct WSMAN_CONNECT_DATA
@@ -731,8 +731,8 @@ struct WSMAN_SHELL_ASYNC
 struct WSMAN_COMMAND_ARG_SET
 {
     ///Specifies the number of arguments in the array.
-    uint     argsCount;
-    ushort** args;
+    uint   argsCount;
+    PWSTR* args;
 }
 
 ///Stores client information for an inbound request that was sent with a client certificate. The individual fields
@@ -740,12 +740,12 @@ struct WSMAN_COMMAND_ARG_SET
 struct WSMAN_CERTIFICATE_DETAILS
 {
     ///Specifies the subject that is identified by the certificate.
-    const(wchar)* subject;
+    const(PWSTR) subject;
     ///Specifies the name of the issuer of the certificate.
-    const(wchar)* issuerName;
+    const(PWSTR) issuerName;
     ///Specifies the thumbprint of the issuer.
-    const(wchar)* issuerThumbprint;
-    const(wchar)* subjectName;
+    const(PWSTR) issuerThumbprint;
+    const(PWSTR) subjectName;
 }
 
 ///Specifies the client details for every inbound request.
@@ -757,20 +757,20 @@ struct WSMAN_SENDER_DETAILS
     ///</td> <td> The domain and user name. </td> </tr> <tr> <td> Basic Authentication </td> <td> The user name
     ///specified. </td> </tr> <tr> <td> Client Certificates </td> <td> The subject of the certificate. </td> </tr> <tr>
     ///<td> LiveID </td> <td> The LiveID PUID as a string. </td> </tr> </table>
-    const(wchar)* senderName;
+    const(PWSTR) senderName;
     ///Specifies a string that indicates which authentication mechanism was used by the client. The following values are
     ///predefined: <ul> <li>Basic</li> <li>ClientCertificate</li> </ul> All other types are queried directly from the
     ///security package. For Internet Information Services (IIS) hosting, this string is retrieved from the IIS
     ///infrastructure.
-    const(wchar)* authenticationMechanism;
+    const(PWSTR) authenticationMechanism;
     ///A pointer to a WSMAN_CERTIFICATE_DETAILS structure that specifies the details of the client's certificate. This
     ///parameter is valid only if the <i>authenticationMechanism</i>is set to ClientCertificate.
     WSMAN_CERTIFICATE_DETAILS* certificateDetails;
     ///Specifies the identity token of the user if a Windows security token is available for a user. This token will be
     ///used by the thread to impersonate this user for all calls into the plug-in. <div class="alert"><b>Note</b>
     ///Authorization plug-ins can change the user context and use a different impersonation token.</div> <div> </div>
-    HANDLE        clientToken;
-    const(wchar)* httpURL;
+    HANDLE       clientToken;
+    const(PWSTR) httpURL;
 }
 
 ///Specifies information for a plug-in request. A pointer to a <b>WSMAN_PLUGIN_REQUEST</b> structure is passed to all
@@ -786,18 +786,18 @@ struct WSMAN_PLUGIN_REQUEST
     ///invalid locale error.</li> </ul> Any call into the plug-in will have the locale on the thread set to the locale
     ///that is specified in this member. If the plug-in has other threads working on the request, the plug-in will need
     ///to set the locale accordingly on each thread that it uses.
-    const(wchar)* locale;
+    const(PWSTR) locale;
     ///Specifies the resource URI for this operation.
-    const(wchar)* resourceUri;
+    const(PWSTR) resourceUri;
     ///A pointer to a WSMAN_OPERATION_INFO structure that contains extra information about the operation. Some of the
     ///information in this structure will be <b>NULL</b> because not all of the parameters are relevant to all
     ///operations.
     WSMAN_OPERATION_INFO* operationInfo;
     ///If the operation is canceled, the <b>shutdownNotification</b> member is set to <b>TRUE</b>.
-    int           shutdownNotification;
+    int          shutdownNotification;
     ///If the operation is canceled, <b>shutdownNotification</b> is signaled.
-    HANDLE        shutdownNotificationHandle;
-    const(wchar)* dataLocale;
+    HANDLE       shutdownNotificationHandle;
+    const(PWSTR) dataLocale;
 }
 
 ///Reports quota information on a per-user basis for authorization plug-ins.
@@ -858,8 +858,8 @@ uint WSManDeinitialize(WSMAN_API* apiHandle, uint flags);
 ///                        the function will return <b>ERROR_INSUFFICIENT_BUFFER</b> and this parameter will be set to the number of
 ///                        characters needed to store the message, including the <b>null</b> terminator.
 @DllImport("WsmSvc")
-uint WSManGetErrorMessage(WSMAN_API* apiHandle, uint flags, const(wchar)* languageCode, uint errorCode, 
-                          uint messageLength, const(wchar)* message, uint* messageLengthUsed);
+uint WSManGetErrorMessage(WSMAN_API* apiHandle, uint flags, const(PWSTR) languageCode, uint errorCode, 
+                          uint messageLength, PWSTR message, uint* messageLengthUsed);
 
 ///Creates a session object.
 ///Params:
@@ -885,7 +885,7 @@ uint WSManGetErrorMessage(WSMAN_API* apiHandle, uint flags, const(wchar)* langua
 ///    session = Defines the session handle that uniquely identifies the session. This parameter cannot be <b>NULL</b>. This
 ///              handle should be closed by calling the WSManCloseSession method.
 @DllImport("WsmSvc")
-uint WSManCreateSession(WSMAN_API* apiHandle, const(wchar)* connection, uint flags, 
+uint WSManCreateSession(WSMAN_API* apiHandle, const(PWSTR) connection, uint flags, 
                         WSMAN_AUTHENTICATION_CREDENTIALS* serverAuthenticationCredentials, 
                         WSMAN_PROXY_INFO* proxyInfo, WSMAN_SESSION** session);
 
@@ -931,7 +931,7 @@ uint WSManGetSessionOptionAsDword(WSMAN_SESSION* session, WSManSessionOption opt
 ///    stringLengthUsed = Specifies the length of the string returned in the <i>string</i> parameter.
 @DllImport("WsmSvc")
 uint WSManGetSessionOptionAsString(WSMAN_SESSION* session, WSManSessionOption option, uint stringLength, 
-                                   const(wchar)* string, uint* stringLengthUsed);
+                                   PWSTR string, uint* stringLengthUsed);
 
 ///Cancels or closes an asynchronous operation. All resources that are associated with the operation are freed.
 ///Params:
@@ -962,7 +962,7 @@ uint WSManCloseOperation(WSMAN_OPERATION* operationHandle, uint flags);
 ///            callback function. See the WSMAN_SHELL_ASYNC structure for more information. This parameter cannot be <b>NULL</b>
 ///            and should be closed by calling the WSManCloseShell method.
 @DllImport("WsmSvc")
-void WSManCreateShell(WSMAN_SESSION* session, uint flags, const(wchar)* resourceUri, 
+void WSManCreateShell(WSMAN_SESSION* session, uint flags, const(PWSTR) resourceUri, 
                       WSMAN_SHELL_STARTUP_INFO_V11* startupInfo, WSMAN_OPTION_SET* options, WSMAN_DATA* createXml, 
                       WSMAN_SHELL_ASYNC* async, WSMAN_SHELL** shell);
 
@@ -982,7 +982,7 @@ void WSManCreateShell(WSMAN_SESSION* session, uint flags, const(wchar)* resource
 ///            callback function. See the WSMAN_SHELL_ASYNC structure for more information. This parameter cannot be <b>NULL</b>
 ///            and should be closed by calling the WSManCloseCommand method.
 @DllImport("WsmSvc")
-void WSManRunShellCommand(WSMAN_SHELL* shell, uint flags, const(wchar)* commandLine, WSMAN_COMMAND_ARG_SET* args, 
+void WSManRunShellCommand(WSMAN_SHELL* shell, uint flags, const(PWSTR) commandLine, WSMAN_COMMAND_ARG_SET* args, 
                           WSMAN_OPTION_SET* options, WSMAN_SHELL_ASYNC* async, WSMAN_COMMAND** command);
 
 ///Sends a control code to an existing command or to the shell itself.
@@ -996,7 +996,7 @@ void WSManRunShellCommand(WSMAN_SHELL* shell, uint flags, const(wchar)* commandL
 ///            callback function. See the WSMAN_SHELL_ASYNC structure for more information. This parameter cannot be <b>NULL</b>
 ///            and should be closed by calling the WSManCloseOperation method.
 @DllImport("WsmSvc")
-void WSManSignalShell(WSMAN_SHELL* shell, WSMAN_COMMAND* command, uint flags, const(wchar)* code, 
+void WSManSignalShell(WSMAN_SHELL* shell, WSMAN_COMMAND* command, uint flags, const(PWSTR) code, 
                       WSMAN_SHELL_ASYNC* async, WSMAN_OPERATION** signalOperation);
 
 ///Retrieves output from a running command or from the shell.
@@ -1028,7 +1028,7 @@ void WSManReceiveShellOutput(WSMAN_SHELL* shell, WSMAN_COMMAND* command, uint fl
 ///            callback function. See the WSMAN_SHELL_ASYNC structure for more information. This parameter cannot be <b>NULL</b>
 ///            and should be closed by calling the WSManCloseCommand method.
 @DllImport("WsmSvc")
-void WSManSendShellInput(WSMAN_SHELL* shell, WSMAN_COMMAND* command, uint flags, const(wchar)* streamId, 
+void WSManSendShellInput(WSMAN_SHELL* shell, WSMAN_COMMAND* command, uint flags, const(PWSTR) streamId, 
                          WSMAN_DATA* streamData, BOOL endOfStream, WSMAN_SHELL_ASYNC* async, 
                          WSMAN_OPERATION** sendOperation);
 
@@ -1068,7 +1068,7 @@ void WSManCloseShell(WSMAN_SHELL* shellHandle, uint flags, WSMAN_SHELL_ASYNC* as
 ///            callback function. See the WSMAN_SHELL_ASYNC structure for more information. This parameter cannot be <b>NULL</b>
 ///            and should be closed by calling the WSManCloseShell method.
 @DllImport("WsmSvc")
-void WSManCreateShellEx(WSMAN_SESSION* session, uint flags, const(wchar)* resourceUri, const(wchar)* shellId, 
+void WSManCreateShellEx(WSMAN_SESSION* session, uint flags, const(PWSTR) resourceUri, const(PWSTR) shellId, 
                         WSMAN_SHELL_STARTUP_INFO_V11* startupInfo, WSMAN_OPTION_SET* options, WSMAN_DATA* createXml, 
                         WSMAN_SHELL_ASYNC* async, WSMAN_SHELL** shell);
 
@@ -1093,7 +1093,7 @@ void WSManCreateShellEx(WSMAN_SESSION* session, uint flags, const(wchar)* resour
 ///            callback function. See the WSMAN_SHELL_ASYNC structure for more information. This parameter cannot be <b>NULL</b>
 ///            and should be closed by calling the WSManCloseCommand method.
 @DllImport("WsmSvc")
-void WSManRunShellCommandEx(WSMAN_SHELL* shell, uint flags, const(wchar)* commandId, const(wchar)* commandLine, 
+void WSManRunShellCommandEx(WSMAN_SHELL* shell, uint flags, const(PWSTR) commandId, const(PWSTR) commandLine, 
                             WSMAN_COMMAND_ARG_SET* args, WSMAN_OPTION_SET* options, WSMAN_SHELL_ASYNC* async, 
                             WSMAN_COMMAND** command);
 
@@ -1146,7 +1146,7 @@ void WSManReconnectShellCommand(WSMAN_COMMAND* commandHandle, uint flags, WSMAN_
 ///            shell object. The shell object should be deleted by calling the WSManCloseShell method. This parameter cannot be
 ///            NULL.
 @DllImport("WsmSvc")
-void WSManConnectShell(WSMAN_SESSION* session, uint flags, const(wchar)* resourceUri, const(wchar)* shellID, 
+void WSManConnectShell(WSMAN_SESSION* session, uint flags, const(PWSTR) resourceUri, const(PWSTR) shellID, 
                        WSMAN_OPTION_SET* options, WSMAN_DATA* connectXml, WSMAN_SHELL_ASYNC* async, 
                        WSMAN_SHELL** shell);
 
@@ -1163,7 +1163,7 @@ void WSManConnectShell(WSMAN_SESSION* session, uint flags, const(wchar)* resourc
 ///    async = Defines an asynchronous structure to contain an optional user context and a mandatory callback function. For more
 ///            information, see WSMAN_SHELL_ASYNC. This parameter cannot be <b>NULL</b>.
 @DllImport("WsmSvc")
-void WSManConnectShellCommand(WSMAN_SHELL* shell, uint flags, const(wchar)* commandID, WSMAN_OPTION_SET* options, 
+void WSManConnectShellCommand(WSMAN_SHELL* shell, uint flags, const(PWSTR) commandID, WSMAN_OPTION_SET* options, 
                               WSMAN_DATA* connectXml, WSMAN_SHELL_ASYNC* async, WSMAN_COMMAND** command);
 
 ///Reports shell and command context back to the Windows Remote Management (WinRM) infrastructure so that further
@@ -1192,8 +1192,8 @@ uint WSManPluginReportContext(WSMAN_PLUGIN_REQUEST* requestDetails, uint flags, 
 ///    commandState = Specifies the state of the command. This parameter must be set either to one of the following values or to a
 ///                   value defined by the plug-in.
 @DllImport("WsmSvc")
-uint WSManPluginReceiveResult(WSMAN_PLUGIN_REQUEST* requestDetails, uint flags, const(wchar)* stream, 
-                              WSMAN_DATA* streamResult, const(wchar)* commandState, uint exitCode);
+uint WSManPluginReceiveResult(WSMAN_PLUGIN_REQUEST* requestDetails, uint flags, const(PWSTR) stream, 
+                              WSMAN_DATA* streamResult, const(PWSTR) commandState, uint exitCode);
 
 ///Reports the completion of an operation by all operation entry points except for the WSManPluginStartup and
 ///WSManPluginShutdown methods.
@@ -1214,7 +1214,7 @@ uint WSManPluginReceiveResult(WSMAN_PLUGIN_REQUEST* requestDetails, uint flags, 
 ///    
 @DllImport("WsmSvc")
 uint WSManPluginOperationComplete(WSMAN_PLUGIN_REQUEST* requestDetails, uint flags, uint errorCode, 
-                                  const(wchar)* extendedInformation);
+                                  const(PWSTR) extendedInformation);
 
 ///Gets operational information for items such as time-outs and data restrictions that are associated with the
 ///operation. A plug-in should not use these parameters for anything other than informational purposes.
@@ -1268,7 +1268,7 @@ uint WSManPluginFreeRequestDetails(WSMAN_PLUGIN_REQUEST* requestDetails);
 @DllImport("WsmSvc")
 uint WSManPluginAuthzUserComplete(WSMAN_SENDER_DETAILS* senderDetails, uint flags, void* userAuthorizationContext, 
                                   HANDLE impersonationToken, BOOL userIsAdministrator, uint errorCode, 
-                                  const(wchar)* extendedErrorInformation);
+                                  const(PWSTR) extendedErrorInformation);
 
 ///Called from the WSManPluginAuthzOperation plug-in entry point. It reports either a successful or failed authorization
 ///for a user operation.
@@ -1289,7 +1289,7 @@ uint WSManPluginAuthzUserComplete(WSMAN_SENDER_DETAILS* senderDetails, uint flag
 @DllImport("WsmSvc")
 uint WSManPluginAuthzOperationComplete(WSMAN_SENDER_DETAILS* senderDetails, uint flags, 
                                        void* userAuthorizationContext, uint errorCode, 
-                                       const(wchar)* extendedErrorInformation);
+                                       const(PWSTR) extendedErrorInformation);
 
 ///Called from the WSManPluginAuthzQueryQuota plug-in entry point and must be called whether or not the plug-in can
 ///carry out the request.
@@ -1310,7 +1310,7 @@ uint WSManPluginAuthzOperationComplete(WSMAN_SENDER_DETAILS* senderDetails, uint
 ///    
 @DllImport("WsmSvc")
 uint WSManPluginAuthzQueryQuotaComplete(WSMAN_SENDER_DETAILS* senderDetails, uint flags, WSMAN_AUTHZ_QUOTA* quota, 
-                                        uint errorCode, const(wchar)* extendedErrorInformation);
+                                        uint errorCode, const(PWSTR) extendedErrorInformation);
 
 
 // Interfaces
@@ -1970,7 +1970,7 @@ interface IWSManResourceLocator : IDispatch
     ///Gets or sets the <b>MustUnderstandOptions</b> value for the ResourceLocator object. You can provide an
     ///IWSManResourceLocator object instead of specifying a resource URI in IWSManSession object operations such as Get,
     ///Put, or Enumerate. This property is read/write.
-    HRESULT get_MustUnderstandOptions(int* mustUnderstand);
+    HRESULT get_MustUnderstandOptions(BOOL* mustUnderstand);
     ///Removes any options from the ResourceLocator object. You can provide a ResourceLocator object instead of
     ///specifying a resource URI in IWSManSession object operations such as Get, Put, or Enumerate.
     ///Returns:

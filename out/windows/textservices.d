@@ -9,10 +9,10 @@ public import windows.com : FORMATETC, HRESULT, IDataObject, IEnumGUID, IEnumStr
 public import windows.displaydevices : POINT, RECT, SIZE;
 public import windows.gdi : HBITMAP, HICON;
 public import windows.structuredstorage : IStream;
-public import windows.systemservices : BOOL;
+public import windows.systemservices : BOOL, PWSTR;
 public import windows.windowsandmessaging : HWND, LPARAM, MSG, WPARAM;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -458,6 +458,11 @@ enum InputScope : int
 // Structs
 
 
+struct HKL
+{
+    ptrdiff_t Value;
+}
+
 ///The <b>TS_STATUS</b> structure contains document status data.
 struct TS_STATUS
 {
@@ -658,19 +663,19 @@ struct TF_INPUTPROCESSORPROFILE
     ///The type of this profile. This is one of these values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr>
     ///<td>TF_PROFILETYPE_INPUTPROCESSOR</td> <td>This is a text service.</td> </tr> <tr>
     ///<td>TF_PROFILETYPE_KEYBOARDLAYOUT</td> <td>This is a keyboard layout.</td> </tr> </table>
-    uint      dwProfileType;
+    uint   dwProfileType;
     ///The language id for this profile.
-    ushort    langid;
+    ushort langid;
     ///The CLSID of the text service. This is CLSID_NULL if this profile is a keyboard layout.
-    GUID      clsid;
+    GUID   clsid;
     ///The guidProfile of the text services. This is GUID_NULL if this profile is a keyboard layout.
-    GUID      guidProfile;
+    GUID   guidProfile;
     ///The category of this text service. This category is GUID_TFCAT_TIP_KEYBOARD, GUID_TFCAT_TIP_SPEECH,
     ///GUID_TFCAT_TIP_HANDWRITING or something in GUID_TFCAT_CATEGORY_OF_TIP.
-    GUID      catid;
+    GUID   catid;
     ///The keyboard layout handle of the substitute for this text service. This can be <b>NULL</b> if the text service
     ///does not have a substitute or this profile is a keyboard layout.
-    ptrdiff_t hklSubstitute;
+    HKL    hklSubstitute;
     ///The flag to specify the capability of text service. This is the combination of the following flags: <table> <tr>
     ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td>TF_IPP_CAPS_DISABLEONTRANSITORY</td> <td>This text service profile
     ///is disabled on transitory context.</td> </tr> <tr> <td>TF_IPP_CAPS_SECUREMODESUPPORT</td> <td>This text service
@@ -684,10 +689,10 @@ struct TF_INPUTPROCESSORPROFILE
     ///<td>TF_IPP_CAPS_SYSTRAYSUPPORT</td> <td><b>Starting with Windows 8:</b> This text service supports inclusion in
     ///the System Tray. This is used for text services that do not set the TF_IPP_CAPS_IMMERSIVESUPPORT flag but are
     ///still compatible with the System Tray.</td> </tr> </table>
-    uint      dwCaps;
+    uint   dwCaps;
     ///The keyboard layout handle. This is <b>NULL</b> if this profile is a text service.
-    ptrdiff_t hkl;
-    uint      dwFlags;
+    HKL    hkl;
+    uint   dwFlags;
 }
 
 ///The <b>TF_PRESERVEDKEY</b> structure represents a preserved key.
@@ -704,7 +709,7 @@ struct TF_DA_COLOR
 {
     ///Specifies the color type as defined in the TF_DA_COLORTYPE enumeration.
     TF_DA_COLORTYPE type;
-    union
+union
     {
         int  nIndex;
         uint cr;
@@ -739,7 +744,7 @@ struct TF_LMLATTELEMENT
     uint dwFrameLen;
     ///Not currently used.
     uint dwFlags;
-    union
+union
     {
         int iCost;
     }
@@ -855,7 +860,7 @@ interface ITextStoreACP : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> An unspecified error occurred.
     ///    </td> </tr> </table>
     ///    
-    HRESULT RequestLock(uint dwLockFlags, int* phrSession);
+    HRESULT RequestLock(uint dwLockFlags, HRESULT* phrSession);
     ///The <b>ITextStoreACP::GetStatus</b> method obtains the document status. The document status is returned through
     ///the TS_STATUS structure.
     ///Params:
@@ -906,7 +911,7 @@ interface ITextStoreACP : IUnknown
     ///    a read-only lock on the document. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>TS_E_NOSELECTION</b></dt>
     ///    </dl> </td> <td width="60%"> The document has no selection. </td> </tr> </table>
     ///    
-    HRESULT GetSelection(uint ulIndex, uint ulCount, char* pSelection, uint* pcFetched);
+    HRESULT GetSelection(uint ulIndex, uint ulCount, TS_SELECTION_ACP* pSelection, uint* pcFetched);
     ///The <b>ITextStoreACP::SetSelection</b> method selects text within the document. The application must have a
     ///read/write lock on the document before calling this method.
     ///Params:
@@ -923,7 +928,7 @@ interface ITextStoreACP : IUnknown
     ///    <dt><b>TF_E_NOLOCK</b></dt> </dl> </td> <td width="60%"> The caller does not have a read/write lock. </td>
     ///    </tr> </table>
     ///    
-    HRESULT SetSelection(uint ulCount, char* pSelection);
+    HRESULT SetSelection(uint ulCount, const(TS_SELECTION_ACP)* pSelection);
     ///The <b>ITextStoreACP::GetText</b> method returns information about text at a specified character position. This
     ///method returns the visible and hidden text and indicates if embedded data is attached to the text.
     ///Params:
@@ -947,8 +952,8 @@ interface ITextStoreACP : IUnknown
     ///    <dt><b>TF_E_NOLOCK</b></dt> </dl> </td> <td width="60%"> The caller does not have a read-only lock on the
     ///    document. </td> </tr> </table>
     ///    
-    HRESULT GetText(int acpStart, int acpEnd, char* pchPlain, uint cchPlainReq, uint* pcchPlainRet, 
-                    char* prgRunInfo, uint cRunInfoReq, uint* pcRunInfoRet, int* pacpNext);
+    HRESULT GetText(int acpStart, int acpEnd, PWSTR pchPlain, uint cchPlainReq, uint* pcchPlainRet, 
+                    TS_RUNINFO* prgRunInfo, uint cRunInfoReq, uint* pcRunInfoRet, int* pacpNext);
     ///The <b>ITextStoreACP::SetText</b> method sets the text selection to the supplied character positions.
     ///Params:
     ///    dwFlags = If set to the value of TS_ST_CORRECTION, the text is a transform (correction) of existing content, and any
@@ -980,8 +985,7 @@ interface ITextStoreACP : IUnknown
     ///    </dl> </td> <td width="60%"> An attempt was made to modify text across a region boundary. </td> </tr>
     ///    </table>
     ///    
-    HRESULT SetText(uint dwFlags, int acpStart, int acpEnd, const(wchar)* pchText, uint cch, 
-                    TS_TEXTCHANGE* pChange);
+    HRESULT SetText(uint dwFlags, int acpStart, int acpEnd, const(PWSTR) pchText, uint cch, TS_TEXTCHANGE* pChange);
     ///The <b>ITextStoreACP::GetFormattedText</b> method returns formatted text data about a specified text string. The
     ///caller must have a read/write lock on the document before calling this method.
     ///Params:
@@ -1033,7 +1037,7 @@ interface ITextStoreACP : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The <i>pFormatEtc</i>
     ///    parameter is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT QueryInsertEmbedded(const(GUID)* pguidService, const(FORMATETC)* pFormatEtc, int* pfInsertable);
+    HRESULT QueryInsertEmbedded(const(GUID)* pguidService, const(FORMATETC)* pFormatEtc, BOOL* pfInsertable);
     ///Inserts an embedded object at the specified character.
     ///Params:
     ///    dwFlags = Must be TS_IE_CORRECTION.
@@ -1094,7 +1098,7 @@ interface ITextStoreACP : IUnknown
     ///    a lock on the document. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td
     ///    width="60%"> The <i>pchText</i> parameter is invalid. </td> </tr> </table>
     ///    
-    HRESULT InsertTextAtSelection(uint dwFlags, const(wchar)* pchText, uint cch, int* pacpStart, int* pacpEnd, 
+    HRESULT InsertTextAtSelection(uint dwFlags, const(PWSTR) pchText, uint cch, int* pacpStart, int* pacpEnd, 
                                   TS_TEXTCHANGE* pChange);
     ///The <b>ITextStoreACP::InsertEmbeddedAtSelection</b> method inserts an IDataObject object at the insertion point
     ///or selection. The client that calls this method must have a read/write lock before inserting an
@@ -1158,7 +1162,7 @@ interface ITextStoreACP : IUnknown
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> The method
     ///    was unable to allocate sufficient memory to complete the operation. </td> </tr> </table>
     ///    
-    HRESULT RequestSupportedAttrs(uint dwFlags, uint cFilterAttrs, char* paFilterAttrs);
+    HRESULT RequestSupportedAttrs(uint dwFlags, uint cFilterAttrs, const(GUID)* paFilterAttrs);
     ///Gets text attributes at the specified character position.
     ///Params:
     ///    acpPos = Specifies the application character position in the document.
@@ -1168,7 +1172,7 @@ interface ITextStoreACP : IUnknown
     ///Returns:
     ///    This method has no return values.
     ///    
-    HRESULT RequestAttrsAtPosition(int acpPos, uint cFilterAttrs, char* paFilterAttrs, uint dwFlags);
+    HRESULT RequestAttrsAtPosition(int acpPos, uint cFilterAttrs, const(GUID)* paFilterAttrs, uint dwFlags);
     ///Gets text attributes transitioning at the specified character position.
     ///Params:
     ///    acpPos = Specifies the application character position in the document.
@@ -1188,7 +1192,8 @@ interface ITextStoreACP : IUnknown
     ///    width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method was successful. </td> </tr>
     ///    </table>
     ///    
-    HRESULT RequestAttrsTransitioningAtPosition(int acpPos, uint cFilterAttrs, char* paFilterAttrs, uint dwFlags);
+    HRESULT RequestAttrsTransitioningAtPosition(int acpPos, uint cFilterAttrs, const(GUID)* paFilterAttrs, 
+                                                uint dwFlags);
     ///The <b>ITextStoreACP::FindNextAttrTransition</b> method determines the character position where a transition
     ///occurs in an attribute value. The specified attribute to check is application-dependent.
     ///Params:
@@ -1215,8 +1220,8 @@ interface ITextStoreACP : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>TS_E_INVALIDPOS</b></dt> </dl> </td> <td width="60%"> The character
     ///    positions specified are beyond the text in the document. </td> </tr> </table>
     ///    
-    HRESULT FindNextAttrTransition(int acpStart, int acpHalt, uint cFilterAttrs, char* paFilterAttrs, uint dwFlags, 
-                                   int* pacpNext, int* pfFound, int* plFoundOffset);
+    HRESULT FindNextAttrTransition(int acpStart, int acpHalt, uint cFilterAttrs, const(GUID)* paFilterAttrs, 
+                                   uint dwFlags, int* pacpNext, BOOL* pfFound, int* plFoundOffset);
     ///Gets the attributes returned by a call to an attribute request method.
     ///Params:
     ///    ulCount = Specifies the number of supported attributes to obtain.
@@ -1228,7 +1233,7 @@ interface ITextStoreACP : IUnknown
     ///    width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method was successful. </td> </tr>
     ///    </table>
     ///    
-    HRESULT RetrieveRequestedAttrs(uint ulCount, char* paAttrVals, uint* pcFetched);
+    HRESULT RetrieveRequestedAttrs(uint ulCount, TS_ATTRVAL* paAttrVals, uint* pcFetched);
     ///The <b>ITextStoreACP::GetEndACP</b> method returns the number of characters in a document.
     ///Params:
     ///    pacp = Receives the character position of the last character in the document plus one.
@@ -1298,7 +1303,7 @@ interface ITextStoreACP : IUnknown
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>TS_E_NOLOCK</b></dt> </dl> </td> <td width="60%"> The caller
     ///    does not have a read-only lock on the document. </td> </tr> </table>
     ///    
-    HRESULT GetTextExt(uint vcView, int acpStart, int acpEnd, RECT* prc, int* pfClipped);
+    HRESULT GetTextExt(uint vcView, int acpStart, int acpEnd, RECT* prc, BOOL* pfClipped);
     ///The <b>ITextStoreACP::GetScreenExt</b> method returns the bounding box screen coordinates of the display surface
     ///where the text stream is rendered.
     ///Params:
@@ -1381,7 +1386,7 @@ interface ITextStoreACP2 : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> An unspecified error occurred.
     ///    </td> </tr> </table>
     ///    
-    HRESULT RequestLock(uint dwLockFlags, int* phrSession);
+    HRESULT RequestLock(uint dwLockFlags, HRESULT* phrSession);
     ///Gets the document status. The document status is returned through the TS_STATUS structure.
     ///Params:
     ///    pdcs = Receives the TS_STATUS structure that contains the document status. Cannot be <b>NULL</b>.
@@ -1429,7 +1434,7 @@ interface ITextStoreACP2 : IUnknown
     ///    a read-only lock on the document. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>TS_E_NOSELECTION</b></dt>
     ///    </dl> </td> <td width="60%"> The document has no selection. </td> </tr> </table>
     ///    
-    HRESULT GetSelection(uint ulIndex, uint ulCount, char* pSelection, uint* pcFetched);
+    HRESULT GetSelection(uint ulIndex, uint ulCount, TS_SELECTION_ACP* pSelection, uint* pcFetched);
     ///Selects text within the document. The application must have a read/write lock on the document before calling this
     ///method.
     ///Params:
@@ -1446,7 +1451,7 @@ interface ITextStoreACP2 : IUnknown
     ///    <dt><b>TF_E_NOLOCK</b></dt> </dl> </td> <td width="60%"> The caller does not have a read/write lock. </td>
     ///    </tr> </table>
     ///    
-    HRESULT SetSelection(uint ulCount, char* pSelection);
+    HRESULT SetSelection(uint ulCount, const(TS_SELECTION_ACP)* pSelection);
     ///Gets info about text at a specified character position. This method returns the visible and hidden text and
     ///indicates if embedded data is attached to the text.
     ///Params:
@@ -1470,8 +1475,8 @@ interface ITextStoreACP2 : IUnknown
     ///    <dt><b>TF_E_NOLOCK</b></dt> </dl> </td> <td width="60%"> The caller does not have a read-only lock on the
     ///    document. </td> </tr> </table>
     ///    
-    HRESULT GetText(int acpStart, int acpEnd, char* pchPlain, uint cchPlainReq, uint* pcchPlainRet, 
-                    char* prgRunInfo, uint cRunInfoReq, uint* pcRunInfoRet, int* pacpNext);
+    HRESULT GetText(int acpStart, int acpEnd, PWSTR pchPlain, uint cchPlainReq, uint* pcchPlainRet, 
+                    TS_RUNINFO* prgRunInfo, uint cRunInfoReq, uint* pcRunInfoRet, int* pacpNext);
     ///Sets the text selection to the supplied character positions.
     ///Params:
     ///    dwFlags = If set to the value of <b>TS_ST_CORRECTION</b>, the text is a transform (correction) of existing content, and
@@ -1503,8 +1508,7 @@ interface ITextStoreACP2 : IUnknown
     ///    </dl> </td> <td width="60%"> An attempt was made to modify text across a region boundary. </td> </tr>
     ///    </table>
     ///    
-    HRESULT SetText(uint dwFlags, int acpStart, int acpEnd, const(wchar)* pchText, uint cch, 
-                    TS_TEXTCHANGE* pChange);
+    HRESULT SetText(uint dwFlags, int acpStart, int acpEnd, const(PWSTR) pchText, uint cch, TS_TEXTCHANGE* pChange);
     ///Gets formatted text data about a specified text string. The caller must have a read/write lock on the document
     ///before calling this method.
     ///Params:
@@ -1562,7 +1566,7 @@ interface ITextStoreACP2 : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The <i>pFormatEtc</i>
     ///    parameter is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT QueryInsertEmbedded(const(GUID)* pguidService, const(FORMATETC)* pFormatEtc, int* pfInsertable);
+    HRESULT QueryInsertEmbedded(const(GUID)* pguidService, const(FORMATETC)* pFormatEtc, BOOL* pfInsertable);
     ///Inserts an embedded object at the specified character.
     ///Params:
     ///    dwFlags = Must be TS_IE_CORRECTION.
@@ -1596,7 +1600,7 @@ interface ITextStoreACP2 : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT InsertTextAtSelection(uint dwFlags, const(wchar)* pchText, uint cch, int* pacpStart, int* pacpEnd, 
+    HRESULT InsertTextAtSelection(uint dwFlags, const(PWSTR) pchText, uint cch, int* pacpStart, int* pacpEnd, 
                                   TS_TEXTCHANGE* pChange);
     ///Inserts an IDataObject at the insertion point or selection. The client that calls this method must have a
     ///read/write lock before inserting an IDataObject object into the document.
@@ -1657,7 +1661,7 @@ interface ITextStoreACP2 : IUnknown
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> The method
     ///    was unable to allocate sufficient memory to complete the operation. </td> </tr> </table>
     ///    
-    HRESULT RequestSupportedAttrs(uint dwFlags, uint cFilterAttrs, char* paFilterAttrs);
+    HRESULT RequestSupportedAttrs(uint dwFlags, uint cFilterAttrs, const(GUID)* paFilterAttrs);
     ///Gets text attributes at the specified character position.
     ///Params:
     ///    acpPos = Specifies the application character position in the document.
@@ -1677,7 +1681,7 @@ interface ITextStoreACP2 : IUnknown
     ///    width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method was successful. </td> </tr>
     ///    </table>
     ///    
-    HRESULT RequestAttrsAtPosition(int acpPos, uint cFilterAttrs, char* paFilterAttrs, uint dwFlags);
+    HRESULT RequestAttrsAtPosition(int acpPos, uint cFilterAttrs, const(GUID)* paFilterAttrs, uint dwFlags);
     ///Gets text attributes transitioning at the specified character position.
     ///Params:
     ///    acpPos = Specifies the application character position in the document.
@@ -1697,7 +1701,8 @@ interface ITextStoreACP2 : IUnknown
     ///    width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method was successful. </td> </tr>
     ///    </table>
     ///    
-    HRESULT RequestAttrsTransitioningAtPosition(int acpPos, uint cFilterAttrs, char* paFilterAttrs, uint dwFlags);
+    HRESULT RequestAttrsTransitioningAtPosition(int acpPos, uint cFilterAttrs, const(GUID)* paFilterAttrs, 
+                                                uint dwFlags);
     ///Determines the character position where a transition occurs in an attribute value. The specified attribute to
     ///check is application-dependent.
     ///Params:
@@ -1724,8 +1729,8 @@ interface ITextStoreACP2 : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>TS_E_INVALIDPOS</b></dt> </dl> </td> <td width="60%"> The character
     ///    positions specified are beyond the text in the document. </td> </tr> </table>
     ///    
-    HRESULT FindNextAttrTransition(int acpStart, int acpHalt, uint cFilterAttrs, char* paFilterAttrs, uint dwFlags, 
-                                   int* pacpNext, int* pfFound, int* plFoundOffset);
+    HRESULT FindNextAttrTransition(int acpStart, int acpHalt, uint cFilterAttrs, const(GUID)* paFilterAttrs, 
+                                   uint dwFlags, int* pacpNext, BOOL* pfFound, int* plFoundOffset);
     ///Gets the attributes returned by a call to an attribute request method.
     ///Params:
     ///    ulCount = Specifies the number of supported attributes to obtain.
@@ -1737,7 +1742,7 @@ interface ITextStoreACP2 : IUnknown
     ///    width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method was successful. </td> </tr>
     ///    </table>
     ///    
-    HRESULT RetrieveRequestedAttrs(uint ulCount, char* paAttrVals, uint* pcFetched);
+    HRESULT RetrieveRequestedAttrs(uint ulCount, TS_ATTRVAL* paAttrVals, uint* pcFetched);
     ///Gets the number of characters in a document.
     ///Params:
     ///    pacp = Receives the character position of the last character in the document plus one.
@@ -1805,7 +1810,7 @@ interface ITextStoreACP2 : IUnknown
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>TS_E_NOLOCK</b></dt> </dl> </td> <td width="60%"> The caller
     ///    does not have a read-only lock on the document. </td> </tr> </table>
     ///    
-    HRESULT GetTextExt(uint vcView, int acpStart, int acpEnd, RECT* prc, int* pfClipped);
+    HRESULT GetTextExt(uint vcView, int acpStart, int acpEnd, RECT* prc, BOOL* pfClipped);
     ///Gets the bounding box screen coordinates of the display surface where the text stream is rendered.
     ///Params:
     ///    vcView = Specifies the context view.
@@ -1880,7 +1885,7 @@ interface ITextStoreACPSink : IUnknown
     ///    acpEnd = Specifies the ending point of the attribute change.
     ///    cAttrs = Specifies the number of attributes in the <i>paAttrs</i> array.
     ///    paAttrs = Pointer to an array of TS_ATTRID values that identify the attributes changed.
-    HRESULT OnAttrsChange(int acpStart, int acpEnd, uint cAttrs, char* paAttrs);
+    HRESULT OnAttrsChange(int acpStart, int acpEnd, uint cAttrs, const(GUID)* paAttrs);
     ///Called to grant a document lock.
     ///Params:
     ///    dwLockFlags = Contains a set of flags that identify the type of lock requested and other lock request data. This can be one
@@ -1952,7 +1957,7 @@ interface IAnchor : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> <i>pfEqual</i> is
     ///    invalid. </td> </tr> </table>
     ///    
-    HRESULT IsEqual(IAnchor paWith, int* pfEqual);
+    HRESULT IsEqual(IAnchor paWith, BOOL* pfEqual);
     ///The <b>IAnchor::Compare</b> method compares the relative position of two anchors within a text stream.
     ///Params:
     ///    paWith = An anchor object to compare to the primary anchor. Used to determine the relative position of the two
@@ -2033,7 +2038,7 @@ interface IAnchor : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> An input parameter value
     ///    is invalid. </td> </tr> </table>
     ///    
-    HRESULT ShiftRegion(uint dwFlags, TsShiftDir dir, int* pfNoRegion);
+    HRESULT ShiftRegion(uint dwFlags, TsShiftDir dir, BOOL* pfNoRegion);
     ///This method has not been implemented.
     ///Params:
     ///    dwMask = Not used.
@@ -2130,7 +2135,7 @@ interface ITextStoreAnchor : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> An unspecified error occurred.
     ///    </td> </tr> </table>
     ///    
-    HRESULT RequestLock(uint dwLockFlags, int* phrSession);
+    HRESULT RequestLock(uint dwLockFlags, HRESULT* phrSession);
     ///The <b>ITextStoreAnchor::GetStatus</b> method obtains the document status. The document status is returned
     ///through the TS_STATUS structure.
     ///Params:
@@ -2189,7 +2194,7 @@ interface ITextStoreAnchor : IUnknown
     ///    <dt><b>TS_E_NOSELECTION</b></dt> </dl> </td> <td width="60%"> The document has no selection. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetSelection(uint ulIndex, uint ulCount, char* pSelection, uint* pcFetched);
+    HRESULT GetSelection(uint ulIndex, uint ulCount, TS_SELECTION_ANCHOR* pSelection, uint* pcFetched);
     ///Selects text within the document.
     ///Params:
     ///    ulCount = Specifies the number of text selections in <i>pSelection</i>.
@@ -2207,7 +2212,7 @@ interface ITextStoreAnchor : IUnknown
     ///    text in the document. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>TF_E_NOLOCK</b></dt> </dl> </td> <td
     ///    width="60%"> The caller does not have a read/write lock. </td> </tr> </table>
     ///    
-    HRESULT SetSelection(uint ulCount, char* pSelection);
+    HRESULT SetSelection(uint ulCount, const(TS_SELECTION_ANCHOR)* pSelection);
     ///The <b>ITextStoreAnchor::GetText</b> method returns information about text at a specified anchor position. This
     ///method returns the visible and hidden text and indicates if embedded data is attached to the text.
     ///Params:
@@ -2228,7 +2233,7 @@ interface ITextStoreAnchor : IUnknown
     ///    are outside of the document text. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>TS_E_NOLOCK</b></dt> </dl>
     ///    </td> <td width="60%"> The caller does not have a read-only lock on the document. </td> </tr> </table>
     ///    
-    HRESULT GetText(uint dwFlags, IAnchor paStart, IAnchor paEnd, char* pchText, uint cchReq, uint* pcch, 
+    HRESULT GetText(uint dwFlags, IAnchor paStart, IAnchor paEnd, PWSTR pchText, uint cchReq, uint* pcch, 
                     BOOL fUpdateAnchor);
     ///The <b>ITextStoreAnchor::SetText</b> method sets the text selection between two supplied anchor locations.
     ///Params:
@@ -2253,7 +2258,7 @@ interface ITextStoreAnchor : IUnknown
     ///    modified. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>TS_E_REGION</b></dt> </dl> </td> <td width="60%"> An
     ///    attempt was made to modify text across a region boundary. </td> </tr> </table>
     ///    
-    HRESULT SetText(uint dwFlags, IAnchor paStart, IAnchor paEnd, const(wchar)* pchText, uint cch);
+    HRESULT SetText(uint dwFlags, IAnchor paStart, IAnchor paEnd, const(PWSTR) pchText, uint cch);
     ///The <b>ITextStoreAnchor::GetFormattedText</b> method returns formatted text information from a text stream.
     ///Params:
     ///    paStart = Anchor position at which to start retrieval of formatted text.
@@ -2343,7 +2348,7 @@ interface ITextStoreAnchor : IUnknown
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> The method
     ///    was unable to allocate sufficient memory to complete the operation. </td> </tr> </table>
     ///    
-    HRESULT RequestSupportedAttrs(uint dwFlags, uint cFilterAttrs, char* paFilterAttrs);
+    HRESULT RequestSupportedAttrs(uint dwFlags, uint cFilterAttrs, const(GUID)* paFilterAttrs);
     ///Obtains a list of attributes that begin or end at the specified anchor location.
     ///Params:
     ///    paPos = Pointer to the anchor.
@@ -2356,7 +2361,7 @@ interface ITextStoreAnchor : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The <i>paPos</i> anchor
     ///    is invalid. </td> </tr> </table>
     ///    
-    HRESULT RequestAttrsAtPosition(IAnchor paPos, uint cFilterAttrs, char* paFilterAttrs, uint dwFlags);
+    HRESULT RequestAttrsAtPosition(IAnchor paPos, uint cFilterAttrs, const(GUID)* paFilterAttrs, uint dwFlags);
     ///Obtains a list of attributes that begin or end at the specified anchor location.
     ///Params:
     ///    paPos = Pointer to the anchor.
@@ -2378,7 +2383,7 @@ interface ITextStoreAnchor : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> <i>paPos</i> is invalid.
     ///    </td> </tr> </table>
     ///    
-    HRESULT RequestAttrsTransitioningAtPosition(IAnchor paPos, uint cFilterAttrs, char* paFilterAttrs, 
+    HRESULT RequestAttrsTransitioningAtPosition(IAnchor paPos, uint cFilterAttrs, const(GUID)* paFilterAttrs, 
                                                 uint dwFlags);
     ///The <b>ITextStoreAnchor::FindNextAttrTransition</b> method finds the location in the text stream where a
     ///transition occurs in an attribute value. The specified attribute to check is application-dependent.
@@ -2409,8 +2414,8 @@ interface ITextStoreAnchor : IUnknown
     ///    <i>paHalt</i> are invalid. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>TS_E_INVALIDPOS</b></dt> </dl> </td>
     ///    <td width="60%"> The character positions specified are beyond the text in the document. </td> </tr> </table>
     ///    
-    HRESULT FindNextAttrTransition(IAnchor paStart, IAnchor paHalt, uint cFilterAttrs, char* paFilterAttrs, 
-                                   uint dwFlags, int* pfFound, int* plFoundOffset);
+    HRESULT FindNextAttrTransition(IAnchor paStart, IAnchor paHalt, uint cFilterAttrs, const(GUID)* paFilterAttrs, 
+                                   uint dwFlags, BOOL* pfFound, int* plFoundOffset);
     ///Returns the attributes obtained by the RequestAttrsAtPosition, RequestAttrsTransitioningAtPosition, or
     ///RequestSupportedAttrs methods.
     ///Params:
@@ -2423,7 +2428,7 @@ interface ITextStoreAnchor : IUnknown
     ///    width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method was successful. </td> </tr>
     ///    </table>
     ///    
-    HRESULT RetrieveRequestedAttrs(uint ulCount, char* paAttrVals, uint* pcFetched);
+    HRESULT RetrieveRequestedAttrs(uint ulCount, TS_ATTRVAL* paAttrVals, uint* pcFetched);
     ///The <b>ITextStoreAnchor::GetStart</b> method returns an anchor positioned at the start of the text stream.
     ///Params:
     ///    ppaStart = Pointer to an anchor object located at the start of the text stream.
@@ -2511,7 +2516,7 @@ interface ITextStoreAnchor : IUnknown
     ///    <dt><b>TS_E_NOLOCK</b></dt> </dl> </td> <td width="60%"> The caller does not have a read-only lock on the
     ///    document. </td> </tr> </table>
     ///    
-    HRESULT GetTextExt(uint vcView, IAnchor paStart, IAnchor paEnd, RECT* prc, int* pfClipped);
+    HRESULT GetTextExt(uint vcView, IAnchor paStart, IAnchor paEnd, RECT* prc, BOOL* pfClipped);
     ///The <b>ITextStoreAnchor::GetScreenExt</b> method returns the bounding box screen coordinates of the display
     ///surface where the text stream is rendered.
     ///Params:
@@ -2551,7 +2556,7 @@ interface ITextStoreAnchor : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The <i>pFormatEtc</i>
     ///    parameter is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT QueryInsertEmbedded(const(GUID)* pguidService, const(FORMATETC)* pFormatEtc, int* pfInsertable);
+    HRESULT QueryInsertEmbedded(const(GUID)* pguidService, const(FORMATETC)* pFormatEtc, BOOL* pfInsertable);
     ///Inserts text at the insertion point or selection.
     ///Params:
     ///    dwFlags = Specifies whether the <i>paStart</i> and <i>paEnd</i> parameters will contain the results of the text
@@ -2579,8 +2584,7 @@ interface ITextStoreAnchor : IUnknown
     ///    </tr> <tr> <td width="40%"> <dl> <dt><b>TS_E_NOLOCK</b></dt> </dl> </td> <td width="60%"> The caller does not
     ///    have a lock on the document. </td> </tr> </table>
     ///    
-    HRESULT InsertTextAtSelection(uint dwFlags, const(wchar)* pchText, uint cch, IAnchor* ppaStart, 
-                                  IAnchor* ppaEnd);
+    HRESULT InsertTextAtSelection(uint dwFlags, const(PWSTR) pchText, uint cch, IAnchor* ppaStart, IAnchor* ppaEnd);
     ///The <b>ITextStoreAnchor::InsertEmbeddedAtSelection</b> method inserts an IDataObject object at the insertion
     ///point or selection. The client that calls this method must have a read/write lock before inserting an
     ///<b>IDataObject</b> into the text stream.
@@ -2688,7 +2692,7 @@ interface ITextStoreAnchorSink : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> One or more parameters
     ///    are invalid. </td> </tr> </table>
     ///    
-    HRESULT OnAttrsChange(IAnchor paStart, IAnchor paEnd, uint cAttrs, char* paAttrs);
+    HRESULT OnAttrsChange(IAnchor paStart, IAnchor paEnd, uint cAttrs, const(GUID)* paAttrs);
     ///Called to grant a document lock.
     ///Params:
     ///    dwLockFlags = Contains a set of flags that identify the type of lock requested and other lock request data. This can be one
@@ -2955,7 +2959,7 @@ interface IEnumTfLangBarItems : IUnknown
     ///    the enumeration before the specified number of elements could be obtained. </td> </tr> <tr> <td width="40%">
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> <i>ppItem</i> is invalid. </td> </tr> </table>
     ///    
-    HRESULT Next(uint ulCount, char* ppItem, uint* pcFetched);
+    HRESULT Next(uint ulCount, ITfLangBarItem* ppItem, uint* pcFetched);
     ///Resets the enumerator object by moving the current position to the beginning of the enumeration sequence.
     HRESULT Reset();
     ///Moves the current position forward in the enumeration sequence by the specified number of elements.
@@ -3083,7 +3087,7 @@ interface ITfLangBarItemMgr : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> An unspecified error occurred.
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetItemsStatus(uint ulCount, char* prgguid, char* pdwStatus);
+    HRESULT GetItemsStatus(uint ulCount, const(GUID)* prgguid, uint* pdwStatus);
     ///Obtains the number of items in the language bar.
     ///Params:
     ///    pulCount = Pointer to a <b>ULONG</b> that receives the number of items in the language bar.
@@ -3108,7 +3112,8 @@ interface ITfLangBarItemMgr : IUnknown
     ///    the number of items obtained. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td
     ///    width="60%"> An unspecified error occurred. </td> </tr> </table>
     ///    
-    HRESULT GetItems(uint ulCount, char* ppItem, char* pInfo, char* pdwStatus, uint* pcFetched);
+    HRESULT GetItems(uint ulCount, ITfLangBarItem* ppItem, TF_LANGBARITEMINFO* pInfo, uint* pdwStatus, 
+                     uint* pcFetched);
     ///Installs one or more language bar item event sinks for one or more language bar items.
     ///Params:
     ///    ulCount = Contains the number of advise sinks to install.
@@ -3126,7 +3131,7 @@ interface ITfLangBarItemMgr : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> An unspecified error occurred.
     ///    </td> </tr> </table>
     ///    
-    HRESULT AdviseItemsSink(uint ulCount, char* ppunk, char* pguidItem, char* pdwCookie);
+    HRESULT AdviseItemsSink(uint ulCount, ITfLangBarItemSink* ppunk, const(GUID)* pguidItem, uint* pdwCookie);
     ///Removes one or more language bar item event sinks.
     ///Params:
     ///    ulCount = Contains the number of advise sinks to install.
@@ -3136,7 +3141,7 @@ interface ITfLangBarItemMgr : IUnknown
     ///Returns:
     ///    This method has no return values.
     ///    
-    HRESULT UnadviseItemsSink(uint ulCount, char* pdwCookie);
+    HRESULT UnadviseItemsSink(uint ulCount, uint* pdwCookie);
 }
 
 ///The <b>ITfLangBarItem</b> interface is implemented by a language bar item provider and used by the language bar
@@ -3251,7 +3256,7 @@ interface ITfSystemLangBarItem : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_NOTIMPL</b></dt> </dl> </td> <td width="60%"> The tooltip string for the
     ///    system language bar menu cannot be modified. </td> </tr> </table>
     ///    
-    HRESULT SetTooltipString(char* pchToolTip, uint cch);
+    HRESULT SetTooltipString(PWSTR pchToolTip, uint cch);
 }
 
 ///The <b>ITfSystemLangBarItemText</b> interface is implemented by a system language bar and is used by a system
@@ -3265,7 +3270,7 @@ interface ITfSystemLangBarItemText : IUnknown
     ///Params:
     ///    pch = [in] A string that appears as a description.
     ///    cch = [in] Size, in characters, of the string.
-    HRESULT SetItemText(const(wchar)* pch, uint cch);
+    HRESULT SetItemText(const(PWSTR) pch, uint cch);
     ///The <b>ITfSystemLangBarItemText::GetItemText</b> method obtains the text displayed for the system language bar
     ///menu.
     ///Params:
@@ -3580,7 +3585,7 @@ interface ITfMenu : IUnknown
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> A memory
     ///    allocation failure occurred. </td> </tr> </table>
     ///    
-    HRESULT AddMenuItem(uint uId, uint dwFlags, HBITMAP hbmp, HBITMAP hbmpMask, const(wchar)* pch, uint cch, 
+    HRESULT AddMenuItem(uint uId, uint dwFlags, HBITMAP hbmp, HBITMAP hbmpMask, const(PWSTR) pch, uint cch, 
                         ITfMenu* ppMenu);
 }
 
@@ -3673,7 +3678,7 @@ interface ITfThreadMgr : IUnknown
     ///Params:
     ///    pfThreadFocus = Pointer to a BOOL that receives a value that indicates if the calling thread has input focus. This parameter
     ///                    receives a nonzero value if the calling thread has the focus or zero otherwise.
-    HRESULT IsThreadFocus(int* pfThreadFocus);
+    HRESULT IsThreadFocus(BOOL* pfThreadFocus);
     ///Obtains the specified function provider object.
     ///Params:
     ///    clsid = CLSID of the desired function provider. This can be the CLSID of a function provider registered for the
@@ -3853,7 +3858,7 @@ interface ITfThreadMgr2 : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> <i>pfThreadFocus</i> is
     ///    invalid. </td> </tr> </table>
     ///    
-    HRESULT IsThreadFocus(int* pfThreadFocus);
+    HRESULT IsThreadFocus(BOOL* pfThreadFocus);
     ///Obtains the specified function provider object.
     ///Params:
     ///    clsid = CLSID of the desired function provider. This can be the CLSID of a function provider registered for the
@@ -4071,7 +4076,7 @@ interface IEnumTfDocumentMgrs : IUnknown
     ///    <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> <i>rgDocumentMgr</i> is invalid. </td> </tr>
     ///    </table>
     ///    
-    HRESULT Next(uint ulCount, char* rgDocumentMgr, uint* pcFetched);
+    HRESULT Next(uint ulCount, ITfDocumentMgr* rgDocumentMgr, uint* pcFetched);
     ///Resets the enumerator object by moving the current position to the beginning of the enumeration sequence.
     ///Returns:
     ///    This method can return one of these values. <table> <tr> <th>Value</th> <th>Description</th> </tr> <tr> <td
@@ -4208,7 +4213,7 @@ interface IEnumTfContexts : IUnknown
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> <i>rgContext</i> is invalid. </td> </tr>
     ///    </table>
     ///    
-    HRESULT Next(uint ulCount, char* rgContext, uint* pcFetched);
+    HRESULT Next(uint ulCount, ITfContext* rgContext, uint* pcFetched);
     ///Resets the enumerator object by moving the current position to the beginning of the enumeration sequence.
     ///Returns:
     ///    This method can return one of these values. <table> <tr> <th>Value</th> <th>Description</th> </tr> <tr> <td
@@ -4293,7 +4298,7 @@ interface IEnumITfCompositionView : IUnknown
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> <i>rgCompositionView</i> is invalid. </td>
     ///    </tr> </table>
     ///    
-    HRESULT Next(uint ulCount, char* rgCompositionView, uint* pcFetched);
+    HRESULT Next(uint ulCount, ITfCompositionView* rgCompositionView, uint* pcFetched);
     ///Resets the enumerator object by moving the current position to the beginning of the enumeration sequence.
     ///Returns:
     ///    This method can return one of these values. <table> <tr> <th>Value</th> <th>Description</th> </tr> <tr> <td
@@ -4519,7 +4524,7 @@ interface ITfContextOwnerCompositionSink : IUnknown
     ///    width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method was successful. </td> </tr>
     ///    </table>
     ///    
-    HRESULT OnStartComposition(ITfCompositionView pComposition, int* pfOk);
+    HRESULT OnStartComposition(ITfCompositionView pComposition, BOOL* pfOk);
     ///Called when an existing composition is changed.
     ///Params:
     ///    pComposition = Pointer to an ITfCompositionView object that represents the composition updated.
@@ -4589,7 +4594,7 @@ interface ITfContextView : IUnknown
     ///    <dt><b>TF_E_NOLOCK</b></dt> </dl> </td> <td width="60%"> The edit cookie parameter is invalid. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetTextExt(uint ec, ITfRange pRange, RECT* prc, int* pfClipped);
+    HRESULT GetTextExt(uint ec, ITfRange pRange, RECT* prc, BOOL* pfClipped);
     ///The <b>ITfContextView::GetScreenExt</b> method returns the bounding box, in screen coordinates, of the document
     ///display.
     ///Params:
@@ -4616,7 +4621,7 @@ interface ITfContextView : IUnknown
 interface IEnumTfContextViews : IUnknown
 {
     HRESULT Clone(IEnumTfContextViews* ppEnum);
-    HRESULT Next(uint ulCount, char* rgViews, uint* pcFetched);
+    HRESULT Next(uint ulCount, ITfContextView* rgViews, uint* pcFetched);
     HRESULT Reset();
     HRESULT Skip(uint ulCount);
 }
@@ -4664,7 +4669,7 @@ interface ITfContext : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> A memory allocation
     ///    failure occurred. </td> </tr> </table>
     ///    
-    HRESULT RequestEditSession(uint tid, ITfEditSession pes, uint dwFlags, int* phrSession);
+    HRESULT RequestEditSession(uint tid, ITfEditSession pes, uint dwFlags, HRESULT* phrSession);
     ///Determines if a client has a read/write lock on the context.
     ///Params:
     ///    tid = Contains a <b>TfClientID</b> value that identifies the client.
@@ -4676,7 +4681,7 @@ interface ITfContext : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> <i>pfWriteSession</i> is
     ///    invalid. </td> </tr> </table>
     ///    
-    HRESULT InWriteSession(uint tid, int* pfWriteSession);
+    HRESULT InWriteSession(uint tid, BOOL* pfWriteSession);
     ///Obtains the selection within the document.
     ///Params:
     ///    ec = Contains an edit cookie that identifies the edit session. This is the value passed to
@@ -4698,7 +4703,7 @@ interface ITfContext : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> A memory allocation
     ///    failure occurred. </td> </tr> </table>
     ///    
-    HRESULT GetSelection(uint ec, uint ulIndex, uint ulCount, char* pSelection, uint* pcFetched);
+    HRESULT GetSelection(uint ec, uint ulIndex, uint ulCount, TF_SELECTION* pSelection, uint* pcFetched);
     ///Sets the selection within the document.
     ///Params:
     ///    ec = Contains an edit cookie that identifies the edit session. This is the value passed to
@@ -4712,7 +4717,7 @@ interface ITfContext : IUnknown
     ///    selection. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>TF_E_NOLOCK</b></dt> </dl> </td> <td width="60%">
     ///    The cookie in <i>ec</i> is invalid. </td> </tr> </table>
     ///    
-    HRESULT SetSelection(uint ec, uint ulCount, char* pSelection);
+    HRESULT SetSelection(uint ec, uint ulCount, const(TF_SELECTION)* pSelection);
     ///Obtains a range of text positioned at the beginning of the document.
     ///Params:
     ///    ec = Contains an edit cookie that identifies the edit session. This is the value passed to
@@ -4823,7 +4828,7 @@ interface ITfContext : IUnknown
     ///    <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> One or more parameters are invalid. </td> </tr>
     ///    </table>
     ///    
-    HRESULT TrackProperties(char* prgProp, uint cProp, char* prgAppProp, uint cAppProp, 
+    HRESULT TrackProperties(const(GUID)** prgProp, uint cProp, const(GUID)** prgAppProp, uint cAppProp, 
                             ITfReadOnlyProperty* ppProperty);
     ///Obtains a document property enumerator.
     ///Params:
@@ -4888,7 +4893,7 @@ interface ITfQueryEmbedded : IUnknown
     ///    are invalid. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>TF_E_DISCONNECTED</b></dt> </dl> </td> <td
     ///    width="60%"> There is no active context. </td> </tr> </table>
     ///    
-    HRESULT QueryInsertEmbedded(const(GUID)* pguidService, const(FORMATETC)* pFormatEtc, int* pfInsertable);
+    HRESULT QueryInsertEmbedded(const(GUID)* pguidService, const(FORMATETC)* pFormatEtc, BOOL* pfInsertable);
 }
 
 ///The <b>ITfInsertAtSelection</b> interface is implemented by the manager and is used by a text service to insert text
@@ -4924,7 +4929,7 @@ interface ITfInsertAtSelection : IUnknown
     ///    width="40%"> <dl> <dt><b>TS_E_READONLY</b></dt> </dl> </td> <td width="60%"> Selection is read-only. </td>
     ///    </tr> </table>
     ///    
-    HRESULT InsertTextAtSelection(uint ec, uint dwFlags, const(wchar)* pchText, int cch, ITfRange* ppRange);
+    HRESULT InsertTextAtSelection(uint ec, uint dwFlags, const(PWSTR) pchText, int cch, ITfRange* ppRange);
     ///The <b>ITfInsertAtSelection::InsertEmbeddedAtSelection</b> method inserts an IDataObject object at the selection
     ///or insertion point.
     ///Params:
@@ -5099,7 +5104,7 @@ interface IEnumTfPropertyValue : IUnknown
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> <i>rgValues</i> is invalid. </td> </tr>
     ///    </table>
     ///    
-    HRESULT Next(uint ulCount, char* rgValues, uint* pcFetched);
+    HRESULT Next(uint ulCount, TF_PROPERTYVAL* rgValues, uint* pcFetched);
     ///Resets the enumerator object by moving the current position to the beginning of the enumeration sequence.
     ///Returns:
     ///    This method can return one of these values. <table> <tr> <th>Value</th> <th>Description</th> </tr> <tr> <td
@@ -5208,7 +5213,7 @@ interface ITfMouseSink : IUnknown
     ///    width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method was successful. </td> </tr>
     ///    </table>
     ///    
-    HRESULT OnMouseEvent(uint uEdge, uint uQuadrant, uint dwBtnStatus, int* pfEaten);
+    HRESULT OnMouseEvent(uint uEdge, uint uQuadrant, uint dwBtnStatus, BOOL* pfEaten);
 }
 
 ///The <b>ITfEditRecord</b> interface is implemented by the TSF manager and is used by a text edit sink to determine
@@ -5221,7 +5226,7 @@ interface ITfEditRecord : IUnknown
     ///Params:
     ///    pfChanged = Pointer to a <b>BOOL</b> value that receives a value that indicates if the selection changed due to an edit
     ///                session. Receives a nonzero value if the selection changed or zero otherwise.
-    HRESULT GetSelectionStatus(int* pfChanged);
+    HRESULT GetSelectionStatus(BOOL* pfChanged);
     ///Obtains an enumerator that contains a collection of range objects that cover the specified properties and/or text
     ///that changed during the edit session.
     ///Params:
@@ -5248,7 +5253,8 @@ interface ITfEditRecord : IUnknown
     ///    are invalid. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td
     ///    width="60%"> A memory allocation failure occurred. </td> </tr> </table>
     ///    
-    HRESULT GetTextAndPropertyUpdates(uint dwFlags, char* prgProperties, uint cProperties, IEnumTfRanges* ppEnum);
+    HRESULT GetTextAndPropertyUpdates(uint dwFlags, const(GUID)** prgProperties, uint cProperties, 
+                                      IEnumTfRanges* ppEnum);
 }
 
 ///The <b>ITfTextEditSink</b> interface supports completion of an edit session that involves read/write access. Install
@@ -5376,7 +5382,7 @@ interface ITfContextOwner : IUnknown
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>TS_E_NOLOCK</b></dt> </dl> </td> <td width="60%"> The caller
     ///    does not have a read-only lock on the document. </td> </tr> </table>
     ///    
-    HRESULT GetTextExt(int acpStart, int acpEnd, RECT* prc, int* pfClipped);
+    HRESULT GetTextExt(int acpStart, int acpEnd, RECT* prc, BOOL* pfClipped);
     ///The <b>ITfContextOwner::GetScreenExt</b> method returns the bounding box, in screen coordinates, of the display
     ///surface where the text stream is rendered.
     ///Params:
@@ -5534,7 +5540,7 @@ interface ITfContextKeyEventSink : IUnknown
     ///    width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method was successful. </td> </tr>
     ///    </table>
     ///    
-    HRESULT OnKeyDown(WPARAM wParam, LPARAM lParam, int* pfEaten);
+    HRESULT OnKeyDown(WPARAM wParam, LPARAM lParam, BOOL* pfEaten);
     ///Called when a key up event occurs.
     ///Params:
     ///    wParam = Specifies the virtual-key code of the key. For more information about this parameter, see the wPa<i></i>ram
@@ -5549,7 +5555,7 @@ interface ITfContextKeyEventSink : IUnknown
     ///    width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method was successful. </td> </tr>
     ///    </table>
     ///    
-    HRESULT OnKeyUp(WPARAM wParam, LPARAM lParam, int* pfEaten);
+    HRESULT OnKeyUp(WPARAM wParam, LPARAM lParam, BOOL* pfEaten);
     ///Called to determine if a text service will handle a key down event.
     ///Params:
     ///    wParam = Specifies the virtual-key code of the key. For more information about this parameter, see the <i>wParam</i>
@@ -5564,7 +5570,7 @@ interface ITfContextKeyEventSink : IUnknown
     ///    width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method was successful. </td> </tr>
     ///    </table>
     ///    
-    HRESULT OnTestKeyDown(WPARAM wParam, LPARAM lParam, int* pfEaten);
+    HRESULT OnTestKeyDown(WPARAM wParam, LPARAM lParam, BOOL* pfEaten);
     ///Called to determine if a text service will handle a key up event.
     ///Params:
     ///    wParam = Specifies the virtual-key code of the key. For more information about this parameter, see the <i>wParam</i>
@@ -5580,7 +5586,7 @@ interface ITfContextKeyEventSink : IUnknown
     ///    width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method was successful. </td> </tr>
     ///    </table>
     ///    
-    HRESULT OnTestKeyUp(WPARAM wParam, LPARAM lParam, int* pfEaten);
+    HRESULT OnTestKeyUp(WPARAM wParam, LPARAM lParam, BOOL* pfEaten);
 }
 
 ///The <b>ITfEditSession</b> interface is implemented by a text service and used by the TSF manager to read and/or
@@ -5629,7 +5635,7 @@ interface ITfRange : IUnknown
     ///    width="60%"> The value of the <i>ec</i> parameter is an invalid cookie, or the caller does not have a
     ///    read-only lock. </td> </tr> </table>
     ///    
-    HRESULT GetText(uint ec, uint dwFlags, char* pchText, uint cchMax, uint* pcch);
+    HRESULT GetText(uint ec, uint dwFlags, PWSTR pchText, uint cchMax, uint* pcch);
     ///The <b>ITfRange::SetText</b> method replaces the content covered by the range of text. For an empty range object,
     ///the method results in an insertion at the location of the range. If the new content is an empty string
     ///(<i>cch</i> = 0), the method deletes the existing content within the range.
@@ -5652,7 +5658,7 @@ interface ITfRange : IUnknown
     ///    width="40%"> <dl> <dt><b>TF_E_RANGE_NOT_COVERED</b></dt> </dl> </td> <td width="60%"> The range is not within
     ///    the active composition of the caller. </td> </tr> </table>
     ///    
-    HRESULT SetText(uint ec, uint dwFlags, const(wchar)* pchText, int cch);
+    HRESULT SetText(uint ec, uint dwFlags, const(PWSTR) pchText, int cch);
     ///The <b>ITfRange::GetFormattedText</b> method obtains formatted content contained within a range of text. The
     ///content is packaged in an object that supports the IDataObject interface.
     ///Params:
@@ -5810,7 +5816,7 @@ interface ITfRange : IUnknown
     ///    invalid. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>TF_E_NOLOCK</b></dt> </dl> </td> <td width="60%"> The
     ///    edit context identified by <i>ec</i> does not have a read-only lock. </td> </tr> </table>
     ///    
-    HRESULT ShiftStartRegion(uint ec, TfShiftDir dir, int* pfNoRegion);
+    HRESULT ShiftStartRegion(uint ec, TfShiftDir dir, BOOL* pfNoRegion);
     ///Moves the end anchor into an adjacent region.
     ///Params:
     ///    ec = Contains an edit cookie that identifies the edit context obtained from ITfDocumentMgr::CreateContext or
@@ -5825,7 +5831,7 @@ interface ITfRange : IUnknown
     ///    invalid. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>TF_E_NOLOCK</b></dt> </dl> </td> <td width="60%"> The
     ///    edit context identified by <i>ec</i> does not have a read-only lock. </td> </tr> </table>
     ///    
-    HRESULT ShiftEndRegion(uint ec, TfShiftDir dir, int* pfNoRegion);
+    HRESULT ShiftEndRegion(uint ec, TfShiftDir dir, BOOL* pfNoRegion);
     ///The <b>ITfRange::IsEmpty</b> method verifies that the range of text is empty because the start and end anchors
     ///occupy the same position.
     ///Params:
@@ -5841,7 +5847,7 @@ interface ITfRange : IUnknown
     ///    parameters are invalid. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>TF_E_NOLOCK</b></dt> </dl> </td> <td
     ///    width="60%"> The value of the <i>ec</i> parameter is an invalid cookie. </td> </tr> </table>
     ///    
-    HRESULT IsEmpty(uint ec, int* pfEmpty);
+    HRESULT IsEmpty(uint ec, BOOL* pfEmpty);
     ///The <b>ITfRange::Collapse</b> method clears the range of text by moving its start anchor and end anchor to the
     ///same position.
     ///Params:
@@ -5885,7 +5891,7 @@ interface ITfRange : IUnknown
     ///    width="60%"> The value of the <i>ec</i> parameter is an invalid cookie, or the caller does not have a
     ///    read-only lock. </td> </tr> </table>
     ///    
-    HRESULT IsEqualStart(uint ec, ITfRange pWith, TfAnchor aPos, int* pfEqual);
+    HRESULT IsEqualStart(uint ec, ITfRange pWith, TfAnchor aPos, BOOL* pfEqual);
     ///The ITfRange::IsEqualStart method verifies that the end anchor of this range of text matches an anchor of another
     ///specified range.
     ///Params:
@@ -5909,7 +5915,7 @@ interface ITfRange : IUnknown
     ///    width="60%"> The value of the <i>ec</i> parameter is an invalid cookie, or the caller does not have a
     ///    read-only lock. </td> </tr> </table>
     ///    
-    HRESULT IsEqualEnd(uint ec, ITfRange pWith, TfAnchor aPos, int* pfEqual);
+    HRESULT IsEqualEnd(uint ec, ITfRange pWith, TfAnchor aPos, BOOL* pfEqual);
     ///The <b>ITfRange::CompareStart</b> method compares the start anchor position of this range of text to an anchor in
     ///another range.
     ///Params:
@@ -5988,7 +5994,7 @@ interface ITfRange : IUnknown
     ///    <dt><b>TF_E_NOLOCK</b></dt> </dl> </td> <td width="60%"> The value in the <i>ec</i> parameter is an invalid
     ///    cookie, or the caller does not have a read-only lock. </td> </tr> </table>
     ///    
-    HRESULT AdjustForInsert(uint ec, uint cchInsert, int* pfInsertOk);
+    HRESULT AdjustForInsert(uint ec, uint cchInsert, BOOL* pfInsertOk);
     ///Obtains the gravity of the anchors in the object.
     ///Params:
     ///    pgStart = Pointer to a TfGravity value that receives the gravity of the start anchor.
@@ -6194,7 +6200,7 @@ interface ITfPropertyStore : IUnknown
     ///    width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method was successful. </td> </tr>
     ///    </table>
     ///    
-    HRESULT OnTextUpdated(uint dwFlags, ITfRange pRangeNew, int* pfAccept);
+    HRESULT OnTextUpdated(uint dwFlags, ITfRange pRangeNew, BOOL* pfAccept);
     ///Called when the text that the property store applies to is truncated.
     ///Params:
     ///    pRangeNew = Pointer to an ITfRange interface that contains the truncated range.
@@ -6207,7 +6213,7 @@ interface ITfPropertyStore : IUnknown
     ///    width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method was successful. </td> </tr>
     ///    </table>
     ///    
-    HRESULT Shrink(ITfRange pRangeNew, int* pfFree);
+    HRESULT Shrink(ITfRange pRangeNew, BOOL* pfFree);
     ///Called when the text covered by the property is split into two ranges.
     ///Params:
     ///    pRangeThis = Pointer to an ITfRange object that contains the range that the property store now covers. This will be the
@@ -6285,7 +6291,7 @@ interface IEnumTfRanges : IUnknown
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> <i>ppRange</i> is invalid. </td> </tr>
     ///    </table>
     ///    
-    HRESULT Next(uint ulCount, char* ppRange, uint* pcFetched);
+    HRESULT Next(uint ulCount, ITfRange* ppRange, uint* pcFetched);
     ///Resets the enumerator object by moving the current position to the beginning of the enumeration sequence.
     ///Returns:
     ///    This method can return one of these values. <table> <tr> <th>Value</th> <th>Description</th> </tr> <tr> <td
@@ -6324,7 +6330,7 @@ interface ITfCreatePropertyStore : IUnknown
     ///    </table>
     ///    
     HRESULT IsStoreSerializable(const(GUID)* guidProp, ITfRange pRange, ITfPropertyStore pPropStore, 
-                                int* pfSerializable);
+                                BOOL* pfSerializable);
     ///Creates a property store object from serialized property store data.
     ///Params:
     ///    guidProp = Contains the type identifier of the property. For more information, see ITfPropertyStore::GetType.
@@ -6479,7 +6485,7 @@ interface IEnumTfProperties : IUnknown
     ///    the enumeration before the specified number of elements could be obtained. </td> </tr> <tr> <td width="40%">
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> <i>ppProp</i> is invalid. </td> </tr> </table>
     ///    
-    HRESULT Next(uint ulCount, char* ppProp, uint* pcFetched);
+    HRESULT Next(uint ulCount, ITfProperty* ppProp, uint* pcFetched);
     ///Resets the enumerator object by moving the current position to the beginning of the enumeration sequence.
     ///Returns:
     ///    This method can return one of these values. <table> <tr> <th>Value</th> <th>Description</th> </tr> <tr> <td
@@ -6683,7 +6689,7 @@ interface IEnumTfFunctionProviders : IUnknown
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> <i>ppCmdobj</i> is invalid. </td> </tr>
     ///    </table>
     ///    
-    HRESULT Next(uint ulCount, char* ppCmdobj, uint* pcFetch);
+    HRESULT Next(uint ulCount, ITfFunctionProvider* ppCmdobj, uint* pcFetch);
     ///Resets the enumerator object by moving the current position to the beginning of the enumeration sequence.
     ///Returns:
     ///    This method can return one of these values. <table> <tr> <th>Value</th> <th>Description</th> </tr> <tr> <td
@@ -6743,8 +6749,8 @@ interface ITfInputProcessorProfiles : IUnknown
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%">
     ///    <i>pszDesc</i> is invalid. </td> </tr> </table>
     ///    
-    HRESULT AddLanguageProfile(const(GUID)* rclsid, ushort langid, const(GUID)* guidProfile, const(wchar)* pchDesc, 
-                               uint cchDesc, const(wchar)* pchIconFile, uint cchFile, uint uIconIndex);
+    HRESULT AddLanguageProfile(const(GUID)* rclsid, ushort langid, const(GUID)* guidProfile, const(PWSTR) pchDesc, 
+                               uint cchDesc, const(PWSTR) pchIconFile, uint cchFile, uint uIconIndex);
     ///Removes a language profile.
     ///Params:
     ///    rclsid = Contains the text service CLSID.
@@ -6858,7 +6864,7 @@ interface ITfInputProcessorProfiles : IUnknown
     ///    parameters are invalid. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td
     ///    width="60%"> A memory allocation failure occurred. </td> </tr> </table>
     ///    
-    HRESULT GetLanguageList(char* ppLangId, uint* pulCount);
+    HRESULT GetLanguageList(ushort** ppLangId, uint* pulCount);
     ///Obtains an enumerator that contains all of the profiles for a specific langauage.
     ///Params:
     ///    langid = Contains a <b>LANGID</b> value that specifies the language to obtain an enumerator for.
@@ -6894,7 +6900,7 @@ interface ITfInputProcessorProfiles : IUnknown
     ///    guidProfile = Contains a GUID value that identifies the profile in question.
     ///    pfEnable = Pointer to a <b>BOOL</b> value that receives a value that specifies if the profile is enabled or disabled. If
     ///               this receives a nonzero value, the profile is enabled. If this receives zero, the profile is disabled.
-    HRESULT IsEnabledLanguageProfile(const(GUID)* rclsid, ushort langid, const(GUID)* guidProfile, int* pfEnable);
+    HRESULT IsEnabledLanguageProfile(const(GUID)* rclsid, ushort langid, const(GUID)* guidProfile, BOOL* pfEnable);
     ///Enables or disables a language profile by default for all users.
     ///Params:
     ///    rclsid = Contains the CLSID of the text service of the profile to be enabled or disabled.
@@ -6923,7 +6929,7 @@ interface ITfInputProcessorProfiles : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> An unspecified error occurred.
     ///    </td> </tr> </table>
     ///    
-    HRESULT SubstituteKeyboardLayout(const(GUID)* rclsid, ushort langid, const(GUID)* guidProfile, ptrdiff_t hKL);
+    HRESULT SubstituteKeyboardLayout(const(GUID)* rclsid, ushort langid, const(GUID)* guidProfile, HKL hKL);
 }
 
 ///This interface is implemented by the TSF manager and used by a text service or application to set the display
@@ -6946,7 +6952,7 @@ interface ITfInputProcessorProfilesEx : ITfInputProcessorProfiles
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT SetLanguageProfileDisplayName(const(GUID)* rclsid, ushort langid, const(GUID)* guidProfile, 
-                                          const(wchar)* pchFile, uint cchFile, uint uResId);
+                                          const(PWSTR) pchFile, uint cchFile, uint uResId);
 }
 
 ///This interface is implemented by the TSF manager and is used by an application or text service to manipulate the
@@ -6966,8 +6972,7 @@ interface ITfInputProcessorProfileSubstituteLayout : IUnknown
     ///    width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method was successful. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetSubstituteKeyboardLayout(const(GUID)* rclsid, ushort langid, const(GUID)* guidProfile, 
-                                        ptrdiff_t* phKL);
+    HRESULT GetSubstituteKeyboardLayout(const(GUID)* rclsid, ushort langid, const(GUID)* guidProfile, HKL* phKL);
 }
 
 ///The <b>ITfActiveLanguageProfileNotifySink</b> interface is implemented by an application to receive a notification
@@ -7019,7 +7024,7 @@ interface IEnumTfLanguageProfiles : IUnknown
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> <i>pProfile</i> is invalid. </td> </tr>
     ///    </table>
     ///    
-    HRESULT Next(uint ulCount, char* pProfile, uint* pcFetch);
+    HRESULT Next(uint ulCount, TF_LANGUAGEPROFILE* pProfile, uint* pcFetch);
     ///Resets the enumerator object by moving the current position to the beginning of the enumeration sequence.
     ///Returns:
     ///    This method can return one of these values. <table> <tr> <th>Value</th> <th>Description</th> </tr> <tr> <td
@@ -7051,7 +7056,7 @@ interface ITfLanguageProfileNotifySink : IUnknown
     ///    langid = Contains a <b>LANGID</b> value the identifies the new language profile.
     ///    pfAccept = Pointer to a <b>BOOL</b> value that receives a flag that permits or prevents the language profile change.
     ///               Receives zero to prevent the language profile change or nonzero to permit the language profile change.
-    HRESULT OnLanguageChange(ushort langid, int* pfAccept);
+    HRESULT OnLanguageChange(ushort langid, BOOL* pfAccept);
     ///Called after the language profile has changed.
     HRESULT OnLanguageChanged();
 }
@@ -7102,7 +7107,7 @@ interface ITfInputProcessorProfileMgr : IUnknown
     ///    <td width="60%"> One or more parameters are invalid. </td> </tr> </table>
     ///    
     HRESULT ActivateProfile(uint dwProfileType, ushort langid, const(GUID)* clsid, const(GUID)* guidProfile, 
-                            ptrdiff_t hkl, uint dwFlags);
+                            HKL hkl, uint dwFlags);
     ///The <b>ITfInputProcessorProfileMgr::DeactivateProfile</b> method deactivates the specified text service's profile
     ///or keyboard layout.
     ///Params:
@@ -7136,7 +7141,7 @@ interface ITfInputProcessorProfileMgr : IUnknown
     ///    parameters are invalid. </td> </tr> </table>
     ///    
     HRESULT DeactivateProfile(uint dwProfileType, ushort langid, const(GUID)* clsid, const(GUID)* guidProfile, 
-                              ptrdiff_t hkl, uint dwFlags);
+                              HKL hkl, uint dwFlags);
     ///The <b>ITfInputProcessorProfileMgr::GetProfile</b> method returns the information of the specified text service's
     ///profile or keyboard layout in TF_INPUTPROCESSORPROFILE structure.
     ///Params:
@@ -7155,8 +7160,8 @@ interface ITfInputProcessorProfileMgr : IUnknown
     ///    hkl = [in] The handle of the keyboard layout. This must be <b>NULL</b> if <i>dwProfileType</i> is
     ///          TF_PROFILETYPE_INPUTPROCESSOR.
     ///    pProfile = [out] The buffer to receive TF_INPUTPROCESSORPROFILE.
-    HRESULT GetProfile(uint dwProfileType, ushort langid, const(GUID)* clsid, const(GUID)* guidProfile, 
-                       ptrdiff_t hkl, TF_INPUTPROCESSORPROFILE* pProfile);
+    HRESULT GetProfile(uint dwProfileType, ushort langid, const(GUID)* clsid, const(GUID)* guidProfile, HKL hkl, 
+                       TF_INPUTPROCESSORPROFILE* pProfile);
     ///The <b>ITfInputProcessorProfileMgr::EnumProfiles</b> method returns profiles to be enumerated.
     ///Params:
     ///    langid = [in] langid of the profiles to be enumerated. If langid is 0, all profiles will be enumerated.
@@ -7193,9 +7198,9 @@ interface ITfInputProcessorProfileMgr : IUnknown
     ///              is available only on the local process. </td> </tr> <tr> <td width="40%"><a id="TF_RP_LOCALTHREAD"></a><a
     ///              id="tf_rp_localthread"></a><dl> <dt><b>TF_RP_LOCALTHREAD</b></dt> </dl> </td> <td width="60%"> This profile
     ///              is available only on the local thread. </td> </tr> </table>
-    HRESULT RegisterProfile(const(GUID)* rclsid, ushort langid, const(GUID)* guidProfile, const(wchar)* pchDesc, 
-                            uint cchDesc, const(wchar)* pchIconFile, uint cchFile, uint uIconIndex, 
-                            ptrdiff_t hklsubstitute, uint dwPreferredLayout, BOOL bEnabledByDefault, uint dwFlags);
+    HRESULT RegisterProfile(const(GUID)* rclsid, ushort langid, const(GUID)* guidProfile, const(PWSTR) pchDesc, 
+                            uint cchDesc, const(PWSTR) pchIconFile, uint cchFile, uint uIconIndex, HKL hklsubstitute, 
+                            uint dwPreferredLayout, BOOL bEnabledByDefault, uint dwFlags);
     ///The <b>ITfInputProcessorProfileMgr::UnregisterProfile</b> method unregisters the text service and the profile.
     ///Params:
     ///    rclsid = [in] CLSID of the text service.
@@ -7237,7 +7242,7 @@ interface IEnumTfInputProcessorProfiles : IUnknown
     ///               elements in size.
     ///    pcFetch = [out] Pointer to a ULONG value that receives the number of elements actually obtained. This value can be less
     ///              than the number of items requested. This parameter can be <b>NULL</b>.
-    HRESULT Next(uint ulCount, char* pProfile, uint* pcFetch);
+    HRESULT Next(uint ulCount, TF_INPUTPROCESSORPROFILE* pProfile, uint* pcFetch);
     ///The IEnumTfInputProcessorProfiles::Reset method resets the enumerator object by moving the current position to
     ///the beginning of the enumeration sequence.
     HRESULT Reset();
@@ -7277,7 +7282,7 @@ interface ITfInputProcessorProfileActivationSink : IUnknown
     ///              id="TF_IPSINK_FLAG_ACTIVE"></a><a id="tf_ipsink_flag_active"></a><dl> <dt><b>TF_IPSINK_FLAG_ACTIVE</b></dt>
     ///              </dl> </td> <td width="60%"> This is on if this profile is activated. </td> </tr> </table>
     HRESULT OnActivated(uint dwProfileType, ushort langid, const(GUID)* clsid, const(GUID)* catid, 
-                        const(GUID)* guidProfile, ptrdiff_t hkl, uint dwFlags);
+                        const(GUID)* guidProfile, HKL hkl, uint dwFlags);
 }
 
 ///The <b>ITfKeystrokeMgr</b> interface is implemented by the TSF manager and used by applications and text services to
@@ -7334,7 +7339,7 @@ interface ITfKeystrokeMgr : IUnknown
     ///    installed. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%">
     ///    One or more parameters are invalid. </td> </tr> </table>
     ///    
-    HRESULT TestKeyDown(WPARAM wParam, LPARAM lParam, int* pfEaten);
+    HRESULT TestKeyDown(WPARAM wParam, LPARAM lParam, BOOL* pfEaten);
     ///Determines if the keystroke manager will handle a key up event.
     ///Params:
     ///    wParam = Specifies the virtual-key code of the key. For more information about this parameter, see the <i>wParam</i>
@@ -7352,7 +7357,7 @@ interface ITfKeystrokeMgr : IUnknown
     ///    installed. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%">
     ///    One or more parameters are invalid. </td> </tr> </table>
     ///    
-    HRESULT TestKeyUp(WPARAM wParam, LPARAM lParam, int* pfEaten);
+    HRESULT TestKeyUp(WPARAM wParam, LPARAM lParam, BOOL* pfEaten);
     ///Passes a key down event to the keystroke manager.
     ///Params:
     ///    wParam = Specifies the virtual-key code of the key. For more information about this parameter, see the <i>wParam</i>
@@ -7370,7 +7375,7 @@ interface ITfKeystrokeMgr : IUnknown
     ///    installed. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%">
     ///    One or more parameters are invalid. </td> </tr> </table>
     ///    
-    HRESULT KeyDown(WPARAM wParam, LPARAM lParam, int* pfEaten);
+    HRESULT KeyDown(WPARAM wParam, LPARAM lParam, BOOL* pfEaten);
     ///Passes a key up event to the keystroke manager.
     ///Params:
     ///    wParam = Specifies the virtual-key code of the key. For more information about this parameter, see the <i>wParam</i>
@@ -7389,7 +7394,7 @@ interface ITfKeystrokeMgr : IUnknown
     ///    installed. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%">
     ///    One or more parameters are invalid. </td> </tr> </table>
     ///    
-    HRESULT KeyUp(WPARAM wParam, LPARAM lParam, int* pfEaten);
+    HRESULT KeyUp(WPARAM wParam, LPARAM lParam, BOOL* pfEaten);
     ///Obtains the command GUID for a preserved key.
     ///Params:
     ///    pic = Pointer to the application context. This value is returned by a previous call to
@@ -7428,7 +7433,7 @@ interface ITfKeystrokeMgr : IUnknown
     ///    invalid. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> An
     ///    unspecified error occurred. </td> </tr> </table>
     ///    
-    HRESULT IsPreservedKey(const(GUID)* rguid, const(TF_PRESERVEDKEY)* pprekey, int* pfRegistered);
+    HRESULT IsPreservedKey(const(GUID)* rguid, const(TF_PRESERVEDKEY)* pprekey, BOOL* pfRegistered);
     ///Registers a preserved key.
     ///Params:
     ///    tid = Contains the client identifier of the TSF text service. This value is passed to the TSF text service in its
@@ -7451,7 +7456,7 @@ interface ITfKeystrokeMgr : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> An unspecified error occurred.
     ///    </td> </tr> </table>
     ///    
-    HRESULT PreserveKey(uint tid, const(GUID)* rguid, const(TF_PRESERVEDKEY)* prekey, const(wchar)* pchDesc, 
+    HRESULT PreserveKey(uint tid, const(GUID)* rguid, const(TF_PRESERVEDKEY)* prekey, const(PWSTR) pchDesc, 
                         uint cchDesc);
     ///Unregisters a preserved key.
     ///Params:
@@ -7479,7 +7484,7 @@ interface ITfKeystrokeMgr : IUnknown
     ///    are invalid or the preserved key is not found. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt>
     ///    </dl> </td> <td width="60%"> An unspecified error occurred. </td> </tr> </table>
     ///    
-    HRESULT SetPreservedKeyDescription(const(GUID)* rguid, const(wchar)* pchDesc, uint cchDesc);
+    HRESULT SetPreservedKeyDescription(const(GUID)* rguid, const(PWSTR) pchDesc, uint cchDesc);
     ///Obtains the description string of an existing preserved key.
     ///Params:
     ///    rguid = Contains the command GUID of the preserved key.
@@ -7508,7 +7513,7 @@ interface ITfKeystrokeMgr : IUnknown
     ///    One or more parameters are invalid. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td>
     ///    <td width="60%"> An unspecified error occurred. </td> </tr> </table>
     ///    
-    HRESULT SimulatePreservedKey(ITfContext pic, const(GUID)* rguid, int* pfEaten);
+    HRESULT SimulatePreservedKey(ITfContext pic, const(GUID)* rguid, BOOL* pfEaten);
 }
 
 ///The <b>ITfKeyEventSink</b> interface is implemented by a text service to receive keyboard and focus event
@@ -7536,7 +7541,7 @@ interface ITfKeyEventSink : IUnknown
     ///    width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method was successful. </td> </tr>
     ///    </table>
     ///    
-    HRESULT OnTestKeyDown(ITfContext pic, WPARAM wParam, LPARAM lParam, int* pfEaten);
+    HRESULT OnTestKeyDown(ITfContext pic, WPARAM wParam, LPARAM lParam, BOOL* pfEaten);
     ///Called to determine if a text service will handle a key up event.
     ///Params:
     ///    pic = Pointer to the input context that receives the key event.
@@ -7553,7 +7558,7 @@ interface ITfKeyEventSink : IUnknown
     ///    width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method was successful. </td> </tr>
     ///    </table>
     ///    
-    HRESULT OnTestKeyUp(ITfContext pic, WPARAM wParam, LPARAM lParam, int* pfEaten);
+    HRESULT OnTestKeyUp(ITfContext pic, WPARAM wParam, LPARAM lParam, BOOL* pfEaten);
     ///Called when a key down event occurs.
     ///Params:
     ///    pic = Pointer to the input context that receives the key event.
@@ -7569,7 +7574,7 @@ interface ITfKeyEventSink : IUnknown
     ///    width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method was successful. </td> </tr>
     ///    </table>
     ///    
-    HRESULT OnKeyDown(ITfContext pic, WPARAM wParam, LPARAM lParam, int* pfEaten);
+    HRESULT OnKeyDown(ITfContext pic, WPARAM wParam, LPARAM lParam, BOOL* pfEaten);
     ///Called when a key up event occurs.
     ///Params:
     ///    pic = Pointer to the input context that receives the key event.
@@ -7580,7 +7585,7 @@ interface ITfKeyEventSink : IUnknown
     ///             in WM_KEYUP.
     ///    pfEaten = Pointer to a BOOL that, on exit, indicates if the key event was handled. If this value receives <b>TRUE</b>,
     ///              the key event was handled. If this value receives <b>FALSE</b>, the key event was not handled.
-    HRESULT OnKeyUp(ITfContext pic, WPARAM wParam, LPARAM lParam, int* pfEaten);
+    HRESULT OnKeyUp(ITfContext pic, WPARAM wParam, LPARAM lParam, BOOL* pfEaten);
     ///Called when a preserved key event occurs.
     ///Params:
     ///    pic = Pointer to the input context that receives the key event.
@@ -7588,7 +7593,7 @@ interface ITfKeyEventSink : IUnknown
     ///    pfEaten = Pointer to a BOOL value that, on exit, indicates if the preserved key event was handled. If this value
     ///              receives <b>TRUE</b>, the preserved key event was handled. If this value receives <b>FALSE</b>, the preserved
     ///              key event was not handled.
-    HRESULT OnPreservedKey(ITfContext pic, const(GUID)* rguid, int* pfEaten);
+    HRESULT OnPreservedKey(ITfContext pic, const(GUID)* rguid, BOOL* pfEaten);
 }
 
 ///The <b>ITfKeyTraceEventSink</b> interface is implemented by an application or text service to receive key stroke
@@ -7661,7 +7666,7 @@ interface ITfMessagePump : IUnknown
     ///    are invalid. </td> </tr> </table>
     ///    
     HRESULT PeekMessageA(MSG* pMsg, HWND hwnd, uint wMsgFilterMin, uint wMsgFilterMax, uint wRemoveMsg, 
-                         int* pfResult);
+                         BOOL* pfResult);
     ///Obtains a message from the message queue and does not return until a message is obtained. This is the ANSI
     ///version of this method.
     ///Params:
@@ -7677,7 +7682,7 @@ interface ITfMessagePump : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> One or more parameters
     ///    are invalid. </td> </tr> </table>
     ///    
-    HRESULT GetMessageA(MSG* pMsg, HWND hwnd, uint wMsgFilterMin, uint wMsgFilterMax, int* pfResult);
+    HRESULT GetMessageA(MSG* pMsg, HWND hwnd, uint wMsgFilterMin, uint wMsgFilterMax, BOOL* pfResult);
     ///Obtains a message from the message queue and returns if no message is obtained. This is the Unicode version of
     ///this method.
     ///Params:
@@ -7695,7 +7700,7 @@ interface ITfMessagePump : IUnknown
     ///    are invalid. </td> </tr> </table>
     ///    
     HRESULT PeekMessageW(MSG* pMsg, HWND hwnd, uint wMsgFilterMin, uint wMsgFilterMax, uint wRemoveMsg, 
-                         int* pfResult);
+                         BOOL* pfResult);
     ///Obtains a message from the message queue and does not return until a message is obtained. This is the Unicode
     ///version of this method.
     ///Params:
@@ -7711,7 +7716,7 @@ interface ITfMessagePump : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> One or more parameters
     ///    are invalid. </td> </tr> </table>
     ///    
-    HRESULT GetMessageW(MSG* pMsg, HWND hwnd, uint wMsgFilterMin, uint wMsgFilterMax, int* pfResult);
+    HRESULT GetMessageW(MSG* pMsg, HWND hwnd, uint wMsgFilterMin, uint wMsgFilterMax, BOOL* pfResult);
 }
 
 ///The <b>ITfThreadFocusSink</b> interface is implemented by an application or TSF text service to receive notifications
@@ -7878,7 +7883,7 @@ interface IEnumTfDisplayAttributeInfo : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>S_FALSE</b></dt> </dl> </td> <td width="60%"> The method reached the end of
     ///    the enumeration before the specified number of elements were obtained. </td> </tr> </table>
     ///    
-    HRESULT Next(uint ulCount, char* rgInfo, uint* pcFetched);
+    HRESULT Next(uint ulCount, ITfDisplayAttributeInfo* rgInfo, uint* pcFetched);
     ///Resets the enumerator object by moving the current position to the beginning of the enumeration sequence.
     ///Returns:
     ///    This method can return one of these values. <table> <tr> <th>Value</th> <th>Description</th> </tr> <tr> <td
@@ -8084,7 +8089,7 @@ interface ITfCategoryMgr : IUnknown
     ///    register the description string. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl>
     ///    </td> <td width="60%"> <i>pchDest</i> is invalid. </td> </tr> </table>
     ///    
-    HRESULT RegisterGUIDDescription(const(GUID)* rclsid, const(GUID)* rguid, const(wchar)* pchDesc, uint cch);
+    HRESULT RegisterGUIDDescription(const(GUID)* rclsid, const(GUID)* rguid, const(PWSTR) pchDesc, uint cch);
     ///Removes the description for a GUID from the Windows registry.
     ///Params:
     ///    rclsid = Contains the CLSID of the text service that owns the GUID.
@@ -8183,7 +8188,7 @@ interface ITfCategoryMgr : IUnknown
     ///    internal table. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td
     ///    width="60%"> The specified <i>pfEqual</i> parameter was <b>NULL</b> on input. </td> </tr> </table>
     ///    
-    HRESULT IsEqualTfGuidAtom(uint guidatom, const(GUID)* rguid, int* pfEqual);
+    HRESULT IsEqualTfGuidAtom(uint guidatom, const(GUID)* rguid, BOOL* pfEqual);
 }
 
 ///The <b>ITfSource</b> interface is implemented by the TSF manager. It is used by applications and text services to
@@ -8306,7 +8311,7 @@ interface ITfUIElementMgr : IUnknown
     ///    pbShow = [in, out] If false is returned, the application may draw the UI by itself and a text service does not show
     ///             its own UI for this UI element.
     ///    pdwUIElementId = [out] A pointer to receive the ID of this UI element.
-    HRESULT BeginUIElement(ITfUIElement pElement, int* pbShow, uint* pdwUIElementId);
+    HRESULT BeginUIElement(ITfUIElement pElement, BOOL* pbShow, uint* pdwUIElementId);
     ///The <b>ITfUIElementMgr::UpdateUIElement</b> method is called by a text service when the UI element must be
     ///updated.
     ///Params:
@@ -8373,7 +8378,7 @@ interface ITfUIElementSink : IUnknown
     ///             <b>FALSE</b> if it is unknown or it cannot be handled. In this case, the text service will not show any extra
     ///             UI on the screen. This is a good way for some full screen applications. Alternatively, the application can
     ///             return <b>TRUE</b> to use TextService's UI on some particular or unknown UIs.
-    HRESULT BeginUIElement(uint dwUIElementId, int* pbShow);
+    HRESULT BeginUIElement(uint dwUIElementId, BOOL* pbShow);
     ///The <b>ITfUIElementSink::UpdateUIElement</b> method is called when the contents of the UIElement is updated.
     ///Params:
     ///    dwUIElementId = [in] Id of the UIElement that has had its content updated.
@@ -8404,7 +8409,7 @@ interface ITfUIElement : IUnknown
     ///false.
     ///Params:
     ///    pbShow = [out] A pointer to bool of the current show status of the original UI of this element.
-    HRESULT IsShown(int* pbShow);
+    HRESULT IsShown(BOOL* pbShow);
 }
 
 ///The <b>ITfCandidateListUIElement</b> interface is implemented by a text service that has the candidate list UI.
@@ -8523,7 +8528,7 @@ interface ITfReadingInformationUIElement : ITfUIElement
     ///This method returns if the UI prefers to be shown in vertical order.
     ///Params:
     ///    pfVertical = [out] True if the UI prefers to be shown in the vertical order.
-    HRESULT IsVerticalOrderPreferred(int* pfVertical);
+    HRESULT IsVerticalOrderPreferred(BOOL* pfVertical);
 }
 
 ///The <b>ITfTransitoryExtensionUIElement</b> interface is implemented by TSF manager which provides the UI of
@@ -8555,7 +8560,7 @@ interface ITfTransitoryExtensionSink : IUnknown
     ///    pfDeleteResultRange = [out] A pointer to return the bool value. If it is true, TSF manager deletes the result range so only the
     ///                          current composition range remains in the transitory extension.
     HRESULT OnTransitoryExtensionUpdated(ITfContext pic, uint ecReadOnly, ITfRange pResultRange, 
-                                         ITfRange pCompositionRange, int* pfDeleteResultRange);
+                                         ITfRange pCompositionRange, BOOL* pfDeleteResultRange);
 }
 
 ///The <b>ITfToolTipUIElement</b> interface is implemented by a text service that wants to show a tooltip on its UI. A
@@ -8623,7 +8628,7 @@ interface ITfReverseConversion : IUnknown
     ///    conversion result, <i>ppList</i>, contains no entries. </td> </tr> <tr> <td width="40%"> <dl> <dt>E_FAIL</dt>
     ///    </dl> </td> <td width="60%"> An unspecified error occurred. </td> </tr> </table>
     ///    
-    HRESULT DoReverseConversion(const(wchar)* lpstr, ITfReverseConversionList* ppList);
+    HRESULT DoReverseConversion(const(PWSTR) lpstr, ITfReverseConversionList* ppList);
 }
 
 ///<p class="CCE_Message">[<b>ITfReverseConversionMgr</b> is available for use in the operating systems specified in the
@@ -8730,7 +8735,7 @@ interface IEnumTfCandidates : IUnknown
     ///    the enumeration before the specified number of elements were obtained. </td> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> <i>ppCand</i> is invalid. </td> </tr> </table>
     ///    
-    HRESULT Next(uint ulCount, char* ppCand, uint* pcFetched);
+    HRESULT Next(uint ulCount, ITfCandidateString* ppCand, uint* pcFetched);
     ///Resets the enumerator object by moving the current position to the beginning of the enumeration sequence.
     HRESULT Reset();
     ///Moves the current position forward in the enumeration sequence by the specified number of elements.
@@ -8818,7 +8823,7 @@ interface ITfFnReconversion : ITfFunction
     ///    are invalid. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td
     ///    width="60%"> A memory allocation failure occurred. </td> </tr> </table>
     ///    
-    HRESULT QueryRange(ITfRange pRange, ITfRange* ppNewRange, int* pfConvertable);
+    HRESULT QueryRange(ITfRange pRange, ITfRange* ppNewRange, BOOL* pfConvertable);
     ///Obtains an ITfCandidateList object for a range of text.
     ///Params:
     ///    pRange = Pointer to an ITfRange object that covers the text to be reconverted. This range object is obtained by
@@ -8872,7 +8877,7 @@ interface ITfFnPlayBack : ITfFunction
     ///    are invalid. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td
     ///    width="60%"> A memory allocation failure occurred. </td> </tr> </table>
     ///    
-    HRESULT QueryRange(ITfRange pRange, ITfRange* ppNewRange, int* pfPlayable);
+    HRESULT QueryRange(ITfRange pRange, ITfRange* ppNewRange, BOOL* pfPlayable);
     ///Causes the audio data for a range of text to be played.
     ///Params:
     ///    pRange = Pointer to an ITfRange object that covers the text to play the audio data for. This range object is obtained
@@ -8902,7 +8907,7 @@ interface ITfFnLangProfileUtil : ITfFunction
     ///    langid = Contains a <b>LANGID</b> that specifies the language that the query applies to.
     ///    pfAvailable = Pointer to a <b>BOOL</b> that receives nonzero if a profile is available for the language identified by
     ///                  langid or zero otherwise.
-    HRESULT IsProfileAvailableForLang(ushort langid, int* pfAvailable);
+    HRESULT IsProfileAvailableForLang(ushort langid, BOOL* pfAvailable);
 }
 
 ///The <b>ITfFnConfigure</b> interface is implemented by a text service to enable the Text Services control panel
@@ -9003,7 +9008,7 @@ interface ITfFnBalloon : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> One or more parameters
     ///    are invalid. </td> </tr> </table>
     ///    
-    HRESULT UpdateBalloon(TfLBBalloonStyle style, const(wchar)* pch, uint cch);
+    HRESULT UpdateBalloon(TfLBBalloonStyle style, const(PWSTR) pch, uint cch);
 }
 
 ///The <b>ITfFnGetSAPIObject</b> interface is implemented by the Speech API (SAPI) text service. This interface is used
@@ -9092,7 +9097,7 @@ interface ITfFnLMProcessor : ITfFunction
     ///    are invalid. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td
     ///    width="60%"> A memory allocation failure occurred. </td> </tr> </table>
     ///    
-    HRESULT QueryRange(ITfRange pRange, ITfRange* ppNewRange, int* pfAccepted);
+    HRESULT QueryRange(ITfRange pRange, ITfRange* ppNewRange, BOOL* pfAccepted);
     ///Determines if the language model text service supports a particular language.
     ///Params:
     ///    langid = Contains a <b>LANGID</b> that specifies the identifier of the language that the query applies to.
@@ -9104,7 +9109,7 @@ interface ITfFnLMProcessor : ITfFunction
     ///    <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> <i>pfAccepted</i> is
     ///    invalid. </td> </tr> </table>
     ///    
-    HRESULT QueryLangID(ushort langid, int* pfAccepted);
+    HRESULT QueryLangID(ushort langid, BOOL* pfAccepted);
     ///Obtains an ITfCandidateList object for a range from the language model text service.
     ///Params:
     ///    pRange = Pointer to an ITfRange object that covers the text to be reconverted. To obtain this range object, call
@@ -9146,7 +9151,7 @@ interface ITfFnLMProcessor : ITfFunction
     ///    width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method was successful. </td> </tr>
     ///    </table>
     ///    
-    HRESULT QueryKey(BOOL fUp, WPARAM vKey, LPARAM lparamKeydata, int* pfInterested);
+    HRESULT QueryKey(BOOL fUp, WPARAM vKey, LPARAM lparamKeydata, BOOL* pfInterested);
     ///Called to enable the language model text service to process a key event.
     ///Params:
     ///    fUp = Contains a <b>BOOL</b> that specifies if this is a key-down or a key-up event. Contains zero if this is a
@@ -9217,7 +9222,7 @@ interface IEnumTfLatticeElements : IUnknown
     ///    <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> <i>rgsElements</i> is invalid. </td> </tr>
     ///    </table>
     ///    
-    HRESULT Next(uint ulCount, char* rgsElements, uint* pcFetched);
+    HRESULT Next(uint ulCount, TF_LMLATTELEMENT* rgsElements, uint* pcFetched);
     ///Resets the enumerator object by moving the current position to the beginning of the enumeration sequence.
     HRESULT Reset();
     ///Moves the current position forward in the enumeration sequence by the specified number of elements.
@@ -9245,7 +9250,7 @@ interface ITfLMLattice : IUnknown
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Either
     ///    <i>pfSupported</i> is invalid or the specified lattice type is not supported. </td> </tr> </table>
     ///    
-    HRESULT QueryType(const(GUID)* rguidType, int* pfSupported);
+    HRESULT QueryType(const(GUID)* rguidType, BOOL* pfSupported);
     ///Obtains an enumerator that contains all lattice elements contained in the lattice property that start at or after
     ///a specific offset from the start of the frame.
     ///Params:
@@ -9282,7 +9287,7 @@ interface ITfFnAdviseText : ITfFunction
     ///    <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> One or more parameters
     ///    are invalid. </td> </tr> </table>
     ///    
-    HRESULT OnTextUpdate(ITfRange pRange, const(wchar)* pchText, int cch);
+    HRESULT OnTextUpdate(ITfRange pRange, const(PWSTR) pchText, int cch);
     ///Called when a lattice element within a context changes.
     ///Params:
     ///    pRange = Pointer to an ITfRange object that represents the range of text that changed.
@@ -9365,7 +9370,7 @@ interface ITfIntegratableCandidateListUIElement : IUnknown
     ///    width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method was successful. </td> </tr>
     ///    </table>
     ///    
-    HRESULT OnKeyDown(WPARAM wParam, LPARAM lParam, int* pfEaten);
+    HRESULT OnKeyDown(WPARAM wParam, LPARAM lParam, BOOL* pfEaten);
     ///Specifies whether candidate numbers should be shown.
     ///Params:
     ///    pfShow = <b>TRUE</b> if candidate numbers should be shown; otherwise <b>FALSE</b>.
@@ -9374,7 +9379,7 @@ interface ITfIntegratableCandidateListUIElement : IUnknown
     ///    width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method was successful. </td> </tr>
     ///    </table>
     ///    
-    HRESULT ShowCandidateNumbers(int* pfShow);
+    HRESULT ShowCandidateNumbers(BOOL* pfShow);
     ///Finalizes the current composition with the value currently shown to the user.
     ///Returns:
     ///    This method can return one of these values. <table> <tr> <th>Value</th> <th>Description</th> </tr> <tr> <td
@@ -9505,14 +9510,14 @@ interface ITfInputScope : IUnknown
     ///    pprgInputScopes = Pointer to an array of pointers to the input scopes. The calling function must call <b>CoTaskMemFree()</b> to
     ///                      free the buffer.
     ///    pcCount = Pointer to the number of input scopes returned.
-    HRESULT GetInputScopes(char* pprgInputScopes, uint* pcCount);
+    HRESULT GetInputScopes(InputScope** pprgInputScopes, uint* pcCount);
     ///Gets the phrase list set to this context.
     ///Params:
     ///    ppbstrPhrases = Pointer to an array of pointers to strings containing phrases. The calling function must call
     ///                    <b>SystFreeString()</b> to free the memory allocated to the strings and <b>CoTaskMemFree</b> to free the
     ///                    buffer.
     ///    pcCount = Pointer to the number of phrases returned.
-    HRESULT GetPhrase(char* ppbstrPhrases, uint* pcCount);
+    HRESULT GetPhrase(BSTR** ppbstrPhrases, uint* pcCount);
     ///Gets the regular expression string to be rssecognized.
     ///Params:
     ///    pbstrRegExp = Pointer to a string containing the regular expression. The calling function must call <b>SystFreeString()</b>
@@ -9575,7 +9580,7 @@ interface ITfSpeechUIServer : IUnknown
     ///    width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method was successful. </td> </tr>
     ///    </table>
     ///    
-    HRESULT UpdateBalloon(TfLBBalloonStyle style, const(wchar)* pch, uint cch);
+    HRESULT UpdateBalloon(TfLBBalloonStyle style, const(PWSTR) pch, uint cch);
 }
 
 

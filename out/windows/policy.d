@@ -8,12 +8,12 @@ public import windows.com : HRESULT, IUnknown;
 public import windows.controls : HPROPSHEETPAGE;
 public import windows.security : GENERIC_MAPPING, OBJECT_TYPE_LIST, PRIVILEGE_SET;
 public import windows.shell : APPCATEGORYINFOLIST;
-public import windows.systemservices : BOOL, HANDLE;
+public import windows.systemservices : BOOL, HANDLE, PSTR, PWSTR;
 public import windows.windowsandmessaging : HWND, LPARAM;
 public import windows.windowsprogramming : HKEY, SYSTEMTIME;
 public import windows.wmi : IWbemClassObject, IWbemServices;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -92,7 +92,7 @@ enum : int
 ///Returns:
 ///    If the message was displayed successfully, return <b>ERROR_SUCCESS</b>. Otherwise, return a system error code.
 ///    
-alias PFNSTATUSMESSAGECALLBACK = uint function(BOOL bVerbose, const(wchar)* lpMessage);
+alias PFNSTATUSMESSAGECALLBACK = uint function(BOOL bVerbose, PWSTR lpMessage);
 ///The <b>ProcessGroupPolicy</b> function is an application-defined callback function used when applying policy. The
 ///<b>PFNPROCESSGROUPPOLICY</b> type defines a pointer to this callback function. <b>ProcessGroupPolicy</b> is a
 ///placeholder for the application-defined function name. This callback function is not useful for Resultant Set of
@@ -123,7 +123,7 @@ alias PFNSTATUSMESSAGECALLBACK = uint function(BOOL bVerbose, const(wchar)* lpMe
 ///    
 alias PFNPROCESSGROUPPOLICY = uint function(uint dwFlags, HANDLE hToken, HKEY hKeyRoot, 
                                             GROUP_POLICY_OBJECTA* pDeletedGPOList, 
-                                            GROUP_POLICY_OBJECTA* pChangedGPOList, size_t pHandle, int* pbAbort, 
+                                            GROUP_POLICY_OBJECTA* pChangedGPOList, size_t pHandle, BOOL* pbAbort, 
                                             PFNSTATUSMESSAGECALLBACK pStatusCallback);
 ///The <b>ProcessGroupPolicyEx</b> function is an application-defined callback function used when applying policy. This
 ///extended function also supports the logging of Resultant Set of Policy (RSoP) data. The
@@ -161,9 +161,9 @@ alias PFNPROCESSGROUPPOLICY = uint function(uint dwFlags, HANDLE hToken, HKEY hK
 ///    
 alias PFNPROCESSGROUPPOLICYEX = uint function(uint dwFlags, HANDLE hToken, HKEY hKeyRoot, 
                                               GROUP_POLICY_OBJECTA* pDeletedGPOList, 
-                                              GROUP_POLICY_OBJECTA* pChangedGPOList, size_t pHandle, int* pbAbort, 
+                                              GROUP_POLICY_OBJECTA* pChangedGPOList, size_t pHandle, BOOL* pbAbort, 
                                               PFNSTATUSMESSAGECALLBACK pStatusCallback, IWbemServices pWbemServices, 
-                                              int* pRsopStatus);
+                                              HRESULT* pRsopStatus);
 ///The <b>GenerateGroupPolicy</b> callback function is an application-defined callback function that each policy
 ///extension must export when generating RSoP data in the planning mode. The Group Policy Data Access Service (GPDAS)
 ///calls the function after the service simulates the loading of client-side extensions so that extensions can generate
@@ -183,88 +183,92 @@ alias PFNPROCESSGROUPPOLICYEX = uint function(uint dwFlags, HANDLE hToken, HKEY 
 ///    If the function succeeds, the return value is <b>ERROR_SUCCESS</b>. Otherwise, the function returns one of the
 ///    system error codes. For a complete list of error codes, see System Error Codes or the header file WinError.h.
 ///    
-alias PFNGENERATEGROUPPOLICY = uint function(uint dwFlags, int* pbAbort, ushort* pwszSite, 
+alias PFNGENERATEGROUPPOLICY = uint function(uint dwFlags, BOOL* pbAbort, PWSTR pwszSite, 
                                              RSOP_TARGET* pComputerTarget, RSOP_TARGET* pUserTarget);
 
 // Structs
 
 
-alias CriticalPolicySectionHandle = ptrdiff_t;
+@RAIIFree!LeaveCriticalPolicySection
+struct CriticalPolicySectionHandle
+{
+    ptrdiff_t Value;
+}
 
 ///The <b>GROUP_POLICY_OBJECT</b> structure provides information about a GPO in a GPO list.
 struct GROUP_POLICY_OBJECTA
 {
     ///Specifies link options. This member can be one of the following values.
-    uint         dwOptions;
+    uint     dwOptions;
     ///Specifies the version number of the GPO.
-    uint         dwVersion;
+    uint     dwVersion;
     ///Pointer to a string that specifies the path to the directory service portion of the GPO.
-    const(char)* lpDSPath;
+    PSTR     lpDSPath;
     ///Pointer to a string that specifies the path to the file system portion of the GPO.
-    const(char)* lpFileSysPath;
+    PSTR     lpFileSysPath;
     ///Pointer to the display name of the GPO.
-    const(char)* lpDisplayName;
+    PSTR     lpDisplayName;
     ///Pointer to a string that specifies a unique name that identifies the GPO.
-    byte[50]     szGPOName;
+    byte[50] szGPOName;
     ///Specifies the link information for the GPO. This member may be one of the following values.
-    GPO_LINK     GPOLink;
+    GPO_LINK GPOLink;
     ///User-supplied data.
-    LPARAM       lParam;
+    LPARAM   lParam;
     ///Pointer to the next GPO in the list.
     GROUP_POLICY_OBJECTA* pNext;
     ///Pointer to the previous GPO in the list.
     GROUP_POLICY_OBJECTA* pPrev;
     ///Extensions that have stored data in this GPO. The format is a string of <b>GUID</b>s grouped in brackets. For
     ///more information, see the following Remarks section.
-    const(char)* lpExtensions;
+    PSTR     lpExtensions;
     ///User-supplied data.
-    LPARAM       lParam2;
+    LPARAM   lParam2;
     ///Path to the Active Directory site, domain, or organization unit to which this GPO is linked. If the GPO is linked
     ///to the local GPO, this member is "Local".
-    const(char)* lpLink;
+    PSTR     lpLink;
 }
 
 ///The <b>GROUP_POLICY_OBJECT</b> structure provides information about a GPO in a GPO list.
 struct GROUP_POLICY_OBJECTW
 {
     ///Specifies link options. This member can be one of the following values.
-    uint          dwOptions;
+    uint       dwOptions;
     ///Specifies the version number of the GPO.
-    uint          dwVersion;
+    uint       dwVersion;
     ///Pointer to a string that specifies the path to the directory service portion of the GPO.
-    const(wchar)* lpDSPath;
+    PWSTR      lpDSPath;
     ///Pointer to a string that specifies the path to the file system portion of the GPO.
-    const(wchar)* lpFileSysPath;
+    PWSTR      lpFileSysPath;
     ///Pointer to the display name of the GPO.
-    const(wchar)* lpDisplayName;
+    PWSTR      lpDisplayName;
     ///Pointer to a string that specifies a unique name that identifies the GPO.
-    ushort[50]    szGPOName;
+    ushort[50] szGPOName;
     ///Specifies the link information for the GPO. This member may be one of the following values.
-    GPO_LINK      GPOLink;
+    GPO_LINK   GPOLink;
     ///User-supplied data.
-    LPARAM        lParam;
+    LPARAM     lParam;
     ///Pointer to the next GPO in the list.
     GROUP_POLICY_OBJECTW* pNext;
     ///Pointer to the previous GPO in the list.
     GROUP_POLICY_OBJECTW* pPrev;
     ///Extensions that have stored data in this GPO. The format is a string of <b>GUID</b>s grouped in brackets. For
     ///more information, see the following Remarks section.
-    const(wchar)* lpExtensions;
+    PWSTR      lpExtensions;
     ///User-supplied data.
-    LPARAM        lParam2;
+    LPARAM     lParam2;
     ///Path to the Active Directory site, domain, or organization unit to which this GPO is linked. If the GPO is linked
     ///to the local GPO, this member is "Local".
-    const(wchar)* lpLink;
+    PWSTR      lpLink;
 }
 
 ///The <b>RSOP_TARGET</b> structure contains computer and user information required by the GenerateGroupPolicy function.
 struct RSOP_TARGET
 {
     ///Pointer to the account name of the computer or the user.
-    ushort*       pwszAccountName;
+    PWSTR         pwszAccountName;
     ///Pointer to the new domain or organizational unit that is the location for the account identified by the
     ///<b>pwszAccountName</b> member. This member can be <b>NULL</b>.
-    ushort*       pwszNewSOM;
+    PWSTR         pwszNewSOM;
     ///Pointer to a <b>SAFEARRAY</b> that contains a proposed list of new security groups. This member can be
     ///<b>NULL</b>. For more information about security groups, see Filtering the Scope of a GPO and How Security Groups
     ///are Used in Access Control.
@@ -281,12 +285,12 @@ struct RSOP_TARGET
 struct POLICYSETTINGSTATUSINFO
 {
     ///This member is optional. If it is <b>NULL</b>, the system generates a value.
-    const(wchar)* szKey;
+    PWSTR         szKey;
     ///Pointer to a string specifying the name of the source (application, service, driver, subsystem) that generated
     ///the log entry.
-    const(wchar)* szEventSource;
+    PWSTR         szEventSource;
     ///Pointer to a string specifying the name of the event log.
-    const(wchar)* szEventLogName;
+    PWSTR         szEventLogName;
     ///Specifies the event log message ID.
     uint          dwEventID;
     ///A system error code that indicates an error that occurred during the application of the policy setting.
@@ -302,18 +306,18 @@ struct POLICYSETTINGSTATUSINFO
 ///InstallApplication function.
 union INSTALLSPEC
 {
-    struct AppName
+struct AppName
     {
-        ushort* Name;
-        GUID    GPOId;
+        PWSTR Name;
+        GUID  GPOId;
     }
     ///The file name extension, such as .jpg, of the application to be installed. <div class="alert"><b>Note</b>
     ///InstallApplication fails if the <b>Type</b> member of INSTALLDATA equals <b>FILEEXT</b> and there is no
     ///application deployed to the user with this file name extension.</div> <div> </div>
-    ushort* FileExt;
+    PWSTR FileExt;
     ///This parameter is reserved and should not be used.
-    ushort* ProgId;
-    struct COMClass
+    PWSTR ProgId;
+struct COMClass
     {
         GUID Clsid;
         uint ClsCtx;
@@ -338,13 +342,13 @@ struct LOCALMANAGEDAPPLICATION
 {
     ///This is a Unicode string that gives the user friendly name of the application as it appears in the Application
     ///Deployment Editor (ADE).
-    const(wchar)* pszDeploymentName;
+    PWSTR pszDeploymentName;
     ///This is the user-friendly name of the group policy object (GPO) from which the application originates.
-    const(wchar)* pszPolicyName;
+    PWSTR pszPolicyName;
     ///This is a Unicode string that gives the Windows Installer product code GUID for the application.
-    const(wchar)* pszProductId;
+    PWSTR pszProductId;
     ///Indicates the state of the installed application. This parameter can contain one or more of the following values.
-    uint          dwState;
+    uint  dwState;
 }
 
 ///The <b>MANAGEDAPPLICATION</b> structure contains information about an application. The function
@@ -352,38 +356,38 @@ struct LOCALMANAGEDAPPLICATION
 struct MANAGEDAPPLICATION
 {
     ///The user-friendly name of the application.
-    const(wchar)* pszPackageName;
+    PWSTR  pszPackageName;
     ///The name of the application's publisher.
-    const(wchar)* pszPublisher;
+    PWSTR  pszPublisher;
     ///The major version number of the application.
-    uint          dwVersionHi;
+    uint   dwVersionHi;
     ///The minor version number of the application.
-    uint          dwVersionLo;
+    uint   dwVersionLo;
     ///The version number of the deployment. The version changes each time an application gets patched.
-    uint          dwRevision;
+    uint   dwRevision;
     ///The GUID of the GPO from which this application is deployed.
-    GUID          GpoId;
+    GUID   GpoId;
     ///The user-friendly name for the GPO from which this application is deployed.
-    const(wchar)* pszPolicyName;
+    PWSTR  pszPolicyName;
     ///If this application is installed by Windows Installer, this member is the ProductId GUID.
-    GUID          ProductId;
+    GUID   ProductId;
     ///The numeric language identifier that indicates the language version of the application. For a list of language
     ///numeric identifiers, see the Language Identifier Constants and Strings topic.
-    ushort        Language;
+    ushort Language;
     ///This member is unused.
-    const(wchar)* pszOwner;
+    PWSTR  pszOwner;
     ///This member is unused.
-    const(wchar)* pszCompany;
+    PWSTR  pszCompany;
     ///This member is unused.
-    const(wchar)* pszComments;
+    PWSTR  pszComments;
     ///This member is unused.
-    const(wchar)* pszContact;
+    PWSTR  pszContact;
     ///This member is unused.
-    const(wchar)* pszSupportUrl;
+    PWSTR  pszSupportUrl;
     ///Indicates the type of package used to install the application. This member can have one of the following values.
-    uint          dwPathType;
+    uint   dwPathType;
     ///This parameter is <b>TRUE</b> if the application is currently installed and is <b>FALSE</b> otherwise.
-    BOOL          bInstalled;
+    BOOL   bInstalled;
 }
 
 ///The <b>GPOBROWSEINFO</b> structure contains information that the BrowseForGPO function uses to initialize a GPO
@@ -392,27 +396,27 @@ struct MANAGEDAPPLICATION
 struct GPOBROWSEINFO
 {
     ///Specifies the size of the structure, in bytes.
-    uint    dwSize;
+    uint  dwSize;
     ///Specifies dialog box options. This member can be one or more of the following values.
-    uint    dwFlags;
+    uint  dwFlags;
     ///Specifies the handle to the parent window. If this member is <b>NULL</b>, the dialog box has no owner.
-    HWND    hwndOwner;
+    HWND  hwndOwner;
     ///Specifies the title bar text. If this member is <b>NULL</b>, the title bar text is <b>Browse for a Group Policy
     ///Object</b>.
-    ushort* lpTitle;
+    PWSTR lpTitle;
     ///Specifies the initial domain or organizational unit.
-    ushort* lpInitialOU;
+    PWSTR lpInitialOU;
     ///Pointer to a buffer that receives the Active Directory path of the GPO.
-    ushort* lpDSPath;
+    PWSTR lpDSPath;
     ///Specifies the size, in characters, of the <b>lpDSPath</b> buffer.
-    uint    dwDSPathSize;
+    uint  dwDSPathSize;
     ///Pointer to a buffer that receives either the computer name or the friendly (display) name of the GPO. If the user
     ///opens or creates a GPO in the <b>Computers</b> tab, this member contains the computer name. If the user opens or
     ///creates a GPO in the Active Directory, this member contains the friendly name. To determine the GPO type, see the
     ///description for the <b>gpoType</b> member. This member can be <b>NULL</b>.
-    ushort* lpName;
+    PWSTR lpName;
     ///Specifies the size, in characters, of the <b>lpName</b> buffer.
-    uint    dwNameSize;
+    uint  dwNameSize;
     ///Receives the GPO type. This member can be one of the following values.
     GROUP_POLICY_OBJECT_TYPE gpoType;
     ///Receives a hint about the Active Directory container to which the GPO might be linked. This member can be one of
@@ -523,7 +527,7 @@ BOOL UnregisterGPNotification(HANDLE hEvent);
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("USERENV")
-BOOL GetGPOListA(HANDLE hToken, const(char)* lpName, const(char)* lpHostName, const(char)* lpComputerName, 
+BOOL GetGPOListA(HANDLE hToken, const(PSTR) lpName, const(PSTR) lpHostName, const(PSTR) lpComputerName, 
                  uint dwFlags, GROUP_POLICY_OBJECTA** pGPOList);
 
 ///The <b>GetGPOList</b> function retrieves the list of GPOs for the specified user or computer. This function can be
@@ -552,7 +556,7 @@ BOOL GetGPOListA(HANDLE hToken, const(char)* lpName, const(char)* lpHostName, co
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("USERENV")
-BOOL GetGPOListW(HANDLE hToken, const(wchar)* lpName, const(wchar)* lpHostName, const(wchar)* lpComputerName, 
+BOOL GetGPOListW(HANDLE hToken, const(PWSTR) lpName, const(PWSTR) lpHostName, const(PWSTR) lpComputerName, 
                  uint dwFlags, GROUP_POLICY_OBJECTW** pGPOList);
 
 ///The <b>FreeGPOList</b> function frees the specified list of GPOs.
@@ -593,7 +597,7 @@ BOOL FreeGPOListW(GROUP_POLICY_OBJECTW* pGPOList);
 ///    error code. For a complete list of error codes, see System Error Codes or the header file WinError.h.
 ///    
 @DllImport("USERENV")
-uint GetAppliedGPOListA(uint dwFlags, const(char)* pMachineName, void* pSidUser, GUID* pGuidExtension, 
+uint GetAppliedGPOListA(uint dwFlags, const(PSTR) pMachineName, void* pSidUser, GUID* pGuidExtension, 
                         GROUP_POLICY_OBJECTA** ppGPOList);
 
 ///The <b>GetAppliedGPOList</b> function retrieves the list of GPOs applied for the specified user or computer.
@@ -612,7 +616,7 @@ uint GetAppliedGPOListA(uint dwFlags, const(char)* pMachineName, void* pSidUser,
 ///    error code. For a complete list of error codes, see System Error Codes or the header file WinError.h.
 ///    
 @DllImport("USERENV")
-uint GetAppliedGPOListW(uint dwFlags, const(wchar)* pMachineName, void* pSidUser, GUID* pGuidExtension, 
+uint GetAppliedGPOListW(uint dwFlags, const(PWSTR) pMachineName, void* pSidUser, GUID* pGuidExtension, 
                         GROUP_POLICY_OBJECTW** ppGPOList);
 
 ///The <b>ProcessGroupPolicyCompleted</b> function notifies the system that the specified extension has finished
@@ -680,9 +684,9 @@ uint ProcessGroupPolicyCompletedEx(GUID* extensionId, size_t pAsyncHandle, uint 
 ///    
 @DllImport("USERENV")
 HRESULT RsopAccessCheckByType(void* pSecurityDescriptor, void* pPrincipalSelfSid, void* pRsopToken, 
-                              uint dwDesiredAccessMask, char* pObjectTypeList, uint ObjectTypeListLength, 
-                              GENERIC_MAPPING* pGenericMapping, char* pPrivilegeSet, uint* pdwPrivilegeSetLength, 
-                              uint* pdwGrantedAccessMask, int* pbAccessStatus);
+                              uint dwDesiredAccessMask, OBJECT_TYPE_LIST* pObjectTypeList, uint ObjectTypeListLength, 
+                              GENERIC_MAPPING* pGenericMapping, PRIVILEGE_SET* pPrivilegeSet, 
+                              uint* pdwPrivilegeSetLength, uint* pdwGrantedAccessMask, int* pbAccessStatus);
 
 ///The <b>RSoPFileAccessCheck</b> function determines whether a file's security descriptor grants a specified set of
 ///file access rights to the client identified by an <b>RSOPTOKEN</b>.
@@ -703,7 +707,7 @@ HRESULT RsopAccessCheckByType(void* pSecurityDescriptor, void* pPrincipalSelfSid
 ///    codes defined in the Platform SDK header file WinError.h.
 ///    
 @DllImport("USERENV")
-HRESULT RsopFileAccessCheck(const(wchar)* pszFileName, void* pRsopToken, uint dwDesiredAccessMask, 
+HRESULT RsopFileAccessCheck(PWSTR pszFileName, void* pRsopToken, uint dwDesiredAccessMask, 
                             uint* pdwGrantedAccessMask, int* pbAccessStatus);
 
 ///The <b>RSoPSetPolicySettingStatus</b> function creates an instance of RSOP_PolicySettingStatus and an instance of
@@ -723,7 +727,7 @@ HRESULT RsopFileAccessCheck(const(wchar)* pszFileName, void* pRsopToken, uint dw
 ///    
 @DllImport("USERENV")
 HRESULT RsopSetPolicySettingStatus(uint dwFlags, IWbemServices pServices, IWbemClassObject pSettingInstance, 
-                                   uint nInfo, char* pStatus);
+                                   uint nInfo, POLICYSETTINGSTATUSINFO* pStatus);
 
 ///The <b>RSoPResetPolicySettingStatus</b> function unlinks the RSOP_PolicySettingStatus instance from its
 ///RSOP_PolicySetting instance. The function deletes the instances of <b>RSOP_PolicySettingStatus</b> and
@@ -743,7 +747,7 @@ HRESULT RsopSetPolicySettingStatus(uint dwFlags, IWbemServices pServices, IWbemC
 HRESULT RsopResetPolicySettingStatus(uint dwFlags, IWbemServices pServices, IWbemClassObject pSettingInstance);
 
 @DllImport("USERENV")
-uint GenerateGPNotification(BOOL bMachine, const(wchar)* lpwszMgmtProduct, uint dwMgmtProductOptions);
+uint GenerateGPNotification(BOOL bMachine, const(PWSTR) lpwszMgmtProduct, uint dwMgmtProductOptions);
 
 ///The <b>InstallApplication</b> function can install applications that have been deployed to target users that belong
 ///to a domain. The security context of the user that is calling <b>InstallApplication</b> must be that of a domain user
@@ -776,10 +780,10 @@ uint InstallApplication(INSTALLDATA* pInstallInfo);
 ///    system error codes. For a complete list of error codes, see System Error Codes or the header file WinError.h.
 ///    
 @DllImport("ADVAPI32")
-uint UninstallApplication(const(wchar)* ProductCode, uint dwStatus);
+uint UninstallApplication(PWSTR ProductCode, uint dwStatus);
 
 @DllImport("ADVAPI32")
-uint CommandLineFromMsiDescriptor(const(wchar)* Descriptor, const(wchar)* CommandLine, uint* CommandLineLength);
+uint CommandLineFromMsiDescriptor(PWSTR Descriptor, PWSTR CommandLine, uint* CommandLineLength);
 
 ///The <b>GetManagedApplications</b> function gets a list of applications that are displayed in the <b>Add</b> pane of
 ///<b>Add/Remove Programs</b> (ARP) for a specified user context.
@@ -821,7 +825,7 @@ uint GetManagedApplications(GUID* pCategory, uint dwQueryFlags, uint dwInfoLevel
 uint GetLocalManagedApplications(BOOL bUserApps, uint* pdwApps, LOCALMANAGEDAPPLICATION** prgLocalApps);
 
 @DllImport("ADVAPI32")
-void GetLocalManagedApplicationData(const(wchar)* ProductCode, ushort** DisplayName, ushort** SupportUrl);
+void GetLocalManagedApplicationData(PWSTR ProductCode, PWSTR* DisplayName, PWSTR* SupportUrl);
 
 ///The <b>GetManagedApplicationCategories</b> function gets a list of application categories for a domain. The list is
 ///the same for all users in the domain.
@@ -851,7 +855,7 @@ uint GetManagedApplicationCategories(uint dwReserved, APPCATEGORYINFOLIST* pAppC
 ///    success or failure of the function.
 ///    
 @DllImport("GPEDIT")
-HRESULT CreateGPOLink(ushort* lpGPO, ushort* lpContainer, BOOL fHighPriority);
+HRESULT CreateGPOLink(PWSTR lpGPO, PWSTR lpContainer, BOOL fHighPriority);
 
 ///The <b>DeleteGPOLink</b> function deletes the link between the specified GPO and the specified site, domain, or
 ///organizational unit.
@@ -864,7 +868,7 @@ HRESULT CreateGPOLink(ushort* lpGPO, ushort* lpContainer, BOOL fHighPriority);
 ///    codes defined in the header file WinError.h.
 ///    
 @DllImport("GPEDIT")
-HRESULT DeleteGPOLink(ushort* lpGPO, ushort* lpContainer);
+HRESULT DeleteGPOLink(PWSTR lpGPO, PWSTR lpContainer);
 
 ///The <b>DeleteAllGPOLinks</b> function deletes all GPO links for the specified site, domain, or organizational unit.
 ///Params:
@@ -876,7 +880,7 @@ HRESULT DeleteGPOLink(ushort* lpGPO, ushort* lpContainer);
 ///    codes defined in the header file WinError.h.
 ///    
 @DllImport("GPEDIT")
-HRESULT DeleteAllGPOLinks(ushort* lpContainer);
+HRESULT DeleteAllGPOLinks(PWSTR lpContainer);
 
 ///The <b>BrowseForGPO</b> function creates a GPO browser dialog box that allows the user to open or create a GPO.
 ///Params:
@@ -901,7 +905,7 @@ HRESULT BrowseForGPO(GPOBROWSEINFO* lpBrowseInfo);
 ///    codes defined in the Platform SDK header file WinError.h.
 ///    
 @DllImport("GPEDIT")
-HRESULT ImportRSoPData(ushort* lpNameSpace, ushort* lpFileName);
+HRESULT ImportRSoPData(PWSTR lpNameSpace, PWSTR lpFileName);
 
 ///The <b>ExportRSoPData</b> function exports a WMI namespace that contains RSoP information to a data file. The
 ///function writes the information to a data file that can be imported to a WMI namespace with a call to the
@@ -914,7 +918,7 @@ HRESULT ImportRSoPData(ushort* lpNameSpace, ushort* lpFileName);
 ///    codes defined in the header file WinError.h.
 ///    
 @DllImport("GPEDIT")
-HRESULT ExportRSoPData(ushort* lpNameSpace, ushort* lpFileName);
+HRESULT ExportRSoPData(PWSTR lpNameSpace, PWSTR lpFileName);
 
 
 // Interfaces
@@ -932,7 +936,7 @@ interface IGPEInformation : IUnknown
     ///    If the method succeeds, the return value is <b>S_OK</b>. Otherwise, the method returns one of the COM error
     ///    codes defined in the Platform SDK header file WinError.h.
     ///    
-    HRESULT GetName(char* pszName, int cchMaxLength);
+    HRESULT GetName(PWSTR pszName, int cchMaxLength);
     ///The <b>GetDisplayName</b> method retrieves the display name for the GPO.
     ///Params:
     ///    pszName = Receives the display name for the GPO.
@@ -941,7 +945,7 @@ interface IGPEInformation : IUnknown
     ///    If the method succeeds, the return value is <b>S_OK</b>. Otherwise, the method returns one of the COM error
     ///    codes defined in the Platform SDK header file WinError.h.
     ///    
-    HRESULT GetDisplayName(char* pszName, int cchMaxLength);
+    HRESULT GetDisplayName(PWSTR pszName, int cchMaxLength);
     ///The <b>GetRegistryKey</b> method retrieves a handle to the root of the registry key for the specified section of
     ///the GPO.
     ///Params:
@@ -964,7 +968,7 @@ interface IGPEInformation : IUnknown
     ///    If the method succeeds, the return value is <b>S_OK</b>. Otherwise, the method returns one of the COM error
     ///    codes defined in the Platform SDK header file WinError.h.
     ///    
-    HRESULT GetDSPath(uint dwSection, char* pszPath, int cchMaxPath);
+    HRESULT GetDSPath(uint dwSection, PWSTR pszPath, int cchMaxPath);
     ///The <b>GetFileSysPath</b> method returns the file system path for the specified section of the GPO. The path is
     ///in UNC format.
     ///Params:
@@ -975,7 +979,7 @@ interface IGPEInformation : IUnknown
     ///    If the method succeeds, the return value is <b>S_OK</b>. Otherwise, the method returns one of the COM error
     ///    codes defined in the Platform SDK header file WinError.h.
     ///    
-    HRESULT GetFileSysPath(uint dwSection, char* pszPath, int cchMaxPath);
+    HRESULT GetFileSysPath(uint dwSection, PWSTR pszPath, int cchMaxPath);
     ///The <b>GetOptions</b> method retrieves the options the user has selected for the Group Policy Object Editor.
     ///Params:
     ///    dwOptions = Receives a bitmask value representing the options the user has selected. Currently, this parameter returns
@@ -1035,7 +1039,7 @@ interface IGroupPolicyObject : IUnknown
     ///    If the method succeeds, the return value is <b>S_OK</b>. Otherwise, the method returns one of the COM error
     ///    codes defined in the Platform SDK header file WinError.h.
     ///    
-    HRESULT New(ushort* pszDomainName, ushort* pszDisplayName, uint dwFlags);
+    HRESULT New(PWSTR pszDomainName, PWSTR pszDisplayName, uint dwFlags);
     ///The <b>OpenDSGPO</b> method opens the specified GPO and optionally loads the registry information.
     ///Params:
     ///    pszPath = Specifies the Active Directory path of the object to open. If the path specifies a domain controller, the GPO
@@ -1046,7 +1050,7 @@ interface IGroupPolicyObject : IUnknown
     ///    If the method succeeds, the return value is <b>S_OK</b>. Otherwise, the method returns one of the COM error
     ///    codes defined in the Platform SDK header file WinError.h.
     ///    
-    HRESULT OpenDSGPO(ushort* pszPath, uint dwFlags);
+    HRESULT OpenDSGPO(PWSTR pszPath, uint dwFlags);
     ///The <b>OpenLocalMachineGPO</b> method opens the default GPO for the computer and optionally loads the registry
     ///information.
     ///Params:
@@ -1067,7 +1071,7 @@ interface IGroupPolicyObject : IUnknown
     ///    If the method succeeds, the return value is <b>S_OK</b>. Otherwise, the method returns one of the COM error
     ///    codes defined in the Platform SDK header file WinError.h.
     ///    
-    HRESULT OpenRemoteMachineGPO(ushort* pszComputerName, uint dwFlags);
+    HRESULT OpenRemoteMachineGPO(PWSTR pszComputerName, uint dwFlags);
     ///The <b>Save</b> method saves the specified registry policy settings to disk and updates the revision number of
     ///the GPO.
     ///Params:
@@ -1101,7 +1105,7 @@ interface IGroupPolicyObject : IUnknown
     ///    If the method succeeds, the return value is <b>S_OK</b>. Otherwise, the method returns one of the COM error
     ///    codes defined in the Platform SDK header file WinError.h.
     ///    
-    HRESULT GetName(char* pszName, int cchMaxLength);
+    HRESULT GetName(PWSTR pszName, int cchMaxLength);
     ///The <b>GetDisplayName</b> method retrieves the display name for the GPO.
     ///Params:
     ///    pszName = Pointer to a buffer that receives the display name.
@@ -1110,7 +1114,7 @@ interface IGroupPolicyObject : IUnknown
     ///    If the method succeeds, the return value is <b>S_OK</b>. Otherwise, the method returns one of the COM error
     ///    codes defined in the Platform SDK header file WinError.h.
     ///    
-    HRESULT GetDisplayName(char* pszName, int cchMaxLength);
+    HRESULT GetDisplayName(PWSTR pszName, int cchMaxLength);
     ///The <b>SetDisplayName</b> method sets the display name for the GPO.
     ///Params:
     ///    pszName = Specifies the new display name.
@@ -1118,7 +1122,7 @@ interface IGroupPolicyObject : IUnknown
     ///    If the method succeeds, the return value is <b>S_OK</b>. Otherwise, the method returns one of the COM error
     ///    codes defined in the Platform SDK header file WinError.h.
     ///    
-    HRESULT SetDisplayName(ushort* pszName);
+    HRESULT SetDisplayName(PWSTR pszName);
     ///The <b>GetPath</b> method retrieves the path to the GPO.
     ///Params:
     ///    pszPath = Pointer to a buffer that receives the path. If the GPO is an Active Directory object, the path is in ADSI
@@ -1128,7 +1132,7 @@ interface IGroupPolicyObject : IUnknown
     ///    If the method succeeds, the return value is <b>S_OK</b>. Otherwise, the method returns one of the COM error
     ///    codes defined in the Platform SDK header file WinError.h.
     ///    
-    HRESULT GetPath(char* pszPath, int cchMaxLength);
+    HRESULT GetPath(PWSTR pszPath, int cchMaxLength);
     ///The <b>GetDSPath</b> method retrieves the Active Directory path to the root of the specified GPO section.
     ///Params:
     ///    dwSection = Specifies the GPO section. This parameter can be one of the following values.
@@ -1139,7 +1143,7 @@ interface IGroupPolicyObject : IUnknown
     ///    If the method succeeds, the return value is <b>S_OK</b>. Otherwise, the method returns one of the COM error
     ///    codes defined in the Platform SDK header file WinError.h.
     ///    
-    HRESULT GetDSPath(uint dwSection, char* pszPath, int cchMaxPath);
+    HRESULT GetDSPath(uint dwSection, PWSTR pszPath, int cchMaxPath);
     ///The <b>GetFileSysPath</b> method retrieves the file system path to the root of the specified GPO section. The
     ///path is in UNC format.
     ///Params:
@@ -1150,7 +1154,7 @@ interface IGroupPolicyObject : IUnknown
     ///    If the method succeeds, the return value is <b>S_OK</b>. Otherwise, the method returns one of the COM error
     ///    codes defined in the Platform SDK header file WinError.h.
     ///    
-    HRESULT GetFileSysPath(uint dwSection, char* pszPath, int cchMaxPath);
+    HRESULT GetFileSysPath(uint dwSection, PWSTR pszPath, int cchMaxPath);
     ///The <b>GetRegistryKey</b> method retrieves a handle to the root of the registry key for the specified GPO
     ///section.
     ///Params:
@@ -1199,7 +1203,7 @@ interface IGroupPolicyObject : IUnknown
     ///    If the method succeeds, the return value is <b>S_OK</b>. Otherwise, the method returns one of the COM error
     ///    codes defined in the Platform SDK header file WinError.h.
     ///    
-    HRESULT GetMachineName(char* pszName, int cchMaxLength);
+    HRESULT GetMachineName(PWSTR pszName, int cchMaxLength);
     ///The <b>GetPropertySheetPages</b> method retrieves the property sheet pages associated with the GPO.
     ///Params:
     ///    hPages = Address of the pointer to an array of property sheet pages.
@@ -1227,7 +1231,7 @@ interface IRSOPInformation : IUnknown
     ///    If the method succeeds, the return value is <b>S_OK</b>. Otherwise, the method returns one of the COM error
     ///    codes defined in the Platform SDK header file WinError.h.
     ///    
-    HRESULT GetNamespace(uint dwSection, char* pszName, int cchMaxLength);
+    HRESULT GetNamespace(uint dwSection, PWSTR pszName, int cchMaxLength);
     ///The <b>GetFlags</b> method retrieves information about the RSoP user interface session.
     ///Params:
     ///    pdwFlags = Receives a pointer to a value that contains information about the RSoP session. This parameter can be the
@@ -1250,8 +1254,8 @@ interface IRSOPInformation : IUnknown
     ///    If the method succeeds, the return value is <b>S_OK</b>. Otherwise, the method returns one of the COM error
     ///    codes defined in the Platform SDK header file WinError.h.
     ///    
-    HRESULT GetEventLogEntryText(ushort* pszEventSource, ushort* pszEventLogName, ushort* pszEventTime, 
-                                 uint dwEventID, ushort** ppszText);
+    HRESULT GetEventLogEntryText(PWSTR pszEventSource, PWSTR pszEventLogName, PWSTR pszEventTime, uint dwEventID, 
+                                 PWSTR* ppszText);
 }
 
 

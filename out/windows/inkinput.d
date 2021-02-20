@@ -6,7 +6,7 @@ public import windows.core;
 public import windows.com : HRESULT, IUnknown;
 public import windows.systemservices : BOOL;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums

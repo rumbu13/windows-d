@@ -4,9 +4,9 @@ module windows.xblidp;
 
 public import windows.core;
 public import windows.com : HRESULT, IUnknown;
-public import windows.systemservices : BOOL;
+public import windows.systemservices : BOOL, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -57,7 +57,7 @@ interface IXblIdpAuthManager : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetGamerAccount(const(wchar)* msaAccountId, const(wchar)* xuid);
+    HRESULT SetGamerAccount(const(PWSTR) msaAccountId, const(PWSTR) xuid);
     ///Reserved for Microsoft use.
     ///Params:
     ///    msaAccountId = Type: <b>__RPC__deref_out_opt_string*</b>
@@ -67,7 +67,7 @@ interface IXblIdpAuthManager : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetGamerAccount(ushort** msaAccountId, ushort** xuid);
+    HRESULT GetGamerAccount(PWSTR* msaAccountId, PWSTR* xuid);
     ///Reserved for Microsoft use.
     ///Params:
     ///    appSid = Type: <b>__RPC__in_string</b>
@@ -77,7 +77,7 @@ interface IXblIdpAuthManager : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetAppViewInitialized(const(wchar)* appSid, const(wchar)* msaAccountId);
+    HRESULT SetAppViewInitialized(const(PWSTR) appSid, const(PWSTR) msaAccountId);
     ///Reserved for Microsoft use.
     ///Params:
     ///    environment = Type: <b>__RPC__deref_out_opt_string*</b>
@@ -86,7 +86,7 @@ interface IXblIdpAuthManager : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetEnvironment(ushort** environment);
+    HRESULT GetEnvironment(PWSTR* environment);
     ///Reserved for Microsoft use.
     ///Params:
     ///    sandbox = Type: <b>__RPC__deref_out_opt_string*</b>
@@ -95,7 +95,7 @@ interface IXblIdpAuthManager : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetSandbox(ushort** sandbox);
+    HRESULT GetSandbox(PWSTR* sandbox);
     ///Reserved for Microsoft use.
     ///Params:
     ///    msaAccountId = Type: <b>__RPC__in_opt_string</b>
@@ -114,10 +114,10 @@ interface IXblIdpAuthManager : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetTokenAndSignatureWithTokenResult(const(wchar)* msaAccountId, const(wchar)* appSid, 
-                                                const(wchar)* msaTarget, const(wchar)* msaPolicy, 
-                                                const(wchar)* httpMethod, const(wchar)* uri, const(wchar)* headers, 
-                                                char* body_, uint bodySize, BOOL forceRefresh, 
+    HRESULT GetTokenAndSignatureWithTokenResult(const(PWSTR) msaAccountId, const(PWSTR) appSid, 
+                                                const(PWSTR) msaTarget, const(PWSTR) msaPolicy, 
+                                                const(PWSTR) httpMethod, const(PWSTR) uri, const(PWSTR) headers, 
+                                                ubyte* body_, uint bodySize, BOOL forceRefresh, 
                                                 IXblIdpAuthTokenResult* result);
 }
 
@@ -142,7 +142,7 @@ interface IXblIdpAuthTokenResult : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetErrorCode(int* errorCode);
+    HRESULT GetErrorCode(HRESULT* errorCode);
     ///Reserved for Microsoft use.
     ///Params:
     ///    token = Type: <b>__RPC__deref_out_opt_string*</b>
@@ -151,7 +151,7 @@ interface IXblIdpAuthTokenResult : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetToken(ushort** token);
+    HRESULT GetToken(PWSTR* token);
     ///Reserved for Microsoft use.
     ///Params:
     ///    signature = Type: <b>__RPC__deref_out_opt_string*</b>
@@ -160,7 +160,7 @@ interface IXblIdpAuthTokenResult : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetSignature(ushort** signature);
+    HRESULT GetSignature(PWSTR* signature);
     ///Reserved for Microsoft use.
     ///Params:
     ///    sandbox = Type: <b>__RPC__deref_out_opt_string*</b>
@@ -169,7 +169,7 @@ interface IXblIdpAuthTokenResult : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetSandbox(ushort** sandbox);
+    HRESULT GetSandbox(PWSTR* sandbox);
     ///Reserved for Microsoft use.
     ///Params:
     ///    environment = Type: <b>__RPC__deref_out_opt_string*</b>
@@ -178,7 +178,7 @@ interface IXblIdpAuthTokenResult : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetEnvironment(ushort** environment);
+    HRESULT GetEnvironment(PWSTR* environment);
     ///Reserved for Microsoft use.
     ///Params:
     ///    msaAccountId = Type: <b>__RPC__deref_out_opt_string*</b>
@@ -187,7 +187,7 @@ interface IXblIdpAuthTokenResult : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetMsaAccountId(ushort** msaAccountId);
+    HRESULT GetMsaAccountId(PWSTR* msaAccountId);
     ///Reserved for Microsoft use.
     ///Params:
     ///    xuid = Type: <b>__RPC__deref_out_opt_string*</b>
@@ -196,7 +196,7 @@ interface IXblIdpAuthTokenResult : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetXuid(ushort** xuid);
+    HRESULT GetXuid(PWSTR* xuid);
     ///Reserved for Microsoft use.
     ///Params:
     ///    gamertag = Type: <b>__RPC__deref_out_opt_string*</b>
@@ -205,7 +205,7 @@ interface IXblIdpAuthTokenResult : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetGamertag(ushort** gamertag);
+    HRESULT GetGamertag(PWSTR* gamertag);
     ///Reserved for Microsoft use.
     ///Params:
     ///    ageGroup = Type: <b>__RPC__deref_out_opt_string*</b>
@@ -214,7 +214,7 @@ interface IXblIdpAuthTokenResult : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetAgeGroup(ushort** ageGroup);
+    HRESULT GetAgeGroup(PWSTR* ageGroup);
     ///Reserved for Microsoft use.
     ///Params:
     ///    privileges = Type: <b>__RPC__deref_out_opt_string*</b>
@@ -223,7 +223,7 @@ interface IXblIdpAuthTokenResult : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetPrivileges(ushort** privileges);
+    HRESULT GetPrivileges(PWSTR* privileges);
     ///Reserved for Microsoft use.
     ///Params:
     ///    msaTarget = Type: <b>__RPC__deref_out_opt_string*</b>
@@ -232,7 +232,7 @@ interface IXblIdpAuthTokenResult : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetMsaTarget(ushort** msaTarget);
+    HRESULT GetMsaTarget(PWSTR* msaTarget);
     ///Reserved for Microsoft use.
     ///Params:
     ///    msaPolicy = Type: <b>__RPC__deref_out_opt_string*</b>
@@ -241,7 +241,7 @@ interface IXblIdpAuthTokenResult : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetMsaPolicy(ushort** msaPolicy);
+    HRESULT GetMsaPolicy(PWSTR* msaPolicy);
     ///Reserved for Microsoft use.
     ///Params:
     ///    msaAppId = Type: <b>__RPC__deref_out_opt_string*</b>
@@ -250,7 +250,7 @@ interface IXblIdpAuthTokenResult : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetMsaAppId(ushort** msaAppId);
+    HRESULT GetMsaAppId(PWSTR* msaAppId);
     ///Reserved for Microsoft use.
     ///Params:
     ///    redirect = Type: <b>__RPC__deref_out_opt_string*</b>
@@ -259,8 +259,8 @@ interface IXblIdpAuthTokenResult : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetRedirect(ushort** redirect);
-    HRESULT GetMessageA(ushort** message);
+    HRESULT GetRedirect(PWSTR* redirect);
+    HRESULT GetMessageA(PWSTR* message);
     ///Reserved for Microsoft use.
     ///Params:
     ///    helpId = Type: <b>__RPC__deref_out_opt_string*</b>
@@ -269,7 +269,7 @@ interface IXblIdpAuthTokenResult : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetHelpId(ushort** helpId);
+    HRESULT GetHelpId(PWSTR* helpId);
     ///Reserved for Microsoft use.
     ///Params:
     ///    enforcementBans = Type: <b>__RPC__deref_out_opt_string*</b>
@@ -278,7 +278,7 @@ interface IXblIdpAuthTokenResult : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetEnforcementBans(ushort** enforcementBans);
+    HRESULT GetEnforcementBans(PWSTR* enforcementBans);
     ///Reserved for Microsoft use.
     ///Params:
     ///    restrictions = Type: <b>__RPC__deref_out_opt_string*</b>
@@ -287,7 +287,7 @@ interface IXblIdpAuthTokenResult : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetRestrictions(ushort** restrictions);
+    HRESULT GetRestrictions(PWSTR* restrictions);
     ///Reserved for Microsoft use.
     ///Params:
     ///    titleRestrictions = Type: <b>__RPC__deref_out_opt_string*</b>
@@ -296,15 +296,15 @@ interface IXblIdpAuthTokenResult : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetTitleRestrictions(ushort** titleRestrictions);
+    HRESULT GetTitleRestrictions(PWSTR* titleRestrictions);
 }
 
 @GUID("75D760B0-60B9-412D-994F-26B2CD5F7812")
 interface IXblIdpAuthTokenResult2 : IUnknown
 {
-    HRESULT GetModernGamertag(ushort** value);
-    HRESULT GetModernGamertagSuffix(ushort** value);
-    HRESULT GetUniqueModernGamertag(ushort** value);
+    HRESULT GetModernGamertag(PWSTR* value);
+    HRESULT GetModernGamertagSuffix(PWSTR* value);
+    HRESULT GetUniqueModernGamertag(PWSTR* value);
 }
 
 

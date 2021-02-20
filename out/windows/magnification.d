@@ -8,7 +8,7 @@ public import windows.gdi : HRGN;
 public import windows.systemservices : BOOL;
 public import windows.windowsandmessaging : HWND;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Callbacks
@@ -278,7 +278,7 @@ BOOL MagSetInputTransform(BOOL fEnabled, const(RECT)* pRectSource, const(RECT)* 
 ///    Type: <b>BOOL</b> Returns TRUE if successful, or FALSE otherwise.
 ///    
 @DllImport("MAGNIFICATION")
-BOOL MagGetInputTransform(int* pfEnabled, RECT* pRectSource, RECT* pRectDest);
+BOOL MagGetInputTransform(BOOL* pfEnabled, RECT* pRectSource, RECT* pRectDest);
 
 ///Shows or hides the system cursor.
 ///Params:

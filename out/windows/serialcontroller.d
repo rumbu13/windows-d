@@ -5,7 +5,7 @@ module windows.serialcontroller;
 public import windows.core;
 public import windows.systemservices : BOOL;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Structs
@@ -68,7 +68,7 @@ int ComDBClose(HCOMDB__* HComDB);
 ///    <b>GetLastError</b>. </td> </tr> </table>
 ///    
 @DllImport("MSPORTS")
-int ComDBGetCurrentPortUsage(HCOMDB__* HComDB, char* Buffer, uint BufferSize, uint ReportType, 
+int ComDBGetCurrentPortUsage(HCOMDB__* HComDB, ubyte* Buffer, uint BufferSize, uint ReportType, 
                              uint* MaxPortsReported);
 
 ///<b>ComDBClaimNextFreePort</b> returns the lowest COM port number that is not already in use.
@@ -114,7 +114,7 @@ int ComDBClaimNextFreePort(HCOMDB__* HComDB, uint* ComNumber);
 ///    occurred; call <b>GetLastError</b> to get extended error information. </td> </tr> </table>
 ///    
 @DllImport("MSPORTS")
-int ComDBClaimPort(HCOMDB__* HComDB, uint ComNumber, BOOL ForceClaim, int* Forced);
+int ComDBClaimPort(HCOMDB__* HComDB, uint ComNumber, BOOL ForceClaim, BOOL* Forced);
 
 ///<b>ComDBReleasePort</b> releases a COM port number in the COM port database.
 ///Params:

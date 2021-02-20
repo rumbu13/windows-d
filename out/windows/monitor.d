@@ -4,10 +4,11 @@ module windows.monitor;
 
 public import windows.core;
 public import windows.com : HRESULT;
-public import windows.direct2d : IDirect3DDevice9;
-public import windows.systemservices : HANDLE;
+public import windows.direct3d9 : IDirect3DDevice9;
+public import windows.gdi : HMONITOR;
+public import windows.systemservices : HANDLE, PSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -155,7 +156,7 @@ align (1):
 ///    <b>FALSE</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("dxva2")
-int GetNumberOfPhysicalMonitorsFromHMONITOR(ptrdiff_t hMonitor, uint* pdwNumberOfPhysicalMonitors);
+int GetNumberOfPhysicalMonitorsFromHMONITOR(HMONITOR hMonitor, uint* pdwNumberOfPhysicalMonitors);
 
 ///Retrieves the number of physical monitors associated with a Direct3D device.
 ///Params:
@@ -181,8 +182,8 @@ HRESULT GetNumberOfPhysicalMonitorsFromIDirect3DDevice9(IDirect3DDevice9 pDirect
 ///    <b>FALSE</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("dxva2")
-int GetPhysicalMonitorsFromHMONITOR(ptrdiff_t hMonitor, uint dwPhysicalMonitorArraySize, 
-                                    char* pPhysicalMonitorArray);
+int GetPhysicalMonitorsFromHMONITOR(HMONITOR hMonitor, uint dwPhysicalMonitorArraySize, 
+                                    PHYSICAL_MONITOR* pPhysicalMonitorArray);
 
 ///Retrieves the physical monitors associated with a Direct3D device.
 ///Params:
@@ -196,7 +197,7 @@ int GetPhysicalMonitorsFromHMONITOR(ptrdiff_t hMonitor, uint dwPhysicalMonitorAr
 ///    
 @DllImport("dxva2")
 HRESULT GetPhysicalMonitorsFromIDirect3DDevice9(IDirect3DDevice9 pDirect3DDevice9, uint dwPhysicalMonitorArraySize, 
-                                                char* pPhysicalMonitorArray);
+                                                PHYSICAL_MONITOR* pPhysicalMonitorArray);
 
 ///Closes a handle to a physical monitor. Call this function to close a monitor handle obtained from the
 ///GetPhysicalMonitorsFromHMONITOR or GetPhysicalMonitorsFromIDirect3DDevice9 function.
@@ -219,7 +220,7 @@ int DestroyPhysicalMonitor(HANDLE hMonitor);
 ///    <b>FALSE</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("dxva2")
-int DestroyPhysicalMonitors(uint dwPhysicalMonitorArraySize, char* pPhysicalMonitorArray);
+int DestroyPhysicalMonitors(uint dwPhysicalMonitorArraySize, PHYSICAL_MONITOR* pPhysicalMonitorArray);
 
 ///Retrieves the current value, maximum value, and code type of a Virtual Control Panel (VCP) code for a monitor.
 ///Params:
@@ -292,7 +293,7 @@ int GetCapabilitiesStringLength(HANDLE hMonitor, uint* pdwCapabilitiesStringLeng
 ///    <b>FALSE</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("dxva2")
-int CapabilitiesRequestAndCapabilitiesReply(HANDLE hMonitor, const(char)* pszASCIICapabilitiesString, 
+int CapabilitiesRequestAndCapabilitiesReply(HANDLE hMonitor, PSTR pszASCIICapabilitiesString, 
                                             uint dwCapabilitiesStringLengthInCharacters);
 
 ///Retrieves a monitor's horizontal and vertical synchronization frequencies.

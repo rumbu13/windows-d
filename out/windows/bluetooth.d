@@ -3,11 +3,11 @@
 module windows.bluetooth;
 
 public import windows.core;
-public import windows.systemservices : BOOL, HANDLE;
+public import windows.systemservices : BOOL, HANDLE, PWSTR;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : SYSTEMTIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -177,8 +177,8 @@ alias PFN_AUTHENTICATION_CALLBACK_EX = BOOL function(void* pvParam,
 ///    Should return <b>TRUE</b> when the enumeration continues to the next attribute identifier found in the stream.
 ///    Should return <b>FALSE</b> when enumeration of the record attribute identifiers should immediately stop.
 ///    
-alias PFN_BLUETOOTH_ENUM_ATTRIBUTES_CALLBACK = BOOL function(uint uAttribId, char* pValueStream, uint cbStreamSize, 
-                                                             void* pvParam);
+alias PFN_BLUETOOTH_ENUM_ATTRIBUTES_CALLBACK = BOOL function(uint uAttribId, ubyte* pValueStream, 
+                                                             uint cbStreamSize, void* pvParam);
 
 // Structs
 
@@ -308,7 +308,7 @@ struct BTH_HCI_EVENT_INFO
 ///The <b>BLUETOOTH_ADDRESS</b> structure provides the address of a Bluetooth device.
 struct BLUETOOTH_ADDRESS_STRUCT
 {
-    union
+union
     {
         ulong    ullLong;
         ubyte[6] rgBytes;
@@ -395,7 +395,7 @@ struct BLUETOOTH_AUTHENTICATION_CALLBACK_PARAMS
     BLUETOOTH_IO_CAPABILITY ioCapability;
     ///A BLUETOOTH_AUTHENTICATION_REQUIREMENTS specifies the 'Man in the Middle' protection required for authentication.
     BLUETOOTH_AUTHENTICATION_REQUIREMENTS authenticationRequirements;
-    union
+union
     {
         uint Numeric_Value;
         uint Passkey;
@@ -434,9 +434,9 @@ struct BLUETOOTH_COD_PAIRS
     ///compare the class of device found. If a major code is provided it must match the major code returned by the
     ///remote device, such that GET_COD_MAJOR(ulCODMask) is equal to GET_COD_MAJOR([class of device of the remote
     ///device]).
-    uint          ulCODMask;
+    uint         ulCODMask;
     ///Descriptive string of the mask.
-    const(wchar)* pcszDescription;
+    const(PWSTR) pcszDescription;
 }
 
 ///The <b>BLUETOOTH_SELECT_DEVICE_PARAMS</b> structure facilitates and manages the visibility, authentication, and
@@ -450,7 +450,7 @@ struct BLUETOOTH_SELECT_DEVICE_PARAMS
     ///Array of class of devices to find.
     BLUETOOTH_COD_PAIRS* prgClassOfDevices;
     ///Sets the information text when not <b>NULL</b>.
-    const(wchar)*        pszInfo;
+    PWSTR                pszInfo;
     ///Handle to the parent window. Set to <b>NULL</b> for no parent.
     HWND                 hwndParent;
     ///If <b>TRUE</b>, forces authentication before returning.
@@ -526,7 +526,7 @@ struct BLUETOOTH_AUTHENTICATE_RESPONSE
     ///class="alert"><b>Note</b> This information can be found in the PBLUETOOTH_AUTHENTICATION_CALLBACK PARAMS
     ///structure retrieved from the callback.</div> <div> </div>
     BLUETOOTH_AUTHENTICATION_METHOD authMethod;
-    union
+union
     {
         BLUETOOTH_PIN_INFO pinInfo;
         BLUETOOTH_OOB_DATA_INFO oobInfo;
@@ -549,7 +549,7 @@ struct SDP_ELEMENT_DATA
     SDP_TYPE         type;
     ///Specific type of SDP element, used to further specify generic element types.
     SDP_SPECIFICTYPE specificType;
-    union data
+union data
     {
         SDP_LARGE_INTEGER_16 int128;
         long                 int64;
@@ -565,22 +565,22 @@ struct SDP_ELEMENT_DATA
         GUID                 uuid128;
         uint                 uuid32;
         ushort               uuid16;
-        struct string
+struct string
         {
             ubyte* value;
             uint   length;
         }
-        struct url
+struct url
         {
             ubyte* value;
             uint   length;
         }
-        struct sequence
+struct sequence
         {
             ubyte* value;
             uint   length;
         }
-        struct alternative
+struct alternative
         {
             ubyte* value;
             uint   length;
@@ -704,7 +704,7 @@ struct RFCOMM_COMMAND
 {
 align (1):
     uint CmdType;
-    union Data
+union Data
     {
         RFCOMM_MSC_DATA MSC;
         RFCOMM_RLS_DATA RLS;
@@ -738,7 +738,7 @@ struct BTH_INFO_RSP
 align (1):
     ushort result;
     ubyte  dataLen;
-    union
+union
     {
     align (1):
         ushort    connectionlessMTU;
@@ -971,7 +971,7 @@ BOOL BluetoothDisplayDeviceProperties(HWND hwndParent, BLUETOOTH_DEVICE_INFO_STR
 ///    
 @DllImport("bthprops")
 uint BluetoothAuthenticateDevice(HWND hwndParent, HANDLE hRadio, BLUETOOTH_DEVICE_INFO_STRUCT* pbtbi, 
-                                 const(wchar)* pszPasskey, uint ulPasskeyLength);
+                                 PWSTR pszPasskey, uint ulPasskeyLength);
 
 ///The <b>BluetoothAuthenticateDeviceEx</b> function sends an authentication request to a remote Bluetooth device.
 ///Additionally, this function allows for out-of-band data to be passed into the function call for the device being
@@ -1023,7 +1023,8 @@ uint BluetoothAuthenticateDeviceEx(HWND hwndParentIn, HANDLE hRadioIn, BLUETOOTH
 ///    </tr> </table>
 ///    
 @DllImport("bthprops")
-uint BluetoothAuthenticateMultipleDevices(HWND hwndParent, HANDLE hRadio, uint cDevices, char* rgbtdi);
+uint BluetoothAuthenticateMultipleDevices(HWND hwndParent, HANDLE hRadio, uint cDevices, 
+                                          BLUETOOTH_DEVICE_INFO_STRUCT* rgbtdi);
 
 ///The <b>BluetoothSetServiceState</b> function enables or disables services for a Bluetooth device.
 ///Params:
@@ -1066,7 +1067,7 @@ uint BluetoothSetServiceState(HANDLE hRadio, const(BLUETOOTH_DEVICE_INFO_STRUCT)
 ///    
 @DllImport("BluetoothApis")
 uint BluetoothEnumerateInstalledServices(HANDLE hRadio, const(BLUETOOTH_DEVICE_INFO_STRUCT)* pbtdi, 
-                                         uint* pcServiceInout, char* pGuidServices);
+                                         uint* pcServiceInout, GUID* pGuidServices);
 
 ///The <b>BluetoothEnableDiscovery</b> function changes the discovery state of a local Bluetooth radio or radios.
 ///Params:
@@ -1200,7 +1201,7 @@ BOOL BluetoothUnregisterAuthentication(ptrdiff_t hRegHandle);
 ///    
 @DllImport("BluetoothApis")
 uint BluetoothSendAuthenticationResponse(HANDLE hRadio, const(BLUETOOTH_DEVICE_INFO_STRUCT)* pbtdi, 
-                                         const(wchar)* pszPasskey);
+                                         const(PWSTR) pszPasskey);
 
 ///The <b>BluetoothSendAuthenticationResponseEx</b> function is called when an authentication request to send the
 ///passkey or a Numeric Comparison response is made. <div class="alert"><b>Note</b> This API is supported in Windows
@@ -1230,7 +1231,7 @@ uint BluetoothSendAuthenticationResponseEx(HANDLE hRadioIn, BLUETOOTH_AUTHENTICA
 ///    one of the required parameters is <b>NULL</b>, or if the SDP stream pointed to by <i>pSdpStream</i> is not valid.
 ///    
 @DllImport("BluetoothApis")
-uint BluetoothSdpGetElementData(char* pSdpStream, uint cbSdpStreamLength, SDP_ELEMENT_DATA* pData);
+uint BluetoothSdpGetElementData(ubyte* pSdpStream, uint cbSdpStreamLength, SDP_ELEMENT_DATA* pData);
 
 ///The <b>BluetoothSdpGetContainerElementData</b> function iterates a container stream and returns each element
 ///contained within the container element.
@@ -1251,7 +1252,7 @@ uint BluetoothSdpGetElementData(char* pSdpStream, uint cbSdpStreamLength, SDP_EL
 ///    width="60%"> A required pointer is <b>NULL</b>, or the container is not a valid SDP stream. </td> </tr> </table>
 ///    
 @DllImport("BluetoothApis")
-uint BluetoothSdpGetContainerElementData(char* pContainerStream, uint cbContainerLength, ptrdiff_t* pElement, 
+uint BluetoothSdpGetContainerElementData(ubyte* pContainerStream, uint cbContainerLength, ptrdiff_t* pElement, 
                                          SDP_ELEMENT_DATA* pData);
 
 ///The <b>BluetoothSdpGetAttributeValue</b> function retrieves the attribute value for an attribute identifier.
@@ -1271,7 +1272,7 @@ uint BluetoothSdpGetContainerElementData(char* pContainerStream, uint cbContaine
 ///    was not found in the record. </td> </tr> </table>
 ///    
 @DllImport("BluetoothApis")
-uint BluetoothSdpGetAttributeValue(char* pRecordStream, uint cbRecordLength, ushort usAttributeId, 
+uint BluetoothSdpGetAttributeValue(ubyte* pRecordStream, uint cbRecordLength, ushort usAttributeId, 
                                    SDP_ELEMENT_DATA* pAttributeData);
 
 ///The <b>BluetoothSdpGetString</b> function converts a raw string embedded in the SDP record into a Unicode string.
@@ -1303,8 +1304,8 @@ uint BluetoothSdpGetAttributeValue(char* pRecordStream, uint cbRecordLength, ush
 ///    properly formatted record, or the requested attribute plus offset was not a string. </td> </tr> </table>
 ///    
 @DllImport("BluetoothApis")
-uint BluetoothSdpGetString(char* pRecordStream, uint cbRecordLength, const(SDP_STRING_TYPE_DATA)* pStringData, 
-                           ushort usStringOffset, const(wchar)* pszString, uint* pcchStringLength);
+uint BluetoothSdpGetString(ubyte* pRecordStream, uint cbRecordLength, const(SDP_STRING_TYPE_DATA)* pStringData, 
+                           ushort usStringOffset, PWSTR pszString, uint* pcchStringLength);
 
 ///The <b>BluetoothSdpEnumAttributes</b> function enumerates through the SDP record stream, and calls the callback
 ///function for each attribute in the record.
@@ -1323,7 +1324,7 @@ uint BluetoothSdpGetString(char* pRecordStream, uint cbRecordLength, const(SDP_S
 ///    <dt><b>ERROR_INVALID_DATA</b></dt> </dl> </td> <td width="60%"> The SDP stream is corrupt. </td> </tr> </table>
 ///    
 @DllImport("BluetoothApis")
-BOOL BluetoothSdpEnumAttributes(char* pSDPStream, uint cbStreamSize, 
+BOOL BluetoothSdpEnumAttributes(ubyte* pSDPStream, uint cbStreamSize, 
                                 PFN_BLUETOOTH_ENUM_ATTRIBUTES_CALLBACK pfnCallback, void* pvParam);
 
 ///The <b>BluetoothSetLocalServiceInfo</b> function sets local service information for a specific Bluetooth radio.

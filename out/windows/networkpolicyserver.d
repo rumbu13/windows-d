@@ -6,7 +6,7 @@ public import windows.core;
 public import windows.automation : BSTR, IDispatch, VARIANT;
 public import windows.com : HRESULT, IUnknown;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -1760,7 +1760,7 @@ struct RADIUS_ATTRIBUTE
     ///Stores the length, in bytes, of the data. The <b>cbDataLength</b> member is used only if <b>lpValue</b> member is
     ///used.
     uint             cbDataLength;
-    union
+union
     {
         uint          dwValue;
         const(ubyte)* lpValue;
@@ -1789,30 +1789,30 @@ struct RADIUS_VSA_FORMAT
 struct RADIUS_ATTRIBUTE_ARRAY
 {
     ///Specifies the size of the structure.
-    uint             cbSize;
+    uint      cbSize;
     ///Pointer to the Add function provided by NPS. NPS sets the value of the member.
-    ptrdiff_t        Add;
+    ptrdiff_t Add;
     ///Pointer to the AttributeAt function provided by NPS. NPS sets the value of the member. The AttributeAt function
     ///returns a const pointer to the specified attribute within the array.
-    const(ptrdiff_t) AttributeAt;
+    const(RADIUS_ATTRIBUTE)********** AttributeAt;
     ///Pointer to the GetSize function provided by NPS. NPS sets the value of the member. The GetSize function returns
     ///the size of the attribute array. The GetSize function returns the size of the attribute array, not the largest
     ///index. Because attribute arrays use zero-based indexes, the size of the array is one greater than the largest
     ///index.
-    ptrdiff_t        GetSize;
+    ptrdiff_t GetSize;
     ///Pointer to the InsertAt function provided by NPS. NPS sets the value of the member. The InsertAt function inserts
     ///the specified attribute at the specified index in the array. When the InsertAt function inserts a new attribute
     ///into the array, it increments the index of the pre-existing attribute at this index. Similarly, it increments the
     ///index of any pre-existing attributes at higher indexes. To append an attribute to the end of the attribute array,
     ///use the Add function.
-    ptrdiff_t        InsertAt;
+    ptrdiff_t InsertAt;
     ///Pointer to the RemoveAt function provided by NPS. NPS sets the value of the member. The RemoveAt function removes
     ///the attribute at the specified index in the array. When the RemoveAt function removes an attribute from the
     ///array, it decrements the index of any pre-existing attributes at higher indexes.
-    ptrdiff_t        RemoveAt;
+    ptrdiff_t RemoveAt;
     ///Pointer to the SetAt function provided by NPS. NPS sets the value of the member. The SetAt function replaces the
     ///attribute at the specified index with the specified attribute.
-    ptrdiff_t        SetAt;
+    ptrdiff_t SetAt;
 }
 
 ///<div class="alert"><b>Note</b> Internet Authentication Service (IAS) was renamed Network Policy Server (NPS) starting

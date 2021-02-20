@@ -71,7 +71,7 @@
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
   <imppath />
   <fileImppath />
-  <outdir>bin</outdir>
+  <outdir>.\bin</outdir>
   <objdir>$(OutDir)</objdir>
   <objname />
   <libname />
@@ -194,7 +194,7 @@
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
   <imppath />
   <fileImppath />
-  <outdir>bin</outdir>
+  <outdir>.\bin</outdir>
   <objdir>$(OutDir)</objdir>
   <objname />
   <libname />
@@ -317,7 +317,7 @@
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
   <imppath />
   <fileImppath />
-  <outdir>bin</outdir>
+  <outdir>.\bin</outdir>
   <objdir>$(OutDir)</objdir>
   <objname />
   <libname />
@@ -440,7 +440,7 @@
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
   <imppath />
   <fileImppath />
-  <outdir>bin</outdir>
+  <outdir>.\bin</outdir>
   <objdir>$(OutDir)</objdir>
   <objname />
   <libname />
@@ -563,7 +563,7 @@
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
   <imppath />
   <fileImppath />
-  <outdir>bin</outdir>
+  <outdir>.\bin</outdir>
   <objdir>$(OutDir)</objdir>
   <objname />
   <libname />
@@ -686,7 +686,7 @@
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
   <imppath />
   <fileImppath />
-  <outdir>bin</outdir>
+  <outdir>.\bin</outdir>
   <objdir>$(OutDir)</objdir>
   <objname />
   <libname />
@@ -809,7 +809,7 @@
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
   <imppath />
   <fileImppath />
-  <outdir>bin</outdir>
+  <outdir>.\bin</outdir>
   <objdir>$(OutDir)</objdir>
   <objname />
   <libname />
@@ -932,7 +932,7 @@
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
   <imppath />
   <fileImppath />
-  <outdir>bin</outdir>
+  <outdir>.\bin</outdir>
   <objdir>$(OutDir)</objdir>
   <objname />
   <libname />
@@ -1055,7 +1055,7 @@
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
   <imppath />
   <fileImppath />
-  <outdir>bin</outdir>
+  <outdir>.\bin</outdir>
   <objdir>$(OutDir)</objdir>
   <objname />
   <libname />
@@ -1178,7 +1178,7 @@
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
   <imppath />
   <fileImppath />
-  <outdir>bin</outdir>
+  <outdir>.\bin</outdir>
   <objdir>$(OutDir)</objdir>
   <objname />
   <libname />
@@ -1301,7 +1301,7 @@
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
   <imppath />
   <fileImppath />
-  <outdir>bin</outdir>
+  <outdir>.\bin</outdir>
   <objdir>$(OutDir)</objdir>
   <objname />
   <libname />
@@ -1424,7 +1424,7 @@
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
   <imppath />
   <fileImppath />
-  <outdir>bin</outdir>
+  <outdir>.\bin</outdir>
   <objdir>$(OutDir)</objdir>
   <objname />
   <libname />

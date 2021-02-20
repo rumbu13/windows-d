@@ -5,10 +5,10 @@ module windows.netmanagement;
 public import windows.core;
 public import windows.com : HRESULT;
 public import windows.security : CERT_CONTEXT, SID_NAME_USE;
-public import windows.systemservices : BOOL;
+public import windows.systemservices : BOOL, PWSTR;
 public import windows.windowsprogramming : FILETIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -78,7 +78,7 @@ struct USER_INFO_0
 {
     ///Pointer to a Unicode string that specifies the name of the user account. For the NetUserSetInfo function, this
     ///member specifies the name of the user.
-    const(wchar)* usri0_name;
+    PWSTR usri0_name;
 }
 
 ///The <b>USER_INFO_1</b> structure contains information about a user account, including account name, password data,
@@ -87,15 +87,15 @@ struct USER_INFO_1
 {
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that specifies the name of the user account. For the
     ///NetUserSetInfo function, this member is ignored. For more information, see the following Remarks section.
-    const(wchar)* usri1_name;
+    PWSTR usri1_name;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that specifies the password of the user indicated by the
     ///<b>usri1_name</b> member. The length cannot exceed PWLEN bytes. The NetUserEnum and NetUserGetInfo functions
     ///return a <b>NULL</b> pointer to maintain password security. By convention, the length of passwords is limited to
     ///LM20_PWLEN characters.
-    const(wchar)* usri1_password;
+    PWSTR usri1_password;
     ///Type: <b>DWORD</b> The number of seconds that have elapsed since the <b>usri1_password</b> member was last
     ///changed. The NetUserAdd and NetUserSetInfo functions ignore this member.
-    uint          usri1_password_age;
+    uint  usri1_password_age;
     ///Type: <b>DWORD</b> The level of privilege assigned to the <b>usri1_name</b> member. When you call the NetUserAdd
     ///function, this member must be USER_PRIV_USER. When you call the NetUserSetInfo function, this member must be the
     ///value returned by the <b>NetUserGetInfo</b> function or the <b>NetUserEnum</b> function. This member can be one
@@ -106,14 +106,14 @@ struct USER_INFO_1
     ///</td> <td width="60%"> User </td> </tr> <tr> <td width="40%"><a id="USER_PRIV_ADMIN"></a><a
     ///id="user_priv_admin"></a><dl> <dt><b>USER_PRIV_ADMIN</b></dt> </dl> </td> <td width="60%"> Administrator </td>
     ///</tr> </table>
-    uint          usri1_priv;
+    uint  usri1_priv;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string specifying the path of the home directory for the user
     ///specified in the <b>usri1_name</b> member. The string can be <b>NULL</b>.
-    const(wchar)* usri1_home_dir;
+    PWSTR usri1_home_dir;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains a comment to associate with the user account.
     ///This string can be a <b>NULL</b> string, or it can have any number of characters before the terminating null
     ///character.
-    const(wchar)* usri1_comment;
+    PWSTR usri1_comment;
     ///Type: <b>DWORD</b> This member can be one or more of the following values. Note that setting user account control
     ///flags may require certain privileges and control access rights. For more information, see the Remarks section of
     ///the NetUserSetInfo function. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
@@ -174,10 +174,10 @@ struct USER_INFO_1
     ///width="40%"><a id="UF_INTERDOMAIN_TRUST_ACCOUNT"></a><a id="uf_interdomain_trust_account"></a><dl>
     ///<dt><b>UF_INTERDOMAIN_TRUST_ACCOUNT</b></dt> </dl> </td> <td width="60%"> This is a permit to trust account for a
     ///domain that trusts other domains. </td> </tr> </table>
-    uint          usri1_flags;
+    uint  usri1_flags;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string specifying the path for the user's logon script file. The
     ///script file can be a .CMD file, an .EXE file, or a .BAT file. The string can also be <b>NULL</b>.
-    const(wchar)* usri1_script_path;
+    PWSTR usri1_script_path;
 }
 
 ///The <b>USER_INFO_2</b> structure contains information about a user account, including the account name, password
@@ -186,15 +186,15 @@ struct USER_INFO_2
 {
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that specifies the name of the user account. Calls to the
     ///NetUserSetInfo function ignore this member. For more information, see the following Remarks section.
-    const(wchar)* usri2_name;
+    PWSTR  usri2_name;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that specifies the password for the user identified by the
     ///<b>usri2_name</b> member. The length cannot exceed PWLEN bytes. The NetUserEnum and NetUserGetInfo functions
     ///return a <b>NULL</b> pointer to maintain password security. By convention, the length of passwords is limited to
     ///LM20_PWLEN characters.
-    const(wchar)* usri2_password;
+    PWSTR  usri2_password;
     ///Type: <b>DWORD</b> The number of seconds that have elapsed since the <b>usri2_password</b> member was last
     ///changed. The NetUserAdd and NetUserSetInfo functions ignore this member.
-    uint          usri2_password_age;
+    uint   usri2_password_age;
     ///Type: <b>DWORD</b> The level of privilege assigned to the <b>usri2_name</b> member. For calls to the NetUserAdd
     ///function, this member must be USER_PRIV_USER. For the NetUserSetInfo function, this member must be the value
     ///returned by the <b>NetUserGetInfo</b> function or the <b>NetUserEnum</b> function. This member can be one of the
@@ -205,14 +205,14 @@ struct USER_INFO_2
     ///</td> <td width="60%"> User </td> </tr> <tr> <td width="40%"><a id="USER_PRIV_ADMIN"></a><a
     ///id="user_priv_admin"></a><dl> <dt><b>USER_PRIV_ADMIN</b></dt> </dl> </td> <td width="60%"> Administrator </td>
     ///</tr> </table>
-    uint          usri2_priv;
+    uint   usri2_priv;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string specifying the path of the home directory for the user
     ///specified by the <b>usri2_name</b> member. The string can be <b>NULL</b>.
-    const(wchar)* usri2_home_dir;
+    PWSTR  usri2_home_dir;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains a comment to associate with the user account. The
     ///string can be a <b>NULL</b> string, or it can have any number of characters before the terminating null
     ///character.
-    const(wchar)* usri2_comment;
+    PWSTR  usri2_comment;
     ///Type: <b>DWORD</b> This member can be one or more of the following values. Note that setting user account control
     ///flags may require certain privileges and control access rights. For more information, see the Remarks section of
     ///the NetUserSetInfo function. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
@@ -273,10 +273,10 @@ struct USER_INFO_2
     ///width="40%"><a id="UF_INTERDOMAIN_TRUST_ACCOUNT"></a><a id="uf_interdomain_trust_account"></a><dl>
     ///<dt><b>UF_INTERDOMAIN_TRUST_ACCOUNT</b></dt> </dl> </td> <td width="60%"> This is a permit to trust account for a
     ///domain that trusts other domains. </td> </tr> </table>
-    uint          usri2_flags;
+    uint   usri2_flags;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string specifying the path for the user's logon script file. The
     ///script file can be a .CMD file, an .EXE file, or a .BAT file. The string can also be <b>NULL</b>.
-    const(wchar)* usri2_script_path;
+    PWSTR  usri2_script_path;
     ///Type: <b>DWORD</b> The user's operator privileges. Calls to the <b>NetUserGetInfo</b> and <b>NetUserEnum</b>
     ///functions return a value based on the user's local group membership. If the user is a member of Print Operators,
     ///AF_OP_PRINT is set. If the user is a member of Server Operators, AF_OP_SERVER is set. If the user is a member of
@@ -292,17 +292,17 @@ struct USER_INFO_2
     ///<dt><b>AF_OP_SERVER</b></dt> </dl> </td> <td width="60%"> The server operator privilege is enabled. </td> </tr>
     ///<tr> <td width="40%"><a id="AF_OP_ACCOUNTS"></a><a id="af_op_accounts"></a><dl> <dt><b>AF_OP_ACCOUNTS</b></dt>
     ///</dl> </td> <td width="60%"> The accounts operator privilege is enabled. </td> </tr> </table>
-    uint          usri2_auth_flags;
+    uint   usri2_auth_flags;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains the full name of the user. This string can be a
     ///<b>NULL</b> string, or it can have any number of characters before the terminating null character.
-    const(wchar)* usri2_full_name;
+    PWSTR  usri2_full_name;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains a user comment. This string can be a <b>NULL</b>
     ///string, or it can have any number of characters before the terminating null character.
-    const(wchar)* usri2_usr_comment;
+    PWSTR  usri2_usr_comment;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that is reserved for use by applications. This string can be a
     ///<b>NULL</b> string, or it can have any number of characters before the terminating null character. Microsoft
     ///products use this member to store user configuration information. Do not modify this information.
-    const(wchar)* usri2_parms;
+    PWSTR  usri2_parms;
     ///Type: <b>LPWSTR</b> > [!IMPORTANT] > You should no longer use **usri2_workstations**. Instead, you can control
     ///sign-in access to workstations by configuring the User Rights Assignment settings (**Allow log on locally** and
     ///**Deny log on locally**, or **Allow log on through Remote Desktop Services** and **Deny log on through Remote
@@ -310,31 +310,31 @@ struct USER_INFO_2
     ///can log on. As many as eight workstations can be specified; the names must be separated by commas. A <b>NULL</b>
     ///string indicates that there is no restriction. To disable logons from all workstations to this account, set the
     ///UF_ACCOUNTDISABLE value in the <b>usri2_flags</b> member.
-    const(wchar)* usri2_workstations;
+    PWSTR  usri2_workstations;
     ///Type: <b>DWORD</b> The date and time when the last logon occurred. This value is stored as the number of seconds
     ///that have elapsed since 00:00:00, January 1, 1970, GMT. This member is ignored by the NetUserAdd and
     ///NetUserSetInfo functions. This member is maintained separately on each backup domain controller (BDC) in the
     ///domain. To obtain an accurate value, you must query each BDC in the domain. The last logon occurred at the time
     ///indicated by the largest retrieved value.
-    uint          usri2_last_logon;
+    uint   usri2_last_logon;
     ///Type: <b>DWORD</b> This member is currently not used. Indicates when the last logoff occurred. This value is
     ///stored as the number of seconds that have elapsed since 00:00:00, January 1, 1970, GMT. A value of zero indicates
     ///that the last logoff time is unknown. This member is maintained separately on each backup domain controller (BDC)
     ///in the domain. To obtain an accurate value, you must query each BDC in the domain. The last logoff occurred at
     ///the time indicated by the largest retrieved value.
-    uint          usri2_last_logoff;
+    uint   usri2_last_logoff;
     ///Type: <b>DWORD</b> The date and time when the account expires. This value is stored as the number of seconds
     ///elapsed since 00:00:00, January 1, 1970, GMT. A value of TIMEQ_FOREVER indicates that the account never expires.
-    uint          usri2_acct_expires;
+    uint   usri2_acct_expires;
     ///Type: <b>DWORD</b> The maximum amount of disk space the user can use. Specify USER_MAXSTORAGE_UNLIMITED to use
     ///all available disk space.
-    uint          usri2_max_storage;
+    uint   usri2_max_storage;
     ///Type: <b>DWORD</b> The number of equal-length time units into which the week is divided. This value is required
     ///to compute the length of the bit string in the <b>usri2_logon_hours</b> member. This value must be UNITS_PER_WEEK
     ///for LAN Manager 2.0. This element is ignored by the NetUserAdd and NetUserSetInfo functions. For service
     ///applications, the units must be one of the following values: SAM_DAYS_PER_WEEK, SAM_HOURS_PER_WEEK, or
     ///SAM_MINUTES_PER_WEEK.
-    uint          usri2_units_per_week;
+    uint   usri2_units_per_week;
     ///Type: <b>PBYTE</b> A pointer to a 21-byte (168 bits) bit string that specifies the times during which the user
     ///can log on. Each bit represents a unique hour in the week, in Greenwich Mean Time (GMT). The first bit (bit 0,
     ///word 0) is Sunday, 0:00 to 0:59; the second bit (bit 1, word 0) is Sunday, 1:00 to 1:59; and so on. Note that bit
@@ -343,29 +343,29 @@ struct USER_INFO_2
     ///Specify a <b>NULL</b> pointer in this member when calling the NetUserAdd function to indicate no time
     ///restriction. Specify a <b>NULL</b> pointer when calling the NetUserSetInfo function to indicate that no change is
     ///to be made to the times during which the user can log on.
-    ubyte*        usri2_logon_hours;
+    ubyte* usri2_logon_hours;
     ///Type: <b>DWORD</b> The number of times the user tried to log on to the account using an incorrect password. A
     ///value of – 1 indicates that the value is unknown. Calls to the NetUserAdd and NetUserSetInfo functions ignore
     ///this member. This member is replicated from the primary domain controller (PDC); it is also maintained on each
     ///backup domain controller (BDC) in the domain. To obtain an accurate value, you must query each BDC in the domain.
     ///The number of times the user tried to log on using an incorrect password is the largest value retrieved.
-    uint          usri2_bad_pw_count;
+    uint   usri2_bad_pw_count;
     ///Type: <b>DWORD</b> The number of times the user logged on successfully to this account. A value of – 1
     ///indicates that the value is unknown. Calls to the <b>NetUserAdd</b> and <b>NetUserSetInfo</b> functions ignore
     ///this member. This member is maintained separately on each backup domain controller (BDC) in the domain. To obtain
     ///an accurate value, you must query each BDC in the domain. The number of times the user logged on successfully is
     ///the sum of the retrieved values.
-    uint          usri2_num_logons;
+    uint   usri2_num_logons;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains the name of the server to which logon requests
     ///are sent. Server names should be preceded by two backslashes (\\). To indicate that the logon request can be
     ///handled by any logon server, specify an asterisk (\\*) for the server name. A <b>NULL</b> string indicates that
     ///requests should be sent to the domain controller. For Windows servers, NetUserGetInfo and NetUserEnum return \\*.
     ///The NetUserAdd and NetUserSetInfo functions ignore this member.
-    const(wchar)* usri2_logon_server;
+    PWSTR  usri2_logon_server;
     ///Type: <b>DWORD</b> The country/region code for the user's language of choice.
-    uint          usri2_country_code;
+    uint   usri2_country_code;
     ///Type: <b>DWORD</b> The code page for the user's language of choice.
-    uint          usri2_code_page;
+    uint   usri2_code_page;
 }
 
 ///The <b>USER_INFO_3</b> structure contains information about a user account, including the account name, password
@@ -375,15 +375,15 @@ struct USER_INFO_3
 {
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that specifies the name of the user account. For the
     ///NetUserSetInfo function, this member is ignored. For more information, see the following Remarks section.
-    const(wchar)* usri3_name;
+    PWSTR  usri3_name;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that specifies the password for the user identified by the
     ///<b>usri3_name</b> member. The length cannot exceed PWLEN bytes. The NetUserEnum and NetUserGetInfo functions
     ///return a <b>NULL</b> pointer to maintain password security. By convention, the length of passwords is limited to
     ///LM20_PWLEN characters.
-    const(wchar)* usri3_password;
+    PWSTR  usri3_password;
     ///Type: <b>DWORD</b> The number of seconds that have elapsed since the <b>usri3_password</b> member was last
     ///changed. The NetUserAdd and NetUserSetInfo functions ignore this member.
-    uint          usri3_password_age;
+    uint   usri3_password_age;
     ///Type: <b>DWORD</b> The level of privilege assigned to the <b>usri3_name</b> member. The NetUserAdd and
     ///NetUserSetInfo functions ignore this member. This member can be one of the following values. For more information
     ///about user and group account rights, see Privileges. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td
@@ -392,14 +392,14 @@ struct USER_INFO_3
     ///id="user_priv_user"></a><dl> <dt><b>USER_PRIV_USER</b></dt> </dl> </td> <td width="60%"> User </td> </tr> <tr>
     ///<td width="40%"><a id="USER_PRIV_ADMIN"></a><a id="user_priv_admin"></a><dl> <dt><b>USER_PRIV_ADMIN</b></dt>
     ///</dl> </td> <td width="60%"> Administrator </td> </tr> </table>
-    uint          usri3_priv;
+    uint   usri3_priv;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string specifying the path of the home directory of the user specified
     ///by the <b>usri3_name</b> member. The string can be <b>NULL</b>.
-    const(wchar)* usri3_home_dir;
+    PWSTR  usri3_home_dir;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains a comment to associate with the user account. The
     ///string can be a <b>NULL</b> string, or it can have any number of characters before the terminating null
     ///character.
-    const(wchar)* usri3_comment;
+    PWSTR  usri3_comment;
     ///Type: <b>DWORD</b> This member can be one or more of the following values. Note that setting user account control
     ///flags may require certain privileges and control access rights. For more information, see the Remarks section of
     ///the NetUserSetInfo function. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
@@ -460,10 +460,10 @@ struct USER_INFO_3
     ///width="40%"><a id="UF_INTERDOMAIN_TRUST_ACCOUNT"></a><a id="uf_interdomain_trust_account"></a><dl>
     ///<dt><b>UF_INTERDOMAIN_TRUST_ACCOUNT</b></dt> </dl> </td> <td width="60%"> This is a permit to trust account for a
     ///domain that trusts other domains. </td> </tr> </table>
-    uint          usri3_flags;
+    uint   usri3_flags;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string specifying the path for the user's logon script file. The
     ///script file can be a .CMD file, an .EXE file, or a .BAT file. The string can also be <b>NULL</b>.
-    const(wchar)* usri3_script_path;
+    PWSTR  usri3_script_path;
     ///Type: <b>DWORD</b> The user's operator privileges. For the NetUserGetInfo and NetUserEnum functions, the
     ///appropriate value is returned based on the local group membership. If the user is a member of Print Operators,
     ///AF_OP_PRINT is set. If the user is a member of Server Operators, AF_OP_SERVER is set. If the user is a member of
@@ -477,17 +477,17 @@ struct USER_INFO_3
     ///server operator privilege is enabled. </td> </tr> <tr> <td width="40%"><a id="AF_OP_ACCOUNTS"></a><a
     ///id="af_op_accounts"></a><dl> <dt><b>AF_OP_ACCOUNTS</b></dt> </dl> </td> <td width="60%"> The accounts operator
     ///privilege is enabled. </td> </tr> </table>
-    uint          usri3_auth_flags;
+    uint   usri3_auth_flags;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains the full name of the user. This string can be a
     ///<b>NULL</b> string, or it can have any number of characters before the terminating null character.
-    const(wchar)* usri3_full_name;
+    PWSTR  usri3_full_name;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains a user comment. This string can be a <b>NULL</b>
     ///string, or it can have any number of characters before the terminating null character.
-    const(wchar)* usri3_usr_comment;
+    PWSTR  usri3_usr_comment;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that is reserved for use by applications. This string can be a
     ///<b>NULL</b> string, or it can have any number of characters before the terminating null character. Microsoft
     ///products use this member to store user configuration information. Do not modify this information.
-    const(wchar)* usri3_parms;
+    PWSTR  usri3_parms;
     ///Type: <b>LPWSTR</b> > [!IMPORTANT] > You should no longer use **usri3_workstations**. Instead, you can control
     ///sign-in access to workstations by configuring the User Rights Assignment settings (**Allow log on locally** and
     ///**Deny log on locally**, or **Allow log on through Remote Desktop Services** and **Deny log on through Remote
@@ -495,31 +495,31 @@ struct USER_INFO_3
     ///can log on. As many as eight workstations can be specified; the names must be separated by commas. If you do not
     ///want to restrict the number of workstations, use a <b>NULL</b> string. To disable logons from all workstations to
     ///this account, set the UF_ACCOUNTDISABLE value in the <b>usri3_flags</b> member.
-    const(wchar)* usri3_workstations;
+    PWSTR  usri3_workstations;
     ///Type: <b>DWORD</b> The date and time when the last logon occurred. This value is stored as the number of seconds
     ///that have elapsed since 00:00:00, January 1, 1970, GMT. This member is ignored by the NetUserAdd and
     ///NetUserSetInfo functions. This member is maintained separately on each backup domain controller (BDC) in the
     ///domain. To obtain an accurate value, you must query each BDC in the domain. The last logon occurred at the time
     ///indicated by the largest retrieved value.
-    uint          usri3_last_logon;
+    uint   usri3_last_logon;
     ///Type: <b>DWORD</b> This member is currently not used. The date and time when the last logoff occurred. This value
     ///is stored as the number of seconds that have elapsed since 00:00:00, January 1, 1970, GMT. A value of zero
     ///indicates that the last logoff time is unknown. This member is maintained separately on each backup domain
     ///controller (BDC) in the domain. To obtain an accurate value, you must query each BDC in the domain. The last
     ///logoff occurred at the time indicated by the largest retrieved value.
-    uint          usri3_last_logoff;
+    uint   usri3_last_logoff;
     ///Type: <b>DWORD</b> The date and time when the account expires. This value is stored as the number of seconds
     ///elapsed since 00:00:00, January 1, 1970, GMT. A value of TIMEQ_FOREVER indicates that the account never expires.
-    uint          usri3_acct_expires;
+    uint   usri3_acct_expires;
     ///Type: <b>DWORD</b> The maximum amount of disk space the user can use. Specify USER_MAXSTORAGE_UNLIMITED to use
     ///all available disk space.
-    uint          usri3_max_storage;
+    uint   usri3_max_storage;
     ///Type: <b>DWORD</b> The number of equal-length time units into which the week is divided. This value is required
     ///to compute the length of the bit string in the <b>usri3_logon_hours</b> member. This value must be UNITS_PER_WEEK
     ///for LAN Manager 2.0. This element is ignored by the NetUserAdd and NetUserSetInfo functions. For service
     ///applications, the units must be one of the following values: SAM_DAYS_PER_WEEK, SAM_HOURS_PER_WEEK, or
     ///SAM_MINUTES_PER_WEEK.
-    uint          usri3_units_per_week;
+    uint   usri3_units_per_week;
     ///Type: <b>PBYTE</b> A pointer to a 21-byte (168 bits) bit string that specifies the times during which the user
     ///can log on. Each bit represents a unique hour in the week, in Greenwich Mean Time (GMT). The first bit (bit 0,
     ///word 0) is Sunday, 0:00 to 0:59; the second bit (bit 1, word 0) is Sunday, 1:00 to 1:59; and so on. Note that bit
@@ -528,50 +528,50 @@ struct USER_INFO_3
     ///Specify a <b>NULL</b> pointer in this member when calling the NetUserAdd function to indicate no time
     ///restriction. Specify a <b>NULL</b> pointer when calling the NetUserSetInfo function to indicate that no change is
     ///to be made to the times during which the user can log on.
-    ubyte*        usri3_logon_hours;
+    ubyte* usri3_logon_hours;
     ///Type: <b>DWORD</b> The number of times the user tried to log on to the account using an incorrect password. A
     ///value of – 1 indicates that the value is unknown. Calls to the NetUserAdd and NetUserSetInfo functions ignore
     ///this member. This member is replicated from the primary domain controller (PDC); it is also maintained on each
     ///backup domain controller (BDC) in the domain. To obtain an accurate value, you must query each BDC in the domain.
     ///The number of times the user tried to log on using an incorrect password is the largest value retrieved.
-    uint          usri3_bad_pw_count;
+    uint   usri3_bad_pw_count;
     ///Type: <b>DWORD</b> The number of times the user logged on successfully to this account. A value of – 1
     ///indicates that the value is unknown. Calls to the <b>NetUserAdd</b> and <b>NetUserSetInfo</b> functions ignore
     ///this member. This member is maintained separately on each backup domain controller (BDC) in the domain. To obtain
     ///an accurate value, you must query each BDC in the domain. The number of times the user logged on successfully is
     ///the sum of the retrieved values.
-    uint          usri3_num_logons;
+    uint   usri3_num_logons;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains the name of the server to which logon requests
     ///are sent. Server names should be preceded by two backslashes (\\). To indicate that the logon request can be
     ///handled by any logon server, specify an asterisk (\\*) for the server name. A <b>NULL</b> string indicates that
     ///requests should be sent to the domain controller. For Windows servers, NetUserGetInfo and NetUserEnum return \\*.
     ///The NetUserAdd and NetUserSetInfo functions ignore this member.
-    const(wchar)* usri3_logon_server;
+    PWSTR  usri3_logon_server;
     ///Type: <b>DWORD</b> The country/region code for the user's language of choice.
-    uint          usri3_country_code;
+    uint   usri3_country_code;
     ///Type: <b>DWORD</b> The code page for the user's language of choice.
-    uint          usri3_code_page;
+    uint   usri3_code_page;
     ///Type: <b>DWORD</b> The relative ID (RID) of the user. The RID is determined by the Security Account Manager (SAM)
     ///when the user is created. It uniquely defines the user account to SAM within the domain. The NetUserAdd and
     ///NetUserSetInfo functions ignore this member. For more information about RIDs, see SID Components.
-    uint          usri3_user_id;
+    uint   usri3_user_id;
     ///Type: <b>DWORD</b> The RID of the Primary Global Group for the user. When you call the <b>NetUserAdd</b>
     ///function, this member must be DOMAIN_GROUP_RID_USERS (defined in WinNT.h). When you call <b>NetUserSetInfo</b>,
     ///this member must be the RID of a global group in which the user is enrolled. For more information, see Well-Known
     ///SIDs.
-    uint          usri3_primary_group_id;
+    uint   usri3_primary_group_id;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that specifies a path to the user's profile. This value can be
     ///a <b>NULL</b> string, a local absolute path, or a UNC path.
-    const(wchar)* usri3_profile;
+    PWSTR  usri3_profile;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that specifies the drive letter assigned to the user's home
     ///directory for logon purposes.
-    const(wchar)* usri3_home_dir_drive;
+    PWSTR  usri3_home_dir_drive;
     ///Type: <b>DWORD</b> The password expiration information. The NetUserGetInfo and NetUserEnum functions return zero
     ///if the password has not expired (and nonzero if it has). When you call NetUserAdd or NetUserSetInfo, specify a
     ///nonzero value in this member to inform users that they must change their password at the next logon. To turn off
     ///this message, call <b>NetUserSetInfo</b> and specify zero in this member. Note that you cannot specify zero to
     ///negate the expiration of a password that has already expired.
-    uint          usri3_password_expired;
+    uint   usri3_password_expired;
 }
 
 ///The <b>USER_INFO_4</b> structure contains information about a user account, including the account name, password
@@ -581,15 +581,15 @@ struct USER_INFO_4
 {
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that specifies the name of the user account. For the
     ///NetUserSetInfo function, this member is ignored.
-    const(wchar)* usri4_name;
+    PWSTR  usri4_name;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that specifies the password for the user identified by the
     ///<b>usri4_name</b> member. The length cannot exceed PWLEN bytes. The NetUserGetInfo function returns a <b>NULL</b>
     ///pointer to maintain password security. By convention, the length of passwords is limited to LM20_PWLEN
     ///characters.
-    const(wchar)* usri4_password;
+    PWSTR  usri4_password;
     ///Type: <b>DWORD</b> The number of seconds that have elapsed since the <b>usri4_password</b> member was last
     ///changed. The NetUserAdd and NetUserSetInfo functions ignore this member.
-    uint          usri4_password_age;
+    uint   usri4_password_age;
     ///Type: <b>DWORD</b> The level of privilege assigned to the <b>usri4_name</b> member. The NetUserAdd and
     ///NetUserSetInfo functions ignore this member. This member can be one of the following values. For more information
     ///about user and group account rights, see Privileges. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td
@@ -598,14 +598,14 @@ struct USER_INFO_4
     ///id="user_priv_user"></a><dl> <dt><b>USER_PRIV_USER</b></dt> </dl> </td> <td width="60%"> User </td> </tr> <tr>
     ///<td width="40%"><a id="USER_PRIV_ADMIN"></a><a id="user_priv_admin"></a><dl> <dt><b>USER_PRIV_ADMIN</b></dt>
     ///</dl> </td> <td width="60%"> Administrator </td> </tr> </table>
-    uint          usri4_priv;
+    uint   usri4_priv;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string specifying the path of the home directory of the user specified
     ///by the <b>usri4_name</b> member. The string can be <b>NULL</b>.
-    const(wchar)* usri4_home_dir;
+    PWSTR  usri4_home_dir;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains a comment to associate with the user account. The
     ///string can be a <b>NULL</b> string, or it can have any number of characters before the terminating null
     ///character.
-    const(wchar)* usri4_comment;
+    PWSTR  usri4_comment;
     ///Type: <b>DWORD</b> This member can be one or more of the following values. Note that setting user account control
     ///flags may require certain privileges and control access rights. For more information, see the Remarks section of
     ///the NetUserSetInfo function. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
@@ -666,10 +666,10 @@ struct USER_INFO_4
     ///width="40%"><a id="UF_INTERDOMAIN_TRUST_ACCOUNT"></a><a id="uf_interdomain_trust_account"></a><dl>
     ///<dt><b>UF_INTERDOMAIN_TRUST_ACCOUNT</b></dt> </dl> </td> <td width="60%"> This is a permit to trust account for a
     ///domain that trusts other domains. </td> </tr> </table>
-    uint          usri4_flags;
+    uint   usri4_flags;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string specifying the path for the user's logon script file. The
     ///script file can be a .CMD file, an .EXE file, or a .BAT file. The string can also be <b>NULL</b>.
-    const(wchar)* usri4_script_path;
+    PWSTR  usri4_script_path;
     ///Type: <b>DWORD</b> The user's operator privileges. For the NetUserGetInfo function, the appropriate value is
     ///returned based on the local group membership. If the user is a member of Print Operators, AF_OP_PRINT is set. If
     ///the user is a member of Server Operators, AF_OP_SERVER is set. If the user is a member of the Account Operators,
@@ -682,17 +682,17 @@ struct USER_INFO_4
     ///<dt><b>AF_OP_SERVER</b></dt> </dl> </td> <td width="60%"> The server operator privilege is enabled. </td> </tr>
     ///<tr> <td width="40%"><a id="AF_OP_ACCOUNTS"></a><a id="af_op_accounts"></a><dl> <dt><b>AF_OP_ACCOUNTS</b></dt>
     ///</dl> </td> <td width="60%"> The accounts operator privilege is enabled. </td> </tr> </table>
-    uint          usri4_auth_flags;
+    uint   usri4_auth_flags;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains the full name of the user. This string can be a
     ///<b>NULL</b> string, or it can have any number of characters before the terminating null character.
-    const(wchar)* usri4_full_name;
+    PWSTR  usri4_full_name;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains a user comment. This string can be a <b>NULL</b>
     ///string, or it can have any number of characters before the terminating null character.
-    const(wchar)* usri4_usr_comment;
+    PWSTR  usri4_usr_comment;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that is reserved for use by applications. This string can be a
     ///<b>NULL</b> string, or it can have any number of characters before the terminating null character. Microsoft
     ///products use this member to store user configuration information. Do not modify this information.
-    const(wchar)* usri4_parms;
+    PWSTR  usri4_parms;
     ///Type: <b>LPWSTR</b> > [!IMPORTANT] > You should no longer use **usri4_workstations**. Instead, you can control
     ///sign-in access to workstations by configuring the User Rights Assignment settings (**Allow log on locally** and
     ///**Deny log on locally**, or **Allow log on through Remote Desktop Services** and **Deny log on through Remote
@@ -700,31 +700,31 @@ struct USER_INFO_4
     ///can log on. As many as eight workstations can be specified; the names must be separated by commas. If you do not
     ///want to restrict the number of workstations, use a <b>NULL</b> string. To disable logons from all workstations to
     ///this account, set the UF_ACCOUNTDISABLE value in the <b>usri4_flags</b> member.
-    const(wchar)* usri4_workstations;
+    PWSTR  usri4_workstations;
     ///Type: <b>DWORD</b> The date and time when the last logon occurred. This value is stored as the number of seconds
     ///that have elapsed since 00:00:00, January 1, 1970, GMT. This member is ignored by the NetUserAdd and
     ///NetUserSetInfo functions. This member is maintained separately on each backup domain controller (BDC) in the
     ///domain. To obtain an accurate value, you must query each BDC in the domain. The last logon occurred at the time
     ///indicated by the largest retrieved value.
-    uint          usri4_last_logon;
+    uint   usri4_last_logon;
     ///Type: <b>DWORD</b> This member is currently not used. The date and time when the last logoff occurred. This value
     ///is stored as the number of seconds that have elapsed since 00:00:00, January 1, 1970, GMT. A value of zero
     ///indicates that the last logoff time is unknown. This member is maintained separately on each backup domain
     ///controller (BDC) in the domain. To obtain an accurate value, you must query each BDC in the domain. The last
     ///logoff occurred at the time indicated by the largest retrieved value.
-    uint          usri4_last_logoff;
+    uint   usri4_last_logoff;
     ///Type: <b>DWORD</b> The date and time when the account expires. This value is stored as the number of seconds
     ///elapsed since 00:00:00, January 1, 1970, GMT. A value of TIMEQ_FOREVER indicates that the account never expires.
-    uint          usri4_acct_expires;
+    uint   usri4_acct_expires;
     ///Type: <b>DWORD</b> The maximum amount of disk space the user can use. Specify USER_MAXSTORAGE_UNLIMITED to use
     ///all available disk space.
-    uint          usri4_max_storage;
+    uint   usri4_max_storage;
     ///Type: <b>DWORD</b> The number of equal-length time units into which the week is divided. This value is required
     ///to compute the length of the bit string in the <b>usri4_logon_hours</b> member. This value must be UNITS_PER_WEEK
     ///for LAN Manager 2.0. This element is ignored by the NetUserAdd and NetUserSetInfo functions. For service
     ///applications, the units must be one of the following values: SAM_DAYS_PER_WEEK, SAM_HOURS_PER_WEEK, or
     ///SAM_MINUTES_PER_WEEK.
-    uint          usri4_units_per_week;
+    uint   usri4_units_per_week;
     ///Type: <b>PBYTE</b> A pointer to a 21-byte (168 bits) bit string that specifies the times during which the user
     ///can log on. Each bit represents a unique hour in the week, in Greenwich Mean Time (GMT). The first bit (bit 0,
     ///word 0) is Sunday, 0:00 to 0:59; the second bit (bit 1, word 0) is Sunday, 1:00 to 1:59; and so on. Note that bit
@@ -733,49 +733,49 @@ struct USER_INFO_4
     ///Specify a <b>NULL</b> pointer in this member when calling the NetUserAdd function to indicate no time
     ///restriction. Specify a <b>NULL</b> pointer when calling the NetUserSetInfo function to indicate that no change is
     ///to be made to the times during which the user can log on.
-    ubyte*        usri4_logon_hours;
+    ubyte* usri4_logon_hours;
     ///Type: <b>DWORD</b> The number of times the user tried to log on to the account using an incorrect password. A
     ///value of – 1 indicates that the value is unknown. Calls to the NetUserAdd and NetUserSetInfo functions ignore
     ///this member. This member is replicated from the primary domain controller (PDC); it is also maintained on each
     ///backup domain controller (BDC) in the domain. To obtain an accurate value, you must query each BDC in the domain.
     ///The number of times the user tried to log on using an incorrect password is the largest value retrieved.
-    uint          usri4_bad_pw_count;
+    uint   usri4_bad_pw_count;
     ///Type: <b>DWORD</b> The number of times the user logged on successfully to this account. A value of – 1
     ///indicates that the value is unknown. Calls to the <b>NetUserAdd</b> and <b>NetUserSetInfo</b> functions ignore
     ///this member. This member is maintained separately on each backup domain controller (BDC) in the domain. To obtain
     ///an accurate value, you must query each BDC in the domain. The number of times the user logged on successfully is
     ///the sum of the retrieved values.
-    uint          usri4_num_logons;
+    uint   usri4_num_logons;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains the name of the server to which logon requests
     ///are sent. Server names should be preceded by two backslashes (\\). To indicate that the logon request can be
     ///handled by any logon server, specify an asterisk (\\*) for the server name. A <b>NULL</b> string indicates that
     ///requests should be sent to the domain controller. For Windows servers, the NetUserGetInfo function returns \\*.
     ///The NetUserAdd and NetUserSetInfo functions ignore this member.
-    const(wchar)* usri4_logon_server;
+    PWSTR  usri4_logon_server;
     ///Type: <b>DWORD</b> The country/region code for the user's language of choice.
-    uint          usri4_country_code;
+    uint   usri4_country_code;
     ///Type: <b>DWORD</b> The code page for the user's language of choice.
-    uint          usri4_code_page;
+    uint   usri4_code_page;
     ///Type: <b>PSID</b> A pointer to a SID structure that contains the security identifier (SID) that uniquely
     ///identifies the user. The NetUserAdd and NetUserSetInfo functions ignore this member.
-    void*         usri4_user_sid;
+    void*  usri4_user_sid;
     ///Type: <b>DWORD</b> The relative identifier (RID) of the Primary Global Group for the user. When you call the
     ///<b>NetUserAdd</b> function, this member must be DOMAIN_GROUP_RID_USERS (defined in WinNT.h). When you call
     ///<b>NetUserSetInfo</b>, this member must be the RID of a global group in which the user is enrolled. For more
     ///information, see Well-Known SIDs and SID Components.
-    uint          usri4_primary_group_id;
+    uint   usri4_primary_group_id;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that specifies a path to the user's profile. This value can be
     ///a <b>NULL</b> string, a local absolute path, or a UNC path.
-    const(wchar)* usri4_profile;
+    PWSTR  usri4_profile;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that specifies the drive letter assigned to the user's home
     ///directory for logon purposes.
-    const(wchar)* usri4_home_dir_drive;
+    PWSTR  usri4_home_dir_drive;
     ///Type: <b>DWORD</b> The password expiration information. The NetUserGetInfo function return zero if the password
     ///has not expired (and nonzero if it has). When you call NetUserAdd or NetUserSetInfo, specify a nonzero value in
     ///this member to inform users that they must change their password at the next logon. To turn off this message,
     ///call <b>NetUserSetInfo</b> and specify zero in this member. Note that you cannot specify zero to negate the
     ///expiration of a password that has already expired.
-    uint          usri4_password_expired;
+    uint   usri4_password_expired;
 }
 
 ///The <b>USER_INFO_10</b> structure contains information about a user account, including the account name, comments
@@ -784,16 +784,16 @@ struct USER_INFO_10
 {
     ///Pointer to a Unicode string that specifies the name of the user account. Calls to the NetUserSetInfo function
     ///ignore this member. For more information, see the following Remarks section.
-    const(wchar)* usri10_name;
+    PWSTR usri10_name;
     ///Pointer to a Unicode string that contains a comment associated with the user account. The string can be a null
     ///string, or can have any number of characters before the terminating null character.
-    const(wchar)* usri10_comment;
+    PWSTR usri10_comment;
     ///Pointer to a Unicode string that contains a user comment. This string can be a null string, or it can have any
     ///number of characters before the terminating null character.
-    const(wchar)* usri10_usr_comment;
+    PWSTR usri10_usr_comment;
     ///Pointer to a Unicode string that contains the full name of the user. This string can be a null string, or it can
     ///have any number of characters before the terminating null character.
-    const(wchar)* usri10_full_name;
+    PWSTR usri10_full_name;
 }
 
 ///The <b>USER_INFO_11</b> structure contains information about a user account, including the account name, privilege
@@ -802,17 +802,17 @@ struct USER_INFO_11
 {
     ///Type: <b>LPWSTR</b> A pointer to a Unicode character that specifies the name of the user account. Calls to the
     ///NetUserSetInfo function ignore this member. For more information, see the following Remarks section.
-    const(wchar)* usri11_name;
+    PWSTR  usri11_name;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains a comment associated with the user account. This
     ///string can be a <b>NULL</b> string, or it can have any number of characters before the terminating null
     ///character.
-    const(wchar)* usri11_comment;
+    PWSTR  usri11_comment;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains a user comment. This string can be a <b>NULL</b>
     ///string, or it can have any number of characters before the terminating null character.
-    const(wchar)* usri11_usr_comment;
+    PWSTR  usri11_usr_comment;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains the full name of the user. This string can be a
     ///<b>NULL</b> string, or it can have any number of characters before the terminating null character.
-    const(wchar)* usri11_full_name;
+    PWSTR  usri11_full_name;
     ///Type: <b>DWORD</b> The level of privilege assigned to the <b>usri11_name</b> member. For calls to the NetUserAdd
     ///function, this member must be USER_PRIV_USER. For calls to NetUserSetInfo, this member must be the value returned
     ///from the NetUserGetInfo function or the NetUserEnum function. This member can be one of the following values. For
@@ -822,7 +822,7 @@ struct USER_INFO_11
     ///id="USER_PRIV_USER"></a><a id="user_priv_user"></a><dl> <dt><b>USER_PRIV_USER</b></dt> </dl> </td> <td
     ///width="60%"> User </td> </tr> <tr> <td width="40%"><a id="USER_PRIV_ADMIN"></a><a id="user_priv_admin"></a><dl>
     ///<dt><b>USER_PRIV_ADMIN</b></dt> </dl> </td> <td width="60%"> Administrator </td> </tr> </table>
-    uint          usri11_priv;
+    uint   usri11_priv;
     ///Type: <b>DWORD</b> A set of bit flags defining the user's operator privileges. Calls to the NetUserGetInfo
     ///function and the NetUserEnum function return a value based on the user's local group membership. If the user is a
     ///member of Print Operators, AF_OP_PRINT is set. If the user is a member of Server Operators, AF_OP_SERVER is set.
@@ -838,64 +838,64 @@ struct USER_INFO_11
     ///<dt><b>AF_OP_SERVER</b></dt> </dl> </td> <td width="60%"> The server operator privilege is enabled. </td> </tr>
     ///<tr> <td width="40%"><a id="AF_OP_ACCOUNTS"></a><a id="af_op_accounts"></a><dl> <dt><b>AF_OP_ACCOUNTS</b></dt>
     ///</dl> </td> <td width="60%"> The accounts operator privilege is enabled. </td> </tr> </table>
-    uint          usri11_auth_flags;
+    uint   usri11_auth_flags;
     ///Type: <b>DWORD</b> The number of seconds that have elapsed since the <b>usri11_password</b> member was last
     ///changed. The NetUserAdd and NetUserSetInfo functions ignore this member.
-    uint          usri11_password_age;
+    uint   usri11_password_age;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string specifying the path of the home directory for the user
     ///specified in the <b>usri11_name</b> member. The string can be <b>NULL</b>.
-    const(wchar)* usri11_home_dir;
+    PWSTR  usri11_home_dir;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that is reserved for use by applications. This string can be a
     ///<b>NULL</b> string, or it can have any number of characters before the terminating null character. Microsoft
     ///products use this member to store user configuration information. Do not modify this information.
-    const(wchar)* usri11_parms;
+    PWSTR  usri11_parms;
     ///Type: <b>DWORD</b> The date and time when the last logon occurred. This value is stored as the number of seconds
     ///that have elapsed since 00:00:00, January 1, 1970, GMT. The NetUserAdd and NetUserSetInfo functions ignore this
     ///member. This member is maintained separately on each backup domain controller (BDC) in the domain. To obtain an
     ///accurate value, you must query each BDC in the domain. The last logon occurred at the time indicated by the
     ///largest retrieved value.
-    uint          usri11_last_logon;
+    uint   usri11_last_logon;
     ///Type: <b>DWORD</b> This member is currently not used. The date and time when the last logoff occurred. This value
     ///is stored as the number of seconds that have elapsed since 00:00:00, January 1, 1970, GMT. A value of zero
     ///indicates that the last logoff time is unknown. The <b>NetUserAdd</b> function and the <b>NetUserSetInfo</b>
     ///function ignore this member. This member is maintained separately on each backup domain controller (BDC) in the
     ///domain. To obtain an accurate value, you must query each BDC in the domain. The last logoff occurred at the time
     ///indicated by the largest retrieved value.
-    uint          usri11_last_logoff;
+    uint   usri11_last_logoff;
     ///Type: <b>DWORD</b> The number of times the user tried to log on to this account using an incorrect password. A
     ///value of – 1 indicates that the value is unknown. The NetUserAdd and NetUserSetInfo functions ignore this
     ///member. This member is replicated from the primary domain controller (PDC); it is also maintained on each backup
     ///domain controller (BDC) in the domain. To obtain an accurate value, you must query each BDC in the domain. The
     ///number of times the user tried to log on using an incorrect password is the largest value retrieved.
-    uint          usri11_bad_pw_count;
+    uint   usri11_bad_pw_count;
     ///Type: <b>DWORD</b> The number of times the user has logged on successfully to this account. A value of – 1
     ///indicates that the value is unknown. Calls to the <b>NetUserAdd</b> and <b>NetUserSetInfo</b> functions ignore
     ///this member. This member is maintained separately on each backup domain controller (BDC) in the domain. To obtain
     ///an accurate value, you must query each BDC in the domain. The number of times the user logged on successfully is
     ///the sum of the retrieved values.
-    uint          usri11_num_logons;
+    uint   usri11_num_logons;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains the name of the server to which logon requests
     ///are sent. Server names should be preceded by two backslashes (\\). To indicate that the logon request can be
     ///handled by any logon server, specify an asterisk (\\*) for the server name. A <b>NULL</b> string indicates that
     ///requests should be sent to the domain controller. For Windows servers, NetUserGetInfo and NetUserEnum return \\*.
     ///The NetUserAdd and NetUserSetInfo functions ignore this member.
-    const(wchar)* usri11_logon_server;
+    PWSTR  usri11_logon_server;
     ///Type: <b>DWORD</b> The country/region code for the user's language of choice.
-    uint          usri11_country_code;
+    uint   usri11_country_code;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains the names of workstations from which the user can
     ///log on. As many as eight workstations can be specified; the names must be separated by commas. A <b>NULL</b>
     ///string indicates that there is no restriction. To disable logons from all workstations to this account, set the
     ///UF_ACCOUNTDISABLE value in the <b>usri11_flags</b> member.
-    const(wchar)* usri11_workstations;
+    PWSTR  usri11_workstations;
     ///Type: <b>DWORD</b> The maximum amount of disk space the user can use. Specify USER_MAXSTORAGE_UNLIMITED to use
     ///all available disk space.
-    uint          usri11_max_storage;
+    uint   usri11_max_storage;
     ///Type: <b>DWORD</b> The number of equal-length time units into which the week is divided. This value is required
     ///to compute the length of the bit string in the <b>usri11_logon_hours</b> member. This member must be
     ///UNITS_PER_WEEK for LAN Manager 2.0. This element is ignored by the NetUserAdd and NetUserSetInfo functions. For
     ///service applications, the units must be one of the following values: SAM_DAYS_PER_WEEK, SAM_HOURS_PER_WEEK, or
     ///SAM_MINUTES_PER_WEEK.
-    uint          usri11_units_per_week;
+    uint   usri11_units_per_week;
     ///Type: <b>PBYTE</b> A pointer to a 21-byte (168 bits) bit string that specifies the times during which the user
     ///can log on. Each bit represents a unique hour in the week, in Greenwich Mean Time (GMT). The first bit (bit 0,
     ///word 0) is Sunday, 0:00 to 0:59; the second bit (bit 1, word 0) is Sunday, 1:00 to 1:59; and so on. Note that bit
@@ -904,9 +904,9 @@ struct USER_INFO_11
     ///Specify a <b>NULL</b> pointer in this member when calling the NetUserAdd function to indicate no time
     ///restriction. Specify a <b>NULL</b> pointer when calling the NetUserSetInfo function to indicate that no change is
     ///to be made to the times during which the user can log on.
-    ubyte*        usri11_logon_hours;
+    ubyte* usri11_logon_hours;
     ///Type: <b>DWORD</b> The code page for the user's language of choice.
-    uint          usri11_code_page;
+    uint   usri11_code_page;
 }
 
 ///The <b>USER_INFO_20</b> structure contains information about a user account, including the account name, the user's
@@ -917,13 +917,13 @@ struct USER_INFO_20
 {
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that specifies the name of the user account. Calls to the
     ///NetUserSetInfo function ignore this member. For more information, see the following Remarks section.
-    const(wchar)* usri20_name;
+    PWSTR usri20_name;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains the full name of the user. This string can be a
     ///null string, or it can have any number of characters before the terminating null character.
-    const(wchar)* usri20_full_name;
+    PWSTR usri20_full_name;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains a comment associated with the user account. This
     ///string can be a null string, or it can have any number of characters before the terminating null character.
-    const(wchar)* usri20_comment;
+    PWSTR usri20_comment;
     ///Type: <b>DWORD</b> This member can be one or more of the following values. Note that setting user account control
     ///flags may require certain privileges and control access rights. For more information, see the Remarks section of
     ///the NetUserSetInfo function. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
@@ -984,11 +984,11 @@ struct USER_INFO_20
     ///width="40%"><a id="UF_INTERDOMAIN_TRUST_ACCOUNT"></a><a id="uf_interdomain_trust_account"></a><dl>
     ///<dt><b>UF_INTERDOMAIN_TRUST_ACCOUNT</b></dt> </dl> </td> <td width="60%"> This is a permit to trust account for a
     ///domain that trusts other domains. </td> </tr> </table>
-    uint          usri20_flags;
+    uint  usri20_flags;
     ///Type: <b>DWORD</b> The user's relative identifier (RID). The RID is determined by the Security Account Manager
     ///(SAM) when the user is created. It uniquely defines this user account to SAM within the domain. The NetUserAdd
     ///and NetUserSetInfo functions ignore this member. For more information about RIDs, see SID Components.
-    uint          usri20_user_id;
+    uint  usri20_user_id;
 }
 
 ///The <b>USER_INFO_21</b> structure contains a one-way encrypted LAN Manager 2.<i>x</i>-compatible password.
@@ -1005,12 +1005,12 @@ struct USER_INFO_22
 {
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that specifies the name of the user account. Calls to the
     ///NetUserSetInfo function ignore this member. For more information, see the following Remarks section.
-    const(wchar)* usri22_name;
+    PWSTR     usri22_name;
     ///Type: <b>BYTE[ENCRYPTED_PWLEN]</b> A one-way encrypted LAN Manager 2.<i>x</i>-compatible password.
-    ubyte[16]     usri22_password;
+    ubyte[16] usri22_password;
     ///Type: <b>DWORD</b> The number of seconds that have elapsed since the <b>usri22_password</b> member was last
     ///changed. The NetUserAdd and NetUserSetInfo functions ignore this member.
-    uint          usri22_password_age;
+    uint      usri22_password_age;
     ///Type: <b>DWORD</b> The level of privilege assigned to the <b>usri22_name</b> member. Calls to the
     ///<b>NetUserAdd</b> function must specify USER_PRIV_USER. When you call the <b>NetUserSetInfo</b> function this
     ///member must be the value returned from the NetUserGetInfo or the NetUserEnum function. This member can be one of
@@ -1021,13 +1021,13 @@ struct USER_INFO_22
     ///</td> <td width="60%"> User </td> </tr> <tr> <td width="40%"><a id="USER_PRIV_ADMIN"></a><a
     ///id="user_priv_admin"></a><dl> <dt><b>USER_PRIV_ADMIN</b></dt> </dl> </td> <td width="60%"> Administrator </td>
     ///</tr> </table>
-    uint          usri22_priv;
+    uint      usri22_priv;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string specifying the path of the home directory for the user
     ///specified by the <b>usri22_name</b> member. The string can be null.
-    const(wchar)* usri22_home_dir;
+    PWSTR     usri22_home_dir;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains a comment associated with the user account. This
     ///string can be a null string, or it can have any number of characters before the terminating null character.
-    const(wchar)* usri22_comment;
+    PWSTR     usri22_comment;
     ///Type: <b>DWORD</b> This member can be one or more of the following values. Note that setting user account control
     ///flags may require certain privileges and control access rights. For more information, see the Remarks section of
     ///the NetUserSetInfo function. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
@@ -1088,10 +1088,10 @@ struct USER_INFO_22
     ///width="40%"><a id="UF_INTERDOMAIN_TRUST_ACCOUNT"></a><a id="uf_interdomain_trust_account"></a><dl>
     ///<dt><b>UF_INTERDOMAIN_TRUST_ACCOUNT</b></dt> </dl> </td> <td width="60%"> This is a permit to trust account for a
     ///domain that trusts other domains. </td> </tr> </table>
-    uint          usri22_flags;
+    uint      usri22_flags;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string specifying the path for the user's logon script file. The
     ///script file can be a .CMD file, an .EXE file, or a .BAT file. The string can also be null.
-    const(wchar)* usri22_script_path;
+    PWSTR     usri22_script_path;
     ///Type: <b>DWORD</b> The user's operator privileges. Calls to the <b>NetUserGetInfo</b> function and the
     ///<b>NetUserEnum</b> function return a value based on the user's local group membership. If the user is a member of
     ///Print Operators, AF_OP_PRINT, is set. If the user is a member of Server Operators, AF_OP_SERVER, is set. If the
@@ -1107,17 +1107,17 @@ struct USER_INFO_22
     ///server operator privilege is enabled. </td> </tr> <tr> <td width="40%"><a id="AF_OP_ACCOUNTS"></a><a
     ///id="af_op_accounts"></a><dl> <dt><b>AF_OP_ACCOUNTS</b></dt> </dl> </td> <td width="60%"> The accounts operator
     ///privilege is enabled. </td> </tr> </table>
-    uint          usri22_auth_flags;
+    uint      usri22_auth_flags;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains the full name of the user. This string can be a
     ///null string, or it can have any number of characters before the terminating null character.
-    const(wchar)* usri22_full_name;
+    PWSTR     usri22_full_name;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains a user comment. This string can be a null string,
     ///or it can have any number of characters before the terminating null character.
-    const(wchar)* usri22_usr_comment;
+    PWSTR     usri22_usr_comment;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that is reserved for use by applications. This string can be a
     ///null string, or it can have any number of characters before the terminating null character. Microsoft products
     ///use this member to store user configuration information. Do not modify this information.
-    const(wchar)* usri22_parms;
+    PWSTR     usri22_parms;
     ///Type: <b>LPWSTR</b> > [!IMPORTANT] > You should no longer use **usri22_workstations**. Instead, you can control
     ///sign-in access to workstations by configuring the User Rights Assignment settings (**Allow log on locally** and
     ///**Deny log on locally**, or **Allow log on through Remote Desktop Services** and **Deny log on through Remote
@@ -1125,33 +1125,33 @@ struct USER_INFO_22
     ///can log on. As many as eight workstations can be specified; the names must be separated by commas. A null string
     ///indicates that there is no restriction. To disable logons from all workstations to this account, set the
     ///UF_ACCOUNTDISABLE value in the <b>usri22_flags</b> member.
-    const(wchar)* usri22_workstations;
+    PWSTR     usri22_workstations;
     ///Type: <b>DWORD</b> The date and time when the last logon occurred. This value is stored as the number of seconds
     ///that have elapsed since 00:00:00, January 1, 1970, GMT. Calls to the NetUserAdd and the NetUserSetInfo functions
     ///ignore this member. This member is maintained separately on each backup domain controller (BDC) in the domain. To
     ///obtain an accurate value, you must query each BDC in the domain. The last logon occurred at the time indicated by
     ///the largest retrieved value.
-    uint          usri22_last_logon;
+    uint      usri22_last_logon;
     ///Type: <b>DWORD</b> This member is currently not used. The date and time when the last logoff occurred. This value
     ///is stored as the number of seconds that have elapsed since 00:00:00, January 1, 1970, GMT. A value of zero means
     ///that the last logoff time is unknown. This element is ignored by calls to <b>NetUserAdd</b> and
     ///<b>NetUserSetInfo</b>. This member is maintained separately on each backup domain controller (BDC) in the domain.
     ///To obtain an accurate value, you must query each BDC in the domain. The last logoff occurred at the time
     ///indicated by the largest retrieved value.
-    uint          usri22_last_logoff;
+    uint      usri22_last_logoff;
     ///Type: <b>DWORD</b> The date and time when the account expires. This value is stored as the number of seconds that
     ///have elapsed since 00:00:00, January 1, 1970, GMT. A value of TIMEQ_FOREVER indicates that the account never
     ///expires.
-    uint          usri22_acct_expires;
+    uint      usri22_acct_expires;
     ///Type: <b>DWORD</b> The maximum amount of disk space the user can use. Specify USER_MAXSTORAGE_UNLIMITED to use
     ///all available disk space.
-    uint          usri22_max_storage;
+    uint      usri22_max_storage;
     ///Type: <b>DWORD</b> The number of equal-length time units into which the week is divided. This value is required
     ///to compute the length of the bit string in the <b>usri22_logon_hours</b> member. This value must be
     ///UNITS_PER_WEEK for LAN Manager 2.0. Calls to the NetUserAdd and NetUserSetInfo functions ignore this member. For
     ///service applications, the units must be one of the following: SAM_DAYS_PER_WEEK, SAM_HOURS_PER_WEEK, or
     ///SAM_MINUTES_PER_WEEK.
-    uint          usri22_units_per_week;
+    uint      usri22_units_per_week;
     ///Type: <b>PBYTE</b> A pointer to a 21-byte (168 bits) bit string that specifies the times during which the user
     ///can log on. Each bit represents a unique hour in the week, in Greenwich Mean Time (GMT). The first bit (bit 0,
     ///word 0) is Sunday, 0:00 to 0:59; the second bit (bit 1, word 0) is Sunday, 1:00 to 1:59; and so on. Note that bit
@@ -1160,29 +1160,29 @@ struct USER_INFO_22
     ///Specify a null pointer in this member when calling the NetUserAdd function to indicate no time restriction.
     ///Specify a null pointer when calling the NetUserSetInfo function to indicate that no change is to be made to the
     ///times during which the user can log on.
-    ubyte*        usri22_logon_hours;
+    ubyte*    usri22_logon_hours;
     ///Type: <b>DWORD</b> The number of times the user tried to log on to this account using an incorrect password. A
     ///value of – 1 indicates that the value is unknown. Calls to the NetUserAdd and NetUserSetInfo functions ignore
     ///this member. This member is replicated from the primary domain controller (PDC); it is also maintained on each
     ///backup domain controller (BDC) in the domain. To obtain an accurate value, you must query each BDC in the domain.
     ///The number of times the user tried to log on using an incorrect password is the largest value retrieved.
-    uint          usri22_bad_pw_count;
+    uint      usri22_bad_pw_count;
     ///Type: <b>DWORD</b> The number of times the user logged on successfully to this account. A value of – 1
     ///indicates that the value is unknown. Calls to the <b>NetUserAdd</b> and <b>NetUserSetInfo</b> functions ignore
     ///this member. This member is maintained separately on each backup domain controller (BDC) in the domain. To obtain
     ///an accurate value, you must query each BDC in the domain. The number of times the user logged on successfully is
     ///the sum of the retrieved values.
-    uint          usri22_num_logons;
+    uint      usri22_num_logons;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains the name of the server to which logon requests
     ///are sent. Server names should be preceded by two backslashes (\\). To indicate that the logon request can be
     ///handled by any logon server, specify an asterisk (\\*) for the server name. A null string indicates that requests
     ///should be sent to the domain controller. For Windows servers, the NetUserGetInfo and NetUserEnum functions return
     ///\\*. Calls to the NetUserAdd and NetUserSetInfo functions ignore this member.
-    const(wchar)* usri22_logon_server;
+    PWSTR     usri22_logon_server;
     ///Type: <b>DWORD</b> The country/region code for the user's language of choice. This value is ignored.
-    uint          usri22_country_code;
+    uint      usri22_country_code;
     ///Type: <b>DWORD</b> The code page for the user's language of choice. This value is ignored.
-    uint          usri22_code_page;
+    uint      usri22_code_page;
 }
 
 ///The <b>USER_INFO_23</b> structure contains information about a user account, including the account name, the user's
@@ -1194,13 +1194,13 @@ struct USER_INFO_23
 {
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that specifies the name of the user account. Calls to the
     ///NetUserSetInfo function ignore this member.
-    const(wchar)* usri23_name;
+    PWSTR usri23_name;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains the full name of the user. This string can be a
     ///null string, or it can have any number of characters before the terminating null character.
-    const(wchar)* usri23_full_name;
+    PWSTR usri23_full_name;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains a comment associated with the user account. This
     ///string can be a null string, or it can have any number of characters before the terminating null character.
-    const(wchar)* usri23_comment;
+    PWSTR usri23_comment;
     ///Type: <b>DWORD</b> This member can be one or more of the following values. Note that setting user account control
     ///flags may require certain privileges and control access rights. For more information, see the Remarks section of
     ///the NetUserSetInfo function. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
@@ -1261,10 +1261,10 @@ struct USER_INFO_23
     ///width="40%"><a id="UF_INTERDOMAIN_TRUST_ACCOUNT"></a><a id="uf_interdomain_trust_account"></a><dl>
     ///<dt><b>UF_INTERDOMAIN_TRUST_ACCOUNT</b></dt> </dl> </td> <td width="60%"> This is a permit to trust account for a
     ///domain that trusts other domains. </td> </tr> </table>
-    uint          usri23_flags;
+    uint  usri23_flags;
     ///Type: <b>PSID</b> A pointer to a SID structure that contains the security identifier (SID) that uniquely
     ///identifies the user. The NetUserAdd and NetUserSetInfo functions ignore this member.
-    void*         usri23_user_sid;
+    void* usri23_user_sid;
 }
 
 ///The <b>USER_INFO_24</b> structure contains user account information on an account which is connected to an Internet
@@ -1276,15 +1276,15 @@ struct USER_INFO_24
     ///the account is connected to an Internet identity. The other members in this structure can be used. If this member
     ///is false, then the account is not connected to an Internet identity and other members in this structure should be
     ///ignored.
-    BOOL          usri24_internet_identity;
+    BOOL  usri24_internet_identity;
     ///A set of flags. This member must be zero.
-    uint          usri24_flags;
+    uint  usri24_flags;
     ///A pointer to a Unicode string that specifies the Internet provider name.
-    const(wchar)* usri24_internet_provider_name;
+    PWSTR usri24_internet_provider_name;
     ///A pointer to a Unicode string that specifies the user's Internet name.
-    const(wchar)* usri24_internet_principal_name;
+    PWSTR usri24_internet_principal_name;
     ///The local account SID of the user.
-    void*         usri24_user_sid;
+    void* usri24_user_sid;
 }
 
 ///The <b>USER_INFO_1003</b> structure contains a user password. This information level is valid only when you call the
@@ -1293,7 +1293,7 @@ struct USER_INFO_1003
 {
     ///Specifies a Unicode string that contains the password for the user account specified in the <i>username</i>
     ///parameter to the <b>NetUserSetInfo</b> function. The length cannot exceed PWLEN bytes.
-    const(wchar)* usri1003_password;
+    PWSTR usri1003_password;
 }
 
 ///The <b>USER_INFO_1005</b> structure contains a privilege level to assign to a user network account. This information
@@ -1317,7 +1317,7 @@ struct USER_INFO_1006
 {
     ///Pointer to a Unicode string specifying the path of the home directory for the user account specified in the
     ///<i>username</i> parameter to the <b>NetUserSetInfo</b> function. The string can be null.
-    const(wchar)* usri1006_home_dir;
+    PWSTR usri1006_home_dir;
 }
 
 ///The <b>USER_INFO_1007</b> structure contains a comment associated with a user network account. This information level
@@ -1327,7 +1327,7 @@ struct USER_INFO_1007
     ///Pointer to a Unicode string that contains a comment to associate with the user account specified in the
     ///<i>username</i> parameter to the <b>NetUserSetInfo</b> function. This string can be a null string, or it can have
     ///any number of characters before the terminating null character.
-    const(wchar)* usri1007_comment;
+    PWSTR usri1007_comment;
 }
 
 ///The <b>USER_INFO_1008</b> structure contains a set of bit flags defining several user network account parameters.
@@ -1405,7 +1405,7 @@ struct USER_INFO_1009
     ///Pointer to a Unicode string specifying the path for the user's logon script file. The user is specified in the
     ///<i>username</i> parameter to the <b>NetUserSetInfo</b> function. The script file can be a .CMD file, an .EXE
     ///file, or a .BAT file. The string can also be null.
-    const(wchar)* usri1009_script_path;
+    PWSTR usri1009_script_path;
 }
 
 ///The <b>USER_INFO_1010</b> structure contains a set of bit flags defining the operator privileges assigned to a user
@@ -1432,7 +1432,7 @@ struct USER_INFO_1011
     ///Pointer to a Unicode string that contains the full name of the user. The user is specified in the <i>username</i>
     ///parameter to the <b>NetUserSetInfo</b> function. This string can be a null string, or it can have any number of
     ///characters before the terminating null character.
-    const(wchar)* usri1011_full_name;
+    PWSTR usri1011_full_name;
 }
 
 ///The <b>USER_INFO_1012</b> structure contains a user comment. This information level is valid only when you call the
@@ -1442,7 +1442,7 @@ struct USER_INFO_1012
     ///Pointer to a Unicode string that contains a user comment. The user is specified in the <i>username</i> parameter
     ///to the <b>NetUserSetInfo</b> function. This string can be a null string, or it can have any number of characters
     ///before the terminating null character.
-    const(wchar)* usri1012_usr_comment;
+    PWSTR usri1012_usr_comment;
 }
 
 ///The <b>USER_INFO_1013</b> structure contains reserved information for network accounts. This information level is
@@ -1453,7 +1453,7 @@ struct USER_INFO_1013
     ///have any number of characters before the terminating null character. Microsoft products use this member to store
     ///user configuration information. Do not modify this information. The system components that use this member are
     ///services for Macintosh, file and print services for NetWare, and the Remote Access Server (RAS).
-    const(wchar)* usri1013_parms;
+    PWSTR usri1013_parms;
 }
 
 ///The <b>USER_INFO_1014</b> structure contains the names of workstations from which the user can log on. This
@@ -1467,7 +1467,7 @@ struct USER_INFO_1014
     ///The user is specified in the <i>username</i> parameter to the <b>NetUserSetInfo</b> function. As many as eight
     ///workstations can be specified; the names must be separated by commas. A null string indicates that there is no
     ///restriction.
-    const(wchar)* usri1014_workstations;
+    PWSTR usri1014_workstations;
 }
 
 ///The <b>USER_INFO_1017</b> structure contains expiration information for network user accounts. This information level
@@ -1519,7 +1519,7 @@ struct USER_INFO_1023
     ///function. Server names should be preceded by two backslashes (\\). To indicate that the logon request can be
     ///handled by any logon server, specify an asterisk (\\*) for the server name. A null string indicates that requests
     ///should be sent to the domain controller.
-    const(wchar)* usri1023_logon_server;
+    PWSTR usri1023_logon_server;
 }
 
 ///The <b>USER_INFO_1024</b> structure contains the country/region code for a network user's language of choice. This
@@ -1557,7 +1557,7 @@ struct USER_INFO_1052
     ///Specifies a Unicode string that contains the path to the user's profile. The user is specified in the
     ///<i>username</i> parameter to the <b>NetUserSetInfo</b> function. This value can be a null string, a local
     ///absolute path, or a UNC path.
-    const(wchar)* usri1052_profile;
+    PWSTR usri1052_profile;
 }
 
 ///The <b>USER_INFO_1053</b> structure contains user information for network accounts. This information level is valid
@@ -1566,7 +1566,7 @@ struct USER_INFO_1053
 {
     ///Specifies the drive letter to assign to the user's home directory for logon purposes. The user is specified in
     ///the <i>username</i> parameter to the <b>NetUserSetInfo</b> function.
-    const(wchar)* usri1053_home_dir_drive;
+    PWSTR usri1053_home_dir_drive;
 }
 
 ///The <b>USER_MODALS_INFO_0</b> structure contains global password information for users and global groups in the
@@ -1606,10 +1606,10 @@ struct USER_MODALS_INFO_1
     ///id="UAS_ROLE_PRIMARY"></a><a id="uas_role_primary"></a><dl> <dt><b>UAS_ROLE_PRIMARY</b></dt> </dl> </td> <td
     ///width="60%"> The logon server is a domain controller. </td> </tr> </table> <div> </div> If the Netlogon service
     ///is not being used, the element should be set to UAS_ROLE_STANDALONE.
-    uint          usrmod1_role;
+    uint  usrmod1_role;
     ///Pointer to a Unicode string that specifies the name of the domain controller that stores the primary copy of the
     ///database for the user account manager.
-    const(wchar)* usrmod1_primary;
+    PWSTR usrmod1_primary;
 }
 
 ///The <b>USER_MODALS_INFO_2</b> structure contains the Security Account Manager (SAM) domain name and identifier.
@@ -1617,10 +1617,10 @@ struct USER_MODALS_INFO_2
 {
     ///Specifies the name of the Security Account Manager (SAM) domain. For a domain controller, this is the name of the
     ///domain that the controller is a member of. For workstations, this is the name of the computer.
-    const(wchar)* usrmod2_domain_name;
+    PWSTR usrmod2_domain_name;
     ///Pointer to a SID structure that contains the security identifier (SID) of the domain named by the
     ///<b>usrmod2_domain_name</b> member.
-    void*         usrmod2_domain_id;
+    void* usrmod2_domain_id;
 }
 
 ///The <b>USER_MODALS_INFO_3</b> structure contains lockout information for users and global groups in the security
@@ -1708,7 +1708,7 @@ struct USER_MODALS_INFO_1007
 {
     ///Pointer to a Unicode string that specifies the name of the domain controller that stores the primary copy of the
     ///database for the user account manager.
-    const(wchar)* usrmod1007_primary;
+    PWSTR usrmod1007_primary;
 }
 
 ///The <b>GROUP_INFO_0</b> structure contains the name of a global group in the security database, which is the security
@@ -1718,7 +1718,7 @@ struct GROUP_INFO_0
     ///Pointer to a null-terminated Unicode character string that specifies the name of the global group. For more
     ///information, see the following Remarks section. When you call the NetGroupSetInfo function this member specifies
     ///the new name of the global group.
-    const(wchar)* grpi0_name;
+    PWSTR grpi0_name;
 }
 
 ///The <b>GROUP_INFO_1</b> structure contains a global group name and a comment to associate with the group.
@@ -1727,10 +1727,10 @@ struct GROUP_INFO_1
     ///Pointer to a null-terminated Unicode character string that specifies the name of the global group. For more
     ///information, see the following Remarks section. When you call the NetGroupSetInfo function this member is
     ///ignored.
-    const(wchar)* grpi1_name;
+    PWSTR grpi1_name;
     ///Pointer to a null-terminated Unicode character string that specifies a remark associated with the global group.
     ///This member can be a null string. The comment can contain MAXCOMMENTSZ characters.
-    const(wchar)* grpi1_comment;
+    PWSTR grpi1_comment;
 }
 
 ///The <b>GROUP_INFO_2</b> structure contains information about a global group, including name, identifier, and resource
@@ -1740,16 +1740,16 @@ struct GROUP_INFO_2
     ///Pointer to a null-terminated Unicode character string that specifies the name of the global group. For more
     ///information, see the following Remarks section. When you call the NetGroupSetInfo function this member is
     ///ignored.
-    const(wchar)* grpi2_name;
+    PWSTR grpi2_name;
     ///Pointer to a null-terminated Unicode character string that contains a remark associated with the global group.
     ///This member can be a null string. The comment can contain MAXCOMMENTSZ characters.
-    const(wchar)* grpi2_comment;
+    PWSTR grpi2_comment;
     ///The relative identifier (RID) of the global group. The NetUserAdd and NetUserSetInfo functions ignore this
     ///member. For more information about RIDs, see SID Components.
-    uint          grpi2_group_id;
+    uint  grpi2_group_id;
     ///These attributes are hard-coded to SE_GROUP_MANDATORY, SE_GROUP_ENABLED, and SE_GROUP_ENABLED_BY_DEFAULT. For
     ///more information, see TOKEN_GROUPS.
-    uint          grpi2_attributes;
+    uint  grpi2_attributes;
 }
 
 ///The <b>GROUP_INFO_3</b> structure contains information about a global group, including name, security identifier
@@ -1758,16 +1758,16 @@ struct GROUP_INFO_3
 {
     ///Pointer to a null-terminated Unicode character string that specifies the name of the global group. When you call
     ///the NetGroupSetInfo function this member is ignored.
-    const(wchar)* grpi3_name;
+    PWSTR grpi3_name;
     ///Pointer to a null-terminated Unicode character string that contains a remark associated with the global group.
     ///This member can be a null string. The comment can contain MAXCOMMENTSZ characters.
-    const(wchar)* grpi3_comment;
+    PWSTR grpi3_comment;
     ///Pointer to a SID structure that contains the security identifier (SID) that uniquely identifies the global group.
     ///The NetUserAdd and NetUserSetInfo functions ignore this member.
-    void*         grpi3_group_sid;
+    void* grpi3_group_sid;
     ///These attributes are hard-coded to SE_GROUP_MANDATORY, SE_GROUP_ENABLED, and SE_GROUP_ENABLED_BY_DEFAULT. For
     ///more information, see TOKEN_GROUPS.
-    uint          grpi3_attributes;
+    uint  grpi3_attributes;
 }
 
 ///The <b>GROUP_INFO_1002</b> structure contains a comment to associate with a global group.
@@ -1775,7 +1775,7 @@ struct GROUP_INFO_1002
 {
     ///Pointer to a null-terminated Unicode character string that contains a remark to associate with the global group.
     ///This member can be a null string. The comment can contain MAXCOMMENTSZ characters.
-    const(wchar)* grpi1002_comment;
+    PWSTR grpi1002_comment;
 }
 
 ///The <b>GROUP_INFO_1005</b> structure contains the resource attributes associated with a global group.
@@ -1791,7 +1791,7 @@ struct GROUP_USERS_INFO_0
 {
     ///A pointer to a null-terminated Unicode character string that specifies a name. For more information, see the
     ///Remarks section.
-    const(wchar)* grui0_name;
+    PWSTR grui0_name;
 }
 
 ///The <b>GROUP_USERS_INFO_1</b> structure contains global group member information.
@@ -1799,7 +1799,7 @@ struct GROUP_USERS_INFO_1
 {
     ///Type: <b>LPWSTR</b> A pointer to a null-terminated Unicode character string that specifies a name. For more
     ///information, see the Remarks section.
-    const(wchar)* grui1_name;
+    PWSTR grui1_name;
     ///Type: <b>DWORD</b> A set of attributes for this entry. This member can be a combination of the security group
     ///attributes defined in the <i>Winnt.h</i> header file. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td
     ///width="40%"><a id="SE_GROUP_MANDATORY"></a><a id="se_group_mandatory"></a><dl> <dt><b>SE_GROUP_MANDATORY</b></dt>
@@ -1825,7 +1825,7 @@ struct GROUP_USERS_INFO_1
     ///access token. </td> </tr> <tr> <td width="40%"><a id="SE_GROUP_RESOURCE"></a><a id="se_group_resource"></a><dl>
     ///<dt><b>SE_GROUP_RESOURCE</b></dt> <dt>0x20000000</dt> </dl> </td> <td width="60%"> The group identifies a
     ///domain-local group. </td> </tr> </table>
-    uint          grui1_attributes;
+    uint  grui1_attributes;
 }
 
 ///The <b>LOCALGROUP_INFO_0</b> structure contains a local group name.
@@ -1833,7 +1833,7 @@ struct LOCALGROUP_INFO_0
 {
     ///Pointer to a Unicode string that specifies a local group name. For more information, see the following Remarks
     ///section.
-    const(wchar)* lgrpi0_name;
+    PWSTR lgrpi0_name;
 }
 
 ///The <b>LOCALGROUP_INFO_1</b> structure contains a local group name and a comment describing the local group.
@@ -1841,10 +1841,10 @@ struct LOCALGROUP_INFO_1
 {
     ///Pointer to a Unicode string that specifies a local group name. For more information, see the following Remarks
     ///section. This member is ignored when you call the NetLocalGroupSetInfo function.
-    const(wchar)* lgrpi1_name;
+    PWSTR lgrpi1_name;
     ///Pointer to a Unicode string that contains a remark associated with the local group. This member can be a null
     ///string. The comment can have as many as MAXCOMMENTSZ characters.
-    const(wchar)* lgrpi1_comment;
+    PWSTR lgrpi1_comment;
 }
 
 ///The <b>LOCALGROUP_INFO_1002</b> structure contains a comment describing a local group.
@@ -1852,7 +1852,7 @@ struct LOCALGROUP_INFO_1002
 {
     ///Pointer to a Unicode string that specifies a remark associated with the local group. This member can be a null
     ///string. The comment can have as many as MAXCOMMENTSZ characters.
-    const(wchar)* lgrpi1002_comment;
+    PWSTR lgrpi1002_comment;
 }
 
 ///The <b>LOCALGROUP_MEMBERS_INFO_0</b> structure contains the security identifier (SID) associated with a local group
@@ -1869,7 +1869,7 @@ struct LOCALGROUP_MEMBERS_INFO_1
 {
     ///Type: <b>PSID</b> A pointer to a SID structure that contains the security identifier (SID) of an account that is
     ///a member of this local group member. The account can be a user account or a global group account.
-    void*         lgrmi1_sid;
+    void*        lgrmi1_sid;
     ///Type: <b>SID_NAME_USE</b> The account type associated with the security identifier specified in the
     ///<b>lgrmi1_sid</b> member. The following values are valid. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr>
     ///<td width="40%"><a id="SidTypeUser"></a><a id="sidtypeuser"></a><a id="SIDTYPEUSER"></a><dl>
@@ -1884,11 +1884,11 @@ struct LOCALGROUP_MEMBERS_INFO_1
     ///account has been deleted. </td> </tr> <tr> <td width="40%"><a id="SidTypeUnknown"></a><a
     ///id="sidtypeunknown"></a><a id="SIDTYPEUNKNOWN"></a><dl> <dt><b>SidTypeUnknown</b></dt> </dl> </td> <td
     ///width="60%"> The account type cannot be determined. </td> </tr> </table>
-    SID_NAME_USE  lgrmi1_sidusage;
+    SID_NAME_USE lgrmi1_sidusage;
     ///Type: <b>LPWSTR</b> A pointer to the account name of the local group member identified by the <b>lgrmi1_sid</b>
     ///member. The <b>lgrmi1_name</b> member does not include the domain name. For more information, see the following
     ///Remarks section.
-    const(wchar)* lgrmi1_name;
+    PWSTR        lgrmi1_name;
 }
 
 ///The <b>LOCALGROUP_MEMBERS_INFO_2</b> structure contains the security identifier (SID) and account information
@@ -1897,7 +1897,7 @@ struct LOCALGROUP_MEMBERS_INFO_2
 {
     ///Type: <b>PSID</b> A pointer to a SID structure that contains the security identifier (SID) of a local group
     ///member. The local group member can be a user account or a global group account.
-    void*         lgrmi2_sid;
+    void*        lgrmi2_sid;
     ///Type: <b>SID_NAME_USE</b> The account type associated with the security identifier specified in the
     ///<b>lgrmi2_sid</b> member. The following values are valid. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr>
     ///<td width="40%"><a id="SidTypeUser"></a><a id="sidtypeuser"></a><a id="SIDTYPEUSER"></a><dl>
@@ -1912,11 +1912,11 @@ struct LOCALGROUP_MEMBERS_INFO_2
     ///account has been deleted. </td> </tr> <tr> <td width="40%"><a id="SidTypeUnknown"></a><a
     ///id="sidtypeunknown"></a><a id="SIDTYPEUNKNOWN"></a><dl> <dt><b>SidTypeUnknown</b></dt> </dl> </td> <td
     ///width="60%"> The account type cannot be determined. </td> </tr> </table>
-    SID_NAME_USE  lgrmi2_sidusage;
+    SID_NAME_USE lgrmi2_sidusage;
     ///Type: <b>LPWSTR</b> A pointer to the account name of the local group member identified by <b>lgrmi2_sid</b>. The
     ///<b>lgrmi2_domainandname</b> member includes the domain name and has the form: <pre class="syntax"
     ///xml:space="preserve"><code>&lt;DomainName&gt;\&lt;AccountName&gt; </code></pre>
-    const(wchar)* lgrmi2_domainandname;
+    PWSTR        lgrmi2_domainandname;
 }
 
 ///The <b>LOCALGROUP_MEMBERS_INFO_3</b> structure contains the account name and domain name associated with a local
@@ -1926,14 +1926,14 @@ struct LOCALGROUP_MEMBERS_INFO_3
     ///Pointer to a null-terminated Unicode string specifying the account name of the local group member prefixed by the
     ///domain name and the "\" separator character. For example: <pre class="syntax"
     ///xml:space="preserve"><code>&lt;DomainName&gt;\&lt;AccountName&gt; </code></pre>
-    const(wchar)* lgrmi3_domainandname;
+    PWSTR lgrmi3_domainandname;
 }
 
 ///The <b>LOCALGROUP_USERS_INFO_0</b> structure contains local group member information.
 struct LOCALGROUP_USERS_INFO_0
 {
     ///Pointer to a Unicode string specifying the name of a local group to which the user belongs.
-    const(wchar)* lgrui0_name;
+    PWSTR lgrui0_name;
 }
 
 ///The <b>NET_DISPLAY_USER</b> structure contains information that an account manager can access to determine
@@ -1941,11 +1941,11 @@ struct LOCALGROUP_USERS_INFO_0
 struct NET_DISPLAY_USER
 {
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that specifies the name of the user account.
-    const(wchar)* usri1_name;
+    PWSTR usri1_name;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains a comment associated with the user. This string
     ///can be a null string, or it can have any number of characters before the terminating null character
     ///(MAXCOMMENTSZ).
-    const(wchar)* usri1_comment;
+    PWSTR usri1_comment;
     ///Type: <b>DWORD</b> A set of user account flags. This member can be one or more of the following values. Note that
     ///setting user account control flags may require certain privileges and control access rights. For more
     ///information, see the Remarks section of the NetUserSetInfo function. <table> <tr> <th>Value</th> <th>Meaning</th>
@@ -2004,19 +2004,19 @@ struct NET_DISPLAY_USER
     ///domain. </td> </tr> <tr> <td width="40%"><a id="UF_INTERDOMAIN_TRUST_ACCOUNT"></a><a
     ///id="uf_interdomain_trust_account"></a><dl> <dt><b>UF_INTERDOMAIN_TRUST_ACCOUNT</b></dt> </dl> </td> <td
     ///width="60%"> This is a permit to trust account for a domain that trusts other domains. </td> </tr> </table>
-    uint          usri1_flags;
+    uint  usri1_flags;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains the full name of the user. This string can be a
     ///null string, or it can have any number of characters before the terminating null character.
-    const(wchar)* usri1_full_name;
+    PWSTR usri1_full_name;
     ///Type: <b>DWORD</b> The relative identifier (RID) of the user. The relative identifier is determined by the
     ///accounts database when the user is created. It uniquely defines this user account to the account manager within
     ///the domain. For more information about relative identifiers, see SID Components.
-    uint          usri1_user_id;
+    uint  usri1_user_id;
     ///Type: <b>DWORD</b> The index of the last entry returned by the NetQueryDisplayInformation function. Pass this
     ///value as the <i>Index</i> parameter to <b>NetQueryDisplayInformation</b> to return the next logical entry. Note
     ///that you should not use the value of this member for any purpose except to retrieve more data with additional
     ///calls to <b>NetQueryDisplayInformation</b>.
-    uint          usri1_next_index;
+    uint  usri1_next_index;
 }
 
 ///The <b>NET_DISPLAY_MACHINE</b> structure contains information that an account manager can access to determine
@@ -2024,10 +2024,10 @@ struct NET_DISPLAY_USER
 struct NET_DISPLAY_MACHINE
 {
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that specifies the name of the computer to access.
-    const(wchar)* usri2_name;
+    PWSTR usri2_name;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains a comment associated with the computer. This
     ///string can be a null string, or it can have any number of characters before the terminating null character.
-    const(wchar)* usri2_comment;
+    PWSTR usri2_comment;
     ///Type: <b>DWORD</b> A set of flags that contains values that determine several features. This member can be one or
     ///more of the following values. Note that setting user account control flags may require certain privileges and
     ///control access rights. For more information, see the Remarks section of the NetUserSetInfo function. <table> <tr>
@@ -2087,15 +2087,15 @@ struct NET_DISPLAY_MACHINE
     ///width="40%"><a id="UF_INTERDOMAIN_TRUST_ACCOUNT"></a><a id="uf_interdomain_trust_account"></a><dl>
     ///<dt><b>UF_INTERDOMAIN_TRUST_ACCOUNT</b></dt> </dl> </td> <td width="60%"> A permit to trust account for a domain
     ///that trusts other domains. </td> </tr> </table>
-    uint          usri2_flags;
+    uint  usri2_flags;
     ///Type: <b>DWORD</b> The relative identifier (RID) of the computer. The relative identifier is determined by the
     ///accounts database when the computer is defined. For more information about RIDS, see SID Components.
-    uint          usri2_user_id;
+    uint  usri2_user_id;
     ///Type: <b>DWORD</b> The index of the last entry returned by the NetQueryDisplayInformation function. Pass this
     ///value as the <i>Index</i> parameter to <b>NetQueryDisplayInformation</b> to return the next logical entry. Note
     ///that you should not use the value of this member for any purpose except to retrieve more data with additional
     ///calls to <b>NetQueryDisplayInformation</b>.
-    uint          usri2_next_index;
+    uint  usri2_next_index;
 }
 
 ///The <b>NET_DISPLAY_GROUP</b> structure contains information that an account manager can access to determine
@@ -2103,35 +2103,35 @@ struct NET_DISPLAY_MACHINE
 struct NET_DISPLAY_GROUP
 {
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that specifies the name of the group.
-    const(wchar)* grpi3_name;
+    PWSTR grpi3_name;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains a comment associated with the group. This string
     ///can be a null string, or it can have any number of characters before the terminating null character.
-    const(wchar)* grpi3_comment;
+    PWSTR grpi3_comment;
     ///Type: <b>DWORD</b> The relative identifier (RID) of the group. The relative identifier is determined by the
     ///accounts database when the group is created. It uniquely identifies the group to the account manager within the
     ///domain. The NetUserAdd and NetUserSetInfo functions ignore this member. For more information about RIDs, see SID
     ///Components.
-    uint          grpi3_group_id;
+    uint  grpi3_group_id;
     ///Type: <b>DWORD</b> These attributes are hard-coded to SE_GROUP_MANDATORY, SE_GROUP_ENABLED, and
     ///SE_GROUP_ENABLED_BY_DEFAULT. For more information, see TOKEN_GROUPS.
-    uint          grpi3_attributes;
+    uint  grpi3_attributes;
     ///Type: <b>DWORD</b> The index of the last entry returned by the NetQueryDisplayInformation function. Pass this
     ///value as the <i>Index</i> parameter to <b>NetQueryDisplayInformation</b> to return the next logical entry. Note
     ///that you should not use the value of this member for any purpose except to retrieve more data with additional
     ///calls to <b>NetQueryDisplayInformation</b>.
-    uint          grpi3_next_index;
+    uint  grpi3_next_index;
 }
 
 struct ACCESS_INFO_0
 {
-    const(wchar)* acc0_resource_name;
+    PWSTR acc0_resource_name;
 }
 
 struct ACCESS_INFO_1
 {
-    const(wchar)* acc1_resource_name;
-    uint          acc1_attr;
-    uint          acc1_count;
+    PWSTR acc1_resource_name;
+    uint  acc1_attr;
+    uint  acc1_count;
 }
 
 struct ACCESS_INFO_1002
@@ -2141,8 +2141,8 @@ struct ACCESS_INFO_1002
 
 struct ACCESS_LIST
 {
-    const(wchar)* acl_ugname;
-    uint          acl_access;
+    PWSTR acl_ugname;
+    uint  acl_access;
 }
 
 ///The <b>NET_VALIDATE_PASSWORD_HASH</b> structure contains a password hash.
@@ -2259,14 +2259,14 @@ struct NET_VALIDATE_PASSWORD_CHANGE_INPUT_ARG
     ///the account being logged on.
     NET_VALIDATE_PERSISTED_FIELDS InputPersistedFields;
     ///Pointer to a Unicode string specifying the new password, in plaintext format.
-    const(wchar)* ClearPassword;
+    PWSTR ClearPassword;
     ///Pointer to a Unicode string specifying the name of the user account.
-    const(wchar)* UserAccountName;
+    PWSTR UserAccountName;
     ///Specifies a NET_VALIDATE_PASSWORD_HASH structure that contains a hash of the new password.
     NET_VALIDATE_PASSWORD_HASH HashedPassword;
     ///BOOLEAN value that indicates the result of the application's attempt to validate the old password supplied by the
     ///user. If this parameter is <b>FALSE</b>, the password was not validated.
-    ubyte         PasswordMatch;
+    ubyte PasswordMatch;
 }
 
 ///A client application passes the <b>NET_VALIDATE_PASSWORD_RESET_INPUT_ARG</b> structure to the
@@ -2277,29 +2277,29 @@ struct NET_VALIDATE_PASSWORD_RESET_INPUT_ARG
     ///the account being logged on.
     NET_VALIDATE_PERSISTED_FIELDS InputPersistedFields;
     ///Pointer to a Unicode string specifying the new password, in plaintext format.
-    const(wchar)* ClearPassword;
+    PWSTR ClearPassword;
     ///Pointer to a Unicode string specifying the name of the user account.
-    const(wchar)* UserAccountName;
+    PWSTR UserAccountName;
     ///Specifies a NET_VALIDATE_PASSWORD_HASH structure that contains a hash of the new password.
     NET_VALIDATE_PASSWORD_HASH HashedPassword;
     ///BOOLEAN value that indicates whether the user must change his or her password at the next logon. If this
     ///parameter is <b>TRUE</b>, the user must change the password at the next logon.
-    ubyte         PasswordMustChangeAtNextLogon;
+    ubyte PasswordMustChangeAtNextLogon;
     ///BOOLEAN value that can reset the "lockout state" of the user account. If this member is <b>TRUE</b>, the account
     ///will no longer be locked out. Note that an application cannot directly lock out an account. An account can be
     ///locked out only as a result of exceeding the maximum number of invalid password authentications allowed for the
     ///account.
-    ubyte         ClearLockout;
+    ubyte ClearLockout;
 }
 
 ///Contains information about a user account that is used to join a device to Microsoft Azure Active Directory.
 struct DSREG_USER_INFO
 {
     ///The email address of the user.
-    const(wchar)* pszUserEmail;
+    PWSTR pszUserEmail;
     ///The identifier of the Microsoft Passport key that is provisioned for the user.
-    const(wchar)* pszUserKeyId;
-    const(wchar)* pszUserKeyName;
+    PWSTR pszUserKeyId;
+    PWSTR pszUserKeyName;
 }
 
 ///Contains information about how a device is joined to Microsoft Azure Active Directory.
@@ -2310,23 +2310,23 @@ struct DSREG_JOIN_INFO
     ///Representations of the certification for the join.
     CERT_CONTEXT*    pJoinCertificate;
     ///The identifier of the device.
-    const(wchar)*    pszDeviceId;
+    PWSTR            pszDeviceId;
     ///A string that represents Azure Active Directory (Azure AD).
-    const(wchar)*    pszIdpDomain;
+    PWSTR            pszIdpDomain;
     ///The identifier of the joined Azure AD tenant.
-    const(wchar)*    pszTenantId;
+    PWSTR            pszTenantId;
     ///The email address for the joined account.
-    const(wchar)*    pszJoinUserEmail;
+    PWSTR            pszJoinUserEmail;
     ///The display name for the joined account.
-    const(wchar)*    pszTenantDisplayName;
+    PWSTR            pszTenantDisplayName;
     ///The URL to use to enroll in the Mobile Device Management (MDM) service.
-    const(wchar)*    pszMdmEnrollmentUrl;
+    PWSTR            pszMdmEnrollmentUrl;
     ///The URL that provides information about the terms of use for the MDM service.
-    const(wchar)*    pszMdmTermsOfUseUrl;
+    PWSTR            pszMdmTermsOfUseUrl;
     ///The URL that provides information about compliance for the MDM service.
-    const(wchar)*    pszMdmComplianceUrl;
+    PWSTR            pszMdmComplianceUrl;
     ///The URL for synchronizing user settings.
-    const(wchar)*    pszUserSettingSyncUrl;
+    PWSTR            pszUserSettingSyncUrl;
     ///Information about the user account that was used to join a device to Azure AD.
     DSREG_USER_INFO* pUserInfo;
 }
@@ -2341,23 +2341,23 @@ struct NETSETUP_PROVISIONING_PARAMS
     ///id="netsetup_provisioning_params_current_version"></a><dl>
     ///<dt><b>NETSETUP_PROVISIONING_PARAMS_CURRENT_VERSION</b></dt> <dt>0x00000001</dt> </dl> </td> <td width="60%"> The
     ///version for this package is Windows Server 2012. </td> </tr> </table>
-    uint          dwVersion;
+    uint         dwVersion;
     ///A pointer to a <b>NULL</b>-terminated character string that specifies the name of the domain where the computer
     ///account is created.
-    const(wchar)* lpDomain;
+    const(PWSTR) lpDomain;
     ///A pointer to a <b>NULL</b>-terminated character string that specifies the short name of the machine from which
     ///the computer account attribute sAMAccountName is derived by appending a '$'. This parameter must contain a valid
     ///DNS or NetBIOS machine name.
-    const(wchar)* lpHostName;
+    const(PWSTR) lpHostName;
     ///A optional pointer to a <b>NULL</b>-terminated character string that contains the RFC 1779 format name of the
     ///organizational unit (OU) where the computer account will be created. If you specify this parameter, the string
     ///must contain a full path, for example, OU=testOU,DC=domain,DC=Domain,DC=com. Otherwise, this parameter must be
     ///<b>NULL</b>. If this parameter is <b>NULL</b>, the well known computer object container will be used as published
     ///in the domain.
-    const(wchar)* lpMachineAccountOU;
+    const(PWSTR) lpMachineAccountOU;
     ///An optional pointer to a <b>NULL</b>-terminated character string that contains the name of the domain controller
     ///to target.
-    const(wchar)* lpDcName;
+    const(PWSTR) lpDcName;
     ///A set of bit flags that define provisioning options. This parameter can be one or more of the following values
     ///defined in the <i>Lmjoin.h</i> header file. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td
     ///width="40%"><a id="NETSETUP_PROVISION_DOWNLEVEL_PRIV_SUPPORT"></a><a
@@ -2386,30 +2386,30 @@ struct NETSETUP_PROVISIONING_PARAMS
     ///provisioning package. <div class="alert"><b>Note</b> This flag is only supported by the
     ///NetCreateProvisioningPackage function on Windows 8, Windows Server 2012, and later.</div> <div> </div> </td>
     ///</tr> </table>
-    uint          dwProvisionOptions;
+    uint         dwProvisionOptions;
     ///A pointer to an array of <b>NULL</b>-terminated certificate template names.
-    ushort**      aCertTemplateNames;
+    PWSTR*       aCertTemplateNames;
     ///When <b>aCertTemplateNames</b> is not <b>NULL</b>, this member provides an explicit count of the number of items
     ///in the array.
-    uint          cCertTemplateNames;
+    uint         cCertTemplateNames;
     ///A pointer to an array of <b>NULL</b>-terminated machine policy names.
-    ushort**      aMachinePolicyNames;
+    PWSTR*       aMachinePolicyNames;
     ///When <b>aMachinePolicyNames</b> is not <b>NULL</b>, this member provides an explicit count of the number of items
     ///in the array.
-    uint          cMachinePolicyNames;
+    uint         cMachinePolicyNames;
     ///A pointer to an array of character strings. Each array element is a NULL-terminated character string which
     ///specifies the full or partial path to a file in the Registry Policy File format. For more information on the
     ///Registry Policy File Format , see Registry Policy File Format This path could be a UNC path on a remote server.
-    ushort**      aMachinePolicyPaths;
+    PWSTR*       aMachinePolicyPaths;
     ///When <b>aMachinePolicyPaths</b> is not <b>NULL</b>, this member provides an explicit count of the number of items
     ///in the array.
-    uint          cMachinePolicyPaths;
+    uint         cMachinePolicyPaths;
     ///TBD
-    const(wchar)* lpNetbiosName;
+    PWSTR        lpNetbiosName;
     ///TBD
-    const(wchar)* lpSiteName;
+    PWSTR        lpSiteName;
     ///TBD
-    const(wchar)* lpPrimaryDNSDomain;
+    PWSTR        lpPrimaryDNSDomain;
 }
 
 ///The <b>STD_ALERT</b> structure contains the time and date when a significant event occurred. The structure also
@@ -2693,21 +2693,21 @@ struct AE_GENERIC
 
 struct CONFIG_INFO_0
 {
-    const(wchar)* cfgi0_key;
-    const(wchar)* cfgi0_data;
+    PWSTR cfgi0_key;
+    PWSTR cfgi0_data;
 }
 
 struct ERROR_LOG
 {
-    uint          el_len;
-    uint          el_reserved;
-    uint          el_time;
-    uint          el_error;
-    const(wchar)* el_name;
-    const(wchar)* el_text;
-    ubyte*        el_data;
-    uint          el_data_size;
-    uint          el_nstrings;
+    uint   el_len;
+    uint   el_reserved;
+    uint   el_time;
+    uint   el_error;
+    PWSTR  el_name;
+    PWSTR  el_text;
+    ubyte* el_data;
+    uint   el_data_size;
+    uint   el_nstrings;
 }
 
 ///The <b>MSG_INFO_0</b> structure specifies a message alias.
@@ -2715,7 +2715,7 @@ struct MSG_INFO_0
 {
     ///Pointer to a Unicode string that specifies the alias to which the message is to be sent. The constant LEN
     ///specifies the maximum number of characters in the string.
-    const(wchar)* msgi0_name;
+    PWSTR msgi0_name;
 }
 
 ///The <b>MSG_INFO_1</b> structure specifies a message alias. This structure exists only for compatibility. Message
@@ -2724,11 +2724,11 @@ struct MSG_INFO_1
 {
     ///Pointer to a Unicode string that specifies the alias to which the message is to be sent. The constant LEN
     ///specifies the maximum number of characters in the string.
-    const(wchar)* msgi1_name;
+    PWSTR msgi1_name;
     ///This member must be zero.
-    uint          msgi1_forward_flag;
+    uint  msgi1_forward_flag;
     ///This member must be <b>NULL</b>.
-    const(wchar)* msgi1_forward;
+    PWSTR msgi1_forward;
 }
 
 ///The <b>TIME_OF_DAY_INFO</b> structure contains information about the time of day from a remote server.
@@ -2773,17 +2773,17 @@ struct AT_INFO
     ///Type: <b>DWORD_PTR</b> A pointer to a value that indicates the time of day at which the job is scheduled to run.
     ///The time is the local time at a computer on which the schedule service is running; it is measured from midnight,
     ///and is expressed in milliseconds.
-    size_t        JobTime;
+    size_t JobTime;
     ///Type: <b>DWORD</b> A set of bit flags representing the days of the month. For each bit that is set, the scheduled
     ///job will run at the time specified by the <b>JobTime</b> member, on the corresponding day of the month. Bit 0
     ///corresponds to the first day of the month, and so on. The value of the bitmask is zero if the job was scheduled
     ///to run only once, at the first occurrence specified by the <b>JobTime</b> member.
-    uint          DaysOfMonth;
+    uint   DaysOfMonth;
     ///Type: <b>UCHAR</b> A set of bit flags representing the days of the week. For each bit that is set, the scheduled
     ///job will run at the time specified by the <b>JobTime</b> member, on the corresponding day of the week. Bit 0
     ///corresponds to Monday, and so on. The value of the bitmask is zero if the job was scheduled to run only once, at
     ///the first occurrence specified by the <b>JobTime</b> member.
-    ubyte         DaysOfWeek;
+    ubyte  DaysOfWeek;
     ///Type: <b>UCHAR</b> A set of bit flags describing job properties. When you submit a job using a call to the
     ///NetScheduleJobAdd function, you can specify one of the following values. <table> <tr> <th>Value</th>
     ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="JOB_RUN_PERIODICALLY"></a><a
@@ -2811,10 +2811,10 @@ struct AT_INFO
     ///id="JOB_NONINTERACTIVE"></a><a id="job_noninteractive"></a><dl> <dt><b>JOB_NONINTERACTIVE</b></dt> </dl> </td>
     ///<td width="60%"> This flag bit is equal to its original value, that is, the value when the job was submitted.
     ///</td> </tr> </table>
-    ubyte         Flags;
+    ubyte  Flags;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains the name of the command, batch program, or binary
     ///file to execute.
-    const(wchar)* Command;
+    PWSTR  Command;
 }
 
 ///The <b>AT_ENUM</b> structure contains information about a submitted job. The NetScheduleJobEnum function uses this
@@ -2822,21 +2822,21 @@ struct AT_INFO
 struct AT_ENUM
 {
     ///Type: <b>DWORD</b> The job identifier of a submitted (queued) job.
-    uint          JobId;
+    uint   JobId;
     ///Type: <b>DWORD_PTR</b> A pointer to the time of day at which the job is scheduled to run. The time is the local
     ///time at a computer on which the schedule service is running; it is measured from midnight, and is expressed in
     ///milliseconds.
-    size_t        JobTime;
+    size_t JobTime;
     ///Type: <b>DWORD</b> A set of bit flags representing the days of the month. For each bit that is set, the scheduled
     ///job will run at the time specified by the <b>JobTime</b> member, on the corresponding day of the month. Bit 0
     ///corresponds to the first day of the month, and so on. The value of the bitmask is zero if the job was scheduled
     ///to run only once, at the first occurrence specified in the <b>JobTime</b> member
-    uint          DaysOfMonth;
+    uint   DaysOfMonth;
     ///Type: <b>UCHAR</b> A set of bit flags representing the days of the week. For each bit that is set, the scheduled
     ///job will run at the time specified by the <b>JobTime</b> member, on the corresponding day of the week. Bit 0
     ///corresponds to Monday, and so on. The value of the bitmask is zero if the job was scheduled to run only once, at
     ///the first occurrence specified in the <b>JobTime</b> member.
-    ubyte         DaysOfWeek;
+    ubyte  DaysOfWeek;
     ///Type: <b>UCHAR</b> A set of bit flags describing job properties. This member can be one or more of the following
     ///values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="JOB_RUN_PERIODICALLY"></a><a id="job_run_periodically"></a><dl> <dt><b>JOB_RUN_PERIODICALLY</b></dt> </dl>
@@ -2850,10 +2850,10 @@ struct AT_ENUM
     ///queued. </td> </tr> <tr> <td width="40%"><a id="JOB_NONINTERACTIVE"></a><a id="job_noninteractive"></a><dl>
     ///<dt><b>JOB_NONINTERACTIVE</b></dt> </dl> </td> <td width="60%"> This flag is equal to its original value, that
     ///is, the value when the job was submitted. </td> </tr> </table>
-    ubyte         Flags;
+    ubyte  Flags;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains the name of the command, batch program, or binary
     ///file to execute.
-    const(wchar)* Command;
+    PWSTR  Command;
 }
 
 ///The <b>SERVER_INFO_100</b> structure contains information about the specified server, including the name and
@@ -2871,9 +2871,9 @@ struct SERVER_INFO_100
     ///<dt><b>PLATFORM_ID_OSF</b></dt> <dt>600</dt> </dl> </td> <td width="60%"> The OSF platform. </td> </tr> <tr> <td
     ///width="40%"><a id="PLATFORM_ID_VMS"></a><a id="platform_id_vms"></a><dl> <dt><b>PLATFORM_ID_VMS</b></dt>
     ///<dt>700</dt> </dl> </td> <td width="60%"> The VMS platform. </td> </tr> </table>
-    uint          sv100_platform_id;
+    uint  sv100_platform_id;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that specifies the name of the server.
-    const(wchar)* sv100_name;
+    PWSTR sv100_name;
 }
 
 ///The <b>SERVER_INFO_101</b> structure contains information about the specified server, including name, platform, type
@@ -2891,16 +2891,16 @@ struct SERVER_INFO_101
     ///<dt><b>PLATFORM_ID_OSF</b></dt> <dt>600</dt> </dl> </td> <td width="60%"> The OSF platform. </td> </tr> <tr> <td
     ///width="40%"><a id="PLATFORM_ID_VMS"></a><a id="platform_id_vms"></a><dl> <dt><b>PLATFORM_ID_VMS</b></dt>
     ///<dt>700</dt> </dl> </td> <td width="60%"> The VMS platform. </td> </tr> </table>
-    uint          sv101_platform_id;
+    uint  sv101_platform_id;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string specifying the name of a server.
-    const(wchar)* sv101_name;
+    PWSTR sv101_name;
     ///Type: <b>DWORD</b> The major version number and the server type. The major release version number of the
     ///operating system is specified in the least significant 4 bits. The server type is specified in the most
     ///significant 4 bits. The <b>MAJOR_VERSION_MASK</b> bitmask defined in the <i>Lmserver.h</i> header should be used
     ///by an application to obtain the major version number from this member.
-    uint          sv101_version_major;
+    uint  sv101_version_major;
     ///Type: <b>DWORD</b> The minor release version number of the operating system.
-    uint          sv101_version_minor;
+    uint  sv101_version_minor;
     ///Type: <b>DWORD</b> The type of software the computer is running. Possible values for this member are listed in
     ///the <i>Lmserver.h</i> header file. This member can be a combination of some of the following values. <table> <tr>
     ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SV_TYPE_WORKSTATION"></a><a
@@ -2973,10 +2973,10 @@ struct SERVER_INFO_101
     ///width="60%"> A primary domain. </td> </tr> </table> The <b>SV_TYPE_ALL</b> constant is defined to 0xFFFFFFFF in
     ///the <i>Lmserver.h</i> header file. This constant can be used to check for all server types when used with the
     ///NetServerEnumfunction.
-    uint          sv101_type;
+    uint  sv101_type;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string specifying a comment describing the server. The comment can be
     ///null.
-    const(wchar)* sv101_comment;
+    PWSTR sv101_comment;
 }
 
 ///The <b>SERVER_INFO_102</b> structure contains information about the specified server, including name, platform, type
@@ -2994,16 +2994,16 @@ struct SERVER_INFO_102
     ///<dt><b>PLATFORM_ID_OSF</b></dt> <dt>600</dt> </dl> </td> <td width="60%"> The OSF platform. </td> </tr> <tr> <td
     ///width="40%"><a id="PLATFORM_ID_VMS"></a><a id="platform_id_vms"></a><dl> <dt><b>PLATFORM_ID_VMS</b></dt>
     ///<dt>700</dt> </dl> </td> <td width="60%"> The VMS platform. </td> </tr> </table>
-    uint          sv102_platform_id;
+    uint  sv102_platform_id;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string specifying the name of a server.
-    const(wchar)* sv102_name;
+    PWSTR sv102_name;
     ///Type: <b>DWORD</b> The major version number and the server type. The major release version number of the
     ///operating system is specified in the least significant 4 bits. The server type is specified in the most
     ///significant 4 bits. The <b>MAJOR_VERSION_MASK</b> bitmask defined in the <i>Lmserver.h</i> header should be used
     ///by an application to obtain the major version number from this member.
-    uint          sv102_version_major;
+    uint  sv102_version_major;
     ///Type: <b>DWORD</b> The minor release version number of the operating system.
-    uint          sv102_version_minor;
+    uint  sv102_version_minor;
     ///Type: <b>DWORD</b> The type of software the computer is running. Possible values for this member are listed in
     ///the <i>Lmserver.h</i> header file. This member can be a combination of some of the following values. <table> <tr>
     ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SV_TYPE_WORKSTATION"></a><a
@@ -3076,55 +3076,55 @@ struct SERVER_INFO_102
     ///width="60%"> A primary domain. </td> </tr> </table> The <b>SV_TYPE_ALL</b> constant is defined to 0xFFFFFFFF in
     ///the <i>Lmserver.h</i> header file. This constant can be used to check for all server types when used with the
     ///NetServerEnumfunction.
-    uint          sv102_type;
+    uint  sv102_type;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string specifying a comment describing the server. The comment can be
     ///null.
-    const(wchar)* sv102_comment;
+    PWSTR sv102_comment;
     ///Type: <b>DWORD</b> The number of users who can attempt to log on to the system server. Note that it is the
     ///license server that determines how many of these users can actually log on.
-    uint          sv102_users;
+    uint  sv102_users;
     ///Type: <b>LONG</b> The auto-disconnect time, in minutes. A session is disconnected if it is idle longer than the
     ///period of time specified by the <b>sv102_disc</b> member. If the value of <b>sv102_disc</b> is SV_NODISC,
     ///auto-disconnect is not enabled.
-    int           sv102_disc;
+    int   sv102_disc;
     ///Type: <b>BOOL</b> A value that indicates whether the server is visible to other computers in the same network
     ///domain. This member can be one of the following values defined in the <i>Lmserver.h</i> header file. <table> <tr>
     ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SV_VISIBLE"></a><a id="sv_visible"></a><dl>
     ///<dt><b>SV_VISIBLE</b></dt> </dl> </td> <td width="60%"> The server is visible. </td> </tr> <tr> <td
     ///width="40%"><a id="SV_HIDDEN"></a><a id="sv_hidden"></a><dl> <dt><b>SV_HIDDEN</b></dt> </dl> </td> <td
     ///width="60%"> The server is not visible. </td> </tr> </table>
-    BOOL          sv102_hidden;
+    BOOL  sv102_hidden;
     ///Type: <b>DWORD</b> The network announce rate, in seconds. This rate determines how often the server is announced
     ///to other computers on the network. For more information about how much the announce rate can vary from the period
     ///of time specified by this member, see SERVER_INFO_1018.
-    uint          sv102_announce;
+    uint  sv102_announce;
     ///Type: <b>DWORD</b> The delta value for the announce rate, in milliseconds. This value specifies how much the
     ///announce rate can vary from the period of time specified in the <b>sv102_announce</b> member. The delta value
     ///allows randomly varied announce rates. For example, if the <b>sv102_announce</b> member has the value 10 and the
     ///<b>sv102_anndelta</b> member has the value 1, the announce rate can vary from 9.999 seconds to 10.001 seconds.
-    uint          sv102_anndelta;
+    uint  sv102_anndelta;
     ///Type: <b>DWORD</b> The number of users per license. By default, this number is SV_USERS_PER_LICENSE.
-    uint          sv102_licenses;
+    uint  sv102_licenses;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string specifying the path to user directories.
-    const(wchar)* sv102_userpath;
+    PWSTR sv102_userpath;
 }
 
 struct SERVER_INFO_103
 {
-    uint          sv103_platform_id;
-    const(wchar)* sv103_name;
-    uint          sv103_version_major;
-    uint          sv103_version_minor;
-    uint          sv103_type;
-    const(wchar)* sv103_comment;
-    uint          sv103_users;
-    int           sv103_disc;
-    BOOL          sv103_hidden;
-    uint          sv103_announce;
-    uint          sv103_anndelta;
-    uint          sv103_licenses;
-    const(wchar)* sv103_userpath;
-    uint          sv103_capabilities;
+    uint  sv103_platform_id;
+    PWSTR sv103_name;
+    uint  sv103_version_major;
+    uint  sv103_version_minor;
+    uint  sv103_type;
+    PWSTR sv103_comment;
+    uint  sv103_users;
+    int   sv103_disc;
+    BOOL  sv103_hidden;
+    uint  sv103_announce;
+    uint  sv103_anndelta;
+    uint  sv103_licenses;
+    PWSTR sv103_userpath;
+    uint  sv103_capabilities;
 }
 
 ///The <b>SERVER_INFO_402</b> structure contains information about a specified server.
@@ -3132,80 +3132,80 @@ struct SERVER_INFO_402
 {
     ///Type: <b>DWORD</b> The last time the user list was modified. The value is expressed as the number of seconds that
     ///have elapsed since 00:00:00, January 1, 1970, GMT, and applies to servers running with user-level security.
-    uint          sv402_ulist_mtime;
+    uint  sv402_ulist_mtime;
     ///Type: <b>DWORD</b> The last time the group list was modified. The value is expressed as the number of seconds
     ///that have elapsed since 00:00:00, January 1, 1970, GMT, and applies to servers running with user-level security.
-    uint          sv402_glist_mtime;
+    uint  sv402_glist_mtime;
     ///Type: <b>DWORD</b> The last time the access control list was modified. The value is expressed as the number of
     ///seconds that have elapsed since 00:00:00, January 1, 1970, GMT, and applies to servers running with user-level
     ///security.
-    uint          sv402_alist_mtime;
+    uint  sv402_alist_mtime;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that specifies the list of user names on the server. Spaces
     ///separate the names.
-    const(wchar)* sv402_alerts;
+    PWSTR sv402_alerts;
     ///Type: <b>DWORD</b> The security type of the server. This member can be one of the following values. Note that
     ///Windows NT, Windows 2000, Windows XP, and Windows Server 2003 operating systems do not support share-level
     ///security. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SV_SHARESECURITY"></a><a
     ///id="sv_sharesecurity"></a><dl> <dt><b>SV_SHARESECURITY</b></dt> </dl> </td> <td width="60%"> Share-level security
     ///</td> </tr> <tr> <td width="40%"><a id="SV_USERSECURITY"></a><a id="sv_usersecurity"></a><dl>
     ///<dt><b>SV_USERSECURITY</b></dt> </dl> </td> <td width="60%"> User-level security </td> </tr> </table>
-    uint          sv402_security;
+    uint  sv402_security;
     ///Type: <b>DWORD</b> The number of administrators the server can accommodate at one time.
-    uint          sv402_numadmin;
+    uint  sv402_numadmin;
     ///Type: <b>DWORD</b> The order in which the network device drivers are served.
-    uint          sv402_lanmask;
+    uint  sv402_lanmask;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that specifies the name of a reserved account for guest users
     ///on the server. The constant UNLEN specifies the maximum number of characters in the string.
-    const(wchar)* sv402_guestacct;
+    PWSTR sv402_guestacct;
     ///Type: <b>DWORD</b> The number of character-oriented devices that can be shared on the server.
-    uint          sv402_chdevs;
+    uint  sv402_chdevs;
     ///Type: <b>DWORD</b> The number of character-oriented device queues that can coexist on the server.
-    uint          sv402_chdevq;
+    uint  sv402_chdevq;
     ///Type: <b>DWORD</b> The number of character-oriented device jobs that can be pending at one time on the server.
-    uint          sv402_chdevjobs;
+    uint  sv402_chdevjobs;
     ///Type: <b>DWORD</b> The number of connections allowed on the server.
-    uint          sv402_connections;
+    uint  sv402_connections;
     ///Type: <b>DWORD</b> The number of share names the server can accommodate.
-    uint          sv402_shares;
+    uint  sv402_shares;
     ///Type: <b>DWORD</b> The number of files that can be open at once on the server.
-    uint          sv402_openfiles;
+    uint  sv402_openfiles;
     ///Type: <b>DWORD</b> The number of files that one session can open.
-    uint          sv402_sessopens;
+    uint  sv402_sessopens;
     ///Type: <b>DWORD</b> The maximum number of virtual circuits permitted per client.
-    uint          sv402_sessvcs;
+    uint  sv402_sessvcs;
     ///Type: <b>DWORD</b> The number of simultaneous requests a client can make on a single virtual circuit.
-    uint          sv402_sessreqs;
+    uint  sv402_sessreqs;
     ///Type: <b>DWORD</b> The number of search operations that can be carried out simultaneously.
-    uint          sv402_opensearch;
+    uint  sv402_opensearch;
     ///Type: <b>DWORD</b> The number of file locks that can be active at the same time.
-    uint          sv402_activelocks;
+    uint  sv402_activelocks;
     ///Type: <b>DWORD</b> The number of server buffers provided.
-    uint          sv402_numreqbuf;
+    uint  sv402_numreqbuf;
     ///Type: <b>DWORD</b> The size, in bytes, of each server buffer.
-    uint          sv402_sizreqbuf;
+    uint  sv402_sizreqbuf;
     ///Type: <b>DWORD</b> The number of 64K server buffers provided.
-    uint          sv402_numbigbuf;
+    uint  sv402_numbigbuf;
     ///Type: <b>DWORD</b> The number of processes that can access the operating system at one time.
-    uint          sv402_numfiletasks;
+    uint  sv402_numfiletasks;
     ///Type: <b>DWORD</b> The interval, in seconds, for notifying an administrator of a network event.
-    uint          sv402_alertsched;
+    uint  sv402_alertsched;
     ///Type: <b>DWORD</b> The number of entries that can be written to the error log, in any one interval, before
     ///notifying an administrator. The interval is specified by the <b>sv402_alertsched</b> member.
-    uint          sv402_erroralert;
+    uint  sv402_erroralert;
     ///Type: <b>DWORD</b> The number of invalid logon attempts to allow a user before notifying an administrator.
-    uint          sv402_logonalert;
+    uint  sv402_logonalert;
     ///Type: <b>DWORD</b> The number of invalid file access attempts to allow before notifying an administrator.
-    uint          sv402_accessalert;
+    uint  sv402_accessalert;
     ///Type: <b>DWORD</b> The point at which the system sends a message notifying an administrator that free space on a
     ///disk is low. This value is expressed as the number of kilobytes of free disk space remaining on the disk.
-    uint          sv402_diskalert;
+    uint  sv402_diskalert;
     ///Type: <b>DWORD</b> The network I/O error ratio, in tenths of a percent, that is allowed before notifying an
     ///administrator.
-    uint          sv402_netioalert;
+    uint  sv402_netioalert;
     ///Type: <b>DWORD</b> The maximum size, in kilobytes, of the audit file. The audit file traces user activity.
-    uint          sv402_maxauditsz;
+    uint  sv402_maxauditsz;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string containing flags that control operations on a server.
-    const(wchar)* sv402_srvheuristics;
+    PWSTR sv402_srvheuristics;
 }
 
 ///The <b>SERVER_INFO_403</b> structure contains information about a specified server.
@@ -3213,93 +3213,93 @@ struct SERVER_INFO_403
 {
     ///Type: <b>DWORD</b> The last time the user list was modified. The value is expressed as the number of seconds that
     ///have elapsed since 00:00:00, January 1, 1970, GMT, and applies to servers running with user-level security.
-    uint          sv403_ulist_mtime;
+    uint  sv403_ulist_mtime;
     ///Type: <b>DWORD</b> The last time the group list was modified. The value is expressed as the number of seconds
     ///that have elapsed since 00:00:00, January 1, 1970, GMT, and applies to servers running with user-level security.
-    uint          sv403_glist_mtime;
+    uint  sv403_glist_mtime;
     ///Type: <b>DWORD</b> The last time the access control list was modified. The value is expressed as the number of
     ///seconds that have elapsed since 00:00:00, January 1, 1970, GMT, and applies to servers running with user-level
     ///security.
-    uint          sv403_alist_mtime;
+    uint  sv403_alist_mtime;
     ///Type: <b>LMSTR</b> A pointer to a string that specifies the list of user names on the server. Spaces separate the
     ///names. This string is Unicode if <b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are defined.
-    const(wchar)* sv403_alerts;
+    PWSTR sv403_alerts;
     ///Type: <b>DWORD</b> The security type of the server. This member can be one of the following values. Note that
     ///Windows NT, Windows 2000, Windows XP, and Windows Server 2003 operating systems do not support share-level
     ///security. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SV_SHARESECURITY"></a><a
     ///id="sv_sharesecurity"></a><dl> <dt><b>SV_SHARESECURITY</b></dt> </dl> </td> <td width="60%"> Share-level security
     ///</td> </tr> <tr> <td width="40%"><a id="SV_USERSECURITY"></a><a id="sv_usersecurity"></a><dl>
     ///<dt><b>SV_USERSECURITY</b></dt> </dl> </td> <td width="60%"> User-level security </td> </tr> </table>
-    uint          sv403_security;
+    uint  sv403_security;
     ///Type: <b>DWORD</b> The number of administrators the server can accommodate at one time.
-    uint          sv403_numadmin;
+    uint  sv403_numadmin;
     ///Type: <b>DWORD</b> The order in which the network device drivers are served.
-    uint          sv403_lanmask;
+    uint  sv403_lanmask;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that specifies the name of a reserved account for guest users
     ///on the server. The UNLEN constant specifies the maximum number of characters in the string.
-    const(wchar)* sv403_guestacct;
+    PWSTR sv403_guestacct;
     ///Type: <b>DWORD</b> The number of character devices that can be shared on the server.
-    uint          sv403_chdevs;
+    uint  sv403_chdevs;
     ///Type: <b>DWORD</b> The number of character device queues that can coexist on the server.
-    uint          sv403_chdevq;
+    uint  sv403_chdevq;
     ///Type: <b>DWORD</b> The number of character device jobs that can be pending at one time on the server.
-    uint          sv403_chdevjobs;
+    uint  sv403_chdevjobs;
     ///Type: <b>DWORD</b> The number of connections allowed on the server.
-    uint          sv403_connections;
+    uint  sv403_connections;
     ///Type: <b>DWORD</b> The number of share names the server can accommodate.
-    uint          sv403_shares;
+    uint  sv403_shares;
     ///Type: <b>DWORD</b> The number of files that can be open at once on the server.
-    uint          sv403_openfiles;
+    uint  sv403_openfiles;
     ///Type: <b>DWORD</b> The number of files that one session can open.
-    uint          sv403_sessopens;
+    uint  sv403_sessopens;
     ///Type: <b>DWORD</b> The maximum number of virtual circuits permitted per client.
-    uint          sv403_sessvcs;
+    uint  sv403_sessvcs;
     ///Type: <b>DWORD</b> The number of simultaneous requests a client can make on a single virtual circuit.
-    uint          sv403_sessreqs;
+    uint  sv403_sessreqs;
     ///Type: <b>DWORD</b> The number of search operations that can be carried out simultaneously.
-    uint          sv403_opensearch;
+    uint  sv403_opensearch;
     ///Type: <b>DWORD</b> The number of file locks that can be active at the same time.
-    uint          sv403_activelocks;
+    uint  sv403_activelocks;
     ///Type: <b>DWORD</b> The number of server buffers that are provided.
-    uint          sv403_numreqbuf;
+    uint  sv403_numreqbuf;
     ///Type: <b>DWORD</b> The size, in bytes, of each server buffer.
-    uint          sv403_sizreqbuf;
+    uint  sv403_sizreqbuf;
     ///Type: <b>DWORD</b> The number of 64K server buffers provided.
-    uint          sv403_numbigbuf;
+    uint  sv403_numbigbuf;
     ///Type: <b>DWORD</b> The number of processes that can access the operating system at the same time.
-    uint          sv403_numfiletasks;
+    uint  sv403_numfiletasks;
     ///Type: <b>DWORD</b> The alert interval, in seconds, for notifying an administrator of a network event.
-    uint          sv403_alertsched;
+    uint  sv403_alertsched;
     ///Type: <b>DWORD</b> The number of entries that can be written to the error log, in any one interval, before
     ///notifying an administrator. The interval is specified by the <b>sv403_alertsched</b> member.
-    uint          sv403_erroralert;
+    uint  sv403_erroralert;
     ///Type: <b>DWORD</b> The number of invalid attempts that a user tries to logon before notifying an administrator.
-    uint          sv403_logonalert;
+    uint  sv403_logonalert;
     ///Type: <b>DWORD</b> The number of invalid file access attempts to allow before notifying an administrator.
-    uint          sv403_accessalert;
+    uint  sv403_accessalert;
     ///Type: <b>DWORD</b> The amount of free disk space at which the system sends a message notifying an administrator
     ///that free space on a disk is low. This value is expressed as the number of kilobytes of free disk space remaining
     ///on the disk.
-    uint          sv403_diskalert;
+    uint  sv403_diskalert;
     ///Type: <b>DWORD</b> The network I/O error ratio, in tenths of a percent, that is allowed before notifying an
     ///administrator.
-    uint          sv403_netioalert;
+    uint  sv403_netioalert;
     ///Type: <b>DWORD</b> The maximum audit file size in kilobytes. The audit file traces user activity.
-    uint          sv403_maxauditsz;
+    uint  sv403_maxauditsz;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains flags that are used to control operations on a
     ///server.
-    const(wchar)* sv403_srvheuristics;
+    PWSTR sv403_srvheuristics;
     ///Type: <b>DWORD</b> The audit event control mask.
-    uint          sv403_auditedevents;
+    uint  sv403_auditedevents;
     ///Type: <b>DWORD</b> A value that controls the action of the server on the profile. The following values are
     ///predefined. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="SW_AUTOPROF_LOAD_MASK"></a><a id="sw_autoprof_load_mask"></a><dl> <dt><b>SW_AUTOPROF_LOAD_MASK</b></dt> </dl>
     ///</td> <td width="60%"> The server loads the profile. </td> </tr> <tr> <td width="40%"><a
     ///id="SW_AUTOPROF_SAVE_MASK"></a><a id="sw_autoprof_save_mask"></a><dl> <dt><b>SW_AUTOPROF_SAVE_MASK</b></dt> </dl>
     ///</td> <td width="60%"> The server saves the profile. </td> </tr> </table>
-    uint          sv403_autoprofile;
+    uint  sv403_autoprofile;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode string that contains the path for the profile.
-    const(wchar)* sv403_autopath;
+    PWSTR sv403_autopath;
 }
 
 ///The <b>SERVER_INFO_502</b> structure is obsolete. The structure contains information about a specified server.
@@ -3355,179 +3355,179 @@ struct SERVER_INFO_502
 struct SERVER_INFO_503
 {
     ///Type: <b>DWORD</b> The number of files that can be open in one session.
-    uint          sv503_sessopens;
+    uint  sv503_sessopens;
     ///Type: <b>DWORD</b> The maximum number of sessions or virtual circuits permitted per client.
-    uint          sv503_sessvcs;
+    uint  sv503_sessvcs;
     ///Type: <b>DWORD</b> The number of search operations that can be carried out simultaneously.
-    uint          sv503_opensearch;
+    uint  sv503_opensearch;
     ///Type: <b>DWORD</b> The size, in bytes, of each server buffer.
-    uint          sv503_sizreqbuf;
+    uint  sv503_sizreqbuf;
     ///Type: <b>DWORD</b> The initial number of receive buffers, or work items, used by the server.
-    uint          sv503_initworkitems;
+    uint  sv503_initworkitems;
     ///Type: <b>DWORD</b> The maximum number of receive buffers, or work items, the server can allocate. If this limit
     ///is reached, the transport must initiate flow control at a significant performance cost.
-    uint          sv503_maxworkitems;
+    uint  sv503_maxworkitems;
     ///Type: <b>DWORD</b> The number of special work items the server uses for raw mode I/O. A larger value for this
     ///member can increase performance but it requires more memory.
-    uint          sv503_rawworkitems;
+    uint  sv503_rawworkitems;
     ///Type: <b>DWORD</b> The number of stack locations that the server allocated in I/O request packets (IRPs).
-    uint          sv503_irpstacksize;
+    uint  sv503_irpstacksize;
     ///Type: <b>DWORD</b> The maximum raw mode buffer size, in bytes.
-    uint          sv503_maxrawbuflen;
+    uint  sv503_maxrawbuflen;
     ///Type: <b>DWORD</b> The maximum number of users that can be logged on to the server using a single session or
     ///virtual circuit.
-    uint          sv503_sessusers;
+    uint  sv503_sessusers;
     ///Type: <b>DWORD</b> The maximum number of tree connections that can be made on the server using a single session
     ///or virtual circuit.
-    uint          sv503_sessconns;
+    uint  sv503_sessconns;
     ///Type: <b>DWORD</b> The maximum size, in bytes, of pageable memory that the server can allocate at any one time.
-    uint          sv503_maxpagedmemoryusage;
-    uint          sv503_maxnonpagedmemoryusage;
+    uint  sv503_maxpagedmemoryusage;
+    uint  sv503_maxnonpagedmemoryusage;
     ///Type: <b>BOOL</b> A value that indicates whether the server maps a request to a normal open request with
     ///shared-read access when the server receives a compatibility open request with read access. Mapping such requests
     ///allows several MS-DOS computers to open a single file for read access. This member is unused.
-    BOOL          sv503_enablesoftcompat;
+    BOOL  sv503_enablesoftcompat;
     ///Type: <b>BOOL</b> A value that indicates whether the server should force a client to disconnect, even if the
     ///client has open files, once the client's logon time has expired.
-    BOOL          sv503_enableforcedlogoff;
+    BOOL  sv503_enableforcedlogoff;
     ///Type: <b>BOOL</b> A value that indicates whether the server is a reliable time source.
-    BOOL          sv503_timesource;
+    BOOL  sv503_timesource;
     ///Type: <b>BOOL</b> A value that indicates whether the server accepts function calls from previous-generation LAN
     ///Manager clients.
-    BOOL          sv503_acceptdownlevelapis;
+    BOOL  sv503_acceptdownlevelapis;
     ///Type: <b>BOOL</b> A value that indicates whether the server is visible to LAN Manager 2.x clients.
-    BOOL          sv503_lmannounce;
+    BOOL  sv503_lmannounce;
     ///Type: <b>LPWSTR</b> A pointer to a Unicode character string that specifies the name of the server's domain.
-    const(wchar)* sv503_domain;
+    PWSTR sv503_domain;
     ///Type: <b>DWORD</b> The maximum length, in bytes, of copy reads on the server. This member is unused.
-    uint          sv503_maxcopyreadlen;
+    uint  sv503_maxcopyreadlen;
     ///Type: <b>DWORD</b> The maximum length, in bytes, of copy writes on the server. This member is unused.
-    uint          sv503_maxcopywritelen;
+    uint  sv503_maxcopywritelen;
     ///Type: <b>DWORD</b> The minimum length of time the server retains information about incomplete search operations.
     ///This member is unused.
-    uint          sv503_minkeepsearch;
+    uint  sv503_minkeepsearch;
     ///Type: <b>DWORD</b> The maximum length of time, in seconds, the server retains information about incomplete search
     ///operations.
-    uint          sv503_maxkeepsearch;
+    uint  sv503_maxkeepsearch;
     ///Type: <b>DWORD</b> The minimum length of time, in seconds, the server retains information about complete search
     ///operations. This member is unused.
-    uint          sv503_minkeepcomplsearch;
+    uint  sv503_minkeepcomplsearch;
     ///Type: <b>DWORD</b> The maximum length of time, in seconds, the server retains information about complete search
     ///operations. This member is unused.
-    uint          sv503_maxkeepcomplsearch;
+    uint  sv503_maxkeepcomplsearch;
     ///Type: <b>DWORD</b> The number of additional threads the server should use in addition to one worker thread per
     ///processor it already uses. This member is unused.
-    uint          sv503_threadcountadd;
+    uint  sv503_threadcountadd;
     ///Type: <b>DWORD</b> The number of threads set aside by the server to service requests that can block the thread
     ///for a significant amount of time. This member is unused.
-    uint          sv503_numblockthreads;
+    uint  sv503_numblockthreads;
     ///Type: <b>DWORD</b> The period of time, in seconds, that the scavenger remains idle before waking up to service
     ///requests.
-    uint          sv503_scavtimeout;
+    uint  sv503_scavtimeout;
     ///Type: <b>DWORD</b> The minimum number of free receive work items the server requires before it begins to allocate
     ///more.
-    uint          sv503_minrcvqueue;
+    uint  sv503_minrcvqueue;
     ///Type: <b>DWORD</b> The minimum number of available receive work items that the server requires to begin
     ///processing a server message block.
-    uint          sv503_minfreeworkitems;
+    uint  sv503_minfreeworkitems;
     ///Type: <b>DWORD</b> The size, in bytes, of the shared memory region used to process server functions.
-    uint          sv503_xactmemsize;
+    uint  sv503_xactmemsize;
     ///Type: <b>DWORD</b> The priority of all server threads in relation to the base priority of the process.
-    uint          sv503_threadpriority;
+    uint  sv503_threadpriority;
     ///Type: <b>DWORD</b> The maximum number of outstanding requests that any one client can send to the server. For
     ///example, 10 means you can have 10 unanswered requests at the server. When any single client has 10 requests
     ///queued within the server, the client must wait for a server response before sending another request.
-    uint          sv503_maxmpxct;
+    uint  sv503_maxmpxct;
     ///Type: <b>DWORD</b> The period of time, in seconds, to wait before timing out an opportunistic lock break request.
-    uint          sv503_oplockbreakwait;
+    uint  sv503_oplockbreakwait;
     ///Type: <b>DWORD</b> The period of time, in seconds, the server waits for a client to respond to an oplock break
     ///request from the server.
-    uint          sv503_oplockbreakresponsewait;
+    uint  sv503_oplockbreakresponsewait;
     ///Type: <b>BOOL</b> A value that indicates whether the server allows clients to use opportunistic locks on files.
     ///Opportunistic locks are a significant performance enhancement, but have the potential to cause lost cached data
     ///on some networks, particularly wide-area networks.
-    BOOL          sv503_enableoplocks;
+    BOOL  sv503_enableoplocks;
     ///Type: <b>BOOL</b> A value that indicates how the server should behave if a client has an opportunistic lock
     ///(oplock) and does not respond to an oplock break. This member indicates whether the server will fail the second
     ///open (value of 0), or force close the open instance of a client that has an oplock (value equal to 1). This
     ///member is unused.
-    BOOL          sv503_enableoplockforceclose;
+    BOOL  sv503_enableoplockforceclose;
     ///Type: <b>BOOL</b> A value that indicates whether several MS-DOS File Control Blocks (FCBs) are placed in a single
     ///location accessible to the server. If enabled, this can save resources on the server.
-    BOOL          sv503_enablefcbopens;
+    BOOL  sv503_enablefcbopens;
     ///Type: <b>BOOL</b> A value that indicates whether the server processes raw Server Message Blocks (SMBs). If
     ///enabled, this allows more data to transfer per transaction and also improves performance. However, it is possible
     ///that processing raw SMBs can impede performance on certain networks. The server maintains the value of this
     ///member.
-    BOOL          sv503_enableraw;
+    BOOL  sv503_enableraw;
     ///Type: <b>BOOL</b> A value that indicates whether the server allows redirected server drives to be shared.
-    BOOL          sv503_enablesharednetdrives;
+    BOOL  sv503_enablesharednetdrives;
     ///Type: <b>DWORD</b> The minimum number of free connection blocks maintained per endpoint. The server sets these
     ///aside to handle bursts of requests by clients to connect to the server.
-    uint          sv503_minfreeconnections;
+    uint  sv503_minfreeconnections;
     ///Type: <b>DWORD</b> The maximum number of free connection blocks maintained per endpoint. The server sets these
     ///aside to handle bursts of requests by clients to connect to the server.
-    uint          sv503_maxfreeconnections;
+    uint  sv503_maxfreeconnections;
 }
 
 struct SERVER_INFO_599
 {
-    uint          sv599_sessopens;
-    uint          sv599_sessvcs;
-    uint          sv599_opensearch;
-    uint          sv599_sizreqbuf;
-    uint          sv599_initworkitems;
-    uint          sv599_maxworkitems;
-    uint          sv599_rawworkitems;
-    uint          sv599_irpstacksize;
-    uint          sv599_maxrawbuflen;
-    uint          sv599_sessusers;
-    uint          sv599_sessconns;
-    uint          sv599_maxpagedmemoryusage;
-    uint          sv599_maxnonpagedmemoryusage;
-    BOOL          sv599_enablesoftcompat;
-    BOOL          sv599_enableforcedlogoff;
-    BOOL          sv599_timesource;
-    BOOL          sv599_acceptdownlevelapis;
-    BOOL          sv599_lmannounce;
-    const(wchar)* sv599_domain;
-    uint          sv599_maxcopyreadlen;
-    uint          sv599_maxcopywritelen;
-    uint          sv599_minkeepsearch;
-    uint          sv599_maxkeepsearch;
-    uint          sv599_minkeepcomplsearch;
-    uint          sv599_maxkeepcomplsearch;
-    uint          sv599_threadcountadd;
-    uint          sv599_numblockthreads;
-    uint          sv599_scavtimeout;
-    uint          sv599_minrcvqueue;
-    uint          sv599_minfreeworkitems;
-    uint          sv599_xactmemsize;
-    uint          sv599_threadpriority;
-    uint          sv599_maxmpxct;
-    uint          sv599_oplockbreakwait;
-    uint          sv599_oplockbreakresponsewait;
-    BOOL          sv599_enableoplocks;
-    BOOL          sv599_enableoplockforceclose;
-    BOOL          sv599_enablefcbopens;
-    BOOL          sv599_enableraw;
-    BOOL          sv599_enablesharednetdrives;
-    uint          sv599_minfreeconnections;
-    uint          sv599_maxfreeconnections;
-    uint          sv599_initsesstable;
-    uint          sv599_initconntable;
-    uint          sv599_initfiletable;
-    uint          sv599_initsearchtable;
-    uint          sv599_alertschedule;
-    uint          sv599_errorthreshold;
-    uint          sv599_networkerrorthreshold;
-    uint          sv599_diskspacethreshold;
-    uint          sv599_reserved;
-    uint          sv599_maxlinkdelay;
-    uint          sv599_minlinkthroughput;
-    uint          sv599_linkinfovalidtime;
-    uint          sv599_scavqosinfoupdatetime;
-    uint          sv599_maxworkitemidletime;
+    uint  sv599_sessopens;
+    uint  sv599_sessvcs;
+    uint  sv599_opensearch;
+    uint  sv599_sizreqbuf;
+    uint  sv599_initworkitems;
+    uint  sv599_maxworkitems;
+    uint  sv599_rawworkitems;
+    uint  sv599_irpstacksize;
+    uint  sv599_maxrawbuflen;
+    uint  sv599_sessusers;
+    uint  sv599_sessconns;
+    uint  sv599_maxpagedmemoryusage;
+    uint  sv599_maxnonpagedmemoryusage;
+    BOOL  sv599_enablesoftcompat;
+    BOOL  sv599_enableforcedlogoff;
+    BOOL  sv599_timesource;
+    BOOL  sv599_acceptdownlevelapis;
+    BOOL  sv599_lmannounce;
+    PWSTR sv599_domain;
+    uint  sv599_maxcopyreadlen;
+    uint  sv599_maxcopywritelen;
+    uint  sv599_minkeepsearch;
+    uint  sv599_maxkeepsearch;
+    uint  sv599_minkeepcomplsearch;
+    uint  sv599_maxkeepcomplsearch;
+    uint  sv599_threadcountadd;
+    uint  sv599_numblockthreads;
+    uint  sv599_scavtimeout;
+    uint  sv599_minrcvqueue;
+    uint  sv599_minfreeworkitems;
+    uint  sv599_xactmemsize;
+    uint  sv599_threadpriority;
+    uint  sv599_maxmpxct;
+    uint  sv599_oplockbreakwait;
+    uint  sv599_oplockbreakresponsewait;
+    BOOL  sv599_enableoplocks;
+    BOOL  sv599_enableoplockforceclose;
+    BOOL  sv599_enablefcbopens;
+    BOOL  sv599_enableraw;
+    BOOL  sv599_enablesharednetdrives;
+    uint  sv599_minfreeconnections;
+    uint  sv599_maxfreeconnections;
+    uint  sv599_initsesstable;
+    uint  sv599_initconntable;
+    uint  sv599_initfiletable;
+    uint  sv599_initsearchtable;
+    uint  sv599_alertschedule;
+    uint  sv599_errorthreshold;
+    uint  sv599_networkerrorthreshold;
+    uint  sv599_diskspacethreshold;
+    uint  sv599_reserved;
+    uint  sv599_maxlinkdelay;
+    uint  sv599_minlinkthroughput;
+    uint  sv599_linkinfovalidtime;
+    uint  sv599_scavqosinfoupdatetime;
+    uint  sv599_maxworkitemidletime;
 }
 
 struct SERVER_INFO_598
@@ -3582,7 +3582,7 @@ struct SERVER_INFO_1005
 {
     ///Pointer to a string that contains a comment describing the server. The comment can be null. This string is
     ///Unicode if <b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are defined.
-    const(wchar)* sv1005_comment;
+    PWSTR sv1005_comment;
 }
 
 ///The <b>SERVER_INFO_1107</b> structure specifies the number of users that can simultaneously log on to the specified
@@ -4174,26 +4174,26 @@ struct SERVER_TRANSPORT_INFO_0
 {
     ///Type: <b>DWORD</b> The number of clients connected to the server that are using the transport protocol specified
     ///by the <b>svti0_transportname</b> member.
-    uint          svti0_numberofvcs;
+    uint   svti0_numberofvcs;
     ///Type: <b>LMSTR</b> A pointer to a NULL-terminated character string that contains the name of a transport device;
     ///for example, <pre class="syntax"
     ///xml:space="preserve"><code>\Device\NetBT_Tcpip_{2C9725F4-151A-11D3-AEEC-C3B211BD350B} </code></pre> This string
     ///is Unicode if <b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are defined.
-    const(wchar)* svti0_transportname;
+    PWSTR  svti0_transportname;
     ///Type: <b>LPBYTE</b> A pointer to a variable that contains the address the server is using on the transport device
     ///specified by the <b>svti0_transportname</b> member. This member is usually the NetBIOS name that the server is
     ///using. In these instances, the name must be 16 characters long, and the last character must be a blank character
     ///(0x20).
-    ubyte*        svti0_transportaddress;
+    ubyte* svti0_transportaddress;
     ///Type: <b>DWORD</b> The length, in bytes, of the <b>svti0_transportaddress</b> member. For NetBIOS names, the
     ///value of this member is 16 (decimal).
-    uint          svti0_transportaddresslength;
+    uint   svti0_transportaddresslength;
     ///Type: <b>LMSTR</b> A pointer to a NULL-terminated character string that contains the address the network adapter
     ///is using. The string is transport-specific. You can retrieve this value only with a call to the
     ///NetServerTransportEnum function. You cannot set this value with a call to the NetServerTransportAdd function or
     ///the NetServerTransportAddEx function.) This string is Unicode if <b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are
     ///defined.
-    const(wchar)* svti0_networkaddress;
+    PWSTR  svti0_networkaddress;
 }
 
 ///The <b>SERVER_TRANSPORT_INFO_1</b> structure contains information about the specified transport protocol, including
@@ -4202,31 +4202,31 @@ struct SERVER_TRANSPORT_INFO_1
 {
     ///Type: <b>DWORD</b> The number of clients connected to the server that are using the transport protocol specified
     ///by the <b>svti1_transportname</b> member.
-    uint          svti1_numberofvcs;
+    uint   svti1_numberofvcs;
     ///Type: <b>LMSTR</b> A pointer to a null-terminated character string that contains the name of a transport device;
     ///for example, <pre class="syntax"
     ///xml:space="preserve"><code>\Device\NetBT_Tcpip_{2C9725F4-151A-11D3-AEEC-C3B211BD350B} </code></pre> This string
     ///is Unicode if <b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are defined.
-    const(wchar)* svti1_transportname;
+    PWSTR  svti1_transportname;
     ///Type: <b>LPBYTE</b> A pointer to a variable that contains the address the server is using on the transport device
     ///specified by the <b>svti1_transportname</b> member. This member is usually the NetBIOS name that the server is
     ///using. In these instances, the name must be 16 characters long, and the last character must be a blank character
     ///(0x20).
-    ubyte*        svti1_transportaddress;
+    ubyte* svti1_transportaddress;
     ///Type: <b>DWORD</b> The length, in bytes, of the <b>svti1_transportaddress</b> member. For NetBIOS names, the
     ///value of this member is 16 (decimal).
-    uint          svti1_transportaddresslength;
+    uint   svti1_transportaddresslength;
     ///Type: <b>LMSTR</b> A pointer to a NULL-terminated character string that contains the address the network adapter
     ///is using. The string is transport-specific. You can retrieve this value only with a call to the
     ///NetServerTransportEnum function. You cannot set this value with a call to the NetServerTransportAdd function or
     ///the NetServerTransportAddEx function.) This string is Unicode if <b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are
     ///defined.
-    const(wchar)* svti1_networkaddress;
+    PWSTR  svti1_networkaddress;
     ///Type: <b>LMSTR</b> A pointer to a NULL-terminated character string that contains the name of the domain to which
     ///the server should announce its presence. (When you call NetServerTransportEnum, this member is the name of the
     ///domain to which the server is announcing its presence.) This string is Unicode if <b>_WIN32_WINNT</b> or
     ///<b>FORCE_UNICODE</b> are defined.
-    const(wchar)* svti1_domain;
+    PWSTR  svti1_domain;
 }
 
 ///The <b>SERVER_TRANSPORT_INFO_2</b> structure contains information about the specified transport protocol, including
@@ -4235,31 +4235,31 @@ struct SERVER_TRANSPORT_INFO_2
 {
     ///Type: <b>DWORD</b> The number of clients connected to the server that are using the transport protocol specified
     ///by the <b>svti2_transportname</b> member.
-    uint          svti2_numberofvcs;
+    uint   svti2_numberofvcs;
     ///Type: <b>LMSTR</b> A pointer to a NULL-terminated character string that contains the name of a transport device;
     ///for example, <pre class="syntax"
     ///xml:space="preserve"><code>\Device\NetBT_Tcpip_{2C9725F4-151A-11D3-AEEC-C3B211BD350B} </code></pre> This string
     ///is Unicode if <b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are defined.
-    const(wchar)* svti2_transportname;
+    PWSTR  svti2_transportname;
     ///Type: <b>LPBYTE</b> A pointer to a variable that contains the address the server is using on the transport device
     ///specified by the <b>svti2_transportname</b> member. This member is usually the NetBIOS name that the server is
     ///using. In these instances, the name must be 16 characters long, and the last character must be a blank character
     ///(0x20).
-    ubyte*        svti2_transportaddress;
+    ubyte* svti2_transportaddress;
     ///Type: <b>DWORD</b> The length, in bytes, of the <b>svti2_transportaddress</b> member. For NetBIOS names, the
     ///value of this member is 16 (decimal).
-    uint          svti2_transportaddresslength;
+    uint   svti2_transportaddresslength;
     ///Type: <b>LMSTR</b> A pointer to a NULL-terminated character string that contains the address the network adapter
     ///is using. The string is transport-specific. You can retrieve this value only with a call to the
     ///NetServerTransportEnum function. You cannot set this value with a call to the NetServerTransportAdd function or
     ///the NetServerTransportAddEx function.) This string is Unicode if <b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are
     ///defined.
-    const(wchar)* svti2_networkaddress;
+    PWSTR  svti2_networkaddress;
     ///Type: <b>LMSTR</b> A pointer to a NULL-terminated character string that contains the name of the domain to which
     ///the server should announce its presence. (When you call NetServerTransportEnum, this member is the name of the
     ///domain to which the server is announcing its presence.) This string is Unicode if <b>_WIN32_WINNT</b> or
     ///<b>FORCE_UNICODE</b> are defined.
-    const(wchar)* svti2_domain;
+    PWSTR  svti2_domain;
     ///Type: <b>ULONG</b> This member can be a combination of the following bit values defined in the <i>Lmserver.h</i>
     ///header file. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="SVTI2_REMAP_PIPE_NAMES"></a><a id="svti2_remap_pipe_names"></a><dl> <dt><b>SVTI2_REMAP_PIPE_NAMES</b></dt>
@@ -4272,7 +4272,7 @@ struct SERVER_TRANSPORT_INFO_2
     ///creation will fail. Thus, every registered transport for a given network address must have the same scoped
     ///setting. For more information on the use of this value, see the Remarks section. This value is defined on Windows
     ///Server 2008 and Windows Vista with SP1. </td> </tr> </table>
-    uint          svti2_flags;
+    uint   svti2_flags;
 }
 
 ///The <b>SERVER_TRANSPORT_INFO_3</b> structure contains information about the specified transport protocol, including
@@ -4282,31 +4282,31 @@ struct SERVER_TRANSPORT_INFO_3
 {
     ///Type: <b>DWORD</b> The number of clients connected to the server that are using the transport protocol specified
     ///by the <b>svti3_transportname</b> member.
-    uint          svti3_numberofvcs;
+    uint       svti3_numberofvcs;
     ///Type: <b>LMSTR</b> A pointer to a NULL-terminated character string that contains the name of a transport device;
     ///for example, <pre class="syntax"
     ///xml:space="preserve"><code>\Device\NetBT_Tcpip_{2C9725F4-151A-11D3-AEEC-C3B211BD350B} </code></pre> This string
     ///is Unicode if <b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are defined.
-    const(wchar)* svti3_transportname;
+    PWSTR      svti3_transportname;
     ///Type: <b>LPBYTE</b> A pointer to a variable that contains the address the server is using on the transport device
     ///specified by the <b>svti3_transportname</b> member. This member is usually the NetBIOS name that the server is
     ///using. In these instances, the name must be 16 characters long, and the last character must be a blank character
     ///(0x20).
-    ubyte*        svti3_transportaddress;
+    ubyte*     svti3_transportaddress;
     ///Type: <b>DWORD</b> The length, in bytes, of the <b>svti3_transportaddress</b> member. For NetBIOS names, the
     ///value of this member is 16 (decimal).
-    uint          svti3_transportaddresslength;
+    uint       svti3_transportaddresslength;
     ///Type: <b>LMSTR</b> A pointer to a NULL-terminated character string that contains the address the network adapter
     ///is using. The string is transport-specific. You can retrieve this value only with a call to the
     ///NetServerTransportEnum function. You cannot set this value with a call to the NetServerTransportAdd function or
     ///the NetServerTransportAddEx function.) This string is Unicode if <b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are
     ///defined.
-    const(wchar)* svti3_networkaddress;
+    PWSTR      svti3_networkaddress;
     ///Type: <b>LMSTR</b> A pointer to a NULL-terminated character string that contains the name of the domain to which
     ///the server should announce its presence. (When you call NetServerTransportEnum, this member is the name of the
     ///domain to which the server is announcing its presence.) This string is Unicode if <b>_WIN32_WINNT</b> or
     ///<b>FORCE_UNICODE</b> are defined.
-    const(wchar)* svti3_domain;
+    PWSTR      svti3_domain;
     ///Type: <b>ULONG</b> This member can be a combination of the following bit values defined in the <i>Lmserver.h</i>
     ///header file. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="SVTI2_REMAP_PIPE_NAMES"></a><a id="svti2_remap_pipe_names"></a><dl> <dt><b>SVTI2_REMAP_PIPE_NAMES</b></dt>
@@ -4319,36 +4319,36 @@ struct SERVER_TRANSPORT_INFO_3
     ///creation will fail. Thus, every registered transport for a given network address must have the same scoped
     ///setting. For more information on the use of this value, see the Remarks section. This value is defined on Windows
     ///Server 2008 and Windows Vista with SP1. </td> </tr> </table>
-    uint          svti3_flags;
+    uint       svti3_flags;
     ///Type: <b>DWORD</b> The number of valid bytes in the <b>svti3_password</b> member.
-    uint          svti3_passwordlength;
+    uint       svti3_passwordlength;
     ///Type: <b>BYTE[256]</b> The credentials to use for the new transport address. If the <b>svti3_passwordlength</b>
     ///member is zero, the credentials for the server are used.
-    ubyte[256]    svti3_password;
+    ubyte[256] svti3_password;
 }
 
 struct SERVICE_INFO_0
 {
-    const(wchar)* svci0_name;
+    PWSTR svci0_name;
 }
 
 struct SERVICE_INFO_1
 {
-    const(wchar)* svci1_name;
-    uint          svci1_status;
-    uint          svci1_code;
-    uint          svci1_pid;
+    PWSTR svci1_name;
+    uint  svci1_status;
+    uint  svci1_code;
+    uint  svci1_pid;
 }
 
 struct SERVICE_INFO_2
 {
-    const(wchar)* svci2_name;
-    uint          svci2_status;
-    uint          svci2_code;
-    uint          svci2_pid;
-    const(wchar)* svci2_text;
-    uint          svci2_specific_error;
-    const(wchar)* svci2_display_name;
+    PWSTR svci2_name;
+    uint  svci2_status;
+    uint  svci2_code;
+    uint  svci2_pid;
+    PWSTR svci2_text;
+    uint  svci2_specific_error;
+    PWSTR svci2_display_name;
 }
 
 ///The <b>USE_INFO_0</b> structure contains the name of a shared resource and the local device redirected to it.
@@ -4356,10 +4356,10 @@ struct USE_INFO_0
 {
     ///Pointer to a Unicode string that specifies the local device name (for example, drive E or LPT1) being redirected
     ///to the shared resource. The constant DEVLEN specifies the maximum number of characters in the string.
-    const(wchar)* ui0_local;
+    PWSTR ui0_local;
     ///Pointer to a Unicode string that specifies the share name of the remote resource being accessed. The string is in
     ///the form: <pre class="syntax" xml:space="preserve"><code>\\servername\sharename </code></pre>
-    const(wchar)* ui0_remote;
+    PWSTR ui0_remote;
 }
 
 ///The <b>USE_INFO_1</b> structure contains information about the connection between a local device and a shared
@@ -4370,15 +4370,15 @@ struct USE_INFO_1
     ///redirected to the shared resource. The constant DEVLEN specifies the maximum number of characters in the string.
     ///This member can be <b>NULL</b>. For more information, see the following Remarks section. This string is Unicode
     ///if <b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are defined.
-    const(wchar)* ui1_local;
+    PWSTR ui1_local;
     ///Type: <b>LMSTR</b> A pointer to a string that contains the share name of the remote resource being accessed. The
     ///string is in the form: <pre class="syntax" xml:space="preserve"><code>\\servername\sharename </code></pre> This
     ///string is Unicode if <b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are defined.
-    const(wchar)* ui1_remote;
+    PWSTR ui1_remote;
     ///Type: <b>LMSTR</b> A pointer to a string that contains the password needed to establish a session between a
     ///specific workstation and a server. This string is Unicode if <b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are
     ///defined.
-    const(wchar)* ui1_password;
+    PWSTR ui1_password;
     ///Type: <b>DWORD</b> The status of the connection. This element is not used by the NetUseAdd function. The
     ///following values are defined. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="USE_OK"></a><a id="use_ok"></a><dl> <dt><b>USE_OK</b></dt> </dl> </td> <td width="60%"> The connection is
@@ -4392,7 +4392,7 @@ struct USE_INFO_1
     ///<dt><b>USE_CONN</b></dt> </dl> </td> <td width="60%"> The connection is being made. </td> </tr> <tr> <td
     ///width="40%"><a id="USE_RECONN"></a><a id="use_reconn"></a><dl> <dt><b>USE_RECONN</b></dt> </dl> </td> <td
     ///width="60%"> Reconnecting. </td> </tr> </table>
-    uint          ui1_status;
+    uint  ui1_status;
     ///Type: <b>DWORD</b> The type of remote resource being accessed. This member can be one of the following values.
     ///<table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="USE_WILDCARD"></a><a
     ///id="use_wildcard"></a><dl> <dt><b>USE_WILDCARD</b></dt> </dl> </td> <td width="60%"> Matches the type of the
@@ -4403,13 +4403,13 @@ struct USE_INFO_1
     ///<dt><b>USE_SPOOLDEV</b></dt> </dl> </td> <td width="60%"> Spooled printer. </td> </tr> <tr> <td width="40%"><a
     ///id="USE_IPC"></a><a id="use_ipc"></a><dl> <dt><b>USE_IPC</b></dt> </dl> </td> <td width="60%"> Interprocess
     ///communication (IPC). </td> </tr> </table>
-    uint          ui1_asg_type;
+    uint  ui1_asg_type;
     ///Type: <b>DWORD</b> The number of files, directories, and other processes that are open on the remote resource.
     ///This element is not used by the NetUseAdd function.
-    uint          ui1_refcount;
+    uint  ui1_refcount;
     ///Type: <b>DWORD</b> The number of explicit connections (redirection with a local device name) or implicit UNC
     ///connections (redirection without a local device name) that are established with the resource.
-    uint          ui1_usecount;
+    uint  ui1_usecount;
 }
 
 ///The <b>USE_INFO_2</b> structure contains information about a connection between a local computer and a shared
@@ -4420,14 +4420,14 @@ struct USE_INFO_2
     ///redirected to the shared resource. The constant DEVLEN specifies the maximum number of characters in the string.
     ///This member can be <b>NULL</b>. For more information, see the following Remarks section. This string is Unicode
     ///if <b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are defined.
-    const(wchar)* ui2_local;
+    PWSTR ui2_local;
     ///Type: <b>LMSTR</b> A pointer to a string that contains the share name of the remote resource. The string is in
     ///the form <pre class="syntax" xml:space="preserve"><code>\\servername\sharename </code></pre> This string is
     ///Unicode if <b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are defined.
-    const(wchar)* ui2_remote;
+    PWSTR ui2_remote;
     ///Type: <b>LMSTR</b> A pointer to a string that contains the password needed to establish a session with a specific
     ///workstation. This string is Unicode if <b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are defined.
-    const(wchar)* ui2_password;
+    PWSTR ui2_password;
     ///Type: <b>DWORD</b> The status of the connection. This element is not used by the NetUseAdd function. The
     ///following values are defined. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="USE_OK"></a><a id="use_ok"></a><dl> <dt><b>USE_OK</b></dt> </dl> </td> <td width="60%"> The connection is
@@ -4441,7 +4441,7 @@ struct USE_INFO_2
     ///<dt><b>USE_CONN</b></dt> </dl> </td> <td width="60%"> The connection is being made. </td> </tr> <tr> <td
     ///width="40%"><a id="USE_RECONN"></a><a id="use_reconn"></a><dl> <dt><b>USE_RECONN</b></dt> </dl> </td> <td
     ///width="60%"> Reconnecting. </td> </tr> </table>
-    uint          ui2_status;
+    uint  ui2_status;
     ///Type: <b>DWORD</b> The type of remote resource being accessed. This member can be one of the following values.
     ///<table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="USE_WILDCARD"></a><a
     ///id="use_wildcard"></a><dl> <dt><b>USE_WILDCARD</b></dt> </dl> </td> <td width="60%"> Matches the type of the
@@ -4452,19 +4452,19 @@ struct USE_INFO_2
     ///id="use_spooldev"></a><dl> <dt><b>USE_SPOOLDEV</b></dt> </dl> </td> <td width="60%"> Spooled printer. </td> </tr>
     ///<tr> <td width="40%"><a id="USE_IPC"></a><a id="use_ipc"></a><dl> <dt><b>USE_IPC</b></dt> </dl> </td> <td
     ///width="60%"> Interprocess communication (IPC). </td> </tr> </table>
-    uint          ui2_asg_type;
+    uint  ui2_asg_type;
     ///Type: <b>DWORD</b> The number of files, directories, and other processes that are open on the remote resource.
     ///This element is not used by the <b>NetUseAdd</b> function.
-    uint          ui2_refcount;
+    uint  ui2_refcount;
     ///Type: <b>DWORD</b> The number of explicit connections (redirection with a local device name) or implicit UNC
     ///connections (redirection without a local device name) that are established with the resource.
-    uint          ui2_usecount;
+    uint  ui2_usecount;
     ///Type: <b>LPWSTR</b> A pointer to a string that contains the name of the user who initiated the connection. This
     ///string is Unicode if <b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are defined.
-    const(wchar)* ui2_username;
+    PWSTR ui2_username;
     ///Type: <b>LMSTR</b> A pointer to a string that contains the domain name of the remote resource. This string is
     ///Unicode if <b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are defined.
-    const(wchar)* ui2_domainname;
+    PWSTR ui2_domainname;
 }
 
 ///The <b>USE_INFO_3</b> structure contains information about a connection between a local computer and a shared
@@ -4544,17 +4544,17 @@ struct WKSTA_INFO_100
     ///<dt><b>PLATFORM_ID_OSF</b></dt> <dt>600</dt> </dl> </td> <td width="60%"> The OSF platform. </td> </tr> <tr> <td
     ///width="40%"><a id="PLATFORM_ID_VMS"></a><a id="platform_id_vms"></a><dl> <dt><b>PLATFORM_ID_VMS</b></dt>
     ///<dt>700</dt> </dl> </td> <td width="60%"> The VMS platform. </td> </tr> </table>
-    uint          wki100_platform_id;
+    uint  wki100_platform_id;
     ///Type: <b>LMSTR</b> A pointer to a string specifying the name of the local computer. This string is Unicode if
     ///<b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are defined.
-    const(wchar)* wki100_computername;
+    PWSTR wki100_computername;
     ///Type: <b>LMSTR</b> A pointer to a string specifying the name of the domain to which the computer belongs. This
     ///string is Unicode if <b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are defined.
-    const(wchar)* wki100_langroup;
+    PWSTR wki100_langroup;
     ///Type: <b>DWORD</b> The major version number of the operating system running on the computer.
-    uint          wki100_ver_major;
+    uint  wki100_ver_major;
     ///Type: <b>DWORD</b> The minor version number of the operating system running on the computer.
-    uint          wki100_ver_minor;
+    uint  wki100_ver_minor;
 }
 
 ///The <b>WKSTA_INFO_101</b> structure contains information about a workstation environment, including platform-specific
@@ -4572,20 +4572,20 @@ struct WKSTA_INFO_101
     ///<dt><b>PLATFORM_ID_OSF</b></dt> <dt>600</dt> </dl> </td> <td width="60%"> The OSF platform. </td> </tr> <tr> <td
     ///width="40%"><a id="PLATFORM_ID_VMS"></a><a id="platform_id_vms"></a><dl> <dt><b>PLATFORM_ID_VMS</b></dt>
     ///<dt>700</dt> </dl> </td> <td width="60%"> The VMS platform. </td> </tr> </table>
-    uint          wki101_platform_id;
+    uint  wki101_platform_id;
     ///Type: <b>LMSTR</b> A pointer to a string specifying the name of the local computer. This string is Unicode if
     ///<b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are defined.
-    const(wchar)* wki101_computername;
+    PWSTR wki101_computername;
     ///Type: <b>LMSTR</b> A pointer to a string specifying the name of the domain to which the computer belongs. This
     ///string is Unicode if <b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are defined.
-    const(wchar)* wki101_langroup;
+    PWSTR wki101_langroup;
     ///Type: <b>DWORD</b> The major version number of the operating system running on the computer.
-    uint          wki101_ver_major;
+    uint  wki101_ver_major;
     ///Type: <b>DWORD</b> The minor version number of the operating system running on the computer.
-    uint          wki101_ver_minor;
+    uint  wki101_ver_minor;
     ///Type: <b>LMSTR</b> A pointer to a string that contains the path to the LANMAN directory. This string is Unicode
     ///if <b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are defined.
-    const(wchar)* wki101_lanroot;
+    PWSTR wki101_lanroot;
 }
 
 ///The <b>WKSTA_INFO_102</b> structure contains information about a workstation environment, including platform-specific
@@ -4603,71 +4603,71 @@ struct WKSTA_INFO_102
     ///<dt><b>PLATFORM_ID_OSF</b></dt> <dt>600</dt> </dl> </td> <td width="60%"> The OSF platform. </td> </tr> <tr> <td
     ///width="40%"><a id="PLATFORM_ID_VMS"></a><a id="platform_id_vms"></a><dl> <dt><b>PLATFORM_ID_VMS</b></dt>
     ///<dt>700</dt> </dl> </td> <td width="60%"> The VMS platform. </td> </tr> </table>
-    uint          wki102_platform_id;
+    uint  wki102_platform_id;
     ///Type: <b>LMSTR</b> A pointer to a string specifying the name of the local computer. This string is Unicode if
     ///<b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are defined.
-    const(wchar)* wki102_computername;
+    PWSTR wki102_computername;
     ///Type: <b>LMSTR</b> A pointer to a string specifying the name of the domain to which the computer belongs. This
     ///string is Unicode if <b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are defined.
-    const(wchar)* wki102_langroup;
+    PWSTR wki102_langroup;
     ///Type: <b>DWORD</b> The major version number of the operating system running on the computer.
-    uint          wki102_ver_major;
+    uint  wki102_ver_major;
     ///Type: <b>DWORD</b> The minor version number of the operating system running on the computer.
-    uint          wki102_ver_minor;
+    uint  wki102_ver_minor;
     ///Type: <b>LMSTR</b> A pointer to a string that contains the path to the LANMAN directory. This string is Unicode
     ///if <b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are defined.
-    const(wchar)* wki102_lanroot;
+    PWSTR wki102_lanroot;
     ///Type: <b>DWORD</b> The number of users who are logged on to the local computer.
-    uint          wki102_logged_on_users;
+    uint  wki102_logged_on_users;
 }
 
 struct WKSTA_INFO_302
 {
-    uint          wki302_char_wait;
-    uint          wki302_collection_time;
-    uint          wki302_maximum_collection_count;
-    uint          wki302_keep_conn;
-    uint          wki302_keep_search;
-    uint          wki302_max_cmds;
-    uint          wki302_num_work_buf;
-    uint          wki302_siz_work_buf;
-    uint          wki302_max_wrk_cache;
-    uint          wki302_sess_timeout;
-    uint          wki302_siz_error;
-    uint          wki302_num_alerts;
-    uint          wki302_num_services;
-    uint          wki302_errlog_sz;
-    uint          wki302_print_buf_time;
-    uint          wki302_num_char_buf;
-    uint          wki302_siz_char_buf;
-    const(wchar)* wki302_wrk_heuristics;
-    uint          wki302_mailslots;
-    uint          wki302_num_dgram_buf;
+    uint  wki302_char_wait;
+    uint  wki302_collection_time;
+    uint  wki302_maximum_collection_count;
+    uint  wki302_keep_conn;
+    uint  wki302_keep_search;
+    uint  wki302_max_cmds;
+    uint  wki302_num_work_buf;
+    uint  wki302_siz_work_buf;
+    uint  wki302_max_wrk_cache;
+    uint  wki302_sess_timeout;
+    uint  wki302_siz_error;
+    uint  wki302_num_alerts;
+    uint  wki302_num_services;
+    uint  wki302_errlog_sz;
+    uint  wki302_print_buf_time;
+    uint  wki302_num_char_buf;
+    uint  wki302_siz_char_buf;
+    PWSTR wki302_wrk_heuristics;
+    uint  wki302_mailslots;
+    uint  wki302_num_dgram_buf;
 }
 
 struct WKSTA_INFO_402
 {
-    uint          wki402_char_wait;
-    uint          wki402_collection_time;
-    uint          wki402_maximum_collection_count;
-    uint          wki402_keep_conn;
-    uint          wki402_keep_search;
-    uint          wki402_max_cmds;
-    uint          wki402_num_work_buf;
-    uint          wki402_siz_work_buf;
-    uint          wki402_max_wrk_cache;
-    uint          wki402_sess_timeout;
-    uint          wki402_siz_error;
-    uint          wki402_num_alerts;
-    uint          wki402_num_services;
-    uint          wki402_errlog_sz;
-    uint          wki402_print_buf_time;
-    uint          wki402_num_char_buf;
-    uint          wki402_siz_char_buf;
-    const(wchar)* wki402_wrk_heuristics;
-    uint          wki402_mailslots;
-    uint          wki402_num_dgram_buf;
-    uint          wki402_max_threads;
+    uint  wki402_char_wait;
+    uint  wki402_collection_time;
+    uint  wki402_maximum_collection_count;
+    uint  wki402_keep_conn;
+    uint  wki402_keep_search;
+    uint  wki402_max_cmds;
+    uint  wki402_num_work_buf;
+    uint  wki402_siz_work_buf;
+    uint  wki402_max_wrk_cache;
+    uint  wki402_sess_timeout;
+    uint  wki402_siz_error;
+    uint  wki402_num_alerts;
+    uint  wki402_num_services;
+    uint  wki402_errlog_sz;
+    uint  wki402_print_buf_time;
+    uint  wki402_num_char_buf;
+    uint  wki402_siz_char_buf;
+    PWSTR wki402_wrk_heuristics;
+    uint  wki402_mailslots;
+    uint  wki402_num_dgram_buf;
+    uint  wki402_max_threads;
 }
 
 ///The <b>WKSTA_INFO_502</b> structure is obsolete. The structure contains information about a workstation environment.
@@ -4914,7 +4914,7 @@ struct WKSTA_USER_INFO_0
 {
     ///Specifies the name of the user currently logged on to the workstation. This string is Unicode if
     ///<b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are defined.
-    const(wchar)* wkui0_username;
+    PWSTR wkui0_username;
 }
 
 ///The <b>WKSTA_USER_INFO_1</b> structure contains user information as it pertains to a specific workstation. The
@@ -4923,16 +4923,16 @@ struct WKSTA_USER_INFO_1
 {
     ///Specifies the name of the user currently logged on to the workstation. This string is Unicode if
     ///<b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are defined.
-    const(wchar)* wkui1_username;
+    PWSTR wkui1_username;
     ///Specifies the name of the domain in which the user is currently logged on. This string is Unicode if
     ///<b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are defined.
-    const(wchar)* wkui1_logon_domain;
+    PWSTR wkui1_logon_domain;
     ///Specifies the list of operating system domains browsed by the workstation. The domain names are separated by
     ///blanks. This string is Unicode if <b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are defined.
-    const(wchar)* wkui1_oth_domains;
+    PWSTR wkui1_oth_domains;
     ///Specifies the name of the server that authenticated the user. This string is Unicode if <b>_WIN32_WINNT</b> or
     ///<b>FORCE_UNICODE</b> are defined.
-    const(wchar)* wkui1_logon_server;
+    PWSTR wkui1_logon_server;
 }
 
 ///The <b>WKSTA_USER_INFO_1101</b> structure contains information about the domains accessed by a workstation.
@@ -4940,7 +4940,7 @@ struct WKSTA_USER_INFO_1101
 {
     ///Specifies the list of operating system domains browsed by the workstation. The domain names are separated by
     ///blanks. This string is Unicode if <b>_WIN32_WINNT</b> or <b>FORCE_UNICODE</b> are defined.
-    const(wchar)* wkui1101_oth_domains;
+    PWSTR wkui1101_oth_domains;
 }
 
 ///The <b>WKSTA_TRANSPORT_INFO_0</b> structure contains information about the workstation transport protocol, such as
@@ -4949,19 +4949,19 @@ struct WKSTA_TRANSPORT_INFO_0
 {
     ///Specifies a value that determines the search order of the transport protocol with respect to other transport
     ///protocols. The highest value is searched first.
-    uint          wkti0_quality_of_service;
+    uint  wkti0_quality_of_service;
     ///Specifies the number of clients communicating with the server using this transport protocol.
-    uint          wkti0_number_of_vcs;
+    uint  wkti0_number_of_vcs;
     ///Specifies the device name of the transport protocol.
-    const(wchar)* wkti0_transport_name;
+    PWSTR wkti0_transport_name;
     ///Specifies the address of the server on this transport protocol. This string is Unicode if <b>_WIN32_WINNT</b> or
     ///<b>FORCE_UNICODE</b> are defined.
-    const(wchar)* wkti0_transport_address;
+    PWSTR wkti0_transport_address;
     ///This member is ignored by the NetWkstaTransportAdd function. For the NetWkstaTransportEnum function, this member
     ///indicates whether the transport protocol is a WAN transport protocol. This member is set to <b>TRUE</b> for
     ///NetBIOS/TCIP; it is set to <b>FALSE</b> for NetBEUI and NetBIOS/IPX. Certain legacy networking protocols,
     ///including NetBEUI, will no longer be supported. For more information, see Network Protocol Support in Windows.
-    BOOL          wkti0_wan_ish;
+    BOOL  wkti0_wan_ish;
 }
 
 // Functions
@@ -5004,7 +5004,7 @@ struct WKSTA_TRANSPORT_INFO_0
 ///    meet another password policy requirement.) </td> </tr> </table>
 ///    
 @DllImport("samcli")
-uint NetUserAdd(const(wchar)* servername, uint level, char* buf, uint* parm_err);
+uint NetUserAdd(const(PWSTR) servername, uint level, ubyte* buf, uint* parm_err);
 
 ///The <b>NetUserEnum</b> function retrieves information about all user accounts on a server.
 ///Params:
@@ -5084,7 +5084,7 @@ uint NetUserAdd(const(wchar)* servername, uint level, char* buf, uint* parm_err)
 ///    </table>
 ///    
 @DllImport("samcli")
-uint NetUserEnum(const(wchar)* servername, uint level, uint filter, ubyte** bufptr, uint prefmaxlen, 
+uint NetUserEnum(const(PWSTR) servername, uint level, uint filter, ubyte** bufptr, uint prefmaxlen, 
                  uint* entriesread, uint* totalentries, uint* resume_handle);
 
 ///The <b>NetUserGetInfo</b> function retrieves information about a particular user account on a server.
@@ -5137,7 +5137,7 @@ uint NetUserEnum(const(wchar)* servername, uint level, uint filter, ubyte** bufp
 ///    </table>
 ///    
 @DllImport("samcli")
-uint NetUserGetInfo(const(wchar)* servername, const(wchar)* username, uint level, ubyte** bufptr);
+uint NetUserGetInfo(const(PWSTR) servername, const(PWSTR) username, uint level, ubyte** bufptr);
 
 ///The <b>NetUserSetInfo</b> function sets the parameters of a user account.
 ///Params:
@@ -5221,7 +5221,7 @@ uint NetUserGetInfo(const(wchar)* servername, const(wchar)* username, uint level
 ///    </table>
 ///    
 @DllImport("samcli")
-uint NetUserSetInfo(const(wchar)* servername, const(wchar)* username, uint level, char* buf, uint* parm_err);
+uint NetUserSetInfo(const(PWSTR) servername, const(PWSTR) username, uint level, ubyte* buf, uint* parm_err);
 
 ///The <b>NetUserDel</b> function deletes a user account from a server.
 ///Params:
@@ -5240,7 +5240,7 @@ uint NetUserSetInfo(const(wchar)* servername, const(wchar)* username, uint level
 ///    <td width="60%"> The user name could not be found. </td> </tr> </table>
 ///    
 @DllImport("samcli")
-uint NetUserDel(const(wchar)* servername, const(wchar)* username);
+uint NetUserDel(const(PWSTR) servername, const(PWSTR) username);
 
 ///The <b>NetUserGetGroups</b> function retrieves a list of global groups to which a specified user belongs.
 ///Params:
@@ -5284,8 +5284,8 @@ uint NetUserDel(const(wchar)* servername, const(wchar)* username);
 ///    could not be found. This error is returned if the <i>username</i> could not be found. </td> </tr> </table>
 ///    
 @DllImport("samcli")
-uint NetUserGetGroups(const(wchar)* servername, const(wchar)* username, uint level, ubyte** bufptr, 
-                      uint prefmaxlen, uint* entriesread, uint* totalentries);
+uint NetUserGetGroups(const(PWSTR) servername, const(PWSTR) username, uint level, ubyte** bufptr, uint prefmaxlen, 
+                      uint* entriesread, uint* totalentries);
 
 ///The <b>NetUserSetGroups</b> function sets global group memberships for a specified user account.
 ///Params:
@@ -5322,7 +5322,7 @@ uint NetUserGetGroups(const(wchar)* servername, const(wchar)* username, uint lev
 ///    width="60%"> The user name could not be found. </td> </tr> </table>
 ///    
 @DllImport("samcli")
-uint NetUserSetGroups(const(wchar)* servername, const(wchar)* username, uint level, char* buf, uint num_entries);
+uint NetUserSetGroups(const(PWSTR) servername, const(PWSTR) username, uint level, ubyte* buf, uint num_entries);
 
 ///The <b>NetUserGetLocalGroups</b> function retrieves a list of local groups to which a specified user belongs.
 ///Params:
@@ -5367,8 +5367,8 @@ uint NetUserSetGroups(const(wchar)* servername, const(wchar)* username, uint lev
 ///    error is returned if the <i>servername</i> parameter could not be found. </td> </tr> </table>
 ///    
 @DllImport("samcli")
-uint NetUserGetLocalGroups(const(wchar)* servername, const(wchar)* username, uint level, uint flags, 
-                           ubyte** bufptr, uint prefmaxlen, uint* entriesread, uint* totalentries);
+uint NetUserGetLocalGroups(const(PWSTR) servername, const(PWSTR) username, uint level, uint flags, ubyte** bufptr, 
+                           uint prefmaxlen, uint* entriesread, uint* totalentries);
 
 ///The <b>NetUserModalsGet</b> function retrieves global information for all users and global groups in the security
 ///database, which is the security accounts manager (SAM) database or, in the case of domain controllers, the Active
@@ -5409,7 +5409,7 @@ uint NetUserGetLocalGroups(const(wchar)* servername, const(wchar)* username, uin
 ///    name is invalid. </td> </tr> </table>
 ///    
 @DllImport("samcli")
-uint NetUserModalsGet(const(wchar)* servername, uint level, ubyte** bufptr);
+uint NetUserModalsGet(const(PWSTR) servername, uint level, ubyte** bufptr);
 
 ///The <b>NetUserModalsSet</b> function sets global information for all users and global groups in the security
 ///database, which is the security accounts manager (SAM) database or, in the case of domain controllers, the Active
@@ -5456,7 +5456,7 @@ uint NetUserModalsGet(const(wchar)* servername, uint level, ubyte** bufptr);
 ///    <td width="60%"> The user name could not be found. </td> </tr> </table>
 ///    
 @DllImport("samcli")
-uint NetUserModalsSet(const(wchar)* servername, uint level, char* buf, uint* parm_err);
+uint NetUserModalsSet(const(PWSTR) servername, uint level, ubyte* buf, uint* parm_err);
 
 ///The <b>NetUserChangePassword</b> function changes a user's password for a specified network server or domain.
 ///Params:
@@ -5482,8 +5482,8 @@ uint NetUserModalsSet(const(wchar)* servername, uint level, char* buf, uint* par
 ///    characters, or not meet another password policy requirement.) </td> </tr> </table>
 ///    
 @DllImport("samcli")
-uint NetUserChangePassword(const(wchar)* domainname, const(wchar)* username, const(wchar)* oldpassword, 
-                           const(wchar)* newpassword);
+uint NetUserChangePassword(const(PWSTR) domainname, const(PWSTR) username, const(PWSTR) oldpassword, 
+                           const(PWSTR) newpassword);
 
 ///The <b>NetGroupAdd</b> function creates a global group in the security database, which is the security accounts
 ///manager (SAM) database or, in the case of domain controllers, the Active Directory.
@@ -5521,7 +5521,7 @@ uint NetUserChangePassword(const(wchar)* domainname, const(wchar)* username, con
 ///    groups, local groups, and guest groups. </td> </tr> </table>
 ///    
 @DllImport("samcli")
-uint NetGroupAdd(const(wchar)* servername, uint level, char* buf, uint* parm_err);
+uint NetGroupAdd(const(PWSTR) servername, uint level, ubyte* buf, uint* parm_err);
 
 ///The <b>NetGroupAddUser</b> function gives an existing user account membership in an existing global group in the
 ///security database, which is the security accounts manager (SAM) database or, in the case of domain controllers, the
@@ -5548,7 +5548,7 @@ uint NetGroupAdd(const(wchar)* servername, uint level, char* buf, uint* parm_err
 ///    </tr> </table>
 ///    
 @DllImport("samcli")
-uint NetGroupAddUser(const(wchar)* servername, const(wchar)* GroupName, const(wchar)* username);
+uint NetGroupAddUser(const(PWSTR) servername, const(PWSTR) GroupName, const(PWSTR) username);
 
 ///The <b>NetGroupEnum</b> function retrieves information about each global group in the security database, which is the
 ///security accounts manager (SAM) database or, in the case of domain controllers, the Active Directory. The
@@ -5594,7 +5594,7 @@ uint NetGroupAddUser(const(wchar)* servername, const(wchar)* GroupName, const(wc
 ///    buffer to receive all entries. </td> </tr> </table>
 ///    
 @DllImport("samcli")
-uint NetGroupEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, 
+uint NetGroupEnum(const(PWSTR) servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, 
                   uint* totalentries, size_t* resume_handle);
 
 ///The <b>NetGroupGetInfo</b> function retrieves information about a particular global group in the security database,
@@ -5629,7 +5629,7 @@ uint NetGroupEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint pre
 ///    </tr> </table>
 ///    
 @DllImport("samcli")
-uint NetGroupGetInfo(const(wchar)* servername, const(wchar)* groupname, uint level, ubyte** bufptr);
+uint NetGroupGetInfo(const(PWSTR) servername, const(PWSTR) groupname, uint level, ubyte** bufptr);
 
 ///The <b>NetGroupSetInfo</b> function sets the parameters of a global group in the security database, which is the
 ///security accounts manager (SAM) database or, in the case of domain controllers, the Active Directory.
@@ -5673,7 +5673,7 @@ uint NetGroupGetInfo(const(wchar)* servername, const(wchar)* groupname, uint lev
 ///    groups, and guest groups. </td> </tr> </table>
 ///    
 @DllImport("samcli")
-uint NetGroupSetInfo(const(wchar)* servername, const(wchar)* groupname, uint level, char* buf, uint* parm_err);
+uint NetGroupSetInfo(const(PWSTR) servername, const(PWSTR) groupname, uint level, ubyte* buf, uint* parm_err);
 
 ///The <b>NetGroupDel</b> function deletes a global group from the security database, which is the security accounts
 ///manager (SAM) database or, in the case of domain controllers, the Active Directory.
@@ -5695,7 +5695,7 @@ uint NetGroupSetInfo(const(wchar)* servername, const(wchar)* groupname, uint lev
 ///    </dl> </td> <td width="60%"> The global group name could not be found. </td> </tr> </table>
 ///    
 @DllImport("samcli")
-uint NetGroupDel(const(wchar)* servername, const(wchar)* groupname);
+uint NetGroupDel(const(PWSTR) servername, const(PWSTR) groupname);
 
 ///The <b>NetGroupDelUser</b> function removes a user from a particular global group in the security database, which is
 ///the security accounts manager (SAM) database or, in the case of domain controllers, the Active Directory.
@@ -5722,7 +5722,7 @@ uint NetGroupDel(const(wchar)* servername, const(wchar)* groupname);
 ///    not belong to this global group. </td> </tr> </table>
 ///    
 @DllImport("samcli")
-uint NetGroupDelUser(const(wchar)* servername, const(wchar)* GroupName, const(wchar)* Username);
+uint NetGroupDelUser(const(PWSTR) servername, const(PWSTR) GroupName, const(PWSTR) Username);
 
 ///The <b>NetGroupGetUsers</b> function retrieves a list of the members in a particular global group in the security
 ///database, which is the security accounts manager (SAM) database or, in the case of domain controllers, the Active
@@ -5768,8 +5768,8 @@ uint NetGroupDelUser(const(wchar)* servername, const(wchar)* GroupName, const(wc
 ///    <dt><b>NERR_InternalError</b></dt> </dl> </td> <td width="60%"> An internal error occurred. </td> </tr> </table>
 ///    
 @DllImport("samcli")
-uint NetGroupGetUsers(const(wchar)* servername, const(wchar)* groupname, uint level, ubyte** bufptr, 
-                      uint prefmaxlen, uint* entriesread, uint* totalentries, size_t* ResumeHandle);
+uint NetGroupGetUsers(const(PWSTR) servername, const(PWSTR) groupname, uint level, ubyte** bufptr, uint prefmaxlen, 
+                      uint* entriesread, uint* totalentries, size_t* ResumeHandle);
 
 ///The <b>NetGroupSetUsers</b> function sets the membership for the specified global group. Each user you specify is
 ///enrolled as a member of the global group. Users you do not specify, but who are currently members of the global
@@ -5809,7 +5809,7 @@ uint NetGroupGetUsers(const(wchar)* servername, const(wchar)* groupname, uint le
 ///    could not be found. </td> </tr> </table>
 ///    
 @DllImport("samcli")
-uint NetGroupSetUsers(const(wchar)* servername, const(wchar)* groupname, uint level, char* buf, uint totalentries);
+uint NetGroupSetUsers(const(PWSTR) servername, const(PWSTR) groupname, uint level, ubyte* buf, uint totalentries);
 
 ///The <b>NetLocalGroupAdd</b> function creates a local group in the security database, which is the security accounts
 ///manager (SAM) database or, in the case of domain controllers, the Active Directory.
@@ -5847,14 +5847,14 @@ uint NetGroupSetUsers(const(wchar)* servername, const(wchar)* groupname, uint le
 ///    a user name. </td> </tr> </table>
 ///    
 @DllImport("samcli")
-uint NetLocalGroupAdd(const(wchar)* servername, uint level, char* buf, uint* parm_err);
+uint NetLocalGroupAdd(const(PWSTR) servername, uint level, ubyte* buf, uint* parm_err);
 
 ///The <b>NetLocalGroupAddMember</b> function is obsolete. You should use the NetLocalGroupAddMembers function instead.
 ///Params:
 ///    servername = TBD
 ///    groupname = TBD
 @DllImport("samcli")
-uint NetLocalGroupAddMember(const(wchar)* servername, const(wchar)* groupname, void* membersid);
+uint NetLocalGroupAddMember(const(PWSTR) servername, const(PWSTR) groupname, void* membersid);
 
 ///The <b>NetLocalGroupEnum</b> function returns information about each local group account on the specified server.
 ///Params:
@@ -5892,7 +5892,7 @@ uint NetLocalGroupAddMember(const(wchar)* servername, const(wchar)* groupname, v
 ///    return buffer is too small. </td> </tr> </table>
 ///    
 @DllImport("samcli")
-uint NetLocalGroupEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, 
+uint NetLocalGroupEnum(const(PWSTR) servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, 
                        uint* totalentries, size_t* resumehandle);
 
 ///The <b>NetLocalGroupGetInfo</b> function retrieves information about a particular local group account on a server.
@@ -5918,7 +5918,7 @@ uint NetLocalGroupEnum(const(wchar)* servername, uint level, ubyte** bufptr, uin
 ///    </tr> </table>
 ///    
 @DllImport("samcli")
-uint NetLocalGroupGetInfo(const(wchar)* servername, const(wchar)* groupname, uint level, ubyte** bufptr);
+uint NetLocalGroupGetInfo(const(PWSTR) servername, const(PWSTR) groupname, uint level, ubyte** bufptr);
 
 ///The <b>NetLocalGroupSetInfo</b> function changes the name of an existing local group. The function also associates a
 ///comment with a local group.
@@ -5953,7 +5953,7 @@ uint NetLocalGroupGetInfo(const(wchar)* servername, const(wchar)* groupname, uin
 ///    name is invalid. </td> </tr> </table>
 ///    
 @DllImport("samcli")
-uint NetLocalGroupSetInfo(const(wchar)* servername, const(wchar)* groupname, uint level, char* buf, uint* parm_err);
+uint NetLocalGroupSetInfo(const(PWSTR) servername, const(PWSTR) groupname, uint level, ubyte* buf, uint* parm_err);
 
 ///The <b>NetLocalGroupDel</b> function deletes a local group account and all its members from the security database,
 ///which is the security accounts manager (SAM) database or, in the case of domain controllers, the Active Directory.
@@ -5975,14 +5975,14 @@ uint NetLocalGroupSetInfo(const(wchar)* servername, const(wchar)* groupname, uin
 ///    not exist. </td> </tr> </table>
 ///    
 @DllImport("samcli")
-uint NetLocalGroupDel(const(wchar)* servername, const(wchar)* groupname);
+uint NetLocalGroupDel(const(PWSTR) servername, const(PWSTR) groupname);
 
 ///The <b>NetLocalGroupDelMember</b> function is obsolete. You should use the NetLocalGroupDelMembers function instead.
 ///Params:
 ///    servername = TBD
 ///    groupname = TBD
 @DllImport("samcli")
-uint NetLocalGroupDelMember(const(wchar)* servername, const(wchar)* groupname, void* membersid);
+uint NetLocalGroupDelMember(const(PWSTR) servername, const(PWSTR) groupname, void* membersid);
 
 ///The <b>NetLocalGroupGetMembers</b> function retrieves a list of the members of a particular local group in the
 ///security database, which is the security accounts manager (SAM) database or, in the case of domain controllers, the
@@ -6029,7 +6029,7 @@ uint NetLocalGroupDelMember(const(wchar)* servername, const(wchar)* groupname, v
 ///    </td> <td width="60%"> The specified local group does not exist. </td> </tr> </table>
 ///    
 @DllImport("samcli")
-uint NetLocalGroupGetMembers(const(wchar)* servername, const(wchar)* localgroupname, uint level, ubyte** bufptr, 
+uint NetLocalGroupGetMembers(const(PWSTR) servername, const(PWSTR) localgroupname, uint level, ubyte** bufptr, 
                              uint prefmaxlen, uint* entriesread, uint* totalentries, size_t* resumehandle);
 
 ///The <b>NetLocalGroupSetMembers</b> function sets the membership for the specified local group. Each user or global
@@ -6062,7 +6062,7 @@ uint NetLocalGroupGetMembers(const(wchar)* servername, const(wchar)* localgroupn
 ///    because it has an invalid account type. The local group membership was not changed. </td> </tr> </table>
 ///    
 @DllImport("samcli")
-uint NetLocalGroupSetMembers(const(wchar)* servername, const(wchar)* groupname, uint level, char* buf, 
+uint NetLocalGroupSetMembers(const(PWSTR) servername, const(PWSTR) groupname, uint level, ubyte* buf, 
                              uint totalentries);
 
 ///The <b>NetLocalGroupAddMembers</b> function adds membership of one or more existing user accounts or global group
@@ -6096,7 +6096,7 @@ uint NetLocalGroupSetMembers(const(wchar)* servername, const(wchar)* groupname, 
 ///    cannot be added because their account type is invalid. No new members were added. </td> </tr> </table>
 ///    
 @DllImport("samcli")
-uint NetLocalGroupAddMembers(const(wchar)* servername, const(wchar)* groupname, uint level, char* buf, 
+uint NetLocalGroupAddMembers(const(PWSTR) servername, const(PWSTR) groupname, uint level, ubyte* buf, 
                              uint totalentries);
 
 ///The <b>NetLocalGroupDelMembers</b> function removes one or more members from an existing local group. Local group
@@ -6127,7 +6127,7 @@ uint NetLocalGroupAddMembers(const(wchar)* servername, const(wchar)* groupname, 
 ///    not members of the local group. No members were deleted. </td> </tr> </table>
 ///    
 @DllImport("samcli")
-uint NetLocalGroupDelMembers(const(wchar)* servername, const(wchar)* groupname, uint level, char* buf, 
+uint NetLocalGroupDelMembers(const(PWSTR) servername, const(PWSTR) groupname, uint level, ubyte* buf, 
                              uint totalentries);
 
 ///The <b>NetQueryDisplayInformation</b> function returns user account, computer, or group account information. Call
@@ -6172,7 +6172,7 @@ uint NetLocalGroupDelMembers(const(wchar)* servername, const(wchar)* groupname, 
 ///    <b>NetQueryDisplayInformation</b>. </td> </tr> </table>
 ///    
 @DllImport("samcli")
-uint NetQueryDisplayInformation(const(wchar)* ServerName, uint Level, uint Index, uint EntriesRequested, 
+uint NetQueryDisplayInformation(const(PWSTR) ServerName, uint Level, uint Index, uint EntriesRequested, 
                                 uint PreferredMaximumLength, uint* ReturnedEntryCount, void** SortedBuffer);
 
 ///The <b>NetGetDisplayInformationIndex</b> function returns the index of the first display information entry whose name
@@ -6200,7 +6200,7 @@ uint NetQueryDisplayInformation(const(wchar)* ServerName, uint Level, uint Index
 ///    The computer name is invalid. </td> </tr> </table>
 ///    
 @DllImport("samcli")
-uint NetGetDisplayInformationIndex(const(wchar)* ServerName, uint Level, const(wchar)* Prefix, uint* Index);
+uint NetGetDisplayInformationIndex(const(PWSTR) ServerName, uint Level, const(PWSTR) Prefix, uint* Index);
 
 ///<p class="CCE_Message">[This function is obsolete. For a list of alternate functions, see Authorization Functions.]
 ///Not supported. The <b>NetAccessAdd</b> function creates a new access control list (ACL) for a resource.
@@ -6217,7 +6217,7 @@ uint NetGetDisplayInformationIndex(const(wchar)* ServerName, uint Level, const(w
 ///    system error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("NETAPI32")
-uint NetAccessAdd(const(wchar)* servername, uint level, char* buf, uint* parm_err);
+uint NetAccessAdd(const(PWSTR) servername, uint level, ubyte* buf, uint* parm_err);
 
 ///<p class="CCE_Message">[This function is obsolete. For a list of alternate functions, see Authorization Functions.]
 ///Not supported. The <b>NetAccessEnum</b> function retrieves information about each access permission record.
@@ -6250,7 +6250,7 @@ uint NetAccessAdd(const(wchar)* servername, uint level, char* buf, uint* parm_er
 ///    system error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("NETAPI32")
-uint NetAccessEnum(const(wchar)* servername, const(wchar)* BasePath, uint Recursive, uint level, ubyte** bufptr, 
+uint NetAccessEnum(const(PWSTR) servername, const(PWSTR) BasePath, uint Recursive, uint level, ubyte** bufptr, 
                    uint prefmaxlen, uint* entriesread, uint* totalentries, uint* resume_handle);
 
 ///<p class="CCE_Message">[This function is obsolete. For a list of alternate functions, see Authorization Functions.]
@@ -6271,7 +6271,7 @@ uint NetAccessEnum(const(wchar)* servername, const(wchar)* BasePath, uint Recurs
 ///    system error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("NETAPI32")
-uint NetAccessGetInfo(const(wchar)* servername, const(wchar)* resource, uint level, ubyte** bufptr);
+uint NetAccessGetInfo(const(PWSTR) servername, const(PWSTR) resource, uint level, ubyte** bufptr);
 
 ///<p class="CCE_Message">[This function is obsolete. For a list of alternate functions, see Authorization Functions.]
 ///Not supported. The <b>NetAccessSetInfo</b> function changes the access control list (ACL) for a resource.
@@ -6290,7 +6290,7 @@ uint NetAccessGetInfo(const(wchar)* servername, const(wchar)* resource, uint lev
 ///    system error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("NETAPI32")
-uint NetAccessSetInfo(const(wchar)* servername, const(wchar)* resource, uint level, char* buf, uint* parm_err);
+uint NetAccessSetInfo(const(PWSTR) servername, const(PWSTR) resource, uint level, ubyte* buf, uint* parm_err);
 
 ///<p class="CCE_Message">[This function is obsolete. For a list of alternate functions, see Authorization Functions.]
 ///Not supported. The <b>NetAccessDel</b> function deletes the access control list (ACL) for a resource.
@@ -6303,7 +6303,7 @@ uint NetAccessSetInfo(const(wchar)* servername, const(wchar)* resource, uint lev
 ///    error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("NETAPI32")
-uint NetAccessDel(const(wchar)* servername, const(wchar)* resource);
+uint NetAccessDel(const(PWSTR) servername, const(PWSTR) resource);
 
 ///<p class="CCE_Message">[This function is obsolete. For a list of alternate functions, see Authorization Functions.]
 ///Not supported. The <b>NetAccessGetUserPerms</b> function returns a specified user's or group's access permissions for
@@ -6319,7 +6319,7 @@ uint NetAccessDel(const(wchar)* servername, const(wchar)* resource);
 ///    error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("NETAPI32")
-uint NetAccessGetUserPerms(const(wchar)* servername, const(wchar)* UGname, const(wchar)* resource, uint* Perms);
+uint NetAccessGetUserPerms(const(PWSTR) servername, const(PWSTR) UGname, const(PWSTR) resource, uint* Perms);
 
 ///The <b>NetValidatePasswordPolicy</b> function allows an application to check password compliance against an
 ///application-provided account database and verify that passwords meet the complexity, aging, minimum length, and
@@ -6375,8 +6375,8 @@ uint NetAccessGetUserPerms(const(wchar)* servername, const(wchar)* UGname, const
 ///    the operation. </td> </tr> </table>
 ///    
 @DllImport("samcli")
-uint NetValidatePasswordPolicy(const(wchar)* ServerName, void* Qualifier, 
-                               NET_VALIDATE_PASSWORD_TYPE ValidationType, void* InputArg, void** OutputArg);
+uint NetValidatePasswordPolicy(const(PWSTR) ServerName, void* Qualifier, NET_VALIDATE_PASSWORD_TYPE ValidationType, 
+                               void* InputArg, void** OutputArg);
 
 ///The <b>NetValidatePasswordPolicyFree</b> function frees the memory that the NetValidatePasswordPolicy function
 ///allocates for the <i>OutputArg</i> parameter, which is a NET_VALIDATE_OUTPUT_ARG structure.
@@ -6420,7 +6420,7 @@ uint NetValidatePasswordPolicyFree(void** OutputArg);
 ///    request is not supported. </td> </tr> </table>
 ///    
 @DllImport("logoncli")
-uint NetGetDCName(const(wchar)* ServerName, const(wchar)* DomainName, ubyte** Buffer);
+uint NetGetDCName(const(PWSTR) ServerName, const(PWSTR) DomainName, ubyte** Buffer);
 
 ///The <b>NetGetAnyDCName</b> function returns the name of any domain controller (DC) for a domain that is directly
 ///trusted by the specified server. Applications that support DNS-style names should call the DsGetDcName function. This
@@ -6448,7 +6448,7 @@ uint NetGetDCName(const(wchar)* ServerName, const(wchar)* DomainName, ubyte** Bu
 ///    responded is not a proper domain controller of the specified domain. </td> </tr> </table>
 ///    
 @DllImport("logoncli")
-uint NetGetAnyDCName(const(wchar)* ServerName, const(wchar)* DomainName, ubyte** Buffer);
+uint NetGetAnyDCName(const(PWSTR) ServerName, const(PWSTR) DomainName, ubyte** Buffer);
 
 ///The <b>NetJoinDomain</b> function joins a computer to a workgroup or domain.
 ///Params:
@@ -6576,8 +6576,8 @@ uint NetGetAnyDCName(const(wchar)* ServerName, const(wchar)* DomainName, ubyte**
 ///    sequence is not supported. </td> </tr> </table>
 ///    
 @DllImport("wkscli")
-uint NetJoinDomain(const(wchar)* lpServer, const(wchar)* lpDomain, const(wchar)* lpMachineAccountOU, 
-                   const(wchar)* lpAccount, const(wchar)* lpPassword, uint fJoinOptions);
+uint NetJoinDomain(const(PWSTR) lpServer, const(PWSTR) lpDomain, const(PWSTR) lpMachineAccountOU, 
+                   const(PWSTR) lpAccount, const(PWSTR) lpPassword, uint fJoinOptions);
 
 ///The <b>NetUnjoinDomain</b> function unjoins a computer from a workgroup or a domain.
 ///Params:
@@ -6601,8 +6601,7 @@ uint NetJoinDomain(const(wchar)* lpServer, const(wchar)* lpDomain, const(wchar)*
 ///    and cannot be unjoined from a domain. </td> </tr> </table>
 ///    
 @DllImport("wkscli")
-uint NetUnjoinDomain(const(wchar)* lpServer, const(wchar)* lpAccount, const(wchar)* lpPassword, 
-                     uint fUnjoinOptions);
+uint NetUnjoinDomain(const(PWSTR) lpServer, const(PWSTR) lpAccount, const(PWSTR) lpPassword, uint fUnjoinOptions);
 
 ///The <b>NetRenameMachineInDomain</b> function changes the name of a computer in a domain.
 ///Params:
@@ -6629,8 +6628,8 @@ uint NetUnjoinDomain(const(wchar)* lpServer, const(wchar)* lpAccount, const(wcha
 ///    </tr> </table>
 ///    
 @DllImport("wkscli")
-uint NetRenameMachineInDomain(const(wchar)* lpServer, const(wchar)* lpNewMachineName, const(wchar)* lpAccount, 
-                              const(wchar)* lpPassword, uint fRenameOptions);
+uint NetRenameMachineInDomain(const(PWSTR) lpServer, const(PWSTR) lpNewMachineName, const(PWSTR) lpAccount, 
+                              const(PWSTR) lpPassword, uint fRenameOptions);
 
 ///The <b>NetValidateName</b> function verifies that a name is valid for name type specified(computer name, workgroup
 ///name, domain name, or DNS computer name).
@@ -6700,8 +6699,8 @@ uint NetRenameMachineInDomain(const(wchar)* lpServer, const(wchar)* lpNewMachine
 ///    calls are not allowed for this process. </td> </tr> </table>
 ///    
 @DllImport("wkscli")
-uint NetValidateName(const(wchar)* lpServer, const(wchar)* lpName, const(wchar)* lpAccount, 
-                     const(wchar)* lpPassword, NETSETUP_NAME_TYPE NameType);
+uint NetValidateName(const(PWSTR) lpServer, const(PWSTR) lpName, const(PWSTR) lpAccount, const(PWSTR) lpPassword, 
+                     NETSETUP_NAME_TYPE NameType);
 
 ///The <b>NetGetJoinableOUs</b> function retrieves a list of organizational units (OUs) in which a computer account can
 ///be created.
@@ -6729,8 +6728,8 @@ uint NetValidateName(const(wchar)* lpServer, const(wchar)* lpName, const(wchar)*
 ///    support creating computer accounts in OUs. </td> </tr> </table>
 ///    
 @DllImport("wkscli")
-uint NetGetJoinableOUs(const(wchar)* lpServer, const(wchar)* lpDomain, const(wchar)* lpAccount, 
-                       const(wchar)* lpPassword, uint* OUCount, ushort*** OUs);
+uint NetGetJoinableOUs(const(PWSTR) lpServer, const(PWSTR) lpDomain, const(PWSTR) lpAccount, 
+                       const(PWSTR) lpPassword, uint* OUCount, PWSTR** OUs);
 
 ///The <b>NetAddAlternateComputerName</b> function adds an alternate name for the specified computer.
 ///Params:
@@ -6770,8 +6769,8 @@ uint NetGetJoinableOUs(const(wchar)* lpServer, const(wchar)* lpDomain, const(wch
 ///    call protocol sequence is not supported. </td> </tr> </table>
 ///    
 @DllImport("wkscli")
-uint NetAddAlternateComputerName(const(wchar)* Server, const(wchar)* AlternateName, const(wchar)* DomainAccount, 
-                                 const(wchar)* DomainAccountPassword, uint Reserved);
+uint NetAddAlternateComputerName(const(PWSTR) Server, const(PWSTR) AlternateName, const(PWSTR) DomainAccount, 
+                                 const(PWSTR) DomainAccountPassword, uint Reserved);
 
 ///The <b>NetRemoveAlternateComputerName</b> function removes an alternate name for the specified computer.
 ///Params:
@@ -6811,8 +6810,8 @@ uint NetAddAlternateComputerName(const(wchar)* Server, const(wchar)* AlternateNa
 ///    call protocol sequence is not supported. </td> </tr> </table>
 ///    
 @DllImport("wkscli")
-uint NetRemoveAlternateComputerName(const(wchar)* Server, const(wchar)* AlternateName, const(wchar)* DomainAccount, 
-                                    const(wchar)* DomainAccountPassword, uint Reserved);
+uint NetRemoveAlternateComputerName(const(PWSTR) Server, const(PWSTR) AlternateName, const(PWSTR) DomainAccount, 
+                                    const(PWSTR) DomainAccountPassword, uint Reserved);
 
 ///The <b>NetSetPrimaryComputerName</b> function sets the primary computer name for the specified computer.
 ///Params:
@@ -6851,8 +6850,8 @@ uint NetRemoveAlternateComputerName(const(wchar)* Server, const(wchar)* Alternat
 ///    </dl> </td> <td width="60%"> The remote procedure call protocol sequence is not supported. </td> </tr> </table>
 ///    
 @DllImport("wkscli")
-uint NetSetPrimaryComputerName(const(wchar)* Server, const(wchar)* PrimaryName, const(wchar)* DomainAccount, 
-                               const(wchar)* DomainAccountPassword, uint Reserved);
+uint NetSetPrimaryComputerName(const(PWSTR) Server, const(PWSTR) PrimaryName, const(PWSTR) DomainAccount, 
+                               const(PWSTR) DomainAccountPassword, uint Reserved);
 
 ///The <b>NetEnumerateComputerNames</b> function enumerates names for the specified computer.
 ///Params:
@@ -6895,8 +6894,8 @@ uint NetSetPrimaryComputerName(const(wchar)* Server, const(wchar)* PrimaryName, 
 ///    call protocol sequence is not supported. </td> </tr> </table>
 ///    
 @DllImport("wkscli")
-uint NetEnumerateComputerNames(const(wchar)* Server, NET_COMPUTER_NAME_TYPE NameType, uint Reserved, 
-                               uint* EntryCount, ushort*** ComputerNames);
+uint NetEnumerateComputerNames(const(PWSTR) Server, NET_COMPUTER_NAME_TYPE NameType, uint Reserved, 
+                               uint* EntryCount, PWSTR** ComputerNames);
 
 ///The <b>NetProvisionComputerAccount</b> function provisions a computer account for later use in an offline domain join
 ///operation.
@@ -6991,10 +6990,9 @@ uint NetEnumerateComputerNames(const(wchar)* Server, NET_COMPUTER_NAME_TYPE Name
 ///    sequence is not supported. </td> </tr> </table>
 ///    
 @DllImport("NETAPI32")
-uint NetProvisionComputerAccount(const(wchar)* lpDomain, const(wchar)* lpMachineName, 
-                                 const(wchar)* lpMachineAccountOU, const(wchar)* lpDcName, uint dwOptions, 
-                                 ubyte** pProvisionBinData, uint* pdwProvisionBinDataSize, 
-                                 ushort** pProvisionTextData);
+uint NetProvisionComputerAccount(const(PWSTR) lpDomain, const(PWSTR) lpMachineName, 
+                                 const(PWSTR) lpMachineAccountOU, const(PWSTR) lpDcName, uint dwOptions, 
+                                 ubyte** pProvisionBinData, uint* pdwProvisionBinDataSize, PWSTR* pProvisionTextData);
 
 ///The <b>NetRequestOfflineDomainJoin</b> function executes locally on a machine to modify a Windows operating system
 ///image mounted on a volume. The registry is loaded from the image and provisioning blob data is written where it can
@@ -7037,8 +7035,8 @@ uint NetProvisionComputerAccount(const(wchar)* lpDomain, const(wchar)* lpMachine
 ///    <td width="60%"> The Workstation service has not been started. </td> </tr> </table>
 ///    
 @DllImport("NETAPI32")
-uint NetRequestOfflineDomainJoin(char* pProvisionBinData, uint cbProvisionBinDataSize, uint dwOptions, 
-                                 const(wchar)* lpWindowsPath);
+uint NetRequestOfflineDomainJoin(ubyte* pProvisionBinData, uint cbProvisionBinDataSize, uint dwOptions, 
+                                 const(PWSTR) lpWindowsPath);
 
 ///The NetCreateProvisioningPackage function creates a provisioning package that provisions a computer account for later
 ///use in an offline domain join operation. The package may also contain information about certificates and policies to
@@ -7138,7 +7136,7 @@ uint NetRequestOfflineDomainJoin(char* pProvisionBinData, uint cbProvisionBinDat
 ///    
 @DllImport("NETAPI32")
 uint NetCreateProvisioningPackage(NETSETUP_PROVISIONING_PARAMS* pProvisioningParams, ubyte** ppPackageBinData, 
-                                  uint* pdwPackageBinDataSize, ushort** ppPackageTextData);
+                                  uint* pdwPackageBinDataSize, PWSTR* ppPackageTextData);
 
 ///The <b>NetRequestProvisioningPackageInstall</b> function executes locally on a machine to modify a Windows operating
 ///system image mounted on a volume. The registry is loaded from the image and provisioning package data is written
@@ -7189,8 +7187,8 @@ uint NetCreateProvisioningPackage(NETSETUP_PROVISIONING_PARAMS* pProvisioningPar
 ///    version is not supported. </td> </tr> </table>
 ///    
 @DllImport("NETAPI32")
-uint NetRequestProvisioningPackageInstall(char* pPackageBinData, uint dwPackageBinDataSize, 
-                                          uint dwProvisionOptions, const(wchar)* lpWindowsPath, void* pvReserved);
+uint NetRequestProvisioningPackageInstall(ubyte* pPackageBinData, uint dwPackageBinDataSize, 
+                                          uint dwProvisionOptions, const(PWSTR) lpWindowsPath, void* pvReserved);
 
 ///Retrieves the join information for the specified tenant. This function examines the join information for Microsoft
 ///Azure Active Directory and the work account that the current user added.
@@ -7213,7 +7211,7 @@ uint NetRequestProvisioningPackageInstall(char* pPackageBinData, uint dwPackageB
 ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("NETAPI32")
-HRESULT NetGetAadJoinInformation(const(wchar)* pcszTenantId, DSREG_JOIN_INFO** ppJoinInfo);
+HRESULT NetGetAadJoinInformation(const(PWSTR) pcszTenantId, DSREG_JOIN_INFO** ppJoinInfo);
 
 ///Frees the memory allocated for the specified DSREG_JOIN_INFO structure, which contains join information for a tenant
 ///and which you retrieved by calling the NetGetAadJoinInformation function.
@@ -7252,7 +7250,7 @@ void NetFreeAadJoinInformation(DSREG_JOIN_INFO* pJoinInfo);
 ///    storage is available to process this command. </td> </tr> </table>
 ///    
 @DllImport("wkscli")
-uint NetGetJoinInformation(const(wchar)* lpServer, ushort** lpNameBuffer, NETSETUP_JOIN_STATUS* BufferType);
+uint NetGetJoinInformation(const(PWSTR) lpServer, PWSTR* lpNameBuffer, NETSETUP_JOIN_STATUS* BufferType);
 
 ///<p class="CCE_Message">[<b>GetNetScheduleAccountInformation</b> is no longer available for use as of Windows 8.
 ///Instead, use the Task Scheduler 2.0 Interfaces. ] The <b>GetNetScheduleAccountInformation</b> function retrieves the
@@ -7271,7 +7269,7 @@ uint NetGetJoinInformation(const(wchar)* lpServer, ushort** lpNameBuffer, NETSET
 ///    condition.
 ///    
 @DllImport("mstask")
-HRESULT GetNetScheduleAccountInformation(const(wchar)* pwszServerName, uint ccAccount, char* wszAccount);
+HRESULT GetNetScheduleAccountInformation(const(PWSTR) pwszServerName, uint ccAccount, ushort* wszAccount);
 
 ///<p class="CCE_Message">[<b>SetNetScheduleAccountInformation</b> is no longer available for use as of Windows 8.
 ///Instead, use the Task Scheduler 2.0 Interfaces. ] The <b>SetNetScheduleAccountInformation</b> function sets the AT
@@ -7300,8 +7298,8 @@ HRESULT GetNetScheduleAccountInformation(const(wchar)* pwszServerName, uint ccAc
 ///    not be found. </td> </tr> </table>
 ///    
 @DllImport("mstask")
-HRESULT SetNetScheduleAccountInformation(const(wchar)* pwszServerName, const(wchar)* pwszAccount, 
-                                         const(wchar)* pwszPassword);
+HRESULT SetNetScheduleAccountInformation(const(PWSTR) pwszServerName, const(PWSTR) pwszAccount, 
+                                         const(PWSTR) pwszPassword);
 
 ///<p class="CCE_Message">[This function is not supported as of Windows Vista because the alerter service is not
 ///supported.] The <b>NetAlertRaise</b> function notifies all registered clients when a particular event occurs. To
@@ -7340,7 +7338,7 @@ HRESULT SetNetScheduleAccountInformation(const(wchar)* pwszServerName, const(wch
 ///    returned on Windows Vista and later since the Alerter service is not supported. </td> </tr> </table>
 ///    
 @DllImport("NETAPI32")
-uint NetAlertRaise(const(wchar)* AlertType, void* Buffer, uint BufferSize);
+uint NetAlertRaise(const(PWSTR) AlertType, void* Buffer, uint BufferSize);
 
 ///<p class="CCE_Message">[This function is not supported as of Windows Vista because the alerter service is not
 ///supported.] The <b>NetAlertRaiseEx</b> function notifies all registered clients when a particular event occurs. You
@@ -7380,7 +7378,7 @@ uint NetAlertRaise(const(wchar)* AlertType, void* Buffer, uint BufferSize);
 ///    </tr> </table>
 ///    
 @DllImport("NETAPI32")
-uint NetAlertRaiseEx(const(wchar)* AlertType, void* VariableInfo, uint VariableInfoSize, const(wchar)* ServiceName);
+uint NetAlertRaiseEx(const(PWSTR) AlertType, void* VariableInfo, uint VariableInfoSize, const(PWSTR) ServiceName);
 
 ///The <b>NetApiBufferAllocate</b> function allocates memory from the heap. Use this function only when compatibility
 ///with the NetApiBufferFree function is required. Otherwise, use the memory management functions.
@@ -7438,7 +7436,7 @@ uint NetApiBufferSize(void* Buffer, uint* ByteCount);
 ///    server = TBD
 ///    backupfile = TBD
 @DllImport("NETAPI32")
-uint NetAuditClear(const(wchar)* server, const(wchar)* backupfile, const(wchar)* service);
+uint NetAuditClear(const(PWSTR) server, const(PWSTR) backupfile, const(PWSTR) service);
 
 ///The <b>NetAuditRead</b> function is obsolete. It is included for compatibility with 16-bit versions of Windows. Other
 ///applications should use event logging.
@@ -7454,7 +7452,7 @@ uint NetAuditClear(const(wchar)* server, const(wchar)* backupfile, const(wchar)*
 ///    prefmaxlen = TBD
 ///    bytesread = TBD
 @DllImport("NETAPI32")
-uint NetAuditRead(const(wchar)* server, const(wchar)* service, HLOG* auditloghandle, uint offset, uint* reserved1, 
+uint NetAuditRead(const(PWSTR) server, const(PWSTR) service, HLOG* auditloghandle, uint offset, uint* reserved1, 
                   uint reserved2, uint offsetflag, ubyte** bufptr, uint prefmaxlen, uint* bytesread, 
                   uint* totalavailable);
 
@@ -7466,7 +7464,7 @@ uint NetAuditRead(const(wchar)* server, const(wchar)* service, HLOG* auditloghan
 ///    numbytes = TBD
 ///    service = TBD
 @DllImport("NETAPI32")
-uint NetAuditWrite(uint type, ubyte* buf, uint numbytes, const(wchar)* service, ubyte* reserved);
+uint NetAuditWrite(uint type, ubyte* buf, uint numbytes, const(PWSTR) service, ubyte* reserved);
 
 ///The <b>NetConfigGet</b> function is obsolete. It is included for compatibility with 16-bit versions of Windows. Other
 ///applications should use the registry.
@@ -7475,7 +7473,7 @@ uint NetAuditWrite(uint type, ubyte* buf, uint numbytes, const(wchar)* service, 
 ///    component = TBD
 ///    bufptr = TBD
 @DllImport("NETAPI32")
-uint NetConfigGet(const(wchar)* server, const(wchar)* component, const(wchar)* parameter, ubyte** bufptr);
+uint NetConfigGet(const(PWSTR) server, const(PWSTR) component, const(PWSTR) parameter, ubyte** bufptr);
 
 ///The <b>NetConfigGetAll</b> function is obsolete. It is included for compatibility with 16-bit versions of Windows.
 ///Other applications should use the registry.
@@ -7483,7 +7481,7 @@ uint NetConfigGet(const(wchar)* server, const(wchar)* component, const(wchar)* p
 ///    server = TBD
 ///    component = TBD
 @DllImport("NETAPI32")
-uint NetConfigGetAll(const(wchar)* server, const(wchar)* component, ubyte** bufptr);
+uint NetConfigGetAll(const(PWSTR) server, const(PWSTR) component, ubyte** bufptr);
 
 ///The <b>NetConfigSet</b> function is obsolete. It is included for compatibility with 16-bit versions of Windows. Other
 ///applications should use the registry.
@@ -7495,8 +7493,8 @@ uint NetConfigGetAll(const(wchar)* server, const(wchar)* component, ubyte** bufp
 ///    reserved2 = TBD
 ///    buf = TBD
 @DllImport("NETAPI32")
-uint NetConfigSet(const(wchar)* server, const(wchar)* reserved1, const(wchar)* component, uint level, 
-                  uint reserved2, ubyte* buf, uint reserved3);
+uint NetConfigSet(const(PWSTR) server, const(PWSTR) reserved1, const(PWSTR) component, uint level, uint reserved2, 
+                  ubyte* buf, uint reserved3);
 
 ///The <b>NetErrorLogClear</b> function is obsolete. It is included for compatibility with 16-bit versions of Windows.
 ///Other applications should use event logging.
@@ -7504,7 +7502,7 @@ uint NetConfigSet(const(wchar)* server, const(wchar)* reserved1, const(wchar)* c
 ///    UncServerName = TBD
 ///    BackupFile = TBD
 @DllImport("NETAPI32")
-uint NetErrorLogClear(const(wchar)* UncServerName, const(wchar)* BackupFile, ubyte* Reserved);
+uint NetErrorLogClear(const(PWSTR) UncServerName, const(PWSTR) BackupFile, ubyte* Reserved);
 
 ///The <b>NetErrorLogRead</b> function is obsolete. It is included for compatibility with 16-bit versions of Windows.
 ///Other applications should use event logging.
@@ -7520,7 +7518,7 @@ uint NetErrorLogClear(const(wchar)* UncServerName, const(wchar)* BackupFile, uby
 ///    PrefMaxSize = TBD
 ///    BytesRead = TBD
 @DllImport("NETAPI32")
-uint NetErrorLogRead(const(wchar)* UncServerName, const(wchar)* Reserved1, HLOG* ErrorLogHandle, uint Offset, 
+uint NetErrorLogRead(const(PWSTR) UncServerName, PWSTR Reserved1, HLOG* ErrorLogHandle, uint Offset, 
                      uint* Reserved2, uint Reserved3, uint OffsetFlag, ubyte** BufPtr, uint PrefMaxSize, 
                      uint* BytesRead, uint* TotalAvailable);
 
@@ -7535,7 +7533,7 @@ uint NetErrorLogRead(const(wchar)* UncServerName, const(wchar)* Reserved1, HLOG*
 ///    MsgBuf = TBD
 ///    StrCount = TBD
 @DllImport("NETAPI32")
-uint NetErrorLogWrite(ubyte* Reserved1, uint Code, const(wchar)* Component, ubyte* Buffer, uint NumBytes, 
+uint NetErrorLogWrite(ubyte* Reserved1, uint Code, const(PWSTR) Component, ubyte* Buffer, uint NumBytes, 
                       ubyte* MsgBuf, uint StrCount, ubyte* Reserved2);
 
 ///<p class="CCE_Message">[This function is not supported as of Windows Vista because the messenger service is not
@@ -7562,7 +7560,7 @@ uint NetErrorLogWrite(ubyte* Reserved1, uint Code, const(wchar)* Component, ubyt
 ///    width="60%"> The maximum number of message aliases has been exceeded. </td> </tr> </table>
 ///    
 @DllImport("NETAPI32")
-uint NetMessageNameAdd(const(wchar)* servername, const(wchar)* msgname);
+uint NetMessageNameAdd(const(PWSTR) servername, const(PWSTR) msgname);
 
 ///<p class="CCE_Message">[This function is not supported as of Windows Vista because the messenger service is not
 ///supported.] The <b>NetMessageNameEnum</b> function lists the message aliases that receive messages on a specified
@@ -7606,7 +7604,7 @@ uint NetMessageNameAdd(const(wchar)* servername, const(wchar)* msgname);
 ///    </table>
 ///    
 @DllImport("NETAPI32")
-uint NetMessageNameEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, 
+uint NetMessageNameEnum(const(PWSTR) servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, 
                         uint* totalentries, uint* resume_handle);
 
 ///<p class="CCE_Message">[This function is not supported as of Windows Vista because the messenger service is not
@@ -7639,7 +7637,7 @@ uint NetMessageNameEnum(const(wchar)* servername, uint level, ubyte** bufptr, ui
 ///    alias is not on the local computer. </td> </tr> </table>
 ///    
 @DllImport("NETAPI32")
-uint NetMessageNameGetInfo(const(wchar)* servername, const(wchar)* msgname, uint level, ubyte** bufptr);
+uint NetMessageNameGetInfo(const(PWSTR) servername, const(PWSTR) msgname, uint level, ubyte** bufptr);
 
 ///<p class="CCE_Message">[This function is not supported as of Windows Vista because the messenger service is not
 ///supported.] The <b>NetMessageNameDel</b> function deletes a message alias in the message name table. The function
@@ -7665,7 +7663,7 @@ uint NetMessageNameGetInfo(const(wchar)* servername, const(wchar)* msgname, uint
 ///    local computer. </td> </tr> </table>
 ///    
 @DllImport("NETAPI32")
-uint NetMessageNameDel(const(wchar)* servername, const(wchar)* msgname);
+uint NetMessageNameDel(const(PWSTR) servername, const(PWSTR) msgname);
 
 ///<p class="CCE_Message">[This function is not supported as of Windows Vista because the messenger service is not
 ///supported.] The <b>NetMessageBufferSend</b> function sends a buffer of information to a registered message alias.
@@ -7691,7 +7689,7 @@ uint NetMessageNameDel(const(wchar)* servername, const(wchar)* msgname);
 ///    hardware. </td> </tr> </table>
 ///    
 @DllImport("NETAPI32")
-uint NetMessageBufferSend(const(wchar)* servername, const(wchar)* msgname, const(wchar)* fromname, ubyte* buf, 
+uint NetMessageBufferSend(const(PWSTR) servername, const(PWSTR) msgname, const(PWSTR) fromname, ubyte* buf, 
                           uint buflen);
 
 ///The <b>NetRemoteTOD</b> function returns the time of day information from a specified server.
@@ -7705,7 +7703,7 @@ uint NetMessageBufferSend(const(wchar)* servername, const(wchar)* msgname, const
 ///    error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("srvcli")
-uint NetRemoteTOD(const(wchar)* UncServerName, ubyte** BufferPtr);
+uint NetRemoteTOD(const(PWSTR) UncServerName, ubyte** BufferPtr);
 
 ///The <b>NetRemoteComputerSupports</b> function queries the redirector to retrieve the optional features the remote
 ///system supports. Features include Unicode, Remote Procedure Call (RPC), and Remote Administration Protocol support.
@@ -7739,7 +7737,7 @@ uint NetRemoteTOD(const(wchar)* UncServerName, ubyte** BufferPtr);
 ///    available. </td> </tr> </table>
 ///    
 @DllImport("netutils")
-uint NetRemoteComputerSupports(const(wchar)* UncServerName, uint OptionsWanted, uint* OptionsSupported);
+uint NetRemoteComputerSupports(const(PWSTR) UncServerName, uint OptionsWanted, uint* OptionsSupported);
 
 ///<p class="CCE_Message">[<b>NetScheduleJobAdd</b> is no longer available for use as of Windows 8. Instead, use the
 ///Task Scheduler 2.0 Interfaces. ] The <b>NetScheduleJobAdd</b> function submits a job to run at a specified future
@@ -7757,7 +7755,7 @@ uint NetRemoteComputerSupports(const(wchar)* UncServerName, uint OptionsWanted, 
 ///    error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("schedcli")
-uint NetScheduleJobAdd(const(wchar)* Servername, ubyte* Buffer, uint* JobId);
+uint NetScheduleJobAdd(const(PWSTR) Servername, ubyte* Buffer, uint* JobId);
 
 ///<p class="CCE_Message">[<b>NetScheduleJobDel</b> is no longer available for use as of Windows 8. Instead, use the
 ///Task Scheduler 2.0 Interfaces. ] The <b>NetScheduleJobDel</b> function deletes a range of jobs queued to run at a
@@ -7773,7 +7771,7 @@ uint NetScheduleJobAdd(const(wchar)* Servername, ubyte* Buffer, uint* JobId);
 ///    error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("schedcli")
-uint NetScheduleJobDel(const(wchar)* Servername, uint MinJobId, uint MaxJobId);
+uint NetScheduleJobDel(const(PWSTR) Servername, uint MinJobId, uint MaxJobId);
 
 ///<p class="CCE_Message">[<b>NetScheduleJobEnum</b> is no longer available for use as of Windows 8. Instead, use the
 ///Task Scheduler 2.0 Interfaces. ] The <b>NetScheduleJobEnum</b> function lists the jobs queued on a specified
@@ -7800,7 +7798,7 @@ uint NetScheduleJobDel(const(wchar)* Servername, uint MinJobId, uint MaxJobId);
 ///    error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("schedcli")
-uint NetScheduleJobEnum(const(wchar)* Servername, ubyte** PointerToBuffer, uint PrefferedMaximumLength, 
+uint NetScheduleJobEnum(const(PWSTR) Servername, ubyte** PointerToBuffer, uint PrefferedMaximumLength, 
                         uint* EntriesRead, uint* TotalEntries, uint* ResumeHandle);
 
 ///<p class="CCE_Message">[<b>NetScheduleJobGetInfo</b> is no longer available for use as of Windows 8. Instead, use the
@@ -7818,7 +7816,7 @@ uint NetScheduleJobEnum(const(wchar)* Servername, ubyte** PointerToBuffer, uint 
 ///    error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("schedcli")
-uint NetScheduleJobGetInfo(const(wchar)* Servername, uint JobId, ubyte** PointerToBuffer);
+uint NetScheduleJobGetInfo(const(PWSTR) Servername, uint JobId, ubyte** PointerToBuffer);
 
 ///The <b>NetServerEnum</b> function lists all servers of the specified type that are visible in a domain.
 ///Params:
@@ -7942,8 +7940,8 @@ uint NetScheduleJobGetInfo(const(wchar)* Servername, uint JobId, ubyte** Pointer
 ///    </table>
 ///    
 @DllImport("NETAPI32")
-uint NetServerEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, 
-                   uint* totalentries, uint servertype, const(wchar)* domain, uint* resume_handle);
+uint NetServerEnum(const(PWSTR) servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, 
+                   uint* totalentries, uint servertype, const(PWSTR) domain, uint* resume_handle);
 
 ///The <b>NetServerGetInfo</b> function retrieves current configuration information for the specified server.
 ///Params:
@@ -7970,7 +7968,7 @@ uint NetServerEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint pr
 ///    Insufficient memory is available. </td> </tr> </table>
 ///    
 @DllImport("srvcli")
-uint NetServerGetInfo(const(wchar)* servername, uint level, ubyte** bufptr);
+uint NetServerGetInfo(PWSTR servername, uint level, ubyte** bufptr);
 
 ///The <b>NetServerSetInfo</b> function sets a server's operating parameters; it can set them individually or
 ///collectively. The information is stored in a way that allows it to remain in effect after the system has been
@@ -8006,7 +8004,7 @@ uint NetServerGetInfo(const(wchar)* servername, uint level, ubyte** bufptr);
 ///    </tr> </table>
 ///    
 @DllImport("srvcli")
-uint NetServerSetInfo(const(wchar)* servername, uint level, char* buf, uint* ParmError);
+uint NetServerSetInfo(PWSTR servername, uint level, ubyte* buf, uint* ParmError);
 
 ///The <b>NetServerDiskEnum</b> function retrieves a list of disk drives on a server. The function returns an array of
 ///three-character strings (a drive letter, a colon, and a terminating null character).
@@ -8044,7 +8042,7 @@ uint NetServerSetInfo(const(wchar)* servername, uint level, char* buf, uint* Par
 ///    supported. </td> </tr> </table>
 ///    
 @DllImport("srvcli")
-uint NetServerDiskEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, 
+uint NetServerDiskEnum(PWSTR servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, 
                        uint* totalentries, uint* resume_handle);
 
 ///The <b>NetServerComputerNameAdd</b> function enumerates the transports on which the specified server is active, and
@@ -8071,8 +8069,7 @@ uint NetServerDiskEnum(const(wchar)* servername, uint level, ubyte** bufptr, uin
 ///    </tr> </table>
 ///    
 @DllImport("srvcli")
-uint NetServerComputerNameAdd(const(wchar)* ServerName, const(wchar)* EmulatedDomainName, 
-                              const(wchar)* EmulatedServerName);
+uint NetServerComputerNameAdd(PWSTR ServerName, PWSTR EmulatedDomainName, PWSTR EmulatedServerName);
 
 ///The <b>NetServerComputerNameDel</b> function causes the specified server to cease supporting the emulated server name
 ///set by a previous call to the NetServerComputerNameAdd function. The function does this by unbinding network
@@ -8093,7 +8090,7 @@ uint NetServerComputerNameAdd(const(wchar)* ServerName, const(wchar)* EmulatedDo
 ///    does not exist. </td> </tr> </table>
 ///    
 @DllImport("srvcli")
-uint NetServerComputerNameDel(const(wchar)* ServerName, const(wchar)* EmulatedServerName);
+uint NetServerComputerNameDel(PWSTR ServerName, PWSTR EmulatedServerName);
 
 ///The <b>NetServerTransportAdd</b> function binds the server to the transport protocol. The extended function
 ///NetServerTransportAddEx allows the calling application to specify the SERVER_TRANSPORT_INFO_1,
@@ -8125,7 +8122,7 @@ uint NetServerComputerNameDel(const(wchar)* ServerName, const(wchar)* EmulatedSe
 ///    </tr> </table>
 ///    
 @DllImport("srvcli")
-uint NetServerTransportAdd(const(wchar)* servername, uint level, char* bufptr);
+uint NetServerTransportAdd(PWSTR servername, uint level, ubyte* bufptr);
 
 ///The <b>NetServerTransportAddEx</b> function binds the specified server to the transport protocol. This extended
 ///function allows the calling application to specify the SERVER_TRANSPORT_INFO_0, SERVER_TRANSPORT_INFO_1,
@@ -8169,7 +8166,7 @@ uint NetServerTransportAdd(const(wchar)* servername, uint level, char* bufptr);
 ///    available. </td> </tr> </table>
 ///    
 @DllImport("srvcli")
-uint NetServerTransportAddEx(const(wchar)* servername, uint level, char* bufptr);
+uint NetServerTransportAddEx(PWSTR servername, uint level, ubyte* bufptr);
 
 ///The <b>NetServerTransportDel</b> function unbinds (or disconnects) the transport protocol from the server.
 ///Effectively, the server can no longer communicate with clients using the specified transport protocol (such as TCP or
@@ -8198,7 +8195,7 @@ uint NetServerTransportAddEx(const(wchar)* servername, uint level, char* bufptr)
 ///    </dl> </td> <td width="60%"> The share name does not exist. </td> </tr> </table>
 ///    
 @DllImport("srvcli")
-uint NetServerTransportDel(const(wchar)* servername, uint level, char* bufptr);
+uint NetServerTransportDel(PWSTR servername, uint level, ubyte* bufptr);
 
 ///The <b>NetServerTransportEnum</b> function supplies information about transport protocols that are managed by the
 ///server.
@@ -8237,8 +8234,8 @@ uint NetServerTransportDel(const(wchar)* servername, uint level, char* bufptr);
 ///    The supplied buffer is too small. </td> </tr> </table>
 ///    
 @DllImport("srvcli")
-uint NetServerTransportEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint prefmaxlen, 
-                            uint* entriesread, uint* totalentries, uint* resume_handle);
+uint NetServerTransportEnum(PWSTR servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, 
+                            uint* totalentries, uint* resume_handle);
 
 ///The <b>NetServiceControl</b> function is obsolete. It is included for compatibility with 16-bit versions of Windows.
 ///Other applications should use the service functions.
@@ -8248,7 +8245,7 @@ uint NetServerTransportEnum(const(wchar)* servername, uint level, ubyte** bufptr
 ///    opcode = TBD
 ///    arg = TBD
 @DllImport("NETAPI32")
-uint NetServiceControl(const(wchar)* servername, const(wchar)* service, uint opcode, uint arg, ubyte** bufptr);
+uint NetServiceControl(const(PWSTR) servername, const(PWSTR) service, uint opcode, uint arg, ubyte** bufptr);
 
 ///The <b>NetServiceEnum</b> function is obsolete. It is included for compatibility with 16-bit versions of Windows.
 ///Other applications should use the service functions.
@@ -8260,7 +8257,7 @@ uint NetServiceControl(const(wchar)* servername, const(wchar)* service, uint opc
 ///    entriesread = TBD
 ///    totalentries = TBD
 @DllImport("NETAPI32")
-uint NetServiceEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, 
+uint NetServiceEnum(const(PWSTR) servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, 
                     uint* totalentries, uint* resume_handle);
 
 ///The <b>NetServiceGetInfo</b> function is obsolete. It is included for compatibility with 16-bit versions of Windows.
@@ -8270,7 +8267,7 @@ uint NetServiceEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint p
 ///    service = TBD
 ///    level = TBD
 @DllImport("NETAPI32")
-uint NetServiceGetInfo(const(wchar)* servername, const(wchar)* service, uint level, ubyte** bufptr);
+uint NetServiceGetInfo(const(PWSTR) servername, const(PWSTR) service, uint level, ubyte** bufptr);
 
 ///The <b>NetServiceInstall</b> function is obsolete. It is included for compatibility with 16-bit versions of Windows.
 ///Other applications should use the service functions.
@@ -8280,7 +8277,7 @@ uint NetServiceGetInfo(const(wchar)* servername, const(wchar)* service, uint lev
 ///    argc = TBD
 ///    argv = TBD
 @DllImport("NETAPI32")
-uint NetServiceInstall(const(wchar)* servername, const(wchar)* service, uint argc, char* argv, ubyte** bufptr);
+uint NetServiceInstall(const(PWSTR) servername, const(PWSTR) service, uint argc, PWSTR** argv, ubyte** bufptr);
 
 ///The <b>NetUseAdd</b> function establishes a connection between the local computer and a remote server. You can
 ///specify a local drive letter or a printer device to connect. If you do not specify a local drive letter or printer
@@ -8308,7 +8305,7 @@ uint NetServiceInstall(const(wchar)* servername, const(wchar)* service, uint arg
 ///    error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("wkscli")
-uint NetUseAdd(byte* servername, uint LevelFlags, char* buf, uint* parm_err);
+uint NetUseAdd(byte* servername, uint LevelFlags, ubyte* buf, uint* parm_err);
 
 ///The <b>NetUseDel</b> function ends a connection to a shared resource. You can also use the WNetCancelConnection2
 ///function to terminate a network connection.
@@ -8332,7 +8329,7 @@ uint NetUseAdd(byte* servername, uint LevelFlags, char* buf, uint* parm_err);
 ///    error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("wkscli")
-uint NetUseDel(const(wchar)* UncServerName, const(wchar)* UseName, uint ForceLevelFlags);
+uint NetUseDel(PWSTR UncServerName, PWSTR UseName, uint ForceLevelFlags);
 
 ///The <b>NetUseEnum</b> function lists all current connections between the local computer and resources on remote
 ///servers. You can also use the WNetOpenEnum and the WNetEnumResource functions to enumerate network resources or
@@ -8381,8 +8378,8 @@ uint NetUseDel(const(wchar)* UncServerName, const(wchar)* UseName, uint ForceLev
 ///    returned error. </td> </tr> </table>
 ///    
 @DllImport("wkscli")
-uint NetUseEnum(const(wchar)* UncServerName, uint LevelFlags, ubyte** BufPtr, uint PreferedMaximumSize, 
-                uint* EntriesRead, uint* TotalEntries, uint* ResumeHandle);
+uint NetUseEnum(PWSTR UncServerName, uint LevelFlags, ubyte** BufPtr, uint PreferedMaximumSize, uint* EntriesRead, 
+                uint* TotalEntries, uint* ResumeHandle);
 
 ///The <b>NetUseGetInfo</b> function retrieves information about a connection to a shared resource. You can also use the
 ///WNetGetConnection function to retrieve the name of a network resource associated with a local device.
@@ -8410,7 +8407,7 @@ uint NetUseEnum(const(wchar)* UncServerName, uint LevelFlags, ubyte** BufPtr, ui
 ///    error code. For a list of error codes, see System Error Codes.
 ///    
 @DllImport("wkscli")
-uint NetUseGetInfo(const(wchar)* UncServerName, const(wchar)* UseName, uint LevelFlags, ubyte** bufptr);
+uint NetUseGetInfo(PWSTR UncServerName, PWSTR UseName, uint LevelFlags, ubyte** bufptr);
 
 ///The <b>NetWkstaGetInfo</b> function returns information about the configuration of a workstation.
 ///Params:
@@ -8437,7 +8434,7 @@ uint NetUseGetInfo(const(wchar)* UncServerName, const(wchar)* UseName, uint Leve
 ///    width="60%"> The <i>level</i> parameter is invalid. </td> </tr> </table>
 ///    
 @DllImport("wkscli")
-uint NetWkstaGetInfo(const(wchar)* servername, uint level, ubyte** bufptr);
+uint NetWkstaGetInfo(PWSTR servername, uint level, ubyte** bufptr);
 
 ///The <b>NetWkstaSetInfo</b> function configures a workstation with information that remains in effect after the system
 ///has been reinitialized.
@@ -8478,7 +8475,7 @@ uint NetWkstaGetInfo(const(wchar)* servername, uint level, ubyte** bufptr);
 ///    section. </td> </tr> </table>
 ///    
 @DllImport("wkscli")
-uint NetWkstaSetInfo(const(wchar)* servername, uint level, char* buffer, uint* parm_err);
+uint NetWkstaSetInfo(PWSTR servername, uint level, ubyte* buffer, uint* parm_err);
 
 ///The <b>NetWkstaUserGetInfo</b> function returns information about the currently logged-on user. This function must be
 ///called in the context of the logged-on user.
@@ -8507,7 +8504,7 @@ uint NetWkstaSetInfo(const(wchar)* servername, uint level, char* buffer, uint* p
 ///    </td> </tr> </table>
 ///    
 @DllImport("wkscli")
-uint NetWkstaUserGetInfo(const(wchar)* reserved, uint level, ubyte** bufptr);
+uint NetWkstaUserGetInfo(PWSTR reserved, uint level, ubyte** bufptr);
 
 ///The <b>NetWkstaUserSetInfo</b> function sets the user-specific information about the configuration elements for a
 ///workstation.
@@ -8531,7 +8528,7 @@ uint NetWkstaUserGetInfo(const(wchar)* reserved, uint level, ubyte** bufptr);
 ///    of the function parameters is invalid. </td> </tr> </table>
 ///    
 @DllImport("wkscli")
-uint NetWkstaUserSetInfo(const(wchar)* reserved, uint level, char* buf, uint* parm_err);
+uint NetWkstaUserSetInfo(PWSTR reserved, uint level, ubyte* buf, uint* parm_err);
 
 ///The <b>NetWkstaUserEnum</b> function lists information about all users currently logged on to the workstation. This
 ///list includes interactive, service and batch logons.
@@ -8569,7 +8566,7 @@ uint NetWkstaUserSetInfo(const(wchar)* reserved, uint level, char* buf, uint* pa
 ///    is invalid. </td> </tr> </table>
 ///    
 @DllImport("wkscli")
-uint NetWkstaUserEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, 
+uint NetWkstaUserEnum(PWSTR servername, uint level, ubyte** bufptr, uint prefmaxlen, uint* entriesread, 
                       uint* totalentries, uint* resumehandle);
 
 ///<p class="CCE_Message">[This function is obsolete. To change the default settings for transport protocols manually,
@@ -8597,7 +8594,7 @@ uint NetWkstaUserEnum(const(wchar)* servername, uint level, ubyte** bufptr, uint
 ///    width="60%"> One of the function parameters is invalid. </td> </tr> </table>
 ///    
 @DllImport("wkscli")
-uint NetWkstaTransportAdd(byte* servername, uint level, char* buf, uint* parm_err);
+uint NetWkstaTransportAdd(byte* servername, uint level, ubyte* buf, uint* parm_err);
 
 ///<p class="CCE_Message">[This function is obsolete. To change the default settings for transport protocols manually,
 ///use the <b>Local Area Connection Properties</b> dialog box in the <b>Network and Dial-Up Connections</b> folder.] Not
@@ -8625,7 +8622,7 @@ uint NetWkstaTransportAdd(byte* servername, uint level, char* buf, uint* parm_er
 ///    </table>
 ///    
 @DllImport("wkscli")
-uint NetWkstaTransportDel(const(wchar)* servername, const(wchar)* transportname, uint ucond);
+uint NetWkstaTransportDel(PWSTR servername, PWSTR transportname, uint ucond);
 
 ///The <b>NetWkstaTransportEnum</b> function supplies information about transport protocols that are managed by the
 ///redirector, which is the software on the client computer that generates file requests to the server computer.

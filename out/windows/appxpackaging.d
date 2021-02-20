@@ -5,9 +5,9 @@ module windows.appxpackaging;
 public import windows.core;
 public import windows.com : HRESULT, IUnknown, IUri;
 public import windows.structuredstorage : IStream;
-public import windows.systemservices : BOOL, HANDLE;
+public import windows.systemservices : BOOL, HANDLE, PSTR, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -342,11 +342,11 @@ struct APPX_PACKAGE_SETTINGS
 struct APPX_PACKAGE_WRITER_PAYLOAD_STREAM
 {
     ///The source of the payload file.
-    IStream       inputStream;
+    IStream      inputStream;
     ///Name of the payload file.
-    const(wchar)* fileName;
+    const(PWSTR) fileName;
     ///The content type of the payload file.
-    const(wchar)* contentType;
+    const(PWSTR) contentType;
     APPX_COMPRESSION_OPTION compressionOption;
 }
 
@@ -354,24 +354,24 @@ struct APPX_PACKAGE_WRITER_PAYLOAD_STREAM
 struct APPX_ENCRYPTED_PACKAGE_SETTINGS
 {
     ///The key length.
-    uint          keyLength;
+    uint         keyLength;
     ///The encryption algorithm used.
-    const(wchar)* encryptionAlgorithm;
+    const(PWSTR) encryptionAlgorithm;
     ///True is diffusion is used, false otherwise.
-    BOOL          useDiffusion;
-    IUri          blockMapHashAlgorithm;
+    BOOL         useDiffusion;
+    IUri         blockMapHashAlgorithm;
 }
 
 ///Encrypted Windows app package settings. This structure expands on APPX_ENCRYPTED_PACKAGE_SETTINGS.
 struct APPX_ENCRYPTED_PACKAGE_SETTINGS2
 {
     ///The key length.
-    uint          keyLength;
+    uint         keyLength;
     ///The encryption algorithm used.
-    const(wchar)* encryptionAlgorithm;
+    const(PWSTR) encryptionAlgorithm;
     ///The Uri of the block map hash algorithm.
-    IUri          blockMapHashAlgorithm;
-    uint          options;
+    IUri         blockMapHashAlgorithm;
+    uint         options;
 }
 
 ///Windows app package key information.
@@ -390,18 +390,18 @@ struct APPX_KEY_INFO
 struct APPX_ENCRYPTED_EXEMPTIONS
 {
     ///The count of files exempted.
-    uint     count;
-    ushort** plainTextFiles;
+    uint   count;
+    PWSTR* plainTextFiles;
 }
 
 ///Represents the package version information.
 struct PACKAGE_VERSION
 {
-    union
+union
     {
     align (4):
         ulong Version;
-        struct
+struct
         {
             ushort Revision;
             ushort Build;
@@ -425,16 +425,16 @@ struct PACKAGE_ID
     ///Type: <b>PACKAGE_VERSION</b> The version of the package.
     PACKAGE_VERSION version_;
     ///Type: <b>PWSTR</b> The name of the package.
-    const(wchar)*   name;
+    PWSTR           name;
     ///Type: <b>PWSTR</b> The publisher of the package. If there is no publisher for the package, this member is
     ///<b>NULL</b>.
-    const(wchar)*   publisher;
+    PWSTR           publisher;
     ///Type: <b>PWSTR</b> The resource identifier (ID) of the package. If there is no resource ID for the package, this
     ///member is <b>NULL</b>.
-    const(wchar)*   resourceId;
+    PWSTR           resourceId;
     ///Type: <b>PWSTR</b> The publisher identifier (ID) of the package. If there is no publisher ID for the package,
     ///this member is <b>NULL</b>.
-    const(wchar)*   publisherId;
+    PWSTR           publisherId;
 }
 
 struct _PACKAGE_INFO_REFERENCE
@@ -446,17 +446,17 @@ struct _PACKAGE_INFO_REFERENCE
 struct PACKAGE_INFO
 {
     ///Type: <b>UINT32</b> Reserved; do not use.
-    uint          reserved;
+    uint       reserved;
     ///Type: <b>UINT32</b> Properties of the package.
-    uint          flags;
+    uint       flags;
     ///Type: <b>PWSTR</b> The location of the package.
-    const(wchar)* path;
+    PWSTR      path;
     ///Type: <b>PWSTR</b> The package full name.
-    const(wchar)* packageFullName;
+    PWSTR      packageFullName;
     ///Type: <b>PWSTR</b> The package family name.
-    const(wchar)* packageFamilyName;
+    PWSTR      packageFamilyName;
     ///Type: <b>PACKAGE_ID</b> The package identifier (ID).
-    PACKAGE_ID    packageId;
+    PACKAGE_ID packageId;
 }
 
 // Functions
@@ -475,7 +475,7 @@ struct PACKAGE_INFO
 ///    data. The required size is specified by <i>bufferLength</i>. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-int GetCurrentPackageId(uint* bufferLength, char* buffer);
+int GetCurrentPackageId(uint* bufferLength, ubyte* buffer);
 
 ///Gets the package full name for the calling process.
 ///Params:
@@ -491,7 +491,7 @@ int GetCurrentPackageId(uint* bufferLength, char* buffer);
 ///    data. The required size is specified by <i>packageFullNameLength</i>. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-int GetCurrentPackageFullName(uint* packageFullNameLength, const(wchar)* packageFullName);
+int GetCurrentPackageFullName(uint* packageFullNameLength, PWSTR packageFullName);
 
 ///Gets the package family name for the calling process.
 ///Params:
@@ -508,7 +508,7 @@ int GetCurrentPackageFullName(uint* packageFullNameLength, const(wchar)* package
 ///    data. The required size is specified by <i>packageFamilyNameLength</i>. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-int GetCurrentPackageFamilyName(uint* packageFamilyNameLength, const(wchar)* packageFamilyName);
+int GetCurrentPackageFamilyName(uint* packageFamilyNameLength, PWSTR packageFamilyName);
 
 ///Gets the package path for the calling process.
 ///Params:
@@ -524,7 +524,7 @@ int GetCurrentPackageFamilyName(uint* packageFamilyNameLength, const(wchar)* pac
 ///    data. The required size is specified by <i>pathLength</i>. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-int GetCurrentPackagePath(uint* pathLength, const(wchar)* path);
+int GetCurrentPackagePath(uint* pathLength, PWSTR path);
 
 ///Gets the package identifier (ID) for the specified process.
 ///Params:
@@ -543,7 +543,7 @@ int GetCurrentPackagePath(uint* pathLength, const(wchar)* path);
 ///    data. The required size is specified by <i>bufferLength</i>. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-int GetPackageId(HANDLE hProcess, uint* bufferLength, char* buffer);
+int GetPackageId(HANDLE hProcess, uint* bufferLength, ubyte* buffer);
 
 ///Gets the package full name for the specified process.
 ///Params:
@@ -562,7 +562,7 @@ int GetPackageId(HANDLE hProcess, uint* bufferLength, char* buffer);
 ///    data. The required size is specified by <i>packageFullNameLength</i>. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-int GetPackageFullName(HANDLE hProcess, uint* packageFullNameLength, const(wchar)* packageFullName);
+int GetPackageFullName(HANDLE hProcess, uint* packageFullNameLength, PWSTR packageFullName);
 
 ///Gets the package full name for the specified token.
 ///Params:
@@ -579,7 +579,7 @@ int GetPackageFullName(HANDLE hProcess, uint* packageFullNameLength, const(wchar
 ///    <i>packageFullNameLength</i>. </td> </tr> </table>
 ///    
 @DllImport("api-ms-win-appmodel-runtime-l1-1-1")
-int GetPackageFullNameFromToken(HANDLE token, uint* packageFullNameLength, const(wchar)* packageFullName);
+int GetPackageFullNameFromToken(HANDLE token, uint* packageFullNameLength, PWSTR packageFullName);
 
 ///Gets the package family name for the specified process.
 ///Params:
@@ -598,7 +598,7 @@ int GetPackageFullNameFromToken(HANDLE token, uint* packageFullNameLength, const
 ///    data. The required size is specified by <i>packageFamilyNameLength</i>. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-int GetPackageFamilyName(HANDLE hProcess, uint* packageFamilyNameLength, const(wchar)* packageFamilyName);
+int GetPackageFamilyName(HANDLE hProcess, uint* packageFamilyNameLength, PWSTR packageFamilyName);
 
 ///Gets the package family name for the specified token.
 ///Params:
@@ -615,7 +615,7 @@ int GetPackageFamilyName(HANDLE hProcess, uint* packageFamilyNameLength, const(w
 ///    data. The required size is specified by <i>packageFamilyNameLength</i>. </td> </tr> </table>
 ///    
 @DllImport("api-ms-win-appmodel-runtime-l1-1-1")
-int GetPackageFamilyNameFromToken(HANDLE token, uint* packageFamilyNameLength, const(wchar)* packageFamilyName);
+int GetPackageFamilyNameFromToken(HANDLE token, uint* packageFamilyNameLength, PWSTR packageFamilyName);
 
 ///Gets the path for the specified package.
 ///Params:
@@ -632,7 +632,7 @@ int GetPackageFamilyNameFromToken(HANDLE token, uint* packageFamilyNameLength, c
 ///    specified by <i>pathLength</i>. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-int GetPackagePath(const(PACKAGE_ID)* packageId, const(uint) reserved, uint* pathLength, const(wchar)* path);
+int GetPackagePath(const(PACKAGE_ID)* packageId, const(uint) reserved, uint* pathLength, PWSTR path);
 
 ///Gets the path of the specified package.
 ///Params:
@@ -651,7 +651,7 @@ int GetPackagePath(const(PACKAGE_ID)* packageId, const(uint) reserved, uint* pat
 ///    specified by <i>pathLength</i>. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-int GetPackagePathByFullName(const(wchar)* packageFullName, uint* pathLength, const(wchar)* path);
+int GetPackagePathByFullName(const(PWSTR) packageFullName, uint* pathLength, PWSTR path);
 
 ///Gets the path of the specified staged package.
 ///Params:
@@ -670,7 +670,7 @@ int GetPackagePathByFullName(const(wchar)* packageFullName, uint* pathLength, co
 ///    specified by <i>pathLength</i>. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-int GetStagedPackagePathByFullName(const(wchar)* packageFullName, uint* pathLength, const(wchar)* path);
+int GetStagedPackagePathByFullName(const(PWSTR) packageFullName, uint* pathLength, PWSTR path);
 
 ///Gets the path of the specified package, with the option to specify the type of folder path to retrieve for the
 ///package.
@@ -692,8 +692,8 @@ int GetStagedPackagePathByFullName(const(wchar)* packageFullName, uint* pathLeng
 ///    specified by <i>pathLength</i>. </td> </tr> </table>
 ///    
 @DllImport("api-ms-win-appmodel-runtime-l1-1-3")
-int GetPackagePathByFullName2(const(wchar)* packageFullName, PackagePathType packagePathType, uint* pathLength, 
-                              const(wchar)* path);
+int GetPackagePathByFullName2(const(PWSTR) packageFullName, PackagePathType packagePathType, uint* pathLength, 
+                              PWSTR path);
 
 ///Gets the path of the specified staged package, with the option to specify the type of folder path to retrieve for the
 ///package.
@@ -715,8 +715,8 @@ int GetPackagePathByFullName2(const(wchar)* packageFullName, PackagePathType pac
 ///    specified by <i>pathLength</i>. </td> </tr> </table>
 ///    
 @DllImport("api-ms-win-appmodel-runtime-l1-1-3")
-int GetStagedPackagePathByFullName2(const(wchar)* packageFullName, PackagePathType packagePathType, 
-                                    uint* pathLength, const(wchar)* path);
+int GetStagedPackagePathByFullName2(const(PWSTR) packageFullName, PackagePathType packagePathType, 
+                                    uint* pathLength, PWSTR path);
 
 ///Gets the package information for the calling process, with the option to specify the type of folder path to retrieve
 ///for the package.
@@ -738,7 +738,7 @@ int GetStagedPackagePathByFullName2(const(wchar)* packageFullName, PackagePathTy
 ///    data. The required size is specified by <i>bufferLength</i>. </td> </tr> </table>
 ///    
 @DllImport("api-ms-win-appmodel-runtime-l1-1-3")
-int GetCurrentPackageInfo2(const(uint) flags, PackagePathType packagePathType, uint* bufferLength, char* buffer, 
+int GetCurrentPackageInfo2(const(uint) flags, PackagePathType packagePathType, uint* bufferLength, ubyte* buffer, 
                            uint* count);
 
 ///Gets the package path for the calling process, with the option to specify the type of folder path to retrieve for the
@@ -758,7 +758,7 @@ int GetCurrentPackageInfo2(const(uint) flags, PackagePathType packagePathType, u
 ///    data. The required size is specified by <i>pathLength</i>. </td> </tr> </table>
 ///    
 @DllImport("api-ms-win-appmodel-runtime-l1-1-3")
-int GetCurrentPackagePath2(PackagePathType packagePathType, uint* pathLength, const(wchar)* path);
+int GetCurrentPackagePath2(PackagePathType packagePathType, uint* pathLength, PWSTR path);
 
 ///Gets the application user model ID for the current process.
 ///Params:
@@ -774,7 +774,7 @@ int GetCurrentPackagePath2(PackagePathType packagePathType, uint* pathLength, co
 ///    <i>applicationUserModelIdLength</i>. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-int GetCurrentApplicationUserModelId(uint* applicationUserModelIdLength, const(wchar)* applicationUserModelId);
+int GetCurrentApplicationUserModelId(uint* applicationUserModelIdLength, PWSTR applicationUserModelId);
 
 ///Gets the application user model ID for the specified process.
 ///Params:
@@ -792,8 +792,7 @@ int GetCurrentApplicationUserModelId(uint* applicationUserModelIdLength, const(w
 ///    <i>applicationUserModelIdLength</i>. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-int GetApplicationUserModelId(HANDLE hProcess, uint* applicationUserModelIdLength, 
-                              const(wchar)* applicationUserModelId);
+int GetApplicationUserModelId(HANDLE hProcess, uint* applicationUserModelIdLength, PWSTR applicationUserModelId);
 
 ///Gets the application user model ID for the specified token.
 ///Params:
@@ -812,22 +811,22 @@ int GetApplicationUserModelId(HANDLE hProcess, uint* applicationUserModelIdLengt
 ///    
 @DllImport("api-ms-win-appmodel-runtime-l1-1-1")
 int GetApplicationUserModelIdFromToken(HANDLE token, uint* applicationUserModelIdLength, 
-                                       const(wchar)* applicationUserModelId);
+                                       PWSTR applicationUserModelId);
 
 @DllImport("api-ms-win-appmodel-runtime-l1-1-1")
-int VerifyPackageFullName(const(wchar)* packageFullName);
+int VerifyPackageFullName(const(PWSTR) packageFullName);
 
 @DllImport("api-ms-win-appmodel-runtime-l1-1-1")
-int VerifyPackageFamilyName(const(wchar)* packageFamilyName);
+int VerifyPackageFamilyName(const(PWSTR) packageFamilyName);
 
 @DllImport("api-ms-win-appmodel-runtime-l1-1-1")
 int VerifyPackageId(const(PACKAGE_ID)* packageId);
 
 @DllImport("api-ms-win-appmodel-runtime-l1-1-1")
-int VerifyApplicationUserModelId(const(wchar)* applicationUserModelId);
+int VerifyApplicationUserModelId(const(PWSTR) applicationUserModelId);
 
 @DllImport("api-ms-win-appmodel-runtime-l1-1-1")
-int VerifyPackageRelativeApplicationId(const(wchar)* packageRelativeApplicationId);
+int VerifyPackageRelativeApplicationId(const(PWSTR) packageRelativeApplicationId);
 
 ///Gets the package identifier (ID) for the specified package full name.
 ///Params:
@@ -846,7 +845,7 @@ int VerifyPackageRelativeApplicationId(const(wchar)* packageRelativeApplicationI
 ///    width="60%"> The package is not installed for the user. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-int PackageIdFromFullName(const(wchar)* packageFullName, const(uint) flags, uint* bufferLength, char* buffer);
+int PackageIdFromFullName(const(PWSTR) packageFullName, const(uint) flags, uint* bufferLength, ubyte* buffer);
 
 ///Gets the package full name for the specified package identifier (ID).
 ///Params:
@@ -862,7 +861,7 @@ int PackageIdFromFullName(const(wchar)* packageFullName, const(uint) flags, uint
 ///    <i>packageFullNameLength</i>. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-int PackageFullNameFromId(const(PACKAGE_ID)* packageId, uint* packageFullNameLength, const(wchar)* packageFullName);
+int PackageFullNameFromId(const(PACKAGE_ID)* packageId, uint* packageFullNameLength, PWSTR packageFullName);
 
 ///Gets the package family name for the specified package identifier.
 ///Params:
@@ -878,8 +877,7 @@ int PackageFullNameFromId(const(PACKAGE_ID)* packageId, uint* packageFullNameLen
 ///    <i>packageFamilyNameLength</i>. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-int PackageFamilyNameFromId(const(PACKAGE_ID)* packageId, uint* packageFamilyNameLength, 
-                            const(wchar)* packageFamilyName);
+int PackageFamilyNameFromId(const(PACKAGE_ID)* packageId, uint* packageFamilyNameLength, PWSTR packageFamilyName);
 
 ///Gets the package family name for the specified package full name.
 ///Params:
@@ -895,8 +893,8 @@ int PackageFamilyNameFromId(const(PACKAGE_ID)* packageId, uint* packageFamilyNam
 ///    <i>packageFamilyNameLength</i>. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-int PackageFamilyNameFromFullName(const(wchar)* packageFullName, uint* packageFamilyNameLength, 
-                                  const(wchar)* packageFamilyName);
+int PackageFamilyNameFromFullName(const(PWSTR) packageFullName, uint* packageFamilyNameLength, 
+                                  PWSTR packageFamilyName);
 
 ///Gets the package name and publisher identifier (ID) for the specified package family name.
 ///Params:
@@ -915,9 +913,9 @@ int PackageFamilyNameFromFullName(const(wchar)* packageFullName, uint* packageFa
 ///    <i>packageNameLength</i> and <i>packagePublisherIdLength</i>. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-int PackageNameAndPublisherIdFromFamilyName(const(wchar)* packageFamilyName, uint* packageNameLength, 
-                                            const(wchar)* packageName, uint* packagePublisherIdLength, 
-                                            const(wchar)* packagePublisherId);
+int PackageNameAndPublisherIdFromFamilyName(const(PWSTR) packageFamilyName, uint* packageNameLength, 
+                                            PWSTR packageName, uint* packagePublisherIdLength, 
+                                            PWSTR packagePublisherId);
 
 ///Constructs an application user model ID from the <i>package family name</i> and the <i>package relative application
 ///ID</i> (PRAID).
@@ -931,8 +929,8 @@ int PackageNameAndPublisherIdFromFamilyName(const(wchar)* packageFamilyName, uin
 ///    applicationUserModelId = Type: <b>PWSTR</b> A pointer to memory space that receives the app user model ID string, which includes the
 ///                             null-terminator.
 @DllImport("KERNEL32")
-int FormatApplicationUserModelId(const(wchar)* packageFamilyName, const(wchar)* packageRelativeApplicationId, 
-                                 uint* applicationUserModelIdLength, const(wchar)* applicationUserModelId);
+int FormatApplicationUserModelId(const(PWSTR) packageFamilyName, const(PWSTR) packageRelativeApplicationId, 
+                                 uint* applicationUserModelIdLength, PWSTR applicationUserModelId);
 
 ///Deconstructs an application user model ID to its <i>package family name</i> and <i>package relative application
 ///ID</i> (PRAID).
@@ -952,9 +950,9 @@ int FormatApplicationUserModelId(const(wchar)* packageFamilyName, const(wchar)* 
 ///    packageRelativeApplicationId = Type: <b>PWSTR</b> A pointer to memory space that receives the package-relative app ID (PRAID) string, which
 ///                                   includes the null-terminator.
 @DllImport("KERNEL32")
-int ParseApplicationUserModelId(const(wchar)* applicationUserModelId, uint* packageFamilyNameLength, 
-                                const(wchar)* packageFamilyName, uint* packageRelativeApplicationIdLength, 
-                                const(wchar)* packageRelativeApplicationId);
+int ParseApplicationUserModelId(const(PWSTR) applicationUserModelId, uint* packageFamilyNameLength, 
+                                PWSTR packageFamilyName, uint* packageRelativeApplicationIdLength, 
+                                PWSTR packageRelativeApplicationId);
 
 ///Gets the packages with the specified family name for the current user.
 ///Params:
@@ -976,8 +974,8 @@ int ParseApplicationUserModelId(const(wchar)* applicationUserModelId, uint* pack
 ///    <i>count</i> or <i>buffer</i>. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-int GetPackagesByPackageFamily(const(wchar)* packageFamilyName, uint* count, char* packageFullNames, 
-                               uint* bufferLength, char* buffer);
+int GetPackagesByPackageFamily(const(PWSTR) packageFamilyName, uint* count, PWSTR* packageFullNames, 
+                               uint* bufferLength, PWSTR buffer);
 
 ///Finds the packages with the specified family name for the current user.
 ///Params:
@@ -997,8 +995,8 @@ int GetPackagesByPackageFamily(const(wchar)* packageFamilyName, uint* count, cha
 ///    packageProperties = Type: <b>UINT32*</b> A pointer to memory space that receives the package properties for all of the packages that
 ///                        were found.
 @DllImport("KERNEL32")
-int FindPackagesByPackageFamily(const(wchar)* packageFamilyName, uint packageFilters, uint* count, 
-                                char* packageFullNames, uint* bufferLength, char* buffer, char* packageProperties);
+int FindPackagesByPackageFamily(const(PWSTR) packageFamilyName, uint packageFilters, uint* count, 
+                                PWSTR* packageFullNames, uint* bufferLength, PWSTR buffer, uint* packageProperties);
 
 ///Gets the origin of the specified package.
 ///Params:
@@ -1006,7 +1004,7 @@ int FindPackagesByPackageFamily(const(wchar)* packageFamilyName, uint packageFil
 ///    origin = Type: <b>PackageOrigin*</b> A pointer to a variable that receives a PackageOrigin-typed value that indicates the
 ///             origin of the package specified by <i>packageFullName</i>.
 @DllImport("api-ms-win-appmodel-runtime-l1-1-1")
-int GetStagedPackageOrigin(const(wchar)* packageFullName, PackageOrigin* origin);
+int GetStagedPackageOrigin(const(PWSTR) packageFullName, PackageOrigin* origin);
 
 ///Gets the package information for the calling process.
 ///Params:
@@ -1025,7 +1023,7 @@ int GetStagedPackageOrigin(const(wchar)* packageFullName, PackageOrigin* origin)
 ///    data. The required size is specified by <i>bufferLength</i>. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-int GetCurrentPackageInfo(const(uint) flags, uint* bufferLength, char* buffer, uint* count);
+int GetCurrentPackageInfo(const(uint) flags, uint* bufferLength, ubyte* buffer, uint* count);
 
 ///Opens the package information of the specified package.
 ///Params:
@@ -1039,11 +1037,11 @@ int GetCurrentPackageInfo(const(uint) flags, uint* bufferLength, char* buffer, u
 ///    width="60%"> The package is not installed for the current user. </td> </tr> </table>
 ///    
 @DllImport("KERNEL32")
-int OpenPackageInfoByFullName(const(wchar)* packageFullName, const(uint) reserved, 
+int OpenPackageInfoByFullName(const(PWSTR) packageFullName, const(uint) reserved, 
                               _PACKAGE_INFO_REFERENCE** packageInfoReference);
 
 @DllImport("api-ms-win-appmodel-runtime-l1-1-1")
-int OpenPackageInfoByFullNameForUser(void* userSid, const(wchar)* packageFullName, const(uint) reserved, 
+int OpenPackageInfoByFullNameForUser(void* userSid, const(PWSTR) packageFullName, const(uint) reserved, 
                                      _PACKAGE_INFO_REFERENCE** packageInfoReference);
 
 ///Closes a reference to the specified package information.
@@ -1073,7 +1071,7 @@ int ClosePackageInfo(_PACKAGE_INFO_REFERENCE* packageInfoReference);
 ///    
 @DllImport("KERNEL32")
 int GetPackageInfo(_PACKAGE_INFO_REFERENCE* packageInfoReference, const(uint) flags, uint* bufferLength, 
-                   char* buffer, uint* count);
+                   ubyte* buffer, uint* count);
 
 ///Gets the IDs of apps in the specified package.
 ///Params:
@@ -1084,7 +1082,7 @@ int GetPackageInfo(_PACKAGE_INFO_REFERENCE* packageInfoReference, const(uint) fl
 ///    buffer = Type: <b>BYTE*</b> A pointer to memory space that receives the app IDs.
 ///    count = Type: <b>UINT32*</b> A pointer to a variable that receives the number of app IDs in <i>buffer</i>.
 @DllImport("KERNEL32")
-int GetPackageApplicationIds(_PACKAGE_INFO_REFERENCE* packageInfoReference, uint* bufferLength, char* buffer, 
+int GetPackageApplicationIds(_PACKAGE_INFO_REFERENCE* packageInfoReference, uint* bufferLength, ubyte* buffer, 
                              uint* count);
 
 ///Retrieves a value indicating whether a process can be suspended/resumed by the Process Lifecycle Manager (PLM). You
@@ -1185,7 +1183,7 @@ int AppPolicyGetCreateFileAccess(HANDLE processToken, AppPolicyCreateFileAccess*
 ///    
 @DllImport("api-ms-win-appmodel-runtime-l1-1-3")
 int GetPackageInfo2(_PACKAGE_INFO_REFERENCE* packageInfoReference, const(uint) flags, 
-                    PackagePathType packagePathType, uint* bufferLength, char* buffer, uint* count);
+                    PackagePathType packagePathType, uint* bufferLength, ubyte* buffer, uint* count);
 
 
 // Interfaces
@@ -1294,7 +1292,7 @@ interface IAppxFactory : IUnknown
     ///    <dl> <dt><b>APPX_E_INVALID_BLOCKMAP</b></dt> </dl> </td> <td width="60%"> The <i>blockMapStream</i> does not
     ///    contain syntactically valid XML for the block map. </td> </tr> </table>
     ///    
-    HRESULT CreateValidatedBlockMapReader(IStream blockMapStream, const(wchar)* signatureFileName, 
+    HRESULT CreateValidatedBlockMapReader(IStream blockMapStream, const(PWSTR) signatureFileName, 
                                           IAppxBlockMapReader* blockMapReader);
 }
 
@@ -1370,7 +1368,7 @@ interface IAppxPackageReader : IUnknown
     ///    <dt><b>HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)</b></dt> </dl> </td> <td width="60%"> There is no payload
     ///    file with the specified file name. </td> </tr> </table>
     ///    
-    HRESULT GetPayloadFile(const(wchar)* fileName, IAppxFile* file);
+    HRESULT GetPayloadFile(const(PWSTR) fileName, IAppxFile* file);
     ///Retrieves an enumerator that iterates through the payload files in the package.
     ///Params:
     ///    filesEnumerator = Type: <b>IAppxFilesEnumerator**</b> An enumerator over all payload files in the package.
@@ -1416,7 +1414,7 @@ interface IAppxPackageWriter : IUnknown
     ///    file. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>OPC_E_DUPLICATE_PART</b></dt> </dl> </td> <td
     ///    width="60%"> The file name specified is already in use in the package. </td> </tr> </table>
     ///    
-    HRESULT AddPayloadFile(const(wchar)* fileName, const(wchar)* contentType, 
+    HRESULT AddPayloadFile(const(PWSTR) fileName, const(PWSTR) contentType, 
                            APPX_COMPRESSION_OPTION compressionOption, IStream inputStream);
     ///Writes footprint files at the end of the app package, and closes the package writer object's output stream.
     ///Params:
@@ -1464,7 +1462,7 @@ interface IAppxPackageWriter3 : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns <b>S_OK</b>. Otherwise, it returns an error code.
     ///    
-    HRESULT AddPayloadFiles(uint fileCount, char* payloadFiles, ulong memoryLimit);
+    HRESULT AddPayloadFiles(uint fileCount, APPX_PACKAGE_WRITER_PAYLOAD_STREAM* payloadFiles, ulong memoryLimit);
 }
 
 ///Retrieves information about a payload or footprint file in a package.
@@ -1489,7 +1487,7 @@ interface IAppxFile : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetContentType(ushort** contentType);
+    HRESULT GetContentType(PWSTR* contentType);
     ///Retrieves the name of the file, including its path relative to the package root directory.
     ///Params:
     ///    fileName = Type: <b>LPWSTR*</b> A string that contains the name and relative path of the file.
@@ -1498,7 +1496,7 @@ interface IAppxFile : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetName(ushort** fileName);
+    HRESULT GetName(PWSTR* fileName);
     ///Retrieves the uncompressed size of the file.
     ///Params:
     ///    size = Type: <b>UINT64*</b> The uncompressed size, in bytes.
@@ -1549,7 +1547,7 @@ interface IAppxFilesEnumerator : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetHasCurrent(int* hasCurrent);
+    HRESULT GetHasCurrent(BOOL* hasCurrent);
     ///Advances the position of the enumerator to the next payload file.
     ///Params:
     ///    hasNext = Type: <b>BOOL*</b> <b>TRUE</b> if the enumerator successfully advances <b>FALSE</b> if the enumerator has
@@ -1561,7 +1559,7 @@ interface IAppxFilesEnumerator : IUnknown
     ///    you subsequently call another MoveNext after you have already passed the end of the collection, and you have
     ///    previously received <i>hasNext</i> = <b>FALSE</b>.
     ///    
-    HRESULT MoveNext(int* hasNext);
+    HRESULT MoveNext(BOOL* hasNext);
 }
 
 ///Represents a read-only object model for block maps that provides access to the file attributes and block hashes.
@@ -1579,7 +1577,7 @@ interface IAppxBlockMapReader : IUnknown
     ///    <dt><b>HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)</b></dt> </dl> </td> <td width="60%"> The specified file name
     ///    does not match the name of a file listed in the block map. </td> </tr> </table>
     ///    
-    HRESULT GetFile(const(wchar)* filename, IAppxBlockMapFile* file);
+    HRESULT GetFile(const(PWSTR) filename, IAppxBlockMapFile* file);
     ///Retrieves an enumerator for traversing the files listed in the block map.
     ///Params:
     ///    enumerator = Type: <b>IAppxBlockMapFilesEnumerator**</b> The enumerator of all the files listed in the block map.
@@ -1641,7 +1639,7 @@ interface IAppxBlockMapFile : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetName(ushort** name);
+    HRESULT GetName(PWSTR* name);
     ///Retrieves the uncompressed size of the associated zip file item.
     ///Params:
     ///    size = Type: <b>UINT64*</b> In a valid app package, <i>size</i> is the uncompressed size of the associated zip file
@@ -1662,7 +1660,7 @@ interface IAppxBlockMapFile : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT ValidateFileHash(IStream fileStream, int* isValid);
+    HRESULT ValidateFileHash(IStream fileStream, BOOL* isValid);
 }
 
 ///Enumerates the files from a block map.
@@ -1688,7 +1686,7 @@ interface IAppxBlockMapFilesEnumerator : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetHasCurrent(int* hasCurrent);
+    HRESULT GetHasCurrent(BOOL* hasCurrent);
     ///Advances the position of the enumerator to the next file.
     ///Params:
     ///    hasCurrent = Type: <b>BOOL*</b> <b>TRUE</b> if the enumerator successfully advances <b>FALSE</b> if the enumerator has
@@ -1700,7 +1698,7 @@ interface IAppxBlockMapFilesEnumerator : IUnknown
     ///    you subsequently call another MoveNext after you have already passed the end of the collection, and you have
     ///    previously received <i>hasNext</i> = <b>FALSE</b>.
     ///    
-    HRESULT MoveNext(int* hasCurrent);
+    HRESULT MoveNext(BOOL* hasCurrent);
 }
 
 ///The <b>IAppxBlockMapBlock</b> interface provides a read-only object that represents an individual block within a file
@@ -1719,7 +1717,7 @@ interface IAppxBlockMapBlock : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetHash(uint* bufferSize, char* buffer);
+    HRESULT GetHash(uint* bufferSize, ubyte** buffer);
     ///Retrieves compressed size of the block.
     ///Params:
     ///    size = Type: <b>UINT32*</b> The compressed size of the block, in bytes.
@@ -1754,7 +1752,7 @@ interface IAppxBlockMapBlocksEnumerator : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetHasCurrent(int* hasCurrent);
+    HRESULT GetHasCurrent(BOOL* hasCurrent);
     ///Advances the position of the enumerator to the next block.
     ///Params:
     ///    hasNext = Type: <b>BOOL*</b> <b>TRUE</b> if the enumerator successfully advances <b>FALSE</b> if the enumerator has
@@ -1766,7 +1764,7 @@ interface IAppxBlockMapBlocksEnumerator : IUnknown
     ///    you subsequently call another MoveNext after you have already passed the end of the collection, and you have
     ///    previously received <i>hasNext</i> = <b>FALSE</b>.
     ///    
-    HRESULT MoveNext(int* hasNext);
+    HRESULT MoveNext(BOOL* hasNext);
 }
 
 ///Represents an object model of the package manifest that provides methods to access manifest elements and attributes.
@@ -1838,7 +1836,7 @@ interface IAppxManifestReader : IUnknown
     ///    <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td
     ///    width="60%"> The prerequisite defined in <i>name</i> is not defined in the manifest. </td> </tr> </table>
     ///    
-    HRESULT GetPrerequisite(const(wchar)* name, ulong* value);
+    HRESULT GetPrerequisite(const(PWSTR) name, ulong* value);
     ///Gets an enumerator that iterates through the applications defined in the manifest.
     ///Params:
     ///    applications = Type: <b>IAppxManifestApplicationsEnumerator**</b> The enumerator that iterates through the applications.
@@ -1912,7 +1910,7 @@ interface IAppxManifestReader6 : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetIsNonQualifiedResourcePackage(int* isNonQualifiedResourcePackage);
+    HRESULT GetIsNonQualifiedResourcePackage(BOOL* isNonQualifiedResourcePackage);
 }
 
 @GUID("8EFE6F27-0CE0-4988-B32D-738EB63DB3B7")
@@ -1927,8 +1925,8 @@ interface IAppxManifestReader7 : IUnknown
 interface IAppxManifestDriverDependenciesEnumerator : IUnknown
 {
     HRESULT GetCurrent(IAppxManifestDriverDependency* driverDependency);
-    HRESULT GetHasCurrent(int* hasCurrent);
-    HRESULT MoveNext(int* hasNext);
+    HRESULT GetHasCurrent(BOOL* hasCurrent);
+    HRESULT MoveNext(BOOL* hasNext);
 }
 
 @GUID("1210CB94-5A92-4602-BE24-79F318AF4AF9")
@@ -1941,30 +1939,30 @@ interface IAppxManifestDriverDependency : IUnknown
 interface IAppxManifestDriverConstraintsEnumerator : IUnknown
 {
     HRESULT GetCurrent(IAppxManifestDriverConstraint* driverConstraint);
-    HRESULT GetHasCurrent(int* hasCurrent);
-    HRESULT MoveNext(int* hasNext);
+    HRESULT GetHasCurrent(BOOL* hasCurrent);
+    HRESULT MoveNext(BOOL* hasNext);
 }
 
 @GUID("C031BEE4-BBCC-48EA-A237-C34045C80A07")
 interface IAppxManifestDriverConstraint : IUnknown
 {
-    HRESULT GetName(ushort** name);
+    HRESULT GetName(PWSTR* name);
     HRESULT GetMinVersion(ulong* minVersion);
-    HRESULT GetMinDate(ushort** minDate);
+    HRESULT GetMinDate(PWSTR* minDate);
 }
 
 @GUID("B84E2FC3-F8EC-4BC1-8AE2-156346F5FFEA")
 interface IAppxManifestOSPackageDependenciesEnumerator : IUnknown
 {
     HRESULT GetCurrent(IAppxManifestOSPackageDependency* osPackageDependency);
-    HRESULT GetHasCurrent(int* hasCurrent);
-    HRESULT MoveNext(int* hasNext);
+    HRESULT GetHasCurrent(BOOL* hasCurrent);
+    HRESULT MoveNext(BOOL* hasNext);
 }
 
 @GUID("154995EE-54A6-4F14-AC97-D8CF0519644B")
 interface IAppxManifestOSPackageDependency : IUnknown
 {
-    HRESULT GetName(ushort** name);
+    HRESULT GetName(PWSTR* name);
     HRESULT GetVersion(ulong* version_);
 }
 
@@ -1972,15 +1970,15 @@ interface IAppxManifestOSPackageDependency : IUnknown
 interface IAppxManifestHostRuntimeDependenciesEnumerator : IUnknown
 {
     HRESULT GetCurrent(IAppxManifestHostRuntimeDependency* hostRuntimeDependency);
-    HRESULT GetHasCurrent(int* hasCurrent);
-    HRESULT MoveNext(int* hasNext);
+    HRESULT GetHasCurrent(BOOL* hasCurrent);
+    HRESULT MoveNext(BOOL* hasNext);
 }
 
 @GUID("3455D234-8414-410D-95C7-7B35255B8391")
 interface IAppxManifestHostRuntimeDependency : IUnknown
 {
-    HRESULT GetName(ushort** name);
-    HRESULT GetPublisher(ushort** publisher);
+    HRESULT GetName(PWSTR* name);
+    HRESULT GetPublisher(PWSTR* publisher);
     HRESULT GetMinVersion(ulong* minVersion);
 }
 
@@ -1995,7 +1993,7 @@ interface IAppxManifestOptionalPackageInfo : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetIsOptionalPackage(int* isOptionalPackage);
+    HRESULT GetIsOptionalPackage(BOOL* isOptionalPackage);
     ///Gets the main package name from the optional package.
     ///Params:
     ///    mainPackageName = The main package name.
@@ -2003,7 +2001,7 @@ interface IAppxManifestOptionalPackageInfo : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetMainPackageName(ushort** mainPackageName);
+    HRESULT GetMainPackageName(PWSTR* mainPackageName);
 }
 
 ///Enumerates &lt;MainPackageDependency&gt; elements from an app manifest.
@@ -2028,7 +2026,7 @@ interface IAppxManifestMainPackageDependenciesEnumerator : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetHasCurrent(int* hasCurrent);
+    HRESULT GetHasCurrent(BOOL* hasCurrent);
     ///Advances the position of the enumerator to the next &lt;MainPackageDependency&gt; element.
     ///Params:
     ///    hasNext = Type: <b>BOOL*</b> <b>TRUE</b> if the enumerator successfully advances <b>FALSE</b> if the enumerator has
@@ -2040,7 +2038,7 @@ interface IAppxManifestMainPackageDependenciesEnumerator : IUnknown
     ///    <b>E_BOUNDS</b> if you subsequently call another MoveNext after you have already passed the end of the
     ///    collection, and you have previously received <i>hasNext</i> = <b>FALSE</b>.</div> <div> </div>
     ///    
-    HRESULT MoveNext(int* hasNext);
+    HRESULT MoveNext(BOOL* hasNext);
 }
 
 ///Provides access to attribute values of the main package dependency.
@@ -2054,7 +2052,7 @@ interface IAppxManifestMainPackageDependency : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetName(ushort** name);
+    HRESULT GetName(PWSTR* name);
     ///Gets the publisher of the main package dependency from the AppxManifest.xml.
     ///Params:
     ///    publisher = The publisher of the main package dependency.
@@ -2062,7 +2060,7 @@ interface IAppxManifestMainPackageDependency : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetPublisher(ushort** publisher);
+    HRESULT GetPublisher(PWSTR* publisher);
     ///Gets the package family name of the main package dependency from the AppxManifest.xml.
     ///Params:
     ///    packageFamilyName = The package family name of the main package dependency.
@@ -2070,7 +2068,7 @@ interface IAppxManifestMainPackageDependency : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetPackageFamilyName(ushort** packageFamilyName);
+    HRESULT GetPackageFamilyName(PWSTR* packageFamilyName);
 }
 
 ///Provides access to the package identity.
@@ -2083,7 +2081,7 @@ interface IAppxManifestPackageId : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> If the method succeeds, it returns <b>S_OK</b>.
     ///    
-    HRESULT GetName(ushort** name);
+    HRESULT GetName(PWSTR* name);
     ///Gets the processor architecture as defined in the manifest.
     ///Params:
     ///    architecture = Type: <b>APPX_PACKAGE_ARCHITECTURE*</b> The architecture specified for the package.
@@ -2099,7 +2097,7 @@ interface IAppxManifestPackageId : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> If the method succeeds, it returns <b>S_OK</b>.
     ///    
-    HRESULT GetPublisher(ushort** publisher);
+    HRESULT GetPublisher(PWSTR* publisher);
     ///Gets the version of the package as defined in the manifest.
     ///Params:
     ///    packageVersion = Type: <b>UINT64*</b> The version of the package.
@@ -2113,7 +2111,7 @@ interface IAppxManifestPackageId : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> If the method succeeds, it returns <b>S_OK</b>.
     ///    
-    HRESULT GetResourceId(ushort** resourceId);
+    HRESULT GetResourceId(PWSTR* resourceId);
     ///Compares the specified publisher with the publisher defined in the manifest.
     ///Params:
     ///    other = Type: <b>LPCWSTR</b> The publisher name to be compared.
@@ -2122,21 +2120,21 @@ interface IAppxManifestPackageId : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> If the method succeeds, it returns <b>S_OK</b>.
     ///    
-    HRESULT ComparePublisher(const(wchar)* other, int* isSame);
+    HRESULT ComparePublisher(const(PWSTR) other, BOOL* isSame);
     ///Gets the package full name.
     ///Params:
     ///    packageFullName = Type: <b>LPWSTR*</b> The package full name.
     ///Returns:
     ///    Type: <b>HRESULT</b> If the method succeeds, it returns <b>S_OK</b>.
     ///    
-    HRESULT GetPackageFullName(ushort** packageFullName);
+    HRESULT GetPackageFullName(PWSTR* packageFullName);
     ///Gets the package family name.
     ///Params:
     ///    packageFamilyName = Type: <b>LPWSTR*</b> The package family name.
     ///Returns:
     ///    Type: <b>HRESULT</b> If the method succeeds, it returns <b>S_OK</b>.
     ///    
-    HRESULT GetPackageFamilyName(ushort** packageFamilyName);
+    HRESULT GetPackageFamilyName(PWSTR* packageFamilyName);
 }
 
 ///Provides access to the app package identity.
@@ -2168,7 +2166,7 @@ interface IAppxManifestProperties : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetBoolValue(const(wchar)* name, int* value);
+    HRESULT GetBoolValue(const(PWSTR) name, BOOL* value);
     ///Gets the value of the specified string element in the properties section.
     ///Params:
     ///    name = Type: <b>LPCWSTR</b> The name of the string element. Valid values include: <p class="indent">"Description" <p
@@ -2179,15 +2177,15 @@ interface IAppxManifestProperties : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetStringValue(const(wchar)* name, ushort** value);
+    HRESULT GetStringValue(const(PWSTR) name, PWSTR* value);
 }
 
 @GUID("36537F36-27A4-4788-88C0-733819575017")
 interface IAppxManifestTargetDeviceFamiliesEnumerator : IUnknown
 {
     HRESULT GetCurrent(IAppxManifestTargetDeviceFamily* targetDeviceFamily);
-    HRESULT GetHasCurrent(int* hasCurrent);
-    HRESULT MoveNext(int* hasNext);
+    HRESULT GetHasCurrent(BOOL* hasCurrent);
+    HRESULT MoveNext(BOOL* hasNext);
 }
 
 ///Retrieves information about the target device family from the AppxManifest.xml.
@@ -2201,7 +2199,7 @@ interface IAppxManifestTargetDeviceFamily : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetName(ushort** name);
+    HRESULT GetName(PWSTR* name);
     ///Gets the minimum version of the target device family from the AppxManifest.xml.
     ///Params:
     ///    minVersion = The minimum version.
@@ -2243,7 +2241,7 @@ interface IAppxManifestPackageDependenciesEnumerator : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetHasCurrent(int* hasCurrent);
+    HRESULT GetHasCurrent(BOOL* hasCurrent);
     ///Advances the position of the enumerator to the next package dependency.
     ///Params:
     ///    hasNext = Type: <b>BOOL*</b> <b>TRUE</b> if the enumerator successfully advances <b>FALSE</b> if the enumerator has
@@ -2255,7 +2253,7 @@ interface IAppxManifestPackageDependenciesEnumerator : IUnknown
     ///    you subsequently call another MoveNext after you have already passed the end of the collection, and you have
     ///    previously received <i>hasNext</i> = <b>FALSE</b>.
     ///    
-    HRESULT MoveNext(int* hasNext);
+    HRESULT MoveNext(BOOL* hasNext);
 }
 
 ///Describes the dependency of one package on another package.
@@ -2268,7 +2266,7 @@ interface IAppxManifestPackageDependency : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> If the method succeeds, it returns <b>S_OK</b>.
     ///    
-    HRESULT GetName(ushort** name);
+    HRESULT GetName(PWSTR* name);
     ///Gets the name of the publisher that produced the package on which the current package depends.
     ///Params:
     ///    publisher = Type: <b>LPWSTR*</b> The name of the publisher.
@@ -2277,7 +2275,7 @@ interface IAppxManifestPackageDependency : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetPublisher(ushort** publisher);
+    HRESULT GetPublisher(PWSTR* publisher);
     ///Gets the minimum version of the package on which the current package has a dependency.
     ///Params:
     ///    minVersion = Type: <b>UINT64*</b> The minimum version of the package.
@@ -2307,7 +2305,7 @@ interface IAppxManifestPackageDependency2 : IAppxManifestPackageDependency
 @GUID("1AC56374-6198-4D6B-92E4-749D5AB8A895")
 interface IAppxManifestPackageDependency3 : IUnknown
 {
-    HRESULT GetIsOptional(int* isOptional);
+    HRESULT GetIsOptional(BOOL* isOptional);
 }
 
 ///Enumerates the resources defined in the package manifest.
@@ -2323,7 +2321,7 @@ interface IAppxManifestResourcesEnumerator : IUnknown
     ///    <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>E_BOUNDS</b></dt> </dl> </td> <td width="60%">
     ///    The enumerator has passed the last item in the collection. </td> </tr> </table>
     ///    
-    HRESULT GetCurrent(ushort** resource);
+    HRESULT GetCurrent(PWSTR* resource);
     ///Determines whether there is a resource at the current position of the enumerator.
     ///Params:
     ///    hasCurrent = Type: <b>BOOL*</b> <b>TRUE</b> if the enumerator's current position references an item; <b>FALSE</b> if the
@@ -2333,7 +2331,7 @@ interface IAppxManifestResourcesEnumerator : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetHasCurrent(int* hasCurrent);
+    HRESULT GetHasCurrent(BOOL* hasCurrent);
     ///Advances the position of the enumerator to the next resource.
     ///Params:
     ///    hasNext = Type: <b>BOOL*</b> <b>TRUE</b> if the enumerator successfully advances <b>FALSE</b> if the enumerator has
@@ -2345,7 +2343,7 @@ interface IAppxManifestResourcesEnumerator : IUnknown
     ///    you subsequently call another MoveNext after you have already passed the end of the collection, and you have
     ///    previously received <i>hasNext</i> = <b>FALSE</b>.
     ///    
-    HRESULT MoveNext(int* hasNext);
+    HRESULT MoveNext(BOOL* hasNext);
 }
 
 ///Enumerates the device capabilities defined in the package manifest.
@@ -2361,7 +2359,7 @@ interface IAppxManifestDeviceCapabilitiesEnumerator : IUnknown
     ///    <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>E_BOUNDS</b></dt> </dl> </td> <td width="60%">
     ///    The enumerator has passed the last item in the collection. </td> </tr> </table>
     ///    
-    HRESULT GetCurrent(ushort** deviceCapability);
+    HRESULT GetCurrent(PWSTR* deviceCapability);
     ///Determines whether there is a device capability at the current position of the enumerator.
     ///Params:
     ///    hasCurrent = Type: <b>BOOL*</b> <b>TRUE</b> if the enumerator's current position references an item; <b>FALSE</b> if the
@@ -2371,7 +2369,7 @@ interface IAppxManifestDeviceCapabilitiesEnumerator : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetHasCurrent(int* hasCurrent);
+    HRESULT GetHasCurrent(BOOL* hasCurrent);
     ///Advances the position of the enumerator to the next device capability.
     ///Params:
     ///    hasNext = Type: <b>BOOL*</b> <b>TRUE</b> if the enumerator successfully advances <b>FALSE</b> if the enumerator has
@@ -2383,15 +2381,15 @@ interface IAppxManifestDeviceCapabilitiesEnumerator : IUnknown
     ///    you subsequently call another MoveNext after you have already passed the end of the collection, and you have
     ///    previously received <i>hasNext</i> = <b>FALSE</b>.
     ///    
-    HRESULT MoveNext(int* hasNext);
+    HRESULT MoveNext(BOOL* hasNext);
 }
 
 @GUID("11D22258-F470-42C1-B291-8361C5437E41")
 interface IAppxManifestCapabilitiesEnumerator : IUnknown
 {
-    HRESULT GetCurrent(ushort** capability);
-    HRESULT GetHasCurrent(int* hasCurrent);
-    HRESULT MoveNext(int* hasNext);
+    HRESULT GetCurrent(PWSTR* capability);
+    HRESULT GetHasCurrent(BOOL* hasCurrent);
+    HRESULT MoveNext(BOOL* hasNext);
 }
 
 ///Enumerates the applications defined in the package manifest.
@@ -2417,7 +2415,7 @@ interface IAppxManifestApplicationsEnumerator : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetHasCurrent(int* hasCurrent);
+    HRESULT GetHasCurrent(BOOL* hasCurrent);
     ///Advances the position of the enumerator to the next application.
     ///Params:
     ///    hasNext = Type: <b>BOOL*</b> <b>TRUE</b> if the enumerator successfully advances <b>FALSE</b> if the enumerator has
@@ -2429,7 +2427,7 @@ interface IAppxManifestApplicationsEnumerator : IUnknown
     ///    you subsequently call another <b>MoveNext</b> after you have already passed the end of the collection, and
     ///    you have previously received <i>hasNext</i> = <b>FALSE</b>.
     ///    
-    HRESULT MoveNext(int* hasNext);
+    HRESULT MoveNext(BOOL* hasNext);
 }
 
 ///Provides access to attribute values of the application.
@@ -2450,7 +2448,7 @@ interface IAppxManifestApplication : IUnknown
     ///    Type: <b>HRESULT</b> If this method succeeds, it returns **S_OK**. Otherwise, it returns an **HRESULT** error
     ///    code.
     ///    
-    HRESULT GetStringValue(const(wchar)* name, ushort** value);
+    HRESULT GetStringValue(const(PWSTR) name, PWSTR* value);
     ///Gets the application user model identifier.
     ///Params:
     ///    appUserModelId = Type: <b>LPWSTR*</b> The user model identifier.
@@ -2459,21 +2457,21 @@ interface IAppxManifestApplication : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetAppUserModelId(ushort** appUserModelId);
+    HRESULT GetAppUserModelId(PWSTR* appUserModelId);
 }
 
 @GUID("8EF6ADFE-3762-4A8F-9373-2FC5D444C8D2")
 interface IAppxManifestQualifiedResourcesEnumerator : IUnknown
 {
     HRESULT GetCurrent(IAppxManifestQualifiedResource* resource);
-    HRESULT GetHasCurrent(int* hasCurrent);
-    HRESULT MoveNext(int* hasNext);
+    HRESULT GetHasCurrent(BOOL* hasCurrent);
+    HRESULT MoveNext(BOOL* hasNext);
 }
 
 @GUID("3B53A497-3C5C-48D1-9EA3-BB7EAC8CD7D4")
 interface IAppxManifestQualifiedResource : IUnknown
 {
-    HRESULT GetLanguage(ushort** language);
+    HRESULT GetLanguage(PWSTR* language);
     HRESULT GetScale(uint* scale);
     HRESULT GetDXFeatureLevel(DX_FEATURE_LEVEL* dxFeatureLevel);
 }
@@ -2553,7 +2551,7 @@ interface IAppxBundleWriter : IUnknown
     ///    width="40%"> <dl> <dt><b>OPC_E_DUPLICATE_PART</b></dt> </dl> </td> <td width="60%"> The file name specified
     ///    is already in use in the bundle. </td> </tr> </table>
     ///    
-    HRESULT AddPayloadPackage(const(wchar)* fileName, IStream packageStream);
+    HRESULT AddPayloadPackage(const(PWSTR) fileName, IStream packageStream);
     ///Finalizes the bundle package by writing footprint files at the end of the package, and closes the writer’s
     ///output stream.
     ///Returns:
@@ -2577,7 +2575,7 @@ interface IAppxBundleWriter2 : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT AddExternalPackageReference(const(wchar)* fileName, IStream inputStream);
+    HRESULT AddExternalPackageReference(const(PWSTR) fileName, IStream inputStream);
 }
 
 ///Provides a write-only object model for bundle packages.
@@ -2592,7 +2590,7 @@ interface IAppxBundleWriter3 : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT AddPackageReference(const(wchar)* fileName, IStream inputStream);
+    HRESULT AddPackageReference(const(PWSTR) fileName, IStream inputStream);
     ///Finalizes the bundle package by writing footprint files at the end of the package, and closes the writer’s
     ///output stream.
     ///Params:
@@ -2601,7 +2599,7 @@ interface IAppxBundleWriter3 : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT Close(const(wchar)* hashMethodString);
+    HRESULT Close(const(PWSTR) hashMethodString);
 }
 
 ///Provides a write-only object model for bundle packages.
@@ -2617,7 +2615,7 @@ interface IAppxBundleWriter4 : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT AddPayloadPackage(const(wchar)* fileName, IStream packageStream, BOOL isDefaultApplicablePackage);
+    HRESULT AddPayloadPackage(const(PWSTR) fileName, IStream packageStream, BOOL isDefaultApplicablePackage);
     ///Adds a reference to an optional app package or a payload file within an app bundle.
     ///Params:
     ///    fileName = The name of the payload file. The file name path must be relative to the root of the package.
@@ -2627,7 +2625,7 @@ interface IAppxBundleWriter4 : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT AddPackageReference(const(wchar)* fileName, IStream inputStream, BOOL isDefaultApplicablePackage);
+    HRESULT AddPackageReference(const(PWSTR) fileName, IStream inputStream, BOOL isDefaultApplicablePackage);
     ///Adds a reference within the package bundle to an external app package.
     ///Params:
     ///    fileName = The name of the payload file. The file name path must be relative to the root of the package.
@@ -2637,7 +2635,7 @@ interface IAppxBundleWriter4 : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT AddExternalPackageReference(const(wchar)* fileName, IStream inputStream, 
+    HRESULT AddExternalPackageReference(const(PWSTR) fileName, IStream inputStream, 
                                         BOOL isDefaultApplicablePackage);
 }
 
@@ -2698,7 +2696,7 @@ interface IAppxBundleReader : IUnknown
     ///    <dt><b>HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)</b></dt> </dl> </td> <td width="60%"> There is no payload
     ///    file with the specified file name. </td> </tr> </table>
     ///    
-    HRESULT GetPayloadPackage(const(wchar)* fileName, IAppxFile* payloadPackage);
+    HRESULT GetPayloadPackage(const(PWSTR) fileName, IAppxFile* payloadPackage);
 }
 
 ///Provides a read-only object model for manifests of bundle packages.
@@ -2772,7 +2770,7 @@ interface IAppxBundleManifestPackageInfoEnumerator : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetHasCurrent(int* hasCurrent);
+    HRESULT GetHasCurrent(BOOL* hasCurrent);
     ///Advances the position of the enumerator to the next &lt;Package&gt; element.
     ///Params:
     ///    hasNext = Type: <b>BOOL*</b> <b>TRUE</b> if the enumerator successfully advances <b>FALSE</b> if the enumerator has
@@ -2784,7 +2782,7 @@ interface IAppxBundleManifestPackageInfoEnumerator : IUnknown
     ///    <b>E_BOUNDS</b> if you subsequently call another MoveNext after you have already passed the end of the
     ///    collection, and you have previously received <i>hasNext</i> = <b>FALSE</b>.</div> <div> </div>
     ///    
-    HRESULT MoveNext(int* hasNext);
+    HRESULT MoveNext(BOOL* hasNext);
 }
 
 ///Provides a read-only object model for a &lt;Package&gt; element in a bundle package manifest.
@@ -2817,7 +2815,7 @@ interface IAppxBundleManifestPackageInfo : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetFileName(ushort** fileName);
+    HRESULT GetFileName(PWSTR* fileName);
     ///Retrieves the offset of the package relative to the beginning of the bundle.
     ///Params:
     ///    offset = Type: <b>UINT64*</b> The offset of the package, in bytes.
@@ -2858,7 +2856,7 @@ interface IAppxBundleManifestPackageInfo2 : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetIsPackageReference(int* isPackageReference);
+    HRESULT GetIsPackageReference(BOOL* isPackageReference);
     ///Determines whether the app package is a non-qualified resource package.
     ///Params:
     ///    isNonQualifiedResourcePackage = True if the package is a non-qualified resource package, False otherwise.
@@ -2866,7 +2864,7 @@ interface IAppxBundleManifestPackageInfo2 : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetIsNonQualifiedResourcePackage(int* isNonQualifiedResourcePackage);
+    HRESULT GetIsNonQualifiedResourcePackage(BOOL* isNonQualifiedResourcePackage);
     ///Determines whether the app package is a default applicable package.
     ///Params:
     ///    isDefaultApplicablePackage = True if the package is a default applicable package, False otherwise.
@@ -2874,7 +2872,7 @@ interface IAppxBundleManifestPackageInfo2 : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetIsDefaultApplicablePackage(int* isDefaultApplicablePackage);
+    HRESULT GetIsDefaultApplicablePackage(BOOL* isDefaultApplicablePackage);
 }
 
 @GUID("6BA74B98-BB74-4296-80D0-5F4256A99675")
@@ -2886,7 +2884,7 @@ interface IAppxBundleManifestPackageInfo3 : IUnknown
 @GUID("5DA6F13D-A8A7-4532-857C-1393D659371D")
 interface IAppxBundleManifestPackageInfo4 : IUnknown
 {
-    HRESULT GetIsStub(int* isStub);
+    HRESULT GetIsStub(BOOL* isStub);
 }
 
 ///Enumerates the optional bundle information from a bundle.
@@ -2911,7 +2909,7 @@ interface IAppxBundleManifestOptionalBundleInfoEnumerator : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetHasCurrent(int* hasCurrent);
+    HRESULT GetHasCurrent(BOOL* hasCurrent);
     ///Advances the position of the enumerator to the next set of optional bundle information.
     ///Params:
     ///    hasNext = Type: <b>BOOL*</b> <b>TRUE</b> if the enumerator successfully advances <b>FALSE</b> if the enumerator has
@@ -2923,7 +2921,7 @@ interface IAppxBundleManifestOptionalBundleInfoEnumerator : IUnknown
     ///    <b>E_BOUNDS</b> if you subsequently call another MoveNext after you have already passed the end of the
     ///    collection, and you have previously received <i>hasNext</i> = <b>FALSE</b>.</div> <div> </div>
     ///    
-    HRESULT MoveNext(int* hasNext);
+    HRESULT MoveNext(BOOL* hasNext);
 }
 
 ///Provides a read-only object model for an &lt;OptionalBundle&gt; element in a bundle package manifest.
@@ -2946,7 +2944,7 @@ interface IAppxBundleManifestOptionalBundleInfo : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetFileName(ushort** fileName);
+    HRESULT GetFileName(PWSTR* fileName);
     ///Retrieves optional packages in the bundle.
     ///Params:
     ///    packageInfoItems = Type: <b>IAppxBundleManifestPackageInfoEnumerator**</b> An enumerator over all payload packages in a
@@ -2970,7 +2968,7 @@ interface IAppxContentGroupFilesEnumerator : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetCurrent(ushort** file);
+    HRESULT GetCurrent(PWSTR* file);
     ///Determines whether there is a file at the current position of the enumerator.
     ///Params:
     ///    hasCurrent = <b>TRUE</b> if the enumerator's current position references an item; <b>FALSE</b> if the enumerator has
@@ -2979,7 +2977,7 @@ interface IAppxContentGroupFilesEnumerator : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetHasCurrent(int* hasCurrent);
+    HRESULT GetHasCurrent(BOOL* hasCurrent);
     ///Advances the position of the enumerator to the next file.
     ///Params:
     ///    hasNext = <b>TRUE</b> if the enumerator successfully advances <b>FALSE</b> if the enumerator has passed the end of the
@@ -2991,7 +2989,7 @@ interface IAppxContentGroupFilesEnumerator : IUnknown
     ///    <b>E_BOUNDS</b> if you subsequently call another MoveNext after you have already passed the end of the
     ///    collection, and you have previously received <i>hasNext</i> = <b>FALSE</b>.</div> <div> </div>
     ///    
-    HRESULT MoveNext(int* hasNext);
+    HRESULT MoveNext(BOOL* hasNext);
 }
 
 ///Retrieves information about a content group.
@@ -3005,7 +3003,7 @@ interface IAppxContentGroup : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetName(ushort** groupName);
+    HRESULT GetName(PWSTR* groupName);
     ///Gets files from a content group.
     ///Params:
     ///    enumerator = An enumerator for getting content group files.
@@ -3038,7 +3036,7 @@ interface IAppxContentGroupsEnumerator : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetHasCurrent(int* hasCurrent);
+    HRESULT GetHasCurrent(BOOL* hasCurrent);
     ///Advances the position of the enumerator to the next content group.
     ///Params:
     ///    hasNext = Type: <b>BOOL*</b> <b>TRUE</b> if the enumerator successfully advances <b>FALSE</b> if the enumerator has
@@ -3050,7 +3048,7 @@ interface IAppxContentGroupsEnumerator : IUnknown
     ///    <b>E_BOUNDS</b> if you subsequently call another MoveNext after you have already passed the end of the
     ///    collection, and you have previously received <i>hasNext</i> = <b>FALSE</b>.</div> <div> </div>
     ///    
-    HRESULT MoveNext(int* hasNext);
+    HRESULT MoveNext(BOOL* hasNext);
 }
 
 ///Gets information about a content group map.
@@ -3108,7 +3106,7 @@ interface IAppxContentGroupMapWriter : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT AddAutomaticGroup(const(wchar)* groupName);
+    HRESULT AddAutomaticGroup(const(PWSTR) groupName);
     ///Adds files to an automatic content group in a content group map.
     ///Params:
     ///    fileName = The name of the file to be added to the automatic content group.
@@ -3116,7 +3114,7 @@ interface IAppxContentGroupMapWriter : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT AddAutomaticFile(const(wchar)* fileName);
+    HRESULT AddAutomaticFile(const(PWSTR) fileName);
     HRESULT Close();
 }
 
@@ -3124,8 +3122,8 @@ interface IAppxContentGroupMapWriter : IUnknown
 interface IAppxPackagingDiagnosticEventSink : IUnknown
 {
     HRESULT ReportContextChange(APPX_PACKAGING_CONTEXT_CHANGE_TYPE changeType, int contextId, 
-                                const(char)* contextName, const(wchar)* contextMessage, const(wchar)* detailsMessage);
-    HRESULT ReportError(const(wchar)* errorMessage);
+                                const(PSTR) contextName, const(PWSTR) contextMessage, const(PWSTR) detailsMessage);
+    HRESULT ReportError(const(PWSTR) errorMessage);
 }
 
 @GUID("369648FA-A7EB-4909-A15D-6954A078F18A")
@@ -3389,7 +3387,7 @@ interface IAppxEncryptedPackageWriter : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns <b>S_OK</b>. Otherwise, it returns an error code.
     ///    
-    HRESULT AddPayloadFileEncrypted(const(wchar)* fileName, APPX_COMPRESSION_OPTION compressionOption, 
+    HRESULT AddPayloadFileEncrypted(const(PWSTR) fileName, APPX_COMPRESSION_OPTION compressionOption, 
                                     IStream inputStream);
     ///Closes and finalizes the written package stream.
     ///Returns:
@@ -3410,7 +3408,8 @@ interface IAppxEncryptedPackageWriter2 : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns <b>S_OK</b>. Otherwise, it returns an error code.
     ///    
-    HRESULT AddPayloadFilesEncrypted(uint fileCount, char* payloadFiles, ulong memoryLimit);
+    HRESULT AddPayloadFilesEncrypted(uint fileCount, APPX_PACKAGE_WRITER_PAYLOAD_STREAM* payloadFiles, 
+                                     ulong memoryLimit);
 }
 
 ///Provides a write-only object model for encrypted bundle packages.
@@ -3424,7 +3423,7 @@ interface IAppxEncryptedBundleWriter : IUnknown
     ///Returns:
     ///    If the method succeeds, it returns <b>S_OK</b>. Otherwise, it returns an error code.
     ///    
-    HRESULT AddPayloadPackageEncrypted(const(wchar)* fileName, IStream packageStream);
+    HRESULT AddPayloadPackageEncrypted(const(PWSTR) fileName, IStream packageStream);
     ///Writes the bundle manifest and blockmap footprint files to the bundle.
     ///Returns:
     ///    If the method succeeds, it returns <b>S_OK</b>. Otherwise, it returns an error code.
@@ -3444,7 +3443,7 @@ interface IAppxEncryptedBundleWriter2 : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT AddExternalPackageReference(const(wchar)* fileName, IStream inputStream);
+    HRESULT AddExternalPackageReference(const(PWSTR) fileName, IStream inputStream);
 }
 
 ///Provides a write-only object model for encrypted bundle packages.
@@ -3460,7 +3459,7 @@ interface IAppxEncryptedBundleWriter3 : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT AddPayloadPackageEncrypted(const(wchar)* fileName, IStream packageStream, 
+    HRESULT AddPayloadPackageEncrypted(const(PWSTR) fileName, IStream packageStream, 
                                        BOOL isDefaultApplicablePackage);
     ///Adds a reference within the encrypted package bundle to an external app package.
     ///Params:
@@ -3471,7 +3470,7 @@ interface IAppxEncryptedBundleWriter3 : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT AddExternalPackageReference(const(wchar)* fileName, IStream inputStream, 
+    HRESULT AddExternalPackageReference(const(PWSTR) fileName, IStream inputStream, 
                                         BOOL isDefaultApplicablePackage);
 }
 
@@ -3479,7 +3478,7 @@ interface IAppxEncryptedBundleWriter3 : IUnknown
 @GUID("E2ADB6DC-5E71-4416-86B6-86E5F5291A6B")
 interface IAppxPackageEditor : IUnknown
 {
-    HRESULT SetWorkingDirectory(const(wchar)* workingDirectory);
+    HRESULT SetWorkingDirectory(const(PWSTR) workingDirectory);
     ///Creates a delta package from the differences in the updated package and the baseline package.
     ///Params:
     ///    updatedPackageStream = An IStream that provides the contents of the updated app package.
@@ -3502,8 +3501,7 @@ interface IAppxPackageEditor : IUnknown
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT CreateDeltaPackageUsingBaselineBlockMap(IStream updatedPackageStream, IStream baselineBlockMapStream, 
-                                                    const(wchar)* baselinePackageFullName, 
-                                                    IStream deltaPackageStream);
+                                                    const(PWSTR) baselinePackageFullName, IStream deltaPackageStream);
     ///Updates an app package.
     ///Params:
     ///    baselinePackageStream = An IStream that provides the contents of the baseline app package.

@@ -9,7 +9,7 @@ public import windows.mediafoundation : DeviceStreamState, IMFAttributes, IMFMed
                                         IMFMediaType, IMFSample, MFT_MESSAGE_TYPE,
                                         MFT_OUTPUT_DATA_BUFFER;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums

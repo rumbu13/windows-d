@@ -9,12 +9,12 @@ public import windows.filesystem : WIN32_FIND_DATAA, WIN32_FIND_DATAW;
 public import windows.gdi : HBITMAP;
 public import windows.security : CERT_CHAIN_CONTEXT, CERT_CONTEXT, SecPkgContext_Bindings,
                                  SecPkgContext_CipherInfo, SecPkgContext_ConnectionInfo;
-public import windows.systemservices : BOOL, HANDLE, HINSTANCE;
+public import windows.systemservices : BOOL, HANDLE, HINSTANCE, PSTR, PWSTR;
 public import windows.winrt : IInspectable;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : FILETIME, SYSTEMTIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -325,15 +325,14 @@ alias LPINTERNET_STATUS_CALLBACK = void function();
 ///    
 alias GOPHER_ATTRIBUTE_ENUMERATOR = BOOL function(GOPHER_ATTRIBUTE_TYPE* lpAttributeInfo, uint dwError);
 alias PFN_AUTH_NOTIFY = uint function(size_t param0, uint param1, void* param2);
-alias pfnInternetInitializeAutoProxyDll = BOOL function(uint dwVersion, const(char)* lpszDownloadedTempFile, 
-                                                        const(char)* lpszMime, 
+alias pfnInternetInitializeAutoProxyDll = BOOL function(uint dwVersion, PSTR lpszDownloadedTempFile, PSTR lpszMime, 
                                                         AutoProxyHelperFunctions* lpAutoProxyCallbacks, 
                                                         AUTO_PROXY_SCRIPT_BUFFER* lpAutoProxyScriptBuffer);
-alias pfnInternetDeInitializeAutoProxyDll = BOOL function(const(char)* lpszMime, uint dwReserved);
-alias pfnInternetGetProxyInfo = BOOL function(const(char)* lpszUrl, uint dwUrlLength, const(char)* lpszUrlHostName, 
-                                              uint dwUrlHostNameLength, byte** lplpszProxyHostName, 
+alias pfnInternetDeInitializeAutoProxyDll = BOOL function(PSTR lpszMime, uint dwReserved);
+alias pfnInternetGetProxyInfo = BOOL function(const(PSTR) lpszUrl, uint dwUrlLength, PSTR lpszUrlHostName, 
+                                              uint dwUrlHostNameLength, PSTR* lplpszProxyHostName, 
                                               uint* lpdwProxyHostNameLength);
-alias PFN_DIAL_HANDLER = uint function(HWND param0, const(char)* param1, uint param2, uint* param3);
+alias PFN_DIAL_HANDLER = uint function(HWND param0, const(PSTR) param1, uint param2, uint* param3);
 alias CACHE_OPERATOR = BOOL function(INTERNET_CACHE_ENTRY_INFOA* pcei, uint* pcbcei, void* pOpData);
 
 // Structs
@@ -463,11 +462,11 @@ struct INTERNET_PER_CONN_OPTIONA
     ///<dt>PROXY_TYPE_AUTO_DETECT</dt> <dd> The connection automatically detects settings. </dd> </dl> </td> </tr>
     ///</table>
     uint dwOption;
-    union Value
+union Value
     {
-        uint         dwValue;
-        const(char)* pszValue;
-        FILETIME     ftValue;
+        uint     dwValue;
+        PSTR     pszValue;
+        FILETIME ftValue;
     }
 }
 
@@ -531,11 +530,11 @@ struct INTERNET_PER_CONN_OPTIONW
     ///<dt>PROXY_TYPE_AUTO_DETECT</dt> <dd> The connection automatically detects settings. </dd> </dl> </td> </tr>
     ///</table>
     uint dwOption;
-    union Value
+union Value
     {
-        uint          dwValue;
-        const(wchar)* pszValue;
-        FILETIME      ftValue;
+        uint     dwValue;
+        PWSTR    pszValue;
+        FILETIME ftValue;
     }
 }
 
@@ -543,14 +542,14 @@ struct INTERNET_PER_CONN_OPTIONW
 struct INTERNET_PER_CONN_OPTION_LISTA
 {
     ///Size of the structure, in bytes.
-    uint         dwSize;
+    uint dwSize;
     ///Pointer to a string that contains the name of the RAS connection or <b>NULL</b>, which indicates the default or
     ///LAN connection, to set or query options on.
-    const(char)* pszConnection;
+    PSTR pszConnection;
     ///Number of options to query or set.
-    uint         dwOptionCount;
+    uint dwOptionCount;
     ///Options that failed, if an error occurs.
-    uint         dwOptionError;
+    uint dwOptionError;
     ///Pointer to an array of INTERNET_PER_CONN_OPTION structures containing the options to query or set.
     INTERNET_PER_CONN_OPTIONA* pOptions;
 }
@@ -559,14 +558,14 @@ struct INTERNET_PER_CONN_OPTION_LISTA
 struct INTERNET_PER_CONN_OPTION_LISTW
 {
     ///Size of the structure, in bytes.
-    uint          dwSize;
+    uint  dwSize;
     ///Pointer to a string that contains the name of the RAS connection or <b>NULL</b>, which indicates the default or
     ///LAN connection, to set or query options on.
-    const(wchar)* pszConnection;
+    PWSTR pszConnection;
     ///Number of options to query or set.
-    uint          dwOptionCount;
+    uint  dwOptionCount;
     ///Options that failed, if an error occurs.
-    uint          dwOptionError;
+    uint  dwOptionError;
     ///Pointer to an array of INTERNET_PER_CONN_OPTION structures containing the options to query or set.
     INTERNET_PER_CONN_OPTIONW* pOptions;
 }
@@ -610,31 +609,31 @@ struct URL_COMPONENTSA
     ///Size of this structure, in bytes.
     uint            dwStructSize;
     ///Pointer to a string that contains the scheme name.
-    const(char)*    lpszScheme;
+    PSTR            lpszScheme;
     ///Size of the scheme name, in <b>TCHARs</b>.
     uint            dwSchemeLength;
     ///INTERNET_SCHEME value that indicates the Internet protocol scheme.
     INTERNET_SCHEME nScheme;
     ///Pointer to a string that contains the host name.
-    const(char)*    lpszHostName;
+    PSTR            lpszHostName;
     ///Size of the host name, in <b>TCHARs</b>.
     uint            dwHostNameLength;
     ///Converted port number.
     ushort          nPort;
     ///Pointer to a string value that contains the user name.
-    const(char)*    lpszUserName;
+    PSTR            lpszUserName;
     ///Size of the user name, in <b>TCHARs</b>.
     uint            dwUserNameLength;
     ///Pointer to a string that contains the password.
-    const(char)*    lpszPassword;
+    PSTR            lpszPassword;
     ///Size of the password, in <b>TCHARs</b>.
     uint            dwPasswordLength;
     ///Pointer to a string that contains the URL path.
-    const(char)*    lpszUrlPath;
+    PSTR            lpszUrlPath;
     ///Size of the URL path, in <b>TCHARs</b>.
     uint            dwUrlPathLength;
     ///Pointer to a string that contains the extra information (for example, ?something or
-    const(char)*    lpszExtraInfo;
+    PSTR            lpszExtraInfo;
     ///Size of the extra information, in <b>TCHARs</b>.
     uint            dwExtraInfoLength;
 }
@@ -646,31 +645,31 @@ struct URL_COMPONENTSW
     ///Size of this structure, in bytes.
     uint            dwStructSize;
     ///Pointer to a string that contains the scheme name.
-    const(wchar)*   lpszScheme;
+    PWSTR           lpszScheme;
     ///Size of the scheme name, in <b>TCHARs</b>.
     uint            dwSchemeLength;
     ///INTERNET_SCHEME value that indicates the Internet protocol scheme.
     INTERNET_SCHEME nScheme;
     ///Pointer to a string that contains the host name.
-    const(wchar)*   lpszHostName;
+    PWSTR           lpszHostName;
     ///Size of the host name, in <b>TCHARs</b>.
     uint            dwHostNameLength;
     ///Converted port number.
     ushort          nPort;
     ///Pointer to a string value that contains the user name.
-    const(wchar)*   lpszUserName;
+    PWSTR           lpszUserName;
     ///Size of the user name, in <b>TCHARs</b>.
     uint            dwUserNameLength;
     ///Pointer to a string that contains the password.
-    const(wchar)*   lpszPassword;
+    PWSTR           lpszPassword;
     ///Size of the password, in <b>TCHARs</b>.
     uint            dwPasswordLength;
     ///Pointer to a string that contains the URL path.
-    const(wchar)*   lpszUrlPath;
+    PWSTR           lpszUrlPath;
     ///Size of the URL path, in <b>TCHARs</b>.
     uint            dwUrlPathLength;
     ///Pointer to a string that contains the extra information (for example, ?something or
-    const(wchar)*   lpszExtraInfo;
+    PWSTR           lpszExtraInfo;
     ///Size of the extra information, in <b>TCHARs</b>.
     uint            dwExtraInfoLength;
 }
@@ -710,7 +709,7 @@ struct INTERNET_BUFFERSA
     ///Pointer to the next <b>INTERNET_BUFFERS</b> structure.
     INTERNET_BUFFERSA* Next;
     ///Pointer to a string value that contains the headers. This member can be <b>NULL</b>.
-    const(char)*       lpcszHeader;
+    const(PSTR)        lpcszHeader;
     ///Size of the headers, in <b>TCHARs</b>, if <b>lpcszHeader</b> is not <b>NULL</b>.
     uint               dwHeadersLength;
     ///Size of the headers, if there is not enough memory in the buffer.
@@ -735,7 +734,7 @@ struct INTERNET_BUFFERSW
     ///Pointer to the next <b>INTERNET_BUFFERS</b> structure.
     INTERNET_BUFFERSW* Next;
     ///Pointer to a string value that contains the headers. This member can be <b>NULL</b>.
-    const(wchar)*      lpcszHeader;
+    const(PWSTR)       lpcszHeader;
     ///Size of the headers, in <b>TCHARs</b>, if <b>lpcszHeader</b> is not <b>NULL</b>.
     uint               dwHeadersLength;
     ///Size of the headers, if there is not enough memory in the buffer.
@@ -1023,7 +1022,7 @@ struct GOPHER_ATTRIBUTE_TYPE
     ///Attribute type. The possible values include: <a id="GOPHER_ATTRIBUTE_ID_ABSTRACT"></a> <a
     ///id="gopher_attribute_id_abstract"></a>
     uint AttributeId;
-    union AttributeType
+union AttributeType
     {
         GOPHER_ADMIN_ATTRIBUTE_TYPE Admin;
         GOPHER_MOD_DATE_ATTRIBUTE_TYPE ModDate;
@@ -1051,13 +1050,13 @@ struct GOPHER_ATTRIBUTE_TYPE
 struct INTERNET_COOKIE2
 {
     ///Pointer to a string containing the cookie name. May be NULL if value is not NULL.
-    const(wchar)* pwszName;
+    PWSTR    pwszName;
     ///Pointer to a string containing the cookie value. May be NULL if name is not NULL.
-    const(wchar)* pwszValue;
+    PWSTR    pwszValue;
     ///Pointer to a string containing the cookie domain. May be NULL.
-    const(wchar)* pwszDomain;
+    PWSTR    pwszDomain;
     ///Pointer to a string containing the cookie path. May be NULL.
-    const(wchar)* pwszPath;
+    PWSTR    pwszPath;
     ///Flags for additional cookie details. The following flags are available. | Value | Meaning | |-------|---------| |
     ///INTERNET_COOKIE_IS_SECURE | This is a secure cookie. | | INTERNET_COOKIE_IS_SESSION | This is a session cookie. |
     ///| INTERNET_COOKIE_IS_RESTRICTED | This cookie is restricted to first-party contexts. | | INTERNET_COOKIE_HTTPONLY
@@ -1065,11 +1064,11 @@ struct INTERNET_COOKIE2
     ///INTERNET_COOKIE_HOST_ONLY_APPLIED | The host-only setting has been applied to this cookie. | |
     ///INTERNET_COOKIE_SAME_SITE_STRICT | The SameSite security level for this cookie is "strict". | |
     ///INTERNET_COOKIE_SAME_SITE_LAX | The SameSite security level for this cookie is "lax". |
-    uint          dwFlags;
+    uint     dwFlags;
     ///The expiry time of the cookie.
-    FILETIME      ftExpires;
+    FILETIME ftExpires;
     ///Whether or not the expiry time is set.
-    BOOL          fExpiresSet;
+    BOOL     fExpiresSet;
 }
 
 ///Contains the notification data for an authentication request.
@@ -1089,13 +1088,13 @@ struct INTERNET_AUTH_NOTIFY_DATA
 struct INTERNET_CACHE_ENTRY_INFOA
 {
     ///Size of this structure, in bytes. This value can be used to help determine the version of the cache system.
-    uint         dwStructSize;
+    uint     dwStructSize;
     ///Pointer to a null-terminated string that contains the URL name. The string occupies the memory area at the end of
     ///this structure.
-    const(char)* lpszSourceUrlName;
+    PSTR     lpszSourceUrlName;
     ///Pointer to a null-terminated string that contains the local file name. The string occupies the memory area at the
     ///end of this structure.
-    const(char)* lpszLocalFileName;
+    PSTR     lpszLocalFileName;
     ///A bitmask indicating the type of cache entry and its properties. The cache entry types include: history entries
     ///(URLHISTORY_CACHE_ENTRY), cookie entries (COOKIE_CACHE_ENTRY), and normal cached content (NORMAL_CACHE_ENTRY).
     ///This member can be zero or more of the following property flags, and cache type flags listed below. <table> <tr>
@@ -1119,32 +1118,32 @@ struct INTERNET_CACHE_ENTRY_INFOA
     ///<tr> <td width="40%"><a id="URLHISTORY_CACHE_ENTRY"></a><a id="urlhistory_cache_entry"></a><dl>
     ///<dt><b>URLHISTORY_CACHE_ENTRY</b></dt> </dl> </td> <td width="60%"> Visited link cache entry. </td> </tr>
     ///</table>
-    uint         CacheEntryType;
+    uint     CacheEntryType;
     ///Current number of WinINEet callers using the cache entry.
-    uint         dwUseCount;
+    uint     dwUseCount;
     ///Number of times the cache entry was retrieved.
-    uint         dwHitRate;
+    uint     dwHitRate;
     ///Low-order portion of the file size, in <b>bytes</b>.
-    uint         dwSizeLow;
+    uint     dwSizeLow;
     ///High-order portion of the file size, in <b>bytes</b>.
-    uint         dwSizeHigh;
+    uint     dwSizeHigh;
     ///FILETIME structure that contains the last modified time of this URL, in Greenwich mean time format.
-    FILETIME     LastModifiedTime;
+    FILETIME LastModifiedTime;
     ///FILETIME structure that contains the expiration time of this file, in Greenwich mean time format.
-    FILETIME     ExpireTime;
+    FILETIME ExpireTime;
     ///FILETIME structure that contains the last accessed time, in Greenwich mean time format.
-    FILETIME     LastAccessTime;
+    FILETIME LastAccessTime;
     ///FILETIME structure that contains the last time the cache was synchronized.
-    FILETIME     LastSyncTime;
+    FILETIME LastSyncTime;
     ///Pointer to a buffer that contains the header information. The buffer occupies the memory at the end of this
     ///structure.
-    const(char)* lpHeaderInfo;
+    PSTR     lpHeaderInfo;
     ///Size of the <b>lpHeaderInfo</b> buffer, in <b>TCHARs</b>.
-    uint         dwHeaderInfoSize;
+    uint     dwHeaderInfoSize;
     ///Pointer to a string that contains the file name extension used to retrieve the data as a file. The string
     ///occupies the memory area at the end of this structure.
-    const(char)* lpszFileExtension;
-    union
+    PSTR     lpszFileExtension;
+union
     {
         uint dwReserved;
         uint dwExemptDelta;
@@ -1155,13 +1154,13 @@ struct INTERNET_CACHE_ENTRY_INFOA
 struct INTERNET_CACHE_ENTRY_INFOW
 {
     ///Size of this structure, in bytes. This value can be used to help determine the version of the cache system.
-    uint          dwStructSize;
+    uint     dwStructSize;
     ///Pointer to a null-terminated string that contains the URL name. The string occupies the memory area at the end of
     ///this structure.
-    const(wchar)* lpszSourceUrlName;
+    PWSTR    lpszSourceUrlName;
     ///Pointer to a null-terminated string that contains the local file name. The string occupies the memory area at the
     ///end of this structure.
-    const(wchar)* lpszLocalFileName;
+    PWSTR    lpszLocalFileName;
     ///A bitmask indicating the type of cache entry and its properties. The cache entry types include: history entries
     ///(URLHISTORY_CACHE_ENTRY), cookie entries (COOKIE_CACHE_ENTRY), and normal cached content (NORMAL_CACHE_ENTRY).
     ///This member can be zero or more of the following property flags, and cache type flags listed below. <table> <tr>
@@ -1185,32 +1184,32 @@ struct INTERNET_CACHE_ENTRY_INFOW
     ///<tr> <td width="40%"><a id="URLHISTORY_CACHE_ENTRY"></a><a id="urlhistory_cache_entry"></a><dl>
     ///<dt><b>URLHISTORY_CACHE_ENTRY</b></dt> </dl> </td> <td width="60%"> Visited link cache entry. </td> </tr>
     ///</table>
-    uint          CacheEntryType;
+    uint     CacheEntryType;
     ///Current number of WinINEet callers using the cache entry.
-    uint          dwUseCount;
+    uint     dwUseCount;
     ///Number of times the cache entry was retrieved.
-    uint          dwHitRate;
+    uint     dwHitRate;
     ///Low-order portion of the file size, in <b>bytes</b>.
-    uint          dwSizeLow;
+    uint     dwSizeLow;
     ///High-order portion of the file size, in <b>bytes</b>.
-    uint          dwSizeHigh;
+    uint     dwSizeHigh;
     ///FILETIME structure that contains the last modified time of this URL, in Greenwich mean time format.
-    FILETIME      LastModifiedTime;
+    FILETIME LastModifiedTime;
     ///FILETIME structure that contains the expiration time of this file, in Greenwich mean time format.
-    FILETIME      ExpireTime;
+    FILETIME ExpireTime;
     ///FILETIME structure that contains the last accessed time, in Greenwich mean time format.
-    FILETIME      LastAccessTime;
+    FILETIME LastAccessTime;
     ///FILETIME structure that contains the last time the cache was synchronized.
-    FILETIME      LastSyncTime;
+    FILETIME LastSyncTime;
     ///Pointer to a buffer that contains the header information. The buffer occupies the memory at the end of this
     ///structure.
-    const(wchar)* lpHeaderInfo;
+    PWSTR    lpHeaderInfo;
     ///Size of the <b>lpHeaderInfo</b> buffer, in <b>TCHARs</b>.
-    uint          dwHeaderInfoSize;
+    uint     dwHeaderInfoSize;
     ///Pointer to a string that contains the file name extension used to retrieve the data as a file. The string
     ///occupies the memory area at the end of this structure.
-    const(wchar)* lpszFileExtension;
-    union
+    PWSTR    lpszFileExtension;
+union
     {
         uint dwReserved;
         uint dwExemptDelta;
@@ -1313,11 +1312,11 @@ struct AutoProxyHelperVtbl
 struct AUTO_PROXY_SCRIPT_BUFFER
 {
     ///Size of this structure. Always set to "sizeof(AUTO_PROXY_SCRIPT_BUFFER)".
-    uint         dwStructSize;
+    uint dwStructSize;
     ///Pointer to the script buffer being passed using this structure.
-    const(char)* lpszScriptBuffer;
+    PSTR lpszScriptBuffer;
     ///Size of the script buffer pointed to by <b>lpszScriptBuffer</b>.
-    uint         dwScriptBufferSize;
+    uint dwScriptBufferSize;
 }
 
 ///The <b>AutoProxyHelperFunctions</b> structure is used to create a v-table of Proxy Auto-Config (PAC) functions that
@@ -1356,8 +1355,8 @@ struct INTERNET_SECURITY_CONNECTION_INFO
 
 struct INTERNET_DOWNLOAD_MODE_HANDLE
 {
-    const(wchar)* pcwszFileName;
-    HANDLE*       phFile;
+    const(PWSTR) pcwszFileName;
+    HANDLE*      phFile;
 }
 
 struct HTTP_REQUEST_TIMES
@@ -1368,14 +1367,14 @@ struct HTTP_REQUEST_TIMES
 
 struct INTERNET_SERVER_CONNECTION_STATE
 {
-    const(wchar)* lpcwszHostName;
-    BOOL          fProxy;
-    uint          dwCounter;
-    uint          dwConnectionLimit;
-    uint          dwAvailableCreates;
-    uint          dwAvailableKeepAlives;
-    uint          dwActiveConnections;
-    uint          dwWaiters;
+    const(PWSTR) lpcwszHostName;
+    BOOL         fProxy;
+    uint         dwCounter;
+    uint         dwConnectionLimit;
+    uint         dwAvailableCreates;
+    uint         dwAvailableKeepAlives;
+    uint         dwActiveConnections;
+    uint         dwWaiters;
 }
 
 struct INTERNET_END_BROWSER_SESSION_DATA
@@ -1386,28 +1385,28 @@ struct INTERNET_END_BROWSER_SESSION_DATA
 
 struct INTERNET_CALLBACK_COOKIE
 {
-    const(wchar)* pcwszName;
-    const(wchar)* pcwszValue;
-    const(wchar)* pcwszDomain;
-    const(wchar)* pcwszPath;
-    FILETIME      ftExpires;
-    uint          dwFlags;
+    const(PWSTR) pcwszName;
+    const(PWSTR) pcwszValue;
+    const(PWSTR) pcwszDomain;
+    const(PWSTR) pcwszPath;
+    FILETIME     ftExpires;
+    uint         dwFlags;
 }
 
 struct INTERNET_CREDENTIALS
 {
-    const(wchar)* lpcwszHostName;
-    uint          dwPort;
-    uint          dwScheme;
-    const(wchar)* lpcwszUrl;
-    const(wchar)* lpcwszRealm;
-    BOOL          fAuthIdentity;
-    union
+    const(PWSTR) lpcwszHostName;
+    uint         dwPort;
+    uint         dwScheme;
+    const(PWSTR) lpcwszUrl;
+    const(PWSTR) lpcwszRealm;
+    BOOL         fAuthIdentity;
+union
     {
-        struct
+struct
         {
-            const(wchar)* lpcwszUserName;
-            const(wchar)* lpcwszPassword;
+            const(PWSTR) lpcwszUserName;
+            const(PWSTR) lpcwszPassword;
         }
         void* pAuthIdentityOpaque;
     }
@@ -1432,25 +1431,25 @@ struct HTTP_PUSH_NOTIFICATION_STATUS
 
 struct INTERNET_COOKIE
 {
-    uint         cbSize;
-    const(char)* pszName;
-    const(char)* pszData;
-    const(char)* pszDomain;
-    const(char)* pszPath;
-    FILETIME*    pftExpires;
-    uint         dwFlags;
-    const(char)* pszUrl;
-    const(char)* pszP3PPolicy;
+    uint      cbSize;
+    PSTR      pszName;
+    PSTR      pszData;
+    PSTR      pszDomain;
+    PSTR      pszPath;
+    FILETIME* pftExpires;
+    uint      dwFlags;
+    PSTR      pszUrl;
+    PSTR      pszP3PPolicy;
 }
 
 struct COOKIE_DLG_INFO
 {
-    const(wchar)*    pszServer;
+    PWSTR            pszServer;
     INTERNET_COOKIE* pic;
     uint             dwStopWarning;
     int              cx;
     int              cy;
-    const(wchar)*    pszHeader;
+    PWSTR            pszHeader;
     uint             dwOperation;
 }
 
@@ -1483,9 +1482,9 @@ struct INTERNET_CACHE_CONFIG_INFOA
     uint dwSyncMode;
     ///Reserved.
     uint dwNumCachePaths;
-    union
+union
     {
-        struct
+struct
         {
             byte[260] CachePath;
             uint      dwCacheSize;
@@ -1515,9 +1514,9 @@ struct INTERNET_CACHE_CONFIG_INFOW
     uint dwSyncMode;
     ///Reserved.
     uint dwNumCachePaths;
-    union
+union
     {
-        struct
+struct
         {
             ushort[260] CachePath;
             uint        dwCacheSize;
@@ -1532,26 +1531,26 @@ struct INTERNET_CACHE_CONFIG_INFOW
 
 struct INTERNET_CACHE_CONTAINER_INFOA
 {
-    uint         dwCacheVersion;
-    const(char)* lpszName;
-    const(char)* lpszCachePrefix;
-    const(char)* lpszVolumeLabel;
-    const(char)* lpszVolumeTitle;
+    uint dwCacheVersion;
+    PSTR lpszName;
+    PSTR lpszCachePrefix;
+    PSTR lpszVolumeLabel;
+    PSTR lpszVolumeTitle;
 }
 
 struct INTERNET_CACHE_CONTAINER_INFOW
 {
-    uint          dwCacheVersion;
-    const(wchar)* lpszName;
-    const(wchar)* lpszCachePrefix;
-    const(wchar)* lpszVolumeLabel;
-    const(wchar)* lpszVolumeTitle;
+    uint  dwCacheVersion;
+    PWSTR lpszName;
+    PWSTR lpszCachePrefix;
+    PWSTR lpszVolumeLabel;
+    PWSTR lpszVolumeTitle;
 }
 
 struct APP_CACHE_DOWNLOAD_ENTRY
 {
-    const(wchar)* pwszUrl;
-    uint          dwEntryType;
+    PWSTR pwszUrl;
+    uint  dwEntryType;
 }
 
 struct APP_CACHE_DOWNLOAD_LIST
@@ -1562,9 +1561,9 @@ struct APP_CACHE_DOWNLOAD_LIST
 
 struct APP_CACHE_GROUP_INFO
 {
-    const(wchar)* pwszManifestUrl;
-    FILETIME      ftLastAccessTime;
-    ulong         ullSize;
+    PWSTR    pwszManifestUrl;
+    FILETIME ftLastAccessTime;
+    ulong    ullSize;
 }
 
 struct APP_CACHE_GROUP_LIST
@@ -1575,21 +1574,21 @@ struct APP_CACHE_GROUP_LIST
 
 struct URLCACHE_ENTRY_INFO
 {
-    const(wchar)* pwszSourceUrlName;
-    const(wchar)* pwszLocalFileName;
-    uint          dwCacheEntryType;
-    uint          dwUseCount;
-    uint          dwHitRate;
-    uint          dwSizeLow;
-    uint          dwSizeHigh;
-    FILETIME      ftLastModifiedTime;
-    FILETIME      ftExpireTime;
-    FILETIME      ftLastAccessTime;
-    FILETIME      ftLastSyncTime;
-    ubyte*        pbHeaderInfo;
-    uint          cbHeaderInfoSize;
-    ubyte*        pbExtraData;
-    uint          cbExtraDataSize;
+    PWSTR    pwszSourceUrlName;
+    PWSTR    pwszLocalFileName;
+    uint     dwCacheEntryType;
+    uint     dwUseCount;
+    uint     dwHitRate;
+    uint     dwSizeLow;
+    uint     dwSizeHigh;
+    FILETIME ftLastModifiedTime;
+    FILETIME ftExpireTime;
+    FILETIME ftLastAccessTime;
+    FILETIME ftLastSyncTime;
+    ubyte*   pbHeaderInfo;
+    uint     cbHeaderInfoSize;
+    ubyte*   pbExtraData;
+    uint     cbExtraDataSize;
 }
 
 struct WININET_PROXY_INFO
@@ -1597,7 +1596,7 @@ struct WININET_PROXY_INFO
     BOOL            fProxy;
     BOOL            fBypass;
     INTERNET_SCHEME ProxyScheme;
-    const(wchar)*   pwszProxy;
+    PWSTR           pwszProxy;
     ushort          ProxyPort;
 }
 
@@ -1617,10 +1616,10 @@ struct HTTP_WEB_SOCKET_ASYNC_RESULT
 
 struct ProofOfPossessionCookieInfo
 {
-    const(wchar)* name;
-    const(wchar)* data;
-    uint          flags;
-    const(wchar)* p3pHeader;
+    PWSTR name;
+    PWSTR data;
+    uint  flags;
+    PWSTR p3pHeader;
 }
 
 // Functions
@@ -1636,7 +1635,7 @@ struct ProofOfPossessionCookieInfo
 ///    Returns TRUE if the function succeeds, or FALSE otherwise. To get extended error information, call GetLastError.
 ///    
 @DllImport("WININET")
-BOOL InternetTimeFromSystemTimeA(const(SYSTEMTIME)* pst, uint dwRFC, const(char)* lpszTime, uint cbTime);
+BOOL InternetTimeFromSystemTimeA(const(SYSTEMTIME)* pst, uint dwRFC, PSTR lpszTime, uint cbTime);
 
 ///Formats a date and time according to the HTTP version 1.0 specification.
 ///Params:
@@ -1649,7 +1648,7 @@ BOOL InternetTimeFromSystemTimeA(const(SYSTEMTIME)* pst, uint dwRFC, const(char)
 ///    Returns TRUE if the function succeeds, or FALSE otherwise. To get extended error information, call GetLastError.
 ///    
 @DllImport("WININET")
-BOOL InternetTimeFromSystemTimeW(const(SYSTEMTIME)* pst, uint dwRFC, const(wchar)* lpszTime, uint cbTime);
+BOOL InternetTimeFromSystemTimeW(const(SYSTEMTIME)* pst, uint dwRFC, PWSTR lpszTime, uint cbTime);
 
 ///Formats a date and time according to the HTTP version 1.0 specification.
 ///Params:
@@ -1662,7 +1661,7 @@ BOOL InternetTimeFromSystemTimeW(const(SYSTEMTIME)* pst, uint dwRFC, const(wchar
 ///    Returns TRUE if the function succeeds, or FALSE otherwise. To get extended error information, call GetLastError.
 ///    
 @DllImport("WININET")
-BOOL InternetTimeFromSystemTime(const(SYSTEMTIME)* pst, uint dwRFC, const(char)* lpszTime, uint cbTime);
+BOOL InternetTimeFromSystemTime(const(SYSTEMTIME)* pst, uint dwRFC, PSTR lpszTime, uint cbTime);
 
 ///Converts an HTTP time/date string to a SYSTEMTIME structure.
 ///Params:
@@ -1674,7 +1673,7 @@ BOOL InternetTimeFromSystemTime(const(SYSTEMTIME)* pst, uint dwRFC, const(char)*
 ///    call GetLastError.
 ///    
 @DllImport("WININET")
-BOOL InternetTimeToSystemTimeA(const(char)* lpszTime, SYSTEMTIME* pst, uint dwReserved);
+BOOL InternetTimeToSystemTimeA(const(PSTR) lpszTime, SYSTEMTIME* pst, uint dwReserved);
 
 ///Converts an HTTP time/date string to a SYSTEMTIME structure.
 ///Params:
@@ -1686,7 +1685,7 @@ BOOL InternetTimeToSystemTimeA(const(char)* lpszTime, SYSTEMTIME* pst, uint dwRe
 ///    call GetLastError.
 ///    
 @DllImport("WININET")
-BOOL InternetTimeToSystemTimeW(const(wchar)* lpszTime, SYSTEMTIME* pst, uint dwReserved);
+BOOL InternetTimeToSystemTimeW(const(PWSTR) lpszTime, SYSTEMTIME* pst, uint dwReserved);
 
 ///Converts an HTTP time/date string to a SYSTEMTIME structure.
 ///Params:
@@ -1698,7 +1697,7 @@ BOOL InternetTimeToSystemTimeW(const(wchar)* lpszTime, SYSTEMTIME* pst, uint dwR
 ///    call GetLastError.
 ///    
 @DllImport("WININET")
-BOOL InternetTimeToSystemTime(const(char)* lpszTime, SYSTEMTIME* pst, uint dwReserved);
+BOOL InternetTimeToSystemTime(const(PSTR) lpszTime, SYSTEMTIME* pst, uint dwReserved);
 
 ///Cracks a URL into its component parts.
 ///Params:
@@ -1718,7 +1717,7 @@ BOOL InternetTimeToSystemTime(const(char)* lpszTime, SYSTEMTIME* pst, uint dwRes
 ///    GetLastError.
 ///    
 @DllImport("WININET")
-BOOL InternetCrackUrlA(const(char)* lpszUrl, uint dwUrlLength, uint dwFlags, URL_COMPONENTSA* lpUrlComponents);
+BOOL InternetCrackUrlA(const(PSTR) lpszUrl, uint dwUrlLength, uint dwFlags, URL_COMPONENTSA* lpUrlComponents);
 
 ///Cracks a URL into its component parts.
 ///Params:
@@ -1738,7 +1737,7 @@ BOOL InternetCrackUrlA(const(char)* lpszUrl, uint dwUrlLength, uint dwFlags, URL
 ///    GetLastError.
 ///    
 @DllImport("WININET")
-BOOL InternetCrackUrlW(const(wchar)* lpszUrl, uint dwUrlLength, uint dwFlags, URL_COMPONENTSW* lpUrlComponents);
+BOOL InternetCrackUrlW(const(PWSTR) lpszUrl, uint dwUrlLength, uint dwFlags, URL_COMPONENTSW* lpUrlComponents);
 
 ///Creates a URL from its component parts.
 ///Params:
@@ -1761,7 +1760,7 @@ BOOL InternetCrackUrlW(const(wchar)* lpszUrl, uint dwUrlLength, uint dwFlags, UR
 ///    GetLastError.
 ///    
 @DllImport("WININET")
-BOOL InternetCreateUrlA(URL_COMPONENTSA* lpUrlComponents, uint dwFlags, const(char)* lpszUrl, uint* lpdwUrlLength);
+BOOL InternetCreateUrlA(URL_COMPONENTSA* lpUrlComponents, uint dwFlags, PSTR lpszUrl, uint* lpdwUrlLength);
 
 ///Creates a URL from its component parts.
 ///Params:
@@ -1784,7 +1783,7 @@ BOOL InternetCreateUrlA(URL_COMPONENTSA* lpUrlComponents, uint dwFlags, const(ch
 ///    GetLastError.
 ///    
 @DllImport("WININET")
-BOOL InternetCreateUrlW(URL_COMPONENTSW* lpUrlComponents, uint dwFlags, const(wchar)* lpszUrl, uint* lpdwUrlLength);
+BOOL InternetCreateUrlW(URL_COMPONENTSW* lpUrlComponents, uint dwFlags, PWSTR lpszUrl, uint* lpdwUrlLength);
 
 ///Canonicalizes a URL, which includes converting unsafe characters and spaces into escape sequences.
 ///Params:
@@ -1811,7 +1810,7 @@ BOOL InternetCreateUrlW(URL_COMPONENTSW* lpUrlComponents, uint dwFlags, const(wc
 ///    invalid string, buffer, buffer size, or flags parameter. </td> </tr> </table>
 ///    
 @DllImport("WININET")
-BOOL InternetCanonicalizeUrlA(const(char)* lpszUrl, const(char)* lpszBuffer, uint* lpdwBufferLength, uint dwFlags);
+BOOL InternetCanonicalizeUrlA(const(PSTR) lpszUrl, PSTR lpszBuffer, uint* lpdwBufferLength, uint dwFlags);
 
 ///Canonicalizes a URL, which includes converting unsafe characters and spaces into escape sequences.
 ///Params:
@@ -1838,8 +1837,7 @@ BOOL InternetCanonicalizeUrlA(const(char)* lpszUrl, const(char)* lpszBuffer, uin
 ///    invalid string, buffer, buffer size, or flags parameter. </td> </tr> </table>
 ///    
 @DllImport("WININET")
-BOOL InternetCanonicalizeUrlW(const(wchar)* lpszUrl, const(wchar)* lpszBuffer, uint* lpdwBufferLength, 
-                              uint dwFlags);
+BOOL InternetCanonicalizeUrlW(const(PWSTR) lpszUrl, PWSTR lpszBuffer, uint* lpdwBufferLength, uint dwFlags);
 
 ///Combines a base and relative URL into a single URL. The resultant URL is canonicalized (see InternetCanonicalizeUrl).
 ///Params:
@@ -1865,7 +1863,7 @@ BOOL InternetCanonicalizeUrlW(const(wchar)* lpszUrl, const(wchar)* lpszBuffer, u
 ///    <td width="60%"> There is an invalid string, buffer, buffer size, or flags parameter. </td> </tr> </table>
 ///    
 @DllImport("WININET")
-BOOL InternetCombineUrlA(const(char)* lpszBaseUrl, const(char)* lpszRelativeUrl, const(char)* lpszBuffer, 
+BOOL InternetCombineUrlA(const(PSTR) lpszBaseUrl, const(PSTR) lpszRelativeUrl, PSTR lpszBuffer, 
                          uint* lpdwBufferLength, uint dwFlags);
 
 ///Combines a base and relative URL into a single URL. The resultant URL is canonicalized (see InternetCanonicalizeUrl).
@@ -1892,7 +1890,7 @@ BOOL InternetCombineUrlA(const(char)* lpszBaseUrl, const(char)* lpszRelativeUrl,
 ///    <td width="60%"> There is an invalid string, buffer, buffer size, or flags parameter. </td> </tr> </table>
 ///    
 @DllImport("WININET")
-BOOL InternetCombineUrlW(const(wchar)* lpszBaseUrl, const(wchar)* lpszRelativeUrl, const(wchar)* lpszBuffer, 
+BOOL InternetCombineUrlW(const(PWSTR) lpszBaseUrl, const(PWSTR) lpszRelativeUrl, PWSTR lpszBuffer, 
                          uint* lpdwBufferLength, uint dwFlags);
 
 ///Initializes an application's use of the WinINet functions.
@@ -1940,8 +1938,8 @@ BOOL InternetCombineUrlW(const(wchar)* lpszBaseUrl, const(wchar)* lpszRelativeUr
 ///    it returns <b>NULL</b>. To retrieve a specific error message, call GetLastError.
 ///    
 @DllImport("WININET")
-void* InternetOpenA(const(char)* lpszAgent, uint dwAccessType, const(char)* lpszProxy, 
-                    const(char)* lpszProxyBypass, uint dwFlags);
+void* InternetOpenA(const(PSTR) lpszAgent, uint dwAccessType, const(PSTR) lpszProxy, const(PSTR) lpszProxyBypass, 
+                    uint dwFlags);
 
 ///Initializes an application's use of the WinINet functions.
 ///Params:
@@ -1988,8 +1986,8 @@ void* InternetOpenA(const(char)* lpszAgent, uint dwAccessType, const(char)* lpsz
 ///    it returns <b>NULL</b>. To retrieve a specific error message, call GetLastError.
 ///    
 @DllImport("WININET")
-void* InternetOpenW(const(wchar)* lpszAgent, uint dwAccessType, const(wchar)* lpszProxy, 
-                    const(wchar)* lpszProxyBypass, uint dwFlags);
+void* InternetOpenW(const(PWSTR) lpszAgent, uint dwAccessType, const(PWSTR) lpszProxy, 
+                    const(PWSTR) lpszProxyBypass, uint dwFlags);
 
 ///Closes a single Internet handle.
 ///Params:
@@ -2041,8 +2039,8 @@ BOOL InternetCloseHandle(void* hInternet);
 ///    determine why access to the service was denied.
 ///    
 @DllImport("WININET")
-void* InternetConnectA(void* hInternet, const(char)* lpszServerName, ushort nServerPort, const(char)* lpszUserName, 
-                       const(char)* lpszPassword, uint dwService, uint dwFlags, size_t dwContext);
+void* InternetConnectA(void* hInternet, const(PSTR) lpszServerName, ushort nServerPort, const(PSTR) lpszUserName, 
+                       const(PSTR) lpszPassword, uint dwService, uint dwFlags, size_t dwContext);
 
 ///Opens an File Transfer Protocol (FTP) or HTTP session for a given site.
 ///Params:
@@ -2084,9 +2082,8 @@ void* InternetConnectA(void* hInternet, const(char)* lpszServerName, ushort nSer
 ///    determine why access to the service was denied.
 ///    
 @DllImport("WININET")
-void* InternetConnectW(void* hInternet, const(wchar)* lpszServerName, ushort nServerPort, 
-                       const(wchar)* lpszUserName, const(wchar)* lpszPassword, uint dwService, uint dwFlags, 
-                       size_t dwContext);
+void* InternetConnectW(void* hInternet, const(PWSTR) lpszServerName, ushort nServerPort, const(PWSTR) lpszUserName, 
+                       const(PWSTR) lpszPassword, uint dwService, uint dwFlags, size_t dwContext);
 
 ///Opens a resource specified by a complete FTP or HTTP URL.
 ///Params:
@@ -2152,7 +2149,7 @@ void* InternetConnectW(void* hInternet, const(wchar)* lpszServerName, ushort nSe
 ///    denied, call InternetGetLastResponseInfo.
 ///    
 @DllImport("WININET")
-void* InternetOpenUrlA(void* hInternet, const(char)* lpszUrl, const(char)* lpszHeaders, uint dwHeadersLength, 
+void* InternetOpenUrlA(void* hInternet, const(PSTR) lpszUrl, const(PSTR) lpszHeaders, uint dwHeadersLength, 
                        uint dwFlags, size_t dwContext);
 
 ///Opens a resource specified by a complete FTP or HTTP URL.
@@ -2219,7 +2216,7 @@ void* InternetOpenUrlA(void* hInternet, const(char)* lpszUrl, const(char)* lpszH
 ///    denied, call InternetGetLastResponseInfo.
 ///    
 @DllImport("WININET")
-void* InternetOpenUrlW(void* hInternet, const(wchar)* lpszUrl, const(wchar)* lpszHeaders, uint dwHeadersLength, 
+void* InternetOpenUrlW(void* hInternet, const(PWSTR) lpszUrl, const(PWSTR) lpszHeaders, uint dwHeadersLength, 
                        uint dwFlags, size_t dwContext);
 
 ///Reads data from a handle opened by the InternetOpenUrl, FtpOpenFile, or HttpOpenRequest function.
@@ -2234,7 +2231,7 @@ void* InternetOpenUrlW(void* hInternet, const(wchar)* lpszUrl, const(wchar)* lps
 ///    GetLastError. An application can also use InternetGetLastResponseInfo when necessary.
 ///    
 @DllImport("WININET")
-BOOL InternetReadFile(void* hFile, char* lpBuffer, uint dwNumberOfBytesToRead, uint* lpdwNumberOfBytesRead);
+BOOL InternetReadFile(void* hFile, void* lpBuffer, uint dwNumberOfBytesToRead, uint* lpdwNumberOfBytesRead);
 
 ///Reads data from a handle opened by the InternetOpenUrl or HttpOpenRequest function.
 ///Params:
@@ -2334,7 +2331,8 @@ uint InternetSetFilePointer(void* hFile, int lDistanceToMove, int* lpDistanceToM
 ///    An application can also use InternetGetLastResponseInfo when necessary.
 ///    
 @DllImport("WININET")
-BOOL InternetWriteFile(void* hFile, char* lpBuffer, uint dwNumberOfBytesToWrite, uint* lpdwNumberOfBytesWritten);
+BOOL InternetWriteFile(void* hFile, const(void)* lpBuffer, uint dwNumberOfBytesToWrite, 
+                       uint* lpdwNumberOfBytesWritten);
 
 ///Queries the server to determine the amount of data available.
 ///Params:
@@ -2393,7 +2391,7 @@ BOOL InternetFindNextFileW(void* hFind, void* lpvFindData);
 ///    Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise. To get a specific error message, call GetLastError.
 ///    
 @DllImport("WININET")
-BOOL InternetQueryOptionA(void* hInternet, uint dwOption, char* lpBuffer, uint* lpdwBufferLength);
+BOOL InternetQueryOptionA(void* hInternet, uint dwOption, void* lpBuffer, uint* lpdwBufferLength);
 
 ///Queries an Internet option on the specified handle.
 ///Params:
@@ -2409,7 +2407,7 @@ BOOL InternetQueryOptionA(void* hInternet, uint dwOption, char* lpBuffer, uint* 
 ///    Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise. To get a specific error message, call GetLastError.
 ///    
 @DllImport("WININET")
-BOOL InternetQueryOptionW(void* hInternet, uint dwOption, char* lpBuffer, uint* lpdwBufferLength);
+BOOL InternetQueryOptionW(void* hInternet, uint dwOption, void* lpBuffer, uint* lpdwBufferLength);
 
 ///Sets an Internet option.
 ///Params:
@@ -2498,7 +2496,7 @@ BOOL InternetUnlockRequestFile(HANDLE hLockRequestInfo);
 ///    the minimum buffer size required to return all the error text.
 ///    
 @DllImport("WININET")
-BOOL InternetGetLastResponseInfoA(uint* lpdwError, const(char)* lpszBuffer, uint* lpdwBufferLength);
+BOOL InternetGetLastResponseInfoA(uint* lpdwError, PSTR lpszBuffer, uint* lpdwBufferLength);
 
 ///Retrieves the last error description or server response on the thread calling this function.
 ///Params:
@@ -2514,7 +2512,7 @@ BOOL InternetGetLastResponseInfoA(uint* lpdwError, const(char)* lpszBuffer, uint
 ///    the minimum buffer size required to return all the error text.
 ///    
 @DllImport("WININET")
-BOOL InternetGetLastResponseInfoW(uint* lpdwError, const(wchar)* lpszBuffer, uint* lpdwBufferLength);
+BOOL InternetGetLastResponseInfoW(uint* lpdwError, PWSTR lpszBuffer, uint* lpdwBufferLength);
 
 ///The InternetSetStatusCallback function sets up a callback function that WinINet functions can call as progress is
 ///made during an operation.
@@ -2578,8 +2576,8 @@ INTERNET_STATUS_CALLBACK InternetSetStatusCallback(void* hInternet, INTERNET_STA
 ///    InternetGetLastResponseInfo function to retrieve the extended error text, as documented in Handling Errors.
 ///    
 @DllImport("WININET")
-void* FtpFindFirstFileA(void* hConnect, const(char)* lpszSearchFile, WIN32_FIND_DATAA* lpFindFileData, 
-                        uint dwFlags, size_t dwContext);
+void* FtpFindFirstFileA(void* hConnect, const(PSTR) lpszSearchFile, WIN32_FIND_DATAA* lpFindFileData, uint dwFlags, 
+                        size_t dwContext);
 
 ///Searches the specified directory of the given FTP session. File and directory entries are returned to the application
 ///in the WIN32_FIND_DATA structure.
@@ -2604,7 +2602,7 @@ void* FtpFindFirstFileA(void* hConnect, const(char)* lpszSearchFile, WIN32_FIND_
 ///    InternetGetLastResponseInfo function to retrieve the extended error text, as documented in Handling Errors.
 ///    
 @DllImport("WININET")
-void* FtpFindFirstFileW(void* hConnect, const(wchar)* lpszSearchFile, WIN32_FIND_DATAW* lpFindFileData, 
+void* FtpFindFirstFileW(void* hConnect, const(PWSTR) lpszSearchFile, WIN32_FIND_DATAW* lpFindFileData, 
                         uint dwFlags, size_t dwContext);
 
 ///Retrieves a file from the FTP server and stores it under the specified file name, creating a new local file in the
@@ -2655,7 +2653,7 @@ void* FtpFindFirstFileW(void* hConnect, const(wchar)* lpszSearchFile, WIN32_FIND
 ///    Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise. To get a specific error message, call GetLastError.
 ///    
 @DllImport("WININET")
-BOOL FtpGetFileA(void* hConnect, const(char)* lpszRemoteFile, const(char)* lpszNewFile, BOOL fFailIfExists, 
+BOOL FtpGetFileA(void* hConnect, const(PSTR) lpszRemoteFile, const(PSTR) lpszNewFile, BOOL fFailIfExists, 
                  uint dwFlagsAndAttributes, uint dwFlags, size_t dwContext);
 
 ///Retrieves a file from the FTP server and stores it under the specified file name, creating a new local file in the
@@ -2706,7 +2704,7 @@ BOOL FtpGetFileA(void* hConnect, const(char)* lpszRemoteFile, const(char)* lpszN
 ///    Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise. To get a specific error message, call GetLastError.
 ///    
 @DllImport("WININET")
-BOOL FtpGetFileW(void* hConnect, const(wchar)* lpszRemoteFile, const(wchar)* lpszNewFile, BOOL fFailIfExists, 
+BOOL FtpGetFileW(void* hConnect, const(PWSTR) lpszRemoteFile, const(PWSTR) lpszNewFile, BOOL fFailIfExists, 
                  uint dwFlagsAndAttributes, uint dwFlags, size_t dwContext);
 
 ///Stores a file on the FTP server.
@@ -2752,7 +2750,7 @@ BOOL FtpGetFileW(void* hConnect, const(wchar)* lpszRemoteFile, const(wchar)* lps
 ///    Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise. To get a specific error message, call GetLastError.
 ///    
 @DllImport("WININET")
-BOOL FtpPutFileA(void* hConnect, const(char)* lpszLocalFile, const(char)* lpszNewRemoteFile, uint dwFlags, 
+BOOL FtpPutFileA(void* hConnect, const(PSTR) lpszLocalFile, const(PSTR) lpszNewRemoteFile, uint dwFlags, 
                  size_t dwContext);
 
 ///Stores a file on the FTP server.
@@ -2798,15 +2796,15 @@ BOOL FtpPutFileA(void* hConnect, const(char)* lpszLocalFile, const(char)* lpszNe
 ///    Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise. To get a specific error message, call GetLastError.
 ///    
 @DllImport("WININET")
-BOOL FtpPutFileW(void* hConnect, const(wchar)* lpszLocalFile, const(wchar)* lpszNewRemoteFile, uint dwFlags, 
+BOOL FtpPutFileW(void* hConnect, const(PWSTR) lpszLocalFile, const(PWSTR) lpszNewRemoteFile, uint dwFlags, 
                  size_t dwContext);
 
 @DllImport("WININET")
-BOOL FtpGetFileEx(void* hFtpSession, const(char)* lpszRemoteFile, const(wchar)* lpszNewFile, BOOL fFailIfExists, 
+BOOL FtpGetFileEx(void* hFtpSession, const(PSTR) lpszRemoteFile, const(PWSTR) lpszNewFile, BOOL fFailIfExists, 
                   uint dwFlagsAndAttributes, uint dwFlags, size_t dwContext);
 
 @DllImport("WININET")
-BOOL FtpPutFileEx(void* hFtpSession, const(wchar)* lpszLocalFile, const(char)* lpszNewRemoteFile, uint dwFlags, 
+BOOL FtpPutFileEx(void* hFtpSession, const(PWSTR) lpszLocalFile, const(PSTR) lpszNewRemoteFile, uint dwFlags, 
                   size_t dwContext);
 
 ///Deletes a file stored on the FTP server.
@@ -2817,7 +2815,7 @@ BOOL FtpPutFileEx(void* hFtpSession, const(wchar)* lpszLocalFile, const(char)* l
 ///    Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise. To get a specific error message, call GetLastError.
 ///    
 @DllImport("WININET")
-BOOL FtpDeleteFileA(void* hConnect, const(char)* lpszFileName);
+BOOL FtpDeleteFileA(void* hConnect, const(PSTR) lpszFileName);
 
 ///Deletes a file stored on the FTP server.
 ///Params:
@@ -2827,7 +2825,7 @@ BOOL FtpDeleteFileA(void* hConnect, const(char)* lpszFileName);
 ///    Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise. To get a specific error message, call GetLastError.
 ///    
 @DllImport("WININET")
-BOOL FtpDeleteFileW(void* hConnect, const(wchar)* lpszFileName);
+BOOL FtpDeleteFileW(void* hConnect, const(PWSTR) lpszFileName);
 
 ///Renames a file stored on the FTP server.
 ///Params:
@@ -2838,7 +2836,7 @@ BOOL FtpDeleteFileW(void* hConnect, const(wchar)* lpszFileName);
 ///    Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise. To get a specific error message, call GetLastError.
 ///    
 @DllImport("WININET")
-BOOL FtpRenameFileA(void* hConnect, const(char)* lpszExisting, const(char)* lpszNew);
+BOOL FtpRenameFileA(void* hConnect, const(PSTR) lpszExisting, const(PSTR) lpszNew);
 
 ///Renames a file stored on the FTP server.
 ///Params:
@@ -2849,7 +2847,7 @@ BOOL FtpRenameFileA(void* hConnect, const(char)* lpszExisting, const(char)* lpsz
 ///    Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise. To get a specific error message, call GetLastError.
 ///    
 @DllImport("WININET")
-BOOL FtpRenameFileW(void* hConnect, const(wchar)* lpszExisting, const(wchar)* lpszNew);
+BOOL FtpRenameFileW(void* hConnect, const(PWSTR) lpszExisting, const(PWSTR) lpszNew);
 
 ///Initiates access to a remote file on an FTP server for reading or writing.
 ///Params:
@@ -2895,7 +2893,7 @@ BOOL FtpRenameFileW(void* hConnect, const(wchar)* lpszExisting, const(wchar)* lp
 ///    GetLastError.
 ///    
 @DllImport("WININET")
-void* FtpOpenFileA(void* hConnect, const(char)* lpszFileName, uint dwAccess, uint dwFlags, size_t dwContext);
+void* FtpOpenFileA(void* hConnect, const(PSTR) lpszFileName, uint dwAccess, uint dwFlags, size_t dwContext);
 
 ///Initiates access to a remote file on an FTP server for reading or writing.
 ///Params:
@@ -2941,7 +2939,7 @@ void* FtpOpenFileA(void* hConnect, const(char)* lpszFileName, uint dwAccess, uin
 ///    GetLastError.
 ///    
 @DllImport("WININET")
-void* FtpOpenFileW(void* hConnect, const(wchar)* lpszFileName, uint dwAccess, uint dwFlags, size_t dwContext);
+void* FtpOpenFileW(void* hConnect, const(PWSTR) lpszFileName, uint dwAccess, uint dwFlags, size_t dwContext);
 
 ///Creates a new directory on the FTP server.
 ///Params:
@@ -2954,7 +2952,7 @@ void* FtpOpenFileW(void* hConnect, const(wchar)* lpszFileName, uint dwAccess, ui
 ///    InternetGetLastResponseInfo to determine why.
 ///    
 @DllImport("WININET")
-BOOL FtpCreateDirectoryA(void* hConnect, const(char)* lpszDirectory);
+BOOL FtpCreateDirectoryA(void* hConnect, const(PSTR) lpszDirectory);
 
 ///Creates a new directory on the FTP server.
 ///Params:
@@ -2967,7 +2965,7 @@ BOOL FtpCreateDirectoryA(void* hConnect, const(char)* lpszDirectory);
 ///    InternetGetLastResponseInfo to determine why.
 ///    
 @DllImport("WININET")
-BOOL FtpCreateDirectoryW(void* hConnect, const(wchar)* lpszDirectory);
+BOOL FtpCreateDirectoryW(void* hConnect, const(PWSTR) lpszDirectory);
 
 ///Removes the specified directory on the FTP server.
 ///Params:
@@ -2980,7 +2978,7 @@ BOOL FtpCreateDirectoryW(void* hConnect, const(wchar)* lpszDirectory);
 ///    InternetGetLastResponseInfo to determine why.
 ///    
 @DllImport("WININET")
-BOOL FtpRemoveDirectoryA(void* hConnect, const(char)* lpszDirectory);
+BOOL FtpRemoveDirectoryA(void* hConnect, const(PSTR) lpszDirectory);
 
 ///Removes the specified directory on the FTP server.
 ///Params:
@@ -2993,7 +2991,7 @@ BOOL FtpRemoveDirectoryA(void* hConnect, const(char)* lpszDirectory);
 ///    InternetGetLastResponseInfo to determine why.
 ///    
 @DllImport("WININET")
-BOOL FtpRemoveDirectoryW(void* hConnect, const(wchar)* lpszDirectory);
+BOOL FtpRemoveDirectoryW(void* hConnect, const(PWSTR) lpszDirectory);
 
 ///Changes to a different working directory on the FTP server.
 ///Params:
@@ -3006,7 +3004,7 @@ BOOL FtpRemoveDirectoryW(void* hConnect, const(wchar)* lpszDirectory);
 ///    InternetGetLastResponseInfo to determine why.
 ///    
 @DllImport("WININET")
-BOOL FtpSetCurrentDirectoryA(void* hConnect, const(char)* lpszDirectory);
+BOOL FtpSetCurrentDirectoryA(void* hConnect, const(PSTR) lpszDirectory);
 
 ///Changes to a different working directory on the FTP server.
 ///Params:
@@ -3019,7 +3017,7 @@ BOOL FtpSetCurrentDirectoryA(void* hConnect, const(char)* lpszDirectory);
 ///    InternetGetLastResponseInfo to determine why.
 ///    
 @DllImport("WININET")
-BOOL FtpSetCurrentDirectoryW(void* hConnect, const(wchar)* lpszDirectory);
+BOOL FtpSetCurrentDirectoryW(void* hConnect, const(PWSTR) lpszDirectory);
 
 ///Retrieves the current directory for the specified FTP session.
 ///Params:
@@ -3032,7 +3030,7 @@ BOOL FtpSetCurrentDirectoryW(void* hConnect, const(wchar)* lpszDirectory);
 ///    Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise. To get a specific error message, call GetLastError.
 ///    
 @DllImport("WININET")
-BOOL FtpGetCurrentDirectoryA(void* hConnect, const(char)* lpszCurrentDirectory, uint* lpdwCurrentDirectory);
+BOOL FtpGetCurrentDirectoryA(void* hConnect, PSTR lpszCurrentDirectory, uint* lpdwCurrentDirectory);
 
 ///Retrieves the current directory for the specified FTP session.
 ///Params:
@@ -3045,7 +3043,7 @@ BOOL FtpGetCurrentDirectoryA(void* hConnect, const(char)* lpszCurrentDirectory, 
 ///    Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise. To get a specific error message, call GetLastError.
 ///    
 @DllImport("WININET")
-BOOL FtpGetCurrentDirectoryW(void* hConnect, const(wchar)* lpszCurrentDirectory, uint* lpdwCurrentDirectory);
+BOOL FtpGetCurrentDirectoryW(void* hConnect, PWSTR lpszCurrentDirectory, uint* lpdwCurrentDirectory);
 
 ///The <b>FtpCommand</b> function sends commands directly to an FTP server.
 ///Params:
@@ -3069,7 +3067,7 @@ BOOL FtpGetCurrentDirectoryW(void* hConnect, const(wchar)* lpszCurrentDirectory,
 ///    Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise. To get a specific error message, call GetLastError.
 ///    
 @DllImport("WININET")
-BOOL FtpCommandA(void* hConnect, BOOL fExpectResponse, uint dwFlags, const(char)* lpszCommand, size_t dwContext, 
+BOOL FtpCommandA(void* hConnect, BOOL fExpectResponse, uint dwFlags, const(PSTR) lpszCommand, size_t dwContext, 
                  void** phFtpCommand);
 
 ///The <b>FtpCommand</b> function sends commands directly to an FTP server.
@@ -3094,7 +3092,7 @@ BOOL FtpCommandA(void* hConnect, BOOL fExpectResponse, uint dwFlags, const(char)
 ///    Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise. To get a specific error message, call GetLastError.
 ///    
 @DllImport("WININET")
-BOOL FtpCommandW(void* hConnect, BOOL fExpectResponse, uint dwFlags, const(wchar)* lpszCommand, size_t dwContext, 
+BOOL FtpCommandW(void* hConnect, BOOL fExpectResponse, uint dwFlags, const(PWSTR) lpszCommand, size_t dwContext, 
                  void** phFtpCommand);
 
 ///Retrieves the file size of the requested FTP resource.
@@ -3132,8 +3130,8 @@ uint FtpGetFileSize(void* hFile, uint* lpdwFileSizeHigh);
 ///    GetLastError or InternetGetLastResponseInfo.
 ///    
 @DllImport("WININET")
-BOOL GopherCreateLocatorA(const(char)* lpszHost, ushort nServerPort, const(char)* lpszDisplayString, 
-                          const(char)* lpszSelectorString, uint dwGopherType, const(char)* lpszLocator, 
+BOOL GopherCreateLocatorA(const(PSTR) lpszHost, ushort nServerPort, const(PSTR) lpszDisplayString, 
+                          const(PSTR) lpszSelectorString, uint dwGopherType, PSTR lpszLocator, 
                           uint* lpdwBufferLength);
 
 ///<p class="CCE_Message">[The <b>GopherCreateLocator</b> function is available for use in the operating systems
@@ -3161,8 +3159,8 @@ BOOL GopherCreateLocatorA(const(char)* lpszHost, ushort nServerPort, const(char)
 ///    GetLastError or InternetGetLastResponseInfo.
 ///    
 @DllImport("WININET")
-BOOL GopherCreateLocatorW(const(wchar)* lpszHost, ushort nServerPort, const(wchar)* lpszDisplayString, 
-                          const(wchar)* lpszSelectorString, uint dwGopherType, const(wchar)* lpszLocator, 
+BOOL GopherCreateLocatorW(const(PWSTR) lpszHost, ushort nServerPort, const(PWSTR) lpszDisplayString, 
+                          const(PWSTR) lpszSelectorString, uint dwGopherType, PWSTR lpszLocator, 
                           uint* lpdwBufferLength);
 
 ///<p class="CCE_Message">[The <b>GopherGetLocatorType</b> function is available for use in the operating systems
@@ -3176,7 +3174,7 @@ BOOL GopherCreateLocatorW(const(wchar)* lpszHost, ushort nServerPort, const(wcha
 ///    GetLastError.
 ///    
 @DllImport("WININET")
-BOOL GopherGetLocatorTypeA(const(char)* lpszLocator, uint* lpdwGopherType);
+BOOL GopherGetLocatorTypeA(const(PSTR) lpszLocator, uint* lpdwGopherType);
 
 ///<p class="CCE_Message">[The <b>GopherGetLocatorType</b> function is available for use in the operating systems
 ///specified in the Requirements section.] Parses a Gopher locator and determines its attributes.
@@ -3189,7 +3187,7 @@ BOOL GopherGetLocatorTypeA(const(char)* lpszLocator, uint* lpdwGopherType);
 ///    GetLastError.
 ///    
 @DllImport("WININET")
-BOOL GopherGetLocatorTypeW(const(wchar)* lpszLocator, uint* lpdwGopherType);
+BOOL GopherGetLocatorTypeW(const(PWSTR) lpszLocator, uint* lpdwGopherType);
 
 ///<p class="CCE_Message">[The <b>GopherFindFirstFile</b> function is available for use in the operating systems
 ///specified in the Requirements section.] Uses a Gopher locator and search criteria to create a session with the server
@@ -3221,7 +3219,7 @@ BOOL GopherGetLocatorTypeW(const(wchar)* lpszLocator, uint* lpdwGopherType);
 ///    call GetLastError or InternetGetLastResponseInfo.
 ///    
 @DllImport("WININET")
-void* GopherFindFirstFileA(void* hConnect, const(char)* lpszLocator, const(char)* lpszSearchString, 
+void* GopherFindFirstFileA(void* hConnect, const(PSTR) lpszLocator, const(PSTR) lpszSearchString, 
                            GOPHER_FIND_DATAA* lpFindData, uint dwFlags, size_t dwContext);
 
 ///<p class="CCE_Message">[The <b>GopherFindFirstFile</b> function is available for use in the operating systems
@@ -3254,7 +3252,7 @@ void* GopherFindFirstFileA(void* hConnect, const(char)* lpszLocator, const(char)
 ///    call GetLastError or InternetGetLastResponseInfo.
 ///    
 @DllImport("WININET")
-void* GopherFindFirstFileW(void* hConnect, const(wchar)* lpszLocator, const(wchar)* lpszSearchString, 
+void* GopherFindFirstFileW(void* hConnect, const(PWSTR) lpszLocator, const(PWSTR) lpszSearchString, 
                            GOPHER_FIND_DATAW* lpFindData, uint dwFlags, size_t dwContext);
 
 ///<p class="CCE_Message">[The <b>GopherOpenFile</b> function is available for use in the operating systems specified in
@@ -3284,7 +3282,7 @@ void* GopherFindFirstFileW(void* hConnect, const(wchar)* lpszLocator, const(wcha
 ///    information, call GetLastError or InternetGetLastResponseInfo.
 ///    
 @DllImport("WININET")
-void* GopherOpenFileA(void* hConnect, const(char)* lpszLocator, const(char)* lpszView, uint dwFlags, 
+void* GopherOpenFileA(void* hConnect, const(PSTR) lpszLocator, const(PSTR) lpszView, uint dwFlags, 
                       size_t dwContext);
 
 ///<p class="CCE_Message">[The <b>GopherOpenFile</b> function is available for use in the operating systems specified in
@@ -3314,7 +3312,7 @@ void* GopherOpenFileA(void* hConnect, const(char)* lpszLocator, const(char)* lps
 ///    information, call GetLastError or InternetGetLastResponseInfo.
 ///    
 @DllImport("WININET")
-void* GopherOpenFileW(void* hConnect, const(wchar)* lpszLocator, const(wchar)* lpszView, uint dwFlags, 
+void* GopherOpenFileW(void* hConnect, const(PWSTR) lpszLocator, const(PWSTR) lpszView, uint dwFlags, 
                       size_t dwContext);
 
 ///<p class="CCE_Message">[The <b>GopherGetAttribute</b> function is available for use in the operating systems
@@ -3339,7 +3337,7 @@ void* GopherOpenFileW(void* hConnect, const(wchar)* lpszLocator, const(wchar)* l
 ///    call GetLastError or InternetGetLastResponseInfo.
 ///    
 @DllImport("WININET")
-BOOL GopherGetAttributeA(void* hConnect, const(char)* lpszLocator, const(char)* lpszAttributeName, char* lpBuffer, 
+BOOL GopherGetAttributeA(void* hConnect, const(PSTR) lpszLocator, const(PSTR) lpszAttributeName, ubyte* lpBuffer, 
                          uint dwBufferLength, uint* lpdwCharactersReturned, 
                          GOPHER_ATTRIBUTE_ENUMERATOR lpfnEnumerator, size_t dwContext);
 
@@ -3365,8 +3363,8 @@ BOOL GopherGetAttributeA(void* hConnect, const(char)* lpszLocator, const(char)* 
 ///    call GetLastError or InternetGetLastResponseInfo.
 ///    
 @DllImport("WININET")
-BOOL GopherGetAttributeW(void* hConnect, const(wchar)* lpszLocator, const(wchar)* lpszAttributeName, 
-                         char* lpBuffer, uint dwBufferLength, uint* lpdwCharactersReturned, 
+BOOL GopherGetAttributeW(void* hConnect, const(PWSTR) lpszLocator, const(PWSTR) lpszAttributeName, ubyte* lpBuffer, 
+                         uint dwBufferLength, uint* lpdwCharactersReturned, 
                          GOPHER_ATTRIBUTE_ENUMERATOR lpfnEnumerator, size_t dwContext);
 
 ///Creates an HTTP request handle.
@@ -3437,9 +3435,8 @@ BOOL GopherGetAttributeW(void* hConnect, const(wchar)* lpszLocator, const(wchar)
 ///    call GetLastError.
 ///    
 @DllImport("WININET")
-void* HttpOpenRequestA(void* hConnect, const(char)* lpszVerb, const(char)* lpszObjectName, 
-                       const(char)* lpszVersion, const(char)* lpszReferrer, byte** lplpszAcceptTypes, uint dwFlags, 
-                       size_t dwContext);
+void* HttpOpenRequestA(void* hConnect, const(PSTR) lpszVerb, const(PSTR) lpszObjectName, const(PSTR) lpszVersion, 
+                       const(PSTR) lpszReferrer, PSTR* lplpszAcceptTypes, uint dwFlags, size_t dwContext);
 
 ///Creates an HTTP request handle.
 ///Params:
@@ -3509,9 +3506,9 @@ void* HttpOpenRequestA(void* hConnect, const(char)* lpszVerb, const(char)* lpszO
 ///    call GetLastError.
 ///    
 @DllImport("WININET")
-void* HttpOpenRequestW(void* hConnect, const(wchar)* lpszVerb, const(wchar)* lpszObjectName, 
-                       const(wchar)* lpszVersion, const(wchar)* lpszReferrer, ushort** lplpszAcceptTypes, 
-                       uint dwFlags, size_t dwContext);
+void* HttpOpenRequestW(void* hConnect, const(PWSTR) lpszVerb, const(PWSTR) lpszObjectName, 
+                       const(PWSTR) lpszVersion, const(PWSTR) lpszReferrer, PWSTR* lplpszAcceptTypes, uint dwFlags, 
+                       size_t dwContext);
 
 ///Adds one or more HTTP request headers to the HTTP request handle.
 ///Params:
@@ -3546,7 +3543,7 @@ void* HttpOpenRequestW(void* hConnect, const(wchar)* lpszVerb, const(wchar)* lps
 ///    GetLastError.
 ///    
 @DllImport("WININET")
-BOOL HttpAddRequestHeadersA(void* hRequest, const(char)* lpszHeaders, uint dwHeadersLength, uint dwModifiers);
+BOOL HttpAddRequestHeadersA(void* hRequest, const(PSTR) lpszHeaders, uint dwHeadersLength, uint dwModifiers);
 
 ///Adds one or more HTTP request headers to the HTTP request handle.
 ///Params:
@@ -3581,7 +3578,7 @@ BOOL HttpAddRequestHeadersA(void* hRequest, const(char)* lpszHeaders, uint dwHea
 ///    GetLastError.
 ///    
 @DllImport("WININET")
-BOOL HttpAddRequestHeadersW(void* hRequest, const(wchar)* lpszHeaders, uint dwHeadersLength, uint dwModifiers);
+BOOL HttpAddRequestHeadersW(void* hRequest, const(PWSTR) lpszHeaders, uint dwHeadersLength, uint dwModifiers);
 
 ///Sends the specified request to the HTTP server, allowing callers to send extra data beyond what is normally passed to
 ///HttpSendRequestEx.
@@ -3601,7 +3598,7 @@ BOOL HttpAddRequestHeadersW(void* hRequest, const(wchar)* lpszHeaders, uint dwHe
 ///    GetLastError.
 ///    
 @DllImport("WININET")
-BOOL HttpSendRequestA(void* hRequest, const(char)* lpszHeaders, uint dwHeadersLength, char* lpOptional, 
+BOOL HttpSendRequestA(void* hRequest, const(PSTR) lpszHeaders, uint dwHeadersLength, void* lpOptional, 
                       uint dwOptionalLength);
 
 ///Sends the specified request to the HTTP server, allowing callers to send extra data beyond what is normally passed to
@@ -3622,7 +3619,7 @@ BOOL HttpSendRequestA(void* hRequest, const(char)* lpszHeaders, uint dwHeadersLe
 ///    GetLastError.
 ///    
 @DllImport("WININET")
-BOOL HttpSendRequestW(void* hRequest, const(wchar)* lpszHeaders, uint dwHeadersLength, char* lpOptional, 
+BOOL HttpSendRequestW(void* hRequest, const(PWSTR) lpszHeaders, uint dwHeadersLength, void* lpOptional, 
                       uint dwOptionalLength);
 
 ///Sends the specified request to the HTTP server. <div class="alert"><b>Note</b> Callers that need to send extra data
@@ -3707,7 +3704,7 @@ BOOL HttpEndRequestW(void* hRequest, INTERNET_BUFFERSW* lpBuffersOut, uint dwFla
 ///    GetLastError.
 ///    
 @DllImport("WININET")
-BOOL HttpQueryInfoA(void* hRequest, uint dwInfoLevel, char* lpBuffer, uint* lpdwBufferLength, uint* lpdwIndex);
+BOOL HttpQueryInfoA(void* hRequest, uint dwInfoLevel, void* lpBuffer, uint* lpdwBufferLength, uint* lpdwIndex);
 
 ///Retrieves header information associated with an HTTP request.
 ///Params:
@@ -3731,7 +3728,7 @@ BOOL HttpQueryInfoA(void* hRequest, uint dwInfoLevel, char* lpBuffer, uint* lpdw
 ///    GetLastError.
 ///    
 @DllImport("WININET")
-BOOL HttpQueryInfoW(void* hRequest, uint dwInfoLevel, char* lpBuffer, uint* lpdwBufferLength, uint* lpdwIndex);
+BOOL HttpQueryInfoW(void* hRequest, uint dwInfoLevel, void* lpBuffer, uint* lpdwBufferLength, uint* lpdwIndex);
 
 ///Creates a cookie associated with the specified URL.
 ///Params:
@@ -3743,7 +3740,7 @@ BOOL HttpQueryInfoW(void* hRequest, uint dwInfoLevel, char* lpBuffer, uint* lpdw
 ///    Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise. To get a specific error message, call GetLastError.
 ///    
 @DllImport("WININET")
-BOOL InternetSetCookieA(const(char)* lpszUrl, const(char)* lpszCookieName, const(char)* lpszCookieData);
+BOOL InternetSetCookieA(const(PSTR) lpszUrl, const(PSTR) lpszCookieName, const(PSTR) lpszCookieData);
 
 ///Creates a cookie associated with the specified URL.
 ///Params:
@@ -3755,7 +3752,7 @@ BOOL InternetSetCookieA(const(char)* lpszUrl, const(char)* lpszCookieName, const
 ///    Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise. To get a specific error message, call GetLastError.
 ///    
 @DllImport("WININET")
-BOOL InternetSetCookieW(const(wchar)* lpszUrl, const(wchar)* lpszCookieName, const(wchar)* lpszCookieData);
+BOOL InternetSetCookieW(const(PWSTR) lpszUrl, const(PWSTR) lpszCookieName, const(PWSTR) lpszCookieData);
 
 ///Retrieves the cookie for the specified URL.
 ///Params:
@@ -3778,8 +3775,7 @@ BOOL InternetSetCookieW(const(wchar)* lpszUrl, const(wchar)* lpszCookieName, con
 ///    invalid. The <i>lpszUrl</i> parameter is <b>NULL</b>. </td> </tr> </table>
 ///    
 @DllImport("WININET")
-BOOL InternetGetCookieA(const(char)* lpszUrl, const(char)* lpszCookieName, const(char)* lpszCookieData, 
-                        uint* lpdwSize);
+BOOL InternetGetCookieA(const(PSTR) lpszUrl, const(PSTR) lpszCookieName, PSTR lpszCookieData, uint* lpdwSize);
 
 ///Retrieves the cookie for the specified URL.
 ///Params:
@@ -3802,8 +3798,7 @@ BOOL InternetGetCookieA(const(char)* lpszUrl, const(char)* lpszCookieName, const
 ///    invalid. The <i>lpszUrl</i> parameter is <b>NULL</b>. </td> </tr> </table>
 ///    
 @DllImport("WININET")
-BOOL InternetGetCookieW(const(wchar)* lpszUrl, const(wchar)* lpszCookieName, const(wchar)* lpszCookieData, 
-                        uint* lpdwSize);
+BOOL InternetGetCookieW(const(PWSTR) lpszUrl, const(PWSTR) lpszCookieName, PWSTR lpszCookieData, uint* lpdwSize);
 
 ///The <b>InternetSetCookieEx</b> function creates a cookie with a specified name that is associated with a specified
 ///URL. This function differs from the InternetSetCookie function by being able to create third-party cookies.
@@ -3838,7 +3833,7 @@ BOOL InternetGetCookieW(const(wchar)* lpszUrl, const(wchar)* lpszCookieName, con
 ///    failure, if a call to GetLastError returns ERROR_NOT_ENOUGH_MEMORY, insufficient system memory was available.
 ///    
 @DllImport("WININET")
-uint InternetSetCookieExA(const(char)* lpszUrl, const(char)* lpszCookieName, const(char)* lpszCookieData, 
+uint InternetSetCookieExA(const(PSTR) lpszUrl, const(PSTR) lpszCookieName, const(PSTR) lpszCookieData, 
                           uint dwFlags, size_t dwReserved);
 
 ///The <b>InternetSetCookieEx</b> function creates a cookie with a specified name that is associated with a specified
@@ -3874,7 +3869,7 @@ uint InternetSetCookieExA(const(char)* lpszUrl, const(char)* lpszCookieName, con
 ///    failure, if a call to GetLastError returns ERROR_NOT_ENOUGH_MEMORY, insufficient system memory was available.
 ///    
 @DllImport("WININET")
-uint InternetSetCookieExW(const(wchar)* lpszUrl, const(wchar)* lpszCookieName, const(wchar)* lpszCookieData, 
+uint InternetSetCookieExW(const(PWSTR) lpszUrl, const(PWSTR) lpszCookieName, const(PWSTR) lpszCookieData, 
                           uint dwFlags, size_t dwReserved);
 
 ///The <b>InternetGetCookieEx</b> function retrieves data stored in cookies associated with a specified URL. Unlike
@@ -3921,8 +3916,8 @@ uint InternetSetCookieExW(const(wchar)* lpszUrl, const(wchar)* lpszCookieName, c
 ///    cookied data as specified could be retrieved. </td> </tr> </table>
 ///    
 @DllImport("WININET")
-BOOL InternetGetCookieExA(const(char)* lpszUrl, const(char)* lpszCookieName, const(char)* lpszCookieData, 
-                          uint* lpdwSize, uint dwFlags, void* lpReserved);
+BOOL InternetGetCookieExA(const(PSTR) lpszUrl, const(PSTR) lpszCookieName, PSTR lpszCookieData, uint* lpdwSize, 
+                          uint dwFlags, void* lpReserved);
 
 ///The <b>InternetGetCookieEx</b> function retrieves data stored in cookies associated with a specified URL. Unlike
 ///InternetGetCookie, <b>InternetGetCookieEx</b> can be used to restrict data retrieved to a single cookie name or, by
@@ -3968,8 +3963,8 @@ BOOL InternetGetCookieExA(const(char)* lpszUrl, const(char)* lpszCookieName, con
 ///    cookied data as specified could be retrieved. </td> </tr> </table>
 ///    
 @DllImport("WININET")
-BOOL InternetGetCookieExW(const(wchar)* lpszUrl, const(wchar)* lpszCookieName, const(wchar)* lpszCookieData, 
-                          uint* lpdwSize, uint dwFlags, void* lpReserved);
+BOOL InternetGetCookieExW(const(PWSTR) lpszUrl, const(PWSTR) lpszCookieName, PWSTR lpszCookieData, uint* lpdwSize, 
+                          uint dwFlags, void* lpReserved);
 
 ///Frees an array of [INTERNET\_COOKIE2](ns-wininet-internet-cookie2.md) structures returned by
 ///[InternetGetCookieEx2](nf-wininet-internetgetcookieex2.md).
@@ -3998,7 +3993,7 @@ void InternetFreeCookies(INTERNET_COOKIE2* pCookies, uint dwCookieCount);
 ///    failure.
 ///    
 @DllImport("WININET")
-uint InternetGetCookieEx2(const(wchar)* pcwszUrl, const(wchar)* pcwszCookieName, uint dwFlags, 
+uint InternetGetCookieEx2(const(PWSTR) pcwszUrl, const(PWSTR) pcwszCookieName, uint dwFlags, 
                           INTERNET_COOKIE2** ppCookies, uint* pdwCookieCount);
 
 ///Creates a cookie associated with the specified URL.
@@ -4020,7 +4015,7 @@ uint InternetGetCookieEx2(const(wchar)* pcwszUrl, const(wchar)* pcwszCookieName,
 ///    failure.
 ///    
 @DllImport("WININET")
-uint InternetSetCookieEx2(const(wchar)* pcwszUrl, const(INTERNET_COOKIE2)* pCookie, const(wchar)* pcwszP3PPolicy, 
+uint InternetSetCookieEx2(const(PWSTR) pcwszUrl, const(INTERNET_COOKIE2)* pCookie, const(PWSTR) pcwszP3PPolicy, 
                           uint dwFlags, uint* pdwCookieState);
 
 ///Attempts to make a connection to the Internet.
@@ -4051,7 +4046,7 @@ uint InternetAttemptConnect(uint dwReserved);
 ///    sockets database is unconditionally offline.
 ///    
 @DllImport("WININET")
-BOOL InternetCheckConnectionA(const(char)* lpszUrl, uint dwFlags, uint dwReserved);
+BOOL InternetCheckConnectionA(const(PSTR) lpszUrl, uint dwFlags, uint dwReserved);
 
 ///<p class="CCE_Message">[<b>InternetCheckConnection</b> is available for use in the operating systems specified in the
 ///Requirements section. It may be altered or unavailable in subsequent versions. Instead, use
@@ -4072,7 +4067,7 @@ BOOL InternetCheckConnectionA(const(char)* lpszUrl, uint dwFlags, uint dwReserve
 ///    sockets database is unconditionally offline.
 ///    
 @DllImport("WININET")
-BOOL InternetCheckConnectionW(const(wchar)* lpszUrl, uint dwFlags, uint dwReserved);
+BOOL InternetCheckConnectionW(const(PWSTR) lpszUrl, uint dwFlags, uint dwReserved);
 
 ///The <b>ResumeSuspendedDownload</b> function resumes a request that is suspended by a user interface dialog box.
 ///Params:
@@ -4177,7 +4172,7 @@ uint InternetErrorDlg(HWND hWnd, void* hRequest, uint dwError, uint dwFlags, voi
 ///    to carry out the request. </td> </tr> </table>
 ///    
 @DllImport("WININET")
-uint InternetConfirmZoneCrossingA(HWND hWnd, const(char)* szUrlPrev, const(char)* szUrlNew, BOOL bPost);
+uint InternetConfirmZoneCrossingA(HWND hWnd, PSTR szUrlPrev, PSTR szUrlNew, BOOL bPost);
 
 ///Checks for changes between secure and nonsecure URLs. Always inform the user when a change occurs in security between
 ///two URLs. Typically, an application should allow the user to acknowledge the change through interaction with a dialog
@@ -4196,7 +4191,7 @@ uint InternetConfirmZoneCrossingA(HWND hWnd, const(char)* szUrlPrev, const(char)
 ///    to carry out the request. </td> </tr> </table>
 ///    
 @DllImport("WININET")
-uint InternetConfirmZoneCrossingW(HWND hWnd, const(wchar)* szUrlPrev, const(wchar)* szUrlNew, BOOL bPost);
+uint InternetConfirmZoneCrossingW(HWND hWnd, PWSTR szUrlPrev, PWSTR szUrlNew, BOOL bPost);
 
 ///Checks for changes between secure and nonsecure URLs. Always inform the user when a change occurs in security between
 ///two URLs. Typically, an application should allow the user to acknowledge the change through interaction with a dialog
@@ -4215,7 +4210,7 @@ uint InternetConfirmZoneCrossingW(HWND hWnd, const(wchar)* szUrlPrev, const(wcha
 ///    to carry out the request. </td> </tr> </table>
 ///    
 @DllImport("WININET")
-uint InternetConfirmZoneCrossing(HWND hWnd, const(char)* szUrlPrev, const(char)* szUrlNew, BOOL bPost);
+uint InternetConfirmZoneCrossing(HWND hWnd, PSTR szUrlPrev, PSTR szUrlNew, BOOL bPost);
 
 ///Creates a local file name for saving the cache entry based on the specified URL and the file name extension.
 ///Params:
@@ -4232,8 +4227,8 @@ uint InternetConfirmZoneCrossing(HWND hWnd, const(char)* szUrlPrev, const(char)*
 ///    get extended error information, call GetLastError.
 ///    
 @DllImport("WININET")
-BOOL CreateUrlCacheEntryA(const(char)* lpszUrlName, uint dwExpectedFileSize, const(char)* lpszFileExtension, 
-                          const(char)* lpszFileName, uint dwReserved);
+BOOL CreateUrlCacheEntryA(const(PSTR) lpszUrlName, uint dwExpectedFileSize, const(PSTR) lpszFileExtension, 
+                          PSTR lpszFileName, uint dwReserved);
 
 ///Creates a local file name for saving the cache entry based on the specified URL and the file name extension.
 ///Params:
@@ -4250,8 +4245,8 @@ BOOL CreateUrlCacheEntryA(const(char)* lpszUrlName, uint dwExpectedFileSize, con
 ///    get extended error information, call GetLastError.
 ///    
 @DllImport("WININET")
-BOOL CreateUrlCacheEntryW(const(wchar)* lpszUrlName, uint dwExpectedFileSize, const(wchar)* lpszFileExtension, 
-                          const(wchar)* lpszFileName, uint dwReserved);
+BOOL CreateUrlCacheEntryW(const(PWSTR) lpszUrlName, uint dwExpectedFileSize, const(PWSTR) lpszFileExtension, 
+                          PWSTR lpszFileName, uint dwReserved);
 
 ///Stores data in the specified file in the Internet cache and associates it with the specified URL.
 ///Params:
@@ -4294,9 +4289,9 @@ BOOL CreateUrlCacheEntryW(const(wchar)* lpszUrlName, uint dwExpectedFileSize, co
 ///    The specified local file is not found. </td> </tr> </table>
 ///    
 @DllImport("WININET")
-BOOL CommitUrlCacheEntryA(const(char)* lpszUrlName, const(char)* lpszLocalFileName, FILETIME ExpireTime, 
-                          FILETIME LastModifiedTime, uint CacheEntryType, char* lpHeaderInfo, uint cchHeaderInfo, 
-                          const(char)* lpszFileExtension, const(char)* lpszOriginalUrl);
+BOOL CommitUrlCacheEntryA(const(PSTR) lpszUrlName, const(PSTR) lpszLocalFileName, FILETIME ExpireTime, 
+                          FILETIME LastModifiedTime, uint CacheEntryType, ubyte* lpHeaderInfo, uint cchHeaderInfo, 
+                          const(PSTR) lpszFileExtension, const(PSTR) lpszOriginalUrl);
 
 ///Stores data in the specified file in the Internet cache and associates it with the specified URL.
 ///Params:
@@ -4339,9 +4334,9 @@ BOOL CommitUrlCacheEntryA(const(char)* lpszUrlName, const(char)* lpszLocalFileNa
 ///    The specified local file is not found. </td> </tr> </table>
 ///    
 @DllImport("WININET")
-BOOL CommitUrlCacheEntryW(const(wchar)* lpszUrlName, const(wchar)* lpszLocalFileName, FILETIME ExpireTime, 
-                          FILETIME LastModifiedTime, uint CacheEntryType, const(wchar)* lpszHeaderInfo, 
-                          uint cchHeaderInfo, const(wchar)* lpszFileExtension, const(wchar)* lpszOriginalUrl);
+BOOL CommitUrlCacheEntryW(const(PWSTR) lpszUrlName, const(PWSTR) lpszLocalFileName, FILETIME ExpireTime, 
+                          FILETIME LastModifiedTime, uint CacheEntryType, PWSTR lpszHeaderInfo, uint cchHeaderInfo, 
+                          const(PWSTR) lpszFileExtension, const(PWSTR) lpszOriginalUrl);
 
 ///Locks the cache entry file associated with the specified URL.
 ///Params:
@@ -4366,8 +4361,8 @@ BOOL CommitUrlCacheEntryW(const(wchar)* lpszUrlName, const(wchar)* lpszLocalFile
 ///    information. </td> </tr> </table>
 ///    
 @DllImport("WININET")
-BOOL RetrieveUrlCacheEntryFileA(const(char)* lpszUrlName, char* lpCacheEntryInfo, uint* lpcbCacheEntryInfo, 
-                                uint dwReserved);
+BOOL RetrieveUrlCacheEntryFileA(const(PSTR) lpszUrlName, INTERNET_CACHE_ENTRY_INFOA* lpCacheEntryInfo, 
+                                uint* lpcbCacheEntryInfo, uint dwReserved);
 
 ///Locks the cache entry file associated with the specified URL.
 ///Params:
@@ -4392,8 +4387,8 @@ BOOL RetrieveUrlCacheEntryFileA(const(char)* lpszUrlName, char* lpCacheEntryInfo
 ///    information. </td> </tr> </table>
 ///    
 @DllImport("WININET")
-BOOL RetrieveUrlCacheEntryFileW(const(wchar)* lpszUrlName, char* lpCacheEntryInfo, uint* lpcbCacheEntryInfo, 
-                                uint dwReserved);
+BOOL RetrieveUrlCacheEntryFileW(const(PWSTR) lpszUrlName, INTERNET_CACHE_ENTRY_INFOW* lpCacheEntryInfo, 
+                                uint* lpcbCacheEntryInfo, uint dwReserved);
 
 ///Unlocks the cache entry that was locked while the file was retrieved for use from the cache.
 ///Params:
@@ -4406,7 +4401,7 @@ BOOL RetrieveUrlCacheEntryFileW(const(wchar)* lpszUrlName, char* lpCacheEntryInf
 ///    the cache storage.
 ///    
 @DllImport("WININET")
-BOOL UnlockUrlCacheEntryFileA(const(char)* lpszUrlName, uint dwReserved);
+BOOL UnlockUrlCacheEntryFileA(const(PSTR) lpszUrlName, uint dwReserved);
 
 ///Unlocks the cache entry that was locked while the file was retrieved for use from the cache.
 ///Params:
@@ -4419,7 +4414,7 @@ BOOL UnlockUrlCacheEntryFileA(const(char)* lpszUrlName, uint dwReserved);
 ///    the cache storage.
 ///    
 @DllImport("WININET")
-BOOL UnlockUrlCacheEntryFileW(const(wchar)* lpszUrlName, uint dwReserved);
+BOOL UnlockUrlCacheEntryFileW(const(PWSTR) lpszUrlName, uint dwReserved);
 
 ///Unlocks the cache entry that was locked while the file was retrieved for use from the cache.
 ///Params:
@@ -4432,7 +4427,7 @@ BOOL UnlockUrlCacheEntryFileW(const(wchar)* lpszUrlName, uint dwReserved);
 ///    the cache storage.
 ///    
 @DllImport("WININET")
-BOOL UnlockUrlCacheEntryFile(const(char)* lpszUrlName, uint dwReserved);
+BOOL UnlockUrlCacheEntryFile(const(PSTR) lpszUrlName, uint dwReserved);
 
 ///Provides the most efficient and implementation-independent way to access the cache data.
 ///Params:
@@ -4457,8 +4452,8 @@ BOOL UnlockUrlCacheEntryFile(const(char)* lpszUrlName, uint dwReserved);
 ///    contain all the information. </td> </tr> </table>
 ///    
 @DllImport("WININET")
-HANDLE RetrieveUrlCacheEntryStreamA(const(char)* lpszUrlName, char* lpCacheEntryInfo, uint* lpcbCacheEntryInfo, 
-                                    BOOL fRandomRead, uint dwReserved);
+HANDLE RetrieveUrlCacheEntryStreamA(const(PSTR) lpszUrlName, INTERNET_CACHE_ENTRY_INFOA* lpCacheEntryInfo, 
+                                    uint* lpcbCacheEntryInfo, BOOL fRandomRead, uint dwReserved);
 
 ///Provides the most efficient and implementation-independent way to access the cache data.
 ///Params:
@@ -4483,8 +4478,8 @@ HANDLE RetrieveUrlCacheEntryStreamA(const(char)* lpszUrlName, char* lpCacheEntry
 ///    contain all the information. </td> </tr> </table>
 ///    
 @DllImport("WININET")
-HANDLE RetrieveUrlCacheEntryStreamW(const(wchar)* lpszUrlName, char* lpCacheEntryInfo, uint* lpcbCacheEntryInfo, 
-                                    BOOL fRandomRead, uint dwReserved);
+HANDLE RetrieveUrlCacheEntryStreamW(const(PWSTR) lpszUrlName, INTERNET_CACHE_ENTRY_INFOW* lpCacheEntryInfo, 
+                                    uint* lpcbCacheEntryInfo, BOOL fRandomRead, uint dwReserved);
 
 ///Reads the cached data from a stream that has been opened using the RetrieveUrlCacheEntryStream function.
 ///Params:
@@ -4499,10 +4494,10 @@ HANDLE RetrieveUrlCacheEntryStreamW(const(wchar)* lpszUrlName, char* lpCacheEntr
 ///    GetLastError.
 ///    
 @DllImport("WININET")
-BOOL ReadUrlCacheEntryStream(HANDLE hUrlCacheStream, uint dwLocation, char* lpBuffer, uint* lpdwLen, uint Reserved);
+BOOL ReadUrlCacheEntryStream(HANDLE hUrlCacheStream, uint dwLocation, void* lpBuffer, uint* lpdwLen, uint Reserved);
 
 @DllImport("WININET")
-BOOL ReadUrlCacheEntryStreamEx(HANDLE hUrlCacheStream, ulong qwLocation, char* lpBuffer, uint* lpdwLen);
+BOOL ReadUrlCacheEntryStreamEx(HANDLE hUrlCacheStream, ulong qwLocation, void* lpBuffer, uint* lpdwLen);
 
 ///Closes the stream that has been retrieved using the RetrieveUrlCacheEntryStream function.
 ///Params:
@@ -4538,7 +4533,8 @@ BOOL UnlockUrlCacheEntryStream(HANDLE hUrlCacheStream, uint Reserved);
 ///    information. </td> </tr> </table>
 ///    
 @DllImport("WININET")
-BOOL GetUrlCacheEntryInfoA(const(char)* lpszUrlName, char* lpCacheEntryInfo, uint* lpcbCacheEntryInfo);
+BOOL GetUrlCacheEntryInfoA(const(PSTR) lpszUrlName, INTERNET_CACHE_ENTRY_INFOA* lpCacheEntryInfo, 
+                           uint* lpcbCacheEntryInfo);
 
 ///Retrieves information about a cache entry.
 ///Params:
@@ -4563,7 +4559,8 @@ BOOL GetUrlCacheEntryInfoA(const(char)* lpszUrlName, char* lpCacheEntryInfo, uin
 ///    information. </td> </tr> </table>
 ///    
 @DllImport("WININET")
-BOOL GetUrlCacheEntryInfoW(const(wchar)* lpszUrlName, char* lpCacheEntryInfo, uint* lpcbCacheEntryInfo);
+BOOL GetUrlCacheEntryInfoW(const(PWSTR) lpszUrlName, INTERNET_CACHE_ENTRY_INFOW* lpCacheEntryInfo, 
+                           uint* lpcbCacheEntryInfo);
 
 ///Initiates the enumeration of the cache groups in the Internet cache.
 ///Params:
@@ -4622,8 +4619,8 @@ BOOL FindNextUrlCacheGroup(HANDLE hFind, long* lpGroupId, void* lpReserved);
 ///    GetLastError.
 ///    
 @DllImport("WININET")
-BOOL GetUrlCacheGroupAttributeA(long gid, uint dwFlags, uint dwAttributes, char* lpGroupInfo, uint* lpcbGroupInfo, 
-                                void* lpReserved);
+BOOL GetUrlCacheGroupAttributeA(long gid, uint dwFlags, uint dwAttributes, INTERNET_CACHE_GROUP_INFOA* lpGroupInfo, 
+                                uint* lpcbGroupInfo, void* lpReserved);
 
 ///Retrieves the attribute information of the specified cache group.
 ///Params:
@@ -4650,8 +4647,8 @@ BOOL GetUrlCacheGroupAttributeA(long gid, uint dwFlags, uint dwAttributes, char*
 ///    GetLastError.
 ///    
 @DllImport("WININET")
-BOOL GetUrlCacheGroupAttributeW(long gid, uint dwFlags, uint dwAttributes, char* lpGroupInfo, uint* lpcbGroupInfo, 
-                                void* lpReserved);
+BOOL GetUrlCacheGroupAttributeW(long gid, uint dwFlags, uint dwAttributes, INTERNET_CACHE_GROUP_INFOW* lpGroupInfo, 
+                                uint* lpcbGroupInfo, void* lpReserved);
 
 ///Sets the attribute information of the specified cache group.
 ///Params:
@@ -4730,8 +4727,9 @@ BOOL SetUrlCacheGroupAttributeW(long gid, uint dwFlags, uint dwAttributes, INTER
 ///    will be returned to <i>lpdwCacheEntryInfoBufSize</i>. </td> </tr> </table>
 ///    
 @DllImport("WININET")
-BOOL GetUrlCacheEntryInfoExA(const(char)* lpszUrl, char* lpCacheEntryInfo, uint* lpcbCacheEntryInfo, 
-                             const(char)* lpszRedirectUrl, uint* lpcbRedirectUrl, void* lpReserved, uint dwFlags);
+BOOL GetUrlCacheEntryInfoExA(const(PSTR) lpszUrl, INTERNET_CACHE_ENTRY_INFOA* lpCacheEntryInfo, 
+                             uint* lpcbCacheEntryInfo, PSTR lpszRedirectUrl, uint* lpcbRedirectUrl, void* lpReserved, 
+                             uint dwFlags);
 
 ///Retrieves information on the cache entry associated with the specified URL, taking into account any redirections that
 ///are applied in offline mode by the HttpSendRequest function.
@@ -4760,8 +4758,9 @@ BOOL GetUrlCacheEntryInfoExA(const(char)* lpszUrl, char* lpCacheEntryInfo, uint*
 ///    will be returned to <i>lpdwCacheEntryInfoBufSize</i>. </td> </tr> </table>
 ///    
 @DllImport("WININET")
-BOOL GetUrlCacheEntryInfoExW(const(wchar)* lpszUrl, char* lpCacheEntryInfo, uint* lpcbCacheEntryInfo, 
-                             const(wchar)* lpszRedirectUrl, uint* lpcbRedirectUrl, void* lpReserved, uint dwFlags);
+BOOL GetUrlCacheEntryInfoExW(const(PWSTR) lpszUrl, INTERNET_CACHE_ENTRY_INFOW* lpCacheEntryInfo, 
+                             uint* lpcbCacheEntryInfo, PWSTR lpszRedirectUrl, uint* lpcbRedirectUrl, 
+                             void* lpReserved, uint dwFlags);
 
 ///Sets the specified members of the INTERNET_CACHE_ENTRY_INFO structure.
 ///Params:
@@ -4788,7 +4787,7 @@ BOOL GetUrlCacheEntryInfoExW(const(wchar)* lpszUrl, char* lpCacheEntryInfo, uint
 ///    </td> <td width="60%"> The value(s) to be set is invalid. </td> </tr> </table>
 ///    
 @DllImport("WININET")
-BOOL SetUrlCacheEntryInfoA(const(char)* lpszUrlName, INTERNET_CACHE_ENTRY_INFOA* lpCacheEntryInfo, 
+BOOL SetUrlCacheEntryInfoA(const(PSTR) lpszUrlName, INTERNET_CACHE_ENTRY_INFOA* lpCacheEntryInfo, 
                            uint dwFieldControl);
 
 ///Sets the specified members of the INTERNET_CACHE_ENTRY_INFO structure.
@@ -4816,7 +4815,7 @@ BOOL SetUrlCacheEntryInfoA(const(char)* lpszUrlName, INTERNET_CACHE_ENTRY_INFOA*
 ///    </td> <td width="60%"> The value(s) to be set is invalid. </td> </tr> </table>
 ///    
 @DllImport("WININET")
-BOOL SetUrlCacheEntryInfoW(const(wchar)* lpszUrlName, INTERNET_CACHE_ENTRY_INFOW* lpCacheEntryInfo, 
+BOOL SetUrlCacheEntryInfoW(const(PWSTR) lpszUrlName, INTERNET_CACHE_ENTRY_INFOW* lpCacheEntryInfo, 
                            uint dwFieldControl);
 
 ///Generates cache group identifications.
@@ -4861,7 +4860,7 @@ BOOL DeleteUrlCacheGroup(long GroupId, uint dwFlags, void* lpReserved);
 ///    Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("WININET")
-BOOL SetUrlCacheEntryGroupA(const(char)* lpszUrlName, uint dwFlags, long GroupId, ubyte* pbGroupAttributes, 
+BOOL SetUrlCacheEntryGroupA(const(PSTR) lpszUrlName, uint dwFlags, long GroupId, ubyte* pbGroupAttributes, 
                             uint cbGroupAttributes, void* lpReserved);
 
 ///Adds entries to or removes entries from a cache group.
@@ -4880,7 +4879,7 @@ BOOL SetUrlCacheEntryGroupA(const(char)* lpszUrlName, uint dwFlags, long GroupId
 ///    Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("WININET")
-BOOL SetUrlCacheEntryGroupW(const(wchar)* lpszUrlName, uint dwFlags, long GroupId, ubyte* pbGroupAttributes, 
+BOOL SetUrlCacheEntryGroupW(const(PWSTR) lpszUrlName, uint dwFlags, long GroupId, ubyte* pbGroupAttributes, 
                             uint cbGroupAttributes, void* lpReserved);
 
 ///Adds entries to or removes entries from a cache group.
@@ -4899,7 +4898,7 @@ BOOL SetUrlCacheEntryGroupW(const(wchar)* lpszUrlName, uint dwFlags, long GroupI
 ///    Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("WININET")
-BOOL SetUrlCacheEntryGroup(const(char)* lpszUrlName, uint dwFlags, long GroupId, ubyte* pbGroupAttributes, 
+BOOL SetUrlCacheEntryGroup(const(PSTR) lpszUrlName, uint dwFlags, long GroupId, ubyte* pbGroupAttributes, 
                            uint cbGroupAttributes, void* lpReserved);
 
 ///Starts a filtered enumeration of the Internet cache.
@@ -4935,9 +4934,9 @@ BOOL SetUrlCacheEntryGroup(const(char)* lpszUrlName, uint dwFlags, long GroupId,
 ///    the function finds no matching files, <b>GetLastError</b> returns ERROR_NO_MORE_FILES.
 ///    
 @DllImport("WININET")
-HANDLE FindFirstUrlCacheEntryExA(const(char)* lpszUrlSearchPattern, uint dwFlags, uint dwFilter, long GroupId, 
-                                 char* lpFirstCacheEntryInfo, uint* lpcbCacheEntryInfo, void* lpGroupAttributes, 
-                                 uint* lpcbGroupAttributes, void* lpReserved);
+HANDLE FindFirstUrlCacheEntryExA(const(PSTR) lpszUrlSearchPattern, uint dwFlags, uint dwFilter, long GroupId, 
+                                 INTERNET_CACHE_ENTRY_INFOA* lpFirstCacheEntryInfo, uint* lpcbCacheEntryInfo, 
+                                 void* lpGroupAttributes, uint* lpcbGroupAttributes, void* lpReserved);
 
 ///Starts a filtered enumeration of the Internet cache.
 ///Params:
@@ -4972,9 +4971,9 @@ HANDLE FindFirstUrlCacheEntryExA(const(char)* lpszUrlSearchPattern, uint dwFlags
 ///    the function finds no matching files, <b>GetLastError</b> returns ERROR_NO_MORE_FILES.
 ///    
 @DllImport("WININET")
-HANDLE FindFirstUrlCacheEntryExW(const(wchar)* lpszUrlSearchPattern, uint dwFlags, uint dwFilter, long GroupId, 
-                                 char* lpFirstCacheEntryInfo, uint* lpcbCacheEntryInfo, void* lpGroupAttributes, 
-                                 uint* lpcbGroupAttributes, void* lpReserved);
+HANDLE FindFirstUrlCacheEntryExW(const(PWSTR) lpszUrlSearchPattern, uint dwFlags, uint dwFilter, long GroupId, 
+                                 INTERNET_CACHE_ENTRY_INFOW* lpFirstCacheEntryInfo, uint* lpcbCacheEntryInfo, 
+                                 void* lpGroupAttributes, uint* lpcbGroupAttributes, void* lpReserved);
 
 ///Finds the next cache entry in a cache enumeration started by the FindFirstUrlCacheEntryEx function.
 ///Params:
@@ -4989,8 +4988,9 @@ HANDLE FindFirstUrlCacheEntryExW(const(wchar)* lpszUrlSearchPattern, uint dwFlag
 ///    GetLastError.
 ///    
 @DllImport("WININET")
-BOOL FindNextUrlCacheEntryExA(HANDLE hEnumHandle, char* lpNextCacheEntryInfo, uint* lpcbCacheEntryInfo, 
-                              void* lpGroupAttributes, uint* lpcbGroupAttributes, void* lpReserved);
+BOOL FindNextUrlCacheEntryExA(HANDLE hEnumHandle, INTERNET_CACHE_ENTRY_INFOA* lpNextCacheEntryInfo, 
+                              uint* lpcbCacheEntryInfo, void* lpGroupAttributes, uint* lpcbGroupAttributes, 
+                              void* lpReserved);
 
 ///Finds the next cache entry in a cache enumeration started by the FindFirstUrlCacheEntryEx function.
 ///Params:
@@ -5005,8 +5005,9 @@ BOOL FindNextUrlCacheEntryExA(HANDLE hEnumHandle, char* lpNextCacheEntryInfo, ui
 ///    GetLastError.
 ///    
 @DllImport("WININET")
-BOOL FindNextUrlCacheEntryExW(HANDLE hEnumHandle, char* lpNextCacheEntryInfo, uint* lpcbCacheEntryInfo, 
-                              void* lpGroupAttributes, uint* lpcbGroupAttributes, void* lpReserved);
+BOOL FindNextUrlCacheEntryExW(HANDLE hEnumHandle, INTERNET_CACHE_ENTRY_INFOW* lpNextCacheEntryInfo, 
+                              uint* lpcbCacheEntryInfo, void* lpGroupAttributes, uint* lpcbGroupAttributes, 
+                              void* lpReserved);
 
 ///Begins the enumeration of the Internet cache.
 ///Params:
@@ -5026,7 +5027,7 @@ BOOL FindNextUrlCacheEntryExW(HANDLE hEnumHandle, char* lpNextCacheEntryInfo, ui
 ///    in <i>lpdwFirstCacheEntryInfoBufferSize</i> indicates the buffer size necessary to contain all the information.
 ///    
 @DllImport("WININET")
-HANDLE FindFirstUrlCacheEntryA(const(char)* lpszUrlSearchPattern, char* lpFirstCacheEntryInfo, 
+HANDLE FindFirstUrlCacheEntryA(const(PSTR) lpszUrlSearchPattern, INTERNET_CACHE_ENTRY_INFOA* lpFirstCacheEntryInfo, 
                                uint* lpcbCacheEntryInfo);
 
 ///Begins the enumeration of the Internet cache.
@@ -5047,8 +5048,8 @@ HANDLE FindFirstUrlCacheEntryA(const(char)* lpszUrlSearchPattern, char* lpFirstC
 ///    in <i>lpdwFirstCacheEntryInfoBufferSize</i> indicates the buffer size necessary to contain all the information.
 ///    
 @DllImport("WININET")
-HANDLE FindFirstUrlCacheEntryW(const(wchar)* lpszUrlSearchPattern, char* lpFirstCacheEntryInfo, 
-                               uint* lpcbCacheEntryInfo);
+HANDLE FindFirstUrlCacheEntryW(const(PWSTR) lpszUrlSearchPattern, 
+                               INTERNET_CACHE_ENTRY_INFOW* lpFirstCacheEntryInfo, uint* lpcbCacheEntryInfo);
 
 ///Retrieves the next entry in the Internet cache.
 ///Params:
@@ -5067,7 +5068,8 @@ HANDLE FindFirstUrlCacheEntryW(const(wchar)* lpszUrlSearchPattern, char* lpFirst
 ///    <dt><b>ERROR_NO_MORE_ITEMS</b></dt> </dl> </td> <td width="60%"> The enumeration completed. </td> </tr> </table>
 ///    
 @DllImport("WININET")
-BOOL FindNextUrlCacheEntryA(HANDLE hEnumHandle, char* lpNextCacheEntryInfo, uint* lpcbCacheEntryInfo);
+BOOL FindNextUrlCacheEntryA(HANDLE hEnumHandle, INTERNET_CACHE_ENTRY_INFOA* lpNextCacheEntryInfo, 
+                            uint* lpcbCacheEntryInfo);
 
 ///Retrieves the next entry in the Internet cache.
 ///Params:
@@ -5086,7 +5088,8 @@ BOOL FindNextUrlCacheEntryA(HANDLE hEnumHandle, char* lpNextCacheEntryInfo, uint
 ///    <dt><b>ERROR_NO_MORE_ITEMS</b></dt> </dl> </td> <td width="60%"> The enumeration completed. </td> </tr> </table>
 ///    
 @DllImport("WININET")
-BOOL FindNextUrlCacheEntryW(HANDLE hEnumHandle, char* lpNextCacheEntryInfo, uint* lpcbCacheEntryInfo);
+BOOL FindNextUrlCacheEntryW(HANDLE hEnumHandle, INTERNET_CACHE_ENTRY_INFOW* lpNextCacheEntryInfo, 
+                            uint* lpcbCacheEntryInfo);
 
 ///Closes the specified cache enumeration handle.
 ///Params:
@@ -5110,7 +5113,7 @@ BOOL FindCloseUrlCache(HANDLE hEnumHandle);
 ///    </table>
 ///    
 @DllImport("WININET")
-BOOL DeleteUrlCacheEntryA(const(char)* lpszUrlName);
+BOOL DeleteUrlCacheEntryA(const(PSTR) lpszUrlName);
 
 ///Removes the file associated with the source name from the cache, if the file exists.
 ///Params:
@@ -5124,7 +5127,7 @@ BOOL DeleteUrlCacheEntryA(const(char)* lpszUrlName);
 ///    </table>
 ///    
 @DllImport("WININET")
-BOOL DeleteUrlCacheEntryW(const(wchar)* lpszUrlName);
+BOOL DeleteUrlCacheEntryW(const(PWSTR) lpszUrlName);
 
 ///Removes the file associated with the source name from the cache, if the file exists.
 ///Params:
@@ -5138,7 +5141,7 @@ BOOL DeleteUrlCacheEntryW(const(wchar)* lpszUrlName);
 ///    </table>
 ///    
 @DllImport("WININET")
-BOOL DeleteUrlCacheEntry(const(char)* lpszUrlName);
+BOOL DeleteUrlCacheEntry(const(PSTR) lpszUrlName);
 
 ///Initiates a connection to the Internet using a modem.
 ///Params:
@@ -5170,8 +5173,7 @@ BOOL DeleteUrlCacheEntry(const(char)* lpszUrlName);
 ///    Offline</b> or <b>Cancel</b> button on the Internet connection dialog box. </td> </tr> </table>
 ///    
 @DllImport("WININET")
-uint InternetDialA(HWND hwndParent, const(char)* lpszConnectoid, uint dwFlags, size_t* lpdwConnection, 
-                   uint dwReserved);
+uint InternetDialA(HWND hwndParent, PSTR lpszConnectoid, uint dwFlags, size_t* lpdwConnection, uint dwReserved);
 
 ///Initiates a connection to the Internet using a modem.
 ///Params:
@@ -5203,8 +5205,7 @@ uint InternetDialA(HWND hwndParent, const(char)* lpszConnectoid, uint dwFlags, s
 ///    Offline</b> or <b>Cancel</b> button on the Internet connection dialog box. </td> </tr> </table>
 ///    
 @DllImport("WININET")
-uint InternetDialW(HWND hwndParent, const(wchar)* lpszConnectoid, uint dwFlags, size_t* lpdwConnection, 
-                   uint dwReserved);
+uint InternetDialW(HWND hwndParent, PWSTR lpszConnectoid, uint dwFlags, size_t* lpdwConnection, uint dwReserved);
 
 ///Initiates a connection to the Internet using a modem.
 ///Params:
@@ -5236,8 +5237,7 @@ uint InternetDialW(HWND hwndParent, const(wchar)* lpszConnectoid, uint dwFlags, 
 ///    Offline</b> or <b>Cancel</b> button on the Internet connection dialog box. </td> </tr> </table>
 ///    
 @DllImport("WININET")
-uint InternetDial(HWND hwndParent, const(char)* lpszConnectoid, uint dwFlags, uint* lpdwConnection, 
-                  uint dwReserved);
+uint InternetDial(HWND hwndParent, PSTR lpszConnectoid, uint dwFlags, uint* lpdwConnection, uint dwReserved);
 
 ///Instructs the modem to disconnect from the Internet.
 ///Params:
@@ -5266,7 +5266,7 @@ uint InternetHangUp(size_t dwConnection, uint dwReserved);
 ///    </table>
 ///    
 @DllImport("WININET")
-BOOL InternetGoOnlineA(const(char)* lpszURL, HWND hwndParent, uint dwFlags);
+BOOL InternetGoOnlineA(const(PSTR) lpszURL, HWND hwndParent, uint dwFlags);
 
 ///Prompts the user for permission to initiate connection to a URL.
 ///Params:
@@ -5285,7 +5285,7 @@ BOOL InternetGoOnlineA(const(char)* lpszURL, HWND hwndParent, uint dwFlags);
 ///    </table>
 ///    
 @DllImport("WININET")
-BOOL InternetGoOnlineW(const(wchar)* lpszURL, HWND hwndParent, uint dwFlags);
+BOOL InternetGoOnlineW(const(PWSTR) lpszURL, HWND hwndParent, uint dwFlags);
 
 ///Prompts the user for permission to initiate connection to a URL.
 ///Params:
@@ -5304,7 +5304,7 @@ BOOL InternetGoOnlineW(const(wchar)* lpszURL, HWND hwndParent, uint dwFlags);
 ///    </table>
 ///    
 @DllImport("WININET")
-BOOL InternetGoOnline(const(char)* lpszURL, HWND hwndParent, uint dwFlags);
+BOOL InternetGoOnline(PSTR lpszURL, HWND hwndParent, uint dwFlags);
 
 ///Causes the modem to automatically dial the default Internet connection.
 ///Params:
@@ -5404,8 +5404,7 @@ BOOL InternetGetConnectedState(uint* lpdwFlags, uint dwReserved);
 ///    InternetGetConnectedState returns <b>FALSE</b>, the application can call GetLastError to retrieve the error code.
 ///    
 @DllImport("WININET")
-BOOL InternetGetConnectedStateExA(uint* lpdwFlags, const(char)* lpszConnectionName, uint cchNameLen, 
-                                  uint dwReserved);
+BOOL InternetGetConnectedStateExA(uint* lpdwFlags, PSTR lpszConnectionName, uint cchNameLen, uint dwReserved);
 
 ///<div class="alert"><b>Note</b> Using this API is not recommended, use the INetworkListManager::GetConnectivity method
 ///instead.</div><div> </div>Retrieves the connected state of the specified Internet connection.
@@ -5437,8 +5436,7 @@ BOOL InternetGetConnectedStateExA(uint* lpdwFlags, const(char)* lpszConnectionNa
 ///    InternetGetConnectedState returns <b>FALSE</b>, the application can call GetLastError to retrieve the error code.
 ///    
 @DllImport("WININET")
-BOOL InternetGetConnectedStateExW(uint* lpdwFlags, const(wchar)* lpszConnectionName, uint cchNameLen, 
-                                  uint dwReserved);
+BOOL InternetGetConnectedStateExW(uint* lpdwFlags, PWSTR lpszConnectionName, uint cchNameLen, uint dwReserved);
 
 @DllImport("WININET")
 BOOL DeleteWpadCacheForNetworks(WPAD_CACHE_DELETE param0);
@@ -5473,7 +5471,7 @@ BOOL InternetInitializeAutoProxyDll(uint dwReserved);
 ///    GetLastError.
 ///    
 @DllImport("WININET")
-BOOL DetectAutoProxyUrl(const(char)* pszAutoProxyUrl, uint cchAutoProxyUrl, uint dwDetectFlags);
+BOOL DetectAutoProxyUrl(PSTR pszAutoProxyUrl, uint cchAutoProxyUrl, uint dwDetectFlags);
 
 ///The <b>CreateMD5SSOHash</b> function obtains the default Microsoft Passport password for a specified account or
 ///realm, creates an MD5 hash from it using a specified wide-character challenge string, and returns the result as a
@@ -5491,8 +5489,7 @@ BOOL DetectAutoProxyUrl(const(char)* pszAutoProxyUrl, uint cchAutoProxyUrl, uint
 ///    Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise.
 ///    
 @DllImport("WININET")
-BOOL CreateMD5SSOHash(const(wchar)* pszChallengeInfo, const(wchar)* pwszRealm, const(wchar)* pwszTarget, 
-                      ubyte* pbHexHash);
+BOOL CreateMD5SSOHash(PWSTR pszChallengeInfo, PWSTR pwszRealm, PWSTR pwszTarget, ubyte* pbHexHash);
 
 ///<div class="alert"><b>Note</b> Using this API is not recommended, use the INetworkListManager::GetConnectivity method
 ///instead.</div><div> </div>Retrieves the connected state of the specified Internet connection.
@@ -5524,7 +5521,7 @@ BOOL CreateMD5SSOHash(const(wchar)* pszChallengeInfo, const(wchar)* pwszRealm, c
 ///    InternetGetConnectedState returns <b>FALSE</b>, the application can call GetLastError to retrieve the error code.
 ///    
 @DllImport("WININET")
-BOOL InternetGetConnectedStateEx(uint* lpdwFlags, const(char)* lpszConnectionName, uint dwNameLen, uint dwReserved);
+BOOL InternetGetConnectedStateEx(uint* lpdwFlags, PSTR lpszConnectionName, uint dwNameLen, uint dwReserved);
 
 ///Not supported. This function is obsolete. Do not use.
 ///Params:
@@ -5535,7 +5532,7 @@ BOOL InternetGetConnectedStateEx(uint* lpdwFlags, const(char)* lpszConnectionNam
 ///    This function does not return a value.
 ///    
 @DllImport("WININET")
-BOOL InternetSetDialStateA(const(char)* lpszConnectoid, uint dwState, uint dwReserved);
+BOOL InternetSetDialStateA(const(PSTR) lpszConnectoid, uint dwState, uint dwReserved);
 
 ///Not supported. This function is obsolete. Do not use.
 ///Params:
@@ -5546,7 +5543,7 @@ BOOL InternetSetDialStateA(const(char)* lpszConnectoid, uint dwState, uint dwRes
 ///    This function does not return a value.
 ///    
 @DllImport("WININET")
-BOOL InternetSetDialStateW(const(wchar)* lpszConnectoid, uint dwState, uint dwReserved);
+BOOL InternetSetDialStateW(const(PWSTR) lpszConnectoid, uint dwState, uint dwReserved);
 
 ///Not supported. This function is obsolete. Do not use.
 ///Params:
@@ -5557,7 +5554,7 @@ BOOL InternetSetDialStateW(const(wchar)* lpszConnectoid, uint dwState, uint dwRe
 ///    This function does not return a value.
 ///    
 @DllImport("WININET")
-BOOL InternetSetDialState(const(char)* lpszConnectoid, uint dwState, uint dwReserved);
+BOOL InternetSetDialState(const(PSTR) lpszConnectoid, uint dwState, uint dwReserved);
 
 ///Sets a decision on cookies for a given domain.
 ///Params:
@@ -5567,7 +5564,7 @@ BOOL InternetSetDialState(const(char)* lpszConnectoid, uint dwState, uint dwRese
 ///    Returns <b>TRUE</b> if the decision is set and <b>FALSE</b> otherwise.
 ///    
 @DllImport("WININET")
-BOOL InternetSetPerSiteCookieDecisionA(const(char)* pchHostName, uint dwDecision);
+BOOL InternetSetPerSiteCookieDecisionA(const(PSTR) pchHostName, uint dwDecision);
 
 ///Sets a decision on cookies for a given domain.
 ///Params:
@@ -5577,7 +5574,7 @@ BOOL InternetSetPerSiteCookieDecisionA(const(char)* pchHostName, uint dwDecision
 ///    Returns <b>TRUE</b> if the decision is set and <b>FALSE</b> otherwise.
 ///    
 @DllImport("WININET")
-BOOL InternetSetPerSiteCookieDecisionW(const(wchar)* pchHostName, uint dwDecision);
+BOOL InternetSetPerSiteCookieDecisionW(const(PWSTR) pchHostName, uint dwDecision);
 
 ///Retrieves a decision on cookies for a given domain.
 ///Params:
@@ -5587,7 +5584,7 @@ BOOL InternetSetPerSiteCookieDecisionW(const(wchar)* pchHostName, uint dwDecisio
 ///    Returns <b>TRUE</b> if the decision was retrieved and <b>FALSE</b> otherwise.
 ///    
 @DllImport("WININET")
-BOOL InternetGetPerSiteCookieDecisionA(const(char)* pchHostName, uint* pResult);
+BOOL InternetGetPerSiteCookieDecisionA(const(PSTR) pchHostName, uint* pResult);
 
 ///Retrieves a decision on cookies for a given domain.
 ///Params:
@@ -5597,7 +5594,7 @@ BOOL InternetGetPerSiteCookieDecisionA(const(char)* pchHostName, uint* pResult);
 ///    Returns <b>TRUE</b> if the decision was retrieved and <b>FALSE</b> otherwise.
 ///    
 @DllImport("WININET")
-BOOL InternetGetPerSiteCookieDecisionW(const(wchar)* pchHostName, uint* pResult);
+BOOL InternetGetPerSiteCookieDecisionW(const(PWSTR) pchHostName, uint* pResult);
 
 ///Clears all decisions that were made about cookies on a site by site basis.
 ///Returns:
@@ -5619,8 +5616,7 @@ BOOL InternetClearAllPerSiteCookieDecisions();
 ///    <b>TRUE</b> if the function retrieved the cookie setting for the given domain; otherwise, false. <b>FALSE</b>.
 ///    
 @DllImport("WININET")
-BOOL InternetEnumPerSiteCookieDecisionA(const(char)* pszSiteName, uint* pcSiteNameSize, uint* pdwDecision, 
-                                        uint dwIndex);
+BOOL InternetEnumPerSiteCookieDecisionA(PSTR pszSiteName, uint* pcSiteNameSize, uint* pdwDecision, uint dwIndex);
 
 ///Retrieves the domains and cookie settings of websites for which site-specific cookie regulations are set.
 ///Params:
@@ -5635,8 +5631,7 @@ BOOL InternetEnumPerSiteCookieDecisionA(const(char)* pszSiteName, uint* pcSiteNa
 ///    <b>TRUE</b> if the function retrieved the cookie setting for the given domain; otherwise, false. <b>FALSE</b>.
 ///    
 @DllImport("WININET")
-BOOL InternetEnumPerSiteCookieDecisionW(const(wchar)* pszSiteName, uint* pcSiteNameSize, uint* pdwDecision, 
-                                        uint dwIndex);
+BOOL InternetEnumPerSiteCookieDecisionW(PWSTR pszSiteName, uint* pcSiteNameSize, uint* pdwDecision, uint dwIndex);
 
 ///Sets the privacy settings for a given URLZONE and PrivacyType.
 ///Params:
@@ -5651,7 +5646,7 @@ BOOL InternetEnumPerSiteCookieDecisionW(const(wchar)* pszSiteName, uint* pcSiteN
 ///    Returns zero if successful. Otherwise, one of the errors defined in winerr.h is returned.
 ///    
 @DllImport("WININET")
-uint PrivacySetZonePreferenceW(uint dwZone, uint dwType, uint dwTemplate, const(wchar)* pszPreference);
+uint PrivacySetZonePreferenceW(uint dwZone, uint dwType, uint dwTemplate, const(PWSTR) pszPreference);
 
 ///Retrieves the privacy settings for a given URLZONE and PrivacyType.
 ///Params:
@@ -5669,54 +5664,53 @@ uint PrivacySetZonePreferenceW(uint dwZone, uint dwType, uint dwTemplate, const(
 ///    Returns zero if successful. Otherwise, one of the Error Messages defined in winerr.h is returned.
 ///    
 @DllImport("WININET")
-uint PrivacyGetZonePreferenceW(uint dwZone, uint dwType, uint* pdwTemplate, const(wchar)* pszBuffer, 
-                               uint* pdwBufferLength);
+uint PrivacyGetZonePreferenceW(uint dwZone, uint dwType, uint* pdwTemplate, PWSTR pszBuffer, uint* pdwBufferLength);
 
 @DllImport("WININET")
-uint HttpIsHostHstsEnabled(const(wchar)* pcwszUrl, int* pfIsHsts);
+uint HttpIsHostHstsEnabled(const(PWSTR) pcwszUrl, BOOL* pfIsHsts);
 
 @DllImport("WININET")
-BOOL InternetAlgIdToStringA(uint ai, const(char)* lpstr, uint* lpdwstrLength, uint dwReserved);
+BOOL InternetAlgIdToStringA(uint ai, PSTR lpstr, uint* lpdwstrLength, uint dwReserved);
 
 @DllImport("WININET")
-BOOL InternetAlgIdToStringW(uint ai, const(wchar)* lpstr, uint* lpdwstrLength, uint dwReserved);
+BOOL InternetAlgIdToStringW(uint ai, PWSTR lpstr, uint* lpdwstrLength, uint dwReserved);
 
 @DllImport("WININET")
-BOOL InternetSecurityProtocolToStringA(uint dwProtocol, const(char)* lpstr, uint* lpdwstrLength, uint dwReserved);
+BOOL InternetSecurityProtocolToStringA(uint dwProtocol, PSTR lpstr, uint* lpdwstrLength, uint dwReserved);
 
 @DllImport("WININET")
-BOOL InternetSecurityProtocolToStringW(uint dwProtocol, const(wchar)* lpstr, uint* lpdwstrLength, uint dwReserved);
+BOOL InternetSecurityProtocolToStringW(uint dwProtocol, PWSTR lpstr, uint* lpdwstrLength, uint dwReserved);
 
 @DllImport("WININET")
-BOOL InternetGetSecurityInfoByURLA(const(char)* lpszURL, CERT_CHAIN_CONTEXT** ppCertChain, uint* pdwSecureFlags);
+BOOL InternetGetSecurityInfoByURLA(PSTR lpszURL, CERT_CHAIN_CONTEXT** ppCertChain, uint* pdwSecureFlags);
 
 @DllImport("WININET")
-BOOL InternetGetSecurityInfoByURLW(const(wchar)* lpszURL, CERT_CHAIN_CONTEXT** ppCertChain, uint* pdwSecureFlags);
+BOOL InternetGetSecurityInfoByURLW(const(PWSTR) lpszURL, CERT_CHAIN_CONTEXT** ppCertChain, uint* pdwSecureFlags);
 
 @DllImport("WININET")
-BOOL InternetGetSecurityInfoByURL(const(char)* lpszURL, CERT_CHAIN_CONTEXT** ppCertChain, uint* pdwSecureFlags);
+BOOL InternetGetSecurityInfoByURL(PSTR lpszURL, CERT_CHAIN_CONTEXT** ppCertChain, uint* pdwSecureFlags);
 
 @DllImport("WININET")
 uint ShowSecurityInfo(HWND hWndParent, INTERNET_SECURITY_INFO* pSecurityInfo);
 
 @DllImport("WININET")
-uint ShowX509EncodedCertificate(HWND hWndParent, char* lpCert, uint cbCert);
+uint ShowX509EncodedCertificate(HWND hWndParent, ubyte* lpCert, uint cbCert);
 
 @DllImport("WININET")
 uint ShowClientAuthCerts(HWND hWndParent);
 
 @DllImport("WININET")
-uint ParseX509EncodedCertificateForListBoxEntry(char* lpCert, uint cbCert, const(char)* lpszListBoxEntry, 
+uint ParseX509EncodedCertificateForListBoxEntry(ubyte* lpCert, uint cbCert, PSTR lpszListBoxEntry, 
                                                 uint* lpdwListBoxEntry);
 
 @DllImport("WININET")
-BOOL InternetShowSecurityInfoByURLA(const(char)* lpszURL, HWND hwndParent);
+BOOL InternetShowSecurityInfoByURLA(PSTR lpszURL, HWND hwndParent);
 
 @DllImport("WININET")
-BOOL InternetShowSecurityInfoByURLW(const(wchar)* lpszURL, HWND hwndParent);
+BOOL InternetShowSecurityInfoByURLW(const(PWSTR) lpszURL, HWND hwndParent);
 
 @DllImport("WININET")
-BOOL InternetShowSecurityInfoByURL(const(char)* lpszURL, HWND hwndParent);
+BOOL InternetShowSecurityInfoByURL(PSTR lpszURL, HWND hwndParent);
 
 @DllImport("WININET")
 BOOL InternetFortezzaCommand(uint dwCommand, HWND hwnd, size_t dwReserved);
@@ -5734,7 +5728,7 @@ BOOL InternetWriteFileExW(void* hFile, INTERNET_BUFFERSW* lpBuffersIn, uint dwFl
 int FindP3PPolicySymbol(const(byte)* pszSymbol);
 
 @DllImport("WININET")
-uint HttpGetServerCredentials(const(wchar)* pwszUrl, ushort** ppwszUserName, ushort** ppwszPassword);
+uint HttpGetServerCredentials(PWSTR pwszUrl, PWSTR* ppwszUserName, PWSTR* ppwszPassword);
 
 @DllImport("WININET")
 uint HttpPushEnable(void* hRequest, HTTP_PUSH_TRANSPORT_SETTING* pTransportSetting, 
@@ -5748,30 +5742,30 @@ uint HttpPushWait(HTTP_PUSH_WAIT_HANDLE__* hWait, HTTP_PUSH_WAIT_TYPE eType,
 void HttpPushClose(HTTP_PUSH_WAIT_HANDLE__* hWait);
 
 @DllImport("WININET")
-BOOL HttpCheckDavComplianceA(const(char)* lpszUrl, const(char)* lpszComplianceToken, int* lpfFound, HWND hWnd, 
+BOOL HttpCheckDavComplianceA(const(PSTR) lpszUrl, const(PSTR) lpszComplianceToken, int* lpfFound, HWND hWnd, 
                              void* lpvReserved);
 
 @DllImport("WININET")
-BOOL HttpCheckDavComplianceW(const(wchar)* lpszUrl, const(wchar)* lpszComplianceToken, int* lpfFound, HWND hWnd, 
+BOOL HttpCheckDavComplianceW(const(PWSTR) lpszUrl, const(PWSTR) lpszComplianceToken, int* lpfFound, HWND hWnd, 
                              void* lpvReserved);
 
 @DllImport("WININET")
-BOOL IsUrlCacheEntryExpiredA(const(char)* lpszUrlName, uint dwFlags, FILETIME* pftLastModified);
+BOOL IsUrlCacheEntryExpiredA(const(PSTR) lpszUrlName, uint dwFlags, FILETIME* pftLastModified);
 
 @DllImport("WININET")
-BOOL IsUrlCacheEntryExpiredW(const(wchar)* lpszUrlName, uint dwFlags, FILETIME* pftLastModified);
+BOOL IsUrlCacheEntryExpiredW(const(PWSTR) lpszUrlName, uint dwFlags, FILETIME* pftLastModified);
 
 @DllImport("WININET")
-BOOL CreateUrlCacheEntryExW(const(wchar)* lpszUrlName, uint dwExpectedFileSize, const(wchar)* lpszFileExtension, 
-                            const(wchar)* lpszFileName, uint dwReserved, BOOL fPreserveIncomingFileName);
+BOOL CreateUrlCacheEntryExW(const(PWSTR) lpszUrlName, uint dwExpectedFileSize, const(PWSTR) lpszFileExtension, 
+                            PWSTR lpszFileName, uint dwReserved, BOOL fPreserveIncomingFileName);
 
 @DllImport("WININET")
-uint GetUrlCacheEntryBinaryBlob(const(wchar)* pwszUrlName, uint* dwType, FILETIME* pftExpireTime, 
-                                FILETIME* pftAccessTime, FILETIME* pftModifiedTime, char* ppbBlob, uint* pcbBlob);
+uint GetUrlCacheEntryBinaryBlob(const(PWSTR) pwszUrlName, uint* dwType, FILETIME* pftExpireTime, 
+                                FILETIME* pftAccessTime, FILETIME* pftModifiedTime, ubyte** ppbBlob, uint* pcbBlob);
 
 @DllImport("WININET")
-uint CommitUrlCacheEntryBinaryBlob(const(wchar)* pwszUrlName, uint dwType, FILETIME ftExpireTime, 
-                                   FILETIME ftModifiedTime, char* pbBlob, uint cbBlob);
+uint CommitUrlCacheEntryBinaryBlob(const(PWSTR) pwszUrlName, uint dwType, FILETIME ftExpireTime, 
+                                   FILETIME ftModifiedTime, const(ubyte)* pbBlob, uint cbBlob);
 
 ///Creates a cache container in the specified cache path to hold cache entries based on the specified name, cache
 ///prefix, and container type. <div class="alert"><b>Note</b> Note: This API is deprecated. Please use the Extensible
@@ -5790,7 +5784,7 @@ uint CommitUrlCacheEntryBinaryBlob(const(wchar)* pwszUrlName, uint dwType, FILET
 ///    GetLastError.
 ///    
 @DllImport("WININET")
-BOOL CreateUrlCacheContainerA(const(char)* Name, const(char)* lpCachePrefix, const(char)* lpszCachePath, 
+BOOL CreateUrlCacheContainerA(const(PSTR) Name, const(PSTR) lpCachePrefix, const(PSTR) lpszCachePath, 
                               uint KBCacheLimit, uint dwContainerType, uint dwOptions, void* pvBuffer, 
                               uint* cbBuffer);
 
@@ -5811,7 +5805,7 @@ BOOL CreateUrlCacheContainerA(const(char)* Name, const(char)* lpCachePrefix, con
 ///    GetLastError.
 ///    
 @DllImport("WININET")
-BOOL CreateUrlCacheContainerW(const(wchar)* Name, const(wchar)* lpCachePrefix, const(wchar)* lpszCachePath, 
+BOOL CreateUrlCacheContainerW(const(PWSTR) Name, const(PWSTR) lpCachePrefix, const(PWSTR) lpszCachePath, 
                               uint KBCacheLimit, uint dwContainerType, uint dwOptions, void* pvBuffer, 
                               uint* cbBuffer);
 
@@ -5828,7 +5822,7 @@ BOOL CreateUrlCacheContainerW(const(wchar)* Name, const(wchar)* lpCachePrefix, c
 ///    GetLastError.
 ///    
 @DllImport("WININET")
-BOOL DeleteUrlCacheContainerA(const(char)* Name, uint dwOptions);
+BOOL DeleteUrlCacheContainerA(const(PSTR) Name, uint dwOptions);
 
 ///<p class="CCE_Message">[Some information relates to pre-released product which may be substantially modified before
 ///it's commercially released. Microsoft makes no warranties, express or implied, with respect to the information
@@ -5843,36 +5837,23 @@ BOOL DeleteUrlCacheContainerA(const(char)* Name, uint dwOptions);
 ///    GetLastError.
 ///    
 @DllImport("WININET")
-BOOL DeleteUrlCacheContainerW(const(wchar)* Name, uint dwOptions);
+BOOL DeleteUrlCacheContainerW(const(PWSTR) Name, uint dwOptions);
 
 @DllImport("WININET")
-HANDLE FindFirstUrlCacheContainerA(uint* pdwModified, char* lpContainerInfo, uint* lpcbContainerInfo, 
-                                   uint dwOptions);
+HANDLE FindFirstUrlCacheContainerA(uint* pdwModified, INTERNET_CACHE_CONTAINER_INFOA* lpContainerInfo, 
+                                   uint* lpcbContainerInfo, uint dwOptions);
 
 @DllImport("WININET")
-HANDLE FindFirstUrlCacheContainerW(uint* pdwModified, char* lpContainerInfo, uint* lpcbContainerInfo, 
-                                   uint dwOptions);
+HANDLE FindFirstUrlCacheContainerW(uint* pdwModified, INTERNET_CACHE_CONTAINER_INFOW* lpContainerInfo, 
+                                   uint* lpcbContainerInfo, uint dwOptions);
 
 @DllImport("WININET")
-BOOL FindNextUrlCacheContainerA(HANDLE hEnumHandle, char* lpContainerInfo, uint* lpcbContainerInfo);
+BOOL FindNextUrlCacheContainerA(HANDLE hEnumHandle, INTERNET_CACHE_CONTAINER_INFOA* lpContainerInfo, 
+                                uint* lpcbContainerInfo);
 
 @DllImport("WININET")
-BOOL FindNextUrlCacheContainerW(HANDLE hEnumHandle, char* lpContainerInfo, uint* lpcbContainerInfo);
-
-///<p class="CCE_Message">[Some information relates to pre-released product which may be substantially modified before
-///it's commercially released. Microsoft makes no warranties, express or implied, with respect to the information
-///provided here.] Frees space in the cache.<div class="alert"><b>Note</b> This API is deprecated. Please use the
-///Extensible Storage Engine instead.</div> <div> </div>
-///Params:
-///    lpszCachePath = The path for the cache.
-///    dwSize = The percentage of the cache to free (in the range 1 to 100, inclusive).
-///    dwFilter = This parameter is reserved, and must be 0.
-///Returns:
-///    Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise. To get extended error information, call
-///    GetLastError.
-///    
-@DllImport("WININET")
-BOOL FreeUrlCacheSpaceA(const(char)* lpszCachePath, uint dwSize, uint dwFilter);
+BOOL FindNextUrlCacheContainerW(HANDLE hEnumHandle, INTERNET_CACHE_CONTAINER_INFOW* lpContainerInfo, 
+                                uint* lpcbContainerInfo);
 
 ///<p class="CCE_Message">[Some information relates to pre-released product which may be substantially modified before
 ///it's commercially released. Microsoft makes no warranties, express or implied, with respect to the information
@@ -5887,7 +5868,22 @@ BOOL FreeUrlCacheSpaceA(const(char)* lpszCachePath, uint dwSize, uint dwFilter);
 ///    GetLastError.
 ///    
 @DllImport("WININET")
-BOOL FreeUrlCacheSpaceW(const(wchar)* lpszCachePath, uint dwSize, uint dwFilter);
+BOOL FreeUrlCacheSpaceA(const(PSTR) lpszCachePath, uint dwSize, uint dwFilter);
+
+///<p class="CCE_Message">[Some information relates to pre-released product which may be substantially modified before
+///it's commercially released. Microsoft makes no warranties, express or implied, with respect to the information
+///provided here.] Frees space in the cache.<div class="alert"><b>Note</b> This API is deprecated. Please use the
+///Extensible Storage Engine instead.</div> <div> </div>
+///Params:
+///    lpszCachePath = The path for the cache.
+///    dwSize = The percentage of the cache to free (in the range 1 to 100, inclusive).
+///    dwFilter = This parameter is reserved, and must be 0.
+///Returns:
+///    Returns <b>TRUE</b> if successful, or <b>FALSE</b> otherwise. To get extended error information, call
+///    GetLastError.
+///    
+@DllImport("WININET")
+BOOL FreeUrlCacheSpaceW(const(PWSTR) lpszCachePath, uint dwSize, uint dwFilter);
 
 @DllImport("WININET")
 uint UrlCacheFreeGlobalSpace(ulong ullTargetSize, uint dwFilter);
@@ -6008,13 +6004,13 @@ BOOL SetUrlCacheConfigInfoA(INTERNET_CACHE_CONFIG_INFOA* lpCacheConfigInfo, uint
 BOOL SetUrlCacheConfigInfoW(INTERNET_CACHE_CONFIG_INFOW* lpCacheConfigInfo, uint dwFieldControl);
 
 @DllImport("WININET")
-uint RunOnceUrlCache(HWND hwnd, HINSTANCE hinst, const(char)* lpszCmd, int nCmdShow);
+uint RunOnceUrlCache(HWND hwnd, HINSTANCE hinst, PSTR lpszCmd, int nCmdShow);
 
 @DllImport("WININET")
-uint DeleteIE3Cache(HWND hwnd, HINSTANCE hinst, const(char)* lpszCmd, int nCmdShow);
+uint DeleteIE3Cache(HWND hwnd, HINSTANCE hinst, PSTR lpszCmd, int nCmdShow);
 
 @DllImport("WININET")
-BOOL UpdateUrlCacheContentPath(const(char)* szNewPath);
+BOOL UpdateUrlCacheContentPath(const(PSTR) szNewPath);
 
 @DllImport("WININET")
 BOOL RegisterUrlCacheNotification(HWND hWnd, uint uMsg, long gid, uint dwOpsFilter, uint dwReserved);
@@ -6032,11 +6028,11 @@ BOOL IncrementUrlCacheHeaderData(uint nIdx, uint* lpdwData);
 BOOL LoadUrlCacheContent();
 
 @DllImport("WININET")
-uint AppCacheLookup(const(wchar)* pwszUrl, uint dwFlags, void** phAppCache);
+uint AppCacheLookup(const(PWSTR) pwszUrl, uint dwFlags, void** phAppCache);
 
 @DllImport("WININET")
-uint AppCacheCheckManifest(const(wchar)* pwszMasterUrl, const(wchar)* pwszManifestUrl, char* pbManifestData, 
-                           uint dwManifestDataSize, char* pbManifestResponseHeaders, 
+uint AppCacheCheckManifest(const(PWSTR) pwszMasterUrl, const(PWSTR) pwszManifestUrl, const(ubyte)* pbManifestData, 
+                           uint dwManifestDataSize, const(ubyte)* pbManifestResponseHeaders, 
                            uint dwManifestResponseHeadersSize, APP_CACHE_STATE* peState, void** phNewAppCache);
 
 @DllImport("WININET")
@@ -6046,14 +6042,14 @@ uint AppCacheGetDownloadList(void* hAppCache, APP_CACHE_DOWNLOAD_LIST* pDownload
 void AppCacheFreeDownloadList(APP_CACHE_DOWNLOAD_LIST* pDownloadList);
 
 @DllImport("WININET")
-uint AppCacheFinalize(void* hAppCache, char* pbManifestData, uint dwManifestDataSize, 
+uint AppCacheFinalize(void* hAppCache, const(ubyte)* pbManifestData, uint dwManifestDataSize, 
                       APP_CACHE_FINALIZE_STATE* peState);
 
 @DllImport("WININET")
-uint AppCacheGetFallbackUrl(void* hAppCache, const(wchar)* pwszUrl, ushort** ppwszFallbackUrl);
+uint AppCacheGetFallbackUrl(void* hAppCache, const(PWSTR) pwszUrl, PWSTR* ppwszFallbackUrl);
 
 @DllImport("WININET")
-uint AppCacheGetManifestUrl(void* hAppCache, ushort** ppwszManifestUrl);
+uint AppCacheGetManifestUrl(void* hAppCache, PWSTR* ppwszManifestUrl);
 
 @DllImport("WININET")
 uint AppCacheDuplicateHandle(void* hAppCache, void** phDuplicatedAppCache);
@@ -6071,7 +6067,7 @@ uint AppCacheGetGroupList(APP_CACHE_GROUP_LIST* pAppCacheGroupList);
 uint AppCacheGetInfo(void* hAppCache, APP_CACHE_GROUP_INFO* pAppCacheInfo);
 
 @DllImport("WININET")
-uint AppCacheDeleteGroup(const(wchar)* pwszManifestUrl);
+uint AppCacheDeleteGroup(const(PWSTR) pwszManifestUrl);
 
 @DllImport("WININET")
 uint AppCacheFreeSpace(FILETIME ftCutOff);
@@ -6080,14 +6076,14 @@ uint AppCacheFreeSpace(FILETIME ftCutOff);
 uint AppCacheGetIEGroupList(APP_CACHE_GROUP_LIST* pAppCacheGroupList);
 
 @DllImport("WININET")
-uint AppCacheDeleteIEGroup(const(wchar)* pwszManifestUrl);
+uint AppCacheDeleteIEGroup(const(PWSTR) pwszManifestUrl);
 
 @DllImport("WININET")
 uint AppCacheFreeIESpace(FILETIME ftCutOff);
 
 @DllImport("WININET")
-uint AppCacheCreateAndCommitFile(void* hAppCache, const(wchar)* pwszSourceFilePath, const(wchar)* pwszUrl, 
-                                 char* pbResponseHeaders, uint dwResponseHeadersSize);
+uint AppCacheCreateAndCommitFile(void* hAppCache, const(PWSTR) pwszSourceFilePath, const(PWSTR) pwszUrl, 
+                                 const(ubyte)* pbResponseHeaders, uint dwResponseHeadersSize);
 
 @DllImport("WININET")
 uint HttpOpenDependencyHandle(void* hRequestHandle, BOOL fBackground, void** phDependencyHandle);
@@ -6105,13 +6101,13 @@ uint HttpIndicatePageLoadComplete(void* hDependencyHandle);
 void UrlCacheFreeEntryInfo(URLCACHE_ENTRY_INFO* pCacheEntryInfo);
 
 @DllImport("WININET")
-uint UrlCacheGetEntryInfo(void* hAppCache, const(wchar)* pcwszUrl, URLCACHE_ENTRY_INFO* pCacheEntryInfo);
+uint UrlCacheGetEntryInfo(void* hAppCache, const(PWSTR) pcwszUrl, URLCACHE_ENTRY_INFO* pCacheEntryInfo);
 
 @DllImport("WININET")
 void UrlCacheCloseEntryHandle(void* hEntryFile);
 
 @DllImport("WININET")
-uint UrlCacheRetrieveEntryFile(void* hAppCache, const(wchar)* pcwszUrl, URLCACHE_ENTRY_INFO* pCacheEntryInfo, 
+uint UrlCacheRetrieveEntryFile(void* hAppCache, const(PWSTR) pcwszUrl, URLCACHE_ENTRY_INFO* pCacheEntryInfo, 
                                void** phEntryFile);
 
 @DllImport("WININET")
@@ -6119,21 +6115,22 @@ uint UrlCacheReadEntryStream(void* hUrlCacheStream, ulong ullLocation, void* pBu
                              uint* pdwBufferLen);
 
 @DllImport("WININET")
-uint UrlCacheRetrieveEntryStream(void* hAppCache, const(wchar)* pcwszUrl, BOOL fRandomRead, 
+uint UrlCacheRetrieveEntryStream(void* hAppCache, const(PWSTR) pcwszUrl, BOOL fRandomRead, 
                                  URLCACHE_ENTRY_INFO* pCacheEntryInfo, void** phEntryStream);
 
 @DllImport("WININET")
-uint UrlCacheUpdateEntryExtraData(void* hAppCache, const(wchar)* pcwszUrl, char* pbExtraData, uint cbExtraData);
+uint UrlCacheUpdateEntryExtraData(void* hAppCache, const(PWSTR) pcwszUrl, const(ubyte)* pbExtraData, 
+                                  uint cbExtraData);
 
 @DllImport("WININET")
-uint UrlCacheCreateContainer(const(wchar)* pwszName, const(wchar)* pwszPrefix, const(wchar)* pwszDirectory, 
+uint UrlCacheCreateContainer(const(PWSTR) pwszName, const(PWSTR) pwszPrefix, const(PWSTR) pwszDirectory, 
                              ulong ullLimit, uint dwOptions);
 
 @DllImport("WININET")
-uint UrlCacheCheckEntriesExist(char* rgpwszUrls, uint cEntries, char* rgfExist);
+uint UrlCacheCheckEntriesExist(PWSTR* rgpwszUrls, uint cEntries, BOOL* rgfExist);
 
 @DllImport("WININET")
-uint UrlCacheGetContentPaths(ushort*** pppwszDirectories, uint* pcDirectories);
+uint UrlCacheGetContentPaths(PWSTR** pppwszDirectories, uint* pcDirectories);
 
 @DllImport("WININET")
 uint UrlCacheGetGlobalLimit(URL_CACHE_LIMIT_TYPE limitType, ulong* pullLimit);
@@ -6145,10 +6142,10 @@ uint UrlCacheSetGlobalLimit(URL_CACHE_LIMIT_TYPE limitType, ulong ullLimit);
 uint UrlCacheReloadSettings();
 
 @DllImport("WININET")
-uint UrlCacheContainerSetEntryMaximumAge(const(wchar)* pwszPrefix, uint dwEntryMaxAge);
+uint UrlCacheContainerSetEntryMaximumAge(const(PWSTR) pwszPrefix, uint dwEntryMaxAge);
 
 @DllImport("WININET")
-uint UrlCacheFindFirstEntry(const(wchar)* pwszPrefix, uint dwFlags, uint dwFilter, long GroupId, 
+uint UrlCacheFindFirstEntry(const(PWSTR) pwszPrefix, uint dwFlags, uint dwFilter, long GroupId, 
                             URLCACHE_ENTRY_INFO* pCacheEntryInfo, HANDLE* phFind);
 
 @DllImport("WININET")
@@ -6158,26 +6155,26 @@ uint UrlCacheFindNextEntry(HANDLE hFind, URLCACHE_ENTRY_INFO* pCacheEntryInfo);
 uint UrlCacheServer();
 
 @DllImport("WININET")
-BOOL ReadGuidsForConnectedNetworks(uint* pcNetworks, ushort*** pppwszNetworkGuids, BSTR** pppbstrNetworkNames, 
-                                   ushort*** pppwszGWMacs, uint* pcGatewayMacs, uint* pdwFlags);
+BOOL ReadGuidsForConnectedNetworks(uint* pcNetworks, PWSTR** pppwszNetworkGuids, BSTR** pppbstrNetworkNames, 
+                                   PWSTR** pppwszGWMacs, uint* pcGatewayMacs, uint* pdwFlags);
 
 @DllImport("WININET")
-BOOL IsHostInProxyBypassList(INTERNET_SCHEME tScheme, const(char)* lpszHost, uint cchHost);
+BOOL IsHostInProxyBypassList(INTERNET_SCHEME tScheme, const(PSTR) lpszHost, uint cchHost);
 
 @DllImport("WININET")
 void InternetFreeProxyInfoList(WININET_PROXY_INFO_LIST* pProxyInfoList);
 
 @DllImport("WININET")
-uint InternetGetProxyForUrl(void* hInternet, const(wchar)* pcwszUrl, WININET_PROXY_INFO_LIST* pProxyInfoList);
+uint InternetGetProxyForUrl(void* hInternet, const(PWSTR) pcwszUrl, WININET_PROXY_INFO_LIST* pProxyInfoList);
 
 @DllImport("WININET")
 BOOL DoConnectoidsExist();
 
 @DllImport("WININET")
-BOOL GetDiskInfoA(const(char)* pszPath, uint* pdwClusterSize, ulong* pdlAvail, ulong* pdlTotal);
+BOOL GetDiskInfoA(const(PSTR) pszPath, uint* pdwClusterSize, ulong* pdlAvail, ulong* pdlTotal);
 
 @DllImport("WININET")
-BOOL PerformOperationOverUrlCacheA(const(char)* pszUrlSearchPattern, uint dwFlags, uint dwFilter, long GroupId, 
+BOOL PerformOperationOverUrlCacheA(const(PSTR) pszUrlSearchPattern, uint dwFlags, uint dwFilter, long GroupId, 
                                    void* pReserved1, uint* pdwReserved2, void* pReserved3, CACHE_OPERATOR op, 
                                    void* pOperatorData);
 
@@ -6185,51 +6182,51 @@ BOOL PerformOperationOverUrlCacheA(const(char)* pszUrlSearchPattern, uint dwFlag
 BOOL IsProfilesEnabled();
 
 @DllImport("WININET")
-uint InternalInternetGetCookie(const(char)* lpszUrl, const(char)* lpszCookieData, uint* lpdwDataSize);
+uint InternalInternetGetCookie(const(PSTR) lpszUrl, PSTR lpszCookieData, uint* lpdwDataSize);
 
 @DllImport("WININET")
-BOOL ImportCookieFileA(const(char)* szFilename);
+BOOL ImportCookieFileA(const(PSTR) szFilename);
 
 @DllImport("WININET")
-BOOL ImportCookieFileW(const(wchar)* szFilename);
+BOOL ImportCookieFileW(const(PWSTR) szFilename);
 
 @DllImport("WININET")
-BOOL ExportCookieFileA(const(char)* szFilename, BOOL fAppend);
+BOOL ExportCookieFileA(const(PSTR) szFilename, BOOL fAppend);
 
 @DllImport("WININET")
-BOOL ExportCookieFileW(const(wchar)* szFilename, BOOL fAppend);
+BOOL ExportCookieFileW(const(PWSTR) szFilename, BOOL fAppend);
 
 @DllImport("WININET")
-BOOL IsDomainLegalCookieDomainA(const(char)* pchDomain, const(char)* pchFullDomain);
+BOOL IsDomainLegalCookieDomainA(const(PSTR) pchDomain, const(PSTR) pchFullDomain);
 
 @DllImport("WININET")
-BOOL IsDomainLegalCookieDomainW(const(wchar)* pchDomain, const(wchar)* pchFullDomain);
+BOOL IsDomainLegalCookieDomainW(const(PWSTR) pchDomain, const(PWSTR) pchFullDomain);
 
 @DllImport("WININET")
 void* HttpWebSocketCompleteUpgrade(void* hRequest, size_t dwContext);
 
 @DllImport("WININET")
-BOOL HttpWebSocketSend(void* hWebSocket, HTTP_WEB_SOCKET_BUFFER_TYPE BufferType, char* pvBuffer, 
+BOOL HttpWebSocketSend(void* hWebSocket, HTTP_WEB_SOCKET_BUFFER_TYPE BufferType, void* pvBuffer, 
                        uint dwBufferLength);
 
 @DllImport("WININET")
-BOOL HttpWebSocketReceive(void* hWebSocket, char* pvBuffer, uint dwBufferLength, uint* pdwBytesRead, 
+BOOL HttpWebSocketReceive(void* hWebSocket, void* pvBuffer, uint dwBufferLength, uint* pdwBytesRead, 
                           HTTP_WEB_SOCKET_BUFFER_TYPE* pBufferType);
 
 @DllImport("WININET")
-BOOL HttpWebSocketClose(void* hWebSocket, ushort usStatus, char* pvReason, uint dwReasonLength);
+BOOL HttpWebSocketClose(void* hWebSocket, ushort usStatus, void* pvReason, uint dwReasonLength);
 
 @DllImport("WININET")
-BOOL HttpWebSocketShutdown(void* hWebSocket, ushort usStatus, char* pvReason, uint dwReasonLength);
+BOOL HttpWebSocketShutdown(void* hWebSocket, ushort usStatus, void* pvReason, uint dwReasonLength);
 
 @DllImport("WININET")
-BOOL HttpWebSocketQueryCloseStatus(void* hWebSocket, ushort* pusStatus, char* pvReason, uint dwReasonLength, 
+BOOL HttpWebSocketQueryCloseStatus(void* hWebSocket, ushort* pusStatus, void* pvReason, uint dwReasonLength, 
                                    uint* pdwReasonLengthConsumed);
 
 @DllImport("WININET")
-uint InternetConvertUrlFromWireToWideChar(const(char)* pcszUrl, uint cchUrl, const(wchar)* pcwszBaseUrl, 
+uint InternetConvertUrlFromWireToWideChar(const(PSTR) pcszUrl, uint cchUrl, const(PWSTR) pcwszBaseUrl, 
                                           uint dwCodePageHost, uint dwCodePagePath, BOOL fEncodePathExtra, 
-                                          uint dwCodePageExtra, ushort** ppwszConvertedUrl);
+                                          uint dwCodePageExtra, PWSTR* ppwszConvertedUrl);
 
 
 // Interfaces
@@ -6246,9 +6243,9 @@ interface IDialEventSink : IUnknown
 @GUID("39FD782B-7905-40D5-9148-3C9B190423D5")
 interface IDialEngine : IUnknown
 {
-    HRESULT Initialize(const(wchar)* pwzConnectoid, IDialEventSink pIDES);
-    HRESULT GetProperty(const(wchar)* pwzProperty, const(wchar)* pwzValue, uint dwBufSize);
-    HRESULT SetProperty(const(wchar)* pwzProperty, const(wchar)* pwzValue);
+    HRESULT Initialize(const(PWSTR) pwzConnectoid, IDialEventSink pIDES);
+    HRESULT GetProperty(const(PWSTR) pwzProperty, PWSTR pwzValue, uint dwBufSize);
+    HRESULT SetProperty(const(PWSTR) pwzProperty, const(PWSTR) pwzValue);
     HRESULT Dial();
     HRESULT HangUp();
     HRESULT GetConnectedState(uint* pdwState);
@@ -6258,7 +6255,7 @@ interface IDialEngine : IUnknown
 @GUID("8AECAFA9-4306-43CC-8C5A-765F2979CC16")
 interface IDialBranding : IUnknown
 {
-    HRESULT Initialize(const(wchar)* pwzConnectoid);
+    HRESULT Initialize(const(PWSTR) pwzConnectoid);
     HRESULT GetBitmap(uint dwIndex, HBITMAP* phBitmap);
 }
 
@@ -6275,14 +6272,14 @@ interface IProofOfPossessionCookieInfoManager : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetCookieInfoForUri(const(wchar)* uri, uint* cookieInfoCount, char* cookieInfo);
+    HRESULT GetCookieInfoForUri(const(PWSTR) uri, uint* cookieInfoCount, ProofOfPossessionCookieInfo** cookieInfo);
 }
 
 @GUID("15E41407-B42F-4AE7-9966-34A087B2D713")
 interface IProofOfPossessionCookieInfoManager2 : IUnknown
 {
-    HRESULT GetCookieInfoWithUriForAccount(IInspectable webAccount, const(wchar)* uri, uint* cookieInfoCount, 
-                                           char* cookieInfo);
+    HRESULT GetCookieInfoWithUriForAccount(IInspectable webAccount, const(PWSTR) uri, uint* cookieInfoCount, 
+                                           ProofOfPossessionCookieInfo** cookieInfo);
 }
 
 

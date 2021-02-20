@@ -4,16 +4,20 @@ module windows.windowsnetworking;
 
 public import windows.core;
 public import windows.security : NETCONNECTINFOSTRUCT, NETRESOURCEA, NETRESOURCEW;
-public import windows.systemservices : BOOL, HANDLE;
+public import windows.systemservices : BOOL, HANDLE, PSTR, PWSTR;
 public import windows.windowsandmessaging : HWND;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Structs
 
 
-alias NetEnumHandle = ptrdiff_t;
+@RAIIFree!WNetCloseEnum
+struct NetEnumHandle
+{
+    ptrdiff_t Value;
+}
 
 ///The <b>CONNECTDLGSTRUCT</b> structure is used by the WNetConnectionDialog1 function to establish browsing dialog box
 ///parameters.
@@ -102,16 +106,16 @@ struct CONNECTDLGSTRUCTW
 struct DISCDLGSTRUCTA
 {
     ///Type: <b>DWORD</b> The size, in bytes, of the <b>DISCDLGSTRUCT</b> structure. The caller must supply this value.
-    uint         cbStructure;
+    uint cbStructure;
     ///Type: <b>HWND</b> A handle to the owner window of the dialog box.
-    HWND         hwndOwner;
+    HWND hwndOwner;
     ///Type: <b>LPTSTR</b> A pointer to a <b>NULL</b>-terminated string that specifies the local device name that is
     ///redirected to the network resource, such as "F:" or "LPT1".
-    const(char)* lpLocalName;
+    PSTR lpLocalName;
     ///Type: <b>LPTSTR</b> A pointer to a <b>NULL</b>-terminated string that specifies the name of the network resource
     ///to disconnect. This member can be NULL if the <b>lpLocalName</b> member is specified. When <b>lpLocalName</b> is
     ///specified, the connection to the network resource redirected from <b>lpLocalName</b> is disconnected.
-    const(char)* lpRemoteName;
+    PSTR lpRemoteName;
     ///Type: <b>DWORD</b> A set of bit flags describing the connection. This member can be a combination of the
     ///following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="DISC_UPDATE_PROFILE"></a><a id="disc_update_profile"></a><dl> <dt><b>DISC_UPDATE_PROFILE</b></dt> </dl> </td>
@@ -123,7 +127,7 @@ struct DISCDLGSTRUCTA
     ///open over the connection. This value means that the user will be informed if there are open files on the
     ///connection, and asked if he or she still wants to disconnect. If the user wants to proceed, the disconnect
     ///procedure re-attempts with additional force. </td> </tr> </table>
-    uint         dwFlags;
+    uint dwFlags;
 }
 
 ///The <b>DISCDLGSTRUCT</b> structure is used in the WNetDisconnectDialog1 function. The structure contains required
@@ -131,16 +135,16 @@ struct DISCDLGSTRUCTA
 struct DISCDLGSTRUCTW
 {
     ///Type: <b>DWORD</b> The size, in bytes, of the <b>DISCDLGSTRUCT</b> structure. The caller must supply this value.
-    uint          cbStructure;
+    uint  cbStructure;
     ///Type: <b>HWND</b> A handle to the owner window of the dialog box.
-    HWND          hwndOwner;
+    HWND  hwndOwner;
     ///Type: <b>LPTSTR</b> A pointer to a <b>NULL</b>-terminated string that specifies the local device name that is
     ///redirected to the network resource, such as "F:" or "LPT1".
-    const(wchar)* lpLocalName;
+    PWSTR lpLocalName;
     ///Type: <b>LPTSTR</b> A pointer to a <b>NULL</b>-terminated string that specifies the name of the network resource
     ///to disconnect. This member can be NULL if the <b>lpLocalName</b> member is specified. When <b>lpLocalName</b> is
     ///specified, the connection to the network resource redirected from <b>lpLocalName</b> is disconnected.
-    const(wchar)* lpRemoteName;
+    PWSTR lpRemoteName;
     ///Type: <b>DWORD</b> A set of bit flags describing the connection. This member can be a combination of the
     ///following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="DISC_UPDATE_PROFILE"></a><a id="disc_update_profile"></a><dl> <dt><b>DISC_UPDATE_PROFILE</b></dt> </dl> </td>
@@ -152,7 +156,7 @@ struct DISCDLGSTRUCTW
     ///open over the connection. This value means that the user will be informed if there are open files on the
     ///connection, and asked if he or she still wants to disconnect. If the user wants to proceed, the disconnect
     ///procedure re-attempts with additional force. </td> </tr> </table>
-    uint          dwFlags;
+    uint  dwFlags;
 }
 
 ///The <b>NETINFOSTRUCT</b> structure contains information describing the network provider returned by the
@@ -238,7 +242,7 @@ struct NETINFOSTRUCT
 ///    network is unavailable. </td> </tr> </table>
 ///    
 @DllImport("MPR")
-uint WNetAddConnectionA(const(char)* lpRemoteName, const(char)* lpPassword, const(char)* lpLocalName);
+uint WNetAddConnectionA(const(PSTR) lpRemoteName, const(PSTR) lpPassword, const(PSTR) lpLocalName);
 
 ///The <b>WNetAddConnection</b> function enables the calling application to connect a local device to a network
 ///resource. A successful connection is persistent, meaning that the system automatically restores the connection during
@@ -279,7 +283,7 @@ uint WNetAddConnectionA(const(char)* lpRemoteName, const(char)* lpPassword, cons
 ///    network is unavailable. </td> </tr> </table>
 ///    
 @DllImport("MPR")
-uint WNetAddConnectionW(const(wchar)* lpRemoteName, const(wchar)* lpPassword, const(wchar)* lpLocalName);
+uint WNetAddConnectionW(const(PWSTR) lpRemoteName, const(PWSTR) lpPassword, const(PWSTR) lpLocalName);
 
 ///The <b>WNetAddConnection2</b> function makes a connection to a network resource and can redirect a local device to
 ///the network resource. The <b>WNetAddConnection2</b> function supersedes the WNetAddConnection function. If you can
@@ -429,8 +433,7 @@ uint WNetAddConnectionW(const(wchar)* lpRemoteName, const(wchar)* lpPassword, co
 ///    </table>
 ///    
 @DllImport("MPR")
-uint WNetAddConnection2A(NETRESOURCEA* lpNetResource, const(char)* lpPassword, const(char)* lpUserName, 
-                         uint dwFlags);
+uint WNetAddConnection2A(NETRESOURCEA* lpNetResource, const(PSTR) lpPassword, const(PSTR) lpUserName, uint dwFlags);
 
 ///The <b>WNetAddConnection2</b> function makes a connection to a network resource and can redirect a local device to
 ///the network resource. The <b>WNetAddConnection2</b> function supersedes the WNetAddConnection function. If you can
@@ -580,7 +583,7 @@ uint WNetAddConnection2A(NETRESOURCEA* lpNetResource, const(char)* lpPassword, c
 ///    </table>
 ///    
 @DllImport("MPR")
-uint WNetAddConnection2W(NETRESOURCEW* lpNetResource, const(wchar)* lpPassword, const(wchar)* lpUserName, 
+uint WNetAddConnection2W(NETRESOURCEW* lpNetResource, const(PWSTR) lpPassword, const(PWSTR) lpUserName, 
                          uint dwFlags);
 
 ///The <b>WNetAddConnection3</b> function makes a connection to a network resource. The function can redirect a local
@@ -698,8 +701,8 @@ uint WNetAddConnection2W(NETRESOURCEW* lpNetResource, const(wchar)* lpPassword, 
 ///    </table>
 ///    
 @DllImport("MPR")
-uint WNetAddConnection3A(HWND hwndOwner, NETRESOURCEA* lpNetResource, const(char)* lpPassword, 
-                         const(char)* lpUserName, uint dwFlags);
+uint WNetAddConnection3A(HWND hwndOwner, NETRESOURCEA* lpNetResource, const(PSTR) lpPassword, 
+                         const(PSTR) lpUserName, uint dwFlags);
 
 ///The <b>WNetAddConnection3</b> function makes a connection to a network resource. The function can redirect a local
 ///device to the network resource. The <b>WNetAddConnection3</b> function is similar to the WNetAddConnection2 function.
@@ -816,44 +819,16 @@ uint WNetAddConnection3A(HWND hwndOwner, NETRESOURCEA* lpNetResource, const(char
 ///    </table>
 ///    
 @DllImport("MPR")
-uint WNetAddConnection3W(HWND hwndOwner, NETRESOURCEW* lpNetResource, const(wchar)* lpPassword, 
-                         const(wchar)* lpUserName, uint dwFlags);
+uint WNetAddConnection3W(HWND hwndOwner, NETRESOURCEW* lpNetResource, const(PWSTR) lpPassword, 
+                         const(PWSTR) lpUserName, uint dwFlags);
 
 @DllImport("MPR")
-uint WNetAddConnection4A(HWND hwndOwner, NETRESOURCEA* lpNetResource, char* pAuthBuffer, uint cbAuthBuffer, 
-                         uint dwFlags, char* lpUseOptions, uint cbUseOptions);
+uint WNetAddConnection4A(HWND hwndOwner, NETRESOURCEA* lpNetResource, void* pAuthBuffer, uint cbAuthBuffer, 
+                         uint dwFlags, ubyte* lpUseOptions, uint cbUseOptions);
 
 @DllImport("MPR")
-uint WNetAddConnection4W(HWND hwndOwner, NETRESOURCEW* lpNetResource, char* pAuthBuffer, uint cbAuthBuffer, 
-                         uint dwFlags, char* lpUseOptions, uint cbUseOptions);
-
-///The <b>WNetCancelConnection</b> function cancels an existing network connection. The <b>WNetCancelConnection</b>
-///function is provided for compatibility with 16-bit versions of Windows. Other Windows-based applications should call
-///the WNetCancelConnection2 function.
-///Params:
-///    lpName = Pointer to a constant null-terminated string that specifies the name of either the redirected local device or the
-///             remote network resource to disconnect from. When this parameter specifies a redirected local device, the function
-///             cancels only the specified device redirection. If the parameter specifies a remote network resource, only the
-///             connections to remote networks without devices are canceled.
-///    fForce = Specifies whether or not the disconnection should occur if there are open files or jobs on the connection. If
-///             this parameter is <b>FALSE</b>, the function fails if there are open files or jobs.
-///Returns:
-///    If the function succeeds, the return value is NO_ERROR. If the function fails, the return value is a system error
-///    code, such as one of the following values. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td
-///    width="40%"> <dl> <dt><b>ERROR_BAD_PROFILE</b></dt> </dl> </td> <td width="60%"> The user profile is in an
-///    incorrect format. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_CANNOT_OPEN_PROFILE</b></dt> </dl> </td>
-///    <td width="60%"> The system is unable to open the user profile to process persistent connections. </td> </tr>
-///    <tr> <td width="40%"> <dl> <dt><b>ERROR_DEVICE_IN_USE</b></dt> </dl> </td> <td width="60%"> The device is in use
-///    by an active process and cannot be disconnected. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>ERROR_EXTENDED_ERROR</b></dt> </dl> </td> <td width="60%"> A network-specific error occurred. To obtain a
-///    description of the error, call the WNetGetLastError function. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>ERROR_NOT_CONNECTED</b></dt> </dl> </td> <td width="60%"> The name specified by the <i>lpName</i>
-///    parameter is not a redirected device, or the system is not currently connected to the device specified by the
-///    parameter. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_OPEN_FILES</b></dt> </dl> </td> <td width="60%">
-///    There are open files, and the <i>fForce</i> parameter is <b>FALSE</b>. </td> </tr> </table>
-///    
-@DllImport("MPR")
-uint WNetCancelConnectionA(const(char)* lpName, BOOL fForce);
+uint WNetAddConnection4W(HWND hwndOwner, NETRESOURCEW* lpNetResource, void* pAuthBuffer, uint cbAuthBuffer, 
+                         uint dwFlags, ubyte* lpUseOptions, uint cbUseOptions);
 
 ///The <b>WNetCancelConnection</b> function cancels an existing network connection. The <b>WNetCancelConnection</b>
 ///function is provided for compatibility with 16-bit versions of Windows. Other Windows-based applications should call
@@ -881,7 +856,35 @@ uint WNetCancelConnectionA(const(char)* lpName, BOOL fForce);
 ///    There are open files, and the <i>fForce</i> parameter is <b>FALSE</b>. </td> </tr> </table>
 ///    
 @DllImport("MPR")
-uint WNetCancelConnectionW(const(wchar)* lpName, BOOL fForce);
+uint WNetCancelConnectionA(const(PSTR) lpName, BOOL fForce);
+
+///The <b>WNetCancelConnection</b> function cancels an existing network connection. The <b>WNetCancelConnection</b>
+///function is provided for compatibility with 16-bit versions of Windows. Other Windows-based applications should call
+///the WNetCancelConnection2 function.
+///Params:
+///    lpName = Pointer to a constant null-terminated string that specifies the name of either the redirected local device or the
+///             remote network resource to disconnect from. When this parameter specifies a redirected local device, the function
+///             cancels only the specified device redirection. If the parameter specifies a remote network resource, only the
+///             connections to remote networks without devices are canceled.
+///    fForce = Specifies whether or not the disconnection should occur if there are open files or jobs on the connection. If
+///             this parameter is <b>FALSE</b>, the function fails if there are open files or jobs.
+///Returns:
+///    If the function succeeds, the return value is NO_ERROR. If the function fails, the return value is a system error
+///    code, such as one of the following values. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td
+///    width="40%"> <dl> <dt><b>ERROR_BAD_PROFILE</b></dt> </dl> </td> <td width="60%"> The user profile is in an
+///    incorrect format. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_CANNOT_OPEN_PROFILE</b></dt> </dl> </td>
+///    <td width="60%"> The system is unable to open the user profile to process persistent connections. </td> </tr>
+///    <tr> <td width="40%"> <dl> <dt><b>ERROR_DEVICE_IN_USE</b></dt> </dl> </td> <td width="60%"> The device is in use
+///    by an active process and cannot be disconnected. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>ERROR_EXTENDED_ERROR</b></dt> </dl> </td> <td width="60%"> A network-specific error occurred. To obtain a
+///    description of the error, call the WNetGetLastError function. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>ERROR_NOT_CONNECTED</b></dt> </dl> </td> <td width="60%"> The name specified by the <i>lpName</i>
+///    parameter is not a redirected device, or the system is not currently connected to the device specified by the
+///    parameter. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_OPEN_FILES</b></dt> </dl> </td> <td width="60%">
+///    There are open files, and the <i>fForce</i> parameter is <b>FALSE</b>. </td> </tr> </table>
+///    
+@DllImport("MPR")
+uint WNetCancelConnectionW(const(PWSTR) lpName, BOOL fForce);
 
 ///The <b>WNetCancelConnection2</b> function cancels an existing network connection. You can also call the function to
 ///remove remembered network connections that are not currently connected. The <b>WNetCancelConnection2</b> function
@@ -918,7 +921,7 @@ uint WNetCancelConnectionW(const(wchar)* lpName, BOOL fForce);
 ///    There are open files, and the <i>fForce</i> parameter is <b>FALSE</b>. </td> </tr> </table>
 ///    
 @DllImport("MPR")
-uint WNetCancelConnection2A(const(char)* lpName, uint dwFlags, BOOL fForce);
+uint WNetCancelConnection2A(const(PSTR) lpName, uint dwFlags, BOOL fForce);
 
 ///The <b>WNetCancelConnection2</b> function cancels an existing network connection. You can also call the function to
 ///remove remembered network connections that are not currently connected. The <b>WNetCancelConnection2</b> function
@@ -955,7 +958,7 @@ uint WNetCancelConnection2A(const(char)* lpName, uint dwFlags, BOOL fForce);
 ///    There are open files, and the <i>fForce</i> parameter is <b>FALSE</b>. </td> </tr> </table>
 ///    
 @DllImport("MPR")
-uint WNetCancelConnection2W(const(wchar)* lpName, uint dwFlags, BOOL fForce);
+uint WNetCancelConnection2W(const(PWSTR) lpName, uint dwFlags, BOOL fForce);
 
 ///The <b>WNetGetConnection</b> function retrieves the name of the network resource associated with a local device.
 ///Params:
@@ -985,7 +988,7 @@ uint WNetCancelConnection2W(const(wchar)* lpName, uint dwFlags, BOOL fForce);
 ///    to whom the connection may belong. </td> </tr> </table>
 ///    
 @DllImport("MPR")
-uint WNetGetConnectionA(const(char)* lpLocalName, const(char)* lpRemoteName, uint* lpnLength);
+uint WNetGetConnectionA(const(PSTR) lpLocalName, PSTR lpRemoteName, uint* lpnLength);
 
 ///The <b>WNetGetConnection</b> function retrieves the name of the network resource associated with a local device.
 ///Params:
@@ -1015,7 +1018,7 @@ uint WNetGetConnectionA(const(char)* lpLocalName, const(char)* lpRemoteName, uin
 ///    to whom the connection may belong. </td> </tr> </table>
 ///    
 @DllImport("MPR")
-uint WNetGetConnectionW(const(wchar)* lpLocalName, const(wchar)* lpRemoteName, uint* lpnLength);
+uint WNetGetConnectionW(const(PWSTR) lpLocalName, PWSTR lpRemoteName, uint* lpnLength);
 
 ///The <b>WNetUseConnection</b> function makes a connection to a network resource. The function can redirect a local
 ///device to a network resource. The <b>WNetUseConnection</b> function is similar to the WNetAddConnection3 function.
@@ -1152,9 +1155,8 @@ uint WNetGetConnectionW(const(wchar)* lpLocalName, const(wchar)* lpRemoteName, u
 ///    width="60%"> The network is unavailable. </td> </tr> </table>
 ///    
 @DllImport("MPR")
-uint WNetUseConnectionA(HWND hwndOwner, NETRESOURCEA* lpNetResource, const(char)* lpPassword, 
-                        const(char)* lpUserId, uint dwFlags, const(char)* lpAccessName, uint* lpBufferSize, 
-                        uint* lpResult);
+uint WNetUseConnectionA(HWND hwndOwner, NETRESOURCEA* lpNetResource, const(PSTR) lpPassword, const(PSTR) lpUserId, 
+                        uint dwFlags, PSTR lpAccessName, uint* lpBufferSize, uint* lpResult);
 
 ///The <b>WNetUseConnection</b> function makes a connection to a network resource. The function can redirect a local
 ///device to a network resource. The <b>WNetUseConnection</b> function is similar to the WNetAddConnection3 function.
@@ -1291,18 +1293,17 @@ uint WNetUseConnectionA(HWND hwndOwner, NETRESOURCEA* lpNetResource, const(char)
 ///    width="60%"> The network is unavailable. </td> </tr> </table>
 ///    
 @DllImport("MPR")
-uint WNetUseConnectionW(HWND hwndOwner, NETRESOURCEW* lpNetResource, const(wchar)* lpPassword, 
-                        const(wchar)* lpUserId, uint dwFlags, const(wchar)* lpAccessName, uint* lpBufferSize, 
-                        uint* lpResult);
+uint WNetUseConnectionW(HWND hwndOwner, NETRESOURCEW* lpNetResource, const(PWSTR) lpPassword, 
+                        const(PWSTR) lpUserId, uint dwFlags, PWSTR lpAccessName, uint* lpBufferSize, uint* lpResult);
 
 @DllImport("MPR")
-uint WNetUseConnection4A(HWND hwndOwner, NETRESOURCEA* lpNetResource, char* pAuthBuffer, uint cbAuthBuffer, 
-                         uint dwFlags, char* lpUseOptions, uint cbUseOptions, const(char)* lpAccessName, 
-                         uint* lpBufferSize, uint* lpResult);
+uint WNetUseConnection4A(HWND hwndOwner, NETRESOURCEA* lpNetResource, void* pAuthBuffer, uint cbAuthBuffer, 
+                         uint dwFlags, ubyte* lpUseOptions, uint cbUseOptions, PSTR lpAccessName, uint* lpBufferSize, 
+                         uint* lpResult);
 
 @DllImport("MPR")
-uint WNetUseConnection4W(HWND hwndOwner, NETRESOURCEW* lpNetResource, char* pAuthBuffer, uint cbAuthBuffer, 
-                         uint dwFlags, char* lpUseOptions, uint cbUseOptions, const(wchar)* lpAccessName, 
+uint WNetUseConnection4W(HWND hwndOwner, NETRESOURCEW* lpNetResource, void* pAuthBuffer, uint cbAuthBuffer, 
+                         uint dwFlags, ubyte* lpUseOptions, uint cbUseOptions, PWSTR lpAccessName, 
                          uint* lpBufferSize, uint* lpResult);
 
 ///The <b>WNetConnectionDialog</b> function starts a general browsing dialog box for connecting to network resources.
@@ -1618,7 +1619,7 @@ uint WNetOpenEnumW(uint dwScope, uint dwType, uint dwUsage, NETRESOURCEW* lpNetR
 ///    </tr> </table>
 ///    
 @DllImport("MPR")
-uint WNetEnumResourceA(HANDLE hEnum, uint* lpcCount, char* lpBuffer, uint* lpBufferSize);
+uint WNetEnumResourceA(HANDLE hEnum, uint* lpcCount, void* lpBuffer, uint* lpBufferSize);
 
 ///The <b>WNetEnumResource</b> function continues an enumeration of network resources that was started by a call to the
 ///WNetOpenEnum function.
@@ -1652,7 +1653,7 @@ uint WNetEnumResourceA(HANDLE hEnum, uint* lpcCount, char* lpBuffer, uint* lpBuf
 ///    </tr> </table>
 ///    
 @DllImport("MPR")
-uint WNetEnumResourceW(HANDLE hEnum, uint* lpcCount, char* lpBuffer, uint* lpBufferSize);
+uint WNetEnumResourceW(HANDLE hEnum, uint* lpcCount, void* lpBuffer, uint* lpBufferSize);
 
 ///The <b>WNetCloseEnum</b> function ends a network resource enumeration started by a call to the WNetOpenEnum function.
 ///Params:
@@ -1714,7 +1715,7 @@ uint WNetCloseEnum(HANDLE hEnum);
 ///    </tr> </table>
 ///    
 @DllImport("MPR")
-uint WNetGetResourceParentA(NETRESOURCEA* lpNetResource, char* lpBuffer, uint* lpcbBuffer);
+uint WNetGetResourceParentA(NETRESOURCEA* lpNetResource, void* lpBuffer, uint* lpcbBuffer);
 
 ///The <b>WNetGetResourceParent</b> function returns the parent of a network resource in the network browse hierarchy.
 ///Browsing begins at the location of the specified network resource. Call the WNetGetResourceInformation and
@@ -1760,7 +1761,7 @@ uint WNetGetResourceParentA(NETRESOURCEA* lpNetResource, char* lpBuffer, uint* l
 ///    </tr> </table>
 ///    
 @DllImport("MPR")
-uint WNetGetResourceParentW(NETRESOURCEW* lpNetResource, char* lpBuffer, uint* lpcbBuffer);
+uint WNetGetResourceParentW(NETRESOURCEW* lpNetResource, void* lpBuffer, uint* lpcbBuffer);
 
 ///When provided with a remote path to a network resource, the <b>WNetGetResourceInformation</b> function identifies the
 ///network provider that owns the resource and obtains information about the type of the resource. The function is
@@ -1809,7 +1810,7 @@ uint WNetGetResourceParentW(NETRESOURCEW* lpNetResource, char* lpBuffer, uint* l
 ///    width="60%"> The network is unavailable. </td> </tr> </table>
 ///    
 @DllImport("MPR")
-uint WNetGetResourceInformationA(NETRESOURCEA* lpNetResource, char* lpBuffer, uint* lpcbBuffer, byte** lplpSystem);
+uint WNetGetResourceInformationA(NETRESOURCEA* lpNetResource, void* lpBuffer, uint* lpcbBuffer, PSTR* lplpSystem);
 
 ///When provided with a remote path to a network resource, the <b>WNetGetResourceInformation</b> function identifies the
 ///network provider that owns the resource and obtains information about the type of the resource. The function is
@@ -1858,8 +1859,7 @@ uint WNetGetResourceInformationA(NETRESOURCEA* lpNetResource, char* lpBuffer, ui
 ///    width="60%"> The network is unavailable. </td> </tr> </table>
 ///    
 @DllImport("MPR")
-uint WNetGetResourceInformationW(NETRESOURCEW* lpNetResource, char* lpBuffer, uint* lpcbBuffer, 
-                                 ushort** lplpSystem);
+uint WNetGetResourceInformationW(NETRESOURCEW* lpNetResource, void* lpBuffer, uint* lpcbBuffer, PWSTR* lplpSystem);
 
 ///The <b>WNetGetUniversalName</b> function takes a drive-based path for a network resource and returns an information
 ///structure that contains a more universal form of the name.
@@ -1904,7 +1904,7 @@ uint WNetGetResourceInformationW(NETRESOURCEW* lpNetResource, char* lpBuffer, ui
 ///    specified by the <i>lpLocalPath</i> parameter is not redirected. </td> </tr> </table>
 ///    
 @DllImport("MPR")
-uint WNetGetUniversalNameA(const(char)* lpLocalPath, uint dwInfoLevel, char* lpBuffer, uint* lpBufferSize);
+uint WNetGetUniversalNameA(const(PSTR) lpLocalPath, uint dwInfoLevel, void* lpBuffer, uint* lpBufferSize);
 
 ///The <b>WNetGetUniversalName</b> function takes a drive-based path for a network resource and returns an information
 ///structure that contains a more universal form of the name.
@@ -1949,7 +1949,7 @@ uint WNetGetUniversalNameA(const(char)* lpLocalPath, uint dwInfoLevel, char* lpB
 ///    specified by the <i>lpLocalPath</i> parameter is not redirected. </td> </tr> </table>
 ///    
 @DllImport("MPR")
-uint WNetGetUniversalNameW(const(wchar)* lpLocalPath, uint dwInfoLevel, char* lpBuffer, uint* lpBufferSize);
+uint WNetGetUniversalNameW(const(PWSTR) lpLocalPath, uint dwInfoLevel, void* lpBuffer, uint* lpBufferSize);
 
 ///The <b>WNetGetUser</b> function retrieves the current default user name, or the user name used to establish a network
 ///connection.
@@ -1975,7 +1975,7 @@ uint WNetGetUniversalNameW(const(wchar)* lpLocalPath, uint dwInfoLevel, char* lp
 ///    network is not available for at least one provider to whom the connection may belong. </td> </tr> </table>
 ///    
 @DllImport("MPR")
-uint WNetGetUserA(const(char)* lpName, const(char)* lpUserName, uint* lpnLength);
+uint WNetGetUserA(const(PSTR) lpName, PSTR lpUserName, uint* lpnLength);
 
 ///The <b>WNetGetUser</b> function retrieves the current default user name, or the user name used to establish a network
 ///connection.
@@ -2001,7 +2001,7 @@ uint WNetGetUserA(const(char)* lpName, const(char)* lpUserName, uint* lpnLength)
 ///    network is not available for at least one provider to whom the connection may belong. </td> </tr> </table>
 ///    
 @DllImport("MPR")
-uint WNetGetUserW(const(wchar)* lpName, const(wchar)* lpUserName, uint* lpnLength);
+uint WNetGetUserW(const(PWSTR) lpName, PWSTR lpUserName, uint* lpnLength);
 
 ///The <b>WNetGetProviderName</b> function obtains the provider name for a specific type of network.
 ///Params:
@@ -2022,7 +2022,7 @@ uint WNetGetUserW(const(wchar)* lpName, const(wchar)* lpUserName, uint* lpnLengt
 ///    <i>lpBufferSize</i> parameter is invalid. </td> </tr> </table>
 ///    
 @DllImport("MPR")
-uint WNetGetProviderNameA(uint dwNetType, const(char)* lpProviderName, uint* lpBufferSize);
+uint WNetGetProviderNameA(uint dwNetType, PSTR lpProviderName, uint* lpBufferSize);
 
 ///The <b>WNetGetProviderName</b> function obtains the provider name for a specific type of network.
 ///Params:
@@ -2043,7 +2043,7 @@ uint WNetGetProviderNameA(uint dwNetType, const(char)* lpProviderName, uint* lpB
 ///    <i>lpBufferSize</i> parameter is invalid. </td> </tr> </table>
 ///    
 @DllImport("MPR")
-uint WNetGetProviderNameW(uint dwNetType, const(wchar)* lpProviderName, uint* lpBufferSize);
+uint WNetGetProviderNameW(uint dwNetType, PWSTR lpProviderName, uint* lpBufferSize);
 
 ///The <b>WNetGetNetworkInformation</b> function returns extended information about a specific network provider whose
 ///name was returned by a previous network enumeration.
@@ -2060,7 +2060,7 @@ uint WNetGetProviderNameW(uint dwNetType, const(wchar)* lpProviderName, uint* lp
 ///    <b>NETINFOSTRUCT</b> structure does not contain a valid structure size. </td> </tr> </table>
 ///    
 @DllImport("MPR")
-uint WNetGetNetworkInformationA(const(char)* lpProvider, NETINFOSTRUCT* lpNetInfoStruct);
+uint WNetGetNetworkInformationA(const(PSTR) lpProvider, NETINFOSTRUCT* lpNetInfoStruct);
 
 ///The <b>WNetGetNetworkInformation</b> function returns extended information about a specific network provider whose
 ///name was returned by a previous network enumeration.
@@ -2077,7 +2077,7 @@ uint WNetGetNetworkInformationA(const(char)* lpProvider, NETINFOSTRUCT* lpNetInf
 ///    <b>NETINFOSTRUCT</b> structure does not contain a valid structure size. </td> </tr> </table>
 ///    
 @DllImport("MPR")
-uint WNetGetNetworkInformationW(const(wchar)* lpProvider, NETINFOSTRUCT* lpNetInfoStruct);
+uint WNetGetNetworkInformationW(const(PWSTR) lpProvider, NETINFOSTRUCT* lpNetInfoStruct);
 
 ///The <b>WNetGetLastError</b> function retrieves the most recent extended error code set by a WNet function. The
 ///network provider reported this error code; it will not generally be one of the errors included in the SDK header file
@@ -2098,8 +2098,7 @@ uint WNetGetNetworkInformationW(const(wchar)* lpProvider, NETINFOSTRUCT* lpNetIn
 ///    NO_ERROR. If the caller supplies an invalid buffer, the return value is ERROR_INVALID_ADDRESS.
 ///    
 @DllImport("MPR")
-uint WNetGetLastErrorA(uint* lpError, const(char)* lpErrorBuf, uint nErrorBufSize, const(char)* lpNameBuf, 
-                       uint nNameBufSize);
+uint WNetGetLastErrorA(uint* lpError, PSTR lpErrorBuf, uint nErrorBufSize, PSTR lpNameBuf, uint nNameBufSize);
 
 ///The <b>WNetGetLastError</b> function retrieves the most recent extended error code set by a WNet function. The
 ///network provider reported this error code; it will not generally be one of the errors included in the SDK header file
@@ -2120,8 +2119,7 @@ uint WNetGetLastErrorA(uint* lpError, const(char)* lpErrorBuf, uint nErrorBufSiz
 ///    NO_ERROR. If the caller supplies an invalid buffer, the return value is ERROR_INVALID_ADDRESS.
 ///    
 @DllImport("MPR")
-uint WNetGetLastErrorW(uint* lpError, const(wchar)* lpErrorBuf, uint nErrorBufSize, const(wchar)* lpNameBuf, 
-                       uint nNameBufSize);
+uint WNetGetLastErrorW(uint* lpError, PWSTR lpErrorBuf, uint nErrorBufSize, PWSTR lpNameBuf, uint nNameBufSize);
 
 ///The <b>MultinetGetConnectionPerformance</b> function returns information about the expected performance of a
 ///connection used to access a network resource.

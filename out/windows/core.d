@@ -1,4 +1,6 @@
+// Written in the D programming language.
 module windows.core;
+
 
 
 struct GUID {
@@ -50,6 +52,7 @@ struct GUID {
     
 }
 
+
 template GUIDOF(T, A...)
 {
     static if (A.length == 0)
@@ -65,10 +68,63 @@ template GUIDOF(T, A...)
         alias GUIDOF = GUIDOF!(T, A[1 .. $]);
 }
 
+
+
 struct DllImport
 {
     string libName;
 }
 
+struct RAIIFree(alias H)
+{
+    private alias Handler = H;
+}
 
+auto autoFree(T)(T handle)
+{
+    return RAIIWrapper!(T, FreeFunctionOf!T)(handle);
+}
+
+struct RAIIWrapper(Handle, alias CloseHandler)
+{
+
+    Handle s;
+    alias s this;
+    @disable this();
+    @disable this(this);
+    this(Handle value)
+    {
+        this.s = value;
+    }
+    ~this()
+    {
+        CloseHandler(s);
+    }
+}
+
+
+private template FreeFunctionOf(T, A...)
+{
+    static if (A.length == 0)
+    {
+        alias attrs = __traits(getAttributes, T);
+        static assert(attrs.length > 0, T.stringof ~ " doesn't have any attribute attached to it");
+        alias FreeFunctionOf = FreeFunctionOf!(T, attrs);
+    }
+    else static if (A.length == 1)
+    {
+        static assert(isFreeHandler!(T, A[0]), T.stringof ~ " doesn't have a correct @RAIIFree attribute attached to it");
+        alias FreeFunctionOf = A[0].Handler;
+    }
+    else static if (isFreeHandler!(T, A[0]))
+        alias FreeFunctionOf = A[0].Handler;
+    else
+        alias FreeFunctionOf = FreeFunctionOf!(T, A[1 .. $]);
+}
+
+private template isFreeHandler(T, alias A)
+{
+    enum isFreeHandler = is(typeof(A.Handler))
+        && is(typeof(A.Handler(T.init)));
+}
 

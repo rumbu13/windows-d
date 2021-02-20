@@ -4,9 +4,10 @@ module windows.installablefilesystems;
 
 public import windows.core;
 public import windows.com : HRESULT;
-public import windows.systemservices : HANDLE, NTSTATUS, OVERLAPPED, SECURITY_ATTRIBUTES;
+public import windows.systemservices : HANDLE, NTSTATUS, OVERLAPPED, PWSTR,
+                                       SECURITY_ATTRIBUTES;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -75,6 +76,42 @@ enum : int
 // Structs
 
 
+@RAIIFree!FilterFindClose
+struct FilterFindHandle
+{
+    ptrdiff_t Value;
+}
+
+@RAIIFree!FilterInstanceFindClose
+struct FilterInstanceFindHandle
+{
+    ptrdiff_t Value;
+}
+
+@RAIIFree!FilterVolumeFindClose
+struct FilterVolumeFindHandle
+{
+    ptrdiff_t Value;
+}
+
+@RAIIFree!FilterVolumeInstanceFindClose
+struct FilterVolumeInstanceFindHandle
+{
+    ptrdiff_t Value;
+}
+
+@RAIIFree!FilterClose
+struct HFILTER
+{
+    ptrdiff_t Value;
+}
+
+@RAIIFree!FilterInstanceClose
+struct HFILTER_INSTANCE
+{
+    ptrdiff_t Value;
+}
+
 struct FILTER_FULL_INFORMATION
 {
     uint      NextEntryOffset;
@@ -88,9 +125,9 @@ struct FILTER_AGGREGATE_BASIC_INFORMATION
 {
     uint NextEntryOffset;
     uint Flags;
-    union Type
+union Type
     {
-        struct MiniFilter
+struct MiniFilter
         {
             uint   FrameID;
             uint   NumberOfInstances;
@@ -99,7 +136,7 @@ struct FILTER_AGGREGATE_BASIC_INFORMATION
             ushort FilterAltitudeLength;
             ushort FilterAltitudeBufferOffset;
         }
-        struct LegacyFilter
+struct LegacyFilter
         {
             ushort FilterNameLength;
             ushort FilterNameBufferOffset;
@@ -111,9 +148,9 @@ struct FILTER_AGGREGATE_STANDARD_INFORMATION
 {
     uint NextEntryOffset;
     uint Flags;
-    union Type
+union Type
     {
-        struct MiniFilter
+struct MiniFilter
         {
             uint   Flags;
             uint   FrameID;
@@ -123,7 +160,7 @@ struct FILTER_AGGREGATE_STANDARD_INFORMATION
             ushort FilterAltitudeLength;
             ushort FilterAltitudeBufferOffset;
         }
-        struct LegacyFilter
+struct LegacyFilter
         {
             uint   Flags;
             ushort FilterNameLength;
@@ -183,9 +220,9 @@ struct INSTANCE_AGGREGATE_STANDARD_INFORMATION
 {
     uint NextEntryOffset;
     uint Flags;
-    union Type
+union Type
     {
-        struct MiniFilter
+struct MiniFilter
         {
             uint                Flags;
             uint                FrameID;
@@ -200,7 +237,7 @@ struct INSTANCE_AGGREGATE_STANDARD_INFORMATION
             ushort              FilterNameBufferOffset;
             uint                SupportedFeatures;
         }
-        struct LegacyFilter
+struct LegacyFilter
         {
             uint   Flags;
             ushort AltitudeLength;
@@ -226,18 +263,6 @@ struct FILTER_REPLY_HEADER
     ulong    MessageId;
 }
 
-alias FilterFindHandle = ptrdiff_t;
-
-alias FilterInstanceFindHandle = ptrdiff_t;
-
-alias FilterVolumeFindHandle = ptrdiff_t;
-
-alias FilterVolumeInstanceFindHandle = ptrdiff_t;
-
-alias HFILTER = ptrdiff_t;
-
-alias HFILTER_INSTANCE = ptrdiff_t;
-
 // Functions
 
 ///The <b>FilterLoad</b> function dynamically loads a minifilter driver into the system.
@@ -260,7 +285,7 @@ alias HFILTER_INSTANCE = ptrdiff_t;
 ///    signature. </td> </tr> </table>
 ///    
 @DllImport("FLTLIB")
-HRESULT FilterLoad(const(wchar)* lpFilterName);
+HRESULT FilterLoad(const(PWSTR) lpFilterName);
 
 ///An application that has loaded a supporting minifilter by calling FilterLoad can unload the minifilter by calling the
 ///<b>FilterUnload</b> function.
@@ -271,7 +296,7 @@ HRESULT FilterLoad(const(wchar)* lpFilterName);
 ///    <b>FilterUnload</b> returns S_OK if successful. Otherwise, it returns an error value.
 ///    
 @DllImport("FLTLIB")
-HRESULT FilterUnload(const(wchar)* lpFilterName);
+HRESULT FilterUnload(const(PWSTR) lpFilterName);
 
 ///The <b>FilterCreate</b> function creates a handle for the given minifilter.
 ///Params:
@@ -283,7 +308,7 @@ HRESULT FilterUnload(const(wchar)* lpFilterName);
 ///    <b>FilterCreate</b> returns S_OK if successful. Otherwise, it returns an error value.
 ///    
 @DllImport("FLTLIB")
-HRESULT FilterCreate(const(wchar)* lpFilterName, HFILTER* hFilter);
+HRESULT FilterCreate(const(PWSTR) lpFilterName, HFILTER* hFilter);
 
 ///The <b>FilterClose</b> function closes an open minifilter handle.
 ///Params:
@@ -313,7 +338,7 @@ HRESULT FilterClose(HFILTER hFilter);
 ///    <b>FilterInstanceCreate</b> returns S_OK if successful. Otherwise, it returns an error value.
 ///    
 @DllImport("FLTLIB")
-HRESULT FilterInstanceCreate(const(wchar)* lpFilterName, const(wchar)* lpVolumeName, const(wchar)* lpInstanceName, 
+HRESULT FilterInstanceCreate(const(PWSTR) lpFilterName, const(PWSTR) lpVolumeName, const(PWSTR) lpInstanceName, 
                              HFILTER_INSTANCE* hInstance);
 
 ///The <b>FilterInstanceClose</b> function closes a minifilter instance handle opened by <b>FilterInstanceCreate</b>.
@@ -355,8 +380,8 @@ HRESULT FilterInstanceClose(HFILTER_INSTANCE hInstance);
 ///    registered filter instance name in the registry. </td> </tr> </table>
 ///    
 @DllImport("FLTLIB")
-HRESULT FilterAttach(const(wchar)* lpFilterName, const(wchar)* lpVolumeName, const(wchar)* lpInstanceName, 
-                     uint dwCreatedInstanceNameLength, const(wchar)* lpCreatedInstanceName);
+HRESULT FilterAttach(const(PWSTR) lpFilterName, const(PWSTR) lpVolumeName, const(PWSTR) lpInstanceName, 
+                     uint dwCreatedInstanceNameLength, PWSTR lpCreatedInstanceName);
 
 ///The <b>FilterAttachAtAltitude</b> function is a debugging support function that attaches a new minifilter instance to
 ///a volume at a specified altitude, overriding any settings in the minifilter's setup information (INF) file.
@@ -392,9 +417,9 @@ HRESULT FilterAttach(const(wchar)* lpFilterName, const(wchar)* lpVolumeName, con
 ///    this name on the volume specified. </td> </tr> </table>
 ///    
 @DllImport("FLTLIB")
-HRESULT FilterAttachAtAltitude(const(wchar)* lpFilterName, const(wchar)* lpVolumeName, const(wchar)* lpAltitude, 
-                               const(wchar)* lpInstanceName, uint dwCreatedInstanceNameLength, 
-                               const(wchar)* lpCreatedInstanceName);
+HRESULT FilterAttachAtAltitude(const(PWSTR) lpFilterName, const(PWSTR) lpVolumeName, const(PWSTR) lpAltitude, 
+                               const(PWSTR) lpInstanceName, uint dwCreatedInstanceNameLength, 
+                               PWSTR lpCreatedInstanceName);
 
 ///The <b>FilterDetach</b> function detaches the given minifilter instance from the given volume.
 ///Params:
@@ -414,7 +439,7 @@ HRESULT FilterAttachAtAltitude(const(wchar)* lpFilterName, const(wchar)* lpVolum
 ///    <b>FilterDetach</b> returns S_OK if successful. Otherwise, it returns an error value.
 ///    
 @DllImport("FLTLIB")
-HRESULT FilterDetach(const(wchar)* lpFilterName, const(wchar)* lpVolumeName, const(wchar)* lpInstanceName);
+HRESULT FilterDetach(const(PWSTR) lpFilterName, const(PWSTR) lpVolumeName, const(PWSTR) lpInstanceName);
 
 ///The <b>FilterFindFirst</b> function returns information about a filter driver (minifilter driver instance or legacy
 ///filter driver) and is used to begin scanning the filters in the global list of registered filters.
@@ -455,7 +480,7 @@ HRESULT FilterDetach(const(wchar)* lpFilterName, const(wchar)* lpVolumeName, con
 ///    width="60%"> A filter driver was not found in the global list of registered filters. </td> </tr> </table>
 ///    
 @DllImport("FLTLIB")
-HRESULT FilterFindFirst(FILTER_INFORMATION_CLASS dwInformationClass, char* lpBuffer, uint dwBufferSize, 
+HRESULT FilterFindFirst(FILTER_INFORMATION_CLASS dwInformationClass, void* lpBuffer, uint dwBufferSize, 
                         uint* lpBytesReturned, FilterFindHandle* lpFilterFind);
 
 ///The <b>FilterFindNext</b> function continues a filter search started by a call to FilterFindFirst.
@@ -495,7 +520,7 @@ HRESULT FilterFindFirst(FILTER_INFORMATION_CLASS dwInformationClass, char* lpBuf
 ///    </table>
 ///    
 @DllImport("FLTLIB")
-HRESULT FilterFindNext(HANDLE hFilterFind, FILTER_INFORMATION_CLASS dwInformationClass, char* lpBuffer, 
+HRESULT FilterFindNext(HANDLE hFilterFind, FILTER_INFORMATION_CLASS dwInformationClass, void* lpBuffer, 
                        uint dwBufferSize, uint* lpBytesReturned);
 
 ///The <b>FilterFindClose</b> function closes the specified minifilter search handle. The FilterFindFirst and
@@ -541,7 +566,7 @@ HRESULT FilterFindClose(HANDLE hFilterFind);
 ///    <td width="60%"> A volume was not found in the list of volumes known to the filter manager. </td> </tr> </table>
 ///    
 @DllImport("FLTLIB")
-HRESULT FilterVolumeFindFirst(FILTER_VOLUME_INFORMATION_CLASS dwInformationClass, char* lpBuffer, 
+HRESULT FilterVolumeFindFirst(FILTER_VOLUME_INFORMATION_CLASS dwInformationClass, void* lpBuffer, 
                               uint dwBufferSize, uint* lpBytesReturned, FilterVolumeFindHandle* lpVolumeFind);
 
 ///The <b>FilterVolumeFindNext</b> function continues a volume search started by a call to FilterVolumeFindFirst.
@@ -575,7 +600,7 @@ HRESULT FilterVolumeFindFirst(FILTER_VOLUME_INFORMATION_CLASS dwInformationClass
 ///    
 @DllImport("FLTLIB")
 HRESULT FilterVolumeFindNext(HANDLE hVolumeFind, FILTER_VOLUME_INFORMATION_CLASS dwInformationClass, 
-                             char* lpBuffer, uint dwBufferSize, uint* lpBytesReturned);
+                             void* lpBuffer, uint dwBufferSize, uint* lpBytesReturned);
 
 ///The <b>FilterVolumeFindClose</b> function closes the specified volume search handle. FilterVolumeFindFirst and
 ///FilterVolumeFindNext use this search handle to locate volumes.
@@ -625,8 +650,8 @@ HRESULT FilterVolumeFindClose(HANDLE hVolumeFind);
 ///    the <i>lpFilterName</i> parameter does not have an instance on the file system stack. </td> </tr> </table>
 ///    
 @DllImport("FLTLIB")
-HRESULT FilterInstanceFindFirst(const(wchar)* lpFilterName, INSTANCE_INFORMATION_CLASS dwInformationClass, 
-                                char* lpBuffer, uint dwBufferSize, uint* lpBytesReturned, 
+HRESULT FilterInstanceFindFirst(const(PWSTR) lpFilterName, INSTANCE_INFORMATION_CLASS dwInformationClass, 
+                                void* lpBuffer, uint dwBufferSize, uint* lpBytesReturned, 
                                 FilterInstanceFindHandle* lpFilterInstanceFind);
 
 ///The <b>FilterInstanceFindNext</b> function continues a minifilter driver instance search started by a call to
@@ -664,7 +689,7 @@ HRESULT FilterInstanceFindFirst(const(wchar)* lpFilterName, INSTANCE_INFORMATION
 ///    
 @DllImport("FLTLIB")
 HRESULT FilterInstanceFindNext(HANDLE hFilterInstanceFind, INSTANCE_INFORMATION_CLASS dwInformationClass, 
-                               char* lpBuffer, uint dwBufferSize, uint* lpBytesReturned);
+                               void* lpBuffer, uint dwBufferSize, uint* lpBytesReturned);
 
 ///The <b>FilterInstanceFindClose</b> function closes the specified minifilter instance search handle. The
 ///FilterInstanceFindFirst and FilterInstanceFindNext functions use this search handle to locate instances of a
@@ -723,8 +748,8 @@ HRESULT FilterInstanceFindClose(HANDLE hFilterInstanceFind);
 ///    found on the given volume. </td> </tr> </table>
 ///    
 @DllImport("FLTLIB")
-HRESULT FilterVolumeInstanceFindFirst(const(wchar)* lpVolumeName, INSTANCE_INFORMATION_CLASS dwInformationClass, 
-                                      char* lpBuffer, uint dwBufferSize, uint* lpBytesReturned, 
+HRESULT FilterVolumeInstanceFindFirst(const(PWSTR) lpVolumeName, INSTANCE_INFORMATION_CLASS dwInformationClass, 
+                                      void* lpBuffer, uint dwBufferSize, uint* lpBytesReturned, 
                                       FilterVolumeInstanceFindHandle* lpVolumeInstanceFind);
 
 ///The <b>FilterVolumeInstanceFindNext</b> function continues a minifilter driver instance or legacy filter driver
@@ -763,7 +788,7 @@ HRESULT FilterVolumeInstanceFindFirst(const(wchar)* lpVolumeName, INSTANCE_INFOR
 ///    
 @DllImport("FLTLIB")
 HRESULT FilterVolumeInstanceFindNext(HANDLE hVolumeInstanceFind, INSTANCE_INFORMATION_CLASS dwInformationClass, 
-                                     char* lpBuffer, uint dwBufferSize, uint* lpBytesReturned);
+                                     void* lpBuffer, uint dwBufferSize, uint* lpBytesReturned);
 
 ///The <b>FilterVolumeInstanceFindClose</b> function closes the specified volume instance search handle.
 ///FilterVolumeInstanceFindFirst and FilterVolumeInstanceFindNext use this search handle to locate instances on a
@@ -810,7 +835,7 @@ HRESULT FilterVolumeInstanceFindClose(HANDLE hVolumeInstanceFind);
 ///    value. </td> </tr> </table>
 ///    
 @DllImport("FLTLIB")
-HRESULT FilterGetInformation(HFILTER hFilter, FILTER_INFORMATION_CLASS dwInformationClass, char* lpBuffer, 
+HRESULT FilterGetInformation(HFILTER hFilter, FILTER_INFORMATION_CLASS dwInformationClass, void* lpBuffer, 
                              uint dwBufferSize, uint* lpBytesReturned);
 
 ///The <b>FilterInstanceGetInformation</b> function returns various kinds of information about a minifilter instance.
@@ -846,7 +871,7 @@ HRESULT FilterGetInformation(HFILTER hFilter, FILTER_INFORMATION_CLASS dwInforma
 ///    
 @DllImport("FLTLIB")
 HRESULT FilterInstanceGetInformation(HFILTER_INSTANCE hInstance, INSTANCE_INFORMATION_CLASS dwInformationClass, 
-                                     char* lpBuffer, uint dwBufferSize, uint* lpBytesReturned);
+                                     void* lpBuffer, uint dwBufferSize, uint* lpBytesReturned);
 
 ///<b>FilterConnectCommunicationPort</b> opens a new connection to a communication server port that is created by a file
 ///system minifilter.
@@ -874,7 +899,7 @@ HRESULT FilterInstanceGetInformation(HFILTER_INSTANCE hInstance, INSTANCE_INFORM
 ///    <b>FilterConnectCommunicationPort</b> returns S_OK if successful. Otherwise, it returns an error value.
 ///    
 @DllImport("FLTLIB")
-HRESULT FilterConnectCommunicationPort(const(wchar)* lpPortName, uint dwOptions, char* lpContext, 
+HRESULT FilterConnectCommunicationPort(const(PWSTR) lpPortName, uint dwOptions, const(void)* lpContext, 
                                        ushort wSizeOfContext, SECURITY_ATTRIBUTES* lpSecurityAttributes, 
                                        HANDLE* hPort);
 
@@ -895,7 +920,7 @@ HRESULT FilterConnectCommunicationPort(const(wchar)* lpPortName, uint dwOptions,
 ///    <b>FilterSendMessage</b> returns S_OK if successful. Otherwise, it returns an error value.
 ///    
 @DllImport("FLTLIB")
-HRESULT FilterSendMessage(HANDLE hPort, char* lpInBuffer, uint dwInBufferSize, char* lpOutBuffer, 
+HRESULT FilterSendMessage(HANDLE hPort, void* lpInBuffer, uint dwInBufferSize, void* lpOutBuffer, 
                           uint dwOutBufferSize, uint* lpBytesReturned);
 
 ///The <b>FilterGetMessage</b> function gets a message from a kernel-mode minifilter.
@@ -913,7 +938,8 @@ HRESULT FilterSendMessage(HANDLE hPort, char* lpInBuffer, uint dwInBufferSize, c
 ///    <b>FilterGetMessage</b> returns S_OK if successful. Otherwise, it returns an error value.
 ///    
 @DllImport("FLTLIB")
-HRESULT FilterGetMessage(HANDLE hPort, char* lpMessageBuffer, uint dwMessageBufferSize, OVERLAPPED* lpOverlapped);
+HRESULT FilterGetMessage(HANDLE hPort, FILTER_MESSAGE_HEADER* lpMessageBuffer, uint dwMessageBufferSize, 
+                         OVERLAPPED* lpOverlapped);
 
 ///The <b>FilterReplyMessage</b> function replies to a message from a kernel-mode minifilter.
 ///Params:
@@ -927,7 +953,7 @@ HRESULT FilterGetMessage(HANDLE hPort, char* lpMessageBuffer, uint dwMessageBuff
 ///    <b>FilterReplyMessage</b> returns S_OK if successful. Otherwise, it returns an error value.
 ///    
 @DllImport("FLTLIB")
-HRESULT FilterReplyMessage(HANDLE hPort, char* lpReplyBuffer, uint dwReplyBufferSize);
+HRESULT FilterReplyMessage(HANDLE hPort, FILTER_REPLY_HEADER* lpReplyBuffer, uint dwReplyBufferSize);
 
 ///The <b>FilterGetDosName</b> function returns the MS-DOS device name that corresponds to the given volume name.
 ///Params:
@@ -944,7 +970,7 @@ HRESULT FilterReplyMessage(HANDLE hPort, char* lpReplyBuffer, uint dwReplyBuffer
 ///    <b>FilterGetDosName</b> returns S_OK if successful. Otherwise, it returns an error value.
 ///    
 @DllImport("FLTLIB")
-HRESULT FilterGetDosName(const(wchar)* lpVolumeName, const(wchar)* lpDosName, uint dwDosNameBufferSize);
+HRESULT FilterGetDosName(const(PWSTR) lpVolumeName, PWSTR lpDosName, uint dwDosNameBufferSize);
 
 ///The <b>RtlCaptureStackBackTrace</b> routine captures a stack back trace by walking up the stack and recording the
 ///information for each frame.
@@ -956,6 +982,6 @@ HRESULT FilterGetDosName(const(wchar)* lpVolumeName, const(wchar)* lpDosName, ui
 ///                    computed. This value is calculated based on the values of the pointers returned in the <i>BackTrace</i> array.
 ///                    Two identical stack traces will generate identical hash values.
 @DllImport("KERNEL32")
-ushort RtlCaptureStackBackTrace(uint FramesToSkip, uint FramesToCapture, char* BackTrace, uint* BackTraceHash);
+ushort RtlCaptureStackBackTrace(uint FramesToSkip, uint FramesToCapture, void** BackTrace, uint* BackTraceHash);
 
 

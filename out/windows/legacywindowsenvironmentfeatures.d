@@ -5,10 +5,11 @@ module windows.legacywindowsenvironmentfeatures;
 public import windows.core;
 public import windows.com : HRESULT, IMoniker, IOleObject, IUnknown;
 public import windows.structuredstorage : IStorage;
+public import windows.systemservices : PWSTR;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : HKEY;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -59,7 +60,7 @@ interface IEmptyVolumeCacheCallBack : IUnknown
     ///    <b>Cancel</b> button on the disk cleanup manager's dialog box while a scan is in progress. The handler should
     ///    stop scanning and shut down. </td> </tr> </table>
     ///    
-    HRESULT ScanProgress(ulong dwlSpaceUsed, uint dwFlags, const(wchar)* pcwszStatus);
+    HRESULT ScanProgress(ulong dwlSpaceUsed, uint dwFlags, const(PWSTR) pcwszStatus);
     ///Called periodically by a disk cleanup handler to update the disk cleanup manager on the progress of a purge of
     ///deletable files.
     ///Params:
@@ -77,7 +78,7 @@ interface IEmptyVolumeCacheCallBack : IUnknown
     ///    <b>Cancel</b> button on the disk cleanup manager's dialog box while a scan is in progress. The handler should
     ///    stop purging files and shut down. </td> </tr> </table>
     ///    
-    HRESULT PurgeProgress(ulong dwlSpaceFreed, ulong dwlSpaceToFree, uint dwFlags, const(wchar)* pcwszStatus);
+    HRESULT PurgeProgress(ulong dwlSpaceFreed, ulong dwlSpaceToFree, uint dwFlags, const(PWSTR) pcwszStatus);
 }
 
 ///Used by the disk cleanup manager to communicate with a disk cleanup handler. Exposes methods that enable the manager
@@ -104,8 +105,8 @@ interface IEmptyVolumeCache : IUnknown
     ///    width="60%"> The cleanup operation was ended prematurely. </td> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> The cleanup operation failed. </td> </tr> </table>
     ///    
-    HRESULT Initialize(HKEY hkRegKey, const(wchar)* pcwszVolume, ushort** ppwszDisplayName, 
-                       ushort** ppwszDescription, uint* pdwFlags);
+    HRESULT Initialize(HKEY hkRegKey, const(PWSTR) pcwszVolume, PWSTR* ppwszDisplayName, PWSTR* ppwszDescription, 
+                       uint* pdwFlags);
     ///Requests the amount of disk space that the disk cleanup handler can free.
     ///Params:
     ///    pdwlSpaceUsed = Type: <b>DWORDLONG*</b> The amount of disk space, in bytes, that the handler can free. This value will be
@@ -194,8 +195,8 @@ interface IEmptyVolumeCache2 : IEmptyVolumeCache
     ///    width="60%"> The cleanup operation was ended prematurely. </td> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> The cleanup operation failed. </td> </tr> </table>
     ///    
-    HRESULT InitializeEx(HKEY hkRegKey, const(wchar)* pcwszVolume, const(wchar)* pcwszKeyName, 
-                         ushort** ppwszDisplayName, ushort** ppwszDescription, ushort** ppwszBtnText, uint* pdwFlags);
+    HRESULT InitializeEx(HKEY hkRegKey, const(PWSTR) pcwszVolume, const(PWSTR) pcwszKeyName, 
+                         PWSTR* ppwszDisplayName, PWSTR* ppwszDescription, PWSTR* ppwszBtnText, uint* pdwFlags);
 }
 
 ///Exposes methods that provide the briefcase reconciler with the means to notify the initiator of its progress, to set
@@ -295,7 +296,7 @@ interface IReconcilableObject : IUnknown
     ///    </table>
     ///    
     HRESULT Reconcile(IReconcileInitiator pInitiator, uint dwFlags, HWND hwndOwner, HWND hwndProgressFeedback, 
-                      uint ulcInput, char* rgpmkOtherInput, int* plOutIndex, IStorage pstgNewResidues, 
+                      uint ulcInput, IMoniker* rgpmkOtherInput, int* plOutIndex, IStorage pstgNewResidues, 
                       void* pvReserved);
     ///Retrieves an estimated measurement of the amount of work required to complete a reconciliation. Reconcilers
     ///typically use this method to estimate the work needed to reconcile an embedded document. This value corresponds
@@ -332,8 +333,8 @@ interface IActiveDesktopP : IUnknown
     ///    
     HRESULT SetSafeMode(uint dwFlags);
     HRESULT EnsureUpdateHTML();
-    HRESULT SetScheme(const(wchar)* pwszSchemeName, uint dwFlags);
-    HRESULT GetScheme(const(wchar)* pwszSchemeName, uint* pdwcchBuffer, uint dwFlags);
+    HRESULT SetScheme(const(PWSTR) pwszSchemeName, uint dwFlags);
+    HRESULT GetScheme(PWSTR pwszSchemeName, uint* pdwcchBuffer, uint dwFlags);
 }
 
 ///Provides methods to manage the Windows Desktop.

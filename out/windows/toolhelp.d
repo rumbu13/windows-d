@@ -5,7 +5,7 @@ module windows.toolhelp;
 public import windows.core;
 public import windows.systemservices : BOOL, HANDLE;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Structs
@@ -303,7 +303,7 @@ BOOL Heap32Next(HEAPENTRY32* lphe);
 ///    Returns <b>TRUE</b> if successful.
 ///    
 @DllImport("KERNEL32")
-BOOL Toolhelp32ReadProcessMemory(uint th32ProcessID, void* lpBaseAddress, void* lpBuffer, size_t cbRead, 
+BOOL Toolhelp32ReadProcessMemory(uint th32ProcessID, const(void)* lpBaseAddress, void* lpBuffer, size_t cbRead, 
                                  size_t* lpNumberOfBytesRead);
 
 ///Retrieves information about the first process encountered in a system snapshot.

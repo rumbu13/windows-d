@@ -10,15 +10,129 @@ public import windows.gdi : BLENDFUNCTION, HBRUSH, HCURSOR, HDC, HICON;
 public import windows.kernel : LUID;
 public import windows.menusandresources : HMENU, MSGBOXCALLBACK, WNDENUMPROC, WNDPROC;
 public import windows.shell : LOGFONTA, LOGFONTW;
-public import windows.systemservices : BOOL, HANDLE, HINSTANCE, LRESULT;
+public import windows.systemservices : BOOL, HANDLE, HINSTANCE, LRESULT, PSTR, PWSTR;
 public import windows.windowsstationsanddesktops : HDESK;
 public import windows.xps : DEVMODEA;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Callbacks
 
+///Application-defined callback function used with the CreateDialog and DialogBox families of functions. It processes
+///messages sent to a modal or modeless dialog box. The <b>DLGPROC</b> type defines a pointer to this callback function.
+///<i>DialogProc</i> is a placeholder for the application-defined function name.
+///Params:
+///    Arg1 = Type: <b>HWND</b> A handle to the dialog box.
+///    Arg2 = Type: <b>UINT</b> The message.
+///    Arg3 = Type: <b>WPARAM</b> Additional message-specific information.
+///    Arg4 = Type: <b>LPARAM</b> Additional message-specific information. Type: <b>INT_PTR</b> Typically, the dialog box
+///           procedure should return <b>TRUE</b> if it processed the message, and <b>FALSE</b> if it did not. If the dialog
+///           box procedure returns <b>FALSE</b>, the dialog manager performs the default dialog operation in response to the
+///           message. If the dialog box procedure processes a message that requires a specific return value, the dialog box
+///           procedure should set the desired return value by calling SetWindowLong(<i>hwndDlg</i>, <b>DWL_MSGRESULT</b>,
+///           <i>lResult</i>) immediately before returning <b>TRUE</b>. Note that you must call <b>SetWindowLong</b>
+///           immediately before returning <b>TRUE</b>; doing so earlier may result in the <b>DWL_MSGRESULT</b> value being
+///           overwritten by a nested dialog box message. The following messages are exceptions to the general rules stated
+///           above. Consult the documentation for the specific message for details on the semantics of the return value. <ul>
+///           <li> WM_CHARTOITEM </li> <li> WM_COMPAREITEM </li> <li> WM_CTLCOLORBTN </li> <li> WM_CTLCOLORDLG </li> <li>
+///           WM_CTLCOLOREDIT </li> <li> WM_CTLCOLORLISTBOX </li> <li> WM_CTLCOLORSCROLLBAR </li> <li> WM_CTLCOLORSTATIC </li>
+///           <li> WM_INITDIALOG </li> <li> WM_QUERYDRAGICON </li> <li> WM_VKEYTOITEM </li> </ul>
+alias DLGPROC = ptrdiff_t function(HWND param0, uint param1, WPARAM param2, LPARAM param3);
+///An application-defined callback function that processes WM_TIMER messages. The <b>TIMERPROC</b> type defines a
+///pointer to this callback function. <i>TimerProc</i> is a placeholder for the application-defined function name.
+///Params:
+///    Arg1 = Type: <b>HWND</b> A handle to the window associated with the timer.
+///    Arg2 = Type: <b>UINT</b> The WM_TIMER message.
+///    Arg3 = Type: <b>UINT_PTR</b> The timer's identifier.
+///    Arg4 = Type: <b>DWORD</b> The number of milliseconds that have elapsed since the system was started. This is the value
+///           returned by the GetTickCount function.
+alias TIMERPROC = void function(HWND param0, uint param1, size_t param2, uint param3);
+///An application-defined or library-defined callback function used with the SetWindowsHookEx function. The system calls
+///this function after the SendMessage function is called. The hook procedure can examine the message; it cannot modify
+///it. The <b>HOOKPROC</b> type defines a pointer to this callback function. <i>CallWndRetProc</i> is a placeholder for
+///the application-defined or library-defined function name.
+///Params:
+///    code = 
+///    wParam = Type: <b>WPARAM</b> Specifies whether the message is sent by the current process. If the message is sent by the
+///             current process, it is nonzero; otherwise, it is <b>NULL</b>.
+///    lParam = Type: <b>LPARAM</b> A pointer to a CWPRETSTRUCT structure that contains details about the message.
+///Returns:
+///    Type: <b>LRESULT</b> If <i>nCode</i> is less than zero, the hook procedure must return the value returned by
+///    CallNextHookEx. If <i>nCode</i> is greater than or equal to zero, it is highly recommended that you call
+///    CallNextHookEx and return the value it returns; otherwise, other applications that have installed
+///    WH_CALLWNDPROCRET hooks will not receive hook notifications and may behave incorrectly as a result. If the hook
+///    procedure does not call <b>CallNextHookEx</b>, the return value should be zero.
+///    
+alias HOOKPROC = LRESULT function(int code, WPARAM wParam, LPARAM lParam);
+///An application-defined callback function used with the SendMessageCallback function. The system passes the message to
+///the callback function after passing the message to the destination window procedure. The <b>SENDASYNCPROC</b> type
+///defines a pointer to this callback function. <i>SendAsyncProc</i> is a placeholder for the application-defined
+///function name.
+///Params:
+///    Arg1 = Type: <b>HWND</b> A handle to the window whose window procedure received the message. If the SendMessageCallback
+///           function was called with its <i>hwnd</i> parameter set to <b>HWND_BROADCAST</b>, the system calls the
+///           <i>SendAsyncProc</i> function once for each top-level window.
+///    Arg2 = Type: <b>UINT</b> The message.
+///    Arg3 = Type: <b>ULONG_PTR</b> An application-defined value sent from the SendMessageCallback function.
+///    Arg4 = Type: <b>LRESULT</b> The result of the message processing. This value depends on the message.
+alias SENDASYNCPROC = void function(HWND param0, uint param1, size_t param2, LRESULT param3);
+///An application-defined callback function used with the EnumProps function. The function receives property entries
+///from a window's property list. The <b>PROPENUMPROC</b> type defines a pointer to this callback function.
+///<i>PropEnumProc</i> is a placeholder for the application-defined function name.
+///Params:
+///    Arg1 = Type: <b>HWND</b> A handle to the window whose property list is being enumerated.
+///    Arg2 = Type: <b>LPCTSTR</b> The string component of a property list entry. This is the string that was specified, along
+///           with a data handle, when the property was added to the window's property list via a call to the SetProp function.
+///    Arg3 = Type: <b>HANDLE</b> A handle to the data. This handle is the data component of a property list entry.
+///Returns:
+///    Type: <b>BOOL</b> Return <b>TRUE</b> to continue the property list enumeration. Return <b>FALSE</b> to stop the
+///    property list enumeration.
+///    
+alias PROPENUMPROCA = BOOL function(HWND param0, const(PSTR) param1, HANDLE param2);
+///An application-defined callback function used with the EnumProps function. The function receives property entries
+///from a window's property list. The <b>PROPENUMPROC</b> type defines a pointer to this callback function.
+///<i>PropEnumProc</i> is a placeholder for the application-defined function name.
+///Params:
+///    Arg1 = Type: <b>HWND</b> A handle to the window whose property list is being enumerated.
+///    Arg2 = Type: <b>LPCTSTR</b> The string component of a property list entry. This is the string that was specified, along
+///           with a data handle, when the property was added to the window's property list via a call to the SetProp function.
+///    Arg3 = Type: <b>HANDLE</b> A handle to the data. This handle is the data component of a property list entry.
+///Returns:
+///    Type: <b>BOOL</b> Return <b>TRUE</b> to continue the property list enumeration. Return <b>FALSE</b> to stop the
+///    property list enumeration.
+///    
+alias PROPENUMPROCW = BOOL function(HWND param0, const(PWSTR) param1, HANDLE param2);
+///Application-defined callback function used with the EnumPropsEx function. The function receives property entries from
+///a window's property list. The PROPENUMPROCEX type defines a pointer to this callback function. <b>PropEnumProcEx</b>
+///is a placeholder for the application-defined function name.
+///Params:
+///    Arg1 = Type: <b>HWND</b> A handle to the window whose property list is being enumerated.
+///    Arg2 = Type: <b>LPTSTR</b> The string component of a property list entry. This is the string that was specified, along
+///           with a data handle, when the property was added to the window's property list via a call to the SetProp function.
+///    Arg3 = Type: <b>HANDLE</b> A handle to the data. This handle is the data component of a property list entry.
+///    Arg4 = Type: <b>ULONG_PTR</b> Application-defined data. This is the value that was specified as the <i>lParam</i>
+///           parameter of the call to EnumPropsEx that initiated the enumeration.
+///Returns:
+///    Type: <b>BOOL</b> Return <b>TRUE</b> to continue the property list enumeration. Return <b>FALSE</b> to stop the
+///    property list enumeration.
+///    
+alias PROPENUMPROCEXA = BOOL function(HWND param0, PSTR param1, HANDLE param2, size_t param3);
+///Application-defined callback function used with the EnumPropsEx function. The function receives property entries from
+///a window's property list. The PROPENUMPROCEX type defines a pointer to this callback function. <b>PropEnumProcEx</b>
+///is a placeholder for the application-defined function name.
+///Params:
+///    Arg1 = Type: <b>HWND</b> A handle to the window whose property list is being enumerated.
+///    Arg2 = Type: <b>LPTSTR</b> The string component of a property list entry. This is the string that was specified, along
+///           with a data handle, when the property was added to the window's property list via a call to the SetProp function.
+///    Arg3 = Type: <b>HANDLE</b> A handle to the data. This handle is the data component of a property list entry.
+///    Arg4 = Type: <b>ULONG_PTR</b> Application-defined data. This is the value that was specified as the <i>lParam</i>
+///           parameter of the call to EnumPropsEx that initiated the enumeration.
+///Returns:
+///    Type: <b>BOOL</b> Return <b>TRUE</b> to continue the property list enumeration. Return <b>FALSE</b> to stop the
+///    property list enumeration.
+///    
+alias PROPENUMPROCEXW = BOOL function(HWND param0, PWSTR param1, HANDLE param2, size_t param3);
 ///<p class="CCE_Message">[Starting with Windows Vista, the <b>Open</b> and <b>Save As</b> common dialog boxes have been
 ///superseded by the Common Item Dialog. We recommended that you use the Common Item Dialog API instead of these dialog
 ///boxes from the Common Dialog Box Library.] Receives notification messages sent from the dialog box. The function also
@@ -154,2749 +268,9 @@ alias LPPAGEPAINTHOOK = size_t function(HWND param0, uint param1, WPARAM param2,
 ///    returns a nonzero value, the default dialog box procedure ignores the message.
 ///    
 alias LPPAGESETUPHOOK = size_t function(HWND param0, uint param1, WPARAM param2, LPARAM param3);
-///Application-defined callback function used with the CreateDialog and DialogBox families of functions. It processes
-///messages sent to a modal or modeless dialog box. The <b>DLGPROC</b> type defines a pointer to this callback function.
-///<i>DialogProc</i> is a placeholder for the application-defined function name.
-///Params:
-///    Arg1 = Type: <b>HWND</b> A handle to the dialog box.
-///    Arg2 = Type: <b>UINT</b> The message.
-///    Arg3 = Type: <b>WPARAM</b> Additional message-specific information.
-///    Arg4 = Type: <b>LPARAM</b> Additional message-specific information. Type: <b>INT_PTR</b> Typically, the dialog box
-///           procedure should return <b>TRUE</b> if it processed the message, and <b>FALSE</b> if it did not. If the dialog
-///           box procedure returns <b>FALSE</b>, the dialog manager performs the default dialog operation in response to the
-///           message. If the dialog box procedure processes a message that requires a specific return value, the dialog box
-///           procedure should set the desired return value by calling SetWindowLong(<i>hwndDlg</i>, <b>DWL_MSGRESULT</b>,
-///           <i>lResult</i>) immediately before returning <b>TRUE</b>. Note that you must call <b>SetWindowLong</b>
-///           immediately before returning <b>TRUE</b>; doing so earlier may result in the <b>DWL_MSGRESULT</b> value being
-///           overwritten by a nested dialog box message. The following messages are exceptions to the general rules stated
-///           above. Consult the documentation for the specific message for details on the semantics of the return value. <ul>
-///           <li> WM_CHARTOITEM </li> <li> WM_COMPAREITEM </li> <li> WM_CTLCOLORBTN </li> <li> WM_CTLCOLORDLG </li> <li>
-///           WM_CTLCOLOREDIT </li> <li> WM_CTLCOLORLISTBOX </li> <li> WM_CTLCOLORSCROLLBAR </li> <li> WM_CTLCOLORSTATIC </li>
-///           <li> WM_INITDIALOG </li> <li> WM_QUERYDRAGICON </li> <li> WM_VKEYTOITEM </li> </ul>
-alias DLGPROC = ptrdiff_t function(HWND param0, uint param1, WPARAM param2, LPARAM param3);
-///An application-defined callback function that processes WM_TIMER messages. The <b>TIMERPROC</b> type defines a
-///pointer to this callback function. <i>TimerProc</i> is a placeholder for the application-defined function name.
-///Params:
-///    Arg1 = Type: <b>HWND</b> A handle to the window associated with the timer.
-///    Arg2 = Type: <b>UINT</b> The WM_TIMER message.
-///    Arg3 = Type: <b>UINT_PTR</b> The timer's identifier.
-///    Arg4 = Type: <b>DWORD</b> The number of milliseconds that have elapsed since the system was started. This is the value
-///           returned by the GetTickCount function.
-alias TIMERPROC = void function(HWND param0, uint param1, size_t param2, uint param3);
-///An application-defined or library-defined callback function used with the SetWindowsHookEx function. The system calls
-///this function after the SendMessage function is called. The hook procedure can examine the message; it cannot modify
-///it. The <b>HOOKPROC</b> type defines a pointer to this callback function. <i>CallWndRetProc</i> is a placeholder for
-///the application-defined or library-defined function name.
-///Params:
-///    code = 
-///    wParam = Type: <b>WPARAM</b> Specifies whether the message is sent by the current process. If the message is sent by the
-///             current process, it is nonzero; otherwise, it is <b>NULL</b>.
-///    lParam = Type: <b>LPARAM</b> A pointer to a CWPRETSTRUCT structure that contains details about the message.
-///Returns:
-///    Type: <b>LRESULT</b> If <i>nCode</i> is less than zero, the hook procedure must return the value returned by
-///    CallNextHookEx. If <i>nCode</i> is greater than or equal to zero, it is highly recommended that you call
-///    CallNextHookEx and return the value it returns; otherwise, other applications that have installed
-///    WH_CALLWNDPROCRET hooks will not receive hook notifications and may behave incorrectly as a result. If the hook
-///    procedure does not call <b>CallNextHookEx</b>, the return value should be zero.
-///    
-alias HOOKPROC = LRESULT function(int code, WPARAM wParam, LPARAM lParam);
-///An application-defined callback function used with the SendMessageCallback function. The system passes the message to
-///the callback function after passing the message to the destination window procedure. The <b>SENDASYNCPROC</b> type
-///defines a pointer to this callback function. <i>SendAsyncProc</i> is a placeholder for the application-defined
-///function name.
-///Params:
-///    Arg1 = Type: <b>HWND</b> A handle to the window whose window procedure received the message. If the SendMessageCallback
-///           function was called with its <i>hwnd</i> parameter set to <b>HWND_BROADCAST</b>, the system calls the
-///           <i>SendAsyncProc</i> function once for each top-level window.
-///    Arg2 = Type: <b>UINT</b> The message.
-///    Arg3 = Type: <b>ULONG_PTR</b> An application-defined value sent from the SendMessageCallback function.
-///    Arg4 = Type: <b>LRESULT</b> The result of the message processing. This value depends on the message.
-alias SENDASYNCPROC = void function(HWND param0, uint param1, size_t param2, LRESULT param3);
-///An application-defined callback function used with the EnumProps function. The function receives property entries
-///from a window's property list. The <b>PROPENUMPROC</b> type defines a pointer to this callback function.
-///<i>PropEnumProc</i> is a placeholder for the application-defined function name.
-///Params:
-///    Arg1 = Type: <b>HWND</b> A handle to the window whose property list is being enumerated.
-///    Arg2 = Type: <b>LPCTSTR</b> The string component of a property list entry. This is the string that was specified, along
-///           with a data handle, when the property was added to the window's property list via a call to the SetProp function.
-///    Arg3 = Type: <b>HANDLE</b> A handle to the data. This handle is the data component of a property list entry.
-///Returns:
-///    Type: <b>BOOL</b> Return <b>TRUE</b> to continue the property list enumeration. Return <b>FALSE</b> to stop the
-///    property list enumeration.
-///    
-alias PROPENUMPROCA = BOOL function(HWND param0, const(char)* param1, HANDLE param2);
-///An application-defined callback function used with the EnumProps function. The function receives property entries
-///from a window's property list. The <b>PROPENUMPROC</b> type defines a pointer to this callback function.
-///<i>PropEnumProc</i> is a placeholder for the application-defined function name.
-///Params:
-///    Arg1 = Type: <b>HWND</b> A handle to the window whose property list is being enumerated.
-///    Arg2 = Type: <b>LPCTSTR</b> The string component of a property list entry. This is the string that was specified, along
-///           with a data handle, when the property was added to the window's property list via a call to the SetProp function.
-///    Arg3 = Type: <b>HANDLE</b> A handle to the data. This handle is the data component of a property list entry.
-///Returns:
-///    Type: <b>BOOL</b> Return <b>TRUE</b> to continue the property list enumeration. Return <b>FALSE</b> to stop the
-///    property list enumeration.
-///    
-alias PROPENUMPROCW = BOOL function(HWND param0, const(wchar)* param1, HANDLE param2);
-///Application-defined callback function used with the EnumPropsEx function. The function receives property entries from
-///a window's property list. The PROPENUMPROCEX type defines a pointer to this callback function. <b>PropEnumProcEx</b>
-///is a placeholder for the application-defined function name.
-///Params:
-///    Arg1 = Type: <b>HWND</b> A handle to the window whose property list is being enumerated.
-///    Arg2 = Type: <b>LPTSTR</b> The string component of a property list entry. This is the string that was specified, along
-///           with a data handle, when the property was added to the window's property list via a call to the SetProp function.
-///    Arg3 = Type: <b>HANDLE</b> A handle to the data. This handle is the data component of a property list entry.
-///    Arg4 = Type: <b>ULONG_PTR</b> Application-defined data. This is the value that was specified as the <i>lParam</i>
-///           parameter of the call to EnumPropsEx that initiated the enumeration.
-///Returns:
-///    Type: <b>BOOL</b> Return <b>TRUE</b> to continue the property list enumeration. Return <b>FALSE</b> to stop the
-///    property list enumeration.
-///    
-alias PROPENUMPROCEXA = BOOL function(HWND param0, const(char)* param1, HANDLE param2, size_t param3);
-///Application-defined callback function used with the EnumPropsEx function. The function receives property entries from
-///a window's property list. The PROPENUMPROCEX type defines a pointer to this callback function. <b>PropEnumProcEx</b>
-///is a placeholder for the application-defined function name.
-///Params:
-///    Arg1 = Type: <b>HWND</b> A handle to the window whose property list is being enumerated.
-///    Arg2 = Type: <b>LPTSTR</b> The string component of a property list entry. This is the string that was specified, along
-///           with a data handle, when the property was added to the window's property list via a call to the SetProp function.
-///    Arg3 = Type: <b>HANDLE</b> A handle to the data. This handle is the data component of a property list entry.
-///    Arg4 = Type: <b>ULONG_PTR</b> Application-defined data. This is the value that was specified as the <i>lParam</i>
-///           parameter of the call to EnumPropsEx that initiated the enumeration.
-///Returns:
-///    Type: <b>BOOL</b> Return <b>TRUE</b> to continue the property list enumeration. Return <b>FALSE</b> to stop the
-///    property list enumeration.
-///    
-alias PROPENUMPROCEXW = BOOL function(HWND param0, const(wchar)* param1, HANDLE param2, size_t param3);
 
 // Structs
 
-
-///The <b>OPENFILENAME_NT4</b> structure is identical to OPENFILENAME with _WIN32_WINNT set to 0x0400. It allows an
-///application to take advantage of other post-Microsoft Windows NT 4.0 features while running on Microsoft Windows NT
-///4.0. Also, MFC42 applications must use <b>OPENFILENAME_NT4</b> to avoid heap corruption. This is because Microsoft
-///Foundation Classes (MFC) has classes with embedded <b>OPENFILENAME</b> structures, and you must use the same
-///structure size. <div class="alert"><b>Note</b> This structure is provided only for compatibility.</div><div> </div>
-struct OPENFILENAME_NT4A
-{
-align (1):
-    uint          lStructSize;
-    HWND          hwndOwner;
-    HINSTANCE     hInstance;
-    const(char)*  lpstrFilter;
-    const(char)*  lpstrCustomFilter;
-    uint          nMaxCustFilter;
-    uint          nFilterIndex;
-    const(char)*  lpstrFile;
-    uint          nMaxFile;
-    const(char)*  lpstrFileTitle;
-    uint          nMaxFileTitle;
-    const(char)*  lpstrInitialDir;
-    const(char)*  lpstrTitle;
-    uint          Flags;
-    ushort        nFileOffset;
-    ushort        nFileExtension;
-    const(char)*  lpstrDefExt;
-    LPARAM        lCustData;
-    LPOFNHOOKPROC lpfnHook;
-    const(char)*  lpTemplateName;
-}
-
-///The <b>OPENFILENAME_NT4</b> structure is identical to OPENFILENAME with _WIN32_WINNT set to 0x0400. It allows an
-///application to take advantage of other post-Microsoft Windows NT 4.0 features while running on Microsoft Windows NT
-///4.0. Also, MFC42 applications must use <b>OPENFILENAME_NT4</b> to avoid heap corruption. This is because Microsoft
-///Foundation Classes (MFC) has classes with embedded <b>OPENFILENAME</b> structures, and you must use the same
-///structure size. <div class="alert"><b>Note</b> This structure is provided only for compatibility.</div><div> </div>
-struct OPENFILENAME_NT4W
-{
-align (1):
-    uint          lStructSize;
-    HWND          hwndOwner;
-    HINSTANCE     hInstance;
-    const(wchar)* lpstrFilter;
-    const(wchar)* lpstrCustomFilter;
-    uint          nMaxCustFilter;
-    uint          nFilterIndex;
-    const(wchar)* lpstrFile;
-    uint          nMaxFile;
-    const(wchar)* lpstrFileTitle;
-    uint          nMaxFileTitle;
-    const(wchar)* lpstrInitialDir;
-    const(wchar)* lpstrTitle;
-    uint          Flags;
-    ushort        nFileOffset;
-    ushort        nFileExtension;
-    const(wchar)* lpstrDefExt;
-    LPARAM        lCustData;
-    LPOFNHOOKPROC lpfnHook;
-    const(wchar)* lpTemplateName;
-}
-
-///<p class="CCE_Message">[Starting with Windows Vista, the <b>Open</b> and <b>Save As</b> common dialog boxes have been
-///superseded by the Common Item Dialog. We recommended that you use the Common Item Dialog API instead of these dialog
-///boxes from the Common Dialog Box Library.] Contains information that the GetOpenFileName and GetSaveFileName
-///functions use to initialize an <b>Open</b> or <b>Save As</b> dialog box. After the user closes the dialog box, the
-///system returns information about the user's selection in this structure.
-struct OPENFILENAMEA
-{
-align (1):
-    ///Type: <b>DWORD</b> The length, in bytes, of the structure. Use <code>sizeof (OPENFILENAME)</code> for this
-    ///parameter.
-    uint          lStructSize;
-    ///Type: <b>HWND</b> A handle to the window that owns the dialog box. This member can be any valid window handle, or
-    ///it can be <b>NULL</b> if the dialog box has no owner.
-    HWND          hwndOwner;
-    ///Type: <b>HINSTANCE</b> If the <b>OFN_ENABLETEMPLATEHANDLE</b> flag is set in the <b>Flags</b> member,
-    ///<b>hInstance</b> is a handle to a memory object containing a dialog box template. If the
-    ///<b>OFN_ENABLETEMPLATE</b> flag is set, <b>hInstance</b> is a handle to a module that contains a dialog box
-    ///template named by the <b>lpTemplateName</b> member. If neither flag is set, this member is ignored. If the
-    ///<b>OFN_EXPLORER</b> flag is set, the system uses the specified template to create a dialog box that is a child of
-    ///the default Explorer-style dialog box. If the <b>OFN_EXPLORER</b> flag is not set, the system uses the template
-    ///to create an old-style dialog box that replaces the default dialog box.
-    HINSTANCE     hInstance;
-    ///Type: <b>LPCTSTR</b> A buffer containing pairs of null-terminated filter strings. The last string in the buffer
-    ///must be terminated by two <b>NULL</b> characters. The first string in each pair is a display string that
-    ///describes the filter (for example, "Text Files"), and the second string specifies the filter pattern (for
-    ///example, "*.TXT"). To specify multiple filter patterns for a single display string, use a semicolon to separate
-    ///the patterns (for example, "*.TXT;*.DOC;*.BAK"). A pattern string can be a combination of valid file name
-    ///characters and the asterisk (*) wildcard character. Do not include spaces in the pattern string. The system does
-    ///not change the order of the filters. It displays them in the <b>File Types</b> combo box in the order specified
-    ///in <b>lpstrFilter</b>. If <b>lpstrFilter</b> is <b>NULL</b>, the dialog box does not display any filters. In the
-    ///case of a shortcut, if no filter is set, GetOpenFileName and GetSaveFileName retrieve the name of the .lnk file,
-    ///not its target. This behavior is the same as setting the <b>OFN_NODEREFERENCELINKS</b> flag in the <b>Flags</b>
-    ///member. To retrieve a shortcut's target without filtering, use the string <code>"All Files\0*.*\0\0"</code>.
-    const(char)*  lpstrFilter;
-    ///Type: <b>LPTSTR</b> A static buffer that contains a pair of null-terminated filter strings for preserving the
-    ///filter pattern chosen by the user. The first string is your display string that describes the custom filter, and
-    ///the second string is the filter pattern selected by the user. The first time your application creates the dialog
-    ///box, you specify the first string, which can be any nonempty string. When the user selects a file, the dialog box
-    ///copies the current filter pattern to the second string. The preserved filter pattern can be one of the patterns
-    ///specified in the <b>lpstrFilter</b> buffer, or it can be a filter pattern typed by the user. The system uses the
-    ///strings to initialize the user-defined file filter the next time the dialog box is created. If the
-    ///<b>nFilterIndex</b> member is zero, the dialog box uses the custom filter. If this member is <b>NULL</b>, the
-    ///dialog box does not preserve user-defined filter patterns. If this member is not <b>NULL</b>, the value of the
-    ///<b>nMaxCustFilter</b> member must specify the size, in characters, of the <b>lpstrCustomFilter</b> buffer.
-    const(char)*  lpstrCustomFilter;
-    ///Type: <b>DWORD</b> The size, in characters, of the buffer identified by <b>lpstrCustomFilter</b>. This buffer
-    ///should be at least 40 characters long. This member is ignored if <b>lpstrCustomFilter</b> is <b>NULL</b> or
-    ///points to a <b>NULL</b> string.
-    uint          nMaxCustFilter;
-    ///Type: <b>DWORD</b> The index of the currently selected filter in the <b>File Types</b> control. The buffer
-    ///pointed to by <b>lpstrFilter</b> contains pairs of strings that define the filters. The first pair of strings has
-    ///an index value of 1, the second pair 2, and so on. An index of zero indicates the custom filter specified by
-    ///<b>lpstrCustomFilter</b>. You can specify an index on input to indicate the initial filter description and filter
-    ///pattern for the dialog box. When the user selects a file, <b>nFilterIndex</b> returns the index of the currently
-    ///displayed filter. If <b>nFilterIndex</b> is zero and <b>lpstrCustomFilter</b> is <b>NULL</b>, the system uses the
-    ///first filter in the <b>lpstrFilter</b> buffer. If all three members are zero or <b>NULL</b>, the system does not
-    ///use any filters and does not show any files in the file list control of the dialog box.
-    uint          nFilterIndex;
-    ///Type: <b>LPTSTR</b> The file name used to initialize the <b>File Name</b> edit control. The first character of
-    ///this buffer must be <b>NULL</b> if initialization is not necessary. When the GetOpenFileName or GetSaveFileName
-    ///function returns successfully, this buffer contains the drive designator, path, file name, and extension of the
-    ///selected file. If the <b>OFN_ALLOWMULTISELECT</b> flag is set and the user selects multiple files, the buffer
-    ///contains the current directory followed by the file names of the selected files. For Explorer-style dialog boxes,
-    ///the directory and file name strings are <b>NULL</b> separated, with an extra <b>NULL</b> character after the last
-    ///file name. For old-style dialog boxes, the strings are space separated and the function uses short file names for
-    ///file names with spaces. You can use the FindFirstFile function to convert between long and short file names. If
-    ///the user selects only one file, the <b>lpstrFile</b> string does not have a separator between the path and file
-    ///name. If the buffer is too small, the function returns <b>FALSE</b> and the CommDlgExtendedError function returns
-    ///<b>FNERR_BUFFERTOOSMALL</b>. In this case, the first two bytes of the <b>lpstrFile</b> buffer contain the
-    ///required size, in bytes or characters.
-    const(char)*  lpstrFile;
-    ///Type: <b>DWORD</b> The size, in characters, of the buffer pointed to by <b>lpstrFile</b>. The buffer must be
-    ///large enough to store the path and file name string or strings, including the terminating <b>NULL</b> character.
-    ///The GetOpenFileName and GetSaveFileName functions return <b>FALSE</b> if the buffer is too small to contain the
-    ///file information. The buffer should be at least 256 characters long.
-    uint          nMaxFile;
-    ///Type: <b>LPTSTR</b> The file name and extension (without path information) of the selected file. This member can
-    ///be <b>NULL</b>.
-    const(char)*  lpstrFileTitle;
-    ///Type: <b>DWORD</b> The size, in characters, of the buffer pointed to by <b>lpstrFileTitle</b>. This member is
-    ///ignored if <b>lpstrFileTitle</b> is <b>NULL</b>.
-    uint          nMaxFileTitle;
-    ///Type: <b>LPCTSTR</b> The initial directory. The algorithm for selecting the initial directory varies on different
-    ///platforms. <b>Windows 7:</b> <ol> <li>If <b>lpstrInitialDir</b> has the same value as was passed the first time
-    ///the application used an <b>Open</b> or <b>Save As</b> dialog box, the path most recently selected by the user is
-    ///used as the initial directory.</li> <li>Otherwise, if <b>lpstrFile</b> contains a path, that path is the initial
-    ///directory.</li> <li>Otherwise, if <b>lpstrInitialDir</b> is not <b>NULL</b>, it specifies the initial
-    ///directory.</li> <li>If <b>lpstrInitialDir</b> is <b>NULL</b> and the current directory contains any files of the
-    ///specified filter types, the initial directory is the current directory.</li> <li>Otherwise, the initial directory
-    ///is the personal files directory of the current user.</li> <li>Otherwise, the initial directory is the Desktop
-    ///folder.</li> </ol> <b>Windows 2000/XP/Vista:</b> <ol> <li>If <b>lpstrFile</b> contains a path, that path is the
-    ///initial directory.</li> <li>Otherwise, <b>lpstrInitialDir</b> specifies the initial directory.</li>
-    ///<li>Otherwise, if the application has used an <b>Open</b> or <b>Save As</b> dialog box in the past, the path most
-    ///recently used is selected as the initial directory. However, if an application is not run for a long time, its
-    ///saved selected path is discarded.</li> <li>If <b>lpstrInitialDir</b> is <b>NULL</b> and the current directory
-    ///contains any files of the specified filter types, the initial directory is the current directory.</li>
-    ///<li>Otherwise, the initial directory is the personal files directory of the current user.</li> <li>Otherwise, the
-    ///initial directory is the Desktop folder.</li> </ol>
-    const(char)*  lpstrInitialDir;
-    ///Type: <b>LPCTSTR</b> A string to be placed in the title bar of the dialog box. If this member is <b>NULL</b>, the
-    ///system uses the default title (that is, <b>Save As</b> or <b>Open</b>).
-    const(char)*  lpstrTitle;
-    ///Type: <b>DWORD</b> A set of bit flags you can use to initialize the dialog box. When the dialog box returns, it
-    ///sets these flags to indicate the user's input. This member can be a combination of the following flags. <table>
-    ///<tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="OFN_ALLOWMULTISELECT"></a><a
-    ///id="ofn_allowmultiselect"></a><dl> <dt><b>OFN_ALLOWMULTISELECT</b></dt> <dt>0x00000200</dt> </dl> </td> <td
-    ///width="60%"> The <b>File Name</b> list box allows multiple selections. If you also set the <b>OFN_EXPLORER</b>
-    ///flag, the dialog box uses the Explorer-style user interface; otherwise, it uses the old-style user interface. If
-    ///the user selects more than one file, the <b>lpstrFile</b> buffer returns the path to the current directory
-    ///followed by the file names of the selected files. The <b>nFileOffset</b> member is the offset, in bytes or
-    ///characters, to the first file name, and the <b>nFileExtension</b> member is not used. For Explorer-style dialog
-    ///boxes, the directory and file name strings are <b>NULL</b> separated, with an extra <b>NULL</b> character after
-    ///the last file name. This format enables the Explorer-style dialog boxes to return long file names that include
-    ///spaces. For old-style dialog boxes, the directory and file name strings are separated by spaces and the function
-    ///uses short file names for file names with spaces. You can use the FindFirstFile function to convert between long
-    ///and short file names. If you specify a custom template for an old-style dialog box, the definition of the <b>File
-    ///Name</b> list box must contain the <b>LBS_EXTENDEDSEL</b> value. </td> </tr> <tr> <td width="40%"><a
-    ///id="OFN_CREATEPROMPT"></a><a id="ofn_createprompt"></a><dl> <dt><b>OFN_CREATEPROMPT</b></dt> <dt>0x00002000</dt>
-    ///</dl> </td> <td width="60%"> If the user specifies a file that does not exist, this flag causes the dialog box to
-    ///prompt the user for permission to create the file. If the user chooses to create the file, the dialog box closes
-    ///and the function returns the specified name; otherwise, the dialog box remains open. If you use this flag with
-    ///the <b>OFN_ALLOWMULTISELECT</b> flag, the dialog box allows the user to specify only one nonexistent file. </td>
-    ///</tr> <tr> <td width="40%"><a id="OFN_DONTADDTORECENT"></a><a id="ofn_dontaddtorecent"></a><dl>
-    ///<dt><b>OFN_DONTADDTORECENT</b></dt> <dt>0x02000000</dt> </dl> </td> <td width="60%"> Prevents the system from
-    ///adding a link to the selected file in the file system directory that contains the user's most recently used
-    ///documents. To retrieve the location of this directory, call the SHGetSpecialFolderLocation function with the
-    ///<b>CSIDL_RECENT</b> flag. </td> </tr> <tr> <td width="40%"><a id="OFN_ENABLEHOOK"></a><a
-    ///id="ofn_enablehook"></a><dl> <dt><b>OFN_ENABLEHOOK</b></dt> <dt>0x00000020</dt> </dl> </td> <td width="60%">
-    ///Enables the hook function specified in the <b>lpfnHook</b> member. </td> </tr> <tr> <td width="40%"><a
-    ///id="OFN_ENABLEINCLUDENOTIFY"></a><a id="ofn_enableincludenotify"></a><dl> <dt><b>OFN_ENABLEINCLUDENOTIFY</b></dt>
-    ///<dt>0x00400000</dt> </dl> </td> <td width="60%"> Causes the dialog box to send CDN_INCLUDEITEM notification
-    ///messages to your OFNHookProc hook procedure when the user opens a folder. The dialog box sends a notification for
-    ///each item in the newly opened folder. These messages enable you to control which items the dialog box displays in
-    ///the folder's item list. </td> </tr> <tr> <td width="40%"><a id="OFN_ENABLESIZING"></a><a
-    ///id="ofn_enablesizing"></a><dl> <dt><b>OFN_ENABLESIZING</b></dt> <dt>0x00800000</dt> </dl> </td> <td width="60%">
-    ///Enables the Explorer-style dialog box to be resized using either the mouse or the keyboard. By default, the
-    ///Explorer-style <b>Open</b> and <b>Save As</b> dialog boxes allow the dialog box to be resized regardless of
-    ///whether this flag is set. This flag is necessary only if you provide a hook procedure or custom template. The
-    ///old-style dialog box does not permit resizing. </td> </tr> <tr> <td width="40%"><a id="OFN_ENABLETEMPLATE"></a><a
-    ///id="ofn_enabletemplate"></a><dl> <dt><b>OFN_ENABLETEMPLATE</b></dt> <dt>0x00000040</dt> </dl> </td> <td
-    ///width="60%"> The <b>lpTemplateName</b> member is a pointer to the name of a dialog template resource in the
-    ///module identified by the <b>hInstance</b> member. If the <b>OFN_EXPLORER</b> flag is set, the system uses the
-    ///specified template to create a dialog box that is a child of the default Explorer-style dialog box. If the
-    ///<b>OFN_EXPLORER</b> flag is not set, the system uses the template to create an old-style dialog box that replaces
-    ///the default dialog box. </td> </tr> <tr> <td width="40%"><a id="OFN_ENABLETEMPLATEHANDLE"></a><a
-    ///id="ofn_enabletemplatehandle"></a><dl> <dt><b>OFN_ENABLETEMPLATEHANDLE</b></dt> <dt>0x00000080</dt> </dl> </td>
-    ///<td width="60%"> The <b>hInstance</b> member identifies a data block that contains a preloaded dialog box
-    ///template. The system ignores <b>lpTemplateName</b> if this flag is specified. If the <b>OFN_EXPLORER</b> flag is
-    ///set, the system uses the specified template to create a dialog box that is a child of the default Explorer-style
-    ///dialog box. If the <b>OFN_EXPLORER</b> flag is not set, the system uses the template to create an old-style
-    ///dialog box that replaces the default dialog box. </td> </tr> <tr> <td width="40%"><a id="OFN_EXPLORER"></a><a
-    ///id="ofn_explorer"></a><dl> <dt><b>OFN_EXPLORER</b></dt> <dt>0x00080000</dt> </dl> </td> <td width="60%">
-    ///Indicates that any customizations made to the <b>Open</b> or <b>Save As</b> dialog box use the Explorer-style
-    ///customization methods. For more information, see Explorer-Style Hook Procedures and Explorer-Style Custom
-    ///Templates. By default, the <b>Open</b> and <b>Save As</b> dialog boxes use the Explorer-style user interface
-    ///regardless of whether this flag is set. This flag is necessary only if you provide a hook procedure or custom
-    ///template, or set the <b>OFN_ALLOWMULTISELECT</b> flag. If you want the old-style user interface, omit the
-    ///<b>OFN_EXPLORER</b> flag and provide a replacement old-style template or hook procedure. If you want the old
-    ///style but do not need a custom template or hook procedure, simply provide a hook procedure that always returns
-    ///<b>FALSE</b>. </td> </tr> <tr> <td width="40%"><a id="OFN_EXTENSIONDIFFERENT"></a><a
-    ///id="ofn_extensiondifferent"></a><dl> <dt><b>OFN_EXTENSIONDIFFERENT</b></dt> <dt>0x00000400</dt> </dl> </td> <td
-    ///width="60%"> The user typed a file name extension that differs from the extension specified by
-    ///<b>lpstrDefExt</b>. The function does not use this flag if <b>lpstrDefExt</b> is <b>NULL</b>. </td> </tr> <tr>
-    ///<td width="40%"><a id="OFN_FILEMUSTEXIST"></a><a id="ofn_filemustexist"></a><dl>
-    ///<dt><b>OFN_FILEMUSTEXIST</b></dt> <dt>0x00001000</dt> </dl> </td> <td width="60%"> The user can type only names
-    ///of existing files in the <b>File Name</b> entry field. If this flag is specified and the user enters an invalid
-    ///name, the dialog box procedure displays a warning in a message box. If this flag is specified, the
-    ///<b>OFN_PATHMUSTEXIST</b> flag is also used. This flag can be used in an <b>Open</b> dialog box. It cannot be used
-    ///with a <b>Save As</b> dialog box. </td> </tr> <tr> <td width="40%"><a id="OFN_FORCESHOWHIDDEN"></a><a
-    ///id="ofn_forceshowhidden"></a><dl> <dt><b>OFN_FORCESHOWHIDDEN</b></dt> <dt>0x10000000</dt> </dl> </td> <td
-    ///width="60%"> Forces the showing of system and hidden files, thus overriding the user setting to show or not show
-    ///hidden files. However, a file that is marked both system and hidden is not shown. </td> </tr> <tr> <td
-    ///width="40%"><a id="OFN_HIDEREADONLY"></a><a id="ofn_hidereadonly"></a><dl> <dt><b>OFN_HIDEREADONLY</b></dt>
-    ///<dt>0x00000004</dt> </dl> </td> <td width="60%"> Hides the <b>Read Only</b> check box. </td> </tr> <tr> <td
-    ///width="40%"><a id="OFN_LONGNAMES"></a><a id="ofn_longnames"></a><dl> <dt><b>OFN_LONGNAMES</b></dt>
-    ///<dt>0x00200000</dt> </dl> </td> <td width="60%"> For old-style dialog boxes, this flag causes the dialog box to
-    ///use long file names. If this flag is not specified, or if the <b>OFN_ALLOWMULTISELECT</b> flag is also set,
-    ///old-style dialog boxes use short file names (8.3 format) for file names with spaces. Explorer-style dialog boxes
-    ///ignore this flag and always display long file names. </td> </tr> <tr> <td width="40%"><a
-    ///id="OFN_NOCHANGEDIR"></a><a id="ofn_nochangedir"></a><dl> <dt><b>OFN_NOCHANGEDIR</b></dt> <dt>0x00000008</dt>
-    ///</dl> </td> <td width="60%"> Restores the current directory to its original value if the user changed the
-    ///directory while searching for files. This flag is ineffective for GetOpenFileName. </td> </tr> <tr> <td
-    ///width="40%"><a id="OFN_NODEREFERENCELINKS"></a><a id="ofn_nodereferencelinks"></a><dl>
-    ///<dt><b>OFN_NODEREFERENCELINKS</b></dt> <dt>0x00100000</dt> </dl> </td> <td width="60%"> Directs the dialog box to
-    ///return the path and file name of the selected shortcut (.LNK) file. If this value is not specified, the dialog
-    ///box returns the path and file name of the file referenced by the shortcut. </td> </tr> <tr> <td width="40%"><a
-    ///id="OFN_NOLONGNAMES"></a><a id="ofn_nolongnames"></a><dl> <dt><b>OFN_NOLONGNAMES</b></dt> <dt>0x00040000</dt>
-    ///</dl> </td> <td width="60%"> For old-style dialog boxes, this flag causes the dialog box to use short file names
-    ///(8.3 format). Explorer-style dialog boxes ignore this flag and always display long file names. </td> </tr> <tr>
-    ///<td width="40%"><a id="OFN_NONETWORKBUTTON"></a><a id="ofn_nonetworkbutton"></a><dl>
-    ///<dt><b>OFN_NONETWORKBUTTON</b></dt> <dt>0x00020000</dt> </dl> </td> <td width="60%"> Hides and disables the
-    ///<b>Network</b> button. </td> </tr> <tr> <td width="40%"><a id="OFN_NOREADONLYRETURN"></a><a
-    ///id="ofn_noreadonlyreturn"></a><dl> <dt><b>OFN_NOREADONLYRETURN</b></dt> <dt>0x00008000</dt> </dl> </td> <td
-    ///width="60%"> The returned file does not have the <b>Read Only</b> check box selected and is not in a
-    ///write-protected directory. </td> </tr> <tr> <td width="40%"><a id="OFN_NOTESTFILECREATE"></a><a
-    ///id="ofn_notestfilecreate"></a><dl> <dt><b>OFN_NOTESTFILECREATE</b></dt> <dt>0x00010000</dt> </dl> </td> <td
-    ///width="60%"> The file is not created before the dialog box is closed. This flag should be specified if the
-    ///application saves the file on a create-nonmodify network share. When an application specifies this flag, the
-    ///library does not check for write protection, a full disk, an open drive door, or network protection. Applications
-    ///using this flag must perform file operations carefully, because a file cannot be reopened once it is closed.
-    ///</td> </tr> <tr> <td width="40%"><a id="OFN_NOVALIDATE"></a><a id="ofn_novalidate"></a><dl>
-    ///<dt><b>OFN_NOVALIDATE</b></dt> <dt>0x00000100</dt> </dl> </td> <td width="60%"> The common dialog boxes allow
-    ///invalid characters in the returned file name. Typically, the calling application uses a hook procedure that
-    ///checks the file name by using the FILEOKSTRING message. If the text box in the edit control is empty or contains
-    ///nothing but spaces, the lists of files and directories are updated. If the text box in the edit control contains
-    ///anything else, <b>nFileOffset</b> and <b>nFileExtension</b> are set to values generated by parsing the text. No
-    ///default extension is added to the text, nor is text copied to the buffer specified by <b>lpstrFileTitle</b>. If
-    ///the value specified by <b>nFileOffset</b> is less than zero, the file name is invalid. Otherwise, the file name
-    ///is valid, and <b>nFileExtension</b> and <b>nFileOffset</b> can be used as if the <b>OFN_NOVALIDATE</b> flag had
-    ///not been specified. </td> </tr> <tr> <td width="40%"><a id="OFN_OVERWRITEPROMPT"></a><a
-    ///id="ofn_overwriteprompt"></a><dl> <dt><b>OFN_OVERWRITEPROMPT</b></dt> <dt>0x00000002</dt> </dl> </td> <td
-    ///width="60%"> Causes the <b>Save As</b> dialog box to generate a message box if the selected file already exists.
-    ///The user must confirm whether to overwrite the file. </td> </tr> <tr> <td width="40%"><a
-    ///id="OFN_PATHMUSTEXIST"></a><a id="ofn_pathmustexist"></a><dl> <dt><b>OFN_PATHMUSTEXIST</b></dt>
-    ///<dt>0x00000800</dt> </dl> </td> <td width="60%"> The user can type only valid paths and file names. If this flag
-    ///is used and the user types an invalid path and file name in the <b>File Name</b> entry field, the dialog box
-    ///function displays a warning in a message box. </td> </tr> <tr> <td width="40%"><a id="OFN_READONLY"></a><a
-    ///id="ofn_readonly"></a><dl> <dt><b>OFN_READONLY</b></dt> <dt>0x00000001</dt> </dl> </td> <td width="60%"> Causes
-    ///the <b>Read Only</b> check box to be selected initially when the dialog box is created. This flag indicates the
-    ///state of the <b>Read Only</b> check box when the dialog box is closed. </td> </tr> <tr> <td width="40%"><a
-    ///id="OFN_SHAREAWARE"></a><a id="ofn_shareaware"></a><dl> <dt><b>OFN_SHAREAWARE</b></dt> <dt>0x00004000</dt> </dl>
-    ///</td> <td width="60%"> Specifies that if a call to the OpenFile function fails because of a network sharing
-    ///violation, the error is ignored and the dialog box returns the selected file name. If this flag is not set, the
-    ///dialog box notifies your hook procedure when a network sharing violation occurs for the file name specified by
-    ///the user. If you set the <b>OFN_EXPLORER</b> flag, the dialog box sends the CDN_SHAREVIOLATION message to the
-    ///hook procedure. If you do not set <b>OFN_EXPLORER</b>, the dialog box sends the SHAREVISTRING registered message
-    ///to the hook procedure. </td> </tr> <tr> <td width="40%"><a id="OFN_SHOWHELP"></a><a id="ofn_showhelp"></a><dl>
-    ///<dt><b>OFN_SHOWHELP</b></dt> <dt>0x00000010</dt> </dl> </td> <td width="60%"> Causes the dialog box to display
-    ///the <b>Help</b> button. The <b>hwndOwner</b> member must specify the window to receive the HELPMSGSTRING
-    ///registered messages that the dialog box sends when the user clicks the <b>Help</b> button. An Explorer-style
-    ///dialog box sends a CDN_HELP notification message to your hook procedure when the user clicks the <b>Help</b>
-    ///button. </td> </tr> </table>
-    uint          Flags;
-    ///Type: <b>WORD</b> The zero-based offset, in characters, from the beginning of the path to the file name in the
-    ///string pointed to by <b>lpstrFile</b>. For the ANSI version, this is the number of bytes; for the Unicode
-    ///version, this is the number of characters. For example, if <b>lpstrFile</b> points to the following string,
-    ///"c:\dir1\dir2\file.ext", this member contains the value 13 to indicate the offset of the "file.ext" string. If
-    ///the user selects more than one file, <b>nFileOffset</b> is the offset to the first file name.
-    ushort        nFileOffset;
-    ///Type: <b>WORD</b> The zero-based offset, in characters, from the beginning of the path to the file name extension
-    ///in the string pointed to by <b>lpstrFile</b>. For the ANSI version, this is the number of bytes; for the Unicode
-    ///version, this is the number of characters. Usually the file name extension is the substring which follows the
-    ///last occurrence of the dot (".") character. For example, txt is the extension of the filename readme.txt, html
-    ///the extension of readme.txt.html. Therefore, if <b>lpstrFile</b> points to the string "c:\dir1\dir2\readme.txt",
-    ///this member contains the value 20. If <b>lpstrFile</b> points to the string "c:\dir1\dir2\readme.txt.html", this
-    ///member contains the value 24. If <b>lpstrFile</b> points to the string "c:\dir1\dir2\readme.txt.html.", this
-    ///member contains the value 29. If <b>lpstrFile</b> points to a string that does not contain any "." character such
-    ///as "c:\dir1\dir2\readme", this member contains zero.
-    ushort        nFileExtension;
-    ///Type: <b>LPCTSTR</b> The default extension. GetOpenFileName and GetSaveFileName append this extension to the file
-    ///name if the user fails to type an extension. This string can be any length, but only the first three characters
-    ///are appended. The string should not contain a period (.). If this member is <b>NULL</b> and the user fails to
-    ///type an extension, no extension is appended.
-    const(char)*  lpstrDefExt;
-    ///Type: <b>LPARAM</b> Application-defined data that the system passes to the hook procedure identified by the
-    ///<b>lpfnHook</b> member. When the system sends the WM_INITDIALOG message to the hook procedure, the message's
-    ///<i>lParam</i> parameter is a pointer to the <b>OPENFILENAME</b> structure specified when the dialog box was
-    ///created. The hook procedure can use this pointer to get the <b>lCustData</b> value.
-    LPARAM        lCustData;
-    ///Type: <b>LPOFNHOOKPROC</b> A pointer to a hook procedure. This member is ignored unless the <b>Flags</b> member
-    ///includes the <b>OFN_ENABLEHOOK</b> flag. If the <b>OFN_EXPLORER</b> flag is not set in the <b>Flags</b> member,
-    ///<b>lpfnHook</b> is a pointer to an OFNHookProcOldStyle hook procedure that receives messages intended for the
-    ///dialog box. The hook procedure returns <b>FALSE</b> to pass a message to the default dialog box procedure or
-    ///<b>TRUE</b> to discard the message. If <b>OFN_EXPLORER</b> is set, <b>lpfnHook</b> is a pointer to an OFNHookProc
-    ///hook procedure. The hook procedure receives notification messages sent from the dialog box. The hook procedure
-    ///also receives messages for any additional controls that you defined by specifying a child dialog template. The
-    ///hook procedure does not receive messages intended for the standard controls of the default dialog box.
-    LPOFNHOOKPROC lpfnHook;
-    ///Type: <b>LPCTSTR</b> The name of the dialog template resource in the module identified by the <b>hInstance</b>
-    ///member. For numbered dialog box resources, this can be a value returned by the MAKEINTRESOURCE macro. This member
-    ///is ignored unless the <b>OFN_ENABLETEMPLATE</b> flag is set in the <b>Flags</b> member. If the
-    ///<b>OFN_EXPLORER</b> flag is set, the system uses the specified template to create a dialog box that is a child of
-    ///the default Explorer-style dialog box. If the <b>OFN_EXPLORER</b> flag is not set, the system uses the template
-    ///to create an old-style dialog box that replaces the default dialog box.
-    const(char)*  lpTemplateName;
-    ///Type: <b>void*</b> This member is reserved.
-    void*         pvReserved;
-    ///Type: <b>DWORD</b> This member is reserved.
-    uint          dwReserved;
-    ///Type: <b>DWORD</b> A set of bit flags you can use to initialize the dialog box. Currently, this member can be
-    ///zero or the following flag. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
-    ///id="OFN_EX_NOPLACESBAR"></a><a id="ofn_ex_noplacesbar"></a><dl> <dt><b>OFN_EX_NOPLACESBAR</b></dt>
-    ///<dt>0x00000001</dt> </dl> </td> <td width="60%"> If this flag is set, the places bar is not displayed. If this
-    ///flag is not set, Explorer-style dialog boxes include a places bar containing icons for commonly-used folders,
-    ///such as Favorites and Desktop. </td> </tr> </table>
-    uint          FlagsEx;
-}
-
-///<p class="CCE_Message">[Starting with Windows Vista, the <b>Open</b> and <b>Save As</b> common dialog boxes have been
-///superseded by the Common Item Dialog. We recommended that you use the Common Item Dialog API instead of these dialog
-///boxes from the Common Dialog Box Library.] Contains information that the GetOpenFileName and GetSaveFileName
-///functions use to initialize an <b>Open</b> or <b>Save As</b> dialog box. After the user closes the dialog box, the
-///system returns information about the user's selection in this structure.
-struct OPENFILENAMEW
-{
-align (1):
-    ///Type: <b>DWORD</b> The length, in bytes, of the structure. Use <code>sizeof (OPENFILENAME)</code> for this
-    ///parameter.
-    uint          lStructSize;
-    ///Type: <b>HWND</b> A handle to the window that owns the dialog box. This member can be any valid window handle, or
-    ///it can be <b>NULL</b> if the dialog box has no owner.
-    HWND          hwndOwner;
-    ///Type: <b>HINSTANCE</b> If the <b>OFN_ENABLETEMPLATEHANDLE</b> flag is set in the <b>Flags</b> member,
-    ///<b>hInstance</b> is a handle to a memory object containing a dialog box template. If the
-    ///<b>OFN_ENABLETEMPLATE</b> flag is set, <b>hInstance</b> is a handle to a module that contains a dialog box
-    ///template named by the <b>lpTemplateName</b> member. If neither flag is set, this member is ignored. If the
-    ///<b>OFN_EXPLORER</b> flag is set, the system uses the specified template to create a dialog box that is a child of
-    ///the default Explorer-style dialog box. If the <b>OFN_EXPLORER</b> flag is not set, the system uses the template
-    ///to create an old-style dialog box that replaces the default dialog box.
-    HINSTANCE     hInstance;
-    ///Type: <b>LPCTSTR</b> A buffer containing pairs of null-terminated filter strings. The last string in the buffer
-    ///must be terminated by two <b>NULL</b> characters. The first string in each pair is a display string that
-    ///describes the filter (for example, "Text Files"), and the second string specifies the filter pattern (for
-    ///example, "*.TXT"). To specify multiple filter patterns for a single display string, use a semicolon to separate
-    ///the patterns (for example, "*.TXT;*.DOC;*.BAK"). A pattern string can be a combination of valid file name
-    ///characters and the asterisk (*) wildcard character. Do not include spaces in the pattern string. The system does
-    ///not change the order of the filters. It displays them in the <b>File Types</b> combo box in the order specified
-    ///in <b>lpstrFilter</b>. If <b>lpstrFilter</b> is <b>NULL</b>, the dialog box does not display any filters. In the
-    ///case of a shortcut, if no filter is set, GetOpenFileName and GetSaveFileName retrieve the name of the .lnk file,
-    ///not its target. This behavior is the same as setting the <b>OFN_NODEREFERENCELINKS</b> flag in the <b>Flags</b>
-    ///member. To retrieve a shortcut's target without filtering, use the string <code>"All Files\0*.*\0\0"</code>.
-    const(wchar)* lpstrFilter;
-    ///Type: <b>LPTSTR</b> A static buffer that contains a pair of null-terminated filter strings for preserving the
-    ///filter pattern chosen by the user. The first string is your display string that describes the custom filter, and
-    ///the second string is the filter pattern selected by the user. The first time your application creates the dialog
-    ///box, you specify the first string, which can be any nonempty string. When the user selects a file, the dialog box
-    ///copies the current filter pattern to the second string. The preserved filter pattern can be one of the patterns
-    ///specified in the <b>lpstrFilter</b> buffer, or it can be a filter pattern typed by the user. The system uses the
-    ///strings to initialize the user-defined file filter the next time the dialog box is created. If the
-    ///<b>nFilterIndex</b> member is zero, the dialog box uses the custom filter. If this member is <b>NULL</b>, the
-    ///dialog box does not preserve user-defined filter patterns. If this member is not <b>NULL</b>, the value of the
-    ///<b>nMaxCustFilter</b> member must specify the size, in characters, of the <b>lpstrCustomFilter</b> buffer.
-    const(wchar)* lpstrCustomFilter;
-    ///Type: <b>DWORD</b> The size, in characters, of the buffer identified by <b>lpstrCustomFilter</b>. This buffer
-    ///should be at least 40 characters long. This member is ignored if <b>lpstrCustomFilter</b> is <b>NULL</b> or
-    ///points to a <b>NULL</b> string.
-    uint          nMaxCustFilter;
-    ///Type: <b>DWORD</b> The index of the currently selected filter in the <b>File Types</b> control. The buffer
-    ///pointed to by <b>lpstrFilter</b> contains pairs of strings that define the filters. The first pair of strings has
-    ///an index value of 1, the second pair 2, and so on. An index of zero indicates the custom filter specified by
-    ///<b>lpstrCustomFilter</b>. You can specify an index on input to indicate the initial filter description and filter
-    ///pattern for the dialog box. When the user selects a file, <b>nFilterIndex</b> returns the index of the currently
-    ///displayed filter. If <b>nFilterIndex</b> is zero and <b>lpstrCustomFilter</b> is <b>NULL</b>, the system uses the
-    ///first filter in the <b>lpstrFilter</b> buffer. If all three members are zero or <b>NULL</b>, the system does not
-    ///use any filters and does not show any files in the file list control of the dialog box.
-    uint          nFilterIndex;
-    ///Type: <b>LPTSTR</b> The file name used to initialize the <b>File Name</b> edit control. The first character of
-    ///this buffer must be <b>NULL</b> if initialization is not necessary. When the GetOpenFileName or GetSaveFileName
-    ///function returns successfully, this buffer contains the drive designator, path, file name, and extension of the
-    ///selected file. If the <b>OFN_ALLOWMULTISELECT</b> flag is set and the user selects multiple files, the buffer
-    ///contains the current directory followed by the file names of the selected files. For Explorer-style dialog boxes,
-    ///the directory and file name strings are <b>NULL</b> separated, with an extra <b>NULL</b> character after the last
-    ///file name. For old-style dialog boxes, the strings are space separated and the function uses short file names for
-    ///file names with spaces. You can use the FindFirstFile function to convert between long and short file names. If
-    ///the user selects only one file, the <b>lpstrFile</b> string does not have a separator between the path and file
-    ///name. If the buffer is too small, the function returns <b>FALSE</b> and the CommDlgExtendedError function returns
-    ///<b>FNERR_BUFFERTOOSMALL</b>. In this case, the first two bytes of the <b>lpstrFile</b> buffer contain the
-    ///required size, in bytes or characters.
-    const(wchar)* lpstrFile;
-    ///Type: <b>DWORD</b> The size, in characters, of the buffer pointed to by <b>lpstrFile</b>. The buffer must be
-    ///large enough to store the path and file name string or strings, including the terminating <b>NULL</b> character.
-    ///The GetOpenFileName and GetSaveFileName functions return <b>FALSE</b> if the buffer is too small to contain the
-    ///file information. The buffer should be at least 256 characters long.
-    uint          nMaxFile;
-    ///Type: <b>LPTSTR</b> The file name and extension (without path information) of the selected file. This member can
-    ///be <b>NULL</b>.
-    const(wchar)* lpstrFileTitle;
-    ///Type: <b>DWORD</b> The size, in characters, of the buffer pointed to by <b>lpstrFileTitle</b>. This member is
-    ///ignored if <b>lpstrFileTitle</b> is <b>NULL</b>.
-    uint          nMaxFileTitle;
-    ///Type: <b>LPCTSTR</b> The initial directory. The algorithm for selecting the initial directory varies on different
-    ///platforms. <b>Windows 7:</b> <ol> <li>If <b>lpstrInitialDir</b> has the same value as was passed the first time
-    ///the application used an <b>Open</b> or <b>Save As</b> dialog box, the path most recently selected by the user is
-    ///used as the initial directory.</li> <li>Otherwise, if <b>lpstrFile</b> contains a path, that path is the initial
-    ///directory.</li> <li>Otherwise, if <b>lpstrInitialDir</b> is not <b>NULL</b>, it specifies the initial
-    ///directory.</li> <li>If <b>lpstrInitialDir</b> is <b>NULL</b> and the current directory contains any files of the
-    ///specified filter types, the initial directory is the current directory.</li> <li>Otherwise, the initial directory
-    ///is the personal files directory of the current user.</li> <li>Otherwise, the initial directory is the Desktop
-    ///folder.</li> </ol> <b>Windows 2000/XP/Vista:</b> <ol> <li>If <b>lpstrFile</b> contains a path, that path is the
-    ///initial directory.</li> <li>Otherwise, <b>lpstrInitialDir</b> specifies the initial directory.</li>
-    ///<li>Otherwise, if the application has used an <b>Open</b> or <b>Save As</b> dialog box in the past, the path most
-    ///recently used is selected as the initial directory. However, if an application is not run for a long time, its
-    ///saved selected path is discarded.</li> <li>If <b>lpstrInitialDir</b> is <b>NULL</b> and the current directory
-    ///contains any files of the specified filter types, the initial directory is the current directory.</li>
-    ///<li>Otherwise, the initial directory is the personal files directory of the current user.</li> <li>Otherwise, the
-    ///initial directory is the Desktop folder.</li> </ol>
-    const(wchar)* lpstrInitialDir;
-    ///Type: <b>LPCTSTR</b> A string to be placed in the title bar of the dialog box. If this member is <b>NULL</b>, the
-    ///system uses the default title (that is, <b>Save As</b> or <b>Open</b>).
-    const(wchar)* lpstrTitle;
-    ///Type: <b>DWORD</b> A set of bit flags you can use to initialize the dialog box. When the dialog box returns, it
-    ///sets these flags to indicate the user's input. This member can be a combination of the following flags. <table>
-    ///<tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="OFN_ALLOWMULTISELECT"></a><a
-    ///id="ofn_allowmultiselect"></a><dl> <dt><b>OFN_ALLOWMULTISELECT</b></dt> <dt>0x00000200</dt> </dl> </td> <td
-    ///width="60%"> The <b>File Name</b> list box allows multiple selections. If you also set the <b>OFN_EXPLORER</b>
-    ///flag, the dialog box uses the Explorer-style user interface; otherwise, it uses the old-style user interface. If
-    ///the user selects more than one file, the <b>lpstrFile</b> buffer returns the path to the current directory
-    ///followed by the file names of the selected files. The <b>nFileOffset</b> member is the offset, in bytes or
-    ///characters, to the first file name, and the <b>nFileExtension</b> member is not used. For Explorer-style dialog
-    ///boxes, the directory and file name strings are <b>NULL</b> separated, with an extra <b>NULL</b> character after
-    ///the last file name. This format enables the Explorer-style dialog boxes to return long file names that include
-    ///spaces. For old-style dialog boxes, the directory and file name strings are separated by spaces and the function
-    ///uses short file names for file names with spaces. You can use the FindFirstFile function to convert between long
-    ///and short file names. If you specify a custom template for an old-style dialog box, the definition of the <b>File
-    ///Name</b> list box must contain the <b>LBS_EXTENDEDSEL</b> value. </td> </tr> <tr> <td width="40%"><a
-    ///id="OFN_CREATEPROMPT"></a><a id="ofn_createprompt"></a><dl> <dt><b>OFN_CREATEPROMPT</b></dt> <dt>0x00002000</dt>
-    ///</dl> </td> <td width="60%"> If the user specifies a file that does not exist, this flag causes the dialog box to
-    ///prompt the user for permission to create the file. If the user chooses to create the file, the dialog box closes
-    ///and the function returns the specified name; otherwise, the dialog box remains open. If you use this flag with
-    ///the <b>OFN_ALLOWMULTISELECT</b> flag, the dialog box allows the user to specify only one nonexistent file. </td>
-    ///</tr> <tr> <td width="40%"><a id="OFN_DONTADDTORECENT"></a><a id="ofn_dontaddtorecent"></a><dl>
-    ///<dt><b>OFN_DONTADDTORECENT</b></dt> <dt>0x02000000</dt> </dl> </td> <td width="60%"> Prevents the system from
-    ///adding a link to the selected file in the file system directory that contains the user's most recently used
-    ///documents. To retrieve the location of this directory, call the SHGetSpecialFolderLocation function with the
-    ///<b>CSIDL_RECENT</b> flag. </td> </tr> <tr> <td width="40%"><a id="OFN_ENABLEHOOK"></a><a
-    ///id="ofn_enablehook"></a><dl> <dt><b>OFN_ENABLEHOOK</b></dt> <dt>0x00000020</dt> </dl> </td> <td width="60%">
-    ///Enables the hook function specified in the <b>lpfnHook</b> member. </td> </tr> <tr> <td width="40%"><a
-    ///id="OFN_ENABLEINCLUDENOTIFY"></a><a id="ofn_enableincludenotify"></a><dl> <dt><b>OFN_ENABLEINCLUDENOTIFY</b></dt>
-    ///<dt>0x00400000</dt> </dl> </td> <td width="60%"> Causes the dialog box to send CDN_INCLUDEITEM notification
-    ///messages to your OFNHookProc hook procedure when the user opens a folder. The dialog box sends a notification for
-    ///each item in the newly opened folder. These messages enable you to control which items the dialog box displays in
-    ///the folder's item list. </td> </tr> <tr> <td width="40%"><a id="OFN_ENABLESIZING"></a><a
-    ///id="ofn_enablesizing"></a><dl> <dt><b>OFN_ENABLESIZING</b></dt> <dt>0x00800000</dt> </dl> </td> <td width="60%">
-    ///Enables the Explorer-style dialog box to be resized using either the mouse or the keyboard. By default, the
-    ///Explorer-style <b>Open</b> and <b>Save As</b> dialog boxes allow the dialog box to be resized regardless of
-    ///whether this flag is set. This flag is necessary only if you provide a hook procedure or custom template. The
-    ///old-style dialog box does not permit resizing. </td> </tr> <tr> <td width="40%"><a id="OFN_ENABLETEMPLATE"></a><a
-    ///id="ofn_enabletemplate"></a><dl> <dt><b>OFN_ENABLETEMPLATE</b></dt> <dt>0x00000040</dt> </dl> </td> <td
-    ///width="60%"> The <b>lpTemplateName</b> member is a pointer to the name of a dialog template resource in the
-    ///module identified by the <b>hInstance</b> member. If the <b>OFN_EXPLORER</b> flag is set, the system uses the
-    ///specified template to create a dialog box that is a child of the default Explorer-style dialog box. If the
-    ///<b>OFN_EXPLORER</b> flag is not set, the system uses the template to create an old-style dialog box that replaces
-    ///the default dialog box. </td> </tr> <tr> <td width="40%"><a id="OFN_ENABLETEMPLATEHANDLE"></a><a
-    ///id="ofn_enabletemplatehandle"></a><dl> <dt><b>OFN_ENABLETEMPLATEHANDLE</b></dt> <dt>0x00000080</dt> </dl> </td>
-    ///<td width="60%"> The <b>hInstance</b> member identifies a data block that contains a preloaded dialog box
-    ///template. The system ignores <b>lpTemplateName</b> if this flag is specified. If the <b>OFN_EXPLORER</b> flag is
-    ///set, the system uses the specified template to create a dialog box that is a child of the default Explorer-style
-    ///dialog box. If the <b>OFN_EXPLORER</b> flag is not set, the system uses the template to create an old-style
-    ///dialog box that replaces the default dialog box. </td> </tr> <tr> <td width="40%"><a id="OFN_EXPLORER"></a><a
-    ///id="ofn_explorer"></a><dl> <dt><b>OFN_EXPLORER</b></dt> <dt>0x00080000</dt> </dl> </td> <td width="60%">
-    ///Indicates that any customizations made to the <b>Open</b> or <b>Save As</b> dialog box use the Explorer-style
-    ///customization methods. For more information, see Explorer-Style Hook Procedures and Explorer-Style Custom
-    ///Templates. By default, the <b>Open</b> and <b>Save As</b> dialog boxes use the Explorer-style user interface
-    ///regardless of whether this flag is set. This flag is necessary only if you provide a hook procedure or custom
-    ///template, or set the <b>OFN_ALLOWMULTISELECT</b> flag. If you want the old-style user interface, omit the
-    ///<b>OFN_EXPLORER</b> flag and provide a replacement old-style template or hook procedure. If you want the old
-    ///style but do not need a custom template or hook procedure, simply provide a hook procedure that always returns
-    ///<b>FALSE</b>. </td> </tr> <tr> <td width="40%"><a id="OFN_EXTENSIONDIFFERENT"></a><a
-    ///id="ofn_extensiondifferent"></a><dl> <dt><b>OFN_EXTENSIONDIFFERENT</b></dt> <dt>0x00000400</dt> </dl> </td> <td
-    ///width="60%"> The user typed a file name extension that differs from the extension specified by
-    ///<b>lpstrDefExt</b>. The function does not use this flag if <b>lpstrDefExt</b> is <b>NULL</b>. </td> </tr> <tr>
-    ///<td width="40%"><a id="OFN_FILEMUSTEXIST"></a><a id="ofn_filemustexist"></a><dl>
-    ///<dt><b>OFN_FILEMUSTEXIST</b></dt> <dt>0x00001000</dt> </dl> </td> <td width="60%"> The user can type only names
-    ///of existing files in the <b>File Name</b> entry field. If this flag is specified and the user enters an invalid
-    ///name, the dialog box procedure displays a warning in a message box. If this flag is specified, the
-    ///<b>OFN_PATHMUSTEXIST</b> flag is also used. This flag can be used in an <b>Open</b> dialog box. It cannot be used
-    ///with a <b>Save As</b> dialog box. </td> </tr> <tr> <td width="40%"><a id="OFN_FORCESHOWHIDDEN"></a><a
-    ///id="ofn_forceshowhidden"></a><dl> <dt><b>OFN_FORCESHOWHIDDEN</b></dt> <dt>0x10000000</dt> </dl> </td> <td
-    ///width="60%"> Forces the showing of system and hidden files, thus overriding the user setting to show or not show
-    ///hidden files. However, a file that is marked both system and hidden is not shown. </td> </tr> <tr> <td
-    ///width="40%"><a id="OFN_HIDEREADONLY"></a><a id="ofn_hidereadonly"></a><dl> <dt><b>OFN_HIDEREADONLY</b></dt>
-    ///<dt>0x00000004</dt> </dl> </td> <td width="60%"> Hides the <b>Read Only</b> check box. </td> </tr> <tr> <td
-    ///width="40%"><a id="OFN_LONGNAMES"></a><a id="ofn_longnames"></a><dl> <dt><b>OFN_LONGNAMES</b></dt>
-    ///<dt>0x00200000</dt> </dl> </td> <td width="60%"> For old-style dialog boxes, this flag causes the dialog box to
-    ///use long file names. If this flag is not specified, or if the <b>OFN_ALLOWMULTISELECT</b> flag is also set,
-    ///old-style dialog boxes use short file names (8.3 format) for file names with spaces. Explorer-style dialog boxes
-    ///ignore this flag and always display long file names. </td> </tr> <tr> <td width="40%"><a
-    ///id="OFN_NOCHANGEDIR"></a><a id="ofn_nochangedir"></a><dl> <dt><b>OFN_NOCHANGEDIR</b></dt> <dt>0x00000008</dt>
-    ///</dl> </td> <td width="60%"> Restores the current directory to its original value if the user changed the
-    ///directory while searching for files. This flag is ineffective for GetOpenFileName. </td> </tr> <tr> <td
-    ///width="40%"><a id="OFN_NODEREFERENCELINKS"></a><a id="ofn_nodereferencelinks"></a><dl>
-    ///<dt><b>OFN_NODEREFERENCELINKS</b></dt> <dt>0x00100000</dt> </dl> </td> <td width="60%"> Directs the dialog box to
-    ///return the path and file name of the selected shortcut (.LNK) file. If this value is not specified, the dialog
-    ///box returns the path and file name of the file referenced by the shortcut. </td> </tr> <tr> <td width="40%"><a
-    ///id="OFN_NOLONGNAMES"></a><a id="ofn_nolongnames"></a><dl> <dt><b>OFN_NOLONGNAMES</b></dt> <dt>0x00040000</dt>
-    ///</dl> </td> <td width="60%"> For old-style dialog boxes, this flag causes the dialog box to use short file names
-    ///(8.3 format). Explorer-style dialog boxes ignore this flag and always display long file names. </td> </tr> <tr>
-    ///<td width="40%"><a id="OFN_NONETWORKBUTTON"></a><a id="ofn_nonetworkbutton"></a><dl>
-    ///<dt><b>OFN_NONETWORKBUTTON</b></dt> <dt>0x00020000</dt> </dl> </td> <td width="60%"> Hides and disables the
-    ///<b>Network</b> button. </td> </tr> <tr> <td width="40%"><a id="OFN_NOREADONLYRETURN"></a><a
-    ///id="ofn_noreadonlyreturn"></a><dl> <dt><b>OFN_NOREADONLYRETURN</b></dt> <dt>0x00008000</dt> </dl> </td> <td
-    ///width="60%"> The returned file does not have the <b>Read Only</b> check box selected and is not in a
-    ///write-protected directory. </td> </tr> <tr> <td width="40%"><a id="OFN_NOTESTFILECREATE"></a><a
-    ///id="ofn_notestfilecreate"></a><dl> <dt><b>OFN_NOTESTFILECREATE</b></dt> <dt>0x00010000</dt> </dl> </td> <td
-    ///width="60%"> The file is not created before the dialog box is closed. This flag should be specified if the
-    ///application saves the file on a create-nonmodify network share. When an application specifies this flag, the
-    ///library does not check for write protection, a full disk, an open drive door, or network protection. Applications
-    ///using this flag must perform file operations carefully, because a file cannot be reopened once it is closed.
-    ///</td> </tr> <tr> <td width="40%"><a id="OFN_NOVALIDATE"></a><a id="ofn_novalidate"></a><dl>
-    ///<dt><b>OFN_NOVALIDATE</b></dt> <dt>0x00000100</dt> </dl> </td> <td width="60%"> The common dialog boxes allow
-    ///invalid characters in the returned file name. Typically, the calling application uses a hook procedure that
-    ///checks the file name by using the FILEOKSTRING message. If the text box in the edit control is empty or contains
-    ///nothing but spaces, the lists of files and directories are updated. If the text box in the edit control contains
-    ///anything else, <b>nFileOffset</b> and <b>nFileExtension</b> are set to values generated by parsing the text. No
-    ///default extension is added to the text, nor is text copied to the buffer specified by <b>lpstrFileTitle</b>. If
-    ///the value specified by <b>nFileOffset</b> is less than zero, the file name is invalid. Otherwise, the file name
-    ///is valid, and <b>nFileExtension</b> and <b>nFileOffset</b> can be used as if the <b>OFN_NOVALIDATE</b> flag had
-    ///not been specified. </td> </tr> <tr> <td width="40%"><a id="OFN_OVERWRITEPROMPT"></a><a
-    ///id="ofn_overwriteprompt"></a><dl> <dt><b>OFN_OVERWRITEPROMPT</b></dt> <dt>0x00000002</dt> </dl> </td> <td
-    ///width="60%"> Causes the <b>Save As</b> dialog box to generate a message box if the selected file already exists.
-    ///The user must confirm whether to overwrite the file. </td> </tr> <tr> <td width="40%"><a
-    ///id="OFN_PATHMUSTEXIST"></a><a id="ofn_pathmustexist"></a><dl> <dt><b>OFN_PATHMUSTEXIST</b></dt>
-    ///<dt>0x00000800</dt> </dl> </td> <td width="60%"> The user can type only valid paths and file names. If this flag
-    ///is used and the user types an invalid path and file name in the <b>File Name</b> entry field, the dialog box
-    ///function displays a warning in a message box. </td> </tr> <tr> <td width="40%"><a id="OFN_READONLY"></a><a
-    ///id="ofn_readonly"></a><dl> <dt><b>OFN_READONLY</b></dt> <dt>0x00000001</dt> </dl> </td> <td width="60%"> Causes
-    ///the <b>Read Only</b> check box to be selected initially when the dialog box is created. This flag indicates the
-    ///state of the <b>Read Only</b> check box when the dialog box is closed. </td> </tr> <tr> <td width="40%"><a
-    ///id="OFN_SHAREAWARE"></a><a id="ofn_shareaware"></a><dl> <dt><b>OFN_SHAREAWARE</b></dt> <dt>0x00004000</dt> </dl>
-    ///</td> <td width="60%"> Specifies that if a call to the OpenFile function fails because of a network sharing
-    ///violation, the error is ignored and the dialog box returns the selected file name. If this flag is not set, the
-    ///dialog box notifies your hook procedure when a network sharing violation occurs for the file name specified by
-    ///the user. If you set the <b>OFN_EXPLORER</b> flag, the dialog box sends the CDN_SHAREVIOLATION message to the
-    ///hook procedure. If you do not set <b>OFN_EXPLORER</b>, the dialog box sends the SHAREVISTRING registered message
-    ///to the hook procedure. </td> </tr> <tr> <td width="40%"><a id="OFN_SHOWHELP"></a><a id="ofn_showhelp"></a><dl>
-    ///<dt><b>OFN_SHOWHELP</b></dt> <dt>0x00000010</dt> </dl> </td> <td width="60%"> Causes the dialog box to display
-    ///the <b>Help</b> button. The <b>hwndOwner</b> member must specify the window to receive the HELPMSGSTRING
-    ///registered messages that the dialog box sends when the user clicks the <b>Help</b> button. An Explorer-style
-    ///dialog box sends a CDN_HELP notification message to your hook procedure when the user clicks the <b>Help</b>
-    ///button. </td> </tr> </table>
-    uint          Flags;
-    ///Type: <b>WORD</b> The zero-based offset, in characters, from the beginning of the path to the file name in the
-    ///string pointed to by <b>lpstrFile</b>. For the ANSI version, this is the number of bytes; for the Unicode
-    ///version, this is the number of characters. For example, if <b>lpstrFile</b> points to the following string,
-    ///"c:\dir1\dir2\file.ext", this member contains the value 13 to indicate the offset of the "file.ext" string. If
-    ///the user selects more than one file, <b>nFileOffset</b> is the offset to the first file name.
-    ushort        nFileOffset;
-    ///Type: <b>WORD</b> The zero-based offset, in characters, from the beginning of the path to the file name extension
-    ///in the string pointed to by <b>lpstrFile</b>. For the ANSI version, this is the number of bytes; for the Unicode
-    ///version, this is the number of characters. Usually the file name extension is the substring which follows the
-    ///last occurrence of the dot (".") character. For example, txt is the extension of the filename readme.txt, html
-    ///the extension of readme.txt.html. Therefore, if <b>lpstrFile</b> points to the string "c:\dir1\dir2\readme.txt",
-    ///this member contains the value 20. If <b>lpstrFile</b> points to the string "c:\dir1\dir2\readme.txt.html", this
-    ///member contains the value 24. If <b>lpstrFile</b> points to the string "c:\dir1\dir2\readme.txt.html.", this
-    ///member contains the value 29. If <b>lpstrFile</b> points to a string that does not contain any "." character such
-    ///as "c:\dir1\dir2\readme", this member contains zero.
-    ushort        nFileExtension;
-    ///Type: <b>LPCTSTR</b> The default extension. GetOpenFileName and GetSaveFileName append this extension to the file
-    ///name if the user fails to type an extension. This string can be any length, but only the first three characters
-    ///are appended. The string should not contain a period (.). If this member is <b>NULL</b> and the user fails to
-    ///type an extension, no extension is appended.
-    const(wchar)* lpstrDefExt;
-    ///Type: <b>LPARAM</b> Application-defined data that the system passes to the hook procedure identified by the
-    ///<b>lpfnHook</b> member. When the system sends the WM_INITDIALOG message to the hook procedure, the message's
-    ///<i>lParam</i> parameter is a pointer to the <b>OPENFILENAME</b> structure specified when the dialog box was
-    ///created. The hook procedure can use this pointer to get the <b>lCustData</b> value.
-    LPARAM        lCustData;
-    ///Type: <b>LPOFNHOOKPROC</b> A pointer to a hook procedure. This member is ignored unless the <b>Flags</b> member
-    ///includes the <b>OFN_ENABLEHOOK</b> flag. If the <b>OFN_EXPLORER</b> flag is not set in the <b>Flags</b> member,
-    ///<b>lpfnHook</b> is a pointer to an OFNHookProcOldStyle hook procedure that receives messages intended for the
-    ///dialog box. The hook procedure returns <b>FALSE</b> to pass a message to the default dialog box procedure or
-    ///<b>TRUE</b> to discard the message. If <b>OFN_EXPLORER</b> is set, <b>lpfnHook</b> is a pointer to an OFNHookProc
-    ///hook procedure. The hook procedure receives notification messages sent from the dialog box. The hook procedure
-    ///also receives messages for any additional controls that you defined by specifying a child dialog template. The
-    ///hook procedure does not receive messages intended for the standard controls of the default dialog box.
-    LPOFNHOOKPROC lpfnHook;
-    ///Type: <b>LPCTSTR</b> The name of the dialog template resource in the module identified by the <b>hInstance</b>
-    ///member. For numbered dialog box resources, this can be a value returned by the MAKEINTRESOURCE macro. This member
-    ///is ignored unless the <b>OFN_ENABLETEMPLATE</b> flag is set in the <b>Flags</b> member. If the
-    ///<b>OFN_EXPLORER</b> flag is set, the system uses the specified template to create a dialog box that is a child of
-    ///the default Explorer-style dialog box. If the <b>OFN_EXPLORER</b> flag is not set, the system uses the template
-    ///to create an old-style dialog box that replaces the default dialog box.
-    const(wchar)* lpTemplateName;
-    ///Type: <b>void*</b> This member is reserved.
-    void*         pvReserved;
-    ///Type: <b>DWORD</b> This member is reserved.
-    uint          dwReserved;
-    ///Type: <b>DWORD</b> A set of bit flags you can use to initialize the dialog box. Currently, this member can be
-    ///zero or the following flag. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
-    ///id="OFN_EX_NOPLACESBAR"></a><a id="ofn_ex_noplacesbar"></a><dl> <dt><b>OFN_EX_NOPLACESBAR</b></dt>
-    ///<dt>0x00000001</dt> </dl> </td> <td width="60%"> If this flag is set, the places bar is not displayed. If this
-    ///flag is not set, Explorer-style dialog boxes include a places bar containing icons for commonly-used folders,
-    ///such as Favorites and Desktop. </td> </tr> </table>
-    uint          FlagsEx;
-}
-
-///Contains information about a WM_NOTIFY message sent to an OFNHookProc hook procedure for an <b>Open</b> or <b>Save
-///As</b> dialog box. The <i>lParam</i> parameter of the <b>WM_NOTIFY</b> message is a pointer to an <b>OFNOTIFY</b>
-///structure.
-struct OFNOTIFYA
-{
-align (1):
-    ///Type: <b>NMHDR</b> The <b>code</b> member of this structure can be one of the following notification messages
-    ///that identify the message being sent: CDN_FILEOK, CDN_FOLDERCHANGE, CDN_HELP, CDN_INITDONE, CDN_SELCHANGE,
-    ///CDN_SHAREVIOLATION, CDN_TYPECHANGE.
-    NMHDR          hdr;
-    ///Type: <b>LPOPENFILENAME</b> A pointer to the OPENFILENAME structure that was specified when the <b>Open</b> or
-    ///<b>Save As</b> dialog box was created. For some of the notification messages, this structure contains additional
-    ///information about the event that caused the notification.
-    OPENFILENAMEA* lpOFN;
-    ///Type: <b>LPTSTR</b> The file name for which a network sharing violation has occurred. This member is valid only
-    ///with the CDN_SHAREVIOLATION notification message.
-    const(char)*   pszFile;
-}
-
-///Contains information about a WM_NOTIFY message sent to an OFNHookProc hook procedure for an <b>Open</b> or <b>Save
-///As</b> dialog box. The <i>lParam</i> parameter of the <b>WM_NOTIFY</b> message is a pointer to an <b>OFNOTIFY</b>
-///structure.
-struct OFNOTIFYW
-{
-align (1):
-    ///Type: <b>NMHDR</b> The <b>code</b> member of this structure can be one of the following notification messages
-    ///that identify the message being sent: CDN_FILEOK, CDN_FOLDERCHANGE, CDN_HELP, CDN_INITDONE, CDN_SELCHANGE,
-    ///CDN_SHAREVIOLATION, CDN_TYPECHANGE.
-    NMHDR          hdr;
-    ///Type: <b>LPOPENFILENAME</b> A pointer to the OPENFILENAME structure that was specified when the <b>Open</b> or
-    ///<b>Save As</b> dialog box was created. For some of the notification messages, this structure contains additional
-    ///information about the event that caused the notification.
-    OPENFILENAMEW* lpOFN;
-    ///Type: <b>LPTSTR</b> The file name for which a network sharing violation has occurred. This member is valid only
-    ///with the CDN_SHAREVIOLATION notification message.
-    const(wchar)*  pszFile;
-}
-
-///Contains information about a CDN_INCLUDEITEM notification message.
-struct OFNOTIFYEXA
-{
-align (1):
-    ///Type: <b>NMHDR</b> The <b>code</b> member of this structure identifies the notification message being sent.
-    NMHDR          hdr;
-    ///Type: <b>LPOPENFILENAME</b> A pointer to an OPENFILENAME structure containing the values specified when the
-    ///<b>Open</b> or <b>Save As</b> dialog box was created.
-    OPENFILENAMEA* lpOFN;
-    ///Type: <b>LPVOID</b> A pointer to the interface for the folder or shell name-space extension whose items are being
-    ///enumerated.
-    void*          psf;
-    ///Type: <b>LPVOID</b> A pointer to an item identifier list that identifies an item in the container identified by
-    ///the <b>psf</b> member. The item identifier is relative to the <b>psf</b> container.
-    void*          pidl;
-}
-
-///Contains information about a CDN_INCLUDEITEM notification message.
-struct OFNOTIFYEXW
-{
-align (1):
-    ///Type: <b>NMHDR</b> The <b>code</b> member of this structure identifies the notification message being sent.
-    NMHDR          hdr;
-    ///Type: <b>LPOPENFILENAME</b> A pointer to an OPENFILENAME structure containing the values specified when the
-    ///<b>Open</b> or <b>Save As</b> dialog box was created.
-    OPENFILENAMEW* lpOFN;
-    ///Type: <b>LPVOID</b> A pointer to the interface for the folder or shell name-space extension whose items are being
-    ///enumerated.
-    void*          psf;
-    ///Type: <b>LPVOID</b> A pointer to an item identifier list that identifies an item in the container identified by
-    ///the <b>psf</b> member. The item identifier is relative to the <b>psf</b> container.
-    void*          pidl;
-}
-
-///Contains information the ChooseColor function uses to initialize the <b>Color</b> dialog box. After the user closes
-///the dialog box, the system returns information about the user's selection in this structure.
-struct CHOOSECOLORA
-{
-align (1):
-    ///Type: <b>DWORD</b> The length, in bytes, of the structure.
-    uint         lStructSize;
-    ///Type: <b>HWND</b> A handle to the window that owns the dialog box. This member can be any valid window handle, or
-    ///it can be <b>NULL</b> if the dialog box has no owner.
-    HWND         hwndOwner;
-    ///Type: <b>HWND</b> If the <b>CC_ENABLETEMPLATEHANDLE</b> flag is set in the <b>Flags</b> member, <b>hInstance</b>
-    ///is a handle to a memory object containing a dialog box template. If the <b>CC_ENABLETEMPLATE</b> flag is set,
-    ///<b>hInstance</b> is a handle to a module that contains a dialog box template named by the <b>lpTemplateName</b>
-    ///member. If neither <b>CC_ENABLETEMPLATEHANDLE</b> nor <b>CC_ENABLETEMPLATE</b> is set, this member is ignored.
-    HWND         hInstance;
-    ///Type: <b>COLORREF</b> If the <b>CC_RGBINIT</b> flag is set, <b>rgbResult</b> specifies the color initially
-    ///selected when the dialog box is created. If the specified color value is not among the available colors, the
-    ///system selects the nearest solid color available. If <b>rgbResult</b> is zero or <b>CC_RGBINIT</b> is not set,
-    ///the initially selected color is black. If the user clicks the <b>OK</b> button, <b>rgbResult</b> specifies the
-    ///user's color selection. To create a COLORREF color value, use the RGB macro.
-    uint         rgbResult;
-    ///Type: <b>COLORREF*</b> A pointer to an array of 16 values that contain red, green, blue (RGB) values for the
-    ///custom color boxes in the dialog box. If the user modifies these colors, the system updates the array with the
-    ///new RGB values. To preserve new custom colors between calls to the ChooseColor function, you should allocate
-    ///static memory for the array. To create a COLORREF color value, use the RGB macro.
-    uint*        lpCustColors;
-    ///Type: <b>DWORD</b> A set of bit flags that you can use to initialize the <b>Color</b> dialog box. When the dialog
-    ///box returns, it sets these flags to indicate the user's input. This member can be a combination of the following
-    ///flags. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="CC_ANYCOLOR"></a><a
-    ///id="cc_anycolor"></a><dl> <dt><b>CC_ANYCOLOR</b></dt> <dt>0x00000100</dt> </dl> </td> <td width="60%"> Causes the
-    ///dialog box to display all available colors in the set of basic colors. </td> </tr> <tr> <td width="40%"><a
-    ///id="CC_ENABLEHOOK"></a><a id="cc_enablehook"></a><dl> <dt><b>CC_ENABLEHOOK</b></dt> <dt>0x00000010</dt> </dl>
-    ///</td> <td width="60%"> Enables the hook procedure specified in the <b>lpfnHook</b> member of this structure. This
-    ///flag is used only to initialize the dialog box. </td> </tr> <tr> <td width="40%"><a id="CC_ENABLETEMPLATE"></a><a
-    ///id="cc_enabletemplate"></a><dl> <dt><b>CC_ENABLETEMPLATE</b></dt> <dt>0x00000020</dt> </dl> </td> <td
-    ///width="60%"> The <b>hInstance</b> and <b>lpTemplateName</b> members specify a dialog box template to use in place
-    ///of the default template. This flag is used only to initialize the dialog box. </td> </tr> <tr> <td width="40%"><a
-    ///id="CC_ENABLETEMPLATEHANDLE"></a><a id="cc_enabletemplatehandle"></a><dl> <dt><b>CC_ENABLETEMPLATEHANDLE</b></dt>
-    ///<dt>0x00000040</dt> </dl> </td> <td width="60%"> The <b>hInstance</b> member identifies a data block that
-    ///contains a preloaded dialog box template. The system ignores the <b>lpTemplateName</b> member if this flag is
-    ///specified. This flag is used only to initialize the dialog box. </td> </tr> <tr> <td width="40%"><a
-    ///id="CC_FULLOPEN"></a><a id="cc_fullopen"></a><dl> <dt><b>CC_FULLOPEN</b></dt> <dt>0x00000002</dt> </dl> </td> <td
-    ///width="60%"> Causes the dialog box to display the additional controls that allow the user to create custom
-    ///colors. If this flag is not set, the user must click the <b>Define Custom Color</b> button to display the custom
-    ///color controls. </td> </tr> <tr> <td width="40%"><a id="CC_PREVENTFULLOPEN"></a><a
-    ///id="cc_preventfullopen"></a><dl> <dt><b>CC_PREVENTFULLOPEN</b></dt> <dt>0x00000004</dt> </dl> </td> <td
-    ///width="60%"> Disables the <b>Define Custom Color</b> button. </td> </tr> <tr> <td width="40%"><a
-    ///id="CC_RGBINIT"></a><a id="cc_rgbinit"></a><dl> <dt><b>CC_RGBINIT</b></dt> <dt>0x00000001</dt> </dl> </td> <td
-    ///width="60%"> Causes the dialog box to use the color specified in the <b>rgbResult</b> member as the initial color
-    ///selection. </td> </tr> <tr> <td width="40%"><a id="CC_SHOWHELP"></a><a id="cc_showhelp"></a><dl>
-    ///<dt><b>CC_SHOWHELP</b></dt> <dt>0x00000008</dt> </dl> </td> <td width="60%"> Causes the dialog box to display the
-    ///Help button. The <b>hwndOwner</b> member must specify the window to receive the HELPMSGSTRING registered messages
-    ///that the dialog box sends when the user clicks the <b>Help</b> button. </td> </tr> <tr> <td width="40%"><a
-    ///id="CC_SOLIDCOLOR"></a><a id="cc_solidcolor"></a><dl> <dt><b>CC_SOLIDCOLOR</b></dt> <dt>0x00000080</dt> </dl>
-    ///</td> <td width="60%"> Causes the dialog box to display only solid colors in the set of basic colors. </td> </tr>
-    ///</table>
-    uint         Flags;
-    ///Type: <b>LPARAM</b> Application-defined data that the system passes to the hook procedure identified by the
-    ///<b>lpfnHook</b> member. When the system sends the WM_INITDIALOG message to the hook procedure, the message's
-    ///<i>lParam</i> parameter is a pointer to the <b>CHOOSECOLOR</b> structure specified when the dialog was created.
-    ///The hook procedure can use this pointer to get the <b>lCustData</b> value.
-    LPARAM       lCustData;
-    ///Type: <b>LPCCHOOKPROC</b> A pointer to a CCHookProc hook procedure that can process messages intended for the
-    ///dialog box. This member is ignored unless the <b>CC_ENABLEHOOK</b> flag is set in the <b>Flags</b> member.
-    LPCCHOOKPROC lpfnHook;
-    ///Type: <b>LPCTSTR</b> The name of the dialog box template resource in the module identified by the
-    ///<b>hInstance</b> member. This template is substituted for the standard dialog box template. For numbered dialog
-    ///box resources, <b>lpTemplateName</b> can be a value returned by the MAKEINTRESOURCE macro. This member is ignored
-    ///unless the <b>CC_ENABLETEMPLATE</b> flag is set in the <b>Flags</b> member.
-    const(char)* lpTemplateName;
-}
-
-///Contains information the ChooseColor function uses to initialize the <b>Color</b> dialog box. After the user closes
-///the dialog box, the system returns information about the user's selection in this structure.
-struct CHOOSECOLORW
-{
-align (1):
-    ///Type: <b>DWORD</b> The length, in bytes, of the structure.
-    uint          lStructSize;
-    ///Type: <b>HWND</b> A handle to the window that owns the dialog box. This member can be any valid window handle, or
-    ///it can be <b>NULL</b> if the dialog box has no owner.
-    HWND          hwndOwner;
-    ///Type: <b>HWND</b> If the <b>CC_ENABLETEMPLATEHANDLE</b> flag is set in the <b>Flags</b> member, <b>hInstance</b>
-    ///is a handle to a memory object containing a dialog box template. If the <b>CC_ENABLETEMPLATE</b> flag is set,
-    ///<b>hInstance</b> is a handle to a module that contains a dialog box template named by the <b>lpTemplateName</b>
-    ///member. If neither <b>CC_ENABLETEMPLATEHANDLE</b> nor <b>CC_ENABLETEMPLATE</b> is set, this member is ignored.
-    HWND          hInstance;
-    ///Type: <b>COLORREF</b> If the <b>CC_RGBINIT</b> flag is set, <b>rgbResult</b> specifies the color initially
-    ///selected when the dialog box is created. If the specified color value is not among the available colors, the
-    ///system selects the nearest solid color available. If <b>rgbResult</b> is zero or <b>CC_RGBINIT</b> is not set,
-    ///the initially selected color is black. If the user clicks the <b>OK</b> button, <b>rgbResult</b> specifies the
-    ///user's color selection. To create a COLORREF color value, use the RGB macro.
-    uint          rgbResult;
-    ///Type: <b>COLORREF*</b> A pointer to an array of 16 values that contain red, green, blue (RGB) values for the
-    ///custom color boxes in the dialog box. If the user modifies these colors, the system updates the array with the
-    ///new RGB values. To preserve new custom colors between calls to the ChooseColor function, you should allocate
-    ///static memory for the array. To create a COLORREF color value, use the RGB macro.
-    uint*         lpCustColors;
-    ///Type: <b>DWORD</b> A set of bit flags that you can use to initialize the <b>Color</b> dialog box. When the dialog
-    ///box returns, it sets these flags to indicate the user's input. This member can be a combination of the following
-    ///flags. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="CC_ANYCOLOR"></a><a
-    ///id="cc_anycolor"></a><dl> <dt><b>CC_ANYCOLOR</b></dt> <dt>0x00000100</dt> </dl> </td> <td width="60%"> Causes the
-    ///dialog box to display all available colors in the set of basic colors. </td> </tr> <tr> <td width="40%"><a
-    ///id="CC_ENABLEHOOK"></a><a id="cc_enablehook"></a><dl> <dt><b>CC_ENABLEHOOK</b></dt> <dt>0x00000010</dt> </dl>
-    ///</td> <td width="60%"> Enables the hook procedure specified in the <b>lpfnHook</b> member of this structure. This
-    ///flag is used only to initialize the dialog box. </td> </tr> <tr> <td width="40%"><a id="CC_ENABLETEMPLATE"></a><a
-    ///id="cc_enabletemplate"></a><dl> <dt><b>CC_ENABLETEMPLATE</b></dt> <dt>0x00000020</dt> </dl> </td> <td
-    ///width="60%"> The <b>hInstance</b> and <b>lpTemplateName</b> members specify a dialog box template to use in place
-    ///of the default template. This flag is used only to initialize the dialog box. </td> </tr> <tr> <td width="40%"><a
-    ///id="CC_ENABLETEMPLATEHANDLE"></a><a id="cc_enabletemplatehandle"></a><dl> <dt><b>CC_ENABLETEMPLATEHANDLE</b></dt>
-    ///<dt>0x00000040</dt> </dl> </td> <td width="60%"> The <b>hInstance</b> member identifies a data block that
-    ///contains a preloaded dialog box template. The system ignores the <b>lpTemplateName</b> member if this flag is
-    ///specified. This flag is used only to initialize the dialog box. </td> </tr> <tr> <td width="40%"><a
-    ///id="CC_FULLOPEN"></a><a id="cc_fullopen"></a><dl> <dt><b>CC_FULLOPEN</b></dt> <dt>0x00000002</dt> </dl> </td> <td
-    ///width="60%"> Causes the dialog box to display the additional controls that allow the user to create custom
-    ///colors. If this flag is not set, the user must click the <b>Define Custom Color</b> button to display the custom
-    ///color controls. </td> </tr> <tr> <td width="40%"><a id="CC_PREVENTFULLOPEN"></a><a
-    ///id="cc_preventfullopen"></a><dl> <dt><b>CC_PREVENTFULLOPEN</b></dt> <dt>0x00000004</dt> </dl> </td> <td
-    ///width="60%"> Disables the <b>Define Custom Color</b> button. </td> </tr> <tr> <td width="40%"><a
-    ///id="CC_RGBINIT"></a><a id="cc_rgbinit"></a><dl> <dt><b>CC_RGBINIT</b></dt> <dt>0x00000001</dt> </dl> </td> <td
-    ///width="60%"> Causes the dialog box to use the color specified in the <b>rgbResult</b> member as the initial color
-    ///selection. </td> </tr> <tr> <td width="40%"><a id="CC_SHOWHELP"></a><a id="cc_showhelp"></a><dl>
-    ///<dt><b>CC_SHOWHELP</b></dt> <dt>0x00000008</dt> </dl> </td> <td width="60%"> Causes the dialog box to display the
-    ///Help button. The <b>hwndOwner</b> member must specify the window to receive the HELPMSGSTRING registered messages
-    ///that the dialog box sends when the user clicks the <b>Help</b> button. </td> </tr> <tr> <td width="40%"><a
-    ///id="CC_SOLIDCOLOR"></a><a id="cc_solidcolor"></a><dl> <dt><b>CC_SOLIDCOLOR</b></dt> <dt>0x00000080</dt> </dl>
-    ///</td> <td width="60%"> Causes the dialog box to display only solid colors in the set of basic colors. </td> </tr>
-    ///</table>
-    uint          Flags;
-    ///Type: <b>LPARAM</b> Application-defined data that the system passes to the hook procedure identified by the
-    ///<b>lpfnHook</b> member. When the system sends the WM_INITDIALOG message to the hook procedure, the message's
-    ///<i>lParam</i> parameter is a pointer to the <b>CHOOSECOLOR</b> structure specified when the dialog was created.
-    ///The hook procedure can use this pointer to get the <b>lCustData</b> value.
-    LPARAM        lCustData;
-    ///Type: <b>LPCCHOOKPROC</b> A pointer to a CCHookProc hook procedure that can process messages intended for the
-    ///dialog box. This member is ignored unless the <b>CC_ENABLEHOOK</b> flag is set in the <b>Flags</b> member.
-    LPCCHOOKPROC  lpfnHook;
-    ///Type: <b>LPCTSTR</b> The name of the dialog box template resource in the module identified by the
-    ///<b>hInstance</b> member. This template is substituted for the standard dialog box template. For numbered dialog
-    ///box resources, <b>lpTemplateName</b> can be a value returned by the MAKEINTRESOURCE macro. This member is ignored
-    ///unless the <b>CC_ENABLETEMPLATE</b> flag is set in the <b>Flags</b> member.
-    const(wchar)* lpTemplateName;
-}
-
-///Contains information that the FindText and ReplaceText functions use to initialize the <b>Find</b> and <b>Replace</b>
-///dialog boxes. The FINDMSGSTRING registered message uses this structure to pass the user's search or replacement input
-///to the owner window of a <b>Find</b> or <b>Replace</b> dialog box.
-struct FINDREPLACEA
-{
-align (1):
-    ///Type: <b>DWORD</b> The length, in bytes, of the structure.
-    uint         lStructSize;
-    ///Type: <b>HWND</b> A handle to the window that owns the dialog box. The window procedure of the specified window
-    ///receives FINDMSGSTRING messages from the dialog box. This member can be any valid window handle, but it must not
-    ///be <b>NULL</b>.
-    HWND         hwndOwner;
-    ///Type: <b>HINSTANCE</b> If the <b>FR_ENABLETEMPLATEHANDLE</b> flag is set in the <b>Flags</b>, <b>hInstance</b> is
-    ///a handle to a memory object containing a dialog box template. If the <b>FR_ENABLETEMPLATE</b> flag is set,
-    ///<b>hInstance</b> is a handle to a module that contains a dialog box template named by the <b>lpTemplateName</b>
-    ///member. If neither flag is set, this member is ignored.
-    HINSTANCE    hInstance;
-    ///Type: <b>DWORD</b> A set of bit flags that you can use to initialize the dialog box. The dialog box sets these
-    ///flags when it sends the FINDMSGSTRING registered message to indicate the user's input. This member can be one or
-    ///more of the following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
-    ///id="FR_DIALOGTERM"></a><a id="fr_dialogterm"></a><dl> <dt><b>FR_DIALOGTERM</b></dt> <dt>0x00000040</dt> </dl>
-    ///</td> <td width="60%"> If set in a FINDMSGSTRING message, indicates that the dialog box is closing. When you
-    ///receive a message with this flag set, the dialog box handle returned by the FindText or ReplaceText function is
-    ///no longer valid. </td> </tr> <tr> <td width="40%"><a id="FR_DOWN"></a><a id="fr_down"></a><dl>
-    ///<dt><b>FR_DOWN</b></dt> <dt>0x00000001</dt> </dl> </td> <td width="60%"> If set, the <b>Down</b> button of the
-    ///direction radio buttons in a <b>Find</b> dialog box is selected indicating that you should search from the
-    ///current location to the end of the document. If not set, the <b>Up</b> button is selected so you should search to
-    ///the beginning of the document. You can set this flag to initialize the dialog box. If set in a FINDMSGSTRING
-    ///message, indicates the user's selection. </td> </tr> <tr> <td width="40%"><a id="FR_ENABLEHOOK"></a><a
-    ///id="fr_enablehook"></a><dl> <dt><b>FR_ENABLEHOOK</b></dt> <dt>0x00000100</dt> </dl> </td> <td width="60%">
-    ///Enables the hook function specified in the <b>lpfnHook</b> member. This flag is used only to initialize the
-    ///dialog box. </td> </tr> <tr> <td width="40%"><a id="FR_ENABLETEMPLATE"></a><a id="fr_enabletemplate"></a><dl>
-    ///<dt><b>FR_ENABLETEMPLATE</b></dt> <dt>0x00000200</dt> </dl> </td> <td width="60%"> Indicates that the
-    ///<b>hInstance</b> and <b>lpTemplateName</b> members specify a dialog box template to use in place of the default
-    ///template. This flag is used only to initialize the dialog box. </td> </tr> <tr> <td width="40%"><a
-    ///id="FR_ENABLETEMPLATEHANDLE"></a><a id="fr_enabletemplatehandle"></a><dl> <dt><b>FR_ENABLETEMPLATEHANDLE</b></dt>
-    ///<dt>0x00002000</dt> </dl> </td> <td width="60%"> Indicates that the <b>hInstance</b> member identifies a data
-    ///block that contains a preloaded dialog box template. The system ignores the <b>lpTemplateName</b> member if this
-    ///flag is specified. </td> </tr> <tr> <td width="40%"><a id="FR_FINDNEXT"></a><a id="fr_findnext"></a><dl>
-    ///<dt><b>FR_FINDNEXT</b></dt> <dt>0x00000008</dt> </dl> </td> <td width="60%"> If set in a FINDMSGSTRING message,
-    ///indicates that the user clicked the <b>Find Next</b> button in a <b>Find</b> or <b>Replace</b> dialog box. The
-    ///<b>lpstrFindWhat</b> member specifies the string to search for. </td> </tr> <tr> <td width="40%"><a
-    ///id="FR_HIDEUPDOWN"></a><a id="fr_hideupdown"></a><dl> <dt><b>FR_HIDEUPDOWN</b></dt> <dt>0x00004000</dt> </dl>
-    ///</td> <td width="60%"> If set when initializing a <b>Find</b> dialog box, hides the search direction radio
-    ///buttons. </td> </tr> <tr> <td width="40%"><a id="FR_HIDEMATCHCASE"></a><a id="fr_hidematchcase"></a><dl>
-    ///<dt><b>FR_HIDEMATCHCASE</b></dt> <dt>0x00008000</dt> </dl> </td> <td width="60%"> If set when initializing a
-    ///<b>Find</b> or <b>Replace</b> dialog box, hides the <b>Match Case</b> check box. </td> </tr> <tr> <td
-    ///width="40%"><a id="FR_HIDEWHOLEWORD"></a><a id="fr_hidewholeword"></a><dl> <dt><b>FR_HIDEWHOLEWORD</b></dt>
-    ///<dt>0x00010000</dt> </dl> </td> <td width="60%"> If set when initializing a <b>Find</b> or <b>Replace</b> dialog
-    ///box, hides the <b>Match Whole Word Only</b> check box. </td> </tr> <tr> <td width="40%"><a
-    ///id="FR_MATCHCASE"></a><a id="fr_matchcase"></a><dl> <dt><b>FR_MATCHCASE</b></dt> <dt>0x00000004</dt> </dl> </td>
-    ///<td width="60%"> If set, the <b>Match Case</b> check box is selected indicating that the search should be
-    ///case-sensitive. If not set, the check box is unselected so the search should be case-insensitive. You can set
-    ///this flag to initialize the dialog box. If set in a FINDMSGSTRING message, indicates the user's selection. </td>
-    ///</tr> <tr> <td width="40%"><a id="FR_NOMATCHCASE"></a><a id="fr_nomatchcase"></a><dl>
-    ///<dt><b>FR_NOMATCHCASE</b></dt> <dt>0x00000800</dt> </dl> </td> <td width="60%"> If set when initializing a
-    ///<b>Find</b> or <b>Replace</b> dialog box, disables the <b>Match Case</b> check box. </td> </tr> <tr> <td
-    ///width="40%"><a id="FR_NOUPDOWN"></a><a id="fr_noupdown"></a><dl> <dt><b>FR_NOUPDOWN</b></dt> <dt>0x00000400</dt>
-    ///</dl> </td> <td width="60%"> If set when initializing a <b>Find</b> dialog box, disables the search direction
-    ///radio buttons. </td> </tr> <tr> <td width="40%"><a id="FR_NOWHOLEWORD"></a><a id="fr_nowholeword"></a><dl>
-    ///<dt><b>FR_NOWHOLEWORD</b></dt> <dt>0x00001000</dt> </dl> </td> <td width="60%"> If set when initializing a
-    ///<b>Find</b> or <b>Replace</b> dialog box, disables the <b>Whole Word</b> check box. </td> </tr> <tr> <td
-    ///width="40%"><a id="FR_REPLACE"></a><a id="fr_replace"></a><dl> <dt><b>FR_REPLACE</b></dt> <dt>0x00000010</dt>
-    ///</dl> </td> <td width="60%"> If set in a FINDMSGSTRING message, indicates that the user clicked the
-    ///<b>Replace</b> button in a <b>Replace</b> dialog box. The <b>lpstrFindWhat</b> member specifies the string to be
-    ///replaced and the <b>lpstrReplaceWith</b> member specifies the replacement string. </td> </tr> <tr> <td
-    ///width="40%"><a id="FR_REPLACEALL"></a><a id="fr_replaceall"></a><dl> <dt><b>FR_REPLACEALL</b></dt>
-    ///<dt>0x00000020</dt> </dl> </td> <td width="60%"> If set in a FINDMSGSTRING message, indicates that the user
-    ///clicked the <b>Replace All</b> button in a <b>Replace</b> dialog box. The <b>lpstrFindWhat</b> member specifies
-    ///the string to be replaced and the <b>lpstrReplaceWith</b> member specifies the replacement string. </td> </tr>
-    ///<tr> <td width="40%"><a id="FR_SHOWHELP"></a><a id="fr_showhelp"></a><dl> <dt><b>FR_SHOWHELP</b></dt>
-    ///<dt>0x00000080</dt> </dl> </td> <td width="60%"> Causes the dialog box to display the <b>Help</b> button. The
-    ///<b>hwndOwner</b> member must specify the window to receive the HELPMSGSTRING registered messages that the dialog
-    ///box sends when the user clicks the <b>Help</b> button. </td> </tr> <tr> <td width="40%"><a
-    ///id="FR_WHOLEWORD"></a><a id="fr_wholeword"></a><dl> <dt><b>FR_WHOLEWORD</b></dt> <dt>0x00000002</dt> </dl> </td>
-    ///<td width="60%"> If set, the <b>Match Whole Word Only</b> check box is selected indicating that you should search
-    ///only for whole words that match the search string. If not set, the check box is unselected so you should also
-    ///search for word fragments that match the search string. You can set this flag to initialize the dialog box. If
-    ///set in a FINDMSGSTRING message, indicates the user's selection. </td> </tr> </table>
-    uint         Flags;
-    ///Type: <b>LPTSTR</b> The search string that the user typed in the <b>Find What</b> edit control. You must
-    ///dynamically allocate the buffer or use a global or static array so it does not go out of scope before the dialog
-    ///box closes. The buffer should be at least 80 characters long. If the buffer contains a string when you initialize
-    ///the dialog box, the string is displayed in the <b>Find What</b> edit control. If a FINDMSGSTRING message
-    ///specifies the <b>FR_FINDNEXT</b> flag, <b>lpstrFindWhat</b> contains the string to search for. The
-    ///<b>FR_DOWN</b>, <b>FR_WHOLEWORD</b>, and <b>FR_MATCHCASE</b> flags indicate the direction and type of search. If
-    ///a <b>FINDMSGSTRING</b> message specifies the <b>FR_REPLACE</b> or <b>FR_REPLACE</b> flags, <b>lpstrFindWhat</b>
-    ///contains the string to be replaced.
-    const(char)* lpstrFindWhat;
-    ///Type: <b>LPTSTR</b> The replacement string that the user typed in the <b>Replace With</b> edit control. You must
-    ///dynamically allocate the buffer or use a global or static array so it does not go out of scope before the dialog
-    ///box closes. If the buffer contains a string when you initialize the dialog box, the string is displayed in the
-    ///<b>Replace With</b> edit control. If a FINDMSGSTRING message specifies the <b>FR_REPLACE</b> or
-    ///<b>FR_REPLACEALL</b> flags, <b>lpstrReplaceWith</b> contains the replacement string . The FindText function
-    ///ignores this member.
-    const(char)* lpstrReplaceWith;
-    ///Type: <b>WORD</b> The length, in bytes, of the buffer pointed to by the <b>lpstrFindWhat</b> member.
-    ushort       wFindWhatLen;
-    ///Type: <b>WORD</b> The length, in bytes, of the buffer pointed to by the <b>lpstrReplaceWith</b> member.
-    ushort       wReplaceWithLen;
-    ///Type: <b>LPARAM</b> Application-defined data that the system passes to the hook procedure identified by the
-    ///<b>lpfnHook</b> member. When the system sends the WM_INITDIALOG message to the hook procedure, the message's
-    ///<i>lParam</i> parameter is a pointer to the <b>FINDREPLACE</b> structure specified when the dialog was created.
-    ///The hook procedure can use this pointer to get the <b>lCustData</b> value.
-    LPARAM       lCustData;
-    ///Type: <b>LPFRHOOKPROC</b> A pointer to an FRHookProc hook procedure that can process messages intended for the
-    ///dialog box. This member is ignored unless the <b>FR_ENABLEHOOK</b> flag is set in the <b>Flags</b> member. If the
-    ///hook procedure returns <b>FALSE</b> in response to the WM_INITDIALOG message, the hook procedure must display the
-    ///dialog box or else the dialog box will not be shown. To do this, first perform any other paint operations, and
-    ///then call the ShowWindow and UpdateWindow functions.
-    LPFRHOOKPROC lpfnHook;
-    ///Type: <b>LPCTSTR</b> The name of the dialog box template resource in the module identified by the
-    ///<b>hInstance</b> member. This template is substituted for the standard dialog box template. For numbered dialog
-    ///box resources, this can be a value returned by the MAKEINTRESOURCE macro. This member is ignored unless the
-    ///<b>FR_ENABLETEMPLATE</b> flag is set in the <b>Flags</b> member.
-    const(char)* lpTemplateName;
-}
-
-///Contains information that the FindText and ReplaceText functions use to initialize the <b>Find</b> and <b>Replace</b>
-///dialog boxes. The FINDMSGSTRING registered message uses this structure to pass the user's search or replacement input
-///to the owner window of a <b>Find</b> or <b>Replace</b> dialog box.
-struct FINDREPLACEW
-{
-align (1):
-    ///Type: <b>DWORD</b> The length, in bytes, of the structure.
-    uint          lStructSize;
-    ///Type: <b>HWND</b> A handle to the window that owns the dialog box. The window procedure of the specified window
-    ///receives FINDMSGSTRING messages from the dialog box. This member can be any valid window handle, but it must not
-    ///be <b>NULL</b>.
-    HWND          hwndOwner;
-    ///Type: <b>HINSTANCE</b> If the <b>FR_ENABLETEMPLATEHANDLE</b> flag is set in the <b>Flags</b>, <b>hInstance</b> is
-    ///a handle to a memory object containing a dialog box template. If the <b>FR_ENABLETEMPLATE</b> flag is set,
-    ///<b>hInstance</b> is a handle to a module that contains a dialog box template named by the <b>lpTemplateName</b>
-    ///member. If neither flag is set, this member is ignored.
-    HINSTANCE     hInstance;
-    ///Type: <b>DWORD</b> A set of bit flags that you can use to initialize the dialog box. The dialog box sets these
-    ///flags when it sends the FINDMSGSTRING registered message to indicate the user's input. This member can be one or
-    ///more of the following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
-    ///id="FR_DIALOGTERM"></a><a id="fr_dialogterm"></a><dl> <dt><b>FR_DIALOGTERM</b></dt> <dt>0x00000040</dt> </dl>
-    ///</td> <td width="60%"> If set in a FINDMSGSTRING message, indicates that the dialog box is closing. When you
-    ///receive a message with this flag set, the dialog box handle returned by the FindText or ReplaceText function is
-    ///no longer valid. </td> </tr> <tr> <td width="40%"><a id="FR_DOWN"></a><a id="fr_down"></a><dl>
-    ///<dt><b>FR_DOWN</b></dt> <dt>0x00000001</dt> </dl> </td> <td width="60%"> If set, the <b>Down</b> button of the
-    ///direction radio buttons in a <b>Find</b> dialog box is selected indicating that you should search from the
-    ///current location to the end of the document. If not set, the <b>Up</b> button is selected so you should search to
-    ///the beginning of the document. You can set this flag to initialize the dialog box. If set in a FINDMSGSTRING
-    ///message, indicates the user's selection. </td> </tr> <tr> <td width="40%"><a id="FR_ENABLEHOOK"></a><a
-    ///id="fr_enablehook"></a><dl> <dt><b>FR_ENABLEHOOK</b></dt> <dt>0x00000100</dt> </dl> </td> <td width="60%">
-    ///Enables the hook function specified in the <b>lpfnHook</b> member. This flag is used only to initialize the
-    ///dialog box. </td> </tr> <tr> <td width="40%"><a id="FR_ENABLETEMPLATE"></a><a id="fr_enabletemplate"></a><dl>
-    ///<dt><b>FR_ENABLETEMPLATE</b></dt> <dt>0x00000200</dt> </dl> </td> <td width="60%"> Indicates that the
-    ///<b>hInstance</b> and <b>lpTemplateName</b> members specify a dialog box template to use in place of the default
-    ///template. This flag is used only to initialize the dialog box. </td> </tr> <tr> <td width="40%"><a
-    ///id="FR_ENABLETEMPLATEHANDLE"></a><a id="fr_enabletemplatehandle"></a><dl> <dt><b>FR_ENABLETEMPLATEHANDLE</b></dt>
-    ///<dt>0x00002000</dt> </dl> </td> <td width="60%"> Indicates that the <b>hInstance</b> member identifies a data
-    ///block that contains a preloaded dialog box template. The system ignores the <b>lpTemplateName</b> member if this
-    ///flag is specified. </td> </tr> <tr> <td width="40%"><a id="FR_FINDNEXT"></a><a id="fr_findnext"></a><dl>
-    ///<dt><b>FR_FINDNEXT</b></dt> <dt>0x00000008</dt> </dl> </td> <td width="60%"> If set in a FINDMSGSTRING message,
-    ///indicates that the user clicked the <b>Find Next</b> button in a <b>Find</b> or <b>Replace</b> dialog box. The
-    ///<b>lpstrFindWhat</b> member specifies the string to search for. </td> </tr> <tr> <td width="40%"><a
-    ///id="FR_HIDEUPDOWN"></a><a id="fr_hideupdown"></a><dl> <dt><b>FR_HIDEUPDOWN</b></dt> <dt>0x00004000</dt> </dl>
-    ///</td> <td width="60%"> If set when initializing a <b>Find</b> dialog box, hides the search direction radio
-    ///buttons. </td> </tr> <tr> <td width="40%"><a id="FR_HIDEMATCHCASE"></a><a id="fr_hidematchcase"></a><dl>
-    ///<dt><b>FR_HIDEMATCHCASE</b></dt> <dt>0x00008000</dt> </dl> </td> <td width="60%"> If set when initializing a
-    ///<b>Find</b> or <b>Replace</b> dialog box, hides the <b>Match Case</b> check box. </td> </tr> <tr> <td
-    ///width="40%"><a id="FR_HIDEWHOLEWORD"></a><a id="fr_hidewholeword"></a><dl> <dt><b>FR_HIDEWHOLEWORD</b></dt>
-    ///<dt>0x00010000</dt> </dl> </td> <td width="60%"> If set when initializing a <b>Find</b> or <b>Replace</b> dialog
-    ///box, hides the <b>Match Whole Word Only</b> check box. </td> </tr> <tr> <td width="40%"><a
-    ///id="FR_MATCHCASE"></a><a id="fr_matchcase"></a><dl> <dt><b>FR_MATCHCASE</b></dt> <dt>0x00000004</dt> </dl> </td>
-    ///<td width="60%"> If set, the <b>Match Case</b> check box is selected indicating that the search should be
-    ///case-sensitive. If not set, the check box is unselected so the search should be case-insensitive. You can set
-    ///this flag to initialize the dialog box. If set in a FINDMSGSTRING message, indicates the user's selection. </td>
-    ///</tr> <tr> <td width="40%"><a id="FR_NOMATCHCASE"></a><a id="fr_nomatchcase"></a><dl>
-    ///<dt><b>FR_NOMATCHCASE</b></dt> <dt>0x00000800</dt> </dl> </td> <td width="60%"> If set when initializing a
-    ///<b>Find</b> or <b>Replace</b> dialog box, disables the <b>Match Case</b> check box. </td> </tr> <tr> <td
-    ///width="40%"><a id="FR_NOUPDOWN"></a><a id="fr_noupdown"></a><dl> <dt><b>FR_NOUPDOWN</b></dt> <dt>0x00000400</dt>
-    ///</dl> </td> <td width="60%"> If set when initializing a <b>Find</b> dialog box, disables the search direction
-    ///radio buttons. </td> </tr> <tr> <td width="40%"><a id="FR_NOWHOLEWORD"></a><a id="fr_nowholeword"></a><dl>
-    ///<dt><b>FR_NOWHOLEWORD</b></dt> <dt>0x00001000</dt> </dl> </td> <td width="60%"> If set when initializing a
-    ///<b>Find</b> or <b>Replace</b> dialog box, disables the <b>Whole Word</b> check box. </td> </tr> <tr> <td
-    ///width="40%"><a id="FR_REPLACE"></a><a id="fr_replace"></a><dl> <dt><b>FR_REPLACE</b></dt> <dt>0x00000010</dt>
-    ///</dl> </td> <td width="60%"> If set in a FINDMSGSTRING message, indicates that the user clicked the
-    ///<b>Replace</b> button in a <b>Replace</b> dialog box. The <b>lpstrFindWhat</b> member specifies the string to be
-    ///replaced and the <b>lpstrReplaceWith</b> member specifies the replacement string. </td> </tr> <tr> <td
-    ///width="40%"><a id="FR_REPLACEALL"></a><a id="fr_replaceall"></a><dl> <dt><b>FR_REPLACEALL</b></dt>
-    ///<dt>0x00000020</dt> </dl> </td> <td width="60%"> If set in a FINDMSGSTRING message, indicates that the user
-    ///clicked the <b>Replace All</b> button in a <b>Replace</b> dialog box. The <b>lpstrFindWhat</b> member specifies
-    ///the string to be replaced and the <b>lpstrReplaceWith</b> member specifies the replacement string. </td> </tr>
-    ///<tr> <td width="40%"><a id="FR_SHOWHELP"></a><a id="fr_showhelp"></a><dl> <dt><b>FR_SHOWHELP</b></dt>
-    ///<dt>0x00000080</dt> </dl> </td> <td width="60%"> Causes the dialog box to display the <b>Help</b> button. The
-    ///<b>hwndOwner</b> member must specify the window to receive the HELPMSGSTRING registered messages that the dialog
-    ///box sends when the user clicks the <b>Help</b> button. </td> </tr> <tr> <td width="40%"><a
-    ///id="FR_WHOLEWORD"></a><a id="fr_wholeword"></a><dl> <dt><b>FR_WHOLEWORD</b></dt> <dt>0x00000002</dt> </dl> </td>
-    ///<td width="60%"> If set, the <b>Match Whole Word Only</b> check box is selected indicating that you should search
-    ///only for whole words that match the search string. If not set, the check box is unselected so you should also
-    ///search for word fragments that match the search string. You can set this flag to initialize the dialog box. If
-    ///set in a FINDMSGSTRING message, indicates the user's selection. </td> </tr> </table>
-    uint          Flags;
-    ///Type: <b>LPTSTR</b> The search string that the user typed in the <b>Find What</b> edit control. You must
-    ///dynamically allocate the buffer or use a global or static array so it does not go out of scope before the dialog
-    ///box closes. The buffer should be at least 80 characters long. If the buffer contains a string when you initialize
-    ///the dialog box, the string is displayed in the <b>Find What</b> edit control. If a FINDMSGSTRING message
-    ///specifies the <b>FR_FINDNEXT</b> flag, <b>lpstrFindWhat</b> contains the string to search for. The
-    ///<b>FR_DOWN</b>, <b>FR_WHOLEWORD</b>, and <b>FR_MATCHCASE</b> flags indicate the direction and type of search. If
-    ///a <b>FINDMSGSTRING</b> message specifies the <b>FR_REPLACE</b> or <b>FR_REPLACE</b> flags, <b>lpstrFindWhat</b>
-    ///contains the string to be replaced.
-    const(wchar)* lpstrFindWhat;
-    ///Type: <b>LPTSTR</b> The replacement string that the user typed in the <b>Replace With</b> edit control. You must
-    ///dynamically allocate the buffer or use a global or static array so it does not go out of scope before the dialog
-    ///box closes. If the buffer contains a string when you initialize the dialog box, the string is displayed in the
-    ///<b>Replace With</b> edit control. If a FINDMSGSTRING message specifies the <b>FR_REPLACE</b> or
-    ///<b>FR_REPLACEALL</b> flags, <b>lpstrReplaceWith</b> contains the replacement string . The FindText function
-    ///ignores this member.
-    const(wchar)* lpstrReplaceWith;
-    ///Type: <b>WORD</b> The length, in bytes, of the buffer pointed to by the <b>lpstrFindWhat</b> member.
-    ushort        wFindWhatLen;
-    ///Type: <b>WORD</b> The length, in bytes, of the buffer pointed to by the <b>lpstrReplaceWith</b> member.
-    ushort        wReplaceWithLen;
-    ///Type: <b>LPARAM</b> Application-defined data that the system passes to the hook procedure identified by the
-    ///<b>lpfnHook</b> member. When the system sends the WM_INITDIALOG message to the hook procedure, the message's
-    ///<i>lParam</i> parameter is a pointer to the <b>FINDREPLACE</b> structure specified when the dialog was created.
-    ///The hook procedure can use this pointer to get the <b>lCustData</b> value.
-    LPARAM        lCustData;
-    ///Type: <b>LPFRHOOKPROC</b> A pointer to an FRHookProc hook procedure that can process messages intended for the
-    ///dialog box. This member is ignored unless the <b>FR_ENABLEHOOK</b> flag is set in the <b>Flags</b> member. If the
-    ///hook procedure returns <b>FALSE</b> in response to the WM_INITDIALOG message, the hook procedure must display the
-    ///dialog box or else the dialog box will not be shown. To do this, first perform any other paint operations, and
-    ///then call the ShowWindow and UpdateWindow functions.
-    LPFRHOOKPROC  lpfnHook;
-    ///Type: <b>LPCTSTR</b> The name of the dialog box template resource in the module identified by the
-    ///<b>hInstance</b> member. This template is substituted for the standard dialog box template. For numbered dialog
-    ///box resources, this can be a value returned by the MAKEINTRESOURCE macro. This member is ignored unless the
-    ///<b>FR_ENABLETEMPLATE</b> flag is set in the <b>Flags</b> member.
-    const(wchar)* lpTemplateName;
-}
-
-///Contains information that the ChooseFont function uses to initialize the <b>Font</b> dialog box. After the user
-///closes the dialog box, the system returns information about the user's selection in this structure.
-struct CHOOSEFONTA
-{
-align (1):
-    ///Type: <b>DWORD</b> The length of the structure, in bytes.
-    uint         lStructSize;
-    ///Type: <b>HWND</b> A handle to the window that owns the dialog box. This member can be any valid window handle, or
-    ///it can be <b>NULL</b> if the dialog box has no owner.
-    HWND         hwndOwner;
-    ///Type: <b>HDC</b> This member is ignored by the ChooseFont function. <b>Windows Vista and Windows XP/2000: </b>A
-    ///handle to the device context or information context of the printer whose fonts will be listed in the dialog box.
-    ///This member is used only if the <b>Flags</b> member specifies the <b>CF_PRINTERFONTS</b> or <b>CF_BOTH</b> flag;
-    ///otherwise, this member is ignored.
-    HDC          hDC;
-    ///Type: <b>LPLOGFONT</b> A pointer to a LOGFONT structure. If you set the <b>CF_INITTOLOGFONTSTRUCT</b> flag in the
-    ///<b>Flags</b> member and initialize the other members, the ChooseFont function initializes the dialog box with a
-    ///font that matches the <b>LOGFONT</b> members. If the user clicks the <b>OK</b> button, <b>ChooseFont</b> sets the
-    ///members of the <b>LOGFONT</b> structure based on the user's selections.
-    LOGFONTA*    lpLogFont;
-    ///Type: <b>INT</b> The size of the selected font, in units of 1/10 of a point. The ChooseFont function sets this
-    ///value after the user closes the dialog box.
-    int          iPointSize;
-    ///Type: <b>DWORD</b> A set of bit flags that you can use to initialize the <b>Font</b> dialog box. When the dialog
-    ///box returns, it sets these flags to indicate the user input. This member can be one or more of the following
-    ///values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="CF_APPLY"></a><a
-    ///id="cf_apply"></a><dl> <dt><b>CF_APPLY</b></dt> <dt>0x00000200L</dt> </dl> </td> <td width="60%"> Causes the
-    ///dialog box to display the <b>Apply</b> button. You should provide a hook procedure to process WM_COMMAND messages
-    ///for the <b>Apply</b> button. The hook procedure can send the WM_CHOOSEFONT_GETLOGFONT message to the dialog box
-    ///to retrieve the address of the structure that contains the current selections for the font. </td> </tr> <tr> <td
-    ///width="40%"><a id="CF_ANSIONLY"></a><a id="cf_ansionly"></a><dl> <dt><b>CF_ANSIONLY</b></dt> <dt>0x00000400L</dt>
-    ///</dl> </td> <td width="60%"> This flag is obsolete. To limit font selections to all scripts except those that use
-    ///the OEM or Symbol character sets, use <b>CF_SCRIPTSONLY</b>. To get the original <b>CF_ANSIONLY</b> behavior, use
-    ///<b>CF_SELECTSCRIPT</b> and specify <b>ANSI_CHARSET</b> in the <b>lfCharSet</b> member of the LOGFONT structure
-    ///pointed to by <b>lpLogFont</b>. </td> </tr> <tr> <td width="40%"><a id="CF_BOTH"></a><a id="cf_both"></a><dl>
-    ///<dt><b>CF_BOTH</b></dt> <dt>0x00000003</dt> </dl> </td> <td width="60%"> This flag is ignored for font
-    ///enumeration. <b>Windows Vista and Windows XP/2000: </b>Causes the dialog box to list the available printer and
-    ///screen fonts. The <b>hDC</b> member is a handle to the device context or information context associated with the
-    ///printer. This flag is a combination of the <b>CF_SCREENFONTS</b> and <b>CF_PRINTERFONTS</b> flags. </td> </tr>
-    ///<tr> <td width="40%"><a id="CF_EFFECTS"></a><a id="cf_effects"></a><dl> <dt><b>CF_EFFECTS</b></dt>
-    ///<dt>0x00000100L</dt> </dl> </td> <td width="60%"> Causes the dialog box to display the controls that allow the
-    ///user to specify strikeout, underline, and text color options. If this flag is set, you can use the
-    ///<b>rgbColors</b> member to specify the initial text color. You can use the <b>lfStrikeOut</b> and
-    ///<b>lfUnderline</b> members of the structure pointed to by <b>lpLogFont</b> to specify the initial settings of the
-    ///strikeout and underline check boxes. ChooseFont can use these members to return the user's selections. </td>
-    ///</tr> <tr> <td width="40%"><a id="CF_ENABLEHOOK"></a><a id="cf_enablehook"></a><dl> <dt><b>CF_ENABLEHOOK</b></dt>
-    ///<dt>0x00000008L</dt> </dl> </td> <td width="60%"> Enables the hook procedure specified in the <b>lpfnHook</b>
-    ///member of this structure. </td> </tr> <tr> <td width="40%"><a id="CF_ENABLETEMPLATE"></a><a
-    ///id="cf_enabletemplate"></a><dl> <dt><b>CF_ENABLETEMPLATE</b></dt> <dt>0x00000010L</dt> </dl> </td> <td
-    ///width="60%"> Indicates that the <b>hInstance</b> and <b>lpTemplateName</b> members specify a dialog box template
-    ///to use in place of the default template. </td> </tr> <tr> <td width="40%"><a id="CF_ENABLETEMPLATEHANDLE"></a><a
-    ///id="cf_enabletemplatehandle"></a><dl> <dt><b>CF_ENABLETEMPLATEHANDLE</b></dt> <dt>0x00000020L</dt> </dl> </td>
-    ///<td width="60%"> Indicates that the <b>hInstance</b> member identifies a data block that contains a preloaded
-    ///dialog box template. The system ignores the <b>lpTemplateName</b> member if this flag is specified. </td> </tr>
-    ///<tr> <td width="40%"><a id="CF_FIXEDPITCHONLY"></a><a id="cf_fixedpitchonly"></a><dl>
-    ///<dt><b>CF_FIXEDPITCHONLY</b></dt> <dt>0x00004000L</dt> </dl> </td> <td width="60%"> ChooseFont should enumerate
-    ///and allow selection of only fixed-pitch fonts. </td> </tr> <tr> <td width="40%"><a id="CF_FORCEFONTEXIST"></a><a
-    ///id="cf_forcefontexist"></a><dl> <dt><b>CF_FORCEFONTEXIST</b></dt> <dt>0x00010000L</dt> </dl> </td> <td
-    ///width="60%"> ChooseFont should indicate an error condition if the user attempts to select a font or style that is
-    ///not listed in the dialog box. </td> </tr> <tr> <td width="40%"><a id="CF_INACTIVEFONTS"></a><a
-    ///id="cf_inactivefonts"></a><dl> <dt><b>CF_INACTIVEFONTS</b></dt> <dt>0x02000000L</dt> </dl> </td> <td width="60%">
-    ///ChooseFont should additionally display fonts that are set to Hide in Fonts Control Panel. <b>Windows Vista and
-    ///Windows XP/2000: </b>This flag is not supported until Windows 7. </td> </tr> <tr> <td width="40%"><a
-    ///id="CF_INITTOLOGFONTSTRUCT"></a><a id="cf_inittologfontstruct"></a><dl> <dt><b>CF_INITTOLOGFONTSTRUCT</b></dt>
-    ///<dt>0x00000040L</dt> </dl> </td> <td width="60%"> ChooseFont should use the structure pointed to by the
-    ///<b>lpLogFont</b> member to initialize the dialog box controls. </td> </tr> <tr> <td width="40%"><a
-    ///id="CF_LIMITSIZE"></a><a id="cf_limitsize"></a><dl> <dt><b>CF_LIMITSIZE</b></dt> <dt>0x00002000L</dt> </dl> </td>
-    ///<td width="60%"> ChooseFont should select only font sizes within the range specified by the <b>nSizeMin</b> and
-    ///<b>nSizeMax</b> members. </td> </tr> <tr> <td width="40%"><a id="CF_NOOEMFONTS"></a><a
-    ///id="cf_nooemfonts"></a><dl> <dt><b>CF_NOOEMFONTS</b></dt> <dt>0x00000800L</dt> </dl> </td> <td width="60%"> Same
-    ///as the <b>CF_NOVECTORFONTS</b> flag. </td> </tr> <tr> <td width="40%"><a id="CF_NOFACESEL"></a><a
-    ///id="cf_nofacesel"></a><dl> <dt><b>CF_NOFACESEL</b></dt> <dt>0x00080000L</dt> </dl> </td> <td width="60%"> When
-    ///using a LOGFONT structure to initialize the dialog box controls, use this flag to prevent the dialog box from
-    ///displaying an initial selection for the font name combo box. This is useful when there is no single font name
-    ///that applies to the text selection. </td> </tr> <tr> <td width="40%"><a id="CF_NOSCRIPTSEL"></a><a
-    ///id="cf_noscriptsel"></a><dl> <dt><b>CF_NOSCRIPTSEL</b></dt> <dt>0x00800000L</dt> </dl> </td> <td width="60%">
-    ///Disables the <b>Script</b> combo box. When this flag is set, the <b>lfCharSet</b> member of the LOGFONT structure
-    ///is set to <b>DEFAULT_CHARSET</b> when ChooseFont returns. This flag is used only to initialize the dialog box.
-    ///</td> </tr> <tr> <td width="40%"><a id="CF_NOSIMULATIONS"></a><a id="cf_nosimulations"></a><dl>
-    ///<dt><b>CF_NOSIMULATIONS</b></dt> <dt>0x00001000L</dt> </dl> </td> <td width="60%"> ChooseFont should not display
-    ///or allow selection of font simulations. </td> </tr> <tr> <td width="40%"><a id="CF_NOSIZESEL"></a><a
-    ///id="cf_nosizesel"></a><dl> <dt><b>CF_NOSIZESEL</b></dt> <dt>0x00200000L</dt> </dl> </td> <td width="60%"> When
-    ///using a structure to initialize the dialog box controls, use this flag to prevent the dialog box from displaying
-    ///an initial selection for the <b>Font Size</b> combo box. This is useful when there is no single font size that
-    ///applies to the text selection. </td> </tr> <tr> <td width="40%"><a id="CF_NOSTYLESEL"></a><a
-    ///id="cf_nostylesel"></a><dl> <dt><b>CF_NOSTYLESEL</b></dt> <dt>0x00100000L</dt> </dl> </td> <td width="60%"> When
-    ///using a LOGFONT structure to initialize the dialog box controls, use this flag to prevent the dialog box from
-    ///displaying an initial selection for the <b>Font Style</b> combo box. This is useful when there is no single font
-    ///style that applies to the text selection. </td> </tr> <tr> <td width="40%"><a id="CF_NOVECTORFONTS"></a><a
-    ///id="cf_novectorfonts"></a><dl> <dt><b>CF_NOVECTORFONTS</b></dt> <dt>0x00000800L</dt> </dl> </td> <td width="60%">
-    ///ChooseFont should not allow vector font selections. </td> </tr> <tr> <td width="40%"><a
-    ///id="CF_NOVERTFONTS"></a><a id="cf_novertfonts"></a><dl> <dt><b>CF_NOVERTFONTS</b></dt> <dt>0x01000000L</dt> </dl>
-    ///</td> <td width="60%"> Causes the <b>Font</b> dialog box to list only horizontally oriented fonts. </td> </tr>
-    ///<tr> <td width="40%"><a id="CF_PRINTERFONTS"></a><a id="cf_printerfonts"></a><dl> <dt><b>CF_PRINTERFONTS</b></dt>
-    ///<dt>0x00000002</dt> </dl> </td> <td width="60%"> This flag is ignored for font enumeration. <b>Windows Vista and
-    ///Windows XP/2000: </b>Causes the dialog box to list only the fonts supported by the printer associated with the
-    ///device context or information context identified by the <b>hDC</b> member. It also causes the font type
-    ///description label to appear at the bottom of the <b>Font</b> dialog box. </td> </tr> <tr> <td width="40%"><a
-    ///id="CF_SCALABLEONLY"></a><a id="cf_scalableonly"></a><dl> <dt><b>CF_SCALABLEONLY</b></dt> <dt>0x00020000L</dt>
-    ///</dl> </td> <td width="60%"> Specifies that ChooseFont should allow only the selection of scalable fonts.
-    ///Scalable fonts include vector fonts, scalable printer fonts, TrueType fonts, and fonts scaled by other
-    ///technologies. </td> </tr> <tr> <td width="40%"><a id="CF_SCREENFONTS"></a><a id="cf_screenfonts"></a><dl>
-    ///<dt><b>CF_SCREENFONTS</b></dt> <dt>0x00000001</dt> </dl> </td> <td width="60%"> This flag is ignored for font
-    ///enumeration. <b>Windows Vista and Windows XP/2000: </b>Causes the dialog box to list only the screen fonts
-    ///supported by the system. </td> </tr> <tr> <td width="40%"><a id="CF_SCRIPTSONLY"></a><a
-    ///id="cf_scriptsonly"></a><dl> <dt><b>CF_SCRIPTSONLY</b></dt> <dt>0x00000400L</dt> </dl> </td> <td width="60%">
-    ///ChooseFont should allow selection of fonts for all non-OEM and Symbol character sets, as well as the ANSI
-    ///character set. This supersedes the <b>CF_ANSIONLY</b> value. </td> </tr> <tr> <td width="40%"><a
-    ///id="CF_SELECTSCRIPT"></a><a id="cf_selectscript"></a><dl> <dt><b>CF_SELECTSCRIPT</b></dt> <dt>0x00400000L</dt>
-    ///</dl> </td> <td width="60%"> When specified on input, only fonts with the character set identified in the
-    ///<b>lfCharSet</b> member of the LOGFONT structure are displayed. The user will not be allowed to change the
-    ///character set specified in the <b>Scripts</b> combo box. </td> </tr> <tr> <td width="40%"><a
-    ///id="CF_SHOWHELP"></a><a id="cf_showhelp"></a><dl> <dt><b>CF_SHOWHELP</b></dt> <dt>0x00000004L</dt> </dl> </td>
-    ///<td width="60%"> Causes the dialog box to display the <b>Help</b> button. The <b>hwndOwner</b> member must
-    ///specify the window to receive the HELPMSGSTRING registered messages that the dialog box sends when the user
-    ///clicks the <b>Help</b> button. </td> </tr> <tr> <td width="40%"><a id="CF_TTONLY"></a><a id="cf_ttonly"></a><dl>
-    ///<dt><b>CF_TTONLY</b></dt> <dt>0x00040000L</dt> </dl> </td> <td width="60%"> ChooseFont should only enumerate and
-    ///allow the selection of TrueType fonts. </td> </tr> <tr> <td width="40%"><a id="CF_USESTYLE"></a><a
-    ///id="cf_usestyle"></a><dl> <dt><b>CF_USESTYLE</b></dt> <dt>0x00000080L</dt> </dl> </td> <td width="60%"> The
-    ///<b>lpszStyle</b> member is a pointer to a buffer that contains style data that ChooseFont should use to
-    ///initialize the <b>Font Style</b> combo box. When the user closes the dialog box, <b>ChooseFont</b> copies style
-    ///data for the user's selection to this buffer. <div class="alert"><b>Note</b> To globalize your application, you
-    ///should specify the style by using the <b>lfWeight</b> and <b>lfItalic</b> members of the LOGFONT structure
-    ///pointed to by <b>lpLogFont</b>. The style name may change depending on the system user interface language.</div>
-    ///<div> </div> </td> </tr> <tr> <td width="40%"><a id="CF_WYSIWYG"></a><a id="cf_wysiwyg"></a><dl>
-    ///<dt><b>CF_WYSIWYG</b></dt> <dt>0x00008000L</dt> </dl> </td> <td width="60%"> Obsolete. ChooseFont ignores this
-    ///flag. <b>Windows Vista and Windows XP/2000: </b>ChooseFont should allow only the selection of fonts available on
-    ///both the printer and the display. If this flag is specified, the <b>CF_SCREENSHOTS</b> and
-    ///<b>CF_PRINTERFONTS</b>, or <b>CF_BOTH</b> flags should also be specified. </td> </tr> </table>
-    uint         Flags;
-    ///Type: <b>COLORREF</b> If the <b>CF_EFFECTS</b> flag is set, <b>rgbColors</b> specifies the initial text color.
-    ///When ChooseFont returns successfully, this member contains the RGB value of the text color that the user
-    ///selected. To create a COLORREF color value, use the RGB macro.
-    uint         rgbColors;
-    ///Type: <b>LPARAM</b> Application-defined data that the system passes to the hook procedure identified by the
-    ///<b>lpfnHook</b> member. When the system sends the WM_INITDIALOG message to the hook procedure, the message's
-    ///<i>lParam</i> parameter is a pointer to the CHOOSEFONT structure specified when the dialog was created. The hook
-    ///procedure can use this pointer to get the <b>lCustData</b> value.
-    LPARAM       lCustData;
-    ///Type: <b>LPCFHOOKPROC</b> A pointer to a CFHookProc hook procedure that can process messages intended for the
-    ///dialog box. This member is ignored unless the <b>CF_ENABLEHOOK</b> flag is set in the <b>Flags</b> member.
-    LPCFHOOKPROC lpfnHook;
-    ///Type: <b>LPCTSTR</b> The name of the dialog box template resource in the module identified by the
-    ///<b>hInstance</b> member. This template is substituted for the standard dialog box template. For numbered dialog
-    ///box resources, <b>lpTemplateName</b> can be a value returned by the MAKEINTRESOURCE macro. This member is ignored
-    ///unless the <b>CF_ENABLETEMPLATE</b> flag is set in the <b>Flags</b> member.
-    const(char)* lpTemplateName;
-    ///Type: <b>HINSTANCE</b> If the <b>CF_ENABLETEMPLATEHANDLE</b> flag is set in the <b>Flags</b> member,
-    ///<b>hInstance</b> is a handle to a memory object containing a dialog box template. If the <b>CF_ENABLETEMPLATE</b>
-    ///flag is set, <b>hInstance</b> is a handle to a module that contains a dialog box template named by the
-    ///<b>lpTemplateName</b> member. If neither <b>CF_ENABLETEMPLATEHANDLE</b> nor <b>CF_ENABLETEMPLATE</b> is set, this
-    ///member is ignored.
-    HINSTANCE    hInstance;
-    ///Type: <b>LPTSTR</b> The style data. If the <b>CF_USESTYLE</b> flag is specified, ChooseFont uses the data in this
-    ///buffer to initialize the <b>Font Style</b> combo box. When the user closes the dialog box, <b>ChooseFont</b>
-    ///copies the string in the <b>Font Style</b> combo box into this buffer.
-    const(char)* lpszStyle;
-    ///Type: <b>WORD</b> The type of the selected font when ChooseFont returns. This member can be one or more of the
-    ///following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
-    ///id="BOLD_FONTTYPE"></a><a id="bold_fonttype"></a><dl> <dt><b>BOLD_FONTTYPE</b></dt> <dt>0x0100</dt> </dl> </td>
-    ///<td width="60%"> The font weight is bold. This information is duplicated in the <b>lfWeight</b> member of the
-    ///LOGFONT structure and is equivalent to <b>FW_BOLD</b>. </td> </tr> <tr> <td width="40%"><a
-    ///id="ITALIC_FONTTYPE"></a><a id="italic_fonttype"></a><dl> <dt><b>ITALIC_FONTTYPE</b></dt> <dt>0x0200</dt> </dl>
-    ///</td> <td width="60%"> The italic font attribute is set. This information is duplicated in the <b>lfItalic</b>
-    ///member of the LOGFONT structure. </td> </tr> <tr> <td width="40%"><a id="PRINTER_FONTTYPE"></a><a
-    ///id="printer_fonttype"></a><dl> <dt><b>PRINTER_FONTTYPE</b></dt> <dt>0x4000</dt> </dl> </td> <td width="60%"> The
-    ///font is a printer font. </td> </tr> <tr> <td width="40%"><a id="REGULAR_FONTTYPE"></a><a
-    ///id="regular_fonttype"></a><dl> <dt><b>REGULAR_FONTTYPE</b></dt> <dt>0x0400</dt> </dl> </td> <td width="60%"> The
-    ///font weight is normal. This information is duplicated in the <b>lfWeight</b> member of the LOGFONT structure and
-    ///is equivalent to <b>FW_REGULAR</b>. </td> </tr> <tr> <td width="40%"><a id="SCREEN_FONTTYPE"></a><a
-    ///id="screen_fonttype"></a><dl> <dt><b>SCREEN_FONTTYPE</b></dt> <dt>0x2000</dt> </dl> </td> <td width="60%"> The
-    ///font is a screen font. </td> </tr> <tr> <td width="40%"><a id="SIMULATED_FONTTYPE"></a><a
-    ///id="simulated_fonttype"></a><dl> <dt><b>SIMULATED_FONTTYPE</b></dt> <dt>0x8000</dt> </dl> </td> <td width="60%">
-    ///The font is simulated by the graphics device interface (GDI). </td> </tr> </table>
-    ushort       nFontType;
-    ushort       ___MISSING_ALIGNMENT__;
-    ///Type: <b>INT</b> The minimum point size a user can select. ChooseFont recognizes this member only if the
-    ///<b>CF_LIMITSIZE</b> flag is specified.
-    int          nSizeMin;
-    ///Type: <b>INT</b> The maximum point size a user can select. ChooseFont recognizes this member only if the
-    ///<b>CF_LIMITSIZE</b> flag is specified.
-    int          nSizeMax;
-}
-
-///Contains information that the ChooseFont function uses to initialize the <b>Font</b> dialog box. After the user
-///closes the dialog box, the system returns information about the user's selection in this structure.
-struct CHOOSEFONTW
-{
-align (1):
-    ///Type: <b>DWORD</b> The length of the structure, in bytes.
-    uint          lStructSize;
-    ///Type: <b>HWND</b> A handle to the window that owns the dialog box. This member can be any valid window handle, or
-    ///it can be <b>NULL</b> if the dialog box has no owner.
-    HWND          hwndOwner;
-    ///Type: <b>HDC</b> This member is ignored by the ChooseFont function. <b>Windows Vista and Windows XP/2000: </b>A
-    ///handle to the device context or information context of the printer whose fonts will be listed in the dialog box.
-    ///This member is used only if the <b>Flags</b> member specifies the <b>CF_PRINTERFONTS</b> or <b>CF_BOTH</b> flag;
-    ///otherwise, this member is ignored.
-    HDC           hDC;
-    ///Type: <b>LPLOGFONT</b> A pointer to a LOGFONT structure. If you set the <b>CF_INITTOLOGFONTSTRUCT</b> flag in the
-    ///<b>Flags</b> member and initialize the other members, the ChooseFont function initializes the dialog box with a
-    ///font that matches the <b>LOGFONT</b> members. If the user clicks the <b>OK</b> button, <b>ChooseFont</b> sets the
-    ///members of the <b>LOGFONT</b> structure based on the user's selections.
-    LOGFONTW*     lpLogFont;
-    ///Type: <b>INT</b> The size of the selected font, in units of 1/10 of a point. The ChooseFont function sets this
-    ///value after the user closes the dialog box.
-    int           iPointSize;
-    ///Type: <b>DWORD</b> A set of bit flags that you can use to initialize the <b>Font</b> dialog box. When the dialog
-    ///box returns, it sets these flags to indicate the user input. This member can be one or more of the following
-    ///values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="CF_APPLY"></a><a
-    ///id="cf_apply"></a><dl> <dt><b>CF_APPLY</b></dt> <dt>0x00000200L</dt> </dl> </td> <td width="60%"> Causes the
-    ///dialog box to display the <b>Apply</b> button. You should provide a hook procedure to process WM_COMMAND messages
-    ///for the <b>Apply</b> button. The hook procedure can send the WM_CHOOSEFONT_GETLOGFONT message to the dialog box
-    ///to retrieve the address of the structure that contains the current selections for the font. </td> </tr> <tr> <td
-    ///width="40%"><a id="CF_ANSIONLY"></a><a id="cf_ansionly"></a><dl> <dt><b>CF_ANSIONLY</b></dt> <dt>0x00000400L</dt>
-    ///</dl> </td> <td width="60%"> This flag is obsolete. To limit font selections to all scripts except those that use
-    ///the OEM or Symbol character sets, use <b>CF_SCRIPTSONLY</b>. To get the original <b>CF_ANSIONLY</b> behavior, use
-    ///<b>CF_SELECTSCRIPT</b> and specify <b>ANSI_CHARSET</b> in the <b>lfCharSet</b> member of the LOGFONT structure
-    ///pointed to by <b>lpLogFont</b>. </td> </tr> <tr> <td width="40%"><a id="CF_BOTH"></a><a id="cf_both"></a><dl>
-    ///<dt><b>CF_BOTH</b></dt> <dt>0x00000003</dt> </dl> </td> <td width="60%"> This flag is ignored for font
-    ///enumeration. <b>Windows Vista and Windows XP/2000: </b>Causes the dialog box to list the available printer and
-    ///screen fonts. The <b>hDC</b> member is a handle to the device context or information context associated with the
-    ///printer. This flag is a combination of the <b>CF_SCREENFONTS</b> and <b>CF_PRINTERFONTS</b> flags. </td> </tr>
-    ///<tr> <td width="40%"><a id="CF_EFFECTS"></a><a id="cf_effects"></a><dl> <dt><b>CF_EFFECTS</b></dt>
-    ///<dt>0x00000100L</dt> </dl> </td> <td width="60%"> Causes the dialog box to display the controls that allow the
-    ///user to specify strikeout, underline, and text color options. If this flag is set, you can use the
-    ///<b>rgbColors</b> member to specify the initial text color. You can use the <b>lfStrikeOut</b> and
-    ///<b>lfUnderline</b> members of the structure pointed to by <b>lpLogFont</b> to specify the initial settings of the
-    ///strikeout and underline check boxes. ChooseFont can use these members to return the user's selections. </td>
-    ///</tr> <tr> <td width="40%"><a id="CF_ENABLEHOOK"></a><a id="cf_enablehook"></a><dl> <dt><b>CF_ENABLEHOOK</b></dt>
-    ///<dt>0x00000008L</dt> </dl> </td> <td width="60%"> Enables the hook procedure specified in the <b>lpfnHook</b>
-    ///member of this structure. </td> </tr> <tr> <td width="40%"><a id="CF_ENABLETEMPLATE"></a><a
-    ///id="cf_enabletemplate"></a><dl> <dt><b>CF_ENABLETEMPLATE</b></dt> <dt>0x00000010L</dt> </dl> </td> <td
-    ///width="60%"> Indicates that the <b>hInstance</b> and <b>lpTemplateName</b> members specify a dialog box template
-    ///to use in place of the default template. </td> </tr> <tr> <td width="40%"><a id="CF_ENABLETEMPLATEHANDLE"></a><a
-    ///id="cf_enabletemplatehandle"></a><dl> <dt><b>CF_ENABLETEMPLATEHANDLE</b></dt> <dt>0x00000020L</dt> </dl> </td>
-    ///<td width="60%"> Indicates that the <b>hInstance</b> member identifies a data block that contains a preloaded
-    ///dialog box template. The system ignores the <b>lpTemplateName</b> member if this flag is specified. </td> </tr>
-    ///<tr> <td width="40%"><a id="CF_FIXEDPITCHONLY"></a><a id="cf_fixedpitchonly"></a><dl>
-    ///<dt><b>CF_FIXEDPITCHONLY</b></dt> <dt>0x00004000L</dt> </dl> </td> <td width="60%"> ChooseFont should enumerate
-    ///and allow selection of only fixed-pitch fonts. </td> </tr> <tr> <td width="40%"><a id="CF_FORCEFONTEXIST"></a><a
-    ///id="cf_forcefontexist"></a><dl> <dt><b>CF_FORCEFONTEXIST</b></dt> <dt>0x00010000L</dt> </dl> </td> <td
-    ///width="60%"> ChooseFont should indicate an error condition if the user attempts to select a font or style that is
-    ///not listed in the dialog box. </td> </tr> <tr> <td width="40%"><a id="CF_INACTIVEFONTS"></a><a
-    ///id="cf_inactivefonts"></a><dl> <dt><b>CF_INACTIVEFONTS</b></dt> <dt>0x02000000L</dt> </dl> </td> <td width="60%">
-    ///ChooseFont should additionally display fonts that are set to Hide in Fonts Control Panel. <b>Windows Vista and
-    ///Windows XP/2000: </b>This flag is not supported until Windows 7. </td> </tr> <tr> <td width="40%"><a
-    ///id="CF_INITTOLOGFONTSTRUCT"></a><a id="cf_inittologfontstruct"></a><dl> <dt><b>CF_INITTOLOGFONTSTRUCT</b></dt>
-    ///<dt>0x00000040L</dt> </dl> </td> <td width="60%"> ChooseFont should use the structure pointed to by the
-    ///<b>lpLogFont</b> member to initialize the dialog box controls. </td> </tr> <tr> <td width="40%"><a
-    ///id="CF_LIMITSIZE"></a><a id="cf_limitsize"></a><dl> <dt><b>CF_LIMITSIZE</b></dt> <dt>0x00002000L</dt> </dl> </td>
-    ///<td width="60%"> ChooseFont should select only font sizes within the range specified by the <b>nSizeMin</b> and
-    ///<b>nSizeMax</b> members. </td> </tr> <tr> <td width="40%"><a id="CF_NOOEMFONTS"></a><a
-    ///id="cf_nooemfonts"></a><dl> <dt><b>CF_NOOEMFONTS</b></dt> <dt>0x00000800L</dt> </dl> </td> <td width="60%"> Same
-    ///as the <b>CF_NOVECTORFONTS</b> flag. </td> </tr> <tr> <td width="40%"><a id="CF_NOFACESEL"></a><a
-    ///id="cf_nofacesel"></a><dl> <dt><b>CF_NOFACESEL</b></dt> <dt>0x00080000L</dt> </dl> </td> <td width="60%"> When
-    ///using a LOGFONT structure to initialize the dialog box controls, use this flag to prevent the dialog box from
-    ///displaying an initial selection for the font name combo box. This is useful when there is no single font name
-    ///that applies to the text selection. </td> </tr> <tr> <td width="40%"><a id="CF_NOSCRIPTSEL"></a><a
-    ///id="cf_noscriptsel"></a><dl> <dt><b>CF_NOSCRIPTSEL</b></dt> <dt>0x00800000L</dt> </dl> </td> <td width="60%">
-    ///Disables the <b>Script</b> combo box. When this flag is set, the <b>lfCharSet</b> member of the LOGFONT structure
-    ///is set to <b>DEFAULT_CHARSET</b> when ChooseFont returns. This flag is used only to initialize the dialog box.
-    ///</td> </tr> <tr> <td width="40%"><a id="CF_NOSIMULATIONS"></a><a id="cf_nosimulations"></a><dl>
-    ///<dt><b>CF_NOSIMULATIONS</b></dt> <dt>0x00001000L</dt> </dl> </td> <td width="60%"> ChooseFont should not display
-    ///or allow selection of font simulations. </td> </tr> <tr> <td width="40%"><a id="CF_NOSIZESEL"></a><a
-    ///id="cf_nosizesel"></a><dl> <dt><b>CF_NOSIZESEL</b></dt> <dt>0x00200000L</dt> </dl> </td> <td width="60%"> When
-    ///using a structure to initialize the dialog box controls, use this flag to prevent the dialog box from displaying
-    ///an initial selection for the <b>Font Size</b> combo box. This is useful when there is no single font size that
-    ///applies to the text selection. </td> </tr> <tr> <td width="40%"><a id="CF_NOSTYLESEL"></a><a
-    ///id="cf_nostylesel"></a><dl> <dt><b>CF_NOSTYLESEL</b></dt> <dt>0x00100000L</dt> </dl> </td> <td width="60%"> When
-    ///using a LOGFONT structure to initialize the dialog box controls, use this flag to prevent the dialog box from
-    ///displaying an initial selection for the <b>Font Style</b> combo box. This is useful when there is no single font
-    ///style that applies to the text selection. </td> </tr> <tr> <td width="40%"><a id="CF_NOVECTORFONTS"></a><a
-    ///id="cf_novectorfonts"></a><dl> <dt><b>CF_NOVECTORFONTS</b></dt> <dt>0x00000800L</dt> </dl> </td> <td width="60%">
-    ///ChooseFont should not allow vector font selections. </td> </tr> <tr> <td width="40%"><a
-    ///id="CF_NOVERTFONTS"></a><a id="cf_novertfonts"></a><dl> <dt><b>CF_NOVERTFONTS</b></dt> <dt>0x01000000L</dt> </dl>
-    ///</td> <td width="60%"> Causes the <b>Font</b> dialog box to list only horizontally oriented fonts. </td> </tr>
-    ///<tr> <td width="40%"><a id="CF_PRINTERFONTS"></a><a id="cf_printerfonts"></a><dl> <dt><b>CF_PRINTERFONTS</b></dt>
-    ///<dt>0x00000002</dt> </dl> </td> <td width="60%"> This flag is ignored for font enumeration. <b>Windows Vista and
-    ///Windows XP/2000: </b>Causes the dialog box to list only the fonts supported by the printer associated with the
-    ///device context or information context identified by the <b>hDC</b> member. It also causes the font type
-    ///description label to appear at the bottom of the <b>Font</b> dialog box. </td> </tr> <tr> <td width="40%"><a
-    ///id="CF_SCALABLEONLY"></a><a id="cf_scalableonly"></a><dl> <dt><b>CF_SCALABLEONLY</b></dt> <dt>0x00020000L</dt>
-    ///</dl> </td> <td width="60%"> Specifies that ChooseFont should allow only the selection of scalable fonts.
-    ///Scalable fonts include vector fonts, scalable printer fonts, TrueType fonts, and fonts scaled by other
-    ///technologies. </td> </tr> <tr> <td width="40%"><a id="CF_SCREENFONTS"></a><a id="cf_screenfonts"></a><dl>
-    ///<dt><b>CF_SCREENFONTS</b></dt> <dt>0x00000001</dt> </dl> </td> <td width="60%"> This flag is ignored for font
-    ///enumeration. <b>Windows Vista and Windows XP/2000: </b>Causes the dialog box to list only the screen fonts
-    ///supported by the system. </td> </tr> <tr> <td width="40%"><a id="CF_SCRIPTSONLY"></a><a
-    ///id="cf_scriptsonly"></a><dl> <dt><b>CF_SCRIPTSONLY</b></dt> <dt>0x00000400L</dt> </dl> </td> <td width="60%">
-    ///ChooseFont should allow selection of fonts for all non-OEM and Symbol character sets, as well as the ANSI
-    ///character set. This supersedes the <b>CF_ANSIONLY</b> value. </td> </tr> <tr> <td width="40%"><a
-    ///id="CF_SELECTSCRIPT"></a><a id="cf_selectscript"></a><dl> <dt><b>CF_SELECTSCRIPT</b></dt> <dt>0x00400000L</dt>
-    ///</dl> </td> <td width="60%"> When specified on input, only fonts with the character set identified in the
-    ///<b>lfCharSet</b> member of the LOGFONT structure are displayed. The user will not be allowed to change the
-    ///character set specified in the <b>Scripts</b> combo box. </td> </tr> <tr> <td width="40%"><a
-    ///id="CF_SHOWHELP"></a><a id="cf_showhelp"></a><dl> <dt><b>CF_SHOWHELP</b></dt> <dt>0x00000004L</dt> </dl> </td>
-    ///<td width="60%"> Causes the dialog box to display the <b>Help</b> button. The <b>hwndOwner</b> member must
-    ///specify the window to receive the HELPMSGSTRING registered messages that the dialog box sends when the user
-    ///clicks the <b>Help</b> button. </td> </tr> <tr> <td width="40%"><a id="CF_TTONLY"></a><a id="cf_ttonly"></a><dl>
-    ///<dt><b>CF_TTONLY</b></dt> <dt>0x00040000L</dt> </dl> </td> <td width="60%"> ChooseFont should only enumerate and
-    ///allow the selection of TrueType fonts. </td> </tr> <tr> <td width="40%"><a id="CF_USESTYLE"></a><a
-    ///id="cf_usestyle"></a><dl> <dt><b>CF_USESTYLE</b></dt> <dt>0x00000080L</dt> </dl> </td> <td width="60%"> The
-    ///<b>lpszStyle</b> member is a pointer to a buffer that contains style data that ChooseFont should use to
-    ///initialize the <b>Font Style</b> combo box. When the user closes the dialog box, <b>ChooseFont</b> copies style
-    ///data for the user's selection to this buffer. <div class="alert"><b>Note</b> To globalize your application, you
-    ///should specify the style by using the <b>lfWeight</b> and <b>lfItalic</b> members of the LOGFONT structure
-    ///pointed to by <b>lpLogFont</b>. The style name may change depending on the system user interface language.</div>
-    ///<div> </div> </td> </tr> <tr> <td width="40%"><a id="CF_WYSIWYG"></a><a id="cf_wysiwyg"></a><dl>
-    ///<dt><b>CF_WYSIWYG</b></dt> <dt>0x00008000L</dt> </dl> </td> <td width="60%"> Obsolete. ChooseFont ignores this
-    ///flag. <b>Windows Vista and Windows XP/2000: </b>ChooseFont should allow only the selection of fonts available on
-    ///both the printer and the display. If this flag is specified, the <b>CF_SCREENSHOTS</b> and
-    ///<b>CF_PRINTERFONTS</b>, or <b>CF_BOTH</b> flags should also be specified. </td> </tr> </table>
-    uint          Flags;
-    ///Type: <b>COLORREF</b> If the <b>CF_EFFECTS</b> flag is set, <b>rgbColors</b> specifies the initial text color.
-    ///When ChooseFont returns successfully, this member contains the RGB value of the text color that the user
-    ///selected. To create a COLORREF color value, use the RGB macro.
-    uint          rgbColors;
-    ///Type: <b>LPARAM</b> Application-defined data that the system passes to the hook procedure identified by the
-    ///<b>lpfnHook</b> member. When the system sends the WM_INITDIALOG message to the hook procedure, the message's
-    ///<i>lParam</i> parameter is a pointer to the CHOOSEFONT structure specified when the dialog was created. The hook
-    ///procedure can use this pointer to get the <b>lCustData</b> value.
-    LPARAM        lCustData;
-    ///Type: <b>LPCFHOOKPROC</b> A pointer to a CFHookProc hook procedure that can process messages intended for the
-    ///dialog box. This member is ignored unless the <b>CF_ENABLEHOOK</b> flag is set in the <b>Flags</b> member.
-    LPCFHOOKPROC  lpfnHook;
-    ///Type: <b>LPCTSTR</b> The name of the dialog box template resource in the module identified by the
-    ///<b>hInstance</b> member. This template is substituted for the standard dialog box template. For numbered dialog
-    ///box resources, <b>lpTemplateName</b> can be a value returned by the MAKEINTRESOURCE macro. This member is ignored
-    ///unless the <b>CF_ENABLETEMPLATE</b> flag is set in the <b>Flags</b> member.
-    const(wchar)* lpTemplateName;
-    ///Type: <b>HINSTANCE</b> If the <b>CF_ENABLETEMPLATEHANDLE</b> flag is set in the <b>Flags</b> member,
-    ///<b>hInstance</b> is a handle to a memory object containing a dialog box template. If the <b>CF_ENABLETEMPLATE</b>
-    ///flag is set, <b>hInstance</b> is a handle to a module that contains a dialog box template named by the
-    ///<b>lpTemplateName</b> member. If neither <b>CF_ENABLETEMPLATEHANDLE</b> nor <b>CF_ENABLETEMPLATE</b> is set, this
-    ///member is ignored.
-    HINSTANCE     hInstance;
-    ///Type: <b>LPTSTR</b> The style data. If the <b>CF_USESTYLE</b> flag is specified, ChooseFont uses the data in this
-    ///buffer to initialize the <b>Font Style</b> combo box. When the user closes the dialog box, <b>ChooseFont</b>
-    ///copies the string in the <b>Font Style</b> combo box into this buffer.
-    const(wchar)* lpszStyle;
-    ///Type: <b>WORD</b> The type of the selected font when ChooseFont returns. This member can be one or more of the
-    ///following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
-    ///id="BOLD_FONTTYPE"></a><a id="bold_fonttype"></a><dl> <dt><b>BOLD_FONTTYPE</b></dt> <dt>0x0100</dt> </dl> </td>
-    ///<td width="60%"> The font weight is bold. This information is duplicated in the <b>lfWeight</b> member of the
-    ///LOGFONT structure and is equivalent to <b>FW_BOLD</b>. </td> </tr> <tr> <td width="40%"><a
-    ///id="ITALIC_FONTTYPE"></a><a id="italic_fonttype"></a><dl> <dt><b>ITALIC_FONTTYPE</b></dt> <dt>0x0200</dt> </dl>
-    ///</td> <td width="60%"> The italic font attribute is set. This information is duplicated in the <b>lfItalic</b>
-    ///member of the LOGFONT structure. </td> </tr> <tr> <td width="40%"><a id="PRINTER_FONTTYPE"></a><a
-    ///id="printer_fonttype"></a><dl> <dt><b>PRINTER_FONTTYPE</b></dt> <dt>0x4000</dt> </dl> </td> <td width="60%"> The
-    ///font is a printer font. </td> </tr> <tr> <td width="40%"><a id="REGULAR_FONTTYPE"></a><a
-    ///id="regular_fonttype"></a><dl> <dt><b>REGULAR_FONTTYPE</b></dt> <dt>0x0400</dt> </dl> </td> <td width="60%"> The
-    ///font weight is normal. This information is duplicated in the <b>lfWeight</b> member of the LOGFONT structure and
-    ///is equivalent to <b>FW_REGULAR</b>. </td> </tr> <tr> <td width="40%"><a id="SCREEN_FONTTYPE"></a><a
-    ///id="screen_fonttype"></a><dl> <dt><b>SCREEN_FONTTYPE</b></dt> <dt>0x2000</dt> </dl> </td> <td width="60%"> The
-    ///font is a screen font. </td> </tr> <tr> <td width="40%"><a id="SIMULATED_FONTTYPE"></a><a
-    ///id="simulated_fonttype"></a><dl> <dt><b>SIMULATED_FONTTYPE</b></dt> <dt>0x8000</dt> </dl> </td> <td width="60%">
-    ///The font is simulated by the graphics device interface (GDI). </td> </tr> </table>
-    ushort        nFontType;
-    ushort        ___MISSING_ALIGNMENT__;
-    ///Type: <b>INT</b> The minimum point size a user can select. ChooseFont recognizes this member only if the
-    ///<b>CF_LIMITSIZE</b> flag is specified.
-    int           nSizeMin;
-    ///Type: <b>INT</b> The maximum point size a user can select. ChooseFont recognizes this member only if the
-    ///<b>CF_LIMITSIZE</b> flag is specified.
-    int           nSizeMax;
-}
-
-///Contains information that the PrintDlg function uses to initialize the Print Dialog Box. After the user closes the
-///dialog box, the system uses this structure to return information about the user's selections.
-struct PRINTDLGA
-{
-align (1):
-    ///Type: <b>DWORD</b> The structure size, in bytes.
-    uint            lStructSize;
-    ///Type: <b>HWND</b> A handle to the window that owns the dialog box. This member can be any valid window handle, or
-    ///it can be <b>NULL</b> if the dialog box has no owner.
-    HWND            hwndOwner;
-    ///Type: <b>HGLOBAL</b> A handle to a movable global memory object that contains a DEVMODE structure. If
-    ///<b>hDevMode</b> is not <b>NULL</b> on input, you must allocate a movable block of memory for the <b>DEVMODE</b>
-    ///structure and initialize its members. The PrintDlg function uses the input data to initialize the controls in the
-    ///dialog box. When <b>PrintDlg</b> returns, the <b>DEVMODE</b> members indicate the user's input. If
-    ///<b>hDevMode</b> is <b>NULL</b> on input, PrintDlg allocates memory for the DEVMODE structure, initializes its
-    ///members to indicate the user's input, and returns a handle that identifies it. If the device driver for the
-    ///specified printer does not support extended device modes, <b>hDevMode</b> is <b>NULL</b> when PrintDlg returns.
-    ///If the device name (specified by the <b>dmDeviceName</b> member of the DEVMODE structure) does not appear in the
-    ///[devices] section of WIN.INI, PrintDlg returns an error. For more information about the <b>hDevMode</b> and
-    ///<b>hDevNames</b> members, see the Remarks section at the end of this topic.
-    ptrdiff_t       hDevMode;
-    ///Type: <b>HGLOBAL</b> A handle to a movable global memory object that contains a DEVNAMES structure. If
-    ///<b>hDevNames</b> is not <b>NULL</b> on input, you must allocate a movable block of memory for the <b>DEVNAMES</b>
-    ///structure and initialize its members. The PrintDlg function uses the input data to initialize the controls in the
-    ///dialog box. When <b>PrintDlg</b> returns, the <b>DEVNAMES</b> members contain information for the printer chosen
-    ///by the user. You can use this information to create a device context or an information context. The
-    ///<b>hDevNames</b> member can be <b>NULL</b>, in which case, PrintDlg allocates memory for the DEVNAMES structure,
-    ///initializes its members to indicate the user's input, and returns a handle that identifies it. For more
-    ///information about the <b>hDevMode</b> and <b>hDevNames</b> members, see the Remarks section at the end of this
-    ///topic.
-    ptrdiff_t       hDevNames;
-    ///Type: <b>HDC</b> A handle to a device context or an information context, depending on whether the <b>Flags</b>
-    ///member specifies the <b>PD_RETURNDC</b> or <b>PC_RETURNIC</b> flag. If neither flag is specified, the value of
-    ///this member is undefined. If both flags are specified, <b>PD_RETURNDC</b> has priority.
-    HDC             hDC;
-    ///Type: <b>DWORD</b> Initializes the <b>Print</b> dialog box. When the dialog box returns, it sets these flags to
-    ///indicate the user's input. This member can be one or more of the following values. <table> <tr> <th>Value</th>
-    ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="PD_ALLPAGES"></a><a id="pd_allpages"></a><dl>
-    ///<dt><b>PD_ALLPAGES</b></dt> <dt>0x00000000</dt> </dl> </td> <td width="60%"> The default flag that indicates that
-    ///the <b>All</b> radio button is initially selected. This flag is used as a placeholder to indicate that the
-    ///<b>PD_PAGENUMS</b> and <b>PD_SELECTION</b> flags are not specified. </td> </tr> <tr> <td width="40%"><a
-    ///id="PD_COLLATE"></a><a id="pd_collate"></a><dl> <dt><b>PD_COLLATE</b></dt> <dt>0x00000010</dt> </dl> </td> <td
-    ///width="60%"> If this flag is set, the <b>Collate</b> check box is selected. If this flag is set when the PrintDlg
-    ///function returns, the application must simulate collation of multiple copies. For more information, see the
-    ///description of the <b>PD_USEDEVMODECOPIESANDCOLLATE</b> flag. See <b>PD_NOPAGENUMS</b>. </td> </tr> <tr> <td
-    ///width="40%"><a id="PD_DISABLEPRINTTOFILE"></a><a id="pd_disableprinttofile"></a><dl>
-    ///<dt><b>PD_DISABLEPRINTTOFILE</b></dt> <dt>0x00080000</dt> </dl> </td> <td width="60%"> Disables the <b>Print to
-    ///File</b> check box. </td> </tr> <tr> <td width="40%"><a id="PD_ENABLEPRINTHOOK"></a><a
-    ///id="pd_enableprinthook"></a><dl> <dt><b>PD_ENABLEPRINTHOOK</b></dt> <dt>0x00001000</dt> </dl> </td> <td
-    ///width="60%"> Enables the hook procedure specified in the <b>lpfnPrintHook</b> member. This enables the hook
-    ///procedure for the <b>Print</b> dialog box. </td> </tr> <tr> <td width="40%"><a id="PD_ENABLEPRINTTEMPLATE"></a><a
-    ///id="pd_enableprinttemplate"></a><dl> <dt><b>PD_ENABLEPRINTTEMPLATE</b></dt> <dt>0x00004000</dt> </dl> </td> <td
-    ///width="60%"> Indicates that the <b>hInstance</b> and <b>lpPrintTemplateName</b> members specify a replacement for
-    ///the default <b>Print</b> dialog box template. </td> </tr> <tr> <td width="40%"><a
-    ///id="PD_ENABLEPRINTTEMPLATEHANDLE"></a><a id="pd_enableprinttemplatehandle"></a><dl>
-    ///<dt><b>PD_ENABLEPRINTTEMPLATEHANDLE</b></dt> <dt>0x00010000</dt> </dl> </td> <td width="60%"> Indicates that the
-    ///<b>hPrintTemplate</b> member identifies a data block that contains a preloaded dialog box template. This template
-    ///replaces the default template for the <b>Print</b> dialog box. The system ignores the <b>lpPrintTemplateName</b>
-    ///member if this flag is specified. </td> </tr> <tr> <td width="40%"><a id="PD_ENABLESETUPHOOK"></a><a
-    ///id="pd_enablesetuphook"></a><dl> <dt><b>PD_ENABLESETUPHOOK</b></dt> <dt>0x00002000</dt> </dl> </td> <td
-    ///width="60%"> Enables the hook procedure specified in the <b>lpfnSetupHook</b> member. This enables the hook
-    ///procedure for the <b>Print Setup</b> dialog box. </td> </tr> <tr> <td width="40%"><a
-    ///id="PD_ENABLESETUPTEMPLATE"></a><a id="pd_enablesetuptemplate"></a><dl> <dt><b>PD_ENABLESETUPTEMPLATE</b></dt>
-    ///<dt>0x00008000</dt> </dl> </td> <td width="60%"> Indicates that the <b>hInstance</b> and
-    ///<b>lpSetupTemplateName</b> members specify a replacement for the default <b>Print Setup</b> dialog box template.
-    ///</td> </tr> <tr> <td width="40%"><a id="PD_ENABLESETUPTEMPLATEHANDLE"></a><a
-    ///id="pd_enablesetuptemplatehandle"></a><dl> <dt><b>PD_ENABLESETUPTEMPLATEHANDLE</b></dt> <dt>0x00020000</dt> </dl>
-    ///</td> <td width="60%"> Indicates that the <b>hSetupTemplate</b> member identifies a data block that contains a
-    ///preloaded dialog box template. This template replaces the default template for the <b>Print Setup</b> dialog box.
-    ///The system ignores the <b>lpSetupTemplateName</b> member if this flag is specified. </td> </tr> <tr> <td
-    ///width="40%"><a id="PD_HIDEPRINTTOFILE"></a><a id="pd_hideprinttofile"></a><dl> <dt><b>PD_HIDEPRINTTOFILE</b></dt>
-    ///<dt>0x00100000</dt> </dl> </td> <td width="60%"> Hides the <b>Print to File</b> check box. </td> </tr> <tr> <td
-    ///width="40%"><a id="PD_NONETWORKBUTTON"></a><a id="pd_nonetworkbutton"></a><dl> <dt><b>PD_NONETWORKBUTTON</b></dt>
-    ///<dt>0x00200000</dt> </dl> </td> <td width="60%"> Hides and disables the <b>Network</b> button. </td> </tr> <tr>
-    ///<td width="40%"><a id="PD_NOPAGENUMS"></a><a id="pd_nopagenums"></a><dl> <dt><b>PD_NOPAGENUMS</b></dt>
-    ///<dt>0x00000008</dt> </dl> </td> <td width="60%"> Disables the <b>Pages</b> radio button and the associated edit
-    ///controls. Also, it causes the <b>Collate</b> check box to appear in the dialog. </td> </tr> <tr> <td
-    ///width="40%"><a id="PD_NOSELECTION"></a><a id="pd_noselection"></a><dl> <dt><b>PD_NOSELECTION</b></dt>
-    ///<dt>0x00000004</dt> </dl> </td> <td width="60%"> Disables the <b>Selection</b> radio button. </td> </tr> <tr> <td
-    ///width="40%"><a id="PD_NOWARNING"></a><a id="pd_nowarning"></a><dl> <dt><b>PD_NOWARNING</b></dt>
-    ///<dt>0x00000080</dt> </dl> </td> <td width="60%"> Prevents the warning message from being displayed when there is
-    ///no default printer. </td> </tr> <tr> <td width="40%"><a id="PD_PAGENUMS"></a><a id="pd_pagenums"></a><dl>
-    ///<dt><b>PD_PAGENUMS</b></dt> <dt>0x00000002</dt> </dl> </td> <td width="60%"> If this flag is set, the
-    ///<b>Pages</b> radio button is selected. If this flag is set when the PrintDlg function returns, the
-    ///<b>nFromPage</b> and <b>nToPage</b> members indicate the starting and ending pages specified by the user. </td>
-    ///</tr> <tr> <td width="40%"><a id="PD_PRINTSETUP"></a><a id="pd_printsetup"></a><dl> <dt><b>PD_PRINTSETUP</b></dt>
-    ///<dt>0x00000040</dt> </dl> </td> <td width="60%"> Causes the system to display the <b>Print Setup</b> dialog box
-    ///rather than the <b>Print</b> dialog box. </td> </tr> <tr> <td width="40%"><a id="PD_PRINTTOFILE"></a><a
-    ///id="pd_printtofile"></a><dl> <dt><b>PD_PRINTTOFILE</b></dt> <dt>0x00000020</dt> </dl> </td> <td width="60%"> If
-    ///this flag is set, the <b>Print to File</b> check box is selected. If this flag is set when the PrintDlg function
-    ///returns, the offset indicated by the <b>wOutputOffset</b> member of the DEVNAMES structure contains the string
-    ///"FILE:". When you call the StartDoc function to start the printing operation, specify this "FILE:" string in the
-    ///<b>lpszOutput</b> member of the DOCINFO structure. Specifying this string causes the print subsystem to query the
-    ///user for the name of the output file. </td> </tr> <tr> <td width="40%"><a id="PD_RETURNDC"></a><a
-    ///id="pd_returndc"></a><dl> <dt><b>PD_RETURNDC</b></dt> <dt>0x00000100</dt> </dl> </td> <td width="60%"> Causes
-    ///PrintDlg to return a device context matching the selections the user made in the dialog box. The device context
-    ///is returned in <b>hDC</b>. </td> </tr> <tr> <td width="40%"><a id="PD_RETURNDEFAULT"></a><a
-    ///id="pd_returndefault"></a><dl> <dt><b>PD_RETURNDEFAULT</b></dt> <dt>0x00000400</dt> </dl> </td> <td width="60%">
-    ///If this flag is set, the PrintDlg function does not display the dialog box. Instead, it sets the <b>hDevNames</b>
-    ///and <b>hDevMode</b> members to handles to DEVMODE and DEVNAMES structures that are initialized for the system
-    ///default printer. Both <b>hDevNames</b> and <b>hDevMode</b> must be <b>NULL</b>, or <b>PrintDlg</b> returns an
-    ///error. </td> </tr> <tr> <td width="40%"><a id="PD_RETURNIC"></a><a id="pd_returnic"></a><dl>
-    ///<dt><b>PD_RETURNIC</b></dt> <dt>0x00000200</dt> </dl> </td> <td width="60%"> Similar to the <b>PD_RETURNDC</b>
-    ///flag, except this flag returns an information context rather than a device context. If neither <b>PD_RETURNDC</b>
-    ///nor <b>PD_RETURNIC</b> is specified, <b>hDC</b> is undefined on output. </td> </tr> <tr> <td width="40%"><a
-    ///id="PD_SELECTION"></a><a id="pd_selection"></a><dl> <dt><b>PD_SELECTION</b></dt> <dt>0x00000001</dt> </dl> </td>
-    ///<td width="60%"> If this flag is set, the <b>Selection</b> radio button is selected. If neither
-    ///<b>PD_PAGENUMS</b> nor <b>PD_SELECTION</b> is set, the <b>All</b> radio button is selected. </td> </tr> <tr> <td
-    ///width="40%"><a id="PD_SHOWHELP"></a><a id="pd_showhelp"></a><dl> <dt><b>PD_SHOWHELP</b></dt> <dt>0x00000800</dt>
-    ///</dl> </td> <td width="60%"> Causes the dialog box to display the <b>Help</b> button. The <b>hwndOwner</b> member
-    ///must specify the window to receive the HELPMSGSTRING registered messages that the dialog box sends when the user
-    ///clicks the <b>Help</b> button. </td> </tr> <tr> <td width="40%"><a id="PD_USEDEVMODECOPIES"></a><a
-    ///id="pd_usedevmodecopies"></a><dl> <dt><b>PD_USEDEVMODECOPIES</b></dt> <dt>0x00040000</dt> </dl> </td> <td
-    ///width="60%"> Same as <b>PD_USEDEVMODECOPIESANDCOLLATE</b>. </td> </tr> <tr> <td width="40%"><a
-    ///id="PD_USEDEVMODECOPIESANDCOLLATE"></a><a id="pd_usedevmodecopiesandcollate"></a><dl>
-    ///<dt><b>PD_USEDEVMODECOPIESANDCOLLATE</b></dt> <dt>0x00040000</dt> </dl> </td> <td width="60%"> This flag
-    ///indicates whether your application supports multiple copies and collation. Set this flag on input to indicate
-    ///that your application does not support multiple copies and collation. In this case, the <b>nCopies</b> member of
-    ///the <b>PRINTDLG</b> structure always returns 1, and <b>PD_COLLATE</b> is never set in the <b>Flags</b> member. If
-    ///this flag is not set, the application is responsible for printing and collating multiple copies. In this case,
-    ///the <b>nCopies</b> member of the <b>PRINTDLG</b> structure indicates the number of copies the user wants to
-    ///print, and the <b>PD_COLLATE</b> flag in the <b>Flags</b> member indicates whether the user wants collation.
-    ///Regardless of whether this flag is set, an application can determine from <b>nCopies</b> and <b>PD_COLLATE</b>
-    ///how many copies to render and whether to print them collated. If this flag is set and the printer driver does not
-    ///support multiple copies, the <b>Copies</b> edit control is disabled. Similarly, if this flag is set and the
-    ///printer driver does not support collation, the <b>Collate</b> check box is disabled. The <b>dmCopies</b> and
-    ///<b>dmCollate</b> members of the DEVMODE structure contain the copies and collate information used by the printer
-    ///driver. If this flag is set and the printer driver supports multiple copies, the <b>dmCopies</b> member indicates
-    ///the number of copies requested by the user. If this flag is set and the printer driver supports collation, the
-    ///<b>dmCollate</b> member of the <b>DEVMODE</b> structure indicates whether the user wants collation. If this flag
-    ///is not set, the <b>dmCopies</b> member always returns 1, and the <b>dmCollate</b> member is always zero. <b>Known
-    ///issue on Windows 2000/XP/2003:</b> If this flag is not set before calling PrintDlg, <b>PrintDlg</b> might swap
-    ///<b>nCopies</b> and <b>dmCopies</b> values when it returns. The workaround for this issue is use <b>dmCopies</b>
-    ///if its value is larger than 1, else, use <b>nCopies</b>, for you to to get the actual number of copies to be
-    ///printed when <b>PrintDlg</b> returns. </td> </tr> </table> To ensure that PrintDlg or PrintDlgEx returns the
-    ///correct values in the <b>dmCopies</b> and <b>dmCollate</b> members of the DEVMODE structure, set
-    ///<b>PD_RETURNDC</b> = <b>TRUE</b> and <b>PD_USEDEVMODECOPIESANDCOLLATE</b> = <b>TRUE</b>. In so doing, the
-    ///<b>nCopies</b> member of the <b>PRINTDLG</b> structure is always 1 and <b>PD_COLLATE</b> is always <b>FALSE</b>.
-    ///To ensure that PrintDlg or PrintDlgEx returns the correct values in <b>nCopies</b> and <b>PD_COLLATE</b>, set
-    ///<b>PD_RETURNDC</b> = <b>TRUE</b> and <b>PD_USEDEVMODECOPIESANDCOLLATE</b> = <b>FALSE</b>. In so doing,
-    ///<b>dmCopies</b> is always 1 and <b>dmCollate</b> is always <b>FALSE</b>. On Windows Vista and Windows 7, when you
-    ///call PrintDlg or PrintDlgEx with <b>PD_RETURNDC</b> set to <b>TRUE</b> and <b>PD_USEDEVMODECOPIESANDCOLLATE</b>
-    ///set to <b>FALSE</b>, the <b>PrintDlg</b> or <b>PrintDlgEx</b> function sets the number of copies in the
-    ///<b>nCopies</b> member of the <b>PRINTDLG</b> structure, and it sets the number of copies in the structure
-    ///represented by the hDC member of the <b>PRINTDLG</b> structure. When making calls to GDI, you must ignore the
-    ///value of <b>nCopies</b>, consider the value as 1, and use the returned hDC to avoid printing duplicate copies.
-    uint            Flags;
-    ///Type: <b>WORD</b> The initial value for the starting page edit control. When PrintDlg returns, <b>nFromPage</b>
-    ///is the starting page specified by the user. If the <b>Pages</b> radio button is selected when the user clicks the
-    ///<b>Okay</b> button, <b>PrintDlg</b> sets the <b>PD_PAGENUMS</b> flag and does not return until the user enters a
-    ///starting page value that is within the minimum to maximum page range. If the input value for either
-    ///<b>nFromPage</b> or <b>nToPage</b> is outside the minimum/maximum range, PrintDlg returns an error only if the
-    ///<b>PD_PAGENUMS</b> flag is specified; otherwise, it displays the dialog box but changes the out-of-range value to
-    ///the minimum or maximum value.
-    ushort          nFromPage;
-    ///Type: <b>WORD</b> The initial value for the ending page edit control. When PrintDlg returns, <b>nToPage</b> is
-    ///the ending page specified by the user. If the <b>Pages</b> radio button is selected when the use clicks the
-    ///<b>Okay</b> button, <b>PrintDlg</b> sets the <b>PD_PAGENUMS</b> flag and does not return until the user enters an
-    ///ending page value that is within the minimum to maximum page range.
-    ushort          nToPage;
-    ///Type: <b>WORD</b> The minimum value for the page range specified in the <b>From</b> and <b>To</b> page edit
-    ///controls. If <b>nMinPage</b> equals <b>nMaxPage</b>, the <b>Pages</b> radio button and the starting and ending
-    ///page edit controls are disabled.
-    ushort          nMinPage;
-    ///Type: <b>WORD</b> The maximum value for the page range specified in the <b>From</b> and <b>To</b> page edit
-    ///controls.
-    ushort          nMaxPage;
-    ///Type: <b>WORD</b> The initial number of copies for the <b>Copies</b> edit control if <b>hDevMode</b> is
-    ///<b>NULL</b>; otherwise, the <b>dmCopies</b> member of the DEVMODE structure contains the initial value. When
-    ///PrintDlg returns, <b>nCopies</b> contains the actual number of copies to print. This value depends on whether the
-    ///application or the printer driver is responsible for printing multiple copies. If the
-    ///<b>PD_USEDEVMODECOPIESANDCOLLATE</b> flag is set in the <b>Flags</b> member, <b>nCopies</b> is always 1 on
-    ///return, and the printer driver is responsible for printing multiple copies. If the flag is not set, the
-    ///application is responsible for printing the number of copies specified by <b>nCopies</b>. For more information,
-    ///see the description of the <b>PD_USEDEVMODECOPIESANDCOLLATE</b> flag.
-    ushort          nCopies;
-    ///Type: <b>HINSTANCE</b> If the <b>PD_ENABLEPRINTTEMPLATE</b> or <b>PD_ENABLESETUPTEMPLATE</b> flag is set in the
-    ///<b>Flags</b> member, <b>hInstance</b> is a handle to the application or module instance that contains the dialog
-    ///box template named by the <b>lpPrintTemplateName</b> or <b>lpSetupTemplateName</b> member.
-    HINSTANCE       hInstance;
-    ///Type: <b>LPARAM</b> Application-defined data that the system passes to the hook procedure identified by the
-    ///<b>lpfnPrintHook</b> or <b>lpfnSetupHook</b> member. When the system sends the WM_INITDIALOG message to the hook
-    ///procedure, the message's <i>lParam</i> parameter is a pointer to the <b>PRINTDLG</b> structure specified when the
-    ///dialog was created. The hook procedure can use this pointer to get the <b>lCustData</b> value.
-    LPARAM          lCustData;
-    ///Type: <b>LPPRINTHOOKPROC</b> A pointer to a PrintHookProc hook procedure that can process messages intended for
-    ///the <b>Print</b> dialog box. This member is ignored unless the <b>PD_ENABLEPRINTHOOK</b> flag is set in the
-    ///<b>Flags</b> member.
-    LPPRINTHOOKPROC lpfnPrintHook;
-    ///Type: <b>LPSETUPHOOKPROC</b> A pointer to a SetupHookProc hook procedure that can process messages intended for
-    ///the <b>Print Setup</b> dialog box. This member is ignored unless the <b>PD_ENABLESETUPHOOK</b> flag is set in the
-    ///<b>Flags</b> member.
-    LPSETUPHOOKPROC lpfnSetupHook;
-    ///Type: <b>LPCTSTR</b> The name of the dialog box template resource in the module identified by the
-    ///<b>hInstance</b> member. This template replaces the default <b>Print</b> dialog box template. This member is
-    ///ignored unless the <b>PD_ENABLEPRINTTEMPLATE</b> flag is set in the <b>Flags</b> member.
-    const(char)*    lpPrintTemplateName;
-    ///Type: <b>LPCTSTR</b> The name of the dialog box template resource in the module identified by the
-    ///<b>hInstance</b> member. This template replaces the default <b>Print Setup</b> dialog box template. This member
-    ///is ignored unless the <b>PD_ENABLESETUPTEMPLATE</b> flag is set in the <b>Flags</b> member.
-    const(char)*    lpSetupTemplateName;
-    ///Type: <b>HGLOBAL</b> If the <b>PD_ENABLEPRINTTEMPLATEHANDLE</b> flag is set in the <b>Flags</b> member,
-    ///<b>hPrintTemplate</b> is a handle to a memory object containing a dialog box template. This template replaces the
-    ///default <b>Print</b> dialog box template.
-    ptrdiff_t       hPrintTemplate;
-    ///Type: <b>HGLOBAL</b> If the <b>PD_ENABLESETUPTEMPLATEHANDLE</b> flag is set in the <b>Flags</b> member,
-    ///<b>hSetupTemplate</b> is a handle to a memory object containing a dialog box template. This template replaces the
-    ///default <b>Print Setup</b> dialog box template.
-    ptrdiff_t       hSetupTemplate;
-}
-
-///Contains information that the PrintDlg function uses to initialize the Print Dialog Box. After the user closes the
-///dialog box, the system uses this structure to return information about the user's selections.
-struct PRINTDLGW
-{
-align (1):
-    ///Type: <b>DWORD</b> The structure size, in bytes.
-    uint            lStructSize;
-    ///Type: <b>HWND</b> A handle to the window that owns the dialog box. This member can be any valid window handle, or
-    ///it can be <b>NULL</b> if the dialog box has no owner.
-    HWND            hwndOwner;
-    ///Type: <b>HGLOBAL</b> A handle to a movable global memory object that contains a DEVMODE structure. If
-    ///<b>hDevMode</b> is not <b>NULL</b> on input, you must allocate a movable block of memory for the <b>DEVMODE</b>
-    ///structure and initialize its members. The PrintDlg function uses the input data to initialize the controls in the
-    ///dialog box. When <b>PrintDlg</b> returns, the <b>DEVMODE</b> members indicate the user's input. If
-    ///<b>hDevMode</b> is <b>NULL</b> on input, PrintDlg allocates memory for the DEVMODE structure, initializes its
-    ///members to indicate the user's input, and returns a handle that identifies it. If the device driver for the
-    ///specified printer does not support extended device modes, <b>hDevMode</b> is <b>NULL</b> when PrintDlg returns.
-    ///If the device name (specified by the <b>dmDeviceName</b> member of the DEVMODE structure) does not appear in the
-    ///[devices] section of WIN.INI, PrintDlg returns an error. For more information about the <b>hDevMode</b> and
-    ///<b>hDevNames</b> members, see the Remarks section at the end of this topic.
-    ptrdiff_t       hDevMode;
-    ///Type: <b>HGLOBAL</b> A handle to a movable global memory object that contains a DEVNAMES structure. If
-    ///<b>hDevNames</b> is not <b>NULL</b> on input, you must allocate a movable block of memory for the <b>DEVNAMES</b>
-    ///structure and initialize its members. The PrintDlg function uses the input data to initialize the controls in the
-    ///dialog box. When <b>PrintDlg</b> returns, the <b>DEVNAMES</b> members contain information for the printer chosen
-    ///by the user. You can use this information to create a device context or an information context. The
-    ///<b>hDevNames</b> member can be <b>NULL</b>, in which case, PrintDlg allocates memory for the DEVNAMES structure,
-    ///initializes its members to indicate the user's input, and returns a handle that identifies it. For more
-    ///information about the <b>hDevMode</b> and <b>hDevNames</b> members, see the Remarks section at the end of this
-    ///topic.
-    ptrdiff_t       hDevNames;
-    ///Type: <b>HDC</b> A handle to a device context or an information context, depending on whether the <b>Flags</b>
-    ///member specifies the <b>PD_RETURNDC</b> or <b>PC_RETURNIC</b> flag. If neither flag is specified, the value of
-    ///this member is undefined. If both flags are specified, <b>PD_RETURNDC</b> has priority.
-    HDC             hDC;
-    ///Type: <b>DWORD</b> Initializes the <b>Print</b> dialog box. When the dialog box returns, it sets these flags to
-    ///indicate the user's input. This member can be one or more of the following values. <table> <tr> <th>Value</th>
-    ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="PD_ALLPAGES"></a><a id="pd_allpages"></a><dl>
-    ///<dt><b>PD_ALLPAGES</b></dt> <dt>0x00000000</dt> </dl> </td> <td width="60%"> The default flag that indicates that
-    ///the <b>All</b> radio button is initially selected. This flag is used as a placeholder to indicate that the
-    ///<b>PD_PAGENUMS</b> and <b>PD_SELECTION</b> flags are not specified. </td> </tr> <tr> <td width="40%"><a
-    ///id="PD_COLLATE"></a><a id="pd_collate"></a><dl> <dt><b>PD_COLLATE</b></dt> <dt>0x00000010</dt> </dl> </td> <td
-    ///width="60%"> If this flag is set, the <b>Collate</b> check box is selected. If this flag is set when the PrintDlg
-    ///function returns, the application must simulate collation of multiple copies. For more information, see the
-    ///description of the <b>PD_USEDEVMODECOPIESANDCOLLATE</b> flag. See <b>PD_NOPAGENUMS</b>. </td> </tr> <tr> <td
-    ///width="40%"><a id="PD_DISABLEPRINTTOFILE"></a><a id="pd_disableprinttofile"></a><dl>
-    ///<dt><b>PD_DISABLEPRINTTOFILE</b></dt> <dt>0x00080000</dt> </dl> </td> <td width="60%"> Disables the <b>Print to
-    ///File</b> check box. </td> </tr> <tr> <td width="40%"><a id="PD_ENABLEPRINTHOOK"></a><a
-    ///id="pd_enableprinthook"></a><dl> <dt><b>PD_ENABLEPRINTHOOK</b></dt> <dt>0x00001000</dt> </dl> </td> <td
-    ///width="60%"> Enables the hook procedure specified in the <b>lpfnPrintHook</b> member. This enables the hook
-    ///procedure for the <b>Print</b> dialog box. </td> </tr> <tr> <td width="40%"><a id="PD_ENABLEPRINTTEMPLATE"></a><a
-    ///id="pd_enableprinttemplate"></a><dl> <dt><b>PD_ENABLEPRINTTEMPLATE</b></dt> <dt>0x00004000</dt> </dl> </td> <td
-    ///width="60%"> Indicates that the <b>hInstance</b> and <b>lpPrintTemplateName</b> members specify a replacement for
-    ///the default <b>Print</b> dialog box template. </td> </tr> <tr> <td width="40%"><a
-    ///id="PD_ENABLEPRINTTEMPLATEHANDLE"></a><a id="pd_enableprinttemplatehandle"></a><dl>
-    ///<dt><b>PD_ENABLEPRINTTEMPLATEHANDLE</b></dt> <dt>0x00010000</dt> </dl> </td> <td width="60%"> Indicates that the
-    ///<b>hPrintTemplate</b> member identifies a data block that contains a preloaded dialog box template. This template
-    ///replaces the default template for the <b>Print</b> dialog box. The system ignores the <b>lpPrintTemplateName</b>
-    ///member if this flag is specified. </td> </tr> <tr> <td width="40%"><a id="PD_ENABLESETUPHOOK"></a><a
-    ///id="pd_enablesetuphook"></a><dl> <dt><b>PD_ENABLESETUPHOOK</b></dt> <dt>0x00002000</dt> </dl> </td> <td
-    ///width="60%"> Enables the hook procedure specified in the <b>lpfnSetupHook</b> member. This enables the hook
-    ///procedure for the <b>Print Setup</b> dialog box. </td> </tr> <tr> <td width="40%"><a
-    ///id="PD_ENABLESETUPTEMPLATE"></a><a id="pd_enablesetuptemplate"></a><dl> <dt><b>PD_ENABLESETUPTEMPLATE</b></dt>
-    ///<dt>0x00008000</dt> </dl> </td> <td width="60%"> Indicates that the <b>hInstance</b> and
-    ///<b>lpSetupTemplateName</b> members specify a replacement for the default <b>Print Setup</b> dialog box template.
-    ///</td> </tr> <tr> <td width="40%"><a id="PD_ENABLESETUPTEMPLATEHANDLE"></a><a
-    ///id="pd_enablesetuptemplatehandle"></a><dl> <dt><b>PD_ENABLESETUPTEMPLATEHANDLE</b></dt> <dt>0x00020000</dt> </dl>
-    ///</td> <td width="60%"> Indicates that the <b>hSetupTemplate</b> member identifies a data block that contains a
-    ///preloaded dialog box template. This template replaces the default template for the <b>Print Setup</b> dialog box.
-    ///The system ignores the <b>lpSetupTemplateName</b> member if this flag is specified. </td> </tr> <tr> <td
-    ///width="40%"><a id="PD_HIDEPRINTTOFILE"></a><a id="pd_hideprinttofile"></a><dl> <dt><b>PD_HIDEPRINTTOFILE</b></dt>
-    ///<dt>0x00100000</dt> </dl> </td> <td width="60%"> Hides the <b>Print to File</b> check box. </td> </tr> <tr> <td
-    ///width="40%"><a id="PD_NONETWORKBUTTON"></a><a id="pd_nonetworkbutton"></a><dl> <dt><b>PD_NONETWORKBUTTON</b></dt>
-    ///<dt>0x00200000</dt> </dl> </td> <td width="60%"> Hides and disables the <b>Network</b> button. </td> </tr> <tr>
-    ///<td width="40%"><a id="PD_NOPAGENUMS"></a><a id="pd_nopagenums"></a><dl> <dt><b>PD_NOPAGENUMS</b></dt>
-    ///<dt>0x00000008</dt> </dl> </td> <td width="60%"> Disables the <b>Pages</b> radio button and the associated edit
-    ///controls. Also, it causes the <b>Collate</b> check box to appear in the dialog. </td> </tr> <tr> <td
-    ///width="40%"><a id="PD_NOSELECTION"></a><a id="pd_noselection"></a><dl> <dt><b>PD_NOSELECTION</b></dt>
-    ///<dt>0x00000004</dt> </dl> </td> <td width="60%"> Disables the <b>Selection</b> radio button. </td> </tr> <tr> <td
-    ///width="40%"><a id="PD_NOWARNING"></a><a id="pd_nowarning"></a><dl> <dt><b>PD_NOWARNING</b></dt>
-    ///<dt>0x00000080</dt> </dl> </td> <td width="60%"> Prevents the warning message from being displayed when there is
-    ///no default printer. </td> </tr> <tr> <td width="40%"><a id="PD_PAGENUMS"></a><a id="pd_pagenums"></a><dl>
-    ///<dt><b>PD_PAGENUMS</b></dt> <dt>0x00000002</dt> </dl> </td> <td width="60%"> If this flag is set, the
-    ///<b>Pages</b> radio button is selected. If this flag is set when the PrintDlg function returns, the
-    ///<b>nFromPage</b> and <b>nToPage</b> members indicate the starting and ending pages specified by the user. </td>
-    ///</tr> <tr> <td width="40%"><a id="PD_PRINTSETUP"></a><a id="pd_printsetup"></a><dl> <dt><b>PD_PRINTSETUP</b></dt>
-    ///<dt>0x00000040</dt> </dl> </td> <td width="60%"> Causes the system to display the <b>Print Setup</b> dialog box
-    ///rather than the <b>Print</b> dialog box. </td> </tr> <tr> <td width="40%"><a id="PD_PRINTTOFILE"></a><a
-    ///id="pd_printtofile"></a><dl> <dt><b>PD_PRINTTOFILE</b></dt> <dt>0x00000020</dt> </dl> </td> <td width="60%"> If
-    ///this flag is set, the <b>Print to File</b> check box is selected. If this flag is set when the PrintDlg function
-    ///returns, the offset indicated by the <b>wOutputOffset</b> member of the DEVNAMES structure contains the string
-    ///"FILE:". When you call the StartDoc function to start the printing operation, specify this "FILE:" string in the
-    ///<b>lpszOutput</b> member of the DOCINFO structure. Specifying this string causes the print subsystem to query the
-    ///user for the name of the output file. </td> </tr> <tr> <td width="40%"><a id="PD_RETURNDC"></a><a
-    ///id="pd_returndc"></a><dl> <dt><b>PD_RETURNDC</b></dt> <dt>0x00000100</dt> </dl> </td> <td width="60%"> Causes
-    ///PrintDlg to return a device context matching the selections the user made in the dialog box. The device context
-    ///is returned in <b>hDC</b>. </td> </tr> <tr> <td width="40%"><a id="PD_RETURNDEFAULT"></a><a
-    ///id="pd_returndefault"></a><dl> <dt><b>PD_RETURNDEFAULT</b></dt> <dt>0x00000400</dt> </dl> </td> <td width="60%">
-    ///If this flag is set, the PrintDlg function does not display the dialog box. Instead, it sets the <b>hDevNames</b>
-    ///and <b>hDevMode</b> members to handles to DEVMODE and DEVNAMES structures that are initialized for the system
-    ///default printer. Both <b>hDevNames</b> and <b>hDevMode</b> must be <b>NULL</b>, or <b>PrintDlg</b> returns an
-    ///error. </td> </tr> <tr> <td width="40%"><a id="PD_RETURNIC"></a><a id="pd_returnic"></a><dl>
-    ///<dt><b>PD_RETURNIC</b></dt> <dt>0x00000200</dt> </dl> </td> <td width="60%"> Similar to the <b>PD_RETURNDC</b>
-    ///flag, except this flag returns an information context rather than a device context. If neither <b>PD_RETURNDC</b>
-    ///nor <b>PD_RETURNIC</b> is specified, <b>hDC</b> is undefined on output. </td> </tr> <tr> <td width="40%"><a
-    ///id="PD_SELECTION"></a><a id="pd_selection"></a><dl> <dt><b>PD_SELECTION</b></dt> <dt>0x00000001</dt> </dl> </td>
-    ///<td width="60%"> If this flag is set, the <b>Selection</b> radio button is selected. If neither
-    ///<b>PD_PAGENUMS</b> nor <b>PD_SELECTION</b> is set, the <b>All</b> radio button is selected. </td> </tr> <tr> <td
-    ///width="40%"><a id="PD_SHOWHELP"></a><a id="pd_showhelp"></a><dl> <dt><b>PD_SHOWHELP</b></dt> <dt>0x00000800</dt>
-    ///</dl> </td> <td width="60%"> Causes the dialog box to display the <b>Help</b> button. The <b>hwndOwner</b> member
-    ///must specify the window to receive the HELPMSGSTRING registered messages that the dialog box sends when the user
-    ///clicks the <b>Help</b> button. </td> </tr> <tr> <td width="40%"><a id="PD_USEDEVMODECOPIES"></a><a
-    ///id="pd_usedevmodecopies"></a><dl> <dt><b>PD_USEDEVMODECOPIES</b></dt> <dt>0x00040000</dt> </dl> </td> <td
-    ///width="60%"> Same as <b>PD_USEDEVMODECOPIESANDCOLLATE</b>. </td> </tr> <tr> <td width="40%"><a
-    ///id="PD_USEDEVMODECOPIESANDCOLLATE"></a><a id="pd_usedevmodecopiesandcollate"></a><dl>
-    ///<dt><b>PD_USEDEVMODECOPIESANDCOLLATE</b></dt> <dt>0x00040000</dt> </dl> </td> <td width="60%"> This flag
-    ///indicates whether your application supports multiple copies and collation. Set this flag on input to indicate
-    ///that your application does not support multiple copies and collation. In this case, the <b>nCopies</b> member of
-    ///the <b>PRINTDLG</b> structure always returns 1, and <b>PD_COLLATE</b> is never set in the <b>Flags</b> member. If
-    ///this flag is not set, the application is responsible for printing and collating multiple copies. In this case,
-    ///the <b>nCopies</b> member of the <b>PRINTDLG</b> structure indicates the number of copies the user wants to
-    ///print, and the <b>PD_COLLATE</b> flag in the <b>Flags</b> member indicates whether the user wants collation.
-    ///Regardless of whether this flag is set, an application can determine from <b>nCopies</b> and <b>PD_COLLATE</b>
-    ///how many copies to render and whether to print them collated. If this flag is set and the printer driver does not
-    ///support multiple copies, the <b>Copies</b> edit control is disabled. Similarly, if this flag is set and the
-    ///printer driver does not support collation, the <b>Collate</b> check box is disabled. The <b>dmCopies</b> and
-    ///<b>dmCollate</b> members of the DEVMODE structure contain the copies and collate information used by the printer
-    ///driver. If this flag is set and the printer driver supports multiple copies, the <b>dmCopies</b> member indicates
-    ///the number of copies requested by the user. If this flag is set and the printer driver supports collation, the
-    ///<b>dmCollate</b> member of the <b>DEVMODE</b> structure indicates whether the user wants collation. If this flag
-    ///is not set, the <b>dmCopies</b> member always returns 1, and the <b>dmCollate</b> member is always zero. <b>Known
-    ///issue on Windows 2000/XP/2003:</b> If this flag is not set before calling PrintDlg, <b>PrintDlg</b> might swap
-    ///<b>nCopies</b> and <b>dmCopies</b> values when it returns. The workaround for this issue is use <b>dmCopies</b>
-    ///if its value is larger than 1, else, use <b>nCopies</b>, for you to to get the actual number of copies to be
-    ///printed when <b>PrintDlg</b> returns. </td> </tr> </table> To ensure that PrintDlg or PrintDlgEx returns the
-    ///correct values in the <b>dmCopies</b> and <b>dmCollate</b> members of the DEVMODE structure, set
-    ///<b>PD_RETURNDC</b> = <b>TRUE</b> and <b>PD_USEDEVMODECOPIESANDCOLLATE</b> = <b>TRUE</b>. In so doing, the
-    ///<b>nCopies</b> member of the <b>PRINTDLG</b> structure is always 1 and <b>PD_COLLATE</b> is always <b>FALSE</b>.
-    ///To ensure that PrintDlg or PrintDlgEx returns the correct values in <b>nCopies</b> and <b>PD_COLLATE</b>, set
-    ///<b>PD_RETURNDC</b> = <b>TRUE</b> and <b>PD_USEDEVMODECOPIESANDCOLLATE</b> = <b>FALSE</b>. In so doing,
-    ///<b>dmCopies</b> is always 1 and <b>dmCollate</b> is always <b>FALSE</b>. On Windows Vista and Windows 7, when you
-    ///call PrintDlg or PrintDlgEx with <b>PD_RETURNDC</b> set to <b>TRUE</b> and <b>PD_USEDEVMODECOPIESANDCOLLATE</b>
-    ///set to <b>FALSE</b>, the <b>PrintDlg</b> or <b>PrintDlgEx</b> function sets the number of copies in the
-    ///<b>nCopies</b> member of the <b>PRINTDLG</b> structure, and it sets the number of copies in the structure
-    ///represented by the hDC member of the <b>PRINTDLG</b> structure. When making calls to GDI, you must ignore the
-    ///value of <b>nCopies</b>, consider the value as 1, and use the returned hDC to avoid printing duplicate copies.
-    uint            Flags;
-    ///Type: <b>WORD</b> The initial value for the starting page edit control. When PrintDlg returns, <b>nFromPage</b>
-    ///is the starting page specified by the user. If the <b>Pages</b> radio button is selected when the user clicks the
-    ///<b>Okay</b> button, <b>PrintDlg</b> sets the <b>PD_PAGENUMS</b> flag and does not return until the user enters a
-    ///starting page value that is within the minimum to maximum page range. If the input value for either
-    ///<b>nFromPage</b> or <b>nToPage</b> is outside the minimum/maximum range, PrintDlg returns an error only if the
-    ///<b>PD_PAGENUMS</b> flag is specified; otherwise, it displays the dialog box but changes the out-of-range value to
-    ///the minimum or maximum value.
-    ushort          nFromPage;
-    ///Type: <b>WORD</b> The initial value for the ending page edit control. When PrintDlg returns, <b>nToPage</b> is
-    ///the ending page specified by the user. If the <b>Pages</b> radio button is selected when the use clicks the
-    ///<b>Okay</b> button, <b>PrintDlg</b> sets the <b>PD_PAGENUMS</b> flag and does not return until the user enters an
-    ///ending page value that is within the minimum to maximum page range.
-    ushort          nToPage;
-    ///Type: <b>WORD</b> The minimum value for the page range specified in the <b>From</b> and <b>To</b> page edit
-    ///controls. If <b>nMinPage</b> equals <b>nMaxPage</b>, the <b>Pages</b> radio button and the starting and ending
-    ///page edit controls are disabled.
-    ushort          nMinPage;
-    ///Type: <b>WORD</b> The maximum value for the page range specified in the <b>From</b> and <b>To</b> page edit
-    ///controls.
-    ushort          nMaxPage;
-    ///Type: <b>WORD</b> The initial number of copies for the <b>Copies</b> edit control if <b>hDevMode</b> is
-    ///<b>NULL</b>; otherwise, the <b>dmCopies</b> member of the DEVMODE structure contains the initial value. When
-    ///PrintDlg returns, <b>nCopies</b> contains the actual number of copies to print. This value depends on whether the
-    ///application or the printer driver is responsible for printing multiple copies. If the
-    ///<b>PD_USEDEVMODECOPIESANDCOLLATE</b> flag is set in the <b>Flags</b> member, <b>nCopies</b> is always 1 on
-    ///return, and the printer driver is responsible for printing multiple copies. If the flag is not set, the
-    ///application is responsible for printing the number of copies specified by <b>nCopies</b>. For more information,
-    ///see the description of the <b>PD_USEDEVMODECOPIESANDCOLLATE</b> flag.
-    ushort          nCopies;
-    ///Type: <b>HINSTANCE</b> If the <b>PD_ENABLEPRINTTEMPLATE</b> or <b>PD_ENABLESETUPTEMPLATE</b> flag is set in the
-    ///<b>Flags</b> member, <b>hInstance</b> is a handle to the application or module instance that contains the dialog
-    ///box template named by the <b>lpPrintTemplateName</b> or <b>lpSetupTemplateName</b> member.
-    HINSTANCE       hInstance;
-    ///Type: <b>LPARAM</b> Application-defined data that the system passes to the hook procedure identified by the
-    ///<b>lpfnPrintHook</b> or <b>lpfnSetupHook</b> member. When the system sends the WM_INITDIALOG message to the hook
-    ///procedure, the message's <i>lParam</i> parameter is a pointer to the <b>PRINTDLG</b> structure specified when the
-    ///dialog was created. The hook procedure can use this pointer to get the <b>lCustData</b> value.
-    LPARAM          lCustData;
-    ///Type: <b>LPPRINTHOOKPROC</b> A pointer to a PrintHookProc hook procedure that can process messages intended for
-    ///the <b>Print</b> dialog box. This member is ignored unless the <b>PD_ENABLEPRINTHOOK</b> flag is set in the
-    ///<b>Flags</b> member.
-    LPPRINTHOOKPROC lpfnPrintHook;
-    ///Type: <b>LPSETUPHOOKPROC</b> A pointer to a SetupHookProc hook procedure that can process messages intended for
-    ///the <b>Print Setup</b> dialog box. This member is ignored unless the <b>PD_ENABLESETUPHOOK</b> flag is set in the
-    ///<b>Flags</b> member.
-    LPSETUPHOOKPROC lpfnSetupHook;
-    ///Type: <b>LPCTSTR</b> The name of the dialog box template resource in the module identified by the
-    ///<b>hInstance</b> member. This template replaces the default <b>Print</b> dialog box template. This member is
-    ///ignored unless the <b>PD_ENABLEPRINTTEMPLATE</b> flag is set in the <b>Flags</b> member.
-    const(wchar)*   lpPrintTemplateName;
-    ///Type: <b>LPCTSTR</b> The name of the dialog box template resource in the module identified by the
-    ///<b>hInstance</b> member. This template replaces the default <b>Print Setup</b> dialog box template. This member
-    ///is ignored unless the <b>PD_ENABLESETUPTEMPLATE</b> flag is set in the <b>Flags</b> member.
-    const(wchar)*   lpSetupTemplateName;
-    ///Type: <b>HGLOBAL</b> If the <b>PD_ENABLEPRINTTEMPLATEHANDLE</b> flag is set in the <b>Flags</b> member,
-    ///<b>hPrintTemplate</b> is a handle to a memory object containing a dialog box template. This template replaces the
-    ///default <b>Print</b> dialog box template.
-    ptrdiff_t       hPrintTemplate;
-    ///Type: <b>HGLOBAL</b> If the <b>PD_ENABLESETUPTEMPLATEHANDLE</b> flag is set in the <b>Flags</b> member,
-    ///<b>hSetupTemplate</b> is a handle to a memory object containing a dialog box template. This template replaces the
-    ///default <b>Print Setup</b> dialog box template.
-    ptrdiff_t       hSetupTemplate;
-}
-
-///Represents a range of pages in a print job. A print job can have more than one page range. This information is
-///supplied in the PRINTDLGEX structure when calling the PrintDlgEx function.
-struct PRINTPAGERANGE
-{
-align (1):
-    ///Type: <b>DWORD</b> The first page of the range.
-    uint nFromPage;
-    ///Type: <b>DWORD</b> The last page of the range.
-    uint nToPage;
-}
-
-///Contains information that the PrintDlgEx function uses to initialize the Print property sheet. After the user closes
-///the property sheet, the system uses this structure to return information about the user's selections.
-struct PRINTDLGEXA
-{
-align (1):
-    ///Type: <b>DWORD</b> The structure size, in bytes.
-    uint            lStructSize;
-    ///Type: <b>HWND</b> A handle to the window that owns the property sheet. This member must be a valid window handle;
-    ///it cannot be <b>NULL</b>.
-    HWND            hwndOwner;
-    ///Type: <b>HGLOBAL</b> A handle to a movable global memory object that contains a DEVMODE structure. If
-    ///<b>hDevMode</b> is not <b>NULL</b> on input, you must allocate a movable block of memory for the <b>DEVMODE</b>
-    ///structure and initialize its members. The PrintDlgEx function uses the input data to initialize the controls in
-    ///the property sheet. When <b>PrintDlgEx</b> returns, the <b>DEVMODE</b> members indicate the user's input. If
-    ///<b>hDevMode</b> is <b>NULL</b> on input, PrintDlgEx allocates memory for the DEVMODE structure, initializes its
-    ///members to indicate the user's input, and returns a handle that identifies it. For more information about the
-    ///<b>hDevMode</b> and <b>hDevNames</b> members, see the Remarks section at the end of this topic.
-    ptrdiff_t       hDevMode;
-    ///Type: <b>HGLOBAL</b> A handle to a movable global memory object that contains a DEVNAMES structure. If
-    ///<b>hDevNames</b> is not <b>NULL</b> on input, you must allocate a movable block of memory for the <b>DEVNAMES</b>
-    ///structure and initialize its members. The PrintDlgEx function uses the input data to initialize the controls in
-    ///the property sheet. When <b>PrintDlgEx</b> returns, the <b>DEVNAMES</b> members contain information for the
-    ///printer chosen by the user. You can use this information to create a device context or an information context.
-    ///The <b>hDevNames</b> member can be <b>NULL</b>, in which case, PrintDlgEx allocates memory for the DEVNAMES
-    ///structure, initializes its members to indicate the user's input, and returns a handle that identifies it. For
-    ///more information about the <b>hDevMode</b> and <b>hDevNames</b> members, see the Remarks section at the end of
-    ///this topic.
-    ptrdiff_t       hDevNames;
-    ///Type: <b>HDC</b> A handle to a device context or an information context, depending on whether the <b>Flags</b>
-    ///member specifies the <b>PD_RETURNDC</b> or <b>PC_RETURNIC</b> flag. If neither flag is specified, the value of
-    ///this member is undefined. If both flags are specified, <b>PD_RETURNDC</b> has priority.
-    HDC             hDC;
-    ///Type: <b>DWORD</b> A set of bit flags that you can use to initialize the <b>Print</b> property sheet. When the
-    ///PrintDlgEx function returns, it sets these flags to indicate the user's input. This member can be one or more of
-    ///the following values. To ensure that PrintDlg or PrintDlgEx returns the correct values in the <b>dmCopies</b> and
-    ///<b>dmCollate</b> members of the DEVMODE structure, set <b>PD_RETURNDC</b> = <b>TRUE</b> and
-    ///<b>PD_USEDEVMODECOPIESANDCOLLATE</b> = <b>TRUE</b>. In so doing, the <b>nCopies</b> member of the PRINTDLG
-    ///structure is always 1 and <b>PD_COLLATE</b> is always <b>FALSE</b>. To ensure that PrintDlg or PrintDlgEx returns
-    ///the correct values in <b>nCopies</b> and <b>PD_COLLATE</b>, set <b>PD_RETURNDC</b> = <b>TRUE</b> and
-    ///<b>PD_USEDEVMODECOPIESANDCOLLATE</b> = <b>FALSE</b>. In so doing, <b>dmCopies</b> is always 1 and
-    ///<b>dmCollate</b> is always <b>FALSE</b>. Starting with Windows Vista, when you call PrintDlg or PrintDlgEx with
-    ///<b>PD_RETURNDC</b> set to <b>TRUE</b> and <b>PD_USEDEVMODECOPIESANDCOLLATE</b> set to <b>FALSE</b>, the
-    ///<b>PrintDlg</b> or <b>PrintDlgEx</b> function sets the number of copies in the <b>nCopies</b> member of the
-    ///PRINTDLG structure, and it sets the number of copies in the structure represented by the <b>hDC</b> member of the
-    ///<b>PRINTDLG</b> structure. When making calls to GDI, you must ignore the value of <b>nCopies</b>, consider the
-    ///value as 1, and use the returned <b>hDC</b> to avoid printing duplicate copies. <table> <tr> <th>Value</th>
-    ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="PD_ALLPAGES"></a><a id="pd_allpages"></a><dl>
-    ///<dt><b>PD_ALLPAGES</b></dt> <dt>0x00000000</dt> </dl> </td> <td width="60%"> The default flag that indicates that
-    ///the <b>All</b> radio button is initially selected. This flag is used as a placeholder to indicate that the
-    ///<b>PD_PAGENUMS</b>, <b>PD_SELECTION</b>, and <b>PD_CURRENTPAGE</b> flags are not specified. </td> </tr> <tr> <td
-    ///width="40%"><a id="PD_COLLATE"></a><a id="pd_collate"></a><dl> <dt><b>PD_COLLATE</b></dt> <dt>0x00000010</dt>
-    ///</dl> </td> <td width="60%"> If this flag is set, the <b>Collate</b> check box is selected. If this flag is set
-    ///when the PrintDlgEx function returns, the application must simulate collation of multiple copies. For more
-    ///information, see the description of the <b>PD_USEDEVMODECOPIESANDCOLLATE</b> flag. See <b>PD_NOPAGENUMS</b>.
-    ///</td> </tr> <tr> <td width="40%"><a id="PD_CURRENTPAGE"></a><a id="pd_currentpage"></a><dl>
-    ///<dt><b>PD_CURRENTPAGE</b></dt> <dt>0x00400000</dt> </dl> </td> <td width="60%"> If this flag is set, the
-    ///<b>Current Page</b> radio button is selected. If none of the <b>PD_PAGENUMS</b>, <b>PD_SELECTION</b>, or
-    ///<b>PD_CURRENTPAGE</b> flags is set, the <b>All</b> radio button is selected. </td> </tr> <tr> <td width="40%"><a
-    ///id="PD_DISABLEPRINTTOFILE"></a><a id="pd_disableprinttofile"></a><dl> <dt><b>PD_DISABLEPRINTTOFILE</b></dt>
-    ///<dt>0x00080000</dt> </dl> </td> <td width="60%"> Disables the <b>Print to File</b> check box. </td> </tr> <tr>
-    ///<td width="40%"><a id="PD_ENABLEPRINTTEMPLATE"></a><a id="pd_enableprinttemplate"></a><dl>
-    ///<dt><b>PD_ENABLEPRINTTEMPLATE</b></dt> <dt>0x00004000</dt> </dl> </td> <td width="60%"> Indicates that the
-    ///<b>hInstance</b> and <b>lpPrintTemplateName</b> members specify a replacement for the default dialog box template
-    ///in the lower portion of the <b>General</b> page. The default template contains controls similar to those of the
-    ///<b>Print</b> dialog box. The system uses the specified template to create a window that is a child of the
-    ///<b>General</b> page. </td> </tr> <tr> <td width="40%"><a id="PD_ENABLEPRINTTEMPLATEHANDLE"></a><a
-    ///id="pd_enableprinttemplatehandle"></a><dl> <dt><b>PD_ENABLEPRINTTEMPLATEHANDLE</b></dt> <dt>0x00010000</dt> </dl>
-    ///</td> <td width="60%"> Indicates that the <b>hInstance</b> member identifies a data block that contains a
-    ///preloaded dialog box template. This template replaces the default dialog box template in the lower portion of the
-    ///<b>General</b> page. The system uses the specified template to create a window that is a child of the
-    ///<b>General</b> page. The system ignores the <b>lpPrintTemplateName</b> member if this flag is specified. </td>
-    ///</tr> <tr> <td width="40%"><a id="PD_EXCLUSIONFLAGS"></a><a id="pd_exclusionflags"></a><dl>
-    ///<dt><b>PD_EXCLUSIONFLAGS</b></dt> <dt>0x01000000</dt> </dl> </td> <td width="60%"> Indicates that the
-    ///<b>ExclusionFlags</b> member identifies items to be excluded from the printer driver property pages. If this flag
-    ///is not set, items will be excluded by default from the printer driver property pages. The exclusions prevent the
-    ///duplication of items among the <b>General</b> page, any application-specified pages, and the printer driver
-    ///pages. </td> </tr> <tr> <td width="40%"><a id="PD_HIDEPRINTTOFILE"></a><a id="pd_hideprinttofile"></a><dl>
-    ///<dt><b>PD_HIDEPRINTTOFILE</b></dt> <dt>0x00100000</dt> </dl> </td> <td width="60%"> Hides the <b>Print to
-    ///File</b> check box. </td> </tr> <tr> <td width="40%"><a id="PD_NOCURRENTPAGE"></a><a
-    ///id="pd_nocurrentpage"></a><dl> <dt><b>PD_NOCURRENTPAGE</b></dt> <dt>0x00800000</dt> </dl> </td> <td width="60%">
-    ///Disables the <b>Current Page</b> radio button. </td> </tr> <tr> <td width="40%"><a id="PD_NOPAGENUMS"></a><a
-    ///id="pd_nopagenums"></a><dl> <dt><b>PD_NOPAGENUMS</b></dt> <dt>0x00000008</dt> </dl> </td> <td width="60%">
-    ///Disables the <b>Pages</b> radio button and the associated edit controls. Also, it causes the <b>Collate</b> check
-    ///box to appear in the dialog. </td> </tr> <tr> <td width="40%"><a id="PD_NOSELECTION"></a><a
-    ///id="pd_noselection"></a><dl> <dt><b>PD_NOSELECTION</b></dt> <dt>0x00000004</dt> </dl> </td> <td width="60%">
-    ///Disables the <b>Selection</b> radio button. </td> </tr> <tr> <td width="40%"><a id="PD_NOWARNING"></a><a
-    ///id="pd_nowarning"></a><dl> <dt><b>PD_NOWARNING</b></dt> <dt>0x00000080</dt> </dl> </td> <td width="60%"> Prevents
-    ///the warning message from being displayed when an error occurs. </td> </tr> <tr> <td width="40%"><a
-    ///id="PD_PAGENUMS"></a><a id="pd_pagenums"></a><dl> <dt><b>PD_PAGENUMS</b></dt> <dt>0x00000002</dt> </dl> </td> <td
-    ///width="60%"> If this flag is set, the <b>Pages</b> radio button is selected. If none of the <b>PD_PAGENUMS</b>,
-    ///<b>PD_SELECTION</b>, or <b>PD_CURRENTPAGE</b> flags is set, the <b>All</b> radio button is selected. If this flag
-    ///is set when the PrintDlgEx function returns, the <b>lpPageRanges</b> member indicates the page ranges specified
-    ///by the user. </td> </tr> <tr> <td width="40%"><a id="PD_PRINTTOFILE"></a><a id="pd_printtofile"></a><dl>
-    ///<dt><b>PD_PRINTTOFILE</b></dt> <dt>0x00000020</dt> </dl> </td> <td width="60%"> If this flag is set, the <b>Print
-    ///to File</b> check box is selected. If this flag is set when PrintDlgEx returns, the offset indicated by the
-    ///<b>wOutputOffset</b> member of the DEVNAMES structure contains the string "FILE:". When you call the StartDoc
-    ///function to start the printing operation, specify this "FILE:" string in the <b>lpszOutput</b> member of the
-    ///DOCINFO structure. Specifying this string causes the print subsystem to query the user for the name of the output
-    ///file. </td> </tr> <tr> <td width="40%"><a id="PD_RETURNDC"></a><a id="pd_returndc"></a><dl>
-    ///<dt><b>PD_RETURNDC</b></dt> <dt>0x00000100</dt> </dl> </td> <td width="60%"> Causes PrintDlgEx to return a device
-    ///context matching the selections the user made in the property sheet. The device context is returned in
-    ///<b>hDC</b>. </td> </tr> <tr> <td width="40%"><a id="PD_RETURNDEFAULT"></a><a id="pd_returndefault"></a><dl>
-    ///<dt><b>PD_RETURNDEFAULT</b></dt> <dt>0x00000400</dt> </dl> </td> <td width="60%"> If this flag is set, the
-    ///PrintDlgEx function does not display the property sheet. Instead, it sets the <b>hDevNames</b> and
-    ///<b>hDevMode</b> members to handles to DEVNAMES and DEVMODE structures that are initialized for the system default
-    ///printer. Both <b>hDevNames</b> and <b>hDevMode</b> must be <b>NULL</b>, or <b>PrintDlgEx</b> returns an error.
-    ///</td> </tr> <tr> <td width="40%"><a id="PD_RETURNIC"></a><a id="pd_returnic"></a><dl> <dt><b>PD_RETURNIC</b></dt>
-    ///<dt>0x00000200</dt> </dl> </td> <td width="60%"> Similar to the <b>PD_RETURNDC</b> flag, except this flag returns
-    ///an information context rather than a device context. If neither <b>PD_RETURNDC</b> nor <b>PD_RETURNIC</b> is
-    ///specified, <b>hDC</b> is undefined on output. </td> </tr> <tr> <td width="40%"><a id="PD_SELECTION"></a><a
-    ///id="pd_selection"></a><dl> <dt><b>PD_SELECTION</b></dt> <dt>0x00000001</dt> </dl> </td> <td width="60%"> If this
-    ///flag is set, the <b>Selection</b> radio button is selected. If none of the <b>PD_PAGENUMS</b>,
-    ///<b>PD_SELECTION</b>, or <b>PD_CURRENTPAGE</b> flags is set, the <b>All</b> radio button is selected. </td> </tr>
-    ///<tr> <td width="40%"><a id="PD_USEDEVMODECOPIES"></a><a id="pd_usedevmodecopies"></a><dl>
-    ///<dt><b>PD_USEDEVMODECOPIES</b></dt> <dt>0x00040000</dt> </dl> </td> <td width="60%"> Same as
-    ///<b>PD_USEDEVMODECOPIESANDCOLLATE</b>. </td> </tr> <tr> <td width="40%"><a
-    ///id="PD_USEDEVMODECOPIESANDCOLLATE"></a><a id="pd_usedevmodecopiesandcollate"></a><dl>
-    ///<dt><b>PD_USEDEVMODECOPIESANDCOLLATE</b></dt> <dt>0x00040000</dt> </dl> </td> <td width="60%"> This flag
-    ///indicates whether your application supports multiple copies and collation. Set this flag on input to indicate
-    ///that your application does not support multiple copies and collation. In this case, the <b>nCopies</b> member of
-    ///the <b>PRINTDLGEX</b> structure always returns 1, and <b>PD_COLLATE</b> is never set in the <b>Flags</b> member.
-    ///If this flag is not set, the application is responsible for printing and collating multiple copies. In this case,
-    ///the <b>nCopies</b> member of the <b>PRINTDLGEX</b> structure indicates the number of copies the user wants to
-    ///print, and the <b>PD_COLLATE</b> flag in the <b>Flags</b> member indicates whether the user wants collation.
-    ///Regardless of whether this flag is set, an application can determine from <b>nCopies</b> and <b>PD_COLLATE</b>
-    ///how many copies to render and whether to print them collated. If this flag is set and the printer driver does not
-    ///support multiple copies, the <b>Copies</b> edit control is disabled. Similarly, if this flag is set and the
-    ///printer driver does not support collation, the <b>Collate</b> check box is disabled. The <b>dmCopies</b> and
-    ///<b>dmCollate</b> members of the DEVMODE structure contain the copies and collate information used by the printer
-    ///driver. If this flag is set and the printer driver supports multiple copies, the <b>dmCopies</b> member indicates
-    ///the number of copies requested by the user. If this flag is set and the printer driver supports collation, the
-    ///<b>dmCollate</b> member of the <b>DEVMODE</b> structure indicates whether the user wants collation. If this flag
-    ///is not set, the <b>dmCopies</b> member always returns 1, and the <b>dmCollate</b> member is always zero. In
-    ///Windows versions prior to Windows Vista, if this flag is not set by the calling application and the
-    ///<b>dmCopies</b> member of the DEVMODE structure is greater than 1, use that value for the number of copies;
-    ///otherwise, use the value of the <b>nCopies</b> member of the <b>PRINTDLGEX</b> structure. </td> </tr> <tr> <td
-    ///width="40%"><a id="PD_USELARGETEMPLATE"></a><a id="pd_uselargetemplate"></a><dl>
-    ///<dt><b>PD_USELARGETEMPLATE</b></dt> <dt>0x10000000</dt> </dl> </td> <td width="60%"> Forces the property sheet to
-    ///use a large template for the <b>General</b> page. The larger template provides more space for applications that
-    ///specify a custom template for the lower portion of the <b>General</b> page. </td> </tr> </table>
-    uint            Flags;
-    ///Type: <b>DWORD</b>
-    uint            Flags2;
-    ///Type: <b>DWORD</b> A set of bit flags that can exclude items from the printer driver property pages in the
-    ///<b>Print</b> property sheet. This value is used only if the <b>PD_EXCLUSIONFLAGS</b> flag is set in the
-    ///<b>Flags</b> member. Exclusion flags should be used only if the item to be excluded will be included on either
-    ///the <b>General</b> page or on an application-defined page in the <b>Print</b> property sheet. This member can
-    ///specify the following flag.
-    uint            ExclusionFlags;
-    ///Type: <b>DWORD</b> On input, set this member to the initial number of page ranges specified in the
-    ///<b>lpPageRanges</b> array. When the PrintDlgEx function returns, <b>nPageRanges</b> indicates the number of
-    ///user-specified page ranges stored in the <b>lpPageRanges</b> array. If the <b>PD_NOPAGENUMS</b> flag is
-    ///specified, this value is not valid.
-    uint            nPageRanges;
-    ///Type: <b>DWORD</b> The size, in array elements, of the <b>lpPageRanges</b> buffer. This value indicates the
-    ///maximum number of page ranges that can be stored in the array. If the <b>PD_NOPAGENUMS</b> flag is specified,
-    ///this value is not valid. If the <b>PD_NOPAGENUMS</b> flag is not specified, this value must be greater than zero.
-    uint            nMaxPageRanges;
-    ///Type: <b>LPPRINTPAGERANGE</b> Pointer to a buffer containing an array of PRINTPAGERANGE structures. On input, the
-    ///array contains the initial page ranges to display in the <b>Pages</b> edit control. When the PrintDlgEx function
-    ///returns, the array contains the page ranges specified by the user. If the <b>PD_NOPAGENUMS</b> flag is specified,
-    ///this value is not valid. If the <b>PD_NOPAGENUMS</b> flag is not specified, <b>lpPageRanges</b> must be
-    ///non-<b>NULL</b>.
-    PRINTPAGERANGE* lpPageRanges;
-    ///Type: <b>DWORD</b> The minimum value for the page ranges specified in the <b>Pages</b> edit control. If the
-    ///<b>PD_NOPAGENUMS</b> flag is specified, this value is not valid.
-    uint            nMinPage;
-    ///Type: <b>DWORD</b> The maximum value for the page ranges specified in the <b>Pages</b> edit control. If the
-    ///<b>PD_NOPAGENUMS</b> flag is specified, this value is not valid.
-    uint            nMaxPage;
-    ///Type: <b>DWORD</b> Contains the initial number of copies for the <b>Copies</b> edit control if <b>hDevMode</b> is
-    ///<b>NULL</b>; otherwise, the <b>dmCopies</b> member of the DEVMODE structure contains the initial value. When
-    ///PrintDlgEx returns, <b>nCopies</b> contains the actual number of copies the application must print. This value
-    ///depends on whether the application or the printer driver is responsible for printing multiple copies. If the
-    ///<b>PD_USEDEVMODECOPIESANDCOLLATE</b> flag is set in the <b>Flags</b> member, <b>nCopies</b> is always 1 on
-    ///return, and the printer driver is responsible for printing multiple copies. If the flag is not set, the
-    ///application is responsible for printing the number of copies specified by <b>nCopies</b>. For more information,
-    ///see the description of the <b>PD_USEDEVMODECOPIESANDCOLLATE</b> flag.
-    uint            nCopies;
-    ///Type: <b>HINSTANCE</b> If the <b>PD_ENABLEPRINTTEMPLATE</b> flag is set in the <b>Flags</b> member,
-    ///<b>hInstance</b> is a handle to the application or module instance that contains the dialog box template named by
-    ///the <b>lpPrintTemplateName</b> member. If the <b>PD_ENABLEPRINTTEMPLATEHANDLE</b> flag is set in the <b>Flags</b>
-    ///member, <b>hInstance</b> is a handle to a memory object containing a dialog box template. If neither of the
-    ///template flags is set in the <b>Flags</b> member, <b>hInstance</b> should be <b>NULL</b>.
-    HINSTANCE       hInstance;
-    ///Type: <b>LPCTSTR</b> The name of the dialog box template resource in the module identified by the
-    ///<b>hInstance</b> member. This template replaces the default dialog box template in the lower portion of the
-    ///<b>General</b> page. The default template contains controls similar to those of the <b>Print</b> dialog box. This
-    ///member is ignored unless the PD_ENABLEPRINTTEMPLATE flag is set in the <b>Flags</b> member.
-    const(char)*    lpPrintTemplateName;
-    ///Type: <b>LPUNKNOWN</b> A pointer to an application-defined callback object. The object should contain the
-    ///IPrintDialogCallback class to receive messages for the child dialog box in the lower portion of the
-    ///<b>General</b> page. The callback object should also contain the IObjectWithSite class to receive a pointer to
-    ///the IPrintDialogServices interface. The PrintDlgEx function calls IUnknown::QueryInterface on the callback object
-    ///for both <b>IID_IPrintDialogCallback</b> and <b>IID_IObjectWithSite</b> to determine which interfaces are
-    ///supported. If you do not want to retrieve any of the callback information, set <b>lpCallback</b> to <b>NULL</b>.
-    IUnknown        lpCallback;
-    ///Type: <b>DWORD</b> The number of property page handles in the <b>lphPropertyPages</b> array.
-    uint            nPropertyPages;
-    ///Type: <b>HPROPSHEETPAGE*</b> Contains an array of property page handles to add to the <b>Print</b> property
-    ///sheet. The additional property pages follow the <b>General</b> page. Use the CreatePropertySheetPage function to
-    ///create these additional pages. When the PrintDlgEx function returns, all the <b>HPROPSHEETPAGE</b> handles in the
-    ///<b>lphPropertyPages</b> array have been destroyed. If <b>nPropertyPages</b> is zero, <b>lphPropertyPages</b>
-    ///should be <b>NULL</b>.
-    HPROPSHEETPAGE* lphPropertyPages;
-    ///Type: <b>DWORD</b> The property page that is initially displayed. To display the <b>General</b> page, specify
-    ///<b>START_PAGE_GENERAL</b>. Otherwise, specify the zero-based index of a property page in the array specified in
-    ///the <b>lphPropertyPages</b> member. For consistency, it is recommended that the property sheet always be started
-    ///on the <b>General</b> page.
-    uint            nStartPage;
-    ///Type: <b>DWORD</b> On input, set this member to zero. If the PrintDlgEx function returns S_OK,
-    ///<b>dwResultAction</b> contains the outcome of the dialog. If <b>PrintDlgEx</b> returns an error, this member
-    ///should be ignored. The <b>dwResultAction</b> member can be one of the following values.
-    uint            dwResultAction;
-}
-
-///Contains information that the PrintDlgEx function uses to initialize the Print property sheet. After the user closes
-///the property sheet, the system uses this structure to return information about the user's selections.
-struct PRINTDLGEXW
-{
-align (1):
-    ///Type: <b>DWORD</b> The structure size, in bytes.
-    uint            lStructSize;
-    ///Type: <b>HWND</b> A handle to the window that owns the property sheet. This member must be a valid window handle;
-    ///it cannot be <b>NULL</b>.
-    HWND            hwndOwner;
-    ///Type: <b>HGLOBAL</b> A handle to a movable global memory object that contains a DEVMODE structure. If
-    ///<b>hDevMode</b> is not <b>NULL</b> on input, you must allocate a movable block of memory for the <b>DEVMODE</b>
-    ///structure and initialize its members. The PrintDlgEx function uses the input data to initialize the controls in
-    ///the property sheet. When <b>PrintDlgEx</b> returns, the <b>DEVMODE</b> members indicate the user's input. If
-    ///<b>hDevMode</b> is <b>NULL</b> on input, PrintDlgEx allocates memory for the DEVMODE structure, initializes its
-    ///members to indicate the user's input, and returns a handle that identifies it. For more information about the
-    ///<b>hDevMode</b> and <b>hDevNames</b> members, see the Remarks section at the end of this topic.
-    ptrdiff_t       hDevMode;
-    ///Type: <b>HGLOBAL</b> A handle to a movable global memory object that contains a DEVNAMES structure. If
-    ///<b>hDevNames</b> is not <b>NULL</b> on input, you must allocate a movable block of memory for the <b>DEVNAMES</b>
-    ///structure and initialize its members. The PrintDlgEx function uses the input data to initialize the controls in
-    ///the property sheet. When <b>PrintDlgEx</b> returns, the <b>DEVNAMES</b> members contain information for the
-    ///printer chosen by the user. You can use this information to create a device context or an information context.
-    ///The <b>hDevNames</b> member can be <b>NULL</b>, in which case, PrintDlgEx allocates memory for the DEVNAMES
-    ///structure, initializes its members to indicate the user's input, and returns a handle that identifies it. For
-    ///more information about the <b>hDevMode</b> and <b>hDevNames</b> members, see the Remarks section at the end of
-    ///this topic.
-    ptrdiff_t       hDevNames;
-    ///Type: <b>HDC</b> A handle to a device context or an information context, depending on whether the <b>Flags</b>
-    ///member specifies the <b>PD_RETURNDC</b> or <b>PC_RETURNIC</b> flag. If neither flag is specified, the value of
-    ///this member is undefined. If both flags are specified, <b>PD_RETURNDC</b> has priority.
-    HDC             hDC;
-    ///Type: <b>DWORD</b> A set of bit flags that you can use to initialize the <b>Print</b> property sheet. When the
-    ///PrintDlgEx function returns, it sets these flags to indicate the user's input. This member can be one or more of
-    ///the following values. To ensure that PrintDlg or PrintDlgEx returns the correct values in the <b>dmCopies</b> and
-    ///<b>dmCollate</b> members of the DEVMODE structure, set <b>PD_RETURNDC</b> = <b>TRUE</b> and
-    ///<b>PD_USEDEVMODECOPIESANDCOLLATE</b> = <b>TRUE</b>. In so doing, the <b>nCopies</b> member of the PRINTDLG
-    ///structure is always 1 and <b>PD_COLLATE</b> is always <b>FALSE</b>. To ensure that PrintDlg or PrintDlgEx returns
-    ///the correct values in <b>nCopies</b> and <b>PD_COLLATE</b>, set <b>PD_RETURNDC</b> = <b>TRUE</b> and
-    ///<b>PD_USEDEVMODECOPIESANDCOLLATE</b> = <b>FALSE</b>. In so doing, <b>dmCopies</b> is always 1 and
-    ///<b>dmCollate</b> is always <b>FALSE</b>. Starting with Windows Vista, when you call PrintDlg or PrintDlgEx with
-    ///<b>PD_RETURNDC</b> set to <b>TRUE</b> and <b>PD_USEDEVMODECOPIESANDCOLLATE</b> set to <b>FALSE</b>, the
-    ///<b>PrintDlg</b> or <b>PrintDlgEx</b> function sets the number of copies in the <b>nCopies</b> member of the
-    ///PRINTDLG structure, and it sets the number of copies in the structure represented by the <b>hDC</b> member of the
-    ///<b>PRINTDLG</b> structure. When making calls to GDI, you must ignore the value of <b>nCopies</b>, consider the
-    ///value as 1, and use the returned <b>hDC</b> to avoid printing duplicate copies. <table> <tr> <th>Value</th>
-    ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="PD_ALLPAGES"></a><a id="pd_allpages"></a><dl>
-    ///<dt><b>PD_ALLPAGES</b></dt> <dt>0x00000000</dt> </dl> </td> <td width="60%"> The default flag that indicates that
-    ///the <b>All</b> radio button is initially selected. This flag is used as a placeholder to indicate that the
-    ///<b>PD_PAGENUMS</b>, <b>PD_SELECTION</b>, and <b>PD_CURRENTPAGE</b> flags are not specified. </td> </tr> <tr> <td
-    ///width="40%"><a id="PD_COLLATE"></a><a id="pd_collate"></a><dl> <dt><b>PD_COLLATE</b></dt> <dt>0x00000010</dt>
-    ///</dl> </td> <td width="60%"> If this flag is set, the <b>Collate</b> check box is selected. If this flag is set
-    ///when the PrintDlgEx function returns, the application must simulate collation of multiple copies. For more
-    ///information, see the description of the <b>PD_USEDEVMODECOPIESANDCOLLATE</b> flag. See <b>PD_NOPAGENUMS</b>.
-    ///</td> </tr> <tr> <td width="40%"><a id="PD_CURRENTPAGE"></a><a id="pd_currentpage"></a><dl>
-    ///<dt><b>PD_CURRENTPAGE</b></dt> <dt>0x00400000</dt> </dl> </td> <td width="60%"> If this flag is set, the
-    ///<b>Current Page</b> radio button is selected. If none of the <b>PD_PAGENUMS</b>, <b>PD_SELECTION</b>, or
-    ///<b>PD_CURRENTPAGE</b> flags is set, the <b>All</b> radio button is selected. </td> </tr> <tr> <td width="40%"><a
-    ///id="PD_DISABLEPRINTTOFILE"></a><a id="pd_disableprinttofile"></a><dl> <dt><b>PD_DISABLEPRINTTOFILE</b></dt>
-    ///<dt>0x00080000</dt> </dl> </td> <td width="60%"> Disables the <b>Print to File</b> check box. </td> </tr> <tr>
-    ///<td width="40%"><a id="PD_ENABLEPRINTTEMPLATE"></a><a id="pd_enableprinttemplate"></a><dl>
-    ///<dt><b>PD_ENABLEPRINTTEMPLATE</b></dt> <dt>0x00004000</dt> </dl> </td> <td width="60%"> Indicates that the
-    ///<b>hInstance</b> and <b>lpPrintTemplateName</b> members specify a replacement for the default dialog box template
-    ///in the lower portion of the <b>General</b> page. The default template contains controls similar to those of the
-    ///<b>Print</b> dialog box. The system uses the specified template to create a window that is a child of the
-    ///<b>General</b> page. </td> </tr> <tr> <td width="40%"><a id="PD_ENABLEPRINTTEMPLATEHANDLE"></a><a
-    ///id="pd_enableprinttemplatehandle"></a><dl> <dt><b>PD_ENABLEPRINTTEMPLATEHANDLE</b></dt> <dt>0x00010000</dt> </dl>
-    ///</td> <td width="60%"> Indicates that the <b>hInstance</b> member identifies a data block that contains a
-    ///preloaded dialog box template. This template replaces the default dialog box template in the lower portion of the
-    ///<b>General</b> page. The system uses the specified template to create a window that is a child of the
-    ///<b>General</b> page. The system ignores the <b>lpPrintTemplateName</b> member if this flag is specified. </td>
-    ///</tr> <tr> <td width="40%"><a id="PD_EXCLUSIONFLAGS"></a><a id="pd_exclusionflags"></a><dl>
-    ///<dt><b>PD_EXCLUSIONFLAGS</b></dt> <dt>0x01000000</dt> </dl> </td> <td width="60%"> Indicates that the
-    ///<b>ExclusionFlags</b> member identifies items to be excluded from the printer driver property pages. If this flag
-    ///is not set, items will be excluded by default from the printer driver property pages. The exclusions prevent the
-    ///duplication of items among the <b>General</b> page, any application-specified pages, and the printer driver
-    ///pages. </td> </tr> <tr> <td width="40%"><a id="PD_HIDEPRINTTOFILE"></a><a id="pd_hideprinttofile"></a><dl>
-    ///<dt><b>PD_HIDEPRINTTOFILE</b></dt> <dt>0x00100000</dt> </dl> </td> <td width="60%"> Hides the <b>Print to
-    ///File</b> check box. </td> </tr> <tr> <td width="40%"><a id="PD_NOCURRENTPAGE"></a><a
-    ///id="pd_nocurrentpage"></a><dl> <dt><b>PD_NOCURRENTPAGE</b></dt> <dt>0x00800000</dt> </dl> </td> <td width="60%">
-    ///Disables the <b>Current Page</b> radio button. </td> </tr> <tr> <td width="40%"><a id="PD_NOPAGENUMS"></a><a
-    ///id="pd_nopagenums"></a><dl> <dt><b>PD_NOPAGENUMS</b></dt> <dt>0x00000008</dt> </dl> </td> <td width="60%">
-    ///Disables the <b>Pages</b> radio button and the associated edit controls. Also, it causes the <b>Collate</b> check
-    ///box to appear in the dialog. </td> </tr> <tr> <td width="40%"><a id="PD_NOSELECTION"></a><a
-    ///id="pd_noselection"></a><dl> <dt><b>PD_NOSELECTION</b></dt> <dt>0x00000004</dt> </dl> </td> <td width="60%">
-    ///Disables the <b>Selection</b> radio button. </td> </tr> <tr> <td width="40%"><a id="PD_NOWARNING"></a><a
-    ///id="pd_nowarning"></a><dl> <dt><b>PD_NOWARNING</b></dt> <dt>0x00000080</dt> </dl> </td> <td width="60%"> Prevents
-    ///the warning message from being displayed when an error occurs. </td> </tr> <tr> <td width="40%"><a
-    ///id="PD_PAGENUMS"></a><a id="pd_pagenums"></a><dl> <dt><b>PD_PAGENUMS</b></dt> <dt>0x00000002</dt> </dl> </td> <td
-    ///width="60%"> If this flag is set, the <b>Pages</b> radio button is selected. If none of the <b>PD_PAGENUMS</b>,
-    ///<b>PD_SELECTION</b>, or <b>PD_CURRENTPAGE</b> flags is set, the <b>All</b> radio button is selected. If this flag
-    ///is set when the PrintDlgEx function returns, the <b>lpPageRanges</b> member indicates the page ranges specified
-    ///by the user. </td> </tr> <tr> <td width="40%"><a id="PD_PRINTTOFILE"></a><a id="pd_printtofile"></a><dl>
-    ///<dt><b>PD_PRINTTOFILE</b></dt> <dt>0x00000020</dt> </dl> </td> <td width="60%"> If this flag is set, the <b>Print
-    ///to File</b> check box is selected. If this flag is set when PrintDlgEx returns, the offset indicated by the
-    ///<b>wOutputOffset</b> member of the DEVNAMES structure contains the string "FILE:". When you call the StartDoc
-    ///function to start the printing operation, specify this "FILE:" string in the <b>lpszOutput</b> member of the
-    ///DOCINFO structure. Specifying this string causes the print subsystem to query the user for the name of the output
-    ///file. </td> </tr> <tr> <td width="40%"><a id="PD_RETURNDC"></a><a id="pd_returndc"></a><dl>
-    ///<dt><b>PD_RETURNDC</b></dt> <dt>0x00000100</dt> </dl> </td> <td width="60%"> Causes PrintDlgEx to return a device
-    ///context matching the selections the user made in the property sheet. The device context is returned in
-    ///<b>hDC</b>. </td> </tr> <tr> <td width="40%"><a id="PD_RETURNDEFAULT"></a><a id="pd_returndefault"></a><dl>
-    ///<dt><b>PD_RETURNDEFAULT</b></dt> <dt>0x00000400</dt> </dl> </td> <td width="60%"> If this flag is set, the
-    ///PrintDlgEx function does not display the property sheet. Instead, it sets the <b>hDevNames</b> and
-    ///<b>hDevMode</b> members to handles to DEVNAMES and DEVMODE structures that are initialized for the system default
-    ///printer. Both <b>hDevNames</b> and <b>hDevMode</b> must be <b>NULL</b>, or <b>PrintDlgEx</b> returns an error.
-    ///</td> </tr> <tr> <td width="40%"><a id="PD_RETURNIC"></a><a id="pd_returnic"></a><dl> <dt><b>PD_RETURNIC</b></dt>
-    ///<dt>0x00000200</dt> </dl> </td> <td width="60%"> Similar to the <b>PD_RETURNDC</b> flag, except this flag returns
-    ///an information context rather than a device context. If neither <b>PD_RETURNDC</b> nor <b>PD_RETURNIC</b> is
-    ///specified, <b>hDC</b> is undefined on output. </td> </tr> <tr> <td width="40%"><a id="PD_SELECTION"></a><a
-    ///id="pd_selection"></a><dl> <dt><b>PD_SELECTION</b></dt> <dt>0x00000001</dt> </dl> </td> <td width="60%"> If this
-    ///flag is set, the <b>Selection</b> radio button is selected. If none of the <b>PD_PAGENUMS</b>,
-    ///<b>PD_SELECTION</b>, or <b>PD_CURRENTPAGE</b> flags is set, the <b>All</b> radio button is selected. </td> </tr>
-    ///<tr> <td width="40%"><a id="PD_USEDEVMODECOPIES"></a><a id="pd_usedevmodecopies"></a><dl>
-    ///<dt><b>PD_USEDEVMODECOPIES</b></dt> <dt>0x00040000</dt> </dl> </td> <td width="60%"> Same as
-    ///<b>PD_USEDEVMODECOPIESANDCOLLATE</b>. </td> </tr> <tr> <td width="40%"><a
-    ///id="PD_USEDEVMODECOPIESANDCOLLATE"></a><a id="pd_usedevmodecopiesandcollate"></a><dl>
-    ///<dt><b>PD_USEDEVMODECOPIESANDCOLLATE</b></dt> <dt>0x00040000</dt> </dl> </td> <td width="60%"> This flag
-    ///indicates whether your application supports multiple copies and collation. Set this flag on input to indicate
-    ///that your application does not support multiple copies and collation. In this case, the <b>nCopies</b> member of
-    ///the <b>PRINTDLGEX</b> structure always returns 1, and <b>PD_COLLATE</b> is never set in the <b>Flags</b> member.
-    ///If this flag is not set, the application is responsible for printing and collating multiple copies. In this case,
-    ///the <b>nCopies</b> member of the <b>PRINTDLGEX</b> structure indicates the number of copies the user wants to
-    ///print, and the <b>PD_COLLATE</b> flag in the <b>Flags</b> member indicates whether the user wants collation.
-    ///Regardless of whether this flag is set, an application can determine from <b>nCopies</b> and <b>PD_COLLATE</b>
-    ///how many copies to render and whether to print them collated. If this flag is set and the printer driver does not
-    ///support multiple copies, the <b>Copies</b> edit control is disabled. Similarly, if this flag is set and the
-    ///printer driver does not support collation, the <b>Collate</b> check box is disabled. The <b>dmCopies</b> and
-    ///<b>dmCollate</b> members of the DEVMODE structure contain the copies and collate information used by the printer
-    ///driver. If this flag is set and the printer driver supports multiple copies, the <b>dmCopies</b> member indicates
-    ///the number of copies requested by the user. If this flag is set and the printer driver supports collation, the
-    ///<b>dmCollate</b> member of the <b>DEVMODE</b> structure indicates whether the user wants collation. If this flag
-    ///is not set, the <b>dmCopies</b> member always returns 1, and the <b>dmCollate</b> member is always zero. In
-    ///Windows versions prior to Windows Vista, if this flag is not set by the calling application and the
-    ///<b>dmCopies</b> member of the DEVMODE structure is greater than 1, use that value for the number of copies;
-    ///otherwise, use the value of the <b>nCopies</b> member of the <b>PRINTDLGEX</b> structure. </td> </tr> <tr> <td
-    ///width="40%"><a id="PD_USELARGETEMPLATE"></a><a id="pd_uselargetemplate"></a><dl>
-    ///<dt><b>PD_USELARGETEMPLATE</b></dt> <dt>0x10000000</dt> </dl> </td> <td width="60%"> Forces the property sheet to
-    ///use a large template for the <b>General</b> page. The larger template provides more space for applications that
-    ///specify a custom template for the lower portion of the <b>General</b> page. </td> </tr> </table>
-    uint            Flags;
-    ///Type: <b>DWORD</b>
-    uint            Flags2;
-    ///Type: <b>DWORD</b> A set of bit flags that can exclude items from the printer driver property pages in the
-    ///<b>Print</b> property sheet. This value is used only if the <b>PD_EXCLUSIONFLAGS</b> flag is set in the
-    ///<b>Flags</b> member. Exclusion flags should be used only if the item to be excluded will be included on either
-    ///the <b>General</b> page or on an application-defined page in the <b>Print</b> property sheet. This member can
-    ///specify the following flag.
-    uint            ExclusionFlags;
-    ///Type: <b>DWORD</b> On input, set this member to the initial number of page ranges specified in the
-    ///<b>lpPageRanges</b> array. When the PrintDlgEx function returns, <b>nPageRanges</b> indicates the number of
-    ///user-specified page ranges stored in the <b>lpPageRanges</b> array. If the <b>PD_NOPAGENUMS</b> flag is
-    ///specified, this value is not valid.
-    uint            nPageRanges;
-    ///Type: <b>DWORD</b> The size, in array elements, of the <b>lpPageRanges</b> buffer. This value indicates the
-    ///maximum number of page ranges that can be stored in the array. If the <b>PD_NOPAGENUMS</b> flag is specified,
-    ///this value is not valid. If the <b>PD_NOPAGENUMS</b> flag is not specified, this value must be greater than zero.
-    uint            nMaxPageRanges;
-    ///Type: <b>LPPRINTPAGERANGE</b> Pointer to a buffer containing an array of PRINTPAGERANGE structures. On input, the
-    ///array contains the initial page ranges to display in the <b>Pages</b> edit control. When the PrintDlgEx function
-    ///returns, the array contains the page ranges specified by the user. If the <b>PD_NOPAGENUMS</b> flag is specified,
-    ///this value is not valid. If the <b>PD_NOPAGENUMS</b> flag is not specified, <b>lpPageRanges</b> must be
-    ///non-<b>NULL</b>.
-    PRINTPAGERANGE* lpPageRanges;
-    ///Type: <b>DWORD</b> The minimum value for the page ranges specified in the <b>Pages</b> edit control. If the
-    ///<b>PD_NOPAGENUMS</b> flag is specified, this value is not valid.
-    uint            nMinPage;
-    ///Type: <b>DWORD</b> The maximum value for the page ranges specified in the <b>Pages</b> edit control. If the
-    ///<b>PD_NOPAGENUMS</b> flag is specified, this value is not valid.
-    uint            nMaxPage;
-    ///Type: <b>DWORD</b> Contains the initial number of copies for the <b>Copies</b> edit control if <b>hDevMode</b> is
-    ///<b>NULL</b>; otherwise, the <b>dmCopies</b> member of the DEVMODE structure contains the initial value. When
-    ///PrintDlgEx returns, <b>nCopies</b> contains the actual number of copies the application must print. This value
-    ///depends on whether the application or the printer driver is responsible for printing multiple copies. If the
-    ///<b>PD_USEDEVMODECOPIESANDCOLLATE</b> flag is set in the <b>Flags</b> member, <b>nCopies</b> is always 1 on
-    ///return, and the printer driver is responsible for printing multiple copies. If the flag is not set, the
-    ///application is responsible for printing the number of copies specified by <b>nCopies</b>. For more information,
-    ///see the description of the <b>PD_USEDEVMODECOPIESANDCOLLATE</b> flag.
-    uint            nCopies;
-    ///Type: <b>HINSTANCE</b> If the <b>PD_ENABLEPRINTTEMPLATE</b> flag is set in the <b>Flags</b> member,
-    ///<b>hInstance</b> is a handle to the application or module instance that contains the dialog box template named by
-    ///the <b>lpPrintTemplateName</b> member. If the <b>PD_ENABLEPRINTTEMPLATEHANDLE</b> flag is set in the <b>Flags</b>
-    ///member, <b>hInstance</b> is a handle to a memory object containing a dialog box template. If neither of the
-    ///template flags is set in the <b>Flags</b> member, <b>hInstance</b> should be <b>NULL</b>.
-    HINSTANCE       hInstance;
-    ///Type: <b>LPCTSTR</b> The name of the dialog box template resource in the module identified by the
-    ///<b>hInstance</b> member. This template replaces the default dialog box template in the lower portion of the
-    ///<b>General</b> page. The default template contains controls similar to those of the <b>Print</b> dialog box. This
-    ///member is ignored unless the PD_ENABLEPRINTTEMPLATE flag is set in the <b>Flags</b> member.
-    const(wchar)*   lpPrintTemplateName;
-    ///Type: <b>LPUNKNOWN</b> A pointer to an application-defined callback object. The object should contain the
-    ///IPrintDialogCallback class to receive messages for the child dialog box in the lower portion of the
-    ///<b>General</b> page. The callback object should also contain the IObjectWithSite class to receive a pointer to
-    ///the IPrintDialogServices interface. The PrintDlgEx function calls IUnknown::QueryInterface on the callback object
-    ///for both <b>IID_IPrintDialogCallback</b> and <b>IID_IObjectWithSite</b> to determine which interfaces are
-    ///supported. If you do not want to retrieve any of the callback information, set <b>lpCallback</b> to <b>NULL</b>.
-    IUnknown        lpCallback;
-    ///Type: <b>DWORD</b> The number of property page handles in the <b>lphPropertyPages</b> array.
-    uint            nPropertyPages;
-    ///Type: <b>HPROPSHEETPAGE*</b> Contains an array of property page handles to add to the <b>Print</b> property
-    ///sheet. The additional property pages follow the <b>General</b> page. Use the CreatePropertySheetPage function to
-    ///create these additional pages. When the PrintDlgEx function returns, all the <b>HPROPSHEETPAGE</b> handles in the
-    ///<b>lphPropertyPages</b> array have been destroyed. If <b>nPropertyPages</b> is zero, <b>lphPropertyPages</b>
-    ///should be <b>NULL</b>.
-    HPROPSHEETPAGE* lphPropertyPages;
-    ///Type: <b>DWORD</b> The property page that is initially displayed. To display the <b>General</b> page, specify
-    ///<b>START_PAGE_GENERAL</b>. Otherwise, specify the zero-based index of a property page in the array specified in
-    ///the <b>lphPropertyPages</b> member. For consistency, it is recommended that the property sheet always be started
-    ///on the <b>General</b> page.
-    uint            nStartPage;
-    ///Type: <b>DWORD</b> On input, set this member to zero. If the PrintDlgEx function returns S_OK,
-    ///<b>dwResultAction</b> contains the outcome of the dialog. If <b>PrintDlgEx</b> returns an error, this member
-    ///should be ignored. The <b>dwResultAction</b> member can be one of the following values.
-    uint            dwResultAction;
-}
-
-///Contains strings that identify the driver, device, and output port names for a printer. These strings must be ANSI
-///strings when the ANSI version of PrintDlg or PrintDlgEx is used, and must be Unicode strings when the Unicode version
-///of <b>PrintDlg</b> or <b>PrintDlgEx</b> is used. The <b>PrintDlgEx</b> and <b>PrintDlg</b> functions use these
-///strings to initialize the system-defined Print Property Sheet or Print Dialog Box. When the user closes the property
-///sheet or dialog box, information about the selected printer is returned in this structure.
-struct DEVNAMES
-{
-align (1):
-    ///Type: <b>WORD</b> The offset, in characters, from the beginning of this structure to a null-terminated string
-    ///that contains the file name (without the extension) of the device driver. On input, this string is used to
-    ///determine the printer to display initially in the dialog box.
-    ushort wDriverOffset;
-    ///Type: <b>WORD</b> The offset, in characters, from the beginning of this structure to the null-terminated string
-    ///that contains the name of the device.
-    ushort wDeviceOffset;
-    ///Type: <b>WORD</b> The offset, in characters, from the beginning of this structure to the null-terminated string
-    ///that contains the device name for the physical output medium (output port).
-    ushort wOutputOffset;
-    ///Type: <b>WORD</b> Indicates whether the strings contained in the <b>DEVNAMES</b> structure identify the default
-    ///printer. This string is used to verify that the default printer has not changed since the last print operation.
-    ///If any of the strings do not match, a warning message is displayed informing the user that the document may need
-    ///to be reformatted. On output, the <b>wDefault</b> member is changed only if the <b>Print Setup</b> dialog box was
-    ///displayed and the user chose the <b>OK</b> button. The <b>DN_DEFAULTPRN</b> flag is used if the default printer
-    ///was selected. If a specific printer is selected, the flag is not used. All other flags in this member are
-    ///reserved for internal use by the dialog box procedure for the <b>Print</b> property sheet or <b>Print</b> dialog
-    ///box.
-    ushort wDefault;
-}
-
-///Contains information the PageSetupDlg function uses to initialize the <b>Page Setup</b> dialog box. After the user
-///closes the dialog box, the system returns information about the user-defined page parameters in this structure.
-struct PAGESETUPDLGA
-{
-align (1):
-    ///Type: <b>DWORD</b> The size, in bytes, of this structure.
-    uint            lStructSize;
-    ///Type: <b>HWND</b> A handle to the window that owns the dialog box. This member can be any valid window handle, or
-    ///it can be <b>NULL</b> if the dialog box has no owner.
-    HWND            hwndOwner;
-    ///Type: <b>HGLOBAL</b> A handle to a global memory object that contains a DEVMODE structure. On input, if a handle
-    ///is specified, the values in the corresponding <b>DEVMODE</b> structure are used to initialize the controls in the
-    ///dialog box. On output, the dialog box sets <b>hDevMode</b> to a global memory handle to a <b>DEVMODE</b>
-    ///structure that contains values specifying the user's selections. If the user's selections are not available, the
-    ///dialog box sets <b>hDevMode</b> to <b>NULL</b>.
-    ptrdiff_t       hDevMode;
-    ///Type: <b>HGLOBAL</b> A handle to a global memory object that contains a DEVNAMES structure. This structure
-    ///contains three strings that specify the driver name, the printer name, and the output port name. On input, if a
-    ///handle is specified, the strings in the corresponding <b>DEVNAMES</b> structure are used to initialize controls
-    ///in the dialog box. On output, the dialog box sets <b>hDevNames</b> to a global memory handle to a <b>DEVNAMES</b>
-    ///structure that contains strings specifying the user's selections. If the user's selections are not available, the
-    ///dialog box sets <b>hDevNames</b> to <b>NULL</b>.
-    ptrdiff_t       hDevNames;
-    ///Type: <b>DWORD</b> A set of bit flags that you can use to initialize the <b>Page Setup</b> dialog box. When the
-    ///dialog box returns, it sets these flags to indicate the user's input. This member can be one or more of the
-    ///following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
-    ///id="PSD_DEFAULTMINMARGINS"></a><a id="psd_defaultminmargins"></a><dl> <dt><b>PSD_DEFAULTMINMARGINS</b></dt>
-    ///<dt>0x00000000</dt> </dl> </td> <td width="60%"> Sets the minimum values that the user can specify for the page
-    ///margins to be the minimum margins allowed by the printer. This is the default. This flag is ignored if the
-    ///<b>PSD_MARGINS</b> and <b>PSD_MINMARGINS</b> flags are also specified. </td> </tr> <tr> <td width="40%"><a
-    ///id="PSD_DISABLEMARGINS"></a><a id="psd_disablemargins"></a><dl> <dt><b>PSD_DISABLEMARGINS</b></dt>
-    ///<dt>0x00000010</dt> </dl> </td> <td width="60%"> Disables the margin controls, preventing the user from setting
-    ///the margins. </td> </tr> <tr> <td width="40%"><a id="PSD_DISABLEORIENTATION"></a><a
-    ///id="psd_disableorientation"></a><dl> <dt><b>PSD_DISABLEORIENTATION</b></dt> <dt>0x00000100</dt> </dl> </td> <td
-    ///width="60%"> Disables the orientation controls, preventing the user from setting the page orientation. </td>
-    ///</tr> <tr> <td width="40%"><a id="PSD_DISABLEPAGEPAINTING"></a><a id="psd_disablepagepainting"></a><dl>
-    ///<dt><b>PSD_DISABLEPAGEPAINTING</b></dt> <dt>0x00080000</dt> </dl> </td> <td width="60%"> Prevents the dialog box
-    ///from drawing the contents of the sample page. If you enable a PagePaintHook hook procedure, you can still draw
-    ///the contents of the sample page. </td> </tr> <tr> <td width="40%"><a id="PSD_DISABLEPAPER"></a><a
-    ///id="psd_disablepaper"></a><dl> <dt><b>PSD_DISABLEPAPER</b></dt> <dt>0x00000200</dt> </dl> </td> <td width="60%">
-    ///Disables the paper controls, preventing the user from setting page parameters such as the paper size and source.
-    ///</td> </tr> <tr> <td width="40%"><a id="PSD_DISABLEPRINTER"></a><a id="psd_disableprinter"></a><dl>
-    ///<dt><b>PSD_DISABLEPRINTER</b></dt> <dt>0x00000020</dt> </dl> </td> <td width="60%"> Obsolete. <b>Windows XP/2000:
-    ///</b>Disables the <b>Printer</b> button, preventing the user from invoking a dialog box that contains additional
-    ///printer setup information. </td> </tr> <tr> <td width="40%"><a id="PSD_ENABLEPAGEPAINTHOOK"></a><a
-    ///id="psd_enablepagepainthook"></a><dl> <dt><b>PSD_ENABLEPAGEPAINTHOOK</b></dt> <dt>0x00040000</dt> </dl> </td> <td
-    ///width="60%"> Enables the hook procedure specified in the <b>lpfnPagePaintHook</b> member. </td> </tr> <tr> <td
-    ///width="40%"><a id="PSD_ENABLEPAGESETUPHOOK"></a><a id="psd_enablepagesetuphook"></a><dl>
-    ///<dt><b>PSD_ENABLEPAGESETUPHOOK</b></dt> <dt>0x00002000</dt> </dl> </td> <td width="60%"> Enables the hook
-    ///procedure specified in the <b>lpfnPageSetupHook</b> member. </td> </tr> <tr> <td width="40%"><a
-    ///id="PSD_ENABLEPAGESETUPTEMPLATE"></a><a id="psd_enablepagesetuptemplate"></a><dl>
-    ///<dt><b>PSD_ENABLEPAGESETUPTEMPLATE</b></dt> <dt>0x00008000</dt> </dl> </td> <td width="60%"> Indicates that the
-    ///<b>hInstance</b> and <b>lpPageSetupTemplateName</b> members specify a dialog box template to use in place of the
-    ///default template. </td> </tr> <tr> <td width="40%"><a id="PSD_ENABLEPAGESETUPTEMPLATEHANDLE"></a><a
-    ///id="psd_enablepagesetuptemplatehandle"></a><dl> <dt><b>PSD_ENABLEPAGESETUPTEMPLATEHANDLE</b></dt>
-    ///<dt>0x00020000</dt> </dl> </td> <td width="60%"> Indicates that the <b>hPageSetupTemplate</b> member identifies a
-    ///data block that contains a preloaded dialog box template. The system ignores the <b>lpPageSetupTemplateName</b>
-    ///member if this flag is specified. </td> </tr> <tr> <td width="40%"><a id="PSD_INHUNDREDTHSOFMILLIMETERS"></a><a
-    ///id="psd_inhundredthsofmillimeters"></a><dl> <dt><b>PSD_INHUNDREDTHSOFMILLIMETERS</b></dt> <dt>0x00000008</dt>
-    ///</dl> </td> <td width="60%"> Indicates that hundredths of millimeters are the unit of measurement for margins and
-    ///paper size. The values in the <b>rtMargin</b>, <b>rtMinMargin</b>, and <b>ptPaperSize</b> members are in
-    ///hundredths of millimeters. You can set this flag on input to override the default unit of measurement for the
-    ///user's locale. When the function returns, the dialog box sets this flag to indicate the units used. </td> </tr>
-    ///<tr> <td width="40%"><a id="PSD_INTHOUSANDTHSOFINCHES"></a><a id="psd_inthousandthsofinches"></a><dl>
-    ///<dt><b>PSD_INTHOUSANDTHSOFINCHES</b></dt> <dt>0x00000004</dt> </dl> </td> <td width="60%"> Indicates that
-    ///thousandths of inches are the unit of measurement for margins and paper size. The values in the <b>rtMargin</b>,
-    ///<b>rtMinMargin</b>, and <b>ptPaperSize</b> members are in thousandths of inches. You can set this flag on input
-    ///to override the default unit of measurement for the user's locale. When the function returns, the dialog box sets
-    ///this flag to indicate the units used. </td> </tr> <tr> <td width="40%"><a id="PSD_INWININIINTLMEASURE"></a><a
-    ///id="psd_inwininiintlmeasure"></a><dl> <dt><b>PSD_INWININIINTLMEASURE</b></dt> <dt>0x00000000</dt> </dl> </td> <td
-    ///width="60%"> Reserved. </td> </tr> <tr> <td width="40%"><a id="PSD_MARGINS"></a><a id="psd_margins"></a><dl>
-    ///<dt><b>PSD_MARGINS</b></dt> <dt>0x00000002</dt> </dl> </td> <td width="60%"> Causes the system to use the values
-    ///specified in the <b>rtMargin</b> member as the initial widths for the left, top, right, and bottom margins. If
-    ///<b>PSD_MARGINS</b> is not set, the system sets the initial widths to one inch for all margins. </td> </tr> <tr>
-    ///<td width="40%"><a id="PSD_MINMARGINS"></a><a id="psd_minmargins"></a><dl> <dt><b>PSD_MINMARGINS</b></dt>
-    ///<dt>0x00000001</dt> </dl> </td> <td width="60%"> Causes the system to use the values specified in the
-    ///<b>rtMinMargin</b> member as the minimum allowable widths for the left, top, right, and bottom margins. The
-    ///system prevents the user from entering a width that is less than the specified minimum. If <b>PSD_MINMARGINS</b>
-    ///is not specified, the system sets the minimum allowable widths to those allowed by the printer. </td> </tr> <tr>
-    ///<td width="40%"><a id="PSD_NONETWORKBUTTON"></a><a id="psd_nonetworkbutton"></a><dl>
-    ///<dt><b>PSD_NONETWORKBUTTON</b></dt> <dt>0x00200000</dt> </dl> </td> <td width="60%"> Hides and disables the
-    ///<b>Network</b> button. </td> </tr> <tr> <td width="40%"><a id="PSD_NOWARNING"></a><a id="psd_nowarning"></a><dl>
-    ///<dt><b>PSD_NOWARNING</b></dt> <dt>0x00000080</dt> </dl> </td> <td width="60%"> Prevents the system from
-    ///displaying a warning message when there is no default printer. </td> </tr> <tr> <td width="40%"><a
-    ///id="PSD_RETURNDEFAULT"></a><a id="psd_returndefault"></a><dl> <dt><b>PSD_RETURNDEFAULT</b></dt>
-    ///<dt>0x00000400</dt> </dl> </td> <td width="60%"> PageSetupDlg does not display the dialog box. Instead, it sets
-    ///the <b>hDevNames</b> and <b>hDevMode</b> members to handles to DEVMODE and DEVNAMES structures that are
-    ///initialized for the system default printer. <b>PageSetupDlg</b> returns an error if either <b>hDevNames</b> or
-    ///<b>hDevMode</b> is not <b>NULL</b>. </td> </tr> <tr> <td width="40%"><a id="PSD_SHOWHELP"></a><a
-    ///id="psd_showhelp"></a><dl> <dt><b>PSD_SHOWHELP</b></dt> <dt>0x00000800</dt> </dl> </td> <td width="60%"> Causes
-    ///the dialog box to display the <b>Help</b> button. The <b>hwndOwner</b> member must specify the window to receive
-    ///the HELPMSGSTRING registered messages that the dialog box sends when the user clicks the <b>Help</b> button.
-    ///</td> </tr> </table>
-    uint            Flags;
-    ///Type: <b>POINT</b> The dimensions of the paper selected by the user. The <b>PSD_INTHOUSANDTHSOFINCHES</b> or
-    ///<b>PSD_INHUNDREDTHSOFMILLIMETERS</b> flag indicates the units of measurement.
-    POINT           ptPaperSize;
-    ///Type: <b>RECT</b> The minimum allowable widths for the left, top, right, and bottom margins. The system ignores
-    ///this member if the <b>PSD_MINMARGINS</b> flag is not set. These values must be less than or equal to the values
-    ///specified in the <b>rtMargin</b> member. The <b>PSD_INTHOUSANDTHSOFINCHES</b> or
-    ///<b>PSD_INHUNDREDTHSOFMILLIMETERS</b> flag indicates the units of measurement.
-    RECT            rtMinMargin;
-    ///Type: <b>RECT</b> The widths of the left, top, right, and bottom margins. If you set the <b>PSD_MARGINS</b> flag,
-    ///<b>rtMargin</b> specifies the initial margin values. When PageSetupDlg returns, <b>rtMargin</b> contains the
-    ///margin widths selected by the user. The <b>PSD_INHUNDREDTHSOFMILLIMETERS</b> or <b>PSD_INTHOUSANDTHSOFINCHES</b>
-    ///flag indicates the units of measurement.
-    RECT            rtMargin;
-    ///Type: <b>HINSTANCE</b> If the <b>PSD_ENABLEPAGESETUPTEMPLATE</b> flag is set in the <b>Flags</b> member,
-    ///<b>hInstance</b> is a handle to the application or module instance that contains the dialog box template named by
-    ///the <b>lpPageSetupTemplateName</b> member.
-    HINSTANCE       hInstance;
-    ///Type: <b>LPARAM</b> Application-defined data that the system passes to the hook procedure identified by the
-    ///<b>lpfnPageSetupHook</b> member. When the system sends the WM_INITDIALOG message to the hook procedure, the
-    ///message's <i>lParam</i> parameter is a pointer to the <b>PAGESETUPDLG</b> structure specified when the dialog was
-    ///created. The hook procedure can use this pointer to get the <b>lCustData</b> value.
-    LPARAM          lCustData;
-    ///Type: <b>LPPAGESETUPHOOK</b> A pointer to a PageSetupHook hook procedure that can process messages intended for
-    ///the dialog box. This member is ignored unless the <b>PSD_ENABLEPAGESETUPHOOK</b> flag is set in the <b>Flags</b>
-    ///member.
-    LPPAGESETUPHOOK lpfnPageSetupHook;
-    ///Type: <b>LPPAGEPAINTHOOK</b> A pointer to a PagePaintHook hook procedure that receives <b>WM_PSD_*</b> messages
-    ///from the dialog box whenever the sample page is redrawn. By processing the messages, the hook procedure can
-    ///customize the appearance of the sample page. This member is ignored unless the <b>PSD_ENABLEPAGEPAINTHOOK</b>
-    ///flag is set in the <b>Flags</b> member.
-    LPPAGEPAINTHOOK lpfnPagePaintHook;
-    ///Type: <b>LPCTSTR</b> The name of the dialog box template resource in the module identified by the
-    ///<b>hInstance</b> member. This template is substituted for the standard dialog box template. For numbered dialog
-    ///box resources, <b>lpPageSetupTemplateName</b> can be a value returned by the MAKEINTRESOURCE macro. This member
-    ///is ignored unless the <b>PSD_ENABLEPAGESETUPTEMPLATE</b> flag is set in the <b>Flags</b> member.
-    const(char)*    lpPageSetupTemplateName;
-    ///Type: <b>HGLOBAL</b> If the <b>PSD_ENABLEPAGESETUPTEMPLATEHANDLE</b> flag is set in the <b>Flags</b> member,
-    ///<b>hPageSetupTemplate</b> is a handle to a memory object containing a dialog box template.
-    ptrdiff_t       hPageSetupTemplate;
-}
-
-///Contains information the PageSetupDlg function uses to initialize the <b>Page Setup</b> dialog box. After the user
-///closes the dialog box, the system returns information about the user-defined page parameters in this structure.
-struct PAGESETUPDLGW
-{
-align (1):
-    ///Type: <b>DWORD</b> The size, in bytes, of this structure.
-    uint            lStructSize;
-    ///Type: <b>HWND</b> A handle to the window that owns the dialog box. This member can be any valid window handle, or
-    ///it can be <b>NULL</b> if the dialog box has no owner.
-    HWND            hwndOwner;
-    ///Type: <b>HGLOBAL</b> A handle to a global memory object that contains a DEVMODE structure. On input, if a handle
-    ///is specified, the values in the corresponding <b>DEVMODE</b> structure are used to initialize the controls in the
-    ///dialog box. On output, the dialog box sets <b>hDevMode</b> to a global memory handle to a <b>DEVMODE</b>
-    ///structure that contains values specifying the user's selections. If the user's selections are not available, the
-    ///dialog box sets <b>hDevMode</b> to <b>NULL</b>.
-    ptrdiff_t       hDevMode;
-    ///Type: <b>HGLOBAL</b> A handle to a global memory object that contains a DEVNAMES structure. This structure
-    ///contains three strings that specify the driver name, the printer name, and the output port name. On input, if a
-    ///handle is specified, the strings in the corresponding <b>DEVNAMES</b> structure are used to initialize controls
-    ///in the dialog box. On output, the dialog box sets <b>hDevNames</b> to a global memory handle to a <b>DEVNAMES</b>
-    ///structure that contains strings specifying the user's selections. If the user's selections are not available, the
-    ///dialog box sets <b>hDevNames</b> to <b>NULL</b>.
-    ptrdiff_t       hDevNames;
-    ///Type: <b>DWORD</b> A set of bit flags that you can use to initialize the <b>Page Setup</b> dialog box. When the
-    ///dialog box returns, it sets these flags to indicate the user's input. This member can be one or more of the
-    ///following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
-    ///id="PSD_DEFAULTMINMARGINS"></a><a id="psd_defaultminmargins"></a><dl> <dt><b>PSD_DEFAULTMINMARGINS</b></dt>
-    ///<dt>0x00000000</dt> </dl> </td> <td width="60%"> Sets the minimum values that the user can specify for the page
-    ///margins to be the minimum margins allowed by the printer. This is the default. This flag is ignored if the
-    ///<b>PSD_MARGINS</b> and <b>PSD_MINMARGINS</b> flags are also specified. </td> </tr> <tr> <td width="40%"><a
-    ///id="PSD_DISABLEMARGINS"></a><a id="psd_disablemargins"></a><dl> <dt><b>PSD_DISABLEMARGINS</b></dt>
-    ///<dt>0x00000010</dt> </dl> </td> <td width="60%"> Disables the margin controls, preventing the user from setting
-    ///the margins. </td> </tr> <tr> <td width="40%"><a id="PSD_DISABLEORIENTATION"></a><a
-    ///id="psd_disableorientation"></a><dl> <dt><b>PSD_DISABLEORIENTATION</b></dt> <dt>0x00000100</dt> </dl> </td> <td
-    ///width="60%"> Disables the orientation controls, preventing the user from setting the page orientation. </td>
-    ///</tr> <tr> <td width="40%"><a id="PSD_DISABLEPAGEPAINTING"></a><a id="psd_disablepagepainting"></a><dl>
-    ///<dt><b>PSD_DISABLEPAGEPAINTING</b></dt> <dt>0x00080000</dt> </dl> </td> <td width="60%"> Prevents the dialog box
-    ///from drawing the contents of the sample page. If you enable a PagePaintHook hook procedure, you can still draw
-    ///the contents of the sample page. </td> </tr> <tr> <td width="40%"><a id="PSD_DISABLEPAPER"></a><a
-    ///id="psd_disablepaper"></a><dl> <dt><b>PSD_DISABLEPAPER</b></dt> <dt>0x00000200</dt> </dl> </td> <td width="60%">
-    ///Disables the paper controls, preventing the user from setting page parameters such as the paper size and source.
-    ///</td> </tr> <tr> <td width="40%"><a id="PSD_DISABLEPRINTER"></a><a id="psd_disableprinter"></a><dl>
-    ///<dt><b>PSD_DISABLEPRINTER</b></dt> <dt>0x00000020</dt> </dl> </td> <td width="60%"> Obsolete. <b>Windows XP/2000:
-    ///</b>Disables the <b>Printer</b> button, preventing the user from invoking a dialog box that contains additional
-    ///printer setup information. </td> </tr> <tr> <td width="40%"><a id="PSD_ENABLEPAGEPAINTHOOK"></a><a
-    ///id="psd_enablepagepainthook"></a><dl> <dt><b>PSD_ENABLEPAGEPAINTHOOK</b></dt> <dt>0x00040000</dt> </dl> </td> <td
-    ///width="60%"> Enables the hook procedure specified in the <b>lpfnPagePaintHook</b> member. </td> </tr> <tr> <td
-    ///width="40%"><a id="PSD_ENABLEPAGESETUPHOOK"></a><a id="psd_enablepagesetuphook"></a><dl>
-    ///<dt><b>PSD_ENABLEPAGESETUPHOOK</b></dt> <dt>0x00002000</dt> </dl> </td> <td width="60%"> Enables the hook
-    ///procedure specified in the <b>lpfnPageSetupHook</b> member. </td> </tr> <tr> <td width="40%"><a
-    ///id="PSD_ENABLEPAGESETUPTEMPLATE"></a><a id="psd_enablepagesetuptemplate"></a><dl>
-    ///<dt><b>PSD_ENABLEPAGESETUPTEMPLATE</b></dt> <dt>0x00008000</dt> </dl> </td> <td width="60%"> Indicates that the
-    ///<b>hInstance</b> and <b>lpPageSetupTemplateName</b> members specify a dialog box template to use in place of the
-    ///default template. </td> </tr> <tr> <td width="40%"><a id="PSD_ENABLEPAGESETUPTEMPLATEHANDLE"></a><a
-    ///id="psd_enablepagesetuptemplatehandle"></a><dl> <dt><b>PSD_ENABLEPAGESETUPTEMPLATEHANDLE</b></dt>
-    ///<dt>0x00020000</dt> </dl> </td> <td width="60%"> Indicates that the <b>hPageSetupTemplate</b> member identifies a
-    ///data block that contains a preloaded dialog box template. The system ignores the <b>lpPageSetupTemplateName</b>
-    ///member if this flag is specified. </td> </tr> <tr> <td width="40%"><a id="PSD_INHUNDREDTHSOFMILLIMETERS"></a><a
-    ///id="psd_inhundredthsofmillimeters"></a><dl> <dt><b>PSD_INHUNDREDTHSOFMILLIMETERS</b></dt> <dt>0x00000008</dt>
-    ///</dl> </td> <td width="60%"> Indicates that hundredths of millimeters are the unit of measurement for margins and
-    ///paper size. The values in the <b>rtMargin</b>, <b>rtMinMargin</b>, and <b>ptPaperSize</b> members are in
-    ///hundredths of millimeters. You can set this flag on input to override the default unit of measurement for the
-    ///user's locale. When the function returns, the dialog box sets this flag to indicate the units used. </td> </tr>
-    ///<tr> <td width="40%"><a id="PSD_INTHOUSANDTHSOFINCHES"></a><a id="psd_inthousandthsofinches"></a><dl>
-    ///<dt><b>PSD_INTHOUSANDTHSOFINCHES</b></dt> <dt>0x00000004</dt> </dl> </td> <td width="60%"> Indicates that
-    ///thousandths of inches are the unit of measurement for margins and paper size. The values in the <b>rtMargin</b>,
-    ///<b>rtMinMargin</b>, and <b>ptPaperSize</b> members are in thousandths of inches. You can set this flag on input
-    ///to override the default unit of measurement for the user's locale. When the function returns, the dialog box sets
-    ///this flag to indicate the units used. </td> </tr> <tr> <td width="40%"><a id="PSD_INWININIINTLMEASURE"></a><a
-    ///id="psd_inwininiintlmeasure"></a><dl> <dt><b>PSD_INWININIINTLMEASURE</b></dt> <dt>0x00000000</dt> </dl> </td> <td
-    ///width="60%"> Reserved. </td> </tr> <tr> <td width="40%"><a id="PSD_MARGINS"></a><a id="psd_margins"></a><dl>
-    ///<dt><b>PSD_MARGINS</b></dt> <dt>0x00000002</dt> </dl> </td> <td width="60%"> Causes the system to use the values
-    ///specified in the <b>rtMargin</b> member as the initial widths for the left, top, right, and bottom margins. If
-    ///<b>PSD_MARGINS</b> is not set, the system sets the initial widths to one inch for all margins. </td> </tr> <tr>
-    ///<td width="40%"><a id="PSD_MINMARGINS"></a><a id="psd_minmargins"></a><dl> <dt><b>PSD_MINMARGINS</b></dt>
-    ///<dt>0x00000001</dt> </dl> </td> <td width="60%"> Causes the system to use the values specified in the
-    ///<b>rtMinMargin</b> member as the minimum allowable widths for the left, top, right, and bottom margins. The
-    ///system prevents the user from entering a width that is less than the specified minimum. If <b>PSD_MINMARGINS</b>
-    ///is not specified, the system sets the minimum allowable widths to those allowed by the printer. </td> </tr> <tr>
-    ///<td width="40%"><a id="PSD_NONETWORKBUTTON"></a><a id="psd_nonetworkbutton"></a><dl>
-    ///<dt><b>PSD_NONETWORKBUTTON</b></dt> <dt>0x00200000</dt> </dl> </td> <td width="60%"> Hides and disables the
-    ///<b>Network</b> button. </td> </tr> <tr> <td width="40%"><a id="PSD_NOWARNING"></a><a id="psd_nowarning"></a><dl>
-    ///<dt><b>PSD_NOWARNING</b></dt> <dt>0x00000080</dt> </dl> </td> <td width="60%"> Prevents the system from
-    ///displaying a warning message when there is no default printer. </td> </tr> <tr> <td width="40%"><a
-    ///id="PSD_RETURNDEFAULT"></a><a id="psd_returndefault"></a><dl> <dt><b>PSD_RETURNDEFAULT</b></dt>
-    ///<dt>0x00000400</dt> </dl> </td> <td width="60%"> PageSetupDlg does not display the dialog box. Instead, it sets
-    ///the <b>hDevNames</b> and <b>hDevMode</b> members to handles to DEVMODE and DEVNAMES structures that are
-    ///initialized for the system default printer. <b>PageSetupDlg</b> returns an error if either <b>hDevNames</b> or
-    ///<b>hDevMode</b> is not <b>NULL</b>. </td> </tr> <tr> <td width="40%"><a id="PSD_SHOWHELP"></a><a
-    ///id="psd_showhelp"></a><dl> <dt><b>PSD_SHOWHELP</b></dt> <dt>0x00000800</dt> </dl> </td> <td width="60%"> Causes
-    ///the dialog box to display the <b>Help</b> button. The <b>hwndOwner</b> member must specify the window to receive
-    ///the HELPMSGSTRING registered messages that the dialog box sends when the user clicks the <b>Help</b> button.
-    ///</td> </tr> </table>
-    uint            Flags;
-    ///Type: <b>POINT</b> The dimensions of the paper selected by the user. The <b>PSD_INTHOUSANDTHSOFINCHES</b> or
-    ///<b>PSD_INHUNDREDTHSOFMILLIMETERS</b> flag indicates the units of measurement.
-    POINT           ptPaperSize;
-    ///Type: <b>RECT</b> The minimum allowable widths for the left, top, right, and bottom margins. The system ignores
-    ///this member if the <b>PSD_MINMARGINS</b> flag is not set. These values must be less than or equal to the values
-    ///specified in the <b>rtMargin</b> member. The <b>PSD_INTHOUSANDTHSOFINCHES</b> or
-    ///<b>PSD_INHUNDREDTHSOFMILLIMETERS</b> flag indicates the units of measurement.
-    RECT            rtMinMargin;
-    ///Type: <b>RECT</b> The widths of the left, top, right, and bottom margins. If you set the <b>PSD_MARGINS</b> flag,
-    ///<b>rtMargin</b> specifies the initial margin values. When PageSetupDlg returns, <b>rtMargin</b> contains the
-    ///margin widths selected by the user. The <b>PSD_INHUNDREDTHSOFMILLIMETERS</b> or <b>PSD_INTHOUSANDTHSOFINCHES</b>
-    ///flag indicates the units of measurement.
-    RECT            rtMargin;
-    ///Type: <b>HINSTANCE</b> If the <b>PSD_ENABLEPAGESETUPTEMPLATE</b> flag is set in the <b>Flags</b> member,
-    ///<b>hInstance</b> is a handle to the application or module instance that contains the dialog box template named by
-    ///the <b>lpPageSetupTemplateName</b> member.
-    HINSTANCE       hInstance;
-    ///Type: <b>LPARAM</b> Application-defined data that the system passes to the hook procedure identified by the
-    ///<b>lpfnPageSetupHook</b> member. When the system sends the WM_INITDIALOG message to the hook procedure, the
-    ///message's <i>lParam</i> parameter is a pointer to the <b>PAGESETUPDLG</b> structure specified when the dialog was
-    ///created. The hook procedure can use this pointer to get the <b>lCustData</b> value.
-    LPARAM          lCustData;
-    ///Type: <b>LPPAGESETUPHOOK</b> A pointer to a PageSetupHook hook procedure that can process messages intended for
-    ///the dialog box. This member is ignored unless the <b>PSD_ENABLEPAGESETUPHOOK</b> flag is set in the <b>Flags</b>
-    ///member.
-    LPPAGESETUPHOOK lpfnPageSetupHook;
-    ///Type: <b>LPPAGEPAINTHOOK</b> A pointer to a PagePaintHook hook procedure that receives <b>WM_PSD_*</b> messages
-    ///from the dialog box whenever the sample page is redrawn. By processing the messages, the hook procedure can
-    ///customize the appearance of the sample page. This member is ignored unless the <b>PSD_ENABLEPAGEPAINTHOOK</b>
-    ///flag is set in the <b>Flags</b> member.
-    LPPAGEPAINTHOOK lpfnPagePaintHook;
-    ///Type: <b>LPCTSTR</b> The name of the dialog box template resource in the module identified by the
-    ///<b>hInstance</b> member. This template is substituted for the standard dialog box template. For numbered dialog
-    ///box resources, <b>lpPageSetupTemplateName</b> can be a value returned by the MAKEINTRESOURCE macro. This member
-    ///is ignored unless the <b>PSD_ENABLEPAGESETUPTEMPLATE</b> flag is set in the <b>Flags</b> member.
-    const(wchar)*   lpPageSetupTemplateName;
-    ///Type: <b>HGLOBAL</b> If the <b>PSD_ENABLEPAGESETUPTEMPLATEHANDLE</b> flag is set in the <b>Flags</b> member,
-    ///<b>hPageSetupTemplate</b> is a handle to a memory object containing a dialog box template.
-    ptrdiff_t       hPageSetupTemplate;
-}
-
-alias HWND = ptrdiff_t;
-
-alias LPARAM = ptrdiff_t;
-
-alias WPARAM = size_t;
 
 ///Contains information passed to a <b>WH_CBT</b> hook procedure, CBTProc, before a window is created.
 struct CBT_CREATEWNDA
@@ -3113,6 +487,67 @@ struct WNDCLASSEXA
 {
     ///Type: <b>UINT</b> The size, in bytes, of this structure. Set this member to <code>sizeof(WNDCLASSEX)</code>. Be
     ///sure to set this member before calling the GetClassInfoEx function.
+    uint        cbSize;
+    ///Type: <b>UINT</b> The class style(s). This member can be any combination of the Class Styles.
+    uint        style;
+    ///Type: <b>WNDPROC</b> A pointer to the window procedure. You must use the CallWindowProc function to call the
+    ///window procedure. For more information, see WindowProc.
+    WNDPROC     lpfnWndProc;
+    ///Type: <b>int</b> The number of extra bytes to allocate following the window-class structure. The system
+    ///initializes the bytes to zero.
+    int         cbClsExtra;
+    ///Type: <b>int</b> The number of extra bytes to allocate following the window instance. The system initializes the
+    ///bytes to zero. If an application uses <b>WNDCLASSEX</b> to register a dialog box created by using the
+    ///<b>CLASS</b> directive in the resource file, it must set this member to <b>DLGWINDOWEXTRA</b>.
+    int         cbWndExtra;
+    ///Type: <b>HINSTANCE</b> A handle to the instance that contains the window procedure for the class.
+    HINSTANCE   hInstance;
+    ///Type: <b>HICON</b> A handle to the class icon. This member must be a handle to an icon resource. If this member
+    ///is <b>NULL</b>, the system provides a default icon.
+    HICON       hIcon;
+    ///Type: <b>HCURSOR</b> A handle to the class cursor. This member must be a handle to a cursor resource. If this
+    ///member is <b>NULL</b>, an application must explicitly set the cursor shape whenever the mouse moves into the
+    ///application's window.
+    HCURSOR     hCursor;
+    ///Type: <b>HBRUSH</b> A handle to the class background brush. This member can be a handle to the brush to be used
+    ///for painting the background, or it can be a color value. A color value must be one of the following standard
+    ///system colors (the value 1 must be added to the chosen color). If a color value is given, you must convert it to
+    ///one of the following <b>HBRUSH</b> types: <ul> <li>COLOR_ACTIVEBORDER</li> <li>COLOR_ACTIVECAPTION</li>
+    ///<li>COLOR_APPWORKSPACE</li> <li>COLOR_BACKGROUND</li> <li>COLOR_BTNFACE</li> <li>COLOR_BTNSHADOW</li>
+    ///<li>COLOR_BTNTEXT</li> <li>COLOR_CAPTIONTEXT</li> <li>COLOR_GRAYTEXT</li> <li>COLOR_HIGHLIGHT</li>
+    ///<li>COLOR_HIGHLIGHTTEXT</li> <li>COLOR_INACTIVEBORDER</li> <li>COLOR_INACTIVECAPTION</li> <li>COLOR_MENU</li>
+    ///<li>COLOR_MENUTEXT</li> <li>COLOR_SCROLLBAR</li> <li>COLOR_WINDOW</li> <li>COLOR_WINDOWFRAME</li>
+    ///<li>COLOR_WINDOWTEXT </li> </ul> The system automatically deletes class background brushes when the class is
+    ///unregistered by using UnregisterClass. An application should not delete these brushes. When this member is
+    ///<b>NULL</b>, an application must paint its own background whenever it is requested to paint in its client area.
+    ///To determine whether the background must be painted, an application can either process the WM_ERASEBKGND message
+    ///or test the <b>fErase</b> member of the PAINTSTRUCT structure filled by the BeginPaint function.
+    HBRUSH      hbrBackground;
+    ///Type: <b>LPCTSTR</b> Pointer to a null-terminated character string that specifies the resource name of the class
+    ///menu, as the name appears in the resource file. If you use an integer to identify the menu, use the
+    ///MAKEINTRESOURCE macro. If this member is <b>NULL</b>, windows belonging to this class have no default menu.
+    const(PSTR) lpszMenuName;
+    ///Type: <b>LPCTSTR</b> A pointer to a null-terminated string or is an atom. If this parameter is an atom, it must
+    ///be a class atom created by a previous call to the RegisterClass or RegisterClassEx function. The atom must be in
+    ///the low-order word of <b>lpszClassName</b>; the high-order word must be zero. If <b>lpszClassName</b> is a
+    ///string, it specifies the window class name. The class name can be any name registered with RegisterClass or
+    ///RegisterClassEx, or any of the predefined control-class names. The maximum length for <b>lpszClassName</b> is
+    ///256. If <b>lpszClassName</b> is greater than the maximum length, the RegisterClassEx function will fail.
+    const(PSTR) lpszClassName;
+    ///Type: <b>HICON</b> A handle to a small icon that is associated with the window class. If this member is
+    ///<b>NULL</b>, the system searches the icon resource specified by the <b>hIcon</b> member for an icon of the
+    ///appropriate size to use as the small icon.
+    HICON       hIconSm;
+}
+
+///Contains window class information. It is used with the RegisterClassEx and GetClassInfoEx functions. The
+///<b>WNDCLASSEX</b> structure is similar to the WNDCLASS structure. There are two differences. <b>WNDCLASSEX</b>
+///includes the <b>cbSize</b> member, which specifies the size of the structure, and the <b>hIconSm</b> member, which
+///contains a handle to a small icon associated with the window class.
+struct WNDCLASSEXW
+{
+    ///Type: <b>UINT</b> The size, in bytes, of this structure. Set this member to <code>sizeof(WNDCLASSEX)</code>. Be
+    ///sure to set this member before calling the GetClassInfoEx function.
     uint         cbSize;
     ///Type: <b>UINT</b> The class style(s). This member can be any combination of the Class Styles.
     uint         style;
@@ -3152,85 +587,78 @@ struct WNDCLASSEXA
     ///Type: <b>LPCTSTR</b> Pointer to a null-terminated character string that specifies the resource name of the class
     ///menu, as the name appears in the resource file. If you use an integer to identify the menu, use the
     ///MAKEINTRESOURCE macro. If this member is <b>NULL</b>, windows belonging to this class have no default menu.
-    const(char)* lpszMenuName;
+    const(PWSTR) lpszMenuName;
     ///Type: <b>LPCTSTR</b> A pointer to a null-terminated string or is an atom. If this parameter is an atom, it must
     ///be a class atom created by a previous call to the RegisterClass or RegisterClassEx function. The atom must be in
     ///the low-order word of <b>lpszClassName</b>; the high-order word must be zero. If <b>lpszClassName</b> is a
     ///string, it specifies the window class name. The class name can be any name registered with RegisterClass or
     ///RegisterClassEx, or any of the predefined control-class names. The maximum length for <b>lpszClassName</b> is
     ///256. If <b>lpszClassName</b> is greater than the maximum length, the RegisterClassEx function will fail.
-    const(char)* lpszClassName;
+    const(PWSTR) lpszClassName;
     ///Type: <b>HICON</b> A handle to a small icon that is associated with the window class. If this member is
     ///<b>NULL</b>, the system searches the icon resource specified by the <b>hIcon</b> member for an icon of the
     ///appropriate size to use as the small icon.
     HICON        hIconSm;
 }
 
-///Contains window class information. It is used with the RegisterClassEx and GetClassInfoEx functions. The
-///<b>WNDCLASSEX</b> structure is similar to the WNDCLASS structure. There are two differences. <b>WNDCLASSEX</b>
-///includes the <b>cbSize</b> member, which specifies the size of the structure, and the <b>hIconSm</b> member, which
-///contains a handle to a small icon associated with the window class.
-struct WNDCLASSEXW
+///Contains the window class attributes that are registered by the RegisterClass function. This structure has been
+///superseded by the WNDCLASSEX structure used with the RegisterClassEx function. You can still use <b>WNDCLASS</b> and
+///RegisterClass if you do not need to set the small icon associated with the window class.
+struct WNDCLASSA
 {
-    ///Type: <b>UINT</b> The size, in bytes, of this structure. Set this member to <code>sizeof(WNDCLASSEX)</code>. Be
-    ///sure to set this member before calling the GetClassInfoEx function.
-    uint          cbSize;
     ///Type: <b>UINT</b> The class style(s). This member can be any combination of the Class Styles.
-    uint          style;
+    uint        style;
     ///Type: <b>WNDPROC</b> A pointer to the window procedure. You must use the CallWindowProc function to call the
     ///window procedure. For more information, see WindowProc.
-    WNDPROC       lpfnWndProc;
+    WNDPROC     lpfnWndProc;
     ///Type: <b>int</b> The number of extra bytes to allocate following the window-class structure. The system
     ///initializes the bytes to zero.
-    int           cbClsExtra;
+    int         cbClsExtra;
     ///Type: <b>int</b> The number of extra bytes to allocate following the window instance. The system initializes the
-    ///bytes to zero. If an application uses <b>WNDCLASSEX</b> to register a dialog box created by using the
-    ///<b>CLASS</b> directive in the resource file, it must set this member to <b>DLGWINDOWEXTRA</b>.
-    int           cbWndExtra;
+    ///bytes to zero. If an application uses <b>WNDCLASS</b> to register a dialog box created by using the <b>CLASS</b>
+    ///directive in the resource file, it must set this member to <b>DLGWINDOWEXTRA</b>.
+    int         cbWndExtra;
     ///Type: <b>HINSTANCE</b> A handle to the instance that contains the window procedure for the class.
-    HINSTANCE     hInstance;
+    HINSTANCE   hInstance;
     ///Type: <b>HICON</b> A handle to the class icon. This member must be a handle to an icon resource. If this member
     ///is <b>NULL</b>, the system provides a default icon.
-    HICON         hIcon;
+    HICON       hIcon;
     ///Type: <b>HCURSOR</b> A handle to the class cursor. This member must be a handle to a cursor resource. If this
     ///member is <b>NULL</b>, an application must explicitly set the cursor shape whenever the mouse moves into the
     ///application's window.
-    HCURSOR       hCursor;
-    ///Type: <b>HBRUSH</b> A handle to the class background brush. This member can be a handle to the brush to be used
-    ///for painting the background, or it can be a color value. A color value must be one of the following standard
-    ///system colors (the value 1 must be added to the chosen color). If a color value is given, you must convert it to
-    ///one of the following <b>HBRUSH</b> types: <ul> <li>COLOR_ACTIVEBORDER</li> <li>COLOR_ACTIVECAPTION</li>
-    ///<li>COLOR_APPWORKSPACE</li> <li>COLOR_BACKGROUND</li> <li>COLOR_BTNFACE</li> <li>COLOR_BTNSHADOW</li>
-    ///<li>COLOR_BTNTEXT</li> <li>COLOR_CAPTIONTEXT</li> <li>COLOR_GRAYTEXT</li> <li>COLOR_HIGHLIGHT</li>
-    ///<li>COLOR_HIGHLIGHTTEXT</li> <li>COLOR_INACTIVEBORDER</li> <li>COLOR_INACTIVECAPTION</li> <li>COLOR_MENU</li>
-    ///<li>COLOR_MENUTEXT</li> <li>COLOR_SCROLLBAR</li> <li>COLOR_WINDOW</li> <li>COLOR_WINDOWFRAME</li>
-    ///<li>COLOR_WINDOWTEXT </li> </ul> The system automatically deletes class background brushes when the class is
-    ///unregistered by using UnregisterClass. An application should not delete these brushes. When this member is
-    ///<b>NULL</b>, an application must paint its own background whenever it is requested to paint in its client area.
-    ///To determine whether the background must be painted, an application can either process the WM_ERASEBKGND message
-    ///or test the <b>fErase</b> member of the PAINTSTRUCT structure filled by the BeginPaint function.
-    HBRUSH        hbrBackground;
-    ///Type: <b>LPCTSTR</b> Pointer to a null-terminated character string that specifies the resource name of the class
-    ///menu, as the name appears in the resource file. If you use an integer to identify the menu, use the
-    ///MAKEINTRESOURCE macro. If this member is <b>NULL</b>, windows belonging to this class have no default menu.
-    const(wchar)* lpszMenuName;
+    HCURSOR     hCursor;
+    ///Type: <b>HBRUSH</b> A handle to the class background brush. This member can be a handle to the physical brush to
+    ///be used for painting the background, or it can be a color value. A color value must be one of the following
+    ///standard system colors (the value 1 must be added to the chosen color). If a color value is given, you must
+    ///convert it to one of the following <b>HBRUSH</b> types: <ul> <li>COLOR_ACTIVEBORDER</li>
+    ///<li>COLOR_ACTIVECAPTION</li> <li>COLOR_APPWORKSPACE</li> <li>COLOR_BACKGROUND</li> <li>COLOR_BTNFACE</li>
+    ///<li>COLOR_BTNSHADOW</li> <li>COLOR_BTNTEXT</li> <li>COLOR_CAPTIONTEXT</li> <li>COLOR_GRAYTEXT</li>
+    ///<li>COLOR_HIGHLIGHT</li> <li>COLOR_HIGHLIGHTTEXT</li> <li>COLOR_INACTIVEBORDER</li>
+    ///<li>COLOR_INACTIVECAPTION</li> <li>COLOR_MENU</li> <li>COLOR_MENUTEXT</li> <li>COLOR_SCROLLBAR</li>
+    ///<li>COLOR_WINDOW</li> <li>COLOR_WINDOWFRAME</li> <li>COLOR_WINDOWTEXT </li> </ul> The system automatically
+    ///deletes class background brushes when the class is unregistered by using UnregisterClass. An application should
+    ///not delete these brushes. When this member is <b>NULL</b>, an application must paint its own background whenever
+    ///it is requested to paint in its client area. To determine whether the background must be painted, an application
+    ///can either process the WM_ERASEBKGND message or test the <b>fErase</b> member of the PAINTSTRUCT structure filled
+    ///by the BeginPaint function.
+    HBRUSH      hbrBackground;
+    ///Type: <b>LPCTSTR</b> The resource name of the class menu, as the name appears in the resource file. If you use an
+    ///integer to identify the menu, use the MAKEINTRESOURCE macro. If this member is <b>NULL</b>, windows belonging to
+    ///this class have no default menu.
+    const(PSTR) lpszMenuName;
     ///Type: <b>LPCTSTR</b> A pointer to a null-terminated string or is an atom. If this parameter is an atom, it must
     ///be a class atom created by a previous call to the RegisterClass or RegisterClassEx function. The atom must be in
     ///the low-order word of <b>lpszClassName</b>; the high-order word must be zero. If <b>lpszClassName</b> is a
     ///string, it specifies the window class name. The class name can be any name registered with RegisterClass or
     ///RegisterClassEx, or any of the predefined control-class names. The maximum length for <b>lpszClassName</b> is
-    ///256. If <b>lpszClassName</b> is greater than the maximum length, the RegisterClassEx function will fail.
-    const(wchar)* lpszClassName;
-    ///Type: <b>HICON</b> A handle to a small icon that is associated with the window class. If this member is
-    ///<b>NULL</b>, the system searches the icon resource specified by the <b>hIcon</b> member for an icon of the
-    ///appropriate size to use as the small icon.
-    HICON         hIconSm;
+    ///256. If <b>lpszClassName</b> is greater than the maximum length, the RegisterClass function will fail.
+    const(PSTR) lpszClassName;
 }
 
 ///Contains the window class attributes that are registered by the RegisterClass function. This structure has been
 ///superseded by the WNDCLASSEX structure used with the RegisterClassEx function. You can still use <b>WNDCLASS</b> and
 ///RegisterClass if you do not need to set the small icon associated with the window class.
-struct WNDCLASSA
+struct WNDCLASSW
 {
     ///Type: <b>UINT</b> The class style(s). This member can be any combination of the Class Styles.
     uint         style;
@@ -3271,68 +699,14 @@ struct WNDCLASSA
     ///Type: <b>LPCTSTR</b> The resource name of the class menu, as the name appears in the resource file. If you use an
     ///integer to identify the menu, use the MAKEINTRESOURCE macro. If this member is <b>NULL</b>, windows belonging to
     ///this class have no default menu.
-    const(char)* lpszMenuName;
+    const(PWSTR) lpszMenuName;
     ///Type: <b>LPCTSTR</b> A pointer to a null-terminated string or is an atom. If this parameter is an atom, it must
     ///be a class atom created by a previous call to the RegisterClass or RegisterClassEx function. The atom must be in
     ///the low-order word of <b>lpszClassName</b>; the high-order word must be zero. If <b>lpszClassName</b> is a
     ///string, it specifies the window class name. The class name can be any name registered with RegisterClass or
     ///RegisterClassEx, or any of the predefined control-class names. The maximum length for <b>lpszClassName</b> is
     ///256. If <b>lpszClassName</b> is greater than the maximum length, the RegisterClass function will fail.
-    const(char)* lpszClassName;
-}
-
-///Contains the window class attributes that are registered by the RegisterClass function. This structure has been
-///superseded by the WNDCLASSEX structure used with the RegisterClassEx function. You can still use <b>WNDCLASS</b> and
-///RegisterClass if you do not need to set the small icon associated with the window class.
-struct WNDCLASSW
-{
-    ///Type: <b>UINT</b> The class style(s). This member can be any combination of the Class Styles.
-    uint          style;
-    ///Type: <b>WNDPROC</b> A pointer to the window procedure. You must use the CallWindowProc function to call the
-    ///window procedure. For more information, see WindowProc.
-    WNDPROC       lpfnWndProc;
-    ///Type: <b>int</b> The number of extra bytes to allocate following the window-class structure. The system
-    ///initializes the bytes to zero.
-    int           cbClsExtra;
-    ///Type: <b>int</b> The number of extra bytes to allocate following the window instance. The system initializes the
-    ///bytes to zero. If an application uses <b>WNDCLASS</b> to register a dialog box created by using the <b>CLASS</b>
-    ///directive in the resource file, it must set this member to <b>DLGWINDOWEXTRA</b>.
-    int           cbWndExtra;
-    ///Type: <b>HINSTANCE</b> A handle to the instance that contains the window procedure for the class.
-    HINSTANCE     hInstance;
-    ///Type: <b>HICON</b> A handle to the class icon. This member must be a handle to an icon resource. If this member
-    ///is <b>NULL</b>, the system provides a default icon.
-    HICON         hIcon;
-    ///Type: <b>HCURSOR</b> A handle to the class cursor. This member must be a handle to a cursor resource. If this
-    ///member is <b>NULL</b>, an application must explicitly set the cursor shape whenever the mouse moves into the
-    ///application's window.
-    HCURSOR       hCursor;
-    ///Type: <b>HBRUSH</b> A handle to the class background brush. This member can be a handle to the physical brush to
-    ///be used for painting the background, or it can be a color value. A color value must be one of the following
-    ///standard system colors (the value 1 must be added to the chosen color). If a color value is given, you must
-    ///convert it to one of the following <b>HBRUSH</b> types: <ul> <li>COLOR_ACTIVEBORDER</li>
-    ///<li>COLOR_ACTIVECAPTION</li> <li>COLOR_APPWORKSPACE</li> <li>COLOR_BACKGROUND</li> <li>COLOR_BTNFACE</li>
-    ///<li>COLOR_BTNSHADOW</li> <li>COLOR_BTNTEXT</li> <li>COLOR_CAPTIONTEXT</li> <li>COLOR_GRAYTEXT</li>
-    ///<li>COLOR_HIGHLIGHT</li> <li>COLOR_HIGHLIGHTTEXT</li> <li>COLOR_INACTIVEBORDER</li>
-    ///<li>COLOR_INACTIVECAPTION</li> <li>COLOR_MENU</li> <li>COLOR_MENUTEXT</li> <li>COLOR_SCROLLBAR</li>
-    ///<li>COLOR_WINDOW</li> <li>COLOR_WINDOWFRAME</li> <li>COLOR_WINDOWTEXT </li> </ul> The system automatically
-    ///deletes class background brushes when the class is unregistered by using UnregisterClass. An application should
-    ///not delete these brushes. When this member is <b>NULL</b>, an application must paint its own background whenever
-    ///it is requested to paint in its client area. To determine whether the background must be painted, an application
-    ///can either process the WM_ERASEBKGND message or test the <b>fErase</b> member of the PAINTSTRUCT structure filled
-    ///by the BeginPaint function.
-    HBRUSH        hbrBackground;
-    ///Type: <b>LPCTSTR</b> The resource name of the class menu, as the name appears in the resource file. If you use an
-    ///integer to identify the menu, use the MAKEINTRESOURCE macro. If this member is <b>NULL</b>, windows belonging to
-    ///this class have no default menu.
-    const(wchar)* lpszMenuName;
-    ///Type: <b>LPCTSTR</b> A pointer to a null-terminated string or is an atom. If this parameter is an atom, it must
-    ///be a class atom created by a previous call to the RegisterClass or RegisterClassEx function. The atom must be in
-    ///the low-order word of <b>lpszClassName</b>; the high-order word must be zero. If <b>lpszClassName</b> is a
-    ///string, it specifies the window class name. The class name can be any name registered with RegisterClass or
-    ///RegisterClassEx, or any of the predefined control-class names. The maximum length for <b>lpszClassName</b> is
-    ///256. If <b>lpszClassName</b> is greater than the maximum length, the RegisterClass function will fail.
-    const(wchar)* lpszClassName;
+    const(PWSTR) lpszClassName;
 }
 
 ///Contains message information from a thread's message queue.
@@ -3468,6 +842,50 @@ struct CREATESTRUCTA
     ///dialog template, this member is the address of a <b>SHORT</b> value that specifies the size, in bytes, of the
     ///window creation data. The value is immediately followed by the creation data. For more information, see the
     ///following Remarks section.
+    void*       lpCreateParams;
+    ///Type: <b>HINSTANCE</b> A handle to the module that owns the new window.
+    HINSTANCE   hInstance;
+    ///Type: <b>HMENU</b> A handle to the menu to be used by the new window.
+    HMENU       hMenu;
+    ///Type: <b>HWND</b> A handle to the parent window, if the window is a child window. If the window is owned, this
+    ///member identifies the owner window. If the window is not a child or owned window, this member is <b>NULL</b>.
+    HWND        hwndParent;
+    ///Type: <b>int</b> The height of the new window, in pixels.
+    int         cy;
+    ///Type: <b>int</b> The width of the new window, in pixels.
+    int         cx;
+    ///Type: <b>int</b> The y-coordinate of the upper left corner of the new window. If the new window is a child
+    ///window, coordinates are relative to the parent window. Otherwise, the coordinates are relative to the screen
+    ///origin.
+    int         y;
+    ///Type: <b>int</b> The x-coordinate of the upper left corner of the new window. If the new window is a child
+    ///window, coordinates are relative to the parent window. Otherwise, the coordinates are relative to the screen
+    ///origin.
+    int         x;
+    ///Type: <b>LONG</b> The style for the new window. For a list of possible values, see Window Styles.
+    int         style;
+    ///Type: <b>LPCTSTR</b> The name of the new window.
+    const(PSTR) lpszName;
+    ///Type: <b>LPCTSTR</b> A pointer to a null-terminated string or an atom that specifies the class name of the new
+    ///window.
+    const(PSTR) lpszClass;
+    ///Type: <b>DWORD</b> The extended window style for the new window. For a list of possible values, see Extended
+    ///Window Styles.
+    uint        dwExStyle;
+}
+
+///Defines the initialization parameters passed to the window procedure of an application. These members are identical
+///to the parameters of the CreateWindowEx function.
+struct CREATESTRUCTW
+{
+    ///Type: <b>LPVOID</b> Contains additional data which may be used to create the window. If the window is being
+    ///created as a result of a call to the CreateWindow or CreateWindowEx function, this member contains the value of
+    ///the <i>lpParam</i> parameter specified in the function call. If the window being created is a MDI client window,
+    ///this member contains a pointer to a CLIENTCREATESTRUCT structure. If the window being created is a MDI child
+    ///window, this member contains a pointer to an MDICREATESTRUCT structure. If the window is being created from a
+    ///dialog template, this member is the address of a <b>SHORT</b> value that specifies the size, in bytes, of the
+    ///window creation data. The value is immediately followed by the creation data. For more information, see the
+    ///following Remarks section.
     void*        lpCreateParams;
     ///Type: <b>HINSTANCE</b> A handle to the module that owns the new window.
     HINSTANCE    hInstance;
@@ -3491,57 +909,13 @@ struct CREATESTRUCTA
     ///Type: <b>LONG</b> The style for the new window. For a list of possible values, see Window Styles.
     int          style;
     ///Type: <b>LPCTSTR</b> The name of the new window.
-    const(char)* lpszName;
+    const(PWSTR) lpszName;
     ///Type: <b>LPCTSTR</b> A pointer to a null-terminated string or an atom that specifies the class name of the new
     ///window.
-    const(char)* lpszClass;
+    const(PWSTR) lpszClass;
     ///Type: <b>DWORD</b> The extended window style for the new window. For a list of possible values, see Extended
     ///Window Styles.
     uint         dwExStyle;
-}
-
-///Defines the initialization parameters passed to the window procedure of an application. These members are identical
-///to the parameters of the CreateWindowEx function.
-struct CREATESTRUCTW
-{
-    ///Type: <b>LPVOID</b> Contains additional data which may be used to create the window. If the window is being
-    ///created as a result of a call to the CreateWindow or CreateWindowEx function, this member contains the value of
-    ///the <i>lpParam</i> parameter specified in the function call. If the window being created is a MDI client window,
-    ///this member contains a pointer to a CLIENTCREATESTRUCT structure. If the window being created is a MDI child
-    ///window, this member contains a pointer to an MDICREATESTRUCT structure. If the window is being created from a
-    ///dialog template, this member is the address of a <b>SHORT</b> value that specifies the size, in bytes, of the
-    ///window creation data. The value is immediately followed by the creation data. For more information, see the
-    ///following Remarks section.
-    void*         lpCreateParams;
-    ///Type: <b>HINSTANCE</b> A handle to the module that owns the new window.
-    HINSTANCE     hInstance;
-    ///Type: <b>HMENU</b> A handle to the menu to be used by the new window.
-    HMENU         hMenu;
-    ///Type: <b>HWND</b> A handle to the parent window, if the window is a child window. If the window is owned, this
-    ///member identifies the owner window. If the window is not a child or owned window, this member is <b>NULL</b>.
-    HWND          hwndParent;
-    ///Type: <b>int</b> The height of the new window, in pixels.
-    int           cy;
-    ///Type: <b>int</b> The width of the new window, in pixels.
-    int           cx;
-    ///Type: <b>int</b> The y-coordinate of the upper left corner of the new window. If the new window is a child
-    ///window, coordinates are relative to the parent window. Otherwise, the coordinates are relative to the screen
-    ///origin.
-    int           y;
-    ///Type: <b>int</b> The x-coordinate of the upper left corner of the new window. If the new window is a child
-    ///window, coordinates are relative to the parent window. Otherwise, the coordinates are relative to the screen
-    ///origin.
-    int           x;
-    ///Type: <b>LONG</b> The style for the new window. For a list of possible values, see Window Styles.
-    int           style;
-    ///Type: <b>LPCTSTR</b> The name of the new window.
-    const(wchar)* lpszName;
-    ///Type: <b>LPCTSTR</b> A pointer to a null-terminated string or an atom that specifies the class name of the new
-    ///window.
-    const(wchar)* lpszClass;
-    ///Type: <b>DWORD</b> The extended window style for the new window. For a list of possible values, see Extended
-    ///Window Styles.
-    uint          dwExStyle;
 }
 
 ///Contains information about the placement of a window on the screen.
@@ -3747,10 +1121,10 @@ struct MSGBOXPARAMSA
     HINSTANCE      hInstance;
     ///Type: <b>LPCTSTR</b> A null-terminated string, or the identifier of a string resource, that contains the message
     ///to be displayed.
-    const(char)*   lpszText;
+    const(PSTR)    lpszText;
     ///Type: <b>LPCTSTR</b> A null-terminated string, or the identifier of a string resource, that contains the message
     ///box title. If this member is <b>NULL</b>, the default title <b>Error</b> is used.
-    const(char)*   lpszCaption;
+    const(PSTR)    lpszCaption;
     ///Type: <b>DWORD</b> The contents and behavior of the dialog box. This member can be a combination of flags
     ///described for the <i>uType</i> parameter of the MessageBoxEx function. In addition, you can specify the
     ///<b>MB_USERICON</b> flag (0x00000080L) if you want the message box to display the icon specified by the
@@ -3761,7 +1135,7 @@ struct MSGBOXPARAMSA
     ///icons, set the <b>hInstance</b> member to <b>NULL</b> and set <b>lpszIcon</b> to one of the values listed with
     ///the LoadIcon function. This member is ignored if the <b>dwStyle</b> member does not specify the
     ///<b>MB_USERICON</b> flag.
-    const(char)*   lpszIcon;
+    const(PSTR)    lpszIcon;
     ///Type: <b>DWORD_PTR</b> Identifies a help context. If a help event occurs, this value is specified in the HELPINFO
     ///structure that the message box sends to the owner window or callback function.
     size_t         dwContextHelpId;
@@ -3792,10 +1166,10 @@ struct MSGBOXPARAMSW
     HINSTANCE      hInstance;
     ///Type: <b>LPCTSTR</b> A null-terminated string, or the identifier of a string resource, that contains the message
     ///to be displayed.
-    const(wchar)*  lpszText;
+    const(PWSTR)   lpszText;
     ///Type: <b>LPCTSTR</b> A null-terminated string, or the identifier of a string resource, that contains the message
     ///box title. If this member is <b>NULL</b>, the default title <b>Error</b> is used.
-    const(wchar)*  lpszCaption;
+    const(PWSTR)   lpszCaption;
     ///Type: <b>DWORD</b> The contents and behavior of the dialog box. This member can be a combination of flags
     ///described for the <i>uType</i> parameter of the MessageBoxEx function. In addition, you can specify the
     ///<b>MB_USERICON</b> flag (0x00000080L) if you want the message box to display the icon specified by the
@@ -3806,7 +1180,7 @@ struct MSGBOXPARAMSW
     ///icons, set the <b>hInstance</b> member to <b>NULL</b> and set <b>lpszIcon</b> to one of the values listed with
     ///the LoadIcon function. This member is ignored if the <b>dwStyle</b> member does not specify the
     ///<b>MB_USERICON</b> flag.
-    const(wchar)*  lpszIcon;
+    const(PWSTR)   lpszIcon;
     ///Type: <b>DWORD_PTR</b> Identifies a help context. If a help event occurs, this value is specified in the HELPINFO
     ///structure that the message box sends to the owner window or callback function.
     size_t         dwContextHelpId;
@@ -3831,10 +1205,51 @@ struct MDICREATESTRUCTA
 {
     ///Type: <b>LPCTSTR</b> The name of the window class of the MDI child window. The class name must have been
     ///registered by a previous call to the RegisterClass function.
-    const(char)* szClass;
+    const(PSTR) szClass;
     ///Type: <b>LPCTSTR</b> The title of the MDI child window. The system displays the title in the child window's title
     ///bar.
-    const(char)* szTitle;
+    const(PSTR) szTitle;
+    ///Type: <b>HANDLE</b> A handle to the instance of the application creating the MDI client window.
+    HANDLE      hOwner;
+    ///Type: <b>int</b> The initial horizontal position, in client coordinates, of the MDI child window. If this member
+    ///is <b>CW_USEDEFAULT</b>, the MDI child window is assigned the default horizontal position.
+    int         x;
+    ///Type: <b>int</b> The initial vertical position, in client coordinates, of the MDI child window. If this member is
+    ///<b>CW_USEDEFAULT</b>, the MDI child window is assigned the default vertical position.
+    int         y;
+    ///Type: <b>int</b> The initial width, in device units, of the MDI child window. If this member is
+    ///<b>CW_USEDEFAULT</b>, the MDI child window is assigned the default width.
+    int         cx;
+    ///Type: <b>int</b> The initial height, in device units, of the MDI child window. If this member is set to
+    ///<b>CW_USEDEFAULT</b>, the MDI child window is assigned the default height.
+    int         cy;
+    ///Type: <b>DWORD</b> The style of the MDI child window. If the MDI client window was created with the
+    ///<b>MDIS_ALLCHILDSTYLES</b> window style, this member can be any combination of the window styles listed in the
+    ///Window Styles page. Otherwise, this member can be one or more of the following values. <table> <tr>
+    ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="WS_MINIMIZE"></a><a id="ws_minimize"></a><dl>
+    ///<dt><b>WS_MINIMIZE</b></dt> <dt>0x20000000L</dt> </dl> </td> <td width="60%"> Creates an MDI child window that is
+    ///initially minimized. </td> </tr> <tr> <td width="40%"><a id="WS_MAXIMIZE"></a><a id="ws_maximize"></a><dl>
+    ///<dt><b>WS_MAXIMIZE</b></dt> <dt>0x01000000L</dt> </dl> </td> <td width="60%"> Creates an MDI child window that is
+    ///initially maximized. </td> </tr> <tr> <td width="40%"><a id="WS_HSCROLL"></a><a id="ws_hscroll"></a><dl>
+    ///<dt><b>WS_HSCROLL</b></dt> <dt>0x00100000L</dt> </dl> </td> <td width="60%"> Creates an MDI child window that has
+    ///a horizontal scroll bar. </td> </tr> <tr> <td width="40%"><a id="WS_VSCROLL"></a><a id="ws_vscroll"></a><dl>
+    ///<dt><b>WS_VSCROLL</b></dt> <dt>0x00200000L</dt> </dl> </td> <td width="60%"> Creates an MDI child window that has
+    ///a vertical scroll bar. </td> </tr> </table>
+    uint        style;
+    ///Type: <b>LPARAM</b> An application-defined value.
+    LPARAM      lParam;
+}
+
+///Contains information about the class, title, owner, location, and size of a multiple-document interface (MDI) child
+///window.
+struct MDICREATESTRUCTW
+{
+    ///Type: <b>LPCTSTR</b> The name of the window class of the MDI child window. The class name must have been
+    ///registered by a previous call to the RegisterClass function.
+    const(PWSTR) szClass;
+    ///Type: <b>LPCTSTR</b> The title of the MDI child window. The system displays the title in the child window's title
+    ///bar.
+    const(PWSTR) szTitle;
     ///Type: <b>HANDLE</b> A handle to the instance of the application creating the MDI client window.
     HANDLE       hOwner;
     ///Type: <b>int</b> The initial horizontal position, in client coordinates, of the MDI child window. If this member
@@ -3864,47 +1279,6 @@ struct MDICREATESTRUCTA
     uint         style;
     ///Type: <b>LPARAM</b> An application-defined value.
     LPARAM       lParam;
-}
-
-///Contains information about the class, title, owner, location, and size of a multiple-document interface (MDI) child
-///window.
-struct MDICREATESTRUCTW
-{
-    ///Type: <b>LPCTSTR</b> The name of the window class of the MDI child window. The class name must have been
-    ///registered by a previous call to the RegisterClass function.
-    const(wchar)* szClass;
-    ///Type: <b>LPCTSTR</b> The title of the MDI child window. The system displays the title in the child window's title
-    ///bar.
-    const(wchar)* szTitle;
-    ///Type: <b>HANDLE</b> A handle to the instance of the application creating the MDI client window.
-    HANDLE        hOwner;
-    ///Type: <b>int</b> The initial horizontal position, in client coordinates, of the MDI child window. If this member
-    ///is <b>CW_USEDEFAULT</b>, the MDI child window is assigned the default horizontal position.
-    int           x;
-    ///Type: <b>int</b> The initial vertical position, in client coordinates, of the MDI child window. If this member is
-    ///<b>CW_USEDEFAULT</b>, the MDI child window is assigned the default vertical position.
-    int           y;
-    ///Type: <b>int</b> The initial width, in device units, of the MDI child window. If this member is
-    ///<b>CW_USEDEFAULT</b>, the MDI child window is assigned the default width.
-    int           cx;
-    ///Type: <b>int</b> The initial height, in device units, of the MDI child window. If this member is set to
-    ///<b>CW_USEDEFAULT</b>, the MDI child window is assigned the default height.
-    int           cy;
-    ///Type: <b>DWORD</b> The style of the MDI child window. If the MDI client window was created with the
-    ///<b>MDIS_ALLCHILDSTYLES</b> window style, this member can be any combination of the window styles listed in the
-    ///Window Styles page. Otherwise, this member can be one or more of the following values. <table> <tr>
-    ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="WS_MINIMIZE"></a><a id="ws_minimize"></a><dl>
-    ///<dt><b>WS_MINIMIZE</b></dt> <dt>0x20000000L</dt> </dl> </td> <td width="60%"> Creates an MDI child window that is
-    ///initially minimized. </td> </tr> <tr> <td width="40%"><a id="WS_MAXIMIZE"></a><a id="ws_maximize"></a><dl>
-    ///<dt><b>WS_MAXIMIZE</b></dt> <dt>0x01000000L</dt> </dl> </td> <td width="60%"> Creates an MDI child window that is
-    ///initially maximized. </td> </tr> <tr> <td width="40%"><a id="WS_HSCROLL"></a><a id="ws_hscroll"></a><dl>
-    ///<dt><b>WS_HSCROLL</b></dt> <dt>0x00100000L</dt> </dl> </td> <td width="60%"> Creates an MDI child window that has
-    ///a horizontal scroll bar. </td> </tr> <tr> <td width="40%"><a id="WS_VSCROLL"></a><a id="ws_vscroll"></a><dl>
-    ///<dt><b>WS_VSCROLL</b></dt> <dt>0x00200000L</dt> </dl> </td> <td width="60%"> Creates an MDI child window that has
-    ///a vertical scroll bar. </td> </tr> </table>
-    uint          style;
-    ///Type: <b>LPARAM</b> An application-defined value.
-    LPARAM        lParam;
 }
 
 ///Contains information about the menu and first multiple-document interface (MDI) child window of an MDI client window.
@@ -4247,289 +1621,2648 @@ struct CHANGEFILTERSTRUCT
     uint ExtStatus;
 }
 
+///The <b>OPENFILENAME_NT4</b> structure is identical to OPENFILENAME with _WIN32_WINNT set to 0x0400. It allows an
+///application to take advantage of other post-Microsoft Windows NT 4.0 features while running on Microsoft Windows NT
+///4.0. Also, MFC42 applications must use <b>OPENFILENAME_NT4</b> to avoid heap corruption. This is because Microsoft
+///Foundation Classes (MFC) has classes with embedded <b>OPENFILENAME</b> structures, and you must use the same
+///structure size. <div class="alert"><b>Note</b> This structure is provided only for compatibility.</div><div> </div>
+struct OPENFILENAME_NT4A
+{
+align (1):
+    uint          lStructSize;
+    HWND          hwndOwner;
+    HINSTANCE     hInstance;
+    const(PSTR)   lpstrFilter;
+    PSTR          lpstrCustomFilter;
+    uint          nMaxCustFilter;
+    uint          nFilterIndex;
+    PSTR          lpstrFile;
+    uint          nMaxFile;
+    PSTR          lpstrFileTitle;
+    uint          nMaxFileTitle;
+    const(PSTR)   lpstrInitialDir;
+    const(PSTR)   lpstrTitle;
+    uint          Flags;
+    ushort        nFileOffset;
+    ushort        nFileExtension;
+    const(PSTR)   lpstrDefExt;
+    LPARAM        lCustData;
+    LPOFNHOOKPROC lpfnHook;
+    const(PSTR)   lpTemplateName;
+}
+
+///The <b>OPENFILENAME_NT4</b> structure is identical to OPENFILENAME with _WIN32_WINNT set to 0x0400. It allows an
+///application to take advantage of other post-Microsoft Windows NT 4.0 features while running on Microsoft Windows NT
+///4.0. Also, MFC42 applications must use <b>OPENFILENAME_NT4</b> to avoid heap corruption. This is because Microsoft
+///Foundation Classes (MFC) has classes with embedded <b>OPENFILENAME</b> structures, and you must use the same
+///structure size. <div class="alert"><b>Note</b> This structure is provided only for compatibility.</div><div> </div>
+struct OPENFILENAME_NT4W
+{
+align (1):
+    uint          lStructSize;
+    HWND          hwndOwner;
+    HINSTANCE     hInstance;
+    const(PWSTR)  lpstrFilter;
+    PWSTR         lpstrCustomFilter;
+    uint          nMaxCustFilter;
+    uint          nFilterIndex;
+    PWSTR         lpstrFile;
+    uint          nMaxFile;
+    PWSTR         lpstrFileTitle;
+    uint          nMaxFileTitle;
+    const(PWSTR)  lpstrInitialDir;
+    const(PWSTR)  lpstrTitle;
+    uint          Flags;
+    ushort        nFileOffset;
+    ushort        nFileExtension;
+    const(PWSTR)  lpstrDefExt;
+    LPARAM        lCustData;
+    LPOFNHOOKPROC lpfnHook;
+    const(PWSTR)  lpTemplateName;
+}
+
+///<p class="CCE_Message">[Starting with Windows Vista, the <b>Open</b> and <b>Save As</b> common dialog boxes have been
+///superseded by the Common Item Dialog. We recommended that you use the Common Item Dialog API instead of these dialog
+///boxes from the Common Dialog Box Library.] Contains information that the GetOpenFileName and GetSaveFileName
+///functions use to initialize an <b>Open</b> or <b>Save As</b> dialog box. After the user closes the dialog box, the
+///system returns information about the user's selection in this structure.
+struct OPENFILENAMEA
+{
+align (1):
+    ///Type: <b>DWORD</b> The length, in bytes, of the structure. Use <code>sizeof (OPENFILENAME)</code> for this
+    ///parameter.
+    uint          lStructSize;
+    ///Type: <b>HWND</b> A handle to the window that owns the dialog box. This member can be any valid window handle, or
+    ///it can be <b>NULL</b> if the dialog box has no owner.
+    HWND          hwndOwner;
+    ///Type: <b>HINSTANCE</b> If the <b>OFN_ENABLETEMPLATEHANDLE</b> flag is set in the <b>Flags</b> member,
+    ///<b>hInstance</b> is a handle to a memory object containing a dialog box template. If the
+    ///<b>OFN_ENABLETEMPLATE</b> flag is set, <b>hInstance</b> is a handle to a module that contains a dialog box
+    ///template named by the <b>lpTemplateName</b> member. If neither flag is set, this member is ignored. If the
+    ///<b>OFN_EXPLORER</b> flag is set, the system uses the specified template to create a dialog box that is a child of
+    ///the default Explorer-style dialog box. If the <b>OFN_EXPLORER</b> flag is not set, the system uses the template
+    ///to create an old-style dialog box that replaces the default dialog box.
+    HINSTANCE     hInstance;
+    ///Type: <b>LPCTSTR</b> A buffer containing pairs of null-terminated filter strings. The last string in the buffer
+    ///must be terminated by two <b>NULL</b> characters. The first string in each pair is a display string that
+    ///describes the filter (for example, "Text Files"), and the second string specifies the filter pattern (for
+    ///example, "*.TXT"). To specify multiple filter patterns for a single display string, use a semicolon to separate
+    ///the patterns (for example, "*.TXT;*.DOC;*.BAK"). A pattern string can be a combination of valid file name
+    ///characters and the asterisk (*) wildcard character. Do not include spaces in the pattern string. The system does
+    ///not change the order of the filters. It displays them in the <b>File Types</b> combo box in the order specified
+    ///in <b>lpstrFilter</b>. If <b>lpstrFilter</b> is <b>NULL</b>, the dialog box does not display any filters. In the
+    ///case of a shortcut, if no filter is set, GetOpenFileName and GetSaveFileName retrieve the name of the .lnk file,
+    ///not its target. This behavior is the same as setting the <b>OFN_NODEREFERENCELINKS</b> flag in the <b>Flags</b>
+    ///member. To retrieve a shortcut's target without filtering, use the string <code>"All Files\0*.*\0\0"</code>.
+    const(PSTR)   lpstrFilter;
+    ///Type: <b>LPTSTR</b> A static buffer that contains a pair of null-terminated filter strings for preserving the
+    ///filter pattern chosen by the user. The first string is your display string that describes the custom filter, and
+    ///the second string is the filter pattern selected by the user. The first time your application creates the dialog
+    ///box, you specify the first string, which can be any nonempty string. When the user selects a file, the dialog box
+    ///copies the current filter pattern to the second string. The preserved filter pattern can be one of the patterns
+    ///specified in the <b>lpstrFilter</b> buffer, or it can be a filter pattern typed by the user. The system uses the
+    ///strings to initialize the user-defined file filter the next time the dialog box is created. If the
+    ///<b>nFilterIndex</b> member is zero, the dialog box uses the custom filter. If this member is <b>NULL</b>, the
+    ///dialog box does not preserve user-defined filter patterns. If this member is not <b>NULL</b>, the value of the
+    ///<b>nMaxCustFilter</b> member must specify the size, in characters, of the <b>lpstrCustomFilter</b> buffer.
+    PSTR          lpstrCustomFilter;
+    ///Type: <b>DWORD</b> The size, in characters, of the buffer identified by <b>lpstrCustomFilter</b>. This buffer
+    ///should be at least 40 characters long. This member is ignored if <b>lpstrCustomFilter</b> is <b>NULL</b> or
+    ///points to a <b>NULL</b> string.
+    uint          nMaxCustFilter;
+    ///Type: <b>DWORD</b> The index of the currently selected filter in the <b>File Types</b> control. The buffer
+    ///pointed to by <b>lpstrFilter</b> contains pairs of strings that define the filters. The first pair of strings has
+    ///an index value of 1, the second pair 2, and so on. An index of zero indicates the custom filter specified by
+    ///<b>lpstrCustomFilter</b>. You can specify an index on input to indicate the initial filter description and filter
+    ///pattern for the dialog box. When the user selects a file, <b>nFilterIndex</b> returns the index of the currently
+    ///displayed filter. If <b>nFilterIndex</b> is zero and <b>lpstrCustomFilter</b> is <b>NULL</b>, the system uses the
+    ///first filter in the <b>lpstrFilter</b> buffer. If all three members are zero or <b>NULL</b>, the system does not
+    ///use any filters and does not show any files in the file list control of the dialog box.
+    uint          nFilterIndex;
+    ///Type: <b>LPTSTR</b> The file name used to initialize the <b>File Name</b> edit control. The first character of
+    ///this buffer must be <b>NULL</b> if initialization is not necessary. When the GetOpenFileName or GetSaveFileName
+    ///function returns successfully, this buffer contains the drive designator, path, file name, and extension of the
+    ///selected file. If the <b>OFN_ALLOWMULTISELECT</b> flag is set and the user selects multiple files, the buffer
+    ///contains the current directory followed by the file names of the selected files. For Explorer-style dialog boxes,
+    ///the directory and file name strings are <b>NULL</b> separated, with an extra <b>NULL</b> character after the last
+    ///file name. For old-style dialog boxes, the strings are space separated and the function uses short file names for
+    ///file names with spaces. You can use the FindFirstFile function to convert between long and short file names. If
+    ///the user selects only one file, the <b>lpstrFile</b> string does not have a separator between the path and file
+    ///name. If the buffer is too small, the function returns <b>FALSE</b> and the CommDlgExtendedError function returns
+    ///<b>FNERR_BUFFERTOOSMALL</b>. In this case, the first two bytes of the <b>lpstrFile</b> buffer contain the
+    ///required size, in bytes or characters.
+    PSTR          lpstrFile;
+    ///Type: <b>DWORD</b> The size, in characters, of the buffer pointed to by <b>lpstrFile</b>. The buffer must be
+    ///large enough to store the path and file name string or strings, including the terminating <b>NULL</b> character.
+    ///The GetOpenFileName and GetSaveFileName functions return <b>FALSE</b> if the buffer is too small to contain the
+    ///file information. The buffer should be at least 256 characters long.
+    uint          nMaxFile;
+    ///Type: <b>LPTSTR</b> The file name and extension (without path information) of the selected file. This member can
+    ///be <b>NULL</b>.
+    PSTR          lpstrFileTitle;
+    ///Type: <b>DWORD</b> The size, in characters, of the buffer pointed to by <b>lpstrFileTitle</b>. This member is
+    ///ignored if <b>lpstrFileTitle</b> is <b>NULL</b>.
+    uint          nMaxFileTitle;
+    ///Type: <b>LPCTSTR</b> The initial directory. The algorithm for selecting the initial directory varies on different
+    ///platforms. <b>Windows 7:</b> <ol> <li>If <b>lpstrInitialDir</b> has the same value as was passed the first time
+    ///the application used an <b>Open</b> or <b>Save As</b> dialog box, the path most recently selected by the user is
+    ///used as the initial directory.</li> <li>Otherwise, if <b>lpstrFile</b> contains a path, that path is the initial
+    ///directory.</li> <li>Otherwise, if <b>lpstrInitialDir</b> is not <b>NULL</b>, it specifies the initial
+    ///directory.</li> <li>If <b>lpstrInitialDir</b> is <b>NULL</b> and the current directory contains any files of the
+    ///specified filter types, the initial directory is the current directory.</li> <li>Otherwise, the initial directory
+    ///is the personal files directory of the current user.</li> <li>Otherwise, the initial directory is the Desktop
+    ///folder.</li> </ol> <b>Windows 2000/XP/Vista:</b> <ol> <li>If <b>lpstrFile</b> contains a path, that path is the
+    ///initial directory.</li> <li>Otherwise, <b>lpstrInitialDir</b> specifies the initial directory.</li>
+    ///<li>Otherwise, if the application has used an <b>Open</b> or <b>Save As</b> dialog box in the past, the path most
+    ///recently used is selected as the initial directory. However, if an application is not run for a long time, its
+    ///saved selected path is discarded.</li> <li>If <b>lpstrInitialDir</b> is <b>NULL</b> and the current directory
+    ///contains any files of the specified filter types, the initial directory is the current directory.</li>
+    ///<li>Otherwise, the initial directory is the personal files directory of the current user.</li> <li>Otherwise, the
+    ///initial directory is the Desktop folder.</li> </ol>
+    const(PSTR)   lpstrInitialDir;
+    ///Type: <b>LPCTSTR</b> A string to be placed in the title bar of the dialog box. If this member is <b>NULL</b>, the
+    ///system uses the default title (that is, <b>Save As</b> or <b>Open</b>).
+    const(PSTR)   lpstrTitle;
+    ///Type: <b>DWORD</b> A set of bit flags you can use to initialize the dialog box. When the dialog box returns, it
+    ///sets these flags to indicate the user's input. This member can be a combination of the following flags. <table>
+    ///<tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="OFN_ALLOWMULTISELECT"></a><a
+    ///id="ofn_allowmultiselect"></a><dl> <dt><b>OFN_ALLOWMULTISELECT</b></dt> <dt>0x00000200</dt> </dl> </td> <td
+    ///width="60%"> The <b>File Name</b> list box allows multiple selections. If you also set the <b>OFN_EXPLORER</b>
+    ///flag, the dialog box uses the Explorer-style user interface; otherwise, it uses the old-style user interface. If
+    ///the user selects more than one file, the <b>lpstrFile</b> buffer returns the path to the current directory
+    ///followed by the file names of the selected files. The <b>nFileOffset</b> member is the offset, in bytes or
+    ///characters, to the first file name, and the <b>nFileExtension</b> member is not used. For Explorer-style dialog
+    ///boxes, the directory and file name strings are <b>NULL</b> separated, with an extra <b>NULL</b> character after
+    ///the last file name. This format enables the Explorer-style dialog boxes to return long file names that include
+    ///spaces. For old-style dialog boxes, the directory and file name strings are separated by spaces and the function
+    ///uses short file names for file names with spaces. You can use the FindFirstFile function to convert between long
+    ///and short file names. If you specify a custom template for an old-style dialog box, the definition of the <b>File
+    ///Name</b> list box must contain the <b>LBS_EXTENDEDSEL</b> value. </td> </tr> <tr> <td width="40%"><a
+    ///id="OFN_CREATEPROMPT"></a><a id="ofn_createprompt"></a><dl> <dt><b>OFN_CREATEPROMPT</b></dt> <dt>0x00002000</dt>
+    ///</dl> </td> <td width="60%"> If the user specifies a file that does not exist, this flag causes the dialog box to
+    ///prompt the user for permission to create the file. If the user chooses to create the file, the dialog box closes
+    ///and the function returns the specified name; otherwise, the dialog box remains open. If you use this flag with
+    ///the <b>OFN_ALLOWMULTISELECT</b> flag, the dialog box allows the user to specify only one nonexistent file. </td>
+    ///</tr> <tr> <td width="40%"><a id="OFN_DONTADDTORECENT"></a><a id="ofn_dontaddtorecent"></a><dl>
+    ///<dt><b>OFN_DONTADDTORECENT</b></dt> <dt>0x02000000</dt> </dl> </td> <td width="60%"> Prevents the system from
+    ///adding a link to the selected file in the file system directory that contains the user's most recently used
+    ///documents. To retrieve the location of this directory, call the SHGetSpecialFolderLocation function with the
+    ///<b>CSIDL_RECENT</b> flag. </td> </tr> <tr> <td width="40%"><a id="OFN_ENABLEHOOK"></a><a
+    ///id="ofn_enablehook"></a><dl> <dt><b>OFN_ENABLEHOOK</b></dt> <dt>0x00000020</dt> </dl> </td> <td width="60%">
+    ///Enables the hook function specified in the <b>lpfnHook</b> member. </td> </tr> <tr> <td width="40%"><a
+    ///id="OFN_ENABLEINCLUDENOTIFY"></a><a id="ofn_enableincludenotify"></a><dl> <dt><b>OFN_ENABLEINCLUDENOTIFY</b></dt>
+    ///<dt>0x00400000</dt> </dl> </td> <td width="60%"> Causes the dialog box to send CDN_INCLUDEITEM notification
+    ///messages to your OFNHookProc hook procedure when the user opens a folder. The dialog box sends a notification for
+    ///each item in the newly opened folder. These messages enable you to control which items the dialog box displays in
+    ///the folder's item list. </td> </tr> <tr> <td width="40%"><a id="OFN_ENABLESIZING"></a><a
+    ///id="ofn_enablesizing"></a><dl> <dt><b>OFN_ENABLESIZING</b></dt> <dt>0x00800000</dt> </dl> </td> <td width="60%">
+    ///Enables the Explorer-style dialog box to be resized using either the mouse or the keyboard. By default, the
+    ///Explorer-style <b>Open</b> and <b>Save As</b> dialog boxes allow the dialog box to be resized regardless of
+    ///whether this flag is set. This flag is necessary only if you provide a hook procedure or custom template. The
+    ///old-style dialog box does not permit resizing. </td> </tr> <tr> <td width="40%"><a id="OFN_ENABLETEMPLATE"></a><a
+    ///id="ofn_enabletemplate"></a><dl> <dt><b>OFN_ENABLETEMPLATE</b></dt> <dt>0x00000040</dt> </dl> </td> <td
+    ///width="60%"> The <b>lpTemplateName</b> member is a pointer to the name of a dialog template resource in the
+    ///module identified by the <b>hInstance</b> member. If the <b>OFN_EXPLORER</b> flag is set, the system uses the
+    ///specified template to create a dialog box that is a child of the default Explorer-style dialog box. If the
+    ///<b>OFN_EXPLORER</b> flag is not set, the system uses the template to create an old-style dialog box that replaces
+    ///the default dialog box. </td> </tr> <tr> <td width="40%"><a id="OFN_ENABLETEMPLATEHANDLE"></a><a
+    ///id="ofn_enabletemplatehandle"></a><dl> <dt><b>OFN_ENABLETEMPLATEHANDLE</b></dt> <dt>0x00000080</dt> </dl> </td>
+    ///<td width="60%"> The <b>hInstance</b> member identifies a data block that contains a preloaded dialog box
+    ///template. The system ignores <b>lpTemplateName</b> if this flag is specified. If the <b>OFN_EXPLORER</b> flag is
+    ///set, the system uses the specified template to create a dialog box that is a child of the default Explorer-style
+    ///dialog box. If the <b>OFN_EXPLORER</b> flag is not set, the system uses the template to create an old-style
+    ///dialog box that replaces the default dialog box. </td> </tr> <tr> <td width="40%"><a id="OFN_EXPLORER"></a><a
+    ///id="ofn_explorer"></a><dl> <dt><b>OFN_EXPLORER</b></dt> <dt>0x00080000</dt> </dl> </td> <td width="60%">
+    ///Indicates that any customizations made to the <b>Open</b> or <b>Save As</b> dialog box use the Explorer-style
+    ///customization methods. For more information, see Explorer-Style Hook Procedures and Explorer-Style Custom
+    ///Templates. By default, the <b>Open</b> and <b>Save As</b> dialog boxes use the Explorer-style user interface
+    ///regardless of whether this flag is set. This flag is necessary only if you provide a hook procedure or custom
+    ///template, or set the <b>OFN_ALLOWMULTISELECT</b> flag. If you want the old-style user interface, omit the
+    ///<b>OFN_EXPLORER</b> flag and provide a replacement old-style template or hook procedure. If you want the old
+    ///style but do not need a custom template or hook procedure, simply provide a hook procedure that always returns
+    ///<b>FALSE</b>. </td> </tr> <tr> <td width="40%"><a id="OFN_EXTENSIONDIFFERENT"></a><a
+    ///id="ofn_extensiondifferent"></a><dl> <dt><b>OFN_EXTENSIONDIFFERENT</b></dt> <dt>0x00000400</dt> </dl> </td> <td
+    ///width="60%"> The user typed a file name extension that differs from the extension specified by
+    ///<b>lpstrDefExt</b>. The function does not use this flag if <b>lpstrDefExt</b> is <b>NULL</b>. </td> </tr> <tr>
+    ///<td width="40%"><a id="OFN_FILEMUSTEXIST"></a><a id="ofn_filemustexist"></a><dl>
+    ///<dt><b>OFN_FILEMUSTEXIST</b></dt> <dt>0x00001000</dt> </dl> </td> <td width="60%"> The user can type only names
+    ///of existing files in the <b>File Name</b> entry field. If this flag is specified and the user enters an invalid
+    ///name, the dialog box procedure displays a warning in a message box. If this flag is specified, the
+    ///<b>OFN_PATHMUSTEXIST</b> flag is also used. This flag can be used in an <b>Open</b> dialog box. It cannot be used
+    ///with a <b>Save As</b> dialog box. </td> </tr> <tr> <td width="40%"><a id="OFN_FORCESHOWHIDDEN"></a><a
+    ///id="ofn_forceshowhidden"></a><dl> <dt><b>OFN_FORCESHOWHIDDEN</b></dt> <dt>0x10000000</dt> </dl> </td> <td
+    ///width="60%"> Forces the showing of system and hidden files, thus overriding the user setting to show or not show
+    ///hidden files. However, a file that is marked both system and hidden is not shown. </td> </tr> <tr> <td
+    ///width="40%"><a id="OFN_HIDEREADONLY"></a><a id="ofn_hidereadonly"></a><dl> <dt><b>OFN_HIDEREADONLY</b></dt>
+    ///<dt>0x00000004</dt> </dl> </td> <td width="60%"> Hides the <b>Read Only</b> check box. </td> </tr> <tr> <td
+    ///width="40%"><a id="OFN_LONGNAMES"></a><a id="ofn_longnames"></a><dl> <dt><b>OFN_LONGNAMES</b></dt>
+    ///<dt>0x00200000</dt> </dl> </td> <td width="60%"> For old-style dialog boxes, this flag causes the dialog box to
+    ///use long file names. If this flag is not specified, or if the <b>OFN_ALLOWMULTISELECT</b> flag is also set,
+    ///old-style dialog boxes use short file names (8.3 format) for file names with spaces. Explorer-style dialog boxes
+    ///ignore this flag and always display long file names. </td> </tr> <tr> <td width="40%"><a
+    ///id="OFN_NOCHANGEDIR"></a><a id="ofn_nochangedir"></a><dl> <dt><b>OFN_NOCHANGEDIR</b></dt> <dt>0x00000008</dt>
+    ///</dl> </td> <td width="60%"> Restores the current directory to its original value if the user changed the
+    ///directory while searching for files. This flag is ineffective for GetOpenFileName. </td> </tr> <tr> <td
+    ///width="40%"><a id="OFN_NODEREFERENCELINKS"></a><a id="ofn_nodereferencelinks"></a><dl>
+    ///<dt><b>OFN_NODEREFERENCELINKS</b></dt> <dt>0x00100000</dt> </dl> </td> <td width="60%"> Directs the dialog box to
+    ///return the path and file name of the selected shortcut (.LNK) file. If this value is not specified, the dialog
+    ///box returns the path and file name of the file referenced by the shortcut. </td> </tr> <tr> <td width="40%"><a
+    ///id="OFN_NOLONGNAMES"></a><a id="ofn_nolongnames"></a><dl> <dt><b>OFN_NOLONGNAMES</b></dt> <dt>0x00040000</dt>
+    ///</dl> </td> <td width="60%"> For old-style dialog boxes, this flag causes the dialog box to use short file names
+    ///(8.3 format). Explorer-style dialog boxes ignore this flag and always display long file names. </td> </tr> <tr>
+    ///<td width="40%"><a id="OFN_NONETWORKBUTTON"></a><a id="ofn_nonetworkbutton"></a><dl>
+    ///<dt><b>OFN_NONETWORKBUTTON</b></dt> <dt>0x00020000</dt> </dl> </td> <td width="60%"> Hides and disables the
+    ///<b>Network</b> button. </td> </tr> <tr> <td width="40%"><a id="OFN_NOREADONLYRETURN"></a><a
+    ///id="ofn_noreadonlyreturn"></a><dl> <dt><b>OFN_NOREADONLYRETURN</b></dt> <dt>0x00008000</dt> </dl> </td> <td
+    ///width="60%"> The returned file does not have the <b>Read Only</b> check box selected and is not in a
+    ///write-protected directory. </td> </tr> <tr> <td width="40%"><a id="OFN_NOTESTFILECREATE"></a><a
+    ///id="ofn_notestfilecreate"></a><dl> <dt><b>OFN_NOTESTFILECREATE</b></dt> <dt>0x00010000</dt> </dl> </td> <td
+    ///width="60%"> The file is not created before the dialog box is closed. This flag should be specified if the
+    ///application saves the file on a create-nonmodify network share. When an application specifies this flag, the
+    ///library does not check for write protection, a full disk, an open drive door, or network protection. Applications
+    ///using this flag must perform file operations carefully, because a file cannot be reopened once it is closed.
+    ///</td> </tr> <tr> <td width="40%"><a id="OFN_NOVALIDATE"></a><a id="ofn_novalidate"></a><dl>
+    ///<dt><b>OFN_NOVALIDATE</b></dt> <dt>0x00000100</dt> </dl> </td> <td width="60%"> The common dialog boxes allow
+    ///invalid characters in the returned file name. Typically, the calling application uses a hook procedure that
+    ///checks the file name by using the FILEOKSTRING message. If the text box in the edit control is empty or contains
+    ///nothing but spaces, the lists of files and directories are updated. If the text box in the edit control contains
+    ///anything else, <b>nFileOffset</b> and <b>nFileExtension</b> are set to values generated by parsing the text. No
+    ///default extension is added to the text, nor is text copied to the buffer specified by <b>lpstrFileTitle</b>. If
+    ///the value specified by <b>nFileOffset</b> is less than zero, the file name is invalid. Otherwise, the file name
+    ///is valid, and <b>nFileExtension</b> and <b>nFileOffset</b> can be used as if the <b>OFN_NOVALIDATE</b> flag had
+    ///not been specified. </td> </tr> <tr> <td width="40%"><a id="OFN_OVERWRITEPROMPT"></a><a
+    ///id="ofn_overwriteprompt"></a><dl> <dt><b>OFN_OVERWRITEPROMPT</b></dt> <dt>0x00000002</dt> </dl> </td> <td
+    ///width="60%"> Causes the <b>Save As</b> dialog box to generate a message box if the selected file already exists.
+    ///The user must confirm whether to overwrite the file. </td> </tr> <tr> <td width="40%"><a
+    ///id="OFN_PATHMUSTEXIST"></a><a id="ofn_pathmustexist"></a><dl> <dt><b>OFN_PATHMUSTEXIST</b></dt>
+    ///<dt>0x00000800</dt> </dl> </td> <td width="60%"> The user can type only valid paths and file names. If this flag
+    ///is used and the user types an invalid path and file name in the <b>File Name</b> entry field, the dialog box
+    ///function displays a warning in a message box. </td> </tr> <tr> <td width="40%"><a id="OFN_READONLY"></a><a
+    ///id="ofn_readonly"></a><dl> <dt><b>OFN_READONLY</b></dt> <dt>0x00000001</dt> </dl> </td> <td width="60%"> Causes
+    ///the <b>Read Only</b> check box to be selected initially when the dialog box is created. This flag indicates the
+    ///state of the <b>Read Only</b> check box when the dialog box is closed. </td> </tr> <tr> <td width="40%"><a
+    ///id="OFN_SHAREAWARE"></a><a id="ofn_shareaware"></a><dl> <dt><b>OFN_SHAREAWARE</b></dt> <dt>0x00004000</dt> </dl>
+    ///</td> <td width="60%"> Specifies that if a call to the OpenFile function fails because of a network sharing
+    ///violation, the error is ignored and the dialog box returns the selected file name. If this flag is not set, the
+    ///dialog box notifies your hook procedure when a network sharing violation occurs for the file name specified by
+    ///the user. If you set the <b>OFN_EXPLORER</b> flag, the dialog box sends the CDN_SHAREVIOLATION message to the
+    ///hook procedure. If you do not set <b>OFN_EXPLORER</b>, the dialog box sends the SHAREVISTRING registered message
+    ///to the hook procedure. </td> </tr> <tr> <td width="40%"><a id="OFN_SHOWHELP"></a><a id="ofn_showhelp"></a><dl>
+    ///<dt><b>OFN_SHOWHELP</b></dt> <dt>0x00000010</dt> </dl> </td> <td width="60%"> Causes the dialog box to display
+    ///the <b>Help</b> button. The <b>hwndOwner</b> member must specify the window to receive the HELPMSGSTRING
+    ///registered messages that the dialog box sends when the user clicks the <b>Help</b> button. An Explorer-style
+    ///dialog box sends a CDN_HELP notification message to your hook procedure when the user clicks the <b>Help</b>
+    ///button. </td> </tr> </table>
+    uint          Flags;
+    ///Type: <b>WORD</b> The zero-based offset, in characters, from the beginning of the path to the file name in the
+    ///string pointed to by <b>lpstrFile</b>. For the ANSI version, this is the number of bytes; for the Unicode
+    ///version, this is the number of characters. For example, if <b>lpstrFile</b> points to the following string,
+    ///"c:\dir1\dir2\file.ext", this member contains the value 13 to indicate the offset of the "file.ext" string. If
+    ///the user selects more than one file, <b>nFileOffset</b> is the offset to the first file name.
+    ushort        nFileOffset;
+    ///Type: <b>WORD</b> The zero-based offset, in characters, from the beginning of the path to the file name extension
+    ///in the string pointed to by <b>lpstrFile</b>. For the ANSI version, this is the number of bytes; for the Unicode
+    ///version, this is the number of characters. Usually the file name extension is the substring which follows the
+    ///last occurrence of the dot (".") character. For example, txt is the extension of the filename readme.txt, html
+    ///the extension of readme.txt.html. Therefore, if <b>lpstrFile</b> points to the string "c:\dir1\dir2\readme.txt",
+    ///this member contains the value 20. If <b>lpstrFile</b> points to the string "c:\dir1\dir2\readme.txt.html", this
+    ///member contains the value 24. If <b>lpstrFile</b> points to the string "c:\dir1\dir2\readme.txt.html.", this
+    ///member contains the value 29. If <b>lpstrFile</b> points to a string that does not contain any "." character such
+    ///as "c:\dir1\dir2\readme", this member contains zero.
+    ushort        nFileExtension;
+    ///Type: <b>LPCTSTR</b> The default extension. GetOpenFileName and GetSaveFileName append this extension to the file
+    ///name if the user fails to type an extension. This string can be any length, but only the first three characters
+    ///are appended. The string should not contain a period (.). If this member is <b>NULL</b> and the user fails to
+    ///type an extension, no extension is appended.
+    const(PSTR)   lpstrDefExt;
+    ///Type: <b>LPARAM</b> Application-defined data that the system passes to the hook procedure identified by the
+    ///<b>lpfnHook</b> member. When the system sends the WM_INITDIALOG message to the hook procedure, the message's
+    ///<i>lParam</i> parameter is a pointer to the <b>OPENFILENAME</b> structure specified when the dialog box was
+    ///created. The hook procedure can use this pointer to get the <b>lCustData</b> value.
+    LPARAM        lCustData;
+    ///Type: <b>LPOFNHOOKPROC</b> A pointer to a hook procedure. This member is ignored unless the <b>Flags</b> member
+    ///includes the <b>OFN_ENABLEHOOK</b> flag. If the <b>OFN_EXPLORER</b> flag is not set in the <b>Flags</b> member,
+    ///<b>lpfnHook</b> is a pointer to an OFNHookProcOldStyle hook procedure that receives messages intended for the
+    ///dialog box. The hook procedure returns <b>FALSE</b> to pass a message to the default dialog box procedure or
+    ///<b>TRUE</b> to discard the message. If <b>OFN_EXPLORER</b> is set, <b>lpfnHook</b> is a pointer to an OFNHookProc
+    ///hook procedure. The hook procedure receives notification messages sent from the dialog box. The hook procedure
+    ///also receives messages for any additional controls that you defined by specifying a child dialog template. The
+    ///hook procedure does not receive messages intended for the standard controls of the default dialog box.
+    LPOFNHOOKPROC lpfnHook;
+    ///Type: <b>LPCTSTR</b> The name of the dialog template resource in the module identified by the <b>hInstance</b>
+    ///member. For numbered dialog box resources, this can be a value returned by the MAKEINTRESOURCE macro. This member
+    ///is ignored unless the <b>OFN_ENABLETEMPLATE</b> flag is set in the <b>Flags</b> member. If the
+    ///<b>OFN_EXPLORER</b> flag is set, the system uses the specified template to create a dialog box that is a child of
+    ///the default Explorer-style dialog box. If the <b>OFN_EXPLORER</b> flag is not set, the system uses the template
+    ///to create an old-style dialog box that replaces the default dialog box.
+    const(PSTR)   lpTemplateName;
+    ///Type: <b>void*</b> This member is reserved.
+    void*         pvReserved;
+    ///Type: <b>DWORD</b> This member is reserved.
+    uint          dwReserved;
+    ///Type: <b>DWORD</b> A set of bit flags you can use to initialize the dialog box. Currently, this member can be
+    ///zero or the following flag. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
+    ///id="OFN_EX_NOPLACESBAR"></a><a id="ofn_ex_noplacesbar"></a><dl> <dt><b>OFN_EX_NOPLACESBAR</b></dt>
+    ///<dt>0x00000001</dt> </dl> </td> <td width="60%"> If this flag is set, the places bar is not displayed. If this
+    ///flag is not set, Explorer-style dialog boxes include a places bar containing icons for commonly-used folders,
+    ///such as Favorites and Desktop. </td> </tr> </table>
+    uint          FlagsEx;
+}
+
+///<p class="CCE_Message">[Starting with Windows Vista, the <b>Open</b> and <b>Save As</b> common dialog boxes have been
+///superseded by the Common Item Dialog. We recommended that you use the Common Item Dialog API instead of these dialog
+///boxes from the Common Dialog Box Library.] Contains information that the GetOpenFileName and GetSaveFileName
+///functions use to initialize an <b>Open</b> or <b>Save As</b> dialog box. After the user closes the dialog box, the
+///system returns information about the user's selection in this structure.
+struct OPENFILENAMEW
+{
+align (1):
+    ///Type: <b>DWORD</b> The length, in bytes, of the structure. Use <code>sizeof (OPENFILENAME)</code> for this
+    ///parameter.
+    uint          lStructSize;
+    ///Type: <b>HWND</b> A handle to the window that owns the dialog box. This member can be any valid window handle, or
+    ///it can be <b>NULL</b> if the dialog box has no owner.
+    HWND          hwndOwner;
+    ///Type: <b>HINSTANCE</b> If the <b>OFN_ENABLETEMPLATEHANDLE</b> flag is set in the <b>Flags</b> member,
+    ///<b>hInstance</b> is a handle to a memory object containing a dialog box template. If the
+    ///<b>OFN_ENABLETEMPLATE</b> flag is set, <b>hInstance</b> is a handle to a module that contains a dialog box
+    ///template named by the <b>lpTemplateName</b> member. If neither flag is set, this member is ignored. If the
+    ///<b>OFN_EXPLORER</b> flag is set, the system uses the specified template to create a dialog box that is a child of
+    ///the default Explorer-style dialog box. If the <b>OFN_EXPLORER</b> flag is not set, the system uses the template
+    ///to create an old-style dialog box that replaces the default dialog box.
+    HINSTANCE     hInstance;
+    ///Type: <b>LPCTSTR</b> A buffer containing pairs of null-terminated filter strings. The last string in the buffer
+    ///must be terminated by two <b>NULL</b> characters. The first string in each pair is a display string that
+    ///describes the filter (for example, "Text Files"), and the second string specifies the filter pattern (for
+    ///example, "*.TXT"). To specify multiple filter patterns for a single display string, use a semicolon to separate
+    ///the patterns (for example, "*.TXT;*.DOC;*.BAK"). A pattern string can be a combination of valid file name
+    ///characters and the asterisk (*) wildcard character. Do not include spaces in the pattern string. The system does
+    ///not change the order of the filters. It displays them in the <b>File Types</b> combo box in the order specified
+    ///in <b>lpstrFilter</b>. If <b>lpstrFilter</b> is <b>NULL</b>, the dialog box does not display any filters. In the
+    ///case of a shortcut, if no filter is set, GetOpenFileName and GetSaveFileName retrieve the name of the .lnk file,
+    ///not its target. This behavior is the same as setting the <b>OFN_NODEREFERENCELINKS</b> flag in the <b>Flags</b>
+    ///member. To retrieve a shortcut's target without filtering, use the string <code>"All Files\0*.*\0\0"</code>.
+    const(PWSTR)  lpstrFilter;
+    ///Type: <b>LPTSTR</b> A static buffer that contains a pair of null-terminated filter strings for preserving the
+    ///filter pattern chosen by the user. The first string is your display string that describes the custom filter, and
+    ///the second string is the filter pattern selected by the user. The first time your application creates the dialog
+    ///box, you specify the first string, which can be any nonempty string. When the user selects a file, the dialog box
+    ///copies the current filter pattern to the second string. The preserved filter pattern can be one of the patterns
+    ///specified in the <b>lpstrFilter</b> buffer, or it can be a filter pattern typed by the user. The system uses the
+    ///strings to initialize the user-defined file filter the next time the dialog box is created. If the
+    ///<b>nFilterIndex</b> member is zero, the dialog box uses the custom filter. If this member is <b>NULL</b>, the
+    ///dialog box does not preserve user-defined filter patterns. If this member is not <b>NULL</b>, the value of the
+    ///<b>nMaxCustFilter</b> member must specify the size, in characters, of the <b>lpstrCustomFilter</b> buffer.
+    PWSTR         lpstrCustomFilter;
+    ///Type: <b>DWORD</b> The size, in characters, of the buffer identified by <b>lpstrCustomFilter</b>. This buffer
+    ///should be at least 40 characters long. This member is ignored if <b>lpstrCustomFilter</b> is <b>NULL</b> or
+    ///points to a <b>NULL</b> string.
+    uint          nMaxCustFilter;
+    ///Type: <b>DWORD</b> The index of the currently selected filter in the <b>File Types</b> control. The buffer
+    ///pointed to by <b>lpstrFilter</b> contains pairs of strings that define the filters. The first pair of strings has
+    ///an index value of 1, the second pair 2, and so on. An index of zero indicates the custom filter specified by
+    ///<b>lpstrCustomFilter</b>. You can specify an index on input to indicate the initial filter description and filter
+    ///pattern for the dialog box. When the user selects a file, <b>nFilterIndex</b> returns the index of the currently
+    ///displayed filter. If <b>nFilterIndex</b> is zero and <b>lpstrCustomFilter</b> is <b>NULL</b>, the system uses the
+    ///first filter in the <b>lpstrFilter</b> buffer. If all three members are zero or <b>NULL</b>, the system does not
+    ///use any filters and does not show any files in the file list control of the dialog box.
+    uint          nFilterIndex;
+    ///Type: <b>LPTSTR</b> The file name used to initialize the <b>File Name</b> edit control. The first character of
+    ///this buffer must be <b>NULL</b> if initialization is not necessary. When the GetOpenFileName or GetSaveFileName
+    ///function returns successfully, this buffer contains the drive designator, path, file name, and extension of the
+    ///selected file. If the <b>OFN_ALLOWMULTISELECT</b> flag is set and the user selects multiple files, the buffer
+    ///contains the current directory followed by the file names of the selected files. For Explorer-style dialog boxes,
+    ///the directory and file name strings are <b>NULL</b> separated, with an extra <b>NULL</b> character after the last
+    ///file name. For old-style dialog boxes, the strings are space separated and the function uses short file names for
+    ///file names with spaces. You can use the FindFirstFile function to convert between long and short file names. If
+    ///the user selects only one file, the <b>lpstrFile</b> string does not have a separator between the path and file
+    ///name. If the buffer is too small, the function returns <b>FALSE</b> and the CommDlgExtendedError function returns
+    ///<b>FNERR_BUFFERTOOSMALL</b>. In this case, the first two bytes of the <b>lpstrFile</b> buffer contain the
+    ///required size, in bytes or characters.
+    PWSTR         lpstrFile;
+    ///Type: <b>DWORD</b> The size, in characters, of the buffer pointed to by <b>lpstrFile</b>. The buffer must be
+    ///large enough to store the path and file name string or strings, including the terminating <b>NULL</b> character.
+    ///The GetOpenFileName and GetSaveFileName functions return <b>FALSE</b> if the buffer is too small to contain the
+    ///file information. The buffer should be at least 256 characters long.
+    uint          nMaxFile;
+    ///Type: <b>LPTSTR</b> The file name and extension (without path information) of the selected file. This member can
+    ///be <b>NULL</b>.
+    PWSTR         lpstrFileTitle;
+    ///Type: <b>DWORD</b> The size, in characters, of the buffer pointed to by <b>lpstrFileTitle</b>. This member is
+    ///ignored if <b>lpstrFileTitle</b> is <b>NULL</b>.
+    uint          nMaxFileTitle;
+    ///Type: <b>LPCTSTR</b> The initial directory. The algorithm for selecting the initial directory varies on different
+    ///platforms. <b>Windows 7:</b> <ol> <li>If <b>lpstrInitialDir</b> has the same value as was passed the first time
+    ///the application used an <b>Open</b> or <b>Save As</b> dialog box, the path most recently selected by the user is
+    ///used as the initial directory.</li> <li>Otherwise, if <b>lpstrFile</b> contains a path, that path is the initial
+    ///directory.</li> <li>Otherwise, if <b>lpstrInitialDir</b> is not <b>NULL</b>, it specifies the initial
+    ///directory.</li> <li>If <b>lpstrInitialDir</b> is <b>NULL</b> and the current directory contains any files of the
+    ///specified filter types, the initial directory is the current directory.</li> <li>Otherwise, the initial directory
+    ///is the personal files directory of the current user.</li> <li>Otherwise, the initial directory is the Desktop
+    ///folder.</li> </ol> <b>Windows 2000/XP/Vista:</b> <ol> <li>If <b>lpstrFile</b> contains a path, that path is the
+    ///initial directory.</li> <li>Otherwise, <b>lpstrInitialDir</b> specifies the initial directory.</li>
+    ///<li>Otherwise, if the application has used an <b>Open</b> or <b>Save As</b> dialog box in the past, the path most
+    ///recently used is selected as the initial directory. However, if an application is not run for a long time, its
+    ///saved selected path is discarded.</li> <li>If <b>lpstrInitialDir</b> is <b>NULL</b> and the current directory
+    ///contains any files of the specified filter types, the initial directory is the current directory.</li>
+    ///<li>Otherwise, the initial directory is the personal files directory of the current user.</li> <li>Otherwise, the
+    ///initial directory is the Desktop folder.</li> </ol>
+    const(PWSTR)  lpstrInitialDir;
+    ///Type: <b>LPCTSTR</b> A string to be placed in the title bar of the dialog box. If this member is <b>NULL</b>, the
+    ///system uses the default title (that is, <b>Save As</b> or <b>Open</b>).
+    const(PWSTR)  lpstrTitle;
+    ///Type: <b>DWORD</b> A set of bit flags you can use to initialize the dialog box. When the dialog box returns, it
+    ///sets these flags to indicate the user's input. This member can be a combination of the following flags. <table>
+    ///<tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="OFN_ALLOWMULTISELECT"></a><a
+    ///id="ofn_allowmultiselect"></a><dl> <dt><b>OFN_ALLOWMULTISELECT</b></dt> <dt>0x00000200</dt> </dl> </td> <td
+    ///width="60%"> The <b>File Name</b> list box allows multiple selections. If you also set the <b>OFN_EXPLORER</b>
+    ///flag, the dialog box uses the Explorer-style user interface; otherwise, it uses the old-style user interface. If
+    ///the user selects more than one file, the <b>lpstrFile</b> buffer returns the path to the current directory
+    ///followed by the file names of the selected files. The <b>nFileOffset</b> member is the offset, in bytes or
+    ///characters, to the first file name, and the <b>nFileExtension</b> member is not used. For Explorer-style dialog
+    ///boxes, the directory and file name strings are <b>NULL</b> separated, with an extra <b>NULL</b> character after
+    ///the last file name. This format enables the Explorer-style dialog boxes to return long file names that include
+    ///spaces. For old-style dialog boxes, the directory and file name strings are separated by spaces and the function
+    ///uses short file names for file names with spaces. You can use the FindFirstFile function to convert between long
+    ///and short file names. If you specify a custom template for an old-style dialog box, the definition of the <b>File
+    ///Name</b> list box must contain the <b>LBS_EXTENDEDSEL</b> value. </td> </tr> <tr> <td width="40%"><a
+    ///id="OFN_CREATEPROMPT"></a><a id="ofn_createprompt"></a><dl> <dt><b>OFN_CREATEPROMPT</b></dt> <dt>0x00002000</dt>
+    ///</dl> </td> <td width="60%"> If the user specifies a file that does not exist, this flag causes the dialog box to
+    ///prompt the user for permission to create the file. If the user chooses to create the file, the dialog box closes
+    ///and the function returns the specified name; otherwise, the dialog box remains open. If you use this flag with
+    ///the <b>OFN_ALLOWMULTISELECT</b> flag, the dialog box allows the user to specify only one nonexistent file. </td>
+    ///</tr> <tr> <td width="40%"><a id="OFN_DONTADDTORECENT"></a><a id="ofn_dontaddtorecent"></a><dl>
+    ///<dt><b>OFN_DONTADDTORECENT</b></dt> <dt>0x02000000</dt> </dl> </td> <td width="60%"> Prevents the system from
+    ///adding a link to the selected file in the file system directory that contains the user's most recently used
+    ///documents. To retrieve the location of this directory, call the SHGetSpecialFolderLocation function with the
+    ///<b>CSIDL_RECENT</b> flag. </td> </tr> <tr> <td width="40%"><a id="OFN_ENABLEHOOK"></a><a
+    ///id="ofn_enablehook"></a><dl> <dt><b>OFN_ENABLEHOOK</b></dt> <dt>0x00000020</dt> </dl> </td> <td width="60%">
+    ///Enables the hook function specified in the <b>lpfnHook</b> member. </td> </tr> <tr> <td width="40%"><a
+    ///id="OFN_ENABLEINCLUDENOTIFY"></a><a id="ofn_enableincludenotify"></a><dl> <dt><b>OFN_ENABLEINCLUDENOTIFY</b></dt>
+    ///<dt>0x00400000</dt> </dl> </td> <td width="60%"> Causes the dialog box to send CDN_INCLUDEITEM notification
+    ///messages to your OFNHookProc hook procedure when the user opens a folder. The dialog box sends a notification for
+    ///each item in the newly opened folder. These messages enable you to control which items the dialog box displays in
+    ///the folder's item list. </td> </tr> <tr> <td width="40%"><a id="OFN_ENABLESIZING"></a><a
+    ///id="ofn_enablesizing"></a><dl> <dt><b>OFN_ENABLESIZING</b></dt> <dt>0x00800000</dt> </dl> </td> <td width="60%">
+    ///Enables the Explorer-style dialog box to be resized using either the mouse or the keyboard. By default, the
+    ///Explorer-style <b>Open</b> and <b>Save As</b> dialog boxes allow the dialog box to be resized regardless of
+    ///whether this flag is set. This flag is necessary only if you provide a hook procedure or custom template. The
+    ///old-style dialog box does not permit resizing. </td> </tr> <tr> <td width="40%"><a id="OFN_ENABLETEMPLATE"></a><a
+    ///id="ofn_enabletemplate"></a><dl> <dt><b>OFN_ENABLETEMPLATE</b></dt> <dt>0x00000040</dt> </dl> </td> <td
+    ///width="60%"> The <b>lpTemplateName</b> member is a pointer to the name of a dialog template resource in the
+    ///module identified by the <b>hInstance</b> member. If the <b>OFN_EXPLORER</b> flag is set, the system uses the
+    ///specified template to create a dialog box that is a child of the default Explorer-style dialog box. If the
+    ///<b>OFN_EXPLORER</b> flag is not set, the system uses the template to create an old-style dialog box that replaces
+    ///the default dialog box. </td> </tr> <tr> <td width="40%"><a id="OFN_ENABLETEMPLATEHANDLE"></a><a
+    ///id="ofn_enabletemplatehandle"></a><dl> <dt><b>OFN_ENABLETEMPLATEHANDLE</b></dt> <dt>0x00000080</dt> </dl> </td>
+    ///<td width="60%"> The <b>hInstance</b> member identifies a data block that contains a preloaded dialog box
+    ///template. The system ignores <b>lpTemplateName</b> if this flag is specified. If the <b>OFN_EXPLORER</b> flag is
+    ///set, the system uses the specified template to create a dialog box that is a child of the default Explorer-style
+    ///dialog box. If the <b>OFN_EXPLORER</b> flag is not set, the system uses the template to create an old-style
+    ///dialog box that replaces the default dialog box. </td> </tr> <tr> <td width="40%"><a id="OFN_EXPLORER"></a><a
+    ///id="ofn_explorer"></a><dl> <dt><b>OFN_EXPLORER</b></dt> <dt>0x00080000</dt> </dl> </td> <td width="60%">
+    ///Indicates that any customizations made to the <b>Open</b> or <b>Save As</b> dialog box use the Explorer-style
+    ///customization methods. For more information, see Explorer-Style Hook Procedures and Explorer-Style Custom
+    ///Templates. By default, the <b>Open</b> and <b>Save As</b> dialog boxes use the Explorer-style user interface
+    ///regardless of whether this flag is set. This flag is necessary only if you provide a hook procedure or custom
+    ///template, or set the <b>OFN_ALLOWMULTISELECT</b> flag. If you want the old-style user interface, omit the
+    ///<b>OFN_EXPLORER</b> flag and provide a replacement old-style template or hook procedure. If you want the old
+    ///style but do not need a custom template or hook procedure, simply provide a hook procedure that always returns
+    ///<b>FALSE</b>. </td> </tr> <tr> <td width="40%"><a id="OFN_EXTENSIONDIFFERENT"></a><a
+    ///id="ofn_extensiondifferent"></a><dl> <dt><b>OFN_EXTENSIONDIFFERENT</b></dt> <dt>0x00000400</dt> </dl> </td> <td
+    ///width="60%"> The user typed a file name extension that differs from the extension specified by
+    ///<b>lpstrDefExt</b>. The function does not use this flag if <b>lpstrDefExt</b> is <b>NULL</b>. </td> </tr> <tr>
+    ///<td width="40%"><a id="OFN_FILEMUSTEXIST"></a><a id="ofn_filemustexist"></a><dl>
+    ///<dt><b>OFN_FILEMUSTEXIST</b></dt> <dt>0x00001000</dt> </dl> </td> <td width="60%"> The user can type only names
+    ///of existing files in the <b>File Name</b> entry field. If this flag is specified and the user enters an invalid
+    ///name, the dialog box procedure displays a warning in a message box. If this flag is specified, the
+    ///<b>OFN_PATHMUSTEXIST</b> flag is also used. This flag can be used in an <b>Open</b> dialog box. It cannot be used
+    ///with a <b>Save As</b> dialog box. </td> </tr> <tr> <td width="40%"><a id="OFN_FORCESHOWHIDDEN"></a><a
+    ///id="ofn_forceshowhidden"></a><dl> <dt><b>OFN_FORCESHOWHIDDEN</b></dt> <dt>0x10000000</dt> </dl> </td> <td
+    ///width="60%"> Forces the showing of system and hidden files, thus overriding the user setting to show or not show
+    ///hidden files. However, a file that is marked both system and hidden is not shown. </td> </tr> <tr> <td
+    ///width="40%"><a id="OFN_HIDEREADONLY"></a><a id="ofn_hidereadonly"></a><dl> <dt><b>OFN_HIDEREADONLY</b></dt>
+    ///<dt>0x00000004</dt> </dl> </td> <td width="60%"> Hides the <b>Read Only</b> check box. </td> </tr> <tr> <td
+    ///width="40%"><a id="OFN_LONGNAMES"></a><a id="ofn_longnames"></a><dl> <dt><b>OFN_LONGNAMES</b></dt>
+    ///<dt>0x00200000</dt> </dl> </td> <td width="60%"> For old-style dialog boxes, this flag causes the dialog box to
+    ///use long file names. If this flag is not specified, or if the <b>OFN_ALLOWMULTISELECT</b> flag is also set,
+    ///old-style dialog boxes use short file names (8.3 format) for file names with spaces. Explorer-style dialog boxes
+    ///ignore this flag and always display long file names. </td> </tr> <tr> <td width="40%"><a
+    ///id="OFN_NOCHANGEDIR"></a><a id="ofn_nochangedir"></a><dl> <dt><b>OFN_NOCHANGEDIR</b></dt> <dt>0x00000008</dt>
+    ///</dl> </td> <td width="60%"> Restores the current directory to its original value if the user changed the
+    ///directory while searching for files. This flag is ineffective for GetOpenFileName. </td> </tr> <tr> <td
+    ///width="40%"><a id="OFN_NODEREFERENCELINKS"></a><a id="ofn_nodereferencelinks"></a><dl>
+    ///<dt><b>OFN_NODEREFERENCELINKS</b></dt> <dt>0x00100000</dt> </dl> </td> <td width="60%"> Directs the dialog box to
+    ///return the path and file name of the selected shortcut (.LNK) file. If this value is not specified, the dialog
+    ///box returns the path and file name of the file referenced by the shortcut. </td> </tr> <tr> <td width="40%"><a
+    ///id="OFN_NOLONGNAMES"></a><a id="ofn_nolongnames"></a><dl> <dt><b>OFN_NOLONGNAMES</b></dt> <dt>0x00040000</dt>
+    ///</dl> </td> <td width="60%"> For old-style dialog boxes, this flag causes the dialog box to use short file names
+    ///(8.3 format). Explorer-style dialog boxes ignore this flag and always display long file names. </td> </tr> <tr>
+    ///<td width="40%"><a id="OFN_NONETWORKBUTTON"></a><a id="ofn_nonetworkbutton"></a><dl>
+    ///<dt><b>OFN_NONETWORKBUTTON</b></dt> <dt>0x00020000</dt> </dl> </td> <td width="60%"> Hides and disables the
+    ///<b>Network</b> button. </td> </tr> <tr> <td width="40%"><a id="OFN_NOREADONLYRETURN"></a><a
+    ///id="ofn_noreadonlyreturn"></a><dl> <dt><b>OFN_NOREADONLYRETURN</b></dt> <dt>0x00008000</dt> </dl> </td> <td
+    ///width="60%"> The returned file does not have the <b>Read Only</b> check box selected and is not in a
+    ///write-protected directory. </td> </tr> <tr> <td width="40%"><a id="OFN_NOTESTFILECREATE"></a><a
+    ///id="ofn_notestfilecreate"></a><dl> <dt><b>OFN_NOTESTFILECREATE</b></dt> <dt>0x00010000</dt> </dl> </td> <td
+    ///width="60%"> The file is not created before the dialog box is closed. This flag should be specified if the
+    ///application saves the file on a create-nonmodify network share. When an application specifies this flag, the
+    ///library does not check for write protection, a full disk, an open drive door, or network protection. Applications
+    ///using this flag must perform file operations carefully, because a file cannot be reopened once it is closed.
+    ///</td> </tr> <tr> <td width="40%"><a id="OFN_NOVALIDATE"></a><a id="ofn_novalidate"></a><dl>
+    ///<dt><b>OFN_NOVALIDATE</b></dt> <dt>0x00000100</dt> </dl> </td> <td width="60%"> The common dialog boxes allow
+    ///invalid characters in the returned file name. Typically, the calling application uses a hook procedure that
+    ///checks the file name by using the FILEOKSTRING message. If the text box in the edit control is empty or contains
+    ///nothing but spaces, the lists of files and directories are updated. If the text box in the edit control contains
+    ///anything else, <b>nFileOffset</b> and <b>nFileExtension</b> are set to values generated by parsing the text. No
+    ///default extension is added to the text, nor is text copied to the buffer specified by <b>lpstrFileTitle</b>. If
+    ///the value specified by <b>nFileOffset</b> is less than zero, the file name is invalid. Otherwise, the file name
+    ///is valid, and <b>nFileExtension</b> and <b>nFileOffset</b> can be used as if the <b>OFN_NOVALIDATE</b> flag had
+    ///not been specified. </td> </tr> <tr> <td width="40%"><a id="OFN_OVERWRITEPROMPT"></a><a
+    ///id="ofn_overwriteprompt"></a><dl> <dt><b>OFN_OVERWRITEPROMPT</b></dt> <dt>0x00000002</dt> </dl> </td> <td
+    ///width="60%"> Causes the <b>Save As</b> dialog box to generate a message box if the selected file already exists.
+    ///The user must confirm whether to overwrite the file. </td> </tr> <tr> <td width="40%"><a
+    ///id="OFN_PATHMUSTEXIST"></a><a id="ofn_pathmustexist"></a><dl> <dt><b>OFN_PATHMUSTEXIST</b></dt>
+    ///<dt>0x00000800</dt> </dl> </td> <td width="60%"> The user can type only valid paths and file names. If this flag
+    ///is used and the user types an invalid path and file name in the <b>File Name</b> entry field, the dialog box
+    ///function displays a warning in a message box. </td> </tr> <tr> <td width="40%"><a id="OFN_READONLY"></a><a
+    ///id="ofn_readonly"></a><dl> <dt><b>OFN_READONLY</b></dt> <dt>0x00000001</dt> </dl> </td> <td width="60%"> Causes
+    ///the <b>Read Only</b> check box to be selected initially when the dialog box is created. This flag indicates the
+    ///state of the <b>Read Only</b> check box when the dialog box is closed. </td> </tr> <tr> <td width="40%"><a
+    ///id="OFN_SHAREAWARE"></a><a id="ofn_shareaware"></a><dl> <dt><b>OFN_SHAREAWARE</b></dt> <dt>0x00004000</dt> </dl>
+    ///</td> <td width="60%"> Specifies that if a call to the OpenFile function fails because of a network sharing
+    ///violation, the error is ignored and the dialog box returns the selected file name. If this flag is not set, the
+    ///dialog box notifies your hook procedure when a network sharing violation occurs for the file name specified by
+    ///the user. If you set the <b>OFN_EXPLORER</b> flag, the dialog box sends the CDN_SHAREVIOLATION message to the
+    ///hook procedure. If you do not set <b>OFN_EXPLORER</b>, the dialog box sends the SHAREVISTRING registered message
+    ///to the hook procedure. </td> </tr> <tr> <td width="40%"><a id="OFN_SHOWHELP"></a><a id="ofn_showhelp"></a><dl>
+    ///<dt><b>OFN_SHOWHELP</b></dt> <dt>0x00000010</dt> </dl> </td> <td width="60%"> Causes the dialog box to display
+    ///the <b>Help</b> button. The <b>hwndOwner</b> member must specify the window to receive the HELPMSGSTRING
+    ///registered messages that the dialog box sends when the user clicks the <b>Help</b> button. An Explorer-style
+    ///dialog box sends a CDN_HELP notification message to your hook procedure when the user clicks the <b>Help</b>
+    ///button. </td> </tr> </table>
+    uint          Flags;
+    ///Type: <b>WORD</b> The zero-based offset, in characters, from the beginning of the path to the file name in the
+    ///string pointed to by <b>lpstrFile</b>. For the ANSI version, this is the number of bytes; for the Unicode
+    ///version, this is the number of characters. For example, if <b>lpstrFile</b> points to the following string,
+    ///"c:\dir1\dir2\file.ext", this member contains the value 13 to indicate the offset of the "file.ext" string. If
+    ///the user selects more than one file, <b>nFileOffset</b> is the offset to the first file name.
+    ushort        nFileOffset;
+    ///Type: <b>WORD</b> The zero-based offset, in characters, from the beginning of the path to the file name extension
+    ///in the string pointed to by <b>lpstrFile</b>. For the ANSI version, this is the number of bytes; for the Unicode
+    ///version, this is the number of characters. Usually the file name extension is the substring which follows the
+    ///last occurrence of the dot (".") character. For example, txt is the extension of the filename readme.txt, html
+    ///the extension of readme.txt.html. Therefore, if <b>lpstrFile</b> points to the string "c:\dir1\dir2\readme.txt",
+    ///this member contains the value 20. If <b>lpstrFile</b> points to the string "c:\dir1\dir2\readme.txt.html", this
+    ///member contains the value 24. If <b>lpstrFile</b> points to the string "c:\dir1\dir2\readme.txt.html.", this
+    ///member contains the value 29. If <b>lpstrFile</b> points to a string that does not contain any "." character such
+    ///as "c:\dir1\dir2\readme", this member contains zero.
+    ushort        nFileExtension;
+    ///Type: <b>LPCTSTR</b> The default extension. GetOpenFileName and GetSaveFileName append this extension to the file
+    ///name if the user fails to type an extension. This string can be any length, but only the first three characters
+    ///are appended. The string should not contain a period (.). If this member is <b>NULL</b> and the user fails to
+    ///type an extension, no extension is appended.
+    const(PWSTR)  lpstrDefExt;
+    ///Type: <b>LPARAM</b> Application-defined data that the system passes to the hook procedure identified by the
+    ///<b>lpfnHook</b> member. When the system sends the WM_INITDIALOG message to the hook procedure, the message's
+    ///<i>lParam</i> parameter is a pointer to the <b>OPENFILENAME</b> structure specified when the dialog box was
+    ///created. The hook procedure can use this pointer to get the <b>lCustData</b> value.
+    LPARAM        lCustData;
+    ///Type: <b>LPOFNHOOKPROC</b> A pointer to a hook procedure. This member is ignored unless the <b>Flags</b> member
+    ///includes the <b>OFN_ENABLEHOOK</b> flag. If the <b>OFN_EXPLORER</b> flag is not set in the <b>Flags</b> member,
+    ///<b>lpfnHook</b> is a pointer to an OFNHookProcOldStyle hook procedure that receives messages intended for the
+    ///dialog box. The hook procedure returns <b>FALSE</b> to pass a message to the default dialog box procedure or
+    ///<b>TRUE</b> to discard the message. If <b>OFN_EXPLORER</b> is set, <b>lpfnHook</b> is a pointer to an OFNHookProc
+    ///hook procedure. The hook procedure receives notification messages sent from the dialog box. The hook procedure
+    ///also receives messages for any additional controls that you defined by specifying a child dialog template. The
+    ///hook procedure does not receive messages intended for the standard controls of the default dialog box.
+    LPOFNHOOKPROC lpfnHook;
+    ///Type: <b>LPCTSTR</b> The name of the dialog template resource in the module identified by the <b>hInstance</b>
+    ///member. For numbered dialog box resources, this can be a value returned by the MAKEINTRESOURCE macro. This member
+    ///is ignored unless the <b>OFN_ENABLETEMPLATE</b> flag is set in the <b>Flags</b> member. If the
+    ///<b>OFN_EXPLORER</b> flag is set, the system uses the specified template to create a dialog box that is a child of
+    ///the default Explorer-style dialog box. If the <b>OFN_EXPLORER</b> flag is not set, the system uses the template
+    ///to create an old-style dialog box that replaces the default dialog box.
+    const(PWSTR)  lpTemplateName;
+    ///Type: <b>void*</b> This member is reserved.
+    void*         pvReserved;
+    ///Type: <b>DWORD</b> This member is reserved.
+    uint          dwReserved;
+    ///Type: <b>DWORD</b> A set of bit flags you can use to initialize the dialog box. Currently, this member can be
+    ///zero or the following flag. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
+    ///id="OFN_EX_NOPLACESBAR"></a><a id="ofn_ex_noplacesbar"></a><dl> <dt><b>OFN_EX_NOPLACESBAR</b></dt>
+    ///<dt>0x00000001</dt> </dl> </td> <td width="60%"> If this flag is set, the places bar is not displayed. If this
+    ///flag is not set, Explorer-style dialog boxes include a places bar containing icons for commonly-used folders,
+    ///such as Favorites and Desktop. </td> </tr> </table>
+    uint          FlagsEx;
+}
+
+///Contains information about a WM_NOTIFY message sent to an OFNHookProc hook procedure for an <b>Open</b> or <b>Save
+///As</b> dialog box. The <i>lParam</i> parameter of the <b>WM_NOTIFY</b> message is a pointer to an <b>OFNOTIFY</b>
+///structure.
+struct OFNOTIFYA
+{
+align (1):
+    ///Type: <b>NMHDR</b> The <b>code</b> member of this structure can be one of the following notification messages
+    ///that identify the message being sent: CDN_FILEOK, CDN_FOLDERCHANGE, CDN_HELP, CDN_INITDONE, CDN_SELCHANGE,
+    ///CDN_SHAREVIOLATION, CDN_TYPECHANGE.
+    NMHDR          hdr;
+    ///Type: <b>LPOPENFILENAME</b> A pointer to the OPENFILENAME structure that was specified when the <b>Open</b> or
+    ///<b>Save As</b> dialog box was created. For some of the notification messages, this structure contains additional
+    ///information about the event that caused the notification.
+    OPENFILENAMEA* lpOFN;
+    ///Type: <b>LPTSTR</b> The file name for which a network sharing violation has occurred. This member is valid only
+    ///with the CDN_SHAREVIOLATION notification message.
+    PSTR           pszFile;
+}
+
+///Contains information about a WM_NOTIFY message sent to an OFNHookProc hook procedure for an <b>Open</b> or <b>Save
+///As</b> dialog box. The <i>lParam</i> parameter of the <b>WM_NOTIFY</b> message is a pointer to an <b>OFNOTIFY</b>
+///structure.
+struct OFNOTIFYW
+{
+align (1):
+    ///Type: <b>NMHDR</b> The <b>code</b> member of this structure can be one of the following notification messages
+    ///that identify the message being sent: CDN_FILEOK, CDN_FOLDERCHANGE, CDN_HELP, CDN_INITDONE, CDN_SELCHANGE,
+    ///CDN_SHAREVIOLATION, CDN_TYPECHANGE.
+    NMHDR          hdr;
+    ///Type: <b>LPOPENFILENAME</b> A pointer to the OPENFILENAME structure that was specified when the <b>Open</b> or
+    ///<b>Save As</b> dialog box was created. For some of the notification messages, this structure contains additional
+    ///information about the event that caused the notification.
+    OPENFILENAMEW* lpOFN;
+    ///Type: <b>LPTSTR</b> The file name for which a network sharing violation has occurred. This member is valid only
+    ///with the CDN_SHAREVIOLATION notification message.
+    PWSTR          pszFile;
+}
+
+///Contains information about a CDN_INCLUDEITEM notification message.
+struct OFNOTIFYEXA
+{
+align (1):
+    ///Type: <b>NMHDR</b> The <b>code</b> member of this structure identifies the notification message being sent.
+    NMHDR          hdr;
+    ///Type: <b>LPOPENFILENAME</b> A pointer to an OPENFILENAME structure containing the values specified when the
+    ///<b>Open</b> or <b>Save As</b> dialog box was created.
+    OPENFILENAMEA* lpOFN;
+    ///Type: <b>LPVOID</b> A pointer to the interface for the folder or shell name-space extension whose items are being
+    ///enumerated.
+    void*          psf;
+    ///Type: <b>LPVOID</b> A pointer to an item identifier list that identifies an item in the container identified by
+    ///the <b>psf</b> member. The item identifier is relative to the <b>psf</b> container.
+    void*          pidl;
+}
+
+///Contains information about a CDN_INCLUDEITEM notification message.
+struct OFNOTIFYEXW
+{
+align (1):
+    ///Type: <b>NMHDR</b> The <b>code</b> member of this structure identifies the notification message being sent.
+    NMHDR          hdr;
+    ///Type: <b>LPOPENFILENAME</b> A pointer to an OPENFILENAME structure containing the values specified when the
+    ///<b>Open</b> or <b>Save As</b> dialog box was created.
+    OPENFILENAMEW* lpOFN;
+    ///Type: <b>LPVOID</b> A pointer to the interface for the folder or shell name-space extension whose items are being
+    ///enumerated.
+    void*          psf;
+    ///Type: <b>LPVOID</b> A pointer to an item identifier list that identifies an item in the container identified by
+    ///the <b>psf</b> member. The item identifier is relative to the <b>psf</b> container.
+    void*          pidl;
+}
+
+///Contains information the ChooseColor function uses to initialize the <b>Color</b> dialog box. After the user closes
+///the dialog box, the system returns information about the user's selection in this structure.
+struct CHOOSECOLORA
+{
+align (1):
+    ///Type: <b>DWORD</b> The length, in bytes, of the structure.
+    uint         lStructSize;
+    ///Type: <b>HWND</b> A handle to the window that owns the dialog box. This member can be any valid window handle, or
+    ///it can be <b>NULL</b> if the dialog box has no owner.
+    HWND         hwndOwner;
+    ///Type: <b>HWND</b> If the <b>CC_ENABLETEMPLATEHANDLE</b> flag is set in the <b>Flags</b> member, <b>hInstance</b>
+    ///is a handle to a memory object containing a dialog box template. If the <b>CC_ENABLETEMPLATE</b> flag is set,
+    ///<b>hInstance</b> is a handle to a module that contains a dialog box template named by the <b>lpTemplateName</b>
+    ///member. If neither <b>CC_ENABLETEMPLATEHANDLE</b> nor <b>CC_ENABLETEMPLATE</b> is set, this member is ignored.
+    HWND         hInstance;
+    ///Type: <b>COLORREF</b> If the <b>CC_RGBINIT</b> flag is set, <b>rgbResult</b> specifies the color initially
+    ///selected when the dialog box is created. If the specified color value is not among the available colors, the
+    ///system selects the nearest solid color available. If <b>rgbResult</b> is zero or <b>CC_RGBINIT</b> is not set,
+    ///the initially selected color is black. If the user clicks the <b>OK</b> button, <b>rgbResult</b> specifies the
+    ///user's color selection. To create a COLORREF color value, use the RGB macro.
+    uint         rgbResult;
+    ///Type: <b>COLORREF*</b> A pointer to an array of 16 values that contain red, green, blue (RGB) values for the
+    ///custom color boxes in the dialog box. If the user modifies these colors, the system updates the array with the
+    ///new RGB values. To preserve new custom colors between calls to the ChooseColor function, you should allocate
+    ///static memory for the array. To create a COLORREF color value, use the RGB macro.
+    uint*        lpCustColors;
+    ///Type: <b>DWORD</b> A set of bit flags that you can use to initialize the <b>Color</b> dialog box. When the dialog
+    ///box returns, it sets these flags to indicate the user's input. This member can be a combination of the following
+    ///flags. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="CC_ANYCOLOR"></a><a
+    ///id="cc_anycolor"></a><dl> <dt><b>CC_ANYCOLOR</b></dt> <dt>0x00000100</dt> </dl> </td> <td width="60%"> Causes the
+    ///dialog box to display all available colors in the set of basic colors. </td> </tr> <tr> <td width="40%"><a
+    ///id="CC_ENABLEHOOK"></a><a id="cc_enablehook"></a><dl> <dt><b>CC_ENABLEHOOK</b></dt> <dt>0x00000010</dt> </dl>
+    ///</td> <td width="60%"> Enables the hook procedure specified in the <b>lpfnHook</b> member of this structure. This
+    ///flag is used only to initialize the dialog box. </td> </tr> <tr> <td width="40%"><a id="CC_ENABLETEMPLATE"></a><a
+    ///id="cc_enabletemplate"></a><dl> <dt><b>CC_ENABLETEMPLATE</b></dt> <dt>0x00000020</dt> </dl> </td> <td
+    ///width="60%"> The <b>hInstance</b> and <b>lpTemplateName</b> members specify a dialog box template to use in place
+    ///of the default template. This flag is used only to initialize the dialog box. </td> </tr> <tr> <td width="40%"><a
+    ///id="CC_ENABLETEMPLATEHANDLE"></a><a id="cc_enabletemplatehandle"></a><dl> <dt><b>CC_ENABLETEMPLATEHANDLE</b></dt>
+    ///<dt>0x00000040</dt> </dl> </td> <td width="60%"> The <b>hInstance</b> member identifies a data block that
+    ///contains a preloaded dialog box template. The system ignores the <b>lpTemplateName</b> member if this flag is
+    ///specified. This flag is used only to initialize the dialog box. </td> </tr> <tr> <td width="40%"><a
+    ///id="CC_FULLOPEN"></a><a id="cc_fullopen"></a><dl> <dt><b>CC_FULLOPEN</b></dt> <dt>0x00000002</dt> </dl> </td> <td
+    ///width="60%"> Causes the dialog box to display the additional controls that allow the user to create custom
+    ///colors. If this flag is not set, the user must click the <b>Define Custom Color</b> button to display the custom
+    ///color controls. </td> </tr> <tr> <td width="40%"><a id="CC_PREVENTFULLOPEN"></a><a
+    ///id="cc_preventfullopen"></a><dl> <dt><b>CC_PREVENTFULLOPEN</b></dt> <dt>0x00000004</dt> </dl> </td> <td
+    ///width="60%"> Disables the <b>Define Custom Color</b> button. </td> </tr> <tr> <td width="40%"><a
+    ///id="CC_RGBINIT"></a><a id="cc_rgbinit"></a><dl> <dt><b>CC_RGBINIT</b></dt> <dt>0x00000001</dt> </dl> </td> <td
+    ///width="60%"> Causes the dialog box to use the color specified in the <b>rgbResult</b> member as the initial color
+    ///selection. </td> </tr> <tr> <td width="40%"><a id="CC_SHOWHELP"></a><a id="cc_showhelp"></a><dl>
+    ///<dt><b>CC_SHOWHELP</b></dt> <dt>0x00000008</dt> </dl> </td> <td width="60%"> Causes the dialog box to display the
+    ///Help button. The <b>hwndOwner</b> member must specify the window to receive the HELPMSGSTRING registered messages
+    ///that the dialog box sends when the user clicks the <b>Help</b> button. </td> </tr> <tr> <td width="40%"><a
+    ///id="CC_SOLIDCOLOR"></a><a id="cc_solidcolor"></a><dl> <dt><b>CC_SOLIDCOLOR</b></dt> <dt>0x00000080</dt> </dl>
+    ///</td> <td width="60%"> Causes the dialog box to display only solid colors in the set of basic colors. </td> </tr>
+    ///</table>
+    uint         Flags;
+    ///Type: <b>LPARAM</b> Application-defined data that the system passes to the hook procedure identified by the
+    ///<b>lpfnHook</b> member. When the system sends the WM_INITDIALOG message to the hook procedure, the message's
+    ///<i>lParam</i> parameter is a pointer to the <b>CHOOSECOLOR</b> structure specified when the dialog was created.
+    ///The hook procedure can use this pointer to get the <b>lCustData</b> value.
+    LPARAM       lCustData;
+    ///Type: <b>LPCCHOOKPROC</b> A pointer to a CCHookProc hook procedure that can process messages intended for the
+    ///dialog box. This member is ignored unless the <b>CC_ENABLEHOOK</b> flag is set in the <b>Flags</b> member.
+    LPCCHOOKPROC lpfnHook;
+    ///Type: <b>LPCTSTR</b> The name of the dialog box template resource in the module identified by the
+    ///<b>hInstance</b> member. This template is substituted for the standard dialog box template. For numbered dialog
+    ///box resources, <b>lpTemplateName</b> can be a value returned by the MAKEINTRESOURCE macro. This member is ignored
+    ///unless the <b>CC_ENABLETEMPLATE</b> flag is set in the <b>Flags</b> member.
+    const(PSTR)  lpTemplateName;
+}
+
+///Contains information the ChooseColor function uses to initialize the <b>Color</b> dialog box. After the user closes
+///the dialog box, the system returns information about the user's selection in this structure.
+struct CHOOSECOLORW
+{
+align (1):
+    ///Type: <b>DWORD</b> The length, in bytes, of the structure.
+    uint         lStructSize;
+    ///Type: <b>HWND</b> A handle to the window that owns the dialog box. This member can be any valid window handle, or
+    ///it can be <b>NULL</b> if the dialog box has no owner.
+    HWND         hwndOwner;
+    ///Type: <b>HWND</b> If the <b>CC_ENABLETEMPLATEHANDLE</b> flag is set in the <b>Flags</b> member, <b>hInstance</b>
+    ///is a handle to a memory object containing a dialog box template. If the <b>CC_ENABLETEMPLATE</b> flag is set,
+    ///<b>hInstance</b> is a handle to a module that contains a dialog box template named by the <b>lpTemplateName</b>
+    ///member. If neither <b>CC_ENABLETEMPLATEHANDLE</b> nor <b>CC_ENABLETEMPLATE</b> is set, this member is ignored.
+    HWND         hInstance;
+    ///Type: <b>COLORREF</b> If the <b>CC_RGBINIT</b> flag is set, <b>rgbResult</b> specifies the color initially
+    ///selected when the dialog box is created. If the specified color value is not among the available colors, the
+    ///system selects the nearest solid color available. If <b>rgbResult</b> is zero or <b>CC_RGBINIT</b> is not set,
+    ///the initially selected color is black. If the user clicks the <b>OK</b> button, <b>rgbResult</b> specifies the
+    ///user's color selection. To create a COLORREF color value, use the RGB macro.
+    uint         rgbResult;
+    ///Type: <b>COLORREF*</b> A pointer to an array of 16 values that contain red, green, blue (RGB) values for the
+    ///custom color boxes in the dialog box. If the user modifies these colors, the system updates the array with the
+    ///new RGB values. To preserve new custom colors between calls to the ChooseColor function, you should allocate
+    ///static memory for the array. To create a COLORREF color value, use the RGB macro.
+    uint*        lpCustColors;
+    ///Type: <b>DWORD</b> A set of bit flags that you can use to initialize the <b>Color</b> dialog box. When the dialog
+    ///box returns, it sets these flags to indicate the user's input. This member can be a combination of the following
+    ///flags. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="CC_ANYCOLOR"></a><a
+    ///id="cc_anycolor"></a><dl> <dt><b>CC_ANYCOLOR</b></dt> <dt>0x00000100</dt> </dl> </td> <td width="60%"> Causes the
+    ///dialog box to display all available colors in the set of basic colors. </td> </tr> <tr> <td width="40%"><a
+    ///id="CC_ENABLEHOOK"></a><a id="cc_enablehook"></a><dl> <dt><b>CC_ENABLEHOOK</b></dt> <dt>0x00000010</dt> </dl>
+    ///</td> <td width="60%"> Enables the hook procedure specified in the <b>lpfnHook</b> member of this structure. This
+    ///flag is used only to initialize the dialog box. </td> </tr> <tr> <td width="40%"><a id="CC_ENABLETEMPLATE"></a><a
+    ///id="cc_enabletemplate"></a><dl> <dt><b>CC_ENABLETEMPLATE</b></dt> <dt>0x00000020</dt> </dl> </td> <td
+    ///width="60%"> The <b>hInstance</b> and <b>lpTemplateName</b> members specify a dialog box template to use in place
+    ///of the default template. This flag is used only to initialize the dialog box. </td> </tr> <tr> <td width="40%"><a
+    ///id="CC_ENABLETEMPLATEHANDLE"></a><a id="cc_enabletemplatehandle"></a><dl> <dt><b>CC_ENABLETEMPLATEHANDLE</b></dt>
+    ///<dt>0x00000040</dt> </dl> </td> <td width="60%"> The <b>hInstance</b> member identifies a data block that
+    ///contains a preloaded dialog box template. The system ignores the <b>lpTemplateName</b> member if this flag is
+    ///specified. This flag is used only to initialize the dialog box. </td> </tr> <tr> <td width="40%"><a
+    ///id="CC_FULLOPEN"></a><a id="cc_fullopen"></a><dl> <dt><b>CC_FULLOPEN</b></dt> <dt>0x00000002</dt> </dl> </td> <td
+    ///width="60%"> Causes the dialog box to display the additional controls that allow the user to create custom
+    ///colors. If this flag is not set, the user must click the <b>Define Custom Color</b> button to display the custom
+    ///color controls. </td> </tr> <tr> <td width="40%"><a id="CC_PREVENTFULLOPEN"></a><a
+    ///id="cc_preventfullopen"></a><dl> <dt><b>CC_PREVENTFULLOPEN</b></dt> <dt>0x00000004</dt> </dl> </td> <td
+    ///width="60%"> Disables the <b>Define Custom Color</b> button. </td> </tr> <tr> <td width="40%"><a
+    ///id="CC_RGBINIT"></a><a id="cc_rgbinit"></a><dl> <dt><b>CC_RGBINIT</b></dt> <dt>0x00000001</dt> </dl> </td> <td
+    ///width="60%"> Causes the dialog box to use the color specified in the <b>rgbResult</b> member as the initial color
+    ///selection. </td> </tr> <tr> <td width="40%"><a id="CC_SHOWHELP"></a><a id="cc_showhelp"></a><dl>
+    ///<dt><b>CC_SHOWHELP</b></dt> <dt>0x00000008</dt> </dl> </td> <td width="60%"> Causes the dialog box to display the
+    ///Help button. The <b>hwndOwner</b> member must specify the window to receive the HELPMSGSTRING registered messages
+    ///that the dialog box sends when the user clicks the <b>Help</b> button. </td> </tr> <tr> <td width="40%"><a
+    ///id="CC_SOLIDCOLOR"></a><a id="cc_solidcolor"></a><dl> <dt><b>CC_SOLIDCOLOR</b></dt> <dt>0x00000080</dt> </dl>
+    ///</td> <td width="60%"> Causes the dialog box to display only solid colors in the set of basic colors. </td> </tr>
+    ///</table>
+    uint         Flags;
+    ///Type: <b>LPARAM</b> Application-defined data that the system passes to the hook procedure identified by the
+    ///<b>lpfnHook</b> member. When the system sends the WM_INITDIALOG message to the hook procedure, the message's
+    ///<i>lParam</i> parameter is a pointer to the <b>CHOOSECOLOR</b> structure specified when the dialog was created.
+    ///The hook procedure can use this pointer to get the <b>lCustData</b> value.
+    LPARAM       lCustData;
+    ///Type: <b>LPCCHOOKPROC</b> A pointer to a CCHookProc hook procedure that can process messages intended for the
+    ///dialog box. This member is ignored unless the <b>CC_ENABLEHOOK</b> flag is set in the <b>Flags</b> member.
+    LPCCHOOKPROC lpfnHook;
+    ///Type: <b>LPCTSTR</b> The name of the dialog box template resource in the module identified by the
+    ///<b>hInstance</b> member. This template is substituted for the standard dialog box template. For numbered dialog
+    ///box resources, <b>lpTemplateName</b> can be a value returned by the MAKEINTRESOURCE macro. This member is ignored
+    ///unless the <b>CC_ENABLETEMPLATE</b> flag is set in the <b>Flags</b> member.
+    const(PWSTR) lpTemplateName;
+}
+
+///Contains information that the FindText and ReplaceText functions use to initialize the <b>Find</b> and <b>Replace</b>
+///dialog boxes. The FINDMSGSTRING registered message uses this structure to pass the user's search or replacement input
+///to the owner window of a <b>Find</b> or <b>Replace</b> dialog box.
+struct FINDREPLACEA
+{
+align (1):
+    ///Type: <b>DWORD</b> The length, in bytes, of the structure.
+    uint         lStructSize;
+    ///Type: <b>HWND</b> A handle to the window that owns the dialog box. The window procedure of the specified window
+    ///receives FINDMSGSTRING messages from the dialog box. This member can be any valid window handle, but it must not
+    ///be <b>NULL</b>.
+    HWND         hwndOwner;
+    ///Type: <b>HINSTANCE</b> If the <b>FR_ENABLETEMPLATEHANDLE</b> flag is set in the <b>Flags</b>, <b>hInstance</b> is
+    ///a handle to a memory object containing a dialog box template. If the <b>FR_ENABLETEMPLATE</b> flag is set,
+    ///<b>hInstance</b> is a handle to a module that contains a dialog box template named by the <b>lpTemplateName</b>
+    ///member. If neither flag is set, this member is ignored.
+    HINSTANCE    hInstance;
+    ///Type: <b>DWORD</b> A set of bit flags that you can use to initialize the dialog box. The dialog box sets these
+    ///flags when it sends the FINDMSGSTRING registered message to indicate the user's input. This member can be one or
+    ///more of the following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
+    ///id="FR_DIALOGTERM"></a><a id="fr_dialogterm"></a><dl> <dt><b>FR_DIALOGTERM</b></dt> <dt>0x00000040</dt> </dl>
+    ///</td> <td width="60%"> If set in a FINDMSGSTRING message, indicates that the dialog box is closing. When you
+    ///receive a message with this flag set, the dialog box handle returned by the FindText or ReplaceText function is
+    ///no longer valid. </td> </tr> <tr> <td width="40%"><a id="FR_DOWN"></a><a id="fr_down"></a><dl>
+    ///<dt><b>FR_DOWN</b></dt> <dt>0x00000001</dt> </dl> </td> <td width="60%"> If set, the <b>Down</b> button of the
+    ///direction radio buttons in a <b>Find</b> dialog box is selected indicating that you should search from the
+    ///current location to the end of the document. If not set, the <b>Up</b> button is selected so you should search to
+    ///the beginning of the document. You can set this flag to initialize the dialog box. If set in a FINDMSGSTRING
+    ///message, indicates the user's selection. </td> </tr> <tr> <td width="40%"><a id="FR_ENABLEHOOK"></a><a
+    ///id="fr_enablehook"></a><dl> <dt><b>FR_ENABLEHOOK</b></dt> <dt>0x00000100</dt> </dl> </td> <td width="60%">
+    ///Enables the hook function specified in the <b>lpfnHook</b> member. This flag is used only to initialize the
+    ///dialog box. </td> </tr> <tr> <td width="40%"><a id="FR_ENABLETEMPLATE"></a><a id="fr_enabletemplate"></a><dl>
+    ///<dt><b>FR_ENABLETEMPLATE</b></dt> <dt>0x00000200</dt> </dl> </td> <td width="60%"> Indicates that the
+    ///<b>hInstance</b> and <b>lpTemplateName</b> members specify a dialog box template to use in place of the default
+    ///template. This flag is used only to initialize the dialog box. </td> </tr> <tr> <td width="40%"><a
+    ///id="FR_ENABLETEMPLATEHANDLE"></a><a id="fr_enabletemplatehandle"></a><dl> <dt><b>FR_ENABLETEMPLATEHANDLE</b></dt>
+    ///<dt>0x00002000</dt> </dl> </td> <td width="60%"> Indicates that the <b>hInstance</b> member identifies a data
+    ///block that contains a preloaded dialog box template. The system ignores the <b>lpTemplateName</b> member if this
+    ///flag is specified. </td> </tr> <tr> <td width="40%"><a id="FR_FINDNEXT"></a><a id="fr_findnext"></a><dl>
+    ///<dt><b>FR_FINDNEXT</b></dt> <dt>0x00000008</dt> </dl> </td> <td width="60%"> If set in a FINDMSGSTRING message,
+    ///indicates that the user clicked the <b>Find Next</b> button in a <b>Find</b> or <b>Replace</b> dialog box. The
+    ///<b>lpstrFindWhat</b> member specifies the string to search for. </td> </tr> <tr> <td width="40%"><a
+    ///id="FR_HIDEUPDOWN"></a><a id="fr_hideupdown"></a><dl> <dt><b>FR_HIDEUPDOWN</b></dt> <dt>0x00004000</dt> </dl>
+    ///</td> <td width="60%"> If set when initializing a <b>Find</b> dialog box, hides the search direction radio
+    ///buttons. </td> </tr> <tr> <td width="40%"><a id="FR_HIDEMATCHCASE"></a><a id="fr_hidematchcase"></a><dl>
+    ///<dt><b>FR_HIDEMATCHCASE</b></dt> <dt>0x00008000</dt> </dl> </td> <td width="60%"> If set when initializing a
+    ///<b>Find</b> or <b>Replace</b> dialog box, hides the <b>Match Case</b> check box. </td> </tr> <tr> <td
+    ///width="40%"><a id="FR_HIDEWHOLEWORD"></a><a id="fr_hidewholeword"></a><dl> <dt><b>FR_HIDEWHOLEWORD</b></dt>
+    ///<dt>0x00010000</dt> </dl> </td> <td width="60%"> If set when initializing a <b>Find</b> or <b>Replace</b> dialog
+    ///box, hides the <b>Match Whole Word Only</b> check box. </td> </tr> <tr> <td width="40%"><a
+    ///id="FR_MATCHCASE"></a><a id="fr_matchcase"></a><dl> <dt><b>FR_MATCHCASE</b></dt> <dt>0x00000004</dt> </dl> </td>
+    ///<td width="60%"> If set, the <b>Match Case</b> check box is selected indicating that the search should be
+    ///case-sensitive. If not set, the check box is unselected so the search should be case-insensitive. You can set
+    ///this flag to initialize the dialog box. If set in a FINDMSGSTRING message, indicates the user's selection. </td>
+    ///</tr> <tr> <td width="40%"><a id="FR_NOMATCHCASE"></a><a id="fr_nomatchcase"></a><dl>
+    ///<dt><b>FR_NOMATCHCASE</b></dt> <dt>0x00000800</dt> </dl> </td> <td width="60%"> If set when initializing a
+    ///<b>Find</b> or <b>Replace</b> dialog box, disables the <b>Match Case</b> check box. </td> </tr> <tr> <td
+    ///width="40%"><a id="FR_NOUPDOWN"></a><a id="fr_noupdown"></a><dl> <dt><b>FR_NOUPDOWN</b></dt> <dt>0x00000400</dt>
+    ///</dl> </td> <td width="60%"> If set when initializing a <b>Find</b> dialog box, disables the search direction
+    ///radio buttons. </td> </tr> <tr> <td width="40%"><a id="FR_NOWHOLEWORD"></a><a id="fr_nowholeword"></a><dl>
+    ///<dt><b>FR_NOWHOLEWORD</b></dt> <dt>0x00001000</dt> </dl> </td> <td width="60%"> If set when initializing a
+    ///<b>Find</b> or <b>Replace</b> dialog box, disables the <b>Whole Word</b> check box. </td> </tr> <tr> <td
+    ///width="40%"><a id="FR_REPLACE"></a><a id="fr_replace"></a><dl> <dt><b>FR_REPLACE</b></dt> <dt>0x00000010</dt>
+    ///</dl> </td> <td width="60%"> If set in a FINDMSGSTRING message, indicates that the user clicked the
+    ///<b>Replace</b> button in a <b>Replace</b> dialog box. The <b>lpstrFindWhat</b> member specifies the string to be
+    ///replaced and the <b>lpstrReplaceWith</b> member specifies the replacement string. </td> </tr> <tr> <td
+    ///width="40%"><a id="FR_REPLACEALL"></a><a id="fr_replaceall"></a><dl> <dt><b>FR_REPLACEALL</b></dt>
+    ///<dt>0x00000020</dt> </dl> </td> <td width="60%"> If set in a FINDMSGSTRING message, indicates that the user
+    ///clicked the <b>Replace All</b> button in a <b>Replace</b> dialog box. The <b>lpstrFindWhat</b> member specifies
+    ///the string to be replaced and the <b>lpstrReplaceWith</b> member specifies the replacement string. </td> </tr>
+    ///<tr> <td width="40%"><a id="FR_SHOWHELP"></a><a id="fr_showhelp"></a><dl> <dt><b>FR_SHOWHELP</b></dt>
+    ///<dt>0x00000080</dt> </dl> </td> <td width="60%"> Causes the dialog box to display the <b>Help</b> button. The
+    ///<b>hwndOwner</b> member must specify the window to receive the HELPMSGSTRING registered messages that the dialog
+    ///box sends when the user clicks the <b>Help</b> button. </td> </tr> <tr> <td width="40%"><a
+    ///id="FR_WHOLEWORD"></a><a id="fr_wholeword"></a><dl> <dt><b>FR_WHOLEWORD</b></dt> <dt>0x00000002</dt> </dl> </td>
+    ///<td width="60%"> If set, the <b>Match Whole Word Only</b> check box is selected indicating that you should search
+    ///only for whole words that match the search string. If not set, the check box is unselected so you should also
+    ///search for word fragments that match the search string. You can set this flag to initialize the dialog box. If
+    ///set in a FINDMSGSTRING message, indicates the user's selection. </td> </tr> </table>
+    uint         Flags;
+    ///Type: <b>LPTSTR</b> The search string that the user typed in the <b>Find What</b> edit control. You must
+    ///dynamically allocate the buffer or use a global or static array so it does not go out of scope before the dialog
+    ///box closes. The buffer should be at least 80 characters long. If the buffer contains a string when you initialize
+    ///the dialog box, the string is displayed in the <b>Find What</b> edit control. If a FINDMSGSTRING message
+    ///specifies the <b>FR_FINDNEXT</b> flag, <b>lpstrFindWhat</b> contains the string to search for. The
+    ///<b>FR_DOWN</b>, <b>FR_WHOLEWORD</b>, and <b>FR_MATCHCASE</b> flags indicate the direction and type of search. If
+    ///a <b>FINDMSGSTRING</b> message specifies the <b>FR_REPLACE</b> or <b>FR_REPLACE</b> flags, <b>lpstrFindWhat</b>
+    ///contains the string to be replaced.
+    PSTR         lpstrFindWhat;
+    ///Type: <b>LPTSTR</b> The replacement string that the user typed in the <b>Replace With</b> edit control. You must
+    ///dynamically allocate the buffer or use a global or static array so it does not go out of scope before the dialog
+    ///box closes. If the buffer contains a string when you initialize the dialog box, the string is displayed in the
+    ///<b>Replace With</b> edit control. If a FINDMSGSTRING message specifies the <b>FR_REPLACE</b> or
+    ///<b>FR_REPLACEALL</b> flags, <b>lpstrReplaceWith</b> contains the replacement string . The FindText function
+    ///ignores this member.
+    PSTR         lpstrReplaceWith;
+    ///Type: <b>WORD</b> The length, in bytes, of the buffer pointed to by the <b>lpstrFindWhat</b> member.
+    ushort       wFindWhatLen;
+    ///Type: <b>WORD</b> The length, in bytes, of the buffer pointed to by the <b>lpstrReplaceWith</b> member.
+    ushort       wReplaceWithLen;
+    ///Type: <b>LPARAM</b> Application-defined data that the system passes to the hook procedure identified by the
+    ///<b>lpfnHook</b> member. When the system sends the WM_INITDIALOG message to the hook procedure, the message's
+    ///<i>lParam</i> parameter is a pointer to the <b>FINDREPLACE</b> structure specified when the dialog was created.
+    ///The hook procedure can use this pointer to get the <b>lCustData</b> value.
+    LPARAM       lCustData;
+    ///Type: <b>LPFRHOOKPROC</b> A pointer to an FRHookProc hook procedure that can process messages intended for the
+    ///dialog box. This member is ignored unless the <b>FR_ENABLEHOOK</b> flag is set in the <b>Flags</b> member. If the
+    ///hook procedure returns <b>FALSE</b> in response to the WM_INITDIALOG message, the hook procedure must display the
+    ///dialog box or else the dialog box will not be shown. To do this, first perform any other paint operations, and
+    ///then call the ShowWindow and UpdateWindow functions.
+    LPFRHOOKPROC lpfnHook;
+    ///Type: <b>LPCTSTR</b> The name of the dialog box template resource in the module identified by the
+    ///<b>hInstance</b> member. This template is substituted for the standard dialog box template. For numbered dialog
+    ///box resources, this can be a value returned by the MAKEINTRESOURCE macro. This member is ignored unless the
+    ///<b>FR_ENABLETEMPLATE</b> flag is set in the <b>Flags</b> member.
+    const(PSTR)  lpTemplateName;
+}
+
+///Contains information that the FindText and ReplaceText functions use to initialize the <b>Find</b> and <b>Replace</b>
+///dialog boxes. The FINDMSGSTRING registered message uses this structure to pass the user's search or replacement input
+///to the owner window of a <b>Find</b> or <b>Replace</b> dialog box.
+struct FINDREPLACEW
+{
+align (1):
+    ///Type: <b>DWORD</b> The length, in bytes, of the structure.
+    uint         lStructSize;
+    ///Type: <b>HWND</b> A handle to the window that owns the dialog box. The window procedure of the specified window
+    ///receives FINDMSGSTRING messages from the dialog box. This member can be any valid window handle, but it must not
+    ///be <b>NULL</b>.
+    HWND         hwndOwner;
+    ///Type: <b>HINSTANCE</b> If the <b>FR_ENABLETEMPLATEHANDLE</b> flag is set in the <b>Flags</b>, <b>hInstance</b> is
+    ///a handle to a memory object containing a dialog box template. If the <b>FR_ENABLETEMPLATE</b> flag is set,
+    ///<b>hInstance</b> is a handle to a module that contains a dialog box template named by the <b>lpTemplateName</b>
+    ///member. If neither flag is set, this member is ignored.
+    HINSTANCE    hInstance;
+    ///Type: <b>DWORD</b> A set of bit flags that you can use to initialize the dialog box. The dialog box sets these
+    ///flags when it sends the FINDMSGSTRING registered message to indicate the user's input. This member can be one or
+    ///more of the following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
+    ///id="FR_DIALOGTERM"></a><a id="fr_dialogterm"></a><dl> <dt><b>FR_DIALOGTERM</b></dt> <dt>0x00000040</dt> </dl>
+    ///</td> <td width="60%"> If set in a FINDMSGSTRING message, indicates that the dialog box is closing. When you
+    ///receive a message with this flag set, the dialog box handle returned by the FindText or ReplaceText function is
+    ///no longer valid. </td> </tr> <tr> <td width="40%"><a id="FR_DOWN"></a><a id="fr_down"></a><dl>
+    ///<dt><b>FR_DOWN</b></dt> <dt>0x00000001</dt> </dl> </td> <td width="60%"> If set, the <b>Down</b> button of the
+    ///direction radio buttons in a <b>Find</b> dialog box is selected indicating that you should search from the
+    ///current location to the end of the document. If not set, the <b>Up</b> button is selected so you should search to
+    ///the beginning of the document. You can set this flag to initialize the dialog box. If set in a FINDMSGSTRING
+    ///message, indicates the user's selection. </td> </tr> <tr> <td width="40%"><a id="FR_ENABLEHOOK"></a><a
+    ///id="fr_enablehook"></a><dl> <dt><b>FR_ENABLEHOOK</b></dt> <dt>0x00000100</dt> </dl> </td> <td width="60%">
+    ///Enables the hook function specified in the <b>lpfnHook</b> member. This flag is used only to initialize the
+    ///dialog box. </td> </tr> <tr> <td width="40%"><a id="FR_ENABLETEMPLATE"></a><a id="fr_enabletemplate"></a><dl>
+    ///<dt><b>FR_ENABLETEMPLATE</b></dt> <dt>0x00000200</dt> </dl> </td> <td width="60%"> Indicates that the
+    ///<b>hInstance</b> and <b>lpTemplateName</b> members specify a dialog box template to use in place of the default
+    ///template. This flag is used only to initialize the dialog box. </td> </tr> <tr> <td width="40%"><a
+    ///id="FR_ENABLETEMPLATEHANDLE"></a><a id="fr_enabletemplatehandle"></a><dl> <dt><b>FR_ENABLETEMPLATEHANDLE</b></dt>
+    ///<dt>0x00002000</dt> </dl> </td> <td width="60%"> Indicates that the <b>hInstance</b> member identifies a data
+    ///block that contains a preloaded dialog box template. The system ignores the <b>lpTemplateName</b> member if this
+    ///flag is specified. </td> </tr> <tr> <td width="40%"><a id="FR_FINDNEXT"></a><a id="fr_findnext"></a><dl>
+    ///<dt><b>FR_FINDNEXT</b></dt> <dt>0x00000008</dt> </dl> </td> <td width="60%"> If set in a FINDMSGSTRING message,
+    ///indicates that the user clicked the <b>Find Next</b> button in a <b>Find</b> or <b>Replace</b> dialog box. The
+    ///<b>lpstrFindWhat</b> member specifies the string to search for. </td> </tr> <tr> <td width="40%"><a
+    ///id="FR_HIDEUPDOWN"></a><a id="fr_hideupdown"></a><dl> <dt><b>FR_HIDEUPDOWN</b></dt> <dt>0x00004000</dt> </dl>
+    ///</td> <td width="60%"> If set when initializing a <b>Find</b> dialog box, hides the search direction radio
+    ///buttons. </td> </tr> <tr> <td width="40%"><a id="FR_HIDEMATCHCASE"></a><a id="fr_hidematchcase"></a><dl>
+    ///<dt><b>FR_HIDEMATCHCASE</b></dt> <dt>0x00008000</dt> </dl> </td> <td width="60%"> If set when initializing a
+    ///<b>Find</b> or <b>Replace</b> dialog box, hides the <b>Match Case</b> check box. </td> </tr> <tr> <td
+    ///width="40%"><a id="FR_HIDEWHOLEWORD"></a><a id="fr_hidewholeword"></a><dl> <dt><b>FR_HIDEWHOLEWORD</b></dt>
+    ///<dt>0x00010000</dt> </dl> </td> <td width="60%"> If set when initializing a <b>Find</b> or <b>Replace</b> dialog
+    ///box, hides the <b>Match Whole Word Only</b> check box. </td> </tr> <tr> <td width="40%"><a
+    ///id="FR_MATCHCASE"></a><a id="fr_matchcase"></a><dl> <dt><b>FR_MATCHCASE</b></dt> <dt>0x00000004</dt> </dl> </td>
+    ///<td width="60%"> If set, the <b>Match Case</b> check box is selected indicating that the search should be
+    ///case-sensitive. If not set, the check box is unselected so the search should be case-insensitive. You can set
+    ///this flag to initialize the dialog box. If set in a FINDMSGSTRING message, indicates the user's selection. </td>
+    ///</tr> <tr> <td width="40%"><a id="FR_NOMATCHCASE"></a><a id="fr_nomatchcase"></a><dl>
+    ///<dt><b>FR_NOMATCHCASE</b></dt> <dt>0x00000800</dt> </dl> </td> <td width="60%"> If set when initializing a
+    ///<b>Find</b> or <b>Replace</b> dialog box, disables the <b>Match Case</b> check box. </td> </tr> <tr> <td
+    ///width="40%"><a id="FR_NOUPDOWN"></a><a id="fr_noupdown"></a><dl> <dt><b>FR_NOUPDOWN</b></dt> <dt>0x00000400</dt>
+    ///</dl> </td> <td width="60%"> If set when initializing a <b>Find</b> dialog box, disables the search direction
+    ///radio buttons. </td> </tr> <tr> <td width="40%"><a id="FR_NOWHOLEWORD"></a><a id="fr_nowholeword"></a><dl>
+    ///<dt><b>FR_NOWHOLEWORD</b></dt> <dt>0x00001000</dt> </dl> </td> <td width="60%"> If set when initializing a
+    ///<b>Find</b> or <b>Replace</b> dialog box, disables the <b>Whole Word</b> check box. </td> </tr> <tr> <td
+    ///width="40%"><a id="FR_REPLACE"></a><a id="fr_replace"></a><dl> <dt><b>FR_REPLACE</b></dt> <dt>0x00000010</dt>
+    ///</dl> </td> <td width="60%"> If set in a FINDMSGSTRING message, indicates that the user clicked the
+    ///<b>Replace</b> button in a <b>Replace</b> dialog box. The <b>lpstrFindWhat</b> member specifies the string to be
+    ///replaced and the <b>lpstrReplaceWith</b> member specifies the replacement string. </td> </tr> <tr> <td
+    ///width="40%"><a id="FR_REPLACEALL"></a><a id="fr_replaceall"></a><dl> <dt><b>FR_REPLACEALL</b></dt>
+    ///<dt>0x00000020</dt> </dl> </td> <td width="60%"> If set in a FINDMSGSTRING message, indicates that the user
+    ///clicked the <b>Replace All</b> button in a <b>Replace</b> dialog box. The <b>lpstrFindWhat</b> member specifies
+    ///the string to be replaced and the <b>lpstrReplaceWith</b> member specifies the replacement string. </td> </tr>
+    ///<tr> <td width="40%"><a id="FR_SHOWHELP"></a><a id="fr_showhelp"></a><dl> <dt><b>FR_SHOWHELP</b></dt>
+    ///<dt>0x00000080</dt> </dl> </td> <td width="60%"> Causes the dialog box to display the <b>Help</b> button. The
+    ///<b>hwndOwner</b> member must specify the window to receive the HELPMSGSTRING registered messages that the dialog
+    ///box sends when the user clicks the <b>Help</b> button. </td> </tr> <tr> <td width="40%"><a
+    ///id="FR_WHOLEWORD"></a><a id="fr_wholeword"></a><dl> <dt><b>FR_WHOLEWORD</b></dt> <dt>0x00000002</dt> </dl> </td>
+    ///<td width="60%"> If set, the <b>Match Whole Word Only</b> check box is selected indicating that you should search
+    ///only for whole words that match the search string. If not set, the check box is unselected so you should also
+    ///search for word fragments that match the search string. You can set this flag to initialize the dialog box. If
+    ///set in a FINDMSGSTRING message, indicates the user's selection. </td> </tr> </table>
+    uint         Flags;
+    ///Type: <b>LPTSTR</b> The search string that the user typed in the <b>Find What</b> edit control. You must
+    ///dynamically allocate the buffer or use a global or static array so it does not go out of scope before the dialog
+    ///box closes. The buffer should be at least 80 characters long. If the buffer contains a string when you initialize
+    ///the dialog box, the string is displayed in the <b>Find What</b> edit control. If a FINDMSGSTRING message
+    ///specifies the <b>FR_FINDNEXT</b> flag, <b>lpstrFindWhat</b> contains the string to search for. The
+    ///<b>FR_DOWN</b>, <b>FR_WHOLEWORD</b>, and <b>FR_MATCHCASE</b> flags indicate the direction and type of search. If
+    ///a <b>FINDMSGSTRING</b> message specifies the <b>FR_REPLACE</b> or <b>FR_REPLACE</b> flags, <b>lpstrFindWhat</b>
+    ///contains the string to be replaced.
+    PWSTR        lpstrFindWhat;
+    ///Type: <b>LPTSTR</b> The replacement string that the user typed in the <b>Replace With</b> edit control. You must
+    ///dynamically allocate the buffer or use a global or static array so it does not go out of scope before the dialog
+    ///box closes. If the buffer contains a string when you initialize the dialog box, the string is displayed in the
+    ///<b>Replace With</b> edit control. If a FINDMSGSTRING message specifies the <b>FR_REPLACE</b> or
+    ///<b>FR_REPLACEALL</b> flags, <b>lpstrReplaceWith</b> contains the replacement string . The FindText function
+    ///ignores this member.
+    PWSTR        lpstrReplaceWith;
+    ///Type: <b>WORD</b> The length, in bytes, of the buffer pointed to by the <b>lpstrFindWhat</b> member.
+    ushort       wFindWhatLen;
+    ///Type: <b>WORD</b> The length, in bytes, of the buffer pointed to by the <b>lpstrReplaceWith</b> member.
+    ushort       wReplaceWithLen;
+    ///Type: <b>LPARAM</b> Application-defined data that the system passes to the hook procedure identified by the
+    ///<b>lpfnHook</b> member. When the system sends the WM_INITDIALOG message to the hook procedure, the message's
+    ///<i>lParam</i> parameter is a pointer to the <b>FINDREPLACE</b> structure specified when the dialog was created.
+    ///The hook procedure can use this pointer to get the <b>lCustData</b> value.
+    LPARAM       lCustData;
+    ///Type: <b>LPFRHOOKPROC</b> A pointer to an FRHookProc hook procedure that can process messages intended for the
+    ///dialog box. This member is ignored unless the <b>FR_ENABLEHOOK</b> flag is set in the <b>Flags</b> member. If the
+    ///hook procedure returns <b>FALSE</b> in response to the WM_INITDIALOG message, the hook procedure must display the
+    ///dialog box or else the dialog box will not be shown. To do this, first perform any other paint operations, and
+    ///then call the ShowWindow and UpdateWindow functions.
+    LPFRHOOKPROC lpfnHook;
+    ///Type: <b>LPCTSTR</b> The name of the dialog box template resource in the module identified by the
+    ///<b>hInstance</b> member. This template is substituted for the standard dialog box template. For numbered dialog
+    ///box resources, this can be a value returned by the MAKEINTRESOURCE macro. This member is ignored unless the
+    ///<b>FR_ENABLETEMPLATE</b> flag is set in the <b>Flags</b> member.
+    const(PWSTR) lpTemplateName;
+}
+
+///Contains information that the ChooseFont function uses to initialize the <b>Font</b> dialog box. After the user
+///closes the dialog box, the system returns information about the user's selection in this structure.
+struct CHOOSEFONTA
+{
+align (1):
+    ///Type: <b>DWORD</b> The length of the structure, in bytes.
+    uint         lStructSize;
+    ///Type: <b>HWND</b> A handle to the window that owns the dialog box. This member can be any valid window handle, or
+    ///it can be <b>NULL</b> if the dialog box has no owner.
+    HWND         hwndOwner;
+    ///Type: <b>HDC</b> This member is ignored by the ChooseFont function. <b>Windows Vista and Windows XP/2000: </b>A
+    ///handle to the device context or information context of the printer whose fonts will be listed in the dialog box.
+    ///This member is used only if the <b>Flags</b> member specifies the <b>CF_PRINTERFONTS</b> or <b>CF_BOTH</b> flag;
+    ///otherwise, this member is ignored.
+    HDC          hDC;
+    ///Type: <b>LPLOGFONT</b> A pointer to a LOGFONT structure. If you set the <b>CF_INITTOLOGFONTSTRUCT</b> flag in the
+    ///<b>Flags</b> member and initialize the other members, the ChooseFont function initializes the dialog box with a
+    ///font that matches the <b>LOGFONT</b> members. If the user clicks the <b>OK</b> button, <b>ChooseFont</b> sets the
+    ///members of the <b>LOGFONT</b> structure based on the user's selections.
+    LOGFONTA*    lpLogFont;
+    ///Type: <b>INT</b> The size of the selected font, in units of 1/10 of a point. The ChooseFont function sets this
+    ///value after the user closes the dialog box.
+    int          iPointSize;
+    ///Type: <b>DWORD</b> A set of bit flags that you can use to initialize the <b>Font</b> dialog box. When the dialog
+    ///box returns, it sets these flags to indicate the user input. This member can be one or more of the following
+    ///values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="CF_APPLY"></a><a
+    ///id="cf_apply"></a><dl> <dt><b>CF_APPLY</b></dt> <dt>0x00000200L</dt> </dl> </td> <td width="60%"> Causes the
+    ///dialog box to display the <b>Apply</b> button. You should provide a hook procedure to process WM_COMMAND messages
+    ///for the <b>Apply</b> button. The hook procedure can send the WM_CHOOSEFONT_GETLOGFONT message to the dialog box
+    ///to retrieve the address of the structure that contains the current selections for the font. </td> </tr> <tr> <td
+    ///width="40%"><a id="CF_ANSIONLY"></a><a id="cf_ansionly"></a><dl> <dt><b>CF_ANSIONLY</b></dt> <dt>0x00000400L</dt>
+    ///</dl> </td> <td width="60%"> This flag is obsolete. To limit font selections to all scripts except those that use
+    ///the OEM or Symbol character sets, use <b>CF_SCRIPTSONLY</b>. To get the original <b>CF_ANSIONLY</b> behavior, use
+    ///<b>CF_SELECTSCRIPT</b> and specify <b>ANSI_CHARSET</b> in the <b>lfCharSet</b> member of the LOGFONT structure
+    ///pointed to by <b>lpLogFont</b>. </td> </tr> <tr> <td width="40%"><a id="CF_BOTH"></a><a id="cf_both"></a><dl>
+    ///<dt><b>CF_BOTH</b></dt> <dt>0x00000003</dt> </dl> </td> <td width="60%"> This flag is ignored for font
+    ///enumeration. <b>Windows Vista and Windows XP/2000: </b>Causes the dialog box to list the available printer and
+    ///screen fonts. The <b>hDC</b> member is a handle to the device context or information context associated with the
+    ///printer. This flag is a combination of the <b>CF_SCREENFONTS</b> and <b>CF_PRINTERFONTS</b> flags. </td> </tr>
+    ///<tr> <td width="40%"><a id="CF_EFFECTS"></a><a id="cf_effects"></a><dl> <dt><b>CF_EFFECTS</b></dt>
+    ///<dt>0x00000100L</dt> </dl> </td> <td width="60%"> Causes the dialog box to display the controls that allow the
+    ///user to specify strikeout, underline, and text color options. If this flag is set, you can use the
+    ///<b>rgbColors</b> member to specify the initial text color. You can use the <b>lfStrikeOut</b> and
+    ///<b>lfUnderline</b> members of the structure pointed to by <b>lpLogFont</b> to specify the initial settings of the
+    ///strikeout and underline check boxes. ChooseFont can use these members to return the user's selections. </td>
+    ///</tr> <tr> <td width="40%"><a id="CF_ENABLEHOOK"></a><a id="cf_enablehook"></a><dl> <dt><b>CF_ENABLEHOOK</b></dt>
+    ///<dt>0x00000008L</dt> </dl> </td> <td width="60%"> Enables the hook procedure specified in the <b>lpfnHook</b>
+    ///member of this structure. </td> </tr> <tr> <td width="40%"><a id="CF_ENABLETEMPLATE"></a><a
+    ///id="cf_enabletemplate"></a><dl> <dt><b>CF_ENABLETEMPLATE</b></dt> <dt>0x00000010L</dt> </dl> </td> <td
+    ///width="60%"> Indicates that the <b>hInstance</b> and <b>lpTemplateName</b> members specify a dialog box template
+    ///to use in place of the default template. </td> </tr> <tr> <td width="40%"><a id="CF_ENABLETEMPLATEHANDLE"></a><a
+    ///id="cf_enabletemplatehandle"></a><dl> <dt><b>CF_ENABLETEMPLATEHANDLE</b></dt> <dt>0x00000020L</dt> </dl> </td>
+    ///<td width="60%"> Indicates that the <b>hInstance</b> member identifies a data block that contains a preloaded
+    ///dialog box template. The system ignores the <b>lpTemplateName</b> member if this flag is specified. </td> </tr>
+    ///<tr> <td width="40%"><a id="CF_FIXEDPITCHONLY"></a><a id="cf_fixedpitchonly"></a><dl>
+    ///<dt><b>CF_FIXEDPITCHONLY</b></dt> <dt>0x00004000L</dt> </dl> </td> <td width="60%"> ChooseFont should enumerate
+    ///and allow selection of only fixed-pitch fonts. </td> </tr> <tr> <td width="40%"><a id="CF_FORCEFONTEXIST"></a><a
+    ///id="cf_forcefontexist"></a><dl> <dt><b>CF_FORCEFONTEXIST</b></dt> <dt>0x00010000L</dt> </dl> </td> <td
+    ///width="60%"> ChooseFont should indicate an error condition if the user attempts to select a font or style that is
+    ///not listed in the dialog box. </td> </tr> <tr> <td width="40%"><a id="CF_INACTIVEFONTS"></a><a
+    ///id="cf_inactivefonts"></a><dl> <dt><b>CF_INACTIVEFONTS</b></dt> <dt>0x02000000L</dt> </dl> </td> <td width="60%">
+    ///ChooseFont should additionally display fonts that are set to Hide in Fonts Control Panel. <b>Windows Vista and
+    ///Windows XP/2000: </b>This flag is not supported until Windows 7. </td> </tr> <tr> <td width="40%"><a
+    ///id="CF_INITTOLOGFONTSTRUCT"></a><a id="cf_inittologfontstruct"></a><dl> <dt><b>CF_INITTOLOGFONTSTRUCT</b></dt>
+    ///<dt>0x00000040L</dt> </dl> </td> <td width="60%"> ChooseFont should use the structure pointed to by the
+    ///<b>lpLogFont</b> member to initialize the dialog box controls. </td> </tr> <tr> <td width="40%"><a
+    ///id="CF_LIMITSIZE"></a><a id="cf_limitsize"></a><dl> <dt><b>CF_LIMITSIZE</b></dt> <dt>0x00002000L</dt> </dl> </td>
+    ///<td width="60%"> ChooseFont should select only font sizes within the range specified by the <b>nSizeMin</b> and
+    ///<b>nSizeMax</b> members. </td> </tr> <tr> <td width="40%"><a id="CF_NOOEMFONTS"></a><a
+    ///id="cf_nooemfonts"></a><dl> <dt><b>CF_NOOEMFONTS</b></dt> <dt>0x00000800L</dt> </dl> </td> <td width="60%"> Same
+    ///as the <b>CF_NOVECTORFONTS</b> flag. </td> </tr> <tr> <td width="40%"><a id="CF_NOFACESEL"></a><a
+    ///id="cf_nofacesel"></a><dl> <dt><b>CF_NOFACESEL</b></dt> <dt>0x00080000L</dt> </dl> </td> <td width="60%"> When
+    ///using a LOGFONT structure to initialize the dialog box controls, use this flag to prevent the dialog box from
+    ///displaying an initial selection for the font name combo box. This is useful when there is no single font name
+    ///that applies to the text selection. </td> </tr> <tr> <td width="40%"><a id="CF_NOSCRIPTSEL"></a><a
+    ///id="cf_noscriptsel"></a><dl> <dt><b>CF_NOSCRIPTSEL</b></dt> <dt>0x00800000L</dt> </dl> </td> <td width="60%">
+    ///Disables the <b>Script</b> combo box. When this flag is set, the <b>lfCharSet</b> member of the LOGFONT structure
+    ///is set to <b>DEFAULT_CHARSET</b> when ChooseFont returns. This flag is used only to initialize the dialog box.
+    ///</td> </tr> <tr> <td width="40%"><a id="CF_NOSIMULATIONS"></a><a id="cf_nosimulations"></a><dl>
+    ///<dt><b>CF_NOSIMULATIONS</b></dt> <dt>0x00001000L</dt> </dl> </td> <td width="60%"> ChooseFont should not display
+    ///or allow selection of font simulations. </td> </tr> <tr> <td width="40%"><a id="CF_NOSIZESEL"></a><a
+    ///id="cf_nosizesel"></a><dl> <dt><b>CF_NOSIZESEL</b></dt> <dt>0x00200000L</dt> </dl> </td> <td width="60%"> When
+    ///using a structure to initialize the dialog box controls, use this flag to prevent the dialog box from displaying
+    ///an initial selection for the <b>Font Size</b> combo box. This is useful when there is no single font size that
+    ///applies to the text selection. </td> </tr> <tr> <td width="40%"><a id="CF_NOSTYLESEL"></a><a
+    ///id="cf_nostylesel"></a><dl> <dt><b>CF_NOSTYLESEL</b></dt> <dt>0x00100000L</dt> </dl> </td> <td width="60%"> When
+    ///using a LOGFONT structure to initialize the dialog box controls, use this flag to prevent the dialog box from
+    ///displaying an initial selection for the <b>Font Style</b> combo box. This is useful when there is no single font
+    ///style that applies to the text selection. </td> </tr> <tr> <td width="40%"><a id="CF_NOVECTORFONTS"></a><a
+    ///id="cf_novectorfonts"></a><dl> <dt><b>CF_NOVECTORFONTS</b></dt> <dt>0x00000800L</dt> </dl> </td> <td width="60%">
+    ///ChooseFont should not allow vector font selections. </td> </tr> <tr> <td width="40%"><a
+    ///id="CF_NOVERTFONTS"></a><a id="cf_novertfonts"></a><dl> <dt><b>CF_NOVERTFONTS</b></dt> <dt>0x01000000L</dt> </dl>
+    ///</td> <td width="60%"> Causes the <b>Font</b> dialog box to list only horizontally oriented fonts. </td> </tr>
+    ///<tr> <td width="40%"><a id="CF_PRINTERFONTS"></a><a id="cf_printerfonts"></a><dl> <dt><b>CF_PRINTERFONTS</b></dt>
+    ///<dt>0x00000002</dt> </dl> </td> <td width="60%"> This flag is ignored for font enumeration. <b>Windows Vista and
+    ///Windows XP/2000: </b>Causes the dialog box to list only the fonts supported by the printer associated with the
+    ///device context or information context identified by the <b>hDC</b> member. It also causes the font type
+    ///description label to appear at the bottom of the <b>Font</b> dialog box. </td> </tr> <tr> <td width="40%"><a
+    ///id="CF_SCALABLEONLY"></a><a id="cf_scalableonly"></a><dl> <dt><b>CF_SCALABLEONLY</b></dt> <dt>0x00020000L</dt>
+    ///</dl> </td> <td width="60%"> Specifies that ChooseFont should allow only the selection of scalable fonts.
+    ///Scalable fonts include vector fonts, scalable printer fonts, TrueType fonts, and fonts scaled by other
+    ///technologies. </td> </tr> <tr> <td width="40%"><a id="CF_SCREENFONTS"></a><a id="cf_screenfonts"></a><dl>
+    ///<dt><b>CF_SCREENFONTS</b></dt> <dt>0x00000001</dt> </dl> </td> <td width="60%"> This flag is ignored for font
+    ///enumeration. <b>Windows Vista and Windows XP/2000: </b>Causes the dialog box to list only the screen fonts
+    ///supported by the system. </td> </tr> <tr> <td width="40%"><a id="CF_SCRIPTSONLY"></a><a
+    ///id="cf_scriptsonly"></a><dl> <dt><b>CF_SCRIPTSONLY</b></dt> <dt>0x00000400L</dt> </dl> </td> <td width="60%">
+    ///ChooseFont should allow selection of fonts for all non-OEM and Symbol character sets, as well as the ANSI
+    ///character set. This supersedes the <b>CF_ANSIONLY</b> value. </td> </tr> <tr> <td width="40%"><a
+    ///id="CF_SELECTSCRIPT"></a><a id="cf_selectscript"></a><dl> <dt><b>CF_SELECTSCRIPT</b></dt> <dt>0x00400000L</dt>
+    ///</dl> </td> <td width="60%"> When specified on input, only fonts with the character set identified in the
+    ///<b>lfCharSet</b> member of the LOGFONT structure are displayed. The user will not be allowed to change the
+    ///character set specified in the <b>Scripts</b> combo box. </td> </tr> <tr> <td width="40%"><a
+    ///id="CF_SHOWHELP"></a><a id="cf_showhelp"></a><dl> <dt><b>CF_SHOWHELP</b></dt> <dt>0x00000004L</dt> </dl> </td>
+    ///<td width="60%"> Causes the dialog box to display the <b>Help</b> button. The <b>hwndOwner</b> member must
+    ///specify the window to receive the HELPMSGSTRING registered messages that the dialog box sends when the user
+    ///clicks the <b>Help</b> button. </td> </tr> <tr> <td width="40%"><a id="CF_TTONLY"></a><a id="cf_ttonly"></a><dl>
+    ///<dt><b>CF_TTONLY</b></dt> <dt>0x00040000L</dt> </dl> </td> <td width="60%"> ChooseFont should only enumerate and
+    ///allow the selection of TrueType fonts. </td> </tr> <tr> <td width="40%"><a id="CF_USESTYLE"></a><a
+    ///id="cf_usestyle"></a><dl> <dt><b>CF_USESTYLE</b></dt> <dt>0x00000080L</dt> </dl> </td> <td width="60%"> The
+    ///<b>lpszStyle</b> member is a pointer to a buffer that contains style data that ChooseFont should use to
+    ///initialize the <b>Font Style</b> combo box. When the user closes the dialog box, <b>ChooseFont</b> copies style
+    ///data for the user's selection to this buffer. <div class="alert"><b>Note</b> To globalize your application, you
+    ///should specify the style by using the <b>lfWeight</b> and <b>lfItalic</b> members of the LOGFONT structure
+    ///pointed to by <b>lpLogFont</b>. The style name may change depending on the system user interface language.</div>
+    ///<div> </div> </td> </tr> <tr> <td width="40%"><a id="CF_WYSIWYG"></a><a id="cf_wysiwyg"></a><dl>
+    ///<dt><b>CF_WYSIWYG</b></dt> <dt>0x00008000L</dt> </dl> </td> <td width="60%"> Obsolete. ChooseFont ignores this
+    ///flag. <b>Windows Vista and Windows XP/2000: </b>ChooseFont should allow only the selection of fonts available on
+    ///both the printer and the display. If this flag is specified, the <b>CF_SCREENSHOTS</b> and
+    ///<b>CF_PRINTERFONTS</b>, or <b>CF_BOTH</b> flags should also be specified. </td> </tr> </table>
+    uint         Flags;
+    ///Type: <b>COLORREF</b> If the <b>CF_EFFECTS</b> flag is set, <b>rgbColors</b> specifies the initial text color.
+    ///When ChooseFont returns successfully, this member contains the RGB value of the text color that the user
+    ///selected. To create a COLORREF color value, use the RGB macro.
+    uint         rgbColors;
+    ///Type: <b>LPARAM</b> Application-defined data that the system passes to the hook procedure identified by the
+    ///<b>lpfnHook</b> member. When the system sends the WM_INITDIALOG message to the hook procedure, the message's
+    ///<i>lParam</i> parameter is a pointer to the CHOOSEFONT structure specified when the dialog was created. The hook
+    ///procedure can use this pointer to get the <b>lCustData</b> value.
+    LPARAM       lCustData;
+    ///Type: <b>LPCFHOOKPROC</b> A pointer to a CFHookProc hook procedure that can process messages intended for the
+    ///dialog box. This member is ignored unless the <b>CF_ENABLEHOOK</b> flag is set in the <b>Flags</b> member.
+    LPCFHOOKPROC lpfnHook;
+    ///Type: <b>LPCTSTR</b> The name of the dialog box template resource in the module identified by the
+    ///<b>hInstance</b> member. This template is substituted for the standard dialog box template. For numbered dialog
+    ///box resources, <b>lpTemplateName</b> can be a value returned by the MAKEINTRESOURCE macro. This member is ignored
+    ///unless the <b>CF_ENABLETEMPLATE</b> flag is set in the <b>Flags</b> member.
+    const(PSTR)  lpTemplateName;
+    ///Type: <b>HINSTANCE</b> If the <b>CF_ENABLETEMPLATEHANDLE</b> flag is set in the <b>Flags</b> member,
+    ///<b>hInstance</b> is a handle to a memory object containing a dialog box template. If the <b>CF_ENABLETEMPLATE</b>
+    ///flag is set, <b>hInstance</b> is a handle to a module that contains a dialog box template named by the
+    ///<b>lpTemplateName</b> member. If neither <b>CF_ENABLETEMPLATEHANDLE</b> nor <b>CF_ENABLETEMPLATE</b> is set, this
+    ///member is ignored.
+    HINSTANCE    hInstance;
+    ///Type: <b>LPTSTR</b> The style data. If the <b>CF_USESTYLE</b> flag is specified, ChooseFont uses the data in this
+    ///buffer to initialize the <b>Font Style</b> combo box. When the user closes the dialog box, <b>ChooseFont</b>
+    ///copies the string in the <b>Font Style</b> combo box into this buffer.
+    PSTR         lpszStyle;
+    ///Type: <b>WORD</b> The type of the selected font when ChooseFont returns. This member can be one or more of the
+    ///following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
+    ///id="BOLD_FONTTYPE"></a><a id="bold_fonttype"></a><dl> <dt><b>BOLD_FONTTYPE</b></dt> <dt>0x0100</dt> </dl> </td>
+    ///<td width="60%"> The font weight is bold. This information is duplicated in the <b>lfWeight</b> member of the
+    ///LOGFONT structure and is equivalent to <b>FW_BOLD</b>. </td> </tr> <tr> <td width="40%"><a
+    ///id="ITALIC_FONTTYPE"></a><a id="italic_fonttype"></a><dl> <dt><b>ITALIC_FONTTYPE</b></dt> <dt>0x0200</dt> </dl>
+    ///</td> <td width="60%"> The italic font attribute is set. This information is duplicated in the <b>lfItalic</b>
+    ///member of the LOGFONT structure. </td> </tr> <tr> <td width="40%"><a id="PRINTER_FONTTYPE"></a><a
+    ///id="printer_fonttype"></a><dl> <dt><b>PRINTER_FONTTYPE</b></dt> <dt>0x4000</dt> </dl> </td> <td width="60%"> The
+    ///font is a printer font. </td> </tr> <tr> <td width="40%"><a id="REGULAR_FONTTYPE"></a><a
+    ///id="regular_fonttype"></a><dl> <dt><b>REGULAR_FONTTYPE</b></dt> <dt>0x0400</dt> </dl> </td> <td width="60%"> The
+    ///font weight is normal. This information is duplicated in the <b>lfWeight</b> member of the LOGFONT structure and
+    ///is equivalent to <b>FW_REGULAR</b>. </td> </tr> <tr> <td width="40%"><a id="SCREEN_FONTTYPE"></a><a
+    ///id="screen_fonttype"></a><dl> <dt><b>SCREEN_FONTTYPE</b></dt> <dt>0x2000</dt> </dl> </td> <td width="60%"> The
+    ///font is a screen font. </td> </tr> <tr> <td width="40%"><a id="SIMULATED_FONTTYPE"></a><a
+    ///id="simulated_fonttype"></a><dl> <dt><b>SIMULATED_FONTTYPE</b></dt> <dt>0x8000</dt> </dl> </td> <td width="60%">
+    ///The font is simulated by the graphics device interface (GDI). </td> </tr> </table>
+    ushort       nFontType;
+    ushort       ___MISSING_ALIGNMENT__;
+    ///Type: <b>INT</b> The minimum point size a user can select. ChooseFont recognizes this member only if the
+    ///<b>CF_LIMITSIZE</b> flag is specified.
+    int          nSizeMin;
+    ///Type: <b>INT</b> The maximum point size a user can select. ChooseFont recognizes this member only if the
+    ///<b>CF_LIMITSIZE</b> flag is specified.
+    int          nSizeMax;
+}
+
+///Contains information that the ChooseFont function uses to initialize the <b>Font</b> dialog box. After the user
+///closes the dialog box, the system returns information about the user's selection in this structure.
+struct CHOOSEFONTW
+{
+align (1):
+    ///Type: <b>DWORD</b> The length of the structure, in bytes.
+    uint         lStructSize;
+    ///Type: <b>HWND</b> A handle to the window that owns the dialog box. This member can be any valid window handle, or
+    ///it can be <b>NULL</b> if the dialog box has no owner.
+    HWND         hwndOwner;
+    ///Type: <b>HDC</b> This member is ignored by the ChooseFont function. <b>Windows Vista and Windows XP/2000: </b>A
+    ///handle to the device context or information context of the printer whose fonts will be listed in the dialog box.
+    ///This member is used only if the <b>Flags</b> member specifies the <b>CF_PRINTERFONTS</b> or <b>CF_BOTH</b> flag;
+    ///otherwise, this member is ignored.
+    HDC          hDC;
+    ///Type: <b>LPLOGFONT</b> A pointer to a LOGFONT structure. If you set the <b>CF_INITTOLOGFONTSTRUCT</b> flag in the
+    ///<b>Flags</b> member and initialize the other members, the ChooseFont function initializes the dialog box with a
+    ///font that matches the <b>LOGFONT</b> members. If the user clicks the <b>OK</b> button, <b>ChooseFont</b> sets the
+    ///members of the <b>LOGFONT</b> structure based on the user's selections.
+    LOGFONTW*    lpLogFont;
+    ///Type: <b>INT</b> The size of the selected font, in units of 1/10 of a point. The ChooseFont function sets this
+    ///value after the user closes the dialog box.
+    int          iPointSize;
+    ///Type: <b>DWORD</b> A set of bit flags that you can use to initialize the <b>Font</b> dialog box. When the dialog
+    ///box returns, it sets these flags to indicate the user input. This member can be one or more of the following
+    ///values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="CF_APPLY"></a><a
+    ///id="cf_apply"></a><dl> <dt><b>CF_APPLY</b></dt> <dt>0x00000200L</dt> </dl> </td> <td width="60%"> Causes the
+    ///dialog box to display the <b>Apply</b> button. You should provide a hook procedure to process WM_COMMAND messages
+    ///for the <b>Apply</b> button. The hook procedure can send the WM_CHOOSEFONT_GETLOGFONT message to the dialog box
+    ///to retrieve the address of the structure that contains the current selections for the font. </td> </tr> <tr> <td
+    ///width="40%"><a id="CF_ANSIONLY"></a><a id="cf_ansionly"></a><dl> <dt><b>CF_ANSIONLY</b></dt> <dt>0x00000400L</dt>
+    ///</dl> </td> <td width="60%"> This flag is obsolete. To limit font selections to all scripts except those that use
+    ///the OEM or Symbol character sets, use <b>CF_SCRIPTSONLY</b>. To get the original <b>CF_ANSIONLY</b> behavior, use
+    ///<b>CF_SELECTSCRIPT</b> and specify <b>ANSI_CHARSET</b> in the <b>lfCharSet</b> member of the LOGFONT structure
+    ///pointed to by <b>lpLogFont</b>. </td> </tr> <tr> <td width="40%"><a id="CF_BOTH"></a><a id="cf_both"></a><dl>
+    ///<dt><b>CF_BOTH</b></dt> <dt>0x00000003</dt> </dl> </td> <td width="60%"> This flag is ignored for font
+    ///enumeration. <b>Windows Vista and Windows XP/2000: </b>Causes the dialog box to list the available printer and
+    ///screen fonts. The <b>hDC</b> member is a handle to the device context or information context associated with the
+    ///printer. This flag is a combination of the <b>CF_SCREENFONTS</b> and <b>CF_PRINTERFONTS</b> flags. </td> </tr>
+    ///<tr> <td width="40%"><a id="CF_EFFECTS"></a><a id="cf_effects"></a><dl> <dt><b>CF_EFFECTS</b></dt>
+    ///<dt>0x00000100L</dt> </dl> </td> <td width="60%"> Causes the dialog box to display the controls that allow the
+    ///user to specify strikeout, underline, and text color options. If this flag is set, you can use the
+    ///<b>rgbColors</b> member to specify the initial text color. You can use the <b>lfStrikeOut</b> and
+    ///<b>lfUnderline</b> members of the structure pointed to by <b>lpLogFont</b> to specify the initial settings of the
+    ///strikeout and underline check boxes. ChooseFont can use these members to return the user's selections. </td>
+    ///</tr> <tr> <td width="40%"><a id="CF_ENABLEHOOK"></a><a id="cf_enablehook"></a><dl> <dt><b>CF_ENABLEHOOK</b></dt>
+    ///<dt>0x00000008L</dt> </dl> </td> <td width="60%"> Enables the hook procedure specified in the <b>lpfnHook</b>
+    ///member of this structure. </td> </tr> <tr> <td width="40%"><a id="CF_ENABLETEMPLATE"></a><a
+    ///id="cf_enabletemplate"></a><dl> <dt><b>CF_ENABLETEMPLATE</b></dt> <dt>0x00000010L</dt> </dl> </td> <td
+    ///width="60%"> Indicates that the <b>hInstance</b> and <b>lpTemplateName</b> members specify a dialog box template
+    ///to use in place of the default template. </td> </tr> <tr> <td width="40%"><a id="CF_ENABLETEMPLATEHANDLE"></a><a
+    ///id="cf_enabletemplatehandle"></a><dl> <dt><b>CF_ENABLETEMPLATEHANDLE</b></dt> <dt>0x00000020L</dt> </dl> </td>
+    ///<td width="60%"> Indicates that the <b>hInstance</b> member identifies a data block that contains a preloaded
+    ///dialog box template. The system ignores the <b>lpTemplateName</b> member if this flag is specified. </td> </tr>
+    ///<tr> <td width="40%"><a id="CF_FIXEDPITCHONLY"></a><a id="cf_fixedpitchonly"></a><dl>
+    ///<dt><b>CF_FIXEDPITCHONLY</b></dt> <dt>0x00004000L</dt> </dl> </td> <td width="60%"> ChooseFont should enumerate
+    ///and allow selection of only fixed-pitch fonts. </td> </tr> <tr> <td width="40%"><a id="CF_FORCEFONTEXIST"></a><a
+    ///id="cf_forcefontexist"></a><dl> <dt><b>CF_FORCEFONTEXIST</b></dt> <dt>0x00010000L</dt> </dl> </td> <td
+    ///width="60%"> ChooseFont should indicate an error condition if the user attempts to select a font or style that is
+    ///not listed in the dialog box. </td> </tr> <tr> <td width="40%"><a id="CF_INACTIVEFONTS"></a><a
+    ///id="cf_inactivefonts"></a><dl> <dt><b>CF_INACTIVEFONTS</b></dt> <dt>0x02000000L</dt> </dl> </td> <td width="60%">
+    ///ChooseFont should additionally display fonts that are set to Hide in Fonts Control Panel. <b>Windows Vista and
+    ///Windows XP/2000: </b>This flag is not supported until Windows 7. </td> </tr> <tr> <td width="40%"><a
+    ///id="CF_INITTOLOGFONTSTRUCT"></a><a id="cf_inittologfontstruct"></a><dl> <dt><b>CF_INITTOLOGFONTSTRUCT</b></dt>
+    ///<dt>0x00000040L</dt> </dl> </td> <td width="60%"> ChooseFont should use the structure pointed to by the
+    ///<b>lpLogFont</b> member to initialize the dialog box controls. </td> </tr> <tr> <td width="40%"><a
+    ///id="CF_LIMITSIZE"></a><a id="cf_limitsize"></a><dl> <dt><b>CF_LIMITSIZE</b></dt> <dt>0x00002000L</dt> </dl> </td>
+    ///<td width="60%"> ChooseFont should select only font sizes within the range specified by the <b>nSizeMin</b> and
+    ///<b>nSizeMax</b> members. </td> </tr> <tr> <td width="40%"><a id="CF_NOOEMFONTS"></a><a
+    ///id="cf_nooemfonts"></a><dl> <dt><b>CF_NOOEMFONTS</b></dt> <dt>0x00000800L</dt> </dl> </td> <td width="60%"> Same
+    ///as the <b>CF_NOVECTORFONTS</b> flag. </td> </tr> <tr> <td width="40%"><a id="CF_NOFACESEL"></a><a
+    ///id="cf_nofacesel"></a><dl> <dt><b>CF_NOFACESEL</b></dt> <dt>0x00080000L</dt> </dl> </td> <td width="60%"> When
+    ///using a LOGFONT structure to initialize the dialog box controls, use this flag to prevent the dialog box from
+    ///displaying an initial selection for the font name combo box. This is useful when there is no single font name
+    ///that applies to the text selection. </td> </tr> <tr> <td width="40%"><a id="CF_NOSCRIPTSEL"></a><a
+    ///id="cf_noscriptsel"></a><dl> <dt><b>CF_NOSCRIPTSEL</b></dt> <dt>0x00800000L</dt> </dl> </td> <td width="60%">
+    ///Disables the <b>Script</b> combo box. When this flag is set, the <b>lfCharSet</b> member of the LOGFONT structure
+    ///is set to <b>DEFAULT_CHARSET</b> when ChooseFont returns. This flag is used only to initialize the dialog box.
+    ///</td> </tr> <tr> <td width="40%"><a id="CF_NOSIMULATIONS"></a><a id="cf_nosimulations"></a><dl>
+    ///<dt><b>CF_NOSIMULATIONS</b></dt> <dt>0x00001000L</dt> </dl> </td> <td width="60%"> ChooseFont should not display
+    ///or allow selection of font simulations. </td> </tr> <tr> <td width="40%"><a id="CF_NOSIZESEL"></a><a
+    ///id="cf_nosizesel"></a><dl> <dt><b>CF_NOSIZESEL</b></dt> <dt>0x00200000L</dt> </dl> </td> <td width="60%"> When
+    ///using a structure to initialize the dialog box controls, use this flag to prevent the dialog box from displaying
+    ///an initial selection for the <b>Font Size</b> combo box. This is useful when there is no single font size that
+    ///applies to the text selection. </td> </tr> <tr> <td width="40%"><a id="CF_NOSTYLESEL"></a><a
+    ///id="cf_nostylesel"></a><dl> <dt><b>CF_NOSTYLESEL</b></dt> <dt>0x00100000L</dt> </dl> </td> <td width="60%"> When
+    ///using a LOGFONT structure to initialize the dialog box controls, use this flag to prevent the dialog box from
+    ///displaying an initial selection for the <b>Font Style</b> combo box. This is useful when there is no single font
+    ///style that applies to the text selection. </td> </tr> <tr> <td width="40%"><a id="CF_NOVECTORFONTS"></a><a
+    ///id="cf_novectorfonts"></a><dl> <dt><b>CF_NOVECTORFONTS</b></dt> <dt>0x00000800L</dt> </dl> </td> <td width="60%">
+    ///ChooseFont should not allow vector font selections. </td> </tr> <tr> <td width="40%"><a
+    ///id="CF_NOVERTFONTS"></a><a id="cf_novertfonts"></a><dl> <dt><b>CF_NOVERTFONTS</b></dt> <dt>0x01000000L</dt> </dl>
+    ///</td> <td width="60%"> Causes the <b>Font</b> dialog box to list only horizontally oriented fonts. </td> </tr>
+    ///<tr> <td width="40%"><a id="CF_PRINTERFONTS"></a><a id="cf_printerfonts"></a><dl> <dt><b>CF_PRINTERFONTS</b></dt>
+    ///<dt>0x00000002</dt> </dl> </td> <td width="60%"> This flag is ignored for font enumeration. <b>Windows Vista and
+    ///Windows XP/2000: </b>Causes the dialog box to list only the fonts supported by the printer associated with the
+    ///device context or information context identified by the <b>hDC</b> member. It also causes the font type
+    ///description label to appear at the bottom of the <b>Font</b> dialog box. </td> </tr> <tr> <td width="40%"><a
+    ///id="CF_SCALABLEONLY"></a><a id="cf_scalableonly"></a><dl> <dt><b>CF_SCALABLEONLY</b></dt> <dt>0x00020000L</dt>
+    ///</dl> </td> <td width="60%"> Specifies that ChooseFont should allow only the selection of scalable fonts.
+    ///Scalable fonts include vector fonts, scalable printer fonts, TrueType fonts, and fonts scaled by other
+    ///technologies. </td> </tr> <tr> <td width="40%"><a id="CF_SCREENFONTS"></a><a id="cf_screenfonts"></a><dl>
+    ///<dt><b>CF_SCREENFONTS</b></dt> <dt>0x00000001</dt> </dl> </td> <td width="60%"> This flag is ignored for font
+    ///enumeration. <b>Windows Vista and Windows XP/2000: </b>Causes the dialog box to list only the screen fonts
+    ///supported by the system. </td> </tr> <tr> <td width="40%"><a id="CF_SCRIPTSONLY"></a><a
+    ///id="cf_scriptsonly"></a><dl> <dt><b>CF_SCRIPTSONLY</b></dt> <dt>0x00000400L</dt> </dl> </td> <td width="60%">
+    ///ChooseFont should allow selection of fonts for all non-OEM and Symbol character sets, as well as the ANSI
+    ///character set. This supersedes the <b>CF_ANSIONLY</b> value. </td> </tr> <tr> <td width="40%"><a
+    ///id="CF_SELECTSCRIPT"></a><a id="cf_selectscript"></a><dl> <dt><b>CF_SELECTSCRIPT</b></dt> <dt>0x00400000L</dt>
+    ///</dl> </td> <td width="60%"> When specified on input, only fonts with the character set identified in the
+    ///<b>lfCharSet</b> member of the LOGFONT structure are displayed. The user will not be allowed to change the
+    ///character set specified in the <b>Scripts</b> combo box. </td> </tr> <tr> <td width="40%"><a
+    ///id="CF_SHOWHELP"></a><a id="cf_showhelp"></a><dl> <dt><b>CF_SHOWHELP</b></dt> <dt>0x00000004L</dt> </dl> </td>
+    ///<td width="60%"> Causes the dialog box to display the <b>Help</b> button. The <b>hwndOwner</b> member must
+    ///specify the window to receive the HELPMSGSTRING registered messages that the dialog box sends when the user
+    ///clicks the <b>Help</b> button. </td> </tr> <tr> <td width="40%"><a id="CF_TTONLY"></a><a id="cf_ttonly"></a><dl>
+    ///<dt><b>CF_TTONLY</b></dt> <dt>0x00040000L</dt> </dl> </td> <td width="60%"> ChooseFont should only enumerate and
+    ///allow the selection of TrueType fonts. </td> </tr> <tr> <td width="40%"><a id="CF_USESTYLE"></a><a
+    ///id="cf_usestyle"></a><dl> <dt><b>CF_USESTYLE</b></dt> <dt>0x00000080L</dt> </dl> </td> <td width="60%"> The
+    ///<b>lpszStyle</b> member is a pointer to a buffer that contains style data that ChooseFont should use to
+    ///initialize the <b>Font Style</b> combo box. When the user closes the dialog box, <b>ChooseFont</b> copies style
+    ///data for the user's selection to this buffer. <div class="alert"><b>Note</b> To globalize your application, you
+    ///should specify the style by using the <b>lfWeight</b> and <b>lfItalic</b> members of the LOGFONT structure
+    ///pointed to by <b>lpLogFont</b>. The style name may change depending on the system user interface language.</div>
+    ///<div> </div> </td> </tr> <tr> <td width="40%"><a id="CF_WYSIWYG"></a><a id="cf_wysiwyg"></a><dl>
+    ///<dt><b>CF_WYSIWYG</b></dt> <dt>0x00008000L</dt> </dl> </td> <td width="60%"> Obsolete. ChooseFont ignores this
+    ///flag. <b>Windows Vista and Windows XP/2000: </b>ChooseFont should allow only the selection of fonts available on
+    ///both the printer and the display. If this flag is specified, the <b>CF_SCREENSHOTS</b> and
+    ///<b>CF_PRINTERFONTS</b>, or <b>CF_BOTH</b> flags should also be specified. </td> </tr> </table>
+    uint         Flags;
+    ///Type: <b>COLORREF</b> If the <b>CF_EFFECTS</b> flag is set, <b>rgbColors</b> specifies the initial text color.
+    ///When ChooseFont returns successfully, this member contains the RGB value of the text color that the user
+    ///selected. To create a COLORREF color value, use the RGB macro.
+    uint         rgbColors;
+    ///Type: <b>LPARAM</b> Application-defined data that the system passes to the hook procedure identified by the
+    ///<b>lpfnHook</b> member. When the system sends the WM_INITDIALOG message to the hook procedure, the message's
+    ///<i>lParam</i> parameter is a pointer to the CHOOSEFONT structure specified when the dialog was created. The hook
+    ///procedure can use this pointer to get the <b>lCustData</b> value.
+    LPARAM       lCustData;
+    ///Type: <b>LPCFHOOKPROC</b> A pointer to a CFHookProc hook procedure that can process messages intended for the
+    ///dialog box. This member is ignored unless the <b>CF_ENABLEHOOK</b> flag is set in the <b>Flags</b> member.
+    LPCFHOOKPROC lpfnHook;
+    ///Type: <b>LPCTSTR</b> The name of the dialog box template resource in the module identified by the
+    ///<b>hInstance</b> member. This template is substituted for the standard dialog box template. For numbered dialog
+    ///box resources, <b>lpTemplateName</b> can be a value returned by the MAKEINTRESOURCE macro. This member is ignored
+    ///unless the <b>CF_ENABLETEMPLATE</b> flag is set in the <b>Flags</b> member.
+    const(PWSTR) lpTemplateName;
+    ///Type: <b>HINSTANCE</b> If the <b>CF_ENABLETEMPLATEHANDLE</b> flag is set in the <b>Flags</b> member,
+    ///<b>hInstance</b> is a handle to a memory object containing a dialog box template. If the <b>CF_ENABLETEMPLATE</b>
+    ///flag is set, <b>hInstance</b> is a handle to a module that contains a dialog box template named by the
+    ///<b>lpTemplateName</b> member. If neither <b>CF_ENABLETEMPLATEHANDLE</b> nor <b>CF_ENABLETEMPLATE</b> is set, this
+    ///member is ignored.
+    HINSTANCE    hInstance;
+    ///Type: <b>LPTSTR</b> The style data. If the <b>CF_USESTYLE</b> flag is specified, ChooseFont uses the data in this
+    ///buffer to initialize the <b>Font Style</b> combo box. When the user closes the dialog box, <b>ChooseFont</b>
+    ///copies the string in the <b>Font Style</b> combo box into this buffer.
+    PWSTR        lpszStyle;
+    ///Type: <b>WORD</b> The type of the selected font when ChooseFont returns. This member can be one or more of the
+    ///following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
+    ///id="BOLD_FONTTYPE"></a><a id="bold_fonttype"></a><dl> <dt><b>BOLD_FONTTYPE</b></dt> <dt>0x0100</dt> </dl> </td>
+    ///<td width="60%"> The font weight is bold. This information is duplicated in the <b>lfWeight</b> member of the
+    ///LOGFONT structure and is equivalent to <b>FW_BOLD</b>. </td> </tr> <tr> <td width="40%"><a
+    ///id="ITALIC_FONTTYPE"></a><a id="italic_fonttype"></a><dl> <dt><b>ITALIC_FONTTYPE</b></dt> <dt>0x0200</dt> </dl>
+    ///</td> <td width="60%"> The italic font attribute is set. This information is duplicated in the <b>lfItalic</b>
+    ///member of the LOGFONT structure. </td> </tr> <tr> <td width="40%"><a id="PRINTER_FONTTYPE"></a><a
+    ///id="printer_fonttype"></a><dl> <dt><b>PRINTER_FONTTYPE</b></dt> <dt>0x4000</dt> </dl> </td> <td width="60%"> The
+    ///font is a printer font. </td> </tr> <tr> <td width="40%"><a id="REGULAR_FONTTYPE"></a><a
+    ///id="regular_fonttype"></a><dl> <dt><b>REGULAR_FONTTYPE</b></dt> <dt>0x0400</dt> </dl> </td> <td width="60%"> The
+    ///font weight is normal. This information is duplicated in the <b>lfWeight</b> member of the LOGFONT structure and
+    ///is equivalent to <b>FW_REGULAR</b>. </td> </tr> <tr> <td width="40%"><a id="SCREEN_FONTTYPE"></a><a
+    ///id="screen_fonttype"></a><dl> <dt><b>SCREEN_FONTTYPE</b></dt> <dt>0x2000</dt> </dl> </td> <td width="60%"> The
+    ///font is a screen font. </td> </tr> <tr> <td width="40%"><a id="SIMULATED_FONTTYPE"></a><a
+    ///id="simulated_fonttype"></a><dl> <dt><b>SIMULATED_FONTTYPE</b></dt> <dt>0x8000</dt> </dl> </td> <td width="60%">
+    ///The font is simulated by the graphics device interface (GDI). </td> </tr> </table>
+    ushort       nFontType;
+    ushort       ___MISSING_ALIGNMENT__;
+    ///Type: <b>INT</b> The minimum point size a user can select. ChooseFont recognizes this member only if the
+    ///<b>CF_LIMITSIZE</b> flag is specified.
+    int          nSizeMin;
+    ///Type: <b>INT</b> The maximum point size a user can select. ChooseFont recognizes this member only if the
+    ///<b>CF_LIMITSIZE</b> flag is specified.
+    int          nSizeMax;
+}
+
+///Contains information that the PrintDlg function uses to initialize the Print Dialog Box. After the user closes the
+///dialog box, the system uses this structure to return information about the user's selections.
+struct PRINTDLGA
+{
+align (1):
+    ///Type: <b>DWORD</b> The structure size, in bytes.
+    uint            lStructSize;
+    ///Type: <b>HWND</b> A handle to the window that owns the dialog box. This member can be any valid window handle, or
+    ///it can be <b>NULL</b> if the dialog box has no owner.
+    HWND            hwndOwner;
+    ///Type: <b>HGLOBAL</b> A handle to a movable global memory object that contains a DEVMODE structure. If
+    ///<b>hDevMode</b> is not <b>NULL</b> on input, you must allocate a movable block of memory for the <b>DEVMODE</b>
+    ///structure and initialize its members. The PrintDlg function uses the input data to initialize the controls in the
+    ///dialog box. When <b>PrintDlg</b> returns, the <b>DEVMODE</b> members indicate the user's input. If
+    ///<b>hDevMode</b> is <b>NULL</b> on input, PrintDlg allocates memory for the DEVMODE structure, initializes its
+    ///members to indicate the user's input, and returns a handle that identifies it. If the device driver for the
+    ///specified printer does not support extended device modes, <b>hDevMode</b> is <b>NULL</b> when PrintDlg returns.
+    ///If the device name (specified by the <b>dmDeviceName</b> member of the DEVMODE structure) does not appear in the
+    ///[devices] section of WIN.INI, PrintDlg returns an error. For more information about the <b>hDevMode</b> and
+    ///<b>hDevNames</b> members, see the Remarks section at the end of this topic.
+    ptrdiff_t       hDevMode;
+    ///Type: <b>HGLOBAL</b> A handle to a movable global memory object that contains a DEVNAMES structure. If
+    ///<b>hDevNames</b> is not <b>NULL</b> on input, you must allocate a movable block of memory for the <b>DEVNAMES</b>
+    ///structure and initialize its members. The PrintDlg function uses the input data to initialize the controls in the
+    ///dialog box. When <b>PrintDlg</b> returns, the <b>DEVNAMES</b> members contain information for the printer chosen
+    ///by the user. You can use this information to create a device context or an information context. The
+    ///<b>hDevNames</b> member can be <b>NULL</b>, in which case, PrintDlg allocates memory for the DEVNAMES structure,
+    ///initializes its members to indicate the user's input, and returns a handle that identifies it. For more
+    ///information about the <b>hDevMode</b> and <b>hDevNames</b> members, see the Remarks section at the end of this
+    ///topic.
+    ptrdiff_t       hDevNames;
+    ///Type: <b>HDC</b> A handle to a device context or an information context, depending on whether the <b>Flags</b>
+    ///member specifies the <b>PD_RETURNDC</b> or <b>PC_RETURNIC</b> flag. If neither flag is specified, the value of
+    ///this member is undefined. If both flags are specified, <b>PD_RETURNDC</b> has priority.
+    HDC             hDC;
+    ///Type: <b>DWORD</b> Initializes the <b>Print</b> dialog box. When the dialog box returns, it sets these flags to
+    ///indicate the user's input. This member can be one or more of the following values. <table> <tr> <th>Value</th>
+    ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="PD_ALLPAGES"></a><a id="pd_allpages"></a><dl>
+    ///<dt><b>PD_ALLPAGES</b></dt> <dt>0x00000000</dt> </dl> </td> <td width="60%"> The default flag that indicates that
+    ///the <b>All</b> radio button is initially selected. This flag is used as a placeholder to indicate that the
+    ///<b>PD_PAGENUMS</b> and <b>PD_SELECTION</b> flags are not specified. </td> </tr> <tr> <td width="40%"><a
+    ///id="PD_COLLATE"></a><a id="pd_collate"></a><dl> <dt><b>PD_COLLATE</b></dt> <dt>0x00000010</dt> </dl> </td> <td
+    ///width="60%"> If this flag is set, the <b>Collate</b> check box is selected. If this flag is set when the PrintDlg
+    ///function returns, the application must simulate collation of multiple copies. For more information, see the
+    ///description of the <b>PD_USEDEVMODECOPIESANDCOLLATE</b> flag. See <b>PD_NOPAGENUMS</b>. </td> </tr> <tr> <td
+    ///width="40%"><a id="PD_DISABLEPRINTTOFILE"></a><a id="pd_disableprinttofile"></a><dl>
+    ///<dt><b>PD_DISABLEPRINTTOFILE</b></dt> <dt>0x00080000</dt> </dl> </td> <td width="60%"> Disables the <b>Print to
+    ///File</b> check box. </td> </tr> <tr> <td width="40%"><a id="PD_ENABLEPRINTHOOK"></a><a
+    ///id="pd_enableprinthook"></a><dl> <dt><b>PD_ENABLEPRINTHOOK</b></dt> <dt>0x00001000</dt> </dl> </td> <td
+    ///width="60%"> Enables the hook procedure specified in the <b>lpfnPrintHook</b> member. This enables the hook
+    ///procedure for the <b>Print</b> dialog box. </td> </tr> <tr> <td width="40%"><a id="PD_ENABLEPRINTTEMPLATE"></a><a
+    ///id="pd_enableprinttemplate"></a><dl> <dt><b>PD_ENABLEPRINTTEMPLATE</b></dt> <dt>0x00004000</dt> </dl> </td> <td
+    ///width="60%"> Indicates that the <b>hInstance</b> and <b>lpPrintTemplateName</b> members specify a replacement for
+    ///the default <b>Print</b> dialog box template. </td> </tr> <tr> <td width="40%"><a
+    ///id="PD_ENABLEPRINTTEMPLATEHANDLE"></a><a id="pd_enableprinttemplatehandle"></a><dl>
+    ///<dt><b>PD_ENABLEPRINTTEMPLATEHANDLE</b></dt> <dt>0x00010000</dt> </dl> </td> <td width="60%"> Indicates that the
+    ///<b>hPrintTemplate</b> member identifies a data block that contains a preloaded dialog box template. This template
+    ///replaces the default template for the <b>Print</b> dialog box. The system ignores the <b>lpPrintTemplateName</b>
+    ///member if this flag is specified. </td> </tr> <tr> <td width="40%"><a id="PD_ENABLESETUPHOOK"></a><a
+    ///id="pd_enablesetuphook"></a><dl> <dt><b>PD_ENABLESETUPHOOK</b></dt> <dt>0x00002000</dt> </dl> </td> <td
+    ///width="60%"> Enables the hook procedure specified in the <b>lpfnSetupHook</b> member. This enables the hook
+    ///procedure for the <b>Print Setup</b> dialog box. </td> </tr> <tr> <td width="40%"><a
+    ///id="PD_ENABLESETUPTEMPLATE"></a><a id="pd_enablesetuptemplate"></a><dl> <dt><b>PD_ENABLESETUPTEMPLATE</b></dt>
+    ///<dt>0x00008000</dt> </dl> </td> <td width="60%"> Indicates that the <b>hInstance</b> and
+    ///<b>lpSetupTemplateName</b> members specify a replacement for the default <b>Print Setup</b> dialog box template.
+    ///</td> </tr> <tr> <td width="40%"><a id="PD_ENABLESETUPTEMPLATEHANDLE"></a><a
+    ///id="pd_enablesetuptemplatehandle"></a><dl> <dt><b>PD_ENABLESETUPTEMPLATEHANDLE</b></dt> <dt>0x00020000</dt> </dl>
+    ///</td> <td width="60%"> Indicates that the <b>hSetupTemplate</b> member identifies a data block that contains a
+    ///preloaded dialog box template. This template replaces the default template for the <b>Print Setup</b> dialog box.
+    ///The system ignores the <b>lpSetupTemplateName</b> member if this flag is specified. </td> </tr> <tr> <td
+    ///width="40%"><a id="PD_HIDEPRINTTOFILE"></a><a id="pd_hideprinttofile"></a><dl> <dt><b>PD_HIDEPRINTTOFILE</b></dt>
+    ///<dt>0x00100000</dt> </dl> </td> <td width="60%"> Hides the <b>Print to File</b> check box. </td> </tr> <tr> <td
+    ///width="40%"><a id="PD_NONETWORKBUTTON"></a><a id="pd_nonetworkbutton"></a><dl> <dt><b>PD_NONETWORKBUTTON</b></dt>
+    ///<dt>0x00200000</dt> </dl> </td> <td width="60%"> Hides and disables the <b>Network</b> button. </td> </tr> <tr>
+    ///<td width="40%"><a id="PD_NOPAGENUMS"></a><a id="pd_nopagenums"></a><dl> <dt><b>PD_NOPAGENUMS</b></dt>
+    ///<dt>0x00000008</dt> </dl> </td> <td width="60%"> Disables the <b>Pages</b> radio button and the associated edit
+    ///controls. Also, it causes the <b>Collate</b> check box to appear in the dialog. </td> </tr> <tr> <td
+    ///width="40%"><a id="PD_NOSELECTION"></a><a id="pd_noselection"></a><dl> <dt><b>PD_NOSELECTION</b></dt>
+    ///<dt>0x00000004</dt> </dl> </td> <td width="60%"> Disables the <b>Selection</b> radio button. </td> </tr> <tr> <td
+    ///width="40%"><a id="PD_NOWARNING"></a><a id="pd_nowarning"></a><dl> <dt><b>PD_NOWARNING</b></dt>
+    ///<dt>0x00000080</dt> </dl> </td> <td width="60%"> Prevents the warning message from being displayed when there is
+    ///no default printer. </td> </tr> <tr> <td width="40%"><a id="PD_PAGENUMS"></a><a id="pd_pagenums"></a><dl>
+    ///<dt><b>PD_PAGENUMS</b></dt> <dt>0x00000002</dt> </dl> </td> <td width="60%"> If this flag is set, the
+    ///<b>Pages</b> radio button is selected. If this flag is set when the PrintDlg function returns, the
+    ///<b>nFromPage</b> and <b>nToPage</b> members indicate the starting and ending pages specified by the user. </td>
+    ///</tr> <tr> <td width="40%"><a id="PD_PRINTSETUP"></a><a id="pd_printsetup"></a><dl> <dt><b>PD_PRINTSETUP</b></dt>
+    ///<dt>0x00000040</dt> </dl> </td> <td width="60%"> Causes the system to display the <b>Print Setup</b> dialog box
+    ///rather than the <b>Print</b> dialog box. </td> </tr> <tr> <td width="40%"><a id="PD_PRINTTOFILE"></a><a
+    ///id="pd_printtofile"></a><dl> <dt><b>PD_PRINTTOFILE</b></dt> <dt>0x00000020</dt> </dl> </td> <td width="60%"> If
+    ///this flag is set, the <b>Print to File</b> check box is selected. If this flag is set when the PrintDlg function
+    ///returns, the offset indicated by the <b>wOutputOffset</b> member of the DEVNAMES structure contains the string
+    ///"FILE:". When you call the StartDoc function to start the printing operation, specify this "FILE:" string in the
+    ///<b>lpszOutput</b> member of the DOCINFO structure. Specifying this string causes the print subsystem to query the
+    ///user for the name of the output file. </td> </tr> <tr> <td width="40%"><a id="PD_RETURNDC"></a><a
+    ///id="pd_returndc"></a><dl> <dt><b>PD_RETURNDC</b></dt> <dt>0x00000100</dt> </dl> </td> <td width="60%"> Causes
+    ///PrintDlg to return a device context matching the selections the user made in the dialog box. The device context
+    ///is returned in <b>hDC</b>. </td> </tr> <tr> <td width="40%"><a id="PD_RETURNDEFAULT"></a><a
+    ///id="pd_returndefault"></a><dl> <dt><b>PD_RETURNDEFAULT</b></dt> <dt>0x00000400</dt> </dl> </td> <td width="60%">
+    ///If this flag is set, the PrintDlg function does not display the dialog box. Instead, it sets the <b>hDevNames</b>
+    ///and <b>hDevMode</b> members to handles to DEVMODE and DEVNAMES structures that are initialized for the system
+    ///default printer. Both <b>hDevNames</b> and <b>hDevMode</b> must be <b>NULL</b>, or <b>PrintDlg</b> returns an
+    ///error. </td> </tr> <tr> <td width="40%"><a id="PD_RETURNIC"></a><a id="pd_returnic"></a><dl>
+    ///<dt><b>PD_RETURNIC</b></dt> <dt>0x00000200</dt> </dl> </td> <td width="60%"> Similar to the <b>PD_RETURNDC</b>
+    ///flag, except this flag returns an information context rather than a device context. If neither <b>PD_RETURNDC</b>
+    ///nor <b>PD_RETURNIC</b> is specified, <b>hDC</b> is undefined on output. </td> </tr> <tr> <td width="40%"><a
+    ///id="PD_SELECTION"></a><a id="pd_selection"></a><dl> <dt><b>PD_SELECTION</b></dt> <dt>0x00000001</dt> </dl> </td>
+    ///<td width="60%"> If this flag is set, the <b>Selection</b> radio button is selected. If neither
+    ///<b>PD_PAGENUMS</b> nor <b>PD_SELECTION</b> is set, the <b>All</b> radio button is selected. </td> </tr> <tr> <td
+    ///width="40%"><a id="PD_SHOWHELP"></a><a id="pd_showhelp"></a><dl> <dt><b>PD_SHOWHELP</b></dt> <dt>0x00000800</dt>
+    ///</dl> </td> <td width="60%"> Causes the dialog box to display the <b>Help</b> button. The <b>hwndOwner</b> member
+    ///must specify the window to receive the HELPMSGSTRING registered messages that the dialog box sends when the user
+    ///clicks the <b>Help</b> button. </td> </tr> <tr> <td width="40%"><a id="PD_USEDEVMODECOPIES"></a><a
+    ///id="pd_usedevmodecopies"></a><dl> <dt><b>PD_USEDEVMODECOPIES</b></dt> <dt>0x00040000</dt> </dl> </td> <td
+    ///width="60%"> Same as <b>PD_USEDEVMODECOPIESANDCOLLATE</b>. </td> </tr> <tr> <td width="40%"><a
+    ///id="PD_USEDEVMODECOPIESANDCOLLATE"></a><a id="pd_usedevmodecopiesandcollate"></a><dl>
+    ///<dt><b>PD_USEDEVMODECOPIESANDCOLLATE</b></dt> <dt>0x00040000</dt> </dl> </td> <td width="60%"> This flag
+    ///indicates whether your application supports multiple copies and collation. Set this flag on input to indicate
+    ///that your application does not support multiple copies and collation. In this case, the <b>nCopies</b> member of
+    ///the <b>PRINTDLG</b> structure always returns 1, and <b>PD_COLLATE</b> is never set in the <b>Flags</b> member. If
+    ///this flag is not set, the application is responsible for printing and collating multiple copies. In this case,
+    ///the <b>nCopies</b> member of the <b>PRINTDLG</b> structure indicates the number of copies the user wants to
+    ///print, and the <b>PD_COLLATE</b> flag in the <b>Flags</b> member indicates whether the user wants collation.
+    ///Regardless of whether this flag is set, an application can determine from <b>nCopies</b> and <b>PD_COLLATE</b>
+    ///how many copies to render and whether to print them collated. If this flag is set and the printer driver does not
+    ///support multiple copies, the <b>Copies</b> edit control is disabled. Similarly, if this flag is set and the
+    ///printer driver does not support collation, the <b>Collate</b> check box is disabled. The <b>dmCopies</b> and
+    ///<b>dmCollate</b> members of the DEVMODE structure contain the copies and collate information used by the printer
+    ///driver. If this flag is set and the printer driver supports multiple copies, the <b>dmCopies</b> member indicates
+    ///the number of copies requested by the user. If this flag is set and the printer driver supports collation, the
+    ///<b>dmCollate</b> member of the <b>DEVMODE</b> structure indicates whether the user wants collation. If this flag
+    ///is not set, the <b>dmCopies</b> member always returns 1, and the <b>dmCollate</b> member is always zero. <b>Known
+    ///issue on Windows 2000/XP/2003:</b> If this flag is not set before calling PrintDlg, <b>PrintDlg</b> might swap
+    ///<b>nCopies</b> and <b>dmCopies</b> values when it returns. The workaround for this issue is use <b>dmCopies</b>
+    ///if its value is larger than 1, else, use <b>nCopies</b>, for you to to get the actual number of copies to be
+    ///printed when <b>PrintDlg</b> returns. </td> </tr> </table> To ensure that PrintDlg or PrintDlgEx returns the
+    ///correct values in the <b>dmCopies</b> and <b>dmCollate</b> members of the DEVMODE structure, set
+    ///<b>PD_RETURNDC</b> = <b>TRUE</b> and <b>PD_USEDEVMODECOPIESANDCOLLATE</b> = <b>TRUE</b>. In so doing, the
+    ///<b>nCopies</b> member of the <b>PRINTDLG</b> structure is always 1 and <b>PD_COLLATE</b> is always <b>FALSE</b>.
+    ///To ensure that PrintDlg or PrintDlgEx returns the correct values in <b>nCopies</b> and <b>PD_COLLATE</b>, set
+    ///<b>PD_RETURNDC</b> = <b>TRUE</b> and <b>PD_USEDEVMODECOPIESANDCOLLATE</b> = <b>FALSE</b>. In so doing,
+    ///<b>dmCopies</b> is always 1 and <b>dmCollate</b> is always <b>FALSE</b>. On Windows Vista and Windows 7, when you
+    ///call PrintDlg or PrintDlgEx with <b>PD_RETURNDC</b> set to <b>TRUE</b> and <b>PD_USEDEVMODECOPIESANDCOLLATE</b>
+    ///set to <b>FALSE</b>, the <b>PrintDlg</b> or <b>PrintDlgEx</b> function sets the number of copies in the
+    ///<b>nCopies</b> member of the <b>PRINTDLG</b> structure, and it sets the number of copies in the structure
+    ///represented by the hDC member of the <b>PRINTDLG</b> structure. When making calls to GDI, you must ignore the
+    ///value of <b>nCopies</b>, consider the value as 1, and use the returned hDC to avoid printing duplicate copies.
+    uint            Flags;
+    ///Type: <b>WORD</b> The initial value for the starting page edit control. When PrintDlg returns, <b>nFromPage</b>
+    ///is the starting page specified by the user. If the <b>Pages</b> radio button is selected when the user clicks the
+    ///<b>Okay</b> button, <b>PrintDlg</b> sets the <b>PD_PAGENUMS</b> flag and does not return until the user enters a
+    ///starting page value that is within the minimum to maximum page range. If the input value for either
+    ///<b>nFromPage</b> or <b>nToPage</b> is outside the minimum/maximum range, PrintDlg returns an error only if the
+    ///<b>PD_PAGENUMS</b> flag is specified; otherwise, it displays the dialog box but changes the out-of-range value to
+    ///the minimum or maximum value.
+    ushort          nFromPage;
+    ///Type: <b>WORD</b> The initial value for the ending page edit control. When PrintDlg returns, <b>nToPage</b> is
+    ///the ending page specified by the user. If the <b>Pages</b> radio button is selected when the use clicks the
+    ///<b>Okay</b> button, <b>PrintDlg</b> sets the <b>PD_PAGENUMS</b> flag and does not return until the user enters an
+    ///ending page value that is within the minimum to maximum page range.
+    ushort          nToPage;
+    ///Type: <b>WORD</b> The minimum value for the page range specified in the <b>From</b> and <b>To</b> page edit
+    ///controls. If <b>nMinPage</b> equals <b>nMaxPage</b>, the <b>Pages</b> radio button and the starting and ending
+    ///page edit controls are disabled.
+    ushort          nMinPage;
+    ///Type: <b>WORD</b> The maximum value for the page range specified in the <b>From</b> and <b>To</b> page edit
+    ///controls.
+    ushort          nMaxPage;
+    ///Type: <b>WORD</b> The initial number of copies for the <b>Copies</b> edit control if <b>hDevMode</b> is
+    ///<b>NULL</b>; otherwise, the <b>dmCopies</b> member of the DEVMODE structure contains the initial value. When
+    ///PrintDlg returns, <b>nCopies</b> contains the actual number of copies to print. This value depends on whether the
+    ///application or the printer driver is responsible for printing multiple copies. If the
+    ///<b>PD_USEDEVMODECOPIESANDCOLLATE</b> flag is set in the <b>Flags</b> member, <b>nCopies</b> is always 1 on
+    ///return, and the printer driver is responsible for printing multiple copies. If the flag is not set, the
+    ///application is responsible for printing the number of copies specified by <b>nCopies</b>. For more information,
+    ///see the description of the <b>PD_USEDEVMODECOPIESANDCOLLATE</b> flag.
+    ushort          nCopies;
+    ///Type: <b>HINSTANCE</b> If the <b>PD_ENABLEPRINTTEMPLATE</b> or <b>PD_ENABLESETUPTEMPLATE</b> flag is set in the
+    ///<b>Flags</b> member, <b>hInstance</b> is a handle to the application or module instance that contains the dialog
+    ///box template named by the <b>lpPrintTemplateName</b> or <b>lpSetupTemplateName</b> member.
+    HINSTANCE       hInstance;
+    ///Type: <b>LPARAM</b> Application-defined data that the system passes to the hook procedure identified by the
+    ///<b>lpfnPrintHook</b> or <b>lpfnSetupHook</b> member. When the system sends the WM_INITDIALOG message to the hook
+    ///procedure, the message's <i>lParam</i> parameter is a pointer to the <b>PRINTDLG</b> structure specified when the
+    ///dialog was created. The hook procedure can use this pointer to get the <b>lCustData</b> value.
+    LPARAM          lCustData;
+    ///Type: <b>LPPRINTHOOKPROC</b> A pointer to a PrintHookProc hook procedure that can process messages intended for
+    ///the <b>Print</b> dialog box. This member is ignored unless the <b>PD_ENABLEPRINTHOOK</b> flag is set in the
+    ///<b>Flags</b> member.
+    LPPRINTHOOKPROC lpfnPrintHook;
+    ///Type: <b>LPSETUPHOOKPROC</b> A pointer to a SetupHookProc hook procedure that can process messages intended for
+    ///the <b>Print Setup</b> dialog box. This member is ignored unless the <b>PD_ENABLESETUPHOOK</b> flag is set in the
+    ///<b>Flags</b> member.
+    LPSETUPHOOKPROC lpfnSetupHook;
+    ///Type: <b>LPCTSTR</b> The name of the dialog box template resource in the module identified by the
+    ///<b>hInstance</b> member. This template replaces the default <b>Print</b> dialog box template. This member is
+    ///ignored unless the <b>PD_ENABLEPRINTTEMPLATE</b> flag is set in the <b>Flags</b> member.
+    const(PSTR)     lpPrintTemplateName;
+    ///Type: <b>LPCTSTR</b> The name of the dialog box template resource in the module identified by the
+    ///<b>hInstance</b> member. This template replaces the default <b>Print Setup</b> dialog box template. This member
+    ///is ignored unless the <b>PD_ENABLESETUPTEMPLATE</b> flag is set in the <b>Flags</b> member.
+    const(PSTR)     lpSetupTemplateName;
+    ///Type: <b>HGLOBAL</b> If the <b>PD_ENABLEPRINTTEMPLATEHANDLE</b> flag is set in the <b>Flags</b> member,
+    ///<b>hPrintTemplate</b> is a handle to a memory object containing a dialog box template. This template replaces the
+    ///default <b>Print</b> dialog box template.
+    ptrdiff_t       hPrintTemplate;
+    ///Type: <b>HGLOBAL</b> If the <b>PD_ENABLESETUPTEMPLATEHANDLE</b> flag is set in the <b>Flags</b> member,
+    ///<b>hSetupTemplate</b> is a handle to a memory object containing a dialog box template. This template replaces the
+    ///default <b>Print Setup</b> dialog box template.
+    ptrdiff_t       hSetupTemplate;
+}
+
+///Contains information that the PrintDlg function uses to initialize the Print Dialog Box. After the user closes the
+///dialog box, the system uses this structure to return information about the user's selections.
+struct PRINTDLGW
+{
+align (1):
+    ///Type: <b>DWORD</b> The structure size, in bytes.
+    uint            lStructSize;
+    ///Type: <b>HWND</b> A handle to the window that owns the dialog box. This member can be any valid window handle, or
+    ///it can be <b>NULL</b> if the dialog box has no owner.
+    HWND            hwndOwner;
+    ///Type: <b>HGLOBAL</b> A handle to a movable global memory object that contains a DEVMODE structure. If
+    ///<b>hDevMode</b> is not <b>NULL</b> on input, you must allocate a movable block of memory for the <b>DEVMODE</b>
+    ///structure and initialize its members. The PrintDlg function uses the input data to initialize the controls in the
+    ///dialog box. When <b>PrintDlg</b> returns, the <b>DEVMODE</b> members indicate the user's input. If
+    ///<b>hDevMode</b> is <b>NULL</b> on input, PrintDlg allocates memory for the DEVMODE structure, initializes its
+    ///members to indicate the user's input, and returns a handle that identifies it. If the device driver for the
+    ///specified printer does not support extended device modes, <b>hDevMode</b> is <b>NULL</b> when PrintDlg returns.
+    ///If the device name (specified by the <b>dmDeviceName</b> member of the DEVMODE structure) does not appear in the
+    ///[devices] section of WIN.INI, PrintDlg returns an error. For more information about the <b>hDevMode</b> and
+    ///<b>hDevNames</b> members, see the Remarks section at the end of this topic.
+    ptrdiff_t       hDevMode;
+    ///Type: <b>HGLOBAL</b> A handle to a movable global memory object that contains a DEVNAMES structure. If
+    ///<b>hDevNames</b> is not <b>NULL</b> on input, you must allocate a movable block of memory for the <b>DEVNAMES</b>
+    ///structure and initialize its members. The PrintDlg function uses the input data to initialize the controls in the
+    ///dialog box. When <b>PrintDlg</b> returns, the <b>DEVNAMES</b> members contain information for the printer chosen
+    ///by the user. You can use this information to create a device context or an information context. The
+    ///<b>hDevNames</b> member can be <b>NULL</b>, in which case, PrintDlg allocates memory for the DEVNAMES structure,
+    ///initializes its members to indicate the user's input, and returns a handle that identifies it. For more
+    ///information about the <b>hDevMode</b> and <b>hDevNames</b> members, see the Remarks section at the end of this
+    ///topic.
+    ptrdiff_t       hDevNames;
+    ///Type: <b>HDC</b> A handle to a device context or an information context, depending on whether the <b>Flags</b>
+    ///member specifies the <b>PD_RETURNDC</b> or <b>PC_RETURNIC</b> flag. If neither flag is specified, the value of
+    ///this member is undefined. If both flags are specified, <b>PD_RETURNDC</b> has priority.
+    HDC             hDC;
+    ///Type: <b>DWORD</b> Initializes the <b>Print</b> dialog box. When the dialog box returns, it sets these flags to
+    ///indicate the user's input. This member can be one or more of the following values. <table> <tr> <th>Value</th>
+    ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="PD_ALLPAGES"></a><a id="pd_allpages"></a><dl>
+    ///<dt><b>PD_ALLPAGES</b></dt> <dt>0x00000000</dt> </dl> </td> <td width="60%"> The default flag that indicates that
+    ///the <b>All</b> radio button is initially selected. This flag is used as a placeholder to indicate that the
+    ///<b>PD_PAGENUMS</b> and <b>PD_SELECTION</b> flags are not specified. </td> </tr> <tr> <td width="40%"><a
+    ///id="PD_COLLATE"></a><a id="pd_collate"></a><dl> <dt><b>PD_COLLATE</b></dt> <dt>0x00000010</dt> </dl> </td> <td
+    ///width="60%"> If this flag is set, the <b>Collate</b> check box is selected. If this flag is set when the PrintDlg
+    ///function returns, the application must simulate collation of multiple copies. For more information, see the
+    ///description of the <b>PD_USEDEVMODECOPIESANDCOLLATE</b> flag. See <b>PD_NOPAGENUMS</b>. </td> </tr> <tr> <td
+    ///width="40%"><a id="PD_DISABLEPRINTTOFILE"></a><a id="pd_disableprinttofile"></a><dl>
+    ///<dt><b>PD_DISABLEPRINTTOFILE</b></dt> <dt>0x00080000</dt> </dl> </td> <td width="60%"> Disables the <b>Print to
+    ///File</b> check box. </td> </tr> <tr> <td width="40%"><a id="PD_ENABLEPRINTHOOK"></a><a
+    ///id="pd_enableprinthook"></a><dl> <dt><b>PD_ENABLEPRINTHOOK</b></dt> <dt>0x00001000</dt> </dl> </td> <td
+    ///width="60%"> Enables the hook procedure specified in the <b>lpfnPrintHook</b> member. This enables the hook
+    ///procedure for the <b>Print</b> dialog box. </td> </tr> <tr> <td width="40%"><a id="PD_ENABLEPRINTTEMPLATE"></a><a
+    ///id="pd_enableprinttemplate"></a><dl> <dt><b>PD_ENABLEPRINTTEMPLATE</b></dt> <dt>0x00004000</dt> </dl> </td> <td
+    ///width="60%"> Indicates that the <b>hInstance</b> and <b>lpPrintTemplateName</b> members specify a replacement for
+    ///the default <b>Print</b> dialog box template. </td> </tr> <tr> <td width="40%"><a
+    ///id="PD_ENABLEPRINTTEMPLATEHANDLE"></a><a id="pd_enableprinttemplatehandle"></a><dl>
+    ///<dt><b>PD_ENABLEPRINTTEMPLATEHANDLE</b></dt> <dt>0x00010000</dt> </dl> </td> <td width="60%"> Indicates that the
+    ///<b>hPrintTemplate</b> member identifies a data block that contains a preloaded dialog box template. This template
+    ///replaces the default template for the <b>Print</b> dialog box. The system ignores the <b>lpPrintTemplateName</b>
+    ///member if this flag is specified. </td> </tr> <tr> <td width="40%"><a id="PD_ENABLESETUPHOOK"></a><a
+    ///id="pd_enablesetuphook"></a><dl> <dt><b>PD_ENABLESETUPHOOK</b></dt> <dt>0x00002000</dt> </dl> </td> <td
+    ///width="60%"> Enables the hook procedure specified in the <b>lpfnSetupHook</b> member. This enables the hook
+    ///procedure for the <b>Print Setup</b> dialog box. </td> </tr> <tr> <td width="40%"><a
+    ///id="PD_ENABLESETUPTEMPLATE"></a><a id="pd_enablesetuptemplate"></a><dl> <dt><b>PD_ENABLESETUPTEMPLATE</b></dt>
+    ///<dt>0x00008000</dt> </dl> </td> <td width="60%"> Indicates that the <b>hInstance</b> and
+    ///<b>lpSetupTemplateName</b> members specify a replacement for the default <b>Print Setup</b> dialog box template.
+    ///</td> </tr> <tr> <td width="40%"><a id="PD_ENABLESETUPTEMPLATEHANDLE"></a><a
+    ///id="pd_enablesetuptemplatehandle"></a><dl> <dt><b>PD_ENABLESETUPTEMPLATEHANDLE</b></dt> <dt>0x00020000</dt> </dl>
+    ///</td> <td width="60%"> Indicates that the <b>hSetupTemplate</b> member identifies a data block that contains a
+    ///preloaded dialog box template. This template replaces the default template for the <b>Print Setup</b> dialog box.
+    ///The system ignores the <b>lpSetupTemplateName</b> member if this flag is specified. </td> </tr> <tr> <td
+    ///width="40%"><a id="PD_HIDEPRINTTOFILE"></a><a id="pd_hideprinttofile"></a><dl> <dt><b>PD_HIDEPRINTTOFILE</b></dt>
+    ///<dt>0x00100000</dt> </dl> </td> <td width="60%"> Hides the <b>Print to File</b> check box. </td> </tr> <tr> <td
+    ///width="40%"><a id="PD_NONETWORKBUTTON"></a><a id="pd_nonetworkbutton"></a><dl> <dt><b>PD_NONETWORKBUTTON</b></dt>
+    ///<dt>0x00200000</dt> </dl> </td> <td width="60%"> Hides and disables the <b>Network</b> button. </td> </tr> <tr>
+    ///<td width="40%"><a id="PD_NOPAGENUMS"></a><a id="pd_nopagenums"></a><dl> <dt><b>PD_NOPAGENUMS</b></dt>
+    ///<dt>0x00000008</dt> </dl> </td> <td width="60%"> Disables the <b>Pages</b> radio button and the associated edit
+    ///controls. Also, it causes the <b>Collate</b> check box to appear in the dialog. </td> </tr> <tr> <td
+    ///width="40%"><a id="PD_NOSELECTION"></a><a id="pd_noselection"></a><dl> <dt><b>PD_NOSELECTION</b></dt>
+    ///<dt>0x00000004</dt> </dl> </td> <td width="60%"> Disables the <b>Selection</b> radio button. </td> </tr> <tr> <td
+    ///width="40%"><a id="PD_NOWARNING"></a><a id="pd_nowarning"></a><dl> <dt><b>PD_NOWARNING</b></dt>
+    ///<dt>0x00000080</dt> </dl> </td> <td width="60%"> Prevents the warning message from being displayed when there is
+    ///no default printer. </td> </tr> <tr> <td width="40%"><a id="PD_PAGENUMS"></a><a id="pd_pagenums"></a><dl>
+    ///<dt><b>PD_PAGENUMS</b></dt> <dt>0x00000002</dt> </dl> </td> <td width="60%"> If this flag is set, the
+    ///<b>Pages</b> radio button is selected. If this flag is set when the PrintDlg function returns, the
+    ///<b>nFromPage</b> and <b>nToPage</b> members indicate the starting and ending pages specified by the user. </td>
+    ///</tr> <tr> <td width="40%"><a id="PD_PRINTSETUP"></a><a id="pd_printsetup"></a><dl> <dt><b>PD_PRINTSETUP</b></dt>
+    ///<dt>0x00000040</dt> </dl> </td> <td width="60%"> Causes the system to display the <b>Print Setup</b> dialog box
+    ///rather than the <b>Print</b> dialog box. </td> </tr> <tr> <td width="40%"><a id="PD_PRINTTOFILE"></a><a
+    ///id="pd_printtofile"></a><dl> <dt><b>PD_PRINTTOFILE</b></dt> <dt>0x00000020</dt> </dl> </td> <td width="60%"> If
+    ///this flag is set, the <b>Print to File</b> check box is selected. If this flag is set when the PrintDlg function
+    ///returns, the offset indicated by the <b>wOutputOffset</b> member of the DEVNAMES structure contains the string
+    ///"FILE:". When you call the StartDoc function to start the printing operation, specify this "FILE:" string in the
+    ///<b>lpszOutput</b> member of the DOCINFO structure. Specifying this string causes the print subsystem to query the
+    ///user for the name of the output file. </td> </tr> <tr> <td width="40%"><a id="PD_RETURNDC"></a><a
+    ///id="pd_returndc"></a><dl> <dt><b>PD_RETURNDC</b></dt> <dt>0x00000100</dt> </dl> </td> <td width="60%"> Causes
+    ///PrintDlg to return a device context matching the selections the user made in the dialog box. The device context
+    ///is returned in <b>hDC</b>. </td> </tr> <tr> <td width="40%"><a id="PD_RETURNDEFAULT"></a><a
+    ///id="pd_returndefault"></a><dl> <dt><b>PD_RETURNDEFAULT</b></dt> <dt>0x00000400</dt> </dl> </td> <td width="60%">
+    ///If this flag is set, the PrintDlg function does not display the dialog box. Instead, it sets the <b>hDevNames</b>
+    ///and <b>hDevMode</b> members to handles to DEVMODE and DEVNAMES structures that are initialized for the system
+    ///default printer. Both <b>hDevNames</b> and <b>hDevMode</b> must be <b>NULL</b>, or <b>PrintDlg</b> returns an
+    ///error. </td> </tr> <tr> <td width="40%"><a id="PD_RETURNIC"></a><a id="pd_returnic"></a><dl>
+    ///<dt><b>PD_RETURNIC</b></dt> <dt>0x00000200</dt> </dl> </td> <td width="60%"> Similar to the <b>PD_RETURNDC</b>
+    ///flag, except this flag returns an information context rather than a device context. If neither <b>PD_RETURNDC</b>
+    ///nor <b>PD_RETURNIC</b> is specified, <b>hDC</b> is undefined on output. </td> </tr> <tr> <td width="40%"><a
+    ///id="PD_SELECTION"></a><a id="pd_selection"></a><dl> <dt><b>PD_SELECTION</b></dt> <dt>0x00000001</dt> </dl> </td>
+    ///<td width="60%"> If this flag is set, the <b>Selection</b> radio button is selected. If neither
+    ///<b>PD_PAGENUMS</b> nor <b>PD_SELECTION</b> is set, the <b>All</b> radio button is selected. </td> </tr> <tr> <td
+    ///width="40%"><a id="PD_SHOWHELP"></a><a id="pd_showhelp"></a><dl> <dt><b>PD_SHOWHELP</b></dt> <dt>0x00000800</dt>
+    ///</dl> </td> <td width="60%"> Causes the dialog box to display the <b>Help</b> button. The <b>hwndOwner</b> member
+    ///must specify the window to receive the HELPMSGSTRING registered messages that the dialog box sends when the user
+    ///clicks the <b>Help</b> button. </td> </tr> <tr> <td width="40%"><a id="PD_USEDEVMODECOPIES"></a><a
+    ///id="pd_usedevmodecopies"></a><dl> <dt><b>PD_USEDEVMODECOPIES</b></dt> <dt>0x00040000</dt> </dl> </td> <td
+    ///width="60%"> Same as <b>PD_USEDEVMODECOPIESANDCOLLATE</b>. </td> </tr> <tr> <td width="40%"><a
+    ///id="PD_USEDEVMODECOPIESANDCOLLATE"></a><a id="pd_usedevmodecopiesandcollate"></a><dl>
+    ///<dt><b>PD_USEDEVMODECOPIESANDCOLLATE</b></dt> <dt>0x00040000</dt> </dl> </td> <td width="60%"> This flag
+    ///indicates whether your application supports multiple copies and collation. Set this flag on input to indicate
+    ///that your application does not support multiple copies and collation. In this case, the <b>nCopies</b> member of
+    ///the <b>PRINTDLG</b> structure always returns 1, and <b>PD_COLLATE</b> is never set in the <b>Flags</b> member. If
+    ///this flag is not set, the application is responsible for printing and collating multiple copies. In this case,
+    ///the <b>nCopies</b> member of the <b>PRINTDLG</b> structure indicates the number of copies the user wants to
+    ///print, and the <b>PD_COLLATE</b> flag in the <b>Flags</b> member indicates whether the user wants collation.
+    ///Regardless of whether this flag is set, an application can determine from <b>nCopies</b> and <b>PD_COLLATE</b>
+    ///how many copies to render and whether to print them collated. If this flag is set and the printer driver does not
+    ///support multiple copies, the <b>Copies</b> edit control is disabled. Similarly, if this flag is set and the
+    ///printer driver does not support collation, the <b>Collate</b> check box is disabled. The <b>dmCopies</b> and
+    ///<b>dmCollate</b> members of the DEVMODE structure contain the copies and collate information used by the printer
+    ///driver. If this flag is set and the printer driver supports multiple copies, the <b>dmCopies</b> member indicates
+    ///the number of copies requested by the user. If this flag is set and the printer driver supports collation, the
+    ///<b>dmCollate</b> member of the <b>DEVMODE</b> structure indicates whether the user wants collation. If this flag
+    ///is not set, the <b>dmCopies</b> member always returns 1, and the <b>dmCollate</b> member is always zero. <b>Known
+    ///issue on Windows 2000/XP/2003:</b> If this flag is not set before calling PrintDlg, <b>PrintDlg</b> might swap
+    ///<b>nCopies</b> and <b>dmCopies</b> values when it returns. The workaround for this issue is use <b>dmCopies</b>
+    ///if its value is larger than 1, else, use <b>nCopies</b>, for you to to get the actual number of copies to be
+    ///printed when <b>PrintDlg</b> returns. </td> </tr> </table> To ensure that PrintDlg or PrintDlgEx returns the
+    ///correct values in the <b>dmCopies</b> and <b>dmCollate</b> members of the DEVMODE structure, set
+    ///<b>PD_RETURNDC</b> = <b>TRUE</b> and <b>PD_USEDEVMODECOPIESANDCOLLATE</b> = <b>TRUE</b>. In so doing, the
+    ///<b>nCopies</b> member of the <b>PRINTDLG</b> structure is always 1 and <b>PD_COLLATE</b> is always <b>FALSE</b>.
+    ///To ensure that PrintDlg or PrintDlgEx returns the correct values in <b>nCopies</b> and <b>PD_COLLATE</b>, set
+    ///<b>PD_RETURNDC</b> = <b>TRUE</b> and <b>PD_USEDEVMODECOPIESANDCOLLATE</b> = <b>FALSE</b>. In so doing,
+    ///<b>dmCopies</b> is always 1 and <b>dmCollate</b> is always <b>FALSE</b>. On Windows Vista and Windows 7, when you
+    ///call PrintDlg or PrintDlgEx with <b>PD_RETURNDC</b> set to <b>TRUE</b> and <b>PD_USEDEVMODECOPIESANDCOLLATE</b>
+    ///set to <b>FALSE</b>, the <b>PrintDlg</b> or <b>PrintDlgEx</b> function sets the number of copies in the
+    ///<b>nCopies</b> member of the <b>PRINTDLG</b> structure, and it sets the number of copies in the structure
+    ///represented by the hDC member of the <b>PRINTDLG</b> structure. When making calls to GDI, you must ignore the
+    ///value of <b>nCopies</b>, consider the value as 1, and use the returned hDC to avoid printing duplicate copies.
+    uint            Flags;
+    ///Type: <b>WORD</b> The initial value for the starting page edit control. When PrintDlg returns, <b>nFromPage</b>
+    ///is the starting page specified by the user. If the <b>Pages</b> radio button is selected when the user clicks the
+    ///<b>Okay</b> button, <b>PrintDlg</b> sets the <b>PD_PAGENUMS</b> flag and does not return until the user enters a
+    ///starting page value that is within the minimum to maximum page range. If the input value for either
+    ///<b>nFromPage</b> or <b>nToPage</b> is outside the minimum/maximum range, PrintDlg returns an error only if the
+    ///<b>PD_PAGENUMS</b> flag is specified; otherwise, it displays the dialog box but changes the out-of-range value to
+    ///the minimum or maximum value.
+    ushort          nFromPage;
+    ///Type: <b>WORD</b> The initial value for the ending page edit control. When PrintDlg returns, <b>nToPage</b> is
+    ///the ending page specified by the user. If the <b>Pages</b> radio button is selected when the use clicks the
+    ///<b>Okay</b> button, <b>PrintDlg</b> sets the <b>PD_PAGENUMS</b> flag and does not return until the user enters an
+    ///ending page value that is within the minimum to maximum page range.
+    ushort          nToPage;
+    ///Type: <b>WORD</b> The minimum value for the page range specified in the <b>From</b> and <b>To</b> page edit
+    ///controls. If <b>nMinPage</b> equals <b>nMaxPage</b>, the <b>Pages</b> radio button and the starting and ending
+    ///page edit controls are disabled.
+    ushort          nMinPage;
+    ///Type: <b>WORD</b> The maximum value for the page range specified in the <b>From</b> and <b>To</b> page edit
+    ///controls.
+    ushort          nMaxPage;
+    ///Type: <b>WORD</b> The initial number of copies for the <b>Copies</b> edit control if <b>hDevMode</b> is
+    ///<b>NULL</b>; otherwise, the <b>dmCopies</b> member of the DEVMODE structure contains the initial value. When
+    ///PrintDlg returns, <b>nCopies</b> contains the actual number of copies to print. This value depends on whether the
+    ///application or the printer driver is responsible for printing multiple copies. If the
+    ///<b>PD_USEDEVMODECOPIESANDCOLLATE</b> flag is set in the <b>Flags</b> member, <b>nCopies</b> is always 1 on
+    ///return, and the printer driver is responsible for printing multiple copies. If the flag is not set, the
+    ///application is responsible for printing the number of copies specified by <b>nCopies</b>. For more information,
+    ///see the description of the <b>PD_USEDEVMODECOPIESANDCOLLATE</b> flag.
+    ushort          nCopies;
+    ///Type: <b>HINSTANCE</b> If the <b>PD_ENABLEPRINTTEMPLATE</b> or <b>PD_ENABLESETUPTEMPLATE</b> flag is set in the
+    ///<b>Flags</b> member, <b>hInstance</b> is a handle to the application or module instance that contains the dialog
+    ///box template named by the <b>lpPrintTemplateName</b> or <b>lpSetupTemplateName</b> member.
+    HINSTANCE       hInstance;
+    ///Type: <b>LPARAM</b> Application-defined data that the system passes to the hook procedure identified by the
+    ///<b>lpfnPrintHook</b> or <b>lpfnSetupHook</b> member. When the system sends the WM_INITDIALOG message to the hook
+    ///procedure, the message's <i>lParam</i> parameter is a pointer to the <b>PRINTDLG</b> structure specified when the
+    ///dialog was created. The hook procedure can use this pointer to get the <b>lCustData</b> value.
+    LPARAM          lCustData;
+    ///Type: <b>LPPRINTHOOKPROC</b> A pointer to a PrintHookProc hook procedure that can process messages intended for
+    ///the <b>Print</b> dialog box. This member is ignored unless the <b>PD_ENABLEPRINTHOOK</b> flag is set in the
+    ///<b>Flags</b> member.
+    LPPRINTHOOKPROC lpfnPrintHook;
+    ///Type: <b>LPSETUPHOOKPROC</b> A pointer to a SetupHookProc hook procedure that can process messages intended for
+    ///the <b>Print Setup</b> dialog box. This member is ignored unless the <b>PD_ENABLESETUPHOOK</b> flag is set in the
+    ///<b>Flags</b> member.
+    LPSETUPHOOKPROC lpfnSetupHook;
+    ///Type: <b>LPCTSTR</b> The name of the dialog box template resource in the module identified by the
+    ///<b>hInstance</b> member. This template replaces the default <b>Print</b> dialog box template. This member is
+    ///ignored unless the <b>PD_ENABLEPRINTTEMPLATE</b> flag is set in the <b>Flags</b> member.
+    const(PWSTR)    lpPrintTemplateName;
+    ///Type: <b>LPCTSTR</b> The name of the dialog box template resource in the module identified by the
+    ///<b>hInstance</b> member. This template replaces the default <b>Print Setup</b> dialog box template. This member
+    ///is ignored unless the <b>PD_ENABLESETUPTEMPLATE</b> flag is set in the <b>Flags</b> member.
+    const(PWSTR)    lpSetupTemplateName;
+    ///Type: <b>HGLOBAL</b> If the <b>PD_ENABLEPRINTTEMPLATEHANDLE</b> flag is set in the <b>Flags</b> member,
+    ///<b>hPrintTemplate</b> is a handle to a memory object containing a dialog box template. This template replaces the
+    ///default <b>Print</b> dialog box template.
+    ptrdiff_t       hPrintTemplate;
+    ///Type: <b>HGLOBAL</b> If the <b>PD_ENABLESETUPTEMPLATEHANDLE</b> flag is set in the <b>Flags</b> member,
+    ///<b>hSetupTemplate</b> is a handle to a memory object containing a dialog box template. This template replaces the
+    ///default <b>Print Setup</b> dialog box template.
+    ptrdiff_t       hSetupTemplate;
+}
+
+///Represents a range of pages in a print job. A print job can have more than one page range. This information is
+///supplied in the PRINTDLGEX structure when calling the PrintDlgEx function.
+struct PRINTPAGERANGE
+{
+align (1):
+    ///Type: <b>DWORD</b> The first page of the range.
+    uint nFromPage;
+    ///Type: <b>DWORD</b> The last page of the range.
+    uint nToPage;
+}
+
+///Contains information that the PrintDlgEx function uses to initialize the Print property sheet. After the user closes
+///the property sheet, the system uses this structure to return information about the user's selections.
+struct PRINTDLGEXA
+{
+align (1):
+    ///Type: <b>DWORD</b> The structure size, in bytes.
+    uint            lStructSize;
+    ///Type: <b>HWND</b> A handle to the window that owns the property sheet. This member must be a valid window handle;
+    ///it cannot be <b>NULL</b>.
+    HWND            hwndOwner;
+    ///Type: <b>HGLOBAL</b> A handle to a movable global memory object that contains a DEVMODE structure. If
+    ///<b>hDevMode</b> is not <b>NULL</b> on input, you must allocate a movable block of memory for the <b>DEVMODE</b>
+    ///structure and initialize its members. The PrintDlgEx function uses the input data to initialize the controls in
+    ///the property sheet. When <b>PrintDlgEx</b> returns, the <b>DEVMODE</b> members indicate the user's input. If
+    ///<b>hDevMode</b> is <b>NULL</b> on input, PrintDlgEx allocates memory for the DEVMODE structure, initializes its
+    ///members to indicate the user's input, and returns a handle that identifies it. For more information about the
+    ///<b>hDevMode</b> and <b>hDevNames</b> members, see the Remarks section at the end of this topic.
+    ptrdiff_t       hDevMode;
+    ///Type: <b>HGLOBAL</b> A handle to a movable global memory object that contains a DEVNAMES structure. If
+    ///<b>hDevNames</b> is not <b>NULL</b> on input, you must allocate a movable block of memory for the <b>DEVNAMES</b>
+    ///structure and initialize its members. The PrintDlgEx function uses the input data to initialize the controls in
+    ///the property sheet. When <b>PrintDlgEx</b> returns, the <b>DEVNAMES</b> members contain information for the
+    ///printer chosen by the user. You can use this information to create a device context or an information context.
+    ///The <b>hDevNames</b> member can be <b>NULL</b>, in which case, PrintDlgEx allocates memory for the DEVNAMES
+    ///structure, initializes its members to indicate the user's input, and returns a handle that identifies it. For
+    ///more information about the <b>hDevMode</b> and <b>hDevNames</b> members, see the Remarks section at the end of
+    ///this topic.
+    ptrdiff_t       hDevNames;
+    ///Type: <b>HDC</b> A handle to a device context or an information context, depending on whether the <b>Flags</b>
+    ///member specifies the <b>PD_RETURNDC</b> or <b>PC_RETURNIC</b> flag. If neither flag is specified, the value of
+    ///this member is undefined. If both flags are specified, <b>PD_RETURNDC</b> has priority.
+    HDC             hDC;
+    ///Type: <b>DWORD</b> A set of bit flags that you can use to initialize the <b>Print</b> property sheet. When the
+    ///PrintDlgEx function returns, it sets these flags to indicate the user's input. This member can be one or more of
+    ///the following values. To ensure that PrintDlg or PrintDlgEx returns the correct values in the <b>dmCopies</b> and
+    ///<b>dmCollate</b> members of the DEVMODE structure, set <b>PD_RETURNDC</b> = <b>TRUE</b> and
+    ///<b>PD_USEDEVMODECOPIESANDCOLLATE</b> = <b>TRUE</b>. In so doing, the <b>nCopies</b> member of the PRINTDLG
+    ///structure is always 1 and <b>PD_COLLATE</b> is always <b>FALSE</b>. To ensure that PrintDlg or PrintDlgEx returns
+    ///the correct values in <b>nCopies</b> and <b>PD_COLLATE</b>, set <b>PD_RETURNDC</b> = <b>TRUE</b> and
+    ///<b>PD_USEDEVMODECOPIESANDCOLLATE</b> = <b>FALSE</b>. In so doing, <b>dmCopies</b> is always 1 and
+    ///<b>dmCollate</b> is always <b>FALSE</b>. Starting with Windows Vista, when you call PrintDlg or PrintDlgEx with
+    ///<b>PD_RETURNDC</b> set to <b>TRUE</b> and <b>PD_USEDEVMODECOPIESANDCOLLATE</b> set to <b>FALSE</b>, the
+    ///<b>PrintDlg</b> or <b>PrintDlgEx</b> function sets the number of copies in the <b>nCopies</b> member of the
+    ///PRINTDLG structure, and it sets the number of copies in the structure represented by the <b>hDC</b> member of the
+    ///<b>PRINTDLG</b> structure. When making calls to GDI, you must ignore the value of <b>nCopies</b>, consider the
+    ///value as 1, and use the returned <b>hDC</b> to avoid printing duplicate copies. <table> <tr> <th>Value</th>
+    ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="PD_ALLPAGES"></a><a id="pd_allpages"></a><dl>
+    ///<dt><b>PD_ALLPAGES</b></dt> <dt>0x00000000</dt> </dl> </td> <td width="60%"> The default flag that indicates that
+    ///the <b>All</b> radio button is initially selected. This flag is used as a placeholder to indicate that the
+    ///<b>PD_PAGENUMS</b>, <b>PD_SELECTION</b>, and <b>PD_CURRENTPAGE</b> flags are not specified. </td> </tr> <tr> <td
+    ///width="40%"><a id="PD_COLLATE"></a><a id="pd_collate"></a><dl> <dt><b>PD_COLLATE</b></dt> <dt>0x00000010</dt>
+    ///</dl> </td> <td width="60%"> If this flag is set, the <b>Collate</b> check box is selected. If this flag is set
+    ///when the PrintDlgEx function returns, the application must simulate collation of multiple copies. For more
+    ///information, see the description of the <b>PD_USEDEVMODECOPIESANDCOLLATE</b> flag. See <b>PD_NOPAGENUMS</b>.
+    ///</td> </tr> <tr> <td width="40%"><a id="PD_CURRENTPAGE"></a><a id="pd_currentpage"></a><dl>
+    ///<dt><b>PD_CURRENTPAGE</b></dt> <dt>0x00400000</dt> </dl> </td> <td width="60%"> If this flag is set, the
+    ///<b>Current Page</b> radio button is selected. If none of the <b>PD_PAGENUMS</b>, <b>PD_SELECTION</b>, or
+    ///<b>PD_CURRENTPAGE</b> flags is set, the <b>All</b> radio button is selected. </td> </tr> <tr> <td width="40%"><a
+    ///id="PD_DISABLEPRINTTOFILE"></a><a id="pd_disableprinttofile"></a><dl> <dt><b>PD_DISABLEPRINTTOFILE</b></dt>
+    ///<dt>0x00080000</dt> </dl> </td> <td width="60%"> Disables the <b>Print to File</b> check box. </td> </tr> <tr>
+    ///<td width="40%"><a id="PD_ENABLEPRINTTEMPLATE"></a><a id="pd_enableprinttemplate"></a><dl>
+    ///<dt><b>PD_ENABLEPRINTTEMPLATE</b></dt> <dt>0x00004000</dt> </dl> </td> <td width="60%"> Indicates that the
+    ///<b>hInstance</b> and <b>lpPrintTemplateName</b> members specify a replacement for the default dialog box template
+    ///in the lower portion of the <b>General</b> page. The default template contains controls similar to those of the
+    ///<b>Print</b> dialog box. The system uses the specified template to create a window that is a child of the
+    ///<b>General</b> page. </td> </tr> <tr> <td width="40%"><a id="PD_ENABLEPRINTTEMPLATEHANDLE"></a><a
+    ///id="pd_enableprinttemplatehandle"></a><dl> <dt><b>PD_ENABLEPRINTTEMPLATEHANDLE</b></dt> <dt>0x00010000</dt> </dl>
+    ///</td> <td width="60%"> Indicates that the <b>hInstance</b> member identifies a data block that contains a
+    ///preloaded dialog box template. This template replaces the default dialog box template in the lower portion of the
+    ///<b>General</b> page. The system uses the specified template to create a window that is a child of the
+    ///<b>General</b> page. The system ignores the <b>lpPrintTemplateName</b> member if this flag is specified. </td>
+    ///</tr> <tr> <td width="40%"><a id="PD_EXCLUSIONFLAGS"></a><a id="pd_exclusionflags"></a><dl>
+    ///<dt><b>PD_EXCLUSIONFLAGS</b></dt> <dt>0x01000000</dt> </dl> </td> <td width="60%"> Indicates that the
+    ///<b>ExclusionFlags</b> member identifies items to be excluded from the printer driver property pages. If this flag
+    ///is not set, items will be excluded by default from the printer driver property pages. The exclusions prevent the
+    ///duplication of items among the <b>General</b> page, any application-specified pages, and the printer driver
+    ///pages. </td> </tr> <tr> <td width="40%"><a id="PD_HIDEPRINTTOFILE"></a><a id="pd_hideprinttofile"></a><dl>
+    ///<dt><b>PD_HIDEPRINTTOFILE</b></dt> <dt>0x00100000</dt> </dl> </td> <td width="60%"> Hides the <b>Print to
+    ///File</b> check box. </td> </tr> <tr> <td width="40%"><a id="PD_NOCURRENTPAGE"></a><a
+    ///id="pd_nocurrentpage"></a><dl> <dt><b>PD_NOCURRENTPAGE</b></dt> <dt>0x00800000</dt> </dl> </td> <td width="60%">
+    ///Disables the <b>Current Page</b> radio button. </td> </tr> <tr> <td width="40%"><a id="PD_NOPAGENUMS"></a><a
+    ///id="pd_nopagenums"></a><dl> <dt><b>PD_NOPAGENUMS</b></dt> <dt>0x00000008</dt> </dl> </td> <td width="60%">
+    ///Disables the <b>Pages</b> radio button and the associated edit controls. Also, it causes the <b>Collate</b> check
+    ///box to appear in the dialog. </td> </tr> <tr> <td width="40%"><a id="PD_NOSELECTION"></a><a
+    ///id="pd_noselection"></a><dl> <dt><b>PD_NOSELECTION</b></dt> <dt>0x00000004</dt> </dl> </td> <td width="60%">
+    ///Disables the <b>Selection</b> radio button. </td> </tr> <tr> <td width="40%"><a id="PD_NOWARNING"></a><a
+    ///id="pd_nowarning"></a><dl> <dt><b>PD_NOWARNING</b></dt> <dt>0x00000080</dt> </dl> </td> <td width="60%"> Prevents
+    ///the warning message from being displayed when an error occurs. </td> </tr> <tr> <td width="40%"><a
+    ///id="PD_PAGENUMS"></a><a id="pd_pagenums"></a><dl> <dt><b>PD_PAGENUMS</b></dt> <dt>0x00000002</dt> </dl> </td> <td
+    ///width="60%"> If this flag is set, the <b>Pages</b> radio button is selected. If none of the <b>PD_PAGENUMS</b>,
+    ///<b>PD_SELECTION</b>, or <b>PD_CURRENTPAGE</b> flags is set, the <b>All</b> radio button is selected. If this flag
+    ///is set when the PrintDlgEx function returns, the <b>lpPageRanges</b> member indicates the page ranges specified
+    ///by the user. </td> </tr> <tr> <td width="40%"><a id="PD_PRINTTOFILE"></a><a id="pd_printtofile"></a><dl>
+    ///<dt><b>PD_PRINTTOFILE</b></dt> <dt>0x00000020</dt> </dl> </td> <td width="60%"> If this flag is set, the <b>Print
+    ///to File</b> check box is selected. If this flag is set when PrintDlgEx returns, the offset indicated by the
+    ///<b>wOutputOffset</b> member of the DEVNAMES structure contains the string "FILE:". When you call the StartDoc
+    ///function to start the printing operation, specify this "FILE:" string in the <b>lpszOutput</b> member of the
+    ///DOCINFO structure. Specifying this string causes the print subsystem to query the user for the name of the output
+    ///file. </td> </tr> <tr> <td width="40%"><a id="PD_RETURNDC"></a><a id="pd_returndc"></a><dl>
+    ///<dt><b>PD_RETURNDC</b></dt> <dt>0x00000100</dt> </dl> </td> <td width="60%"> Causes PrintDlgEx to return a device
+    ///context matching the selections the user made in the property sheet. The device context is returned in
+    ///<b>hDC</b>. </td> </tr> <tr> <td width="40%"><a id="PD_RETURNDEFAULT"></a><a id="pd_returndefault"></a><dl>
+    ///<dt><b>PD_RETURNDEFAULT</b></dt> <dt>0x00000400</dt> </dl> </td> <td width="60%"> If this flag is set, the
+    ///PrintDlgEx function does not display the property sheet. Instead, it sets the <b>hDevNames</b> and
+    ///<b>hDevMode</b> members to handles to DEVNAMES and DEVMODE structures that are initialized for the system default
+    ///printer. Both <b>hDevNames</b> and <b>hDevMode</b> must be <b>NULL</b>, or <b>PrintDlgEx</b> returns an error.
+    ///</td> </tr> <tr> <td width="40%"><a id="PD_RETURNIC"></a><a id="pd_returnic"></a><dl> <dt><b>PD_RETURNIC</b></dt>
+    ///<dt>0x00000200</dt> </dl> </td> <td width="60%"> Similar to the <b>PD_RETURNDC</b> flag, except this flag returns
+    ///an information context rather than a device context. If neither <b>PD_RETURNDC</b> nor <b>PD_RETURNIC</b> is
+    ///specified, <b>hDC</b> is undefined on output. </td> </tr> <tr> <td width="40%"><a id="PD_SELECTION"></a><a
+    ///id="pd_selection"></a><dl> <dt><b>PD_SELECTION</b></dt> <dt>0x00000001</dt> </dl> </td> <td width="60%"> If this
+    ///flag is set, the <b>Selection</b> radio button is selected. If none of the <b>PD_PAGENUMS</b>,
+    ///<b>PD_SELECTION</b>, or <b>PD_CURRENTPAGE</b> flags is set, the <b>All</b> radio button is selected. </td> </tr>
+    ///<tr> <td width="40%"><a id="PD_USEDEVMODECOPIES"></a><a id="pd_usedevmodecopies"></a><dl>
+    ///<dt><b>PD_USEDEVMODECOPIES</b></dt> <dt>0x00040000</dt> </dl> </td> <td width="60%"> Same as
+    ///<b>PD_USEDEVMODECOPIESANDCOLLATE</b>. </td> </tr> <tr> <td width="40%"><a
+    ///id="PD_USEDEVMODECOPIESANDCOLLATE"></a><a id="pd_usedevmodecopiesandcollate"></a><dl>
+    ///<dt><b>PD_USEDEVMODECOPIESANDCOLLATE</b></dt> <dt>0x00040000</dt> </dl> </td> <td width="60%"> This flag
+    ///indicates whether your application supports multiple copies and collation. Set this flag on input to indicate
+    ///that your application does not support multiple copies and collation. In this case, the <b>nCopies</b> member of
+    ///the <b>PRINTDLGEX</b> structure always returns 1, and <b>PD_COLLATE</b> is never set in the <b>Flags</b> member.
+    ///If this flag is not set, the application is responsible for printing and collating multiple copies. In this case,
+    ///the <b>nCopies</b> member of the <b>PRINTDLGEX</b> structure indicates the number of copies the user wants to
+    ///print, and the <b>PD_COLLATE</b> flag in the <b>Flags</b> member indicates whether the user wants collation.
+    ///Regardless of whether this flag is set, an application can determine from <b>nCopies</b> and <b>PD_COLLATE</b>
+    ///how many copies to render and whether to print them collated. If this flag is set and the printer driver does not
+    ///support multiple copies, the <b>Copies</b> edit control is disabled. Similarly, if this flag is set and the
+    ///printer driver does not support collation, the <b>Collate</b> check box is disabled. The <b>dmCopies</b> and
+    ///<b>dmCollate</b> members of the DEVMODE structure contain the copies and collate information used by the printer
+    ///driver. If this flag is set and the printer driver supports multiple copies, the <b>dmCopies</b> member indicates
+    ///the number of copies requested by the user. If this flag is set and the printer driver supports collation, the
+    ///<b>dmCollate</b> member of the <b>DEVMODE</b> structure indicates whether the user wants collation. If this flag
+    ///is not set, the <b>dmCopies</b> member always returns 1, and the <b>dmCollate</b> member is always zero. In
+    ///Windows versions prior to Windows Vista, if this flag is not set by the calling application and the
+    ///<b>dmCopies</b> member of the DEVMODE structure is greater than 1, use that value for the number of copies;
+    ///otherwise, use the value of the <b>nCopies</b> member of the <b>PRINTDLGEX</b> structure. </td> </tr> <tr> <td
+    ///width="40%"><a id="PD_USELARGETEMPLATE"></a><a id="pd_uselargetemplate"></a><dl>
+    ///<dt><b>PD_USELARGETEMPLATE</b></dt> <dt>0x10000000</dt> </dl> </td> <td width="60%"> Forces the property sheet to
+    ///use a large template for the <b>General</b> page. The larger template provides more space for applications that
+    ///specify a custom template for the lower portion of the <b>General</b> page. </td> </tr> </table>
+    uint            Flags;
+    ///Type: <b>DWORD</b>
+    uint            Flags2;
+    ///Type: <b>DWORD</b> A set of bit flags that can exclude items from the printer driver property pages in the
+    ///<b>Print</b> property sheet. This value is used only if the <b>PD_EXCLUSIONFLAGS</b> flag is set in the
+    ///<b>Flags</b> member. Exclusion flags should be used only if the item to be excluded will be included on either
+    ///the <b>General</b> page or on an application-defined page in the <b>Print</b> property sheet. This member can
+    ///specify the following flag.
+    uint            ExclusionFlags;
+    ///Type: <b>DWORD</b> On input, set this member to the initial number of page ranges specified in the
+    ///<b>lpPageRanges</b> array. When the PrintDlgEx function returns, <b>nPageRanges</b> indicates the number of
+    ///user-specified page ranges stored in the <b>lpPageRanges</b> array. If the <b>PD_NOPAGENUMS</b> flag is
+    ///specified, this value is not valid.
+    uint            nPageRanges;
+    ///Type: <b>DWORD</b> The size, in array elements, of the <b>lpPageRanges</b> buffer. This value indicates the
+    ///maximum number of page ranges that can be stored in the array. If the <b>PD_NOPAGENUMS</b> flag is specified,
+    ///this value is not valid. If the <b>PD_NOPAGENUMS</b> flag is not specified, this value must be greater than zero.
+    uint            nMaxPageRanges;
+    ///Type: <b>LPPRINTPAGERANGE</b> Pointer to a buffer containing an array of PRINTPAGERANGE structures. On input, the
+    ///array contains the initial page ranges to display in the <b>Pages</b> edit control. When the PrintDlgEx function
+    ///returns, the array contains the page ranges specified by the user. If the <b>PD_NOPAGENUMS</b> flag is specified,
+    ///this value is not valid. If the <b>PD_NOPAGENUMS</b> flag is not specified, <b>lpPageRanges</b> must be
+    ///non-<b>NULL</b>.
+    PRINTPAGERANGE* lpPageRanges;
+    ///Type: <b>DWORD</b> The minimum value for the page ranges specified in the <b>Pages</b> edit control. If the
+    ///<b>PD_NOPAGENUMS</b> flag is specified, this value is not valid.
+    uint            nMinPage;
+    ///Type: <b>DWORD</b> The maximum value for the page ranges specified in the <b>Pages</b> edit control. If the
+    ///<b>PD_NOPAGENUMS</b> flag is specified, this value is not valid.
+    uint            nMaxPage;
+    ///Type: <b>DWORD</b> Contains the initial number of copies for the <b>Copies</b> edit control if <b>hDevMode</b> is
+    ///<b>NULL</b>; otherwise, the <b>dmCopies</b> member of the DEVMODE structure contains the initial value. When
+    ///PrintDlgEx returns, <b>nCopies</b> contains the actual number of copies the application must print. This value
+    ///depends on whether the application or the printer driver is responsible for printing multiple copies. If the
+    ///<b>PD_USEDEVMODECOPIESANDCOLLATE</b> flag is set in the <b>Flags</b> member, <b>nCopies</b> is always 1 on
+    ///return, and the printer driver is responsible for printing multiple copies. If the flag is not set, the
+    ///application is responsible for printing the number of copies specified by <b>nCopies</b>. For more information,
+    ///see the description of the <b>PD_USEDEVMODECOPIESANDCOLLATE</b> flag.
+    uint            nCopies;
+    ///Type: <b>HINSTANCE</b> If the <b>PD_ENABLEPRINTTEMPLATE</b> flag is set in the <b>Flags</b> member,
+    ///<b>hInstance</b> is a handle to the application or module instance that contains the dialog box template named by
+    ///the <b>lpPrintTemplateName</b> member. If the <b>PD_ENABLEPRINTTEMPLATEHANDLE</b> flag is set in the <b>Flags</b>
+    ///member, <b>hInstance</b> is a handle to a memory object containing a dialog box template. If neither of the
+    ///template flags is set in the <b>Flags</b> member, <b>hInstance</b> should be <b>NULL</b>.
+    HINSTANCE       hInstance;
+    ///Type: <b>LPCTSTR</b> The name of the dialog box template resource in the module identified by the
+    ///<b>hInstance</b> member. This template replaces the default dialog box template in the lower portion of the
+    ///<b>General</b> page. The default template contains controls similar to those of the <b>Print</b> dialog box. This
+    ///member is ignored unless the PD_ENABLEPRINTTEMPLATE flag is set in the <b>Flags</b> member.
+    const(PSTR)     lpPrintTemplateName;
+    ///Type: <b>LPUNKNOWN</b> A pointer to an application-defined callback object. The object should contain the
+    ///IPrintDialogCallback class to receive messages for the child dialog box in the lower portion of the
+    ///<b>General</b> page. The callback object should also contain the IObjectWithSite class to receive a pointer to
+    ///the IPrintDialogServices interface. The PrintDlgEx function calls IUnknown::QueryInterface on the callback object
+    ///for both <b>IID_IPrintDialogCallback</b> and <b>IID_IObjectWithSite</b> to determine which interfaces are
+    ///supported. If you do not want to retrieve any of the callback information, set <b>lpCallback</b> to <b>NULL</b>.
+    IUnknown        lpCallback;
+    ///Type: <b>DWORD</b> The number of property page handles in the <b>lphPropertyPages</b> array.
+    uint            nPropertyPages;
+    ///Type: <b>HPROPSHEETPAGE*</b> Contains an array of property page handles to add to the <b>Print</b> property
+    ///sheet. The additional property pages follow the <b>General</b> page. Use the CreatePropertySheetPage function to
+    ///create these additional pages. When the PrintDlgEx function returns, all the <b>HPROPSHEETPAGE</b> handles in the
+    ///<b>lphPropertyPages</b> array have been destroyed. If <b>nPropertyPages</b> is zero, <b>lphPropertyPages</b>
+    ///should be <b>NULL</b>.
+    HPROPSHEETPAGE* lphPropertyPages;
+    ///Type: <b>DWORD</b> The property page that is initially displayed. To display the <b>General</b> page, specify
+    ///<b>START_PAGE_GENERAL</b>. Otherwise, specify the zero-based index of a property page in the array specified in
+    ///the <b>lphPropertyPages</b> member. For consistency, it is recommended that the property sheet always be started
+    ///on the <b>General</b> page.
+    uint            nStartPage;
+    ///Type: <b>DWORD</b> On input, set this member to zero. If the PrintDlgEx function returns S_OK,
+    ///<b>dwResultAction</b> contains the outcome of the dialog. If <b>PrintDlgEx</b> returns an error, this member
+    ///should be ignored. The <b>dwResultAction</b> member can be one of the following values.
+    uint            dwResultAction;
+}
+
+///Contains information that the PrintDlgEx function uses to initialize the Print property sheet. After the user closes
+///the property sheet, the system uses this structure to return information about the user's selections.
+struct PRINTDLGEXW
+{
+align (1):
+    ///Type: <b>DWORD</b> The structure size, in bytes.
+    uint            lStructSize;
+    ///Type: <b>HWND</b> A handle to the window that owns the property sheet. This member must be a valid window handle;
+    ///it cannot be <b>NULL</b>.
+    HWND            hwndOwner;
+    ///Type: <b>HGLOBAL</b> A handle to a movable global memory object that contains a DEVMODE structure. If
+    ///<b>hDevMode</b> is not <b>NULL</b> on input, you must allocate a movable block of memory for the <b>DEVMODE</b>
+    ///structure and initialize its members. The PrintDlgEx function uses the input data to initialize the controls in
+    ///the property sheet. When <b>PrintDlgEx</b> returns, the <b>DEVMODE</b> members indicate the user's input. If
+    ///<b>hDevMode</b> is <b>NULL</b> on input, PrintDlgEx allocates memory for the DEVMODE structure, initializes its
+    ///members to indicate the user's input, and returns a handle that identifies it. For more information about the
+    ///<b>hDevMode</b> and <b>hDevNames</b> members, see the Remarks section at the end of this topic.
+    ptrdiff_t       hDevMode;
+    ///Type: <b>HGLOBAL</b> A handle to a movable global memory object that contains a DEVNAMES structure. If
+    ///<b>hDevNames</b> is not <b>NULL</b> on input, you must allocate a movable block of memory for the <b>DEVNAMES</b>
+    ///structure and initialize its members. The PrintDlgEx function uses the input data to initialize the controls in
+    ///the property sheet. When <b>PrintDlgEx</b> returns, the <b>DEVNAMES</b> members contain information for the
+    ///printer chosen by the user. You can use this information to create a device context or an information context.
+    ///The <b>hDevNames</b> member can be <b>NULL</b>, in which case, PrintDlgEx allocates memory for the DEVNAMES
+    ///structure, initializes its members to indicate the user's input, and returns a handle that identifies it. For
+    ///more information about the <b>hDevMode</b> and <b>hDevNames</b> members, see the Remarks section at the end of
+    ///this topic.
+    ptrdiff_t       hDevNames;
+    ///Type: <b>HDC</b> A handle to a device context or an information context, depending on whether the <b>Flags</b>
+    ///member specifies the <b>PD_RETURNDC</b> or <b>PC_RETURNIC</b> flag. If neither flag is specified, the value of
+    ///this member is undefined. If both flags are specified, <b>PD_RETURNDC</b> has priority.
+    HDC             hDC;
+    ///Type: <b>DWORD</b> A set of bit flags that you can use to initialize the <b>Print</b> property sheet. When the
+    ///PrintDlgEx function returns, it sets these flags to indicate the user's input. This member can be one or more of
+    ///the following values. To ensure that PrintDlg or PrintDlgEx returns the correct values in the <b>dmCopies</b> and
+    ///<b>dmCollate</b> members of the DEVMODE structure, set <b>PD_RETURNDC</b> = <b>TRUE</b> and
+    ///<b>PD_USEDEVMODECOPIESANDCOLLATE</b> = <b>TRUE</b>. In so doing, the <b>nCopies</b> member of the PRINTDLG
+    ///structure is always 1 and <b>PD_COLLATE</b> is always <b>FALSE</b>. To ensure that PrintDlg or PrintDlgEx returns
+    ///the correct values in <b>nCopies</b> and <b>PD_COLLATE</b>, set <b>PD_RETURNDC</b> = <b>TRUE</b> and
+    ///<b>PD_USEDEVMODECOPIESANDCOLLATE</b> = <b>FALSE</b>. In so doing, <b>dmCopies</b> is always 1 and
+    ///<b>dmCollate</b> is always <b>FALSE</b>. Starting with Windows Vista, when you call PrintDlg or PrintDlgEx with
+    ///<b>PD_RETURNDC</b> set to <b>TRUE</b> and <b>PD_USEDEVMODECOPIESANDCOLLATE</b> set to <b>FALSE</b>, the
+    ///<b>PrintDlg</b> or <b>PrintDlgEx</b> function sets the number of copies in the <b>nCopies</b> member of the
+    ///PRINTDLG structure, and it sets the number of copies in the structure represented by the <b>hDC</b> member of the
+    ///<b>PRINTDLG</b> structure. When making calls to GDI, you must ignore the value of <b>nCopies</b>, consider the
+    ///value as 1, and use the returned <b>hDC</b> to avoid printing duplicate copies. <table> <tr> <th>Value</th>
+    ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="PD_ALLPAGES"></a><a id="pd_allpages"></a><dl>
+    ///<dt><b>PD_ALLPAGES</b></dt> <dt>0x00000000</dt> </dl> </td> <td width="60%"> The default flag that indicates that
+    ///the <b>All</b> radio button is initially selected. This flag is used as a placeholder to indicate that the
+    ///<b>PD_PAGENUMS</b>, <b>PD_SELECTION</b>, and <b>PD_CURRENTPAGE</b> flags are not specified. </td> </tr> <tr> <td
+    ///width="40%"><a id="PD_COLLATE"></a><a id="pd_collate"></a><dl> <dt><b>PD_COLLATE</b></dt> <dt>0x00000010</dt>
+    ///</dl> </td> <td width="60%"> If this flag is set, the <b>Collate</b> check box is selected. If this flag is set
+    ///when the PrintDlgEx function returns, the application must simulate collation of multiple copies. For more
+    ///information, see the description of the <b>PD_USEDEVMODECOPIESANDCOLLATE</b> flag. See <b>PD_NOPAGENUMS</b>.
+    ///</td> </tr> <tr> <td width="40%"><a id="PD_CURRENTPAGE"></a><a id="pd_currentpage"></a><dl>
+    ///<dt><b>PD_CURRENTPAGE</b></dt> <dt>0x00400000</dt> </dl> </td> <td width="60%"> If this flag is set, the
+    ///<b>Current Page</b> radio button is selected. If none of the <b>PD_PAGENUMS</b>, <b>PD_SELECTION</b>, or
+    ///<b>PD_CURRENTPAGE</b> flags is set, the <b>All</b> radio button is selected. </td> </tr> <tr> <td width="40%"><a
+    ///id="PD_DISABLEPRINTTOFILE"></a><a id="pd_disableprinttofile"></a><dl> <dt><b>PD_DISABLEPRINTTOFILE</b></dt>
+    ///<dt>0x00080000</dt> </dl> </td> <td width="60%"> Disables the <b>Print to File</b> check box. </td> </tr> <tr>
+    ///<td width="40%"><a id="PD_ENABLEPRINTTEMPLATE"></a><a id="pd_enableprinttemplate"></a><dl>
+    ///<dt><b>PD_ENABLEPRINTTEMPLATE</b></dt> <dt>0x00004000</dt> </dl> </td> <td width="60%"> Indicates that the
+    ///<b>hInstance</b> and <b>lpPrintTemplateName</b> members specify a replacement for the default dialog box template
+    ///in the lower portion of the <b>General</b> page. The default template contains controls similar to those of the
+    ///<b>Print</b> dialog box. The system uses the specified template to create a window that is a child of the
+    ///<b>General</b> page. </td> </tr> <tr> <td width="40%"><a id="PD_ENABLEPRINTTEMPLATEHANDLE"></a><a
+    ///id="pd_enableprinttemplatehandle"></a><dl> <dt><b>PD_ENABLEPRINTTEMPLATEHANDLE</b></dt> <dt>0x00010000</dt> </dl>
+    ///</td> <td width="60%"> Indicates that the <b>hInstance</b> member identifies a data block that contains a
+    ///preloaded dialog box template. This template replaces the default dialog box template in the lower portion of the
+    ///<b>General</b> page. The system uses the specified template to create a window that is a child of the
+    ///<b>General</b> page. The system ignores the <b>lpPrintTemplateName</b> member if this flag is specified. </td>
+    ///</tr> <tr> <td width="40%"><a id="PD_EXCLUSIONFLAGS"></a><a id="pd_exclusionflags"></a><dl>
+    ///<dt><b>PD_EXCLUSIONFLAGS</b></dt> <dt>0x01000000</dt> </dl> </td> <td width="60%"> Indicates that the
+    ///<b>ExclusionFlags</b> member identifies items to be excluded from the printer driver property pages. If this flag
+    ///is not set, items will be excluded by default from the printer driver property pages. The exclusions prevent the
+    ///duplication of items among the <b>General</b> page, any application-specified pages, and the printer driver
+    ///pages. </td> </tr> <tr> <td width="40%"><a id="PD_HIDEPRINTTOFILE"></a><a id="pd_hideprinttofile"></a><dl>
+    ///<dt><b>PD_HIDEPRINTTOFILE</b></dt> <dt>0x00100000</dt> </dl> </td> <td width="60%"> Hides the <b>Print to
+    ///File</b> check box. </td> </tr> <tr> <td width="40%"><a id="PD_NOCURRENTPAGE"></a><a
+    ///id="pd_nocurrentpage"></a><dl> <dt><b>PD_NOCURRENTPAGE</b></dt> <dt>0x00800000</dt> </dl> </td> <td width="60%">
+    ///Disables the <b>Current Page</b> radio button. </td> </tr> <tr> <td width="40%"><a id="PD_NOPAGENUMS"></a><a
+    ///id="pd_nopagenums"></a><dl> <dt><b>PD_NOPAGENUMS</b></dt> <dt>0x00000008</dt> </dl> </td> <td width="60%">
+    ///Disables the <b>Pages</b> radio button and the associated edit controls. Also, it causes the <b>Collate</b> check
+    ///box to appear in the dialog. </td> </tr> <tr> <td width="40%"><a id="PD_NOSELECTION"></a><a
+    ///id="pd_noselection"></a><dl> <dt><b>PD_NOSELECTION</b></dt> <dt>0x00000004</dt> </dl> </td> <td width="60%">
+    ///Disables the <b>Selection</b> radio button. </td> </tr> <tr> <td width="40%"><a id="PD_NOWARNING"></a><a
+    ///id="pd_nowarning"></a><dl> <dt><b>PD_NOWARNING</b></dt> <dt>0x00000080</dt> </dl> </td> <td width="60%"> Prevents
+    ///the warning message from being displayed when an error occurs. </td> </tr> <tr> <td width="40%"><a
+    ///id="PD_PAGENUMS"></a><a id="pd_pagenums"></a><dl> <dt><b>PD_PAGENUMS</b></dt> <dt>0x00000002</dt> </dl> </td> <td
+    ///width="60%"> If this flag is set, the <b>Pages</b> radio button is selected. If none of the <b>PD_PAGENUMS</b>,
+    ///<b>PD_SELECTION</b>, or <b>PD_CURRENTPAGE</b> flags is set, the <b>All</b> radio button is selected. If this flag
+    ///is set when the PrintDlgEx function returns, the <b>lpPageRanges</b> member indicates the page ranges specified
+    ///by the user. </td> </tr> <tr> <td width="40%"><a id="PD_PRINTTOFILE"></a><a id="pd_printtofile"></a><dl>
+    ///<dt><b>PD_PRINTTOFILE</b></dt> <dt>0x00000020</dt> </dl> </td> <td width="60%"> If this flag is set, the <b>Print
+    ///to File</b> check box is selected. If this flag is set when PrintDlgEx returns, the offset indicated by the
+    ///<b>wOutputOffset</b> member of the DEVNAMES structure contains the string "FILE:". When you call the StartDoc
+    ///function to start the printing operation, specify this "FILE:" string in the <b>lpszOutput</b> member of the
+    ///DOCINFO structure. Specifying this string causes the print subsystem to query the user for the name of the output
+    ///file. </td> </tr> <tr> <td width="40%"><a id="PD_RETURNDC"></a><a id="pd_returndc"></a><dl>
+    ///<dt><b>PD_RETURNDC</b></dt> <dt>0x00000100</dt> </dl> </td> <td width="60%"> Causes PrintDlgEx to return a device
+    ///context matching the selections the user made in the property sheet. The device context is returned in
+    ///<b>hDC</b>. </td> </tr> <tr> <td width="40%"><a id="PD_RETURNDEFAULT"></a><a id="pd_returndefault"></a><dl>
+    ///<dt><b>PD_RETURNDEFAULT</b></dt> <dt>0x00000400</dt> </dl> </td> <td width="60%"> If this flag is set, the
+    ///PrintDlgEx function does not display the property sheet. Instead, it sets the <b>hDevNames</b> and
+    ///<b>hDevMode</b> members to handles to DEVNAMES and DEVMODE structures that are initialized for the system default
+    ///printer. Both <b>hDevNames</b> and <b>hDevMode</b> must be <b>NULL</b>, or <b>PrintDlgEx</b> returns an error.
+    ///</td> </tr> <tr> <td width="40%"><a id="PD_RETURNIC"></a><a id="pd_returnic"></a><dl> <dt><b>PD_RETURNIC</b></dt>
+    ///<dt>0x00000200</dt> </dl> </td> <td width="60%"> Similar to the <b>PD_RETURNDC</b> flag, except this flag returns
+    ///an information context rather than a device context. If neither <b>PD_RETURNDC</b> nor <b>PD_RETURNIC</b> is
+    ///specified, <b>hDC</b> is undefined on output. </td> </tr> <tr> <td width="40%"><a id="PD_SELECTION"></a><a
+    ///id="pd_selection"></a><dl> <dt><b>PD_SELECTION</b></dt> <dt>0x00000001</dt> </dl> </td> <td width="60%"> If this
+    ///flag is set, the <b>Selection</b> radio button is selected. If none of the <b>PD_PAGENUMS</b>,
+    ///<b>PD_SELECTION</b>, or <b>PD_CURRENTPAGE</b> flags is set, the <b>All</b> radio button is selected. </td> </tr>
+    ///<tr> <td width="40%"><a id="PD_USEDEVMODECOPIES"></a><a id="pd_usedevmodecopies"></a><dl>
+    ///<dt><b>PD_USEDEVMODECOPIES</b></dt> <dt>0x00040000</dt> </dl> </td> <td width="60%"> Same as
+    ///<b>PD_USEDEVMODECOPIESANDCOLLATE</b>. </td> </tr> <tr> <td width="40%"><a
+    ///id="PD_USEDEVMODECOPIESANDCOLLATE"></a><a id="pd_usedevmodecopiesandcollate"></a><dl>
+    ///<dt><b>PD_USEDEVMODECOPIESANDCOLLATE</b></dt> <dt>0x00040000</dt> </dl> </td> <td width="60%"> This flag
+    ///indicates whether your application supports multiple copies and collation. Set this flag on input to indicate
+    ///that your application does not support multiple copies and collation. In this case, the <b>nCopies</b> member of
+    ///the <b>PRINTDLGEX</b> structure always returns 1, and <b>PD_COLLATE</b> is never set in the <b>Flags</b> member.
+    ///If this flag is not set, the application is responsible for printing and collating multiple copies. In this case,
+    ///the <b>nCopies</b> member of the <b>PRINTDLGEX</b> structure indicates the number of copies the user wants to
+    ///print, and the <b>PD_COLLATE</b> flag in the <b>Flags</b> member indicates whether the user wants collation.
+    ///Regardless of whether this flag is set, an application can determine from <b>nCopies</b> and <b>PD_COLLATE</b>
+    ///how many copies to render and whether to print them collated. If this flag is set and the printer driver does not
+    ///support multiple copies, the <b>Copies</b> edit control is disabled. Similarly, if this flag is set and the
+    ///printer driver does not support collation, the <b>Collate</b> check box is disabled. The <b>dmCopies</b> and
+    ///<b>dmCollate</b> members of the DEVMODE structure contain the copies and collate information used by the printer
+    ///driver. If this flag is set and the printer driver supports multiple copies, the <b>dmCopies</b> member indicates
+    ///the number of copies requested by the user. If this flag is set and the printer driver supports collation, the
+    ///<b>dmCollate</b> member of the <b>DEVMODE</b> structure indicates whether the user wants collation. If this flag
+    ///is not set, the <b>dmCopies</b> member always returns 1, and the <b>dmCollate</b> member is always zero. In
+    ///Windows versions prior to Windows Vista, if this flag is not set by the calling application and the
+    ///<b>dmCopies</b> member of the DEVMODE structure is greater than 1, use that value for the number of copies;
+    ///otherwise, use the value of the <b>nCopies</b> member of the <b>PRINTDLGEX</b> structure. </td> </tr> <tr> <td
+    ///width="40%"><a id="PD_USELARGETEMPLATE"></a><a id="pd_uselargetemplate"></a><dl>
+    ///<dt><b>PD_USELARGETEMPLATE</b></dt> <dt>0x10000000</dt> </dl> </td> <td width="60%"> Forces the property sheet to
+    ///use a large template for the <b>General</b> page. The larger template provides more space for applications that
+    ///specify a custom template for the lower portion of the <b>General</b> page. </td> </tr> </table>
+    uint            Flags;
+    ///Type: <b>DWORD</b>
+    uint            Flags2;
+    ///Type: <b>DWORD</b> A set of bit flags that can exclude items from the printer driver property pages in the
+    ///<b>Print</b> property sheet. This value is used only if the <b>PD_EXCLUSIONFLAGS</b> flag is set in the
+    ///<b>Flags</b> member. Exclusion flags should be used only if the item to be excluded will be included on either
+    ///the <b>General</b> page or on an application-defined page in the <b>Print</b> property sheet. This member can
+    ///specify the following flag.
+    uint            ExclusionFlags;
+    ///Type: <b>DWORD</b> On input, set this member to the initial number of page ranges specified in the
+    ///<b>lpPageRanges</b> array. When the PrintDlgEx function returns, <b>nPageRanges</b> indicates the number of
+    ///user-specified page ranges stored in the <b>lpPageRanges</b> array. If the <b>PD_NOPAGENUMS</b> flag is
+    ///specified, this value is not valid.
+    uint            nPageRanges;
+    ///Type: <b>DWORD</b> The size, in array elements, of the <b>lpPageRanges</b> buffer. This value indicates the
+    ///maximum number of page ranges that can be stored in the array. If the <b>PD_NOPAGENUMS</b> flag is specified,
+    ///this value is not valid. If the <b>PD_NOPAGENUMS</b> flag is not specified, this value must be greater than zero.
+    uint            nMaxPageRanges;
+    ///Type: <b>LPPRINTPAGERANGE</b> Pointer to a buffer containing an array of PRINTPAGERANGE structures. On input, the
+    ///array contains the initial page ranges to display in the <b>Pages</b> edit control. When the PrintDlgEx function
+    ///returns, the array contains the page ranges specified by the user. If the <b>PD_NOPAGENUMS</b> flag is specified,
+    ///this value is not valid. If the <b>PD_NOPAGENUMS</b> flag is not specified, <b>lpPageRanges</b> must be
+    ///non-<b>NULL</b>.
+    PRINTPAGERANGE* lpPageRanges;
+    ///Type: <b>DWORD</b> The minimum value for the page ranges specified in the <b>Pages</b> edit control. If the
+    ///<b>PD_NOPAGENUMS</b> flag is specified, this value is not valid.
+    uint            nMinPage;
+    ///Type: <b>DWORD</b> The maximum value for the page ranges specified in the <b>Pages</b> edit control. If the
+    ///<b>PD_NOPAGENUMS</b> flag is specified, this value is not valid.
+    uint            nMaxPage;
+    ///Type: <b>DWORD</b> Contains the initial number of copies for the <b>Copies</b> edit control if <b>hDevMode</b> is
+    ///<b>NULL</b>; otherwise, the <b>dmCopies</b> member of the DEVMODE structure contains the initial value. When
+    ///PrintDlgEx returns, <b>nCopies</b> contains the actual number of copies the application must print. This value
+    ///depends on whether the application or the printer driver is responsible for printing multiple copies. If the
+    ///<b>PD_USEDEVMODECOPIESANDCOLLATE</b> flag is set in the <b>Flags</b> member, <b>nCopies</b> is always 1 on
+    ///return, and the printer driver is responsible for printing multiple copies. If the flag is not set, the
+    ///application is responsible for printing the number of copies specified by <b>nCopies</b>. For more information,
+    ///see the description of the <b>PD_USEDEVMODECOPIESANDCOLLATE</b> flag.
+    uint            nCopies;
+    ///Type: <b>HINSTANCE</b> If the <b>PD_ENABLEPRINTTEMPLATE</b> flag is set in the <b>Flags</b> member,
+    ///<b>hInstance</b> is a handle to the application or module instance that contains the dialog box template named by
+    ///the <b>lpPrintTemplateName</b> member. If the <b>PD_ENABLEPRINTTEMPLATEHANDLE</b> flag is set in the <b>Flags</b>
+    ///member, <b>hInstance</b> is a handle to a memory object containing a dialog box template. If neither of the
+    ///template flags is set in the <b>Flags</b> member, <b>hInstance</b> should be <b>NULL</b>.
+    HINSTANCE       hInstance;
+    ///Type: <b>LPCTSTR</b> The name of the dialog box template resource in the module identified by the
+    ///<b>hInstance</b> member. This template replaces the default dialog box template in the lower portion of the
+    ///<b>General</b> page. The default template contains controls similar to those of the <b>Print</b> dialog box. This
+    ///member is ignored unless the PD_ENABLEPRINTTEMPLATE flag is set in the <b>Flags</b> member.
+    const(PWSTR)    lpPrintTemplateName;
+    ///Type: <b>LPUNKNOWN</b> A pointer to an application-defined callback object. The object should contain the
+    ///IPrintDialogCallback class to receive messages for the child dialog box in the lower portion of the
+    ///<b>General</b> page. The callback object should also contain the IObjectWithSite class to receive a pointer to
+    ///the IPrintDialogServices interface. The PrintDlgEx function calls IUnknown::QueryInterface on the callback object
+    ///for both <b>IID_IPrintDialogCallback</b> and <b>IID_IObjectWithSite</b> to determine which interfaces are
+    ///supported. If you do not want to retrieve any of the callback information, set <b>lpCallback</b> to <b>NULL</b>.
+    IUnknown        lpCallback;
+    ///Type: <b>DWORD</b> The number of property page handles in the <b>lphPropertyPages</b> array.
+    uint            nPropertyPages;
+    ///Type: <b>HPROPSHEETPAGE*</b> Contains an array of property page handles to add to the <b>Print</b> property
+    ///sheet. The additional property pages follow the <b>General</b> page. Use the CreatePropertySheetPage function to
+    ///create these additional pages. When the PrintDlgEx function returns, all the <b>HPROPSHEETPAGE</b> handles in the
+    ///<b>lphPropertyPages</b> array have been destroyed. If <b>nPropertyPages</b> is zero, <b>lphPropertyPages</b>
+    ///should be <b>NULL</b>.
+    HPROPSHEETPAGE* lphPropertyPages;
+    ///Type: <b>DWORD</b> The property page that is initially displayed. To display the <b>General</b> page, specify
+    ///<b>START_PAGE_GENERAL</b>. Otherwise, specify the zero-based index of a property page in the array specified in
+    ///the <b>lphPropertyPages</b> member. For consistency, it is recommended that the property sheet always be started
+    ///on the <b>General</b> page.
+    uint            nStartPage;
+    ///Type: <b>DWORD</b> On input, set this member to zero. If the PrintDlgEx function returns S_OK,
+    ///<b>dwResultAction</b> contains the outcome of the dialog. If <b>PrintDlgEx</b> returns an error, this member
+    ///should be ignored. The <b>dwResultAction</b> member can be one of the following values.
+    uint            dwResultAction;
+}
+
+///Contains strings that identify the driver, device, and output port names for a printer. These strings must be ANSI
+///strings when the ANSI version of PrintDlg or PrintDlgEx is used, and must be Unicode strings when the Unicode version
+///of <b>PrintDlg</b> or <b>PrintDlgEx</b> is used. The <b>PrintDlgEx</b> and <b>PrintDlg</b> functions use these
+///strings to initialize the system-defined Print Property Sheet or Print Dialog Box. When the user closes the property
+///sheet or dialog box, information about the selected printer is returned in this structure.
+struct DEVNAMES
+{
+align (1):
+    ///Type: <b>WORD</b> The offset, in characters, from the beginning of this structure to a null-terminated string
+    ///that contains the file name (without the extension) of the device driver. On input, this string is used to
+    ///determine the printer to display initially in the dialog box.
+    ushort wDriverOffset;
+    ///Type: <b>WORD</b> The offset, in characters, from the beginning of this structure to the null-terminated string
+    ///that contains the name of the device.
+    ushort wDeviceOffset;
+    ///Type: <b>WORD</b> The offset, in characters, from the beginning of this structure to the null-terminated string
+    ///that contains the device name for the physical output medium (output port).
+    ushort wOutputOffset;
+    ///Type: <b>WORD</b> Indicates whether the strings contained in the <b>DEVNAMES</b> structure identify the default
+    ///printer. This string is used to verify that the default printer has not changed since the last print operation.
+    ///If any of the strings do not match, a warning message is displayed informing the user that the document may need
+    ///to be reformatted. On output, the <b>wDefault</b> member is changed only if the <b>Print Setup</b> dialog box was
+    ///displayed and the user chose the <b>OK</b> button. The <b>DN_DEFAULTPRN</b> flag is used if the default printer
+    ///was selected. If a specific printer is selected, the flag is not used. All other flags in this member are
+    ///reserved for internal use by the dialog box procedure for the <b>Print</b> property sheet or <b>Print</b> dialog
+    ///box.
+    ushort wDefault;
+}
+
+///Contains information the PageSetupDlg function uses to initialize the <b>Page Setup</b> dialog box. After the user
+///closes the dialog box, the system returns information about the user-defined page parameters in this structure.
+struct PAGESETUPDLGA
+{
+align (1):
+    ///Type: <b>DWORD</b> The size, in bytes, of this structure.
+    uint            lStructSize;
+    ///Type: <b>HWND</b> A handle to the window that owns the dialog box. This member can be any valid window handle, or
+    ///it can be <b>NULL</b> if the dialog box has no owner.
+    HWND            hwndOwner;
+    ///Type: <b>HGLOBAL</b> A handle to a global memory object that contains a DEVMODE structure. On input, if a handle
+    ///is specified, the values in the corresponding <b>DEVMODE</b> structure are used to initialize the controls in the
+    ///dialog box. On output, the dialog box sets <b>hDevMode</b> to a global memory handle to a <b>DEVMODE</b>
+    ///structure that contains values specifying the user's selections. If the user's selections are not available, the
+    ///dialog box sets <b>hDevMode</b> to <b>NULL</b>.
+    ptrdiff_t       hDevMode;
+    ///Type: <b>HGLOBAL</b> A handle to a global memory object that contains a DEVNAMES structure. This structure
+    ///contains three strings that specify the driver name, the printer name, and the output port name. On input, if a
+    ///handle is specified, the strings in the corresponding <b>DEVNAMES</b> structure are used to initialize controls
+    ///in the dialog box. On output, the dialog box sets <b>hDevNames</b> to a global memory handle to a <b>DEVNAMES</b>
+    ///structure that contains strings specifying the user's selections. If the user's selections are not available, the
+    ///dialog box sets <b>hDevNames</b> to <b>NULL</b>.
+    ptrdiff_t       hDevNames;
+    ///Type: <b>DWORD</b> A set of bit flags that you can use to initialize the <b>Page Setup</b> dialog box. When the
+    ///dialog box returns, it sets these flags to indicate the user's input. This member can be one or more of the
+    ///following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
+    ///id="PSD_DEFAULTMINMARGINS"></a><a id="psd_defaultminmargins"></a><dl> <dt><b>PSD_DEFAULTMINMARGINS</b></dt>
+    ///<dt>0x00000000</dt> </dl> </td> <td width="60%"> Sets the minimum values that the user can specify for the page
+    ///margins to be the minimum margins allowed by the printer. This is the default. This flag is ignored if the
+    ///<b>PSD_MARGINS</b> and <b>PSD_MINMARGINS</b> flags are also specified. </td> </tr> <tr> <td width="40%"><a
+    ///id="PSD_DISABLEMARGINS"></a><a id="psd_disablemargins"></a><dl> <dt><b>PSD_DISABLEMARGINS</b></dt>
+    ///<dt>0x00000010</dt> </dl> </td> <td width="60%"> Disables the margin controls, preventing the user from setting
+    ///the margins. </td> </tr> <tr> <td width="40%"><a id="PSD_DISABLEORIENTATION"></a><a
+    ///id="psd_disableorientation"></a><dl> <dt><b>PSD_DISABLEORIENTATION</b></dt> <dt>0x00000100</dt> </dl> </td> <td
+    ///width="60%"> Disables the orientation controls, preventing the user from setting the page orientation. </td>
+    ///</tr> <tr> <td width="40%"><a id="PSD_DISABLEPAGEPAINTING"></a><a id="psd_disablepagepainting"></a><dl>
+    ///<dt><b>PSD_DISABLEPAGEPAINTING</b></dt> <dt>0x00080000</dt> </dl> </td> <td width="60%"> Prevents the dialog box
+    ///from drawing the contents of the sample page. If you enable a PagePaintHook hook procedure, you can still draw
+    ///the contents of the sample page. </td> </tr> <tr> <td width="40%"><a id="PSD_DISABLEPAPER"></a><a
+    ///id="psd_disablepaper"></a><dl> <dt><b>PSD_DISABLEPAPER</b></dt> <dt>0x00000200</dt> </dl> </td> <td width="60%">
+    ///Disables the paper controls, preventing the user from setting page parameters such as the paper size and source.
+    ///</td> </tr> <tr> <td width="40%"><a id="PSD_DISABLEPRINTER"></a><a id="psd_disableprinter"></a><dl>
+    ///<dt><b>PSD_DISABLEPRINTER</b></dt> <dt>0x00000020</dt> </dl> </td> <td width="60%"> Obsolete. <b>Windows XP/2000:
+    ///</b>Disables the <b>Printer</b> button, preventing the user from invoking a dialog box that contains additional
+    ///printer setup information. </td> </tr> <tr> <td width="40%"><a id="PSD_ENABLEPAGEPAINTHOOK"></a><a
+    ///id="psd_enablepagepainthook"></a><dl> <dt><b>PSD_ENABLEPAGEPAINTHOOK</b></dt> <dt>0x00040000</dt> </dl> </td> <td
+    ///width="60%"> Enables the hook procedure specified in the <b>lpfnPagePaintHook</b> member. </td> </tr> <tr> <td
+    ///width="40%"><a id="PSD_ENABLEPAGESETUPHOOK"></a><a id="psd_enablepagesetuphook"></a><dl>
+    ///<dt><b>PSD_ENABLEPAGESETUPHOOK</b></dt> <dt>0x00002000</dt> </dl> </td> <td width="60%"> Enables the hook
+    ///procedure specified in the <b>lpfnPageSetupHook</b> member. </td> </tr> <tr> <td width="40%"><a
+    ///id="PSD_ENABLEPAGESETUPTEMPLATE"></a><a id="psd_enablepagesetuptemplate"></a><dl>
+    ///<dt><b>PSD_ENABLEPAGESETUPTEMPLATE</b></dt> <dt>0x00008000</dt> </dl> </td> <td width="60%"> Indicates that the
+    ///<b>hInstance</b> and <b>lpPageSetupTemplateName</b> members specify a dialog box template to use in place of the
+    ///default template. </td> </tr> <tr> <td width="40%"><a id="PSD_ENABLEPAGESETUPTEMPLATEHANDLE"></a><a
+    ///id="psd_enablepagesetuptemplatehandle"></a><dl> <dt><b>PSD_ENABLEPAGESETUPTEMPLATEHANDLE</b></dt>
+    ///<dt>0x00020000</dt> </dl> </td> <td width="60%"> Indicates that the <b>hPageSetupTemplate</b> member identifies a
+    ///data block that contains a preloaded dialog box template. The system ignores the <b>lpPageSetupTemplateName</b>
+    ///member if this flag is specified. </td> </tr> <tr> <td width="40%"><a id="PSD_INHUNDREDTHSOFMILLIMETERS"></a><a
+    ///id="psd_inhundredthsofmillimeters"></a><dl> <dt><b>PSD_INHUNDREDTHSOFMILLIMETERS</b></dt> <dt>0x00000008</dt>
+    ///</dl> </td> <td width="60%"> Indicates that hundredths of millimeters are the unit of measurement for margins and
+    ///paper size. The values in the <b>rtMargin</b>, <b>rtMinMargin</b>, and <b>ptPaperSize</b> members are in
+    ///hundredths of millimeters. You can set this flag on input to override the default unit of measurement for the
+    ///user's locale. When the function returns, the dialog box sets this flag to indicate the units used. </td> </tr>
+    ///<tr> <td width="40%"><a id="PSD_INTHOUSANDTHSOFINCHES"></a><a id="psd_inthousandthsofinches"></a><dl>
+    ///<dt><b>PSD_INTHOUSANDTHSOFINCHES</b></dt> <dt>0x00000004</dt> </dl> </td> <td width="60%"> Indicates that
+    ///thousandths of inches are the unit of measurement for margins and paper size. The values in the <b>rtMargin</b>,
+    ///<b>rtMinMargin</b>, and <b>ptPaperSize</b> members are in thousandths of inches. You can set this flag on input
+    ///to override the default unit of measurement for the user's locale. When the function returns, the dialog box sets
+    ///this flag to indicate the units used. </td> </tr> <tr> <td width="40%"><a id="PSD_INWININIINTLMEASURE"></a><a
+    ///id="psd_inwininiintlmeasure"></a><dl> <dt><b>PSD_INWININIINTLMEASURE</b></dt> <dt>0x00000000</dt> </dl> </td> <td
+    ///width="60%"> Reserved. </td> </tr> <tr> <td width="40%"><a id="PSD_MARGINS"></a><a id="psd_margins"></a><dl>
+    ///<dt><b>PSD_MARGINS</b></dt> <dt>0x00000002</dt> </dl> </td> <td width="60%"> Causes the system to use the values
+    ///specified in the <b>rtMargin</b> member as the initial widths for the left, top, right, and bottom margins. If
+    ///<b>PSD_MARGINS</b> is not set, the system sets the initial widths to one inch for all margins. </td> </tr> <tr>
+    ///<td width="40%"><a id="PSD_MINMARGINS"></a><a id="psd_minmargins"></a><dl> <dt><b>PSD_MINMARGINS</b></dt>
+    ///<dt>0x00000001</dt> </dl> </td> <td width="60%"> Causes the system to use the values specified in the
+    ///<b>rtMinMargin</b> member as the minimum allowable widths for the left, top, right, and bottom margins. The
+    ///system prevents the user from entering a width that is less than the specified minimum. If <b>PSD_MINMARGINS</b>
+    ///is not specified, the system sets the minimum allowable widths to those allowed by the printer. </td> </tr> <tr>
+    ///<td width="40%"><a id="PSD_NONETWORKBUTTON"></a><a id="psd_nonetworkbutton"></a><dl>
+    ///<dt><b>PSD_NONETWORKBUTTON</b></dt> <dt>0x00200000</dt> </dl> </td> <td width="60%"> Hides and disables the
+    ///<b>Network</b> button. </td> </tr> <tr> <td width="40%"><a id="PSD_NOWARNING"></a><a id="psd_nowarning"></a><dl>
+    ///<dt><b>PSD_NOWARNING</b></dt> <dt>0x00000080</dt> </dl> </td> <td width="60%"> Prevents the system from
+    ///displaying a warning message when there is no default printer. </td> </tr> <tr> <td width="40%"><a
+    ///id="PSD_RETURNDEFAULT"></a><a id="psd_returndefault"></a><dl> <dt><b>PSD_RETURNDEFAULT</b></dt>
+    ///<dt>0x00000400</dt> </dl> </td> <td width="60%"> PageSetupDlg does not display the dialog box. Instead, it sets
+    ///the <b>hDevNames</b> and <b>hDevMode</b> members to handles to DEVMODE and DEVNAMES structures that are
+    ///initialized for the system default printer. <b>PageSetupDlg</b> returns an error if either <b>hDevNames</b> or
+    ///<b>hDevMode</b> is not <b>NULL</b>. </td> </tr> <tr> <td width="40%"><a id="PSD_SHOWHELP"></a><a
+    ///id="psd_showhelp"></a><dl> <dt><b>PSD_SHOWHELP</b></dt> <dt>0x00000800</dt> </dl> </td> <td width="60%"> Causes
+    ///the dialog box to display the <b>Help</b> button. The <b>hwndOwner</b> member must specify the window to receive
+    ///the HELPMSGSTRING registered messages that the dialog box sends when the user clicks the <b>Help</b> button.
+    ///</td> </tr> </table>
+    uint            Flags;
+    ///Type: <b>POINT</b> The dimensions of the paper selected by the user. The <b>PSD_INTHOUSANDTHSOFINCHES</b> or
+    ///<b>PSD_INHUNDREDTHSOFMILLIMETERS</b> flag indicates the units of measurement.
+    POINT           ptPaperSize;
+    ///Type: <b>RECT</b> The minimum allowable widths for the left, top, right, and bottom margins. The system ignores
+    ///this member if the <b>PSD_MINMARGINS</b> flag is not set. These values must be less than or equal to the values
+    ///specified in the <b>rtMargin</b> member. The <b>PSD_INTHOUSANDTHSOFINCHES</b> or
+    ///<b>PSD_INHUNDREDTHSOFMILLIMETERS</b> flag indicates the units of measurement.
+    RECT            rtMinMargin;
+    ///Type: <b>RECT</b> The widths of the left, top, right, and bottom margins. If you set the <b>PSD_MARGINS</b> flag,
+    ///<b>rtMargin</b> specifies the initial margin values. When PageSetupDlg returns, <b>rtMargin</b> contains the
+    ///margin widths selected by the user. The <b>PSD_INHUNDREDTHSOFMILLIMETERS</b> or <b>PSD_INTHOUSANDTHSOFINCHES</b>
+    ///flag indicates the units of measurement.
+    RECT            rtMargin;
+    ///Type: <b>HINSTANCE</b> If the <b>PSD_ENABLEPAGESETUPTEMPLATE</b> flag is set in the <b>Flags</b> member,
+    ///<b>hInstance</b> is a handle to the application or module instance that contains the dialog box template named by
+    ///the <b>lpPageSetupTemplateName</b> member.
+    HINSTANCE       hInstance;
+    ///Type: <b>LPARAM</b> Application-defined data that the system passes to the hook procedure identified by the
+    ///<b>lpfnPageSetupHook</b> member. When the system sends the WM_INITDIALOG message to the hook procedure, the
+    ///message's <i>lParam</i> parameter is a pointer to the <b>PAGESETUPDLG</b> structure specified when the dialog was
+    ///created. The hook procedure can use this pointer to get the <b>lCustData</b> value.
+    LPARAM          lCustData;
+    ///Type: <b>LPPAGESETUPHOOK</b> A pointer to a PageSetupHook hook procedure that can process messages intended for
+    ///the dialog box. This member is ignored unless the <b>PSD_ENABLEPAGESETUPHOOK</b> flag is set in the <b>Flags</b>
+    ///member.
+    LPPAGESETUPHOOK lpfnPageSetupHook;
+    ///Type: <b>LPPAGEPAINTHOOK</b> A pointer to a PagePaintHook hook procedure that receives <b>WM_PSD_*</b> messages
+    ///from the dialog box whenever the sample page is redrawn. By processing the messages, the hook procedure can
+    ///customize the appearance of the sample page. This member is ignored unless the <b>PSD_ENABLEPAGEPAINTHOOK</b>
+    ///flag is set in the <b>Flags</b> member.
+    LPPAGEPAINTHOOK lpfnPagePaintHook;
+    ///Type: <b>LPCTSTR</b> The name of the dialog box template resource in the module identified by the
+    ///<b>hInstance</b> member. This template is substituted for the standard dialog box template. For numbered dialog
+    ///box resources, <b>lpPageSetupTemplateName</b> can be a value returned by the MAKEINTRESOURCE macro. This member
+    ///is ignored unless the <b>PSD_ENABLEPAGESETUPTEMPLATE</b> flag is set in the <b>Flags</b> member.
+    const(PSTR)     lpPageSetupTemplateName;
+    ///Type: <b>HGLOBAL</b> If the <b>PSD_ENABLEPAGESETUPTEMPLATEHANDLE</b> flag is set in the <b>Flags</b> member,
+    ///<b>hPageSetupTemplate</b> is a handle to a memory object containing a dialog box template.
+    ptrdiff_t       hPageSetupTemplate;
+}
+
+///Contains information the PageSetupDlg function uses to initialize the <b>Page Setup</b> dialog box. After the user
+///closes the dialog box, the system returns information about the user-defined page parameters in this structure.
+struct PAGESETUPDLGW
+{
+align (1):
+    ///Type: <b>DWORD</b> The size, in bytes, of this structure.
+    uint            lStructSize;
+    ///Type: <b>HWND</b> A handle to the window that owns the dialog box. This member can be any valid window handle, or
+    ///it can be <b>NULL</b> if the dialog box has no owner.
+    HWND            hwndOwner;
+    ///Type: <b>HGLOBAL</b> A handle to a global memory object that contains a DEVMODE structure. On input, if a handle
+    ///is specified, the values in the corresponding <b>DEVMODE</b> structure are used to initialize the controls in the
+    ///dialog box. On output, the dialog box sets <b>hDevMode</b> to a global memory handle to a <b>DEVMODE</b>
+    ///structure that contains values specifying the user's selections. If the user's selections are not available, the
+    ///dialog box sets <b>hDevMode</b> to <b>NULL</b>.
+    ptrdiff_t       hDevMode;
+    ///Type: <b>HGLOBAL</b> A handle to a global memory object that contains a DEVNAMES structure. This structure
+    ///contains three strings that specify the driver name, the printer name, and the output port name. On input, if a
+    ///handle is specified, the strings in the corresponding <b>DEVNAMES</b> structure are used to initialize controls
+    ///in the dialog box. On output, the dialog box sets <b>hDevNames</b> to a global memory handle to a <b>DEVNAMES</b>
+    ///structure that contains strings specifying the user's selections. If the user's selections are not available, the
+    ///dialog box sets <b>hDevNames</b> to <b>NULL</b>.
+    ptrdiff_t       hDevNames;
+    ///Type: <b>DWORD</b> A set of bit flags that you can use to initialize the <b>Page Setup</b> dialog box. When the
+    ///dialog box returns, it sets these flags to indicate the user's input. This member can be one or more of the
+    ///following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
+    ///id="PSD_DEFAULTMINMARGINS"></a><a id="psd_defaultminmargins"></a><dl> <dt><b>PSD_DEFAULTMINMARGINS</b></dt>
+    ///<dt>0x00000000</dt> </dl> </td> <td width="60%"> Sets the minimum values that the user can specify for the page
+    ///margins to be the minimum margins allowed by the printer. This is the default. This flag is ignored if the
+    ///<b>PSD_MARGINS</b> and <b>PSD_MINMARGINS</b> flags are also specified. </td> </tr> <tr> <td width="40%"><a
+    ///id="PSD_DISABLEMARGINS"></a><a id="psd_disablemargins"></a><dl> <dt><b>PSD_DISABLEMARGINS</b></dt>
+    ///<dt>0x00000010</dt> </dl> </td> <td width="60%"> Disables the margin controls, preventing the user from setting
+    ///the margins. </td> </tr> <tr> <td width="40%"><a id="PSD_DISABLEORIENTATION"></a><a
+    ///id="psd_disableorientation"></a><dl> <dt><b>PSD_DISABLEORIENTATION</b></dt> <dt>0x00000100</dt> </dl> </td> <td
+    ///width="60%"> Disables the orientation controls, preventing the user from setting the page orientation. </td>
+    ///</tr> <tr> <td width="40%"><a id="PSD_DISABLEPAGEPAINTING"></a><a id="psd_disablepagepainting"></a><dl>
+    ///<dt><b>PSD_DISABLEPAGEPAINTING</b></dt> <dt>0x00080000</dt> </dl> </td> <td width="60%"> Prevents the dialog box
+    ///from drawing the contents of the sample page. If you enable a PagePaintHook hook procedure, you can still draw
+    ///the contents of the sample page. </td> </tr> <tr> <td width="40%"><a id="PSD_DISABLEPAPER"></a><a
+    ///id="psd_disablepaper"></a><dl> <dt><b>PSD_DISABLEPAPER</b></dt> <dt>0x00000200</dt> </dl> </td> <td width="60%">
+    ///Disables the paper controls, preventing the user from setting page parameters such as the paper size and source.
+    ///</td> </tr> <tr> <td width="40%"><a id="PSD_DISABLEPRINTER"></a><a id="psd_disableprinter"></a><dl>
+    ///<dt><b>PSD_DISABLEPRINTER</b></dt> <dt>0x00000020</dt> </dl> </td> <td width="60%"> Obsolete. <b>Windows XP/2000:
+    ///</b>Disables the <b>Printer</b> button, preventing the user from invoking a dialog box that contains additional
+    ///printer setup information. </td> </tr> <tr> <td width="40%"><a id="PSD_ENABLEPAGEPAINTHOOK"></a><a
+    ///id="psd_enablepagepainthook"></a><dl> <dt><b>PSD_ENABLEPAGEPAINTHOOK</b></dt> <dt>0x00040000</dt> </dl> </td> <td
+    ///width="60%"> Enables the hook procedure specified in the <b>lpfnPagePaintHook</b> member. </td> </tr> <tr> <td
+    ///width="40%"><a id="PSD_ENABLEPAGESETUPHOOK"></a><a id="psd_enablepagesetuphook"></a><dl>
+    ///<dt><b>PSD_ENABLEPAGESETUPHOOK</b></dt> <dt>0x00002000</dt> </dl> </td> <td width="60%"> Enables the hook
+    ///procedure specified in the <b>lpfnPageSetupHook</b> member. </td> </tr> <tr> <td width="40%"><a
+    ///id="PSD_ENABLEPAGESETUPTEMPLATE"></a><a id="psd_enablepagesetuptemplate"></a><dl>
+    ///<dt><b>PSD_ENABLEPAGESETUPTEMPLATE</b></dt> <dt>0x00008000</dt> </dl> </td> <td width="60%"> Indicates that the
+    ///<b>hInstance</b> and <b>lpPageSetupTemplateName</b> members specify a dialog box template to use in place of the
+    ///default template. </td> </tr> <tr> <td width="40%"><a id="PSD_ENABLEPAGESETUPTEMPLATEHANDLE"></a><a
+    ///id="psd_enablepagesetuptemplatehandle"></a><dl> <dt><b>PSD_ENABLEPAGESETUPTEMPLATEHANDLE</b></dt>
+    ///<dt>0x00020000</dt> </dl> </td> <td width="60%"> Indicates that the <b>hPageSetupTemplate</b> member identifies a
+    ///data block that contains a preloaded dialog box template. The system ignores the <b>lpPageSetupTemplateName</b>
+    ///member if this flag is specified. </td> </tr> <tr> <td width="40%"><a id="PSD_INHUNDREDTHSOFMILLIMETERS"></a><a
+    ///id="psd_inhundredthsofmillimeters"></a><dl> <dt><b>PSD_INHUNDREDTHSOFMILLIMETERS</b></dt> <dt>0x00000008</dt>
+    ///</dl> </td> <td width="60%"> Indicates that hundredths of millimeters are the unit of measurement for margins and
+    ///paper size. The values in the <b>rtMargin</b>, <b>rtMinMargin</b>, and <b>ptPaperSize</b> members are in
+    ///hundredths of millimeters. You can set this flag on input to override the default unit of measurement for the
+    ///user's locale. When the function returns, the dialog box sets this flag to indicate the units used. </td> </tr>
+    ///<tr> <td width="40%"><a id="PSD_INTHOUSANDTHSOFINCHES"></a><a id="psd_inthousandthsofinches"></a><dl>
+    ///<dt><b>PSD_INTHOUSANDTHSOFINCHES</b></dt> <dt>0x00000004</dt> </dl> </td> <td width="60%"> Indicates that
+    ///thousandths of inches are the unit of measurement for margins and paper size. The values in the <b>rtMargin</b>,
+    ///<b>rtMinMargin</b>, and <b>ptPaperSize</b> members are in thousandths of inches. You can set this flag on input
+    ///to override the default unit of measurement for the user's locale. When the function returns, the dialog box sets
+    ///this flag to indicate the units used. </td> </tr> <tr> <td width="40%"><a id="PSD_INWININIINTLMEASURE"></a><a
+    ///id="psd_inwininiintlmeasure"></a><dl> <dt><b>PSD_INWININIINTLMEASURE</b></dt> <dt>0x00000000</dt> </dl> </td> <td
+    ///width="60%"> Reserved. </td> </tr> <tr> <td width="40%"><a id="PSD_MARGINS"></a><a id="psd_margins"></a><dl>
+    ///<dt><b>PSD_MARGINS</b></dt> <dt>0x00000002</dt> </dl> </td> <td width="60%"> Causes the system to use the values
+    ///specified in the <b>rtMargin</b> member as the initial widths for the left, top, right, and bottom margins. If
+    ///<b>PSD_MARGINS</b> is not set, the system sets the initial widths to one inch for all margins. </td> </tr> <tr>
+    ///<td width="40%"><a id="PSD_MINMARGINS"></a><a id="psd_minmargins"></a><dl> <dt><b>PSD_MINMARGINS</b></dt>
+    ///<dt>0x00000001</dt> </dl> </td> <td width="60%"> Causes the system to use the values specified in the
+    ///<b>rtMinMargin</b> member as the minimum allowable widths for the left, top, right, and bottom margins. The
+    ///system prevents the user from entering a width that is less than the specified minimum. If <b>PSD_MINMARGINS</b>
+    ///is not specified, the system sets the minimum allowable widths to those allowed by the printer. </td> </tr> <tr>
+    ///<td width="40%"><a id="PSD_NONETWORKBUTTON"></a><a id="psd_nonetworkbutton"></a><dl>
+    ///<dt><b>PSD_NONETWORKBUTTON</b></dt> <dt>0x00200000</dt> </dl> </td> <td width="60%"> Hides and disables the
+    ///<b>Network</b> button. </td> </tr> <tr> <td width="40%"><a id="PSD_NOWARNING"></a><a id="psd_nowarning"></a><dl>
+    ///<dt><b>PSD_NOWARNING</b></dt> <dt>0x00000080</dt> </dl> </td> <td width="60%"> Prevents the system from
+    ///displaying a warning message when there is no default printer. </td> </tr> <tr> <td width="40%"><a
+    ///id="PSD_RETURNDEFAULT"></a><a id="psd_returndefault"></a><dl> <dt><b>PSD_RETURNDEFAULT</b></dt>
+    ///<dt>0x00000400</dt> </dl> </td> <td width="60%"> PageSetupDlg does not display the dialog box. Instead, it sets
+    ///the <b>hDevNames</b> and <b>hDevMode</b> members to handles to DEVMODE and DEVNAMES structures that are
+    ///initialized for the system default printer. <b>PageSetupDlg</b> returns an error if either <b>hDevNames</b> or
+    ///<b>hDevMode</b> is not <b>NULL</b>. </td> </tr> <tr> <td width="40%"><a id="PSD_SHOWHELP"></a><a
+    ///id="psd_showhelp"></a><dl> <dt><b>PSD_SHOWHELP</b></dt> <dt>0x00000800</dt> </dl> </td> <td width="60%"> Causes
+    ///the dialog box to display the <b>Help</b> button. The <b>hwndOwner</b> member must specify the window to receive
+    ///the HELPMSGSTRING registered messages that the dialog box sends when the user clicks the <b>Help</b> button.
+    ///</td> </tr> </table>
+    uint            Flags;
+    ///Type: <b>POINT</b> The dimensions of the paper selected by the user. The <b>PSD_INTHOUSANDTHSOFINCHES</b> or
+    ///<b>PSD_INHUNDREDTHSOFMILLIMETERS</b> flag indicates the units of measurement.
+    POINT           ptPaperSize;
+    ///Type: <b>RECT</b> The minimum allowable widths for the left, top, right, and bottom margins. The system ignores
+    ///this member if the <b>PSD_MINMARGINS</b> flag is not set. These values must be less than or equal to the values
+    ///specified in the <b>rtMargin</b> member. The <b>PSD_INTHOUSANDTHSOFINCHES</b> or
+    ///<b>PSD_INHUNDREDTHSOFMILLIMETERS</b> flag indicates the units of measurement.
+    RECT            rtMinMargin;
+    ///Type: <b>RECT</b> The widths of the left, top, right, and bottom margins. If you set the <b>PSD_MARGINS</b> flag,
+    ///<b>rtMargin</b> specifies the initial margin values. When PageSetupDlg returns, <b>rtMargin</b> contains the
+    ///margin widths selected by the user. The <b>PSD_INHUNDREDTHSOFMILLIMETERS</b> or <b>PSD_INTHOUSANDTHSOFINCHES</b>
+    ///flag indicates the units of measurement.
+    RECT            rtMargin;
+    ///Type: <b>HINSTANCE</b> If the <b>PSD_ENABLEPAGESETUPTEMPLATE</b> flag is set in the <b>Flags</b> member,
+    ///<b>hInstance</b> is a handle to the application or module instance that contains the dialog box template named by
+    ///the <b>lpPageSetupTemplateName</b> member.
+    HINSTANCE       hInstance;
+    ///Type: <b>LPARAM</b> Application-defined data that the system passes to the hook procedure identified by the
+    ///<b>lpfnPageSetupHook</b> member. When the system sends the WM_INITDIALOG message to the hook procedure, the
+    ///message's <i>lParam</i> parameter is a pointer to the <b>PAGESETUPDLG</b> structure specified when the dialog was
+    ///created. The hook procedure can use this pointer to get the <b>lCustData</b> value.
+    LPARAM          lCustData;
+    ///Type: <b>LPPAGESETUPHOOK</b> A pointer to a PageSetupHook hook procedure that can process messages intended for
+    ///the dialog box. This member is ignored unless the <b>PSD_ENABLEPAGESETUPHOOK</b> flag is set in the <b>Flags</b>
+    ///member.
+    LPPAGESETUPHOOK lpfnPageSetupHook;
+    ///Type: <b>LPPAGEPAINTHOOK</b> A pointer to a PagePaintHook hook procedure that receives <b>WM_PSD_*</b> messages
+    ///from the dialog box whenever the sample page is redrawn. By processing the messages, the hook procedure can
+    ///customize the appearance of the sample page. This member is ignored unless the <b>PSD_ENABLEPAGEPAINTHOOK</b>
+    ///flag is set in the <b>Flags</b> member.
+    LPPAGEPAINTHOOK lpfnPagePaintHook;
+    ///Type: <b>LPCTSTR</b> The name of the dialog box template resource in the module identified by the
+    ///<b>hInstance</b> member. This template is substituted for the standard dialog box template. For numbered dialog
+    ///box resources, <b>lpPageSetupTemplateName</b> can be a value returned by the MAKEINTRESOURCE macro. This member
+    ///is ignored unless the <b>PSD_ENABLEPAGESETUPTEMPLATE</b> flag is set in the <b>Flags</b> member.
+    const(PWSTR)    lpPageSetupTemplateName;
+    ///Type: <b>HGLOBAL</b> If the <b>PSD_ENABLEPAGESETUPTEMPLATEHANDLE</b> flag is set in the <b>Flags</b> member,
+    ///<b>hPageSetupTemplate</b> is a handle to a memory object containing a dialog box template.
+    ptrdiff_t       hPageSetupTemplate;
+}
+
+@RAIIFree!UnhookWindowsHookEx
+struct HHOOK
+{
+    ptrdiff_t Value;
+}
+
+struct HWND
+{
+    ptrdiff_t Value;
+}
+
+struct LPARAM
+{
+    ptrdiff_t Value;
+}
+
+struct WPARAM
+{
+    size_t Value;
+}
+
 // Functions
-
-///<p class="CCE_Message">[Starting with Windows Vista, the <b>Open</b> and <b>Save As</b> common dialog boxes have been
-///superseded by the Common Item Dialog. We recommended that you use the Common Item Dialog API instead of these dialog
-///boxes from the Common Dialog Box Library.] Creates an <b>Open</b> dialog box that lets the user specify the drive,
-///directory, and the name of a file or set of files to be opened.
-///Params:
-///    Arg1 = Type: <b>LPOPENFILENAME</b> A pointer to an OPENFILENAME structure that contains information used to initialize
-///           the dialog box. When <b>GetOpenFileName</b> returns, this structure contains information about the user's file
-///           selection.
-///Returns:
-///    Type: <b>BOOL</b> If the user specifies a file name and clicks the <b>OK</b> button, the return value is nonzero.
-///    The buffer pointed to by the <b>lpstrFile</b> member of the OPENFILENAME structure contains the full path and
-///    file name specified by the user. If the user cancels or closes the <b>Open</b> dialog box or an error occurs, the
-///    return value is zero. To get extended error information, call the CommDlgExtendedError function, which can return
-///    one of the following values.
-///    
-@DllImport("COMDLG32")
-BOOL GetOpenFileNameA(OPENFILENAMEA* param0);
-
-///<p class="CCE_Message">[Starting with Windows Vista, the <b>Open</b> and <b>Save As</b> common dialog boxes have been
-///superseded by the Common Item Dialog. We recommended that you use the Common Item Dialog API instead of these dialog
-///boxes from the Common Dialog Box Library.] Creates an <b>Open</b> dialog box that lets the user specify the drive,
-///directory, and the name of a file or set of files to be opened.
-///Params:
-///    Arg1 = Type: <b>LPOPENFILENAME</b> A pointer to an OPENFILENAME structure that contains information used to initialize
-///           the dialog box. When <b>GetOpenFileName</b> returns, this structure contains information about the user's file
-///           selection.
-///Returns:
-///    Type: <b>BOOL</b> If the user specifies a file name and clicks the <b>OK</b> button, the return value is nonzero.
-///    The buffer pointed to by the <b>lpstrFile</b> member of the OPENFILENAME structure contains the full path and
-///    file name specified by the user. If the user cancels or closes the <b>Open</b> dialog box or an error occurs, the
-///    return value is zero. To get extended error information, call the CommDlgExtendedError function, which can return
-///    one of the following values.
-///    
-@DllImport("COMDLG32")
-BOOL GetOpenFileNameW(OPENFILENAMEW* param0);
-
-///<p class="CCE_Message">[Starting with Windows Vista, the <b>Open</b> and <b>Save As</b> common dialog boxes have been
-///superseded by the Common Item Dialog. We recommended that you use the Common Item Dialog API instead of these dialog
-///boxes from the Common Dialog Box Library.] Creates a <b>Save</b> dialog box that lets the user specify the drive,
-///directory, and name of a file to save.
-///Params:
-///    Arg1 = Type: <b>LPOPENFILENAME</b> A pointer to an OPENFILENAME structure that contains information used to initialize
-///           the dialog box. When <b>GetSaveFileName</b> returns, this structure contains information about the user's file
-///           selection.
-///Returns:
-///    Type: <b>BOOL</b> If the user specifies a file name and clicks the <b>OK</b> button and the function is
-///    successful, the return value is nonzero. The buffer pointed to by the <b>lpstrFile</b> member of the OPENFILENAME
-///    structure contains the full path and file name specified by the user. If the user cancels or closes the
-///    <b>Save</b> dialog box or an error such as the file name buffer being too small occurs, the return value is zero.
-///    To get extended error information, call the CommDlgExtendedError function, which can return one of the following
-///    values:
-///    
-@DllImport("COMDLG32")
-BOOL GetSaveFileNameA(OPENFILENAMEA* param0);
-
-///<p class="CCE_Message">[Starting with Windows Vista, the <b>Open</b> and <b>Save As</b> common dialog boxes have been
-///superseded by the Common Item Dialog. We recommended that you use the Common Item Dialog API instead of these dialog
-///boxes from the Common Dialog Box Library.] Creates a <b>Save</b> dialog box that lets the user specify the drive,
-///directory, and name of a file to save.
-///Params:
-///    Arg1 = Type: <b>LPOPENFILENAME</b> A pointer to an OPENFILENAME structure that contains information used to initialize
-///           the dialog box. When <b>GetSaveFileName</b> returns, this structure contains information about the user's file
-///           selection.
-///Returns:
-///    Type: <b>BOOL</b> If the user specifies a file name and clicks the <b>OK</b> button and the function is
-///    successful, the return value is nonzero. The buffer pointed to by the <b>lpstrFile</b> member of the OPENFILENAME
-///    structure contains the full path and file name specified by the user. If the user cancels or closes the
-///    <b>Save</b> dialog box or an error such as the file name buffer being too small occurs, the return value is zero.
-///    To get extended error information, call the CommDlgExtendedError function, which can return one of the following
-///    values:
-///    
-@DllImport("COMDLG32")
-BOOL GetSaveFileNameW(OPENFILENAMEW* param0);
-
-///Retrieves the name of the specified file.
-///Params:
-///    arg1 = Type: <b>LPCTSTR</b> The name and location of a file.
-///    Buf = Type: <b>LPTSTR</b> The buffer that receives the name of the file.
-///    cchSize = Type: <b>WORD</b> The length, in characters, of the buffer pointed to by the <i>lpszTitle</i> parameter.
-///Returns:
-///    Type: <b>short</b> If the function succeeds, the return value is zero. If the file name is invalid, the return
-///    value is unknown. If there is an error, the return value is a negative number. If the buffer pointed to by the
-///    <i>lpszTitle</i> parameter is too small, the return value is a positive integer that specifies the required
-///    buffer size, in characters. The required buffer size includes the terminating null character.
-///    
-@DllImport("COMDLG32")
-short GetFileTitleA(const(char)* param0, const(char)* Buf, ushort cchSize);
-
-///Retrieves the name of the specified file.
-///Params:
-///    arg1 = Type: <b>LPCTSTR</b> The name and location of a file.
-///    Buf = Type: <b>LPTSTR</b> The buffer that receives the name of the file.
-///    cchSize = Type: <b>WORD</b> The length, in characters, of the buffer pointed to by the <i>lpszTitle</i> parameter.
-///Returns:
-///    Type: <b>short</b> If the function succeeds, the return value is zero. If the file name is invalid, the return
-///    value is unknown. If there is an error, the return value is a negative number. If the buffer pointed to by the
-///    <i>lpszTitle</i> parameter is too small, the return value is a positive integer that specifies the required
-///    buffer size, in characters. The required buffer size includes the terminating null character.
-///    
-@DllImport("COMDLG32")
-short GetFileTitleW(const(wchar)* param0, const(wchar)* Buf, ushort cchSize);
-
-@DllImport("COMDLG32")
-BOOL ChooseColorA(CHOOSECOLORA* param0);
-
-@DllImport("COMDLG32")
-BOOL ChooseColorW(CHOOSECOLORW* param0);
-
-///Creates a system-defined modeless <b>Find</b> dialog box that lets the user specify a string to search for and
-///options to use when searching for text in a document.
-///Params:
-///    Arg1 = Type: <b>LPFINDREPLACE</b> A pointer to a FINDREPLACE structure that contains information used to initialize the
-///           dialog box. The dialog box uses this structure to send information about the user's input to your application.
-///           For more information, see the following Remarks section.
-///Returns:
-///    Type: <b>HWND</b> If the function succeeds, the return value is the window handle to the dialog box. You can use
-///    the window handle to communicate with or to close the dialog box. If the function fails, the return value is
-///    <b>NULL</b>. To get extended error information, call the CommDlgExtendedError function.
-///    <b>CommDlgExtendedError</b> may return one of the following error codes:
-///    
-@DllImport("COMDLG32")
-HWND FindTextA(FINDREPLACEA* param0);
-
-///Creates a system-defined modeless <b>Find</b> dialog box that lets the user specify a string to search for and
-///options to use when searching for text in a document.
-///Params:
-///    Arg1 = Type: <b>LPFINDREPLACE</b> A pointer to a FINDREPLACE structure that contains information used to initialize the
-///           dialog box. The dialog box uses this structure to send information about the user's input to your application.
-///           For more information, see the following Remarks section.
-///Returns:
-///    Type: <b>HWND</b> If the function succeeds, the return value is the window handle to the dialog box. You can use
-///    the window handle to communicate with or to close the dialog box. If the function fails, the return value is
-///    <b>NULL</b>. To get extended error information, call the CommDlgExtendedError function.
-///    <b>CommDlgExtendedError</b> may return one of the following error codes:
-///    
-@DllImport("COMDLG32")
-HWND FindTextW(FINDREPLACEW* param0);
-
-///Creates a system-defined modeless dialog box that lets the user specify a string to search for and a replacement
-///string, as well as options to control the find and replace operations.
-///Params:
-///    Arg1 = Type: <b>LPFINDREPLACE</b> A pointer to a FINDREPLACE structure that contains information used to initialize the
-///           dialog box. The dialog box uses this structure to send information about the user's input to your application.
-///           For more information, see the following Remarks section.
-///Returns:
-///    Type: <b>HWND</b> If the function succeeds, the return value is the window handle to the dialog box. You can use
-///    the window handle to communicate with the dialog box or close it. If the function fails, the return value is
-///    <b>NULL</b>. To get extended error information, call the CommDlgExtendedError function, which can return one of
-///    the following error codes:
-///    
-@DllImport("COMDLG32")
-HWND ReplaceTextA(FINDREPLACEA* param0);
-
-///Creates a system-defined modeless dialog box that lets the user specify a string to search for and a replacement
-///string, as well as options to control the find and replace operations.
-///Params:
-///    Arg1 = Type: <b>LPFINDREPLACE</b> A pointer to a FINDREPLACE structure that contains information used to initialize the
-///           dialog box. The dialog box uses this structure to send information about the user's input to your application.
-///           For more information, see the following Remarks section.
-///Returns:
-///    Type: <b>HWND</b> If the function succeeds, the return value is the window handle to the dialog box. You can use
-///    the window handle to communicate with the dialog box or close it. If the function fails, the return value is
-///    <b>NULL</b>. To get extended error information, call the CommDlgExtendedError function, which can return one of
-///    the following error codes:
-///    
-@DllImport("COMDLG32")
-HWND ReplaceTextW(FINDREPLACEW* param0);
-
-@DllImport("COMDLG32")
-BOOL ChooseFontA(CHOOSEFONTA* param0);
-
-@DllImport("COMDLG32")
-BOOL ChooseFontW(CHOOSEFONTW* param0);
-
-@DllImport("COMDLG32")
-BOOL PrintDlgA(PRINTDLGA* pPD);
-
-@DllImport("COMDLG32")
-BOOL PrintDlgW(PRINTDLGW* pPD);
-
-@DllImport("COMDLG32")
-HRESULT PrintDlgExA(PRINTDLGEXA* pPD);
-
-@DllImport("COMDLG32")
-HRESULT PrintDlgExW(PRINTDLGEXW* pPD);
-
-///Returns a common dialog box error code. This code indicates the most recent error to occur during the execution of
-///one of the common dialog box functions.
-///Returns:
-///    Type: <b>DWORD</b> If the most recent call to a common dialog box function succeeded, the return value is
-///    undefined. If the common dialog box function returned <b>FALSE</b> because the user closed or canceled the dialog
-///    box, the return value is zero. Otherwise, the return value is a nonzero error code. The
-///    <b>CommDlgExtendedError</b> function can return general error codes for any of the common dialog box functions.
-///    In addition, there are error codes that are returned only for a specific common dialog box. All of these error
-///    codes are defined in Cderr.h. The following general error codes can be returned for any of the common dialog box
-///    functions. <table> <tr> <th>Return code/value</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>CDERR_DIALOGFAILURE</b></dt> <dt>0xFFFF</dt> </dl> </td> <td width="60%"> The dialog box could not be
-///    created. The common dialog box function's call to the DialogBox function failed. For example, this error occurs
-///    if the common dialog box call specifies an invalid window handle. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>CDERR_FINDRESFAILURE</b></dt> <dt>0x0006</dt> </dl> </td> <td width="60%"> The common dialog box function
-///    failed to find a specified resource. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>CDERR_INITIALIZATION</b></dt>
-///    <dt>0x0002</dt> </dl> </td> <td width="60%"> The common dialog box function failed during initialization. This
-///    error often occurs when sufficient memory is not available. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>CDERR_LOADRESFAILURE</b></dt> <dt>0x0007</dt> </dl> </td> <td width="60%"> The common dialog box function
-///    failed to load a specified resource. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>CDERR_LOADSTRFAILURE</b></dt>
-///    <dt>0x0005</dt> </dl> </td> <td width="60%"> The common dialog box function failed to load a specified string.
-///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>CDERR_LOCKRESFAILURE</b></dt> <dt>0x0008</dt> </dl> </td> <td
-///    width="60%"> The common dialog box function failed to lock a specified resource. </td> </tr> <tr> <td
-///    width="40%"> <dl> <dt><b>CDERR_MEMALLOCFAILURE</b></dt> <dt>0x0009</dt> </dl> </td> <td width="60%"> The common
-///    dialog box function was unable to allocate memory for internal structures. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>CDERR_MEMLOCKFAILURE</b></dt> <dt>0x000A</dt> </dl> </td> <td width="60%"> The common dialog box function
-///    was unable to lock the memory associated with a handle. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>CDERR_NOHINSTANCE</b></dt> <dt>0x0004</dt> </dl> </td> <td width="60%"> The <b>ENABLETEMPLATE</b> flag was
-///    set in the <b>Flags</b> member of the initialization structure for the corresponding common dialog box, but you
-///    failed to provide a corresponding instance handle. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>CDERR_NOHOOK</b></dt> <dt>0x000B</dt> </dl> </td> <td width="60%"> The <b>ENABLEHOOK</b> flag was set in
-///    the <b>Flags</b> member of the initialization structure for the corresponding common dialog box, but you failed
-///    to provide a pointer to a corresponding hook procedure. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>CDERR_NOTEMPLATE</b></dt> <dt>0x0003</dt> </dl> </td> <td width="60%"> The <b>ENABLETEMPLATE</b> flag was
-///    set in the <b>Flags</b> member of the initialization structure for the corresponding common dialog box, but you
-///    failed to provide a corresponding template. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>CDERR_REGISTERMSGFAIL</b></dt> <dt>0x000C</dt> </dl> </td> <td width="60%"> The RegisterWindowMessage
-///    function returned an error code when it was called by the common dialog box function. </td> </tr> <tr> <td
-///    width="40%"> <dl> <dt><b>CDERR_STRUCTSIZE</b></dt> <dt>0x0001</dt> </dl> </td> <td width="60%"> The
-///    <b>lStructSize</b> member of the initialization structure for the corresponding common dialog box is invalid.
-///    </td> </tr> </table> The following error codes can be returned for the PrintDlg function. <table> <tr> <th>Return
-///    code/value</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>PDERR_CREATEICFAILURE</b></dt>
-///    <dt>0x100A</dt> </dl> </td> <td width="60%"> The PrintDlg function failed when it attempted to create an
-///    information context. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>PDERR_DEFAULTDIFFERENT</b></dt>
-///    <dt>0x100C</dt> </dl> </td> <td width="60%"> You called the PrintDlg function with the <b>DN_DEFAULTPRN</b> flag
-///    specified in the <b>wDefault</b> member of the DEVNAMES structure, but the printer described by the other
-///    structure members did not match the current default printer. This error occurs when you store the <b>DEVNAMES</b>
-///    structure, and the user changes the default printer by using the Control Panel. To use the printer described by
-///    the DEVNAMES structure, clear the <b>DN_DEFAULTPRN</b> flag and call PrintDlg again. To use the default printer,
-///    replace the DEVNAMES structure (and the structure, if one exists) with <b>NULL</b>; and call PrintDlg again.
-///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>PDERR_DNDMMISMATCH</b></dt> <dt>0x1009</dt> </dl> </td> <td
-///    width="60%"> The data in the DEVMODE and DEVNAMES structures describes two different printers. </td> </tr> <tr>
-///    <td width="40%"> <dl> <dt><b>PDERR_GETDEVMODEFAIL</b></dt> <dt>0x1005</dt> </dl> </td> <td width="60%"> The
-///    printer driver failed to initialize a DEVMODE structure. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>PDERR_INITFAILURE</b></dt> <dt>0x1006</dt> </dl> </td> <td width="60%"> The PrintDlg function failed
-///    during initialization, and there is no more specific extended error code to describe the failure. This is the
-///    generic default error code for the function. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>PDERR_LOADDRVFAILURE</b></dt> <dt>0x1004</dt> </dl> </td> <td width="60%"> The PrintDlg function failed to
-///    load the device driver for the specified printer. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>PDERR_NODEFAULTPRN</b></dt> <dt>0x1008</dt> </dl> </td> <td width="60%"> A default printer does not exist.
-///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>PDERR_NODEVICES</b></dt> <dt>0x1007</dt> </dl> </td> <td
-///    width="60%"> No printer drivers were found. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>PDERR_PARSEFAILURE</b></dt> <dt>0x1002</dt> </dl> </td> <td width="60%"> The PrintDlg function failed to
-///    parse the strings in the [devices] section of the WIN.INI file. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>PDERR_PRINTERNOTFOUND</b></dt> <dt>0x100B</dt> </dl> </td> <td width="60%"> The [devices] section of the
-///    WIN.INI file did not contain an entry for the requested printer. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>PDERR_RETDEFFAILURE</b></dt> <dt>0x1003</dt> </dl> </td> <td width="60%"> The PD_RETURNDEFAULT flag was
-///    specified in the <b>Flags</b> member of the PRINTDLG structure, but the <b>hDevMode</b> or <b>hDevNames</b>
-///    member was not <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>PDERR_SETUPFAILURE</b></dt>
-///    <dt>0x1001</dt> </dl> </td> <td width="60%"> The PrintDlg function failed to load the required resources. </td>
-///    </tr> </table> The following error codes can be returned for the ChooseFont function. <table> <tr> <th>Return
-///    code/value</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>CFERR_MAXLESSTHANMIN</b></dt>
-///    <dt>CFERR_MAXLESSTHANMIN</dt> </dl> </td> <td width="60%"> The size specified in the <b>nSizeMax</b> member of
-///    the CHOOSEFONT structure is less than the size specified in the <b>nSizeMin</b> member. </td> </tr> <tr> <td
-///    width="40%"> <dl> <dt><b>CFERR_NOFONTS</b></dt> <dt>0x2001</dt> </dl> </td> <td width="60%"> No fonts exist.
-///    </td> </tr> </table> The following error codes can be returned for the GetOpenFileName and GetSaveFileName
-///    functions. <table> <tr> <th>Return code/value</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>FNERR_BUFFERTOOSMALL</b></dt> <dt>0x3003</dt> </dl> </td> <td width="60%"> The buffer pointed to by the
-///    <b>lpstrFile</b> member of the OPENFILENAME structure is too small for the file name specified by the user. The
-///    first two bytes of the <b>lpstrFile</b> buffer contain an integer value specifying the size required to receive
-///    the full name, in characters. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>FNERR_INVALIDFILENAME</b></dt>
-///    <dt>0x3002</dt> </dl> </td> <td width="60%"> A file name is invalid. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>FNERR_SUBCLASSFAILURE</b></dt> <dt>0x3001</dt> </dl> </td> <td width="60%"> An attempt to subclass a list
-///    box failed because sufficient memory was not available. </td> </tr> </table> The following error code can be
-///    returned for the FindText and ReplaceText functions. <table> <tr> <th>Return code/value</th> <th>Description</th>
-///    </tr> <tr> <td width="40%"> <dl> <dt><b>FRERR_BUFFERLENGTHZERO</b></dt> <dt>0x4001</dt> </dl> </td> <td
-///    width="60%"> A member of the FINDREPLACE structure points to an invalid buffer. </td> </tr> </table>
-///    
-@DllImport("COMDLG32")
-uint CommDlgExtendedError();
-
-@DllImport("COMDLG32")
-BOOL PageSetupDlgA(PAGESETUPDLGA* param0);
-
-@DllImport("COMDLG32")
-BOOL PageSetupDlgW(PAGESETUPDLGW* param0);
 
 ///<p class="CCE_Message">[This function is not intended for general use. It may be altered or unavailable in subsequent
 ///versions of Windows.] Determines whether the system considers that a specified application is not responding. An
@@ -4554,7 +4287,7 @@ BOOL IsHungAppWindow(HWND hwnd);
 ///    call GetLastError.
 ///    
 @DllImport("USER32")
-uint RegisterWindowMessageA(const(char)* lpString);
+uint RegisterWindowMessageA(const(PSTR) lpString);
 
 ///Defines a new window message that is guaranteed to be unique throughout the system. The message value can be used
 ///when sending or posting messages.
@@ -4566,7 +4299,7 @@ uint RegisterWindowMessageA(const(char)* lpString);
 ///    call GetLastError.
 ///    
 @DllImport("USER32")
-uint RegisterWindowMessageW(const(wchar)* lpString);
+uint RegisterWindowMessageW(const(PWSTR) lpString);
 
 ///Retrieves a message from the calling thread's message queue. The function dispatches incoming sent messages until a
 ///posted message is available for retrieval. Unlike <b>GetMessage</b>, the PeekMessage function does not wait for a
@@ -5471,7 +5204,7 @@ ushort RegisterClassW(const(WNDCLASSW)* lpWndClass);
 ///    call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL UnregisterClassA(const(char)* lpClassName, HINSTANCE hInstance);
+BOOL UnregisterClassA(const(PSTR) lpClassName, HINSTANCE hInstance);
 
 ///Unregisters a window class, freeing the memory required for the class.
 ///Params:
@@ -5488,7 +5221,7 @@ BOOL UnregisterClassA(const(char)* lpClassName, HINSTANCE hInstance);
 ///    call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL UnregisterClassW(const(wchar)* lpClassName, HINSTANCE hInstance);
+BOOL UnregisterClassW(const(PWSTR) lpClassName, HINSTANCE hInstance);
 
 ///Retrieves information about a window class. <div class="alert"><b>Note</b> The <b>GetClassInfo</b> function has been
 ///superseded by the GetClassInfoEx function. You can still use <b>GetClassInfo</b>, however, if you do not need
@@ -5507,7 +5240,7 @@ BOOL UnregisterClassW(const(wchar)* lpClassName, HINSTANCE hInstance);
 ///    nonzero. If the function fails, the return value is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL GetClassInfoA(HINSTANCE hInstance, const(char)* lpClassName, WNDCLASSA* lpWndClass);
+BOOL GetClassInfoA(HINSTANCE hInstance, const(PSTR) lpClassName, WNDCLASSA* lpWndClass);
 
 ///Retrieves information about a window class. <div class="alert"><b>Note</b> The <b>GetClassInfo</b> function has been
 ///superseded by the GetClassInfoEx function. You can still use <b>GetClassInfo</b>, however, if you do not need
@@ -5526,7 +5259,7 @@ BOOL GetClassInfoA(HINSTANCE hInstance, const(char)* lpClassName, WNDCLASSA* lpW
 ///    nonzero. If the function fails, the return value is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL GetClassInfoW(HINSTANCE hInstance, const(wchar)* lpClassName, WNDCLASSW* lpWndClass);
+BOOL GetClassInfoW(HINSTANCE hInstance, const(PWSTR) lpClassName, WNDCLASSW* lpWndClass);
 
 ///Registers a window class for subsequent use in calls to the CreateWindow or CreateWindowEx function.
 ///Params:
@@ -5571,7 +5304,7 @@ ushort RegisterClassExW(const(WNDCLASSEXW)* param0);
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL GetClassInfoExA(HINSTANCE hInstance, const(char)* lpszClass, WNDCLASSEXA* lpwcx);
+BOOL GetClassInfoExA(HINSTANCE hInstance, const(PSTR) lpszClass, WNDCLASSEXA* lpwcx);
 
 ///Retrieves information about a window class, including a handle to the small icon associated with the window class.
 ///The GetClassInfo function does not retrieve a handle to the small icon.
@@ -5590,7 +5323,7 @@ BOOL GetClassInfoExA(HINSTANCE hInstance, const(char)* lpszClass, WNDCLASSEXA* l
 ///    To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL GetClassInfoExW(HINSTANCE hInstance, const(wchar)* lpszClass, WNDCLASSEXW* lpwcx);
+BOOL GetClassInfoExW(HINSTANCE hInstance, const(PWSTR) lpszClass, WNDCLASSEXW* lpwcx);
 
 ///Creates an overlapped, pop-up, or child window with an extended window style; otherwise, this function is identical
 ///to the CreateWindow function. For more information about creating a window and for full descriptions of the other
@@ -5661,9 +5394,8 @@ BOOL GetClassInfoExW(HINSTANCE hInstance, const(wchar)* lpszClass, WNDCLASSEXW* 
 ///    WM_CREATE or WM_NCCREATE </li> </ul>
 ///    
 @DllImport("USER32")
-HWND CreateWindowExA(uint dwExStyle, const(char)* lpClassName, const(char)* lpWindowName, uint dwStyle, int X, 
-                     int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, 
-                     void* lpParam);
+HWND CreateWindowExA(uint dwExStyle, const(PSTR) lpClassName, const(PSTR) lpWindowName, uint dwStyle, int X, int Y, 
+                     int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, void* lpParam);
 
 ///Creates an overlapped, pop-up, or child window with an extended window style; otherwise, this function is identical
 ///to the CreateWindow function. For more information about creating a window and for full descriptions of the other
@@ -5734,7 +5466,7 @@ HWND CreateWindowExA(uint dwExStyle, const(char)* lpClassName, const(char)* lpWi
 ///    WM_CREATE or WM_NCCREATE </li> </ul>
 ///    
 @DllImport("USER32")
-HWND CreateWindowExW(uint dwExStyle, const(wchar)* lpClassName, const(wchar)* lpWindowName, uint dwStyle, int X, 
+HWND CreateWindowExW(uint dwExStyle, const(PWSTR) lpClassName, const(PWSTR) lpWindowName, uint dwStyle, int X, 
                      int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, 
                      void* lpParam);
 
@@ -6340,7 +6072,7 @@ BOOL IsZoomed(HWND hWnd);
 ///    function fails, the return value is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-HWND CreateDialogParamA(HINSTANCE hInstance, const(char)* lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, 
+HWND CreateDialogParamA(HINSTANCE hInstance, const(PSTR) lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, 
                         LPARAM dwInitParam);
 
 ///Creates a modeless dialog box from a dialog box template resource. Before displaying the dialog box, the function
@@ -6364,7 +6096,7 @@ HWND CreateDialogParamA(HINSTANCE hInstance, const(char)* lpTemplateName, HWND h
 ///    function fails, the return value is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-HWND CreateDialogParamW(HINSTANCE hInstance, const(wchar)* lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, 
+HWND CreateDialogParamW(HINSTANCE hInstance, const(PWSTR) lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, 
                         LPARAM dwInitParam);
 
 ///Creates a modeless dialog box from a dialog box template in memory. Before displaying the dialog box, the function
@@ -6445,7 +6177,7 @@ HWND CreateDialogIndirectParamW(HINSTANCE hInstance, DLGTEMPLATE* lpTemplate, HW
 ///    –1. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-ptrdiff_t DialogBoxParamA(HINSTANCE hInstance, const(char)* lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, 
+ptrdiff_t DialogBoxParamA(HINSTANCE hInstance, const(PSTR) lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, 
                           LPARAM dwInitParam);
 
 ///Creates a modal dialog box from a dialog box template resource. Before displaying the dialog box, the function passes
@@ -6472,7 +6204,7 @@ ptrdiff_t DialogBoxParamA(HINSTANCE hInstance, const(char)* lpTemplateName, HWND
 ///    –1. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-ptrdiff_t DialogBoxParamW(HINSTANCE hInstance, const(wchar)* lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, 
+ptrdiff_t DialogBoxParamW(HINSTANCE hInstance, const(PWSTR) lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, 
                           LPARAM dwInitParam);
 
 ///Creates a modal dialog box from a dialog box template in memory. Before displaying the dialog box, the function
@@ -6591,7 +6323,7 @@ BOOL SetDlgItemInt(HWND hDlg, int nIDDlgItem, uint uValue, BOOL bSigned);
 ///    information, call GetLastError.
 ///    
 @DllImport("USER32")
-uint GetDlgItemInt(HWND hDlg, int nIDDlgItem, int* lpTranslated, BOOL bSigned);
+uint GetDlgItemInt(HWND hDlg, int nIDDlgItem, BOOL* lpTranslated, BOOL bSigned);
 
 ///Sets the title or text of a control in a dialog box.
 ///Params:
@@ -6603,7 +6335,7 @@ uint GetDlgItemInt(HWND hDlg, int nIDDlgItem, int* lpTranslated, BOOL bSigned);
 ///    is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL SetDlgItemTextA(HWND hDlg, int nIDDlgItem, const(char)* lpString);
+BOOL SetDlgItemTextA(HWND hDlg, int nIDDlgItem, const(PSTR) lpString);
 
 ///Sets the title or text of a control in a dialog box.
 ///Params:
@@ -6615,7 +6347,7 @@ BOOL SetDlgItemTextA(HWND hDlg, int nIDDlgItem, const(char)* lpString);
 ///    is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL SetDlgItemTextW(HWND hDlg, int nIDDlgItem, const(wchar)* lpString);
+BOOL SetDlgItemTextW(HWND hDlg, int nIDDlgItem, const(PWSTR) lpString);
 
 ///Retrieves the title or text associated with a control in a dialog box.
 ///Params:
@@ -6631,7 +6363,7 @@ BOOL SetDlgItemTextW(HWND hDlg, int nIDDlgItem, const(wchar)* lpString);
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-uint GetDlgItemTextA(HWND hDlg, int nIDDlgItem, const(char)* lpString, int cchMax);
+uint GetDlgItemTextA(HWND hDlg, int nIDDlgItem, PSTR lpString, int cchMax);
 
 ///Retrieves the title or text associated with a control in a dialog box.
 ///Params:
@@ -6647,7 +6379,7 @@ uint GetDlgItemTextA(HWND hDlg, int nIDDlgItem, const(char)* lpString, int cchMa
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-uint GetDlgItemTextW(HWND hDlg, int nIDDlgItem, const(wchar)* lpString, int cchMax);
+uint GetDlgItemTextW(HWND hDlg, int nIDDlgItem, PWSTR lpString, int cchMax);
 
 ///Sends a message to the specified control in a dialog box.
 ///Params:
@@ -7355,7 +7087,7 @@ BOOL LockSetForegroundWindow(uint uLockCode);
 ///    the function fails, the return value is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL SetPropA(HWND hWnd, const(char)* lpString, HANDLE hData);
+BOOL SetPropA(HWND hWnd, const(PSTR) lpString, HANDLE hData);
 
 ///Adds a new entry or changes an existing entry in the property list of the specified window. The function adds a new
 ///entry to the list if the specified character string does not exist already in the list. The new entry contains the
@@ -7372,7 +7104,7 @@ BOOL SetPropA(HWND hWnd, const(char)* lpString, HANDLE hData);
 ///    the function fails, the return value is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL SetPropW(HWND hWnd, const(wchar)* lpString, HANDLE hData);
+BOOL SetPropW(HWND hWnd, const(PWSTR) lpString, HANDLE hData);
 
 ///Retrieves a data handle from the property list of the specified window. The character string identifies the handle to
 ///be retrieved. The string and handle must have been added to the property list by a previous call to the SetProp
@@ -7387,7 +7119,7 @@ BOOL SetPropW(HWND hWnd, const(wchar)* lpString, HANDLE hData);
 ///    Otherwise, the return value is <b>NULL</b>.
 ///    
 @DllImport("USER32")
-HANDLE GetPropA(HWND hWnd, const(char)* lpString);
+HANDLE GetPropA(HWND hWnd, const(PSTR) lpString);
 
 ///Retrieves a data handle from the property list of the specified window. The character string identifies the handle to
 ///be retrieved. The string and handle must have been added to the property list by a previous call to the SetProp
@@ -7402,7 +7134,7 @@ HANDLE GetPropA(HWND hWnd, const(char)* lpString);
 ///    Otherwise, the return value is <b>NULL</b>.
 ///    
 @DllImport("USER32")
-HANDLE GetPropW(HWND hWnd, const(wchar)* lpString);
+HANDLE GetPropW(HWND hWnd, const(PWSTR) lpString);
 
 ///Removes an entry from the property list of the specified window. The specified character string identifies the entry
 ///to be removed.
@@ -7416,7 +7148,7 @@ HANDLE GetPropW(HWND hWnd, const(wchar)* lpString);
 ///    property list, the return value is <b>NULL</b>.
 ///    
 @DllImport("USER32")
-HANDLE RemovePropA(HWND hWnd, const(char)* lpString);
+HANDLE RemovePropA(HWND hWnd, const(PSTR) lpString);
 
 ///Removes an entry from the property list of the specified window. The specified character string identifies the entry
 ///to be removed.
@@ -7430,7 +7162,7 @@ HANDLE RemovePropA(HWND hWnd, const(char)* lpString);
 ///    property list, the return value is <b>NULL</b>.
 ///    
 @DllImport("USER32")
-HANDLE RemovePropW(HWND hWnd, const(wchar)* lpString);
+HANDLE RemovePropW(HWND hWnd, const(PWSTR) lpString);
 
 ///Enumerates all entries in the property list of a window by passing them, one by one, to the specified callback
 ///function. <b>EnumPropsEx</b> continues until the last entry is enumerated or the callback function returns
@@ -7500,7 +7232,7 @@ int EnumPropsW(HWND hWnd, PROPENUMPROCW lpEnumFunc);
 ///    is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL SetWindowTextA(HWND hWnd, const(char)* lpString);
+BOOL SetWindowTextA(HWND hWnd, const(PSTR) lpString);
 
 ///Changes the text of the specified window's title bar (if it has one). If the specified window is a control, the text
 ///of the control is changed. However, <b>SetWindowText</b> cannot change the text of a control in another application.
@@ -7512,7 +7244,7 @@ BOOL SetWindowTextA(HWND hWnd, const(char)* lpString);
 ///    is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL SetWindowTextW(HWND hWnd, const(wchar)* lpString);
+BOOL SetWindowTextW(HWND hWnd, const(PWSTR) lpString);
 
 ///Copies the text of the specified window's title bar (if it has one) into a buffer. If the specified window is a
 ///control, the text of the control is copied. However, <b>GetWindowText</b> cannot retrieve the text of a control in
@@ -7530,7 +7262,7 @@ BOOL SetWindowTextW(HWND hWnd, const(wchar)* lpString);
 ///    GetLastError. This function cannot retrieve the text of an edit control in another application.
 ///    
 @DllImport("USER32")
-int GetWindowTextA(HWND hWnd, const(char)* lpString, int nMaxCount);
+int GetWindowTextA(HWND hWnd, PSTR lpString, int nMaxCount);
 
 ///Copies the text of the specified window's title bar (if it has one) into a buffer. If the specified window is a
 ///control, the text of the control is copied. However, <b>GetWindowText</b> cannot retrieve the text of a control in
@@ -7548,7 +7280,7 @@ int GetWindowTextA(HWND hWnd, const(char)* lpString, int nMaxCount);
 ///    GetLastError. This function cannot retrieve the text of an edit control in another application.
 ///    
 @DllImport("USER32")
-int GetWindowTextW(HWND hWnd, const(wchar)* lpString, int nMaxCount);
+int GetWindowTextW(HWND hWnd, PWSTR lpString, int nMaxCount);
 
 ///Retrieves the length, in characters, of the specified window's title bar text (if the window has a title bar). If the
 ///specified window is a control, the function retrieves the length of the text within the control. However,
@@ -7770,7 +7502,7 @@ BOOL AdjustWindowRectEx(RECT* lpRect, uint dwStyle, BOOL bMenu, uint dwExStyle);
 ///    The <b>Yes</b> button was selected. </td> </tr> </table>
 ///    
 @DllImport("USER32")
-int MessageBoxA(HWND hWnd, const(char)* lpText, const(char)* lpCaption, uint uType);
+int MessageBoxA(HWND hWnd, const(PSTR) lpText, const(PSTR) lpCaption, uint uType);
 
 ///Displays a modal dialog box that contains a system icon, a set of buttons, and a brief application-specific message,
 ///such as status or error information. The message box returns an integer value that indicates which button the user
@@ -7900,7 +7632,7 @@ int MessageBoxA(HWND hWnd, const(char)* lpText, const(char)* lpCaption, uint uTy
 ///    The <b>Yes</b> button was selected. </td> </tr> </table>
 ///    
 @DllImport("USER32")
-int MessageBoxW(HWND hWnd, const(wchar)* lpText, const(wchar)* lpCaption, uint uType);
+int MessageBoxW(HWND hWnd, const(PWSTR) lpText, const(PWSTR) lpCaption, uint uType);
 
 ///Creates, displays, and operates a message box. The message box contains an application-defined message and title,
 ///plus any combination of predefined icons and push buttons. The buttons are in the language of the system user
@@ -7939,7 +7671,7 @@ int MessageBoxW(HWND hWnd, const(wchar)* lpText, const(wchar)* lpCaption, uint u
 ///    The <b>Yes</b> button was selected. </td> </tr> </table>
 ///    
 @DllImport("USER32")
-int MessageBoxExA(HWND hWnd, const(char)* lpText, const(char)* lpCaption, uint uType, ushort wLanguageId);
+int MessageBoxExA(HWND hWnd, const(PSTR) lpText, const(PSTR) lpCaption, uint uType, ushort wLanguageId);
 
 ///Creates, displays, and operates a message box. The message box contains an application-defined message and title,
 ///plus any combination of predefined icons and push buttons. The buttons are in the language of the system user
@@ -7978,7 +7710,7 @@ int MessageBoxExA(HWND hWnd, const(char)* lpText, const(char)* lpCaption, uint u
 ///    The <b>Yes</b> button was selected. </td> </tr> </table>
 ///    
 @DllImport("USER32")
-int MessageBoxExW(HWND hWnd, const(wchar)* lpText, const(wchar)* lpCaption, uint uType, ushort wLanguageId);
+int MessageBoxExW(HWND hWnd, const(PWSTR) lpText, const(PWSTR) lpCaption, uint uType, ushort wLanguageId);
 
 ///Creates, displays, and operates a message box. The message box contains application-defined message text and title,
 ///any icon, and any combination of predefined push buttons.
@@ -8236,7 +7968,7 @@ uint GetSysColor(int nIndex);
 ///    return value is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL SetSysColors(int cElements, char* lpaElements, char* lpaRgbValues);
+BOOL SetSysColors(int cElements, const(int)* lpaElements, const(uint)* lpaRgbValues);
 
 ///Retrieves information about the specified window. The function also retrieves the 32-bit (<b>DWORD</b>) value at the
 ///specified offset into the extra window memory. <div class="alert"><b>Note</b> If you are retrieving a pointer or a
@@ -8717,7 +8449,7 @@ BOOL EnumChildWindows(HWND hWndParent, WNDENUMPROC lpEnumFunc, LPARAM lParam);
 ///    information, call GetLastError.
 ///    
 @DllImport("USER32")
-HWND FindWindowA(const(char)* lpClassName, const(char)* lpWindowName);
+HWND FindWindowA(const(PSTR) lpClassName, const(PSTR) lpWindowName);
 
 ///Retrieves a handle to the top-level window whose class name and window name match the specified strings. This
 ///function does not search child windows. This function does not perform a case-sensitive search. To search child
@@ -8736,7 +8468,7 @@ HWND FindWindowA(const(char)* lpClassName, const(char)* lpWindowName);
 ///    information, call GetLastError.
 ///    
 @DllImport("USER32")
-HWND FindWindowW(const(wchar)* lpClassName, const(wchar)* lpWindowName);
+HWND FindWindowW(const(PWSTR) lpClassName, const(PWSTR) lpWindowName);
 
 ///Retrieves a handle to a window whose class name and window name match the specified strings. The function searches
 ///child windows, beginning with the one following the specified child window. This function does not perform a
@@ -8765,7 +8497,7 @@ HWND FindWindowW(const(wchar)* lpClassName, const(wchar)* lpWindowName);
 ///    information, call GetLastError.
 ///    
 @DllImport("USER32")
-HWND FindWindowExA(HWND hWndParent, HWND hWndChildAfter, const(char)* lpszClass, const(char)* lpszWindow);
+HWND FindWindowExA(HWND hWndParent, HWND hWndChildAfter, const(PSTR) lpszClass, const(PSTR) lpszWindow);
 
 ///Retrieves a handle to a window whose class name and window name match the specified strings. The function searches
 ///child windows, beginning with the one following the specified child window. This function does not perform a
@@ -8794,7 +8526,7 @@ HWND FindWindowExA(HWND hWndParent, HWND hWndChildAfter, const(char)* lpszClass,
 ///    information, call GetLastError.
 ///    
 @DllImport("USER32")
-HWND FindWindowExW(HWND hWndParent, HWND hWndChildAfter, const(wchar)* lpszClass, const(wchar)* lpszWindow);
+HWND FindWindowExW(HWND hWndParent, HWND hWndChildAfter, const(PWSTR) lpszClass, const(PWSTR) lpszWindow);
 
 ///Retrieves a handle to the Shell's desktop window.
 ///Returns:
@@ -8877,7 +8609,7 @@ BOOL EnumThreadWindows(uint dwThreadId, WNDENUMPROC lpfn, LPARAM lParam);
 ///    information, call GetLastError.
 ///    
 @DllImport("USER32")
-int GetClassNameA(HWND hWnd, const(char)* lpClassName, int nMaxCount);
+int GetClassNameA(HWND hWnd, PSTR lpClassName, int nMaxCount);
 
 ///Retrieves the name of the class to which the specified window belongs.
 ///Params:
@@ -8892,7 +8624,7 @@ int GetClassNameA(HWND hWnd, const(char)* lpClassName, int nMaxCount);
 ///    information, call GetLastError.
 ///    
 @DllImport("USER32")
-int GetClassNameW(HWND hWnd, const(wchar)* lpClassName, int nMaxCount);
+int GetClassNameW(HWND hWnd, PWSTR lpClassName, int nMaxCount);
 
 ///Examines the Z order of the child windows associated with the specified parent window and retrieves a handle to the
 ///child window at the top of the Z order.
@@ -9056,7 +8788,7 @@ HWND GetWindow(HWND hWnd, uint uCmd);
 ///    function fails, the return value is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-ptrdiff_t SetWindowsHookExA(int idHook, HOOKPROC lpfn, HINSTANCE hmod, uint dwThreadId);
+HHOOK SetWindowsHookExA(int idHook, HOOKPROC lpfn, HINSTANCE hmod, uint dwThreadId);
 
 ///Installs an application-defined hook procedure into a hook chain. You would install a hook procedure to monitor the
 ///system for certain types of events. These events are associated either with a specific thread or with all threads in
@@ -9125,7 +8857,7 @@ ptrdiff_t SetWindowsHookExA(int idHook, HOOKPROC lpfn, HINSTANCE hmod, uint dwTh
 ///    function fails, the return value is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-ptrdiff_t SetWindowsHookExW(int idHook, HOOKPROC lpfn, HINSTANCE hmod, uint dwThreadId);
+HHOOK SetWindowsHookExW(int idHook, HOOKPROC lpfn, HINSTANCE hmod, uint dwThreadId);
 
 ///Removes a hook procedure installed in a hook chain by the SetWindowsHookEx function.
 ///Params:
@@ -9136,7 +8868,7 @@ ptrdiff_t SetWindowsHookExW(int idHook, HOOKPROC lpfn, HINSTANCE hmod, uint dwTh
 ///    is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL UnhookWindowsHookEx(ptrdiff_t hhk);
+BOOL UnhookWindowsHookEx(HHOOK hhk);
 
 ///Passes the hook information to the next hook procedure in the current hook chain. A hook procedure can call this
 ///function either before or after processing the hook information.
@@ -9154,7 +8886,7 @@ BOOL UnhookWindowsHookEx(ptrdiff_t hhk);
 ///    the descriptions of the individual hook procedures.
 ///    
 @DllImport("USER32")
-LRESULT CallNextHookEx(ptrdiff_t hhk, int nCode, WPARAM wParam, LPARAM lParam);
+LRESULT CallNextHookEx(HHOOK hhk, int nCode, WPARAM wParam, LPARAM lParam);
 
 ///Determines whether a message is intended for the specified dialog box and, if it is, processes the message.
 ///Params:
@@ -9312,7 +9044,7 @@ uint ArrangeIconicWindows(HWND hWnd);
 ///    fails, the return value is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-HWND CreateMDIWindowA(const(char)* lpClassName, const(char)* lpWindowName, uint dwStyle, int X, int Y, int nWidth, 
+HWND CreateMDIWindowA(const(PSTR) lpClassName, const(PSTR) lpWindowName, uint dwStyle, int X, int Y, int nWidth, 
                       int nHeight, HWND hWndParent, HINSTANCE hInstance, LPARAM lParam);
 
 ///Creates a multiple-document interface (MDI) child window.
@@ -9349,8 +9081,8 @@ HWND CreateMDIWindowA(const(char)* lpClassName, const(char)* lpWindowName, uint 
 ///    fails, the return value is <b>NULL</b>. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-HWND CreateMDIWindowW(const(wchar)* lpClassName, const(wchar)* lpWindowName, uint dwStyle, int X, int Y, 
-                      int nWidth, int nHeight, HWND hWndParent, HINSTANCE hInstance, LPARAM lParam);
+HWND CreateMDIWindowW(const(PWSTR) lpClassName, const(PWSTR) lpWindowName, uint dwStyle, int X, int Y, int nWidth, 
+                      int nHeight, HWND hWndParent, HINSTANCE hInstance, LPARAM lParam);
 
 ///Tiles the specified child windows of the specified parent window.
 ///Params:
@@ -9376,7 +9108,7 @@ HWND CreateMDIWindowW(const(wchar)* lpClassName, const(wchar)* lpWindowName, uin
 ///    fails, the return value is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-ushort TileWindows(HWND hwndParent, uint wHow, const(RECT)* lpRect, uint cKids, char* lpKids);
+ushort TileWindows(HWND hwndParent, uint wHow, const(RECT)* lpRect, uint cKids, const(HWND)* lpKids);
 
 ///Cascades the specified child windows of the specified parent window.
 ///Params:
@@ -9402,7 +9134,7 @@ ushort TileWindows(HWND hwndParent, uint wHow, const(RECT)* lpRect, uint cKids, 
 ///    fails, the return value is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-ushort CascadeWindows(HWND hwndParent, uint wHow, const(RECT)* lpRect, uint cKids, char* lpKids);
+ushort CascadeWindows(HWND hwndParent, uint wHow, const(RECT)* lpRect, uint cKids, const(HWND)* lpKids);
 
 ///Retrieves or sets the value of one of the system-wide parameters. This function can also update the user profile
 ///while setting a parameter.
@@ -10525,7 +10257,7 @@ BOOL SoundSentry();
 ///    GetLastError.
 ///    
 @DllImport("USER32")
-int InternalGetWindowText(HWND hWnd, const(wchar)* pString, int cchMaxCount);
+int InternalGetWindowText(HWND hWnd, PWSTR pString, int cchMaxCount);
 
 ///Retrieves information about the active window or a specified GUI thread.
 ///Params:
@@ -10569,7 +10301,7 @@ BOOL IsProcessDPIAware();
 ///    Type: <b>UINT</b> The return value is the total number of characters copied into the buffer.
 ///    
 @DllImport("USER32")
-uint GetWindowModuleFileNameA(HWND hwnd, const(char)* pszFileName, uint cchFileNameMax);
+uint GetWindowModuleFileNameA(HWND hwnd, PSTR pszFileName, uint cchFileNameMax);
 
 ///Retrieves the full path and file name of the module associated with the specified window handle.
 ///Params:
@@ -10580,7 +10312,7 @@ uint GetWindowModuleFileNameA(HWND hwnd, const(char)* pszFileName, uint cchFileN
 ///    Type: <b>UINT</b> The return value is the total number of characters copied into the buffer.
 ///    
 @DllImport("USER32")
-uint GetWindowModuleFileNameW(HWND hwnd, const(wchar)* pszFileName, uint cchFileNameMax);
+uint GetWindowModuleFileNameW(HWND hwnd, PWSTR pszFileName, uint cchFileNameMax);
 
 ///Retrieves information about the specified window.
 ///Params:
@@ -10646,7 +10378,7 @@ HWND RealChildWindowFromPoint(HWND hwndParent, POINT ptParentClientCoords);
 ///    buffer. If the function fails, the return value is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-uint RealGetWindowClassW(HWND hwnd, const(wchar)* ptszClassName, uint cchClassNameMax);
+uint RealGetWindowClassW(HWND hwnd, PWSTR ptszClassName, uint cchClassNameMax);
 
 ///Retrieves status information for the specified window if it is the application-switching (ALT+TAB) window.
 ///Params:
@@ -10664,7 +10396,7 @@ uint RealGetWindowClassW(HWND hwnd, const(wchar)* ptszClassName, uint cchClassNa
 ///    is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL GetAltTabInfoA(HWND hwnd, int iItem, ALTTABINFO* pati, const(char)* pszItemText, uint cchItemText);
+BOOL GetAltTabInfoA(HWND hwnd, int iItem, ALTTABINFO* pati, PSTR pszItemText, uint cchItemText);
 
 ///Retrieves status information for the specified window if it is the application-switching (ALT+TAB) window.
 ///Params:
@@ -10682,7 +10414,7 @@ BOOL GetAltTabInfoA(HWND hwnd, int iItem, ALTTABINFO* pati, const(char)* pszItem
 ///    is zero. To get extended error information, call GetLastError.
 ///    
 @DllImport("USER32")
-BOOL GetAltTabInfoW(HWND hwnd, int iItem, ALTTABINFO* pati, const(wchar)* pszItemText, uint cchItemText);
+BOOL GetAltTabInfoW(HWND hwnd, int iItem, ALTTABINFO* pati, PWSTR pszItemText, uint cchItemText);
 
 ///<p class="CCE_Message">[Using the <b>ChangeWindowMessageFilter</b> function is not recommended, as it has
 ///process-wide scope. Instead, use the ChangeWindowMessageFilterEx function to control access to specific windows as
@@ -10728,6 +10460,288 @@ BOOL ChangeWindowMessageFilter(uint message, uint dwFlag);
 ///    
 @DllImport("USER32")
 BOOL ChangeWindowMessageFilterEx(HWND hwnd, uint message, uint action, CHANGEFILTERSTRUCT* pChangeFilterStruct);
+
+///<p class="CCE_Message">[Starting with Windows Vista, the <b>Open</b> and <b>Save As</b> common dialog boxes have been
+///superseded by the Common Item Dialog. We recommended that you use the Common Item Dialog API instead of these dialog
+///boxes from the Common Dialog Box Library.] Creates an <b>Open</b> dialog box that lets the user specify the drive,
+///directory, and the name of a file or set of files to be opened.
+///Params:
+///    Arg1 = Type: <b>LPOPENFILENAME</b> A pointer to an OPENFILENAME structure that contains information used to initialize
+///           the dialog box. When <b>GetOpenFileName</b> returns, this structure contains information about the user's file
+///           selection.
+///Returns:
+///    Type: <b>BOOL</b> If the user specifies a file name and clicks the <b>OK</b> button, the return value is nonzero.
+///    The buffer pointed to by the <b>lpstrFile</b> member of the OPENFILENAME structure contains the full path and
+///    file name specified by the user. If the user cancels or closes the <b>Open</b> dialog box or an error occurs, the
+///    return value is zero. To get extended error information, call the CommDlgExtendedError function, which can return
+///    one of the following values.
+///    
+@DllImport("COMDLG32")
+BOOL GetOpenFileNameA(OPENFILENAMEA* param0);
+
+///<p class="CCE_Message">[Starting with Windows Vista, the <b>Open</b> and <b>Save As</b> common dialog boxes have been
+///superseded by the Common Item Dialog. We recommended that you use the Common Item Dialog API instead of these dialog
+///boxes from the Common Dialog Box Library.] Creates an <b>Open</b> dialog box that lets the user specify the drive,
+///directory, and the name of a file or set of files to be opened.
+///Params:
+///    Arg1 = Type: <b>LPOPENFILENAME</b> A pointer to an OPENFILENAME structure that contains information used to initialize
+///           the dialog box. When <b>GetOpenFileName</b> returns, this structure contains information about the user's file
+///           selection.
+///Returns:
+///    Type: <b>BOOL</b> If the user specifies a file name and clicks the <b>OK</b> button, the return value is nonzero.
+///    The buffer pointed to by the <b>lpstrFile</b> member of the OPENFILENAME structure contains the full path and
+///    file name specified by the user. If the user cancels or closes the <b>Open</b> dialog box or an error occurs, the
+///    return value is zero. To get extended error information, call the CommDlgExtendedError function, which can return
+///    one of the following values.
+///    
+@DllImport("COMDLG32")
+BOOL GetOpenFileNameW(OPENFILENAMEW* param0);
+
+///<p class="CCE_Message">[Starting with Windows Vista, the <b>Open</b> and <b>Save As</b> common dialog boxes have been
+///superseded by the Common Item Dialog. We recommended that you use the Common Item Dialog API instead of these dialog
+///boxes from the Common Dialog Box Library.] Creates a <b>Save</b> dialog box that lets the user specify the drive,
+///directory, and name of a file to save.
+///Params:
+///    Arg1 = Type: <b>LPOPENFILENAME</b> A pointer to an OPENFILENAME structure that contains information used to initialize
+///           the dialog box. When <b>GetSaveFileName</b> returns, this structure contains information about the user's file
+///           selection.
+///Returns:
+///    Type: <b>BOOL</b> If the user specifies a file name and clicks the <b>OK</b> button and the function is
+///    successful, the return value is nonzero. The buffer pointed to by the <b>lpstrFile</b> member of the OPENFILENAME
+///    structure contains the full path and file name specified by the user. If the user cancels or closes the
+///    <b>Save</b> dialog box or an error such as the file name buffer being too small occurs, the return value is zero.
+///    To get extended error information, call the CommDlgExtendedError function, which can return one of the following
+///    values:
+///    
+@DllImport("COMDLG32")
+BOOL GetSaveFileNameA(OPENFILENAMEA* param0);
+
+///<p class="CCE_Message">[Starting with Windows Vista, the <b>Open</b> and <b>Save As</b> common dialog boxes have been
+///superseded by the Common Item Dialog. We recommended that you use the Common Item Dialog API instead of these dialog
+///boxes from the Common Dialog Box Library.] Creates a <b>Save</b> dialog box that lets the user specify the drive,
+///directory, and name of a file to save.
+///Params:
+///    Arg1 = Type: <b>LPOPENFILENAME</b> A pointer to an OPENFILENAME structure that contains information used to initialize
+///           the dialog box. When <b>GetSaveFileName</b> returns, this structure contains information about the user's file
+///           selection.
+///Returns:
+///    Type: <b>BOOL</b> If the user specifies a file name and clicks the <b>OK</b> button and the function is
+///    successful, the return value is nonzero. The buffer pointed to by the <b>lpstrFile</b> member of the OPENFILENAME
+///    structure contains the full path and file name specified by the user. If the user cancels or closes the
+///    <b>Save</b> dialog box or an error such as the file name buffer being too small occurs, the return value is zero.
+///    To get extended error information, call the CommDlgExtendedError function, which can return one of the following
+///    values:
+///    
+@DllImport("COMDLG32")
+BOOL GetSaveFileNameW(OPENFILENAMEW* param0);
+
+///Retrieves the name of the specified file.
+///Params:
+///    arg1 = Type: <b>LPCTSTR</b> The name and location of a file.
+///    Buf = Type: <b>LPTSTR</b> The buffer that receives the name of the file.
+///    cchSize = Type: <b>WORD</b> The length, in characters, of the buffer pointed to by the <i>lpszTitle</i> parameter.
+///Returns:
+///    Type: <b>short</b> If the function succeeds, the return value is zero. If the file name is invalid, the return
+///    value is unknown. If there is an error, the return value is a negative number. If the buffer pointed to by the
+///    <i>lpszTitle</i> parameter is too small, the return value is a positive integer that specifies the required
+///    buffer size, in characters. The required buffer size includes the terminating null character.
+///    
+@DllImport("COMDLG32")
+short GetFileTitleA(const(PSTR) param0, PSTR Buf, ushort cchSize);
+
+///Retrieves the name of the specified file.
+///Params:
+///    arg1 = Type: <b>LPCTSTR</b> The name and location of a file.
+///    Buf = Type: <b>LPTSTR</b> The buffer that receives the name of the file.
+///    cchSize = Type: <b>WORD</b> The length, in characters, of the buffer pointed to by the <i>lpszTitle</i> parameter.
+///Returns:
+///    Type: <b>short</b> If the function succeeds, the return value is zero. If the file name is invalid, the return
+///    value is unknown. If there is an error, the return value is a negative number. If the buffer pointed to by the
+///    <i>lpszTitle</i> parameter is too small, the return value is a positive integer that specifies the required
+///    buffer size, in characters. The required buffer size includes the terminating null character.
+///    
+@DllImport("COMDLG32")
+short GetFileTitleW(const(PWSTR) param0, PWSTR Buf, ushort cchSize);
+
+@DllImport("COMDLG32")
+BOOL ChooseColorA(CHOOSECOLORA* param0);
+
+@DllImport("COMDLG32")
+BOOL ChooseColorW(CHOOSECOLORW* param0);
+
+///Creates a system-defined modeless <b>Find</b> dialog box that lets the user specify a string to search for and
+///options to use when searching for text in a document.
+///Params:
+///    Arg1 = Type: <b>LPFINDREPLACE</b> A pointer to a FINDREPLACE structure that contains information used to initialize the
+///           dialog box. The dialog box uses this structure to send information about the user's input to your application.
+///           For more information, see the following Remarks section.
+///Returns:
+///    Type: <b>HWND</b> If the function succeeds, the return value is the window handle to the dialog box. You can use
+///    the window handle to communicate with or to close the dialog box. If the function fails, the return value is
+///    <b>NULL</b>. To get extended error information, call the CommDlgExtendedError function.
+///    <b>CommDlgExtendedError</b> may return one of the following error codes:
+///    
+@DllImport("COMDLG32")
+HWND FindTextA(FINDREPLACEA* param0);
+
+///Creates a system-defined modeless <b>Find</b> dialog box that lets the user specify a string to search for and
+///options to use when searching for text in a document.
+///Params:
+///    Arg1 = Type: <b>LPFINDREPLACE</b> A pointer to a FINDREPLACE structure that contains information used to initialize the
+///           dialog box. The dialog box uses this structure to send information about the user's input to your application.
+///           For more information, see the following Remarks section.
+///Returns:
+///    Type: <b>HWND</b> If the function succeeds, the return value is the window handle to the dialog box. You can use
+///    the window handle to communicate with or to close the dialog box. If the function fails, the return value is
+///    <b>NULL</b>. To get extended error information, call the CommDlgExtendedError function.
+///    <b>CommDlgExtendedError</b> may return one of the following error codes:
+///    
+@DllImport("COMDLG32")
+HWND FindTextW(FINDREPLACEW* param0);
+
+///Creates a system-defined modeless dialog box that lets the user specify a string to search for and a replacement
+///string, as well as options to control the find and replace operations.
+///Params:
+///    Arg1 = Type: <b>LPFINDREPLACE</b> A pointer to a FINDREPLACE structure that contains information used to initialize the
+///           dialog box. The dialog box uses this structure to send information about the user's input to your application.
+///           For more information, see the following Remarks section.
+///Returns:
+///    Type: <b>HWND</b> If the function succeeds, the return value is the window handle to the dialog box. You can use
+///    the window handle to communicate with the dialog box or close it. If the function fails, the return value is
+///    <b>NULL</b>. To get extended error information, call the CommDlgExtendedError function, which can return one of
+///    the following error codes:
+///    
+@DllImport("COMDLG32")
+HWND ReplaceTextA(FINDREPLACEA* param0);
+
+///Creates a system-defined modeless dialog box that lets the user specify a string to search for and a replacement
+///string, as well as options to control the find and replace operations.
+///Params:
+///    Arg1 = Type: <b>LPFINDREPLACE</b> A pointer to a FINDREPLACE structure that contains information used to initialize the
+///           dialog box. The dialog box uses this structure to send information about the user's input to your application.
+///           For more information, see the following Remarks section.
+///Returns:
+///    Type: <b>HWND</b> If the function succeeds, the return value is the window handle to the dialog box. You can use
+///    the window handle to communicate with the dialog box or close it. If the function fails, the return value is
+///    <b>NULL</b>. To get extended error information, call the CommDlgExtendedError function, which can return one of
+///    the following error codes:
+///    
+@DllImport("COMDLG32")
+HWND ReplaceTextW(FINDREPLACEW* param0);
+
+@DllImport("COMDLG32")
+BOOL ChooseFontA(CHOOSEFONTA* param0);
+
+@DllImport("COMDLG32")
+BOOL ChooseFontW(CHOOSEFONTW* param0);
+
+@DllImport("COMDLG32")
+BOOL PrintDlgA(PRINTDLGA* pPD);
+
+@DllImport("COMDLG32")
+BOOL PrintDlgW(PRINTDLGW* pPD);
+
+@DllImport("COMDLG32")
+HRESULT PrintDlgExA(PRINTDLGEXA* pPD);
+
+@DllImport("COMDLG32")
+HRESULT PrintDlgExW(PRINTDLGEXW* pPD);
+
+///Returns a common dialog box error code. This code indicates the most recent error to occur during the execution of
+///one of the common dialog box functions.
+///Returns:
+///    Type: <b>DWORD</b> If the most recent call to a common dialog box function succeeded, the return value is
+///    undefined. If the common dialog box function returned <b>FALSE</b> because the user closed or canceled the dialog
+///    box, the return value is zero. Otherwise, the return value is a nonzero error code. The
+///    <b>CommDlgExtendedError</b> function can return general error codes for any of the common dialog box functions.
+///    In addition, there are error codes that are returned only for a specific common dialog box. All of these error
+///    codes are defined in Cderr.h. The following general error codes can be returned for any of the common dialog box
+///    functions. <table> <tr> <th>Return code/value</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>CDERR_DIALOGFAILURE</b></dt> <dt>0xFFFF</dt> </dl> </td> <td width="60%"> The dialog box could not be
+///    created. The common dialog box function's call to the DialogBox function failed. For example, this error occurs
+///    if the common dialog box call specifies an invalid window handle. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>CDERR_FINDRESFAILURE</b></dt> <dt>0x0006</dt> </dl> </td> <td width="60%"> The common dialog box function
+///    failed to find a specified resource. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>CDERR_INITIALIZATION</b></dt>
+///    <dt>0x0002</dt> </dl> </td> <td width="60%"> The common dialog box function failed during initialization. This
+///    error often occurs when sufficient memory is not available. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>CDERR_LOADRESFAILURE</b></dt> <dt>0x0007</dt> </dl> </td> <td width="60%"> The common dialog box function
+///    failed to load a specified resource. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>CDERR_LOADSTRFAILURE</b></dt>
+///    <dt>0x0005</dt> </dl> </td> <td width="60%"> The common dialog box function failed to load a specified string.
+///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>CDERR_LOCKRESFAILURE</b></dt> <dt>0x0008</dt> </dl> </td> <td
+///    width="60%"> The common dialog box function failed to lock a specified resource. </td> </tr> <tr> <td
+///    width="40%"> <dl> <dt><b>CDERR_MEMALLOCFAILURE</b></dt> <dt>0x0009</dt> </dl> </td> <td width="60%"> The common
+///    dialog box function was unable to allocate memory for internal structures. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>CDERR_MEMLOCKFAILURE</b></dt> <dt>0x000A</dt> </dl> </td> <td width="60%"> The common dialog box function
+///    was unable to lock the memory associated with a handle. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>CDERR_NOHINSTANCE</b></dt> <dt>0x0004</dt> </dl> </td> <td width="60%"> The <b>ENABLETEMPLATE</b> flag was
+///    set in the <b>Flags</b> member of the initialization structure for the corresponding common dialog box, but you
+///    failed to provide a corresponding instance handle. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>CDERR_NOHOOK</b></dt> <dt>0x000B</dt> </dl> </td> <td width="60%"> The <b>ENABLEHOOK</b> flag was set in
+///    the <b>Flags</b> member of the initialization structure for the corresponding common dialog box, but you failed
+///    to provide a pointer to a corresponding hook procedure. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>CDERR_NOTEMPLATE</b></dt> <dt>0x0003</dt> </dl> </td> <td width="60%"> The <b>ENABLETEMPLATE</b> flag was
+///    set in the <b>Flags</b> member of the initialization structure for the corresponding common dialog box, but you
+///    failed to provide a corresponding template. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>CDERR_REGISTERMSGFAIL</b></dt> <dt>0x000C</dt> </dl> </td> <td width="60%"> The RegisterWindowMessage
+///    function returned an error code when it was called by the common dialog box function. </td> </tr> <tr> <td
+///    width="40%"> <dl> <dt><b>CDERR_STRUCTSIZE</b></dt> <dt>0x0001</dt> </dl> </td> <td width="60%"> The
+///    <b>lStructSize</b> member of the initialization structure for the corresponding common dialog box is invalid.
+///    </td> </tr> </table> The following error codes can be returned for the PrintDlg function. <table> <tr> <th>Return
+///    code/value</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>PDERR_CREATEICFAILURE</b></dt>
+///    <dt>0x100A</dt> </dl> </td> <td width="60%"> The PrintDlg function failed when it attempted to create an
+///    information context. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>PDERR_DEFAULTDIFFERENT</b></dt>
+///    <dt>0x100C</dt> </dl> </td> <td width="60%"> You called the PrintDlg function with the <b>DN_DEFAULTPRN</b> flag
+///    specified in the <b>wDefault</b> member of the DEVNAMES structure, but the printer described by the other
+///    structure members did not match the current default printer. This error occurs when you store the <b>DEVNAMES</b>
+///    structure, and the user changes the default printer by using the Control Panel. To use the printer described by
+///    the DEVNAMES structure, clear the <b>DN_DEFAULTPRN</b> flag and call PrintDlg again. To use the default printer,
+///    replace the DEVNAMES structure (and the structure, if one exists) with <b>NULL</b>; and call PrintDlg again.
+///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>PDERR_DNDMMISMATCH</b></dt> <dt>0x1009</dt> </dl> </td> <td
+///    width="60%"> The data in the DEVMODE and DEVNAMES structures describes two different printers. </td> </tr> <tr>
+///    <td width="40%"> <dl> <dt><b>PDERR_GETDEVMODEFAIL</b></dt> <dt>0x1005</dt> </dl> </td> <td width="60%"> The
+///    printer driver failed to initialize a DEVMODE structure. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>PDERR_INITFAILURE</b></dt> <dt>0x1006</dt> </dl> </td> <td width="60%"> The PrintDlg function failed
+///    during initialization, and there is no more specific extended error code to describe the failure. This is the
+///    generic default error code for the function. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>PDERR_LOADDRVFAILURE</b></dt> <dt>0x1004</dt> </dl> </td> <td width="60%"> The PrintDlg function failed to
+///    load the device driver for the specified printer. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>PDERR_NODEFAULTPRN</b></dt> <dt>0x1008</dt> </dl> </td> <td width="60%"> A default printer does not exist.
+///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>PDERR_NODEVICES</b></dt> <dt>0x1007</dt> </dl> </td> <td
+///    width="60%"> No printer drivers were found. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>PDERR_PARSEFAILURE</b></dt> <dt>0x1002</dt> </dl> </td> <td width="60%"> The PrintDlg function failed to
+///    parse the strings in the [devices] section of the WIN.INI file. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>PDERR_PRINTERNOTFOUND</b></dt> <dt>0x100B</dt> </dl> </td> <td width="60%"> The [devices] section of the
+///    WIN.INI file did not contain an entry for the requested printer. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>PDERR_RETDEFFAILURE</b></dt> <dt>0x1003</dt> </dl> </td> <td width="60%"> The PD_RETURNDEFAULT flag was
+///    specified in the <b>Flags</b> member of the PRINTDLG structure, but the <b>hDevMode</b> or <b>hDevNames</b>
+///    member was not <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>PDERR_SETUPFAILURE</b></dt>
+///    <dt>0x1001</dt> </dl> </td> <td width="60%"> The PrintDlg function failed to load the required resources. </td>
+///    </tr> </table> The following error codes can be returned for the ChooseFont function. <table> <tr> <th>Return
+///    code/value</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>CFERR_MAXLESSTHANMIN</b></dt>
+///    <dt>CFERR_MAXLESSTHANMIN</dt> </dl> </td> <td width="60%"> The size specified in the <b>nSizeMax</b> member of
+///    the CHOOSEFONT structure is less than the size specified in the <b>nSizeMin</b> member. </td> </tr> <tr> <td
+///    width="40%"> <dl> <dt><b>CFERR_NOFONTS</b></dt> <dt>0x2001</dt> </dl> </td> <td width="60%"> No fonts exist.
+///    </td> </tr> </table> The following error codes can be returned for the GetOpenFileName and GetSaveFileName
+///    functions. <table> <tr> <th>Return code/value</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>FNERR_BUFFERTOOSMALL</b></dt> <dt>0x3003</dt> </dl> </td> <td width="60%"> The buffer pointed to by the
+///    <b>lpstrFile</b> member of the OPENFILENAME structure is too small for the file name specified by the user. The
+///    first two bytes of the <b>lpstrFile</b> buffer contain an integer value specifying the size required to receive
+///    the full name, in characters. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>FNERR_INVALIDFILENAME</b></dt>
+///    <dt>0x3002</dt> </dl> </td> <td width="60%"> A file name is invalid. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>FNERR_SUBCLASSFAILURE</b></dt> <dt>0x3001</dt> </dl> </td> <td width="60%"> An attempt to subclass a list
+///    box failed because sufficient memory was not available. </td> </tr> </table> The following error code can be
+///    returned for the FindText and ReplaceText functions. <table> <tr> <th>Return code/value</th> <th>Description</th>
+///    </tr> <tr> <td width="40%"> <dl> <dt><b>FRERR_BUFFERLENGTHZERO</b></dt> <dt>0x4001</dt> </dl> </td> <td
+///    width="60%"> A member of the FINDREPLACE structure points to an invalid buffer. </td> </tr> </table>
+///    
+@DllImport("COMDLG32")
+uint CommDlgExtendedError();
+
+@DllImport("COMDLG32")
+BOOL PageSetupDlgA(PAGESETUPDLGA* param0);
+
+@DllImport("COMDLG32")
+BOOL PageSetupDlgW(PAGESETUPDLGW* param0);
 
 
 // Interfaces
@@ -10809,7 +10823,7 @@ interface IPrintDialogServices : IUnknown
     ///    <i>lpPrinterName</i> buffer is unchanged. If an error occurs, the return value is a COM error code. For more
     ///    information, see Error Handling.
     ///    
-    HRESULT GetCurrentPrinterName(const(wchar)* pPrinterName, uint* pcchSize);
+    HRESULT GetCurrentPrinterName(PWSTR pPrinterName, uint* pcchSize);
     ///Retrieves the name of the current port for use with PrintDlgEx.
     ///Params:
     ///    pPortName = Type: <b>LPTSTR</b> The name of the current port.
@@ -10824,7 +10838,7 @@ interface IPrintDialogServices : IUnknown
     ///    <i>lpPortName</i> buffer is unchanged. If an error occurs, the return value is a COM error code. For more
     ///    information, see Error Handling.
     ///    
-    HRESULT GetCurrentPortName(const(wchar)* pPortName, uint* pcchSize);
+    HRESULT GetCurrentPortName(PWSTR pPortName, uint* pcchSize);
 }
 
 

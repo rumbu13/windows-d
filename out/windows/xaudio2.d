@@ -6,9 +6,9 @@ public import windows.core;
 public import windows.com : HRESULT, IUnknown;
 public import windows.coreaudio : AUDIO_STREAM_CATEGORY;
 public import windows.multimedia : WAVEFORMATEX;
-public import windows.systemservices : BOOL;
+public import windows.systemservices : BOOL, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -729,7 +729,7 @@ struct HrtfApoInit
 ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("XAudio2_9")
-HRESULT CreateFX(const(GUID)* clsid, IUnknown* pEffect, char* pInitDat, uint InitDataByteSize);
+HRESULT CreateFX(const(GUID)* clsid, IUnknown* pEffect, const(void)* pInitDat, uint InitDataByteSize);
 
 @DllImport("XAudio2_9")
 HRESULT XAudio2CreateWithVersionInfo(IXAudio2* ppXAudio2, uint Flags, uint XAudio2Processor, uint ntddiVersion);
@@ -818,7 +818,7 @@ interface IXAPO : IUnknown
     ///Returns:
     ///    Returns S_OK if successful, an error code otherwise.
     ///    
-    HRESULT Initialize(char* pData, uint DataByteSize);
+    HRESULT Initialize(const(void)* pData, uint DataByteSize);
     ///Resets variables dependent on frame history.
     void    Reset();
     ///Called by XAudio2 to lock the input and output configurations of an XAPO allowing it to do any final
@@ -839,8 +839,10 @@ interface IXAPO : IUnknown
     ///Returns:
     ///    Returns S_OK if successful, an error code otherwise.
     ///    
-    HRESULT LockForProcess(uint InputLockedParameterCount, char* pInputLockedParameters, 
-                           uint OutputLockedParameterCount, char* pOutputLockedParameters);
+    HRESULT LockForProcess(uint InputLockedParameterCount, 
+                           const(XAPO_LOCKFORPROCESS_PARAMETERS)* pInputLockedParameters, 
+                           uint OutputLockedParameterCount, 
+                           const(XAPO_LOCKFORPROCESS_PARAMETERS)* pOutputLockedParameters);
     ///Deallocates variables that were allocated with the LockForProcess method.
     void    UnlockForProcess();
     ///Runs the XAPO's digital signal processing (DSP) code on the given input and output buffers.
@@ -855,8 +857,9 @@ interface IXAPO : IUnknown
     ///                               should write to the output buffer. On output, the value of <b>XAPO_PROCESS_BUFFER_PARAMETERS</b>.
     ///                               <b>ValidFrameCount</b> indicates the actual number of frames written.
     ///    IsEnabled = TRUE to process normally; FALSE to process thru. See Remarks for additional information.
-    void    Process(uint InputProcessParameterCount, char* pInputProcessParameters, 
-                    uint OutputProcessParameterCount, char* pOutputProcessParameters, BOOL IsEnabled);
+    void    Process(uint InputProcessParameterCount, 
+                    const(XAPO_PROCESS_BUFFER_PARAMETERS)* pInputProcessParameters, uint OutputProcessParameterCount, 
+                    XAPO_PROCESS_BUFFER_PARAMETERS* pOutputProcessParameters, BOOL IsEnabled);
     ///Returns the number of input frames required to generate the given number of output frames.
     ///Params:
     ///    OutputFrameCount = The number of output frames desired.
@@ -881,12 +884,12 @@ interface IXAPOParameters : IUnknown
     ///Params:
     ///    pParameters = Effect-specific parameter block.
     ///    ParameterByteSize = Size of pParameters, in bytes.
-    void SetParameters(char* pParameters, uint ParameterByteSize);
+    void SetParameters(const(void)* pParameters, uint ParameterByteSize);
     ///Gets the current values for any effect-specific parameters.
     ///Params:
     ///    pParameters = Receives an effect-specific parameter block.
     ///    ParameterByteSize = Size of pParameters, in bytes.
-    void GetParameters(char* pParameters, uint ParameterByteSize);
+    void GetParameters(void* pParameters, uint ParameterByteSize);
 }
 
 ///IXAudio2 is the interface for the XAudio2 object that manages all audio engine states, the audio processing thread,
@@ -1022,7 +1025,7 @@ interface IXAudio2 : IUnknown
     ///    specific error codes.
     ///    
     HRESULT CreateMasteringVoice(IXAudio2MasteringVoice* ppMasteringVoice, uint InputChannels, 
-                                 uint InputSampleRate, uint Flags, const(wchar)* szDeviceId, 
+                                 uint InputSampleRate, uint Flags, const(PWSTR) szDeviceId, 
                                  const(XAUDIO2_EFFECT_CHAIN)* pEffectChain, AUDIO_STREAM_CATEGORY StreamCategory);
     ///Starts the audio processing thread.
     ///Returns:
@@ -1155,7 +1158,7 @@ interface IXAudio2Voice
     ///Returns:
     ///    This method does not return a value.
     ///    
-    void    GetEffectState(uint EffectIndex, int* pEnabled);
+    void    GetEffectState(uint EffectIndex, BOOL* pEnabled);
     ///Sets parameters for a given effect in the voice's effect chain.
     ///Params:
     ///    EffectIndex = Zero-based index of an effect within the voice's effect chain.
@@ -1168,7 +1171,8 @@ interface IXAudio2Voice
     ///    Returns S_OK if successful; otherwise, an error code. See XAudio2 Error Codes for descriptions of error
     ///    codes. Fails with E_NOTIMPL if the effect does not support a generic parameter control interface.
     ///    
-    HRESULT SetEffectParameters(uint EffectIndex, char* pParameters, uint ParametersByteSize, uint OperationSet);
+    HRESULT SetEffectParameters(uint EffectIndex, const(void)* pParameters, uint ParametersByteSize, 
+                                uint OperationSet);
     ///Returns the current effect-specific parameters of a given effect in the voice's effect chain.
     ///Params:
     ///    EffectIndex = Zero-based index of an effect within the voice's effect chain.
@@ -1178,7 +1182,7 @@ interface IXAudio2Voice
     ///    Returns S_OK if successful, an error code otherwise. See XAudio2 Error Codes for descriptions of error codes.
     ///    Fails with E_NOTIMPL if the effect does not support a generic parameter control interface.
     ///    
-    HRESULT GetEffectParameters(uint EffectIndex, char* pParameters, uint ParametersByteSize);
+    HRESULT GetEffectParameters(uint EffectIndex, void* pParameters, uint ParametersByteSize);
     ///Sets the voice's filter parameters.
     ///Params:
     ///    pParameters = Pointer to an XAUDIO2_FILTER_PARAMETERS structure containing the filter information.
@@ -1245,7 +1249,7 @@ interface IXAudio2Voice
     ///    Returns S_OK if successful, an error code otherwise. See XAudio2 Error Codes for descriptions of XAudio2
     ///    specific error codes.
     ///    
-    HRESULT SetChannelVolumes(uint Channels, char* pVolumes, uint OperationSet);
+    HRESULT SetChannelVolumes(uint Channels, const(float)* pVolumes, uint OperationSet);
     ///Returns the volume levels for the voice, per channel.
     ///Params:
     ///    Channels = Confirms the channel count of the voice.
@@ -1254,7 +1258,7 @@ interface IXAudio2Voice
     ///Returns:
     ///    This method does not return a value.
     ///    
-    void    GetChannelVolumes(uint Channels, char* pVolumes);
+    void    GetChannelVolumes(uint Channels, float* pVolumes);
     ///Sets the volume level of each channel of the final output for the voice. These channels are mapped to the input
     ///channels of a specified destination voice.
     ///Params:
@@ -1283,7 +1287,7 @@ interface IXAudio2Voice
     ///    Returns S_OK if successful, an error code otherwise. See XAudio2 Error Codes for descriptions of error codes.
     ///    
     HRESULT SetOutputMatrix(IXAudio2Voice pDestinationVoice, uint SourceChannels, uint DestinationChannels, 
-                            char* pLevelMatrix, uint OperationSet);
+                            const(float)* pLevelMatrix, uint OperationSet);
     ///Gets the volume level of each channel of the final output for the voice. These channels are mapped to the input
     ///channels of a specified destination voice.
     ///Params:
@@ -1300,7 +1304,7 @@ interface IXAudio2Voice
     ///    This method does not return a value.
     ///    
     void    GetOutputMatrix(IXAudio2Voice pDestinationVoice, uint SourceChannels, uint DestinationChannels, 
-                            char* pLevelMatrix);
+                            float* pLevelMatrix);
     ///Destroys the voice. If necessary, stops the voice and removes it from the XAudio2 graph.
     ///Returns:
     ///    This method does not return a value.

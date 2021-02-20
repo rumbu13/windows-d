@@ -6,12 +6,12 @@ public import windows.core;
 public import windows.kernel : LUID;
 public import windows.mib : MIB_IPMCAST_MFE;
 public import windows.security : CRYPTOAPI_BLOB;
-public import windows.systemservices : BOOL, HANDLE, HINSTANCE;
+public import windows.systemservices : BOOL, HANDLE, HINSTANCE, PSTR, PWSTR;
 public import windows.winsock : in6_addr, in_addr;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : FILETIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -296,7 +296,7 @@ alias RASDIALFUNC2 = uint function(size_t param0, uint param1, HRASCONN__* param
 ///    to indicate the results of the dialing operation. If the callback function does not perform the dialing
 ///    operation, return <b>FALSE</b>. In this case, the system uses the default user interface for dialing.
 ///    
-alias ORASADFUNC = BOOL function(HWND param0, const(char)* param1, uint param2, uint* param3);
+alias ORASADFUNC = BOOL function(HWND param0, PSTR param1, uint param2, uint* param3);
 ///The <b>RASADFunc</b> function is an application-defined callback function that is used to provide a customized user
 ///interface for autodialing.
 ///Params:
@@ -309,7 +309,7 @@ alias ORASADFUNC = BOOL function(HWND param0, const(char)* param1, uint param2, 
 ///    indicate the results of the dialing operation. If the application does not perform the dialing operation, return
 ///    <b>FALSE</b>. In this case, the system uses the default user interface for dialing.
 ///    
-alias RASADFUNCA = BOOL function(const(char)* param0, const(char)* param1, tagRASADPARAMS* param2, uint* param3);
+alias RASADFUNCA = BOOL function(PSTR param0, PSTR param1, tagRASADPARAMS* param2, uint* param3);
 ///The <b>RASADFunc</b> function is an application-defined callback function that is used to provide a customized user
 ///interface for autodialing.
 ///Params:
@@ -322,7 +322,7 @@ alias RASADFUNCA = BOOL function(const(char)* param0, const(char)* param1, tagRA
 ///    indicate the results of the dialing operation. If the application does not perform the dialing operation, return
 ///    <b>FALSE</b>. In this case, the system uses the default user interface for dialing.
 ///    
-alias RASADFUNCW = BOOL function(const(wchar)* param0, const(wchar)* param1, tagRASADPARAMS* param2, uint* param3);
+alias RASADFUNCW = BOOL function(PWSTR param0, PWSTR param1, tagRASADPARAMS* param2, uint* param3);
 ///The custom-scripting DLL calls <i>RasGetBuffer</i> to allocate memory for sending or receiving data over the port
 ///connected to the server.
 ///Params:
@@ -442,8 +442,8 @@ alias PFNRASRETRIEVEBUFFER = uint function(HANDLE hPort, ubyte* pBuffer, uint* p
 ///    If the function succeeds, the return value should be <b>ERROR_SUCCESS</b>. If the function fails, the return
 ///    value should be an appropriate error code from Winerror.h or Raserror.h.
 ///    
-alias RasCustomScriptExecuteFn = uint function(HANDLE hPort, const(wchar)* lpszPhonebook, 
-                                               const(wchar)* lpszEntryName, PFNRASGETBUFFER pfnRasGetBuffer, 
+alias RasCustomScriptExecuteFn = uint function(HANDLE hPort, const(PWSTR) lpszPhonebook, 
+                                               const(PWSTR) lpszEntryName, PFNRASGETBUFFER pfnRasGetBuffer, 
                                                PFNRASFREEBUFFER pfnRasFreeBuffer, PFNRASSENDBUFFER pfnRasSendBuffer, 
                                                PFNRASRECEIVEBUFFER pfnRasReceiveBuffer, 
                                                PFNRASRETRIEVEBUFFER pfnRasRetrieveBuffer, HWND hWnd, 
@@ -497,7 +497,7 @@ alias RasCustomHangUpFn = uint function(HRASCONN__* hRasConn);
 ///    </tr> </table>
 ///    
 alias RasCustomDialFn = uint function(HINSTANCE hInstDll, tagRASDIALEXTENSIONS* lpRasDialExtensions, 
-                                      const(wchar)* lpszPhonebook, tagRASDIALPARAMSA* lpRasDialParams, 
+                                      const(PWSTR) lpszPhonebook, tagRASDIALPARAMSA* lpRasDialParams, 
                                       uint dwNotifierType, void* lpvNotifier, HRASCONN__** lphRasConn, uint dwFlags);
 ///The <i>RasCustomDeleteEntryNotify</i> function is an application-defined function that is exported by a third-party
 ///custom-dialing DLL. This function allows third-party vendors to implement custom dialogs for managing phone-book
@@ -512,7 +512,7 @@ alias RasCustomDialFn = uint function(HINSTANCE hInstDll, tagRASDIALEXTENSIONS* 
 ///Returns:
 ///    This function should return value <b>ERROR_SUCCESS</b> if successful.
 ///    
-alias RasCustomDeleteEntryNotifyFn = uint function(const(wchar)* lpszPhonebook, const(wchar)* lpszEntry, 
+alias RasCustomDeleteEntryNotifyFn = uint function(const(PWSTR) lpszPhonebook, const(PWSTR) lpszEntry, 
                                                    uint dwFlags);
 ///The <b>RasPBDlgFunc</b> function is an application-defined callback function that receives notifications of user
 ///activity while the RasPhonebookDlg dialog box is open.
@@ -521,7 +521,7 @@ alias RasCustomDeleteEntryNotifyFn = uint function(const(wchar)* lpszPhonebook, 
 ///    Arg2 = 
 ///    Arg3 = 
 ///    Arg4 = 
-alias RASPBDLGFUNCW = void function(size_t param0, uint param1, const(wchar)* param2, void* param3);
+alias RASPBDLGFUNCW = void function(size_t param0, uint param1, PWSTR param2, void* param3);
 ///The <b>RasPBDlgFunc</b> function is an application-defined callback function that receives notifications of user
 ///activity while the RasPhonebookDlg dialog box is open.
 ///Params:
@@ -529,7 +529,7 @@ alias RASPBDLGFUNCW = void function(size_t param0, uint param1, const(wchar)* pa
 ///    Arg2 = 
 ///    Arg3 = 
 ///    Arg4 = 
-alias RASPBDLGFUNCA = void function(size_t param0, uint param1, const(char)* param2, void* param3);
+alias RASPBDLGFUNCA = void function(size_t param0, uint param1, PSTR param2, void* param3);
 ///<p class="CCE_Message">[This function is not available as of Windows Server 2008. ] The <b>RasCustomDialDlg</b>
 ///function is an application-defined function that is exported by a third-party custom-dialing DLL. This function
 ///allows third-party vendors to implement custom RAS connection dialog boxes.
@@ -559,9 +559,8 @@ alias RASPBDLGFUNCA = void function(size_t param0, uint param1, const(char)* par
 ///    function should return <b>FALSE</b>. If an error occurs, RasCustomEntryDlg should set the <b>dwError</b> member
 ///    of the RASENTRYDLG structure to a value from Routing and Remote Access Error Codes or Winerror.h.
 ///    
-alias RasCustomDialDlgFn = BOOL function(HINSTANCE hInstDll, uint dwFlags, const(wchar)* lpszPhonebook, 
-                                         const(wchar)* lpszEntry, const(wchar)* lpszPhoneNumber, 
-                                         tagRASDIALDLG* lpInfo, void* pvInfo);
+alias RasCustomDialDlgFn = BOOL function(HINSTANCE hInstDll, uint dwFlags, PWSTR lpszPhonebook, PWSTR lpszEntry, 
+                                         PWSTR lpszPhoneNumber, tagRASDIALDLG* lpInfo, void* pvInfo);
 ///The <b>RasCustomEntryDlg</b> function is an application-defined function that is exported by a third-party
 ///custom-dialing DLL. This function allows third-party vendors to implement custom dialogs for managing phone-book
 ///entries.
@@ -587,12 +586,12 @@ alias RasCustomDialDlgFn = BOOL function(HINSTANCE hInstDll, uint dwFlags, const
 ///    function should return <b>FALSE</b>. If an error occurs, <b>RasCustomEntryDlg</b> should set the <b>dwError</b>
 ///    member of the RASENTRYDLG structure to a value from Routing and Remote Access Error Codes or Winerror.h.
 ///    
-alias RasCustomEntryDlgFn = BOOL function(HINSTANCE hInstDll, const(wchar)* lpszPhonebook, const(wchar)* lpszEntry, 
+alias RasCustomEntryDlgFn = BOOL function(HINSTANCE hInstDll, PWSTR lpszPhonebook, PWSTR lpszEntry, 
                                           tagRASENTRYDLGA* lpInfo, uint dwFlags);
-alias PMPRADMINGETIPADDRESSFORUSER = uint function(ushort* param0, ushort* param1, uint* param2, int* param3);
-alias PMPRADMINRELEASEIPADRESS = void function(ushort* param0, ushort* param1, uint* param2);
-alias PMPRADMINGETIPV6ADDRESSFORUSER = uint function(ushort* param0, ushort* param1, in6_addr* param2, int* param3);
-alias PMPRADMINRELEASEIPV6ADDRESSFORUSER = void function(ushort* param0, ushort* param1, in6_addr* param2);
+alias PMPRADMINGETIPADDRESSFORUSER = uint function(PWSTR param0, PWSTR param1, uint* param2, BOOL* param3);
+alias PMPRADMINRELEASEIPADRESS = void function(PWSTR param0, PWSTR param1, uint* param2);
+alias PMPRADMINGETIPV6ADDRESSFORUSER = uint function(PWSTR param0, PWSTR param1, in6_addr* param2, BOOL* param3);
+alias PMPRADMINRELEASEIPV6ADDRESSFORUSER = void function(PWSTR param0, PWSTR param1, in6_addr* param2);
 alias PMPRADMINACCEPTNEWCONNECTION = BOOL function(RAS_CONNECTION_0* param0, RAS_CONNECTION_1* param1);
 alias PMPRADMINACCEPTNEWCONNECTION2 = BOOL function(RAS_CONNECTION_0* param0, RAS_CONNECTION_1* param1, 
                                                     RAS_CONNECTION_2* param2);
@@ -942,7 +941,7 @@ struct RASIPADDR
 struct tagRASTUNNELENDPOINT
 {
     uint dwType;
-    union
+union
     {
         in_addr  ipv4;
         in6_addr ipv6;
@@ -1012,32 +1011,32 @@ struct tagRASCONNSTATUSA
 
 struct tagRASDIALPARAMSW
 {
-    uint          dwSize;
-    ushort[257]   szEntryName;
-    ushort[129]   szPhoneNumber;
-    ushort[129]   szCallbackNumber;
-    ushort[257]   szUserName;
-    ushort[257]   szPassword;
-    ushort[16]    szDomain;
-    uint          dwSubEntry;
-    size_t        dwCallbackId;
-    uint          dwIfIndex;
-    const(wchar)* szEncPassword;
+    uint        dwSize;
+    ushort[257] szEntryName;
+    ushort[129] szPhoneNumber;
+    ushort[129] szCallbackNumber;
+    ushort[257] szUserName;
+    ushort[257] szPassword;
+    ushort[16]  szDomain;
+    uint        dwSubEntry;
+    size_t      dwCallbackId;
+    uint        dwIfIndex;
+    PWSTR       szEncPassword;
 }
 
 struct tagRASDIALPARAMSA
 {
-    uint         dwSize;
-    byte[257]    szEntryName;
-    byte[129]    szPhoneNumber;
-    byte[129]    szCallbackNumber;
-    byte[257]    szUserName;
-    byte[257]    szPassword;
-    byte[16]     szDomain;
-    uint         dwSubEntry;
-    size_t       dwCallbackId;
-    uint         dwIfIndex;
-    const(char)* szEncPassword;
+    uint      dwSize;
+    byte[257] szEntryName;
+    byte[129] szPhoneNumber;
+    byte[129] szCallbackNumber;
+    byte[257] szUserName;
+    byte[257] szPassword;
+    byte[16]  szDomain;
+    uint      dwSubEntry;
+    size_t    dwCallbackId;
+    uint      dwIfIndex;
+    PSTR      szEncPassword;
 }
 
 struct tagRASEAPINFO
@@ -1468,7 +1467,7 @@ struct RAS_PROJECTION_INFO
     RASAPIVERSION version_;
     ///A RASPROJECTION_INFO_TYPE value that specifies the connection type in <b>union</b>.
     RASPROJECTION_INFO_TYPE type;
-    union
+union
     {
         RASPPP_PROJECTION_INFO ppp;
         RASIKEV2_PROJECTION_INFO ikev2;
@@ -1895,12 +1894,12 @@ struct MPR_IPINIP_INTERFACE_0
 struct MPR_INTERFACE_1
 {
     ///Pointer to a Unicode string that contains the name of the interface.
-    ushort[257]   wszInterfaceName;
+    ushort[257] wszInterfaceName;
     ///Handle to the interface.
-    HANDLE        hInterface;
+    HANDLE      hInterface;
     ///Specifies whether the interface is enabled. This value is <b>TRUE</b> if the interface is enabled, <b>FALSE</b>
     ///if the interface is administratively disabled.
-    BOOL          fEnabled;
+    BOOL        fEnabled;
     ///Specifies the type of interface.
     ROUTER_INTERFACE_TYPE dwIfType;
     ///Specifies the current state of the interface, for example connected, disconnected, or unreachable. For a list of
@@ -1908,9 +1907,9 @@ struct MPR_INTERFACE_1
     ROUTER_CONNECTION_STATE dwConnectionState;
     ///Specifies a value that represents a reason why the interface was unreachable. See Unreachability Reasons for a
     ///list of possible values.
-    uint          fUnReachabilityReasons;
+    uint        fUnReachabilityReasons;
     ///Specifies a nonzero value if the interface fails to connect.
-    uint          dwLastError;
+    uint        dwLastError;
     ///Pointer to a Unicode string that specifies the times during which dial-out is restricted. The format for this
     ///string is: <pre class="syntax" xml:space="preserve"><code>&lt;day&gt;&lt;space&gt;&lt;time
     ///range&gt;&lt;space&gt;&lt;time range&gt; . . . &lt;NULL&gt;&lt;day&gt;. . . &lt;NULL&gt;&lt;NULL&gt;
@@ -1926,19 +1925,19 @@ struct MPR_INTERFACE_1
     ///characters. Example: <pre class="syntax" xml:space="preserve"><code>2 09:00-12:00 13:00-17:30&lt;NULL&gt;4
     ///09:00-12:00 13:00-17:30&lt;NULL&gt;&lt;NULL&gt; </code></pre> The preceding string restricts dial-out to Tuesdays
     ///and Thursdays from 9:00 AM to 12:00 PM and from 1:00 PM to 5:30 PM.
-    const(wchar)* lpwsDialoutHoursRestriction;
+    PWSTR       lpwsDialoutHoursRestriction;
 }
 
 ///The <b>MPR_INTERFACE_2</b> structure contains data for a router demand-dial interface.
 struct MPR_INTERFACE_2
 {
     ///A pointer to a Unicode string that contains the name of the interface.
-    ushort[257]   wszInterfaceName;
+    ushort[257] wszInterfaceName;
     ///A handle to the interface.
-    HANDLE        hInterface;
+    HANDLE      hInterface;
     ///A value that specifies whether the interface is enabled. This value is <b>TRUE</b> if the interface is enabled,
     ///<b>FALSE</b> if the interface is administratively disabled.
-    BOOL          fEnabled;
+    BOOL        fEnabled;
     ///A value that identifies the interface type.
     ROUTER_INTERFACE_TYPE dwIfType;
     ///A value that describes the current state of the interface, for example, connected, disconnected, or unreachable.
@@ -1946,9 +1945,9 @@ struct MPR_INTERFACE_2
     ROUTER_CONNECTION_STATE dwConnectionState;
     ///A value that describes the reason why the interface is unreachable. For more information and a list of possible
     ///values, see Unreachability Reasons.
-    uint          fUnReachabilityReasons;
+    uint        fUnReachabilityReasons;
     ///A value that contains a nonzero value if the interface fails to connect.
-    uint          dwLastError;
+    uint        dwLastError;
     ///A value that specifies bit flags that are used to set connection options. You can set one of the flags listed in
     ///the following table. <table> <tr> <th>Flag</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="MPRIO_SpecificIpAddr"></a><a id="mprio_specificipaddr"></a><a id="MPRIO_SPECIFICIPADDR"></a><dl>
@@ -2063,35 +2062,35 @@ struct MPR_INTERFACE_2
     ///<dt><b>MPRIO_UsePreSharedKeyForIkev2Responder</b></dt> </dl> </td> <td width="60%"> Windows 8 or later: If this
     ///flag is set, a pre-shared key is used by the responder of the IKEv2 connection for authentication. </td> </tr>
     ///</table>
-    uint          dwfOptions;
+    uint        dwfOptions;
     ///A value that specifies a null-terminated string that contains a telephone number.
-    ushort[129]   szLocalPhoneNumber;
+    ushort[129] szLocalPhoneNumber;
     ///A pointer to a list of consecutive null-terminated Unicode strings. The last string is terminated by two
     ///consecutive null characters. The strings are alternate phone numbers that the router dials, in the order listed,
     ///if the primary number fails to connect. For more information, see <b>szLocalPhoneNumber</b>.
-    const(wchar)* szAlternates;
+    PWSTR       szAlternates;
     ///A value that specifies the IP address to be used while this connection is active. This member is ignored unless
     ///<b>dwfOptions</b> specifies the <b>MPRIO_SpecificIpAddr</b> flag.
-    uint          ipaddr;
+    uint        ipaddr;
     ///A value that specifies the IP address of the DNS server to be used while this connection is active. This member
     ///is ignored unless <b>dwfOptions</b> specifies the <b>MPRIO_SpecificNameServers</b> flag.
-    uint          ipaddrDns;
+    uint        ipaddrDns;
     ///A value that specifies the IP address of a secondary or backup DNS server to be used while this connection is
     ///active. This member is ignored unless <b>dwfOptions</b> specifies the <b>MPRIO_SpecificNameServers</b> flag.
-    uint          ipaddrDnsAlt;
+    uint        ipaddrDnsAlt;
     ///A value that specifies the IP address of the WINS server to be used while this connection is active. This member
     ///is ignored unless <b>dwfOptions</b> specifies the <b>MPRIO_SpecificNameServers</b> flag.
-    uint          ipaddrWins;
+    uint        ipaddrWins;
     ///A value that specifies the IP address of a secondary WINS server to be used while this connection is active. This
     ///member is ignored unless <b>dwfOptions</b> specifies the <b>MPRIO_SpecificNameServers</b> flag.
-    uint          ipaddrWinsAlt;
+    uint        ipaddrWinsAlt;
     ///A value that specifies the network protocols to negotiate. This member can be a combination of the following
     ///flags. <table> <tr> <th>Flag</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="MPRNP_Ipx"></a><a
     ///id="mprnp_ipx"></a><a id="MPRNP_IPX"></a><dl> <dt><b>MPRNP_Ipx</b></dt> </dl> </td> <td width="60%"> Negotiate
     ///the IPX protocol. </td> </tr> <tr> <td width="40%"><a id="MPRNP_Ip"></a><a id="mprnp_ip"></a><a
     ///id="MPRNP_IP"></a><dl> <dt><b>MPRNP_Ip</b></dt> </dl> </td> <td width="60%"> Negotiate the TCP/IP protocol. </td>
     ///</tr> </table> <b>64-bit Windows: </b>The <b>MPRNP_Ipx</b> flag is not supported
-    uint          dwfNetProtocols;
+    uint        dwfNetProtocols;
     ///A value that specifies a null-terminated string that indicates the RRAS device type that is referenced by
     ///<b>szDeviceName</b>. This member can be one of the following string constants. <table> <tr> <th>String</th>
     ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="MPRDT_Modem"></a><a id="mprdt_modem"></a><a
@@ -2120,30 +2119,30 @@ struct MPR_INTERFACE_2
     ///(IrDA)-compliant device. </td> </tr> <tr> <td width="40%"><a id="MPRDT_Parallel"></a><a
     ///id="mprdt_parallel"></a><a id="MPRDT_PARALLEL"></a><dl> <dt><b>MPRDT_Parallel</b></dt> </dl> </td> <td
     ///width="60%"> Direct parallel connection through a parallel port. </td> </tr> </table>
-    ushort[17]    szDeviceType;
+    ushort[17]  szDeviceType;
     ///Contains a null-terminated string that contains the name of a TAPI device to use with this phone-book entry, for
     ///example, "Fabrikam Inc 28800 External". To enumerate all available RAS-capable devices, use the RasEnumDevices
     ///function.
-    ushort[129]   szDeviceName;
+    ushort[129] szDeviceName;
     ///A data type that contains a null-terminated string that identifies the X.25 PAD type. Set this member to an empty
     ///string ("") unless the entry should dial using an X.25 PAD. <b>Windows 2000 and Windows NT: </b>The
     ///<b>szX25PadType</b> string maps to a section name in PAD.INF.
-    ushort[33]    szX25PadType;
+    ushort[33]  szX25PadType;
     ///Contains a null-terminated string that identifies the X.25 address to connect to. Set this member to an empty
     ///string ("") unless the entry should dial using an X.25 PAD or native X.25 device.
-    ushort[201]   szX25Address;
+    ushort[201] szX25Address;
     ///Contains a null-terminated string that specifies the facilities to request from the X.25 host at connection time.
     ///This member is ignored if <b>szX25Address</b> is an empty string ("").
-    ushort[201]   szX25Facilities;
+    ushort[201] szX25Facilities;
     ///Contains a null-terminated string that specifies additional connection data supplied to the X.25 host at
     ///connection time. This member is ignored if <b>szX25Address</b> is an empty string ("").
-    ushort[201]   szX25UserData;
+    ushort[201] szX25UserData;
     ///Reserved for future use.
-    uint          dwChannels;
+    uint        dwChannels;
     ///A value that specifies the number of multilink subentries associated with this entry. When calling
     ///RasSetEntryProperties, set this member to zero. To add subentries to a phone-book entry, use the
     ///RasSetSubEntryProperties function.
-    uint          dwSubEntries;
+    uint        dwSubEntries;
     ///Indicates whether RRAS should dial all of this entry's multilink subentries when the entry is first connected.
     ///This member can be one of the following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td
     ///width="40%"><a id="MPRDM_DialAll"></a><a id="mprdm_dialall"></a><a id="MPRDM_DIALALL"></a><dl>
@@ -2153,25 +2152,25 @@ struct MPR_INTERFACE_2
     ///required. RRAS uses the <b>dwDialExtraPercent</b>, <b>dwDialExtraSampleSeconds</b>,
     ///<b>dwDialHangUpExtraPercent</b>, and <b>dwHangUpExtraSampleSeconds</b> members to determine when to dial or
     ///disconnect a subentry. </td> </tr> </table>
-    uint          dwDialMode;
+    uint        dwDialMode;
     ///A value that specifies the percentage of the total bandwidth that is available from the currently connected
     ///subentries. RRAS dials an additional subentry when the total bandwidth that is used exceeds
     ///<b>dwDialExtraPercent</b> percent of the available bandwidth for at least <b>dwDialExtraSampleSeconds</b>
     ///seconds. This member is ignored unless the <b>dwDialMode</b> member specifies the <b>MPRDM_DialAsNeeded</b> flag.
-    uint          dwDialExtraPercent;
+    uint        dwDialExtraPercent;
     ///A value that specifies the time, in seconds, for which current bandwidth usage must exceed the threshold that is
     ///specified by <b>dwDialExtraPercent</b> before RRAS dials an additional subentry. This member is ignored unless
     ///the <b>dwDialMode</b> member specifies the <b>MPRDM_DialAsNeeded</b> flag.
-    uint          dwDialExtraSampleSeconds;
+    uint        dwDialExtraSampleSeconds;
     ///A value that specifies the percentage of the total bandwidth that is available from the currently connected
     ///subentries. RRAS terminates (hangs up) an existing subentry connection when the total bandwidth used is less than
     ///<b>dwHangUpExtraPercent</b> percent of the available bandwidth for at least <b>dwHangUpExtraSampleSeconds</b>
     ///seconds. This member is ignored unless the <b>dwDialMode</b> member specifies the <b>MPRDM_DialAsNeeded</b> flag.
-    uint          dwHangUpExtraPercent;
+    uint        dwHangUpExtraPercent;
     ///A value that specifies the time, in seconds, for which current bandwidth usage must be less than the threshold
     ///that is specified by <b>dwHangUpExtraPercent</b> before RRAS terminates an existing subentry connection. This
     ///member is ignored unless the <b>dwDialMode</b> member specifies the <b>MPRDM_DialAsNeeded</b> flag.
-    uint          dwHangUpExtraSampleSeconds;
+    uint        dwHangUpExtraSampleSeconds;
     ///A value that specifies the time, in seconds, after which an inactive connection is terminated. Unless the idle
     ///time-out is disabled, the entire connection is terminated if the connection is idle for the specified interval.
     ///This member can specify either a time-out value, or one of the following values. <table> <tr> <th>Value</th>
@@ -2180,7 +2179,7 @@ struct MPR_INTERFACE_2
     ///time-out for this connection. </td> </tr> <tr> <td width="40%"><a id="MPRIDS_UseGlobalValue"></a><a
     ///id="mprids_useglobalvalue"></a><a id="MPRIDS_USEGLOBALVALUE"></a><dl> <dt><b>MPRIDS_UseGlobalValue</b></dt> </dl>
     ///</td> <td width="60%"> Use the user preference value as the default. </td> </tr> </table>
-    uint          dwIdleDisconnectSeconds;
+    uint        dwIdleDisconnectSeconds;
     ///A value that specifies the type of phone-book entry. This member can be one of the following types. <table> <tr>
     ///<th>Type</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="MPRET_Phone"></a><a id="mpret_phone"></a><a
     ///id="MPRET_PHONE"></a><dl> <dt><b>MPRET_Phone</b></dt> </dl> </td> <td width="60%"> Phone line, for example,
@@ -2189,7 +2188,7 @@ struct MPR_INTERFACE_2
     ///</tr> <tr> <td width="40%"><a id="MPRET_Direct"></a><a id="mpret_direct"></a><a id="MPRET_DIRECT"></a><dl>
     ///<dt><b>MPRET_Direct</b></dt> </dl> </td> <td width="60%"> Direct serial or parallel connection. </td> </tr>
     ///</table>
-    uint          dwType;
+    uint        dwType;
     ///A value that specifies the type of encryption to use for Microsoft Point-to-Point Encryption (MPPE) with the
     ///connection. This member can be one of the following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr>
     ///<tr> <td width="40%"><a id="MPR_ET_None"></a><a id="mpr_et_none"></a><a id="MPR_ET_NONE"></a><dl>
@@ -2202,16 +2201,16 @@ struct MPR_INTERFACE_2
     ///<dt><b>MPR_ET_Optional</b></dt> </dl> </td> <td width="60%"> If possible, use encryption. </td> </tr> </table>
     ///The value of <b>dwEncryptionType</b> does not affect how passwords are encrypted. Whether passwords are encrypted
     ///and how passwords are encrypted is determined by the authentication protocol, for example, PAP, MS-CHAP, or EAP.
-    uint          dwEncryptionType;
+    uint        dwEncryptionType;
     ///A value that specifies the authentication key to be provided to an Extensible Authentication Protocol (EAP)
     ///vendor.
-    uint          dwCustomAuthKey;
+    uint        dwCustomAuthKey;
     ///A value that specifies the size of the data pointed to by the <b>lpbCustomAuthData</b> member.
-    uint          dwCustomAuthDataSize;
+    uint        dwCustomAuthDataSize;
     ///A pointer to authentication data to use with EAP.
-    ubyte*        lpbCustomAuthData;
+    ubyte*      lpbCustomAuthData;
     ///The globally unique identifier (GUID) that represents this phone-book entry. This member is read-only.
-    GUID          guidId;
+    GUID        guidId;
     ///The VPN strategy to use when dialing a VPN connection. This member can have one of the following values. <table>
     ///<tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="MPR_VS_Default"></a><a
     ///id="mpr_vs_default"></a><a id="MPR_VS_DEFAULT"></a><dl> <dt><b>MPR_VS_Default</b></dt> </dl> </td> <td
@@ -2226,19 +2225,19 @@ struct MPR_INTERFACE_2
     ///width="40%"><a id="MPR_VS_L2tpFirst"></a><a id="mpr_vs_l2tpfirst"></a><a id="MPR_VS_L2TPFIRST"></a><dl>
     ///<dt><b>MPR_VS_L2tpFirst</b></dt> </dl> </td> <td width="60%"> RAS dials L2TP first, PPTP second. </td> </tr>
     ///</table>
-    uint          dwVpnStrategy;
+    uint        dwVpnStrategy;
 }
 
 ///The <b>MPR_INTERFACE_3</b> structure contains data for a router demand-dial interface.
 struct MPR_INTERFACE_3
 {
     ///A pointer to a Unicode string that contains the name of the interface.
-    ushort[257]   wszInterfaceName;
+    ushort[257] wszInterfaceName;
     ///A handle to the interface.
-    HANDLE        hInterface;
+    HANDLE      hInterface;
     ///A value that specifies whether the interface is enabled. This value is <b>TRUE</b> if the interface is enabled,
     ///<b>FALSE</b> if the interface is administratively disabled.
-    BOOL          fEnabled;
+    BOOL        fEnabled;
     ///A value that identifies the interface type.
     ROUTER_INTERFACE_TYPE dwIfType;
     ///A value that describes the current state of the interface, for example, connected, disconnected, or unreachable.
@@ -2246,9 +2245,9 @@ struct MPR_INTERFACE_3
     ROUTER_CONNECTION_STATE dwConnectionState;
     ///A value that describes the reason why the interface is unreachable. For more information and a list of possible
     ///values, see Unreachability Reasons.
-    uint          fUnReachabilityReasons;
+    uint        fUnReachabilityReasons;
     ///A value that contains a nonzero value if the interface fails to connect.
-    uint          dwLastError;
+    uint        dwLastError;
     ///A value that specifies bit flags that are used to set connection options. You can set one of the flags listed in
     ///the following table. <table> <tr> <th>Flag</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="MPRIO_SpecificIpAddr"></a><a id="mprio_specificipaddr"></a><a id="MPRIO_SPECIFICIPADDR"></a><dl>
@@ -2347,35 +2346,35 @@ struct MPR_INTERFACE_3
     ///id="MPRIO_RequireMsCHAP2"></a><a id="mprio_requiremschap2"></a><a id="MPRIO_REQUIREMSCHAP2"></a><dl>
     ///<dt><b>MPRIO_RequireMsCHAP2</b></dt> </dl> </td> <td width="60%"> If this flag is set, version 2 of the Microsoft
     ///Challenge Handshake Authentication Protocol must be supported for authentication. </td> </tr> </table>
-    uint          dwfOptions;
+    uint        dwfOptions;
     ///A value that specifies a null-terminated string that contains a telephone number or an IPv6 address.
-    ushort[129]   szLocalPhoneNumber;
+    ushort[129] szLocalPhoneNumber;
     ///A pointer to a list of consecutive null-terminated Unicode strings. The last string is terminated by two
     ///consecutive null characters. The strings are alternate phone numbers that the router dials, in the order listed,
     ///if the primary number fails to connect. For more information, see <b>szLocalPhoneNumber</b>.
-    const(wchar)* szAlternates;
+    PWSTR       szAlternates;
     ///A value that specifies the IP address to be used while this connection is active. This member is ignored unless
     ///<b>dwfOptions</b> specifies the <b>MPRIO_SpecificIpAddr</b> flag.
-    uint          ipaddr;
+    uint        ipaddr;
     ///A value that specifies the IP address of the DNS server to be used while this connection is active. This member
     ///is ignored unless <b>dwfOptions</b> specifies the <b>MPRIO_SpecificNameServers</b> flag.
-    uint          ipaddrDns;
+    uint        ipaddrDns;
     ///A value that specifies the IP address of a secondary or backup DNS server to be used while this connection is
     ///active. This member is ignored unless <b>dwfOptions</b> specifies the <b>MPRIO_SpecificNameServers</b> flag.
-    uint          ipaddrDnsAlt;
+    uint        ipaddrDnsAlt;
     ///A value that specifies the IP address of the WINS server to be used while this connection is active. This member
     ///is ignored unless <b>dwfOptions</b> specifies the <b>MPRIO_SpecificNameServers</b> flag.
-    uint          ipaddrWins;
+    uint        ipaddrWins;
     ///A value that specifies the IP address of a secondary WINS server to be used while this connection is active. This
     ///member is ignored unless <b>dwfOptions</b> specifies the <b>MPRIO_SpecificNameServers</b> flag.
-    uint          ipaddrWinsAlt;
+    uint        ipaddrWinsAlt;
     ///A value that specifies the network protocols to negotiate. This member can be a combination of the following
     ///flags. <table> <tr> <th>Flag</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="MPRNP_Ipx"></a><a
     ///id="mprnp_ipx"></a><a id="MPRNP_IPX"></a><dl> <dt><b>MPRNP_Ipx</b></dt> </dl> </td> <td width="60%"> Negotiate
     ///the IPX protocol. </td> </tr> <tr> <td width="40%"><a id="MPRNP_Ip"></a><a id="mprnp_ip"></a><a
     ///id="MPRNP_IP"></a><dl> <dt><b>MPRNP_Ip</b></dt> </dl> </td> <td width="60%"> Negotiate the TCP/IP protocol. </td>
     ///</tr> </table> <b>64-bit Windows: </b>The <b>MPRNP_Ipx</b> flag is not supported
-    uint          dwfNetProtocols;
+    uint        dwfNetProtocols;
     ///A value that specifies a null-terminated string that indicates the RRAS device type that is referenced by
     ///<b>szDeviceName</b>. This member can be one of the following string constants. <table> <tr> <th>String</th>
     ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="MPRDT_Modem"></a><a id="mprdt_modem"></a><a
@@ -2404,30 +2403,30 @@ struct MPR_INTERFACE_3
     ///(IrDA)-compliant device. </td> </tr> <tr> <td width="40%"><a id="MPRDT_Parallel"></a><a
     ///id="mprdt_parallel"></a><a id="MPRDT_PARALLEL"></a><dl> <dt><b>MPRDT_Parallel</b></dt> </dl> </td> <td
     ///width="60%"> Direct parallel connection through a parallel port. </td> </tr> </table>
-    ushort[17]    szDeviceType;
+    ushort[17]  szDeviceType;
     ///Contains a null-terminated string that contains the name of a TAPI device to use with this phone-book entry, for
     ///example, "Fabrikam Inc 28800 External". To enumerate all available RAS-capable devices, use the RasEnumDevices
     ///function.
-    ushort[129]   szDeviceName;
+    ushort[129] szDeviceName;
     ///A data type that contains a null-terminated string that identifies the X.25 PAD type. Set this member to an empty
     ///string ("") unless the entry should dial using an X.25 PAD. <b>Windows 2000 and Windows NT: </b>The
     ///<b>szX25PadType</b> string maps to a section name in PAD.INF.
-    ushort[33]    szX25PadType;
+    ushort[33]  szX25PadType;
     ///Contains a null-terminated string that identifies the X.25 address to connect to. Set this member to an empty
     ///string ("") unless the entry should dial using an X.25 PAD or native X.25 device.
-    ushort[201]   szX25Address;
+    ushort[201] szX25Address;
     ///Contains a null-terminated string that specifies the facilities to request from the X.25 host at connection time.
     ///This member is ignored if <b>szX25Address</b> is an empty string ("").
-    ushort[201]   szX25Facilities;
+    ushort[201] szX25Facilities;
     ///Contains a null-terminated string that specifies additional connection data supplied to the X.25 host at
     ///connection time. This member is ignored if <b>szX25Address</b> is an empty string ("").
-    ushort[201]   szX25UserData;
+    ushort[201] szX25UserData;
     ///Reserved for future use.
-    uint          dwChannels;
+    uint        dwChannels;
     ///A value that specifies the number of multilink subentries associated with this entry. When calling
     ///RasSetEntryProperties, set this member to zero. To add subentries to a phone-book entry, use the
     ///RasSetSubEntryProperties function.
-    uint          dwSubEntries;
+    uint        dwSubEntries;
     ///Indicates whether RRAS should dial all of this entry's multilink subentries when the entry is first connected.
     ///This member can be one of the following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td
     ///width="40%"><a id="MPRDM_DialAll"></a><a id="mprdm_dialall"></a><a id="MPRDM_DIALALL"></a><dl>
@@ -2437,25 +2436,25 @@ struct MPR_INTERFACE_3
     ///required. RRAS uses the <b>dwDialExtraPercent</b>, <b>dwDialExtraSampleSeconds</b>,
     ///<b>dwDialHangUpExtraPercent</b>, and <b>dwHangUpExtraSampleSeconds</b> members to determine when to dial or
     ///disconnect a subentry. </td> </tr> </table>
-    uint          dwDialMode;
+    uint        dwDialMode;
     ///A value that specifies the percentage of the total bandwidth that is available from the currently connected
     ///subentries. RRAS dials an additional subentry when the total bandwidth that is used exceeds
     ///<b>dwDialExtraPercent</b> percent of the available bandwidth for at least <b>dwDialExtraSampleSeconds</b>
     ///seconds. This member is ignored unless the <b>dwDialMode</b> member specifies the <b>MPRDM_DialAsNeeded</b> flag.
-    uint          dwDialExtraPercent;
+    uint        dwDialExtraPercent;
     ///A value that specifies the time, in seconds, for which current bandwidth usage must exceed the threshold that is
     ///specified by <b>dwDialExtraPercent</b> before RRAS dials an additional subentry. This member is ignored unless
     ///the <b>dwDialMode</b> member specifies the <b>MPRDM_DialAsNeeded</b> flag.
-    uint          dwDialExtraSampleSeconds;
+    uint        dwDialExtraSampleSeconds;
     ///A value that specifies the percentage of the total bandwidth that is available from the currently connected
     ///subentries. RRAS terminates (hangs up) an existing subentry connection when the total bandwidth used is less than
     ///<b>dwHangUpExtraPercent</b> percent of the available bandwidth for at least <b>dwHangUpExtraSampleSeconds</b>
     ///seconds. This member is ignored unless the <b>dwDialMode</b> member specifies the <b>MPRDM_DialAsNeeded</b> flag.
-    uint          dwHangUpExtraPercent;
+    uint        dwHangUpExtraPercent;
     ///A value that specifies the time, in seconds, for which current bandwidth usage must be less than the threshold
     ///that is specified by <b>dwHangUpExtraPercent</b> before RRAS terminates an existing subentry connection. This
     ///member is ignored unless the <b>dwDialMode</b> member specifies the <b>MPRDM_DialAsNeeded</b> flag.
-    uint          dwHangUpExtraSampleSeconds;
+    uint        dwHangUpExtraSampleSeconds;
     ///A value that specifies the time, in seconds, after which an inactive connection is terminated. Unless the idle
     ///time-out is disabled, the entire connection is terminated if the connection is idle for the specified interval.
     ///This member can specify either a time-out value, or one of the following values. <table> <tr> <th>Value</th>
@@ -2464,7 +2463,7 @@ struct MPR_INTERFACE_3
     ///time-out for this connection. </td> </tr> <tr> <td width="40%"><a id="MPRIDS_UseGlobalValue"></a><a
     ///id="mprids_useglobalvalue"></a><a id="MPRIDS_USEGLOBALVALUE"></a><dl> <dt><b>MPRIDS_UseGlobalValue</b></dt> </dl>
     ///</td> <td width="60%"> Use the user preference value as the default. </td> </tr> </table>
-    uint          dwIdleDisconnectSeconds;
+    uint        dwIdleDisconnectSeconds;
     ///A value that specifies the type of phone-book entry. This member can be one of the following types. <table> <tr>
     ///<th>Type</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="MPRET_Phone"></a><a id="mpret_phone"></a><a
     ///id="MPRET_PHONE"></a><dl> <dt><b>MPRET_Phone</b></dt> </dl> </td> <td width="60%"> Phone line, for example,
@@ -2473,7 +2472,7 @@ struct MPR_INTERFACE_3
     ///</tr> <tr> <td width="40%"><a id="MPRET_Direct"></a><a id="mpret_direct"></a><a id="MPRET_DIRECT"></a><dl>
     ///<dt><b>MPRET_Direct</b></dt> </dl> </td> <td width="60%"> Direct serial or parallel connection. </td> </tr>
     ///</table>
-    uint          dwType;
+    uint        dwType;
     ///A value that specifies the type of encryption to use for Microsoft Point-to-Point Encryption (MPPE) with the
     ///connection. This member can be one of the following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr>
     ///<tr> <td width="40%"><a id="MPR_ET_None"></a><a id="mpr_et_none"></a><a id="MPR_ET_NONE"></a><dl>
@@ -2486,16 +2485,16 @@ struct MPR_INTERFACE_3
     ///<dt><b>MPR_ET_Optional</b></dt> </dl> </td> <td width="60%"> If possible, use encryption. </td> </tr> </table>
     ///The value of <b>dwEncryptionType</b> does not affect how passwords are encrypted. Whether passwords are encrypted
     ///and how passwords are encrypted is determined by the authentication protocol, for example, PAP, MS-CHAP, or EAP.
-    uint          dwEncryptionType;
+    uint        dwEncryptionType;
     ///A value that specifies the authentication key to be provided to an Extensible Authentication Protocol (EAP)
     ///vendor.
-    uint          dwCustomAuthKey;
+    uint        dwCustomAuthKey;
     ///A value that specifies the size of the data pointed to by the <b>lpbCustomAuthData</b> member.
-    uint          dwCustomAuthDataSize;
+    uint        dwCustomAuthDataSize;
     ///A pointer to authentication data to use with EAP.
-    ubyte*        lpbCustomAuthData;
+    ubyte*      lpbCustomAuthData;
     ///The globally unique identifier (GUID) that represents this phone-book entry. This member is read-only.
-    GUID          guidId;
+    GUID        guidId;
     ///The VPN strategy to use when dialing a VPN connection. This member can have one of the following values. <table>
     ///<tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="MPR_VS_Default"></a><a
     ///id="mpr_vs_default"></a><a id="MPR_VS_DEFAULT"></a><dl> <dt><b>MPR_VS_Default</b></dt> </dl> </td> <td
@@ -2510,16 +2509,16 @@ struct MPR_INTERFACE_3
     ///width="40%"><a id="MPR_VS_L2tpFirst"></a><a id="mpr_vs_l2tpfirst"></a><a id="MPR_VS_L2TPFIRST"></a><dl>
     ///<dt><b>MPR_VS_L2tpFirst</b></dt> </dl> </td> <td width="60%"> RAS dials L2TP first, PPTP second. </td> </tr>
     ///</table>
-    uint          dwVpnStrategy;
+    uint        dwVpnStrategy;
     ///Not used.
-    uint          AddressCount;
+    uint        AddressCount;
     ///A value that specifies the IP address of the DNS server to be used while this connection is active.
-    in6_addr      ipv6addrDns;
+    in6_addr    ipv6addrDns;
     ///A value that specifies the IP address of a secondary or backup DNS server to be used while this connection is
     ///active.
-    in6_addr      ipv6addrDnsAlt;
+    in6_addr    ipv6addrDnsAlt;
     ///Not used.
-    in6_addr*     ipv6addr;
+    in6_addr*   ipv6addr;
 }
 
 ///The <b>MPR_DEVICE_0</b> structure stores information about a device used for a link in a multilinked demand dial
@@ -2539,16 +2538,16 @@ struct MPR_DEVICE_1
 {
     ///Specifies a null-terminated string that indicates the device type referenced by <b>szDeviceName</b>. See
     ///MPR_INTERFACE_2 for a list of possible device types.
-    ushort[17]    szDeviceType;
+    ushort[17]  szDeviceType;
     ///Specifies a null-terminated string that contains the name of the TAPI device to use with this phone-book entry.
-    ushort[129]   szDeviceName;
+    ushort[129] szDeviceName;
     ///Specifies a null-terminated Unicode string that contains a telephone number. The router uses the
     ///<b>szLocalPhoneNumber</b> string as the entire phone number.
-    ushort[129]   szLocalPhoneNumber;
+    ushort[129] szLocalPhoneNumber;
     ///Pointer to a list of consecutive null-terminated Unicode strings. The last string is terminated by two
     ///consecutive null characters. The strings are alternate phone numbers that the router dials in the order listed if
     ///the primary number (see <b>szLocalPhoneNumber</b>) fails to connect.
-    const(wchar)* szAlternates;
+    PWSTR       szAlternates;
 }
 
 ///The <b>MPR_CREDENTIALSEX_0</b> structure contains extended credentials information such as the information used by
@@ -3805,7 +3804,7 @@ struct PROJECTION_INFO
     ///id="mprapi_ikev2_projection_info_type"></a><dl> <dt><b>MPRAPI_IKEV2_PROJECTION_INFO_TYPE</b></dt> </dl> </td> <td
     ///width="60%"> Data is a IKEV2_PROJECTION_INFO structure. </td> </tr> </table>
     ubyte projectionInfoType;
-    union
+union
     {
         PPP_PROJECTION_INFO PppProjectionInfo;
         IKEV2_PROJECTION_INFO Ikev2ProjectionInfo;
@@ -3824,7 +3823,7 @@ struct PROJECTION_INFO2
     ///id="mprapi_ikev2_projection_info_type"></a><dl> <dt><b>MPRAPI_IKEV2_PROJECTION_INFO_TYPE</b></dt> </dl> </td> <td
     ///width="60%"> The data is a IKEV2_PROJECTION_INFO2 structure. </td> </tr> </table>
     ubyte projectionInfoType;
-    union
+union
     {
         PPP_PROJECTION_INFO2 PppProjectionInfo;
         IKEV2_PROJECTION_INFO2 Ikev2ProjectionInfo;
@@ -4089,15 +4088,15 @@ struct MPR_IF_CUSTOMINFOEX0
 
 struct MPR_CERT_EKU
 {
-    uint    dwSize;
-    BOOL    IsEKUOID;
-    ushort* pwszEKU;
+    uint  dwSize;
+    BOOL  IsEKUOID;
+    PWSTR pwszEKU;
 }
 
 struct VPN_TS_IP_ADDRESS
 {
     ushort Type;
-    union
+union
     {
         in_addr  v4;
         in6_addr v6;
@@ -4816,7 +4815,7 @@ struct RTM_DEST_INFO
     uint            BelongsToViews;
     ///Indicates the number of ViewInfo structures present in this destination.
     uint            NumberOfViews;
-    struct
+struct
     {
         int       ViewId;
         uint      NumRoutes;
@@ -4940,9 +4939,9 @@ struct RTM_NEXTHOP_INFO
 ///identifier and the instance identifier are the values that are used to uniquely identify a client.
 struct RTM_ENTITY_ID
 {
-    union
+union
     {
-        struct
+struct
         {
             uint EntityProtocolId;
             uint EntityInstanceId;
@@ -5041,7 +5040,7 @@ struct RTM_ENTITY_EXPORT_METHODS
 ///    Remote Access Error Codes or Winerror.h.
 ///    
 @DllImport("RASAPI32")
-uint RasDialA(tagRASDIALEXTENSIONS* param0, const(char)* param1, tagRASDIALPARAMSA* param2, uint param3, 
+uint RasDialA(tagRASDIALEXTENSIONS* param0, const(PSTR) param1, tagRASDIALPARAMSA* param2, uint param3, 
               void* param4, HRASCONN__** param5);
 
 ///The <b>RasDial</b> function establishes a RAS connection between a RAS client and a RAS server. The connection data
@@ -5087,7 +5086,7 @@ uint RasDialA(tagRASDIALEXTENSIONS* param0, const(char)* param1, tagRASDIALPARAM
 ///    Remote Access Error Codes or Winerror.h.
 ///    
 @DllImport("RASAPI32")
-uint RasDialW(tagRASDIALEXTENSIONS* param0, const(wchar)* param1, tagRASDIALPARAMSW* param2, uint param3, 
+uint RasDialW(tagRASDIALEXTENSIONS* param0, const(PWSTR) param1, tagRASDIALPARAMSW* param2, uint param3, 
               void* param4, HRASCONN__** param5);
 
 ///The <b>RasEnumConnections</b> function lists all active RAS connections. It returns each connection's handle and
@@ -5178,8 +5177,7 @@ uint RasEnumConnectionsW(tagRASCONNW* param0, uint* param1, uint* param2);
 ///    </table>
 ///    
 @DllImport("RASAPI32")
-uint RasEnumEntriesA(const(char)* param0, const(char)* param1, tagRASENTRYNAMEA* param2, uint* param3, 
-                     uint* param4);
+uint RasEnumEntriesA(const(PSTR) param0, const(PSTR) param1, tagRASENTRYNAMEA* param2, uint* param3, uint* param4);
 
 ///The <b>RasEnumEntries</b> function lists all entry names in a remote access phone book.
 ///Params:
@@ -5219,7 +5217,7 @@ uint RasEnumEntriesA(const(char)* param0, const(char)* param1, tagRASENTRYNAMEA*
 ///    </table>
 ///    
 @DllImport("RASAPI32")
-uint RasEnumEntriesW(const(wchar)* param0, const(wchar)* param1, tagRASENTRYNAMEW* param2, uint* param3, 
+uint RasEnumEntriesW(const(PWSTR) param0, const(PWSTR) param1, tagRASENTRYNAMEW* param2, uint* param3, 
                      uint* param4);
 
 ///The <b>RasGetConnectStatus</b> function retrieves information on the current status of the specified remote access
@@ -5272,7 +5270,7 @@ uint RasGetConnectStatusW(HRASCONN__* param0, tagRASCONNSTATUSW* param1);
 ///    width="60%"> An invalid parameter was passed into the function. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasGetErrorStringA(uint ResourceId, const(char)* lpszString, uint InBufSize);
+uint RasGetErrorStringA(uint ResourceId, PSTR lpszString, uint InBufSize);
 
 ///The <b>RasGetErrorString</b> function obtains an error message string for a specified RAS error value.
 ///Params:
@@ -5288,7 +5286,7 @@ uint RasGetErrorStringA(uint ResourceId, const(char)* lpszString, uint InBufSize
 ///    width="60%"> An invalid parameter was passed into the function. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasGetErrorStringW(uint ResourceId, const(wchar)* lpszString, uint InBufSize);
+uint RasGetErrorStringW(uint ResourceId, PWSTR lpszString, uint InBufSize);
 
 ///The <b>RasHangUp</b> function terminates a remote access connection. The connection is specified with a RAS
 ///connection handle. The function releases all RASAPI32.DLL resources associated with the handle.
@@ -5431,7 +5429,7 @@ uint RasGetProjectionInfoW(HRASCONN__* param0, tagRASPROJECTION param1, void* pa
 ///    components. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasCreatePhonebookEntryA(HWND param0, const(char)* param1);
+uint RasCreatePhonebookEntryA(HWND param0, const(PSTR) param1);
 
 ///<p class="CCE_Message">[This function has been deprecated as of Windows Vista and its functionality has been replaced
 ///by RasDialDlg. ] The <b>RasCreatePhonebookEntry</b> function creates a new phone-book entry. The function displays a
@@ -5450,7 +5448,7 @@ uint RasCreatePhonebookEntryA(HWND param0, const(char)* param1);
 ///    components. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasCreatePhonebookEntryW(HWND param0, const(wchar)* param1);
+uint RasCreatePhonebookEntryW(HWND param0, const(PWSTR) param1);
 
 ///<p class="CCE_Message">[This function has been deprecated as of Windows Vista and its functionality has been replaced
 ///by RasEntryDlg.] The <b>RasEditPhonebookEntry</b> function edits an existing phone-book entry. The function displays
@@ -5473,7 +5471,7 @@ uint RasCreatePhonebookEntryW(HWND param0, const(wchar)* param1);
 ///    exist. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasEditPhonebookEntryA(HWND param0, const(char)* param1, const(char)* param2);
+uint RasEditPhonebookEntryA(HWND param0, const(PSTR) param1, const(PSTR) param2);
 
 ///<p class="CCE_Message">[This function has been deprecated as of Windows Vista and its functionality has been replaced
 ///by RasEntryDlg.] The <b>RasEditPhonebookEntry</b> function edits an existing phone-book entry. The function displays
@@ -5496,7 +5494,7 @@ uint RasEditPhonebookEntryA(HWND param0, const(char)* param1, const(char)* param
 ///    exist. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasEditPhonebookEntryW(HWND param0, const(wchar)* param1, const(wchar)* param2);
+uint RasEditPhonebookEntryW(HWND param0, const(PWSTR) param1, const(PWSTR) param2);
 
 ///The <b>RasSetEntryDialParams</b> function changes the connection information saved by the last successful call to the
 ///RasDial or <b>RasSetEntryDialParams</b> function for a specified phone-book entry.
@@ -5556,7 +5554,7 @@ uint RasEditPhonebookEntryW(HWND param0, const(wchar)* param1, const(wchar)* par
 ///    exist. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasSetEntryDialParamsA(const(char)* param0, tagRASDIALPARAMSA* param1, BOOL param2);
+uint RasSetEntryDialParamsA(const(PSTR) param0, tagRASDIALPARAMSA* param1, BOOL param2);
 
 ///The <b>RasSetEntryDialParams</b> function changes the connection information saved by the last successful call to the
 ///RasDial or <b>RasSetEntryDialParams</b> function for a specified phone-book entry.
@@ -5616,7 +5614,7 @@ uint RasSetEntryDialParamsA(const(char)* param0, tagRASDIALPARAMSA* param1, BOOL
 ///    exist. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasSetEntryDialParamsW(const(wchar)* param0, tagRASDIALPARAMSW* param1, BOOL param2);
+uint RasSetEntryDialParamsW(const(PWSTR) param0, tagRASDIALPARAMSW* param1, BOOL param2);
 
 ///The <b>RasGetEntryDialParams</b> function retrieves the connection information saved by the last successful call to
 ///the RasDial or RasSetEntryDialParams function for a specified phone-book entry.
@@ -5654,7 +5652,7 @@ uint RasSetEntryDialParamsW(const(wchar)* param0, tagRASDIALPARAMSW* param1, BOO
 ///    <td width="60%"> The phone-book entry does not exist. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasGetEntryDialParamsA(const(char)* param0, tagRASDIALPARAMSA* param1, int* param2);
+uint RasGetEntryDialParamsA(const(PSTR) param0, tagRASDIALPARAMSA* param1, int* param2);
 
 ///The <b>RasGetEntryDialParams</b> function retrieves the connection information saved by the last successful call to
 ///the RasDial or RasSetEntryDialParams function for a specified phone-book entry.
@@ -5692,7 +5690,7 @@ uint RasGetEntryDialParamsA(const(char)* param0, tagRASDIALPARAMSA* param1, int*
 ///    <td width="60%"> The phone-book entry does not exist. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasGetEntryDialParamsW(const(wchar)* param0, tagRASDIALPARAMSW* param1, int* param2);
+uint RasGetEntryDialParamsW(const(PWSTR) param0, tagRASDIALPARAMSW* param1, int* param2);
 
 ///The <b>RasEnumDevices</b> function returns the name and type of all available RAS-capable devices.
 ///Params:
@@ -5861,7 +5859,7 @@ uint RasGetCountryInfoW(RASCTRYINFO* param0, uint* param1);
 ///    exist, or the phone-book file is corrupted and/or has missing components. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasGetEntryPropertiesA(const(char)* param0, const(char)* param1, tagRASENTRYA* param2, uint* param3, 
+uint RasGetEntryPropertiesA(const(PSTR) param0, const(PSTR) param1, tagRASENTRYA* param2, uint* param3, 
                             ubyte* param4, uint* param5);
 
 ///The <b>RasGetEntryProperties</b> function retrieves the properties of a phone-book entry.
@@ -5909,7 +5907,7 @@ uint RasGetEntryPropertiesA(const(char)* param0, const(char)* param1, tagRASENTR
 ///    exist, or the phone-book file is corrupted and/or has missing components. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasGetEntryPropertiesW(const(wchar)* param0, const(wchar)* param1, tagRASENTRYW* param2, uint* param3, 
+uint RasGetEntryPropertiesW(const(PWSTR) param0, const(PWSTR) param1, tagRASENTRYW* param2, uint* param3, 
                             ubyte* param4, uint* param5);
 
 ///The <b>RasSetEntryProperties</b> function changes the connection information for an entry in the phone book or
@@ -5953,7 +5951,7 @@ uint RasGetEntryPropertiesW(const(wchar)* param0, const(wchar)* param1, tagRASEN
 ///    to see what information is required. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasSetEntryPropertiesA(const(char)* param0, const(char)* param1, tagRASENTRYA* param2, uint param3, 
+uint RasSetEntryPropertiesA(const(PSTR) param0, const(PSTR) param1, tagRASENTRYA* param2, uint param3, 
                             ubyte* param4, uint param5);
 
 ///The <b>RasSetEntryProperties</b> function changes the connection information for an entry in the phone book or
@@ -5997,7 +5995,7 @@ uint RasSetEntryPropertiesA(const(char)* param0, const(char)* param1, tagRASENTR
 ///    to see what information is required. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasSetEntryPropertiesW(const(wchar)* param0, const(wchar)* param1, tagRASENTRYW* param2, uint param3, 
+uint RasSetEntryPropertiesW(const(PWSTR) param0, const(PWSTR) param1, tagRASENTRYW* param2, uint param3, 
                             ubyte* param4, uint param5);
 
 ///The <b>RasRenameEntry</b> function changes the name of an entry in a phone book.
@@ -6022,7 +6020,7 @@ uint RasSetEntryPropertiesW(const(wchar)* param0, const(wchar)* param1, tagRASEN
 ///    entry does not exist. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasRenameEntryA(const(char)* param0, const(char)* param1, const(char)* param2);
+uint RasRenameEntryA(const(PSTR) param0, const(PSTR) param1, const(PSTR) param2);
 
 ///The <b>RasRenameEntry</b> function changes the name of an entry in a phone book.
 ///Params:
@@ -6046,7 +6044,7 @@ uint RasRenameEntryA(const(char)* param0, const(char)* param1, const(char)* para
 ///    entry does not exist. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasRenameEntryW(const(wchar)* param0, const(wchar)* param1, const(wchar)* param2);
+uint RasRenameEntryW(const(PWSTR) param0, const(PWSTR) param1, const(PWSTR) param2);
 
 ///The <b>RasDeleteEntry</b> function deletes an entry from a phone book.
 ///Params:
@@ -6065,7 +6063,7 @@ uint RasRenameEntryW(const(wchar)* param0, const(wchar)* param1, const(wchar)* p
 ///    name specified in <i>lpszEntry</i> does not exist. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasDeleteEntryA(const(char)* param0, const(char)* param1);
+uint RasDeleteEntryA(const(PSTR) param0, const(PSTR) param1);
 
 ///The <b>RasDeleteEntry</b> function deletes an entry from a phone book.
 ///Params:
@@ -6084,7 +6082,7 @@ uint RasDeleteEntryA(const(char)* param0, const(char)* param1);
 ///    name specified in <i>lpszEntry</i> does not exist. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasDeleteEntryW(const(wchar)* param0, const(wchar)* param1);
+uint RasDeleteEntryW(const(PWSTR) param0, const(PWSTR) param1);
 
 ///The <b>RasValidateEntryName</b> function validates the format of a connection entry name. The name must contain at
 ///least one non-white-space alphanumeric character.
@@ -6114,7 +6112,7 @@ uint RasDeleteEntryW(const(wchar)* param0, const(wchar)* param1);
 ///    <td width="60%"> The format of the specified entry name is invalid. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasValidateEntryNameA(const(char)* param0, const(char)* param1);
+uint RasValidateEntryNameA(const(PSTR) param0, const(PSTR) param1);
 
 ///The <b>RasValidateEntryName</b> function validates the format of a connection entry name. The name must contain at
 ///least one non-white-space alphanumeric character.
@@ -6144,7 +6142,7 @@ uint RasValidateEntryNameA(const(char)* param0, const(char)* param1);
 ///    <td width="60%"> The format of the specified entry name is invalid. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasValidateEntryNameW(const(wchar)* param0, const(wchar)* param1);
+uint RasValidateEntryNameW(const(PWSTR) param0, const(PWSTR) param1);
 
 ///The <b>RasConnectionNotification</b> function specifies an event object that the system sets to the signaled state
 ///when a RAS connection is created or terminated.
@@ -6276,7 +6274,7 @@ uint RasGetSubEntryHandleW(HRASCONN__* param0, uint param1, HRASCONN__** param2)
 ///    structure is an unrecognized value. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasGetCredentialsA(const(char)* param0, const(char)* param1, tagRASCREDENTIALSA* param2);
+uint RasGetCredentialsA(const(PSTR) param0, const(PSTR) param1, tagRASCREDENTIALSA* param2);
 
 ///The <b>RasGetCredentials</b> function retrieves the user credentials associated with a specified RAS phone-book
 ///entry.
@@ -6302,7 +6300,7 @@ uint RasGetCredentialsA(const(char)* param0, const(char)* param1, tagRASCREDENTI
 ///    structure is an unrecognized value. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasGetCredentialsW(const(wchar)* param0, const(wchar)* param1, tagRASCREDENTIALSW* param2);
+uint RasGetCredentialsW(const(PWSTR) param0, const(PWSTR) param1, tagRASCREDENTIALSW* param2);
 
 ///The <b>RasSetCredentials</b> function sets the user credentials associated with a specified RAS phone-book entry.
 ///Params:
@@ -6333,7 +6331,7 @@ uint RasGetCredentialsW(const(wchar)* param0, const(wchar)* param1, tagRASCREDEN
 ///    these tasks.</li> </ul> </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasSetCredentialsA(const(char)* param0, const(char)* param1, tagRASCREDENTIALSA* param2, BOOL param3);
+uint RasSetCredentialsA(const(PSTR) param0, const(PSTR) param1, tagRASCREDENTIALSA* param2, BOOL param3);
 
 ///The <b>RasSetCredentials</b> function sets the user credentials associated with a specified RAS phone-book entry.
 ///Params:
@@ -6364,7 +6362,7 @@ uint RasSetCredentialsA(const(char)* param0, const(char)* param1, tagRASCREDENTI
 ///    these tasks.</li> </ul> </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasSetCredentialsW(const(wchar)* param0, const(wchar)* param1, tagRASCREDENTIALSW* param2, BOOL param3);
+uint RasSetCredentialsW(const(PWSTR) param0, const(PWSTR) param1, tagRASCREDENTIALSW* param2, BOOL param3);
 
 ///The <b>RasGetSubEntryProperties</b> function retrieves information about a subentry for a specified phone-book entry.
 ///Params:
@@ -6401,7 +6399,7 @@ uint RasSetCredentialsW(const(wchar)* param0, const(wchar)* param1, tagRASCREDEN
 ///    entry does not exist. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasGetSubEntryPropertiesA(const(char)* param0, const(char)* param1, uint param2, tagRASSUBENTRYA* param3, 
+uint RasGetSubEntryPropertiesA(const(PSTR) param0, const(PSTR) param1, uint param2, tagRASSUBENTRYA* param3, 
                                uint* param4, ubyte* param5, uint* param6);
 
 ///The <b>RasGetSubEntryProperties</b> function retrieves information about a subentry for a specified phone-book entry.
@@ -6439,7 +6437,7 @@ uint RasGetSubEntryPropertiesA(const(char)* param0, const(char)* param1, uint pa
 ///    entry does not exist. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasGetSubEntryPropertiesW(const(wchar)* param0, const(wchar)* param1, uint param2, tagRASSUBENTRYW* param3, 
+uint RasGetSubEntryPropertiesW(const(PWSTR) param0, const(PWSTR) param1, uint param2, tagRASSUBENTRYW* param3, 
                                uint* param4, ubyte* param5, uint* param6);
 
 ///The <b>RasSetSubEntryProperties</b> function creates a new subentry or modifies an existing subentry of a specified
@@ -6476,7 +6474,7 @@ uint RasGetSubEntryPropertiesW(const(wchar)* param0, const(wchar)* param1, uint 
 ///    parameter. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasSetSubEntryPropertiesA(const(char)* param0, const(char)* param1, uint param2, tagRASSUBENTRYA* param3, 
+uint RasSetSubEntryPropertiesA(const(PSTR) param0, const(PSTR) param1, uint param2, tagRASSUBENTRYA* param3, 
                                uint param4, ubyte* param5, uint param6);
 
 ///The <b>RasSetSubEntryProperties</b> function creates a new subentry or modifies an existing subentry of a specified
@@ -6513,7 +6511,7 @@ uint RasSetSubEntryPropertiesA(const(char)* param0, const(char)* param1, uint pa
 ///    parameter. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasSetSubEntryPropertiesW(const(wchar)* param0, const(wchar)* param1, uint param2, tagRASSUBENTRYW* param3, 
+uint RasSetSubEntryPropertiesW(const(PWSTR) param0, const(PWSTR) param1, uint param2, tagRASSUBENTRYW* param3, 
                                uint param4, ubyte* param5, uint param6);
 
 ///The <b>RasGetAutodialAddress</b> function retrieves information about all the AutoDial entries associated with a
@@ -6547,7 +6545,7 @@ uint RasSetSubEntryPropertiesW(const(wchar)* param0, const(wchar)* param1, uint 
 ///    </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasGetAutodialAddressA(const(char)* param0, uint* param1, tagRASAUTODIALENTRYA* param2, uint* param3, 
+uint RasGetAutodialAddressA(const(PSTR) param0, uint* param1, tagRASAUTODIALENTRYA* param2, uint* param3, 
                             uint* param4);
 
 ///The <b>RasGetAutodialAddress</b> function retrieves information about all the AutoDial entries associated with a
@@ -6581,7 +6579,7 @@ uint RasGetAutodialAddressA(const(char)* param0, uint* param1, tagRASAUTODIALENT
 ///    </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasGetAutodialAddressW(const(wchar)* param0, uint* param1, tagRASAUTODIALENTRYW* param2, uint* param3, 
+uint RasGetAutodialAddressW(const(PWSTR) param0, uint* param1, tagRASAUTODIALENTRYW* param2, uint* param3, 
                             uint* param4);
 
 ///The <b>RasSetAutodialAddress</b> function can add an address to the AutoDial mapping database. Alternatively, the
@@ -6608,7 +6606,7 @@ uint RasGetAutodialAddressW(const(wchar)* param0, uint* param1, tagRASAUTODIALEN
 ///    <i>lpAutoDialEntries</i> does not exist. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasSetAutodialAddressA(const(char)* param0, uint param1, tagRASAUTODIALENTRYA* param2, uint param3, 
+uint RasSetAutodialAddressA(const(PSTR) param0, uint param1, tagRASAUTODIALENTRYA* param2, uint param3, 
                             uint param4);
 
 ///The <b>RasSetAutodialAddress</b> function can add an address to the AutoDial mapping database. Alternatively, the
@@ -6635,7 +6633,7 @@ uint RasSetAutodialAddressA(const(char)* param0, uint param1, tagRASAUTODIALENTR
 ///    <i>lpAutoDialEntries</i> does not exist. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasSetAutodialAddressW(const(wchar)* param0, uint param1, tagRASAUTODIALENTRYW* param2, uint param3, 
+uint RasSetAutodialAddressW(const(PWSTR) param0, uint param1, tagRASAUTODIALENTRYW* param2, uint param3, 
                             uint param4);
 
 ///The <b>RasEnumAutodialAddresses</b> function returns a list of all addresses in the AutoDial mapping database.
@@ -6662,7 +6660,7 @@ uint RasSetAutodialAddressW(const(wchar)* param0, uint param1, tagRASAUTODIALENT
 ///    returns the required buffer size in the variable pointed to by <i>lpdwcbAddresses</i>. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasEnumAutodialAddressesA(char* lppRasAutodialAddresses, uint* lpdwcbRasAutodialAddresses, 
+uint RasEnumAutodialAddressesA(PSTR* lppRasAutodialAddresses, uint* lpdwcbRasAutodialAddresses, 
                                uint* lpdwcRasAutodialAddresses);
 
 ///The <b>RasEnumAutodialAddresses</b> function returns a list of all addresses in the AutoDial mapping database.
@@ -6689,7 +6687,7 @@ uint RasEnumAutodialAddressesA(char* lppRasAutodialAddresses, uint* lpdwcbRasAut
 ///    returns the required buffer size in the variable pointed to by <i>lpdwcbAddresses</i>. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasEnumAutodialAddressesW(char* lppRasAutodialAddresses, uint* lpdwcbRasAutodialAddresses, 
+uint RasEnumAutodialAddressesW(PWSTR* lppRasAutodialAddresses, uint* lpdwcbRasAutodialAddresses, 
                                uint* lpdwcRasAutodialAddresses);
 
 ///The <b>RasGetAutodialEnable</b> function indicates whether the AutoDial feature is enabled for a specified TAPI
@@ -6939,7 +6937,7 @@ uint RasSetAutodialParamA(uint param0, void* param1, uint param2);
 uint RasSetAutodialParamW(uint param0, void* param1, uint param2);
 
 @DllImport("RASAPI32")
-uint RasGetPCscf(const(wchar)* lpszPCscf);
+uint RasGetPCscf(PWSTR lpszPCscf);
 
 ///The <b>RasInvokeEapUI</b> function displays a custom user interface to obtain Extensible Authentication Protocol
 ///(EAP) information from the user.
@@ -7075,7 +7073,7 @@ uint RasClearConnectionStatistics(HRASCONN__* hRasConn);
 ///    returned. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasGetEapUserDataA(HANDLE hToken, const(char)* pszPhonebook, const(char)* pszEntry, ubyte* pbEapData, 
+uint RasGetEapUserDataA(HANDLE hToken, const(PSTR) pszPhonebook, const(PSTR) pszEntry, ubyte* pbEapData, 
                         uint* pdwSizeofEapData);
 
 ///Use the <b>RasGetEapUserData</b> function to retrieve user-specific Extensible Authentication Protocol (EAP)
@@ -7107,7 +7105,7 @@ uint RasGetEapUserDataA(HANDLE hToken, const(char)* pszPhonebook, const(char)* p
 ///    returned. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasGetEapUserDataW(HANDLE hToken, const(wchar)* pszPhonebook, const(wchar)* pszEntry, ubyte* pbEapData, 
+uint RasGetEapUserDataW(HANDLE hToken, const(PWSTR) pszPhonebook, const(PWSTR) pszEntry, ubyte* pbEapData, 
                         uint* pdwSizeofEapData);
 
 ///Use the <b>RasSetEapUserData</b> function to store user-specific Extensible Authentication Protocol (EAP) information
@@ -7133,7 +7131,7 @@ uint RasGetEapUserDataW(HANDLE hToken, const(wchar)* pszPhonebook, const(wchar)*
 ///    corresponds to the error code returned. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasSetEapUserDataA(HANDLE hToken, const(char)* pszPhonebook, const(char)* pszEntry, ubyte* pbEapData, 
+uint RasSetEapUserDataA(HANDLE hToken, const(PSTR) pszPhonebook, const(PSTR) pszEntry, ubyte* pbEapData, 
                         uint dwSizeofEapData);
 
 ///Use the <b>RasSetEapUserData</b> function to store user-specific Extensible Authentication Protocol (EAP) information
@@ -7159,7 +7157,7 @@ uint RasSetEapUserDataA(HANDLE hToken, const(char)* pszPhonebook, const(char)* p
 ///    corresponds to the error code returned. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasSetEapUserDataW(HANDLE hToken, const(wchar)* pszPhonebook, const(wchar)* pszEntry, ubyte* pbEapData, 
+uint RasSetEapUserDataW(HANDLE hToken, const(PWSTR) pszPhonebook, const(PWSTR) pszEntry, ubyte* pbEapData, 
                         uint dwSizeofEapData);
 
 ///Use the <b>RasGetCustomAuthData</b> function to retrieve connection-specific authentication information. This
@@ -7189,7 +7187,7 @@ uint RasSetEapUserDataW(HANDLE hToken, const(wchar)* pszPhonebook, const(wchar)*
 ///    that corresponds to the error code returned. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasGetCustomAuthDataA(const(char)* pszPhonebook, const(char)* pszEntry, char* pbCustomAuthData, 
+uint RasGetCustomAuthDataA(const(PSTR) pszPhonebook, const(PSTR) pszEntry, ubyte* pbCustomAuthData, 
                            uint* pdwSizeofCustomAuthData);
 
 ///Use the <b>RasGetCustomAuthData</b> function to retrieve connection-specific authentication information. This
@@ -7219,7 +7217,7 @@ uint RasGetCustomAuthDataA(const(char)* pszPhonebook, const(char)* pszEntry, cha
 ///    that corresponds to the error code returned. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasGetCustomAuthDataW(const(wchar)* pszPhonebook, const(wchar)* pszEntry, char* pbCustomAuthData, 
+uint RasGetCustomAuthDataW(const(PWSTR) pszPhonebook, const(PWSTR) pszEntry, ubyte* pbCustomAuthData, 
                            uint* pdwSizeofCustomAuthData);
 
 ///Use the <b>RasSetCustomAuthData</b> function to set connection-specific authentication information. This information
@@ -7243,7 +7241,7 @@ uint RasGetCustomAuthDataW(const(wchar)* pszPhonebook, const(wchar)* pszEntry, c
 ///    that corresponds to the error code returned. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasSetCustomAuthDataA(const(char)* pszPhonebook, const(char)* pszEntry, char* pbCustomAuthData, 
+uint RasSetCustomAuthDataA(const(PSTR) pszPhonebook, const(PSTR) pszEntry, ubyte* pbCustomAuthData, 
                            uint dwSizeofCustomAuthData);
 
 ///Use the <b>RasSetCustomAuthData</b> function to set connection-specific authentication information. This information
@@ -7267,7 +7265,7 @@ uint RasSetCustomAuthDataA(const(char)* pszPhonebook, const(char)* pszEntry, cha
 ///    that corresponds to the error code returned. </td> </tr> </table>
 ///    
 @DllImport("RASAPI32")
-uint RasSetCustomAuthDataW(const(wchar)* pszPhonebook, const(wchar)* pszEntry, char* pbCustomAuthData, 
+uint RasSetCustomAuthDataW(const(PWSTR) pszPhonebook, const(PWSTR) pszEntry, ubyte* pbCustomAuthData, 
                            uint dwSizeofCustomAuthData);
 
 ///The <b>RasGetEapUserIdentity</b> function retrieves identity information for the current user. Use this information
@@ -7309,7 +7307,7 @@ uint RasSetCustomAuthDataW(const(wchar)* pszPhonebook, const(wchar)* pszEntry, c
 ///    </table>
 ///    
 @DllImport("RASAPI32")
-uint RasGetEapUserIdentityW(const(wchar)* pszPhonebook, const(wchar)* pszEntry, uint dwFlags, HWND hwnd, 
+uint RasGetEapUserIdentityW(const(PWSTR) pszPhonebook, const(PWSTR) pszEntry, uint dwFlags, HWND hwnd, 
                             tagRASEAPUSERIDENTITYW** ppRasEapUserIdentity);
 
 ///The <b>RasGetEapUserIdentity</b> function retrieves identity information for the current user. Use this information
@@ -7351,7 +7349,7 @@ uint RasGetEapUserIdentityW(const(wchar)* pszPhonebook, const(wchar)* pszEntry, 
 ///    </table>
 ///    
 @DllImport("RASAPI32")
-uint RasGetEapUserIdentityA(const(char)* pszPhonebook, const(char)* pszEntry, uint dwFlags, HWND hwnd, 
+uint RasGetEapUserIdentityA(const(PSTR) pszPhonebook, const(PSTR) pszEntry, uint dwFlags, HWND hwnd, 
                             tagRASEAPUSERIDENTITYA** ppRasEapUserIdentity);
 
 ///Use the <b>RasFreeEapUserIdentity</b> function to free the memory buffer returned by RasGetEapUserIdentity.
@@ -7381,7 +7379,7 @@ void RasFreeEapUserIdentityA(tagRASEAPUSERIDENTITYA* pRasEapUserIdentity);
 ///    one of the following error codes or a value from Routing and Remote Access Error Codes or Winerror.h.
 ///    
 @DllImport("RASAPI32")
-uint RasDeleteSubEntryA(const(char)* pszPhonebook, const(char)* pszEntry, uint dwSubentryId);
+uint RasDeleteSubEntryA(const(PSTR) pszPhonebook, const(PSTR) pszEntry, uint dwSubentryId);
 
 ///The <b>RasDeleteSubEntry</b> function deletes the specified subentry from the specified phone-book entry.
 ///Params:
@@ -7395,7 +7393,7 @@ uint RasDeleteSubEntryA(const(char)* pszPhonebook, const(char)* pszEntry, uint d
 ///    one of the following error codes or a value from Routing and Remote Access Error Codes or Winerror.h.
 ///    
 @DllImport("RASAPI32")
-uint RasDeleteSubEntryW(const(wchar)* pszPhonebook, const(wchar)* pszEntry, uint dwSubEntryId);
+uint RasDeleteSubEntryW(const(PWSTR) pszPhonebook, const(PWSTR) pszEntry, uint dwSubEntryId);
 
 ///The <b>RasUpdateConnection</b> function updates the tunnel endpoints of an Internet Key Exchange version 2 (IKEv2)
 ///connection.
@@ -7467,7 +7465,7 @@ uint RasGetProjectionInfoEx(HRASCONN__* hrasconn, RAS_PROJECTION_INFO* pRasProje
 ///    the heap memory for the RASPBLDG structure HeapFree(GetProcessHeap(), 0, lpInfo); return 0; } ```
 ///    
 @DllImport("RASDLG")
-BOOL RasPhonebookDlgA(const(char)* lpszPhonebook, const(char)* lpszEntry, tagRASPBDLGA* lpInfo);
+BOOL RasPhonebookDlgA(PSTR lpszPhonebook, PSTR lpszEntry, tagRASPBDLGA* lpInfo);
 
 ///The <b>RasPhonebookDlg</b> function displays the main <b>Dial-Up Networking</b> dialog box. From this modal dialog
 ///box, the user can dial, edit, or delete a selected phone-book entry, create a new phone-book entry, or specify user
@@ -7499,7 +7497,7 @@ BOOL RasPhonebookDlgA(const(char)* lpszPhonebook, const(char)* lpszEntry, tagRAS
 ///    the heap memory for the RASPBLDG structure HeapFree(GetProcessHeap(), 0, lpInfo); return 0; } ```
 ///    
 @DllImport("RASDLG")
-BOOL RasPhonebookDlgW(const(wchar)* lpszPhonebook, const(wchar)* lpszEntry, tagRASPBDLGW* lpInfo);
+BOOL RasPhonebookDlgW(PWSTR lpszPhonebook, PWSTR lpszEntry, tagRASPBDLGW* lpInfo);
 
 ///The <b>RasEntryDlg</b> function displays modal property sheets that allow a user to manipulate phone-book entries. If
 ///editing or copying an existing phone-book entry, the function displays a phone-book entry property sheet. The
@@ -7529,7 +7527,7 @@ BOOL RasPhonebookDlgW(const(wchar)* lpszPhonebook, const(wchar)* lpszEntry, tagR
 ///    RASENTRYDLG structure to a value from Routing and Remote Access Error Codes or Winerror.h.
 ///    
 @DllImport("RASDLG")
-BOOL RasEntryDlgA(const(char)* lpszPhonebook, const(char)* lpszEntry, tagRASENTRYDLGA* lpInfo);
+BOOL RasEntryDlgA(PSTR lpszPhonebook, PSTR lpszEntry, tagRASENTRYDLGA* lpInfo);
 
 ///The <b>RasEntryDlg</b> function displays modal property sheets that allow a user to manipulate phone-book entries. If
 ///editing or copying an existing phone-book entry, the function displays a phone-book entry property sheet. The
@@ -7559,7 +7557,7 @@ BOOL RasEntryDlgA(const(char)* lpszPhonebook, const(char)* lpszEntry, tagRASENTR
 ///    RASENTRYDLG structure to a value from Routing and Remote Access Error Codes or Winerror.h.
 ///    
 @DllImport("RASDLG")
-BOOL RasEntryDlgW(const(wchar)* lpszPhonebook, const(wchar)* lpszEntry, tagRASENTRYDLGW* lpInfo);
+BOOL RasEntryDlgW(PWSTR lpszPhonebook, PWSTR lpszEntry, tagRASENTRYDLGW* lpInfo);
 
 ///The <b>RasDialDlg</b> function establishes a RAS connection using a specified phone-book entry and the credentials of
 ///the logged-on user. The function displays a stream of dialog boxes that indicate the state of the connection
@@ -7581,8 +7579,7 @@ BOOL RasEntryDlgW(const(wchar)* lpszPhonebook, const(wchar)* lpszEntry, tagRASEN
 ///    structure to a value from Routing and Remote Access Error Codes or Winerror.h.
 ///    
 @DllImport("RASDLG")
-BOOL RasDialDlgA(const(char)* lpszPhonebook, const(char)* lpszEntry, const(char)* lpszPhoneNumber, 
-                 tagRASDIALDLG* lpInfo);
+BOOL RasDialDlgA(PSTR lpszPhonebook, PSTR lpszEntry, PSTR lpszPhoneNumber, tagRASDIALDLG* lpInfo);
 
 ///The <b>RasDialDlg</b> function establishes a RAS connection using a specified phone-book entry and the credentials of
 ///the logged-on user. The function displays a stream of dialog boxes that indicate the state of the connection
@@ -7604,8 +7601,7 @@ BOOL RasDialDlgA(const(char)* lpszPhonebook, const(char)* lpszEntry, const(char)
 ///    structure to a value from Routing and Remote Access Error Codes or Winerror.h.
 ///    
 @DllImport("RASDLG")
-BOOL RasDialDlgW(const(wchar)* lpszPhonebook, const(wchar)* lpszEntry, const(wchar)* lpszPhoneNumber, 
-                 tagRASDIALDLG* lpInfo);
+BOOL RasDialDlgW(PWSTR lpszPhonebook, PWSTR lpszEntry, PWSTR lpszPhoneNumber, tagRASDIALDLG* lpInfo);
 
 ///The <b>MprAdminConnectionEnumEx</b> function enumerates the active connections for a specified RRAS server.
 ///Params:
@@ -7760,7 +7756,7 @@ uint MprAdminUpdateConnection(ptrdiff_t hRasServer, HANDLE hRasConnection,
 ///    privileges. </td> </tr> </table>
 ///    
 @DllImport("MPRAPI")
-uint MprAdminIsServiceInitialized(const(wchar)* lpwsServerName, int* fIsServiceInitialized);
+uint MprAdminIsServiceInitialized(PWSTR lpwsServerName, BOOL* fIsServiceInitialized);
 
 ///Sets the tunnel specific custom configuration for a specified demand dial interface on a specified server.
 ///Params:
@@ -8122,7 +8118,7 @@ uint MprAdminConnectionRemoveQuarantine(HANDLE hRasServer, HANDLE hRasConnection
 ///    not exist on the server specified by <i>lpwsServerName</i>. </td> </tr> </table>
 ///    
 @DllImport("MPRAPI")
-uint MprAdminUserGetInfo(const(wchar)* lpszServer, const(wchar)* lpszUser, uint dwLevel, ubyte* lpbBuffer);
+uint MprAdminUserGetInfo(const(PWSTR) lpszServer, const(PWSTR) lpszUser, uint dwLevel, ubyte* lpbBuffer);
 
 ///The <b>MprAdminUserSetInfo</b> function sets RAS information for the specified user.
 ///Params:
@@ -8149,7 +8145,7 @@ uint MprAdminUserGetInfo(const(wchar)* lpszServer, const(wchar)* lpszUser, uint 
 ///    </tr> </table>
 ///    
 @DllImport("MPRAPI")
-uint MprAdminUserSetInfo(const(wchar)* lpszServer, const(wchar)* lpszUser, uint dwLevel, const(ubyte)* lpbBuffer);
+uint MprAdminUserSetInfo(const(PWSTR) lpszServer, const(PWSTR) lpszUser, uint dwLevel, const(ubyte)* lpbBuffer);
 
 ///The <b>MprAdminSendUserMessage</b> function sends a message to the user connected on the specified connection.
 ///Params:
@@ -8168,7 +8164,7 @@ uint MprAdminUserSetInfo(const(wchar)* lpszServer, const(wchar)* lpszUser, uint 
 ///    <b>NULL</b>. </td> </tr> </table>
 ///    
 @DllImport("MPRAPI")
-uint MprAdminSendUserMessage(ptrdiff_t hMprServer, HANDLE hConnection, const(wchar)* lpwszMessage);
+uint MprAdminSendUserMessage(ptrdiff_t hMprServer, HANDLE hConnection, PWSTR lpwszMessage);
 
 ///The <b>MprAdminGetPDCServer</b> function retrieves the name of the server with the master User Accounts Subsystem
 ///(UAS) from either a domain name or a server name. Either the domain name parameter or the server name parameter may
@@ -8193,7 +8189,7 @@ uint MprAdminSendUserMessage(ptrdiff_t hMprServer, HANDLE hConnection, const(wch
 ///    </table> <div> </div>
 ///    
 @DllImport("MPRAPI")
-uint MprAdminGetPDCServer(const(wchar)* lpszDomain, const(wchar)* lpszServer, const(wchar)* lpszPDCServer);
+uint MprAdminGetPDCServer(const(PWSTR) lpszDomain, const(PWSTR) lpszServer, PWSTR lpszPDCServer);
 
 ///The <b>MprAdminIsServiceRunning</b> function checks whether the RRAS service is running on a specified server if the
 ///calling process has access.
@@ -8208,7 +8204,7 @@ uint MprAdminGetPDCServer(const(wchar)* lpszDomain, const(wchar)* lpszServer, co
 ///    </tr> </table>
 ///    
 @DllImport("MPRAPI")
-BOOL MprAdminIsServiceRunning(const(wchar)* lpwsServerName);
+BOOL MprAdminIsServiceRunning(PWSTR lpwsServerName);
 
 ///The <b>MprAdminServerConnect</b> function establishes a connection to a router for the purpose of administering that
 ///router. Call this function before making any other calls to the server. Use the handle returned in subsequent calls
@@ -8228,7 +8224,7 @@ BOOL MprAdminIsServiceRunning(const(wchar)* lpwsServerName);
 ///    running the Routing and RAS service. </td> </tr> </table>
 ///    
 @DllImport("MPRAPI")
-uint MprAdminServerConnect(const(wchar)* lpwsServerName, ptrdiff_t* phMprServer);
+uint MprAdminServerConnect(PWSTR lpwsServerName, ptrdiff_t* phMprServer);
 
 ///The <b>MprAdminServerDisconnect</b> function disconnects the connection made by a previous call to
 ///MprAdminServerConnect.
@@ -8303,7 +8299,7 @@ uint MprAdminBufferFree(void* pBuffer);
 ///    width="60%"> The error code in <i>dwError</i> is unknown. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("MPRAPI")
-uint MprAdminGetErrorString(uint dwError, ushort** lplpwsErrorString);
+uint MprAdminGetErrorString(uint dwError, PWSTR* lplpwsErrorString);
 
 ///The <b>MprAdminServerGetInfo</b> function retrieves information about the specified RRAS server.
 ///Params:
@@ -8376,7 +8372,7 @@ uint MprAdminServerSetInfo(ptrdiff_t hMprServer, uint dwLevel, ubyte* lpbBuffer)
 ///    width="60%"> Function executed on a machine not joined to any domain. </td> </tr> </table>
 ///    
 @DllImport("MPRAPI")
-uint MprAdminEstablishDomainRasServer(const(wchar)* pszDomain, const(wchar)* pszMachine, BOOL bEnable);
+uint MprAdminEstablishDomainRasServer(PWSTR pszDomain, PWSTR pszMachine, BOOL bEnable);
 
 ///The MprAdminIsDomainRasServer function returns information regarding whether the given machine is registered as the
 ///remote access server in the domain.
@@ -8394,7 +8390,7 @@ uint MprAdminEstablishDomainRasServer(const(wchar)* pszDomain, const(wchar)* psz
 ///    width="60%"> Function executed on a machine not joined to any domain. </td> </tr> </table>
 ///    
 @DllImport("MPRAPI")
-uint MprAdminIsDomainRasServer(const(wchar)* pszDomain, const(wchar)* pszMachine, int* pbIsRasServer);
+uint MprAdminIsDomainRasServer(PWSTR pszDomain, PWSTR pszMachine, BOOL* pbIsRasServer);
 
 ///The <b>MprAdminTransportCreate</b> function loads a new transport, and starts the router manager for the transport.
 ///Params:
@@ -8428,9 +8424,9 @@ uint MprAdminIsDomainRasServer(const(wchar)* pszDomain, const(wchar)* pszMachine
 ///    </td> </tr> </table>
 ///    
 @DllImport("MPRAPI")
-uint MprAdminTransportCreate(ptrdiff_t hMprServer, uint dwTransportId, const(wchar)* lpwsTransportName, 
-                             ubyte* pGlobalInfo, uint dwGlobalInfoSize, ubyte* pClientInterfaceInfo, 
-                             uint dwClientInterfaceInfoSize, const(wchar)* lpwsDLLPath);
+uint MprAdminTransportCreate(ptrdiff_t hMprServer, uint dwTransportId, PWSTR lpwsTransportName, ubyte* pGlobalInfo, 
+                             uint dwGlobalInfoSize, ubyte* pClientInterfaceInfo, uint dwClientInterfaceInfoSize, 
+                             PWSTR lpwsDLLPath);
 
 ///The <b>MprAdminTransportSetInfo</b> function sets global information, or default client interface information, or
 ///both, for a specified transport.
@@ -8546,7 +8542,7 @@ uint MprAdminDeviceEnum(ptrdiff_t hMprServer, uint dwLevel, ubyte** lplpbBuffer,
 ///    <td width="60%"> <i>lpwsInterfaceName</i> is <b>NULL</b>. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("MPRAPI")
-uint MprAdminInterfaceGetHandle(ptrdiff_t hMprServer, const(wchar)* lpwsInterfaceName, HANDLE* phInterface, 
+uint MprAdminInterfaceGetHandle(ptrdiff_t hMprServer, PWSTR lpwsInterfaceName, HANDLE* phInterface, 
                                 BOOL fIncludeClientInterfaces);
 
 ///The <b>MprAdminInterfaceCreate</b> function creates an interface on a specified server.
@@ -8887,9 +8883,8 @@ uint MprAdminInterfaceEnum(ptrdiff_t hMprServer, uint dwLevel, ubyte** lplpbBuff
 ///    corresponds to the error code returned. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("MPRAPI")
-uint MprAdminInterfaceSetCredentials(const(wchar)* lpwsServer, const(wchar)* lpwsInterfaceName, 
-                                     const(wchar)* lpwsUserName, const(wchar)* lpwsDomainName, 
-                                     const(wchar)* lpwsPassword);
+uint MprAdminInterfaceSetCredentials(PWSTR lpwsServer, PWSTR lpwsInterfaceName, PWSTR lpwsUserName, 
+                                     PWSTR lpwsDomainName, PWSTR lpwsPassword);
 
 ///Use the <b>MprAdminInterfaceGetCredentials</b> function to retrieve the domain, user name, and password for dialing
 ///out on the specified demand-dial interface.
@@ -8920,9 +8915,8 @@ uint MprAdminInterfaceSetCredentials(const(wchar)* lpwsServer, const(wchar)* lpw
 ///    system error message that corresponds to the error code returned. </td> </tr> </table>
 ///    
 @DllImport("MPRAPI")
-uint MprAdminInterfaceGetCredentials(const(wchar)* lpwsServer, const(wchar)* lpwsInterfaceName, 
-                                     const(wchar)* lpwsUserName, const(wchar)* lpwsPassword, 
-                                     const(wchar)* lpwsDomainName);
+uint MprAdminInterfaceGetCredentials(PWSTR lpwsServer, PWSTR lpwsInterfaceName, PWSTR lpwsUserName, 
+                                     PWSTR lpwsPassword, PWSTR lpwsDomainName);
 
 ///Use the <b>MprAdminInterfaceSetCredentialsEx</b> function to set extended credentials information for an interface.
 ///Use this function to set credentials information used for Extensible Authentication Protocols (EAPs).
@@ -9163,7 +9157,7 @@ uint MprAdminDeregisterConnectionNotification(ptrdiff_t hMprServer, HANDLE hEven
 ///    If the function succeeds, the return value is NO_ERROR.
 ///    
 @DllImport("MPRAPI")
-uint MprAdminMIBServerConnect(const(wchar)* lpwsServerName, ptrdiff_t* phMibServer);
+uint MprAdminMIBServerConnect(PWSTR lpwsServerName, ptrdiff_t* phMibServer);
 
 ///The <b>MprAdminMIBServerDisconnect</b> function disconnects the connection made by a previous call to
 ///MprAdminMIBServerConnect.
@@ -9371,7 +9365,7 @@ uint MprConfigServerInstall(uint dwLevel, void* pBuffer);
 ///    corresponds to the error code returned. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("MPRAPI")
-uint MprConfigServerConnect(const(wchar)* lpwsServerName, HANDLE* phMprConfig);
+uint MprConfigServerConnect(PWSTR lpwsServerName, HANDLE* phMprConfig);
 
 ///The <b>MprConfigServerDisconnect</b> function disconnects a connection made by a previous call to
 ///MprConfigServerConnect.
@@ -9466,7 +9460,7 @@ uint MprConfigServerSetInfo(ptrdiff_t hMprServer, uint dwLevel, ubyte* lpbBuffer
 ///    corresponds to the error code returned. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("MPRAPI")
-uint MprConfigServerBackup(HANDLE hMprConfig, const(wchar)* lpwsPath);
+uint MprConfigServerBackup(HANDLE hMprConfig, PWSTR lpwsPath);
 
 ///The <b>MprConfigServerRestore</b> function restores the router-manager, interface, and phone-book configuration from
 ///a backup created by a previous call to MprConfigServerBackup.
@@ -9484,7 +9478,7 @@ uint MprConfigServerBackup(HANDLE hMprConfig, const(wchar)* lpwsPath);
 ///    corresponds to the error code returned. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("MPRAPI")
-uint MprConfigServerRestore(HANDLE hMprConfig, const(wchar)* lpwsPath);
+uint MprConfigServerRestore(HANDLE hMprConfig, PWSTR lpwsPath);
 
 ///The <b>MprConfigTransportCreate</b> function adds the specified transport to the list of transport protocols present
 ///in the specified router configuration.
@@ -9526,9 +9520,9 @@ uint MprConfigServerRestore(HANDLE hMprConfig, const(wchar)* lpwsPath);
 ///    </td> </tr> </table>
 ///    
 @DllImport("MPRAPI")
-uint MprConfigTransportCreate(HANDLE hMprConfig, uint dwTransportId, const(wchar)* lpwsTransportName, 
-                              char* pGlobalInfo, uint dwGlobalInfoSize, char* pClientInterfaceInfo, 
-                              uint dwClientInterfaceInfoSize, const(wchar)* lpwsDLLPath, HANDLE* phRouterTransport);
+uint MprConfigTransportCreate(HANDLE hMprConfig, uint dwTransportId, PWSTR lpwsTransportName, ubyte* pGlobalInfo, 
+                              uint dwGlobalInfoSize, ubyte* pClientInterfaceInfo, uint dwClientInterfaceInfoSize, 
+                              PWSTR lpwsDLLPath, HANDLE* phRouterTransport);
 
 ///The <b>MprConfigTransportDelete</b> function removes the specified transport from the list of transports present in
 ///the specified router configuration.
@@ -9610,9 +9604,9 @@ uint MprConfigTransportGetHandle(HANDLE hMprConfig, uint dwTransportId, HANDLE* 
 ///    error message that corresponds to the error code returned. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("MPRAPI")
-uint MprConfigTransportSetInfo(HANDLE hMprConfig, HANDLE hRouterTransport, char* pGlobalInfo, 
-                               uint dwGlobalInfoSize, char* pClientInterfaceInfo, uint dwClientInterfaceInfoSize, 
-                               const(wchar)* lpwsDLLPath);
+uint MprConfigTransportSetInfo(HANDLE hMprConfig, HANDLE hRouterTransport, ubyte* pGlobalInfo, 
+                               uint dwGlobalInfoSize, ubyte* pClientInterfaceInfo, uint dwClientInterfaceInfoSize, 
+                               PWSTR lpwsDLLPath);
 
 ///The <b>MprConfigTransportGetInfo</b> function retrieves the configuration for the specified transport protocol from
 ///the router.
@@ -9658,7 +9652,7 @@ uint MprConfigTransportSetInfo(HANDLE hMprConfig, HANDLE hRouterTransport, char*
 @DllImport("MPRAPI")
 uint MprConfigTransportGetInfo(HANDLE hMprConfig, HANDLE hRouterTransport, ubyte** ppGlobalInfo, 
                                uint* lpdwGlobalInfoSize, ubyte** ppClientInterfaceInfo, 
-                               uint* lpdwClientInterfaceInfoSize, ushort** lplpwsDLLPath);
+                               uint* lpdwClientInterfaceInfoSize, PWSTR* lplpwsDLLPath);
 
 ///The <b>MprConfigTransportEnum</b> function enumerates the transports configured on the router.
 ///Params:
@@ -9760,7 +9754,7 @@ uint MprConfigInterfaceDelete(HANDLE hMprConfig, HANDLE hRouterInterface);
 ///    </table> <div> </div>
 ///    
 @DllImport("MPRAPI")
-uint MprConfigInterfaceGetHandle(HANDLE hMprConfig, const(wchar)* lpwsInterfaceName, HANDLE* phRouterInterface);
+uint MprConfigInterfaceGetHandle(HANDLE hMprConfig, PWSTR lpwsInterfaceName, HANDLE* phRouterInterface);
 
 ///The <b>MprConfigInterfaceGetInfo</b> function retrieves the configuration for the specified interface from the
 ///router.
@@ -9893,7 +9887,7 @@ uint MprConfigInterfaceEnum(HANDLE hMprConfig, uint dwLevel, ubyte** lplpBuffer,
 ///    
 @DllImport("MPRAPI")
 uint MprConfigInterfaceTransportAdd(HANDLE hMprConfig, HANDLE hRouterInterface, uint dwTransportId, 
-                                    const(wchar)* lpwsTransportName, char* pInterfaceInfo, uint dwInterfaceInfoSize, 
+                                    PWSTR lpwsTransportName, ubyte* pInterfaceInfo, uint dwInterfaceInfoSize, 
                                     HANDLE* phRouterIfTransport);
 
 ///The <b>MprConfigInterfaceTransportRemove</b> function removes the specified transport from the specified interface
@@ -10015,7 +10009,7 @@ uint MprConfigInterfaceTransportGetInfo(HANDLE hMprConfig, HANDLE hRouterInterfa
 ///    
 @DllImport("MPRAPI")
 uint MprConfigInterfaceTransportSetInfo(HANDLE hMprConfig, HANDLE hRouterInterface, HANDLE hRouterIfTransport, 
-                                        char* pInterfaceInfo, uint dwInterfaceInfoSize);
+                                        ubyte* pInterfaceInfo, uint dwInterfaceInfoSize);
 
 ///The <b>MprConfigInterfaceTransportEnum</b> function enumerates the transports configured on the specified interface.
 ///Params:
@@ -10074,8 +10068,7 @@ uint MprConfigInterfaceTransportEnum(HANDLE hMprConfig, HANDLE hRouterInterface,
 ///    specified friendly name. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("MPRAPI")
-uint MprConfigGetFriendlyName(HANDLE hMprConfig, const(wchar)* pszGuidName, const(wchar)* pszBuffer, 
-                              uint dwBufferSize);
+uint MprConfigGetFriendlyName(HANDLE hMprConfig, PWSTR pszGuidName, PWSTR pszBuffer, uint dwBufferSize);
 
 ///The <b>MprConfigGetGuidName</b> function returns the GUID name for an interface that corresponds to the specified
 ///friendly name.
@@ -10095,8 +10088,7 @@ uint MprConfigGetFriendlyName(HANDLE hMprConfig, const(wchar)* pszGuidName, cons
 ///    specified friendly name. </td> </tr> </table> <div> </div>
 ///    
 @DllImport("MPRAPI")
-uint MprConfigGetGuidName(HANDLE hMprConfig, const(wchar)* pszFriendlyName, const(wchar)* pszBuffer, 
-                          uint dwBufferSize);
+uint MprConfigGetGuidName(HANDLE hMprConfig, PWSTR pszFriendlyName, PWSTR pszBuffer, uint dwBufferSize);
 
 ///The <b>MprConfigFilterGetInfo</b> function returns static filtering information for a specified transport protocol
 ///type.
@@ -10119,7 +10111,7 @@ uint MprConfigGetGuidName(HANDLE hMprConfig, const(wchar)* pszFriendlyName, cons
 ///    <b>NULL</b>, or <i>dwLevel</i> is not set to 0. </td> </tr> </table>
 ///    
 @DllImport("MPRAPI")
-uint MprConfigFilterGetInfo(HANDLE hMprConfig, uint dwLevel, uint dwTransportId, char* lpBuffer);
+uint MprConfigFilterGetInfo(HANDLE hMprConfig, uint dwLevel, uint dwTransportId, ubyte* lpBuffer);
 
 ///The <b>MprConfigFilterSetInfo</b> function sets the static filtering information for a specified transport protocol
 ///type.
@@ -10229,7 +10221,7 @@ uint MprInfoDuplicate(void* lpHeader, void** lplpNewHeader);
 ///    FormatMessage to retrieve the error message that corresponds to the returned error code. </td> </tr> </table>
 ///    
 @DllImport("MPRAPI")
-uint MprInfoBlockAdd(void* lpHeader, uint dwInfoType, uint dwItemSize, uint dwItemCount, char* lpItemData, 
+uint MprInfoBlockAdd(void* lpHeader, uint dwInfoType, uint dwItemSize, uint dwItemCount, ubyte* lpItemData, 
                      void** lplpNewHeader);
 
 ///The <b>MprInfoBlockRemove</b> function creates a new header that is identical to an existing header with a specified
@@ -10270,7 +10262,7 @@ uint MprInfoBlockRemove(void* lpHeader, uint dwInfoType, void** lplpNewHeader);
 ///    message that corresponds to the returned error code. </td> </tr> </table>
 ///    
 @DllImport("MPRAPI")
-uint MprInfoBlockSet(void* lpHeader, uint dwInfoType, uint dwItemSize, uint dwItemCount, char* lpItemData, 
+uint MprInfoBlockSet(void* lpHeader, uint dwInfoType, uint dwItemSize, uint dwItemCount, ubyte* lpItemData, 
                      void** lplpNewHeader);
 
 ///The <b>MprInfoBlockFind</b> function locates a specified block in an information header, and retrieves information
@@ -11877,7 +11869,7 @@ uint RtmIgnoreChangedDests(ptrdiff_t RtmRegHandle, ptrdiff_t NotifyHandle, uint 
 ///    <div> </div>
 ///    
 @DllImport("rtm")
-uint RtmGetChangeStatus(ptrdiff_t RtmRegHandle, ptrdiff_t NotifyHandle, ptrdiff_t DestHandle, int* ChangeStatus);
+uint RtmGetChangeStatus(ptrdiff_t RtmRegHandle, ptrdiff_t NotifyHandle, ptrdiff_t DestHandle, BOOL* ChangeStatus);
 
 ///The <b>RtmMarkDestForChangeNotification</b> function marks a destination for a client. A marked destination indicates
 ///to the routing table manager that it should send the client change notification messages for the marked destination.
@@ -11916,7 +11908,7 @@ uint RtmMarkDestForChangeNotification(ptrdiff_t RtmRegHandle, ptrdiff_t NotifyHa
 ///    
 @DllImport("rtm")
 uint RtmIsMarkedForChangeNotification(ptrdiff_t RtmRegHandle, ptrdiff_t NotifyHandle, ptrdiff_t DestHandle, 
-                                      int* DestMarked);
+                                      BOOL* DestMarked);
 
 ///The <b>RtmDeregisterFromChangeNotification</b> function unregisters a client from change notification and frees all
 ///resources allocated to the notification.
@@ -11998,7 +11990,7 @@ uint RtmCreateRouteListEnum(ptrdiff_t RtmRegHandle, ptrdiff_t RouteListHandle, p
 ///    </div>
 ///    
 @DllImport("rtm")
-uint RtmGetListEnumRoutes(ptrdiff_t RtmRegHandle, ptrdiff_t EnumHandle, uint* NumRoutes, char* RouteHandles);
+uint RtmGetListEnumRoutes(ptrdiff_t RtmRegHandle, ptrdiff_t EnumHandle, uint* NumRoutes, ptrdiff_t* RouteHandles);
 
 ///The <b>RtmDeleteRouteList</b> function removes all routes from a client-specific route list, then frees any resources
 ///allocated to the list.

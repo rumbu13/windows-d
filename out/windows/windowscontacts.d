@@ -5,10 +5,10 @@ module windows.windowscontacts;
 public import windows.core;
 public import windows.com : HRESULT, IUnknown;
 public import windows.structuredstorage : IStream;
-public import windows.systemservices : BOOL;
+public import windows.systemservices : BOOL, PWSTR;
 public import windows.windowsprogramming : FILETIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Interfaces
@@ -33,7 +33,7 @@ interface IContactManager : IUnknown
     ///    <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%">
     ///    IContactManager is initialized. </td> </tr> </table>
     ///    
-    HRESULT Initialize(const(wchar)* pszAppName, const(wchar)* pszAppVersion);
+    HRESULT Initialize(const(PWSTR) pszAppName, const(PWSTR) pszAppVersion);
     ///Loads an IContact object with the data from the contact referenced by the computer-local contact ID.
     ///Params:
     ///    pszContactID = Type: <b>LPCWSTR</b> Specifies the contact ID to load.
@@ -44,13 +44,13 @@ interface IContactManager : IUnknown
     ///    Contact was found and loaded. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_NO_MATCH</b></dt> </dl>
     ///    </td> <td width="60%"> Could not find this contact ID. </td> </tr> </table>
     ///    
-    HRESULT Load(const(wchar)* pszContactID, IContact* ppContact);
+    HRESULT Load(const(PWSTR) pszContactID, IContact* ppContact);
     ///Makes an old Contact ID resolve to the same value as a new Contact ID. Subsequent calls to IContactManager::Load
     ///with the old contact ID now loads the new contact ID contact.
     ///Params:
     ///    pszNewContactID = Type: <b>LPWSTR</b> Specifies the ID of the new contact, representing both the old and new contacts.
     ///    pszOldContactID = Type: <b>LPCWSTR</b> Specifies the ID representing the old contact.
-    HRESULT MergeContactIDs(const(wchar)* pszNewContactID, const(wchar)* pszOldContactID);
+    HRESULT MergeContactIDs(const(PWSTR) pszNewContactID, const(PWSTR) pszOldContactID);
     ///Retrieves the local user account concept of 'me'.
     ///Params:
     ///    ppMeContact = Type: <b>IContact**</b> Specifies where to store a pointer to the 'me' contact.
@@ -124,7 +124,7 @@ interface IContactProperties : IUnknown
     ///    <i>pszValue</i> was not large enough to store the value. The required buffer size is stored in
     ///    *<i>pdwcchPropertyValueRequired</i>. </td> </tr> </table>
     ///    
-    HRESULT GetString(const(wchar)* pszPropertyName, uint dwFlags, const(wchar)* pszValue, uint cchValue, 
+    HRESULT GetString(const(PWSTR) pszPropertyName, uint dwFlags, PWSTR pszValue, uint cchValue, 
                       uint* pdwcchPropertyValueRequired);
     ///Retrieves the date and time value at a specified property into a caller's FILETIME structure. All times are
     ///stored and returned as Coordinated Universal Time (UTC).
@@ -140,7 +140,7 @@ interface IContactProperties : IUnknown
     ///    FILETIME has been zero'ed. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_PATH_NOT_FOUND</b></dt> </dl>
     ///    </td> <td width="60%"> No data found for this property name. </td> </tr> </table>
     ///    
-    HRESULT GetDate(const(wchar)* pszPropertyName, uint dwFlags, FILETIME* pftDateTime);
+    HRESULT GetDate(const(PWSTR) pszPropertyName, uint dwFlags, FILETIME* pftDateTime);
     ///Retrieves the binary data of a property using an IStream interface [Structured Storage].
     ///Params:
     ///    pszPropertyName = Type: <b>LPCWSTR</b> Specifies the property to retrieve.
@@ -164,8 +164,8 @@ interface IContactProperties : IUnknown
     ///    width="60%"> <i>pszContentType</i> was not large enough to store the value. The required buffer size is
     ///    stored in <i>pdwcchContentTypeRequired</i>. </td> </tr> </table>
     ///    
-    HRESULT GetBinary(const(wchar)* pszPropertyName, uint dwFlags, const(wchar)* pszContentType, 
-                      uint cchContentType, uint* pdwcchContentTypeRequired, IStream* ppStream);
+    HRESULT GetBinary(const(PWSTR) pszPropertyName, uint dwFlags, PWSTR pszContentType, uint cchContentType, 
+                      uint* pdwcchContentTypeRequired, IStream* ppStream);
     ///Retrieves the labels for a specified array element name.
     ///Params:
     ///    pszArrayElementName = Type: <b>LPCWSTR</b> Specifies the array element name.
@@ -183,7 +183,7 @@ interface IContactProperties : IUnknown
     ///    width="60%"> <i>pszLabels</i> was not large enough to store the value. The required buffer size is stored in
     ///    *<i>pdwcchLabelsRequired</i>. </td> </tr> </table>
     ///    
-    HRESULT GetLabels(const(wchar)* pszArrayElementName, uint dwFlags, const(wchar)* pszLabels, uint cchLabels, 
+    HRESULT GetLabels(const(PWSTR) pszArrayElementName, uint dwFlags, PWSTR pszLabels, uint cchLabels, 
                       uint* pdwcchLabelsRequired);
     ///Sets the string value of a specified property to that of a specified null-terminated string.
     ///Params:
@@ -198,14 +198,14 @@ interface IContactProperties : IUnknown
     ///    <dt><b>ERROR_INVALID_DATATYPE</b></dt> </dl> </td> <td width="60%"> Unable to set value for this property due
     ///    to schema. </td> </tr> </table>
     ///    
-    HRESULT SetString(const(wchar)* pszPropertyName, uint dwFlags, const(wchar)* pszValue);
+    HRESULT SetString(const(PWSTR) pszPropertyName, uint dwFlags, const(PWSTR) pszValue);
     ///Sets the date and time value at a specified property to a given FILETIME. All times are stored and returned as
     ///Coordinated Universal Time (UTC).
     ///Params:
     ///    pszPropertyName = Type: <b>LPCWSTR</b> Specifies the property to set.
     ///    dwFlags = Type: <b>DWORD</b> CGD_DEFAULT can be used to create or overwrite value at <i>pszPropertyName</i>.
     ///    ftDateTime = Type: <b>FILETIME</b> FILETIME structure to use for date.
-    HRESULT SetDate(const(wchar)* pszPropertyName, uint dwFlags, FILETIME ftDateTime);
+    HRESULT SetDate(const(PWSTR) pszPropertyName, uint dwFlags, FILETIME ftDateTime);
     ///Sets the binary data at a specified property to the contents of a specified IStream interface [Structured
     ///Storage], which contains a null-terminated string (as MIME type) data.
     ///Params:
@@ -223,7 +223,7 @@ interface IContactProperties : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>ERROR_INVALID_DATATYPE</b></dt> </dl> </td> <td width="60%"> Unable to set
     ///    the value for this property due to schema. </td> </tr> </table>
     ///    
-    HRESULT SetBinary(const(wchar)* pszPropertyName, uint dwFlags, const(wchar)* pszContentType, IStream pStream);
+    HRESULT SetBinary(const(PWSTR) pszPropertyName, uint dwFlags, const(PWSTR) pszContentType, IStream pStream);
     ///Appends the set of labels passed in to the specified property's label set. Note: This method does not check for
     ///duplicate labels.
     ///Params:
@@ -231,7 +231,7 @@ interface IContactProperties : IUnknown
     ///    dwFlags = Type: <b>DWORD</b> Must be CGD_DEFAULT.
     ///    dwLabelCount = Type: <b>DWORD</b> Specifies the count of labels in array.
     ///    ppszLabels = Type: <b>LPCWSTR</b> Specifies an array of LPCWSTR labels.
-    HRESULT SetLabels(const(wchar)* pszArrayElementName, uint dwFlags, uint dwLabelCount, char* ppszLabels);
+    HRESULT SetLabels(const(PWSTR) pszArrayElementName, uint dwFlags, uint dwLabelCount, PWSTR** ppszLabels);
     ///Creates a new array node in a multi-value property.
     ///Params:
     ///    pszArrayName = Type: <b>LPCWSTR</b> Specifies the top-level property for which to create a new node.
@@ -251,15 +251,14 @@ interface IContactProperties : IUnknown
     ///    to store the value. The required buffer size is stored in <i>pdwcchNewArrayElementNameRequired</i>. </td>
     ///    </tr> </table>
     ///    
-    HRESULT CreateArrayNode(const(wchar)* pszArrayName, uint dwFlags, BOOL fAppend, 
-                            const(wchar)* pszNewArrayElementName, uint cchNewArrayElementName, 
-                            uint* pdwcchNewArrayElementNameRequired);
+    HRESULT CreateArrayNode(const(PWSTR) pszArrayName, uint dwFlags, BOOL fAppend, PWSTR pszNewArrayElementName, 
+                            uint cchNewArrayElementName, uint* pdwcchNewArrayElementNameRequired);
     ///Deletes the value at a specified property. Property modification and version data can still be enumerated with
     ///IContactPropertyCollection.
     ///Params:
     ///    pszPropertyName = Type: <b>LPCWSTR</b> Specifies the property to delete the value for.
     ///    dwFlags = Type: <b>DWORD</b> Must be CGD_DEFAULT.
-    HRESULT DeleteProperty(const(wchar)* pszPropertyName, uint dwFlags);
+    HRESULT DeleteProperty(const(PWSTR) pszPropertyName, uint dwFlags);
     ///Deletes the data at a specified array entry.
     ///Params:
     ///    pszArrayElementName = Type: <b>LPCWSTR</b> Specifies array entry from which to remove all data.
@@ -270,12 +269,12 @@ interface IContactProperties : IUnknown
     ///    is deleted. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>ERROR_PATH_NOT_FOUND</b></dt> </dl> </td> <td
     ///    width="60%"> Property name doesn't exist for delete. </td> </tr> </table>
     ///    
-    HRESULT DeleteArrayNode(const(wchar)* pszArrayElementName, uint dwFlags);
+    HRESULT DeleteArrayNode(const(PWSTR) pszArrayElementName, uint dwFlags);
     ///Deletes the labels at a specified array entry.
     ///Params:
     ///    pszArrayElementName = Type: <b>LPCWSTR</b> Specifies the property to delete labels on.
     ///    dwFlags = Type: <b>DWORD</b> Must be CGD_DEFAULT.
-    HRESULT DeleteLabels(const(wchar)* pszArrayElementName, uint dwFlags);
+    HRESULT DeleteLabels(const(PWSTR) pszArrayElementName, uint dwFlags);
     ///Returns an IContactPropertyCollection for the current contact. Optionally, filters the
     ///<b>IContactPropertyCollection</b> to enumerate only some values.
     ///Params:
@@ -295,7 +294,7 @@ interface IContactProperties : IUnknown
     ///    Always returns success. </td> </tr> </table>
     ///    
     HRESULT GetPropertyCollection(IContactPropertyCollection* ppPropertyCollection, uint dwFlags, 
-                                  const(wchar)* pszMultiValueName, uint dwLabelCount, char* ppszLabels, 
+                                  const(PWSTR) pszMultiValueName, uint dwLabelCount, PWSTR** ppszLabels, 
                                   BOOL fAnyLabelMatches);
 }
 
@@ -317,13 +316,13 @@ interface IContact : IUnknown
     ///    HRESULT_FROM_WIN32(ERROR_INSUFFICIENT_BUFFER) returned when <i>pszContactID</i> was not large enough to store
     ///    the value. The required buffer size is stored in <i>pdwcchContactIDRequired</i>. </td> </tr> </table>
     ///    
-    HRESULT GetContactID(const(wchar)* pszContactID, uint cchContactID, uint* pdwcchContactIDRequired);
+    HRESULT GetContactID(PWSTR pszContactID, uint cchContactID, uint* pdwcchContactIDRequired);
     ///Retrieves the file system path used to load this contact.
     ///Params:
     ///    pszPath = Type: <b>LPWSTR</b> User-allocated buffer to store the contact ID.
     ///    cchPath = Type: <b>DWORD</b> Specifies the allocated buffer size in characters.
     ///    pdwcchPathRequired = Type: <b>DWORD*</b> Upon failure due to insufficient buffer, contains the required size for <i>pszPath</i>.
-    HRESULT GetPath(const(wchar)* pszPath, uint cchPath, uint* pdwcchPathRequired);
+    HRESULT GetPath(PWSTR pszPath, uint cchPath, uint* pdwcchPathRequired);
     ///Saves changes made to this contact to the contact file.
     ///Params:
     ///    dwCommitFlags = Type: <b>DWORD</b> Reserved parameter. Must be 0.
@@ -364,7 +363,7 @@ interface IContactPropertyCollection : IUnknown
     ///                      -or- toplevel/secondlevel[4]/thirdlevel.
     ///    cchPropertyName = Type: <b>DWORD</b> Specifies caller-allocated buffer size in characters.
     ///    pdwcchPropertyNameRequired = Type: <b>DWORD*</b> On failure, contains the required size for <i>pszPropertyName</i>.
-    HRESULT GetPropertyName(const(wchar)* pszPropertyName, uint cchPropertyName, uint* pdwcchPropertyNameRequired);
+    HRESULT GetPropertyName(PWSTR pszPropertyName, uint cchPropertyName, uint* pdwcchPropertyNameRequired);
     ///Retrieves the type for the current property in the enumeration.
     ///Params:
     ///    pdwType = Type: <b>DWORD*</b> Specifies the type of property. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr>
@@ -402,7 +401,7 @@ interface IContactPropertyCollection : IUnknown
     ///    enough to store the value. The required buffer size is stored in *<i>pdwcchArrayElementIDRequired</i>. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetPropertyArrayElementID(const(wchar)* pszArrayElementID, uint cchArrayElementID, 
+    HRESULT GetPropertyArrayElementID(PWSTR pszArrayElementID, uint cchArrayElementID, 
                                       uint* pdwcchArrayElementIDRequired);
 }
 

@@ -5,48 +5,15 @@ module windows.hidpi;
 public import windows.core;
 public import windows.com : HRESULT;
 public import windows.displaydevices : POINT, RECT;
-public import windows.systemservices : BOOL, HANDLE;
+public import windows.gdi : HMONITOR;
+public import windows.systemservices : BOOL, HANDLE, PWSTR;
 public import windows.windowsandmessaging : HWND;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
 
-
-///Identifies the dots per inch (dpi) setting for a thread, process, or window.
-alias DPI_AWARENESS = int;
-enum : int
-{
-    ///Invalid DPI awareness. This is an invalid DPI awareness value.
-    DPI_AWARENESS_INVALID           = 0xffffffff,
-    ///DPI unaware. This process does not scale for DPI changes and is always assumed to have a scale factor of 100% (96
-    ///DPI). It will be automatically scaled by the system on any other DPI setting.
-    DPI_AWARENESS_UNAWARE           = 0x00000000,
-    ///System DPI aware. This process does not scale for DPI changes. It will query for the DPI once and use that value
-    ///for the lifetime of the process. If the DPI changes, the process will not adjust to the new DPI value. It will be
-    ///automatically scaled up or down by the system when the DPI changes from the system value.
-    DPI_AWARENESS_SYSTEM_AWARE      = 0x00000001,
-    ///Per monitor DPI aware. This process checks for the DPI when it is created and adjusts the scale factor whenever
-    ///the DPI changes. These processes are not automatically scaled by the system.
-    DPI_AWARENESS_PER_MONITOR_AWARE = 0x00000002,
-}
-
-///Identifies the DPI hosting behavior for a window. This behavior allows windows created in the thread to host child
-///windows with a different <b>DPI_AWARENESS_CONTEXT</b>
-alias DPI_HOSTING_BEHAVIOR = int;
-enum : int
-{
-    ///Invalid DPI hosting behavior. This usually occurs if the previous SetThreadDpiHostingBehavior call used an
-    ///invalid parameter.
-    DPI_HOSTING_BEHAVIOR_INVALID = 0xffffffff,
-    ///Default DPI hosting behavior. The associated window behaves as normal, and cannot create or re-parent child
-    ///windows with a different <b>DPI_AWARENESS_CONTEXT</b>.
-    DPI_HOSTING_BEHAVIOR_DEFAULT = 0x00000000,
-    ///Mixed DPI hosting behavior. This enables the creation and re-parenting of child windows with different
-    ///<b>DPI_AWARENESS_CONTEXT</b>. These child windows will be independently scaled by the OS.
-    DPI_HOSTING_BEHAVIOR_MIXED   = 0x00000001,
-}
 
 ///Describes per-monitor DPI scaling behavior overrides for child windows within dialogs. The values in this enumeration
 ///are bitfields and can be combined.
@@ -125,19 +92,41 @@ enum : int
     MDT_DEFAULT       = 0x00000000,
 }
 
-// Functions
+///Identifies the dots per inch (dpi) setting for a thread, process, or window.
+alias DPI_AWARENESS = int;
+enum : int
+{
+    ///Invalid DPI awareness. This is an invalid DPI awareness value.
+    DPI_AWARENESS_INVALID           = 0xffffffff,
+    ///DPI unaware. This process does not scale for DPI changes and is always assumed to have a scale factor of 100% (96
+    ///DPI). It will be automatically scaled by the system on any other DPI setting.
+    DPI_AWARENESS_UNAWARE           = 0x00000000,
+    ///System DPI aware. This process does not scale for DPI changes. It will query for the DPI once and use that value
+    ///for the lifetime of the process. If the DPI changes, the process will not adjust to the new DPI value. It will be
+    ///automatically scaled up or down by the system when the DPI changes from the system value.
+    DPI_AWARENESS_SYSTEM_AWARE      = 0x00000001,
+    ///Per monitor DPI aware. This process checks for the DPI when it is created and adjusts the scale factor whenever
+    ///the DPI changes. These processes are not automatically scaled by the system.
+    DPI_AWARENESS_PER_MONITOR_AWARE = 0x00000002,
+}
 
-///A variant of OpenThemeData that opens a theme handle associated with a specific DPI.
-///Params:
-///    hwnd = The handle of the window for which theme data is required.
-///    pszClassList = A pointer to a string that contains a semicolon-separated list of classes.
-///    dpi = The specified DPI value with which to associate the theme handle. The function will return an error if this value
-///          is outside of those that correspond to the set of connected monitors.
-///Returns:
-///    See OpenThemeData.
-///    
-@DllImport("UxTheme")
-ptrdiff_t OpenThemeDataForDpi(HWND hwnd, const(wchar)* pszClassList, uint dpi);
+///Identifies the DPI hosting behavior for a window. This behavior allows windows created in the thread to host child
+///windows with a different <b>DPI_AWARENESS_CONTEXT</b>
+alias DPI_HOSTING_BEHAVIOR = int;
+enum : int
+{
+    ///Invalid DPI hosting behavior. This usually occurs if the previous SetThreadDpiHostingBehavior call used an
+    ///invalid parameter.
+    DPI_HOSTING_BEHAVIOR_INVALID = 0xffffffff,
+    ///Default DPI hosting behavior. The associated window behaves as normal, and cannot create or re-parent child
+    ///windows with a different <b>DPI_AWARENESS_CONTEXT</b>.
+    DPI_HOSTING_BEHAVIOR_DEFAULT = 0x00000000,
+    ///Mixed DPI hosting behavior. This enables the creation and re-parenting of child windows with different
+    ///<b>DPI_AWARENESS_CONTEXT</b>. These child windows will be independently scaled by the OS.
+    DPI_HOSTING_BEHAVIOR_MIXED   = 0x00000001,
+}
+
+// Functions
 
 ///Overrides the default per-monitor DPI scaling behavior of a child window in a dialog.
 ///Params:
@@ -462,6 +451,18 @@ HRESULT GetProcessDpiAwareness(HANDLE hprocess, PROCESS_DPI_AWARENESS* value);
 ///    valid. </td> </tr> </table>
 ///    
 @DllImport("api-ms-win-shcore-scaling-l1-1-1")
-HRESULT GetDpiForMonitor(ptrdiff_t hmonitor, MONITOR_DPI_TYPE dpiType, uint* dpiX, uint* dpiY);
+HRESULT GetDpiForMonitor(HMONITOR hmonitor, MONITOR_DPI_TYPE dpiType, uint* dpiX, uint* dpiY);
+
+///A variant of OpenThemeData that opens a theme handle associated with a specific DPI.
+///Params:
+///    hwnd = The handle of the window for which theme data is required.
+///    pszClassList = A pointer to a string that contains a semicolon-separated list of classes.
+///    dpi = The specified DPI value with which to associate the theme handle. The function will return an error if this value
+///          is outside of those that correspond to the set of connected monitors.
+///Returns:
+///    See OpenThemeData.
+///    
+@DllImport("UxTheme")
+ptrdiff_t OpenThemeDataForDpi(HWND hwnd, const(PWSTR) pszClassList, uint dpi);
 
 

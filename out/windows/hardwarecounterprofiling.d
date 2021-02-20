@@ -5,7 +5,7 @@ module windows.hardwarecounterprofiling;
 public import windows.core;
 public import windows.systemservices : HANDLE;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums

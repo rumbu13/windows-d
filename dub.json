@@ -1,13 +1,29 @@
 {
-	"name": "windows-d",
-    "description": "The D Windows SDK projection",
+    "name": "windows-d",
+    "description": "The D Windows SDK projections",
     "authors": ["Răzvan Ștefănescu"],
-    "license": "GPL-2.0",
-    "targetType": "executable",
-    "targetName": "wind",
-    "targetPath": "bin",
-    "sourcePaths": ["src"]    
+    "license": "BSL-1.0",
+    "targetType": "none",
+    "dependencies": {
+        "windows-d:wind" : "*",
+        "windows-d:windows": "*"
+    },
+    "subPackages": [
+        {
+            "name": "wind",
+            "description": "The D Windows SDK projection generator",
+            "targetName": "wind",
+            "targetType": "executable",
+            "targetPath": "bin",
+            "sourcePaths": ["src"]    
+        },
+        {
+            "name": "windows",
+            "description": "The D Windows SDK projection library",
+            "targetType": "staticLibrary",
+            "targetName": "windows",
+            "targetPath": "bin",
+            "sourcePaths": ["out/windows"]    
+        }
+    ]
 }
-
-//example: winmd --meta ./meta/Windows.Win32.winmd --out .\out --core ./cfg/core.d --replace ./cfg/replace.cfg --ignore ./cfg/ignore.cfg
-

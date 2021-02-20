@@ -13,13 +13,13 @@ public import windows.security : EXPLICIT_ACCESS_W, TRUSTEE_W;
 public import windows.shell : IObjectArray;
 public import windows.structuredstorage : ISequentialStream, IStorage, IStream, PROPSPEC,
                                           PROPVARIANT;
-public import windows.systemservices : BOOL, HANDLE;
+public import windows.systemservices : BOOL, HANDLE, PWSTR;
 public import windows.winsock : BLOB;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : FILETIME, SYSTEMTIME;
 public import windows.windowspropertiessystem : PROPERTYKEY;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -1649,7 +1649,7 @@ struct TEXT_SOURCE
     PFNFILLTEXTBUFFER pfnFillTextBuffer;
     ///Type: <b>WCHAR*</b> Pointer to a buffer that contains text from the source document for the word breaker to
     ///parse.
-    const(wchar)*     awcBuffer;
+    const(PWSTR)      awcBuffer;
     ///Type: <b>ULONG</b> Position of the last character in <b>awcBuffer</b>.
     uint              iEnd;
     ///Type: <b>ULONG</b> Position of the first character in <b>awcBuffer</b>.
@@ -1660,13 +1660,13 @@ struct TEXT_SOURCE
 struct FILTERED_DATA_SOURCES
 {
     ///Pointer to a buffer that contains a file name extension.
-    const(wchar)* pwcsExtension;
+    const(PWSTR) pwcsExtension;
     ///Pointer to a buffer that contains the name of a MIME type.
-    const(wchar)* pwcsMime;
+    const(PWSTR) pwcsMime;
     ///Pointer to a CLSID that identifies the content type.
-    const(GUID)*  pClsid;
+    const(GUID)* pClsid;
     ///Not implemented.
-    const(wchar)* pwcsOverride;
+    const(PWSTR) pwcsOverride;
 }
 
 struct IRowsetExactScroll
@@ -1789,7 +1789,7 @@ align (2):
 struct DBCOLUMNINFO
 {
 align (2):
-    ushort*   pwszName;
+    PWSTR     pwszName;
     ITypeInfo pTypeInfo;
     uint      iOrdinal;
     uint      dwFlags;
@@ -1813,7 +1813,7 @@ struct DBPARAMINFO
 align (2):
     uint      dwFlags;
     uint      iOrdinal;
-    ushort*   pwszName;
+    PWSTR     pwszName;
     ITypeInfo pTypeInfo;
     uint      ulParamSize;
     ushort    wType;
@@ -1832,7 +1832,7 @@ align (2):
 struct DBPROPINFO
 {
 align (2):
-    ushort* pwszDescription;
+    PWSTR   pwszDescription;
     uint    dwPropertyID;
     uint    dwFlags;
     ushort  vtType;
@@ -1875,7 +1875,7 @@ align (2):
 struct DBCOLUMNDESC
 {
 align (2):
-    ushort*    pwszTypeName;
+    PWSTR      pwszTypeName;
     ITypeInfo  pTypeInfo;
     DBPROPSET* rgPropertySets;
     GUID*      pclsid;
@@ -1911,7 +1911,7 @@ align (2):
     DBID*      pReferencedTableID;
     uint       cForeignKeyColumns;
     DBID*      rgForeignKeyColumnList;
-    ushort*    pwszConstraintText;
+    PWSTR      pwszConstraintText;
     uint       UpdateRule;
     uint       DeleteRule;
     uint       MatchType;
@@ -1923,12 +1923,12 @@ align (2):
 struct MDAXISINFO
 {
 align (2):
-    uint     cbSize;
-    uint     iAxis;
-    uint     cDimensions;
-    uint     cCoordinates;
-    uint*    rgcColumns;
-    ushort** rgpwszDimensionNames;
+    uint   cbSize;
+    uint   iAxis;
+    uint   cDimensions;
+    uint   cCoordinates;
+    uint*  rgcColumns;
+    PWSTR* rgpwszDimensionNames;
 }
 
 struct RMTPACK
@@ -1953,23 +1953,23 @@ align (2):
 struct DBPARAMBINDINFO
 {
 align (2):
-    ushort* pwszDataSourceType;
-    ushort* pwszName;
-    uint    ulParamSize;
-    uint    dwFlags;
-    ubyte   bPrecision;
-    ubyte   bScale;
+    PWSTR pwszDataSourceType;
+    PWSTR pwszName;
+    uint  ulParamSize;
+    uint  dwFlags;
+    ubyte bPrecision;
+    ubyte bScale;
 }
 
 struct DBLITERALINFO
 {
 align (2):
-    ushort* pwszLiteralValue;
-    ushort* pwszInvalidChars;
-    ushort* pwszInvalidStartingChars;
-    uint    lt;
-    BOOL    fSupported;
-    uint    cchMaxLen;
+    PWSTR pwszLiteralValue;
+    PWSTR pwszInvalidChars;
+    PWSTR pwszInvalidStartingChars;
+    uint  lt;
+    BOOL  fSupported;
+    uint  cchMaxLen;
 }
 
 struct ERRORINFO
@@ -2005,31 +2005,31 @@ struct TIMEOUT_INFO
 struct PROXY_INFO
 {
     ///Type: <b>DWORD</b> The size of the structure in bytes.
-    uint          dwSize;
+    uint         dwSize;
     ///Type: <b>LPCWSTR</b> A pointer to a Unicode string buffer containing the user agent string.
-    const(wchar)* pcwszUserAgent;
+    const(PWSTR) pcwszUserAgent;
     ///Type: <b>PROXY_ACCESS</b> The proxy type to use.
-    PROXY_ACCESS  paUseProxy;
+    PROXY_ACCESS paUseProxy;
     ///Type: <b>BOOL</b> The bypass proxy for local addresses.
-    BOOL          fLocalBypass;
+    BOOL         fLocalBypass;
     ///Type: <b>DWORD</b> The port number to use.
-    uint          dwPortNumber;
+    uint         dwPortNumber;
     ///Type: <b>LPCWSTR</b> A pointer to a Unicode string buffer that contains the name of the proxy server.
-    const(wchar)* pcwszProxyName;
-    const(wchar)* pcwszBypassList;
+    const(PWSTR) pcwszProxyName;
+    const(PWSTR) pcwszBypassList;
 }
 
 ///Describes security authentication information for content access.
 struct AUTHENTICATION_INFO
 {
     ///Type: <b>DWORD</b> Size of the structure, in bytes.
-    uint          dwSize;
+    uint         dwSize;
     ///Type: <b>AUTH_TYPE</b> Flag to describe the type of authentication. For a list of possible values, see the
     ///AUTH_TYPE enumerated type.
-    AUTH_TYPE     atAuthenticationType;
+    AUTH_TYPE    atAuthenticationType;
     ///Type: <b>LPCWSTR</b> Pointer to a null-terminated Unicode string containing the user name.
-    const(wchar)* pcwszUser;
-    const(wchar)* pcwszPassword;
+    const(PWSTR) pcwszUser;
+    const(PWSTR) pcwszPassword;
 }
 
 ///Contains access information used by an incremental crawl, such as the last access date and modification time.
@@ -2045,16 +2045,16 @@ struct INCREMENTAL_ACCESS_INFO
 struct ITEM_INFO
 {
     ///Type: <b>DWORD</b> Size of the structure in bytes.
-    uint          dwSize;
+    uint         dwSize;
     ///Type: <b>LPCWSTR</b> Pointer to a null-terminated Unicode string containing an email address that is notified in
     ///case of error.
-    const(wchar)* pcwszFromEMail;
+    const(PWSTR) pcwszFromEMail;
     ///Type: <b>LPCWSTR</b> Pointer to a null-terminated Unicode string containing the application name.
-    const(wchar)* pcwszApplicationName;
+    const(PWSTR) pcwszApplicationName;
     ///Type: <b>LPCWSTR</b> Pointer to a null-terminated Unicode string containing the workspace name from which the
     ///crawl to this content source was initiated.
-    const(wchar)* pcwszCatalogName;
-    const(wchar)* pcwszContentClass;
+    const(PWSTR) pcwszCatalogName;
+    const(PWSTR) pcwszContentClass;
 }
 
 ///Specifies the changes to an indexed item.
@@ -2067,12 +2067,12 @@ struct SEARCH_ITEM_CHANGE
     ///from the SEARCH_NOTIFICATION_PRIORITY enumerated type.
     SEARCH_NOTIFICATION_PRIORITY Priority;
     ///Type: <b>BLOB*</b> Pointer to user information.
-    BLOB*         pUserData;
+    BLOB* pUserData;
     ///Type: <b>LPWSTR</b> Pointer to a null-terminated Unicode string containing the URL of the item in a
     ///SEARCH_CHANGE_MOVE_RENAME, SEARCH_CHANGE_ADD, or SEARCH_CHANGE_MODIFY notification. In the case of a move, this
     ///member contains the new URL of the item.
-    const(wchar)* lpwszURL;
-    const(wchar)* lpwszOldURL;
+    PWSTR lpwszURL;
+    PWSTR lpwszOldURL;
 }
 
 ///Contains information about the kind of change that has occurred in an item to be indexed. This structure is used with
@@ -2086,8 +2086,8 @@ struct SEARCH_ITEM_PERSISTENT_CHANGE
     ///Type: <b>LPWSTR</b> Pointer to a null-terminated Unicode string containing the URL of the item in a
     ///SEARCH_CHANGE_ADD, SEARCH_CHANGE_MODIFY, or SEARCH_CHANGE_DELETE notification. In the case of a move, this member
     ///contains the new URL of the item.
-    const(wchar)* URL;
-    const(wchar)* OldURL;
+    PWSTR URL;
+    PWSTR OldURL;
     ///Type: <b>SEARCH_NOTIFICATION_PRIORITY</b> A value from the SEARCH_NOTIFICATION_PRIORITY enumerated type that
     ///indicates the priority of the change.
     SEARCH_NOTIFICATION_PRIORITY Priority;
@@ -2115,8 +2115,8 @@ struct SEARCH_COLUMN_PROPERTIES
 ///by the IItemPropertyBag interface.
 struct ITEMPROP
 {
-    VARIANT       variantValue;
-    const(wchar)* pwszName;
+    VARIANT variantValue;
+    PWSTR   pwszName;
 }
 
 struct SUBSCRIPTIONITEMINFO
@@ -2195,8 +2195,8 @@ struct SubscriptionMgr;
 @GUID("CC907054-C058-101A-B554-08002B33B0E6")
 interface IWordSink : IUnknown
 {
-    HRESULT PutWord(uint cwc, const(wchar)* pwcInBuf, uint cwcSrcLen, uint cwcSrcPos);
-    HRESULT PutAltWord(uint cwc, const(wchar)* pwcInBuf, uint cwcSrcLen, uint cwcSrcPos);
+    HRESULT PutWord(uint cwc, const(PWSTR) pwcInBuf, uint cwcSrcLen, uint cwcSrcPos);
+    HRESULT PutAltWord(uint cwc, const(PWSTR) pwcInBuf, uint cwcSrcLen, uint cwcSrcPos);
     HRESULT StartAltPhrase();
     HRESULT EndAltPhrase();
     HRESULT PutBreak(WORDREP_BREAK_TYPE breakType);
@@ -2225,7 +2225,7 @@ interface IWordBreaker : IUnknown
     ///    <i>pfLicense</i> parameter is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt>
     ///    </dl> </td> <td width="60%"> Other errors. </td> </tr> </table>
     ///    
-    HRESULT Init(BOOL fQuery, uint ulMaxTokenSize, int* pfLicense);
+    HRESULT Init(BOOL fQuery, uint ulMaxTokenSize, BOOL* pfLicense);
     ///Parses text to identify words and phrases and provides the results to the IWordSink and IPhraseSink objects.
     ///Params:
     ///    pTextSource = Type: <b>TEXT_SOURCE*</b> Pointer to a TEXT_SOURCE structure that contains Unicode text.
@@ -2250,8 +2250,8 @@ interface IWordBreaker : IUnknown
     ///    ulAttachmentType = TBD
     ///    pwcPhrase = TBD
     ///    pcwcPhrase = TBD
-    HRESULT ComposePhrase(const(wchar)* pwcNoun, uint cwcNoun, const(wchar)* pwcModifier, uint cwcModifier, 
-                          uint ulAttachmentType, ushort* pwcPhrase, uint* pcwcPhrase);
+    HRESULT ComposePhrase(const(PWSTR) pwcNoun, uint cwcNoun, const(PWSTR) pwcModifier, uint cwcModifier, 
+                          uint ulAttachmentType, PWSTR pwcPhrase, uint* pcwcPhrase);
     ///Gets a pointer to the license information for this implementation of the IWordBreaker interface.
     ///Params:
     ///    ppwcsLicense = Type: <b>WCHAR const**</b> Pointer to a variable that receives a pointer to the license information for this
@@ -2263,8 +2263,8 @@ interface IWordBreaker : IUnknown
 @GUID("FE77C330-7F42-11CE-BE57-00AA0051FE20")
 interface IWordFormSink : IUnknown
 {
-    HRESULT PutAltWord(const(wchar)* pwcInBuf, uint cwc);
-    HRESULT PutWord(const(wchar)* pwcInBuf, uint cwc);
+    HRESULT PutAltWord(const(PWSTR) pwcInBuf, uint cwc);
+    HRESULT PutWord(const(PWSTR) pwcInBuf, uint cwc);
 }
 
 ///Provides methods for creating a language-specific stemmer. The stemmer generates inflected forms of a specified word.
@@ -2287,7 +2287,7 @@ interface IStemmer : IUnknown
     ///    <i>pfLicense</i> parameter is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt>
     ///    </dl> </td> <td width="60%"> Unsuccessful completion. </td> </tr> </table>
     ///    
-    HRESULT Init(uint ulMaxTokenSize, int* pfLicense);
+    HRESULT Init(uint ulMaxTokenSize, BOOL* pfLicense);
     ///Generates alternative forms for a word and puts these forms in the IWordFormSink object.
     ///Params:
     ///    pwcInBuf = Type: <b>const WCHAR*</b> Pointer to a buffer that contains the word to stem. The characters in
@@ -2302,7 +2302,7 @@ interface IStemmer : IUnknown
     ///    width="60%"> Invalid argument. Either <i>pwcInBuf</i> or <i>pWordFormSink</i> is <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GenerateWordForms(const(wchar)* pwcInBuf, uint cwc, IWordFormSink pStemSink);
+    HRESULT GenerateWordForms(const(PWSTR) pwcInBuf, uint cwc, IWordFormSink pStemSink);
     ///Gets the license information for this IStemmer implementation.
     ///Params:
     ///    ppwcsLicense = Type: <b>const WCHAR**</b> Pointer to a variable that receives a pointer to the license information for this
@@ -2334,7 +2334,7 @@ interface ISimpleCommandCreator : IUnknown
     ///Returns:
     ///    If the catalog is accessible, it returns <b>S_OK</b>. Otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT VerifyCatalog(const(wchar)* pwszMachine, const(wchar)* pwszCatalogName);
+    HRESULT VerifyCatalog(const(PWSTR) pwszMachine, const(PWSTR) pwszCatalogName);
     ///Determines the default catalog for the system.
     ///Params:
     ///    pwszCatalogName = The catalog name.
@@ -2344,7 +2344,7 @@ interface ISimpleCommandCreator : IUnknown
     ///    If this method succeeds, it returns the contents of the IsapiDefaultCatalogDirectory registry value.
     ///    Otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT GetDefaultCatalog(ushort* pwszCatalogName, uint cwcIn, uint* pcwcOut);
+    HRESULT GetDefaultCatalog(PWSTR pwszCatalogName, uint cwcIn, uint* pcwcOut);
 }
 
 ///Retrieves property information for file based queries.
@@ -2361,7 +2361,7 @@ interface IColumnMapper : IUnknown
     ///Returns:
     ///    If this method succeeds, it returns <b>S_OK</b>. Otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT GetPropInfoFromName(const(wchar)* wcsPropName, DBID** ppPropId, ushort* pPropType, uint* puiWidth);
+    HRESULT GetPropInfoFromName(const(PWSTR) wcsPropName, DBID** ppPropId, ushort* pPropType, uint* puiWidth);
     ///Gets the property information from the DBID.
     ///Params:
     ///    pPropId = Pointer to the property to look up.
@@ -2402,7 +2402,7 @@ interface IColumnMapperCreator : IUnknown
     ///Returns:
     ///    If this method succeeds, it returns <b>S_OK</b>. Otherwise, it returns an <b>HRESULT</b> error code.
     ///    
-    HRESULT GetColumnMapper(const(wchar)* wcsMachineName, const(wchar)* wcsCatalogName, 
+    HRESULT GetColumnMapper(const(PWSTR) wcsMachineName, const(PWSTR) wcsCatalogName, 
                             IColumnMapper* ppColumnMapper);
 }
 
@@ -2429,8 +2429,8 @@ interface ILoadFilter : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT LoadIFilter(const(wchar)* pwcsPath, FILTERED_DATA_SOURCES* pFilteredSources, IUnknown pUnkOuter, 
-                        BOOL fUseDefault, GUID* pFilterClsid, int* SearchDecSize, char* pwcsSearchDesc, 
+    HRESULT LoadIFilter(const(PWSTR) pwcsPath, FILTERED_DATA_SOURCES* pFilteredSources, IUnknown pUnkOuter, 
+                        BOOL fUseDefault, GUID* pFilterClsid, int* SearchDecSize, ushort** pwcsSearchDesc, 
                         IFilter* ppIFilt);
     ///Not implemented. Do not use: this method is not implemented.
     ///Params:
@@ -2446,8 +2446,8 @@ interface ILoadFilter : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT LoadIFilterFromStorage(IStorage pStg, IUnknown pUnkOuter, const(wchar)* pwcsOverride, BOOL fUseDefault, 
-                                   GUID* pFilterClsid, int* SearchDecSize, char* pwcsSearchDesc, IFilter* ppIFilt);
+    HRESULT LoadIFilterFromStorage(IStorage pStg, IUnknown pUnkOuter, const(PWSTR) pwcsOverride, BOOL fUseDefault, 
+                                   GUID* pFilterClsid, int* SearchDecSize, ushort** pwcsSearchDesc, IFilter* ppIFilt);
     ///Not implemented. Do not use: this method is not implemented.
     ///Params:
     ///    pStm = 
@@ -2463,7 +2463,7 @@ interface ILoadFilter : IUnknown
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT LoadIFilterFromStream(IStream pStm, FILTERED_DATA_SOURCES* pFilteredSources, IUnknown pUnkOuter, 
-                                  BOOL fUseDefault, GUID* pFilterClsid, int* SearchDecSize, char* pwcsSearchDesc, 
+                                  BOOL fUseDefault, GUID* pFilterClsid, int* SearchDecSize, ushort** pwcsSearchDesc, 
                                   IFilter* ppIFilt);
 }
 
@@ -2471,7 +2471,7 @@ interface ILoadFilter : IUnknown
 interface ILoadFilterWithPrivateComActivation : ILoadFilter
 {
     HRESULT LoadIFilterWithPrivateComActivation(FILTERED_DATA_SOURCES* filteredSources, BOOL useDefault, 
-                                                GUID* filterClsid, int* isFilterPrivateComActivated, 
+                                                GUID* filterClsid, BOOL* isFilterPrivateComActivated, 
                                                 IFilter* filterObj);
 }
 
@@ -2492,7 +2492,7 @@ interface IRichChunk : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetData(uint* pFirstPos, uint* pLength, ushort** ppsz, PROPVARIANT* pValue);
+    HRESULT GetData(uint* pFirstPos, uint* pLength, PWSTR* ppsz, PROPVARIANT* pValue);
 }
 
 ///Provides methods for retrieving information about a search condition. An <b>ICondition</b> object represents the
@@ -2534,7 +2534,7 @@ interface ICondition : IPersistStream
     ///    Type: <b>HRESULT</b> Returns S_OK if successful, E_FAIL if this is not a leaf node, or an error value
     ///    otherwise.
     ///    
-    HRESULT GetComparisonInfo(ushort** ppszPropertyName, CONDITION_OPERATION* pcop, PROPVARIANT* ppropvar);
+    HRESULT GetComparisonInfo(PWSTR* ppszPropertyName, CONDITION_OPERATION* pcop, PROPVARIANT* ppropvar);
     ///Retrieves the semantic type of the value of the search condition node.
     ///Params:
     ///    ppszValueTypeName = Type: <b>LPWSTR*</b> Receives either a pointer to the semantic type of the value as a Unicode string or
@@ -2543,7 +2543,7 @@ interface ICondition : IPersistStream
     ///    Type: <b>HRESULT</b> Returns S_OK if successful, E_FAIL if this is not a leaf node, or an error value
     ///    otherwise.
     ///    
-    HRESULT GetValueType(ushort** ppszValueTypeName);
+    HRESULT GetValueType(PWSTR* ppszValueTypeName);
     ///Retrieves the character-normalized value of the search condition node.
     ///Params:
     ///    ppszNormalization = Type: <b>LPWSTR*</b> Receives a pointer to a Unicode string representation of the value.
@@ -2551,7 +2551,7 @@ interface ICondition : IPersistStream
     ///    Type: <b>HRESULT</b> Returns S_OK if successful, E_FAIL if this is not a leaf node, or an error value
     ///    otherwise.
     ///    
-    HRESULT GetValueNormalization(ushort** ppszNormalization);
+    HRESULT GetValueNormalization(PWSTR* ppszNormalization);
     ///For a leaf node, <b>ICondition::GetInputTerms</b> retrieves information about what parts (or ranges) of the input
     ///string produced the property, the operation, and the value for the search condition node.
     ///Params:
@@ -2594,7 +2594,7 @@ interface ICondition2 : ICondition
     ///    Type: <b>HRESULT</b> Returns S_OK if successful, E_FAIL if this is not a leaf node, or an error value
     ///    otherwise.
     ///    
-    HRESULT GetLocale(ushort** ppszLocaleName);
+    HRESULT GetLocale(PWSTR* ppszLocaleName);
     ///Retrieves the property name, operation, and value from a leaf search condition node.
     ///Params:
     ///    ppropkey = Type: <b>PROPERTYKEY*</b> Receives the name of the property of the leaf condition as a PROPERTYKEY.
@@ -2612,8 +2612,8 @@ interface ICondition2 : ICondition
 interface IAccessor : IUnknown
 {
     HRESULT AddRefAccessor(size_t hAccessor, uint* pcRefCount);
-    HRESULT CreateAccessor(uint dwAccessorFlags, uint cBindings, char* rgBindings, uint cbRowSize, 
-                           size_t* phAccessor, char* rgStatus);
+    HRESULT CreateAccessor(uint dwAccessorFlags, uint cBindings, const(DBBINDING)* rgBindings, uint cbRowSize, 
+                           size_t* phAccessor, uint* rgStatus);
     HRESULT GetBindings(size_t hAccessor, uint* pdwAccessorFlags, uint* pcBindings, DBBINDING** prgBindings);
     HRESULT ReleaseAccessor(size_t hAccessor, uint* pcRefCount);
 }
@@ -2632,7 +2632,7 @@ interface IRowset : IUnknown
 @GUID("0C733A55-2A1C-11CE-ADE5-00AA0044773D")
 interface IRowsetInfo : IUnknown
 {
-    HRESULT GetProperties(const(uint) cPropertyIDSets, char* rgPropertyIDSets, uint* pcPropertySets, 
+    HRESULT GetProperties(const(uint) cPropertyIDSets, const(DBPROPIDSET)* rgPropertyIDSets, uint* pcPropertySets, 
                           DBPROPSET** prgPropertySets);
     HRESULT GetReferencedRowset(uint iOrdinal, const(GUID)* riid, IUnknown* ppReferencedRowset);
     HRESULT GetSpecification(const(GUID)* riid, IUnknown* ppSpecification);
@@ -2716,15 +2716,15 @@ interface IViewChapter : IUnknown
 interface IViewSort : IUnknown
 {
     HRESULT GetSortOrder(uint* pcValues, uint** prgColumns, uint** prgOrders);
-    HRESULT SetSortOrder(uint cValues, char* rgColumns, char* rgOrders);
+    HRESULT SetSortOrder(uint cValues, const(uint)* rgColumns, const(uint)* rgOrders);
 }
 
 @GUID("0C733A9B-2A1C-11CE-ADE5-00AA0044773D")
 interface IViewFilter : IUnknown
 {
-    HRESULT GetFilter(size_t hAccessor, uint* pcRows, char* pCompareOps, void* pCriteriaData);
+    HRESULT GetFilter(size_t hAccessor, uint* pcRows, uint** pCompareOps, void* pCriteriaData);
     HRESULT GetFilterBindings(uint* pcBindings, DBBINDING** prgBindings);
-    HRESULT SetFilter(size_t hAccessor, uint cRows, char* CompareOps, void* pCriteriaData);
+    HRESULT SetFilter(size_t hAccessor, uint cRows, uint* CompareOps, void* pCriteriaData);
 }
 
 @GUID("0C733A99-2A1C-11CE-ADE5-00AA0044773D")
@@ -2764,9 +2764,10 @@ interface IRowsetIdentity : IUnknown
 @GUID("0C733A83-2A1C-11CE-ADE5-00AA0044773D")
 interface IRowsetNotify : IUnknown
 {
-    HRESULT OnFieldChange(IRowset pRowset, size_t hRow, uint cColumns, char* rgColumns, uint eReason, uint ePhase, 
+    HRESULT OnFieldChange(IRowset pRowset, size_t hRow, uint cColumns, uint* rgColumns, uint eReason, uint ePhase, 
                           BOOL fCantDeny);
-    HRESULT OnRowChange(IRowset pRowset, uint cRows, char* rghRows, uint eReason, uint ePhase, BOOL fCantDeny);
+    HRESULT OnRowChange(IRowset pRowset, uint cRows, const(size_t)* rghRows, uint eReason, uint ePhase, 
+                        BOOL fCantDeny);
     HRESULT OnRowsetChange(IRowset pRowset, uint eReason, uint ePhase, BOOL fCantDeny);
 }
 
@@ -2812,39 +2813,39 @@ interface ICommandPrepare : IUnknown
 @GUID("0C733A79-2A1C-11CE-ADE5-00AA0044773D")
 interface ICommandProperties : IUnknown
 {
-    HRESULT GetProperties(const(uint) cPropertyIDSets, char* rgPropertyIDSets, uint* pcPropertySets, 
+    HRESULT GetProperties(const(uint) cPropertyIDSets, const(DBPROPIDSET)* rgPropertyIDSets, uint* pcPropertySets, 
                           DBPROPSET** prgPropertySets);
-    HRESULT SetProperties(uint cPropertySets, char* rgPropertySets);
+    HRESULT SetProperties(uint cPropertySets, DBPROPSET* rgPropertySets);
 }
 
 @GUID("0C733A27-2A1C-11CE-ADE5-00AA0044773D")
 interface ICommandText : ICommand
 {
-    HRESULT GetCommandText(GUID* pguidDialect, ushort** ppwszCommand);
-    HRESULT SetCommandText(const(GUID)* rguidDialect, ushort* pwszCommand);
+    HRESULT GetCommandText(GUID* pguidDialect, PWSTR* ppwszCommand);
+    HRESULT SetCommandText(const(GUID)* rguidDialect, const(PWSTR) pwszCommand);
 }
 
 @GUID("0C733A64-2A1C-11CE-ADE5-00AA0044773D")
 interface ICommandWithParameters : IUnknown
 {
     HRESULT GetParameterInfo(uint* pcParams, DBPARAMINFO** prgParamInfo, ushort** ppNamesBuffer);
-    HRESULT MapParameterNames(uint cParamNames, char* rgParamNames, char* rgParamOrdinals);
-    HRESULT SetParameterInfo(uint cParams, char* rgParamOrdinals, char* rgParamBindInfo);
+    HRESULT MapParameterNames(uint cParamNames, PWSTR** rgParamNames, int* rgParamOrdinals);
+    HRESULT SetParameterInfo(uint cParams, const(uint)* rgParamOrdinals, const(DBPARAMBINDINFO)* rgParamBindInfo);
 }
 
 @GUID("0C733A10-2A1C-11CE-ADE5-00AA0044773D")
 interface IColumnsRowset : IUnknown
 {
     HRESULT GetAvailableColumns(uint* pcOptColumns, DBID** prgOptColumns);
-    HRESULT GetColumnsRowset(IUnknown pUnkOuter, uint cOptColumns, char* rgOptColumns, const(GUID)* riid, 
-                             uint cPropertySets, char* rgPropertySets, IUnknown* ppColRowset);
+    HRESULT GetColumnsRowset(IUnknown pUnkOuter, uint cOptColumns, const(DBID)* rgOptColumns, const(GUID)* riid, 
+                             uint cPropertySets, DBPROPSET* rgPropertySets, IUnknown* ppColRowset);
 }
 
 @GUID("0C733A11-2A1C-11CE-ADE5-00AA0044773D")
 interface IColumnsInfo : IUnknown
 {
     HRESULT GetColumnInfo(uint* pcColumns, DBCOLUMNINFO** prgInfo, ushort** ppStringsBuffer);
-    HRESULT MapColumnIDs(uint cColumnIDs, char* rgColumnIDs, char* rgColumns);
+    HRESULT MapColumnIDs(uint cColumnIDs, const(DBID)* rgColumnIDs, uint* rgColumns);
 }
 
 @GUID("0C733A1D-2A1C-11CE-ADE5-00AA0044773D")
@@ -2862,18 +2863,18 @@ interface IDBCreateSession : IUnknown
 @GUID("0C733A1E-2A1C-11CE-ADE5-00AA0044773D")
 interface ISourcesRowset : IUnknown
 {
-    HRESULT GetSourcesRowset(IUnknown pUnkOuter, const(GUID)* riid, uint cPropertySets, char* rgProperties, 
+    HRESULT GetSourcesRowset(IUnknown pUnkOuter, const(GUID)* riid, uint cPropertySets, DBPROPSET* rgProperties, 
                              IUnknown* ppSourcesRowset);
 }
 
 @GUID("0C733A8A-2A1C-11CE-ADE5-00AA0044773D")
 interface IDBProperties : IUnknown
 {
-    HRESULT GetProperties(uint cPropertyIDSets, char* rgPropertyIDSets, uint* pcPropertySets, 
+    HRESULT GetProperties(uint cPropertyIDSets, const(DBPROPIDSET)* rgPropertyIDSets, uint* pcPropertySets, 
                           DBPROPSET** prgPropertySets);
-    HRESULT GetPropertyInfo(uint cPropertyIDSets, char* rgPropertyIDSets, uint* pcPropertyInfoSets, 
+    HRESULT GetPropertyInfo(uint cPropertyIDSets, const(DBPROPIDSET)* rgPropertyIDSets, uint* pcPropertyInfoSets, 
                             DBPROPINFOSET** prgPropertyInfoSets, ushort** ppDescBuffer);
-    HRESULT SetProperties(uint cPropertySets, char* rgPropertySets);
+    HRESULT SetProperties(uint cPropertySets, DBPROPSET* rgPropertySets);
 }
 
 @GUID("0C733A8B-2A1C-11CE-ADE5-00AA0044773D")
@@ -2886,20 +2887,21 @@ interface IDBInitialize : IUnknown
 @GUID("0C733A89-2A1C-11CE-ADE5-00AA0044773D")
 interface IDBInfo : IUnknown
 {
-    HRESULT GetKeywords(ushort** ppwszKeywords);
-    HRESULT GetLiteralInfo(uint cLiterals, char* rgLiterals, uint* pcLiteralInfo, DBLITERALINFO** prgLiteralInfo, 
-                           ushort** ppCharBuffer);
+    HRESULT GetKeywords(PWSTR* ppwszKeywords);
+    HRESULT GetLiteralInfo(uint cLiterals, const(uint)* rgLiterals, uint* pcLiteralInfo, 
+                           DBLITERALINFO** prgLiteralInfo, ushort** ppCharBuffer);
 }
 
 @GUID("0C733A7A-2A1C-11CE-ADE5-00AA0044773D")
 interface IDBDataSourceAdmin : IUnknown
 {
-    HRESULT CreateDataSource(uint cPropertySets, char* rgPropertySets, IUnknown pUnkOuter, const(GUID)* riid, 
+    HRESULT CreateDataSource(uint cPropertySets, DBPROPSET* rgPropertySets, IUnknown pUnkOuter, const(GUID)* riid, 
                              IUnknown* ppDBSession);
     HRESULT DestroyDataSource();
-    HRESULT GetCreationProperties(uint cPropertyIDSets, char* rgPropertyIDSets, uint* pcPropertyInfoSets, 
-                                  DBPROPINFOSET** prgPropertyInfoSets, ushort** ppDescBuffer);
-    HRESULT ModifyDataSource(uint cPropertySets, char* rgPropertySets);
+    HRESULT GetCreationProperties(uint cPropertyIDSets, const(DBPROPIDSET)* rgPropertyIDSets, 
+                                  uint* pcPropertyInfoSets, DBPROPINFOSET** prgPropertyInfoSets, 
+                                  ushort** ppDescBuffer);
+    HRESULT ModifyDataSource(uint cPropertySets, DBPROPSET* rgPropertySets);
 }
 
 @GUID("0C733A96-2A1C-11CE-ADE5-00AA0044773D")
@@ -2907,8 +2909,8 @@ interface IDBAsynchNotify : IUnknown
 {
     HRESULT OnLowResource(uint dwReserved);
     HRESULT OnProgress(size_t hChapter, uint eOperation, uint ulProgress, uint ulProgressMax, uint eAsynchPhase, 
-                       ushort* pwszStatusText);
-    HRESULT OnStop(size_t hChapter, uint eOperation, HRESULT hrStatus, ushort* pwszStatusText);
+                       PWSTR pwszStatusText);
+    HRESULT OnStop(size_t hChapter, uint eOperation, HRESULT hrStatus, PWSTR pwszStatusText);
 }
 
 @GUID("0C733A95-2A1C-11CE-ADE5-00AA0044773D")
@@ -2916,30 +2918,31 @@ interface IDBAsynchStatus : IUnknown
 {
     HRESULT Abort(size_t hChapter, uint eOperation);
     HRESULT GetStatus(size_t hChapter, uint eOperation, uint* pulProgress, uint* pulProgressMax, 
-                      uint* peAsynchPhase, ushort** ppwszStatusText);
+                      uint* peAsynchPhase, PWSTR* ppwszStatusText);
 }
 
 @GUID("0C733A85-2A1C-11CE-ADE5-00AA0044773D")
 interface ISessionProperties : IUnknown
 {
-    HRESULT GetProperties(uint cPropertyIDSets, char* rgPropertyIDSets, uint* pcPropertySets, 
+    HRESULT GetProperties(uint cPropertyIDSets, const(DBPROPIDSET)* rgPropertyIDSets, uint* pcPropertySets, 
                           DBPROPSET** prgPropertySets);
-    HRESULT SetProperties(uint cPropertySets, char* rgPropertySets);
+    HRESULT SetProperties(uint cPropertySets, DBPROPSET* rgPropertySets);
 }
 
 @GUID("0C733A68-2A1C-11CE-ADE5-00AA0044773D")
 interface IIndexDefinition : IUnknown
 {
-    HRESULT CreateIndex(DBID* pTableID, DBID* pIndexID, uint cIndexColumnDescs, char* rgIndexColumnDescs, 
-                        uint cPropertySets, char* rgPropertySets, DBID** ppIndexID);
+    HRESULT CreateIndex(DBID* pTableID, DBID* pIndexID, uint cIndexColumnDescs, 
+                        const(DBINDEXCOLUMNDESC)* rgIndexColumnDescs, uint cPropertySets, DBPROPSET* rgPropertySets, 
+                        DBID** ppIndexID);
     HRESULT DropIndex(DBID* pTableID, DBID* pIndexID);
 }
 
 @GUID("0C733A86-2A1C-11CE-ADE5-00AA0044773D")
 interface ITableDefinition : IUnknown
 {
-    HRESULT CreateTable(IUnknown pUnkOuter, DBID* pTableID, uint cColumnDescs, char* rgColumnDescs, 
-                        const(GUID)* riid, uint cPropertySets, char* rgPropertySets, DBID** ppTableID, 
+    HRESULT CreateTable(IUnknown pUnkOuter, DBID* pTableID, uint cColumnDescs, const(DBCOLUMNDESC)* rgColumnDescs, 
+                        const(GUID)* riid, uint cPropertySets, DBPROPSET* rgPropertySets, DBID** ppTableID, 
                         IUnknown* ppRowset);
     HRESULT DropTable(DBID* pTableID);
     HRESULT AddColumn(DBID* pTableID, DBCOLUMNDESC* pColumnDesc, DBID** ppColumnID);
@@ -2950,14 +2953,15 @@ interface ITableDefinition : IUnknown
 interface IOpenRowset : IUnknown
 {
     HRESULT OpenRowset(IUnknown pUnkOuter, DBID* pTableID, DBID* pIndexID, const(GUID)* riid, uint cPropertySets, 
-                       char* rgPropertySets, IUnknown* ppRowset);
+                       DBPROPSET* rgPropertySets, IUnknown* ppRowset);
 }
 
 @GUID("0C733A7B-2A1C-11CE-ADE5-00AA0044773D")
 interface IDBSchemaRowset : IUnknown
 {
-    HRESULT GetRowset(IUnknown pUnkOuter, const(GUID)* rguidSchema, uint cRestrictions, char* rgRestrictions, 
-                      const(GUID)* riid, uint cPropertySets, char* rgPropertySets, IUnknown* ppRowset);
+    HRESULT GetRowset(IUnknown pUnkOuter, const(GUID)* rguidSchema, uint cRestrictions, 
+                      const(VARIANT)* rgRestrictions, const(GUID)* riid, uint cPropertySets, 
+                      DBPROPSET* rgPropertySets, IUnknown* ppRowset);
     HRESULT GetSchemas(uint* pcSchemas, GUID** prgSchemas, uint** prgRestrictionSupport);
 }
 
@@ -2975,8 +2979,8 @@ interface IMDDataset : IUnknown
 @GUID("A07CCCD2-8148-11D0-87BB-00C04FC33942")
 interface IMDFind : IUnknown
 {
-    HRESULT FindCell(uint ulStartingOrdinal, uint cMembers, ushort** rgpwszMember, uint* pulCellOrdinal);
-    HRESULT FindTuple(uint ulAxisIdentifier, uint ulStartingOrdinal, uint cMembers, ushort** rgpwszMember, 
+    HRESULT FindCell(uint ulStartingOrdinal, uint cMembers, PWSTR* rgpwszMember, uint* pulCellOrdinal);
+    HRESULT FindTuple(uint ulAxisIdentifier, uint ulStartingOrdinal, uint cMembers, PWSTR* rgpwszMember, 
                       uint* pulTupleOrdinal);
 }
 
@@ -3102,7 +3106,7 @@ interface ITrusteeGroupAdmin : IUnknown
 {
     HRESULT AddMember(TRUSTEE_W* pMembershipTrustee, TRUSTEE_W* pMemberTrustee);
     HRESULT DeleteMember(TRUSTEE_W* pMembershipTrustee, TRUSTEE_W* pMemberTrustee);
-    HRESULT IsMember(TRUSTEE_W* pMembershipTrustee, TRUSTEE_W* pMemberTrustee, int* pfStatus);
+    HRESULT IsMember(TRUSTEE_W* pMembershipTrustee, TRUSTEE_W* pMemberTrustee, BOOL* pfStatus);
     HRESULT GetMembers(TRUSTEE_W* pMembershipTrustee, uint* pcMembers, TRUSTEE_W** prgMembers);
     HRESULT GetMemberships(TRUSTEE_W* pTrustee, uint* pcMemberships, TRUSTEE_W** prgMemberships);
 }
@@ -3112,7 +3116,7 @@ interface IObjectAccessControl : IUnknown
 {
     HRESULT GetObjectAccessRights(SEC_OBJECT* pObject, uint* pcAccessEntries, EXPLICIT_ACCESS_W** prgAccessEntries);
     HRESULT GetObjectOwner(SEC_OBJECT* pObject, TRUSTEE_W** ppOwner);
-    HRESULT IsObjectAccessAllowed(SEC_OBJECT* pObject, EXPLICIT_ACCESS_W* pAccessEntry, int* pfResult);
+    HRESULT IsObjectAccessAllowed(SEC_OBJECT* pObject, EXPLICIT_ACCESS_W* pAccessEntry, BOOL* pfResult);
     HRESULT SetObjectAccessRights(SEC_OBJECT* pObject, uint cAccessEntries, EXPLICIT_ACCESS_W* prgAccessEntries);
     HRESULT SetObjectOwner(SEC_OBJECT* pObject, TRUSTEE_W* pOwner);
 }
@@ -3128,9 +3132,9 @@ interface ISecurityInfo : IUnknown
 @GUID("0C733ABC-2A1C-11CE-ADE5-00AA0044773D")
 interface ITableCreation : ITableDefinition
 {
-    HRESULT GetTableDefinition(DBID* pTableID, uint* pcColumnDescs, char* prgColumnDescs, uint* pcPropertySets, 
-                               char* prgPropertySets, uint* pcConstraintDescs, char* prgConstraintDescs, 
-                               ushort** ppwszStringBuffer);
+    HRESULT GetTableDefinition(DBID* pTableID, uint* pcColumnDescs, DBCOLUMNDESC** prgColumnDescs, 
+                               uint* pcPropertySets, DBPROPSET** prgPropertySets, uint* pcConstraintDescs, 
+                               DBCONSTRAINTDESC** prgConstraintDescs, ushort** ppwszStringBuffer);
 }
 
 @GUID("0C733AAB-2A1C-11CE-ADE5-00AA0044773D")
@@ -3147,7 +3151,7 @@ interface ITableDefinitionWithConstraints : ITableCreation
 @GUID("0C733AB4-2A1C-11CE-ADE5-00AA0044773D")
 interface IRow : IUnknown
 {
-    HRESULT GetColumns(uint cColumns, char* rgColumns);
+    HRESULT GetColumns(uint cColumns, DBCOLUMNACCESS* rgColumns);
     HRESULT GetSourceRowset(const(GUID)* riid, IUnknown* ppRowset, size_t* phRow);
     HRESULT Open(IUnknown pUnkOuter, DBID* pColumnID, const(GUID)* rguidColumnType, uint dwBindFlags, 
                  const(GUID)* riid, IUnknown* ppUnk);
@@ -3156,7 +3160,7 @@ interface IRow : IUnknown
 @GUID("0C733AB5-2A1C-11CE-ADE5-00AA0044773D")
 interface IRowChange : IUnknown
 {
-    HRESULT SetColumns(uint cColumns, char* rgColumns);
+    HRESULT SetColumns(uint cColumns, DBCOLUMNACCESS* rgColumns);
 }
 
 @GUID("0C733AAE-2A1C-11CE-ADE5-00AA0044773D")
@@ -3170,34 +3174,35 @@ interface IRowSchemaChange : IRowChange
 interface IGetRow : IUnknown
 {
     HRESULT GetRowFromHROW(IUnknown pUnkOuter, size_t hRow, const(GUID)* riid, IUnknown* ppUnk);
-    HRESULT GetURLFromHROW(size_t hRow, ushort** ppwszURL);
+    HRESULT GetURLFromHROW(size_t hRow, PWSTR* ppwszURL);
 }
 
 @GUID("0C733AB1-2A1C-11CE-ADE5-00AA0044773D")
 interface IBindResource : IUnknown
 {
-    HRESULT Bind(IUnknown pUnkOuter, ushort* pwszURL, uint dwBindURLFlags, const(GUID)* rguid, const(GUID)* riid, 
-                 IAuthenticate pAuthenticate, DBIMPLICITSESSION* pImplSession, uint* pdwBindStatus, IUnknown* ppUnk);
+    HRESULT Bind(IUnknown pUnkOuter, const(PWSTR) pwszURL, uint dwBindURLFlags, const(GUID)* rguid, 
+                 const(GUID)* riid, IAuthenticate pAuthenticate, DBIMPLICITSESSION* pImplSession, 
+                 uint* pdwBindStatus, IUnknown* ppUnk);
 }
 
 @GUID("0C733AB0-2A1C-11CE-ADE5-00AA0044773D")
 interface IScopedOperations : IBindResource
 {
-    HRESULT Copy(uint cRows, char* rgpwszSourceURLs, char* rgpwszDestURLs, uint dwCopyFlags, 
-                 IAuthenticate pAuthenticate, char* rgdwStatus, char* rgpwszNewURLs, ushort** ppStringsBuffer);
-    HRESULT Move(uint cRows, char* rgpwszSourceURLs, char* rgpwszDestURLs, uint dwMoveFlags, 
-                 IAuthenticate pAuthenticate, char* rgdwStatus, char* rgpwszNewURLs, ushort** ppStringsBuffer);
-    HRESULT Delete(uint cRows, char* rgpwszURLs, uint dwDeleteFlags, char* rgdwStatus);
+    HRESULT Copy(uint cRows, PWSTR** rgpwszSourceURLs, PWSTR** rgpwszDestURLs, uint dwCopyFlags, 
+                 IAuthenticate pAuthenticate, uint* rgdwStatus, PWSTR** rgpwszNewURLs, ushort** ppStringsBuffer);
+    HRESULT Move(uint cRows, PWSTR** rgpwszSourceURLs, PWSTR** rgpwszDestURLs, uint dwMoveFlags, 
+                 IAuthenticate pAuthenticate, uint* rgdwStatus, PWSTR** rgpwszNewURLs, ushort** ppStringsBuffer);
+    HRESULT Delete(uint cRows, PWSTR** rgpwszURLs, uint dwDeleteFlags, uint* rgdwStatus);
     HRESULT OpenRowset(IUnknown pUnkOuter, DBID* pTableID, DBID* pIndexID, const(GUID)* riid, uint cPropertySets, 
-                       char* rgPropertySets, IUnknown* ppRowset);
+                       DBPROPSET* rgPropertySets, IUnknown* ppRowset);
 }
 
 @GUID("0C733AB2-2A1C-11CE-ADE5-00AA0044773D")
 interface ICreateRow : IUnknown
 {
-    HRESULT CreateRow(IUnknown pUnkOuter, ushort* pwszURL, uint dwBindURLFlags, const(GUID)* rguid, 
+    HRESULT CreateRow(IUnknown pUnkOuter, const(PWSTR) pwszURL, uint dwBindURLFlags, const(GUID)* rguid, 
                       const(GUID)* riid, IAuthenticate pAuthenticate, DBIMPLICITSESSION* pImplSession, 
-                      uint* pdwBindStatus, ushort** ppwszNewURL, IUnknown* ppUnk);
+                      uint* pdwBindStatus, PWSTR* ppwszNewURL, IUnknown* ppUnk);
 }
 
 @GUID("0C733AB3-2A1C-11CE-ADE5-00AA0044773D")
@@ -3209,16 +3214,17 @@ interface IDBBinderProperties : IDBProperties
 @GUID("0C733AB8-2A1C-11CE-ADE5-00AA0044773D")
 interface IColumnsInfo2 : IColumnsInfo
 {
-    HRESULT GetRestrictedColumnInfo(uint cColumnIDMasks, char* rgColumnIDMasks, uint dwFlags, uint* pcColumns, 
-                                    DBID** prgColumnIDs, DBCOLUMNINFO** prgColumnInfo, ushort** ppStringsBuffer);
+    HRESULT GetRestrictedColumnInfo(uint cColumnIDMasks, const(DBID)* rgColumnIDMasks, uint dwFlags, 
+                                    uint* pcColumns, DBID** prgColumnIDs, DBCOLUMNINFO** prgColumnInfo, 
+                                    ushort** ppStringsBuffer);
 }
 
 @GUID("0C733AB9-2A1C-11CE-ADE5-00AA0044773D")
 interface IRegisterProvider : IUnknown
 {
-    HRESULT GetURLMapping(ushort* pwszURL, uint dwReserved, GUID* pclsidProvider);
-    HRESULT SetURLMapping(ushort* pwszURL, uint dwReserved, const(GUID)* rclsidProvider);
-    HRESULT UnregisterProvider(ushort* pwszURL, uint dwReserved, const(GUID)* rclsidProvider);
+    HRESULT GetURLMapping(const(PWSTR) pwszURL, uint dwReserved, GUID* pclsidProvider);
+    HRESULT SetURLMapping(const(PWSTR) pwszURL, uint dwReserved, const(GUID)* rclsidProvider);
+    HRESULT UnregisterProvider(const(PWSTR) pwszURL, uint dwReserved, const(GUID)* rclsidProvider);
 }
 
 @GUID("0C733ABA-2A1C-11CE-ADE5-00AA0044773D")
@@ -3250,7 +3256,7 @@ interface ICommandStream : IUnknown
 @GUID("0C733AC2-2A1C-11CE-ADE5-00AA0044773D")
 interface IRowsetBookmark : IUnknown
 {
-    HRESULT PositionOnBookmark(size_t hChapter, uint cbBookmark, char* pBookmark);
+    HRESULT PositionOnBookmark(size_t hChapter, uint cbBookmark, const(ubyte)* pBookmark);
 }
 
 ///Provides methods to parse an input string into an IQuerySolution object.
@@ -3270,7 +3276,7 @@ interface IQueryParser : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT Parse(const(wchar)* pszInputString, IEnumUnknown pCustomProperties, IQuerySolution* ppSolution);
+    HRESULT Parse(const(PWSTR) pszInputString, IEnumUnknown pCustomProperties, IQuerySolution* ppSolution);
     ///Sets a single option, such as a specified wordbreaker, for parsing an input string.
     ///Params:
     ///    option = Type: <b>STRUCTURED_QUERY_SINGLE_OPTION</b> Identifies the type of option to be set.
@@ -3296,7 +3302,7 @@ interface IQueryParser : IUnknown
     ///                   parameter. For more information, see STRUCTURED_QUERY_MULTIOPTION.
     ///    pOptionValue = Type: <b>PROPVARIANT*</b> Pointer to a PROPVARIANT that is interpreted differently for each value of the
     ///                   <i>option</i> parameter. For more information, see STRUCTURED_QUERY_MULTIOPTION.
-    HRESULT SetMultiOption(STRUCTURED_QUERY_MULTIOPTION option, const(wchar)* pszOptionKey, 
+    HRESULT SetMultiOption(STRUCTURED_QUERY_MULTIOPTION option, const(PWSTR) pszOptionKey, 
                            const(PROPVARIANT)* pOptionValue);
     ///Retrieves a schema provider for browsing the currently loaded schema.
     ///Params:
@@ -3310,7 +3316,7 @@ interface IQueryParser : IUnknown
     ///    fUseEnglish = Type: <b>BOOL</b> Reserved. Must be <b>FALSE</b>.
     ///    ppszQueryString = Type: <b>LPWSTR*</b> Receives the restated query string. The caller must free the string by calling
     ///                      CoTaskMemFree.
-    HRESULT RestateToString(ICondition pCondition, BOOL fUseEnglish, ushort** ppszQueryString);
+    HRESULT RestateToString(ICondition pCondition, BOOL fUseEnglish, PWSTR* ppszQueryString);
     ///Parses a condition for a specified property.
     ///Params:
     ///    pszPropertyName = Type: <b>LPCWSTR</b> Property name.
@@ -3322,7 +3328,7 @@ interface IQueryParser : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT ParsePropertyValue(const(wchar)* pszPropertyName, const(wchar)* pszInputString, 
+    HRESULT ParsePropertyValue(const(PWSTR) pszPropertyName, const(PWSTR) pszInputString, 
                                IQuerySolution* ppSolution);
     ///Restates a specified property for a condition as a query string.
     ///Params:
@@ -3337,8 +3343,8 @@ interface IQueryParser : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT RestatePropertyValueToString(ICondition pCondition, BOOL fUseEnglish, ushort** ppszPropertyName, 
-                                         ushort** ppszQueryString);
+    HRESULT RestatePropertyValueToString(ICondition pCondition, BOOL fUseEnglish, PWSTR* ppszPropertyName, 
+                                         PWSTR* ppszQueryString);
 }
 
 ///Provides methods for creating or resolving a condition tree that was obtained by parsing a query string.
@@ -3397,7 +3403,7 @@ interface IConditionFactory : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT MakeLeaf(const(wchar)* pszPropertyName, CONDITION_OPERATION cop, const(wchar)* pszValueType, 
+    HRESULT MakeLeaf(const(PWSTR) pszPropertyName, CONDITION_OPERATION cop, const(PWSTR) pszValueType, 
                      const(PROPVARIANT)* ppropvar, IRichChunk pPropertyNameTerm, IRichChunk pOperationTerm, 
                      IRichChunk pValueTerm, BOOL fExpand, ICondition* ppcResult);
     ///Performs a variety of transformations on a condition tree, including the following: resolves conditions with
@@ -3456,7 +3462,7 @@ interface IQuerySolution : IConditionFactory
     ///            <b>NULL</b>.
     ///    ppWordBreaker = Type: <b>IUnknown**</b> Receives a pointer to the word breaker used for this query. This parameter can be
     ///                    <b>NULL</b>.
-    HRESULT GetLexicalData(ushort** ppszInputString, ITokenCollection* ppTokens, uint* plcid, 
+    HRESULT GetLexicalData(PWSTR* ppszInputString, ITokenCollection* ppTokens, uint* plcid, 
                            IUnknown* ppWordBreaker);
 }
 
@@ -3555,8 +3561,8 @@ interface IConditionFactory2 : IConditionFactory
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CreateStringLeaf(const(PROPERTYKEY)* propkey, CONDITION_OPERATION cop, const(wchar)* pszValue, 
-                             const(wchar)* pszLocaleName, CONDITION_CREATION_OPTIONS cco, const(GUID)* riid, 
+    HRESULT CreateStringLeaf(const(PROPERTYKEY)* propkey, CONDITION_OPERATION cop, const(PWSTR) pszValue, 
+                             const(PWSTR) pszLocaleName, CONDITION_CREATION_OPTIONS cco, const(GUID)* riid, 
                              void** ppv);
     ///Creates a leaf condition node for an integer value. The returned object supports ICondition and ICondition2.
     ///Params:
@@ -3627,7 +3633,7 @@ interface IConditionFactory2 : IConditionFactory
     ///    This method does not return a value.
     ///    
     HRESULT CreateLeaf(const(PROPERTYKEY)* propkey, CONDITION_OPERATION cop, const(PROPVARIANT)* propvar, 
-                       const(wchar)* pszSemanticType, const(wchar)* pszLocaleName, IRichChunk pPropertyNameTerm, 
+                       const(PWSTR) pszSemanticType, const(PWSTR) pszLocaleName, IRichChunk pPropertyNameTerm, 
                        IRichChunk pOperationTerm, IRichChunk pValueTerm, CONDITION_CREATION_OPTIONS cco, 
                        const(GUID)* riid, void** ppv);
     ///Performs a variety of transformations on a condition tree, and thereby the resolved condition for evaluation. The
@@ -3678,7 +3684,7 @@ interface IConditionGenerator : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT RecognizeNamedEntities(const(wchar)* pszInputString, uint lcidUserLocale, 
+    HRESULT RecognizeNamedEntities(const(PWSTR) pszInputString, uint lcidUserLocale, 
                                    ITokenCollection pTokenCollection, INamedEntityCollector pNamedEntities);
     ///Generates a special query expression for what would otherwise become a leaf query expression.
     ///Params:
@@ -3712,10 +3718,10 @@ interface IConditionGenerator : IUnknown
     ///    <dt><b>S_FALSE</b></dt> </dl> </td> <td width="60%"> A condition was not generated, and the query parser must
     ///    produce one in some other way. </td> </tr> </table>
     ///    
-    HRESULT GenerateForLeaf(IConditionFactory pConditionFactory, const(wchar)* pszPropertyName, 
-                            CONDITION_OPERATION cop, const(wchar)* pszValueType, const(wchar)* pszValue, 
-                            const(wchar)* pszValue2, IRichChunk pPropertyNameTerm, IRichChunk pOperationTerm, 
-                            IRichChunk pValueTerm, BOOL automaticWildcard, int* pNoStringQuery, 
+    HRESULT GenerateForLeaf(IConditionFactory pConditionFactory, const(PWSTR) pszPropertyName, 
+                            CONDITION_OPERATION cop, const(PWSTR) pszValueType, const(PWSTR) pszValue, 
+                            const(PWSTR) pszValue2, IRichChunk pPropertyNameTerm, IRichChunk pOperationTerm, 
+                            IRichChunk pValueTerm, BOOL automaticWildcard, BOOL* pNoStringQuery, 
                             ICondition* ppQueryExpression);
     ///This method attempts to produce a phrase that, when recognized by this instance of IConditionGenerator,
     ///represents the type and value pair for an entity, relationship, or named entity.
@@ -3730,8 +3736,8 @@ interface IConditionGenerator : IUnknown
     ///    Type: <b>HRESULT</b> Returns S_OK if successful, S_FALSE if the input arguments are valid but no phrase can
     ///    be produced, and an error value otherwise.
     ///    
-    HRESULT DefaultPhrase(const(wchar)* pszValueType, const(PROPVARIANT)* ppropvar, BOOL fUseEnglish, 
-                          ushort** ppszPhrase);
+    HRESULT DefaultPhrase(const(PWSTR) pszValueType, const(PROPVARIANT)* ppropvar, BOOL fUseEnglish, 
+                          PWSTR* ppszPhrase);
 }
 
 ///Provides a method to get the limits of an interval.
@@ -3773,7 +3779,7 @@ interface IMetaData : IUnknown
     ///              free the returned string by calling CoTaskMemFree.
     ///    ppszValue = Type: <b>LPWSTR*</b> Receives the value of the metadata pair as a Unicode string. The calling application
     ///                must free the returned string by calling CoTaskMemFree.
-    HRESULT GetData(ushort** ppszKey, ushort** ppszValue);
+    HRESULT GetData(PWSTR* ppszKey, PWSTR* ppszValue);
 }
 
 ///Provides methods for retrieving information about an entity type in the schema.
@@ -3789,7 +3795,7 @@ interface IEntity : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT Name(ushort** ppszName);
+    HRESULT Name(PWSTR* ppszName);
     ///Retrieves the parent entity of this entity.
     ///Params:
     ///    pBaseEntity = Type: <b>IEntity**</b> Receives a pointer to the parent IEntity object, or <b>NULL</b> if there is no parent
@@ -3812,7 +3818,7 @@ interface IEntity : IUnknown
     ///    pszRelationName = Type: <b>LPCWSTR</b> The name of the relationship to find.
     ///    pRelationship = Type: <b>IRelationship**</b> Receives the address of a pointer to the requested IRelationship object, or
     ///                    <b>NULL</b> if this entity has no relationship with the name specified.
-    HRESULT GetRelationship(const(wchar)* pszRelationName, IRelationship* pRelationship);
+    HRESULT GetRelationship(const(PWSTR) pszRelationName, IRelationship* pRelationship);
     ///Retrieves an enumeration of IMetaData objects for this entity.
     ///Params:
     ///    riid = Type: <b>REFIID</b> The desired IID of the result, either IID_IEnumUnknown or IID_IEnumVARIANT.
@@ -3829,12 +3835,12 @@ interface IEntity : IUnknown
     ///    pszValue = Type: <b>LPCWSTR</b> The name of an entity to be found.
     ///    ppNamedEntity = Type: <b>INamedEntity**</b> Receives a pointer to the INamedEntity object that was named in <i>pszValue</i>.
     ///                    <b>NULL</b> if no named entity was found.
-    HRESULT GetNamedEntity(const(wchar)* pszValue, INamedEntity* ppNamedEntity);
+    HRESULT GetNamedEntity(const(PWSTR) pszValue, INamedEntity* ppNamedEntity);
     ///Retrieves a default phrase to use for this entity in restatements.
     ///Params:
     ///    ppszPhrase = Type: <b>LPWSTR*</b> Receives a pointer to the default phrase as a Unicode string. The calling application
     ///                 must free the returned string by calling CoTaskMemFree.
-    HRESULT DefaultPhrase(ushort** ppszPhrase);
+    HRESULT DefaultPhrase(PWSTR* ppszPhrase);
 }
 
 ///Provides methods for retrieving information about a schema property.
@@ -3845,7 +3851,7 @@ interface IRelationship : IUnknown
     ///Params:
     ///    ppszName = Type: <b>LPWSTR*</b> Receives a pointer to the name of the relationship as a Unicode string. The calling
     ///               application must free the returned string by calling CoTaskMemFree.
-    HRESULT Name(ushort** ppszName);
+    HRESULT Name(PWSTR* ppszName);
     ///Reports whether a relationship is real.
     ///Params:
     ///    pIsReal = Type: <b>BOOL*</b> Receives <b>TRUE</b> for a real relationship; otherwise, <b>FALSE</b>.
@@ -3854,7 +3860,7 @@ interface IRelationship : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT IsReal(int* pIsReal);
+    HRESULT IsReal(BOOL* pIsReal);
     ///Retrieves the destination IEntity object of the relationship. The destination of a relationshipo corresponds to
     ///the type of a property.
     ///Params:
@@ -3871,7 +3877,7 @@ interface IRelationship : IUnknown
     ///Params:
     ///    ppszPhrase = Type: <b>LPWSTR*</b> Receives the default phrase as a Unicode string. The calling application must free the
     ///                 string by calling CoTaskMemFree.
-    HRESULT DefaultPhrase(ushort** ppszPhrase);
+    HRESULT DefaultPhrase(PWSTR* ppszPhrase);
 }
 
 ///Provides methods to get the value of, or a default phrase for the value of, a named entity.
@@ -3882,12 +3888,12 @@ interface INamedEntity : IUnknown
     ///Params:
     ///    ppszValue = Type: <b>LPWSTR*</b> Receives a pointer to the value of the named entity as a Unicode string. The calling
     ///                application must free the returned string by calling CoTaskMemFree.
-    HRESULT GetValue(ushort** ppszValue);
+    HRESULT GetValue(PWSTR* ppszValue);
     ///Retrieves a default phrase to use for this named entity in restatements.
     ///Params:
     ///    ppszPhrase = Type: <b>LPWSTR*</b> Receives a pointer to the default phrase as a Unicode string. The calling application
     ///                 must free the returned string by calling CoTaskMemFree.
-    HRESULT DefaultPhrase(ushort** ppszPhrase);
+    HRESULT DefaultPhrase(PWSTR* ppszPhrase);
 }
 
 ///Provides a schema repository that can be browsed.
@@ -3911,7 +3917,7 @@ interface ISchemaProvider : IUnknown
     ///    pEntity = Type: <b>IEntity**</b> Receives the address of a pointer to the requested entity. The calling application
     ///              must release the entity by calling its IUnknown::Release method. If there is no entity with the specified
     ///              name, this parameter is set to <b>NULL</b>.
-    HRESULT GetEntity(const(wchar)* pszEntityName, IEntity* pEntity);
+    HRESULT GetEntity(const(PWSTR) pszEntityName, IEntity* pEntity);
     ///Retrieves an enumeration of global IMetaData objects for the loaded schema.
     ///Params:
     ///    riid = Type: <b>REFIID</b> The desired IID of the result, either IID_IEnumUnknown or IID_IEnumVARIANT.
@@ -3937,7 +3943,7 @@ interface ISchemaProvider : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SaveBinary(const(wchar)* pszSchemaBinaryPath);
+    HRESULT SaveBinary(const(PWSTR) pszSchemaBinaryPath);
     ///Finds named entities of a specified type in a tokenized string, and returns the value of the entity and the
     ///number of tokens the entity value occupies.
     ///Params:
@@ -3956,9 +3962,9 @@ interface ISchemaProvider : IUnknown
     ///    Type: <b>HRESULT</b> Returns S_OK if the token sequence beginning at position <i>cTokensBegin</i> denotes a
     ///    named entity of the specified (entity) type. If there is no such token sequence, returns S_FALSE.
     ///    
-    HRESULT LookupAuthoredNamedEntity(IEntity pEntity, const(wchar)* pszInputString, 
+    HRESULT LookupAuthoredNamedEntity(IEntity pEntity, const(PWSTR) pszInputString, 
                                       ITokenCollection pTokenCollection, uint cTokensBegin, uint* pcTokensLength, 
-                                      ushort** ppszValue);
+                                      PWSTR* ppszValue);
 }
 
 ///Gets the tokens that result from using a word breaker.
@@ -3978,7 +3984,7 @@ interface ITokenCollection : IUnknown
     ///              <b>NULL</b>.
     ///    ppsz = Type: <b>LPWSTR*</b> Receives the overriding text for this token if available, or <b>NULL</b> if there is
     ///           none.
-    HRESULT GetToken(uint i, uint* pBegin, uint* pLength, ushort** ppsz);
+    HRESULT GetToken(uint i, uint* pBegin, uint* pLength, PWSTR* ppsz);
 }
 
 ///Provides a method to accumulate named entities as identified by an IConditionGenerator object. When a query parser
@@ -4007,7 +4013,7 @@ interface INamedEntityCollector : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT Add(uint beginSpan, uint endSpan, uint beginActual, uint endActual, IEntity pType, 
-                const(wchar)* pszValue, NAMED_ENTITY_CERTAINTY certainty);
+                const(PWSTR) pszValue, NAMED_ENTITY_CERTAINTY certainty);
 }
 
 ///Provides a method for localizing keywords in a specified string.
@@ -4024,7 +4030,7 @@ interface ISchemaLocalizerSupport : IUnknown
     ///    ppszLocalString = Type: <b>LPWSTR*</b> Returns a null-terminated Unicode string that is the localized string. The calling
     ///                      application must free the returned string by calling CoTaskMemFree. If the method does not succeed, this
     ///                      parameter is set to <b>NULL</b>.
-    HRESULT Localize(const(wchar)* pszGlobalString, ushort** ppszLocalString);
+    HRESULT Localize(const(PWSTR) pszGlobalString, PWSTR* ppszLocalString);
 }
 
 ///Provides methods to create, initialize, and change options for an IQueryParser object.
@@ -4046,7 +4052,7 @@ interface IQueryParserManager : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CreateLoadedParser(const(wchar)* pszCatalog, ushort langidForKeywords, const(GUID)* riid, 
+    HRESULT CreateLoadedParser(const(PWSTR) pszCatalog, ushort langidForKeywords, const(GUID)* riid, 
                                void** ppQueryParser);
     ///Sets the flags for Natural Query Syntax (NQS) and automatic wildcard characters for the specified query parser.
     ///If the query parser was created for the <code>SystemIndex</code> catalog, this method also sets up standard
@@ -4094,7 +4100,7 @@ interface IUrlAccessor : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetDocFormat(char* wszDocFormat, uint dwSize, uint* pdwLength);
+    HRESULT GetDocFormat(ushort* wszDocFormat, uint dwSize, uint* pdwLength);
     ///Gets the CLSID for the document type of the URL item being processed.
     ///Params:
     ///    pClsid = Type: <b>CLSID*</b> Receives a pointer to the CLSID for the document type of the URL item being processed.
@@ -4111,7 +4117,7 @@ interface IUrlAccessor : IUnknown
     ///    dwSize = Type: <b>DWORD</b> Size in <b>TCHAR</b><b>s</b>of <i>wszHost</i>, not including the terminating <b>NULL</b>.
     ///    pdwLength = Type: <b>DWORD*</b> Receives a pointer to the number of <b>TCHAR</b><b>s</b> written to <i>wszHost</i>, not
     ///                including the terminating <b>NULL</b>.
-    HRESULT GetHost(char* wszHost, uint dwSize, uint* pdwLength);
+    HRESULT GetHost(ushort* wszHost, uint dwSize, uint* pdwLength);
     ///Ascertains whether the item URL points to a directory.
     HRESULT IsDirectory();
     ///Gets the size of the content designated by the URL.
@@ -4147,7 +4153,7 @@ interface IUrlAccessor : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetFileName(char* wszFileName, uint dwSize, uint* pdwLength);
+    HRESULT GetFileName(ushort* wszFileName, uint dwSize, uint* pdwLength);
     ///Gets the security descriptor for the URL item. Security is applied at query time, so this descriptor identifies
     ///security for read access.
     ///Params:
@@ -4160,7 +4166,7 @@ interface IUrlAccessor : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetSecurityDescriptor(char* pSD, uint dwSize, uint* pdwLength);
+    HRESULT GetSecurityDescriptor(ubyte* pSD, uint dwSize, uint* pdwLength);
     ///Gets the redirected URL for the current item.
     ///Params:
     ///    wszRedirectedURL = Type: <b>WCHAR[]</b> Receives the redirected URL as a Unicode string, not including the terminating
@@ -4174,7 +4180,7 @@ interface IUrlAccessor : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetRedirectedURL(char* wszRedirectedURL, uint dwSize, uint* pdwLength);
+    HRESULT GetRedirectedURL(ushort* wszRedirectedURL, uint dwSize, uint* pdwLength);
     ///Gets the security provider for the URL.
     ///Params:
     ///    pSPClsid = Type: <b>CLSID*</b> Receives a pointer to a security provider's CLSID.
@@ -4217,7 +4223,7 @@ interface IUrlAccessor2 : IUrlAccessor
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetDisplayUrl(char* wszDocUrl, uint dwSize, uint* pdwLength);
+    HRESULT GetDisplayUrl(ushort* wszDocUrl, uint dwSize, uint* pdwLength);
     ///Ascertains whether an item URL is a document or directory.
     HRESULT IsDocument();
     ///Gets the code page for properties of the URL item.
@@ -4226,7 +4232,7 @@ interface IUrlAccessor2 : IUrlAccessor
     ///    dwSize = Type: <b>DWORD</b> Size of <i>wszCodePage</i> in <b>TCHAR</b><b>s</b>.
     ///    pdwLength = Type: <b>DWORD*</b> Receives a pointer to the number of <b>TCHAR</b><b>s</b> written to <i>wszCodePage</i>,
     ///                not including the terminating <b>NULL</b> character.
-    HRESULT GetCodePage(char* wszCodePage, uint dwSize, uint* pdwLength);
+    HRESULT GetCodePage(ushort* wszCodePage, uint dwSize, uint* pdwLength);
 }
 
 ///Extends the functionality of the IUrlAccessor2 interface with the IUrlAccessor3::GetImpersonationSidBlobs method to
@@ -4246,7 +4252,7 @@ interface IUrlAccessor3 : IUrlAccessor2
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetImpersonationSidBlobs(const(wchar)* pcwszURL, uint* pcSidCount, BLOB** ppSidBlobs);
+    HRESULT GetImpersonationSidBlobs(const(PWSTR) pcwszURL, uint* pcSidCount, BLOB** ppSidBlobs);
 }
 
 ///Extends the functionality of the IUrlAccessor3 interface with the IUrlAccessor4::ShouldIndexItemContent method that
@@ -4258,7 +4264,7 @@ interface IUrlAccessor4 : IUrlAccessor3
     ///Params:
     ///    pfIndexContent = Type: <b>BOOL*</b> A pointer to a <b>BOOL</b> value that indicates whether the item's content should be
     ///                     indexed.
-    HRESULT ShouldIndexItemContent(int* pfIndexContent);
+    HRESULT ShouldIndexItemContent(BOOL* pfIndexContent);
     ///Identifies whether a property should be indexed.
     ///Params:
     ///    key = The property to index.
@@ -4266,7 +4272,7 @@ interface IUrlAccessor4 : IUrlAccessor3
     ///Returns:
     ///    Returns S_FALSE if the property should not be indexed.
     ///    
-    HRESULT ShouldIndexProperty(const(PROPERTYKEY)* key, int* pfIndexProperty);
+    HRESULT ShouldIndexProperty(const(PROPERTYKEY)* key, BOOL* pfIndexProperty);
 }
 
 ///Provides methods to check the opportunistic lock that is used by Microsoft Windows Desktop Search (WDS) on items
@@ -4288,7 +4294,7 @@ interface IOpLockStatus : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT IsOplockValid(int* pfIsOplockValid);
+    HRESULT IsOplockValid(BOOL* pfIsOplockValid);
     ///Checks the status of the opportunistic lock (OpLock) on the item being indexed.
     ///Params:
     ///    pfIsOplockBroken = Type: <b>BOOL*</b> Receives a pointer to a <b>BOOL</b> value that indicates whether the OpLock is broken:
@@ -4297,7 +4303,7 @@ interface IOpLockStatus : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns S_OK if the OpLock is broken, S_FALSE otherwise.
     ///    
-    HRESULT IsOplockBroken(int* pfIsOplockBroken);
+    HRESULT IsOplockBroken(BOOL* pfIsOplockBroken);
     ///Gets the event handle of the opportunistic lock (OpLock). The event object is set to the signaled state when the
     ///OpLock is broken, enabling the indexer to stop all operations on the underlying IUrlAccessor object.
     ///Params:
@@ -4377,7 +4383,7 @@ interface ISearchProtocol : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CreateAccessor(const(wchar)* pcwszURL, AUTHENTICATION_INFO* pAuthenticationInfo, 
+    HRESULT CreateAccessor(const(PWSTR) pcwszURL, AUTHENTICATION_INFO* pAuthenticationInfo, 
                            INCREMENTAL_ACCESS_INFO* pIncrementalAccessInfo, ITEM_INFO* pItemInfo, 
                            IUrlAccessor* ppAccessor);
     ///Closes a previously created IUrlAccessor object.
@@ -4427,7 +4433,7 @@ interface ISearchProtocol2 : ISearchProtocol
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CreateAccessorEx(const(wchar)* pcwszURL, AUTHENTICATION_INFO* pAuthenticationInfo, 
+    HRESULT CreateAccessorEx(const(PWSTR) pcwszURL, AUTHENTICATION_INFO* pAuthenticationInfo, 
                              INCREMENTAL_ACCESS_INFO* pIncrementalAccessInfo, ITEM_INFO* pItemInfo, 
                              const(BLOB)* pUserData, IUrlAccessor* ppAccessor);
 }
@@ -4452,7 +4458,7 @@ interface IProtocolHandlerSite : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetFilter(GUID* pclsidObj, const(wchar)* pcwszContentType, const(wchar)* pcwszExtension, 
+    HRESULT GetFilter(GUID* pclsidObj, const(PWSTR) pcwszContentType, const(PWSTR) pcwszExtension, 
                       IFilter* ppFilter);
 }
 
@@ -4466,7 +4472,7 @@ interface ISearchRoot : IUnknown
     ///Params:
     ///    pszTaskArg = Type: <b>LPCWSTR</b> Pointer to a null-terminated, Unicode buffer that contains the name of the task to be
     ///                 inserted.
-    HRESULT put_Schedule(const(wchar)* pszTaskArg);
+    HRESULT put_Schedule(const(PWSTR) pszTaskArg);
     ///Not implemented.
     ///Params:
     ///    ppszTaskArg = Type: <b>LPWSTR*</b> Returns the address of a pointer to a null-terminated, Unicode buffer that contains the
@@ -4476,7 +4482,7 @@ interface ISearchRoot : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT get_Schedule(ushort** ppszTaskArg);
+    HRESULT get_Schedule(PWSTR* ppszTaskArg);
     ///Sets the URL of the current search root.
     ///Params:
     ///    pszURL = Type: <b>LPCWSTR</b> Pointer to a null-terminated, Unicode buffer that contains the URL of this search root.
@@ -4485,7 +4491,7 @@ interface ISearchRoot : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT put_RootURL(const(wchar)* pszURL);
+    HRESULT put_RootURL(const(PWSTR) pszURL);
     ///Gets the URL of the starting point for this search root.
     ///Params:
     ///    ppszURL = Type: <b>LPWSTR*</b> A null-terminated, Unicode buffer that contains the URL.
@@ -4494,7 +4500,7 @@ interface ISearchRoot : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT get_RootURL(ushort** ppszURL);
+    HRESULT get_RootURL(PWSTR* ppszURL);
     ///Sets a value that indicates whether the search is rooted on a hierarchical tree structure.
     ///Params:
     ///    fIsHierarchical = Type: <b>BOOL</b> <b>TRUE</b> for hierarchical tree structures, <b>FALSE</b> for non-hierarchical systems
@@ -4514,7 +4520,7 @@ interface ISearchRoot : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT get_IsHierarchical(int* pfIsHierarchical);
+    HRESULT get_IsHierarchical(BOOL* pfIsHierarchical);
     ///Sets a value that indicates whether the search engine is notified (by protocol handlers or other applications)
     ///about changes to the URLs under the search root.
     ///Params:
@@ -4535,7 +4541,7 @@ interface ISearchRoot : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT get_ProvidesNotifications(int* pfProvidesNotifications);
+    HRESULT get_ProvidesNotifications(BOOL* pfProvidesNotifications);
     ///Sets a value that indicates whether this search root should be indexed only by notification and not crawled.
     ///Params:
     ///    fUseNotificationsOnly = Type: <b>BOOL</b> <b>TRUE</b> if this search root should be indexed only by notification; otherwise,
@@ -4555,7 +4561,7 @@ interface ISearchRoot : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT get_UseNotificationsOnly(int* pfUseNotificationsOnly);
+    HRESULT get_UseNotificationsOnly(BOOL* pfUseNotificationsOnly);
     ///Sets the enumeration depth for this search root.
     ///Params:
     ///    dwDepth = Type: <b>DWORD</b> The depth (number of levels) to enumerate.
@@ -4614,7 +4620,7 @@ interface ISearchRoot : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT get_FollowDirectories(int* pfFollowDirectories);
+    HRESULT get_FollowDirectories(BOOL* pfFollowDirectories);
     ///Sets the type of authentication required to access the URLs under this search root.
     ///Params:
     ///    authType = Type: <b>AUTH_TYPE</b> A value from the AUTH_TYPE enumeration that indicates the authentication type.
@@ -4637,7 +4643,7 @@ interface ISearchRoot : IUnknown
     ///Not implemented.
     ///Params:
     ///    pszUser = This parameter is unused.
-    HRESULT put_User(const(wchar)* pszUser);
+    HRESULT put_User(const(PWSTR) pszUser);
     ///Not implemented.
     ///Params:
     ///    ppszUser = This parameter is unused.
@@ -4646,11 +4652,11 @@ interface ISearchRoot : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT get_User(ushort** ppszUser);
+    HRESULT get_User(PWSTR* ppszUser);
     ///Not implemented.
     ///Params:
     ///    pszPassword = This parameter is unused.
-    HRESULT put_Password(const(wchar)* pszPassword);
+    HRESULT put_Password(const(PWSTR) pszPassword);
     ///Not implemented.
     ///Params:
     ///    ppszPassword = This parameter is unused.
@@ -4659,7 +4665,7 @@ interface ISearchRoot : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT get_Password(ushort** ppszPassword);
+    HRESULT get_Password(PWSTR* ppszPassword);
 }
 
 ///Provides methods to enumerate the search roots of a catalog, for example, SystemIndex.
@@ -4676,7 +4682,7 @@ interface IEnumSearchRoots : IUnknown
     ///    Type: <b>HRESULT</b> Returns S_OK if successful, S_FALSE if there were not enough items left in the
     ///    enumeration to be returned, or an error value otherwise.
     ///    
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, ISearchRoot* rgelt, uint* pceltFetched);
     ///Skips the specified number of elements.
     ///Params:
     ///    celt = Type: <b>ULONG</b> The number of elements to skip.
@@ -4718,7 +4724,7 @@ interface ISearchScopeRule : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT get_PatternOrURL(ushort** ppszPatternOrURL);
+    HRESULT get_PatternOrURL(PWSTR* ppszPatternOrURL);
     ///Gets a value identifying whether this rule is an inclusion rule. Inclusion rules identify scopes that should be
     ///included in the crawl scope.
     ///Params:
@@ -4729,7 +4735,7 @@ interface ISearchScopeRule : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT get_IsIncluded(int* pfIsIncluded);
+    HRESULT get_IsIncluded(BOOL* pfIsIncluded);
     ///Gets a value that identifies whether this is a default rule.
     ///Params:
     ///    pfIsDefault = Type: <b>BOOL*</b> On return, points to the <b>TRUE</b> for default rules and <b>FALSE</b> otherwise.
@@ -4738,7 +4744,7 @@ interface ISearchScopeRule : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT get_IsDefault(int* pfIsDefault);
+    HRESULT get_IsDefault(BOOL* pfIsDefault);
     ///Not supported. This method returns E_InvalidArg when called.
     ///Params:
     ///    pFollowFlags = Type: <b>DWORD*</b> Returns a pointer to a value that contains the follow flags.
@@ -4759,7 +4765,7 @@ interface IEnumSearchScopeRules : IUnknown
     ///    Type: <b>HRESULT</b> Returns S_OK if successful, S_FALSE if there were not enough items left in the
     ///    enumeration to be returned, or an error value.
     ///    
-    HRESULT Next(uint celt, char* pprgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, ISearchScopeRule* pprgelt, uint* pceltFetched);
     ///Skips the specified number of elements.
     ///Params:
     ///    celt = Type: <b>ULONG</b> The number of elements to skip.
@@ -4806,7 +4812,7 @@ interface ISearchCrawlScopeManager : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT AddDefaultScopeRule(const(wchar)* pszURL, BOOL fInclude, uint fFollowFlags);
+    HRESULT AddDefaultScopeRule(const(PWSTR) pszURL, BOOL fInclude, uint fFollowFlags);
     ///Adds a new search root to the search engine.
     ///Params:
     ///    pSearchRoot = Type: <b>ISearchRoot*</b> An ISearchRoot describing the new search root to add.
@@ -4822,7 +4828,7 @@ interface ISearchCrawlScopeManager : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns S_OK if successful; S_FALSE if the root is not found.
     ///    
-    HRESULT RemoveRoot(const(wchar)* pszURL);
+    HRESULT RemoveRoot(const(PWSTR) pszURL);
     ///Returns an enumeration of all the roots of which this instance of the ISearchCrawlScopeManager is aware.
     ///Params:
     ///    ppSearchRoots = Type: <b>IEnumSearchRoots**</b> Returns a pointer to an IEnumSearchRoots interface.
@@ -4843,7 +4849,7 @@ interface ISearchCrawlScopeManager : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT AddHierarchicalScope(const(wchar)* pszURL, BOOL fInclude, BOOL fDefault, BOOL fOverrideChildren);
+    HRESULT AddHierarchicalScope(const(PWSTR) pszURL, BOOL fInclude, BOOL fDefault, BOOL fOverrideChildren);
     ///Adds a new crawl scope rule when the user creates a new rule or adds a URL to be indexed.
     ///Params:
     ///    pszURL = Type: <b>LPCWSTR</b> The URL to be indexed.
@@ -4858,14 +4864,14 @@ interface ISearchCrawlScopeManager : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT AddUserScopeRule(const(wchar)* pszURL, BOOL fInclude, BOOL fOverrideChildren, uint fFollowFlags);
+    HRESULT AddUserScopeRule(const(PWSTR) pszURL, BOOL fInclude, BOOL fOverrideChildren, uint fFollowFlags);
     ///Removes a scope rule from the search engine.
     ///Params:
     ///    pszRule = Type: <b>LPCWSTR</b> The URL or pattern of a scope rule to be removed.
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns S_OK if successful; returns S_FALSE if the scope rule is not found.
     ///    
-    HRESULT RemoveScopeRule(const(wchar)* pszRule);
+    HRESULT RemoveScopeRule(const(PWSTR) pszRule);
     ///Returns an enumeration of all the scope rules of which this instance of the ISearchCrawlScopeManager interface is
     ///aware.
     ///Params:
@@ -4885,7 +4891,7 @@ interface ISearchCrawlScopeManager : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT HasParentScopeRule(const(wchar)* pszURL, int* pfHasParentRule);
+    HRESULT HasParentScopeRule(const(PWSTR) pszURL, BOOL* pfHasParentRule);
     ///Identifies whether a given URL has a child rule in scope.
     ///Params:
     ///    pszURL = Type: <b>LPCWSTR</b> A string containing the URL to check for a child rule. The string can contain wildcard
@@ -4896,7 +4902,7 @@ interface ISearchCrawlScopeManager : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT HasChildScopeRule(const(wchar)* pszURL, int* pfHasChildRule);
+    HRESULT HasChildScopeRule(const(PWSTR) pszURL, BOOL* pfHasChildRule);
     ///Retrieves an indicator of whether the specified URL is included in the crawl scope.
     ///Params:
     ///    pszURL = Type: <b>LPCWSTR</b> A string containing the URL to check for inclusion in the crawl scope.
@@ -4907,7 +4913,7 @@ interface ISearchCrawlScopeManager : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT IncludedInCrawlScope(const(wchar)* pszURL, int* pfIsIncluded);
+    HRESULT IncludedInCrawlScope(const(PWSTR) pszURL, BOOL* pfIsIncluded);
     ///Retrieves an indicator of whether and why the specified URL is included in the crawl scope.
     ///Params:
     ///    pszURL = Type: <b>LPCWSTR</b> A string value indicating the URL to check for inclusion in the crawl scope.
@@ -4920,7 +4926,7 @@ interface ISearchCrawlScopeManager : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT IncludedInCrawlScopeEx(const(wchar)* pszURL, int* pfIsIncluded, CLUSION_REASON* pReason);
+    HRESULT IncludedInCrawlScopeEx(const(PWSTR) pszURL, BOOL* pfIsIncluded, CLUSION_REASON* pReason);
     ///Reverts to the default scopes.
     ///Returns:
     ///    Type: <b>HRESULT</b> If this method succeeds, it returns <b
@@ -4945,14 +4951,14 @@ interface ISearchCrawlScopeManager : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetParentScopeVersionId(const(wchar)* pszURL, int* plScopeId);
+    HRESULT GetParentScopeVersionId(const(PWSTR) pszURL, int* plScopeId);
     ///Removes a default scope rule from the search engine.
     ///Params:
     ///    pszURL = Type: <b>LPCWSTR</b> A string identifying the URL or pattern of the default rule to be removed.
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns S_OK if successful, or an error otherwise.
     ///    
-    HRESULT RemoveDefaultScopeRule(const(wchar)* pszURL);
+    HRESULT RemoveDefaultScopeRule(const(PWSTR) pszURL);
 }
 
 ///Extends the functionality of the ISearchCrawlScopeManager interface. <b>ISearchCrawlScopeManager2</b> provides
@@ -4990,7 +4996,7 @@ interface ISearchItemsChangedSink : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT StartedMonitoringScope(const(wchar)* pszURL);
+    HRESULT StartedMonitoringScope(const(PWSTR) pszURL);
     ///Not implemented.
     ///Params:
     ///    pszURL = Type: <b>LPCWSTR</b> The pointer to a null-terminated, Unicode string containing the start address for the
@@ -5000,7 +5006,7 @@ interface ISearchItemsChangedSink : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT StoppedMonitoringScope(const(wchar)* pszURL);
+    HRESULT StoppedMonitoringScope(const(PWSTR) pszURL);
     ///Call this method to notify an indexer to re-index some changed items.
     ///Params:
     ///    dwNumberOfChanges = Type: <b>DWORD</b> The number of items that have changed.
@@ -5014,8 +5020,8 @@ interface ISearchItemsChangedSink : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT OnItemsChanged(uint dwNumberOfChanges, char* rgDataChangeEntries, char* rgdwDocIds, 
-                           char* rghrCompletionCodes);
+    HRESULT OnItemsChanged(uint dwNumberOfChanges, SEARCH_ITEM_CHANGE* rgDataChangeEntries, uint* rgdwDocIds, 
+                           HRESULT** rghrCompletionCodes);
 }
 
 ///Provides methods for passing change notifications to alert the indexer that items need to be updated.
@@ -5032,7 +5038,7 @@ interface ISearchPersistentItemsChangedSink : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT StartedMonitoringScope(const(wchar)* pszURL);
+    HRESULT StartedMonitoringScope(const(PWSTR) pszURL);
     ///Called by a notifications provider to notify the indexer to stop monitoring changes to items within a specified
     ///hierarchical scope.
     ///Params:
@@ -5043,14 +5049,15 @@ interface ISearchPersistentItemsChangedSink : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT StoppedMonitoringScope(const(wchar)* pszURL);
+    HRESULT StoppedMonitoringScope(const(PWSTR) pszURL);
     ///Notifies the indexer to index changed items.
     ///Params:
     ///    dwNumberOfChanges = Type: <b>DWORD</b> The number of changes being reported.
     ///    DataChangeEntries = Type: <b>SEARCH_ITEM_PERSISTENT_CHANGE[]</b> An array of structures of type SEARCH_ITEM_PERSISTENT_CHANGE
     ///                        identifying the details for each change.
     ///    hrCompletionCodes = Type: <b>HRESULT[]</b> Indicates whether each URL was accepted for indexing.
-    HRESULT OnItemsChanged(uint dwNumberOfChanges, char* DataChangeEntries, char* hrCompletionCodes);
+    HRESULT OnItemsChanged(uint dwNumberOfChanges, SEARCH_ITEM_PERSISTENT_CHANGE* DataChangeEntries, 
+                           HRESULT** hrCompletionCodes);
 }
 
 ///Not implemented.
@@ -5062,7 +5069,7 @@ interface ISearchViewChangedSink : IUnknown
     ///    pdwDocID = This parameter is unused.
     ///    pChange = This parameter is unused.
     ///    pfInView = This parameter is unused.
-    HRESULT OnChange(int* pdwDocID, SEARCH_ITEM_CHANGE* pChange, int* pfInView);
+    HRESULT OnChange(int* pdwDocID, SEARCH_ITEM_CHANGE* pChange, BOOL* pfInView);
 }
 
 ///Provides methods the Search service uses to send updates on catalog and index status to notification providers.
@@ -5081,7 +5088,7 @@ interface ISearchNotifyInlineSite : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT OnItemIndexedStatusChange(SEARCH_INDEXING_PHASE sipStatus, uint dwNumEntries, 
-                                      char* rgItemStatusEntries);
+                                      SEARCH_ITEM_INDEXING_STATUS* rgItemStatusEntries);
     ///Called by the search service to notify a client when the status of the catalog changes.
     ///Params:
     ///    guidCatalogResetSignature = Type: <b>REFGUID</b> A GUID representing the catalog reset. If this GUID changes, all notifications must be
@@ -5106,17 +5113,17 @@ interface ISearchCatalogManager : IUnknown
     ///Params:
     ///    pszName = Type: <b>LPCWSTR*</b> Receives a pointer to a null-terminated Unicode buffer that contains the name of the
     ///              current catalog.
-    HRESULT get_Name(ushort** pszName);
+    HRESULT get_Name(PWSTR* pszName);
     ///Not implemented.
     ///Params:
     ///    pszName = Type: <b>LPCWSTR</b> The name of the parameter to be retrieved.
     ///    ppValue = Type: <b>PROPVARIANT**</b> Receives a pointer to the value of the parameter.
-    HRESULT GetParameter(const(wchar)* pszName, PROPVARIANT** ppValue);
+    HRESULT GetParameter(const(PWSTR) pszName, PROPVARIANT** ppValue);
     ///Sets a name/value parameter for the catalog.
     ///Params:
     ///    pszName = Type: <b>LPCWSTR</b> The name of the parameter to change.
     ///    pValue = Type: <b>PROPVARIANT*</b> A pointer to the new value for the parameter.
-    HRESULT SetParameter(const(wchar)* pszName, PROPVARIANT* pValue);
+    HRESULT SetParameter(const(PWSTR) pszName, PROPVARIANT* pValue);
     ///Gets the status of the catalog.
     ///Params:
     ///    pStatus = Type: <b>CatalogStatus*</b> Receives a pointer to a value from the CatalogStatus enumeration. If
@@ -5150,7 +5157,7 @@ interface ISearchCatalogManager : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT ReindexMatchingURLs(const(wchar)* pszPattern);
+    HRESULT ReindexMatchingURLs(const(PWSTR) pszPattern);
     ///Re-indexes all URLs from a specified root.
     ///Params:
     ///    pszRootURL = Type: <b>LPCWSTR</b> Pointer to a null-terminated, Unicode buffer that contains the URL on which the search
@@ -5160,7 +5167,7 @@ interface ISearchCatalogManager : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT ReindexSearchRoot(const(wchar)* pszRootURL);
+    HRESULT ReindexSearchRoot(const(PWSTR) pszRootURL);
     ///Sets the connection time-out value in the TIMEOUT_INFO structure, in seconds.
     ///Params:
     ///    dwConnectTimeout = Type: <b>DWORD</b> The number of seconds to wait for a connection response.
@@ -5215,12 +5222,12 @@ interface ISearchCatalogManager : IUnknown
     ///<b>NULL</b>.
     ///Params:
     ///    pszUrl = Type: <b>LPWSTR*</b> Receives a pointer to the URL that is currently being indexed.
-    HRESULT URLBeingIndexed(ushort** pszUrl);
+    HRESULT URLBeingIndexed(PWSTR* pszUrl);
     ///Not implemented.
     ///Params:
     ///    pszURL = Type: <b>LPCWSTR</b>
     ///    pdwState = Type: <b>DWORD*</b>
-    HRESULT GetURLIndexingState(const(wchar)* pszURL, uint* pdwState);
+    HRESULT GetURLIndexingState(const(PWSTR) pszURL, uint* pdwState);
     ///Gets the change notification event sink interface for a client. This method is used by client applications and
     ///protocol handlers to notify the indexer of changes.
     ///Params:
@@ -5232,7 +5239,7 @@ interface ISearchCatalogManager : IUnknown
     ///    pszView = Type: <b>LPCWSTR</b> A pointer to the name of the view.
     ///    pViewChangedSink = Type: <b>ISearchViewChangedSink*</b> Pointer to the ISearchViewChangedSink object to receive notifications.
     ///    pdwCookie = Type: <b>DWORD*</b>
-    HRESULT RegisterViewForNotification(const(wchar)* pszView, ISearchViewChangedSink pViewChangedSink, 
+    HRESULT RegisterViewForNotification(const(PWSTR) pszView, ISearchViewChangedSink pViewChangedSink, 
                                         uint* pdwCookie);
     ///Gets the change notification sink interface.
     ///Params:
@@ -5254,7 +5261,7 @@ interface ISearchCatalogManager : IUnknown
     ///Params:
     ///    pszExtension = Type: <b>LPCWSTR</b>
     ///    fExclude = Type: <b>BOOL</b>
-    HRESULT SetExtensionClusion(const(wchar)* pszExtension, BOOL fExclude);
+    HRESULT SetExtensionClusion(const(PWSTR) pszExtension, BOOL fExclude);
     ///Not implemented.
     ///Params:
     ///    ppExtensions = Type: <b>IEnumString**</b> Returns the address of a pointer to an enumerated list of extensions being
@@ -5281,7 +5288,7 @@ interface ISearchCatalogManager : IUnknown
     ///Params:
     ///    pfDiacriticSensitive = Type: <b>BOOL*</b> Receives a pointer to a Boolean value that indicates whether the catalog is sensitive to
     ///                           diacritics. <b>TRUE</b> if the catalog is sensitive to and recognizes diacritics; otherwise, <b>FALSE</b>.
-    HRESULT get_DiacriticSensitivity(int* pfDiacriticSensitive);
+    HRESULT get_DiacriticSensitivity(BOOL* pfDiacriticSensitive);
     ///Gets an ISearchCrawlScopeManager interface for this search catalog.
     ///Params:
     ///    ppCrawlScopeManager = Type: <b>ISearchCrawlScopeManager**</b> Receives a pointer to a new ISearchCrawlScopeManager interface.
@@ -5304,7 +5311,7 @@ interface ISearchCatalogManager2 : ISearchCatalogManager
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns S_OK if successful, or an error value otherwise.
     ///    
-    HRESULT PrioritizeMatchingURLs(const(wchar)* pszPattern, int dwPrioritizeFlags);
+    HRESULT PrioritizeMatchingURLs(const(PWSTR) pszPattern, int dwPrioritizeFlags);
 }
 
 ///Provides methods for building a query from user input, converting a query to Windows Search SQL, and obtaining a
@@ -5322,7 +5329,7 @@ interface ISearchQueryHelper : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT get_ConnectionString(ushort** pszConnectionString);
+    HRESULT get_ConnectionString(PWSTR* pszConnectionString);
     ///Sets the language code identifier (LCID) of the query.
     ///Params:
     ///    lcid = Type: <b>LCID</b> Sets the LCID of the query.
@@ -5409,7 +5416,7 @@ interface ISearchQueryHelper : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT put_QueryContentProperties(const(wchar)* pszContentProperties);
+    HRESULT put_QueryContentProperties(const(PWSTR) pszContentProperties);
     ///Gets the list of properties included in the query when search terms do not explicitly specify a property.
     ///Params:
     ///    ppszContentProperties = Type: <b>LPWSTR*</b> Receives a pointer to a comma-delimited, null-terminated Unicode string of content
@@ -5419,7 +5426,7 @@ interface ISearchQueryHelper : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT get_QueryContentProperties(ushort** ppszContentProperties);
+    HRESULT get_QueryContentProperties(PWSTR* ppszContentProperties);
     ///Sets the columns (or properties) requested in the select statement.
     ///Params:
     ///    pszSelectColumns = Type: <b>LPCWSTR</b> Pointer to a comma-delimited, null-terminated Unicode string that specifies one or more
@@ -5430,7 +5437,7 @@ interface ISearchQueryHelper : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT put_QuerySelectColumns(const(wchar)* pszSelectColumns);
+    HRESULT put_QuerySelectColumns(const(PWSTR) pszSelectColumns);
     ///Gets the columns (or properties) requested in the SELECT statement of the query.
     ///Params:
     ///    ppszSelectColumns = Type: <b>LPWSTR*</b> Receives a pointer to a comma-delimited, null-terminated Unicode string that specifies
@@ -5440,7 +5447,7 @@ interface ISearchQueryHelper : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT get_QuerySelectColumns(ushort** ppszSelectColumns);
+    HRESULT get_QuerySelectColumns(PWSTR* ppszSelectColumns);
     ///Sets the restrictions appended to a query in WHERE clauses.
     ///Params:
     ///    pszRestrictions = Type: <b>LPCWSTR</b> Pointer to a comma-delimited null-terminated Unicode string that specifies one or more
@@ -5450,7 +5457,7 @@ interface ISearchQueryHelper : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT put_QueryWhereRestrictions(const(wchar)* pszRestrictions);
+    HRESULT put_QueryWhereRestrictions(const(PWSTR) pszRestrictions);
     ///Gets the restrictions appended to a query in WHERE clauses.
     ///Params:
     ///    ppszRestrictions = Type: <b>LPWSTR*</b> Receives a pointer to a comma-delimited null-terminated Unicode string that specifies
@@ -5460,7 +5467,7 @@ interface ISearchQueryHelper : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT get_QueryWhereRestrictions(ushort** ppszRestrictions);
+    HRESULT get_QueryWhereRestrictions(PWSTR* ppszRestrictions);
     ///Sets the sort order for the query result set.
     ///Params:
     ///    pszSorting = Type: <b>LPCWSTR</b> A comma-delimited, null-terminated Unicode string that specifies the sort order.
@@ -5469,7 +5476,7 @@ interface ISearchQueryHelper : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT put_QuerySorting(const(wchar)* pszSorting);
+    HRESULT put_QuerySorting(const(PWSTR) pszSorting);
     ///Gets the sort order for the query result set.
     ///Params:
     ///    ppszSorting = Type: <b>LPWSTR*</b> Receives a pointer to a comma-delimited, null-terminated Unicode string representing the
@@ -5479,7 +5486,7 @@ interface ISearchQueryHelper : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT get_QuerySorting(ushort** ppszSorting);
+    HRESULT get_QuerySorting(PWSTR* ppszSorting);
     ///Generates a Structured Query Language (SQL) query based on a client-supplied query string expressed in either
     ///Advanced Query Syntax (AQS) or Natural Query Syntax (NQS).
     ///Params:
@@ -5491,7 +5498,7 @@ interface ISearchQueryHelper : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GenerateSQLFromUserQuery(const(wchar)* pszQuery, ushort** ppszSQL);
+    HRESULT GenerateSQLFromUserQuery(const(PWSTR) pszQuery, PWSTR* ppszSQL);
     ///Not implemented.
     ///Params:
     ///    itemID = Type: <b>int</b> The ItemID that is to be affected. The ItemID is used to store the items unique identifier,
@@ -5507,8 +5514,8 @@ interface ISearchQueryHelper : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT WriteProperties(int itemID, uint dwNumberOfColumns, char* pColumns, char* pValues, 
-                            FILETIME* pftGatherModifiedTime);
+    HRESULT WriteProperties(int itemID, uint dwNumberOfColumns, PROPERTYKEY* pColumns, 
+                            SEARCH_COLUMN_PROPERTIES* pValues, FILETIME* pftGatherModifiedTime);
     ///Sets the maximum number of results to be returned by a query.
     ///Params:
     ///    cMaxResults = Type: <b>LONG</b> The maximum number of results to be returned. Negative numbers return all results.
@@ -5641,7 +5648,7 @@ interface ISearchManager : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetIndexerVersionStr(ushort** ppszVersionString);
+    HRESULT GetIndexerVersionStr(PWSTR* ppszVersionString);
     ///Retrieves the version of the current indexer in two chunks: the major version signifier and the minor version
     ///signifier.
     ///Params:
@@ -5661,7 +5668,7 @@ interface ISearchManager : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns E_InvalidArg as an error code when called.
     ///    
-    HRESULT GetParameter(const(wchar)* pszName, PROPVARIANT** ppValue);
+    HRESULT GetParameter(const(PWSTR) pszName, PROPVARIANT** ppValue);
     ///Not supported. This method returns E_INVALIDARG when called.
     ///Params:
     ///    pszName = Type: <b>LPCWSTR</b> There are currently no valid parameters to pass or retrieve.
@@ -5670,7 +5677,7 @@ interface ISearchManager : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns E_InvalidArg as an error code when called.
     ///    
-    HRESULT SetParameter(const(wchar)* pszName, const(PROPVARIANT)* pValue);
+    HRESULT SetParameter(const(PWSTR) pszName, const(PROPVARIANT)* pValue);
     ///Retrieves the proxy name to be used by the protocol handler.
     ///Params:
     ///    ppszProxyName = Type: <b>LPWSTR*</b> Receives a pointer to a Unicode string that contains the proxy name.
@@ -5679,7 +5686,7 @@ interface ISearchManager : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT get_ProxyName(ushort** ppszProxyName);
+    HRESULT get_ProxyName(PWSTR* ppszProxyName);
     ///Gets a proxy bypass list from the indexer. This list is used to determine which items or URLs are local and do
     ///not need to go through the proxy server. This list is set by calling ISearchManager::SetProxy.
     ///Params:
@@ -5689,7 +5696,7 @@ interface ISearchManager : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT get_BypassList(ushort** ppszBypassList);
+    HRESULT get_BypassList(PWSTR* ppszBypassList);
     ///Stores information in the indexer that determines how the indexer will work and communicate with a proxy server.
     ///Params:
     ///    sUseProxy = Type: <b>PROXY_ACCESS</b> Sets whether and how to use a proxy, using one of the values enumerated in
@@ -5704,8 +5711,8 @@ interface ISearchManager : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetProxy(PROXY_ACCESS sUseProxy, BOOL fLocalByPassProxy, uint dwPortNumber, const(wchar)* pszProxyName, 
-                     const(wchar)* pszByPassList);
+    HRESULT SetProxy(PROXY_ACCESS sUseProxy, BOOL fLocalByPassProxy, uint dwPortNumber, const(PWSTR) pszProxyName, 
+                     const(PWSTR) pszByPassList);
     ///Retrieves a catalog by name and creates a new ISearchCatalogManager object for that catalog.
     ///Params:
     ///    pszCatalog = Type: <b>LPCWSTR</b> The name of the catalog to be retrieved.
@@ -5716,7 +5723,7 @@ interface ISearchManager : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetCatalog(const(wchar)* pszCatalog, ISearchCatalogManager* ppCatalogManager);
+    HRESULT GetCatalog(const(PWSTR) pszCatalog, ISearchCatalogManager* ppCatalogManager);
     ///Retrieves the user agent string.
     ///Params:
     ///    ppszUserAgent = Type: <b>LPWSTR*</b> Receives the address of a pointer to the user agent string.
@@ -5725,7 +5732,7 @@ interface ISearchManager : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT get_UserAgent(ushort** ppszUserAgent);
+    HRESULT get_UserAgent(PWSTR* ppszUserAgent);
     ///Sets the user agent string that a user agent passes to website and services to identify itself.
     ///Params:
     ///    pszUserAgent = Type: <b>LPCWSTR</b> The user agent string identifying the user agent.
@@ -5734,7 +5741,7 @@ interface ISearchManager : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT put_UserAgent(const(wchar)* pszUserAgent);
+    HRESULT put_UserAgent(const(PWSTR) pszUserAgent);
     ///Retrieves the proxy server to be used.
     ///Params:
     ///    pUseProxy = Type: <b>PROXY_ACCESS*</b> Receives a pointer to the proxy server to be used.
@@ -5753,7 +5760,7 @@ interface ISearchManager : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT get_LocalBypass(int* pfLocalBypass);
+    HRESULT get_LocalBypass(BOOL* pfLocalBypass);
     ///Retrieves the port number used to communicate with the proxy server. This port number is stored in the indexer
     ///and is set by the ISearchManager::SetProxy method.
     ///Params:
@@ -5785,7 +5792,7 @@ interface ISearchManager2 : ISearchManager
     ///    to catalog returned. </td> </tr> </table> FAILED HRESULT: Failure creating catalog or invalid arguments
     ///    passed.
     ///    
-    HRESULT CreateCatalog(const(wchar)* pszCatalog, ISearchCatalogManager* ppCatalogManager);
+    HRESULT CreateCatalog(const(PWSTR) pszCatalog, ISearchCatalogManager* ppCatalogManager);
     ///Deletes an existing catalog and all associated indexed data from the Windows Search indexer.
     ///Params:
     ///    pszCatalog = Type: <b>LPCWSTR</b> Name of catalog to delete. The catalog must at some prior time have been created with a
@@ -5797,7 +5804,7 @@ interface ISearchManager2 : ISearchManager
     ///    <dt><b>S_FALSE</b></dt> </dl> </td> <td width="60%"> Catalog did not previously existed, no change. </td>
     ///    </tr> </table> FAILED HRESULT: Failure deleting catalog or invalid arguments passed.
     ///    
-    HRESULT DeleteCatalog(const(wchar)* pszCatalog);
+    HRESULT DeleteCatalog(const(PWSTR) pszCatalog);
 }
 
 ///Provides methods for accessing thesaurus information.
@@ -5815,7 +5822,7 @@ interface ISearchLanguageSupport : IUnknown
     ///Params:
     ///    pfDiacriticSensitive = Type: <b>BOOL*</b> On return, contains a pointer to the sensitivity setting. <b>FALSE</b> indicates that the
     ///                           interface ignores diacritics; <b>TRUE</b> indicates the interface recognizes diacritics.
-    HRESULT GetDiacriticSensitivity(int* pfDiacriticSensitive);
+    HRESULT GetDiacriticSensitivity(BOOL* pfDiacriticSensitive);
     ///Retrieves an interface to the word breaker registered for the specified language code identifier (LCID).
     ///Params:
     ///    lcid = Type: <b>LCID</b> The LCID requested.
@@ -5841,14 +5848,14 @@ interface ISearchLanguageSupport : IUnknown
     ///    cwcDocumentToken = Type: <b>ULONG</b> The size of <i>pwcsDocumentToken</i>.
     ///    pulPrefixLength = Type: <b>ULONG*</b> Returns a pointer to the number of characters matched in <i>pwcsDocumentToken</i>.
     ///                      Typically, but not necessarily, the number of characters in <i>pwcsQueryToken</i>.
-    HRESULT IsPrefixNormalized(const(wchar)* pwcsQueryToken, uint cwcQueryToken, const(wchar)* pwcsDocumentToken, 
+    HRESULT IsPrefixNormalized(const(PWSTR) pwcsQueryToken, uint cwcQueryToken, const(PWSTR) pwcsDocumentToken, 
                                uint cwcDocumentToken, uint* pulPrefixLength);
 }
 
 @GUID("F72C8D96-6DBD-11D1-A1E8-00C04FC2FBE1")
 interface IEnumItemProperties : IUnknown
 {
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, ITEMPROP* rgelt, uint* pceltFetched);
     HRESULT Skip(uint celt);
     HRESULT Reset();
     HRESULT Clone(IEnumItemProperties* ppenum);
@@ -5861,8 +5868,8 @@ interface ISubscriptionItem : IUnknown
     HRESULT GetCookie(GUID* pCookie);
     HRESULT GetSubscriptionItemInfo(SUBSCRIPTIONITEMINFO* pSubscriptionItemInfo);
     HRESULT SetSubscriptionItemInfo(const(SUBSCRIPTIONITEMINFO)* pSubscriptionItemInfo);
-    HRESULT ReadProperties(uint nCount, char* rgwszName, char* rgValue);
-    HRESULT WriteProperties(uint nCount, char* rgwszName, char* rgValue);
+    HRESULT ReadProperties(uint nCount, const(PWSTR)** rgwszName, VARIANT* rgValue);
+    HRESULT WriteProperties(uint nCount, const(PWSTR)** rgwszName, const(VARIANT)* rgValue);
     HRESULT EnumProperties(IEnumItemProperties* ppEnumItemProperties);
     HRESULT NotifyChanged();
 }
@@ -5870,7 +5877,7 @@ interface ISubscriptionItem : IUnknown
 @GUID("F72C8D97-6DBD-11D1-A1E8-00C04FC2FBE1")
 interface IEnumSubscription : IUnknown
 {
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, GUID* rgelt, uint* pceltFetched);
     HRESULT Skip(uint celt);
     HRESULT Reset();
     HRESULT Clone(IEnumSubscription* ppenum);
@@ -5880,26 +5887,26 @@ interface IEnumSubscription : IUnknown
 @GUID("085FB2C0-0DF8-11D1-8F4B-00A0C905413F")
 interface ISubscriptionMgr : IUnknown
 {
-    HRESULT DeleteSubscription(const(wchar)* pwszURL, HWND hwnd);
-    HRESULT UpdateSubscription(const(wchar)* pwszURL);
+    HRESULT DeleteSubscription(const(PWSTR) pwszURL, HWND hwnd);
+    HRESULT UpdateSubscription(const(PWSTR) pwszURL);
     HRESULT UpdateAll();
-    HRESULT IsSubscribed(const(wchar)* pwszURL, int* pfSubscribed);
-    HRESULT GetSubscriptionInfo(const(wchar)* pwszURL, _tagSubscriptionInfo* pInfo);
+    HRESULT IsSubscribed(const(PWSTR) pwszURL, BOOL* pfSubscribed);
+    HRESULT GetSubscriptionInfo(const(PWSTR) pwszURL, _tagSubscriptionInfo* pInfo);
     HRESULT GetDefaultInfo(SUBSCRIPTIONTYPE subType, _tagSubscriptionInfo* pInfo);
-    HRESULT ShowSubscriptionProperties(const(wchar)* pwszURL, HWND hwnd);
-    HRESULT CreateSubscription(HWND hwnd, const(wchar)* pwszURL, const(wchar)* pwszFriendlyName, uint dwFlags, 
+    HRESULT ShowSubscriptionProperties(const(PWSTR) pwszURL, HWND hwnd);
+    HRESULT CreateSubscription(HWND hwnd, const(PWSTR) pwszURL, const(PWSTR) pwszFriendlyName, uint dwFlags, 
                                SUBSCRIPTIONTYPE subsType, _tagSubscriptionInfo* pInfo);
 }
 
 @GUID("614BC270-AEDF-11D1-A1F9-00C04FC2FBE1")
 interface ISubscriptionMgr2 : ISubscriptionMgr
 {
-    HRESULT GetItemFromURL(const(wchar)* pwszURL, ISubscriptionItem* ppSubscriptionItem);
+    HRESULT GetItemFromURL(const(PWSTR) pwszURL, ISubscriptionItem* ppSubscriptionItem);
     HRESULT GetItemFromCookie(const(GUID)* pSubscriptionCookie, ISubscriptionItem* ppSubscriptionItem);
-    HRESULT GetSubscriptionRunState(uint dwNumCookies, char* pCookies, char* pdwRunState);
+    HRESULT GetSubscriptionRunState(uint dwNumCookies, const(GUID)* pCookies, uint* pdwRunState);
     HRESULT EnumSubscriptions(uint dwFlags, IEnumSubscription* ppEnumSubscriptions);
-    HRESULT UpdateItems(uint dwFlags, uint dwNumCookies, char* pCookies);
-    HRESULT AbortItems(uint dwNumCookies, char* pCookies);
+    HRESULT UpdateItems(uint dwFlags, uint dwNumCookies, const(GUID)* pCookies);
+    HRESULT AbortItems(uint dwNumCookies, const(GUID)* pCookies);
     HRESULT AbortAll();
 }
 

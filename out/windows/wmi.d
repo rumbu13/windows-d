@@ -5,9 +5,9 @@ module windows.wmi;
 public import windows.core;
 public import windows.automation : BSTR, IDispatch, SAFEARRAY, VARIANT;
 public import windows.com : HRESULT, IUnknown;
-public import windows.systemservices : BOOL;
+public import windows.systemservices : BOOL, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -1540,32 +1540,32 @@ enum WbemConnectOptionsEnum : int
 struct SWbemQueryQualifiedName
 {
     ///Unused. Always 1 (one).
-    uint     m_uVersion;
+    uint   m_uVersion;
     ///Unused. Always 1 (one).
-    uint     m_uTokenType;
+    uint   m_uTokenType;
     ///Number of elements in the list of names. For example, for the "propName" property, <b>m_uNameListSize</b> is 1
     ///(one) and <b>m_ppszNameList</b> is "propName".
-    uint     m_uNameListSize;
+    uint   m_uNameListSize;
     ///List of property names. For example, for the "propName" property, <b>m_uNameListSize</b> is 1 (one) and
     ///<b>m_ppszNameList</b> is "propName".
-    ushort** m_ppszNameList;
+    PWSTR* m_ppszNameList;
     ///Unused. Always <b>false</b>.
-    BOOL     m_bArraysUsed;
+    BOOL   m_bArraysUsed;
     ///Unused. Always <b>NULL</b>.
-    int*     m_pbArrayElUsed;
+    BOOL*  m_pbArrayElUsed;
     ///Unused. Always <b>NULL</b>.
-    uint*    m_puArrayIndex;
+    uint*  m_puArrayIndex;
 }
 
 union tag_SWbemRpnConst
 {
-    const(wchar)* m_pszStrVal;
-    BOOL          m_bBoolVal;
-    int           m_lLongVal;
-    uint          m_uLongVal;
-    double        m_dblVal;
-    long          m_lVal64;
-    long          m_uVal64;
+    const(PWSTR) m_pszStrVal;
+    BOOL         m_bBoolVal;
+    int          m_lLongVal;
+    uint         m_uLongVal;
+    double       m_dblVal;
+    long         m_lVal64;
+    long         m_uVal64;
 }
 
 ///The <b>SWbemRpnQueryToken</b> structure represents the query tokens in a WMIQ_ANALYSIS_RPN_SEQUENCE type query. An
@@ -1598,10 +1598,10 @@ struct SWbemRpnQueryToken
     tag_SWbemRpnConst m_Const2;
     ///Specifies a function on the right of the operator in a WHERE clause. If there is no function on the right of the
     ///operator in this token, this field is <b>NULL</b>.
-    const(wchar)*     m_pszRightFunc;
+    const(PWSTR)      m_pszRightFunc;
     ///Specifies a function on the left of the operator in a WHERE clause. If there is no function on the left of the
     ///operator in this token, this field is <b>NULL</b>.
-    const(wchar)*     m_pszLeftFunc;
+    const(PWSTR)      m_pszLeftFunc;
 }
 
 struct tag_SWbemRpnTokenList
@@ -1637,13 +1637,13 @@ struct SWbemRpnEncodedQuery
     ///Bitmap used to indicate the form of the FROM clause.
     uint                 m_uFromTargetType;
     ///Optional FROM path. If not used this field is <b>NULL</b>.
-    const(wchar)*        m_pszOptionalFromPath;
+    const(PWSTR)         m_pszOptionalFromPath;
     ///Number of items in the FROM clause of the SELECT statement. For example, in the statement, <code>SELECT * FROM a,
     ///b</code>, the value of <b>m_uFromListSize</b> is 2.
     uint                 m_uFromListSize;
     ///Pointer to a list of strings. Each string is one element of the FROM clause of a SELECT statement. For example,
     ///in the statement <code>SELECT * FROM a, b</code>, the list contains the strings "a" and "b".
-    ushort**             m_ppszFromList;
+    PWSTR*               m_ppszFromList;
     ///Number of tokens in the WHERE clause. For example, in the statement <code>SELECT * FROM a, b WHERE c &lt; 1000
     ///AND d ISA e</code>, the value of <b>m_uWhereClauseSize</b> is 2 (the phrases <code>c &lt; 1000</code> and <code>d
     ///ISA e</code>).
@@ -1657,19 +1657,19 @@ struct SWbemRpnEncodedQuery
     ///Used if there is a GROUP WITHIN clause to indicate the interval over which to group results.
     double               m_dblWithinWindow;
     uint                 m_uOrderByListSize;
-    ushort**             m_ppszOrderByList;
+    PWSTR*               m_ppszOrderByList;
     uint*                m_uOrderDirectionEl;
 }
 
 struct tag_SWbemAnalysisMatrix
 {
-    uint          m_uVersion;
-    uint          m_uMatrixType;
-    const(wchar)* m_pszProperty;
-    uint          m_uPropertyType;
-    uint          m_uEntries;
-    void**        m_pValues;
-    int*          m_pbTruthTable;
+    uint         m_uVersion;
+    uint         m_uMatrixType;
+    const(PWSTR) m_pszProperty;
+    uint         m_uPropertyType;
+    uint         m_uEntries;
+    void**       m_pValues;
+    BOOL*        m_pbTruthTable;
 }
 
 struct tag_SWbemAnalysisMatrixList
@@ -1685,29 +1685,29 @@ struct tag_SWbemAnalysisMatrixList
 struct SWbemAssocQueryInf
 {
     ///Value must be 2.
-    uint          m_uVersion;
+    uint      m_uVersion;
     ///Value must be 2.
-    uint          m_uAnalysisType;
+    uint      m_uAnalysisType;
     ///Bit values that indicate the features in a query.
-    uint          m_uFeatureMask;
+    uint      m_uFeatureMask;
     ///Pointer to an IWbemPath object.
-    IWbemPath     m_pPath;
+    IWbemPath m_pPath;
     ///String representation of the object path used in the query.
-    const(wchar)* m_pszPath;
+    PWSTR     m_pszPath;
     ///Text of the original query.
-    const(wchar)* m_pszQueryText;
+    PWSTR     m_pszQueryText;
     ///String representation of the result class. If there is no result class, this field is <b>NULL</b>.
-    const(wchar)* m_pszResultClass;
+    PWSTR     m_pszResultClass;
     ///String representation of the association class. If there is no result class, this field is <b>NULL</b>.
-    const(wchar)* m_pszAssocClass;
+    PWSTR     m_pszAssocClass;
     ///String representation of the role. If there is no role, this field is <b>NULL</b>.
-    const(wchar)* m_pszRole;
+    PWSTR     m_pszRole;
     ///String representation of the result role. If there is no result role, this field is <b>NULL</b>.
-    const(wchar)* m_pszResultRole;
+    PWSTR     m_pszResultRole;
     ///String representation of the required qualifier. If no qualifiers are required, this field is <b>NULL</b>.
-    const(wchar)* m_pszRequiredQualifier;
+    PWSTR     m_pszRequiredQualifier;
     ///Pointer to a list of required association qualifiers.
-    const(wchar)* m_pszRequiredAssocQualifier;
+    PWSTR     m_pszRequiredAssocQualifier;
 }
 
 ///Describes an error for the IMofCompiler interface.
@@ -1870,7 +1870,7 @@ interface IWbemPathKeyList : IUnknown
     ///Returns:
     ///    This method returns an <b>HRESULT</b> indicating the status of the method call.
     ///    
-    HRESULT SetKey(const(wchar)* wszName, uint uFlags, uint uCimType, void* pKeyVal);
+    HRESULT SetKey(const(PWSTR) wszName, uint uFlags, uint uCimType, void* pKeyVal);
     ///The <b>IWbemPathKeyList::SetKey2</b> method sets the name or value pair for a key using variants. If the key
     ///exists, it is replaced.
     ///Params:
@@ -1881,7 +1881,7 @@ interface IWbemPathKeyList : IUnknown
     ///Returns:
     ///    This method returns an <b>HRESULT</b> indicating the status of the method call.
     ///    
-    HRESULT SetKey2(const(wchar)* wszName, uint uFlags, uint uCimType, VARIANT* pKeyVal);
+    HRESULT SetKey2(const(PWSTR) wszName, uint uFlags, uint uCimType, VARIANT* pKeyVal);
     ///The <b>IWbemPathKeyList::GetKey</b> method retrieves a key's name or value. Keys are indexed from 0 (zero),
     ///though the order of the keys is not significant.
     ///Params:
@@ -1898,7 +1898,7 @@ interface IWbemPathKeyList : IUnknown
     ///Returns:
     ///    This method returns an <b>HRESULT</b> indicating the status of the method call.
     ///    
-    HRESULT GetKey(uint uKeyIx, uint uFlags, uint* puNameBufSize, const(wchar)* pszKeyName, uint* puKeyValBufSize, 
+    HRESULT GetKey(uint uKeyIx, uint uFlags, uint* puNameBufSize, PWSTR pszKeyName, uint* puKeyValBufSize, 
                    void* pKeyVal, uint* puApparentCimType);
     ///The <b>IWbemPathKeyList::GetKey2</b> method retrieves a key name or value, and returns the value as a
     ///<b>VARIANT</b>. A key is indexed from 0 (zero), but the key order is not significant.
@@ -1914,7 +1914,7 @@ interface IWbemPathKeyList : IUnknown
     ///Returns:
     ///    This method returns an <b>HRESULT</b> that indicates the status of the method call.
     ///    
-    HRESULT GetKey2(uint uKeyIx, uint uFlags, uint* puNameBufSize, const(wchar)* pszKeyName, VARIANT* pKeyValue, 
+    HRESULT GetKey2(uint uKeyIx, uint uFlags, uint* puNameBufSize, PWSTR pszKeyName, VARIANT* pKeyValue, 
                     uint* puApparentCimType);
     ///The <b>IWbemPathKeyList::RemoveKey</b> method removes the key that matches the <i>wszName</i> parameter.
     ///Params:
@@ -1923,7 +1923,7 @@ interface IWbemPathKeyList : IUnknown
     ///Returns:
     ///    This method returns an <b>HRESULT</b> indicating the status of the method call.
     ///    
-    HRESULT RemoveKey(const(wchar)* wszName, uint uFlags);
+    HRESULT RemoveKey(const(PWSTR) wszName, uint uFlags);
     ///The <b>IWbemPathKeyList::RemoveAllKeys</b> method removes all keys.
     ///Params:
     ///    uFlags = Reserved. Must be 0 (zero).
@@ -1955,7 +1955,7 @@ interface IWbemPathKeyList : IUnknown
     ///Returns:
     ///    This method returns an <b>HRESULT</b> indicating the status of the method call.
     ///    
-    HRESULT GetText(int lFlags, uint* puBuffLength, const(wchar)* pszText);
+    HRESULT GetText(int lFlags, uint* puBuffLength, PWSTR pszText);
 }
 
 ///The <b>IWbemPath</b> interface is the primary interface for the object path parser and makes parsing a path available
@@ -1973,7 +1973,7 @@ interface IWbemPath : IUnknown
     ///Returns:
     ///    This method returns an <b>HRESULT</b> indicating the status of the method call.
     ///    
-    HRESULT SetText(uint uMode, const(wchar)* pszPath);
+    HRESULT SetText(uint uMode, const(PWSTR) pszPath);
     ///The <b>IWbemPath::GetText</b> method returns a textual representation of a path that has previously been placed
     ///into a parser object.
     ///Params:
@@ -1984,7 +1984,7 @@ interface IWbemPath : IUnknown
     ///Returns:
     ///    This method returns the following values.
     ///    
-    HRESULT GetText(int lFlags, uint* puBuffLength, const(wchar)* pszText);
+    HRESULT GetText(int lFlags, uint* puBuffLength, PWSTR pszText);
     ///The <b>IWbemPath::GetInfo</b> method returns details about a path that has been placed into a parser object.
     ///Params:
     ///    uRequestedInfo = Reserved for future use. Must be 0 (zero).
@@ -1999,7 +1999,7 @@ interface IWbemPath : IUnknown
     ///Returns:
     ///    This method returns an <b>HRESULT</b> indicating the status of the method call.
     ///    
-    HRESULT SetServer(const(wchar)* Name);
+    HRESULT SetServer(const(PWSTR) Name);
     ///The <b>IWbemPath::GetServer</b> method retrieves the server portion of the path.
     ///Params:
     ///    puNameBufLength = Upon input, this is the size in characters of the buffer pointed to by <i>pszName</i>. Upon return, this is
@@ -2008,7 +2008,7 @@ interface IWbemPath : IUnknown
     ///Returns:
     ///    This method returns the following values.
     ///    
-    HRESULT GetServer(uint* puNameBufLength, const(wchar)* pName);
+    HRESULT GetServer(uint* puNameBufLength, PWSTR pName);
     ///The <b>IWbemPath::GetNamespaceCount</b> method returns the number of namespaces in the path.
     ///Params:
     ///    puCount = Number of namespaces in the path.
@@ -2027,7 +2027,7 @@ interface IWbemPath : IUnknown
     ///Returns:
     ///    This method returns an <b>HRESULT</b> indicating the status of the method call.
     ///    
-    HRESULT SetNamespaceAt(uint uIndex, const(wchar)* pszName);
+    HRESULT SetNamespaceAt(uint uIndex, const(PWSTR) pszName);
     ///The <b>IWbemPath::GetNamespaceAt</b> method retrieves a namespace based upon its index. The leftmost namespace in
     ///the path has an index of 0 with each namespace moving to the right having a progressively higher index value.
     ///Params:
@@ -2040,7 +2040,7 @@ interface IWbemPath : IUnknown
     ///Returns:
     ///    This method returns an <b>HRESULT</b> indicating the status of the method call.
     ///    
-    HRESULT GetNamespaceAt(uint uIndex, uint* puNameBufLength, const(wchar)* pName);
+    HRESULT GetNamespaceAt(uint uIndex, uint* puNameBufLength, PWSTR pName);
     ///The <b>IWbemPath::RemoveNamespaceAt</b> method removes a namespace at a particular index. The leftmost namespace
     ///has an index value of 0 (zero), while namespaces to the right have progressively higher index values.
     ///Params:
@@ -2069,8 +2069,8 @@ interface IWbemPath : IUnknown
     ///Returns:
     ///    This method returns an <b>HRESULT</b> indicating the status of the method call.
     ///    
-    HRESULT SetScope(uint uIndex, const(wchar)* pszClass);
-    HRESULT SetScopeFromText(uint uIndex, const(wchar)* pszText);
+    HRESULT SetScope(uint uIndex, PWSTR pszClass);
+    HRESULT SetScopeFromText(uint uIndex, PWSTR pszText);
     ///The <b>IWbemPath::GetScope</b> method retrieves a scope based upon an index. This method retrieves the class name
     ///and a IWbemPathKeyList pointer so that the details of the keys can be retrieved.
     ///Params:
@@ -2082,7 +2082,7 @@ interface IWbemPath : IUnknown
     ///Returns:
     ///    This method returns the following values.
     ///    
-    HRESULT GetScope(uint uIndex, uint* puClassNameBufSize, const(wchar)* pszClass, IWbemPathKeyList* pKeyList);
+    HRESULT GetScope(uint uIndex, uint* puClassNameBufSize, PWSTR pszClass, IWbemPathKeyList* pKeyList);
     ///The <b>IWbemPath::GetScopeAsText</b> method retrieves a scope in text format based on an index.
     ///Params:
     ///    uIndex = Index of the scope.
@@ -2092,7 +2092,7 @@ interface IWbemPath : IUnknown
     ///Returns:
     ///    This method returns the following values.
     ///    
-    HRESULT GetScopeAsText(uint uIndex, uint* puTextBufSize, const(wchar)* pszText);
+    HRESULT GetScopeAsText(uint uIndex, uint* puTextBufSize, PWSTR pszText);
     ///The <b>IWbemPath::RemoveScope</b> method removes a scope based on the index.
     ///Params:
     ///    uIndex = Index of the scope to be removed.
@@ -2111,8 +2111,8 @@ interface IWbemPath : IUnknown
     ///Returns:
     ///    This method returns an <b>HRESULT</b> indicating the status of the method call.
     ///    
-    HRESULT SetClassName(const(wchar)* Name);
-    HRESULT GetClassNameA(uint* puBuffLength, const(wchar)* pszName);
+    HRESULT SetClassName(const(PWSTR) Name);
+    HRESULT GetClassNameA(uint* puBuffLength, PWSTR pszName);
     ///The <b>IWbemPath::GetKeyList</b> method retrieves an IWbemPathKeyList pointer so that the individual key may be
     ///accessed.
     ///Params:
@@ -2129,7 +2129,7 @@ interface IWbemPath : IUnknown
     ///Returns:
     ///    This method returns an <b>HRESULT</b> indicating the status of the method call.
     ///    
-    HRESULT CreateClassPart(int lFlags, const(wchar)* Name);
+    HRESULT CreateClassPart(int lFlags, const(PWSTR) Name);
     ///The <b>IWbemPath::DeleteClassPart</b> method deletes the class portion of the path.
     ///Params:
     ///    lFlags = Reserved. Must be 0 (zero).
@@ -2145,7 +2145,7 @@ interface IWbemPath : IUnknown
     ///Returns:
     ///    This method returns a BOOL indicating whether the path is relative to the specified computer and namespace.
     ///    
-    BOOL    IsRelative(const(wchar)* wszMachine, const(wchar)* wszNamespace);
+    BOOL    IsRelative(PWSTR wszMachine, PWSTR wszNamespace);
     ///The <b>IWbemPath::IsRelativeOrChild</b> method tests if the path, as already set in the parser, is relative to or
     ///a child of a particular computer and namespace.
     ///Params:
@@ -2156,7 +2156,7 @@ interface IWbemPath : IUnknown
     ///    This method returns a <b>BOOL</b> indicating whether the path is relative to the specified computer and
     ///    namespace.
     ///    
-    BOOL    IsRelativeOrChild(const(wchar)* wszMachine, const(wchar)* wszNamespace, int lFlags);
+    BOOL    IsRelativeOrChild(PWSTR wszMachine, PWSTR wszNamespace, int lFlags);
     ///The <b>IWbemPath::IsLocal</b> method tests if the computer name passed in matches the computer name in the path,
     ///or if the server name in the path is <b>NULL</b> or ".".
     ///Params:
@@ -2165,7 +2165,7 @@ interface IWbemPath : IUnknown
     ///    This method returns a <b>BOOL</b> indicating whether the path matches the passed in computer name, or if the
     ///    server name in the path is <b>NULL</b> or ".".
     ///    
-    BOOL    IsLocal(const(wchar)* wszMachine);
+    BOOL    IsLocal(const(PWSTR) wszMachine);
     ///The <b>IWbemPath::IsSameClassName</b> method tests whether the class name passed in matches the one in the path.
     ///The method can return <b>TRUE</b> only if the path actually has a class name.
     ///Params:
@@ -2173,7 +2173,7 @@ interface IWbemPath : IUnknown
     ///Returns:
     ///    This method returns a BOOL indicating whether the class name matches the one in the path.
     ///    
-    BOOL    IsSameClassName(const(wchar)* wszClass);
+    BOOL    IsSameClassName(const(PWSTR) wszClass);
 }
 
 ///The <b>IWbemQuery</b> interface provides an entry point through which a WMI Query Language (WQL) query can be parsed.
@@ -2197,7 +2197,7 @@ interface IWbemQuery : IUnknown
     ///Returns:
     ///    This method returns an <b>HRESULT</b> indicating the status of the method call.
     ///    
-    HRESULT Parse(const(wchar)* pszLang, const(wchar)* pszQuery, uint uFlags);
+    HRESULT Parse(const(PWSTR) pszLang, const(PWSTR) pszQuery, uint uFlags);
     ///The <b>IWbemQuery::GetAnalysis</b> method gets the results of a successful query parse.
     ///Params:
     ///    uAnalysisType = Type of analysis to get.
@@ -2257,7 +2257,7 @@ interface IWbemClassObject : IUnknown
     ///    This method returns an <b>HRESULT</b> that indicates the status of the method call. The following list lists
     ///    the value contained in an <b>HRESULT</b>. For general <b>HRESULT</b> values, see System Error Codes.
     ///    
-    HRESULT Get(const(wchar)* wszName, int lFlags, VARIANT* pVal, int* pType, int* plFlavor);
+    HRESULT Get(const(PWSTR) wszName, int lFlags, VARIANT* pVal, int* pType, int* plFlavor);
     ///The <b>IWbemClassObject::Put</b> method sets a named property to a new value. This method always overwrites the
     ///current value with a new one. When IWbemClassObject points to a CIM class definition, <b>Put</b> creates or
     ///updates the property value. When <b>IWbemClassObject</b> points to a CIM instance, <b>Put</b> updates a property
@@ -2290,7 +2290,7 @@ interface IWbemClassObject : IUnknown
     ///    This method returns an <b>HRESULT</b> that indicates the status of the method call. The following list lists
     ///    the values contained within an <b>HRESULT</b>. For general <b>HRESULT</b> values, see System Error Codes.
     ///    
-    HRESULT Put(const(wchar)* wszName, int lFlags, VARIANT* pVal, int Type);
+    HRESULT Put(const(PWSTR) wszName, int lFlags, VARIANT* pVal, int Type);
     ///The <b>IWbemClassObject::Delete</b> method deletes the specified property from a CIM class definition and all of
     ///its qualifiers. Because instances cannot have contents that are different from the owning class, delete
     ///operations for properties are only possible on class definitions. If you invoke <b>Delete</b> on a property in an
@@ -2305,7 +2305,7 @@ interface IWbemClassObject : IUnknown
     ///    This method returns an <b>HRESULT</b> indicating the status of the method call. The following list lists the
     ///    value contained within an <b>HRESULT</b>. For general <b>HRESULT</b> values, see System Error Codes.
     ///    
-    HRESULT Delete(const(wchar)* wszName);
+    HRESULT Delete(const(PWSTR) wszName);
     ///The <b>IWbemClassObject::GetNames</b> method retrieves the names of the properties in the object. Furthermore,
     ///depending on user-supplied selection criteria, it can retrieve all or a subset of the properties. These
     ///properties can then be accessed by using IWbemClassObject::Get for each name. This method can also return system
@@ -2326,7 +2326,7 @@ interface IWbemClassObject : IUnknown
     ///    This method returns an <b>HRESULT</b> indicating the status of the method call. The following list lists the
     ///    value contained within an <b>HRESULT</b>. For general <b>HRESULT</b> values, see System Error Codes.
     ///    
-    HRESULT GetNames(const(wchar)* wszQualifierName, int lFlags, VARIANT* pQualifierVal, SAFEARRAY** pNames);
+    HRESULT GetNames(const(PWSTR) wszQualifierName, int lFlags, VARIANT* pQualifierVal, SAFEARRAY** pNames);
     ///The <b>IWbemClassObject::BeginEnumeration</b> method resets an enumeration back to the beginning of the
     ///enumeration. The caller must call this method prior to the first call to IWbemClassObject::Next to enumerate all
     ///of the properties on an object. The order in which properties are enumerated is guaranteed to be invariant for a
@@ -2387,7 +2387,7 @@ interface IWbemClassObject : IUnknown
     ///    This method returns an <b>HRESULT</b> indicating the status of the method call. The following list lists the
     ///    value contained within an <b>HRESULT</b>. For general <b>HRESULT</b> values, see System Error Codes.
     ///    
-    HRESULT GetPropertyQualifierSet(const(wchar)* wszProperty, IWbemQualifierSet* ppQualSet);
+    HRESULT GetPropertyQualifierSet(const(PWSTR) wszProperty, IWbemQualifierSet* ppQualSet);
     ///The <b>IWbemClassObject::Clone</b> method returns a new object that is a complete clone of the current object.
     ///The new object has a COM reference count of 1.
     ///Params:
@@ -2473,7 +2473,7 @@ interface IWbemClassObject : IUnknown
     ///    This method returns an <b>HRESULT</b> indicating the status of the method call. The following list lists the
     ///    value contained within an <b>HRESULT</b>. For general <b>HRESULT</b> values, see System Error Codes.
     ///    
-    HRESULT GetPropertyOrigin(const(wchar)* wszName, BSTR* pstrClassName);
+    HRESULT GetPropertyOrigin(const(PWSTR) wszName, BSTR* pstrClassName);
     ///The <b>IWbemClassObject::InheritsFrom</b> method determines if the current class or instance derives from a
     ///specified parent class.
     ///Params:
@@ -2484,7 +2484,7 @@ interface IWbemClassObject : IUnknown
     ///    This method returns an <b>HRESULT</b> indicating the status of the method call. The following list lists the
     ///    value contained within an <b>HRESULT</b>. For general <b>HRESULT</b> values, see System Error Codes.
     ///    
-    HRESULT InheritsFrom(const(wchar)* strAncestor);
+    HRESULT InheritsFrom(const(PWSTR) strAncestor);
     ///The <b>IWbemClassObject::GetMethod</b> method returns information about the requested method. This call is only
     ///supported if the current object is a CIM class definition. Method information is not available from
     ///IWbemClassObject pointers which point to CIM instances.
@@ -2501,7 +2501,7 @@ interface IWbemClassObject : IUnknown
     ///    This method returns an <b>HRESULT</b> that indicates the status of the method call. The following list lists
     ///    the value contained within an <b>HRESULT</b>. For general <b>HRESULT</b> values, see System Error Codes.
     ///    
-    HRESULT GetMethod(const(wchar)* wszName, int lFlags, IWbemClassObject* ppInSignature, 
+    HRESULT GetMethod(const(PWSTR) wszName, int lFlags, IWbemClassObject* ppInSignature, 
                       IWbemClassObject* ppOutSignature);
     ///The <b>IWbemClassObject::PutMethod</b> is used to create a method. This call is only supported if the current
     ///object is a CIM class definition. Method manipulation is not available from IWbemClassObject pointers that point
@@ -2518,7 +2518,7 @@ interface IWbemClassObject : IUnknown
     ///    This method returns an <b>HRESULT</b> that indicates the status of the method call. The following list lists
     ///    the value contained within an <b>HRESULT</b>. For general <b>HRESULT</b> values, see System Error Codes.
     ///    
-    HRESULT PutMethod(const(wchar)* wszName, int lFlags, IWbemClassObject pInSignature, 
+    HRESULT PutMethod(const(PWSTR) wszName, int lFlags, IWbemClassObject pInSignature, 
                       IWbemClassObject pOutSignature);
     ///Use the <b>IWbemClassObject::DeleteMethod</b> method to delete a method. This call is supported only if the
     ///current object is a CIM class definition. Method manipulation is not available from IWbemClassObject pointers
@@ -2529,7 +2529,7 @@ interface IWbemClassObject : IUnknown
     ///    This method returns an <b>HRESULT</b> indicating the status of the method call. The following list lists the
     ///    value contained within an <b>HRESULT</b>. For general <b>HRESULT</b> values, see System Error Codes.
     ///    
-    HRESULT DeleteMethod(const(wchar)* wszName);
+    HRESULT DeleteMethod(const(PWSTR) wszName);
     ///Use the <b>IWbemClassObject::BeginMethodEnumeration</b> method call to begin an enumeration of the methods
     ///available for the object. This call is only supported if the current object is a CIM class definition. Method
     ///manipulation is not available from IWbemClassObject pointers which point to CIM instances. The order in which
@@ -2580,7 +2580,7 @@ interface IWbemClassObject : IUnknown
     ///    This method returns an <b>HRESULT</b> indicating the status of the method call. The following list lists the
     ///    value contained within an <b>HRESULT</b>. For general <b>HRESULT</b> values, see System Error Codes.
     ///    
-    HRESULT GetMethodQualifierSet(const(wchar)* wszMethod, IWbemQualifierSet* ppQualSet);
+    HRESULT GetMethodQualifierSet(const(PWSTR) wszMethod, IWbemQualifierSet* ppQualSet);
     ///The <b>IWbemClassObject::GetMethodOrigin</b> method is used to determine the class for which a method was
     ///declared. This call is only supported if the current object is a CIM class definition. Method manipulation is not
     ///available from IWbemClassObject pointers which point to CIM instances.
@@ -2592,7 +2592,7 @@ interface IWbemClassObject : IUnknown
     ///    This method returns an <b>HRESULT</b> indicating the status of the method call. The following list lists the
     ///    value contained within an <b>HRESULT</b>. For general <b>HRESULT</b> values, see System Error Codes.
     ///    
-    HRESULT GetMethodOrigin(const(wchar)* wszMethodName, BSTR* pstrClassName);
+    HRESULT GetMethodOrigin(const(PWSTR) wszMethodName, BSTR* pstrClassName);
 }
 
 ///The <b>IWbemObjectAccess</b> interface provides access to the methods and properties of an object. An
@@ -2614,7 +2614,7 @@ interface IWbemObjectAccess : IWbemClassObject
     ///    This method returns an <b>HRESULT</b> indicating the status of the method call. The following list lists the
     ///    value contained withinan <b>HRESULT</b>.
     ///    
-    HRESULT GetPropertyHandle(const(wchar)* wszPropertyName, int* pType, int* plHandle);
+    HRESULT GetPropertyHandle(const(PWSTR) wszPropertyName, int* pType, int* plHandle);
     ///The <b>WritePropertyValue</b> method writes a specified number of bytes to a property identified by a property
     ///handle. Use this method to set string and all other non-<b>DWORD</b> or non-<b>QWORD</b> data.
     ///Params:
@@ -2727,7 +2727,7 @@ interface IWbemQualifierSet : IUnknown
     ///    This method returns an <b>HRESULT</b> indicating the status of the method call. The following list lists the
     ///    value contained within an <b>HRESULT</b>.
     ///    
-    HRESULT Get(const(wchar)* wszName, int lFlags, VARIANT* pVal, int* plFlavor);
+    HRESULT Get(const(PWSTR) wszName, int lFlags, VARIANT* pVal, int* plFlavor);
     ///The <b>IWbemQualifierSet::Put</b> method writes the named qualifier and value. The new qualifier overwrites the
     ///previous value of the same name. If the qualifier does not exist, it is created. Sometimes it is not possible to
     ///write the value of a qualifier, for example, if the qualifier is propagated from another object. Typically,
@@ -2747,7 +2747,7 @@ interface IWbemQualifierSet : IUnknown
     ///    This method returns an <b>HRESULT</b> that indicates the status of the method call. The following list lists
     ///    the value contained withinan <b>HRESULT</b>.
     ///    
-    HRESULT Put(const(wchar)* wszName, VARIANT* pVal, int lFlavor);
+    HRESULT Put(const(PWSTR) wszName, VARIANT* pVal, int lFlavor);
     ///The <b>IWbemQualifierSet::Delete</b> method deletes the specified qualifier by name. Due to qualifier propagation
     ///rules, a particular qualifier may have been inherited from another object and merely overridden in the current
     ///class or instance. In this case, use the <b>Delete</b> method to reset the qualifier to the original inherited
@@ -2758,7 +2758,7 @@ interface IWbemQualifierSet : IUnknown
     ///    This method returns an <b>HRESULT</b> indicating the status of the method call. The following list lists the
     ///    value contained withinan <b>HRESULT</b>.
     ///    
-    HRESULT Delete(const(wchar)* wszName);
+    HRESULT Delete(const(PWSTR) wszName);
     ///The <b>IWbemQualifierSet::GetNames</b> method retrieves the names of all of the qualifiers available from the
     ///current object or property. Alternately, depending on the filter value of <i>IFlags</i>, this method retrieves
     ///the names of certain qualifiers. You can access these qualifiers by name, using IWbemQualifierSet::Get for each
@@ -2852,7 +2852,7 @@ interface IWbemServices : IUnknown
     ///    function GetErrorInfo. COM-specific error codes may also be returned if network problems cause you to lose
     ///    the remote connection to Windows Management.
     ///    
-    HRESULT OpenNamespace(const(ushort)* strNamespace, int lFlags, IWbemContext pCtx, 
+    HRESULT OpenNamespace(const(BSTR) strNamespace, int lFlags, IWbemContext pCtx, 
                           IWbemServices* ppWorkingNamespace, IWbemCallResult* ppResult);
     ///The <b>IWbemServices::CancelAsyncCall</b> method cancels any currently pending asynchronous calls based on the
     ///IWbemObjectSink pointer, which was originally passed to the asynchronous method. The outstanding
@@ -2902,7 +2902,7 @@ interface IWbemServices : IUnknown
     ///    other users requires giving them <b>WBEM_FULL_WRITE</b> permission.</div> <div> </div>
     ///    
     HRESULT QueryObjectSink(int lFlags, IWbemObjectSink* ppResponseHandler);
-    HRESULT GetObjectA(const(ushort)* strObjectPath, int lFlags, IWbemContext pCtx, IWbemClassObject* ppObject, 
+    HRESULT GetObjectA(const(BSTR) strObjectPath, int lFlags, IWbemContext pCtx, IWbemClassObject* ppObject, 
                        IWbemCallResult* ppCallResult);
     ///The <b>IWbemServices::GetObjectAsync</b> method retrieves an object, either a class definition or instance, based
     ///on its path. This is similar to IWbemServices::GetObject except that the call returns immediately, and the object
@@ -2934,7 +2934,7 @@ interface IWbemServices : IUnknown
     ///    COM function GetErrorInfo<b>GetErrorInfo</b>. COM-specific error codes can also be returned if network
     ///    problems cause you to lose the remote connection to Windows Management.
     ///    
-    HRESULT GetObjectAsync(const(ushort)* strObjectPath, int lFlags, IWbemContext pCtx, 
+    HRESULT GetObjectAsync(const(BSTR) strObjectPath, int lFlags, IWbemContext pCtx, 
                            IWbemObjectSink pResponseHandler);
     ///The <b>IWbemServices::PutClass</b> method creates a new class or updates an existing one. The class specified by
     ///the <i>pObject</i> parameter must have been correctly initialized with all of the required property values. The
@@ -3017,7 +3017,7 @@ interface IWbemServices : IUnknown
     ///    function GetErrorInfo. COM-specific error codes may also be returned if network problems cause you to lose
     ///    the remote connection to Windows Management.
     ///    
-    HRESULT DeleteClass(const(ushort)* strClass, int lFlags, IWbemContext pCtx, IWbemCallResult* ppCallResult);
+    HRESULT DeleteClass(const(BSTR) strClass, int lFlags, IWbemContext pCtx, IWbemCallResult* ppCallResult);
     ///The <b>IWbemServices::DeleteClassAsync</b> method deletes the specified class from the current namespace. This
     ///method is identical to IWbemServices::DeleteClass except that the call returns immediately. Confirmation or
     ///failure is asynchronously reported to the specified object sink using the IWbemObjectSink::SetStatus method after
@@ -3043,8 +3043,7 @@ interface IWbemServices : IUnknown
     ///    They are not reported in the return code of this method. COM-specific error codes also may be returned if
     ///    network problems cause you to lose the remote connection to Windows Management.
     ///    
-    HRESULT DeleteClassAsync(const(ushort)* strClass, int lFlags, IWbemContext pCtx, 
-                             IWbemObjectSink pResponseHandler);
+    HRESULT DeleteClassAsync(const(BSTR) strClass, int lFlags, IWbemContext pCtx, IWbemObjectSink pResponseHandler);
     ///The <b>IWbemServices::CreateClassEnum</b> method returns an enumerator for all classes that satisfy selection
     ///criteria. The caller must use the returned enumerator to retrieve the class definitions, calling
     ///IEnumWbemClassObject::Next to obtain each class or blocks of classes. It finishes by calling
@@ -3068,8 +3067,7 @@ interface IWbemServices : IUnknown
     ///    function GetErrorInfo. COM-specific error codes also can be returned if network problems cause you to lose
     ///    the remote connection to Windows Management.
     ///    
-    HRESULT CreateClassEnum(const(ushort)* strSuperclass, int lFlags, IWbemContext pCtx, 
-                            IEnumWbemClassObject* ppEnum);
+    HRESULT CreateClassEnum(const(BSTR) strSuperclass, int lFlags, IWbemContext pCtx, IEnumWbemClassObject* ppEnum);
     ///The <b>IWbemServices::CreateClassEnumAsync</b> method returns an enumeration of all classes that the class
     ///provider supports. The class provider creates each class definition from scratch and only returns subclasses of
     ///the requested class. As an asynchronous method, <b>CreateClassEnumAsync</b> returns a status message immediately
@@ -3102,7 +3100,7 @@ interface IWbemServices : IUnknown
     ///    waits indefinitely on a local connection or until a remote connection time-out occurs. The following list
     ///    lists the value contained within an <b>HRESULT</b>.
     ///    
-    HRESULT CreateClassEnumAsync(const(ushort)* strSuperclass, int lFlags, IWbemContext pCtx, 
+    HRESULT CreateClassEnumAsync(const(BSTR) strSuperclass, int lFlags, IWbemContext pCtx, 
                                  IWbemObjectSink pResponseHandler);
     ///The <b>IWbemServices::PutInstance</b> method creates or updates an instance of an existing class. The instance is
     ///written to the WMI repository.
@@ -3175,8 +3173,7 @@ interface IWbemServices : IUnknown
     ///    COM function GetErrorInfo. COM-specific error codes also may be returned if network problems cause you to
     ///    lose the remote connection to Windows Management.
     ///    
-    HRESULT DeleteInstance(const(ushort)* strObjectPath, int lFlags, IWbemContext pCtx, 
-                           IWbemCallResult* ppCallResult);
+    HRESULT DeleteInstance(const(BSTR) strObjectPath, int lFlags, IWbemContext pCtx, IWbemCallResult* ppCallResult);
     ///The <b>IWbemServices::DeleteInstanceAsync</b> method asynchronously deletes an instance of an existing class in
     ///the current namespace. The confirmation or failure of the operation is reported through the IWbemObjectSink
     ///interface implemented by the caller.
@@ -3210,7 +3207,7 @@ interface IWbemServices : IUnknown
     ///    provider. For a detailed explanation of the dependencies involved that determine the success of this
     ///    operation, see Remarks in IWbemServices::DeleteInstance.</div> <div> </div>
     ///    
-    HRESULT DeleteInstanceAsync(const(ushort)* strObjectPath, int lFlags, IWbemContext pCtx, 
+    HRESULT DeleteInstanceAsync(const(BSTR) strObjectPath, int lFlags, IWbemContext pCtx, 
                                 IWbemObjectSink pResponseHandler);
     ///The <b>IWbemServices::CreateInstanceEnum</b> method creates an enumerator that returns the instances of a
     ///specified class according to user-specified selection criteria. This method supports simple WQL queries; more
@@ -3232,8 +3229,7 @@ interface IWbemServices : IUnknown
     ///    function GetErrorInfo. COM-specific error codes also may be returned if network problems cause you to lose
     ///    the remote connection to Windows Management.
     ///    
-    HRESULT CreateInstanceEnum(const(ushort)* strFilter, int lFlags, IWbemContext pCtx, 
-                               IEnumWbemClassObject* ppEnum);
+    HRESULT CreateInstanceEnum(const(BSTR) strFilter, int lFlags, IWbemContext pCtx, IEnumWbemClassObject* ppEnum);
     ///The <b>IWbemServices::CreateInstanceEnumAsync</b> method creates an enumerator that asynchronously returns the
     ///instances of a specified class according to user-specified selection criteria. This method supports simple WMI
     ///Query Language (WQL) queries. More complex queries can be processed using the IWbemServices::ExecQueryAsync
@@ -3262,7 +3258,7 @@ interface IWbemServices : IUnknown
     ///    WMI waits for a result from the SetStatus method of the response handler. WMI waits indefinitely on a local
     ///    connection, or until a remote connection time-out occurs.
     ///    
-    HRESULT CreateInstanceEnumAsync(const(ushort)* strFilter, int lFlags, IWbemContext pCtx, 
+    HRESULT CreateInstanceEnumAsync(const(BSTR) strFilter, int lFlags, IWbemContext pCtx, 
                                     IWbemObjectSink pResponseHandler);
     ///The <b>IWbemServices::ExecQuery</b> method executes a query to retrieve objects. For the valid types of queries
     ///that can be performed, see Querying with WQL.
@@ -3287,7 +3283,7 @@ interface IWbemServices : IUnknown
     ///    COM function GetErrorInfo. COM-specific error codes also can be returned if network problems cause you to
     ///    lose the remote connection to Windows Management.
     ///    
-    HRESULT ExecQuery(const(ushort)* strQueryLanguage, const(ushort)* strQuery, int lFlags, IWbemContext pCtx, 
+    HRESULT ExecQuery(const(BSTR) strQueryLanguage, const(BSTR) strQuery, int lFlags, IWbemContext pCtx, 
                       IEnumWbemClassObject* ppEnum);
     ///The <b>IWbemServices::ExecQueryAsync</b> method executes a query to retrieve objects asynchronously.
     ///Params:
@@ -3320,7 +3316,7 @@ interface IWbemServices : IUnknown
     ///    <i>pResponseHandler</i>. If you choose to call <b>SetStatus</b>, the return code sent through
     ///    <i>pResponseHandler</i> takes precedence.
     ///    
-    HRESULT ExecQueryAsync(const(ushort)* strQueryLanguage, const(ushort)* strQuery, int lFlags, IWbemContext pCtx, 
+    HRESULT ExecQueryAsync(const(BSTR) strQueryLanguage, const(BSTR) strQuery, int lFlags, IWbemContext pCtx, 
                            IWbemObjectSink pResponseHandler);
     ///The <b>IWbemServices::ExecNotificationQuery</b> method executes a query to receive events. The call returns
     ///immediately, and the user can poll the returned enumerator for events as they arrive. Releasing the returned
@@ -3347,7 +3343,7 @@ interface IWbemServices : IUnknown
     ///    COM function GetErrorInfo. COM-specific error codes also can be returned if network problems cause you to
     ///    lose the remote connection to Windows Management.
     ///    
-    HRESULT ExecNotificationQuery(const(ushort)* strQueryLanguage, const(ushort)* strQuery, int lFlags, 
+    HRESULT ExecNotificationQuery(const(BSTR) strQueryLanguage, const(BSTR) strQuery, int lFlags, 
                                   IWbemContext pCtx, IEnumWbemClassObject* ppEnum);
     ///The <b>IWbemServices::ExecNotificationQueryAsync</b> method performs the same task as
     ///IWbemServices::ExecNotificationQuery except that events are supplied to the specified response handler until
@@ -3380,7 +3376,7 @@ interface IWbemServices : IUnknown
     ///    <i>pResponseHandler</i> parameter. COM-specific error codes also can be returned if network problems cause
     ///    you to lose the remote connection to Windows Management.
     ///    
-    HRESULT ExecNotificationQueryAsync(const(ushort)* strQueryLanguage, const(ushort)* strQuery, int lFlags, 
+    HRESULT ExecNotificationQueryAsync(const(BSTR) strQueryLanguage, const(BSTR) strQuery, int lFlags, 
                                        IWbemContext pCtx, IWbemObjectSink pResponseHandler);
     ///The <b>IWbemServices::ExecMethod</b> method executes a method exported by a CIM object. The method call is
     ///forwarded to the appropriate provider where it executes. Information and status are returned to the caller, which
@@ -3414,7 +3410,7 @@ interface IWbemServices : IUnknown
     ///    function GetErrorInfo. COM-specific error codes also may be returned if network problems cause you to lose
     ///    the remote connection to Windows Management.
     ///    
-    HRESULT ExecMethod(const(ushort)* strObjectPath, const(ushort)* strMethodName, int lFlags, IWbemContext pCtx, 
+    HRESULT ExecMethod(const(BSTR) strObjectPath, const(BSTR) strMethodName, int lFlags, IWbemContext pCtx, 
                        IWbemClassObject pInParams, IWbemClassObject* ppOutParams, IWbemCallResult* ppCallResult);
     ///The <b>IWbemServices::ExecMethodAsync</b> method asynchronously executes a method exported by a CIM object. The
     ///call immediately returns to the client while the inbound parameters are forwarded to the appropriate provider
@@ -3452,8 +3448,8 @@ interface IWbemServices : IUnknown
     ///    <i>pReponseHandler</i> parameter. COM-specific error codes also may be returned if network problems cause you
     ///    to lose the remote connection to WMI.
     ///    
-    HRESULT ExecMethodAsync(const(ushort)* strObjectPath, const(ushort)* strMethodName, int lFlags, 
-                            IWbemContext pCtx, IWbemClassObject pInParams, IWbemObjectSink pResponseHandler);
+    HRESULT ExecMethodAsync(const(BSTR) strObjectPath, const(BSTR) strMethodName, int lFlags, IWbemContext pCtx, 
+                            IWbemClassObject pInParams, IWbemObjectSink pResponseHandler);
 }
 
 ///Use the <b>IWbemLocator</b> interface to obtain the initial namespace pointer to the IWbemServices interface for WMI
@@ -3517,9 +3513,9 @@ interface IWbemLocator : IUnknown
     ///    cause you to lose the remote connection to WMI. These error return codes are defined in the Wbemcli.h file in
     ///    the WMI section of the PSDK \Include directory. For more information see WMI Error Constants.
     ///    
-    HRESULT ConnectServer(const(ushort)* strNetworkResource, const(ushort)* strUser, const(ushort)* strPassword, 
-                          const(ushort)* strLocale, int lSecurityFlags, const(ushort)* strAuthority, 
-                          IWbemContext pCtx, IWbemServices* ppNamespace);
+    HRESULT ConnectServer(const(BSTR) strNetworkResource, const(BSTR) strUser, const(BSTR) strPassword, 
+                          const(BSTR) strLocale, int lSecurityFlags, const(BSTR) strAuthority, IWbemContext pCtx, 
+                          IWbemServices* ppNamespace);
 }
 
 ///The <b>IWbemObjectSink</b> interface creates a sink interface that can receive all types of notifications within the
@@ -3556,7 +3552,7 @@ interface IWbemObjectSink : IUnknown
     ///    This method returns an <b>HRESULT</b> that indicates the status of the method call. The following list lists
     ///    the value contained within an <b>HRESULT</b>.
     ///    
-    HRESULT Indicate(int lObjectCount, char* apObjArray);
+    HRESULT Indicate(int lObjectCount, IWbemClassObject* apObjArray);
     ///The <b>IWbemObjectSink::SetStatus</b> method is called by sources to indicate the end of a notification sequence,
     ///or to send other status codes to the sink. The IWbemObjectSink::Indicate method may or may not have been called
     ///before the call to <b>SetStatus</b>. Typically, a client implements the IWbemObjectSink interface, and executes
@@ -3622,7 +3618,7 @@ interface IEnumWbemClassObject : IUnknown
     ///    The <b>Next</b> method returns an <b>HRESULT</b> indicating the status of the method call. The following list
     ///    lists the value contained within an <b>HRESULT</b>.
     ///    
-    HRESULT Next(int lTimeout, uint uCount, char* apObjects, uint* puReturned);
+    HRESULT Next(int lTimeout, uint uCount, IWbemClassObject* apObjects, uint* puReturned);
     ///Use the <b>NextAsync</b> method when a controlled asynchronous retrieval of objects to a sink is required. Normal
     ///asynchronous retrieval, such as a call to IWbemServices::ExecQueryAsync, results in uncontrolled delivery of
     ///objects to the caller's implementation of IWbemObjectSink. This method is helpful for cases where a component
@@ -3856,7 +3852,7 @@ interface IWbemContext : IUnknown
     ///    This method returns an <b>HRESULT</b> that indicates the status of a method call. The following list lists
     ///    and describes the values contained in an <b>HRESULT</b>.
     ///    
-    HRESULT SetValue(const(wchar)* wszName, int lFlags, VARIANT* pValue);
+    HRESULT SetValue(const(PWSTR) wszName, int lFlags, VARIANT* pValue);
     ///The <b>IWbemContext::GetValue</b> method is used to retrieve a specific named context value by name.
     ///Params:
     ///    wszName = Name for which the value is to be retrieved. This must point to a valid <b>BSTR</b>. The pointer is treated
@@ -3873,7 +3869,7 @@ interface IWbemContext : IUnknown
     ///    This method returns an <b>HRESULT</b> indicating the status of the method call. The following list lists the
     ///    value contained within an <b>HRESULT</b>.
     ///    
-    HRESULT GetValue(const(wchar)* wszName, int lFlags, VARIANT* pValue);
+    HRESULT GetValue(const(PWSTR) wszName, int lFlags, VARIANT* pValue);
     ///The <b>IWbemContext::DeleteValue</b> method deletes a named context value created by IWbemContext::SetValue.
     ///Params:
     ///    wszName = Pointer to a valid <b>BSTR</b> containing the named context value to delete. The pointer is treated as
@@ -3883,7 +3879,7 @@ interface IWbemContext : IUnknown
     ///    This method returns an <b>HRESULT</b>HRESULT indicating the status of the method call. The following list
     ///    lists the value contained withinan <b>HRESULT</b>HRESULT.
     ///    
-    HRESULT DeleteValue(const(wchar)* wszName, int lFlags);
+    HRESULT DeleteValue(const(PWSTR) wszName, int lFlags);
     ///The <b>IWbemContext::DeleteAll</b> method removes all named context values from the current object, thus emptying
     ///the object.
     ///Returns:
@@ -3954,7 +3950,7 @@ interface IWbemUnsecuredApartment : IUnsecuredApartment
     ///    COM-specific error codes also may be returned if network problems cause you to lose the remote connection to
     ///    Windows Management.
     ///    
-    HRESULT CreateSinkStub(IWbemObjectSink pSink, uint dwFlags, const(wchar)* wszReserved, IWbemObjectSink* ppStub);
+    HRESULT CreateSinkStub(IWbemObjectSink pSink, uint dwFlags, const(PWSTR) wszReserved, IWbemObjectSink* ppStub);
 }
 
 ///The <b>IWbemStatusCodeText</b> interface extracts text string descriptions of error codes or the name of the
@@ -3997,7 +3993,7 @@ interface IWbemBackupRestore : IUnknown
     ///    strBackupToFile = Constant, null-terminated string of 16-bit Unicode characters that contains the file name to which to back up
     ///                      the contents of the repository.
     ///    lFlags = Reserved. This parameter must be 0 (zero).
-    HRESULT Backup(const(wchar)* strBackupToFile, int lFlags);
+    HRESULT Backup(const(PWSTR) strBackupToFile, int lFlags);
     ///The <b>IWbemBackupRestore::Restore</b> method deletes the contents of the current repository and restores them
     ///with the contents of a previously specified backup. Because Windows Management Instrumentation (WMI) is the
     ///server for this interface and must be stopped to complete this operation successfully, the COM connection is
@@ -4010,7 +4006,7 @@ interface IWbemBackupRestore : IUnknown
     ///    This method returns an <b>HRESULT</b> that indicates the status of the method call. The following list lists
     ///    the value contained within the <b>HRESULT</b>.
     ///    
-    HRESULT Restore(const(wchar)* strRestoreFromFile, int lFlags);
+    HRESULT Restore(const(PWSTR) strRestoreFromFile, int lFlags);
 }
 
 ///The <b>IWbemBackupRestoreEx</b> interface backs up and restores the contents of the repository. The affected content
@@ -4137,7 +4133,7 @@ interface IWbemConfigureRefresher : IUnknown
     ///    This method returns an <b>HRESULT</b> indicating the status of the method call. The following list lists the
     ///    value contained within an <b>HRESULT</b>.
     ///    
-    HRESULT AddObjectByPath(IWbemServices pNamespace, const(wchar)* wszPath, int lFlags, IWbemContext pContext, 
+    HRESULT AddObjectByPath(IWbemServices pNamespace, const(PWSTR) wszPath, int lFlags, IWbemContext pContext, 
                             IWbemClassObject* ppRefreshable, int* plId);
     ///With the <b>IWbemConfigureRefresher::AddObjectByTemplate</b> method, you can add an object you want refreshed to
     ///a refresher by specifying an IWbemClassObject instance template. Use this method when it is difficult to
@@ -4212,7 +4208,7 @@ interface IWbemConfigureRefresher : IUnknown
     ///    This method returns an <b>HRESULT</b> indicating the status of the method call. The following list lists the
     ///    value contained within an <div class="alert"><b>Note</b> <b>HRESULT</b></div> <div> </div>.
     ///    
-    HRESULT AddEnum(IWbemServices pNamespace, const(wchar)* wszClassName, int lFlags, IWbemContext pContext, 
+    HRESULT AddEnum(IWbemServices pNamespace, const(PWSTR) wszClassName, int lFlags, IWbemContext pContext, 
                     IWbemHiPerfEnum* ppEnum, int* plId);
 }
 
@@ -4230,7 +4226,7 @@ interface IWbemObjectSinkEx : IWbemObjectSink
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT WriteMessage(uint uChannel, const(ushort)* strMessage);
+    HRESULT WriteMessage(uint uChannel, const(BSTR) strMessage);
     ///TBD
     ///Params:
     ///    pObjError = 
@@ -4249,7 +4245,7 @@ interface IWbemObjectSinkEx : IWbemObjectSink
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT PromptUser(const(ushort)* strMessage, ubyte uPromptType, ubyte* puReturned);
+    HRESULT PromptUser(const(BSTR) strMessage, ubyte uPromptType, ubyte* puReturned);
     ///TBD
     ///Params:
     ///    strActivity = 
@@ -4261,8 +4257,8 @@ interface IWbemObjectSinkEx : IWbemObjectSink
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT WriteProgress(const(ushort)* strActivity, const(ushort)* strCurrentOperation, 
-                          const(ushort)* strStatusDescription, uint uPercentComplete, uint uSecondsRemaining);
+    HRESULT WriteProgress(const(BSTR) strActivity, const(BSTR) strCurrentOperation, 
+                          const(BSTR) strStatusDescription, uint uPercentComplete, uint uSecondsRemaining);
     ///TBD
     ///Params:
     ///    strName = 
@@ -4273,7 +4269,7 @@ interface IWbemObjectSinkEx : IWbemObjectSink
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT WriteStreamParameter(const(ushort)* strName, VARIANT* vtValue, uint ulType, uint ulFlags);
+    HRESULT WriteStreamParameter(const(BSTR) strName, VARIANT* vtValue, uint ulType, uint ulFlags);
 }
 
 ///The <b>IWbemShutdown</b> interface indicates to the provider that an instance of an object is ready to be discarded.
@@ -4351,9 +4347,8 @@ interface IMofCompiler : IUnknown
     ///    This method can return one of these values. 2 Warning that #pragma autorecover statement is not present. This
     ///    statement should be one the first line of the MOF file.
     ///    
-    HRESULT CompileFile(const(wchar)* FileName, const(wchar)* ServerAndNamespace, const(wchar)* User, 
-                        const(wchar)* Authority, const(wchar)* Password, int lOptionFlags, int lClassFlags, 
-                        int lInstanceFlags, WBEM_COMPILE_STATUS_INFO* pInfo);
+    HRESULT CompileFile(PWSTR FileName, PWSTR ServerAndNamespace, PWSTR User, PWSTR Authority, PWSTR Password, 
+                        int lOptionFlags, int lClassFlags, int lInstanceFlags, WBEM_COMPILE_STATUS_INFO* pInfo);
     ///The <b>IMofCompiler::CompileBuffer</b> method compiles either a buffer containing binary MOF data or a text
     ///buffer in ASCII format. Binary MOF files contain parsed data and must be stored in the database. The
     ///<b>CompileBuffer</b> method only accepts multi-byte character arrays (string buffers) that are not
@@ -4381,9 +4376,9 @@ interface IMofCompiler : IUnknown
     ///    This method returns <b>WBEM_S_NO_ERROR</b> if successful. If the method is unsuccessful, it returns
     ///    <b>WBEM_S_FALSE</b>.
     ///    
-    HRESULT CompileBuffer(int BuffSize, char* pBuffer, const(wchar)* ServerAndNamespace, const(wchar)* User, 
-                          const(wchar)* Authority, const(wchar)* Password, int lOptionFlags, int lClassFlags, 
-                          int lInstanceFlags, WBEM_COMPILE_STATUS_INFO* pInfo);
+    HRESULT CompileBuffer(int BuffSize, ubyte* pBuffer, PWSTR ServerAndNamespace, PWSTR User, PWSTR Authority, 
+                          PWSTR Password, int lOptionFlags, int lClassFlags, int lInstanceFlags, 
+                          WBEM_COMPILE_STATUS_INFO* pInfo);
     ///The <b>IMofCompiler::CreateBMOF</b> method creates a binary MOF file. File creation is accomplished by parsing a
     ///regular MOF file and storing a binary representation of the classes and instances into a special file format.
     ///Typically, this data binary large object (BLOB) is stored as a resource in an executable file, which can later be
@@ -4412,8 +4407,8 @@ interface IMofCompiler : IUnknown
     ///    This method returns <b>WBEM_S_NO_ERROR</b> if successful. If the method is unsuccessful, it returns
     ///    <b>WBEM_S_FALSE</b>.
     ///    
-    HRESULT CreateBMOF(const(wchar)* TextFileName, const(wchar)* BMOFFileName, const(wchar)* ServerAndNamespace, 
-                       int lOptionFlags, int lClassFlags, int lInstanceFlags, WBEM_COMPILE_STATUS_INFO* pInfo);
+    HRESULT CreateBMOF(PWSTR TextFileName, PWSTR BMOFFileName, PWSTR ServerAndNamespace, int lOptionFlags, 
+                       int lClassFlags, int lInstanceFlags, WBEM_COMPILE_STATUS_INFO* pInfo);
 }
 
 ///The <b>IWbemPropertyProvider</b> interface supports retrieving and updating individual properties in an instance of a
@@ -4442,8 +4437,8 @@ interface IWbemPropertyProvider : IUnknown
     ///    This method must return <b>WBEM_S_NO_ERROR</b> if the call succeeds. If the call fails, the method must
     ///    return <b>WBEM_S_FALSE</b>.
     ///    
-    HRESULT GetProperty(int lFlags, const(ushort)* strLocale, const(ushort)* strClassMapping, 
-                        const(ushort)* strInstMapping, const(ushort)* strPropMapping, VARIANT* pvValue);
+    HRESULT GetProperty(int lFlags, const(BSTR) strLocale, const(BSTR) strClassMapping, const(BSTR) strInstMapping, 
+                        const(BSTR) strPropMapping, VARIANT* pvValue);
     ///The <b>IWbemPropertyProvider::PutProperty</b> method is called by Windows Management to update a property value
     ///supported by a property provider.
     ///Params:
@@ -4461,8 +4456,8 @@ interface IWbemPropertyProvider : IUnknown
     ///    This method must return <b>WBEM_S_NO_ERROR</b> if the operation succeeds, or <b>WBEM_S_FALSE</b> if the
     ///    operation fails.
     ///    
-    HRESULT PutProperty(int lFlags, const(ushort)* strLocale, const(ushort)* strClassMapping, 
-                        const(ushort)* strInstMapping, const(ushort)* strPropMapping, const(VARIANT)* pvValue);
+    HRESULT PutProperty(int lFlags, const(BSTR) strLocale, const(BSTR) strClassMapping, const(BSTR) strInstMapping, 
+                        const(BSTR) strPropMapping, const(VARIANT)* pvValue);
 }
 
 ///The <b>IWbemUnboundObjectSink</b> interface is implemented by all logical event consumers. It is a simple sink
@@ -4483,7 +4478,7 @@ interface IWbemUnboundObjectSink : IUnknown
     ///    This method returns <b>WBEM_S_NO_ERROR</b> if successful. Otherwise, the implementation should return an
     ///    appropriate error code.
     ///    
-    HRESULT IndicateToConsumer(IWbemClassObject pLogicalConsumer, int lNumObjects, char* apObjects);
+    HRESULT IndicateToConsumer(IWbemClassObject pLogicalConsumer, int lNumObjects, IWbemClassObject* apObjects);
 }
 
 ///Use the <b>IWbemEventProvider</b> interface to initiate communication with an event provider. Windows Management
@@ -4569,7 +4564,7 @@ interface IWbemEventProviderSecurity : IUnknown
     ///    This method returns an <b>HRESULT</b> that indicates the status of the method call. The following list lists
     ///    the value contained in an <b>HRESULT</b>.
     ///    
-    HRESULT AccessCheck(ushort* wszQueryLanguage, ushort* wszQuery, int lSidLength, char* pSid);
+    HRESULT AccessCheck(ushort* wszQueryLanguage, ushort* wszQuery, int lSidLength, const(ubyte)* pSid);
 }
 
 ///The <b>IWbemEventConsumerProvider</b> interface provides the primary interface for an event consumer provider.
@@ -4646,8 +4641,8 @@ interface IWbemProviderInit : IUnknown
     ///    the <i>pInitSink</i> parameter. However, if a provider returns <b>WBEM_E_FAILED</b> and does not use the
     ///    sink, then the provider initialization is considered as failed.
     ///    
-    HRESULT Initialize(const(wchar)* wszUser, int lFlags, const(wchar)* wszNamespace, const(wchar)* wszLocale, 
-                       IWbemServices pNamespace, IWbemContext pCtx, IWbemProviderInitSink pInitSink);
+    HRESULT Initialize(PWSTR wszUser, int lFlags, PWSTR wszNamespace, PWSTR wszLocale, IWbemServices pNamespace, 
+                       IWbemContext pCtx, IWbemProviderInitSink pInitSink);
 }
 
 ///The <b>IWbemHiPerfProvider</b> interface enables providers to supply refreshable objects and enumerators.
@@ -4678,7 +4673,7 @@ interface IWbemHiPerfProvider : IUnknown
     ///    <i>pResponseHandler</i>. If you call the <b>SetStatus</b> method, the return code sent through
     ///    <i>pResponseHandler</i> takes precedence over the <b>QueryInstances</b> return code.
     ///    
-    HRESULT QueryInstances(IWbemServices pNamespace, ushort* wszClass, int lFlags, IWbemContext pCtx, 
+    HRESULT QueryInstances(IWbemServices pNamespace, PWSTR wszClass, int lFlags, IWbemContext pCtx, 
                            IWbemObjectSink pSink);
     ///The <b>IWbemHiPerfProvider::CreateRefresher</b> method creates a refresher. The returned refresher will be used
     ///in subsequent calls to IWbemHiPerfProvider::CreateRefreshableEnum, IWbemHiPerfProvider::CreateRefreshableObject,
@@ -4766,7 +4761,7 @@ interface IWbemHiPerfProvider : IUnknown
     ///    This method returns an <b>HRESULT</b> that indicates the status of the method call. The following list lists
     ///    the value contained within an <b>HRESULT</b>.
     ///    
-    HRESULT CreateRefreshableEnum(IWbemServices pNamespace, const(wchar)* wszClass, IWbemRefresher pRefresher, 
+    HRESULT CreateRefreshableEnum(IWbemServices pNamespace, const(PWSTR) wszClass, IWbemRefresher pRefresher, 
                                   int lFlags, IWbemContext pContext, IWbemHiPerfEnum pHiPerfEnum, int* plId);
     ///The <b>IWbemHiPerfProvider::GetObjects</b> method inserts the non-key properties of the objects in the supplied
     ///array. WMI calls <b>GetObjects</b> in response to a IWbemServices::GetObject call. If a provider does not
@@ -4788,7 +4783,8 @@ interface IWbemHiPerfProvider : IUnknown
     ///    This method returns an <b>HRESULT</b> indicating the status of the method call. The following list lists the
     ///    value contained within an <b>HRESULT</b>.
     ///    
-    HRESULT GetObjects(IWbemServices pNamespace, int lNumObjects, char* apObj, int lFlags, IWbemContext pContext);
+    HRESULT GetObjects(IWbemServices pNamespace, int lNumObjects, IWbemObjectAccess* apObj, int lFlags, 
+                       IWbemContext pContext);
 }
 
 ///The <b>IWbemDecoupledRegistrar</b> interface associates decoupled providers with WMI. This interface allows a
@@ -4807,8 +4803,8 @@ interface IWbemDecoupledRegistrar : IUnknown
     ///    a_Registration = Name of the provider being registered.
     ///    pIUnknown = Pointer to an object for particular registration. This interface will be queried to determine the interface
     ///                support that the object is capable of servicing.
-    HRESULT Register(int a_Flags, IWbemContext a_Context, const(wchar)* a_User, const(wchar)* a_Locale, 
-                     const(wchar)* a_Scope, const(wchar)* a_Registration, IUnknown pIUnknown);
+    HRESULT Register(int a_Flags, IWbemContext a_Context, const(PWSTR) a_User, const(PWSTR) a_Locale, 
+                     const(PWSTR) a_Scope, const(PWSTR) a_Registration, IUnknown pIUnknown);
     ///The <b>IWbemDecoupledRegistrar::UnRegister</b> method removes the registration of an object interface from WMI.
     HRESULT UnRegister();
 }
@@ -4869,7 +4865,7 @@ interface IWbemEventSink : IWbemObjectSink
     ///    This method returns an <b>HRESULT</b> indicating the status of the method call. The following list lists the
     ///    value contained within an <b>HRESULT</b>.
     ///    
-    HRESULT SetSinkSecurity(int lSDLength, char* pSD);
+    HRESULT SetSinkSecurity(int lSDLength, ubyte* pSD);
     ///The <b>IWbemEventSink::IsActive</b> method is used by the provider to determine if there is interest in the
     ///events that the sink is filtering. In the case of a restricted sink, these events are defined by the queries
     ///passed to GetRestrictedSink. In the case where it is not a restricted sink, these events are defined by the
@@ -4882,7 +4878,8 @@ interface IWbemEventSink : IWbemObjectSink
     ///    awszQueries = Array of event queries.
     ///    pCallback = Pointer to callback for event provider.
     ///    ppSink = Pointer to created IWbemEventSink object.
-    HRESULT GetRestrictedSink(int lNumQueries, char* awszQueries, IUnknown pCallback, IWbemEventSink* ppSink);
+    HRESULT GetRestrictedSink(int lNumQueries, const(PWSTR)* awszQueries, IUnknown pCallback, 
+                              IWbemEventSink* ppSink);
     ///The <b>IWbemEventSink::SetBatchingParameters</b> method is used to set the maximum event buffer size and its
     ///associated processing latency value.
     ///Params:

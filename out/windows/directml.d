@@ -6,9 +6,9 @@ public import windows.core;
 public import windows.com : HRESULT, IUnknown;
 public import windows.direct3d12 : D3D12_CPU_DESCRIPTOR_HANDLE, D3D12_GPU_DESCRIPTOR_HANDLE,
                                    ID3D12CommandList, ID3D12Device, ID3D12Resource;
-public import windows.systemservices : BOOL;
+public import windows.systemservices : BOOL, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -2990,7 +2990,7 @@ interface IDMLObject : IUnknown
     ///    Type: [**HRESULT**](/windows/desktop/winprog/windows-data-types) If this method succeeds, it returns
     ///    **S_OK**. Otherwise, it returns an **HRESULT** error code.
     ///    
-    HRESULT GetPrivateData(const(GUID)* guid, uint* dataSize, char* data);
+    HRESULT GetPrivateData(const(GUID)* guid, uint* dataSize, void* data);
     ///Sets application-defined data to a DirectML device object, and associates that data with an application-defined
     ///<b>GUID</b>. This method is thread-safe.
     ///Params:
@@ -3003,7 +3003,7 @@ interface IDMLObject : IUnknown
     ///    Type: [**HRESULT**](/windows/desktop/winprog/windows-data-types) If this method succeeds, it returns
     ///    **S_OK**. Otherwise, it returns an **HRESULT** error code.
     ///    
-    HRESULT SetPrivateData(const(GUID)* guid, uint dataSize, char* data);
+    HRESULT SetPrivateData(const(GUID)* guid, uint dataSize, const(void)* data);
     ///Associates an IUnknown-derived interface with the DirectML device object, and associates that interface with an
     ///application-defined <b>GUID</b>. This method is thread-safe.
     ///Params:
@@ -3024,7 +3024,7 @@ interface IDMLObject : IUnknown
     ///    Type: [**HRESULT**](/windows/desktop/winprog/windows-data-types) If this method succeeds, it returns
     ///    **S_OK**. Otherwise, it returns an **HRESULT** error code.
     ///    
-    HRESULT SetName(const(wchar)* name);
+    HRESULT SetName(const(PWSTR) name);
 }
 
 ///Represents a DirectML device, which is used to create operators, binding tables, command recorders, and other
@@ -3058,8 +3058,8 @@ interface IDMLDevice : IDMLObject
     ///    [DML_FEATURE](/windows/win32/api/directml/ne-directml-dml_feature) is unrecognized or unsupported, and
     ///    **E_INVALIDARG** if the parameters are incorrect.
     ///    
-    HRESULT CheckFeatureSupport(DML_FEATURE feature, uint featureQueryDataSize, char* featureQueryData, 
-                                uint featureSupportDataSize, char* featureSupportData);
+    HRESULT CheckFeatureSupport(DML_FEATURE feature, uint featureQueryDataSize, const(void)* featureQueryData, 
+                                uint featureSupportDataSize, void* featureSupportData);
     ///Creates a DirectML operator. In DirectML, an operator represents an abstract bundle of functionality, which can
     ///be compiled into a form suitable for execution on the GPU. Operator objects cannot be executed directly; they
     ///must first be compiled into an
@@ -3135,7 +3135,8 @@ interface IDMLDevice : IDMLObject
     ///    Type: [**HRESULT**](/windows/desktop/winprog/windows-data-types) If this method succeeds, it returns
     ///    **S_OK**. Otherwise, it returns an **HRESULT** error code.
     ///    
-    HRESULT CreateOperatorInitializer(uint operatorCount, char* operators, const(GUID)* riid, void** ppv);
+    HRESULT CreateOperatorInitializer(uint operatorCount, IDMLCompiledOperator* operators, const(GUID)* riid, 
+                                      void** ppv);
     ///Creates a DirectML command recorder. A command recorder allows your application to record the initialization and
     ///execution of compiled operators into existing Direct3D 12 command lists. The command recorder is a stateless
     ///object: it does not own command lists or operators, nor does it execute any GPU work. Instead, it merely records
@@ -3201,7 +3202,7 @@ interface IDMLDevice : IDMLObject
     ///    Type: [**HRESULT**](/windows/desktop/winprog/windows-data-types) If this method succeeds, it returns
     ///    **S_OK**. Otherwise, it returns an **HRESULT** error code.
     ///    
-    HRESULT Evict(uint count, char* ppObjects);
+    HRESULT Evict(uint count, IDMLPageable* ppObjects);
     ///Causes one or more pageable objects to become resident in GPU memory. Also see
     ///[IDMLDevice::Evict](/windows/win32/api/directml/nf-directml-idmldevice-evict).
     ///Params:
@@ -3214,7 +3215,7 @@ interface IDMLDevice : IDMLObject
     ///    Type: [**HRESULT**](/windows/desktop/winprog/windows-data-types) If this method succeeds, it returns
     ///    **S_OK**. Otherwise, it returns an **HRESULT** error code.
     ///    
-    HRESULT MakeResident(uint count, char* ppObjects);
+    HRESULT MakeResident(uint count, IDMLPageable* ppObjects);
     ///Retrieves the reason that the DirectML device was removed.
     ///Returns:
     ///    Type: [**HRESULT**](/windows/desktop/winprog/windows-data-types) An
@@ -3352,7 +3353,7 @@ interface IDMLOperatorInitializer : IDMLDispatchable
     ///    Type: [**HRESULT**](/windows/desktop/winprog/windows-data-types) If this method succeeds, it returns
     ///    **S_OK**. Otherwise, it returns an **HRESULT** error code.
     ///    
-    HRESULT Reset(uint operatorCount, char* operators);
+    HRESULT Reset(uint operatorCount, IDMLCompiledOperator* operators);
 }
 
 ///Wraps a range of an application-managed descriptor heap, and is used by DirectML to create bindings for resources. To
@@ -3423,7 +3424,7 @@ interface IDMLBindingTable : IDMLDeviceChild
     ///    bindings = Type: **const [DML_BINDING_DESC](/windows/win32/api/directml/ns-directml-dml_binding_desc)\*** An optional
     ///               pointer to a constant array of [DML_BINDING_DESC](/windows/win32/api/directml/ns-directml-dml_binding_desc)
     ///               containing descriptions of the tensor resources to bind.
-    void    BindInputs(uint bindingCount, char* bindings);
+    void    BindInputs(uint bindingCount, const(DML_BINDING_DESC)* bindings);
     ///Binds a set of resources as output tensors. If binding for a compiled operator, the number of bindings must
     ///exactly match the number of inputs of the operator, including optional tensors. This can be determined from the
     ///operator description used to create the operator. If too many or too few bindings are provided, device removal
@@ -3443,7 +3444,7 @@ interface IDMLBindingTable : IDMLDeviceChild
     ///    bindings = Type: <b>const [DML_BINDING_DESC](/windows/win32/api/directml/ns-directml-dml_binding_desc)*</b> An optional
     ///               pointer to a constant array of [DML_BINDING_DESC](/windows/win32/api/directml/ns-directml-dml_binding_desc)
     ///               containing descriptions of the tensor resources to bind.
-    void    BindOutputs(uint bindingCount, char* bindings);
+    void    BindOutputs(uint bindingCount, const(DML_BINDING_DESC)* bindings);
     ///Binds a buffer to use as temporary scratch memory. You can determine the required size of this buffer range by
     ///calling
     ///[IDMLDispatchable::GetBindingProperties](/windows/win32/api/directml/nf-directml-idmldispatchable-getbindingproperties).

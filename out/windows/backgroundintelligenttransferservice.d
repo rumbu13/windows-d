@@ -5,10 +5,10 @@ module windows.backgroundintelligenttransferservice;
 public import windows.core;
 public import windows.automation : BSTR, IDispatch, VARIANT;
 public import windows.com : HRESULT, IUnknown;
-public import windows.systemservices : BOOL;
+public import windows.systemservices : BOOL, PWSTR;
 public import windows.windowsprogramming : FILETIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -368,14 +368,14 @@ struct BG_FILE_INFO
     ///or upload; there is no SMB support for upload-reply jobs. You can specify the remote name as a UNC path, full
     ///path with a network drive, or use the "file://" prefix. <b>BITS 1.5 and earlier: </b>The SMB protocol for
     ///<b>RemoteName</b> is not supported.
-    const(wchar)* RemoteName;
+    PWSTR RemoteName;
     ///Null-terminated string that contains the name of the file on the client. The file name must include the full path
     ///(for example, d:\myapp\updates\file.ext). You cannot use wildcards in the path or file name, and directories in
     ///the path must exist. The path is limited to MAX_PATH, not including the null terminator. The user must have
     ///permission to write to the local directory for downloads and the reply portion of an upload-reply job. BITS does
     ///not support NTFS streams. Instead of using network drives, which are session specific, use UNC paths (for
     ///example, \\server\share\path\file). Do not include the \\? prefix in the path.
-    const(wchar)* LocalName;
+    PWSTR LocalName;
 }
 
 ///Provides job-related progress information, such as the number of bytes and files transferred. For upload jobs, the
@@ -428,13 +428,13 @@ struct BG_BASIC_CREDENTIALS
     ///<em>DomainName</em><strong>\\</strong><em>UserName</em>. For Passport authentication, the user name is an email
     ///address. For more information, see Remarks. If <strong>NULL</strong>, default credentials for this session
     ///context are used.
-    const(wchar)* UserName;
+    PWSTR UserName;
     ///A null-terminated string that contains the password in plaintext. The password is limited to 65536 characters,
     ///not including the null terminator. The password can be blank. Set it to <strong>NULL</strong> if
     ///<strong>UserName</strong> is <strong>NULL</strong>. BITS encrypts the password before persisting the job if a
     ///network disconnect occurs or the user logs off. Live ID encoded passwords are supported through Negotiate 2. For
     ///more information about Live IDs, see the Windows Live ID SDK.
-    const(wchar)* Password;
+    PWSTR Password;
 }
 
 ///Identifies the credentials to use for the authentication scheme specified in the BG_AUTH_CREDENTIALS structure.
@@ -498,7 +498,7 @@ union BITS_JOB_PROPERTY_VALUE
 union BITS_FILE_PROPERTY_VALUE
 {
     ///This value is used when using the property ID enum value <b>BITS_FILE_PROPERTY_ID_HTTP_RESPONSE_HEADERS</b>.
-    const(wchar)* String;
+    PWSTR String;
 }
 
 ///<p class="CCE_Message">[Queue Manager (QMGR) is available for use in the operating systems specified in the
@@ -576,7 +576,7 @@ interface IBackgroundCopyFile : IUnknown
     ///Returns:
     ///    This method returns <b>S_OK</b> on success or one of the standard COM <b>HRESULT</b> values on error.
     ///    
-    HRESULT GetRemoteName(ushort** pVal);
+    HRESULT GetRemoteName(PWSTR* pVal);
     ///Retrieves the local name of the file.
     ///Params:
     ///    pVal = Null-terminated string that contains the name of the file on the client. The name is fully qualified. Call
@@ -584,7 +584,7 @@ interface IBackgroundCopyFile : IUnknown
     ///Returns:
     ///    This method returns <b>S_OK</b> on success or one of the standard COM <b>HRESULT</b> values on error.
     ///    
-    HRESULT GetLocalName(ushort** pVal);
+    HRESULT GetLocalName(PWSTR* pVal);
     ///Retrieves information on the progress of the file transfer.
     ///Params:
     ///    pVal = Structure whose members indicate the progress of the file transfer. For details on the type of progress
@@ -614,7 +614,7 @@ interface IEnumBackgroundCopyFiles : IUnknown
     ///    <dt><b>S_FALSE</b></dt> </dl> </td> <td width="60%"> Returned less than the number of requested elements.
     ///    </td> </tr> </table>
     ///    
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, IBackgroundCopyFile* rgelt, uint* pceltFetched);
     ///Skips the next specified number of elements in the enumeration sequence. If there are fewer elements left in the
     ///sequence than the requested number of elements to skip, it skips past the last element in the sequence.
     ///Params:
@@ -668,7 +668,7 @@ interface IBackgroundCopyError : IUnknown
     ///Returns:
     ///    This method returns <b>S_OK</b> on success or one of the standard COM HRESULT values on error.
     ///    
-    HRESULT GetError(BG_ERROR_CONTEXT* pContext, int* pCode);
+    HRESULT GetError(BG_ERROR_CONTEXT* pContext, HRESULT* pCode);
     ///Retrieves an interface pointer to the file object associated with the error.
     ///Params:
     ///    pVal = An IBackgroundCopyFile interface pointer whose methods you use to determine the local and remote file names
@@ -701,7 +701,7 @@ interface IBackgroundCopyError : IUnknown
     ///    <dt><b>HRESULT_FROM_WIN32(ERROR_RESOURCE_LANG_NOT_FOUND)</b></dt> </dl> </td> <td width="60%"> No string is
     ///    available for the locale. </td> </tr> </table>
     ///    
-    HRESULT GetErrorDescription(uint LanguageId, ushort** pErrorDescription);
+    HRESULT GetErrorDescription(uint LanguageId, PWSTR* pErrorDescription);
     ///Retrieves the description of the context in which the error occurred.
     ///Params:
     ///    LanguageId = Identifies the locale to use to generate the description. To create the language identifier, use the
@@ -720,7 +720,7 @@ interface IBackgroundCopyError : IUnknown
     ///    <dt><b>HRESULT_FROM_WIN32(ERROR_RESOURCE_LANG_NOT_FOUND)</b></dt> </dl> </td> <td width="60%"> No string is
     ///    available for the locale. </td> </tr> </table>
     ///    
-    HRESULT GetErrorContextDescription(uint LanguageId, ushort** pContextDescription);
+    HRESULT GetErrorContextDescription(uint LanguageId, PWSTR* pContextDescription);
     ///Retrieves the protocol used to transfer the file. The remote file name identifies the protocol to use to transfer
     ///the file.
     ///Params:
@@ -735,7 +735,7 @@ interface IBackgroundCopyError : IUnknown
     ///    <dt><b>BG_E_PROTOCOL_NOT_AVAILABLE</b></dt> </dl> </td> <td width="60%"> The error is not associated with the
     ///    remote file transfer protocol. The <i>ppProtocol</i> parameter is set to <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetProtocol(ushort** pProtocol);
+    HRESULT GetProtocol(PWSTR* pProtocol);
 }
 
 ///Use the <b>IBackgroundCopyJob</b> interface to add files to the job, set the priority level of the job, determine the
@@ -766,7 +766,7 @@ interface IBackgroundCopyJob : IUnknown
     ///    <dt><b>E_ACCESSDENIED</b></dt> </dl> </td> <td width="60%"> User does not have permission to write to the
     ///    specified directory on the client. </td> </tr> </table>
     ///    
-    HRESULT AddFileSet(uint cFileCount, char* pFileSet);
+    HRESULT AddFileSet(uint cFileCount, BG_FILE_INFO* pFileSet);
     ///Adds a single file to the job.
     ///Params:
     ///    RemoteUrl = Null-terminated string that contains the name of the file on the server. For information on specifying the
@@ -788,7 +788,7 @@ interface IBackgroundCopyJob : IUnknown
     ///    </td> <td width="60%"> User does not have permission to write to the specified directory on the client. </td>
     ///    </tr> </table>
     ///    
-    HRESULT AddFile(const(wchar)* RemoteUrl, const(wchar)* LocalName);
+    HRESULT AddFile(const(PWSTR) RemoteUrl, const(PWSTR) LocalName);
     ///Retrieves an IEnumBackgroundCopyFiles interface pointer that you use to enumerate the files in a job.
     ///Params:
     ///    pEnum = IEnumBackgroundCopyFiles interface pointer that you use to enumerate the files in the job. Release
@@ -925,7 +925,7 @@ interface IBackgroundCopyJob : IUnknown
     ///    <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The <i>ppOwner</i> parameter cannot be <b>NULL</b>.
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetOwner(ushort** pVal);
+    HRESULT GetOwner(PWSTR* pVal);
     ///Specifies a display name for the job. Typically, you use the display name to identify the job in a user
     ///interface.
     ///Params:
@@ -941,7 +941,7 @@ interface IBackgroundCopyJob : IUnknown
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>BG_E_INVALID_STATE</b></dt> </dl> </td> <td width="60%"> The
     ///    state of the job cannot be BG_JOB_STATE_CANCELLED or BG_JOB_STATE_ACKNOWLEDGED. </td> </tr> </table>
     ///    
-    HRESULT SetDisplayName(const(wchar)* Val);
+    HRESULT SetDisplayName(const(PWSTR) Val);
     ///Retrieves the display name for the job. Typically, you use the display name to identify the job in a user
     ///interface.
     ///Params:
@@ -954,7 +954,7 @@ interface IBackgroundCopyJob : IUnknown
     ///    <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The <i>ppDisplayName</i> parameter cannot be
     ///    <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetDisplayName(ushort** pVal);
+    HRESULT GetDisplayName(PWSTR* pVal);
     ///Provides a description of the job.
     ///Params:
     ///    Val = Null-terminated string that provides additional information about the job. The length of the string is
@@ -969,7 +969,7 @@ interface IBackgroundCopyJob : IUnknown
     ///    <dt><b>BG_E_INVALID_STATE</b></dt> </dl> </td> <td width="60%"> The state of the job cannot be
     ///    BG_JOB_STATE_CANCELLED or BG_JOB_STATE_ACKNOWLEDGED. </td> </tr> </table>
     ///    
-    HRESULT SetDescription(const(wchar)* Val);
+    HRESULT SetDescription(const(PWSTR) Val);
     ///Retrieves the description of the job.
     ///Params:
     ///    pVal = Null-terminated string that contains a short description of the job. Call the CoTaskMemFree function to free
@@ -981,7 +981,7 @@ interface IBackgroundCopyJob : IUnknown
     ///    <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The parameter, <i>ppDescription</i>, cannot be
     ///    <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetDescription(ushort** pVal);
+    HRESULT GetDescription(PWSTR* pVal);
     ///Specifies the priority level of your job. The priority level determines when your job is processed relative to
     ///other jobs in the transfer queue.
     ///Params:
@@ -1179,7 +1179,7 @@ interface IBackgroundCopyJob : IUnknown
     ///    <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The <i>pProxyList</i> parameter cannot be
     ///    <b>NULL</b> if <i>ProxyUsage</i> is <b>BG_JOB_PROXY_USAGE_OVERRIDE</b>. </td> </tr> </table>
     ///    
-    HRESULT SetProxySettings(BG_JOB_PROXY_USAGE ProxyUsage, const(wchar)* ProxyList, const(wchar)* ProxyBypassList);
+    HRESULT SetProxySettings(BG_JOB_PROXY_USAGE ProxyUsage, const(PWSTR) ProxyList, const(PWSTR) ProxyBypassList);
     ///Retrieves the proxy information that the job uses to transfer the files.
     ///Params:
     ///    pProxyUsage = Specifies the proxy settings the job uses to transfer the files. For a list of proxy options, see the
@@ -1198,7 +1198,7 @@ interface IBackgroundCopyJob : IUnknown
     ///    <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> One or more of the parameters is <b>NULL</b>. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetProxySettings(BG_JOB_PROXY_USAGE* pProxyUsage, ushort** pProxyList, ushort** pProxyBypassList);
+    HRESULT GetProxySettings(BG_JOB_PROXY_USAGE* pProxyUsage, PWSTR* pProxyList, PWSTR* pProxyBypassList);
     ///Changes ownership of the job to the current user.
     ///Returns:
     ///    This method returns the following <b>HRESULT</b> values, as well as others. <table> <tr> <th>Return code</th>
@@ -1235,7 +1235,7 @@ interface IEnumBackgroundCopyJobs : IUnknown
     ///    <dt><b>S_FALSE</b></dt> </dl> </td> <td width="60%"> Returned less than the number of requested elements.
     ///    </td> </tr> </table>
     ///    
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, IBackgroundCopyJob* rgelt, uint* pceltFetched);
     ///Skips the next specified number of elements in the enumeration sequence. If there are fewer elements left in the
     ///sequence than the requested number of elements to skip, it skips past the last element in the sequence.
     ///Params:
@@ -1365,7 +1365,7 @@ interface IBackgroundCopyManager : IUnknown
     ///    setting determines how many jobs a user can create. Adding this job exceeds the MaxJobsPerUser limit. </td>
     ///    </tr> </table>
     ///    
-    HRESULT CreateJob(const(wchar)* DisplayName, BG_JOB_TYPE Type, GUID* pJobId, IBackgroundCopyJob* ppJob);
+    HRESULT CreateJob(const(PWSTR) DisplayName, BG_JOB_TYPE Type, GUID* pJobId, IBackgroundCopyJob* ppJob);
     HRESULT GetJobA(const(GUID)* jobID, IBackgroundCopyJob* ppJob);
     HRESULT EnumJobsA(uint dwFlags, IEnumBackgroundCopyJobs* ppEnum);
     ///Retrieves a description for the specified error code.
@@ -1384,7 +1384,7 @@ interface IBackgroundCopyManager : IUnknown
     ///    <dt><b>HRESULT_FROM_WIN32(ERROR_RESOURCE_LANG_NOT_FOUND)</b></dt> </dl> </td> <td width="60%"> No string is
     ///    available for the locale. </td> </tr> </table>
     ///    
-    HRESULT GetErrorDescription(HRESULT hResult, uint LanguageId, ushort** pErrorDescription);
+    HRESULT GetErrorDescription(HRESULT hResult, uint LanguageId, PWSTR* pErrorDescription);
 }
 
 ///Use the <b>IBackgroundCopyJob2</b> interface to retrieve reply data from an upload-reply job, determine the progress
@@ -1418,7 +1418,7 @@ interface IBackgroundCopyJob2 : IBackgroundCopyJob
     ///    </dl> </td> <td width="60%"> The <i>pProgram</i> or <i>pParameters</i> string is too long. </td> </tr>
     ///    </table>
     ///    
-    HRESULT SetNotifyCmdLine(const(wchar)* Program, const(wchar)* Parameters);
+    HRESULT SetNotifyCmdLine(const(PWSTR) Program, const(PWSTR) Parameters);
     ///Retrieves the program to execute when the job enters the error or transferred state.
     ///Params:
     ///    pProgram = Null-terminated string that contains the program to execute when the job enters the error or transferred
@@ -1428,7 +1428,7 @@ interface IBackgroundCopyJob2 : IBackgroundCopyJob
     ///Returns:
     ///    This method returns <b>S_OK</b> on success or one of the standard COM <b>HRESULT</b> values on error.
     ///    
-    HRESULT GetNotifyCmdLine(ushort** pProgram, ushort** pParameters);
+    HRESULT GetNotifyCmdLine(PWSTR* pProgram, PWSTR* pParameters);
     ///Retrieves progress information related to the transfer of the reply data from an upload-reply job.
     ///Params:
     ///    pProgress = Contains information that you use to calculate the percentage of the reply file transfer that is complete.
@@ -1460,7 +1460,7 @@ interface IBackgroundCopyJob2 : IBackgroundCopyJob
     ///    <td width="40%"> <dl> <dt><b>E_NOTIMPL</b></dt> </dl> </td> <td width="60%"> This method is not implemented
     ///    for jobs of type <b>BG_JOB_TYPE_DOWNLOAD</b> or <b>BG_JOB_TYPE_UPLOAD</b>. </td> </tr> </table>
     ///    
-    HRESULT GetReplyData(char* ppBuffer, ulong* pLength);
+    HRESULT GetReplyData(ubyte** ppBuffer, ulong* pLength);
     ///Specifies the name of the file to contain the reply data from the server application. Call this method only if
     ///the job's type is <b>BG_JOB_TYPE_UPLOAD_REPLY</b>.
     ///Params:
@@ -1482,7 +1482,7 @@ interface IBackgroundCopyJob2 : IBackgroundCopyJob
     ///    specified directory on the client. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl>
     ///    </td> <td width="60%"> The reply file name is invalid or exceeds <b>MAX_PATH</b>. </td> </tr> </table>
     ///    
-    HRESULT SetReplyFileName(const(wchar)* ReplyFileName);
+    HRESULT SetReplyFileName(const(PWSTR) ReplyFileName);
     ///Retrieves the name of the file that contains the reply data from the server application. Call this method only if
     ///the job type is BG_JOB_TYPE_UPLOAD_REPLY.
     ///Params:
@@ -1495,7 +1495,7 @@ interface IBackgroundCopyJob2 : IBackgroundCopyJob
     ///    width="40%"> <dl> <dt><b>E_NOTIMPL</b></dt> </dl> </td> <td width="60%"> This method is not implemented for
     ///    jobs of type <b>BG_JOB_TYPE_DOWNLOAD</b> or <b>BG_JOB_TYPE_UPLOAD</b>. </td> </tr> </table>
     ///    
-    HRESULT GetReplyFileName(ushort** pReplyFileName);
+    HRESULT GetReplyFileName(PWSTR* pReplyFileName);
     ///Specifies the credentials to use for a proxy or remote server user authentication request.
     ///Params:
     ///    credentials = Identifies the target (proxy or server), authentication scheme, and the user's credentials to use for user
@@ -1559,7 +1559,7 @@ interface IBackgroundCopyJob3 : IBackgroundCopyJob2
     ///    width="60%"> The state of the job cannot be <b>BG_JOB_STATE_CANCELLED</b> or
     ///    <b>BG_JOB_STATE_ACKNOWLEDGED</b>. </td> </tr> </table>
     ///    
-    HRESULT ReplaceRemotePrefix(const(wchar)* OldPrefix, const(wchar)* NewPrefix);
+    HRESULT ReplaceRemotePrefix(const(PWSTR) OldPrefix, const(PWSTR) NewPrefix);
     ///Adds a file to a download job and specifies the ranges of the file you want to download.
     ///Params:
     ///    RemoteUrl = Null-terminated string that contains the name of the file on the server. For information on specifying the
@@ -1595,7 +1595,8 @@ interface IBackgroundCopyJob3 : IBackgroundCopyJob2
     ///    <td width="60%"> The state of the job cannot be <b>BG_JOB_STATE_CANCELLED</b> or
     ///    <b>BG_JOB_STATE_ACKNOWLEDGED</b>. </td> </tr> </table>
     ///    
-    HRESULT AddFileWithRanges(const(wchar)* RemoteUrl, const(wchar)* LocalName, uint RangeCount, char* Ranges);
+    HRESULT AddFileWithRanges(const(PWSTR) RemoteUrl, const(PWSTR) LocalName, uint RangeCount, 
+                              BG_FILE_RANGE* Ranges);
     ///Specifies the owner and ACL information to maintain when using SMB to download or upload a file.
     ///Params:
     ///    Flags = Flags that identify the owner and ACL information to maintain when transferring a file using SMB. Subsequent
@@ -1680,7 +1681,7 @@ interface IBackgroundCopyFile2 : IBackgroundCopyFile
     ///    width="60%"> No ranges were specified or the job is an upload or upload-reply job. <i>RangeCount</i> is set
     ///    to zero and <i>Ranges</i> is set to <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetFileRanges(uint* RangeCount, char* Ranges);
+    HRESULT GetFileRanges(uint* RangeCount, BG_FILE_RANGE** Ranges);
     ///Changes the remote name to a new URL in a download job.
     ///Params:
     ///    Val = Null-terminated string that contains the name of the file on the server. For information on specifying the
@@ -1695,7 +1696,7 @@ interface IBackgroundCopyFile2 : IBackgroundCopyFile
     ///    </tr> <tr> <td width="40%"> <dl> <dt><b>BG_E_INVALID_STATE</b></dt> </dl> </td> <td width="60%"> The state of
     ///    the job cannot be <b>BG_JOB_STATE_CANCELLED</b> or <b>BG_JOB_STATE_ACKNOWLEDGED</b>. </td> </tr> </table>
     ///    
-    HRESULT SetRemoteName(const(wchar)* Val);
+    HRESULT SetRemoteName(const(PWSTR) Val);
 }
 
 ///Use this interface to specify client certificates for certificate-based client authentication and custom headers for
@@ -1737,8 +1738,8 @@ interface IBackgroundCopyJobHttpOptions : IUnknown
     ///    width="40%"> <dl> <dt><b>BG_E_INVALID_STATE</b></dt> </dl> </td> <td width="60%"> The state of the job cannot
     ///    be BG_JOB_STATE_CANCELLED or BG_JOB_STATE_ACKNOWLEDGED. </td> </tr> </table>
     ///    
-    HRESULT SetClientCertificateByID(BG_CERT_STORE_LOCATION StoreLocation, const(wchar)* StoreName, 
-                                     char* pCertHashBlob);
+    HRESULT SetClientCertificateByID(BG_CERT_STORE_LOCATION StoreLocation, const(PWSTR) StoreName, 
+                                     ubyte* pCertHashBlob);
     ///Specifies the subject name of the client certificate to use for client authentication in an HTTPS (SSL) request.
     ///Params:
     ///    StoreLocation = Identifies the location of a system store to use for looking up the certificate. For possible values, see the
@@ -1775,8 +1776,8 @@ interface IBackgroundCopyJobHttpOptions : IUnknown
     ///    <dt><b>BG_E_INVALID_STATE</b></dt> </dl> </td> <td width="60%"> The state of the job cannot be
     ///    BG_JOB_STATE_CANCELLED or BG_JOB_STATE_ACKNOWLEDGED. </td> </tr> </table>
     ///    
-    HRESULT SetClientCertificateByName(BG_CERT_STORE_LOCATION StoreLocation, const(wchar)* StoreName, 
-                                       const(wchar)* SubjectName);
+    HRESULT SetClientCertificateByName(BG_CERT_STORE_LOCATION StoreLocation, const(PWSTR) StoreName, 
+                                       const(PWSTR) SubjectName);
     ///Removes the client certificate from the job.
     ///Returns:
     ///    The following table lists some of the possible return values. <table> <tr> <th>Return code</th>
@@ -1806,8 +1807,8 @@ interface IBackgroundCopyJobHttpOptions : IUnknown
     ///    <dt><b><b>RPC_X_NULL_REF_POINTER</b></b></dt> </dl> </td> <td width="60%"> One of the parameters is
     ///    <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetClientCertificate(BG_CERT_STORE_LOCATION* pStoreLocation, ushort** pStoreName, char* ppCertHashBlob, 
-                                 ushort** pSubjectName);
+    HRESULT GetClientCertificate(BG_CERT_STORE_LOCATION* pStoreLocation, PWSTR* pStoreName, ubyte** ppCertHashBlob, 
+                                 PWSTR* pSubjectName);
     ///Specifies one or more custom HTTP headers to include in HTTP requests.
     ///Params:
     ///    RequestHeaders = Null-terminated string that contains the custom headers to append to the HTTP request. Each header must be
@@ -1822,7 +1823,7 @@ interface IBackgroundCopyJobHttpOptions : IUnknown
     ///    <dt><b>BG_E_INVALID_STATE</b></dt> </dl> </td> <td width="60%"> The state of the job cannot be
     ///    BG_JOB_STATE_CANCELLED or BG_JOB_STATE_ACKNOWLEDGED. </td> </tr> </table>
     ///    
-    HRESULT SetCustomHeaders(const(wchar)* RequestHeaders);
+    HRESULT SetCustomHeaders(const(PWSTR) RequestHeaders);
     ///Retrieves the custom headers set by an earlier call to IBackgroundCopyJobHttpOptions::SetCustomHeaders (that is,
     ///headers which BITS will be sending to the remote, not headers which BITS receives from the remote).
     ///Params:
@@ -1840,7 +1841,7 @@ interface IBackgroundCopyJobHttpOptions : IUnknown
     ///    <dt><b><b>RPC_X_NULL_REF_POINTER</b></b></dt> </dl> </td> <td width="60%"> The <i>pRequestHeaders</i>
     ///    parameter is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetCustomHeaders(ushort** pRequestHeaders);
+    HRESULT GetCustomHeaders(PWSTR* pRequestHeaders);
     ///Sets flags for HTTP that determine whether the certificate revocation list is checked and certain certificate
     ///errors are ignored, and the policy to use when a server redirects the HTTP request.
     ///Params:
@@ -1958,7 +1959,7 @@ interface IBitsPeerCacheRecord : IUnknown
     ///    The method returns the following return values. <table> <tr> <th>Return code</th> <th>Description</th> </tr>
     ///    <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> Success </td> </tr> </table>
     ///    
-    HRESULT GetOriginUrl(ushort** pVal);
+    HRESULT GetOriginUrl(PWSTR* pVal);
     ///Gets the size of the file.
     ///Params:
     ///    pVal = Size of the file, in bytes.
@@ -2000,7 +2001,7 @@ interface IBitsPeerCacheRecord : IUnknown
     ///    The method returns the following return values. <table> <tr> <th>Return code</th> <th>Description</th> </tr>
     ///    <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> Success </td> </tr> </table>
     ///    
-    HRESULT GetFileRanges(uint* pRangeCount, char* ppRanges);
+    HRESULT GetFileRanges(uint* pRangeCount, BG_FILE_RANGE** ppRanges);
 }
 
 ///Use <b>IEnumBitsPeerCacheRecords</b> to enumerate the records of the cache. To get this interface, call the
@@ -2023,7 +2024,7 @@ interface IEnumBitsPeerCacheRecords : IUnknown
     ///    <dt><b>S_FALSE</b></dt> </dl> </td> <td width="60%"> Returned less than the number of requested elements.
     ///    </td> </tr> </table>
     ///    
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, IBitsPeerCacheRecord* rgelt, uint* pceltFetched);
     ///Skips the next specified number of elements in the enumeration sequence. If there are fewer elements left in the
     ///sequence than the requested number of elements to skip, it skips past the last element in the sequence.
     ///Params:
@@ -2074,7 +2075,7 @@ interface IBitsPeer : IUnknown
     ///    The method returns the following return values. <table> <tr> <th>Return code</th> <th>Description</th> </tr>
     ///    <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> Success </td> </tr> </table>
     ///    
-    HRESULT GetPeerName(ushort** pName);
+    HRESULT GetPeerName(PWSTR* pName);
     ///Determines whether the peer is authenticated.
     ///Params:
     ///    pAuth = <b>TRUE</b> if the peer is authenticated, otherwise, <b>FALSE</b>.
@@ -2082,7 +2083,7 @@ interface IBitsPeer : IUnknown
     ///    The method returns the following return values. <table> <tr> <th>Return code</th> <th>Description</th> </tr>
     ///    <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> Success </td> </tr> </table>
     ///    
-    HRESULT IsAuthenticated(int* pAuth);
+    HRESULT IsAuthenticated(BOOL* pAuth);
     ///Determines whether the peer is available (online) to serve content.
     ///Params:
     ///    pOnline = <b>TRUE</b> if the peer is available to serve content, otherwise, <b>FALSE</b>.
@@ -2090,7 +2091,7 @@ interface IBitsPeer : IUnknown
     ///    The method returns the following return values. <table> <tr> <th>Return code</th> <th>Description</th> </tr>
     ///    <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> Success </td> </tr> </table>
     ///    
-    HRESULT IsAvailable(int* pOnline);
+    HRESULT IsAvailable(BOOL* pOnline);
 }
 
 ///Use <b>IEnumBitsPeers</b> to enumerate the list of peers that BITS has discovered. To get this interface, call the
@@ -2113,7 +2114,7 @@ interface IEnumBitsPeers : IUnknown
     ///    <dt><b>S_FALSE</b></dt> </dl> </td> <td width="60%"> Returned less than the number of requested elements.
     ///    </td> </tr> </table>
     ///    
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, IBitsPeer* rgelt, uint* pceltFetched);
     ///Skips the next specified number of elements in the enumeration sequence. If there are fewer elements left in the
     ///sequence than the requested number of elements to skip, it skips past the last element in the sequence.
     ///Params:
@@ -2292,7 +2293,7 @@ interface IBitsPeerCacheAdministration : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>BG_E_BUSYCACHERECORD</b></dt> </dl> </td> <td width="60%"> The cache record
     ///    is in use and cannot be changed or deleted. Try again after a few seconds. </td> </tr> </table>
     ///    
-    HRESULT DeleteUrl(const(wchar)* url);
+    HRESULT DeleteUrl(const(PWSTR) url);
     ///Gets an IEnumBitsPeers interface pointer that you use to enumerate the peers that can serve content. The
     ///enumeration is a snapshot of the records in the cache.
     ///Params:
@@ -2390,7 +2391,7 @@ interface IBackgroundCopyJob4 : IBackgroundCopyJob3
     ///    The method returns the following return values. <table> <tr> <th>Return code</th> <th>Description</th> </tr>
     ///    <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> Success </td> </tr> </table>
     ///    
-    HRESULT GetOwnerElevationState(int* pElevated);
+    HRESULT GetOwnerElevationState(BOOL* pElevated);
     ///Sets the maximum time that BITS will spend transferring the files in the job.
     ///Params:
     ///    Timeout = Maximum time, in seconds, that BITS will spend transferring the files in the job. The default is 7,776,000
@@ -2424,7 +2425,7 @@ interface IBackgroundCopyFile3 : IBackgroundCopyFile2
     ///    The method returns the following return values. <table> <tr> <th>Return code</th> <th>Description</th> </tr>
     ///    <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> Success </td> </tr> </table>
     ///    
-    HRESULT GetTemporaryName(ushort** pFilename);
+    HRESULT GetTemporaryName(PWSTR* pFilename);
     ///Sets the validation state of this file.
     ///Params:
     ///    state = Set to <b>TRUE</b> if the file content is valid, otherwise, <b>FALSE</b>.
@@ -2443,7 +2444,7 @@ interface IBackgroundCopyFile3 : IBackgroundCopyFile2
     ///    The method returns the following return values. <table> <tr> <th>Return code</th> <th>Description</th> </tr>
     ///    <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> Success </td> </tr> </table>
     ///    
-    HRESULT GetValidationState(int* pState);
+    HRESULT GetValidationState(BOOL* pState);
     ///Gets a value that determines if any part of the file was downloaded from a peer.
     ///Params:
     ///    pVal = Is <b>TRUE</b> if any part of the file was downloaded from a peer; otherwise, <b>FALSE</b>.
@@ -2451,7 +2452,7 @@ interface IBackgroundCopyFile3 : IBackgroundCopyFile2
     ///    The method returns the following return values. <table> <tr> <th>Return code</th> <th>Description</th> </tr>
     ///    <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> Success </td> </tr> </table>
     ///    
-    HRESULT IsDownloadedFromPeer(int* pVal);
+    HRESULT IsDownloadedFromPeer(BOOL* pVal);
 }
 
 ///Implement this interface to receive notification that a file has completed downloading. Instead of polling for the
@@ -2557,7 +2558,7 @@ interface IBitsTokenOptions : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetHelperTokenSid(ushort** pSid);
+    HRESULT GetHelperTokenSid(PWSTR* pSid);
 }
 
 ///Use this interface to retrieve download statistics for peers and origin servers. To get an
@@ -2659,7 +2660,8 @@ interface IBackgroundCopyCallback3 : IBackgroundCopyCallback2
     ///Returns:
     ///    This method returns <b>S_OK</b> on success; otherwise, returns an error code.
     ///    
-    HRESULT FileRangesTransferred(IBackgroundCopyJob job, IBackgroundCopyFile file, uint rangeCount, char* ranges);
+    HRESULT FileRangesTransferred(IBackgroundCopyJob job, IBackgroundCopyFile file, uint rangeCount, 
+                                  const(BG_FILE_RANGE)* ranges);
 }
 
 ///Use this interface to request file ranges for On Demand download jobs.
@@ -2686,7 +2688,7 @@ interface IBackgroundCopyFile6 : IBackgroundCopyFile5
     ///    <b>BG_E_RANDOM_ACCESS_NOT_SUPPORTED</b> is returned if the job is not a download job or if the server loses
     ///    its ability to support download ranges.
     ///    
-    HRESULT RequestFileRanges(uint rangeCount, char* ranges);
+    HRESULT RequestFileRanges(uint rangeCount, const(BG_FILE_RANGE)* ranges);
     ///Returns the set of file ranges that have been downloaded.
     ///Params:
     ///    rangeCount = The number of elements in <i>Ranges</i>.
@@ -2699,7 +2701,7 @@ interface IBackgroundCopyFile6 : IBackgroundCopyFile5
     ///    <b>BG_E_RANDOM_ACCESS_NOT_SUPPORTED</b> if the job is not a download job or if the server loses its ability
     ///    to support download ranges.
     ///    
-    HRESULT GetFilledFileRanges(uint* rangeCount, char* ranges);
+    HRESULT GetFilledFileRanges(uint* rangeCount, BG_FILE_RANGE** ranges);
 }
 
 ///Use this interface to retrieve and/or to override the HTTP method used for a BITS transfer. To get this interface,
@@ -2717,7 +2719,7 @@ interface IBackgroundCopyJobHttpOptions2 : IBackgroundCopyJobHttpOptions
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetHttpMethod(const(wchar)* method);
+    HRESULT SetHttpMethod(const(PWSTR) method);
     ///Retrieves a wide string containing the HTTP method name for the BITS transfer. By default, download jobs will be
     ///"GET", and upload and upload-reply jobs will be "BITS_POST".
     ///Params:
@@ -2729,7 +2731,7 @@ interface IBackgroundCopyJobHttpOptions2 : IBackgroundCopyJobHttpOptions
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetHttpMethod(ushort** method);
+    HRESULT GetHttpMethod(PWSTR* method);
 }
 
 ///Server certificates are sent when an HTTPS connection is opened. Use this method to implement a callback to be called
@@ -2758,8 +2760,8 @@ interface IBackgroundCopyServerCertificateValidationCallback : IUnknown
     ///    code](/windows/desktop/com/com-error-codes-10) to indicate that the certificate is not acceptable.
     ///    
     HRESULT ValidateServerCertificate(IBackgroundCopyJob job, IBackgroundCopyFile file, uint certLength, 
-                                      char* certData, uint certEncodingType, uint certStoreLength, 
-                                      char* certStoreData);
+                                      const(ubyte)* certData, uint certEncodingType, uint certStoreLength, 
+                                      const(ubyte)* certStoreData);
 }
 
 ///Use this interface to set HTTP customer headers to write-only, or to set a server certificate validation callback
@@ -2918,7 +2920,7 @@ interface IBackgroundCopyJob1 : IUnknown
     ///    <dt><b>E_ACCESSDENIED</b></dt> </dl> </td> <td width="60%"> User does not have permission to write to the
     ///    specified directory on the client. </td> </tr> </table>
     ///    
-    HRESULT AddFiles(uint cFileCount, char* ppFileSet);
+    HRESULT AddFiles(uint cFileCount, FILESETINFO** ppFileSet);
     ///<p class="CCE_Message">[<b>IBackgroundCopyJob1</b> is available for use in the operating systems specified in the
     ///Requirements section. It may be altered or unavailable in subsequent versions. Instead, use the BITS interfaces.]
     ///Use the <b>GetFile</b> method to retrieve the remote and local file names for the given file in the job.
@@ -2981,7 +2983,7 @@ interface IEnumBackgroundCopyJobs1 : IUnknown
     ///    <dt><b>S_FALSE</b></dt> </dl> </td> <td width="60%"> Returned less than the number of requested elements.
     ///    </td> </tr> </table>
     ///    
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, GUID* rgelt, uint* pceltFetched);
     ///<p class="CCE_Message">[<b>IEnumBackgroundCopyJobs1</b> is available for use in the operating systems specified
     ///in the Requirements section. It may be altered or unavailable in subsequent versions. Instead, use the BITS
     ///interfaces.] Use the <b>Skip</b> method to skip the next specified number of elements in the enumeration
@@ -3188,7 +3190,7 @@ interface IEnumBackgroundCopyGroups : IUnknown
     ///    <dt><b>S_FALSE</b></dt> </dl> </td> <td width="60%"> Returned less than the number of requested elements.
     ///    </td> </tr> </table>
     ///    
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, GUID* rgelt, uint* pceltFetched);
     ///<p class="CCE_Message">[<b>IEnumBackgroundCopyGroups</b> is available for use in the operating systems specified
     ///in the Requirements section. It may be altered or unavailable in subsequent versions. Instead, use the BITS
     ///interfaces.] Use the <b>Skip</b> method to skip the next specified number of elements in the enumeration
@@ -3277,7 +3279,7 @@ interface IBackgroundCopyCallback1 : IUnknown
     HRESULT OnProgress(uint ProgressType, IBackgroundCopyGroup pGroup, IBackgroundCopyJob1 pJob, uint dwFileIndex, 
                        uint dwProgressValue);
     HRESULT OnProgressEx(uint ProgressType, IBackgroundCopyGroup pGroup, IBackgroundCopyJob1 pJob, 
-                         uint dwFileIndex, uint dwProgressValue, uint dwByteArraySize, char* pByte);
+                         uint dwFileIndex, uint dwProgressValue, uint dwByteArraySize, ubyte* pByte);
 }
 
 ///<p class="CCE_Message">[<b>IBackgroundCopyQMgr</b> is available for use in the operating systems specified in the

@@ -8,7 +8,7 @@ public import windows.displaydevices : POINTS;
 public import windows.systemservices : BOOL, HANDLE;
 public import windows.windowsandmessaging : HWND;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -131,6 +131,16 @@ struct GESTURECONFIG
     uint dwBlock;
 }
 
+struct HGESTUREINFO
+{
+    ptrdiff_t Value;
+}
+
+struct HTOUCHINPUT
+{
+    ptrdiff_t Value;
+}
+
 // Functions
 
 ///Retrieves detailed information about touch inputs associated with a particular touch input handle.
@@ -152,7 +162,7 @@ struct GESTURECONFIG
 ///    extended error information, use the GetLastError function.
 ///    
 @DllImport("USER32")
-BOOL GetTouchInputInfo(ptrdiff_t hTouchInput, uint cInputs, char* pInputs, int cbSize);
+BOOL GetTouchInputInfo(HTOUCHINPUT hTouchInput, uint cInputs, TOUCHINPUT* pInputs, int cbSize);
 
 ///Closes a touch input handle, frees process memory associated with it, and invalidates the handle.
 ///Params:
@@ -165,7 +175,7 @@ BOOL GetTouchInputInfo(ptrdiff_t hTouchInput, uint cInputs, char* pInputs, int c
 ///    extended error information, use the GetLastError function.
 ///    
 @DllImport("USER32")
-BOOL CloseTouchInputHandle(ptrdiff_t hTouchInput);
+BOOL CloseTouchInputHandle(HTOUCHINPUT hTouchInput);
 
 ///Registers a window as being touch-capable.
 ///Params:
@@ -221,7 +231,7 @@ BOOL IsTouchWindow(HWND hwnd, uint* pulFlags);
 ///    extended error information, use the GetLastError function.
 ///    
 @DllImport("USER32")
-BOOL GetGestureInfo(ptrdiff_t hGestureInfo, GESTUREINFO* pGestureInfo);
+BOOL GetGestureInfo(HGESTUREINFO hGestureInfo, GESTUREINFO* pGestureInfo);
 
 ///Retrieves additional information about a gesture from its GESTUREINFO handle.
 ///Params:
@@ -233,7 +243,7 @@ BOOL GetGestureInfo(ptrdiff_t hGestureInfo, GESTUREINFO* pGestureInfo);
 ///    extended error information, use the GetLastError function.
 ///    
 @DllImport("USER32")
-BOOL GetGestureExtraArgs(ptrdiff_t hGestureInfo, uint cbExtraArgs, char* pExtraArgs);
+BOOL GetGestureExtraArgs(HGESTUREINFO hGestureInfo, uint cbExtraArgs, ubyte* pExtraArgs);
 
 ///Closes resources associated with a gesture information handle.
 ///Params:
@@ -243,7 +253,7 @@ BOOL GetGestureExtraArgs(ptrdiff_t hGestureInfo, uint cbExtraArgs, char* pExtraA
 ///    extended error information, use the GetLastError function.
 ///    
 @DllImport("USER32")
-BOOL CloseGestureInfoHandle(ptrdiff_t hGestureInfo);
+BOOL CloseGestureInfoHandle(HGESTUREINFO hGestureInfo);
 
 ///Configures the messages that are sent from a window for Windows Touch gestures.
 ///Params:
@@ -257,7 +267,7 @@ BOOL CloseGestureInfoHandle(ptrdiff_t hGestureInfo);
 ///    extended error information, use the GetLastError function.
 ///    
 @DllImport("USER32")
-BOOL SetGestureConfig(HWND hwnd, uint dwReserved, uint cIDs, char* pGestureConfig, uint cbSize);
+BOOL SetGestureConfig(HWND hwnd, uint dwReserved, uint cIDs, GESTURECONFIG* pGestureConfig, uint cbSize);
 
 ///Retrieves the configuration for which Windows Touch gesture messages are sent from a window.
 ///Params:
@@ -273,7 +283,8 @@ BOOL SetGestureConfig(HWND hwnd, uint dwReserved, uint cIDs, char* pGestureConfi
 ///    extended error information, use the GetLastError function.
 ///    
 @DllImport("USER32")
-BOOL GetGestureConfig(HWND hwnd, uint dwReserved, uint dwFlags, uint* pcIDs, char* pGestureConfig, uint cbSize);
+BOOL GetGestureConfig(HWND hwnd, uint dwReserved, uint dwFlags, uint* pcIDs, GESTURECONFIG* pGestureConfig, 
+                      uint cbSize);
 
 
 // Interfaces
@@ -447,7 +458,7 @@ interface IInertiaProcessor : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> on success, otherwise returns an error code such as <b>E_FAIL</b>.
     ///    
-    HRESULT Process(int* completed);
+    HRESULT Process(BOOL* completed);
     ///The <b>ProcessTime</b> method performs calculations for the given tick and can raise the <b>Started</b>,
     ///<b>Delta</b>, or <b>Completed</b> event depending on whether extrapolation is completed or not. If extrapolation
     ///finished at the previous tick, the method is no-op.
@@ -458,7 +469,7 @@ interface IInertiaProcessor : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> on success, otherwise returns an error code such as <b>E_FAIL</b>.
     ///    
-    HRESULT ProcessTime(uint timestamp, int* completed);
+    HRESULT ProcessTime(uint timestamp, BOOL* completed);
     ///The <b>Complete</b> method finishes the current manipulation and stops inertia on the inertia processor.
     ///Returns:
     ///    Returns <b>S_OK</b> on success, otherwise returns an error code such as <b>E_FAIL</b>.

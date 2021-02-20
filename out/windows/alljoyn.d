@@ -3,9 +3,9 @@
 module windows.alljoyn;
 
 public import windows.core;
-public import windows.systemservices : BOOL, HANDLE, SECURITY_ATTRIBUTES;
+public import windows.systemservices : BOOL, HANDLE, PWSTR, SECURITY_ATTRIBUTES;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -931,7 +931,7 @@ struct _alljoyn_securityapplicationproxy_handle
 ///Params:
 ///    connectionSpec = Optional parameter to pass connection spec for future use.
 @DllImport("MSAJApi")
-HANDLE AllJoynConnectToBus(const(wchar)* connectionSpec);
+HANDLE AllJoynConnectToBus(const(PWSTR) connectionSpec);
 
 ///Closes the Named Pipe handle.
 ///Params:
@@ -950,7 +950,7 @@ BOOL AllJoynCloseBusHandle(HANDLE busHandle);
 ///    bytesTransferred = Number of bytes written.
 ///    reserved = May be used in a future version as OVERLAPPED address. Currently must be NULL.
 @DllImport("MSAJApi")
-BOOL AllJoynSendToBus(HANDLE connectedBusHandle, char* buffer, uint bytesToWrite, uint* bytesTransferred, 
+BOOL AllJoynSendToBus(HANDLE connectedBusHandle, const(void)* buffer, uint bytesToWrite, uint* bytesTransferred, 
                       void* reserved);
 
 ///Receives data from the bus via named pipe.
@@ -961,7 +961,7 @@ BOOL AllJoynSendToBus(HANDLE connectedBusHandle, char* buffer, uint bytesToWrite
 ///    bytesTransferred = Number of bytes read.
 ///    reserved = May be used in a future version as OVERLAPPED address. Currently must be NULL.
 @DllImport("MSAJApi")
-BOOL AllJoynReceiveFromBus(HANDLE connectedBusHandle, char* buffer, uint bytesToRead, uint* bytesTransferred, 
+BOOL AllJoynReceiveFromBus(HANDLE connectedBusHandle, void* buffer, uint bytesToRead, uint* bytesTransferred, 
                            void* reserved);
 
 ///Provides AllJoyn transport functionality similar to the TCP socket WSAEventSelect functionality.

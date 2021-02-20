@@ -7,15 +7,18 @@ public import windows.automation : BSTR, IDispatch, IErrorLog, IPropertyBag,
                                    ITypeInfo, VARIANT;
 public import windows.componentservices : IEventObjectCollection;
 public import windows.controls : PROPSHEETHEADERA_V2, PROPSHEETHEADERW_V2;
+public import windows.coreaudio : HTASK;
 public import windows.displaydevices : POINT, POINTL, RECT, RECTL, SIZE;
-public import windows.gdi : HBITMAP, HCURSOR, HDC, HFONT, HICON, HPALETTE, HRGN,
-                            LOGPALETTE, TEXTMETRICW;
+public import windows.gdi : HBITMAP, HCURSOR, HDC, HENHMETAFILE, HFONT, HICON,
+                            HMETAFILE, HMONITOR, HPALETTE, HRGN, LOGPALETTE,
+                            TEXTMETRICW;
 public import windows.menusandresources : HACCEL, HMENU;
 public import windows.security : TRUSTEE_A, TRUSTEE_W;
 public import windows.shell : SOFTDISTINFO, UNDOCK_REASON;
 public import windows.structuredstorage : IStorage, IStream;
-public import windows.systemservices : BOOL, CY, HANDLE, HINSTANCE, IServiceProvider,
-                                       LARGE_INTEGER, LRESULT, SECURITY_ATTRIBUTES,
+public import windows.systemservices : BOOL, CY, HANDLE, HINSTANCE, HRSRC,
+                                       IServiceProvider, LARGE_INTEGER, LRESULT,
+                                       PSTR, PWSTR, SECURITY_ATTRIBUTES,
                                        ULARGE_INTEGER, uCLSSPEC, userHBITMAP,
                                        userHENHMETAFILE, userHGLOBAL,
                                        userHMETAFILEPICT, userHPALETTE;
@@ -25,11 +28,79 @@ public import windows.windowsandmessaging : HWND, LPARAM, MSG, OPENFILENAMEA, OP
                                             WPARAM;
 public import windows.windowsprogramming : FILETIME, IXMLElement, SYSTEMTIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
 
+
+///Specifies the desired data or view aspect of the object when drawing or getting data.
+alias DVASPECT = int;
+enum : int
+{
+    ///Provides a representation of an object so it can be displayed as an embedded object inside of a container. This
+    ///value is typically specified for compound document objects. The presentation can be provided for the screen or
+    ///printer.
+    DVASPECT_CONTENT   = 0x00000001,
+    ///Provides a thumbnail representation of an object so it can be displayed in a browsing tool. The thumbnail is
+    ///approximately a 120 by 120 pixel, 16-color (recommended) device-independent bitmap potentially wrapped in a
+    ///metafile.
+    DVASPECT_THUMBNAIL = 0x00000002,
+    ///Provides an iconic representation of an object.
+    DVASPECT_ICON      = 0x00000004,
+    ///Provides a representation of the object on the screen as though it were printed to a printer using the
+    ///<b>Print</b> command from the <b>File</b> menu. The described data may represent a sequence of pages.
+    DVASPECT_DOCPRINT  = 0x00000008,
+}
+
+///Specifies a mapping for a class ID.
+alias TYSPEC = int;
+enum : int
+{
+    ///A CLSID.
+    TYSPEC_CLSID       = 0x00000000,
+    ///A file name extension.
+    TYSPEC_FILEEXT     = 0x00000001,
+    ///A MIME type.
+    TYSPEC_MIMETYPE    = 0x00000002,
+    ///A file name.
+    TYSPEC_FILENAME    = 0x00000003,
+    ///A PROGID.
+    TYSPEC_PROGID      = 0x00000004,
+    ///A package name.
+    TYSPEC_PACKAGENAME = 0x00000005,
+    ///An object ID.
+    TYSPEC_OBJECTID    = 0x00000006,
+}
+
+///Determines the concurrency model used for incoming calls to objects created by this thread. This concurrency model
+///can be either apartment-threaded or multithreaded.
+alias COINIT = int;
+enum : int
+{
+    ///Initializes the thread for apartment-threaded object concurrency (see Remarks).
+    COINIT_APARTMENTTHREADED = 0x00000002,
+    ///Initializes the thread for multithreaded object concurrency (see Remarks).
+    COINIT_MULTITHREADED     = 0x00000000,
+    ///Disables DDE for OLE1 support.
+    COINIT_DISABLE_OLE1DDE   = 0x00000004,
+    ///Increase memory usage in an attempt to increase performance.
+    COINIT_SPEED_OVER_MEMORY = 0x00000008,
+}
+
+///Determines the type of COM security descriptor to get when calling CoGetSystemSecurityPermissions.
+alias COMSD = int;
+enum : int
+{
+    ///Machine-wide launch permissions.
+    SD_LAUNCHPERMISSIONS  = 0x00000000,
+    ///Machine-wide access permissions.
+    SD_ACCESSPERMISSIONS  = 0x00000001,
+    ///Machine-wide launch limits.
+    SD_LAUNCHRESTRICTIONS = 0x00000002,
+    ///Machine-wide access limits.
+    SD_ACCESSRESTRICTIONS = 0x00000003,
+}
 
 alias MEMCTX = int;
 enum : int
@@ -2336,45 +2407,6 @@ enum : int
     RECORD_READING_POLICY_RANDOM   = 0x00000003,
 }
 
-///Specifies the desired data or view aspect of the object when drawing or getting data.
-alias DVASPECT = int;
-enum : int
-{
-    ///Provides a representation of an object so it can be displayed as an embedded object inside of a container. This
-    ///value is typically specified for compound document objects. The presentation can be provided for the screen or
-    ///printer.
-    DVASPECT_CONTENT   = 0x00000001,
-    ///Provides a thumbnail representation of an object so it can be displayed in a browsing tool. The thumbnail is
-    ///approximately a 120 by 120 pixel, 16-color (recommended) device-independent bitmap potentially wrapped in a
-    ///metafile.
-    DVASPECT_THUMBNAIL = 0x00000002,
-    ///Provides an iconic representation of an object.
-    DVASPECT_ICON      = 0x00000004,
-    ///Provides a representation of the object on the screen as though it were printed to a printer using the
-    ///<b>Print</b> command from the <b>File</b> menu. The described data may represent a sequence of pages.
-    DVASPECT_DOCPRINT  = 0x00000008,
-}
-
-///Specifies a mapping for a class ID.
-alias TYSPEC = int;
-enum : int
-{
-    ///A CLSID.
-    TYSPEC_CLSID       = 0x00000000,
-    ///A file name extension.
-    TYSPEC_FILEEXT     = 0x00000001,
-    ///A MIME type.
-    TYSPEC_MIMETYPE    = 0x00000002,
-    ///A file name.
-    TYSPEC_FILENAME    = 0x00000003,
-    ///A PROGID.
-    TYSPEC_PROGID      = 0x00000004,
-    ///A package name.
-    TYSPEC_PACKAGENAME = 0x00000005,
-    ///An object ID.
-    TYSPEC_OBJECTID    = 0x00000006,
-}
-
 ///Indicates the nature of the change to an event object.
 alias EOC_ChangeType = int;
 enum : int
@@ -2387,35 +2419,6 @@ enum : int
     EOC_DeletedObject  = 0x00000002,
 }
 
-///Determines the concurrency model used for incoming calls to objects created by this thread. This concurrency model
-///can be either apartment-threaded or multithreaded.
-alias COINIT = int;
-enum : int
-{
-    ///Initializes the thread for apartment-threaded object concurrency (see Remarks).
-    COINIT_APARTMENTTHREADED = 0x00000002,
-    ///Initializes the thread for multithreaded object concurrency (see Remarks).
-    COINIT_MULTITHREADED     = 0x00000000,
-    ///Disables DDE for OLE1 support.
-    COINIT_DISABLE_OLE1DDE   = 0x00000004,
-    ///Increase memory usage in an attempt to increase performance.
-    COINIT_SPEED_OVER_MEMORY = 0x00000008,
-}
-
-///Determines the type of COM security descriptor to get when calling CoGetSystemSecurityPermissions.
-alias COMSD = int;
-enum : int
-{
-    ///Machine-wide launch permissions.
-    SD_LAUNCHPERMISSIONS  = 0x00000000,
-    ///Machine-wide access permissions.
-    SD_ACCESSPERMISSIONS  = 0x00000001,
-    ///Machine-wide launch limits.
-    SD_LAUNCHRESTRICTIONS = 0x00000002,
-    ///Machine-wide access limits.
-    SD_ACCESSRESTRICTIONS = 0x00000003,
-}
-
 // Callbacks
 
 alias LPFNGETCLASSOBJECT = HRESULT function(const(GUID)* param0, const(GUID)* param1, void** param2);
@@ -2425,6 +2428,39 @@ alias PFNCONTEXTCALL = HRESULT function(ComCallData* pParam);
 
 // Structs
 
+
+///Contains an operating system platform and processor architecture.
+struct CSPLATFORM
+{
+    ///The operating system platform. See the <b>dwPlatformId</b> member of OSVERSIONINFO.
+    uint dwPlatformId;
+    ///The major version of the operating system.
+    uint dwVersionHi;
+    ///The minor version of the operating system.
+    uint dwVersionLo;
+    ///The processor architecture. See the <b>wProcessorArchitecture</b> member of SYSTEM_INFO.
+    uint dwProcessorArch;
+}
+
+///Contains a list of attributes used to look up a class implementation.
+struct QUERYCONTEXT
+{
+    ///The execution context.
+    uint       dwContext;
+    ///The operating system platform and processor architecture. For more information, see CSPLATFORM.
+    CSPLATFORM Platform;
+    ///The locale identifier. For more information, see Language Identifier Constants and Strings.
+    uint       Locale;
+    ///The high version number.
+    uint       dwVersionHi;
+    ///The low version number.
+    uint       dwVersionLo;
+}
+
+struct HRESULT
+{
+    int Value;
+}
 
 ///Contains a user name and password.
 struct COAUTHIDENTITY
@@ -2463,7 +2499,7 @@ struct COAUTHINFO
     uint            dwAuthzSvc;
     ///The server principal name to use with the authentication service. If you are using RPC_C_AUTHN_WINNT, the
     ///principal name must be <b>NULL</b>.
-    const(wchar)*   pwszServerPrincName;
+    PWSTR           pwszServerPrincName;
     ///The authentication level to be used. For a list of values, see Authentication Level Constants. As of Windows
     ///Server 2003, remote activations use the default authentication level specified in the CoInitializeSecurity
     ///<i>dwAuthnLevel</i> parameter. In previous versions of Windows, RPC_C_AUTHN_LEVEL_CONNECT was always used for the
@@ -2548,24 +2584,19 @@ struct IContext
 {
 }
 
-///Performs various operations on contexts.
-struct IObjContext
-{
-}
-
 ///Identifies a remote computer resource to the activation functions.
 struct COSERVERINFO
 {
     ///This member is reserved and must be 0.
-    uint          dwReserved1;
+    uint        dwReserved1;
     ///The name of the computer.
-    const(wchar)* pwszName;
+    PWSTR       pwszName;
     ///A pointer to a COAUTHINFO structure to override the default activation security for machine remote activations.
     ///Otherwise, set to <b>NULL</b> to indicate that default values should be used. For more information, see the
     ///Remarks section.
-    COAUTHINFO*   pAuthInfo;
+    COAUTHINFO* pAuthInfo;
     ///This member is reserved and must be 0.
-    uint          dwReserved2;
+    uint        dwReserved2;
 }
 
 ///Represents an interface in a query for multiple interfaces.
@@ -2621,7 +2652,7 @@ struct SOLE_AUTHENTICATION_SERVICE
     ///authentication services but may not work for other authentication services. For Schannel, this member must point
     ///to a CERT_CONTEXT structure that contains the server's certificate; if it <b>NULL</b> and if a certificate for
     ///the current user does not exist, RPC_E_NO_GOOD_SECURITY_PACKAGES is returned.
-    ushort* pPrincipalName;
+    PWSTR   pPrincipalName;
     ///When used in CoInitializeSecurity, set on return to indicate the status of the call to register the
     ///authentication services.
     HRESULT hr;
@@ -2709,7 +2740,7 @@ struct BIND_OPTS
 ///Contains parameters used during a moniker-binding operation.
 struct BIND_OPTS2
 {
-    BIND_OPTS     __AnonymousBase_objidl_L8451_C36;
+    BIND_OPTS     __AnonymousBase_objidl_L8477_C36;
     ///A moniker can use this value during link tracking. If the original persisted data that the moniker is referencing
     ///has been moved, the moniker can attempt to reestablish the link by searching for the original data though some
     ///adequate mechanism. This member provides additional information on how the link should be resolved. See the
@@ -2734,7 +2765,7 @@ struct BIND_OPTS2
 ///Contains parameters used during a moniker-binding operation.
 struct BIND_OPTS3
 {
-    BIND_OPTS2 __AnonymousBase_objidl_L8475_C36;
+    BIND_OPTS2 __AnonymousBase_objidl_L8501_C36;
     ///A handle to the window that becomes the owner of the elevation UI, if applicable. If <b>hwnd</b> is <b>NULL</b>,
     ///COM will call the GetActiveWindow function to find a window handle associated with the current thread. This case
     ///might occur if the client is a script, which cannot fill in a <b>BIND_OPTS3</b> structure. In this case, COM will
@@ -2833,15 +2864,15 @@ struct RemSTGMEDIUM
 struct STGMEDIUM
 {
     uint     tymed;
-    union
+union
     {
-        HBITMAP   hBitmap;
-        void*     hMetaFilePict;
-        ptrdiff_t hEnhMetaFile;
-        ptrdiff_t hGlobal;
-        ushort*   lpszFileName;
-        IStream   pstm;
-        IStorage  pstg;
+        HBITMAP      hBitmap;
+        void*        hMetaFilePict;
+        HENHMETAFILE hEnhMetaFile;
+        ptrdiff_t    hGlobal;
+        PWSTR        lpszFileName;
+        IStream      pstm;
+        IStorage     pstg;
     }
     IUnknown pUnkForRelease;
 }
@@ -2849,7 +2880,7 @@ struct STGMEDIUM
 struct GDI_OBJECT
 {
     uint ObjectType;
-    union u
+union u
     {
         userHBITMAP*  hBitmap;
         userHPALETTE* hPalette;
@@ -2949,25 +2980,25 @@ struct OleMenuGroupWidths
 struct OLEVERB
 {
     ///Integer identifier associated with this verb.
-    int     lVerb;
+    int   lVerb;
     ///Pointer to a string that contains the verb's name.
-    ushort* lpszVerbName;
+    PWSTR lpszVerbName;
     ///In Windows, a group of flags taken from the flag constants beginning with MF_ defined in AppendMenu. Containers
     ///should use these flags in building an object's verb menu. All Flags defined in <b>AppendMenu</b> are supported
     ///except for MF_BITMAP, MF_OWNERDRAW, and MF_POPUP.
-    uint    fuFlags;
+    uint  fuFlags;
     ///Combination of the verb attributes in the OLEVERBATTRIB enumeration.
-    uint    grfAttribs;
+    uint  grfAttribs;
 }
 
 struct BINDINFO
 {
     uint                cbSize;
-    const(wchar)*       szExtraInfo;
+    PWSTR               szExtraInfo;
     STGMEDIUM           stgmedData;
     uint                grfBindInfoF;
     uint                dwBindVerb;
-    const(wchar)*       szCustomVerb;
+    PWSTR               szCustomVerb;
     uint                cbstgmedData;
     uint                dwOptions;
     uint                dwOptionsFlags;
@@ -2987,19 +3018,19 @@ struct REMSECURITY_ATTRIBUTES
 
 struct RemBINDINFO
 {
-    uint          cbSize;
-    const(wchar)* szExtraInfo;
-    uint          grfBindInfoF;
-    uint          dwBindVerb;
-    const(wchar)* szCustomVerb;
-    uint          cbstgmedData;
-    uint          dwOptions;
-    uint          dwOptionsFlags;
-    uint          dwCodePage;
+    uint     cbSize;
+    PWSTR    szExtraInfo;
+    uint     grfBindInfoF;
+    uint     dwBindVerb;
+    PWSTR    szCustomVerb;
+    uint     cbstgmedData;
+    uint     dwOptions;
+    uint     dwOptionsFlags;
+    uint     dwCodePage;
     REMSECURITY_ATTRIBUTES securityAttributes;
-    GUID          iid;
-    IUnknown      pUnk;
-    uint          dwReserved;
+    GUID     iid;
+    IUnknown pUnk;
+    uint     dwReserved;
 }
 
 struct RemFORMATETC
@@ -3046,12 +3077,12 @@ struct ZONEATTRIBUTES
 
 struct CODEBASEHOLD
 {
-    uint          cbSize;
-    const(wchar)* szDistUnit;
-    const(wchar)* szCodeBase;
-    uint          dwVersionMS;
-    uint          dwVersionLS;
-    uint          dwStyle;
+    uint  cbSize;
+    PWSTR szDistUnit;
+    PWSTR szCodeBase;
+    uint  dwVersionMS;
+    uint  dwVersionLS;
+    uint  dwStyle;
 }
 
 struct PROTOCOLFILTERDATA
@@ -3073,11 +3104,11 @@ struct DATAINFO
 
 struct HIT_LOGGING_INFO
 {
-    uint         dwStructSize;
-    const(char)* lpszLoggedUrlName;
-    SYSTEMTIME   StartTime;
-    SYSTEMTIME   EndTime;
-    const(char)* lpszExtendedInfo;
+    uint       dwStructSize;
+    PSTR       lpszLoggedUrlName;
+    SYSTEMTIME StartTime;
+    SYSTEMTIME EndTime;
+    PSTR       lpszExtendedInfo;
 }
 
 struct CONFIRMSAFETY
@@ -3089,8 +3120,8 @@ struct CONFIRMSAFETY
 
 struct PROTOCOL_ARGUMENT
 {
-    const(wchar)* szMethod;
-    const(wchar)* szTargetUrl;
+    const(PWSTR) szMethod;
+    const(PWSTR) szTargetUrl;
 }
 
 struct OLESTREAMVTBL
@@ -3170,26 +3201,26 @@ struct POINTF
 struct PROPPAGEINFO
 {
     ///The size of the structure, in bytes.
-    uint    cb;
+    uint  cb;
     ///Pointer to an OLESTR that contains the string that appears in the tab for this page. The string must be allocated
     ///with CoTaskMemAlloc. The caller of IPropertyPage::GetPageInfo is responsible for freeing the memory with
     ///CoTaskMemFree.
-    ushort* pszTitle;
+    PWSTR pszTitle;
     ///Required dimensions of the page's dialog box, in pixels.
-    SIZE    size;
+    SIZE  size;
     ///Pointer to a text string describing the page, which can be displayed in the property sheet dialog box (current
     ///frame implementation doesn't use this field). The text must be allocated with CoTaskMemAlloc. The caller of
     ///IPropertyPage::GetPageInfo is responsible for freeing the memory with CoTaskMemFree.
-    ushort* pszDocString;
+    PWSTR pszDocString;
     ///Pointer to an OLESTR that contains the simple name of the help file that describes this property page used
     ///instead of implementing IPropertyPage::Help. When the user presses Help, the Help method is normally called. If
     ///that method fails, the frame will open the help system with this help file (prefixed with the value of the
     ///HelpDir key in the property page's registry entries under its CLSID) and will instruct the help system to display
     ///the context described by the <b>dwHelpContext</b> field. The path must be allocated with CoTaskMemAlloc. The
     ///caller of IPropertyPage::GetPageInfo is responsible for freeing the memory with CoTaskMemFree.
-    ushort* pszHelpFile;
+    PWSTR pszHelpFile;
     ///Context identifier for the help topic within <b>pszHelpFile</b> that describes this page.
-    uint    dwHelpContext;
+    uint  dwHelpContext;
 }
 
 ///Specifies a counted array of UUID or GUID types used to receive an array of CLSIDs for the property pages that the
@@ -3220,12 +3251,12 @@ struct AspectInfo
 struct CALPOLESTR
 {
     ///The size of the array pointed to by <b>pElems</b>.
-    uint     cElems;
+    uint   cElems;
     ///A pointer to an array of LPOLESTR values, each of which corresponds to an allowable value that a particular
     ///property can accept. The caller can use these string values in user interface elements, such as drop-down list
     ///boxes. This array, as well as the strings in the array, are allocated by the callee using CoTaskMemAlloc and is
     ///freed by the caller using CoTaskMemFree.
-    ushort** pElems;
+    PWSTR* pElems;
 }
 
 ///Specifies a counted array of values that can be used to obtain the value corresponding to one of the predefined
@@ -3242,12 +3273,12 @@ struct CADWORD
 
 struct PROPBAG2
 {
-    uint    dwType;
-    ushort  vt;
-    ushort  cfType;
-    uint    dwHint;
-    ushort* pstrName;
-    GUID    clsid;
+    uint   dwType;
+    ushort vt;
+    ushort cfType;
+    uint   dwHint;
+    PWSTR  pstrName;
+    GUID   clsid;
 }
 
 ///Specifies container information for IQuickActivate::QuickActivate.
@@ -3312,54 +3343,54 @@ struct QACONTROL
 struct OCPFIPARAMS
 {
     ///The size of the structure, in bytes.
-    uint      cbStructSize;
+    uint         cbStructSize;
     ///Handle to the parent window of the resulting property sheet dialog box.
-    HWND      hWndOwner;
+    HWND         hWndOwner;
     ///Horizontal position for the dialog box relative to <b>hWndOwner</b>, in pixels.
-    int       x;
+    int          x;
     ///Vertical position for the dialog box relative to <b>hWndOwner</b>, in pixels.
-    int       y;
+    int          y;
     ///Pointer to an OLESTR that contains the caption of the dialog.
-    ushort*   lpszCaption;
+    const(PWSTR) lpszCaption;
     ///Number of object pointers passed in <b>lplpUnk</b>.
-    uint      cObjects;
+    uint         cObjects;
     ///Array of IUnknown pointers on the objects for which this property sheet is being invoked. The number of elements
     ///in the array is specified by <b>cObjects</b>. These pointers are passed to each property page through
     ///IPropertyPage::SetObjects.
-    IUnknown* lplpUnk;
+    IUnknown*    lplpUnk;
     ///Number of property pages specified in <b>lpPages</b>.
-    uint      cPages;
+    uint         cPages;
     ///Pointer to an array of size <b>cPages</b> containing the CLSIDs of each property page to display in the property
     ///sheet.
-    GUID*     lpPages;
+    GUID*        lpPages;
     ///Locale identifier for the property sheet. This value will be returned through IPropertyPageSite::GetLocaleID.
-    uint      lcid;
+    uint         lcid;
     ///Property that is highlighted when the dialog box is made visible.
-    int       dispidInitialProperty;
+    int          dispidInitialProperty;
 }
 
 ///Contains parameters used to create a font object through the OleCreateFontIndirect function.
 struct FONTDESC
 {
     ///The size of the structure, in bytes.
-    uint    cbSizeofstruct;
+    uint  cbSizeofstruct;
     ///Pointer to an OLESTR that specifies the caller-owned string specifying the font name. cySize
-    ushort* lpstrName;
+    PWSTR lpstrName;
     ///Initial point size of the font. Use the <b>int64</b> member of the CY structure and scale your font size (in
     ///points) by 10000.
-    CY      cySize;
+    CY    cySize;
     ///Initial weight of the font. If the weight is below 550 (the average of FW_NORMAL, 400, and FW_BOLD, 700), then
     ///the <b>Bold</b> property is also initialized to <b>FALSE</b>. If the weight is above 550, the <b>Bold</b>
     ///property is set to <b>TRUE</b>.
-    short   sWeight;
+    short sWeight;
     ///Initial character set of the font.
-    short   sCharset;
+    short sCharset;
     ///Initial italic state of the font.
-    BOOL    fItalic;
+    BOOL  fItalic;
     ///Initial underline state of the font.
-    BOOL    fUnderline;
+    BOOL  fUnderline;
     ///Initial strikethrough state of the font.
-    BOOL    fStrikethrough;
+    BOOL  fStrikethrough;
 }
 
 ///Contains parameters to create a picture object through the OleCreatePictureIndirect function.
@@ -3370,26 +3401,26 @@ struct PICTDESC
     ///Type of picture described by this structure, which can be any value from the PICTYPE enumeration. This selects
     ///the arm of the union that corresponds to one of the picture type structures below.
     uint picType;
-    union
+union
     {
-        struct bmp
+struct bmp
         {
             HBITMAP  hbitmap;
             HPALETTE hpal;
         }
-        struct wmf
+struct wmf
         {
-            ptrdiff_t hmeta;
+            HMETAFILE hmeta;
             int       xExt;
             int       yExt;
         }
-        struct icon
+struct icon
         {
             HICON hicon;
         }
-        struct emf
+struct emf
         {
-            ptrdiff_t hemf;
+            HENHMETAFILE hemf;
         }
     }
 }
@@ -3497,7 +3528,7 @@ struct OLEUIINSERTOBJECTW
     HWND           hWndOwner;
     ///Pointer to a string to be used as the title of the dialog box. If <b>NULL</b>, then the library uses <b>Insert
     ///Object</b>.
-    const(wchar)*  lpszCaption;
+    const(PWSTR)   lpszCaption;
     ///Pointer to a hook function that processes messages intended for the dialog box. The hook function must return
     ///zero to pass a message that it didn't process back to the dialog box procedure in the library. The hook function
     ///must return a nonzero value to prevent the library's dialog box procedure from processing a message it has
@@ -3511,13 +3542,13 @@ struct OLEUIINSERTOBJECTW
     HINSTANCE      hInstance;
     ///Pointer to a null-terminated string that specifies the name of the resource file for the dialog box template that
     ///is to be substituted for the library's <b>Insert Object</b> dialog box template.
-    const(wchar)*  lpszTemplate;
+    const(PWSTR)   lpszTemplate;
     ///Customized template handle.
-    ptrdiff_t      hResource;
+    HRSRC          hResource;
     ///CLSID for class of the object to be inserted. Filled on output.
     GUID           clsid;
     ///Pointer to the name of the file to be linked or embedded. Filled on output.
-    const(wchar)*  lpszFile;
+    PWSTR          lpszFile;
     ///Size of <b>lpszFile</b> buffer; will not exceed MAX_PATH.
     uint           cchFile;
     ///Number of CLSIDs included in the <b>lpClsidExclude</b> list. Filled on input.
@@ -3596,7 +3627,7 @@ struct OLEUIINSERTOBJECTA
     HWND           hWndOwner;
     ///Pointer to a string to be used as the title of the dialog box. If <b>NULL</b>, then the library uses <b>Insert
     ///Object</b>.
-    const(char)*   lpszCaption;
+    const(PSTR)    lpszCaption;
     ///Pointer to a hook function that processes messages intended for the dialog box. The hook function must return
     ///zero to pass a message that it didn't process back to the dialog box procedure in the library. The hook function
     ///must return a nonzero value to prevent the library's dialog box procedure from processing a message it has
@@ -3610,13 +3641,13 @@ struct OLEUIINSERTOBJECTA
     HINSTANCE      hInstance;
     ///Pointer to a null-terminated string that specifies the name of the resource file for the dialog box template that
     ///is to be substituted for the library's <b>Insert Object</b> dialog box template.
-    const(char)*   lpszTemplate;
+    const(PSTR)    lpszTemplate;
     ///Customized template handle.
-    ptrdiff_t      hResource;
+    HRSRC          hResource;
     ///CLSID for class of the object to be inserted. Filled on output.
     GUID           clsid;
     ///Pointer to the name of the file to be linked or embedded. Filled on output.
-    const(char)*   lpszFile;
+    PSTR           lpszFile;
     ///Size of <b>lpszFile</b> buffer; will not exceed MAX_PATH.
     uint           cchFile;
     ///Number of CLSIDs included in the <b>lpClsidExclude</b> list. Filled on input.
@@ -3657,22 +3688,22 @@ struct OLEUIPASTEENTRYW
 {
     ///Format that is acceptable. The <b>Paste Special</b> dialog box checks if this format is offered by the object on
     ///the clipboard and if so, offers it for selection to the user.
-    FORMATETC     fmtetc;
+    FORMATETC    fmtetc;
     ///Pointer to the string that represents the format to the user. Any %s in this string is replaced by the
     ///FullUserTypeName of the object on the clipboard and the resulting string is placed in the list box of the dialog
     ///box. Only one %s is allowed. The presence or absence of %s specifies whether the result-text is to indicate that
     ///data is being pasted or that an object that can be activated by an application is being pasted. If %s is present,
     ///the resulting text says that an object is being pasted. Otherwise, it says that data is being pasted.
-    const(wchar)* lpstrFormatName;
+    const(PWSTR) lpstrFormatName;
     ///Pointer to the string used to customize the resulting text of the dialog box when the user selects the format
     ///corresponding to this entry. Any %s in this string is replaced by the application name or FullUserTypeName of the
     ///object on the clipboard. Only one %s is allowed.
-    const(wchar)* lpstrResultText;
+    const(PWSTR) lpstrResultText;
     ///Values from OLEUIPASTEFLAG enumeration.
-    uint          dwFlags;
+    uint         dwFlags;
     ///Scratch space available to routines that loop through an IEnumFORMATETC to mark if the PasteEntry format is
     ///available. This field can be left uninitialized.
-    uint          dwScratchSpace;
+    uint         dwScratchSpace;
 }
 
 ///An array of entries to be specified in the OLEUIPASTESPECIAL structure for the <b>Paste Special</b> dialog box. Each
@@ -3685,22 +3716,22 @@ struct OLEUIPASTEENTRYA
 {
     ///Format that is acceptable. The <b>Paste Special</b> dialog box checks if this format is offered by the object on
     ///the clipboard and if so, offers it for selection to the user.
-    FORMATETC    fmtetc;
+    FORMATETC   fmtetc;
     ///Pointer to the string that represents the format to the user. Any %s in this string is replaced by the
     ///FullUserTypeName of the object on the clipboard and the resulting string is placed in the list box of the dialog
     ///box. Only one %s is allowed. The presence or absence of %s specifies whether the result-text is to indicate that
     ///data is being pasted or that an object that can be activated by an application is being pasted. If %s is present,
     ///the resulting text says that an object is being pasted. Otherwise, it says that data is being pasted.
-    const(char)* lpstrFormatName;
+    const(PSTR) lpstrFormatName;
     ///Pointer to the string used to customize the resulting text of the dialog box when the user selects the format
     ///corresponding to this entry. Any %s in this string is replaced by the application name or FullUserTypeName of the
     ///object on the clipboard. Only one %s is allowed.
-    const(char)* lpstrResultText;
+    const(PSTR) lpstrResultText;
     ///Values from OLEUIPASTEFLAG enumeration.
-    uint         dwFlags;
+    uint        dwFlags;
     ///Scratch space available to routines that loop through an IEnumFORMATETC to mark if the PasteEntry format is
     ///available. This field can be left uninitialized.
-    uint         dwScratchSpace;
+    uint        dwScratchSpace;
 }
 
 ///Contains information that the OLE User Interface Library uses to initialize the <b>Paste Special</b> dialog box, as
@@ -3745,7 +3776,7 @@ struct OLEUIPASTESPECIALW
     HWND              hWndOwner;
     ///Pointer to a string to be used as the title of the dialog box. If <b>NULL</b>, then the library uses <b>Paste
     ///Special</b>.
-    const(wchar)*     lpszCaption;
+    const(PWSTR)      lpszCaption;
     ///Pointer to a hook function that processes messages intended for the dialog box. The hook function must return
     ///zero to pass a message that it didn't process back to the dialog box procedure in the library. The hook function
     ///must return a nonzero value to prevent the library's dialog box procedure from processing a message it has
@@ -3759,9 +3790,9 @@ struct OLEUIPASTESPECIALW
     HINSTANCE         hInstance;
     ///Pointer to a null-terminated string that specifies the name of the resource file for the dialog box template that
     ///is to be substituted for the library's <b>Paste Special</b> dialog box template.
-    const(wchar)*     lpszTemplate;
+    const(PWSTR)      lpszTemplate;
     ///Customized template handle.
-    ptrdiff_t         hResource;
+    HRSRC             hResource;
     ///Pointer to the IDataObject interface of the data object to be pasted (from the clipboard). This member is filled
     ///on input. If <b>lpSrcDataObj</b> is <b>NULL</b> when OleUIPasteSpecial is called, then <b>OleUIPasteSpecial</b>
     ///will attempt to retrieve a pointer to an <b>IDataObject</b> from the clipboard. If <b>OleUIPasteSpecial</b>
@@ -3838,7 +3869,7 @@ struct OLEUIPASTESPECIALA
     HWND              hWndOwner;
     ///Pointer to a string to be used as the title of the dialog box. If <b>NULL</b>, then the library uses <b>Paste
     ///Special</b>.
-    const(char)*      lpszCaption;
+    const(PSTR)       lpszCaption;
     ///Pointer to a hook function that processes messages intended for the dialog box. The hook function must return
     ///zero to pass a message that it didn't process back to the dialog box procedure in the library. The hook function
     ///must return a nonzero value to prevent the library's dialog box procedure from processing a message it has
@@ -3852,9 +3883,9 @@ struct OLEUIPASTESPECIALA
     HINSTANCE         hInstance;
     ///Pointer to a null-terminated string that specifies the name of the resource file for the dialog box template that
     ///is to be substituted for the library's <b>Paste Special</b> dialog box template.
-    const(char)*      lpszTemplate;
+    const(PSTR)       lpszTemplate;
     ///Customized template handle.
-    ptrdiff_t         hResource;
+    HRSRC             hResource;
     ///Pointer to the IDataObject interface of the data object to be pasted (from the clipboard). This member is filled
     ///on input. If <b>lpSrcDataObj</b> is <b>NULL</b> when OleUIPasteSpecial is called, then <b>OleUIPasteSpecial</b>
     ///will attempt to retrieve a pointer to an <b>IDataObject</b> from the clipboard. If <b>OleUIPasteSpecial</b>
@@ -3914,7 +3945,7 @@ struct OLEUIEDITLINKSW
     HWND                 hWndOwner;
     ///Pointer to a string to be used as the title of the dialog box. If <b>NULL</b>, then the library uses
     ///<b>Links</b>.
-    const(wchar)*        lpszCaption;
+    const(PWSTR)         lpszCaption;
     ///Pointer to a hook function that processes messages intended for the dialog box. The hook function must return
     ///zero to pass a message that it didn't process back to the dialog box procedure in the library. The hook function
     ///must return a nonzero value to prevent the library's dialog box procedure from processing a message it has
@@ -3928,9 +3959,9 @@ struct OLEUIEDITLINKSW
     HINSTANCE            hInstance;
     ///Pointer to a null-terminated string that specifies the name of the resource file for the dialog box template that
     ///is to be substituted for the library's <b>Edit Links</b> dialog box template.
-    const(wchar)*        lpszTemplate;
+    const(PWSTR)         lpszTemplate;
     ///Customized template handle.
-    ptrdiff_t            hResource;
+    HRSRC                hResource;
     ///Pointer to the container's implementation of the IOleUILinkContainer Interface. The <b>Edit Links</b> dialog box
     ///uses this to allow the container to manipulate its links.
     IOleUILinkContainerW lpOleUILinkContainer;
@@ -3961,7 +3992,7 @@ struct OLEUIEDITLINKSA
     HWND                 hWndOwner;
     ///Pointer to a string to be used as the title of the dialog box. If <b>NULL</b>, then the library uses
     ///<b>Links</b>.
-    const(char)*         lpszCaption;
+    const(PSTR)          lpszCaption;
     ///Pointer to a hook function that processes messages intended for the dialog box. The hook function must return
     ///zero to pass a message that it didn't process back to the dialog box procedure in the library. The hook function
     ///must return a nonzero value to prevent the library's dialog box procedure from processing a message it has
@@ -3975,9 +4006,9 @@ struct OLEUIEDITLINKSA
     HINSTANCE            hInstance;
     ///Pointer to a null-terminated string that specifies the name of the resource file for the dialog box template that
     ///is to be substituted for the library's <b>Edit Links</b> dialog box template.
-    const(char)*         lpszTemplate;
+    const(PSTR)          lpszTemplate;
     ///Customized template handle.
-    ptrdiff_t            hResource;
+    HRSRC                hResource;
     ///Pointer to the container's implementation of the IOleUILinkContainer Interface. The <b>Edit Links</b> dialog box
     ///uses this to allow the container to manipulate its links.
     IOleUILinkContainerA lpOleUILinkContainer;
@@ -4004,7 +4035,7 @@ struct OLEUICHANGEICONW
     HWND          hWndOwner;
     ///Pointer to a string to be used as the title of the dialog box. If **NULL**, then the library uses **Change
     ///Icon**.
-    const(wchar)* lpszCaption;
+    const(PWSTR)  lpszCaption;
     ///Pointer to a hook function that processes messages intended for the dialog box. The hook function must return
     ///zero to pass a message that it didn't process back to the dialog box procedure in the library. The hook function
     ///must return a nonzero value to prevent the library's dialog box procedure from processing a message it has
@@ -4018,9 +4049,9 @@ struct OLEUICHANGEICONW
     HINSTANCE     hInstance;
     ///Pointer to a null-terminated string that specifies the name of the resource file for the dialog box template that
     ///is to be substituted for the library's **Change Icon** dialog box template.
-    const(wchar)* lpszTemplate;
+    const(PWSTR)  lpszTemplate;
     ///Customized template handle.
-    ptrdiff_t     hResource;
+    HRSRC         hResource;
     ///Current and final image. The source of the icon is embedded in the metafile itself.
     ptrdiff_t     hMetaPict;
     ///Input only. The class to use to get the **Default** icon.
@@ -4055,7 +4086,7 @@ struct OLEUICHANGEICONA
     HWND          hWndOwner;
     ///Pointer to a string to be used as the title of the dialog box. If **NULL**, then the library uses **Change
     ///Icon**.
-    const(char)*  lpszCaption;
+    const(PSTR)   lpszCaption;
     ///Pointer to a hook function that processes messages intended for the dialog box. The hook function must return
     ///zero to pass a message that it didn't process back to the dialog box procedure in the library. The hook function
     ///must return a nonzero value to prevent the library's dialog box procedure from processing a message it has
@@ -4069,9 +4100,9 @@ struct OLEUICHANGEICONA
     HINSTANCE     hInstance;
     ///Pointer to a null-terminated string that specifies the name of the resource file for the dialog box template that
     ///is to be substituted for the library's **Change Icon** dialog box template.
-    const(char)*  lpszTemplate;
+    const(PSTR)   lpszTemplate;
     ///Customized template handle.
-    ptrdiff_t     hResource;
+    HRSRC         hResource;
     ///Current and final image. The source of the icon is embedded in the metafile itself.
     ptrdiff_t     hMetaPict;
     ///Input only. The class to use to get the **Default** icon.
@@ -4124,7 +4155,7 @@ struct OLEUICONVERTW
     HWND          hWndOwner;
     ///Pointer to a string to be used as the title of the dialog box. If <b>NULL</b>, then the library uses
     ///<b>Convert</b>.
-    const(wchar)* lpszCaption;
+    const(PWSTR)  lpszCaption;
     ///Pointer to a hook function that processes messages intended for the dialog box. The hook function must return
     ///zero to pass a message that it didn't process back to the dialog box procedure in the library. The hook function
     ///must return a nonzero value to prevent the library's dialog box procedure from processing a message it has
@@ -4139,10 +4170,10 @@ struct OLEUICONVERTW
     HINSTANCE     hInstance;
     ///Pointer to a null-terminated string that specifies the name of the resource file for the dialog box template that
     ///is to be substituted for the library's <b>Convert</b> dialog box template.
-    const(wchar)* lpszTemplate;
+    const(PWSTR)  lpszTemplate;
     ///Resource handle for a custom dialog box. If this member is <b>NULL</b>, then the library uses the standard
     ///<b>Convert</b> dialog box template, or if it is valid, the template named by the <b>lpszTemplate</b> member.
-    ptrdiff_t     hResource;
+    HRSRC         hResource;
     ///The CLSID of the object to be converted or activated. This member is set on input.
     GUID          clsid;
     ///The CLSID to use as the default class when <b>Convert To</b> is selected. This member is ignored if the
@@ -4165,13 +4196,13 @@ struct OLEUICONVERTW
     ptrdiff_t     hMetaPict;
     ///Pointer to the User Type name of the object to be converted or activated. If this value is <b>NULL</b>, then the
     ///dialog box will retrieve the User Type name from the registry. This string is freed on exit.
-    const(wchar)* lpszUserType;
+    PWSTR         lpszUserType;
     ///<b>TRUE</b> if the object's icon changed. (that is, if OleUIChangeIcon was called and not canceled.). This member
     ///is set on output.
     BOOL          fObjectsIconChanged;
     ///Pointer to the default label to use for the icon. If <b>NULL</b>, the short user type name will be used. If the
     ///object is a link, the caller should pass the display name of the link source. This is freed on exit.
-    const(wchar)* lpszDefLabel;
+    PWSTR         lpszDefLabel;
     ///Number of CLSIDs in <i>lpClsidExclude</i>.
     uint          cClsidExclude;
     ///Pointer to the list of CLSIDs to exclude from the list.
@@ -4217,7 +4248,7 @@ struct OLEUICONVERTA
     HWND          hWndOwner;
     ///Pointer to a string to be used as the title of the dialog box. If <b>NULL</b>, then the library uses
     ///<b>Convert</b>.
-    const(char)*  lpszCaption;
+    const(PSTR)   lpszCaption;
     ///Pointer to a hook function that processes messages intended for the dialog box. The hook function must return
     ///zero to pass a message that it didn't process back to the dialog box procedure in the library. The hook function
     ///must return a nonzero value to prevent the library's dialog box procedure from processing a message it has
@@ -4232,10 +4263,10 @@ struct OLEUICONVERTA
     HINSTANCE     hInstance;
     ///Pointer to a null-terminated string that specifies the name of the resource file for the dialog box template that
     ///is to be substituted for the library's <b>Convert</b> dialog box template.
-    const(char)*  lpszTemplate;
+    const(PSTR)   lpszTemplate;
     ///Resource handle for a custom dialog box. If this member is <b>NULL</b>, then the library uses the standard
     ///<b>Convert</b> dialog box template, or if it is valid, the template named by the <b>lpszTemplate</b> member.
-    ptrdiff_t     hResource;
+    HRSRC         hResource;
     ///The CLSID of the object to be converted or activated. This member is set on input.
     GUID          clsid;
     ///The CLSID to use as the default class when <b>Convert To</b> is selected. This member is ignored if the
@@ -4258,13 +4289,13 @@ struct OLEUICONVERTA
     ptrdiff_t     hMetaPict;
     ///Pointer to the User Type name of the object to be converted or activated. If this value is <b>NULL</b>, then the
     ///dialog box will retrieve the User Type name from the registry. This string is freed on exit.
-    const(char)*  lpszUserType;
+    PSTR          lpszUserType;
     ///<b>TRUE</b> if the object's icon changed. (that is, if OleUIChangeIcon was called and not canceled.). This member
     ///is set on output.
     BOOL          fObjectsIconChanged;
     ///Pointer to the default label to use for the icon. If <b>NULL</b>, the short user type name will be used. If the
     ///object is a link, the caller should pass the display name of the link source. This is freed on exit.
-    const(char)*  lpszDefLabel;
+    PSTR          lpszDefLabel;
     ///Number of CLSIDs in <i>lpClsidExclude</i>.
     uint          cClsidExclude;
     ///Pointer to the list of CLSIDs to exclude from the list.
@@ -4295,7 +4326,7 @@ struct OLEUIBUSYW
     HWND          hWndOwner;
     ///A pointer to a string to be used as the title of the dialog box. If <b>NULL</b>, then the library uses
     ///<b>Busy</b>.
-    const(wchar)* lpszCaption;
+    const(PWSTR)  lpszCaption;
     ///Pointer to a hook function that processes messages intended for the dialog box. The hook function must return
     ///zero to pass a message that it didn't process back to the dialog box procedure in the library. The hook function
     ///must return a nonzero value to prevent the library's dialog box procedure from processing a message it has
@@ -4309,11 +4340,11 @@ struct OLEUIBUSYW
     HINSTANCE     hInstance;
     ///Pointer to a null-terminated string that specifies the name of the resource file for the dialog box template that
     ///is to be substituted for the library's <b>Busy</b> dialog box template.
-    const(wchar)* lpszTemplate;
+    const(PWSTR)  lpszTemplate;
     ///Customized template handle.
-    ptrdiff_t     hResource;
+    HRSRC         hResource;
     ///Input only. Handle to the task that is blocking.
-    ptrdiff_t     hTask;
+    HTASK         hTask;
     ///Pointer to the dialog box's <b>HWND</b>.
     HWND*         lphWndDialog;
 }
@@ -4342,7 +4373,7 @@ struct OLEUIBUSYA
     HWND          hWndOwner;
     ///A pointer to a string to be used as the title of the dialog box. If <b>NULL</b>, then the library uses
     ///<b>Busy</b>.
-    const(char)*  lpszCaption;
+    const(PSTR)   lpszCaption;
     ///Pointer to a hook function that processes messages intended for the dialog box. The hook function must return
     ///zero to pass a message that it didn't process back to the dialog box procedure in the library. The hook function
     ///must return a nonzero value to prevent the library's dialog box procedure from processing a message it has
@@ -4356,11 +4387,11 @@ struct OLEUIBUSYA
     HINSTANCE     hInstance;
     ///Pointer to a null-terminated string that specifies the name of the resource file for the dialog box template that
     ///is to be substituted for the library's <b>Busy</b> dialog box template.
-    const(char)*  lpszTemplate;
+    const(PSTR)   lpszTemplate;
     ///Customized template handle.
-    ptrdiff_t     hResource;
+    HRSRC         hResource;
     ///Input only. Handle to the task that is blocking.
-    ptrdiff_t     hTask;
+    HTASK         hTask;
     ///Pointer to the dialog box's <b>HWND</b>.
     HWND*         lphWndDialog;
 }
@@ -4387,7 +4418,7 @@ struct OLEUICHANGESOURCEW
     HWND                 hWndOwner;
     ///Pointer to a string to be used as the title of the dialog box. If <b>NULL</b>, then the library uses <b>Change
     ///Source</b>.
-    const(wchar)*        lpszCaption;
+    const(PWSTR)         lpszCaption;
     ///Pointer to a hook function that processes messages intended for the dialog box. The hook function must return
     ///zero to pass a message that it didn't process back to the dialog box procedure in the library. The hook function
     ///must return a nonzero value to prevent the library's dialog box procedure from processing a message it has
@@ -4402,10 +4433,10 @@ struct OLEUICHANGESOURCEW
     HINSTANCE            hInstance;
     ///Pointer to a null-terminated string that specifies the name of the resource file for the dialog box template that
     ///is to be substituted for the library's <b>Convert</b> dialog box template.
-    const(wchar)*        lpszTemplate;
+    const(PWSTR)         lpszTemplate;
     ///Resource handle for a custom dialog box. If this member is <b>NULL</b>, then the library uses the standard
     ///<b>Convert</b> dialog box template, or if it is valid, the template named by the <b>lpszTemplate</b> member.
-    ptrdiff_t            hResource;
+    HRSRC                hResource;
     ///Pointer to the OPENFILENAME structure, which contains information used by the operating system to initialize the
     ///system-defined <b>Open</b> or <b>Save As</b> dialog boxes.
     OPENFILENAMEW*       lpOFN;
@@ -4417,13 +4448,13 @@ struct OLEUICHANGESOURCEW
     ///Container-defined unique link identifier used to validate link sources. Used by <b>lpOleUILinkContainer</b>.
     uint                 dwLink;
     ///Pointer to the complete source display name.
-    const(wchar)*        lpszDisplayName;
+    PWSTR                lpszDisplayName;
     ///File moniker portion of <b>lpszDisplayName</b>.
     uint                 nFileLength;
     ///Pointer to the prefix of the source that was changed from.
-    const(wchar)*        lpszFrom;
+    PWSTR                lpszFrom;
     ///Pointer to the prefix of the source to be changed to.
-    const(wchar)*        lpszTo;
+    PWSTR                lpszTo;
 }
 
 ///Contains information that is used to initialize the standard <b>Change Source</b> dialog box. It allows the user to
@@ -4448,7 +4479,7 @@ struct OLEUICHANGESOURCEA
     HWND                 hWndOwner;
     ///Pointer to a string to be used as the title of the dialog box. If <b>NULL</b>, then the library uses <b>Change
     ///Source</b>.
-    const(char)*         lpszCaption;
+    const(PSTR)          lpszCaption;
     ///Pointer to a hook function that processes messages intended for the dialog box. The hook function must return
     ///zero to pass a message that it didn't process back to the dialog box procedure in the library. The hook function
     ///must return a nonzero value to prevent the library's dialog box procedure from processing a message it has
@@ -4463,10 +4494,10 @@ struct OLEUICHANGESOURCEA
     HINSTANCE            hInstance;
     ///Pointer to a null-terminated string that specifies the name of the resource file for the dialog box template that
     ///is to be substituted for the library's <b>Convert</b> dialog box template.
-    const(char)*         lpszTemplate;
+    const(PSTR)          lpszTemplate;
     ///Resource handle for a custom dialog box. If this member is <b>NULL</b>, then the library uses the standard
     ///<b>Convert</b> dialog box template, or if it is valid, the template named by the <b>lpszTemplate</b> member.
-    ptrdiff_t            hResource;
+    HRSRC                hResource;
     ///Pointer to the OPENFILENAME structure, which contains information used by the operating system to initialize the
     ///system-defined <b>Open</b> or <b>Save As</b> dialog boxes.
     OPENFILENAMEA*       lpOFN;
@@ -4478,13 +4509,13 @@ struct OLEUICHANGESOURCEA
     ///Container-defined unique link identifier used to validate link sources. Used by <b>lpOleUILinkContainer</b>.
     uint                 dwLink;
     ///Pointer to the complete source display name.
-    const(char)*         lpszDisplayName;
+    PSTR                 lpszDisplayName;
     ///File moniker portion of <b>lpszDisplayName</b>.
     uint                 nFileLength;
     ///Pointer to the prefix of the source that was changed from.
-    const(char)*         lpszFrom;
+    PSTR                 lpszFrom;
     ///Pointer to the prefix of the source to be changed to.
-    const(char)*         lpszTo;
+    PSTR                 lpszTo;
 }
 
 ///Initializes the <b>General</b> tab of the <b>Object Properties</b> dialog box. A reference to it is passed in as part
@@ -4813,43 +4844,13 @@ struct ComCallData
     void* pUserDefined;
 }
 
-alias HRESULT = int;
-
-///Contains an operating system platform and processor architecture.
-struct CSPLATFORM
-{
-    ///The operating system platform. See the <b>dwPlatformId</b> member of OSVERSIONINFO.
-    uint dwPlatformId;
-    ///The major version of the operating system.
-    uint dwVersionHi;
-    ///The minor version of the operating system.
-    uint dwVersionLo;
-    ///The processor architecture. See the <b>wProcessorArchitecture</b> member of SYSTEM_INFO.
-    uint dwProcessorArch;
-}
-
-///Contains a list of attributes used to look up a class implementation.
-struct QUERYCONTEXT
-{
-    ///The execution context.
-    uint       dwContext;
-    ///The operating system platform and processor architecture. For more information, see CSPLATFORM.
-    CSPLATFORM Platform;
-    ///The locale identifier. For more information, see Language Identifier Constants and Strings.
-    uint       Locale;
-    ///The high version number.
-    uint       dwVersionHi;
-    ///The low version number.
-    uint       dwVersionLo;
-}
-
 ///Contains access-control information for a specified trustee. This structure stores information equivalent to the
 ///access-control information stored in an ACE.
 struct ACTRL_ACCESS_ENTRYA
 {
     ///A TRUSTEE structure that identifies the user, group, or program (such as a service) to which the access-control
     ///entry applies.
-    TRUSTEE_A    Trustee;
+    TRUSTEE_A Trustee;
     ///Indicates how the access rights specified by the <b>Access</b> and <b>ProvSpecificAccess</b> members apply to the
     ///trustee. This member can be one of the following values. If you are using this structure with the COM
     ///implementation of IAccessControl, this member must be ACTRL_ACCESS_ALLOWED or ACTRL_ACCESS_DENIED. <table> <tr>
@@ -4863,17 +4864,17 @@ struct ACTRL_ACCESS_ENTRYA
     ///width="40%"><a id="ACTRL_AUDIT_FAILURE"></a><a id="actrl_audit_failure"></a><dl>
     ///<dt><b>ACTRL_AUDIT_FAILURE</b></dt> <dt>0x00000008</dt> </dl> </td> <td width="60%"> The system generates audit
     ///messages for successful attempts to use the rights. </td> </tr> </table>
-    uint         fAccessFlags;
+    uint      fAccessFlags;
     ///A bitmask that specifies the access rights that the entry allows, denies, or audits for the trustee. This member
     ///must use the provider-independent access flags, such as ACTRL_READ_CONTROL, rather than access flags such as
     ///READ_CONTROL. The provider for the object type converts these provider-independent flags to the corresponding
     ///provider-specific flags. If you are using this structure with the COM implementation of IAccessControl, this
     ///member must be COM_RIGHTS_EXECUTE. <a id="ACTRL_SYSTEM_ACCESS"></a> <a id="actrl_system_access"></a>
-    uint         Access;
+    uint      Access;
     ///A bitmask that specifies access rights specific to the provider type. The functions that use the
     ///<b>ACTRL_ACCESS_ENTRY</b> structure pass these bits on to the provider without interpreting them. In most cases,
     ///this member should be 0.
-    uint         ProvSpecificAccess;
+    uint      ProvSpecificAccess;
     ///A set of bit flags that determines whether other containers or objects can inherit the access-control entry from
     ///the primary object to which the access list is attached. If you are using this structure with the COM
     ///implementation of IAccessControl, this value must be NO_INHERITANCE, which indicates that the access-control
@@ -4901,10 +4902,10 @@ struct ACTRL_ACCESS_ENTRYA
     ///<dt><b>SUB_OBJECTS_ONLY_INHERIT</b></dt> <dt>0x1</dt> </dl> </td> <td width="60%"> Noncontainer objects contained
     ///by the primary object inherit the entry. This flag corresponds to the OBJECT_INHERIT_ACE flag. </td> </tr>
     ///</table>
-    uint         Inheritance;
+    uint      Inheritance;
     ///A pointer to a null-terminated string that identifies the object types that can inherit the entry. If you are
     ///using this structure with the COM implementation of IAccessControl, this member must be <b>NULL</b>.
-    const(char)* lpInheritProperty;
+    PSTR      lpInheritProperty;
 }
 
 ///Contains access-control information for a specified trustee. This structure stores information equivalent to the
@@ -4913,7 +4914,7 @@ struct ACTRL_ACCESS_ENTRYW
 {
     ///A TRUSTEE structure that identifies the user, group, or program (such as a service) to which the access-control
     ///entry applies.
-    TRUSTEE_W     Trustee;
+    TRUSTEE_W Trustee;
     ///Indicates how the access rights specified by the <b>Access</b> and <b>ProvSpecificAccess</b> members apply to the
     ///trustee. This member can be one of the following values. If you are using this structure with the COM
     ///implementation of IAccessControl, this member must be ACTRL_ACCESS_ALLOWED or ACTRL_ACCESS_DENIED. <table> <tr>
@@ -4927,17 +4928,17 @@ struct ACTRL_ACCESS_ENTRYW
     ///width="40%"><a id="ACTRL_AUDIT_FAILURE"></a><a id="actrl_audit_failure"></a><dl>
     ///<dt><b>ACTRL_AUDIT_FAILURE</b></dt> <dt>0x00000008</dt> </dl> </td> <td width="60%"> The system generates audit
     ///messages for successful attempts to use the rights. </td> </tr> </table>
-    uint          fAccessFlags;
+    uint      fAccessFlags;
     ///A bitmask that specifies the access rights that the entry allows, denies, or audits for the trustee. This member
     ///must use the provider-independent access flags, such as ACTRL_READ_CONTROL, rather than access flags such as
     ///READ_CONTROL. The provider for the object type converts these provider-independent flags to the corresponding
     ///provider-specific flags. If you are using this structure with the COM implementation of IAccessControl, this
     ///member must be COM_RIGHTS_EXECUTE. <a id="ACTRL_SYSTEM_ACCESS"></a> <a id="actrl_system_access"></a>
-    uint          Access;
+    uint      Access;
     ///A bitmask that specifies access rights specific to the provider type. The functions that use the
     ///<b>ACTRL_ACCESS_ENTRY</b> structure pass these bits on to the provider without interpreting them. In most cases,
     ///this member should be 0.
-    uint          ProvSpecificAccess;
+    uint      ProvSpecificAccess;
     ///A set of bit flags that determines whether other containers or objects can inherit the access-control entry from
     ///the primary object to which the access list is attached. If you are using this structure with the COM
     ///implementation of IAccessControl, this value must be NO_INHERITANCE, which indicates that the access-control
@@ -4965,10 +4966,10 @@ struct ACTRL_ACCESS_ENTRYW
     ///<dt><b>SUB_OBJECTS_ONLY_INHERIT</b></dt> <dt>0x1</dt> </dl> </td> <td width="60%"> Noncontainer objects contained
     ///by the primary object inherit the entry. This flag corresponds to the OBJECT_INHERIT_ACE flag. </td> </tr>
     ///</table>
-    uint          Inheritance;
+    uint      Inheritance;
     ///A pointer to a null-terminated string that identifies the object types that can inherit the entry. If you are
     ///using this structure with the COM implementation of IAccessControl, this member must be <b>NULL</b>.
-    const(wchar)* lpInheritProperty;
+    PWSTR     lpInheritProperty;
 }
 
 ///Contains a list of access entries.
@@ -4996,14 +4997,14 @@ struct ACTRL_PROPERTY_ENTRYA
 {
     ///The GUID of a property on an object. Use the UuidToString function to generate a string representation of a
     ///property GUID.
-    const(char)* lpProperty;
+    PSTR lpProperty;
     ///A pointer to an ACTRL_ACCESS_ENTRY_LIST structure that contains a list of access-control entries.
     ACTRL_ACCESS_ENTRY_LISTA* pAccessEntryList;
     ///Flags that specify information about the <b>pProperty</b> property. This member can be 0 or the following value.
     ///<table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="ACTRL_ACCESS_PROTECTED_"></a><a
     ///id="actrl_access_protected_"></a><dl> <dt><b>ACTRL_ACCESS_PROTECTED </b></dt> <dt>0x00000001</dt> </dl> </td> <td
     ///width="60%"> Protects the object or property from inheriting access-control entries. </td> </tr> </table>
-    uint         fListFlags;
+    uint fListFlags;
 }
 
 ///Contains a list of access-control entries for an object or a specified property on an object.
@@ -5011,14 +5012,14 @@ struct ACTRL_PROPERTY_ENTRYW
 {
     ///The GUID of a property on an object. Use the UuidToString function to generate a string representation of a
     ///property GUID.
-    const(wchar)* lpProperty;
+    PWSTR lpProperty;
     ///A pointer to an ACTRL_ACCESS_ENTRY_LIST structure that contains a list of access-control entries.
     ACTRL_ACCESS_ENTRY_LISTW* pAccessEntryList;
     ///Flags that specify information about the <b>pProperty</b> property. This member can be 0 or the following value.
     ///<table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="ACTRL_ACCESS_PROTECTED_"></a><a
     ///id="actrl_access_protected_"></a><dl> <dt><b>ACTRL_ACCESS_PROTECTED </b></dt> <dt>0x00000001</dt> </dl> </td> <td
     ///width="60%"> Protects the object or property from inheriting access-control entries. </td> </tr> </table>
-    uint          fListFlags;
+    uint  fListFlags;
 }
 
 ///Contains an array of access-control lists for an object and its properties.
@@ -5042,6 +5043,738 @@ struct ACTRL_ACCESSW
 }
 
 // Functions
+
+@DllImport("OLE32")
+uint HBITMAP_UserSize(uint* param0, uint param1, HBITMAP* param2);
+
+@DllImport("OLE32")
+ubyte* HBITMAP_UserMarshal(uint* param0, ubyte* param1, HBITMAP* param2);
+
+@DllImport("OLE32")
+ubyte* HBITMAP_UserUnmarshal(uint* param0, ubyte* param1, HBITMAP* param2);
+
+@DllImport("OLE32")
+void HBITMAP_UserFree(uint* param0, HBITMAP* param1);
+
+@DllImport("OLE32")
+uint HICON_UserSize(uint* param0, uint param1, HICON* param2);
+
+@DllImport("OLE32")
+ubyte* HICON_UserMarshal(uint* param0, ubyte* param1, HICON* param2);
+
+@DllImport("OLE32")
+ubyte* HICON_UserUnmarshal(uint* param0, ubyte* param1, HICON* param2);
+
+@DllImport("OLE32")
+void HICON_UserFree(uint* param0, HICON* param1);
+
+@DllImport("OLE32")
+uint HPALETTE_UserSize(uint* param0, uint param1, HPALETTE* param2);
+
+@DllImport("OLE32")
+ubyte* HPALETTE_UserMarshal(uint* param0, ubyte* param1, HPALETTE* param2);
+
+@DllImport("OLE32")
+ubyte* HPALETTE_UserUnmarshal(uint* param0, ubyte* param1, HPALETTE* param2);
+
+@DllImport("OLE32")
+void HPALETTE_UserFree(uint* param0, HPALETTE* param1);
+
+@DllImport("OLE32")
+uint HBITMAP_UserSize64(uint* param0, uint param1, HBITMAP* param2);
+
+@DllImport("OLE32")
+ubyte* HBITMAP_UserMarshal64(uint* param0, ubyte* param1, HBITMAP* param2);
+
+@DllImport("OLE32")
+ubyte* HBITMAP_UserUnmarshal64(uint* param0, ubyte* param1, HBITMAP* param2);
+
+@DllImport("OLE32")
+void HBITMAP_UserFree64(uint* param0, HBITMAP* param1);
+
+@DllImport("OLE32")
+uint HICON_UserSize64(uint* param0, uint param1, HICON* param2);
+
+@DllImport("OLE32")
+ubyte* HICON_UserMarshal64(uint* param0, ubyte* param1, HICON* param2);
+
+@DllImport("OLE32")
+ubyte* HICON_UserUnmarshal64(uint* param0, ubyte* param1, HICON* param2);
+
+@DllImport("OLE32")
+void HICON_UserFree64(uint* param0, HICON* param1);
+
+@DllImport("OLE32")
+uint HPALETTE_UserSize64(uint* param0, uint param1, HPALETTE* param2);
+
+@DllImport("OLE32")
+ubyte* HPALETTE_UserMarshal64(uint* param0, ubyte* param1, HPALETTE* param2);
+
+@DllImport("OLE32")
+ubyte* HPALETTE_UserUnmarshal64(uint* param0, ubyte* param1, HPALETTE* param2);
+
+@DllImport("OLE32")
+void HPALETTE_UserFree64(uint* param0, HPALETTE* param1);
+
+@DllImport("OLE32")
+uint CLIPFORMAT_UserSize(uint* param0, uint param1, ushort* param2);
+
+@DllImport("OLE32")
+ubyte* CLIPFORMAT_UserMarshal(uint* param0, ubyte* param1, ushort* param2);
+
+@DllImport("OLE32")
+ubyte* CLIPFORMAT_UserUnmarshal(uint* param0, ubyte* param1, ushort* param2);
+
+@DllImport("OLE32")
+void CLIPFORMAT_UserFree(uint* param0, ushort* param1);
+
+@DllImport("OLE32")
+uint CLIPFORMAT_UserSize64(uint* param0, uint param1, ushort* param2);
+
+@DllImport("OLE32")
+ubyte* CLIPFORMAT_UserMarshal64(uint* param0, ubyte* param1, ushort* param2);
+
+@DllImport("OLE32")
+ubyte* CLIPFORMAT_UserUnmarshal64(uint* param0, ubyte* param1, ushort* param2);
+
+@DllImport("OLE32")
+void CLIPFORMAT_UserFree64(uint* param0, ushort* param1);
+
+@DllImport("OLE32")
+uint HMENU_UserSize(uint* param0, uint param1, HMENU* param2);
+
+@DllImport("OLE32")
+ubyte* HMENU_UserMarshal(uint* param0, ubyte* param1, HMENU* param2);
+
+@DllImport("OLE32")
+ubyte* HMENU_UserUnmarshal(uint* param0, ubyte* param1, HMENU* param2);
+
+@DllImport("OLE32")
+void HMENU_UserFree(uint* param0, HMENU* param1);
+
+@DllImport("OLE32")
+uint HMENU_UserSize64(uint* param0, uint param1, HMENU* param2);
+
+@DllImport("OLE32")
+ubyte* HMENU_UserMarshal64(uint* param0, ubyte* param1, HMENU* param2);
+
+@DllImport("OLE32")
+ubyte* HMENU_UserUnmarshal64(uint* param0, ubyte* param1, HMENU* param2);
+
+@DllImport("OLE32")
+void HMENU_UserFree64(uint* param0, HMENU* param1);
+
+@DllImport("OLE32")
+uint HACCEL_UserSize(uint* param0, uint param1, HACCEL* param2);
+
+@DllImport("OLE32")
+ubyte* HACCEL_UserMarshal(uint* param0, ubyte* param1, HACCEL* param2);
+
+@DllImport("OLE32")
+ubyte* HACCEL_UserUnmarshal(uint* param0, ubyte* param1, HACCEL* param2);
+
+@DllImport("OLE32")
+void HACCEL_UserFree(uint* param0, HACCEL* param1);
+
+@DllImport("OLE32")
+uint HGLOBAL_UserSize(uint* param0, uint param1, ptrdiff_t* param2);
+
+@DllImport("OLE32")
+ubyte* HGLOBAL_UserMarshal(uint* param0, ubyte* param1, ptrdiff_t* param2);
+
+@DllImport("OLE32")
+ubyte* HGLOBAL_UserUnmarshal(uint* param0, ubyte* param1, ptrdiff_t* param2);
+
+@DllImport("OLE32")
+void HGLOBAL_UserFree(uint* param0, ptrdiff_t* param1);
+
+@DllImport("OLE32")
+uint HACCEL_UserSize64(uint* param0, uint param1, HACCEL* param2);
+
+@DllImport("OLE32")
+ubyte* HACCEL_UserMarshal64(uint* param0, ubyte* param1, HACCEL* param2);
+
+@DllImport("OLE32")
+ubyte* HACCEL_UserUnmarshal64(uint* param0, ubyte* param1, HACCEL* param2);
+
+@DllImport("OLE32")
+void HACCEL_UserFree64(uint* param0, HACCEL* param1);
+
+@DllImport("OLE32")
+uint HGLOBAL_UserSize64(uint* param0, uint param1, ptrdiff_t* param2);
+
+@DllImport("OLE32")
+ubyte* HGLOBAL_UserMarshal64(uint* param0, ubyte* param1, ptrdiff_t* param2);
+
+@DllImport("OLE32")
+ubyte* HGLOBAL_UserUnmarshal64(uint* param0, ubyte* param1, ptrdiff_t* param2);
+
+@DllImport("OLE32")
+void HGLOBAL_UserFree64(uint* param0, ptrdiff_t* param1);
+
+///Initializes the COM library on the current thread and identifies the concurrency model as single-thread apartment
+///(STA). New applications should call CoInitializeEx instead of CoInitialize. If you want to use the Windows Runtime,
+///you must call Windows::Foundation::Initialize instead.
+///Params:
+///    pvReserved = This parameter is reserved and must be <b>NULL</b>.
+///Returns:
+///    This function can return the standard return values E_INVALIDARG, E_OUTOFMEMORY, and E_UNEXPECTED, as well as the
+///    following values. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The COM library was initialized successfully on this thread.
+///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>S_FALSE</b></dt> </dl> </td> <td width="60%"> The COM library is
+///    already initialized on this thread. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>RPC_E_CHANGED_MODE</b></dt>
+///    </dl> </td> <td width="60%"> A previous call to CoInitializeEx specified the concurrency model for this thread as
+///    multithread apartment (MTA). This could also indicate that a change from neutral-threaded apartment to
+///    single-threaded apartment has occurred. </td> </tr> </table>
+///    
+@DllImport("OLE32")
+HRESULT CoInitialize(void* pvReserved);
+
+///Registers an implementation of the IMallocSpy interface, thereafter requiring OLE to call its wrapper methods around
+///every call to the corresponding IMalloc method.
+///Params:
+///    pMallocSpy = A pointer to an instance of the IMallocSpy implementation.
+///Returns:
+///    This function can return the standard return value E_INVALIDARG, as well as the following values. <table> <tr>
+///    <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td
+///    width="60%"> The object was successfully registered. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>CO_E_OBJISREG</b></dt> </dl> </td> <td width="60%"> The object is already registered. </td> </tr> </table>
+///    
+@DllImport("OLE32")
+HRESULT CoRegisterMallocSpy(IMallocSpy pMallocSpy);
+
+///Revokes a registered IMallocSpy object.
+///Returns:
+///    This function can return the following values. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+///    <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The object was revoked successfully.
+///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>CO_E_OBJNOTREG</b></dt> </dl> </td> <td width="60%"> No spy is
+///    currently registered. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_ACCESSDENIED</b></dt> </dl> </td> <td
+///    width="60%"> A spy is registered but there are outstanding allocations (not yet freed) made while this spy was
+///    active. </td> </tr> </table>
+///    
+@DllImport("OLE32")
+HRESULT CoRevokeMallocSpy();
+
+///Registers an implementation of the IInitializeSpy interface. The <b>IInitializeSpy</b> interface is defied to allow
+///developers to perform initialization and cleanup on COM apartments.
+///Params:
+///    pSpy = A pointer to an instance of the IInitializeSpy implementation.
+///    puliCookie = The address at which to store a cookie that identifies this registration.
+///Returns:
+///    This function can return the standard return value E_INVALIDARG, as well as the following values. <table> <tr>
+///    <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td
+///    width="60%"> The object was successfully registered. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>E_NOINTERFACE</b></dt> </dl> </td> <td width="60%"> The object does not support IInitializeSpy. </td>
+///    </tr> </table>
+///    
+@DllImport("OLE32")
+HRESULT CoRegisterInitializeSpy(IInitializeSpy pSpy, ULARGE_INTEGER* puliCookie);
+
+///Revokes a registered implementation of the IInitializeSpy interface.
+///Params:
+///    uliCookie = A ULARGE_INTEGER cookie identifying the registration.
+///Returns:
+///    This function can return the standard return value E_INVALIDARG, as well as S_OK to indicate success.
+///    
+@DllImport("OLE32")
+HRESULT CoRevokeInitializeSpy(ULARGE_INTEGER uliCookie);
+
+///Returns the default values of the Security Descriptors of the machine-wide launch and access permissions, as well as
+///launch and access limits.
+///Params:
+///    comSDType = A value from the COMSD enumeration. Specifies the type of the requested system security permissions, such as
+///                launch permissions, access permissions, launch restrictions, and access restrictions.
+///    ppSD = Pointer to a caller-supplied variable that this routine sets to the address of a buffer containing the
+///           SECURITY_DESCRIPTOR for the system security permissions. Memory will be allocated by
+///           <b>CoGetSystemSecurityPermissions</b> and should be freed by caller with LocalFree.
+///Returns:
+///    This function can return one of these values. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+///    <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> Success. </td> </tr> <tr> <td
+///    width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Invalid parameter <i>comSDType</i> or
+///    <i>ppSD</i>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> No
+///    connection to the resolver process. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl>
+///    </td> <td width="60%"> Not enough memory for the security descriptor's allocation. </td> </tr> </table>
+///    
+@DllImport("OLE32")
+HRESULT CoGetSystemSecurityPermissions(COMSD comSDType, void** ppSD);
+
+///Loads a specific DLL into the caller's process. <b>CoLoadLibrary</b> is equivalent to LoadLibraryEx.
+///<b>CoLoadLibrary</b> does not affect the lifetime of the library.
+///Params:
+///    lpszLibName = The name of the library to be loaded.
+///    bAutoFree = This parameter is maintained for compatibility with 16-bit applications, but is ignored.
+///Returns:
+///    If the function succeeds, the return value is a handle to the loaded library; otherwise, it is <b>NULL</b>.
+///    
+@DllImport("OLE32")
+HINSTANCE CoLoadLibrary(PWSTR lpszLibName, BOOL bAutoFree);
+
+///Frees a library that, when loaded, was specified to be freed explicitly. <div class="alert"><b>Note</b> This function
+///is provided for compatibility with 16-bit Windows.</div><div> </div>
+///Params:
+///    hInst = A handle to the library module to be freed, as returned by the CoLoadLibrary function.
+@DllImport("OLE32")
+void CoFreeLibrary(HINSTANCE hInst);
+
+///Frees all the DLLs that have been loaded with the CoLoadLibrary function (called internally by CoGetClassObject),
+///regardless of whether they are currently in use.
+@DllImport("OLE32")
+void CoFreeAllLibraries();
+
+///Creates a new object and initializes it from a file using IPersistFile::Load.
+///Params:
+///    pServerInfo = A pointer to a COSERVERINFO structure that specifies the computer on which to instantiate the object and the
+///                  authentication setting to be used. This parameter can be <b>NULL</b>, in which case the object is instantiated on
+///                  the current computer, at the computer specified under the RemoteServerName registry value for the class, or at
+///                  the computer where the <i>pwszName</i> file resides if the ActivateAtStorage value is specified for the class or
+///                  there is no local registry information.
+///    pClsid = A pointer to the class identifier of the object to be created. This parameter can be <b>NULL</b>, in which case
+///             there is a call to GetClassFile, using <i>pwszName</i> as its parameter to get the class of the object to be
+///             instantiated.
+///    punkOuter = When non-<b>NULL</b>, indicates the instance is being created as part of an aggregate, and <i>punkOuter</i> is to
+///                be used as the pointer to the new instance's controlling IUnknown. Aggregation is not supported cross-process or
+///                cross-computer. When instantiating an object out of process, CLASS_E_NOAGGREGATION will be returned if
+///                <i>punkOuter</i> is non-<b>NULL</b>.
+///    dwClsCtx = Values from the CLSCTX enumeration.
+///    grfMode = Specifies how the file is to be opened. See STGM Constants.
+///    pwszName = The file used to initialize the object with IPersistFile::Load. This parameter cannot be <b>NULL</b>.
+///    dwCount = The number of structures in <i>pResults</i>. This parameter must be greater than 0.
+///    pResults = An array of MULTI_QI structures. Each structure has three members: the identifier for a requested interface
+///               (<b>pIID</b>), the location to return the interface pointer (<b>pItf</b>) and the return value of the call to
+///               QueryInterface (<b>hr</b>).
+///Returns:
+///    This function can return the standard return value E_INVALIDARG, as well as the following values. <table> <tr>
+///    <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td
+///    width="60%"> The function retrieved all of the interfaces successfully. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>CO_S_NOTALLINTERFACES</b></dt> </dl> </td> <td width="60%"> At least one, but not all of the interfaces
+///    requested in the <i>pResults</i> array were successfully retrieved. The <b>hr</b> member of each of the MULTI_QI
+///    structures indicates with S_OK or E_NOINTERFACE whether the specific interface was returned. </td> </tr> <tr> <td
+///    width="40%"> <dl> <dt><b>E_NOINTERFACE</b></dt> </dl> </td> <td width="60%"> None of the interfaces requested in
+///    the <i>pResults</i> array were successfully retrieved. </td> </tr> </table>
+///    
+@DllImport("OLE32")
+HRESULT CoGetInstanceFromFile(COSERVERINFO* pServerInfo, GUID* pClsid, IUnknown punkOuter, uint dwClsCtx, 
+                              uint grfMode, PWSTR pwszName, uint dwCount, MULTI_QI* pResults);
+
+///Creates a new object and initializes it from a storage object through an internal call to IPersistFile::Load.
+///Params:
+///    pServerInfo = A pointer to a COSERVERINFO structure that specifies the computer on which to instantiate the object and the
+///                  authentication setting to be used. This parameter can be <b>NULL</b>, in which case the object is instantiated on
+///                  the current computer, at the computer specified under the RemoteServerName registry value for the class, or at
+///                  the computer where the <i>pstg</i> storage object resides if the ActivateAtStorage value is specified for the
+///                  class or there is no local registry information.
+///    pClsid = A pointer to the class identifier of the object to be created. This parameter can be <b>NULL</b>, in which case
+///             there is a call to IStorage::Stat to find the class of the object.
+///    punkOuter = When non-<b>NULL</b>, indicates the instance is being created as part of an aggregate, and <i>punkOuter</i> is to
+///                be used as the pointer to the new instance's controlling IUnknown. Aggregation is not supported cross-process or
+///                cross-computer. When instantiating an object out of process, CLASS_E_NOAGGREGATION will be returned if
+///                <i>punkOuter</i> is non-<b>NULL</b>.
+///    dwClsCtx = Values from the CLSCTX enumeration.
+///    pstg = A pointer to the storage object used to initialize the object with IPersistFile::Load. This parameter cannot be
+///           <b>NULL</b>.
+///    dwCount = The number of structures in <i>pResults</i>. This parameter must be greater than 0.
+///    pResults = An array of MULTI_QI structures. Each structure has three members: the identifier for a requested interface
+///               (<b>pIID</b>), the location to return the interface pointer (<b>pItf</b>) and the return value of the call to
+///               QueryInterface (<b>hr</b>).
+///Returns:
+///    This function can return the standard return value E_INVALIDARG, as well as the following values. <table> <tr>
+///    <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td
+///    width="60%"> The function retrieved all of the interfaces successfully. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>CO_S_NOTALLINTERFACES</b></dt> </dl> </td> <td width="60%"> At least one, but not all of the interfaces
+///    requested in the <i>pResults</i> array were successfully retrieved. The <b>hr</b> member of each of the MULTI_QI
+///    structures indicates with S_OK or E_NOINTERFACE whether the specific interface was returned. </td> </tr> <tr> <td
+///    width="40%"> <dl> <dt><b>E_NOINTERFACE</b></dt> </dl> </td> <td width="60%"> None of the interfaces requested in
+///    the <i>pResults</i> array were successfully retrieved. </td> </tr> </table>
+///    
+@DllImport("OLE32")
+HRESULT CoGetInstanceFromIStorage(COSERVERINFO* pServerInfo, GUID* pClsid, IUnknown punkOuter, uint dwClsCtx, 
+                                  IStorage pstg, uint dwCount, MULTI_QI* pResults);
+
+///This function passes the foreground privilege (the privilege to set the foreground window) from one process to
+///another. The process that has the foreground privilege can call this function to pass that privilege on to a local
+///COM server process. Note that calling <b>CoAllowSetForegroundWindow</b> only confers the privilege; it does not set
+///the foreground window itself. Foreground and focus are only taken away from the client application when the target
+///COM server calls either SetForegroundWindow or another API that does so indirectly.
+///Params:
+///    pUnk = A pointer to the IUnknown interface on the proxy of the target COM server.
+///    lpvReserved = This parameter is reserved and must be <b>NULL</b>.
+///Returns:
+///    This function can return the following values. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+///    <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method was successful. </td> </tr>
+///    <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The <i>lpvReserved</i>
+///    parameter is not <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_NOINTERFACE</b></dt> </dl> </td>
+///    <td width="60%"> The <i>pUnk</i> parameter does not support foreground window control. </td> </tr> <tr> <td
+///    width="40%"> <dl> <dt><b>E_ACCESSDENIED</b></dt> </dl> </td> <td width="60%"> The calling process does not
+///    currently possess the foreground privilege. </td> </tr> </table>
+///    
+@DllImport("OLE32")
+HRESULT CoAllowSetForegroundWindow(IUnknown pUnk, void* lpvReserved);
+
+///Determines whether the specified CLSID represents an OLE 1 object.
+///Params:
+///    rclsid = The CLSID to be checked.
+///Returns:
+///    If the CLSID refers to an OLE 1 object, the return value is <b>TRUE</b>; otherwise, it is <b>FALSE</b>.
+///    
+@DllImport("ole32")
+BOOL CoIsOle1Class(const(GUID)* rclsid);
+
+///Converts a FILETIME into MS-DOS date and time values. <div class="alert"><b>Note</b> This function is provided for
+///compatibility with 16-bit Windows.</div><div> </div>
+///Params:
+///    lpFileTime = A pointer to the FILETIME structure.
+///    lpDosDate = Receives the MS-DOS date.
+///    lpDosTime = Receives the MS-DOS time.
+///Returns:
+///    If the function succeeds, the return value is <b>TRUE</b>; otherwise, it is <b>FALSE</b>.
+///    
+@DllImport("OLE32")
+BOOL CoFileTimeToDosDateTime(FILETIME* lpFileTime, ushort* lpDosDate, ushort* lpDosTime);
+
+///Converts the MS-DOS representation of the time and date to a FILETIME structure used by Windows. <div
+///class="alert"><b>Note</b> This function is provided for compatibility with 16-bit Windows.</div><div> </div>
+///Params:
+///    nDosDate = The MS-DOS date.
+///    nDosTime = The MS-DOS time.
+///    lpFileTime = A pointer to the FILETIME structure.
+///Returns:
+///    If the function succeeds, the return value is <b>TRUE</b>; otherwise, it is <b>FALSE</b>, probably because of
+///    invalid arguments.
+///    
+@DllImport("OLE32")
+BOOL CoDosDateTimeToFileTime(ushort nDosDate, ushort nDosTime, FILETIME* lpFileTime);
+
+///Registers with OLE the instance of an IMessageFilter interface, which is to be used for handling concurrency issues
+///on the current thread. Only one message filter can be registered for each thread. Threads in multithreaded apartments
+///cannot have message filters.
+///Params:
+///    lpMessageFilter = A pointer to the IMessageFilter interface on the message filter. This message filter should be registered on the
+///                      current thread, replacing the previous message filter (if any). This parameter can be <b>NULL</b>, indicating
+///                      that no message filter should be registered on the current thread. Note that this function calls AddRef on the
+///                      interface pointer to the message filter.
+///    lplpMessageFilter = Address of the IMessageFilter* pointer variable that receives the interface pointer to the previously registered
+///                        message filter. If there was no previously registered message filter for the current thread, the value of
+///                        *<i>lplpMessageFilter</i> is <b>NULL</b>.
+///Returns:
+///    If the instance was registered or revoked successfully, the return value is S_OK; otherwise, it is S_FALSE.
+///    
+@DllImport("OLE32")
+HRESULT CoRegisterMessageFilter(IMessageFilter lpMessageFilter, IMessageFilter* lplpMessageFilter);
+
+///Registers a channel hook.
+///Params:
+///    ExtensionUuid = The extension to register.
+///    pChannelHook = The channel hook to register.
+@DllImport("ole32")
+HRESULT CoRegisterChannelHook(const(GUID)* ExtensionUuid, IChannelHook pChannelHook);
+
+///Establishes or removes an emulation, in which objects of one class are treated as objects of a different class.
+///Params:
+///    clsidOld = The CLSID of the object to be emulated.
+///    clsidNew = The CLSID of the object that should emulate the original object. This replaces any existing emulation for
+///               <i>clsidOld</i>. This parameter can be CLSID_NULL, in which case any existing emulation for <i>clsidOld</i> is
+///               removed.
+///Returns:
+///    This function can return the standard return values E_INVALIDARG, as well as the following values. <table> <tr>
+///    <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td
+///    width="60%"> The emulation was successfully established or removed. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>REGDB_E_CLASSNOTREG</b></dt> </dl> </td> <td width="60%"> The <i>clsidOld</i> parameter is not properly
+///    registered in the registration database. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>REGDB_E_READREGDB</b></dt>
+///    </dl> </td> <td width="60%"> Error reading from registration database. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>REGDB_E_WRITEREGDB</b></dt> </dl> </td> <td width="60%"> Error writing to registration database. </td>
+///    </tr> </table>
+///    
+@DllImport("OLE32")
+HRESULT CoTreatAsClass(const(GUID)* clsidOld, const(GUID)* clsidNew);
+
+///Retrieves a pointer to a new instance of an OLE-provided implementation of a data cache.
+///Params:
+///    pUnkOuter = If the cache is to be created as part of an aggregate, pointer to the controlling IUnknown of the aggregate. If
+///                not, the parameter should be <b>NULL</b>.
+///    rclsid = CLSID used to generate icon labels. This value is typically CLSID_NULL.
+///    iid = Reference to the identifier of the interface the caller wants to use to communicate with the cache. This value is
+///          typically IID_IOleCache (defined in the OLE headers to equal the interface identifier for IOleCache).
+///    ppv = Address of pointer variable that receives the interface pointer requested in riid. Upon successful return,
+///          *<i>ppvObj</i> contains the requested interface pointer to the supplied cache object.
+///Returns:
+///    This function returns S_OK on success. Other possible values include the following. <table> <tr> <th>Return
+///    code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>E_NOINTERFACE</b></dt> </dl> </td> <td
+///    width="60%"> The interface represented by riid is not supported by the object. The parameter <i>ppvObj</i> is set
+///    to <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%">
+///    Insufficient memory for the operation. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG </b></dt> </dl>
+///    </td> <td width="60%"> One or more parameters are invalid. </td> </tr> </table>
+///    
+@DllImport("OLE32")
+HRESULT CreateDataCache(IUnknown pUnkOuter, const(GUID)* rclsid, const(GUID)* iid, void** ppv);
+
+///Locates an object by means of its moniker, activates the object if it is inactive, and retrieves a pointer to the
+///specified interface on that object.
+///Params:
+///    pmk = A pointer to the object's moniker. See IMoniker.
+///    grfOpt = This parameter is reserved for future use and must be 0.
+///    iidResult = The interface identifier to be used to communicate with the object.
+///    ppvResult = The address of pointer variable that receives the interface pointer requested in <i>iidResult</i>. Upon
+///                successful return, *<i>ppvResult</i> contains the requested interface pointer. If an error occurs,
+///                *<i>ppvResult</i> is <b>NULL</b>. If the call is successful, the caller is responsible for releasing the pointer
+///                with a call to the object's IUnknown::Release method.
+///Returns:
+///    This function can return the following error codes, or any of the error values returned by the
+///    IMoniker::BindToObject method. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%">
+///    <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The object was located and activated, if necessary, and a
+///    pointer to the requested interface was returned. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>MK_E_NOOBJECT</b></dt> </dl> </td> <td width="60%"> The object that the moniker object identified could
+///    not be found. </td> </tr> </table>
+///    
+@DllImport("OLE32")
+HRESULT BindMoniker(IMoniker pmk, uint grfOpt, const(GUID)* iidResult, void** ppvResult);
+
+///Converts a display name into a moniker that identifies the object named, and then binds to the object identified by
+///the moniker.
+///Params:
+///    pszName = The display name of the object to be created.
+///    pBindOptions = The binding options used to create a moniker that creates the actual object. For details, see BIND_OPTS. This
+///                   parameter can be <b>NULL</b>.
+///    riid = A reference to the identifier of an interface that is implemented on the object to be created.
+///    ppv = The address of a pointer to the interface specified by <i>riid</i> on the object that is created.
+///Returns:
+///    This function can return the standard return values E_FAIL, E_OUTOFMEMORY, and E_UNEXPECTED, as well as the
+///    following values. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The object was created successfully. </td> </tr> <tr> <td
+///    width="40%"> <dl> <dt><b>MK_E_SYNTAX</b></dt> </dl> </td> <td width="60%"> The <i>pszName</i> parameter is not a
+///    properly formed display name. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>MK_E_NOOBJECT</b></dt> </dl> </td>
+///    <td width="60%"> The object identified by this moniker, or some object identified by the composite moniker of
+///    which this moniker is a part, could not be found. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>MK_E_EXCEEDEDDEADLINE</b></dt> </dl> </td> <td width="60%"> The binding operation could not be completed
+///    within the time limit specified by the BIND_OPTS structure passed in <i>pBindOptions</i>. </td> </tr> <tr> <td
+///    width="40%"> <dl> <dt><b>MK_E_CONNECTMANUALLY</b></dt> </dl> </td> <td width="60%"> The binding operation
+///    requires assistance from the end user. The most common reasons for returning this value are that a password is
+///    needed or that a floppy needs to be mounted. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>MK_E_INTERMEDIATEINTERFACENOTSUPPORTED</b></dt> </dl> </td> <td width="60%"> An intermediate object was
+///    found but it did not support an interface required to complete the binding operation. For example, an item
+///    moniker returns this value if its container does not support the IOleItemContainer interface. </td> </tr>
+///    </table>
+///    
+@DllImport("OLE32")
+HRESULT CoGetObject(const(PWSTR) pszName, BIND_OPTS* pBindOptions, const(GUID)* riid, void** ppv);
+
+///Converts a string into a moniker that identifies the object named by the string. This function is the inverse of the
+///IMoniker::GetDisplayName operation, which retrieves the display name associated with a moniker.
+///Params:
+///    pbc = A pointer to the IBindCtx interface on the bind context object to be used in this binding operation.
+///    szUserName = A pointer to the display name to be parsed.
+///    pchEaten = A pointer to the number of characters of <i>szUserName</i> that were consumed. If the function is successful,
+///               *<i>pchEaten</i> is the length of <i>szUserName</i>; otherwise, it is the number of characters successfully
+///               parsed.
+///    ppmk = The address of the IMoniker* pointer variable that receives the interface pointer to the moniker that was built
+///           from <i>szUserName</i>. When successful, the function has called AddRef on the moniker and the caller is
+///           responsible for calling Release. If an error occurs, the specified interface pointer will contain as much of the
+///           moniker that the method was able to create before the error occurred.
+///Returns:
+///    This function can return the standard return value E_OUTOFMEMORY, as well as the following values. <table> <tr>
+///    <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td
+///    width="60%"> The parse operation was successful and the moniker was created. </td> </tr> <tr> <td width="40%">
+///    <dl> <dt><b>MK_E_SYNTAX</b></dt> </dl> </td> <td width="60%"> Error in the syntax of a file name or an error in
+///    the syntax of the resulting composite moniker. </td> </tr> </table> This function can also return any of the
+///    error values returned by IMoniker::BindToObject, IOleItemContainer::GetObject, or
+///    IParseDisplayName::ParseDisplayName.
+///    
+@DllImport("OLE32")
+HRESULT MkParseDisplayName(IBindCtx pbc, const(PWSTR) szUserName, uint* pchEaten, IMoniker* ppmk);
+
+///Provides a moniker that, when composed onto the end of the first specified moniker (or one with a similar structure),
+///yields the second specified moniker. This function is intended for use only by IMoniker::RelativePathTo
+///implementations.
+///Params:
+///    pmkSrc = A pointer to the IMoniker interface on the moniker that, when composed with the relative moniker to be created,
+///             produces <i>pmkDest</i>. This moniker identifies the "source" of the relative moniker to be created.
+///    pmkDest = A pointer to the IMoniker interface on the moniker to be expressed relative to <i>pmkSrc</i>. This moniker
+///              identifies the destination of the relative moniker to be created.
+///    ppmkRelPath = The address of an IMoniker* pointer variable that receives the interface pointer to the new relative moniker.
+///                  When successful, the function has called AddRef on the moniker and the caller is responsible for calling Release.
+///                  If an error occurs, the interface pointer value is <b>NULL</b>.
+///    dwReserved = This parameter is reserved and must be nonzero.
+///Returns:
+///    This function can return the standard return values E_INVALIDARG, E_OUTOFMEMORY, and E_UNEXPECTED, as well as the
+///    following values. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> A meaningful relative path has been returned. </td> </tr> <tr>
+///    <td width="40%"> <dl> <dt><b>MK_S_HIM</b></dt> </dl> </td> <td width="60%"> The only form of the relative path is
+///    the other moniker. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>MK_E_NOTBINDABLE</b></dt> </dl> </td> <td
+///    width="60%"> The <i>pmkSrc</i> parameter is a relative moniker, such as an item moniker, and must be composed
+///    with the moniker of its container before a relative path can be determined. </td> </tr> </table>
+///    
+@DllImport("ole32")
+HRESULT MonikerRelativePathTo(IMoniker pmkSrc, IMoniker pmkDest, IMoniker* ppmkRelPath, BOOL dwReserved);
+
+///Creates a new moniker based on the common prefix that this moniker (the one comprising the data of this moniker
+///object) shares with another moniker. This function is intended to be called only in implementations of
+///IMoniker::CommonPrefixWith.
+///Params:
+///    pmkThis = A pointer to the IMoniker interface on one of the monikers for which a common prefix is sought; usually the
+///              moniker in which this call is used to implement IMoniker::CommonPrefixWith.
+///    pmkOther = A pointer to the IMoniker interface on the moniker to be compared with the first moniker.
+///    ppmkCommon = The address of an IMoniker* pointer variable that receives the interface pointer to the moniker based on the
+///                 common prefix of <i>pmkThis</i> and <i>pmkOther</i>. When successful, the function has called AddRef on the
+///                 moniker and the caller is responsible for calling Release. If an error occurs, the supplied interface pointer
+///                 value is <b>NULL</b>.
+///Returns:
+///    This function can return the standard return values E_OUTOFMEMORY and E_UNEXPECTED, as well as the following
+///    values. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> A common prefix exists that is neither <i>pmkThis</i> nor
+///    <i>pmkOther</i>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>MK_S_HIM</b></dt> </dl> </td> <td width="60%"> The
+///    entire <i>pmkOther</i> moniker is a prefix of the <i>pmkThis</i> moniker. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>MK_S_ME</b></dt> </dl> </td> <td width="60%"> The entire <i>pmkThis</i> moniker is a prefix of the
+///    <i>pmkOther</i> moniker. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>MK_S_US</b></dt> </dl> </td> <td
+///    width="60%"> The <i>pmkThis</i> and <i>pmkOther</i> monikers are equal. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>MK_E_NOPREFIX</b></dt> </dl> </td> <td width="60%"> The monikers have no common prefix. </td> </tr> <tr>
+///    <td width="40%"> <dl> <dt><b>MK_E_NOTBINDABLE</b></dt> </dl> </td> <td width="60%"> This function was called on a
+///    relative moniker. It is not meaningful to take the common prefix of relative monikers. </td> </tr> </table>
+///    
+@DllImport("ole32")
+HRESULT MonikerCommonPrefixWith(IMoniker pmkThis, IMoniker pmkOther, IMoniker* ppmkCommon);
+
+///Returns a pointer to an implementation of IBindCtx (a bind context object). This object stores information about a
+///particular moniker-binding operation.
+///Params:
+///    reserved = This parameter is reserved and must be 0.
+///    ppbc = Address of an IBindCtx* pointer variable that receives the interface pointer to the new bind context object. When
+///           the function is successful, the caller is responsible for calling Release on the bind context. A <b>NULL</b>
+///           value for the bind context indicates that an error occurred.
+///Returns:
+///    This function can return the standard return values E_OUTOFMEMORY and S_OK.
+///    
+@DllImport("OLE32")
+HRESULT CreateBindCtx(uint reserved, IBindCtx* ppbc);
+
+///Performs a generic composition of two monikers and supplies a pointer to the resulting composite moniker.
+///Params:
+///    pmkFirst = A pointer to the moniker to be composed to the left of the moniker that pmkRest points to. Can point to any kind
+///               of moniker, including a generic composite.
+///    pmkRest = A pointer to the moniker to be composed to the right of the moniker to which <i>pmkFirst</i> points. Can point to
+///              any kind of moniker compatible with the type of the <i>pmkRest</i> moniker, including a generic composite.
+///    ppmkComposite = The address of an IMoniker* pointer variable that receives the interface pointer to the composite moniker object
+///                    that is the result of composing <i>pmkFirst</i> and <i>pmkRest</i>. This object supports the OLE composite
+///                    moniker implementation of <b>IMoniker</b>. When successful, the function has called AddRef on the moniker and the
+///                    caller is responsible for calling Release. If either <i>pmkFirst</i> or <i>pmkRest</i> are <b>NULL</b>, the
+///                    supplied pointer is the one that is non-<b>NULL</b>. If both <i>pmkFirst</i> and <i>pmkRest</i> are <b>NULL</b>,
+///                    or if an error occurs, the returned pointer is <b>NULL</b>.
+///Returns:
+///    This function can return the standard return value E_OUTOFMEMORY, as well as the following values. <table> <tr>
+///    <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td
+///    width="60%"> The input monikers were composed successfully. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>MK_E_SYNTAX</b></dt> </dl> </td> <td width="60%"> The two monikers could not be composed due to an error
+///    in the syntax of a path (for example, if both pmkFirst and pmkRest are file monikers based on absolute paths).
+///    </td> </tr> </table>
+///    
+@DllImport("OLE32")
+HRESULT CreateGenericComposite(IMoniker pmkFirst, IMoniker pmkRest, IMoniker* ppmkComposite);
+
+///Returns the CLSID associated with the specified file name.
+///Params:
+///    szFilename = A pointer to the filename for which you are requesting the associated CLSID.
+///    pclsid = A pointer to the location where the associated CLSID is written on return.
+///Returns:
+///    This function can return any of the file system errors, as well as the following values. <table> <tr> <th>Return
+///    code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%">
+///    The CLSID was retrieved successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>MK_E_CANTOPENFILE</b></dt>
+///    </dl> </td> <td width="60%"> Unable to open the specified file name. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>MK_E_INVALIDEXTENSION</b></dt> </dl> </td> <td width="60%"> The specified extension in the registry is
+///    invalid. </td> </tr> </table>
+///    
+@DllImport("OLE32")
+HRESULT GetClassFile(const(PWSTR) szFilename, GUID* pclsid);
+
+///Creates a class moniker that refers to the specified class.
+///Params:
+///    rclsid = A reference to the CLSID of the object type to which this moniker binds.
+///    ppmk = The address of an IMoniker* pointer variable that receives the interface pointer to the new class moniker. On
+///           successful return, the function has called AddRef on the moniker and the caller is responsible for calling
+///           Release. When an error occurs, the value of the moniker pointer is <b>NULL</b>.
+///Returns:
+///    This function can return the following values. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+///    <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The moniker has been created
+///    successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%">
+///    One or more arguments are invalid. </td> </tr> </table>
+///    
+@DllImport("OLE32")
+HRESULT CreateClassMoniker(const(GUID)* rclsid, IMoniker* ppmk);
+
+///Creates a file moniker based on the specified path.
+///Params:
+///    lpszPathName = The path on which this moniker is to be based. This parameter can specify a relative path, a UNC path, or a
+///                   drive-letter-based path. If based on a relative path, the resulting moniker must be composed onto another file
+///                   moniker before it can be bound.
+///    ppmk = The address of an IMoniker* pointer variable that receives the interface pointer to the new file moniker. When
+///           successful, the function has called AddRef on the file moniker and the caller is responsible for calling Release.
+///           When an error occurs, the value of the interface pointer is <b>NULL</b>.
+///Returns:
+///    This function can return the standard return value E_OUTOFMEMORY, as well as the following values. <table> <tr>
+///    <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td
+///    width="60%"> The moniker was created successfully. </td> </tr> <tr> <td width="40%"> <dl>
+///    <dt><b>MK_E_SYNTAX</b></dt> </dl> </td> <td width="60%"> There was an error in the syntax of the path. </td>
+///    </tr> </table>
+///    
+@DllImport("OLE32")
+HRESULT CreateFileMoniker(const(PWSTR) lpszPathName, IMoniker* ppmk);
+
+///Creates an item moniker that identifies an object within a containing object (typically a compound document).
+///Params:
+///    lpszDelim = A pointer to a wide character string (two bytes per character) zero-terminated string containing the delimiter
+///                (typically "!") used to separate this item's display name from the display name of its containing object.
+///    lpszItem = A pointer to a zero-terminated string indicating the containing object's name for the object being identified.
+///               This name can later be used to retrieve a pointer to the object in a call to IOleItemContainer::GetObject.
+///    ppmk = The address of an IMoniker* pointer variable that receives the interface pointer to the item moniker. When
+///           successful, the function has called AddRef on the item moniker and the caller is responsible for calling Release.
+///           If an error occurs, the supplied interface pointer has a <b>NULL</b> value.
+///Returns:
+///    This function can return the standard return values E_OUTOFMEMORY and S_OK.
+///    
+@DllImport("OLE32")
+HRESULT CreateItemMoniker(const(PWSTR) lpszDelim, const(PWSTR) lpszItem, IMoniker* ppmk);
+
+///Creates and returns a new anti-moniker.
+///Params:
+///    ppmk = The address of an IMoniker* pointer variable that receives the interface pointer to the new anti-moniker. When
+///           successful, the function has called AddRef on the anti-moniker and the caller is responsible for calling Release.
+///           When an error occurs, the anti-moniker pointer is <b>NULL</b>.
+///Returns:
+///    This function can return the standard return values E_OUTOFMEMORY and S_OK.
+///    
+@DllImport("OLE32")
+HRESULT CreateAntiMoniker(IMoniker* ppmk);
+
+///Creates a pointer moniker based on a pointer to an object.
+///Params:
+///    punk = A pointer to an IUnknown interface on the object to be identified by the resulting moniker.
+///    ppmk = The address of an IMoniker* pointer variable that receives the interface pointer to the new pointer moniker. When
+///           successful, the function has called AddRef on the moniker and the caller is responsible for calling Release. When
+///           an error occurs, the returned interface pointer has a <b>NULL</b> value.
+///Returns:
+///    This function can return the standard return values E_OUTOFMEMORY, E_UNEXPECTED, and S_OK.
+///    
+@DllImport("OLE32")
+HRESULT CreatePointerMoniker(IUnknown punk, IMoniker* ppmk);
+
+///Creates an OBJREF moniker based on a pointer to an object.
+///Params:
+///    punk = A pointer to the IUnknown interface on the object that the moniker is to represent.
+///    ppmk = Address of a pointer to the IMoniker interface on the OBJREF moniker that was created.
+///Returns:
+///    This function can return the standard return values E_OUTOFMEMORY, E_UNEXPECTED, and S_OK.
+///    
+@DllImport("OLE32")
+HRESULT CreateObjrefMoniker(IUnknown punk, IMoniker* ppmk);
+
+///Returns a pointer to the IRunningObjectTable interface on the local running object table (ROT).
+///Params:
+///    reserved = This parameter is reserved and must be 0.
+///    pprot = The address of an IRunningObjectTable* pointer variable that receives the interface pointer to the local ROT.
+///            When the function is successful, the caller is responsible for calling Release on the interface pointer. If an
+///            error occurs, *<i>pprot</i> is undefined.
+///Returns:
+///    This function can return the standard return values E_UNEXPECTED and S_OK.
+///    
+@DllImport("OLE32")
+HRESULT GetRunningObjectTable(uint reserved, IRunningObjectTable* pprot);
 
 ///Retrieves a pointer to the default OLE task memory allocator (which supports the system implementation of the IMalloc
 ///interface) so applications can call its methods to manage memory.
@@ -5445,7 +6178,7 @@ HRESULT CoMarshalHresult(IStream pstm, HRESULT hresult);
 ///    invalid pointer. </td> </tr> </table>
 ///    
 @DllImport("OLE32")
-HRESULT CoUnmarshalHresult(IStream pstm, int* phresult);
+HRESULT CoUnmarshalHresult(IStream pstm, HRESULT* phresult);
 
 ///Destroys a previously marshaled data packet.
 ///Params:
@@ -5660,8 +6393,9 @@ HRESULT CoDisconnectContext(uint dwTimeout);
 ///    <dt><b>E_OUT_OF_MEMORY</b></dt> </dl> </td> <td width="60%"> Out of memory. </td> </tr> </table>
 ///    
 @DllImport("OLE32")
-HRESULT CoInitializeSecurity(void* pSecDesc, int cAuthSvc, char* asAuthSvc, void* pReserved1, uint dwAuthnLevel, 
-                             uint dwImpLevel, void* pAuthList, uint dwCapabilities, void* pReserved3);
+HRESULT CoInitializeSecurity(void* pSecDesc, int cAuthSvc, SOLE_AUTHENTICATION_SERVICE* asAuthSvc, 
+                             void* pReserved1, uint dwAuthnLevel, uint dwImpLevel, void* pAuthList, 
+                             uint dwCapabilities, void* pReserved3);
 
 ///Retrieves the context of the current call on the current thread.
 ///Params:
@@ -5713,7 +6447,7 @@ HRESULT CoGetCallContext(const(GUID)* riid, void** ppInterface);
 ///    This function can return the standard return values E_INVALIDARG, E_OUTOFMEMORY, and S_OK.
 ///    
 @DllImport("OLE32")
-HRESULT CoQueryProxyBlanket(IUnknown pProxy, uint* pwAuthnSvc, uint* pAuthzSvc, ushort** pServerPrincName, 
+HRESULT CoQueryProxyBlanket(IUnknown pProxy, uint* pwAuthnSvc, uint* pAuthzSvc, PWSTR* pServerPrincName, 
                             uint* pAuthnLevel, uint* pImpLevel, void** pAuthInfo, uint* pCapabilites);
 
 ///Sets the authentication information that will be used to make calls on the specified proxy. This is a helper function
@@ -5777,7 +6511,7 @@ HRESULT CoQueryProxyBlanket(IUnknown pProxy, uint* pwAuthnSvc, uint* pAuthzSvc, 
 ///    invalid. </td> </tr> </table>
 ///    
 @DllImport("OLE32")
-HRESULT CoSetProxyBlanket(IUnknown pProxy, uint dwAuthnSvc, uint dwAuthzSvc, ushort* pServerPrincName, 
+HRESULT CoSetProxyBlanket(IUnknown pProxy, uint dwAuthnSvc, uint dwAuthzSvc, PWSTR pServerPrincName, 
                           uint dwAuthnLevel, uint dwImpLevel, void* pAuthInfo, uint dwCapabilities);
 
 ///Makes a private copy of the specified proxy.
@@ -5825,7 +6559,7 @@ HRESULT CoCopyProxy(IUnknown pProxy, IUnknown* ppCopy);
 ///    This function can return the standard return values E_INVALIDARG, E_OUTOFMEMORY, and S_OK.
 ///    
 @DllImport("OLE32")
-HRESULT CoQueryClientBlanket(uint* pAuthnSvc, uint* pAuthzSvc, ushort** pServerPrincName, uint* pAuthnLevel, 
+HRESULT CoQueryClientBlanket(uint* pAuthnSvc, uint* pAuthzSvc, PWSTR* pServerPrincName, uint* pAuthnLevel, 
                              uint* pImpLevel, void** pPrivs, uint* pCapabilities);
 
 ///Enables the server to impersonate the client of the current call for the duration of the call.
@@ -5933,7 +6667,7 @@ HRESULT CoCreateInstance(const(GUID)* rclsid, IUnknown pUnkOuter, uint dwClsCont
 ///    
 @DllImport("OLE32")
 HRESULT CoCreateInstanceEx(const(GUID)* Clsid, IUnknown punkOuter, uint dwClsCtx, COSERVERINFO* pServerInfo, 
-                           uint dwCount, char* pResults);
+                           uint dwCount, MULTI_QI* pResults);
 
 ///Creates an instance of a specific class on a specific computer from within an app container.
 ///Params:
@@ -5965,7 +6699,7 @@ HRESULT CoCreateInstanceEx(const(GUID)* Clsid, IUnknown punkOuter, uint dwClsCtx
 ///    
 @DllImport("OLE32")
 HRESULT CoCreateInstanceFromApp(const(GUID)* Clsid, IUnknown punkOuter, uint dwClsCtx, void* reserved, 
-                                uint dwCount, char* pResults);
+                                uint dwCount, MULTI_QI* pResults);
 
 ///Registers a process-wide filter to process activation requests.
 ///Params:
@@ -6075,7 +6809,7 @@ HRESULT CoDisableCallCancellation(void* pReserved);
 ///    This function can return the standard return values E_OUTOFMEMORY and S_OK.
 ///    
 @DllImport("OLE32")
-HRESULT StringFromCLSID(const(GUID)* rclsid, ushort** lplpsz);
+HRESULT StringFromCLSID(const(GUID)* rclsid, PWSTR* lplpsz);
 
 ///Converts a string generated by the StringFromCLSID function back into the original CLSID.
 ///Params:
@@ -6092,7 +6826,7 @@ HRESULT StringFromCLSID(const(GUID)* rclsid, ushort** lplpsz);
 ///    </td> </tr> </table>
 ///    
 @DllImport("OLE32")
-HRESULT CLSIDFromString(ushort* lpsz, GUID* pclsid);
+HRESULT CLSIDFromString(const(PWSTR) lpsz, GUID* pclsid);
 
 ///Converts an interface identifier into a string of printable characters.
 ///Params:
@@ -6103,7 +6837,7 @@ HRESULT CLSIDFromString(ushort* lpsz, GUID* pclsid);
 ///    This function can return the standard return values E_OUTOFMEMORY and S_OK.
 ///    
 @DllImport("OLE32")
-HRESULT StringFromIID(const(GUID)* rclsid, ushort** lplpsz);
+HRESULT StringFromIID(const(GUID)* rclsid, PWSTR* lplpsz);
 
 ///Converts a string generated by the StringFromIID function back into the original interface identifier (IID).
 ///Params:
@@ -6113,7 +6847,7 @@ HRESULT StringFromIID(const(GUID)* rclsid, ushort** lplpsz);
 ///    This function can return the standard return values E_INVALIDARG, E_OUTOFMEMORY, and S_OK.
 ///    
 @DllImport("OLE32")
-HRESULT IIDFromString(ushort* lpsz, GUID* lpiid);
+HRESULT IIDFromString(const(PWSTR) lpsz, GUID* lpiid);
 
 ///Retrieves the ProgID for a given CLSID.
 ///Params:
@@ -6128,7 +6862,7 @@ HRESULT IIDFromString(ushort* lpsz, GUID* lpiid);
 ///    <td width="60%"> There was an error reading from the registry. </td> </tr> </table>
 ///    
 @DllImport("OLE32")
-HRESULT ProgIDFromCLSID(const(GUID)* clsid, ushort** lplpszProgID);
+HRESULT ProgIDFromCLSID(const(GUID)* clsid, PWSTR* lplpszProgID);
 
 ///Looks up a CLSID in the registry, given a ProgID.
 ///Params:
@@ -6143,7 +6877,7 @@ HRESULT ProgIDFromCLSID(const(GUID)* clsid, ushort** lplpszProgID);
 ///    registry. See Remarks below. </td> </tr> </table>
 ///    
 @DllImport("OLE32")
-HRESULT CLSIDFromProgID(ushort* lpszProgID, GUID* lpclsid);
+HRESULT CLSIDFromProgID(const(PWSTR) lpszProgID, GUID* lpclsid);
 
 ///Converts a globally unique identifier (GUID) into a string of printable characters.
 ///Params:
@@ -6156,7 +6890,7 @@ HRESULT CLSIDFromProgID(ushort* lpszProgID, GUID* lpclsid);
 ///    terminator. If the buffer is too small to contain the string, the return value is 0.
 ///    
 @DllImport("OLE32")
-int StringFromGUID2(const(GUID)* rguid, char* lpsz, int cchMax);
+int StringFromGUID2(const(GUID)* rguid, PWSTR lpsz, int cchMax);
 
 ///Creates a GUID, a unique 128-bit integer used for CLSIDs and interface identifiers.
 ///Params:
@@ -6196,7 +6930,7 @@ HRESULT CoCreateGuid(GUID* pguid);
 ///    before the required handle or handles were signaled. </td> </tr> </table>
 ///    
 @DllImport("OLE32")
-HRESULT CoWaitForMultipleHandles(uint dwFlags, uint dwTimeout, uint cHandles, char* pHandles, uint* lpdwindex);
+HRESULT CoWaitForMultipleHandles(uint dwFlags, uint dwTimeout, uint cHandles, HANDLE* pHandles, uint* lpdwindex);
 
 ///A replacement for CoWaitForMultipleHandles. This replacement API hides the options for
 ///<b>CoWaitForMultipleHandles</b> that are not supported in ASTA.
@@ -6208,7 +6942,8 @@ HRESULT CoWaitForMultipleHandles(uint dwFlags, uint dwTimeout, uint cHandles, ch
 ///    pHandles = An array of handles to waitable kernel objects.
 ///    lpdwindex = Receives the index of the handle that satisfied the wait.
 @DllImport("OLE32")
-HRESULT CoWaitForMultipleObjects(uint dwFlags, uint dwTimeout, uint cHandles, char* pHandles, uint* lpdwindex);
+HRESULT CoWaitForMultipleObjects(uint dwFlags, uint dwTimeout, uint cHandles, const(HANDLE)* pHandles, 
+                                 uint* lpdwindex);
 
 ///Returns the CLSID of an object that can emulate the specified object.
 ///Params:
@@ -6244,7 +6979,7 @@ HRESULT CoGetTreatAsClass(const(GUID)* clsidOld, GUID* pClsidNew);
 ///    Indicates that a <b>NULL</b> value was passed for <i>pszMachineName</i>. </td> </tr> </table>
 ///    
 @DllImport("OLE32")
-HRESULT CoInvalidateRemoteMachineBindings(ushort* pszMachineName);
+HRESULT CoInvalidateRemoteMachineBindings(PWSTR pszMachineName);
 
 ///Allocates a block of task memory in the same way that IMalloc::Alloc does.
 ///Params:
@@ -6295,37 +7030,13 @@ HRESULT CoFileTimeNow(FILETIME* lpFileTime);
 ///    registry. See Remarks below. </td> </tr> </table>
 ///    
 @DllImport("OLE32")
-HRESULT CLSIDFromProgIDEx(ushort* lpszProgID, GUID* lpclsid);
+HRESULT CLSIDFromProgIDEx(const(PWSTR) lpszProgID, GUID* lpclsid);
 
 @DllImport("OLE32")
-HRESULT CoRegisterDeviceCatalog(const(wchar)* deviceInstanceId, ptrdiff_t* cookie);
+HRESULT CoRegisterDeviceCatalog(const(PWSTR) deviceInstanceId, ptrdiff_t* cookie);
 
 @DllImport("OLE32")
 HRESULT CoRevokeDeviceCatalog(ptrdiff_t cookie);
-
-@DllImport("OLE32")
-uint CLIPFORMAT_UserSize(uint* param0, uint param1, ushort* param2);
-
-@DllImport("OLE32")
-ubyte* CLIPFORMAT_UserMarshal(uint* param0, ubyte* param1, ushort* param2);
-
-@DllImport("OLE32")
-ubyte* CLIPFORMAT_UserUnmarshal(uint* param0, char* param1, ushort* param2);
-
-@DllImport("OLE32")
-void CLIPFORMAT_UserFree(uint* param0, ushort* param1);
-
-@DllImport("OLE32")
-uint HBITMAP_UserSize(uint* param0, uint param1, HBITMAP* param2);
-
-@DllImport("OLE32")
-ubyte* HBITMAP_UserMarshal(uint* param0, ubyte* param1, HBITMAP* param2);
-
-@DllImport("OLE32")
-ubyte* HBITMAP_UserUnmarshal(uint* param0, char* param1, HBITMAP* param2);
-
-@DllImport("OLE32")
-void HBITMAP_UserFree(uint* param0, HBITMAP* param1);
 
 @DllImport("OLE32")
 uint HDC_UserSize(uint* param0, uint param1, HDC* param2);
@@ -6334,22 +7045,10 @@ uint HDC_UserSize(uint* param0, uint param1, HDC* param2);
 ubyte* HDC_UserMarshal(uint* param0, ubyte* param1, HDC* param2);
 
 @DllImport("OLE32")
-ubyte* HDC_UserUnmarshal(uint* param0, char* param1, HDC* param2);
+ubyte* HDC_UserUnmarshal(uint* param0, ubyte* param1, HDC* param2);
 
 @DllImport("OLE32")
 void HDC_UserFree(uint* param0, HDC* param1);
-
-@DllImport("OLE32")
-uint HICON_UserSize(uint* param0, uint param1, HICON* param2);
-
-@DllImport("OLE32")
-ubyte* HICON_UserMarshal(uint* param0, ubyte* param1, HICON* param2);
-
-@DllImport("OLE32")
-ubyte* HICON_UserUnmarshal(uint* param0, char* param1, HICON* param2);
-
-@DllImport("OLE32")
-void HICON_UserFree(uint* param0, HICON* param1);
 
 @DllImport("ole32")
 uint SNB_UserSize(uint* param0, uint param1, ushort*** param2);
@@ -6358,34 +7057,10 @@ uint SNB_UserSize(uint* param0, uint param1, ushort*** param2);
 ubyte* SNB_UserMarshal(uint* param0, ubyte* param1, ushort*** param2);
 
 @DllImport("ole32")
-ubyte* SNB_UserUnmarshal(uint* param0, char* param1, ushort*** param2);
+ubyte* SNB_UserUnmarshal(uint* param0, ubyte* param1, ushort*** param2);
 
 @DllImport("ole32")
 void SNB_UserFree(uint* param0, ushort*** param1);
-
-@DllImport("OLE32")
-uint CLIPFORMAT_UserSize64(uint* param0, uint param1, ushort* param2);
-
-@DllImport("OLE32")
-ubyte* CLIPFORMAT_UserMarshal64(uint* param0, ubyte* param1, ushort* param2);
-
-@DllImport("OLE32")
-ubyte* CLIPFORMAT_UserUnmarshal64(uint* param0, char* param1, ushort* param2);
-
-@DllImport("OLE32")
-void CLIPFORMAT_UserFree64(uint* param0, ushort* param1);
-
-@DllImport("OLE32")
-uint HBITMAP_UserSize64(uint* param0, uint param1, HBITMAP* param2);
-
-@DllImport("OLE32")
-ubyte* HBITMAP_UserMarshal64(uint* param0, ubyte* param1, HBITMAP* param2);
-
-@DllImport("OLE32")
-ubyte* HBITMAP_UserUnmarshal64(uint* param0, char* param1, HBITMAP* param2);
-
-@DllImport("OLE32")
-void HBITMAP_UserFree64(uint* param0, HBITMAP* param1);
 
 @DllImport("OLE32")
 uint HDC_UserSize64(uint* param0, uint param1, HDC* param2);
@@ -6394,22 +7069,10 @@ uint HDC_UserSize64(uint* param0, uint param1, HDC* param2);
 ubyte* HDC_UserMarshal64(uint* param0, ubyte* param1, HDC* param2);
 
 @DllImport("OLE32")
-ubyte* HDC_UserUnmarshal64(uint* param0, char* param1, HDC* param2);
+ubyte* HDC_UserUnmarshal64(uint* param0, ubyte* param1, HDC* param2);
 
 @DllImport("OLE32")
 void HDC_UserFree64(uint* param0, HDC* param1);
-
-@DllImport("OLE32")
-uint HICON_UserSize64(uint* param0, uint param1, HICON* param2);
-
-@DllImport("OLE32")
-ubyte* HICON_UserMarshal64(uint* param0, ubyte* param1, HICON* param2);
-
-@DllImport("OLE32")
-ubyte* HICON_UserUnmarshal64(uint* param0, char* param1, HICON* param2);
-
-@DllImport("OLE32")
-void HICON_UserFree64(uint* param0, HICON* param1);
 
 @DllImport("ole32")
 uint SNB_UserSize64(uint* param0, uint param1, ushort*** param2);
@@ -6418,91 +7081,19 @@ uint SNB_UserSize64(uint* param0, uint param1, ushort*** param2);
 ubyte* SNB_UserMarshal64(uint* param0, ubyte* param1, ushort*** param2);
 
 @DllImport("ole32")
-ubyte* SNB_UserUnmarshal64(uint* param0, char* param1, ushort*** param2);
+ubyte* SNB_UserUnmarshal64(uint* param0, ubyte* param1, ushort*** param2);
 
 @DllImport("ole32")
 void SNB_UserFree64(uint* param0, ushort*** param1);
 
-@DllImport("OLE32")
-uint HACCEL_UserSize(uint* param0, uint param1, HACCEL* param2);
-
-@DllImport("OLE32")
-ubyte* HACCEL_UserMarshal(uint* param0, ubyte* param1, HACCEL* param2);
-
-@DllImport("OLE32")
-ubyte* HACCEL_UserUnmarshal(uint* param0, char* param1, HACCEL* param2);
-
-@DllImport("OLE32")
-void HACCEL_UserFree(uint* param0, HACCEL* param1);
-
-@DllImport("OLE32")
-uint HGLOBAL_UserSize(uint* param0, uint param1, ptrdiff_t* param2);
-
-@DllImport("OLE32")
-ubyte* HGLOBAL_UserMarshal(uint* param0, ubyte* param1, ptrdiff_t* param2);
-
-@DllImport("OLE32")
-ubyte* HGLOBAL_UserUnmarshal(uint* param0, char* param1, ptrdiff_t* param2);
-
-@DllImport("OLE32")
-void HGLOBAL_UserFree(uint* param0, ptrdiff_t* param1);
-
-@DllImport("OLE32")
-uint HMENU_UserSize(uint* param0, uint param1, HMENU* param2);
-
-@DllImport("OLE32")
-ubyte* HMENU_UserMarshal(uint* param0, ubyte* param1, HMENU* param2);
-
-@DllImport("OLE32")
-ubyte* HMENU_UserUnmarshal(uint* param0, char* param1, HMENU* param2);
-
-@DllImport("OLE32")
-void HMENU_UserFree(uint* param0, HMENU* param1);
-
-@DllImport("OLE32")
-uint HACCEL_UserSize64(uint* param0, uint param1, HACCEL* param2);
-
-@DllImport("OLE32")
-ubyte* HACCEL_UserMarshal64(uint* param0, ubyte* param1, HACCEL* param2);
-
-@DllImport("OLE32")
-ubyte* HACCEL_UserUnmarshal64(uint* param0, char* param1, HACCEL* param2);
-
-@DllImport("OLE32")
-void HACCEL_UserFree64(uint* param0, HACCEL* param1);
-
-@DllImport("OLE32")
-uint HGLOBAL_UserSize64(uint* param0, uint param1, ptrdiff_t* param2);
-
-@DllImport("OLE32")
-ubyte* HGLOBAL_UserMarshal64(uint* param0, ubyte* param1, ptrdiff_t* param2);
-
-@DllImport("OLE32")
-ubyte* HGLOBAL_UserUnmarshal64(uint* param0, char* param1, ptrdiff_t* param2);
-
-@DllImport("OLE32")
-void HGLOBAL_UserFree64(uint* param0, ptrdiff_t* param1);
-
-@DllImport("OLE32")
-uint HMENU_UserSize64(uint* param0, uint param1, HMENU* param2);
-
-@DllImport("OLE32")
-ubyte* HMENU_UserMarshal64(uint* param0, ubyte* param1, HMENU* param2);
-
-@DllImport("OLE32")
-ubyte* HMENU_UserUnmarshal64(uint* param0, char* param1, HMENU* param2);
-
-@DllImport("OLE32")
-void HMENU_UserFree64(uint* param0, HMENU* param1);
+@DllImport("urlmon")
+HRESULT CreateURLMoniker(IMoniker pMkCtx, const(PWSTR) szURL, IMoniker* ppmk);
 
 @DllImport("urlmon")
-HRESULT CreateURLMoniker(IMoniker pMkCtx, const(wchar)* szURL, IMoniker* ppmk);
+HRESULT CreateURLMonikerEx(IMoniker pMkCtx, const(PWSTR) szURL, IMoniker* ppmk, uint dwFlags);
 
 @DllImport("urlmon")
-HRESULT CreateURLMonikerEx(IMoniker pMkCtx, const(wchar)* szURL, IMoniker* ppmk, uint dwFlags);
-
-@DllImport("urlmon")
-HRESULT GetClassURL(const(wchar)* szURL, GUID* pClsID);
+HRESULT GetClassURL(const(PWSTR) szURL, GUID* pClsID);
 
 ///Creates an asynchronous bind context for use with asynchronous monikers.
 ///Params:
@@ -6530,7 +7121,7 @@ HRESULT CreateAsyncBindCtxEx(IBindCtx pbc, uint dwOptions, IBindStatusCallback p
                              IBindCtx* ppBC, uint reserved);
 
 @DllImport("urlmon")
-HRESULT MkParseDisplayNameEx(IBindCtx pbc, const(wchar)* szDisplayName, uint* pchEaten, IMoniker* ppmk);
+HRESULT MkParseDisplayNameEx(IBindCtx pbc, const(PWSTR) szDisplayName, uint* pchEaten, IMoniker* ppmk);
 
 @DllImport("urlmon")
 HRESULT RegisterBindStatusCallback(IBindCtx pBC, IBindStatusCallback pBSCb, IBindStatusCallback* ppBSCBPrev, 
@@ -6540,15 +7131,15 @@ HRESULT RegisterBindStatusCallback(IBindCtx pBC, IBindStatusCallback pBSCb, IBin
 HRESULT RevokeBindStatusCallback(IBindCtx pBC, IBindStatusCallback pBSCb);
 
 @DllImport("urlmon")
-HRESULT GetClassFileOrMime(IBindCtx pBC, const(wchar)* szFilename, char* pBuffer, uint cbSize, 
-                           const(wchar)* szMime, uint dwReserved, GUID* pclsid);
+HRESULT GetClassFileOrMime(IBindCtx pBC, const(PWSTR) szFilename, void* pBuffer, uint cbSize, const(PWSTR) szMime, 
+                           uint dwReserved, GUID* pclsid);
 
 @DllImport("urlmon")
-HRESULT IsValidURL(IBindCtx pBC, const(wchar)* szURL, uint dwReserved);
+HRESULT IsValidURL(IBindCtx pBC, const(PWSTR) szURL, uint dwReserved);
 
 @DllImport("urlmon")
-HRESULT CoGetClassObjectFromURL(const(GUID)* rCLASSID, const(wchar)* szCODE, uint dwFileVersionMS, 
-                                uint dwFileVersionLS, const(wchar)* szTYPE, IBindCtx pBindCtx, uint dwClsContext, 
+HRESULT CoGetClassObjectFromURL(const(GUID)* rCLASSID, const(PWSTR) szCODE, uint dwFileVersionMS, 
+                                uint dwFileVersionLS, const(PWSTR) szTYPE, IBindCtx pBindCtx, uint dwClsContext, 
                                 void* pvReserved, const(GUID)* riid, void** ppv);
 
 @DllImport("urlmon")
@@ -6558,16 +7149,16 @@ HRESULT IEInstallScope(uint* pdwScope);
 HRESULT FaultInIEFeature(HWND hWnd, uCLSSPEC* pClassSpec, QUERYCONTEXT* pQuery, uint dwFlags);
 
 @DllImport("urlmon")
-HRESULT GetComponentIDFromCLSSPEC(uCLSSPEC* pClassspec, byte** ppszComponentID);
+HRESULT GetComponentIDFromCLSSPEC(uCLSSPEC* pClassspec, PSTR* ppszComponentID);
 
 @DllImport("urlmon")
 HRESULT IsAsyncMoniker(IMoniker pmk);
 
 @DllImport("urlmon")
-HRESULT RegisterMediaTypes(uint ctypes, char* rgszTypes, char* rgcfTypes);
+HRESULT RegisterMediaTypes(uint ctypes, const(PSTR)* rgszTypes, ushort* rgcfTypes);
 
 @DllImport("urlmon")
-HRESULT FindMediaType(const(char)* rgszTypes, ushort* rgcfTypes);
+HRESULT FindMediaType(const(PSTR) rgszTypes, ushort* rgcfTypes);
 
 ///Creates an object that implements IEnumFORMATETC over a static array of FORMATETC structures.
 ///Params:
@@ -6581,7 +7172,7 @@ HRESULT FindMediaType(const(char)* rgszTypes, ushort* rgcfTypes);
 ///    </td> <td width="60%"> One or more parameters are invalid. </td> </tr> </table>
 ///    
 @DllImport("urlmon")
-HRESULT CreateFormatEnumerator(uint cfmtetc, char* rgfmtetc, IEnumFORMATETC* ppenumfmtetc);
+HRESULT CreateFormatEnumerator(uint cfmtetc, FORMATETC* rgfmtetc, IEnumFORMATETC* ppenumfmtetc);
 
 @DllImport("urlmon")
 HRESULT RegisterFormatEnumerator(IBindCtx pBC, IEnumFORMATETC pEFetc, uint reserved);
@@ -6590,27 +7181,27 @@ HRESULT RegisterFormatEnumerator(IBindCtx pBC, IEnumFORMATETC pEFetc, uint reser
 HRESULT RevokeFormatEnumerator(IBindCtx pBC, IEnumFORMATETC pEFetc);
 
 @DllImport("urlmon")
-HRESULT RegisterMediaTypeClass(IBindCtx pBC, uint ctypes, char* rgszTypes, char* rgclsID, uint reserved);
+HRESULT RegisterMediaTypeClass(IBindCtx pBC, uint ctypes, const(PSTR)* rgszTypes, GUID* rgclsID, uint reserved);
 
 @DllImport("urlmon")
-HRESULT FindMediaTypeClass(IBindCtx pBC, const(char)* szType, GUID* pclsID, uint reserved);
+HRESULT FindMediaTypeClass(IBindCtx pBC, const(PSTR) szType, GUID* pclsID, uint reserved);
 
 @DllImport("urlmon")
-HRESULT UrlMkSetSessionOption(uint dwOption, char* pBuffer, uint dwBufferLength, uint dwReserved);
+HRESULT UrlMkSetSessionOption(uint dwOption, void* pBuffer, uint dwBufferLength, uint dwReserved);
 
 @DllImport("urlmon")
-HRESULT UrlMkGetSessionOption(uint dwOption, char* pBuffer, uint dwBufferLength, uint* pdwBufferLengthOut, 
+HRESULT UrlMkGetSessionOption(uint dwOption, void* pBuffer, uint dwBufferLength, uint* pdwBufferLengthOut, 
                               uint dwReserved);
 
 @DllImport("urlmon")
-HRESULT FindMimeFromData(IBindCtx pBC, const(wchar)* pwzUrl, char* pBuffer, uint cbSize, 
-                         const(wchar)* pwzMimeProposed, uint dwMimeFlags, ushort** ppwzMimeOut, uint dwReserved);
+HRESULT FindMimeFromData(IBindCtx pBC, const(PWSTR) pwzUrl, void* pBuffer, uint cbSize, 
+                         const(PWSTR) pwzMimeProposed, uint dwMimeFlags, PWSTR* ppwzMimeOut, uint dwReserved);
 
 @DllImport("urlmon")
-HRESULT ObtainUserAgentString(uint dwOption, const(char)* pszUAOut, uint* cbSize);
+HRESULT ObtainUserAgentString(uint dwOption, PSTR pszUAOut, uint* cbSize);
 
 @DllImport("urlmon")
-HRESULT CompareSecurityIds(char* pbSecurityId1, uint dwLen1, char* pbSecurityId2, uint dwLen2, uint dwReserved);
+HRESULT CompareSecurityIds(ubyte* pbSecurityId1, uint dwLen1, ubyte* pbSecurityId2, uint dwLen2, uint dwReserved);
 
 @DllImport("urlmon")
 HRESULT CompatFlagsFromClsid(GUID* pclsid, uint* pdwCompatFlags, uint* pdwMiscStatusFlags);
@@ -6619,63 +7210,63 @@ HRESULT CompatFlagsFromClsid(GUID* pclsid, uint* pdwCompatFlags, uint* pdwMiscSt
 HRESULT SetAccessForIEAppContainer(HANDLE hObject, IEObjectType ieObjectType, uint dwAccessMask);
 
 @DllImport("URLMON")
-HRESULT CreateUri(const(wchar)* pwzURI, uint dwFlags, size_t dwReserved, IUri* ppURI);
+HRESULT CreateUri(const(PWSTR) pwzURI, uint dwFlags, size_t dwReserved, IUri* ppURI);
 
 @DllImport("URLMON")
-HRESULT CreateUriWithFragment(const(wchar)* pwzURI, const(wchar)* pwzFragment, uint dwFlags, size_t dwReserved, 
+HRESULT CreateUriWithFragment(const(PWSTR) pwzURI, const(PWSTR) pwzFragment, uint dwFlags, size_t dwReserved, 
                               IUri* ppURI);
 
 @DllImport("urlmon")
-HRESULT CreateUriFromMultiByteString(const(char)* pszANSIInputUri, uint dwEncodingFlags, uint dwCodePage, 
+HRESULT CreateUriFromMultiByteString(const(PSTR) pszANSIInputUri, uint dwEncodingFlags, uint dwCodePage, 
                                      uint dwCreateFlags, size_t dwReserved, IUri* ppUri);
 
 @DllImport("URLMON")
 HRESULT CreateIUriBuilder(IUri pIUri, uint dwFlags, size_t dwReserved, IUriBuilder* ppIUriBuilder);
 
 @DllImport("urlmon")
-HRESULT HlinkSimpleNavigateToString(const(wchar)* szTarget, const(wchar)* szLocation, 
-                                    const(wchar)* szTargetFrameName, IUnknown pUnk, IBindCtx pbc, 
-                                    IBindStatusCallback param5, uint grfHLNF, uint dwReserved);
+HRESULT HlinkSimpleNavigateToString(const(PWSTR) szTarget, const(PWSTR) szLocation, const(PWSTR) szTargetFrameName, 
+                                    IUnknown pUnk, IBindCtx pbc, IBindStatusCallback param5, uint grfHLNF, 
+                                    uint dwReserved);
 
 @DllImport("urlmon")
-HRESULT HlinkSimpleNavigateToMoniker(IMoniker pmkTarget, const(wchar)* szLocation, const(wchar)* szTargetFrameName, 
+HRESULT HlinkSimpleNavigateToMoniker(IMoniker pmkTarget, const(PWSTR) szLocation, const(PWSTR) szTargetFrameName, 
                                      IUnknown pUnk, IBindCtx pbc, IBindStatusCallback param5, uint grfHLNF, 
                                      uint dwReserved);
 
 @DllImport("urlmon")
-HRESULT URLOpenStreamA(IUnknown param0, const(char)* param1, uint param2, IBindStatusCallback param3);
+HRESULT URLOpenStreamA(IUnknown param0, const(PSTR) param1, uint param2, IBindStatusCallback param3);
 
 @DllImport("urlmon")
-HRESULT URLOpenStreamW(IUnknown param0, const(wchar)* param1, uint param2, IBindStatusCallback param3);
+HRESULT URLOpenStreamW(IUnknown param0, const(PWSTR) param1, uint param2, IBindStatusCallback param3);
 
 @DllImport("urlmon")
-HRESULT URLOpenPullStreamA(IUnknown param0, const(char)* param1, uint param2, IBindStatusCallback param3);
+HRESULT URLOpenPullStreamA(IUnknown param0, const(PSTR) param1, uint param2, IBindStatusCallback param3);
 
 @DllImport("urlmon")
-HRESULT URLOpenPullStreamW(IUnknown param0, const(wchar)* param1, uint param2, IBindStatusCallback param3);
+HRESULT URLOpenPullStreamW(IUnknown param0, const(PWSTR) param1, uint param2, IBindStatusCallback param3);
 
 @DllImport("urlmon")
-HRESULT URLDownloadToFileA(IUnknown param0, const(char)* param1, const(char)* param2, uint param3, 
+HRESULT URLDownloadToFileA(IUnknown param0, const(PSTR) param1, const(PSTR) param2, uint param3, 
                            IBindStatusCallback param4);
 
 @DllImport("urlmon")
-HRESULT URLDownloadToFileW(IUnknown param0, const(wchar)* param1, const(wchar)* param2, uint param3, 
+HRESULT URLDownloadToFileW(IUnknown param0, const(PWSTR) param1, const(PWSTR) param2, uint param3, 
                            IBindStatusCallback param4);
 
 @DllImport("urlmon")
-HRESULT URLDownloadToCacheFileA(IUnknown param0, const(char)* param1, const(char)* param2, uint cchFileName, 
-                                uint param4, IBindStatusCallback param5);
+HRESULT URLDownloadToCacheFileA(IUnknown param0, const(PSTR) param1, PSTR param2, uint cchFileName, uint param4, 
+                                IBindStatusCallback param5);
 
 @DllImport("urlmon")
-HRESULT URLDownloadToCacheFileW(IUnknown param0, const(wchar)* param1, const(wchar)* param2, uint cchFileName, 
-                                uint param4, IBindStatusCallback param5);
+HRESULT URLDownloadToCacheFileW(IUnknown param0, const(PWSTR) param1, PWSTR param2, uint cchFileName, uint param4, 
+                                IBindStatusCallback param5);
 
 @DllImport("urlmon")
-HRESULT URLOpenBlockingStreamA(IUnknown param0, const(char)* param1, IStream* param2, uint param3, 
+HRESULT URLOpenBlockingStreamA(IUnknown param0, const(PSTR) param1, IStream* param2, uint param3, 
                                IBindStatusCallback param4);
 
 @DllImport("urlmon")
-HRESULT URLOpenBlockingStreamW(IUnknown param0, const(wchar)* param1, IStream* param2, uint param3, 
+HRESULT URLOpenBlockingStreamW(IUnknown param0, const(PWSTR) param1, IStream* param2, uint param3, 
                                IBindStatusCallback param4);
 
 @DllImport("urlmon")
@@ -6685,25 +7276,25 @@ HRESULT HlinkGoBack(IUnknown pUnk);
 HRESULT HlinkGoForward(IUnknown pUnk);
 
 @DllImport("urlmon")
-HRESULT HlinkNavigateString(IUnknown pUnk, const(wchar)* szTarget);
+HRESULT HlinkNavigateString(IUnknown pUnk, const(PWSTR) szTarget);
 
 @DllImport("urlmon")
 HRESULT HlinkNavigateMoniker(IUnknown pUnk, IMoniker pmkTarget);
 
 @DllImport("urlmon")
-HRESULT CoInternetParseUrl(const(wchar)* pwzUrl, PARSEACTION ParseAction, uint dwFlags, const(wchar)* pszResult, 
+HRESULT CoInternetParseUrl(const(PWSTR) pwzUrl, PARSEACTION ParseAction, uint dwFlags, PWSTR pszResult, 
                            uint cchResult, uint* pcchResult, uint dwReserved);
 
 @DllImport("urlmon")
-HRESULT CoInternetParseIUri(IUri pIUri, PARSEACTION ParseAction, uint dwFlags, const(wchar)* pwzResult, 
-                            uint cchResult, uint* pcchResult, size_t dwReserved);
+HRESULT CoInternetParseIUri(IUri pIUri, PARSEACTION ParseAction, uint dwFlags, PWSTR pwzResult, uint cchResult, 
+                            uint* pcchResult, size_t dwReserved);
 
 @DllImport("urlmon")
-HRESULT CoInternetCombineUrl(const(wchar)* pwzBaseUrl, const(wchar)* pwzRelativeUrl, uint dwCombineFlags, 
-                             const(wchar)* pszResult, uint cchResult, uint* pcchResult, uint dwReserved);
+HRESULT CoInternetCombineUrl(const(PWSTR) pwzBaseUrl, const(PWSTR) pwzRelativeUrl, uint dwCombineFlags, 
+                             PWSTR pszResult, uint cchResult, uint* pcchResult, uint dwReserved);
 
 @DllImport("urlmon")
-HRESULT CoInternetCombineUrlEx(IUri pBaseUri, const(wchar)* pwzRelativeUrl, uint dwCombineFlags, 
+HRESULT CoInternetCombineUrlEx(IUri pBaseUri, const(PWSTR) pwzRelativeUrl, uint dwCombineFlags, 
                                IUri* ppCombinedUri, size_t dwReserved);
 
 @DllImport("urlmon")
@@ -6711,20 +7302,20 @@ HRESULT CoInternetCombineIUri(IUri pBaseUri, IUri pRelativeUri, uint dwCombineFl
                               size_t dwReserved);
 
 @DllImport("urlmon")
-HRESULT CoInternetCompareUrl(const(wchar)* pwzUrl1, const(wchar)* pwzUrl2, uint dwFlags);
+HRESULT CoInternetCompareUrl(const(PWSTR) pwzUrl1, const(PWSTR) pwzUrl2, uint dwFlags);
 
 @DllImport("urlmon")
-HRESULT CoInternetGetProtocolFlags(const(wchar)* pwzUrl, uint* pdwFlags, uint dwReserved);
+HRESULT CoInternetGetProtocolFlags(const(PWSTR) pwzUrl, uint* pdwFlags, uint dwReserved);
 
 @DllImport("urlmon")
-HRESULT CoInternetQueryInfo(const(wchar)* pwzUrl, QUERYOPTION QueryOptions, uint dwQueryFlags, char* pvBuffer, 
+HRESULT CoInternetQueryInfo(const(PWSTR) pwzUrl, QUERYOPTION QueryOptions, uint dwQueryFlags, void* pvBuffer, 
                             uint cbBuffer, uint* pcbBuffer, uint dwReserved);
 
 @DllImport("urlmon")
 HRESULT CoInternetGetSession(uint dwSessionMode, IInternetSession* ppIInternetSession, uint dwReserved);
 
 @DllImport("urlmon")
-HRESULT CoInternetGetSecurityUrl(const(wchar)* pwszUrl, ushort** ppwszSecUrl, PSUACTION psuAction, uint dwReserved);
+HRESULT CoInternetGetSecurityUrl(const(PWSTR) pwszUrl, PWSTR* ppwszSecUrl, PSUACTION psuAction, uint dwReserved);
 
 @DllImport("urlmon")
 HRESULT CoInternetGetSecurityUrlEx(IUri pUri, IUri* ppSecUri, PSUACTION psuAction, size_t dwReserved);
@@ -6736,7 +7327,7 @@ HRESULT CoInternetSetFeatureEnabled(INTERNETFEATURELIST FeatureEntry, uint dwFla
 HRESULT CoInternetIsFeatureEnabled(INTERNETFEATURELIST FeatureEntry, uint dwFlags);
 
 @DllImport("urlmon")
-HRESULT CoInternetIsFeatureEnabledForUrl(INTERNETFEATURELIST FeatureEntry, uint dwFlags, const(wchar)* szURL, 
+HRESULT CoInternetIsFeatureEnabledForUrl(INTERNETFEATURELIST FeatureEntry, uint dwFlags, const(PWSTR) szURL, 
                                          IInternetSecurityManager pSecMgr);
 
 @DllImport("urlmon")
@@ -6744,7 +7335,7 @@ HRESULT CoInternetIsFeatureEnabledForIUri(INTERNETFEATURELIST FeatureEntry, uint
                                           IInternetSecurityManagerEx2 pSecMgr);
 
 @DllImport("urlmon")
-HRESULT CoInternetIsFeatureZoneElevationEnabled(const(wchar)* szFromURL, const(wchar)* szToURL, 
+HRESULT CoInternetIsFeatureZoneElevationEnabled(const(PWSTR) szFromURL, const(PWSTR) szToURL, 
                                                 IInternetSecurityManager pSecMgr, uint dwFlags);
 
 @DllImport("urlmon")
@@ -6757,7 +7348,7 @@ HRESULT CopyBindInfo(const(BINDINFO)* pcbiSrc, BINDINFO* pbiDest);
 void ReleaseBindInfo(BINDINFO* pbindinfo);
 
 @DllImport("urlmon")
-ushort* IEGetUserPrivateNamespaceName();
+PWSTR IEGetUserPrivateNamespaceName();
 
 @DllImport("urlmon")
 HRESULT CoInternetCreateSecurityManager(IServiceProvider pSP, IInternetSecurityManager* ppSM, uint dwReserved);
@@ -6766,17 +7357,17 @@ HRESULT CoInternetCreateSecurityManager(IServiceProvider pSP, IInternetSecurityM
 HRESULT CoInternetCreateZoneManager(IServiceProvider pSP, IInternetZoneManager* ppZM, uint dwReserved);
 
 @DllImport("urlmon")
-HRESULT GetSoftwareUpdateInfo(const(wchar)* szDistUnit, SOFTDISTINFO* psdi);
+HRESULT GetSoftwareUpdateInfo(const(PWSTR) szDistUnit, SOFTDISTINFO* psdi);
 
 @DllImport("urlmon")
-HRESULT SetSoftwareUpdateAdvertisementState(const(wchar)* szDistUnit, uint dwAdState, uint dwAdvertisedVersionMS, 
+HRESULT SetSoftwareUpdateAdvertisementState(const(PWSTR) szDistUnit, uint dwAdState, uint dwAdvertisedVersionMS, 
                                             uint dwAdvertisedVersionLS);
 
 @DllImport("urlmon")
-BOOL IsLoggingEnabledA(const(char)* pszUrl);
+BOOL IsLoggingEnabledA(const(PSTR) pszUrl);
 
 @DllImport("urlmon")
-BOOL IsLoggingEnabledW(const(wchar)* pwszUrl);
+BOOL IsLoggingEnabledW(const(PWSTR) pwszUrl);
 
 @DllImport("urlmon")
 BOOL WriteHitLogging(HIT_LOGGING_INFO* lpLogginginfo);
@@ -7175,7 +7766,7 @@ HRESULT OleCreateLinkEx(IMoniker pmkLinkSrc, const(GUID)* riid, uint dwFlags, ui
 ///    </table>
 ///    
 @DllImport("OLE32")
-HRESULT OleCreateLinkToFile(ushort* lpszFileName, const(GUID)* riid, uint renderopt, FORMATETC* lpFormatEtc, 
+HRESULT OleCreateLinkToFile(const(PWSTR) lpszFileName, const(GUID)* riid, uint renderopt, FORMATETC* lpFormatEtc, 
                             IOleClientSite pClientSite, IStorage pStg, void** ppvObj);
 
 ///Extends OleCreateLinkToFile functionality by supporting more efficient instantiation of objects in containers
@@ -7218,9 +7809,9 @@ HRESULT OleCreateLinkToFile(ushort* lpszFileName, const(GUID)* riid, uint render
 ///    </table>
 ///    
 @DllImport("ole32")
-HRESULT OleCreateLinkToFileEx(ushort* lpszFileName, const(GUID)* riid, uint dwFlags, uint renderopt, uint cFormats, 
-                              uint* rgAdvf, FORMATETC* rgFormatEtc, IAdviseSink lpAdviseSink, uint* rgdwConnection, 
-                              IOleClientSite pClientSite, IStorage pStg, void** ppvObj);
+HRESULT OleCreateLinkToFileEx(const(PWSTR) lpszFileName, const(GUID)* riid, uint dwFlags, uint renderopt, 
+                              uint cFormats, uint* rgAdvf, FORMATETC* rgFormatEtc, IAdviseSink lpAdviseSink, 
+                              uint* rgdwConnection, IOleClientSite pClientSite, IStorage pStg, void** ppvObj);
 
 ///Creates an embedded object from the contents of a named file.
 ///Params:
@@ -7250,7 +7841,7 @@ HRESULT OleCreateLinkToFileEx(ushort* lpszFileName, const(GUID)* riid, uint dwFl
 ///    </tr> </table>
 ///    
 @DllImport("OLE32")
-HRESULT OleCreateFromFile(const(GUID)* rclsid, ushort* lpszFileName, const(GUID)* riid, uint renderopt, 
+HRESULT OleCreateFromFile(const(GUID)* rclsid, const(PWSTR) lpszFileName, const(GUID)* riid, uint renderopt, 
                           FORMATETC* lpFormatEtc, IOleClientSite pClientSite, IStorage pStg, void** ppvObj);
 
 ///Extends OleCreateFromFile functionality by supporting more efficient instantiation of objects in containers requiring
@@ -7293,7 +7884,7 @@ HRESULT OleCreateFromFile(const(GUID)* rclsid, ushort* lpszFileName, const(GUID)
 ///    </table>
 ///    
 @DllImport("ole32")
-HRESULT OleCreateFromFileEx(const(GUID)* rclsid, ushort* lpszFileName, const(GUID)* riid, uint dwFlags, 
+HRESULT OleCreateFromFileEx(const(GUID)* rclsid, const(PWSTR) lpszFileName, const(GUID)* riid, uint dwFlags, 
                             uint renderopt, uint cFormats, uint* rgAdvf, FORMATETC* rgFormatEtc, 
                             IAdviseSink lpAdviseSink, uint* rgdwConnection, IOleClientSite pClientSite, 
                             IStorage pStg, void** ppvObj);
@@ -7505,9 +8096,8 @@ HRESULT OleGetClipboard(IDataObject* ppDataObj);
 ///    used within OleFlushClipboard failed. </td> </tr> </table>
 ///    
 @DllImport("ole32")
-HRESULT OleGetClipboardWithEnterpriseInfo(IDataObject* dataObject, ushort** dataEnterpriseId, 
-                                          ushort** sourceDescription, ushort** targetDescription, 
-                                          ushort** dataDescription);
+HRESULT OleGetClipboardWithEnterpriseInfo(IDataObject* dataObject, PWSTR* dataEnterpriseId, 
+                                          PWSTR* sourceDescription, PWSTR* targetDescription, PWSTR* dataDescription);
 
 ///Carries out the clipboard shutdown sequence. It also releases the IDataObject pointer that was placed on the
 ///clipboard by the OleSetClipboard function.
@@ -7742,7 +8332,7 @@ BOOL IsAccelerator(HACCEL hAccel, int cAccelEntries, MSG* lpMsg, ushort* lpwCmd)
 ///    string "Document". If <i>lpszPath</i> is <b>NULL</b>, the function returns <b>NULL</b>.
 ///    
 @DllImport("ole32")
-ptrdiff_t OleGetIconOfFile(ushort* lpszPath, BOOL fUseFileAsLabel);
+ptrdiff_t OleGetIconOfFile(PWSTR lpszPath, BOOL fUseFileAsLabel);
 
 ///Returns a handle to a metafile containing an icon and a string label for the specified CLSID.
 ///Params:
@@ -7754,7 +8344,7 @@ ptrdiff_t OleGetIconOfFile(ushort* lpszPath, BOOL fUseFileAsLabel);
 ///    specified CLSID. Otherwise, the function returns <b>NULL</b>.
 ///    
 @DllImport("OLE32")
-ptrdiff_t OleGetIconOfClass(const(GUID)* rclsid, ushort* lpszLabel, BOOL fUseTypeAsLabel);
+ptrdiff_t OleGetIconOfClass(const(GUID)* rclsid, PWSTR lpszLabel, BOOL fUseTypeAsLabel);
 
 ///Creates a metafile in which the specified icon and label are drawn.
 ///Params:
@@ -7772,7 +8362,7 @@ ptrdiff_t OleGetIconOfClass(const(GUID)* rclsid, ushort* lpszLabel, BOOL fUseTyp
 ///    GetLastError to obtain further information.
 ///    
 @DllImport("ole32")
-ptrdiff_t OleMetafilePictFromIconAndLabel(HICON hIcon, ushort* lpszLabel, ushort* lpszSourceFile, uint iIconIndex);
+ptrdiff_t OleMetafilePictFromIconAndLabel(HICON hIcon, PWSTR lpszLabel, PWSTR lpszSourceFile, uint iIconIndex);
 
 ///Gets the user type of the specified class from the registry. Developers of custom DLL object applications use this
 ///function to emulate the behavior of the OLE default handler.
@@ -7791,7 +8381,7 @@ ptrdiff_t OleMetafilePictFromIconAndLabel(HICON hIcon, ushort* lpszLabel, ushort
 ///    keys are missing from the registry. </td> </tr> </table>
 ///    
 @DllImport("OLE32")
-HRESULT OleRegGetUserType(const(GUID)* clsid, uint dwFormOfType, ushort** pszUserType);
+HRESULT OleRegGetUserType(const(GUID)* clsid, uint dwFormOfType, PWSTR* pszUserType);
 
 ///Returns miscellaneous information about the presentation and behaviors supported by the specified CLSID from the
 ///registry. This function is used by developers of custom DLL object applications to emulate the behavior of the OLE
@@ -7910,40 +8500,16 @@ HRESULT OleGetAutoConvert(const(GUID)* clsidOld, GUID* pClsidNew);
 HRESULT OleSetAutoConvert(const(GUID)* clsidOld, const(GUID)* clsidNew);
 
 @DllImport("OLE32")
-uint HPALETTE_UserSize(uint* param0, uint param1, HPALETTE* param2);
-
-@DllImport("OLE32")
-ubyte* HPALETTE_UserMarshal(uint* param0, ubyte* param1, HPALETTE* param2);
-
-@DllImport("OLE32")
-ubyte* HPALETTE_UserUnmarshal(uint* param0, char* param1, HPALETTE* param2);
-
-@DllImport("OLE32")
-void HPALETTE_UserFree(uint* param0, HPALETTE* param1);
-
-@DllImport("OLE32")
 uint HRGN_UserSize(uint* param0, uint param1, HRGN* param2);
 
 @DllImport("OLE32")
 ubyte* HRGN_UserMarshal(uint* param0, ubyte* param1, HRGN* param2);
 
 @DllImport("OLE32")
-ubyte* HRGN_UserUnmarshal(uint* param0, char* param1, HRGN* param2);
+ubyte* HRGN_UserUnmarshal(uint* param0, ubyte* param1, HRGN* param2);
 
 @DllImport("OLE32")
 void HRGN_UserFree(uint* param0, HRGN* param1);
-
-@DllImport("OLE32")
-uint HPALETTE_UserSize64(uint* param0, uint param1, HPALETTE* param2);
-
-@DllImport("OLE32")
-ubyte* HPALETTE_UserMarshal64(uint* param0, ubyte* param1, HPALETTE* param2);
-
-@DllImport("OLE32")
-ubyte* HPALETTE_UserUnmarshal64(uint* param0, char* param1, HPALETTE* param2);
-
-@DllImport("OLE32")
-void HPALETTE_UserFree64(uint* param0, HPALETTE* param1);
 
 ///Invokes a new property frame, that is, a property sheet dialog box, whose parent is <i>hwndOwner</i>, where the
 ///dialog is positioned at the point (x,y) in the parent window and has the caption <i>lpszCaption</i>.
@@ -7971,8 +8537,9 @@ void HPALETTE_UserFree64(uint* param0, HPALETTE* param1);
 ///    <b>NULL</b>. </td> </tr> </table>
 ///    
 @DllImport("OLEAUT32")
-HRESULT OleCreatePropertyFrame(HWND hwndOwner, uint x, uint y, ushort* lpszCaption, uint cObjects, IUnknown* ppUnk, 
-                               uint cPages, GUID* pPageClsID, uint lcid, uint dwReserved, void* pvReserved);
+HRESULT OleCreatePropertyFrame(HWND hwndOwner, uint x, uint y, const(PWSTR) lpszCaption, uint cObjects, 
+                               IUnknown* ppUnk, uint cPages, GUID* pPageClsID, uint lcid, uint dwReserved, 
+                               void* pvReserved);
 
 ///Creates a property frame, that is, a property sheet dialog box, based on a structure (OCPFIPARAMS) that contains the
 ///parameters, rather than specifying separate parameters as when calling OleCreatePropertyFrame.
@@ -8125,7 +8692,7 @@ HRESULT OleLoadPictureEx(IStream lpstream, int lSize, BOOL fRunmode, const(GUID)
 ///    The object does not support the interface specified in <i>riid</i>. </td> </tr> </table>
 ///    
 @DllImport("OLEAUT32")
-HRESULT OleLoadPicturePath(ushort* szURLorPath, IUnknown punkCaller, uint dwReserved, uint clrReserved, 
+HRESULT OleLoadPicturePath(PWSTR szURLorPath, IUnknown punkCaller, uint dwReserved, uint clrReserved, 
                            const(GUID)* riid, void** ppvRet);
 
 ///Converts an icon to a cursor.
@@ -8160,7 +8727,7 @@ HCURSOR OleIconToCursor(HINSTANCE hinstExe, HICON hIcon);
 ///    <b>FALSE</b> return indicates that <i>lpOleObj</i> was <b>NULL</b> and a disabled default menu item was created.
 ///    
 @DllImport("oledlg")
-BOOL OleUIAddVerbMenuW(IOleObject lpOleObj, const(wchar)* lpszShortType, HMENU hMenu, uint uPos, uint uIDVerbMin, 
+BOOL OleUIAddVerbMenuW(IOleObject lpOleObj, const(PWSTR) lpszShortType, HMENU hMenu, uint uPos, uint uIDVerbMin, 
                        uint uIDVerbMax, BOOL bAddConvert, uint idConvert, HMENU* lphMenu);
 
 ///Adds the <b>Verb</b> menu for the specified object to the specified menu.
@@ -8184,7 +8751,7 @@ BOOL OleUIAddVerbMenuW(IOleObject lpOleObj, const(wchar)* lpszShortType, HMENU h
 ///    <b>FALSE</b> return indicates that <i>lpOleObj</i> was <b>NULL</b> and a disabled default menu item was created.
 ///    
 @DllImport("oledlg")
-BOOL OleUIAddVerbMenuA(IOleObject lpOleObj, const(char)* lpszShortType, HMENU hMenu, uint uPos, uint uIDVerbMin, 
+BOOL OleUIAddVerbMenuA(IOleObject lpOleObj, const(PSTR) lpszShortType, HMENU hMenu, uint uPos, uint uIDVerbMin, 
                        uint uIDVerbMax, BOOL bAddConvert, uint idConvert, HMENU* lphMenu);
 
 ///Invokes the standard <b>Insert Object</b> dialog box, which allows the user to select an object source and class
@@ -9279,7 +9846,7 @@ int OleUIPromptUserA(int nTemplate, HWND hwndParent);
 ///    Returns <b>TRUE</b> if the links were successfully updated; otherwise, <b>FALSE</b>.
 ///    
 @DllImport("oledlg")
-BOOL OleUIUpdateLinksW(IOleUILinkContainerW lpOleUILinkCntr, HWND hwndParent, const(wchar)* lpszTitle, int cLinks);
+BOOL OleUIUpdateLinksW(IOleUILinkContainerW lpOleUILinkCntr, HWND hwndParent, PWSTR lpszTitle, int cLinks);
 
 ///Updates all links in the link container and displays a dialog box that shows the progress of the updating process.
 ///The process is stopped if the user presses the <b>Stop</b> button or when all links are processed.
@@ -9292,7 +9859,7 @@ BOOL OleUIUpdateLinksW(IOleUILinkContainerW lpOleUILinkCntr, HWND hwndParent, co
 ///    Returns <b>TRUE</b> if the links were successfully updated; otherwise, <b>FALSE</b>.
 ///    
 @DllImport("oledlg")
-BOOL OleUIUpdateLinksA(IOleUILinkContainerA lpOleUILinkCntr, HWND hwndParent, const(char)* lpszTitle, int cLinks);
+BOOL OleUIUpdateLinksA(IOleUILinkContainerA lpOleUILinkCntr, HWND hwndParent, PSTR lpszTitle, int cLinks);
 
 ///Instantiates the appropriate interceptor for the specified interface to be intercepted and returns the newly created
 ///interceptor.
@@ -9341,572 +9908,84 @@ void CoSetMessageDispatcher(IMessageDispatcher pMessageDispatcher);
 @DllImport("ole32")
 void CoHandlePriorityEventsFromMessagePump();
 
-///Initializes the COM library on the current thread and identifies the concurrency model as single-thread apartment
-///(STA). New applications should call CoInitializeEx instead of CoInitialize. If you want to use the Windows Runtime,
-///you must call Windows::Foundation::Initialize instead.
-///Params:
-///    pvReserved = This parameter is reserved and must be <b>NULL</b>.
-///Returns:
-///    This function can return the standard return values E_INVALIDARG, E_OUTOFMEMORY, and E_UNEXPECTED, as well as the
-///    following values. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The COM library was initialized successfully on this thread.
-///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>S_FALSE</b></dt> </dl> </td> <td width="60%"> The COM library is
-///    already initialized on this thread. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>RPC_E_CHANGED_MODE</b></dt>
-///    </dl> </td> <td width="60%"> A previous call to CoInitializeEx specified the concurrency model for this thread as
-///    multithread apartment (MTA). This could also indicate that a change from neutral-threaded apartment to
-///    single-threaded apartment has occurred. </td> </tr> </table>
-///    
-@DllImport("OLE32")
-HRESULT CoInitialize(void* pvReserved);
-
-///Registers an implementation of the IMallocSpy interface, thereafter requiring OLE to call its wrapper methods around
-///every call to the corresponding IMalloc method.
-///Params:
-///    pMallocSpy = A pointer to an instance of the IMallocSpy implementation.
-///Returns:
-///    This function can return the standard return value E_INVALIDARG, as well as the following values. <table> <tr>
-///    <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td
-///    width="60%"> The object was successfully registered. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>CO_E_OBJISREG</b></dt> </dl> </td> <td width="60%"> The object is already registered. </td> </tr> </table>
-///    
-@DllImport("OLE32")
-HRESULT CoRegisterMallocSpy(IMallocSpy pMallocSpy);
-
-///Revokes a registered IMallocSpy object.
-///Returns:
-///    This function can return the following values. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
-///    <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The object was revoked successfully.
-///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>CO_E_OBJNOTREG</b></dt> </dl> </td> <td width="60%"> No spy is
-///    currently registered. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_ACCESSDENIED</b></dt> </dl> </td> <td
-///    width="60%"> A spy is registered but there are outstanding allocations (not yet freed) made while this spy was
-///    active. </td> </tr> </table>
-///    
-@DllImport("OLE32")
-HRESULT CoRevokeMallocSpy();
-
-///Registers an implementation of the IInitializeSpy interface. The <b>IInitializeSpy</b> interface is defied to allow
-///developers to perform initialization and cleanup on COM apartments.
-///Params:
-///    pSpy = A pointer to an instance of the IInitializeSpy implementation.
-///    puliCookie = The address at which to store a cookie that identifies this registration.
-///Returns:
-///    This function can return the standard return value E_INVALIDARG, as well as the following values. <table> <tr>
-///    <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td
-///    width="60%"> The object was successfully registered. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>E_NOINTERFACE</b></dt> </dl> </td> <td width="60%"> The object does not support IInitializeSpy. </td>
-///    </tr> </table>
-///    
-@DllImport("OLE32")
-HRESULT CoRegisterInitializeSpy(IInitializeSpy pSpy, ULARGE_INTEGER* puliCookie);
-
-///Revokes a registered implementation of the IInitializeSpy interface.
-///Params:
-///    uliCookie = A ULARGE_INTEGER cookie identifying the registration.
-///Returns:
-///    This function can return the standard return value E_INVALIDARG, as well as S_OK to indicate success.
-///    
-@DllImport("OLE32")
-HRESULT CoRevokeInitializeSpy(ULARGE_INTEGER uliCookie);
-
-///Returns the default values of the Security Descriptors of the machine-wide launch and access permissions, as well as
-///launch and access limits.
-///Params:
-///    comSDType = A value from the COMSD enumeration. Specifies the type of the requested system security permissions, such as
-///                launch permissions, access permissions, launch restrictions, and access restrictions.
-///    ppSD = Pointer to a caller-supplied variable that this routine sets to the address of a buffer containing the
-///           SECURITY_DESCRIPTOR for the system security permissions. Memory will be allocated by
-///           <b>CoGetSystemSecurityPermissions</b> and should be freed by caller with LocalFree.
-///Returns:
-///    This function can return one of these values. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
-///    <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> Success. </td> </tr> <tr> <td
-///    width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> Invalid parameter <i>comSDType</i> or
-///    <i>ppSD</i>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> No
-///    connection to the resolver process. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl>
-///    </td> <td width="60%"> Not enough memory for the security descriptor's allocation. </td> </tr> </table>
-///    
-@DllImport("OLE32")
-HRESULT CoGetSystemSecurityPermissions(COMSD comSDType, void** ppSD);
-
-///Loads a specific DLL into the caller's process. <b>CoLoadLibrary</b> is equivalent to LoadLibraryEx.
-///<b>CoLoadLibrary</b> does not affect the lifetime of the library.
-///Params:
-///    lpszLibName = The name of the library to be loaded.
-///    bAutoFree = This parameter is maintained for compatibility with 16-bit applications, but is ignored.
-///Returns:
-///    If the function succeeds, the return value is a handle to the loaded library; otherwise, it is <b>NULL</b>.
-///    
-@DllImport("OLE32")
-HINSTANCE CoLoadLibrary(ushort* lpszLibName, BOOL bAutoFree);
-
-///Frees a library that, when loaded, was specified to be freed explicitly. <div class="alert"><b>Note</b> This function
-///is provided for compatibility with 16-bit Windows.</div><div> </div>
-///Params:
-///    hInst = A handle to the library module to be freed, as returned by the CoLoadLibrary function.
-@DllImport("OLE32")
-void CoFreeLibrary(HINSTANCE hInst);
-
-///Frees all the DLLs that have been loaded with the CoLoadLibrary function (called internally by CoGetClassObject),
-///regardless of whether they are currently in use.
-@DllImport("OLE32")
-void CoFreeAllLibraries();
-
-///Creates a new object and initializes it from a file using IPersistFile::Load.
-///Params:
-///    pServerInfo = A pointer to a COSERVERINFO structure that specifies the computer on which to instantiate the object and the
-///                  authentication setting to be used. This parameter can be <b>NULL</b>, in which case the object is instantiated on
-///                  the current computer, at the computer specified under the RemoteServerName registry value for the class, or at
-///                  the computer where the <i>pwszName</i> file resides if the ActivateAtStorage value is specified for the class or
-///                  there is no local registry information.
-///    pClsid = A pointer to the class identifier of the object to be created. This parameter can be <b>NULL</b>, in which case
-///             there is a call to GetClassFile, using <i>pwszName</i> as its parameter to get the class of the object to be
-///             instantiated.
-///    punkOuter = When non-<b>NULL</b>, indicates the instance is being created as part of an aggregate, and <i>punkOuter</i> is to
-///                be used as the pointer to the new instance's controlling IUnknown. Aggregation is not supported cross-process or
-///                cross-computer. When instantiating an object out of process, CLASS_E_NOAGGREGATION will be returned if
-///                <i>punkOuter</i> is non-<b>NULL</b>.
-///    dwClsCtx = Values from the CLSCTX enumeration.
-///    grfMode = Specifies how the file is to be opened. See STGM Constants.
-///    pwszName = The file used to initialize the object with IPersistFile::Load. This parameter cannot be <b>NULL</b>.
-///    dwCount = The number of structures in <i>pResults</i>. This parameter must be greater than 0.
-///    pResults = An array of MULTI_QI structures. Each structure has three members: the identifier for a requested interface
-///               (<b>pIID</b>), the location to return the interface pointer (<b>pItf</b>) and the return value of the call to
-///               QueryInterface (<b>hr</b>).
-///Returns:
-///    This function can return the standard return value E_INVALIDARG, as well as the following values. <table> <tr>
-///    <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td
-///    width="60%"> The function retrieved all of the interfaces successfully. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>CO_S_NOTALLINTERFACES</b></dt> </dl> </td> <td width="60%"> At least one, but not all of the interfaces
-///    requested in the <i>pResults</i> array were successfully retrieved. The <b>hr</b> member of each of the MULTI_QI
-///    structures indicates with S_OK or E_NOINTERFACE whether the specific interface was returned. </td> </tr> <tr> <td
-///    width="40%"> <dl> <dt><b>E_NOINTERFACE</b></dt> </dl> </td> <td width="60%"> None of the interfaces requested in
-///    the <i>pResults</i> array were successfully retrieved. </td> </tr> </table>
-///    
-@DllImport("OLE32")
-HRESULT CoGetInstanceFromFile(COSERVERINFO* pServerInfo, GUID* pClsid, IUnknown punkOuter, uint dwClsCtx, 
-                              uint grfMode, ushort* pwszName, uint dwCount, char* pResults);
-
-///Creates a new object and initializes it from a storage object through an internal call to IPersistFile::Load.
-///Params:
-///    pServerInfo = A pointer to a COSERVERINFO structure that specifies the computer on which to instantiate the object and the
-///                  authentication setting to be used. This parameter can be <b>NULL</b>, in which case the object is instantiated on
-///                  the current computer, at the computer specified under the RemoteServerName registry value for the class, or at
-///                  the computer where the <i>pstg</i> storage object resides if the ActivateAtStorage value is specified for the
-///                  class or there is no local registry information.
-///    pClsid = A pointer to the class identifier of the object to be created. This parameter can be <b>NULL</b>, in which case
-///             there is a call to IStorage::Stat to find the class of the object.
-///    punkOuter = When non-<b>NULL</b>, indicates the instance is being created as part of an aggregate, and <i>punkOuter</i> is to
-///                be used as the pointer to the new instance's controlling IUnknown. Aggregation is not supported cross-process or
-///                cross-computer. When instantiating an object out of process, CLASS_E_NOAGGREGATION will be returned if
-///                <i>punkOuter</i> is non-<b>NULL</b>.
-///    dwClsCtx = Values from the CLSCTX enumeration.
-///    pstg = A pointer to the storage object used to initialize the object with IPersistFile::Load. This parameter cannot be
-///           <b>NULL</b>.
-///    dwCount = The number of structures in <i>pResults</i>. This parameter must be greater than 0.
-///    pResults = An array of MULTI_QI structures. Each structure has three members: the identifier for a requested interface
-///               (<b>pIID</b>), the location to return the interface pointer (<b>pItf</b>) and the return value of the call to
-///               QueryInterface (<b>hr</b>).
-///Returns:
-///    This function can return the standard return value E_INVALIDARG, as well as the following values. <table> <tr>
-///    <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td
-///    width="60%"> The function retrieved all of the interfaces successfully. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>CO_S_NOTALLINTERFACES</b></dt> </dl> </td> <td width="60%"> At least one, but not all of the interfaces
-///    requested in the <i>pResults</i> array were successfully retrieved. The <b>hr</b> member of each of the MULTI_QI
-///    structures indicates with S_OK or E_NOINTERFACE whether the specific interface was returned. </td> </tr> <tr> <td
-///    width="40%"> <dl> <dt><b>E_NOINTERFACE</b></dt> </dl> </td> <td width="60%"> None of the interfaces requested in
-///    the <i>pResults</i> array were successfully retrieved. </td> </tr> </table>
-///    
-@DllImport("OLE32")
-HRESULT CoGetInstanceFromIStorage(COSERVERINFO* pServerInfo, GUID* pClsid, IUnknown punkOuter, uint dwClsCtx, 
-                                  IStorage pstg, uint dwCount, char* pResults);
-
-///This function passes the foreground privilege (the privilege to set the foreground window) from one process to
-///another. The process that has the foreground privilege can call this function to pass that privilege on to a local
-///COM server process. Note that calling <b>CoAllowSetForegroundWindow</b> only confers the privilege; it does not set
-///the foreground window itself. Foreground and focus are only taken away from the client application when the target
-///COM server calls either SetForegroundWindow or another API that does so indirectly.
-///Params:
-///    pUnk = A pointer to the IUnknown interface on the proxy of the target COM server.
-///    lpvReserved = This parameter is reserved and must be <b>NULL</b>.
-///Returns:
-///    This function can return the following values. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
-///    <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method was successful. </td> </tr>
-///    <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The <i>lpvReserved</i>
-///    parameter is not <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_NOINTERFACE</b></dt> </dl> </td>
-///    <td width="60%"> The <i>pUnk</i> parameter does not support foreground window control. </td> </tr> <tr> <td
-///    width="40%"> <dl> <dt><b>E_ACCESSDENIED</b></dt> </dl> </td> <td width="60%"> The calling process does not
-///    currently possess the foreground privilege. </td> </tr> </table>
-///    
-@DllImport("OLE32")
-HRESULT CoAllowSetForegroundWindow(IUnknown pUnk, void* lpvReserved);
-
-///Determines whether the specified CLSID represents an OLE 1 object.
-///Params:
-///    rclsid = The CLSID to be checked.
-///Returns:
-///    If the CLSID refers to an OLE 1 object, the return value is <b>TRUE</b>; otherwise, it is <b>FALSE</b>.
-///    
-@DllImport("ole32")
-BOOL CoIsOle1Class(const(GUID)* rclsid);
-
-///Converts a FILETIME into MS-DOS date and time values. <div class="alert"><b>Note</b> This function is provided for
-///compatibility with 16-bit Windows.</div><div> </div>
-///Params:
-///    lpFileTime = A pointer to the FILETIME structure.
-///    lpDosDate = Receives the MS-DOS date.
-///    lpDosTime = Receives the MS-DOS time.
-///Returns:
-///    If the function succeeds, the return value is <b>TRUE</b>; otherwise, it is <b>FALSE</b>.
-///    
-@DllImport("OLE32")
-BOOL CoFileTimeToDosDateTime(FILETIME* lpFileTime, ushort* lpDosDate, ushort* lpDosTime);
-
-///Converts the MS-DOS representation of the time and date to a FILETIME structure used by Windows. <div
-///class="alert"><b>Note</b> This function is provided for compatibility with 16-bit Windows.</div><div> </div>
-///Params:
-///    nDosDate = The MS-DOS date.
-///    nDosTime = The MS-DOS time.
-///    lpFileTime = A pointer to the FILETIME structure.
-///Returns:
-///    If the function succeeds, the return value is <b>TRUE</b>; otherwise, it is <b>FALSE</b>, probably because of
-///    invalid arguments.
-///    
-@DllImport("OLE32")
-BOOL CoDosDateTimeToFileTime(ushort nDosDate, ushort nDosTime, FILETIME* lpFileTime);
-
-///Registers with OLE the instance of an IMessageFilter interface, which is to be used for handling concurrency issues
-///on the current thread. Only one message filter can be registered for each thread. Threads in multithreaded apartments
-///cannot have message filters.
-///Params:
-///    lpMessageFilter = A pointer to the IMessageFilter interface on the message filter. This message filter should be registered on the
-///                      current thread, replacing the previous message filter (if any). This parameter can be <b>NULL</b>, indicating
-///                      that no message filter should be registered on the current thread. Note that this function calls AddRef on the
-///                      interface pointer to the message filter.
-///    lplpMessageFilter = Address of the IMessageFilter* pointer variable that receives the interface pointer to the previously registered
-///                        message filter. If there was no previously registered message filter for the current thread, the value of
-///                        *<i>lplpMessageFilter</i> is <b>NULL</b>.
-///Returns:
-///    If the instance was registered or revoked successfully, the return value is S_OK; otherwise, it is S_FALSE.
-///    
-@DllImport("OLE32")
-HRESULT CoRegisterMessageFilter(IMessageFilter lpMessageFilter, IMessageFilter* lplpMessageFilter);
-
-///Registers a channel hook.
-///Params:
-///    ExtensionUuid = The extension to register.
-///    pChannelHook = The channel hook to register.
-@DllImport("ole32")
-HRESULT CoRegisterChannelHook(const(GUID)* ExtensionUuid, IChannelHook pChannelHook);
-
-///Establishes or removes an emulation, in which objects of one class are treated as objects of a different class.
-///Params:
-///    clsidOld = The CLSID of the object to be emulated.
-///    clsidNew = The CLSID of the object that should emulate the original object. This replaces any existing emulation for
-///               <i>clsidOld</i>. This parameter can be CLSID_NULL, in which case any existing emulation for <i>clsidOld</i> is
-///               removed.
-///Returns:
-///    This function can return the standard return values E_INVALIDARG, as well as the following values. <table> <tr>
-///    <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td
-///    width="60%"> The emulation was successfully established or removed. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>REGDB_E_CLASSNOTREG</b></dt> </dl> </td> <td width="60%"> The <i>clsidOld</i> parameter is not properly
-///    registered in the registration database. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>REGDB_E_READREGDB</b></dt>
-///    </dl> </td> <td width="60%"> Error reading from registration database. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>REGDB_E_WRITEREGDB</b></dt> </dl> </td> <td width="60%"> Error writing to registration database. </td>
-///    </tr> </table>
-///    
-@DllImport("OLE32")
-HRESULT CoTreatAsClass(const(GUID)* clsidOld, const(GUID)* clsidNew);
-
-///Retrieves a pointer to a new instance of an OLE-provided implementation of a data cache.
-///Params:
-///    pUnkOuter = If the cache is to be created as part of an aggregate, pointer to the controlling IUnknown of the aggregate. If
-///                not, the parameter should be <b>NULL</b>.
-///    rclsid = CLSID used to generate icon labels. This value is typically CLSID_NULL.
-///    iid = Reference to the identifier of the interface the caller wants to use to communicate with the cache. This value is
-///          typically IID_IOleCache (defined in the OLE headers to equal the interface identifier for IOleCache).
-///    ppv = Address of pointer variable that receives the interface pointer requested in riid. Upon successful return,
-///          *<i>ppvObj</i> contains the requested interface pointer to the supplied cache object.
-///Returns:
-///    This function returns S_OK on success. Other possible values include the following. <table> <tr> <th>Return
-///    code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>E_NOINTERFACE</b></dt> </dl> </td> <td
-///    width="60%"> The interface represented by riid is not supported by the object. The parameter <i>ppvObj</i> is set
-///    to <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%">
-///    Insufficient memory for the operation. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG </b></dt> </dl>
-///    </td> <td width="60%"> One or more parameters are invalid. </td> </tr> </table>
-///    
-@DllImport("OLE32")
-HRESULT CreateDataCache(IUnknown pUnkOuter, const(GUID)* rclsid, const(GUID)* iid, void** ppv);
-
-///Locates an object by means of its moniker, activates the object if it is inactive, and retrieves a pointer to the
-///specified interface on that object.
-///Params:
-///    pmk = A pointer to the object's moniker. See IMoniker.
-///    grfOpt = This parameter is reserved for future use and must be 0.
-///    iidResult = The interface identifier to be used to communicate with the object.
-///    ppvResult = The address of pointer variable that receives the interface pointer requested in <i>iidResult</i>. Upon
-///                successful return, *<i>ppvResult</i> contains the requested interface pointer. If an error occurs,
-///                *<i>ppvResult</i> is <b>NULL</b>. If the call is successful, the caller is responsible for releasing the pointer
-///                with a call to the object's IUnknown::Release method.
-///Returns:
-///    This function can return the following error codes, or any of the error values returned by the
-///    IMoniker::BindToObject method. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%">
-///    <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The object was located and activated, if necessary, and a
-///    pointer to the requested interface was returned. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>MK_E_NOOBJECT</b></dt> </dl> </td> <td width="60%"> The object that the moniker object identified could
-///    not be found. </td> </tr> </table>
-///    
-@DllImport("OLE32")
-HRESULT BindMoniker(IMoniker pmk, uint grfOpt, const(GUID)* iidResult, void** ppvResult);
-
-///Converts a display name into a moniker that identifies the object named, and then binds to the object identified by
-///the moniker.
-///Params:
-///    pszName = The display name of the object to be created.
-///    pBindOptions = The binding options used to create a moniker that creates the actual object. For details, see BIND_OPTS. This
-///                   parameter can be <b>NULL</b>.
-///    riid = A reference to the identifier of an interface that is implemented on the object to be created.
-///    ppv = The address of a pointer to the interface specified by <i>riid</i> on the object that is created.
-///Returns:
-///    This function can return the standard return values E_FAIL, E_OUTOFMEMORY, and E_UNEXPECTED, as well as the
-///    following values. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The object was created successfully. </td> </tr> <tr> <td
-///    width="40%"> <dl> <dt><b>MK_E_SYNTAX</b></dt> </dl> </td> <td width="60%"> The <i>pszName</i> parameter is not a
-///    properly formed display name. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>MK_E_NOOBJECT</b></dt> </dl> </td>
-///    <td width="60%"> The object identified by this moniker, or some object identified by the composite moniker of
-///    which this moniker is a part, could not be found. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>MK_E_EXCEEDEDDEADLINE</b></dt> </dl> </td> <td width="60%"> The binding operation could not be completed
-///    within the time limit specified by the BIND_OPTS structure passed in <i>pBindOptions</i>. </td> </tr> <tr> <td
-///    width="40%"> <dl> <dt><b>MK_E_CONNECTMANUALLY</b></dt> </dl> </td> <td width="60%"> The binding operation
-///    requires assistance from the end user. The most common reasons for returning this value are that a password is
-///    needed or that a floppy needs to be mounted. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>MK_E_INTERMEDIATEINTERFACENOTSUPPORTED</b></dt> </dl> </td> <td width="60%"> An intermediate object was
-///    found but it did not support an interface required to complete the binding operation. For example, an item
-///    moniker returns this value if its container does not support the IOleItemContainer interface. </td> </tr>
-///    </table>
-///    
-@DllImport("OLE32")
-HRESULT CoGetObject(const(wchar)* pszName, BIND_OPTS* pBindOptions, const(GUID)* riid, void** ppv);
-
-///Converts a string into a moniker that identifies the object named by the string. This function is the inverse of the
-///IMoniker::GetDisplayName operation, which retrieves the display name associated with a moniker.
-///Params:
-///    pbc = A pointer to the IBindCtx interface on the bind context object to be used in this binding operation.
-///    szUserName = A pointer to the display name to be parsed.
-///    pchEaten = A pointer to the number of characters of <i>szUserName</i> that were consumed. If the function is successful,
-///               *<i>pchEaten</i> is the length of <i>szUserName</i>; otherwise, it is the number of characters successfully
-///               parsed.
-///    ppmk = The address of the IMoniker* pointer variable that receives the interface pointer to the moniker that was built
-///           from <i>szUserName</i>. When successful, the function has called AddRef on the moniker and the caller is
-///           responsible for calling Release. If an error occurs, the specified interface pointer will contain as much of the
-///           moniker that the method was able to create before the error occurred.
-///Returns:
-///    This function can return the standard return value E_OUTOFMEMORY, as well as the following values. <table> <tr>
-///    <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td
-///    width="60%"> The parse operation was successful and the moniker was created. </td> </tr> <tr> <td width="40%">
-///    <dl> <dt><b>MK_E_SYNTAX</b></dt> </dl> </td> <td width="60%"> Error in the syntax of a file name or an error in
-///    the syntax of the resulting composite moniker. </td> </tr> </table> This function can also return any of the
-///    error values returned by IMoniker::BindToObject, IOleItemContainer::GetObject, or
-///    IParseDisplayName::ParseDisplayName.
-///    
-@DllImport("OLE32")
-HRESULT MkParseDisplayName(IBindCtx pbc, ushort* szUserName, uint* pchEaten, IMoniker* ppmk);
-
-///Provides a moniker that, when composed onto the end of the first specified moniker (or one with a similar structure),
-///yields the second specified moniker. This function is intended for use only by IMoniker::RelativePathTo
-///implementations.
-///Params:
-///    pmkSrc = A pointer to the IMoniker interface on the moniker that, when composed with the relative moniker to be created,
-///             produces <i>pmkDest</i>. This moniker identifies the "source" of the relative moniker to be created.
-///    pmkDest = A pointer to the IMoniker interface on the moniker to be expressed relative to <i>pmkSrc</i>. This moniker
-///              identifies the destination of the relative moniker to be created.
-///    ppmkRelPath = The address of an IMoniker* pointer variable that receives the interface pointer to the new relative moniker.
-///                  When successful, the function has called AddRef on the moniker and the caller is responsible for calling Release.
-///                  If an error occurs, the interface pointer value is <b>NULL</b>.
-///    dwReserved = This parameter is reserved and must be nonzero.
-///Returns:
-///    This function can return the standard return values E_INVALIDARG, E_OUTOFMEMORY, and E_UNEXPECTED, as well as the
-///    following values. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> A meaningful relative path has been returned. </td> </tr> <tr>
-///    <td width="40%"> <dl> <dt><b>MK_S_HIM</b></dt> </dl> </td> <td width="60%"> The only form of the relative path is
-///    the other moniker. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>MK_E_NOTBINDABLE</b></dt> </dl> </td> <td
-///    width="60%"> The <i>pmkSrc</i> parameter is a relative moniker, such as an item moniker, and must be composed
-///    with the moniker of its container before a relative path can be determined. </td> </tr> </table>
-///    
-@DllImport("ole32")
-HRESULT MonikerRelativePathTo(IMoniker pmkSrc, IMoniker pmkDest, IMoniker* ppmkRelPath, BOOL dwReserved);
-
-///Creates a new moniker based on the common prefix that this moniker (the one comprising the data of this moniker
-///object) shares with another moniker. This function is intended to be called only in implementations of
-///IMoniker::CommonPrefixWith.
-///Params:
-///    pmkThis = A pointer to the IMoniker interface on one of the monikers for which a common prefix is sought; usually the
-///              moniker in which this call is used to implement IMoniker::CommonPrefixWith.
-///    pmkOther = A pointer to the IMoniker interface on the moniker to be compared with the first moniker.
-///    ppmkCommon = The address of an IMoniker* pointer variable that receives the interface pointer to the moniker based on the
-///                 common prefix of <i>pmkThis</i> and <i>pmkOther</i>. When successful, the function has called AddRef on the
-///                 moniker and the caller is responsible for calling Release. If an error occurs, the supplied interface pointer
-///                 value is <b>NULL</b>.
-///Returns:
-///    This function can return the standard return values E_OUTOFMEMORY and E_UNEXPECTED, as well as the following
-///    values. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> A common prefix exists that is neither <i>pmkThis</i> nor
-///    <i>pmkOther</i>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>MK_S_HIM</b></dt> </dl> </td> <td width="60%"> The
-///    entire <i>pmkOther</i> moniker is a prefix of the <i>pmkThis</i> moniker. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>MK_S_ME</b></dt> </dl> </td> <td width="60%"> The entire <i>pmkThis</i> moniker is a prefix of the
-///    <i>pmkOther</i> moniker. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>MK_S_US</b></dt> </dl> </td> <td
-///    width="60%"> The <i>pmkThis</i> and <i>pmkOther</i> monikers are equal. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>MK_E_NOPREFIX</b></dt> </dl> </td> <td width="60%"> The monikers have no common prefix. </td> </tr> <tr>
-///    <td width="40%"> <dl> <dt><b>MK_E_NOTBINDABLE</b></dt> </dl> </td> <td width="60%"> This function was called on a
-///    relative moniker. It is not meaningful to take the common prefix of relative monikers. </td> </tr> </table>
-///    
-@DllImport("ole32")
-HRESULT MonikerCommonPrefixWith(IMoniker pmkThis, IMoniker pmkOther, IMoniker* ppmkCommon);
-
-///Returns a pointer to an implementation of IBindCtx (a bind context object). This object stores information about a
-///particular moniker-binding operation.
-///Params:
-///    reserved = This parameter is reserved and must be 0.
-///    ppbc = Address of an IBindCtx* pointer variable that receives the interface pointer to the new bind context object. When
-///           the function is successful, the caller is responsible for calling Release on the bind context. A <b>NULL</b>
-///           value for the bind context indicates that an error occurred.
-///Returns:
-///    This function can return the standard return values E_OUTOFMEMORY and S_OK.
-///    
-@DllImport("OLE32")
-HRESULT CreateBindCtx(uint reserved, IBindCtx* ppbc);
-
-///Performs a generic composition of two monikers and supplies a pointer to the resulting composite moniker.
-///Params:
-///    pmkFirst = A pointer to the moniker to be composed to the left of the moniker that pmkRest points to. Can point to any kind
-///               of moniker, including a generic composite.
-///    pmkRest = A pointer to the moniker to be composed to the right of the moniker to which <i>pmkFirst</i> points. Can point to
-///              any kind of moniker compatible with the type of the <i>pmkRest</i> moniker, including a generic composite.
-///    ppmkComposite = The address of an IMoniker* pointer variable that receives the interface pointer to the composite moniker object
-///                    that is the result of composing <i>pmkFirst</i> and <i>pmkRest</i>. This object supports the OLE composite
-///                    moniker implementation of <b>IMoniker</b>. When successful, the function has called AddRef on the moniker and the
-///                    caller is responsible for calling Release. If either <i>pmkFirst</i> or <i>pmkRest</i> are <b>NULL</b>, the
-///                    supplied pointer is the one that is non-<b>NULL</b>. If both <i>pmkFirst</i> and <i>pmkRest</i> are <b>NULL</b>,
-///                    or if an error occurs, the returned pointer is <b>NULL</b>.
-///Returns:
-///    This function can return the standard return value E_OUTOFMEMORY, as well as the following values. <table> <tr>
-///    <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td
-///    width="60%"> The input monikers were composed successfully. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>MK_E_SYNTAX</b></dt> </dl> </td> <td width="60%"> The two monikers could not be composed due to an error
-///    in the syntax of a path (for example, if both pmkFirst and pmkRest are file monikers based on absolute paths).
-///    </td> </tr> </table>
-///    
-@DllImport("OLE32")
-HRESULT CreateGenericComposite(IMoniker pmkFirst, IMoniker pmkRest, IMoniker* ppmkComposite);
-
-///Returns the CLSID associated with the specified file name.
-///Params:
-///    szFilename = A pointer to the filename for which you are requesting the associated CLSID.
-///    pclsid = A pointer to the location where the associated CLSID is written on return.
-///Returns:
-///    This function can return any of the file system errors, as well as the following values. <table> <tr> <th>Return
-///    code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%">
-///    The CLSID was retrieved successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>MK_E_CANTOPENFILE</b></dt>
-///    </dl> </td> <td width="60%"> Unable to open the specified file name. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>MK_E_INVALIDEXTENSION</b></dt> </dl> </td> <td width="60%"> The specified extension in the registry is
-///    invalid. </td> </tr> </table>
-///    
-@DllImport("OLE32")
-HRESULT GetClassFile(ushort* szFilename, GUID* pclsid);
-
-///Creates a class moniker that refers to the specified class.
-///Params:
-///    rclsid = A reference to the CLSID of the object type to which this moniker binds.
-///    ppmk = The address of an IMoniker* pointer variable that receives the interface pointer to the new class moniker. On
-///           successful return, the function has called AddRef on the moniker and the caller is responsible for calling
-///           Release. When an error occurs, the value of the moniker pointer is <b>NULL</b>.
-///Returns:
-///    This function can return the following values. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
-///    <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The moniker has been created
-///    successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%">
-///    One or more arguments are invalid. </td> </tr> </table>
-///    
-@DllImport("OLE32")
-HRESULT CreateClassMoniker(const(GUID)* rclsid, IMoniker* ppmk);
-
-///Creates a file moniker based on the specified path.
-///Params:
-///    lpszPathName = The path on which this moniker is to be based. This parameter can specify a relative path, a UNC path, or a
-///                   drive-letter-based path. If based on a relative path, the resulting moniker must be composed onto another file
-///                   moniker before it can be bound.
-///    ppmk = The address of an IMoniker* pointer variable that receives the interface pointer to the new file moniker. When
-///           successful, the function has called AddRef on the file moniker and the caller is responsible for calling Release.
-///           When an error occurs, the value of the interface pointer is <b>NULL</b>.
-///Returns:
-///    This function can return the standard return value E_OUTOFMEMORY, as well as the following values. <table> <tr>
-///    <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td
-///    width="60%"> The moniker was created successfully. </td> </tr> <tr> <td width="40%"> <dl>
-///    <dt><b>MK_E_SYNTAX</b></dt> </dl> </td> <td width="60%"> There was an error in the syntax of the path. </td>
-///    </tr> </table>
-///    
-@DllImport("OLE32")
-HRESULT CreateFileMoniker(ushort* lpszPathName, IMoniker* ppmk);
-
-///Creates an item moniker that identifies an object within a containing object (typically a compound document).
-///Params:
-///    lpszDelim = A pointer to a wide character string (two bytes per character) zero-terminated string containing the delimiter
-///                (typically "!") used to separate this item's display name from the display name of its containing object.
-///    lpszItem = A pointer to a zero-terminated string indicating the containing object's name for the object being identified.
-///               This name can later be used to retrieve a pointer to the object in a call to IOleItemContainer::GetObject.
-///    ppmk = The address of an IMoniker* pointer variable that receives the interface pointer to the item moniker. When
-///           successful, the function has called AddRef on the item moniker and the caller is responsible for calling Release.
-///           If an error occurs, the supplied interface pointer has a <b>NULL</b> value.
-///Returns:
-///    This function can return the standard return values E_OUTOFMEMORY and S_OK.
-///    
-@DllImport("OLE32")
-HRESULT CreateItemMoniker(ushort* lpszDelim, ushort* lpszItem, IMoniker* ppmk);
-
-///Creates and returns a new anti-moniker.
-///Params:
-///    ppmk = The address of an IMoniker* pointer variable that receives the interface pointer to the new anti-moniker. When
-///           successful, the function has called AddRef on the anti-moniker and the caller is responsible for calling Release.
-///           When an error occurs, the anti-moniker pointer is <b>NULL</b>.
-///Returns:
-///    This function can return the standard return values E_OUTOFMEMORY and S_OK.
-///    
-@DllImport("OLE32")
-HRESULT CreateAntiMoniker(IMoniker* ppmk);
-
-///Creates a pointer moniker based on a pointer to an object.
-///Params:
-///    punk = A pointer to an IUnknown interface on the object to be identified by the resulting moniker.
-///    ppmk = The address of an IMoniker* pointer variable that receives the interface pointer to the new pointer moniker. When
-///           successful, the function has called AddRef on the moniker and the caller is responsible for calling Release. When
-///           an error occurs, the returned interface pointer has a <b>NULL</b> value.
-///Returns:
-///    This function can return the standard return values E_OUTOFMEMORY, E_UNEXPECTED, and S_OK.
-///    
-@DllImport("OLE32")
-HRESULT CreatePointerMoniker(IUnknown punk, IMoniker* ppmk);
-
-///Creates an OBJREF moniker based on a pointer to an object.
-///Params:
-///    punk = A pointer to the IUnknown interface on the object that the moniker is to represent.
-///    ppmk = Address of a pointer to the IMoniker interface on the OBJREF moniker that was created.
-///Returns:
-///    This function can return the standard return values E_OUTOFMEMORY, E_UNEXPECTED, and S_OK.
-///    
-@DllImport("OLE32")
-HRESULT CreateObjrefMoniker(IUnknown punk, IMoniker* ppmk);
-
-///Returns a pointer to the IRunningObjectTable interface on the local running object table (ROT).
-///Params:
-///    reserved = This parameter is reserved and must be 0.
-///    pprot = The address of an IRunningObjectTable* pointer variable that receives the interface pointer to the local ROT.
-///            When the function is successful, the caller is responsible for calling Release on the interface pointer. If an
-///            error occurs, *<i>pprot</i> is undefined.
-///Returns:
-///    This function can return the standard return values E_UNEXPECTED and S_OK.
-///    
-@DllImport("OLE32")
-HRESULT GetRunningObjectTable(uint reserved, IRunningObjectTable* pprot);
-
 
 // Interfaces
+
+///Receives Acessibility Window Docking events.
+@GUID("157733FD-A592-42E5-B594-248468C5A81B")
+interface IAccessibilityDockingServiceCallback : IUnknown
+{
+    ///Undocks the accessibility window so that it will not be automatically moved to its previous location.
+    ///Params:
+    ///    undockReason = Specifies the reason why the accessibility application's window was undocked.
+    ///Returns:
+    ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
+    ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
+    ///    
+    HRESULT Undocked(UNDOCK_REASON undockReason);
+}
+
+///Docks an application window to the bottom of a monitor when a Windows Store app is visible and not snapped, or when
+///the launcher is visible.
+@GUID("8849DC22-CEDF-4C95-998D-051419DD3F76")
+interface IAccessibilityDockingService : IUnknown
+{
+    ///Retrieves the dimensions available on a specific screen for displaying an accessibility window.
+    ///Params:
+    ///    hMonitor = Type: <b>HMONITOR</b> The handle of the monitor whose available docking size is to be retrieved. For
+    ///               information on how to retrieve an <b>HMONITOR</b>, see MonitorFromWindow.
+    ///    pcxFixed = Type: <b>UINT*</b> When this method returns successfully, this parameter receives the fixed width, in
+    ///               physical pixels, available for docking on the specified monitor. Any window docked to this monitor will be
+    ///               sized to this width. If the method fails, this value is set to 0. If this value is <b>NULL</b>, an access
+    ///               violation will occur.
+    ///    pcyMax = Type: <b>UINT*</b> When this method returns successfully, this parameter receives the maximum height, in
+    ///             physical pixels, available for a docked window on the specified monitor. If the method fails, this value is
+    ///             set to 0. If this value is <b>NULL</b>, an access violation will occur.
+    ///Returns:
+    ///    Type: <b>HRESULT</b> Returns a standard return value, including the following: <table> <tr> <th>Return
+    ///    code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td
+    ///    width="60%"> The method succeeded. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>HRESULT_FROM_WIN32(ERROR_INVALID_MONITOR_HANDLE)</b></dt> </dl> </td> <td width="60%"> The monitor
+    ///    specified by <i>hMonitor</i> does not support docking. </td> </tr> </table>
+    ///    
+    HRESULT GetAvailableSize(HMONITOR hMonitor, uint* pcxFixed, uint* pcyMax);
+    ///Docks the specified window handle to the specified monitor handle.
+    ///Params:
+    ///    hwnd = The accessibility application window that will be docked on the passed monitor handle.
+    ///    hMonitor = The monitor on which the accessibility application window will be docked.
+    ///    cyRequested = TBD
+    ///    pCallback = The callback pointer on which the accessibility application will receive the Undock notification.
+    ///Returns:
+    ///    This method can return one of these values. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> Success. </td> </tr> <tr> <td
+    ///    width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The window handle or monitor
+    ///    handle is not valid. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_ACCESSDENIED</b></dt> </dl> </td> <td
+    ///    width="60%"> The calling process is not a UIAcess accessibility application or the calling process does not
+    ///    own the window. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>IMM_E_DOCKOCCUPIED</b></dt> </dl> </td> <td
+    ///    width="60%"> There is already another window occupying the docking space. Only one window can be docked at a
+    ///    time. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>IMM_E_INSUFFICIENTHEIGHT</b></dt> </dl> </td> <td
+    ///    width="60%"> The requested <i>uHeight</i> is larger than the maximum allowed docking height for the specified
+    ///    monitor. However, if this error code is being returned, it means that this monitor does support docking,
+    ///    though at a height indicated by a call to the GetAvailableSize method. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>HRESULT_FROM_WIN32(ERROR_INVALID_MONITOR_HANDLE)</b></dt> </dl> </td> <td width="60%"> The monitor
+    ///    specified by the monitor handle does not support docking. </td> </tr> </table>
+    ///    
+    HRESULT DockWindow(HWND hwnd, HMONITOR hMonitor, uint cyRequested, 
+                       IAccessibilityDockingServiceCallback pCallback);
+    ///Undocks the specified window handle if it is currently docked.
+    ///Params:
+    ///    hwnd = TBD
+    ///    hWnd = Specifies the window that will be undocked.
+    ///Returns:
+    ///    This method can return one of these values. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
+    ///    <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> Success. </td> </tr> <tr> <td
+    ///    width="40%"> <dl> <dt><b>E_ACCESSDENIED</b></dt> </dl> </td> <td width="60%"> The window does not belong to
+    ///    the calling process. </td> </tr> <tr> <td width="40%"> <dl>
+    ///    <dt><b>HRESULT_FROM_WIN32(ERROR_INVALID_WINDOW_HANDLE)</b></dt> </dl> </td> <td width="60%"> The window is
+    ///    not docked. </td> </tr> </table>
+    ///    
+    HRESULT UndockWindow(HWND hwnd);
+}
 
 ///Enables clients to get pointers to other interfaces on a given object through the QueryInterface method, and manage
 ///the existence of the object through the AddRef and Release methods. All other COM interfaces are inherited, directly
@@ -10220,14 +10299,14 @@ interface IMultiQI : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>E_NOINTERFACE</b></dt> </dl> </td> <td width="60%"> The method retrieved
     ///    pointers to none of the requested interfaces. </td> </tr> </table>
     ///    
-    HRESULT QueryMultipleInterfaces(uint cMQIs, char* pMQIs);
+    HRESULT QueryMultipleInterfaces(uint cMQIs, MULTI_QI* pMQIs);
 }
 
 @GUID("000E0020-0000-0000-C000-000000000046")
 interface AsyncIMultiQI : IUnknown
 {
-    HRESULT Begin_QueryMultipleInterfaces(uint cMQIs, char* pMQIs);
-    HRESULT Finish_QueryMultipleInterfaces(char* pMQIs);
+    HRESULT Begin_QueryMultipleInterfaces(uint cMQIs, MULTI_QI* pMQIs);
+    HRESULT Finish_QueryMultipleInterfaces(MULTI_QI* pMQIs);
 }
 
 ///Used exclusively in lightweight client-side handlers that require access to some of the internal interfaces on the
@@ -10264,7 +10343,7 @@ interface IEnumUnknown : IUnknown
     ///Returns:
     ///    If the method retrieves the number of items requested, the return value is S_OK. Otherwise, it is S_FALSE.
     ///    
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, IUnknown* rgelt, uint* pceltFetched);
     ///Skips over the specified number of items in the enumeration sequence.
     ///Params:
     ///    celt = The number of items to be skipped.
@@ -10305,7 +10384,7 @@ interface IEnumString : IUnknown
     ///Returns:
     ///    If the method retrieves the number of items requested, the return value is S_OK. Otherwise, it is S_FALSE.
     ///    
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, PWSTR* rgelt, uint* pceltFetched);
     ///Skips over the specified number of items in the enumeration sequence.
     ///Params:
     ///    celt = The number of items to be skipped.
@@ -10621,7 +10700,7 @@ interface IClientSecurity : IUnknown
     ///    successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td
     ///    width="60%"> One or more arguments are not valid. </td> </tr> </table>
     ///    
-    HRESULT SetBlanket(IUnknown pProxy, uint dwAuthnSvc, uint dwAuthzSvc, ushort* pServerPrincName, 
+    HRESULT SetBlanket(IUnknown pProxy, uint dwAuthnSvc, uint dwAuthzSvc, PWSTR pServerPrincName, 
                        uint dwAuthnLevel, uint dwImpLevel, void* pAuthInfo, uint dwCapabilities);
     ///Makes a private copy of the proxy for the specified interface.
     ///Params:
@@ -11018,7 +11097,7 @@ interface IPipeByte : IUnknown
     ///Returns:
     ///    This method returns S_OK to indicate that the data was retrieved successfully.
     ///    
-    HRESULT Pull(char* buf, uint cRequest, uint* pcReturned);
+    HRESULT Pull(ubyte* buf, uint cRequest, uint* pcReturned);
     ///Sends data of the byte type to the pipe source.
     ///Params:
     ///    buf = A pointer to the memory buffer that holds the data to be sent.
@@ -11026,7 +11105,7 @@ interface IPipeByte : IUnknown
     ///Returns:
     ///    This method returns S_OK to indicate that the data was sent successfully.
     ///    
-    HRESULT Push(char* buf, uint cSent);
+    HRESULT Push(ubyte* buf, uint cSent);
 }
 
 @GUID("DB2F3ACB-2F86-11D1-8E04-00C04FB9989A")
@@ -11034,7 +11113,7 @@ interface AsyncIPipeByte : IUnknown
 {
     HRESULT Begin_Pull(uint cRequest);
     HRESULT Finish_Pull(ubyte* buf, uint* pcReturned);
-    HRESULT Begin_Push(char* buf, uint cSent);
+    HRESULT Begin_Push(ubyte* buf, uint cSent);
     HRESULT Finish_Push();
 }
 
@@ -11051,7 +11130,7 @@ interface IPipeLong : IUnknown
     ///Returns:
     ///    This method returns S_OK to indicate that the data was retrieved successfully.
     ///    
-    HRESULT Pull(char* buf, uint cRequest, uint* pcReturned);
+    HRESULT Pull(int* buf, uint cRequest, uint* pcReturned);
     ///Sends data of the long integer type to the pipe source.
     ///Params:
     ///    buf = A pointer to the memory buffer that holds the data to be sent.
@@ -11059,7 +11138,7 @@ interface IPipeLong : IUnknown
     ///Returns:
     ///    This method returns S_OK to indicate that the data was sent successfully.
     ///    
-    HRESULT Push(char* buf, uint cSent);
+    HRESULT Push(int* buf, uint cSent);
 }
 
 @GUID("DB2F3ACD-2F86-11D1-8E04-00C04FB9989A")
@@ -11067,7 +11146,7 @@ interface AsyncIPipeLong : IUnknown
 {
     HRESULT Begin_Pull(uint cRequest);
     HRESULT Finish_Pull(int* buf, uint* pcReturned);
-    HRESULT Begin_Push(char* buf, uint cSent);
+    HRESULT Begin_Push(int* buf, uint cSent);
     HRESULT Finish_Push();
 }
 
@@ -11084,7 +11163,7 @@ interface IPipeDouble : IUnknown
     ///Returns:
     ///    This method returns S_OK to indicate that the data was retrieved successfully.
     ///    
-    HRESULT Pull(char* buf, uint cRequest, uint* pcReturned);
+    HRESULT Pull(double* buf, uint cRequest, uint* pcReturned);
     ///Sends data of the double integer type to the pipe source.
     ///Params:
     ///    buf = A pointer to the memory buffer that holds the data to be sent.
@@ -11092,7 +11171,7 @@ interface IPipeDouble : IUnknown
     ///Returns:
     ///    This method returns S_OK to indicate that the data was sent successfully.
     ///    
-    HRESULT Push(char* buf, uint cSent);
+    HRESULT Push(double* buf, uint cSent);
 }
 
 @GUID("DB2F3ACF-2F86-11D1-8E04-00C04FB9989A")
@@ -11100,7 +11179,7 @@ interface AsyncIPipeDouble : IUnknown
 {
     HRESULT Begin_Pull(uint cRequest);
     HRESULT Finish_Pull(double* buf, uint* pcReturned);
-    HRESULT Begin_Push(char* buf, uint cSent);
+    HRESULT Begin_Push(double* buf, uint cSent);
     HRESULT Finish_Push();
 }
 
@@ -11348,7 +11427,7 @@ interface IBindCtx : IUnknown
     ///Returns:
     ///    This method can return the standard return values E_OUTOFMEMORY and S_OK.
     ///    
-    HRESULT RegisterObjectParam(ushort* pszKey, IUnknown punk);
+    HRESULT RegisterObjectParam(PWSTR pszKey, IUnknown punk);
     ///Retrieves an interface pointer to the object associated with the specified key in the bind context's string-keyed
     ///table of pointers.
     ///Params:
@@ -11359,7 +11438,7 @@ interface IBindCtx : IUnknown
     ///Returns:
     ///    If the method succeeds, the return value is S_OK. Otherwise, it is E_FAIL.
     ///    
-    HRESULT GetObjectParam(ushort* pszKey, IUnknown* ppunk);
+    HRESULT GetObjectParam(PWSTR pszKey, IUnknown* ppunk);
     ///Retrieves a pointer to an interface that can be used to enumerate the keys of the bind context's string-keyed
     ///table of pointers.
     ///Params:
@@ -11380,7 +11459,7 @@ interface IBindCtx : IUnknown
     ///    successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>S_FALSE</b></dt> </dl> </td> <td width="60%"> The
     ///    object was not previously registered. </td> </tr> </table>
     ///    
-    HRESULT RevokeObjectParam(ushort* pszKey);
+    HRESULT RevokeObjectParam(PWSTR pszKey);
 }
 
 ///Enumerates the components of a moniker or the monikers in a table of monikers.
@@ -11399,7 +11478,7 @@ interface IEnumMoniker : IUnknown
     ///Returns:
     ///    If the method retrieves the number of items requested, the return value is S_OK. Otherwise, it is S_FALSE.
     ///    
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, IMoniker* rgelt, uint* pceltFetched);
     ///Skips over the specified number of items in the enumeration sequence.
     ///Params:
     ///    celt = The number of items to be skipped.
@@ -11909,7 +11988,7 @@ interface IMoniker : IPersistStream
     ///    width="40%"> <dl> <dt><b>E_NOTIMPL</b></dt> </dl> </td> <td width="60%"> There is no display name. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetDisplayName(IBindCtx pbc, IMoniker pmkToLeft, ushort** ppszDisplayName);
+    HRESULT GetDisplayName(IBindCtx pbc, IMoniker pmkToLeft, PWSTR* ppszDisplayName);
     ///Converts a display name into a moniker.
     ///Params:
     ///    pbc = A pointer to the IBindCtx interface on the bind context to be used in this binding operation. The bind
@@ -11935,7 +12014,7 @@ interface IMoniker : IPersistStream
     ///    <i>pmkToLeft</i> is <b>NULL</b>. </td> </tr> </table> This method can also return the errors associated with
     ///    the IMoniker::BindToObject method.
     ///    
-    HRESULT ParseDisplayName(IBindCtx pbc, IMoniker pmkToLeft, ushort* pszDisplayName, uint* pchEaten, 
+    HRESULT ParseDisplayName(IBindCtx pbc, IMoniker pmkToLeft, PWSTR pszDisplayName, uint* pchEaten, 
                              IMoniker* ppmkOut);
     ///Determines whether this moniker is one of the system-provided moniker classes.
     ///Params:
@@ -11959,7 +12038,7 @@ interface IROTData : IUnknown
     ///Returns:
     ///    This method can return the standard return values E_OUTOFMEMORY and S_OK.
     ///    
-    HRESULT GetComparisonData(char* pbData, uint cbMax, uint* pcbData);
+    HRESULT GetComparisonData(ubyte* pbData, uint cbMax, uint* pcbData);
 }
 
 ///Enables an object to be loaded from or saved to a disk file, rather than a storage object or stream. Because the
@@ -11988,7 +12067,7 @@ interface IPersistFile : IPersist
     ///    <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> The object could not be loaded for some reason other than
     ///    a lack of memory. </td> </tr> </table>
     ///    
-    HRESULT Load(ushort* pszFileName, uint dwMode);
+    HRESULT Load(const(PWSTR) pszFileName, uint dwMode);
     ///Saves a copy of the object to the specified file.
     ///Params:
     ///    pszFileName = The absolute path of the file to which the object should be saved. If <i>pszFileName</i> is <b>NULL</b>, the
@@ -12002,7 +12081,7 @@ interface IPersistFile : IPersist
     ///    If the object was successfully saved, the return value is S_OK. Otherwise, it is S_FALSE. This method can
     ///    also return various storage errors.
     ///    
-    HRESULT Save(ushort* pszFileName, BOOL fRemember);
+    HRESULT Save(const(PWSTR) pszFileName, BOOL fRemember);
     ///Notifies the object that it can write to its file. It does this by notifying the object that it can revert from
     ///NoScribble mode (in which it must not write to its file), to Normal mode (in which it can). The component enters
     ///NoScribble mode when it receives an IPersistFile::Save call.
@@ -12011,7 +12090,7 @@ interface IPersistFile : IPersist
     ///Returns:
     ///    This method always returns S_OK.
     ///    
-    HRESULT SaveCompleted(ushort* pszFileName);
+    HRESULT SaveCompleted(const(PWSTR) pszFileName);
     ///Retrieves the current name of the file associated with the object. If there is no current working file, this
     ///method retrieves the default save prompt for the object.
     ///Params:
@@ -12026,7 +12105,7 @@ interface IPersistFile : IPersist
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> The operation
     ///    failed due to some reason other than insufficient memory. </td> </tr> </table>
     ///    
-    HRESULT GetCurFile(ushort** ppszFileName);
+    HRESULT GetCurFile(PWSTR* ppszFileName);
 }
 
 ///Enables a container application to pass a storage object to one of its contained objects and to load and save the
@@ -12133,7 +12212,7 @@ interface IEnumFORMATETC : IUnknown
     ///Returns:
     ///    If the method retrieves the number of items requested, the return value is S_OK. Otherwise, it is S_FALSE.
     ///    
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, FORMATETC* rgelt, uint* pceltFetched);
     ///Skips over the specified number of items in the enumeration sequence.
     ///Params:
     ///    celt = The number of items to be skipped.
@@ -12179,7 +12258,7 @@ interface IEnumSTATDATA : IUnknown
     ///Returns:
     ///    If the method retrieves the number of items requested, the return value is S_OK. Otherwise, it is S_FALSE.
     ///    
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, STATDATA* rgelt, uint* pceltFetched);
     ///Skips over the specified number of items in the enumeration sequence.
     ///Params:
     ///    celt = The number of items to be skipped.
@@ -12633,8 +12712,7 @@ interface IMessageFilter : IUnknown
     ///    this time. An application might return this value when it is in a user-controlled modal state. </td> </tr>
     ///    </table>
     ///    
-    uint HandleInComingCall(uint dwCallType, ptrdiff_t htaskCaller, uint dwTickCount, 
-                            INTERFACEINFO* lpInterfaceInfo);
+    uint HandleInComingCall(uint dwCallType, HTASK htaskCaller, uint dwTickCount, INTERFACEINFO* lpInterfaceInfo);
     ///Provides applications with an opportunity to display a dialog box offering retry, cancel, or task-switching
     ///options.
     ///Params:
@@ -12649,7 +12727,7 @@ interface IMessageFilter : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt>100 ≤ <i>value</i> </dt> </dl> </td> <td width="60%"> COM will wait for this
     ///    many milliseconds and then retry the call. </td> </tr> </table>
     ///    
-    uint RetryRejectedCall(ptrdiff_t htaskCallee, uint dwTickCount, uint dwRejectType);
+    uint RetryRejectedCall(HTASK htaskCallee, uint dwTickCount, uint dwRejectType);
     ///Indicates that a message has arrived while COM is waiting to respond to a remote call. Handling input while
     ///waiting for an outgoing call to finish can introduce complications. The application should determine whether to
     ///process the message without interrupting the call, to continue waiting, or to cancel the operation.
@@ -12671,7 +12749,7 @@ interface IMessageFilter : IUnknown
     ///    deadlock, and in these cases, mouse and keyboard messages are discarded. WM_PAINT messages are dispatched.
     ///    Task-switching and activation messages are handled as before. </td> </tr> </table>
     ///    
-    uint MessagePending(ptrdiff_t htaskCallee, uint dwTickCount, uint dwPendingType);
+    uint MessagePending(HTASK htaskCallee, uint dwTickCount, uint dwPendingType);
 }
 
 ///Specifies a method that retrieves a class object.
@@ -12756,18 +12834,18 @@ interface ITimeAndNoticeControl : IUnknown
 @GUID("8D19C834-8879-11D1-83E9-00C04FC2C6D4")
 interface IOplockStorage : IUnknown
 {
-    HRESULT CreateStorageEx(const(wchar)* pwcsName, uint grfMode, uint stgfmt, uint grfAttrs, const(GUID)* riid, 
+    HRESULT CreateStorageEx(const(PWSTR) pwcsName, uint grfMode, uint stgfmt, uint grfAttrs, const(GUID)* riid, 
                             void** ppstgOpen);
-    HRESULT OpenStorageEx(const(wchar)* pwcsName, uint grfMode, uint stgfmt, uint grfAttrs, const(GUID)* riid, 
+    HRESULT OpenStorageEx(const(PWSTR) pwcsName, uint grfMode, uint stgfmt, uint grfAttrs, const(GUID)* riid, 
                           void** ppstgOpen);
 }
 
 @GUID("00000026-0000-0000-C000-000000000046")
 interface IUrlMon : IUnknown
 {
-    HRESULT AsyncGetClassBits(const(GUID)* rclsid, const(wchar)* pszTYPE, const(wchar)* pszExt, 
-                              uint dwFileVersionMS, uint dwFileVersionLS, const(wchar)* pszCodeBase, IBindCtx pbc, 
-                              uint dwClassContext, const(GUID)* riid, uint flags);
+    HRESULT AsyncGetClassBits(const(GUID)* rclsid, const(PWSTR) pszTYPE, const(PWSTR) pszExt, uint dwFileVersionMS, 
+                              uint dwFileVersionLS, const(PWSTR) pszCodeBase, IBindCtx pbc, uint dwClassContext, 
+                              const(GUID)* riid, uint flags);
 }
 
 ///Transfers the foreground window to the process hosting the COM server.
@@ -12831,7 +12909,7 @@ interface ISurrogateService : IUnknown
     ///Returns:
     ///    If the method succeeds, the return value is S_OK. Otherwise, it is E_UNEXPECTED.
     ///    
-    HRESULT Init(const(GUID)* rguidProcessID, IProcessLock pProcessLock, int* pfApplicationAware);
+    HRESULT Init(const(GUID)* rguidProcessID, IProcessLock pProcessLock, BOOL* pfApplicationAware);
     ///Launches the application.
     ///Params:
     ///    rguidApplID = The application identifier.
@@ -13207,7 +13285,7 @@ interface IParseDisplayName : IUnknown
     ///    this namespace. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td
     ///    width="60%"> One or more parameters are not valid. </td> </tr> </table>
     ///    
-    HRESULT ParseDisplayName(IBindCtx pbc, ushort* pszDisplayName, uint* pchEaten, IMoniker* ppmkOut);
+    HRESULT ParseDisplayName(IBindCtx pbc, PWSTR pszDisplayName, uint* pchEaten, IMoniker* ppmkOut);
 }
 
 ///Enumerates objects in a compound document or lock a container in the running state. Container and object applications
@@ -13351,7 +13429,7 @@ interface IOleObject : IUnknown
     ///Returns:
     ///    This method returns S_OK on success.
     ///    
-    HRESULT SetHostNames(ushort* szContainerApp, ushort* szContainerObj);
+    HRESULT SetHostNames(const(PWSTR) szContainerApp, const(PWSTR) szContainerObj);
     ///Changes an embedded object from the running to the loaded state. Disconnects a linked object from its link
     ///source.
     ///Params:
@@ -13537,7 +13615,7 @@ interface IOleObject : IUnknown
     ///    </td> <td width="60%"> Delegate to the default handler's implementation using the registry to provide the
     ///    requested information. </td> </tr> </table>
     ///    
-    HRESULT GetUserType(uint dwFormOfType, ushort** pszUserType);
+    HRESULT GetUserType(uint dwFormOfType, PWSTR* pszUserType);
     ///Informs an object of how much display space its container has assigned it.
     ///Params:
     ///    dwDrawAspect = DWORD that describes which form, or "aspect," of an object is to be displayed. The object's container obtains
@@ -13725,7 +13803,7 @@ interface IOleLink : IUnknown
     ///Returns:
     ///    This method returns S_OK on success. Values from MkParseDisplayName may also be returned here.
     ///    
-    HRESULT SetSourceDisplayName(ushort* pszStatusText);
+    HRESULT SetSourceDisplayName(const(PWSTR) pszStatusText);
     ///Retrieves the display name of the link source of the linked object.
     ///Params:
     ///    ppszDisplayName = Address of a pointer variable that receives a pointer to the display name of the link source. If an error
@@ -13739,7 +13817,7 @@ interface IOleLink : IUnknown
     ///    these functions; therefore, this method may return errors generated by CreateBindCtx and
     ///    IMoniker::GetDisplayName.
     ///    
-    HRESULT GetSourceDisplayName(ushort** ppszDisplayName);
+    HRESULT GetSourceDisplayName(PWSTR* ppszDisplayName);
     ///Activates the connection to the link source by binding the moniker stored within the linked object.
     ///Params:
     ///    bindflags = Specifies how to proceed if the link source has a different CLSID from the last time it was bound. If this
@@ -13815,7 +13893,7 @@ interface IOleLink : IUnknown
 @GUID("0000011C-0000-0000-C000-000000000046")
 interface IOleItemContainer : IOleContainer
 {
-    HRESULT GetObjectA(ushort* pszItem, uint dwSpeedNeeded, IBindCtx pbc, const(GUID)* riid, void** ppvObject);
+    HRESULT GetObjectA(PWSTR pszItem, uint dwSpeedNeeded, IBindCtx pbc, const(GUID)* riid, void** ppvObject);
     ///Retrieves a pointer to the storage for the specified object.
     ///Params:
     ///    pszItem = The compound document's name for the object whose storage is requested.
@@ -13838,7 +13916,7 @@ interface IOleItemContainer : IOleContainer
     ///    <dt><b>E_NOINTERFACE</b></dt> </dl> </td> <td width="60%"> The requested interface is not available. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetObjectStorage(ushort* pszItem, IBindCtx pbc, const(GUID)* riid, void** ppvStorage);
+    HRESULT GetObjectStorage(PWSTR pszItem, IBindCtx pbc, const(GUID)* riid, void** ppvStorage);
     ///Determines whether the specified object is running.
     ///Params:
     ///    pszItem = The container's name for the object.
@@ -13849,7 +13927,7 @@ interface IOleItemContainer : IOleContainer
     ///    running. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>MK_E_NOOBJECT</b></dt> </dl> </td> <td width="60%">
     ///    The parameter does not identify an object in this container. </td> </tr> </table>
     ///    
-    HRESULT IsRunning(ushort* pszItem);
+    HRESULT IsRunning(PWSTR pszItem);
 }
 
 ///Implemented by container applications and used by object applications to negotiate border space on the document or
@@ -13909,7 +13987,7 @@ interface IOleInPlaceUIWindow : IOleWindow
     ///    <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>E_UNEXPECTED</b></dt> </dl>
     ///    </td> <td width="60%"> An unexpected error has occurred. </td> </tr> </table>
     ///    
-    HRESULT SetActiveObject(IOleInPlaceActiveObject pActiveObject, ushort* pszObjName);
+    HRESULT SetActiveObject(IOleInPlaceActiveObject pActiveObject, const(PWSTR) pszObjName);
 }
 
 ///Provides a direct channel of communication between an in-place object and the associated application's outer-most
@@ -14022,7 +14100,7 @@ interface IOleInPlaceFrame : IOleInPlaceUIWindow
     ///    pointer is invalid. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td
     ///    width="60%"> An unexpected error occurred. </td> </tr> </table>
     ///    
-    HRESULT SetStatusText(ushort* pszStatusText);
+    HRESULT SetStatusText(const(PWSTR) pszStatusText);
     ///Enables or disables a frame's modeless dialog boxes.
     ///Params:
     ///    fEnable = Specifies whether the modeless dialog box windows are to be enabled (<b>TRUE</b>) or disabled (<b>FALSE</b>).
@@ -14569,12 +14647,12 @@ interface IEnterpriseDropTarget : IUnknown
     ///Provides the drop target with the enterprise ID of the drop source.
     ///Params:
     ///    identity = The enterprise identity of the drop source.
-    HRESULT SetDropSourceEnterpriseId(const(wchar)* identity);
+    HRESULT SetDropSourceEnterpriseId(const(PWSTR) identity);
     ///Indicates whether the drop target is intends to handle the evaluation of the enterprise protection policy.
     ///Params:
     ///    value = A boolean value that indicates whether the drop target intends to handle the evaluation of enterprise
     ///            protection policy.
-    HRESULT IsEvaluatingEdpPolicy(int* value);
+    HRESULT IsEvaluatingEdpPolicy(BOOL* value);
 }
 
 ///Enumerates the different verbs available for an object in order of ascending verb number. An enumerator that
@@ -14594,7 +14672,7 @@ interface IEnumOLEVERB : IUnknown
     ///Returns:
     ///    If the method retrieves the number of items requested, the return value is S_OK. Otherwise, it is S_FALSE.
     ///    
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, OLEVERB* rgelt, uint* pceltFetched);
     ///Skips over the specified number of items in the enumeration sequence.
     ///Params:
     ///    celt = The number of items to be skipped.
@@ -14638,13 +14716,13 @@ interface IPersistMoniker : IUnknown
 @GUID("A5CA5F7F-1847-4D87-9C5B-918509F7511D")
 interface IMonikerProp : IUnknown
 {
-    HRESULT PutProperty(MONIKERPROPERTY mkp, const(wchar)* val);
+    HRESULT PutProperty(MONIKERPROPERTY mkp, const(PWSTR) val);
 }
 
 @GUID("79EAC9CD-BAF9-11CE-8C82-00AA004BA90B")
 interface IBindProtocol : IUnknown
 {
-    HRESULT CreateBinding(const(wchar)* szUrl, IBindCtx pbc, IBinding* ppb);
+    HRESULT CreateBinding(const(PWSTR) szUrl, IBindCtx pbc, IBinding* ppb);
 }
 
 @GUID("79EAC9C0-BAF9-11CE-8C82-00AA004BA90B")
@@ -14655,7 +14733,7 @@ interface IBinding : IUnknown
     HRESULT Resume();
     HRESULT SetPriority(int nPriority);
     HRESULT GetPriority(int* pnPriority);
-    HRESULT GetBindResult(GUID* pclsidProtocol, uint* pdwResult, ushort** pszResult, uint* pdwReserved);
+    HRESULT GetBindResult(GUID* pclsidProtocol, uint* pdwResult, PWSTR* pszResult, uint* pdwReserved);
 }
 
 @GUID("79EAC9C1-BAF9-11CE-8C82-00AA004BA90B")
@@ -14664,8 +14742,8 @@ interface IBindStatusCallback : IUnknown
     HRESULT OnStartBinding(uint dwReserved, IBinding pib);
     HRESULT GetPriority(int* pnPriority);
     HRESULT OnLowResource(uint reserved);
-    HRESULT OnProgress(uint ulProgress, uint ulProgressMax, uint ulStatusCode, const(wchar)* szStatusText);
-    HRESULT OnStopBinding(HRESULT hresult, const(wchar)* szError);
+    HRESULT OnProgress(uint ulProgress, uint ulProgressMax, uint ulStatusCode, const(PWSTR) szStatusText);
+    HRESULT OnStopBinding(HRESULT hresult, const(PWSTR) szError);
     HRESULT GetBindInfo(uint* grfBINDF, BINDINFO* pbindinfo);
     HRESULT OnDataAvailable(uint grfBSCF, uint dwSize, FORMATETC* pformatetc, STGMEDIUM* pstgmed);
     HRESULT OnObjectAvailable(const(GUID)* riid, IUnknown punk);
@@ -14680,34 +14758,34 @@ interface IBindStatusCallbackEx : IBindStatusCallback
 @GUID("79EAC9D0-BAF9-11CE-8C82-00AA004BA90B")
 interface IAuthenticate : IUnknown
 {
-    HRESULT Authenticate(HWND* phwnd, ushort** pszUsername, ushort** pszPassword);
+    HRESULT Authenticate(HWND* phwnd, PWSTR* pszUsername, PWSTR* pszPassword);
 }
 
 @GUID("2AD1EDAF-D83D-48B5-9ADF-03DBE19F53BD")
 interface IAuthenticateEx : IAuthenticate
 {
-    HRESULT AuthenticateEx(HWND* phwnd, ushort** pszUsername, ushort** pszPassword, AUTHENTICATEINFO* pauthinfo);
+    HRESULT AuthenticateEx(HWND* phwnd, PWSTR* pszUsername, PWSTR* pszPassword, AUTHENTICATEINFO* pauthinfo);
 }
 
 @GUID("79EAC9D2-BAF9-11CE-8C82-00AA004BA90B")
 interface IHttpNegotiate : IUnknown
 {
-    HRESULT BeginningTransaction(const(wchar)* szURL, const(wchar)* szHeaders, uint dwReserved, 
-                                 ushort** pszAdditionalHeaders);
-    HRESULT OnResponse(uint dwResponseCode, const(wchar)* szResponseHeaders, const(wchar)* szRequestHeaders, 
-                       ushort** pszAdditionalRequestHeaders);
+    HRESULT BeginningTransaction(const(PWSTR) szURL, const(PWSTR) szHeaders, uint dwReserved, 
+                                 PWSTR* pszAdditionalHeaders);
+    HRESULT OnResponse(uint dwResponseCode, const(PWSTR) szResponseHeaders, const(PWSTR) szRequestHeaders, 
+                       PWSTR* pszAdditionalRequestHeaders);
 }
 
 @GUID("4F9F9FCB-E0F4-48EB-B7AB-FA2EA9365CB4")
 interface IHttpNegotiate2 : IHttpNegotiate
 {
-    HRESULT GetRootSecurityId(char* pbSecurityId, uint* pcbSecurityId, size_t dwReserved);
+    HRESULT GetRootSecurityId(ubyte* pbSecurityId, uint* pcbSecurityId, size_t dwReserved);
 }
 
 @GUID("57B6C80A-34C2-4602-BC26-66A02FC57153")
 interface IHttpNegotiate3 : IHttpNegotiate2
 {
-    HRESULT GetSerializedClientCertContext(char* ppbCert, uint* pcbCert);
+    HRESULT GetSerializedClientCertContext(ubyte** ppbCert, uint* pcbCert);
 }
 
 @GUID("F134C4B7-B1F8-4E75-B886-74B90943BECB")
@@ -14726,7 +14804,7 @@ interface IWindowForBindingUI : IUnknown
 @GUID("79EAC9D1-BAF9-11CE-8C82-00AA004BA90B")
 interface ICodeInstall : IWindowForBindingUI
 {
-    HRESULT OnCodeInstallProblem(uint ulStatusCode, const(wchar)* szDestination, const(wchar)* szSource, 
+    HRESULT OnCodeInstallProblem(uint ulStatusCode, const(PWSTR) szDestination, const(PWSTR) szSource, 
                                  uint dwReserved);
 }
 
@@ -14736,7 +14814,7 @@ interface IUri : IUnknown
     HRESULT GetPropertyBSTR(Uri_PROPERTY uriProp, BSTR* pbstrProperty, uint dwFlags);
     HRESULT GetPropertyLength(Uri_PROPERTY uriProp, uint* pcchProperty, uint dwFlags);
     HRESULT GetPropertyDWORD(Uri_PROPERTY uriProp, uint* pdwProperty, uint dwFlags);
-    HRESULT HasProperty(Uri_PROPERTY uriProp, int* pfHasProperty);
+    HRESULT HasProperty(Uri_PROPERTY uriProp, BOOL* pfHasProperty);
     HRESULT GetAbsoluteUri(BSTR* pbstrAbsoluteUri);
     HRESULT GetAuthority(BSTR* pbstrAuthority);
     HRESULT GetDisplayUri(BSTR* pbstrDisplayString);
@@ -14757,7 +14835,7 @@ interface IUri : IUnknown
     HRESULT GetScheme(uint* pdwScheme);
     HRESULT GetZone(uint* pdwZone);
     HRESULT GetProperties(uint* pdwFlags);
-    HRESULT IsEqual(IUri pUri, int* pfEqual);
+    HRESULT IsEqual(IUri pUri, BOOL* pfEqual);
 }
 
 @GUID("A158A630-ED6F-45FB-B987-F68676F57752")
@@ -14775,24 +14853,24 @@ interface IUriBuilder : IUnknown
                                size_t dwReserved, IUri* ppIUri);
     HRESULT GetIUri(IUri* ppIUri);
     HRESULT SetIUri(IUri pIUri);
-    HRESULT GetFragment(uint* pcchFragment, ushort** ppwzFragment);
-    HRESULT GetHost(uint* pcchHost, ushort** ppwzHost);
-    HRESULT GetPassword(uint* pcchPassword, ushort** ppwzPassword);
-    HRESULT GetPath(uint* pcchPath, ushort** ppwzPath);
-    HRESULT GetPort(int* pfHasPort, uint* pdwPort);
-    HRESULT GetQuery(uint* pcchQuery, ushort** ppwzQuery);
-    HRESULT GetSchemeName(uint* pcchSchemeName, ushort** ppwzSchemeName);
-    HRESULT GetUserNameA(uint* pcchUserName, ushort** ppwzUserName);
-    HRESULT SetFragment(const(wchar)* pwzNewValue);
-    HRESULT SetHost(const(wchar)* pwzNewValue);
-    HRESULT SetPassword(const(wchar)* pwzNewValue);
-    HRESULT SetPath(const(wchar)* pwzNewValue);
+    HRESULT GetFragment(uint* pcchFragment, PWSTR* ppwzFragment);
+    HRESULT GetHost(uint* pcchHost, PWSTR* ppwzHost);
+    HRESULT GetPassword(uint* pcchPassword, PWSTR* ppwzPassword);
+    HRESULT GetPath(uint* pcchPath, PWSTR* ppwzPath);
+    HRESULT GetPort(BOOL* pfHasPort, uint* pdwPort);
+    HRESULT GetQuery(uint* pcchQuery, PWSTR* ppwzQuery);
+    HRESULT GetSchemeName(uint* pcchSchemeName, PWSTR* ppwzSchemeName);
+    HRESULT GetUserNameA(uint* pcchUserName, PWSTR* ppwzUserName);
+    HRESULT SetFragment(const(PWSTR) pwzNewValue);
+    HRESULT SetHost(const(PWSTR) pwzNewValue);
+    HRESULT SetPassword(const(PWSTR) pwzNewValue);
+    HRESULT SetPath(const(PWSTR) pwzNewValue);
     HRESULT SetPortA(BOOL fHasPort, uint dwNewValue);
-    HRESULT SetQuery(const(wchar)* pwzNewValue);
-    HRESULT SetSchemeName(const(wchar)* pwzNewValue);
-    HRESULT SetUserName(const(wchar)* pwzNewValue);
+    HRESULT SetQuery(const(PWSTR) pwzNewValue);
+    HRESULT SetSchemeName(const(PWSTR) pwzNewValue);
+    HRESULT SetUserName(const(PWSTR) pwzNewValue);
     HRESULT RemoveProperties(uint dwPropertyMask);
-    HRESULT HasBeenModified(int* pfModified);
+    HRESULT HasBeenModified(BOOL* pfModified);
 }
 
 @GUID("E982CE48-0B96-440C-BC37-0C869B27A29E")
@@ -14829,21 +14907,21 @@ interface IWinInetHttpTimeouts : IUnknown
 @GUID("DD1EC3B3-8391-4FDB-A9E6-347C3CAAA7DD")
 interface IWinInetCacheHints : IUnknown
 {
-    HRESULT SetCacheExtension(const(wchar)* pwzExt, void* pszCacheFile, uint* pcbCacheFile, uint* pdwWinInetError, 
+    HRESULT SetCacheExtension(const(PWSTR) pwzExt, void* pszCacheFile, uint* pcbCacheFile, uint* pdwWinInetError, 
                               uint* pdwReserved);
 }
 
 @GUID("7857AEAC-D31F-49BF-884E-DD46DF36780A")
 interface IWinInetCacheHints2 : IWinInetCacheHints
 {
-    HRESULT SetCacheExtension2(const(wchar)* pwzExt, char* pwzCacheFile, uint* pcchCacheFile, 
-                               uint* pdwWinInetError, uint* pdwReserved);
+    HRESULT SetCacheExtension2(const(PWSTR) pwzExt, PWSTR pwzCacheFile, uint* pcchCacheFile, uint* pdwWinInetError, 
+                               uint* pdwReserved);
 }
 
 @GUID("FC4801A1-2BA9-11CF-A229-00AA003D7352")
 interface IBindHost : IUnknown
 {
-    HRESULT CreateMoniker(ushort* szName, IBindCtx pBC, IMoniker* ppmk, uint dwReserved);
+    HRESULT CreateMoniker(PWSTR szName, IBindCtx pBC, IMoniker* ppmk, uint dwReserved);
     HRESULT MonikerBindToStorage(IMoniker pMk, IBindCtx pBC, IBindStatusCallback pBSC, const(GUID)* riid, 
                                  void** ppvObj);
     HRESULT MonikerBindToObject(IMoniker pMk, IBindCtx pBC, IBindStatusCallback pBSC, const(GUID)* riid, 
@@ -14859,7 +14937,7 @@ interface IInternet : IUnknown
 interface IInternetBindInfo : IUnknown
 {
     HRESULT GetBindInfo(uint* grfBINDF, BINDINFO* pbindinfo);
-    HRESULT GetBindString(uint ulStringType, ushort** ppwzStr, uint cEl, uint* pcElFetched);
+    HRESULT GetBindString(uint ulStringType, PWSTR* ppwzStr, uint cEl, uint* pcElFetched);
 }
 
 @GUID("A3E015B7-A82C-4DCD-A150-569AEEED36AB")
@@ -14871,8 +14949,8 @@ interface IInternetBindInfoEx : IInternetBindInfo
 @GUID("79EAC9E3-BAF9-11CE-8C82-00AA004BA90B")
 interface IInternetProtocolRoot : IUnknown
 {
-    HRESULT Start(const(wchar)* szUrl, IInternetProtocolSink pOIProtSink, IInternetBindInfo pOIBindInfo, 
-                  uint grfPI, size_t dwReserved);
+    HRESULT Start(const(PWSTR) szUrl, IInternetProtocolSink pOIProtSink, IInternetBindInfo pOIBindInfo, uint grfPI, 
+                  size_t dwReserved);
     HRESULT Continue(PROTOCOLDATA* pProtocolData);
     HRESULT Abort(HRESULT hrReason, uint dwOptions);
     HRESULT Terminate(uint dwOptions);
@@ -14900,9 +14978,9 @@ interface IInternetProtocolEx : IInternetProtocol
 interface IInternetProtocolSink : IUnknown
 {
     HRESULT Switch(PROTOCOLDATA* pProtocolData);
-    HRESULT ReportProgress(uint ulStatusCode, const(wchar)* szStatusText);
+    HRESULT ReportProgress(uint ulStatusCode, const(PWSTR) szStatusText);
     HRESULT ReportData(uint grfBSCF, uint ulProgress, uint ulProgressMax);
-    HRESULT ReportResult(HRESULT hrResult, uint dwError, const(wchar)* szResult);
+    HRESULT ReportResult(HRESULT hrResult, uint dwError, const(PWSTR) szResult);
 }
 
 @GUID("79EAC9F0-BAF9-11CE-8C82-00AA004BA90B")
@@ -14916,12 +14994,12 @@ interface IInternetProtocolSinkStackable : IUnknown
 @GUID("79EAC9E7-BAF9-11CE-8C82-00AA004BA90B")
 interface IInternetSession : IUnknown
 {
-    HRESULT RegisterNameSpace(IClassFactory pCF, const(GUID)* rclsid, const(wchar)* pwzProtocol, uint cPatterns, 
-                              const(ushort)** ppwzPatterns, uint dwReserved);
-    HRESULT UnregisterNameSpace(IClassFactory pCF, const(wchar)* pszProtocol);
-    HRESULT RegisterMimeFilter(IClassFactory pCF, const(GUID)* rclsid, const(wchar)* pwzType);
-    HRESULT UnregisterMimeFilter(IClassFactory pCF, const(wchar)* pwzType);
-    HRESULT CreateBinding(IBindCtx pBC, const(wchar)* szUrl, IUnknown pUnkOuter, IUnknown* ppUnk, 
+    HRESULT RegisterNameSpace(IClassFactory pCF, const(GUID)* rclsid, const(PWSTR) pwzProtocol, uint cPatterns, 
+                              const(PWSTR)* ppwzPatterns, uint dwReserved);
+    HRESULT UnregisterNameSpace(IClassFactory pCF, const(PWSTR) pszProtocol);
+    HRESULT RegisterMimeFilter(IClassFactory pCF, const(GUID)* rclsid, const(PWSTR) pwzType);
+    HRESULT UnregisterMimeFilter(IClassFactory pCF, const(PWSTR) pwzType);
+    HRESULT CreateBinding(IBindCtx pBC, const(PWSTR) szUrl, IUnknown pUnkOuter, IUnknown* ppUnk, 
                           IInternetProtocol* ppOInetProt, uint dwOption);
     HRESULT SetSessionOption(uint dwOption, void* pBuffer, uint dwBufferLength, uint dwReserved);
     HRESULT GetSessionOption(uint dwOption, void* pBuffer, uint* pdwBufferLength, uint dwReserved);
@@ -14944,12 +15022,12 @@ interface IInternetPriority : IUnknown
 @GUID("79EAC9EC-BAF9-11CE-8C82-00AA004BA90B")
 interface IInternetProtocolInfo : IUnknown
 {
-    HRESULT ParseUrl(const(wchar)* pwzUrl, PARSEACTION ParseAction, uint dwParseFlags, const(wchar)* pwzResult, 
+    HRESULT ParseUrl(const(PWSTR) pwzUrl, PARSEACTION ParseAction, uint dwParseFlags, PWSTR pwzResult, 
                      uint cchResult, uint* pcchResult, uint dwReserved);
-    HRESULT CombineUrl(const(wchar)* pwzBaseUrl, const(wchar)* pwzRelativeUrl, uint dwCombineFlags, 
-                       const(wchar)* pwzResult, uint cchResult, uint* pcchResult, uint dwReserved);
-    HRESULT CompareUrl(const(wchar)* pwzUrl1, const(wchar)* pwzUrl2, uint dwCompareFlags);
-    HRESULT QueryInfo(const(wchar)* pwzUrl, QUERYOPTION OueryOption, uint dwQueryFlags, void* pBuffer, 
+    HRESULT CombineUrl(const(PWSTR) pwzBaseUrl, const(PWSTR) pwzRelativeUrl, uint dwCombineFlags, PWSTR pwzResult, 
+                       uint cchResult, uint* pcchResult, uint dwReserved);
+    HRESULT CompareUrl(const(PWSTR) pwzUrl1, const(PWSTR) pwzUrl2, uint dwCompareFlags);
+    HRESULT QueryInfo(const(PWSTR) pwzUrl, QUERYOPTION OueryOption, uint dwQueryFlags, void* pBuffer, 
                       uint cbBuffer, uint* pcbBuf, uint dwReserved);
 }
 
@@ -14965,32 +15043,32 @@ interface IInternetSecurityManager : IUnknown
 {
     HRESULT SetSecuritySite(IInternetSecurityMgrSite pSite);
     HRESULT GetSecuritySite(IInternetSecurityMgrSite* ppSite);
-    HRESULT MapUrlToZone(const(wchar)* pwszUrl, uint* pdwZone, uint dwFlags);
-    HRESULT GetSecurityId(const(wchar)* pwszUrl, char* pbSecurityId, uint* pcbSecurityId, size_t dwReserved);
-    HRESULT ProcessUrlAction(const(wchar)* pwszUrl, uint dwAction, char* pPolicy, uint cbPolicy, ubyte* pContext, 
+    HRESULT MapUrlToZone(const(PWSTR) pwszUrl, uint* pdwZone, uint dwFlags);
+    HRESULT GetSecurityId(const(PWSTR) pwszUrl, ubyte* pbSecurityId, uint* pcbSecurityId, size_t dwReserved);
+    HRESULT ProcessUrlAction(const(PWSTR) pwszUrl, uint dwAction, ubyte* pPolicy, uint cbPolicy, ubyte* pContext, 
                              uint cbContext, uint dwFlags, uint dwReserved);
-    HRESULT QueryCustomPolicy(const(wchar)* pwszUrl, const(GUID)* guidKey, char* ppPolicy, uint* pcbPolicy, 
+    HRESULT QueryCustomPolicy(const(PWSTR) pwszUrl, const(GUID)* guidKey, ubyte** ppPolicy, uint* pcbPolicy, 
                               ubyte* pContext, uint cbContext, uint dwReserved);
-    HRESULT SetZoneMapping(uint dwZone, const(wchar)* lpszPattern, uint dwFlags);
+    HRESULT SetZoneMapping(uint dwZone, const(PWSTR) lpszPattern, uint dwFlags);
     HRESULT GetZoneMappings(uint dwZone, IEnumString* ppenumString, uint dwFlags);
 }
 
 @GUID("F164EDF1-CC7C-4F0D-9A94-34222625C393")
 interface IInternetSecurityManagerEx : IInternetSecurityManager
 {
-    HRESULT ProcessUrlActionEx(const(wchar)* pwszUrl, uint dwAction, char* pPolicy, uint cbPolicy, ubyte* pContext, 
+    HRESULT ProcessUrlActionEx(const(PWSTR) pwszUrl, uint dwAction, ubyte* pPolicy, uint cbPolicy, ubyte* pContext, 
                                uint cbContext, uint dwFlags, uint dwReserved, uint* pdwOutFlags);
 }
 
 @GUID("F1E50292-A795-4117-8E09-2B560A72AC60")
 interface IInternetSecurityManagerEx2 : IInternetSecurityManagerEx
 {
-    HRESULT MapUrlToZoneEx2(IUri pUri, uint* pdwZone, uint dwFlags, ushort** ppwszMappedUrl, uint* pdwOutFlags);
-    HRESULT ProcessUrlActionEx2(IUri pUri, uint dwAction, char* pPolicy, uint cbPolicy, ubyte* pContext, 
+    HRESULT MapUrlToZoneEx2(IUri pUri, uint* pdwZone, uint dwFlags, PWSTR* ppwszMappedUrl, uint* pdwOutFlags);
+    HRESULT ProcessUrlActionEx2(IUri pUri, uint dwAction, ubyte* pPolicy, uint cbPolicy, ubyte* pContext, 
                                 uint cbContext, uint dwFlags, size_t dwReserved, uint* pdwOutFlags);
-    HRESULT GetSecurityIdEx2(IUri pUri, char* pbSecurityId, uint* pcbSecurityId, size_t dwReserved);
-    HRESULT QueryCustomPolicyEx2(IUri pUri, const(GUID)* guidKey, char* ppPolicy, uint* pcbPolicy, ubyte* pContext, 
-                                 uint cbContext, size_t dwReserved);
+    HRESULT GetSecurityIdEx2(IUri pUri, ubyte* pbSecurityId, uint* pcbSecurityId, size_t dwReserved);
+    HRESULT QueryCustomPolicyEx2(IUri pUri, const(GUID)* guidKey, ubyte** ppPolicy, uint* pcbPolicy, 
+                                 ubyte* pContext, uint cbContext, size_t dwReserved);
 }
 
 @GUID("CD45F185-1B21-48E2-967B-EAD743A8914E")
@@ -15004,8 +15082,8 @@ interface IZoneIdentifier : IUnknown
 @GUID("EB5E760C-09EF-45C0-B510-70830CE31E6A")
 interface IZoneIdentifier2 : IZoneIdentifier
 {
-    HRESULT GetLastWriterPackageFamilyName(ushort** packageFamilyName);
-    HRESULT SetLastWriterPackageFamilyName(const(wchar)* packageFamilyName);
+    HRESULT GetLastWriterPackageFamilyName(PWSTR* packageFamilyName);
+    HRESULT SetLastWriterPackageFamilyName(const(PWSTR) packageFamilyName);
     HRESULT RemoveLastWriterPackageFamilyName();
     HRESULT GetAppZoneId(uint* zone);
     HRESULT SetAppZoneId(uint zone);
@@ -15015,10 +15093,10 @@ interface IZoneIdentifier2 : IZoneIdentifier
 @GUID("3AF280B6-CB3F-11D0-891E-00C04FB6BFC4")
 interface IInternetHostSecurityManager : IUnknown
 {
-    HRESULT GetSecurityId(char* pbSecurityId, uint* pcbSecurityId, size_t dwReserved);
-    HRESULT ProcessUrlAction(uint dwAction, char* pPolicy, uint cbPolicy, char* pContext, uint cbContext, 
+    HRESULT GetSecurityId(ubyte* pbSecurityId, uint* pcbSecurityId, size_t dwReserved);
+    HRESULT ProcessUrlAction(uint dwAction, ubyte* pPolicy, uint cbPolicy, ubyte* pContext, uint cbContext, 
                              uint dwFlags, uint dwReserved);
-    HRESULT QueryCustomPolicy(const(GUID)* guidKey, char* ppPolicy, uint* pcbPolicy, char* pContext, 
+    HRESULT QueryCustomPolicy(const(GUID)* guidKey, ubyte** ppPolicy, uint* pcbPolicy, ubyte* pContext, 
                               uint cbContext, uint dwReserved);
 }
 
@@ -15029,13 +15107,13 @@ interface IInternetZoneManager : IUnknown
     HRESULT SetZoneAttributes(uint dwZone, ZONEATTRIBUTES* pZoneAttributes);
     HRESULT GetZoneCustomPolicy(uint dwZone, const(GUID)* guidKey, ubyte** ppPolicy, uint* pcbPolicy, 
                                 URLZONEREG urlZoneReg);
-    HRESULT SetZoneCustomPolicy(uint dwZone, const(GUID)* guidKey, char* pPolicy, uint cbPolicy, 
+    HRESULT SetZoneCustomPolicy(uint dwZone, const(GUID)* guidKey, ubyte* pPolicy, uint cbPolicy, 
                                 URLZONEREG urlZoneReg);
-    HRESULT GetZoneActionPolicy(uint dwZone, uint dwAction, char* pPolicy, uint cbPolicy, URLZONEREG urlZoneReg);
-    HRESULT SetZoneActionPolicy(uint dwZone, uint dwAction, char* pPolicy, uint cbPolicy, URLZONEREG urlZoneReg);
-    HRESULT PromptAction(uint dwAction, HWND hwndParent, const(wchar)* pwszUrl, const(wchar)* pwszText, 
+    HRESULT GetZoneActionPolicy(uint dwZone, uint dwAction, ubyte* pPolicy, uint cbPolicy, URLZONEREG urlZoneReg);
+    HRESULT SetZoneActionPolicy(uint dwZone, uint dwAction, ubyte* pPolicy, uint cbPolicy, URLZONEREG urlZoneReg);
+    HRESULT PromptAction(uint dwAction, HWND hwndParent, const(PWSTR) pwszUrl, const(PWSTR) pwszText, 
                          uint dwPromptFlags);
-    HRESULT LogAction(uint dwAction, const(wchar)* pwszUrl, const(wchar)* pwszText, uint dwLogFlags);
+    HRESULT LogAction(uint dwAction, const(PWSTR) pwszUrl, const(PWSTR) pwszText, uint dwLogFlags);
     HRESULT CreateZoneEnumerator(uint* pdwEnum, uint* pdwCount, uint dwFlags);
     HRESULT GetZoneAt(uint dwEnum, uint dwIndex, uint* pdwZone);
     HRESULT DestroyZoneEnumerator(uint dwEnum);
@@ -15045,9 +15123,9 @@ interface IInternetZoneManager : IUnknown
 @GUID("A4C23339-8E06-431E-9BF4-7E711C085648")
 interface IInternetZoneManagerEx : IInternetZoneManager
 {
-    HRESULT GetZoneActionPolicyEx(uint dwZone, uint dwAction, char* pPolicy, uint cbPolicy, URLZONEREG urlZoneReg, 
+    HRESULT GetZoneActionPolicyEx(uint dwZone, uint dwAction, ubyte* pPolicy, uint cbPolicy, URLZONEREG urlZoneReg, 
                                   uint dwFlags);
-    HRESULT SetZoneActionPolicyEx(uint dwZone, uint dwAction, char* pPolicy, uint cbPolicy, URLZONEREG urlZoneReg, 
+    HRESULT SetZoneActionPolicyEx(uint dwZone, uint dwAction, ubyte* pPolicy, uint cbPolicy, URLZONEREG urlZoneReg, 
                                   uint dwFlags);
 }
 
@@ -15055,33 +15133,33 @@ interface IInternetZoneManagerEx : IInternetZoneManager
 interface IInternetZoneManagerEx2 : IInternetZoneManagerEx
 {
     HRESULT GetZoneAttributesEx(uint dwZone, ZONEATTRIBUTES* pZoneAttributes, uint dwFlags);
-    HRESULT GetZoneSecurityState(uint dwZoneIndex, BOOL fRespectPolicy, uint* pdwState, int* pfPolicyEncountered);
-    HRESULT GetIESecurityState(BOOL fRespectPolicy, uint* pdwState, int* pfPolicyEncountered, BOOL fNoCache);
+    HRESULT GetZoneSecurityState(uint dwZoneIndex, BOOL fRespectPolicy, uint* pdwState, BOOL* pfPolicyEncountered);
+    HRESULT GetIESecurityState(BOOL fRespectPolicy, uint* pdwState, BOOL* pfPolicyEncountered, BOOL fNoCache);
     HRESULT FixUnsecureSettings();
 }
 
 @GUID("B15B8DC1-C7E1-11D0-8680-00AA00BDCB71")
 interface ISoftDistExt : IUnknown
 {
-    HRESULT ProcessSoftDist(const(wchar)* szCDFURL, IXMLElement pSoftDistElement, SOFTDISTINFO* lpsdi);
-    HRESULT GetFirstCodeBase(ushort** szCodeBase, uint* dwMaxSize);
-    HRESULT GetNextCodeBase(ushort** szCodeBase, uint* dwMaxSize);
+    HRESULT ProcessSoftDist(const(PWSTR) szCDFURL, IXMLElement pSoftDistElement, SOFTDISTINFO* lpsdi);
+    HRESULT GetFirstCodeBase(PWSTR* szCodeBase, uint* dwMaxSize);
+    HRESULT GetNextCodeBase(PWSTR* szCodeBase, uint* dwMaxSize);
     HRESULT AsyncInstallDistributionUnit(IBindCtx pbc, void* pvReserved, uint flags, CODEBASEHOLD* lpcbh);
 }
 
 @GUID("711C7600-6B48-11D1-B403-00AA00B92AF1")
 interface ICatalogFileInfo : IUnknown
 {
-    HRESULT GetCatalogFile(byte** ppszCatalogFile);
+    HRESULT GetCatalogFile(PSTR* ppszCatalogFile);
     HRESULT GetJavaTrust(void** ppJavaTrust);
 }
 
 @GUID("69D14C80-C18E-11D0-A9CE-006097942311")
 interface IDataFilter : IUnknown
 {
-    HRESULT DoEncode(uint dwFlags, int lInBufferSize, char* pbInBuffer, int lOutBufferSize, char* pbOutBuffer, 
+    HRESULT DoEncode(uint dwFlags, int lInBufferSize, ubyte* pbInBuffer, int lOutBufferSize, ubyte* pbOutBuffer, 
                      int lInBytesAvailable, int* plInBytesRead, int* plOutBytesWritten, uint dwReserved);
-    HRESULT DoDecode(uint dwFlags, int lInBufferSize, char* pbInBuffer, int lOutBufferSize, char* pbOutBuffer, 
+    HRESULT DoDecode(uint dwFlags, int lInBufferSize, ubyte* pbInBuffer, int lOutBufferSize, ubyte* pbOutBuffer, 
                      int lInBytesAvailable, int* plInBytesRead, int* plOutBytesWritten, uint dwReserved);
     HRESULT SetEncodingLevel(uint dwEncLevel);
 }
@@ -15089,8 +15167,8 @@ interface IDataFilter : IUnknown
 @GUID("70BDDE00-C18E-11D0-A9CE-006097942311")
 interface IEncodingFilterFactory : IUnknown
 {
-    HRESULT FindBestFilter(const(wchar)* pwzCodeIn, const(wchar)* pwzCodeOut, DATAINFO info, IDataFilter* ppDF);
-    HRESULT GetDefaultFilter(const(wchar)* pwzCodeIn, const(wchar)* pwzCodeOut, IDataFilter* ppDF);
+    HRESULT FindBestFilter(const(PWSTR) pwzCodeIn, const(PWSTR) pwzCodeOut, DATAINFO info, IDataFilter* ppDF);
+    HRESULT GetDefaultFilter(const(PWSTR) pwzCodeIn, const(PWSTR) pwzCodeOut, IDataFilter* ppDF);
 }
 
 @GUID("53C84785-8425-4DC5-971B-E58D9C19F9B6")
@@ -15108,7 +15186,7 @@ interface IGetBindHandle : IUnknown
 @GUID("11C81BC2-121E-4ED5-B9C4-B430BD54F2C0")
 interface IBindCallbackRedirect : IUnknown
 {
-    HRESULT Redirect(const(wchar)* lpcUrl, short* vbCancel);
+    HRESULT Redirect(const(PWSTR) lpcUrl, short* vbCancel);
 }
 
 @GUID("A9EDA967-F50E-4A33-B358-206F6EF3086D")
@@ -15659,7 +15737,7 @@ interface IPropertyPage : IUnknown
     ///    <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The address in <i>ppUnk</i> is not valid. For example,
     ///    it may be <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT SetObjects(uint cObjects, char* ppUnk);
+    HRESULT SetObjects(uint cObjects, IUnknown* ppUnk);
     ///Makes the property page dialog box visible or invisible. If the page is made visible, the page should set the
     ///focus to itself, specifically to the first property on the page.
     ///Params:
@@ -15709,7 +15787,7 @@ interface IPropertyPage : IUnknown
     ///    width="40%"> <dl> <dt><b>E_NOTIMPL</b></dt> </dl> </td> <td width="60%"> Help is either not provided or is
     ///    provided only through the information is PROPPAGEINFO. </td> </tr> </table>
     ///    
-    HRESULT Help(ushort* pszHelpDir);
+    HRESULT Help(const(PWSTR) pszHelpDir);
     HRESULT TranslateAcceleratorA(MSG* pMsg);
 }
 
@@ -16034,7 +16112,7 @@ interface IFont : IUnknown
     ///    return <b>S_OK</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td
     ///    width="60%"> The address in pBold is not valid. For example, it may be <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT get_Bold(int* pBold);
+    HRESULT get_Bold(BOOL* pBold);
     ///Sets the font's Bold property.
     ///Params:
     ///    bold = The new Bold property for the font.
@@ -16055,7 +16133,7 @@ interface IFont : IUnknown
     ///    <b>S_OK</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%">
     ///    The address in pitalic is not valid. For example, it may be <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT get_Italic(int* pItalic);
+    HRESULT get_Italic(BOOL* pItalic);
     ///Sets the font's Italic property.
     ///Params:
     ///    italic = The new Italic property for the font.
@@ -16077,7 +16155,7 @@ interface IFont : IUnknown
     ///    The address in the <i>pUnderline</i> parameter is not valid. For example, it may be <b>NULL</b>. </td> </tr>
     ///    </table>
     ///    
-    HRESULT get_Underline(int* pUnderline);
+    HRESULT get_Underline(BOOL* pUnderline);
     ///Sets the font's Underline property.
     ///Params:
     ///    underline = The new Underline property for the font.
@@ -16099,7 +16177,7 @@ interface IFont : IUnknown
     ///    The address in the <i>pStrikethrough</i> parameter is not valid. For example, it may be <b>NULL</b>. </td>
     ///    </tr> </table>
     ///    
-    HRESULT get_Strikethrough(int* pStrikethrough);
+    HRESULT get_Strikethrough(BOOL* pStrikethrough);
     ///Sets the font's Strikethrough property.
     ///Params:
     ///    strikethrough = The new Strikethrough property for the font.
@@ -16396,7 +16474,7 @@ interface IPicture : IUnknown
     ///    width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The value of <i>pKeep</i> is not
     ///    valid. For example, it may be <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT get_KeepOriginalFormat(int* pKeep);
+    HRESULT get_KeepOriginalFormat(BOOL* pKeep);
     ///Sets the value of the picture's KeepOriginalFormat property.
     ///Params:
     ///    keep = Specifies the new value to assign to the property.
@@ -16448,7 +16526,7 @@ interface IPicture2 : IUnknown
     HRESULT set_hPal(size_t hPal);
     HRESULT get_CurDC(HDC* phDC);
     HRESULT SelectPicture(HDC hDCIn, HDC* phDCOut, size_t* phBmpOut);
-    HRESULT get_KeepOriginalFormat(int* pKeep);
+    HRESULT get_KeepOriginalFormat(BOOL* pKeep);
     HRESULT put_KeepOriginalFormat(BOOL keep);
     HRESULT PictureChanged();
     HRESULT SaveAsFile(IStream pStream, BOOL fSaveMemCopy, int* pCbSize);
@@ -16527,7 +16605,7 @@ interface IOleInPlaceSiteEx : IOleInPlaceSite
     ///    <dl> <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> An unexpected error has occurred. </td> </tr>
     ///    </table>
     ///    
-    HRESULT OnInPlaceActivateEx(int* pfNoRedraw, uint dwFlags);
+    HRESULT OnInPlaceActivateEx(BOOL* pfNoRedraw, uint dwFlags);
     ///Notifies the container if the object needs to be redrawn upon deactivation.
     ///Params:
     ///    fNoRedraw = If <b>TRUE</b>, the container need not redraw the object after completing the deactivation; if <b>FALSE</b>
@@ -17289,11 +17367,11 @@ interface IPerPropertyBrowsing : IUnknown
 @GUID("22F55882-280B-11D0-A8A9-00A0C90C2004")
 interface IPropertyBag2 : IUnknown
 {
-    HRESULT Read(uint cProperties, char* pPropBag, IErrorLog pErrLog, char* pvarValue, char* phrError);
-    HRESULT Write(uint cProperties, char* pPropBag, char* pvarValue);
+    HRESULT Read(uint cProperties, PROPBAG2* pPropBag, IErrorLog pErrLog, VARIANT* pvarValue, HRESULT* phrError);
+    HRESULT Write(uint cProperties, PROPBAG2* pPropBag, VARIANT* pvarValue);
     HRESULT CountProperties(uint* pcProperties);
-    HRESULT GetPropertyInfo(uint iProperty, uint cProperties, char* pPropBag, uint* pcProperties);
-    HRESULT LoadObject(ushort* pstrName, uint dwHint, IUnknown pUnkObject, IErrorLog pErrLog);
+    HRESULT GetPropertyInfo(uint iProperty, uint cProperties, PROPBAG2* pPropBag, uint* pcProperties);
+    HRESULT LoadObject(const(PWSTR) pstrName, uint dwHint, IUnknown pUnkObject, IErrorLog pErrLog);
 }
 
 @GUID("22F55881-280B-11D0-A8A9-00A0C90C2004")
@@ -17790,7 +17868,7 @@ interface IContinueCallback : IUnknown
     ///    <dt><b>S_FALSE</b></dt> </dl> </td> <td width="60%"> Cancel the printing operation as soon as possible. </td>
     ///    </tr> </table>
     ///    
-    HRESULT FContinuePrinting(int nCntPrinted, int nCurPage, ushort* pwszPrintStatus);
+    HRESULT FContinuePrinting(int nCntPrinted, int nCurPage, PWSTR pwszPrintStatus);
 }
 
 ///Enables compound documents in general and active documents in particular to support programmatic printing.
@@ -17878,7 +17956,7 @@ interface IOleCommandTarget : IUnknown
     ///    <i>pguidCmdGroup</i> parameter is not <b>NULL</b> but does not specify a recognized command group. </td>
     ///    </tr> </table>
     ///    
-    HRESULT QueryStatus(const(GUID)* pguidCmdGroup, uint cCmds, char* prgCmds, OLECMDTEXT* pCmdText);
+    HRESULT QueryStatus(const(GUID)* pguidCmdGroup, uint cCmds, OLECMD* prgCmds, OLECMDTEXT* pCmdText);
     ///Executes the specified command or displays help for the command.
     ///Params:
     ///    pguidCmdGroup = The unique identifier of the command group; can be <b>NULL</b> to specify the standard group.
@@ -17913,15 +17991,15 @@ interface IZoomEvents : IUnknown
 @GUID("D81F90A3-8156-44F7-AD28-5ABB87003274")
 interface IProtectFocus : IUnknown
 {
-    HRESULT AllowFocusChange(int* pfAllow);
+    HRESULT AllowFocusChange(BOOL* pfAllow);
 }
 
 @GUID("73C105EE-9DFF-4A07-B83C-7EFF290C266E")
 interface IProtectedModeMenuServices : IUnknown
 {
     HRESULT CreateMenu(HMENU* phMenu);
-    HRESULT LoadMenuA(const(wchar)* pszModuleName, const(wchar)* pszMenuName, HMENU* phMenu);
-    HRESULT LoadMenuID(const(wchar)* pszModuleName, ushort wResourceID, HMENU* phMenu);
+    HRESULT LoadMenuA(const(PWSTR) pszModuleName, const(PWSTR) pszMenuName, HMENU* phMenu);
+    HRESULT LoadMenuID(const(PWSTR) pszModuleName, ushort wResourceID, HMENU* phMenu);
 }
 
 ///Implemented by containers and used by OLE common dialog boxes. It supports these dialog boxes by providing the
@@ -17987,7 +18065,7 @@ interface IOleUILinkContainerW : IUnknown
     ///    </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Insufficient
     ///    memory available for this operation. </td> </tr> </table>
     ///    
-    HRESULT SetLinkSource(uint dwLink, const(wchar)* lpszDisplayName, uint lenFileName, uint* pchEaten, 
+    HRESULT SetLinkSource(uint dwLink, PWSTR lpszDisplayName, uint lenFileName, uint* pchEaten, 
                           BOOL fValidateSource);
     ///Retrieves information about a link that can be displayed in the <b>Links</b> dialog box.
     ///Params:
@@ -18025,9 +18103,8 @@ interface IOleUILinkContainerW : IUnknown
     ///    </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> There is
     ///    insufficient memory available for this operation. </td> </tr> </table>
     ///    
-    HRESULT GetLinkSource(uint dwLink, ushort** lplpszDisplayName, uint* lplenFileName, 
-                          ushort** lplpszFullLinkType, ushort** lplpszShortLinkType, int* lpfSourceAvailable, 
-                          int* lpfIsSelected);
+    HRESULT GetLinkSource(uint dwLink, PWSTR* lplpszDisplayName, uint* lplenFileName, PWSTR* lplpszFullLinkType, 
+                          PWSTR* lplpszShortLinkType, BOOL* lpfSourceAvailable, BOOL* lpfIsSelected);
     ///Opens the link's source.
     ///Params:
     ///    dwLink = Container-defined unique identifier for a single link. Containers can use the pointer to the link's container
@@ -18139,7 +18216,7 @@ interface IOleUILinkContainerA : IUnknown
     ///    </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> Insufficient
     ///    memory available for this operation. </td> </tr> </table>
     ///    
-    HRESULT SetLinkSource(uint dwLink, const(char)* lpszDisplayName, uint lenFileName, uint* pchEaten, 
+    HRESULT SetLinkSource(uint dwLink, PSTR lpszDisplayName, uint lenFileName, uint* pchEaten, 
                           BOOL fValidateSource);
     ///Retrieves information about a link that can be displayed in the <b>Links</b> dialog box.
     ///Params:
@@ -18177,8 +18254,8 @@ interface IOleUILinkContainerA : IUnknown
     ///    </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> There is
     ///    insufficient memory available for this operation. </td> </tr> </table>
     ///    
-    HRESULT GetLinkSource(uint dwLink, byte** lplpszDisplayName, uint* lplenFileName, byte** lplpszFullLinkType, 
-                          byte** lplpszShortLinkType, int* lpfSourceAvailable, int* lpfIsSelected);
+    HRESULT GetLinkSource(uint dwLink, PSTR* lplpszDisplayName, uint* lplenFileName, PSTR* lplpszFullLinkType, 
+                          PSTR* lplpszShortLinkType, BOOL* lpfSourceAvailable, BOOL* lpfIsSelected);
     ///Opens the link's source.
     ///Params:
     ///    dwLink = Container-defined unique identifier for a single link. Containers can use the pointer to the link's container
@@ -18255,8 +18332,8 @@ interface IOleUIObjInfoW : IUnknown
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> There is insufficient memory available for this
     ///    operation. </td> </tr> </table>
     ///    
-    HRESULT GetObjectInfo(uint dwObject, uint* lpdwObjSize, ushort** lplpszLabel, ushort** lplpszType, 
-                          ushort** lplpszShortType, ushort** lplpszLocation);
+    HRESULT GetObjectInfo(uint dwObject, uint* lpdwObjSize, PWSTR* lplpszLabel, PWSTR* lplpszType, 
+                          PWSTR* lplpszShortType, PWSTR* lplpszLocation);
     ///Gets the conversion information associated with the specified object.
     ///Params:
     ///    dwObject = Unique identifier for the object.
@@ -18361,8 +18438,8 @@ interface IOleUIObjInfoA : IUnknown
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> There is insufficient memory available for this
     ///    operation. </td> </tr> </table>
     ///    
-    HRESULT GetObjectInfo(uint dwObject, uint* lpdwObjSize, byte** lplpszLabel, byte** lplpszType, 
-                          byte** lplpszShortType, byte** lplpszLocation);
+    HRESULT GetObjectInfo(uint dwObject, uint* lpdwObjSize, PSTR* lplpszLabel, PSTR* lplpszType, 
+                          PSTR* lplpszShortType, PSTR* lplpszLocation);
     ///Gets the conversion information associated with the specified object.
     ///Params:
     ///    dwObject = Unique identifier for the object.
@@ -18521,7 +18598,7 @@ interface ICallFrame : IUnknown
     ///    width="40%"> <dl> <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td width="60%"> An unexpected error has occurred.
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetNames(ushort** pwszInterface, ushort** pwszMethod);
+    HRESULT GetNames(PWSTR* pwszInterface, PWSTR* pwszMethod);
     ///Retrieves the stack location onto which this call frame is bound.
     ///Returns:
     ///    This method returns the requested stack location.
@@ -18760,7 +18837,7 @@ interface ICallIndirect : IUnknown
     ///    successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td
     ///    width="60%"> An unexpected error has occurred. </td> </tr> </table>
     ///    
-    HRESULT CallIndirect(int* phrReturn, uint iMethod, void* pvArgs, uint* cbArgs);
+    HRESULT CallIndirect(HRESULT* phrReturn, uint iMethod, void* pvArgs, uint* cbArgs);
     ///Retrieves information about the interface method from the call frame.
     ///Params:
     ///    iMethod = The method number.
@@ -18772,7 +18849,7 @@ interface ICallIndirect : IUnknown
     ///    successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td
     ///    width="60%"> An unexpected error has occurred. </td> </tr> </table>
     ///    
-    HRESULT GetMethodInfo(uint iMethod, CALLFRAMEINFO* pInfo, ushort** pwszMethod);
+    HRESULT GetMethodInfo(uint iMethod, CALLFRAMEINFO* pInfo, PWSTR* pwszMethod);
     ///Retrieves the number of bytes that should be popped from the stack in order to return from an invocation of the
     ///method.
     ///Params:
@@ -18797,7 +18874,7 @@ interface ICallIndirect : IUnknown
     ///    successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_UNEXPECTED</b></dt> </dl> </td> <td
     ///    width="60%"> An unexpected error has occurred. </td> </tr> </table>
     ///    
-    HRESULT GetIID(GUID* piid, int* pfDerivesFromIDispatch, uint* pcMethod, ushort** pwszInterface);
+    HRESULT GetIID(GUID* piid, BOOL* pfDerivesFromIDispatch, uint* pcMethod, PWSTR* pwszInterface);
 }
 
 ///Supports the registration and un-registering of event sinks wishing to be notified of calls made directly on the
@@ -18957,7 +19034,7 @@ interface ILog : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT AppendRecord(char* rgBlob, uint cBlob, BOOL fForceNow, LARGE_INTEGER* plsn);
+    HRESULT AppendRecord(BLOB* rgBlob, uint cBlob, BOOL fForceNow, LARGE_INTEGER* plsn);
     ///Read a record from the log.
     ///Params:
     ///    lsnToRead = The LSN of the record to be read.
@@ -18982,7 +19059,7 @@ interface ILog : IUnknown
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> The record was not returned due to a lack of
     ///    memory. </td> </tr> </table>
     ///    
-    HRESULT ReadRecord(LARGE_INTEGER lsnToRead, LARGE_INTEGER* plsnPrev, LARGE_INTEGER* plsnNext, char* ppbData, 
+    HRESULT ReadRecord(LARGE_INTEGER lsnToRead, LARGE_INTEGER* plsnPrev, LARGE_INTEGER* plsnNext, ubyte** ppbData, 
                        uint* pcbData);
     ///Reads an initial part of a record from the log.
     ///Params:
@@ -19008,7 +19085,7 @@ interface ILog : IUnknown
     ///    the log, but it is not the LSN of a record in the log. </td> </tr> </table>
     ///    
     HRESULT ReadRecordPrefix(LARGE_INTEGER lsnToRead, LARGE_INTEGER* plsnPrev, LARGE_INTEGER* plsnNext, 
-                             char* pbData, uint* pcbData, uint* pcbRecord);
+                             ubyte* pbData, uint* pcbData, uint* pcbRecord);
     ///Retrieves information about the current bounds of the log.
     ///Params:
     ///    plsnFirst = A pointer to the LSN of the first record in the log. This parameter can be <b>NULL</b> if the LSN of the
@@ -19054,7 +19131,7 @@ interface IFileBasedLogInit : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT InitNew(const(wchar)* filename, uint cbCapacityHint);
+    HRESULT InitNew(const(PWSTR) filename, uint cbCapacityHint);
 }
 
 ///Enables clients to enumerate through a collection of class IDs for COM classes.
@@ -19073,7 +19150,7 @@ interface IEnumGUID : IUnknown
     ///Returns:
     ///    If the method retrieves the number of items requested, the return value is S_OK. Otherwise, it is S_FALSE.
     ///    
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, GUID* rgelt, uint* pceltFetched);
     ///Skips over the specified number of items in the enumeration sequence.
     ///Params:
     ///    celt = The number of items to be skipped.
@@ -19113,7 +19190,7 @@ interface IEnumCATEGORYINFO : IUnknown
     ///Returns:
     ///    If the method retrieves the number of items requested, the return value is S_OK. Otherwise, it is S_FALSE.
     ///    
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, CATEGORYINFO* rgelt, uint* pceltFetched);
     ///Skips over the specified number of items in the enumeration sequence.
     ///Params:
     ///    celt = The number of items to be skipped.
@@ -19154,7 +19231,7 @@ interface ICatRegister : IUnknown
     ///    successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td
     ///    width="60%"> One or more arguments are incorrect. </td> </tr> </table>
     ///    
-    HRESULT RegisterCategories(uint cCategories, char* rgCategoryInfo);
+    HRESULT RegisterCategories(uint cCategories, CATEGORYINFO* rgCategoryInfo);
     ///Removes the registration of one or more component categories. Each component category consists of a CATID and a
     ///list of locale-dependent description strings.
     ///Params:
@@ -19166,7 +19243,7 @@ interface ICatRegister : IUnknown
     ///    successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td
     ///    width="60%"> One or more arguments are incorrect. </td> </tr> </table>
     ///    
-    HRESULT UnRegisterCategories(uint cCategories, char* rgcatid);
+    HRESULT UnRegisterCategories(uint cCategories, GUID* rgcatid);
     ///Registers the class as implementing one or more component categories.
     ///Params:
     ///    rclsid = The class identifier.
@@ -19178,7 +19255,7 @@ interface ICatRegister : IUnknown
     ///    successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td
     ///    width="60%"> One or more arguments are incorrect. </td> </tr> </table>
     ///    
-    HRESULT RegisterClassImplCategories(const(GUID)* rclsid, uint cCategories, char* rgcatid);
+    HRESULT RegisterClassImplCategories(const(GUID)* rclsid, uint cCategories, GUID* rgcatid);
     ///Removes one or more implemented category identifiers from a class.
     ///Params:
     ///    rclsid = The class identifier.
@@ -19190,7 +19267,7 @@ interface ICatRegister : IUnknown
     ///    successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td
     ///    width="60%"> One or more arguments are incorrect. </td> </tr> </table>
     ///    
-    HRESULT UnRegisterClassImplCategories(const(GUID)* rclsid, uint cCategories, char* rgcatid);
+    HRESULT UnRegisterClassImplCategories(const(GUID)* rclsid, uint cCategories, GUID* rgcatid);
     ///Registers the class as requiring one or more component categories.
     ///Params:
     ///    rclsid = The class identifier.
@@ -19202,7 +19279,7 @@ interface ICatRegister : IUnknown
     ///    successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td
     ///    width="60%"> One or more arguments are incorrect. </td> </tr> </table>
     ///    
-    HRESULT RegisterClassReqCategories(const(GUID)* rclsid, uint cCategories, char* rgcatid);
+    HRESULT RegisterClassReqCategories(const(GUID)* rclsid, uint cCategories, GUID* rgcatid);
     ///Removes one or more required category identifiers from a class.
     ///Params:
     ///    rclsid = The class identifier.
@@ -19214,7 +19291,7 @@ interface ICatRegister : IUnknown
     ///    successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td
     ///    width="60%"> One or more arguments are incorrect. </td> </tr> </table>
     ///    
-    HRESULT UnRegisterClassReqCategories(const(GUID)* rclsid, uint cCategories, char* rgcatid);
+    HRESULT UnRegisterClassReqCategories(const(GUID)* rclsid, uint cCategories, GUID* rgcatid);
 }
 
 ///Obtains information about the categories implemented or required by a certain class, as well as information about the
@@ -19245,7 +19322,7 @@ interface ICatInformation : IUnknown
     ///    registered. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>CAT_E_NODESCRIPTION</b></dt> </dl> </td> <td
     ///    width="60%"> There is no description string for <i>rcatid</i> with the specified locale. </td> </tr> </table>
     ///    
-    HRESULT GetCategoryDesc(GUID* rcatid, uint lcid, ushort** pszDesc);
+    HRESULT GetCategoryDesc(GUID* rcatid, uint lcid, PWSTR* pszDesc);
     ///Retrieves an enumerator for the classes that implement one or more specified category identifiers.
     ///Params:
     ///    cImplemented = The number of category IDs in the <i>rgcatidImpl</i> array. This value cannot be zero. If this value is -1,
@@ -19338,7 +19415,7 @@ interface IAccessControl : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT RevokeAccessRights(const(wchar)* lpProperty, uint cTrustees, char* prgTrustees);
+    HRESULT RevokeAccessRights(PWSTR lpProperty, uint cTrustees, TRUSTEE_W* prgTrustees);
     ///Gets the entire list of access rights and/or the owner and group for the specified object.
     ///Params:
     ///    lpProperty = The name of the property. If you are using the COM implementation of IAccessControl, this parameter must be
@@ -19356,7 +19433,7 @@ interface IAccessControl : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetAllAccessRights(const(wchar)* lpProperty, ACTRL_ACCESSW** ppAccessList, TRUSTEE_W** ppOwner, 
+    HRESULT GetAllAccessRights(PWSTR lpProperty, ACTRL_ACCESSW** ppAccessList, TRUSTEE_W** ppOwner, 
                                TRUSTEE_W** ppGroup);
     ///Determines whether the specified trustee has access rights to the object or property.
     ///Params:
@@ -19370,7 +19447,7 @@ interface IAccessControl : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT IsAccessAllowed(TRUSTEE_W* pTrustee, const(wchar)* lpProperty, uint AccessRights, int* pfAccessAllowed);
+    HRESULT IsAccessAllowed(TRUSTEE_W* pTrustee, PWSTR lpProperty, uint AccessRights, BOOL* pfAccessAllowed);
 }
 
 @GUID("1DA6292F-BC66-11CE-AAE3-00AA004C2737")
@@ -19378,9 +19455,9 @@ interface IAuditControl : IUnknown
 {
     HRESULT GrantAuditRights(ACTRL_ACCESSW* pAuditList);
     HRESULT SetAuditRights(ACTRL_ACCESSW* pAuditList);
-    HRESULT RevokeAuditRights(const(wchar)* lpProperty, uint cTrustees, char* prgTrustees);
-    HRESULT GetAllAuditRights(const(wchar)* lpProperty, ACTRL_ACCESSW** ppAuditList);
-    HRESULT IsAccessAudited(TRUSTEE_W* pTrustee, uint AuditRights, int* pfAccessAudited);
+    HRESULT RevokeAuditRights(PWSTR lpProperty, uint cTrustees, TRUSTEE_W* prgTrustees);
+    HRESULT GetAllAuditRights(PWSTR lpProperty, ACTRL_ACCESSW** ppAuditList);
+    HRESULT IsAccessAudited(TRUSTEE_W* pTrustee, uint AuditRights, BOOL* pfAccessAudited);
 }
 
 ///Provides a mechanism to execute a function inside a specific COM+ object context.
@@ -19485,82 +19562,6 @@ interface IEventProperty : IDispatch
     HRESULT get_Value(VARIANT* propertyValue);
     ///The value of the event property. This property is read/write.
     HRESULT put_Value(VARIANT* propertyValue);
-}
-
-///Receives Acessibility Window Docking events.
-@GUID("157733FD-A592-42E5-B594-248468C5A81B")
-interface IAccessibilityDockingServiceCallback : IUnknown
-{
-    ///Undocks the accessibility window so that it will not be automatically moved to its previous location.
-    ///Params:
-    ///    undockReason = Specifies the reason why the accessibility application's window was undocked.
-    ///Returns:
-    ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
-    ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
-    ///    
-    HRESULT Undocked(UNDOCK_REASON undockReason);
-}
-
-///Docks an application window to the bottom of a monitor when a Windows Store app is visible and not snapped, or when
-///the launcher is visible.
-@GUID("8849DC22-CEDF-4C95-998D-051419DD3F76")
-interface IAccessibilityDockingService : IUnknown
-{
-    ///Retrieves the dimensions available on a specific screen for displaying an accessibility window.
-    ///Params:
-    ///    hMonitor = Type: <b>HMONITOR</b> The handle of the monitor whose available docking size is to be retrieved. For
-    ///               information on how to retrieve an <b>HMONITOR</b>, see MonitorFromWindow.
-    ///    pcxFixed = Type: <b>UINT*</b> When this method returns successfully, this parameter receives the fixed width, in
-    ///               physical pixels, available for docking on the specified monitor. Any window docked to this monitor will be
-    ///               sized to this width. If the method fails, this value is set to 0. If this value is <b>NULL</b>, an access
-    ///               violation will occur.
-    ///    pcyMax = Type: <b>UINT*</b> When this method returns successfully, this parameter receives the maximum height, in
-    ///             physical pixels, available for a docked window on the specified monitor. If the method fails, this value is
-    ///             set to 0. If this value is <b>NULL</b>, an access violation will occur.
-    ///Returns:
-    ///    Type: <b>HRESULT</b> Returns a standard return value, including the following: <table> <tr> <th>Return
-    ///    code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td
-    ///    width="60%"> The method succeeded. </td> </tr> <tr> <td width="40%"> <dl>
-    ///    <dt><b>HRESULT_FROM_WIN32(ERROR_INVALID_MONITOR_HANDLE)</b></dt> </dl> </td> <td width="60%"> The monitor
-    ///    specified by <i>hMonitor</i> does not support docking. </td> </tr> </table>
-    ///    
-    HRESULT GetAvailableSize(ptrdiff_t hMonitor, uint* pcxFixed, uint* pcyMax);
-    ///Docks the specified window handle to the specified monitor handle.
-    ///Params:
-    ///    hwnd = The accessibility application window that will be docked on the passed monitor handle.
-    ///    hMonitor = The monitor on which the accessibility application window will be docked.
-    ///    cyRequested = TBD
-    ///    pCallback = The callback pointer on which the accessibility application will receive the Undock notification.
-    ///Returns:
-    ///    This method can return one of these values. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
-    ///    <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> Success. </td> </tr> <tr> <td
-    ///    width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The window handle or monitor
-    ///    handle is not valid. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_ACCESSDENIED</b></dt> </dl> </td> <td
-    ///    width="60%"> The calling process is not a UIAcess accessibility application or the calling process does not
-    ///    own the window. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>IMM_E_DOCKOCCUPIED</b></dt> </dl> </td> <td
-    ///    width="60%"> There is already another window occupying the docking space. Only one window can be docked at a
-    ///    time. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>IMM_E_INSUFFICIENTHEIGHT</b></dt> </dl> </td> <td
-    ///    width="60%"> The requested <i>uHeight</i> is larger than the maximum allowed docking height for the specified
-    ///    monitor. However, if this error code is being returned, it means that this monitor does support docking,
-    ///    though at a height indicated by a call to the GetAvailableSize method. </td> </tr> <tr> <td width="40%"> <dl>
-    ///    <dt><b>HRESULT_FROM_WIN32(ERROR_INVALID_MONITOR_HANDLE)</b></dt> </dl> </td> <td width="60%"> The monitor
-    ///    specified by the monitor handle does not support docking. </td> </tr> </table>
-    ///    
-    HRESULT DockWindow(HWND hwnd, ptrdiff_t hMonitor, uint cyRequested, 
-                       IAccessibilityDockingServiceCallback pCallback);
-    ///Undocks the specified window handle if it is currently docked.
-    ///Params:
-    ///    hwnd = TBD
-    ///    hWnd = Specifies the window that will be undocked.
-    ///Returns:
-    ///    This method can return one of these values. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>
-    ///    <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> Success. </td> </tr> <tr> <td
-    ///    width="40%"> <dl> <dt><b>E_ACCESSDENIED</b></dt> </dl> </td> <td width="60%"> The window does not belong to
-    ///    the calling process. </td> </tr> <tr> <td width="40%"> <dl>
-    ///    <dt><b>HRESULT_FROM_WIN32(ERROR_INVALID_WINDOW_HANDLE)</b></dt> </dl> </td> <td width="60%"> The window is
-    ///    not docked. </td> </tr> </table>
-    ///    
-    HRESULT UndockWindow(HWND hwnd);
 }
 
 

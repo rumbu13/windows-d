@@ -9,16 +9,17 @@ public import windows.direct2d : D2D_RECT_F, ID2D1DeviceContext, ID2D1Factory,
                                  ID2D1Geometry;
 public import windows.displaydevices : POINT, RECT, SIZE;
 public import windows.dxgi : DXGI_RGBA, IDXGIDevice, IDXGISurface, IDXGISwapChain;
+public import windows.gdi : HMONITOR;
 public import windows.mediafoundation : IMF2DBuffer2, IMFDXGIDeviceManager, IMFSample,
                                         MFVideoArea;
 public import windows.pointerinput : POINTER_INFO;
 public import windows.shell : INamedPropertyStore;
 public import windows.structuredstorage : IStream;
-public import windows.systemservices : BOOL, HANDLE, SECURITY_ATTRIBUTES;
+public import windows.systemservices : BOOL, HANDLE, PSTR, PWSTR, SECURITY_ATTRIBUTES;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsimagingcomponent : IWICBitmap;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -111,22 +112,6 @@ enum : int
     GRAPHICS_EFFECT_PROPERTY_MAPPING_COLOR_TO_VECTOR4       = 0x0000000a,
 }
 
-enum NotifyCollectionChangedAction : int
-{
-    NotifyCollectionChangedAction_Add     = 0x00000000,
-    NotifyCollectionChangedAction_Remove  = 0x00000001,
-    NotifyCollectionChangedAction_Replace = 0x00000002,
-    NotifyCollectionChangedAction_Move    = 0x00000003,
-    NotifyCollectionChangedAction_Reset   = 0x00000004,
-}
-
-enum TypeKind : int
-{
-    TypeKind_Primitive = 0x00000000,
-    TypeKind_Metadata  = 0x00000001,
-    TypeKind_Custom    = 0x00000002,
-}
-
 ///Determines the concurrency model used for incoming calls to the objects created by this thread.
 alias RO_INIT_TYPE = int;
 enum : int
@@ -179,16 +164,7 @@ enum : const(wchar)*
     CastingSourceInfo_Property_ProtectedMedia           = "ProtectedMedia",
 }
 
-enum : const(wchar)*
-{
-    InterfaceName_Windows_UI_Xaml_Interop_IBindableIterator                        = "Windows.UI.Xaml.Interop.IBindableIterator",
-    InterfaceName_Windows_UI_Xaml_Interop_IBindableObservableVector                = "Windows.UI.Xaml.Interop.IBindableObservableVector",
-    InterfaceName_Windows_UI_Xaml_Interop_IBindableVector                          = "Windows.UI.Xaml.Interop.IBindableVector",
-    InterfaceName_Windows_UI_Xaml_Interop_IBindableVectorView                      = "Windows.UI.Xaml.Interop.IBindableVectorView",
-    InterfaceName_Windows_UI_Xaml_Interop_INotifyCollectionChanged                 = "Windows.UI.Xaml.Interop.INotifyCollectionChanged",
-    InterfaceName_Windows_UI_Xaml_Interop_INotifyCollectionChangedEventArgs        = "Windows.UI.Xaml.Interop.INotifyCollectionChangedEventArgs",
-    InterfaceName_Windows_UI_Xaml_Interop_INotifyCollectionChangedEventArgsFactory = "Windows.UI.Xaml.Interop.INotifyCollectionChangedEventArgsFactory",
-}
+enum GUID CLSID_AudioFrameNativeFactory = GUID("16a0a3b9-9f65-4102-9367-2cda3a4f372a");
 
 // Callbacks
 
@@ -203,8 +179,8 @@ alias PFN_PDF_CREATE_RENDERER = HRESULT function(IDXGIDevice param0, IPdfRendere
 ///    If this function pointer succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise,
 ///    it returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
-alias PINSPECT_HSTRING_CALLBACK = HRESULT function(void* context, size_t readAddress, uint length, char* buffer);
-alias PINSPECT_HSTRING_CALLBACK2 = HRESULT function(void* context, ulong readAddress, uint length, char* buffer);
+alias PINSPECT_HSTRING_CALLBACK = HRESULT function(void* context, size_t readAddress, uint length, ubyte* buffer);
+alias PINSPECT_HSTRING_CALLBACK2 = HRESULT function(void* context, ulong readAddress, uint length, ubyte* buffer);
 ///Provides a function pointer to the callback used by the RoInspectCapturedStackBackTrace function.
 ///Params:
 ///    context = Custom context data provided to the RoInspectCapturedStackBackTrace function.
@@ -215,7 +191,7 @@ alias PINSPECT_HSTRING_CALLBACK2 = HRESULT function(void* context, ulong readAdd
 ///    If this callback function succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>.
 ///    Otherwise, it returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
-alias PINSPECT_MEMORY_CALLBACK = HRESULT function(void* context, size_t readAddress, uint length, char* buffer);
+alias PINSPECT_MEMORY_CALLBACK = HRESULT function(void* context, size_t readAddress, uint length, ubyte* buffer);
 
 // Structs
 
@@ -225,6 +201,12 @@ struct EventRegistrationToken
 {
     ///Type: <b>INT64</b> An identifying value that is provided by an event source.
     long value;
+}
+
+@RAIIFree!WindowsDeleteString
+struct HSTRING
+{
+    ptrdiff_t Value;
 }
 
 ///Represents the implementation of a Component Object Model (COM) interface in a server process.
@@ -240,24 +222,14 @@ struct ServerInformation
     ulong ui64ServerAddress;
 }
 
-struct HSTRING__
-{
-    int unused;
-}
-
 ///Represents a header for an HSTRING.
 struct HSTRING_HEADER
 {
-    union Reserved
+union Reserved
     {
         void*    Reserved1;
         byte[20] Reserved2;
     }
-}
-
-struct HSTRING_BUFFER__
-{
-    int unused;
 }
 
 ///Represents a set of properties for outputting a single page of a Portable Document Format (PDF) file.
@@ -276,16 +248,6 @@ struct PDF_RENDER_PARAMS
     DXGI_RGBA  BackgroundColor;
     ///False to use the system's high contrast display settings; otherwise true. The default is true.
     ubyte      IgnoreHighContrast;
-}
-
-struct NotifyCollectionChangedEventArgs
-{
-}
-
-struct TypeName
-{
-    ptrdiff_t Name;
-    TypeKind  Kind;
 }
 
 struct __AnonymousRecord_roapi_L45_C9
@@ -356,7 +318,7 @@ HRESULT RoGetAgileReference(AgileReferenceOptions options, const(GUID)* riid, IU
 ///    The value obtained from the returned <b>HRESULT</b> value is <b>S_OK</b>.
 ///    
 @DllImport("api-ms-win-core-winrt-string-l1-1-0")
-uint HSTRING_UserSize(uint* param0, uint param1, ptrdiff_t* param2);
+uint HSTRING_UserSize(uint* param0, uint param1, HSTRING* param2);
 
 ///Marshals an [**HSTRING**](/windows/win32/winrt/hstring) object into the RPC buffer.
 ///Params:
@@ -367,7 +329,7 @@ uint HSTRING_UserSize(uint* param0, uint param1, ptrdiff_t* param2);
 ///    The value obtained from the returned <b>HRESULT</b> value is <b>S_OK</b>.
 ///    
 @DllImport("api-ms-win-core-winrt-string-l1-1-0")
-ubyte* HSTRING_UserMarshal(uint* param0, ubyte* param1, ptrdiff_t* param2);
+ubyte* HSTRING_UserMarshal(uint* param0, ubyte* param1, HSTRING* param2);
 
 ///Unmarshals an [**HSTRING**](/windows/win32/winrt/hstring) object from the RPC buffer.
 ///Params:
@@ -381,14 +343,14 @@ ubyte* HSTRING_UserMarshal(uint* param0, ubyte* param1, ptrdiff_t* param2);
 ///    Insufficient memory for this function to perform. </td> </tr> </table>
 ///    
 @DllImport("api-ms-win-core-winrt-string-l1-1-0")
-ubyte* HSTRING_UserUnmarshal(uint* param0, char* param1, ptrdiff_t* param2);
+ubyte* HSTRING_UserUnmarshal(uint* param0, ubyte* param1, HSTRING* param2);
 
 ///Frees resources on the server side when called by RPC stub files.
 ///Params:
 ///    pFlags = [in] The data used by RPC.
 ///    ppidl = [in] The string.
 @DllImport("api-ms-win-core-winrt-string-l1-1-0")
-void HSTRING_UserFree(uint* param0, ptrdiff_t* param1);
+void HSTRING_UserFree(uint* param0, HSTRING* param1);
 
 ///Calculates the wire size of the HSTRING object, and gets its handle and data.
 ///Params:
@@ -400,7 +362,7 @@ void HSTRING_UserFree(uint* param0, ptrdiff_t* param1);
 ///    The value obtained from the returned <b>HRESULT</b> value is <b>S_OK</b>.
 ///    
 @DllImport("api-ms-win-core-winrt-string-l1-1-0")
-uint HSTRING_UserSize64(uint* param0, uint param1, ptrdiff_t* param2);
+uint HSTRING_UserSize64(uint* param0, uint param1, HSTRING* param2);
 
 ///Marshals an HSTRING object into the RPC buffer.
 ///Params:
@@ -411,7 +373,7 @@ uint HSTRING_UserSize64(uint* param0, uint param1, ptrdiff_t* param2);
 ///    The value obtained from the returned <b>HRESULT</b> value is <b>S_OK</b>.
 ///    
 @DllImport("api-ms-win-core-winrt-string-l1-1-0")
-ubyte* HSTRING_UserMarshal64(uint* param0, ubyte* param1, ptrdiff_t* param2);
+ubyte* HSTRING_UserMarshal64(uint* param0, ubyte* param1, HSTRING* param2);
 
 ///Unmarshals an HSTRING object from the RPC buffer.
 ///Params:
@@ -425,14 +387,14 @@ ubyte* HSTRING_UserMarshal64(uint* param0, ubyte* param1, ptrdiff_t* param2);
 ///    Insufficient memory for this function to perform. </td> </tr> </table>
 ///    
 @DllImport("api-ms-win-core-winrt-string-l1-1-0")
-ubyte* HSTRING_UserUnmarshal64(uint* param0, char* param1, ptrdiff_t* param2);
+ubyte* HSTRING_UserUnmarshal64(uint* param0, ubyte* param1, HSTRING* param2);
 
 ///Frees resources on the server side when called by RPC stub files.
 ///Params:
 ///    arg1 = The data used by RPC.
 ///    arg2 = The string.
 @DllImport("api-ms-win-core-winrt-string-l1-1-0")
-void HSTRING_UserFree64(uint* param0, ptrdiff_t* param1);
+void HSTRING_UserFree64(uint* param0, HSTRING* param1);
 
 ///Gets an instance of the IPdfRendererNative interface for displaying a single page of a Portable Document Format (PDF)
 ///file.
@@ -468,7 +430,7 @@ HRESULT PdfCreateRenderer(IDXGIDevice pDevice, IPdfRendererNative* ppRenderer);
 ///    </table>
 ///    
 @DllImport("api-ms-win-core-winrt-string-l1-1-0")
-HRESULT WindowsCreateString(char* sourceString, uint length, ptrdiff_t* string);
+HRESULT WindowsCreateString(ushort* sourceString, uint length, HSTRING* string);
 
 ///Creates a new string reference based on the specified string.
 ///Params:
@@ -495,8 +457,8 @@ HRESULT WindowsCreateString(char* sourceString, uint length, ptrdiff_t* string);
 ///    </table>
 ///    
 @DllImport("api-ms-win-core-winrt-string-l1-1-0")
-HRESULT WindowsCreateStringReference(const(wchar)* sourceString, uint length, HSTRING_HEADER* hstringHeader, 
-                                     ptrdiff_t* string);
+HRESULT WindowsCreateStringReference(const(PWSTR) sourceString, uint length, HSTRING_HEADER* hstringHeader, 
+                                     HSTRING* string);
 
 ///Decrements the reference count of a string buffer.
 ///Params:
@@ -507,7 +469,7 @@ HRESULT WindowsCreateStringReference(const(wchar)* sourceString, uint length, HS
 ///    Type: <b>HRESULT</b> This function always returns <b>S_OK</b>.
 ///    
 @DllImport("api-ms-win-core-winrt-string-l1-1-0")
-HRESULT WindowsDeleteString(ptrdiff_t string);
+HRESULT WindowsDeleteString(HSTRING string);
 
 ///Creates a copy of the specified string.
 ///Params:
@@ -522,13 +484,13 @@ HRESULT WindowsDeleteString(ptrdiff_t string);
 ///    [**HSTRING**](/windows/win32/winrt/hstring). </td> </tr> </table>
 ///    
 @DllImport("api-ms-win-core-winrt-string-l1-1-0")
-HRESULT WindowsDuplicateString(ptrdiff_t string, ptrdiff_t* newString);
+HRESULT WindowsDuplicateString(HSTRING string, HSTRING* newString);
 
 ///Gets the length, in Unicode characters, of the specified string.
 ///Params:
 ///    string = Type: [in] **[HSTRING](/windows/win32/winrt/hstring)** The string whose length is to be found.
 @DllImport("api-ms-win-core-winrt-string-l1-1-0")
-uint WindowsGetStringLen(ptrdiff_t string);
+uint WindowsGetStringLen(HSTRING string);
 
 ///Retrieves the backing buffer for the specified string.
 ///Params:
@@ -545,7 +507,7 @@ uint WindowsGetStringLen(ptrdiff_t string);
 ///    string if <i>string</i> is <b>NULL</b> or the empty string.
 ///    
 @DllImport("api-ms-win-core-winrt-string-l1-1-0")
-ushort* WindowsGetStringRawBuffer(ptrdiff_t string, uint* length);
+PWSTR WindowsGetStringRawBuffer(HSTRING string, uint* length);
 
 ///Indicates whether the specified string is the empty string.
 ///Params:
@@ -554,7 +516,7 @@ ushort* WindowsGetStringRawBuffer(ptrdiff_t string, uint* length);
 ///    Type: <b>BOOL</b> <b>TRUE</b> if <i>string</i> is <b>NULL</b> or the empty string; otherwise, <b>FALSE</b>.
 ///    
 @DllImport("api-ms-win-core-winrt-string-l1-1-0")
-BOOL WindowsIsStringEmpty(ptrdiff_t string);
+BOOL WindowsIsStringEmpty(HSTRING string);
 
 ///Indicates whether the specified string has embedded null characters.
 ///Params:
@@ -562,7 +524,7 @@ BOOL WindowsIsStringEmpty(ptrdiff_t string);
 ///    hasEmbedNull = Type: [out] <b>BOOL*</b> <b>TRUE</b> if <i>string</i> has one or more embedded null characters; otherwise,
 ///                   <b>FALSE</b>. <b>FALSE</b> if <i>string</i> is <b>NULL</b> or the empty string.
 @DllImport("api-ms-win-core-winrt-string-l1-1-0")
-HRESULT WindowsStringHasEmbeddedNull(ptrdiff_t string, int* hasEmbedNull);
+HRESULT WindowsStringHasEmbeddedNull(HSTRING string, BOOL* hasEmbedNull);
 
 ///Compares two specified [**HSTRING**](/windows/win32/winrt/hstring) objects and returns an integer that indicates
 ///their relative position in a sort order.
@@ -578,7 +540,7 @@ HRESULT WindowsStringHasEmbeddedNull(ptrdiff_t string, int* hasEmbedNull);
 ///    width="60%"> <i>result</i> is <b>NULL</b>. </td> </tr> </table>
 ///    
 @DllImport("api-ms-win-core-winrt-string-l1-1-0")
-HRESULT WindowsCompareStringOrdinal(ptrdiff_t string1, ptrdiff_t string2, int* result);
+HRESULT WindowsCompareStringOrdinal(HSTRING string1, HSTRING string2, int* result);
 
 ///Retrieves a substring from the specified string. The substring starts at the specified character position.
 ///Params:
@@ -597,7 +559,7 @@ HRESULT WindowsCompareStringOrdinal(ptrdiff_t string1, ptrdiff_t string2, int* r
 ///    Failed to allocate the new substring. </td> </tr> </table>
 ///    
 @DllImport("api-ms-win-core-winrt-string-l1-1-0")
-HRESULT WindowsSubstring(ptrdiff_t string, uint startIndex, ptrdiff_t* newString);
+HRESULT WindowsSubstring(HSTRING string, uint startIndex, HSTRING* newString);
 
 ///Retrieves a substring from the specified string. The substring starts at a specified character position and has a
 ///specified length.
@@ -620,7 +582,7 @@ HRESULT WindowsSubstring(ptrdiff_t string, uint startIndex, ptrdiff_t* newString
 ///    substring. </td> </tr> </table>
 ///    
 @DllImport("api-ms-win-core-winrt-string-l1-1-0")
-HRESULT WindowsSubstringWithSpecifiedLength(ptrdiff_t string, uint startIndex, uint length, ptrdiff_t* newString);
+HRESULT WindowsSubstringWithSpecifiedLength(HSTRING string, uint startIndex, uint length, HSTRING* newString);
 
 ///Concatenates two specified strings.
 ///Params:
@@ -639,7 +601,7 @@ HRESULT WindowsSubstringWithSpecifiedLength(ptrdiff_t string, uint startIndex, u
 ///    the concatenated string. </td> </tr> </table>
 ///    
 @DllImport("api-ms-win-core-winrt-string-l1-1-0")
-HRESULT WindowsConcatString(ptrdiff_t string1, ptrdiff_t string2, ptrdiff_t* newString);
+HRESULT WindowsConcatString(HSTRING string1, HSTRING string2, HSTRING* newString);
 
 ///Replaces all occurrences of a set of characters in the specified string with another set of characters to create a
 ///new string.
@@ -660,8 +622,7 @@ HRESULT WindowsConcatString(ptrdiff_t string1, ptrdiff_t string2, ptrdiff_t* new
 ///    width="60%"> Failed to allocate the new string. </td> </tr> </table>
 ///    
 @DllImport("api-ms-win-core-winrt-string-l1-1-0")
-HRESULT WindowsReplaceString(ptrdiff_t string, ptrdiff_t stringReplaced, ptrdiff_t stringReplaceWith, 
-                             ptrdiff_t* newString);
+HRESULT WindowsReplaceString(HSTRING string, HSTRING stringReplaced, HSTRING stringReplaceWith, HSTRING* newString);
 
 ///Removes all leading occurrences of a specified set of characters from the source string.
 ///Params:
@@ -679,7 +640,7 @@ HRESULT WindowsReplaceString(ptrdiff_t string, ptrdiff_t stringReplaced, ptrdiff
 ///    string. </td> </tr> </table>
 ///    
 @DllImport("api-ms-win-core-winrt-string-l1-1-0")
-HRESULT WindowsTrimStringStart(ptrdiff_t string, ptrdiff_t trimString, ptrdiff_t* newString);
+HRESULT WindowsTrimStringStart(HSTRING string, HSTRING trimString, HSTRING* newString);
 
 ///Removes all trailing occurrences of a specified set of characters from the source string.
 ///Params:
@@ -697,7 +658,7 @@ HRESULT WindowsTrimStringStart(ptrdiff_t string, ptrdiff_t trimString, ptrdiff_t
 ///    string. </td> </tr> </table>
 ///    
 @DllImport("api-ms-win-core-winrt-string-l1-1-0")
-HRESULT WindowsTrimStringEnd(ptrdiff_t string, ptrdiff_t trimString, ptrdiff_t* newString);
+HRESULT WindowsTrimStringEnd(HSTRING string, HSTRING trimString, HSTRING* newString);
 
 ///Allocates a mutable character buffer for use in [**HSTRING**](/windows/win32/winrt/hstring) creation.
 ///Params:
@@ -734,7 +695,7 @@ HRESULT WindowsPreallocateStringBuffer(uint length, ushort** charBuffer, ptrdiff
 ///    character in <i>bufferHandle</i>. </td> </tr> </table>
 ///    
 @DllImport("api-ms-win-core-winrt-string-l1-1-0")
-HRESULT WindowsPromoteStringBuffer(ptrdiff_t bufferHandle, ptrdiff_t* string);
+HRESULT WindowsPromoteStringBuffer(ptrdiff_t bufferHandle, HSTRING* string);
 
 ///Discards a preallocated string buffer if it was not promoted to an [**HSTRING**](/windows/win32/winrt/hstring).
 ///Params:
@@ -870,7 +831,7 @@ void RoUninitialize();
 ///    </table>
 ///    
 @DllImport("api-ms-win-core-winrt-l1-1-0")
-HRESULT RoActivateInstance(ptrdiff_t activatableClassId, IInspectable* instance);
+HRESULT RoActivateInstance(HSTRING activatableClassId, IInspectable* instance);
 
 ///Registers an array out-of-process activation factories for a Windows Runtime exe server.
 ///Params:
@@ -893,8 +854,8 @@ HRESULT RoActivateInstance(ptrdiff_t activatableClassId, IInspectable* instance)
 ///    The class is not registered as OutOfProc. </td> </tr> </table>
 ///    
 @DllImport("api-ms-win-core-winrt-l1-1-0")
-HRESULT RoRegisterActivationFactories(char* activatableClassIds, char* activationFactoryCallbacks, uint count, 
-                                      ptrdiff_t* cookie);
+HRESULT RoRegisterActivationFactories(HSTRING* activatableClassIds, ptrdiff_t* activationFactoryCallbacks, 
+                                      uint count, ptrdiff_t* cookie);
 
 ///Removes an array of registered activation factories from the Windows Runtime.
 ///Params:
@@ -908,7 +869,7 @@ void RoRevokeActivationFactories(ptrdiff_t cookie);
 ///    iid = Type: <b>REFIID</b> The reference ID of the interface.
 ///    factory = Type: <b>void**</b> The activation factory.
 @DllImport("api-ms-win-core-winrt-l1-1-0")
-HRESULT RoGetActivationFactory(ptrdiff_t activatableClassId, const(GUID)* iid, void** factory);
+HRESULT RoGetActivationFactory(HSTRING activatableClassId, const(GUID)* iid, void** factory);
 
 ///Registers an IApartmentShutdown callback to be invoked when the current apartment shuts down.
 ///Params:
@@ -992,7 +953,7 @@ HRESULT RoSetErrorReportingFlags(uint flags);
 ///    <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> The reference is invalid. </td> </tr> </table>
 ///    
 @DllImport("api-ms-win-core-winrt-error-l1-1-0")
-HRESULT RoResolveRestrictedErrorInfoReference(const(wchar)* reference, IRestrictedErrorInfo* ppRestrictedErrorInfo);
+HRESULT RoResolveRestrictedErrorInfoReference(const(PWSTR) reference, IRestrictedErrorInfo* ppRestrictedErrorInfo);
 
 ///Sets the restricted error information object for the current thread.
 ///Params:
@@ -1040,7 +1001,7 @@ HRESULT GetRestrictedErrorInfo(IRestrictedErrorInfo* ppRestrictedErrorInfo);
 ///    to an empty string, or <i>error</i> is a success code. </td> </tr> </table>
 ///    
 @DllImport("api-ms-win-core-winrt-error-l1-1-0")
-BOOL RoOriginateErrorW(HRESULT error, uint cchMax, const(wchar)* message);
+BOOL RoOriginateErrorW(HRESULT error, uint cchMax, const(PWSTR) message);
 
 ///Reports an error and an informative string to an attached debugger.
 ///Params:
@@ -1061,7 +1022,7 @@ BOOL RoOriginateErrorW(HRESULT error, uint cchMax, const(wchar)* message);
 ///    to an empty string, or <i>error</i> is a success code. </td> </tr> </table>
 ///    
 @DllImport("api-ms-win-core-winrt-error-l1-1-0")
-BOOL RoOriginateError(HRESULT error, ptrdiff_t message);
+BOOL RoOriginateError(HRESULT error, HSTRING message);
 
 ///Reports a transformed error and an informative string to an attached debugger.
 ///Params:
@@ -1086,7 +1047,7 @@ BOOL RoOriginateError(HRESULT error, ptrdiff_t message);
 ///    </table>
 ///    
 @DllImport("api-ms-win-core-winrt-error-l1-1-0")
-BOOL RoTransformErrorW(HRESULT oldError, HRESULT newError, uint cchMax, const(wchar)* message);
+BOOL RoTransformErrorW(HRESULT oldError, HRESULT newError, uint cchMax, const(PWSTR) message);
 
 ///Reports a modified error and an informative string to an attached debugger.
 ///Params:
@@ -1109,7 +1070,7 @@ BOOL RoTransformErrorW(HRESULT oldError, HRESULT newError, uint cchMax, const(wc
 ///    </table>
 ///    
 @DllImport("api-ms-win-core-winrt-error-l1-1-0")
-BOOL RoTransformError(HRESULT oldError, HRESULT newError, ptrdiff_t message);
+BOOL RoTransformError(HRESULT oldError, HRESULT newError, HSTRING message);
 
 ///Saves the current error context so that it's available for later calls to the RoFailFastWithErrorContext function.
 ///Params:
@@ -1148,7 +1109,7 @@ void RoFailFastWithErrorContext(HRESULT hrError);
 ///    <i>error</i> is a success code. </td> </tr> </table>
 ///    
 @DllImport("api-ms-win-core-winrt-error-l1-1-1")
-BOOL RoOriginateLanguageException(HRESULT error, ptrdiff_t message, IUnknown languageException);
+BOOL RoOriginateLanguageException(HRESULT error, HSTRING message, IUnknown languageException);
 
 ///Removes existing error information from the current thread environment block (TEB).
 @DllImport("api-ms-win-core-winrt-error-l1-1-1")
@@ -1258,7 +1219,7 @@ HRESULT MetaDataGetDispenser(const(GUID)* rclsid, const(GUID)* riid, void** ppv)
 ///    is inappropriate for the context in which it appears.
 ///    
 @DllImport("api-ms-win-core-winrt-roparameterizediid-l1-1-0")
-HRESULT RoGetParameterizedTypeInstanceIID(uint nameElementCount, char* nameElements, 
+HRESULT RoGetParameterizedTypeInstanceIID(uint nameElementCount, PWSTR* nameElements, 
                                           const(IRoMetaDataLocator) metaDataLocator, GUID* iid, ptrdiff_t* pExtra);
 
 ///Frees the handle allocated by RoGetParameterizedTypeInstanceIID.
@@ -1272,7 +1233,7 @@ void RoFreeParameterizedTypeExtra(ptrdiff_t extra);
 ///Params:
 ///    extra = Type: <b>ROPARAMIIDHANDLE</b> A handle to the IID.
 @DllImport("api-ms-win-core-winrt-roparameterizediid-l1-1-0")
-byte* RoParameterizedTypeExtraGetTypeSignature(ptrdiff_t extra);
+PSTR RoParameterizedTypeExtraGetTypeSignature(ptrdiff_t extra);
 
 ///Retrieves the activatable classes that are registered for a given executable (EXE) server, which was registered under
 ///the package ID of the calling process.
@@ -1293,7 +1254,7 @@ byte* RoParameterizedTypeExtraGetTypeSignature(ptrdiff_t extra);
 ///    read this server’s registration. </td> </tr> </table>
 ///    
 @DllImport("api-ms-win-core-winrt-registration-l1-1-0")
-HRESULT RoGetServerActivatableClasses(ptrdiff_t serverName, ptrdiff_t** activatableClassIds, uint* count);
+HRESULT RoGetServerActivatableClasses(HSTRING serverName, HSTRING** activatableClassIds, uint* count);
 
 ///Creates a Windows Runtime random access stream for a file.
 ///Params:
@@ -1307,7 +1268,7 @@ HRESULT RoGetServerActivatableClasses(ptrdiff_t serverName, ptrdiff_t** activata
 ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("api-ms-win-shcore-stream-winrt-l1-1-0")
-HRESULT CreateRandomAccessStreamOnFile(const(wchar)* filePath, uint accessMode, const(GUID)* riid, void** ppv);
+HRESULT CreateRandomAccessStreamOnFile(const(PWSTR) filePath, uint accessMode, const(GUID)* riid, void** ppv);
 
 ///Creates a Windows Runtime random access stream around an IStream base implementation.
 ///Params:
@@ -1374,7 +1335,7 @@ interface IInspectable : IUnknown
     ///    HSTRING was created successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl>
     ///    </td> <td width="60%"> Failed to allocate <i>iids</i>. </td> </tr> </table>
     ///    
-    HRESULT GetIids(uint* iidCount, char* iids);
+    HRESULT GetIids(uint* iidCount, GUID** iids);
     ///Gets the fully qualified name of the current Windows Runtime object.
     ///Params:
     ///    className = Type: <b>HSTRING*</b> The fully qualified name of the current Windows Runtime object.
@@ -1386,7 +1347,7 @@ interface IInspectable : IUnknown
     ///    </tr> <tr> <td width="40%"> <dl> <dt><b>E_ILLEGAL_METHOD_CALL</b></dt> </dl> </td> <td width="60%">
     ///    <i>className</i> refers to a class factory or a static interface. </td> </tr> </table>
     ///    
-    HRESULT GetRuntimeClassName(ptrdiff_t* className);
+    HRESULT GetRuntimeClassName(HSTRING* className);
     ///Gets the trust level of the current Windows Runtime object.
     ///Params:
     ///    trustLevel = Type: <b>TrustLevel*</b> The trust level of the current Windows Runtime object. The default is
@@ -1414,14 +1375,14 @@ interface IAppServiceConnectionExtendedExecution : IUnknown
 @GUID("152B8A3B-B9B9-4685-B56E-974847BC7545")
 interface ICorrelationVectorSource : IUnknown
 {
-    HRESULT get_CorrelationVector(ptrdiff_t* cv);
+    HRESULT get_CorrelationVector(HSTRING* cv);
 }
 
 @GUID("C79A6CB7-BEBD-47A6-A2AD-4D45AD79C7BC")
 interface ICastingEventHandler : IUnknown
 {
     HRESULT OnStateChanged(CASTING_CONNECTION_STATE newState);
-    HRESULT OnError(CASTING_CONNECTION_ERROR_STATUS errorStatus, const(wchar)* errorMessage);
+    HRESULT OnError(CASTING_CONNECTION_ERROR_STATUS errorStatus, const(PWSTR) errorMessage);
 }
 
 @GUID("F0A56423-A664-4FBD-8B43-409A45E8D9A1")
@@ -1526,9 +1487,9 @@ interface IPrintManagerInterop : IInspectable
 @GUID("83C78B3C-D88B-4950-AA6E-22B8D22AABD3")
 interface ICorrelationVectorInformation : IInspectable
 {
-    HRESULT get_LastCorrelationVectorForThread(ptrdiff_t* cv);
-    HRESULT get_NextCorrelationVectorForThread(ptrdiff_t* cv);
-    HRESULT put_NextCorrelationVectorForThread(ptrdiff_t cv);
+    HRESULT get_LastCorrelationVectorForThread(HSTRING* cv);
+    HRESULT get_NextCorrelationVectorForThread(HSTRING* cv);
+    HRESULT put_NextCorrelationVectorForThread(HSTRING cv);
 }
 
 @GUID("3694DBF9-8F68-44BE-8FF5-195C98EDE8A6")
@@ -1546,7 +1507,7 @@ interface IUserActivityInterop : IInspectable
 @GUID("C15DF8BC-8844-487A-B85B-7578E0F61419")
 interface IUserActivitySourceHostInterop : IInspectable
 {
-    HRESULT SetActivitySourceHost(ptrdiff_t activitySourceHost);
+    HRESULT SetActivitySourceHost(HSTRING activitySourceHost);
 }
 
 @GUID("DD69F876-9699-4715-9095-E37EA30DFA1B")
@@ -1558,7 +1519,7 @@ interface IUserActivityRequestManagerInterop : IInspectable
 @GUID("39E050C3-4E74-441A-8DC0-B81104DF949C")
 interface IUserConsentVerifierInterop : IInspectable
 {
-    HRESULT RequestVerificationForWindowAsync(HWND appWindow, ptrdiff_t message, const(GUID)* riid, 
+    HRESULT RequestVerificationForWindowAsync(HWND appWindow, HSTRING message, const(GUID)* riid, 
                                               void** asyncOperation);
 }
 
@@ -1671,7 +1632,7 @@ interface IDisplayDeviceInterop : IUnknown
     ///    point to the newly created handle.
     ///    
     HRESULT CreateSharedHandle(IInspectable pObject, const(SECURITY_ATTRIBUTES)* pSecurityAttributes, uint Access, 
-                               ptrdiff_t Name, HANDLE* pHandle);
+                               HSTRING Name, HANDLE* pHandle);
     ///Opens a handle for shared primary surfaces, shared fences, and source presentation handles.
     ///Params:
     ///    NTHandle = Type: **[HANDLE](/windows/win32/winprog/windows-data-types)** An NT handle for a shared primary surface,
@@ -1738,7 +1699,7 @@ interface IGraphicsCaptureItemInterop : IUnknown
     ///Returns:
     ///    Type: **HRESULT** The return error code.
     ///    
-    HRESULT CreateForMonitor(ptrdiff_t monitor, const(GUID)* riid, void** result);
+    HRESULT CreateForMonitor(HMONITOR monitor, const(GUID)* riid, void** result);
 }
 
 ///IDirect3DDxgiInterfaceAccess is a COM interface, which must be implemented by anything that implements
@@ -1823,7 +1784,7 @@ interface IVirtualSurfaceImageSourceNative : ISurfaceImageSourceNative
 {
     HRESULT Invalidate(RECT updateRect);
     HRESULT GetUpdateRectCount(uint* count);
-    HRESULT GetUpdateRects(char* updates, uint count);
+    HRESULT GetUpdateRects(RECT* updates, uint count);
     HRESULT GetVisibleBounds(RECT* bounds);
     HRESULT RegisterForUpdatesNeeded(IVirtualSurfaceUpdatesCallbackNative callback);
     HRESULT Resize(int newWidth, int newHeight);
@@ -1948,88 +1909,6 @@ interface IDesktopWindowTargetInterop : IUnknown
     HRESULT get_Hwnd(HWND* value);
 }
 
-@GUID("624CD4E1-D007-43B1-9C03-AF4D3E6258C4")
-interface IBindableVectorChangedEventHandler : IUnknown
-{
-    HRESULT Invoke(IBindableObservableVector vector, IInspectable e);
-}
-
-@GUID("CA10B37C-F382-4591-8557-5E24965279B0")
-interface INotifyCollectionChangedEventHandler : IUnknown
-{
-    HRESULT Invoke(IInspectable sender, INotifyCollectionChangedEventArgs e);
-}
-
-@GUID("036D2C08-DF29-41AF-8AA2-D774BE62BA6F")
-interface IBindableIterable : IInspectable
-{
-    HRESULT First(IBindableIterator* result);
-}
-
-@GUID("6A1D6C07-076D-49F2-8314-F52C9C9A8331")
-interface IBindableIterator : IInspectable
-{
-    HRESULT get_Current(IInspectable* value);
-    HRESULT get_HasCurrent(ubyte* value);
-    HRESULT MoveNext(ubyte* result);
-}
-
-@GUID("FE1EB536-7E7F-4F90-AC9A-474984AAE512")
-interface IBindableObservableVector : IInspectable
-{
-    HRESULT add_VectorChanged(IBindableVectorChangedEventHandler handler, EventRegistrationToken* token);
-    HRESULT remove_VectorChanged(EventRegistrationToken token);
-}
-
-@GUID("393DE7DE-6FD0-4C0D-BB71-47244A113E93")
-interface IBindableVector : IInspectable
-{
-    HRESULT GetAt(uint index, IInspectable* result);
-    HRESULT get_Size(uint* value);
-    HRESULT GetView(IBindableVectorView* result);
-    HRESULT IndexOf(IInspectable value, uint* index, ubyte* returnValue);
-    HRESULT SetAt(uint index, IInspectable value);
-    HRESULT InsertAt(uint index, IInspectable value);
-    HRESULT RemoveAt(uint index);
-    HRESULT Append(IInspectable value);
-    HRESULT RemoveAtEnd();
-    HRESULT Clear();
-}
-
-@GUID("346DD6E7-976E-4BC3-815D-ECE243BC0F33")
-interface IBindableVectorView : IInspectable
-{
-    HRESULT GetAt(uint index, IInspectable* result);
-    HRESULT get_Size(uint* value);
-    HRESULT IndexOf(IInspectable value, uint* index, ubyte* returnValue);
-}
-
-@GUID("28B167D5-1A31-465B-9B25-D5C3AE686C40")
-interface INotifyCollectionChanged : IInspectable
-{
-    HRESULT add_CollectionChanged(INotifyCollectionChangedEventHandler handler, EventRegistrationToken* token);
-    HRESULT remove_CollectionChanged(EventRegistrationToken token);
-}
-
-@GUID("4CF68D33-E3F2-4964-B85E-945B4F7E2F21")
-interface INotifyCollectionChangedEventArgs : IInspectable
-{
-    HRESULT get_Action(NotifyCollectionChangedAction* value);
-    HRESULT get_NewItems(IBindableVector* value);
-    HRESULT get_OldItems(IBindableVector* value);
-    HRESULT get_NewStartingIndex(int* value);
-    HRESULT get_OldStartingIndex(int* value);
-}
-
-@GUID("B30C3E3A-DF8D-44A5-9A38-7AC0D08CE63D")
-interface INotifyCollectionChangedEventArgsFactory : IInspectable
-{
-    HRESULT CreateInstanceWithAllParameters(NotifyCollectionChangedAction action, IBindableVector newItems, 
-                                            IBindableVector oldItems, int newIndex, int oldIndex, 
-                                            IInspectable baseInterface, IInspectable* innerInterface, 
-                                            INotifyCollectionChangedEventArgs* value);
-}
-
 ///Represents the details of an error, including restricted error information.
 @GUID("82BA7092-4C88-427D-A7BC-16DD93FEB67E")
 interface IRestrictedErrorInfo : IUnknown
@@ -2045,7 +1924,7 @@ interface IRestrictedErrorInfo : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetErrorDetails(BSTR* description, int* error, BSTR* restrictedDescription, BSTR* capabilitySid);
+    HRESULT GetErrorDetails(BSTR* description, HRESULT* error, BSTR* restrictedDescription, BSTR* capabilitySid);
     ///Returns a reference to restricted error information.
     ///Params:
     ///    reference = Type: <b>BSTR*</b> A reference to the error information.
@@ -2099,7 +1978,7 @@ interface ILanguageExceptionStackBackTrace : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetStackBackTrace(uint maxFramesToCapture, char* stackBackTrace, uint* framesCaptured);
+    HRESULT GetStackBackTrace(uint maxFramesToCapture, size_t* stackBackTrace, uint* framesCaptured);
 }
 
 ///Enables language projections to provide and retrieve error information as with ILanguageExceptionErrorInfo, with the
@@ -2154,16 +2033,16 @@ interface IRoSimpleMetaDataBuilder
 {
     HRESULT SetWinRtInterface(GUID iid);
     HRESULT SetDelegate(GUID iid);
-    HRESULT SetInterfaceGroupSimpleDefault(const(wchar)* name, const(wchar)* defaultInterfaceName, 
+    HRESULT SetInterfaceGroupSimpleDefault(const(PWSTR) name, const(PWSTR) defaultInterfaceName, 
                                            const(GUID)* defaultInterfaceIID);
-    HRESULT SetInterfaceGroupParameterizedDefault(const(wchar)* name, uint elementCount, 
-                                                  char* defaultInterfaceNameElements);
-    HRESULT SetRuntimeClassSimpleDefault(const(wchar)* name, const(wchar)* defaultInterfaceName, 
+    HRESULT SetInterfaceGroupParameterizedDefault(const(PWSTR) name, uint elementCount, 
+                                                  PWSTR* defaultInterfaceNameElements);
+    HRESULT SetRuntimeClassSimpleDefault(const(PWSTR) name, const(PWSTR) defaultInterfaceName, 
                                          const(GUID)* defaultInterfaceIID);
-    HRESULT SetRuntimeClassParameterizedDefault(const(wchar)* name, uint elementCount, 
-                                                char* defaultInterfaceNameElements);
-    HRESULT SetStruct(const(wchar)* name, uint numFields, char* fieldTypeNames);
-    HRESULT SetEnum(const(wchar)* name, const(wchar)* baseType);
+    HRESULT SetRuntimeClassParameterizedDefault(const(PWSTR) name, uint elementCount, 
+                                                const(PWSTR)* defaultInterfaceNameElements);
+    HRESULT SetStruct(const(PWSTR) name, uint numFields, const(PWSTR)* fieldTypeNames);
+    HRESULT SetEnum(const(PWSTR) name, const(PWSTR) baseType);
     HRESULT SetParameterizedInterface(GUID piid, uint numArgs);
     HRESULT SetParameterizedDelegate(GUID piid, uint numArgs);
 }
@@ -2173,73 +2052,63 @@ interface IRoSimpleMetaDataBuilder
 ///platform APIs by using Windows metadata (.winmd) files.
 interface IRoMetaDataLocator
 {
-    HRESULT Locate(const(wchar)* nameElement, IRoSimpleMetaDataBuilder metaDataDestination);
+    HRESULT Locate(const(PWSTR) nameElement, IRoSimpleMetaDataBuilder metaDataDestination);
 }
 
 
 // GUIDs
 
 
-const GUID IID_IAccountsSettingsPaneInterop             = GUIDOF!IAccountsSettingsPaneInterop;
-const GUID IID_IAgileReference                          = GUIDOF!IAgileReference;
-const GUID IID_IApartmentShutdown                       = GUIDOF!IApartmentShutdown;
-const GUID IID_IAppServiceConnectionExtendedExecution   = GUIDOF!IAppServiceConnectionExtendedExecution;
-const GUID IID_IAudioFrameNative                        = GUIDOF!IAudioFrameNative;
-const GUID IID_IAudioFrameNativeFactory                 = GUIDOF!IAudioFrameNativeFactory;
-const GUID IID_IBindableIterable                        = GUIDOF!IBindableIterable;
-const GUID IID_IBindableIterator                        = GUIDOF!IBindableIterator;
-const GUID IID_IBindableObservableVector                = GUIDOF!IBindableObservableVector;
-const GUID IID_IBindableVector                          = GUIDOF!IBindableVector;
-const GUID IID_IBindableVectorChangedEventHandler       = GUIDOF!IBindableVectorChangedEventHandler;
-const GUID IID_IBindableVectorView                      = GUIDOF!IBindableVectorView;
-const GUID IID_IBufferByteAccess                        = GUIDOF!IBufferByteAccess;
-const GUID IID_ICastingController                       = GUIDOF!ICastingController;
-const GUID IID_ICastingEventHandler                     = GUIDOF!ICastingEventHandler;
-const GUID IID_ICastingSourceInfo                       = GUIDOF!ICastingSourceInfo;
-const GUID IID_ICompositionDrawingSurfaceInterop        = GUIDOF!ICompositionDrawingSurfaceInterop;
-const GUID IID_ICompositionDrawingSurfaceInterop2       = GUIDOF!ICompositionDrawingSurfaceInterop2;
-const GUID IID_ICompositionGraphicsDeviceInterop        = GUIDOF!ICompositionGraphicsDeviceInterop;
-const GUID IID_ICorrelationVectorInformation            = GUIDOF!ICorrelationVectorInformation;
-const GUID IID_ICorrelationVectorSource                 = GUIDOF!ICorrelationVectorSource;
-const GUID IID_IDesktopWindowTargetInterop              = GUIDOF!IDesktopWindowTargetInterop;
-const GUID IID_IDirect3DDxgiInterfaceAccess             = GUIDOF!IDirect3DDxgiInterfaceAccess;
-const GUID IID_IDisplayDeviceInterop                    = GUIDOF!IDisplayDeviceInterop;
-const GUID IID_IDisplayPathInterop                      = GUIDOF!IDisplayPathInterop;
-const GUID IID_IDragDropManagerInterop                  = GUIDOF!IDragDropManagerInterop;
-const GUID IID_IGeometrySource2DInterop                 = GUIDOF!IGeometrySource2DInterop;
-const GUID IID_IGraphicsCaptureItemInterop              = GUIDOF!IGraphicsCaptureItemInterop;
-const GUID IID_IInputPaneInterop                        = GUIDOF!IInputPaneInterop;
-const GUID IID_IInspectable                             = GUIDOF!IInspectable;
-const GUID IID_ILanguageExceptionErrorInfo              = GUIDOF!ILanguageExceptionErrorInfo;
-const GUID IID_ILanguageExceptionErrorInfo2             = GUIDOF!ILanguageExceptionErrorInfo2;
-const GUID IID_ILanguageExceptionStackBackTrace         = GUIDOF!ILanguageExceptionStackBackTrace;
-const GUID IID_ILanguageExceptionTransform              = GUIDOF!ILanguageExceptionTransform;
-const GUID IID_INotifyCollectionChanged                 = GUIDOF!INotifyCollectionChanged;
-const GUID IID_INotifyCollectionChangedEventArgs        = GUIDOF!INotifyCollectionChangedEventArgs;
-const GUID IID_INotifyCollectionChangedEventArgsFactory = GUIDOF!INotifyCollectionChangedEventArgsFactory;
-const GUID IID_INotifyCollectionChangedEventHandler     = GUIDOF!INotifyCollectionChangedEventHandler;
-const GUID IID_IPdfRendererNative                       = GUIDOF!IPdfRendererNative;
-const GUID IID_IPlayToManagerInterop                    = GUIDOF!IPlayToManagerInterop;
-const GUID IID_IPrintManagerInterop                     = GUIDOF!IPrintManagerInterop;
-const GUID IID_IPrinting3DManagerInterop                = GUIDOF!IPrinting3DManagerInterop;
-const GUID IID_IRestrictedErrorInfo                     = GUIDOF!IRestrictedErrorInfo;
-const GUID IID_ISoftwareBitmapNative                    = GUIDOF!ISoftwareBitmapNative;
-const GUID IID_ISoftwareBitmapNativeFactory             = GUIDOF!ISoftwareBitmapNativeFactory;
-const GUID IID_ISurfaceImageSourceManagerNative         = GUIDOF!ISurfaceImageSourceManagerNative;
-const GUID IID_ISurfaceImageSourceNative                = GUIDOF!ISurfaceImageSourceNative;
-const GUID IID_ISurfaceImageSourceNativeWithD2D         = GUIDOF!ISurfaceImageSourceNativeWithD2D;
-const GUID IID_ISwapChainBackgroundPanelNative          = GUIDOF!ISwapChainBackgroundPanelNative;
-const GUID IID_ISwapChainInterop                        = GUIDOF!ISwapChainInterop;
-const GUID IID_ISwapChainPanelNative                    = GUIDOF!ISwapChainPanelNative;
-const GUID IID_ISwapChainPanelNative2                   = GUIDOF!ISwapChainPanelNative2;
-const GUID IID_IUIViewSettingsInterop                   = GUIDOF!IUIViewSettingsInterop;
-const GUID IID_IUserActivityInterop                     = GUIDOF!IUserActivityInterop;
-const GUID IID_IUserActivityRequestManagerInterop       = GUIDOF!IUserActivityRequestManagerInterop;
-const GUID IID_IUserActivitySourceHostInterop           = GUIDOF!IUserActivitySourceHostInterop;
-const GUID IID_IUserConsentVerifierInterop              = GUIDOF!IUserConsentVerifierInterop;
-const GUID IID_IVideoFrameNative                        = GUIDOF!IVideoFrameNative;
-const GUID IID_IVideoFrameNativeFactory                 = GUIDOF!IVideoFrameNativeFactory;
-const GUID IID_IVirtualSurfaceImageSourceNative         = GUIDOF!IVirtualSurfaceImageSourceNative;
-const GUID IID_IVirtualSurfaceUpdatesCallbackNative     = GUIDOF!IVirtualSurfaceUpdatesCallbackNative;
-const GUID IID_IVisualInteractionSourceInterop          = GUIDOF!IVisualInteractionSourceInterop;
-const GUID IID_IWebAuthenticationCoreManagerInterop     = GUIDOF!IWebAuthenticationCoreManagerInterop;
+const GUID IID_IAccountsSettingsPaneInterop           = GUIDOF!IAccountsSettingsPaneInterop;
+const GUID IID_IAgileReference                        = GUIDOF!IAgileReference;
+const GUID IID_IApartmentShutdown                     = GUIDOF!IApartmentShutdown;
+const GUID IID_IAppServiceConnectionExtendedExecution = GUIDOF!IAppServiceConnectionExtendedExecution;
+const GUID IID_IAudioFrameNative                      = GUIDOF!IAudioFrameNative;
+const GUID IID_IAudioFrameNativeFactory               = GUIDOF!IAudioFrameNativeFactory;
+const GUID IID_IBufferByteAccess                      = GUIDOF!IBufferByteAccess;
+const GUID IID_ICastingController                     = GUIDOF!ICastingController;
+const GUID IID_ICastingEventHandler                   = GUIDOF!ICastingEventHandler;
+const GUID IID_ICastingSourceInfo                     = GUIDOF!ICastingSourceInfo;
+const GUID IID_ICompositionDrawingSurfaceInterop      = GUIDOF!ICompositionDrawingSurfaceInterop;
+const GUID IID_ICompositionDrawingSurfaceInterop2     = GUIDOF!ICompositionDrawingSurfaceInterop2;
+const GUID IID_ICompositionGraphicsDeviceInterop      = GUIDOF!ICompositionGraphicsDeviceInterop;
+const GUID IID_ICorrelationVectorInformation          = GUIDOF!ICorrelationVectorInformation;
+const GUID IID_ICorrelationVectorSource               = GUIDOF!ICorrelationVectorSource;
+const GUID IID_IDesktopWindowTargetInterop            = GUIDOF!IDesktopWindowTargetInterop;
+const GUID IID_IDirect3DDxgiInterfaceAccess           = GUIDOF!IDirect3DDxgiInterfaceAccess;
+const GUID IID_IDisplayDeviceInterop                  = GUIDOF!IDisplayDeviceInterop;
+const GUID IID_IDisplayPathInterop                    = GUIDOF!IDisplayPathInterop;
+const GUID IID_IDragDropManagerInterop                = GUIDOF!IDragDropManagerInterop;
+const GUID IID_IGeometrySource2DInterop               = GUIDOF!IGeometrySource2DInterop;
+const GUID IID_IGraphicsCaptureItemInterop            = GUIDOF!IGraphicsCaptureItemInterop;
+const GUID IID_IInputPaneInterop                      = GUIDOF!IInputPaneInterop;
+const GUID IID_IInspectable                           = GUIDOF!IInspectable;
+const GUID IID_ILanguageExceptionErrorInfo            = GUIDOF!ILanguageExceptionErrorInfo;
+const GUID IID_ILanguageExceptionErrorInfo2           = GUIDOF!ILanguageExceptionErrorInfo2;
+const GUID IID_ILanguageExceptionStackBackTrace       = GUIDOF!ILanguageExceptionStackBackTrace;
+const GUID IID_ILanguageExceptionTransform            = GUIDOF!ILanguageExceptionTransform;
+const GUID IID_IPdfRendererNative                     = GUIDOF!IPdfRendererNative;
+const GUID IID_IPlayToManagerInterop                  = GUIDOF!IPlayToManagerInterop;
+const GUID IID_IPrintManagerInterop                   = GUIDOF!IPrintManagerInterop;
+const GUID IID_IPrinting3DManagerInterop              = GUIDOF!IPrinting3DManagerInterop;
+const GUID IID_IRestrictedErrorInfo                   = GUIDOF!IRestrictedErrorInfo;
+const GUID IID_ISoftwareBitmapNative                  = GUIDOF!ISoftwareBitmapNative;
+const GUID IID_ISoftwareBitmapNativeFactory           = GUIDOF!ISoftwareBitmapNativeFactory;
+const GUID IID_ISurfaceImageSourceManagerNative       = GUIDOF!ISurfaceImageSourceManagerNative;
+const GUID IID_ISurfaceImageSourceNative              = GUIDOF!ISurfaceImageSourceNative;
+const GUID IID_ISurfaceImageSourceNativeWithD2D       = GUIDOF!ISurfaceImageSourceNativeWithD2D;
+const GUID IID_ISwapChainBackgroundPanelNative        = GUIDOF!ISwapChainBackgroundPanelNative;
+const GUID IID_ISwapChainInterop                      = GUIDOF!ISwapChainInterop;
+const GUID IID_ISwapChainPanelNative                  = GUIDOF!ISwapChainPanelNative;
+const GUID IID_ISwapChainPanelNative2                 = GUIDOF!ISwapChainPanelNative2;
+const GUID IID_IUIViewSettingsInterop                 = GUIDOF!IUIViewSettingsInterop;
+const GUID IID_IUserActivityInterop                   = GUIDOF!IUserActivityInterop;
+const GUID IID_IUserActivityRequestManagerInterop     = GUIDOF!IUserActivityRequestManagerInterop;
+const GUID IID_IUserActivitySourceHostInterop         = GUIDOF!IUserActivitySourceHostInterop;
+const GUID IID_IUserConsentVerifierInterop            = GUIDOF!IUserConsentVerifierInterop;
+const GUID IID_IVideoFrameNative                      = GUIDOF!IVideoFrameNative;
+const GUID IID_IVideoFrameNativeFactory               = GUIDOF!IVideoFrameNativeFactory;
+const GUID IID_IVirtualSurfaceImageSourceNative       = GUIDOF!IVirtualSurfaceImageSourceNative;
+const GUID IID_IVirtualSurfaceUpdatesCallbackNative   = GUIDOF!IVirtualSurfaceUpdatesCallbackNative;
+const GUID IID_IVisualInteractionSourceInterop        = GUIDOF!IVisualInteractionSourceInterop;
+const GUID IID_IWebAuthenticationCoreManagerInterop   = GUIDOF!IWebAuthenticationCoreManagerInterop;

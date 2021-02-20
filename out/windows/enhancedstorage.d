@@ -4,10 +4,10 @@ module windows.enhancedstorage;
 
 public import windows.core;
 public import windows.com : HRESULT, IUnknown;
-public import windows.systemservices : BOOL;
+public import windows.systemservices : BOOL, PWSTR;
 public import windows.windowsportabledevices : IPortableDevice;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -171,7 +171,7 @@ interface IEnumEnhancedStorageACT : IUnknown
     ///    <td width="40%"> <dl> <dt><b>HRESULT_FROM_WIN32(ERROR_INVALID_FUNCTION)</b></dt> </dl> </td> <td width="60%">
     ///    Enhanced storage is not supported on the device containing <i>szVolume</i>. </td> </tr> </table>
     ///    
-    HRESULT GetMatchingACT(const(wchar)* szVolume, IEnhancedStorageACT* ppIEnhancedStorageACT);
+    HRESULT GetMatchingACT(const(PWSTR) szVolume, IEnhancedStorageACT* ppIEnhancedStorageACT);
 }
 
 ///Use this interface to obtain information and perform operations for an 1667 Addressable Contact Target (ACT).
@@ -218,7 +218,7 @@ interface IEnhancedStorageACT : IUnknown
     ///    <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The associated volume was
     ///    successfully returned. </td> </tr> </table>
     ///    
-    HRESULT GetMatchingVolume(ushort** ppwszVolume);
+    HRESULT GetMatchingVolume(PWSTR* ppwszVolume);
     ///Retrieves the unique identity of the Addressable Command Targer (ACT).
     ///Params:
     ///    ppwszIdentity = Pointer to a string that represents the unique identity of the ACT.
@@ -228,7 +228,7 @@ interface IEnhancedStorageACT : IUnknown
     ///    successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td
     ///    width="60%"> <i>ppwszIdentity</i> is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetUniqueIdentity(ushort** ppwszIdentity);
+    HRESULT GetUniqueIdentity(PWSTR* ppwszIdentity);
     ///Returns an enumeration of all silos associated with the Addressable Command Target (ACT).
     ///Params:
     ///    pppIEnhancedStorageSilos = Returns an array of one or more IEnhancedStorageSilo interface pointers associated with the ACT.
@@ -261,7 +261,7 @@ interface IEnhancedStorageACT2 : IEnhancedStorageACT
     ///    <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td width="60%"> The operation failed due to insufficient memory
     ///    allocation. </td> </tr> </table>
     ///    
-    HRESULT GetDeviceName(ushort** ppwszDeviceName);
+    HRESULT GetDeviceName(PWSTR* ppwszDeviceName);
     ///The <b>IEnhancedStorageACT2::IsDeviceRemovable</b> method returns information that indicates if the device
     ///associated with the ACT is removable.
     ///Params:
@@ -272,15 +272,15 @@ interface IEnhancedStorageACT2 : IEnhancedStorageACT
     ///    successfully retrieved. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td
     ///    width="60%"> <i>pIsDeviceRemovable</i> is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT IsDeviceRemovable(int* pIsDeviceRemovable);
+    HRESULT IsDeviceRemovable(BOOL* pIsDeviceRemovable);
 }
 
 @GUID("022150A1-113D-11DF-BB61-001AA01BBC58")
 interface IEnhancedStorageACT3 : IEnhancedStorageACT2
 {
     HRESULT UnauthorizeEx(uint dwFlags);
-    HRESULT IsQueueFrozen(int* pIsQueueFrozen);
-    HRESULT GetShellExtSupport(int* pShellExtSupport);
+    HRESULT IsQueueFrozen(BOOL* pIsQueueFrozen);
+    HRESULT GetShellExtSupport(BOOL* pShellExtSupport);
 }
 
 ///The <b>IEnhancedStorageSilo</b> interface is the point of access for an IEEE 1667 silo and is used to obtain
@@ -352,7 +352,7 @@ interface IEnhancedStorageSilo : IUnknown
     ///    successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td
     ///    width="60%"> <i>ppwszSiloDevicePath</i> is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetDevicePath(ushort** ppwszSiloDevicePath);
+    HRESULT GetDevicePath(PWSTR* ppwszSiloDevicePath);
 }
 
 ///Use this interface as a point of access for actions involving IEEE 1667 silos.
@@ -368,7 +368,7 @@ interface IEnhancedStorageSiloAction : IUnknown
     ///    successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td
     ///    width="60%"> The <i>ppwszActionName</i> parameter is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetName(ushort** ppwszActionName);
+    HRESULT GetName(PWSTR* ppwszActionName);
     ///Returns a descriptive string for the action specified by the IEnhancedStorageSiloAction object.
     ///Params:
     ///    ppwszActionDescription = Pointer to a string that describes the silo action.
@@ -378,7 +378,7 @@ interface IEnhancedStorageSiloAction : IUnknown
     ///    successfully. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td
     ///    width="60%"> The <i>ppwszDescription</i> parameter is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetDescription(ushort** ppwszActionDescription);
+    HRESULT GetDescription(PWSTR* ppwszActionDescription);
     ///Performs the action specified by an IEnhancedStorageSiloAction object.
     ///Returns:
     ///    This method can return one of these values. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr>

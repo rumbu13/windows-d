@@ -6,11 +6,11 @@ public import windows.core;
 public import windows.kernel : COMPARTMENT_ID, LUID;
 public import windows.security : ACL, SEC_WINNT_AUTH_IDENTITY_W, SID,
                                  SID_AND_ATTRIBUTES;
-public import windows.systemservices : BOOL, HANDLE;
+public import windows.systemservices : BOOL, HANDLE, PSTR, PWSTR;
 public import windows.winsock : SCOPE_ID, in6_addr, in_addr;
 public import windows.windowsprogramming : FILETIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -1064,7 +1064,7 @@ alias IPSEC_SA_CONTEXT_CALLBACK0 = void function(void* context, const(IPSEC_SA_C
 ///    willDictateKey = Type: <b>BOOL*</b> True if the TIA will dictate the keys; otherwise, false.
 ///    weight = Type: <b>UINT32*</b> Specifies the weight that this TIA should be given compared to any peers.
 alias IPSEC_KEY_MANAGER_KEY_DICTATION_CHECK0 = void function(const(IKEEXT_TRAFFIC0)* ikeTraffic, 
-                                                             int* willDictateKey, uint* weight);
+                                                             BOOL* willDictateKey, uint* weight);
 ///The <b>IPSEC_KEY_MANAGER_DICTATE_KEY0</b> function is used by the Trusted Intermediary Agent (TIA) to dictate keys
 ///for the SA being negotiated.
 ///Params:
@@ -1083,7 +1083,7 @@ alias IPSEC_KEY_MANAGER_KEY_DICTATION_CHECK0 = void function(const(IKEEXT_TRAFFI
 ///    width="60%"> Failure to communicate with the remote or local firewall engine. </td> </tr> </table>
 ///    
 alias IPSEC_KEY_MANAGER_DICTATE_KEY0 = uint function(IPSEC_SA_DETAILS1* inboundSaDetails, 
-                                                     IPSEC_SA_DETAILS1* outboundSaDetails, int* keyingModuleGenKey);
+                                                     IPSEC_SA_DETAILS1* outboundSaDetails, BOOL* keyingModuleGenKey);
 ///The IPSEC_KEY_MANAGER_NOTIFY_KEY0 function is used to notify Trusted Intermediary Agents (TIAs) of the keys for the
 ///SA being negotiated.
 ///Params:
@@ -1203,7 +1203,7 @@ struct FWP_VALUE0
     ///The type of data for this value. See [FWP_DATA_TYPE](/windows/desktop/api/fwptypes/ne-fwptypes-fwp_data_type) for
     ///more information.
     FWP_DATA_TYPE type;
-    union
+union
     {
         ubyte                uint8;
         ushort               uint16;
@@ -1221,7 +1221,7 @@ struct FWP_VALUE0
         FWP_BYTE_BLOB*       sd;
         FWP_TOKEN_INFORMATION* tokenInformation;
         FWP_BYTE_BLOB*       tokenAccessInformation;
-        const(wchar)*        unicodeString;
+        PWSTR                unicodeString;
         FWP_BYTE_ARRAY6*     byteArray6;
         FWP_BITMAP_ARRAY64_* bitmapArray64;
     }
@@ -1263,7 +1263,7 @@ struct FWP_CONDITION_VALUE0
     ///Specifies the data type of the condition value. See [FWP_DATA_TYPE](ne-fwptypes-fwp_data_type.md) for more
     ///information.
     FWP_DATA_TYPE type;
-    union
+union
     {
         ubyte                uint8;
         ushort               uint16;
@@ -1281,7 +1281,7 @@ struct FWP_CONDITION_VALUE0
         FWP_BYTE_BLOB*       sd;
         FWP_TOKEN_INFORMATION* tokenInformation;
         FWP_BYTE_BLOB*       tokenAccessInformation;
-        const(wchar)*        unicodeString;
+        PWSTR                unicodeString;
         FWP_BYTE_ARRAY6*     byteArray6;
         FWP_BITMAP_ARRAY64_* bitmapArray64;
         FWP_V4_ADDR_AND_MASK* v4AddrMask;
@@ -1294,9 +1294,9 @@ struct FWP_CONDITION_VALUE0
 struct FWPM_DISPLAY_DATA0
 {
     ///Optional friendly name.
-    ushort* name;
+    PWSTR name;
     ///Optional description.
-    ushort* description;
+    PWSTR description;
 }
 
 ///The <b>IPSEC_VIRTUAL_IF_TUNNEL_INFO0</b> structure is used to store information specific to virtual interface
@@ -1391,9 +1391,9 @@ struct IKEEXT_CERTIFICATE_AUTHENTICATION0
     ///[IKEEXT_CERT_CONFIG_TYPE](/windows/desktop/api/iketypes/ne-iketypes-ikeext_cert_config_type) for more
     ///information.
     IKEEXT_CERT_CONFIG_TYPE inboundConfigType;
-    union
+union
     {
-        struct
+struct
         {
             uint inboundRootArraySize;
             IKEEXT_CERT_ROOT_CONFIG0* inboundRootArray;
@@ -1405,9 +1405,9 @@ struct IKEEXT_CERTIFICATE_AUTHENTICATION0
     ///[IKEEXT_CERT_CONFIG_TYPE](/windows/desktop/api/iketypes/ne-iketypes-ikeext_cert_config_type) for more
     ///information.
     IKEEXT_CERT_CONFIG_TYPE outboundConfigType;
-    union
+union
     {
-        struct
+struct
         {
             uint outboundRootArraySize;
             IKEEXT_CERT_ROOT_CONFIG0* outboundRootArray;
@@ -1456,9 +1456,9 @@ struct IKEEXT_CERTIFICATE_AUTHENTICATION1
     ///[IKEEXT_CERT_CONFIG_TYPE](/windows/desktop/api/iketypes/ne-iketypes-ikeext_cert_config_type) for more
     ///information.
     IKEEXT_CERT_CONFIG_TYPE inboundConfigType;
-    union
+union
     {
-        struct
+struct
         {
             uint inboundRootArraySize;
             IKEEXT_CERT_ROOT_CONFIG0* inboundRootArray;
@@ -1470,9 +1470,9 @@ struct IKEEXT_CERTIFICATE_AUTHENTICATION1
     ///[IKEEXT_CERT_CONFIG_TYPE](/windows/desktop/api/iketypes/ne-iketypes-ikeext_cert_config_type) for more
     ///information.
     IKEEXT_CERT_CONFIG_TYPE outboundConfigType;
-    union
+union
     {
-        struct
+struct
         {
             uint outboundRootArraySize;
             IKEEXT_CERT_ROOT_CONFIG0* outboundRootArray;
@@ -1517,8 +1517,8 @@ struct IKEEXT_CERTIFICATE_AUTHENTICATION1
 struct IKEEXT_CERT_EKUS0
 {
     ///Type: <b>ULONG</b> The number of EKUs in the <b>eku</b> member.
-    uint   numEku;
-    byte** eku;
+    uint  numEku;
+    PSTR* eku;
 }
 
 ///The <b>IKEEXT_CERT_NAME0</b> structure specifies certificate selection "subject" criteria for an authentication
@@ -1530,7 +1530,7 @@ struct IKEEXT_CERT_NAME0
     ///The type of NAME field.
     IKEEXT_CERT_CRITERIA_NAME_TYPE nameType;
     ///Type: <b>LPWSTR</b> The string to be used for matching the "subject" criteria.
-    const(wchar)* certName;
+    PWSTR certName;
 }
 
 ///The <b>IKEEXT_CERTIFICATE_CRITERIA0</b> structure contains a set of criteria to applied to an authentication method.
@@ -1561,19 +1561,19 @@ struct IKEEXT_CERTIFICATE_AUTHENTICATION2
     ///Type: [IKEEXT_CERT_CONFIG_TYPE](/windows/desktop/api/iketypes/ne-iketypes-ikeext_cert_config_type)</b>
     ///Certificate configuration type for inbound peer certificate verification.
     IKEEXT_CERT_CONFIG_TYPE inboundConfigType;
-    union
+union
     {
-        struct
+struct
         {
             uint inboundRootArraySize;
             IKEEXT_CERTIFICATE_CRITERIA0* inboundRootCriteria;
         }
-        struct
+struct
         {
             uint inboundEnterpriseStoreArraySize;
             IKEEXT_CERTIFICATE_CRITERIA0* inboundEnterpriseStoreCriteria;
         }
-        struct
+struct
         {
             uint inboundRootStoreArraySize;
             IKEEXT_CERTIFICATE_CRITERIA0* inboundTrustedRootStoreCriteria;
@@ -1582,19 +1582,19 @@ struct IKEEXT_CERTIFICATE_AUTHENTICATION2
     ///Type: [IKEEXT_CERT_CONFIG_TYPE](/windows/desktop/api/iketypes/ne-iketypes-ikeext_cert_config_type)</b>
     ///Certificate configuration type for outbound local certificate verification.
     IKEEXT_CERT_CONFIG_TYPE outboundConfigType;
-    union
+union
     {
-        struct
+struct
         {
             uint outboundRootArraySize;
             IKEEXT_CERTIFICATE_CRITERIA0* outboundRootCriteria;
         }
-        struct
+struct
         {
             uint outboundEnterpriseStoreArraySize;
             IKEEXT_CERTIFICATE_CRITERIA0* outboundEnterpriseStoreCriteria;
         }
-        struct
+struct
         {
             uint outboundRootStoreArraySize;
             IKEEXT_CERTIFICATE_CRITERIA0* outboundTrustedRootStoreCriteria;
@@ -1638,10 +1638,10 @@ struct IKEEXT_IPV6_CGA_AUTHENTICATION0
 {
     ///Key container name of the public key/private key pair that was used to generate the CGA. Same semantics as the
     ///<b>pwszContainerName</b> member of the CRYPT_KEY_PROV_INFO structure.
-    ushort*          keyContainerName;
+    PWSTR            keyContainerName;
     ///Name of the CSP that stores the key container. If <b>NULL</b>, default provider will be used. Same semantics as
     ///the <b>pwszProvName</b> member of the CRYPT_KEY_PROV_INFO structure.
-    ushort*          cspName;
+    PWSTR            cspName;
     ///Type of the CSP that stores the key container. Same semantics as the <b>dwProvType</b> member of the
     ///CRYPT_KEY_PROV_INFO structure.
     uint             cspType;
@@ -1685,9 +1685,9 @@ struct IKEEXT_KERBEROS_AUTHENTICATION1
     ///id="IKEEXT_KERB_AUTH_FORCE_PROXY_ON_INITIATOR_"></a><a id="ikeext_kerb_auth_force_proxy_on_initiator_"></a><dl>
     ///<dt><b>IKEEXT_KERB_AUTH_FORCE_PROXY_ON_INITIATOR </b></dt> </dl> </td> <td width="60%"> Force the use of a
     ///Kerberos proxy server when acting as initiator. </td> </tr> </table>
-    uint    flags;
+    uint  flags;
     ///Type: <b>wchar_t*</b> The Kerberos proxy server.
-    ushort* proxyServer;
+    PWSTR proxyServer;
 }
 
 ///The <b>IKEEXT_RESERVED_AUTHENTICATION0</b> structure is reserved for internal use. Do not use.
@@ -1736,7 +1736,7 @@ struct IKEEXT_AUTHENTICATION_METHOD0
 {
     ///Type of authentication method specified by IKEEXT_AUTHENTICATION_METHOD_TYPE.
     IKEEXT_AUTHENTICATION_METHOD_TYPE authenticationMethodType;
-    union
+union
     {
         IKEEXT_PRESHARED_KEY_AUTHENTICATION0 presharedKeyAuthentication;
         IKEEXT_CERTIFICATE_AUTHENTICATION0 certificateAuthentication;
@@ -1753,7 +1753,7 @@ struct IKEEXT_AUTHENTICATION_METHOD1
 {
     ///Type of authentication method specified by IKEEXT_AUTHENTICATION_METHOD_TYPE.
     IKEEXT_AUTHENTICATION_METHOD_TYPE authenticationMethodType;
-    union
+union
     {
         IKEEXT_PRESHARED_KEY_AUTHENTICATION1 presharedKeyAuthentication;
         IKEEXT_CERTIFICATE_AUTHENTICATION1 certificateAuthentication;
@@ -1772,7 +1772,7 @@ struct IKEEXT_AUTHENTICATION_METHOD2
 {
     ///Type: <b>IKEEXT_AUTHENTICATION_METHOD_TYPE</b> Type of authentication method.
     IKEEXT_AUTHENTICATION_METHOD_TYPE authenticationMethodType;
-    union
+union
     {
         IKEEXT_PRESHARED_KEY_AUTHENTICATION1 presharedKeyAuthentication;
         IKEEXT_CERTIFICATE_AUTHENTICATION2 certificateAuthentication;
@@ -2234,12 +2234,12 @@ struct IKEEXT_TRAFFIC0
 {
     ///IP version specified by [FWP_IP_VERSION](/windows/desktop/api/fwptypes/ne-fwptypes-fwp_ip_version).
     FWP_IP_VERSION ipVersion;
-    union
+union
     {
         uint      localV4Address;
         ubyte[16] localV6Address;
     }
-    union
+union
     {
         uint      remoteV4Address;
         ubyte[16] remoteV6Address;
@@ -2278,7 +2278,7 @@ struct IKEEXT_CERTIFICATE_CREDENTIAL0
 struct IKEEXT_NAME_CREDENTIAL0
 {
     ///Name of the principal.
-    ushort* principalName;
+    PWSTR principalName;
 }
 
 ///The <b>IKEEXT_CREDENTIAL0</b> structure is used to store credential information used for the authentication.
@@ -2290,7 +2290,7 @@ struct IKEEXT_CREDENTIAL0
     IKEEXT_AUTHENTICATION_METHOD_TYPE authenticationMethodType;
     ///Type of impersonation. See IKEEXT_AUTHENTICATION_IMPERSONATION_TYPE for more information.
     IKEEXT_AUTHENTICATION_IMPERSONATION_TYPE impersonationType;
-    union
+union
     {
         IKEEXT_PRESHARED_KEY_AUTHENTICATION0* presharedKey;
         IKEEXT_CERTIFICATE_CREDENTIAL0* certificate;
@@ -2336,7 +2336,7 @@ struct IKEEXT_SA_DETAILS0
     IKEEXT_KEY_MODULE_TYPE keyModuleType;
     ///IP version specified by [FWP_IP_VERSION](/windows/desktop/api/fwptypes/ne-fwptypes-fwp_ip_version).
     FWP_IP_VERSION      ipVersion;
-    union
+union
     {
         IPSEC_V4_UDP_ENCAPSULATION0* v4UdpEncapsulation;
     }
@@ -2385,7 +2385,7 @@ struct IKEEXT_CREDENTIAL1
     IKEEXT_AUTHENTICATION_METHOD_TYPE authenticationMethodType;
     ///Type of impersonation. See IKEEXT_AUTHENTICATION_IMPERSONATION_TYPE for more information.
     IKEEXT_AUTHENTICATION_IMPERSONATION_TYPE impersonationType;
-    union
+union
     {
         IKEEXT_PRESHARED_KEY_AUTHENTICATION1* presharedKey;
         IKEEXT_CERTIFICATE_CREDENTIAL1* certificate;
@@ -2431,7 +2431,7 @@ struct IKEEXT_SA_DETAILS1
     IKEEXT_KEY_MODULE_TYPE keyModuleType;
     ///IP version specified by [FWP_IP_VERSION](/windows/desktop/api/fwptypes/ne-fwptypes-fwp_ip_version).
     FWP_IP_VERSION      ipVersion;
-    union
+union
     {
         IPSEC_V4_UDP_ENCAPSULATION0* v4UdpEncapsulation;
     }
@@ -2462,7 +2462,7 @@ struct IKEEXT_CREDENTIAL2
     IKEEXT_AUTHENTICATION_METHOD_TYPE authenticationMethodType;
     ///Type: <b>IKEEXT_AUTHENTICATION_IMPERSONATION_TYPE</b> Type of impersonation.
     IKEEXT_AUTHENTICATION_IMPERSONATION_TYPE impersonationType;
-    union
+union
     {
         IKEEXT_PRESHARED_KEY_AUTHENTICATION1* presharedKey;
         IKEEXT_CERTIFICATE_CREDENTIAL1* certificate;
@@ -2512,7 +2512,7 @@ struct IKEEXT_SA_DETAILS2
     IKEEXT_KEY_MODULE_TYPE keyModuleType;
     ///Type: [FWP_IP_VERSION](/windows/desktop/api/fwptypes/ne-fwptypes-fwp_ip_version)</b> The IP version.
     FWP_IP_VERSION      ipVersion;
-    union
+union
     {
         IPSEC_V4_UDP_ENCAPSULATION0* v4UdpEncapsulation;
     }
@@ -2728,7 +2728,7 @@ struct IPSEC_SA_TRANSFORM0
     ///Type of the SA transform. See
     ///[IPSEC_TRANSFORM_TYPE](/windows/desktop/api/ipsectypes/ne-ipsectypes-ipsec_transform_type) for more information.
     IPSEC_TRANSFORM_TYPE ipsecTransformType;
-    union
+union
     {
         IPSEC_AUTH_TRANSFORM0* ahTransform;
         IPSEC_AUTH_TRANSFORM0* espAuthTransform;
@@ -2771,12 +2771,12 @@ struct IPSEC_TRAFFIC_SELECTOR0_
     ushort         portStart;
     ushort         portEnd;
     FWP_IP_VERSION ipVersion;
-    union
+union
     {
         uint      startV4Address;
         ubyte[16] startV6Address;
     }
-    union
+union
     {
         uint      endV4Address;
         ubyte[16] endV6Address;
@@ -2940,12 +2940,12 @@ struct IPSEC_TUNNEL_ENDPOINTS0
     ///IP version of the addresses. See [FWP_IP_VERSION](/windows/desktop/api/fwptypes/ne-fwptypes-fwp_ip_version) for
     ///more information.
     FWP_IP_VERSION ipVersion;
-    union
+union
     {
         uint      localV4Address;
         ubyte[16] localV6Address;
     }
-    union
+union
     {
         uint      remoteV4Address;
         ubyte[16] remoteV6Address;
@@ -2959,7 +2959,7 @@ struct IPSEC_TUNNEL_ENDPOINT0
     ///Type: [FWP_IP_VERSION](/windows/desktop/api/fwptypes/ne-fwptypes-fwp_ip_version)</b> Specifies the IP version. In
     ///tunnel mode, this is the version of the outer header.
     FWP_IP_VERSION ipVersion;
-    union
+union
     {
         uint      v4Address;
         ubyte[16] v6Address;
@@ -2975,12 +2975,12 @@ struct IPSEC_TUNNEL_ENDPOINTS2
     ///Type: [FWP_IP_VERSION](/windows/desktop/api/fwptypes/ne-fwptypes-fwp_ip_version)</b> Specifies the IP version. In
     ///tunnel mode, this is the version of the outer header.
     FWP_IP_VERSION ipVersion;
-    union
+union
     {
         uint      localV4Address;
         ubyte[16] localV6Address;
     }
-    union
+union
     {
         uint      remoteV4Address;
         ubyte[16] remoteV6Address;
@@ -2989,7 +2989,7 @@ struct IPSEC_TUNNEL_ENDPOINTS2
     ulong          localIfLuid;
     ///Type: <b>wchar_t*</b> Configuration of multiple remote addresses and fully qualified domain names for asymmetric
     ///tunneling support.
-    ushort*        remoteFqdn;
+    PWSTR          remoteFqdn;
     ///Type: <b>UINT32</b> The number of remote tunnel addresses.
     uint           numAddresses;
     ///Type: [IPSEC_TUNNEL_ENDPOINT0](/windows/desktop/api/ipsectypes/ns-ipsectypes-ipsec_tunnel_endpoint0)*</b>
@@ -3004,12 +3004,12 @@ struct IPSEC_TUNNEL_ENDPOINTS1
     ///An [FWP_IP_VERSION](/windows/desktop/api/fwptypes/ne-fwptypes-fwp_ip_version) value that specifies the IP
     ///version. In tunnel mode, this is the version of the outer header.
     FWP_IP_VERSION ipVersion;
-    union
+union
     {
         uint      localV4Address;
         ubyte[16] localV6Address;
     }
-    union
+union
     {
         uint      remoteV4Address;
         ubyte[16] remoteV6Address;
@@ -3448,7 +3448,7 @@ struct IPSEC_SA0
     ///Transform type of the SA specifying the IPsec security protocol. See
     ///[IPSEC_TRANSFORM_TYPE](/windows/desktop/api/ipsectypes/ne-ipsectypes-ipsec_transform_type) for more information.
     IPSEC_TRANSFORM_TYPE saTransformType;
-    union
+union
     {
         IPSEC_SA_AUTH_INFORMATION0* ahInformation;
         IPSEC_SA_AUTH_INFORMATION0* espAuthInformation;
@@ -3488,9 +3488,9 @@ struct IPSEC_TOKEN0
 struct IPSEC_ID0
 {
     ///Optional main mode target service principal name (SPN). This is often the machine name.
-    ushort*       mmTargetName;
+    PWSTR         mmTargetName;
     ///Optional extended mode target SPN.
-    ushort*       emTargetName;
+    PWSTR         emTargetName;
     ///Optional. Number of [IPSEC_TOKEN0](/windows/desktop/api/ipsectypes/ns-ipsectypes-ipsec_token0) structures present
     ///in the <b>tokens</b> member.
     uint          numTokens;
@@ -3576,7 +3576,7 @@ struct IPSEC_SA_BUNDLE0
     IPSEC_KEYMODULE_STATE0* keyModuleState;
     ///IP version as specified by [FWP_IP_VERSION](/windows/desktop/api/fwptypes/ne-fwptypes-fwp_ip_version).
     FWP_IP_VERSION     ipVersion;
-    union
+union
     {
         uint peerV4PrivateAddress;
     }
@@ -3673,7 +3673,7 @@ struct IPSEC_SA_BUNDLE1
     IPSEC_KEYMODULE_STATE0* keyModuleState;
     ///IP version as specified by [FWP_IP_VERSION](/windows/desktop/api/fwptypes/ne-fwptypes-fwp_ip_version).
     FWP_IP_VERSION     ipVersion;
-    union
+union
     {
         uint peerV4PrivateAddress;
     }
@@ -3697,12 +3697,12 @@ struct IPSEC_TRAFFIC0
     ///Internet Protocol (IP) version. See [FWP_IP_VERSION](/windows/desktop/api/fwptypes/ne-fwptypes-fwp_ip_version)
     ///for more information.
     FWP_IP_VERSION     ipVersion;
-    union
+union
     {
         uint      localV4Address;
         ubyte[16] localV6Address;
     }
-    union
+union
     {
         uint      remoteV4Address;
         ubyte[16] remoteV6Address;
@@ -3710,7 +3710,7 @@ struct IPSEC_TRAFFIC0
     ///Type of IPsec traffic. See [IPSEC_TRAFFIC_TYPE](/windows/desktop/api/ipsectypes/ne-ipsectypes-ipsec_traffic_type)
     ///for more information.
     IPSEC_TRAFFIC_TYPE trafficType;
-    union
+union
     {
         ulong ipsecFilterId;
         ulong tunnelPolicyId;
@@ -3727,12 +3727,12 @@ struct IPSEC_TRAFFIC1
     ///An [FWP_IP_VERSION](/windows/desktop/api/fwptypes/ne-fwptypes-fwp_ip_version) value that specifies the IP
     ///version. In tunnel mode, this is the version of the outer header.
     FWP_IP_VERSION     ipVersion;
-    union
+union
     {
         uint      localV4Address;
         ubyte[16] localV6Address;
     }
-    union
+union
     {
         uint      remoteV4Address;
         ubyte[16] remoteV6Address;
@@ -3740,7 +3740,7 @@ struct IPSEC_TRAFFIC1
     ///Type of IPsec traffic. See [IPSEC_TRAFFIC_TYPE](/windows/desktop/api/ipsectypes/ne-ipsectypes-ipsec_traffic_type)
     ///for more information.
     IPSEC_TRAFFIC_TYPE trafficType;
-    union
+union
     {
         ulong ipsecFilterId;
         ulong tunnelPolicyId;
@@ -3781,7 +3781,7 @@ struct IPSEC_GETSPI0
     ///A [FWP_IP_VERSION](/windows/desktop/api/fwptypes/ne-fwptypes-fwp_ip_version) value that indicates the IP version
     ///of the inbound IPsec traffic.
     FWP_IP_VERSION ipVersion;
-    union
+union
     {
         IPSEC_V4_UDP_ENCAPSULATION0* inboundUdpEncapsulation;
     }
@@ -3800,7 +3800,7 @@ struct IPSEC_GETSPI1
     ///An [FWP_IP_VERSION](/windows/desktop/api/fwptypes/ne-fwptypes-fwp_ip_version) value that indicates the IP version
     ///of the inbound IPsec traffic.
     FWP_IP_VERSION ipVersion;
-    union
+union
     {
         IPSEC_V4_UDP_ENCAPSULATION0* inboundUdpEncapsulation;
     }
@@ -3825,7 +3825,7 @@ struct IPSEC_SA_DETAILS0
     ///Various parameters of the SA as specified by
     ///[IPSEC_SA_BUNDLE0](/windows/desktop/api/ipsectypes/ns-ipsectypes-ipsec_sa_bundle0).
     IPSEC_SA_BUNDLE0 saBundle;
-    union
+union
     {
         IPSEC_V4_UDP_ENCAPSULATION0* udpEncapsulation;
     }
@@ -3852,7 +3852,7 @@ struct IPSEC_SA_DETAILS1
     ///An [IPSEC_SA_BUNDLE1](/windows/desktop/api/ipsectypes/ns-ipsectypes-ipsec_sa_bundle1) structure that specifies
     ///various parameters of the SA .
     IPSEC_SA_BUNDLE1 saBundle;
-    union
+union
     {
         IPSEC_V4_UDP_ENCAPSULATION0* udpEncapsulation;
     }
@@ -4157,7 +4157,7 @@ struct FWPM_SESSION0
     ///SID of the client.
     SID*               sid;
     ///User name of the client.
-    ushort*            username;
+    PWSTR              username;
     ///TRUE if this is a kernel-mode client.
     BOOL               kernelMode;
 }
@@ -4193,7 +4193,7 @@ struct FWPM_PROVIDER0
     FWP_BYTE_BLOB      providerData;
     ///Optional name of the Windows service hosting the provider. This allows BFE to detect that a provider has been
     ///disabled.
-    ushort*            serviceName;
+    PWSTR              serviceName;
 }
 
 ///The <b>FWPM_PROVIDER_ENUM_TEMPLATE0</b> structure is used for enumerating providers.
@@ -4272,7 +4272,7 @@ struct FWPM_PROVIDER_CONTEXT0
     ///A [FWPM_PROVIDER_CONTEXT_TYPE](ne-fwpmtypes-fwpm_provider_context_type.md) value specifying the type of provider
     ///context..
     FWPM_PROVIDER_CONTEXT_TYPE type;
-    union
+union
     {
         IPSEC_KEYING_POLICY0* keyingPolicy;
         IPSEC_TRANSPORT_POLICY0* ikeQmTransportPolicy;
@@ -4312,7 +4312,7 @@ struct FWPM_PROVIDER_CONTEXT1
     ///A [FWPM_PROVIDER_CONTEXT_TYPE](ne-fwpmtypes-fwpm_provider_context_type.md) value specifying the type of provider
     ///context..
     FWPM_PROVIDER_CONTEXT_TYPE type;
-    union
+union
     {
         IPSEC_KEYING_POLICY0* keyingPolicy;
         IPSEC_TRANSPORT_POLICY1* ikeQmTransportPolicy;
@@ -4355,7 +4355,7 @@ struct FWPM_PROVIDER_CONTEXT2
     FWP_BYTE_BLOB      providerData;
     ///Type: **[FWPM_PROVIDER_CONTEXT_TYPE](ne-fwpmtypes-fwpm_provider_context_type.md)** The type of provider context.
     FWPM_PROVIDER_CONTEXT_TYPE type;
-    union
+union
     {
         IPSEC_KEYING_POLICY1* keyingPolicy;
         IPSEC_TRANSPORT_POLICY2* ikeQmTransportPolicy;
@@ -4384,7 +4384,7 @@ struct FWPM_PROVIDER_CONTEXT3_
     GUID*              providerKey;
     FWP_BYTE_BLOB      providerData;
     FWPM_PROVIDER_CONTEXT_TYPE type;
-    union
+union
     {
         IPSEC_KEYING_POLICY1* keyingPolicy;
         IPSEC_TRANSPORT_POLICY2* ikeQmTransportPolicy;
@@ -4653,7 +4653,7 @@ struct FWPM_ACTION0
     ///<dt><b>FWP_ACTION_CALLOUT_UNKNOWN</b></dt> </dl> </td> <td width="60%"> Invoke a callout that may return block or
     ///permit. 0x00000005 | FWP_ACTION_FLAG_CALLOUT </td> </tr> </table>
     uint type;
-    union
+union
     {
         GUID  filterType;
         GUID  calloutKey;
@@ -4750,7 +4750,7 @@ struct FWPM_FILTER0
     ///A [FWPM_ACTION0](/windows/desktop/api/fwpmtypes/ns-fwpmtypes-fwpm_action0) structure that specifies the action to
     ///be performed if all the filter conditions are true.
     FWPM_ACTION0       action;
-    union
+union
     {
         ulong rawContext;
         GUID  providerContextKey;
@@ -4939,12 +4939,12 @@ struct FWPM_NET_EVENT_HEADER0
     ///IP protocol specified as an IPPROTO value. See the [socket](/windows/desktop/api/winsock2/nf-winsock2-socket)
     ///reference topic for more information on possible protocol values.
     ubyte          ipProtocol;
-    union
+union
     {
         uint             localAddrV4;
         FWP_BYTE_ARRAY16 localAddrV6;
     }
-    union
+union
     {
         uint             remoteAddrV4;
         FWP_BYTE_ARRAY16 remoteAddrV6;
@@ -4984,12 +4984,12 @@ struct FWPM_NET_EVENT_HEADER1
     ///IP protocol specified as an IPPROTO value. See the [socket](../winsock2/nf-winsock2-socket.md) reference topic
     ///for more information on possible protocol values.
     ubyte          ipProtocol;
-    union
+union
     {
         uint             localAddrV4;
         FWP_BYTE_ARRAY16 localAddrV6;
     }
-    union
+union
     {
         uint             remoteAddrV4;
         FWP_BYTE_ARRAY16 remoteAddrV6;
@@ -5005,14 +5005,14 @@ struct FWPM_NET_EVENT_HEADER1
     FWP_BYTE_BLOB  appId;
     ///Contains a user ID that corresponds to the traffic.
     SID*           userId;
-    union
+union
     {
-        struct
+struct
         {
             FWP_AF reserved1;
-            union
+union
             {
-                struct
+struct
                 {
                     FWP_BYTE_ARRAY6 reserved2;
                     FWP_BYTE_ARRAY6 reserved3;
@@ -5053,12 +5053,12 @@ struct FWPM_NET_EVENT_HEADER2
     ///Type: **UINT8** The IP protocol specified as an IPPROTO value. See the
     ///[socket](../winsock2/nf-winsock2-socket.md) reference topic for more information on possible protocol values.
     ubyte          ipProtocol;
-    union
+union
     {
         uint             localAddrV4;
         FWP_BYTE_ARRAY16 localAddrV6;
     }
-    union
+union
     {
         uint             remoteAddrV4;
         FWP_BYTE_ARRAY16 remoteAddrV6;
@@ -5106,12 +5106,12 @@ struct FWPM_NET_EVENT_HEADER3
     ///The IP protocol specified as an IPPROTO value. See the [socket](../winsock2/nf-winsock2-socket.md) reference
     ///topic for more information on possible protocol values.
     ubyte          ipProtocol;
-    union
+union
     {
         uint             localAddrV4;
         FWP_BYTE_ARRAY16 localAddrV6;
     }
-    union
+union
     {
         uint             remoteAddrV4;
         FWP_BYTE_ARRAY16 remoteAddrV6;
@@ -5132,7 +5132,7 @@ struct FWPM_NET_EVENT_HEADER3
     ///intending to send or receive the network traffic.
     SID*           packageSid;
     ///The enterprise identifier for use with enterprise data protection (EDP).
-    ushort*        enterpriseId;
+    PWSTR          enterpriseId;
     ///The policy flags for EDP.
     ulong          policyFlags;
     ///The EDP remote server used for name-based policy.
@@ -5206,17 +5206,17 @@ struct FWPM_NET_EVENT_IKEEXT_MM_FAILURE1
     ///Main mode filter ID.
     ulong               mmFilterId;
     ///Name of the MM local security principal.
-    ushort*             localPrincipalNameForAuth;
+    PWSTR               localPrincipalNameForAuth;
     ///Name of the MM remote security principal.
-    ushort*             remotePrincipalNameForAuth;
+    PWSTR               remotePrincipalNameForAuth;
     ///Number of groups in the local security principal's token.
     uint                numLocalPrincipalGroupSids;
     ///Groups in the local security principal's token.
-    ushort**            localPrincipalGroupSids;
+    PWSTR*              localPrincipalGroupSids;
     ///Number of groups in the remote security principal's token.
     uint                numRemotePrincipalGroupSids;
     ///Groups in the remote security principal's token.
-    ushort**            remotePrincipalGroupSids;
+    PWSTR*              remotePrincipalGroupSids;
 }
 
 struct FWPM_NET_EVENT_IKEEXT_MM_FAILURE2_
@@ -5231,12 +5231,12 @@ struct FWPM_NET_EVENT_IKEEXT_MM_FAILURE2_
     ubyte[20]           endCertHash;
     ulong               mmId;
     ulong               mmFilterId;
-    ushort*             localPrincipalNameForAuth;
-    ushort*             remotePrincipalNameForAuth;
+    PWSTR               localPrincipalNameForAuth;
+    PWSTR               remotePrincipalNameForAuth;
     uint                numLocalPrincipalGroupSids;
-    ushort**            localPrincipalGroupSids;
+    PWSTR*              localPrincipalGroupSids;
     uint                numRemotePrincipalGroupSids;
-    ushort**            remotePrincipalGroupSids;
+    PWSTR*              remotePrincipalGroupSids;
     GUID*               providerContextKey;
 }
 
@@ -5261,11 +5261,11 @@ struct FWPM_NET_EVENT_IKEEXT_QM_FAILURE0
     ///An [IPSEC_TRAFFIC_TYPE](/windows/desktop/api/ipsectypes/ne-ipsectypes-ipsec_traffic_type) value that specifies
     ///the type of traffic.
     IPSEC_TRAFFIC_TYPE  saTrafficType;
-    union
+union
     {
         FWP_CONDITION_VALUE0 localSubNet;
     }
-    union
+union
     {
         FWP_CONDITION_VALUE0 remoteSubNet;
     }
@@ -5281,11 +5281,11 @@ struct FWPM_NET_EVENT_IKEEXT_QM_FAILURE1_
     IKEEXT_QM_SA_STATE  qmState;
     IKEEXT_SA_ROLE      saRole;
     IPSEC_TRAFFIC_TYPE  saTrafficType;
-    union
+union
     {
         FWP_CONDITION_VALUE0 localSubNet;
     }
-    union
+union
     {
         FWP_CONDITION_VALUE0 remoteSubNet;
     }
@@ -5356,17 +5356,17 @@ struct FWPM_NET_EVENT_IKEEXT_EM_FAILURE1
     ///Quick Mode (QM) filter ID associated with this failure.
     ulong               qmFilterId;
     ///Name of the EM local security principal.
-    ushort*             localPrincipalNameForAuth;
+    PWSTR               localPrincipalNameForAuth;
     ///Name of the EM remote security principal.
-    ushort*             remotePrincipalNameForAuth;
+    PWSTR               remotePrincipalNameForAuth;
     ///Number of groups in the local security principal's token.
     uint                numLocalPrincipalGroupSids;
     ///Groups in the local security principal's token.
-    ushort**            localPrincipalGroupSids;
+    PWSTR*              localPrincipalGroupSids;
     ///Number of groups in the remote security principal's token.
     uint                numRemotePrincipalGroupSids;
     ///Groups in the remote security principal's token.
-    ushort**            remotePrincipalGroupSids;
+    PWSTR*              remotePrincipalGroupSids;
     ///Type of traffic for which the embedded quick mode was being negotiated.
     IPSEC_TRAFFIC_TYPE  saTrafficType;
 }
@@ -5542,12 +5542,12 @@ struct FWPM_NET_EVENT_IPSEC_DOSP_DROP0
     ///Internet Protocol (IP) version. See [FWP_IP_VERSION](/windows/desktop/api/fwptypes/ne-fwptypes-fwp_ip_version)
     ///for more information.
     FWP_IP_VERSION ipVersion;
-    union
+union
     {
         uint      publicHostV4Addr;
         ubyte[16] publicHostV6Addr;
     }
-    union
+union
     {
         uint      internalHostV4Addr;
         ubyte[16] internalHostV6Addr;
@@ -5603,7 +5603,7 @@ struct FWPM_NET_EVENT0
     FWPM_NET_EVENT_HEADER0 header;
     ///A [FWPM_NET_EVENT_TYPE](ne-fwpmtypes-fwpm_net_event_type.md) value that specifies the type of event.
     FWPM_NET_EVENT_TYPE type;
-    union
+union
     {
         FWPM_NET_EVENT_IKEEXT_MM_FAILURE0* ikeMmFailure;
         FWPM_NET_EVENT_IKEEXT_QM_FAILURE0* ikeQmFailure;
@@ -5623,7 +5623,7 @@ struct FWPM_NET_EVENT1
     FWPM_NET_EVENT_HEADER1 header;
     ///An [FWPM_NET_EVENT_TYPE](ne-fwpmtypes-fwpm_net_event_type.md) value that specifies the type of event.
     FWPM_NET_EVENT_TYPE type;
-    union
+union
     {
         FWPM_NET_EVENT_IKEEXT_MM_FAILURE1* ikeMmFailure;
         FWPM_NET_EVENT_IKEEXT_QM_FAILURE0* ikeQmFailure;
@@ -5642,7 +5642,7 @@ struct FWPM_NET_EVENT2
     FWPM_NET_EVENT_HEADER2 header;
     ///Type: **[FWPM_NET_EVENT_TYPE](ne-fwpmtypes-fwpm_net_event_type.md)** The type of event.
     FWPM_NET_EVENT_TYPE type;
-    union
+union
     {
         FWPM_NET_EVENT_IKEEXT_MM_FAILURE1* ikeMmFailure;
         FWPM_NET_EVENT_IKEEXT_QM_FAILURE0* ikeQmFailure;
@@ -5667,7 +5667,7 @@ struct FWPM_NET_EVENT3
     FWPM_NET_EVENT_HEADER3 header;
     ///The type of event.
     FWPM_NET_EVENT_TYPE type;
-    union
+union
     {
         FWPM_NET_EVENT_IKEEXT_MM_FAILURE1* ikeMmFailure;
         FWPM_NET_EVENT_IKEEXT_QM_FAILURE0* ikeQmFailure;
@@ -5686,7 +5686,7 @@ struct FWPM_NET_EVENT4_
 {
     FWPM_NET_EVENT_HEADER3 header;
     FWPM_NET_EVENT_TYPE type;
-    union
+union
     {
         FWPM_NET_EVENT_IKEEXT_MM_FAILURE2_* ikeMmFailure;
         FWPM_NET_EVENT_IKEEXT_QM_FAILURE1_* ikeQmFailure;
@@ -5705,7 +5705,7 @@ struct FWPM_NET_EVENT5_
 {
     FWPM_NET_EVENT_HEADER3 header;
     FWPM_NET_EVENT_TYPE type;
-    union
+union
     {
         FWPM_NET_EVENT_IKEEXT_MM_FAILURE2_* ikeMmFailure;
         FWPM_NET_EVENT_IKEEXT_QM_FAILURE1_* ikeQmFailure;
@@ -5803,12 +5803,12 @@ struct FWPM_CONNECTION0
     ulong              connectionId;
     ///Type: [FWP_IP_VERSION](/windows/desktop/api/fwptypes/ne-fwptypes-fwp_ip_version)</b> The IP version being used.
     FWP_IP_VERSION     ipVersion;
-    union
+union
     {
         uint      localV4Address;
         ubyte[16] localV6Address;
     }
-    union
+union
     {
         uint      remoteV4Address;
         ubyte[16] remoteV6Address;
@@ -5867,19 +5867,19 @@ struct FWPM_VSWITCH_EVENT0
     ///of vSwitch event.
     FWPM_VSWITCH_EVENT_TYPE eventType;
     ///Type: <b>wchar_t*</b> GUID that identifies a vSwitch.
-    ushort* vSwitchId;
-    union
+    PWSTR vSwitchId;
+union
     {
-        struct positionInfo
+struct positionInfo
         {
-            uint     numvSwitchFilterExtensions;
-            ushort** vSwitchFilterExtensions;
+            uint   numvSwitchFilterExtensions;
+            PWSTR* vSwitchFilterExtensions;
         }
-        struct reorderInfo
+struct reorderInfo
         {
-            BOOL     inRequiredPosition;
-            uint     numvSwitchFilterExtensions;
-            ushort** vSwitchFilterExtensions;
+            BOOL   inRequiredPosition;
+            uint   numvSwitchFilterExtensions;
+            PWSTR* vSwitchFilterExtensions;
         }
     }
 }
@@ -5915,7 +5915,7 @@ struct IPSEC_KEY_MANAGER_CALLBACKS0
 union DL_OUI
 {
     ubyte[3] Byte;
-    struct
+struct
     {
         ubyte _bitfield207;
     }
@@ -5929,7 +5929,7 @@ union DL_EI48
 union DL_EUI48
 {
     ubyte[6] Byte;
-    struct
+struct
     {
         DL_OUI  Oui;
         DL_EI48 Ei48;
@@ -5945,13 +5945,13 @@ union DL_EUI64
 {
     ubyte[8] Byte;
     ulong    Value;
-    struct
+struct
     {
         DL_OUI Oui;
-        union
+union
         {
             DL_EI64 Ei64;
-            struct
+struct
             {
                 ubyte   Type;
                 ubyte   Tse;
@@ -5974,7 +5974,7 @@ struct ETHERNET_HEADER
 {
     DL_EUI48 Destination;
     DL_EUI48 Source;
-    union
+union
     {
         ushort Type;
         ushort Length;
@@ -5983,10 +5983,10 @@ struct ETHERNET_HEADER
 
 struct VLAN_TAG
 {
-    union
+union
     {
         ushort Tag;
-        struct
+struct
         {
             ushort _bitfield208;
         }
@@ -6004,7 +6004,7 @@ struct ICMP_HEADER
 struct ICMP_MESSAGE
 {
     ICMP_HEADER Header;
-    union Data
+union Data
     {
         uint[1]   Data32;
         ushort[2] Data16;
@@ -6014,28 +6014,28 @@ struct ICMP_MESSAGE
 
 struct IPV4_HEADER
 {
-    union
+union
     {
         ubyte VersionAndHeaderLength;
-        struct
+struct
         {
             ubyte _bitfield209;
         }
     }
-    union
+union
     {
         ubyte TypeOfServiceAndEcnField;
-        struct
+struct
         {
             ubyte _bitfield210;
         }
     }
     ushort  TotalLength;
     ushort  Identification;
-    union
+union
     {
         ushort FlagsAndOffset;
-        struct
+struct
         {
             ushort _bitfield211;
         }
@@ -6049,10 +6049,10 @@ struct IPV4_HEADER
 
 struct IPV4_OPTION_HEADER
 {
-    union
+union
     {
         ubyte OptionType;
-        struct
+struct
         {
             ubyte _bitfield212;
         }
@@ -6064,10 +6064,10 @@ struct IPV4_TIMESTAMP_OPTION
 {
     IPV4_OPTION_HEADER OptionHeader;
     ubyte              Pointer;
-    union
+union
     {
         ubyte FlagsOverflow;
-        struct
+struct
         {
             ubyte _bitfield213;
         }
@@ -6122,15 +6122,15 @@ struct ARP_HEADER
 
 struct IGMP_HEADER
 {
-    union
+union
     {
-        struct
+struct
         {
             ubyte _bitfield214;
         }
         ubyte VersionType;
     }
-    union
+union
     {
         ubyte Reserved;
         ubyte MaxRespTime;
@@ -6143,10 +6143,10 @@ struct IGMP_HEADER
 struct IGMPV3_QUERY_HEADER
 {
     ubyte   Type;
-    union
+union
     {
         ubyte MaxRespCode;
-        struct
+struct
         {
             ubyte _bitfield215;
         }
@@ -6154,10 +6154,10 @@ struct IGMPV3_QUERY_HEADER
     ushort  Checksum;
     in_addr MulticastAddress;
     ubyte   _bitfield216;
-    union
+union
     {
         ubyte QueriersQueryInterfaceCode;
-        struct
+struct
         {
             ubyte _bitfield217;
         }
@@ -6184,10 +6184,10 @@ struct IGMPV3_REPORT_HEADER
 
 struct IPV6_HEADER
 {
-    union
+union
     {
         uint VersionClassFlow;
-        struct
+struct
         {
             uint _bitfield218;
         }
@@ -6203,9 +6203,9 @@ struct IPV6_FRAGMENT_HEADER
 {
     ubyte NextHeader;
     ubyte Reserved;
-    union
+union
     {
-        struct
+struct
         {
             ushort _bitfield219;
         }
@@ -6261,7 +6261,7 @@ struct nd_router_advert
 
 union IPV6_ROUTER_ADVERTISEMENT_FLAGS
 {
-    struct
+struct
     {
         ubyte _bitfield220;
     }
@@ -6282,7 +6282,7 @@ struct nd_neighbor_advert
 
 union IPV6_NEIGHBOR_ADVERTISEMENT_FLAGS
 {
-    struct
+struct
     {
         ubyte    _bitfield221;
         ubyte[3] Reserved2;
@@ -6308,20 +6308,20 @@ struct nd_opt_prefix_info
     ubyte    nd_opt_pi_type;
     ubyte    nd_opt_pi_len;
     ubyte    nd_opt_pi_prefix_len;
-    union
+union
     {
         ubyte nd_opt_pi_flags_reserved;
-        struct Flags
+struct Flags
         {
             ubyte _bitfield222;
         }
     }
     uint     nd_opt_pi_valid_time;
     uint     nd_opt_pi_preferred_time;
-    union
+union
     {
         uint nd_opt_pi_reserved2;
-        struct
+struct
         {
             ubyte[3] nd_opt_pi_reserved3;
             ubyte    nd_opt_pi_site_prefix_len;
@@ -6351,10 +6351,10 @@ struct nd_opt_route_info
     ubyte    nd_opt_ri_type;
     ubyte    nd_opt_ri_len;
     ubyte    nd_opt_ri_prefix_len;
-    union
+union
     {
         ubyte nd_opt_ri_flags_reserved;
-        struct Flags
+struct Flags
         {
             ubyte _bitfield223;
         }
@@ -6390,10 +6390,10 @@ struct MLD_HEADER
 struct MLDV2_QUERY_HEADER
 {
     ICMP_HEADER IcmpHeader;
-    union
+union
     {
         ushort MaxRespCode;
-        struct
+struct
         {
             ushort _bitfield224;
         }
@@ -6401,10 +6401,10 @@ struct MLDV2_QUERY_HEADER
     ushort      Reserved;
     in6_addr    MulticastAddress;
     ubyte       _bitfield225;
-    union
+union
     {
         ubyte QueriersQueryInterfaceCode;
-        struct
+struct
         {
             ubyte _bitfield226;
         }
@@ -6466,7 +6466,7 @@ struct tcp_opt_sack
 {
     ubyte Kind;
     ubyte Length;
-    struct Block
+struct Block
     {
     align (1):
         uint Left;
@@ -6506,11 +6506,11 @@ struct DL_TUNNEL_ADDRESS
 struct DL_TEREDO_ADDRESS
 {
     ubyte[6] Reserved;
-    union
+union
     {
     align (1):
         DL_EUI64 Eui64;
-        struct
+struct
         {
         align (1):
             ushort  Flags;
@@ -6523,11 +6523,11 @@ struct DL_TEREDO_ADDRESS
 struct DL_TEREDO_ADDRESS_PRV
 {
     ubyte[6] Reserved;
-    union
+union
     {
     align (1):
         DL_EUI64 Eui64;
-        struct
+struct
         {
         align (1):
             ushort   Flags;
@@ -6551,7 +6551,7 @@ struct NPI_MODULEID
 {
     ushort            Length;
     NPI_MODULEID_TYPE Type;
-    union
+union
     {
         GUID Guid;
         LUID IfLuid;
@@ -6589,7 +6589,7 @@ void FwpmFreeMemory0(void** p);
 ///    communicate with the remote or local firewall engine. </td> </tr> </table>
 ///    
 @DllImport("fwpuclnt")
-uint FwpmEngineOpen0(const(ushort)* serverName, uint authnService, SEC_WINNT_AUTH_IDENTITY_W* authIdentity, 
+uint FwpmEngineOpen0(const(PWSTR) serverName, uint authnService, SEC_WINNT_AUTH_IDENTITY_W* authIdentity, 
                      const(FWPM_SESSION0)* session, HANDLE* engineHandle);
 
 ///The <b>FwpmEngineClose0</b> function closes a session to a filter engine.
@@ -8507,7 +8507,7 @@ uint FwpmFilterSubscriptionsGet0(HANDLE engineHandle, FWPM_FILTER_SUBSCRIPTION0*
 ///    firewall engine. </td> </tr> </table>
 ///    
 @DllImport("fwpuclnt")
-uint FwpmGetAppIdFromFileName0(const(wchar)* fileName, FWP_BYTE_BLOB** appId);
+uint FwpmGetAppIdFromFileName0(const(PWSTR) fileName, FWP_BYTE_BLOB** appId);
 
 @DllImport("fwpuclnt")
 uint FwpmBitmapIndexGet0(HANDLE engineHandle, const(GUID)* fieldId, ubyte* idx);
@@ -8549,7 +8549,7 @@ uint FwpmBitmapIndexFree0(HANDLE engineHandle, const(GUID)* fieldId, ubyte* idx)
 @DllImport("fwpuclnt")
 uint FwpmIPsecTunnelAdd0(HANDLE engineHandle, uint flags, const(FWPM_PROVIDER_CONTEXT0)* mainModePolicy, 
                          const(FWPM_PROVIDER_CONTEXT0)* tunnelPolicy, uint numFilterConditions, 
-                         char* filterConditions, void* sd);
+                         const(FWPM_FILTER_CONDITION0)* filterConditions, void* sd);
 
 ///The <b>FwpmIPsecTunnelAdd1</b> function adds a new Internet Protocol Security (IPsec) tunnel mode policy to the
 ///system. <div class="alert"><b>Note</b> <b>FwpmIPsecTunnelAdd1</b> is the specific implementation of
@@ -8591,7 +8591,7 @@ uint FwpmIPsecTunnelAdd0(HANDLE engineHandle, uint flags, const(FWPM_PROVIDER_CO
 @DllImport("fwpuclnt")
 uint FwpmIPsecTunnelAdd1(HANDLE engineHandle, uint flags, const(FWPM_PROVIDER_CONTEXT1)* mainModePolicy, 
                          const(FWPM_PROVIDER_CONTEXT1)* tunnelPolicy, uint numFilterConditions, 
-                         char* filterConditions, const(GUID)* keyModKey, void* sd);
+                         const(FWPM_FILTER_CONDITION0)* filterConditions, const(GUID)* keyModKey, void* sd);
 
 ///The <b>FwpmIPsecTunnelAdd2</b> function adds a new Internet Protocol Security (IPsec) tunnel mode policy to the
 ///system. <div class="alert"><b>Note</b> <b>FwpmIPsecTunnelAdd2</b> is the specific implementation of
@@ -8633,12 +8633,12 @@ uint FwpmIPsecTunnelAdd1(HANDLE engineHandle, uint flags, const(FWPM_PROVIDER_CO
 @DllImport("fwpuclnt")
 uint FwpmIPsecTunnelAdd2(HANDLE engineHandle, uint flags, const(FWPM_PROVIDER_CONTEXT2)* mainModePolicy, 
                          const(FWPM_PROVIDER_CONTEXT2)* tunnelPolicy, uint numFilterConditions, 
-                         char* filterConditions, const(GUID)* keyModKey, void* sd);
+                         const(FWPM_FILTER_CONDITION0)* filterConditions, const(GUID)* keyModKey, void* sd);
 
 @DllImport("fwpuclnt")
 uint FwpmIPsecTunnelAdd3(HANDLE engineHandle, uint flags, const(FWPM_PROVIDER_CONTEXT3_)* mainModePolicy, 
                          const(FWPM_PROVIDER_CONTEXT3_)* tunnelPolicy, uint numFilterConditions, 
-                         char* filterConditions, const(GUID)* keyModKey, void* sd);
+                         const(FWPM_FILTER_CONDITION0)* filterConditions, const(GUID)* keyModKey, void* sd);
 
 ///The <b>FwpmIPsecTunnelDeleteByKey0</b> function removes an Internet Protocol Security (IPsec) tunnel mode policy from
 ///the system.

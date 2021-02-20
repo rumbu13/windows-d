@@ -7,7 +7,7 @@ public import windows.com : HRESULT, IUnknown;
 public import windows.directcomposition : IDCompositionAnimation;
 public import windows.systemservices : BOOL;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -166,13 +166,33 @@ enum : int
 // Structs
 
 
-///Defines a keyframe, which represents a time offset within a storyboard.
-struct __MIDL___MIDL_itf_UIAnimation_0000_0002_0003
+struct UI_ANIMATION_KEYFRAME
 {
-    int _;
+    ptrdiff_t Value;
 }
 
 // Interfaces
+
+@GUID("4C1FC63A-695C-47E8-A339-1A194BE3D0B8")
+struct UIAnimationManager;
+
+@GUID("D25D8842-8884-4A4A-B321-091314379BDD")
+struct UIAnimationManager2;
+
+@GUID("1D6322AD-AA85-4EF5-A828-86D71067D145")
+struct UIAnimationTransitionLibrary;
+
+@GUID("812F944A-C5C8-4CD9-B0A6-B3DA802F228D")
+struct UIAnimationTransitionLibrary2;
+
+@GUID("8A9B1CDD-FCD7-419C-8B44-42FD17DB1887")
+struct UIAnimationTransitionFactory;
+
+@GUID("84302F97-7F7B-4040-B190-72AC9D18E420")
+struct UIAnimationTransitionFactory2;
+
+@GUID("BFCD4A0C-06B6-4384-B768-0DAA792C380E")
+struct UIAnimationTimer;
 
 ///Defines the animation manager, which provides a central interface for creating and managing animations.
 @GUID("9169896C-AC8D-4E7D-94E5-67FA4DC2F2E8")
@@ -499,8 +519,8 @@ interface IUIAnimationStoryboard : IUnknown
     ///    If the method succeeds, it returns S_OK. Otherwise, it returns an <b>HRESULT</b> error code. See Windows
     ///    Animation Error Codes for a list of error codes.
     ///    
-    HRESULT AddKeyframeAtOffset(__MIDL___MIDL_itf_UIAnimation_0000_0002_0003* existingKeyframe, double offset, 
-                                __MIDL___MIDL_itf_UIAnimation_0000_0002_0003** keyframe);
+    HRESULT AddKeyframeAtOffset(UI_ANIMATION_KEYFRAME existingKeyframe, double offset, 
+                                UI_ANIMATION_KEYFRAME* keyframe);
     ///Adds a keyframe at the end of the specified transition.
     ///Params:
     ///    transition = The transition after which a keyframe is to be added.
@@ -511,8 +531,7 @@ interface IUIAnimationStoryboard : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>UI_E_TRANSITION_NOT_IN_STORYBOARD</b></dt> </dl> </td> <td width="60%"> The
     ///    transition has not been added to the storyboard. </td> </tr> </table>
     ///    
-    HRESULT AddKeyframeAfterTransition(IUIAnimationTransition transition, 
-                                       __MIDL___MIDL_itf_UIAnimation_0000_0002_0003** keyframe);
+    HRESULT AddKeyframeAfterTransition(IUIAnimationTransition transition, UI_ANIMATION_KEYFRAME* keyframe);
     ///Adds a transition that starts at the specified keyframe.
     ///Params:
     ///    variable = The animation variable for which a transition is to be added.
@@ -528,7 +547,7 @@ interface IUIAnimationStoryboard : IUnknown
     ///    </td> </tr> </table>
     ///    
     HRESULT AddTransitionAtKeyframe(IUIAnimationVariable variable, IUIAnimationTransition transition, 
-                                    __MIDL___MIDL_itf_UIAnimation_0000_0002_0003* startKeyframe);
+                                    UI_ANIMATION_KEYFRAME startKeyframe);
     ///Adds a transition between two keyframes.
     ///Params:
     ///    variable = The animation variable for which the transition is to be added.
@@ -547,8 +566,7 @@ interface IUIAnimationStoryboard : IUnknown
     ///    width="60%"> The start keyframe might occur after the end keyframe. </td> </tr> </table>
     ///    
     HRESULT AddTransitionBetweenKeyframes(IUIAnimationVariable variable, IUIAnimationTransition transition, 
-                                          __MIDL___MIDL_itf_UIAnimation_0000_0002_0003* startKeyframe, 
-                                          __MIDL___MIDL_itf_UIAnimation_0000_0002_0003* endKeyframe);
+                                          UI_ANIMATION_KEYFRAME startKeyframe, UI_ANIMATION_KEYFRAME endKeyframe);
     ///Creates a loop between two specified keyframes.
     ///Params:
     ///    startKeyframe = The keyframe at which the loop is to begin.
@@ -567,8 +585,8 @@ interface IUIAnimationStoryboard : IUnknown
     ///    <dt><b>UI_E_LOOPS_OVERLAP</b></dt> </dl> </td> <td width="60%"> Two repeated portions of a storyboard might
     ///    overlap. </td> </tr> </table>
     ///    
-    HRESULT RepeatBetweenKeyframes(__MIDL___MIDL_itf_UIAnimation_0000_0002_0003* startKeyframe, 
-                                   __MIDL___MIDL_itf_UIAnimation_0000_0002_0003* endKeyframe, int repetitionCount);
+    HRESULT RepeatBetweenKeyframes(UI_ANIMATION_KEYFRAME startKeyframe, UI_ANIMATION_KEYFRAME endKeyframe, 
+                                   int repetitionCount);
     ///Directs the storyboard to hold the specified animation variable at its final value until the storyboard ends.
     ///Params:
     ///    variable = The animation variable.
@@ -1187,7 +1205,8 @@ interface IUIAnimationManager2 : IUnknown
     ///    If this method succeeds, it returns S_OK. Otherwise, it returns an <b>HRESULT</b> error code. See Windows
     ///    Animation Error Codes for a list of error codes.
     ///    
-    HRESULT CreateAnimationVectorVariable(char* initialValue, uint cDimension, IUIAnimationVariable2* variable);
+    HRESULT CreateAnimationVectorVariable(const(double)* initialValue, uint cDimension, 
+                                          IUIAnimationVariable2* variable);
     ///Creates a new animation variable.
     ///Params:
     ///    initialValue = The initial value for the animation variable.
@@ -1386,7 +1405,7 @@ interface IUIAnimationVariable2 : IUnknown
     ///    If this method succeeds, it returns S_OK. Otherwise, it returns an <b>HRESULT</b> error code. See Windows
     ///    Animation Error Codes for a list of error codes.
     ///    
-    HRESULT GetVectorValue(char* value, uint cDimension);
+    HRESULT GetVectorValue(double* value, uint cDimension);
     ///Gets the animation curve of the animation variable.
     ///Params:
     ///    animation = The object that generates a sequence of animation curve primitives.
@@ -1403,7 +1422,7 @@ interface IUIAnimationVariable2 : IUnknown
     ///    If this method succeeds, it returns S_OK. Otherwise, it returns an <b>HRESULT</b> error code. See Windows
     ///    Animation Error Codes for a list of error codes.
     ///    
-    HRESULT GetVectorCurve(char* animation, uint cDimension);
+    HRESULT GetVectorCurve(IDCompositionAnimation* animation, uint cDimension);
     ///Gets the final value of the animation variable. This is the value after all currently scheduled animations have
     ///completed.
     ///Params:
@@ -1422,7 +1441,7 @@ interface IUIAnimationVariable2 : IUnknown
     ///    If this method succeeds, it returns S_OK. Otherwise, it returns an <b>HRESULT</b> error code. See Windows
     ///    Animation Error Codes for a list of error codes.
     ///    
-    HRESULT GetFinalVectorValue(char* finalValue, uint cDimension);
+    HRESULT GetFinalVectorValue(double* finalValue, uint cDimension);
     ///Gets the previous value of the animation variable. This is the value of the animation variable before the most
     ///recent update.
     ///Params:
@@ -1441,7 +1460,7 @@ interface IUIAnimationVariable2 : IUnknown
     ///    If this method succeeds, it returns S_OK. Otherwise, it returns an <b>HRESULT</b> error code. See Windows
     ///    Animation Error Codes for a list of error codes.
     ///    
-    HRESULT GetPreviousVectorValue(char* previousValue, uint cDimension);
+    HRESULT GetPreviousVectorValue(double* previousValue, uint cDimension);
     ///Gets the integer value of the animation variable.
     ///Params:
     ///    value = The value of the animation variable as an integer.
@@ -1458,7 +1477,7 @@ interface IUIAnimationVariable2 : IUnknown
     ///    If this method succeeds, it returns S_OK. Otherwise, it returns an <b>HRESULT</b> error code. See Windows
     ///    Animation Error Codes for a list of error codes.
     ///    
-    HRESULT GetIntegerVectorValue(char* value, uint cDimension);
+    HRESULT GetIntegerVectorValue(int* value, uint cDimension);
     ///Gets the final integer value of the animation variable. This is the value after all currently scheduled
     ///animations have completed.
     ///Params:
@@ -1477,7 +1496,7 @@ interface IUIAnimationVariable2 : IUnknown
     ///    If this method succeeds, it returns S_OK. Otherwise, it returns an <b>HRESULT</b> error code. See Windows
     ///    Animation Error Codes for a list of error codes.
     ///    
-    HRESULT GetFinalIntegerVectorValue(char* finalValue, uint cDimension);
+    HRESULT GetFinalIntegerVectorValue(int* finalValue, uint cDimension);
     ///Gets the previous integer value of the animation variable in the specified dimension. This is the value of the
     ///animation variable before the most recent update.
     ///Params:
@@ -1496,7 +1515,7 @@ interface IUIAnimationVariable2 : IUnknown
     ///    If this method succeeds, it returns S_OK. Otherwise, it returns an <b>HRESULT</b> error code. See Windows
     ///    Animation Error Codes for a list of error codes.
     ///    
-    HRESULT GetPreviousIntegerVectorValue(char* previousValue, uint cDimension);
+    HRESULT GetPreviousIntegerVectorValue(int* previousValue, uint cDimension);
     ///Gets the active storyboard for the animation variable.
     ///Params:
     ///    storyboard = The active storyboard, or NULL if the animation variable is not being animated.
@@ -1524,7 +1543,7 @@ interface IUIAnimationVariable2 : IUnknown
     ///    Returns S_OK if successful; otherwise an <b>HRESULT</b> error code. See Windows Animation Error Codes for a
     ///    list of error codes.
     ///    
-    HRESULT SetLowerBoundVector(char* bound, uint cDimension);
+    HRESULT SetLowerBoundVector(const(double)* bound, uint cDimension);
     ///Sets the upper bound (ceiling) for the value of the animation variable. The value of the animation variable
     ///should not rise above the specified value.
     ///Params:
@@ -1544,7 +1563,7 @@ interface IUIAnimationVariable2 : IUnknown
     ///    Returns S_OK if successful; otherwise an <b>HRESULT</b> error code. See Windows Animation Error Codes for a
     ///    list of error codes.
     ///    
-    HRESULT SetUpperBoundVector(char* bound, uint cDimension);
+    HRESULT SetUpperBoundVector(const(double)* bound, uint cDimension);
     ///Sets the rounding mode of the animation variable.
     ///Params:
     ///    mode = The rounding mode.
@@ -1635,7 +1654,7 @@ interface IUIAnimationTransition2 : IUnknown
     ///    Returns <b>S_OK</b> if successful; otherwise an <b>HRESULT</b> error code. See Windows Animation Error Codes
     ///    for a list of error codes.
     ///    
-    HRESULT SetInitialVectorValue(char* value, uint cDimension);
+    HRESULT SetInitialVectorValue(const(double)* value, uint cDimension);
     ///Sets the initial velocity of the transition.
     ///Params:
     ///    velocity = The initial velocity for the transition.
@@ -1653,7 +1672,7 @@ interface IUIAnimationTransition2 : IUnknown
     ///    Returns S_OK if successful; otherwise an <b>HRESULT</b> error code. See Windows Animation Error Codes for a
     ///    list of error codes.
     ///    
-    HRESULT SetInitialVectorVelocity(char* velocity, uint cDimension);
+    HRESULT SetInitialVectorVelocity(const(double)* velocity, uint cDimension);
     ///Determines whether the duration of a transition is known.
     ///Returns:
     ///    If this method succeeds, it returns S_OK. Otherwise, it returns an <b>HRESULT</b> error code. See Windows
@@ -1702,8 +1721,8 @@ interface IUIAnimationVariableChangeHandler2 : IUnknown
     ///    If this method succeeds, it returns S_OK. Otherwise, it returns an <b>HRESULT</b> error code. See Windows
     ///    Animation Error Codes for a list of error codes.
     ///    
-    HRESULT OnValueChanged(IUIAnimationStoryboard2 storyboard, IUIAnimationVariable2 variable, char* newValue, 
-                           char* previousValue, uint cDimension);
+    HRESULT OnValueChanged(IUIAnimationStoryboard2 storyboard, IUIAnimationVariable2 variable, double* newValue, 
+                           double* previousValue, uint cDimension);
 }
 
 ///Defines a method for handling animation variable update events. <b>IUIAnimationVariableIntegerChangeHandler2</b>
@@ -1725,7 +1744,7 @@ interface IUIAnimationVariableIntegerChangeHandler2 : IUnknown
     ///    Animation Error Codes for a list of error codes.
     ///    
     HRESULT OnIntegerValueChanged(IUIAnimationStoryboard2 storyboard, IUIAnimationVariable2 variable, 
-                                  char* newValue, char* previousValue, uint cDimension);
+                                  int* newValue, int* previousValue, uint cDimension);
 }
 
 ///Defines a method for handling animation curve update events.
@@ -1829,7 +1848,7 @@ interface IUIAnimationTransitionLibrary2 : IUnknown
     ///    If this method succeeds, it returns S_OK. Otherwise, it returns an <b>HRESULT</b> error code. See Windows
     ///    Animation Error Codes for a list of error codes.
     ///    
-    HRESULT CreateInstantaneousVectorTransition(char* finalValue, uint cDimension, 
+    HRESULT CreateInstantaneousVectorTransition(const(double)* finalValue, uint cDimension, 
                                                 IUIAnimationTransition2* transition);
     ///Creates a constant scalar transition.
     ///Params:
@@ -1865,7 +1884,7 @@ interface IUIAnimationTransitionLibrary2 : IUnknown
     ///    If this method succeeds, it returns S_OK. Otherwise, it returns an <b>HRESULT</b> error code. See Windows
     ///    Animation Error Codes for a list of error codes.
     ///    
-    HRESULT CreateDiscreteVectorTransition(double delay, char* finalValue, uint cDimension, double hold, 
+    HRESULT CreateDiscreteVectorTransition(double delay, const(double)* finalValue, uint cDimension, double hold, 
                                            IUIAnimationTransition2* transition);
     ///Creates a linear scalar transition.
     ///Params:
@@ -1889,7 +1908,7 @@ interface IUIAnimationTransitionLibrary2 : IUnknown
     ///    If this method succeeds, it returns S_OK. Otherwise, it returns an <b>HRESULT</b> error code. See Windows
     ///    Animation Error Codes for a list of error codes.
     ///    
-    HRESULT CreateLinearVectorTransition(double duration, char* finalValue, uint cDimension, 
+    HRESULT CreateLinearVectorTransition(double duration, const(double)* finalValue, uint cDimension, 
                                          IUIAnimationTransition2* transition);
     ///Creates a linear-speed scalar transition.
     ///Params:
@@ -1913,7 +1932,7 @@ interface IUIAnimationTransitionLibrary2 : IUnknown
     ///    If this method succeeds, it returns S_OK. Otherwise, it returns an <b>HRESULT</b> error code. See Windows
     ///    Animation Error Codes for a list of error codes.
     ///    
-    HRESULT CreateLinearVectorTransitionFromSpeed(double speed, char* finalValue, uint cDimension, 
+    HRESULT CreateLinearVectorTransitionFromSpeed(double speed, const(double)* finalValue, uint cDimension, 
                                                   IUIAnimationTransition2* transition);
     ///Creates a sinusoidal scalar transition where amplitude is determined by initial velocity.
     ///Params:
@@ -1989,8 +2008,8 @@ interface IUIAnimationTransitionLibrary2 : IUnknown
     ///    If this method succeeds, it returns S_OK. Otherwise, it returns an <b>HRESULT</b> error code. See Windows
     ///    Animation Error Codes for a list of error codes.
     ///    
-    HRESULT CreateCubicVectorTransition(double duration, char* finalValue, char* finalVelocity, uint cDimension, 
-                                        IUIAnimationTransition2* transition);
+    HRESULT CreateCubicVectorTransition(double duration, const(double)* finalValue, const(double)* finalVelocity, 
+                                        uint cDimension, IUIAnimationTransition2* transition);
     ///Creates a smooth-stop scalar transition.
     ///Params:
     ///    maximumDuration = The maximum duration of the transition.
@@ -2045,8 +2064,8 @@ interface IUIAnimationTransitionLibrary2 : IUnknown
     ///    If this method succeeds, it returns S_OK. Otherwise, it returns an <b>HRESULT</b> error code. See Windows
     ///    Animation Error Codes for a list of error codes.
     ///    
-    HRESULT CreateCubicBezierLinearVectorTransition(double duration, char* finalValue, uint cDimension, double x1, 
-                                                    double y1, double x2, double y2, 
+    HRESULT CreateCubicBezierLinearVectorTransition(double duration, const(double)* finalValue, uint cDimension, 
+                                                    double x1, double y1, double x2, double y2, 
                                                     IUIAnimationTransition2* ppTransition);
 }
 
@@ -2107,7 +2126,7 @@ interface IUIAnimationInterpolator2 : IUnknown
     ///    Returns <b>S_OK</b> if successful; otherwise an <b>HRESULT</b> error code. See Windows Animation Error Codes
     ///    for a list of error codes.
     ///    
-    HRESULT SetInitialValueAndVelocity(char* initialValue, char* initialVelocity, uint cDimension);
+    HRESULT SetInitialValueAndVelocity(double* initialValue, double* initialVelocity, uint cDimension);
     ///Sets the duration of the transition in the given dimension.
     ///Params:
     ///    duration = The duration of the transition.
@@ -2132,7 +2151,7 @@ interface IUIAnimationInterpolator2 : IUnknown
     ///    If this method succeeds, it returns S_OK. Otherwise, it returns an <b>HRESULT</b> error code. See Windows
     ///    Animation Error Codes for a list of error codes.
     ///    
-    HRESULT GetFinalValue(char* value, uint cDimension);
+    HRESULT GetFinalValue(double* value, uint cDimension);
     ///Interpolates the value of an animation variable at the specified offset and for the given dimension.
     ///Params:
     ///    offset = The offset from the start of the transition. This parameter is always greater than or equal to zero and less
@@ -2143,7 +2162,7 @@ interface IUIAnimationInterpolator2 : IUnknown
     ///    If this method succeeds, it returns S_OK. Otherwise, it returns an <b>HRESULT</b> error code. See Windows
     ///    Animation Error Codes for a list of error codes.
     ///    
-    HRESULT InterpolateValue(double offset, char* value, uint cDimension);
+    HRESULT InterpolateValue(double offset, double* value, uint cDimension);
     ///Interpolates the velocity, or rate of change, at the specified offset for the given dimension.
     ///Params:
     ///    offset = The offset from the start of the transition. The offset is always greater than or equal to zero and less than
@@ -2155,7 +2174,7 @@ interface IUIAnimationInterpolator2 : IUnknown
     ///    If this method succeeds, it returns S_OK. Otherwise, it returns an <b>HRESULT</b> error code. See Windows
     ///    Animation Error Codes for a list of error codes.
     ///    
-    HRESULT InterpolateVelocity(double offset, char* velocity, uint cDimension);
+    HRESULT InterpolateVelocity(double offset, double* velocity, uint cDimension);
     ///Generates a primitive interpolation of the specified animation curve.
     ///Params:
     ///    interpolation = The object that defines the custom animation curve information.
@@ -2238,8 +2257,8 @@ interface IUIAnimationStoryboard2 : IUnknown
     ///    If this method succeeds, it returns S_OK. Otherwise, it returns an <b>HRESULT</b> error code. See Windows
     ///    Animation Error Codes for a list of error codes.
     ///    
-    HRESULT AddKeyframeAtOffset(__MIDL___MIDL_itf_UIAnimation_0000_0002_0003* existingKeyframe, double offset, 
-                                __MIDL___MIDL_itf_UIAnimation_0000_0002_0003** keyframe);
+    HRESULT AddKeyframeAtOffset(UI_ANIMATION_KEYFRAME existingKeyframe, double offset, 
+                                UI_ANIMATION_KEYFRAME* keyframe);
     ///Adds a keyframe at the end of the specified transition.
     ///Params:
     ///    transition = The transition after which a keyframe is to be added.
@@ -2250,8 +2269,7 @@ interface IUIAnimationStoryboard2 : IUnknown
     ///    <dt><b>UI_E_TRANSITION_NOT_IN_STORYBOARD</b></dt> </dl> </td> <td width="60%"> The transition has not been
     ///    added to the storyboard. </td> </tr> </table> See Windows Animation Error Codes for a list of error codes.
     ///    
-    HRESULT AddKeyframeAfterTransition(IUIAnimationTransition2 transition, 
-                                       __MIDL___MIDL_itf_UIAnimation_0000_0002_0003** keyframe);
+    HRESULT AddKeyframeAfterTransition(IUIAnimationTransition2 transition, UI_ANIMATION_KEYFRAME* keyframe);
     ///Adds a transition that starts at the specified keyframe.
     ///Params:
     ///    variable = The animation variable for which a transition is to be added.
@@ -2267,7 +2285,7 @@ interface IUIAnimationStoryboard2 : IUnknown
     ///    Windows Animation Error Codes for a list of error codes.
     ///    
     HRESULT AddTransitionAtKeyframe(IUIAnimationVariable2 variable, IUIAnimationTransition2 transition, 
-                                    __MIDL___MIDL_itf_UIAnimation_0000_0002_0003* startKeyframe);
+                                    UI_ANIMATION_KEYFRAME startKeyframe);
     ///Adds a transition between two keyframes.
     ///Params:
     ///    variable = The animation variable for which the transition is to be added.
@@ -2287,8 +2305,7 @@ interface IUIAnimationStoryboard2 : IUnknown
     ///    list of error codes.
     ///    
     HRESULT AddTransitionBetweenKeyframes(IUIAnimationVariable2 variable, IUIAnimationTransition2 transition, 
-                                          __MIDL___MIDL_itf_UIAnimation_0000_0002_0003* startKeyframe, 
-                                          __MIDL___MIDL_itf_UIAnimation_0000_0002_0003* endKeyframe);
+                                          UI_ANIMATION_KEYFRAME startKeyframe, UI_ANIMATION_KEYFRAME endKeyframe);
     ///Creates a loop between two keyframes.
     ///Params:
     ///    startKeyframe = The keyframe at which the loop is to begin.
@@ -2313,9 +2330,8 @@ interface IUIAnimationStoryboard2 : IUnknown
     ///    If this method succeeds, it returns S_OK. Otherwise, it returns an <b>HRESULT</b> error code. See Windows
     ///    Animation Error Codes for a list of error codes.
     ///    
-    HRESULT RepeatBetweenKeyframes(__MIDL___MIDL_itf_UIAnimation_0000_0002_0003* startKeyframe, 
-                                   __MIDL___MIDL_itf_UIAnimation_0000_0002_0003* endKeyframe, double cRepetition, 
-                                   UI_ANIMATION_REPEAT_MODE repeatMode, 
+    HRESULT RepeatBetweenKeyframes(UI_ANIMATION_KEYFRAME startKeyframe, UI_ANIMATION_KEYFRAME endKeyframe, 
+                                   double cRepetition, UI_ANIMATION_REPEAT_MODE repeatMode, 
                                    IUIAnimationLoopIterationChangeHandler2 pIterationChangeHandler, size_t id, 
                                    BOOL fRegisterForNextAnimationEvent);
     ///Directs the storyboard to hold the specified animation variable at its final value until the storyboard ends.
@@ -2435,6 +2451,13 @@ interface IUIAnimationStoryboard2 : IUnknown
 
 // GUIDs
 
+const GUID CLSID_UIAnimationManager            = GUIDOF!UIAnimationManager;
+const GUID CLSID_UIAnimationManager2           = GUIDOF!UIAnimationManager2;
+const GUID CLSID_UIAnimationTimer              = GUIDOF!UIAnimationTimer;
+const GUID CLSID_UIAnimationTransitionFactory  = GUIDOF!UIAnimationTransitionFactory;
+const GUID CLSID_UIAnimationTransitionFactory2 = GUIDOF!UIAnimationTransitionFactory2;
+const GUID CLSID_UIAnimationTransitionLibrary  = GUIDOF!UIAnimationTransitionLibrary;
+const GUID CLSID_UIAnimationTransitionLibrary2 = GUIDOF!UIAnimationTransitionLibrary2;
 
 const GUID IID_IUIAnimationInterpolator                  = GUIDOF!IUIAnimationInterpolator;
 const GUID IID_IUIAnimationInterpolator2                 = GUIDOF!IUIAnimationInterpolator2;

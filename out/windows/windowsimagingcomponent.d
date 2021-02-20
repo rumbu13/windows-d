@@ -10,9 +10,9 @@ public import windows.dxgi : DXGI_FORMAT, DXGI_JPEG_AC_HUFFMAN_TABLE,
                              DXGI_JPEG_DC_HUFFMAN_TABLE, DXGI_JPEG_QUANTIZATION_TABLE;
 public import windows.gdi : HBITMAP, HICON, HPALETTE;
 public import windows.structuredstorage : IStream, PROPVARIANT;
-public import windows.systemservices : BOOL, HANDLE, ULARGE_INTEGER;
+public import windows.systemservices : BOOL, HANDLE, PWSTR, ULARGE_INTEGER;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -1199,7 +1199,7 @@ HRESULT WICCreateBitmapFromSectionEx(uint width, uint height, GUID* pixelFormat,
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("WindowsCodecs")
-HRESULT WICMapGuidToShortName(const(GUID)* guid, uint cchName, char* wzName, uint* pcchActual);
+HRESULT WICMapGuidToShortName(const(GUID)* guid, uint cchName, PWSTR wzName, uint* pcchActual);
 
 ///Obtains the GUID associated with the given short name.
 ///Params:
@@ -1211,7 +1211,7 @@ HRESULT WICMapGuidToShortName(const(GUID)* guid, uint cchName, char* wzName, uin
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("WindowsCodecs")
-HRESULT WICMapShortNameToGuid(const(wchar)* wzName, GUID* pguid);
+HRESULT WICMapShortNameToGuid(const(PWSTR) wzName, GUID* pguid);
 
 ///Obtains the name associated with a given schema.
 ///Params:
@@ -1227,7 +1227,7 @@ HRESULT WICMapShortNameToGuid(const(wchar)* wzName, GUID* pguid);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("WindowsCodecs")
-HRESULT WICMapSchemaToName(const(GUID)* guidMetadataFormat, const(wchar)* pwzSchema, uint cchName, char* wzName, 
+HRESULT WICMapSchemaToName(const(GUID)* guidMetadataFormat, PWSTR pwzSchema, uint cchName, PWSTR wzName, 
                            uint* pcchActual);
 
 ///Obtains a metadata format GUID for a specified container format and vendor that best matches the content within a
@@ -1289,7 +1289,7 @@ interface IWICPalette : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT InitializeCustom(char* pColors, uint cCount);
+    HRESULT InitializeCustom(uint* pColors, uint cCount);
     ///Initializes a palette using a computed optimized values based on the reference bitmap.
     ///Params:
     ///    pISurface = Type: <b>IWICBitmapSource*</b> Pointer to the source bitmap.
@@ -1324,7 +1324,7 @@ interface IWICPalette : IUnknown
     ///    cCount = Type: <b>UINT</b> The size of the <i>pColors</i> array.
     ///    pColors = Type: <b>WICColor*</b> Pointer that receives the colors of the palette.
     ///    pcActualColors = Type: <b>UINT*</b> The actual size needed to obtain the palette colors.
-    HRESULT GetColors(uint cCount, char* pColors, uint* pcActualColors);
+    HRESULT GetColors(uint cCount, uint* pColors, uint* pcActualColors);
     ///Retrieves a value that describes whether the palette is black and white.
     ///Params:
     ///    pfIsBlackWhite = Type: <b>BOOL*</b> A pointer to a variable that receives a boolean value that indicates whether the palette
@@ -1334,7 +1334,7 @@ interface IWICPalette : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT IsBlackWhite(int* pfIsBlackWhite);
+    HRESULT IsBlackWhite(BOOL* pfIsBlackWhite);
     ///Retrieves a value that describes whether a palette is grayscale.
     ///Params:
     ///    pfIsGrayscale = Type: <b>BOOL*</b> A pointer to a variable that receives a boolean value that indicates whether the palette
@@ -1344,7 +1344,7 @@ interface IWICPalette : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT IsGrayscale(int* pfIsGrayscale);
+    HRESULT IsGrayscale(BOOL* pfIsGrayscale);
     ///Indicates whether the palette contains an entry that is non-opaque (that is, an entry with an alpha that is less
     ///than 1).
     ///Params:
@@ -1355,7 +1355,7 @@ interface IWICPalette : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT HasAlpha(int* pfHasAlpha);
+    HRESULT HasAlpha(BOOL* pfHasAlpha);
 }
 
 ///Exposes methods that refers to a source from which pixels are retrieved, but cannot be written back to.
@@ -1408,7 +1408,7 @@ interface IWICBitmapSource : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CopyPixels(const(WICRect)* prc, uint cbStride, uint cbBufferSize, char* pbBuffer);
+    HRESULT CopyPixels(const(WICRect)* prc, uint cbStride, uint cbBufferSize, ubyte* pbBuffer);
 }
 
 ///Represents an IWICBitmapSource that converts the image data from one pixel format to another, handling dithering and
@@ -1442,7 +1442,7 @@ interface IWICFormatConverter : IWICBitmapSource
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CanConvert(GUID* srcPixelFormat, GUID* dstPixelFormat, int* pfCanConvert);
+    HRESULT CanConvert(GUID* srcPixelFormat, GUID* dstPixelFormat, BOOL* pfCanConvert);
 }
 
 ///Allows a format converter to be initialized with a planar source. You can use QueryInterface to obtain this interface
@@ -1464,7 +1464,7 @@ interface IWICPlanarFormatConverter : IWICBitmapSource
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT Initialize(char* ppPlanes, uint cPlanes, GUID* dstFormat, WICBitmapDitherType dither, 
+    HRESULT Initialize(IWICBitmapSource* ppPlanes, uint cPlanes, GUID* dstFormat, WICBitmapDitherType dither, 
                        IWICPalette pIPalette, double alphaThresholdPercent, WICBitmapPaletteType paletteTranslate);
     ///Query if the format converter can convert from one format to another.
     ///Params:
@@ -1476,7 +1476,7 @@ interface IWICPlanarFormatConverter : IWICBitmapSource
     ///    If the conversion is not supported, this method returns S_OK, but *<i>pfCanConvert</i> is set to FALSE. If
     ///    this method fails, the out parameter <i>pfCanConvert</i> is invalid.
     ///    
-    HRESULT CanConvert(char* pSrcPixelFormats, uint cSrcPlanes, GUID* dstPixelFormat, int* pfCanConvert);
+    HRESULT CanConvert(const(GUID)* pSrcPixelFormats, uint cSrcPlanes, GUID* dstPixelFormat, BOOL* pfCanConvert);
 }
 
 ///Represents a resized version of the input bitmap using a resampling or filtering algorithm.
@@ -1547,7 +1547,7 @@ interface IWICBitmapLock : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetDataPointer(uint* pcbBufferSize, char* ppbData);
+    HRESULT GetDataPointer(uint* pcbBufferSize, ubyte** ppbData);
     ///Gets the pixel format of for the locked area of pixels. This can be used to compute the number of bytes-per-pixel
     ///in the locked area.
     ///Params:
@@ -1605,7 +1605,7 @@ interface IWICColorContext : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT InitializeFromFilename(const(wchar)* wzFilename);
+    HRESULT InitializeFromFilename(const(PWSTR) wzFilename);
     ///Initializes the color context from a memory block.
     ///Params:
     ///    pbBuffer = Type: <b>const BYTE*</b> The buffer used to initialize the IWICColorContext.
@@ -1615,7 +1615,7 @@ interface IWICColorContext : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT InitializeFromMemory(char* pbBuffer, uint cbBufferSize);
+    HRESULT InitializeFromMemory(const(ubyte)* pbBuffer, uint cbBufferSize);
     ///Initializes the color context using an Exchangeable Image File (EXIF) color space.
     ///Params:
     ///    value = Type: <b>UINT</b> The value of the EXIF color space. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr>
@@ -1643,7 +1643,7 @@ interface IWICColorContext : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetProfileBytes(uint cbBuffer, char* pbBuffer, uint* pcbActual);
+    HRESULT GetProfileBytes(uint cbBuffer, ubyte* pbBuffer, uint* pcbActual);
     ///Retrieves the Exchangeable Image File (EXIF) color space color context.
     ///Params:
     ///    pValue = Type: <b>UINT*</b> A pointer that receives the EXIF color space color context. <table> <tr> <th>Value</th>
@@ -1725,7 +1725,7 @@ interface IWICStream : IStream
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT InitializeFromFilename(const(wchar)* wzFileName, uint dwDesiredAccess);
+    HRESULT InitializeFromFilename(const(PWSTR) wzFileName, uint dwDesiredAccess);
     ///Initializes a stream to treat a block of memory as a stream. The stream cannot grow beyond the buffer size.
     ///Params:
     ///    pbBuffer = Type: <b>BYTE*</b> Pointer to the buffer used to initialize the stream.
@@ -1735,7 +1735,7 @@ interface IWICStream : IStream
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT InitializeFromMemory(char* pbBuffer, uint cbBufferSize);
+    HRESULT InitializeFromMemory(ubyte* pbBuffer, uint cbBufferSize);
     ///Initializes the stream as a substream of another stream.
     ///Params:
     ///    pIStream = Type: <b>IStream*</b> Pointer to the input stream.
@@ -1761,7 +1761,8 @@ interface IWICEnumMetadataItem : IUnknown
     ///    rgeltValue = Type: <b>PROPVARIANT*</b> An array of enumerated items. This parameter is optional.
     ///    pceltFetched = Type: <b>ULONG*</b> The number of items that were retrieved. This value is always less than or equal to the
     ///                   number of items requested.
-    HRESULT Next(uint celt, char* rgeltSchema, char* rgeltId, char* rgeltValue, uint* pceltFetched);
+    HRESULT Next(uint celt, PROPVARIANT* rgeltSchema, PROPVARIANT* rgeltId, PROPVARIANT* rgeltValue, 
+                 uint* pceltFetched);
     ///Skips to given number of objects.
     ///Params:
     ///    celt = Type: <b>ULONG</b> The number of objects to skip.
@@ -1798,7 +1799,7 @@ interface IWICMetadataQueryReader : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetLocation(uint cchMaxLength, char* wzNamespace, uint* pcchActualLength);
+    HRESULT GetLocation(uint cchMaxLength, PWSTR wzNamespace, uint* pcchActualLength);
     ///Retrieves the metadata block or item identified by a metadata query expression.
     ///Params:
     ///    wzName = Type: <b>LPCWSTR</b> The query expression to the requested metadata block or item.
@@ -1808,7 +1809,7 @@ interface IWICMetadataQueryReader : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetMetadataByName(const(wchar)* wzName, PROPVARIANT* pvarValue);
+    HRESULT GetMetadataByName(const(PWSTR) wzName, PROPVARIANT* pvarValue);
     ///Gets an enumerator of all metadata items at the current relative location within the metadata hierarchy.
     ///Params:
     ///    ppIEnumString = Type: <b>IEnumString**</b> A pointer to a variable that receives a pointer to the IEnumString interface for
@@ -1835,7 +1836,7 @@ interface IWICMetadataQueryWriter : IWICMetadataQueryReader
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetMetadataByName(const(wchar)* wzName, const(PROPVARIANT)* pvarValue);
+    HRESULT SetMetadataByName(const(PWSTR) wzName, const(PROPVARIANT)* pvarValue);
     ///Removes a metadata item from a specific location using a metadata query expression.
     ///Params:
     ///    wzName = Type: <b>LPCWSTR</b> The name of the metadata item to remove.
@@ -1844,7 +1845,7 @@ interface IWICMetadataQueryWriter : IWICMetadataQueryReader
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT RemoveMetadataByName(const(wchar)* wzName);
+    HRESULT RemoveMetadataByName(const(PWSTR) wzName);
 }
 
 ///Defines methods for setting an encoder's properties such as thumbnails, frames, and palettes.
@@ -1874,7 +1875,7 @@ interface IWICBitmapEncoder : IUnknown
     ///    cCount = Type: <b>UINT</b> The number of IWICColorContext to set.
     ///    ppIColorContext = Type: <b>IWICColorContext**</b> A pointer an IWICColorContext pointer containing the color contexts to set
     ///                      for the encoder.
-    HRESULT SetColorContexts(uint cCount, char* ppIColorContext);
+    HRESULT SetColorContexts(uint cCount, IWICColorContext* ppIColorContext);
     ///Sets the global palette for the image.
     ///Params:
     ///    pIPalette = Type: <b>IWICPalette*</b> The IWICPalette to use as the global palette.
@@ -1972,7 +1973,7 @@ interface IWICBitmapFrameEncode : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetColorContexts(uint cCount, char* ppIColorContext);
+    HRESULT SetColorContexts(uint cCount, IWICColorContext* ppIColorContext);
     ///Sets the IWICPalette for indexed pixel formats.
     ///Params:
     ///    pIPalette = Type: <b>IWICPalette*</b> The IWICPalette to use for indexed pixel formats. The encoder may change the
@@ -2004,7 +2005,7 @@ interface IWICBitmapFrameEncode : IUnknown
     ///    </td> <td width="60%"> The value of <i>lineCount</i> is larger than the number of scan lines in the image.
     ///    </td> </tr> </table>
     ///    
-    HRESULT WritePixels(uint lineCount, uint cbStride, uint cbBufferSize, char* pbPixels);
+    HRESULT WritePixels(uint lineCount, uint cbStride, uint cbBufferSize, ubyte* pbPixels);
     ///Encodes a bitmap source.
     ///Params:
     ///    pIBitmapSource = Type: <b>IWICBitmapSource*</b> The bitmap source to encode.
@@ -2052,7 +2053,7 @@ interface IWICPlanarBitmapFrameEncode : IUnknown
     ///    <b>WINCODEC_ERR_IMAGESIZEOUTOFRANGE</b>. If the IWICBitmapSource format does not meet the encoder
     ///    requirements, this method fails with <b>WINCODEC_ERR_UNSUPPORTEDPIXELFORMAT</b>.
     ///    
-    HRESULT WritePixels(uint lineCount, char* pPlanes, uint cPlanes);
+    HRESULT WritePixels(uint lineCount, WICBitmapPlane* pPlanes, uint cPlanes);
     ///Writes lines from the source planes to the encoded format.
     ///Params:
     ///    ppPlanes = Type: <b>IWICBitmapSource**</b> Specifies an array of IWICBitmapSource that represent image planes.
@@ -2066,7 +2067,7 @@ interface IWICPlanarBitmapFrameEncode : IUnknown
     ///    <b>WINCODEC_ERR_IMAGESIZEOUTOFRANGE</b>. If the IWICBitmapSource format does not meet the encoder
     ///    requirements, this method fails with <b>WINCODEC_ERR_UNSUPPORTEDPIXELFORMAT</b>.
     ///    
-    HRESULT WriteSource(char* ppPlanes, uint cPlanes, WICRect* prcSource);
+    HRESULT WriteSource(IWICBitmapSource* ppPlanes, uint cPlanes, WICRect* prcSource);
 }
 
 ///Encodes ID2D1Image interfaces to an IWICBitmapEncoder. The input images can be larger than the maximum device texture
@@ -2180,7 +2181,7 @@ interface IWICBitmapDecoder : IUnknown
     ///             the size available to <i>ppIColorContexts</i>.
     ///    ppIColorContexts = Type: <b>IWICColorContext**</b> A pointer that receives a pointer to the IWICColorContext.
     ///    pcActualCount = Type: <b>UINT*</b> A pointer that receives the number of color contexts contained in the image.
-    HRESULT GetColorContexts(uint cCount, char* ppIColorContexts, uint* pcActualCount);
+    HRESULT GetColorContexts(uint cCount, IWICColorContext* ppIColorContexts, uint* pcActualCount);
     ///Retrieves a bitmap thumbnail of the image, if one exists
     ///Params:
     ///    ppIThumbnail = Type: <b>IWICBitmapSource**</b> Receives a pointer to the IWICBitmapSource of the thumbnail.
@@ -2227,7 +2228,7 @@ interface IWICBitmapSourceTransform : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT CopyPixels(const(WICRect)* prc, uint uiWidth, uint uiHeight, GUID* pguidDstFormat, 
-                       WICBitmapTransformOptions dstTransform, uint nStride, uint cbBufferSize, char* pbBuffer);
+                       WICBitmapTransformOptions dstTransform, uint nStride, uint cbBufferSize, ubyte* pbBuffer);
     ///Returns the closest dimensions the implementation can natively scale to given the desired dimensions.
     ///Params:
     ///    puiWidth = Type: <b>UINT*</b> The desired width. A pointer that receives the closest supported width.
@@ -2259,7 +2260,7 @@ interface IWICBitmapSourceTransform : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT DoesSupportTransform(WICBitmapTransformOptions dstTransform, int* pfIsSupported);
+    HRESULT DoesSupportTransform(WICBitmapTransformOptions dstTransform, BOOL* pfIsSupported);
 }
 
 ///Provides access to planar Y’CbCr pixel formats where pixel components are stored in separate component planes. This
@@ -2300,8 +2301,8 @@ interface IWICPlanarBitmapSourceTransform : IUnknown
     ///    and plane descriptions are zero initialized. Other return values indicate failure.
     ///    
     HRESULT DoesSupportTransform(uint* puiWidth, uint* puiHeight, WICBitmapTransformOptions dstTransform, 
-                                 WICPlanarOptions dstPlanarOptions, char* pguidDstFormats, char* pPlaneDescriptions, 
-                                 uint cPlanes, int* pfIsSupported);
+                                 WICPlanarOptions dstPlanarOptions, const(GUID)* pguidDstFormats, 
+                                 WICBitmapPlaneDescription* pPlaneDescriptions, uint cPlanes, BOOL* pfIsSupported);
     ///Copies pixels into the destination planes. Configured by the supplied input parameters. If a <i>dstTransform</i>,
     ///scale, or format conversion is specified, <i>cbStride</i> is the transformed stride and is based on the
     ///destination pixel format of the <i>pDstPlanes</i> parameter, not the original source's pixel format.
@@ -2327,8 +2328,8 @@ interface IWICPlanarBitmapSourceTransform : IUnknown
     ///    calling IWICPlanarBitmapSourceTransform::DoesSupportTransform.
     ///    
     HRESULT CopyPixels(const(WICRect)* prcSource, uint uiWidth, uint uiHeight, 
-                       WICBitmapTransformOptions dstTransform, WICPlanarOptions dstPlanarOptions, char* pDstPlanes, 
-                       uint cPlanes);
+                       WICBitmapTransformOptions dstTransform, WICPlanarOptions dstPlanarOptions, 
+                       const(WICBitmapPlane)* pDstPlanes, uint cPlanes);
 }
 
 ///Defines methods for decoding individual image frames of an encoded file.
@@ -2356,7 +2357,7 @@ interface IWICBitmapFrameDecode : IWICBitmapSource
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetColorContexts(uint cCount, char* ppIColorContexts, uint* pcActualCount);
+    HRESULT GetColorContexts(uint cCount, IWICColorContext* ppIColorContexts, uint* pcActualCount);
     ///Retrieves a small preview of the frame, if supported by the codec.
     ///Params:
     ///    ppIThumbnail = Type: <b>IWICBitmapSource**</b> A pointer that receives a pointer to the IWICBitmapSource of the thumbnail.
@@ -2476,7 +2477,7 @@ interface IWICComponentInfo : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetAuthor(uint cchAuthor, char* wzAuthor, uint* pcchActual);
+    HRESULT GetAuthor(uint cchAuthor, PWSTR wzAuthor, uint* pcchActual);
     ///Retrieves the vendor GUID.
     ///Params:
     ///    pguidVendor = Type: <b>GUID*</b> A pointer that receives the component's vendor GUID.
@@ -2492,7 +2493,7 @@ interface IWICComponentInfo : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetVersion(uint cchVersion, char* wzVersion, uint* pcchActual);
+    HRESULT GetVersion(uint cchVersion, PWSTR wzVersion, uint* pcchActual);
     ///Retrieves the component's specification version.
     ///Params:
     ///    cchSpecVersion = Type: <b>UINT</b> The size of the <i>wzSpecVersion</i> buffer.
@@ -2505,7 +2506,7 @@ interface IWICComponentInfo : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetSpecVersion(uint cchSpecVersion, char* wzSpecVersion, uint* pcchActual);
+    HRESULT GetSpecVersion(uint cchSpecVersion, PWSTR wzSpecVersion, uint* pcchActual);
     ///Retrieves the component's friendly name, which is a human-readable display name for the component.
     ///Params:
     ///    cchFriendlyName = Type: <b>UINT</b> The size of the <i>wzFriendlyName</i> buffer.
@@ -2518,7 +2519,7 @@ interface IWICComponentInfo : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetFriendlyName(uint cchFriendlyName, char* wzFriendlyName, uint* pcchActual);
+    HRESULT GetFriendlyName(uint cchFriendlyName, PWSTR wzFriendlyName, uint* pcchActual);
 }
 
 ///Exposes methods that provide information about a pixel format converter.
@@ -2536,7 +2537,7 @@ interface IWICFormatConverterInfo : IWICComponentInfo
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetPixelFormats(uint cFormats, char* pPixelFormatGUIDs, uint* pcActual);
+    HRESULT GetPixelFormats(uint cFormats, GUID* pPixelFormatGUIDs, uint* pcActual);
     ///Creates a new IWICFormatConverter instance.
     ///Params:
     ///    ppIConverter = Type: <b>IWICFormatConverter**</b> A pointer that receives a new IWICFormatConverter instance.
@@ -2563,7 +2564,7 @@ interface IWICBitmapCodecInfo : IWICComponentInfo
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetPixelFormats(uint cFormats, char* pguidPixelFormats, uint* pcActual);
+    HRESULT GetPixelFormats(uint cFormats, GUID* pguidPixelFormats, uint* pcActual);
     ///Retrieves the color manangement version number the codec supports.
     ///Params:
     ///    cchColorManagementVersion = Type: <b>UINT</b> The size of the version buffer. Use <code>0</code> on first call to determine needed buffer
@@ -2576,7 +2577,7 @@ interface IWICBitmapCodecInfo : IWICComponentInfo
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetColorManagementVersion(uint cchColorManagementVersion, char* wzColorManagementVersion, 
+    HRESULT GetColorManagementVersion(uint cchColorManagementVersion, PWSTR wzColorManagementVersion, 
                                       uint* pcchActual);
     ///Retrieves the name of the device manufacture associated with the codec.
     ///Params:
@@ -2590,7 +2591,7 @@ interface IWICBitmapCodecInfo : IWICComponentInfo
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetDeviceManufacturer(uint cchDeviceManufacturer, char* wzDeviceManufacturer, uint* pcchActual);
+    HRESULT GetDeviceManufacturer(uint cchDeviceManufacturer, PWSTR wzDeviceManufacturer, uint* pcchActual);
     ///Retrieves a comma delimited list of device models associated with the codec.
     ///Params:
     ///    cchDeviceModels = Type: <b>UINT</b> The size of the device models buffer. Use <code>0</code> on first call to determine needed
@@ -2603,7 +2604,7 @@ interface IWICBitmapCodecInfo : IWICComponentInfo
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetDeviceModels(uint cchDeviceModels, char* wzDeviceModels, uint* pcchActual);
+    HRESULT GetDeviceModels(uint cchDeviceModels, PWSTR wzDeviceModels, uint* pcchActual);
     ///Retrieves a comma delimited sequence of mime types associated with the codec.
     ///Params:
     ///    cchMimeTypes = Type: <b>UINT</b> The size of the mime types buffer. Use <code>0</code> on first call to determine needed
@@ -2616,7 +2617,7 @@ interface IWICBitmapCodecInfo : IWICComponentInfo
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetMimeTypes(uint cchMimeTypes, char* wzMimeTypes, uint* pcchActual);
+    HRESULT GetMimeTypes(uint cchMimeTypes, PWSTR wzMimeTypes, uint* pcchActual);
     ///Retrieves a comma delimited list of the file name extensions associated with the codec.
     ///Params:
     ///    cchFileExtensions = Type: <b>UINT</b> The size of the file name extension buffer. Use <code>0</code> on first call to determine
@@ -2630,24 +2631,24 @@ interface IWICBitmapCodecInfo : IWICComponentInfo
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetFileExtensions(uint cchFileExtensions, char* wzFileExtensions, uint* pcchActual);
+    HRESULT GetFileExtensions(uint cchFileExtensions, PWSTR wzFileExtensions, uint* pcchActual);
     ///Retrieves a value indicating whether the codec supports animation.
     ///Params:
     ///    pfSupportAnimation = Type: <b>BOOL*</b> Receives <b>TRUE</b> if the codec supports images with timing information; otherwise,
     ///                         <b>FALSE</b>.
-    HRESULT DoesSupportAnimation(int* pfSupportAnimation);
+    HRESULT DoesSupportAnimation(BOOL* pfSupportAnimation);
     ///Retrieves a value indicating whether the codec supports chromakeys.
     ///Params:
     ///    pfSupportChromakey = Type: <b>BOOL*</b> Receives <b>TRUE</b> if the codec supports chromakeys; otherwise, <b>FALSE</b>.
-    HRESULT DoesSupportChromakey(int* pfSupportChromakey);
+    HRESULT DoesSupportChromakey(BOOL* pfSupportChromakey);
     ///Retrieves a value indicating whether the codec supports lossless formats.
     ///Params:
     ///    pfSupportLossless = Type: <b>BOOL*</b> Receives <b>TRUE</b> if the codec supports lossless formats; otherwise, <b>FALSE</b>.
-    HRESULT DoesSupportLossless(int* pfSupportLossless);
+    HRESULT DoesSupportLossless(BOOL* pfSupportLossless);
     ///Retrieves a value indicating whether the codec supports multi frame images.
     ///Params:
     ///    pfSupportMultiframe = Type: <b>BOOL*</b> Receives <b>TRUE</b> if the codec supports multi frame images; otherwise, <b>FALSE</b>.
-    HRESULT DoesSupportMultiframe(int* pfSupportMultiframe);
+    HRESULT DoesSupportMultiframe(BOOL* pfSupportMultiframe);
     ///Retrieves a value indicating whether the given mime type matches the mime type of the codec.
     ///Params:
     ///    wzMimeType = Type: <b>LPCWSTR</b> The mime type to compare.
@@ -2658,7 +2659,7 @@ interface IWICBitmapCodecInfo : IWICComponentInfo
     ///    operation was successful. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_NOTIMPL</b></dt> </dl> </td> <td
     ///    width="60%"> The codec does not implement this method. </td> </tr> </table>
     ///    
-    HRESULT MatchesMimeType(const(wchar)* wzMimeType, int* pfMatches);
+    HRESULT MatchesMimeType(const(PWSTR) wzMimeType, BOOL* pfMatches);
 }
 
 ///Exposes methods that provide information about an encoder.
@@ -2687,12 +2688,13 @@ interface IWICBitmapDecoderInfo : IWICBitmapCodecInfo
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetPatterns(uint cbSizePatterns, char* pPatterns, uint* pcPatterns, uint* pcbPatternsActual);
+    HRESULT GetPatterns(uint cbSizePatterns, WICBitmapPattern* pPatterns, uint* pcPatterns, 
+                        uint* pcbPatternsActual);
     ///Retrieves a value that indicates whether the codec recognizes the pattern within a specified stream.
     ///Params:
     ///    pIStream = Type: <b>IStream*</b> The stream to pattern match within.
     ///    pfMatches = Type: <b>BOOL*</b> A pointer that receives <b>TRUE</b> if the patterns match; otherwise, <b>FALSE</b>.
-    HRESULT MatchesPattern(IStream pIStream, int* pfMatches);
+    HRESULT MatchesPattern(IStream pIStream, BOOL* pfMatches);
     ///Creates a new IWICBitmapDecoder instance.
     ///Params:
     ///    ppIBitmapDecoder = Type: <b>IWICBitmapDecoder**</b> A pointer that receives a pointer to a new instance of the
@@ -2736,7 +2738,7 @@ interface IWICPixelFormatInfo : IWICComponentInfo
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetChannelMask(uint uiChannelIndex, uint cbMaskBuffer, char* pbMaskBuffer, uint* pcbActual);
+    HRESULT GetChannelMask(uint uiChannelIndex, uint cbMaskBuffer, ubyte* pbMaskBuffer, uint* pcbActual);
 }
 
 ///Extends IWICPixelFormatInfo by providing additional information about a pixel format.
@@ -2751,7 +2753,7 @@ interface IWICPixelFormatInfo2 : IWICPixelFormatInfo
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SupportsTransparency(int* pfSupportsTransparency);
+    HRESULT SupportsTransparency(BOOL* pfSupportsTransparency);
     ///Retrieves the WICPixelFormatNumericRepresentation of the pixel format.
     ///Params:
     ///    pNumericRepresentation = Type: <b>WICPixelFormatNumericRepresentation*</b> The address of a WICPixelFormatNumericRepresentation
@@ -2781,7 +2783,7 @@ interface IWICImagingFactory : IUnknown
     ///                      access. </td> </tr> </table> For more information, see Generic Access Rights.
     ///    metadataOptions = Type: <b>WICDecodeOptions</b> The WICDecodeOptions to use when creating the decoder.
     ///    ppIDecoder = Type: <b>IWICBitmapDecoder**</b> A pointer that receives a pointer to the new IWICBitmapDecoder.
-    HRESULT CreateDecoderFromFilename(const(wchar)* wzFilename, const(GUID)* pguidVendor, uint dwDesiredAccess, 
+    HRESULT CreateDecoderFromFilename(const(PWSTR) wzFilename, const(GUID)* pguidVendor, uint dwDesiredAccess, 
                                       WICDecodeOptions metadataOptions, IWICBitmapDecoder* ppIDecoder);
     ///Creates a new instance of the IWICBitmapDecoder class based on the given IStream.
     ///Params:
@@ -2970,7 +2972,7 @@ interface IWICImagingFactory : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT CreateBitmapFromMemory(uint uiWidth, uint uiHeight, GUID* pixelFormat, uint cbStride, 
-                                   uint cbBufferSize, char* pbBuffer, IWICBitmap* ppIBitmap);
+                                   uint cbBufferSize, ubyte* pbBuffer, IWICBitmap* ppIBitmap);
     ///Creates an IWICBitmap from a bitmap handle.
     ///Params:
     ///    hBitmap = Type: <b>HBITMAP</b> A bitmap handle to create the bitmap from.
@@ -3279,13 +3281,14 @@ interface IWICDevelopRaw : IWICBitmapFrameDecode
     ///Params:
     ///    cbToneCurveSize = Type: <b>UINT</b> The size of the <i>pToneCurve</i> structure.
     ///    pToneCurve = Type: <b>const WICRawToneCurve*</b> The desired tone curve.
-    HRESULT SetToneCurve(uint cbToneCurveSize, char* pToneCurve);
+    HRESULT SetToneCurve(uint cbToneCurveSize, const(WICRawToneCurve)* pToneCurve);
     ///Gets the tone curve of the raw image.
     ///Params:
     ///    cbToneCurveBufferSize = Type: <b>UINT</b> The size of the <i>pToneCurve</i> buffer.
     ///    pToneCurve = Type: <b>WICRawToneCurve*</b> A pointer that receives the WICRawToneCurve of the raw image.
     ///    pcbActualToneCurveBufferSize = Type: <b>UINT*</b> A pointer that receives the size needed to obtain the tone curve structure.
-    HRESULT GetToneCurve(uint cbToneCurveBufferSize, char* pToneCurve, uint* pcbActualToneCurveBufferSize);
+    HRESULT GetToneCurve(uint cbToneCurveBufferSize, WICRawToneCurve* pToneCurve, 
+                         uint* pcbActualToneCurveBufferSize);
     ///Sets the desired rotation angle.
     ///Params:
     ///    Rotation = Type: <b>double</b> The desired rotation angle.
@@ -3410,7 +3413,7 @@ interface IWICDdsFrameDecode : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CopyBlocks(const(WICRect)* prcBoundsInBlocks, uint cbStride, uint cbBufferSize, char* pbBuffer);
+    HRESULT CopyBlocks(const(WICRect)* prcBoundsInBlocks, uint cbStride, uint cbBufferSize, ubyte* pbBuffer);
 }
 
 ///Exposes methods for decoding JPEG images. Provides access to the Start Of Frame (SOF) header, Start of Scan (SOS)
@@ -3425,7 +3428,7 @@ interface IWICJpegFrameDecode : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns S_OK on successful completion.
     ///    
-    HRESULT DoesSupportIndexing(int* pfIndexingSupported);
+    HRESULT DoesSupportIndexing(BOOL* pfIndexingSupported);
     ///Enables indexing of the JPEG for efficient random access.
     ///Params:
     ///    options = Type: <b>WICJpegIndexingOptions</b> A value specifying whether indexes should be generated immediately or
@@ -3523,8 +3526,8 @@ interface IWICJpegFrameDecode : IUnknown
     ///    operation was successful. </td> </tr> <tr> <td width="40%"> <dl> <dt>WINCODEC_ERR_INVALIDJPEGSCANINDEX </dt>
     ///    </dl> </td> <td width="60%"> The specified scan index is invalid. </td> </tr> </table>
     ///    
-    HRESULT CopyScan(uint scanIndex, uint scanOffset, uint cbScanData, char* pbScanData, uint* pcbScanDataActual);
-    HRESULT CopyMinimalStream(uint streamOffset, uint cbStreamData, char* pbStreamData, uint* pcbStreamDataActual);
+    HRESULT CopyScan(uint scanIndex, uint scanOffset, uint cbScanData, ubyte* pbScanData, uint* pcbScanDataActual);
+    HRESULT CopyMinimalStream(uint streamOffset, uint cbStreamData, ubyte* pbStreamData, uint* pcbStreamDataActual);
 }
 
 ///Exposes methods for writing compressed JPEG scan data directly to the WIC encoder's output stream. Also provides
@@ -3586,7 +3589,7 @@ interface IWICJpegFrameEncode : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> Returns S_OK on successful completion.
     ///    
-    HRESULT WriteScan(uint cbScanData, char* pbScanData);
+    HRESULT WriteScan(uint cbScanData, const(ubyte)* pbScanData);
 }
 
 ///Exposes methods that provide access to all of the codec's top level metadata blocks.
@@ -3827,32 +3830,32 @@ interface IWICMetadataHandlerInfo : IWICComponentInfo
     ///    pguidContainerFormats = Type: <b>GUID*</b> Pointer to an array that receives the container formats supported by the metadata handler.
     ///    pcchActual = Type: <b>UINT*</b> The actual number of GUIDs added to the array. To obtain the number of supported container
     ///                 formats, pass <code>NULL</code> to <i>pguidContainerFormats</i>.
-    HRESULT GetContainerFormats(uint cContainerFormats, char* pguidContainerFormats, uint* pcchActual);
+    HRESULT GetContainerFormats(uint cContainerFormats, GUID* pguidContainerFormats, uint* pcchActual);
     ///Retrieves the device manufacturer of the metadata handler.
     ///Params:
     ///    cchDeviceManufacturer = Type: <b>UINT</b> The size of the <i>wzDeviceManufacturer</i> buffer.
     ///    wzDeviceManufacturer = Type: <b>WCHAR*</b> Pointer to the buffer that receives the name of the device manufacturer.
     ///    pcchActual = Type: <b>UINT*</b> The actual string buffer length needed to obtain the entire name of the device
     ///                 manufacturer.
-    HRESULT GetDeviceManufacturer(uint cchDeviceManufacturer, char* wzDeviceManufacturer, uint* pcchActual);
+    HRESULT GetDeviceManufacturer(uint cchDeviceManufacturer, PWSTR wzDeviceManufacturer, uint* pcchActual);
     ///Retrieves the device models that support the metadata handler.
     ///Params:
     ///    cchDeviceModels = Type: <b>UINT</b> The length of the <i>wzDeviceModels</i> buffer.
     ///    wzDeviceModels = Type: <b>WCHAR*</b> Pointer that receives the device models supported by the metadata handler.
     ///    pcchActual = Type: <b>UINT*</b> The actual length needed to retrieve the device models.
-    HRESULT GetDeviceModels(uint cchDeviceModels, char* wzDeviceModels, uint* pcchActual);
+    HRESULT GetDeviceModels(uint cchDeviceModels, PWSTR wzDeviceModels, uint* pcchActual);
     ///Determines if the handler requires a full stream.
     ///Params:
     ///    pfRequiresFullStream = Type: <b>BOOL*</b> Pointer that receives <b>TRUE</b> if a full stream is required; otherwise, <b>FALSE</b>.
-    HRESULT DoesRequireFullStream(int* pfRequiresFullStream);
+    HRESULT DoesRequireFullStream(BOOL* pfRequiresFullStream);
     ///Determines if the metadata handler supports padding.
     ///Params:
     ///    pfSupportsPadding = Type: <b>BOOL*</b> Pointer that receives <b>TRUE</b> if padding is supported; otherwise, <b>FALSE</b>.
-    HRESULT DoesSupportPadding(int* pfSupportsPadding);
+    HRESULT DoesSupportPadding(BOOL* pfSupportsPadding);
     ///Determines if the metadata handler requires a fixed size.
     ///Params:
     ///    pfFixedSize = Type: <b>BOOL*</b> Pointer that receives <b>TRUE</b> if a fixed size is required; otherwise, <b>FALSE</b>.
-    HRESULT DoesRequireFixedSize(int* pfFixedSize);
+    HRESULT DoesRequireFixedSize(BOOL* pfFixedSize);
 }
 
 ///Exposes methods that provide basic information about the registered metadata reader.
@@ -3866,7 +3869,7 @@ interface IWICMetadataReaderInfo : IWICMetadataHandlerInfo
     ///    pPattern = Type: <b>WICMetadataPattern*</b> Pointer that receives the metadata patterns.
     ///    pcCount = Type: <b>UINT*</b> Pointer that receives the number of metadata patterns.
     ///    pcbActual = Type: <b>UINT*</b> Pointer that receives the size, in bytes, needed to obtain the metadata patterns.
-    HRESULT GetPatterns(const(GUID)* guidContainerFormat, uint cbSize, char* pPattern, uint* pcCount, 
+    HRESULT GetPatterns(const(GUID)* guidContainerFormat, uint cbSize, WICMetadataPattern* pPattern, uint* pcCount, 
                         uint* pcbActual);
     ///Determines if a stream contains a metadata item pattern.
     ///Params:
@@ -3874,7 +3877,7 @@ interface IWICMetadataReaderInfo : IWICMetadataHandlerInfo
     ///    pIStream = Type: <b>IStream*</b> The stream to search for the metadata pattern.
     ///    pfMatches = Type: <b>BOOL*</b> Pointer that receives <code>TRUE</code> if the stream contains the pattern; otherwise,
     ///                <code>FALSE</code>.
-    HRESULT MatchesPattern(const(GUID)* guidContainerFormat, IStream pIStream, int* pfMatches);
+    HRESULT MatchesPattern(const(GUID)* guidContainerFormat, IStream pIStream, BOOL* pfMatches);
     ///Creates an instance of an IWICMetadataReader.
     ///Params:
     ///    ppIReader = Type: <b>IWICMetadataReader**</b> Pointer that receives a pointer to a metadata reader.
@@ -3891,7 +3894,7 @@ interface IWICMetadataWriterInfo : IWICMetadataHandlerInfo
     ///    cbSize = Type: <b>UINT</b> The size of the <i>pHeader</i> buffer.
     ///    pHeader = Type: <b>WICMetadataHeader*</b> Pointer that receives the WICMetadataHeader.
     ///    pcbActual = Type: <b>UINT*</b> The actual size of the header.
-    HRESULT GetHeader(const(GUID)* guidContainerFormat, uint cbSize, char* pHeader, uint* pcbActual);
+    HRESULT GetHeader(const(GUID)* guidContainerFormat, uint cbSize, WICMetadataHeader* pHeader, uint* pcbActual);
     ///Creates an instance of an IWICMetadataWriter.
     ///Params:
     ///    ppIWriter = Type: <b>IWICMetadataWriter**</b> Pointer that receives a pointer to a metadata writer.
@@ -3959,7 +3962,7 @@ interface IWICComponentFactory : IWICImagingFactory
     ///    ppropOptions = Type: <b>PROPBAG2*</b> Pointer to an array of PROPBAG2 options used to create the encoder property bag.
     ///    cCount = Type: <b>UINT</b> The number of PROPBAG2 structures in the <i>ppropOptions</i> array.
     ///    ppIPropertyBag = Type: <b>IPropertyBag2**</b> A pointer that receives a pointer to an encoder IPropertyBag2.
-    HRESULT CreateEncoderPropertyBag(char* ppropOptions, uint cCount, IPropertyBag2* ppIPropertyBag);
+    HRESULT CreateEncoderPropertyBag(PROPBAG2* ppropOptions, uint cCount, IPropertyBag2* ppIPropertyBag);
 }
 
 

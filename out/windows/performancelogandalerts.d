@@ -5,8 +5,9 @@ module windows.performancelogandalerts;
 public import windows.core;
 public import windows.automation : BSTR, IDispatch, SAFEARRAY, VARIANT;
 public import windows.com : HRESULT, IUnknown;
+public import windows.systemservices : PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -221,7 +222,7 @@ enum FolderActionSteps : int
 
 // Callbacks
 
-alias PLA_CABEXTRACT_CALLBACK = void function(const(wchar)* FileName, void* Context);
+alias PLA_CABEXTRACT_CALLBACK = void function(const(PWSTR) FileName, void* Context);
 
 // Interfaces
 

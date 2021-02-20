@@ -4,8 +4,9 @@ module windows.websock;
 
 public import windows.core;
 public import windows.com : HRESULT;
+public import windows.systemservices : PSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -155,24 +156,24 @@ struct WEB_SOCKET_PROPERTY
 struct WEB_SOCKET_HTTP_HEADER
 {
     ///Type: <b>PCHAR</b> A pointer to the HTTP header name. The name must not contain a colon character.
-    const(char)* pcName;
+    PSTR pcName;
     ///Type: <b>ULONG</b> Length, in characters, of the HTTP header pointed to by <b>pcName</b>.
-    uint         ulNameLength;
+    uint ulNameLength;
     ///Type: <b>PCHAR</b> A pointer to the HTTP header value.
-    const(char)* pcValue;
+    PSTR pcValue;
     ///Type: <b>ULONG</b> Length, in characters, of the HTTP value pointed to by <b>pcValue</b>.
-    uint         ulValueLength;
+    uint ulValueLength;
 }
 
 ///The <b>WEB_SOCKET_BUFFER</b> structure contains data for a specific WebSocket action.
 union WEB_SOCKET_BUFFER
 {
-    struct Data
+struct Data
     {
         ubyte* pbBuffer;
         uint   ulBufferLength;
     }
-    struct CloseStatus
+struct CloseStatus
     {
         ubyte* pbReason;
         uint   ulReasonLength;
@@ -194,7 +195,8 @@ union WEB_SOCKET_BUFFER
 ///    error code defined in WinError.h.
 ///    
 @DllImport("websocket")
-HRESULT WebSocketCreateClientHandle(char* pProperties, uint ulPropertyCount, WEB_SOCKET_HANDLE__** phWebSocket);
+HRESULT WebSocketCreateClientHandle(const(WEB_SOCKET_PROPERTY)* pProperties, uint ulPropertyCount, 
+                                    WEB_SOCKET_HANDLE__** phWebSocket);
 
 ///The <b>WebSocketBeginClientHandshake</b> function begins the client-side handshake.
 ///Params:
@@ -221,10 +223,10 @@ HRESULT WebSocketCreateClientHandle(char* pProperties, uint ulPropertyCount, WEB
 ///    error code defined in WinError.h.
 ///    
 @DllImport("websocket")
-HRESULT WebSocketBeginClientHandshake(WEB_SOCKET_HANDLE__* hWebSocket, char* pszSubprotocols, 
-                                      uint ulSubprotocolCount, char* pszExtensions, uint ulExtensionCount, 
-                                      char* pInitialHeaders, uint ulInitialHeaderCount, char* pAdditionalHeaders, 
-                                      uint* pulAdditionalHeaderCount);
+HRESULT WebSocketBeginClientHandshake(WEB_SOCKET_HANDLE__* hWebSocket, PSTR* pszSubprotocols, 
+                                      uint ulSubprotocolCount, PSTR* pszExtensions, uint ulExtensionCount, 
+                                      const(WEB_SOCKET_HTTP_HEADER)* pInitialHeaders, uint ulInitialHeaderCount, 
+                                      WEB_SOCKET_HTTP_HEADER** pAdditionalHeaders, uint* pulAdditionalHeaderCount);
 
 ///The <b>WebSocketEndClientHandshake</b> function completes the client-side handshake.
 ///Params:
@@ -254,9 +256,10 @@ HRESULT WebSocketBeginClientHandshake(WEB_SOCKET_HANDLE__* hWebSocket, char* psz
 ///    by the application. </td> </tr> </table>
 ///    
 @DllImport("websocket")
-HRESULT WebSocketEndClientHandshake(WEB_SOCKET_HANDLE__* hWebSocket, char* pResponseHeaders, 
-                                    uint ulReponseHeaderCount, char* pulSelectedExtensions, 
-                                    uint* pulSelectedExtensionCount, uint* pulSelectedSubprotocol);
+HRESULT WebSocketEndClientHandshake(WEB_SOCKET_HANDLE__* hWebSocket, 
+                                    const(WEB_SOCKET_HTTP_HEADER)* pResponseHeaders, uint ulReponseHeaderCount, 
+                                    uint* pulSelectedExtensions, uint* pulSelectedExtensionCount, 
+                                    uint* pulSelectedSubprotocol);
 
 ///The <b>WebSocketCreateServerHandle</b> function creates a server-side WebSocket session handle.
 ///Params:
@@ -270,7 +273,8 @@ HRESULT WebSocketEndClientHandshake(WEB_SOCKET_HANDLE__* hWebSocket, char* pResp
 ///    error code defined in WinError.h.
 ///    
 @DllImport("websocket")
-HRESULT WebSocketCreateServerHandle(char* pProperties, uint ulPropertyCount, WEB_SOCKET_HANDLE__** phWebSocket);
+HRESULT WebSocketCreateServerHandle(const(WEB_SOCKET_PROPERTY)* pProperties, uint ulPropertyCount, 
+                                    WEB_SOCKET_HANDLE__** phWebSocket);
 
 ///The <b>WebSocketBeginServerHandshake</b> function begins the server-side handshake.
 ///Params:
@@ -293,10 +297,10 @@ HRESULT WebSocketCreateServerHandle(char* pProperties, uint ulPropertyCount, WEB
 ///    width="60%"> Protocol data had an invalid format. </td> </tr> </table>
 ///    
 @DllImport("websocket")
-HRESULT WebSocketBeginServerHandshake(WEB_SOCKET_HANDLE__* hWebSocket, const(char)* pszSubprotocolSelected, 
-                                      char* pszExtensionSelected, uint ulExtensionSelectedCount, 
-                                      char* pRequestHeaders, uint ulRequestHeaderCount, char* pResponseHeaders, 
-                                      uint* pulResponseHeaderCount);
+HRESULT WebSocketBeginServerHandshake(WEB_SOCKET_HANDLE__* hWebSocket, const(PSTR) pszSubprotocolSelected, 
+                                      PSTR* pszExtensionSelected, uint ulExtensionSelectedCount, 
+                                      const(WEB_SOCKET_HTTP_HEADER)* pRequestHeaders, uint ulRequestHeaderCount, 
+                                      WEB_SOCKET_HTTP_HEADER** pResponseHeaders, uint* pulResponseHeaderCount);
 
 ///The <b>WebSocketEndServerHandshake</b> function completes the server-side handshake.
 ///Params:
@@ -383,7 +387,7 @@ HRESULT WebSocketReceive(WEB_SOCKET_HANDLE__* hWebSocket, WEB_SOCKET_BUFFER* pBu
 ///    
 @DllImport("websocket")
 HRESULT WebSocketGetAction(WEB_SOCKET_HANDLE__* hWebSocket, WEB_SOCKET_ACTION_QUEUE eActionQueue, 
-                           char* pDataBuffers, uint* pulDataBufferCount, WEB_SOCKET_ACTION* pAction, 
+                           WEB_SOCKET_BUFFER* pDataBuffers, uint* pulDataBufferCount, WEB_SOCKET_ACTION* pAction, 
                            WEB_SOCKET_BUFFER_TYPE* pBufferType, void** pvApplicationContext, void** pvActionContext);
 
 ///The <b>WebSocketCompleteAction</b> function completes an action started by WebSocketGetAction.
@@ -436,6 +440,6 @@ void WebSocketDeleteHandle(WEB_SOCKET_HANDLE__* hWebSocket);
 ///    error code defined in WinError.h.
 ///    
 @DllImport("websocket")
-HRESULT WebSocketGetGlobalProperty(WEB_SOCKET_PROPERTY_TYPE eType, char* pvValue, uint* ulSize);
+HRESULT WebSocketGetGlobalProperty(WEB_SOCKET_PROPERTY_TYPE eType, void* pvValue, uint* ulSize);
 
 

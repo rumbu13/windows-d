@@ -6,9 +6,9 @@ public import windows.core;
 public import windows.com : HRESULT, IUnknown, IUri;
 public import windows.security : CERT_CONTEXT;
 public import windows.structuredstorage : IStream;
-public import windows.systemservices : SECURITY_ATTRIBUTES;
+public import windows.systemservices : BOOL, PWSTR, SECURITY_ATTRIBUTES;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -308,7 +308,7 @@ interface IOpcPartUri : IOpcUri
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>isRelationshipUri</i> parameter is
     ///    <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT IsRelationshipsPartUri(int* isRelationshipUri);
+    HRESULT IsRelationshipsPartUri(BOOL* isRelationshipUri);
 }
 
 ///Represents a package and provides methods to access the package's parts and relationships.
@@ -407,7 +407,7 @@ interface IOpcPart : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>contentType</i> parameter is <b>NULL</b>.
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetContentType(ushort** contentType);
+    HRESULT GetContentType(PWSTR* contentType);
     ///Gets a value that describes the way part content is compressed.
     ///Params:
     ///    compressionOptions = A value that describes the way part content is compressed.
@@ -438,7 +438,7 @@ interface IOpcRelationship : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>relationshipIdentifier</i> parameter is
     ///    <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetId(ushort** relationshipIdentifier);
+    HRESULT GetId(PWSTR* relationshipIdentifier);
     ///Gets the relationship type.
     ///Params:
     ///    relationshipType = Receives the relationship type, which is the qualified name of the relationship, as defined by the package
@@ -450,7 +450,7 @@ interface IOpcRelationship : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>relationshipType</i> parameter is
     ///    <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetRelationshipType(ushort** relationshipType);
+    HRESULT GetRelationshipType(PWSTR* relationshipType);
     ///Gets the URI of the relationship source.
     ///Params:
     ///    sourceUri = A pointer to the IOpcUri interface of the OPC URI object that represents the URI of the relationship source.
@@ -538,7 +538,7 @@ interface IOpcPartSet : IUnknown
     ///    Consumption Error Group. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>Part URI error</b></dt> </dl> </td>
     ///    <td width="60%"> An <b>HRESULT</b> error code from the Part URI Error Group. </td> </tr> </table>
     ///    
-    HRESULT CreatePart(IOpcPartUri name, const(wchar)* contentType, OPC_COMPRESSION_OPTIONS compressionOptions, 
+    HRESULT CreatePart(IOpcPartUri name, const(PWSTR) contentType, OPC_COMPRESSION_OPTIONS compressionOptions, 
                        IOpcPart* part);
     ///Deletes the IOpcPart interface pointer of a specified part object from the set.
     ///Params:
@@ -572,7 +572,7 @@ interface IOpcPartSet : IUnknown
     ///    <dt><b>Part URI error</b></dt> </dl> </td> <td width="60%"> An <b>HRESULT</b> error code from the Part URI
     ///    Error Group. </td> </tr> </table>
     ///    
-    HRESULT PartExists(IOpcPartUri name, int* partExists);
+    HRESULT PartExists(IOpcPartUri name, BOOL* partExists);
     ///Gets an enumerator of IOpcPart interface pointers in the set.
     ///Params:
     ///    partEnumerator = A pointer to the IOpcPartEnumerator interface of the enumerator of IOpcPart interface pointers in the set.
@@ -609,7 +609,7 @@ interface IOpcRelationshipSet : IUnknown
     ///    Package Consumption Error Group. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>Part URI error</b></dt> </dl>
     ///    </td> <td width="60%"> An <b>HRESULT</b> error code from the Part URI Error Group. </td> </tr> </table>
     ///    
-    HRESULT GetRelationship(const(wchar)* relationshipIdentifier, IOpcRelationship* relationship);
+    HRESULT GetRelationship(const(PWSTR) relationshipIdentifier, IOpcRelationship* relationship);
     ///Creates a relationship object that represents a specified relationship, then adds to the set a pointer to the
     ///object's IOpcRelationship interface.
     ///Params:
@@ -651,8 +651,8 @@ interface IOpcRelationshipSet : IUnknown
     ///    <dt><b>Part URI error</b></dt> </dl> </td> <td width="60%"> An <b>HRESULT</b> error code from the Part URI
     ///    Error Group. </td> </tr> </table>
     ///    
-    HRESULT CreateRelationship(const(wchar)* relationshipIdentifier, const(wchar)* relationshipType, 
-                               IUri targetUri, OPC_URI_TARGET_MODE targetMode, IOpcRelationship* relationship);
+    HRESULT CreateRelationship(const(PWSTR) relationshipIdentifier, const(PWSTR) relationshipType, IUri targetUri, 
+                               OPC_URI_TARGET_MODE targetMode, IOpcRelationship* relationship);
     ///Deletes a specified IOpcRelationship interface pointer from the set.
     ///Params:
     ///    relationshipIdentifier = The unique identifier of a relationship. The IOpcRelationship interface pointer to be deleted is the pointer
@@ -669,7 +669,7 @@ interface IOpcRelationshipSet : IUnknown
     ///    <dt><b>Part URI error</b></dt> </dl> </td> <td width="60%"> An <b>HRESULT</b> error code from the Part URI
     ///    Error Group. </td> </tr> </table>
     ///    
-    HRESULT DeleteRelationship(const(wchar)* relationshipIdentifier);
+    HRESULT DeleteRelationship(const(PWSTR) relationshipIdentifier);
     ///Gets a value that indicates whether a specified relationship is represented as a relationship object in the set.
     ///Params:
     ///    relationshipIdentifier = The unique identifier of a relationship.
@@ -688,7 +688,7 @@ interface IOpcRelationshipSet : IUnknown
     ///    Package Consumption Error Group. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>Part URI error</b></dt> </dl>
     ///    </td> <td width="60%"> An <b>HRESULT</b> error code from the Part URI Error Group. </td> </tr> </table>
     ///    
-    HRESULT RelationshipExists(const(wchar)* relationshipIdentifier, int* relationshipExists);
+    HRESULT RelationshipExists(const(PWSTR) relationshipIdentifier, BOOL* relationshipExists);
     ///Gets an enumerator of IOpcRelationship interface pointers in the set.
     ///Params:
     ///    relationshipEnumerator = A pointer to the IOpcRelationshipEnumerator interface of the enumerator of IOpcRelationship interface
@@ -720,8 +720,7 @@ interface IOpcRelationshipSet : IUnknown
     ///    Package Consumption Error Group. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>Part URI error</b></dt> </dl>
     ///    </td> <td width="60%"> An <b>HRESULT</b> error code from the Part URI Error Group. </td> </tr> </table>
     ///    
-    HRESULT GetEnumeratorForType(const(wchar)* relationshipType, 
-                                 IOpcRelationshipEnumerator* relationshipEnumerator);
+    HRESULT GetEnumeratorForType(const(PWSTR) relationshipType, IOpcRelationshipEnumerator* relationshipEnumerator);
     ///Gets a read-only stream that contains the part content of the Relationships part represented by the set.
     ///Params:
     ///    contents = A pointer to the IStream interface of the read-only stream that contains the part content of the
@@ -763,7 +762,7 @@ interface IOpcPartEnumerator : IUnknown
     ///    <td width="40%"> <dl> <dt><b>OPC_E_ENUM_COLLECTION_CHANGED</b></dt> <dt>0x80510050</dt> </dl> </td> <td
     ///    width="60%"> The enumerator is invalid because the underlying set has changed. </td> </tr> </table>
     ///    
-    HRESULT MoveNext(int* hasNext);
+    HRESULT MoveNext(BOOL* hasNext);
     ///Moves the current position of the enumerator to the previous IOpcPart interface pointer.
     ///Params:
     ///    hasPrevious = A Boolean value that indicates the status of the IOpcPart interface pointer at the current position. The
@@ -783,7 +782,7 @@ interface IOpcPartEnumerator : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>OPC_E_ENUM_CANNOT_MOVE_PREVIOUS</b></dt> <dt>0x80510052</dt> </dl> </td>
     ///    <td width="60%"> The current position already precedes the first item of the enumerator. </td> </tr> </table>
     ///    
-    HRESULT MovePrevious(int* hasPrevious);
+    HRESULT MovePrevious(BOOL* hasPrevious);
     ///Gets the IOpcPart interface pointer at the current position of the enumerator.
     ///Params:
     ///    part = An IOpcPart interface pointer.
@@ -835,7 +834,7 @@ interface IOpcRelationshipEnumerator : IUnknown
     ///    <td width="40%"> <dl> <dt><b>OPC_E_ENUM_COLLECTION_CHANGED</b></dt> <dt>0x80510050</dt> </dl> </td> <td
     ///    width="60%"> The enumerator is invalid because the underlying set has changed. </td> </tr> </table>
     ///    
-    HRESULT MoveNext(int* hasNext);
+    HRESULT MoveNext(BOOL* hasNext);
     ///Moves the current position of the enumerator to the previous IOpcRelationship interface pointer.
     ///Params:
     ///    hasPrevious = A Boolean value that indicates the status of the IOpcRelationship interface pointer at the current position.
@@ -855,7 +854,7 @@ interface IOpcRelationshipEnumerator : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>OPC_E_ENUM_CANNOT_MOVE_PREVIOUS</b></dt> <dt>0x80510052</dt> </dl> </td>
     ///    <td width="60%"> The current position already precedes the first item of the enumerator. </td> </tr> </table>
     ///    
-    HRESULT MovePrevious(int* hasPrevious);
+    HRESULT MovePrevious(BOOL* hasPrevious);
     ///Gets the IOpcRelationship interface pointer at the current position of the enumerator.
     ///Params:
     ///    relationship = An IOpcRelationship interface pointer.
@@ -910,7 +909,7 @@ interface IOpcSignaturePartReference : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>contentType</i> parameter is <b>NULL</b>.
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetContentType(ushort** contentType);
+    HRESULT GetContentType(PWSTR* contentType);
     ///Gets the digest method to use on part content of the referenced part when the part is signed.
     ///Params:
     ///    digestMethod = The digest method to use on part content of the referenced part when the part is signed.
@@ -921,7 +920,7 @@ interface IOpcSignaturePartReference : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>digestMethod</i> parameter is <b>NULL</b>.
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetDigestMethod(ushort** digestMethod);
+    HRESULT GetDigestMethod(PWSTR* digestMethod);
     ///Gets the digest value that is calculated for part content of the referenced part when the part is signed.
     ///Params:
     ///    digestValue = A pointer to a buffer that contains the digest value that is calculated using the specified digest method;
@@ -934,7 +933,7 @@ interface IOpcSignaturePartReference : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> At least one of the <i>digestValue</i>, and
     ///    <i>count</i> parameters is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetDigestValue(char* digestValue, uint* count);
+    HRESULT GetDigestValue(ubyte** digestValue, uint* count);
     ///Gets the canonicalization method to use on part content of a referenced part when the part is signed.
     ///Params:
     ///    transformMethod = The canonicalization method to use on part content of a referenced part when the part is signed.
@@ -973,7 +972,7 @@ interface IOpcSignatureRelationshipReference : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>digestMethod</i> parameter is <b>NULL</b>.
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetDigestMethod(ushort** digestMethod);
+    HRESULT GetDigestMethod(PWSTR* digestMethod);
     ///Gets the digest value calculated for the selected relationships when they are signed.
     ///Params:
     ///    digestValue = A pointer to a buffer that contains the digest value calculated using the specified digest method; the method
@@ -987,7 +986,7 @@ interface IOpcSignatureRelationshipReference : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> At least one of the <i>digestValue</i>, and
     ///    <i>count</i> parameters is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetDigestValue(char* digestValue, uint* count);
+    HRESULT GetDigestValue(ubyte** digestValue, uint* count);
     ///Gets the canonicalization method to use on the relationship markup of the selected relationships when they are
     ///signed.
     ///Params:
@@ -1053,7 +1052,7 @@ interface IOpcRelationshipSelector : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>selectionCriterion</i> parameter is
     ///    <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetSelectionCriterion(ushort** selectionCriterion);
+    HRESULT GetSelectionCriterion(PWSTR* selectionCriterion);
 }
 
 ///Represents a reference to XML markup that has been or will be signed. This referenced XML markup is serialized in the
@@ -1072,7 +1071,7 @@ interface IOpcSignatureReference : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>referenceId</i> parameter is <b>NULL</b>.
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetId(ushort** referenceId);
+    HRESULT GetId(PWSTR* referenceId);
     ///Gets the URI of the referenced XML element.
     ///Params:
     ///    referenceUri = A pointer to the URI of the referenced element. This URI represented by a string is "
@@ -1095,7 +1094,7 @@ interface IOpcSignatureReference : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>type</i> parameter is <b>NULL</b>. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetType(ushort** type);
+    HRESULT GetType(PWSTR* type);
     ///Gets the canonicalization method to use on the referenced XML element, when the element is signed.
     ///Params:
     ///    transformMethod = The canonicalization method to use on the referenced XML element, when the element is signed.
@@ -1117,7 +1116,7 @@ interface IOpcSignatureReference : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>digestMethod</i> parameter is <b>NULL</b>.
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetDigestMethod(ushort** digestMethod);
+    HRESULT GetDigestMethod(PWSTR* digestMethod);
     ///Gets the digest value that is calculated for the referenced XML element when the element is signed.
     ///Params:
     ///    digestValue = A pointer to a buffer that contains the digest value calculated using the specified digest method when the
@@ -1131,7 +1130,7 @@ interface IOpcSignatureReference : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> At least one of the <i>digestValue</i>, and
     ///    <i>count</i> parameters is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetDigestValue(char* digestValue, uint* count);
+    HRESULT GetDigestValue(ubyte** digestValue, uint* count);
 }
 
 ///Represents an application-specific <b>Object</b> element that has been or will be signed.
@@ -1155,7 +1154,7 @@ interface IOpcSignatureCustomObject : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> At least one of the <i>xmlMarkup</i>, and
     ///    <i>count</i> parameters is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetXml(char* xmlMarkup, uint* count);
+    HRESULT GetXml(ubyte** xmlMarkup, uint* count);
 }
 
 ///Represents a package digital signature.
@@ -1178,7 +1177,7 @@ interface IOpcDigitalSignature : IUnknown
     ///    <i>namespaces</i> parameter is <b>NULL</b>. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt>
     ///    </dl> </td> <td width="60%"> The <i>count</i> parameter is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetNamespaces(char* prefixes, char* namespaces, uint* count);
+    HRESULT GetNamespaces(PWSTR** prefixes, PWSTR** namespaces, uint* count);
     ///Gets the value of the <b>Id</b> attribute from the <b>Signature</b> element of the signature markup.
     ///Params:
     ///    signatureId = A pointer to the <b>Id</b> attribute value of the signature markup <b>Signature</b> element. If the
@@ -1191,7 +1190,7 @@ interface IOpcDigitalSignature : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>signatureId</i> parameter is <b>NULL</b>.
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetSignatureId(ushort** signatureId);
+    HRESULT GetSignatureId(PWSTR* signatureId);
     ///Gets the part name of the part that contains the signature markup.
     ///Params:
     ///    signaturePartName = An IOpcPartUri interface pointer that represents the part name of the signature part that contains the
@@ -1215,7 +1214,7 @@ interface IOpcDigitalSignature : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>signatureMethod</i> parameter is
     ///    <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetSignatureMethod(ushort** signatureMethod);
+    HRESULT GetSignatureMethod(PWSTR* signatureMethod);
     ///Gets the canonicalization method that was applied to the <b>SignedInfo</b> element of the serialized signature.
     ///Params:
     ///    canonicalizationMethod = An OPC_CANONICALIZATION_METHOD value that specifies the canonicalization method that was applied to the
@@ -1240,7 +1239,7 @@ interface IOpcDigitalSignature : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> At least one of the <i>signatureValue</i>, and
     ///    <i>count</i> parameters is <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetSignatureValue(char* signatureValue, uint* count);
+    HRESULT GetSignatureValue(ubyte** signatureValue, uint* count);
     ///Gets an enumerator of IOpcSignaturePartReference interface pointers, which represent references to parts that
     ///have been signed.
     ///Params:
@@ -1277,7 +1276,7 @@ interface IOpcDigitalSignature : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>signingTime</i> parameter is <b>NULL</b>.
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetSigningTime(ushort** signingTime);
+    HRESULT GetSigningTime(PWSTR* signingTime);
     HRESULT GetTimeFormatA(OPC_SIGNATURE_TIME_FORMAT* timeFormat);
     ///Gets an IOpcSignatureReference interface pointer that represents the reference to the package-specific
     ///<b>Object</b> element that has been signed.
@@ -1356,7 +1355,7 @@ interface IOpcSigningOptions : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>signatureId</i> parameter is <b>NULL</b>.
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetSignatureId(ushort** signatureId);
+    HRESULT GetSignatureId(PWSTR* signatureId);
     ///Sets the value of the <b>Id</b> attribute of the <b>Signature</b> element.
     ///Params:
     ///    signatureId = The value of the <b>Id</b> attribute.
@@ -1367,7 +1366,7 @@ interface IOpcSigningOptions : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>signatureId</i> parameter is <b>NULL</b>.
     ///    </td> </tr> </table>
     ///    
-    HRESULT SetSignatureId(const(wchar)* signatureId);
+    HRESULT SetSignatureId(const(PWSTR) signatureId);
     ///Gets the signature method to use to calculate and encrypt the hash value of the <b>SignedInfo</b> element, which
     ///will be serialized as the <b>SignatureValue</b> element of the signature.
     ///Params:
@@ -1380,7 +1379,7 @@ interface IOpcSigningOptions : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>signatureMethod</i> parameter is
     ///    <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetSignatureMethod(ushort** signatureMethod);
+    HRESULT GetSignatureMethod(PWSTR* signatureMethod);
     ///Sets the signature method to use to calculate and encrypt the hash value of the <b>SignedInfo</b> element, which
     ///will be contained in the <b>SignatureValue</b> element of the signature.
     ///Params:
@@ -1392,7 +1391,7 @@ interface IOpcSigningOptions : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>signatureMethod</i> parameter is
     ///    <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT SetSignatureMethod(const(wchar)* signatureMethod);
+    HRESULT SetSignatureMethod(const(PWSTR) signatureMethod);
     ///Gets the default digest method that will be used to compute digest values for objects to be signed.
     ///Params:
     ///    digestMethod = A pointer to the default digest method, or the empty string "" if a default has not been set using the
@@ -1404,7 +1403,7 @@ interface IOpcSigningOptions : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>digestMethod</i> parameter is <b>NULL</b>.
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetDefaultDigestMethod(ushort** digestMethod);
+    HRESULT GetDefaultDigestMethod(PWSTR* digestMethod);
     ///Sets the default digest method that will be used to compute digest values for objects to be signed.
     ///Params:
     ///    digestMethod = The default digest method.
@@ -1415,7 +1414,7 @@ interface IOpcSigningOptions : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>digestMethod</i> parameter is <b>NULL</b>.
     ///    </td> </tr> </table>
     ///    
-    HRESULT SetDefaultDigestMethod(const(wchar)* digestMethod);
+    HRESULT SetDefaultDigestMethod(const(PWSTR) digestMethod);
     ///Gets a value that specifies the storage location in the package of the certificate to be used for the signature.
     ///Params:
     ///    embeddingOption = A value that specifies the location of the certificate.
@@ -1739,7 +1738,7 @@ interface IOpcSignaturePartReferenceEnumerator : IUnknown
     ///    <td width="40%"> <dl> <dt><b>OPC_E_ENUM_COLLECTION_CHANGED</b></dt> <dt>0x80510050</dt> </dl> </td> <td
     ///    width="60%"> The enumerator is invalid because the underlying set has changed. </td> </tr> </table>
     ///    
-    HRESULT MoveNext(int* hasNext);
+    HRESULT MoveNext(BOOL* hasNext);
     ///Moves the current position of the enumerator to the previous IOpcSignaturePartReference interface pointer.
     ///Params:
     ///    hasPrevious = A Boolean value that indicates the status of the IOpcSignaturePartReference interface pointer at the current
@@ -1759,7 +1758,7 @@ interface IOpcSignaturePartReferenceEnumerator : IUnknown
     ///    </tr> <tr> <td width="40%"> <dl> <dt><b>OPC_E_ENUM_COLLECTION_CHANGED</b></dt> <dt>0x80510050</dt> </dl>
     ///    </td> <td width="60%"> The enumerator is invalid because the underlying set has changed. </td> </tr> </table>
     ///    
-    HRESULT MovePrevious(int* hasPrevious);
+    HRESULT MovePrevious(BOOL* hasPrevious);
     ///Gets the IOpcSignaturePartReference interface pointer at the current position of the enumerator.
     ///Params:
     ///    partReference = An IOpcSignaturePartReference interface pointer.
@@ -1811,7 +1810,7 @@ interface IOpcSignatureRelationshipReferenceEnumerator : IUnknown
     ///    <td width="40%"> <dl> <dt><b>OPC_E_ENUM_COLLECTION_CHANGED</b></dt> <dt>0x80510050</dt> </dl> </td> <td
     ///    width="60%"> The enumerator is invalid because the underlying set has changed. </td> </tr> </table>
     ///    
-    HRESULT MoveNext(int* hasNext);
+    HRESULT MoveNext(BOOL* hasNext);
     ///Moves the current position of the enumerator to the previous IOpcSignatureRelationshipReference interface
     ///pointer.
     ///Params:
@@ -1832,7 +1831,7 @@ interface IOpcSignatureRelationshipReferenceEnumerator : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>OPC_E_ENUM_CANNOT_MOVE_PREVIOUS</b></dt> <dt>0x80510052</dt> </dl> </td>
     ///    <td width="60%"> The current position already precedes the first item of the enumerator. </td> </tr> </table>
     ///    
-    HRESULT MovePrevious(int* hasPrevious);
+    HRESULT MovePrevious(BOOL* hasPrevious);
     ///Gets the IOpcSignatureRelationshipReference interface pointer at the current position of the enumerator.
     ///Params:
     ///    relationshipReference = An IOpcSignatureRelationshipReference interface pointer.
@@ -1885,7 +1884,7 @@ interface IOpcRelationshipSelectorEnumerator : IUnknown
     ///    <td width="40%"> <dl> <dt><b>OPC_E_ENUM_COLLECTION_CHANGED</b></dt> <dt>0x80510050</dt> </dl> </td> <td
     ///    width="60%"> The enumerator is invalid because the underlying set has changed. </td> </tr> </table>
     ///    
-    HRESULT MoveNext(int* hasNext);
+    HRESULT MoveNext(BOOL* hasNext);
     ///Moves the current position of the enumerator to the previous IOpcRelationshipSelectorinterface pointer.
     ///Params:
     ///    hasPrevious = A Boolean value that indicates the status of the IOpcRelationshipSelectorinterface pointer at the current
@@ -1905,7 +1904,7 @@ interface IOpcRelationshipSelectorEnumerator : IUnknown
     ///    </tr> <tr> <td width="40%"> <dl> <dt><b>OPC_E_ENUM_COLLECTION_CHANGED</b></dt> <dt>0x80510050</dt> </dl>
     ///    </td> <td width="60%"> The enumerator is invalid because the underlying set has changed. </td> </tr> </table>
     ///    
-    HRESULT MovePrevious(int* hasPrevious);
+    HRESULT MovePrevious(BOOL* hasPrevious);
     ///Gets the IOpcRelationshipSelector interface pointer at the current position of the enumerator.
     ///Params:
     ///    relationshipSelector = An IOpcRelationshipSelector interface pointer .
@@ -1957,7 +1956,7 @@ interface IOpcSignatureReferenceEnumerator : IUnknown
     ///    <td width="40%"> <dl> <dt><b>OPC_E_ENUM_COLLECTION_CHANGED</b></dt> <dt>0x80510050</dt> </dl> </td> <td
     ///    width="60%"> The enumerator is invalid because the underlying set has changed. </td> </tr> </table>
     ///    
-    HRESULT MoveNext(int* hasNext);
+    HRESULT MoveNext(BOOL* hasNext);
     ///Moves the current position of the enumerator to the previous IOpcSignatureReferenceinterface pointer.
     ///Params:
     ///    hasPrevious = A Boolean value that indicates the status of the IOpcSignatureReference interface pointer at the current
@@ -1977,7 +1976,7 @@ interface IOpcSignatureReferenceEnumerator : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>OPC_E_ENUM_CANNOT_MOVE_PREVIOUS</b></dt> <dt>0x80510052</dt> </dl> </td>
     ///    <td width="60%"> The current position already precedes the first item of the enumerator. </td> </tr> </table>
     ///    
-    HRESULT MovePrevious(int* hasPrevious);
+    HRESULT MovePrevious(BOOL* hasPrevious);
     ///Gets the IOpcSignatureReference interface pointer at the current position of the enumerator.
     ///Params:
     ///    reference = An IOpcSignatureReference interface pointer.
@@ -2029,7 +2028,7 @@ interface IOpcSignatureCustomObjectEnumerator : IUnknown
     ///    <td width="40%"> <dl> <dt><b>OPC_E_ENUM_COLLECTION_CHANGED</b></dt> <dt>0x80510050</dt> </dl> </td> <td
     ///    width="60%"> The enumerator is invalid because the underlying set has changed. </td> </tr> </table>
     ///    
-    HRESULT MoveNext(int* hasNext);
+    HRESULT MoveNext(BOOL* hasNext);
     ///Moves the current position of the enumerator to the previous IOpcSignatureCustomObjectinterface pointer.
     ///Params:
     ///    hasPrevious = A Boolean value that indicates the status of the IOpcSignatureCustomObjectinterface pointer at the current
@@ -2049,7 +2048,7 @@ interface IOpcSignatureCustomObjectEnumerator : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>OPC_E_ENUM_CANNOT_MOVE_PREVIOUS</b></dt> <dt>0x80510052</dt> </dl> </td>
     ///    <td width="60%"> The current position already precedes the first item of the enumerator. </td> </tr> </table>
     ///    
-    HRESULT MovePrevious(int* hasPrevious);
+    HRESULT MovePrevious(BOOL* hasPrevious);
     ///Gets the IOpcSignatureCustomObject interface at the current position of the enumerator.
     ///Params:
     ///    customObject = An IOpcSignatureCustomObject interface pointer.
@@ -2101,7 +2100,7 @@ interface IOpcCertificateEnumerator : IUnknown
     ///    <td width="40%"> <dl> <dt><b>OPC_E_ENUM_COLLECTION_CHANGED</b></dt> <dt>0x80510050</dt> </dl> </td> <td
     ///    width="60%"> The enumerator is invalid because the underlying set has changed. </td> </tr> </table>
     ///    
-    HRESULT MoveNext(int* hasNext);
+    HRESULT MoveNext(BOOL* hasNext);
     ///Moves the current position of the enumerator to the previous CERT_CONTEXT structure.
     ///Params:
     ///    hasPrevious = A Boolean value that indicates the status of the CERT_CONTEXT structure at the current position. The value of
@@ -2120,7 +2119,7 @@ interface IOpcCertificateEnumerator : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>OPC_E_ENUM_CANNOT_MOVE_PREVIOUS</b></dt> <dt>0x80510052</dt> </dl> </td>
     ///    <td width="60%"> The current position already precedes the first item of the enumerator. </td> </tr> </table>
     ///    
-    HRESULT MovePrevious(int* hasPrevious);
+    HRESULT MovePrevious(BOOL* hasPrevious);
     ///Gets the CERT_CONTEXT structure at the current position of the enumerator.
     ///Params:
     ///    certificate = A pointer to a CERT_CONTEXT structure. If the method succeeds, call the CertFreeCertificateContext function
@@ -2190,7 +2189,7 @@ interface IOpcDigitalSignatureEnumerator : IUnknown
     ///    <td width="40%"> <dl> <dt><b>OPC_E_ENUM_COLLECTION_CHANGED</b></dt> <dt>0x80510050</dt> </dl> </td> <td
     ///    width="60%"> The enumerator is invalid because the underlying set has changed. </td> </tr> </table>
     ///    
-    HRESULT MoveNext(int* hasNext);
+    HRESULT MoveNext(BOOL* hasNext);
     ///Moves the current position of the enumerator to the previous IOpcDigitalSignature interface pointer.
     ///Params:
     ///    hasPrevious = A Boolean value that indicates the status of the IOpcDigitalSignature interface pointer at the current
@@ -2210,7 +2209,7 @@ interface IOpcDigitalSignatureEnumerator : IUnknown
     ///    <tr> <td width="40%"> <dl> <dt><b>OPC_E_ENUM_CANNOT_MOVE_PREVIOUS</b></dt> <dt>0x80510052</dt> </dl> </td>
     ///    <td width="60%"> The current position already precedes the first item of the enumerator. </td> </tr> </table>
     ///    
-    HRESULT MovePrevious(int* hasPrevious);
+    HRESULT MovePrevious(BOOL* hasPrevious);
     ///Gets the IOpcDigitalSignature interface pointer at the current position of the enumerator.
     ///Params:
     ///    digitalSignature = An IOpcDigitalSignature interface pointer.
@@ -2308,7 +2307,7 @@ interface IOpcSignaturePartReferenceSet : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>partUri</i> parameter is <b>NULL</b>.
     ///    </td> </tr> </table>
     ///    
-    HRESULT Create(IOpcPartUri partUri, const(wchar)* digestMethod, OPC_CANONICALIZATION_METHOD transformMethod, 
+    HRESULT Create(IOpcPartUri partUri, const(PWSTR) digestMethod, OPC_CANONICALIZATION_METHOD transformMethod, 
                    IOpcSignaturePartReference* partReference);
     ///Deletes a specified IOpcSignaturePartReference interface pointer from the set.
     ///Params:
@@ -2374,7 +2373,7 @@ interface IOpcSignatureRelationshipReferenceSet : IUnknown
     ///    passed <b>NULL</b> while the <i>relationshipSigningOption</i> parameter is passed a value of
     ///    <b>OPC_RELATIONSHIP_SIGN_PART</b>. </td> </tr> </table>
     ///    
-    HRESULT Create(IOpcUri sourceUri, const(wchar)* digestMethod, 
+    HRESULT Create(IOpcUri sourceUri, const(PWSTR) digestMethod, 
                    OPC_RELATIONSHIPS_SIGNING_OPTION relationshipSigningOption, 
                    IOpcRelationshipSelectorSet selectorSet, OPC_CANONICALIZATION_METHOD transformMethod, 
                    IOpcSignatureRelationshipReference* relationshipReference);
@@ -2435,7 +2434,7 @@ interface IOpcRelationshipSelectorSet : IUnknown
     ///    <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>partUri</i> parameter is <b>NULL</b>. </td>
     ///    </tr> </table>
     ///    
-    HRESULT Create(OPC_RELATIONSHIP_SELECTOR selector, const(wchar)* selectionCriterion, 
+    HRESULT Create(OPC_RELATIONSHIP_SELECTOR selector, const(PWSTR) selectionCriterion, 
                    IOpcRelationshipSelector* relationshipSelector);
     ///Deletes a specified IOpcRelationshipSelector interface pointer from the set.
     ///Params:
@@ -2491,7 +2490,7 @@ interface IOpcSignatureReferenceSet : IUnknown
     ///    <b>Reference</b> element to the package <b>Object</b> is being used as the <b>URI</b> attribute value of a
     ///    <b>Reference</b> to a custom <b>Object</b> element. </td> </tr> </table>
     ///    
-    HRESULT Create(IUri referenceUri, const(wchar)* referenceId, const(wchar)* type, const(wchar)* digestMethod, 
+    HRESULT Create(IUri referenceUri, const(PWSTR) referenceId, const(PWSTR) type, const(PWSTR) digestMethod, 
                    OPC_CANONICALIZATION_METHOD transformMethod, IOpcSignatureReference* reference);
     ///Deletes a specified IOpcSignatureReference interface pointer from the set.
     ///Params:
@@ -2544,7 +2543,7 @@ interface IOpcSignatureCustomObjectSet : IUnknown
     ///    <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>xmlMarkup</i> parameter is <b>NULL</b>. </td>
     ///    </tr> </table>
     ///    
-    HRESULT Create(char* xmlMarkup, uint count, IOpcSignatureCustomObject* customObject);
+    HRESULT Create(const(ubyte)* xmlMarkup, uint count, IOpcSignatureCustomObject* customObject);
     ///Deletes a specified IOpcSignatureCustomObject interface pointer from the set.
     ///Params:
     ///    customObject = An IOpcSignatureCustomObject interface pointer to be deleted.
@@ -2658,7 +2657,7 @@ interface IOpcFactory : IUnknown
     ///    from the CreateUri function. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>WinINet error</b></dt> </dl> </td>
     ///    <td width="60%"> An <b>HRESULT</b> error code from a WinINet API. </td> </tr> </table>
     ///    
-    HRESULT CreatePartUri(const(wchar)* pwzUri, IOpcPartUri* partUri);
+    HRESULT CreatePartUri(const(PWSTR) pwzUri, IOpcPartUri* partUri);
     ///Creates a stream over a file. This method is a simplified wrapper for a call to the CreateFile function.
     ///<b>CreateFile</b> parameters that are not exposed through this method use their default values. For more
     ///information, see <b>CreateFile</b>.
@@ -2680,7 +2679,7 @@ interface IOpcFactory : IUnknown
     ///    error</b></dt> </dl> </td> <td width="60%"> An <b>HRESULT</b> error code from the CreateFile function. </td>
     ///    </tr> </table>
     ///    
-    HRESULT CreateStreamOnFile(const(wchar)* filename, OPC_STREAM_IO_MODE ioMode, 
+    HRESULT CreateStreamOnFile(const(PWSTR) filename, OPC_STREAM_IO_MODE ioMode, 
                                SECURITY_ATTRIBUTES* securityAttributes, uint dwFlagsAndAttributes, IStream* stream);
     ///Creates a package object that represents an empty package.
     ///Params:

@@ -5,7 +5,7 @@ module windows.usbdrivers;
 public import windows.core;
 public import windows.systemservices : BOOL, HANDLE, LARGE_INTEGER, OVERLAPPED;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -136,6 +136,11 @@ enum : int
     WdmUsbPowerDeviceD3          = 0x000000cc,
 }
 
+// Constants
+
+
+enum GUID WinUSB_TestGuid = GUID("da812bff-12c3-46a2-8e2b-dbd3b7834c43");
+
 // Callbacks
 
 alias USB_IDLE_CALLBACK = void function(void* Context);
@@ -145,7 +150,7 @@ alias USB_IDLE_CALLBACK = void function(void* Context);
 
 union BM_REQUEST_TYPE
 {
-    struct s
+struct s
     {
         ubyte _bitfield175;
     }
@@ -157,20 +162,20 @@ struct USB_DEFAULT_PIPE_SETUP_PACKET
 align (1):
     BM_REQUEST_TYPE bmRequestType;
     ubyte           bRequest;
-    union wValue
+union wValue
     {
     align (1):
-        struct
+struct
         {
             ubyte LowByte;
             ubyte HiByte;
         }
         ushort W;
     }
-    union wIndex
+union wIndex
     {
     align (1):
-        struct
+struct
         {
             ubyte LowByte;
             ubyte HiByte;
@@ -184,7 +189,7 @@ union USB_DEVICE_STATUS
 {
 align (1):
     ushort AsUshort16;
-    struct
+struct
     {
     align (1):
         ushort _bitfield176;
@@ -195,7 +200,7 @@ union USB_INTERFACE_STATUS
 {
 align (1):
     ushort AsUshort16;
-    struct
+struct
     {
     align (1):
         ushort _bitfield177;
@@ -206,7 +211,7 @@ union USB_ENDPOINT_STATUS
 {
 align (1):
     ushort AsUshort16;
-    struct
+struct
     {
     align (1):
         ushort _bitfield178;
@@ -266,11 +271,11 @@ struct USB_DEVICE_CAPABILITY_USB20_EXTENSION_DESCRIPTOR
     ubyte bLength;
     ubyte bDescriptorType;
     ubyte bDevCapabilityType;
-    union bmAttributes
+union bmAttributes
     {
     align (1):
         uint AsUlong;
-        struct
+struct
         {
         align (1):
             uint _bitfield179;
@@ -285,11 +290,11 @@ align (1):
     ubyte  bDescriptorType;
     ubyte  bDevCapabilityType;
     ubyte  bReserved;
-    union bmAttributes
+union bmAttributes
     {
     align (1):
         uint AsUlong;
-        struct
+struct
         {
         align (1):
             uint _bitfield180;
@@ -309,11 +314,11 @@ align (1):
     ubyte  bDescriptorType;
     ubyte  bDevCapabilityType;
     ubyte  bReserved;
-    union bmCapabilities
+union bmCapabilities
     {
     align (1):
         ushort AsUshort;
-        struct
+struct
         {
         align (1):
             ushort _bitfield181;
@@ -344,7 +349,7 @@ union USB_DEVICE_CAPABILITY_SUPERSPEEDPLUS_SPEED
 {
 align (1):
     uint AsUlong32;
-    struct
+struct
     {
     align (1):
         uint _bitfield182;
@@ -358,21 +363,21 @@ align (1):
     ubyte  bDescriptorType;
     ubyte  bDevCapabilityType;
     ubyte  bReserved;
-    union bmAttributes
+union bmAttributes
     {
     align (1):
         uint AsUlong;
-        struct
+struct
         {
         align (1):
             uint _bitfield183;
         }
     }
-    union wFunctionalitySupport
+union wFunctionalitySupport
     {
     align (1):
         ushort AsUshort;
-        struct
+struct
         {
         align (1):
             ushort _bitfield184;
@@ -411,11 +416,11 @@ align (1):
     ubyte     iAddtionalInfoURL;
     ubyte     bNumberOfAlternateModes;
     ubyte     bPreferredAlternateMode;
-    union VconnPower
+union VconnPower
     {
     align (1):
         ushort AsUshort;
-        struct
+struct
         {
         align (1):
             ushort _bitfield185;
@@ -423,7 +428,7 @@ align (1):
     }
     ubyte[32] bmConfigured;
     uint      bReserved;
-    struct
+struct
     {
     align (1):
         ushort wSVID;
@@ -438,11 +443,11 @@ struct USB_DEVICE_CAPABILITY_FIRMWARE_STATUS_DESCRIPTOR
     ubyte bDescriptorType;
     ubyte bDevCapabilityType;
     ubyte bcdDescriptorVersion;
-    union bmAttributes
+union bmAttributes
     {
     align (1):
         uint AsUlong;
-        struct
+struct
         {
         align (1):
             uint _bitfield186;
@@ -526,14 +531,14 @@ align (1):
     ubyte  bLength;
     ubyte  bDescriptorType;
     ubyte  bMaxBurst;
-    union bmAttributes
+union bmAttributes
     {
         ubyte AsUchar;
-        struct Bulk
+struct Bulk
         {
             ubyte _bitfield187;
         }
-        struct Isochronous
+struct Isochronous
         {
             ubyte _bitfield188;
         }
@@ -580,7 +585,7 @@ union USB_HUB_STATUS
 {
 align (1):
     ushort AsUshort16;
-    struct
+struct
     {
     align (1):
         ushort _bitfield189;
@@ -591,7 +596,7 @@ union USB_HUB_CHANGE
 {
 align (1):
     ushort AsUshort16;
-    struct
+struct
     {
     align (1):
         ushort _bitfield190;
@@ -602,7 +607,7 @@ union USB_HUB_STATUS_AND_CHANGE
 {
 align (1):
     uint AsUlong32;
-    struct
+struct
     {
         USB_HUB_STATUS HubStatus;
         USB_HUB_CHANGE HubChange;
@@ -613,7 +618,7 @@ union USB_20_PORT_STATUS
 {
 align (1):
     ushort AsUshort16;
-    struct
+struct
     {
     align (1):
         ushort _bitfield191;
@@ -624,7 +629,7 @@ union USB_20_PORT_CHANGE
 {
 align (1):
     ushort AsUshort16;
-    struct
+struct
     {
     align (1):
         ushort _bitfield192;
@@ -635,7 +640,7 @@ union USB_30_PORT_STATUS
 {
 align (1):
     ushort AsUshort16;
-    struct
+struct
     {
     align (1):
         ushort _bitfield193;
@@ -646,7 +651,7 @@ union USB_30_PORT_CHANGE
 {
 align (1):
     ushort AsUshort16;
-    struct
+struct
     {
     align (1):
         ushort _bitfield194;
@@ -673,7 +678,7 @@ union USB_PORT_EXT_STATUS
 {
 align (1):
     uint AsUlong32;
-    struct
+struct
     {
     align (1):
         uint _bitfield195;
@@ -684,7 +689,7 @@ union USB_PORT_STATUS_AND_CHANGE
 {
 align (1):
     uint AsUlong32;
-    struct
+struct
     {
         USB_PORT_STATUS PortStatus;
         USB_PORT_CHANGE PortChange;
@@ -695,7 +700,7 @@ union USB_PORT_EXT_STATUS_AND_CHANGE
 {
 align (1):
     ulong AsUlong64;
-    struct
+struct
     {
         USB_PORT_STATUS_AND_CHANGE PortStatusChange;
         USB_PORT_EXT_STATUS PortExtStatus;
@@ -705,7 +710,7 @@ align (1):
 union USB_HUB_30_PORT_REMOTE_WAKE_MASK
 {
     ubyte AsUchar8;
-    struct
+struct
     {
         ubyte _bitfield196;
     }
@@ -714,7 +719,7 @@ union USB_HUB_30_PORT_REMOTE_WAKE_MASK
 union USB_FUNCTION_SUSPEND_OPTIONS
 {
     ubyte AsUchar;
-    struct
+struct
     {
         ubyte _bitfield197;
     }
@@ -972,7 +977,7 @@ struct OS_STRING
     ubyte     bDescriptorType;
     ushort[7] MicrosoftString;
     ubyte     bVendorCode;
-    union
+union
     {
         ubyte bPad;
         ubyte bFlags;
@@ -1086,7 +1091,7 @@ struct _URB_GET_ISOCH_PIPE_TRANSFER_PATH_DELAYS
 
 struct URB
 {
-    union
+union
     {
         _URB_HEADER         UrbHeader;
         _URB_SELECT_INTERFACE UrbSelectInterface;
@@ -1690,7 +1695,7 @@ BOOL WinUsb_GetAssociatedInterface(void* InterfaceHandle, ubyte AssociatedInterf
 ///    
 @DllImport("WINUSB")
 BOOL WinUsb_GetDescriptor(void* InterfaceHandle, ubyte DescriptorType, ubyte Index, ushort LanguageID, 
-                          char* Buffer, uint BufferLength, uint* LengthTransferred);
+                          ubyte* Buffer, uint BufferLength, uint* LengthTransferred);
 
 ///The <b>WinUsb_QueryInterfaceSettings</b> function retrieves the interface descriptor for the specified alternate
 ///interface settings for a particular interface handle.
@@ -1735,7 +1740,7 @@ BOOL WinUsb_QueryInterfaceSettings(void* InterfaceHandle, ubyte AlternateInterfa
 ///    passed <b>NULL</b> in the <i>InterfaceHandle</i> parameter. </td> </tr> </table>
 ///    
 @DllImport("WINUSB")
-BOOL WinUsb_QueryDeviceInformation(void* InterfaceHandle, uint InformationType, uint* BufferLength, char* Buffer);
+BOOL WinUsb_QueryDeviceInformation(void* InterfaceHandle, uint InformationType, uint* BufferLength, void* Buffer);
 
 ///The <b>WinUsb_SetCurrentAlternateSetting</b> function sets the alternate setting of an interface.
 ///Params:
@@ -1854,7 +1859,7 @@ BOOL WinUsb_QueryPipeEx(void* InterfaceHandle, ubyte AlternateSettingNumber, uby
 ///    </table>
 ///    
 @DllImport("WINUSB")
-BOOL WinUsb_SetPipePolicy(void* InterfaceHandle, ubyte PipeID, uint PolicyType, uint ValueLength, char* Value);
+BOOL WinUsb_SetPipePolicy(void* InterfaceHandle, ubyte PipeID, uint PolicyType, uint ValueLength, void* Value);
 
 ///The <b>WinUsb_GetPipePolicy</b> function retrieves the policy for a specific pipe associated with an endpoint on the
 ///device. This is a synchronous operation.
@@ -1878,7 +1883,7 @@ BOOL WinUsb_SetPipePolicy(void* InterfaceHandle, ubyte PipeID, uint PolicyType, 
 ///    in the <i>InterfaceHandle</i> parameter. </td> </tr> </table>
 ///    
 @DllImport("WINUSB")
-BOOL WinUsb_GetPipePolicy(void* InterfaceHandle, ubyte PipeID, uint PolicyType, uint* ValueLength, char* Value);
+BOOL WinUsb_GetPipePolicy(void* InterfaceHandle, ubyte PipeID, uint PolicyType, uint* ValueLength, void* Value);
 
 ///The <b>WinUsb_ReadPipe</b> function reads data from the specified pipe.
 ///Params:
@@ -1913,8 +1918,8 @@ BOOL WinUsb_GetPipePolicy(void* InterfaceHandle, ubyte PipeID, uint PolicyType, 
 ///    could be completed. </td> </tr> </table>
 ///    
 @DllImport("WINUSB")
-BOOL WinUsb_ReadPipe(void* InterfaceHandle, ubyte PipeID, char* Buffer, uint BufferLength, uint* LengthTransferred, 
-                     OVERLAPPED* Overlapped);
+BOOL WinUsb_ReadPipe(void* InterfaceHandle, ubyte PipeID, ubyte* Buffer, uint BufferLength, 
+                     uint* LengthTransferred, OVERLAPPED* Overlapped);
 
 ///The <b>WinUsb_WritePipe</b> function writes data to a pipe.
 ///Params:
@@ -1947,7 +1952,7 @@ BOOL WinUsb_ReadPipe(void* InterfaceHandle, ubyte PipeID, char* Buffer, uint Buf
 ///    in the USB stack timed out before the operation could be completed. </td> </tr> </table>
 ///    
 @DllImport("WINUSB")
-BOOL WinUsb_WritePipe(void* InterfaceHandle, ubyte PipeID, char* Buffer, uint BufferLength, 
+BOOL WinUsb_WritePipe(void* InterfaceHandle, ubyte PipeID, ubyte* Buffer, uint BufferLength, 
                       uint* LengthTransferred, OVERLAPPED* Overlapped);
 
 ///The <b>WinUsb_ControlTransfer</b> function transmits control data over a default control endpoint.
@@ -1977,7 +1982,7 @@ BOOL WinUsb_WritePipe(void* InterfaceHandle, ubyte PipeID, char* Buffer, uint Bu
 ///    to perform the operation. </td> </tr> </table>
 ///    
 @DllImport("WINUSB")
-BOOL WinUsb_ControlTransfer(void* InterfaceHandle, WINUSB_SETUP_PACKET SetupPacket, char* Buffer, 
+BOOL WinUsb_ControlTransfer(void* InterfaceHandle, WINUSB_SETUP_PACKET SetupPacket, ubyte* Buffer, 
                             uint BufferLength, uint* LengthTransferred, OVERLAPPED* Overlapped);
 
 ///The <b>WinUsb_ResetPipe</b> function resets the data toggle and clears the stall condition on a pipe.
@@ -2066,7 +2071,7 @@ BOOL WinUsb_FlushPipe(void* InterfaceHandle, ubyte PipeID);
 ///    </table>
 ///    
 @DllImport("WINUSB")
-BOOL WinUsb_SetPowerPolicy(void* InterfaceHandle, uint PolicyType, uint ValueLength, char* Value);
+BOOL WinUsb_SetPowerPolicy(void* InterfaceHandle, uint PolicyType, uint ValueLength, void* Value);
 
 ///The <b>WinUsb_GetPowerPolicy</b> function retrieves the power policy for a device. This is a synchronous operation.
 ///Params:
@@ -2094,7 +2099,7 @@ BOOL WinUsb_SetPowerPolicy(void* InterfaceHandle, uint PolicyType, uint ValueLen
 ///    in the <i>InterfaceHandle</i> parameter. </td> </tr> </table>
 ///    
 @DllImport("WINUSB")
-BOOL WinUsb_GetPowerPolicy(void* InterfaceHandle, uint PolicyType, uint* ValueLength, char* Value);
+BOOL WinUsb_GetPowerPolicy(void* InterfaceHandle, uint PolicyType, uint* ValueLength, void* Value);
 
 ///The <b>WinUsb_GetOverlappedResult</b> function retrieves the results of an overlapped operation on the specified
 ///file.
@@ -2121,7 +2126,7 @@ USB_INTERFACE_DESCRIPTOR* WinUsb_ParseConfigurationDescriptor(USB_CONFIGURATION_
                                                               int InterfaceSubClass, int InterfaceProtocol);
 
 @DllImport("WINUSB")
-USB_COMMON_DESCRIPTOR* WinUsb_ParseDescriptors(char* DescriptorBuffer, uint TotalLength, void* StartPosition, 
+USB_COMMON_DESCRIPTOR* WinUsb_ParseDescriptors(void* DescriptorBuffer, uint TotalLength, void* StartPosition, 
                                                int DescriptorType);
 
 ///The <b>WinUsb_GetCurrentFrameNumber</b> function gets the current frame number for the bus.
@@ -2164,7 +2169,7 @@ BOOL WinUsb_GetAdjustedFrameNumber(uint* CurrentFrameNumber, LARGE_INTEGER TimeS
 ///    the stream without dropping one or more frames.
 ///    
 @DllImport("WINUSB")
-BOOL WinUsb_RegisterIsochBuffer(void* InterfaceHandle, ubyte PipeID, char* Buffer, uint BufferLength, 
+BOOL WinUsb_RegisterIsochBuffer(void* InterfaceHandle, ubyte PipeID, ubyte* Buffer, uint BufferLength, 
                                 void** IsochBufferHandle);
 
 ///The <b>WinUsb_UnregisterIsochBuffer</b> function releases all of the resources that WinUsb_RegisterIsochBuffer
@@ -2212,7 +2217,7 @@ BOOL WinUsb_WriteIsochPipe(void* BufferHandle, uint Offset, uint Length, uint* F
 ///    
 @DllImport("WINUSB")
 BOOL WinUsb_ReadIsochPipe(void* BufferHandle, uint Offset, uint Length, uint* FrameNumber, uint NumberOfPackets, 
-                          char* IsoPacketDescriptors, OVERLAPPED* Overlapped);
+                          USBD_ISO_PACKET_DESCRIPTOR* IsoPacketDescriptors, OVERLAPPED* Overlapped);
 
 ///The <b>WinUsb_WriteIsochPipeAsap</b> submits a request for writing the contents of a buffer to an isochronous OUT
 ///endpoint.
@@ -2252,7 +2257,8 @@ BOOL WinUsb_WriteIsochPipeAsap(void* BufferHandle, uint Offset, uint Length, BOO
 ///    
 @DllImport("WINUSB")
 BOOL WinUsb_ReadIsochPipeAsap(void* BufferHandle, uint Offset, uint Length, BOOL ContinueStream, 
-                              uint NumberOfPackets, char* IsoPacketDescriptors, OVERLAPPED* Overlapped);
+                              uint NumberOfPackets, USBD_ISO_PACKET_DESCRIPTOR* IsoPacketDescriptors, 
+                              OVERLAPPED* Overlapped);
 
 ///The <b>WinUsb_StartTrackingForTimeSync</b> function starts the time synchronization feature in the USB driver stack
 ///that gets the associated system QPC time for USB bus frames and microframes.

@@ -6,7 +6,7 @@ public import windows.core;
 public import windows.security : UNICODE_STRING;
 public import windows.systemservices : BOOL;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Constants

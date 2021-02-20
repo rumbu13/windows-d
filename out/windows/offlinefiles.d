@@ -5,11 +5,11 @@ module windows.offlinefiles;
 public import windows.core;
 public import windows.automation : VARIANT;
 public import windows.com : BYTE_BLOB, HRESULT, IUnknown;
-public import windows.systemservices : BOOL, LARGE_INTEGER;
+public import windows.systemservices : BOOL, LARGE_INTEGER, PWSTR;
 public import windows.windowsandmessaging : HWND;
 public import windows.windowsprogramming : FILETIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -496,7 +496,7 @@ enum : int
 ///    Returns <b>ERROR_SUCCESS</b> if successful or a Win32 error value otherwise.
 ///    
 @DllImport("CSCAPI")
-uint OfflineFilesEnable(BOOL bEnable, int* pbRebootRequired);
+uint OfflineFilesEnable(BOOL bEnable, BOOL* pbRebootRequired);
 
 ///Starts the Offline Files service.
 ///Returns:
@@ -516,7 +516,7 @@ uint OfflineFilesStart();
 ///    Returns <b>ERROR_SUCCESS</b> if successful or a Win32 error value otherwise.
 ///    
 @DllImport("CSCAPI")
-uint OfflineFilesQueryStatus(int* pbActive, int* pbEnabled);
+uint OfflineFilesQueryStatus(BOOL* pbActive, BOOL* pbEnabled);
 
 ///Determines whether the Offline Files feature is enabled and, if so, whether it is active and available. This function
 ///is identical to the OfflineFilesQueryStatus function, except that it has an additional output parameter.
@@ -532,7 +532,7 @@ uint OfflineFilesQueryStatus(int* pbActive, int* pbEnabled);
 ///    Returns <b>ERROR_SUCCESS</b> if successful or a Win32 error value otherwise.
 ///    
 @DllImport("CSCAPI")
-uint OfflineFilesQueryStatusEx(int* pbActive, int* pbEnabled, int* pbAvailable);
+uint OfflineFilesQueryStatusEx(BOOL* pbActive, BOOL* pbEnabled, BOOL* pbAvailable);
 
 
 // Interfaces
@@ -555,7 +555,7 @@ interface IOfflineFilesEvents : IUnknown
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CacheMoved(const(wchar)* pszOldPath, const(wchar)* pszNewPath);
+    HRESULT CacheMoved(const(PWSTR) pszOldPath, const(PWSTR) pszNewPath);
     ///This method is reserved for future use.
     ///Returns:
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
@@ -606,7 +606,7 @@ interface IOfflineFilesEvents : IUnknown
     ///Returns:
     ///    The return value is ignored.
     ///    
-    HRESULT SyncFileResult(const(GUID)* rSyncId, const(wchar)* pszFile, HRESULT hrResult);
+    HRESULT SyncFileResult(const(GUID)* rSyncId, const(PWSTR) pszFile, HRESULT hrResult);
     ///Reports that a sync conflict has been detected and recorded in the sync conflict log.
     ///Params:
     ///    pszConflictPath = The UNC path of the item in conflict.
@@ -617,7 +617,7 @@ interface IOfflineFilesEvents : IUnknown
     ///Returns:
     ///    The return value is ignored.
     ///    
-    HRESULT SyncConflictRecAdded(const(wchar)* pszConflictPath, const(FILETIME)* pftConflictDateTime, 
+    HRESULT SyncConflictRecAdded(const(PWSTR) pszConflictPath, const(FILETIME)* pftConflictDateTime, 
                                  OFFLINEFILES_SYNC_STATE ConflictSyncState);
     ///Reports that a sync conflict has been detected and that a record of the conflict was already present in the sync
     ///conflict log. The log's record has been updated with the latest information.
@@ -630,7 +630,7 @@ interface IOfflineFilesEvents : IUnknown
     ///Returns:
     ///    The return value is ignored.
     ///    
-    HRESULT SyncConflictRecUpdated(const(wchar)* pszConflictPath, const(FILETIME)* pftConflictDateTime, 
+    HRESULT SyncConflictRecUpdated(const(PWSTR) pszConflictPath, const(FILETIME)* pftConflictDateTime, 
                                    OFFLINEFILES_SYNC_STATE ConflictSyncState);
     ///Reports that a sync conflict no longer exists and that its record has been removed from the sync conflict log.
     ///Params:
@@ -642,7 +642,7 @@ interface IOfflineFilesEvents : IUnknown
     ///Returns:
     ///    The return value is ignored.
     ///    
-    HRESULT SyncConflictRecRemoved(const(wchar)* pszConflictPath, const(FILETIME)* pftConflictDateTime, 
+    HRESULT SyncConflictRecRemoved(const(PWSTR) pszConflictPath, const(FILETIME)* pftConflictDateTime, 
                                    OFFLINEFILES_SYNC_STATE ConflictSyncState);
     ///Reports that the Offline Files cache has ended a synchronize operation.
     ///Params:
@@ -675,7 +675,7 @@ interface IOfflineFilesEvents : IUnknown
     ///Returns:
     ///    The return value is ignored.
     ///    
-    HRESULT ItemDisconnected(const(wchar)* pszPath, OFFLINEFILES_ITEM_TYPE ItemType);
+    HRESULT ItemDisconnected(const(PWSTR) pszPath, OFFLINEFILES_ITEM_TYPE ItemType);
     ///Reports that an item in the Offline Files cache has transitioned from offline to online.
     ///Params:
     ///    pszPath = The item's UNC path string.
@@ -683,7 +683,7 @@ interface IOfflineFilesEvents : IUnknown
     ///Returns:
     ///    The return value is ignored.
     ///    
-    HRESULT ItemReconnected(const(wchar)* pszPath, OFFLINEFILES_ITEM_TYPE ItemType);
+    HRESULT ItemReconnected(const(PWSTR) pszPath, OFFLINEFILES_ITEM_TYPE ItemType);
     ///Reports that an item in the Offline Files cache is now available for offline use should the remote copy become
     ///unavailable.
     ///Params:
@@ -692,7 +692,7 @@ interface IOfflineFilesEvents : IUnknown
     ///Returns:
     ///    The return value is ignored.
     ///    
-    HRESULT ItemAvailableOffline(const(wchar)* pszPath, OFFLINEFILES_ITEM_TYPE ItemType);
+    HRESULT ItemAvailableOffline(const(PWSTR) pszPath, OFFLINEFILES_ITEM_TYPE ItemType);
     ///Reports that an item in the Offline Files cache is no longer available for offline use should the remote copy
     ///become unavailable.
     ///Params:
@@ -701,7 +701,7 @@ interface IOfflineFilesEvents : IUnknown
     ///Returns:
     ///    The return value is ignored.
     ///    
-    HRESULT ItemNotAvailableOffline(const(wchar)* pszPath, OFFLINEFILES_ITEM_TYPE ItemType);
+    HRESULT ItemNotAvailableOffline(const(PWSTR) pszPath, OFFLINEFILES_ITEM_TYPE ItemType);
     ///Reports that an item in the Offline Files cache is now pinned and guaranteed to be available offline should the
     ///remote copy become unavailable.
     ///Params:
@@ -710,7 +710,7 @@ interface IOfflineFilesEvents : IUnknown
     ///Returns:
     ///    The return value is ignored.
     ///    
-    HRESULT ItemPinned(const(wchar)* pszPath, OFFLINEFILES_ITEM_TYPE ItemType);
+    HRESULT ItemPinned(const(PWSTR) pszPath, OFFLINEFILES_ITEM_TYPE ItemType);
     ///Reports that an item in the Offline Files cache is no longer pinned. The item may still be available offline but
     ///it is now considered automatically cached.
     ///Params:
@@ -719,7 +719,7 @@ interface IOfflineFilesEvents : IUnknown
     ///Returns:
     ///    The return value is ignored.
     ///    
-    HRESULT ItemNotPinned(const(wchar)* pszPath, OFFLINEFILES_ITEM_TYPE ItemType);
+    HRESULT ItemNotPinned(const(PWSTR) pszPath, OFFLINEFILES_ITEM_TYPE ItemType);
     ///Reports that an item in the Offline Files cache has been modified.
     ///Params:
     ///    pszPath = The item's UNC path string.
@@ -729,7 +729,7 @@ interface IOfflineFilesEvents : IUnknown
     ///Returns:
     ///    The return value is ignored.
     ///    
-    HRESULT ItemModified(const(wchar)* pszPath, OFFLINEFILES_ITEM_TYPE ItemType, BOOL bModifiedData, 
+    HRESULT ItemModified(const(PWSTR) pszPath, OFFLINEFILES_ITEM_TYPE ItemType, BOOL bModifiedData, 
                          BOOL bModifiedAttributes);
     ///Reports that an item has been added to the Offline Files cache.
     ///Params:
@@ -738,7 +738,7 @@ interface IOfflineFilesEvents : IUnknown
     ///Returns:
     ///    The return value is ignored.
     ///    
-    HRESULT ItemAddedToCache(const(wchar)* pszPath, OFFLINEFILES_ITEM_TYPE ItemType);
+    HRESULT ItemAddedToCache(const(PWSTR) pszPath, OFFLINEFILES_ITEM_TYPE ItemType);
     ///Reports that an item has been removed from the Offline Files cache.
     ///Params:
     ///    pszPath = The item's UNC path string.
@@ -746,7 +746,7 @@ interface IOfflineFilesEvents : IUnknown
     ///Returns:
     ///    The return value is ignored.
     ///    
-    HRESULT ItemDeletedFromCache(const(wchar)* pszPath, OFFLINEFILES_ITEM_TYPE ItemType);
+    HRESULT ItemDeletedFromCache(const(PWSTR) pszPath, OFFLINEFILES_ITEM_TYPE ItemType);
     ///Reports that the path for an item in the Offline Files cache has been renamed.
     ///Params:
     ///    pszOldPath = Original UNC path string for the item.
@@ -755,7 +755,7 @@ interface IOfflineFilesEvents : IUnknown
     ///Returns:
     ///    The return value is ignored.
     ///    
-    HRESULT ItemRenamed(const(wchar)* pszOldPath, const(wchar)* pszNewPath, OFFLINEFILES_ITEM_TYPE ItemType);
+    HRESULT ItemRenamed(const(PWSTR) pszOldPath, const(PWSTR) pszNewPath, OFFLINEFILES_ITEM_TYPE ItemType);
     ///Reports that one or more events destined for this event sink have been lost and will not be delivered. The
     ///receipt of this event indicates that the service is attempting to deliver events to this event sink faster than
     ///the sink is consuming them.
@@ -849,16 +849,16 @@ interface IOfflineFilesEvents3 : IOfflineFilesEvents2
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT TransparentCacheItemNotify(const(wchar)* pszPath, OFFLINEFILES_EVENTS EventType, 
+    HRESULT TransparentCacheItemNotify(const(PWSTR) pszPath, OFFLINEFILES_EVENTS EventType, 
                                        OFFLINEFILES_ITEM_TYPE ItemType, BOOL bModifiedData, BOOL bModifiedAttributes, 
-                                       const(wchar)* pzsOldPath);
+                                       const(PWSTR) pzsOldPath);
     ///Reports that a file prefetch operation has begun.
     ///Params:
     ///    pszPath = The UNC path of the file.
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT PrefetchFileBegin(const(wchar)* pszPath);
+    HRESULT PrefetchFileBegin(const(PWSTR) pszPath);
     ///Reports that a file prefetch operation has ended.
     ///Params:
     ///    pszPath = The UNC path of the file.
@@ -867,7 +867,7 @@ interface IOfflineFilesEvents3 : IOfflineFilesEvents2
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT PrefetchFileEnd(const(wchar)* pszPath, HRESULT hrResult);
+    HRESULT PrefetchFileEnd(const(PWSTR) pszPath, HRESULT hrResult);
 }
 
 @GUID("DBD69B1E-C7D2-473E-B35F-9D8C24C0C484")
@@ -891,7 +891,7 @@ interface IOfflineFilesEventsFilter : IUnknown
     ///Returns:
     ///    Return <b>S_OK</b> if implemented, <b>E_NOTIMPL</b> if not implemented.
     ///    
-    HRESULT GetPathFilter(ushort** ppszFilter, OFFLINEFILES_PATHFILTER_MATCH* pMatch);
+    HRESULT GetPathFilter(PWSTR* ppszFilter, OFFLINEFILES_PATHFILTER_MATCH* pMatch);
     ///Retrieves an array of OFFLINEFILES_EVENTS enumeration values describing which events should be received by the
     ///event sink. If a particular event is specified both in <b>IOfflineFilesEventsFilter::GetIncludedEvents</b> and
     ///IOfflineFilesEventsFilter::GetExcludedEvents, the event is excluded from this event sink.
@@ -905,7 +905,7 @@ interface IOfflineFilesEventsFilter : IUnknown
     ///Returns:
     ///    Return <b>S_OK</b> if implemented, <b>E_NOTIMPL</b> if not implemented.
     ///    
-    HRESULT GetIncludedEvents(uint cElements, char* prgEvents, uint* pcEvents);
+    HRESULT GetIncludedEvents(uint cElements, OFFLINEFILES_EVENTS* prgEvents, uint* pcEvents);
     ///Retrieves an array of OFFLINEFILES_EVENTS enumeration values describing which events should not be received by
     ///the event sink. If a particular event is specified both in IOfflineFilesEventsFilter::GetIncludedEvents and
     ///<b>IOfflineFilesEventsFilter::GetExcludedEvents</b>, the event is excluded from this event sink.
@@ -919,7 +919,7 @@ interface IOfflineFilesEventsFilter : IUnknown
     ///Returns:
     ///    Return <b>S_OK</b> if implemented, <b>E_NOTIMPL</b> if not implemented.
     ///    
-    HRESULT GetExcludedEvents(uint cElements, char* prgEvents, uint* pcEvents);
+    HRESULT GetExcludedEvents(uint cElements, OFFLINEFILES_EVENTS* prgEvents, uint* pcEvents);
 }
 
 ///Provides a text description and raw data block associated with an error.
@@ -944,7 +944,7 @@ interface IOfflineFilesErrorInfo : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT GetDescription(ushort** ppszDescription);
+    HRESULT GetDescription(PWSTR* ppszDescription);
 }
 
 ///Provides file attributes, time information, and file size for an item associated with a sync error.
@@ -1002,7 +1002,7 @@ interface IOfflineFilesSyncErrorInfo : IOfflineFilesErrorInfo
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT InfoEnumerated(int* pbLocalEnumerated, int* pbRemoteEnumerated, int* pbOriginalEnumerated);
+    HRESULT InfoEnumerated(BOOL* pbLocalEnumerated, BOOL* pbRemoteEnumerated, BOOL* pbOriginalEnumerated);
     ///Indicates whether information was obtained for the local, remote, or original copy of the item during
     ///synchronization.
     ///Params:
@@ -1015,7 +1015,7 @@ interface IOfflineFilesSyncErrorInfo : IOfflineFilesErrorInfo
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT InfoAvailable(int* pbLocalInfo, int* pbRemoteInfo, int* pbOriginalInfo);
+    HRESULT InfoAvailable(BOOL* pbLocalInfo, BOOL* pbRemoteInfo, BOOL* pbOriginalInfo);
     ///Retrieves an instance of the IOfflineFilesSyncErrorItemInfo interface containing the file times, size, and
     ///attributes of the local copy of the item involved in the synchronization.
     ///Params:
@@ -1057,14 +1057,14 @@ interface IOfflineFilesProgress : IUnknown
     ///Returns:
     ///    The return value is ignored.
     ///    
-    HRESULT Begin(int* pbAbort);
+    HRESULT Begin(BOOL* pbAbort);
     ///May be called during lengthy operations to determine if the operation should be canceled.
     ///Params:
     ///    pbAbort = Set this value to <b>TRUE</b> to cancel the operation. Set to <b>FALSE</b> to continue.
     ///Returns:
     ///    The return value is ignored.
     ///    
-    HRESULT QueryAbort(int* pbAbort);
+    HRESULT QueryAbort(BOOL* pbAbort);
     ///Reports that an operation has ended.
     ///Params:
     ///    hrResult = Indicates the result of the operation as a whole. Contains S_OK if the operation completed successfully,
@@ -1087,7 +1087,7 @@ interface IOfflineFilesSimpleProgress : IOfflineFilesProgress
     ///Returns:
     ///    The return value is ignored.
     ///    
-    HRESULT ItemBegin(const(wchar)* pszFile, OFFLINEFILES_OP_RESPONSE* pResponse);
+    HRESULT ItemBegin(const(PWSTR) pszFile, OFFLINEFILES_OP_RESPONSE* pResponse);
     ///Reports that an item has been processed during the operation. This method is called even if the operation was
     ///unsuccessful. Check the value received in the <i>hrResult</i> parameter to determine whether the operation was
     ///successful.
@@ -1100,7 +1100,7 @@ interface IOfflineFilesSimpleProgress : IOfflineFilesProgress
     ///Returns:
     ///    The return value is ignored.
     ///    
-    HRESULT ItemResult(const(wchar)* pszFile, HRESULT hrResult, OFFLINEFILES_OP_RESPONSE* pResponse);
+    HRESULT ItemResult(const(PWSTR) pszFile, HRESULT hrResult, OFFLINEFILES_OP_RESPONSE* pResponse);
 }
 
 ///Used to report progress back to the caller during synchronization and synchronization-related operations. This
@@ -1116,7 +1116,7 @@ interface IOfflineFilesSyncProgress : IOfflineFilesProgress
     ///Returns:
     ///    The return value is ignored.
     ///    
-    HRESULT SyncItemBegin(const(wchar)* pszFile, OFFLINEFILES_OP_RESPONSE* pResponse);
+    HRESULT SyncItemBegin(const(PWSTR) pszFile, OFFLINEFILES_OP_RESPONSE* pResponse);
     ///Reports that an item has been processed during the synchronization operation. This method is called even if the
     ///operation was unsuccessful. Check the value received in the <i>hrResult</i> parameter to determine whether the
     ///operation was successful.
@@ -1131,7 +1131,7 @@ interface IOfflineFilesSyncProgress : IOfflineFilesProgress
     ///Returns:
     ///    The return value is ignored.
     ///    
-    HRESULT SyncItemResult(const(wchar)* pszFile, HRESULT hrResult, IOfflineFilesSyncErrorInfo pErrorInfo, 
+    HRESULT SyncItemResult(const(PWSTR) pszFile, HRESULT hrResult, IOfflineFilesSyncErrorInfo pErrorInfo, 
                            OFFLINEFILES_OP_RESPONSE* pResponse);
 }
 
@@ -1166,9 +1166,9 @@ interface IOfflineFilesSyncConflictHandler : IUnknown
     ///Returns:
     ///    The return value is ignored.
     ///    
-    HRESULT ResolveConflict(const(wchar)* pszPath, uint fStateKnown, OFFLINEFILES_SYNC_STATE state, 
+    HRESULT ResolveConflict(const(PWSTR) pszPath, uint fStateKnown, OFFLINEFILES_SYNC_STATE state, 
                             uint fChangeDetails, OFFLINEFILES_SYNC_CONFLICT_RESOLVE* pConflictResolution, 
-                            ushort** ppszNewName);
+                            PWSTR* ppszNewName);
 }
 
 ///Represents an instance of a filter to be applied to an enumeration. For a complete description of filtering behavior,
@@ -1207,7 +1207,7 @@ interface IOfflineFilesItemFilter : IUnknown
     ///    Returns <b>E_NOTIMPL</b> if time filtering is not supported. Any other error value causes the creation of the
     ///    enumerator to fail.
     ///    
-    HRESULT GetTimeFilter(FILETIME* pftTime, int* pbEvalTimeOfDay, OFFLINEFILES_ITEM_TIME* pTimeType, 
+    HRESULT GetTimeFilter(FILETIME* pftTime, BOOL* pbEvalTimeOfDay, OFFLINEFILES_ITEM_TIME* pTimeType, 
                           OFFLINEFILES_COMPARE* pCompare);
     ///Provides a filter pattern string to limit enumerated items based on item name patterns. Note that pattern
     ///filtering is available only for inclusion filters. If you provide a pattern filter as an exclusion filter, it is
@@ -1222,7 +1222,7 @@ interface IOfflineFilesItemFilter : IUnknown
     ///    the pszPattern buffer. Returns <b>E_NOTIMPL</b> if pattern filtering is not supported. Any other error value
     ///    causes the creation of the enumerator to fail.
     ///    
-    HRESULT GetPatternFilter(const(wchar)* pszPattern, uint cchPattern);
+    HRESULT GetPatternFilter(PWSTR pszPattern, uint cchPattern);
 }
 
 ///Represents a single item in the Offline Files cache. The item may be a server, share, directory or file. While each
@@ -1245,7 +1245,7 @@ interface IOfflineFilesItem : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT GetPath(ushort** ppszPath);
+    HRESULT GetPath(PWSTR* ppszPath);
     ///Retrieves the IOfflineFilesItem interface for the parent of the item. This method can be called repeatedly to
     ///retrieve items at the top of the cache namespace.
     ///Params:
@@ -1272,7 +1272,7 @@ interface IOfflineFilesItem : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT IsMarkedForDeletion(int* pbMarkedForDeletion);
+    HRESULT IsMarkedForDeletion(BOOL* pbMarkedForDeletion);
 }
 
 ///Represents a server item in the Offline Files cache.
@@ -1303,14 +1303,14 @@ interface IOfflineFilesFileItem : IOfflineFilesItem
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT IsSparse(int* pbIsSparse);
+    HRESULT IsSparse(BOOL* pbIsSparse);
     ///Determines whether an item in the Offline Files cache is encrypted.
     ///Params:
     ///    pbIsEncrypted = Receives <b>TRUE</b> if the item is encrypted, or <b>FALSE</b> otherwise.
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT IsEncrypted(int* pbIsEncrypted);
+    HRESULT IsEncrypted(BOOL* pbIsEncrypted);
 }
 
 ///Represents a collection of IOfflineFilesItem interface pointers.
@@ -1326,7 +1326,7 @@ interface IEnumOfflineFilesItems : IUnknown
     ///    Returns <b>S_OK</b> if the number of elements returned is <i>celt</i>; S_FALSE if a number less than
     ///    <i>celt</i> is returned; or an error value otherwise.
     ///    
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, IOfflineFilesItem* rgelt, uint* pceltFetched);
     ///Skips over the next specified number of elements in the enumeration.
     ///Params:
     ///    celt = Number of elements to be skipped.
@@ -1405,7 +1405,7 @@ interface IOfflineFilesChangeInfo : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT IsDirty(int* pbDirty);
+    HRESULT IsDirty(BOOL* pbDirty);
     ///Determines whether an item has been deleted from the Offline Files cache while working offline.
     ///Params:
     ///    pbDeletedOffline = Receives <b>TRUE</b> if the item has been deleted from the Offline Files cache while working offline, or
@@ -1413,7 +1413,7 @@ interface IOfflineFilesChangeInfo : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT IsDeletedOffline(int* pbDeletedOffline);
+    HRESULT IsDeletedOffline(BOOL* pbDeletedOffline);
     ///Determines whether an item was created in the Offline Files cache while working offline.
     ///Params:
     ///    pbCreatedOffline = Receives <b>TRUE</b> if the item was created in the Offline Files cache while working offline, or
@@ -1421,7 +1421,7 @@ interface IOfflineFilesChangeInfo : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT IsCreatedOffline(int* pbCreatedOffline);
+    HRESULT IsCreatedOffline(BOOL* pbCreatedOffline);
     ///Determines whether an item's data was modified while working offline.
     ///Params:
     ///    pbLocallyModifiedData = Receives <b>TRUE</b> if the item's data was modified in the Offline Files cache while working offline, or
@@ -1429,7 +1429,7 @@ interface IOfflineFilesChangeInfo : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT IsLocallyModifiedData(int* pbLocallyModifiedData);
+    HRESULT IsLocallyModifiedData(BOOL* pbLocallyModifiedData);
     ///Determines whether one or more of an item's attributes were modified while working offline.
     ///Params:
     ///    pbLocallyModifiedAttributes = Receives <b>TRUE</b> if one or more of the item's attributes were modified in the Offline Files cache while
@@ -1437,7 +1437,7 @@ interface IOfflineFilesChangeInfo : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT IsLocallyModifiedAttributes(int* pbLocallyModifiedAttributes);
+    HRESULT IsLocallyModifiedAttributes(BOOL* pbLocallyModifiedAttributes);
     ///Determines whether one or more of an item's time values were modified while working offline.
     ///Params:
     ///    pbLocallyModifiedTime = Receives <b>TRUE</b> if one or more of the item's time values were modified in the Offline Files cache while
@@ -1445,7 +1445,7 @@ interface IOfflineFilesChangeInfo : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT IsLocallyModifiedTime(int* pbLocallyModifiedTime);
+    HRESULT IsLocallyModifiedTime(BOOL* pbLocallyModifiedTime);
 }
 
 ///Represents information about an unsynchronized ("dirty") file in the Offline Files cache.
@@ -1529,7 +1529,7 @@ interface IOfflineFilesPinInfo : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT IsPinned(int* pbPinned);
+    HRESULT IsPinned(BOOL* pbPinned);
     ///Determines whether the item was pinned by a user.
     ///Params:
     ///    pbPinnedForUser = Receives <b>TRUE</b> if the item was pinned by a user, or <b>FALSE</b> otherwise.
@@ -1537,7 +1537,7 @@ interface IOfflineFilesPinInfo : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT IsPinnedForUser(int* pbPinnedForUser, int* pbInherit);
+    HRESULT IsPinnedForUser(BOOL* pbPinnedForUser, BOOL* pbInherit);
     ///Determines whether the item was pinned for users by Group Policy.
     ///Params:
     ///    pbPinnedForUser = Receives <b>TRUE</b> if the item was pinned for users by Group Policy, or <b>FALSE</b> otherwise.
@@ -1545,7 +1545,7 @@ interface IOfflineFilesPinInfo : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT IsPinnedForUserByPolicy(int* pbPinnedForUser, int* pbInherit);
+    HRESULT IsPinnedForUserByPolicy(BOOL* pbPinnedForUser, BOOL* pbInherit);
     ///Determines whether the item was pinned for all users on the computer by Group Policy.
     ///Params:
     ///    pbPinnedForComputer = Receives <b>TRUE</b> if the item was pinned for users by Group Policy, or <b>FALSE</b> otherwise.
@@ -1553,7 +1553,7 @@ interface IOfflineFilesPinInfo : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT IsPinnedForComputer(int* pbPinnedForComputer, int* pbInherit);
+    HRESULT IsPinnedForComputer(BOOL* pbPinnedForComputer, BOOL* pbInherit);
     ///Determines whether the item was pinned by Folder Redirection.
     ///Params:
     ///    pbPinnedForFolderRedirection = Receives <b>TRUE</b> if the item was pinned for users by Folder Redirection, or <b>FALSE</b> otherwise.
@@ -1561,7 +1561,7 @@ interface IOfflineFilesPinInfo : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT IsPinnedForFolderRedirection(int* pbPinnedForFolderRedirection, int* pbInherit);
+    HRESULT IsPinnedForFolderRedirection(BOOL* pbPinnedForFolderRedirection, BOOL* pbInherit);
 }
 
 ///Defines a method to determine whether an item in the Offline Files cache is partly pinned.
@@ -1575,7 +1575,7 @@ interface IOfflineFilesPinInfo2 : IOfflineFilesPinInfo
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT IsPartlyPinned(int* pbPartlyPinned);
+    HRESULT IsPartlyPinned(BOOL* pbPartlyPinned);
 }
 
 ///Represents information associated with transparently cached items.
@@ -1589,7 +1589,7 @@ interface IOfflineFilesTransparentCacheInfo : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT IsTransparentlyCached(int* pbTransparentlyCached);
+    HRESULT IsTransparentlyCached(BOOL* pbTransparentlyCached);
 }
 
 ///Represents the ghosting status of an item in the Offline Files cache.
@@ -1602,7 +1602,7 @@ interface IOfflineFilesGhostInfo : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT IsGhosted(int* pbGhosted);
+    HRESULT IsGhosted(BOOL* pbGhosted);
 }
 
 ///Presents query and action capabilities associated with the online-offline transition behavior of Offline Files.
@@ -1660,7 +1660,7 @@ interface IOfflineFilesConnectionInfo : IUnknown
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
     HRESULT TransitionOffline(HWND hwndParent, uint dwFlags, BOOL bForceOpenFilesClosed, 
-                              int* pbOpenFilesPreventedTransition);
+                              BOOL* pbOpenFilesPreventedTransition);
 }
 
 ///Presents share-specific information about cached items.
@@ -1691,7 +1691,7 @@ interface IOfflineFilesShareInfo : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT IsShareDfsJunction(int* pbIsDfsJunction);
+    HRESULT IsShareDfsJunction(BOOL* pbIsDfsJunction);
 }
 
 ///Suspends or releases a share root or directory tree in the Offline Files cache. A suspended tree is always offline
@@ -1724,7 +1724,7 @@ interface IOfflineFilesSuspendInfo : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT IsSuspended(int* pbSuspended, int* pbSuspendedRoot);
+    HRESULT IsSuspended(BOOL* pbSuspended, BOOL* pbSuspendedRoot);
 }
 
 ///Represents a setting that controls the behavior the Offline Files service.
@@ -1738,7 +1738,7 @@ interface IOfflineFilesSetting : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT GetName(ushort** ppszName);
+    HRESULT GetName(PWSTR* ppszName);
     ///Retrieves the data type of a particular Offline Files setting.
     ///Params:
     ///    pType = Receives a value from the OFFLINEFILES_SETTING_VALUE_TYPE enumeration that describes the data type of the
@@ -1822,7 +1822,7 @@ interface IOfflineFilesSetting : IUnknown
     ///Returns:
     ///    <b>S_OK</b> if the value query is successful or an error value otherwise.
     ///    
-    HRESULT GetValue(VARIANT* pvarValue, int* pbSetByPolicy);
+    HRESULT GetValue(VARIANT* pvarValue, BOOL* pbSetByPolicy);
 }
 
 ///Enumerates setting objects associated with the Offline Files service.
@@ -1838,7 +1838,7 @@ interface IEnumOfflineFilesSettings : IUnknown
     ///    Returns <b>S_OK</b> if the number of elements returned is <i>celt</i>; S_FALSE if a number less than
     ///    <i>celt</i> is returned; or an error value otherwise.
     ///    
-    HRESULT Next(uint celt, char* rgelt, uint* pceltFetched);
+    HRESULT Next(uint celt, IOfflineFilesSetting* rgelt, uint* pceltFetched);
     ///Skips over the next specified number of elements in the enumeration.
     ///Params:
     ///    celt = Number of elements to be skipped.
@@ -1895,7 +1895,7 @@ interface IOfflineFilesCache : IUnknown
     ///    <code>HRESULT_FROM_WIN32(ERROR_CANCELLED)</code> if the operation is canceled. Monitor
     ///    IOfflineFilesSyncProgress events to detect failures associated with individual files.
     ///    
-    HRESULT Synchronize(HWND hwndParent, char* rgpszPaths, uint cPaths, BOOL bAsync, uint dwSyncControl, 
+    HRESULT Synchronize(HWND hwndParent, PWSTR* rgpszPaths, uint cPaths, BOOL bAsync, uint dwSyncControl, 
                         IOfflineFilesSyncConflictHandler pISyncConflictHandler, IOfflineFilesSyncProgress pIProgress, 
                         GUID* pSyncId);
     ///Deletes files and directories from the local cache. Deleting a container item implies deletion of all its
@@ -1917,7 +1917,7 @@ interface IOfflineFilesCache : IUnknown
     ///    HRESULT_FROM_WIN32(ERROR_MORE_DATA) if errors occurred during the operation. Use the
     ///    IOfflineFilesSimpleProgress::ItemResult callback method to detect errors as they occur.
     ///    
-    HRESULT DeleteItems(char* rgpszPaths, uint cPaths, uint dwFlags, BOOL bAsync, 
+    HRESULT DeleteItems(PWSTR* rgpszPaths, uint cPaths, uint dwFlags, BOOL bAsync, 
                         IOfflineFilesSimpleProgress pIProgress);
     ///Deletes a user's files and directories from the local cache. Deleting a container item implies deletion of all
     ///its contained items, recursively.
@@ -1941,7 +1941,7 @@ interface IOfflineFilesCache : IUnknown
     ///    <code>HRESULT_FROM_WIN32(ERROR_MORE_DATA)</code> if errors occurred during the operation. Use the
     ///    IOfflineFilesSimpleProgress::ItemResult callback method to detect errors as they occur.
     ///    
-    HRESULT DeleteItemsForUser(const(wchar)* pszUser, char* rgpszPaths, uint cPaths, uint dwFlags, BOOL bAsync, 
+    HRESULT DeleteItemsForUser(const(PWSTR) pszUser, PWSTR* rgpszPaths, uint cPaths, uint dwFlags, BOOL bAsync, 
                                IOfflineFilesSimpleProgress pIProgress);
     ///Pins files, directories, and network shared folders. Pinning is called "Always Available Offline" in the Windows
     ///user interface. When a file is pinned, it is cached in the local Offline Files store. Unlike files that are
@@ -1965,7 +1965,7 @@ interface IOfflineFilesCache : IUnknown
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise. Returns
     ///    <code>HRESULT_FROM_WIN32(ERROR_CANCELLED)</code> if the operation is canceled.
     ///    
-    HRESULT Pin(HWND hwndParent, char* rgpszPaths, uint cPaths, BOOL bDeep, BOOL bAsync, uint dwPinControlFlags, 
+    HRESULT Pin(HWND hwndParent, PWSTR* rgpszPaths, uint cPaths, BOOL bDeep, BOOL bAsync, uint dwPinControlFlags, 
                 IOfflineFilesSyncProgress pIProgress);
     ///Unpins files, directories, and network shared folders from the Offline Files cache. Pinning is called "Always
     ///Available Offline" in the Windows user interface. When a file is unpinned, it is no longer guaranteed to be
@@ -1991,7 +1991,7 @@ interface IOfflineFilesCache : IUnknown
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise. Returns
     ///    <code>HRESULT_FROM_WIN32(ERROR_CANCELLED)</code> if the operation is canceled.
     ///    
-    HRESULT Unpin(HWND hwndParent, char* rgpszPaths, uint cPaths, BOOL bDeep, BOOL bAsync, uint dwPinControlFlags, 
+    HRESULT Unpin(HWND hwndParent, PWSTR* rgpszPaths, uint cPaths, BOOL bDeep, BOOL bAsync, uint dwPinControlFlags, 
                   IOfflineFilesSyncProgress pIProgress);
     ///Retrieves the current encryption state (encrypted or unencrypted) of the Offline Files cache.
     ///Params:
@@ -2002,7 +2002,7 @@ interface IOfflineFilesCache : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT GetEncryptionStatus(int* pbEncrypted, int* pbPartial);
+    HRESULT GetEncryptionStatus(BOOL* pbEncrypted, BOOL* pbPartial);
     ///Encrypts or unencrypts the contents of the Offline Files cache cached for the calling user. When the cache is
     ///encrypted, all files subsequently cached are automatically encrypted. When the cache is unencrypted, all files
     ///subsequently cached are cached unencrypted. Existing files in the cache are either encrypted or unencrypted to
@@ -2035,7 +2035,7 @@ interface IOfflineFilesCache : IUnknown
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise. Returns
     ///    <code>HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)</code> if the cache entry is not found.
     ///    
-    HRESULT FindItem(const(wchar)* pszPath, uint dwQueryFlags, IOfflineFilesItem* ppItem);
+    HRESULT FindItem(const(PWSTR) pszPath, uint dwQueryFlags, IOfflineFilesItem* ppItem);
     ///Locates a particular file or directory item in the cache.
     ///Params:
     ///    pszPath = UNC path of the file or directory to be located.
@@ -2054,7 +2054,7 @@ interface IOfflineFilesCache : IUnknown
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise. Returns
     ///    <code>HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)</code> if the cache entry is not found.
     ///    
-    HRESULT FindItemEx(const(wchar)* pszPath, IOfflineFilesItemFilter pIncludeFileFilter, 
+    HRESULT FindItemEx(const(PWSTR) pszPath, IOfflineFilesItemFilter pIncludeFileFilter, 
                        IOfflineFilesItemFilter pIncludeDirFilter, IOfflineFilesItemFilter pExcludeFileFilter, 
                        IOfflineFilesItemFilter pExcludeDirFilter, uint dwQueryFlags, IOfflineFilesItem* ppItem);
     ///Renames an item in the cache. This method logs a request with the Offline Files service for a path to be renamed
@@ -2067,7 +2067,7 @@ interface IOfflineFilesCache : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT RenameItem(const(wchar)* pszPathOriginal, const(wchar)* pszPathNew, BOOL bReplaceIfExists);
+    HRESULT RenameItem(const(PWSTR) pszPathOriginal, const(PWSTR) pszPathNew, BOOL bReplaceIfExists);
     ///Retrieves the current fully qualified directory path of the Offline Files cache.
     ///Params:
     ///    ppszPath = Address of pointer variable to accept the address of a string containing the fully qualified path of the
@@ -2076,7 +2076,7 @@ interface IOfflineFilesCache : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT GetLocation(ushort** ppszPath);
+    HRESULT GetLocation(PWSTR* ppszPath);
     HRESULT GetDiskSpaceInformationA(ulong* pcbVolumeTotal, ulong* pcbLimit, ulong* pcbUsed, 
                                      ulong* pcbUnpinnedLimit, ulong* pcbUnpinnedUsed);
     ///Sets disk space usage limits on the Offline Files cache.
@@ -2106,7 +2106,7 @@ interface IOfflineFilesCache : IUnknown
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise. Returns
     ///    <code>HRESULT_FROM_WIN32(ERROR_INVALID_NAME)</code> if the setting name is invalid.
     ///    
-    HRESULT GetSettingObject(const(wchar)* pszSettingName, IOfflineFilesSetting* ppSetting);
+    HRESULT GetSettingObject(const(PWSTR) pszSettingName, IOfflineFilesSetting* ppSetting);
     ///Creates an enumerator of instances of IOfflineFilesSetting. This allows the caller to enumerate all of the
     ///available settings that affect the behavior of Offline Files.
     ///Params:
@@ -2124,7 +2124,7 @@ interface IOfflineFilesCache : IUnknown
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT IsPathCacheable(const(wchar)* pszPath, int* pbCacheable, OFFLINEFILES_CACHING_MODE* pShareCachingMode);
+    HRESULT IsPathCacheable(const(PWSTR) pszPath, BOOL* pbCacheable, OFFLINEFILES_CACHING_MODE* pShareCachingMode);
 }
 
 ///Implements the RenameItemEx method.
@@ -2141,7 +2141,7 @@ interface IOfflineFilesCache2 : IOfflineFilesCache
     ///Returns:
     ///    Returns <b>S_OK</b> if successful, or an error value otherwise.
     ///    
-    HRESULT RenameItemEx(const(wchar)* pszPathOriginal, const(wchar)* pszPathNew, BOOL bReplaceIfExists);
+    HRESULT RenameItemEx(const(PWSTR) pszPathOriginal, const(PWSTR) pszPathNew, BOOL bReplaceIfExists);
 }
 
 

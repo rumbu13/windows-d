@@ -7,13 +7,13 @@ public import windows.com : HRESULT, IUnknown;
 public import windows.direct2d : D2D_POINT_2F, D2D_SIZE_U, ID2D1SimplifiedGeometrySink;
 public import windows.displaydevices : POINT, RECT, SIZE;
 public import windows.dxgi : DXGI_RGBA;
-public import windows.gdi : HDC;
+public import windows.gdi : HDC, HMONITOR;
 public import windows.intl : FONTSIGNATURE;
 public import windows.shell : LOGFONTA, LOGFONTW;
-public import windows.systemservices : BOOL, HANDLE;
+public import windows.systemservices : BOOL, HANDLE, PWSTR;
 public import windows.windowsprogramming : FILETIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -1996,9 +1996,9 @@ struct DWRITE_GLYPH_RUN
 struct DWRITE_GLYPH_RUN_DESCRIPTION
 {
     ///Type: <b>const WCHAR*</b> An array of characters containing the locale name associated with this run.
-    const(wchar)*  localeName;
+    const(PWSTR)   localeName;
     ///Type: <b>const WCHAR*</b> An array of characters containing the text associated with the glyphs.
-    const(wchar)*  string;
+    const(PWSTR)   string;
     ///Type: <b>UINT32</b> The number of characters in UTF16 code-units. Note that this may be different than the number
     ///of glyphs.
     uint           stringLength;
@@ -2013,14 +2013,14 @@ struct DWRITE_GLYPH_RUN_DESCRIPTION
 struct DWRITE_UNDERLINE
 {
     ///Type: <b>FLOAT</b> A value that indicates the width of the underline, measured parallel to the baseline.
-    float         width;
+    float        width;
     ///Type: <b>FLOAT</b> A value that indicates the thickness of the underline, measured perpendicular to the baseline.
-    float         thickness;
+    float        thickness;
     ///Type: <b>FLOAT</b> A value that indicates the offset of the underline from the baseline. A positive offset
     ///represents a position below the baseline (away from the text) and a negative offset is above (toward the text).
-    float         offset;
+    float        offset;
     ///Type: <b>FLOAT</b> A value that indicates the height of the tallest run where the underline is applied.
-    float         runHeight;
+    float        runHeight;
     ///Type: <b>DWRITE_READING_DIRECTION</b> A value that indicates the reading direction of the text associated with
     ///the underline. This value is used to interpret whether the width value runs horizontally or vertically.
     DWRITE_READING_DIRECTION readingDirection;
@@ -2031,7 +2031,7 @@ struct DWRITE_UNDERLINE
     ///Type: <b>const WCHAR*</b> An array of characters which contains the locale of the text that the underline is
     ///being drawn under. For example, in vertical text, the underline belongs on the left for Chinese but on the right
     ///for Japanese.
-    const(wchar)* localeName;
+    const(PWSTR) localeName;
     ///Type: <b>DWRITE_MEASURING_MODE</b> The measuring mode can be useful to the renderer to determine how underlines
     ///are rendered, such as rounding the thickness to a whole pixel in GDI-compatible modes.
     DWRITE_MEASURING_MODE measuringMode;
@@ -2042,13 +2042,13 @@ struct DWRITE_UNDERLINE
 struct DWRITE_STRIKETHROUGH
 {
     ///Type: <b>FLOAT</b> A value that indicates the width of the strikethrough, measured parallel to the baseline.
-    float         width;
+    float        width;
     ///Type: <b>FLOAT</b> A value that indicates the thickness of the strikethrough, measured perpendicular to the
     ///baseline.
-    float         thickness;
+    float        thickness;
     ///Type: <b>FLOAT</b> A value that indicates the offset of the strikethrough from the baseline. A positive offset
     ///represents a position below the baseline and a negative offset is above. Typically, the offset will be negative.
-    float         offset;
+    float        offset;
     ///Type: <b>DWRITE_READING_DIRECTION</b> Reading direction of the text associated with the strikethrough. This value
     ///is used to interpret whether the width value runs horizontally or vertically.
     DWRITE_READING_DIRECTION readingDirection;
@@ -2057,7 +2057,7 @@ struct DWRITE_STRIKETHROUGH
     DWRITE_FLOW_DIRECTION flowDirection;
     ///Type: <b>const WCHAR*</b> An array of characters containing the locale of the text that is the strikethrough is
     ///being drawn over.
-    const(wchar)* localeName;
+    const(PWSTR) localeName;
     DWRITE_MEASURING_MODE measuringMode;
 }
 
@@ -2236,7 +2236,7 @@ union DWRITE_PANOSE
     ubyte[10] values;
     ///A DWRITE_PANOSE_FAMILY-typed value that specifies the typeface classification values to get.
     ubyte     familyKind;
-    struct text
+struct text
     {
         ubyte familyKind;
         ubyte serifStyle;
@@ -2249,7 +2249,7 @@ union DWRITE_PANOSE
         ubyte midline;
         ubyte xHeight;
     }
-    struct script
+struct script
     {
         ubyte familyKind;
         ubyte toolKind;
@@ -2262,7 +2262,7 @@ union DWRITE_PANOSE
         ubyte finials;
         ubyte xAscent;
     }
-    struct decorative
+struct decorative
     {
         ubyte familyKind;
         ubyte decorativeClass;
@@ -2275,7 +2275,7 @@ union DWRITE_PANOSE
         ubyte decorativeTopology;
         ubyte characterRange;
     }
-    struct symbol
+struct symbol
     {
         ubyte familyKind;
         ubyte symbolKind;
@@ -2368,8 +2368,8 @@ struct DWRITE_FONT_PROPERTY
     ///Specifies the requested font property, such as DWRITE_FONT_PROPERTY_ID_FAMILY_NAME.
     DWRITE_FONT_PROPERTY_ID propertyId;
     ///Specifies the value, such as "Segoe UI".
-    const(wchar)* propertyValue;
-    const(wchar)* localeName;
+    const(PWSTR) propertyValue;
+    const(PWSTR) localeName;
 }
 
 ///Contains information about a formatted line of text.
@@ -2518,7 +2518,7 @@ interface IDWriteFontFileLoader : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CreateStreamFromKey(char* fontFileReferenceKey, uint fontFileReferenceKeySize, 
+    HRESULT CreateStreamFromKey(const(void)* fontFileReferenceKey, uint fontFileReferenceKeySize, 
                                 IDWriteFontFileStream* fontFileStream);
 }
 
@@ -2539,7 +2539,7 @@ interface IDWriteLocalFontFileLoader : IDWriteFontFileLoader
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetFilePathLengthFromKey(char* fontFileReferenceKey, uint fontFileReferenceKeySize, 
+    HRESULT GetFilePathLengthFromKey(const(void)* fontFileReferenceKey, uint fontFileReferenceKeySize, 
                                      uint* filePathLength);
     ///Obtains the absolute font file path from the font file reference key.
     ///Params:
@@ -2553,7 +2553,7 @@ interface IDWriteLocalFontFileLoader : IDWriteFontFileLoader
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetFilePathFromKey(char* fontFileReferenceKey, uint fontFileReferenceKeySize, char* filePath, 
+    HRESULT GetFilePathFromKey(const(void)* fontFileReferenceKey, uint fontFileReferenceKeySize, PWSTR filePath, 
                                uint filePathSize);
     ///Obtains the last write time of the file from the font file reference key.
     ///Params:
@@ -2566,7 +2566,7 @@ interface IDWriteLocalFontFileLoader : IDWriteFontFileLoader
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetLastWriteTimeFromKey(char* fontFileReferenceKey, uint fontFileReferenceKeySize, 
+    HRESULT GetLastWriteTimeFromKey(const(void)* fontFileReferenceKey, uint fontFileReferenceKeySize, 
                                     FILETIME* lastWriteTime);
 }
 
@@ -2659,7 +2659,7 @@ interface IDWriteFontFile : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT Analyze(int* isSupportedFontType, DWRITE_FONT_FILE_TYPE* fontFileType, 
+    HRESULT Analyze(BOOL* isSupportedFontType, DWRITE_FONT_FILE_TYPE* fontFileType, 
                     DWRITE_FONT_FACE_TYPE* fontFaceType, uint* numberOfFaces);
 }
 
@@ -2726,7 +2726,7 @@ interface IDWriteFontFace : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetFiles(uint* numberOfFiles, char* fontFiles);
+    HRESULT GetFiles(uint* numberOfFiles, IDWriteFontFile* fontFiles);
     ///Obtains the index of a font face in the context of its font files.
     ///Returns:
     ///    Type: <b>UINT32</b> The zero-based index of a font face in cases when the font files contain a collection of
@@ -2772,8 +2772,9 @@ interface IDWriteFontFace : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetDesignGlyphMetrics(char* glyphIndices, uint glyphCount, char* glyphMetrics, BOOL isSideways);
-    HRESULT GetGlyphIndicesA(char* codePoints, uint codePointCount, char* glyphIndices);
+    HRESULT GetDesignGlyphMetrics(const(ushort)* glyphIndices, uint glyphCount, DWRITE_GLYPH_METRICS* glyphMetrics, 
+                                  BOOL isSideways);
+    HRESULT GetGlyphIndicesA(const(uint)* codePoints, uint codePointCount, ushort* glyphIndices);
     ///Finds the specified OpenType font table if it exists and returns a pointer to it. The function accesses the
     ///underlying font data through the IDWriteFontFileStream interface implemented by the font file loader.
     ///Params:
@@ -2799,7 +2800,7 @@ interface IDWriteFontFace : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT TryGetFontTable(uint openTypeTableTag, const(void)** tableData, uint* tableSize, void** tableContext, 
-                            int* exists);
+                            BOOL* exists);
     ///Releases the table obtained earlier from TryGetFontTable.
     ///Params:
     ///    tableContext = Type: <b>void*</b> A pointer to the opaque context from TryGetFontTable.
@@ -2833,9 +2834,9 @@ interface IDWriteFontFace : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetGlyphRunOutline(float emSize, char* glyphIndices, char* glyphAdvances, char* glyphOffsets, 
-                               uint glyphCount, BOOL isSideways, BOOL isRightToLeft, 
-                               ID2D1SimplifiedGeometrySink geometrySink);
+    HRESULT GetGlyphRunOutline(float emSize, const(ushort)* glyphIndices, const(float)* glyphAdvances, 
+                               const(DWRITE_GLYPH_OFFSET)* glyphOffsets, uint glyphCount, BOOL isSideways, 
+                               BOOL isRightToLeft, ID2D1SimplifiedGeometrySink geometrySink);
     ///Determines the recommended rendering mode for the font, using the specified size and rendering parameters.
     ///Params:
     ///    emSize = Type: <b>FLOAT</b> The logical size of the font in DIP units. A DIP ("device-independent pixel") equals 1/96
@@ -2894,8 +2895,8 @@ interface IDWriteFontFace : IUnknown
     ///    valid glyph index range for the current font face, <b>E_INVALIDARG</b> will be returned.
     ///    
     HRESULT GetGdiCompatibleGlyphMetrics(float emSize, float pixelsPerDip, const(DWRITE_MATRIX)* transform, 
-                                         BOOL useGdiNatural, char* glyphIndices, uint glyphCount, char* glyphMetrics, 
-                                         BOOL isSideways);
+                                         BOOL useGdiNatural, const(ushort)* glyphIndices, uint glyphCount, 
+                                         DWRITE_GLYPH_METRICS* glyphMetrics, BOOL isSideways);
 }
 
 ///Used to construct a collection of fonts given a particular type of key.
@@ -2918,7 +2919,7 @@ interface IDWriteFontCollectionLoader : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CreateEnumeratorFromKey(IDWriteFactory factory, char* collectionKey, uint collectionKeySize, 
+    HRESULT CreateEnumeratorFromKey(IDWriteFactory factory, const(void)* collectionKey, uint collectionKeySize, 
                                     IDWriteFontFileEnumerator* fontFileEnumerator);
 }
 
@@ -2937,7 +2938,7 @@ interface IDWriteFontFileEnumerator : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT MoveNext(int* hasCurrentFile);
+    HRESULT MoveNext(BOOL* hasCurrentFile);
     ///Gets a reference to the current font file.
     ///Params:
     ///    fontFile = Type: <b>IDWriteFontFile**</b> When this method returns, the address of a pointer to the newly created
@@ -2970,7 +2971,7 @@ interface IDWriteLocalizedStrings : IUnknown
     ///    Type: <b>HRESULT</b> If the specified locale name does not exist, the return value is <b>S_OK</b>, but
     ///    <i>index</i> is <b>UINT_MAX</b> and <i>exists</i> is <b>FALSE</b>.
     ///    
-    HRESULT FindLocaleName(const(wchar)* localeName, uint* index, int* exists);
+    HRESULT FindLocaleName(const(PWSTR) localeName, uint* index, BOOL* exists);
     ///Gets the length in characters (not including the null terminator) of the locale name with the specified index.
     ///Params:
     ///    index = Type: <b>UINT32</b> Zero-based index of the locale name to be retrieved.
@@ -2995,7 +2996,7 @@ interface IDWriteLocalizedStrings : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetLocaleName(uint index, char* localeName, uint size);
+    HRESULT GetLocaleName(uint index, PWSTR localeName, uint size);
     ///Gets the length in characters (not including the null terminator) of the string with the specified index.
     ///Params:
     ///    index = Type: <b>UINT32</b> A zero-based index of the language/string pair.
@@ -3020,7 +3021,7 @@ interface IDWriteLocalizedStrings : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetString(uint index, char* stringBuffer, uint size);
+    HRESULT GetString(uint index, PWSTR stringBuffer, uint size);
 }
 
 ///An object that encapsulates a set of fonts, such as the set of fonts installed on the system, or the set of fonts in
@@ -3057,7 +3058,7 @@ interface IDWriteFontCollection : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT FindFamilyName(const(wchar)* familyName, uint* index, int* exists);
+    HRESULT FindFamilyName(const(PWSTR) familyName, uint* index, BOOL* exists);
     ///Gets the font object that corresponds to the same physical font as the specified font face object. The specified
     ///physical font must belong to the font collection.
     ///Params:
@@ -3208,7 +3209,7 @@ interface IDWriteFont : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT GetInformationalStrings(DWRITE_INFORMATIONAL_STRING_ID informationalStringID, 
-                                    IDWriteLocalizedStrings* informationalStrings, int* exists);
+                                    IDWriteLocalizedStrings* informationalStrings, BOOL* exists);
     ///Gets a value that indicates what simulations are applied to the specified font.
     ///Returns:
     ///    Type: <b>DWRITE_FONT_SIMULATIONS</b> A value that indicates one or more of the types of simulations (none,
@@ -3231,7 +3232,7 @@ interface IDWriteFont : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT HasCharacter(uint unicodeValue, int* exists);
+    HRESULT HasCharacter(uint unicodeValue, BOOL* exists);
     ///Creates a font face object for the font.
     ///Params:
     ///    fontFace = Type: <b>IDWriteFontFace**</b> When this method returns, contains an address of a pointer to the newly
@@ -3421,7 +3422,7 @@ interface IDWriteTextFormat : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetFontFamilyName(char* fontFamilyName, uint nameSize);
+    HRESULT GetFontFamilyName(PWSTR fontFamilyName, uint nameSize);
     ///Gets the font weight of the text.
     ///Returns:
     ///    Type: <b>DWRITE_FONT_WEIGHT</b> A value that indicates the type of weight (such as normal, bold, or black).
@@ -3459,7 +3460,7 @@ interface IDWriteTextFormat : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetLocaleName(char* localeName, uint nameSize);
+    HRESULT GetLocaleName(PWSTR localeName, uint nameSize);
 }
 
 ///Represents a font typography setting.
@@ -3595,7 +3596,7 @@ interface IDWriteTextAnalysisSink : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> A successful code or error code to stop analysis.
     ///    
-    HRESULT SetLineBreakpoints(uint textPosition, uint textLength, char* lineBreakpoints);
+    HRESULT SetLineBreakpoints(uint textPosition, uint textLength, const(DWRITE_LINE_BREAKPOINT)* lineBreakpoints);
     ///Sets a bidirectional level on the range, which is called once per run change (either explicit or resolved
     ///implicit).
     ///Params:
@@ -3719,11 +3720,12 @@ interface IDWriteTextAnalyzer : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetGlyphs(const(wchar)* textString, uint textLength, IDWriteFontFace fontFace, BOOL isSideways, 
-                      BOOL isRightToLeft, const(DWRITE_SCRIPT_ANALYSIS)* scriptAnalysis, const(wchar)* localeName, 
-                      IDWriteNumberSubstitution numberSubstitution, char* features, char* featureRangeLengths, 
-                      uint featureRanges, uint maxGlyphCount, char* clusterMap, char* textProps, char* glyphIndices, 
-                      char* glyphProps, uint* actualGlyphCount);
+    HRESULT GetGlyphs(const(PWSTR) textString, uint textLength, IDWriteFontFace fontFace, BOOL isSideways, 
+                      BOOL isRightToLeft, const(DWRITE_SCRIPT_ANALYSIS)* scriptAnalysis, const(PWSTR) localeName, 
+                      IDWriteNumberSubstitution numberSubstitution, const(DWRITE_TYPOGRAPHIC_FEATURES)** features, 
+                      const(uint)* featureRangeLengths, uint featureRanges, uint maxGlyphCount, ushort* clusterMap, 
+                      DWRITE_SHAPING_TEXT_PROPERTIES* textProps, ushort* glyphIndices, 
+                      DWRITE_SHAPING_GLYPH_PROPERTIES* glyphProps, uint* actualGlyphCount);
     ///Places glyphs output from the GetGlyphs method according to the font and the writing system's rendering rules.
     ///Params:
     ///    textString = Type: <b>const WCHAR*</b> An array of characters containing the original string from which the glyphs came.
@@ -3756,12 +3758,14 @@ interface IDWriteTextAnalyzer : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetGlyphPlacements(const(wchar)* textString, char* clusterMap, char* textProps, uint textLength, 
-                               char* glyphIndices, char* glyphProps, uint glyphCount, IDWriteFontFace fontFace, 
-                               float fontEmSize, BOOL isSideways, BOOL isRightToLeft, 
-                               const(DWRITE_SCRIPT_ANALYSIS)* scriptAnalysis, const(wchar)* localeName, 
-                               char* features, char* featureRangeLengths, uint featureRanges, char* glyphAdvances, 
-                               char* glyphOffsets);
+    HRESULT GetGlyphPlacements(const(PWSTR) textString, const(ushort)* clusterMap, 
+                               DWRITE_SHAPING_TEXT_PROPERTIES* textProps, uint textLength, 
+                               const(ushort)* glyphIndices, const(DWRITE_SHAPING_GLYPH_PROPERTIES)* glyphProps, 
+                               uint glyphCount, IDWriteFontFace fontFace, float fontEmSize, BOOL isSideways, 
+                               BOOL isRightToLeft, const(DWRITE_SCRIPT_ANALYSIS)* scriptAnalysis, 
+                               const(PWSTR) localeName, const(DWRITE_TYPOGRAPHIC_FEATURES)** features, 
+                               const(uint)* featureRangeLengths, uint featureRanges, float* glyphAdvances, 
+                               DWRITE_GLYPH_OFFSET* glyphOffsets);
     ///Place glyphs output from the GetGlyphs method according to the font and the writing system's rendering rules.
     ///Params:
     ///    textString = Type: <b>const WCHAR*</b> An array of characters containing the original string from which the glyphs came.
@@ -3800,13 +3804,16 @@ interface IDWriteTextAnalyzer : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetGdiCompatibleGlyphPlacements(const(wchar)* textString, char* clusterMap, char* textProps, 
-                                            uint textLength, char* glyphIndices, char* glyphProps, uint glyphCount, 
+    HRESULT GetGdiCompatibleGlyphPlacements(const(PWSTR) textString, const(ushort)* clusterMap, 
+                                            DWRITE_SHAPING_TEXT_PROPERTIES* textProps, uint textLength, 
+                                            const(ushort)* glyphIndices, 
+                                            const(DWRITE_SHAPING_GLYPH_PROPERTIES)* glyphProps, uint glyphCount, 
                                             IDWriteFontFace fontFace, float fontEmSize, float pixelsPerDip, 
                                             const(DWRITE_MATRIX)* transform, BOOL useGdiNatural, BOOL isSideways, 
                                             BOOL isRightToLeft, const(DWRITE_SCRIPT_ANALYSIS)* scriptAnalysis, 
-                                            const(wchar)* localeName, char* features, char* featureRangeLengths, 
-                                            uint featureRanges, char* glyphAdvances, char* glyphOffsets);
+                                            const(PWSTR) localeName, const(DWRITE_TYPOGRAPHIC_FEATURES)** features, 
+                                            const(uint)* featureRangeLengths, uint featureRanges, 
+                                            float* glyphAdvances, DWRITE_GLYPH_OFFSET* glyphOffsets);
 }
 
 ///Wraps an application-defined inline graphic, allowing DWrite to query metrics as if the graphic were a glyph inline
@@ -3879,7 +3886,7 @@ interface IDWriteInlineObject : IUnknown
 @GUID("EAF3A2DA-ECF4-4D24-B644-B34F6842024B")
 interface IDWritePixelSnapping : IUnknown
 {
-    HRESULT IsPixelSnappingDisabled(void* clientDrawingContext, int* isDisabled);
+    HRESULT IsPixelSnappingDisabled(void* clientDrawingContext, BOOL* isDisabled);
     ///Gets a transform that maps abstract coordinates to DIPs.
     ///Params:
     ///    clientDrawingContext = Type: <b>void*</b> The drawing context passed to IDWriteTextLayout::Draw.
@@ -4027,7 +4034,7 @@ interface IDWriteTextLayout : IDWriteTextFormat
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetFontFamilyName(const(wchar)* fontFamilyName, DWRITE_TEXT_RANGE textRange);
+    HRESULT SetFontFamilyName(const(PWSTR) fontFamilyName, DWRITE_TEXT_RANGE textRange);
     ///Sets the font weight for text within a text range specified by a DWRITE_TEXT_RANGE structure.
     ///Params:
     ///    fontWeight = Type: <b>DWRITE_FONT_WEIGHT</b> The font weight to be set for text within the range specified by
@@ -4132,7 +4139,7 @@ interface IDWriteTextLayout : IDWriteTextFormat
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT SetLocaleName(const(wchar)* localeName, DWRITE_TEXT_RANGE textRange);
+    HRESULT SetLocaleName(const(PWSTR) localeName, DWRITE_TEXT_RANGE textRange);
     ///Gets the layout maximum width.
     ///Returns:
     ///    Type: <b>FLOAT</b> Returns the layout maximum width.
@@ -4186,7 +4193,7 @@ interface IDWriteTextLayout : IDWriteTextFormat
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetFontFamilyName(uint currentPosition, char* fontFamilyName, uint nameSize, 
+    HRESULT GetFontFamilyName(uint currentPosition, PWSTR fontFamilyName, uint nameSize, 
                               DWRITE_TEXT_RANGE* textRange);
     ///Gets the font weight of the text at the specified position.
     ///Params:
@@ -4257,7 +4264,7 @@ interface IDWriteTextLayout : IDWriteTextFormat
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetUnderline(uint currentPosition, int* hasUnderline, DWRITE_TEXT_RANGE* textRange);
+    HRESULT GetUnderline(uint currentPosition, BOOL* hasUnderline, DWRITE_TEXT_RANGE* textRange);
     ///Get the strikethrough presence of the text at the specified position.
     ///Params:
     ///    currentPosition = Type: <b>UINT32</b> The position of the text to inspect.
@@ -4271,7 +4278,7 @@ interface IDWriteTextLayout : IDWriteTextFormat
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetStrikethrough(uint currentPosition, int* hasStrikethrough, DWRITE_TEXT_RANGE* textRange);
+    HRESULT GetStrikethrough(uint currentPosition, BOOL* hasStrikethrough, DWRITE_TEXT_RANGE* textRange);
     ///Gets the application-defined drawing effect at the specified text position.
     ///Params:
     ///    currentPosition = Type: <b>UINT32</b> The position of the text whose drawing effect is to be retrieved.
@@ -4341,7 +4348,7 @@ interface IDWriteTextLayout : IDWriteTextFormat
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetLocaleName(uint currentPosition, char* localeName, uint nameSize, DWRITE_TEXT_RANGE* textRange);
+    HRESULT GetLocaleName(uint currentPosition, PWSTR localeName, uint nameSize, DWRITE_TEXT_RANGE* textRange);
     ///Draws text using the specified client drawing context.
     ///Params:
     ///    clientDrawingContext = Type: <b>void*</b> An application-defined drawing context.
@@ -4367,7 +4374,7 @@ interface IDWriteTextLayout : IDWriteTextFormat
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetLineMetrics(char* lineMetrics, uint maxLineCount, uint* actualLineCount);
+    HRESULT GetLineMetrics(DWRITE_LINE_METRICS* lineMetrics, uint maxLineCount, uint* actualLineCount);
     ///Retrieves overall metrics for the formatted string.
     ///Params:
     ///    textMetrics = Type: <b>DWRITE_TEXT_METRICS*</b> When this method returns, contains the measured distances of text and
@@ -4400,7 +4407,8 @@ interface IDWriteTextLayout : IDWriteTextFormat
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetClusterMetrics(char* clusterMetrics, uint maxClusterCount, uint* actualClusterCount);
+    HRESULT GetClusterMetrics(DWRITE_CLUSTER_METRICS* clusterMetrics, uint maxClusterCount, 
+                              uint* actualClusterCount);
     ///Determines the minimum possible width the layout can be set to without emergency breaking between the characters
     ///of whole words occurring.
     ///Params:
@@ -4432,7 +4440,7 @@ interface IDWriteTextLayout : IDWriteTextFormat
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT HitTestPoint(float pointX, float pointY, int* isTrailingHit, int* isInside, 
+    HRESULT HitTestPoint(float pointX, float pointY, BOOL* isTrailingHit, BOOL* isInside, 
                          DWRITE_HIT_TEST_METRICS* hitTestMetrics);
     ///The application calls this function to get the pixel location relative to the top-left of the layout box given
     ///the text position and the logical side of the position. This function is normally used as part of caret
@@ -4485,7 +4493,8 @@ interface IDWriteTextLayout : IDWriteTextFormat
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT HitTestTextRange(uint textPosition, uint textLength, float originX, float originY, 
-                             char* hitTestMetrics, uint maxHitTestMetricsCount, uint* actualHitTestMetricsCount);
+                             DWRITE_HIT_TEST_METRICS* hitTestMetrics, uint maxHitTestMetricsCount, 
+                             uint* actualHitTestMetricsCount);
 }
 
 ///Encapsulates a 32-bit device independent bitmap and device context, which can be used for rendering glyphs.
@@ -4605,7 +4614,7 @@ interface IDWriteGdiInterop : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT ConvertFontToLOGFONT(IDWriteFont font, LOGFONTW* logFont, int* isSystemFont);
+    HRESULT ConvertFontToLOGFONT(IDWriteFont font, LOGFONTW* logFont, BOOL* isSystemFont);
     ///Initializes a LOGFONT structure based on the GDI-compatible properties of the specified font.
     ///Params:
     ///    font = Type: <b>IDWriteFontFace*</b> An IDWriteFontFace object to be converted into a GDI-compatible LOGFONT
@@ -4683,7 +4692,7 @@ interface IDWriteGlyphRunAnalysis : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CreateAlphaTexture(DWRITE_TEXTURE_TYPE textureType, const(RECT)* textureBounds, char* alphaValues, 
+    HRESULT CreateAlphaTexture(DWRITE_TEXTURE_TYPE textureType, const(RECT)* textureBounds, ubyte* alphaValues, 
                                uint bufferSize);
     ///Gets alpha blending properties required for ClearType blending.
     ///Params:
@@ -4736,7 +4745,7 @@ interface IDWriteFactory : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CreateCustomFontCollection(IDWriteFontCollectionLoader collectionLoader, char* collectionKey, 
+    HRESULT CreateCustomFontCollection(IDWriteFontCollectionLoader collectionLoader, const(void)* collectionKey, 
                                        uint collectionKeySize, IDWriteFontCollection* fontCollection);
     ///Registers a custom font collection loader with the factory object.
     ///Params:
@@ -4772,7 +4781,7 @@ interface IDWriteFactory : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CreateFontFileReference(const(wchar)* filePath, const(FILETIME)* lastWriteTime, 
+    HRESULT CreateFontFileReference(const(PWSTR) filePath, const(FILETIME)* lastWriteTime, 
                                     IDWriteFontFile* fontFile);
     ///Creates a reference to an application-specific font file resource.
     ///Params:
@@ -4788,7 +4797,7 @@ interface IDWriteFactory : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CreateCustomFontFileReference(char* fontFileReferenceKey, uint fontFileReferenceKeySize, 
+    HRESULT CreateCustomFontFileReference(const(void)* fontFileReferenceKey, uint fontFileReferenceKeySize, 
                                           IDWriteFontFileLoader fontFileLoader, IDWriteFontFile* fontFile);
     ///Creates an object that represents a font face.
     ///Params:
@@ -4808,8 +4817,9 @@ interface IDWriteFactory : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CreateFontFace(DWRITE_FONT_FACE_TYPE fontFaceType, uint numberOfFiles, char* fontFiles, uint faceIndex, 
-                           DWRITE_FONT_SIMULATIONS fontFaceSimulationFlags, IDWriteFontFace* fontFace);
+    HRESULT CreateFontFace(DWRITE_FONT_FACE_TYPE fontFaceType, uint numberOfFiles, IDWriteFontFile* fontFiles, 
+                           uint faceIndex, DWRITE_FONT_SIMULATIONS fontFaceSimulationFlags, 
+                           IDWriteFontFace* fontFace);
     ///Creates a rendering parameters object with default settings for the primary monitor. Different monitors may have
     ///different rendering parameters, for more information see the How to Add Support for Multiple Monitors topic.
     ///Params:
@@ -4830,7 +4840,7 @@ interface IDWriteFactory : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CreateMonitorRenderingParams(ptrdiff_t monitor, IDWriteRenderingParams* renderingParams);
+    HRESULT CreateMonitorRenderingParams(HMONITOR monitor, IDWriteRenderingParams* renderingParams);
     ///Creates a rendering parameters object with the specified properties.
     ///Params:
     ///    gamma = Type: <b>FLOAT</b> The gamma level to be set for the new rendering parameters object.
@@ -4892,9 +4902,9 @@ interface IDWriteFactory : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CreateTextFormat(const(wchar)* fontFamilyName, IDWriteFontCollection fontCollection, 
+    HRESULT CreateTextFormat(const(PWSTR) fontFamilyName, IDWriteFontCollection fontCollection, 
                              DWRITE_FONT_WEIGHT fontWeight, DWRITE_FONT_STYLE fontStyle, 
-                             DWRITE_FONT_STRETCH fontStretch, float fontSize, const(wchar)* localeName, 
+                             DWRITE_FONT_STRETCH fontStretch, float fontSize, const(PWSTR) localeName, 
                              IDWriteTextFormat* textFormat);
     ///Creates a typography object for use in a text layout.
     ///Params:
@@ -4933,7 +4943,7 @@ interface IDWriteFactory : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CreateTextLayout(const(wchar)* string, uint stringLength, IDWriteTextFormat textFormat, float maxWidth, 
+    HRESULT CreateTextLayout(const(PWSTR) string, uint stringLength, IDWriteTextFormat textFormat, float maxWidth, 
                              float maxHeight, IDWriteTextLayout* textLayout);
     ///Takes a string, format, and associated constraints, and produces an object representing the result, formatted for
     ///a particular display resolution and measuring mode.
@@ -4960,7 +4970,7 @@ interface IDWriteFactory : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CreateGdiCompatibleTextLayout(const(wchar)* string, uint stringLength, IDWriteTextFormat textFormat, 
+    HRESULT CreateGdiCompatibleTextLayout(const(PWSTR) string, uint stringLength, IDWriteTextFormat textFormat, 
                                           float layoutWidth, float layoutHeight, float pixelsPerDip, 
                                           const(DWRITE_MATRIX)* transform, BOOL useGdiNatural, 
                                           IDWriteTextLayout* textLayout);
@@ -4999,9 +5009,8 @@ interface IDWriteFactory : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT CreateNumberSubstitution(DWRITE_NUMBER_SUBSTITUTION_METHOD substitutionMethod, 
-                                     const(wchar)* localeName, BOOL ignoreUserOverride, 
-                                     IDWriteNumberSubstitution* numberSubstitution);
+    HRESULT CreateNumberSubstitution(DWRITE_NUMBER_SUBSTITUTION_METHOD substitutionMethod, const(PWSTR) localeName, 
+                                     BOOL ignoreUserOverride, IDWriteNumberSubstitution* numberSubstitution);
     ///Creates a glyph run analysis object, which encapsulates information used to render a glyph run.
     ///Params:
     ///    glyphRun = Type: <b>const DWRITE_GLYPH_RUN*</b> A structure that contains the properties of the glyph run (font face,
@@ -5107,7 +5116,7 @@ interface IDWriteFontFace1 : IDWriteFontFace
     ///    <td width="60%"> The buffer is too small. The <i>actualRangeCount</i> was more than the <i>maxRangeCount</i>.
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetUnicodeRanges(uint maxRangeCount, char* unicodeRanges, uint* actualRangeCount);
+    HRESULT GetUnicodeRanges(uint maxRangeCount, DWRITE_UNICODE_RANGE* unicodeRanges, uint* actualRangeCount);
     ///Determines whether the font of a text range is monospaced, that is, the font characters are the same fixed-pitch
     ///width.
     ///Returns:
@@ -5125,7 +5134,8 @@ interface IDWriteFontFace1 : IDWriteFontFace
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetDesignGlyphAdvances(uint glyphCount, char* glyphIndices, char* glyphAdvances, BOOL isSideways);
+    HRESULT GetDesignGlyphAdvances(uint glyphCount, const(ushort)* glyphIndices, int* glyphAdvances, 
+                                   BOOL isSideways);
     ///Returns the pixel-aligned advances for a sequences of glyphs.
     ///Params:
     ///    emSize = Type: <b>FLOAT</b> Logical size of the font in DIP units. A DIP ("device-independent pixel") equals 1/96
@@ -5147,8 +5157,8 @@ interface IDWriteFontFace1 : IDWriteFontFace
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT GetGdiCompatibleGlyphAdvances(float emSize, float pixelsPerDip, const(DWRITE_MATRIX)* transform, 
-                                          BOOL useGdiNatural, BOOL isSideways, uint glyphCount, char* glyphIndices, 
-                                          char* glyphAdvances);
+                                          BOOL useGdiNatural, BOOL isSideways, uint glyphCount, 
+                                          const(ushort)* glyphIndices, int* glyphAdvances);
     ///Retrieves the kerning pair adjustments from the font's kern table.
     ///Params:
     ///    glyphCount = Type: <b>UINT32</b> Number of glyphs to retrieve adjustments for.
@@ -5160,7 +5170,7 @@ interface IDWriteFontFace1 : IDWriteFontFace
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetKerningPairAdjustments(uint glyphCount, char* glyphIndices, char* glyphAdvanceAdjustments);
+    HRESULT GetKerningPairAdjustments(uint glyphCount, const(ushort)* glyphIndices, int* glyphAdvanceAdjustments);
     ///Determines whether the font supports pair-kerning.
     ///Returns:
     ///    Returns TRUE if the font supports kerning pairs, otherwise FALSE.
@@ -5203,7 +5213,8 @@ interface IDWriteFontFace1 : IDWriteFontFace
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetVerticalGlyphVariants(uint glyphCount, char* nominalGlyphIndices, char* verticalGlyphIndices);
+    HRESULT GetVerticalGlyphVariants(uint glyphCount, const(ushort)* nominalGlyphIndices, 
+                                     ushort* verticalGlyphIndices);
     ///Determines whether the font has any vertical glyph variants.
     ///Returns:
     ///    Returns TRUE if the font contains vertical glyph variants, otherwise FALSE.
@@ -5238,7 +5249,7 @@ interface IDWriteFont1 : IDWriteFont
     ///    <td width="60%"> The buffer is too small. The <i>actualRangeCount</i> was more than the <i>maxRangeCount</i>.
     ///    </td> </tr> </table>
     ///    
-    HRESULT GetUnicodeRanges(uint maxRangeCount, char* unicodeRanges, uint* actualRangeCount);
+    HRESULT GetUnicodeRanges(uint maxRangeCount, DWRITE_UNICODE_RANGE* unicodeRanges, uint* actualRangeCount);
     ///Determines if the font is monospaced, that is, the characters are the same fixed-pitch width (non-proportional).
     ///Returns:
     ///    Type: <b>BOOL</b> Returns true if the font is monospaced, else it returns false.
@@ -5280,9 +5291,10 @@ interface IDWriteTextAnalyzer1 : IDWriteTextAnalyzer
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT ApplyCharacterSpacing(float leadingSpacing, float trailingSpacing, float minimumAdvanceWidth, 
-                                  uint textLength, uint glyphCount, char* clusterMap, char* glyphAdvances, 
-                                  char* glyphOffsets, char* glyphProperties, char* modifiedGlyphAdvances, 
-                                  char* modifiedGlyphOffsets);
+                                  uint textLength, uint glyphCount, const(ushort)* clusterMap, 
+                                  const(float)* glyphAdvances, const(DWRITE_GLYPH_OFFSET)* glyphOffsets, 
+                                  const(DWRITE_SHAPING_GLYPH_PROPERTIES)* glyphProperties, 
+                                  float* modifiedGlyphAdvances, DWRITE_GLYPH_OFFSET* modifiedGlyphOffsets);
     ///Retrieves the given baseline from the font.
     ///Params:
     ///    fontFace = Type: <b>IDWriteFontFace*</b> The font face to read.
@@ -5301,8 +5313,8 @@ interface IDWriteTextAnalyzer1 : IDWriteTextAnalyzer
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT GetBaseline(IDWriteFontFace fontFace, DWRITE_BASELINE baseline, BOOL isVertical, 
-                        BOOL isSimulationAllowed, DWRITE_SCRIPT_ANALYSIS scriptAnalysis, const(wchar)* localeName, 
-                        int* baselineCoordinate, int* exists);
+                        BOOL isSimulationAllowed, DWRITE_SCRIPT_ANALYSIS scriptAnalysis, const(PWSTR) localeName, 
+                        int* baselineCoordinate, BOOL* exists);
     ///Analyzes a text range for script orientation, reading text and attributes from the source and reporting results
     ///to the sink callback SetGlyphOrientation.
     ///Params:
@@ -5361,8 +5373,8 @@ interface IDWriteTextAnalyzer1 : IDWriteTextAnalyzer
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetTextComplexity(const(wchar)* textString, uint textLength, IDWriteFontFace fontFace, 
-                              int* isTextSimple, uint* textLengthRead, char* glyphIndices);
+    HRESULT GetTextComplexity(const(PWSTR) textString, uint textLength, IDWriteFontFace fontFace, 
+                              BOOL* isTextSimple, uint* textLengthRead, ushort* glyphIndices);
     ///Retrieves justification opportunity information for each of the glyphs given the text and shaping glyph
     ///properties.
     ///Params:
@@ -5384,8 +5396,9 @@ interface IDWriteTextAnalyzer1 : IDWriteTextAnalyzer
     ///    
     HRESULT GetJustificationOpportunities(IDWriteFontFace fontFace, float fontEmSize, 
                                           DWRITE_SCRIPT_ANALYSIS scriptAnalysis, uint textLength, uint glyphCount, 
-                                          const(wchar)* textString, char* clusterMap, char* glyphProperties, 
-                                          char* justificationOpportunities);
+                                          const(PWSTR) textString, const(ushort)* clusterMap, 
+                                          const(DWRITE_SHAPING_GLYPH_PROPERTIES)* glyphProperties, 
+                                          DWRITE_JUSTIFICATION_OPPORTUNITY* justificationOpportunities);
     ///Justifies an array of glyph advances to fit the line width.
     ///Params:
     ///    lineWidth = Type: <b>FLOAT</b> The line width.
@@ -5402,9 +5415,10 @@ interface IDWriteTextAnalyzer1 : IDWriteTextAnalyzer
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT JustifyGlyphAdvances(float lineWidth, uint glyphCount, char* justificationOpportunities, 
-                                 char* glyphAdvances, char* glyphOffsets, char* justifiedGlyphAdvances, 
-                                 char* justifiedGlyphOffsets);
+    HRESULT JustifyGlyphAdvances(float lineWidth, uint glyphCount, 
+                                 const(DWRITE_JUSTIFICATION_OPPORTUNITY)* justificationOpportunities, 
+                                 const(float)* glyphAdvances, const(DWRITE_GLYPH_OFFSET)* glyphOffsets, 
+                                 float* justifiedGlyphAdvances, DWRITE_GLYPH_OFFSET* justifiedGlyphOffsets);
     ///Fills in new glyphs for complex scripts where justification increased the advances of glyphs, such as Arabic with
     ///kashida.
     ///Params:
@@ -5434,11 +5448,13 @@ interface IDWriteTextAnalyzer1 : IDWriteTextAnalyzer
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT GetJustifiedGlyphs(IDWriteFontFace fontFace, float fontEmSize, DWRITE_SCRIPT_ANALYSIS scriptAnalysis, 
-                               uint textLength, uint glyphCount, uint maxGlyphCount, char* clusterMap, 
-                               char* glyphIndices, char* glyphAdvances, char* justifiedGlyphAdvances, 
-                               char* justifiedGlyphOffsets, char* glyphProperties, uint* actualGlyphCount, 
-                               char* modifiedClusterMap, char* modifiedGlyphIndices, char* modifiedGlyphAdvances, 
-                               char* modifiedGlyphOffsets);
+                               uint textLength, uint glyphCount, uint maxGlyphCount, const(ushort)* clusterMap, 
+                               const(ushort)* glyphIndices, const(float)* glyphAdvances, 
+                               const(float)* justifiedGlyphAdvances, 
+                               const(DWRITE_GLYPH_OFFSET)* justifiedGlyphOffsets, 
+                               const(DWRITE_SHAPING_GLYPH_PROPERTIES)* glyphProperties, uint* actualGlyphCount, 
+                               ushort* modifiedClusterMap, ushort* modifiedGlyphIndices, 
+                               float* modifiedGlyphAdvances, DWRITE_GLYPH_OFFSET* modifiedGlyphOffsets);
 }
 
 ///The interface you implement to provide needed information to the text analyzer, like the text and associated text
@@ -5511,7 +5527,7 @@ interface IDWriteTextLayout1 : IDWriteTextLayout
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetPairKerning(uint currentPosition, int* isPairKerningEnabled, DWRITE_TEXT_RANGE* textRange);
+    HRESULT GetPairKerning(uint currentPosition, BOOL* isPairKerningEnabled, DWRITE_TEXT_RANGE* textRange);
     ///Sets the spacing between characters.
     ///Params:
     ///    leadingSpacing = Type: <b>FLOAT</b> The spacing before each character, in reading order.
@@ -5823,7 +5839,8 @@ interface IDWriteTextAnalyzer2 : IDWriteTextAnalyzer1
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT GetTypographicFeatures(IDWriteFontFace fontFace, DWRITE_SCRIPT_ANALYSIS scriptAnalysis, 
-                                   const(wchar)* localeName, uint maxTagCount, uint* actualTagCount, char* tags);
+                                   const(PWSTR) localeName, uint maxTagCount, uint* actualTagCount, 
+                                   DWRITE_FONT_FEATURE_TAG* tags);
     ///Checks if a typographic feature is available for a glyph or a set of glyphs.
     ///Params:
     ///    fontFace = The font face to read glyph information from.
@@ -5838,8 +5855,8 @@ interface IDWriteTextAnalyzer2 : IDWriteTextAnalyzer1
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT CheckTypographicFeature(IDWriteFontFace fontFace, DWRITE_SCRIPT_ANALYSIS scriptAnalysis, 
-                                    const(wchar)* localeName, DWRITE_FONT_FEATURE_TAG featureTag, uint glyphCount, 
-                                    char* glyphIndices, char* featureApplies);
+                                    const(PWSTR) localeName, DWRITE_FONT_FEATURE_TAG featureTag, uint glyphCount, 
+                                    const(ushort)* glyphIndices, ubyte* featureApplies);
 }
 
 ///Allows you to access fallback fonts from the font list. The <b>IDWriteFontFallback</b> interface defines a fallback
@@ -5872,7 +5889,7 @@ interface IDWriteFontFallback : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT MapCharacters(IDWriteTextAnalysisSource analysisSource, uint textPosition, uint textLength, 
-                          IDWriteFontCollection baseFontCollection, const(ushort)* baseFamilyName, 
+                          IDWriteFontCollection baseFontCollection, const(PWSTR) baseFamilyName, 
                           DWRITE_FONT_WEIGHT baseWeight, DWRITE_FONT_STYLE baseStyle, 
                           DWRITE_FONT_STRETCH baseStretch, uint* mappedLength, IDWriteFont* mappedFont, float* scale);
 }
@@ -5896,9 +5913,9 @@ interface IDWriteFontFallbackBuilder : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT AddMapping(char* ranges, uint rangesCount, char* targetFamilyNames, uint targetFamilyNamesCount, 
-                       IDWriteFontCollection fontCollection, const(wchar)* localeName, const(wchar)* baseFamilyName, 
-                       float scale);
+    HRESULT AddMapping(const(DWRITE_UNICODE_RANGE)* ranges, uint rangesCount, const(ushort)** targetFamilyNames, 
+                       uint targetFamilyNamesCount, IDWriteFontCollection fontCollection, const(PWSTR) localeName, 
+                       const(PWSTR) baseFamilyName, float scale);
     ///Add all the mappings from an existing font fallback object.
     ///Params:
     ///    fontFallback = Type: <b>IDWriteFontFallback*</b> An existing font fallback object.
@@ -5970,7 +5987,8 @@ interface IDWriteFontFace2 : IDWriteFontFace1
     ///    </dl> </td> <td width="60%"> The font doesn't have a palette with the specified palette index. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetPaletteEntries(uint colorPaletteIndex, uint firstEntryIndex, uint entryCount, char* paletteEntries);
+    HRESULT GetPaletteEntries(uint colorPaletteIndex, uint firstEntryIndex, uint entryCount, 
+                              DXGI_RGBA* paletteEntries);
     ///Determines the recommended text rendering and grid-fit mode to be used based on the font, size, world transform,
     ///and measuring mode.
     ///Params:
@@ -6016,7 +6034,7 @@ interface IDWriteColorGlyphRunEnumerator : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT MoveNext(int* hasRun);
+    HRESULT MoveNext(BOOL* hasRun);
     ///Returns the current glyph run of the enumerator.
     ///Params:
     ///    colorGlyphRun = Type: <b>const DWRITE_COLOR_GLYPH_RUN**</b> A pointer to the current glyph run.
@@ -6210,7 +6228,7 @@ interface IDWriteFactory3 : IDWriteFactory2
                                         float clearTypeLevel, DWRITE_PIXEL_GEOMETRY pixelGeometry, 
                                         DWRITE_RENDERING_MODE1 renderingMode, DWRITE_GRID_FIT_MODE gridFitMode, 
                                         IDWriteRenderingParams3* renderingParams);
-    HRESULT CreateFontFaceReference(const(wchar)* filePath, const(FILETIME)* lastWriteTime, uint faceIndex, 
+    HRESULT CreateFontFaceReference(const(PWSTR) filePath, const(FILETIME)* lastWriteTime, uint faceIndex, 
                                     DWRITE_FONT_SIMULATIONS fontSimulations, 
                                     IDWriteFontFaceReference* fontFaceReference);
     HRESULT CreateFontFaceReference(IDWriteFontFile fontFile, uint faceIndex, 
@@ -6305,7 +6323,7 @@ interface IDWriteFontSet : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT FindFontFaceReference(IDWriteFontFaceReference fontFaceReference, uint* listIndex, int* exists);
+    HRESULT FindFontFaceReference(IDWriteFontFaceReference fontFaceReference, uint* listIndex, BOOL* exists);
     ///Gets the index of the matching font face reference in the font set, with the same file, face index, and
     ///simulations.
     ///Params:
@@ -6318,10 +6336,10 @@ interface IDWriteFontSet : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT FindFontFace(IDWriteFontFace fontFace, uint* listIndex, int* exists);
-    HRESULT GetPropertyValues(uint listIndex, DWRITE_FONT_PROPERTY_ID propertyId, int* exists, 
+    HRESULT FindFontFace(IDWriteFontFace fontFace, uint* listIndex, BOOL* exists);
+    HRESULT GetPropertyValues(uint listIndex, DWRITE_FONT_PROPERTY_ID propertyId, BOOL* exists, 
                               IDWriteLocalizedStrings* values);
-    HRESULT GetPropertyValues(DWRITE_FONT_PROPERTY_ID propertyID, const(wchar)* preferredLocaleNames, 
+    HRESULT GetPropertyValues(DWRITE_FONT_PROPERTY_ID propertyID, const(PWSTR) preferredLocaleNames, 
                               IDWriteStringList* values);
     HRESULT GetPropertyValues(DWRITE_FONT_PROPERTY_ID propertyID, IDWriteStringList* values);
     ///Returns how many times a given property value occurs in the set.
@@ -6334,8 +6352,9 @@ interface IDWriteFontSet : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
     HRESULT GetPropertyOccurrenceCount(const(DWRITE_FONT_PROPERTY)* property, uint* propertyOccurrenceCount);
-    HRESULT GetMatchingFonts(char* properties, uint propertyCount, IDWriteFontSet* filteredSet);
-    HRESULT GetMatchingFonts(const(wchar)* familyName, DWRITE_FONT_WEIGHT fontWeight, 
+    HRESULT GetMatchingFonts(const(DWRITE_FONT_PROPERTY)* properties, uint propertyCount, 
+                             IDWriteFontSet* filteredSet);
+    HRESULT GetMatchingFonts(const(PWSTR) familyName, DWRITE_FONT_WEIGHT fontWeight, 
                              DWRITE_FONT_STRETCH fontStretch, DWRITE_FONT_STYLE fontStyle, 
                              IDWriteFontSet* filteredSet);
 }
@@ -6345,7 +6364,8 @@ interface IDWriteFontSet : IUnknown
 interface IDWriteFontSetBuilder : IUnknown
 {
     HRESULT AddFontFaceReference(IDWriteFontFaceReference fontFaceReference);
-    HRESULT AddFontFaceReference(IDWriteFontFaceReference fontFaceReference, char* properties, uint propertyCount);
+    HRESULT AddFontFaceReference(IDWriteFontFaceReference fontFaceReference, 
+                                 const(DWRITE_FONT_PROPERTY)* properties, uint propertyCount);
     ///Appends an existing font set to the one being built, allowing one to aggregate two sets or to essentially extend
     ///an existing one.
     ///Params:
@@ -6550,7 +6570,7 @@ interface IDWriteFontFaceReference : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT EnqueueCharacterDownloadRequest(const(wchar)* characters, uint characterCount);
+    HRESULT EnqueueCharacterDownloadRequest(const(PWSTR) characters, uint characterCount);
     ///Adds a request to the font download queue (IDWriteFontDownloadQueue).
     ///Params:
     ///    glyphIndices = Type: <b>const UINT16*</b> Array of glyph indices to download.
@@ -6560,7 +6580,7 @@ interface IDWriteFontFaceReference : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT EnqueueGlyphDownloadRequest(char* glyphIndices, uint glyphCount);
+    HRESULT EnqueueGlyphDownloadRequest(const(ushort)* glyphIndices, uint glyphCount);
     ///Adds a request to the font download queue (IDWriteFontDownloadQueue).
     ///Params:
     ///    fileOffset = Type: <b>UINT64</b> Offset of the fragment from the beginning of the font file.
@@ -6685,7 +6705,7 @@ interface IDWriteFontFace3 : IDWriteFontFace2
     ///    <i>informationalStrings</i> receives a <b>NULL</b> pointer and <i>exists</i> receives the value <b>FALSE</b>.
     ///    
     HRESULT GetInformationalStrings(DWRITE_INFORMATIONAL_STRING_ID informationalStringID, 
-                                    IDWriteLocalizedStrings* informationalStrings, int* exists);
+                                    IDWriteLocalizedStrings* informationalStrings, BOOL* exists);
     ///Determines whether the font supports the specified character.
     ///Params:
     ///    unicodeValue = Type: <b>UINT32</b> A Unicode (UCS-4) character value.
@@ -6752,7 +6772,7 @@ interface IDWriteFontFace3 : IDWriteFontFace2
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT AreCharactersLocal(const(wchar)* characters, uint characterCount, BOOL enqueueIfNotLocal, int* isLocal);
+    HRESULT AreCharactersLocal(const(PWSTR) characters, uint characterCount, BOOL enqueueIfNotLocal, BOOL* isLocal);
     ///Determines whether the specified glyphs are local.
     ///Params:
     ///    glyphIndices = Type: <b>UINT16</b> Array of glyph indices.
@@ -6766,7 +6786,7 @@ interface IDWriteFontFace3 : IDWriteFontFace2
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT AreGlyphsLocal(char* glyphIndices, uint glyphCount, BOOL enqueueIfNotLocal, int* isLocal);
+    HRESULT AreGlyphsLocal(const(ushort)* glyphIndices, uint glyphCount, BOOL enqueueIfNotLocal, BOOL* isLocal);
 }
 
 ///Represents a collection of strings indexed by number.An IDWriteStringList is identical to IDWriteLocalizedStrings
@@ -6802,7 +6822,7 @@ interface IDWriteStringList : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetLocaleName(uint listIndex, char* localeName, uint size);
+    HRESULT GetLocaleName(uint listIndex, PWSTR localeName, uint size);
     ///Gets the length in characters (not including the null terminator) of the string with the specified index.
     ///Params:
     ///    listIndex = Type: <b>UINT32</b> Zero-based index of the string.
@@ -6824,7 +6844,7 @@ interface IDWriteStringList : IUnknown
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it returns an <b
     ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetString(uint listIndex, char* stringBuffer, uint stringBufferSize);
+    HRESULT GetString(uint listIndex, PWSTR stringBuffer, uint stringBufferSize);
 }
 
 ///Application-defined callback interface that receives notifications from the font download queue
@@ -7000,7 +7020,7 @@ interface IDWriteTextLayout3 : IDWriteTextLayout2
     ///    If this method succeeds, it returns <b xmlns:loc="http://microsoft.com/wdcml/l10n">S_OK</b>. Otherwise, it
     ///    returns an <b xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
     ///    
-    HRESULT GetLineMetrics(char* lineMetrics, uint maxLineCount, uint* actualLineCount);
+    HRESULT GetLineMetrics(DWRITE_LINE_METRICS1* lineMetrics, uint maxLineCount, uint* actualLineCount);
 }
 
 ///Enumerator for an ordered collection of color glyph runs.
@@ -7084,8 +7104,9 @@ interface IDWriteFactory4 : IDWriteFactory3
                                    uint colorPaletteIndex, IDWriteColorGlyphRunEnumerator1* colorLayers);
     HRESULT ComputeGlyphOrigins(const(DWRITE_GLYPH_RUN)* glyphRun, DWRITE_MEASURING_MODE measuringMode, 
                                 D2D_POINT_2F baselineOrigin, const(DWRITE_MATRIX)* worldAndDpiTransform, 
-                                char* glyphOrigins);
-    HRESULT ComputeGlyphOrigins(const(DWRITE_GLYPH_RUN)* glyphRun, D2D_POINT_2F baselineOrigin, char* glyphOrigins);
+                                D2D_POINT_2F* glyphOrigins);
+    HRESULT ComputeGlyphOrigins(const(DWRITE_GLYPH_RUN)* glyphRun, D2D_POINT_2F baselineOrigin, 
+                                D2D_POINT_2F* glyphOrigins);
 }
 
 ///Contains methods for building a font set.
@@ -7148,7 +7169,7 @@ interface IDWriteRemoteFontFileStream : IDWriteFontFileStream
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns an HRESULT success or error code.
     ///    
-    HRESULT GetFileFragmentLocality(ulong fileOffset, ulong fragmentSize, int* isLocal, ulong* partialSize);
+    HRESULT GetFileFragmentLocality(ulong fileOffset, ulong fragmentSize, BOOL* isLocal, ulong* partialSize);
     ///Gets the current locality of the file.
     ///Returns:
     ///    Type: <b>DWRITE_LOCALITY</b> Returns the current locality (i.e., remote, partial, or local).
@@ -7167,8 +7188,8 @@ interface IDWriteRemoteFontFileStream : IDWriteFontFileStream
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns an HRESULT success or error code.
     ///    
-    HRESULT BeginDownload(const(GUID)* downloadOperationID, char* fileFragments, uint fragmentCount, 
-                          IDWriteAsyncResult* asyncResult);
+    HRESULT BeginDownload(const(GUID)* downloadOperationID, const(DWRITE_FILE_FRAGMENT)* fileFragments, 
+                          uint fragmentCount, IDWriteAsyncResult* asyncResult);
 }
 
 ///Represents a font file loader that can access remote (i.e., downloadable) fonts. The
@@ -7189,7 +7210,7 @@ interface IDWriteRemoteFontFileLoader : IDWriteFontFileLoader
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns an HRESULT success or error code.
     ///    
-    HRESULT CreateRemoteStreamFromKey(char* fontFileReferenceKey, uint fontFileReferenceKeySize, 
+    HRESULT CreateRemoteStreamFromKey(const(void)* fontFileReferenceKey, uint fontFileReferenceKeySize, 
                                       IDWriteRemoteFontFileStream* fontFileStream);
     ///Gets the locality of the file resource identified by the unique key.
     ///Params:
@@ -7200,7 +7221,7 @@ interface IDWriteRemoteFontFileLoader : IDWriteFontFileLoader
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns an HRESULT success or error code.
     ///    
-    HRESULT GetLocalityFromKey(char* fontFileReferenceKey, uint fontFileReferenceKeySize, 
+    HRESULT GetLocalityFromKey(const(void)* fontFileReferenceKey, uint fontFileReferenceKeySize, 
                                DWRITE_LOCALITY* locality);
     ///Creates a font file reference from a URL if the loader supports this capability.
     ///Params:
@@ -7212,8 +7233,8 @@ interface IDWriteRemoteFontFileLoader : IDWriteFontFileLoader
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns an HRESULT success or error code.
     ///    
-    HRESULT CreateFontFileReferenceFromUrl(IDWriteFactory factory, const(wchar)* baseUrl, 
-                                           const(wchar)* fontFileUrl, IDWriteFontFile* fontFile);
+    HRESULT CreateFontFileReferenceFromUrl(IDWriteFactory factory, const(PWSTR) baseUrl, const(PWSTR) fontFileUrl, 
+                                           IDWriteFontFile* fontFile);
 }
 
 ///Represents a font file loader that can access in-memory fonts. The IDWriteFactory5::CreateInMemoryFontFileLoader
@@ -7239,7 +7260,7 @@ interface IDWriteInMemoryFontFileLoader : IDWriteFontFileLoader
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns an HRESULT success or error code.
     ///    
-    HRESULT CreateInMemoryFontFileReference(IDWriteFactory factory, char* fontData, uint fontDataSize, 
+    HRESULT CreateInMemoryFontFileReference(IDWriteFactory factory, const(void)* fontData, uint fontDataSize, 
                                             IUnknown ownerObject, IDWriteFontFile* fontFile);
     ///Returns the number of font file references that have been created using this loader instance.
     ///Returns:
@@ -7280,7 +7301,7 @@ interface IDWriteFactory5 : IDWriteFactory4
     ///Returns:
     ///    Type: <b>HRESULT</b> This method returns an **HRESULT** success or error code.
     ///    
-    HRESULT CreateHttpFontFileLoader(const(ushort)* referrerUrl, const(ushort)* extraHeaders, 
+    HRESULT CreateHttpFontFileLoader(const(PWSTR) referrerUrl, const(PWSTR) extraHeaders, 
                                      IDWriteRemoteFontFileLoader* newLoader);
     ///The AnalyzeContainerType method analyzes the specified file data to determine whether it is a known font
     ///container format (e.g., WOFF or WOFF2).
@@ -7291,7 +7312,7 @@ interface IDWriteFactory5 : IDWriteFactory4
     ///    Type: <b>DWRITE_CONTAINER_TYPE</b> Returns the container type if recognized. DWRITE_CONTAINER_TYPE_UNKOWNN is
     ///    returned for all other files, including uncompressed font files.
     ///    
-    DWRITE_CONTAINER_TYPE AnalyzeContainerType(char* fileData, uint fileDataSize);
+    DWRITE_CONTAINER_TYPE AnalyzeContainerType(const(void)* fileData, uint fileDataSize);
     ///The UnpackFontFile method unpacks font data from a container file (WOFF or WOFF2) and returns the unpacked font
     ///data in the form of a font file stream.
     ///Params:
@@ -7304,7 +7325,7 @@ interface IDWriteFactory5 : IDWriteFactory4
     ///    Type: <b>HRESULT</b> Standard HRESULT error code. The return value is E_INVALIDARG if the container type is
     ///    DWRITE_CONTAINER_TYPE_UNKNOWN.
     ///    
-    HRESULT UnpackFontFile(DWRITE_CONTAINER_TYPE containerType, char* fileData, uint fileDataSize, 
+    HRESULT UnpackFontFile(DWRITE_CONTAINER_TYPE containerType, const(void)* fileData, uint fileDataSize, 
                            IDWriteFontFileStream* unpackedFontStream);
 }
 
@@ -7338,8 +7359,9 @@ interface IDWriteFactory6 : IDWriteFactory5
     ///    code](/windows/win32/com/com-error-codes-10).
     ///    
     HRESULT CreateFontFaceReference(IDWriteFontFile fontFile, uint faceIndex, 
-                                    DWRITE_FONT_SIMULATIONS fontSimulations, char* fontAxisValues, 
-                                    uint fontAxisValueCount, IDWriteFontFaceReference1* fontFaceReference);
+                                    DWRITE_FONT_SIMULATIONS fontSimulations, 
+                                    const(DWRITE_FONT_AXIS_VALUE)* fontAxisValues, uint fontAxisValueCount, 
+                                    IDWriteFontFaceReference1* fontFaceReference);
     ///Creates a font resource, given a font file and a face index.
     ///Params:
     ///    fontFile = Type: **[IDWriteFontFile](../dwrite/nn-dwrite-idwritefontfile.md)\*** A user-provided font file representing
@@ -7436,9 +7458,9 @@ interface IDWriteFactory6 : IDWriteFactory5
     ///    **S_OK**. Otherwise, it returns an [**HRESULT**](/windows/win32/com/structure-of-com-error-codes) [error
     ///    code](/windows/win32/com/com-error-codes-10).
     ///    
-    HRESULT CreateTextFormat(const(wchar)* fontFamilyName, IDWriteFontCollection fontCollection, 
-                             char* fontAxisValues, uint fontAxisValueCount, float fontSize, const(wchar)* localeName, 
-                             IDWriteTextFormat3* textFormat);
+    HRESULT CreateTextFormat(const(PWSTR) fontFamilyName, IDWriteFontCollection fontCollection, 
+                             const(DWRITE_FONT_AXIS_VALUE)* fontAxisValues, uint fontAxisValueCount, float fontSize, 
+                             const(PWSTR) localeName, IDWriteTextFormat3* textFormat);
 }
 
 ///Represents an absolute reference to a font face. This interface contains font face type, appropriate file references,
@@ -7470,7 +7492,7 @@ interface IDWriteFontFace5 : IDWriteFontFace4
     ///    code](/windows/win32/com/com-error-codes-10). |Return value|Description| |-|-|
     ///    |E_INVALIDARG|`fontAxisValueCount` doesn't match the value returned by **GetFontAxisValueCount**.|
     ///    
-    HRESULT GetFontAxisValues(char* fontAxisValues, uint fontAxisValueCount);
+    HRESULT GetFontAxisValues(DWRITE_FONT_AXIS_VALUE* fontAxisValues, uint fontAxisValueCount);
     ///Determines whether this font face's resource supports any variable axes. When `true`, at least one
     ///[DWRITE_FONT_AXIS_RANGE](./ns-dwrite_3-dwrite_font_axis_range.md) in the font resource has a non-empty range
     ///(*maxValue* > *minValue*).
@@ -7547,7 +7569,7 @@ interface IDWriteFontResource : IUnknown
     ///    code](/windows/win32/com/com-error-codes-10). |Return value|Description| |-|-|
     ///    |E_INVALIDARG|`fontAxisValueCount` doesn't match the value returned by **GetFontAxisCount**.|
     ///    
-    HRESULT GetDefaultFontAxisValues(char* fontAxisValues, uint fontAxisValueCount);
+    HRESULT GetDefaultFontAxisValues(DWRITE_FONT_AXIS_VALUE* fontAxisValues, uint fontAxisValueCount);
     ///Retrieves the value ranges of each axis.
     ///Params:
     ///    fontAxisRanges = Type: **[DWRITE_FONT_AXIS_RANGE](./ns-dwrite_3-dwrite_font_axis_range.md)\*** A pointer to an array of
@@ -7563,7 +7585,7 @@ interface IDWriteFontResource : IUnknown
     ///    code](/windows/win32/com/com-error-codes-10). |Return value|Description| |-|-|
     ///    |E_INVALIDARG|`fontAxisValueCount` doesn't match the value returned by **GetFontAxisCount**.|
     ///    
-    HRESULT GetFontAxisRanges(char* fontAxisRanges, uint fontAxisRangeCount);
+    HRESULT GetFontAxisRanges(DWRITE_FONT_AXIS_RANGE* fontAxisRanges, uint fontAxisRangeCount);
     ///Retrieves attributes describing the given axis, such as whether the font author recommends to hide the axis in
     ///user interfaces.
     ///Params:
@@ -7639,8 +7661,8 @@ interface IDWriteFontResource : IUnknown
     ///    code](/windows/win32/com/com-error-codes-10). |Return value|Description| |-|-| |DWRITE_E_REMOTEFONT|The font
     ///    is not local.|
     ///    
-    HRESULT CreateFontFace(DWRITE_FONT_SIMULATIONS fontSimulations, char* fontAxisValues, uint fontAxisValueCount, 
-                           IDWriteFontFace5* fontFace);
+    HRESULT CreateFontFace(DWRITE_FONT_SIMULATIONS fontSimulations, const(DWRITE_FONT_AXIS_VALUE)* fontAxisValues, 
+                           uint fontAxisValueCount, IDWriteFontFace5* fontFace);
     ///Creates a font face reference with specific axis values.
     ///Params:
     ///    fontSimulations = Type: **[DWRITE_FONT_SIMULATIONS](../dwrite/ne-dwrite-dwrite_font_simulations.md)** Font face simulation
@@ -7659,8 +7681,9 @@ interface IDWriteFontResource : IUnknown
     ///    **S_OK**. Otherwise, it returns an [**HRESULT**](/windows/win32/com/structure-of-com-error-codes) [error
     ///    code](/windows/win32/com/com-error-codes-10).
     ///    
-    HRESULT CreateFontFaceReference(DWRITE_FONT_SIMULATIONS fontSimulations, char* fontAxisValues, 
-                                    uint fontAxisValueCount, IDWriteFontFaceReference1* fontFaceReference);
+    HRESULT CreateFontFaceReference(DWRITE_FONT_SIMULATIONS fontSimulations, 
+                                    const(DWRITE_FONT_AXIS_VALUE)* fontAxisValues, uint fontAxisValueCount, 
+                                    IDWriteFontFaceReference1* fontFaceReference);
 }
 
 ///Represents a reference to a font face. A uniquely identifying reference to a font, from which you can create a font
@@ -7701,7 +7724,7 @@ interface IDWriteFontFaceReference1 : IDWriteFontFaceReference
     ///Returns:
     ///    
     ///    
-    HRESULT GetFontAxisValues(char* fontAxisValues, uint fontAxisValueCount);
+    HRESULT GetFontAxisValues(DWRITE_FONT_AXIS_VALUE* fontAxisValues, uint fontAxisValueCount);
 }
 
 ///Contains methods for building a font set. This interface extends
@@ -7734,8 +7757,9 @@ interface IDWriteFontSetBuilder2 : IDWriteFontSetBuilder1
     ///    code](/windows/win32/com/com-error-codes-10).
     ///    
     HRESULT AddFont(IDWriteFontFile fontFile, uint fontFaceIndex, DWRITE_FONT_SIMULATIONS fontSimulations, 
-                    char* fontAxisValues, uint fontAxisValueCount, char* fontAxisRanges, uint fontAxisRangeCount, 
-                    char* properties, uint propertyCount);
+                    const(DWRITE_FONT_AXIS_VALUE)* fontAxisValues, uint fontAxisValueCount, 
+                    const(DWRITE_FONT_AXIS_RANGE)* fontAxisRanges, uint fontAxisRangeCount, 
+                    const(DWRITE_FONT_PROPERTY)* properties, uint propertyCount);
     ///Adds references to all the fonts in the specified font file. The method parses the font file to determine the
     ///fonts and their properties.
     ///Params:
@@ -7746,7 +7770,7 @@ interface IDWriteFontSetBuilder2 : IDWriteFontSetBuilder1
     ///    **S_OK**. Otherwise, it returns an [**HRESULT**](/windows/win32/com/structure-of-com-error-codes) [error
     ///    code](/windows/win32/com/com-error-codes-10).
     ///    
-    HRESULT AddFontFile(const(wchar)* filePath);
+    HRESULT AddFontFile(const(PWSTR) filePath);
 }
 
 ///Represents a font set. This interface extends [IDWriteFontSet](./nn-dwrite_3-idwritefontset.md).
@@ -7771,8 +7795,9 @@ interface IDWriteFontSet1 : IDWriteFontSet
     ///    **S_OK**. Otherwise, it returns an [**HRESULT**](/windows/win32/com/structure-of-com-error-codes) [error
     ///    code](/windows/win32/com/com-error-codes-10).
     ///    
-    HRESULT GetMatchingFonts(const(DWRITE_FONT_PROPERTY)* fontProperty, char* fontAxisValues, 
-                             uint fontAxisValueCount, IDWriteFontSet1* matchingFonts);
+    HRESULT GetMatchingFonts(const(DWRITE_FONT_PROPERTY)* fontProperty, 
+                             const(DWRITE_FONT_AXIS_VALUE)* fontAxisValues, uint fontAxisValueCount, 
+                             IDWriteFontSet1* matchingFonts);
     ///Retrieves a new font set that contains only the first occurrence of each font resource from the set.
     ///Params:
     ///    filteredFontSet = Type: **[IDWriteFontSet1](./nn-dwrite_3-idwritefontset1.md)\*\*** The address of a pointer to an
@@ -7799,7 +7824,7 @@ interface IDWriteFontSet1 : IDWriteFontSet
     ///    **S_OK**. Otherwise, it returns an [**HRESULT**](/windows/win32/com/structure-of-com-error-codes) [error
     ///    code](/windows/win32/com/com-error-codes-10).
     ///    
-    HRESULT GetFilteredFonts(char* properties, uint propertyCount, BOOL selectAnyProperty, 
+    HRESULT GetFilteredFonts(const(DWRITE_FONT_PROPERTY)* properties, uint propertyCount, BOOL selectAnyProperty, 
                              IDWriteFontSet1* filteredFontSet);
     ///Retrieves a subset of fonts, filtered by the given indices.
     ///Params:
@@ -7815,8 +7840,8 @@ interface IDWriteFontSet1 : IDWriteFontSet
     ///    **S_OK**. Otherwise, it returns an [**HRESULT**](/windows/win32/com/structure-of-com-error-codes) [error
     ///    code](/windows/win32/com/com-error-codes-10).
     ///    
-    HRESULT GetFilteredFonts(char* fontAxisRanges, uint fontAxisRangeCount, BOOL selectAnyRange, 
-                             IDWriteFontSet1* filteredFontSet);
+    HRESULT GetFilteredFonts(const(DWRITE_FONT_AXIS_RANGE)* fontAxisRanges, uint fontAxisRangeCount, 
+                             BOOL selectAnyRange, IDWriteFontSet1* filteredFontSet);
     ///Retrieves a subset of fonts, filtered by the given indices.
     ///Params:
     ///    indices = Type: **[UINT32](/windows/win32/winprog/windows-data-types) const \*** An array of indices to filter by, in
@@ -7831,7 +7856,7 @@ interface IDWriteFontSet1 : IDWriteFontSet
     ///    **S_OK**. Otherwise, it returns an [**HRESULT**](/windows/win32/com/structure-of-com-error-codes) [error
     ///    code](/windows/win32/com/com-error-codes-10).
     ///    
-    HRESULT GetFilteredFonts(char* indices, uint indexCount, IDWriteFontSet1* filteredFontSet);
+    HRESULT GetFilteredFonts(const(uint)* indices, uint indexCount, IDWriteFontSet1* filteredFontSet);
     ///Retrives all the item indices, filtered by the given properties.
     ///Params:
     ///    properties = Type: **[DWRITE_FONT_PROPERTY](./ns-dwrite_3-dwrite_font_property.md) const \*** List of properties to filter
@@ -7852,8 +7877,8 @@ interface IDWriteFontSet1 : IDWriteFontSet
     ///    buffer is too small, with *actualIndexCount* set to the needed size. The *actualIndexCount* will always be <=
     ///    [IDwriteFontSet::GetFontCount](./nf-dwrite_3-idwritefontset-getfontcount.md).|
     ///    
-    HRESULT GetFilteredFontIndices(char* properties, uint propertyCount, BOOL selectAnyProperty, char* indices, 
-                                   uint maxIndexCount, uint* actualIndexCount);
+    HRESULT GetFilteredFontIndices(const(DWRITE_FONT_PROPERTY)* properties, uint propertyCount, 
+                                   BOOL selectAnyProperty, uint* indices, uint maxIndexCount, uint* actualIndexCount);
     ///Retrives all the item indices, filtered by the given properties.
     ///Params:
     ///    properties = Type: **[DWRITE_FONT_PROPERTY](./ns-dwrite_3-dwrite_font_property.md) const \*** List of properties to filter
@@ -7874,8 +7899,8 @@ interface IDWriteFontSet1 : IDWriteFontSet
     ///    buffer is too small, with *actualIndexCount* set to the needed size. The *actualIndexCount* will always be <=
     ///    [IDwriteFontSet::GetFontCount](./nf-dwrite_3-idwritefontset-getfontcount.md).|
     ///    
-    HRESULT GetFilteredFontIndices(char* fontAxisRanges, uint fontAxisRangeCount, BOOL selectAnyRange, 
-                                   char* indices, uint maxIndexCount, uint* actualIndexCount);
+    HRESULT GetFilteredFontIndices(const(DWRITE_FONT_AXIS_RANGE)* fontAxisRanges, uint fontAxisRangeCount, 
+                                   BOOL selectAnyRange, uint* indices, uint maxIndexCount, uint* actualIndexCount);
     ///Retrieves all axis ranges in the font set; the union of all contained items.
     ///Params:
     ///    fontAxisRanges = Type: **[DWRITE_FONT_AXIS_RANGE](./ns-dwrite_3-dwrite_font_axis_range.md)\*** List of axis value ranges to
@@ -7889,7 +7914,8 @@ interface IDWriteFontSet1 : IDWriteFontSet
     ///    code](/windows/win32/com/com-error-codes-10). |Return value|Description| |-|-| |E_NOT_SUFFICIENT_BUFFER|The
     ///    buffer is too small, with *actualFontAxisRangeCount* set to the needed size.|
     ///    
-    HRESULT GetFontAxisRanges(char* fontAxisRanges, uint maxFontAxisRangeCount, uint* actualFontAxisRangeCount);
+    HRESULT GetFontAxisRanges(DWRITE_FONT_AXIS_RANGE* fontAxisRanges, uint maxFontAxisRangeCount, 
+                              uint* actualFontAxisRangeCount);
     ///Retrieves all axis ranges in the font set; the union of all contained items.
     ///Params:
     ///    fontAxisRanges = Type: **[DWRITE_FONT_AXIS_RANGE](./ns-dwrite_3-dwrite_font_axis_range.md)\*** List of axis value ranges to
@@ -7903,7 +7929,7 @@ interface IDWriteFontSet1 : IDWriteFontSet
     ///    code](/windows/win32/com/com-error-codes-10). |Return value|Description| |-|-| |E_NOT_SUFFICIENT_BUFFER|The
     ///    buffer is too small, with *actualFontAxisRangeCount* set to the needed size.|
     ///    
-    HRESULT GetFontAxisRanges(uint listIndex, char* fontAxisRanges, uint maxFontAxisRangeCount, 
+    HRESULT GetFontAxisRanges(uint listIndex, DWRITE_FONT_AXIS_RANGE* fontAxisRanges, uint maxFontAxisRangeCount, 
                               uint* actualFontAxisRangeCount);
     ///Retrieves the font face reference of a single item.
     ///Params:
@@ -7990,7 +8016,8 @@ interface IDWriteFontFamily2 : IDWriteFontFamily1
     ///    **S_OK**. Otherwise, it returns an [**HRESULT**](/windows/win32/com/structure-of-com-error-codes) [error
     ///    code](/windows/win32/com/com-error-codes-10).
     ///    
-    HRESULT GetMatchingFonts(char* fontAxisValues, uint fontAxisValueCount, IDWriteFontList2* matchingFonts);
+    HRESULT GetMatchingFonts(const(DWRITE_FONT_AXIS_VALUE)* fontAxisValues, uint fontAxisValueCount, 
+                             IDWriteFontList2* matchingFonts);
     ///Retrieves the underlying font set used by this family.
     ///Params:
     ///    fontSet = Type: **[IDWriteFontSet1](./nn-dwrite_3-idwritefontset1.md)\*\*** The address of a pointer to an
@@ -8042,8 +8069,8 @@ interface IDWriteFontCollection2 : IDWriteFontCollection1
     ///    **S_OK**. Otherwise, it returns an [**HRESULT**](/windows/win32/com/structure-of-com-error-codes) [error
     ///    code](/windows/win32/com/com-error-codes-10).
     ///    
-    HRESULT GetMatchingFonts(const(wchar)* familyName, char* fontAxisValues, uint fontAxisValueCount, 
-                             IDWriteFontList2* fontList);
+    HRESULT GetMatchingFonts(const(PWSTR) familyName, const(DWRITE_FONT_AXIS_VALUE)* fontAxisValues, 
+                             uint fontAxisValueCount, IDWriteFontList2* fontList);
     ///Retrieves the font family model used by the font collection to group families.
     ///Returns:
     ///    Type: **[DWRITE_FONT_FAMILY_MODEL](./ne-dwrite_3-dwrite_font_family_model.md)** How families are grouped in
@@ -8066,10 +8093,11 @@ interface IDWriteFontCollection2 : IDWriteFontCollection1
 @GUID("05A9BF42-223F-4441-B5FB-8263685F55E9")
 interface IDWriteTextLayout4 : IDWriteTextLayout3
 {
-    HRESULT SetFontAxisValues(char* fontAxisValues, uint fontAxisValueCount, DWRITE_TEXT_RANGE textRange);
+    HRESULT SetFontAxisValues(const(DWRITE_FONT_AXIS_VALUE)* fontAxisValues, uint fontAxisValueCount, 
+                              DWRITE_TEXT_RANGE textRange);
     uint    GetFontAxisValueCount(uint currentPosition);
-    HRESULT GetFontAxisValues(uint currentPosition, char* fontAxisValues, uint fontAxisValueCount, 
-                              DWRITE_TEXT_RANGE* textRange);
+    HRESULT GetFontAxisValues(uint currentPosition, DWRITE_FONT_AXIS_VALUE* fontAxisValues, 
+                              uint fontAxisValueCount, DWRITE_TEXT_RANGE* textRange);
     DWRITE_AUTOMATIC_FONT_AXES GetAutomaticFontAxes();
     HRESULT SetAutomaticFontAxes(DWRITE_AUTOMATIC_FONT_AXES automaticFontAxes);
 }
@@ -8091,7 +8119,7 @@ interface IDWriteTextFormat3 : IDWriteTextFormat2
     ///    **S_OK**. Otherwise, it returns an [**HRESULT**](/windows/win32/com/structure-of-com-error-codes) [error
     ///    code](/windows/win32/com/com-error-codes-10).
     ///    
-    HRESULT SetFontAxisValues(char* fontAxisValues, uint fontAxisValueCount);
+    HRESULT SetFontAxisValues(const(DWRITE_FONT_AXIS_VALUE)* fontAxisValues, uint fontAxisValueCount);
     ///Retrieves the number of axes set on the format.
     ///Returns:
     ///    Type: **[UINT32](/windows/win32/winprog/windows-data-types)** The number of axes set on the format.
@@ -8111,7 +8139,7 @@ interface IDWriteTextFormat3 : IDWriteTextFormat2
     ///    **S_OK**. Otherwise, it returns an [**HRESULT**](/windows/win32/com/structure-of-com-error-codes) [error
     ///    code](/windows/win32/com/com-error-codes-10).
     ///    
-    HRESULT GetFontAxisValues(char* fontAxisValues, uint fontAxisValueCount);
+    HRESULT GetFontAxisValues(DWRITE_FONT_AXIS_VALUE* fontAxisValues, uint fontAxisValueCount);
     ///Retrieves the automatic axis options.
     ///Returns:
     ///    Type: **[DWRITE_AUTOMATIC_FONT_AXES](./ne-dwrite_3-dwrite_automatic_font_axes.md)** Automatic axis options.
@@ -8133,9 +8161,9 @@ interface IDWriteTextFormat3 : IDWriteTextFormat2
 interface IDWriteFontFallback1 : IDWriteFontFallback
 {
     HRESULT MapCharacters(IDWriteTextAnalysisSource analysisSource, uint textPosition, uint textLength, 
-                          IDWriteFontCollection baseFontCollection, const(wchar)* baseFamilyName, 
-                          char* fontAxisValues, uint fontAxisValueCount, uint* mappedLength, float* scale, 
-                          IDWriteFontFace5* mappedFontFace);
+                          IDWriteFontCollection baseFontCollection, const(PWSTR) baseFamilyName, 
+                          const(DWRITE_FONT_AXIS_VALUE)* fontAxisValues, uint fontAxisValueCount, uint* mappedLength, 
+                          float* scale, IDWriteFontFace5* mappedFontFace);
 }
 
 ///Represents a font set. This interface extends [IDWriteFontSet1](./nn-dwrite_3-idwritefontset1.md).
@@ -8240,7 +8268,7 @@ interface IDWriteFontSet3 : IDWriteFontSet2
     ///    **S_OK**. Otherwise, it returns an [**HRESULT**](/windows/win32/com/structure-of-com-error-codes) [error
     ///    code](/windows/win32/com/com-error-codes-10).
     ///    
-    HRESULT GetFontSourceName(uint listIndex, char* stringBuffer, uint stringBufferSize);
+    HRESULT GetFontSourceName(uint listIndex, PWSTR stringBuffer, uint stringBufferSize);
 }
 
 

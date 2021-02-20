@@ -7,10 +7,11 @@ public import windows.audio : IPropertyStore;
 public import windows.automation : BSTR, IDispatch;
 public import windows.com : HRESULT, IUnknown;
 public import windows.structuredstorage : IStream, PROPVARIANT;
-public import windows.systemservices : DEVPROPKEY, LARGE_INTEGER, ULARGE_INTEGER;
+public import windows.systemservices : BOOL, DEVPROPKEY, LARGE_INTEGER, PWSTR,
+                                       ULARGE_INTEGER;
 public import windows.windowspropertiessystem : PROPERTYKEY;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -362,11 +363,12 @@ struct EnumBthMtpConnectors;
 @GUID("B32F4002-BB27-45FF-AF4F-06631C1E8DAD")
 interface IWpdSerializer : IUnknown
 {
-    HRESULT GetIPortableDeviceValuesFromBuffer(char* pBuffer, uint dwInputBufferLength, 
+    HRESULT GetIPortableDeviceValuesFromBuffer(ubyte* pBuffer, uint dwInputBufferLength, 
                                                IPortableDeviceValues* ppParams);
     HRESULT WriteIPortableDeviceValuesToBuffer(uint dwOutputBufferLength, IPortableDeviceValues pResults, 
-                                               char* pBuffer, uint* pdwBytesWritten);
-    HRESULT GetBufferFromIPortableDeviceValues(IPortableDeviceValues pSource, char* ppBuffer, uint* pdwBufferSize);
+                                               ubyte* pBuffer, uint* pdwBytesWritten);
+    HRESULT GetBufferFromIPortableDeviceValues(IPortableDeviceValues pSource, ubyte** ppBuffer, 
+                                               uint* pdwBufferSize);
     HRESULT GetSerializedSize(IPortableDeviceValues pSource, uint* pdwSize);
 }
 
@@ -377,8 +379,8 @@ interface IPortableDeviceValues : IUnknown
     HRESULT GetAt(const(uint) index, PROPERTYKEY* pKey, PROPVARIANT* pValue);
     HRESULT SetValue(const(PROPERTYKEY)* key, const(PROPVARIANT)* pValue);
     HRESULT GetValue(const(PROPERTYKEY)* key, PROPVARIANT* pValue);
-    HRESULT SetStringValue(const(PROPERTYKEY)* key, const(wchar)* Value);
-    HRESULT GetStringValue(const(PROPERTYKEY)* key, ushort** pValue);
+    HRESULT SetStringValue(const(PROPERTYKEY)* key, const(PWSTR) Value);
+    HRESULT GetStringValue(const(PROPERTYKEY)* key, PWSTR* pValue);
     HRESULT SetUnsignedIntegerValue(const(PROPERTYKEY)* key, const(uint) Value);
     HRESULT GetUnsignedIntegerValue(const(PROPERTYKEY)* key, uint* pValue);
     HRESULT SetSignedIntegerValue(const(PROPERTYKEY)* key, const(int) Value);
@@ -389,18 +391,18 @@ interface IPortableDeviceValues : IUnknown
     HRESULT GetSignedLargeIntegerValue(const(PROPERTYKEY)* key, long* pValue);
     HRESULT SetFloatValue(const(PROPERTYKEY)* key, const(float) Value);
     HRESULT GetFloatValue(const(PROPERTYKEY)* key, float* pValue);
-    HRESULT SetErrorValue(const(PROPERTYKEY)* key, const(int) Value);
-    HRESULT GetErrorValue(const(PROPERTYKEY)* key, int* pValue);
+    HRESULT SetErrorValue(const(PROPERTYKEY)* key, const(HRESULT) Value);
+    HRESULT GetErrorValue(const(PROPERTYKEY)* key, HRESULT* pValue);
     HRESULT SetKeyValue(const(PROPERTYKEY)* key, const(PROPERTYKEY)* Value);
     HRESULT GetKeyValue(const(PROPERTYKEY)* key, PROPERTYKEY* pValue);
-    HRESULT SetBoolValue(const(PROPERTYKEY)* key, const(int) Value);
-    HRESULT GetBoolValue(const(PROPERTYKEY)* key, int* pValue);
+    HRESULT SetBoolValue(const(PROPERTYKEY)* key, const(BOOL) Value);
+    HRESULT GetBoolValue(const(PROPERTYKEY)* key, BOOL* pValue);
     HRESULT SetIUnknownValue(const(PROPERTYKEY)* key, IUnknown pValue);
     HRESULT GetIUnknownValue(const(PROPERTYKEY)* key, IUnknown* ppValue);
     HRESULT SetGuidValue(const(PROPERTYKEY)* key, const(GUID)* Value);
     HRESULT GetGuidValue(const(PROPERTYKEY)* key, GUID* pValue);
-    HRESULT SetBufferValue(const(PROPERTYKEY)* key, char* pValue, uint cbValue);
-    HRESULT GetBufferValue(const(PROPERTYKEY)* key, char* ppValue, uint* pcbValue);
+    HRESULT SetBufferValue(const(PROPERTYKEY)* key, ubyte* pValue, uint cbValue);
+    HRESULT GetBufferValue(const(PROPERTYKEY)* key, ubyte** ppValue, uint* pcbValue);
     HRESULT SetIPortableDeviceValuesValue(const(PROPERTYKEY)* key, IPortableDeviceValues pValue);
     HRESULT GetIPortableDeviceValuesValue(const(PROPERTYKEY)* key, IPortableDeviceValues* ppValue);
     HRESULT SetIPortableDevicePropVariantCollectionValue(const(PROPERTYKEY)* key, 
@@ -478,7 +480,7 @@ interface IPortableDeviceManager : IUnknown
     ///    width="60%"> The <i>pPnPDeviceIDs</i> buffer is too small to hold all the values requested, but
     ///    <i>pcPnPDeviceIDs</i> values have been written to <i>pPnPDeviceIDs</i>. </td> </tr> </table>
     ///    
-    HRESULT GetDevices(ushort** pPnPDeviceIDs, uint* pcPnPDeviceIDs);
+    HRESULT GetDevices(PWSTR* pPnPDeviceIDs, uint* pcPnPDeviceIDs);
     ///The <b>RefreshDeviceList</b> method refreshes the list of devices that are connected to the computer.
     ///Returns:
     ///    The method returns an <b>HRESULT</b>. Possible values include, but are not limited to, those in the following
@@ -508,7 +510,7 @@ interface IPortableDeviceManager : IUnknown
     ///    The method succeeded. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td
     ///    width="60%"> At least one of the required arguments was a <b>NULL</b> pointer. </td> </tr> </table>
     ///    
-    HRESULT GetDeviceFriendlyName(const(wchar)* pszPnPDeviceID, ushort* pDeviceFriendlyName, 
+    HRESULT GetDeviceFriendlyName(const(PWSTR) pszPnPDeviceID, PWSTR pDeviceFriendlyName, 
                                   uint* pcchDeviceFriendlyName);
     ///Retrieves the description of a device.
     ///Params:
@@ -533,7 +535,7 @@ interface IPortableDeviceManager : IUnknown
     ///    The method succeeded. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td
     ///    width="60%"> At least one of the required arguments was a <b>NULL</b> pointer. </td> </tr> </table>
     ///    
-    HRESULT GetDeviceDescription(const(wchar)* pszPnPDeviceID, ushort* pDeviceDescription, 
+    HRESULT GetDeviceDescription(const(PWSTR) pszPnPDeviceID, PWSTR pDeviceDescription, 
                                  uint* pcchDeviceDescription);
     ///Retrieves the name of the device manufacturer.
     ///Params:
@@ -557,7 +559,7 @@ interface IPortableDeviceManager : IUnknown
     ///    The method succeeded. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td
     ///    width="60%"> At least one of the required arguments was a <b>NULL</b> pointer. </td> </tr> </table>
     ///    
-    HRESULT GetDeviceManufacturer(const(wchar)* pszPnPDeviceID, ushort* pDeviceManufacturer, 
+    HRESULT GetDeviceManufacturer(const(PWSTR) pszPnPDeviceID, PWSTR pDeviceManufacturer, 
                                   uint* pcchDeviceManufacturer);
     ///Retrieves a property value stored by the device on the computer. (These are not standard properties that are
     ///defined by Windows Portable Devices.)
@@ -583,7 +585,7 @@ interface IPortableDeviceManager : IUnknown
     ///    <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> At least one of the required arguments was a
     ///    <b>NULL</b> pointer. </td> </tr> </table>
     ///    
-    HRESULT GetDeviceProperty(const(wchar)* pszPnPDeviceID, const(wchar)* pszDevicePropertyName, ubyte* pData, 
+    HRESULT GetDeviceProperty(const(PWSTR) pszPnPDeviceID, const(PWSTR) pszDevicePropertyName, ubyte* pData, 
                               uint* pcbData, uint* pdwType);
     ///The <b>GetPrivateDevices</b> method retrieves a list of private portable devices connected to the computer. These
     ///private devices are only accessible through an application that is designed for these particular devices.
@@ -604,7 +606,7 @@ interface IPortableDeviceManager : IUnknown
     ///    width="60%"> The <i>pPnPDeviceIDs</i> buffer is too small to hold all the values requested, but
     ///    <i>pcPnPDeviceIDs</i> values have been written to <i>pPnPDeviceIDs</i>. </td> </tr> </table>
     ///    
-    HRESULT GetPrivateDevices(ushort** pPnPDeviceIDs, uint* pcPnPDeviceIDs);
+    HRESULT GetPrivateDevices(PWSTR* pPnPDeviceIDs, uint* pcPnPDeviceIDs);
 }
 
 ///The <b>IPortableDevice</b> interface provides access to a portable device. To create and open this interface, first
@@ -631,7 +633,7 @@ interface IPortableDevice : IUnknown
     ///    already been opened. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td
     ///    width="60%"> At least one of the arguments was a NULL pointer. </td> </tr> </table>
     ///    
-    HRESULT Open(const(wchar)* pszPnPDeviceID, IPortableDeviceValues pClientInfo);
+    HRESULT Open(const(PWSTR) pszPnPDeviceID, IPortableDeviceValues pClientInfo);
     ///The <b>SendCommand</b> method sends a command to the device and retrieves the results synchronously.
     ///Params:
     ///    dwFlags = Currently not used; specify zero.
@@ -712,7 +714,7 @@ interface IPortableDevice : IUnknown
     ///    registered. </td> </tr> </table>
     ///    
     HRESULT Advise(const(uint) dwFlags, IPortableDeviceEventCallback pCallback, IPortableDeviceValues pParameters, 
-                   ushort** ppszCookie);
+                   PWSTR* ppszCookie);
     ///The <b>Unadvise</b> method unregisters a client from receiving callback notifications. You must call this method
     ///if you called Advise previously.
     ///Params:
@@ -723,7 +725,7 @@ interface IPortableDevice : IUnknown
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT Unadvise(const(wchar)* pszCookie);
+    HRESULT Unadvise(const(PWSTR) pszCookie);
     ///The <b>GetPnPDeviceID</b> method retrieves the Plug and Play (PnP) device identifier that the application used to
     ///open the device.
     ///Params:
@@ -735,7 +737,7 @@ interface IPortableDevice : IUnknown
     ///    <dl> <dt><b>E_WPD_DEVICE_NOT_OPEN</b></dt> </dl> </td> <td width="60%"> The IPortableDevice::Open method has
     ///    not been called yet for this device. </td> </tr> </table>
     ///    
-    HRESULT GetPnPDeviceID(ushort** ppszPnPDeviceID);
+    HRESULT GetPnPDeviceID(PWSTR* ppszPnPDeviceID);
 }
 
 ///The <b>IPortableDeviceContent</b> interface provides methods to create, enumerate, examine, and delete content on a
@@ -759,7 +761,7 @@ interface IPortableDeviceContent : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> At least one of the required arguments was a
     ///    <b>NULL</b> pointer. </td> </tr> </table>
     ///    
-    HRESULT EnumObjects(const(uint) dwFlags, const(wchar)* pszParentObjectID, IPortableDeviceValues pFilter, 
+    HRESULT EnumObjects(const(uint) dwFlags, const(PWSTR) pszParentObjectID, IPortableDeviceValues pFilter, 
                         IEnumPortableDeviceObjectIDs* ppEnum);
     ///The <b>Properties</b> method retrieves the interface that is required to get or set properties on an object on
     ///the device.
@@ -801,7 +803,7 @@ interface IPortableDeviceContent : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> At least one of the required arguments was a
     ///    <b>NULL</b> pointer. </td> </tr> </table>
     ///    
-    HRESULT CreateObjectWithPropertiesOnly(IPortableDeviceValues pValues, ushort** ppszObjectID);
+    HRESULT CreateObjectWithPropertiesOnly(IPortableDeviceValues pValues, PWSTR* ppszObjectID);
     ///The <b>CreateObjectWithPropertiesAndData</b> method creates an object with both properties and data on the
     ///device.
     ///Params:
@@ -828,7 +830,7 @@ interface IPortableDeviceContent : IUnknown
     ///    <b>NULL</b> pointer. </td> </tr> </table>
     ///    
     HRESULT CreateObjectWithPropertiesAndData(IPortableDeviceValues pValues, IStream* ppData, 
-                                              uint* pdwOptimalWriteBufferSize, ushort** ppszCookie);
+                                              uint* pdwOptimalWriteBufferSize, PWSTR* ppszCookie);
     ///The <b>Delete</b> method deletes one or more objects from the device.
     ///Params:
     ///    dwOptions = One of the DELETE_OBJECT_OPTIONS enumerators.
@@ -905,7 +907,7 @@ interface IPortableDeviceContent : IUnknown
     ///    the object. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> At
     ///    least one of the required arguments was a <b>NULL</b> pointer. </td> </tr> </table>
     ///    
-    HRESULT Move(IPortableDevicePropVariantCollection pObjectIDs, const(wchar)* pszDestinationFolderObjectID, 
+    HRESULT Move(IPortableDevicePropVariantCollection pObjectIDs, const(PWSTR) pszDestinationFolderObjectID, 
                  IPortableDevicePropVariantCollection* ppResults);
     ///The <b>Copy</b> method copies objects from one location on a device to another.
     ///Params:
@@ -923,7 +925,7 @@ interface IPortableDeviceContent : IUnknown
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_ACCESSDENIED</b></dt> </dl> </td> <td width="60%"> The
     ///    application does not have the rights to copy one of the specified objects. </td> </tr> </table>
     ///    
-    HRESULT Copy(IPortableDevicePropVariantCollection pObjectIDs, const(wchar)* pszDestinationFolderObjectID, 
+    HRESULT Copy(IPortableDevicePropVariantCollection pObjectIDs, const(PWSTR) pszDestinationFolderObjectID, 
                  IPortableDevicePropVariantCollection* ppResults);
 }
 
@@ -944,7 +946,7 @@ interface IPortableDeviceContent2 : IPortableDeviceContent
     ///    If the method succeeds, it returns <b>S_OK</b>. Any other <b>HRESULT</b> value indicates that the call
     ///    failed.
     ///    
-    HRESULT UpdateObjectWithPropertiesAndData(const(wchar)* pszObjectID, IPortableDeviceValues pProperties, 
+    HRESULT UpdateObjectWithPropertiesAndData(const(PWSTR) pszObjectID, IPortableDeviceValues pProperties, 
                                               IStream* ppData, uint* pdwOptimalWriteBufferSize);
 }
 
@@ -968,7 +970,7 @@ interface IEnumPortableDeviceObjectIDs : IUnknown
     ///    <dl> <dt><b>S_FALSE</b></dt> </dl> </td> <td width="60%"> There are no more objects to enumerate. </td> </tr>
     ///    </table>
     ///    
-    HRESULT Next(uint cObjects, char* pObjIDs, uint* pcFetched);
+    HRESULT Next(uint cObjects, PWSTR* pObjIDs, uint* pcFetched);
     ///The <b>Skip</b> method skips a specified number of objects in the enumeration sequence.
     ///Params:
     ///    cObjects = The number of objects to skip.
@@ -1029,7 +1031,7 @@ interface IPortableDeviceProperties : IUnknown
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT GetSupportedProperties(const(wchar)* pszObjectID, IPortableDeviceKeyCollection* ppKeys);
+    HRESULT GetSupportedProperties(const(PWSTR) pszObjectID, IPortableDeviceKeyCollection* ppKeys);
     ///The <b>GetPropertyAttributes</b> method retrieves attributes of a specified object property on a device.
     ///Params:
     ///    pszObjectID = Pointer to a null-terminated string that contains the object ID of the object to query. To specify the
@@ -1050,7 +1052,7 @@ interface IPortableDeviceProperties : IUnknown
     ///    type VT_ERROR. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%">
     ///    A required pointer argument was <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetPropertyAttributes(const(wchar)* pszObjectID, const(PROPERTYKEY)* Key, 
+    HRESULT GetPropertyAttributes(const(PWSTR) pszObjectID, const(PROPERTYKEY)* Key, 
                                   IPortableDeviceValues* ppAttributes);
     ///The <b>GetValues</b> method retrieves a list of specified properties from a specified object on a device.
     ///Params:
@@ -1072,7 +1074,7 @@ interface IPortableDeviceProperties : IUnknown
     ///    could not be retrieved. The problem properties will have an HRESULT value in the retrieved <i>ppValues</i>
     ///    parameter. </td> </tr> </table>
     ///    
-    HRESULT GetValues(const(wchar)* pszObjectID, IPortableDeviceKeyCollection pKeys, 
+    HRESULT GetValues(const(PWSTR) pszObjectID, IPortableDeviceKeyCollection pKeys, 
                       IPortableDeviceValues* ppValues);
     ///The <b>SetValues</b> method adds or modifies one or more properties on a specified object on a device.
     ///Params:
@@ -1091,7 +1093,7 @@ interface IPortableDeviceProperties : IUnknown
     ///    not be modified. Those that could not will have an <b>HRESULT</b> of type VT_ERROR in the retrieved
     ///    <i>ppResults</i> parameter. </td> </tr> </table>
     ///    
-    HRESULT SetValues(const(wchar)* pszObjectID, IPortableDeviceValues pValues, IPortableDeviceValues* ppResults);
+    HRESULT SetValues(const(PWSTR) pszObjectID, IPortableDeviceValues pValues, IPortableDeviceValues* ppResults);
     ///The <b>Delete</b> method deletes specified properties from a specified object on a device.
     ///Params:
     ///    pszObjectID = Pointer to a null-terminated string that specifies the ID of the object whose properties you will delete. To
@@ -1106,7 +1108,7 @@ interface IPortableDeviceProperties : IUnknown
     ///    </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The required
     ///    pointer argument was <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT Delete(const(wchar)* pszObjectID, IPortableDeviceKeyCollection pKeys);
+    HRESULT Delete(const(PWSTR) pszObjectID, IPortableDeviceKeyCollection pKeys);
     ///The <b>Cancel</b> method cancels a pending call.
     ///Returns:
     ///    The method returns an <b>HRESULT</b>. Possible values include, but are not limited to, those in the following
@@ -1135,7 +1137,7 @@ interface IPortableDeviceResources : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> At least one of the required pointer arguments
     ///    was <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetSupportedResources(const(wchar)* pszObjectID, IPortableDeviceKeyCollection* ppKeys);
+    HRESULT GetSupportedResources(const(PWSTR) pszObjectID, IPortableDeviceKeyCollection* ppKeys);
     ///The <b>GetResourceAttributes</b> method retrieves all attributes from a specified resource in an object.
     ///Params:
     ///    pszObjectID = Pointer to a null-terminated string that contains the object ID of the object hosting the resource.
@@ -1153,7 +1155,7 @@ interface IPortableDeviceResources : IUnknown
     ///    <i>ppResourceAttributes</i> parameter. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_POINTER</b></dt> </dl>
     ///    </td> <td width="60%"> At least one of the required pointer arguments was <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetResourceAttributes(const(wchar)* pszObjectID, const(PROPERTYKEY)* Key, 
+    HRESULT GetResourceAttributes(const(PWSTR) pszObjectID, const(PROPERTYKEY)* Key, 
                                   IPortableDeviceValues* ppResourceAttributes);
     ///The <b>GetStream</b> method gets an <b>IStream</b> interface with which to read or write the content data in an
     ///object on a device. The retrieved interface enables you to read from or write to the object data.
@@ -1174,7 +1176,7 @@ interface IPortableDeviceResources : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> At least one of the required pointer arguments
     ///    was <b>NULL</b>. </td> </tr> </table>
     ///    
-    HRESULT GetStream(const(wchar)* pszObjectID, const(PROPERTYKEY)* Key, const(uint) dwMode, 
+    HRESULT GetStream(const(PWSTR) pszObjectID, const(PROPERTYKEY)* Key, const(uint) dwMode, 
                       uint* pdwOptimalBufferSize, IStream* ppStream);
     ///The <b>Delete</b> method deletes one or more resources from the object identified by the <i>pszObjectID</i>
     ///parameter.
@@ -1189,7 +1191,7 @@ interface IPortableDeviceResources : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> At least one of the arguments was a <b>NULL</b>
     ///    pointer. </td> </tr> </table>
     ///    
-    HRESULT Delete(const(wchar)* pszObjectID, IPortableDeviceKeyCollection pKeys);
+    HRESULT Delete(const(PWSTR) pszObjectID, IPortableDeviceKeyCollection pKeys);
     ///The <b>Cancel</b> method cancels a pending operation.
     ///Returns:
     ///    The method returns an <b>HRESULT</b>. Possible values include, but are not limited to, those in the following
@@ -1216,7 +1218,7 @@ interface IPortableDeviceResources : IUnknown
     ///    pointer. </td> </tr> </table>
     ///    
     HRESULT CreateResource(IPortableDeviceValues pResourceAttributes, IStream* ppData, 
-                           uint* pdwOptimalWriteBufferSize, ushort** ppszCookie);
+                           uint* pdwOptimalWriteBufferSize, PWSTR* ppszCookie);
 }
 
 ///The <b>IPortableDeviceCapabilities</b> interface a variety of device capabilities, including supported formats,
@@ -1409,7 +1411,7 @@ interface IPortableDeviceDataStream : IStream
     ///    <b>NULL</b> pointer. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>E_OUTOFMEMORY</b></dt> </dl> </td> <td
     ///    width="60%"> Insufficient memory is available. </td> </tr> </table>
     ///    
-    HRESULT GetObjectID(ushort** ppszObjectID);
+    HRESULT GetObjectID(PWSTR* ppszObjectID);
     ///The <b>Cancel</b> method cancels a call in progress on this interface.
     ///Returns:
     ///    The method returns an <b>HRESULT</b>. Possible values include, but are not limited to, those in the following
@@ -1500,7 +1502,7 @@ interface IPortableDevicePropertiesBulk : IUnknown
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The operation was queued successfully. </td> </tr> </table>
     ///    
-    HRESULT QueueGetValuesByObjectFormat(const(GUID)* pguidObjectFormat, const(wchar)* pszParentObjectID, 
+    HRESULT QueueGetValuesByObjectFormat(const(GUID)* pguidObjectFormat, const(PWSTR) pszParentObjectID, 
                                          const(uint) dwDepth, IPortableDeviceKeyCollection pKeys, 
                                          IPortableDevicePropertiesBulkCallback pCallback, GUID* pContext);
     ///The <b>QueueSetValuesByObjectList</b> method queues a request to set one or more specified values on one or more
@@ -1623,7 +1625,7 @@ interface IPortableDeviceServiceManager : IUnknown
     ///    <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> The <i>pcServices</i> parameter was <b>NULL</b>. </td>
     ///    </tr> </table>
     ///    
-    HRESULT GetDeviceServices(const(wchar)* pszPnPDeviceID, const(GUID)* guidServiceCategory, ushort** pServices, 
+    HRESULT GetDeviceServices(const(PWSTR) pszPnPDeviceID, const(GUID)* guidServiceCategory, PWSTR* pServices, 
                               uint* pcServices);
     ///The <b>GetDeviceForService</b> method retrieves the device associated with the specified service.
     ///Params:
@@ -1636,7 +1638,7 @@ interface IPortableDeviceServiceManager : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> An invalid pointer was supplied. </td> </tr>
     ///    </table>
     ///    
-    HRESULT GetDeviceForService(const(wchar)* pszPnPServiceID, ushort** ppszPnPDeviceID);
+    HRESULT GetDeviceForService(const(PWSTR) pszPnPServiceID, PWSTR* ppszPnPDeviceID);
 }
 
 ///The <b>IPortableDeviceService</b> interface provides access to a service.
@@ -1658,7 +1660,7 @@ interface IPortableDeviceService : IUnknown
     ///    <dt><b>E_WPD_SERVICE_ALREADY_OPENED</b></dt> </dl> </td> <td width="60%"> This method has already been called
     ///    for the service. </td> </tr> </table>
     ///    
-    HRESULT Open(const(wchar)* pszPnPServiceID, IPortableDeviceValues pClientInfo);
+    HRESULT Open(const(PWSTR) pszPnPServiceID, IPortableDeviceValues pClientInfo);
     ///The <b>Capabilities</b> method retrieves the service capabilities.
     ///Params:
     ///    ppCapabilities = The IPortableDeviceServiceCapabilities interface specifying the capabilities of the service.
@@ -1713,7 +1715,7 @@ interface IPortableDeviceService : IUnknown
     ///    If the method succeeds, it returns <b>S_OK</b>. Any other <b>HRESULT</b> value indicates that the call
     ///    failed.
     ///    
-    HRESULT GetServiceObjectID(ushort** ppszServiceObjectID);
+    HRESULT GetServiceObjectID(PWSTR* ppszServiceObjectID);
     ///The <b>GetPnPServiceID</b> method retrieves a Plug and Play (PnP) identifier for the service.
     ///Params:
     ///    ppszPnPServiceID = The retrieved PnP identifier, which is the same identifier that was passed to the Open method.
@@ -1725,7 +1727,7 @@ interface IPortableDeviceService : IUnknown
     ///    </tr> <tr> <td width="40%"> <dl> <dt><b>E_WPD_SERVICE_NOT_OPEN</b></dt> </dl> </td> <td width="60%"> The Open
     ///    method has not yet been called for the service. </td> </tr> </table>
     ///    
-    HRESULT GetPnPServiceID(ushort** ppszPnPServiceID);
+    HRESULT GetPnPServiceID(PWSTR* ppszPnPServiceID);
     ///The <b>Advise</b> method registers an application-defined callback object that receives service events.
     ///Params:
     ///    dwFlags = Not used.
@@ -1742,7 +1744,7 @@ interface IPortableDeviceService : IUnknown
     ///    <i>pCallback</i> parameter or the <i>ppszCookie</i> parameter. </td> </tr> </table>
     ///    
     HRESULT Advise(const(uint) dwFlags, IPortableDeviceEventCallback pCallback, IPortableDeviceValues pParameters, 
-                   ushort** ppszCookie);
+                   PWSTR* ppszCookie);
     ///The <b>Unadvise</b> method unregisters a service event callback object.
     ///Params:
     ///    pszCookie = The unique context ID for the application-supplied callback object. This value matches that yielded by the
@@ -1754,7 +1756,7 @@ interface IPortableDeviceService : IUnknown
     ///    <dl> <dt><b>E_POINTER</b></dt> </dl> </td> <td width="60%"> A <b>NULL</b> parameter was specified. </td>
     ///    </tr> </table>
     ///    
-    HRESULT Unadvise(const(wchar)* pszCookie);
+    HRESULT Unadvise(const(PWSTR) pszCookie);
     ///The <b>SendCommand</b> method sends a standard WPD command and its parameters to the service.
     ///Params:
     ///    dwFlags = Not used.
@@ -1985,7 +1987,7 @@ interface IPortableDeviceServiceMethodCallback : IUnknown
 @GUID("E56B0534-D9B9-425C-9B99-75F97CB3D7C8")
 interface IPortableDeviceServiceActivation : IUnknown
 {
-    HRESULT OpenAsync(const(wchar)* pszPnPServiceID, IPortableDeviceValues pClientInfo, 
+    HRESULT OpenAsync(const(PWSTR) pszPnPServiceID, IPortableDeviceValues pClientInfo, 
                       IPortableDeviceServiceOpenCallback pCallback);
     HRESULT CancelOpenAsync();
 }
@@ -2011,7 +2013,7 @@ interface IPortableDeviceDispatchFactory : IUnknown
     ///    <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>S_OK</b></dt> </dl>
     ///    </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT GetDeviceDispatch(const(wchar)* pszPnPDeviceID, IDispatch* ppDeviceDispatch);
+    HRESULT GetDeviceDispatch(const(PWSTR) pszPnPDeviceID, IDispatch* ppDeviceDispatch);
 }
 
 ///Represents a factory that can instantiate a WPD Automation Device object in a Windows Store app.
@@ -2062,7 +2064,7 @@ interface IPortableDeviceWebControl : IDispatch
 @GUID("BFDEF549-9247-454F-BD82-06FE80853FAA")
 interface IEnumPortableDeviceConnectors : IUnknown
 {
-    HRESULT Next(uint cRequested, char* pConnectors, uint* pcFetched);
+    HRESULT Next(uint cRequested, IPortableDeviceConnector* pConnectors, uint* pcFetched);
     HRESULT Skip(uint cConnectors);
     HRESULT Reset();
     HRESULT Clone(IEnumPortableDeviceConnectors* ppEnum);
@@ -2120,7 +2122,7 @@ interface IPortableDeviceConnector : IUnknown
     ///    <dl> <dt><b>HRESULT_FROM_WIN32(ERROR_NOT_FOUND)</b></dt> </dl> </td> <td width="60%"> The specified property
     ///    key is not supported. </td> </tr> </table>
     ///    
-    HRESULT GetProperty(const(DEVPROPKEY)* pPropertyKey, uint* pPropertyType, char* ppData, uint* pcbData);
+    HRESULT GetProperty(const(DEVPROPKEY)* pPropertyKey, uint* pPropertyType, ubyte** ppData, uint* pcbData);
     ///The <b>SetProperty</b> method sets the given property on the MTP/Bluetooth Bus Enumerator device.
     ///Params:
     ///    pPropertyKey = A pointer to a property key for the given property.
@@ -2134,7 +2136,7 @@ interface IPortableDeviceConnector : IUnknown
     ///    <dl> <dt><b>HRESULT_FROM_WIN32(ERROR_NOT_FOUND)</b></dt> </dl> </td> <td width="60%"> The specified property
     ///    key is not supported. </td> </tr> </table>
     ///    
-    HRESULT SetProperty(const(DEVPROPKEY)* pPropertyKey, uint PropertyType, char* pData, uint cbData);
+    HRESULT SetProperty(const(DEVPROPKEY)* pPropertyKey, uint PropertyType, const(ubyte)* pData, uint cbData);
     ///The <b>GetPnPID</b> method retrieves the connector's Plug and Play (PnP) device identifier.
     ///Params:
     ///    ppwszPnPID = The PnP device identifier.
@@ -2143,7 +2145,7 @@ interface IPortableDeviceConnector : IUnknown
     ///    table. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>S_OK</b></dt> </dl> </td> <td width="60%"> The method succeeded. </td> </tr> </table>
     ///    
-    HRESULT GetPnPID(ushort** ppwszPnPID);
+    HRESULT GetPnPID(PWSTR* ppwszPnPID);
 }
 
 @GUID("272C9AE0-7161-4AE0-91BD-9F448EE9C427")

@@ -10,24 +10,134 @@ public import windows.com : DVTARGETDEVICE, HRESULT, IDataObject, IDropTarget,
 public import windows.direct2d : ID2D1RenderTarget;
 public import windows.displaydevices : POINT, RECT, RECTL, SIZE;
 public import windows.gdi : BLENDFUNCTION, HBITMAP, HBRUSH, HCURSOR, HDC, HICON,
-                            HPALETTE, HPEN, HRGN, RGBQUAD, TEXTMETRICW;
+                            HMONITOR, HPALETTE, HPEN, HRGN, RGBQUAD,
+                            TEXTMETRICW;
 public import windows.intl : HIMC__;
-public import windows.menusandresources : HMENU;
+public import windows.menusandresources : HMENU, POINTER_INPUT_TYPE;
 public import windows.pointerinput : POINTER_PEN_INFO, POINTER_TOUCH_INFO;
 public import windows.shell : LOGFONTW;
 public import windows.structuredstorage : IStorage, IStream;
-public import windows.systemservices : BOOL, HANDLE, HINSTANCE, LRESULT;
+public import windows.systemservices : BOOL, HANDLE, HINSTANCE, LRESULT, PSTR, PWSTR;
 public import windows.windowsaccessibility : IRawElementProviderSimple, IRawElementProviderWindowlessSite,
                                              UiaRect;
 public import windows.windowsandmessaging : DLGPROC, DLGTEMPLATE, HWND, LPARAM, WINDOWPOS,
                                             WPARAM;
 public import windows.windowsprogramming : HKEY, SYSTEMTIME;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
 
+
+///Identifies the visual feedback behaviors available to CreateSyntheticPointerDevice.
+alias POINTER_FEEDBACK_MODE = int;
+enum : int
+{
+    ///Visual feedback might be suppressed by the user's pen (Settings -&gt; Devices -&gt; Pen &amp; Windows Ink) and
+    ///touch (Settings -&gt; Ease of Access -&gt; Cursor &amp; pointer size) settings.
+    POINTER_FEEDBACK_DEFAULT  = 0x00000001,
+    ///Visual feedback overrides the user's pen and touch settings.
+    POINTER_FEEDBACK_INDIRECT = 0x00000002,
+    POINTER_FEEDBACK_NONE     = 0x00000003,
+}
+
+///Specifies the visual feedback associated with an event.
+alias FEEDBACK_TYPE = int;
+enum : int
+{
+    ///Feedback for a touch contact event.
+    FEEDBACK_TOUCH_CONTACTVISUALIZATION = 0x00000001,
+    ///Feedback for a pen barrel-button event.
+    FEEDBACK_PEN_BARRELVISUALIZATION    = 0x00000002,
+    ///Feedback for a pen tap event.
+    FEEDBACK_PEN_TAP                    = 0x00000003,
+    ///Feedback for a pen double-tap event.
+    FEEDBACK_PEN_DOUBLETAP              = 0x00000004,
+    ///Feedback for a pen press-and-hold event.
+    FEEDBACK_PEN_PRESSANDHOLD           = 0x00000005,
+    ///Feedback for a pen right-tap event.
+    FEEDBACK_PEN_RIGHTTAP               = 0x00000006,
+    ///Feedback for a touch tap event.
+    FEEDBACK_TOUCH_TAP                  = 0x00000007,
+    ///Feedback for a touch double-tap event.
+    FEEDBACK_TOUCH_DOUBLETAP            = 0x00000008,
+    ///Feedback for a touch press-and-hold event.
+    FEEDBACK_TOUCH_PRESSANDHOLD         = 0x00000009,
+    ///Feedback for a touch right-tap event.
+    FEEDBACK_TOUCH_RIGHTTAP             = 0x0000000a,
+    ///Feedback for a press-and-tap gesture.
+    FEEDBACK_GESTURE_PRESSANDTAP        = 0x0000000b,
+    ///Do not use.
+    FEEDBACK_MAX                        = 0xffffffff,
+}
+
+///Identifies the pointer device types.
+alias POINTER_DEVICE_TYPE = int;
+enum : int
+{
+    ///Direct pen digitizer (integrated into display).
+    POINTER_DEVICE_TYPE_INTEGRATED_PEN = 0x00000001,
+    ///Indirect pen digitizer (not integrated into display).
+    POINTER_DEVICE_TYPE_EXTERNAL_PEN   = 0x00000002,
+    ///Touch digitizer.
+    POINTER_DEVICE_TYPE_TOUCH          = 0x00000003,
+    ///Touchpad digitizer (Windows 8.1 and later).
+    POINTER_DEVICE_TYPE_TOUCH_PAD      = 0x00000004,
+    ///Forces this enumeration to compile to 32 bits in size. Without this value, some compilers would allow this
+    ///enumeration to compile to a size other than 32 bits. You should not use this value.
+    POINTER_DEVICE_TYPE_MAX            = 0xffffffff,
+}
+
+///Identifies the pointer device cursor types.
+alias POINTER_DEVICE_CURSOR_TYPE = int;
+enum : int
+{
+    ///Unidentified cursor.
+    POINTER_DEVICE_CURSOR_TYPE_UNKNOWN = 0x00000000,
+    ///Pen tip.
+    POINTER_DEVICE_CURSOR_TYPE_TIP     = 0x00000001,
+    ///Pen eraser.
+    POINTER_DEVICE_CURSOR_TYPE_ERASER  = 0x00000002,
+    ///Forces this enumeration to compile to 32 bits in size. Without this value, some compilers would allow this
+    ///enumeration to compile to a size other than 32 bits. You should not use this value.
+    POINTER_DEVICE_CURSOR_TYPE_MAX     = 0xffffffff,
+}
+
+///The type of device that sent the input message.
+alias INPUT_MESSAGE_DEVICE_TYPE = int;
+enum : int
+{
+    ///The device type isn't identified.
+    IMDT_UNAVAILABLE = 0x00000000,
+    ///Keyboard input.
+    IMDT_KEYBOARD    = 0x00000001,
+    ///Mouse input.
+    IMDT_MOUSE       = 0x00000002,
+    ///Touch input.
+    IMDT_TOUCH       = 0x00000004,
+    ///Pen or stylus input.
+    IMDT_PEN         = 0x00000008,
+    ///Touchpad input (Windows 8.1 and later).
+    IMDT_TOUCHPAD    = 0x00000010,
+}
+
+///The ID of the input message source.
+alias INPUT_MESSAGE_ORIGIN_ID = int;
+enum : int
+{
+    ///The source isn't identified.
+    IMO_UNAVAILABLE = 0x00000000,
+    ///The input message is from a hardware device or has been injected into the message queue by an application that
+    ///has the <b>UIAccess</b> attribute set to TRUE in its manifest file. For more information about the
+    ///<b>UIAccess</b> attribute and application manifests, see UAC References.
+    IMO_HARDWARE    = 0x00000001,
+    ///The input message has been injected (through the SendInput function) by an application that doesn't have the
+    ///<b>UIAccess</b> attribute set to TRUE in its manifest file.
+    IMO_INJECTED    = 0x00000002,
+    ///The system has injected the input message.
+    IMO_SYSTEM      = 0x00000004,
+}
 
 alias TVITEMPART = int;
 enum : int
@@ -1689,117 +1799,86 @@ enum : int
     BPAS_SINE   = 0x00000003,
 }
 
-///Identifies the visual feedback behaviors available to CreateSyntheticPointerDevice.
-alias POINTER_FEEDBACK_MODE = int;
-enum : int
-{
-    ///Visual feedback might be suppressed by the user's pen (Settings -&gt; Devices -&gt; Pen &amp; Windows Ink) and
-    ///touch (Settings -&gt; Ease of Access -&gt; Cursor &amp; pointer size) settings.
-    POINTER_FEEDBACK_DEFAULT  = 0x00000001,
-    ///Visual feedback overrides the user's pen and touch settings.
-    POINTER_FEEDBACK_INDIRECT = 0x00000002,
-    POINTER_FEEDBACK_NONE     = 0x00000003,
-}
-
-///Specifies the visual feedback associated with an event.
-alias FEEDBACK_TYPE = int;
-enum : int
-{
-    ///Feedback for a touch contact event.
-    FEEDBACK_TOUCH_CONTACTVISUALIZATION = 0x00000001,
-    ///Feedback for a pen barrel-button event.
-    FEEDBACK_PEN_BARRELVISUALIZATION    = 0x00000002,
-    ///Feedback for a pen tap event.
-    FEEDBACK_PEN_TAP                    = 0x00000003,
-    ///Feedback for a pen double-tap event.
-    FEEDBACK_PEN_DOUBLETAP              = 0x00000004,
-    ///Feedback for a pen press-and-hold event.
-    FEEDBACK_PEN_PRESSANDHOLD           = 0x00000005,
-    ///Feedback for a pen right-tap event.
-    FEEDBACK_PEN_RIGHTTAP               = 0x00000006,
-    ///Feedback for a touch tap event.
-    FEEDBACK_TOUCH_TAP                  = 0x00000007,
-    ///Feedback for a touch double-tap event.
-    FEEDBACK_TOUCH_DOUBLETAP            = 0x00000008,
-    ///Feedback for a touch press-and-hold event.
-    FEEDBACK_TOUCH_PRESSANDHOLD         = 0x00000009,
-    ///Feedback for a touch right-tap event.
-    FEEDBACK_TOUCH_RIGHTTAP             = 0x0000000a,
-    ///Feedback for a press-and-tap gesture.
-    FEEDBACK_GESTURE_PRESSANDTAP        = 0x0000000b,
-    ///Do not use.
-    FEEDBACK_MAX                        = 0xffffffff,
-}
-
-///Identifies the pointer device types.
-alias POINTER_DEVICE_TYPE = int;
-enum : int
-{
-    ///Direct pen digitizer (integrated into display).
-    POINTER_DEVICE_TYPE_INTEGRATED_PEN = 0x00000001,
-    ///Indirect pen digitizer (not integrated into display).
-    POINTER_DEVICE_TYPE_EXTERNAL_PEN   = 0x00000002,
-    ///Touch digitizer.
-    POINTER_DEVICE_TYPE_TOUCH          = 0x00000003,
-    ///Touchpad digitizer (Windows 8.1 and later).
-    POINTER_DEVICE_TYPE_TOUCH_PAD      = 0x00000004,
-    ///Forces this enumeration to compile to 32 bits in size. Without this value, some compilers would allow this
-    ///enumeration to compile to a size other than 32 bits. You should not use this value.
-    POINTER_DEVICE_TYPE_MAX            = 0xffffffff,
-}
-
-///Identifies the pointer device cursor types.
-alias POINTER_DEVICE_CURSOR_TYPE = int;
-enum : int
-{
-    ///Unidentified cursor.
-    POINTER_DEVICE_CURSOR_TYPE_UNKNOWN = 0x00000000,
-    ///Pen tip.
-    POINTER_DEVICE_CURSOR_TYPE_TIP     = 0x00000001,
-    ///Pen eraser.
-    POINTER_DEVICE_CURSOR_TYPE_ERASER  = 0x00000002,
-    ///Forces this enumeration to compile to 32 bits in size. Without this value, some compilers would allow this
-    ///enumeration to compile to a size other than 32 bits. You should not use this value.
-    POINTER_DEVICE_CURSOR_TYPE_MAX     = 0xffffffff,
-}
-
-///The type of device that sent the input message.
-alias INPUT_MESSAGE_DEVICE_TYPE = int;
-enum : int
-{
-    ///The device type isn't identified.
-    IMDT_UNAVAILABLE = 0x00000000,
-    ///Keyboard input.
-    IMDT_KEYBOARD    = 0x00000001,
-    ///Mouse input.
-    IMDT_MOUSE       = 0x00000002,
-    ///Touch input.
-    IMDT_TOUCH       = 0x00000004,
-    ///Pen or stylus input.
-    IMDT_PEN         = 0x00000008,
-    ///Touchpad input (Windows 8.1 and later).
-    IMDT_TOUCHPAD    = 0x00000010,
-}
-
-///The ID of the input message source.
-alias INPUT_MESSAGE_ORIGIN_ID = int;
-enum : int
-{
-    ///The source isn't identified.
-    IMO_UNAVAILABLE = 0x00000000,
-    ///The input message is from a hardware device or has been injected into the message queue by an application that
-    ///has the <b>UIAccess</b> attribute set to TRUE in its manifest file. For more information about the
-    ///<b>UIAccess</b> attribute and application manifests, see UAC References.
-    IMO_HARDWARE    = 0x00000001,
-    ///The input message has been injected (through the SendInput function) by an application that doesn't have the
-    ///<b>UIAccess</b> attribute set to TRUE in its manifest file.
-    IMO_INJECTED    = 0x00000002,
-    ///The system has injected the input message.
-    IMO_SYSTEM      = 0x00000004,
-}
-
 // Callbacks
 
+///An application-defined callback function used with the EM_SETWORDBREAKPROC message. A multiline edit control or a
+///rich edit control calls an <i>EditWordBreakProc</i> function to break a line of text. The <b>EDITWORDBREAKPROC</b>
+///type defines a pointer to this callback function. <i>EditWordBreakProc</i> is a placeholder for the
+///application-defined function name.
+///Params:
+///    lpch = Type: <b>LPTSTR</b> A pointer to the text of the edit control.
+///    ichCurrent = Type: <b>int</b> An index to a character position in the buffer of text that identifies the point at which the
+///                 function should begin checking for a word break.
+///    cch = Type: <b>int</b> The number of <b>TCHARs</b> in the edit control text. For the ANSI text, this is the number of
+///          bytes; for the Unicode text, this is the number of WCHARs.
+///    code = Type: <b>int</b> The action to be taken by the callback function. This parameter can be one of the following
+///           values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="WB_CLASSIFY"></a><a
+///           id="wb_classify"></a><dl> <dt><b>WB_CLASSIFY</b></dt> </dl> </td> <td width="60%"> Retrieves the character class
+///           and word break flags of the character at the specified position. This value is for use with rich edit controls.
+///           </td> </tr> <tr> <td width="40%"><a id="WB_ISDELIMITER"></a><a id="wb_isdelimiter"></a><dl>
+///           <dt><b>WB_ISDELIMITER</b></dt> </dl> </td> <td width="60%"> Checks whether the character at the specified
+///           position is a delimiter. </td> </tr> <tr> <td width="40%"><a id="WB_LEFT"></a><a id="wb_left"></a><dl>
+///           <dt><b>WB_LEFT</b></dt> </dl> </td> <td width="60%"> Finds the beginning of a word to the left of the specified
+///           position. </td> </tr> <tr> <td width="40%"><a id="WB_LEFTBREAK"></a><a id="wb_leftbreak"></a><dl>
+///           <dt><b>WB_LEFTBREAK</b></dt> </dl> </td> <td width="60%"> Finds the end-of-word delimiter to the left of the
+///           specified position. This value is for use with rich edit controls. </td> </tr> <tr> <td width="40%"><a
+///           id="WB_MOVEWORDLEFT"></a><a id="wb_movewordleft"></a><dl> <dt><b>WB_MOVEWORDLEFT</b></dt> </dl> </td> <td
+///           width="60%"> Finds the beginning of a word to the left of the specified position. This value is used during
+///           CTRL+LEFT key processing. This value is for use with rich edit controls. </td> </tr> <tr> <td width="40%"><a
+///           id="WB_MOVEWORDRIGHT"></a><a id="wb_movewordright"></a><dl> <dt><b>WB_MOVEWORDRIGHT</b></dt> </dl> </td> <td
+///           width="60%"> Finds the beginning of a word to the right of the specified position. This value is used during
+///           CTRL+RIGHT key processing. This value is for use with rich edit controls. </td> </tr> <tr> <td width="40%"><a
+///           id="WB_RIGHT"></a><a id="wb_right"></a><dl> <dt><b>WB_RIGHT</b></dt> </dl> </td> <td width="60%"> Finds the
+///           beginning of a word to the right of the specified position. This is useful in right-aligned edit controls. </td>
+///           </tr> <tr> <td width="40%"><a id="WB_RIGHTBREAK"></a><a id="wb_rightbreak"></a><dl> <dt><b>WB_RIGHTBREAK</b></dt>
+///           </dl> </td> <td width="60%"> Finds the end-of-word delimiter to the right of the specified position. This is
+///           useful in right-aligned edit controls. This value is for use with rich edit controls. </td> </tr> </table>
+///Returns:
+///    Type: <b>int</b> If the <i>code</i> parameter specifies <b>WB_ISDELIMITER</b>, the return value is nonzero (TRUE)
+///    if the character at the specified position is a delimiter, or zero if it is not. If the <i>code</i> parameter
+///    specifies <b>WB_CLASSIFY</b>, the return value is the character class and word break flags of the character at
+///    the specified position. Otherwise, the return value is an index to the beginning of a word in the buffer of text.
+///    
+alias EDITWORDBREAKPROCA = int function(PSTR lpch, int ichCurrent, int cch, int code);
+///An application-defined callback function used with the EM_SETWORDBREAKPROC message. A multiline edit control or a
+///rich edit control calls an <i>EditWordBreakProc</i> function to break a line of text. The <b>EDITWORDBREAKPROC</b>
+///type defines a pointer to this callback function. <i>EditWordBreakProc</i> is a placeholder for the
+///application-defined function name.
+///Params:
+///    lpch = Type: <b>LPTSTR</b> A pointer to the text of the edit control.
+///    ichCurrent = Type: <b>int</b> An index to a character position in the buffer of text that identifies the point at which the
+///                 function should begin checking for a word break.
+///    cch = Type: <b>int</b> The number of <b>TCHARs</b> in the edit control text. For the ANSI text, this is the number of
+///          bytes; for the Unicode text, this is the number of WCHARs.
+///    code = Type: <b>int</b> The action to be taken by the callback function. This parameter can be one of the following
+///           values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="WB_CLASSIFY"></a><a
+///           id="wb_classify"></a><dl> <dt><b>WB_CLASSIFY</b></dt> </dl> </td> <td width="60%"> Retrieves the character class
+///           and word break flags of the character at the specified position. This value is for use with rich edit controls.
+///           </td> </tr> <tr> <td width="40%"><a id="WB_ISDELIMITER"></a><a id="wb_isdelimiter"></a><dl>
+///           <dt><b>WB_ISDELIMITER</b></dt> </dl> </td> <td width="60%"> Checks whether the character at the specified
+///           position is a delimiter. </td> </tr> <tr> <td width="40%"><a id="WB_LEFT"></a><a id="wb_left"></a><dl>
+///           <dt><b>WB_LEFT</b></dt> </dl> </td> <td width="60%"> Finds the beginning of a word to the left of the specified
+///           position. </td> </tr> <tr> <td width="40%"><a id="WB_LEFTBREAK"></a><a id="wb_leftbreak"></a><dl>
+///           <dt><b>WB_LEFTBREAK</b></dt> </dl> </td> <td width="60%"> Finds the end-of-word delimiter to the left of the
+///           specified position. This value is for use with rich edit controls. </td> </tr> <tr> <td width="40%"><a
+///           id="WB_MOVEWORDLEFT"></a><a id="wb_movewordleft"></a><dl> <dt><b>WB_MOVEWORDLEFT</b></dt> </dl> </td> <td
+///           width="60%"> Finds the beginning of a word to the left of the specified position. This value is used during
+///           CTRL+LEFT key processing. This value is for use with rich edit controls. </td> </tr> <tr> <td width="40%"><a
+///           id="WB_MOVEWORDRIGHT"></a><a id="wb_movewordright"></a><dl> <dt><b>WB_MOVEWORDRIGHT</b></dt> </dl> </td> <td
+///           width="60%"> Finds the beginning of a word to the right of the specified position. This value is used during
+///           CTRL+RIGHT key processing. This value is for use with rich edit controls. </td> </tr> <tr> <td width="40%"><a
+///           id="WB_RIGHT"></a><a id="wb_right"></a><dl> <dt><b>WB_RIGHT</b></dt> </dl> </td> <td width="60%"> Finds the
+///           beginning of a word to the right of the specified position. This is useful in right-aligned edit controls. </td>
+///           </tr> <tr> <td width="40%"><a id="WB_RIGHTBREAK"></a><a id="wb_rightbreak"></a><dl> <dt><b>WB_RIGHTBREAK</b></dt>
+///           </dl> </td> <td width="60%"> Finds the end-of-word delimiter to the right of the specified position. This is
+///           useful in right-aligned edit controls. This value is for use with rich edit controls. </td> </tr> </table>
+///Returns:
+///    Type: <b>int</b> If the <i>code</i> parameter specifies <b>WB_ISDELIMITER</b>, the return value is nonzero (TRUE)
+///    if the character at the specified position is a delimiter, or zero if it is not. If the <i>code</i> parameter
+///    specifies <b>WB_CLASSIFY</b>, the return value is the character class and word break flags of the character at
+///    the specified position. Otherwise, the return value is an index to the beginning of a word in the buffer of text.
+///    
+alias EDITWORDBREAKPROCW = int function(PWSTR lpch, int ichCurrent, int cch, int code);
 ///Specifies an application-defined callback function that a property sheet calls when a page is created and when it is
 ///about to be destroyed. An application can use this function to perform initialization and cleanup operations for the
 ///page.
@@ -2028,7 +2107,7 @@ alias PFNDPAMERGECONST = void* function(uint uMsg, const(void)* pvDest, const(vo
 ///    Replace trailing characters even if they are not changed (uses the same formatting for the entire replacement
 ///    string). </td> </tr> </table>
 ///    
-alias AutoCorrectProc = int function(ushort langid, const(wchar)* pszBefore, ushort* pszAfter, int cchAfter, 
+alias AutoCorrectProc = int function(ushort langid, const(PWSTR) pszBefore, PWSTR pszAfter, int cchAfter, 
                                      int* pcchReplaced);
 ///The <i>EditWordBreakProcEx</i> function is an application defined callback function used with the
 ///EM_SETWORDBREAKPROCEX message. It determines the character index of the word break or the character class and
@@ -2076,93 +2155,463 @@ alias EDITWORDBREAKPROCEX = int function(byte* pchText, int cchText, ubyte bChar
 alias EDITSTREAMCALLBACK = uint function(size_t dwCookie, ubyte* pbBuff, int cb, int* pcb);
 alias PCreateTextServices = HRESULT function(IUnknown punkOuter, ITextHost pITextHost, IUnknown* ppUnk);
 alias PShutdownTextServices = HRESULT function(IUnknown pTextServices);
-alias DTT_CALLBACK_PROC = int function(HDC hdc, const(wchar)* pszText, int cchText, RECT* prc, uint dwFlags, 
-                                       LPARAM lParam);
-///An application-defined callback function used with the EM_SETWORDBREAKPROC message. A multiline edit control or a
-///rich edit control calls an <i>EditWordBreakProc</i> function to break a line of text. The <b>EDITWORDBREAKPROC</b>
-///type defines a pointer to this callback function. <i>EditWordBreakProc</i> is a placeholder for the
-///application-defined function name.
-///Params:
-///    lpch = Type: <b>LPTSTR</b> A pointer to the text of the edit control.
-///    ichCurrent = Type: <b>int</b> An index to a character position in the buffer of text that identifies the point at which the
-///                 function should begin checking for a word break.
-///    cch = Type: <b>int</b> The number of <b>TCHARs</b> in the edit control text. For the ANSI text, this is the number of
-///          bytes; for the Unicode text, this is the number of WCHARs.
-///    code = Type: <b>int</b> The action to be taken by the callback function. This parameter can be one of the following
-///           values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="WB_CLASSIFY"></a><a
-///           id="wb_classify"></a><dl> <dt><b>WB_CLASSIFY</b></dt> </dl> </td> <td width="60%"> Retrieves the character class
-///           and word break flags of the character at the specified position. This value is for use with rich edit controls.
-///           </td> </tr> <tr> <td width="40%"><a id="WB_ISDELIMITER"></a><a id="wb_isdelimiter"></a><dl>
-///           <dt><b>WB_ISDELIMITER</b></dt> </dl> </td> <td width="60%"> Checks whether the character at the specified
-///           position is a delimiter. </td> </tr> <tr> <td width="40%"><a id="WB_LEFT"></a><a id="wb_left"></a><dl>
-///           <dt><b>WB_LEFT</b></dt> </dl> </td> <td width="60%"> Finds the beginning of a word to the left of the specified
-///           position. </td> </tr> <tr> <td width="40%"><a id="WB_LEFTBREAK"></a><a id="wb_leftbreak"></a><dl>
-///           <dt><b>WB_LEFTBREAK</b></dt> </dl> </td> <td width="60%"> Finds the end-of-word delimiter to the left of the
-///           specified position. This value is for use with rich edit controls. </td> </tr> <tr> <td width="40%"><a
-///           id="WB_MOVEWORDLEFT"></a><a id="wb_movewordleft"></a><dl> <dt><b>WB_MOVEWORDLEFT</b></dt> </dl> </td> <td
-///           width="60%"> Finds the beginning of a word to the left of the specified position. This value is used during
-///           CTRL+LEFT key processing. This value is for use with rich edit controls. </td> </tr> <tr> <td width="40%"><a
-///           id="WB_MOVEWORDRIGHT"></a><a id="wb_movewordright"></a><dl> <dt><b>WB_MOVEWORDRIGHT</b></dt> </dl> </td> <td
-///           width="60%"> Finds the beginning of a word to the right of the specified position. This value is used during
-///           CTRL+RIGHT key processing. This value is for use with rich edit controls. </td> </tr> <tr> <td width="40%"><a
-///           id="WB_RIGHT"></a><a id="wb_right"></a><dl> <dt><b>WB_RIGHT</b></dt> </dl> </td> <td width="60%"> Finds the
-///           beginning of a word to the right of the specified position. This is useful in right-aligned edit controls. </td>
-///           </tr> <tr> <td width="40%"><a id="WB_RIGHTBREAK"></a><a id="wb_rightbreak"></a><dl> <dt><b>WB_RIGHTBREAK</b></dt>
-///           </dl> </td> <td width="60%"> Finds the end-of-word delimiter to the right of the specified position. This is
-///           useful in right-aligned edit controls. This value is for use with rich edit controls. </td> </tr> </table>
-///Returns:
-///    Type: <b>int</b> If the <i>code</i> parameter specifies <b>WB_ISDELIMITER</b>, the return value is nonzero (TRUE)
-///    if the character at the specified position is a delimiter, or zero if it is not. If the <i>code</i> parameter
-///    specifies <b>WB_CLASSIFY</b>, the return value is the character class and word break flags of the character at
-///    the specified position. Otherwise, the return value is an index to the beginning of a word in the buffer of text.
-///    
-alias EDITWORDBREAKPROCA = int function(const(char)* lpch, int ichCurrent, int cch, int code);
-///An application-defined callback function used with the EM_SETWORDBREAKPROC message. A multiline edit control or a
-///rich edit control calls an <i>EditWordBreakProc</i> function to break a line of text. The <b>EDITWORDBREAKPROC</b>
-///type defines a pointer to this callback function. <i>EditWordBreakProc</i> is a placeholder for the
-///application-defined function name.
-///Params:
-///    lpch = Type: <b>LPTSTR</b> A pointer to the text of the edit control.
-///    ichCurrent = Type: <b>int</b> An index to a character position in the buffer of text that identifies the point at which the
-///                 function should begin checking for a word break.
-///    cch = Type: <b>int</b> The number of <b>TCHARs</b> in the edit control text. For the ANSI text, this is the number of
-///          bytes; for the Unicode text, this is the number of WCHARs.
-///    code = Type: <b>int</b> The action to be taken by the callback function. This parameter can be one of the following
-///           values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="WB_CLASSIFY"></a><a
-///           id="wb_classify"></a><dl> <dt><b>WB_CLASSIFY</b></dt> </dl> </td> <td width="60%"> Retrieves the character class
-///           and word break flags of the character at the specified position. This value is for use with rich edit controls.
-///           </td> </tr> <tr> <td width="40%"><a id="WB_ISDELIMITER"></a><a id="wb_isdelimiter"></a><dl>
-///           <dt><b>WB_ISDELIMITER</b></dt> </dl> </td> <td width="60%"> Checks whether the character at the specified
-///           position is a delimiter. </td> </tr> <tr> <td width="40%"><a id="WB_LEFT"></a><a id="wb_left"></a><dl>
-///           <dt><b>WB_LEFT</b></dt> </dl> </td> <td width="60%"> Finds the beginning of a word to the left of the specified
-///           position. </td> </tr> <tr> <td width="40%"><a id="WB_LEFTBREAK"></a><a id="wb_leftbreak"></a><dl>
-///           <dt><b>WB_LEFTBREAK</b></dt> </dl> </td> <td width="60%"> Finds the end-of-word delimiter to the left of the
-///           specified position. This value is for use with rich edit controls. </td> </tr> <tr> <td width="40%"><a
-///           id="WB_MOVEWORDLEFT"></a><a id="wb_movewordleft"></a><dl> <dt><b>WB_MOVEWORDLEFT</b></dt> </dl> </td> <td
-///           width="60%"> Finds the beginning of a word to the left of the specified position. This value is used during
-///           CTRL+LEFT key processing. This value is for use with rich edit controls. </td> </tr> <tr> <td width="40%"><a
-///           id="WB_MOVEWORDRIGHT"></a><a id="wb_movewordright"></a><dl> <dt><b>WB_MOVEWORDRIGHT</b></dt> </dl> </td> <td
-///           width="60%"> Finds the beginning of a word to the right of the specified position. This value is used during
-///           CTRL+RIGHT key processing. This value is for use with rich edit controls. </td> </tr> <tr> <td width="40%"><a
-///           id="WB_RIGHT"></a><a id="wb_right"></a><dl> <dt><b>WB_RIGHT</b></dt> </dl> </td> <td width="60%"> Finds the
-///           beginning of a word to the right of the specified position. This is useful in right-aligned edit controls. </td>
-///           </tr> <tr> <td width="40%"><a id="WB_RIGHTBREAK"></a><a id="wb_rightbreak"></a><dl> <dt><b>WB_RIGHTBREAK</b></dt>
-///           </dl> </td> <td width="60%"> Finds the end-of-word delimiter to the right of the specified position. This is
-///           useful in right-aligned edit controls. This value is for use with rich edit controls. </td> </tr> </table>
-///Returns:
-///    Type: <b>int</b> If the <i>code</i> parameter specifies <b>WB_ISDELIMITER</b>, the return value is nonzero (TRUE)
-///    if the character at the specified position is a delimiter, or zero if it is not. If the <i>code</i> parameter
-///    specifies <b>WB_CLASSIFY</b>, the return value is the character class and word break flags of the character at
-///    the specified position. Otherwise, the return value is an index to the beginning of a word in the buffer of text.
-///    
-alias EDITWORDBREAKPROCW = int function(const(wchar)* lpch, int ichCurrent, int cch, int code);
+alias DTT_CALLBACK_PROC = int function(HDC hdc, PWSTR pszText, int cchText, RECT* prc, uint dwFlags, LPARAM lParam);
 
 // Structs
 
 
-alias HIMAGELIST = ptrdiff_t;
+///Contains information about a notification message.
+struct NMHDR
+{
+    ///Type: <b>HWND</b> A window handle to the control sending the message.
+    HWND   hwndFrom;
+    ///Type: <b>UINT_PTR</b> An identifier of the control sending the message.
+    size_t idFrom;
+    uint   code;
+}
 
-alias HPROPSHEETPAGE = ptrdiff_t;
+///Informs the system of the dimensions of an owner-drawn control or menu item. This allows the system to process user
+///interaction with the control correctly.
+struct MEASUREITEMSTRUCT
+{
+    ///Type: <b>UINT</b> The control type. This member can be one of the values shown in the following table. <table>
+    ///<tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="ODT_COMBOBOX"></a><a
+    ///id="odt_combobox"></a><dl> <dt><b>ODT_COMBOBOX</b></dt> </dl> </td> <td width="60%"> Owner-drawn combo box </td>
+    ///</tr> <tr> <td width="40%"><a id="ODT_LISTBOX"></a><a id="odt_listbox"></a><dl> <dt><b>ODT_LISTBOX</b></dt> </dl>
+    ///</td> <td width="60%"> Owner-drawn list box </td> </tr> <tr> <td width="40%"><a id="ODT_LISTVIEW"></a><a
+    ///id="odt_listview"></a><dl> <dt><b>ODT_LISTVIEW</b></dt> </dl> </td> <td width="60%"> Owner-draw list-view control
+    ///</td> </tr> <tr> <td width="40%"><a id="ODT_MENU"></a><a id="odt_menu"></a><dl> <dt><b>ODT_MENU</b></dt> </dl>
+    ///</td> <td width="60%"> Owner-drawn menu </td> </tr> </table>
+    uint   CtlType;
+    ///Type: <b>UINT</b> The identifier of the combo box or list box. This member is not used for a menu.
+    uint   CtlID;
+    ///Type: <b>UINT</b> The identifier for a menu item or the position of a list box or combo box item. This value is
+    ///specified for a list box only if it has the LBS_OWNERDRAWVARIABLE style; this value is specified for a combo box
+    ///only if it has the CBS_OWNERDRAWVARIABLE style.
+    uint   itemID;
+    ///Type: <b>UINT</b> The width, in pixels, of a menu item. Before returning from the message, the owner of the
+    ///owner-drawn menu item must fill this member.
+    uint   itemWidth;
+    ///Type: <b>UINT</b> The height, in pixels, of an individual item in a list box or a menu. Before returning from the
+    ///message, the owner of the owner-drawn combo box, list box, or menu item must fill out this member.
+    uint   itemHeight;
+    ///Type: <b>ULONG_PTR</b> The application-defined value associated with the menu item. For a control, this member
+    ///specifies the value last assigned to the list box or combo box by the LB_SETITEMDATA or CB_SETITEMDATA message.
+    ///If the list box or combo box has the LB_HASSTRINGS or CB_HASSTRINGS style, this value is initially zero.
+    ///Otherwise, this value is initially the value passed to the list box or combo box in the <i>lParam</i> parameter
+    ///of one of the following messages: <ul> <li> CB_ADDSTRING </li> <li> CB_INSERTSTRING </li> <li> LB_ADDSTRING </li>
+    ///<li> LB_INSERTSTRING </li> </ul>
+    size_t itemData;
+}
+
+///Provides information that the owner window uses to determine how to paint an owner-drawn control or menu item. The
+///owner window of the owner-drawn control or menu item receives a pointer to this structure as the <i>lParam</i>
+///parameter of the WM_DRAWITEM message.
+struct DRAWITEMSTRUCT
+{
+    ///Type: <b>UINT</b> The control type. This member can be one of the following values. See Remarks. <table> <tr>
+    ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="ODT_BUTTON"></a><a id="odt_button"></a><dl>
+    ///<dt><b>ODT_BUTTON</b></dt> </dl> </td> <td width="60%"> Owner-drawn button </td> </tr> <tr> <td width="40%"><a
+    ///id="ODT_COMBOBOX"></a><a id="odt_combobox"></a><dl> <dt><b>ODT_COMBOBOX</b></dt> </dl> </td> <td width="60%">
+    ///Owner-drawn combo box </td> </tr> <tr> <td width="40%"><a id="ODT_LISTBOX"></a><a id="odt_listbox"></a><dl>
+    ///<dt><b>ODT_LISTBOX</b></dt> </dl> </td> <td width="60%"> Owner-drawn list box </td> </tr> <tr> <td width="40%"><a
+    ///id="ODT_LISTVIEW"></a><a id="odt_listview"></a><dl> <dt><b>ODT_LISTVIEW</b></dt> </dl> </td> <td width="60%">
+    ///List-view control </td> </tr> <tr> <td width="40%"><a id="ODT_MENU"></a><a id="odt_menu"></a><dl>
+    ///<dt><b>ODT_MENU</b></dt> </dl> </td> <td width="60%"> Owner-drawn menu item </td> </tr> <tr> <td width="40%"><a
+    ///id="ODT_STATIC"></a><a id="odt_static"></a><dl> <dt><b>ODT_STATIC</b></dt> </dl> </td> <td width="60%">
+    ///Owner-drawn static control </td> </tr> <tr> <td width="40%"><a id="ODT_TAB"></a><a id="odt_tab"></a><dl>
+    ///<dt><b>ODT_TAB</b></dt> </dl> </td> <td width="60%"> Tab control </td> </tr> </table>
+    uint   CtlType;
+    ///Type: <b>UINT</b> The identifier of the combo box, list box, button, or static control. This member is not used
+    ///for a menu item.
+    uint   CtlID;
+    ///Type: <b>UINT</b> The menu item identifier for a menu item or the index of the item in a list box or combo box.
+    ///For an empty list box or combo box, this member can be <code>-1</code>. This allows the application to draw only
+    ///the focus rectangle at the coordinates specified by the <b>rcItem</b> member even though there are no items in
+    ///the control. This indicates to the user whether the list box or combo box has the focus. How the bits are set in
+    ///the <b>itemAction</b> member determines whether the rectangle is to be drawn as though the list box or combo box
+    ///has the focus.
+    uint   itemID;
+    ///Type: <b>UINT</b> The required drawing action. This member can be one or more of the values. <table> <tr>
+    ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="ODA_DRAWENTIRE"></a><a
+    ///id="oda_drawentire"></a><dl> <dt><b>ODA_DRAWENTIRE</b></dt> </dl> </td> <td width="60%"> The entire control needs
+    ///to be drawn. </td> </tr> <tr> <td width="40%"><a id="ODA_FOCUS"></a><a id="oda_focus"></a><dl>
+    ///<dt><b>ODA_FOCUS</b></dt> </dl> </td> <td width="60%"> The control has lost or gained the keyboard focus. The
+    ///<b>itemState</b> member should be checked to determine whether the control has the focus. </td> </tr> <tr> <td
+    ///width="40%"><a id="ODA_SELECT"></a><a id="oda_select"></a><dl> <dt><b>ODA_SELECT</b></dt> </dl> </td> <td
+    ///width="60%"> The selection status has changed. The <b>itemState</b> member should be checked to determine the new
+    ///selection state. </td> </tr> </table>
+    uint   itemAction;
+    ///Type: <b>UINT</b> The visual state of the item after the current drawing action takes place. This member can be a
+    ///combination of the values shown in the following table. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr>
+    ///<td width="40%"><a id="ODS_CHECKED"></a><a id="ods_checked"></a><dl> <dt><b>ODS_CHECKED</b></dt> </dl> </td> <td
+    ///width="60%"> The menu item is to be checked. This bit is used only in a menu. </td> </tr> <tr> <td width="40%"><a
+    ///id="ODS_COMBOBOXEDIT"></a><a id="ods_comboboxedit"></a><dl> <dt><b>ODS_COMBOBOXEDIT</b></dt> </dl> </td> <td
+    ///width="60%"> The drawing takes place in the selection field (edit control) of an owner-drawn combo box. </td>
+    ///</tr> <tr> <td width="40%"><a id="ODS_DEFAULT"></a><a id="ods_default"></a><dl> <dt><b>ODS_DEFAULT</b></dt> </dl>
+    ///</td> <td width="60%"> The item is the default item. </td> </tr> <tr> <td width="40%"><a id="ODS_DISABLED"></a><a
+    ///id="ods_disabled"></a><dl> <dt><b>ODS_DISABLED</b></dt> </dl> </td> <td width="60%"> The item is to be drawn as
+    ///disabled. </td> </tr> <tr> <td width="40%"><a id="ODS_FOCUS"></a><a id="ods_focus"></a><dl>
+    ///<dt><b>ODS_FOCUS</b></dt> </dl> </td> <td width="60%"> The item has the keyboard focus. </td> </tr> <tr> <td
+    ///width="40%"><a id="ODS_GRAYED"></a><a id="ods_grayed"></a><dl> <dt><b>ODS_GRAYED</b></dt> </dl> </td> <td
+    ///width="60%"> The item is to be grayed. This bit is used only in a menu. </td> </tr> <tr> <td width="40%"><a
+    ///id="ODS_HOTLIGHT"></a><a id="ods_hotlight"></a><dl> <dt><b>ODS_HOTLIGHT</b></dt> </dl> </td> <td width="60%"> The
+    ///item is being hot-tracked, that is, the item will be highlighted when the mouse is on the item. </td> </tr> <tr>
+    ///<td width="40%"><a id="ODS_INACTIVE"></a><a id="ods_inactive"></a><dl> <dt><b>ODS_INACTIVE</b></dt> </dl> </td>
+    ///<td width="60%"> The item is inactive and the window associated with the menu is inactive. </td> </tr> <tr> <td
+    ///width="40%"><a id="ODS_NOACCEL"></a><a id="ods_noaccel"></a><dl> <dt><b>ODS_NOACCEL</b></dt> </dl> </td> <td
+    ///width="60%"> The control is drawn without the keyboard accelerator cues. </td> </tr> <tr> <td width="40%"><a
+    ///id="ODS_NOFOCUSRECT"></a><a id="ods_nofocusrect"></a><dl> <dt><b>ODS_NOFOCUSRECT</b></dt> </dl> </td> <td
+    ///width="60%"> The control is drawn without focus indicator cues. </td> </tr> <tr> <td width="40%"><a
+    ///id="ODS_SELECTED"></a><a id="ods_selected"></a><dl> <dt><b>ODS_SELECTED</b></dt> </dl> </td> <td width="60%"> The
+    ///menu item's status is selected. </td> </tr> </table>
+    uint   itemState;
+    ///Type: <b>HWND</b> A handle to the control for combo boxes, list boxes, buttons, and static controls. For menus,
+    ///this member is a handle to the menu that contains the item.
+    HWND   hwndItem;
+    ///Type: <b>HDC</b> A handle to a device context; this device context must be used when performing drawing
+    ///operations on the control.
+    HDC    hDC;
+    ///Type: <b>RECT</b> A rectangle that defines the boundaries of the control to be drawn. This rectangle is in the
+    ///device context specified by the <b>hDC</b> member. The system automatically clips anything that the owner window
+    ///draws in the device context for combo boxes, list boxes, and buttons, but does not clip menu items. When drawing
+    ///menu items, the owner window must not draw outside the boundaries of the rectangle defined by the <b>rcItem</b>
+    ///member.
+    RECT   rcItem;
+    ///Type: <b>ULONG_PTR</b> The application-defined value associated with the menu item. For a control, this parameter
+    ///specifies the value last assigned to the list box or combo box by the LB_SETITEMDATA or CB_SETITEMDATA message.
+    ///If the list box or combo box has the LBS_HASSTRINGS or CBS_HASSTRINGS style, this value is initially zero.
+    ///Otherwise, this value is initially the value that was passed to the list box or combo box in the <i>lParam</i>
+    ///parameter of one of the following messages: <ul> <li> CB_ADDSTRING </li> <li> CB_INSERTSTRING </li> <li>
+    ///LB_ADDSTRING </li> <li> LB_INSERTSTRING </li> </ul> If <b>CtlType</b> is <b>ODT_BUTTON</b> or <b>ODT_STATIC</b>,
+    ///<b>itemData</b> is zero.
+    size_t itemData;
+}
+
+///Describes a deleted list box or combo box item. The <i>lParam</i> parameter of a WM_DELETEITEM message contains a
+///pointer to this structure. When an item is removed from a list box or combo box or when a list box or combo box is
+///destroyed, the system sends the <b>WM_DELETEITEM</b> message to the owner for each deleted item. The system sends a
+///WM_DELETEITEM message only for items deleted from an owner-drawn list box (with the LBS_OWNERDRAWFIXED or
+///LBS_OWNERDRAWVARIABLE style) or owner-drawn combo box (with the CBS_OWNERDRAWFIXED or CBS_OWNERDRAWVARIABLE style).
+struct DELETEITEMSTRUCT
+{
+    ///Type: <b>UINT</b> Specifies whether the item was deleted from a list box or a combo box. One of the following
+    ///values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="ODT_LISTBOX"></a><a
+    ///id="odt_listbox"></a><dl> <dt><b>ODT_LISTBOX</b></dt> </dl> </td> <td width="60%"> A list box. </td> </tr> <tr>
+    ///<td width="40%"><a id="ODT_COMBOBOX"></a><a id="odt_combobox"></a><dl> <dt><b>ODT_COMBOBOX</b></dt> </dl> </td>
+    ///<td width="60%"> A combo box. </td> </tr> </table>
+    uint   CtlType;
+    ///Type: <b>UINT</b> The identifier of the list box or combo box.
+    uint   CtlID;
+    ///Type: <b>UINT</b> The index of the item in the list box or combo box being removed.
+    uint   itemID;
+    ///Type: <b>HWND</b> A handle to the control.
+    HWND   hwndItem;
+    ///Type: <b>ULONG_PTR</b> Application-defined data for the item. This value is passed to the control in the
+    ///<i>lParam</i> parameter of the message that adds the item to the list box or combo box.
+    size_t itemData;
+}
+
+///Supplies the identifiers and application-supplied data for two items in a sorted, owner-drawn list box or combo box.
+///Whenever an application adds a new item to an owner-drawn list box or combo box created with the CBS_SORT or LBS_SORT
+///style, the system sends the owner a WM_COMPAREITEM message. The <i>lParam</i> parameter of the message contains a
+///long pointer to a <b>COMPAREITEMSTRUCT</b> structure. Upon receiving the message, the owner compares the two items
+///and returns a value indicating which item sorts before the other.
+struct COMPAREITEMSTRUCT
+{
+    ///Type: <b>UINT</b> An ODT_LISTBOX (owner-drawn list box) or ODT_COMBOBOX (an owner-drawn combo box).
+    uint   CtlType;
+    ///Type: <b>UINT</b> The identifier of the list box or combo box.
+    uint   CtlID;
+    ///Type: <b>HWND</b> A handle to the control.
+    HWND   hwndItem;
+    ///Type: <b>UINT</b> The index of the first item in the list box or combo box being compared. This member will be
+    ///–1 if the item has not been inserted or when searching for a potential item in the list box or combo box.
+    uint   itemID1;
+    ///Type: <b>ULONG_PTR</b> Application-supplied data for the first item being compared. (This value was passed as the
+    ///<i>lParam</i> parameter of the message that added the item to the list box or combo box.)
+    size_t itemData1;
+    ///Type: <b>UINT</b> The index of the second item in the list box or combo box being compared.
+    uint   itemID2;
+    ///Type: <b>ULONG_PTR</b> Application-supplied data for the second item being compared. This value was passed as the
+    ///<i>lParam</i> parameter of the message that added the item to the list box or combo box. This member will be –1
+    ///if the item has not been inserted or when searching for a potential item in the list box or combo box.
+    size_t itemData2;
+    ///Type: <b>DWORD</b> The locale identifier. To create a locale identifier, use the MAKELCID macro.
+    uint   dwLocaleId;
+}
+
+///Contains device properties (Human Interface Device (HID) global items that correspond to HID usages) for any type of
+///HID input device.
+struct USAGE_PROPERTIES
+{
+    ///A usage-specific value for a range-based linear control (knob or dial), an on/off control (toggle switch), a
+    ///momentary control (mouse button), a one-shot control (button that triggers a single event), or re-trigger control
+    ///(button that triggers a repeating event).
+    ushort level;
+    ///The Usage Page ID, such as VR Controls Page (0x03) or Game Controls Page (0x05).
+    ushort page;
+    ///The Usage ID associated with a Usage Page, such as Turn Right/Left (21) or Move Right/Left (24) for a Game
+    ///Controls Page.
+    ushort usage;
+    ///The smallest value that the control can report.
+    int    logicalMinimum;
+    ///The largest value that the control can report.
+    int    logicalMaximum;
+    ///The standard of measure used to describe a control's physical value (after converting the logical value using the
+    ///<i>exponent</i> value). The HID specification defines codes for the basic units of length, mass, time,
+    ///temperature, current, and luminous intensity.
+    ushort unit;
+    ///The value used to scale a logical value to a physical value.
+    ushort exponent;
+    ///The number of data items contained in the report.
+    ubyte  count;
+    ///The <i>logicalMinimum</i> expressed in physical units (converted by multiplying <i>logicalMinimum</i> by
+    ///<i>exponent</i>).
+    int    physicalMinimum;
+    ///The <i>logicalMaximum</i> expressed in physical units (converted by multiplying <i>logicalMaximum</i> by
+    ///<i>exponent</i>).
+    int    physicalMaximum;
+}
+
+///Contains information about the pointer input type.
+struct POINTER_TYPE_INFO
+{
+    ///The pointer input device.
+    POINTER_INPUT_TYPE type;
+union
+    {
+        POINTER_TOUCH_INFO touchInfo;
+        POINTER_PEN_INFO   penInfo;
+    }
+}
+
+///Contains the input injection details.
+struct INPUT_INJECTION_VALUE
+{
+    ///The Usage Page ID, such as VR Controls Page (0x03) or Game Controls Page (0x05).
+    ushort page;
+    ///The Usage ID associated with a Usage Page, such as Turn Right/Left (21) or Move Right/Left (24) for a Game
+    ///Controls Page.
+    ushort usage;
+    ///The injected input value.
+    int    value;
+    ///The Usage index, such as the selected item in a radio button set.
+    ushort index;
+}
+
+///Contains the hit test score that indicates whether the object is the likely target of the touch contact area,
+///relative to other objects that intersect the touch contact area.
+struct TOUCH_HIT_TESTING_PROXIMITY_EVALUATION
+{
+    ///The score, compared to the other objects that intersect the touch contact area.
+    ushort score;
+    ///The adjusted touch point that hits the closest object that's identified by the value of <i>Score</i>.
+    POINT  adjustedPoint;
+}
+
+///Contains information about the touch contact area reported by the touch digitizer.
+struct TOUCH_HIT_TESTING_INPUT
+{
+    ///The ID of the pointer. You cannot pass this value to the input message process and retrieve additional pointer
+    ///info through GetPointerInfo.
+    uint  pointerId;
+    ///The screen coordinates of the touch point that the touch digitizer reports.
+    POINT point;
+    ///The bounding rectangle of the touch contact area. Valid touch targets are identified and scored based on this
+    ///bounding box. <div class="alert"><b>Note</b> This bounding box may differ from the contact area that the
+    ///digitizer reports when: <ul> <li>The digitizer reports a touch contact area that's outside the maximum or minimum
+    ///size threshold that's recognized by Touch Hit Testing.</li> <li>A portion of the touch contact area is occluded
+    ///by another object that's higher in the z-order. </li> </ul> </div> <div> </div>
+    RECT  boundingBox;
+    ///The touch contact area within a specific targeted window that's not occluded by other objects that are higher in
+    ///the z-order. Any area that's occluded by another object is an invalid target.
+    RECT  nonOccludedBoundingBox;
+    ///The orientation of the touch contact area.
+    uint  orientation;
+}
+
+///The <b>SCROLLINFO</b> structure contains scroll bar parameters to be set by the SetScrollInfo function (or
+///SBM_SETSCROLLINFO message), or retrieved by the GetScrollInfo function (or SBM_GETSCROLLINFO message).
+struct SCROLLINFO
+{
+    ///Type: <b>UINT</b> Specifies the size, in bytes, of this structure. The caller must set this to
+    ///sizeof(<b>SCROLLINFO</b>).
+    uint cbSize;
+    ///Type: <b>UINT</b> Specifies the scroll bar parameters to set or retrieve. This member can be a combination of the
+    ///following values: <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SIF_ALL"></a><a
+    ///id="sif_all"></a><dl> <dt><b>SIF_ALL</b></dt> </dl> </td> <td width="60%"> Combination of SIF_PAGE, SIF_POS,
+    ///SIF_RANGE, and SIF_TRACKPOS. </td> </tr> <tr> <td width="40%"><a id="SIF_DISABLENOSCROLL"></a><a
+    ///id="sif_disablenoscroll"></a><dl> <dt><b>SIF_DISABLENOSCROLL</b></dt> </dl> </td> <td width="60%"> This value is
+    ///used only when setting a scroll bar's parameters. If the scroll bar's new parameters make the scroll bar
+    ///unnecessary, disable the scroll bar instead of removing it. </td> </tr> <tr> <td width="40%"><a
+    ///id="SIF_PAGE"></a><a id="sif_page"></a><dl> <dt><b>SIF_PAGE</b></dt> </dl> </td> <td width="60%"> The
+    ///<b>nPage</b> member contains the page size for a proportional scroll bar. </td> </tr> <tr> <td width="40%"><a
+    ///id="SIF_POS"></a><a id="sif_pos"></a><dl> <dt><b>SIF_POS</b></dt> </dl> </td> <td width="60%"> The <b>nPos</b>
+    ///member contains the scroll box position, which is not updated while the user drags the scroll box. </td> </tr>
+    ///<tr> <td width="40%"><a id="SIF_RANGE"></a><a id="sif_range"></a><dl> <dt><b>SIF_RANGE</b></dt> </dl> </td> <td
+    ///width="60%"> The <b>nMin</b> and <b>nMax</b> members contain the minimum and maximum values for the scrolling
+    ///range. </td> </tr> <tr> <td width="40%"><a id="SIF_TRACKPOS"></a><a id="sif_trackpos"></a><dl>
+    ///<dt><b>SIF_TRACKPOS</b></dt> </dl> </td> <td width="60%"> The <b>nTrackPos</b> member contains the current
+    ///position of the scroll box while the user is dragging it. </td> </tr> </table>
+    uint fMask;
+    ///Type: <b>int</b> Specifies the minimum scrolling position.
+    int  nMin;
+    ///Type: <b>int</b> Specifies the maximum scrolling position.
+    int  nMax;
+    ///Type: <b>UINT</b> Specifies the page size, in device units. A scroll bar uses this value to determine the
+    ///appropriate size of the proportional scroll box.
+    uint nPage;
+    ///Type: <b>int</b> Specifies the position of the scroll box.
+    int  nPos;
+    ///Type: <b>int</b> Specifies the immediate position of a scroll box that the user is dragging. An application can
+    ///retrieve this value while processing the SB_THUMBTRACK request code. An application cannot set the immediate
+    ///scroll position; the SetScrollInfo function ignores this member.
+    int  nTrackPos;
+}
+
+///The <b>SCROLLBARINFO</b> structure contains scroll bar information.
+struct SCROLLBARINFO
+{
+    ///Type: <b>DWORD</b> Specifies the size, in bytes, of the structure. Before calling the GetScrollBarInfo function,
+    ///set <b>cbSize</b> to <b>sizeof</b>(<b>SCROLLBARINFO</b>).
+    uint    cbSize;
+    ///Type: <b>RECT</b> Coordinates of the scroll bar as specified in a RECT structure.
+    RECT    rcScrollBar;
+    ///Type: <b>int</b> Height or width of the thumb.
+    int     dxyLineButton;
+    ///Type: <b>int</b> Position of the top or left of the thumb.
+    int     xyThumbTop;
+    ///Type: <b>int</b> Position of the bottom or right of the thumb.
+    int     xyThumbBottom;
+    ///Type: <b>int</b> Reserved.
+    int     reserved;
+    ///Type: <b>DWORD[CCHILDREN_SCROLLBAR+1]</b> An array of <b>DWORD</b> elements. Each element indicates the state of
+    ///a scroll bar component. The following values show the scroll bar component that corresponds to each array index.
+    ///<table class="clsStd"> <tr> <th>Index</th> <th>Scroll bar component</th> </tr> <tr> <td>0</td> <td>The scroll bar
+    ///itself.</td> </tr> <tr> <td>1</td> <td>The top or right arrow button.</td> </tr> <tr> <td>2</td> <td>The page up
+    ///or page right region.</td> </tr> <tr> <td>3</td> <td>The scroll box (thumb).</td> </tr> <tr> <td>4</td> <td>The
+    ///page down or page left region.</td> </tr> <tr> <td>5</td> <td>The bottom or left arrow button.</td> </tr>
+    ///</table> The <b>DWORD</b> element for each scroll bar component can include a combination of the following bit
+    ///flags. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
+    ///id="STATE_SYSTEM_INVISIBLE"></a><a id="state_system_invisible"></a><dl> <dt><b>STATE_SYSTEM_INVISIBLE</b></dt>
+    ///</dl> </td> <td width="60%"> For the scroll bar itself, indicates the specified vertical or horizontal scroll bar
+    ///does not exist. For the page up or page down regions, indicates the thumb is positioned such that the region does
+    ///not exist. </td> </tr> <tr> <td width="40%"><a id="STATE_SYSTEM_OFFSCREEN"></a><a
+    ///id="state_system_offscreen"></a><dl> <dt><b>STATE_SYSTEM_OFFSCREEN</b></dt> </dl> </td> <td width="60%"> For the
+    ///scroll bar itself, indicates the window is sized such that the specified vertical or horizontal scroll bar is not
+    ///currently displayed. </td> </tr> <tr> <td width="40%"><a id="STATE_SYSTEM_PRESSED"></a><a
+    ///id="state_system_pressed"></a><dl> <dt><b>STATE_SYSTEM_PRESSED</b></dt> </dl> </td> <td width="60%"> The arrow
+    ///button or page region is pressed. </td> </tr> <tr> <td width="40%"><a id="STATE_SYSTEM_UNAVAILABLE"></a><a
+    ///id="state_system_unavailable"></a><dl> <dt><b>STATE_SYSTEM_UNAVAILABLE</b></dt> </dl> </td> <td width="60%"> The
+    ///component is disabled. </td> </tr> </table>
+    uint[6] rgstate;
+}
+
+///Contains combo box status information.
+struct COMBOBOXINFO
+{
+    ///Type: <b>DWORD</b> The size, in bytes, of the structure. The calling application must set this to
+    ///sizeof(COMBOBOXINFO).
+    uint cbSize;
+    ///Type: <b>RECT</b> A RECT structure that specifies the coordinates of the edit box.
+    RECT rcItem;
+    ///Type: <b>RECT</b> A RECT structure that specifies the coordinates of the button that contains the drop-down
+    ///arrow.
+    RECT rcButton;
+    ///Type: <b>DWORD</b> The combo box button state. This parameter can be one of the following values. <table> <tr>
+    ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"> <dl> <dt>0</dt> </dl> </td> <td width="60%"> The
+    ///button exists and is not pressed. </td> </tr> <tr> <td width="40%"><a id="STATE_SYSTEM_INVISIBLE"></a><a
+    ///id="state_system_invisible"></a><dl> <dt><b>STATE_SYSTEM_INVISIBLE</b></dt> </dl> </td> <td width="60%"> There is
+    ///no button. </td> </tr> <tr> <td width="40%"><a id="STATE_SYSTEM_PRESSED"></a><a
+    ///id="state_system_pressed"></a><dl> <dt><b>STATE_SYSTEM_PRESSED</b></dt> </dl> </td> <td width="60%"> The button
+    ///is pressed. </td> </tr> </table>
+    uint stateButton;
+    ///Type: <b>HWND</b> A handle to the combo box.
+    HWND hwndCombo;
+    ///Type: <b>HWND</b> A handle to the edit box.
+    HWND hwndItem;
+    ///Type: <b>HWND</b> A handle to the drop-down list.
+    HWND hwndList;
+}
+
+///Contains information about a pointer device. An array of these structures is returned from the GetPointerDevices
+///function. A single structure is returned from a call to the GetPointerDevice function.
+struct POINTER_DEVICE_INFO
+{
+    ///One of the values from DISPLAYCONFIG_ROTATION, which identifies the orientation of the input digitizer. <div
+    ///class="alert"><b>Note</b> This value is 0 when the source of input is Touch Injection.</div> <div> </div>
+    uint                displayOrientation;
+    ///The handle to the pointer device.
+    HANDLE              device;
+    ///The device type.
+    POINTER_DEVICE_TYPE pointerDeviceType;
+    ///The HMONITOR for the display that the device is mapped to. This is not necessarily the monitor that the pointer
+    ///device is physically connected to.
+    HMONITOR            monitor;
+    ///The lowest ID that's assigned to the device.
+    uint                startingCursorId;
+    ///The number of supported simultaneous contacts.
+    ushort              maxActiveContacts;
+    ///The string that identifies the product.
+    ushort[520]         productString;
+}
+
+///Contains pointer-based device properties (Human Interface Device (HID) global items that correspond to HID usages).
+struct POINTER_DEVICE_PROPERTY
+{
+    ///The minimum value that the device can report for this property.
+    int    logicalMin;
+    ///The maximum value that the device can report for this property.
+    int    logicalMax;
+    ///The physical minimum in Himetric.
+    int    physicalMin;
+    ///The physical maximum in Himetric.
+    int    physicalMax;
+    ///The unit.
+    uint   unit;
+    ///The exponent.
+    uint   unitExponent;
+    ///The usage page for the property, as documented in the HID specification.
+    ushort usagePageId;
+    ///The usage of the property, as documented in the HID specification.
+    ushort usageId;
+}
+
+///Contains cursor ID mappings for pointer devices.
+struct POINTER_DEVICE_CURSOR_INFO
+{
+    ///The assigned cursor ID.
+    uint cursorId;
+    ///The POINTER_DEVICE_CURSOR_TYPE that the ID is mapped to.
+    POINTER_DEVICE_CURSOR_TYPE cursor;
+}
+
+///Contains information about the source of the input message.
+struct INPUT_MESSAGE_SOURCE
+{
+    ///The device type (INPUT_MESSAGE_DEVICE_TYPE) of the source of the input message.
+    INPUT_MESSAGE_DEVICE_TYPE deviceType;
+    ///The ID (INPUT_MESSAGE_ORIGIN_ID) of the source of the input message.
+    INPUT_MESSAGE_ORIGIN_ID originId;
+}
+
+@RAIIFree!ImageList_Destroy
+struct HIMAGELIST
+{
+    ptrdiff_t Value;
+}
+
+@RAIIFree!DestroyPropertySheetPage
+struct HPROPSHEETPAGE
+{
+    ptrdiff_t Value;
+}
+
+struct HSYNTHETICPOINTERDEVICE
+{
+    ptrdiff_t Value;
+}
 
 struct CRGB
 {
@@ -2181,17 +2630,17 @@ struct PROPSHEETPAGEA_V1
     uint             dwSize;
     uint             dwFlags;
     HINSTANCE        hInstance;
-    union
+union
     {
-        const(char)* pszTemplate;
+        const(PSTR)  pszTemplate;
         DLGTEMPLATE* pResource;
     }
-    union
+union
     {
-        HICON        hIcon;
-        const(char)* pszIcon;
+        HICON       hIcon;
+        const(PSTR) pszIcon;
     }
-    const(char)*     pszTitle;
+    const(PSTR)      pszTitle;
     DLGPROC          pfnDlgProc;
     LPARAM           lParam;
     LPFNPSPCALLBACKA pfnCallback;
@@ -2204,17 +2653,17 @@ struct PROPSHEETPAGEA_V2
     uint             dwSize;
     uint             dwFlags;
     HINSTANCE        hInstance;
-    union
+union
     {
-        const(char)* pszTemplate;
+        const(PSTR)  pszTemplate;
         DLGTEMPLATE* pResource;
     }
-    union
+union
     {
-        HICON        hIcon;
-        const(char)* pszIcon;
+        HICON       hIcon;
+        const(PSTR) pszIcon;
     }
-    const(char)*     pszTitle;
+    const(PSTR)      pszTitle;
     DLGPROC          pfnDlgProc;
     LPARAM           lParam;
     LPFNPSPCALLBACKA pfnCallback;
@@ -2223,13 +2672,13 @@ struct PROPSHEETPAGEA_V2
     ///wizard, you must also do the following: <ul> <li>Set the PSP_USEHEADERTITLE flag in the <b>dwFlags</b>
     ///member.</li> <li>Set the PSH_WIZARD97 flag in the <b>dwFlags</b> member of the page's PROPSHEETHEADER
     ///structure.</li> <li>Make sure that the PSP_HIDEHEADER flag in the <b>dwFlags</b> member is not set.</li> </ul>
-    const(char)*     pszHeaderTitle;
+    const(PSTR)      pszHeaderTitle;
     ///Type: <b>LPCTSTR</b> Version 5.80. Subtitle of the header area. To use this member, you must do the following:
     ///<ul> <li>Set the PSP_USEHEADERSUBTITLE flag in the <b>dwFlags</b> member.</li> <li>Set the PSH_WIZARD97 flag in
     ///the <b>dwFlags</b> member of the page's PROPSHEETHEADER structure.</li> <li>Make sure that the PSP_HIDEHEADER
     ///flag in the <b>dwFlags</b> member is not set.</li> </ul> <div class="alert"><b>Note</b> This member is ignored
     ///when using the Aero-style wizard (PSH_AEROWIZARD).</div> <div> </div>
-    const(char)*     pszHeaderSubTitle;
+    const(PSTR)      pszHeaderSubTitle;
 }
 
 ///Defines a page in a property sheet.
@@ -2238,17 +2687,17 @@ struct PROPSHEETPAGEA_V3
     uint             dwSize;
     uint             dwFlags;
     HINSTANCE        hInstance;
-    union
+union
     {
-        const(char)* pszTemplate;
+        const(PSTR)  pszTemplate;
         DLGTEMPLATE* pResource;
     }
-    union
+union
     {
-        HICON        hIcon;
-        const(char)* pszIcon;
+        HICON       hIcon;
+        const(PSTR) pszIcon;
     }
-    const(char)*     pszTitle;
+    const(PSTR)      pszTitle;
     DLGPROC          pfnDlgProc;
     LPARAM           lParam;
     LPFNPSPCALLBACKA pfnCallback;
@@ -2257,13 +2706,13 @@ struct PROPSHEETPAGEA_V3
     ///wizard, you must also do the following: <ul> <li>Set the PSP_USEHEADERTITLE flag in the <b>dwFlags</b>
     ///member.</li> <li>Set the PSH_WIZARD97 flag in the <b>dwFlags</b> member of the page's PROPSHEETHEADER
     ///structure.</li> <li>Make sure that the PSP_HIDEHEADER flag in the <b>dwFlags</b> member is not set.</li> </ul>
-    const(char)*     pszHeaderTitle;
+    const(PSTR)      pszHeaderTitle;
     ///Type: <b>LPCTSTR</b> Version 5.80. Subtitle of the header area. To use this member, you must do the following:
     ///<ul> <li>Set the PSP_USEHEADERSUBTITLE flag in the <b>dwFlags</b> member.</li> <li>Set the PSH_WIZARD97 flag in
     ///the <b>dwFlags</b> member of the page's PROPSHEETHEADER structure.</li> <li>Make sure that the PSP_HIDEHEADER
     ///flag in the <b>dwFlags</b> member is not set.</li> </ul> <div class="alert"><b>Note</b> This member is ignored
     ///when using the Aero-style wizard (PSH_AEROWIZARD).</div> <div> </div>
-    const(char)*     pszHeaderSubTitle;
+    const(PSTR)      pszHeaderSubTitle;
     ///Type: <b>HANDLE</b> Version 6.0 or later. An activation context handle. Set this member to the handle that is
     ///returned when you create the activation context with CreateActCtx. The system will activate this context before
     ///creating the dialog box. You do not need to use this member if you use a global manifest. See the Remarks.
@@ -2275,28 +2724,28 @@ struct PROPSHEETPAGEA
     uint             dwSize;
     uint             dwFlags;
     HINSTANCE        hInstance;
-    union
+union
     {
-        const(char)* pszTemplate;
+        const(PSTR)  pszTemplate;
         DLGTEMPLATE* pResource;
     }
-    union
+union
     {
-        HICON        hIcon;
-        const(char)* pszIcon;
+        HICON       hIcon;
+        const(PSTR) pszIcon;
     }
-    const(char)*     pszTitle;
+    const(PSTR)      pszTitle;
     DLGPROC          pfnDlgProc;
     LPARAM           lParam;
     LPFNPSPCALLBACKA pfnCallback;
     uint*            pcRefParent;
-    const(char)*     pszHeaderTitle;
-    const(char)*     pszHeaderSubTitle;
+    const(PSTR)      pszHeaderTitle;
+    const(PSTR)      pszHeaderSubTitle;
     HANDLE           hActCtx;
-    union
+union
     {
-        HBITMAP      hbmHeader;
-        const(char)* pszbmHeader;
+        HBITMAP     hbmHeader;
+        const(PSTR) pszbmHeader;
     }
 }
 
@@ -2305,17 +2754,17 @@ struct PROPSHEETPAGEW_V1
     uint             dwSize;
     uint             dwFlags;
     HINSTANCE        hInstance;
-    union
+union
     {
-        const(wchar)* pszTemplate;
-        DLGTEMPLATE*  pResource;
+        const(PWSTR) pszTemplate;
+        DLGTEMPLATE* pResource;
     }
-    union
+union
     {
-        HICON         hIcon;
-        const(wchar)* pszIcon;
+        HICON        hIcon;
+        const(PWSTR) pszIcon;
     }
-    const(wchar)*    pszTitle;
+    const(PWSTR)     pszTitle;
     DLGPROC          pfnDlgProc;
     LPARAM           lParam;
     LPFNPSPCALLBACKW pfnCallback;
@@ -2328,17 +2777,17 @@ struct PROPSHEETPAGEW_V2
     uint             dwSize;
     uint             dwFlags;
     HINSTANCE        hInstance;
-    union
+union
     {
-        const(wchar)* pszTemplate;
-        DLGTEMPLATE*  pResource;
+        const(PWSTR) pszTemplate;
+        DLGTEMPLATE* pResource;
     }
-    union
+union
     {
-        HICON         hIcon;
-        const(wchar)* pszIcon;
+        HICON        hIcon;
+        const(PWSTR) pszIcon;
     }
-    const(wchar)*    pszTitle;
+    const(PWSTR)     pszTitle;
     DLGPROC          pfnDlgProc;
     LPARAM           lParam;
     LPFNPSPCALLBACKW pfnCallback;
@@ -2347,13 +2796,13 @@ struct PROPSHEETPAGEW_V2
     ///wizard, you must also do the following: <ul> <li>Set the PSP_USEHEADERTITLE flag in the <b>dwFlags</b>
     ///member.</li> <li>Set the PSH_WIZARD97 flag in the <b>dwFlags</b> member of the page's PROPSHEETHEADER
     ///structure.</li> <li>Make sure that the PSP_HIDEHEADER flag in the <b>dwFlags</b> member is not set.</li> </ul>
-    const(wchar)*    pszHeaderTitle;
+    const(PWSTR)     pszHeaderTitle;
     ///Type: <b>LPCTSTR</b> Version 5.80. Subtitle of the header area. To use this member, you must do the following:
     ///<ul> <li>Set the PSP_USEHEADERSUBTITLE flag in the <b>dwFlags</b> member.</li> <li>Set the PSH_WIZARD97 flag in
     ///the <b>dwFlags</b> member of the page's PROPSHEETHEADER structure.</li> <li>Make sure that the PSP_HIDEHEADER
     ///flag in the <b>dwFlags</b> member is not set.</li> </ul> <div class="alert"><b>Note</b> This member is ignored
     ///when using the Aero-style wizard (PSH_AEROWIZARD).</div> <div> </div>
-    const(wchar)*    pszHeaderSubTitle;
+    const(PWSTR)     pszHeaderSubTitle;
 }
 
 ///Defines a page in a property sheet.
@@ -2362,17 +2811,17 @@ struct PROPSHEETPAGEW_V3
     uint             dwSize;
     uint             dwFlags;
     HINSTANCE        hInstance;
-    union
+union
     {
-        const(wchar)* pszTemplate;
-        DLGTEMPLATE*  pResource;
+        const(PWSTR) pszTemplate;
+        DLGTEMPLATE* pResource;
     }
-    union
+union
     {
-        HICON         hIcon;
-        const(wchar)* pszIcon;
+        HICON        hIcon;
+        const(PWSTR) pszIcon;
     }
-    const(wchar)*    pszTitle;
+    const(PWSTR)     pszTitle;
     DLGPROC          pfnDlgProc;
     LPARAM           lParam;
     LPFNPSPCALLBACKW pfnCallback;
@@ -2381,13 +2830,13 @@ struct PROPSHEETPAGEW_V3
     ///wizard, you must also do the following: <ul> <li>Set the PSP_USEHEADERTITLE flag in the <b>dwFlags</b>
     ///member.</li> <li>Set the PSH_WIZARD97 flag in the <b>dwFlags</b> member of the page's PROPSHEETHEADER
     ///structure.</li> <li>Make sure that the PSP_HIDEHEADER flag in the <b>dwFlags</b> member is not set.</li> </ul>
-    const(wchar)*    pszHeaderTitle;
+    const(PWSTR)     pszHeaderTitle;
     ///Type: <b>LPCTSTR</b> Version 5.80. Subtitle of the header area. To use this member, you must do the following:
     ///<ul> <li>Set the PSP_USEHEADERSUBTITLE flag in the <b>dwFlags</b> member.</li> <li>Set the PSH_WIZARD97 flag in
     ///the <b>dwFlags</b> member of the page's PROPSHEETHEADER structure.</li> <li>Make sure that the PSP_HIDEHEADER
     ///flag in the <b>dwFlags</b> member is not set.</li> </ul> <div class="alert"><b>Note</b> This member is ignored
     ///when using the Aero-style wizard (PSH_AEROWIZARD).</div> <div> </div>
-    const(wchar)*    pszHeaderSubTitle;
+    const(PWSTR)     pszHeaderSubTitle;
     ///Type: <b>HANDLE</b> Version 6.0 or later. An activation context handle. Set this member to the handle that is
     ///returned when you create the activation context with CreateActCtx. The system will activate this context before
     ///creating the dialog box. You do not need to use this member if you use a global manifest. See the Remarks.
@@ -2399,28 +2848,28 @@ struct PROPSHEETPAGEW
     uint             dwSize;
     uint             dwFlags;
     HINSTANCE        hInstance;
-    union
+union
     {
-        const(wchar)* pszTemplate;
-        DLGTEMPLATE*  pResource;
+        const(PWSTR) pszTemplate;
+        DLGTEMPLATE* pResource;
     }
-    union
+union
     {
-        HICON         hIcon;
-        const(wchar)* pszIcon;
+        HICON        hIcon;
+        const(PWSTR) pszIcon;
     }
-    const(wchar)*    pszTitle;
+    const(PWSTR)     pszTitle;
     DLGPROC          pfnDlgProc;
     LPARAM           lParam;
     LPFNPSPCALLBACKW pfnCallback;
     uint*            pcRefParent;
-    const(wchar)*    pszHeaderTitle;
-    const(wchar)*    pszHeaderSubTitle;
+    const(PWSTR)     pszHeaderTitle;
+    const(PWSTR)     pszHeaderSubTitle;
     HANDLE           hActCtx;
-    union
+union
     {
-        HBITMAP       hbmHeader;
-        const(wchar)* pszbmHeader;
+        HBITMAP      hbmHeader;
+        const(PWSTR) pszbmHeader;
     }
 }
 
@@ -2430,19 +2879,19 @@ struct PROPSHEETHEADERA_V1
     uint                 dwFlags;
     HWND                 hwndParent;
     HINSTANCE            hInstance;
-    union
+union
     {
-        HICON        hIcon;
-        const(char)* pszIcon;
+        HICON       hIcon;
+        const(PSTR) pszIcon;
     }
-    const(char)*         pszCaption;
+    const(PSTR)          pszCaption;
     uint                 nPages;
-    union
+union
     {
-        uint         nStartPage;
-        const(char)* pStartPage;
+        uint        nStartPage;
+        const(PSTR) pStartPage;
     }
-    union
+union
     {
         PROPSHEETPAGEA* ppsp;
         HPROPSHEETPAGE* phpage;
@@ -2457,36 +2906,36 @@ struct PROPSHEETHEADERA_V2
     uint                 dwFlags;
     HWND                 hwndParent;
     HINSTANCE            hInstance;
-    union
+union
     {
-        HICON        hIcon;
-        const(char)* pszIcon;
+        HICON       hIcon;
+        const(PSTR) pszIcon;
     }
-    const(char)*         pszCaption;
+    const(PSTR)          pszCaption;
     uint                 nPages;
-    union
+union
     {
-        uint         nStartPage;
-        const(char)* pStartPage;
+        uint        nStartPage;
+        const(PSTR) pStartPage;
     }
-    union
+union
     {
         PROPSHEETPAGEA* ppsp;
         HPROPSHEETPAGE* phpage;
     }
     PFNPROPSHEETCALLBACK pfnCallback;
-    union
+union
     {
-        HBITMAP      hbmWatermark;
-        const(char)* pszbmWatermark;
+        HBITMAP     hbmWatermark;
+        const(PSTR) pszbmWatermark;
     }
     ///Type: <b>HPALETTE</b> Version 5.80 or later. <b>HPALETTE</b> structure used for drawing the watermark bitmap
     ///and/or header bitmap. If the <b>dwFlags</b> member does not include PSH_USEHPLWATERMARK, this member is ignored.
     HPALETTE             hplWatermark;
-    union
+union
     {
-        HBITMAP      hbmHeader;
-        const(char)* pszbmHeader;
+        HBITMAP     hbmHeader;
+        const(PSTR) pszbmHeader;
     }
 }
 
@@ -2496,19 +2945,19 @@ struct PROPSHEETHEADERW_V1
     uint                 dwFlags;
     HWND                 hwndParent;
     HINSTANCE            hInstance;
-    union
+union
     {
-        HICON         hIcon;
-        const(wchar)* pszIcon;
+        HICON        hIcon;
+        const(PWSTR) pszIcon;
     }
-    const(wchar)*        pszCaption;
+    const(PWSTR)         pszCaption;
     uint                 nPages;
-    union
+union
     {
-        uint          nStartPage;
-        const(wchar)* pStartPage;
+        uint         nStartPage;
+        const(PWSTR) pStartPage;
     }
-    union
+union
     {
         PROPSHEETPAGEW* ppsp;
         HPROPSHEETPAGE* phpage;
@@ -2523,36 +2972,36 @@ struct PROPSHEETHEADERW_V2
     uint                 dwFlags;
     HWND                 hwndParent;
     HINSTANCE            hInstance;
-    union
+union
     {
-        HICON         hIcon;
-        const(wchar)* pszIcon;
+        HICON        hIcon;
+        const(PWSTR) pszIcon;
     }
-    const(wchar)*        pszCaption;
+    const(PWSTR)         pszCaption;
     uint                 nPages;
-    union
+union
     {
-        uint          nStartPage;
-        const(wchar)* pStartPage;
+        uint         nStartPage;
+        const(PWSTR) pStartPage;
     }
-    union
+union
     {
         PROPSHEETPAGEW* ppsp;
         HPROPSHEETPAGE* phpage;
     }
     PFNPROPSHEETCALLBACK pfnCallback;
-    union
+union
     {
-        HBITMAP       hbmWatermark;
-        const(wchar)* pszbmWatermark;
+        HBITMAP      hbmWatermark;
+        const(PWSTR) pszbmWatermark;
     }
     ///Type: <b>HPALETTE</b> Version 5.80 or later. <b>HPALETTE</b> structure used for drawing the watermark bitmap
     ///and/or header bitmap. If the <b>dwFlags</b> member does not include PSH_USEHPLWATERMARK, this member is ignored.
     HPALETTE             hplWatermark;
-    union
+union
     {
-        HBITMAP       hbmHeader;
-        const(wchar)* pszbmHeader;
+        HBITMAP      hbmHeader;
+        const(PWSTR) pszbmHeader;
     }
 }
 
@@ -2651,19 +3100,19 @@ struct NMCHAR
 struct NMCUSTOMTEXT
 {
     ///Type: <b>NMHDR</b> An NMHDR structure that contains additional information about this notification.
-    NMHDR         hdr;
+    NMHDR        hdr;
     ///Type: <b>HDC</b> The device context to draw to.
-    HDC           hDC;
+    HDC          hDC;
     ///Type: <b>LPCWSTR</b> The string to draw.
-    const(wchar)* lpString;
+    const(PWSTR) lpString;
     ///Type: <b>int</b> Length of lpString.
-    int           nCount;
+    int          nCount;
     ///Type: <b>LPRECT</b> The rect to draw in.
-    RECT*         lpRect;
+    RECT*        lpRect;
     ///Type: <b>UINT</b> One or more of the DT_* flags. For more information, see the description of the <i>uFormat</i>
     ///parameter of the DrawText function. This may be <b>NULL</b>.
-    uint          uFormat;
-    BOOL          fLink;
+    uint         uFormat;
+    BOOL         fLink;
 }
 
 ///Contains information specific to an NM_CUSTOMDRAW notification code.
@@ -2889,18 +3338,18 @@ struct IMAGEINFO
 struct HD_TEXTFILTERA
 {
     ///Type: <b>LPTSTR</b> A pointer to the buffer containing the filter.
-    const(char)* pszText;
+    PSTR pszText;
     ///Type: <b>INT</b> A value specifying the maximum size, in characters, for an edit control buffer.
-    int          cchTextMax;
+    int  cchTextMax;
 }
 
 ///Contains information about header control text filters.
 struct HD_TEXTFILTERW
 {
     ///Type: <b>LPTSTR</b> A pointer to the buffer containing the filter.
-    const(wchar)* pszText;
+    PWSTR pszText;
     ///Type: <b>INT</b> A value specifying the maximum size, in characters, for an edit control buffer.
-    int           cchTextMax;
+    int   cchTextMax;
 }
 
 ///Contains information about an item in a header control. This structure supersedes the <b>HD_ITEM</b> structure.
@@ -2932,20 +3381,20 @@ struct HDITEMA
     ///<b>cchTextMax</b> members are valid. </td> </tr> <tr> <td width="40%"><a id="HDI_WIDTH"></a><a
     ///id="hdi_width"></a><dl> <dt><b>HDI_WIDTH</b></dt> </dl> </td> <td width="60%"> The <b>cxy</b> member is valid and
     ///specifies the item's width. </td> </tr> </table>
-    uint         mask;
+    uint    mask;
     ///Type: <b>int</b> The width or height of the item.
-    int          cxy;
+    int     cxy;
     ///Type: <b>LPTSTR</b> A pointer to an item string. If the text is being retrieved from the control, this member
     ///must be initialized to point to a character buffer. If this member is set to LPSTR_TEXTCALLBACK, the control will
     ///request text information for this item by sending an HDN_GETDISPINFO notification code. Note that although the
     ///header control allows a string of any length to be stored as item text, only the first 260 <b>TCHAR</b><b>s</b>
     ///are displayed.
-    const(char)* pszText;
+    PSTR    pszText;
     ///Type: <b>HBITMAP</b> A handle to the item bitmap.
-    HBITMAP      hbm;
+    HBITMAP hbm;
     ///Type: <b>int</b> The length of the item string, in <b>TCHAR</b><b>s</b>. If the text is being retrieved from the
     ///control, this member must contain the number of <b>TCHAR</b><b>s</b> at the address specified by <b>pszText</b>.
-    int          cchTextMax;
+    int     cchTextMax;
     ///Type: <b>int</b> Flags that specify the item's format. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr>
     ///<td width="40%"><a id="Text_Justification_"></a><a id="text_justification_"></a><a
     ///id="TEXT_JUSTIFICATION_"></a><dl> <dt><b>Text Justification:</b></dt> </dl> </td> <td width="60%"> Set one of the
@@ -2993,17 +3442,17 @@ struct HDITEMA
     ///id="HDF_SPLITBUTTON"></a><a id="hdf_splitbutton"></a><dl> <dt><b>HDF_SPLITBUTTON</b></dt> </dl> </td> <td
     ///width="60%"> Version 6.00 and later. The item displays a split button. The HDN_DROPDOWN notification is sent when
     ///the split button is clicked. </td> </tr> </table>
-    int          fmt;
+    int     fmt;
     ///Type: <b>LPARAM</b> Application-defined item data.
-    LPARAM       lParam;
+    LPARAM  lParam;
     ///Type: <b>int</b> The zero-based index of an image within the image list. The specified image will be displayed in
     ///the header item in addition to any image specified in the <b>hbm</b> field. If <b>iImage</b> is set to
     ///I_IMAGECALLBACK, the control requests text information for this item by using an HDN_GETDISPINFO notification
     ///code. To clear the image, set this value to I_IMAGENONE.
-    int          iImage;
+    int     iImage;
     ///Type: <b>int</b> The order in which the item appears within the header control, from left to right. That is, the
     ///value for the far left item is 0. The value for the next item to the right is 1, and so on.
-    int          iOrder;
+    int     iOrder;
     ///Type: <b>UINT</b> The type of filter specified by <b>pvFilter</b>. The possible types include: <table> <tr>
     ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="HDFT_ISSTRING"></a><a
     ///id="hdft_isstring"></a><dl> <dt><b>HDFT_ISSTRING</b></dt> </dl> </td> <td width="60%"> String data. </td> </tr>
@@ -3013,15 +3462,15 @@ struct HDITEMA
     ///<b>pvFilter</b>. </td> </tr> <tr> <td width="40%"><a id="HDFT_ISDATE"></a><a id="hdft_isdate"></a><dl>
     ///<dt><b>HDFT_ISDATE</b></dt> </dl> </td> <td width="60%"> Version 6.00 and later. Date data. The <b>pvFilter</b>
     ///member is a pointer to a SYSTEMTIME structure. </td> </tr> </table>
-    uint         type;
+    uint    type;
     ///Type: <b>void*</b> The address of an application-defined data item. The data filter type is determined by setting
     ///the flag value of the member. Use the HDFT_ISSTRING flag to indicate a string and HDFT_ISNUMBER to indicate an
     ///integer. When the HDFT_ISSTRING flag is used <b>pvFilter</b> is a pointer to a HDTEXTFILTER structure.
-    void*        pvFilter;
+    void*   pvFilter;
     ///Type: <b>UINT</b> The state. The only valid, supported value for this member is the following: <table> <tr>
     ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id=""></a><dl> <dt><b></b></dt>
     ///<dt>HDIS_FOCUSED</dt> </dl> </td> <td width="60%"> The item has keyboard focus. </td> </tr> </table>
-    uint         state;
+    uint    state;
 }
 
 ///Contains information about an item in a header control. This structure supersedes the <b>HD_ITEM</b> structure.
@@ -3053,20 +3502,20 @@ struct HDITEMW
     ///<b>cchTextMax</b> members are valid. </td> </tr> <tr> <td width="40%"><a id="HDI_WIDTH"></a><a
     ///id="hdi_width"></a><dl> <dt><b>HDI_WIDTH</b></dt> </dl> </td> <td width="60%"> The <b>cxy</b> member is valid and
     ///specifies the item's width. </td> </tr> </table>
-    uint          mask;
+    uint    mask;
     ///Type: <b>int</b> The width or height of the item.
-    int           cxy;
+    int     cxy;
     ///Type: <b>LPTSTR</b> A pointer to an item string. If the text is being retrieved from the control, this member
     ///must be initialized to point to a character buffer. If this member is set to LPSTR_TEXTCALLBACK, the control will
     ///request text information for this item by sending an HDN_GETDISPINFO notification code. Note that although the
     ///header control allows a string of any length to be stored as item text, only the first 260 <b>TCHAR</b><b>s</b>
     ///are displayed.
-    const(wchar)* pszText;
+    PWSTR   pszText;
     ///Type: <b>HBITMAP</b> A handle to the item bitmap.
-    HBITMAP       hbm;
+    HBITMAP hbm;
     ///Type: <b>int</b> The length of the item string, in <b>TCHAR</b><b>s</b>. If the text is being retrieved from the
     ///control, this member must contain the number of <b>TCHAR</b><b>s</b> at the address specified by <b>pszText</b>.
-    int           cchTextMax;
+    int     cchTextMax;
     ///Type: <b>int</b> Flags that specify the item's format. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr>
     ///<td width="40%"><a id="Text_Justification_"></a><a id="text_justification_"></a><a
     ///id="TEXT_JUSTIFICATION_"></a><dl> <dt><b>Text Justification:</b></dt> </dl> </td> <td width="60%"> Set one of the
@@ -3114,17 +3563,17 @@ struct HDITEMW
     ///id="HDF_SPLITBUTTON"></a><a id="hdf_splitbutton"></a><dl> <dt><b>HDF_SPLITBUTTON</b></dt> </dl> </td> <td
     ///width="60%"> Version 6.00 and later. The item displays a split button. The HDN_DROPDOWN notification is sent when
     ///the split button is clicked. </td> </tr> </table>
-    int           fmt;
+    int     fmt;
     ///Type: <b>LPARAM</b> Application-defined item data.
-    LPARAM        lParam;
+    LPARAM  lParam;
     ///Type: <b>int</b> The zero-based index of an image within the image list. The specified image will be displayed in
     ///the header item in addition to any image specified in the <b>hbm</b> field. If <b>iImage</b> is set to
     ///I_IMAGECALLBACK, the control requests text information for this item by using an HDN_GETDISPINFO notification
     ///code. To clear the image, set this value to I_IMAGENONE.
-    int           iImage;
+    int     iImage;
     ///Type: <b>int</b> The order in which the item appears within the header control, from left to right. That is, the
     ///value for the far left item is 0. The value for the next item to the right is 1, and so on.
-    int           iOrder;
+    int     iOrder;
     ///Type: <b>UINT</b> The type of filter specified by <b>pvFilter</b>. The possible types include: <table> <tr>
     ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="HDFT_ISSTRING"></a><a
     ///id="hdft_isstring"></a><dl> <dt><b>HDFT_ISSTRING</b></dt> </dl> </td> <td width="60%"> String data. </td> </tr>
@@ -3134,15 +3583,15 @@ struct HDITEMW
     ///<b>pvFilter</b>. </td> </tr> <tr> <td width="40%"><a id="HDFT_ISDATE"></a><a id="hdft_isdate"></a><dl>
     ///<dt><b>HDFT_ISDATE</b></dt> </dl> </td> <td width="60%"> Version 6.00 and later. Date data. The <b>pvFilter</b>
     ///member is a pointer to a SYSTEMTIME structure. </td> </tr> </table>
-    uint          type;
+    uint    type;
     ///Type: <b>void*</b> The address of an application-defined data item. The data filter type is determined by setting
     ///the flag value of the member. Use the HDFT_ISSTRING flag to indicate a string and HDFT_ISNUMBER to indicate an
     ///integer. When the HDFT_ISSTRING flag is used <b>pvFilter</b> is a pointer to a HDTEXTFILTER structure.
-    void*         pvFilter;
+    void*   pvFilter;
     ///Type: <b>UINT</b> The state. The only valid, supported value for this member is the following: <table> <tr>
     ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id=""></a><dl> <dt><b></b></dt>
     ///<dt>HDIS_FOCUSED</dt> </dl> </td> <td width="60%"> The item has keyboard focus. </td> </tr> </table>
-    uint          state;
+    uint    state;
 }
 
 ///Contains information used to set the size and position of a header control. <b>HDLAYOUT</b> is used with the
@@ -3239,9 +3688,9 @@ struct NMHEADERW
 struct NMHDDISPINFOW
 {
     ///Type: <b>NMHDR</b> NMHDR structure containing information about this notification code.
-    NMHDR         hdr;
+    NMHDR  hdr;
     ///Type: <b>int</b> The zero-based index of the item in the header control.
-    int           iItem;
+    int    iItem;
     ///Type: <b>UINT</b> A set of bit flags specifying which members of the structure must be filled in by the owner of
     ///the header control. This value can be a combination of the following values: <table> <tr> <th>Value</th>
     ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="HDI_TEXT"></a><a id="hdi_text"></a><dl>
@@ -3253,28 +3702,28 @@ struct NMHDDISPINFOW
     ///id="hdi_di_setitem"></a><dl> <dt><b>HDI_DI_SETITEM</b></dt> </dl> </td> <td width="60%"> Version 4.70. A return
     ///value. Indicates that the header control should store the item information and not ask for it again. </td> </tr>
     ///</table>
-    uint          mask;
+    uint   mask;
     ///Type: <b>LPTSTR</b> A pointer to a null-terminated string containing the text that will be displayed for the
     ///header item.
-    const(wchar)* pszText;
+    PWSTR  pszText;
     ///Type: <b>int</b> The size of the buffer that <b>pszText</b> points to.
-    int           cchTextMax;
+    int    cchTextMax;
     ///Type: <b>int</b> The zero-based index of an image within the image list. The specified image will be displayed
     ///with the header item, but it does not take the place of the item's bitmap. If <b>iImage</b> is set to
     ///I_IMAGECALLBACK, the control requests image information for this item by using an HDN_GETDISPINFO notification
     ///code.
-    int           iImage;
+    int    iImage;
     ///Type: <b>LPARAM</b> An application-defined value to associate with the item.
-    LPARAM        lParam;
+    LPARAM lParam;
 }
 
 ///Contains information used in handling HDN_GETDISPINFO notification codes.
 struct NMHDDISPINFOA
 {
     ///Type: <b>NMHDR</b> NMHDR structure containing information about this notification code.
-    NMHDR        hdr;
+    NMHDR  hdr;
     ///Type: <b>int</b> The zero-based index of the item in the header control.
-    int          iItem;
+    int    iItem;
     ///Type: <b>UINT</b> A set of bit flags specifying which members of the structure must be filled in by the owner of
     ///the header control. This value can be a combination of the following values: <table> <tr> <th>Value</th>
     ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="HDI_TEXT"></a><a id="hdi_text"></a><dl>
@@ -3286,19 +3735,19 @@ struct NMHDDISPINFOA
     ///id="hdi_di_setitem"></a><dl> <dt><b>HDI_DI_SETITEM</b></dt> </dl> </td> <td width="60%"> Version 4.70. A return
     ///value. Indicates that the header control should store the item information and not ask for it again. </td> </tr>
     ///</table>
-    uint         mask;
+    uint   mask;
     ///Type: <b>LPTSTR</b> A pointer to a null-terminated string containing the text that will be displayed for the
     ///header item.
-    const(char)* pszText;
+    PSTR   pszText;
     ///Type: <b>int</b> The size of the buffer that <b>pszText</b> points to.
-    int          cchTextMax;
+    int    cchTextMax;
     ///Type: <b>int</b> The zero-based index of an image within the image list. The specified image will be displayed
     ///with the header item, but it does not take the place of the item's bitmap. If <b>iImage</b> is set to
     ///I_IMAGECALLBACK, the control requests image information for this item by using an HDN_GETDISPINFO notification
     ///code.
-    int          iImage;
+    int    iImage;
     ///Type: <b>LPARAM</b> An application-defined value to associate with the item.
-    LPARAM       lParam;
+    LPARAM lParam;
 }
 
 ///Specifies or receives the attributes of a filter button click.
@@ -3430,11 +3879,11 @@ struct TBADDBITMAP
 struct TBSAVEPARAMSA
 {
     ///Type: <b>HKEY</b> Handle to the registry key.
-    HKEY         hkr;
+    HKEY        hkr;
     ///Type: <b>LPCTSTR</b> Subkey name.
-    const(char)* pszSubKey;
+    const(PSTR) pszSubKey;
     ///Type: <b>LPCTSTR</b> Value name.
-    const(char)* pszValueName;
+    const(PSTR) pszValueName;
 }
 
 ///Specifies the location in the registry where the TB_SAVERESTORE message stores and retrieves information about the
@@ -3442,11 +3891,11 @@ struct TBSAVEPARAMSA
 struct TBSAVEPARAMSW
 {
     ///Type: <b>HKEY</b> Handle to the registry key.
-    HKEY          hkr;
+    HKEY         hkr;
     ///Type: <b>LPCTSTR</b> Subkey name.
-    const(wchar)* pszSubKey;
+    const(PWSTR) pszSubKey;
     ///Type: <b>LPCTSTR</b> Value name.
-    const(wchar)* pszValueName;
+    const(PWSTR) pszValueName;
 }
 
 ///Contains information on the insertion mark in a toolbar control.
@@ -3482,7 +3931,7 @@ struct TBBUTTONINFOA
 {
     ///Type: <b>UINT</b> Size of the structure, in bytes. This member must be filled in prior to sending the associated
     ///message.
-    uint         cbSize;
+    uint   cbSize;
     ///Type: <b>DWORD</b> Set of flags that indicate which members contain valid information. This member must be filled
     ///in prior to sending the associated message. This can be one or more of the following values. <table> <tr>
     ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="TBIF_BYINDEX"></a><a id="tbif_byindex"></a><dl>
@@ -3502,29 +3951,29 @@ struct TBBUTTONINFOA
     ///<b>fsStyle</b> member contains valid information or is being requested. </td> </tr> <tr> <td width="40%"><a
     ///id="TBIF_TEXT"></a><a id="tbif_text"></a><dl> <dt><b>TBIF_TEXT</b></dt> </dl> </td> <td width="60%"> The
     ///<b>pszText</b> member contains valid information or is being requested. </td> </tr> </table>
-    uint         dwMask;
+    uint   dwMask;
     ///Type: <b>int</b> Command identifier of the button.
-    int          idCommand;
+    int    idCommand;
     ///Type: <b>int</b> Image index of the button. Set this member to I_IMAGECALLBACK, and the toolbar will send the
     ///TBN_GETDISPINFO notification code to retrieve the image index when it is needed. Version 5.81. Set this member to
     ///I_IMAGENONE to indicate that the button does not have an image. The button layout will not include any space for
     ///a bitmap, only text.
-    int          iImage;
+    int    iImage;
     ///Type: <b>BYTE</b> State flags of the button. This can be one or more of the values listed in Toolbar Button
     ///States.
-    ubyte        fsState;
+    ubyte  fsState;
     ///Type: <b>BYTE</b> Style flags of the button. This can be one or more of the values listed in Toolbar Control and
     ///Button Styles.
-    ubyte        fsStyle;
+    ubyte  fsStyle;
     ///Type: <b>WORD</b> Width of the button, in pixels.
-    ushort       cx;
+    ushort cx;
     ///Type: <b>DWORD_PTR</b> Application-defined value associated with the button.
-    size_t       lParam;
+    size_t lParam;
     ///Type: <b>LPTSTR</b> Address of a character buffer that contains or receives the button text.
-    const(char)* pszText;
+    PSTR   pszText;
     ///Type: <b>int</b> Size of the buffer at <b>pszText</b>. If the button information is being set, this member is
     ///ignored.
-    int          cchText;
+    int    cchText;
 }
 
 ///Contains or receives information for a specific button in a toolbar.
@@ -3532,7 +3981,7 @@ struct TBBUTTONINFOW
 {
     ///Type: <b>UINT</b> Size of the structure, in bytes. This member must be filled in prior to sending the associated
     ///message.
-    uint          cbSize;
+    uint   cbSize;
     ///Type: <b>DWORD</b> Set of flags that indicate which members contain valid information. This member must be filled
     ///in prior to sending the associated message. This can be one or more of the following values. <table> <tr>
     ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="TBIF_BYINDEX"></a><a id="tbif_byindex"></a><dl>
@@ -3552,29 +4001,29 @@ struct TBBUTTONINFOW
     ///<b>fsStyle</b> member contains valid information or is being requested. </td> </tr> <tr> <td width="40%"><a
     ///id="TBIF_TEXT"></a><a id="tbif_text"></a><dl> <dt><b>TBIF_TEXT</b></dt> </dl> </td> <td width="60%"> The
     ///<b>pszText</b> member contains valid information or is being requested. </td> </tr> </table>
-    uint          dwMask;
+    uint   dwMask;
     ///Type: <b>int</b> Command identifier of the button.
-    int           idCommand;
+    int    idCommand;
     ///Type: <b>int</b> Image index of the button. Set this member to I_IMAGECALLBACK, and the toolbar will send the
     ///TBN_GETDISPINFO notification code to retrieve the image index when it is needed. Version 5.81. Set this member to
     ///I_IMAGENONE to indicate that the button does not have an image. The button layout will not include any space for
     ///a bitmap, only text.
-    int           iImage;
+    int    iImage;
     ///Type: <b>BYTE</b> State flags of the button. This can be one or more of the values listed in Toolbar Button
     ///States.
-    ubyte         fsState;
+    ubyte  fsState;
     ///Type: <b>BYTE</b> Style flags of the button. This can be one or more of the values listed in Toolbar Control and
     ///Button Styles.
-    ubyte         fsStyle;
+    ubyte  fsStyle;
     ///Type: <b>WORD</b> Width of the button, in pixels.
-    ushort        cx;
+    ushort cx;
     ///Type: <b>DWORD_PTR</b> Application-defined value associated with the button.
-    size_t        lParam;
+    size_t lParam;
     ///Type: <b>LPTSTR</b> Address of a character buffer that contains or receives the button text.
-    const(wchar)* pszText;
+    PWSTR  pszText;
     ///Type: <b>int</b> Size of the buffer at <b>pszText</b>. If the button information is being set, this member is
     ///ignored.
-    int           cchText;
+    int    cchText;
 }
 
 ///Defines the metrics of a toolbar that are used to shrink or expand toolbar items.
@@ -3681,19 +4130,19 @@ struct NMTBRESTORE
 struct NMTBGETINFOTIPA
 {
     ///Type: <b>NMHDR</b> NMHDR structure that contains additional information about the notification.
-    NMHDR        hdr;
+    NMHDR  hdr;
     ///Type: <b>LPTSTR</b> Address of a character buffer that receives the infotip text.
-    const(char)* pszText;
+    PSTR   pszText;
     ///Type: <b>int</b> Size of the buffer, in characters, at <b>pszText</b>. In most cases, the buffer will be
     ///INFOTIPSIZE characters in size, but you should always make sure that your application does not copy more than
     ///<b>cchTextMax</b> characters to the buffer at <b>pszText</b>.
-    int          cchTextMax;
+    int    cchTextMax;
     ///Type: <b>int</b> The command identifier of the item for which infotip information is being requested. This member
     ///is filled in by the control before sending the notification code.
-    int          iItem;
+    int    iItem;
     ///Type: <b>LPARAM</b> The application-defined value associated with the item for which infotip information is being
     ///requested. This member is filled in by the control before sending the notification code.
-    LPARAM       lParam;
+    LPARAM lParam;
 }
 
 ///Contains and receives infotip information for a toolbar item. This structure is used with the TBN_GETINFOTIP
@@ -3701,19 +4150,19 @@ struct NMTBGETINFOTIPA
 struct NMTBGETINFOTIPW
 {
     ///Type: <b>NMHDR</b> NMHDR structure that contains additional information about the notification.
-    NMHDR         hdr;
+    NMHDR  hdr;
     ///Type: <b>LPTSTR</b> Address of a character buffer that receives the infotip text.
-    const(wchar)* pszText;
+    PWSTR  pszText;
     ///Type: <b>int</b> Size of the buffer, in characters, at <b>pszText</b>. In most cases, the buffer will be
     ///INFOTIPSIZE characters in size, but you should always make sure that your application does not copy more than
     ///<b>cchTextMax</b> characters to the buffer at <b>pszText</b>.
-    int           cchTextMax;
+    int    cchTextMax;
     ///Type: <b>int</b> The command identifier of the item for which infotip information is being requested. This member
     ///is filled in by the control before sending the notification code.
-    int           iItem;
+    int    iItem;
     ///Type: <b>LPARAM</b> The application-defined value associated with the item for which infotip information is being
     ///requested. This member is filled in by the control before sending the notification code.
-    LPARAM        lParam;
+    LPARAM lParam;
 }
 
 ///Contains and receives display information for a toolbar item. This structure is used with the TBN_GETDISPINFO
@@ -3721,7 +4170,7 @@ struct NMTBGETINFOTIPW
 struct NMTBDISPINFOA
 {
     ///Type: <b>NMHDR</b> NMHDR structure that contains additional information about the notification.
-    NMHDR        hdr;
+    NMHDR  hdr;
     ///Type: <b>DWORD</b> Set of flags that indicate which members of this structure are being requested. This can be
     ///one or more of the following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="TBNF_IMAGE"></a><a id="tbnf_image"></a><dl> <dt><b>TBNF_IMAGE</b></dt> </dl> </td> <td width="60%"> The
@@ -3731,19 +4180,19 @@ struct NMTBDISPINFOA
     ///id="tbnf_di_setitem"></a><dl> <dt><b>TBNF_DI_SETITEM</b></dt> </dl> </td> <td width="60%"> Set this flag when
     ///processing TBN_GETDISPINFO; the toolbar control will retain the supplied information and not request it again.
     ///</td> </tr> </table>
-    uint         dwMask;
+    uint   dwMask;
     ///Type: <b>int</b> Command identifier of the item for which display information is being requested. This member is
     ///filled in by the control before it sends the notification code.
-    int          idCommand;
+    int    idCommand;
     ///Type: <b>DWORD_PTR</b> Application-defined value associated with the item for which display information is being
     ///requested. This member is filled in by the control before sending the notification code.
-    size_t       lParam;
+    size_t lParam;
     ///Type: <b>int</b> Image index for the item.
-    int          iImage;
+    int    iImage;
     ///Type: <b>LPTSTR</b> Pointer to a character buffer that receives the item's text.
-    const(char)* pszText;
+    PSTR   pszText;
     ///Type: <b>int</b> Size of the <b>pszText</b> buffer, in characters.
-    int          cchText;
+    int    cchText;
 }
 
 ///Contains and receives display information for a toolbar item. This structure is used with the TBN_GETDISPINFO
@@ -3751,7 +4200,7 @@ struct NMTBDISPINFOA
 struct NMTBDISPINFOW
 {
     ///Type: <b>NMHDR</b> NMHDR structure that contains additional information about the notification.
-    NMHDR         hdr;
+    NMHDR  hdr;
     ///Type: <b>DWORD</b> Set of flags that indicate which members of this structure are being requested. This can be
     ///one or more of the following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="TBNF_IMAGE"></a><a id="tbnf_image"></a><dl> <dt><b>TBNF_IMAGE</b></dt> </dl> </td> <td width="60%"> The
@@ -3761,19 +4210,19 @@ struct NMTBDISPINFOW
     ///id="tbnf_di_setitem"></a><dl> <dt><b>TBNF_DI_SETITEM</b></dt> </dl> </td> <td width="60%"> Set this flag when
     ///processing TBN_GETDISPINFO; the toolbar control will retain the supplied information and not request it again.
     ///</td> </tr> </table>
-    uint          dwMask;
+    uint   dwMask;
     ///Type: <b>int</b> Command identifier of the item for which display information is being requested. This member is
     ///filled in by the control before it sends the notification code.
-    int           idCommand;
+    int    idCommand;
     ///Type: <b>DWORD_PTR</b> Application-defined value associated with the item for which display information is being
     ///requested. This member is filled in by the control before sending the notification code.
-    size_t        lParam;
+    size_t lParam;
     ///Type: <b>int</b> Image index for the item.
-    int           iImage;
+    int    iImage;
     ///Type: <b>LPTSTR</b> Pointer to a character buffer that receives the item's text.
-    const(wchar)* pszText;
+    PWSTR  pszText;
     ///Type: <b>int</b> Size of the <b>pszText</b> buffer, in characters.
-    int           cchText;
+    int    cchText;
 }
 
 ///Contains information used to process toolbar notification codes. This structure supersedes the <b>TBNOTIFY</b>
@@ -3781,19 +4230,19 @@ struct NMTBDISPINFOW
 struct NMTOOLBARA
 {
     ///Type: <b>NMHDR</b> NMHDR structure that contains additional information about the notification.
-    NMHDR        hdr;
+    NMHDR    hdr;
     ///Type: <b>int</b> Command identifier of the button associated with the notification code.
-    int          iItem;
+    int      iItem;
     ///Type: <b>TBBUTTON</b> TBBUTTON structure that contains information about the toolbar button associated with the
     ///notification code. This member only contains valid information with the TBN_QUERYINSERT and TBN_QUERYDELETE
     ///notification codes.
-    TBBUTTON     tbButton;
+    TBBUTTON tbButton;
     ///Type: <b>int</b> Count of characters in the button text.
-    int          cchText;
+    int      cchText;
     ///Type: <b>LPTSTR</b> Address of a character buffer that contains the button text.
-    const(char)* pszText;
+    PSTR     pszText;
     ///Type: <b>RECT</b> Version 5.80. A RECT structure that defines the area covered by the button.
-    RECT         rcButton;
+    RECT     rcButton;
 }
 
 ///Contains information used to process toolbar notification codes. This structure supersedes the <b>TBNOTIFY</b>
@@ -3801,19 +4250,19 @@ struct NMTOOLBARA
 struct NMTOOLBARW
 {
     ///Type: <b>NMHDR</b> NMHDR structure that contains additional information about the notification.
-    NMHDR         hdr;
+    NMHDR    hdr;
     ///Type: <b>int</b> Command identifier of the button associated with the notification code.
-    int           iItem;
+    int      iItem;
     ///Type: <b>TBBUTTON</b> TBBUTTON structure that contains information about the toolbar button associated with the
     ///notification code. This member only contains valid information with the TBN_QUERYINSERT and TBN_QUERYDELETE
     ///notification codes.
-    TBBUTTON      tbButton;
+    TBBUTTON tbButton;
     ///Type: <b>int</b> Count of characters in the button text.
-    int           cchText;
+    int      cchText;
     ///Type: <b>LPTSTR</b> Address of a character buffer that contains the button text.
-    const(wchar)* pszText;
+    PWSTR    pszText;
     ///Type: <b>RECT</b> Version 5.80. A RECT structure that defines the area covered by the button.
-    RECT          rcButton;
+    RECT     rcButton;
 }
 
 ///Contains information that describes rebar control characteristics.
@@ -3835,7 +4284,7 @@ struct REBARBANDINFOA
 {
     ///Type: <b>UINT</b> Size of this structure, in bytes. Your application must fill this member before sending any
     ///messages that use the address of this structure as a parameter.
-    uint         cbSize;
+    uint    cbSize;
     ///Type: <b>UINT</b> Flags that indicate which members of this structure are valid or must be filled. This value can
     ///be a combination of the following: <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="RBBIM_BACKGROUND"></a><a id="rbbim_background"></a><dl> <dt><b>RBBIM_BACKGROUND</b></dt> </dl> </td> <td
@@ -3866,7 +4315,7 @@ struct REBARBANDINFOA
     ///or must be set. </td> </tr> <tr> <td width="40%"><a id="RBBIM_CHEVRONSTATE"></a><a
     ///id="rbbim_chevronstate"></a><dl> <dt><b>RBBIM_CHEVRONSTATE</b></dt> </dl> </td> <td width="60%"> The
     ///<b>uChevronState</b> member is valid or must be set. </td> </tr> </table>
-    uint         fMask;
+    uint    fMask;
     ///Type: <b>UINT</b> Flags that specify the band style. This value can be a combination of the following: <table>
     ///<tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="RBBS_BREAK"></a><a
     ///id="rbbs_break"></a><dl> <dt><b>RBBS_BREAK</b></dt> </dl> </td> <td width="60%"> The band is on a new line. </td>
@@ -3893,59 +4342,59 @@ struct REBARBANDINFOA
     ///id="rbbs_hidetitle"></a><dl> <dt><b>RBBS_HIDETITLE</b></dt> </dl> </td> <td width="60%"> Keep band title hidden.
     ///</td> </tr> <tr> <td width="40%"><a id="RBBS_TOPALIGN"></a><a id="rbbs_topalign"></a><dl>
     ///<dt><b>RBBS_TOPALIGN</b></dt> </dl> </td> <td width="60%"> Keep band in top row. </td> </tr> </table>
-    uint         fStyle;
+    uint    fStyle;
     ///Type: <b>COLORREF</b> Band foreground colors.
-    uint         clrFore;
+    uint    clrFore;
     ///Type: <b>COLORREF</b> Band background colors. If <b>hbmBack</b> specifies a background bitmap, these members are
     ///ignored. By default, the band will use the background color of the rebar control set with the RB_SETBKCOLOR
     ///message. If a background color is specified here, then this background color will be used instead.
-    uint         clrBack;
+    uint    clrBack;
     ///Type: <b>LPTSTR</b> Pointer to a buffer that contains the display text for the band. If band information is being
     ///requested from the control and RBBIM_TEXT is specified in <b>fMask</b>, this member must be initialized to the
     ///address of the buffer that will receive the text.
-    const(char)* lpText;
+    PSTR    lpText;
     ///Type: <b>UINT</b> Size of the buffer at <b>lpText</b>, in bytes. If information is not being requested from the
     ///control, this member is ignored.
-    uint         cch;
+    uint    cch;
     ///Type: <b>int</b> Zero-based index of any image that should be displayed in the band. The image list is set using
     ///the RB_SETBARINFO message.
-    int          iImage;
+    int     iImage;
     ///Type: <b>HWND</b> Handle to the child window contained in the band, if any.
-    HWND         hwndChild;
+    HWND    hwndChild;
     ///Type: <b>UINT</b> Minimum width of the child window, in pixels. The band can't be sized smaller than this value.
-    uint         cxMinChild;
+    uint    cxMinChild;
     ///Type: <b>UINT</b> Minimum height of the child window, in pixels. The band can't be sized smaller than this value.
-    uint         cyMinChild;
+    uint    cyMinChild;
     ///Type: <b>UINT</b> Length of the band, in pixels.
-    uint         cx;
+    uint    cx;
     ///Type: <b>HBITMAP</b> Handle to a bitmap that is used as the background for this band.
-    HBITMAP      hbmBack;
+    HBITMAP hbmBack;
     ///Type: <b>UINT</b> UINT value that the control uses to identify this band for custom draw notification messages.
-    uint         wID;
+    uint    wID;
     ///Type: <b>UINT</b> Version 4.71. Initial height of the band, in pixels. This member is ignored unless the
     ///RBBS_VARIABLEHEIGHT style is specified.
-    uint         cyChild;
+    uint    cyChild;
     ///Type: <b>UINT</b> Version 4.71. Maximum height of the band, in pixels. This member is ignored unless the
     ///RBBS_VARIABLEHEIGHT style is specified.
-    uint         cyMaxChild;
+    uint    cyMaxChild;
     ///Type: <b>UINT</b> Version 4.71. Step value by which the band can grow or shrink, in pixels. If the band is
     ///resized, it will be resized in steps specified by this value. This member is ignored unless the
     ///RBBS_VARIABLEHEIGHT style is specified.
-    uint         cyIntegral;
+    uint    cyIntegral;
     ///Type: <b>UINT</b> Version 4.71. Ideal width of the band, in pixels. If the band is maximized to the ideal width
     ///(see RB_MAXIMIZEBAND), the rebar control will attempt to make the band this width.
-    uint         cxIdeal;
+    uint    cxIdeal;
     ///Type: <b>LPARAM</b> Version 4.71. Application-defined value.
-    LPARAM       lParam;
+    LPARAM  lParam;
     ///Type: <b>UINT</b> Version 4.71. Size of the band's header, in pixels. The band header is the area between the
     ///edge of the band and the edge of the child window. This is the area where band text and images are displayed, if
     ///they are specified. If this value is specified, it will override the normal header dimensions that the control
     ///calculates for the band.
-    uint         cxHeader;
+    uint    cxHeader;
     ///Type: <b>RECT</b> Version 6. Location of the chevron.
-    RECT         rcChevronLocation;
+    RECT    rcChevronLocation;
     ///Type: <b>UINT</b> Version 6. A combination of the Object State Constants.
-    uint         uChevronState;
+    uint    uChevronState;
 }
 
 ///Contains information that defines a band in a rebar control.
@@ -3953,7 +4402,7 @@ struct REBARBANDINFOW
 {
     ///Type: <b>UINT</b> Size of this structure, in bytes. Your application must fill this member before sending any
     ///messages that use the address of this structure as a parameter.
-    uint          cbSize;
+    uint    cbSize;
     ///Type: <b>UINT</b> Flags that indicate which members of this structure are valid or must be filled. This value can
     ///be a combination of the following: <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="RBBIM_BACKGROUND"></a><a id="rbbim_background"></a><dl> <dt><b>RBBIM_BACKGROUND</b></dt> </dl> </td> <td
@@ -3984,7 +4433,7 @@ struct REBARBANDINFOW
     ///or must be set. </td> </tr> <tr> <td width="40%"><a id="RBBIM_CHEVRONSTATE"></a><a
     ///id="rbbim_chevronstate"></a><dl> <dt><b>RBBIM_CHEVRONSTATE</b></dt> </dl> </td> <td width="60%"> The
     ///<b>uChevronState</b> member is valid or must be set. </td> </tr> </table>
-    uint          fMask;
+    uint    fMask;
     ///Type: <b>UINT</b> Flags that specify the band style. This value can be a combination of the following: <table>
     ///<tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="RBBS_BREAK"></a><a
     ///id="rbbs_break"></a><dl> <dt><b>RBBS_BREAK</b></dt> </dl> </td> <td width="60%"> The band is on a new line. </td>
@@ -4011,59 +4460,59 @@ struct REBARBANDINFOW
     ///id="rbbs_hidetitle"></a><dl> <dt><b>RBBS_HIDETITLE</b></dt> </dl> </td> <td width="60%"> Keep band title hidden.
     ///</td> </tr> <tr> <td width="40%"><a id="RBBS_TOPALIGN"></a><a id="rbbs_topalign"></a><dl>
     ///<dt><b>RBBS_TOPALIGN</b></dt> </dl> </td> <td width="60%"> Keep band in top row. </td> </tr> </table>
-    uint          fStyle;
+    uint    fStyle;
     ///Type: <b>COLORREF</b> Band foreground colors.
-    uint          clrFore;
+    uint    clrFore;
     ///Type: <b>COLORREF</b> Band background colors. If <b>hbmBack</b> specifies a background bitmap, these members are
     ///ignored. By default, the band will use the background color of the rebar control set with the RB_SETBKCOLOR
     ///message. If a background color is specified here, then this background color will be used instead.
-    uint          clrBack;
+    uint    clrBack;
     ///Type: <b>LPTSTR</b> Pointer to a buffer that contains the display text for the band. If band information is being
     ///requested from the control and RBBIM_TEXT is specified in <b>fMask</b>, this member must be initialized to the
     ///address of the buffer that will receive the text.
-    const(wchar)* lpText;
+    PWSTR   lpText;
     ///Type: <b>UINT</b> Size of the buffer at <b>lpText</b>, in bytes. If information is not being requested from the
     ///control, this member is ignored.
-    uint          cch;
+    uint    cch;
     ///Type: <b>int</b> Zero-based index of any image that should be displayed in the band. The image list is set using
     ///the RB_SETBARINFO message.
-    int           iImage;
+    int     iImage;
     ///Type: <b>HWND</b> Handle to the child window contained in the band, if any.
-    HWND          hwndChild;
+    HWND    hwndChild;
     ///Type: <b>UINT</b> Minimum width of the child window, in pixels. The band can't be sized smaller than this value.
-    uint          cxMinChild;
+    uint    cxMinChild;
     ///Type: <b>UINT</b> Minimum height of the child window, in pixels. The band can't be sized smaller than this value.
-    uint          cyMinChild;
+    uint    cyMinChild;
     ///Type: <b>UINT</b> Length of the band, in pixels.
-    uint          cx;
+    uint    cx;
     ///Type: <b>HBITMAP</b> Handle to a bitmap that is used as the background for this band.
-    HBITMAP       hbmBack;
+    HBITMAP hbmBack;
     ///Type: <b>UINT</b> UINT value that the control uses to identify this band for custom draw notification messages.
-    uint          wID;
+    uint    wID;
     ///Type: <b>UINT</b> Version 4.71. Initial height of the band, in pixels. This member is ignored unless the
     ///RBBS_VARIABLEHEIGHT style is specified.
-    uint          cyChild;
+    uint    cyChild;
     ///Type: <b>UINT</b> Version 4.71. Maximum height of the band, in pixels. This member is ignored unless the
     ///RBBS_VARIABLEHEIGHT style is specified.
-    uint          cyMaxChild;
+    uint    cyMaxChild;
     ///Type: <b>UINT</b> Version 4.71. Step value by which the band can grow or shrink, in pixels. If the band is
     ///resized, it will be resized in steps specified by this value. This member is ignored unless the
     ///RBBS_VARIABLEHEIGHT style is specified.
-    uint          cyIntegral;
+    uint    cyIntegral;
     ///Type: <b>UINT</b> Version 4.71. Ideal width of the band, in pixels. If the band is maximized to the ideal width
     ///(see RB_MAXIMIZEBAND), the rebar control will attempt to make the band this width.
-    uint          cxIdeal;
+    uint    cxIdeal;
     ///Type: <b>LPARAM</b> Version 4.71. Application-defined value.
-    LPARAM        lParam;
+    LPARAM  lParam;
     ///Type: <b>UINT</b> Version 4.71. Size of the band's header, in pixels. The band header is the area between the
     ///edge of the band and the edge of the child window. This is the area where band text and images are displayed, if
     ///they are specified. If this value is specified, it will override the normal header dimensions that the control
     ///calculates for the band.
-    uint          cxHeader;
+    uint    cxHeader;
     ///Type: <b>RECT</b> Version 6. Location of the chevron.
-    RECT          rcChevronLocation;
+    RECT    rcChevronLocation;
     ///Type: <b>UINT</b> Version 6. A combination of the Object State Constants.
-    uint          uChevronState;
+    uint    uChevronState;
 }
 
 ///Contains information used in handling the RBN_CHILDSIZE notification code.
@@ -4190,7 +4639,7 @@ struct RBHITTESTINFO
 struct TTTOOLINFOA
 {
     ///Type: <b>UINT</b> Size of this structure, in bytes. This member must be specified.
-    uint         cbSize;
+    uint      cbSize;
     ///Type: <b>UINT</b> Flags that control the tooltip display. This member can be a combination of the following
     ///values: <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="TTF_ABSOLUTE"></a><a
     ///id="ttf_absolute"></a><dl> <dt><b>TTF_ABSOLUTE</b></dt> </dl> </td> <td width="60%"> Positions the tooltip window
@@ -4217,38 +4666,38 @@ struct TTTOOLINFOA
     ///id="TTF_TRANSPARENT"></a><a id="ttf_transparent"></a><dl> <dt><b>TTF_TRANSPARENT</b></dt> </dl> </td> <td
     ///width="60%"> Causes the tooltip control to forward mouse event messages to the parent window. This is limited to
     ///mouse events that occur within the bounds of the tooltip window. </td> </tr> </table>
-    uint         uFlags;
+    uint      uFlags;
     ///Type: <b>HWND</b> Handle to the window that contains the tool. If <b>lpszText</b> includes the LPSTR_TEXTCALLBACK
     ///value, this member identifies the window that receives the TTN_GETDISPINFO notification codes.
-    HWND         hwnd;
+    HWND      hwnd;
     ///Type: <b>UINT_PTR</b> Application-defined identifier of the tool. If <b>uFlags</b> includes the TTF_IDISHWND
     ///flag, <b>uId</b> must specify the window handle to the tool.
-    size_t       uId;
+    size_t    uId;
     ///Type: <b>RECT</b> The bounding rectangle coordinates of the tool. The coordinates are relative to the upper-left
     ///corner of the client area of the window identified by <b>hwnd</b>. If <b>uFlags</b> includes the TTF_IDISHWND
     ///flag, this member is ignored.
-    RECT         rect;
+    RECT      rect;
     ///Type: <b>HINSTANCE</b> Handle to the instance that contains the string resource for the tool. If <b>lpszText</b>
     ///specifies the identifier of a string resource, this member is used.
-    HINSTANCE    hinst;
+    HINSTANCE hinst;
     ///Type: <b>LPTSTR</b> Pointer to the buffer that contains the text for the tool, or identifier of the string
     ///resource that contains the text. This member is sometimes used to return values. If you need to examine the
     ///returned value, must point to a valid buffer of sufficient size. Otherwise, it can be set to <b>NULL</b>. If
     ///<b>lpszText</b> is set to LPSTR_TEXTCALLBACK, the control sends the TTN_GETDISPINFO notification code to the
     ///owner window to retrieve the text.
-    const(char)* lpszText;
+    PSTR      lpszText;
     ///Type: <b>LPARAM</b> <b>Version 4.70 and later</b>. A 32-bit application-defined value that is associated with the
     ///tool.
-    LPARAM       lParam;
+    LPARAM    lParam;
     ///Type: <b>void*</b> Reserved. Must be set to <b>NULL</b>.
-    void*        lpReserved;
+    void*     lpReserved;
 }
 
 ///The <b>TOOLINFO</b> structure contains information about a tool in a tooltip control.
 struct TTTOOLINFOW
 {
     ///Type: <b>UINT</b> Size of this structure, in bytes. This member must be specified.
-    uint          cbSize;
+    uint      cbSize;
     ///Type: <b>UINT</b> Flags that control the tooltip display. This member can be a combination of the following
     ///values: <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="TTF_ABSOLUTE"></a><a
     ///id="ttf_absolute"></a><dl> <dt><b>TTF_ABSOLUTE</b></dt> </dl> </td> <td width="60%"> Positions the tooltip window
@@ -4275,43 +4724,43 @@ struct TTTOOLINFOW
     ///id="TTF_TRANSPARENT"></a><a id="ttf_transparent"></a><dl> <dt><b>TTF_TRANSPARENT</b></dt> </dl> </td> <td
     ///width="60%"> Causes the tooltip control to forward mouse event messages to the parent window. This is limited to
     ///mouse events that occur within the bounds of the tooltip window. </td> </tr> </table>
-    uint          uFlags;
+    uint      uFlags;
     ///Type: <b>HWND</b> Handle to the window that contains the tool. If <b>lpszText</b> includes the LPSTR_TEXTCALLBACK
     ///value, this member identifies the window that receives the TTN_GETDISPINFO notification codes.
-    HWND          hwnd;
+    HWND      hwnd;
     ///Type: <b>UINT_PTR</b> Application-defined identifier of the tool. If <b>uFlags</b> includes the TTF_IDISHWND
     ///flag, <b>uId</b> must specify the window handle to the tool.
-    size_t        uId;
+    size_t    uId;
     ///Type: <b>RECT</b> The bounding rectangle coordinates of the tool. The coordinates are relative to the upper-left
     ///corner of the client area of the window identified by <b>hwnd</b>. If <b>uFlags</b> includes the TTF_IDISHWND
     ///flag, this member is ignored.
-    RECT          rect;
+    RECT      rect;
     ///Type: <b>HINSTANCE</b> Handle to the instance that contains the string resource for the tool. If <b>lpszText</b>
     ///specifies the identifier of a string resource, this member is used.
-    HINSTANCE     hinst;
+    HINSTANCE hinst;
     ///Type: <b>LPTSTR</b> Pointer to the buffer that contains the text for the tool, or identifier of the string
     ///resource that contains the text. This member is sometimes used to return values. If you need to examine the
     ///returned value, must point to a valid buffer of sufficient size. Otherwise, it can be set to <b>NULL</b>. If
     ///<b>lpszText</b> is set to LPSTR_TEXTCALLBACK, the control sends the TTN_GETDISPINFO notification code to the
     ///owner window to retrieve the text.
-    const(wchar)* lpszText;
+    PWSTR     lpszText;
     ///Type: <b>LPARAM</b> <b>Version 4.70 and later</b>. A 32-bit application-defined value that is associated with the
     ///tool.
-    LPARAM        lParam;
+    LPARAM    lParam;
     ///Type: <b>void*</b> Reserved. Must be set to <b>NULL</b>.
-    void*         lpReserved;
+    void*     lpReserved;
 }
 
 ///Provides information about the title of a tooltip control.
 struct TTGETTITLE
 {
     ///Type: <b>DWORD</b> <b>DWORD</b> that specifies size of structure. Set to sizeof(TTGETTITLE).
-    uint    dwSize;
+    uint  dwSize;
     ///Type: <b>UINT</b> <b>UINT</b> that specifies the tooltip icon.
-    uint    uTitleBitmap;
+    uint  uTitleBitmap;
     ///Type: <b>UINT</b> <b>UINT</b> that specifies the number of characters in the title.
-    uint    cch;
-    ushort* pszTitle;
+    uint  cch;
+    PWSTR pszTitle;
 }
 
 ///Contains information that a tooltip control uses to determine whether a point is in the bounding rectangle of the
@@ -4347,17 +4796,17 @@ struct TTHITTESTINFOW
 struct NMTTDISPINFOA
 {
     ///Type: <b>NMHDR</b> NMHDR structure that contains additional information about the notification.
-    NMHDR        hdr;
+    NMHDR     hdr;
     ///Type: <b>LPTSTR</b> Pointer to a null-terminated string that will be displayed as the tooltip text. If
     ///<b>hinst</b> specifies an instance handle, this member must be the identifier of a string resource.
-    const(char)* lpszText;
+    PSTR      lpszText;
     ///Type: <b>TCHAR</b> Buffer that receives the tooltip text. An application can copy the text to this buffer instead
     ///of specifying a string address or string resource. For tooltip text that exceeds 80 <b>TCHAR</b><b>s</b>, see
     ///comments in the remarks section of this document.
-    byte[80]     szText;
+    byte[80]  szText;
     ///Type: <b>HINSTANCE</b> Handle to the instance that contains a string resource to be used as the tooltip text. If
     ///<b>lpszText</b> is the address of the tooltip text string, this member must be <b>NULL</b>.
-    HINSTANCE    hinst;
+    HINSTANCE hinst;
     ///Type: <b>UINT</b> Flags that indicates how to interpret the <b>idFrom</b> member of the included NMHDR structure.
     ///<table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="TTF_IDISHWND"></a><a
     ///id="ttf_idishwnd"></a><dl> <dt><b>TTF_IDISHWND</b></dt> </dl> </td> <td width="60%"> If this flag is set,
@@ -4370,9 +4819,9 @@ struct NMTTDISPINFOA
     ///id="ttf_di_setitem"></a><dl> <dt><b>TTF_DI_SETITEM</b></dt> </dl> </td> <td width="60%"> Version 4.70. If you add
     ///this flag to <b>uFlags</b> while processing the notification, the tooltip control will retain the supplied
     ///information and not request it again. </td> </tr> </table>
-    uint         uFlags;
+    uint      uFlags;
     ///Type: <b>LPARAM</b> Version 4.70. Application-defined data associated with the tool.
-    LPARAM       lParam;
+    LPARAM    lParam;
 }
 
 ///Contains information used in handling the TTN_GETDISPINFO notification code. This structure supersedes the
@@ -4380,17 +4829,17 @@ struct NMTTDISPINFOA
 struct NMTTDISPINFOW
 {
     ///Type: <b>NMHDR</b> NMHDR structure that contains additional information about the notification.
-    NMHDR         hdr;
+    NMHDR      hdr;
     ///Type: <b>LPTSTR</b> Pointer to a null-terminated string that will be displayed as the tooltip text. If
     ///<b>hinst</b> specifies an instance handle, this member must be the identifier of a string resource.
-    const(wchar)* lpszText;
+    PWSTR      lpszText;
     ///Type: <b>TCHAR</b> Buffer that receives the tooltip text. An application can copy the text to this buffer instead
     ///of specifying a string address or string resource. For tooltip text that exceeds 80 <b>TCHAR</b><b>s</b>, see
     ///comments in the remarks section of this document.
-    ushort[80]    szText;
+    ushort[80] szText;
     ///Type: <b>HINSTANCE</b> Handle to the instance that contains a string resource to be used as the tooltip text. If
     ///<b>lpszText</b> is the address of the tooltip text string, this member must be <b>NULL</b>.
-    HINSTANCE     hinst;
+    HINSTANCE  hinst;
     ///Type: <b>UINT</b> Flags that indicates how to interpret the <b>idFrom</b> member of the included NMHDR structure.
     ///<table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="TTF_IDISHWND"></a><a
     ///id="ttf_idishwnd"></a><dl> <dt><b>TTF_IDISHWND</b></dt> </dl> </td> <td width="60%"> If this flag is set,
@@ -4403,9 +4852,9 @@ struct NMTTDISPINFOW
     ///id="ttf_di_setitem"></a><dl> <dt><b>TTF_DI_SETITEM</b></dt> </dl> </td> <td width="60%"> Version 4.70. If you add
     ///this flag to <b>uFlags</b> while processing the notification, the tooltip control will retain the supplied
     ///information and not request it again. </td> </tr> </table>
-    uint          uFlags;
+    uint       uFlags;
     ///Type: <b>LPARAM</b> Version 4.70. Application-defined data associated with the tool.
-    LPARAM        lParam;
+    LPARAM     lParam;
 }
 
 ///Contains information about a trackbar change notification. This message is sent with the TRBN_THUMBPOSCHANGING
@@ -4556,12 +5005,12 @@ struct LVITEMA
     ///<dt><b>LVIF_STATE</b></dt> </dl> </td> <td width="60%"> The <b>state</b> member is valid or must be set. </td>
     ///</tr> <tr> <td width="40%"><a id="LVIF_TEXT"></a><a id="lvif_text"></a><dl> <dt><b>LVIF_TEXT</b></dt> </dl> </td>
     ///<td width="60%"> The <b>pszText</b> member is valid or must be set. </td> </tr> </table>
-    uint         mask;
+    uint   mask;
     ///Type: <b>int</b> Zero-based index of the item to which this structure refers.
-    int          iItem;
+    int    iItem;
     ///Type: <b>int</b> One-based index of the subitem to which this structure refers, or zero if this structure refers
     ///to an item rather than a subitem.
-    int          iSubItem;
+    int    iSubItem;
     ///Type: <b>UINT</b> Indicates the item's state, state image, and overlay image. The <b>stateMask</b> member
     ///indicates the valid bits of this member. Bits 0 through 7 of this member contain the item state flags. This can
     ///be one or more of the item state values. Bits 8 through 11 of this member specify the one-based overlay image
@@ -4574,14 +5023,14 @@ struct LVITEMA
     ///isolate these bits, use the LVIS_STATEIMAGEMASK mask. To set the state image index, use the INDEXTOSTATEIMAGEMASK
     ///macro. The state image index specifies the index of the image in the state image list that should be drawn. The
     ///state image list is specified with the LVM_SETIMAGELIST message.
-    uint         state;
+    uint   state;
     ///Type: <b>UINT</b> Value specifying which bits of the <b>state</b> member will be retrieved or modified. For
     ///example, setting this member to LVIS_SELECTED will cause only the item's selection state to be retrieved. This
     ///member allows you to modify one or more item states without having to retrieve all of the item states first. For
     ///example, setting this member to <b>LVIS_SELECTED</b> and <b>state</b> to zero will cause the item's selection
     ///state to be cleared, but none of the other states will be affected. To retrieve or modify all of the states, set
     ///this member to (<b>UINT</b>)-1. You can use the macro ListView_SetItemState both to set and to clear bits.
-    uint         stateMask;
+    uint   stateMask;
     ///Type: <b>LPTSTR</b> If the structure specifies item attributes, <b>pszText</b> is a pointer to a null-terminated
     ///string containing the item text. When responding to an LVN_GETDISPINFO notification, be sure that this pointer
     ///remains valid until after the next notification has been received. If the structure receives item attributes,
@@ -4591,7 +5040,7 @@ struct LVITEMA
     ///explicitly set <b>pszText</b> to LPSTR_TEXTCALLBACK and notify the list-view control of the change by sending an
     ///LVM_SETITEM or LVM_SETITEMTEXT message. Do not set <b>pszText</b> to LPSTR_TEXTCALLBACK if the list-view control
     ///has the LVS_SORTASCENDING or LVS_SORTDESCENDING style.
-    const(char)* pszText;
+    PSTR   pszText;
     ///Type: <b>int</b> Number of <b>TCHAR</b><b>s</b> in the buffer pointed to by <b>pszText</b>, including the
     ///terminating <b>NULL</b>. This member is only used when the structure receives item attributes. It is ignored when
     ///the structure specifies item attributes. For example, <b>cchTextMax</b> is ignored during LVM_SETITEM and
@@ -4599,35 +5048,35 @@ struct LVITEMA
     ///class="alert"><b>Note</b> Never copy more than <b>cchTextMax</b> <b>TCHAR</b><b>s</b>—where <b>cchTextMax</b>
     ///includes the terminating <b>NULL</b>—into <b>pszText</b> during an LVN_ notification, otherwise your program
     ///can fail.</div> <div> </div>
-    int          cchTextMax;
+    int    cchTextMax;
     ///Type: <b>int</b> Index of the item's icon in the control's image list. This applies to both the large and small
     ///image list. If this member is the I_IMAGECALLBACK value, the parent window is responsible for storing the index.
     ///In this case, the list-view control sends the parent an LVN_GETDISPINFO notification code to retrieve the index
     ///when it needs to display the image.
-    int          iImage;
+    int    iImage;
     ///Type: <b>LPARAM</b> Value specific to the item. If you use the LVM_SORTITEMS message, the list-view control
     ///passes this value to the application-defined comparison function. You can also use the LVM_FINDITEM message to
     ///search a list-view control for an item with a specified <b>lParam</b> value.
-    LPARAM       lParam;
+    LPARAM lParam;
     ///Type: <b>int</b> Version 4.70. Number of image widths to indent the item. A single indentation equals the width
     ///of an item image. Therefore, the value 1 indents the item by the width of one image, the value 2 indents by two
     ///images, and so on. Note that this field is supported only for items. Attempting to set subitem indentation will
     ///cause the calling function to fail.
-    int          iIndent;
+    int    iIndent;
     ///Type: <b>int</b> Version 6.0 Identifier of the group that the item belongs to, or one of the following values.
     ///<table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="I_GROUPIDCALLBACK"></a><a
     ///id="i_groupidcallback"></a><dl> <dt><b>I_GROUPIDCALLBACK</b></dt> </dl> </td> <td width="60%"> The listview
     ///control sends the parent an LVN_GETDISPINFO notification code to retrieve the index of the group. </td> </tr>
     ///<tr> <td width="40%"><a id="I_GROUPIDNONE"></a><a id="i_groupidnone"></a><dl> <dt><b>I_GROUPIDNONE</b></dt> </dl>
     ///</td> <td width="60%"> The item does not belong to a group. </td> </tr> </table>
-    int          iGroupId;
+    int    iGroupId;
     ///Type: <b>UINT</b> Version 6.0 Number of data columns (subitems) to display for this item in tile view. The
     ///maximum value is 20. If this value is I_COLUMNSCALLBACK, the size of the column array and the array itself
     ///(<b>puColumns</b>) are obtained by sending a LVN_GETDISPINFO notification.
-    uint         cColumns;
+    uint   cColumns;
     ///Type: <b>PUINT</b> Version 6.0 A pointer to an array of column indices, specifying which columns are displayed
     ///for this item, and the order of those columns.
-    uint*        puColumns;
+    uint*  puColumns;
     ///Type: <b>int*</b> <b>Windows Vista:</b> Not implemented. <b>Windows 7 and later:</b> A pointer to an array of the
     ///following flags (alone or in combination), specifying the format of each subitem in extended tile view. <table>
     ///<tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="LVCFMT_LINE_BREAK"></a><a
@@ -4642,10 +5091,10 @@ struct LVITEMA
     ///id="LVCFMT_TILE_PLACEMENTMASK"></a><a id="lvcfmt_tile_placementmask"></a><dl>
     ///<dt><b>LVCFMT_TILE_PLACEMENTMASK</b></dt> </dl> </td> <td width="60%"> Equivalent to a combination of
     ///LVCFMT_LINE_BREAK and LVCFMT_FILL. </td> </tr> </table>
-    int*         piColFmt;
+    int*   piColFmt;
     ///Type: <b>int</b> Windows Vista: Group index of the item. Valid only for owner data/callback (single item in
     ///multiple groups).
-    int          iGroup;
+    int    iGroup;
 }
 
 ///Specifies or receives the attributes of a list-view item. This structure has been updated to support a new mask value
@@ -4677,12 +5126,12 @@ struct LVITEMW
     ///<dt><b>LVIF_STATE</b></dt> </dl> </td> <td width="60%"> The <b>state</b> member is valid or must be set. </td>
     ///</tr> <tr> <td width="40%"><a id="LVIF_TEXT"></a><a id="lvif_text"></a><dl> <dt><b>LVIF_TEXT</b></dt> </dl> </td>
     ///<td width="60%"> The <b>pszText</b> member is valid or must be set. </td> </tr> </table>
-    uint          mask;
+    uint   mask;
     ///Type: <b>int</b> Zero-based index of the item to which this structure refers.
-    int           iItem;
+    int    iItem;
     ///Type: <b>int</b> One-based index of the subitem to which this structure refers, or zero if this structure refers
     ///to an item rather than a subitem.
-    int           iSubItem;
+    int    iSubItem;
     ///Type: <b>UINT</b> Indicates the item's state, state image, and overlay image. The <b>stateMask</b> member
     ///indicates the valid bits of this member. Bits 0 through 7 of this member contain the item state flags. This can
     ///be one or more of the item state values. Bits 8 through 11 of this member specify the one-based overlay image
@@ -4695,14 +5144,14 @@ struct LVITEMW
     ///isolate these bits, use the LVIS_STATEIMAGEMASK mask. To set the state image index, use the INDEXTOSTATEIMAGEMASK
     ///macro. The state image index specifies the index of the image in the state image list that should be drawn. The
     ///state image list is specified with the LVM_SETIMAGELIST message.
-    uint          state;
+    uint   state;
     ///Type: <b>UINT</b> Value specifying which bits of the <b>state</b> member will be retrieved or modified. For
     ///example, setting this member to LVIS_SELECTED will cause only the item's selection state to be retrieved. This
     ///member allows you to modify one or more item states without having to retrieve all of the item states first. For
     ///example, setting this member to <b>LVIS_SELECTED</b> and <b>state</b> to zero will cause the item's selection
     ///state to be cleared, but none of the other states will be affected. To retrieve or modify all of the states, set
     ///this member to (<b>UINT</b>)-1. You can use the macro ListView_SetItemState both to set and to clear bits.
-    uint          stateMask;
+    uint   stateMask;
     ///Type: <b>LPTSTR</b> If the structure specifies item attributes, <b>pszText</b> is a pointer to a null-terminated
     ///string containing the item text. When responding to an LVN_GETDISPINFO notification, be sure that this pointer
     ///remains valid until after the next notification has been received. If the structure receives item attributes,
@@ -4712,7 +5161,7 @@ struct LVITEMW
     ///explicitly set <b>pszText</b> to LPSTR_TEXTCALLBACK and notify the list-view control of the change by sending an
     ///LVM_SETITEM or LVM_SETITEMTEXT message. Do not set <b>pszText</b> to LPSTR_TEXTCALLBACK if the list-view control
     ///has the LVS_SORTASCENDING or LVS_SORTDESCENDING style.
-    const(wchar)* pszText;
+    PWSTR  pszText;
     ///Type: <b>int</b> Number of <b>TCHAR</b><b>s</b> in the buffer pointed to by <b>pszText</b>, including the
     ///terminating <b>NULL</b>. This member is only used when the structure receives item attributes. It is ignored when
     ///the structure specifies item attributes. For example, <b>cchTextMax</b> is ignored during LVM_SETITEM and
@@ -4720,35 +5169,35 @@ struct LVITEMW
     ///class="alert"><b>Note</b> Never copy more than <b>cchTextMax</b> <b>TCHAR</b><b>s</b>—where <b>cchTextMax</b>
     ///includes the terminating <b>NULL</b>—into <b>pszText</b> during an LVN_ notification, otherwise your program
     ///can fail.</div> <div> </div>
-    int           cchTextMax;
+    int    cchTextMax;
     ///Type: <b>int</b> Index of the item's icon in the control's image list. This applies to both the large and small
     ///image list. If this member is the I_IMAGECALLBACK value, the parent window is responsible for storing the index.
     ///In this case, the list-view control sends the parent an LVN_GETDISPINFO notification code to retrieve the index
     ///when it needs to display the image.
-    int           iImage;
+    int    iImage;
     ///Type: <b>LPARAM</b> Value specific to the item. If you use the LVM_SORTITEMS message, the list-view control
     ///passes this value to the application-defined comparison function. You can also use the LVM_FINDITEM message to
     ///search a list-view control for an item with a specified <b>lParam</b> value.
-    LPARAM        lParam;
+    LPARAM lParam;
     ///Type: <b>int</b> Version 4.70. Number of image widths to indent the item. A single indentation equals the width
     ///of an item image. Therefore, the value 1 indents the item by the width of one image, the value 2 indents by two
     ///images, and so on. Note that this field is supported only for items. Attempting to set subitem indentation will
     ///cause the calling function to fail.
-    int           iIndent;
+    int    iIndent;
     ///Type: <b>int</b> Version 6.0 Identifier of the group that the item belongs to, or one of the following values.
     ///<table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="I_GROUPIDCALLBACK"></a><a
     ///id="i_groupidcallback"></a><dl> <dt><b>I_GROUPIDCALLBACK</b></dt> </dl> </td> <td width="60%"> The listview
     ///control sends the parent an LVN_GETDISPINFO notification code to retrieve the index of the group. </td> </tr>
     ///<tr> <td width="40%"><a id="I_GROUPIDNONE"></a><a id="i_groupidnone"></a><dl> <dt><b>I_GROUPIDNONE</b></dt> </dl>
     ///</td> <td width="60%"> The item does not belong to a group. </td> </tr> </table>
-    int           iGroupId;
+    int    iGroupId;
     ///Type: <b>UINT</b> Version 6.0 Number of data columns (subitems) to display for this item in tile view. The
     ///maximum value is 20. If this value is I_COLUMNSCALLBACK, the size of the column array and the array itself
     ///(<b>puColumns</b>) are obtained by sending a LVN_GETDISPINFO notification.
-    uint          cColumns;
+    uint   cColumns;
     ///Type: <b>PUINT</b> Version 6.0 A pointer to an array of column indices, specifying which columns are displayed
     ///for this item, and the order of those columns.
-    uint*         puColumns;
+    uint*  puColumns;
     ///Type: <b>int*</b> <b>Windows Vista:</b> Not implemented. <b>Windows 7 and later:</b> A pointer to an array of the
     ///following flags (alone or in combination), specifying the format of each subitem in extended tile view. <table>
     ///<tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="LVCFMT_LINE_BREAK"></a><a
@@ -4763,10 +5212,10 @@ struct LVITEMW
     ///id="LVCFMT_TILE_PLACEMENTMASK"></a><a id="lvcfmt_tile_placementmask"></a><dl>
     ///<dt><b>LVCFMT_TILE_PLACEMENTMASK</b></dt> </dl> </td> <td width="60%"> Equivalent to a combination of
     ///LVCFMT_LINE_BREAK and LVCFMT_FILL. </td> </tr> </table>
-    int*          piColFmt;
+    int*   piColFmt;
     ///Type: <b>int</b> Windows Vista: Group index of the item. Valid only for owner data/callback (single item in
     ///multiple groups).
-    int           iGroup;
+    int    iGroup;
 }
 
 ///Contains information used when searching for a list-view item. This structure is identical to LV_FINDINFO but has
@@ -4792,21 +5241,21 @@ struct LVFINDINFOA
     ///the <b>pt</b> member, in the direction specified by the <b>vkDirection</b> member. This flag is supported only by
     ///large icon and small icon modes. If LVFI_NEARESTXY is specified, all other flags are ignored. </td> </tr>
     ///</table>
-    uint         flags;
+    uint        flags;
     ///Type: <b>LPCTSTR</b> Address of a null-terminated string to compare with the item text. It is valid only if
     ///LVFI_STRING or LVFI_PARTIAL is set in the <b>flags</b> member.
-    const(char)* psz;
+    const(PSTR) psz;
     ///Type: <b>LPARAM</b> Value to compare with the <b>lParam</b> member of a list-view item's LVITEM structure. It is
     ///valid only if LVFI_PARAM is set in the <b>flags</b> member.
-    LPARAM       lParam;
+    LPARAM      lParam;
     ///Type: <b>POINT</b> POINT structure with the initial search position. It is valid only if LVFI_NEARESTXY is set in
     ///the <b>flags</b> member.
-    POINT        pt;
+    POINT       pt;
     ///Type: <b>UINT</b> Virtual key code that specifies the direction to search. The following codes are supported:
     ///<ul> <li>VK_LEFT </li> <li>VK_RIGHT </li> <li>VK_UP </li> <li>VK_DOWN </li> <li>VK_HOME </li> <li>VK_END </li>
     ///<li>VK_PRIOR </li> <li>VK_NEXT </li> </ul> This member is valid only if LVFI_NEARESTXY is set in the <b>flags</b>
     ///member.
-    uint         vkDirection;
+    uint        vkDirection;
 }
 
 ///Contains information used when searching for a list-view item. This structure is identical to LV_FINDINFO but has
@@ -4832,21 +5281,21 @@ struct LVFINDINFOW
     ///the <b>pt</b> member, in the direction specified by the <b>vkDirection</b> member. This flag is supported only by
     ///large icon and small icon modes. If LVFI_NEARESTXY is specified, all other flags are ignored. </td> </tr>
     ///</table>
-    uint          flags;
+    uint         flags;
     ///Type: <b>LPCTSTR</b> Address of a null-terminated string to compare with the item text. It is valid only if
     ///LVFI_STRING or LVFI_PARTIAL is set in the <b>flags</b> member.
-    const(wchar)* psz;
+    const(PWSTR) psz;
     ///Type: <b>LPARAM</b> Value to compare with the <b>lParam</b> member of a list-view item's LVITEM structure. It is
     ///valid only if LVFI_PARAM is set in the <b>flags</b> member.
-    LPARAM        lParam;
+    LPARAM       lParam;
     ///Type: <b>POINT</b> POINT structure with the initial search position. It is valid only if LVFI_NEARESTXY is set in
     ///the <b>flags</b> member.
-    POINT         pt;
+    POINT        pt;
     ///Type: <b>UINT</b> Virtual key code that specifies the direction to search. The following codes are supported:
     ///<ul> <li>VK_LEFT </li> <li>VK_RIGHT </li> <li>VK_UP </li> <li>VK_DOWN </li> <li>VK_HOME </li> <li>VK_END </li>
     ///<li>VK_PRIOR </li> <li>VK_NEXT </li> </ul> This member is valid only if LVFI_NEARESTXY is set in the <b>flags</b>
     ///member.
-    uint          vkDirection;
+    uint         vkDirection;
 }
 
 ///Contains information about a hit test. This structure has been extended to accommodate subitem hit-testing. It is
@@ -4934,7 +5383,7 @@ struct LVCOLUMNA
     ///width="40%"><a id="LVCF_IDEALWIDTH"></a><a id="lvcf_idealwidth"></a><dl> <dt><b>LVCF_IDEALWIDTH</b></dt> </dl>
     ///</td> <td width="60%"> Version 6.00 and <b>Windows Vista.</b>The <b>cxIdeal</b> member is valid. </td> </tr>
     ///</table>
-    uint         mask;
+    uint mask;
     ///Type: <b>int</b> Alignment of the column header and the subitem text in the column. The alignment of the leftmost
     ///column is always LVCFMT_LEFT; it cannot be changed. This member can be a combination of the following values.
     ///Note that not all combinations are valid. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td
@@ -4965,32 +5414,32 @@ struct LVCOLUMNA
     ///<dt><b>LVCFMT_SPLITBUTTON</b></dt> </dl> </td> <td width="60%"> Version 6.00 and <b>Windows Vista.</b> Column is
     ///a split button (same as HDF_SPLITBUTTON). The header of the column displays a split button (same as
     ///HDF_SPLITBUTTON). </td> </tr> </table>
-    int          fmt;
+    int  fmt;
     ///Type: <b>int</b> Width of the column, in pixels.
-    int          cx;
+    int  cx;
     ///Type: <b>LPTSTR</b> If column information is being set, this member is the address of a null-terminated string
     ///that contains the column header text. If the structure is receiving information about a column, this member
     ///specifies the address of the buffer that receives the column header text.
-    const(char)* pszText;
+    PSTR pszText;
     ///Type: <b>int</b> Size in <b>TCHAR</b>s of the buffer pointed to by the <b>pszText</b> member. If the structure is
     ///not receiving information about a column, this member is ignored.
-    int          cchTextMax;
+    int  cchTextMax;
     ///Type: <b>int</b> Index of subitem associated with the column.
-    int          iSubItem;
+    int  iSubItem;
     ///Type: <b>int</b> Version 4.70. Zero-based index of an image within the image list. The specified image will
     ///appear within the column.
-    int          iImage;
+    int  iImage;
     ///Type: <b>int</b> Version 4.70. Zero-based column offset. Column offset is in left-to-right order. For example,
     ///zero indicates the leftmost column.
-    int          iOrder;
+    int  iOrder;
     ///Type: <b>int</b> <b>Windows Vista</b>. Minimum width of the column in pixels.
-    int          cxMin;
+    int  cxMin;
     ///Type: <b>int</b> <b>Windows Vista</b>. Application-defined value typically used to store the default width of the
     ///column. This member is ignored by the list-view control.
-    int          cxDefault;
+    int  cxDefault;
     ///Type: <b>int</b> <b>Windows Vista</b>. Read-only. The ideal width of the column in pixels, as the column may
     ///currently be autosized to a lesser width.
-    int          cxIdeal;
+    int  cxIdeal;
 }
 
 ///Contains information about a column in report view. This structure is used both for creating and manipulating
@@ -5016,7 +5465,7 @@ struct LVCOLUMNW
     ///width="40%"><a id="LVCF_IDEALWIDTH"></a><a id="lvcf_idealwidth"></a><dl> <dt><b>LVCF_IDEALWIDTH</b></dt> </dl>
     ///</td> <td width="60%"> Version 6.00 and <b>Windows Vista.</b>The <b>cxIdeal</b> member is valid. </td> </tr>
     ///</table>
-    uint          mask;
+    uint  mask;
     ///Type: <b>int</b> Alignment of the column header and the subitem text in the column. The alignment of the leftmost
     ///column is always LVCFMT_LEFT; it cannot be changed. This member can be a combination of the following values.
     ///Note that not all combinations are valid. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td
@@ -5047,32 +5496,32 @@ struct LVCOLUMNW
     ///<dt><b>LVCFMT_SPLITBUTTON</b></dt> </dl> </td> <td width="60%"> Version 6.00 and <b>Windows Vista.</b> Column is
     ///a split button (same as HDF_SPLITBUTTON). The header of the column displays a split button (same as
     ///HDF_SPLITBUTTON). </td> </tr> </table>
-    int           fmt;
+    int   fmt;
     ///Type: <b>int</b> Width of the column, in pixels.
-    int           cx;
+    int   cx;
     ///Type: <b>LPTSTR</b> If column information is being set, this member is the address of a null-terminated string
     ///that contains the column header text. If the structure is receiving information about a column, this member
     ///specifies the address of the buffer that receives the column header text.
-    const(wchar)* pszText;
+    PWSTR pszText;
     ///Type: <b>int</b> Size in <b>TCHAR</b>s of the buffer pointed to by the <b>pszText</b> member. If the structure is
     ///not receiving information about a column, this member is ignored.
-    int           cchTextMax;
+    int   cchTextMax;
     ///Type: <b>int</b> Index of subitem associated with the column.
-    int           iSubItem;
+    int   iSubItem;
     ///Type: <b>int</b> Version 4.70. Zero-based index of an image within the image list. The specified image will
     ///appear within the column.
-    int           iImage;
+    int   iImage;
     ///Type: <b>int</b> Version 4.70. Zero-based column offset. Column offset is in left-to-right order. For example,
     ///zero indicates the leftmost column.
-    int           iOrder;
+    int   iOrder;
     ///Type: <b>int</b> <b>Windows Vista</b>. Minimum width of the column in pixels.
-    int           cxMin;
+    int   cxMin;
     ///Type: <b>int</b> <b>Windows Vista</b>. Application-defined value typically used to store the default width of the
     ///column. This member is ignored by the list-view control.
-    int           cxDefault;
+    int   cxDefault;
     ///Type: <b>int</b> <b>Windows Vista</b>. Read-only. The ideal width of the column in pixels, as the column may
     ///currently be autosized to a lesser width.
-    int           cxIdeal;
+    int   cxIdeal;
 }
 
 ///Contains information about the background image of a list-view control. This structure is used for both setting and
@@ -5108,17 +5557,17 @@ struct LVBKIMAGEA
     ///<dt><b>LVBKIF_FLAG_ALPHABLEND</b></dt> </dl> </td> <td width="60%"> Valid only when LVBKIF_TYPE_WATERMARK is also
     ///specified. This flag indicates the bitmap provided via LVBKIF_TYPE_WATERMARK contains a valid alpha channel.
     ///</td> </tr> </table>
-    uint         ulFlags;
+    uint    ulFlags;
     ///Type: <b>HBITMAP</b> The handle of the background bitmap. This member is valid only if the
     ///<b>LVBKIF_SOURCE_HBITMAP</b> flag is set in <b>ulFlags</b>.
-    HBITMAP      hbm;
+    HBITMAP hbm;
     ///Type: <b>LPTSTR</b> Address of a NULL-terminated string that contains the URL of the background image. This
     ///member is valid only if the <b>LVBKIF_SOURCE_URL</b> flag is set in <b>ulFlags</b>. This member must be
     ///initialized to point to the buffer that contains or receives the text before sending the message.
-    const(char)* pszImage;
+    PSTR    pszImage;
     ///Type: <b>UINT</b> Size of the buffer at the address in <b>pszImage</b>. If information is being sent to the
     ///control, this member is ignored.
-    uint         cchImageMax;
+    uint    cchImageMax;
     ///Type: <b>int</b> Percentage of the control's client area that the image should be offset horizontally. For
     ///example, at 0 percent, the image will be displayed against the left edge of the control's client area. At 50
     ///percent, the image will be displayed horizontally centered in the control's client area. At 100 percent, the
@@ -5126,7 +5575,7 @@ struct LVBKIMAGEA
     ///<b>LVBKIF_STYLE_NORMAL</b> is specified in <b>ulFlags</b>. If both <b>LVBKIF_FLAG_TILEOFFSET</b> and
     ///<b>LVBKIF_STYLE_TILE</b> are specified in <b>ulFlags</b>, then the value specifies the pixel, not percentage
     ///offset, of the first tile. Otherwise, the value is ignored.
-    int          xOffsetPercent;
+    int     xOffsetPercent;
     ///Type: <b>int</b> Percentage of the control's client area that the image should be offset vertically. For example,
     ///at 0 percent, the image will be displayed against the top edge of the control's client area. At 50 percent, the
     ///image will be displayed vertically centered in the control's client area. At 100 percent, the image will be
@@ -5134,7 +5583,7 @@ struct LVBKIMAGEA
     ///<b>LVBKIF_STYLE_NORMAL</b> is specified in <b>ulFlags</b>. If both <b>LVBKIF_FLAG_TILEOFFSET</b> and
     ///<b>LVBKIF_STYLE_TILE</b> are specified in <b>ulFlags</b>, then the value specifies the pixel, not percentage
     ///offset, of the first tile. Otherwise, the value is ignored.
-    int          yOffsetPercent;
+    int     yOffsetPercent;
 }
 
 ///Contains information about the background image of a list-view control. This structure is used for both setting and
@@ -5170,17 +5619,17 @@ struct LVBKIMAGEW
     ///<dt><b>LVBKIF_FLAG_ALPHABLEND</b></dt> </dl> </td> <td width="60%"> Valid only when LVBKIF_TYPE_WATERMARK is also
     ///specified. This flag indicates the bitmap provided via LVBKIF_TYPE_WATERMARK contains a valid alpha channel.
     ///</td> </tr> </table>
-    uint          ulFlags;
+    uint    ulFlags;
     ///Type: <b>HBITMAP</b> The handle of the background bitmap. This member is valid only if the
     ///<b>LVBKIF_SOURCE_HBITMAP</b> flag is set in <b>ulFlags</b>.
-    HBITMAP       hbm;
+    HBITMAP hbm;
     ///Type: <b>LPTSTR</b> Address of a NULL-terminated string that contains the URL of the background image. This
     ///member is valid only if the <b>LVBKIF_SOURCE_URL</b> flag is set in <b>ulFlags</b>. This member must be
     ///initialized to point to the buffer that contains or receives the text before sending the message.
-    const(wchar)* pszImage;
+    PWSTR   pszImage;
     ///Type: <b>UINT</b> Size of the buffer at the address in <b>pszImage</b>. If information is being sent to the
     ///control, this member is ignored.
-    uint          cchImageMax;
+    uint    cchImageMax;
     ///Type: <b>int</b> Percentage of the control's client area that the image should be offset horizontally. For
     ///example, at 0 percent, the image will be displayed against the left edge of the control's client area. At 50
     ///percent, the image will be displayed horizontally centered in the control's client area. At 100 percent, the
@@ -5188,7 +5637,7 @@ struct LVBKIMAGEW
     ///<b>LVBKIF_STYLE_NORMAL</b> is specified in <b>ulFlags</b>. If both <b>LVBKIF_FLAG_TILEOFFSET</b> and
     ///<b>LVBKIF_STYLE_TILE</b> are specified in <b>ulFlags</b>, then the value specifies the pixel, not percentage
     ///offset, of the first tile. Otherwise, the value is ignored.
-    int           xOffsetPercent;
+    int     xOffsetPercent;
     ///Type: <b>int</b> Percentage of the control's client area that the image should be offset vertically. For example,
     ///at 0 percent, the image will be displayed against the top edge of the control's client area. At 50 percent, the
     ///image will be displayed vertically centered in the control's client area. At 100 percent, the image will be
@@ -5196,14 +5645,14 @@ struct LVBKIMAGEW
     ///<b>LVBKIF_STYLE_NORMAL</b> is specified in <b>ulFlags</b>. If both <b>LVBKIF_FLAG_TILEOFFSET</b> and
     ///<b>LVBKIF_STYLE_TILE</b> are specified in <b>ulFlags</b>, then the value specifies the pixel, not percentage
     ///offset, of the first tile. Otherwise, the value is ignored.
-    int           yOffsetPercent;
+    int     yOffsetPercent;
 }
 
 ///Used to set and retrieve groups.
 struct LVGROUP
 {
     ///Type: <b>UINT</b> Size of this structure, in bytes.
-    uint          cbSize;
+    uint  cbSize;
     ///Type: <b>UINT</b> Mask that specifies which members of the structure are valid input. One or more of the
     ///following values: <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="LVGF_NONE"></a><a id="lvgf_none"></a><dl> <dt><b>LVGF_NONE</b></dt> </dl> </td> <td width="60%"> No other
@@ -5231,26 +5680,26 @@ struct LVGROUP
     ///<dt>LVGF_SUBSET</dt> </dl> </td> <td width="60%"> Version 6.00 and later. The <b>pszSubsetTitle</b> member is
     ///valid. </td> </tr> <tr> <td width="40%"><a id=""></a><dl> <dt><b></b></dt> <dt>LVGF_SUBSETITEMS</dt> </dl> </td>
     ///<td width="60%"> Version 6.00 and later. The <b>cchSubsetTitle</b> member is valid. </td> </tr> </table>
-    uint          mask;
+    uint  mask;
     ///Type: <b>LPWSTR</b> Pointer to a null-terminated string that contains the header text when item information is
     ///being set. If group information is being retrieved, this member specifies the address of the buffer that receives
     ///the header text.
-    const(wchar)* pszHeader;
+    PWSTR pszHeader;
     ///Type: <b>int</b> Size in <b>TCHAR</b>s of the buffer pointed to by the <b>pszHeader</b> member. If the structure
     ///is not receiving information about a group, this member is ignored.
-    int           cchHeader;
+    int   cchHeader;
     ///Type: <b>LPWSTR</b> Pointer to a null-terminated string that contains the footer text when item information is
     ///being set. If group information is being retrieved, this member specifies the address of the buffer that receives
     ///the footer text.
-    const(wchar)* pszFooter;
+    PWSTR pszFooter;
     ///Type: <b>int</b> Size in <b>TCHAR</b>s of the buffer pointed to by the <b>pszFooter</b> member. If the structure
     ///is not receiving information about a group, this member is ignored.
-    int           cchFooter;
+    int   cchFooter;
     ///Type: <b>int</b> ID of the group.
-    int           iGroupId;
+    int   iGroupId;
     ///Type: <b>UINT</b> Mask used with LVM_GETGROUPINFO and LVM_SETGROUPINFO to specify which flags in the <b>state</b>
     ///value are being retrieved or set.
-    uint          stateMask;
+    uint  stateMask;
     ///Type: <b>UINT</b> Flag that can have one of the following values: <table> <tr> <th>Value</th> <th>Meaning</th>
     ///</tr> <tr> <td width="40%"><a id=""></a><dl> <dt><b></b></dt> <dt>LVGS_NORMAL</dt> </dl> </td> <td width="60%">
     ///Groups are expanded, the group name is displayed, and all items in the group are displayed. </td> </tr> <tr> <td
@@ -5267,7 +5716,7 @@ struct LVGROUP
     ///Version 6.00 and later. The group displays only a portion of its items. </td> </tr> <tr> <td width="40%"><a
     ///id=""></a><dl> <dt><b></b></dt> <dt>LVGS_SUBSETLINKFOCUSED</dt> </dl> </td> <td width="60%"> Version 6.00 and
     ///later. The subset link of the group has keyboard focus. </td> </tr> </table>
-    uint          state;
+    uint  state;
     ///Type: <b>UINT</b> Indicates the alignment of the header or footer text for the group. It can have one or more of
     ///the following values. Use one of the header flags. Footer flags are optional. <table> <tr> <th>Value</th>
     ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id=""></a><dl> <dt><b></b></dt> <dt>LVGA_FOOTER_CENTER</dt> </dl>
@@ -5281,53 +5730,53 @@ struct LVGROUP
     ///the left of the window. </td> </tr> <tr> <td width="40%"><a id=""></a><dl> <dt><b></b></dt>
     ///<dt>LVGA_HEADER_RIGHT</dt> </dl> </td> <td width="60%"> Header text is aligned at the right of the window. </td>
     ///</tr> </table>
-    uint          uAlign;
+    uint  uAlign;
     ///Type: <b>LPWSTR</b> Pointer to a null-terminated string that contains the subtitle text when item information is
     ///being set. If group information is being retrieved, this member specifies the address of the buffer that receives
     ///the subtitle text. This element is drawn under the header text.
-    const(wchar)* pszSubtitle;
+    PWSTR pszSubtitle;
     ///Type: <b>UINT</b> Size, in <b>TCHAR</b>s, of the buffer pointed to by the <b>pszSubtitle</b> member. If the
     ///structure is not receiving information about a group, this member is ignored.
-    uint          cchSubtitle;
+    uint  cchSubtitle;
     ///Type: <b>LPWSTR</b> Pointer to a null-terminated string that contains the text for a task link when item
     ///information is being set. If group information is being retrieved, this member specifies the address of the
     ///buffer that receives the task text. This item is drawn right-aligned opposite the header text. When clicked by
     ///the user, the task link generates an LVN_LINKCLICK notification.
-    const(wchar)* pszTask;
+    PWSTR pszTask;
     ///Type: <b>UINT</b> Size in <b>TCHAR</b>s of the buffer pointed to by the <b>pszTask</b> member. If the structure
     ///is not receiving information about a group, this member is ignored.
-    uint          cchTask;
+    uint  cchTask;
     ///Type: <b>LPWSTR</b> Pointer to a null-terminated string that contains the top description text when item
     ///information is being set. If group information is being retrieved, this member specifies the address of the
     ///buffer that receives the top description text. This item is drawn opposite the title image when there is a title
     ///image, no extended image, and <b>uAlign</b>==<b>LVGA_HEADER_CENTER</b>.
-    const(wchar)* pszDescriptionTop;
+    PWSTR pszDescriptionTop;
     ///Type: <b>UINT</b> Size in <b>TCHAR</b>s of the buffer pointed to by the <b>pszDescriptionTop</b> member. If the
     ///structure is not receiving information about a group, this member is ignored.
-    uint          cchDescriptionTop;
+    uint  cchDescriptionTop;
     ///Type: <b>LPWSTR</b> Pointer to a null-terminated string that contains the bottom description text when item
     ///information is being set. If group information is being retrieved, this member specifies the address of the
     ///buffer that receives the bottom description text. This item is drawn under the top description text when there is
     ///a title image, no extended image, and <b>uAlign</b>==<b>LVGA_HEADER_CENTER</b>.
-    const(wchar)* pszDescriptionBottom;
+    PWSTR pszDescriptionBottom;
     ///Type: <b>UINT</b> Size in <b>TCHAR</b>s of the buffer pointed to by the <b>pszDescriptionBottom</b> member. If
     ///the structure is not receiving information about a group, this member is ignored.
-    uint          cchDescriptionBottom;
+    uint  cchDescriptionBottom;
     ///Type: <b>int</b> Index of the title image in the control imagelist.
-    int           iTitleImage;
+    int   iTitleImage;
     ///Type: <b>int</b> Index of the extended image in the control imagelist.
-    int           iExtendedImage;
+    int   iExtendedImage;
     ///Type: <b>int</b> Read-only.
-    int           iFirstItem;
+    int   iFirstItem;
     ///Type: <b>UINT</b> Read-only in non-owner data mode.
-    uint          cItems;
+    uint  cItems;
     ///Type: <b>LPWSTR</b> <b>NULL</b> if group is not a subset. Pointer to a null-terminated string that contains the
     ///subset title text when item information is being set. If group information is being retrieved, this member
     ///specifies the address of the buffer that receives the subset title text.
-    const(wchar)* pszSubsetTitle;
+    PWSTR pszSubsetTitle;
     ///Type: <b>UINT</b> Size in <b>TCHAR</b>s of the buffer pointed to by the <b>pszSubsetTitle</b> member. If the
     ///structure is not receiving information about a group, this member is ignored.
-    uint          cchSubsetTitle;
+    uint  cchSubsetTitle;
 }
 
 ///Contains information about the display of groups in a list-view control.
@@ -5451,15 +5900,15 @@ struct LVINSERTMARK
 struct LVSETINFOTIP
 {
     ///Type: <b>UINT</b> Size of the <b>LVSETINFOTIP</b> structure.
-    uint          cbSize;
+    uint  cbSize;
     ///Type: <b>DWORD</b> Flag that specifies how the text should be set. Set to zero.
-    uint          dwFlags;
+    uint  dwFlags;
     ///Type: <b>LPWSTR</b> Pointer to a Unicode string that contains the tooltip text.
-    const(wchar)* pszText;
+    PWSTR pszText;
     ///Type: <b>int</b> Value of type <b>int</b> that contains the zero-based index of the item to which this structure
     ///refers.
-    int           iItem;
-    int           iSubItem;
+    int   iItem;
+    int   iSubItem;
 }
 
 ///Contains information on a footer in a list-view control.
@@ -5467,14 +5916,14 @@ struct LVFOOTERINFO
 {
     ///Type: <b>UINT</b> Set of flags that specify which members of this structure contain data to be set or which
     ///members are being requested. Currently, this value must be LVFF_ITEMCOUNT, for the <b>cItems</b> member.
-    uint          mask;
+    uint  mask;
     ///Type: <b>LPWSTR</b> Not supported. Must be set to zero.
-    const(wchar)* pszText;
+    PWSTR pszText;
     ///Type: <b>int</b> Not supported. Must be set to zero.
-    int           cchTextMax;
+    int   cchTextMax;
     ///Type: <b>UINT</b> The number of items in the footer. When this structure is used to get information, this member
     ///will be set by the message receiver.
-    uint          cItems;
+    uint  cItems;
 }
 
 ///Contains information on a footer item.
@@ -5488,27 +5937,27 @@ struct LVFOOTERITEM
     ///id="LVFIF_STATE"></a><a id="lvfif_state"></a><dl> <dt><b>LVFIF_STATE</b></dt> </dl> </td> <td width="60%"> The
     ///<b>state</b> member is valid input from the caller or is requested and thus should be set by the receiver. </td>
     ///</tr> </table>
-    uint          mask;
+    uint  mask;
     ///Type: <b>int</b> The index of the item.
-    int           iItem;
+    int   iItem;
     ///Type: <b>LPWSTR</b> A pointer to a null-terminated, Unicode buffer. The calling process is responsible for
     ///allocating the buffer.
-    const(wchar)* pszText;
+    PWSTR pszText;
     ///Type: <b>int</b> The number of <b>WCHAR</b><b>s</b> in the buffer pointed to by <b>pszText</b>, including the
     ///terminating <b>NULL</b>.
-    int           cchTextMax;
+    int   cchTextMax;
     ///Type: <b>UINT</b> Indicates the item's state. The <b>stateMask</b> member indicates the valid bits of this
     ///member. Currently, <b>state</b> must be set to the following: <table> <tr> <th>Value</th> <th>Meaning</th> </tr>
     ///<tr> <td width="40%"><a id="LVFIS_FOCUSED"></a><a id="lvfis_focused"></a><dl> <dt><b>LVFIS_FOCUSED</b></dt> </dl>
     ///</td> <td width="60%"> Bit indicating focus state. Set if the item is in focus, otherwise cleared. </td> </tr>
     ///</table>
-    uint          state;
+    uint  state;
     ///Type: <b>UINT</b> Value specifying which bits of the <b>state</b> member will be retrieved or modified.
     ///Currently, this value must be the following: <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td
     ///width="40%"><a id="LVFIS_FOCUSED"></a><a id="lvfis_focused"></a><dl> <dt><b>LVFIS_FOCUSED</b></dt> </dl> </td>
     ///<td width="60%"> The LVFIS_FOCUSED bit of member <b>state</b> is valid. For example, setting this member to
     ///LVFIS_FOCUSED will cause the focus state to be retrieved to member <b>state</b>. </td> </tr> </table>
-    uint          stateMask;
+    uint  stateMask;
 }
 
 ///Contains index information about a list-view item.
@@ -5723,24 +6172,24 @@ struct NMLVLINK
 struct NMLVGETINFOTIPA
 {
     ///Type: <b>NMHDR</b> NMHDR structure that contains information on this notification code.
-    NMHDR        hdr;
+    NMHDR  hdr;
     ///Type: <b>DWORD</b> Either zero or LVGIT_UNFOLDED. See Remarks.
-    uint         dwFlags;
+    uint   dwFlags;
     ///Type: <b>LPTSTR</b> Address of a string buffer that receives any additional text information. If <b>dwFlags</b>
     ///is zero, this member will contain the existing item text. In this case, you should append any additional text
     ///onto the end of this string. The size of this buffer is specified by the <b>cchTextMax</b> structure.
-    const(char)* pszText;
+    PSTR   pszText;
     ///Type: <b>int</b> Size, in characters, of the buffer pointed to by <b>pszText</b>. Although you should never
     ///assume that this buffer will be of any particular size, the INFOTIPSIZE value can be used for design purposes.
-    int          cchTextMax;
+    int    cchTextMax;
     ///Type: <b>int</b> Zero-based index of the item to which this structure refers.
-    int          iItem;
+    int    iItem;
     ///Type: <b>int</b> One-based index of the subitem to which this structure refers. If this member is zero, the
     ///structure is referring to the item and not a subitem. This member is not currently used and will always be zero.
-    int          iSubItem;
+    int    iSubItem;
     ///Type: <b>LPARAM</b> Application-defined value associated with the item. This member is not currently used and
     ///will always be zero.
-    LPARAM       lParam;
+    LPARAM lParam;
 }
 
 ///Contains and receives list-view item information needed to display a tooltip for an item. This structure is used with
@@ -5748,24 +6197,24 @@ struct NMLVGETINFOTIPA
 struct NMLVGETINFOTIPW
 {
     ///Type: <b>NMHDR</b> NMHDR structure that contains information on this notification code.
-    NMHDR         hdr;
+    NMHDR  hdr;
     ///Type: <b>DWORD</b> Either zero or LVGIT_UNFOLDED. See Remarks.
-    uint          dwFlags;
+    uint   dwFlags;
     ///Type: <b>LPTSTR</b> Address of a string buffer that receives any additional text information. If <b>dwFlags</b>
     ///is zero, this member will contain the existing item text. In this case, you should append any additional text
     ///onto the end of this string. The size of this buffer is specified by the <b>cchTextMax</b> structure.
-    const(wchar)* pszText;
+    PWSTR  pszText;
     ///Type: <b>int</b> Size, in characters, of the buffer pointed to by <b>pszText</b>. Although you should never
     ///assume that this buffer will be of any particular size, the INFOTIPSIZE value can be used for design purposes.
-    int           cchTextMax;
+    int    cchTextMax;
     ///Type: <b>int</b> Zero-based index of the item to which this structure refers.
-    int           iItem;
+    int    iItem;
     ///Type: <b>int</b> One-based index of the subitem to which this structure refers. If this member is zero, the
     ///structure is referring to the item and not a subitem. This member is not currently used and will always be zero.
-    int           iSubItem;
+    int    iSubItem;
     ///Type: <b>LPARAM</b> Application-defined value associated with the item. This member is not currently used and
     ///will always be zero.
-    LPARAM        lParam;
+    LPARAM lParam;
 }
 
 ///Provides information about a scrolling operation.
@@ -5833,9 +6282,9 @@ struct TVITEMA
     ///<b>state</b> and <b>stateMask</b> members are valid. </td> </tr> <tr> <td width="40%"><a id="TVIF_TEXT"></a><a
     ///id="tvif_text"></a><dl> <dt><b>TVIF_TEXT</b></dt> </dl> </td> <td width="60%"> The <b>pszText</b> and
     ///<b>cchTextMax</b> members are valid. </td> </tr> </table>
-    uint         mask;
+    uint       mask;
     ///Type: <b>HTREEITEM</b> Handle to the item.
-    _TREEITEM*   hItem;
+    _TREEITEM* hItem;
     ///Type: <b>UINT</b> Set of bit flags and image list indexes that indicate the item's state. When setting the state
     ///of an item, the <b>stateMask</b> member indicates the valid bits of this member. When retrieving the state of an
     ///item, this member returns the current state for the bits indicated in the <b>stateMask</b> member. Bits 0 through
@@ -5852,13 +6301,13 @@ struct TVITEMA
     ///item has no state image, set the index to zero. This convention means that image zero in the state image list
     ///cannot be used as a state image. To isolate bits 12 through 15 of the <b>state</b> member, use the
     ///TVIS_STATEIMAGEMASK mask.
-    uint         state;
+    uint       state;
     ///Type: <b>UINT</b> Bits of the <b>state</b> member that are valid. If you are retrieving an item's state, set the
     ///bits of the <b>stateMask</b> member to indicate the bits to be returned in the <b>state</b> member. If you are
     ///setting an item's state, set the bits of the <b>stateMask</b> member to indicate the bits of the <b>state</b>
     ///member that you want to set. To set or retrieve an item's overlay image index, set the TVIS_OVERLAYMASK bits. To
     ///set or retrieve an item's state image index, set the TVIS_STATEIMAGEMASK bits.
-    uint         stateMask;
+    uint       stateMask;
     ///Type: <b>LPTSTR</b> Pointer to a null-terminated string that contains the item text if the structure specifies
     ///item attributes. If this member is the LPSTR_TEXTCALLBACK value, the parent window is responsible for storing the
     ///name. In this case, the tree-view control sends the parent window a TVN_GETDISPINFO notification code when it
@@ -5866,20 +6315,20 @@ struct TVITEMA
     ///text changes. If the structure is receiving item attributes, this member is the address of the buffer that
     ///receives the item text. Note that although the tree-view control allows any length string to be stored as item
     ///text, only the first 260 characters are displayed.
-    const(char)* pszText;
+    PSTR       pszText;
     ///Type: <b>int</b> Size of the buffer pointed to by the <b>pszText</b> member, in characters. If this structure is
     ///being used to set item attributes, this member is ignored.
-    int          cchTextMax;
+    int        cchTextMax;
     ///Type: <b>int</b> Index in the tree-view control's image list of the icon image to use when the item is in the
     ///nonselected state. If this member is the I_IMAGECALLBACK value, the parent window is responsible for storing the
     ///index. In this case, the tree-view control sends the parent a TVN_GETDISPINFO notification code to retrieve the
     ///index when it needs to display the image.
-    int          iImage;
+    int        iImage;
     ///Type: <b>int</b> Index in the tree-view control's image list of the icon image to use when the item is in the
     ///selected state. If this member is the I_IMAGECALLBACK value, the parent window is responsible for storing the
     ///index. In this case, the tree-view control sends the parent a TVN_GETDISPINFO notification code to retrieve the
     ///index when it needs to display the image.
-    int          iSelectedImage;
+    int        iSelectedImage;
     ///Type: <b>int</b> Flag that indicates whether the item has associated child items. This member can be one of the
     ///following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="zero"></a><a
     ///id="ZERO"></a><dl> <dt><b>zero</b></dt> </dl> </td> <td width="60%"> The item has no child items. </td> </tr>
@@ -5898,9 +6347,9 @@ struct TVITEMA
     ///child items. <div class="alert"><b>Note</b> This flag may not be supported in future versions of Comctl32.dll.
     ///Also, this flag is not defined in commctrl.h. Add the following definition to the source files of your
     ///application to use the flag: ```
-    int          cChildren;
+    int        cChildren;
     ///Type: <b>LPARAM</b> A value to associate with the item.
-    LPARAM       lParam;
+    LPARAM     lParam;
 }
 
 ///Specifies or receives attributes of a tree-view item. This structure is identical to the <b>TV_ITEM</b> structure,
@@ -5927,9 +6376,9 @@ struct TVITEMW
     ///<b>state</b> and <b>stateMask</b> members are valid. </td> </tr> <tr> <td width="40%"><a id="TVIF_TEXT"></a><a
     ///id="tvif_text"></a><dl> <dt><b>TVIF_TEXT</b></dt> </dl> </td> <td width="60%"> The <b>pszText</b> and
     ///<b>cchTextMax</b> members are valid. </td> </tr> </table>
-    uint          mask;
+    uint       mask;
     ///Type: <b>HTREEITEM</b> Handle to the item.
-    _TREEITEM*    hItem;
+    _TREEITEM* hItem;
     ///Type: <b>UINT</b> Set of bit flags and image list indexes that indicate the item's state. When setting the state
     ///of an item, the <b>stateMask</b> member indicates the valid bits of this member. When retrieving the state of an
     ///item, this member returns the current state for the bits indicated in the <b>stateMask</b> member. Bits 0 through
@@ -5946,13 +6395,13 @@ struct TVITEMW
     ///item has no state image, set the index to zero. This convention means that image zero in the state image list
     ///cannot be used as a state image. To isolate bits 12 through 15 of the <b>state</b> member, use the
     ///TVIS_STATEIMAGEMASK mask.
-    uint          state;
+    uint       state;
     ///Type: <b>UINT</b> Bits of the <b>state</b> member that are valid. If you are retrieving an item's state, set the
     ///bits of the <b>stateMask</b> member to indicate the bits to be returned in the <b>state</b> member. If you are
     ///setting an item's state, set the bits of the <b>stateMask</b> member to indicate the bits of the <b>state</b>
     ///member that you want to set. To set or retrieve an item's overlay image index, set the TVIS_OVERLAYMASK bits. To
     ///set or retrieve an item's state image index, set the TVIS_STATEIMAGEMASK bits.
-    uint          stateMask;
+    uint       stateMask;
     ///Type: <b>LPTSTR</b> Pointer to a null-terminated string that contains the item text if the structure specifies
     ///item attributes. If this member is the LPSTR_TEXTCALLBACK value, the parent window is responsible for storing the
     ///name. In this case, the tree-view control sends the parent window a TVN_GETDISPINFO notification code when it
@@ -5960,20 +6409,20 @@ struct TVITEMW
     ///text changes. If the structure is receiving item attributes, this member is the address of the buffer that
     ///receives the item text. Note that although the tree-view control allows any length string to be stored as item
     ///text, only the first 260 characters are displayed.
-    const(wchar)* pszText;
+    PWSTR      pszText;
     ///Type: <b>int</b> Size of the buffer pointed to by the <b>pszText</b> member, in characters. If this structure is
     ///being used to set item attributes, this member is ignored.
-    int           cchTextMax;
+    int        cchTextMax;
     ///Type: <b>int</b> Index in the tree-view control's image list of the icon image to use when the item is in the
     ///nonselected state. If this member is the I_IMAGECALLBACK value, the parent window is responsible for storing the
     ///index. In this case, the tree-view control sends the parent a TVN_GETDISPINFO notification code to retrieve the
     ///index when it needs to display the image.
-    int           iImage;
+    int        iImage;
     ///Type: <b>int</b> Index in the tree-view control's image list of the icon image to use when the item is in the
     ///selected state. If this member is the I_IMAGECALLBACK value, the parent window is responsible for storing the
     ///index. In this case, the tree-view control sends the parent a TVN_GETDISPINFO notification code to retrieve the
     ///index when it needs to display the image.
-    int           iSelectedImage;
+    int        iSelectedImage;
     ///Type: <b>int</b> Flag that indicates whether the item has associated child items. This member can be one of the
     ///following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="zero"></a><a
     ///id="ZERO"></a><dl> <dt><b>zero</b></dt> </dl> </td> <td width="60%"> The item has no child items. </td> </tr>
@@ -5992,9 +6441,9 @@ struct TVITEMW
     ///child items. <div class="alert"><b>Note</b> This flag may not be supported in future versions of Comctl32.dll.
     ///Also, this flag is not defined in commctrl.h. Add the following definition to the source files of your
     ///application to use the flag: ```
-    int           cChildren;
+    int        cChildren;
     ///Type: <b>LPARAM</b> A value to associate with the item.
-    LPARAM        lParam;
+    LPARAM     lParam;
 }
 
 ///Specifies or receives attributes of a tree-view item. This structure is an enhancement to the TVITEM structure. New
@@ -6026,9 +6475,9 @@ struct TVITEMEXA
     ///width="60%"> Version 6.00 and <b>Windows Vista.</b> The <b>uStateEx</b> member is valid. </td> </tr> <tr> <td
     ///width="40%"><a id="TVIF_TEXT"></a><a id="tvif_text"></a><dl> <dt><b>TVIF_TEXT</b></dt> </dl> </td> <td
     ///width="60%"> The <b>pszText</b> and <b>cchTextMax</b> members are valid. </td> </tr> </table>
-    uint         mask;
+    uint       mask;
     ///Type: <b>HTREEITEM</b> Handle to the item.
-    _TREEITEM*   hItem;
+    _TREEITEM* hItem;
     ///Type: <b>UINT</b> Set of bit flags and image list indexes that indicate the item's state. When setting the state
     ///of an item, the <b>stateMask</b> member indicates the valid bits of this member. When retrieving the state of an
     ///item, this member returns the current state for the bits indicated in the <b>stateMask</b> member. For more
@@ -6045,13 +6494,13 @@ struct TVITEMEXA
     ///through 15 appropriately. To indicate that the item has no state image, set the index to zero. This convention
     ///means that image zero in the state image list cannot be used as a state image. To isolate bits 12 through 15 of
     ///The <b>state</b> member, use the TVIS_STATEIMAGEMASK mask.
-    uint         state;
+    uint       state;
     ///Type: <b>UINT</b> Bits of the <b>state</b> member that are valid. If you are retrieving an item's state, set the
     ///bits of the <b>stateMask</b> member to indicate the bits to be returned in the <b>state</b> member. If you are
     ///setting an item's state, set the bits of the <b>stateMask</b> member to indicate the bits of the <b>state</b>
     ///member that you want to set. To set or retrieve an item's overlay image index, set the TVIS_OVERLAYMASK bits. To
     ///set or retrieve an item's state image index, set the TVIS_STATEIMAGEMASK bits.
-    uint         stateMask;
+    uint       stateMask;
     ///Type: <b>LPTSTR</b> Pointer to a null-terminated string that contains the item text if the structure specifies
     ///item attributes. If this member is the LPSTR_TEXTCALLBACK value, the parent window is responsible for storing the
     ///name. In this case, the tree-view control sends the parent window a TVN_GETDISPINFO notification code when it
@@ -6059,20 +6508,20 @@ struct TVITEMEXA
     ///text changes. If the structure is receiving item attributes, this member is the address of the buffer that
     ///receives the item text. Note that although the tree-view control allows any length string to be stored as item
     ///text, only the first 260 characters are displayed.
-    const(char)* pszText;
+    PSTR       pszText;
     ///Type: <b>int</b> Size of the buffer pointed to by the <b>pszText</b> member, in characters. If this structure is
     ///being used to set item attributes, this member is ignored.
-    int          cchTextMax;
+    int        cchTextMax;
     ///Type: <b>int</b> Index in the tree-view control's image list of the icon image to use when the item is in the
     ///nonselected state. If this member is the I_IMAGECALLBACK value, the parent window is responsible for storing the
     ///index. In this case, the tree-view control sends the parent a TVN_GETDISPINFO notification code to retrieve the
     ///index when it needs to display the image.
-    int          iImage;
+    int        iImage;
     ///Type: <b>int</b> Index in the tree-view control's image list of the icon image to use when the item is in the
     ///selected state. If this member is the I_IMAGECALLBACK value, the parent window is responsible for storing the
     ///index. In this case, the tree-view control sends the parent a TVN_GETDISPINFO notification code to retrieve the
     ///index when it needs to display the image.
-    int          iSelectedImage;
+    int        iSelectedImage;
     ///Type: <b>int</b> Flag that indicates whether the item has associated child items. This member can be one of the
     ///following values: <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="zero"></a><a
     ///id="ZERO"></a><dl> <dt><b>zero</b></dt> </dl> </td> <td width="60%"> The item has no child items. </td> </tr>
@@ -6091,15 +6540,15 @@ struct TVITEMEXA
     ///child items. <div class="alert"><b>Note</b> This flag may not be supported in future versions of Comctl32.dll.
     ///Also, this flag is not defined in commctrl.h. Add the following definition to the source files of your
     ///application to use the flag: ```
-    int          cChildren;
+    int        cChildren;
     ///Type: <b>LPARAM</b> A value to associate with the item.
-    LPARAM       lParam;
+    LPARAM     lParam;
     ///Type: <b>int</b> Height of the item, in multiples of the standard item height (see TVM_SETITEMHEIGHT). For
     ///example, setting this member to 2 will give the item twice the standard height. The tree-view control does not
     ///draw in the extra area, which appears below the item content, but this space can be used by the application for
     ///drawing when using custom draw. Applications that are not using custom draw should set this value to 1, as
     ///otherwise the behavior is undefined.
-    int          iIntegral;
+    int        iIntegral;
     ///Type: <b>UINT</b> <b>Internet Explorer 6 and later</b>. One or more (as a bitwise combination) of the following
     ///extended states. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="TVIS_EX_DISABLED"></a><a id="tvis_ex_disabled"></a><dl> <dt><b>TVIS_EX_DISABLED</b></dt> </dl> </td> <td
@@ -6110,14 +6559,14 @@ struct TVITEMEXA
     ///adding an item to the tree-view control. </td> </tr> <tr> <td width="40%"><a id="TVIS_EX_HWND"></a><a
     ///id="tvis_ex_hwnd"></a><dl> <dt><b>TVIS_EX_HWND</b></dt> </dl> </td> <td width="60%"> Creates a separate HWND for
     ///the item. This state is valid only when adding an item to the tree-view control. </td> </tr> </table>
-    uint         uStateEx;
+    uint       uStateEx;
     ///Type: <b>HWND</b> <b>Internet Explorer 6 and later</b>. Not used; must be <b>NULL</b>.
-    HWND         hwnd;
+    HWND       hwnd;
     ///Type: <b>int</b> <b>Internet Explorer 6 and later</b>. Index of the image in the control's image list to display
     ///when the item is in the expanded state.
-    int          iExpandedImage;
+    int        iExpandedImage;
     ///Type: <b>int</b> Reserved member. Do not use.
-    int          iReserved;
+    int        iReserved;
 }
 
 ///Specifies or receives attributes of a tree-view item. This structure is an enhancement to the TVITEM structure. New
@@ -6149,9 +6598,9 @@ struct TVITEMEXW
     ///width="60%"> Version 6.00 and <b>Windows Vista.</b> The <b>uStateEx</b> member is valid. </td> </tr> <tr> <td
     ///width="40%"><a id="TVIF_TEXT"></a><a id="tvif_text"></a><dl> <dt><b>TVIF_TEXT</b></dt> </dl> </td> <td
     ///width="60%"> The <b>pszText</b> and <b>cchTextMax</b> members are valid. </td> </tr> </table>
-    uint          mask;
+    uint       mask;
     ///Type: <b>HTREEITEM</b> Handle to the item.
-    _TREEITEM*    hItem;
+    _TREEITEM* hItem;
     ///Type: <b>UINT</b> Set of bit flags and image list indexes that indicate the item's state. When setting the state
     ///of an item, the <b>stateMask</b> member indicates the valid bits of this member. When retrieving the state of an
     ///item, this member returns the current state for the bits indicated in the <b>stateMask</b> member. For more
@@ -6168,13 +6617,13 @@ struct TVITEMEXW
     ///through 15 appropriately. To indicate that the item has no state image, set the index to zero. This convention
     ///means that image zero in the state image list cannot be used as a state image. To isolate bits 12 through 15 of
     ///The <b>state</b> member, use the TVIS_STATEIMAGEMASK mask.
-    uint          state;
+    uint       state;
     ///Type: <b>UINT</b> Bits of the <b>state</b> member that are valid. If you are retrieving an item's state, set the
     ///bits of the <b>stateMask</b> member to indicate the bits to be returned in the <b>state</b> member. If you are
     ///setting an item's state, set the bits of the <b>stateMask</b> member to indicate the bits of the <b>state</b>
     ///member that you want to set. To set or retrieve an item's overlay image index, set the TVIS_OVERLAYMASK bits. To
     ///set or retrieve an item's state image index, set the TVIS_STATEIMAGEMASK bits.
-    uint          stateMask;
+    uint       stateMask;
     ///Type: <b>LPTSTR</b> Pointer to a null-terminated string that contains the item text if the structure specifies
     ///item attributes. If this member is the LPSTR_TEXTCALLBACK value, the parent window is responsible for storing the
     ///name. In this case, the tree-view control sends the parent window a TVN_GETDISPINFO notification code when it
@@ -6182,20 +6631,20 @@ struct TVITEMEXW
     ///text changes. If the structure is receiving item attributes, this member is the address of the buffer that
     ///receives the item text. Note that although the tree-view control allows any length string to be stored as item
     ///text, only the first 260 characters are displayed.
-    const(wchar)* pszText;
+    PWSTR      pszText;
     ///Type: <b>int</b> Size of the buffer pointed to by the <b>pszText</b> member, in characters. If this structure is
     ///being used to set item attributes, this member is ignored.
-    int           cchTextMax;
+    int        cchTextMax;
     ///Type: <b>int</b> Index in the tree-view control's image list of the icon image to use when the item is in the
     ///nonselected state. If this member is the I_IMAGECALLBACK value, the parent window is responsible for storing the
     ///index. In this case, the tree-view control sends the parent a TVN_GETDISPINFO notification code to retrieve the
     ///index when it needs to display the image.
-    int           iImage;
+    int        iImage;
     ///Type: <b>int</b> Index in the tree-view control's image list of the icon image to use when the item is in the
     ///selected state. If this member is the I_IMAGECALLBACK value, the parent window is responsible for storing the
     ///index. In this case, the tree-view control sends the parent a TVN_GETDISPINFO notification code to retrieve the
     ///index when it needs to display the image.
-    int           iSelectedImage;
+    int        iSelectedImage;
     ///Type: <b>int</b> Flag that indicates whether the item has associated child items. This member can be one of the
     ///following values: <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="zero"></a><a
     ///id="ZERO"></a><dl> <dt><b>zero</b></dt> </dl> </td> <td width="60%"> The item has no child items. </td> </tr>
@@ -6214,15 +6663,15 @@ struct TVITEMEXW
     ///child items. <div class="alert"><b>Note</b> This flag may not be supported in future versions of Comctl32.dll.
     ///Also, this flag is not defined in commctrl.h. Add the following definition to the source files of your
     ///application to use the flag: ```
-    int           cChildren;
+    int        cChildren;
     ///Type: <b>LPARAM</b> A value to associate with the item.
-    LPARAM        lParam;
+    LPARAM     lParam;
     ///Type: <b>int</b> Height of the item, in multiples of the standard item height (see TVM_SETITEMHEIGHT). For
     ///example, setting this member to 2 will give the item twice the standard height. The tree-view control does not
     ///draw in the extra area, which appears below the item content, but this space can be used by the application for
     ///drawing when using custom draw. Applications that are not using custom draw should set this value to 1, as
     ///otherwise the behavior is undefined.
-    int           iIntegral;
+    int        iIntegral;
     ///Type: <b>UINT</b> <b>Internet Explorer 6 and later</b>. One or more (as a bitwise combination) of the following
     ///extended states. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="TVIS_EX_DISABLED"></a><a id="tvis_ex_disabled"></a><dl> <dt><b>TVIS_EX_DISABLED</b></dt> </dl> </td> <td
@@ -6233,14 +6682,14 @@ struct TVITEMEXW
     ///adding an item to the tree-view control. </td> </tr> <tr> <td width="40%"><a id="TVIS_EX_HWND"></a><a
     ///id="tvis_ex_hwnd"></a><dl> <dt><b>TVIS_EX_HWND</b></dt> </dl> </td> <td width="60%"> Creates a separate HWND for
     ///the item. This state is valid only when adding an item to the tree-view control. </td> </tr> </table>
-    uint          uStateEx;
+    uint       uStateEx;
     ///Type: <b>HWND</b> <b>Internet Explorer 6 and later</b>. Not used; must be <b>NULL</b>.
-    HWND          hwnd;
+    HWND       hwnd;
     ///Type: <b>int</b> <b>Internet Explorer 6 and later</b>. Index of the image in the control's image list to display
     ///when the item is in the expanded state.
-    int           iExpandedImage;
+    int        iExpandedImage;
     ///Type: <b>int</b> Reserved member. Do not use.
-    int           iReserved;
+    int        iReserved;
 }
 
 ///Contains information used to add a new item to a tree-view control. This structure is used with the TVM_INSERTITEM
@@ -6261,7 +6710,7 @@ struct TVINSERTSTRUCTA
     ///id="tvi_sort"></a><dl> <dt><b>TVI_SORT</b></dt> </dl> </td> <td width="60%"> Inserts the item into the list in
     ///alphabetical order. </td> </tr> </table>
     _TREEITEM* hInsertAfter;
-    union
+union
     {
         TVITEMEXA itemex;
         TVITEMA   item;
@@ -6286,7 +6735,7 @@ struct TVINSERTSTRUCTW
     ///id="tvi_sort"></a><dl> <dt><b>TVI_SORT</b></dt> </dl> </td> <td width="60%"> Inserts the item into the list in
     ///alphabetical order. </td> </tr> </table>
     _TREEITEM* hInsertAfter;
-    union
+union
     {
         TVITEMEXW itemex;
         TVITEMW   item;
@@ -6500,18 +6949,18 @@ struct NMTVCUSTOMDRAW
 struct NMTVGETINFOTIPA
 {
     ///Type: <b>NMHDR</b> NMHDR structure that contains information about this notification.
-    NMHDR        hdr;
+    NMHDR      hdr;
     ///Type: <b>LPTSTR</b> Address of a character buffer that contains the text to be displayed. If you want to change
     ///the text displayed in the tooltip, you will need to modify the contents of this buffer. The size of this buffer
     ///is specified by the <b>cchTextMax</b> structure.
-    const(char)* pszText;
+    PSTR       pszText;
     ///Type: <b>int</b> Size of the buffer at <b>pszText</b>, in characters. Although you should never assume that this
     ///buffer will be of any particular size, the INFOTIPSIZE value can be used for design purposes.
-    int          cchTextMax;
+    int        cchTextMax;
     ///Type: <b>HTREEITEM</b> Tree handle to the item for which the tooltip is being displayed.
-    _TREEITEM*   hItem;
+    _TREEITEM* hItem;
     ///Type: <b>LPARAM</b> Application-defined data associated with the item for which the tooltip is being displayed.
-    LPARAM       lParam;
+    LPARAM     lParam;
 }
 
 ///Contains and receives tree-view item information needed to display a tooltip for an item. This structure is used with
@@ -6519,18 +6968,18 @@ struct NMTVGETINFOTIPA
 struct NMTVGETINFOTIPW
 {
     ///Type: <b>NMHDR</b> NMHDR structure that contains information about this notification.
-    NMHDR         hdr;
+    NMHDR      hdr;
     ///Type: <b>LPTSTR</b> Address of a character buffer that contains the text to be displayed. If you want to change
     ///the text displayed in the tooltip, you will need to modify the contents of this buffer. The size of this buffer
     ///is specified by the <b>cchTextMax</b> structure.
-    const(wchar)* pszText;
+    PWSTR      pszText;
     ///Type: <b>int</b> Size of the buffer at <b>pszText</b>, in characters. Although you should never assume that this
     ///buffer will be of any particular size, the INFOTIPSIZE value can be used for design purposes.
-    int           cchTextMax;
+    int        cchTextMax;
     ///Type: <b>HTREEITEM</b> Tree handle to the item for which the tooltip is being displayed.
-    _TREEITEM*    hItem;
+    _TREEITEM* hItem;
     ///Type: <b>LPARAM</b> Application-defined data associated with the item for which the tooltip is being displayed.
-    LPARAM        lParam;
+    LPARAM     lParam;
 }
 
 ///Contains information on a tree-view item change. This structure is sent with the TVN_ITEMCHANGED and TVN_ITEMCHANGING
@@ -6608,34 +7057,34 @@ struct COMBOBOXEXITEMA
     ///<b>iSelectedImage</b> member is valid or must be filled in. </td> </tr> <tr> <td width="40%"><a
     ///id="CBEIF_TEXT"></a><a id="cbeif_text"></a><dl> <dt><b>CBEIF_TEXT</b></dt> </dl> </td> <td width="60%"> The
     ///<b>pszText</b> member is valid or must be filled in. </td> </tr> </table>
-    uint         mask;
+    uint      mask;
     ///Type: <b>INT_PTR</b> The zero-based index of the item.
-    ptrdiff_t    iItem;
+    ptrdiff_t iItem;
     ///Type: <b>LPTSTR</b> A pointer to a character buffer that contains or receives the item's text. If text
     ///information is being retrieved, this member must be set to the address of a character buffer that will receive
     ///the text. The size of this buffer must also be indicated in <b>cchTextMax</b>. If this member is set to
     ///LPSTR_TEXTCALLBACK, the control will request the information by using the CBEN_GETDISPINFO notification codes.
-    const(char)* pszText;
+    PSTR      pszText;
     ///Type: <b>int</b> The length of <b>pszText</b>, in <b>TCHAR</b><b>s</b>. If text information is being set, this
     ///member is ignored.
-    int          cchTextMax;
+    int       cchTextMax;
     ///Type: <b>int</b> The zero-based index of an image within the image list. The specified image will be displayed
     ///for the item when it is not selected. If this member is set to I_IMAGECALLBACK, the control will request the
     ///information by using CBEN_GETDISPINFO notification codes.
-    int          iImage;
+    int       iImage;
     ///Type: <b>int</b> The zero-based index of an image within the image list. The specified image will be displayed
     ///for the item when it is selected. If this member is set to I_IMAGECALLBACK, the control will request the
     ///information by using CBEN_GETDISPINFO notification codes.
-    int          iSelectedImage;
+    int       iSelectedImage;
     ///Type: <b>int</b> The one-based index of an overlay image within the image list. If this member is set to
     ///I_IMAGECALLBACK, the control will request the information by using CBEN_GETDISPINFO notification codes.
-    int          iOverlay;
+    int       iOverlay;
     ///Type: <b>int</b> The number of indent spaces to display for the item. Each indentation equals 10 pixels. If this
     ///member is set to I_INDENTCALLBACK, the control will request the information by using CBEN_GETDISPINFO
     ///notification codes.
-    int          iIndent;
+    int       iIndent;
     ///Type: <b>LPARAM</b> A value specific to the item.
-    LPARAM       lParam;
+    LPARAM    lParam;
 }
 
 ///Contains information about an item in a ComboBoxEx control.
@@ -6659,34 +7108,34 @@ struct COMBOBOXEXITEMW
     ///<b>iSelectedImage</b> member is valid or must be filled in. </td> </tr> <tr> <td width="40%"><a
     ///id="CBEIF_TEXT"></a><a id="cbeif_text"></a><dl> <dt><b>CBEIF_TEXT</b></dt> </dl> </td> <td width="60%"> The
     ///<b>pszText</b> member is valid or must be filled in. </td> </tr> </table>
-    uint          mask;
+    uint      mask;
     ///Type: <b>INT_PTR</b> The zero-based index of the item.
-    ptrdiff_t     iItem;
+    ptrdiff_t iItem;
     ///Type: <b>LPTSTR</b> A pointer to a character buffer that contains or receives the item's text. If text
     ///information is being retrieved, this member must be set to the address of a character buffer that will receive
     ///the text. The size of this buffer must also be indicated in <b>cchTextMax</b>. If this member is set to
     ///LPSTR_TEXTCALLBACK, the control will request the information by using the CBEN_GETDISPINFO notification codes.
-    const(wchar)* pszText;
+    PWSTR     pszText;
     ///Type: <b>int</b> The length of <b>pszText</b>, in <b>TCHAR</b><b>s</b>. If text information is being set, this
     ///member is ignored.
-    int           cchTextMax;
+    int       cchTextMax;
     ///Type: <b>int</b> The zero-based index of an image within the image list. The specified image will be displayed
     ///for the item when it is not selected. If this member is set to I_IMAGECALLBACK, the control will request the
     ///information by using CBEN_GETDISPINFO notification codes.
-    int           iImage;
+    int       iImage;
     ///Type: <b>int</b> The zero-based index of an image within the image list. The specified image will be displayed
     ///for the item when it is selected. If this member is set to I_IMAGECALLBACK, the control will request the
     ///information by using CBEN_GETDISPINFO notification codes.
-    int           iSelectedImage;
+    int       iSelectedImage;
     ///Type: <b>int</b> The one-based index of an overlay image within the image list. If this member is set to
     ///I_IMAGECALLBACK, the control will request the information by using CBEN_GETDISPINFO notification codes.
-    int           iOverlay;
+    int       iOverlay;
     ///Type: <b>int</b> The number of indent spaces to display for the item. Each indentation equals 10 pixels. If this
     ///member is set to I_INDENTCALLBACK, the control will request the information by using CBEN_GETDISPINFO
     ///notification codes.
-    int           iIndent;
+    int       iIndent;
     ///Type: <b>LPARAM</b> A value specific to the item.
-    LPARAM        lParam;
+    LPARAM    lParam;
 }
 
 ///Contains information specific to ComboBoxEx items for use with notification codes.
@@ -6801,20 +7250,20 @@ struct TCITEMHEADERA
     ///by <b>pszText</b> will be displayed in the direction opposite to the text in the parent window. </td> </tr> <tr>
     ///<td width="40%"><a id="TCIF_TEXT"></a><a id="tcif_text"></a><dl> <dt><b>TCIF_TEXT</b></dt> </dl> </td> <td
     ///width="60%"> The <b>pszText</b> member is valid. </td> </tr> </table>
-    uint         mask;
+    uint mask;
     ///Type: <b>UINT</b> Reserved member. Do not use.
-    uint         lpReserved1;
+    uint lpReserved1;
     ///Type: <b>UINT</b> Reserved member. Do not use.
-    uint         lpReserved2;
+    uint lpReserved2;
     ///Type: <b>LPTSTR</b> Address of a null-terminated string that contains the tab text if item information is being
     ///set. If item information is being retrieved, this member specifies the address of the buffer that receives the
     ///tab text.
-    const(char)* pszText;
+    PSTR pszText;
     ///Type: <b>int</b> Size of the buffer pointed to by the pszText member. If the structure is not receiving
     ///information, this member is ignored.
-    int          cchTextMax;
+    int  cchTextMax;
     ///Type: <b>int</b> Index into the tab control's image list, or -1 if there is no image for the tab.
-    int          iImage;
+    int  iImage;
 }
 
 ///Specifies or receives the attributes of a tab. It is used with the TCM_INSERTITEM, TCM_GETITEM, and TCM_SETITEM
@@ -6829,20 +7278,20 @@ struct TCITEMHEADERW
     ///by <b>pszText</b> will be displayed in the direction opposite to the text in the parent window. </td> </tr> <tr>
     ///<td width="40%"><a id="TCIF_TEXT"></a><a id="tcif_text"></a><dl> <dt><b>TCIF_TEXT</b></dt> </dl> </td> <td
     ///width="60%"> The <b>pszText</b> member is valid. </td> </tr> </table>
-    uint          mask;
+    uint  mask;
     ///Type: <b>UINT</b> Reserved member. Do not use.
-    uint          lpReserved1;
+    uint  lpReserved1;
     ///Type: <b>UINT</b> Reserved member. Do not use.
-    uint          lpReserved2;
+    uint  lpReserved2;
     ///Type: <b>LPTSTR</b> Address of a null-terminated string that contains the tab text if item information is being
     ///set. If item information is being retrieved, this member specifies the address of the buffer that receives the
     ///tab text.
-    const(wchar)* pszText;
+    PWSTR pszText;
     ///Type: <b>int</b> Size of the buffer pointed to by the pszText member. If the structure is not receiving
     ///information, this member is ignored.
-    int           cchTextMax;
+    int   cchTextMax;
     ///Type: <b>int</b> Index into the tab control's image list, or -1 if there is no image for the tab.
-    int           iImage;
+    int   iImage;
 }
 
 ///Specifies or receives the attributes of a tab item. It is used with the TCM_INSERTITEM, TCM_GETITEM, and TCM_SETITEM
@@ -6861,27 +7310,27 @@ struct TCITEMA
     ///4.70. The <b>dwState</b> member is valid. </td> </tr> <tr> <td width="40%"><a id="TCIF_TEXT"></a><a
     ///id="tcif_text"></a><dl> <dt><b>TCIF_TEXT</b></dt> </dl> </td> <td width="60%"> The <b>pszText</b> member is
     ///valid. </td> </tr> </table>
-    uint         mask;
+    uint   mask;
     ///Type: <b>DWORD</b> Version 4.70. Specifies the item's current state if information is being retrieved. If item
     ///information is being set, this member contains the state value to be set for the item. For a list of valid tab
     ///control item states, see Tab Control Item States. This member is ignored in the TCM_INSERTITEM message.
-    uint         dwState;
+    uint   dwState;
     ///Type: <b>DWORD</b> Version 4.70. Specifies which bits of the <b>dwState</b> member contain valid information.
     ///This member is ignored in the TCM_INSERTITEM message.
-    uint         dwStateMask;
+    uint   dwStateMask;
     ///Type: <b>LPTSTR</b> Pointer to a null-terminated string that contains the tab text when item information is being
     ///set. If item information is being retrieved, this member specifies the address of the buffer that receives the
     ///tab text.
-    const(char)* pszText;
+    PSTR   pszText;
     ///Type: <b>int</b> Size in <b>TCHAR</b><b>s</b> of the buffer pointed to by the <b>pszText</b> member. If the
     ///structure is not receiving information, this member is ignored.
-    int          cchTextMax;
+    int    cchTextMax;
     ///Type: <b>int</b> Index in the tab control's image list, or -1 if there is no image for the tab.
-    int          iImage;
+    int    iImage;
     ///Type: <b>LPARAM</b> Application-defined data associated with the tab control item. If more or less than 4 bytes
     ///of application-defined data exist per tab, an application must define a structure and use it instead of the
     ///<b>TCITEM</b> structure. The first member of the application-defined structure must be a TCITEMHEADER structure.
-    LPARAM       lParam;
+    LPARAM lParam;
 }
 
 ///Specifies or receives the attributes of a tab item. It is used with the TCM_INSERTITEM, TCM_GETITEM, and TCM_SETITEM
@@ -6900,24 +7349,24 @@ struct TCITEMW
     ///4.70. The <b>dwState</b> member is valid. </td> </tr> <tr> <td width="40%"><a id="TCIF_TEXT"></a><a
     ///id="tcif_text"></a><dl> <dt><b>TCIF_TEXT</b></dt> </dl> </td> <td width="60%"> The <b>pszText</b> member is
     ///valid. </td> </tr> </table>
-    uint          mask;
+    uint   mask;
     ///Type: <b>DWORD</b> Version 4.70. Specifies the item's current state if information is being retrieved. If item
     ///information is being set, this member contains the state value to be set for the item. For a list of valid tab
     ///control item states, see Tab Control Item States. This member is ignored in the TCM_INSERTITEM message.
-    uint          dwState;
+    uint   dwState;
     ///Type: <b>DWORD</b> Version 4.70. Specifies which bits of the <b>dwState</b> member contain valid information.
     ///This member is ignored in the TCM_INSERTITEM message.
-    uint          dwStateMask;
+    uint   dwStateMask;
     ///Type: <b>LPTSTR</b> Pointer to a null-terminated string that contains the tab text when item information is being
     ///set. If item information is being retrieved, this member specifies the address of the buffer that receives the
     ///tab text.
-    const(wchar)* pszText;
+    PWSTR  pszText;
     ///Type: <b>int</b> Size in <b>TCHAR</b><b>s</b> of the buffer pointed to by the <b>pszText</b> member. If the
     ///structure is not receiving information, this member is ignored.
-    int           cchTextMax;
+    int    cchTextMax;
     ///Type: <b>int</b> Index in the tab control's image list, or -1 if there is no image for the tab.
-    int           iImage;
-    LPARAM        lParam;
+    int    iImage;
+    LPARAM lParam;
 }
 
 ///Contains information about a hit test. This structure supersedes the <b>TC_HITTESTINFO</b> structure.
@@ -7024,7 +7473,7 @@ struct MCHITTESTINFO
 struct MCGRIDINFO
 {
     ///Type: <b>UINT</b> Size of this structure, in bytes.
-    uint          cbSize;
+    uint       cbSize;
     ///Type: <b>DWORD</b> The part of the calendar control for which information is being requested. One of the
     ///following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
     ///id="MCGIP_CALENDARCONTROL"></a><a id="mcgip_calendarcontrol"></a><dl> <dt><b>MCGIP_CALENDARCONTROL</b></dt> </dl>
@@ -7045,7 +7494,7 @@ struct MCGRIDINFO
     ///width="40%"><a id="MCGIP_CALENDARCELL"></a><a id="mcgip_calendarcell"></a><dl> <dt><b>MCGIP_CALENDARCELL</b></dt>
     ///</dl> </td> <td width="60%"> A given calendar cell. Used with <b>iCalendar</b>, <b>iRow</b>, <b>iCol</b>,
     ///<b>bSelected</b> and <b>pszName</b>. </td> </tr> </table>
-    uint          dwPart;
+    uint       dwPart;
     ///Type: <b>DWORD</b> Indicates what information is to be filled in. A combination of one or more of the following
     ///values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="MCGIF_DATE"></a><a
     ///id="mcgif_date"></a><dl> <dt><b>MCGIF_DATE</b></dt> </dl> </td> <td width="60%"> <b>stStart</b> and <b>stEnd</b>.
@@ -7053,36 +7502,36 @@ struct MCGRIDINFO
     ///</dl> </td> <td width="60%"> <b>rc</b>. </td> </tr> <tr> <td width="40%"><a id="MCGIF_NAME"></a><a
     ///id="mcgif_name"></a><dl> <dt><b>MCGIF_NAME</b></dt> </dl> </td> <td width="60%"> <b>pszName</b>. </td> </tr>
     ///</table>
-    uint          dwFlags;
+    uint       dwFlags;
     ///Type: <b>int</b> If <b>dwPart</b> is MCGIP_CALENDAR, MCGIP_CALENDARHEADER, MCGIP_CALENDARBODY, MCGIP_CALENDARROW,
     ///or MCGIP_CALENDARCELL, this member specifies the index of the calendar for which to retrieve information. For
     ///those parts, this must be a valid value even if there is only one calendar that is currently in the control.
-    int           iCalendar;
+    int        iCalendar;
     ///Type: <b>int</b> If <b>dwPart</b> is MCGIP_CALENDARROW, specifies the row for which to return information.
-    int           iRow;
+    int        iRow;
     ///Type: <b>int</b> If <b>dwPart</b> is MCGIP_CALENDARCELL, specifies the column of the cell for which to return
     ///information. The <b>iRow</b> member provides the row of the cell for which to return information.
-    int           iCol;
+    int        iCol;
     ///Type: <b>BOOL</b> If <b>dwPart</b> is MCGIP_CALENDARCELL, indicates if the cell described by <b>iRow</b> and
     ///<b>iCol</b> is currently selected.
-    BOOL          bSelected;
+    BOOL       bSelected;
     ///Type: <b>SYSTEMTIME</b> Returns the start date specified by iCalendar. Used only when <b>dwFlags</b> contains
     ///MCGIF_DATE.
-    SYSTEMTIME    stStart;
+    SYSTEMTIME stStart;
     ///Type: <b>SYSTEMTIME</b> Returns the end date specified by iCalendar. Used only when <b>dwFlags</b> contains
     ///MCGIF_DATE.
-    SYSTEMTIME    stEnd;
+    SYSTEMTIME stEnd;
     ///Type: <b>RECT</b> Returns the rectangle of the part specified in <b>dwPart</b>. Set only if <b>dwFlags</b>
     ///contains MCGIF_RECT.
-    RECT          rc;
+    RECT       rc;
     ///Type: <b>PWSTR</b> Pointer to a string for which <b>cchName</b> is the length. Set only if <b>dwFlags</b>
     ///contains MCGIF_NAME, and only for the following parts, as described in the <b>dwPart</b> member. <ul>
     ///<li>MCGIP_CALENDAR: Returns the text of the selected dates. In the case of multiple selection, returns the date
     ///at the start of the selection.</li> <li>MCGIP_CALENDARCELL: Returns the text of the cell indicated by <b>iRow</b>
     ///and <b>iCol</b>, for instance "11" if the 11th day was specified.</li> <li>MCGIP_CALENDARHEADER: Returns the text
     ///of what it says in the calendar header, for instance "July, 2006".</li> </ul>
-    const(wchar)* pszName;
-    size_t        cchName;
+    PWSTR      pszName;
+    size_t     cchName;
 }
 
 ///Carries information required to process the MCN_SELCHANGE notification code.
@@ -7176,9 +7625,25 @@ struct NMDATETIMECHANGE
 struct NMDATETIMESTRINGA
 {
     ///Type: <b>NMHDR</b> An NMHDR structure that contains information about this notification code.
+    NMHDR       nmhdr;
+    ///Type: <b>LPCTSTR</b> The address of the zero-terminated string that the user entered.
+    const(PSTR) pszUserString;
+    ///Type: <b>SYSTEMTIME</b> A SYSTEMTIME structure that must be filled in by the owner when handling the
+    ///DTN_USERSTRING notification code.
+    SYSTEMTIME  st;
+    ///Type: <b>DWORD</b> The return field. Set this member to GDT_VALID to indicate that the <b>st</b> member is valid
+    ///or to GDT_NONE to set the control to "no date" status (DTS_SHOWNONE style only).
+    uint        dwFlags;
+}
+
+///Contains information specific to an edit operation that has taken place in a date and time picker (DTP) control. This
+///message is used with the DTN_USERSTRING notification code.
+struct NMDATETIMESTRINGW
+{
+    ///Type: <b>NMHDR</b> An NMHDR structure that contains information about this notification code.
     NMHDR        nmhdr;
     ///Type: <b>LPCTSTR</b> The address of the zero-terminated string that the user entered.
-    const(char)* pszUserString;
+    const(PWSTR) pszUserString;
     ///Type: <b>SYSTEMTIME</b> A SYSTEMTIME structure that must be filled in by the owner when handling the
     ///DTN_USERSTRING notification code.
     SYSTEMTIME   st;
@@ -7187,24 +7652,23 @@ struct NMDATETIMESTRINGA
     uint         dwFlags;
 }
 
-///Contains information specific to an edit operation that has taken place in a date and time picker (DTP) control. This
-///message is used with the DTN_USERSTRING notification code.
-struct NMDATETIMESTRINGW
+///Carries information used to describe and handle a DTN_WMKEYDOWN notification code.
+struct NMDATETIMEWMKEYDOWNA
 {
-    ///Type: <b>NMHDR</b> An NMHDR structure that contains information about this notification code.
-    NMHDR         nmhdr;
-    ///Type: <b>LPCTSTR</b> The address of the zero-terminated string that the user entered.
-    const(wchar)* pszUserString;
-    ///Type: <b>SYSTEMTIME</b> A SYSTEMTIME structure that must be filled in by the owner when handling the
-    ///DTN_USERSTRING notification code.
-    SYSTEMTIME    st;
-    ///Type: <b>DWORD</b> The return field. Set this member to GDT_VALID to indicate that the <b>st</b> member is valid
-    ///or to GDT_NONE to set the control to "no date" status (DTS_SHOWNONE style only).
-    uint          dwFlags;
+    ///Type: <b>NMHDR</b> A NMHDR structure that contains information about the notification code.
+    NMHDR       nmhdr;
+    ///Type: <b>int</b> A virtual key code that represents the key that the user pressed.
+    int         nVirtKey;
+    ///Type: <b>LPCTSTR</b> A zero-terminated substring, taken from the format string, that defines the callback field.
+    ///The substring is one or more "X" characters, followed by a <b>NULL</b>.
+    const(PSTR) pszFormat;
+    ///Type: <b>SYSTEMTIME</b> A SYSTEMTIME structure containing the current date and time from the DTP control. The
+    ///owner of the control must modify the time information based on the user's keystroke.
+    SYSTEMTIME  st;
 }
 
 ///Carries information used to describe and handle a DTN_WMKEYDOWN notification code.
-struct NMDATETIMEWMKEYDOWNA
+struct NMDATETIMEWMKEYDOWNW
 {
     ///Type: <b>NMHDR</b> A NMHDR structure that contains information about the notification code.
     NMHDR        nmhdr;
@@ -7212,25 +7676,10 @@ struct NMDATETIMEWMKEYDOWNA
     int          nVirtKey;
     ///Type: <b>LPCTSTR</b> A zero-terminated substring, taken from the format string, that defines the callback field.
     ///The substring is one or more "X" characters, followed by a <b>NULL</b>.
-    const(char)* pszFormat;
+    const(PWSTR) pszFormat;
     ///Type: <b>SYSTEMTIME</b> A SYSTEMTIME structure containing the current date and time from the DTP control. The
     ///owner of the control must modify the time information based on the user's keystroke.
     SYSTEMTIME   st;
-}
-
-///Carries information used to describe and handle a DTN_WMKEYDOWN notification code.
-struct NMDATETIMEWMKEYDOWNW
-{
-    ///Type: <b>NMHDR</b> A NMHDR structure that contains information about the notification code.
-    NMHDR         nmhdr;
-    ///Type: <b>int</b> A virtual key code that represents the key that the user pressed.
-    int           nVirtKey;
-    ///Type: <b>LPCTSTR</b> A zero-terminated substring, taken from the format string, that defines the callback field.
-    ///The substring is one or more "X" characters, followed by a <b>NULL</b>.
-    const(wchar)* pszFormat;
-    ///Type: <b>SYSTEMTIME</b> A SYSTEMTIME structure containing the current date and time from the DTP control. The
-    ///owner of the control must modify the time information based on the user's keystroke.
-    SYSTEMTIME    st;
 }
 
 ///Contains information about a portion of the format string that defines a callback field within a date and time picker
@@ -7239,22 +7688,22 @@ struct NMDATETIMEWMKEYDOWNW
 struct NMDATETIMEFORMATA
 {
     ///Type: <b>NMHDR</b> An NMHDR structure that contains information about the notification code.
-    NMHDR        nmhdr;
+    NMHDR       nmhdr;
     ///Type: <b>LPCTSTR</b> A pointer to the substring that defines a DTP control callback field. The substring consists
     ///of one or more "X" characters followed by a NULL character. (For more information about callback fields, see
     ///Callback fields.)
-    const(char)* pszFormat;
+    const(PSTR) pszFormat;
     ///Type: <b>SYSTEMTIME</b> A SYSTEMTIME structure that contains the date and time to be formatted.
-    SYSTEMTIME   st;
+    SYSTEMTIME  st;
     ///Type: <b>LPCTSTR</b> A pointer to a null-terminated string that contains the display text of the control. By
     ///default, this is the address of the <b>szDisplay</b> member of this structure. It is acceptable to have
     ///<b>pszDisplay</b> point to an existing string. In this case, you do not need to assign a value to
     ///<b>szDisplay</b>. However, the string that <b>pszDisplay</b> points to must remain valid until another DTN_FORMAT
     ///notification is sent, or until the control is destroyed.
-    const(char)* pszDisplay;
+    const(PSTR) pszDisplay;
     ///Type: <b>TCHAR</b> 64-character buffer that is to receive the zero-terminated string that the DTP control will
     ///display. It is not necessary to fill the entire buffer.
-    byte[64]     szDisplay;
+    byte[64]    szDisplay;
 }
 
 ///Contains information about a portion of the format string that defines a callback field within a date and time picker
@@ -7263,22 +7712,22 @@ struct NMDATETIMEFORMATA
 struct NMDATETIMEFORMATW
 {
     ///Type: <b>NMHDR</b> An NMHDR structure that contains information about the notification code.
-    NMHDR         nmhdr;
+    NMHDR        nmhdr;
     ///Type: <b>LPCTSTR</b> A pointer to the substring that defines a DTP control callback field. The substring consists
     ///of one or more "X" characters followed by a NULL character. (For more information about callback fields, see
     ///Callback fields.)
-    const(wchar)* pszFormat;
+    const(PWSTR) pszFormat;
     ///Type: <b>SYSTEMTIME</b> A SYSTEMTIME structure that contains the date and time to be formatted.
-    SYSTEMTIME    st;
+    SYSTEMTIME   st;
     ///Type: <b>LPCTSTR</b> A pointer to a null-terminated string that contains the display text of the control. By
     ///default, this is the address of the <b>szDisplay</b> member of this structure. It is acceptable to have
     ///<b>pszDisplay</b> point to an existing string. In this case, you do not need to assign a value to
     ///<b>szDisplay</b>. However, the string that <b>pszDisplay</b> points to must remain valid until another DTN_FORMAT
     ///notification is sent, or until the control is destroyed.
-    const(wchar)* pszDisplay;
+    const(PWSTR) pszDisplay;
     ///Type: <b>TCHAR</b> 64-character buffer that is to receive the zero-terminated string that the DTP control will
     ///display. It is not necessary to fill the entire buffer.
-    ushort[64]    szDisplay;
+    ushort[64]   szDisplay;
 }
 
 ///Contains information about a date and time picker (DTP) control callback field. It contains a substring (taken from
@@ -7287,14 +7736,14 @@ struct NMDATETIMEFORMATW
 struct NMDATETIMEFORMATQUERYA
 {
     ///Type: <b>NMHDR</b> An NMHDR structure that contains information about this notification code.
-    NMHDR        nmhdr;
+    NMHDR       nmhdr;
     ///Type: <b>LPCTSTR</b> A pointer to a substring that defines a DTP control callback field. The substring is one or
     ///more "X" characters followed by a <b>NULL</b>. (For additional information about callback fields, see Callback
     ///fields.)
-    const(char)* pszFormat;
+    const(PSTR) pszFormat;
     ///Type: <b>SIZE</b> A SIZE structure that must be filled with the maximum size of the text that will be displayed
     ///in the callback field.
-    SIZE         szMax;
+    SIZE        szMax;
 }
 
 ///Contains information about a date and time picker (DTP) control callback field. It contains a substring (taken from
@@ -7303,14 +7752,14 @@ struct NMDATETIMEFORMATQUERYA
 struct NMDATETIMEFORMATQUERYW
 {
     ///Type: <b>NMHDR</b> An NMHDR structure that contains information about this notification code.
-    NMHDR         nmhdr;
+    NMHDR        nmhdr;
     ///Type: <b>LPCTSTR</b> A pointer to a substring that defines a DTP control callback field. The substring is one or
     ///more "X" characters followed by a <b>NULL</b>. (For additional information about callback fields, see Callback
     ///fields.)
-    const(wchar)* pszFormat;
+    const(PWSTR) pszFormat;
     ///Type: <b>SIZE</b> A SIZE structure that must be filled with the maximum size of the text that will be displayed
     ///in the callback field.
-    SIZE          szMax;
+    SIZE         szMax;
 }
 
 ///Contains information for the IPN_FIELDCHANGED notification code.
@@ -7476,11 +7925,11 @@ struct NMBCDROPDOWN
 struct EDITBALLOONTIP
 {
     ///Type: <b>DWORD</b> A <b>DWORD</b> that contains the size, in bytes, of the structure.
-    uint          cbStruct;
+    uint         cbStruct;
     ///Type: <b>LPCWSTR</b> A pointer to a Unicode string that contains the title of the balloon tip.
-    const(wchar)* pszTitle;
+    const(PWSTR) pszTitle;
     ///Type: <b>LPCWSTR</b> A pointer to a Unicode string that contains the balloon tip text.
-    const(wchar)* pszText;
+    const(PWSTR) pszText;
     ///Type: <b>INT</b> A value of type <b>INT</b> that specifies the type of icon to associate with the balloon tip.
     ///This member can be one of the following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td
     ///width="40%"><a id="TTI_ERROR"></a><a id="tti_error"></a><dl> <dt><b>TTI_ERROR</b></dt> </dl> </td> <td
@@ -7495,7 +7944,7 @@ struct EDITBALLOONTIP
     ///</dl> </td> <td width="60%"> Use the large warning icon. This is assumed to be an HICON value. </td> </tr> <tr>
     ///<td width="40%"><a id="TTI_ERROR_LARGE"></a><a id="tti_error_large"></a><dl> <dt><b>TTI_ERROR_LARGE</b></dt>
     ///</dl> </td> <td width="60%"> Use the large error icon. This is assumed to be an HICON value. </td> </tr> </table>
-    int           ttiIcon;
+    int          ttiIcon;
 }
 
 struct NMSEARCHWEB
@@ -7512,8 +7961,8 @@ struct TASKDIALOG_BUTTON
 {
 align (1):
     ///Type: <b>int</b> Indicates the value to be returned when this button is selected.
-    int           nButtonID;
-    const(wchar)* pszButtonText;
+    int          nButtonID;
+    const(PWSTR) pszButtonText;
 }
 
 ///The <b>TASKDIALOGCONFIG</b> structure contains information used to display a task dialog. The TaskDialogIndirect
@@ -7620,22 +8069,22 @@ align (1):
     ///Type: <b>PCWSTR</b> Pointer that references the string to be used for the task dialog title. This parameter can
     ///be either a null-terminated string or an integer resource identifier passed to the MAKEINTRESOURCE macro. If this
     ///parameter is <b>NULL</b>, the filename of the executable program is used.
-    const(wchar)*        pszWindowTitle;
-    union
+    const(PWSTR)         pszWindowTitle;
+union
     {
     align (1):
-        HICON         hMainIcon;
-        const(wchar)* pszMainIcon;
+        HICON        hMainIcon;
+        const(PWSTR) pszMainIcon;
     }
     ///Type: <b>PCWSTR</b> Pointer that references the string to be used for the main instruction. This parameter can be
     ///either a null-terminated string or an integer resource identifier passed to the MAKEINTRESOURCE macro.
-    const(wchar)*        pszMainInstruction;
+    const(PWSTR)         pszMainInstruction;
     ///Type: <b>PCWSTR</b> Pointer that references the string to be used for the dialog's primary content. This
     ///parameter can be either a null-terminated string or an integer resource identifier passed to the MAKEINTRESOURCE
     ///macro. If the ENABLE_HYPERLINKS flag is specified for the <b>dwFlags</b> member, then this string may contain
     ///hyperlinks in the form: &lt;A HREF="executablestring"&gt;Hyperlink Text&lt;/A&gt;. <b>WARNING: Enabling
     ///hyperlinks when using content from an unsafe source may cause security vulnerabilities.</b>
-    const(wchar)*        pszContent;
+    const(PWSTR)         pszContent;
     ///Type: <b>UINT</b> The number of entries in the <b>pButtons</b> array that is used to create buttons or command
     ///links in the task dialog. If this member is zero and no common buttons have been specified using the
     ///<b>dwCommonButtons</b> member, then the task dialog will have a single <b>OK</b> button displayed.
@@ -7668,7 +8117,7 @@ align (1):
     ///parameter can be either a null-terminated string or an integer resource identifier passed to the MAKEINTRESOURCE
     ///macro. If this parameter is <b>NULL</b>, the verification checkbox is not displayed in the task dialog. If the
     ///<i>pfVerificationFlagChecked</i> parameter of TaskDialogIndirect is <b>NULL</b>, the checkbox is not enabled.
-    const(wchar)*        pszVerificationText;
+    const(PWSTR)         pszVerificationText;
     ///Type: <b>PCWSTR</b> Pointer that references the string to be used for displaying additional information. This
     ///parameter can be either a null-terminated string or an integer resource identifier passed to the MAKEINTRESOURCE
     ///macro. The additional information is displayed either immediately below the content or below the footer text
@@ -7676,31 +8125,31 @@ align (1):
     ///for the <b>dwFlags</b> member, then this string may contain hyperlinks in the form: &lt;A
     ///HREF="executablestring"&gt;Hyperlink Text&lt;/A&gt;. <b>WARNING: Enabling hyperlinks when using content from an
     ///unsafe source may cause security vulnerabilities.</b>
-    const(wchar)*        pszExpandedInformation;
+    const(PWSTR)         pszExpandedInformation;
     ///Type: <b>PCWSTR</b> Pointer that references the string to be used to label the button for collapsing the
     ///expandable information. This parameter can be either a null-terminated string or an integer resource identifier
     ///passed to the MAKEINTRESOURCE macro. This member is ignored when the <b>pszExpandedInformation</b> member is
     ///<b>NULL</b>. If this member is <b>NULL</b> and the <b>pszCollapsedControlText</b> is specified, then the
     ///<b>pszCollapsedControlText</b> value will be used for this member as well.
-    const(wchar)*        pszExpandedControlText;
+    const(PWSTR)         pszExpandedControlText;
     ///Type: <b>PCWSTR</b> Pointer that references the string to be used to label the button for expanding the
     ///expandable information. This parameter can be either a null-terminated string or an integer resource identifier
     ///passed to the MAKEINTRESOURCE macro. This member is ignored when the <b>pszExpandedInformation</b> member is
     ///<b>NULL</b>. If this member is <b>NULL</b> and the <b>pszCollapsedControlText</b> is specified, then the
     ///<b>pszCollapsedControlText</b> value will be used for this member as well.
-    const(wchar)*        pszCollapsedControlText;
-    union
+    const(PWSTR)         pszCollapsedControlText;
+union
     {
     align (1):
-        HICON         hFooterIcon;
-        const(wchar)* pszFooterIcon;
+        HICON        hFooterIcon;
+        const(PWSTR) pszFooterIcon;
     }
     ///Type: <b>PCWSTR</b> Pointer to the string to be used in the footer area of the task dialog. This parameter can be
     ///either a null-terminated string or an integer resource identifier passed to the MAKEINTRESOURCE macro. If the
     ///TDF_ENABLE_HYPERLINKS flag is specified for the <b>dwFlags</b> member, then this string may contain hyperlinks in
     ///this form. ``` <A HREF="executablestring">Hyperlink Text</A> ``` <div class="alert"><b>Warning</b> Enabling
     ///hyperlinks when using content from an unsafe source may cause security vulnerabilities.</div> <div> </div>
-    const(wchar)*        pszFooter;
+    const(PWSTR)         pszFooter;
     ///Type: <b>PFTASKDIALOGCALLBACK</b> Pointer to an application-defined callback function. For more information see
     ///TaskDialogCallbackProc.
     PFTASKDIALOGCALLBACK pfCallback;
@@ -7815,12 +8264,12 @@ struct TABLECELLPARMS
 struct RICHEDIT_IMAGE_PARAMETERS
 {
     ///The width, in HIMETRIC units (0.01 mm), of the image.
-    int           xWidth;
-    int           yHeight;
+    int          xWidth;
+    int          yHeight;
     ///If <i>Type</i> is TA_BASELINE, this parameter is the distance, in HIMETRIC units, that the top of the image
     ///extends above the text baseline. If <i>Type</i> is TA_BASELINE and ascent is zero, the bottom of the image is
     ///placed at the text baseline.
-    int           Ascent;
+    int          Ascent;
     ///The vertical alignment of the image. It can be one of the following values. <table> <tr> <th>Value</th>
     ///<th>Meaning</th> </tr> <tr> <td width="40%"><a id="TA_BASELINE"></a><a id="ta_baseline"></a><dl>
     ///<dt><b>TA_BASELINE</b></dt> </dl> </td> <td width="60%"> Align the image relative to the text baseline. </td>
@@ -7828,11 +8277,11 @@ struct RICHEDIT_IMAGE_PARAMETERS
     ///<td width="60%"> Align the bottom of the image at the bottom of the text line. </td> </tr> <tr> <td
     ///width="40%"><a id="TA_TOP"></a><a id="ta_top"></a><dl> <dt><b>TA_TOP</b></dt> </dl> </td> <td width="60%"> Align
     ///the top of the image at the top of the text line </td> </tr> </table>
-    int           Type;
+    int          Type;
     ///The alternate text for the image.
-    const(wchar)* pwszAlternateText;
+    const(PWSTR) pwszAlternateText;
     ///The stream that contains the image data.
-    IStream       pIStream;
+    IStream      pIStream;
 }
 
 ///Contains information about an EN_ENDCOMPOSITION notification code from a rich edit control.
@@ -8006,7 +8455,7 @@ struct CHARFORMAT2W
     ///macro to create an <b>LCID</b> value. To use this member, set the <b>CFM_LCID</b> flag in the <b>dwMask</b>
     ///member.
     uint        lcid;
-    union
+union
     {
         uint dwReserved;
         uint dwCookie;
@@ -8109,7 +8558,7 @@ struct CHARFORMAT2A
     ///macro to create an <b>LCID</b> value. To use this member, set the <b>CFM_LCID</b> flag in the <b>dwMask</b>
     ///member.
     uint        lcid;
-    union
+union
     {
         uint dwReserved;
         uint dwCookie;
@@ -8205,9 +8654,9 @@ struct CHARRANGE
 struct TEXTRANGEA
 {
     ///Type: <b>CHARRANGE</b> The range of characters to retrieve.
-    CHARRANGE    chrg;
+    CHARRANGE chrg;
     ///Type: <b>LPSTR</b> The text.
-    const(char)* lpstrText;
+    PSTR      lpstrText;
 }
 
 ///A range of text from a rich edit control. This structure is filled in by the EM_GETTEXTRANGE message. The buffer
@@ -8216,9 +8665,9 @@ struct TEXTRANGEA
 struct TEXTRANGEW
 {
     ///Type: <b>CHARRANGE</b> The range of characters to retrieve.
-    CHARRANGE     chrg;
+    CHARRANGE chrg;
     ///Type: <b>LPSTR</b> The text.
-    const(wchar)* lpstrText;
+    PWSTR     lpstrText;
 }
 
 ///Contains information that an application passes to a rich edit control in a EM_STREAMIN or EM_STREAMOUT message. The
@@ -8243,9 +8692,9 @@ struct EDITSTREAM
 struct FINDTEXTA
 {
     ///Type: <b>CHARRANGE</b> The range of characters to search.
-    CHARRANGE    chrg;
+    CHARRANGE   chrg;
     ///Type: <b>LPCTSTR</b> The null-terminated string used in the find operation.
-    const(char)* lpstrText;
+    const(PSTR) lpstrText;
 }
 
 ///Contains information about a search operation in a rich edit control. This structure is used with the EM_FINDTEXT
@@ -8253,9 +8702,9 @@ struct FINDTEXTA
 struct FINDTEXTW
 {
     ///Type: <b>CHARRANGE</b> The range of characters to search.
-    CHARRANGE     chrg;
+    CHARRANGE    chrg;
     ///Type: <b>LPCTSTR</b> The null-terminated string used in the find operation.
-    const(wchar)* lpstrText;
+    const(PWSTR) lpstrText;
 }
 
 ///Contains information about text to search for in a rich edit control. This structure is used with the EM_FINDTEXTEX
@@ -8264,12 +8713,12 @@ struct FINDTEXTEXA
 {
     ///Type: <b>CHARRANGE</b> The range of characters to search. To search forward in the entire control, set
     ///<b>cpMin</b> to 0 and <b>cpMax</b> to -1.
-    CHARRANGE    chrg;
+    CHARRANGE   chrg;
     ///Type: <b>LPCTSTR</b> The null-terminated string to find.
-    const(char)* lpstrText;
+    const(PSTR) lpstrText;
     ///Type: <b>CHARRANGE</b> The range of characters in which the text was found. If the text was not found,
     ///<b>cpMin</b> and <b>cpMax</b> are -1.
-    CHARRANGE    chrgText;
+    CHARRANGE   chrgText;
 }
 
 ///Contains information about text to search for in a rich edit control. This structure is used with the EM_FINDTEXTEX
@@ -8278,12 +8727,12 @@ struct FINDTEXTEXW
 {
     ///Type: <b>CHARRANGE</b> The range of characters to search. To search forward in the entire control, set
     ///<b>cpMin</b> to 0 and <b>cpMax</b> to -1.
-    CHARRANGE     chrg;
+    CHARRANGE    chrg;
     ///Type: <b>LPCTSTR</b> The null-terminated string to find.
-    const(wchar)* lpstrText;
+    const(PWSTR) lpstrText;
     ///Type: <b>CHARRANGE</b> The range of characters in which the text was found. If the text was not found,
     ///<b>cpMin</b> and <b>cpMax</b> are -1.
-    CHARRANGE     chrgText;
+    CHARRANGE    chrgText;
 }
 
 ///Information that a rich edit control uses to format its output for a particular device. This structure is used with
@@ -8332,7 +8781,7 @@ struct PARAFORMAT
     uint    dwMask;
     ///Type: <b>WORD</b> Value specifying numbering options. This member can be zero or PFN_BULLET.
     ushort  wNumbering;
-    union
+union
     {
         ushort wReserved;
         ushort wEffects;
@@ -8741,9 +9190,9 @@ struct ENCORRECTTEXT
 struct PUNCTUATION
 {
     ///Type: <b>UINT</b> Size of buffer pointed to by the <b>szPunctuation</b> member, in bytes.
-    uint         iSize;
+    uint iSize;
     ///Type: <b>LPSTR</b> The buffer containing the punctuation characters.
-    const(char)* szPunctuation;
+    PSTR szPunctuation;
 }
 
 ///Contains color settings for a composition string.
@@ -8800,7 +9249,7 @@ struct SETTEXTEX
 struct GETTEXTEX
 {
     ///Type: <b>DWORD</b> The size, in bytes, of the buffer used to store the retrieved text.
-    uint         cb;
+    uint        cb;
     ///Type: <b>DWORD</b> Value specifying a text operation. This member can be one of the following values. <table>
     ///<tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="GT_DEFAULT"></a><a
     ///id="gt_default"></a><dl> <dt><b>GT_DEFAULT</b></dt> </dl> </td> <td width="60%"> All text is retrieved according
@@ -8818,18 +9267,18 @@ struct GETTEXTEX
     ///Retrieve the text for the current selection. </td> </tr> <tr> <td width="40%"><a id="GT_USECRLF"></a><a
     ///id="gt_usecrlf"></a><dl> <dt><b>GT_USECRLF</b></dt> </dl> </td> <td width="60%"> When copying text, translate
     ///each CR into a CR/LF. </td> </tr> </table>
-    uint         flags;
+    uint        flags;
     ///Type: <b>UINT</b> Code page used in the translation. It is <b>CP_ACP</b> for ANSI code page and 1200 for Unicode.
-    uint         codepage;
+    uint        codepage;
     ///Type: <b>LPCSTR</b> The character used if a wide character cannot be represented in the specified code page. It
     ///is used only if the code page is <b>not</b> 1200 (Unicode). If this member is <b>NULL</b>, a system default value
     ///is used.
-    const(char)* lpDefaultChar;
+    const(PSTR) lpDefaultChar;
     ///Type: <b>LPBOOL</b> A flag that indicates whether the default character (<b>lpDefaultChar</b>) was used. This
     ///member is used only if the code page is not 1200 or <b>CP_UTF8</b> (Unicode). The flag is <b>TRUE</b> if one or
     ///more wide characters in the source string cannot be represented in the specified code page. Otherwise, the flag
     ///is <b>FALSE</b>. This member can be NULL.
-    int*         lpUsedDefChar;
+    int*        lpUsedDefChar;
 }
 
 ///Contains information about how the text length of a rich edit control should be calculated. This structure is passed
@@ -9263,443 +9712,934 @@ struct BP_PAINTPARAMS
     const(BLENDFUNCTION)* pBlendFunction;
 }
 
-///Contains information about a notification message.
-struct NMHDR
-{
-    ///Type: <b>HWND</b> A window handle to the control sending the message.
-    HWND   hwndFrom;
-    ///Type: <b>UINT_PTR</b> An identifier of the control sending the message.
-    size_t idFrom;
-    uint   code;
-}
-
-///Informs the system of the dimensions of an owner-drawn control or menu item. This allows the system to process user
-///interaction with the control correctly.
-struct MEASUREITEMSTRUCT
-{
-    ///Type: <b>UINT</b> The control type. This member can be one of the values shown in the following table. <table>
-    ///<tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="ODT_COMBOBOX"></a><a
-    ///id="odt_combobox"></a><dl> <dt><b>ODT_COMBOBOX</b></dt> </dl> </td> <td width="60%"> Owner-drawn combo box </td>
-    ///</tr> <tr> <td width="40%"><a id="ODT_LISTBOX"></a><a id="odt_listbox"></a><dl> <dt><b>ODT_LISTBOX</b></dt> </dl>
-    ///</td> <td width="60%"> Owner-drawn list box </td> </tr> <tr> <td width="40%"><a id="ODT_LISTVIEW"></a><a
-    ///id="odt_listview"></a><dl> <dt><b>ODT_LISTVIEW</b></dt> </dl> </td> <td width="60%"> Owner-draw list-view control
-    ///</td> </tr> <tr> <td width="40%"><a id="ODT_MENU"></a><a id="odt_menu"></a><dl> <dt><b>ODT_MENU</b></dt> </dl>
-    ///</td> <td width="60%"> Owner-drawn menu </td> </tr> </table>
-    uint   CtlType;
-    ///Type: <b>UINT</b> The identifier of the combo box or list box. This member is not used for a menu.
-    uint   CtlID;
-    ///Type: <b>UINT</b> The identifier for a menu item or the position of a list box or combo box item. This value is
-    ///specified for a list box only if it has the LBS_OWNERDRAWVARIABLE style; this value is specified for a combo box
-    ///only if it has the CBS_OWNERDRAWVARIABLE style.
-    uint   itemID;
-    ///Type: <b>UINT</b> The width, in pixels, of a menu item. Before returning from the message, the owner of the
-    ///owner-drawn menu item must fill this member.
-    uint   itemWidth;
-    ///Type: <b>UINT</b> The height, in pixels, of an individual item in a list box or a menu. Before returning from the
-    ///message, the owner of the owner-drawn combo box, list box, or menu item must fill out this member.
-    uint   itemHeight;
-    ///Type: <b>ULONG_PTR</b> The application-defined value associated with the menu item. For a control, this member
-    ///specifies the value last assigned to the list box or combo box by the LB_SETITEMDATA or CB_SETITEMDATA message.
-    ///If the list box or combo box has the LB_HASSTRINGS or CB_HASSTRINGS style, this value is initially zero.
-    ///Otherwise, this value is initially the value passed to the list box or combo box in the <i>lParam</i> parameter
-    ///of one of the following messages: <ul> <li> CB_ADDSTRING </li> <li> CB_INSERTSTRING </li> <li> LB_ADDSTRING </li>
-    ///<li> LB_INSERTSTRING </li> </ul>
-    size_t itemData;
-}
-
-///Provides information that the owner window uses to determine how to paint an owner-drawn control or menu item. The
-///owner window of the owner-drawn control or menu item receives a pointer to this structure as the <i>lParam</i>
-///parameter of the WM_DRAWITEM message.
-struct DRAWITEMSTRUCT
-{
-    ///Type: <b>UINT</b> The control type. This member can be one of the following values. See Remarks. <table> <tr>
-    ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="ODT_BUTTON"></a><a id="odt_button"></a><dl>
-    ///<dt><b>ODT_BUTTON</b></dt> </dl> </td> <td width="60%"> Owner-drawn button </td> </tr> <tr> <td width="40%"><a
-    ///id="ODT_COMBOBOX"></a><a id="odt_combobox"></a><dl> <dt><b>ODT_COMBOBOX</b></dt> </dl> </td> <td width="60%">
-    ///Owner-drawn combo box </td> </tr> <tr> <td width="40%"><a id="ODT_LISTBOX"></a><a id="odt_listbox"></a><dl>
-    ///<dt><b>ODT_LISTBOX</b></dt> </dl> </td> <td width="60%"> Owner-drawn list box </td> </tr> <tr> <td width="40%"><a
-    ///id="ODT_LISTVIEW"></a><a id="odt_listview"></a><dl> <dt><b>ODT_LISTVIEW</b></dt> </dl> </td> <td width="60%">
-    ///List-view control </td> </tr> <tr> <td width="40%"><a id="ODT_MENU"></a><a id="odt_menu"></a><dl>
-    ///<dt><b>ODT_MENU</b></dt> </dl> </td> <td width="60%"> Owner-drawn menu item </td> </tr> <tr> <td width="40%"><a
-    ///id="ODT_STATIC"></a><a id="odt_static"></a><dl> <dt><b>ODT_STATIC</b></dt> </dl> </td> <td width="60%">
-    ///Owner-drawn static control </td> </tr> <tr> <td width="40%"><a id="ODT_TAB"></a><a id="odt_tab"></a><dl>
-    ///<dt><b>ODT_TAB</b></dt> </dl> </td> <td width="60%"> Tab control </td> </tr> </table>
-    uint   CtlType;
-    ///Type: <b>UINT</b> The identifier of the combo box, list box, button, or static control. This member is not used
-    ///for a menu item.
-    uint   CtlID;
-    ///Type: <b>UINT</b> The menu item identifier for a menu item or the index of the item in a list box or combo box.
-    ///For an empty list box or combo box, this member can be <code>-1</code>. This allows the application to draw only
-    ///the focus rectangle at the coordinates specified by the <b>rcItem</b> member even though there are no items in
-    ///the control. This indicates to the user whether the list box or combo box has the focus. How the bits are set in
-    ///the <b>itemAction</b> member determines whether the rectangle is to be drawn as though the list box or combo box
-    ///has the focus.
-    uint   itemID;
-    ///Type: <b>UINT</b> The required drawing action. This member can be one or more of the values. <table> <tr>
-    ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="ODA_DRAWENTIRE"></a><a
-    ///id="oda_drawentire"></a><dl> <dt><b>ODA_DRAWENTIRE</b></dt> </dl> </td> <td width="60%"> The entire control needs
-    ///to be drawn. </td> </tr> <tr> <td width="40%"><a id="ODA_FOCUS"></a><a id="oda_focus"></a><dl>
-    ///<dt><b>ODA_FOCUS</b></dt> </dl> </td> <td width="60%"> The control has lost or gained the keyboard focus. The
-    ///<b>itemState</b> member should be checked to determine whether the control has the focus. </td> </tr> <tr> <td
-    ///width="40%"><a id="ODA_SELECT"></a><a id="oda_select"></a><dl> <dt><b>ODA_SELECT</b></dt> </dl> </td> <td
-    ///width="60%"> The selection status has changed. The <b>itemState</b> member should be checked to determine the new
-    ///selection state. </td> </tr> </table>
-    uint   itemAction;
-    ///Type: <b>UINT</b> The visual state of the item after the current drawing action takes place. This member can be a
-    ///combination of the values shown in the following table. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr>
-    ///<td width="40%"><a id="ODS_CHECKED"></a><a id="ods_checked"></a><dl> <dt><b>ODS_CHECKED</b></dt> </dl> </td> <td
-    ///width="60%"> The menu item is to be checked. This bit is used only in a menu. </td> </tr> <tr> <td width="40%"><a
-    ///id="ODS_COMBOBOXEDIT"></a><a id="ods_comboboxedit"></a><dl> <dt><b>ODS_COMBOBOXEDIT</b></dt> </dl> </td> <td
-    ///width="60%"> The drawing takes place in the selection field (edit control) of an owner-drawn combo box. </td>
-    ///</tr> <tr> <td width="40%"><a id="ODS_DEFAULT"></a><a id="ods_default"></a><dl> <dt><b>ODS_DEFAULT</b></dt> </dl>
-    ///</td> <td width="60%"> The item is the default item. </td> </tr> <tr> <td width="40%"><a id="ODS_DISABLED"></a><a
-    ///id="ods_disabled"></a><dl> <dt><b>ODS_DISABLED</b></dt> </dl> </td> <td width="60%"> The item is to be drawn as
-    ///disabled. </td> </tr> <tr> <td width="40%"><a id="ODS_FOCUS"></a><a id="ods_focus"></a><dl>
-    ///<dt><b>ODS_FOCUS</b></dt> </dl> </td> <td width="60%"> The item has the keyboard focus. </td> </tr> <tr> <td
-    ///width="40%"><a id="ODS_GRAYED"></a><a id="ods_grayed"></a><dl> <dt><b>ODS_GRAYED</b></dt> </dl> </td> <td
-    ///width="60%"> The item is to be grayed. This bit is used only in a menu. </td> </tr> <tr> <td width="40%"><a
-    ///id="ODS_HOTLIGHT"></a><a id="ods_hotlight"></a><dl> <dt><b>ODS_HOTLIGHT</b></dt> </dl> </td> <td width="60%"> The
-    ///item is being hot-tracked, that is, the item will be highlighted when the mouse is on the item. </td> </tr> <tr>
-    ///<td width="40%"><a id="ODS_INACTIVE"></a><a id="ods_inactive"></a><dl> <dt><b>ODS_INACTIVE</b></dt> </dl> </td>
-    ///<td width="60%"> The item is inactive and the window associated with the menu is inactive. </td> </tr> <tr> <td
-    ///width="40%"><a id="ODS_NOACCEL"></a><a id="ods_noaccel"></a><dl> <dt><b>ODS_NOACCEL</b></dt> </dl> </td> <td
-    ///width="60%"> The control is drawn without the keyboard accelerator cues. </td> </tr> <tr> <td width="40%"><a
-    ///id="ODS_NOFOCUSRECT"></a><a id="ods_nofocusrect"></a><dl> <dt><b>ODS_NOFOCUSRECT</b></dt> </dl> </td> <td
-    ///width="60%"> The control is drawn without focus indicator cues. </td> </tr> <tr> <td width="40%"><a
-    ///id="ODS_SELECTED"></a><a id="ods_selected"></a><dl> <dt><b>ODS_SELECTED</b></dt> </dl> </td> <td width="60%"> The
-    ///menu item's status is selected. </td> </tr> </table>
-    uint   itemState;
-    ///Type: <b>HWND</b> A handle to the control for combo boxes, list boxes, buttons, and static controls. For menus,
-    ///this member is a handle to the menu that contains the item.
-    HWND   hwndItem;
-    ///Type: <b>HDC</b> A handle to a device context; this device context must be used when performing drawing
-    ///operations on the control.
-    HDC    hDC;
-    ///Type: <b>RECT</b> A rectangle that defines the boundaries of the control to be drawn. This rectangle is in the
-    ///device context specified by the <b>hDC</b> member. The system automatically clips anything that the owner window
-    ///draws in the device context for combo boxes, list boxes, and buttons, but does not clip menu items. When drawing
-    ///menu items, the owner window must not draw outside the boundaries of the rectangle defined by the <b>rcItem</b>
-    ///member.
-    RECT   rcItem;
-    ///Type: <b>ULONG_PTR</b> The application-defined value associated with the menu item. For a control, this parameter
-    ///specifies the value last assigned to the list box or combo box by the LB_SETITEMDATA or CB_SETITEMDATA message.
-    ///If the list box or combo box has the LBS_HASSTRINGS or CBS_HASSTRINGS style, this value is initially zero.
-    ///Otherwise, this value is initially the value that was passed to the list box or combo box in the <i>lParam</i>
-    ///parameter of one of the following messages: <ul> <li> CB_ADDSTRING </li> <li> CB_INSERTSTRING </li> <li>
-    ///LB_ADDSTRING </li> <li> LB_INSERTSTRING </li> </ul> If <b>CtlType</b> is <b>ODT_BUTTON</b> or <b>ODT_STATIC</b>,
-    ///<b>itemData</b> is zero.
-    size_t itemData;
-}
-
-///Describes a deleted list box or combo box item. The <i>lParam</i> parameter of a WM_DELETEITEM message contains a
-///pointer to this structure. When an item is removed from a list box or combo box or when a list box or combo box is
-///destroyed, the system sends the <b>WM_DELETEITEM</b> message to the owner for each deleted item. The system sends a
-///WM_DELETEITEM message only for items deleted from an owner-drawn list box (with the LBS_OWNERDRAWFIXED or
-///LBS_OWNERDRAWVARIABLE style) or owner-drawn combo box (with the CBS_OWNERDRAWFIXED or CBS_OWNERDRAWVARIABLE style).
-struct DELETEITEMSTRUCT
-{
-    ///Type: <b>UINT</b> Specifies whether the item was deleted from a list box or a combo box. One of the following
-    ///values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="ODT_LISTBOX"></a><a
-    ///id="odt_listbox"></a><dl> <dt><b>ODT_LISTBOX</b></dt> </dl> </td> <td width="60%"> A list box. </td> </tr> <tr>
-    ///<td width="40%"><a id="ODT_COMBOBOX"></a><a id="odt_combobox"></a><dl> <dt><b>ODT_COMBOBOX</b></dt> </dl> </td>
-    ///<td width="60%"> A combo box. </td> </tr> </table>
-    uint   CtlType;
-    ///Type: <b>UINT</b> The identifier of the list box or combo box.
-    uint   CtlID;
-    ///Type: <b>UINT</b> The index of the item in the list box or combo box being removed.
-    uint   itemID;
-    ///Type: <b>HWND</b> A handle to the control.
-    HWND   hwndItem;
-    ///Type: <b>ULONG_PTR</b> Application-defined data for the item. This value is passed to the control in the
-    ///<i>lParam</i> parameter of the message that adds the item to the list box or combo box.
-    size_t itemData;
-}
-
-///Supplies the identifiers and application-supplied data for two items in a sorted, owner-drawn list box or combo box.
-///Whenever an application adds a new item to an owner-drawn list box or combo box created with the CBS_SORT or LBS_SORT
-///style, the system sends the owner a WM_COMPAREITEM message. The <i>lParam</i> parameter of the message contains a
-///long pointer to a <b>COMPAREITEMSTRUCT</b> structure. Upon receiving the message, the owner compares the two items
-///and returns a value indicating which item sorts before the other.
-struct COMPAREITEMSTRUCT
-{
-    ///Type: <b>UINT</b> An ODT_LISTBOX (owner-drawn list box) or ODT_COMBOBOX (an owner-drawn combo box).
-    uint   CtlType;
-    ///Type: <b>UINT</b> The identifier of the list box or combo box.
-    uint   CtlID;
-    ///Type: <b>HWND</b> A handle to the control.
-    HWND   hwndItem;
-    ///Type: <b>UINT</b> The index of the first item in the list box or combo box being compared. This member will be
-    ///–1 if the item has not been inserted or when searching for a potential item in the list box or combo box.
-    uint   itemID1;
-    ///Type: <b>ULONG_PTR</b> Application-supplied data for the first item being compared. (This value was passed as the
-    ///<i>lParam</i> parameter of the message that added the item to the list box or combo box.)
-    size_t itemData1;
-    ///Type: <b>UINT</b> The index of the second item in the list box or combo box being compared.
-    uint   itemID2;
-    ///Type: <b>ULONG_PTR</b> Application-supplied data for the second item being compared. This value was passed as the
-    ///<i>lParam</i> parameter of the message that added the item to the list box or combo box. This member will be –1
-    ///if the item has not been inserted or when searching for a potential item in the list box or combo box.
-    size_t itemData2;
-    ///Type: <b>DWORD</b> The locale identifier. To create a locale identifier, use the MAKELCID macro.
-    uint   dwLocaleId;
-}
-
-///Contains device properties (Human Interface Device (HID) global items that correspond to HID usages) for any type of
-///HID input device.
-struct USAGE_PROPERTIES
-{
-    ///A usage-specific value for a range-based linear control (knob or dial), an on/off control (toggle switch), a
-    ///momentary control (mouse button), a one-shot control (button that triggers a single event), or re-trigger control
-    ///(button that triggers a repeating event).
-    ushort level;
-    ///The Usage Page ID, such as VR Controls Page (0x03) or Game Controls Page (0x05).
-    ushort page;
-    ///The Usage ID associated with a Usage Page, such as Turn Right/Left (21) or Move Right/Left (24) for a Game
-    ///Controls Page.
-    ushort usage;
-    ///The smallest value that the control can report.
-    int    logicalMinimum;
-    ///The largest value that the control can report.
-    int    logicalMaximum;
-    ///The standard of measure used to describe a control's physical value (after converting the logical value using the
-    ///<i>exponent</i> value). The HID specification defines codes for the basic units of length, mass, time,
-    ///temperature, current, and luminous intensity.
-    ushort unit;
-    ///The value used to scale a logical value to a physical value.
-    ushort exponent;
-    ///The number of data items contained in the report.
-    ubyte  count;
-    ///The <i>logicalMinimum</i> expressed in physical units (converted by multiplying <i>logicalMinimum</i> by
-    ///<i>exponent</i>).
-    int    physicalMinimum;
-    ///The <i>logicalMaximum</i> expressed in physical units (converted by multiplying <i>logicalMaximum</i> by
-    ///<i>exponent</i>).
-    int    physicalMaximum;
-}
-
-///Contains information about the pointer input type.
-struct POINTER_TYPE_INFO
-{
-    ///The pointer input device.
-    uint type;
-    union
-    {
-        POINTER_TOUCH_INFO touchInfo;
-        POINTER_PEN_INFO   penInfo;
-    }
-}
-
-///Contains the input injection details.
-struct INPUT_INJECTION_VALUE
-{
-    ///The Usage Page ID, such as VR Controls Page (0x03) or Game Controls Page (0x05).
-    ushort page;
-    ///The Usage ID associated with a Usage Page, such as Turn Right/Left (21) or Move Right/Left (24) for a Game
-    ///Controls Page.
-    ushort usage;
-    ///The injected input value.
-    int    value;
-    ///The Usage index, such as the selected item in a radio button set.
-    ushort index;
-}
-
-///Contains the hit test score that indicates whether the object is the likely target of the touch contact area,
-///relative to other objects that intersect the touch contact area.
-struct TOUCH_HIT_TESTING_PROXIMITY_EVALUATION
-{
-    ///The score, compared to the other objects that intersect the touch contact area.
-    ushort score;
-    ///The adjusted touch point that hits the closest object that's identified by the value of <i>Score</i>.
-    POINT  adjustedPoint;
-}
-
-///Contains information about the touch contact area reported by the touch digitizer.
-struct TOUCH_HIT_TESTING_INPUT
-{
-    ///The ID of the pointer. You cannot pass this value to the input message process and retrieve additional pointer
-    ///info through GetPointerInfo.
-    uint  pointerId;
-    ///The screen coordinates of the touch point that the touch digitizer reports.
-    POINT point;
-    ///The bounding rectangle of the touch contact area. Valid touch targets are identified and scored based on this
-    ///bounding box. <div class="alert"><b>Note</b> This bounding box may differ from the contact area that the
-    ///digitizer reports when: <ul> <li>The digitizer reports a touch contact area that's outside the maximum or minimum
-    ///size threshold that's recognized by Touch Hit Testing.</li> <li>A portion of the touch contact area is occluded
-    ///by another object that's higher in the z-order. </li> </ul> </div> <div> </div>
-    RECT  boundingBox;
-    ///The touch contact area within a specific targeted window that's not occluded by other objects that are higher in
-    ///the z-order. Any area that's occluded by another object is an invalid target.
-    RECT  nonOccludedBoundingBox;
-    ///The orientation of the touch contact area.
-    uint  orientation;
-}
-
-///The <b>SCROLLINFO</b> structure contains scroll bar parameters to be set by the SetScrollInfo function (or
-///SBM_SETSCROLLINFO message), or retrieved by the GetScrollInfo function (or SBM_GETSCROLLINFO message).
-struct SCROLLINFO
-{
-    ///Type: <b>UINT</b> Specifies the size, in bytes, of this structure. The caller must set this to
-    ///sizeof(<b>SCROLLINFO</b>).
-    uint cbSize;
-    ///Type: <b>UINT</b> Specifies the scroll bar parameters to set or retrieve. This member can be a combination of the
-    ///following values: <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SIF_ALL"></a><a
-    ///id="sif_all"></a><dl> <dt><b>SIF_ALL</b></dt> </dl> </td> <td width="60%"> Combination of SIF_PAGE, SIF_POS,
-    ///SIF_RANGE, and SIF_TRACKPOS. </td> </tr> <tr> <td width="40%"><a id="SIF_DISABLENOSCROLL"></a><a
-    ///id="sif_disablenoscroll"></a><dl> <dt><b>SIF_DISABLENOSCROLL</b></dt> </dl> </td> <td width="60%"> This value is
-    ///used only when setting a scroll bar's parameters. If the scroll bar's new parameters make the scroll bar
-    ///unnecessary, disable the scroll bar instead of removing it. </td> </tr> <tr> <td width="40%"><a
-    ///id="SIF_PAGE"></a><a id="sif_page"></a><dl> <dt><b>SIF_PAGE</b></dt> </dl> </td> <td width="60%"> The
-    ///<b>nPage</b> member contains the page size for a proportional scroll bar. </td> </tr> <tr> <td width="40%"><a
-    ///id="SIF_POS"></a><a id="sif_pos"></a><dl> <dt><b>SIF_POS</b></dt> </dl> </td> <td width="60%"> The <b>nPos</b>
-    ///member contains the scroll box position, which is not updated while the user drags the scroll box. </td> </tr>
-    ///<tr> <td width="40%"><a id="SIF_RANGE"></a><a id="sif_range"></a><dl> <dt><b>SIF_RANGE</b></dt> </dl> </td> <td
-    ///width="60%"> The <b>nMin</b> and <b>nMax</b> members contain the minimum and maximum values for the scrolling
-    ///range. </td> </tr> <tr> <td width="40%"><a id="SIF_TRACKPOS"></a><a id="sif_trackpos"></a><dl>
-    ///<dt><b>SIF_TRACKPOS</b></dt> </dl> </td> <td width="60%"> The <b>nTrackPos</b> member contains the current
-    ///position of the scroll box while the user is dragging it. </td> </tr> </table>
-    uint fMask;
-    ///Type: <b>int</b> Specifies the minimum scrolling position.
-    int  nMin;
-    ///Type: <b>int</b> Specifies the maximum scrolling position.
-    int  nMax;
-    ///Type: <b>UINT</b> Specifies the page size, in device units. A scroll bar uses this value to determine the
-    ///appropriate size of the proportional scroll box.
-    uint nPage;
-    ///Type: <b>int</b> Specifies the position of the scroll box.
-    int  nPos;
-    ///Type: <b>int</b> Specifies the immediate position of a scroll box that the user is dragging. An application can
-    ///retrieve this value while processing the SB_THUMBTRACK request code. An application cannot set the immediate
-    ///scroll position; the SetScrollInfo function ignores this member.
-    int  nTrackPos;
-}
-
-///The <b>SCROLLBARINFO</b> structure contains scroll bar information.
-struct SCROLLBARINFO
-{
-    ///Type: <b>DWORD</b> Specifies the size, in bytes, of the structure. Before calling the GetScrollBarInfo function,
-    ///set <b>cbSize</b> to <b>sizeof</b>(<b>SCROLLBARINFO</b>).
-    uint    cbSize;
-    ///Type: <b>RECT</b> Coordinates of the scroll bar as specified in a RECT structure.
-    RECT    rcScrollBar;
-    ///Type: <b>int</b> Height or width of the thumb.
-    int     dxyLineButton;
-    ///Type: <b>int</b> Position of the top or left of the thumb.
-    int     xyThumbTop;
-    ///Type: <b>int</b> Position of the bottom or right of the thumb.
-    int     xyThumbBottom;
-    ///Type: <b>int</b> Reserved.
-    int     reserved;
-    ///Type: <b>DWORD[CCHILDREN_SCROLLBAR+1]</b> An array of <b>DWORD</b> elements. Each element indicates the state of
-    ///a scroll bar component. The following values show the scroll bar component that corresponds to each array index.
-    ///<table class="clsStd"> <tr> <th>Index</th> <th>Scroll bar component</th> </tr> <tr> <td>0</td> <td>The scroll bar
-    ///itself.</td> </tr> <tr> <td>1</td> <td>The top or right arrow button.</td> </tr> <tr> <td>2</td> <td>The page up
-    ///or page right region.</td> </tr> <tr> <td>3</td> <td>The scroll box (thumb).</td> </tr> <tr> <td>4</td> <td>The
-    ///page down or page left region.</td> </tr> <tr> <td>5</td> <td>The bottom or left arrow button.</td> </tr>
-    ///</table> The <b>DWORD</b> element for each scroll bar component can include a combination of the following bit
-    ///flags. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
-    ///id="STATE_SYSTEM_INVISIBLE"></a><a id="state_system_invisible"></a><dl> <dt><b>STATE_SYSTEM_INVISIBLE</b></dt>
-    ///</dl> </td> <td width="60%"> For the scroll bar itself, indicates the specified vertical or horizontal scroll bar
-    ///does not exist. For the page up or page down regions, indicates the thumb is positioned such that the region does
-    ///not exist. </td> </tr> <tr> <td width="40%"><a id="STATE_SYSTEM_OFFSCREEN"></a><a
-    ///id="state_system_offscreen"></a><dl> <dt><b>STATE_SYSTEM_OFFSCREEN</b></dt> </dl> </td> <td width="60%"> For the
-    ///scroll bar itself, indicates the window is sized such that the specified vertical or horizontal scroll bar is not
-    ///currently displayed. </td> </tr> <tr> <td width="40%"><a id="STATE_SYSTEM_PRESSED"></a><a
-    ///id="state_system_pressed"></a><dl> <dt><b>STATE_SYSTEM_PRESSED</b></dt> </dl> </td> <td width="60%"> The arrow
-    ///button or page region is pressed. </td> </tr> <tr> <td width="40%"><a id="STATE_SYSTEM_UNAVAILABLE"></a><a
-    ///id="state_system_unavailable"></a><dl> <dt><b>STATE_SYSTEM_UNAVAILABLE</b></dt> </dl> </td> <td width="60%"> The
-    ///component is disabled. </td> </tr> </table>
-    uint[6] rgstate;
-}
-
-///Contains combo box status information.
-struct COMBOBOXINFO
-{
-    ///Type: <b>DWORD</b> The size, in bytes, of the structure. The calling application must set this to
-    ///sizeof(COMBOBOXINFO).
-    uint cbSize;
-    ///Type: <b>RECT</b> A RECT structure that specifies the coordinates of the edit box.
-    RECT rcItem;
-    ///Type: <b>RECT</b> A RECT structure that specifies the coordinates of the button that contains the drop-down
-    ///arrow.
-    RECT rcButton;
-    ///Type: <b>DWORD</b> The combo box button state. This parameter can be one of the following values. <table> <tr>
-    ///<th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"> <dl> <dt>0</dt> </dl> </td> <td width="60%"> The
-    ///button exists and is not pressed. </td> </tr> <tr> <td width="40%"><a id="STATE_SYSTEM_INVISIBLE"></a><a
-    ///id="state_system_invisible"></a><dl> <dt><b>STATE_SYSTEM_INVISIBLE</b></dt> </dl> </td> <td width="60%"> There is
-    ///no button. </td> </tr> <tr> <td width="40%"><a id="STATE_SYSTEM_PRESSED"></a><a
-    ///id="state_system_pressed"></a><dl> <dt><b>STATE_SYSTEM_PRESSED</b></dt> </dl> </td> <td width="60%"> The button
-    ///is pressed. </td> </tr> </table>
-    uint stateButton;
-    ///Type: <b>HWND</b> A handle to the combo box.
-    HWND hwndCombo;
-    ///Type: <b>HWND</b> A handle to the edit box.
-    HWND hwndItem;
-    ///Type: <b>HWND</b> A handle to the drop-down list.
-    HWND hwndList;
-}
-
-///Contains information about a pointer device. An array of these structures is returned from the GetPointerDevices
-///function. A single structure is returned from a call to the GetPointerDevice function.
-struct POINTER_DEVICE_INFO
-{
-    ///One of the values from DISPLAYCONFIG_ROTATION, which identifies the orientation of the input digitizer. <div
-    ///class="alert"><b>Note</b> This value is 0 when the source of input is Touch Injection.</div> <div> </div>
-    uint                displayOrientation;
-    ///The handle to the pointer device.
-    HANDLE              device;
-    ///The device type.
-    POINTER_DEVICE_TYPE pointerDeviceType;
-    ///The HMONITOR for the display that the device is mapped to. This is not necessarily the monitor that the pointer
-    ///device is physically connected to.
-    ptrdiff_t           monitor;
-    ///The lowest ID that's assigned to the device.
-    uint                startingCursorId;
-    ///The number of supported simultaneous contacts.
-    ushort              maxActiveContacts;
-    ///The string that identifies the product.
-    ushort[520]         productString;
-}
-
-///Contains pointer-based device properties (Human Interface Device (HID) global items that correspond to HID usages).
-struct POINTER_DEVICE_PROPERTY
-{
-    ///The minimum value that the device can report for this property.
-    int    logicalMin;
-    ///The maximum value that the device can report for this property.
-    int    logicalMax;
-    ///The physical minimum in Himetric.
-    int    physicalMin;
-    ///The physical maximum in Himetric.
-    int    physicalMax;
-    ///The unit.
-    uint   unit;
-    ///The exponent.
-    uint   unitExponent;
-    ///The usage page for the property, as documented in the HID specification.
-    ushort usagePageId;
-    ///The usage of the property, as documented in the HID specification.
-    ushort usageId;
-}
-
-///Contains cursor ID mappings for pointer devices.
-struct POINTER_DEVICE_CURSOR_INFO
-{
-    ///The assigned cursor ID.
-    uint cursorId;
-    ///The POINTER_DEVICE_CURSOR_TYPE that the ID is mapped to.
-    POINTER_DEVICE_CURSOR_TYPE cursor;
-}
-
-///Contains information about the source of the input message.
-struct INPUT_MESSAGE_SOURCE
-{
-    ///The device type (INPUT_MESSAGE_DEVICE_TYPE) of the source of the input message.
-    INPUT_MESSAGE_DEVICE_TYPE deviceType;
-    ///The ID (INPUT_MESSAGE_ORIGIN_ID) of the source of the input message.
-    INPUT_MESSAGE_ORIGIN_ID originId;
-}
-
 // Functions
+
+///Changes the check state of a button control.
+///Params:
+///    hDlg = Type: <b>HWND</b> A handle to the dialog box that contains the button.
+///    nIDButton = Type: <b>int</b> The identifier of the button to modify.
+///    uCheck = Type: <b>UINT</b> The check state of the button. This parameter can be one of the following values. <table> <tr>
+///             <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="BST_CHECKED"></a><a id="bst_checked"></a><dl>
+///             <dt><b>BST_CHECKED</b></dt> </dl> </td> <td width="60%"> Sets the button state to checked. </td> </tr> <tr> <td
+///             width="40%"><a id="BST_INDETERMINATE"></a><a id="bst_indeterminate"></a><dl> <dt><b>BST_INDETERMINATE</b></dt>
+///             </dl> </td> <td width="60%"> Sets the button state to grayed, indicating an indeterminate state. Use this value
+///             only if the button has the BS_3STATE or BS_AUTO3STATE style. </td> </tr> <tr> <td width="40%"><a
+///             id="BST_UNCHECKED"></a><a id="bst_unchecked"></a><dl> <dt><b>BST_UNCHECKED</b></dt> </dl> </td> <td width="60%">
+///             Sets the button state to cleared </td> </tr> </table>
+///Returns:
+///    Type: <b>BOOL</b> If the function succeeds, the return value is nonzero. If the function fails, the return value
+///    is zero. To get extended error information, call GetLastError.
+///    
+@DllImport("USER32")
+BOOL CheckDlgButton(HWND hDlg, int nIDButton, uint uCheck);
+
+///Adds a check mark to (checks) a specified radio button in a group and removes a check mark from (clears) all other
+///radio buttons in the group.
+///Params:
+///    hDlg = Type: <b>HWND</b> A handle to the dialog box that contains the radio button.
+///    nIDFirstButton = Type: <b>int</b> The identifier of the first radio button in the group.
+///    nIDLastButton = Type: <b>int</b> The identifier of the last radio button in the group.
+///    nIDCheckButton = Type: <b>int</b> The identifier of the radio button to select.
+///Returns:
+///    Type: <b>BOOL</b> If the function succeeds, the return value is nonzero. If the function fails, the return value
+///    is zero. To get extended error information, call GetLastError.
+///    
+@DllImport("USER32")
+BOOL CheckRadioButton(HWND hDlg, int nIDFirstButton, int nIDLastButton, int nIDCheckButton);
+
+///The <b>IsDlgButtonChecked</b> function determines whether a button control is checked or whether a three-state button
+///control is checked, unchecked, or indeterminate.
+///Params:
+///    hDlg = Type: <b>HWND</b> A handle to the dialog box that contains the button control.
+///    nIDButton = Type: <b>int</b> The identifier of the button control.
+///Returns:
+///    Type: <b>UINT</b> The return value from a button created with the BS_AUTOCHECKBOX, BS_AUTORADIOBUTTON,
+///    BS_AUTO3STATE, BS_CHECKBOX, BS_RADIOBUTTON, or BS_3STATE styles can be one of the values in the following table.
+///    If the button has any other style, the return value is zero. <table> <tr> <th>Return code</th>
+///    <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>BST_CHECKED</b></dt> </dl> </td> <td width="60%">
+///    The button is checked. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>BST_INDETERMINATE</b></dt> </dl> </td> <td
+///    width="60%"> The button is in an indeterminate state (applies only if the button has the BS_3STATE or
+///    BS_AUTO3STATE style). </td> </tr> <tr> <td width="40%"> <dl> <dt><b>BST_UNCHECKED</b></dt> </dl> </td> <td
+///    width="60%"> The button is not checked. </td> </tr> </table>
+///    
+@DllImport("USER32")
+uint IsDlgButtonChecked(HWND hDlg, int nIDButton);
+
+///Determines whether a character is lowercase. This determination is based on the semantics of the language selected by
+///the user during setup or through Control Panel.
+///Params:
+///    ch = Type: <b>TCHAR</b> The character to be tested.
+///Returns:
+///    Type: <b>BOOL</b> If the character is lowercase, the return value is nonzero. If the character is not lowercase,
+///    the return value is zero. To get extended error information, call GetLastError.
+///    
+@DllImport("USER32")
+BOOL IsCharLowerW(ushort ch);
+
+///Configures the touch injection context for the calling application and initializes the maximum number of simultaneous
+///contacts that the app can inject.<div class="alert"><b>Note</b> <b>InitializeTouchInjection</b> must precede any call
+///to InjectTouchInput.</div> <div> </div>
+///Params:
+///    maxCount = The maximum number of touch contacts. The <i>maxCount</i> parameter must be greater than 0 and less than or equal
+///               to MAX_TOUCH_COUNT (256) as defined in winuser.h.
+///    dwMode = The contact visualization mode. The <i>dwMode</i> parameter must be TOUCH_FEEDBACK_DEFAULT,
+///             <b>TOUCH_FEEDBACK_INDIRECT</b>, or <b>TOUCH_FEEDBACK_NONE</b>.
+///Returns:
+///    If the function succeeds, the return value is TRUE. If the function fails, the return value is FALSE. To get
+///    extended error information, call GetLastError.
+///    
+@DllImport("USER32")
+BOOL InitializeTouchInjection(uint maxCount, uint dwMode);
+
+///Simulates touch input.<div class="alert"><b>Note</b> InitializeTouchInjection must precede any call to
+///InjectTouchInput.</div> <div> </div>
+///Params:
+///    count = The size of the array in <i>contacts</i>. The maximum value for <i>count</i> is specified by the <i>maxCount</i>
+///            parameter of the InitializeTouchInjection function.
+///    contacts = Array of POINTER_TOUCH_INFO structures that represents all contacts on the desktop. The screen coordinates of
+///               each contact must be within the bounds of the desktop.
+///Returns:
+///    If the function succeeds, the return value is non-zero. If the function fails, the return value is zero. To get
+///    extended error information, call GetLastError.
+///    
+@DllImport("USER32")
+BOOL InjectTouchInput(uint count, const(POINTER_TOUCH_INFO)* contacts);
+
+///Configures the pointer injection device for the calling application, and initializes the maximum number of
+///simultaneous pointers that the app can inject.
+///Params:
+///    pointerType = The pointer injection device type. Must be either PT_TOUCH or <b>PT_PEN</b>.
+///    maxCount = The maximum number of contacts. For PT_TOUCH this value must be greater than 0 and less than or equal to
+///               MAX_TOUCH_COUNT. For PT_PEN this value must be 1.
+///    mode = The contact visualization mode.
+@DllImport("USER32")
+HSYNTHETICPOINTERDEVICE CreateSyntheticPointerDevice(POINTER_INPUT_TYPE pointerType, uint maxCount, 
+                                                     POINTER_FEEDBACK_MODE mode);
+
+///Simulates pointer input (pen or touch).
+///Params:
+///    device = A handle to the pointer injection device created by CreateSyntheticPointerDevice.
+///    pointerInfo = Array of injected pointers. The type must match the <i>pointerType</i> parameter of the
+///                  CreateSyntheticPointerDevice call that created the injection device. The ptPixelLocation for each
+///                  POINTER_TYPE_INFO is specified relative to top left of the virtual screen:
+///    count = The number of contacts. For PT_TOUCH this value must be greater than 0 and less than or equal to MAX_TOUCH_COUNT.
+///            For PT_PEN this value must be 1.
+@DllImport("USER32")
+BOOL InjectSyntheticPointerInput(HSYNTHETICPOINTERDEVICE device, const(POINTER_TYPE_INFO)* pointerInfo, uint count);
+
+///Destroys the specified pointer injection device.
+@DllImport("USER32")
+void DestroySyntheticPointerDevice(HSYNTHETICPOINTERDEVICE device);
+
+///Registers a window to process the WM_TOUCHHITTESTING notification.
+///Params:
+///    hwnd = The window that receives the WM_TOUCHHITTESTING notification.
+///    value = One of the following values: <ul> <li> TOUCH_HIT_TESTING_CLIENT: Send WM_TOUCHHITTESTING messages to the target
+///            window.</li> <li> TOUCH_HIT_TESTING_DEFAULT: Don't send WM_TOUCHHITTESTING messages to the target window but
+///            continue to send the messages to child windows. </li> <li> TOUCH_HIT_TESTING_NONE: Don't send WM_TOUCHHITTESTING
+///            messages to the target window or child windows. </li> </ul>
+///Returns:
+///    If this function succeeds, it returns TRUE. Otherwise, it returns FALSE. To retrieve extended error information,
+///    call the GetLastError function.
+///    
+@DllImport("USER32")
+BOOL RegisterTouchHitTestingWindow(HWND hwnd, uint value);
+
+///Returns the score of a rectangle as the probable touch target, compared to all other rectangles that intersect the
+///touch contact area, and an adjusted touch point within the rectangle.
+///Params:
+///    controlBoundingBox = The RECT structure that defines the bounding box of the UI element.
+///    pHitTestingInput = The TOUCH_HIT_TESTING_INPUT structure that holds the data for the touch contact area.
+///    pProximityEval = The TOUCH_HIT_TESTING_PROXIMITY_EVALUATION structure that holds the score and adjusted touch-point data.
+///Returns:
+///    If this function succeeds, it returns TRUE. Otherwise, it returns FALSE. To retrieve extended error information,
+///    call the GetLastError function.
+///    
+@DllImport("USER32")
+BOOL EvaluateProximityToRect(const(RECT)* controlBoundingBox, const(TOUCH_HIT_TESTING_INPUT)* pHitTestingInput, 
+                             TOUCH_HIT_TESTING_PROXIMITY_EVALUATION* pProximityEval);
+
+///Returns the score of a polygon as the probable touch target (compared to all other polygons that intersect the touch
+///contact area) and an adjusted touch point within the polygon.
+///Params:
+///    numVertices = The number of vertices in the polygon. This value must be greater than or equal to 3. This value indicates the
+///                  size of the array, as specified by the <i>controlPolygon</i> parameter.
+///    controlPolygon = The array of x-y screen coordinates that define the shape of the UI element. The <i>numVertices</i> parameter
+///                     specifies the number of coordinates.
+///    pHitTestingInput = The TOUCH_HIT_TESTING_INPUT structure that holds the data for the touch contact area.
+///    pProximityEval = The TOUCH_HIT_TESTING_PROXIMITY_EVALUATION structure that holds the score and adjusted touch-point data.
+///Returns:
+///    If this function succeeds, it returns TRUE. Otherwise, it returns FALSE. To retrieve extended error information,
+///    call the GetLastError function.
+///    
+@DllImport("USER32")
+BOOL EvaluateProximityToPolygon(uint numVertices, const(POINT)* controlPolygon, 
+                                const(TOUCH_HIT_TESTING_INPUT)* pHitTestingInput, 
+                                TOUCH_HIT_TESTING_PROXIMITY_EVALUATION* pProximityEval);
+
+///Returns the proximity evaluation score and the adjusted touch-point coordinates as a packed value for the
+///WM_TOUCHHITTESTING callback.
+///Params:
+///    pHitTestingInput = The TOUCH_HIT_TESTING_INPUT structure that holds the data for the touch contact area.
+///    pProximityEval = The TOUCH_HIT_TESTING_PROXIMITY_EVALUATION structure that holds the score and adjusted touch-point data that the
+///                     EvaluateProximityToPolygon or EvaluateProximityToRect function returns.
+///Returns:
+///    If this function succeeds, it returns the <b>score</b> and <b>adjustedPoint</b> values from
+///    TOUCH_HIT_TESTING_PROXIMITY_EVALUATION as an LRESULT. To retrieve extended error information, call the
+///    GetLastError function.
+///    
+@DllImport("USER32")
+LRESULT PackTouchHitTestingProximityEvaluation(const(TOUCH_HIT_TESTING_INPUT)* pHitTestingInput, 
+                                               const(TOUCH_HIT_TESTING_PROXIMITY_EVALUATION)* pProximityEval);
+
+///Retrieves the feedback configuration for a window.
+///Params:
+///    hwnd = The window to check for feedback configuration.
+///    feedback = One of the values from the FEEDBACK_TYPE enumeration.
+///    dwFlags = Specify GWFS_INCLUDE_ANCESTORS to check the parent window chain until a value is found. The default is 0 and
+///              indicates that only the specified window will be checked.
+///    pSize = The size of memory region that the <i>config</i> parameter points to. The <i>pSize</i> parameter specifies the
+///            size of the configuration data for the feedback type in <i>feedback</i> and must be sizeof(BOOL).
+///    config = The configuration data. The <i>config</i> parameter must point to a value of type BOOL.
+///Returns:
+///    Returns TRUE if the specified feedback setting is configured on the specified window. Otherwise, it returns FALSE
+///    (and <i>config</i> won't be modified).
+///    
+@DllImport("USER32")
+BOOL GetWindowFeedbackSetting(HWND hwnd, FEEDBACK_TYPE feedback, uint dwFlags, uint* pSize, void* config);
+
+///Sets the feedback configuration for a window.
+///Params:
+///    hwnd = The window to configure feedback on.
+///    feedback = One of the values from the FEEDBACK_TYPE enumeration.
+///    dwFlags = Reserved. Must be 0.
+///    size = The size, in bytes, of the configuration data. Must be sizeof(BOOL) or 0 if the feedback setting is being reset.
+///    configuration = The configuration data. Must be BOOL or NULL if the feedback setting is being reset.
+///Returns:
+///    Returns TRUE if successful; otherwise, returns FALSE.
+///    
+@DllImport("USER32")
+BOOL SetWindowFeedbackSetting(HWND hwnd, FEEDBACK_TYPE feedback, uint dwFlags, uint size, 
+                              const(void)* configuration);
+
+///The <b>ScrollWindow</b> function scrolls the contents of the specified window's client area. <div
+///class="alert"><b>Note</b> The <b>ScrollWindow</b> function is provided for backward compatibility. New applications
+///should use the ScrollWindowEx function.</div><div> </div>
+///Params:
+///    hWnd = Type: <b>HWND</b> Handle to the window where the client area is to be scrolled.
+///    XAmount = Type: <b>int</b> Specifies the amount, in device units, of horizontal scrolling. If the window being scrolled has
+///              the CS_OWNDC or CS_CLASSDC style, then this parameter uses logical units rather than device units. This parameter
+///              must be a negative value to scroll the content of the window to the left.
+///    YAmount = Type: <b>int</b> Specifies the amount, in device units, of vertical scrolling. If the window being scrolled has
+///              the CS_OWNDC or CS_CLASSDC style, then this parameter uses logical units rather than device units. This parameter
+///              must be a negative value to scroll the content of the window up.
+///    lpRect = Type: <b>const RECT*</b> Pointer to the RECT structure specifying the portion of the client area to be scrolled.
+///             If this parameter is <b>NULL</b>, the entire client area is scrolled.
+///    lpClipRect = Type: <b>const RECT*</b> Pointer to the RECT structure containing the coordinates of the clipping rectangle. Only
+///                 device bits within the clipping rectangle are affected. Bits scrolled from the outside of the rectangle to the
+///                 inside are painted; bits scrolled from the inside of the rectangle to the outside are not painted.
+///Returns:
+///    Type: <b>BOOL</b> If the function succeeds, the return value is nonzero. If the function fails, the return value
+///    is zero. To get extended error information, call GetLastError.
+///    
+@DllImport("USER32")
+BOOL ScrollWindow(HWND hWnd, int XAmount, int YAmount, const(RECT)* lpRect, const(RECT)* lpClipRect);
+
+///The <b>ScrollDC</b> function scrolls a rectangle of bits horizontally and vertically.
+///Params:
+///    hDC = Type: <b>HDC</b> Handle to the device context that contains the bits to be scrolled.
+///    dx = Type: <b>int</b> Specifies the amount, in device units, of horizontal scrolling. This parameter must be a
+///         negative value to scroll to the left.
+///    dy = Type: <b>int</b> Specifies the amount, in device units, of vertical scrolling. This parameter must be a negative
+///         value to scroll up.
+///    lprcScroll = Type: <b>const RECT*</b> Pointer to a RECT structure containing the coordinates of the bits to be scrolled. The
+///                 only bits affected by the scroll operation are bits in the intersection of this rectangle and the rectangle
+///                 specified by <i>lprcClip</i>. If <i>lprcScroll</i> is <b>NULL</b>, the entire client area is used.
+///    lprcClip = Type: <b>const RECT*</b> Pointer to a RECT structure containing the coordinates of the clipping rectangle. The
+///               only bits that will be painted are the bits that remain inside this rectangle after the scroll operation has been
+///               completed. If <i>lprcClip</i> is <b>NULL</b>, the entire client area is used.
+///    hrgnUpdate = Type: <b>HRGN</b> Handle to the region uncovered by the scrolling process. <b>ScrollDC</b> defines this region;
+///                 it is not necessarily a rectangle.
+///    lprcUpdate = Type: <b>LPRECT</b> Pointer to a RECT structure that receives the coordinates of the rectangle bounding the
+///                 scrolling update region. This is the largest rectangular area that requires repainting. When the function
+///                 returns, the values in the structure are in client coordinates, regardless of the mapping mode for the specified
+///                 device context. This allows applications to use the update region in a call to the InvalidateRgn function, if
+///                 required.
+///Returns:
+///    Type: <b>BOOL</b> If the function succeeds, the return value is nonzero. If the function fails, the return value
+///    is zero. To get extended error information, call GetLastError.
+///    
+@DllImport("USER32")
+BOOL ScrollDC(HDC hDC, int dx, int dy, const(RECT)* lprcScroll, const(RECT)* lprcClip, HRGN hrgnUpdate, 
+              RECT* lprcUpdate);
+
+///The <b>ScrollWindowEx</b> function scrolls the contents of the specified window's client area.
+///Params:
+///    hWnd = Type: <b>HWND</b> Handle to the window where the client area is to be scrolled.
+///    dx = Type: <b>int</b> Specifies the amount, in device units, of horizontal scrolling. This parameter must be a
+///         negative value to scroll to the left.
+///    dy = Type: <b>int</b> Specifies the amount, in device units, of vertical scrolling. This parameter must be a negative
+///         value to scroll up.
+///    prcScroll = Type: <b>const RECT*</b> Pointer to a RECT structure that specifies the portion of the client area to be
+///                scrolled. If this parameter is <b>NULL</b>, the entire client area is scrolled.
+///    prcClip = Type: <b>const RECT*</b> Pointer to a RECT structure that contains the coordinates of the clipping rectangle.
+///              Only device bits within the clipping rectangle are affected. Bits scrolled from the outside of the rectangle to
+///              the inside are painted; bits scrolled from the inside of the rectangle to the outside are not painted. This
+///              parameter may be <b>NULL</b>.
+///    hrgnUpdate = Type: <b>HRGN</b> Handle to the region that is modified to hold the region invalidated by scrolling. This
+///                 parameter may be <b>NULL</b>.
+///    prcUpdate = Type: <b>LPRECT</b> Pointer to a RECT structure that receives the boundaries of the rectangle invalidated by
+///                scrolling. This parameter may be <b>NULL</b>.
+///    flags = Type: <b>UINT</b> Specifies flags that control scrolling. This parameter can be a combination of the following
+///            values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SW_ERASE"></a><a
+///            id="sw_erase"></a><dl> <dt><b>SW_ERASE</b></dt> </dl> </td> <td width="60%"> Erases the newly invalidated region
+///            by sending a WM_ERASEBKGND message to the window when specified with the SW_INVALIDATE flag. </td> </tr> <tr> <td
+///            width="40%"><a id="SW_INVALIDATE"></a><a id="sw_invalidate"></a><dl> <dt><b>SW_INVALIDATE</b></dt> </dl> </td>
+///            <td width="60%"> Invalidates the region identified by the <i>hrgnUpdate</i> parameter after scrolling. </td>
+///            </tr> <tr> <td width="40%"><a id="SW_SCROLLCHILDREN"></a><a id="sw_scrollchildren"></a><dl>
+///            <dt><b>SW_SCROLLCHILDREN</b></dt> </dl> </td> <td width="60%"> Scrolls all child windows that intersect the
+///            rectangle pointed to by the <i>prcScroll</i> parameter. The child windows are scrolled by the number of pixels
+///            specified by the <i>dx</i> and <i>dy</i> parameters. The system sends a WM_MOVE message to all child windows that
+///            intersect the <i>prcScroll</i> rectangle, even if they do not move. </td> </tr> <tr> <td width="40%"><a
+///            id="SW_SMOOTHSCROLL"></a><a id="sw_smoothscroll"></a><dl> <dt><b>SW_SMOOTHSCROLL</b></dt> </dl> </td> <td
+///            width="60%"> Scrolls using smooth scrolling. Use the HIWORD portion of the <i>flags</i> parameter to indicate how
+///            much time, in milliseconds, the smooth-scrolling operation should take. </td> </tr> </table>
+///Returns:
+///    Type: <b>int</b> If the function succeeds, the return value is SIMPLEREGION (rectangular invalidated region),
+///    COMPLEXREGION (nonrectangular invalidated region; overlapping rectangles), or NULLREGION (no invalidated region).
+///    If the function fails, the return value is ERROR. To get extended error information, call GetLastError.
+///    
+@DllImport("USER32")
+int ScrollWindowEx(HWND hWnd, int dx, int dy, const(RECT)* prcScroll, const(RECT)* prcClip, HRGN hrgnUpdate, 
+                   RECT* prcUpdate, uint flags);
+
+///The <b>SetScrollPos</b> function sets the position of the scroll box (thumb) in the specified scroll bar and, if
+///requested, redraws the scroll bar to reflect the new position of the scroll box. <div class="alert"><b>Note</b> The
+///<b>SetScrollPos</b> function is provided for backward compatibility. New applications should use the SetScrollInfo
+///function.</div><div> </div>
+///Params:
+///    hWnd = Type: <b>HWND</b> Handle to a scroll bar control or a window with a standard scroll bar, depending on the value
+///           of the <i>nBar</i> parameter.
+///    nBar = Type: <b>int</b> Specifies the scroll bar to be set. This parameter can be one of the following values. <table>
+///           <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SB_CTL"></a><a id="sb_ctl"></a><dl>
+///           <dt><b>SB_CTL</b></dt> </dl> </td> <td width="60%"> Sets the position of the scroll box in a scroll bar control.
+///           The <i>hwnd</i> parameter must be the handle to the scroll bar control. </td> </tr> <tr> <td width="40%"><a
+///           id="SB_HORZ"></a><a id="sb_horz"></a><dl> <dt><b>SB_HORZ</b></dt> </dl> </td> <td width="60%"> Sets the position
+///           of the scroll box in a window's standard horizontal scroll bar. </td> </tr> <tr> <td width="40%"><a
+///           id="SB_VERT"></a><a id="sb_vert"></a><dl> <dt><b>SB_VERT</b></dt> </dl> </td> <td width="60%"> Sets the position
+///           of the scroll box in a window's standard vertical scroll bar. </td> </tr> </table>
+///    nPos = Type: <b>int</b> Specifies the new position of the scroll box. The position must be within the scrolling range.
+///           For more information about the scrolling range, see the SetScrollRange function.
+///    bRedraw = Type: <b>BOOL</b> Specifies whether the scroll bar is redrawn to reflect the new scroll box position. If this
+///              parameter is <b>TRUE</b>, the scroll bar is redrawn. If it is <b>FALSE</b>, the scroll bar is not redrawn.
+///Returns:
+///    Type: <b>int</b> If the function succeeds, the return value is the previous position of the scroll box. If the
+///    function fails, the return value is zero. To get extended error information, call GetLastError.
+///    
+@DllImport("USER32")
+int SetScrollPos(HWND hWnd, int nBar, int nPos, BOOL bRedraw);
+
+///The <b>GetScrollPos</b> function retrieves the current position of the scroll box (thumb) in the specified scroll
+///bar. The current position is a relative value that depends on the current scrolling range. For example, if the
+///scrolling range is 0 through 100 and the scroll box is in the middle of the bar, the current position is 50. <div
+///class="alert"><b>Note</b> The <b>GetScrollPos</b> function is provided for backward compatibility. New applications
+///should use the GetScrollInfo function. </div><div> </div>
+///Params:
+///    hWnd = Type: <b>HWND</b> Handle to a scroll bar control or a window with a standard scroll bar, depending on the value
+///           of the <i>nBar</i> parameter.
+///    nBar = Type: <b>int</b> Specifies the scroll bar to be examined. This parameter can be one of the following values.
+///           <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SB_CTL"></a><a
+///           id="sb_ctl"></a><dl> <dt><b>SB_CTL</b></dt> </dl> </td> <td width="60%"> Retrieves the position of the scroll box
+///           in a scroll bar control. The <i>hWnd</i> parameter must be the handle to the scroll bar control. </td> </tr> <tr>
+///           <td width="40%"><a id="SB_HORZ"></a><a id="sb_horz"></a><dl> <dt><b>SB_HORZ</b></dt> </dl> </td> <td width="60%">
+///           Retrieves the position of the scroll box in a window's standard horizontal scroll bar. </td> </tr> <tr> <td
+///           width="40%"><a id="SB_VERT"></a><a id="sb_vert"></a><dl> <dt><b>SB_VERT</b></dt> </dl> </td> <td width="60%">
+///           Retrieves the position of the scroll box in a window's standard vertical scroll bar. </td> </tr> </table>
+///Returns:
+///    Type: <b>int</b> If the function succeeds, the return value is the current position of the scroll box. If the
+///    function fails, the return value is zero. To get extended error information, call GetLastError.
+///    
+@DllImport("USER32")
+int GetScrollPos(HWND hWnd, int nBar);
+
+///The <b>SetScrollRange</b> function sets the minimum and maximum scroll box positions for the specified scroll bar.
+///<div class="alert"><b>Note</b> The <b>SetScrollRange</b> function is provided for backward compatibility. New
+///applications should use the SetScrollInfo function.</div><div> </div>
+///Params:
+///    hWnd = Type: <b>HWND</b> Handle to a scroll bar control or a window with a standard scroll bar, depending on the value
+///           of the <i>nBar</i> parameter.
+///    nBar = Type: <b>int</b> Specifies the scroll bar to be set. This parameter can be one of the following values. <table>
+///           <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SB_CTL"></a><a id="sb_ctl"></a><dl>
+///           <dt><b>SB_CTL</b></dt> </dl> </td> <td width="60%"> Sets the range of a scroll bar control. The <i>hwnd</i>
+///           parameter must be the handle to the scroll bar control. </td> </tr> <tr> <td width="40%"><a id="SB_HORZ"></a><a
+///           id="sb_horz"></a><dl> <dt><b>SB_HORZ</b></dt> </dl> </td> <td width="60%"> Sets the range of a window's standard
+///           horizontal scroll bar. </td> </tr> <tr> <td width="40%"><a id="SB_VERT"></a><a id="sb_vert"></a><dl>
+///           <dt><b>SB_VERT</b></dt> </dl> </td> <td width="60%"> Sets the range of a window's standard vertical scroll bar.
+///           </td> </tr> </table>
+///    nMinPos = Type: <b>int</b> Specifies the minimum scrolling position.
+///    nMaxPos = Type: <b>int</b> Specifies the maximum scrolling position.
+///    bRedraw = Type: <b>BOOL</b> Specifies whether the scroll bar should be redrawn to reflect the change. If this parameter is
+///              <b>TRUE</b>, the scroll bar is redrawn. If it is <b>FALSE</b>, the scroll bar is not redrawn.
+///Returns:
+///    Type: <b>BOOL</b> If the function succeeds, the return value is nonzero. If the function fails, the return value
+///    is zero. To get extended error information, call GetLastError.
+///    
+@DllImport("USER32")
+BOOL SetScrollRange(HWND hWnd, int nBar, int nMinPos, int nMaxPos, BOOL bRedraw);
+
+///The <b>GetScrollRange</b> function retrieves the current minimum and maximum scroll box (thumb) positions for the
+///specified scroll bar. <div class="alert"><b>Note</b> The <b>GetScrollRange</b> function is provided for compatibility
+///only. New applications should use the GetScrollInfo function.</div><div> </div>
+///Params:
+///    hWnd = Type: <b>HWND</b> Handle to a scroll bar control or a window with a standard scroll bar, depending on the value
+///           of the <i>nBar</i> parameter.
+///    nBar = Type: <b>int</b> Specifies the scroll bar from which the positions are retrieved. This parameter can be one of
+///           the following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
+///           id="SB_CTL"></a><a id="sb_ctl"></a><dl> <dt><b>SB_CTL</b></dt> </dl> </td> <td width="60%"> Retrieves the
+///           positions of a scroll bar control. The <i>hWnd</i> parameter must be the handle to the scroll bar control. </td>
+///           </tr> <tr> <td width="40%"><a id="SB_HORZ"></a><a id="sb_horz"></a><dl> <dt><b>SB_HORZ</b></dt> </dl> </td> <td
+///           width="60%"> Retrieves the positions of the window's standard horizontal scroll bar. </td> </tr> <tr> <td
+///           width="40%"><a id="SB_VERT"></a><a id="sb_vert"></a><dl> <dt><b>SB_VERT</b></dt> </dl> </td> <td width="60%">
+///           Retrieves the positions of the window's standard vertical scroll bar. </td> </tr> </table>
+///    lpMinPos = Type: <b>LPINT</b> Pointer to the integer variable that receives the minimum position.
+///    lpMaxPos = Type: <b>LPINT</b> Pointer to the integer variable that receives the maximum position.
+///Returns:
+///    Type: <b>BOOL</b> If the function succeeds, the return value is nonzero. If the function fails, the return value
+///    is zero. To get extended error information, call GetLastError.
+///    
+@DllImport("USER32")
+BOOL GetScrollRange(HWND hWnd, int nBar, int* lpMinPos, int* lpMaxPos);
+
+///The <b>ShowScrollBar</b> function shows or hides the specified scroll bar.
+///Params:
+///    hWnd = Type: <b>HWND</b> Handle to a scroll bar control or a window with a standard scroll bar, depending on the value
+///           of the <i>wBar</i> parameter.
+///    wBar = Type: <b>int</b> Specifies the scroll bar(s) to be shown or hidden. This parameter can be one of the following
+///           values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SB_BOTH"></a><a
+///           id="sb_both"></a><dl> <dt><b>SB_BOTH</b></dt> </dl> </td> <td width="60%"> Shows or hides a window's standard
+///           horizontal and vertical scroll bars. </td> </tr> <tr> <td width="40%"><a id="SB_CTL"></a><a id="sb_ctl"></a><dl>
+///           <dt><b>SB_CTL</b></dt> </dl> </td> <td width="60%"> Shows or hides a scroll bar control. The <i>hwnd</i>
+///           parameter must be the handle to the scroll bar control. </td> </tr> <tr> <td width="40%"><a id="SB_HORZ"></a><a
+///           id="sb_horz"></a><dl> <dt><b>SB_HORZ</b></dt> </dl> </td> <td width="60%"> Shows or hides a window's standard
+///           horizontal scroll bars. </td> </tr> <tr> <td width="40%"><a id="SB_VERT"></a><a id="sb_vert"></a><dl>
+///           <dt><b>SB_VERT</b></dt> </dl> </td> <td width="60%"> Shows or hides a window's standard vertical scroll bar.
+///           </td> </tr> </table>
+///    bShow = Type: <b>BOOL</b> Specifies whether the scroll bar is shown or hidden. If this parameter is <b>TRUE</b>, the
+///            scroll bar is shown; otherwise, it is hidden.
+///Returns:
+///    Type: <b>BOOL</b> If the function succeeds, the return value is nonzero. If the function fails, the return value
+///    is zero. To get extended error information, call GetLastError.
+///    
+@DllImport("USER32")
+BOOL ShowScrollBar(HWND hWnd, int wBar, BOOL bShow);
+
+///The <b>EnableScrollBar</b> function enables or disables one or both scroll bar arrows.
+///Params:
+///    hWnd = Type: <b>HWND</b> Handle to a window or a scroll bar control, depending on the value of the <i>wSBflags</i>
+///           parameter.
+///    wSBflags = Type: <b>UINT</b> Specifies the scroll bar type. This parameter can be one of the following values. <table> <tr>
+///               <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SB_BOTH"></a><a id="sb_both"></a><dl>
+///               <dt><b>SB_BOTH</b></dt> </dl> </td> <td width="60%"> Enables or disables the arrows on the horizontal and
+///               vertical scroll bars associated with the specified window. The <i>hWnd</i> parameter must be the handle to the
+///               window. </td> </tr> <tr> <td width="40%"><a id="SB_CTL"></a><a id="sb_ctl"></a><dl> <dt><b>SB_CTL</b></dt> </dl>
+///               </td> <td width="60%"> Indicates that the scroll bar is a scroll bar control. The <i>hWnd</i> must be the handle
+///               to the scroll bar control. </td> </tr> <tr> <td width="40%"><a id="SB_HORZ"></a><a id="sb_horz"></a><dl>
+///               <dt><b>SB_HORZ</b></dt> </dl> </td> <td width="60%"> Enables or disables the arrows on the horizontal scroll bar
+///               associated with the specified window. The <i>hWnd</i> parameter must be the handle to the window. </td> </tr>
+///               <tr> <td width="40%"><a id="SB_VERT"></a><a id="sb_vert"></a><dl> <dt><b>SB_VERT</b></dt> </dl> </td> <td
+///               width="60%"> Enables or disables the arrows on the vertical scroll bar associated with the specified window. The
+///               <i>hWnd</i> parameter must be the handle to the window. </td> </tr> </table>
+///    wArrows = Type: <b>UINT</b> Specifies whether the scroll bar arrows are enabled or disabled and indicates which arrows are
+///              enabled or disabled. This parameter can be one of the following values. <table> <tr> <th>Value</th>
+///              <th>Meaning</th> </tr> <tr> <td width="40%"><a id="ESB_DISABLE_BOTH"></a><a id="esb_disable_both"></a><dl>
+///              <dt><b>ESB_DISABLE_BOTH</b></dt> </dl> </td> <td width="60%"> Disables both arrows on a scroll bar. </td> </tr>
+///              <tr> <td width="40%"><a id="ESB_DISABLE_DOWN"></a><a id="esb_disable_down"></a><dl>
+///              <dt><b>ESB_DISABLE_DOWN</b></dt> </dl> </td> <td width="60%"> Disables the down arrow on a vertical scroll bar.
+///              </td> </tr> <tr> <td width="40%"><a id="ESB_DISABLE_LEFT"></a><a id="esb_disable_left"></a><dl>
+///              <dt><b>ESB_DISABLE_LEFT</b></dt> </dl> </td> <td width="60%"> Disables the left arrow on a horizontal scroll bar.
+///              </td> </tr> <tr> <td width="40%"><a id="ESB_DISABLE_LTUP"></a><a id="esb_disable_ltup"></a><dl>
+///              <dt><b>ESB_DISABLE_LTUP</b></dt> </dl> </td> <td width="60%"> Disables the left arrow on a horizontal scroll bar
+///              or the up arrow of a vertical scroll bar. </td> </tr> <tr> <td width="40%"><a id="ESB_DISABLE_RIGHT"></a><a
+///              id="esb_disable_right"></a><dl> <dt><b>ESB_DISABLE_RIGHT</b></dt> </dl> </td> <td width="60%"> Disables the right
+///              arrow on a horizontal scroll bar. </td> </tr> <tr> <td width="40%"><a id="ESB_DISABLE_RTDN"></a><a
+///              id="esb_disable_rtdn"></a><dl> <dt><b>ESB_DISABLE_RTDN</b></dt> </dl> </td> <td width="60%"> Disables the right
+///              arrow on a horizontal scroll bar or the down arrow of a vertical scroll bar. </td> </tr> <tr> <td width="40%"><a
+///              id="ESB_DISABLE_UP"></a><a id="esb_disable_up"></a><dl> <dt><b>ESB_DISABLE_UP</b></dt> </dl> </td> <td
+///              width="60%"> Disables the up arrow on a vertical scroll bar. </td> </tr> <tr> <td width="40%"><a
+///              id="ESB_ENABLE_BOTH"></a><a id="esb_enable_both"></a><dl> <dt><b>ESB_ENABLE_BOTH</b></dt> </dl> </td> <td
+///              width="60%"> Enables both arrows on a scroll bar. </td> </tr> </table>
+@DllImport("USER32")
+BOOL EnableScrollBar(HWND hWnd, uint wSBflags, uint wArrows);
+
+///Replaces the contents of a list box with the names of the subdirectories and files in a specified directory. You can
+///filter the list of names by specifying a set of file attributes. The list can optionally include mapped drives.
+///Params:
+///    hDlg = Type: <b>HWND</b> A handle to the dialog box that contains the list box.
+///    lpPathSpec = Type: <b>LPTSTR</b> A pointer to a buffer containing a null-terminated string that specifies an absolute path,
+///                 relative path, or filename. An absolute path can begin with a drive letter (for example, d:\) or a UNC name (for
+///                 example, \\\<i>machinename</i>\\<i>sharename</i>). The function splits the string into a directory and a
+///                 filename. The function searches the directory for names that match the filename. If the string does not specify a
+///                 directory, the function searches the current directory. If the string includes a filename, the filename must
+///                 contain at least one wildcard character (? or \*). If the string does not include a filename, the function
+///                 behaves as if you had specified the asterisk wildcard character (\*) as the filename. All names in the specified
+///                 directory that match the filename and have the attributes specified by the <i>uFileType</i> parameter are added
+///                 to the list box.
+///    nIDListBox = Type: <b>int</b> The identifier of a list box in the <i>hDlg</i> dialog box. If this parameter is zero,
+///                 <b>DlgDirList</b> does not try to fill a list box.
+///    nIDStaticPath = Type: <b>int</b> The identifier of a static control in the <i>hDlg</i> dialog box. <b>DlgDirList</b> sets the
+///                    text of this control to display the current drive and directory. This parameter can be zero if you do not want to
+///                    display the current drive and directory.
+///    uFileType = Type: <b>UINT</b> Specifies the attributes of the files or directories to be added to the list box. This
+///                parameter can be one or more of the following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td
+///                width="40%"><a id="DDL_ARCHIVE"></a><a id="ddl_archive"></a><dl> <dt><b>DDL_ARCHIVE</b></dt> </dl> </td> <td
+///                width="60%"> Includes archived files. </td> </tr> <tr> <td width="40%"><a id="DDL_DIRECTORY"></a><a
+///                id="ddl_directory"></a><dl> <dt><b>DDL_DIRECTORY</b></dt> </dl> </td> <td width="60%"> Includes subdirectories.
+///                Subdirectory names are enclosed in square brackets ([ ]). </td> </tr> <tr> <td width="40%"><a
+///                id="DDL_DRIVES"></a><a id="ddl_drives"></a><dl> <dt><b>DDL_DRIVES</b></dt> </dl> </td> <td width="60%"> All
+///                mapped drives are added to the list. Drives are listed in the form [- <i>x</i>-], where <i>x</i> is the drive
+///                letter. </td> </tr> <tr> <td width="40%"><a id="DDL_EXCLUSIVE"></a><a id="ddl_exclusive"></a><dl>
+///                <dt><b>DDL_EXCLUSIVE</b></dt> </dl> </td> <td width="60%"> Includes only files with the specified attributes. By
+///                default, read/write files are listed even if DDL_READWRITE is not specified. </td> </tr> <tr> <td width="40%"><a
+///                id="DDL_HIDDEN"></a><a id="ddl_hidden"></a><dl> <dt><b>DDL_HIDDEN</b></dt> </dl> </td> <td width="60%"> Includes
+///                hidden files. </td> </tr> <tr> <td width="40%"><a id="DDL_READONLY"></a><a id="ddl_readonly"></a><dl>
+///                <dt><b>DDL_READONLY</b></dt> </dl> </td> <td width="60%"> Includes read-only files. </td> </tr> <tr> <td
+///                width="40%"><a id="DDL_READWRITE"></a><a id="ddl_readwrite"></a><dl> <dt><b>DDL_READWRITE</b></dt> </dl> </td>
+///                <td width="60%"> Includes read/write files with no additional attributes. This is the default setting. </td>
+///                </tr> <tr> <td width="40%"><a id="DDL_SYSTEM"></a><a id="ddl_system"></a><dl> <dt><b>DDL_SYSTEM</b></dt> </dl>
+///                </td> <td width="60%"> Includes system files. </td> </tr> <tr> <td width="40%"><a id="DDL_POSTMSGS"></a><a
+///                id="ddl_postmsgs"></a><dl> <dt><b>DDL_POSTMSGS</b></dt> </dl> </td> <td width="60%"> If set, <b>DlgDirList</b>
+///                uses the PostMessage function to send messages to the list box. If not set, <b>DlgDirList</b> uses the
+///                SendMessage function. </td> </tr> </table>
+///Returns:
+///    Type: <b>int</b> If the function succeeds, the return value is nonzero. If the function fails, the return value
+///    is zero. For example, if the string specified by <i>lpPathSpec</i> is not a valid path, the function fails. To
+///    get extended error information, call .
+///    
+@DllImport("USER32")
+int DlgDirListA(HWND hDlg, PSTR lpPathSpec, int nIDListBox, int nIDStaticPath, uint uFileType);
+
+///Replaces the contents of a list box with the names of the subdirectories and files in a specified directory. You can
+///filter the list of names by specifying a set of file attributes. The list can optionally include mapped drives.
+///Params:
+///    hDlg = Type: <b>HWND</b> A handle to the dialog box that contains the list box.
+///    lpPathSpec = Type: <b>LPTSTR</b> A pointer to a buffer containing a null-terminated string that specifies an absolute path,
+///                 relative path, or filename. An absolute path can begin with a drive letter (for example, d:\) or a UNC name (for
+///                 example, \\ <i>machinename</i>\ <i>sharename</i>). The function splits the string into a directory and a
+///                 filename. The function searches the directory for names that match the filename. If the string does not specify a
+///                 directory, the function searches the current directory. If the string includes a filename, the filename must
+///                 contain at least one wildcard character (? or *). If the string does not include a filename, the function behaves
+///                 as if you had specified the asterisk wildcard character (*) as the filename. All names in the specified directory
+///                 that match the filename and have the attributes specified by the <i>uFileType</i> parameter are added to the list
+///                 box.
+///    nIDListBox = Type: <b>int</b> The identifier of a list box in the <i>hDlg</i> dialog box. If this parameter is zero,
+///                 <b>DlgDirList</b> does not try to fill a list box.
+///    nIDStaticPath = Type: <b>int</b> The identifier of a static control in the <i>hDlg</i> dialog box. <b>DlgDirList</b> sets the
+///                    text of this control to display the current drive and directory. This parameter can be zero if you do not want to
+///                    display the current drive and directory.
+///    uFileType = Type: <b>UINT</b> Specifies the attributes of the files or directories to be added to the list box. This
+///                parameter can be one or more of the following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td
+///                width="40%"><a id="DDL_ARCHIVE"></a><a id="ddl_archive"></a><dl> <dt><b>DDL_ARCHIVE</b></dt> </dl> </td> <td
+///                width="60%"> Includes archived files. </td> </tr> <tr> <td width="40%"><a id="DDL_DIRECTORY"></a><a
+///                id="ddl_directory"></a><dl> <dt><b>DDL_DIRECTORY</b></dt> </dl> </td> <td width="60%"> Includes subdirectories.
+///                Subdirectory names are enclosed in square brackets ([ ]). </td> </tr> <tr> <td width="40%"><a
+///                id="DDL_DRIVES"></a><a id="ddl_drives"></a><dl> <dt><b>DDL_DRIVES</b></dt> </dl> </td> <td width="60%"> All
+///                mapped drives are added to the list. Drives are listed in the form [- <i>x</i>-], where <i>x</i> is the drive
+///                letter. </td> </tr> <tr> <td width="40%"><a id="DDL_EXCLUSIVE"></a><a id="ddl_exclusive"></a><dl>
+///                <dt><b>DDL_EXCLUSIVE</b></dt> </dl> </td> <td width="60%"> Includes only files with the specified attributes. By
+///                default, read/write files are listed even if DDL_READWRITE is not specified. </td> </tr> <tr> <td width="40%"><a
+///                id="DDL_HIDDEN"></a><a id="ddl_hidden"></a><dl> <dt><b>DDL_HIDDEN</b></dt> </dl> </td> <td width="60%"> Includes
+///                hidden files. </td> </tr> <tr> <td width="40%"><a id="DDL_READONLY"></a><a id="ddl_readonly"></a><dl>
+///                <dt><b>DDL_READONLY</b></dt> </dl> </td> <td width="60%"> Includes read-only files. </td> </tr> <tr> <td
+///                width="40%"><a id="DDL_READWRITE"></a><a id="ddl_readwrite"></a><dl> <dt><b>DDL_READWRITE</b></dt> </dl> </td>
+///                <td width="60%"> Includes read/write files with no additional attributes. This is the default setting. </td>
+///                </tr> <tr> <td width="40%"><a id="DDL_SYSTEM"></a><a id="ddl_system"></a><dl> <dt><b>DDL_SYSTEM</b></dt> </dl>
+///                </td> <td width="60%"> Includes system files. </td> </tr> <tr> <td width="40%"><a id="DDL_POSTMSGS"></a><a
+///                id="ddl_postmsgs"></a><dl> <dt><b>DDL_POSTMSGS</b></dt> </dl> </td> <td width="60%"> If set, <b>DlgDirList</b>
+///                uses the PostMessage function to send messages to the list box. If not set, <b>DlgDirList</b> uses the
+///                SendMessage function. </td> </tr> </table>
+///Returns:
+///    Type: <b>int</b> If the function succeeds, the return value is nonzero. If the function fails, the return value
+///    is zero. For example, if the string specified by <i>lpPathSpec</i> is not a valid path, the function fails. To
+///    get extended error information, call .
+///    
+@DllImport("USER32")
+int DlgDirListW(HWND hDlg, PWSTR lpPathSpec, int nIDListBox, int nIDStaticPath, uint uFileType);
+
+///Retrieves the current selection from a single-selection list box. It assumes that the list box has been filled by the
+///DlgDirList function and that the selection is a drive letter, filename, or directory name.
+///Params:
+///    hwndDlg = Type: <b>HWND</b> A handle to the dialog box that contains the list box.
+///    lpString = Type: <b>LPTSTR</b> A pointer to a buffer that receives the selected path.
+///    chCount = Type: <b>int</b> The length, in <b>TCHARs</b>, of the buffer pointed to by <i>lpString</i>.
+///    idListBox = Type: <b>int</b> The identifier of a list box in the dialog box.
+///Returns:
+///    Type: <b>BOOL</b> If the current selection is a directory name, the return value is nonzero. If the current
+///    selection is not a directory name, the return value is zero. To get extended error information, call
+///    GetLastError.
+///    
+@DllImport("USER32")
+BOOL DlgDirSelectExA(HWND hwndDlg, PSTR lpString, int chCount, int idListBox);
+
+///Retrieves the current selection from a single-selection list box. It assumes that the list box has been filled by the
+///DlgDirList function and that the selection is a drive letter, filename, or directory name.
+///Params:
+///    hwndDlg = Type: <b>HWND</b> A handle to the dialog box that contains the list box.
+///    lpString = Type: <b>LPTSTR</b> A pointer to a buffer that receives the selected path.
+///    chCount = Type: <b>int</b> The length, in <b>TCHARs</b>, of the buffer pointed to by <i>lpString</i>.
+///    idListBox = Type: <b>int</b> The identifier of a list box in the dialog box.
+///Returns:
+///    Type: <b>BOOL</b> If the current selection is a directory name, the return value is nonzero. If the current
+///    selection is not a directory name, the return value is zero. To get extended error information, call
+///    GetLastError.
+///    
+@DllImport("USER32")
+BOOL DlgDirSelectExW(HWND hwndDlg, PWSTR lpString, int chCount, int idListBox);
+
+///Replaces the contents of a combo box with the names of the subdirectories and files in a specified directory. You can
+///filter the list of names by specifying a set of file attributes. The list of names can include mapped drive letters.
+///Params:
+///    hDlg = Type: <b>HWND</b> A handle to the dialog box that contains the combo box.
+///    lpPathSpec = Type: <b>LPTSTR</b> A pointer to a buffer containing a null-terminated string that specifies an absolute path,
+///                 relative path, or file name. An absolute path can begin with a drive letter (for example, d:\) or a UNC name (for
+///                 example, &
+///    nIDComboBox = Type: <b>int</b> The identifier of a combo box in the <i>hDlg</i> dialog box. If this parameter is zero,
+///                  <b>DlgDirListComboBox</b> does not try to fill a combo box.
+///    nIDStaticPath = Type: <b>int</b> The identifier of a static control in the <i>hDlg</i> dialog box. <b>DlgDirListComboBox</b> sets
+///                    the text of this control to display the current drive and directory. This parameter can be zero if you do not
+///                    want to display the current drive and directory.
+///    uFiletype = Type: <b>UINT</b> A set of bit flags that specifies the attributes of the files or directories to be added to the
+///                combo box. This parameter can be a combination of the following values. <table> <tr> <th>Value</th>
+///                <th>Meaning</th> </tr> <tr> <td width="40%"><a id="DDL_ARCHIVE"></a><a id="ddl_archive"></a><dl>
+///                <dt><b>DDL_ARCHIVE</b></dt> </dl> </td> <td width="60%"> Includes archived files. </td> </tr> <tr> <td
+///                width="40%"><a id="DDL_DIRECTORY"></a><a id="ddl_directory"></a><dl> <dt><b>DDL_DIRECTORY</b></dt> </dl> </td>
+///                <td width="60%"> Includes subdirectories, which are enclosed in square brackets ([ ]). </td> </tr> <tr> <td
+///                width="40%"><a id="DDL_DRIVES"></a><a id="ddl_drives"></a><dl> <dt><b>DDL_DRIVES</b></dt> </dl> </td> <td
+///                width="60%"> All mapped drives are added to the list. Drives are listed in the form [-<i>x</i>-], where <i>x</i>
+///                is the drive letter. </td> </tr> <tr> <td width="40%"><a id="DDL_EXCLUSIVE"></a><a id="ddl_exclusive"></a><dl>
+///                <dt><b>DDL_EXCLUSIVE</b></dt> </dl> </td> <td width="60%"> Includes only files with the specified attributes. By
+///                default, read/write files are listed even if DDL_READWRITE is not specified. </td> </tr> <tr> <td width="40%"><a
+///                id="DDL_HIDDEN"></a><a id="ddl_hidden"></a><dl> <dt><b>DDL_HIDDEN</b></dt> </dl> </td> <td width="60%"> Includes
+///                hidden files. </td> </tr> <tr> <td width="40%"><a id="DDL_READONLY"></a><a id="ddl_readonly"></a><dl>
+///                <dt><b>DDL_READONLY</b></dt> </dl> </td> <td width="60%"> Includes read-only files. </td> </tr> <tr> <td
+///                width="40%"><a id="DDL_READWRITE"></a><a id="ddl_readwrite"></a><dl> <dt><b>DDL_READWRITE</b></dt> </dl> </td>
+///                <td width="60%"> Includes read/write files with no additional attributes. This is the default setting. </td>
+///                </tr> <tr> <td width="40%"><a id="DDL_SYSTEM"></a><a id="ddl_system"></a><dl> <dt><b>DDL_SYSTEM</b></dt> </dl>
+///                </td> <td width="60%"> Includes system files. </td> </tr> <tr> <td width="40%"><a id="DDL_POSTMSGS"></a><a
+///                id="ddl_postmsgs"></a><dl> <dt><b>DDL_POSTMSGS</b></dt> </dl> </td> <td width="60%"> If this flag is set,
+///                <b>DlgDirListComboBox</b> uses the PostMessage function to send messages to the combo box. If this flag is not
+///                set, <b>DlgDirListComboBox</b> uses the SendMessage function. </td> </tr> </table>
+///Returns:
+///    Type: <b>int</b> If the function succeeds, the return value is nonzero. If the function fails, the return value
+///    is zero. For example, if the string specified by <i>lpPathSpec</i> is not a valid path, the function fails. To
+///    get extended error information, call GetLastError.
+///    
+@DllImport("USER32")
+int DlgDirListComboBoxA(HWND hDlg, PSTR lpPathSpec, int nIDComboBox, int nIDStaticPath, uint uFiletype);
+
+///Replaces the contents of a combo box with the names of the subdirectories and files in a specified directory. You can
+///filter the list of names by specifying a set of file attributes. The list of names can include mapped drive letters.
+///Params:
+///    hDlg = Type: <b>HWND</b> A handle to the dialog box that contains the combo box.
+///    lpPathSpec = Type: <b>LPTSTR</b> A pointer to a buffer containing a null-terminated string that specifies an absolute path,
+///                 relative path, or file name. An absolute path can begin with a drive letter (for example, d:\) or a UNC name (for
+///                 example, &
+///    nIDComboBox = Type: <b>int</b> The identifier of a combo box in the <i>hDlg</i> dialog box. If this parameter is zero,
+///                  <b>DlgDirListComboBox</b> does not try to fill a combo box.
+///    nIDStaticPath = Type: <b>int</b> The identifier of a static control in the <i>hDlg</i> dialog box. <b>DlgDirListComboBox</b> sets
+///                    the text of this control to display the current drive and directory. This parameter can be zero if you do not
+///                    want to display the current drive and directory.
+///    uFiletype = Type: <b>UINT</b> A set of bit flags that specifies the attributes of the files or directories to be added to the
+///                combo box. This parameter can be a combination of the following values. <table> <tr> <th>Value</th>
+///                <th>Meaning</th> </tr> <tr> <td width="40%"><a id="DDL_ARCHIVE"></a><a id="ddl_archive"></a><dl>
+///                <dt><b>DDL_ARCHIVE</b></dt> </dl> </td> <td width="60%"> Includes archived files. </td> </tr> <tr> <td
+///                width="40%"><a id="DDL_DIRECTORY"></a><a id="ddl_directory"></a><dl> <dt><b>DDL_DIRECTORY</b></dt> </dl> </td>
+///                <td width="60%"> Includes subdirectories, which are enclosed in square brackets ([ ]). </td> </tr> <tr> <td
+///                width="40%"><a id="DDL_DRIVES"></a><a id="ddl_drives"></a><dl> <dt><b>DDL_DRIVES</b></dt> </dl> </td> <td
+///                width="60%"> All mapped drives are added to the list. Drives are listed in the form [-<i>x</i>-], where <i>x</i>
+///                is the drive letter. </td> </tr> <tr> <td width="40%"><a id="DDL_EXCLUSIVE"></a><a id="ddl_exclusive"></a><dl>
+///                <dt><b>DDL_EXCLUSIVE</b></dt> </dl> </td> <td width="60%"> Includes only files with the specified attributes. By
+///                default, read/write files are listed even if DDL_READWRITE is not specified. </td> </tr> <tr> <td width="40%"><a
+///                id="DDL_HIDDEN"></a><a id="ddl_hidden"></a><dl> <dt><b>DDL_HIDDEN</b></dt> </dl> </td> <td width="60%"> Includes
+///                hidden files. </td> </tr> <tr> <td width="40%"><a id="DDL_READONLY"></a><a id="ddl_readonly"></a><dl>
+///                <dt><b>DDL_READONLY</b></dt> </dl> </td> <td width="60%"> Includes read-only files. </td> </tr> <tr> <td
+///                width="40%"><a id="DDL_READWRITE"></a><a id="ddl_readwrite"></a><dl> <dt><b>DDL_READWRITE</b></dt> </dl> </td>
+///                <td width="60%"> Includes read/write files with no additional attributes. This is the default setting. </td>
+///                </tr> <tr> <td width="40%"><a id="DDL_SYSTEM"></a><a id="ddl_system"></a><dl> <dt><b>DDL_SYSTEM</b></dt> </dl>
+///                </td> <td width="60%"> Includes system files. </td> </tr> <tr> <td width="40%"><a id="DDL_POSTMSGS"></a><a
+///                id="ddl_postmsgs"></a><dl> <dt><b>DDL_POSTMSGS</b></dt> </dl> </td> <td width="60%"> If this flag is set,
+///                <b>DlgDirListComboBox</b> uses the PostMessage function to send messages to the combo box. If this flag is not
+///                set, <b>DlgDirListComboBox</b> uses the SendMessage function. </td> </tr> </table>
+///Returns:
+///    Type: <b>int</b> If the function succeeds, the return value is nonzero. If the function fails, the return value
+///    is zero. For example, if the string specified by <i>lpPathSpec</i> is not a valid path, the function fails. To
+///    get extended error information, call GetLastError.
+///    
+@DllImport("USER32")
+int DlgDirListComboBoxW(HWND hDlg, PWSTR lpPathSpec, int nIDComboBox, int nIDStaticPath, uint uFiletype);
+
+///Retrieves the current selection from a combo box filled by using the DlgDirListComboBox function. The selection is
+///interpreted as a drive letter, a file, or a directory name.
+///Params:
+///    hwndDlg = Type: <b>HWND</b> A handle to the dialog box that contains the combo box.
+///    lpString = Type: <b>LPTSTR</b> A pointer to the buffer that receives the selected path.
+///    cchOut = Type: <b>int</b> The length, in characters, of the buffer pointed to by the <i>lpString</i> parameter.
+///    idComboBox = Type: <b>int</b> The integer identifier of the combo box control in the dialog box.
+///Returns:
+///    Type: <b>BOOL</b> If the current selection is a directory name, the return value is nonzero. If the current
+///    selection is not a directory name, the return value is zero. To get extended error information, call
+///    GetLastError.
+///    
+@DllImport("USER32")
+BOOL DlgDirSelectComboBoxExA(HWND hwndDlg, PSTR lpString, int cchOut, int idComboBox);
+
+///Retrieves the current selection from a combo box filled by using the DlgDirListComboBox function. The selection is
+///interpreted as a drive letter, a file, or a directory name.
+///Params:
+///    hwndDlg = Type: <b>HWND</b> A handle to the dialog box that contains the combo box.
+///    lpString = Type: <b>LPTSTR</b> A pointer to the buffer that receives the selected path.
+///    cchOut = Type: <b>int</b> The length, in characters, of the buffer pointed to by the <i>lpString</i> parameter.
+///    idComboBox = Type: <b>int</b> The integer identifier of the combo box control in the dialog box.
+///Returns:
+///    Type: <b>BOOL</b> If the current selection is a directory name, the return value is nonzero. If the current
+///    selection is not a directory name, the return value is zero. To get extended error information, call
+///    GetLastError.
+///    
+@DllImport("USER32")
+BOOL DlgDirSelectComboBoxExW(HWND hwndDlg, PWSTR lpString, int cchOut, int idComboBox);
+
+///The <b>SetScrollInfo</b> function sets the parameters of a scroll bar, including the minimum and maximum scrolling
+///positions, the page size, and the position of the scroll box (thumb). The function also redraws the scroll bar, if
+///requested.
+///Params:
+///    hwnd = Type: <b>HWND</b> Handle to a scroll bar control or a window with a standard scroll bar, depending on the value
+///           of the <i>fnBar</i> parameter.
+///    nBar = Type: <b>int</b> Specifies the type of scroll bar for which to set parameters. This parameter can be one of the
+///           following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SB_CTL"></a><a
+///           id="sb_ctl"></a><dl> <dt><b>SB_CTL</b></dt> </dl> </td> <td width="60%"> Sets the parameters of a scroll bar
+///           control. The <i>hwnd</i> parameter must be the handle to the scroll bar control. </td> </tr> <tr> <td
+///           width="40%"><a id="SB_HORZ"></a><a id="sb_horz"></a><dl> <dt><b>SB_HORZ</b></dt> </dl> </td> <td width="60%">
+///           Sets the parameters of the window's standard horizontal scroll bar. </td> </tr> <tr> <td width="40%"><a
+///           id="SB_VERT"></a><a id="sb_vert"></a><dl> <dt><b>SB_VERT</b></dt> </dl> </td> <td width="60%"> Sets the
+///           parameters of the window's standard vertical scroll bar. </td> </tr> </table>
+///    lpsi = Type: <b>LPCSCROLLINFO</b> Pointer to a SCROLLINFO structure. Before calling <b>SetScrollInfo</b>, set the
+///           <b>cbSize</b> member of the structure to <b>sizeof</b>(<b>SCROLLINFO</b>), set the <b>fMask</b> member to
+///           indicate the parameters to set, and specify the new parameter values in the appropriate members. The <b>fMask</b>
+///           member can be one or more of the following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td
+///           width="40%"><a id="SIF_DISABLENOSCROLL"></a><a id="sif_disablenoscroll"></a><dl>
+///           <dt><b>SIF_DISABLENOSCROLL</b></dt> </dl> </td> <td width="60%"> Disables the scroll bar instead of removing it,
+///           if the scroll bar's new parameters make the scroll bar unnecessary. </td> </tr> <tr> <td width="40%"><a
+///           id="SIF_PAGE"></a><a id="sif_page"></a><dl> <dt><b>SIF_PAGE</b></dt> </dl> </td> <td width="60%"> Sets the scroll
+///           page to the value specified in the <b>nPage</b> member of the SCROLLINFO structure pointed to by <i>lpsi</i>.
+///           </td> </tr> <tr> <td width="40%"><a id="SIF_POS"></a><a id="sif_pos"></a><dl> <dt><b>SIF_POS</b></dt> </dl> </td>
+///           <td width="60%"> Sets the scroll position to the value specified in the <b>nPos</b> member of the SCROLLINFO
+///           structure pointed to by <i>lpsi</i>. </td> </tr> <tr> <td width="40%"><a id="SIF_RANGE"></a><a
+///           id="sif_range"></a><dl> <dt><b>SIF_RANGE</b></dt> </dl> </td> <td width="60%"> Sets the scroll range to the value
+///           specified in the <b>nMin</b> and <b>nMax</b> members of the SCROLLINFO structure pointed to by <i>lpsi</i>. </td>
+///           </tr> </table>
+///    redraw = Type: <b>BOOL</b> Specifies whether the scroll bar is redrawn to reflect the changes to the scroll bar. If this
+///             parameter is <b>TRUE</b>, the scroll bar is redrawn, otherwise, it is not redrawn.
+///Returns:
+///    Type: <b>int</b> The return value is the current position of the scroll box.
+///    
+@DllImport("USER32")
+int SetScrollInfo(HWND hwnd, int nBar, SCROLLINFO* lpsi, BOOL redraw);
+
+///The <b>GetScrollInfo</b> function retrieves the parameters of a scroll bar, including the minimum and maximum
+///scrolling positions, the page size, and the position of the scroll box (thumb).
+///Params:
+///    hwnd = Type: <b>HWND</b> Handle to a scroll bar control or a window with a standard scroll bar, depending on the value
+///           of the <i>fnBar</i> parameter.
+///    nBar = Type: <b>int</b> Specifies the type of scroll bar for which to retrieve parameters. This parameter can be one of
+///           the following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
+///           id="SB_CTL"></a><a id="sb_ctl"></a><dl> <dt><b>SB_CTL</b></dt> </dl> </td> <td width="60%"> Retrieves the
+///           parameters for a scroll bar control. The <i>hwnd</i> parameter must be the handle to the scroll bar control.
+///           </td> </tr> <tr> <td width="40%"><a id="SB_HORZ"></a><a id="sb_horz"></a><dl> <dt><b>SB_HORZ</b></dt> </dl> </td>
+///           <td width="60%"> Retrieves the parameters for the window's standard horizontal scroll bar. </td> </tr> <tr> <td
+///           width="40%"><a id="SB_VERT"></a><a id="sb_vert"></a><dl> <dt><b>SB_VERT</b></dt> </dl> </td> <td width="60%">
+///           Retrieves the parameters for the window's standard vertical scroll bar. </td> </tr> </table>
+///    lpsi = Type: <b>LPSCROLLINFO</b> Pointer to a SCROLLINFO structure. Before calling <b>GetScrollInfo</b>, set the
+///           <b>cbSize</b> member to <b>sizeof</b>(<b>SCROLLINFO</b>), and set the <b>fMask</b> member to specify the scroll
+///           bar parameters to retrieve. Before returning, the function copies the specified parameters to the appropriate
+///           members of the structure. The <b>fMask</b> member can be one or more of the following values. <table> <tr>
+///           <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SIF_PAGE"></a><a id="sif_page"></a><dl>
+///           <dt><b>SIF_PAGE</b></dt> </dl> </td> <td width="60%"> Copies the scroll page to the <b>nPage</b> member of the
+///           SCROLLINFO structure pointed to by <i>lpsi</i>. </td> </tr> <tr> <td width="40%"><a id="SIF_POS"></a><a
+///           id="sif_pos"></a><dl> <dt><b>SIF_POS</b></dt> </dl> </td> <td width="60%"> Copies the scroll position to the
+///           <b>nPos</b> member of the SCROLLINFO structure pointed to by <i>lpsi</i>. </td> </tr> <tr> <td width="40%"><a
+///           id="SIF_RANGE"></a><a id="sif_range"></a><dl> <dt><b>SIF_RANGE</b></dt> </dl> </td> <td width="60%"> Copies the
+///           scroll range to the <b>nMin</b> and <b>nMax</b> members of the SCROLLINFO structure pointed to by <i>lpsi</i>.
+///           </td> </tr> <tr> <td width="40%"><a id="SIF_TRACKPOS"></a><a id="sif_trackpos"></a><dl>
+///           <dt><b>SIF_TRACKPOS</b></dt> </dl> </td> <td width="60%"> Copies the current scroll box tracking position to the
+///           <b>nTrackPos</b> member of the SCROLLINFO structure pointed to by <i>lpsi</i>. </td> </tr> </table>
+///Returns:
+///    Type: <b>BOOL</b> If the function retrieved any values, the return value is nonzero. If the function does not
+///    retrieve any values, the return value is zero. To get extended error information, call GetLastError.
+///    
+@DllImport("USER32")
+BOOL GetScrollInfo(HWND hwnd, int nBar, SCROLLINFO* lpsi);
+
+///The <b>GetScrollBarInfo</b> function retrieves information about the specified scroll bar.
+///Params:
+///    hwnd = Type: <b>HWND</b> Handle to a window associated with the scroll bar whose information is to be retrieved. If the
+///           <i>idObject</i> parameter is OBJID_CLIENT, <i>hwnd</i> is a handle to a scroll bar control. Otherwise,
+///           <i>hwnd</i> is a handle to a window created with WS_VSCROLL and/or WS_HSCROLL style.
+///    idObject = Type: <b>LONG</b> Specifies the scroll bar object. This parameter can be one of the following values. <table>
+///               <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="OBJID_CLIENT"></a><a
+///               id="objid_client"></a><dl> <dt><b>OBJID_CLIENT</b></dt> </dl> </td> <td width="60%"> The <i>hwnd</i> parameter is
+///               a handle to a scroll bar control. </td> </tr> <tr> <td width="40%"><a id="OBJID_HSCROLL"></a><a
+///               id="objid_hscroll"></a><dl> <dt><b>OBJID_HSCROLL</b></dt> </dl> </td> <td width="60%"> The horizontal scroll bar
+///               of the <i>hwnd</i> window. </td> </tr> <tr> <td width="40%"><a id="OBJID_VSCROLL"></a><a
+///               id="objid_vscroll"></a><dl> <dt><b>OBJID_VSCROLL</b></dt> </dl> </td> <td width="60%"> The vertical scroll bar of
+///               the <i>hwnd</i> window. </td> </tr> </table>
+///    psbi = Type: <b>PSCROLLBARINFO</b> Pointer to a SCROLLBARINFO structure to receive the information. Before calling
+///           <b>GetScrollBarInfo</b>, set the <b>cbSize</b> member to <b>sizeof</b>(<b>SCROLLBARINFO</b>).
+///Returns:
+///    Type: <b>BOOL</b> If the function succeeds, the return value is nonzero. If the function fails, the return value
+///    is zero. To get extended error information, call GetLastError.
+///    
+@DllImport("USER32")
+BOOL GetScrollBarInfo(HWND hwnd, int idObject, SCROLLBARINFO* psbi);
+
+///Retrieves information about the specified combo box.
+///Params:
+///    hwndCombo = Type: <b>HWND</b> A handle to the combo box.
+///    pcbi = Type: <b>PCOMBOBOXINFO</b> A pointer to a COMBOBOXINFO structure that receives the information. You must set
+///           <b>COMBOBOXINFO.cbSize</b> before calling this function.
+///Returns:
+///    Type: <b>BOOL</b> If the function succeeds, the return value is nonzero. If the function fails, the return value
+///    is zero. To get extended error information, call GetLastError.
+///    
+@DllImport("USER32")
+BOOL GetComboBoxInfo(HWND hwndCombo, COMBOBOXINFO* pcbi);
+
+///Retrieves the number of items per column in a specified list box.
+///Params:
+///    hwnd = Type: <b>HWND</b> A handle to the list box whose number of items per column is to be retrieved.
+///Returns:
+///    Type: <b>DWORD</b> The return value is the number of items per column.
+///    
+@DllImport("USER32")
+uint GetListBoxInfo(HWND hwnd);
+
+///Gets information about the pointer devices attached to the system.
+///Params:
+///    deviceCount = If <i>pointerDevices</i> is NULL, <i>deviceCount</i> returns the total number of attached pointer devices.
+///                  Otherwise, <i>deviceCount</i> specifies the number of POINTER_DEVICE_INFO structures pointed to by
+///                  <i>pointerDevices</i>.
+///    pointerDevices = Array of POINTER_DEVICE_INFO structures for the pointer devices attached to the system. If NULL, the total number
+///                     of attached pointer devices is returned in <i>deviceCount</i>.
+///Returns:
+///    If this function succeeds, it returns TRUE. Otherwise, it returns FALSE. To retrieve extended error information,
+///    call the GetLastError function.
+///    
+@DllImport("USER32")
+BOOL GetPointerDevices(uint* deviceCount, POINTER_DEVICE_INFO* pointerDevices);
+
+///Gets information about the pointer device.
+///Params:
+///    device = The handle to the device.
+///    pointerDevice = A POINTER_DEVICE_INFO structure that contains information about the pointer device.
+///Returns:
+///    If this function succeeds, it returns TRUE. Otherwise, it returns FALSE. To retrieve extended error information,
+///    call the GetLastError function.
+///    
+@DllImport("USER32")
+BOOL GetPointerDevice(HANDLE device, POINTER_DEVICE_INFO* pointerDevice);
+
+///Gets device properties that aren't included in the POINTER_DEVICE_INFO structure.
+///Params:
+///    device = The pointer device to query properties from. A call to the GetPointerDevices function returns this handle in the
+///             POINTER_DEVICE_INFO structure.
+///    propertyCount = The number of properties. Returns the count that's written or needed if <i>pointerProperties</i> is NULL. If this
+///                    value is less than the number of properties that the pointer device supports and <i>pointerProperties</i> is not
+///                    NULL, the function returns the actual number of properties in this variable and fails.
+///    pointerProperties = The array of properties.
+///Returns:
+///    TRUE if the function succeeds; otherwise, FALSE. If the function fails, call the GetLastError function for more
+///    information.
+///    
+@DllImport("USER32")
+BOOL GetPointerDeviceProperties(HANDLE device, uint* propertyCount, POINTER_DEVICE_PROPERTY* pointerProperties);
+
+///Registers a window to process the WM_POINTERDEVICECHANGE, WM_POINTERDEVICEINRANGE, and WM_POINTERDEVICEOUTOFRANGE
+///pointer device notifications.
+///Params:
+///    window = The window that receives WM_POINTERDEVICECHANGE, WM_POINTERDEVICEINRANGE, and WM_POINTERDEVICEOUTOFRANGE
+///             notifications.
+///    notifyRange = If set to TRUE, process the WM_POINTERDEVICEINRANGE and WM_POINTERDEVICEOUTOFRANGE messages. If set to FALSE,
+///                  these messages aren't processed.
+///Returns:
+///    If this function succeeds, it returns TRUE. Otherwise, it returns FALSE. To retrieve extended error information,
+///    call the GetLastError function.
+///    
+@DllImport("USER32")
+BOOL RegisterPointerDeviceNotifications(HWND window, BOOL notifyRange);
+
+///Gets the x and y range for the pointer device (in himetric) and the x and y range (current resolution) for the
+///display that the pointer device is mapped to.
+///Params:
+///    device = The handle to the pointer device.
+///    pointerDeviceRect = The structure for retrieving the device's physical range data.
+///    displayRect = The structure for retrieving the display resolution.
+///Returns:
+///    TRUE if the function succeeds; otherwise, FALSE. If the function fails, call the GetLastError function for more
+///    information.
+///    
+@DllImport("USER32")
+BOOL GetPointerDeviceRects(HANDLE device, RECT* pointerDeviceRect, RECT* displayRect);
+
+///Gets the cursor IDs that are mapped to the cursors associated with a pointer device.
+///Params:
+///    device = The device handle.
+///    cursorCount = The number of cursors associated with the pointer device.
+///    deviceCursors = An array of POINTER_DEVICE_CURSOR_INFO structures that contain info about the cursors. If NULL,
+///                    <i>cursorCount</i> returns the number of cursors associated with the pointer device.
+///Returns:
+///    TRUE if the function succeeds; otherwise, FALSE. If the function fails, call the GetLastError function for more
+///    information.
+///    
+@DllImport("USER32")
+BOOL GetPointerDeviceCursors(HANDLE device, uint* cursorCount, POINTER_DEVICE_CURSOR_INFO* deviceCursors);
+
+///Gets the raw input data from the pointer device.
+///Params:
+///    pointerId = An identifier of the pointer for which to retrieve information.
+///    historyCount = The pointer history.
+///    propertiesCount = Number of properties to retrieve.
+///    pProperties = Array of POINTER_DEVICE_PROPERTY structures that contain raw data reported by the device.
+///    pValues = The values for <i>pProperties</i>.
+///Returns:
+///    TRUE if the function succeeds; otherwise, FALSE. If the function fails, call the GetLastError function for more
+///    information.
+///    
+@DllImport("USER32")
+BOOL GetRawPointerDeviceData(uint pointerId, uint historyCount, uint propertiesCount, 
+                             POINTER_DEVICE_PROPERTY* pProperties, int* pValues);
+
+///Retrieves the source of the input message.
+///Params:
+///    inputMessageSource = The INPUT_MESSAGE_SOURCE structure that holds the device type and the ID of the input message source. <div
+///                         class="alert"><b>Note</b> <b>deviceType</b> in INPUT_MESSAGE_SOURCE is set to IMDT_UNAVAILABLE when SendMessage
+///                         is used to inject input (system generated or through messages such as WM_PAINT). This remains true until
+///                         <b>SendMessage</b> returns.</div> <div> </div>
+///Returns:
+///    If this function succeeds, it returns TRUE. Otherwise, it returns FALSE. To retrieve extended error information,
+///    call the GetLastError function.
+///    
+@DllImport("USER32")
+BOOL GetCurrentInputMessageSource(INPUT_MESSAGE_SOURCE* inputMessageSource);
+
+///<p class="CCE_Message">[<b>GetCIMSSM</b> may be altered or unavailable in the future. Instead, use
+///GetCurrentInputMessageSource.] Retrieves the source of the input message (GetCurrentInputMessageSourceInSendMessage).
+///Params:
+///    inputMessageSource = The INPUT_MESSAGE_SOURCE structure that holds the device type and the ID of the input message source.
+///Returns:
+///    If this function succeeds, it returns TRUE. Otherwise, it returns ERROR_INVALID_PARAMETER. This function fails
+///    when:<ul> <li>The input parameter is invalid.</li> <li> GetCurrentInputMessageSource returns a value other than
+///    IMDT_UNAVAILABLE for the device type.</li> </ul>
+///    
+@DllImport("USER32")
+BOOL GetCIMSSM(INPUT_MESSAGE_SOURCE* inputMessageSource);
 
 ///Creates a new page for a property sheet.
 ///Params:
@@ -10082,7 +11022,7 @@ HICON ImageList_GetIcon(HIMAGELIST himl, int i, uint flags);
 ///    Type: <b>HIMAGELIST</b> Returns the handle to the image list if successful, or <b>NULL</b> otherwise.
 ///    
 @DllImport("COMCTL32")
-HIMAGELIST ImageList_LoadImageA(HINSTANCE hi, const(char)* lpbmp, int cx, int cGrow, uint crMask, uint uType, 
+HIMAGELIST ImageList_LoadImageA(HINSTANCE hi, const(PSTR) lpbmp, int cx, int cGrow, uint crMask, uint uType, 
                                 uint uFlags);
 
 ///Creates an image list from the specified bitmap.
@@ -10149,7 +11089,7 @@ HIMAGELIST ImageList_LoadImageA(HINSTANCE hi, const(char)* lpbmp, int cx, int cG
 ///    Type: <b>HIMAGELIST</b> Returns the handle to the image list if successful, or <b>NULL</b> otherwise.
 ///    
 @DllImport("COMCTL32")
-HIMAGELIST ImageList_LoadImageW(HINSTANCE hi, const(wchar)* lpbmp, int cx, int cGrow, uint crMask, uint uType, 
+HIMAGELIST ImageList_LoadImageW(HINSTANCE hi, const(PWSTR) lpbmp, int cx, int cGrow, uint crMask, uint uType, 
                                 uint uFlags);
 
 ///Copies images within a given image list.
@@ -10427,7 +11367,7 @@ HBITMAP CreateMappedBitmap(HINSTANCE hInstance, ptrdiff_t idBitmap, uint wFlags,
 ///             string pointed to by <i>pszText</i> will be displayed in the opposite direction to the text in the parent window.
 ///             </td> </tr> </table>
 @DllImport("COMCTL32")
-void DrawStatusTextA(HDC hDC, RECT* lprc, const(char)* pszText, uint uFlags);
+void DrawStatusTextA(HDC hDC, RECT* lprc, const(PSTR) pszText, uint uFlags);
 
 ///The <b>DrawStatusText</b> function draws the specified text in the style of a status window with borders.
 ///Params:
@@ -10447,7 +11387,7 @@ void DrawStatusTextA(HDC hDC, RECT* lprc, const(char)* pszText, uint uFlags);
 ///             string pointed to by <i>pszText</i> will be displayed in the opposite direction to the text in the parent window.
 ///             </td> </tr> </table>
 @DllImport("COMCTL32")
-void DrawStatusTextW(HDC hDC, RECT* lprc, const(wchar)* pszText, uint uFlags);
+void DrawStatusTextW(HDC hDC, RECT* lprc, const(PWSTR) pszText, uint uFlags);
 
 ///Creates a status window, which is typically used to display the status of an application. The window generally
 ///appears at the bottom of the parent window, and it contains the specified text. <div class="alert"><b>Note</b> This
@@ -10464,7 +11404,7 @@ void DrawStatusTextW(HDC hDC, RECT* lprc, const(wchar)* pszText, uint uFlags);
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("COMCTL32")
-HWND CreateStatusWindowA(int style, const(char)* lpszText, HWND hwndParent, uint wID);
+HWND CreateStatusWindowA(int style, const(PSTR) lpszText, HWND hwndParent, uint wID);
 
 ///Creates a status window, which is typically used to display the status of an application. The window generally
 ///appears at the bottom of the parent window, and it contains the specified text. <div class="alert"><b>Note</b> This
@@ -10481,7 +11421,7 @@ HWND CreateStatusWindowA(int style, const(char)* lpszText, HWND hwndParent, uint
 ///    extended error information, call GetLastError.
 ///    
 @DllImport("COMCTL32")
-HWND CreateStatusWindowW(int style, const(wchar)* lpszText, HWND hwndParent, uint wID);
+HWND CreateStatusWindowW(int style, const(PWSTR) lpszText, HWND hwndParent, uint wID);
 
 ///Processes WM_MENUSELECT and WM_COMMAND messages and displays Help text about the current menu in the specified status
 ///window.
@@ -10605,7 +11545,7 @@ HWND CreateUpDownControl(uint dwStyle, int x, int y, int cx, int cy, HWND hParen
 ///    
 @DllImport("COMCTL32")
 HRESULT TaskDialogIndirect(const(TASKDIALOGCONFIG)* pTaskConfig, int* pnButton, int* pnRadioButton, 
-                           int* pfVerificationFlagChecked);
+                           BOOL* pfVerificationFlagChecked);
 
 ///The <b>TaskDialog</b> function creates, displays, and operates a task dialog. The task dialog contains
 ///application-defined message text and title, icons, and any combination of predefined push buttons. This function does
@@ -10674,9 +11614,9 @@ HRESULT TaskDialogIndirect(const(TASKDIALOGCONFIG)* pTaskConfig, int* pnButton, 
 ///    </table>
 ///    
 @DllImport("COMCTL32")
-HRESULT TaskDialog(HWND hwndOwner, HINSTANCE hInstance, const(wchar)* pszWindowTitle, 
-                   const(wchar)* pszMainInstruction, const(wchar)* pszContent, int dwCommonButtons, 
-                   const(wchar)* pszIcon, int* pnButton);
+HRESULT TaskDialog(HWND hwndOwner, HINSTANCE hInstance, const(PWSTR) pszWindowTitle, 
+                   const(PWSTR) pszMainInstruction, const(PWSTR) pszContent, int dwCommonButtons, 
+                   const(PWSTR) pszIcon, int* pnButton);
 
 ///Enables an application to specify a language to be used with the common controls that is different from the system
 ///language.
@@ -10787,7 +11727,7 @@ void* DSA_GetItemPtr(_DSA* hdsa, int i);
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if successful or <b>FALSE</b> otherwise.
 ///    
 @DllImport("COMCTL32")
-BOOL DSA_GetItem(_DSA* hdsa, int i, char* pitem);
+BOOL DSA_GetItem(_DSA* hdsa, int i, void* pitem);
 
 ///<p class="CCE_Message">[<b>DSA_SetItem</b> is available through Windows XP with Service Pack 2 (SP2). It might be
 ///altered or unavailable in subsequent versions.] Sets the contents of an element in a dynamic structure array (DSA).
@@ -11085,7 +12025,7 @@ int DPA_Search(_DPA* hdpa, void* pFind, int iStart, PFNDACOMPARE pfnCompare, LPA
 ///    Type: <b>BOOL</b> Returns <b>TRUE</b> if successful; otherwise, <b>FALSE</b>.
 ///    
 @DllImport("COMCTL32")
-BOOL Str_SetPtrW(ushort** ppsz, const(wchar)* psz);
+BOOL Str_SetPtrW(PWSTR* ppsz, const(PWSTR) psz);
 
 ///Enables or disables one or both flat scroll bar direction buttons. If flat scroll bars are not initialized for the
 ///window, this function calls the standard EnableScrollBar function.
@@ -11448,7 +12388,7 @@ HRESULT UninitializeFlatSB(HWND param0);
 ///    interpretations. </td> </tr> </table>
 ///    
 @DllImport("COMCTL32")
-HRESULT LoadIconMetric(HINSTANCE hinst, const(wchar)* pszName, int lims, HICON* phico);
+HRESULT LoadIconMetric(HINSTANCE hinst, const(PWSTR) pszName, int lims, HICON* phico);
 
 ///Loads an icon. If the icon is not a standard size, this function scales down a larger image instead of scaling up a
 ///smaller image.
@@ -11490,7 +12430,7 @@ HRESULT LoadIconMetric(HINSTANCE hinst, const(wchar)* pszName, int lims, HICON* 
 ///    expected interpretations. </td> </tr> </table>
 ///    
 @DllImport("COMCTL32")
-HRESULT LoadIconWithScaleDown(HINSTANCE hinst, const(wchar)* pszName, int cx, int cy, HICON* phico);
+HRESULT LoadIconWithScaleDown(HINSTANCE hinst, const(PWSTR) pszName, int cx, int cy, HICON* phico);
 
 ///Draws text that has a shadow.
 ///Params:
@@ -11510,7 +12450,7 @@ HRESULT LoadIconWithScaleDown(HINSTANCE hinst, const(wchar)* pszName, int cx, in
 ///    zero.
 ///    
 @DllImport("COMCTL32")
-int DrawShadowText(HDC hdc, const(wchar)* pszText, uint cch, RECT* prc, uint dwFlags, uint crText, uint crShadow, 
+int DrawShadowText(HDC hdc, const(PWSTR) pszText, uint cch, RECT* prc, uint dwFlags, uint crText, uint crShadow, 
                    int ixOffset, int iyOffset);
 
 ///Creates a single instance of an imagelist and returns an interface pointer to it.
@@ -11541,7 +12481,7 @@ HRESULT ImageList_CoCreateInstance(const(GUID)* rclsid, const(IUnknown) punkOute
 ///    pcbSizeOut = The byte size of the returned property.
 @DllImport("UXTHEME")
 HRESULT GetThemeAnimationProperty(ptrdiff_t hTheme, int iStoryboardId, int iTargetId, TA_PROPERTY eProperty, 
-                                  char* pvProperty, uint cbSize, uint* pcbSizeOut);
+                                  void* pvProperty, uint cbSize, uint* pcbSizeOut);
 
 ///Gets an animation transform operation based on storyboard id, target id and transform index.
 ///Params:
@@ -11554,7 +12494,7 @@ HRESULT GetThemeAnimationProperty(ptrdiff_t hTheme, int iStoryboardId, int iTarg
 ///    pcbSizeOut = The byte size of a transform operation structure.
 @DllImport("UXTHEME")
 HRESULT GetThemeAnimationTransform(ptrdiff_t hTheme, int iStoryboardId, int iTargetId, uint dwTransformIndex, 
-                                   char* pTransform, uint cbSize, uint* pcbSizeOut);
+                                   TA_TRANSFORM* pTransform, uint cbSize, uint* pcbSizeOut);
 
 ///Gets a predefined timing function based on a timing function identifier.
 ///Params:
@@ -11564,8 +12504,8 @@ HRESULT GetThemeAnimationTransform(ptrdiff_t hTheme, int iStoryboardId, int iTar
 ///    cbSize = The byte size of the buffer pointed by <i>pTimingFunction</i>.
 ///    pcbSizeOut = The byte size of the timing function structure.
 @DllImport("UXTHEME")
-HRESULT GetThemeTimingFunction(ptrdiff_t hTheme, int iTimingFunctionId, char* pTimingFunction, uint cbSize, 
-                               uint* pcbSizeOut);
+HRESULT GetThemeTimingFunction(ptrdiff_t hTheme, int iTimingFunctionId, TA_TIMINGFUNCTION* pTimingFunction, 
+                               uint cbSize, uint* pcbSizeOut);
 
 ///Opens the theme data for a window and its associated class.
 ///Params:
@@ -11577,7 +12517,7 @@ HRESULT GetThemeTimingFunction(ptrdiff_t hTheme, int iTimingFunctionId, char* pT
 ///    returned.
 ///    
 @DllImport("UXTHEME")
-ptrdiff_t OpenThemeData(HWND hwnd, const(wchar)* pszClassList);
+ptrdiff_t OpenThemeData(HWND hwnd, const(PWSTR) pszClassList);
 
 ///Opens the theme data associated with a window for specified theme classes.
 ///Params:
@@ -11595,7 +12535,7 @@ ptrdiff_t OpenThemeData(HWND hwnd, const(wchar)* pszClassList);
 ///    will be returned.
 ///    
 @DllImport("UXTHEME")
-ptrdiff_t OpenThemeDataEx(HWND hwnd, const(wchar)* pszClassList, uint dwFlags);
+ptrdiff_t OpenThemeDataEx(HWND hwnd, const(PWSTR) pszClassList, uint dwFlags);
 
 ///Closes the theme data handle.
 ///Params:
@@ -11670,7 +12610,7 @@ HRESULT DrawThemeBackgroundEx(ptrdiff_t hTheme, HDC hdc, int iPartId, int iState
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("UxTheme")
-HRESULT DrawThemeText(ptrdiff_t hTheme, HDC hdc, int iPartId, int iStateId, const(wchar)* pszText, int cchText, 
+HRESULT DrawThemeText(ptrdiff_t hTheme, HDC hdc, int iPartId, int iStateId, const(PWSTR) pszText, int cchText, 
                       uint dwTextFlags, uint dwTextFlags2, RECT* pRect);
 
 ///Retrieves the size of the content area for the background defined by the visual style.
@@ -11775,7 +12715,7 @@ HRESULT GetThemePartSize(ptrdiff_t hTheme, HDC hdc, int iPartId, int iStateId, R
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("UxTheme")
-HRESULT GetThemeTextExtent(ptrdiff_t hTheme, HDC hdc, int iPartId, int iStateId, const(wchar)* pszText, 
+HRESULT GetThemeTextExtent(ptrdiff_t hTheme, HDC hdc, int iPartId, int iStateId, const(PWSTR) pszText, 
                            int cchCharCount, uint dwTextFlags, RECT* pBoundingRect, RECT* pExtentRect);
 
 ///Retrieves information about the font specified by a visual style for a particular part.
@@ -12024,7 +12964,7 @@ HRESULT GetThemeMetric(ptrdiff_t hTheme, HDC hdc, int iPartId, int iStateId, int
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("UxTheme")
-HRESULT GetThemeString(ptrdiff_t hTheme, int iPartId, int iStateId, int iPropId, const(wchar)* pszBuff, 
+HRESULT GetThemeString(ptrdiff_t hTheme, int iPartId, int iStateId, int iPropId, PWSTR pszBuff, 
                        int cchMaxBuffChars);
 
 ///Retrieves the value of a <b>BOOL</b> property from the SysMetrics section of theme data.
@@ -12078,7 +13018,7 @@ HRESULT GetThemeString(ptrdiff_t hTheme, int iPartId, int iStateId, int iPropId,
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("UxTheme")
-HRESULT GetThemeBool(ptrdiff_t hTheme, int iPartId, int iStateId, int iPropId, int* pfVal);
+HRESULT GetThemeBool(ptrdiff_t hTheme, int iPartId, int iStateId, int iPropId, BOOL* pfVal);
 
 ///Retrieves the value of an <b>int</b> property.
 ///Params:
@@ -12234,7 +13174,7 @@ HRESULT GetThemePropertyOrigin(ptrdiff_t hTheme, int iPartId, int iStateId, int 
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("UXTHEME")
-HRESULT SetWindowTheme(HWND hwnd, const(wchar)* pszSubAppName, const(wchar)* pszSubIdList);
+HRESULT SetWindowTheme(HWND hwnd, const(PWSTR) pszSubAppName, const(PWSTR) pszSubIdList);
 
 ///Retrieves the value of a filename property.
 ///Params:
@@ -12252,7 +13192,7 @@ HRESULT SetWindowTheme(HWND hwnd, const(wchar)* pszSubAppName, const(wchar)* psz
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("UxTheme")
-HRESULT GetThemeFilename(ptrdiff_t hTheme, int iPartId, int iStateId, int iPropId, const(wchar)* pszThemeFileName, 
+HRESULT GetThemeFilename(ptrdiff_t hTheme, int iPartId, int iStateId, int iPropId, PWSTR pszThemeFileName, 
                          int cchMaxBuffChars);
 
 ///Retrieves the value of a system color.
@@ -12420,7 +13360,7 @@ HRESULT GetThemeSysFont(ptrdiff_t hTheme, int iFontId, LOGFONTW* plf);
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("UxTheme")
-HRESULT GetThemeSysString(ptrdiff_t hTheme, int iStringId, const(wchar)* pszStringBuff, int cchMaxStringChars);
+HRESULT GetThemeSysString(ptrdiff_t hTheme, int iStringId, PWSTR pszStringBuff, int cchMaxStringChars);
 
 ///Retrieves the value of a system <b>int</b>.
 ///Params:
@@ -12535,8 +13475,8 @@ void SetThemeAppProperties(uint dwFlags);
 ///    cchMaxSizeChars = Type: <b>int</b> Value of type <b>int</b> that contains the maximum number of characters allowed in the size
 ///                      name.
 @DllImport("UXTHEME")
-HRESULT GetCurrentThemeName(const(wchar)* pszThemeFileName, int cchMaxNameChars, const(wchar)* pszColorBuff, 
-                            int cchMaxColorChars, const(wchar)* pszSizeBuff, int cchMaxSizeChars);
+HRESULT GetCurrentThemeName(PWSTR pszThemeFileName, int cchMaxNameChars, PWSTR pszColorBuff, int cchMaxColorChars, 
+                            PWSTR pszSizeBuff, int cchMaxSizeChars);
 
 ///Retrieves the value for a theme property from the documentation section of the specified theme file.
 ///Params:
@@ -12562,8 +13502,8 @@ HRESULT GetCurrentThemeName(const(wchar)* pszThemeFileName, int cchMaxNameChars,
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("UxTheme")
-HRESULT GetThemeDocumentationProperty(const(wchar)* pszThemeName, const(wchar)* pszPropertyName, 
-                                      const(wchar)* pszValueBuff, int cchMaxValChars);
+HRESULT GetThemeDocumentationProperty(const(PWSTR) pszThemeName, const(PWSTR) pszPropertyName, PWSTR pszValueBuff, 
+                                      int cchMaxValChars);
 
 ///Draws the part of a parent control that is covered by a partially-transparent or alpha-blended child control.
 ///Params:
@@ -12626,7 +13566,7 @@ HRESULT DrawThemeParentBackgroundEx(HWND hwnd, HDC hdc, uint dwFlags, const(RECT
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("UXTHEME")
-HRESULT SetWindowThemeAttribute(HWND hwnd, WINDOWTHEMEATTRIBUTETYPE eAttribute, char* pvAttribute, 
+HRESULT SetWindowThemeAttribute(HWND hwnd, WINDOWTHEMEATTRIBUTETYPE eAttribute, void* pvAttribute, 
                                 uint cbAttribute);
 
 ///Draws text using the color and font defined by the visual style. Extends DrawThemeText by allowing additional text
@@ -12652,7 +13592,7 @@ HRESULT SetWindowThemeAttribute(HWND hwnd, WINDOWTHEMEATTRIBUTETYPE eAttribute, 
 ///    xmlns:loc="http://microsoft.com/wdcml/l10n">HRESULT</b> error code.
 ///    
 @DllImport("UXTHEME")
-HRESULT DrawThemeTextEx(ptrdiff_t hTheme, HDC hdc, int iPartId, int iStateId, const(wchar)* pszText, int cchText, 
+HRESULT DrawThemeTextEx(ptrdiff_t hTheme, HDC hdc, int iPartId, int iStateId, const(PWSTR) pszText, int cchText, 
                         uint dwTextFlags, RECT* pRect, const(DTTOPTS)* pOptions);
 
 ///Retrieves the bitmap associated with a particular theme, part, state, and property.
@@ -12871,931 +13811,6 @@ BOOL IsCompositionActive();
 @DllImport("UxTheme")
 HRESULT GetThemeTransitionDuration(ptrdiff_t hTheme, int iPartId, int iStateIdFrom, int iStateIdTo, int iPropId, 
                                    uint* pdwDuration);
-
-///Changes the check state of a button control.
-///Params:
-///    hDlg = Type: <b>HWND</b> A handle to the dialog box that contains the button.
-///    nIDButton = Type: <b>int</b> The identifier of the button to modify.
-///    uCheck = Type: <b>UINT</b> The check state of the button. This parameter can be one of the following values. <table> <tr>
-///             <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="BST_CHECKED"></a><a id="bst_checked"></a><dl>
-///             <dt><b>BST_CHECKED</b></dt> </dl> </td> <td width="60%"> Sets the button state to checked. </td> </tr> <tr> <td
-///             width="40%"><a id="BST_INDETERMINATE"></a><a id="bst_indeterminate"></a><dl> <dt><b>BST_INDETERMINATE</b></dt>
-///             </dl> </td> <td width="60%"> Sets the button state to grayed, indicating an indeterminate state. Use this value
-///             only if the button has the BS_3STATE or BS_AUTO3STATE style. </td> </tr> <tr> <td width="40%"><a
-///             id="BST_UNCHECKED"></a><a id="bst_unchecked"></a><dl> <dt><b>BST_UNCHECKED</b></dt> </dl> </td> <td width="60%">
-///             Sets the button state to cleared </td> </tr> </table>
-///Returns:
-///    Type: <b>BOOL</b> If the function succeeds, the return value is nonzero. If the function fails, the return value
-///    is zero. To get extended error information, call GetLastError.
-///    
-@DllImport("USER32")
-BOOL CheckDlgButton(HWND hDlg, int nIDButton, uint uCheck);
-
-///Adds a check mark to (checks) a specified radio button in a group and removes a check mark from (clears) all other
-///radio buttons in the group.
-///Params:
-///    hDlg = Type: <b>HWND</b> A handle to the dialog box that contains the radio button.
-///    nIDFirstButton = Type: <b>int</b> The identifier of the first radio button in the group.
-///    nIDLastButton = Type: <b>int</b> The identifier of the last radio button in the group.
-///    nIDCheckButton = Type: <b>int</b> The identifier of the radio button to select.
-///Returns:
-///    Type: <b>BOOL</b> If the function succeeds, the return value is nonzero. If the function fails, the return value
-///    is zero. To get extended error information, call GetLastError.
-///    
-@DllImport("USER32")
-BOOL CheckRadioButton(HWND hDlg, int nIDFirstButton, int nIDLastButton, int nIDCheckButton);
-
-///The <b>IsDlgButtonChecked</b> function determines whether a button control is checked or whether a three-state button
-///control is checked, unchecked, or indeterminate.
-///Params:
-///    hDlg = Type: <b>HWND</b> A handle to the dialog box that contains the button control.
-///    nIDButton = Type: <b>int</b> The identifier of the button control.
-///Returns:
-///    Type: <b>UINT</b> The return value from a button created with the BS_AUTOCHECKBOX, BS_AUTORADIOBUTTON,
-///    BS_AUTO3STATE, BS_CHECKBOX, BS_RADIOBUTTON, or BS_3STATE styles can be one of the values in the following table.
-///    If the button has any other style, the return value is zero. <table> <tr> <th>Return code</th>
-///    <th>Description</th> </tr> <tr> <td width="40%"> <dl> <dt><b>BST_CHECKED</b></dt> </dl> </td> <td width="60%">
-///    The button is checked. </td> </tr> <tr> <td width="40%"> <dl> <dt><b>BST_INDETERMINATE</b></dt> </dl> </td> <td
-///    width="60%"> The button is in an indeterminate state (applies only if the button has the BS_3STATE or
-///    BS_AUTO3STATE style). </td> </tr> <tr> <td width="40%"> <dl> <dt><b>BST_UNCHECKED</b></dt> </dl> </td> <td
-///    width="60%"> The button is not checked. </td> </tr> </table>
-///    
-@DllImport("USER32")
-uint IsDlgButtonChecked(HWND hDlg, int nIDButton);
-
-///Determines whether a character is lowercase. This determination is based on the semantics of the language selected by
-///the user during setup or through Control Panel.
-///Params:
-///    ch = Type: <b>TCHAR</b> The character to be tested.
-///Returns:
-///    Type: <b>BOOL</b> If the character is lowercase, the return value is nonzero. If the character is not lowercase,
-///    the return value is zero. To get extended error information, call GetLastError.
-///    
-@DllImport("USER32")
-BOOL IsCharLowerW(ushort ch);
-
-///Configures the touch injection context for the calling application and initializes the maximum number of simultaneous
-///contacts that the app can inject.<div class="alert"><b>Note</b> <b>InitializeTouchInjection</b> must precede any call
-///to InjectTouchInput.</div> <div> </div>
-///Params:
-///    maxCount = The maximum number of touch contacts. The <i>maxCount</i> parameter must be greater than 0 and less than or equal
-///               to MAX_TOUCH_COUNT (256) as defined in winuser.h.
-///    dwMode = The contact visualization mode. The <i>dwMode</i> parameter must be TOUCH_FEEDBACK_DEFAULT,
-///             <b>TOUCH_FEEDBACK_INDIRECT</b>, or <b>TOUCH_FEEDBACK_NONE</b>.
-///Returns:
-///    If the function succeeds, the return value is TRUE. If the function fails, the return value is FALSE. To get
-///    extended error information, call GetLastError.
-///    
-@DllImport("USER32")
-BOOL InitializeTouchInjection(uint maxCount, uint dwMode);
-
-///Simulates touch input.<div class="alert"><b>Note</b> InitializeTouchInjection must precede any call to
-///InjectTouchInput.</div> <div> </div>
-///Params:
-///    count = The size of the array in <i>contacts</i>. The maximum value for <i>count</i> is specified by the <i>maxCount</i>
-///            parameter of the InitializeTouchInjection function.
-///    contacts = Array of POINTER_TOUCH_INFO structures that represents all contacts on the desktop. The screen coordinates of
-///               each contact must be within the bounds of the desktop.
-///Returns:
-///    If the function succeeds, the return value is non-zero. If the function fails, the return value is zero. To get
-///    extended error information, call GetLastError.
-///    
-@DllImport("USER32")
-BOOL InjectTouchInput(uint count, char* contacts);
-
-///Configures the pointer injection device for the calling application, and initializes the maximum number of
-///simultaneous pointers that the app can inject.
-///Params:
-///    pointerType = The pointer injection device type. Must be either PT_TOUCH or <b>PT_PEN</b>.
-///    maxCount = The maximum number of contacts. For PT_TOUCH this value must be greater than 0 and less than or equal to
-///               MAX_TOUCH_COUNT. For PT_PEN this value must be 1.
-///    mode = The contact visualization mode.
-@DllImport("USER32")
-ptrdiff_t CreateSyntheticPointerDevice(uint pointerType, uint maxCount, POINTER_FEEDBACK_MODE mode);
-
-///Simulates pointer input (pen or touch).
-///Params:
-///    device = A handle to the pointer injection device created by CreateSyntheticPointerDevice.
-///    pointerInfo = Array of injected pointers. The type must match the <i>pointerType</i> parameter of the
-///                  CreateSyntheticPointerDevice call that created the injection device. The ptPixelLocation for each
-///                  POINTER_TYPE_INFO is specified relative to top left of the virtual screen:
-///    count = The number of contacts. For PT_TOUCH this value must be greater than 0 and less than or equal to MAX_TOUCH_COUNT.
-///            For PT_PEN this value must be 1.
-@DllImport("USER32")
-BOOL InjectSyntheticPointerInput(ptrdiff_t device, char* pointerInfo, uint count);
-
-///Destroys the specified pointer injection device.
-@DllImport("USER32")
-void DestroySyntheticPointerDevice(ptrdiff_t device);
-
-///Registers a window to process the WM_TOUCHHITTESTING notification.
-///Params:
-///    hwnd = The window that receives the WM_TOUCHHITTESTING notification.
-///    value = One of the following values: <ul> <li> TOUCH_HIT_TESTING_CLIENT: Send WM_TOUCHHITTESTING messages to the target
-///            window.</li> <li> TOUCH_HIT_TESTING_DEFAULT: Don't send WM_TOUCHHITTESTING messages to the target window but
-///            continue to send the messages to child windows. </li> <li> TOUCH_HIT_TESTING_NONE: Don't send WM_TOUCHHITTESTING
-///            messages to the target window or child windows. </li> </ul>
-///Returns:
-///    If this function succeeds, it returns TRUE. Otherwise, it returns FALSE. To retrieve extended error information,
-///    call the GetLastError function.
-///    
-@DllImport("USER32")
-BOOL RegisterTouchHitTestingWindow(HWND hwnd, uint value);
-
-///Returns the score of a rectangle as the probable touch target, compared to all other rectangles that intersect the
-///touch contact area, and an adjusted touch point within the rectangle.
-///Params:
-///    controlBoundingBox = The RECT structure that defines the bounding box of the UI element.
-///    pHitTestingInput = The TOUCH_HIT_TESTING_INPUT structure that holds the data for the touch contact area.
-///    pProximityEval = The TOUCH_HIT_TESTING_PROXIMITY_EVALUATION structure that holds the score and adjusted touch-point data.
-///Returns:
-///    If this function succeeds, it returns TRUE. Otherwise, it returns FALSE. To retrieve extended error information,
-///    call the GetLastError function.
-///    
-@DllImport("USER32")
-BOOL EvaluateProximityToRect(const(RECT)* controlBoundingBox, const(TOUCH_HIT_TESTING_INPUT)* pHitTestingInput, 
-                             TOUCH_HIT_TESTING_PROXIMITY_EVALUATION* pProximityEval);
-
-///Returns the score of a polygon as the probable touch target (compared to all other polygons that intersect the touch
-///contact area) and an adjusted touch point within the polygon.
-///Params:
-///    numVertices = The number of vertices in the polygon. This value must be greater than or equal to 3. This value indicates the
-///                  size of the array, as specified by the <i>controlPolygon</i> parameter.
-///    controlPolygon = The array of x-y screen coordinates that define the shape of the UI element. The <i>numVertices</i> parameter
-///                     specifies the number of coordinates.
-///    pHitTestingInput = The TOUCH_HIT_TESTING_INPUT structure that holds the data for the touch contact area.
-///    pProximityEval = The TOUCH_HIT_TESTING_PROXIMITY_EVALUATION structure that holds the score and adjusted touch-point data.
-///Returns:
-///    If this function succeeds, it returns TRUE. Otherwise, it returns FALSE. To retrieve extended error information,
-///    call the GetLastError function.
-///    
-@DllImport("USER32")
-BOOL EvaluateProximityToPolygon(uint numVertices, char* controlPolygon, 
-                                const(TOUCH_HIT_TESTING_INPUT)* pHitTestingInput, 
-                                TOUCH_HIT_TESTING_PROXIMITY_EVALUATION* pProximityEval);
-
-///Returns the proximity evaluation score and the adjusted touch-point coordinates as a packed value for the
-///WM_TOUCHHITTESTING callback.
-///Params:
-///    pHitTestingInput = The TOUCH_HIT_TESTING_INPUT structure that holds the data for the touch contact area.
-///    pProximityEval = The TOUCH_HIT_TESTING_PROXIMITY_EVALUATION structure that holds the score and adjusted touch-point data that the
-///                     EvaluateProximityToPolygon or EvaluateProximityToRect function returns.
-///Returns:
-///    If this function succeeds, it returns the <b>score</b> and <b>adjustedPoint</b> values from
-///    TOUCH_HIT_TESTING_PROXIMITY_EVALUATION as an LRESULT. To retrieve extended error information, call the
-///    GetLastError function.
-///    
-@DllImport("USER32")
-LRESULT PackTouchHitTestingProximityEvaluation(const(TOUCH_HIT_TESTING_INPUT)* pHitTestingInput, 
-                                               const(TOUCH_HIT_TESTING_PROXIMITY_EVALUATION)* pProximityEval);
-
-///Retrieves the feedback configuration for a window.
-///Params:
-///    hwnd = The window to check for feedback configuration.
-///    feedback = One of the values from the FEEDBACK_TYPE enumeration.
-///    dwFlags = Specify GWFS_INCLUDE_ANCESTORS to check the parent window chain until a value is found. The default is 0 and
-///              indicates that only the specified window will be checked.
-///    pSize = The size of memory region that the <i>config</i> parameter points to. The <i>pSize</i> parameter specifies the
-///            size of the configuration data for the feedback type in <i>feedback</i> and must be sizeof(BOOL).
-///    config = The configuration data. The <i>config</i> parameter must point to a value of type BOOL.
-///Returns:
-///    Returns TRUE if the specified feedback setting is configured on the specified window. Otherwise, it returns FALSE
-///    (and <i>config</i> won't be modified).
-///    
-@DllImport("USER32")
-BOOL GetWindowFeedbackSetting(HWND hwnd, FEEDBACK_TYPE feedback, uint dwFlags, uint* pSize, char* config);
-
-///Sets the feedback configuration for a window.
-///Params:
-///    hwnd = The window to configure feedback on.
-///    feedback = One of the values from the FEEDBACK_TYPE enumeration.
-///    dwFlags = Reserved. Must be 0.
-///    size = The size, in bytes, of the configuration data. Must be sizeof(BOOL) or 0 if the feedback setting is being reset.
-///    configuration = The configuration data. Must be BOOL or NULL if the feedback setting is being reset.
-///Returns:
-///    Returns TRUE if successful; otherwise, returns FALSE.
-///    
-@DllImport("USER32")
-BOOL SetWindowFeedbackSetting(HWND hwnd, FEEDBACK_TYPE feedback, uint dwFlags, uint size, char* configuration);
-
-///The <b>ScrollWindow</b> function scrolls the contents of the specified window's client area. <div
-///class="alert"><b>Note</b> The <b>ScrollWindow</b> function is provided for backward compatibility. New applications
-///should use the ScrollWindowEx function.</div><div> </div>
-///Params:
-///    hWnd = Type: <b>HWND</b> Handle to the window where the client area is to be scrolled.
-///    XAmount = Type: <b>int</b> Specifies the amount, in device units, of horizontal scrolling. If the window being scrolled has
-///              the CS_OWNDC or CS_CLASSDC style, then this parameter uses logical units rather than device units. This parameter
-///              must be a negative value to scroll the content of the window to the left.
-///    YAmount = Type: <b>int</b> Specifies the amount, in device units, of vertical scrolling. If the window being scrolled has
-///              the CS_OWNDC or CS_CLASSDC style, then this parameter uses logical units rather than device units. This parameter
-///              must be a negative value to scroll the content of the window up.
-///    lpRect = Type: <b>const RECT*</b> Pointer to the RECT structure specifying the portion of the client area to be scrolled.
-///             If this parameter is <b>NULL</b>, the entire client area is scrolled.
-///    lpClipRect = Type: <b>const RECT*</b> Pointer to the RECT structure containing the coordinates of the clipping rectangle. Only
-///                 device bits within the clipping rectangle are affected. Bits scrolled from the outside of the rectangle to the
-///                 inside are painted; bits scrolled from the inside of the rectangle to the outside are not painted.
-///Returns:
-///    Type: <b>BOOL</b> If the function succeeds, the return value is nonzero. If the function fails, the return value
-///    is zero. To get extended error information, call GetLastError.
-///    
-@DllImport("USER32")
-BOOL ScrollWindow(HWND hWnd, int XAmount, int YAmount, const(RECT)* lpRect, const(RECT)* lpClipRect);
-
-///The <b>ScrollDC</b> function scrolls a rectangle of bits horizontally and vertically.
-///Params:
-///    hDC = Type: <b>HDC</b> Handle to the device context that contains the bits to be scrolled.
-///    dx = Type: <b>int</b> Specifies the amount, in device units, of horizontal scrolling. This parameter must be a
-///         negative value to scroll to the left.
-///    dy = Type: <b>int</b> Specifies the amount, in device units, of vertical scrolling. This parameter must be a negative
-///         value to scroll up.
-///    lprcScroll = Type: <b>const RECT*</b> Pointer to a RECT structure containing the coordinates of the bits to be scrolled. The
-///                 only bits affected by the scroll operation are bits in the intersection of this rectangle and the rectangle
-///                 specified by <i>lprcClip</i>. If <i>lprcScroll</i> is <b>NULL</b>, the entire client area is used.
-///    lprcClip = Type: <b>const RECT*</b> Pointer to a RECT structure containing the coordinates of the clipping rectangle. The
-///               only bits that will be painted are the bits that remain inside this rectangle after the scroll operation has been
-///               completed. If <i>lprcClip</i> is <b>NULL</b>, the entire client area is used.
-///    hrgnUpdate = Type: <b>HRGN</b> Handle to the region uncovered by the scrolling process. <b>ScrollDC</b> defines this region;
-///                 it is not necessarily a rectangle.
-///    lprcUpdate = Type: <b>LPRECT</b> Pointer to a RECT structure that receives the coordinates of the rectangle bounding the
-///                 scrolling update region. This is the largest rectangular area that requires repainting. When the function
-///                 returns, the values in the structure are in client coordinates, regardless of the mapping mode for the specified
-///                 device context. This allows applications to use the update region in a call to the InvalidateRgn function, if
-///                 required.
-///Returns:
-///    Type: <b>BOOL</b> If the function succeeds, the return value is nonzero. If the function fails, the return value
-///    is zero. To get extended error information, call GetLastError.
-///    
-@DllImport("USER32")
-BOOL ScrollDC(HDC hDC, int dx, int dy, const(RECT)* lprcScroll, const(RECT)* lprcClip, HRGN hrgnUpdate, 
-              RECT* lprcUpdate);
-
-///The <b>ScrollWindowEx</b> function scrolls the contents of the specified window's client area.
-///Params:
-///    hWnd = Type: <b>HWND</b> Handle to the window where the client area is to be scrolled.
-///    dx = Type: <b>int</b> Specifies the amount, in device units, of horizontal scrolling. This parameter must be a
-///         negative value to scroll to the left.
-///    dy = Type: <b>int</b> Specifies the amount, in device units, of vertical scrolling. This parameter must be a negative
-///         value to scroll up.
-///    prcScroll = Type: <b>const RECT*</b> Pointer to a RECT structure that specifies the portion of the client area to be
-///                scrolled. If this parameter is <b>NULL</b>, the entire client area is scrolled.
-///    prcClip = Type: <b>const RECT*</b> Pointer to a RECT structure that contains the coordinates of the clipping rectangle.
-///              Only device bits within the clipping rectangle are affected. Bits scrolled from the outside of the rectangle to
-///              the inside are painted; bits scrolled from the inside of the rectangle to the outside are not painted. This
-///              parameter may be <b>NULL</b>.
-///    hrgnUpdate = Type: <b>HRGN</b> Handle to the region that is modified to hold the region invalidated by scrolling. This
-///                 parameter may be <b>NULL</b>.
-///    prcUpdate = Type: <b>LPRECT</b> Pointer to a RECT structure that receives the boundaries of the rectangle invalidated by
-///                scrolling. This parameter may be <b>NULL</b>.
-///    flags = Type: <b>UINT</b> Specifies flags that control scrolling. This parameter can be a combination of the following
-///            values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SW_ERASE"></a><a
-///            id="sw_erase"></a><dl> <dt><b>SW_ERASE</b></dt> </dl> </td> <td width="60%"> Erases the newly invalidated region
-///            by sending a WM_ERASEBKGND message to the window when specified with the SW_INVALIDATE flag. </td> </tr> <tr> <td
-///            width="40%"><a id="SW_INVALIDATE"></a><a id="sw_invalidate"></a><dl> <dt><b>SW_INVALIDATE</b></dt> </dl> </td>
-///            <td width="60%"> Invalidates the region identified by the <i>hrgnUpdate</i> parameter after scrolling. </td>
-///            </tr> <tr> <td width="40%"><a id="SW_SCROLLCHILDREN"></a><a id="sw_scrollchildren"></a><dl>
-///            <dt><b>SW_SCROLLCHILDREN</b></dt> </dl> </td> <td width="60%"> Scrolls all child windows that intersect the
-///            rectangle pointed to by the <i>prcScroll</i> parameter. The child windows are scrolled by the number of pixels
-///            specified by the <i>dx</i> and <i>dy</i> parameters. The system sends a WM_MOVE message to all child windows that
-///            intersect the <i>prcScroll</i> rectangle, even if they do not move. </td> </tr> <tr> <td width="40%"><a
-///            id="SW_SMOOTHSCROLL"></a><a id="sw_smoothscroll"></a><dl> <dt><b>SW_SMOOTHSCROLL</b></dt> </dl> </td> <td
-///            width="60%"> Scrolls using smooth scrolling. Use the HIWORD portion of the <i>flags</i> parameter to indicate how
-///            much time, in milliseconds, the smooth-scrolling operation should take. </td> </tr> </table>
-///Returns:
-///    Type: <b>int</b> If the function succeeds, the return value is SIMPLEREGION (rectangular invalidated region),
-///    COMPLEXREGION (nonrectangular invalidated region; overlapping rectangles), or NULLREGION (no invalidated region).
-///    If the function fails, the return value is ERROR. To get extended error information, call GetLastError.
-///    
-@DllImport("USER32")
-int ScrollWindowEx(HWND hWnd, int dx, int dy, const(RECT)* prcScroll, const(RECT)* prcClip, HRGN hrgnUpdate, 
-                   RECT* prcUpdate, uint flags);
-
-///The <b>SetScrollPos</b> function sets the position of the scroll box (thumb) in the specified scroll bar and, if
-///requested, redraws the scroll bar to reflect the new position of the scroll box. <div class="alert"><b>Note</b> The
-///<b>SetScrollPos</b> function is provided for backward compatibility. New applications should use the SetScrollInfo
-///function.</div><div> </div>
-///Params:
-///    hWnd = Type: <b>HWND</b> Handle to a scroll bar control or a window with a standard scroll bar, depending on the value
-///           of the <i>nBar</i> parameter.
-///    nBar = Type: <b>int</b> Specifies the scroll bar to be set. This parameter can be one of the following values. <table>
-///           <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SB_CTL"></a><a id="sb_ctl"></a><dl>
-///           <dt><b>SB_CTL</b></dt> </dl> </td> <td width="60%"> Sets the position of the scroll box in a scroll bar control.
-///           The <i>hwnd</i> parameter must be the handle to the scroll bar control. </td> </tr> <tr> <td width="40%"><a
-///           id="SB_HORZ"></a><a id="sb_horz"></a><dl> <dt><b>SB_HORZ</b></dt> </dl> </td> <td width="60%"> Sets the position
-///           of the scroll box in a window's standard horizontal scroll bar. </td> </tr> <tr> <td width="40%"><a
-///           id="SB_VERT"></a><a id="sb_vert"></a><dl> <dt><b>SB_VERT</b></dt> </dl> </td> <td width="60%"> Sets the position
-///           of the scroll box in a window's standard vertical scroll bar. </td> </tr> </table>
-///    nPos = Type: <b>int</b> Specifies the new position of the scroll box. The position must be within the scrolling range.
-///           For more information about the scrolling range, see the SetScrollRange function.
-///    bRedraw = Type: <b>BOOL</b> Specifies whether the scroll bar is redrawn to reflect the new scroll box position. If this
-///              parameter is <b>TRUE</b>, the scroll bar is redrawn. If it is <b>FALSE</b>, the scroll bar is not redrawn.
-///Returns:
-///    Type: <b>int</b> If the function succeeds, the return value is the previous position of the scroll box. If the
-///    function fails, the return value is zero. To get extended error information, call GetLastError.
-///    
-@DllImport("USER32")
-int SetScrollPos(HWND hWnd, int nBar, int nPos, BOOL bRedraw);
-
-///The <b>GetScrollPos</b> function retrieves the current position of the scroll box (thumb) in the specified scroll
-///bar. The current position is a relative value that depends on the current scrolling range. For example, if the
-///scrolling range is 0 through 100 and the scroll box is in the middle of the bar, the current position is 50. <div
-///class="alert"><b>Note</b> The <b>GetScrollPos</b> function is provided for backward compatibility. New applications
-///should use the GetScrollInfo function. </div><div> </div>
-///Params:
-///    hWnd = Type: <b>HWND</b> Handle to a scroll bar control or a window with a standard scroll bar, depending on the value
-///           of the <i>nBar</i> parameter.
-///    nBar = Type: <b>int</b> Specifies the scroll bar to be examined. This parameter can be one of the following values.
-///           <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SB_CTL"></a><a
-///           id="sb_ctl"></a><dl> <dt><b>SB_CTL</b></dt> </dl> </td> <td width="60%"> Retrieves the position of the scroll box
-///           in a scroll bar control. The <i>hWnd</i> parameter must be the handle to the scroll bar control. </td> </tr> <tr>
-///           <td width="40%"><a id="SB_HORZ"></a><a id="sb_horz"></a><dl> <dt><b>SB_HORZ</b></dt> </dl> </td> <td width="60%">
-///           Retrieves the position of the scroll box in a window's standard horizontal scroll bar. </td> </tr> <tr> <td
-///           width="40%"><a id="SB_VERT"></a><a id="sb_vert"></a><dl> <dt><b>SB_VERT</b></dt> </dl> </td> <td width="60%">
-///           Retrieves the position of the scroll box in a window's standard vertical scroll bar. </td> </tr> </table>
-///Returns:
-///    Type: <b>int</b> If the function succeeds, the return value is the current position of the scroll box. If the
-///    function fails, the return value is zero. To get extended error information, call GetLastError.
-///    
-@DllImport("USER32")
-int GetScrollPos(HWND hWnd, int nBar);
-
-///The <b>SetScrollRange</b> function sets the minimum and maximum scroll box positions for the specified scroll bar.
-///<div class="alert"><b>Note</b> The <b>SetScrollRange</b> function is provided for backward compatibility. New
-///applications should use the SetScrollInfo function.</div><div> </div>
-///Params:
-///    hWnd = Type: <b>HWND</b> Handle to a scroll bar control or a window with a standard scroll bar, depending on the value
-///           of the <i>nBar</i> parameter.
-///    nBar = Type: <b>int</b> Specifies the scroll bar to be set. This parameter can be one of the following values. <table>
-///           <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SB_CTL"></a><a id="sb_ctl"></a><dl>
-///           <dt><b>SB_CTL</b></dt> </dl> </td> <td width="60%"> Sets the range of a scroll bar control. The <i>hwnd</i>
-///           parameter must be the handle to the scroll bar control. </td> </tr> <tr> <td width="40%"><a id="SB_HORZ"></a><a
-///           id="sb_horz"></a><dl> <dt><b>SB_HORZ</b></dt> </dl> </td> <td width="60%"> Sets the range of a window's standard
-///           horizontal scroll bar. </td> </tr> <tr> <td width="40%"><a id="SB_VERT"></a><a id="sb_vert"></a><dl>
-///           <dt><b>SB_VERT</b></dt> </dl> </td> <td width="60%"> Sets the range of a window's standard vertical scroll bar.
-///           </td> </tr> </table>
-///    nMinPos = Type: <b>int</b> Specifies the minimum scrolling position.
-///    nMaxPos = Type: <b>int</b> Specifies the maximum scrolling position.
-///    bRedraw = Type: <b>BOOL</b> Specifies whether the scroll bar should be redrawn to reflect the change. If this parameter is
-///              <b>TRUE</b>, the scroll bar is redrawn. If it is <b>FALSE</b>, the scroll bar is not redrawn.
-///Returns:
-///    Type: <b>BOOL</b> If the function succeeds, the return value is nonzero. If the function fails, the return value
-///    is zero. To get extended error information, call GetLastError.
-///    
-@DllImport("USER32")
-BOOL SetScrollRange(HWND hWnd, int nBar, int nMinPos, int nMaxPos, BOOL bRedraw);
-
-///The <b>GetScrollRange</b> function retrieves the current minimum and maximum scroll box (thumb) positions for the
-///specified scroll bar. <div class="alert"><b>Note</b> The <b>GetScrollRange</b> function is provided for compatibility
-///only. New applications should use the GetScrollInfo function.</div><div> </div>
-///Params:
-///    hWnd = Type: <b>HWND</b> Handle to a scroll bar control or a window with a standard scroll bar, depending on the value
-///           of the <i>nBar</i> parameter.
-///    nBar = Type: <b>int</b> Specifies the scroll bar from which the positions are retrieved. This parameter can be one of
-///           the following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
-///           id="SB_CTL"></a><a id="sb_ctl"></a><dl> <dt><b>SB_CTL</b></dt> </dl> </td> <td width="60%"> Retrieves the
-///           positions of a scroll bar control. The <i>hWnd</i> parameter must be the handle to the scroll bar control. </td>
-///           </tr> <tr> <td width="40%"><a id="SB_HORZ"></a><a id="sb_horz"></a><dl> <dt><b>SB_HORZ</b></dt> </dl> </td> <td
-///           width="60%"> Retrieves the positions of the window's standard horizontal scroll bar. </td> </tr> <tr> <td
-///           width="40%"><a id="SB_VERT"></a><a id="sb_vert"></a><dl> <dt><b>SB_VERT</b></dt> </dl> </td> <td width="60%">
-///           Retrieves the positions of the window's standard vertical scroll bar. </td> </tr> </table>
-///    lpMinPos = Type: <b>LPINT</b> Pointer to the integer variable that receives the minimum position.
-///    lpMaxPos = Type: <b>LPINT</b> Pointer to the integer variable that receives the maximum position.
-///Returns:
-///    Type: <b>BOOL</b> If the function succeeds, the return value is nonzero. If the function fails, the return value
-///    is zero. To get extended error information, call GetLastError.
-///    
-@DllImport("USER32")
-BOOL GetScrollRange(HWND hWnd, int nBar, int* lpMinPos, int* lpMaxPos);
-
-///The <b>ShowScrollBar</b> function shows or hides the specified scroll bar.
-///Params:
-///    hWnd = Type: <b>HWND</b> Handle to a scroll bar control or a window with a standard scroll bar, depending on the value
-///           of the <i>wBar</i> parameter.
-///    wBar = Type: <b>int</b> Specifies the scroll bar(s) to be shown or hidden. This parameter can be one of the following
-///           values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SB_BOTH"></a><a
-///           id="sb_both"></a><dl> <dt><b>SB_BOTH</b></dt> </dl> </td> <td width="60%"> Shows or hides a window's standard
-///           horizontal and vertical scroll bars. </td> </tr> <tr> <td width="40%"><a id="SB_CTL"></a><a id="sb_ctl"></a><dl>
-///           <dt><b>SB_CTL</b></dt> </dl> </td> <td width="60%"> Shows or hides a scroll bar control. The <i>hwnd</i>
-///           parameter must be the handle to the scroll bar control. </td> </tr> <tr> <td width="40%"><a id="SB_HORZ"></a><a
-///           id="sb_horz"></a><dl> <dt><b>SB_HORZ</b></dt> </dl> </td> <td width="60%"> Shows or hides a window's standard
-///           horizontal scroll bars. </td> </tr> <tr> <td width="40%"><a id="SB_VERT"></a><a id="sb_vert"></a><dl>
-///           <dt><b>SB_VERT</b></dt> </dl> </td> <td width="60%"> Shows or hides a window's standard vertical scroll bar.
-///           </td> </tr> </table>
-///    bShow = Type: <b>BOOL</b> Specifies whether the scroll bar is shown or hidden. If this parameter is <b>TRUE</b>, the
-///            scroll bar is shown; otherwise, it is hidden.
-///Returns:
-///    Type: <b>BOOL</b> If the function succeeds, the return value is nonzero. If the function fails, the return value
-///    is zero. To get extended error information, call GetLastError.
-///    
-@DllImport("USER32")
-BOOL ShowScrollBar(HWND hWnd, int wBar, BOOL bShow);
-
-///The <b>EnableScrollBar</b> function enables or disables one or both scroll bar arrows.
-///Params:
-///    hWnd = Type: <b>HWND</b> Handle to a window or a scroll bar control, depending on the value of the <i>wSBflags</i>
-///           parameter.
-///    wSBflags = Type: <b>UINT</b> Specifies the scroll bar type. This parameter can be one of the following values. <table> <tr>
-///               <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SB_BOTH"></a><a id="sb_both"></a><dl>
-///               <dt><b>SB_BOTH</b></dt> </dl> </td> <td width="60%"> Enables or disables the arrows on the horizontal and
-///               vertical scroll bars associated with the specified window. The <i>hWnd</i> parameter must be the handle to the
-///               window. </td> </tr> <tr> <td width="40%"><a id="SB_CTL"></a><a id="sb_ctl"></a><dl> <dt><b>SB_CTL</b></dt> </dl>
-///               </td> <td width="60%"> Indicates that the scroll bar is a scroll bar control. The <i>hWnd</i> must be the handle
-///               to the scroll bar control. </td> </tr> <tr> <td width="40%"><a id="SB_HORZ"></a><a id="sb_horz"></a><dl>
-///               <dt><b>SB_HORZ</b></dt> </dl> </td> <td width="60%"> Enables or disables the arrows on the horizontal scroll bar
-///               associated with the specified window. The <i>hWnd</i> parameter must be the handle to the window. </td> </tr>
-///               <tr> <td width="40%"><a id="SB_VERT"></a><a id="sb_vert"></a><dl> <dt><b>SB_VERT</b></dt> </dl> </td> <td
-///               width="60%"> Enables or disables the arrows on the vertical scroll bar associated with the specified window. The
-///               <i>hWnd</i> parameter must be the handle to the window. </td> </tr> </table>
-///    wArrows = Type: <b>UINT</b> Specifies whether the scroll bar arrows are enabled or disabled and indicates which arrows are
-///              enabled or disabled. This parameter can be one of the following values. <table> <tr> <th>Value</th>
-///              <th>Meaning</th> </tr> <tr> <td width="40%"><a id="ESB_DISABLE_BOTH"></a><a id="esb_disable_both"></a><dl>
-///              <dt><b>ESB_DISABLE_BOTH</b></dt> </dl> </td> <td width="60%"> Disables both arrows on a scroll bar. </td> </tr>
-///              <tr> <td width="40%"><a id="ESB_DISABLE_DOWN"></a><a id="esb_disable_down"></a><dl>
-///              <dt><b>ESB_DISABLE_DOWN</b></dt> </dl> </td> <td width="60%"> Disables the down arrow on a vertical scroll bar.
-///              </td> </tr> <tr> <td width="40%"><a id="ESB_DISABLE_LEFT"></a><a id="esb_disable_left"></a><dl>
-///              <dt><b>ESB_DISABLE_LEFT</b></dt> </dl> </td> <td width="60%"> Disables the left arrow on a horizontal scroll bar.
-///              </td> </tr> <tr> <td width="40%"><a id="ESB_DISABLE_LTUP"></a><a id="esb_disable_ltup"></a><dl>
-///              <dt><b>ESB_DISABLE_LTUP</b></dt> </dl> </td> <td width="60%"> Disables the left arrow on a horizontal scroll bar
-///              or the up arrow of a vertical scroll bar. </td> </tr> <tr> <td width="40%"><a id="ESB_DISABLE_RIGHT"></a><a
-///              id="esb_disable_right"></a><dl> <dt><b>ESB_DISABLE_RIGHT</b></dt> </dl> </td> <td width="60%"> Disables the right
-///              arrow on a horizontal scroll bar. </td> </tr> <tr> <td width="40%"><a id="ESB_DISABLE_RTDN"></a><a
-///              id="esb_disable_rtdn"></a><dl> <dt><b>ESB_DISABLE_RTDN</b></dt> </dl> </td> <td width="60%"> Disables the right
-///              arrow on a horizontal scroll bar or the down arrow of a vertical scroll bar. </td> </tr> <tr> <td width="40%"><a
-///              id="ESB_DISABLE_UP"></a><a id="esb_disable_up"></a><dl> <dt><b>ESB_DISABLE_UP</b></dt> </dl> </td> <td
-///              width="60%"> Disables the up arrow on a vertical scroll bar. </td> </tr> <tr> <td width="40%"><a
-///              id="ESB_ENABLE_BOTH"></a><a id="esb_enable_both"></a><dl> <dt><b>ESB_ENABLE_BOTH</b></dt> </dl> </td> <td
-///              width="60%"> Enables both arrows on a scroll bar. </td> </tr> </table>
-@DllImport("USER32")
-BOOL EnableScrollBar(HWND hWnd, uint wSBflags, uint wArrows);
-
-///Replaces the contents of a list box with the names of the subdirectories and files in a specified directory. You can
-///filter the list of names by specifying a set of file attributes. The list can optionally include mapped drives.
-///Params:
-///    hDlg = Type: <b>HWND</b> A handle to the dialog box that contains the list box.
-///    lpPathSpec = Type: <b>LPTSTR</b> A pointer to a buffer containing a null-terminated string that specifies an absolute path,
-///                 relative path, or filename. An absolute path can begin with a drive letter (for example, d:\) or a UNC name (for
-///                 example, \\\<i>machinename</i>\\<i>sharename</i>). The function splits the string into a directory and a
-///                 filename. The function searches the directory for names that match the filename. If the string does not specify a
-///                 directory, the function searches the current directory. If the string includes a filename, the filename must
-///                 contain at least one wildcard character (? or \*). If the string does not include a filename, the function
-///                 behaves as if you had specified the asterisk wildcard character (\*) as the filename. All names in the specified
-///                 directory that match the filename and have the attributes specified by the <i>uFileType</i> parameter are added
-///                 to the list box.
-///    nIDListBox = Type: <b>int</b> The identifier of a list box in the <i>hDlg</i> dialog box. If this parameter is zero,
-///                 <b>DlgDirList</b> does not try to fill a list box.
-///    nIDStaticPath = Type: <b>int</b> The identifier of a static control in the <i>hDlg</i> dialog box. <b>DlgDirList</b> sets the
-///                    text of this control to display the current drive and directory. This parameter can be zero if you do not want to
-///                    display the current drive and directory.
-///    uFileType = Type: <b>UINT</b> Specifies the attributes of the files or directories to be added to the list box. This
-///                parameter can be one or more of the following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td
-///                width="40%"><a id="DDL_ARCHIVE"></a><a id="ddl_archive"></a><dl> <dt><b>DDL_ARCHIVE</b></dt> </dl> </td> <td
-///                width="60%"> Includes archived files. </td> </tr> <tr> <td width="40%"><a id="DDL_DIRECTORY"></a><a
-///                id="ddl_directory"></a><dl> <dt><b>DDL_DIRECTORY</b></dt> </dl> </td> <td width="60%"> Includes subdirectories.
-///                Subdirectory names are enclosed in square brackets ([ ]). </td> </tr> <tr> <td width="40%"><a
-///                id="DDL_DRIVES"></a><a id="ddl_drives"></a><dl> <dt><b>DDL_DRIVES</b></dt> </dl> </td> <td width="60%"> All
-///                mapped drives are added to the list. Drives are listed in the form [- <i>x</i>-], where <i>x</i> is the drive
-///                letter. </td> </tr> <tr> <td width="40%"><a id="DDL_EXCLUSIVE"></a><a id="ddl_exclusive"></a><dl>
-///                <dt><b>DDL_EXCLUSIVE</b></dt> </dl> </td> <td width="60%"> Includes only files with the specified attributes. By
-///                default, read/write files are listed even if DDL_READWRITE is not specified. </td> </tr> <tr> <td width="40%"><a
-///                id="DDL_HIDDEN"></a><a id="ddl_hidden"></a><dl> <dt><b>DDL_HIDDEN</b></dt> </dl> </td> <td width="60%"> Includes
-///                hidden files. </td> </tr> <tr> <td width="40%"><a id="DDL_READONLY"></a><a id="ddl_readonly"></a><dl>
-///                <dt><b>DDL_READONLY</b></dt> </dl> </td> <td width="60%"> Includes read-only files. </td> </tr> <tr> <td
-///                width="40%"><a id="DDL_READWRITE"></a><a id="ddl_readwrite"></a><dl> <dt><b>DDL_READWRITE</b></dt> </dl> </td>
-///                <td width="60%"> Includes read/write files with no additional attributes. This is the default setting. </td>
-///                </tr> <tr> <td width="40%"><a id="DDL_SYSTEM"></a><a id="ddl_system"></a><dl> <dt><b>DDL_SYSTEM</b></dt> </dl>
-///                </td> <td width="60%"> Includes system files. </td> </tr> <tr> <td width="40%"><a id="DDL_POSTMSGS"></a><a
-///                id="ddl_postmsgs"></a><dl> <dt><b>DDL_POSTMSGS</b></dt> </dl> </td> <td width="60%"> If set, <b>DlgDirList</b>
-///                uses the PostMessage function to send messages to the list box. If not set, <b>DlgDirList</b> uses the
-///                SendMessage function. </td> </tr> </table>
-///Returns:
-///    Type: <b>int</b> If the function succeeds, the return value is nonzero. If the function fails, the return value
-///    is zero. For example, if the string specified by <i>lpPathSpec</i> is not a valid path, the function fails. To
-///    get extended error information, call .
-///    
-@DllImport("USER32")
-int DlgDirListA(HWND hDlg, const(char)* lpPathSpec, int nIDListBox, int nIDStaticPath, uint uFileType);
-
-///Replaces the contents of a list box with the names of the subdirectories and files in a specified directory. You can
-///filter the list of names by specifying a set of file attributes. The list can optionally include mapped drives.
-///Params:
-///    hDlg = Type: <b>HWND</b> A handle to the dialog box that contains the list box.
-///    lpPathSpec = Type: <b>LPTSTR</b> A pointer to a buffer containing a null-terminated string that specifies an absolute path,
-///                 relative path, or filename. An absolute path can begin with a drive letter (for example, d:\) or a UNC name (for
-///                 example, \\ <i>machinename</i>\ <i>sharename</i>). The function splits the string into a directory and a
-///                 filename. The function searches the directory for names that match the filename. If the string does not specify a
-///                 directory, the function searches the current directory. If the string includes a filename, the filename must
-///                 contain at least one wildcard character (? or *). If the string does not include a filename, the function behaves
-///                 as if you had specified the asterisk wildcard character (*) as the filename. All names in the specified directory
-///                 that match the filename and have the attributes specified by the <i>uFileType</i> parameter are added to the list
-///                 box.
-///    nIDListBox = Type: <b>int</b> The identifier of a list box in the <i>hDlg</i> dialog box. If this parameter is zero,
-///                 <b>DlgDirList</b> does not try to fill a list box.
-///    nIDStaticPath = Type: <b>int</b> The identifier of a static control in the <i>hDlg</i> dialog box. <b>DlgDirList</b> sets the
-///                    text of this control to display the current drive and directory. This parameter can be zero if you do not want to
-///                    display the current drive and directory.
-///    uFileType = Type: <b>UINT</b> Specifies the attributes of the files or directories to be added to the list box. This
-///                parameter can be one or more of the following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td
-///                width="40%"><a id="DDL_ARCHIVE"></a><a id="ddl_archive"></a><dl> <dt><b>DDL_ARCHIVE</b></dt> </dl> </td> <td
-///                width="60%"> Includes archived files. </td> </tr> <tr> <td width="40%"><a id="DDL_DIRECTORY"></a><a
-///                id="ddl_directory"></a><dl> <dt><b>DDL_DIRECTORY</b></dt> </dl> </td> <td width="60%"> Includes subdirectories.
-///                Subdirectory names are enclosed in square brackets ([ ]). </td> </tr> <tr> <td width="40%"><a
-///                id="DDL_DRIVES"></a><a id="ddl_drives"></a><dl> <dt><b>DDL_DRIVES</b></dt> </dl> </td> <td width="60%"> All
-///                mapped drives are added to the list. Drives are listed in the form [- <i>x</i>-], where <i>x</i> is the drive
-///                letter. </td> </tr> <tr> <td width="40%"><a id="DDL_EXCLUSIVE"></a><a id="ddl_exclusive"></a><dl>
-///                <dt><b>DDL_EXCLUSIVE</b></dt> </dl> </td> <td width="60%"> Includes only files with the specified attributes. By
-///                default, read/write files are listed even if DDL_READWRITE is not specified. </td> </tr> <tr> <td width="40%"><a
-///                id="DDL_HIDDEN"></a><a id="ddl_hidden"></a><dl> <dt><b>DDL_HIDDEN</b></dt> </dl> </td> <td width="60%"> Includes
-///                hidden files. </td> </tr> <tr> <td width="40%"><a id="DDL_READONLY"></a><a id="ddl_readonly"></a><dl>
-///                <dt><b>DDL_READONLY</b></dt> </dl> </td> <td width="60%"> Includes read-only files. </td> </tr> <tr> <td
-///                width="40%"><a id="DDL_READWRITE"></a><a id="ddl_readwrite"></a><dl> <dt><b>DDL_READWRITE</b></dt> </dl> </td>
-///                <td width="60%"> Includes read/write files with no additional attributes. This is the default setting. </td>
-///                </tr> <tr> <td width="40%"><a id="DDL_SYSTEM"></a><a id="ddl_system"></a><dl> <dt><b>DDL_SYSTEM</b></dt> </dl>
-///                </td> <td width="60%"> Includes system files. </td> </tr> <tr> <td width="40%"><a id="DDL_POSTMSGS"></a><a
-///                id="ddl_postmsgs"></a><dl> <dt><b>DDL_POSTMSGS</b></dt> </dl> </td> <td width="60%"> If set, <b>DlgDirList</b>
-///                uses the PostMessage function to send messages to the list box. If not set, <b>DlgDirList</b> uses the
-///                SendMessage function. </td> </tr> </table>
-///Returns:
-///    Type: <b>int</b> If the function succeeds, the return value is nonzero. If the function fails, the return value
-///    is zero. For example, if the string specified by <i>lpPathSpec</i> is not a valid path, the function fails. To
-///    get extended error information, call .
-///    
-@DllImport("USER32")
-int DlgDirListW(HWND hDlg, const(wchar)* lpPathSpec, int nIDListBox, int nIDStaticPath, uint uFileType);
-
-///Retrieves the current selection from a single-selection list box. It assumes that the list box has been filled by the
-///DlgDirList function and that the selection is a drive letter, filename, or directory name.
-///Params:
-///    hwndDlg = Type: <b>HWND</b> A handle to the dialog box that contains the list box.
-///    lpString = Type: <b>LPTSTR</b> A pointer to a buffer that receives the selected path.
-///    chCount = Type: <b>int</b> The length, in <b>TCHARs</b>, of the buffer pointed to by <i>lpString</i>.
-///    idListBox = Type: <b>int</b> The identifier of a list box in the dialog box.
-///Returns:
-///    Type: <b>BOOL</b> If the current selection is a directory name, the return value is nonzero. If the current
-///    selection is not a directory name, the return value is zero. To get extended error information, call
-///    GetLastError.
-///    
-@DllImport("USER32")
-BOOL DlgDirSelectExA(HWND hwndDlg, const(char)* lpString, int chCount, int idListBox);
-
-///Retrieves the current selection from a single-selection list box. It assumes that the list box has been filled by the
-///DlgDirList function and that the selection is a drive letter, filename, or directory name.
-///Params:
-///    hwndDlg = Type: <b>HWND</b> A handle to the dialog box that contains the list box.
-///    lpString = Type: <b>LPTSTR</b> A pointer to a buffer that receives the selected path.
-///    chCount = Type: <b>int</b> The length, in <b>TCHARs</b>, of the buffer pointed to by <i>lpString</i>.
-///    idListBox = Type: <b>int</b> The identifier of a list box in the dialog box.
-///Returns:
-///    Type: <b>BOOL</b> If the current selection is a directory name, the return value is nonzero. If the current
-///    selection is not a directory name, the return value is zero. To get extended error information, call
-///    GetLastError.
-///    
-@DllImport("USER32")
-BOOL DlgDirSelectExW(HWND hwndDlg, const(wchar)* lpString, int chCount, int idListBox);
-
-///Replaces the contents of a combo box with the names of the subdirectories and files in a specified directory. You can
-///filter the list of names by specifying a set of file attributes. The list of names can include mapped drive letters.
-///Params:
-///    hDlg = Type: <b>HWND</b> A handle to the dialog box that contains the combo box.
-///    lpPathSpec = Type: <b>LPTSTR</b> A pointer to a buffer containing a null-terminated string that specifies an absolute path,
-///                 relative path, or file name. An absolute path can begin with a drive letter (for example, d:\) or a UNC name (for
-///                 example, &
-///    nIDComboBox = Type: <b>int</b> The identifier of a combo box in the <i>hDlg</i> dialog box. If this parameter is zero,
-///                  <b>DlgDirListComboBox</b> does not try to fill a combo box.
-///    nIDStaticPath = Type: <b>int</b> The identifier of a static control in the <i>hDlg</i> dialog box. <b>DlgDirListComboBox</b> sets
-///                    the text of this control to display the current drive and directory. This parameter can be zero if you do not
-///                    want to display the current drive and directory.
-///    uFiletype = Type: <b>UINT</b> A set of bit flags that specifies the attributes of the files or directories to be added to the
-///                combo box. This parameter can be a combination of the following values. <table> <tr> <th>Value</th>
-///                <th>Meaning</th> </tr> <tr> <td width="40%"><a id="DDL_ARCHIVE"></a><a id="ddl_archive"></a><dl>
-///                <dt><b>DDL_ARCHIVE</b></dt> </dl> </td> <td width="60%"> Includes archived files. </td> </tr> <tr> <td
-///                width="40%"><a id="DDL_DIRECTORY"></a><a id="ddl_directory"></a><dl> <dt><b>DDL_DIRECTORY</b></dt> </dl> </td>
-///                <td width="60%"> Includes subdirectories, which are enclosed in square brackets ([ ]). </td> </tr> <tr> <td
-///                width="40%"><a id="DDL_DRIVES"></a><a id="ddl_drives"></a><dl> <dt><b>DDL_DRIVES</b></dt> </dl> </td> <td
-///                width="60%"> All mapped drives are added to the list. Drives are listed in the form [-<i>x</i>-], where <i>x</i>
-///                is the drive letter. </td> </tr> <tr> <td width="40%"><a id="DDL_EXCLUSIVE"></a><a id="ddl_exclusive"></a><dl>
-///                <dt><b>DDL_EXCLUSIVE</b></dt> </dl> </td> <td width="60%"> Includes only files with the specified attributes. By
-///                default, read/write files are listed even if DDL_READWRITE is not specified. </td> </tr> <tr> <td width="40%"><a
-///                id="DDL_HIDDEN"></a><a id="ddl_hidden"></a><dl> <dt><b>DDL_HIDDEN</b></dt> </dl> </td> <td width="60%"> Includes
-///                hidden files. </td> </tr> <tr> <td width="40%"><a id="DDL_READONLY"></a><a id="ddl_readonly"></a><dl>
-///                <dt><b>DDL_READONLY</b></dt> </dl> </td> <td width="60%"> Includes read-only files. </td> </tr> <tr> <td
-///                width="40%"><a id="DDL_READWRITE"></a><a id="ddl_readwrite"></a><dl> <dt><b>DDL_READWRITE</b></dt> </dl> </td>
-///                <td width="60%"> Includes read/write files with no additional attributes. This is the default setting. </td>
-///                </tr> <tr> <td width="40%"><a id="DDL_SYSTEM"></a><a id="ddl_system"></a><dl> <dt><b>DDL_SYSTEM</b></dt> </dl>
-///                </td> <td width="60%"> Includes system files. </td> </tr> <tr> <td width="40%"><a id="DDL_POSTMSGS"></a><a
-///                id="ddl_postmsgs"></a><dl> <dt><b>DDL_POSTMSGS</b></dt> </dl> </td> <td width="60%"> If this flag is set,
-///                <b>DlgDirListComboBox</b> uses the PostMessage function to send messages to the combo box. If this flag is not
-///                set, <b>DlgDirListComboBox</b> uses the SendMessage function. </td> </tr> </table>
-///Returns:
-///    Type: <b>int</b> If the function succeeds, the return value is nonzero. If the function fails, the return value
-///    is zero. For example, if the string specified by <i>lpPathSpec</i> is not a valid path, the function fails. To
-///    get extended error information, call GetLastError.
-///    
-@DllImport("USER32")
-int DlgDirListComboBoxA(HWND hDlg, const(char)* lpPathSpec, int nIDComboBox, int nIDStaticPath, uint uFiletype);
-
-///Replaces the contents of a combo box with the names of the subdirectories and files in a specified directory. You can
-///filter the list of names by specifying a set of file attributes. The list of names can include mapped drive letters.
-///Params:
-///    hDlg = Type: <b>HWND</b> A handle to the dialog box that contains the combo box.
-///    lpPathSpec = Type: <b>LPTSTR</b> A pointer to a buffer containing a null-terminated string that specifies an absolute path,
-///                 relative path, or file name. An absolute path can begin with a drive letter (for example, d:\) or a UNC name (for
-///                 example, &
-///    nIDComboBox = Type: <b>int</b> The identifier of a combo box in the <i>hDlg</i> dialog box. If this parameter is zero,
-///                  <b>DlgDirListComboBox</b> does not try to fill a combo box.
-///    nIDStaticPath = Type: <b>int</b> The identifier of a static control in the <i>hDlg</i> dialog box. <b>DlgDirListComboBox</b> sets
-///                    the text of this control to display the current drive and directory. This parameter can be zero if you do not
-///                    want to display the current drive and directory.
-///    uFiletype = Type: <b>UINT</b> A set of bit flags that specifies the attributes of the files or directories to be added to the
-///                combo box. This parameter can be a combination of the following values. <table> <tr> <th>Value</th>
-///                <th>Meaning</th> </tr> <tr> <td width="40%"><a id="DDL_ARCHIVE"></a><a id="ddl_archive"></a><dl>
-///                <dt><b>DDL_ARCHIVE</b></dt> </dl> </td> <td width="60%"> Includes archived files. </td> </tr> <tr> <td
-///                width="40%"><a id="DDL_DIRECTORY"></a><a id="ddl_directory"></a><dl> <dt><b>DDL_DIRECTORY</b></dt> </dl> </td>
-///                <td width="60%"> Includes subdirectories, which are enclosed in square brackets ([ ]). </td> </tr> <tr> <td
-///                width="40%"><a id="DDL_DRIVES"></a><a id="ddl_drives"></a><dl> <dt><b>DDL_DRIVES</b></dt> </dl> </td> <td
-///                width="60%"> All mapped drives are added to the list. Drives are listed in the form [-<i>x</i>-], where <i>x</i>
-///                is the drive letter. </td> </tr> <tr> <td width="40%"><a id="DDL_EXCLUSIVE"></a><a id="ddl_exclusive"></a><dl>
-///                <dt><b>DDL_EXCLUSIVE</b></dt> </dl> </td> <td width="60%"> Includes only files with the specified attributes. By
-///                default, read/write files are listed even if DDL_READWRITE is not specified. </td> </tr> <tr> <td width="40%"><a
-///                id="DDL_HIDDEN"></a><a id="ddl_hidden"></a><dl> <dt><b>DDL_HIDDEN</b></dt> </dl> </td> <td width="60%"> Includes
-///                hidden files. </td> </tr> <tr> <td width="40%"><a id="DDL_READONLY"></a><a id="ddl_readonly"></a><dl>
-///                <dt><b>DDL_READONLY</b></dt> </dl> </td> <td width="60%"> Includes read-only files. </td> </tr> <tr> <td
-///                width="40%"><a id="DDL_READWRITE"></a><a id="ddl_readwrite"></a><dl> <dt><b>DDL_READWRITE</b></dt> </dl> </td>
-///                <td width="60%"> Includes read/write files with no additional attributes. This is the default setting. </td>
-///                </tr> <tr> <td width="40%"><a id="DDL_SYSTEM"></a><a id="ddl_system"></a><dl> <dt><b>DDL_SYSTEM</b></dt> </dl>
-///                </td> <td width="60%"> Includes system files. </td> </tr> <tr> <td width="40%"><a id="DDL_POSTMSGS"></a><a
-///                id="ddl_postmsgs"></a><dl> <dt><b>DDL_POSTMSGS</b></dt> </dl> </td> <td width="60%"> If this flag is set,
-///                <b>DlgDirListComboBox</b> uses the PostMessage function to send messages to the combo box. If this flag is not
-///                set, <b>DlgDirListComboBox</b> uses the SendMessage function. </td> </tr> </table>
-///Returns:
-///    Type: <b>int</b> If the function succeeds, the return value is nonzero. If the function fails, the return value
-///    is zero. For example, if the string specified by <i>lpPathSpec</i> is not a valid path, the function fails. To
-///    get extended error information, call GetLastError.
-///    
-@DllImport("USER32")
-int DlgDirListComboBoxW(HWND hDlg, const(wchar)* lpPathSpec, int nIDComboBox, int nIDStaticPath, uint uFiletype);
-
-///Retrieves the current selection from a combo box filled by using the DlgDirListComboBox function. The selection is
-///interpreted as a drive letter, a file, or a directory name.
-///Params:
-///    hwndDlg = Type: <b>HWND</b> A handle to the dialog box that contains the combo box.
-///    lpString = Type: <b>LPTSTR</b> A pointer to the buffer that receives the selected path.
-///    cchOut = Type: <b>int</b> The length, in characters, of the buffer pointed to by the <i>lpString</i> parameter.
-///    idComboBox = Type: <b>int</b> The integer identifier of the combo box control in the dialog box.
-///Returns:
-///    Type: <b>BOOL</b> If the current selection is a directory name, the return value is nonzero. If the current
-///    selection is not a directory name, the return value is zero. To get extended error information, call
-///    GetLastError.
-///    
-@DllImport("USER32")
-BOOL DlgDirSelectComboBoxExA(HWND hwndDlg, const(char)* lpString, int cchOut, int idComboBox);
-
-///Retrieves the current selection from a combo box filled by using the DlgDirListComboBox function. The selection is
-///interpreted as a drive letter, a file, or a directory name.
-///Params:
-///    hwndDlg = Type: <b>HWND</b> A handle to the dialog box that contains the combo box.
-///    lpString = Type: <b>LPTSTR</b> A pointer to the buffer that receives the selected path.
-///    cchOut = Type: <b>int</b> The length, in characters, of the buffer pointed to by the <i>lpString</i> parameter.
-///    idComboBox = Type: <b>int</b> The integer identifier of the combo box control in the dialog box.
-///Returns:
-///    Type: <b>BOOL</b> If the current selection is a directory name, the return value is nonzero. If the current
-///    selection is not a directory name, the return value is zero. To get extended error information, call
-///    GetLastError.
-///    
-@DllImport("USER32")
-BOOL DlgDirSelectComboBoxExW(HWND hwndDlg, const(wchar)* lpString, int cchOut, int idComboBox);
-
-///The <b>SetScrollInfo</b> function sets the parameters of a scroll bar, including the minimum and maximum scrolling
-///positions, the page size, and the position of the scroll box (thumb). The function also redraws the scroll bar, if
-///requested.
-///Params:
-///    hwnd = Type: <b>HWND</b> Handle to a scroll bar control or a window with a standard scroll bar, depending on the value
-///           of the <i>fnBar</i> parameter.
-///    nBar = Type: <b>int</b> Specifies the type of scroll bar for which to set parameters. This parameter can be one of the
-///           following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SB_CTL"></a><a
-///           id="sb_ctl"></a><dl> <dt><b>SB_CTL</b></dt> </dl> </td> <td width="60%"> Sets the parameters of a scroll bar
-///           control. The <i>hwnd</i> parameter must be the handle to the scroll bar control. </td> </tr> <tr> <td
-///           width="40%"><a id="SB_HORZ"></a><a id="sb_horz"></a><dl> <dt><b>SB_HORZ</b></dt> </dl> </td> <td width="60%">
-///           Sets the parameters of the window's standard horizontal scroll bar. </td> </tr> <tr> <td width="40%"><a
-///           id="SB_VERT"></a><a id="sb_vert"></a><dl> <dt><b>SB_VERT</b></dt> </dl> </td> <td width="60%"> Sets the
-///           parameters of the window's standard vertical scroll bar. </td> </tr> </table>
-///    lpsi = Type: <b>LPCSCROLLINFO</b> Pointer to a SCROLLINFO structure. Before calling <b>SetScrollInfo</b>, set the
-///           <b>cbSize</b> member of the structure to <b>sizeof</b>(<b>SCROLLINFO</b>), set the <b>fMask</b> member to
-///           indicate the parameters to set, and specify the new parameter values in the appropriate members. The <b>fMask</b>
-///           member can be one or more of the following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td
-///           width="40%"><a id="SIF_DISABLENOSCROLL"></a><a id="sif_disablenoscroll"></a><dl>
-///           <dt><b>SIF_DISABLENOSCROLL</b></dt> </dl> </td> <td width="60%"> Disables the scroll bar instead of removing it,
-///           if the scroll bar's new parameters make the scroll bar unnecessary. </td> </tr> <tr> <td width="40%"><a
-///           id="SIF_PAGE"></a><a id="sif_page"></a><dl> <dt><b>SIF_PAGE</b></dt> </dl> </td> <td width="60%"> Sets the scroll
-///           page to the value specified in the <b>nPage</b> member of the SCROLLINFO structure pointed to by <i>lpsi</i>.
-///           </td> </tr> <tr> <td width="40%"><a id="SIF_POS"></a><a id="sif_pos"></a><dl> <dt><b>SIF_POS</b></dt> </dl> </td>
-///           <td width="60%"> Sets the scroll position to the value specified in the <b>nPos</b> member of the SCROLLINFO
-///           structure pointed to by <i>lpsi</i>. </td> </tr> <tr> <td width="40%"><a id="SIF_RANGE"></a><a
-///           id="sif_range"></a><dl> <dt><b>SIF_RANGE</b></dt> </dl> </td> <td width="60%"> Sets the scroll range to the value
-///           specified in the <b>nMin</b> and <b>nMax</b> members of the SCROLLINFO structure pointed to by <i>lpsi</i>. </td>
-///           </tr> </table>
-///    redraw = Type: <b>BOOL</b> Specifies whether the scroll bar is redrawn to reflect the changes to the scroll bar. If this
-///             parameter is <b>TRUE</b>, the scroll bar is redrawn, otherwise, it is not redrawn.
-///Returns:
-///    Type: <b>int</b> The return value is the current position of the scroll box.
-///    
-@DllImport("USER32")
-int SetScrollInfo(HWND hwnd, int nBar, SCROLLINFO* lpsi, BOOL redraw);
-
-///The <b>GetScrollInfo</b> function retrieves the parameters of a scroll bar, including the minimum and maximum
-///scrolling positions, the page size, and the position of the scroll box (thumb).
-///Params:
-///    hwnd = Type: <b>HWND</b> Handle to a scroll bar control or a window with a standard scroll bar, depending on the value
-///           of the <i>fnBar</i> parameter.
-///    nBar = Type: <b>int</b> Specifies the type of scroll bar for which to retrieve parameters. This parameter can be one of
-///           the following values. <table> <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a
-///           id="SB_CTL"></a><a id="sb_ctl"></a><dl> <dt><b>SB_CTL</b></dt> </dl> </td> <td width="60%"> Retrieves the
-///           parameters for a scroll bar control. The <i>hwnd</i> parameter must be the handle to the scroll bar control.
-///           </td> </tr> <tr> <td width="40%"><a id="SB_HORZ"></a><a id="sb_horz"></a><dl> <dt><b>SB_HORZ</b></dt> </dl> </td>
-///           <td width="60%"> Retrieves the parameters for the window's standard horizontal scroll bar. </td> </tr> <tr> <td
-///           width="40%"><a id="SB_VERT"></a><a id="sb_vert"></a><dl> <dt><b>SB_VERT</b></dt> </dl> </td> <td width="60%">
-///           Retrieves the parameters for the window's standard vertical scroll bar. </td> </tr> </table>
-///    lpsi = Type: <b>LPSCROLLINFO</b> Pointer to a SCROLLINFO structure. Before calling <b>GetScrollInfo</b>, set the
-///           <b>cbSize</b> member to <b>sizeof</b>(<b>SCROLLINFO</b>), and set the <b>fMask</b> member to specify the scroll
-///           bar parameters to retrieve. Before returning, the function copies the specified parameters to the appropriate
-///           members of the structure. The <b>fMask</b> member can be one or more of the following values. <table> <tr>
-///           <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="SIF_PAGE"></a><a id="sif_page"></a><dl>
-///           <dt><b>SIF_PAGE</b></dt> </dl> </td> <td width="60%"> Copies the scroll page to the <b>nPage</b> member of the
-///           SCROLLINFO structure pointed to by <i>lpsi</i>. </td> </tr> <tr> <td width="40%"><a id="SIF_POS"></a><a
-///           id="sif_pos"></a><dl> <dt><b>SIF_POS</b></dt> </dl> </td> <td width="60%"> Copies the scroll position to the
-///           <b>nPos</b> member of the SCROLLINFO structure pointed to by <i>lpsi</i>. </td> </tr> <tr> <td width="40%"><a
-///           id="SIF_RANGE"></a><a id="sif_range"></a><dl> <dt><b>SIF_RANGE</b></dt> </dl> </td> <td width="60%"> Copies the
-///           scroll range to the <b>nMin</b> and <b>nMax</b> members of the SCROLLINFO structure pointed to by <i>lpsi</i>.
-///           </td> </tr> <tr> <td width="40%"><a id="SIF_TRACKPOS"></a><a id="sif_trackpos"></a><dl>
-///           <dt><b>SIF_TRACKPOS</b></dt> </dl> </td> <td width="60%"> Copies the current scroll box tracking position to the
-///           <b>nTrackPos</b> member of the SCROLLINFO structure pointed to by <i>lpsi</i>. </td> </tr> </table>
-///Returns:
-///    Type: <b>BOOL</b> If the function retrieved any values, the return value is nonzero. If the function does not
-///    retrieve any values, the return value is zero. To get extended error information, call GetLastError.
-///    
-@DllImport("USER32")
-BOOL GetScrollInfo(HWND hwnd, int nBar, SCROLLINFO* lpsi);
-
-///The <b>GetScrollBarInfo</b> function retrieves information about the specified scroll bar.
-///Params:
-///    hwnd = Type: <b>HWND</b> Handle to a window associated with the scroll bar whose information is to be retrieved. If the
-///           <i>idObject</i> parameter is OBJID_CLIENT, <i>hwnd</i> is a handle to a scroll bar control. Otherwise,
-///           <i>hwnd</i> is a handle to a window created with WS_VSCROLL and/or WS_HSCROLL style.
-///    idObject = Type: <b>LONG</b> Specifies the scroll bar object. This parameter can be one of the following values. <table>
-///               <tr> <th>Value</th> <th>Meaning</th> </tr> <tr> <td width="40%"><a id="OBJID_CLIENT"></a><a
-///               id="objid_client"></a><dl> <dt><b>OBJID_CLIENT</b></dt> </dl> </td> <td width="60%"> The <i>hwnd</i> parameter is
-///               a handle to a scroll bar control. </td> </tr> <tr> <td width="40%"><a id="OBJID_HSCROLL"></a><a
-///               id="objid_hscroll"></a><dl> <dt><b>OBJID_HSCROLL</b></dt> </dl> </td> <td width="60%"> The horizontal scroll bar
-///               of the <i>hwnd</i> window. </td> </tr> <tr> <td width="40%"><a id="OBJID_VSCROLL"></a><a
-///               id="objid_vscroll"></a><dl> <dt><b>OBJID_VSCROLL</b></dt> </dl> </td> <td width="60%"> The vertical scroll bar of
-///               the <i>hwnd</i> window. </td> </tr> </table>
-///    psbi = Type: <b>PSCROLLBARINFO</b> Pointer to a SCROLLBARINFO structure to receive the information. Before calling
-///           <b>GetScrollBarInfo</b>, set the <b>cbSize</b> member to <b>sizeof</b>(<b>SCROLLBARINFO</b>).
-///Returns:
-///    Type: <b>BOOL</b> If the function succeeds, the return value is nonzero. If the function fails, the return value
-///    is zero. To get extended error information, call GetLastError.
-///    
-@DllImport("USER32")
-BOOL GetScrollBarInfo(HWND hwnd, int idObject, SCROLLBARINFO* psbi);
-
-///Retrieves information about the specified combo box.
-///Params:
-///    hwndCombo = Type: <b>HWND</b> A handle to the combo box.
-///    pcbi = Type: <b>PCOMBOBOXINFO</b> A pointer to a COMBOBOXINFO structure that receives the information. You must set
-///           <b>COMBOBOXINFO.cbSize</b> before calling this function.
-///Returns:
-///    Type: <b>BOOL</b> If the function succeeds, the return value is nonzero. If the function fails, the return value
-///    is zero. To get extended error information, call GetLastError.
-///    
-@DllImport("USER32")
-BOOL GetComboBoxInfo(HWND hwndCombo, COMBOBOXINFO* pcbi);
-
-///Retrieves the number of items per column in a specified list box.
-///Params:
-///    hwnd = Type: <b>HWND</b> A handle to the list box whose number of items per column is to be retrieved.
-///Returns:
-///    Type: <b>DWORD</b> The return value is the number of items per column.
-///    
-@DllImport("USER32")
-uint GetListBoxInfo(HWND hwnd);
-
-///Gets information about the pointer devices attached to the system.
-///Params:
-///    deviceCount = If <i>pointerDevices</i> is NULL, <i>deviceCount</i> returns the total number of attached pointer devices.
-///                  Otherwise, <i>deviceCount</i> specifies the number of POINTER_DEVICE_INFO structures pointed to by
-///                  <i>pointerDevices</i>.
-///    pointerDevices = Array of POINTER_DEVICE_INFO structures for the pointer devices attached to the system. If NULL, the total number
-///                     of attached pointer devices is returned in <i>deviceCount</i>.
-///Returns:
-///    If this function succeeds, it returns TRUE. Otherwise, it returns FALSE. To retrieve extended error information,
-///    call the GetLastError function.
-///    
-@DllImport("USER32")
-BOOL GetPointerDevices(uint* deviceCount, char* pointerDevices);
-
-///Gets information about the pointer device.
-///Params:
-///    device = The handle to the device.
-///    pointerDevice = A POINTER_DEVICE_INFO structure that contains information about the pointer device.
-///Returns:
-///    If this function succeeds, it returns TRUE. Otherwise, it returns FALSE. To retrieve extended error information,
-///    call the GetLastError function.
-///    
-@DllImport("USER32")
-BOOL GetPointerDevice(HANDLE device, POINTER_DEVICE_INFO* pointerDevice);
-
-///Gets device properties that aren't included in the POINTER_DEVICE_INFO structure.
-///Params:
-///    device = The pointer device to query properties from. A call to the GetPointerDevices function returns this handle in the
-///             POINTER_DEVICE_INFO structure.
-///    propertyCount = The number of properties. Returns the count that's written or needed if <i>pointerProperties</i> is NULL. If this
-///                    value is less than the number of properties that the pointer device supports and <i>pointerProperties</i> is not
-///                    NULL, the function returns the actual number of properties in this variable and fails.
-///    pointerProperties = The array of properties.
-///Returns:
-///    TRUE if the function succeeds; otherwise, FALSE. If the function fails, call the GetLastError function for more
-///    information.
-///    
-@DllImport("USER32")
-BOOL GetPointerDeviceProperties(HANDLE device, uint* propertyCount, char* pointerProperties);
-
-///Registers a window to process the WM_POINTERDEVICECHANGE, WM_POINTERDEVICEINRANGE, and WM_POINTERDEVICEOUTOFRANGE
-///pointer device notifications.
-///Params:
-///    window = The window that receives WM_POINTERDEVICECHANGE, WM_POINTERDEVICEINRANGE, and WM_POINTERDEVICEOUTOFRANGE
-///             notifications.
-///    notifyRange = If set to TRUE, process the WM_POINTERDEVICEINRANGE and WM_POINTERDEVICEOUTOFRANGE messages. If set to FALSE,
-///                  these messages aren't processed.
-///Returns:
-///    If this function succeeds, it returns TRUE. Otherwise, it returns FALSE. To retrieve extended error information,
-///    call the GetLastError function.
-///    
-@DllImport("USER32")
-BOOL RegisterPointerDeviceNotifications(HWND window, BOOL notifyRange);
-
-///Gets the x and y range for the pointer device (in himetric) and the x and y range (current resolution) for the
-///display that the pointer device is mapped to.
-///Params:
-///    device = The handle to the pointer device.
-///    pointerDeviceRect = The structure for retrieving the device's physical range data.
-///    displayRect = The structure for retrieving the display resolution.
-///Returns:
-///    TRUE if the function succeeds; otherwise, FALSE. If the function fails, call the GetLastError function for more
-///    information.
-///    
-@DllImport("USER32")
-BOOL GetPointerDeviceRects(HANDLE device, RECT* pointerDeviceRect, RECT* displayRect);
-
-///Gets the cursor IDs that are mapped to the cursors associated with a pointer device.
-///Params:
-///    device = The device handle.
-///    cursorCount = The number of cursors associated with the pointer device.
-///    deviceCursors = An array of POINTER_DEVICE_CURSOR_INFO structures that contain info about the cursors. If NULL,
-///                    <i>cursorCount</i> returns the number of cursors associated with the pointer device.
-///Returns:
-///    TRUE if the function succeeds; otherwise, FALSE. If the function fails, call the GetLastError function for more
-///    information.
-///    
-@DllImport("USER32")
-BOOL GetPointerDeviceCursors(HANDLE device, uint* cursorCount, char* deviceCursors);
-
-///Gets the raw input data from the pointer device.
-///Params:
-///    pointerId = An identifier of the pointer for which to retrieve information.
-///    historyCount = The pointer history.
-///    propertiesCount = Number of properties to retrieve.
-///    pProperties = Array of POINTER_DEVICE_PROPERTY structures that contain raw data reported by the device.
-///    pValues = The values for <i>pProperties</i>.
-///Returns:
-///    TRUE if the function succeeds; otherwise, FALSE. If the function fails, call the GetLastError function for more
-///    information.
-///    
-@DllImport("USER32")
-BOOL GetRawPointerDeviceData(uint pointerId, uint historyCount, uint propertiesCount, char* pProperties, 
-                             char* pValues);
-
-///Retrieves the source of the input message.
-///Params:
-///    inputMessageSource = The INPUT_MESSAGE_SOURCE structure that holds the device type and the ID of the input message source. <div
-///                         class="alert"><b>Note</b> <b>deviceType</b> in INPUT_MESSAGE_SOURCE is set to IMDT_UNAVAILABLE when SendMessage
-///                         is used to inject input (system generated or through messages such as WM_PAINT). This remains true until
-///                         <b>SendMessage</b> returns.</div> <div> </div>
-///Returns:
-///    If this function succeeds, it returns TRUE. Otherwise, it returns FALSE. To retrieve extended error information,
-///    call the GetLastError function.
-///    
-@DllImport("USER32")
-BOOL GetCurrentInputMessageSource(INPUT_MESSAGE_SOURCE* inputMessageSource);
-
-///<p class="CCE_Message">[<b>GetCIMSSM</b> may be altered or unavailable in the future. Instead, use
-///GetCurrentInputMessageSource.] Retrieves the source of the input message (GetCurrentInputMessageSourceInSendMessage).
-///Params:
-///    inputMessageSource = The INPUT_MESSAGE_SOURCE structure that holds the device type and the ID of the input message source.
-///Returns:
-///    If this function succeeds, it returns TRUE. Otherwise, it returns ERROR_INVALID_PARAMETER. This function fails
-///    when:<ul> <li>The input parameter is invalid.</li> <li> GetCurrentInputMessageSource returns a value other than
-///    IMDT_UNAVAILABLE for the device type.</li> </ul>
-///    
-@DllImport("USER32")
-BOOL GetCIMSSM(INPUT_MESSAGE_SOURCE* inputMessageSource);
 
 
 // Interfaces
@@ -14170,33 +14185,6 @@ interface IImageList : IUnknown
 @GUID("192B9D83-50FC-457B-90A0-2B82A8B5DAE1")
 interface IImageList2 : IImageList
 {
-    HRESULT SetOverlayImage(int iImage, int iOverlay);
-    HRESULT Replace(int i, HBITMAP hbmImage, HBITMAP hbmMask);
-    HRESULT AddMasked(HBITMAP hbmImage, uint crMask, int* pi);
-    HRESULT Draw(IMAGELISTDRAWPARAMS* pimldp);
-    HRESULT Remove(int i);
-    HRESULT GetIcon(int i, uint flags, HICON* picon);
-    HRESULT GetImageInfo(int i, IMAGEINFO* pImageInfo);
-    HRESULT Copy(int iDst, IUnknown punkSrc, int iSrc, uint uFlags);
-    HRESULT Merge(int i1, IUnknown punk2, int i2, int dx, int dy, const(GUID)* riid, void** ppv);
-    HRESULT Clone(const(GUID)* riid, void** ppv);
-    HRESULT GetImageRect(int i, RECT* prc);
-    HRESULT GetIconSize(int* cx, int* cy);
-    HRESULT SetIconSize(int cx, int cy);
-    HRESULT GetImageCount(int* pi);
-    HRESULT SetImageCount(uint uNewCount);
-    HRESULT SetBkColor(uint clrBk, uint* pclr);
-    HRESULT GetBkColor(uint* pclr);
-    HRESULT BeginDrag(int iTrack, int dxHotspot, int dyHotspot);
-    HRESULT EndDrag();
-    HRESULT DragEnter(HWND hwndLock, int x, int y);
-    HRESULT DragLeave(HWND hwndLock);
-    HRESULT DragMove(int x, int y);
-    HRESULT SetDragCursorImage(IUnknown punk, int iDrag, int dxHotspot, int dyHotspot);
-    HRESULT DragShowNolock(BOOL fShow);
-    HRESULT GetDragImage(POINT* ppt, POINT* pptHotspot, const(GUID)* riid, void** ppv);
-    HRESULT GetItemFlags(int i, uint* dwFlags);
-    HRESULT GetOverlayImage(int iOverlay, int* piIndex);
     ///Resizes the current image.
     ///Params:
     ///    cxNewIconSize = Type: <b>int</b> The x-axis count, in pixels, for the new size.
@@ -19766,7 +19754,7 @@ interface IRichEditOle : IUnknown
     ///    Type: <b>HRESULT</b> Returns S_OK on success, or a failure code otherwise. E_INVALIDARG is returned if the
     ///    index is invalid.
     ///    
-    HRESULT ConvertObject(int iob, const(GUID)* rclsidNew, const(char)* lpstrUserTypeNew);
+    HRESULT ConvertObject(int iob, const(GUID)* rclsidNew, const(PSTR) lpstrUserTypeNew);
     ///Handles <b>Activate As</b> behavior by unloading all objects of the old class, telling OLE to treat those objects
     ///as objects of the new class, and reloading the objects. If objects cannot be reloaded, they are deleted.
     ///Params:
@@ -19785,7 +19773,7 @@ interface IRichEditOle : IUnknown
     ///    Type: <b>HRESULT</b> Returns S_OK on success, or a failure code otherwise. E_OUTOFMEMORY is returned if
     ///    memory could not be allocated to remember the strings.
     ///    
-    HRESULT SetHostNames(const(char)* lpstrContainerApp, const(char)* lpstrContainerObj);
+    HRESULT SetHostNames(const(PSTR) lpstrContainerApp, const(PSTR) lpstrContainerObj);
     ///Sets the value of the link-available bit in the object's flags. The link-available bit defaults to <b>TRUE</b>.
     ///It should be set to <b>FALSE</b> if any errors occur on the link which would indicate problems connecting to the
     ///linked object or application. When those problems are repaired, the bit should be set to <b>TRUE</b> again.
@@ -20104,7 +20092,7 @@ interface ITextServices : IUnknown
     ///Returns:
     ///    Type: <b>HRESULT</b> The method always returns <b>S_OK</b>.
     ///    
-    HRESULT TxGetHScroll(int* plMin, int* plMax, int* plPos, int* plPage, int* pfEnabled);
+    HRESULT TxGetHScroll(int* plMin, int* plMax, int* plPos, int* plPage, BOOL* pfEnabled);
     ///Returns vertical scroll bar state information.
     ///Params:
     ///    plMin = Type: <b>LONG*</b> The minimum scroll position.
@@ -20121,7 +20109,7 @@ interface ITextServices : IUnknown
     ///    <dt><b>E_INVALIDARG</b></dt> </dl> </td> <td width="60%"> One or more arguments are not valid. </td> </tr>
     ///    </table>
     ///    
-    HRESULT TxGetVScroll(int* plMin, int* plMax, int* plPos, int* plPage, int* pfEnabled);
+    HRESULT TxGetVScroll(int* plMin, int* plMax, int* plPos, int* plPage, BOOL* pfEnabled);
     ///Notifies the text services object to set the cursor.
     ///Params:
     ///    dwDrawAspect = Type: <b>DWORD</b> Draw aspect can be one of the following values. <table> <tr> <th>Value</th>
@@ -20238,7 +20226,7 @@ interface ITextServices : IUnknown
     ///    COM. <table> <tr> <th>Return code</th> <th>Description</th> </tr> <tr> <td width="40%"> <dl>
     ///    <dt><b>E_FAIL</b></dt> </dl> </td> <td width="60%"> Text could not be updated. </td> </tr> </table>
     ///    
-    HRESULT TxSetText(const(wchar)* pszText);
+    HRESULT TxSetText(const(PWSTR) pszText);
     ///Gets the target x position, that is, the current horizontal position of the caret.
     ///Returns:
     ///    Type: <b>HRESULT</b> If the x position of the caret is returned, the return value is <b>S_OK</b>. If the

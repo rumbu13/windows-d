@@ -8,9 +8,9 @@ public import windows.direct3d10 : ID3D10Effect;
 public import windows.direct3d11 : D3D_SHADER_MACRO, ID3D11FunctionLinkingGraph,
                                    ID3D11Linker, ID3D11Module, ID3DBlob,
                                    ID3DInclude;
-public import windows.systemservices : BOOL;
+public import windows.systemservices : BOOL, PSTR, PWSTR;
 
-extern(Windows):
+extern(Windows) @nogc nothrow:
 
 
 // Enums
@@ -172,15 +172,15 @@ enum uint D3D_COMPRESS_SHADER_KEEP_ALL_PARTS = 0x00000001;
 
 // Callbacks
 
-alias pD3DCompile = HRESULT function(void* pSrcData, size_t SrcDataSize, const(char)* pFileName, 
+alias pD3DCompile = HRESULT function(const(void)* pSrcData, size_t SrcDataSize, const(PSTR) pFileName, 
                                      const(D3D_SHADER_MACRO)* pDefines, ID3DInclude pInclude, 
-                                     const(char)* pEntrypoint, const(char)* pTarget, uint Flags1, uint Flags2, 
+                                     const(PSTR) pEntrypoint, const(PSTR) pTarget, uint Flags1, uint Flags2, 
                                      ID3DBlob* ppCode, ID3DBlob* ppErrorMsgs);
-alias pD3DPreprocess = HRESULT function(void* pSrcData, size_t SrcDataSize, const(char)* pFileName, 
+alias pD3DPreprocess = HRESULT function(const(void)* pSrcData, size_t SrcDataSize, const(PSTR) pFileName, 
                                         const(D3D_SHADER_MACRO)* pDefines, ID3DInclude pInclude, 
                                         ID3DBlob* ppCodeText, ID3DBlob* ppErrorMsgs);
-alias pD3DDisassemble = HRESULT function(char* pSrcData, size_t SrcDataSize, uint Flags, const(char)* szComments, 
-                                         ID3DBlob* ppDisassembly);
+alias pD3DDisassemble = HRESULT function(const(void)* pSrcData, size_t SrcDataSize, uint Flags, 
+                                         const(PSTR) szComments, ID3DBlob* ppDisassembly);
 
 // Structs
 
@@ -189,9 +189,9 @@ alias pD3DDisassemble = HRESULT function(char* pSrcData, size_t SrcDataSize, uin
 struct D3D_SHADER_DATA
 {
     ///A pointer to shader data.
-    void*  pBytecode;
+    const(void)* pBytecode;
     ///Length of shader data that <b>pBytecode</b> points to.
-    size_t BytecodeLength;
+    size_t       BytecodeLength;
 }
 
 // Functions
@@ -207,7 +207,7 @@ struct D3D_SHADER_DATA
 ///    Returns one of the Direct3D 11 return codes.
 ///    
 @DllImport("D3DCOMPILER_47")
-HRESULT D3DReadFileToBlob(const(wchar)* pFileName, ID3DBlob* ppContents);
+HRESULT D3DReadFileToBlob(const(PWSTR) pFileName, ID3DBlob* ppContents);
 
 ///<div class="alert"><b>Note</b> You can use this API to develop your Windows Store apps, but you can't use it in apps
 ///that you submit to the Windows Store.</div><div> </div>Writes a memory blob to a file on disk.
@@ -222,7 +222,7 @@ HRESULT D3DReadFileToBlob(const(wchar)* pFileName, ID3DBlob* ppContents);
 ///    Type: <b>HRESULT</b> Returns one of the Direct3D 11 return codes.
 ///    
 @DllImport("D3DCOMPILER_47")
-HRESULT D3DWriteBlobToFile(ID3DBlob pBlob, const(wchar)* pFileName, BOOL bOverwrite);
+HRESULT D3DWriteBlobToFile(ID3DBlob pBlob, const(PWSTR) pFileName, BOOL bOverwrite);
 
 ///Compile HLSL code or an effect file into bytecode for a given target.
 ///Params:
@@ -254,9 +254,9 @@ HRESULT D3DWriteBlobToFile(ID3DBlob pBlob, const(wchar)* pFileName, BOOL bOverwr
 ///    Type: <b>HRESULT</b> Returns one of the Direct3D 11 return codes.
 ///    
 @DllImport("D3DCOMPILER_47")
-HRESULT D3DCompile(char* pSrcData, size_t SrcDataSize, const(char)* pSourceName, const(D3D_SHADER_MACRO)* pDefines, 
-                   ID3DInclude pInclude, const(char)* pEntrypoint, const(char)* pTarget, uint Flags1, uint Flags2, 
-                   ID3DBlob* ppCode, ID3DBlob* ppErrorMsgs);
+HRESULT D3DCompile(const(void)* pSrcData, size_t SrcDataSize, const(PSTR) pSourceName, 
+                   const(D3D_SHADER_MACRO)* pDefines, ID3DInclude pInclude, const(PSTR) pEntrypoint, 
+                   const(PSTR) pTarget, uint Flags1, uint Flags2, ID3DBlob* ppCode, ID3DBlob* ppErrorMsgs);
 
 ///Compiles Microsoft High Level Shader Language (HLSL) code into bytecode for a given target.
 ///Params:
@@ -306,10 +306,10 @@ HRESULT D3DCompile(char* pSrcData, size_t SrcDataSize, const(char)* pSourceName,
 ///    Type: <b>HRESULT</b> Returns one of the Direct3D 11 return codes.
 ///    
 @DllImport("D3DCOMPILER_47")
-HRESULT D3DCompile2(char* pSrcData, size_t SrcDataSize, const(char)* pSourceName, 
-                    const(D3D_SHADER_MACRO)* pDefines, ID3DInclude pInclude, const(char)* pEntrypoint, 
-                    const(char)* pTarget, uint Flags1, uint Flags2, uint SecondaryDataFlags, char* pSecondaryData, 
-                    size_t SecondaryDataSize, ID3DBlob* ppCode, ID3DBlob* ppErrorMsgs);
+HRESULT D3DCompile2(const(void)* pSrcData, size_t SrcDataSize, const(PSTR) pSourceName, 
+                    const(D3D_SHADER_MACRO)* pDefines, ID3DInclude pInclude, const(PSTR) pEntrypoint, 
+                    const(PSTR) pTarget, uint Flags1, uint Flags2, uint SecondaryDataFlags, 
+                    const(void)* pSecondaryData, size_t SecondaryDataSize, ID3DBlob* ppCode, ID3DBlob* ppErrorMsgs);
 
 ///<div class="alert"><b>Note</b> You can use this API to develop your Windows Store apps, but you can't use it in apps
 ///that you submit to the Windows Store. Refer to the section, "Compiling shaders for UWP", in the remarks for
@@ -343,9 +343,9 @@ HRESULT D3DCompile2(char* pSrcData, size_t SrcDataSize, const(char)* pSourceName
 ///    Returns one of the Direct3D 11 return codes.
 ///    
 @DllImport("D3DCOMPILER_47")
-HRESULT D3DCompileFromFile(const(wchar)* pFileName, const(D3D_SHADER_MACRO)* pDefines, ID3DInclude pInclude, 
-                           const(char)* pEntrypoint, const(char)* pTarget, uint Flags1, uint Flags2, 
-                           ID3DBlob* ppCode, ID3DBlob* ppErrorMsgs);
+HRESULT D3DCompileFromFile(const(PWSTR) pFileName, const(D3D_SHADER_MACRO)* pDefines, ID3DInclude pInclude, 
+                           const(PSTR) pEntrypoint, const(PSTR) pTarget, uint Flags1, uint Flags2, ID3DBlob* ppCode, 
+                           ID3DBlob* ppErrorMsgs);
 
 ///Preprocesses uncompiled HLSL code.
 ///Params:
@@ -362,7 +362,7 @@ HRESULT D3DCompileFromFile(const(wchar)* pFileName, const(D3D_SHADER_MACRO)* pDe
 ///    Type: <b>HRESULT</b> Returns one of the Direct3D 11 return codes.
 ///    
 @DllImport("D3DCOMPILER_47")
-HRESULT D3DPreprocess(char* pSrcData, size_t SrcDataSize, const(char)* pSourceName, 
+HRESULT D3DPreprocess(const(void)* pSrcData, size_t SrcDataSize, const(PSTR) pSourceName, 
                       const(D3D_SHADER_MACRO)* pDefines, ID3DInclude pInclude, ID3DBlob* ppCodeText, 
                       ID3DBlob* ppErrorMsgs);
 
@@ -377,7 +377,7 @@ HRESULT D3DPreprocess(char* pSrcData, size_t SrcDataSize, const(char)* pSourceNa
 ///    Type: <b>HRESULT</b> Returns one of the Direct3D 11 return codes.
 ///    
 @DllImport("D3DCOMPILER_47")
-HRESULT D3DGetDebugInfo(char* pSrcData, size_t SrcDataSize, ID3DBlob* ppDebugInfo);
+HRESULT D3DGetDebugInfo(const(void)* pSrcData, size_t SrcDataSize, ID3DBlob* ppDebugInfo);
 
 ///Gets a pointer to a reflection interface.
 ///Params:
@@ -390,7 +390,7 @@ HRESULT D3DGetDebugInfo(char* pSrcData, size_t SrcDataSize, ID3DBlob* ppDebugInf
 ///    Type: <b>HRESULT</b> Returns one of the Direct3D 11 return codes.
 ///    
 @DllImport("D3DCOMPILER_47")
-HRESULT D3DReflect(char* pSrcData, size_t SrcDataSize, const(GUID)* pInterface, void** ppReflector);
+HRESULT D3DReflect(const(void)* pSrcData, size_t SrcDataSize, const(GUID)* pInterface, void** ppReflector);
 
 ///Creates a library-reflection interface from source data that contains an HLSL library of functions. <div
 ///class="alert"><b>Note</b> This function is part of the HLSL shader linking technology that you can use on all
@@ -407,7 +407,7 @@ HRESULT D3DReflect(char* pSrcData, size_t SrcDataSize, const(GUID)* pInterface, 
 ///    Type: <b>HRESULT</b> Returns S_OK if successful; otherwise, returns one of the Direct3D 11 Return Codes.
 ///    
 @DllImport("D3DCOMPILER_47")
-HRESULT D3DReflectLibrary(char* pSrcData, size_t SrcDataSize, const(GUID)* riid, void** ppReflector);
+HRESULT D3DReflectLibrary(const(void)* pSrcData, size_t SrcDataSize, const(GUID)* riid, void** ppReflector);
 
 ///Disassembles compiled HLSL code.
 ///Params:
@@ -430,7 +430,7 @@ HRESULT D3DReflectLibrary(char* pSrcData, size_t SrcDataSize, const(GUID)* riid,
 ///    Type: <b>HRESULT</b> Returns one of the Direct3D 11 return codes.
 ///    
 @DllImport("D3DCOMPILER_47")
-HRESULT D3DDisassemble(char* pSrcData, size_t SrcDataSize, uint Flags, const(char)* szComments, 
+HRESULT D3DDisassemble(const(void)* pSrcData, size_t SrcDataSize, uint Flags, const(PSTR) szComments, 
                        ID3DBlob* ppDisassembly);
 
 ///Disassembles a specific region of compiled Microsoft High Level Shader Language (HLSL) code.
@@ -460,7 +460,7 @@ HRESULT D3DDisassemble(char* pSrcData, size_t SrcDataSize, uint Flags, const(cha
 ///    Returns one of the Direct3D 11 return codes.
 ///    
 @DllImport("D3DCOMPILER_47")
-HRESULT D3DDisassembleRegion(char* pSrcData, size_t SrcDataSize, uint Flags, const(char)* szComments, 
+HRESULT D3DDisassembleRegion(const(void)* pSrcData, size_t SrcDataSize, uint Flags, const(PSTR) szComments, 
                              size_t StartByteOffset, size_t NumInsts, size_t* pFinishByteOffset, 
                              ID3DBlob* ppDisassembly);
 
@@ -489,7 +489,7 @@ HRESULT D3DCreateLinker(ID3D11Linker* ppLinker);
 ///    Type: <b>HRESULT</b> Returns S_OK if successful; otherwise, returns one of the Direct3D 11 Return Codes.
 ///    
 @DllImport("D3DCOMPILER_47")
-HRESULT D3DLoadModule(void* pSrcData, size_t cbSrcDataSize, ID3D11Module* ppModule);
+HRESULT D3DLoadModule(const(void)* pSrcData, size_t cbSrcDataSize, ID3D11Module* ppModule);
 
 ///Creates a function-linking-graph interface. <div class="alert"><b>Note</b> This function is part of the HLSL shader
 ///linking technology that you can use on all Direct3D 11 platforms to create precompiled HLSL functions, package them
@@ -522,8 +522,8 @@ HRESULT D3DCreateFunctionLinkingGraph(uint uFlags, ID3D11FunctionLinkingGraph* p
 ///    Returns one of the Direct3D 11 return codes.
 ///    
 @DllImport("D3DCOMPILER_47")
-HRESULT D3DGetTraceInstructionOffsets(char* pSrcData, size_t SrcDataSize, uint Flags, size_t StartInstIndex, 
-                                      size_t NumInsts, char* pOffsets, size_t* pTotalInsts);
+HRESULT D3DGetTraceInstructionOffsets(const(void)* pSrcData, size_t SrcDataSize, uint Flags, size_t StartInstIndex, 
+                                      size_t NumInsts, size_t* pOffsets, size_t* pTotalInsts);
 
 ///<div class="alert"><b>Note</b> <b>D3DGetInputSignatureBlob</b> may be altered or unavailable for releases after
 ///Windows 8.1. Instead use D3DGetBlobPart with the D3D_BLOB_INPUT_SIGNATURE_BLOB value. </div><div> </div>Gets the
@@ -537,7 +537,7 @@ HRESULT D3DGetTraceInstructionOffsets(char* pSrcData, size_t SrcDataSize, uint F
 ///    Type: <b>HRESULT</b> Returns one of the Direct3D 11 return codes.
 ///    
 @DllImport("D3DCOMPILER_47")
-HRESULT D3DGetInputSignatureBlob(char* pSrcData, size_t SrcDataSize, ID3DBlob* ppSignatureBlob);
+HRESULT D3DGetInputSignatureBlob(const(void)* pSrcData, size_t SrcDataSize, ID3DBlob* ppSignatureBlob);
 
 ///<div class="alert"><b>Note</b> <b>D3DGetOutputSignatureBlob</b> may be altered or unavailable for releases after
 ///Windows 8.1. Instead use D3DGetBlobPart with the D3D_BLOB_OUTPUT_SIGNATURE_BLOB value. </div><div> </div>Gets the
@@ -551,7 +551,7 @@ HRESULT D3DGetInputSignatureBlob(char* pSrcData, size_t SrcDataSize, ID3DBlob* p
 ///    Type: <b>HRESULT</b> Returns one of the Direct3D 11 return codes.
 ///    
 @DllImport("D3DCOMPILER_47")
-HRESULT D3DGetOutputSignatureBlob(char* pSrcData, size_t SrcDataSize, ID3DBlob* ppSignatureBlob);
+HRESULT D3DGetOutputSignatureBlob(const(void)* pSrcData, size_t SrcDataSize, ID3DBlob* ppSignatureBlob);
 
 ///<div class="alert"><b>Note</b> <b>D3DGetInputAndOutputSignatureBlob</b> may be altered or unavailable for releases
 ///after Windows 8.1. Instead use D3DGetBlobPart with the D3D_BLOB_INPUT_AND_OUTPUT_SIGNATURE_BLOB value. </div><div>
@@ -565,7 +565,7 @@ HRESULT D3DGetOutputSignatureBlob(char* pSrcData, size_t SrcDataSize, ID3DBlob* 
 ///    Type: <b>HRESULT</b> Returns one of the Direct3D 11 return codes.
 ///    
 @DllImport("D3DCOMPILER_47")
-HRESULT D3DGetInputAndOutputSignatureBlob(char* pSrcData, size_t SrcDataSize, ID3DBlob* ppSignatureBlob);
+HRESULT D3DGetInputAndOutputSignatureBlob(const(void)* pSrcData, size_t SrcDataSize, ID3DBlob* ppSignatureBlob);
 
 ///Removes unwanted blobs from a compilation result.
 ///Params:
@@ -578,7 +578,8 @@ HRESULT D3DGetInputAndOutputSignatureBlob(char* pSrcData, size_t SrcDataSize, ID
 ///    Type: <b>HRESULT</b> Returns one of the Direct3D 11 return codes.
 ///    
 @DllImport("D3DCOMPILER_47")
-HRESULT D3DStripShader(char* pShaderBytecode, size_t BytecodeLength, uint uStripFlags, ID3DBlob* ppStrippedBlob);
+HRESULT D3DStripShader(const(void)* pShaderBytecode, size_t BytecodeLength, uint uStripFlags, 
+                       ID3DBlob* ppStrippedBlob);
 
 ///Retrieves a specific part from a compilation result.
 ///Params:
@@ -592,7 +593,7 @@ HRESULT D3DStripShader(char* pShaderBytecode, size_t BytecodeLength, uint uStrip
 ///    Type: <b>HRESULT</b> Returns one of the Direct3D 11 return codes.
 ///    
 @DllImport("D3DCOMPILER_47")
-HRESULT D3DGetBlobPart(char* pSrcData, size_t SrcDataSize, D3D_BLOB_PART Part, uint Flags, ID3DBlob* ppPart);
+HRESULT D3DGetBlobPart(const(void)* pSrcData, size_t SrcDataSize, D3D_BLOB_PART Part, uint Flags, ID3DBlob* ppPart);
 
 ///Sets information in a compilation result.
 ///Params:
@@ -610,8 +611,8 @@ HRESULT D3DGetBlobPart(char* pSrcData, size_t SrcDataSize, D3D_BLOB_PART Part, u
 ///    Type: <b>HRESULT</b> Returns one of the Direct3D 11 return codes.
 ///    
 @DllImport("D3DCOMPILER_47")
-HRESULT D3DSetBlobPart(char* pSrcData, size_t SrcDataSize, D3D_BLOB_PART Part, uint Flags, char* pPart, 
-                       size_t PartSize, ID3DBlob* ppNewShader);
+HRESULT D3DSetBlobPart(const(void)* pSrcData, size_t SrcDataSize, D3D_BLOB_PART Part, uint Flags, 
+                       const(void)* pPart, size_t PartSize, ID3DBlob* ppNewShader);
 
 ///Creates a buffer.
 ///Params:
@@ -637,7 +638,7 @@ HRESULT D3DCreateBlob(size_t Size, ID3DBlob* ppBlob);
 ///    Type: <b>HRESULT</b> Returns one of the Direct3D 11 return codes.
 ///    
 @DllImport("D3DCOMPILER_47")
-HRESULT D3DCompressShaders(uint uNumShaders, char* pShaderData, uint uFlags, ID3DBlob* ppCompressedData);
+HRESULT D3DCompressShaders(uint uNumShaders, D3D_SHADER_DATA* pShaderData, uint uFlags, ID3DBlob* ppCompressedData);
 
 ///<div class="alert"><b>Note</b> You can use this API to develop your Windows Store apps, but you can't use it in apps
 ///that you submit to the Windows Store.</div><div> </div>Decompresses one or more shaders from a compressed set.
@@ -656,8 +657,8 @@ HRESULT D3DCompressShaders(uint uNumShaders, char* pShaderData, uint uFlags, ID3
 ///    Type: <b>HRESULT</b> Returns one of the Direct3D 11 return codes.
 ///    
 @DllImport("D3DCOMPILER_47")
-HRESULT D3DDecompressShaders(char* pSrcData, size_t SrcDataSize, uint uNumShaders, uint uStartIndex, 
-                             char* pIndices, uint uFlags, char* ppShaders, uint* pTotalShaders);
+HRESULT D3DDecompressShaders(const(void)* pSrcData, size_t SrcDataSize, uint uNumShaders, uint uStartIndex, 
+                             uint* pIndices, uint uFlags, ID3DBlob* ppShaders, uint* pTotalShaders);
 
 ///Disassembles compiled HLSL code from a Direct3D10 effect.
 ///Params:
