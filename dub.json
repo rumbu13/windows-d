@@ -23,7 +23,8 @@
             "targetType": "staticLibrary",
             "targetName": "windows",
             "targetPath": "bin",
-            "sourcePaths": ["out/windows"]    
+            "sourcePaths": ["out/windows"],
+            "importPaths": ["out"]
         }
     ]
 }
