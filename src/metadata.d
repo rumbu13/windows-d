@@ -640,13 +640,13 @@ public struct Row(MD md)
                 format("Missing parent (%s) reference to child (%s - %d)", target.stringof, md.stringof, index));      
         //parentVal >= index
         if (parentVal == index)
-            return parentTable[parentRow + 1];
+            return table.db.getTable!target[parentRow + 1];
         else
         {
             //parentVal > index
             enforce(parentRow > 0,
                     format("Missing parent (%s) reference to child (%s - %d)", target.stringof, md.stringof, index));
-            return parentTable[parentRow];
+            return table.db.getTable!target[parentRow];
         }
     }
 
