@@ -363,7 +363,8 @@ version(X86_64)
             }
             struct Bits
             {
-                uint _bitfield527;
+                // Native bit field: BaseMid: [0-7], Type: [8-12], Dpl: [13-14], Pres: [15], LimitHi: [16-19], Sys: [20], Reserved_0: [21], Default_Big: [22], Granularity: [23], BaseHi: [24-31]
+                uint _bitfield0;
             }
         }
     }
@@ -386,7 +387,8 @@ version(AArch64)
             }
             struct Bits
             {
-                uint _bitfield528;
+                // Native bit field: BaseMid: [0-7], Type: [8-12], Dpl: [13-14], Pres: [15], LimitHi: [16-19], Sys: [20], Reserved_0: [21], Default_Big: [22], Granularity: [23], BaseHi: [24-31]
+                uint _bitfield1;
             }
         }
     }

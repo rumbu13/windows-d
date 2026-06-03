@@ -648,7 +648,8 @@ version(X86)
 
 struct DNS_HEADER_EXT
 {
-    ushort _bitfield116;
+    // Native bit field: Reserved: [0-14], DnssecOk: [15]
+    ushort _bitfield0;
     ubyte  chRcode;
     ubyte  chVersion;
 }
@@ -1118,7 +1119,8 @@ struct DNS_SVCB_DATA
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/windns/ns-windns-dns_record_flags
 struct DNS_RECORD_FLAGS
 {
-    uint _bitfield117;
+    // Native bit field: Section: [0-1], Delete: [2], CharSet: [3-4], Unused: [5-7], Reserved: [8-31]
+    uint _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/windns/ns-windns-dns_recordw
@@ -1405,7 +1407,9 @@ struct DNS_HEADER
 {
 align (1):
     ushort Xid;
+    // Native bit field: RecursionDesired: [0], Truncation: [1], Authoritative: [2], Opcode: [3-6], IsResponse: [7]
     ubyte  _bitfield1;
+    // Native bit field: ResponseCode: [0-3], CheckingDisabled: [4], AuthenticatedData: [5], Reserved: [6], RecursionAvailable: [7]
     ubyte  _bitfield2;
     ushort QuestionCount;
     ushort AnswerCount;

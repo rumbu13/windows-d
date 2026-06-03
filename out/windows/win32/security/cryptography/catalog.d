@@ -52,11 +52,11 @@ enum : uint
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CATALOG_LIST         = "1.3.6.1.4.1.311.12.1.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CATALOG_LIST_MEMBER  = "1.3.6.1.4.1.311.12.1.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CATALOG_LIST_MEMBER2 = "1.3.6.1.4.1.311.12.1.3",
 }
 

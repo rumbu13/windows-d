@@ -1663,7 +1663,7 @@ enum uint WOW64_MAXIMUM_SUPPORTED_EXTENSION = 0x00000200U;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     RESTORE_LAST_ERROR_NAME_A = "RestoreLastError",
     RESTORE_LAST_ERROR_NAME_W = "RestoreLastError",
     RESTORE_LAST_ERROR_NAME   = "RestoreLastError",
@@ -3363,7 +3363,8 @@ struct LDT_ENTRY
         }
         struct Bits
         {
-            uint _bitfield373;
+            // Native bit field: BaseMid: [0-7], Type: [8-12], Dpl: [13-14], Pres: [15], LimitHi: [16-19], Sys: [20], Reserved_0: [21], Default_Big: [22], Granularity: [23], BaseHi: [24-31]
+            uint _bitfield0;
         }
     }
 }
@@ -3436,7 +3437,8 @@ struct WOW64_LDT_ENTRY
         }
         struct Bits
         {
-            uint _bitfield374;
+            // Native bit field: BaseMid: [0-7], Type: [8-12], Dpl: [13-14], Pres: [15], LimitHi: [16-19], Sys: [20], Reserved_0: [21], Default_Big: [22], Granularity: [23], BaseHi: [24-31]
+            uint _bitfield0;
         }
     }
 }
@@ -3503,7 +3505,8 @@ struct XSTATE_CONFIGURATION
         uint ControlFlags;
         struct
         {
-            uint _bitfield375;
+            // Native bit field: OptimizedSave: [0], CompactionEnabled: [1], ExtendedFeatureDisable: [2]
+            uint _bitfield0;
         }
     }
     XSTATE_FEATURE[64] Features;
@@ -3794,7 +3797,8 @@ struct IMAGE_ARM64_RUNTIME_FUNCTION_ENTRY
         uint UnwindData;
         struct
         {
-            uint _bitfield376;
+            // Native bit field: Flag: [0-1], FunctionLength: [2-12], RegF: [13-15], RegI: [16-19], H: [20], CR: [21-22], FrameSize: [23-31]
+            uint _bitfield0;
         }
     }
 }
@@ -3843,7 +3847,8 @@ struct FPO_DATA
     uint   cbProcSize;
     uint   cdwLocals;
     ushort cdwParams;
-    ushort _bitfield377;
+    // Native bit field: cbProlog: [0-7], cbRegs: [8-10], fHasSEH: [11], fUseBP: [12], reserved: [13], cbFrame: [14-15]
+    ushort _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/winnt/ns-winnt-image_function_entry
@@ -5730,7 +5735,8 @@ union DUMP_FILE_ATTRIBUTES
 {
     struct
     {
-        uint _bitfield378;
+        // Native bit field: HiberCrash: [0], DumpDevicePowerOff: [1], InsufficientDumpfileSize: [2], KernelGeneratedTriageDump: [3], LiveDumpGeneratedDump: [4], DumpIsGeneratedOffline: [5], FilterDumpFile: [6], EarlyBootCrash: [7], EncryptedDumpData: [8], DecryptedDump: [9], ReservedFlags: [10-31]
+        uint _bitfield0;
     }
     uint Attributes;
 }
@@ -5876,7 +5882,8 @@ align (1):
     struct
     {
     align (1):
-        ushort _bitfield379;
+        // Native bit field: PollIntervalRW: [0], SwitchToPollingThresholdRW: [1], SwitchToPollingWindowRW: [2], ErrorThresholdRW: [3], ErrorThresholdWindowRW: [4], Reserved: [5-15]
+        ushort _bitfield0;
     }
     ushort AsUSHORT;
 }
@@ -5885,7 +5892,8 @@ union XPF_MC_BANK_FLAGS
 {
     struct
     {
-        ubyte _bitfield380;
+        // Native bit field: ClearOnInitializationRW: [0], ControlDataRW: [1], Reserved: [2-7]
+        ubyte _bitfield0;
     }
     ubyte AsUCHAR;
 }
@@ -5896,7 +5904,8 @@ align (1):
     struct
     {
     align (1):
-        uint _bitfield381;
+        // Native bit field: MCG_CapabilityRW: [0], MCG_GlobalControlRW: [1], Reserved: [2-31]
+        uint _bitfield0;
     }
     uint AsULONG;
 }
@@ -5907,7 +5916,8 @@ align (1):
     struct
     {
     align (1):
-        ushort _bitfield382;
+        // Native bit field: UncorrectableErrorMaskRW: [0], UncorrectableErrorSeverityRW: [1], CorrectableErrorMaskRW: [2], AdvancedCapsAndControlRW: [3], RootErrorCommandRW: [4], Reserved: [5-15]
+        ushort _bitfield0;
     }
     ushort AsUSHORT;
 }
@@ -5918,7 +5928,8 @@ align (1):
     struct
     {
     align (1):
-        ushort _bitfield383;
+        // Native bit field: UncorrectableErrorMaskRW: [0], UncorrectableErrorSeverityRW: [1], CorrectableErrorMaskRW: [2], AdvancedCapsAndControlRW: [3], Reserved: [4-15]
+        ushort _bitfield0;
     }
     ushort AsUSHORT;
 }
@@ -5929,7 +5940,8 @@ align (1):
     struct
     {
     align (1):
-        ushort _bitfield384;
+        // Native bit field: UncorrectableErrorMaskRW: [0], UncorrectableErrorSeverityRW: [1], CorrectableErrorMaskRW: [2], AdvancedCapsAndControlRW: [3], SecondaryUncorrectableErrorMaskRW: [4], SecondaryUncorrectableErrorSevRW: [5], SecondaryCapsAndControlRW: [6], Reserved: [7-15]
+        ushort _bitfield0;
     }
     ushort AsUSHORT;
 }
@@ -6064,7 +6076,8 @@ struct WHEA_PCI_SLOT_NUMBER
         struct bits
         {
         align (1):
-            uint _bitfield385;
+            // Native bit field: DeviceNumber: [0-4], FunctionNumber: [5-7], Reserved: [8-31]
+            uint _bitfield0;
         }
         uint AsULONG;
     }
@@ -6259,7 +6272,8 @@ union DIMM_ADDRESS
     struct Ddr4
     {
     align (1):
-        ulong _bitfield386;
+        // Native bit field: SocketId: [0-3], MemoryControllerId: [4-5], ChannelId: [6-7], DimmSlot: [8-9], DimmRank: [10-11], Device: [12-16], ChipSelect: [17-19], Bank: [20-27], Dq: [28-31], Reserved: [32-63]
+        ulong _bitfield0;
         uint  Row;
         uint  Column;
         ulong Info;
@@ -6267,7 +6281,8 @@ union DIMM_ADDRESS
     struct Ddr5
     {
     align (1):
-        ulong _bitfield387;
+        // Native bit field: SocketId: [0-4], MemoryControllerId: [5-8], ChannelId: [9-11], SubChannelId: [12-13], DimmSlot: [14-15], DimmRank: [16-19], Device: [20-25], ChipId: [26-29], Bank: [30-37], Dq: [38-42], Reserved: [43-63]
+        ulong _bitfield1;
         uint  Row;
         uint  Column;
         ulong Info;
@@ -6278,7 +6293,8 @@ union PAGE_OFFLINE_VALID_BITS
 {
     struct
     {
-        ubyte _bitfield388;
+        // Native bit field: PhysicalAddress: [0], MemDefect: [1], Reserved: [2-7]
+        ubyte _bitfield0;
     }
     ubyte AsUINT8;
 }
@@ -6286,13 +6302,15 @@ union PAGE_OFFLINE_VALID_BITS
 struct DIMM_ADDR_VALID_BITS_DDR4
 {
 align (1):
-    uint _bitfield389;
+    // Native bit field: SocketId: [0], MemoryControllerId: [1], ChannelId: [2], DimmSlot: [3], DimmRank: [4], Device: [5], ChipSelect: [6], Bank: [7], Dq: [8], Row: [9], Column: [10], Info: [11], Reserved: [12-31]
+    uint _bitfield0;
 }
 
 struct DIMM_ADDR_VALID_BITS_DDR5
 {
 align (1):
-    uint _bitfield390;
+    // Native bit field: SocketId: [0], MemoryControllerId: [1], ChannelId: [2], SubChannelId: [3], DimmSlot: [4], DimmRank: [5], Device: [6], ChipId: [7], Bank: [8], Dq: [9], Row: [10], Column: [11], Info: [12], Reserved: [13-31]
+    uint _bitfield0;
 }
 
 union DIMM_ADDR_VALID_BITS

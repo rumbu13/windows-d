@@ -610,7 +610,7 @@ enum : uint
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ACCCTRL_DEFAULT_PROVIDERA = "Windows NT Access Provider",
     ACCCTRL_DEFAULT_PROVIDERW = "Windows NT Access Provider",
     ACCCTRL_DEFAULT_PROVIDER  = "Windows NT Access Provider",

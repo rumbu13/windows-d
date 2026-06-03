@@ -317,26 +317,26 @@ enum : uint
     WM_CHOOSEFONT_SETFLAGS   = 0x00000466U,
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/dlgbox/lbselchstring
+// Native encoding: ansi
 enum const(wchar)* LBSELCHSTRINGA = "commdlg_LBSelChangedNotify";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/dlgbox/sharevistring
+// Native encoding: ansi
 enum const(wchar)* SHAREVISTRINGA = "commdlg_ShareViolation";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/dlgbox/fileokstring
+// Native encoding: ansi
 enum const(wchar)* FILEOKSTRINGA = "commdlg_FileNameOK";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/dlgbox/colorokstring
+// Native encoding: ansi
 enum const(wchar)* COLOROKSTRINGA = "commdlg_ColorOK";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/dlgbox/setrgbstring
+// Native encoding: ansi
 enum const(wchar)* SETRGBSTRINGA = "commdlg_SetRGBColor";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/dlgbox/helpmsgstring
+// Native encoding: ansi
 enum const(wchar)* HELPMSGSTRINGA = "commdlg_help";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/dlgbox/findmsgstring
+// Native encoding: ansi
 enum const(wchar)* FINDMSGSTRINGA = "commdlg_FindReplace";
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/dlgbox/lbselchstring
 enum const(wchar)* LBSELCHSTRINGW = "commdlg_LBSelChangedNotify";

@@ -674,7 +674,8 @@ struct HTTP_REQUEST_QUEUE_HANDLE
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/http/ns-http-http_property_flags
 struct HTTP_PROPERTY_FLAGS
 {
-    uint _bitfield142;
+    // Native bit field: Present: [0]
+    uint _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/http/ns-http-http_state_info

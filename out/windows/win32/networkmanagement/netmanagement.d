@@ -1086,7 +1086,7 @@ enum : uint
 }
 
 enum uint USER_HOME_DIR_DRIVE_PARMNUM = 0x00000035U;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* NULL_USERSETINFO_PASSWD = "              ";
 enum uint UNITS_PER_DAY = 0x00000018U;
 enum uint USER_PRIV_MASK = 0x00000003U;
@@ -1174,7 +1174,7 @@ enum : uint
 enum uint ACCESS_ATTR_PARMNUM = 0x00000002U;
 enum uint ACCESS_COUNT_PARMNUM = 0x00000003U;
 enum uint ACCESS_ACCESS_LIST_PARMNUM = 0x00000004U;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* ACCESS_LETTERS = "RWCXDAP         ";
 
 enum : uint
@@ -4021,7 +4021,7 @@ enum : uint
 
 enum uint MFE_PROHIBITED = 0x0000000cU;
 enum uint MFE_NO_SPACE = 0x0000000dU;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* REGISTER_PROTOCOL_ENTRY_POINT_STRING = "RegisterProtocol";
 
 enum : uint

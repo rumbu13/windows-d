@@ -1349,9 +1349,9 @@ enum uint MAXIMUM_REPARSE_DATA_BUFFER_SIZE = 0x00004000U;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     EA_CONTAINER_NAME = "ContainerName",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     EA_CONTAINER_SIZE = "ContainerSize",
 }
 

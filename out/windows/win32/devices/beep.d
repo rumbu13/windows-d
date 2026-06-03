@@ -12,7 +12,7 @@ extern(Windows) @nogc nothrow:
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     DD_BEEP_DEVICE_NAME   = "\\Device\\Beep",
     DD_BEEP_DEVICE_NAME_U = "\\Device\\Beep",
 }

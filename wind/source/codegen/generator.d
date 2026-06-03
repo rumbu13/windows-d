@@ -26,6 +26,8 @@ import codegen.attributes.common;
 import codegen.attributes.constant;
 import codegen.attributes.flexiblearray;
 import codegen.attributes.guid;
+import codegen.attributes.native_encoding;
+import codegen.attributes.native_bitfield;
 
 // deb
 import climetadata.mdcollection.compositeindex;
@@ -118,7 +120,7 @@ public struct Generator
             //if (namespace != "Windows.Win32.Foundation") continue;
             // if (namespace != "Windows.Win32.Media.Audio.DirectMusic") continue;
 
-            string path = makePath(outDirectory, namespace, configNamespace, nestedNamespaces) ~ ".d";
+            string path = makePath(outDirectory, namespace, configNamespace, safeWords, nestedNamespaces) ~ ".d";
             string modName = makeModuleName(namespace, configNamespace, safeWords, nestedNamespaces);
             mkdirRecurse(dirName(path));
 
@@ -566,11 +568,13 @@ public struct Generator
             auto fieldAttrs = CommonAttributes(fx.getCustomAttributes());
             auto guidAttribute = GuidAttribute(fieldAttrs.getUnhandledAttributes());
             auto constAttribute = ConstantAttribute(guidAttribute.getUnhandledAttributes(), constKnownType);
-            foreach(ca; constAttribute.getUnhandledAttributes())
+            auto nativeEncodingAttribute = NativeEncodingAttribute(constAttribute.getUnhandledAttributes());
+            foreach(ca; nativeEncodingAttribute.getUnhandledAttributes())
             {
                 f.writefln("//CONST ATTR: %s : %s", ca.name(), ca.value());
             }
-            f.dumpDocAttr(fieldAttrs);
+            f.dumpDocAttr(fieldAttrs).dumpNativeEncodingAttr(nativeEncodingAttribute).dumpObsoleteAttr(fieldAttrs, 0);
+
             f.write("enum ");
             f.write(typeText);   
             f.write(" ");
@@ -643,15 +647,15 @@ public struct Generator
                 auto guidAttribute = GuidAttribute(fieldAttrs.getUnhandledAttributes());
                 auto constAttribute = ConstantAttribute(guidAttribute.getUnhandledAttributes(),
                     isPropKey ? KnownConstantType.PROPERTYKEY : KnownConstantType.SID_IDENTIFIER_AUTHORITY);
-                foreach(ca; constAttribute.getUnhandledAttributes())
+                auto nativeEncodingAttribute = NativeEncodingAttribute(constAttribute.getUnhandledAttributes());
+                foreach(ca; nativeEncodingAttribute.getUnhandledAttributes())
                 {
                     f.write("".padLeft(' ', 4));
                     f.writefln("//CONST ATTR: %s : %s", ca.name(), ca.value());
                 }
-                f.dumpDocAttr(fieldAttrs, 1);
-                f.dumpObsoleteAttr(fieldAttrs, 1);
-                f.write("".padLeft(' ', 4));
+                f.dumpDocAttr(fieldAttrs, 1).dumpNativeEncodingAttr(nativeEncodingAttribute, 1).dumpObsoleteAttr(fieldAttrs, 1);
 
+                f.write("".padLeft(' ', 4));
                 auto constName = fx.getName();
                 if (constName in structNames)
                 {
@@ -716,6 +720,7 @@ public struct Generator
             dumpSectionHeader(f, "Structs");
             foreach(s; structs)
             {
+                int uniqFieldCounter = 0;
                 auto structAttrs = CommonAttributes(s.getAttributes());
                 auto arch = structAttrs.getSupportedArchitecture();
                 structArch[s.getTypeNamespace() ~ "." ~ s.getTypeName()] = arch;
@@ -731,13 +736,13 @@ public struct Generator
                     foreach(ver; versions)
                     {
                         f.write(format("\nversion(%s)\n{\n", ver));
-                        dumpStruct(f, s, structAttrs, 1, null, docs);
+                        dumpStruct(f, s, structAttrs, uniqFieldCounter, 1, null, docs);
                         f.write("}\n");
                     }
                 }
                 else
                 {
-                    dumpStruct(f, s, structAttrs, 0, null, docs);
+                    dumpStruct(f, s, structAttrs, uniqFieldCounter, 0, null, docs);
                 }
             }
         }
@@ -746,6 +751,7 @@ public struct Generator
     private void dumpStruct(scope ref std.stdio.File f,
         scope ref const TypeDefEntity struc,
         scope ref const CommonAttributes structAttrs,
+        ref int uniqFieldCounter,
         int level = 0,
         string nameOverride = "",
         bool docs = false)
@@ -786,7 +792,6 @@ public struct Generator
 
         size_t maxNameLen;
         size_t maxTypeLen;
-        int nativeType;
         auto nestedClasses = struc in nestedMap;
 
         // =================== Process types
@@ -841,13 +846,20 @@ public struct Generator
             f.writefln("align (%d):", lay.get.getPackingSize());
         }
 
+
         // =================== Dump fields
         foreach(fx; struc.getFieldList())
         {
             string fieldName = safeWords.get(fx.getName(), fx.getName());
-
             auto fieldAttrs = CommonAttributes(fx.getCustomAttributes());
             auto flexibleArrayAttr = FlexibleArrayAttribute(fieldAttrs.getUnhandledAttributes());
+            auto nativeBitFieldAttribute = NativeBitfieldAttribute(flexibleArrayAttr.getUnhandledAttributes());
+            // foreach(ca; nativeBitFieldAttribute.getUnhandledAttributes())
+            // {
+            //     f.write("".padLeft(' ', (level + 1) * 4));
+            //     f.writefln("//FIELD ATTR: %s : %s", ca.name(), ca.value());
+            // }
+
             if (nestedClasses)
             {
                 auto td = resolveType(fx.getSignature().typeSig.type, nullable(struc));
@@ -856,7 +868,7 @@ public struct Generator
                     if (td.get in *nestedClasses)
                     {
                         auto typeAttrs = CommonAttributes(td.get.getAttributes());
-                        dumpStruct(f, td.get, typeAttrs, level + 1, fieldName, false);
+                        dumpStruct(f, td.get, typeAttrs, uniqFieldCounter, level + 1, fieldName, false);
                         continue;
                     }
                 }
@@ -865,8 +877,8 @@ public struct Generator
             auto type = types[fieldName];
             if (fieldName == "_bitfield")
             {
-                fieldName = getUnique(fieldName);
-            } 
+                fieldName = getUnique(fieldName, uniqFieldCounter);
+            }
             else if (fieldName == type || (type.startsWith(fieldName) && type.length > fieldName.length && (type[fieldName.length] == '[' || type[fieldName.length] == '*'))) // Fix for WLOOP[1] WLOOP;
             {
                 fieldName ~= "_";
@@ -879,10 +891,9 @@ public struct Generator
             //         dumpDocumentation(f, fdoc.front.description, level + 1);
             // }
 
-            f.dumpDocAttr(fieldAttrs, level + 1);
+            f.dumpDocAttr(fieldAttrs, level + 1).dumpNativeBitfieldAttr(nativeBitFieldAttribute, level + 1);
 
-            f.write("".padLeft(' ', level * 4));
-            f.write("".padLeft(' ' , 4));
+            f.write("".padLeft(' ', (level + 1) * 4));
             f.write(type);
             if (type.length < maxTypeLen)
                 f.write("".padLeft(' ' , maxTypeLen - type.length));
@@ -1362,8 +1373,10 @@ private FullTypeName fullnameof(T)(T value)
     return FullTypeName();
 }
 
-string makePath(string outDir, string namespace, 
-    scope ref const string[string] config, scope ref const bool[string] nestedNamespaces)
+string makePath(string outDir, string namespace,
+    scope ref const string[string] config,
+    scope ref const string[string] safeWords,
+    scope ref const bool[string] nestedNamespaces)
 {
     bool needMove = false;
     if (namespace in nestedNamespaces)
@@ -1381,7 +1394,9 @@ string makePath(string outDir, string namespace,
             lastPart = part;
             if (result.length)
                 result ~= dirSeparator;
-            result ~= part;
+
+            auto partSafe = safeWords.get(part, part);
+            result ~= partSafe;
         }
     }
 
@@ -1396,7 +1411,8 @@ string makePath(string outDir, string namespace,
 }
 
 string makeModuleName(string namespace, ref const string[string] config,
-    scope ref const string[string] safeWords, scope ref const bool[string] nestedNamespaces)
+    scope ref const string[string] safeWords,
+    scope ref const bool[string] nestedNamespaces)
 {
     bool needMove = false;
     // if (namespace in nestedNamespaces)
@@ -1647,10 +1663,9 @@ private Nullable!TypeDefEntity resolveType(scope ref const TypeSig.TypeValue v, 
         return (Nullable!TypeDefEntity).init;
 }
 
-string getUnique(string s)
+string getUnique(string s, scope ref int counter)
 {
-    static int i;
-    return s ~ to!string(i++);
+    return s ~ to!string(counter++);
 }
 
 string getParamText(scope ref const ParamSig sig, scope ref const ParamEntity param, scope ref const string[string] safeWords)
@@ -1745,6 +1760,56 @@ private ref std.stdio.File dumpDocAttr(return scope ref std.stdio.File f, scope 
         f.writefln("// Microsoft documentation: %s", ca.getDocumentation());
     }
 
+    return f;
+}
+
+private ref std.stdio.File dumpNativeEncodingAttr(return scope ref std.stdio.File f, scope ref const NativeEncodingAttribute ca, const int level = 0)
+{
+    if (ca.getNativeEncoding().length != 0) 
+    {
+        if (level != 0)
+        {
+            f.write("".padLeft(' ', level * 4));
+        }        
+        f.writefln("// Native encoding: %s", ca.getNativeEncoding());
+    }
+
+    return f;
+}
+
+private ref std.stdio.File dumpNativeBitfieldAttr(return scope ref std.stdio.File f, scope ref const NativeBitfieldAttribute ca, const int level = 0)
+{
+    auto records = ca.getBitRecords();
+    if (records.length == 0)
+    {
+        return f;
+    }
+
+    if (level != 0)
+    {
+        f.write("".padLeft(' ', level * 4));
+    }        
+    f.write("// Native bit field: ");
+
+    auto isFirst = true;
+    foreach(r; records)
+    {
+        if (!isFirst)
+        {
+            f.write(", ");
+        }
+        if (r.length == 1)
+        {
+            f.writef("%s: [%d]", r.name, r.offset);
+        }
+        else
+        {
+            f.writef("%s: [%d-%d]", r.name, r.offset, r.offset + r.length - 1);
+        }
+        isFirst = false;
+    }
+
+    f.writeln();
     return f;
 }
 

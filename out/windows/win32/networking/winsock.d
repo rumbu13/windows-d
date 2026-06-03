@@ -1947,16 +1947,16 @@ enum uint RES_SERVICE = 0x00000004U;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     SERVICE_TYPE_VALUE_SAPIDA   = "SapId",
     SERVICE_TYPE_VALUE_SAPIDW   = "SapId",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     SERVICE_TYPE_VALUE_CONNA    = "ConnectionOriented",
     SERVICE_TYPE_VALUE_CONNW    = "ConnectionOriented",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     SERVICE_TYPE_VALUE_TCPPORTA = "TcpPort",
     SERVICE_TYPE_VALUE_TCPPORTW = "TcpPort",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     SERVICE_TYPE_VALUE_UDPPORTA = "UdpPort",
     SERVICE_TYPE_VALUE_UDPPORTW = "UdpPort",
     SERVICE_TYPE_VALUE_SAPID    = "SapId",
@@ -2171,10 +2171,10 @@ enum uint RES_FLUSH_CACHE = 0x00000002U;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     SERVICE_TYPE_VALUE_IPXPORTA  = "IpxSocket",
     SERVICE_TYPE_VALUE_IPXPORTW  = "IpxSocket",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     SERVICE_TYPE_VALUE_OBJECTIDA = "ObjectId",
     SERVICE_TYPE_VALUE_OBJECTIDW = "ObjectId",
     SERVICE_TYPE_VALUE_OBJECTID  = "ObjectId",
@@ -3294,7 +3294,8 @@ struct SCOPE_ID
     {
         struct
         {
-            uint _bitfield143;
+            // Native bit field: Zone: [0-27], Level: [28-31]
+            uint _bitfield0;
         }
         uint Value;
     }
@@ -4321,7 +4322,8 @@ struct WINDOWS_IAS_QUERY
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/nldef/ns-nldef-nl_interface_offload_rod
 struct NL_INTERFACE_OFFLOAD_ROD
 {
-    ubyte _bitfield144;
+    // Native bit field: NlChecksumSupported: [0], NlOptionsSupported: [1], TlDatagramChecksumSupported: [2], TlStreamChecksumSupported: [3], TlStreamOptionsSupported: [4], FastPathCompatible: [5], TlLargeSendOffloadSupported: [6], TlGiantSendOffloadSupported: [7]
+    ubyte _bitfield0;
 }
 
 struct NL_PATH_BANDWIDTH_ROD
@@ -5284,7 +5286,8 @@ union DL_OUI
     ubyte[3] Byte;
     struct
     {
-        ubyte _bitfield145;
+        // Native bit field: Group: [0], Local: [1]
+        ubyte _bitfield0;
     }
 }
 
@@ -5355,7 +5358,8 @@ struct VLAN_TAG
         ushort Tag;
         struct
         {
-            ushort _bitfield146;
+            // Native bit field: VID: [0-11], CFI: [12], User_Priority: [13-15]
+            ushort _bitfield0;
         }
     }
     ushort Type;
@@ -5386,7 +5390,8 @@ struct IPV4_HEADER
         ubyte VersionAndHeaderLength;
         struct
         {
-            ubyte _bitfield147;
+            // Native bit field: HeaderLength: [0-3], Version: [4-7]
+            ubyte _bitfield0;
         }
     }
     union
@@ -5394,7 +5399,8 @@ struct IPV4_HEADER
         ubyte TypeOfServiceAndEcnField;
         struct
         {
-            ubyte _bitfield148;
+            // Native bit field: EcnField: [0-1], TypeOfService: [2-7]
+            ubyte _bitfield1;
         }
     }
     ushort  TotalLength;
@@ -5404,7 +5410,8 @@ struct IPV4_HEADER
         ushort FlagsAndOffset;
         struct
         {
-            ushort _bitfield149;
+            // Native bit field: DontUse1: [0-4], MoreFragments: [5], DontFragment: [6], Reserved: [7], DontUse2: [8-15]
+            ushort _bitfield2;
         }
     }
     ubyte   TimeToLive;
@@ -5421,7 +5428,8 @@ struct IPV4_OPTION_HEADER
         ubyte OptionType;
         struct
         {
-            ubyte _bitfield150;
+            // Native bit field: OptionNumber: [0-4], OptionClass: [5-6], CopiedFlag: [7]
+            ubyte _bitfield0;
         }
     }
     ubyte OptionLength;
@@ -5436,7 +5444,8 @@ struct IPV4_TIMESTAMP_OPTION
         ubyte FlagsOverflow;
         struct
         {
-            ubyte _bitfield151;
+            // Native bit field: Flags: [0-3], Overflow: [4-7]
+            ubyte _bitfield0;
         }
     }
 }
@@ -5493,7 +5502,8 @@ struct IGMP_HEADER
     {
         struct
         {
-            ubyte _bitfield152;
+            // Native bit field: Type: [0-3], Version: [4-7]
+            ubyte _bitfield0;
         }
         ubyte VersionType;
     }
@@ -5515,18 +5525,21 @@ struct IGMPV3_QUERY_HEADER
         ubyte MaxRespCode;
         struct
         {
-            ubyte _bitfield153;
+            // Native bit field: MaxRespCodeMantissa: [0-3], MaxRespCodeExponent: [4-6], MaxRespCodeType: [7]
+            ubyte _bitfield0;
         }
     }
     ushort  Checksum;
     IN_ADDR MulticastAddress;
-    ubyte   _bitfield154;
+    // Native bit field: QuerierRobustnessVariable: [0-2], SuppressRouterSideProcessing: [3], Reserved: [4-7]
+    ubyte   _bitfield1;
     union
     {
         ubyte QueriersQueryInterfaceCode;
         struct
         {
-            ubyte _bitfield155;
+            // Native bit field: QQCMantissa: [0-3], QQCExponent: [4-6], QQCType: [7]
+            ubyte _bitfield2;
         }
     }
     ushort  SourceCount;
@@ -5556,7 +5569,8 @@ struct IPV6_HEADER
         uint VersionClassFlow;
         struct
         {
-            uint _bitfield156;
+            // Native bit field: Anonymous1: [0-3], Version: [4-7], Anonymous2: [8-31]
+            uint _bitfield0;
         }
     }
     ushort   PayloadLength;
@@ -5574,7 +5588,8 @@ struct IPV6_FRAGMENT_HEADER
     {
         struct
         {
-            ushort _bitfield157;
+            // Native bit field: DontUse1: [0-7], MoreFragments: [8], ReservedBits: [9-10], DontUse2: [11-15]
+            ushort _bitfield0;
         }
         ushort OffsetAndFlags;
     }
@@ -5630,7 +5645,8 @@ union IPV6_ROUTER_ADVERTISEMENT_FLAGS
 {
     struct
     {
-        ubyte _bitfield158;
+        // Native bit field: Reserved: [0-2], Preference: [3-4], HomeAgent: [5], OtherStatefulConfiguration: [6], ManagedAddressConfiguration: [7]
+        ubyte _bitfield0;
     }
     ubyte Value;
 }
@@ -5651,7 +5667,8 @@ union IPV6_NEIGHBOR_ADVERTISEMENT_FLAGS
 {
     struct
     {
-        ubyte    _bitfield159;
+        // Native bit field: Reserved1: [0-4], Override: [5], Solicited: [6], Router: [7]
+        ubyte    _bitfield0;
         ubyte[3] Reserved2;
     }
     uint Value;
@@ -5680,7 +5697,8 @@ struct ND_OPTION_PREFIX_INFO
         ubyte nd_opt_pi_flags_reserved;
         struct Flags
         {
-            ubyte _bitfield160;
+            // Native bit field: Route: [0], Reserved1: [1-3], SitePrefix: [4], RouterAddress: [5], Autonomous: [6], OnLink: [7]
+            ubyte _bitfield0;
         }
     }
     uint     nd_opt_pi_valid_time;
@@ -5723,7 +5741,8 @@ struct ND_OPTION_ROUTE_INFO
         ubyte nd_opt_ri_flags_reserved;
         struct Flags
         {
-            ubyte _bitfield161;
+            // Native bit field: Reserved: [0-2], Preference: [3-4]
+            ubyte _bitfield0;
         }
     }
     uint     nd_opt_ri_route_lifetime;
@@ -5755,7 +5774,8 @@ struct ND_OPTION_PREF64
         ushort nd_opt_p64_lifetime_plc;
         struct
         {
-            ushort _bitfield162;
+            // Native bit field: nd_opt_p64_prefix_length_code: [0-2], nd_opt_p64_scaled_lifetime: [3-15]
+            ushort _bitfield0;
         }
     }
     ubyte[12] nd_opt_p64_prefix;
@@ -5777,18 +5797,21 @@ struct MLDV2_QUERY_HEADER
         ushort MaxRespCode;
         struct
         {
-            ushort _bitfield163;
+            // Native bit field: MaxRespCodeMantissaHi: [0-3], MaxRespCodeExponent: [4-6], MaxRespCodeType: [7], MaxRespCodeMantissaLo: [8-15]
+            ushort _bitfield0;
         }
     }
     ushort      Reserved;
     IN6_ADDR    MulticastAddress;
-    ubyte       _bitfield164;
+    // Native bit field: QuerierRobustnessVariable: [0-2], SuppressRouterSideProcessing: [3], QueryReserved: [4-7]
+    ubyte       _bitfield1;
     union
     {
         ubyte QueriersQueryInterfaceCode;
         struct
         {
-            ubyte _bitfield165;
+            // Native bit field: QQCMantissa: [0-3], QQCExponent: [4-6], QQCType: [7]
+            ubyte _bitfield2;
         }
     }
     ushort      SourceCount;
@@ -5816,7 +5839,8 @@ align (1):
     ushort th_dport;
     uint   th_seq;
     uint   th_ack;
-    ubyte  _bitfield166;
+    // Native bit field: th_x2: [0-3], th_len: [4-7]
+    ubyte  _bitfield0;
     ubyte  th_flags;
     ushort th_win;
     ushort th_sum;

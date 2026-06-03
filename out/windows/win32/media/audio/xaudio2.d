@@ -135,10 +135,10 @@ enum : float
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     XAUDIO2_DLL_A  = "xaudio2_9.dll",
     XAUDIO2_DLL_W  = "xaudio2_9.dll",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     XAUDIO2D_DLL_A = "xaudio2_9d.dll",
     XAUDIO2D_DLL_W = "xaudio2_9d.dll",
     XAUDIO2_DLL    = "xaudio2_9.dll",

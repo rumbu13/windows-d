@@ -314,20 +314,23 @@ struct HDDEDATA
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/dde/ns-dde-ddeack
 struct DDEACK
 {
-    ushort _bitfield367;
+    // Native bit field: bAppReturnCode: [0-7], reserved: [8-13], fBusy: [14], fAck: [15]
+    ushort _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/dde/ns-dde-ddeadvise
 struct DDEADVISE
 {
-    ushort _bitfield368;
+    // Native bit field: reserved: [0-13], fDeferUpd: [14], fAckReq: [15]
+    ushort _bitfield0;
     short  cfFormat;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/dde/ns-dde-ddedata
 struct DDEDATA
 {
-    ushort   _bitfield369;
+    // Native bit field: unused: [0-11], fResponse: [12], fRelease: [13], reserved: [14], fAckReq: [15]
+    ushort   _bitfield0;
     short    cfFormat;
     ubyte[1] Value; // Flexible array
 }
@@ -335,20 +338,23 @@ struct DDEDATA
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/dde/ns-dde-ddepoke
 struct DDEPOKE
 {
-    ushort   _bitfield370;
+    // Native bit field: unused: [0-12], fRelease: [13], fReserved: [14-15]
+    ushort   _bitfield0;
     short    cfFormat;
     ubyte[1] Value; // Flexible array
 }
 
 struct DDELN
 {
-    ushort _bitfield371;
+    // Native bit field: unused: [0-12], fRelease: [13], fDeferUpd: [14], fAckReq: [15]
+    ushort _bitfield0;
     short  cfFormat;
 }
 
 struct DDEUP
 {
-    ushort   _bitfield372;
+    // Native bit field: unused: [0-11], fAck: [12], fRelease: [13], fReserved: [14], fAckReq: [15]
+    ushort   _bitfield0;
     short    cfFormat;
     ubyte[1] rgb; // Flexible array
 }

@@ -1743,7 +1743,8 @@ struct MIDL_STUB_MESSAGE
     FULL_PTR_XLAT_TABLES* FullPtrXlatTables;
     uint               FullPtrRefId;
     uint               PointerLength;
-    int                _bitfield468;
+    // Native bit field: fInDontFree: [0], fDontCallFreeInst: [1], fUnused1: [2], fHasReturn: [3], fHasExtensions: [4], fHasNewCorrDesc: [5], fIsIn: [6], fIsOut: [7], fIsOicf: [8], fBufferValid: [9], fHasMemoryValidateCallback: [10], fInFree: [11], fNeedMCCP: [12], fUnused2: [13-15], fUnused3: [16-31]
+    int                _bitfield0;
     uint               dwDestContext;
     void*              pvDestContext;
     NDR_SCONTEXT**     SavedContextHandles;
@@ -1995,12 +1996,14 @@ struct MIDL_TYPE_PICKLING_INFO
 
 struct NDR64_PROC_FLAGS
 {
-    uint _bitfield469;
+    // Native bit field: HandleType: [0-2], ProcType: [3-5], IsInterpreted: [6-7], IsObject: [8], IsAsync: [9], IsEncode: [10], IsDecode: [11], UsesFullPtrPackage: [12], UsesRpcSmPackage: [13], UsesPipes: [14], HandlesExceptions: [15-16], ServerMustSize: [17], ClientMustSize: [18], HasReturn: [19], HasComplexReturn: [20], ServerHasCorrelation: [21], ClientHasCorrelation: [22], HasNotify: [23], HasOtherExtensions: [24], HasBigByValueParam: [25], HasArmParamLayout: [26], Reserved: [27-31]
+    uint _bitfield0;
 }
 
 struct NDR64_RPC_FLAGS
 {
-    ushort _bitfield470;
+    // Native bit field: Idempotent: [0], Broadcast: [1], Maybe: [2], Reserved0: [3], HasGuarantee: [4], Reserved1: [5-7], Message: [8], Reserved2: [9-12], InputSynchronous: [13], Asynchronous: [14], WinrtRemoteAsync: [15]
+    ushort _bitfield0;
 }
 
 struct NDR64_PROC_FORMAT
@@ -2017,7 +2020,8 @@ struct NDR64_PROC_FORMAT
 
 struct NDR64_PARAM_FLAGS
 {
-    ushort _bitfield471;
+    // Native bit field: MustSize: [0], MustFree: [1], IsPipe: [2], IsIn: [3], IsOut: [4], IsReturn: [5], IsBasetype: [6], IsByValue: [7], IsSimpleRef: [8], IsDontCallFreeInst: [9], SaveForAsyncFinish: [10], IsPartialIgnore: [11], IsForceAllocate: [12], Reserved: [13-14], UseCache: [15]
+    ushort _bitfield0;
 }
 
 struct NDR64_PARAM_FORMAT
@@ -2039,7 +2043,8 @@ struct NDR64_RANGE_FORMAT
 
 struct NDR64_CONTEXT_HANDLE_FLAGS
 {
-    ubyte _bitfield472;
+    // Native bit field: CannotBeNull: [0], Serialize: [1], NoSerialize: [2], Strict: [3], IsReturn: [4], IsOut: [5], IsIn: [6], IsViaPointer: [7]
+    ubyte _bitfield0;
 }
 
 struct NDR64_CONTEXT_HANDLE_FORMAT
@@ -2120,7 +2125,8 @@ struct NDR64_POINTER_INSTANCE_HEADER_FORMAT
 
 struct NDR64_POINTER_REPEAT_FLAGS
 {
-    ubyte _bitfield473;
+    // Native bit field: SetCorrMark: [0], Reserved: [1-7]
+    ubyte _bitfield0;
 }
 
 struct NDR64_REPEAT_FORMAT
@@ -2142,7 +2148,8 @@ struct NDR64_FIXED_REPEAT_FORMAT
 
 struct NDR64_IID_FLAGS
 {
-    ubyte _bitfield474;
+    // Native bit field: ConstantIID: [0], Reserved: [1-7]
+    ubyte _bitfield0;
 }
 
 struct NDR64_CONSTANT_IID_FORMAT
@@ -2163,7 +2170,8 @@ struct NDR64_IID_FORMAT
 
 struct NDR64_STRUCTURE_FLAGS
 {
-    ubyte _bitfield475;
+    // Native bit field: HasPointerInfo: [0], HasMemberInfo: [1], HasConfArray: [2], HasOrigPointerInfo: [3], HasOrigMemberInfo: [4], Reserved1: [5], Reserved2: [6], Reserved3: [7]
+    ubyte _bitfield0;
 }
 
 struct NDR64_STRUCTURE_HEADER_FORMAT
@@ -2289,7 +2297,8 @@ struct NDR64_UNION_ARM
 
 struct NDR64_ARRAY_FLAGS
 {
-    ubyte _bitfield476;
+    // Native bit field: HasPointerInfo: [0], HasElementInfo: [1], IsMultiDimensional: [2], IsArrayofStrings: [3], Reserved1: [4], Reserved2: [5], Reserved3: [6], Reserved4: [7]
+    ubyte _bitfield0;
 }
 
 struct NDR64_ARRAY_ELEMENT_INFO
@@ -2359,7 +2368,8 @@ struct NDR64_CONF_VAR_BOGUS_ARRAY_HEADER_FORMAT
 
 struct NDR64_STRING_FLAGS
 {
-    ubyte _bitfield477;
+    // Native bit field: IsSized: [0], IsRanged: [1], Reserved3: [2], Reserved4: [3], Reserved5: [4], Reserved6: [5], Reserved7: [6], Reserved8: [7]
+    ubyte _bitfield0;
 }
 
 struct NDR64_STRING_HEADER_FORMAT
@@ -2435,7 +2445,8 @@ struct NDR64_EXPR_NOOP
 
 struct NDR64_TRANSMIT_AS_FLAGS
 {
-    ubyte _bitfield478;
+    // Native bit field: PresentedTypeIsArray: [0], PresentedTypeAlign4: [1], PresentedTypeAlign8: [2], Reserved: [3-7]
+    ubyte _bitfield0;
 }
 
 struct NDR64_TRANSMIT_AS_FORMAT
@@ -2452,7 +2463,8 @@ struct NDR64_TRANSMIT_AS_FORMAT
 
 struct NDR64_USER_MARSHAL_FLAGS
 {
-    ubyte _bitfield479;
+    // Native bit field: Reserved: [0-4], IID: [5], RefPointer: [6], UniquePointer: [7]
+    ubyte _bitfield0;
 }
 
 struct NDR64_USER_MARSHAL_FORMAT
@@ -2469,7 +2481,8 @@ struct NDR64_USER_MARSHAL_FORMAT
 
 struct NDR64_PIPE_FLAGS
 {
-    ubyte _bitfield480;
+    // Native bit field: Reserved1: [0-4], HasRange: [5], BlockCopy: [6], Reserved2: [7]
+    ubyte _bitfield0;
 }
 
 struct NDR64_PIPE_FORMAT

@@ -1032,14 +1032,14 @@ enum : int
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     NTLMSP_NAME_A = "NTLM",
     NTLMSP_NAME   = "NTLM",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     MICROSOFT_KERBEROS_NAME_A = "Kerberos",
     MICROSOFT_KERBEROS_NAME_W = "Kerberos",
     MICROSOFT_KERBEROS_NAME   = "Kerberos",
@@ -1048,13 +1048,13 @@ enum : const(wchar)*
 enum : const(wchar)*
 {
     NEGOSSP_NAME_W = "Negotiate",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     NEGOSSP_NAME_A = "Negotiate",
     NEGOSSP_NAME   = "Negotiate",
 }
 
 enum const(wchar)* CLOUDAP_NAME_W = "CloudAP";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* ClOUDAP_NAME_A = "CloudAP";
 enum const(wchar)* CLOUDAP_NAME = "CloudAP";
 
@@ -1401,11 +1401,11 @@ enum : uint
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     SECURITY_ENTRYPOINT_ANSIW = "InitSecurityInterfaceW",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     SECURITY_ENTRYPOINT_ANSIA = "InitSecurityInterfaceA",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     SECURITY_ENTRYPOINT16     = "INITSECURITYINTERFACEA",
     SECURITY_ENTRYPOINT_ANSI  = "InitSecurityInterfaceW",
     SECURITY_ENTRYPOINT       = "INITSECURITYINTERFACEA",
@@ -1571,22 +1571,22 @@ enum : int
     POLICY_AUDIT_EVENT_NONE      = 0x00000004,
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* LSA_AP_NAME_INITIALIZE_PACKAGE = "LsaApInitializePackage\0";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     LSA_AP_NAME_LOGON_USER               = "LsaApLogonUser\0",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     LSA_AP_NAME_LOGON_USER_EX            = "LsaApLogonUserEx\0",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     LSA_AP_NAME_CALL_PACKAGE             = "LsaApCallPackage\0",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     LSA_AP_NAME_LOGON_TERMINATED         = "LsaApLogonTerminated\0",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     LSA_AP_NAME_CALL_PACKAGE_UNTRUSTED   = "LsaApCallPackageUntrusted\0",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     LSA_AP_NAME_CALL_PACKAGE_PASSTHROUGH = "LsaApCallPackagePassthrough\0",
 }
 
@@ -1786,11 +1786,11 @@ enum : uint
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     LSAD_AES_256_ALG           = "AEAD-AES-256-CBC-HMAC-SHA512",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     LSAD_AES256_ENC_KEY_STRING = "Microsoft LSAD encryption key AEAD-AES-256-CBC-HMAC-SHA512 16",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     LSAD_AES256_MAC_KEY_STRING = "Microsoft LSAD MAC key AEAD-AES-256-CBC-HMAC-SHA512 16",
 }
 
@@ -1915,25 +1915,25 @@ enum GUID Audit_AccountManagement = GUID("6997984e-797a-11d9-bed3-505054503030")
 enum GUID Audit_DirectoryServiceAccess = GUID("6997984f-797a-11d9-bed3-505054503030");
 enum GUID Audit_AccountLogon = GUID("69979850-797a-11d9-bed3-505054503030");
 enum int DOMAIN_NO_LM_OWF_CHANGE = 0x00000040;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* SAM_PASSWORD_CHANGE_NOTIFY_ROUTINE = "PasswordChangeNotify";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* SAM_INIT_NOTIFICATION_ROUTINE = "InitializeChangeNotify";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* SAM_PASSWORD_FILTER_ROUTINE = "PasswordFilter";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     MSV1_0_PACKAGE_NAME  = "MICROSOFT_AUTHENTICATION_PACKAGE_V1_0",
     MSV1_0_PACKAGE_NAMEW = "MICROSOFT_AUTHENTICATION_PACKAGE_V1_0",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     MSV1_0_SUBAUTHENTICATION_KEY   = "SYSTEM\\CurrentControlSet\\Control\\Lsa\\MSV1_0",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     MSV1_0_SUBAUTHENTICATION_VALUE = "Auth",
 }
 
@@ -2265,7 +2265,7 @@ enum uint AUDIT_QUERY_MISC_POLICY = 0x00000040U;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     PKU2U_PACKAGE_NAME_A = "pku2u",
     PKU2U_PACKAGE_NAME   = "pku2u",
     PKU2U_PACKAGE_NAME_W = "pku2u",
@@ -2273,13 +2273,13 @@ enum : const(wchar)*
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     SAM_CREDENTIAL_UPDATE_NOTIFY_ROUTINE                      = "CredentialUpdateNotify",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     SAM_CREDENTIAL_UPDATE_REGISTER_ROUTINE                    = "CredentialUpdateRegister",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     SAM_CREDENTIAL_UPDATE_FREE_ROUTINE                        = "CredentialUpdateFree",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     SAM_CREDENTIAL_UPDATE_REGISTER_MAPPED_ENTRYPOINTS_ROUTINE = "RegisterMappedEntrypoints",
 }
 
@@ -2447,16 +2447,16 @@ enum : uint
 }
 
 enum uint CRED_MARSHALED_TI_SIZE_SIZE = 0x0000000cU;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* LSA_AP_NAME_LOGON_USER_EX2 = "LsaApLogonUserEx2\0";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* SP_ACCEPT_CREDENTIALS_NAME = "SpAcceptCredentials\0";
 enum uint SECPKG_UNICODE_ATTRIBUTE = 0x80000000U;
 enum uint SECPKG_ANSI_ATTRIBUTE = 0x00000000U;
 enum uint SECPKG_CREDENTIAL_ATTRIBUTE = 0x00000000U;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* SECPKG_LSAMODEINIT_NAME = "SpLsaModeInitialize";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* SECPKG_USERMODEINIT_NAME = "SpUserModeInitialize";
 
 enum : uint
@@ -2476,49 +2476,49 @@ enum : uint
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UNISP_NAME_A = "Microsoft Unified Security Protocol Provider",
     UNISP_NAME_W = "Microsoft Unified Security Protocol Provider",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     SSL2SP_NAME_A = "Microsoft SSL 2.0",
     SSL2SP_NAME_W = "Microsoft SSL 2.0",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     SSL3SP_NAME_A = "Microsoft SSL 3.0",
     SSL3SP_NAME_W = "Microsoft SSL 3.0",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     TLS1SP_NAME_A = "Microsoft TLS 1.0",
     TLS1SP_NAME_W = "Microsoft TLS 1.0",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     PCT1SP_NAME_A = "Microsoft PCT 1.0",
     PCT1SP_NAME_W = "Microsoft PCT 1.0",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     SCHANNEL_NAME_A = "Schannel",
     SCHANNEL_NAME_W = "Schannel",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     DEFAULT_TLS_SSP_NAME_A = "Default TLS SSP",
     DEFAULT_TLS_SSP_NAME_W = "Default TLS SSP",
 }
@@ -3578,7 +3578,7 @@ enum GUID WINDOWS_SLID = GUID("55c92734-d682-4d71-983e-d6ec3f16059f");
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     WDIGEST_SP_NAME_A = "WDigest",
     WDIGEST_SP_NAME_W = "WDigest",
     WDIGEST_SP_NAME   = "WDigest",
@@ -5223,12 +5223,14 @@ struct KERB_CLOUD_KERBEROS_DEBUG_RESPONSE
 
 struct KERB_CLOUD_KERBEROS_DEBUG_DATA_V0
 {
-    uint _bitfield167;
+    // Native bit field: EnabledByPolicy: [0], AsRepCallbackPresent: [1], AsRepCallbackUsed: [2], CloudReferralTgtAvailable: [3], SpnOracleConfigured: [4], KdcProxyPresent: [5]
+    uint _bitfield0;
 }
 
 struct KERB_CLOUD_KERBEROS_DEBUG_DATA
 {
-    uint _bitfield168;
+    // Native bit field: EnabledByPolicy: [0], AsRepCallbackPresent: [1], AsRepCallbackUsed: [2], CloudReferralTgtAvailable: [3], SpnOracleConfigured: [4], KdcProxyPresent: [5], PublicKeyCredsPresent: [6], PasswordKeysPresent: [7], PasswordPresent: [8], AsRepSourceCred: [9-16]
+    uint _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/ntsecapi/ns-ntsecapi-kerb_changepassword_request

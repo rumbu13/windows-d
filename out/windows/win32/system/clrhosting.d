@@ -318,7 +318,7 @@ enum : int
 // Constants
 
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* DEPRECATED_CLR_API_MESG = "This API has been deprecated. Refer to https://go.microsoft.com/fwlink/?LinkId=143720 for more details.";
 enum uint CLR_MAJOR_VERSION = 0x00000004U;
 enum uint CLR_MINOR_VERSION = 0x00000000U;

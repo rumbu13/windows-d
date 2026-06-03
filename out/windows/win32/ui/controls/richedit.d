@@ -1040,16 +1040,16 @@ enum const(wchar)* MSFTEDIT_CLASS = "RICHEDIT50W";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CERICHEDIT_CLASSA = "RichEditCEA",
     CERICHEDIT_CLASSW = "RichEditCEW",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     RICHEDIT_CLASSA   = "RichEdit20A",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     RICHEDIT_CLASS10A = "RICHEDIT",
     RICHEDIT_CLASSW   = "RichEdit20W",
     RICHEDIT_CLASS    = "RichEdit20W",
@@ -2522,7 +2522,8 @@ struct TABLEROWPARMS
     int   dxCellMargin;
     int   dxIndent;
     int   dyHeight;
-    uint  _bitfield538;
+    // Native bit field: nAlignment: [0-2], fRTL: [3], fKeep: [4], fKeepFollow: [5], fWrap: [6], fIdentCells: [7]
+    uint  _bitfield0;
     int   cpStartRow;
     ubyte bTableLevel;
     ubyte iCell;
@@ -2532,7 +2533,8 @@ struct TABLEROWPARMS
 struct TABLECELLPARMS
 {
     int      dxWidth;
-    ushort   _bitfield539;
+    // Native bit field: nVertAlign: [0-1], fMergeTop: [2], fMergePrev: [3], fVertical: [4], fMergeStart: [5], fMergeCont: [6]
+    ushort   _bitfield0;
     ushort   wShading;
     short    dxBrdrLeft;
     short    dyBrdrTop;

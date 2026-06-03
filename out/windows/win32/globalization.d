@@ -3883,7 +3883,7 @@ enum uint UCONFIG_ENABLE_PLUGINS = 0x00000000U;
 enum uint U_ENABLE_DYLOAD = 0x00000001U;
 enum uint U_CHECK_DYLOAD = 0x00000001U;
 enum uint U_HAVE_LIB_SUFFIX = 0x00000001U;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* U_LIB_SUFFIX_C_NAME_STRING = "";
 enum uint UCONFIG_ONLY_COLLATION = 0x00000000U;
 
@@ -3996,9 +3996,9 @@ enum int U_SENTINEL = 0xffffffff;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     U8_LEAD3_T1_BITS = " 00000000000000",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     U8_LEAD4_T1_BITS = "\0\0\0\0\0\0\0\0\0\0\0\0",
 }
 
@@ -4140,60 +4140,60 @@ enum : uint
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ULOC_CHINESE  = "zh",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ULOC_ENGLISH  = "en",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ULOC_FRENCH   = "fr",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ULOC_GERMAN   = "de",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ULOC_ITALIAN  = "it",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ULOC_JAPANESE = "ja",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ULOC_KOREAN             = "ko",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ULOC_SIMPLIFIED_CHINESE = "zh_CN",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* ULOC_TRADITIONAL_CHINESE = "zh_TW";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ULOC_CANADA        = "en_CA",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ULOC_CANADA_FRENCH = "fr_CA",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ULOC_CHINA   = "zh_CN",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ULOC_PRC     = "zh_CN",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ULOC_FRANCE  = "fr_FR",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ULOC_GERMANY = "de_DE",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ULOC_ITALY   = "it_IT",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ULOC_JAPAN   = "ja_JP",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ULOC_KOREA   = "ko_KR",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ULOC_TAIWAN  = "zh_TW",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ULOC_UK      = "en_GB",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ULOC_US      = "en_US",
 }
 
@@ -4211,24 +4211,24 @@ enum : uint
     ULOC_KEYWORD_ITEM_SEPARATOR_UNICODE = 0x0000003bU,
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* UCNV_SUB_STOP_ON_ILLEGAL = "i";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* UCNV_SKIP_STOP_ON_ILLEGAL = "i";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UCNV_ESCAPE_JAVA    = "J",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UCNV_ESCAPE_C       = "C",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UCNV_ESCAPE_XML_DEC = "D",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UCNV_ESCAPE_XML_HEX = "X",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UCNV_ESCAPE_UNICODE = "U",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UCNV_ESCAPE_CSS2    = "S",
 }
 
@@ -4240,15 +4240,15 @@ enum : uint
     UCNV_SO = 0x0000000eU,
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* UCNV_OPTION_SEP_STRING = ",";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* UCNV_VALUE_SEP_STRING = "=";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* UCNV_LOCALE_OPTION_STRING = ",locale=";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* UCNV_VERSION_OPTION_STRING = ",version=";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* UCNV_SWAP_LFNL_OPTION_STRING = ",swaplfnl";
 
 enum : uint
@@ -4299,131 +4299,131 @@ enum : uint
     USPREP_ALLOW_UNASSIGNED = 0x00000001U,
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* U_ICU_VERSION_BUNDLE = "icuver";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* U_ICU_DATA_KEY = "DataVersion";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* UCAL_UNKNOWN_ZONE_ID = "Etc/Unknown";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UDAT_YEAR         = "y",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UDAT_QUARTER      = "QQQQ",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UDAT_ABBR_QUARTER = "QQQ",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UDAT_YEAR_QUARTER      = "yQQQQ",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UDAT_YEAR_ABBR_QUARTER = "yQQQ",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UDAT_MONTH      = "MMMM",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UDAT_ABBR_MONTH = "MMM",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* UDAT_NUM_MONTH = "M";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UDAT_YEAR_MONTH      = "yMMMM",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UDAT_YEAR_ABBR_MONTH = "yMMM",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UDAT_YEAR_NUM_MONTH  = "yM",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UDAT_DAY                 = "d",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UDAT_YEAR_MONTH_DAY      = "yMMMMd",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UDAT_YEAR_ABBR_MONTH_DAY = "yMMMd",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UDAT_YEAR_NUM_MONTH_DAY  = "yMd",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UDAT_WEEKDAY      = "EEEE",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UDAT_ABBR_WEEKDAY = "E",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* UDAT_YEAR_MONTH_WEEKDAY_DAY = "yMMMMEEEEd";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* UDAT_YEAR_ABBR_MONTH_WEEKDAY_DAY = "yMMMEd";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* UDAT_YEAR_NUM_MONTH_WEEKDAY_DAY = "yMEd";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* UDAT_MONTH_DAY = "MMMMd";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* UDAT_ABBR_MONTH_DAY = "MMMd";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* UDAT_NUM_MONTH_DAY = "Md";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* UDAT_MONTH_WEEKDAY_DAY = "MMMMEEEEd";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* UDAT_ABBR_MONTH_WEEKDAY_DAY = "MMMEd";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* UDAT_NUM_MONTH_WEEKDAY_DAY = "MEd";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UDAT_HOUR          = "j",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UDAT_HOUR24        = "H",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UDAT_MINUTE        = "m",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UDAT_HOUR_MINUTE   = "jm",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UDAT_HOUR24_MINUTE = "Hm",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UDAT_SECOND             = "s",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UDAT_HOUR_MINUTE_SECOND = "jms",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* UDAT_HOUR24_MINUTE_SECOND = "Hms";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* UDAT_MINUTE_SECOND = "ms";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* UDAT_LOCATION_TZ = "VVVV";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* UDAT_GENERIC_TZ = "vvvv";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* UDAT_ABBR_GENERIC_TZ = "v";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* UDAT_SPECIFIC_TZ = "zzzz";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UDAT_ABBR_SPECIFIC_TZ = "z",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UDAT_ABBR_UTC_TZ      = "ZZZZ",
 }
 
@@ -4434,9 +4434,9 @@ enum uint U_PLATFORM_HAS_WINUWP_API = 0x00000000U;
 enum uint U_IOSTREAM_SOURCE = 0x00030c1fU;
 enum uint U_HAVE_RVALUE_REFERENCES = 0x00000001U;
 enum uint U_USING_ICU_NAMESPACE = 0x00000001U;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* U_ICUDATA_TYPE_LETTER = "e";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* U_UNICODE_VERSION = "8.0";
 enum uint CANITER_SKIP_ZEROES = 0x00000001U;
 enum uint NUMSYS_NAME_CAPACITY = 0x00000008U;
@@ -5059,7 +5059,8 @@ struct MAPPING_SERVICE_INFO
     uint   dwPrivateDataSize;
     void*  pPrivateData;
     void*  pContext;
-    uint   _bitfield80;
+    // Native bit field: IsOneToOneLanguageMapping: [0], HasSubservices: [1], OnlineOnly: [2], ServiceType: [3-4]
+    uint   _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/elscore/ns-elscore-mapping_enum_options
@@ -5074,7 +5075,8 @@ struct MAPPING_ENUM_OPTIONS
     PWSTR  pszInputContentType;
     PWSTR  pszOutputContentType;
     GUID*  pGuid;
-    uint   _bitfield81;
+    // Native bit field: OnlineService: [0-1], ServiceType: [2-3]
+    uint   _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/elscore/ns-elscore-mapping_options
@@ -5095,7 +5097,8 @@ struct MAPPING_OPTIONS
     void*  pActionCallerData;
     uint   dwActionCallerDataSize;
     uint   dwServiceFlag;
-    uint   _bitfield82;
+    // Native bit field: GetActionDisplayName: [0]
+    uint   _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/elscore/ns-elscore-mapping_data_range
@@ -5129,19 +5132,22 @@ struct MAPPING_PROPERTY_BAG
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/usp10/ns-usp10-script_control
 struct SCRIPT_CONTROL
 {
-    uint _bitfield83;
+    // Native bit field: uDefaultLanguage: [0-15], fContextDigits: [16], fInvertPreBoundDir: [17], fInvertPostBoundDir: [18], fLinkStringBefore: [19], fLinkStringAfter: [20], fNeutralOverride: [21], fNumericOverride: [22], fLegacyBidiClass: [23], fMergeNeutralItems: [24], fUseStandardBidi: [25], fReserved: [26-31]
+    uint _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/usp10/ns-usp10-script_state
 struct SCRIPT_STATE
 {
-    ushort _bitfield84;
+    // Native bit field: uBidiLevel: [0-4], fOverrideDirection: [5], fInhibitSymSwap: [6], fCharShape: [7], fDigitSubstitute: [8], fInhibitLigate: [9], fDisplayZWG: [10], fArabicNumContext: [11], fGcpClusters: [12], fReserved: [13], fEngineReserved: [14-15]
+    ushort _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/usp10/ns-usp10-script_analysis
 struct SCRIPT_ANALYSIS
 {
-    ushort       _bitfield85;
+    // Native bit field: eScript: [0-9], fRTL: [10], fLayoutRTL: [11], fLinkBefore: [12], fLinkAfter: [13], fLogicalOrder: [14], fNoGlyphIndex: [15]
+    ushort       _bitfield0;
     SCRIPT_STATE s;
 }
 
@@ -5155,7 +5161,8 @@ struct SCRIPT_ITEM
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/usp10/ns-usp10-script_visattr
 struct SCRIPT_VISATTR
 {
-    ushort _bitfield86;
+    // Native bit field: uJustification: [0-3], fClusterStart: [4], fDiacritic: [5], fZeroWidth: [6], fReserved: [7], fShapeReserved: [8-15]
+    ushort _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/usp10/ns-usp10-goffset
@@ -5168,13 +5175,16 @@ struct GOFFSET
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/usp10/ns-usp10-script_logattr
 struct SCRIPT_LOGATTR
 {
-    ubyte _bitfield87;
+    // Native bit field: fSoftBreak: [0], fWhiteSpace: [1], fCharStop: [2], fWordStop: [3], fInvalid: [4], fReserved: [5-7]
+    ubyte _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/usp10/ns-usp10-script_properties
 struct SCRIPT_PROPERTIES
 {
+    // Native bit field: langid: [0-15], fNumeric: [16], fComplex: [17], fNeedsWordBreaking: [18], fNeedsCaretInfo: [19], bCharSet: [20-27], fControl: [28], fPrivateUseArea: [29], fNeedsCharacterJustify: [30], fInvalidGlyph: [31]
     uint _bitfield1;
+    // Native bit field: fInvalidLogAttr: [0], fCDM: [1], fAmbiguousCharSet: [2], fClusterSizeVaries: [3], fRejectInvalid: [4]
     uint _bitfield2;
 }
 
@@ -5201,7 +5211,9 @@ struct SCRIPT_TABDEF
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/usp10/ns-usp10-script_digitsubstitute
 struct SCRIPT_DIGITSUBSTITUTE
 {
+    // Native bit field: NationalDigitLanguage: [0-15], TraditionalDigitLanguage: [16-31]
     uint _bitfield1;
+    // Native bit field: DigitSubstitute: [0-7]
     uint _bitfield2;
     uint dwReserved;
 }
@@ -5223,7 +5235,8 @@ struct TEXTRANGE_PROPERTIES
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/usp10/ns-usp10-script_charprop
 struct SCRIPT_CHARPROP
 {
-    ushort _bitfield88;
+    // Native bit field: fCanGlyphAlone: [0], reserved: [1-15]
+    ushort _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/usp10/ns-usp10-script_glyphprop

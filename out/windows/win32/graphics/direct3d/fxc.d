@@ -54,7 +54,7 @@ enum : int
 enum : const(wchar)*
 {
     D3DCOMPILER_DLL_W = "d3dcompiler_47.dll",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     D3DCOMPILER_DLL_A = "d3dcompiler_47.dll",
 }
 

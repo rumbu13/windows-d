@@ -875,15 +875,15 @@ enum : int
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     RADIUS_EXTENSION_INIT            = "RadiusExtensionInit",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     RADIUS_EXTENSION_TERM            = "RadiusExtensionTerm",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     RADIUS_EXTENSION_PROCESS         = "RadiusExtensionProcess",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     RADIUS_EXTENSION_PROCESS_EX      = "RadiusExtensionProcessEx",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     RADIUS_EXTENSION_FREE_ATTRIBUTES = "RadiusExtensionFreeAttributes",
 }
 
@@ -892,7 +892,7 @@ enum const(wchar)* AUTHSRV_EXTENSIONS_VALUE_W = "ExtensionDLLs";
 enum const(wchar)* AUTHSRV_AUTHORIZATION_VALUE_W = "AuthorizationDLLs";
 enum const(wchar)* AUTHSRV_ENFORCE_NP_FOR_PAP_CHALLENGE_RESPONSE_VALUE_W = "EnforceNetworkPolicyForPAPBasedChallengeResponse";
 enum uint RADIUS_EXTENSION_VERSION = 0x00000001U;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* RADIUS_EXTENSION_PROCESS2 = "RadiusExtensionProcess2";
 
 // Callbacks

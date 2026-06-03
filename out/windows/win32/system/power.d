@@ -1076,7 +1076,8 @@ union POWER_ADAPTER_POWER_STATES
 {
     struct States
     {
-        uint _bitfield462;
+        // Native bit field: Online: [0], RecState: [1-2], Reserved: [3-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -1614,7 +1615,8 @@ struct PROCESSOR_POWER_POLICY_INFO
     ubyte    DemotePercent;
     ubyte    PromotePercent;
     ubyte[2] Spare;
-    uint     _bitfield463;
+    // Native bit field: AllowDemotion: [0], AllowPromotion: [1], Reserved: [2-31]
+    uint     _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/winnt/ns-winnt-processor_power_policy
@@ -1623,7 +1625,8 @@ struct PROCESSOR_POWER_POLICY
     uint     Revision;
     ubyte    DynamicThrottle;
     ubyte[3] Spare;
-    uint     _bitfield464;
+    // Native bit field: DisableCStates: [0], Reserved: [1-31]
+    uint     _bitfield0;
     uint     PolicyCount;
     PROCESSOR_POWER_POLICY_INFO[3] Policy;
 }

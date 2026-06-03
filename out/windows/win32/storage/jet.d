@@ -2062,7 +2062,8 @@ struct JET_CONVERT_A
         uint fFlags;
         struct
         {
-            uint _bitfield174;
+            // Native bit field: fSchemaChangesOnly: [0]
+            uint _bitfield0;
         }
     }
 }
@@ -2075,7 +2076,8 @@ struct JET_CONVERT_W
         uint fFlags;
         struct
         {
-            uint _bitfield175;
+            // Native bit field: fSchemaChangesOnly: [0]
+            uint _bitfield0;
         }
     }
 }
@@ -2104,7 +2106,8 @@ struct JET_DBINFOUPGRADE
         uint ulFlags;
         struct
         {
-            uint _bitfield176;
+            // Native bit field: fUpgradable: [0], fAlreadyUpgraded: [1]
+            uint _bitfield0;
         }
     }
 }
@@ -2810,7 +2813,8 @@ struct JET_LOGTIME
         ubyte bFiller1;
         struct
         {
-            ubyte _bitfield177;
+            // Native bit field: fTimeIsUTC: [0], bMillisecondsLow: [1-7]
+            ubyte _bitfield0;
         }
     }
     union
@@ -2818,7 +2822,8 @@ struct JET_LOGTIME
         ubyte bFiller2;
         struct
         {
-            ubyte _bitfield178;
+            // Native bit field: fReserved: [0], bMillisecondsHigh: [1-3], fUnused: [4-7]
+            ubyte _bitfield1;
         }
     }
 }
@@ -2837,7 +2842,8 @@ struct JET_BKLOGTIME
         ubyte bFiller1;
         struct
         {
-            ubyte _bitfield179;
+            // Native bit field: fTimeIsUTC: [0], bMillisecondsLow: [1-7]
+            ubyte _bitfield0;
         }
     }
     union
@@ -2845,7 +2851,8 @@ struct JET_BKLOGTIME
         ubyte bFiller2;
         struct
         {
-            ubyte _bitfield180;
+            // Native bit field: fOSSnapshot: [0], bMillisecondsHigh: [1-3], fReserved: [4-7]
+            ubyte _bitfield1;
         }
     }
 }

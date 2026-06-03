@@ -1477,7 +1477,7 @@ enum : uint
 enum uint RUNTIME_FUNCTION_INDIRECT = 0x00000001U;
 enum uint UNW_FLAG_NO_EPILOGUE = 0x80000000U;
 enum uint UNWIND_CHAIN_LIMIT = 0x00000020U;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* OUT_OF_PROCESS_FUNCTION_TABLE_CALLBACK_EXPORT_NAME = "OutOfProcessFunctionTableCallback";
 
 enum : uint
@@ -2020,10 +2020,10 @@ enum uint AUDIT_ALLOW_NO_PRIVILEGE = 0x00000001U;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ACCESS_DS_SOURCE_A           = "DS",
     ACCESS_DS_SOURCE_W           = "DS",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ACCESS_DS_OBJECT_TYPE_NAME_A = "Directory Service Object",
     ACCESS_DS_OBJECT_TYPE_NAME_W = "Directory Service Object",
 }
@@ -2514,7 +2514,7 @@ enum : uint
 
 enum uint SHUFFLE_FILE_FLAG_SKIP_INITIALIZING_NEW_CLUSTERS = 0x00000001U;
 enum uint IO_COMPLETION_MODIFY_STATE = 0x00000002U;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* SMB_CCF_APP_INSTANCE_EA_NAME = "ClusteredApplicationInstance";
 enum uint NETWORK_APP_INSTANCE_CSV_FLAGS_VALID_ONLY_IF_CSV_COORDINATOR = 0x00000001U;
 enum GUID GUID_MAX_POWER_SAVINGS = GUID("a1841308-3541-4fab-bc81-f71556f20b4a");
@@ -3632,20 +3632,20 @@ enum uint IMAGE_ARCHIVE_START_SIZE = 0x00000008U;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     IMAGE_ARCHIVE_START            = "!<arch>
 ",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     IMAGE_ARCHIVE_END              = "`
 ",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     IMAGE_ARCHIVE_PAD              = "
 ",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     IMAGE_ARCHIVE_LINKER_MEMBER    = "/               ",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     IMAGE_ARCHIVE_LONGNAMES_MEMBER = "//              ",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     IMAGE_ARCHIVE_HYBRIDMAP_MEMBER = "/<HYBRIDMAP>/   ",
 }
 
@@ -4001,7 +4001,7 @@ enum : uint
 }
 
 enum uint IMAGE_POLICY_METADATA_VERSION = 0x00000001U;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* IMAGE_POLICY_SECTION_NAME = ".tPolicy";
 enum uint RTL_VIRTUAL_UNWIND2_VALIDATE_PAC = 0x00000001U;
 enum uint HEAP_OPTIMIZE_RESOURCES_CURRENT_VERSION = 0x00000001U;
@@ -4518,7 +4518,8 @@ struct KERNEL_CET_CONTEXT
         ushort AllFlags;
         struct
         {
-            ushort _bitfield483;
+            // Native bit field: UseWrss: [0], PopShadowStackOne: [1], Unused: [2-15]
+            ushort _bitfield0;
         }
     }
     ushort[2] Fill;
@@ -4672,7 +4673,8 @@ union RATE_QUOTA_LIMIT
     uint RateData;
     struct
     {
-        uint _bitfield484;
+        // Native bit field: RatePercent: [0-6], Reserved0: [7-31]
+        uint _bitfield0;
     }
 }
 
@@ -4700,7 +4702,8 @@ struct PROCESS_MITIGATION_ASLR_POLICY
         uint Flags;
         struct
         {
-            uint _bitfield485;
+            // Native bit field: EnableBottomUpRandomization: [0], EnableForceRelocateImages: [1], EnableHighEntropy: [2], DisallowStrippedImages: [3], ReservedFlags: [4-31]
+            uint _bitfield0;
         }
     }
 }
@@ -4713,7 +4716,8 @@ struct PROCESS_MITIGATION_DEP_POLICY
         uint Flags;
         struct
         {
-            uint _bitfield486;
+            // Native bit field: Enable: [0], DisableAtlThunkEmulation: [1], ReservedFlags: [2-31]
+            uint _bitfield0;
         }
     }
     BOOLEAN Permanent;
@@ -4726,7 +4730,8 @@ struct PROCESS_MITIGATION_SEHOP_POLICY
         uint Flags;
         struct
         {
-            uint _bitfield487;
+            // Native bit field: EnableSehop: [0], ReservedFlags: [1-31]
+            uint _bitfield0;
         }
     }
 }
@@ -4739,7 +4744,8 @@ struct PROCESS_MITIGATION_STRICT_HANDLE_CHECK_POLICY
         uint Flags;
         struct
         {
-            uint _bitfield488;
+            // Native bit field: RaiseExceptionOnInvalidHandleReference: [0], HandleExceptionsPermanentlyEnabled: [1], ReservedFlags: [2-31]
+            uint _bitfield0;
         }
     }
 }
@@ -4752,7 +4758,8 @@ struct PROCESS_MITIGATION_SYSTEM_CALL_DISABLE_POLICY
         uint Flags;
         struct
         {
-            uint _bitfield489;
+            // Native bit field: DisallowWin32kSystemCalls: [0], AuditDisallowWin32kSystemCalls: [1], DisallowFsctlSystemCalls: [2], AuditDisallowFsctlSystemCalls: [3], ReservedFlags: [4-31]
+            uint _bitfield0;
         }
     }
 }
@@ -4765,7 +4772,8 @@ struct PROCESS_MITIGATION_EXTENSION_POINT_DISABLE_POLICY
         uint Flags;
         struct
         {
-            uint _bitfield490;
+            // Native bit field: DisableExtensionPoints: [0], ReservedFlags: [1-31]
+            uint _bitfield0;
         }
     }
 }
@@ -4778,7 +4786,8 @@ struct PROCESS_MITIGATION_DYNAMIC_CODE_POLICY
         uint Flags;
         struct
         {
-            uint _bitfield491;
+            // Native bit field: ProhibitDynamicCode: [0], AllowThreadOptOut: [1], AllowRemoteDowngrade: [2], AuditProhibitDynamicCode: [3], ReservedFlags: [4-31]
+            uint _bitfield0;
         }
     }
 }
@@ -4791,7 +4800,8 @@ struct PROCESS_MITIGATION_CONTROL_FLOW_GUARD_POLICY
         uint Flags;
         struct
         {
-            uint _bitfield492;
+            // Native bit field: EnableControlFlowGuard: [0], EnableExportSuppression: [1], StrictMode: [2], EnableXfg: [3], EnableXfgAuditMode: [4], ReservedFlags: [5-31]
+            uint _bitfield0;
         }
     }
 }
@@ -4804,7 +4814,8 @@ struct PROCESS_MITIGATION_BINARY_SIGNATURE_POLICY
         uint Flags;
         struct
         {
-            uint _bitfield493;
+            // Native bit field: MicrosoftSignedOnly: [0], StoreSignedOnly: [1], MitigationOptIn: [2], AuditMicrosoftSignedOnly: [3], AuditStoreSignedOnly: [4], ReservedFlags: [5-31]
+            uint _bitfield0;
         }
     }
 }
@@ -4817,7 +4828,8 @@ struct PROCESS_MITIGATION_FONT_DISABLE_POLICY
         uint Flags;
         struct
         {
-            uint _bitfield494;
+            // Native bit field: DisableNonSystemFonts: [0], AuditNonSystemFontLoading: [1], ReservedFlags: [2-31]
+            uint _bitfield0;
         }
     }
 }
@@ -4830,7 +4842,8 @@ struct PROCESS_MITIGATION_IMAGE_LOAD_POLICY
         uint Flags;
         struct
         {
-            uint _bitfield495;
+            // Native bit field: NoRemoteImages: [0], NoLowMandatoryLabelImages: [1], PreferSystem32Images: [2], AuditNoRemoteImages: [3], AuditNoLowMandatoryLabelImages: [4], ReservedFlags: [5-31]
+            uint _bitfield0;
         }
     }
 }
@@ -4842,7 +4855,8 @@ struct PROCESS_MITIGATION_SYSTEM_CALL_FILTER_POLICY
         uint Flags;
         struct
         {
-            uint _bitfield496;
+            // Native bit field: FilterId: [0-3], ReservedFlags: [4-31]
+            uint _bitfield0;
         }
     }
 }
@@ -4854,7 +4868,8 @@ struct PROCESS_MITIGATION_PAYLOAD_RESTRICTION_POLICY
         uint Flags;
         struct
         {
-            uint _bitfield497;
+            // Native bit field: EnableExportAddressFilter: [0], AuditExportAddressFilter: [1], EnableExportAddressFilterPlus: [2], AuditExportAddressFilterPlus: [3], EnableImportAddressFilter: [4], AuditImportAddressFilter: [5], EnableRopStackPivot: [6], AuditRopStackPivot: [7], EnableRopCallerCheck: [8], AuditRopCallerCheck: [9], EnableRopSimExec: [10], AuditRopSimExec: [11], ReservedFlags: [12-31]
+            uint _bitfield0;
         }
     }
 }
@@ -4866,7 +4881,8 @@ struct PROCESS_MITIGATION_CHILD_PROCESS_POLICY
         uint Flags;
         struct
         {
-            uint _bitfield498;
+            // Native bit field: NoChildProcessCreation: [0], AuditNoChildProcessCreation: [1], AllowSecureProcessCreation: [2], ReservedFlags: [3-31]
+            uint _bitfield0;
         }
     }
 }
@@ -4879,7 +4895,8 @@ struct PROCESS_MITIGATION_SIDE_CHANNEL_ISOLATION_POLICY
         uint Flags;
         struct
         {
-            uint _bitfield499;
+            // Native bit field: SmtBranchTargetIsolation: [0], IsolateSecurityDomain: [1], DisablePageCombine: [2], SpeculativeStoreBypassDisable: [3], RestrictCoreSharing: [4], ReservedFlags: [5-31]
+            uint _bitfield0;
         }
     }
 }
@@ -4892,7 +4909,8 @@ struct PROCESS_MITIGATION_USER_SHADOW_STACK_POLICY
         uint Flags;
         struct
         {
-            uint _bitfield500;
+            // Native bit field: EnableUserShadowStack: [0], AuditUserShadowStack: [1], SetContextIpValidation: [2], AuditSetContextIpValidation: [3], EnableUserShadowStackStrictMode: [4], BlockNonCetBinaries: [5], BlockNonCetBinariesNonEhcont: [6], AuditBlockNonCetBinaries: [7], CetDynamicApisOutOfProcOnly: [8], SetContextIpValidationRelaxedMode: [9], ReservedFlags: [10-31]
+            uint _bitfield0;
         }
     }
 }
@@ -4904,7 +4922,8 @@ struct PROCESS_MITIGATION_USER_POINTER_AUTH_POLICY
         uint Flags;
         struct
         {
-            uint _bitfield501;
+            // Native bit field: EnablePointerAuthUserIp: [0], ReservedFlags: [1-31]
+            uint _bitfield0;
         }
     }
 }
@@ -4917,7 +4936,8 @@ struct PROCESS_MITIGATION_REDIRECTION_TRUST_POLICY
         uint Flags;
         struct
         {
-            uint _bitfield502;
+            // Native bit field: EnforceRedirectionTrust: [0], AuditRedirectionTrust: [1], ReservedFlags: [2-31]
+            uint _bitfield0;
         }
     }
 }
@@ -5005,7 +5025,8 @@ struct DRIVER_INFO_ENTRY
     {
         struct
         {
-            ushort _bitfield503;
+            // Native bit field: Unloaded: [0], BootDriver: [1], HotPatch: [2], Reserved: [3-15]
+            ushort _bitfield0;
         }
         ushort AsUInt16;
     }
@@ -5020,7 +5041,8 @@ struct DRIVER_RUNTIME_REPORT
     {
         struct
         {
-            ushort _bitfield504;
+            // Native bit field: ReportOverflowed: [0], PartialReport: [1], IncludeBootDrivers: [2], Reserved: [3-15]
+            ushort _bitfield0;
         }
         ushort AsUInt16;
     }
@@ -5191,7 +5213,8 @@ struct POWER_LIMIT_ATTRIBUTES
     {
         struct
         {
-            uint _bitfield505;
+            // Native bit field: SupportTimeParameter: [0], Reserved: [1-31]
+            uint _bitfield0;
         }
         uint AsUlong;
     }
@@ -5233,7 +5256,8 @@ struct PROCESSOR_IDLESTATE_POLICY
         ushort AsWORD;
         struct
         {
-            ushort _bitfield506;
+            // Native bit field: AllowScaling: [0], Disabled: [1], Reserved: [2-15]
+            ushort _bitfield0;
         }
     }
     uint   PolicyCount;
@@ -5254,7 +5278,8 @@ struct PROCESSOR_PERFSTATE_POLICY
             ubyte AsBYTE;
             struct
             {
-                ubyte _bitfield507;
+                // Native bit field: NoDomainAccounting: [0], IncreasePolicy: [1-2], DecreasePolicy: [3-4], Reserved: [5-7]
+                ubyte _bitfield0;
             }
         }
     }
@@ -5665,7 +5690,8 @@ align (4):
         uint Characteristics;
         struct
         {
-            uint _bitfield508;
+            // Native bit field: Reserved0: [0-19], Alignment: [20-23], Reserved1: [24-31]
+            uint _bitfield0;
         }
     }
 }
@@ -5682,7 +5708,8 @@ struct IMAGE_TLS_DIRECTORY32
         uint Characteristics;
         struct
         {
-            uint _bitfield509;
+            // Native bit field: Reserved0: [0-19], Alignment: [20-23], Reserved1: [24-31]
+            uint _bitfield0;
         }
     }
 }
@@ -5730,7 +5757,8 @@ struct IMAGE_RESOURCE_DIRECTORY_ENTRY
     {
         struct
         {
-            uint _bitfield510;
+            // Native bit field: NameOffset: [0-30], NameIsString: [31]
+            uint _bitfield0;
         }
         uint   Name;
         ushort Id;
@@ -5740,7 +5768,8 @@ struct IMAGE_RESOURCE_DIRECTORY_ENTRY
         uint OffsetToData;
         struct
         {
-            uint _bitfield511;
+            // Native bit field: OffsetToDirectory: [0-30], DataIsDirectory: [31]
+            uint _bitfield1;
         }
     }
 }
@@ -5822,25 +5851,29 @@ align (1):
 struct IMAGE_IMPORT_CONTROL_TRANSFER_DYNAMIC_RELOCATION
 {
 align (1):
-    uint _bitfield512;
+    // Native bit field: PageRelativeOffset: [0-11], IndirectCall: [12], IATIndex: [13-31]
+    uint _bitfield0;
 }
 
 struct IMAGE_IMPORT_CONTROL_TRANSFER_ARM64_RELOCATION
 {
 align (1):
-    uint _bitfield513;
+    // Native bit field: PageRelativeOffset: [0-9], IndirectCall: [10], RegisterIndex: [11-15], ImportType: [16], IATIndex: [17-31]
+    uint _bitfield0;
 }
 
 struct IMAGE_INDIR_CONTROL_TRANSFER_DYNAMIC_RELOCATION
 {
 align (1):
-    ushort _bitfield514;
+    // Native bit field: PageRelativeOffset: [0-11], IndirectCall: [12], RexWPrefix: [13], CfgCheck: [14], Reserved: [15]
+    ushort _bitfield0;
 }
 
 struct IMAGE_SWITCHTABLE_BRANCH_DYNAMIC_RELOCATION
 {
 align (1):
-    ushort _bitfield515;
+    // Native bit field: PageRelativeOffset: [0-11], RegisterNumber: [12-15]
+    ushort _bitfield0;
 }
 
 struct IMAGE_FUNCTION_OVERRIDE_HEADER
@@ -5902,7 +5935,8 @@ struct IMAGE_HOT_PATCH_MACHINE
 {
     struct
     {
-        uint _bitfield516;
+        // Native bit field: _x86: [0], Amd64: [1], Arm64: [2], Amd64EC: [3]
+        uint _bitfield0;
     }
 }
 
@@ -5915,7 +5949,8 @@ struct IMAGE_HOT_PATCH_HASHES
 struct IMAGE_CE_RUNTIME_FUNCTION_ENTRY
 {
     uint FuncStart;
-    uint _bitfield517;
+    // Native bit field: PrologLen: [0-7], FuncLen: [8-29], ThirtyTwoBit: [30], ExceptionFlag: [31]
+    uint _bitfield0;
 }
 
 struct IMAGE_ARM_RUNTIME_FUNCTION_ENTRY
@@ -5926,7 +5961,8 @@ struct IMAGE_ARM_RUNTIME_FUNCTION_ENTRY
         uint UnwindData;
         struct
         {
-            uint _bitfield518;
+            // Native bit field: Flag: [0-1], FunctionLength: [2-12], Ret: [13-14], H: [15], Reg: [16-18], R: [19], L: [20], C: [21], StackAdjust: [22-31]
+            uint _bitfield0;
         }
     }
 }
@@ -5936,7 +5972,8 @@ union IMAGE_ARM64_RUNTIME_FUNCTION_ENTRY_XDATA
     uint HeaderData;
     struct
     {
-        uint _bitfield519;
+        // Native bit field: FunctionLength: [0-17], Version: [18-19], ExceptionDataPresent: [20], EpilogInHeader: [21], EpilogCount: [22-26], CodeWords: [27-31]
+        uint _bitfield0;
     }
 }
 
@@ -5945,7 +5982,8 @@ union IMAGE_ARM64_RUNTIME_FUNCTION_ENTRY_XDATA_EXTENDED
     uint ExtendedHeaderData;
     struct
     {
-        uint _bitfield520;
+        // Native bit field: ExtendedEpilogCount: [0-15], ExtendedCodeWords: [16-23]
+        uint _bitfield0;
     }
 }
 
@@ -5954,7 +5992,8 @@ union IMAGE_ARM64_RUNTIME_FUNCTION_ENTRY_XDATA_EPILOG_SCOPE
     uint EpilogScopeData;
     struct
     {
-        uint _bitfield521;
+        // Native bit field: EpilogStartOffset: [0-17], Res0: [18-21], EpilogStartIndex: [22-31]
+        uint _bitfield0;
     }
 }
 
@@ -6019,7 +6058,8 @@ align (4):
 
 struct IMAGE_ARCHITECTURE_HEADER
 {
-    uint _bitfield522;
+    // Native bit field: AmaskValue: [0], Anonymous1: [1-7], AmaskShift: [8-15], Anonymous2: [16-31]
+    uint _bitfield0;
     uint FirstEntryRVA;
 }
 
@@ -6042,7 +6082,8 @@ struct IMPORT_OBJECT_HEADER
         ushort Ordinal;
         ushort Hint;
     }
-    ushort _bitfield523;
+    // Native bit field: Type: [0-1], NameType: [2-4], Reserved: [5-15]
+    ushort _bitfield0;
 }
 
 struct IMAGE_POLICY_ENTRY

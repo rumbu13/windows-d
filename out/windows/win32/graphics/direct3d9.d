@@ -2836,7 +2836,8 @@ struct D3DAUTHENTICATEDCHANNEL_PROTECTION_FLAGS
     {
         struct
         {
-            uint _bitfield92;
+            // Native bit field: ProtectionEnabled: [0], OverlayOrFullscreenRequired: [1], Reserved: [2-31]
+            uint _bitfield0;
         }
         uint Value;
     }

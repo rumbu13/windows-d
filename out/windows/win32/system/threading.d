@@ -1158,7 +1158,8 @@ struct TP_CALLBACK_ENVIRON_V3
         uint Flags;
         struct s
         {
-            uint _bitfield524;
+            // Native bit field: LongFunction: [0], Persistent: [1], Private: [2-31]
+            uint _bitfield0;
         }
     }
     TP_CALLBACK_PRIORITY CallbackPriority;
@@ -1182,7 +1183,8 @@ struct UMS_SYSTEM_THREAD_INFORMATION
     {
         struct
         {
-            uint _bitfield525;
+            // Native bit field: IsUmsSchedulerThread: [0], IsUmsWorkerThread: [1]
+            uint _bitfield0;
         }
         uint ThreadUmsFlags;
     }

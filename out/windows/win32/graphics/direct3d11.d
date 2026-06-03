@@ -3497,7 +3497,7 @@ enum : uint
 enum : const(wchar)*
 {
     D3DCSX_DLL_W = "d3dcsx_47.dll",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     D3DCSX_DLL_A = "d3dcsx_47.dll",
     D3DCSX_DLL   = "d3dcsx_47.dll",
 }
@@ -4437,7 +4437,8 @@ struct D3D11_VIDEO_COLOR
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/d3d11/ns-d3d11-d3d11_video_processor_color_space
 struct D3D11_VIDEO_PROCESSOR_COLOR_SPACE
 {
-    uint _bitfield89;
+    // Native bit field: Usage: [0], RGB_Range: [1], YCbCr_Matrix: [2], YCbCr_xvYCC: [3], Nominal_Range: [4-5], Reserved: [6-31]
+    uint _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/d3d11/ns-d3d11-d3d11_video_processor_stream
@@ -4485,7 +4486,8 @@ union D3D11_AUTHENTICATED_PROTECTION_FLAGS
 {
     struct Flags
     {
-        uint _bitfield90;
+        // Native bit field: ProtectionEnabled: [0], OverlayOrFullscreenRequired: [1], Reserved: [2-31]
+        uint _bitfield0;
     }
     uint Value;
 }

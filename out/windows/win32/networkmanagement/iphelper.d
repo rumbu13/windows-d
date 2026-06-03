@@ -2055,7 +2055,8 @@ struct MIB_UDPROW_OWNER_MODULE
     {
         struct
         {
-            int _bitfield118;
+            // Native bit field: SpecificPortBind: [0]
+            int _bitfield0;
         }
         int dwFlags;
     }
@@ -2079,7 +2080,8 @@ struct MIB_UDPROW2
     {
         struct
         {
-            int _bitfield119;
+            // Native bit field: SpecificPortBind: [0]
+            int _bitfield0;
         }
         int dwFlags;
     }
@@ -2137,7 +2139,8 @@ struct MIB_UDP6ROW_OWNER_MODULE
     {
         struct
         {
-            int _bitfield120;
+            // Native bit field: SpecificPortBind: [0]
+            int _bitfield0;
         }
         int dwFlags;
     }
@@ -2162,7 +2165,8 @@ struct MIB_UDP6ROW2
     {
         struct
         {
-            int _bitfield121;
+            // Native bit field: SpecificPortBind: [0]
+            int _bitfield0;
         }
         int dwFlags;
     }
@@ -2513,7 +2517,8 @@ struct IP_ADAPTER_ADDRESSES_LH
         uint Flags;
         struct
         {
-            uint _bitfield122;
+            // Native bit field: DdnsEnabled: [0], RegisterAdapterSuffix: [1], Dhcpv4Enabled: [2], ReceiveOnly: [3], NoMulticast: [4], Ipv6OtherStatefulConfig: [5], NetbiosOverTcpipEnabled: [6], Ipv4Enabled: [7], Ipv6Enabled: [8], Ipv6ManagedAddressConfigurationSupported: [9]
+            uint _bitfield0;
         }
     }
     uint           Mtu;
@@ -2892,7 +2897,8 @@ struct MIB_IF_ROW2
     NET_IF_DIRECTION_TYPE DirectionType;
     struct InterfaceAndOperStatusFlags
     {
-        ubyte _bitfield123;
+        // Native bit field: HardwareInterface: [0], FilterInterface: [1], ConnectorPresent: [2], NotAuthenticated: [3], NotMediaConnected: [4], Paused: [5], LowPower: [6], EndPointInterface: [7]
+        ubyte _bitfield0;
     }
     IF_OPER_STATUS       OperStatus;
     NET_IF_ADMIN_STATUS  AdminStatus;
@@ -3141,7 +3147,8 @@ struct MIB_IPNET_ROW2
     {
         struct
         {
-            ubyte _bitfield124;
+            // Native bit field: IsRouter: [0], IsUnreachable: [1]
+            ubyte _bitfield0;
         }
         ubyte Flags;
     }

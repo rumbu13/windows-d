@@ -24,7 +24,7 @@ enum : uint
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     WC_MAGNIFIERA = "Magnifier",
     WC_MAGNIFIERW = "Magnifier",
     WC_MAGNIFIER  = "Magnifier",

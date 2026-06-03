@@ -427,7 +427,7 @@ enum : uint
     RASIKEv2_AUTH_PSK                 = 0x00000003U,
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* RASDIALEVENT = "RasDialEvent";
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/RRAS/wm-rasdialevent
 enum uint WM_RASDIALEVENT = 0x0000cccdU;

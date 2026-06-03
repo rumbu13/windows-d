@@ -11,9 +11,9 @@ extern(Windows) @nogc nothrow:
 // Constants
 
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* ICW_REGPATHSETTINGS = "Software\\Microsoft\\Internet Connection Wizard";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* ICW_REGKEYCOMPLETED = "Completed";
 
 enum : uint

@@ -828,7 +828,7 @@ enum uint HTTP_MINOR_VERSION = 0x00000000U;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     HTTP_VERSIONA = "HTTP/1.0",
     HTTP_VERSIONW = "HTTP/1.0",
 }
@@ -1779,14 +1779,14 @@ enum : uint
     INTERNET_AUTOPROXY_INIT_ONLYQUERY    = 0x00000008U,
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* REGSTR_DIAL_AUTOCONNECT = "AutoConnect";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* REGSTR_LEASH_LEGACY_COOKIES = "LeashLegacyCookies";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     LOCAL_NAMESPACE_PREFIX   = "Local\\",
     LOCAL_NAMESPACE_PREFIX_W = "Local\\",
 }

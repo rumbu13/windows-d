@@ -800,7 +800,8 @@ struct SYSTEM_CPU_SET_INFORMATION
                 ubyte AllFlags;
                 struct
                 {
-                    ubyte _bitfield481;
+                    // Native bit field: Parked: [0], Allocated: [1], AllocatedToTargetProcess: [2], RealTime: [3], ReservedFlags: [4-7]
+                    ubyte _bitfield0;
                 }
             }
             union
@@ -825,7 +826,8 @@ struct SYSTEM_PROCESSOR_CYCLE_TIME_INFORMATION
 
 struct SYSTEM_SUPPORTED_PROCESSOR_ARCHITECTURES_INFORMATION
 {
-    uint _bitfield482;
+    // Native bit field: Machine: [0-15], KernelMode: [16], UserMode: [17], Native: [18], Process: [19], WoW64Container: [20], ReservedZero0: [21-31]
+    uint _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/winnt/ns-winnt-osversioninfoa

@@ -82,7 +82,7 @@ enum uint TABLE_SORT_DONE = 0x00000006U;
 enum uint TABLE_RESTRICT_DONE = 0x00000007U;
 enum uint TABLE_SETCOL_DONE = 0x00000008U;
 enum uint TABLE_RELOAD = 0x00000009U;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szMAPINotificationMsg = "MAPI Notify window message";
 enum int MAPI_ERROR_VERSION = 0x00000000;
 enum uint MAPI_USE_DEFAULT = 0x00000040U;
@@ -401,11 +401,11 @@ enum uint TAD_ALL_ROWS = 0x00000001U;
 enum int PRILOWEST = 0xffff8000;
 enum uint PRIHIGHEST = 0x00007fffU;
 enum uint PRIUSER = 0x00000000U;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* OPENSTREAMONFILE = "OpenStreamOnFile";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szHrDispatchNotifications = "HrDispatchNotifications";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szScCreateConversationIndex = "ScCreateConversationIndex";
 
 // Callbacks

@@ -148,7 +148,7 @@ enum : uint
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     XINPUT_DLL_A = "xinput1_4.dll",
     XINPUT_DLL_W = "xinput1_4.dll",
     XINPUT_DLL   = "xinput1_4.dll",

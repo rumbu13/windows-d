@@ -980,7 +980,8 @@ union WHV_CAPABILITY_FEATURES
 {
     struct
     {
-        ulong _bitfield404;
+        // Native bit field: PartialUnmap: [0], LocalApicEmulation: [1], Xsave: [2], DirtyPageTracking: [3], SpeculationControl: [4], ApicRemoteRead: [5], IdleSuspend: [6], VirtualPciDeviceSupport: [7], IommuSupport: [8], VpHotAddRemove: [9], Reserved: [10-63]
+        ulong _bitfield0;
     }
     ulong AsUINT64;
 }
@@ -989,7 +990,8 @@ union WHV_EXTENDED_VM_EXITS
 {
     struct
     {
-        ulong _bitfield405;
+        // Native bit field: X64CpuidExit: [0], X64MsrExit: [1], ExceptionExit: [2], X64RdtscExit: [3], X64ApicSmiExitTrap: [4], HypercallExit: [5], X64ApicInitSipiExitTrap: [6], X64ApicWriteLint0ExitTrap: [7], X64ApicWriteLint1ExitTrap: [8], X64ApicWriteSvrExitTrap: [9], UnknownSynicConnection: [10], RetargetUnknownVpciDevice: [11], X64ApicWriteLdrExitTrap: [12], X64ApicWriteDfrExitTrap: [13], GpaAccessFaultExit: [14], Reserved: [15-63]
+        ulong _bitfield0;
     }
     ulong AsUINT64;
 }
@@ -998,7 +1000,8 @@ union WHV_PROCESSOR_FEATURES
 {
     struct
     {
-        ulong _bitfield406;
+        // Native bit field: Sse3Support: [0], LahfSahfSupport: [1], Ssse3Support: [2], Sse4_1Support: [3], Sse4_2Support: [4], Sse4aSupport: [5], XopSupport: [6], PopCntSupport: [7], Cmpxchg16bSupport: [8], Altmovcr8Support: [9], LzcntSupport: [10], MisAlignSseSupport: [11], MmxExtSupport: [12], Amd3DNowSupport: [13], ExtendedAmd3DNowSupport: [14], Page1GbSupport: [15], AesSupport: [16], PclmulqdqSupport: [17], PcidSupport: [18], Fma4Support: [19], F16CSupport: [20], RdRandSupport: [21], RdWrFsGsSupport: [22], SmepSupport: [23], EnhancedFastStringSupport: [24], Bmi1Support: [25], Bmi2Support: [26], Reserved1: [27-28], MovbeSupport: [29], Npiep1Support: [30], DepX87FPUSaveSupport: [31], RdSeedSupport: [32], AdxSupport: [33], IntelPrefetchSupport: [34], SmapSupport: [35], HleSupport: [36], RtmSupport: [37], RdtscpSupport: [38], ClflushoptSupport: [39], ClwbSupport: [40], ShaSupport: [41], X87PointersSavedSupport: [42], InvpcidSupport: [43], IbrsSupport: [44], StibpSupport: [45], IbpbSupport: [46], Reserved2: [47], SsbdSupport: [48], FastShortRepMovSupport: [49], Reserved3: [50], RdclNo: [51], IbrsAllSupport: [52], Reserved4: [53], SsbNo: [54], RsbANo: [55], Reserved5: [56], RdPidSupport: [57], UmipSupport: [58], MdsNoSupport: [59], MdClearSupport: [60], TaaNoSupport: [61], TsxCtrlSupport: [62], Reserved6: [63]
+        ulong _bitfield0;
     }
     ulong AsUINT64;
 }
@@ -1007,7 +1010,8 @@ union WHV_PROCESSOR_FEATURES1
 {
     struct
     {
-        ulong _bitfield407;
+        // Native bit field: ACountMCountSupport: [0], TscInvariantSupport: [1], ClZeroSupport: [2], RdpruSupport: [3], Reserved2: [4-5], NestedVirtSupport: [6], PsfdSupport: [7], CetSsSupport: [8], CetIbtSupport: [9], VmxExceptionInjectSupport: [10], Reserved4: [11], UmwaitTpauseSupport: [12], MovdiriSupport: [13], Movdir64bSupport: [14], CldemoteSupport: [15], SerializeSupport: [16], TscDeadlineTmrSupport: [17], TscAdjustSupport: [18], FZLRepMovsb: [19], FSRepStosb: [20], FSRepCmpsb: [21], TsxLdTrkSupport: [22], Reserved5: [23-63]
+        ulong _bitfield0;
     }
     ulong AsUINT64;
 }
@@ -1031,7 +1035,8 @@ union WHV_SYNTHETIC_PROCESSOR_FEATURES
 {
     struct
     {
-        ulong _bitfield408;
+        // Native bit field: HypervisorPresent: [0], Hv1: [1], AccessVpRunTimeReg: [2], AccessPartitionReferenceCounter: [3], AccessSynicRegs: [4], AccessSyntheticTimerRegs: [5], ReservedZ6: [6], AccessHypercallRegs: [7], AccessVpIndex: [8], AccessPartitionReferenceTsc: [9], ReservedZ10: [10], ReservedZ11: [11], ReservedZ12: [12], ReservedZ13: [13], ReservedZ14: [14], ReservedZ15: [15], ReservedZ16: [16], ReservedZ17: [17], FastHypercallOutput: [18], ReservedZ19: [19], ReservedZ20: [20], ReservedZ21: [21], DirectSyntheticTimers: [22], ReservedZ23: [23], ExtendedProcessorMasks: [24], ReservedZ25: [25], SyntheticClusterIpi: [26], NotifyLongSpinWait: [27], QueryNumaDistance: [28], SignalEvents: [29], RetargetDeviceInterrupt: [30], Reserved: [31-63]
+        ulong _bitfield0;
     }
     ulong AsUINT64;
 }
@@ -1054,7 +1059,8 @@ union WHV_PROCESSOR_XSAVE_FEATURES
 {
     struct
     {
-        ulong _bitfield409;
+        // Native bit field: XsaveSupport: [0], XsaveoptSupport: [1], AvxSupport: [2], Avx2Support: [3], FmaSupport: [4], MpxSupport: [5], Avx512Support: [6], Avx512DQSupport: [7], Avx512CDSupport: [8], Avx512BWSupport: [9], Avx512VLSupport: [10], XsaveCompSupport: [11], XsaveSupervisorSupport: [12], Xcr1Support: [13], Avx512BitalgSupport: [14], Avx512IfmaSupport: [15], Avx512VBmiSupport: [16], Avx512VBmi2Support: [17], Avx512VnniSupport: [18], GfniSupport: [19], VaesSupport: [20], Avx512VPopcntdqSupport: [21], VpclmulqdqSupport: [22], Avx512Bf16Support: [23], Avx512Vp2IntersectSupport: [24], Avx512Fp16Support: [25], XfdSupport: [26], AmxTileSupport: [27], AmxBf16Support: [28], AmxInt8Support: [29], AvxVnniSupport: [30], Reserved: [31-63]
+        ulong _bitfield0;
     }
     ulong AsUINT64;
 }
@@ -1063,7 +1069,8 @@ union WHV_PROCESSOR_PERFMON_FEATURES
 {
     struct
     {
-        ulong _bitfield410;
+        // Native bit field: PmuSupport: [0], LbrSupport: [1], Reserved: [2-63]
+        ulong _bitfield0;
     }
     ulong AsUINT64;
 }
@@ -1073,7 +1080,8 @@ union WHV_X64_MSR_EXIT_BITMAP
     ulong AsUINT64;
     struct
     {
-        ulong _bitfield411;
+        // Native bit field: UnhandledMsrs: [0], TscMsrWrite: [1], TscMsrRead: [2], ApicBaseMsrWrite: [3], MiscEnableMsrRead: [4], McUpdatePatchLevelMsrRead: [5], Reserved: [6-63]
+        ulong _bitfield0;
     }
 }
 
@@ -1088,7 +1096,8 @@ union WHV_ADVISE_GPA_RANGE_POPULATE_FLAGS
     uint AsUINT32;
     struct
     {
-        uint _bitfield412;
+        // Native bit field: Prefetch: [0], AvoidHardFaults: [1], Reserved: [2-31]
+        uint _bitfield0;
     }
 }
 
@@ -1100,7 +1109,8 @@ struct WHV_ADVISE_GPA_RANGE_POPULATE
 
 struct WHV_CAPABILITY_PROCESSOR_FREQUENCY_CAP
 {
-    uint _bitfield413;
+    // Native bit field: IsSupported: [0], Reserved: [1-31]
+    uint _bitfield0;
     uint HighestFrequencyMhz;
     uint NominalFrequencyMhz;
     uint LowestFrequencyMhz;
@@ -1111,7 +1121,8 @@ union WHV_SCHEDULER_FEATURES
 {
     struct
     {
-        ulong _bitfield414;
+        // Native bit field: CpuReserve: [0], CpuCap: [1], CpuWeight: [2], CpuGroupId: [3], DisableSmt: [4], Reserved: [5-63]
+        ulong _bitfield0;
     }
     ulong AsUINT64;
 }
@@ -1243,7 +1254,8 @@ union WHV_X64_FP_REGISTER
     struct
     {
         ulong Mantissa;
-        ulong _bitfield415;
+        // Native bit field: BiasedExponent: [0-14], Sign: [15], Reserved: [16-63]
+        ulong _bitfield0;
     }
     WHV_UINT128 AsUINT128;
 }
@@ -1300,7 +1312,8 @@ struct WHV_X64_SEGMENT_REGISTER
     {
         struct
         {
-            ushort _bitfield416;
+            // Native bit field: SegmentType: [0-3], NonSystemSegment: [4], DescriptorPrivilegeLevel: [5-6], Present: [7], Reserved: [8-11], Available: [12], Long: [13], Default: [14], Granularity: [15]
+            ushort _bitfield0;
         }
         ushort Attributes;
     }
@@ -1317,7 +1330,8 @@ union WHV_X64_INTERRUPT_STATE_REGISTER
 {
     struct
     {
-        ulong _bitfield417;
+        // Native bit field: InterruptShadow: [0], NmiMasked: [1], Reserved: [2-63]
+        ulong _bitfield0;
     }
     ulong AsUINT64;
 }
@@ -1326,7 +1340,8 @@ union WHV_X64_PENDING_INTERRUPTION_REGISTER
 {
     struct
     {
-        uint _bitfield418;
+        // Native bit field: InterruptionPending: [0], InterruptionType: [1-3], DeliverErrorCode: [4], InstructionLength: [5-8], NestedEvent: [9], Reserved: [10-15], InterruptionVector: [16-31]
+        uint _bitfield0;
         uint ErrorCode;
     }
     ulong AsUINT64;
@@ -1336,7 +1351,8 @@ union WHV_X64_DELIVERABILITY_NOTIFICATIONS_REGISTER
 {
     struct
     {
-        ulong _bitfield419;
+        // Native bit field: NmiNotification: [0], InterruptNotification: [1], InterruptPriority: [2-5], Reserved: [6-47], Sint: [48-63]
+        ulong _bitfield0;
     }
     ulong AsUINT64;
 }
@@ -1345,7 +1361,8 @@ union WHV_X64_PENDING_EXCEPTION_EVENT
 {
     struct
     {
-        uint  _bitfield420;
+        // Native bit field: EventPending: [0], EventType: [1-3], Reserved0: [4-7], DeliverErrorCode: [8], Reserved1: [9-15], Vector: [16-31]
+        uint  _bitfield0;
         uint  ErrorCode;
         ulong ExceptionParameter;
     }
@@ -1356,7 +1373,8 @@ union WHV_X64_PENDING_EXT_INT_EVENT
 {
     struct
     {
-        ulong _bitfield421;
+        // Native bit field: EventPending: [0], EventType: [1-3], Reserved0: [4-7], Vector: [8-15], Reserved1: [16-63]
+        ulong _bitfield0;
         ulong Reserved2;
     }
     WHV_UINT128 AsUINT128;
@@ -1366,7 +1384,8 @@ union WHV_INTERNAL_ACTIVITY_REGISTER
 {
     struct
     {
-        ulong _bitfield422;
+        // Native bit field: StartupSuspend: [0], HaltSuspend: [1], IdleSuspend: [2], Reserved: [3-63]
+        ulong _bitfield0;
     }
     ulong AsUINT64;
 }
@@ -1376,7 +1395,8 @@ union WHV_X64_PENDING_DEBUG_EXCEPTION
     ulong AsUINT64;
     struct
     {
-        ulong _bitfield423;
+        // Native bit field: Breakpoint0: [0], Breakpoint1: [1], Breakpoint2: [2], Breakpoint3: [3], SingleStep: [4], Reserved0: [5-63]
+        ulong _bitfield0;
     }
 }
 
@@ -1412,7 +1432,8 @@ union WHV_X64_VP_EXECUTION_STATE
 {
     struct
     {
-        ushort _bitfield424;
+        // Native bit field: Cpl: [0-1], Cr0Pe: [2], Cr0Am: [3], EferLma: [4], DebugActive: [5], InterruptionPending: [6], Reserved0: [7-11], InterruptShadow: [12], Reserved1: [13-15]
+        ushort _bitfield0;
     }
     ushort AsUINT16;
 }
@@ -1420,7 +1441,8 @@ union WHV_X64_VP_EXECUTION_STATE
 struct WHV_VP_EXIT_CONTEXT
 {
     WHV_X64_VP_EXECUTION_STATE ExecutionState;
-    ubyte _bitfield425;
+    // Native bit field: InstructionLength: [0-3], Cr8: [4-7]
+    ubyte _bitfield0;
     ubyte Reserved;
     uint  Reserved2;
     WHV_X64_SEGMENT_REGISTER Cs;
@@ -1432,7 +1454,8 @@ union WHV_MEMORY_ACCESS_INFO
 {
     struct
     {
-        uint _bitfield426;
+        // Native bit field: AccessType: [0-1], GpaUnmapped: [2], GvaValid: [3], Reserved: [4-31]
+        uint _bitfield0;
     }
     uint AsUINT32;
 }
@@ -1451,7 +1474,8 @@ union WHV_X64_IO_PORT_ACCESS_INFO
 {
     struct
     {
-        uint _bitfield427;
+        // Native bit field: IsWrite: [0], AccessSize: [1-3], StringOp: [4], RepPrefix: [5], Reserved: [6-31]
+        uint _bitfield0;
     }
     uint AsUINT32;
 }
@@ -1476,7 +1500,8 @@ union WHV_X64_MSR_ACCESS_INFO
 {
     struct
     {
-        uint _bitfield428;
+        // Native bit field: IsWrite: [0], Reserved: [1-31]
+        uint _bitfield0;
     }
     uint AsUINT32;
 }
@@ -1505,7 +1530,8 @@ union WHV_VP_EXCEPTION_INFO
 {
     struct
     {
-        uint _bitfield429;
+        // Native bit field: ErrorCodeValid: [0], SoftwareException: [1], Reserved: [2-31]
+        uint _bitfield0;
     }
     uint AsUINT32;
 }
@@ -1548,7 +1574,8 @@ union WHV_X64_RDTSC_INFO
 {
     struct
     {
-        ulong _bitfield430;
+        // Native bit field: IsRdtscp: [0], Reserved: [1-63]
+        ulong _bitfield0;
     }
     ulong AsUINT64;
 }
@@ -1620,7 +1647,8 @@ struct WHV_RUN_VP_EXIT_CONTEXT
 
 struct WHV_INTERRUPT_CONTROL
 {
-    ulong _bitfield431;
+    // Native bit field: Type: [0-7], DestinationMode: [8-11], TriggerMode: [12-15], Reserved: [16-63]
+    ulong _bitfield0;
     uint  Destination;
     uint  Vector;
 }
@@ -1630,7 +1658,8 @@ struct WHV_DOORBELL_MATCH_DATA
     ulong GuestAddress;
     ulong Value;
     uint  Length;
-    uint  _bitfield432;
+    // Native bit field: MatchOnValue: [0], MatchOnLength: [1], Reserved: [2-31]
+    uint  _bitfield0;
 }
 
 struct WHV_PARTITION_MEMORY_COUNTERS
@@ -1810,7 +1839,8 @@ union WHV_EMULATOR_STATUS
 {
     struct
     {
-        uint _bitfield433;
+        // Native bit field: EmulationSuccessful: [0], InternalEmulationFailure: [1], IoPortCallbackFailed: [2], MemoryCallbackFailed: [3], TranslateGvaPageCallbackFailed: [4], TranslateGvaPageCallbackGpaIsNotAligned: [5], GetVirtualProcessorRegistersCallbackFailed: [6], SetVirtualProcessorRegistersCallbackFailed: [7], InterruptCausedIntercept: [8], GuestCannotBeFaulted: [9], Reserved: [10-31]
+        uint _bitfield0;
     }
     uint AsUINT32;
 }
@@ -1904,11 +1934,13 @@ union GUEST_OS_INFO
     ulong AsUINT64;
     struct ClosedSource
     {
-        ulong _bitfield434;
+        // Native bit field: BuildNumber: [0-15], ServiceVersion: [16-23], MinorVersion: [24-31], MajorVersion: [32-39], OsId: [40-47], VendorId: [48-63]
+        ulong _bitfield0;
     }
     struct OpenSource
     {
-        ulong _bitfield435;
+        // Native bit field: VendorSpecific1: [0-15], Version: [16-47], VendorSpecific2: [48-55], OsId: [56-62], IsOpenSource: [63]
+        ulong _bitfield1;
     }
 }
 
@@ -1935,7 +1967,8 @@ union VIRTUAL_PROCESSOR_REGISTER
                 ushort Attributes;
                 struct
                 {
-                    ushort _bitfield436;
+                    // Native bit field: SegmentType: [0-3], NonSystemSegment: [4], DescriptorPrivilegeLevel: [5-6], Present: [7], Reserved: [8-11], Available: [12], Long: [13], Default: [14], Granularity: [15]
+                    ushort _bitfield0;
                 }
             }
         }

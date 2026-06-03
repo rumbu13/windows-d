@@ -543,13 +543,13 @@ enum const(wchar)* KERNEL_LOGGER_NAMEW = "NT Kernel Logger";
 enum const(wchar)* GLOBAL_LOGGER_NAMEW = "GlobalLogger";
 enum const(wchar)* EVENT_LOGGER_NAMEW = "EventLog";
 enum const(wchar)* DIAG_LOGGER_NAMEW = "DiagLog";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* KERNEL_LOGGER_NAMEA = "NT Kernel Logger";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* GLOBAL_LOGGER_NAMEA = "GlobalLogger";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* EVENT_LOGGER_NAMEA = "EventLog";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* DIAG_LOGGER_NAMEA = "DiagLog";
 enum uint MAX_MOF_FIELDS = 0x00000010U;
 enum uint SYSTEM_EVENT_TYPE = 0x00000001U;
@@ -1591,7 +1591,8 @@ struct EVENT_TRACE_PROPERTIES_V2
     {
         struct
         {
-            uint _bitfield399;
+            // Native bit field: VersionNumber: [0-7]
+            uint _bitfield0;
         }
         uint V2Control;
     }
@@ -1601,7 +1602,8 @@ struct EVENT_TRACE_PROPERTIES_V2
     {
         struct
         {
-            uint _bitfield400;
+            // Native bit field: Wow: [0], QpcDeltaTracking: [1], LargeMdlPages: [2], ExcludeKernelStack: [3]
+            uint _bitfield1;
         }
         ulong V2Options;
     }
@@ -1966,7 +1968,8 @@ struct EVENT_HEADER_EXTENDED_DATA_ITEM
     ushort ExtType;
     struct
     {
-        ushort _bitfield401;
+        // Native bit field: Linkage: [0], Reserved2: [1-15]
+        ushort _bitfield0;
     }
     ushort DataSize;
     ulong  DataPtr;
@@ -2147,7 +2150,8 @@ struct EVENT_PROPERTY_INFO
         uint Reserved;
         struct
         {
-            uint _bitfield402;
+            // Native bit field: Tags: [0-27]
+            uint _bitfield0;
         }
     }
 }
@@ -2186,7 +2190,8 @@ struct TRACE_EVENT_INFO
         TEMPLATE_FLAGS Flags;
         struct
         {
-            uint _bitfield403;
+            // Native bit field: Reserved: [0-3], Tags: [4-31]
+            uint _bitfield0;
         }
     }
     EVENT_PROPERTY_INFO[1] EventPropertyInfoArray; // Flexible array

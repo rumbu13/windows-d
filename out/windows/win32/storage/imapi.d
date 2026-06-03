@@ -749,7 +749,7 @@ enum : uint
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     IMAPI2FS_FullVersion_STR  = "1.0",
     IMAPI2FS_FullVersion_WSTR = "1.0",
 }
@@ -857,7 +857,7 @@ enum : GUID
 
 enum GUID CLSID_SmtpCat = GUID("b23c35b7-9219-11d2-9e17-00c04fa322ba");
 enum GUID CATID_SMTP_DSN = GUID("22b55731-f5f8-4d23-bd8f-87b52371a73a");
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* SZ_PROGID_SMTPCAT = "Smtp.Cat";
 enum HRESULT IMAPI_S_PROPERTIESIGNORED = HRESULT(0x00040200);
 enum HRESULT IMAPI_S_BUFFER_TO_SMALL = HRESULT(0x00040201);

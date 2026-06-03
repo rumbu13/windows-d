@@ -42,9 +42,9 @@ enum : uint
 }
 
 enum uint SESSION_ABORTED = 0x00000006U;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* ALL_TRANSPORTS = "M\0\0\0";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* MS_NBF = "MNBF";
 
 enum : uint

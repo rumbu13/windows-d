@@ -156,13 +156,18 @@ align (1):
 struct DVD_LAYER_DESCRIPTOR
 {
 align (1):
+    // Native bit field: BookVersion: [0-3], BookType: [4-7]
     ubyte _bitfield1;
+    // Native bit field: MinimumRate: [0-3], DiskSize: [4-7]
     ubyte _bitfield2;
+    // Native bit field: LayerType: [0-3], TrackPath: [4], NumberOfLayers: [5-6], Reserved1: [7]
     ubyte _bitfield3;
+    // Native bit field: TrackDensity: [0-3], LinearDensity: [4-7]
     ubyte _bitfield4;
     uint  StartingDataSector;
     uint  EndDataSector;
     uint  EndLayerZeroSector;
+    // Native bit field: Reserved5: [0-6], BCAFlag: [7]
     ubyte _bitfield5;
 }
 
@@ -201,11 +206,13 @@ struct DVD_COPYRIGHT_MANAGEMENT_DESCRIPTOR
     {
         struct Dvdrom
         {
-            ubyte _bitfield32;
+            // Native bit field: CopyProtectionMode: [0-3], ContentGenerationManagementSystem: [4-5], CopyProtectedSector: [6], CopyProtectedMaterial: [7]
+            ubyte _bitfield0;
         }
         struct DvdRecordable_Version1
         {
-            ubyte _bitfield33;
+            // Native bit field: Reserved0001: [0-3], ContentGenerationManagementSystem: [4-5], Reserved0002: [6], CopyProtectedMaterial: [7]
+            ubyte _bitfield1;
         }
         struct Dvdram
         {
@@ -213,7 +220,8 @@ struct DVD_COPYRIGHT_MANAGEMENT_DESCRIPTOR
         }
         struct DvdRecordable
         {
-            ubyte _bitfield34;
+            // Native bit field: Reserved0004: [0-1], ADP_TY: [2-3], Reserved0005: [4-7]
+            ubyte _bitfield2;
         }
         ubyte CPR_MAI;
     }
@@ -222,7 +230,8 @@ struct DVD_COPYRIGHT_MANAGEMENT_DESCRIPTOR
 
 struct DVD_RAM_MEDIUM_STATUS
 {
-    ubyte _bitfield35;
+    // Native bit field: Reserved0: [0], PersistentWriteProtect: [1], CartridgeWriteProtect: [2], MediaSpecificWriteInhibit: [3], Reserved1: [4-5], CartridgeNotSealed: [6], MediaInCartridge: [7]
+    ubyte _bitfield0;
     ubyte DiscTypeIdentification;
     ubyte Reserved2;
     ubyte MediaSpecificWriteInhibitInformation;
@@ -237,7 +246,8 @@ struct DVD_RAM_SPARE_AREA_INFORMATION
 
 struct DVD_RAM_RECORDING_TYPE
 {
-    ubyte    _bitfield36;
+    // Native bit field: Reserved0: [0-3], RealTimeData: [4], Reserved1: [5-7]
+    ubyte    _bitfield0;
     ubyte[3] Reserved2;
 }
 
@@ -253,7 +263,8 @@ struct DVD_PRERECORDED_INFORMATION
     ubyte     DiscApplicationCode;
     ubyte     DiscPhysicalCode;
     ubyte[3]  LastAddressOfDataRecordableArea;
-    ubyte     _bitfield37;
+    // Native bit field: ExtensionCode: [0-3], PartVers1on: [4-7]
+    ubyte     _bitfield0;
     ubyte     Reserved0;
     ubyte     FieldID_2;
     ubyte     OpcSuggestedCode;
@@ -286,21 +297,24 @@ struct DVD_UNIQUE_DISC_IDENTIFIER
 
 struct HD_DVD_R_MEDIUM_STATUS
 {
-    ubyte    _bitfield38;
+    // Native bit field: ExtendedTestZone: [0], Reserved1: [1-7]
+    ubyte    _bitfield0;
     ubyte    NumberOfRemainingRMDsInRDZ;
     ubyte[2] NumberOfRemainingRMDsInCurrentRMZ;
 }
 
 struct DVD_DUAL_LAYER_RECORDING_INFORMATION
 {
-    ubyte    _bitfield39;
+    // Native bit field: Reserved0: [0-6], Layer0SectorsImmutable: [7]
+    ubyte    _bitfield0;
     ubyte[3] Reserved1;
     ubyte[4] Layer0Sectors;
 }
 
 struct DVD_DUAL_LAYER_MIDDLE_ZONE_START_ADDRESS
 {
-    ubyte    _bitfield40;
+    // Native bit field: Reserved0: [0-6], InitStatus: [7]
+    ubyte    _bitfield0;
     ubyte[3] Reserved1;
     ubyte[4] ShiftedMiddleAreaStartAddress;
 }
@@ -331,7 +345,8 @@ struct DVD_DISC_CONTROL_BLOCK_HEADER
         struct
         {
             ubyte[3] ReservedDoNotUse_UseAsByteInstead_0;
-            ubyte    _bitfield41;
+            // Native bit field: RecordingWithinTheUserDataArea: [0], ReadingDiscControlBlocks: [1], FormattingTheMedium: [2], ModificationOfThisDiscControlBlock: [3], ReservedDoNotUse_UseAsByteInstead_1: [4-7]
+            ubyte    _bitfield0;
         }
         ubyte[4] AsByte;
     }
@@ -347,7 +362,8 @@ struct DVD_DISC_CONTROL_BLOCK_WRITE_INHIBIT
         struct
         {
             ubyte[3] ReservedDoNotUse_UseAsByteInstead_0;
-            ubyte    _bitfield42;
+            // Native bit field: WriteProtectStatus: [0-1], ReservedDoNotUse_UseAsByteInstead_1: [2-6], UpdateRequiresPassword: [7]
+            ubyte    _bitfield0;
         }
         ubyte[4] AsByte;
     }
@@ -389,7 +405,8 @@ struct DVD_DISC_CONTROL_BLOCK_LIST
 
 struct DVD_WRITE_PROTECTION_STATUS
 {
-    ubyte    _bitfield43;
+    // Native bit field: SoftwareWriteProtectUntilPowerdown: [0], MediaPersistentWriteProtect: [1], CartridgeWriteProtect: [2], MediaSpecificWriteProtect: [3], Reserved0: [4-7]
+    ubyte    _bitfield0;
     ubyte[3] Reserved1;
 }
 
@@ -401,13 +418,15 @@ struct DVD_LIST_OF_RECOGNIZED_FORMAT_LAYERS
 struct DVD_LIST_OF_RECOGNIZED_FORMAT_LAYERS_TYPE_CODE
 {
     ubyte NumberOfRecognizedFormatLayers;
-    ubyte _bitfield44;
+    // Native bit field: OnlineFormatlayer: [0-1], Reserved1: [2-3], DefaultFormatLayer: [4-5], Reserved2: [6-7]
+    ubyte _bitfield0;
 }
 
 struct DVD_STRUCTURE_LIST_ENTRY
 {
     ubyte    FormatCode;
-    ubyte    _bitfield45;
+    // Native bit field: Reserved0: [0-5], Readable: [6], Sendable: [7]
+    ubyte    _bitfield0;
     ubyte[2] FormatLength;
 }
 
@@ -443,7 +462,8 @@ struct BD_DISC_WRITE_PROTECT_PAC
 
 struct DVD_RPC_KEY
 {
-    ubyte _bitfield46;
+    // Native bit field: UserResetsAvailable: [0-2], ManufacturerResetsAvailable: [3-5], TypeCode: [6-7]
+    ubyte _bitfield0;
     ubyte RegionMask;
     ubyte RpcScheme;
     ubyte Reserved02;
@@ -458,7 +478,8 @@ struct DVD_SET_RPC_KEY
 struct DVD_ASF
 {
     ubyte[3] Reserved0;
-    ubyte    _bitfield47;
+    // Native bit field: SuccessFlag: [0], Reserved1: [1-7]
+    ubyte    _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/dvdmedia/ns-dvdmedia-dvd_region

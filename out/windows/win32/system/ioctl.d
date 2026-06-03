@@ -1502,9 +1502,9 @@ enum uint TC_DEVICEDUMP_SUBSECTION_DESC_LENGTH = 0x00000010U;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     TC_PUBLIC_DATA_TYPE_ATAGP    = "ATAGPLogPages",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     TC_PUBLIC_DATA_TYPE_ATASMART = "ATASMARTPages",
 }
 
@@ -3161,7 +3161,8 @@ struct STORAGE_FEATURE_SUPPORT
     {
         struct
         {
-            ulong _bitfield437;
+            // Native bit field: StorMQMiniportsSupported: [0], Reserved: [1-63]
+            ulong _bitfield0;
         }
         ulong AsUlonglong;
     }
@@ -3398,7 +3399,8 @@ struct STORAGE_MINIPORT_DESCRIPTOR
     {
         struct
         {
-            ubyte _bitfield438;
+            // Native bit field: LogicalPoFxForDisk: [0], ForwardIo: [1], Reserved: [2-7]
+            ubyte _bitfield0;
         }
         ubyte AsBYTE;
     }
@@ -3454,7 +3456,8 @@ struct DEVICE_LB_PROVISIONING_DESCRIPTOR
 {
     uint     Version;
     uint     Size;
-    ubyte    _bitfield439;
+    // Native bit field: ThinProvisioningEnabled: [0], ThinProvisioningReadZeros: [1], AnchorSupported: [2-4], UnmapGranularityAlignmentValid: [5], GetFreeSpaceSupported: [6], MapSupported: [7]
+    ubyte    _bitfield0;
     ubyte[7] Reserved1;
     ulong    OptimalUnmapGranularity;
     ulong    UnmapGranularityAlignment;
@@ -3466,8 +3469,10 @@ struct STORAGE_LB_PROVISIONING_MAP_RESOURCES
 {
     uint     Size;
     uint     Version;
+    // Native bit field: AvailableMappingResourcesValid: [0], UsedMappingResourcesValid: [1], Reserved0: [2-7]
     ubyte    _bitfield1;
     ubyte[3] Reserved1;
+    // Native bit field: AvailableMappingResourcesScope: [0-1], UsedMappingResourcesScope: [2-3], Reserved2: [4-7]
     ubyte    _bitfield2;
     ubyte[3] Reserved3;
     ulong    AvailableMappingResources;
@@ -3542,7 +3547,8 @@ union STORAGE_SECURITY_COMPLIANCE_BITMASK
 {
     struct
     {
-        ubyte _bitfield440;
+        // Native bit field: FIPS: [0], Reserved: [1-7]
+        ubyte _bitfield0;
     }
     ubyte AsUchar;
 }
@@ -3551,7 +3557,8 @@ union STORAGE_CRYPTO_KEY_TYPE
 {
     struct
     {
-        ubyte _bitfield441;
+        // Native bit field: DirectKey: [0], PlatformWrappedKey: [1], PlutonWrappedKey: [2], Reserved: [3-7]
+        ubyte _bitfield0;
     }
     ubyte AsUchar;
 }
@@ -3648,7 +3655,8 @@ union STORAGE_PROTOCOL_DATA_SUBVALUE_GET_LOG_PAGE
 {
     struct
     {
-        uint _bitfield442;
+        // Native bit field: RetainAsynEvent: [0], LogSpecificField: [1-4], Reserved0: [5-7], UUIDIndex: [8-14], Reserved: [15-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3953,7 +3961,8 @@ struct STORAGE_HW_ENDURANCE_INFO
     uint      GroupId;
     struct Flags
     {
-        uint _bitfield443;
+        // Native bit field: Shared: [0], Reserved: [1-31]
+        uint _bitfield0;
     }
     uint      LifePercentage;
     ubyte[16] BytesReadCount;
@@ -4266,7 +4275,8 @@ struct DEVICE_STORAGE_RANGE_ATTRIBUTES
         uint AllFlags;
         struct
         {
-            uint _bitfield444;
+            // Native bit field: IsRangeBad: [0]
+            uint _bitfield0;
         }
     }
     uint  Reserved;
@@ -4433,7 +4443,8 @@ struct STORAGE_REINITIALIZE_MEDIA
     uint TimeoutInSeconds;
     struct SanitizeOption
     {
-        uint _bitfield445;
+        // Native bit field: SanitizeMethod: [0-3], DisallowUnrestrictedSanitizeExit: [4], Reserved: [5-31]
+        uint _bitfield0;
     }
 }
 
@@ -4476,12 +4487,15 @@ struct PERSISTENT_RESERVE_COMMAND
     {
         struct PR_IN
         {
-            ubyte  _bitfield446;
+            // Native bit field: ServiceAction: [0-4], Reserved1: [5-7]
+            ubyte  _bitfield0;
             ushort AllocationLength;
         }
         struct PR_OUT
         {
+            // Native bit field: ServiceAction: [0-4], Reserved1: [5-7]
             ubyte    _bitfield1;
+            // Native bit field: Type: [0-3], Scope: [4-7]
             ubyte    _bitfield2;
             ubyte[1] ParameterList; // Flexible array
         }
@@ -4602,7 +4616,8 @@ struct STORAGE_IDLE_POWER
 {
     uint Version;
     uint Size;
-    uint _bitfield447;
+    // Native bit field: WakeCapableHint: [0], D3ColdSupported: [1], Reserved: [2-31]
+    uint _bitfield0;
     uint D3IdleTimeout;
 }
 
@@ -4680,7 +4695,8 @@ struct STORAGE_HW_FIRMWARE_SLOT_INFO
     uint      Version;
     uint      Size;
     ubyte     SlotNumber;
-    ubyte     _bitfield448;
+    // Native bit field: ReadOnly: [0], Reserved0: [1-7]
+    ubyte     _bitfield0;
     ubyte[6]  Reserved1;
     ubyte[16] Revision;
 }
@@ -4690,7 +4706,8 @@ struct STORAGE_HW_FIRMWARE_INFO
 {
     uint     Version;
     uint     Size;
-    ubyte    _bitfield449;
+    // Native bit field: SupportUpgrade: [0], Reserved0: [1-7]
+    ubyte    _bitfield0;
     ubyte    SlotCount;
     ubyte    ActiveSlot;
     ubyte    PendingActivateSlot;
@@ -4849,7 +4866,8 @@ struct SCM_BUS_RUNTIME_FW_ACTIVATION_INFO
     SCM_BUS_FIRMWARE_ACTIVATION_STATE FirmwareActivationState;
     struct FirmwareActivationCapability
     {
-        uint _bitfield450;
+        // Native bit field: FwManagedIoQuiesceFwActivationSupported: [0], OsManagedIoQuiesceFwActivationSupported: [1], WarmResetBasedFwActivationSupported: [2], Reserved: [3-31]
+        uint _bitfield0;
     }
     ulong   EstimatedFirmwareActivationTimeInUSecs;
     ulong   EstimatedProcessorAccessQuiesceTimeInUSecs;
@@ -4863,7 +4881,8 @@ struct SCM_BUS_DEDICATED_MEMORY_DEVICE_INFO
     uint  DeviceNumber;
     struct Flags
     {
-        uint _bitfield451;
+        // Native bit field: ForcedByRegistry: [0], Initialized: [1], Reserved: [2-31]
+        uint _bitfield0;
     }
     ulong DeviceSize;
 }
@@ -4986,7 +5005,8 @@ struct SCM_PD_FIRMWARE_SLOT_INFO
     uint      Version;
     uint      Size;
     ubyte     SlotNumber;
-    ubyte     _bitfield452;
+    // Native bit field: ReadOnly: [0], Reserved0: [1-7]
+    ubyte     _bitfield0;
     ubyte[6]  Reserved1;
     ubyte[32] Revision;
 }
@@ -5094,7 +5114,8 @@ struct SCM_PD_REINITIALIZE_MEDIA_INPUT
     uint Size;
     struct Options
     {
-        uint _bitfield453;
+        // Native bit field: Overwrite: [0]
+        uint _bitfield0;
     }
 }
 

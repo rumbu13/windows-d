@@ -101,7 +101,8 @@ struct TBS_CONTEXT_PARAMS2
     {
         struct
         {
-            uint _bitfield526;
+            // Native bit field: requestRaw: [0], includeTpm12: [1], includeTpm20: [2]
+            uint _bitfield0;
         }
         uint asUINT32;
     }

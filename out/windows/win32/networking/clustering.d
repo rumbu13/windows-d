@@ -2669,10 +2669,10 @@ enum : uint
     CLUSCTL_RESOURCE_TYPE_STORAGE_GET_AVAILABLE_DISKS_EX2_FLAG_INCLUDE_NON_SHARED_DISKS = 0x00000004U,
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* STARTUP_ROUTINE = "Startup";
 enum uint CLRES_VERSION_V1_00 = 0x00000100U;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* STARTUP_EX_ROUTINE = "StartupEx";
 
 enum : uint

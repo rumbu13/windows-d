@@ -4004,7 +4004,7 @@ enum : uint
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     WC_HEADERA = "SysHeader32",
     WC_HEADERW = "SysHeader32",
     WC_HEADER  = "SysHeader32",
@@ -4245,7 +4245,7 @@ enum : uint
 enum : const(wchar)*
 {
     TOOLBARCLASSNAMEW = "ToolbarWindow32",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     TOOLBARCLASSNAMEA = "ToolbarWindow32",
     TOOLBARCLASSNAME  = "ToolbarWindow32",
 }
@@ -4832,7 +4832,7 @@ enum uint TBN_GETBUTTONINFO = 0xfffffd30U;
 enum : const(wchar)*
 {
     REBARCLASSNAMEW = "ReBarWindow32",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     REBARCLASSNAMEA = "ReBarWindow32",
     REBARCLASSNAME  = "ReBarWindow32",
 }
@@ -5075,7 +5075,7 @@ enum : uint
 enum : const(wchar)*
 {
     TOOLTIPS_CLASSW = "tooltips_class32",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     TOOLTIPS_CLASSA = "tooltips_class32",
     TOOLTIPS_CLASS  = "tooltips_class32",
 }
@@ -5335,7 +5335,7 @@ enum uint SBT_TOOLTIPS = 0x00000800U;
 enum : const(wchar)*
 {
     STATUSCLASSNAMEW = "msctls_statusbar32",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     STATUSCLASSNAMEA = "msctls_statusbar32",
     STATUSCLASSNAME  = "msctls_statusbar32",
 }
@@ -5423,7 +5423,7 @@ enum uint SB_SIMPLEID = 0x000000ffU;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     TRACKBAR_CLASSA = "msctls_trackbar32",
     TRACKBAR_CLASSW = "msctls_trackbar32",
     TRACKBAR_CLASS  = "msctls_trackbar32",
@@ -5611,7 +5611,7 @@ enum const(wchar)* DRAGLISTMSGSTRING = "commctrl_DragListMsg";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     UPDOWN_CLASSA = "msctls_updown32",
     UPDOWN_CLASSW = "msctls_updown32",
     UPDOWN_CLASS  = "msctls_updown32",
@@ -5678,7 +5678,7 @@ enum uint UDN_DELTAPOS = 0xfffffd2eU;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     PROGRESS_CLASSA = "msctls_progress32",
     PROGRESS_CLASSW = "msctls_progress32",
     PROGRESS_CLASS  = "msctls_progress32",
@@ -5779,7 +5779,7 @@ enum uint HKM_SETRULES = 0x00000403U;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     HOTKEY_CLASSA = "msctls_hotkey32",
     HOTKEY_CLASSW = "msctls_hotkey32",
     HOTKEY_CLASS  = "msctls_hotkey32",
@@ -5828,7 +5828,7 @@ enum : uint
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     WC_LISTVIEWA = "SysListView32",
     WC_LISTVIEWW = "SysListView32",
     WC_LISTVIEW  = "SysListView32",
@@ -6621,7 +6621,7 @@ enum uint LVN_GETEMPTYMARKUP = 0xffffff45U;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     WC_TREEVIEWA = "SysTreeView32",
     WC_TREEVIEWW = "SysTreeView32",
     WC_TREEVIEW  = "SysTreeView32",
@@ -7027,7 +7027,7 @@ enum : uint
 enum : const(wchar)*
 {
     WC_COMBOBOXEXW = "ComboBoxEx32",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     WC_COMBOBOXEXA = "ComboBoxEx32",
     WC_COMBOBOXEX  = "ComboBoxEx32",
 }
@@ -7151,7 +7151,7 @@ enum uint CBEMAXSTRLEN = 0x00000104U;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     WC_TABCONTROLA = "SysTabControl32",
     WC_TABCONTROLW = "SysTabControl32",
     WC_TABCONTROL  = "SysTabControl32",
@@ -7314,7 +7314,7 @@ enum uint TCN_FOCUSCHANGE = 0xfffffdd6U;
 enum : const(wchar)*
 {
     ANIMATE_CLASSW = "SysAnimate32",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ANIMATE_CLASSA = "SysAnimate32",
     ANIMATE_CLASS  = "SysAnimate32",
 }
@@ -7351,7 +7351,7 @@ enum : uint
 enum : const(wchar)*
 {
     MONTHCAL_CLASSW = "SysMonthCal32",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     MONTHCAL_CLASSA = "SysMonthCal32",
     MONTHCAL_CLASS  = "SysMonthCal32",
 }
@@ -7476,7 +7476,7 @@ enum uint GMR_DAYSTATE = 0x00000001U;
 enum : const(wchar)*
 {
     DATETIMEPICK_CLASSW = "SysDateTimePick32",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     DATETIMEPICK_CLASSA = "SysDateTimePick32",
     DATETIMEPICK_CLASS  = "SysDateTimePick32",
 }
@@ -7614,7 +7614,7 @@ enum uint IPM_ISBLANK = 0x00000469U;
 enum : const(wchar)*
 {
     WC_IPADDRESSW = "SysIPAddress32",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     WC_IPADDRESSA = "SysIPAddress32",
     WC_IPADDRESS  = "SysIPAddress32",
 }
@@ -7625,7 +7625,7 @@ enum uint IPN_FIELDCHANGED = 0xfffffca4U;
 enum : const(wchar)*
 {
     WC_PAGESCROLLERW = "SysPager",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     WC_PAGESCROLLERA = "SysPager",
     WC_PAGESCROLLER  = "SysPager",
 }
@@ -7688,7 +7688,7 @@ enum uint PGN_HOTITEMCHANGE = 0xfffffc79U;
 enum : const(wchar)*
 {
     WC_NATIVEFONTCTLW = "NativeFontCtl",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     WC_NATIVEFONTCTLA = "NativeFontCtl",
     WC_NATIVEFONTCTL  = "NativeFontCtl",
 }
@@ -7710,7 +7710,7 @@ enum : uint
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     WC_BUTTONA = "Button",
     WC_BUTTONW = "Button",
     WC_BUTTON  = "Button",
@@ -7780,7 +7780,7 @@ enum uint BCN_DROPDOWN = 0xfffffb20U;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     WC_STATICA = "Static",
     WC_STATICW = "Static",
     WC_STATIC  = "Static",
@@ -7788,7 +7788,7 @@ enum : const(wchar)*
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     WC_EDITA = "Edit",
     WC_EDITW = "Edit",
     WC_EDIT  = "Edit",
@@ -7863,7 +7863,7 @@ enum uint EN_SEARCHWEB = 0xfffffa10U;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     WC_LISTBOXA = "ListBox",
     WC_LISTBOXW = "ListBox",
     WC_LISTBOX  = "ListBox",
@@ -7871,7 +7871,7 @@ enum : const(wchar)*
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     WC_COMBOBOXA = "ComboBox",
     WC_COMBOBOXW = "ComboBox",
     WC_COMBOBOX  = "ComboBox",
@@ -7888,7 +7888,7 @@ enum uint CB_GETCUEBANNER = 0x00001704U;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     WC_SCROLLBARA = "ScrollBar",
     WC_SCROLLBARW = "ScrollBar",
     WC_SCROLLBAR  = "ScrollBar",

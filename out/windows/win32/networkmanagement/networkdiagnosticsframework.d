@@ -246,7 +246,7 @@ struct RepairInfo
     uint         flags;
     REPAIR_SCOPE scope_;
     REPAIR_RISK  risk;
-    UiInfo       UiInfo135;
+    UiInfo       UiInfo_;
     int          rootCauseIndex;
 }
 

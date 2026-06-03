@@ -2018,7 +2018,7 @@ enum : uint
     CRYPT_XML_ALGORITHM_INFO_FIND_BY_CNG_SIGN_ALGID = 0x00000004U,
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szFORCE_KEY_PROTECTION = "ForceKeyProtection";
 
 enum : uint
@@ -3111,7 +3111,7 @@ enum : uint
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     MS_DEF_PROV_A = "Microsoft Base Cryptographic Provider v1.0",
     MS_DEF_PROV_W = "Microsoft Base Cryptographic Provider v1.0",
     MS_DEF_PROV   = "Microsoft Base Cryptographic Provider v1.0",
@@ -3119,7 +3119,7 @@ enum : const(wchar)*
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     MS_ENHANCED_PROV_A = "Microsoft Enhanced Cryptographic Provider v1.0",
     MS_ENHANCED_PROV_W = "Microsoft Enhanced Cryptographic Provider v1.0",
     MS_ENHANCED_PROV   = "Microsoft Enhanced Cryptographic Provider v1.0",
@@ -3127,7 +3127,7 @@ enum : const(wchar)*
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     MS_STRONG_PROV_A = "Microsoft Strong Cryptographic Provider",
     MS_STRONG_PROV_W = "Microsoft Strong Cryptographic Provider",
     MS_STRONG_PROV   = "Microsoft Strong Cryptographic Provider",
@@ -3135,11 +3135,11 @@ enum : const(wchar)*
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     MS_DEF_RSA_SIG_PROV_A      = "Microsoft RSA Signature Cryptographic Provider",
     MS_DEF_RSA_SIG_PROV_W      = "Microsoft RSA Signature Cryptographic Provider",
     MS_DEF_RSA_SIG_PROV        = "Microsoft RSA Signature Cryptographic Provider",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     MS_DEF_RSA_SCHANNEL_PROV_A = "Microsoft RSA SChannel Cryptographic Provider",
     MS_DEF_RSA_SCHANNEL_PROV_W = "Microsoft RSA SChannel Cryptographic Provider",
     MS_DEF_RSA_SCHANNEL_PROV   = "Microsoft RSA SChannel Cryptographic Provider",
@@ -3147,11 +3147,11 @@ enum : const(wchar)*
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     MS_DEF_DSS_PROV_A    = "Microsoft Base DSS Cryptographic Provider",
     MS_DEF_DSS_PROV_W    = "Microsoft Base DSS Cryptographic Provider",
     MS_DEF_DSS_PROV      = "Microsoft Base DSS Cryptographic Provider",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     MS_DEF_DSS_DH_PROV_A = "Microsoft Base DSS and Diffie-Hellman Cryptographic Provider",
     MS_DEF_DSS_DH_PROV_W = "Microsoft Base DSS and Diffie-Hellman Cryptographic Provider",
     MS_DEF_DSS_DH_PROV   = "Microsoft Base DSS and Diffie-Hellman Cryptographic Provider",
@@ -3159,7 +3159,7 @@ enum : const(wchar)*
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     MS_ENH_DSS_DH_PROV_A = "Microsoft Enhanced DSS and Diffie-Hellman Cryptographic Provider",
     MS_ENH_DSS_DH_PROV_W = "Microsoft Enhanced DSS and Diffie-Hellman Cryptographic Provider",
     MS_ENH_DSS_DH_PROV   = "Microsoft Enhanced DSS and Diffie-Hellman Cryptographic Provider",
@@ -3167,7 +3167,7 @@ enum : const(wchar)*
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     MS_DEF_DH_SCHANNEL_PROV_A = "Microsoft DH SChannel Cryptographic Provider",
     MS_DEF_DH_SCHANNEL_PROV_W = "Microsoft DH SChannel Cryptographic Provider",
     MS_DEF_DH_SCHANNEL_PROV   = "Microsoft DH SChannel Cryptographic Provider",
@@ -3175,7 +3175,7 @@ enum : const(wchar)*
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     MS_SCARD_PROV_A = "Microsoft Base Smart Card Crypto Provider",
     MS_SCARD_PROV_W = "Microsoft Base Smart Card Crypto Provider",
     MS_SCARD_PROV   = "Microsoft Base Smart Card Crypto Provider",
@@ -3183,10 +3183,10 @@ enum : const(wchar)*
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     MS_ENH_RSA_AES_PROV_A    = "Microsoft Enhanced RSA and AES Cryptographic Provider",
     MS_ENH_RSA_AES_PROV_W    = "Microsoft Enhanced RSA and AES Cryptographic Provider",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     MS_ENH_RSA_AES_PROV_XP_A = "Microsoft Enhanced RSA and AES Cryptographic Provider (Prototype)",
     MS_ENH_RSA_AES_PROV_XP_W = "Microsoft Enhanced RSA and AES Cryptographic Provider (Prototype)",
     MS_ENH_RSA_AES_PROV_XP   = "Microsoft Enhanced RSA and AES Cryptographic Provider (Prototype)",
@@ -3198,27 +3198,27 @@ enum uint MAXUIDLEN = 0x00000040U;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     EXPO_OFFLOAD_REG_VALUE = "ExpoOffload",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     EXPO_OFFLOAD_FUNC_NAME = "OffloadModExpo",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szKEY_CRYPTOAPI_PRIVATE_KEY_OPTIONS = "Software\\Policies\\Microsoft\\Cryptography";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szKEY_CACHE_ENABLED = "CachePrivateKeys",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szKEY_CACHE_SECONDS = "PrivateKeyLifetimeSeconds",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szPRIV_KEY_CACHE_MAX_ITEMS = "PrivKeyCacheMaxItems";
 enum uint cPRIV_KEY_CACHE_MAX_ITEMS_DEFAULT = 0x00000014U;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szPRIV_KEY_CACHE_PURGE_INTERVAL_SECONDS = "PrivKeyCachePurgeIntervalSeconds";
 enum uint cPRIV_KEY_CACHE_PURGE_INTERVAL_SECONDS_DEFAULT = 0x00015180U;
 enum uint CUR_BLOB_VERSION = 0x00000002U;
@@ -3233,691 +3233,691 @@ enum uint INTERNATIONAL_USAGE = 0x00000001U;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA         = "1.2.840.113549",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS        = "1.2.840.113549.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_HASH    = "1.2.840.113549.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_ENCRYPT = "1.2.840.113549.3",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_1                = "1.2.840.113549.1.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_2                = "1.2.840.113549.1.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_3                = "1.2.840.113549.1.3",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_4                = "1.2.840.113549.1.4",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_5                = "1.2.840.113549.1.5",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_6                = "1.2.840.113549.1.6",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_7                = "1.2.840.113549.1.7",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_8                = "1.2.840.113549.1.8",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_9                = "1.2.840.113549.1.9",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_10               = "1.2.840.113549.1.10",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_12               = "1.2.840.113549.1.12",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_RSA               = "1.2.840.113549.1.1.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_MD2RSA            = "1.2.840.113549.1.1.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_MD4RSA            = "1.2.840.113549.1.1.3",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_MD5RSA            = "1.2.840.113549.1.1.4",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_SHA1RSA           = "1.2.840.113549.1.1.5",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_SETOAEP_RSA       = "1.2.840.113549.1.1.6",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSAES_OAEP            = "1.2.840.113549.1.1.7",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_MGF1              = "1.2.840.113549.1.1.8",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_PSPECIFIED        = "1.2.840.113549.1.1.9",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_SSA_PSS           = "1.2.840.113549.1.1.10",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_SHA256RSA         = "1.2.840.113549.1.1.11",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_SHA384RSA         = "1.2.840.113549.1.1.12",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_SHA512RSA         = "1.2.840.113549.1.1.13",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_DH                = "1.2.840.113549.1.3.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_data              = "1.2.840.113549.1.7.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_signedData        = "1.2.840.113549.1.7.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_envelopedData     = "1.2.840.113549.1.7.3",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_signEnvData       = "1.2.840.113549.1.7.4",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_digestedData      = "1.2.840.113549.1.7.5",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_hashedData        = "1.2.840.113549.1.7.5",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_encryptedData     = "1.2.840.113549.1.7.6",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_emailAddr         = "1.2.840.113549.1.9.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_unstructName      = "1.2.840.113549.1.9.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_contentType       = "1.2.840.113549.1.9.3",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_messageDigest     = "1.2.840.113549.1.9.4",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_signingTime       = "1.2.840.113549.1.9.5",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_counterSign       = "1.2.840.113549.1.9.6",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_challengePwd      = "1.2.840.113549.1.9.7",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_unstructAddr      = "1.2.840.113549.1.9.8",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_extCertAttrs      = "1.2.840.113549.1.9.9",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_certExtensions    = "1.2.840.113549.1.9.14",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_SMIMECapabilities = "1.2.840.113549.1.9.15",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_RSA_preferSignedData = "1.2.840.113549.1.9.15.1";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_TIMESTAMP_TOKEN = "1.2.840.113549.1.9.16.1.4";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RFC3161_counterSign    = "1.3.6.1.4.1.311.3.3.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RFC3161v21_counterSign = "1.3.6.1.4.1.311.3.3.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RFC3161v21_thumbprints = "1.3.6.1.4.1.311.3.3.3",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_SMIMEalg            = "1.2.840.113549.1.9.16.3",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_SMIMEalgESDH        = "1.2.840.113549.1.9.16.3.5",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_SMIMEalgCMS3DESwrap = "1.2.840.113549.1.9.16.3.6",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_SMIMEalgCMSRC2wrap  = "1.2.840.113549.1.9.16.3.7",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_MD2          = "1.2.840.113549.2.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_MD4          = "1.2.840.113549.2.4",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_MD5          = "1.2.840.113549.2.5",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_RC2CBC       = "1.2.840.113549.3.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_RC4          = "1.2.840.113549.3.4",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_DES_EDE3_CBC = "1.2.840.113549.3.7",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RSA_RC5_CBCPad   = "1.2.840.113549.3.9",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ANSI_X942    = "1.2.840.10046",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ANSI_X942_DH = "1.2.840.10046.2.1",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_X957         = "1.2.840.10040",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_X957_DSA     = "1.2.840.10040.4.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_X957_SHA1DSA = "1.2.840.10040.4.3",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_PUBLIC_KEY            = "1.2.840.10045.2.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_P256            = "1.2.840.10045.3.1.7",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_P384            = "1.3.132.0.34",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_P521            = "1.3.132.0.35",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_BRAINPOOLP160R1 = "1.3.36.3.3.2.8.1.1.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_BRAINPOOLP160T1 = "1.3.36.3.3.2.8.1.1.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_BRAINPOOLP192R1 = "1.3.36.3.3.2.8.1.1.3",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_BRAINPOOLP192T1 = "1.3.36.3.3.2.8.1.1.4",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_BRAINPOOLP224R1 = "1.3.36.3.3.2.8.1.1.5",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_BRAINPOOLP224T1 = "1.3.36.3.3.2.8.1.1.6",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_BRAINPOOLP256R1 = "1.3.36.3.3.2.8.1.1.7",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_BRAINPOOLP256T1 = "1.3.36.3.3.2.8.1.1.8",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_BRAINPOOLP320R1 = "1.3.36.3.3.2.8.1.1.9",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_BRAINPOOLP320T1 = "1.3.36.3.3.2.8.1.1.10",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_BRAINPOOLP384R1 = "1.3.36.3.3.2.8.1.1.11",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_BRAINPOOLP384T1 = "1.3.36.3.3.2.8.1.1.12",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_BRAINPOOLP512R1 = "1.3.36.3.3.2.8.1.1.13",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_BRAINPOOLP512T1 = "1.3.36.3.3.2.8.1.1.14",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_EC192WAPI       = "1.2.156.11235.1.1.2.1",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_CN_ECDSA_SHA256 = "1.2.156.11235.1.1.1";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_NISTP192   = "1.2.840.10045.3.1.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_NISTP224   = "1.3.132.0.33",
     szOID_ECC_CURVE_NISTP256   = "1.2.840.10045.3.1.7",
     szOID_ECC_CURVE_NISTP384   = "1.3.132.0.34",
     szOID_ECC_CURVE_NISTP521   = "1.3.132.0.35",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_SECP160K1  = "1.3.132.0.9",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_SECP160R1  = "1.3.132.0.8",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_SECP160R2  = "1.3.132.0.30",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_SECP192K1  = "1.3.132.0.31",
     szOID_ECC_CURVE_SECP192R1  = "1.2.840.10045.3.1.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_SECP224K1  = "1.3.132.0.32",
     szOID_ECC_CURVE_SECP224R1  = "1.3.132.0.33",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_SECP256K1  = "1.3.132.0.10",
     szOID_ECC_CURVE_SECP256R1  = "1.2.840.10045.3.1.7",
     szOID_ECC_CURVE_SECP384R1  = "1.3.132.0.34",
     szOID_ECC_CURVE_SECP521R1  = "1.3.132.0.35",
     szOID_ECC_CURVE_WTLS7      = "1.3.132.0.30",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_WTLS9      = "2.23.43.1.4.9",
     szOID_ECC_CURVE_WTLS12     = "1.3.132.0.33",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_X962P192V1 = "1.2.840.10045.3.1.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_X962P192V2 = "1.2.840.10045.3.1.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_X962P192V3 = "1.2.840.10045.3.1.3",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_X962P239V1 = "1.2.840.10045.3.1.4",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_X962P239V2 = "1.2.840.10045.3.1.5",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECC_CURVE_X962P239V3 = "1.2.840.10045.3.1.6",
     szOID_ECC_CURVE_X962P256V1 = "1.2.840.10045.3.1.7",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECDSA_SHA1      = "1.2.840.10045.4.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECDSA_SPECIFIED = "1.2.840.10045.4.3",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECDSA_SHA256    = "1.2.840.10045.4.3.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECDSA_SHA384    = "1.2.840.10045.4.3.3",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ECDSA_SHA512    = "1.2.840.10045.4.3.4",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_AES128_CBC  = "2.16.840.1.101.3.4.1.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_AES192_CBC  = "2.16.840.1.101.3.4.1.22",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_AES256_CBC  = "2.16.840.1.101.3.4.1.42",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_AES128_WRAP = "2.16.840.1.101.3.4.1.5",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_AES192_WRAP = "2.16.840.1.101.3.4.1.25",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_AES256_WRAP = "2.16.840.1.101.3.4.1.45",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_DH_SINGLE_PASS_STDDH_SHA1_KDF   = "1.3.133.16.840.63.0.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_DH_SINGLE_PASS_STDDH_SHA256_KDF = "1.3.132.1.11.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_DH_SINGLE_PASS_STDDH_SHA384_KDF = "1.3.132.1.11.2",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_DS         = "2.5",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_DSALG      = "2.5.8",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_DSALG_CRPT = "2.5.8.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_DSALG_HASH = "2.5.8.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_DSALG_SIGN = "2.5.8.3",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_DSALG_RSA  = "2.5.8.1.1",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIW                = "1.3.14",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWSEC             = "1.3.14.3.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWSEC_md4RSA      = "1.3.14.3.2.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWSEC_md5RSA      = "1.3.14.3.2.3",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWSEC_md4RSA2     = "1.3.14.3.2.4",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWSEC_desECB      = "1.3.14.3.2.6",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWSEC_desCBC      = "1.3.14.3.2.7",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWSEC_desOFB      = "1.3.14.3.2.8",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWSEC_desCFB      = "1.3.14.3.2.9",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWSEC_desMAC      = "1.3.14.3.2.10",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWSEC_rsaSign     = "1.3.14.3.2.11",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWSEC_dsa         = "1.3.14.3.2.12",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWSEC_shaDSA      = "1.3.14.3.2.13",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWSEC_mdc2RSA     = "1.3.14.3.2.14",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWSEC_shaRSA      = "1.3.14.3.2.15",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWSEC_dhCommMod   = "1.3.14.3.2.16",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWSEC_desEDE      = "1.3.14.3.2.17",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWSEC_sha         = "1.3.14.3.2.18",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWSEC_mdc2        = "1.3.14.3.2.19",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWSEC_dsaComm     = "1.3.14.3.2.20",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWSEC_dsaCommSHA  = "1.3.14.3.2.21",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWSEC_rsaXchg     = "1.3.14.3.2.22",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWSEC_keyHashSeal = "1.3.14.3.2.23",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWSEC_md2RSASign  = "1.3.14.3.2.24",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWSEC_md5RSASign  = "1.3.14.3.2.25",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWSEC_sha1        = "1.3.14.3.2.26",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWSEC_dsaSHA1     = "1.3.14.3.2.27",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWSEC_dsaCommSHA1 = "1.3.14.3.2.28",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWSEC_sha1RSASign = "1.3.14.3.2.29",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWDIR        = "1.3.14.7.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWDIR_CRPT   = "1.3.14.7.2.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWDIR_HASH   = "1.3.14.7.2.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWDIR_SIGN   = "1.3.14.7.2.3",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWDIR_md2    = "1.3.14.7.2.2.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OIWDIR_md2RSA = "1.3.14.7.2.3.1",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_INFOSEC                       = "2.16.840.1.101.2.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_INFOSEC_sdnsSignature         = "2.16.840.1.101.2.1.1.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_INFOSEC_mosaicSignature       = "2.16.840.1.101.2.1.1.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_INFOSEC_sdnsConfidentiality   = "2.16.840.1.101.2.1.1.3",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_INFOSEC_mosaicConfidentiality = "2.16.840.1.101.2.1.1.4",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_INFOSEC_sdnsIntegrity         = "2.16.840.1.101.2.1.1.5",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_INFOSEC_mosaicIntegrity       = "2.16.840.1.101.2.1.1.6",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_INFOSEC_sdnsTokenProtection   = "2.16.840.1.101.2.1.1.7",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_INFOSEC_mosaicTokenProtection = "2.16.840.1.101.2.1.1.8",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_INFOSEC_sdnsKeyManagement     = "2.16.840.1.101.2.1.1.9",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_INFOSEC_mosaicKeyManagement   = "2.16.840.1.101.2.1.1.10",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_INFOSEC_sdnsKMandSig          = "2.16.840.1.101.2.1.1.11",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_INFOSEC_mosaicKMandSig        = "2.16.840.1.101.2.1.1.12",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_INFOSEC_SuiteASignature       = "2.16.840.1.101.2.1.1.13",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_INFOSEC_SuiteAConfidentiality = "2.16.840.1.101.2.1.1.14",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_INFOSEC_SuiteAIntegrity       = "2.16.840.1.101.2.1.1.15",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_INFOSEC_SuiteATokenProtection = "2.16.840.1.101.2.1.1.16",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_INFOSEC_SuiteAKeyManagement   = "2.16.840.1.101.2.1.1.17",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_INFOSEC_SuiteAKMandSig        = "2.16.840.1.101.2.1.1.18",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_INFOSEC_mosaicUpdatedSig      = "2.16.840.1.101.2.1.1.19",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_INFOSEC_mosaicKMandUpdSig     = "2.16.840.1.101.2.1.1.20",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_INFOSEC_mosaicUpdatedInteg    = "2.16.840.1.101.2.1.1.21",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_sha256                     = "2.16.840.1.101.3.4.2.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_sha384                     = "2.16.840.1.101.3.4.2.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_sha512                     = "2.16.840.1.101.3.4.2.3",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_shake128                   = "2.16.840.1.101.3.4.2.11",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_shake256                   = "2.16.840.1.101.3.4.2.12",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_ml_dsa_44                  = "2.16.840.1.101.3.4.3.17",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_ml_dsa_65                  = "2.16.840.1.101.3.4.3.18",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_ml_dsa_87                  = "2.16.840.1.101.3.4.3.19",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_hash_ml_dsa_44_with_sha512 = "2.16.840.1.101.3.4.3.32",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_hash_ml_dsa_65_with_sha512 = "2.16.840.1.101.3.4.3.33",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_hash_ml_dsa_87_with_sha512 = "2.16.840.1.101.3.4.3.34",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_ml_kem_512         = "2.16.840.1.101.3.4.4.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_ml_kem_768         = "2.16.840.1.101.3.4.4.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_ml_kem_1024        = "2.16.840.1.101.3.4.4.3",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_slh_dsa_sha2_128s  = "2.16.840.1.101.3.4.3.20",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_slh_dsa_sha2_128f  = "2.16.840.1.101.3.4.3.21",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_slh_dsa_sha2_192s  = "2.16.840.1.101.3.4.3.22",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_slh_dsa_sha2_192f  = "2.16.840.1.101.3.4.3.23",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_slh_dsa_sha2_256s  = "2.16.840.1.101.3.4.3.24",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_slh_dsa_sha2_256f  = "2.16.840.1.101.3.4.3.25",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_slh_dsa_shake_128s = "2.16.840.1.101.3.4.3.26",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_slh_dsa_shake_128f = "2.16.840.1.101.3.4.3.27",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_slh_dsa_shake_192s = "2.16.840.1.101.3.4.3.28",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_slh_dsa_shake_192f = "2.16.840.1.101.3.4.3.29",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_slh_dsa_shake_256s = "2.16.840.1.101.3.4.3.30",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_slh_dsa_shake_256f = "2.16.840.1.101.3.4.3.31",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_hash_slh_dsa_sha2_128s_with_sha256    = "2.16.840.1.101.3.4.3.35",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_hash_slh_dsa_sha2_128f_with_sha256    = "2.16.840.1.101.3.4.3.36",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_hash_slh_dsa_sha2_192s_with_sha512    = "2.16.840.1.101.3.4.3.37",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_hash_slh_dsa_sha2_192f_with_sha512    = "2.16.840.1.101.3.4.3.38",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_hash_slh_dsa_sha2_256s_with_sha512    = "2.16.840.1.101.3.4.3.39",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_hash_slh_dsa_sha2_256f_with_sha512    = "2.16.840.1.101.3.4.3.40",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_hash_slh_dsa_shake_128s_with_shake128 = "2.16.840.1.101.3.4.3.41",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_hash_slh_dsa_shake_128f_with_shake128 = "2.16.840.1.101.3.4.3.42",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_hash_slh_dsa_shake_192s_with_shake256 = "2.16.840.1.101.3.4.3.43",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_hash_slh_dsa_shake_192f_with_shake256 = "2.16.840.1.101.3.4.3.44",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_hash_slh_dsa_shake_256s_with_shake256 = "2.16.840.1.101.3.4.3.45",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NIST_hash_slh_dsa_shake_256f_with_shake256 = "2.16.840.1.101.3.4.3.46",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_COMMON_NAME = "2.5.4.3";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_SUR_NAME             = "2.5.4.4",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_DEVICE_SERIAL_NUMBER = "2.5.4.5",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_COUNTRY_NAME = "2.5.4.6";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_LOCALITY_NAME = "2.5.4.7";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_STATE_OR_PROVINCE_NAME = "2.5.4.8";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_STREET_ADDRESS = "2.5.4.9";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ORGANIZATION_NAME        = "2.5.4.10",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ORGANIZATIONAL_UNIT_NAME = "2.5.4.11",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_TITLE       = "2.5.4.12",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_DESCRIPTION = "2.5.4.13",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_SEARCH_GUIDE = "2.5.4.14";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_BUSINESS_CATEGORY = "2.5.4.15";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_POSTAL_ADDRESS  = "2.5.4.16",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_POSTAL_CODE     = "2.5.4.17",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_POST_OFFICE_BOX = "2.5.4.18",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_PHYSICAL_DELIVERY_OFFICE_NAME = "2.5.4.19";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_TELEPHONE_NUMBER             = "2.5.4.20",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_TELEX_NUMBER                 = "2.5.4.21",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_TELETEXT_TERMINAL_IDENTIFIER = "2.5.4.22",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_FACSIMILE_TELEPHONE_NUMBER = "2.5.4.23";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_X21_ADDRESS = "2.5.4.24";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_INTERNATIONAL_ISDN_NUMBER = "2.5.4.25";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_REGISTERED_ADDRESS = "2.5.4.26";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_DESTINATION_INDICATOR = "2.5.4.27";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_PREFERRED_DELIVERY_METHOD = "2.5.4.28";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_PRESENTATION_ADDRESS = "2.5.4.29";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_SUPPORTED_APPLICATION_CONTEXT = "2.5.4.30";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_MEMBER        = "2.5.4.31",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_OWNER         = "2.5.4.32",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ROLE_OCCUPANT = "2.5.4.33",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_SEE_ALSO         = "2.5.4.34",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_USER_PASSWORD    = "2.5.4.35",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_USER_CERTIFICATE = "2.5.4.36",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_CA_CERTIFICATE = "2.5.4.37";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_AUTHORITY_REVOCATION_LIST = "2.5.4.38";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_CERTIFICATE_REVOCATION_LIST = "2.5.4.39";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_CROSS_CERTIFICATE_PAIR = "2.5.4.40";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_GIVEN_NAME = "2.5.4.42";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_INITIALS     = "2.5.4.43",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_DN_QUALIFIER = "2.5.4.46",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_DOMAIN_COMPONENT = "0.9.2342.19200300.100.1.25";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_12_FRIENDLY_NAME_ATTR     = "1.2.840.113549.1.9.20",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_12_LOCAL_KEY_ID           = "1.2.840.113549.1.9.21",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_12_KEY_PROVIDER_NAME_ATTR = "1.3.6.1.4.1.311.17.1",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_LOCAL_MACHINE_KEYSET = "1.3.6.1.4.1.311.17.2";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_12_EXTENDED_ATTRIBUTES                   = "1.3.6.1.4.1.311.17.3",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_12_PROTECTED_PASSWORD_SECRET_BAG_TYPE_ID = "1.3.6.1.4.1.311.17.4",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_KEYID_RDN = "1.3.6.1.4.1.311.10.7.1";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_EV_RDN_LOCALE            = "1.3.6.1.4.1.311.60.2.1.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_EV_RDN_STATE_OR_PROVINCE = "1.3.6.1.4.1.311.60.2.1.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_EV_RDN_COUNTRY           = "1.3.6.1.4.1.311.60.2.1.3",
 }
 
@@ -4196,411 +4196,411 @@ enum PSTR X509_ECC_PARAMETERS = PSTR(cast(ubyte*) 0x00000055);
 enum PSTR PKCS7_SIGNER_INFO = PSTR(cast(ubyte*) 0x000001f4);
 enum PSTR WINCRYPT_PKCS7_SIGNER_INFO = PSTR(cast(ubyte*) 0x000001f4);
 enum PSTR CMS_SIGNER_INFO = PSTR(cast(ubyte*) 0x000001f5);
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_AUTHORITY_KEY_IDENTIFIER = "2.5.29.1";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_KEY_ATTRIBUTES = "2.5.29.2";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_CERT_POLICIES_95 = "2.5.29.3";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_KEY_USAGE_RESTRICTION = "2.5.29.4";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_SUBJECT_ALT_NAME = "2.5.29.7";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_ISSUER_ALT_NAME = "2.5.29.8";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_BASIC_CONSTRAINTS = "2.5.29.10";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_KEY_USAGE = "2.5.29.15";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_PRIVATEKEY_USAGE_PERIOD = "2.5.29.16";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_BASIC_CONSTRAINTS2 = "2.5.29.19";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_CERT_POLICIES = "2.5.29.32";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_ANY_CERT_POLICY = "2.5.29.32.0";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_INHIBIT_ANY_POLICY = "2.5.29.54";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_AUTHORITY_KEY_IDENTIFIER2 = "2.5.29.35";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_SUBJECT_KEY_IDENTIFIER = "2.5.29.14",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_SUBJECT_ALT_NAME2      = "2.5.29.17",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_ISSUER_ALT_NAME2 = "2.5.29.18";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_CRL_REASON_CODE = "2.5.29.21";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_REASON_CODE_HOLD = "2.5.29.23";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_CRL_DIST_POINTS = "2.5.29.31";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_ENHANCED_KEY_USAGE = "2.5.29.37";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_ANY_ENHANCED_KEY_USAGE = "2.5.29.37.0";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_CRL_NUMBER = "2.5.29.20";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_DELTA_CRL_INDICATOR = "2.5.29.27";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_ISSUING_DIST_POINT = "2.5.29.28";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_FRESHEST_CRL = "2.5.29.46";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_NAME_CONSTRAINTS = "2.5.29.30";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_POLICY_MAPPINGS = "2.5.29.33";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_LEGACY_POLICY_MAPPINGS = "2.5.29.5";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_POLICY_CONSTRAINTS = "2.5.29.36";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_RENEWAL_CERTIFICATE = "1.3.6.1.4.1.311.13.1";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ENROLLMENT_NAME_VALUE_PAIR = "1.3.6.1.4.1.311.13.2.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ENROLLMENT_CSP_PROVIDER    = "1.3.6.1.4.1.311.13.2.2",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_OS_VERSION = "1.3.6.1.4.1.311.13.2.3";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_ENROLLMENT_AGENT = "1.3.6.1.4.1.311.20.2.1";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKIX                  = "1.3.6.1.5.5.7",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKIX_PE               = "1.3.6.1.5.5.7.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_AUTHORITY_INFO_ACCESS = "1.3.6.1.5.5.7.1.1",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_SUBJECT_INFO_ACCESS = "1.3.6.1.5.5.7.1.11";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_BIOMETRIC_EXT = "1.3.6.1.5.5.7.1.2";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_QC_STATEMENTS_EXT = "1.3.6.1.5.5.7.1.3";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_LOGOTYPE_EXT = "1.3.6.1.5.5.7.1.12";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_TLS_FEATURES_EXT = "1.3.6.1.5.5.7.1.24";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_CERT_EXTENSIONS = "1.3.6.1.4.1.311.2.1.14";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_NEXT_UPDATE_LOCATION = "1.3.6.1.4.1.311.10.2";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_REMOVE_CERTIFICATE = "1.3.6.1.4.1.311.10.8.1";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_CROSS_CERT_DIST_POINTS = "1.3.6.1.4.1.311.10.9.1";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CTL        = "1.3.6.1.4.1.311.10.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_SORTED_CTL = "1.3.6.1.4.1.311.10.1.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_SERIALIZED = "1.3.6.1.4.1.311.10.3.3.1",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_NT_PRINCIPAL_NAME = "1.3.6.1.4.1.311.20.2.3";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_INTERNATIONALIZED_EMAIL_ADDRESS = "1.3.6.1.4.1.311.20.2.4";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_PRODUCT_UPDATE = "1.3.6.1.4.1.311.31.1";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_ANY_APPLICATION_POLICY = "1.3.6.1.4.1.311.10.12.1";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_AUTO_ENROLL_CTL_USAGE = "1.3.6.1.4.1.311.20.1";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_ENROLL_CERTTYPE_EXTENSION = "1.3.6.1.4.1.311.20.2";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CERT_MANIFOLD              = "1.3.6.1.4.1.311.20.3",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CERTSRV_CA_VERSION         = "1.3.6.1.4.1.311.21.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CERTSRV_PREVIOUS_CERT_HASH = "1.3.6.1.4.1.311.21.2",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CRL_VIRTUAL_BASE = "1.3.6.1.4.1.311.21.3",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CRL_NEXT_PUBLISH = "1.3.6.1.4.1.311.21.4",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_KP_CA_EXCHANGE        = "1.3.6.1.4.1.311.21.5",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_KP_PRIVACY_CA         = "1.3.6.1.4.1.311.21.36",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_KP_KEY_RECOVERY_AGENT = "1.3.6.1.4.1.311.21.6",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_CERTIFICATE_TEMPLATE = "1.3.6.1.4.1.311.21.7";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_ENTERPRISE_OID_ROOT = "1.3.6.1.4.1.311.21.8";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_RDN_DUMMY_SIGNER = "1.3.6.1.4.1.311.21.9";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_APPLICATION_CERT_POLICIES      = "1.3.6.1.4.1.311.21.10",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_APPLICATION_POLICY_MAPPINGS    = "1.3.6.1.4.1.311.21.11",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_APPLICATION_POLICY_CONSTRAINTS = "1.3.6.1.4.1.311.21.12",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_ARCHIVED_KEY_ATTR = "1.3.6.1.4.1.311.21.13";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_CRL_SELF_CDP = "1.3.6.1.4.1.311.21.14";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_REQUIRE_CERT_CHAIN_POLICY = "1.3.6.1.4.1.311.21.15";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_ARCHIVED_KEY_CERT_HASH = "1.3.6.1.4.1.311.21.16";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_ISSUED_CERT_HASH = "1.3.6.1.4.1.311.21.17";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_DS_EMAIL_REPLICATION = "1.3.6.1.4.1.311.21.19";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_REQUEST_CLIENT_INFO = "1.3.6.1.4.1.311.21.20";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_ENCRYPTED_KEY_HASH = "1.3.6.1.4.1.311.21.21";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_CERTSRV_CROSSCA_VERSION = "1.3.6.1.4.1.311.21.22";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NTDS_REPLICATION     = "1.3.6.1.4.1.311.25.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NTDS_CA_SECURITY_EXT = "1.3.6.1.4.1.311.25.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NTDS_OBJECTSID       = "1.3.6.1.4.1.311.25.2.1",
 }
 
 enum const(wchar)* wszURI_NTDS_OBJECTSID_PREFIX = "tag:microsoft.com,2022-09-14:sid:";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_SUBJECT_DIR_ATTRS = "2.5.29.9";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKIX_KP                   = "1.3.6.1.5.5.7.3",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKIX_KP_SERVER_AUTH       = "1.3.6.1.5.5.7.3.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKIX_KP_CLIENT_AUTH       = "1.3.6.1.5.5.7.3.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKIX_KP_CODE_SIGNING      = "1.3.6.1.5.5.7.3.3",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKIX_KP_EMAIL_PROTECTION  = "1.3.6.1.5.5.7.3.4",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKIX_KP_IPSEC_END_SYSTEM  = "1.3.6.1.5.5.7.3.5",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKIX_KP_IPSEC_TUNNEL      = "1.3.6.1.5.5.7.3.6",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKIX_KP_IPSEC_USER        = "1.3.6.1.5.5.7.3.7",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKIX_KP_TIMESTAMP_SIGNING = "1.3.6.1.5.5.7.3.8",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKIX_KP_OCSP_SIGNING      = "1.3.6.1.5.5.7.3.9",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKIX_OCSP_NOCHECK         = "1.3.6.1.5.5.7.48.1.5",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKIX_OCSP_NONCE           = "1.3.6.1.5.5.7.48.1.2",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_IPSEC_KP_IKE_INTERMEDIATE = "1.3.6.1.5.5.8.2.2";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_PKINIT_KP_KDC = "1.3.6.1.5.2.3.5";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_KP_CTL_USAGE_SIGNING = "1.3.6.1.4.1.311.10.3.1";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_KP_TIME_STAMP_SIGNING = "1.3.6.1.4.1.311.10.3.2";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_SERVER_GATED_CRYPTO = "1.3.6.1.4.1.311.10.3.3";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_SGC_NETSCAPE = "2.16.840.1.113730.4.1";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_KP_EFS       = "1.3.6.1.4.1.311.10.3.4",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_EFS_RECOVERY = "1.3.6.1.4.1.311.10.3.4.1",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_WHQL_CRYPTO = "1.3.6.1.4.1.311.10.3.5";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_ATTEST_WHQL_CRYPTO = "1.3.6.1.4.1.311.10.3.5.1";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_NT5_CRYPTO = "1.3.6.1.4.1.311.10.3.6";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_OEM_WHQL_CRYPTO = "1.3.6.1.4.1.311.10.3.7";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_EMBEDDED_NT_CRYPTO = "1.3.6.1.4.1.311.10.3.8";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_ROOT_LIST_SIGNER = "1.3.6.1.4.1.311.10.3.9";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_KP_QUALIFIED_SUBORDINATION = "1.3.6.1.4.1.311.10.3.10";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_KP_KEY_RECOVERY     = "1.3.6.1.4.1.311.10.3.11",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_KP_DOCUMENT_SIGNING = "1.3.6.1.4.1.311.10.3.12",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_KP_LIFETIME_SIGNING = "1.3.6.1.4.1.311.10.3.13";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_KP_MOBILE_DEVICE_SOFTWARE = "1.3.6.1.4.1.311.10.3.14";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_KP_SMART_DISPLAY  = "1.3.6.1.4.1.311.10.3.15",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_KP_CSP_SIGNATURE  = "1.3.6.1.4.1.311.10.3.16",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_KP_FLIGHT_SIGNING = "1.3.6.1.4.1.311.10.3.27",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_PLATFORM_MANIFEST_BINARY_ID = "1.3.6.1.4.1.311.10.3.28";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_DRM                   = "1.3.6.1.4.1.311.10.5.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_DRM_INDIVIDUALIZATION = "1.3.6.1.4.1.311.10.5.2",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_LICENSES       = "1.3.6.1.4.1.311.10.6.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_LICENSE_SERVER = "1.3.6.1.4.1.311.10.6.2",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_KP_SMARTCARD_LOGON = "1.3.6.1.4.1.311.20.2.2";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_KP_KERNEL_MODE_CODE_SIGNING         = "1.3.6.1.4.1.311.61.1.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_KP_KERNEL_MODE_TRUSTED_BOOT_SIGNING = "1.3.6.1.4.1.311.61.4.1",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_REVOKED_LIST_SIGNER = "1.3.6.1.4.1.311.10.3.19";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_WINDOWS_KITS_SIGNER = "1.3.6.1.4.1.311.10.3.20",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_WINDOWS_RT_SIGNER   = "1.3.6.1.4.1.311.10.3.21",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_PROTECTED_PROCESS_LIGHT_SIGNER = "1.3.6.1.4.1.311.10.3.22";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_WINDOWS_TCB_SIGNER = "1.3.6.1.4.1.311.10.3.23";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_PROTECTED_PROCESS_SIGNER = "1.3.6.1.4.1.311.10.3.24";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_WINDOWS_THIRD_PARTY_COMPONENT_SIGNER = "1.3.6.1.4.1.311.10.3.25";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_WINDOWS_SOFTWARE_EXTENSION_SIGNER = "1.3.6.1.4.1.311.10.3.26";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_DISALLOWED_LIST = "1.3.6.1.4.1.311.10.3.30";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PIN_RULES_SIGNER           = "1.3.6.1.4.1.311.10.3.31",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PIN_RULES_CTL              = "1.3.6.1.4.1.311.10.3.32",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PIN_RULES_EXT              = "1.3.6.1.4.1.311.10.3.33",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PIN_RULES_DOMAIN_NAME      = "1.3.6.1.4.1.311.10.3.34",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PIN_RULES_LOG_END_DATE_EXT = "1.3.6.1.4.1.311.10.3.35",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_IUM_SIGNING = "1.3.6.1.4.1.311.10.3.37";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_EV_WHQL_CRYPTO = "1.3.6.1.4.1.311.10.3.39";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_BIOMETRIC_SIGNING = "1.3.6.1.4.1.311.10.3.41";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_ENCLAVE_SIGNING = "1.3.6.1.4.1.311.10.3.42";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_SYNC_ROOT_CTL_EXT = "1.3.6.1.4.1.311.10.3.50";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_FLIGHT_CTL_EXT = "1.3.6.1.4.1.311.10.3.51";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_CERT_LOG_LIST_EXT = "1.3.6.1.4.1.311.10.3.52";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_HPKP_DOMAIN_NAME_CTL  = "1.3.6.1.4.1.311.10.3.60",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_HPKP_HEADER_VALUE_CTL = "1.3.6.1.4.1.311.10.3.61",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_KP_KERNEL_MODE_HAL_EXTENSION_SIGNING = "1.3.6.1.4.1.311.61.5.1";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_WINDOWS_STORE_SIGNER = "1.3.6.1.4.1.311.76.3.1";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_DYNAMIC_CODE_GEN_SIGNER = "1.3.6.1.4.1.311.76.5.1";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_MICROSOFT_PUBLISHER_SIGNER = "1.3.6.1.4.1.311.76.8.1";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_YESNO_TRUST_ATTR = "1.3.6.1.4.1.311.10.4.1";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_SITE_PIN_RULES_INDEX_ATTR = "1.3.6.1.4.1.311.10.4.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_SITE_PIN_RULES_FLAGS_ATTR = "1.3.6.1.4.1.311.10.4.3",
 }
 
@@ -4608,13 +4608,13 @@ enum uint SITE_PIN_RULES_ALL_SUBDOMAINS_FLAG = 0x00000001U;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKIX_POLICY_QUALIFIER_CPS        = "1.3.6.1.5.5.7.2.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKIX_POLICY_QUALIFIER_USERNOTICE = "1.3.6.1.5.5.7.2.2",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_ROOT_PROGRAM_FLAGS = "1.3.6.1.4.1.311.60.1.1";
 
 enum : uint
@@ -4623,99 +4623,99 @@ enum : uint
     CERT_ROOT_PROGRAM_FLAG_ADDRESS = 0x00000008U,
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_CERT_POLICIES_95_QUALIFIER1 = "2.16.840.1.113733.1.7.1.1";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RDN_TPM_MANUFACTURER          = "2.23.133.2.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RDN_TPM_MODEL                 = "2.23.133.2.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RDN_TPM_VERSION               = "2.23.133.2.3",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RDN_TCG_PLATFORM_MANUFACTURER = "2.23.133.2.4",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RDN_TCG_PLATFORM_MODEL        = "2.23.133.2.5",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_RDN_TCG_PLATFORM_VERSION      = "2.23.133.2.6",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_CT_CERT_SCTLIST = "1.3.6.1.4.1.11129.2.4.2";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ENROLL_EK_INFO               = "1.3.6.1.4.1.311.21.23",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ENROLL_AIK_INFO              = "1.3.6.1.4.1.311.21.39",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ENROLL_ATTESTATION_STATEMENT = "1.3.6.1.4.1.311.21.24",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ENROLL_KSP_NAME              = "1.3.6.1.4.1.311.21.25",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ENROLL_EKPUB_CHALLENGE       = "1.3.6.1.4.1.311.21.26",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ENROLL_CAXCHGCERT_HASH       = "1.3.6.1.4.1.311.21.27",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ENROLL_ATTESTATION_CHALLENGE = "1.3.6.1.4.1.311.21.28",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_ENROLL_ENCRYPTION_ALGORITHM = "1.3.6.1.4.1.311.21.29";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_KP_TPM_EK_CERTIFICATE       = "2.23.133.8.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_KP_TPM_PLATFORM_CERTIFICATE = "2.23.133.8.2",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_KP_TPM_AIK_CERTIFICATE = "2.23.133.8.3";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ENROLL_EKVERIFYKEY           = "1.3.6.1.4.1.311.21.30",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ENROLL_EKVERIFYCERT          = "1.3.6.1.4.1.311.21.31",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ENROLL_EKVERIFYCREDS         = "1.3.6.1.4.1.311.21.32",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ENROLL_SCEP_ERROR            = "1.3.6.1.4.1.311.21.33",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ENROLL_SCEP_SERVER_STATE     = "1.3.6.1.4.1.311.21.34",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ENROLL_SCEP_CHALLENGE_ANSWER = "1.3.6.1.4.1.311.21.35",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ENROLL_SCEP_CLIENT_REQUEST   = "1.3.6.1.4.1.311.21.37",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ENROLL_SCEP_SERVER_MESSAGE   = "1.3.6.1.4.1.311.21.38",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ENROLL_SCEP_SERVER_SECRET    = "1.3.6.1.4.1.311.21.40",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ENROLL_KEY_AFFINITY          = "1.3.6.1.4.1.311.21.41",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ENROLL_SCEP_SIGNER_HASH      = "1.3.6.1.4.1.311.21.42",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ENROLL_EK_CA_KEYID           = "1.3.6.1.4.1.311.21.43",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_ATTR_SUPPORTED_ALGORITHMS = "2.5.4.52";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_ATTR_TPM_SPECIFICATION = "2.23.133.2.16";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_ATTR_PLATFORM_SPECIFICATION = "2.23.133.2.17";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_ATTR_TPM_SECURITY_ASSERTIONS = "2.23.133.2.18";
 
 enum : uint
@@ -4762,15 +4762,15 @@ enum uint CERT_END_ENTITY_SUBJECT_FLAG = 0x00000040U;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKIX_ACC_DESCR     = "1.3.6.1.5.5.7.48",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKIX_OCSP          = "1.3.6.1.5.5.7.48.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKIX_CA_ISSUERS    = "1.3.6.1.5.5.7.48.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKIX_TIME_STAMPING = "1.3.6.1.5.5.7.48.3",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKIX_CA_REPOSITORY = "1.3.6.1.5.5.7.48.5",
 }
 
@@ -4840,9 +4840,9 @@ enum : uint
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_QC_EU_COMPLIANCE = "0.4.0.1862.1.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_QC_SSCD          = "0.4.0.1862.1.4",
 }
 
@@ -4850,61 +4850,61 @@ enum uint PKCS_RSA_SSA_PSS_TRAILER_FIELD_BC = 0x00000001U;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_VERISIGN_PRIVATE_6_9              = "2.16.840.1.113733.1.6.9",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_VERISIGN_ONSITE_JURISDICTION_HASH = "2.16.840.1.113733.1.6.11",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_VERISIGN_BITSTRING_6_13    = "2.16.840.1.113733.1.6.13",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_VERISIGN_ISS_STRONG_CRYPTO = "2.16.840.1.113733.1.8.1",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOIDVerisign_MessageType    = "2.16.840.1.113733.1.9.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOIDVerisign_PkiStatus      = "2.16.840.1.113733.1.9.3",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOIDVerisign_FailInfo       = "2.16.840.1.113733.1.9.4",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOIDVerisign_SenderNonce    = "2.16.840.1.113733.1.9.5",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOIDVerisign_RecipientNonce = "2.16.840.1.113733.1.9.6",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOIDVerisign_TransactionID  = "2.16.840.1.113733.1.9.7",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NETSCAPE                   = "2.16.840.1.113730",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NETSCAPE_CERT_EXTENSION    = "2.16.840.1.113730.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NETSCAPE_CERT_TYPE         = "2.16.840.1.113730.1.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NETSCAPE_BASE_URL          = "2.16.840.1.113730.1.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NETSCAPE_REVOCATION_URL    = "2.16.840.1.113730.1.3",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NETSCAPE_CA_REVOCATION_URL = "2.16.840.1.113730.1.4",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NETSCAPE_CERT_RENEWAL_URL  = "2.16.840.1.113730.1.7",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NETSCAPE_CA_POLICY_URL     = "2.16.840.1.113730.1.8",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NETSCAPE_SSL_SERVER_NAME   = "2.16.840.1.113730.1.12",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NETSCAPE_COMMENT           = "2.16.840.1.113730.1.13",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NETSCAPE_DATA_TYPE         = "2.16.840.1.113730.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NETSCAPE_CERT_SEQUENCE     = "2.16.840.1.113730.2.5",
 }
 
@@ -4923,70 +4923,70 @@ enum uint NETSCAPE_SIGN_CA_CERT_TYPE = 0x00000001U;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CT_PKI_DATA     = "1.3.6.1.5.5.7.12.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CT_PKI_RESPONSE = "1.3.6.1.5.5.7.12.3",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_PKIX_NO_SIGNATURE = "1.3.6.1.5.5.7.6.2";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CMC                 = "1.3.6.1.5.5.7.7",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CMC_STATUS_INFO     = "1.3.6.1.5.5.7.7.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CMC_IDENTIFICATION  = "1.3.6.1.5.5.7.7.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CMC_IDENTITY_PROOF  = "1.3.6.1.5.5.7.7.3",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CMC_DATA_RETURN     = "1.3.6.1.5.5.7.7.4",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CMC_TRANSACTION_ID  = "1.3.6.1.5.5.7.7.5",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CMC_SENDER_NONCE    = "1.3.6.1.5.5.7.7.6",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CMC_RECIPIENT_NONCE = "1.3.6.1.5.5.7.7.7",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CMC_ADD_EXTENSIONS  = "1.3.6.1.5.5.7.7.8",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CMC_ENCRYPTED_POP   = "1.3.6.1.5.5.7.7.9",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CMC_DECRYPTED_POP   = "1.3.6.1.5.5.7.7.10",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CMC_LRA_POP_WITNESS = "1.3.6.1.5.5.7.7.11",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CMC_GET_CERT                   = "1.3.6.1.5.5.7.7.15",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CMC_GET_CRL                    = "1.3.6.1.5.5.7.7.16",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CMC_REVOKE_REQUEST             = "1.3.6.1.5.5.7.7.17",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CMC_REG_INFO                   = "1.3.6.1.5.5.7.7.18",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CMC_RESPONSE_INFO              = "1.3.6.1.5.5.7.7.19",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CMC_QUERY_PENDING              = "1.3.6.1.5.5.7.7.21",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CMC_ID_POP_LINK_RANDOM         = "1.3.6.1.5.5.7.7.22",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CMC_ID_POP_LINK_WITNESS        = "1.3.6.1.5.5.7.7.23",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CMC_ID_CONFIRM_CERT_ACCEPTANCE = "1.3.6.1.5.5.7.7.24",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_CMC_ADD_ATTRIBUTES = "1.3.6.1.4.1.311.10.10.1";
 enum uint CMC_TAGGED_CERT_REQUEST_CHOICE = 0x00000001U;
 
@@ -5028,9 +5028,9 @@ enum : uint
 }
 
 enum uint CMC_FAIL_TRY_LATER = 0x0000000cU;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_LOYALTY_OTHER_LOGOTYPE = "1.3.6.1.5.5.7.20.1";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_BACKGROUND_OTHER_LOGOTYPE = "1.3.6.1.5.5.7.20.2";
 
 enum : uint
@@ -5046,7 +5046,7 @@ enum uint OCSP_INTERNAL_ERROR_RESPONSE = 0x00000002U;
 enum uint OCSP_TRY_LATER_RESPONSE = 0x00000003U;
 enum uint OCSP_SIG_REQUIRED_RESPONSE = 0x00000005U;
 enum uint OCSP_UNAUTHORIZED_RESPONSE = 0x00000006U;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_PKIX_OCSP_BASIC_SIGNED_RESPONSE = "1.3.6.1.5.5.7.48.1.1";
 
 enum : uint
@@ -5064,50 +5064,50 @@ enum : uint
     OCSP_BASIC_BY_KEY_RESPONDER_ID  = 0x00000002U,
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CRYPT_OID_ENCODE_OBJECT_FUNC = "CryptDllEncodeObject";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CRYPT_OID_DECODE_OBJECT_FUNC = "CryptDllDecodeObject";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CRYPT_OID_ENCODE_OBJECT_EX_FUNC = "CryptDllEncodeObjectEx";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CRYPT_OID_DECODE_OBJECT_EX_FUNC = "CryptDllDecodeObjectEx";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CRYPT_OID_CREATE_COM_OBJECT_FUNC = "CryptDllCreateCOMObject";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CRYPT_OID_VERIFY_REVOCATION_FUNC = "CertDllVerifyRevocation",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CRYPT_OID_VERIFY_CTL_USAGE_FUNC  = "CertDllVerifyCTLUsage",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CRYPT_OID_FORMAT_OBJECT_FUNC = "CryptDllFormatObject";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CRYPT_OID_FIND_OID_INFO_FUNC       = "CryptDllFindOIDInfo",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CRYPT_OID_FIND_LOCALIZED_NAME_FUNC = "CryptDllFindLocalizedName",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CRYPT_OID_REGPATH                    = "Software\\Microsoft\\Cryptography\\OID",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CRYPT_OID_REG_ENCODING_TYPE_PREFIX   = "EncodingType ",
     CRYPT_OID_REG_DLL_VALUE_NAME         = "Dll",
     CRYPT_OID_REG_FUNC_NAME_VALUE_NAME   = "FuncName",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CRYPT_OID_REG_FUNC_NAME_VALUE_NAME_A = "FuncName",
     CRYPT_OID_REG_FLAGS_VALUE_NAME       = "CryptFlags",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CRYPT_DEFAULT_OID = "DEFAULT";
 enum uint CRYPT_INSTALL_OID_FUNC_BEFORE_FLAG = 0x00000001U;
 enum uint CRYPT_GET_INSTALLED_OID_FUNC_FLAG = 0x00000001U;
@@ -5217,7 +5217,7 @@ enum : uint
 
 enum uint CRYPT_INSTALL_OID_INFO_BEFORE_FLAG = 0x00000001U;
 enum uint CRYPT_LOCALIZED_NAME_ENCODING_TYPE = 0x00000000U;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CRYPT_LOCALIZED_NAME_OID = "LocalizedNames";
 enum const(wchar)* CERT_STRONG_SIGN_ECDSA_ALGORITHM = "ECDSA";
 
@@ -5229,37 +5229,37 @@ enum : uint
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CERT_STRONG_SIGN_OS_PREFIX  = "1.3.6.1.4.1.311.72.1.",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CERT_STRONG_SIGN_OS_1       = "1.3.6.1.4.1.311.72.1.1",
     szOID_CERT_STRONG_SIGN_OS_CURRENT = "1.3.6.1.4.1.311.72.1.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CERT_STRONG_KEY_OS_PREFIX   = "1.3.6.1.4.1.311.72.2.",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CERT_STRONG_KEY_OS_1        = "1.3.6.1.4.1.311.72.2.1",
     szOID_CERT_STRONG_KEY_OS_CURRENT  = "1.3.6.1.4.1.311.72.2.1",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_NO_HASH                   = "1.3.6.1.4.1.311.73.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_7_DATA               = "1.2.840.113549.1.7.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_7_SIGNED             = "1.2.840.113549.1.7.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_7_ENVELOPED          = "1.2.840.113549.1.7.3",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_7_SIGNEDANDENVELOPED = "1.2.840.113549.1.7.4",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_7_DIGESTED           = "1.2.840.113549.1.7.5",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_7_ENCRYPTED          = "1.2.840.113549.1.7.6",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_9_CONTENT_TYPE       = "1.2.840.113549.1.9.3",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_9_MESSAGE_DIGEST     = "1.2.840.113549.1.9.4",
 }
 
@@ -5439,11 +5439,11 @@ enum : uint
     CMSG_VERIFY_COUNTER_SIGN_ENABLE_STRONG_FLAG = 0x00000001U,
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CMSG_OID_GEN_ENCRYPT_KEY_FUNC = "CryptMsgDllGenEncryptKey";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CMSG_OID_EXPORT_ENCRYPT_KEY_FUNC = "CryptMsgDllExportEncryptKey";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CMSG_OID_IMPORT_ENCRYPT_KEY_FUNC = "CryptMsgDllImportEncryptKey";
 enum PSTR CMSG_DEFAULT_INSTALLABLE_FUNC_OID = PSTR(cast(ubyte*) 0x00000001);
 
@@ -5455,10 +5455,10 @@ enum : uint
     CMSG_CONTENT_ENCRYPT_RELEASE_CONTEXT_FLAG = 0x00008000U,
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CMSG_OID_GEN_CONTENT_ENCRYPT_KEY_FUNC = "CryptMsgDllGenContentEncryptKey";
 enum const(wchar)* CMSG_OID_CAPI1_GEN_CONTENT_ENCRYPT_KEY_FUNC = "CryptMsgDllGenContentEncryptKey";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CMSG_OID_CNG_GEN_CONTENT_ENCRYPT_KEY_FUNC = "CryptMsgDllCNGGenContentEncryptKey";
 
 enum : uint
@@ -5467,10 +5467,10 @@ enum : uint
     CMSG_KEY_TRANS_ENCRYPT_FREE_OBJID_FLAG = 0x00000002U,
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CMSG_OID_EXPORT_KEY_TRANS_FUNC = "CryptMsgDllExportKeyTrans";
 enum const(wchar)* CMSG_OID_CAPI1_EXPORT_KEY_TRANS_FUNC = "CryptMsgDllExportKeyTrans";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CMSG_OID_CNG_EXPORT_KEY_TRANS_FUNC = "CryptMsgDllCNGExportKeyTrans";
 
 enum : uint
@@ -5483,10 +5483,10 @@ enum : uint
     CMSG_KEY_AGREE_ENCRYPT_FREE_OBJID_FLAG       = 0x00000020U,
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CMSG_OID_EXPORT_KEY_AGREE_FUNC = "CryptMsgDllExportKeyAgree";
 enum const(wchar)* CMSG_OID_CAPI1_EXPORT_KEY_AGREE_FUNC = "CryptMsgDllExportKeyAgree";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CMSG_OID_CNG_EXPORT_KEY_AGREE_FUNC = "CryptMsgDllCNGExportKeyAgree";
 
 enum : uint
@@ -5495,26 +5495,26 @@ enum : uint
     CMSG_MAIL_LIST_ENCRYPT_FREE_OBJID_FLAG = 0x00000002U,
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CMSG_OID_EXPORT_MAIL_LIST_FUNC = "CryptMsgDllExportMailList";
 enum const(wchar)* CMSG_OID_CAPI1_EXPORT_MAIL_LIST_FUNC = "CryptMsgDllExportMailList";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CMSG_OID_IMPORT_KEY_TRANS_FUNC = "CryptMsgDllImportKeyTrans";
 enum const(wchar)* CMSG_OID_CAPI1_IMPORT_KEY_TRANS_FUNC = "CryptMsgDllImportKeyTrans";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CMSG_OID_IMPORT_KEY_AGREE_FUNC = "CryptMsgDllImportKeyAgree";
 enum const(wchar)* CMSG_OID_CAPI1_IMPORT_KEY_AGREE_FUNC = "CryptMsgDllImportKeyAgree";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CMSG_OID_IMPORT_MAIL_LIST_FUNC = "CryptMsgDllImportMailList";
 enum const(wchar)* CMSG_OID_CAPI1_IMPORT_MAIL_LIST_FUNC = "CryptMsgDllImportMailList";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CMSG_OID_CNG_IMPORT_KEY_TRANS_FUNC           = "CryptMsgDllCNGImportKeyTrans",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CMSG_OID_CNG_IMPORT_KEY_AGREE_FUNC           = "CryptMsgDllCNGImportKeyAgree",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CMSG_OID_CNG_IMPORT_CONTENT_ENCRYPT_KEY_FUNC = "CryptMsgDllCNGImportContentEncryptKey",
 }
 
@@ -5660,34 +5660,34 @@ enum uint CERT_LAST_USER_PROP_ID = 0x0000ffffU;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CERT_PROP_ID_PREFIX         = "1.3.6.1.4.1.311.10.11.",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CERT_KEY_IDENTIFIER_PROP_ID = "1.3.6.1.4.1.311.10.11.20",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_CERT_ISSUER_SERIAL_NUMBER_MD5_HASH_PROP_ID = "1.3.6.1.4.1.311.10.11.28";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_CERT_SUBJECT_NAME_MD5_HASH_PROP_ID = "1.3.6.1.4.1.311.10.11.29";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CERT_MD5_HASH_PROP_ID    = "1.3.6.1.4.1.311.10.11.4",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CERT_SHA256_HASH_PROP_ID = "1.3.6.1.4.1.311.10.11.107",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_CERT_SIGNATURE_HASH_PROP_ID = "1.3.6.1.4.1.311.10.11.15";
 enum const(wchar)* szOID_DISALLOWED_HASH = "1.3.6.1.4.1.311.10.11.15";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CERT_DISALLOWED_FILETIME_PROP_ID    = "1.3.6.1.4.1.311.10.11.104",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_CERT_DISALLOWED_CA_FILETIME_PROP_ID = "1.3.6.1.4.1.311.10.11.128",
 }
 
@@ -5702,11 +5702,11 @@ enum : uint
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ROOT_PROGRAM_AUTO_UPDATE_CA_REVOCATION  = "1.3.6.1.4.1.311.60.3.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ROOT_PROGRAM_AUTO_UPDATE_END_REVOCATION = "1.3.6.1.4.1.311.60.3.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_ROOT_PROGRAM_NO_OCSP_FAILOVER_TO_CRL    = "1.3.6.1.4.1.311.60.3.3",
 }
 
@@ -5750,32 +5750,32 @@ enum PSTR CERT_STORE_PROV_PKCS12 = PSTR(cast(ubyte*) 0x00000011);
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     sz_CERT_STORE_PROV_MEMORY            = "Memory",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     sz_CERT_STORE_PROV_FILENAME_W        = "File",
     sz_CERT_STORE_PROV_FILENAME          = "File",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     sz_CERT_STORE_PROV_SYSTEM_W          = "System",
     sz_CERT_STORE_PROV_SYSTEM            = "System",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     sz_CERT_STORE_PROV_PKCS7             = "PKCS7",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     sz_CERT_STORE_PROV_PKCS12            = "PKCS12",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     sz_CERT_STORE_PROV_SERIALIZED        = "Serialized",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     sz_CERT_STORE_PROV_COLLECTION        = "Collection",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     sz_CERT_STORE_PROV_SYSTEM_REGISTRY_W = "SystemRegistry",
     sz_CERT_STORE_PROV_SYSTEM_REGISTRY   = "SystemRegistry",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     sz_CERT_STORE_PROV_PHYSICAL_W        = "Physical",
     sz_CERT_STORE_PROV_PHYSICAL          = "Physical",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     sz_CERT_STORE_PROV_SMART_CARD_W      = "SmartCard",
     sz_CERT_STORE_PROV_SMART_CARD        = "SmartCard",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     sz_CERT_STORE_PROV_LDAP_W            = "Ldap",
     sz_CERT_STORE_PROV_LDAP              = "Ldap",
 }
@@ -5842,7 +5842,7 @@ enum : uint
 enum : const(wchar)*
 {
     CERT_PROT_ROOT_PEER_USAGES_VALUE_NAME   = "PeerUsages",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CERT_PROT_ROOT_PEER_USAGES_VALUE_NAME_A = "PeerUsages",
 }
 
@@ -5903,7 +5903,7 @@ enum : const(wchar)*
 enum : const(wchar)*
 {
     CERT_AUTH_ROOT_CTL_FILENAME   = "authroot.stl",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CERT_AUTH_ROOT_CTL_FILENAME_A = "authroot.stl",
     CERT_AUTH_ROOT_CAB_FILENAME   = "authrootstl.cab",
     CERT_AUTH_ROOT_SEQ_FILENAME   = "authrootseq.txt",
@@ -5920,7 +5920,7 @@ enum : const(wchar)*
 enum : const(wchar)*
 {
     CERT_DISALLOWED_CERT_CTL_FILENAME                = "disallowedcert.stl",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CERT_DISALLOWED_CERT_CTL_FILENAME_A              = "disallowedcert.stl",
     CERT_DISALLOWED_CERT_CAB_FILENAME                = "disallowedcertstl.cab",
     CERT_DISALLOWED_CERT_AUTO_UPDATE_LIST_IDENTIFIER = "DisallowedCert_AutoUpdate_1",
@@ -5936,7 +5936,7 @@ enum : const(wchar)*
 enum : const(wchar)*
 {
     CERT_PIN_RULES_CTL_FILENAME                = "pinrules.stl",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CERT_PIN_RULES_CTL_FILENAME_A              = "pinrules.stl",
     CERT_PIN_RULES_CAB_FILENAME                = "pinrulesstl.cab",
     CERT_PIN_RULES_AUTO_UPDATE_LIST_IDENTIFIER = "PinRules_AutoUpdate_1",
@@ -5964,7 +5964,7 @@ enum : uint
     CERT_LDAP_STORE_UNBIND_FLAG         = 0x00080000U,
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CRYPT_OID_OPEN_STORE_PROV_FUNC = "CertDllOpenStoreProv";
 
 enum : uint
@@ -6133,19 +6133,19 @@ enum : const(wchar)*
     CERT_PHYSICAL_STORE_SMART_CARD_NAME = ".SmartCard",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CRYPT_OID_OPEN_SYSTEM_STORE_PROV_FUNC = "CertDllOpenSystemStoreProv";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CRYPT_OID_REGISTER_SYSTEM_STORE_FUNC = "CertDllRegisterSystemStore";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CRYPT_OID_UNREGISTER_SYSTEM_STORE_FUNC = "CertDllUnregisterSystemStore";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CRYPT_OID_ENUM_SYSTEM_STORE_FUNC = "CertDllEnumSystemStore";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CRYPT_OID_REGISTER_PHYSICAL_STORE_FUNC = "CertDllRegisterPhysicalStore";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CRYPT_OID_UNREGISTER_PHYSICAL_STORE_FUNC = "CertDllUnregisterPhysicalStore";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CRYPT_OID_ENUM_PHYSICAL_STORE_FUNC = "CertDllEnumPhysicalStore";
 enum const(wchar)* CRYPT_OID_SYSTEM_STORE_LOCATION_VALUE_NAME = "SystemStoreLocation";
 enum uint CMSG_TRUSTED_SIGNER_FLAG = 0x00000001U;
@@ -6197,34 +6197,34 @@ enum : uint
     CRYPT_VERIFY_CERT_SIGN_CHECK_WEAK_HASH_FLAG               = 0x00000008U,
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CRYPT_OID_EXTRACT_ENCODED_SIGNATURE_PARAMETERS_FUNC = "CryptDllExtractEncodedSignatureParameters";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CRYPT_OID_SIGN_AND_ENCODE_HASH_FUNC = "CryptDllSignAndEncodeHash";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CRYPT_OID_VERIFY_ENCODED_SIGNATURE_FUNC = "CryptDllVerifyEncodedSignature";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CRYPT_OID_EXPORT_PUBLIC_KEY_INFO_FUNC                    = "CryptDllExportPublicKeyInfoEx",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CRYPT_OID_EXPORT_PUBLIC_KEY_INFO_EX2_FUNC                = "CryptDllExportPublicKeyInfoEx2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CRYPT_OID_EXPORT_PUBLIC_KEY_INFO_FROM_BCRYPT_HANDLE_FUNC = "CryptDllExportPublicKeyInfoFromBCryptKeyHandle",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CRYPT_OID_IMPORT_PUBLIC_KEY_INFO_FUNC     = "CryptDllImportPublicKeyInfoEx",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CRYPT_OID_IMPORT_PUBLIC_KEY_INFO_EX2_FUNC = "CryptDllImportPublicKeyInfoEx2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CRYPT_OID_IMPORT_PRIVATE_KEY_INFO_FUNC    = "CryptDllImportPrivateKeyInfoEx",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CRYPT_OID_EXPORT_PRIVATE_KEY_INFO_FUNC = "CryptDllExportPrivateKeyInfoEx";
 enum uint CRYPT_DELETE_KEYSET = 0x00000010U;
 enum uint CERT_XML_NAME_STR = 0x00000004U;
@@ -6291,13 +6291,13 @@ enum int CREDENTIAL_OID_PASSWORD_CREDENTIALS = 0x00000002;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     SCHEME_OID_RETRIEVE_ENCODED_OBJECT_FUNC  = "SchemeDllRetrieveEncodedObject",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     SCHEME_OID_RETRIEVE_ENCODED_OBJECTW_FUNC = "SchemeDllRetrieveEncodedObjectW",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CONTEXT_OID_CREATE_OBJECT_CONTEXT_FUNC = "ContextDllCreateObjectContext";
 
 enum : PSTR
@@ -6369,7 +6369,7 @@ enum : uint
 enum uint CRYPT_RETRIEVE_MAX_ERROR_CONTENT_LENGTH = 0x00001000U;
 enum PSTR CRYPT_PARAM_ASYNC_RETRIEVAL_COMPLETION = PSTR(cast(ubyte*) 0x00000001);
 enum PSTR CRYPT_PARAM_CANCEL_ASYNC_RETRIEVAL = PSTR(cast(ubyte*) 0x00000002);
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* URL_OID_GET_OBJECT_URL_FUNC = "UrlDllGetObjectUrl";
 
 enum : PSTR
@@ -6405,7 +6405,7 @@ enum : PSTR
 
 enum PSTR URL_OID_CROSS_CERT_SUBJECT_INFO_ACCESS = PSTR(cast(ubyte*) 0x0000000c);
 enum PSTR URL_OID_CERTIFICATE_ONLY_OCSP = PSTR(cast(ubyte*) 0x0000000d);
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* TIME_VALID_OID_GET_OBJECT_FUNC = "TimeValidDllGetObject";
 
 enum : PSTR
@@ -6417,7 +6417,7 @@ enum : PSTR
     TIME_VALID_OID_GET_FRESHEST_CRL_FROM_CRL  = PSTR(cast(ubyte*) 0x00000005),
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* TIME_VALID_OID_FLUSH_OBJECT_FUNC = "TimeValidDllFlushObject";
 
 enum : PSTR
@@ -6854,7 +6854,7 @@ enum uint CERT_CHAIN_OPT_IN_WEAK_SIGNATURE = 0x00010000U;
 enum uint CERT_CHAIN_ENABLE_DISALLOWED_CA = 0x00020000U;
 enum PSTR REVOCATION_OID_CRL_REVOCATION = PSTR(cast(ubyte*) 0x00000001);
 enum uint CERT_CHAIN_FIND_BY_ISSUER = 0x00000001U;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CRYPT_OID_VERIFY_CERTIFICATE_CHAIN_POLICY_FUNC = "CertDllVerifyCertificateChainPolicy";
 
 enum : PSTR
@@ -6961,27 +6961,27 @@ enum : uint
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_12_PbeIds                      = "1.2.840.113549.1.12.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_12_pbeWithSHA1And128BitRC4     = "1.2.840.113549.1.12.1.1",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_12_pbeWithSHA1And40BitRC4      = "1.2.840.113549.1.12.1.2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_12_pbeWithSHA1And3KeyTripleDES = "1.2.840.113549.1.12.1.3",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_12_pbeWithSHA1And2KeyTripleDES = "1.2.840.113549.1.12.1.4",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_12_pbeWithSHA1And128BitRC2     = "1.2.840.113549.1.12.1.5",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_12_pbeWithSHA1And40BitRC2      = "1.2.840.113549.1.12.1.6",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_5_PBKDF2 = "1.2.840.113549.1.5.12",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szOID_PKCS_5_PBES2  = "1.2.840.113549.1.5.13",
 }
 
@@ -7031,13 +7031,13 @@ enum : uint
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     PKCS12_PBKDF2_ID_HMAC_SHA1   = "1.2.840.113549.2.7",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     PKCS12_PBKDF2_ID_HMAC_SHA256 = "1.2.840.113549.2.9",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     PKCS12_PBKDF2_ID_HMAC_SHA384 = "1.2.840.113549.2.10",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     PKCS12_PBKDF2_ID_HMAC_SHA512 = "1.2.840.113549.2.11",
 }
 
@@ -7115,11 +7115,11 @@ enum : uint
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     SSL_OBJECT_LOCATOR_PFX_FUNC                    = "SslObjectLocatorInitializePfx",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     SSL_OBJECT_LOCATOR_ISSUER_LIST_FUNC            = "SslObjectLocatorInitializeIssuerList",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     SSL_OBJECT_LOCATOR_CERT_VALIDATION_CONFIG_FUNC = "SslObjectLocatorInitializeCertValidationConfig",
 }
 
@@ -7436,36 +7436,36 @@ enum : uint
 enum uint CLMD_FILE_TAG_LAST_RETIRED_KEY_MGMT_KEY = 0x005fc120U;
 enum uint SCARD_PROVIDER_CARD_MODULE = 0x80000001U;
 enum uint CARD_DATA_VALUE_UNKNOWN = 0xffffffffU;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szBASE_CSP_DIR = "mscp";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szINTERMEDIATE_CERTS_DIR = "mscerts";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szCACHE_FILE = "cardcf";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szCARD_IDENTIFIER_FILE = "cardid";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szCONTAINER_MAP_FILE = "cmapfile";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szROOT_STORE_FILE = "msroots";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szUSER_SIGNATURE_CERT_PREFIX = "ksc";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szUSER_KEYEXCHANGE_CERT_PREFIX = "kxc";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szUSER_SIGNATURE_PRIVATE_KEY_PREFIX = "kss",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szUSER_SIGNATURE_PUBLIC_KEY_PREFIX  = "ksp",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szUSER_KEYEXCHANGE_PRIVATE_KEY_PREFIX = "kxs",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     szUSER_KEYEXCHANGE_PUBLIC_KEY_PREFIX  = "kxp",
 }
 
@@ -9216,7 +9216,8 @@ struct NCRYPT_EXPORTED_ISOLATED_KEY_HEADER
 {
     uint Version;
     uint KeyUsage;
-    uint _bitfield169;
+    // Native bit field: PerBootKey: [0], Reserved: [1-31]
+    uint _bitfield0;
     uint cbAlgName;
     uint cbNonce;
     uint cbAuthTag;

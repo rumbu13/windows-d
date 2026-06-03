@@ -6201,7 +6201,8 @@ struct D3D12_RAYTRACING_GEOMETRY_AABBS_DESC
 struct D3D12_RAYTRACING_OPACITY_MICROMAP_DESC
 {
     uint ByteOffset;
-    uint _bitfield91;
+    // Native bit field: SubdivisionLevel: [0-15], Format: [16-31]
+    uint _bitfield0;
 }
 
 struct D3D12_RAYTRACING_GEOMETRY_OMM_LINKAGE_DESC
@@ -6300,7 +6301,9 @@ struct D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_CURRENT_SIZE_DESC
 struct D3D12_RAYTRACING_INSTANCE_DESC
 {
     float[12] Transform;
+    // Native bit field: InstanceID: [0-23], InstanceMask: [24-31]
     uint      _bitfield1;
+    // Native bit field: InstanceContributionToHitGroupIndex: [0-23], Flags: [24-31]
     uint      _bitfield2;
     ulong     AccelerationStructure;
 }

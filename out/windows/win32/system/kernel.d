@@ -124,7 +124,9 @@ version(AArch64)
         }
         struct HeaderArm64
         {
+            // Native bit field: Depth: [0-15], Sequence: [16-63]
             ulong _bitfield1;
+            // Native bit field: Reserved: [0-3], NextEntry: [4-63]
             ulong _bitfield2;
         }
     }
@@ -188,7 +190,8 @@ struct RTL_BALANCED_NODE
     }
     union
     {
-        ubyte  _bitfield454;
+        // Native bit field: Red: [0], Balance: [1-2]
+        ubyte  _bitfield0;
         size_t ParentValue;
     }
 }
@@ -246,7 +249,9 @@ version(X86_64)
         }
         struct HeaderX64
         {
+            // Native bit field: Depth: [0-15], Sequence: [16-63]
             ulong _bitfield1;
+            // Native bit field: Reserved: [0-3], NextEntry: [4-63]
             ulong _bitfield2;
         }
     }

@@ -1336,7 +1336,7 @@ enum : uint
     NVMEOF_TRANSPORT_SAS_MAX_LEN    = 0x00000100U,
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* NVMEOF_DISCOVERY_NQN = "nqn.2014-08.org.nvmexpress.discovery";
 enum uint NVMEOF_DISCOVERY_LOG_VERSION_0 = 0x00000000U;
 
@@ -1365,7 +1365,7 @@ enum : uint
 }
 
 enum uint NVMEOF_DHCHAP_PROTOCOL_ID = 0x00000001U;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* NVMEOF_DHCHAP_PREFIX_V1 = "DHHC-1:";
 
 enum : uint
@@ -1384,7 +1384,8 @@ union NVME_CONTROLLER_CAPABILITIES
 {
     struct
     {
-        ulong _bitfield181;
+        // Native bit field: MQES: [0-15], CQR: [16], AMS_WeightedRoundRobinWithUrgent: [17], AMS_VendorSpecific: [18], Reserved0: [19-23], TO: [24-31], DSTRD: [32-35], NSSRS: [36], CSS_NVM: [37], CSS_Reserved0: [38], CSS_Reserved1: [39], CSS_Reserved2: [40], CSS_Reserved3: [41], CSS_Reserved4: [42], CSS_MultipleIo: [43], CSS_AdminOnly: [44], BPS: [45], CPS: [46-47], MPSMIN: [48-51], MPSMAX: [52-55], PMRS: [56], CMBS: [57], NSSS: [58], CRWMS: [59], CRIMS: [60], Reserved2: [61-63]
+        ulong _bitfield0;
     }
     ulong AsUlonglong;
 }
@@ -1394,7 +1395,8 @@ union NVME_VERSION
 {
     struct
     {
-        uint _bitfield182;
+        // Native bit field: TER: [0-7], MNR: [8-15], MJR: [16-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -1404,7 +1406,8 @@ union NVME_CONTROLLER_CONFIGURATION
 {
     struct
     {
-        uint _bitfield183;
+        // Native bit field: EN: [0], Reserved0: [1-3], CSS: [4-6], MPS: [7-10], AMS: [11-13], SHN: [14-15], IOSQES: [16-19], IOCQES: [20-23], CRIME: [24], Reserved1: [25-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -1414,7 +1417,8 @@ union NVME_CONTROLLER_STATUS
 {
     struct
     {
-        uint _bitfield184;
+        // Native bit field: RDY: [0], CFS: [1], SHST: [2-3], NSSRO: [4], PP: [5], ST: [6], Reserved0: [7-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -1430,7 +1434,8 @@ union NVME_ADMIN_QUEUE_ATTRIBUTES
 {
     struct
     {
-        uint _bitfield185;
+        // Native bit field: ASQS: [0-11], Reserved0: [12-15], ACQS: [16-27], Reserved1: [28-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -1440,7 +1445,8 @@ union NVME_ADMIN_SUBMISSION_QUEUE_BASE_ADDRESS
 {
     struct
     {
-        ulong _bitfield186;
+        // Native bit field: Reserved0: [0-11], ASQB: [12-63]
+        ulong _bitfield0;
     }
     ulong AsUlonglong;
 }
@@ -1450,7 +1456,8 @@ union NVME_ADMIN_COMPLETION_QUEUE_BASE_ADDRESS
 {
     struct
     {
-        ulong _bitfield187;
+        // Native bit field: Reserved0: [0-11], ACQB: [12-63]
+        ulong _bitfield0;
     }
     ulong AsUlonglong;
 }
@@ -1460,7 +1467,8 @@ union NVME_CONTROLLER_MEMORY_BUFFER_LOCATION
 {
     struct
     {
-        uint _bitfield188;
+        // Native bit field: BIR: [0-2], Reserved: [3-11], OFST: [12-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -1470,7 +1478,8 @@ union NVME_CONTROLLER_MEMORY_BUFFER_SIZE
 {
     struct
     {
-        uint _bitfield189;
+        // Native bit field: SQS: [0], CQS: [1], LISTS: [2], RDS: [3], WDS: [4], Reserved: [5-7], SZU: [8-11], SZ: [12-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -1494,7 +1503,8 @@ union NVME_SUBMISSION_QUEUE_TAIL_DOORBELL
 {
     struct
     {
-        uint _bitfield190;
+        // Native bit field: SQT: [0-15], Reserved0: [16-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -1504,7 +1514,8 @@ union NVME_COMPLETION_QUEUE_HEAD_DOORBELL
 {
     struct
     {
-        uint _bitfield191;
+        // Native bit field: CQH: [0-15], Reserved0: [16-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -1538,7 +1549,8 @@ union NVME_COMMAND_STATUS
 {
     struct
     {
-        ushort _bitfield192;
+        // Native bit field: P: [0], SC: [1-8], SCT: [9-11], CRD: [12-13], M: [14], DNR: [15]
+        ushort _bitfield0;
     }
     ushort AsUshort;
 }
@@ -1571,7 +1583,8 @@ struct NVME_COMPLETION_ENTRY
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/nvme/ns-nvme-nvme_completion_dw0_async_event_request
 struct NVME_COMPLETION_DW0_ASYNC_EVENT_REQUEST
 {
-    uint _bitfield193;
+    // Native bit field: AsyncEventType: [0-2], Reserved0: [3-7], AsyncEventInfo: [8-15], LogPage: [16-23], Reserved1: [24-31]
+    uint _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/nvme/ns-nvme-nvme_cdw10_abort
@@ -1579,7 +1592,8 @@ union NVME_CDW10_ABORT
 {
     struct
     {
-        uint _bitfield194;
+        // Native bit field: SQID: [0-7], CID: [8-23]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -1589,7 +1603,8 @@ union NVME_CDW10_IDENTIFY
 {
     struct
     {
-        uint _bitfield195;
+        // Native bit field: CNS: [0-7], Reserved: [8-15], CNTID: [16-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -1604,7 +1619,8 @@ union NVME_CDW11_IDENTIFY
     }
     struct
     {
-        uint _bitfield196;
+        // Native bit field: CNSID: [0-15], Reserved2: [16-23], CSI: [24-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -1613,7 +1629,8 @@ union NVME_CDW14_IDENTIFY
 {
     struct
     {
-        uint _bitfield197;
+        // Native bit field: UUIDIndex: [0-6], Reserved: [7-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -1625,7 +1642,8 @@ union NVME_LBA_FORMAT
     {
         ushort MS;
         ubyte  LBADS;
-        ubyte  _bitfield198;
+        // Native bit field: RP: [0-1], Reserved0: [2-7]
+        ubyte  _bitfield0;
     }
     uint AsUlong;
 }
@@ -1634,7 +1652,8 @@ union NVM_RESERVATION_CAPABILITIES
 {
     struct
     {
-        ubyte _bitfield199;
+        // Native bit field: PersistThroughPowerLoss: [0], WriteExclusiveReservation: [1], ExclusiveAccessReservation: [2], WriteExclusiveRegistrantsOnlyReservation: [3], ExclusiveAccessRegistrantsOnlyReservation: [4], WriteExclusiveAllRegistrantsReservation: [5], ExclusiveAccessAllRegistrantsReservation: [6], Reserved: [7]
+        ubyte _bitfield0;
     }
     ubyte AsUchar;
 }
@@ -1647,37 +1666,45 @@ struct NVME_IDENTIFY_NAMESPACE_DATA
     ulong               NUSE;
     struct NSFEAT
     {
-        ubyte _bitfield200;
+        // Native bit field: ThinProvisioning: [0], NameSpaceAtomicWriteUnit: [1], DeallocatedOrUnwrittenError: [2], SkipReuseUI: [3], NameSpaceIoOptimization: [4], Reserved: [5-7]
+        ubyte _bitfield0;
     }
     ubyte               NLBAF;
     struct FLBAS
     {
-        ubyte _bitfield201;
+        // Native bit field: LbaFormatIndex: [0-3], MetadataInExtendedDataLBA: [4], LbaFormatIndexMS: [5-6], Reserved: [7]
+        ubyte _bitfield1;
     }
     struct MC
     {
-        ubyte _bitfield202;
+        // Native bit field: MetadataInExtendedDataLBA: [0], MetadataInSeparateBuffer: [1], Reserved: [2-7]
+        ubyte _bitfield2;
     }
     struct DPC
     {
-        ubyte _bitfield203;
+        // Native bit field: ProtectionInfoType1: [0], ProtectionInfoType2: [1], ProtectionInfoType3: [2], InfoAtBeginningOfMetadata: [3], InfoAtEndOfMetadata: [4], Reserved: [5-7]
+        ubyte _bitfield3;
     }
     struct DPS
     {
-        ubyte _bitfield204;
+        // Native bit field: ProtectionInfoTypeEnabled: [0-2], InfoAtBeginningOfMetadata: [3], Reserved: [4-7]
+        ubyte _bitfield4;
     }
     struct NMIC
     {
-        ubyte _bitfield205;
+        // Native bit field: SharedNameSpace: [0], Reserved: [1-7]
+        ubyte _bitfield5;
     }
     NVM_RESERVATION_CAPABILITIES RESCAP;
     struct FPI
     {
-        ubyte _bitfield206;
+        // Native bit field: PercentageRemained: [0-6], Supported: [7]
+        ubyte _bitfield6;
     }
     struct DLFEAT
     {
-        ubyte _bitfield207;
+        // Native bit field: ReadBehavior: [0-2], WriteZeroes: [3], GuardFieldWithCRC: [4], Reserved: [5-7]
+        ubyte _bitfield7;
     }
     ushort              NAWUN;
     ushort              NAWUPF;
@@ -1700,7 +1727,8 @@ struct NVME_IDENTIFY_NAMESPACE_DATA
     ubyte[3]            Reserved3;
     struct NSATTR
     {
-        ubyte _bitfield208;
+        // Native bit field: WriteProtected: [0], Reserved: [1-7]
+        ubyte _bitfield8;
     }
     ushort              NVMSETID;
     ushort              ENDGID;
@@ -1715,17 +1743,24 @@ struct NVME_POWER_STATE_DESC
 {
     ushort   MP;
     ubyte    Reserved0;
+    // Native bit field: MPS: [0], NOPS: [1], Reserved1: [2-7]
     ubyte    _bitfield1;
     uint     ENLAT;
     uint     EXLAT;
+    // Native bit field: RRT: [0-4], Reserved2: [5-7]
     ubyte    _bitfield2;
+    // Native bit field: RRL: [0-4], Reserved3: [5-7]
     ubyte    _bitfield3;
+    // Native bit field: RWT: [0-4], Reserved4: [5-7]
     ubyte    _bitfield4;
+    // Native bit field: RWL: [0-4], Reserved5: [5-7]
     ubyte    _bitfield5;
     ushort   IDLP;
+    // Native bit field: Reserved6: [0-5], IPS: [6-7]
     ubyte    _bitfield6;
     ubyte    Reserved7;
     ushort   ACTP;
+    // Native bit field: APW: [0-2], Reserved8: [3-5], APS: [6-7]
     ubyte    _bitfield7;
     ubyte[9] Reserved9;
 }
@@ -1742,7 +1777,8 @@ struct NVME_IDENTIFY_CONTROLLER_DATA
     ubyte[3]    IEEE;
     struct CMIC
     {
-        ubyte _bitfield209;
+        // Native bit field: MultiPorts: [0], MultiControllers: [1], SRIOV: [2], ANAR: [3], Reserved: [4-7]
+        ubyte _bitfield0;
     }
     ubyte       MDTS;
     ushort      CNTLID;
@@ -1751,15 +1787,18 @@ struct NVME_IDENTIFY_CONTROLLER_DATA
     uint        RTD3E;
     struct OAES
     {
-        uint _bitfield210;
+        // Native bit field: Reserved0: [0-7], NamespaceAttributeChanged: [8], FirmwareActivation: [9], Reserved1: [10], AsymmetricAccessChanged: [11], PredictableLatencyAggregateLogChanged: [12], LbaStatusChanged: [13], EnduranceGroupAggregateLogChanged: [14], NormalNvmSubsystemShutdown: [15], Reserved2: [16-26], ZoneInformation: [27], Reserved3: [28-30], DiscoveryLogChanged: [31]
+        uint _bitfield1;
     }
     struct CTRATT
     {
-        uint _bitfield211;
+        // Native bit field: HostIdentifier128Bit: [0], NOPSPMode: [1], NVMSets: [2], ReadRecoveryLevels: [3], EnduranceGroups: [4], PredictableLatencyMode: [5], TBKAS: [6], NamespaceGranularity: [7], SQAssociations: [8], UUIDList: [9], MultiDomainSubsystem: [10], FixedCapacityManagement: [11], VariableCapacityManagement: [12], DeleteEnduranceGroup: [13], DeleteNVMSet: [14], ELBAS: [15], Reserved0: [16-31]
+        uint _bitfield2;
     }
     struct RRLS
     {
-        ushort _bitfield212;
+        // Native bit field: ReadRecoveryLevel0: [0], ReadRecoveryLevel1: [1], ReadRecoveryLevel2: [2], ReadRecoveryLevel3: [3], ReadRecoveryLevel4: [4], ReadRecoveryLevel5: [5], ReadRecoveryLevel6: [6], ReadRecoveryLevel7: [7], ReadRecoveryLevel8: [8], ReadRecoveryLevel9: [9], ReadRecoveryLevel10: [10], ReadRecoveryLevel11: [11], ReadRecoveryLevel12: [12], ReadRecoveryLevel13: [13], ReadRecoveryLevel14: [14], ReadRecoveryLevel15: [15]
+        ushort _bitfield3;
     }
     ubyte[9]    Reserved0;
     ubyte       CNTRLTYPE;
@@ -1774,27 +1813,32 @@ struct NVME_IDENTIFY_CONTROLLER_DATA
     ubyte       MEC;
     struct OACS
     {
-        ushort _bitfield213;
+        // Native bit field: SecurityCommands: [0], FormatNVM: [1], FirmwareCommands: [2], NamespaceCommands: [3], DeviceSelfTest: [4], Directives: [5], NVMeMICommands: [6], VirtualizationMgmt: [7], DoorBellBufferConfig: [8], GetLBAStatus: [9], CommandFeatureLockdown: [10], Reserved: [11-15]
+        ushort _bitfield4;
     }
     ubyte       ACL;
     ubyte       AERL;
     struct FRMW
     {
-        ubyte _bitfield214;
+        // Native bit field: Slot1ReadOnly: [0], SlotCount: [1-3], ActivationWithoutReset: [4], Reserved: [5-7]
+        ubyte _bitfield5;
     }
     struct LPA
     {
-        ubyte _bitfield215;
+        // Native bit field: SmartPagePerNamespace: [0], CommandEffectsLog: [1], LogPageExtendedData: [2], TelemetrySupport: [3], PersistentEventLog: [4], SupportedLogPages: [5], TelemetryDataArea4: [6], Reserved1: [7]
+        ubyte _bitfield6;
     }
     ubyte       ELPE;
     ubyte       NPSS;
     struct AVSCC
     {
-        ubyte _bitfield216;
+        // Native bit field: CommandFormatInSpec: [0], Reserved: [1-7]
+        ubyte _bitfield7;
     }
     struct APSTA
     {
-        ubyte _bitfield217;
+        // Native bit field: Supported: [0], Reserved: [1-7]
+        ubyte _bitfield8;
     }
     ushort      WCTEMP;
     ushort      CCTEMP;
@@ -1805,7 +1849,8 @@ struct NVME_IDENTIFY_CONTROLLER_DATA
     ubyte[16]   UNVMCAP;
     struct RPMBS
     {
-        uint _bitfield218;
+        // Native bit field: RPMBUnitCount: [0-2], AuthenticationMethod: [3-5], Reserved0: [6-15], TotalSize: [16-23], AccessSize: [24-31]
+        uint _bitfield9;
     }
     ushort      EDSTT;
     ubyte       DSTO;
@@ -1813,13 +1858,15 @@ struct NVME_IDENTIFY_CONTROLLER_DATA
     ushort      KAS;
     struct HCTMA
     {
-        ushort _bitfield219;
+        // Native bit field: Supported: [0], Reserved: [1-15]
+        ushort _bitfield10;
     }
     ushort      MNTMT;
     ushort      MXTMT;
     struct SANICAP
     {
-        uint _bitfield220;
+        // Native bit field: CryptoErase: [0], BlockErase: [1], Overwrite: [2], Reserved: [3-28], NDI: [29], NODMMAS: [30-31]
+        uint _bitfield11;
     }
     uint        HMMINDS;
     ushort      HMMAXD;
@@ -1828,7 +1875,8 @@ struct NVME_IDENTIFY_CONTROLLER_DATA
     ubyte       ANATT;
     struct ANACAP
     {
-        ubyte _bitfield221;
+        // Native bit field: OptimizedState: [0], NonOptimizedState: [1], InaccessibleState: [2], PersistentLossState: [3], ChangeState: [4], Reserved: [5], StaticANAGRPID: [6], SupportNonZeroANAGRPID: [7]
+        ubyte _bitfield12;
     }
     uint        ANAGRPMAX;
     uint        NANAGRPID;
@@ -1842,45 +1890,54 @@ struct NVME_IDENTIFY_CONTROLLER_DATA
     ubyte[124]  Reserved4;
     struct SQES
     {
-        ubyte _bitfield222;
+        // Native bit field: RequiredEntrySize: [0-3], MaxEntrySize: [4-7]
+        ubyte _bitfield13;
     }
     struct CQES
     {
-        ubyte _bitfield223;
+        // Native bit field: RequiredEntrySize: [0-3], MaxEntrySize: [4-7]
+        ubyte _bitfield14;
     }
     ushort      MAXCMD;
     uint        NN;
     struct ONCS
     {
-        ushort _bitfield224;
+        // Native bit field: Compare: [0], WriteUncorrectable: [1], DatasetManagement: [2], WriteZeroes: [3], FeatureField: [4], Reservations: [5], Timestamp: [6], Verify: [7], Reserved: [8-15]
+        ushort _bitfield15;
     }
     struct FUSES
     {
-        ushort _bitfield225;
+        // Native bit field: CompareAndWrite: [0], Reserved: [1-15]
+        ushort _bitfield16;
     }
     struct FNA
     {
-        ubyte _bitfield226;
+        // Native bit field: FormatApplyToAll: [0], SecureEraseApplyToAll: [1], CryptographicEraseSupported: [2], FormatSupportNSIDAllF: [3], Reserved: [4-7]
+        ubyte _bitfield17;
     }
     struct VWC
     {
-        ubyte _bitfield227;
+        // Native bit field: Present: [0], FlushBehavior: [1-2], Reserved: [3-7]
+        ubyte _bitfield18;
     }
     ushort      AWUN;
     ushort      AWUPF;
     struct NVSCC
     {
-        ubyte _bitfield228;
+        // Native bit field: CommandFormatInSpec: [0], Reserved: [1-7]
+        ubyte _bitfield19;
     }
     struct NWPC
     {
-        ubyte _bitfield229;
+        // Native bit field: WriteProtect: [0], UntilPowerCycle: [1], Permanent: [2], Reserved: [3-7]
+        ubyte _bitfield20;
     }
     ushort      ACWU;
     ushort      CopyDescFormats;
     struct SGLS
     {
-        uint _bitfield230;
+        // Native bit field: SGLSupported: [0-1], KeyedSGLData: [2], Reserved0: [3-15], BitBucketDescrSupported: [16], ByteAlignedContiguousPhysicalBuffer: [17], SGLLengthLargerThanDataLength: [18], MPTRSGLDescriptor: [19], AddressFieldSGLDataBlock: [20], TransportSGLData: [21], Reserved1: [22-31]
+        uint _bitfield21;
     }
     uint        MNAN;
     ubyte[16]   MAXDNA;
@@ -1893,12 +1950,14 @@ struct NVME_IDENTIFY_CONTROLLER_DATA
     ushort      ICDOFF;
     struct FCATT
     {
-        ubyte _bitfield231;
+        // Native bit field: StaticControllerModel: [0], Reserved: [1-7]
+        ubyte _bitfield22;
     }
     ubyte       MSDBD;
     struct OFCS
     {
-        ushort _bitfield232;
+        // Native bit field: IOQueueDeletion: [0], Reserved: [1-15]
+        ushort _bitfield23;
     }
     ubyte       DCTYPE;
     ubyte[241]  Reserved8;
@@ -1951,11 +2010,13 @@ struct NVME_IDENTIFY_SPECIFIC_NAMESPACE_IO_COMMAND_SET
 {
     struct ZOC
     {
-        ushort _bitfield233;
+        // Native bit field: VariableZoneCapacity: [0], ZoneExcursions: [1], Reserved: [2-15]
+        ushort _bitfield0;
     }
     struct OZCS
     {
-        ushort _bitfield234;
+        // Native bit field: ReadAcrossZoneBoundaries: [0], Reserved: [1-15]
+        ushort _bitfield1;
     }
     uint        MAR;
     uint        MOR;
@@ -1993,7 +2054,8 @@ struct NVME_CONTROLLER_LIST
 
 struct NVME_UUID_LIST_ENTRY
 {
-    ubyte     _bitfield235;
+    // Native bit field: IdentifierAssociation: [0-1], Reserved: [2-7]
+    ubyte     _bitfield0;
     ubyte[15] Reserved1;
     ubyte[16] UUID;
 }
@@ -2005,7 +2067,8 @@ struct NVME_UUID_LIST
 
 struct IO_COMMAND_SET_VECTOR
 {
-    ulong _bitfield236;
+    // Native bit field: NVMCommandSet: [0], KVCommandSet: [1], ZNCommandSet: [2], Reserved: [3-63]
+    ulong _bitfield0;
 }
 
 struct NVME_IDENTIFY_IO_COMMAND_SET
@@ -2019,7 +2082,8 @@ struct NVME_LBA_RANGET_TYPE_ENTRY
     ubyte     Type;
     struct Attributes
     {
-        ubyte _bitfield237;
+        // Native bit field: MayOverwritten: [0], Hidden: [1], Reserved: [2-7]
+        ubyte _bitfield0;
     }
     ubyte[14] Reserved0;
     ulong     SLBA;
@@ -2034,7 +2098,8 @@ struct NVME_WCS_DEVICE_RESET_ACTION
     {
         struct
         {
-            ubyte _bitfield238;
+            // Native bit field: ControllerReset: [0], NVMeSubsystemReset: [1], PCIeFLR: [2], PERST: [3], PowerCycle: [4], PCIeConventionalHotReset: [5], Reserved: [6-7]
+            ubyte _bitfield0;
         }
         ubyte AsUCHAR;
     }
@@ -2046,7 +2111,8 @@ struct NVME_WCS_DEVICE_CAPABILITIES
     {
         struct
         {
-            uint _bitfield239;
+            // Native bit field: PanicAEN: [0], PanicCFS: [1], Reserved: [2-31]
+            uint _bitfield0;
         }
         uint AsULONG;
     }
@@ -2253,7 +2319,8 @@ struct LATENCY_MONITOR_FEATURE_STATUS
     {
         struct
         {
-            ubyte _bitfield240;
+            // Native bit field: FeatureEnabled: [0], ActiveLatencyMode: [1], ActiveMeasuredLatency: [2], Reserved: [3-7]
+            ubyte _bitfield0;
         }
         ubyte AsUchar;
     }
@@ -2267,7 +2334,8 @@ struct ACTIVE_LATENCY_CONFIGURATION
         struct
         {
         align (1):
-            ushort _bitfield241;
+            // Native bit field: Read0: [0], Write0: [1], Trim0: [2], Read1: [3], Write1: [4], Trim1: [5], Read2: [6], Write2: [7], Trim2: [8], Read3: [9], Write3: [10], Trim3: [11], Reserved: [12-15]
+            ushort _bitfield0;
         }
         ushort AsUshort;
     }
@@ -2319,13 +2387,15 @@ align (1):
 struct LATENCY_STAMP_UNITS
 {
 align (1):
-    ushort _bitfield242;
+    // Native bit field: Read0: [0], Write0: [1], Trim0: [2], Read1: [3], Write1: [4], Trim1: [5], Read2: [6], Write2: [7], Trim2: [8], Read3: [9], Write3: [10], Trim3: [11], Reserved: [12-15]
+    ushort _bitfield0;
 }
 
 struct DEBUG_BIT_FIELD
 {
 align (1):
-    ushort _bitfield243;
+    // Native bit field: Read0: [0], Write0: [1], Trim0: [2], Read1: [3], Write1: [4], Trim1: [5], Read2: [6], Write2: [7], Trim2: [8], Read3: [9], Write3: [10], Trim3: [11], Reserved: [12-15]
+    ushort _bitfield0;
 }
 
 struct NVME_OCP_DEVICE_LATENCY_MONITOR_LOG
@@ -2367,7 +2437,8 @@ align (1):
     {
         struct
         {
-            ubyte _bitfield244;
+            // Native bit field: BasedOnTimestamp: [0], Reserved: [1-7]
+            ubyte _bitfield0;
         }
         ubyte AsUchar;
     }
@@ -2378,7 +2449,8 @@ align (1):
 
 struct DSSD_POWER_STATE_DESCRIPTOR
 {
-    ubyte _bitfield245;
+    // Native bit field: NvmePowerState: [0-4], Reserved: [5-6], ValidDSSDPowerState: [7]
+    ubyte _bitfield0;
 }
 
 struct NVME_OCP_DEVICE_CAPABILITIES_LOG
@@ -2391,7 +2463,8 @@ align (1):
         struct
         {
         align (1):
-            ushort _bitfield246;
+            // Native bit field: MctpOverSMBusSupported: [0], MctpOverPcieVDMSupported: [1], BasicMgmtCommandSupported: [2], Reserved: [3-14], CompliesWithSpec: [15]
+            ushort _bitfield0;
         }
         ushort AsUshort;
     }
@@ -2401,7 +2474,8 @@ align (1):
         struct
         {
         align (1):
-            ushort _bitfield247;
+            // Native bit field: Supported: [0], DEACBitSupported: [1], FUABitSupported: [2], NvmeIo5Met: [3], NvmeIo6Met: [4], Reserved: [5-14], CompliesWithSpec: [15]
+            ushort _bitfield1;
         }
         ushort AsUshort;
     }
@@ -2411,7 +2485,8 @@ align (1):
         struct
         {
         align (1):
-            ushort _bitfield248;
+            // Native bit field: Supported: [0], CryptoEraseSupported: [1], BlockEraseSupported: [2], OverwriteSupported: [3], DeallocateLbaSupported: [4], Reserved: [5-14], CompliesWithSpec: [15]
+            ushort _bitfield2;
         }
         ushort AsUshort;
     }
@@ -2421,7 +2496,8 @@ align (1):
         struct
         {
         align (1):
-            ushort _bitfield249;
+            // Native bit field: Supported: [0], AttribDeallocateSupported: [1], Reserved: [2-14], CompliesWithSpec: [15]
+            ushort _bitfield3;
         }
         ushort AsUshort;
     }
@@ -2431,7 +2507,8 @@ align (1):
         struct
         {
         align (1):
-            ushort _bitfield250;
+            // Native bit field: Supported: [0], SingleLBASupported: [1], MaxLBASupported: [2], NvmeIo14Met: [3], Reserved: [4-14], CompliesWithSpec: [15]
+            ushort _bitfield4;
         }
         ushort AsUshort;
     }
@@ -2441,7 +2518,8 @@ align (1):
         struct
         {
         align (1):
-            ushort _bitfield251;
+            // Native bit field: CWFusedSupported: [0], Reserved: [1-14], CompliesWithSpec: [15]
+            ushort _bitfield5;
         }
         ushort AsUshort;
     }
@@ -2476,7 +2554,8 @@ align (1):
     {
         struct
         {
-            ubyte _bitfield252;
+            // Native bit field: CPINSIDValue: [0], CPINSIDBlocked: [1], LockingEnabled: [2], SUMOwner: [3], Reserved: [4-7]
+            ubyte _bitfield0;
         }
         ubyte AsUchar;
     }
@@ -2564,7 +2643,8 @@ union NVME_CDW10_CREATE_IO_QUEUE
 {
     struct
     {
-        uint _bitfield253;
+        // Native bit field: QID: [0-15], QSIZE: [16-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2574,7 +2654,8 @@ union NVME_CDW11_CREATE_IO_CQ
 {
     struct
     {
-        uint _bitfield254;
+        // Native bit field: PC: [0], IEN: [1], Reserved0: [2-15], IV: [16-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2583,7 +2664,8 @@ union NVME_CDW10_DELETE_IO_QUEUE
 {
     struct
     {
-        uint _bitfield255;
+        // Native bit field: QID: [0-15], Reserved: [16-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2593,7 +2675,8 @@ union NVME_CDW11_CREATE_IO_SQ
 {
     struct
     {
-        uint _bitfield256;
+        // Native bit field: PC: [0], QPRIO: [1-2], Reserved0: [3-15], CQID: [16-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2603,7 +2686,8 @@ union NVME_CDW10_GET_FEATURES
 {
     struct
     {
-        uint _bitfield257;
+        // Native bit field: FID: [0-7], SEL: [8-10], Reserved0: [11-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2613,7 +2697,8 @@ union NVME_CDW10_SET_FEATURES
 {
     struct
     {
-        uint _bitfield258;
+        // Native bit field: FID: [0-7], Reserved0: [8-30], SV: [31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2622,7 +2707,8 @@ struct NVME_GET_FEATURE_TIMESTAMP
 {
     struct
     {
-        ulong _bitfield259;
+        // Native bit field: Timestamp: [0-47], Synch: [48], Origin: [49-51], Reserved: [52-63]
+        ulong _bitfield0;
     }
     ulong AsUlonglong;
 }
@@ -2632,7 +2718,8 @@ union NVME_CDW11_FEATURE_NUMBER_OF_QUEUES
 {
     struct
     {
-        uint _bitfield260;
+        // Native bit field: NSQ: [0-15], NCQ: [16-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2642,7 +2729,8 @@ union NVME_CDW11_FEATURE_INTERRUPT_COALESCING
 {
     struct
     {
-        uint _bitfield261;
+        // Native bit field: THR: [0-7], TIME: [8-15], Reserved0: [16-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2652,7 +2740,8 @@ union NVME_CDW11_FEATURE_INTERRUPT_VECTOR_CONFIG
 {
     struct
     {
-        uint _bitfield262;
+        // Native bit field: IV: [0-15], CD: [16], Reserved0: [17-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2662,7 +2751,8 @@ union NVME_CDW11_FEATURE_WRITE_ATOMICITY_NORMAL
 {
     struct
     {
-        uint _bitfield263;
+        // Native bit field: DN: [0], Reserved0: [1-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2672,7 +2762,8 @@ union NVME_CDW11_FEATURE_NON_OPERATIONAL_POWER_STATE
 {
     struct
     {
-        uint _bitfield264;
+        // Native bit field: NOPPME: [0], Reserved0: [1-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2682,7 +2773,8 @@ union NVME_CDW11_FEATURE_LBA_RANGE_TYPE
 {
     struct
     {
-        uint _bitfield265;
+        // Native bit field: NUM: [0-5], Reserved0: [6-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2692,7 +2784,8 @@ union NVME_CDW11_FEATURE_ARBITRATION
 {
     struct
     {
-        uint _bitfield266;
+        // Native bit field: AB: [0-2], Reserved0: [3-7], LPW: [8-15], MPW: [16-23], HPW: [24-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2702,7 +2795,8 @@ union NVME_CDW11_FEATURE_VOLATILE_WRITE_CACHE
 {
     struct
     {
-        uint _bitfield267;
+        // Native bit field: WCE: [0], Reserved0: [1-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2712,7 +2806,8 @@ union NVME_CDW11_FEATURE_SUPPORTED_CAPABILITY
 {
     struct
     {
-        uint _bitfield268;
+        // Native bit field: SAVE: [0], NSS: [1], MOD: [2], Reserved0: [3-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2722,7 +2817,8 @@ union NVME_CDW11_FEATURE_ASYNC_EVENT_CONFIG
 {
     struct
     {
-        uint _bitfield269;
+        // Native bit field: CriticalWarnings: [0-7], NsAttributeNotices: [8], FwActivationNotices: [9], TelemetryLogNotices: [10], ANAChangeNotices: [11], PredictableLogChangeNotices: [12], LBAStatusNotices: [13], EnduranceEventNotices: [14], NormalNVMSubsystemShutdown: [15], Reserved0: [16-26], ZoneDescriptorNotices: [27], Reserved1: [28-30], DiscoveryLogPageChange: [31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2732,7 +2828,8 @@ union NVME_CDW11_FEATURE_POWER_MANAGEMENT
 {
     struct
     {
-        uint _bitfield270;
+        // Native bit field: PS: [0-4], Reserved0: [5-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2742,7 +2839,8 @@ union NVME_CDW11_FEATURE_AUTO_POWER_STATE_TRANSITION
 {
     struct
     {
-        uint _bitfield271;
+        // Native bit field: APSTE: [0], Reserved0: [1-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2750,7 +2848,8 @@ union NVME_CDW11_FEATURE_AUTO_POWER_STATE_TRANSITION
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/nvme/ns-nvme-nvme_auto_power_state_transition_entry
 struct NVME_AUTO_POWER_STATE_TRANSITION_ENTRY
 {
-    uint _bitfield272;
+    // Native bit field: Reserved0: [0-2], IdleTransitionPowerState: [3-7], IdleTimePriorToTransition: [8-31]
+    uint _bitfield0;
     uint Reserved1;
 }
 
@@ -2759,7 +2858,8 @@ union NVME_CDW11_FEATURE_TEMPERATURE_THRESHOLD
 {
     struct
     {
-        uint _bitfield273;
+        // Native bit field: TMPTH: [0-15], TMPSEL: [16-19], THSEL: [20-21], Reserved0: [22-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2768,7 +2868,8 @@ union NVME_CDW11_FEATURE_ERROR_RECOVERY
 {
     struct
     {
-        uint _bitfield274;
+        // Native bit field: TLER: [0-15], DULBE: [16], Reserved0: [17-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2778,7 +2879,8 @@ union NVME_CDW11_FEATURE_HOST_MEMORY_BUFFER
 {
     struct
     {
-        uint _bitfield275;
+        // Native bit field: EHM: [0], MR: [1], Reserved: [2-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2798,7 +2900,8 @@ union NVME_CDW13_FEATURE_HOST_MEMORY_BUFFER
 {
     struct
     {
-        uint _bitfield276;
+        // Native bit field: Reserved: [0-3], HMDLLA: [4-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2843,7 +2946,8 @@ union NVME_CDW11_FEATURE_IO_COMMAND_SET_PROFILE
 {
     struct
     {
-        uint _bitfield277;
+        // Native bit field: IOCSCI: [0-7], Reserved: [8-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2852,7 +2956,8 @@ union NVME_CDW11_FEATURE_GET_HOST_METADATA
 {
     struct
     {
-        uint _bitfield278;
+        // Native bit field: GDHM: [0], Reserved: [1-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2861,14 +2966,16 @@ union NVME_CDW11_FEATURE_SET_HOST_METADATA
 {
     struct
     {
-        uint _bitfield279;
+        // Native bit field: Reserved0: [0-12], EA: [13-14], Reserved1: [15-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
 
 struct NVME_HOST_METADATA_ELEMENT_DESCRIPTOR
 {
-    uint     _bitfield280;
+    // Native bit field: ET: [0-5], Reserved0: [6-7], ER: [8-11], Reserved1: [12-15], ELEN: [16-31]
+    uint     _bitfield0;
     ubyte[1] EVAL; // Flexible array
 }
 
@@ -2883,7 +2990,8 @@ union NVME_CDW0_FEATURE_ERROR_INJECTION
 {
     struct
     {
-        uint _bitfield281;
+        // Native bit field: NUM: [0-6], Reserved0: [7-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2894,7 +3002,8 @@ struct NVME_ERROR_INJECTION_ENTRY
     {
         struct
         {
-            ubyte _bitfield282;
+            // Native bit field: Enable: [0], SingleInstance: [1], Reserved0: [2-7]
+            ubyte _bitfield0;
         }
         ubyte AsUchar;
     }
@@ -2907,7 +3016,8 @@ union NVME_CDW11_FEATURE_CLEAR_FW_UPDATE_HISTORY
 {
     struct
     {
-        uint _bitfield283;
+        // Native bit field: Reserved0: [0-30], Clear: [31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2916,7 +3026,8 @@ union NVME_CDW11_FEATURE_READONLY_WRITETHROUGH_MODE
 {
     struct
     {
-        uint _bitfield284;
+        // Native bit field: Reserved0: [0-29], EOLBehavior: [30-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2925,7 +3036,8 @@ union NVME_CDW0_FEATURE_READONLY_WRITETHROUGH_MODE
 {
     struct
     {
-        uint _bitfield285;
+        // Native bit field: EOLBehavior: [0-2], Reserved0: [3-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2934,7 +3046,8 @@ union NVME_CDW11_FEATURE_CLEAR_PCIE_CORRECTABLE_ERROR_COUNTERS
 {
     struct
     {
-        uint _bitfield286;
+        // Native bit field: Reserved0: [0-30], Clear: [31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2943,7 +3056,8 @@ union NVME_CDW11_FEATURE_ENABLE_IEEE1667_SILO
 {
     struct
     {
-        uint _bitfield287;
+        // Native bit field: Reserved0: [0-30], Enable: [31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2952,7 +3066,8 @@ union NVME_CDW0_FEATURE_ENABLE_IEEE1667_SILO
 {
     struct
     {
-        uint _bitfield288;
+        // Native bit field: Enabled: [0-2], Reserved0: [3-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -2977,14 +3092,16 @@ union NVME_CDW0_FEATURE_DSSD_POWER_STATE
 {
     struct
     {
-        uint _bitfield289;
+        // Native bit field: DSSDPowerState: [0-6], Reserved0: [7-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
 
 struct NVME_CDW11_FEATURE_HOST_IDENTIFIER
 {
-    uint _bitfield290;
+    // Native bit field: EXHID: [0], Reserved: [1-31]
+    uint _bitfield0;
 }
 
 struct NVME_FEATURE_HOST_IDENTIFIER_DATA
@@ -2994,12 +3111,14 @@ struct NVME_FEATURE_HOST_IDENTIFIER_DATA
 
 struct NVME_CDW11_FEATURE_RESERVATION_PERSISTENCE
 {
-    uint _bitfield291;
+    // Native bit field: PTPL: [0], Reserved: [1-31]
+    uint _bitfield0;
 }
 
 struct NVME_CDW11_FEATURE_RESERVATION_NOTIFICATION_MASK
 {
-    uint _bitfield292;
+    // Native bit field: Reserved: [0], REGPRE: [1], RESREL: [2], RESPRE: [3], Reserved1: [4-31]
+    uint _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/nvme/ns-nvme-nvme_cdw11_features
@@ -3062,7 +3181,8 @@ union NVME_CDW10_GET_LOG_PAGE
 {
     struct
     {
-        uint _bitfield293;
+        // Native bit field: LID: [0-7], Reserved0: [8-15], NUMD: [16-27], Reserved1: [28-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3071,7 +3191,8 @@ union NVME_CDW10_GET_LOG_PAGE_V121
 {
     struct
     {
-        uint _bitfield294;
+        // Native bit field: LID: [0-7], Reserved0: [8-15], NUMDL: [16-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3081,7 +3202,8 @@ union NVME_CDW10_GET_LOG_PAGE_V13
 {
     struct
     {
-        uint _bitfield295;
+        // Native bit field: LID: [0-7], LSP: [8-11], Reserved0: [12-14], RAE: [15], NUMDL: [16-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3090,7 +3212,8 @@ union NVME_CDW10_GET_LOG_PAGE_V20
 {
     struct
     {
-        uint _bitfield296;
+        // Native bit field: LID: [0-7], LSP: [8-14], RAE: [15], NUMDL: [16-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3100,7 +3223,8 @@ union NVME_CDW11_GET_LOG_PAGE
 {
     struct
     {
-        uint _bitfield297;
+        // Native bit field: NUMDU: [0-15], LogSpecificIdentifier: [16-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3123,7 +3247,8 @@ union NVME_CDW14_GET_LOG_PAGE
 {
     struct
     {
-        uint _bitfield298;
+        // Native bit field: UUIDIndex: [0-6], Reserved: [7-22], OT: [23], CommandSetIdentifier: [24-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3132,19 +3257,22 @@ union NVME_CDW14_GET_LOG_PAGE_V20
 {
     struct
     {
-        uint _bitfield299;
+        // Native bit field: UUIDIndex: [0-6], Reserved: [7-22], OffsetType: [23], CommandSetIdentifier: [24-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
 
 struct NVME_LID_SPECIFIC_PERSISTENT_EVENT_LOG
 {
-    ushort _bitfield300;
+    // Native bit field: EstablishContextAndRead512BytesOfHeaderSupported: [0], Reserved: [1-15]
+    ushort _bitfield0;
 }
 
 struct NVME_LID_SUPPORTED_AND_EFFECTS
 {
-    uint _bitfield301;
+    // Native bit field: LSUPP: [0], IOS: [1], Reserved: [2-15], LIDSpecific: [16-31]
+    uint _bitfield0;
 }
 
 struct NVME_SUPPORTED_LOG_PAGES_LOG
@@ -3161,7 +3289,8 @@ struct NVME_ERROR_INFO_LOG
     NVME_COMMAND_STATUS Status;
     struct ParameterErrorLocation
     {
-        ushort _bitfield302;
+        // Native bit field: Byte: [0-7], Bit: [8-10], Reserved: [11-15]
+        ushort _bitfield0;
     }
     ulong               Lba;
     uint                NameSpace;
@@ -3180,7 +3309,8 @@ struct NVME_HEALTH_INFO_LOG
     {
         struct
         {
-            ubyte _bitfield303;
+            // Native bit field: AvailableSpaceLow: [0], TemperatureThreshold: [1], ReliabilityDegraded: [2], ReadOnly: [3], VolatileMemoryBackupDeviceFailed: [4], Reserved: [5-7]
+            ubyte _bitfield0;
         }
         ubyte AsUchar;
     }
@@ -3251,7 +3381,8 @@ struct NVME_FIRMWARE_SLOT_INFO_LOG
 {
     struct AFI
     {
-        ubyte _bitfield304;
+        // Native bit field: ActiveSlot: [0-2], Reserved0: [3], PendingActivateSlot: [4-6], Reserved1: [7]
+        ubyte _bitfield0;
     }
     ubyte[7]   Reserved0;
     ulong[7]   FRS;
@@ -3276,7 +3407,8 @@ union NVME_COMMAND_EFFECTS_DATA
 {
     struct
     {
-        uint _bitfield305;
+        // Native bit field: CSUPP: [0], LBCC: [1], NCC: [2], NIC: [3], CCC: [4], Reserved: [5-15], CSE: [16-18], UUIDSelectionSupported: [19], CSPNamespace: [20], CSPController: [21], CSPNVMSet: [22], CSPEnduranceGroup: [23], CSPDomain: [24], CSPNVMSubsystem: [25], CSPReserved: [26-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3295,12 +3427,14 @@ struct NVME_DEVICE_SELF_TEST_RESULT_DATA
 align (1):
     struct Status
     {
-        ubyte _bitfield306;
+        // Native bit field: Result: [0-3], CodeValue: [4-7]
+        ubyte _bitfield0;
     }
     ubyte  SegmentNumber;
     struct ValidDiagnostics
     {
-        ubyte _bitfield307;
+        // Native bit field: NSIDValid: [0], FLBAValid: [1], SCTValid: [2], SCValid: [3], Reserved: [4-7]
+        ubyte _bitfield1;
     }
     ubyte  Reserved;
     ulong  POH;
@@ -3308,7 +3442,8 @@ align (1):
     ulong  FailingLBA;
     struct StatusCodeType
     {
-        ubyte _bitfield308;
+        // Native bit field: AdditionalInfo: [0-2], Reserved: [3-7]
+        ubyte _bitfield2;
     }
     ubyte  StatusCode;
     ushort VendorSpecific;
@@ -3319,11 +3454,13 @@ struct NVME_DEVICE_SELF_TEST_LOG
 {
     struct CurrentOperation
     {
-        ubyte _bitfield309;
+        // Native bit field: Status: [0-3], Reserved: [4-7]
+        ubyte _bitfield0;
     }
     struct CurrentCompletion
     {
-        ubyte _bitfield310;
+        // Native bit field: CompletePercent: [0-6], Reserved: [7]
+        ubyte _bitfield1;
     }
     ubyte[2] Reserved;
     NVME_DEVICE_SELF_TEST_RESULT_DATA[20] ResultData;
@@ -3382,7 +3519,8 @@ align (1):
 
 struct NVME_FID_SUPPORTED_AND_EFFECTS
 {
-    uint _bitfield311;
+    // Native bit field: FSUPP: [0], UDCC: [1], NCC: [2], NIC: [3], CCC: [4], Reserved: [5-18], UUIDSelectionSupported: [19], FSPNamespace: [20], FSPController: [21], FSPNVMSet: [22], FSPEnduranceGroup: [23], FSPDomain: [24], FSPNVMSubsystem: [25], FSPReserved: [26-31]
+    uint _bitfield0;
 }
 
 struct NVME_FEATURE_IDENTIFIERS_EFFECTS_LOG
@@ -3392,7 +3530,8 @@ struct NVME_FEATURE_IDENTIFIERS_EFFECTS_LOG
 
 struct NVME_NVME_MI_COMMANDS_SUPPORTED_AND_EFFECTS
 {
-    uint _bitfield312;
+    // Native bit field: CSUPP: [0], UDCC: [1], NCC: [2], NIC: [3], CCC: [4], Reserved: [5-19], CSPNamespace: [20], CSPController: [21], CSPNVMSet: [22], CSPEnduranceGroup: [23], CSPDomain: [24], CSPNVMSubsystem: [25], CSPReserved: [26-31]
+    uint _bitfield0;
 }
 
 struct NVME_NVME_MI_COMMANDS_SUPPORTED_AND_EFFECTS_LOG
@@ -3414,7 +3553,8 @@ struct NVME_RESERVATION_NOTIFICATION_LOG
 
 struct NVME_SANITIZE_STATUS
 {
-    ushort _bitfield313;
+    // Native bit field: MostRecentSanitizeOperationStatus: [0-2], NumberCompletedPassesOfOverwrite: [3-6], GlobalDataErased: [7], Reserved: [8-15]
+    ushort _bitfield0;
 }
 
 struct NVME_SANITIZE_STATUS_LOG
@@ -3448,7 +3588,8 @@ union NVME_CDW10_FIRMWARE_ACTIVATE
 {
     struct
     {
-        uint _bitfield314;
+        // Native bit field: FS: [0-2], AA: [3-4], Reserved: [5-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3458,7 +3599,8 @@ union NVME_CDW10_FORMAT_NVM
 {
     struct
     {
-        uint _bitfield315;
+        // Native bit field: LBAF: [0-3], MS: [4], PI: [5-7], PIL: [8], SES: [9-11], ZF: [12-13], Reserved: [14-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3467,7 +3609,8 @@ union NVME_CDW10_SANITIZE
 {
     struct
     {
-        uint _bitfield316;
+        // Native bit field: SANACT: [0-2], AUSE: [3], OWPASS: [4-7], OIPBP: [8], NDAS: [9], Reserved: [10-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3483,14 +3626,16 @@ union NVME_CDW11_SANITIZE
 
 struct NVME_CDW0_RESERVATION_PERSISTENCE
 {
-    uint _bitfield317;
+    // Native bit field: PTPL: [0], Reserved: [1-31]
+    uint _bitfield0;
 }
 
 union NVME_CDW10_RESERVATION_ACQUIRE
 {
     struct
     {
-        uint _bitfield318;
+        // Native bit field: RACQA: [0-2], IEKEY: [3], Reserved: [4-7], RTYPE: [8-15], Reserved1: [16-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3505,7 +3650,8 @@ union NVME_CDW10_RESERVATION_REGISTER
 {
     struct
     {
-        uint _bitfield319;
+        // Native bit field: RREGA: [0-2], IEKEY: [3], Reserved: [4-29], CPTPL: [30-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3520,7 +3666,8 @@ union NVME_CDW10_RESERVATION_RELEASE
 {
     struct
     {
-        uint _bitfield320;
+        // Native bit field: RRELA: [0-2], IEKEY: [3], Reserved: [4-7], RTYPE: [8-15], Reserved1: [16-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3543,7 +3690,8 @@ union NVME_CDW11_RESERVATION_REPORT
 {
     struct
     {
-        uint _bitfield321;
+        // Native bit field: EDS: [0], Reserved: [1-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3564,7 +3712,8 @@ struct NVME_REGISTERED_CONTROLLER_DATA
     ushort   CNTLID;
     struct RCSTS
     {
-        ubyte _bitfield322;
+        // Native bit field: HoldReservation: [0], Reserved: [1-7]
+        ubyte _bitfield0;
     }
     ubyte[5] Reserved;
     ubyte[8] HOSTID;
@@ -3582,7 +3731,8 @@ struct NVME_REGISTERED_CONTROLLER_EXTENDED_DATA
     ushort    CNTLID;
     struct RCSTS
     {
-        ubyte _bitfield323;
+        // Native bit field: HoldReservation: [0], Reserved: [1-7]
+        ubyte _bitfield0;
     }
     ubyte[5]  Reserved;
     ulong     RKEY;
@@ -3608,7 +3758,8 @@ union NVME_CDW11_DIRECTIVE_RECEIVE
 {
     struct
     {
-        uint _bitfield324;
+        // Native bit field: DOPER: [0-7], DTYPE: [8-15], DSPEC: [16-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3624,7 +3775,8 @@ union NVME_CDW11_DIRECTIVE_SEND
 {
     struct
     {
-        uint _bitfield325;
+        // Native bit field: DOPER: [0-7], DTYPE: [8-15], DSPEC: [16-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3632,7 +3784,8 @@ union NVME_CDW11_DIRECTIVE_SEND
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/nvme/ns-nvme-nvme_directive_identify_return_parameters_descriptor
 struct NVME_DIRECTIVE_IDENTIFY_RETURN_PARAMETERS_DESCRIPTOR
 {
-    ubyte     _bitfield326;
+    // Native bit field: Identify: [0], Streams: [1], Reserved0: [2-7]
+    ubyte     _bitfield0;
     ubyte[31] Reserved1;
 }
 
@@ -3648,7 +3801,8 @@ union NVME_CDW12_DIRECTIVE_SEND_IDENTIFY_ENABLE_DIRECTIVE
 {
     struct
     {
-        uint _bitfield327;
+        // Native bit field: ENDIR: [0], Reserved0: [1-7], DTYPE: [8-15], Reserved1: [16-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3679,7 +3833,8 @@ union NVME_CDW12_DIRECTIVE_RECEIVE_STREAMS_ALLOCATE_RESOURCES
 {
     struct
     {
-        uint _bitfield328;
+        // Native bit field: NSR: [0-15], Reserved: [16-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3689,7 +3844,8 @@ struct NVME_COMPLETION_DW0_DIRECTIVE_RECEIVE_STREAMS_ALLOCATE_RESOURCES
 {
     struct
     {
-        uint _bitfield329;
+        // Native bit field: NSA: [0-15], Reserved: [16-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3713,7 +3869,8 @@ union NVME_CDW10_SECURITY_SEND_RECEIVE
 {
     struct
     {
-        uint _bitfield330;
+        // Native bit field: Reserved0: [0-7], SPSP: [8-23], SECP: [24-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3735,7 +3892,8 @@ union NVME_CDW12_READ_WRITE
 {
     struct
     {
-        uint _bitfield331;
+        // Native bit field: NLB: [0-15], Reserved0: [16-19], DTYPE: [20-23], Reserved1: [24-25], PRINFO: [26-29], FUA: [30], LR: [31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3747,7 +3905,8 @@ union NVME_CDW13_READ_WRITE
     {
         struct DSM
         {
-            ubyte _bitfield332;
+            // Native bit field: AccessFrequency: [0-3], AccessLatency: [4-5], SequentialRequest: [6], Incompressible: [7]
+            ubyte _bitfield0;
         }
         ubyte  Reserved;
         ushort DSPEC;
@@ -3760,7 +3919,8 @@ union NVME_CDW15_READ_WRITE
 {
     struct
     {
-        uint _bitfield333;
+        // Native bit field: ELBAT: [0-15], ELBATM: [16-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3770,7 +3930,8 @@ union NVME_CONTEXT_ATTRIBUTES
 {
     struct
     {
-        uint _bitfield334;
+        // Native bit field: AccessFrequency: [0-3], AccessLatency: [4-5], Reserved0: [6-7], SequentialReadRange: [8], SequentialWriteRange: [9], WritePrepare: [10], Reserved1: [11-23], CommandAccessSize: [24-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3788,7 +3949,8 @@ union NVME_CDW10_DATASET_MANAGEMENT
 {
     struct
     {
-        uint _bitfield335;
+        // Native bit field: NR: [0-7], Reserved: [8-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3798,7 +3960,8 @@ union NVME_CDW11_DATASET_MANAGEMENT
 {
     struct
     {
-        uint _bitfield336;
+        // Native bit field: IDR: [0], IDW: [1], AD: [2], Reserved: [3-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3807,7 +3970,8 @@ union NVME_CDW12_VERIFYCOMMAND
 {
     struct
     {
-        uint _bitfield337;
+        // Native bit field: NLB: [0-15], Reserved: [16-25], PRINFO: [26-29], FUA: [30], LR: [31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3816,7 +3980,8 @@ union NVME_CDW15_VERIFY_COMMAND
 {
     struct
     {
-        uint _bitfield338;
+        // Native bit field: ELBAT: [0-15], ELBATM: [16-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3825,15 +3990,18 @@ struct NVME_ZONE_DESCRIPTOR
 {
     struct
     {
-        ubyte _bitfield339;
+        // Native bit field: ZT: [0-3], Reserved1: [4-7]
+        ubyte _bitfield0;
     }
     struct
     {
-        ubyte _bitfield340;
+        // Native bit field: Reserved2: [0-3], ZS: [4-7]
+        ubyte _bitfield1;
     }
     struct ZA
     {
-        ubyte _bitfield341;
+        // Native bit field: ZFC: [0], FZR: [1], RZR: [2], Reserved: [3-6], ZDEV: [7]
+        ubyte _bitfield2;
     }
     ubyte[5]  Reserved3;
     ulong     ZCAP;
@@ -3851,7 +4019,8 @@ union NVME_CDW13_ZONE_MANAGEMENT_SEND
 {
     struct
     {
-        uint _bitfield342;
+        // Native bit field: ZSA: [0-7], SelectAll: [8], Reserved: [9-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3890,7 +4059,8 @@ union NVME_CDW13_ZONE_MANAGEMENT_RECEIVE
 {
     struct
     {
-        uint _bitfield343;
+        // Native bit field: ZRA: [0-7], ZRASpecific: [8-15], Partial: [16], Reserved: [17-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3904,7 +4074,8 @@ union NVME_CDW12_ZONE_APPEND
 {
     struct
     {
-        uint _bitfield344;
+        // Native bit field: NLB: [0-15], Reserved: [16-24], PIREMAP: [25], PRINFO: [26-29], FUA: [30], LR: [31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3913,7 +4084,8 @@ union NVME_CDW15_ZONE_APPEND
 {
     struct
     {
-        uint _bitfield345;
+        // Native bit field: LBAT: [0-15], LBATM: [16-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3922,7 +4094,8 @@ union NVME_CDW10_DEVICE_SELF_TEST
 {
     struct
     {
-        uint _bitfield346;
+        // Native bit field: STC: [0-3], Reserved: [4-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3931,7 +4104,8 @@ union NVME_CDW10_DISCOVERY_INFO_MGMT
 {
     struct
     {
-        uint _bitfield347;
+        // Native bit field: TAS: [0-3], Reserved: [4-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3941,7 +4115,8 @@ union NVME_COMMAND_DWORD0
 {
     struct
     {
-        uint _bitfield348;
+        // Native bit field: OPC: [0-7], FUSE: [8-9], Reserved0: [10-13], PSDT: [14-15], CID: [16-31]
+        uint _bitfield0;
     }
     uint AsUlong;
 }
@@ -3951,7 +4126,8 @@ union NVME_PRP_ENTRY
 {
     struct
     {
-        ulong _bitfield349;
+        // Native bit field: Reserved0: [0-1], PBAO: [2-63]
+        ulong _bitfield0;
     }
     ulong AsUlonglong;
 }
@@ -4269,7 +4445,8 @@ struct NVME_SGL_DESC
     {
         struct
         {
-            ubyte _bitfield350;
+            // Native bit field: SubType: [0-3], Type: [4-7]
+            ubyte _bitfield0;
         }
         ubyte AsUchar;
     }
@@ -4284,7 +4461,8 @@ struct NVME_SGL_DATABLOCK_DESC
     {
         struct
         {
-            ubyte _bitfield351;
+            // Native bit field: SubType: [0-3], Type: [4-7]
+            ubyte _bitfield0;
         }
         ubyte AsUchar;
     }
@@ -4299,7 +4477,8 @@ struct NVME_SGL_BITBUCKET_DESC
     {
         struct
         {
-            ubyte _bitfield352;
+            // Native bit field: SubType: [0-3], Type: [4-7]
+            ubyte _bitfield0;
         }
         ubyte AsUchar;
     }
@@ -4314,7 +4493,8 @@ struct NVME_SGL_SEGMENT_DESC
     {
         struct
         {
-            ubyte _bitfield353;
+            // Native bit field: SubType: [0-3], Type: [4-7]
+            ubyte _bitfield0;
         }
         ubyte AsUchar;
     }
@@ -4329,7 +4509,8 @@ struct NVME_SGL_LASTSEG_DESC
     {
         struct
         {
-            ubyte _bitfield354;
+            // Native bit field: SubType: [0-3], Type: [4-7]
+            ubyte _bitfield0;
         }
         ubyte AsUchar;
     }
@@ -4344,7 +4525,8 @@ struct NVME_SGL_KEYDATABLOCK_DESC
     {
         struct
         {
-            ubyte _bitfield355;
+            // Native bit field: SubType: [0-3], Type: [4-7]
+            ubyte _bitfield0;
         }
         ubyte AsUchar;
     }
@@ -4359,7 +4541,8 @@ struct NVME_SGL_TRANSPORTDATA_DESC
     {
         struct
         {
-            ubyte _bitfield356;
+            // Native bit field: SubType: [0-3], Type: [4-7]
+            ubyte _bitfield0;
         }
         ubyte AsUchar;
     }
@@ -4399,7 +4582,8 @@ struct NVMEOF_CONNECT_COMMAND
     {
         struct
         {
-            ubyte _bitfield357;
+            // Native bit field: PriorityClass: [0-1], SqFlowControlDisable: [2], IoQueueDeletion: [3], Reserved: [4-7]
+            ubyte _bitfield0;
         }
         ubyte AsUchar;
     }
@@ -4429,7 +4613,8 @@ struct NVMEOF_CONNECT_RESPONSE
             {
                 struct
                 {
-                    ushort _bitfield358;
+                    // Native bit field: Obsolete: [0], ATR: [1], ASCR: [2], Reserved: [3-15]
+                    ushort _bitfield0;
                 }
                 ushort AsUshort;
             }
@@ -4473,7 +4658,8 @@ struct NVMEOF_PROPERTY_GET_COMMAND
     ubyte[35] Reserved1;
     struct ATTRIB
     {
-        ubyte _bitfield359;
+        // Native bit field: PropertySize: [0-2], Reserved: [3-7]
+        ubyte _bitfield0;
     }
     ubyte[3]  Reserved2;
     uint      OFST;
@@ -4506,7 +4692,8 @@ struct NVMEOF_PROPERTY_SET_COMMAND
     ubyte[35] Reserved1;
     struct ATTRIB
     {
-        ubyte _bitfield360;
+        // Native bit field: PropertySize: [0-2], Reserved: [3-7]
+        ubyte _bitfield0;
     }
     ubyte[3]  Reserved2;
     uint      OFST;
@@ -4590,7 +4777,8 @@ struct NVME_DISCOVERY_ENTRY
     {
         struct
         {
-            ubyte _bitfield361;
+            // Native bit field: SecureChannel: [0-1], SqFlowControlDisable: [2], ZeroHostIdSupport: [3], AuthAndSecureChannel: [4-5], Reserved: [6-7]
+            ubyte _bitfield0;
         }
         ubyte AsUchar;
     }
@@ -4601,7 +4789,8 @@ struct NVME_DISCOVERY_ENTRY
     {
         struct
         {
-            ushort _bitfield362;
+            // Native bit field: DuplicateReturnedInfo: [0], ExplicitPersistentConnectionSupport: [1], NoCDCConnectivity: [2], Reserved: [3-15]
+            ushort _bitfield1;
         }
         ushort AsUshort;
     }
@@ -4622,7 +4811,8 @@ struct NVME_EXTENDED_DISCOVERY_ENTRY
     {
         struct
         {
-            ubyte _bitfield363;
+            // Native bit field: SecureChannel: [0-1], SqFlowControlDisable: [2], ZeroHostIdSupport: [3], AuthAndSecureChannel: [4-5], Reserved: [6-7]
+            ubyte _bitfield0;
         }
         ubyte AsUchar;
     }
@@ -4633,7 +4823,8 @@ struct NVME_EXTENDED_DISCOVERY_ENTRY
     {
         struct
         {
-            ushort _bitfield364;
+            // Native bit field: DuplicateReturnedInfo: [0], ExplicitPersistentConnectionSupport: [1], NoCDCConnectivity: [2], Reserved: [3-15]
+            ushort _bitfield1;
         }
         ushort AsUshort;
     }
@@ -4664,7 +4855,8 @@ struct NVME_DISCOVERY_HEADER
     {
         struct
         {
-            ubyte _bitfield365;
+            // Native bit field: Extended: [0], PortLocal: [1], AllSubsystems: [2], Reserved: [3-7]
+            ubyte _bitfield0;
         }
         ubyte AsUchar;
     }
@@ -4686,7 +4878,8 @@ struct NVME_DISCOVERY_INFO_MGMT_HEADER
     {
         struct
         {
-            ushort _bitfield366;
+            // Native bit field: NQN: [0], TSAS: [1], TRSVCID: [2], ADRFAM: [3], TRTYPE: [4], PORTID: [5], TRADDR: [6], Reserved: [7-15]
+            ushort _bitfield0;
         }
         ushort AsUshort;
     }

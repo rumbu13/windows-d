@@ -2245,13 +2245,13 @@ enum : uint
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     DEBUG_OUTPUT_NAME_END        = "**NAME**",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     DEBUG_OUTPUT_OFFSET_END      = "**OFF**",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     DEBUG_OUTPUT_VALUE_END       = "**VALUE**",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     DEBUG_OUTPUT_TYPE_END        = "**TYPE**",
     DEBUG_OUTPUT_NAME_END_WIDE   = "**NAME**",
     DEBUG_OUTPUT_OFFSET_END_WIDE = "**OFF**",
@@ -3842,7 +3842,8 @@ struct KDDEBUGGER_DATA32
     ushort ThCallbackStack;
     ushort NextCallback;
     ushort FramePointer;
-    ushort _bitfield391;
+    // Native bit field: PaeEnabled: [0]
+    ushort _bitfield0;
     uint   KiCallUserMode;
     uint   KeUserCallbackDispatcher;
     uint   PsLoadedModuleList;
@@ -3937,7 +3938,8 @@ struct KDDEBUGGER_DATA64
     ushort ThCallbackStack;
     ushort NextCallback;
     ushort FramePointer;
-    ushort _bitfield392;
+    // Native bit field: PaeEnabled: [0], KiBugCheckRecoveryActive: [1], PagingLevels: [2-5]
+    ushort _bitfield0;
     ulong  KiCallUserMode;
     ulong  KeUserCallbackDispatcher;
     ulong  PsLoadedModuleList;
@@ -4115,7 +4117,8 @@ struct FIELD_INFO
         ushort Position;
         ushort Size;
     }
-    uint   _bitfield393;
+    // Native bit field: fPointer: [0-1], fArray: [2], fStruct: [3], fConstant: [4], fStatic: [5], Reserved: [6-31]
+    uint   _bitfield0;
 }
 
 struct SYM_DUMP_PARAM
@@ -4137,7 +4140,8 @@ struct SYM_DUMP_PARAM
     uint        TypeId;
     uint        TypeSize;
     uint        BufferSize;
-    uint        _bitfield394;
+    // Native bit field: fPointer: [0-1], fArray: [2], fStruct: [3], fConstant: [4], Reserved: [5-31]
+    uint        _bitfield0;
 }
 
 union POOL_HEADER_SIZE_64
@@ -4285,7 +4289,8 @@ struct DEBUG_POOL_DATA
     {
         struct
         {
-            uint _bitfield395;
+            // Native bit field: Free: [0], LargePool: [1], SpecialPool: [2], Pageable: [3], Protected: [4], Allocated: [5], Session: [6], Reserved: [7-31]
+            uint _bitfield0;
         }
         uint AsUlong;
     }
@@ -4353,7 +4358,9 @@ struct KDEXTS_PTE_INFO
     ulong PteAddress;
     ulong Pfn;
     ulong Levels;
+    // Native bit field: PteValid: [0], PteTransition: [1], Prototype: [2], Protection: [3], Reserved: [4-31]
     uint  _bitfield1;
+    // Native bit field: ReadInProgress: [0], WriteInProgress: [1], Modified: [2]
     uint  _bitfield2;
 }
 
@@ -4399,7 +4406,8 @@ struct OS_INFO
     uint      Revision;
     struct s
     {
-        uint _bitfield396;
+        // Native bit field: Checked: [0], Pae: [1], MultiProc: [2], Reserved: [3-31]
+        uint _bitfield0;
     }
     uint      SrvPackNumber;
     uint      ServicePackBuild;
@@ -4472,7 +4480,8 @@ struct OS_INFO_v1
     uint     Suite;
     struct s
     {
-        uint _bitfield397;
+        // Native bit field: Checked: [0], Pae: [1], MultiProc: [2], Reserved: [3-31]
+        uint _bitfield0;
     }
     uint     SrvPackNumber;
     CHAR[30] Language;
@@ -4542,7 +4551,8 @@ struct EXT_CAB_XML_DATA
         const(PWSTR) MatchPattern;
         PWSTR        ReturnText;
         uint         ReturnTextSize;
-        uint         _bitfield398;
+        // Native bit field: MatchType: [0-2], Reserved: [3-31]
+        uint         _bitfield0;
         uint         Reserved2;
     }
 }

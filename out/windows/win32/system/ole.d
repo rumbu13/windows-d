@@ -1311,9 +1311,9 @@ enum : uint
     DISPID_PICT_RENDER = 0x00000006U,
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* STDOLE_TLB = "stdole2.tlb";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* STDTYPE_TLB = "stdole2.tlb";
 enum int GC_WCH_SIBLING = 0x00000001;
 enum uint TIFLAGS_EXTENDDISPATCHONLY = 0x00000001U;

@@ -253,11 +253,11 @@ enum uint WER_MAX_REGISTERED_RUNTIME_EXCEPTION_MODULES = 0x00000010U;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     WER_RUNTIME_EXCEPTION_EVENT_FUNCTION           = "OutOfProcessExceptionEventCallback",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     WER_RUNTIME_EXCEPTION_EVENT_SIGNATURE_FUNCTION = "OutOfProcessExceptionEventSignatureCallback",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     WER_RUNTIME_EXCEPTION_DEBUGGER_LAUNCH          = "OutOfProcessExceptionEventDebuggerLaunchCallback",
 }
 

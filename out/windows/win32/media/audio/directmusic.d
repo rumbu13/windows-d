@@ -398,7 +398,7 @@ enum GUID DLSID_SampleMemorySize = GUID("178f2f28-c364-11d1-a760-0000f875ac12");
 enum GUID DLSID_ManufacturersID = GUID("b03e1181-8095-11d2-a1ef-00600833dbd8");
 enum GUID DLSID_ProductID = GUID("b03e1182-8095-11d2-a1ef-00600833dbd8");
 enum GUID DLSID_SamplePlaybackRate = GUID("2a91f713-a4bf-11d2-bbdf-00600833dbd8");
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* REGSTR_PATH_SOFTWARESYNTHS = "Software\\Microsoft\\DirectMusic\\SoftwareSynths";
 enum uint REFRESH_F_LASTBUFFER = 0x00000001U;
 enum GUID CLSID_DirectMusicSynthSink = GUID("aec17ce3-a514-11d1-afa6-00aa0024d8b6");

@@ -1837,7 +1837,8 @@ struct SPTRANSITIONID
 
 struct SPEVENT
 {
-    int    _bitfield112;
+    // Native bit field: eEventId: [0-15], elParamType: [16-31]
+    int    _bitfield0;
     uint   ulStreamNum;
     ulong  ullAudioStreamOffset;
     WPARAM wParam;
@@ -1846,7 +1847,8 @@ struct SPEVENT
 
 struct SPSERIALIZEDEVENT
 {
-    int   _bitfield113;
+    // Native bit field: eEventId: [0-15], elParamType: [16-31]
+    int   _bitfield0;
     uint  ulStreamNum;
     ulong ullAudioStreamOffset;
     uint  SerializedwParam;
@@ -1855,7 +1857,8 @@ struct SPSERIALIZEDEVENT
 
 struct SPSERIALIZEDEVENT64
 {
-    int   _bitfield114;
+    // Native bit field: eEventId: [0-15], elParamType: [16-31]
+    int   _bitfield0;
     uint  ulStreamNum;
     ulong ullAudioStreamOffset;
     ulong SerializedwParam;
@@ -1864,7 +1867,8 @@ struct SPSERIALIZEDEVENT64
 
 struct SPEVENTEX
 {
-    int    _bitfield115;
+    // Native bit field: eEventId: [0-15], elParamType: [16-31]
+    int    _bitfield0;
     uint   ulStreamNum;
     ulong  ullAudioStreamOffset;
     WPARAM wParam;

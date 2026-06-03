@@ -216,7 +216,7 @@ enum GUID GUID_HIDClass = GUID("745a17a0-74d3-11d0-b6fe-00a0c90f57da");
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     DIRECTINPUT_NOTIFICATION_MSGSTRINGA = "DIRECTINPUT_NOTIFICATION_MSGSTRING",
     DIRECTINPUT_NOTIFICATION_MSGSTRINGW = "DIRECTINPUT_NOTIFICATION_MSGSTRING",
     DIRECTINPUT_NOTIFICATION_MSGSTRING  = "DIRECTINPUT_NOTIFICATION_MSGSTRING",
@@ -237,21 +237,21 @@ enum : uint
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     DIRECTINPUT_REGSTR_VAL_APPIDFLAGA  = "AppIdFlag",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     DIRECTINPUT_REGSTR_KEY_LASTAPPA    = "MostRecentApplication",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     DIRECTINPUT_REGSTR_KEY_LASTMAPAPPA = "MostRecentMapperApplication",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     DIRECTINPUT_REGSTR_VAL_VERSIONA    = "Version",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     DIRECTINPUT_REGSTR_VAL_NAMEA       = "Name",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     DIRECTINPUT_REGSTR_VAL_IDA         = "Id",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     DIRECTINPUT_REGSTR_VAL_MAPPERA     = "UsesMapper",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     DIRECTINPUT_REGSTR_VAL_LASTSTARTA  = "MostRecentStart",
     DIRECTINPUT_REGSTR_VAL_APPIDFLAGW  = "AppIdFlag",
     DIRECTINPUT_REGSTR_KEY_LASTAPPW    = "MostRecentApplication",
@@ -3516,7 +3516,7 @@ enum : ushort
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     DD_KEYBOARD_DEVICE_NAME   = "\\Device\\KeyboardClass",
     DD_KEYBOARD_DEVICE_NAME_U = "\\Device\\KeyboardClass",
 }
@@ -3585,7 +3585,7 @@ enum uint KEYBOARD_ERROR_VALUE_BASE = 0x00002710U;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     DD_MOUSE_DEVICE_NAME   = "\\Device\\PointerClass",
     DD_MOUSE_DEVICE_NAME_U = "\\Device\\PointerClass",
 }
@@ -7395,7 +7395,8 @@ align (4):
     ushort NumberOfChildren;
     ushort NextSibling;
     ushort FirstChild;
-    uint   _bitfield48;
+    // Native bit field: CollectionType: [0-7], IsAlias: [8], Reserved: [9-31]
+    uint   _bitfield0;
     void*  UserContext;
 }
 
@@ -7458,7 +7459,8 @@ struct HIDP_KEYBOARD_MODIFIER_STATE
     {
         struct
         {
-            uint _bitfield49;
+            // Native bit field: LeftControl: [0], LeftShift: [1], LeftAlt: [2], LeftGUI: [3], RightControl: [4], RightShift: [5], RightAlt: [6], RigthGUI: [7], CapsLock: [8], ScollLock: [9], NumLock: [10], Reserved: [11-31]
+            uint _bitfield0;
         }
         uint ul;
     }

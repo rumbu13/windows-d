@@ -339,7 +339,8 @@ struct WIN32_MEMORY_REGION_INFORMATION
         uint Flags;
         struct
         {
-            uint _bitfield455;
+            // Native bit field: Private: [0], MappedDataFile: [1], MappedImage: [2], MappedPageFile: [3], MappedPhysical: [4], DirectMapped: [5], Reserved: [6-31]
+            uint _bitfield0;
         }
     }
     size_t RegionSize;
@@ -374,7 +375,8 @@ struct WIN32_MEMORY_NUMA_PERFORMANCE_ENTRY
     ubyte DataType;
     struct Flags
     {
-        ubyte _bitfield456;
+        // Native bit field: MinTransferSizeToAchieveValues: [0], NonSequentialTransfers: [1], Reserved: [2-7]
+        ubyte _bitfield0;
     }
     ulong MinTransferSizeInBytes;
     ulong EntryValue;
@@ -469,7 +471,8 @@ struct MEM_EXTENDED_PARAMETER
 {
     struct
     {
-        ulong _bitfield457;
+        // Native bit field: Type: [0-7], Reserved: [8-63]
+        ulong _bitfield0;
     }
     union
     {

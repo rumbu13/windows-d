@@ -3829,7 +3829,8 @@ union NET_LUID_LH
     ulong Value;
     struct Info
     {
-        ulong _bitfield125;
+        // Native bit field: Reserved: [0-23], NetLuidIndex: [24-47], IfType: [48-63]
+        ulong _bitfield0;
     }
 }
 
@@ -4510,7 +4511,8 @@ struct NDIS_TCP_LARGE_SEND_OFFLOAD_V1
         uint Encapsulation;
         uint MaxOffLoadSize;
         uint MinSegmentCount;
-        uint _bitfield126;
+        // Native bit field: TcpOptions: [0-1], IpOptions: [2-3]
+        uint _bitfield0;
     }
 }
 
@@ -4519,22 +4521,26 @@ struct NDIS_TCP_IP_CHECKSUM_OFFLOAD
     struct IPv4Transmit
     {
         uint Encapsulation;
-        uint _bitfield127;
+        // Native bit field: IpOptionsSupported: [0-1], TcpOptionsSupported: [2-3], TcpChecksum: [4-5], UdpChecksum: [6-7], IpChecksum: [8-9]
+        uint _bitfield0;
     }
     struct IPv4Receive
     {
         uint Encapsulation;
-        uint _bitfield128;
+        // Native bit field: IpOptionsSupported: [0-1], TcpOptionsSupported: [2-3], TcpChecksum: [4-5], UdpChecksum: [6-7], IpChecksum: [8-9]
+        uint _bitfield1;
     }
     struct IPv6Transmit
     {
         uint Encapsulation;
-        uint _bitfield129;
+        // Native bit field: IpExtensionHeadersSupported: [0-1], TcpOptionsSupported: [2-3], TcpChecksum: [4-5], UdpChecksum: [6-7]
+        uint _bitfield2;
     }
     struct IPv6Receive
     {
         uint Encapsulation;
-        uint _bitfield130;
+        // Native bit field: IpExtensionHeadersSupported: [0-1], TcpOptionsSupported: [2-3], TcpChecksum: [4-5], UdpChecksum: [6-7]
+        uint _bitfield3;
     }
 }
 
@@ -4550,11 +4556,13 @@ struct NDIS_IPSEC_OFFLOAD_V1
     }
     struct IPv4AH
     {
-        uint _bitfield131;
+        // Native bit field: Md5: [0-1], Sha_1: [2-3], Transport: [4-5], Tunnel: [6-7], Send: [8-9], Receive: [10-11]
+        uint _bitfield0;
     }
     struct IPv4ESP
     {
-        uint _bitfield132;
+        // Native bit field: Des: [0-1], Reserved: [2-3], TripleDes: [4-5], NullEsp: [6-7], Transport: [8-9], Tunnel: [10-11], Send: [12-13], Receive: [14-15]
+        uint _bitfield1;
     }
 }
 
@@ -4571,7 +4579,8 @@ struct NDIS_TCP_LARGE_SEND_OFFLOAD_V2
         uint Encapsulation;
         uint MaxOffLoadSize;
         uint MinSegmentCount;
-        uint _bitfield133;
+        // Native bit field: IpExtensionHeadersSupported: [0-1], TcpOptionsSupported: [2-3]
+        uint _bitfield0;
     }
 }
 
@@ -4699,7 +4708,8 @@ struct NDIS_TCP_CONNECTION_OFFLOAD
 {
     NDIS_OBJECT_HEADER Header;
     uint               Encapsulation;
-    uint               _bitfield134;
+    // Native bit field: SupportIPv4: [0-1], SupportIPv6: [2-3], SupportIPv6ExtensionHeaders: [4-5], SupportSack: [6-7]
+    uint               _bitfield0;
     uint               TcpConnectionOffloadCapacity;
     uint               Flags;
 }

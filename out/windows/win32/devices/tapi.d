@@ -2525,13 +2525,13 @@ enum HRESULT TAPI_E_SERVICE_NOT_RUNNING = HRESULT(0x8004005a);
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     OPENTNEFSTREAM   = "OpenTnefStream",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     OPENTNEFSTREAMEX = "OpenTnefStreamEx",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* GETTNEFSTREAMCODEPAGE = "GetTnefStreamCodePage";
 enum uint cbDisplayName = 0x00000029U;
 enum uint cbEmailName = 0x0000000bU;

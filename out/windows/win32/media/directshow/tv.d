@@ -2210,12 +2210,14 @@ struct UDCR_TAG
 
 struct PIC_SEQ_SAMPLE
 {
-    uint _bitfield100;
+    // Native bit field: Content: [0-2], Start: [3], FrameRate: [4-7], InvalidVA: [8], Reserved: [9-27], Version: [28-31]
+    uint _bitfield0;
 }
 
 struct SAMPLE_SEQ_OFFSET
 {
-    uint _bitfield101;
+    // Native bit field: Type: [0-3], Offset: [4-23], Reserved: [24-31]
+    uint _bitfield0;
 }
 
 struct VA_OPTIONAL_VIDEO_PROPERTIES
@@ -2238,7 +2240,8 @@ struct TRANSPORT_PROPERTIES
     {
         struct Others
         {
-            long _bitfield102;
+            // Native bit field: TransportScramblingControl: [0-7], Reserved: [8-63]
+            long _bitfield0;
         }
         long Value;
     }
@@ -2634,7 +2637,8 @@ struct RATING_SYSTEM
 {
 align (1):
     GUID              rating_system_id;
-    ubyte             _bitfield103;
+    // Native bit field: rating_system_is_age_type: [0], reserved: [1-7]
+    ubyte             _bitfield0;
     ubyte[3]          country_code;
     uint              rating_attribute_count;
     RATING_ATTRIBUTE* lpratingattrib;
@@ -2713,20 +2717,23 @@ struct KSEVENTDATA_BDA_RF_TUNER_SCAN_S
 struct PID_BITS
 {
 align (1):
-    ushort _bitfield104;
+    // Native bit field: Reserved: [0-2], ProgramId: [3-15]
+    ushort _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/mpeg2bits/ns-mpeg2bits-mpeg_header_bits
 struct MPEG_HEADER_BITS
 {
 align (1):
-    ushort _bitfield105;
+    // Native bit field: SectionLength: [0-11], Reserved: [12-13], PrivateIndicator: [14], SectionSyntaxIndicator: [15]
+    ushort _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/mpeg2bits/ns-mpeg2bits-mpeg_header_version_bits
 struct MPEG_HEADER_VERSION_BITS
 {
-    ubyte _bitfield106;
+    // Native bit field: CurrentNextIndicator: [0], VersionNumber: [1-5], Reserved: [6-7]
+    ubyte _bitfield0;
 }
 
 // Interfaces

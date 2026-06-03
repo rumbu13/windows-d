@@ -385,7 +385,8 @@ struct COMMPROP
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/winbase/ns-winbase-comstat
 struct COMSTAT
 {
-    uint _bitfield8;
+    // Native bit field: fCtsHold: [0], fDsrHold: [1], fRlsdHold: [2], fXoffHold: [3], fXoffSent: [4], fEof: [5], fTxim: [6], fReserved: [7-31]
+    uint _bitfield0;
     uint cbInQue;
     uint cbOutQue;
 }
@@ -395,7 +396,8 @@ struct DCB
 {
     uint          DCBlength;
     uint          BaudRate;
-    uint          _bitfield9;
+    // Native bit field: fBinary: [0], fParity: [1], fOutxCtsFlow: [2], fOutxDsrFlow: [3], fDtrControl: [4-5], fDsrSensitivity: [6], fTXContinueOnXoff: [7], fOutX: [8], fInX: [9], fErrorChar: [10], fNull: [11], fRtsControl: [12-13], fAbortOnError: [14], fDummy2: [15-31]
+    uint          _bitfield0;
     ushort        wReserved;
     ushort        XonLim;
     ushort        XoffLim;

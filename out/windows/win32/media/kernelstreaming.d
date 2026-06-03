@@ -3253,7 +3253,8 @@ struct KSSTREAM_UVC_METADATATYPE_TIMESTAMP
     {
         struct
         {
-            ushort _bitfield107;
+            // Native bit field: Counter: [0-10], Reserved: [11-15]
+            ushort _bitfield0;
         }
         ushort SCRToken;
     }
@@ -3992,9 +3993,13 @@ struct KSPROPERTY_SPPAL
 
 struct KS_COLCON
 {
+    // Native bit field: emph1col: [0-3], emph2col: [4-7]
     ubyte _bitfield1;
+    // Native bit field: backcol: [0-3], patcol: [4-7]
     ubyte _bitfield2;
+    // Native bit field: emph1con: [0-3], emph2con: [4-7]
     ubyte _bitfield3;
+    // Native bit field: backcon: [0-3], patcon: [4-7]
     ubyte _bitfield4;
 }
 

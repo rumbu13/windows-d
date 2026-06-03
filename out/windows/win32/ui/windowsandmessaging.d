@@ -5018,7 +5018,8 @@ struct MENUBARINFO
     RECT  rcBar;
     HMENU hMenu;
     HWND  hwndMenu;
-    int   _bitfield547;
+    // Native bit field: fBarFocused: [0], fFocused: [1], fUnused: [2-31]
+    int   _bitfield0;
 }
 
 //STRUCT ATTR: StructSizeFieldAttribute : CustomAttributeSig([FixedArgSig(ElementSig(cbSize))], [])
@@ -5054,7 +5055,9 @@ struct TOUCHPAD_PARAMETERS_V1
     uint versionNumber;
     uint maxSupportedContacts;
     LEGACY_TOUCHPAD_FEATURES legacyTouchpadFeatures;
+    // Native bit field: touchpadPresent: [0], legacyTouchpadPresent: [1], externalMousePresent: [2], touchpadEnabled: [3], touchpadActive: [4], feedbackSupported: [5], clickForceSupported: [6], Reserved1: [7-31]
     int  _bitfield1;
+    // Native bit field: allowActiveWhenMousePresent: [0], feedbackEnabled: [1], tapEnabled: [2], tapAndDragEnabled: [3], twoFingerTapEnabled: [4], rightClickZoneEnabled: [5], mouseAccelSettingHonored: [6], panEnabled: [7], zoomEnabled: [8], scrollDirectionReversed: [9], Reserved2: [10-31]
     int  _bitfield2;
     TOUCHPAD_SENSITIVITY_LEVEL sensitivityLevel;
     uint cursorSpeed;
@@ -5067,7 +5070,8 @@ struct TOUCHPAD_PARAMETERS_V1
 struct TOUCHPAD_PARAMETERS_V2
 {
     TOUCHPAD_PARAMETERS_V1 Base;
-    int _bitfield548;
+    // Native bit field: button1Supported: [0], button2Supported: [1], button3Supported: [2], Reserved3: [3-31]
+    int _bitfield0;
 }
 
 //STRUCT ATTR: StructSizeFieldAttribute : CustomAttributeSig([FixedArgSig(ElementSig(cbSize))], [])

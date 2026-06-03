@@ -205,9 +205,9 @@ enum uint SERVICE_ALL_ACCESS = 0x000f01ffU;
 enum uint SC_MANAGER_ALL_ACCESS = 0x000f003fU;
 enum const(wchar)* SERVICES_ACTIVE_DATABASEW = "ServicesActive";
 enum const(wchar)* SERVICES_FAILED_DATABASEW = "ServicesFailed";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* SERVICES_ACTIVE_DATABASEA = "ServicesActive";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* SERVICES_FAILED_DATABASEA = "ServicesFailed";
 enum const(wchar)* SERVICES_ACTIVE_DATABASE = "ServicesActive";
 enum const(wchar)* SERVICES_FAILED_DATABASE = "ServicesFailed";

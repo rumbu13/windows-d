@@ -456,7 +456,7 @@ enum : DEVPROPKEY
     DEVPKEY_DisplayMux_CurrentTarget = DEVPROPKEY(GUID("FEFA7434-E0FD-4B2A-905A-7D0127A9F01C"), 5),
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* VIDEO_DEVICE_NAME = "DISPLAY%d";
 enum const(wchar)* WVIDEO_DEVICE_NAME = "DISPLAY%d";
 
@@ -2002,7 +2002,8 @@ struct DISPLAYCONFIG_VIDEO_SIGNAL_INFO
     {
         struct AdditionalSignalInfo
         {
-            uint _bitfield10;
+            // Native bit field: videoStandard: [0-15], vSyncFreqDivider: [16-21], reserved: [22-31]
+            uint _bitfield0;
         }
         uint videoStandard;
     }
@@ -2056,7 +2057,8 @@ struct DISPLAYCONFIG_PATH_SOURCE_INFO
         uint modeInfoIdx;
         struct
         {
-            uint _bitfield11;
+            // Native bit field: cloneGroupId: [0-15], sourceModeInfoIdx: [16-31]
+            uint _bitfield0;
         }
     }
     uint statusFlags;
@@ -2072,7 +2074,8 @@ struct DISPLAYCONFIG_PATH_TARGET_INFO
         uint modeInfoIdx;
         struct
         {
-            uint _bitfield12;
+            // Native bit field: desktopModeInfoIdx: [0-15], targetModeInfoIdx: [16-31]
+            uint _bitfield0;
         }
     }
     DISPLAYCONFIG_VIDEO_OUTPUT_TECHNOLOGY outputTechnology;
@@ -2115,7 +2118,8 @@ struct DISPLAYCONFIG_TARGET_DEVICE_NAME_FLAGS
     {
         struct
         {
-            uint _bitfield13;
+            // Native bit field: friendlyNameFromEdid: [0], friendlyNameForced: [1], edidIdsValid: [2], reserved: [3-31]
+            uint _bitfield0;
         }
         uint value;
     }
@@ -2165,7 +2169,8 @@ struct DISPLAYCONFIG_SET_TARGET_PERSISTENCE
     {
         struct
         {
-            uint _bitfield14;
+            // Native bit field: bootPersistenceOn: [0], reserved: [1-31]
+            uint _bitfield0;
         }
         uint value;
     }
@@ -2179,7 +2184,8 @@ struct DISPLAYCONFIG_SUPPORT_VIRTUAL_RESOLUTION
     {
         struct
         {
-            uint _bitfield15;
+            // Native bit field: disableMonitorVirtualResolution: [0], reserved: [1-31]
+            uint _bitfield0;
         }
         uint value;
     }
@@ -2192,7 +2198,8 @@ struct DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO
     {
         struct
         {
-            uint _bitfield16;
+            // Native bit field: advancedColorSupported: [0], advancedColorEnabled: [1], wideColorEnforced: [2], advancedColorForceDisabled: [3], reserved: [4-31]
+            uint _bitfield0;
         }
         uint value;
     }
@@ -2207,7 +2214,8 @@ struct DISPLAYCONFIG_SET_ADVANCED_COLOR_STATE
     {
         struct
         {
-            uint _bitfield17;
+            // Native bit field: enableAdvancedColor: [0], reserved: [1-31]
+            uint _bitfield0;
         }
         uint value;
     }
@@ -2220,7 +2228,8 @@ struct DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO_2
     {
         struct
         {
-            uint _bitfield18;
+            // Native bit field: advancedColorSupported: [0], advancedColorActive: [1], reserved1: [2], advancedColorLimitedByPolicy: [3], highDynamicRangeSupported: [4], highDynamicRangeUserEnabled: [5], wideColorSupported: [6], wideColorUserEnabled: [7], reserved: [8-31]
+            uint _bitfield0;
         }
         uint value;
     }
@@ -2236,7 +2245,8 @@ struct DISPLAYCONFIG_SET_HDR_STATE
     {
         struct
         {
-            uint _bitfield19;
+            // Native bit field: enableHdr: [0], reserved: [1-31]
+            uint _bitfield0;
         }
         uint value;
     }
@@ -2249,7 +2259,8 @@ struct DISPLAYCONFIG_SET_WCG_STATE
     {
         struct
         {
-            uint _bitfield20;
+            // Native bit field: enableWcg: [0], reserved: [1-31]
+            uint _bitfield0;
         }
         uint value;
     }
@@ -2269,7 +2280,8 @@ struct DISPLAYCONFIG_GET_MONITOR_SPECIALIZATION
     {
         struct
         {
-            uint _bitfield21;
+            // Native bit field: isSpecializationEnabled: [0], isSpecializationAvailableForMonitor: [1], isSpecializationAvailableForSystem: [2], reserved: [3-31]
+            uint _bitfield0;
         }
         uint value;
     }
@@ -2282,7 +2294,8 @@ struct DISPLAYCONFIG_SET_MONITOR_SPECIALIZATION
     {
         struct
         {
-            uint _bitfield22;
+            // Native bit field: isSpecializationEnabled: [0], reserved: [1-31]
+            uint _bitfield0;
         }
         uint value;
     }
@@ -3771,7 +3784,8 @@ struct PANEL_QUERY_BRIGHTNESS_CAPS
     {
         struct
         {
-            uint _bitfield23;
+            // Native bit field: Smooth: [0], Adaptive: [1], NitsCalibrated: [2], Reserved: [3-31]
+            uint _bitfield0;
         }
         uint Value;
     }
@@ -3834,7 +3848,8 @@ struct PANEL_BRIGHTNESS_SENSOR_DATA
     {
         struct
         {
-            uint _bitfield24;
+            // Native bit field: AlsReadingValid: [0], ChromaticityCoordinateValid: [1], ColorTemperatureValid: [2], Reserved: [3-31]
+            uint _bitfield0;
         }
         uint Value;
     }
@@ -3864,7 +3879,8 @@ struct PANEL_SET_BRIGHTNESS_STATE
     {
         struct
         {
-            uint _bitfield25;
+            // Native bit field: Smooth: [0], Reserved: [1-31]
+            uint _bitfield0;
         }
         uint Value;
     }
@@ -3896,11 +3912,13 @@ struct COLORSPACE_TRANSFORM_DATA_CAP
     {
         struct
         {
-            uint _bitfield26;
+            // Native bit field: BitCountOfInteger: [0-5], BitCountOfFraction: [6-11]
+            uint _bitfield0;
         }
         struct
         {
-            uint _bitfield27;
+            // Native bit field: BitCountOfExponent: [0-5], BitCountOfMantissa: [6-11]
+            uint _bitfield1;
         }
         uint Value;
     }
@@ -3920,7 +3938,8 @@ struct COLORSPACE_TRANSFORM_MATRIX_CAP
     {
         struct
         {
-            uint _bitfield28;
+            // Native bit field: MatrixSizeX: [0-9], MatrixSizeY: [10-19]
+            uint _bitfield0;
         }
         uint Value;
     }
@@ -4039,7 +4058,8 @@ struct MIPI_DSI_PACKET
         ubyte DataId;
         struct
         {
-            ubyte _bitfield29;
+            // Native bit field: DataType: [0-5], VirtualChannel: [6-7]
+            ubyte _bitfield0;
         }
     }
     union
@@ -4062,7 +4082,8 @@ struct MIPI_DSI_TRANSMISSION
     ubyte              FailedPacket;
     struct
     {
-        ushort _bitfield30;
+        // Native bit field: TransmissionMode: [0-1], ReportMipiErrors: [2], ClearMipiErrors: [3], SecondaryPort: [4], ManufacturingMode: [5], Reserved: [6-15]
+        ushort _bitfield0;
     }
     ushort             ReadWordCount;
     ushort             FinalCommandExtraPayload;
@@ -4078,7 +4099,8 @@ struct MIPI_DSI_RESET
     {
         struct
         {
-            uint _bitfield31;
+            // Native bit field: MipiErrors: [0-15], ResetFailed: [16], NeedModeSet: [17]
+            uint _bitfield0;
         }
         uint Results;
     }

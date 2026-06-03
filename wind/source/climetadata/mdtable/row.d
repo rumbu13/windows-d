@@ -218,7 +218,7 @@ public struct Row(MDTableType md)
 
 private:
     const(Table!md*) table;
-    uint rowID; // Row ID is 1-based
+    const uint rowID; // Row ID is 1-based
 }
 
 private mixin template moduleGetters()

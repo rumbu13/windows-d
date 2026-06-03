@@ -1932,13 +1932,13 @@ struct ExtendedProperty
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/uiautomationcoreapi/ns-uiautomationcoreapi-uiacondition
 struct UiaCondition
 {
-    ConditionType ConditionType531;
+    ConditionType ConditionType_;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/uiautomationcoreapi/ns-uiautomationcoreapi-uiapropertycondition
 struct UiaPropertyCondition
 {
-    ConditionType   ConditionType532;
+    ConditionType   ConditionType_;
     UIA_PROPERTY_ID PropertyId;
     VARIANT         Value;
     PropertyConditionFlags Flags;
@@ -1947,7 +1947,7 @@ struct UiaPropertyCondition
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/uiautomationcoreapi/ns-uiautomationcoreapi-uiaandorcondition
 struct UiaAndOrCondition
 {
-    ConditionType  ConditionType533;
+    ConditionType  ConditionType_;
     UiaCondition** ppConditions;
     int            cConditions;
 }
@@ -1955,7 +1955,7 @@ struct UiaAndOrCondition
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/uiautomationcoreapi/ns-uiautomationcoreapi-uianotcondition
 struct UiaNotCondition
 {
-    ConditionType ConditionType534;
+    ConditionType ConditionType_;
     UiaCondition* pCondition;
 }
 
@@ -2002,7 +2002,7 @@ struct UiaStructureChangedEventArgs
 {
     EventArgsType       Type;
     int                 EventId;
-    StructureChangeType StructureChangeType535;
+    StructureChangeType StructureChangeType_;
     int*                pRuntimeId;
     int                 cRuntimeIdLen;
 }
@@ -2011,7 +2011,7 @@ struct UiaTextEditTextChangedEventArgs
 {
     EventArgsType      Type;
     int                EventId;
-    TextEditChangeType TextEditChangeType536;
+    TextEditChangeType TextEditChangeType_;
     SAFEARRAY*         pTextChange;
 }
 
@@ -2028,7 +2028,7 @@ struct UiaAsyncContentLoadedEventArgs
 {
     EventArgsType Type;
     int           EventId;
-    AsyncContentLoadedState AsyncContentLoadedState537;
+    AsyncContentLoadedState AsyncContentLoadedState_;
     double        PercentComplete;
 }
 

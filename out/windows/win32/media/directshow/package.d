@@ -3355,7 +3355,7 @@ enum : HRESULT
 
 enum HRESULT VFW_E_DVD_CHAPTER_DOES_NOT_EXIST = HRESULT(0x80040315);
 enum HRESULT VFW_S_DVD_RENDER_STATUS = HRESULT(0x00040320);
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* CFSTR_VFW_FILTERLIST = "Video for Windows 4 Filters";
 
 enum : GUID
@@ -4308,7 +4308,8 @@ struct DVD_ATR
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/strmif/ns-strmif-dvd_timecode
 struct DVD_TIMECODE
 {
-    uint _bitfield99;
+    // Native bit field: Hours1: [0-3], Hours10: [4-7], Minutes1: [8-11], Minutes10: [12-15], Seconds1: [16-19], Seconds10: [20-23], Frames1: [24-27], Frames10: [28-29], FrameRateCode: [30-31]
+    uint _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/strmif/ns-strmif-dvd_hmsf_timecode
@@ -5453,9 +5454,13 @@ struct AM_PROPERTY_SPPAL
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/dvdmedia/ns-dvdmedia-am_colcon
 struct AM_COLCON
 {
+    // Native bit field: emph1col: [0-3], emph2col: [4-7]
     ubyte _bitfield1;
+    // Native bit field: backcol: [0-3], patcol: [4-7]
     ubyte _bitfield2;
+    // Native bit field: emph1con: [0-3], emph2con: [4-7]
     ubyte _bitfield3;
+    // Native bit field: backcon: [0-3], patcon: [4-7]
     ubyte _bitfield4;
 }
 

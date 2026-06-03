@@ -238,7 +238,7 @@ enum : uint
 }
 
 enum GUID CERT_CERTIFICATE_ACTION_VERIFY = GUID("7801ebd0-cf4b-11d0-851f-0060979387ea");
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szCERT_CERTIFICATE_ACTION_VERIFY = "{7801ebd0-cf4b-11d0-851f-0060979387ea}";
 
 enum : uint

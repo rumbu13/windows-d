@@ -1267,7 +1267,8 @@ struct PDH_LOG_SERVICE_QUERY_INFO_W
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/pdh/ns-pdh-pdh_browse_dlg_config_hw
 struct PDH_BROWSE_DLG_CONFIG_HW
 {
-    uint                _bitfield458;
+    // Native bit field: bIncludeInstanceIndex: [0], bSingleCounterPerAdd: [1], bSingleCounterPerDialog: [2], bLocalCountersOnly: [3], bWildCardInstances: [4], bHideDetailBox: [5], bInitializePath: [6], bDisableMachineSelection: [7], bIncludeCostlyObjects: [8], bShowObjectBrowser: [9], bReserved: [10-31]
+    uint                _bitfield0;
     HWND                hWndOwner;
     PDH_HLOG            hDataSource;
     PWSTR               szReturnPathBuffer;
@@ -1282,7 +1283,8 @@ struct PDH_BROWSE_DLG_CONFIG_HW
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/pdh/ns-pdh-pdh_browse_dlg_config_ha
 struct PDH_BROWSE_DLG_CONFIG_HA
 {
-    uint                _bitfield459;
+    // Native bit field: bIncludeInstanceIndex: [0], bSingleCounterPerAdd: [1], bSingleCounterPerDialog: [2], bLocalCountersOnly: [3], bWildCardInstances: [4], bHideDetailBox: [5], bInitializePath: [6], bDisableMachineSelection: [7], bIncludeCostlyObjects: [8], bShowObjectBrowser: [9], bReserved: [10-31]
+    uint                _bitfield0;
     HWND                hWndOwner;
     PDH_HLOG            hDataSource;
     PSTR                szReturnPathBuffer;
@@ -1297,7 +1299,8 @@ struct PDH_BROWSE_DLG_CONFIG_HA
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/pdh/ns-pdh-pdh_browse_dlg_config_w
 struct PDH_BROWSE_DLG_CONFIG_W
 {
-    uint                _bitfield460;
+    // Native bit field: bIncludeInstanceIndex: [0], bSingleCounterPerAdd: [1], bSingleCounterPerDialog: [2], bLocalCountersOnly: [3], bWildCardInstances: [4], bHideDetailBox: [5], bInitializePath: [6], bDisableMachineSelection: [7], bIncludeCostlyObjects: [8], bShowObjectBrowser: [9], bReserved: [10-31]
+    uint                _bitfield0;
     HWND                hWndOwner;
     PWSTR               szDataSource;
     PWSTR               szReturnPathBuffer;
@@ -1312,7 +1315,8 @@ struct PDH_BROWSE_DLG_CONFIG_W
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/pdh/ns-pdh-pdh_browse_dlg_config_a
 struct PDH_BROWSE_DLG_CONFIG_A
 {
-    uint                _bitfield461;
+    // Native bit field: bIncludeInstanceIndex: [0], bSingleCounterPerAdd: [1], bSingleCounterPerDialog: [2], bLocalCountersOnly: [3], bWildCardInstances: [4], bHideDetailBox: [5], bInitializePath: [6], bDisableMachineSelection: [7], bIncludeCostlyObjects: [8], bShowObjectBrowser: [9], bReserved: [10-31]
+    uint                _bitfield0;
     HWND                hWndOwner;
     PSTR                szDataSource;
     PSTR                szReturnPathBuffer;

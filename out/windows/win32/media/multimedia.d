@@ -4872,7 +4872,7 @@ enum : uint
 
 enum uint TDD_BEGINMINPERIOD = 0x00000810U;
 enum uint TDD_ENDMINPERIOD = 0x00000814U;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* JOY_CONFIGCHANGED_MSGSTRING = "MSJSTICK_VJOYD_MSGSTR";
 
 enum : uint
@@ -7398,9 +7398,9 @@ enum uint VFW_QUERY_DEV_CHANGED = 0x00000100U;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     TARGET_DEVICE_FRIENDLY_NAME    = "TargetDeviceFriendlyName",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     TARGET_DEVICE_OPEN_EXCLUSIVELY = "TargetDeviceOpenExclusively",
 }
 

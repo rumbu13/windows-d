@@ -329,48 +329,48 @@ enum : uint
 enum : const(wchar)*
 {
     CRED_SESSION_WILDCARD_NAME_W = "*Session",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CRED_SESSION_WILDCARD_NAME_A = "*Session",
 }
 
 enum : const(wchar)*
 {
     CRED_TARGETNAME_DOMAIN_NAMESPACE_W        = "Domain",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CRED_TARGETNAME_DOMAIN_NAMESPACE_A        = "Domain",
     CRED_TARGETNAME_LEGACYGENERIC_NAMESPACE_W = "LegacyGeneric",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CRED_TARGETNAME_LEGACYGENERIC_NAMESPACE_A = "LegacyGeneric",
 }
 
 enum : const(wchar)*
 {
     CRED_TARGETNAME_ATTRIBUTE_TARGET_W            = "target",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CRED_TARGETNAME_ATTRIBUTE_TARGET_A            = "target",
     CRED_TARGETNAME_ATTRIBUTE_NAME_W              = "name",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CRED_TARGETNAME_ATTRIBUTE_NAME_A              = "name",
     CRED_TARGETNAME_ATTRIBUTE_BATCH_W             = "batch",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CRED_TARGETNAME_ATTRIBUTE_BATCH_A             = "batch",
     CRED_TARGETNAME_ATTRIBUTE_INTERACTIVE_W       = "interactive",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CRED_TARGETNAME_ATTRIBUTE_INTERACTIVE_A       = "interactive",
     CRED_TARGETNAME_ATTRIBUTE_SERVICE_W           = "service",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CRED_TARGETNAME_ATTRIBUTE_SERVICE_A           = "service",
     CRED_TARGETNAME_ATTRIBUTE_NETWORK_W           = "network",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CRED_TARGETNAME_ATTRIBUTE_NETWORK_A           = "network",
     CRED_TARGETNAME_ATTRIBUTE_NETWORKCLEARTEXT_W  = "networkcleartext",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CRED_TARGETNAME_ATTRIBUTE_NETWORKCLEARTEXT_A  = "networkcleartext",
     CRED_TARGETNAME_ATTRIBUTE_REMOTEINTERACTIVE_W = "remoteinteractive",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CRED_TARGETNAME_ATTRIBUTE_REMOTEINTERACTIVE_A = "remoteinteractive",
     CRED_TARGETNAME_ATTRIBUTE_CACHEDINTERACTIVE_W = "cachedinteractive",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CRED_TARGETNAME_ATTRIBUTE_CACHEDINTERACTIVE_A = "cachedinteractive",
 }
 
@@ -487,12 +487,12 @@ enum const(wchar)* CREDSSP_NAME = "CREDSSP";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     TS_SSP_NAME_A = "TSSSP",
     TS_SSP_NAME   = "TSSSP",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szOID_TS_KP_TS_SERVER_AUTH = "1.3.6.1.4.1.311.54.1.2";
 
 enum : uint

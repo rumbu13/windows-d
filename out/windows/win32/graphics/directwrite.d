@@ -1180,19 +1180,22 @@ struct DWRITE_SCRIPT_ANALYSIS
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/dwrite/ns-dwrite-dwrite_line_breakpoint
 struct DWRITE_LINE_BREAKPOINT
 {
-    ubyte _bitfield93;
+    // Native bit field: breakConditionBefore: [0-1], breakConditionAfter: [2-3], isWhitespace: [4], isSoftHyphen: [5], padding: [6-7]
+    ubyte _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/dwrite/ns-dwrite-dwrite_shaping_text_properties
 struct DWRITE_SHAPING_TEXT_PROPERTIES
 {
-    ushort _bitfield94;
+    // Native bit field: isShapedAlone: [0], reserved1: [1], canBreakShapingAfter: [2], reserved: [3-15]
+    ushort _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/dwrite/ns-dwrite-dwrite_shaping_glyph_properties
 struct DWRITE_SHAPING_GLYPH_PROPERTIES
 {
-    ushort _bitfield95;
+    // Native bit field: justification: [0-3], isClusterStart: [4], isDiacritic: [5], isZeroWidthSpace: [6], reserved: [7-15]
+    ushort _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/dwrite/ns-dwrite-dwrite_glyph_run
@@ -1259,7 +1262,8 @@ struct DWRITE_CLUSTER_METRICS
 {
     float  width;
     ushort length;
-    ushort _bitfield96;
+    // Native bit field: canWrapLineAfter: [0], isWhitespace: [1], isNewline: [2], isSoftHyphen: [3], isRightToLeft: [4], padding: [5-15]
+    ushort _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/dwrite/ns-dwrite-dwrite_text_metrics
@@ -1408,7 +1412,8 @@ struct DWRITE_SCRIPT_PROPERTIES
     uint isoScriptNumber;
     uint clusterLookahead;
     uint justificationCharacter;
-    uint _bitfield97;
+    // Native bit field: restrictCaretToClusters: [0], usesWordDividers: [1], isDiscreteWriting: [2], isBlockWriting: [3], isDistributedWithinCluster: [4], isConnectedWriting: [5], isCursiveWriting: [6], reserved: [7-31]
+    uint _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/dwrite_1/ns-dwrite_1-dwrite_justification_opportunity
@@ -1417,7 +1422,8 @@ struct DWRITE_JUSTIFICATION_OPPORTUNITY
     float expansionMinimum;
     float expansionMaximum;
     float compressionMaximum;
-    uint  _bitfield98;
+    // Native bit field: expansionPriority: [0-7], compressionPriority: [8-15], allowResidualExpansion: [16], allowResidualCompression: [17], applyToLeadingEdge: [18], applyToTrailingEdge: [19], reserved: [20-31]
+    uint  _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/dwrite_2/ns-dwrite_2-dwrite_text_metrics1

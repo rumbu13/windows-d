@@ -2348,14 +2348,14 @@ enum : DEVPROPKEY
 enum DEVPROPKEY DEVPKEY_WiFi_InterfaceGuid = DEVPROPKEY(GUID("EF1167EB-CBFC-4341-A568-A7C91A68982C"), 2);
 enum uint DOT11EXT_PSK_MAX_LENGTH = 0x00000040U;
 enum uint WDIAG_IHV_WLAN_ID_FLAG_SECURITY_ENABLED = 0x00000001U;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* IHV_VERSION_FUNCTION_NAME = "Dot11ExtIhvGetVersionInfo";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     IHV_INIT_FUNCTION_NAME    = "Dot11ExtIhvInitService",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     IHV_INIT_VS_FUNCTION_NAME = "Dot11ExtIhvInitVirtualStation",
 }
 
@@ -3881,7 +3881,8 @@ struct DOT11_WFD_GROUP_ID
 
 struct DOT11_WFD_GO_INTENT
 {
-    ubyte _bitfield136;
+    // Native bit field: TieBreaker: [0], Intent: [1-7]
+    ubyte _bitfield0;
 }
 
 struct DOT11_WFD_CHANNEL
@@ -4243,7 +4244,8 @@ struct DOT11_SEND_GO_NEGOTIATION_CONFIRMATION_PARAMETERS
 
 struct DOT11_WFD_INVITATION_FLAGS
 {
-    ubyte _bitfield137;
+    // Native bit field: InvitationType: [0], Reserved: [1-7]
+    ubyte _bitfield0;
 }
 
 struct DOT11_SEND_INVITATION_REQUEST_PARAMETERS
@@ -4934,7 +4936,8 @@ struct ONEX_AUTH_PARAMS
     ONEX_VARIABLE_BLOB oneXConnProfile;
     ONEX_AUTH_IDENTITY authIdentity;
     uint               dwQuarantineState;
-    uint               _bitfield138;
+    // Native bit field: fSessionId: [0], fhUserToken: [1], fOnexUserProfile: [2], fIdentity: [3], fUserName: [4], fDomain: [5]
+    uint               _bitfield0;
     uint               dwSessionId;
     HANDLE             hUserToken;
     ONEX_VARIABLE_BLOB OneXUserProfile;
@@ -4952,7 +4955,8 @@ struct ONEX_EAP_ERROR
     GUID               rootCauseGuid;
     GUID               repairGuid;
     GUID               helpLinkGuid;
-    uint               _bitfield139;
+    // Native bit field: fRootCauseString: [0], fRepairString: [1]
+    uint               _bitfield0;
     ONEX_VARIABLE_BLOB RootCauseString;
     ONEX_VARIABLE_BLOB RepairString;
 }
@@ -4971,7 +4975,8 @@ struct ONEX_RESULT_UPDATE_DATA
     ONEX_STATUS        oneXStatus;
     ONEX_EAP_METHOD_BACKEND_SUPPORT BackendSupport;
     BOOL               fBackendEngaged;
-    uint               _bitfield140;
+    // Native bit field: fOneXAuthParams: [0], fEapError: [1]
+    uint               _bitfield0;
     ONEX_VARIABLE_BLOB authParams;
     ONEX_VARIABLE_BLOB eapError;
 }
@@ -4979,7 +4984,8 @@ struct ONEX_RESULT_UPDATE_DATA
 struct ONEX_USER_INFO
 {
     ONEX_AUTH_IDENTITY authIdentity;
-    uint               _bitfield141;
+    // Native bit field: fUserName: [0], fDomainName: [1]
+    uint               _bitfield0;
     ONEX_VARIABLE_BLOB UserName;
     ONEX_VARIABLE_BLOB DomainName;
 }

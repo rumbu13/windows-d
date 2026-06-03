@@ -127,17 +127,17 @@ enum : uint
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     WEBAUTHN_CTAP_TRANSPORT_USB_STRING        = "usb",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     WEBAUTHN_CTAP_TRANSPORT_NFC_STRING        = "nfc",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     WEBAUTHN_CTAP_TRANSPORT_BLE_STRING        = "ble",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     WEBAUTHN_CTAP_TRANSPORT_SMART_CARD_STRING = "smart-card",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     WEBAUTHN_CTAP_TRANSPORT_HYBRID_STRING     = "hybrid",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     WEBAUTHN_CTAP_TRANSPORT_INTERNAL_STRING   = "internal",
 }
 

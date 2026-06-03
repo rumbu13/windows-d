@@ -64,7 +64,8 @@ union PSAPI_WORKING_SET_BLOCK
     size_t Flags;
     struct
     {
-        size_t _bitfield465;
+        // Native bit field: Protection: [0-4], ShareCount: [5-7], Shared: [8], Reserved: [9-11], VirtualPage: [12-31]
+        size_t _bitfield0;
     }
 }
 
@@ -83,11 +84,13 @@ union PSAPI_WORKING_SET_EX_BLOCK
     {
         struct
         {
-            size_t _bitfield466;
+            // Native bit field: Valid: [0], ShareCount: [1-3], Win32Protection: [4-14], Shared: [15], Node: [16-21], Locked: [22], LargePage: [23], Reserved: [24-30], Bad: [31]
+            size_t _bitfield0;
         }
         struct Invalid
         {
-            size_t _bitfield467;
+            // Native bit field: Valid: [0], Reserved0: [1-14], Shared: [15], Reserved1: [16-30], Bad: [31]
+            size_t _bitfield1;
         }
     }
 }

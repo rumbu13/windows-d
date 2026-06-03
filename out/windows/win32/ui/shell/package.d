@@ -3990,7 +3990,7 @@ enum : GUID
     CLSID_MyDocuments = GUID("450d8fba-ad25-11d0-98a8-0800361b1103"),
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* STR_MYDOCS_CLSID = "{450D8FBA-AD25-11D0-98A8-0800361B1103}";
 
 enum : GUID
@@ -5176,11 +5176,11 @@ enum uint GCS_VALIDATE = 0x00000006U;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CMDSTR_NEWFOLDERA   = "NewFolder",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CMDSTR_VIEWLISTA    = "ViewList",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     CMDSTR_VIEWDETAILSA = "ViewDetails",
 }
 
@@ -5917,10 +5917,10 @@ enum : int
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     SZ_CONTENTTYPE_HTMLA = "text/html",
     SZ_CONTENTTYPE_HTMLW = "text/html",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     SZ_CONTENTTYPE_CDFA  = "application/x-cdf",
     SZ_CONTENTTYPE_CDFW  = "application/x-cdf",
     SZ_CONTENTTYPE_HTML  = "text/html",
@@ -7885,7 +7885,8 @@ struct CABINETSTATE
 align (1):
     ushort cLength;
     ushort nVersion;
-    int    _bitfield541;
+    // Native bit field: fFullPathTitle: [0], fSaveLocalView: [1], fNotShell: [2], fSimpleDefault: [3], fDontShowDescBar: [4], fNewWindowMode: [5], fShowCompColor: [6], fDontPrettyNames: [7], fAdminsCreateCommonGroups: [8], fUnusedFlags: [9-15]
+    int    _bitfield0;
     uint   fMenuEnumFilter;
 }
 
@@ -8007,6 +8008,7 @@ struct CSFV
 struct SHELLSTATEA
 {
 align (1):
+    // Native bit field: fShowAllObjects: [0], fShowExtensions: [1], fNoConfirmRecycle: [2], fShowSysFiles: [3], fShowCompColor: [4], fDoubleClickInWebView: [5], fDesktopHTML: [6], fWin95Classic: [7], fDontPrettyPath: [8], fShowAttribCol: [9], fMapNetDrvBtn: [10], fShowInfoTip: [11], fHideIcons: [12], fWebView: [13], fFilter: [14], fShowSuperHidden: [15], fNoNetCrawling: [16]
     int  _bitfield1;
     uint dwWin95Unused;
     uint uWin95Unused;
@@ -8014,6 +8016,7 @@ align (1):
     int  iSortDirection;
     uint version_;
     uint uNotUsed;
+    // Native bit field: fSepProcess: [0], fStartPanelOn: [1], fShowStartPage: [2], fAutoCheckSelect: [3], fIconsOnly: [4], fShowTypeOverlay: [5], fShowStatusBar: [6], fSpareFlags: [7-15]
     int  _bitfield2;
 }
 
@@ -8021,6 +8024,7 @@ align (1):
 struct SHELLSTATEW
 {
 align (1):
+    // Native bit field: fShowAllObjects: [0], fShowExtensions: [1], fNoConfirmRecycle: [2], fShowSysFiles: [3], fShowCompColor: [4], fDoubleClickInWebView: [5], fDesktopHTML: [6], fWin95Classic: [7], fDontPrettyPath: [8], fShowAttribCol: [9], fMapNetDrvBtn: [10], fShowInfoTip: [11], fHideIcons: [12], fWebView: [13], fFilter: [14], fShowSuperHidden: [15], fNoNetCrawling: [16]
     int  _bitfield1;
     uint dwWin95Unused;
     uint uWin95Unused;
@@ -8028,6 +8032,7 @@ align (1):
     int  iSortDirection;
     uint version_;
     uint uNotUsed;
+    // Native bit field: fSepProcess: [0], fStartPanelOn: [1], fShowStartPage: [2], fAutoCheckSelect: [3], fIconsOnly: [4], fShowTypeOverlay: [5], fShowStatusBar: [6], fSpareFlags: [7-15]
     int  _bitfield2;
 }
 
@@ -8035,7 +8040,8 @@ align (1):
 struct SHELLFLAGSTATE
 {
 align (1):
-    int _bitfield542;
+    // Native bit field: fShowAllObjects: [0], fShowExtensions: [1], fNoConfirmRecycle: [2], fShowSysFiles: [3], fShowCompColor: [4], fDoubleClickInWebView: [5], fDesktopHTML: [6], fWin95Classic: [7], fDontPrettyPath: [8], fShowAttribCol: [9], fMapNetDrvBtn: [10], fShowInfoTip: [11], fHideIcons: [12], fAutoCheckSelect: [13], fIconsOnly: [14], fRestFlags: [15]
+    int _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/shlobj/ns-shlobj-bandinfosfb
@@ -8724,7 +8730,8 @@ struct BASEBROWSERDATAXP
     IExpDispSupportXP _pautoEDS;
     IShellService     _pautoSS;
     int               _eSecureLockIcon;
-    uint              _bitfield543;
+    // Native bit field: _fCreatingViewWindow: [0]
+    uint              _bitfield0;
     uint              _uActivateState;
     ITEMIDLIST*       _pidlViewState;
     IOleCommandTarget _pctView;
@@ -8755,7 +8762,8 @@ struct BASEBROWSERDATALH
     IExpDispSupport   _pautoEDS;
     IShellService     _pautoSS;
     int               _eSecureLockIcon;
-    uint              _bitfield544;
+    // Native bit field: _fCreatingViewWindow: [0]
+    uint              _bitfield0;
     uint              _uActivateState;
     ITEMIDLIST*       _pidlViewState;
     IOleCommandTarget _pctView;

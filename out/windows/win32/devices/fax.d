@@ -680,13 +680,13 @@ enum : uint
 }
 
 enum uint MAX_NOTIFICATION_DATA = 0x00000040U;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* STI_ADD_DEVICE_BROADCAST_ACTION = "Arrival";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* STI_REMOVE_DEVICE_BROADCAST_ACTION = "Removal";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* STI_ADD_DEVICE_BROADCAST_STRING = "STI\\";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* STI_REMOVE_DEVICE_BROADCAST_STRING = "STI\\";
 
 enum : uint
@@ -806,21 +806,21 @@ enum const(wchar)* REGSTR_VAL_BAUDRATE = "BaudRate";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     STI_DEVICE_VALUE_TWAIN_NAME_A            = "TwainDS",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     STI_DEVICE_VALUE_ISIS_NAME_A             = "ISISDriverName",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     STI_DEVICE_VALUE_ICM_PROFILE_A           = "ICMProfile",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     STI_DEVICE_VALUE_DEFAULT_LAUNCHAPP_A     = "DefaultLaunchApp",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     STI_DEVICE_VALUE_TIMEOUT_A               = "PollTimeout",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     STI_DEVICE_VALUE_DISABLE_NOTIFICATIONS_A = "DisableNotifications",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* REGSTR_VAL_BAUDRATE_A = "BaudRate";
 
 enum : DEVPROPKEY

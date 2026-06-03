@@ -107,7 +107,7 @@ enum uint IOCTL_SCSI_BASE = 0x00000004U;
 enum GUID ScsiRawInterfaceGuid = GUID("53f56309-b6bf-11d0-94f2-00a0c91efb8b");
 enum GUID WmiScsiAddressGuid = GUID("53f5630f-b6bf-11d0-94f2-00a0c91efb8b");
 enum uint FILE_DEVICE_SCSI = 0x0000001bU;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* DD_SCSI_DEVICE_NAME = "\\Device\\ScsiPort";
 
 enum : uint
@@ -168,27 +168,27 @@ enum : uint
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     IOCTL_MINIPORT_SIGNATURE_SCSIDISK                  = "SCSIDISK",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     IOCTL_MINIPORT_SIGNATURE_HYBRDISK                  = "HYBRDISK",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     IOCTL_MINIPORT_SIGNATURE_DSM_NOTIFICATION          = "MPDSM   ",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     IOCTL_MINIPORT_SIGNATURE_DSM_GENERAL               = "MPDSMGEN",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     IOCTL_MINIPORT_SIGNATURE_FIRMWARE                  = "FIRMWARE",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     IOCTL_MINIPORT_SIGNATURE_QUERY_PROTOCOL            = "PROTOCOL",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     IOCTL_MINIPORT_SIGNATURE_SET_PROTOCOL              = "SETPROTO",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     IOCTL_MINIPORT_SIGNATURE_QUERY_TEMPERATURE         = "TEMPERAT",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     IOCTL_MINIPORT_SIGNATURE_SET_TEMPERATURE_THRESHOLD = "SETTEMPT",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     IOCTL_MINIPORT_SIGNATURE_QUERY_PHYSICAL_TOPOLOGY   = "TOPOLOGY",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     IOCTL_MINIPORT_SIGNATURE_ENDURANCE_INFO            = "ENDURINF",
 }
 
@@ -413,54 +413,54 @@ enum uint MAX_RADIUS_ADDRESS_LEN = 0x00000029U;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ISCSI_SECURITY_FLAG_TUNNEL_MODE_PREFERRED    = "0x00000040",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ISCSI_SECURITY_FLAG_TRANSPORT_MODE_PREFERRED = "0x00000020",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ISCSI_SECURITY_FLAG_PFS_ENABLED              = "0x00000010",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ISCSI_SECURITY_FLAG_AGGRESSIVE_MODE_ENABLED  = "0x00000008",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ISCSI_SECURITY_FLAG_MAIN_MODE_ENABLED        = "0x00000004",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ISCSI_SECURITY_FLAG_IKE_IPSEC_ENABLED        = "0x00000002",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ISCSI_SECURITY_FLAG_VALID                    = "0x00000001",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ISCSI_LOGIN_OPTIONS_HEADER_DIGEST         = "0x00000001",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ISCSI_LOGIN_OPTIONS_DATA_DIGEST           = "0x00000002",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ISCSI_LOGIN_OPTIONS_MAXIMUM_CONNECTIONS   = "0x00000004",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ISCSI_LOGIN_OPTIONS_DEFAULT_TIME_2_WAIT   = "0x00000008",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ISCSI_LOGIN_OPTIONS_DEFAULT_TIME_2_RETAIN = "0x00000010",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ISCSI_LOGIN_OPTIONS_USERNAME              = "0x00000020",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ISCSI_LOGIN_OPTIONS_PASSWORD              = "0x00000040",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ISCSI_LOGIN_OPTIONS_AUTH_TYPE             = "0x00000080",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* ID_IPV4_ADDR = "1";
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ID_FQDN      = "2",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ID_USER_FQDN = "3",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* ID_IPV6_ADDR = "5";
 
 enum : uint
@@ -1087,7 +1087,8 @@ struct NV_SEP_CACHE_PARAMETER
     {
         struct CacheFlags
         {
-            ubyte _bitfield170;
+            // Native bit field: WriteCacheEnabled: [0], WriteCacheChangeable: [1], WriteThroughIOSupported: [2], FlushCacheSupported: [3], ReservedBits: [4-7]
+            ubyte _bitfield0;
         }
         ubyte CacheFlagsSet;
     }
@@ -1158,7 +1159,8 @@ struct HYBRID_INFORMATION
     ulong          CacheSize;
     struct Attributes
     {
-        uint _bitfield171;
+        // Native bit field: WriteCacheChangeable: [0], WriteThroughIoSupported: [1], FlushCacheSupported: [2], Removable: [3], ReservedBits: [4-31]
+        uint _bitfield0;
     }
     struct Priorities
     {
@@ -1170,7 +1172,8 @@ struct HYBRID_INFORMATION
         uint    DirtyThresholdHigh;
         struct SupportedCommands
         {
-            uint _bitfield172;
+            // Native bit field: CacheDisable: [0], SetDirtyThreshold: [1], PriorityDemoteBySize: [2], PriorityChangeByLbaRange: [3], Evict: [4], ReservedBits: [5-31]
+            uint _bitfield1;
             uint MaxEvictCommands;
             uint MaxLbaRangeCountForEvict;
             uint MaxLbaRangeCountForChangeLba;
@@ -1373,7 +1376,8 @@ struct STORAGE_ENDURANCE_INFO
     uint      GroupId;
     struct Flags
     {
-        uint _bitfield173;
+        // Native bit field: Shared: [0], Reserved: [1-31]
+        uint _bitfield0;
     }
     uint      LifePercentage;
     ubyte[16] BytesReadCount;

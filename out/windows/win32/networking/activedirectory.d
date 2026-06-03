@@ -1048,7 +1048,7 @@ enum : uint
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     DS_SYNCED_EVENT_NAME   = "NTDSInitialSyncsCompleted",
     DS_SYNCED_EVENT_NAME_W = "NTDSInitialSyncsCompleted",
 }
@@ -1299,27 +1299,27 @@ enum : uint
     NTDSSITELINK_OPT_DISABLE_COMPRESSION = 0x00000004U,
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* GUID_USERS_CONTAINER_A = "a9d1ca15768811d1aded00c04fd8d5cd";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* GUID_COMPUTRS_CONTAINER_A = "aa312825768811d1aded00c04fd8d5cd";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* GUID_SYSTEMS_CONTAINER_A = "ab1d30f3768811d1aded00c04fd8d5cd";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* GUID_DOMAIN_CONTROLLERS_CONTAINER_A = "a361b2ffffd211d1aa4b00c04fd7d83a";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* GUID_INFRASTRUCTURE_CONTAINER_A = "2fbac1870ade11d297c400c04fd8d5cd";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* GUID_DELETED_OBJECTS_CONTAINER_A = "18e2ea80684f11d2b9aa00c04f79f805";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* GUID_LOSTANDFOUND_CONTAINER_A = "ab8153b7768811d1aded00c04fd8d5cd";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* GUID_FOREIGNSECURITYPRINCIPALS_CONTAINER_A = "22b70c67d56e4efb91e9300fca3dc1aa";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* GUID_PROGRAM_DATA_CONTAINER_A = "09460c08ae1e4a4ea0f64aee7daa1e5a";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* GUID_MICROSOFT_PROGRAM_DATA_CONTAINER_A = "f4be92a4c777485e878e9421d53087db";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* GUID_NTDS_QUOTAS_CONTAINER_A = "6227f0af1fc2410d8e3bb10615bb5b0f";
 enum const(wchar)* GUID_USERS_CONTAINER_W = "a9d1ca15768811d1aded00c04fd8d5cd";
 enum const(wchar)* GUID_COMPUTRS_CONTAINER_W = "aa312825768811d1aded00c04fd8d5cd";
@@ -1426,34 +1426,34 @@ enum uint DS_REPL_NBR_PARTIAL_ATTRIBUTE_SET = 0x40000000U;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ADAM_SCP_SITE_NAME_STRING   = "site:",
     ADAM_SCP_SITE_NAME_STRING_W = "site:",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ADAM_SCP_PARTITION_STRING   = "partition:",
     ADAM_SCP_PARTITION_STRING_W = "partition:",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ADAM_SCP_INSTANCE_NAME_STRING   = "instance:",
     ADAM_SCP_INSTANCE_NAME_STRING_W = "instance:",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ADAM_SCP_FSMO_STRING          = "fsmo:",
     ADAM_SCP_FSMO_STRING_W        = "fsmo:",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ADAM_SCP_FSMO_NAMING_STRING   = "naming",
     ADAM_SCP_FSMO_NAMING_STRING_W = "naming",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ADAM_SCP_FSMO_SCHEMA_STRING   = "schema",
     ADAM_SCP_FSMO_SCHEMA_STRING_W = "schema",
 }
@@ -1472,24 +1472,24 @@ enum uint FLAG_SERVER_OPTIONAL_FEATURE = 0x00000008U;
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     GUID_RECYCLE_BIN_OPTIONAL_FEATURE_A = "d8dc6d76d0ac5e44f3b9a7f9b6744f2a",
     GUID_RECYCLE_BIN_OPTIONAL_FEATURE_W = "d8dc6d76d0ac5e44f3b9a7f9b6744f2a",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     GUID_PRIVILEGED_ACCESS_MANAGEMENT_OPTIONAL_FEATURE_A = "73e843ece8cc4046b4ab07ffe4ab5bcd",
     GUID_PRIVILEGED_ACCESS_MANAGEMENT_OPTIONAL_FEATURE_W = "73e843ece8cc4046b4ab07ffe4ab5bcd",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     GUID_DATABASE_32K_PAGES_OPTIONAL_FEATURE_A    = "c62a9852731e4f75ae2473ae2775aab8",
     GUID_DATABASE_32K_PAGES_OPTIONAL_FEATURE_W    = "c62a9852731e4f75ae2473ae2775aab8",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     GUID_DATABASE_32K_PAGES_OPTIONAL_FEATURE_BYTE = "Æ*RsOu®$s®'uª¸",
 }
 

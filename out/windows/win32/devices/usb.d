@@ -1235,7 +1235,8 @@ union BM_REQUEST_TYPE
 {
     struct s
     {
-        ubyte _bitfield50;
+        // Native bit field: Recipient: [0-1], Reserved: [2-4], Type: [5-6], Dir: [7]
+        ubyte _bitfield0;
     }
     ubyte B;
 }
@@ -1275,7 +1276,8 @@ align (1):
     struct
     {
     align (1):
-        ushort _bitfield51;
+        // Native bit field: SelfPowered: [0], RemoteWakeup: [1], U1Enable: [2], U2Enable: [3], LtmEnable: [4], Reserved: [5-15]
+        ushort _bitfield0;
     }
 }
 
@@ -1286,7 +1288,8 @@ align (1):
     struct
     {
     align (1):
-        ushort _bitfield52;
+        // Native bit field: RemoteWakeupCapable: [0], RemoteWakeupEnabled: [1], Reserved: [2-15]
+        ushort _bitfield0;
     }
 }
 
@@ -1297,7 +1300,8 @@ align (1):
     struct
     {
     align (1):
-        ushort _bitfield53;
+        // Native bit field: Halt: [0], Reserved: [1-15]
+        ushort _bitfield0;
     }
 }
 
@@ -1361,7 +1365,8 @@ struct USB_DEVICE_CAPABILITY_USB20_EXTENSION_DESCRIPTOR
         struct
         {
         align (1):
-            uint _bitfield54;
+            // Native bit field: Reserved: [0], LPMCapable: [1], BESLAndAlternateHIRDSupported: [2], BaselineBESLValid: [3], DeepBESLValid: [4], Reserved1: [5-7], BaselineBESL: [8-11], DeepBESL: [12-15], Reserved2: [16-31]
+            uint _bitfield0;
         }
     }
 }
@@ -1380,7 +1385,8 @@ align (1):
         struct
         {
         align (1):
-            uint _bitfield55;
+            // Native bit field: Reserved1: [0], BatteryCharging: [1], USBPowerDelivery: [2], Provider: [3], Consumer: [4], ChargingPolicy: [5], TypeCCurrent: [6], Reserved2: [7], ACSupply: [8], Battery: [9], Other: [10], NumBatteries: [11-13], UsesVbus: [14], Reserved3: [15-31]
+            uint _bitfield0;
         }
     }
     ushort bmProviderPorts;
@@ -1404,7 +1410,8 @@ align (1):
         struct
         {
         align (1):
-            ushort _bitfield56;
+            // Native bit field: BatteryCharging: [0], USBPowerDelivery: [1], USBTypeCCurrent: [2], Reserved: [3-15]
+            ushort _bitfield0;
         }
     }
     ushort wMinVoltage;
@@ -1435,7 +1442,8 @@ align (1):
     struct
     {
     align (1):
-        uint _bitfield57;
+        // Native bit field: SublinkSpeedAttrID: [0-3], LaneSpeedExponent: [4-5], SublinkTypeMode: [6], SublinkTypeDir: [7], Reserved: [8-13], LinkProtocol: [14-15], LaneSpeedMantissa: [16-31]
+        uint _bitfield0;
     }
 }
 
@@ -1453,7 +1461,8 @@ align (1):
         struct
         {
         align (1):
-            uint _bitfield58;
+            // Native bit field: SublinkSpeedAttrCount: [0-4], SublinkSpeedIDCount: [5-8], Reserved: [9-31]
+            uint _bitfield0;
         }
     }
     union wFunctionalitySupport
@@ -1463,7 +1472,8 @@ align (1):
         struct
         {
         align (1):
-            ushort _bitfield59;
+            // Native bit field: SublinkSpeedAttrID: [0-3], Reserved: [4-7], MinRxLaneCount: [8-11], MinTxLaneCount: [12-15]
+            ushort _bitfield1;
         }
     }
     ushort wReserved;
@@ -1506,7 +1516,8 @@ align (1):
         struct
         {
         align (1):
-            ushort _bitfield60;
+            // Native bit field: VConnPowerNeededForFullFunctionality: [0-2], Reserved: [3-14], NoVconnPowerRequired: [15]
+            ushort _bitfield0;
         }
     }
     ubyte[32] bmConfigured;
@@ -1533,7 +1544,8 @@ struct USB_DEVICE_CAPABILITY_FIRMWARE_STATUS_DESCRIPTOR
         struct
         {
         align (1):
-            uint _bitfield61;
+            // Native bit field: GetFirmwareImageHashSupport: [0], DisallowFirmwareUpdateSupport: [1], Reserved: [2-31]
+            uint _bitfield0;
         }
     }
 }
@@ -1619,11 +1631,13 @@ align (1):
         ubyte AsUchar;
         struct Bulk
         {
-            ubyte _bitfield62;
+            // Native bit field: MaxStreams: [0-4], Reserved1: [5-7]
+            ubyte _bitfield0;
         }
         struct Isochronous
         {
-            ubyte _bitfield63;
+            // Native bit field: Mult: [0-1], Reserved2: [2-6], SspCompanion: [7]
+            ubyte _bitfield1;
         }
     }
     ushort wBytesPerInterval;
@@ -1680,7 +1694,8 @@ align (1):
     struct
     {
     align (1):
-        ushort _bitfield64;
+        // Native bit field: LocalPowerLost: [0], OverCurrent: [1], Reserved: [2-15]
+        ushort _bitfield0;
     }
 }
 
@@ -1691,7 +1706,8 @@ align (1):
     struct
     {
     align (1):
-        ushort _bitfield65;
+        // Native bit field: LocalPowerChange: [0], OverCurrentChange: [1], Reserved: [2-15]
+        ushort _bitfield0;
     }
 }
 
@@ -1713,7 +1729,8 @@ align (1):
     struct
     {
     align (1):
-        ushort _bitfield66;
+        // Native bit field: CurrentConnectStatus: [0], PortEnabledDisabled: [1], Suspend: [2], OverCurrent: [3], Reset: [4], L1: [5], Reserved0: [6-7], PortPower: [8], LowSpeedDeviceAttached: [9], HighSpeedDeviceAttached: [10], PortTestMode: [11], PortIndicatorControl: [12], Reserved1: [13-15]
+        ushort _bitfield0;
     }
 }
 
@@ -1724,7 +1741,8 @@ align (1):
     struct
     {
     align (1):
-        ushort _bitfield67;
+        // Native bit field: ConnectStatusChange: [0], PortEnableDisableChange: [1], SuspendChange: [2], OverCurrentIndicatorChange: [3], ResetChange: [4], Reserved2: [5-15]
+        ushort _bitfield0;
     }
 }
 
@@ -1735,7 +1753,8 @@ align (1):
     struct
     {
     align (1):
-        ushort _bitfield68;
+        // Native bit field: CurrentConnectStatus: [0], PortEnabledDisabled: [1], Reserved0: [2], OverCurrent: [3], Reset: [4], PortLinkState: [5-8], PortPower: [9], NegotiatedDeviceSpeed: [10-12], Reserved1: [13-15]
+        ushort _bitfield0;
     }
 }
 
@@ -1746,7 +1765,8 @@ align (1):
     struct
     {
     align (1):
-        ushort _bitfield69;
+        // Native bit field: ConnectStatusChange: [0], Reserved2: [1-2], OverCurrentIndicatorChange: [3], ResetChange: [4], BHResetChange: [5], PortLinkStateChange: [6], PortConfigErrorChange: [7], Reserved3: [8-15]
+        ushort _bitfield0;
     }
 }
 
@@ -1773,7 +1793,8 @@ align (1):
     struct
     {
     align (1):
-        uint _bitfield70;
+        // Native bit field: RxSublinkSpeedID: [0-3], TxSublinkSpeedID: [4-7], RxLaneCount: [8-11], TxLaneCount: [12-15], Reserved: [16-31]
+        uint _bitfield0;
     }
 }
 
@@ -1804,7 +1825,8 @@ union USB_HUB_30_PORT_REMOTE_WAKE_MASK
     ubyte AsUchar8;
     struct
     {
-        ubyte _bitfield71;
+        // Native bit field: ConnectRemoteWakeEnable: [0], DisconnectRemoteWakeEnable: [1], OverCurrentRemoteWakeEnable: [2], Reserved0: [3-7]
+        ubyte _bitfield0;
     }
 }
 
@@ -1813,7 +1835,8 @@ union USB_FUNCTION_SUSPEND_OPTIONS
     ubyte AsUchar;
     struct
     {
-        ubyte _bitfield72;
+        // Native bit field: PowerState: [0], RemoteWakeEnabled: [1], Reserved: [2-7]
+        ubyte _bitfield0;
     }
 }
 
@@ -1883,7 +1906,9 @@ align (1):
     ushort EndpointAddress;
     uint   ResourceId;
     USBD_ENDPOINT_OFFLOAD_MODE Mode;
+    // Native bit field: RootHubPortNumber: [0-7], RouteString: [8-27], Speed: [28-31]
     uint   _bitfield1;
+    // Native bit field: UsbDeviceAddress: [0-7], SlotId: [8-15], MultiTT: [16], LSOrFSDeviceConnectedToTTHub: [17], Reserved0: [18-31]
     uint   _bitfield2;
     long   TransferSegmentLA;
     void*  TransferSegmentVA;
@@ -1903,7 +1928,9 @@ align (1):
     ushort EndpointAddress;
     uint   ResourceId;
     USBD_ENDPOINT_OFFLOAD_MODE Mode;
+    // Native bit field: RootHubPortNumber: [0-7], RouteString: [8-27], Speed: [28-31]
     uint   _bitfield1;
+    // Native bit field: UsbDeviceAddress: [0-7], SlotId: [8-15], MultiTT: [16], LSOrFSDeviceConnectedToTTHub: [17], Reserved0: [18-31]
     uint   _bitfield2;
     long   TransferSegmentLA;
     void*  TransferSegmentVA;
@@ -2112,7 +2139,8 @@ struct _URB_OS_FEATURE_DESCRIPTOR_REQUEST
     void*         TransferBufferMDL;
     URB*          UrbLink;
     _URB_HCD_AREA hca;
-    ubyte         _bitfield73;
+    // Native bit field: Recipient: [0-4], Reserved1: [5-7]
+    ubyte         _bitfield0;
     ubyte         Reserved2;
     ubyte         InterfaceNumber;
     ubyte         MS_PageIndex;
@@ -2732,7 +2760,8 @@ align (1):
 struct USB_HUB_CAPABILITIES
 {
 align (1):
-    uint _bitfield74;
+    // Native bit field: HubIs2xCapable: [0]
+    uint _bitfield0;
 }
 
 struct USB_NODE_CONNECTION_ATTRIBUTES
@@ -2764,7 +2793,8 @@ align (1):
     struct
     {
     align (1):
-        uint _bitfield75;
+        // Native bit field: HubIsHighSpeedCapable: [0], HubIsHighSpeed: [1], HubIsMultiTtCapable: [2], HubIsMultiTt: [3], HubIsRoot: [4], HubIsArmedWakeOnConnect: [5], HubIsBusPowered: [6], ReservedMBZ: [7-31]
+        uint _bitfield0;
     }
 }
 
@@ -2914,7 +2944,8 @@ align (1):
 struct USB_DEVICE_STATE
 {
 align (1):
-    uint _bitfield76;
+    // Native bit field: DeviceConnected: [0], DeviceStarted: [1]
+    uint _bitfield0;
 }
 
 struct USB_HUB_PORT_INFORMATION
@@ -3051,7 +3082,8 @@ align (1):
     struct
     {
     align (1):
-        uint _bitfield77;
+        // Native bit field: PortIsUserConnectable: [0], PortIsDebugCapable: [1], PortHasMultipleCompanions: [2], PortConnectorIsTypeC: [3], ReservedMBZ: [4-31]
+        uint _bitfield0;
     }
 }
 
@@ -3073,7 +3105,8 @@ align (1):
     struct
     {
     align (1):
-        uint _bitfield78;
+        // Native bit field: Usb110: [0], Usb200: [1], Usb300: [2], ReservedMBZ: [3-31]
+        uint _bitfield0;
     }
 }
 
@@ -3084,7 +3117,8 @@ align (1):
     struct
     {
     align (1):
-        uint _bitfield79;
+        // Native bit field: DeviceIsOperatingAtSuperSpeedOrHigher: [0], DeviceIsSuperSpeedCapableOrHigher: [1], DeviceIsOperatingAtSuperSpeedPlusOrHigher: [2], DeviceIsSuperSpeedPlusCapableOrHigher: [3], ReservedMBZ: [4-31]
+        uint _bitfield0;
     }
 }
 

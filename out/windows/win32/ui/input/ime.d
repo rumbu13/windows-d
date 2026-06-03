@@ -1472,7 +1472,8 @@ align (1):
     }
     uint   WDD_nReserve1;
     ushort nPos;
-    ushort _bitfield540;
+    // Native bit field: fPhrase: [0], fAutoCorrect: [1], fNumericPrefix: [2], fUserRegistered: [3], fUnknown: [4], fRecentUsed: [5], Anonymous3: [6-15]
+    ushort _bitfield0;
     void*  pReserved;
 }
 

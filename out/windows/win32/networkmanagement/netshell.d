@@ -90,7 +90,7 @@ enum uint ERROR_HELPER_ALREADY_REGISTERED = 0x00003aaaU;
 enum uint ERROR_CONTEXT_ALREADY_REGISTERED = 0x00003aabU;
 enum uint ERROR_PARSING_FAILURE = 0x00003aacU;
 enum uint NETSH_ERROR_END = 0x00003aabU;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* NS_GET_EVENT_IDS_FN_NAME = "GetEventIds";
 enum uint MAX_NAME_LEN = 0x00000030U;
 enum uint NETSH_VERSION_50 = 0x00005000U;
@@ -104,7 +104,7 @@ enum : uint
 }
 
 enum uint DEFAULT_CONTEXT_PRIORITY = 0x00000064U;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* GET_RESOURCE_STRING_FN_NAME = "GetResourceString";
 
 // Callbacks

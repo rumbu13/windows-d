@@ -1598,9 +1598,9 @@ enum : const(wchar)*
     wszOCSPREVPROP_ALLOWCAONLYCRLS   = "AllowCAOnlyCrls",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szBACKUPANNOTATION = "Cert Server Backup Interface";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szRESTOREANNOTATION = "Cert Server Restore Interface";
 enum uint CSBACKUP_TYPE_MASK = 0x00000003U;
 
@@ -2146,7 +2146,7 @@ enum const(wchar)* wszPFXFILENAMEEXT = ".p12";
 enum const(wchar)* wszDATFILENAMEEXT = ".dat";
 enum const(wchar)* wszLOGFILENAMEEXT = ".log";
 enum const(wchar)* wszDBFILENAMEEXT = ".edb";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szDBBASENAMEPARM = "edb";
 enum const(wchar)* wszLOGPATH = "CertLog";
 
@@ -2334,7 +2334,7 @@ enum const(wchar)* wszCNGPUBLICKEYALGORITHM = "CNGPublicKeyAlgorithm";
 enum const(wchar)* wszCNGHASHALGORITHM = "CNGHashAlgorithm";
 enum const(wchar)* wszCNGENCRYPTIONALGORITHM = "CNGEncryptionAlgorithm";
 enum const(wchar)* wszREGALTERNATESIGNATUREALGORITHM = "AlternateSignatureAlgorithm";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szNAMESEPARATORDEFAULT = "
 ";
 
@@ -2930,7 +2930,7 @@ enum : const(wchar)*
     wszPROPUPN       = "upn",
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szPROPASNTAG = "{asn}";
 enum const(wchar)* wszPROPCRITICALTAG = "{critical}";
 

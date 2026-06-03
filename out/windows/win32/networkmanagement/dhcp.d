@@ -815,7 +815,7 @@ enum : const(wchar)*
 {
     DHCP_CALLOUT_LIST_KEY    = "System\\CurrentControlSet\\Services\\DHCPServer\\Parameters",
     DHCP_CALLOUT_LIST_VALUE  = "CalloutDlls",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     DHCP_CALLOUT_ENTRY_POINT = "DhcpServerCalloutEntry",
 }
 

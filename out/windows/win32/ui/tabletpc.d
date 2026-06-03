@@ -2044,13 +2044,15 @@ struct InkRecoGuide
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/tabflicks/ns-tabflicks-flick_point
 struct FLICK_POINT
 {
-    int _bitfield545;
+    // Native bit field: x: [0-15], y: [16-31]
+    int _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/tabflicks/ns-tabflicks-flick_data
 struct FLICK_DATA
 {
-    int _bitfield546;
+    // Native bit field: iFlickActionCommandCode: [0-4], iFlickDirection: [5-7], fControlModifier: [8], fMenuModifier: [9], fAltGRModifier: [10], fWinModifier: [11], fShiftModifier: [12], iReserved: [13-14], fOnInkingSurface: [15], iActionArgument: [16-31]
+    int _bitfield0;
 }
 
 // Microsoft documentation: https://learn.microsoft.com/windows/win32/api/inked/ns-inked-iec_strokeinfo

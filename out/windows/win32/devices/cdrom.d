@@ -247,6 +247,7 @@ enum uint CDROM_IN_EXCLUSIVE_MODE = 0x00000001U;
 
 struct CDROM_READ_TOC_EX
 {
+    // Native bit field: Format: [0-3], Reserved1: [4-6], Msf: [7]
     ubyte _bitfield0;
     ubyte SessionTrack;
     ubyte Reserved2;
@@ -256,7 +257,8 @@ struct CDROM_READ_TOC_EX
 struct TRACK_DATA
 {
     ubyte    Reserved;
-    ubyte    _bitfield1;
+    // Native bit field: Control: [0-3], Adr: [4-7]
+    ubyte    _bitfield0;
     ubyte    TrackNumber;
     ubyte    Reserved1;
     ubyte[4] Address;
@@ -281,7 +283,8 @@ struct CDROM_TOC_SESSION_DATA
 struct CDROM_TOC_FULL_TOC_DATA_BLOCK
 {
     ubyte    SessionNumber;
-    ubyte    _bitfield2;
+    // Native bit field: Control: [0-3], Adr: [4-7]
+    ubyte    _bitfield0;
     ubyte    Reserved1;
     ubyte    Point;
     ubyte[3] MsfExtra;
@@ -307,8 +310,11 @@ struct CDROM_TOC_PMA_DATA
 
 struct CDROM_TOC_ATIP_DATA_BLOCK
 {
+    // Native bit field: CdrwReferenceSpeed: [0-2], Reserved3: [3], WritePower: [4-6], True1: [7]
     ubyte    _bitfield1;
+    // Native bit field: Reserved4: [0-5], UnrestrictedUse: [6], Reserved5: [7]
     ubyte    _bitfield2;
+    // Native bit field: A3Valid: [0], A2Valid: [1], A1Valid: [2], DiscSubType: [3-5], IsCdrw: [6], True2: [7]
     ubyte    _bitfield3;
     ubyte    Reserved7;
     ubyte[3] LeadInMsf;
@@ -334,8 +340,10 @@ struct CDROM_TOC_ATIP_DATA
 struct CDROM_TOC_CD_TEXT_DATA_BLOCK
 {
     ubyte    PackType;
+    // Native bit field: TrackNumber: [0-6], ExtensionFlag: [7]
     ubyte    _bitfield1;
     ubyte    SequenceNumber;
+    // Native bit field: CharacterPosition: [0-3], BlockNumber: [4-6], Unicode: [7]
     ubyte    _bitfield2;
     union
     {
@@ -392,7 +400,8 @@ struct SUB_Q_CURRENT_POSITION
 {
     SUB_Q_HEADER Header;
     ubyte        FormatCode;
-    ubyte        _bitfield3;
+    // Native bit field: Control: [0-3], ADR: [4-7]
+    ubyte        _bitfield0;
     ubyte        TrackNumber;
     ubyte        IndexNumber;
     ubyte[4]     AbsoluteAddress;
@@ -404,7 +413,8 @@ struct SUB_Q_MEDIA_CATALOG_NUMBER
     SUB_Q_HEADER Header;
     ubyte        FormatCode;
     ubyte[3]     Reserved;
-    ubyte        _bitfield4;
+    // Native bit field: Reserved1: [0-6], Mcval: [7]
+    ubyte        _bitfield0;
     ubyte[15]    MediaCatalog;
 }
 
@@ -415,7 +425,8 @@ struct SUB_Q_TRACK_ISRC
     ubyte        Reserved0;
     ubyte        Track;
     ubyte        Reserved1;
-    ubyte        _bitfield5;
+    // Native bit field: Reserved2: [0-6], Tcval: [7]
+    ubyte        _bitfield0;
     ubyte[15]    TrackIsrc;
 }
 
@@ -509,7 +520,8 @@ struct CDROM_WRITE_SPEED_REQUEST
 struct CDROM_PERFORMANCE_HEADER
 {
     ubyte[4] DataLength;
-    ubyte    _bitfield6;
+    // Native bit field: Except: [0], Write: [1], Reserved1: [2-7]
+    ubyte    _bitfield0;
     ubyte[3] Reserved2;
     ubyte[1] Data; // Flexible array
 }
@@ -530,7 +542,8 @@ struct CDROM_EXCEPTION_PERFORMANCE_DESCRIPTOR
 
 struct CDROM_WRITE_SPEED_DESCRIPTOR
 {
-    ubyte    _bitfield7;
+    // Native bit field: MixedReadWrite: [0], Exact: [1], Reserved1: [2], WriteRotationControl: [3-4], Reserved2: [5-7]
+    ubyte    _bitfield0;
     ubyte[3] Reserved3;
     ubyte[4] EndLba;
     ubyte[4] ReadSpeed;

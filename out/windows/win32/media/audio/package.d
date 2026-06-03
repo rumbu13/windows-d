@@ -1079,13 +1079,13 @@ enum : int
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ACMHELPMSGSTRINGA      = "acmchoose_help",
     ACMHELPMSGSTRINGW      = "acmchoose_help",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ACMHELPMSGCONTEXTMENUA = "acmchoose_contextmenu",
     ACMHELPMSGCONTEXTMENUW = "acmchoose_contextmenu",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     ACMHELPMSGCONTEXTHELPA = "acmchoose_contexthelp",
     ACMHELPMSGCONTEXTHELPW = "acmchoose_contexthelp",
     ACMHELPMSGSTRING       = "acmchoose_help",

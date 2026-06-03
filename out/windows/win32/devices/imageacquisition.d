@@ -1673,7 +1673,7 @@ enum : uint
     ESC_TWAIN_PRIVATE_SUPPORTED_CAPS = 0x000007d2U,
 }
 
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* WIAU_DEBUG_TSTR = "S";
 enum uint g_dwDebugFlags = 0x00000000U;
 enum uint WIA_WSD_MANUFACTURER = 0x00009802U;

@@ -10996,7 +10996,8 @@ struct DXVABufferInfo
 
 struct DXVA_ExtendedFormat
 {
-    uint _bitfield108;
+    // Native bit field: SampleFormat: [0-7], VideoChromaSubsampling: [8-11], NominalRange: [12-14], VideoTransferMatrix: [15-17], VideoLighting: [18-21], VideoPrimaries: [22-26], VideoTransferFunction: [27-31]
+    uint _bitfield0;
 }
 
 struct DXVA_Frequency
@@ -11266,7 +11267,8 @@ struct DXVAHD_BLT_STATE_OUTPUT_COLOR_SPACE_DATA
     {
         struct
         {
-            uint _bitfield109;
+            // Native bit field: Usage: [0], RGB_Range: [1], YCbCr_Matrix: [2], YCbCr_xvYCC: [3], Reserved: [4-31]
+            uint _bitfield0;
         }
         uint Value;
     }
@@ -11313,7 +11315,8 @@ struct DXVAHD_STREAM_STATE_INPUT_COLOR_SPACE_DATA
     {
         struct
         {
-            uint _bitfield110;
+            // Native bit field: Type: [0], RGB_Range: [1], YCbCr_Matrix: [2], YCbCr_xvYCC: [3], Reserved: [4-31]
+            uint _bitfield0;
         }
         uint Value;
     }
@@ -11493,7 +11496,8 @@ struct DXVA2_ExtendedFormat
     {
         struct
         {
-            uint _bitfield111;
+            // Native bit field: SampleFormat: [0-7], VideoChromaSubsampling: [8-11], NominalRange: [12-14], VideoTransferMatrix: [15-17], VideoLighting: [18-21], VideoPrimaries: [22-26], VideoTransferFunction: [27-31]
+            uint _bitfield0;
         }
         uint value;
     }

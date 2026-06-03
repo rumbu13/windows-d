@@ -535,15 +535,15 @@ enum const(wchar)* SE_CREATE_SYMBOLIC_LINK_NAME = "SeCreateSymbolicLinkPrivilege
 enum const(wchar)* SE_DELEGATE_SESSION_USER_IMPERSONATE_NAME = "SeDelegateSessionUserImpersonatePrivilege";
 enum const(wchar)* wszCERTENROLLSHAREPATH = "CertSrv\\CertEnroll";
 enum uint cwcHRESULTSTRING = 0x00000028U;
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szLBRACE = "{";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szRBRACE = "}";
 enum const(wchar)* wszLBRACE = "{";
 enum const(wchar)* wszRBRACE = "}";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szLPAREN = "(";
-//CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+// Native encoding: ansi
 enum const(wchar)* szRPAREN = ")";
 enum const(wchar)* wszLPAREN = "(";
 enum const(wchar)* wszRPAREN = ")";

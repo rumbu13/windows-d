@@ -1034,17 +1034,17 @@ enum : uint
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     STR_ADDR_FMTA       = "(%02x:%02x:%02x:%02x:%02x:%02x)",
     STR_ADDR_FMTW       = "(%02x:%02x:%02x:%02x:%02x:%02x)",
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     STR_ADDR_SHORT_FMTA = "%04x%08x",
     STR_ADDR_SHORT_FMTW = "%04x%08x",
 }
 
 enum : const(wchar)*
 {
-    //CONST ATTR: NativeEncodingAttribute : CustomAttributeSig([FixedArgSig(ElementSig(ansi))], [])
+    // Native encoding: ansi
     STR_USBHCI_CLASS_HARDWAREIDA = "USB\\Class_E0&SubClass_01&Prot_01",
     STR_USBHCI_CLASS_HARDWAREIDW = "USB\\Class_E0&SubClass_01&Prot_01",
 }
